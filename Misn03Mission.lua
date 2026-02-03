@@ -59,6 +59,12 @@ local M = {
     speach2 = false,
     second_warning = false,
     last_warning = false,
+    
+    -- New Bools for Enhancements
+    solar1_warned = false,
+    solar2_warned = false,
+    patrols_spawned = false,
+    apc_arrived_at_base = false,
 
     -- Floats
     next_second = 0.0,
@@ -199,14 +205,50 @@ function Update()
         Goto(M.avrecycler, "recycle_point")
         ClearObjectives()
         AddObjective("misn0301.otf", "white")
-        M.second_wave_time = GetTime() + 200.0
-        M.third_wave_time = GetTime() + 310.0
-        M.fourth_wave_time = GetTime() + 430.0
+        
+        -- Randomized Attack Timers
+        M.second_wave_time = GetTime() + 200.0 + math.random(-10, 20)
+        M.third_wave_time = GetTime() + 310.0 + math.random(-15, 30)
+        M.fourth_wave_time = GetTime() + 430.0 + math.random(-20, 40) -- APC attack randomized
+        
         M.apc_spawn_time = GetTime() + 530.0
         M.support_time = GetTime() + 430.0
         M.next_second = GetTime() + 1.0
         M.unit_check = GetTime() + 60.0
         M.start_done = true
+    end
+
+    -- Dynamic Health Warnings
+    if IsAlive(M.solar1) and not M.solar1_warned then
+        if GetHealth(M.solar1) < 0.4 then
+            -- Using a generic warning sound or reusing a mission sound
+            AudioMessage("misn0302.wav") 
+            AddObjective("misn0301.otf", "red")
+            M.solar1_warned = true
+        end
+    end
+
+    if IsAlive(M.solar2) and not M.solar2_warned then
+        if GetHealth(M.solar2) < 0.4 then
+            AudioMessage("misn0303.wav")
+            AddObjective("misn0301.otf", "red")
+            M.solar2_warned = true
+        end
+    end
+
+    -- Foot Soldier Patrols
+    if not M.patrols_spawned and M.start_done then
+        -- Spawn some soldiers near the base
+        local p1 = BuildObject("aspilo", 1, "spawn_scrap2")
+        local p2 = BuildObject("aspilo", 1, "spawn_scrap2")
+        local p3 = BuildObject("aspilo", 1, "spawn_scrap2")
+        
+        -- Send them to patrol around the solar arrays
+        Patrol(p1, "base_patrol_1", 1) -- Assuming a path exists, otherwise use Defend
+        Defend(p2, M.solar1)
+        Defend(p3, M.solar2)
+        
+        M.patrols_spawned = true
     end
 
     if IsAlive(M.solar1) and not M.show_tank_attack then
@@ -264,9 +306,14 @@ function Update()
         end
     end
 
+    -- Randomized Enemy Spawns for Wave 2
     if not M.second_wave_done and M.second_wave_time < GetTime() then
-        M.wave2_1 = BuildObject("svfigh", 2, "spawn_scrap1")
-        M.wave2_2 = BuildObject("svfigh", 2, "spawn_scrap1")
+        -- Randomize unit types
+        local type1 = (math.random() > 0.5) and "svfigh" or "svltnk"
+        local type2 = (math.random() > 0.5) and "svfigh" or "svltnk"
+
+        M.wave2_1 = BuildObject(type1, 2, "spawn_scrap1")
+        M.wave2_2 = BuildObject(type2, 2, "spawn_scrap1")
         
         Attack(M.wave2_1, M.solar1)
         Goto(M.wave2_2, M.solar1)
@@ -408,10 +455,24 @@ function Update()
     if M.start_movie and not M.movie_over and (CameraCancelled() or M.movie_time < GetTime()) then
         CameraFinish()
         StopAudioMessage(M.audmsg)
-        M.rescue1 = BuildObject("avapc", 1, "apc1_spawn")
-        M.rescue2 = BuildObject("avapc", 1, "apc2_spawn")
+        
+        -- MODIFIED: Spawn APCs at reinforcement point (Launch Pad area) instead of inside base
+        -- This simulates a convoy arriving
+        M.rescue1 = BuildObject("avapc", 1, "spawn_scrap2")
+        M.rescue2 = BuildObject("avapc", 1, "spawn_scrap2")
+        
+        -- Spawn escorts for the convoy
+        local escort1 = BuildObject("avtank", 1, "spawn_scrap2")
+        local escort2 = BuildObject("avfigh", 1, "spawn_scrap2")
+        Follow(escort1, M.rescue1)
+        Follow(escort2, M.rescue2)
 
-        M.pull_out_time = GetTime() + 28.0
+        -- Order them to the base to pick up passengers
+        Goto(M.rescue1, "apc1_spawn")
+        Goto(M.rescue2, "apc2_spawn")
+
+        -- Delay the pull out time until they actually arrive
+        M.pull_out_time = 999999.0 
         M.turret_move_time = GetTime() + 30.0
 
         SetObjectiveOff(M.solar1)
@@ -447,6 +508,15 @@ function Update()
         if IsAlive(M.guy4) then RemoveObject(M.guy4) end
 
         M.remove_props = true
+    end
+
+    -- NEW: Check if APCs have arrived at base to "load up"
+    if M.movie_over and not M.apc_arrived_at_base then
+        if GetDistance(M.rescue1, "apc1_spawn") < 50.0 and GetDistance(M.rescue2, "apc2_spawn") < 50.0 then
+            M.apc_arrived_at_base = true
+            -- Set timer to leave after loading (5 seconds)
+            M.pull_out_time = GetTime() + 5.0 
+        end
     end
 
     if M.remove_props then
