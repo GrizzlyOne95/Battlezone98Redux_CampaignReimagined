@@ -71,6 +71,7 @@ end
 -- Update function: Called every frame
 function Update()
     local player = GetPlayerHandle()
+    if not player then return end
     
     -- Initialization
     if not start_done then
@@ -78,12 +79,23 @@ function Update()
         aud = AudioMessage("misn0101.wav")
         target = GetHandle("svturr0_turrettank")
         target2 = GetHandle("svturr1_turrettank")
+        if IsValid(get_in_me) then
+            SetCritical(get_in_me, true)
+            SetObjectiveOn(get_in_me)
+            SetObjectiveName(get_in_me, "Training Craft")
+        end
         start_done = true
         repeat_time = GetTime() + 30.0
         ClearObjectives()
         AddObjective("misn0101.otf", "white")
         AddObjective("misn0103.otf", "white")
         num_reps = 0
+    end
+
+    -- Fail if the training ship is destroyed (or player dies in it)
+    if start_done and not IsAlive(get_in_me) and not lost then
+        lost = true
+        FailMission(GetTime() + 5.0, "misn01l1.des")
     end
 
     -- Repeat instructions logic
@@ -120,6 +132,7 @@ function Update()
 
     -- Path 1 Logic
     if start_path1 and not start_path2 and player == get_in_me then
+        SetObjectiveOff(get_in_me)
         -- are we out of range of current point?
         local current_pt = GetPosition(p1, on_point)
         if current_pt then

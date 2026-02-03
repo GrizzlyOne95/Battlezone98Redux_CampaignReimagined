@@ -1,0 +1,90 @@
+Battlezone98ReduxLuaFunctions.txt documents all valid Lua 5.1 functions for Battlezone. 
+
+All files ending in .ODF must be 8 characters or less! This also applies to files directly used in Lua scripts such as WAV/TRN/BZNe etc
+
+There is a DLL injection method we've gotten working that does offer some additional custom functions. If any are used, I need to be notified so we can add in the proper Lua hook code. These are in the "exu-functions.txt" file. RequireFix.lua is the method we use to load the DLL into the game. 
+
+BZFILE is a DLL injection I/O method. See bzfile.txt for documentation. 
+
+ai* Modules are custom Lua modules designed to manage AI systems. Feel free to use them anytime. (aiSpecial, aiRecProd, aiFacProd, aiBuildOS)
+
+All code written for this project must keep in mind this is for Lua 5.1 only, with no external libraries available such as IO, OS, DEBUG, etc. 
+
+Remember to use "end" for terminating functions, not "}"
+
+For other unit types, they have a different class label, for example howitzers are "howitzer", APC's are "apc", walkers are "walker", turrets are "turrettank", minelayers are "minelayer" etc. 
+
+Clarifications: bombers aren't air units, they are sluggish but fast units with long range weapons but are ground based. Rocket tanks use guided missiles vs standard cannons and are also ground based. 
+
+Defend2 behavior: units follow the designated defend target at slow speed, and will chase enemies until the enemy is dead. They won't refollow the player if the player goes beyond a certain distance. Most passive defensive option. 
+
+Follow behavior: Units stick within 150M or so of the player, will engage closest target even if another target gets closer after they start attacking. The units will refollow the player if the player goes beyond the range threshold on max speed. 
+
+Formation behavior: Tightest and most defensive follow behavior. Units cluster behind and to the side of the player, firing at the closest enemy and will always switch to the nearest enemy as they move (rather than picking one and shooting at it until its dead or out of range). Units stick close and often won't engage unless an enemy directly threatens the player. 
+
+You can not use goto / ::continue::
+
+iterator ObjectiveObjects () is broken as an iterator and only returns the first result (this is a engine bug). (Don't use this function)
+Some functions always return a string with the same amount of characters in it, regardless of actual contents. Even though "avtank" for example is only 6 characters, there are two more empty characters at the end of the string. These are not visible when printed to the console, but are still considered when compared to other values.
+In Lua, the escape character for a null character is \0.
+There are ways around this, like by using string.gmatch.
+Known functions with this error: GetOdf(), GetPilotClass(), GetWeaponClass(), GetClassSig() and GetBase().
+
+Keep in mind, "turrets" are deployable turret units. But they have class label "turrettank". Gun Towers are buildings that need power and don't move. But they have classlabel "turret".
+
+DeleteObject() makes all properties of that object inaccessible the moment a unit is flagged as destroyed.
+The only exception is the handle and objective name.
+
+DisplayMessage and /Command only work in Multiplayer. They do NOT work in single player/offline. For debugging purposes, we should always use print. Status updates are ok to use DisplayMessage for in mulitplayer.
+
+Below is all applicable only to Multiplayer scripting. 
+1) MakeExplosion is 100% local, this is actually a good thing as it enables things like environmental effects on vehicles and the like (such as splashing water, rain pelting, moving through dense fog, visual speed lines, etc). Even if you use an explosion which causes damage, it will do no damage to your opponent, it will only damage your stuff.
+
+2) SetVelocity is fully synced. You can assign a key to multiply your travel velocity by like 12 and your opponent will see it proper. This means you can totally make a DM map with speed/jump pads and teleporters, among other things.
+
+3) Building objects which all players can see via lua only appears to work for the hosting player. If you attempt to issue a lua build command as non-host, that object will not be visible to other players and if its a vehicle it won't do anything either (can't fire or lay mines).
+
+4) Removing objects works slightly differently. If you attempt to delete an object and it is not "local" to your machine, it will basically just "respawn" itself as if nothing happened.
+If you set the object to your machine using "setlocal" THEN apply the remove, then the object pop out of existence for the player who initiated the command... but explode (as if it was destroyed regularly) for the observing player. To do this properly, you should do this: You can delete something through Send/Receive. you do that by basically broadcasting to all players, hey im deleting this. Then each player removes it. the broadcast triggers the delete function for every player simultaneously.
+
+5) Using setlocal on AI units that are not already controlled by your machine will break the target's AI completely. This explains why the strat simulator map doesn't work. The opposing player's machine must build all objects they are intended to control directly. Buildings do not seem to require this at least.
+
+5.1) Workarounds: After using setlocal, killing the pilot with LUA and spawning a pilot right on top of it gives proper control to the target player.
+
+6) Setposition used on non-local stuff (IE: enemy team) will behave the same as attempting to delete it. Same rules apply.
+
+7) SetName() only affects the machine that executed it, it will not be seen by the other player.
+
+8) Hiding objects requires SetLocal¹. 
+¹This ones a bit tricky... for an object to be truly hidden both machines must set this command to do it. If player 1 sets hide on their vehicle class object and player 2 does not, then the vehicle will be invisible for both players, but player 2's AI will still behave as if its not hidden. Buildings will remain visible for player 2 but will be targetable and show up on radar. Also know that SetLocal is NOT required if you simply want to "sync" the state made by the controlling player. The spacebar smart reticule functions will still show up for lua-hidden objects.
+
+9) SetTeam requires SetLocal to perform on other players units. 
+
+10) Buildings evaluate far less frequently on the network than vehicles do. If you are moving them on every frame and you need both players to see that movement, then using a vehicle to do it is recommended.
+
+11) To determine if a player respawned in multiplayer, vs getting a new vehicle, hopping out, etc. My current method is kind of specific because of the hard coded way things happen in the game, and its only really applicable to multiplayer. I detect this by putting in a function inside the CreateObject() callback: if it is a player and the player object is created at the spawn point  (each player's initial starting location), it means they died.
+
+12) Handing off ships requires you to destroy the object and make the remote player re-create it. There is no smooth way to do it.
+Basically, set up some way for a player to press a button when they have units selected or targeted which records all of the properties of the vehicle, deletes it, then sends a message to a specific player that will trigger their remote script to build a ship in the exact location which is on their team.
+I'd recommend some kind of MakeExplosion() effect which occurs on both sides to make it not as jank-looking.
+
+13) Objective markers are not synced by default (such as SetObjectiveOn(h))
+
+14) For building client units (non host units), we need to: 
+
+Basically vehicle AI only works for the player who built that thing.
+
+use SetLocal() after every build
+
+SetLocal() forces the vehicle built by the non-host to sync
+
+15) Also, remember that DisplayMessage when used to show variables will often not work unless you convert the values to a string. It will show <null> instead in such cases. 
+
+16) For multiplayer only maps, Save and Load are never used or needed.
+
+17)  GetPlayerHandle Team Number Issue:
+Passing a team number into GetPlayerHandle does not work properly and will always return nil instead of the remote player's handle.
+
+Workaround: You get around it by updating player handles with Send/Receive every few seconds to update everyone on the current player handles. 
+
+18) you have to use send/receive when giving weapons to tanks otherwise it won't be synced with any other player.
