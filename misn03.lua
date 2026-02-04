@@ -70,6 +70,8 @@ local M = {
     solar2_warned = false,
     patrols_spawned = false,
     apc_arrived_at_base = false,
+    patrol_soldiers = {nil, nil, nil},
+    patrol_respawn_timers = {0, 0, 0},
 
     -- Floats
     next_second = 0.0,
@@ -325,17 +327,44 @@ function Update()
     end
 
     -- Foot Soldier Patrols
-    if not M.patrols_spawned and M.start_done then
-        -- Spawn some soldiers near the base
-        local p1 = BuildObject("aspilo", 1, "lpadspawn")
-        local p2 = BuildObject("aspilo", 1, "lpadspawn")
-        local p3 = BuildObject("aspilo", 1, "lpadspawn")
-        
-        -- Send them to patrol around the solar arrays
-        Patrol(p1, "footpatrol", 1)
-        Defend2(p2, M.solar1)
-        Defend2(p3, M.solar2)
-        
+    if M.start_done and IsAlive(M.build5) then
+        M.patrol_soldiers = M.patrol_soldiers or {nil, nil, nil}
+        M.patrol_respawn_timers = M.patrol_respawn_timers or {0, 0, 0}
+
+        for i = 1, 3 do
+            local soldier = M.patrol_soldiers[i]
+            
+            if not IsAlive(soldier) then
+                if M.patrol_respawn_timers[i] == 0 then
+                    -- Schedule spawn
+                    local delay = 30.0
+                    if not M.patrols_spawned then delay = 1.0 + (i * 2.0) end -- Initial spawn staggered
+                    M.patrol_respawn_timers[i] = GetTime() + delay
+                elseif GetTime() > M.patrol_respawn_timers[i] then
+                    -- Spawn now
+                    local new_soldier = BuildObject("aspilop", 1, M.build5)
+                    if IsAlive(new_soldier) then
+                        -- Jump!
+                        local vel = GetVelocity(new_soldier)
+                        vel.y = vel.y + 15.0
+                        SetVelocity(new_soldier, vel)
+                        
+                        -- Orders
+                        if i == 1 then
+                            SetPathLoop("footpatrol", true)
+                            Patrol(new_soldier, "footpatrol", 1)
+                        elseif i == 2 then
+                            Defend2(new_soldier, M.solar1)
+                        elseif i == 3 then
+                            Defend2(new_soldier, M.solar2)
+                        end
+                        
+                        M.patrol_soldiers[i] = new_soldier
+                        M.patrol_respawn_timers[i] = 0
+                    end
+                end
+            end
+        end
         M.patrols_spawned = true
     end
 
@@ -478,35 +507,31 @@ function Update()
     end
 
     if not M.help_spawn and M.support_time < GetTime() then
-        M.help1 = BuildObject("avfigh", 1, "lpadspawn")
-        M.help2 = BuildObject("avtank", 1, "lpadspawn")
+        -- MODIFIED: Spawn APCs and Escorts early (Reinforcements)
+        M.rescue1 = BuildObject("avapc2", 1, "lpadspawn")
+        M.rescue2 = BuildObject("avapc2", 1, "lpadspawn")
+        SetCritical(M.rescue1, true)
+        SetCritical(M.rescue2, true)
+        SetObjectiveOn(M.rescue1)
+        SetObjectiveName(M.rescue1, "Transport 1")
+        SetObjectiveOn(M.rescue2)
+        SetObjectiveName(M.rescue2, "Transport 2")
+        AddObjective("misn0303.otf", "white") -- Escort transports
+
+        M.help1 = BuildObject("avfigh", 1, "lpadspawn") -- Scout
+        M.help2 = BuildObject("avtank", 1, "lpadspawn") -- Tank
+        
         AudioMessage("misn0314.wav")
-        Goto(M.help1, M.solar2, 0)
-        Goto(M.help2, M.solar2, 0)
+        
+        -- Convoy to base
+        Goto(M.rescue1, "apc1_spawn")
+        Goto(M.rescue2, "apc2_spawn")
+        
+        -- Escorts guard APCs (Player controllable: priority 0)
+        Follow(M.help1, M.rescue2, 0)
+        Follow(M.help2, M.rescue1, 0)
+        
         M.help_spawn = true
-    end
-
-    if M.help_spawn and IsAlive(M.help1) and IsAlive(M.solar2) and not M.help_stop1 then
-        if GetDistance(M.help1, M.solar2) < 75.0 then
-            Stop(M.help1, 0)
-            M.help_stop1 = true
-        end
-    end
-
-    if M.help_spawn and IsAlive(M.help2) and IsAlive(M.solar2) and not M.help_stop2 then
-        if GetDistance(M.help2, M.solar2) < 75.0 then
-            Stop(M.help2, 0)
-            M.help_stop2 = true
-        end
-    end
-
-    if M.help_spawn and not M.help_arrive and GetDistance(M.help1, M.user) < 50.0 then
-        Goto(M.help1, M.solar2, 0)
-        M.help_arrive = true
-    end
-    if M.help_spawn and not M.help_arrive and GetDistance(M.help2, M.user) < 50.0 then
-        Goto(M.help2, M.solar2, 0)
-        M.help_arrive = true
     end
 
     if not M.second_objective and M.apc_spawn_time < GetTime() then
@@ -566,23 +591,6 @@ function Update()
         CameraFinish()
         StopAudioMessage(M.audmsg)
         
-        -- MODIFIED: Spawn APCs at reinforcement point (Launch Pad area) instead of inside base
-        -- This simulates a convoy arriving
-        M.rescue1 = BuildObject("avapc", 1, "lpadspawn")
-        M.rescue2 = BuildObject("avapc", 1, "lpadspawn")
-        SetCritical(M.rescue1, true)
-        SetCritical(M.rescue2, true)
-        
-        -- Spawn escorts for the convoy
-        local escort1 = BuildObject("avtank", 1, "lpadspawn")
-        local escort2 = BuildObject("avfigh", 1, "lpadspawn")
-        Follow(escort1, M.rescue1)
-        Follow(escort2, M.rescue2)
-
-        -- Order them to the base to pick up passengers
-        Goto(M.rescue1, "apc1_spawn")
-        Goto(M.rescue2, "apc2_spawn")
-
         -- Delay the pull out time until they actually arrive
         M.pull_out_time = 999999.0 
         M.turret_move_time = GetTime() + 30.0
@@ -590,10 +598,14 @@ function Update()
         SetObjectiveOff(M.solar1)
         SetObjectiveOff(M.solar2)
 
-        SetObjectiveOn(M.rescue1)
-        SetObjectiveName(M.rescue1, "Transport 1")
-        SetObjectiveOn(M.rescue2)
-        SetObjectiveName(M.rescue2, "Transport 2")
+        if IsAlive(M.rescue1) then
+            SetObjectiveOn(M.rescue1)
+            SetObjectiveName(M.rescue1, "Transport 1")
+        end
+        if IsAlive(M.rescue2) then
+            SetObjectiveOn(M.rescue2)
+            SetObjectiveName(M.rescue2, "Transport 2")
+        end
         SetObjectiveOn(M.launch)
         SetObjectiveName(M.launch, "Launch Pad")
 
@@ -607,8 +619,19 @@ function Update()
 
     if M.movie_over and not M.remove_props then
         M.audmsg = AudioMessage("misn0306.wav")
-        RemoveObject(M.prop1)
-        RemoveObject(M.prop2)
+        
+        -- MODIFIED: Order enemy production to invade base instead of deleting
+        if IsAlive(M.prop1) then Goto(M.prop1, M.geyser) end
+        if IsAlive(M.prop2) then Goto(M.prop2, M.geyser) end
+        
+        -- Spawn attack force on player recycler to simulate base being overrun
+        local atk1 = BuildObject("svtank", 2, "recy_spawn")
+        local atk2 = BuildObject("svtank", 2, "muf_spawn")
+        if IsAlive(M.avrecycler) then
+            Attack(atk1, M.avrecycler)
+            Attack(atk2, M.avrecycler)
+        end
+
         RemoveObject(M.prop3)
         RemoveObject(M.prop4)
         RemoveObject(M.prop5)
@@ -647,6 +670,15 @@ function Update()
             Retreat(M.turret2, "turret_path2")
             Retreat(M.turret3, "turret_path3")
             Retreat(M.turret4, "base")
+            
+            -- Spawn fighters to help turrets on Hard/Very Hard
+            if exu and exu.GetDifficulty and exu.GetDifficulty() >= 3 then
+                local f1 = BuildObject("svfigh", 2, "turret_path1")
+                local f2 = BuildObject("svfigh", 2, "turret_path2")
+                if IsAlive(M.rescue1) then Attack(f1, M.rescue1) end
+                if IsAlive(M.rescue2) then Attack(f2, M.rescue2) end
+            end
+
             M.turret_move_done = true
         end
         if IsAlive(M.wave1_1) then Attack(M.wave1_1, M.rescue1, 1) end
@@ -724,16 +756,6 @@ function Update()
         if IsAlive(M.scav4) then RemoveObject(M.scav4) end
         if IsAlive(M.scav5) then RemoveObject(M.scav5) end
         if IsAlive(M.scav6) then RemoveObject(M.scav6) end
-        if IsAlive(M.avturret1) then RemoveObject(M.avturret1) end
-        if IsAlive(M.avturret2) then RemoveObject(M.avturret2) end
-        if IsAlive(M.avturret3) then RemoveObject(M.avturret3) end
-        if IsAlive(M.avturret4) then RemoveObject(M.avturret4) end
-        if IsAlive(M.avturret5) then RemoveObject(M.avturret5) end
-        if IsAlive(M.avturret6) then RemoveObject(M.avturret6) end
-        if IsAlive(M.avturret7) then RemoveObject(M.avturret7) end
-        if IsAlive(M.avturret8) then RemoveObject(M.avturret8) end
-        if IsAlive(M.avturret9) then RemoveObject(M.avturret9) end
-        if IsAlive(M.avturret10) then RemoveObject(M.avturret10) end
         if IsAlive(M.help1) then RemoveObject(M.help1) end
         if IsAlive(M.help2) then RemoveObject(M.help2) end
         if IsAlive(M.wave4_1) then RemoveObject(M.wave4_1) end
@@ -746,10 +768,6 @@ function Update()
         if IsAlive(M.wave7_3) then RemoveObject(M.wave7_3) end
         if IsAlive(M.wave7_4) then RemoveObject(M.wave7_4) end
         if IsAlive(M.wave7_5) then RemoveObject(M.wave7_5) end
-        if IsAlive(M.turret1) then RemoveObject(M.turret1) end
-        if IsAlive(M.turret2) then RemoveObject(M.turret2) end
-        if IsAlive(M.turret3) then RemoveObject(M.turret3) end
-        if IsAlive(M.turret4) then RemoveObject(M.turret4) end
 
         M.clean_sweep_time = GetTime() + 14.0
         M.next_shot = GetTime() + 18.5
