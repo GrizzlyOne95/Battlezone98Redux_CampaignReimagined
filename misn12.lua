@@ -12,7 +12,16 @@ local DiffUtils = require("DiffUtils")
 
 -- Helper for AI
 local function SetupAI()
-    DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    local caa = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    
+    -- Legacy Features (Misn12 Stealth)
+    -- Config handles for StealthManager
+    caa.stealthCheckpoints = {
+        {handle = GetHandle("svguntower2"), range = 150.0, order = 2},
+        {handle = GetHandle("svmuf"),       range = 150.0, order = 3},
+        {handle = GetHandle("svsilo1"),     range = 150.0, order = 4},
+        {handle = GetHandle("svcom_tower"), range = 60.0,  order = 5}
+    }
 end
 
 -- Variables
@@ -372,6 +381,17 @@ function Update()
         
         if grump_time < GetTime() then grump = false end
         
+        -- Legacy Stealth Manager Hook
+        local stealthStatus, detail = caa:UpdateStealth(caa.stealthCheckpoints)
+        if stealthStatus == "LEFT_VEHICLE" and not grump then
+            -- Trigger Grumpy Revenge (Legacy)
+            AudioMessage("misn1206.wav") -- "Identify yourself!"
+            out_of_ship = true -- Triggers attack loop above
+        elseif stealthStatus == "OUT_OF_ORDER" and not cca_warning_message then
+            AudioMessage("misn1205.wav") -- "Out of order"
+            cca_warning_message = true
+        end
+        
         -- Cinematic
         -- Use specific flags for this cinematic sequence to avoid conflict with start cam
         if key_captured and (camera_time < GetTime()) and (not camera_sequence_started) and (not camera_off) then
@@ -673,8 +693,40 @@ function Update()
         patrol4_moved2 = true
     end
     
+    -- Patrol Retreat Logic (Legacy "Nervous Patrols")
+    -- If patrols spot the player while undetected, they flee to warn the base.
+    if (not key_captured) and (not game_blown) and (not real_bad) and (not discovered) then
+        local patrols = {patrol1_1, patrol1_2, patrol2_1, patrol2_2, patrol3_1, patrol3_2, patrol4_1, patrol4_2}
+        local patrol_names = {"p1_1", "p1_2", "p2_1", "p2_2", "p3_1", "p3_2", "p4_1", "p4_2"}
+        
+        for i, p in ipairs(patrols) do
+            if IsAlive(p) then
+                -- Check if "Gone" (Already fleeing)
+                local is_fleeing = false -- Track locally or via label? Simple label check.
+                if GetLabel(p) == "Retreating" then is_fleeing = true end
+                
+                if (not is_fleeing) and (GetDistance(user, p) < 60.0) then
+                    Retreat(p, ccamuf) -- Flee to MUF/Base
+                    SetLabel(p, "Retreating")
+                    is_fleeing = true
+                end
+                
+                if is_fleeing then
+                    if GetDistance(p, ccamuf) < 80.0 then
+                        -- Patrol escaped! Trigger Alarm.
+                        if not real_bad then
+                            AudioMessage("misn1211.wav") -- "Intruder Alert"
+                            real_bad = true -- Triggers Death Squad logic below
+                            discovered = true
+                        end
+                    end
+                end
+            end
+        end
+    end
+
     -- Continuous Patrol Checks (Patrol 1_1)
-    if (not real_bad) and (not game_blown) and IsAlive(patrol1_1) and (patrol1_1_time < GetTime()) then
+    if (not real_bad) and (not game_blown) and IsAlive(patrol1_1) and (patrol1_1_time < GetTime()) and (GetLabel(patrol1_1) ~= "Retreating") then
         patrol1_1_time = GetTime() + DiffUtils.ScaleTimer(10.0)
         if (not p1_1center) and (GetDistance(patrol1_1, center_geyser) < 50.0) then
             Goto(patrol1_1, "path3")

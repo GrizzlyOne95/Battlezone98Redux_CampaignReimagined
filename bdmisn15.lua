@@ -236,8 +236,12 @@ function Update()
         HideCockpitTimer()
         SucceedMission(GetTime() + 5.0, "bd15win.des")
         
-        -- Explosion
-        -- ColorFade not in API, skip visual fade or use overlay?
+        SucceedMission(GetTime() + 5.0, "bd15win.des")
+        
+        -- Explosion & White Flash (Restored)
+        if ColorFade then
+            ColorFade(1.0, 0.5, 255, 255, 255)
+        end
         BuildObject("xpltrso", 0, "spawn_explosion1") -- C++ uses MakeExplosion
     end
     

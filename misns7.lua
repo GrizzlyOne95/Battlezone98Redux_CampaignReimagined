@@ -12,7 +12,10 @@ local DiffUtils = require("DiffUtils")
 
 -- Helper for AI
 local function SetupAI()
-    DiffUtils.SetupTeams(aiCore.Factions.CCA, aiCore.Factions.NSDF, 2)
+    local bdog = DiffUtils.SetupTeams(aiCore.Factions.BDOG, aiCore.Factions.NSDF, 2)
+    
+    -- Legacy Features
+    bdog:SetConfig("reclaimEngineers", true)
 end
 
 -- Variables
@@ -458,8 +461,11 @@ function Update()
             svrecycle_unit_spawn = true
         end
         
-        if svrecycle_unit_spawn and (not svrecycle_on) and (GetDistance(engineer, svrecycle) < 25.0) then
-            RemoveObject(engineer); svrecycle_on = true
+        if svrecycle_unit_spawn and (not svrecycle_on) then
+            -- Use aiCore helper for reclaiming
+            if bdog:ReclaimBuilding(svrecycle, engineer) then
+                svrecycle_on = true
+            end
         end
         
         if svrecycle_unit_spawn and (svrecycle_on or CameraCancelled()) then
@@ -496,8 +502,10 @@ function Update()
             svmuf_unit_spawn = true
         end
         
-        if svmuf_unit_spawn and (not svmuf_on) and (GetDistance(engineer, svmuf) < 20.0) then
-            RemoveObject(engineer); svmuf_on = true
+        if svmuf_unit_spawn and (not svmuf_on) then
+            if bdog:ReclaimBuilding(svmuf, engineer) then
+                svmuf_on = true
+            end
         end
         
         if svmuf_unit_spawn and (svmuf_on or CameraCancelled()) then

@@ -216,6 +216,7 @@ function Update()
         turret5 = GetHandle("turret5")
         turret6 = GetHandle("turret6")
         ccaslf = GetHandle("svslf")
+        ccaapc = GetHandle("svapc") -- Restored handle
         
         fighter1 = GetHandle("fighter1")
         fighter2 = GetHandle("fighter2")
@@ -356,7 +357,14 @@ function Update()
     if IsAlive(tank1) and (not assign_tank1) then Follow(tank1, ccamuf); assign_tank1 = true end
     if IsAlive(tank2) and (not assign_tank2) then Follow(tank2, ccamuf); assign_tank2 = true end
     if IsAlive(tank3) and (not assign_tank3) then Follow(tank3, center); assign_tank3 = true end
+    if IsAlive(tank3) and (not assign_tank3) then Follow(tank3, center); assign_tank3 = true end
     if IsAlive(tank4) and (not assign_tank4) then Follow(tank4, center); assign_tank4 = true end
+    
+    -- APC Attack on Comm Tower (Restored from C++ lines 631-636)
+    if IsAlive(controltower) and IsAlive(ccaapc) and (not apc_sent) then
+        Attack(ccaapc, controltower, 1)
+        apc_sent = true
+    end
     
     -- Bomber Logic
     if (IsAlive(guntower1) or IsAlive(controltower)) and (not make_bomber) and (not muf_attacked) then

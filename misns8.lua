@@ -12,7 +12,11 @@ local DiffUtils = require("DiffUtils")
 
 -- Helper for AI
 local function SetupAI()
-    DiffUtils.SetupTeams(aiCore.Factions.CCA, aiCore.Factions.NSDF, 2)
+    local bdog = DiffUtils.SetupTeams(aiCore.Factions.BDOG, aiCore.Factions.NSDF, 2)
+    
+    -- Legacy Features (Misns8 OG Ideas)
+    bdog:SetConfig("passiveRegen", true)
+    bdog:SetConfig("regenRate", 20.0)
 end
 
 -- Variables
@@ -619,9 +623,77 @@ function Update()
         end
     end
     
-    -- Rig 2 Logic (Alt Base)
-    -- Similar block for avrig2 at last_geyser...
-    
+    -- Rig 2 Logic (Alt Base Maintenance) - Restored from C++
+    if welldone_rig and IsAlive(avrig2) then
+        -- Maintain Silo 2 (Wait logic?)
+        -- C++: if (!maintain) { Build(avrig2, "absilo"); maintain = true; } -- Only runs once?
+        if not maintain then
+            if IsAlive(avsilo2) then maintain = true -- Already built
+            else
+                Build(avrig2, "absilo"); maintain = true
+            end
+        end
+        
+        -- Arrival Check
+        if (alt_check < GetTime()) and (not rig_there) then
+            alt_check = GetTime() + 10.0
+            if GetDistance(avrig2, last_geyser) < 300.0 then
+                rebuild_time2 = GetTime() + 5.0
+                rig_there = true
+            end
+        end
+        
+        -- Rebuild Loop
+        if rig_there and (alt_check < GetTime()) then
+            if (not rebuild4_prep) and (not rebuild5_prep) and (not rebuild6_prep) then
+                alt_check = GetTime() + 10.0
+                local s2 = CountUnitsNearObject(last_geyser, 400, 2, "absilo")
+                local p2 = CountUnitsNearObject(last_geyser, 400, 2, "abwpow")
+                local t2 = CountUnitsNearObject(last_geyser, 400, 2, "abtowe")
+                
+                if s2 == 0 then
+                    Build(avrig2, "absilo"); rebuild_time2 = GetTime() + 5.0; rebuild4_prep = true
+                elseif p2 == 0 then
+                    Build(avrig2, "abwpow"); rebuild_time2 = GetTime() + 5.0; rebuild5_prep = true
+                elseif t2 == 0 then
+                    Build(avrig2, "abtowe"); rebuild_time2 = GetTime() + 5.0; rebuild6_prep = true
+                else
+                    Defend(avrig2)
+                    -- Send Scavs if safe
+                    if not scav_sent then
+                        if IsAlive(avscav1) then Goto(avscav1, "go_path") end
+                        scav_sent = true
+                    end
+                end
+            end
+            
+            -- Dropoff Logic
+            local scrap = GetScrap(2)
+            if rebuild4_prep and (not rebuilding4) and (rebuild_time2 < GetTime()) and (scrap > 8) then
+                Dropoff(avrig2, "alt_silo"); rebuilding4 = true
+            end
+            if rebuild5_prep and (not rebuilding5) and (rebuild_time2 < GetTime()) and (scrap > 10) then
+                Dropoff(avrig2, "alt_power"); rebuilding5 = true
+            end
+            if rebuild6_prep and (not rebuilding6) and (rebuild_time2 < GetTime()) and (scrap > 10) then
+                Dropoff(avrig2, "alt_tower"); rebuilding6 = true
+            end
+            
+            -- Reset Flags
+            if rebuilding4 and (alt_check < GetTime()) then
+                alt_check = GetTime() + 10.0
+                if CountUnitsNearObject(last_geyser, 400, 2, "absilo") >= 1 then rebuild4_prep = false; rebuilding4 = false end
+            end
+            if rebuilding5 and (alt_check < GetTime()) then
+                alt_check = GetTime() + 10.0
+                if CountUnitsNearObject(last_geyser, 400, 2, "abwpow") >= 1 then rebuild5_prep = false; rebuilding5 = false end
+            end
+            if rebuilding6 and (alt_check < GetTime()) then
+                alt_check = GetTime() + 10.0
+                if CountUnitsNearObject(last_geyser, 400, 2, "abtowe") >= 1 then rebuild6_prep = false; rebuilding6 = false end
+            end
+        end
+    end
     -- Romeski / SAV Logic (Plan C)
     if plan_c and not recycle_message then
         -- Check if SAVs alive

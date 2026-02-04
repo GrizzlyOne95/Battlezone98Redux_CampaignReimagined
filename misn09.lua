@@ -265,6 +265,27 @@ function Update()
         player_camera_off = true
     end
     
+    -- Extended Opening Cinematic (Restored from C++ lines 631-660)
+    if start_camera1 and (not next_shot) and (GetTime() > player_camera_time) then
+        CameraPath("launch_camera_path", 7000, 1150, ccalaunch)
+        next_shot = true
+        next_shot_time = GetTime() + 6.0
+    end
+    
+    if next_shot and (not next_shot_message) and (GetTime() > next_shot_time) then
+        -- Play extra audio? C++ had misn0912.wav here
+        AudioMessage("misn0912.wav")
+        CameraPath("choke_cam_path", 375, 450, nav1)
+        next_shot_message = true
+        next_shot_time = GetTime() + 6.0
+    end
+    
+    if next_shot_message and (not player_camera_off) and ((GetTime() > next_shot_time) or CameraCancelled()) then
+        CameraFinish()
+        start_camera1 = false
+        player_camera_off = true
+    end
+    
     -- Opening VO
     if (camera_ready_time < GetTime()) and (not opening_vo) then
         AudioMessage("misn0900.wav")

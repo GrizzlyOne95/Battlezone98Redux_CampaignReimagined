@@ -163,10 +163,22 @@ function Update()
          -- Or replicate full path
     end
 
-    -- Earthquake Logic
-    -- Lua doesn't always have UpdateEarthQuake. 
-    -- If BZRedux supports SetQuake(intensity), we just leave it on or pulse it.
-    -- C++ pulses it every 4th count.
+    -- Earthquake Logic (Restored from C++)
+    -- "After four seconds the quake gets bigger for two seconds."
+    if GetTime() > quake_check then
+        quake_count = quake_count + 1
+        quake_check = GetTime() + 3.0
+        
+        -- Default quake_level is set to 2 in Start, 6 later (escape phase)
+        local current_intensity = quake_level
+        if (quake_count % 4) == 1 then
+            current_intensity = quake_level * 3.0 -- Spike
+        else
+            current_intensity = quake_level * 0.9 -- Rumble
+        end
+        
+        if SetQuake then SetQuake(current_intensity) end
+    end
     
     -- Transport Discovery
     if (not transportfound) and ((GetDistance(player, "transfound") < 100.0) or (IsAlive(enemy) and GetDistance(enemy, transport) < 200.0)) then

@@ -514,6 +514,19 @@ function Update()
         end
         bombtime = GetTime() + 3.0
     end
+    
+    -- Platoon Closing In Warning (Restored from C++ lines 1421-1435)
+    -- This was active in C++ but missing in Lua
+    if (not attackstatement) then
+        local function IsThreat(u)
+            return IsAlive(u) and (GetDistance(u, lemnos) < 500.0)
+        end
+        
+        if IsThreat(aw1) or IsThreat(aw2) or IsThreat(aw3) or IsThreat(aw4) or IsThreat(aw5) then
+            AudioMessage("misn0510.wav")
+            attackstatement = true
+        end
+    end
 
     -- Additional Waves (aw1a...aw9a) triggered by timers
     if (aw1t < GetTime()) and (not aw1sent) and IsAlive(svrec) then

@@ -19,6 +19,9 @@ end
 local missionstart = false
 local missionwon = false
 local missionfail = false
+local openingcin = false
+local camera1, camera2, camera3, camera4, camera5, camera6, camera7 = true, false, false, false, false, false, false
+local towersdestroyed = false
 local towersdestroyed = false
 local minesmade = false
 local minesdestroyed = false
@@ -164,10 +167,40 @@ function Update()
         
         discheck = GetTime() + DiffUtils.ScaleTimer(30.0)
         
+        
         CameraReady()
-        CameraPath("cineractive1", 1000, 2000, savfactory1) -- Simplified sequence
+        CameraPath("cineractive1", 1000, 2000, savfactory1)
         
         missionstart = true
+        openingcin = true
+    end
+    
+    -- Intro Cinematic (Restored Multi-Stage Sequence from C++)
+    if openingcin then
+        if CameraCancelled() then
+            CameraFinish()
+            openingcin = false
+            camera1, camera2, camera3, camera4, camera5, camera6, camera7 = false, false, false, false, false, false, false
+        else
+            -- Sequence: Factory -> Tow1 -> Tow6 -> Tow3 -> Tow4 -> Tow5 -> Tow7
+            if camera1 and CameraPath("cineractive1", 1000, 2000, savfactory1) then
+                camera1 = false; camera2 = true
+            elseif camera2 and (CameraPath("cineractive2", 500, 2000, tower_handles[1])) then
+                camera2 = false; camera3 = true
+            elseif camera3 and (CameraPath("cineractive3", 1000, 2000, tower_handles[6])) then
+                camera3 = false; camera4 = true
+            elseif camera4 and (CameraPath("cineractive5", 1000, 2000, tower_handles[3])) then
+                camera4 = false; camera5 = true
+            elseif camera5 and (CameraPath("cineractive6", 1000, 2000, tower_handles[4])) then
+                camera5 = false; camera6 = true
+            elseif camera6 and (CameraPath("cineractive4", 1000, 2000, tower_handles[5])) then
+                camera6 = false; camera7 = true
+            elseif camera7 and (CameraPath("cineractive7", 1000, 1700, tower_handles[7])) then
+                camera7 = false; 
+                CameraFinish()
+                openingcin = false
+            end
+        end
     end
     
     -- Artillery Counters
@@ -205,7 +238,7 @@ function Update()
     end
     
     -- Minefield Trigger
-    if (not towersdestroyed) then
+    if (not towersdestroyed) and (not openingcin) then
         local all_dead = true
         for i = 1, 7 do if not tower_status[i].dead then all_dead = false; break end end
         
@@ -215,6 +248,7 @@ function Update()
                 for m = 1, 53 do
                     mine_handles[m] = BuildObject("boltmine2", 2, "mine"..m)
                 end
+                camera1 = false -- Reset cinematic vars just in case
                 minesmade = true
             end
             

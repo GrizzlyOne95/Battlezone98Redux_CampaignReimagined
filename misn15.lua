@@ -138,7 +138,7 @@ function Update()
         goal = GetHandle("eggeizr15_geyser")
         
         rendezvous1 = GetTime() + DiffUtils.ScaleTimer(180.0)
-        -- rendezvous2 = GetTime() + 240.0 -- Unused logic
+        rendezvous2 = GetTime() + DiffUtils.ScaleTimer(240.0) -- Restored C++ logic
         deny_time1 = GetTime() + DiffUtils.ScaleTimer(300.0)
         deny_time2 = GetTime() + DiffUtils.ScaleTimer(400.0)
         check_time = GetTime() + DiffUtils.ScaleTimer(5.0)
@@ -158,9 +158,32 @@ function Update()
         misl_time = DiffUtils.ScaleTimer(40.0)
         scav_du_jour = recy
         
-        if cam6 then SetLabel(cam6, "Nav Beta"); AddObjective("misn1501.otf", "white") end -- Force nav? C++ SetUserTarget(cam6)
         
         start_done = true
+        
+        -- Wasp Missile Jump Scare (Restored from C++)
+        -- "Hot Landing": Spawn a missile flying at the player immediately.
+        local misl = BuildObject("waspmsl", 2, cam1) -- Spawn at camera/spawn point
+        if IsAlive(misl) then
+            local p_pos = GetPosition(player)
+            local m_pos = GetPosition(misl)
+            
+            -- Calculate Direction Vector
+            local dir = {x = p_pos.x - m_pos.x, y = p_pos.y - m_pos.y, z = p_pos.z - m_pos.z}
+            
+            -- Normalize (Simple Lua normalization)
+            local len = math.sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z)
+            if len > 0 then
+                dir.x = dir.x / len
+                dir.y = dir.y / len
+                dir.z = dir.z / len
+            end
+            
+            -- Apply Velocity (Speed 150)
+            SetVelocity(misl, {x = dir.x * 150, y = dir.y * 150, z = dir.z * 150})
+            -- Orient it (If SetFrontVector available, or just velocity usually orients ODFs)
+            SetFront(misl, dir) 
+        end
     end
     
     -- Intro Camera (Reinforcements arrival)
@@ -214,6 +237,40 @@ function Update()
     if found_group1 and (GetTime() > rcam1) and (rcam1 ~= 99999.0) then
         camera2 = false
         rcam1 = 99999.0
+        CameraFinish()
+    end
+    
+    if found_group1 and (GetTime() > rcam1) and (rcam1 ~= 99999.0) then
+        camera2 = false
+        rcam1 = 99999.0
+        CameraFinish()
+    end
+
+    -- Reinforcements Group 2 (Restored from C++ lines 291-323)
+    if (not found_group2) and (GetTime() > rendezvous2) and (rendezvous2 ~= 99999.0) then
+        -- SetUserTarget(cam3) -- Guide to NE Geyser
+        AudioMessage("misn1512.wav")
+        rendezvous2 = 99999.0
+    end
+
+    if (not found_group2) and (GetDistance(cam3, player) < 150.0) then
+        AudioMessage("misn1514.wav") -- "Commander, over here!"
+        scavcam = BuildObject("avscav", 1, "scav1here")
+        BuildObject("avscav", 1, "scav2here")
+        BuildObject("avartl", 1, "arthere")
+        found_group2 = true
+        camera3 = true
+        rcam2 = GetTime() + 3.0
+        CameraReady()
+    end
+
+    if camera3 then
+        CameraPath("rescue_cam2", 1000, 0, scavcam)
+    end
+
+    if found_group2 and (GetTime() > rcam2) and (rcam2 ~= 99999.0) then
+        camera3 = false
+        rcam2 = 99999.0
         CameraFinish()
     end
     

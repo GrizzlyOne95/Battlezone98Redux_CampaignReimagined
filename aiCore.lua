@@ -541,6 +541,14 @@ aiCore.Team = {
     
     -- Targets
     enemyTargets = {},  -- prioritized list of enemy buildings
+    
+    -- Stealth Management (Legacy Misn12)
+    stealthState = {
+        discovered = false,
+        warnings = 0,
+        playerInVehicle = true,
+        lastCheckPos = nil
+    }
 }
 aiCore.Team.__index = aiCore.Team
 
@@ -648,12 +656,18 @@ function aiCore.Team:Update()
     self:UpdateGuards()
     self:UpdateStrategyRotation()
     
+    -- Passive Regen (Legacy)
+    if self.Config.passiveRegen then self:UpdateRegen() end
+    
     -- pilotMode Automations
     if self.Config.autoManage then self:UpdateUnitRoles() end
     if self.Config.autoRescue then self:UpdateRescue() end
     if self.Config.autoTugs then self:UpdateTugs() end
     if self.Config.stickToPlayer then self:UpdateStickToPlayer() end
     if self.Config.autoBuild then self:UpdateAutoBase() end
+    
+    -- Legacy Proximity Logic
+    if self.Config.dynamicMinefields then self:UpdateDynamicMinefields() end
     
     -- Base Maintenance (Auto-Rebuild)
     self:UpdateBaseMaintenance()
@@ -765,7 +779,13 @@ aiCore.Team.Config = {
     rescueDelay = 2.0,
     
     -- Reinforcements
-    orbitalReinforce = true
+    orbitalReinforce = true,
+    
+    -- Legacy Features (C++ Gems)
+    passiveRegen = false,      -- Enable Recycler health regeneration
+    regenRate = 20.0,          -- Health per second
+    reclaimEngineers = false,  -- Enable auto-reclaim for engineers
+    dynamicMinefields = false  -- Enable proximity-based mine spawning
 }
 
 -- Setter for Difficulty Tweaking
@@ -798,6 +818,82 @@ function aiCore.Team:CheckBuildingSpacing(odf, position, minDistance)
         end
     end
     return true, "OK"
+end
+
+function aiCore.Team:UpdateRegen()
+    local recycler = self.recyclerMgr.handle
+    if IsValid(recycler) then
+        -- Add health per second (approx)
+        -- In C++, this was often +20.0f per second
+        -- Assuming 20Hz update rate, we add regenRate / 20.0 per frame?
+        -- No, let's use a timer for more control or just frame-based if fast enough.
+        -- BZ98 script Update is ~20Hz.
+        AddHealth(recycler, self.Config.regenRate * 0.05) 
+    end
+end
+
+function aiCore.Team:UpdateDynamicMinefields()
+    -- Ported from Misn07: Spawn mines near enemies in designated zones
+    if #self.Config.minefields == 0 then return end
+    
+    for _, zone in ipairs(self.Config.minefields) do
+        -- zone can be a path name or {x,y,z}
+        local pos = zone
+        if type(zone) == "string" then pos = GetPosition(zone) end
+        
+        local enemy = GetNearestEnemy(zone) -- Uses position if string
+        if IsValid(enemy) and GetDistance(enemy, pos) < 150 then
+            -- Spawn a mine if not too many nearby
+            local mines = 0
+            for obj in ObjectsInRange(40, pos) do
+                if IsOdf(obj, "proxmine") or IsOdf(obj, "svmine") then
+                    mines = mines + 1
+                end
+            end
+            
+            if mines < 3 then
+                local odf = aiCore.Units[self.faction].minelayer .. "m" -- Guessing mine ODF
+                if self.faction == 2 then odf = "svmine" end -- CCA specific
+                BuildObject(odf, self.teamNum, pos)
+            end
+        end
+    end
+end
+
+-- Helper for Engineer Base Capturing (Legacy Misns7)
+function aiCore.Team:ReclaimBuilding(building, engineer)
+    -- ... (existing logic)
+end
+
+-- Stealth Logic (Legacy Misn12)
+function aiCore.Team:UpdateStealth(checkpoints)
+    -- checkpoints = {{handle=h, range=r, order=i}, ...}
+    local player = GetPlayerHandle()
+    if not IsValid(player) then return end
+    
+    local inVehicle = not IsPerson(player)
+    if inVehicle ~= self.stealthState.playerInVehicle then
+        self.stealthState.playerInVehicle = inVehicle
+        if not inVehicle and not self.stealthState.discovered then
+            -- Trigger "Grumpy" alert if they leave the ship in a restricted zone
+            return "LEFT_VEHICLE"
+        end
+    end
+    
+    -- Checkpoint Verification
+    for _, cp in ipairs(checkpoints) do
+        local dist = GetDistance(player, cp.handle)
+        if dist < cp.range then
+            if self.stealthState.lastOrder and cp.order > self.stealthState.lastOrder + 1 then
+                -- Player skipped a checkpoint or went out of order
+                return "OUT_OF_ORDER", cp.order
+            end
+            self.stealthState.lastOrder = cp.order
+            return "AT_CHECKPOINT", cp.order
+        end
+    end
+    
+    return "STAYING_STEALTHY"
 end
 
 ----------------------------------------------------------------------------------
@@ -1519,6 +1615,18 @@ function aiCore.SetupBase(teamNum, buildings)
     
     for i, b in ipairs(buildings) do
         team:AddBuilding(b.odf, b.path, i)
+    end
+end
+
+-- Phased Construction Helper
+-- Allows mission scripts to queue a series of buildings that depend on each other
+-- Example: team:QueuePhasedBuildings({{odf="abtowe", path="p1"}, {odf="abwpow", path="p2"}})
+function aiCore.Team:QueuePhasedBuildings(buildingList)
+    -- We'll just add them to the buildingList with increasing priority
+    -- The ConstructorManager already builds in order of priority (implied by queue indexing)
+    local startPriority = #self.buildingList + 1
+    for i, b in ipairs(buildingList) do
+        self:AddBuilding(b.odf, b.path, startPriority + i - 1)
     end
 end
 

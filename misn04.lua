@@ -464,6 +464,25 @@ function Update()
 	
 	-- Discover Relic logic (Investigator count)
 	if (not discoverrelic) then
+        -- Calipso Logic (Restored from C++ lines 448-468)
+        -- Checks if an AI teammate finds the relic first
+        local calipso = GetNearestVehicle(relic)
+        if IsAlive(calipso) then
+            if (GetTeamNum(calipso) == 1) and (GetDistance(relic, calipso) <= 500.0) and (calipso ~= player) then
+                AudioMessage("misn0407.wav") -- "I've found something..."
+                
+                -- Shared discovery logic
+                relicseen = true
+                newobjective = true
+                ccatug = GetTime() + DiffUtils.ScaleTimer(200.0) + math.random(-5, 10)
+                discoverrelic = true
+                CameraReady()
+                cintime1 = GetTime() + 23.0
+            end
+        end
+    end
+
+	if (not discoverrelic) then
 		if (investigate < GetTime()) then
 			investigator = CountUnitsNearObject(relic, 400.0, 1, nil)
 			if IsAlive(reliccam) then

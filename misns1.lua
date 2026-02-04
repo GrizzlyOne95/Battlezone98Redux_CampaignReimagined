@@ -336,7 +336,9 @@ function Update()
         local dist3 = GetDistance(colorado, walkcam3)
         
         -- Primary Ambush (Restored Multi-Path Triggers from C++ lines 596-619)
-        if (dist1 < 200.0) or (dist2 < 200.0) or (dist3 < 200.0) then
+        -- FIXED: C++ checked if WALKERS were in position, not Colorado.
+        -- "Trap Set" means ambushers are ready.
+        if IsAlive(walker1) and (GetDistance(walker1, walkcam1) < 50.0) then
             trapset = true
             AudioMessage("misns123.wav")
         end
@@ -452,6 +454,11 @@ function Update()
         
         if GetTime() > du1at and not du1amade then BuildObject("avturr", 2, muf); du1amade = true end
         if GetTime() > du1bt and not du1bmade then BuildObject("avturr", 2, muf); du1bmade = true end
+
+        -- Restored Wave 3 (Missing in Lua)
+        if GetTime() > aw3at and not aw3amade then BuildObject("avtank", 2, muf); aw3amade = true end
+        if GetTime() > aw3bt and not aw3bmade then BuildObject("avtank", 2, muf); aw3bmade = true end
+        if GetTime() > aw3ct and not aw3cmade then BuildObject("avfigh", 2, muf); aw3cmade = true end
     end
     
     -- Win/Loss
@@ -496,5 +503,44 @@ function Update()
         missionfail = true
         FailMission(GetTime() + 10.0, "misns1l2.des")
         AudioMessage("misns112.wav")
+    end
+
+    -- Restored "Cavalry" Flanking Wave (Cut Content)
+    if (wave1 < GetTime()) and (not cavalry) then
+        wave1 = 99999.0
+        cavalry = true
+        cav1 = BuildObject("avfigh", 2, "cavspawn")
+        cav2 = BuildObject("avtank", 2, "cavspawn")
+        cav3 = BuildObject("avfigh", 2, "cavspawn")
+        AudioMessage("misns122.wav") -- "New contacts!"
+    end
+
+    if cavalry and (not cavsent) then
+        -- Random path logic from C++
+        local path_name = "cavpath1"
+        if (cav == 1) or (cav == 3) then path_name = "cavpath2" end
+        
+        if IsAlive(cav1) then Goto(cav1, path_name) end
+        if IsAlive(cav2) then Goto(cav2, path_name) end
+        if IsAlive(cav3) then Goto(cav3, path_name) end
+        
+        if path_name == "cavpath1" then cavpath1 = true else cavpath2 = true end
+        cavsent = true
+    end
+
+    -- Cavalry Warnings
+    if cavpath1 and (not cav1pathwarn1) then
+        if (IsAlive(cav1) and GetDistance(cav1, walkcam1) < 200.0) or
+           (IsAlive(cav2) and GetDistance(cav2, walkcam1) < 200.0) then
+            AudioMessage("misns118.wav")
+            cav1pathwarn1 = true
+        end
+    end
+    if cavpath2 and (not cav2pathwarn1) then
+        if (IsAlive(cav1) and GetDistance(cav1, walkcam2) < 200.0) or
+           (IsAlive(cav2) and GetDistance(cav2, walkcam2) < 200.0) then
+            AudioMessage("misns119.wav")
+            cav2pathwarn1 = true
+        end
     end
 end

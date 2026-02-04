@@ -404,19 +404,47 @@ function Update()
         -- Logic might imply if it's "Gone" or picked up?
         -- Let's stick to state flags.
     end
-    -- The C++ logic: if ((sav_secure) && (!tug_underway1))... sets tug_wait_base.
-    -- This directs the enemy tug to wait if they lost the first race.
+    -- Tug Wait Logic (Restored C++ Behavior)
+    -- If the player secures the relic first, the enemy tug shouldn't just vanish or idle aimlessly.
+    -- It should retreat to a standby position near a geyser or base to ambush.
     if sav_secure then
+        -- Default: Go home if no active mission
         if (not tug_underway1) and (not tug_underway2) and (not tug_underway3) and (not tug_underway4) and 
-           (not tug_underway5) and (not tug_underway6) and (not tug_underway7) then
-           tug_wait_base = true -- Go home?
+           (not tug_underway5) and (not tug_underway6) and (not tug_underway7) and (not tug_at_wait_center) then
+           Goto(ccatug, ccarecycle)
+           tug_wait_base = true
         end
-        -- If underway, send to Geyser then wait?
-        if tug_underway2 and GetDistance(ccatug, geys2) < 50.0 and (not tug_wait2) then
-            Goto(ccatug, geys2)
-            tug_underway2 = false; tug_wait2 = true
+
+        -- If intercepted mid-route (e.g., tug_underway2), divert to wait
+        if tug_underway2 and GetDistance(ccatug, geys2) < 80.0 and (not tug_wait2) then
+            Goto(ccatug, geys2); tug_underway2 = false; tug_wait2 = true
         end
-        -- Repeated for all ... simplified here
+        if tug_underway3 and GetDistance(ccatug, geys3) < 80.0 and (not tug_wait3) then
+            Goto(ccatug, geys3); tug_underway3 = false; tug_wait3 = true
+        end
+        if tug_underway4 and GetDistance(ccatug, geys4) < 80.0 and (not tug_wait4) then
+            Goto(ccatug, geys4); tug_underway4 = false; tug_wait4 = true
+        end
+        if tug_underway5 and GetDistance(ccatug, geys5) < 80.0 and (not tug_wait5) then
+            Goto(ccatug, ccarecycle); tug_underway5 = false; tug_wait5 = true -- Retreat
+        end
+        -- If player drops it, resume chase from wait?
+        -- Logic implied: if sav_free again, tug should reactivate. 
+        -- Handled by general loop? Yes, if sav_free triggers, `got_position` might reset? 
+        -- C++ loop for `got_position` runs only if `(!got_position)`.
+        -- So if we want re-engagement, we must reset `got_position = false` when relic is dropped.
+    end
+    
+    -- Reset pathfinding if relic dropped
+    if sav_free and sav_secure then -- Transition secure -> free
+        -- Wait, sav_free and sav_secure are mutually exclusive usually.
+        -- We detecting the transition: sav_free == true, but we were secure?
+        -- Need a previous state tracker or check. 
+        -- Actually, 'sav_secure' means player has it. 'sav_free' means nobody has it.
+        -- If player drops it, secure becomes false, free becomes true.
+        -- We need to reset `got_position` to `false` to recalculate path!
+        -- BUT, got_position logic block checks `if (IsAlive(ccatug)) and (sav_free) and (!got_position)`.
+        -- So we just need to flip `got_position` to false when drop happens.
     end
     
     -- Objective Check
@@ -474,6 +502,47 @@ function Update()
             AddHealth(sav, 100) -- Keep it invincible?
             AddHealth(sav, 100) -- Keep it invincible?
             next_second = GetTime() + 1.0
+        end
+        end
+    end
+    
+    -- Enemy Tug Rebuild Logic (Restored from C++ lines 970-1008)
+    -- "hopefully, the following code will build a cca tug every 30 seconds after the last cca tug is destoyed"
+    if (not IsAlive(ccatug)) and (not making_another_tug) and (not game_over) then
+        making_another_tug = true
+        build_another_tug_time = GetTime() + DiffUtils.ScaleTimer(30.0)
+    end
+    
+    if making_another_tug and (GetTime() > build_another_tug_time) then
+        if IsAlive(ccarecycle) then
+            ccatug = BuildObject("svhaul", 2, ccarecycle)
+            making_another_tug = false
+            
+            -- Reset all tug flags to restart mission
+            tug_underway1 = false
+            tug_underway2 = false
+            tug_underway3 = false
+            tug_underway4 = false
+            tug_underway5 = false
+            tug_underway6 = false
+            tug_underway7 = false
+            tug_after_sav = false
+            return_to_base = false
+            tug_wait_center = false
+            tug_wait2 = false
+            tug_wait3 = false
+            tug_wait4 = false
+            tug_wait5 = false
+            tug_wait6 = false
+            tug_wait7 = false
+            tug_wait_base = false
+            tug_at_wait_center = false
+            got_position = false -- Recalculate path
+            sav_warning = false
+            
+            -- Re-assign escorts
+            if IsAlive(ccatank1) then Follow(ccatank1, ccatug) end
+            if IsAlive(ccatank2) then Follow(ccatank2, ccatug) end
         end
     end
     
