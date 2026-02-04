@@ -8,6 +8,8 @@ SetLabel = SetLabel or SettLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({"campaignReimagined", "3659600763"})
 local exu = require("exu")
+local aiCore = require("aiCore")
+local DiffUtils = require("DiffUtils")
 
 -- Global Variables (State)
 local camera1 = false
@@ -109,39 +111,17 @@ end
 function Update()
     local player = GetPlayerHandle()
     if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
+    aiCore.Update()
     
     if not start_done then
+        DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
         if exu then
-            local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.version or "Unknown"
-            print("EXU Version: " .. tostring(ver))
-            local diff = (exu.GetDifficulty and exu.GetDifficulty()) or 2
-            print("Difficulty: " .. tostring(diff))
-
-            if diff >= 3 then
-                AddObjective("hard_diff", "red", 8.0, "High Difficulty: Enemy presence intensified.")
-            elseif diff <= 1 then
-                AddObjective("easy_diff", "green", 8.0, "Low Difficulty: Enemy presence reduced.")
-            end
-
-            -- Apply turbo to existing units
-            if exu.SetUnitTurbo then
-                for h in AllCraft() do
-                    if GetTeamNum(h) == 1 then
-                        exu.SetUnitTurbo(h, true)
-                    elseif GetTeamNum(h) ~= 0 and diff > 3 then
-                        exu.SetUnitTurbo(h, true)
-                    end
-                end
-            end
-
             if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-            if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end -- Extended targeting range
-            if exu.EnableOrdnanceTweak then exu.EnableOrdnanceTweak(1.0) end -- Projectiles inherit velocity
-            if exu.SetSelectNone then exu.SetSelectNone(false) end -- Modern selection (don't deselect on move)
+            if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
         end
 
-        SetPilot(1, 2)
-        SetScrap(1, 5)
+        SetPilot(1, DiffUtils.ScaleRes(2))
+        SetScrap(1, DiffUtils.ScaleRes(5))
         SetAIP("misn02.aip")
         
         dummy = GetHandle("fake_player")
@@ -190,18 +170,14 @@ function Update()
             StopAudioMessage(audmsg)
             audmsg = nil
             AudioMessage("misn0224.wav")
-            wave_timer = GetTime() + 30.0
+            wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
             AddObjective("misn02b1.otf", "white")
         end
     end
 
     -- Patrol 1 Logic
     if not patrol1 and found and IsAlive(bhandle) and IsAlive(bscav) and GetDistance(bhandle, bscav) < 75.0 then
-        BuildObject("svfigh", 2, "spawn1")
-
-        if exu and exu.GetDifficulty and exu.GetDifficulty() >= 3 then
-            BuildObject("svfigh", 2, "spawn1")
-        end
+        for i=1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn1") end
 
         AudioMessage("misn0233.wav")
         message1 = true
@@ -224,15 +200,8 @@ function Update()
     end
 
     if message5 and not message3 and GetTime() > wave_timer then
-        BuildObject("svfigh", 2, "spawn2")
-        
-        local delay = 45.0
-        if exu then
-            local diff = exu.GetDifficulty()
-            if diff <= 1 then delay = 60.0
-            elseif diff >= 3 then delay = 30.0 end
-        end
-        wave_timer = GetTime() + delay
+        for i=1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn2") end
+        wave_timer = GetTime() + DiffUtils.ScaleTimer(45.0)
     end
 
     -- Retreat Logic
@@ -283,16 +252,9 @@ function Update()
 
     -- Final Wave
     if last_wave_time < GetTime() then
-        local sid = BuildObject("svfigh", 2, "spawn4")
-        if IsAlive(scav2) then
-            Attack(sid, scav2)
-        end
-
-        if exu and exu.GetDifficulty() >= 3 then
-            local sid2 = BuildObject("svfigh", 2, "spawn4")
-            if IsAlive(scav2) then
-                Attack(sid2, scav2)
-            end
+        for i=1, DiffUtils.ScaleEnemy(1) do
+            local sid = BuildObject("svfigh", 2, "spawn4")
+            if IsAlive(scav2) then Attack(sid, scav2) end
         end
         last_wave_time = 99999.0
     end

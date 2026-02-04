@@ -7,6 +7,13 @@ SetLabel = SetLabel or SettLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({"campaignReimagined", "3659600763"})
 local exu = require("exu")
+local aiCore = require("aiCore")
+local DiffUtils = require("DiffUtils")
+
+-- Helper for AI
+local function SetupAI()
+    DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+end
 
 -- Mission State
 local M = {
@@ -132,14 +139,14 @@ local M = {
 }
 
 function Save()
-    return M
+    return M, aiCore.Save()
 end
 
-function Load(data)
-    if data then
-        M = data
-    end
+function Load(data, aiData)
+    if data then M = data end
+    if aiData then aiCore.Load(aiData) end
 end
+
 
 function Start()
     M.x = 4000
@@ -173,6 +180,13 @@ function Start()
     M.crate1 = GetHandle("crate1")
     M.crate2 = GetHandle("crate2")
     M.crate3 = GetHandle("crate3")
+    
+    if exu then
+        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
+        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+        if exu.SetGlobalTurbo then exu.SetGlobalTurbo(true) end
+    end
+    SetupAI() -- Initialize AI on Start
 end
 
 function AddObject(h)
@@ -209,7 +223,29 @@ function AddObject(h)
         elseif M.scav6 == nil then M.scav6 = h
         end
     end
-end
+    
+    -- Only register units with aiCore if they are produced by the AI (near factory/recycler)
+    -- Scripted waves spawn far away and should be ignored to prevent Squad hijacking
+    if team == 2 then
+        local register = false
+        local prod = {GetRecyclerHandle(2), GetFactoryHandle(2)}
+        
+        for _, p in ipairs(prod) do
+            if IsValid(p) and GetDistance(h, p) < 150 then
+                register = true
+                break
+            end
+        end
+        
+        -- Also check if it IS the recycler/factory/constructor itself
+        if h == GetRecyclerHandle(team) or h == GetFactoryHandle(team) or h == GetConstructorHandle(team) or h == GetArmoryHandle(team) then
+            register = true
+        end
+
+        if register then
+            aiCore.AddObject(h)
+        end
+    end
 
 function Update()
     M.user = GetPlayerHandle()
@@ -218,6 +254,9 @@ function Update()
     -- Get difficulty for dynamic adjustments (0=Very Easy, 1=Easy, 2=Medium, 3=Hard, 4=Very Hard)
     local diff = 2
     if exu and exu.GetDifficulty then diff = exu.GetDifficulty() end
+    
+    aiCore.Update()
+
 
     -- Update Objective Health Status
     if IsAlive(M.solar1) then
@@ -229,40 +268,13 @@ function Update()
 
     if not M.start_done then
         if exu then
-            local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.version or "Unknown"
-            print("EXU Version: " .. tostring(ver))
-            local diff = (exu.GetDifficulty and exu.GetDifficulty()) or 2
-            print("Difficulty: " .. tostring(diff))
-
-            if diff >= 3 then
-                AddObjective("hard_diff", "red", 8.0, "High Difficulty: Enemy presence intensified.")
-            elseif diff <= 1 then
-                AddObjective("easy_diff", "green", 8.0, "Low Difficulty: Enemy presence reduced.")
-            end
-
-            -- Apply turbo to existing units
-            if exu.SetUnitTurbo then
-                for h in AllCraft() do
-                    if GetTeamNum(h) == 1 then
-                        exu.SetUnitTurbo(h, true)
-                    elseif GetTeamNum(h) ~= 0 and diff > 3 then
-                        exu.SetUnitTurbo(h, true)
-                    end
-                end
-            end
-
             if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-            if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end -- Extended targeting range
-            if exu.EnableOrdnanceTweak then exu.EnableOrdnanceTweak(1.0) end -- Projectiles inherit velocity
-            if exu.SetSelectNone then exu.SetSelectNone(false) end -- Modern selection (don't deselect on move)
+            if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
         end
 
-        -- Dynamic Starting Scrap
-        local start_scrap = 10
-        if diff <= 1 then start_scrap = 20
-        elseif diff >= 3 then start_scrap = 5 end
-        SetScrap(1, start_scrap)
-        SetPilot(1, 10)
+        -- Dynamic Starting Resources
+        SetScrap(1, DiffUtils.ScaleRes(10))
+        SetPilot(1, DiffUtils.ScaleRes(10))
 
         SetObjectiveOn(M.solar1)
         SetObjectiveName(M.solar1, "Command Tower")
@@ -273,9 +285,9 @@ function Update()
         SetCritical(M.solar2, true)
 
         -- Difficulty Health Scaling for Critical Buildings
-        local health_mod = 1.0
-        if diff <= 1 then health_mod = 1.5 -- Easy: +50% HP
-        elseif diff >= 3 then health_mod = 0.75 end -- Hard: -25% HP
+        local m = DiffUtils.Get()
+        local health_mod = m.res -- reuse resource mult for simplicity or inverse?
+        -- User didn't specify health but keep it scaled.
         
         if IsAlive(M.solar1) then
             SetMaxHealth(M.solar1, GetMaxHealth(M.solar1) * health_mod)
@@ -290,17 +302,9 @@ function Update()
         ClearObjectives()
         AddObjective("misn0301.otf", "white")
         
-        -- Randomized Attack Timers
-        local diff_mod = 0
-        if exu then
-            local diff = (exu.GetDifficulty and exu.GetDifficulty()) or 2
-            if diff <= 1 then diff_mod = 60.0
-            elseif diff >= 3 then diff_mod = -30.0 end
-        end
-
-        M.second_wave_time = GetTime() + 200.0 + math.random(-10, 20) + diff_mod
-        M.third_wave_time = GetTime() + 310.0 + math.random(-15, 30) + diff_mod
-        M.fourth_wave_time = GetTime() + 430.0 + math.random(-20, 40) + diff_mod -- APC attack randomized
+        M.second_wave_time = GetTime() + DiffUtils.ScaleTimer(200.0) + math.random(-10, 20)
+        M.third_wave_time = GetTime() + DiffUtils.ScaleTimer(310.0) + math.random(-15, 30)
+        M.fourth_wave_time = GetTime() + DiffUtils.ScaleTimer(430.0) + math.random(-20, 40)
         
         M.apc_spawn_time = GetTime() + 530.0
         M.support_time = GetTime() + 430.0
