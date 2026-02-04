@@ -153,11 +153,13 @@ function Update()
         bhandle2 = GetHandle("sscr_176_scrap")
         
         SetUserTarget(bgoal)
+        SetObjectiveName(bgoal, "Scrap Field Alpha")
         start_done = true
         camera1 = true
         cam_time = GetTime() + 30.0
         CameraReady()
-        audmsg = AudioMessage("misn0230.wav")
+        --audmsg = AudioMessage("misn0230.wav")
+        audmsg = AudioMessage("misn0201.wav")
     end
 
     -- Camera Logic

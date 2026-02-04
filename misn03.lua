@@ -75,6 +75,7 @@ local M = {
 
     -- Floats
     next_second = 0.0,
+    alarm_sound_timer = 0.0,
     retreat_timer = 0.0,
     next_wave = 99999.0,
     second_wave_time = 99999.0,
@@ -308,6 +309,14 @@ function Update()
         M.start_done = true
     end
 
+    -- Alarm for Command Tower
+    if IsAlive(M.solar1) and GetHealth(M.solar1) < 1.0 then
+        if not M.alarm_sound_timer or GetTime() > M.alarm_sound_timer then
+            StartSound("misn0708.wav", M.solar1)
+            M.alarm_sound_timer = GetTime() + 2.0
+        end
+    end
+
     -- Dynamic Health Warnings
     if IsAlive(M.solar1) and not M.solar1_warned then
         if GetHealth(M.solar1) < 0.4 then
@@ -392,14 +401,16 @@ function Update()
     end
 
     if M.first_wave_done and not M.start_retreat then
-        if not IsAlive(M.wave1_1) then
-            Retreat(M.wave1_2, "retreat_path", 1)
-            M.new_message_time = GetTime() + 13.0
-            M.start_retreat = true
-        elseif not IsAlive(M.wave1_2) then
-            Retreat(M.wave1_1, "retreat_path", 1)
-            M.new_message_time = GetTime() + 10.0
-            M.start_retreat = true
+        if diff < 3 then
+            if not IsAlive(M.wave1_1) then
+                Retreat(M.wave1_2, "retreat_path", 1)
+                M.new_message_time = GetTime() + 13.0
+                M.start_retreat = true
+            elseif not IsAlive(M.wave1_2) then
+                Retreat(M.wave1_1, "retreat_path", 1)
+                M.new_message_time = GetTime() + 10.0
+                M.start_retreat = true
+            end
         end
     end
 
