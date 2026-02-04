@@ -20,6 +20,13 @@ function aiCore.Load(data)
         if team.recyclerMgr then setmetatable(team.recyclerMgr, aiCore.FactoryManager) end
         if team.factoryMgr then setmetatable(team.factoryMgr, aiCore.FactoryManager) end
         if team.constructorMgr then setmetatable(team.constructorMgr, aiCore.ConstructorManager) end
+        
+        -- Restore Squad Metatables
+        if team.squads then
+            for _, squad in ipairs(team.squads) do
+                setmetatable(squad, aiCore.Squad)
+            end
+        end
     end
 end
 
@@ -194,18 +201,6 @@ function aiCore.GetFlankPosition(target, dist, angleDeg)
     }
 end
 
--- Vector Helpers
-function aiCore.GetFlankPosition(target, dist, angleDeg)
-    if not IsValid(target) then return nil end
-    local tPos = GetPosition(target)
-    local rad = math.rad(angleDeg)
-    return {
-        x = tPos.x + math.cos(rad) * dist,
-        y = tPos.y, -- Assume flat for now, or use GetTerrainHeight
-        z = tPos.z + math.sin(rad) * dist
-    }
-end
-
 
 ----------------------------------------------------------------------------------
 -- CLASSES
@@ -297,10 +292,10 @@ function aiCore.ConstructorManager:update()
     end
 
     if #self.queue == 0 then
-        -- Return to recycler if idle
+        -- Robust idling: Return to recycler if idle
         local recycler = GetRecyclerHandle(self.team)
         if IsValid(recycler) and not self.sentToRecycler then
-            if GetDistance(self.handle, recycler) > 50 then
+            if GetDistance(self.handle, recycler) > 100 then
                 Goto(self.handle, recycler, 0)
                 self.sentToRecycler = true
             end
@@ -330,10 +325,18 @@ function aiCore.ConstructorManager:update()
             if existing then
                 table.remove(self.queue, 1) -- Remove if already built
             else
-                local scrapCost = GetODFInt(OpenODF(item.odf),"GameObjectClass","scrapCost")
-                if GetScrap(self.team) >= scrapCost and GetTime() > self.pulseTimer then
-                    Build(self.handle, item.odf, 1) -- Drop building here
-                    self.pulseTimer = GetTime() + self.pulsePeriod
+                -- Spacing check (New from aiBuildOS)
+                local spacingOk, reason = self.team:CheckBuildingSpacing(item.odf, item.path, 50)
+                
+                if not spacingOk then
+                    if aiCore.Debug then print("Constructor " .. self.team .. " spacing issue: " .. reason) end
+                    table.remove(self.queue, 1) -- Skip if it can't be placed safely
+                else
+                    local scrapCost = GetODFInt(OpenODF(item.odf),"GameObjectClass","scrapCost")
+                    if GetScrap(self.team) >= scrapCost and GetTime() > self.pulseTimer then
+                        Build(self.handle, item.odf, 1) -- Drop building here
+                        self.pulseTimer = GetTime() + self.pulsePeriod
+                    end
                 end
             end
         end
@@ -512,11 +515,29 @@ aiCore.Team = {
     apcs = {},
     minelayers = {},
     pilots = {},        -- technicians/snipers
+    cloakers = {},      -- CRA cloaked units
+    thumpers = {},      -- Advanced Weapons
+    mortars = {},
+    fields = {},
     
     -- Tactical State
     howitzerState = {}, -- {attacking=bool, outbound=bool, target=handle}
     wreckerTimer = 0,
     upgradeTimer = 0,
+    strategyTimer = 0,  -- For rotation
+    weaponTimer = 0,    -- For mask cycling
+    
+    -- pilotMode State
+    roleTimer = 0,
+    rescueTimer = 0,
+    tugTimer = 0,
+    stickTimer = 0,
+    
+    cargoJobs = {},
+    tugHandles = {},
+    activeTugJobs = {},
+    assistedUnits = {}, -- For StickToPlayer
+    basePositions = {}, -- For AutoBuild
     
     -- Targets
     enemyTargets = {},  -- prioritized list of enemy buildings
@@ -622,8 +643,17 @@ function aiCore.Team:Update()
     self:UpdatePilots()
     self:UpdateUpgrades()
     self:UpdateWrecker()
-    self:UpdateWrecker()
-    self:UpdateSquads() -- NEW
+    self:UpdateSquads()
+    self:UpdateCloakers()
+    self:UpdateGuards()
+    self:UpdateStrategyRotation()
+    
+    -- pilotMode Automations
+    if self.Config.autoManage then self:UpdateUnitRoles() end
+    if self.Config.autoRescue then self:UpdateRescue() end
+    if self.Config.autoTugs then self:UpdateTugs() end
+    if self.Config.stickToPlayer then self:UpdateStickToPlayer() end
+    if self.Config.autoBuild then self:UpdateAutoBase() end
     
     -- Base Maintenance (Auto-Rebuild)
     self:UpdateBaseMaintenance()
@@ -714,9 +744,25 @@ aiCore.Team.Config = {
     -- Minelayers
     minefields = {},       -- List of path names or positions
     
-    -- Upgrades
-    upgradeInterval = 240,
+    howitzerChance = 50,
+    upgradeInterval = 180,
     wreckerInterval = 600,
+    
+    -- pilotMode Automation (Default OFF)
+    autoManage = false,       -- Enable unit role distribution
+    autoBuild = false,        -- Enable automatic base building
+    autoRescue = false,       -- Enable player rescue system
+    autoTugs = false,         -- Enable automatic cargo management
+    stickToPlayer = false,    -- Enable physics assistance for wingmen
+    
+    -- Sub-config for automation
+    followPercentage = 30,
+    patrolPercentage = 30,
+    guardPercentage = 40,
+    scavengerCount = 4,
+    tugCount = 2,
+    buildingSpacing = 80,
+    rescueDelay = 2.0,
     
     -- Reinforcements
     orbitalReinforce = true
@@ -733,6 +779,25 @@ end
 function aiCore.Team:SetMinefields(fields)
     -- fields can be a table of path names {"path1", "path2"}
     self.Config.minefields = fields
+end
+
+-- Building Spacing Helper (from aiBuildOS)
+function aiCore.Team:CheckBuildingSpacing(odf, position, minDistance)
+    minDistance = minDistance or 50
+    
+    for obj in ObjectsInRange(minDistance, position) do
+        if IsBuilding(obj) and GetTeamNum(obj) == self.teamNum then
+            -- Same type strict spacing
+            if IsOdf(obj, odf) then
+                return false, "Same type too close"
+            end
+            -- General crowding
+            if GetDistance(obj, position) < (minDistance * 0.6) then
+                return false, "Area too crowded"
+            end
+        end
+    end
+    return true, "OK"
 end
 
 ----------------------------------------------------------------------------------
@@ -1061,13 +1126,11 @@ end
 
 function aiCore.Team:AddObject(h)
     local odf = GetOdf(h)
+    local cls = aiCore.NilToString(GetClassLabel(h))
     
     -- Link to build lists
     local function link(list, mgr)
         if mgr.queue[1] and mgr.queue[1].odf == odf then
-            -- It matches the top of queue, assumes it's the one we just built
-            -- Strict linking can be hard in BZ Lua, this is a "best guess" association
-            -- Ideally we check distance to factory
             if IsValid(mgr.handle) and GetDistance(h, mgr.handle) < 150 then
                 local priority = mgr.queue[1].priority
                 list[priority].handle = h
@@ -1089,17 +1152,24 @@ function aiCore.Team:AddObject(h)
     end
     
     -- Add to tactical lists
-    local cls = aiCore.NilToString(GetClassLabel(h))
     if string.find(cls, "howitzer") then
         table.insert(self.howitzers, h)
     elseif string.find(cls, "apc") then
         table.insert(self.apcs, h)
     elseif string.find(cls, "minelayer") then
         table.insert(self.minelayers, h)
-    elseif string.find(cls, "wingman") or string.find(cls, "walker") then
-        -- Instead of dumping into combatUnits immediately, put into POOL for squads
+    elseif string.match(odf, "^cv") or string.match(odf, "^mv") or string.match(odf, "^dv") then
+        table.insert(self.cloakers, h)
         table.insert(self.pool, h)
-        -- Send to rally point (near recycler)
+    end
+    
+    -- Advanced Weapon Users (from aiSpecial)
+    if GetWeaponSlot(h, "gmortar") > -1 then table.insert(self.mortars, h) end
+    if GetWeaponSlot(h, "gquake") > -1 then table.insert(self.thumpers, h) end
+    if GetWeaponSlot(h, "gphantom") > -1 or GetWeaponSlot(h, "gredfld") > -1 then table.insert(self.fields, h) end
+    
+    if string.find(cls, "wingman") or string.find(cls, "walker") then
+        table.insert(self.pool, h)
         if IsValid(self.recyclerMgr.handle) then
             Goto(h, self.recyclerMgr.handle)
         end
@@ -1111,68 +1181,136 @@ end
 ----------------------------------------------------------------------------------
 
 function aiCore.Team:UpdateAdvancedWeapons()
-    -- Advanced Weapon Logic: Periodically switch weapon masks for units with multiple weapons (Thumpers, Double guns)
-    if not self.weaponTimer then self.weaponTimer = GetTime() + 15 end
+    aiCore.RemoveDead(self.mortars)
+    aiCore.RemoveDead(self.thumpers)
+    aiCore.RemoveDead(self.fields)
+    
     if GetTime() > self.weaponTimer then
-        self.weaponTimer = GetTime() + 15 + math.random(5)
+        self.weaponTimer = GetTime() + 15.0 + math.random(5)
         
-        aiCore.RemoveDead(self.combatUnits)
-        for _, u in ipairs(self.combatUnits) do
-            -- Thumper Logic (aiSpecial "Thumper Behavior")
+        -- Thumper Logic
+        for _, u in ipairs(self.thumpers) do
             if math.random(100) < self.Config.thumperChance then
-                local hasThumper = GetWeaponSlot(u, "gquake")
-                if hasThumper > -1 then
-                    -- Toggle Thumper Mask (Mask 1 = 0, 2=1, 4=2, 8=3)
-                    -- If currently using normal, switch to thumper? 
-                    -- Or simplified: SetWeaponMask based on simple random
-                    local current = GetWeaponMask(u)
-                    -- If not using thumper, maybe switch
-                    local thumperMask = 2 ^ hasThumper -- Bitwise check approx
-                    SetWeaponMask(u, thumperMask)
-                    -- Note: Should reset later. aiSpecial has complex timers for this.
-                    -- Simplification: Just randomizing masks occasionally creates dynamic behavior.
-                end
+                local slot = GetWeaponSlot(u, "gquake")
+                if slot > -1 then SetWeaponMask(u, 2 ^ slot) end
             else
-                -- Reset to All Weapons (Mask 15 usually safe, or smart detect)
-                SetWeaponMask(u, 7) -- 0,1,2
+                SetWeaponMask(u, 7) -- Default
             end
-            
-            -- Double Weapon Logic
-            if math.random(100) < self.Config.doubleWeaponChance then
-               -- Set mask to 0+1 (3)
-               SetWeaponMask(u, 3) 
+        end
+        
+        -- Mortar Logic
+        for _, u in ipairs(self.mortars) do
+            if math.random(100) < self.Config.mortarChance then
+                local slot = GetWeaponSlot(u, "gmortar")
+                if slot > -1 then SetWeaponMask(u, 2 ^ slot) end
+            else
+                SetWeaponMask(u, 7)
             end
         end
     end
 end
 
--- Helper for SetWeaponMask bits
-function GetWeaponSlot(h, odf)
-    for i=0,4 do
-        local w = GetWeaponClass(h, i)
-        if w and string.find(w, odf) then return i end
+function aiCore.Team:UpdateUpgrades()
+    if GetTime() > self.upgradeTimer then
+        self.upgradeTimer = GetTime() + self.Config.upgradeInterval
+        
+        local armory = GetArmoryHandle(self.teamNum)
+        if IsValid(armory) and CanBuild(armory) then
+            -- Find resupply targets
+            local target = nil
+            for obj in ObjectsInRange(500, armory) do
+                if GetTeamNum(obj) == self.teamNum then
+                    if GetHealth(obj) < 0.6 or GetAmmo(obj) < 0.4 then
+                        target = obj
+                        break
+                    end
+                end
+            end
+            
+            if IsValid(target) then
+                local powerup = (GetHealth(target) < 0.6) and "aprepa" or "apammo"
+                BuildAt(armory, powerup, target, 1)
+            end
+        end
     end
-    return -1
 end
-
-function aiCore.Team:UpdateHowitzers()
     aiCore.RemoveDead(self.howitzers)
     if #self.howitzers == 0 then return end
     
-    -- Simple Howitzer Logic: Pick enemy target, go there, shoot
-    -- This is a simplified version of aiSpecial logic
+    -- Pick a target building from enemyTargets if populated, else scan
+    local target = self.enemyTargets[1]
     
-    -- Step 1: Find Target
-    local target = GetNearestEnemy(self.howitzers[1])
+    if not IsValid(target) then
+        -- Find a building target by scanning map for enemy buildings
+        -- (Simplified: find nearest enemy building to the first howitzer)
+        target = GetNearestObject(self.howitzers[1])
+        if IsValid(target) and (not IsBuilding(target) or GetTeamNum(target) == self.teamNum) then
+            target = nil -- Not an enemy building
+        end
+    end
+    
+    -- Fallback to nearest enemy unit
+    if not target then target = GetNearestEnemy(self.howitzers[1]) end
     if not IsValid(target) then return end
     
     for i, h in ipairs(self.howitzers) do
         if not IsBusy(h) then
             local dist = GetDistance(h, target)
-            if dist > 300 then
-                Attack(h, target) -- Attack moves them in range usually
+            if dist > 350 then
+                Attack(h, target)
+            elseif dist < 150 then
+                -- Too close? Maybe retreat a bit (New from aiSpecial)
+                local backPos = GetPosition(h)
+                local dir = GetPosition(h) - GetPosition(target)
+                Normalize(dir)
+                Goto(h, GetPosition(h) + dir * 100)
             end
         end
+    end
+end
+
+function aiCore.Team:UpdateCloakers()
+    aiCore.RemoveDead(self.cloakers)
+    for _, c in ipairs(self.cloakers) do
+        if IsAlive(c) and not IsBusy(c) then
+            if not IsCloaked(c) then
+                -- CRA specific logic: Cloak if enemies nearby
+                local enemy = GetNearestEnemy(c)
+                if IsValid(enemy) and GetDistance(c, enemy) < 400 then
+                    -- Issue cloak command if available (depends on ODF config usually, but we can force state if engine allows)
+                    -- For BZ98R, the AI usually handles cloak if it's a 'cloaker' class.
+                    -- If not, we might need to use SetWeaponMask or similar if it's a toggle.
+                end
+            end
+        end
+    end
+end
+
+function aiCore.Team:UpdateGuards()
+    aiCore.RemoveDead(self.howitzerGuards)
+    -- Ensure howitzers have guards
+    for _, h in ipairs(self.howitzers) do
+        if IsAlive(h) then
+            -- Assign a guard if one is in pool and howitzer is unguarded
+            -- (Implementation depends on squad/pooling logic which is partially in pool/squads)
+        end
+    end
+end
+
+function aiCore.Team:UpdateStrategyRotation()
+    if self.strategyLocked then return end
+    
+    if not self.strategyTimer or self.strategyTimer == 0 then
+        self.strategyTimer = GetTime() + 600 -- Rotate every 10 mins
+    end
+    
+    if GetTime() > self.strategyTimer then
+        self.strategyTimer = GetTime() + 600
+        -- Pick new random strategy
+        local strats = {}
+        for name, _ in pairs(aiCore.Strategies) do table.insert(strats, name) end
+        local nextStrat = strats[math.random(#strats)]
+        self:SetStrategy(nextStrat)
     end
 end
 
@@ -1180,6 +1318,17 @@ function aiCore.Team:UpdateAPCs()
     aiCore.RemoveDead(self.apcs)
     for _, apc in ipairs(self.apcs) do
         if IsAlive(apc) then
+            -- APC base targeting (from aiSpecial)
+            if not IsBusy(apc) and not IsDeployed(apc) then
+                -- Target enemy recycler or factory
+                local target = GetRecyclerHandle(3 - self.teamNum) -- Guess enemy team
+                if not IsValid(target) then target = GetNearestEnemy(apc) end
+                
+                if IsValid(target) then
+                    Attack(apc, target)
+                end
+            end
+            
             -- Deploy if near enemy
             local enemy = GetNearestEnemy(apc)
             if IsValid(enemy) and GetDistance(apc, enemy) < 100 and not IsDeployed(apc) then
@@ -1190,20 +1339,142 @@ function aiCore.Team:UpdateAPCs()
 end
 
 function aiCore.Team:UpdateWrecker()
-    -- Simplified Day Wrecker Logic
-    -- Check strategies
-    if self.strategy == "Tank_Heavy" or self.strategy == "Howitzer_Heavy" then
-        if self.wreckerTimer < GetTime() then
-            self.wreckerTimer = GetTime() + 600 -- 10 mins
+    -- Day Wrecker Logic (Ported from aiSpecial)
+    if self.strategy == "Tank_Heavy" or self.strategy == "Howitzer_Heavy" or self.strategy == "Balanced" then
+        if GetTime() > self.wreckerTimer then
+            self.wreckerTimer = GetTime() + (self.Config.wreckerInterval or 600)
             
             local armory = GetArmoryHandle(self.teamNum)
             if IsValid(armory) and CanBuild(armory) then
-                local enemies = {} -- Build logic to finding enemy base
-                -- Mockup: simple random enemy object
-                local enemy = GetNearestEnemy(armory)
-                if IsValid(enemy) then
-                    BuildAt(armory, "apwrck", enemy, 1)
-                    if aiCore.Debug then print("Team " .. self.teamNum .. " launching Day Wrecker!") end
+                -- Find a high-value enemy building (Recycler or Factory)
+                local target = GetRecyclerHandle(3 - self.teamNum) -- Enemy
+                if not IsValid(target) then target = GetFactoryHandle(3 - self.teamNum) end
+                
+                if IsValid(target) then
+                    -- "apwrck" is the Daywrecker ODF
+                    BuildAt(armory, "apwrck", target, 1)
+                    if aiCore.Debug then print("Team " .. self.teamNum .. " launched Daywrecker at " .. GetOdf(target)) end
+                end
+            end
+        end
+    end
+end
+
+function aiCore.Team:UpdateUnitRoles()
+    if GetTime() > self.roleTimer then
+        self.roleTimer = GetTime() + 15.0
+        
+        aiCore.RemoveDead(self.pool)
+        if #self.pool == 0 then return end
+        
+        -- Distribute based on percentages
+        local followCount = math.floor(#self.pool * (self.Config.followPercentage / 100))
+        local patrolCount = math.floor(#self.pool * (self.Config.patrolPercentage / 100))
+        
+        local recycler = GetRecyclerHandle(self.teamNum)
+        local player = GetPlayerHandle()
+        
+        for i, h in ipairs(self.pool) do
+            if i <= followCount and IsValid(player) and GetTeamNum(player) == self.teamNum then
+                Follow(h, player, 0)
+            elseif i <= (followCount + patrolCount) then
+                SetCommand(h, AiCommand.HUNT, 0)
+            else
+                if IsValid(recycler) then
+                    Defend2(h, recycler, 0)
+                end
+            end
+        end
+    end
+end
+
+function aiCore.Team:UpdateStickToPlayer()
+    local player = GetPlayerHandle()
+    if not IsAlive(player) or IsPerson(player) or GetTeamNum(player) ~= self.teamNum then return end
+    
+    local playerPos = GetPosition(player)
+    
+    if GetTime() > self.stickTimer then
+        self.stickTimer = GetTime() + 0.5 -- Check twice a second
+        
+        for _, h in ipairs(self.pool) do
+            if IsAlive(h) and GetCurrentCommand(h) == AiCommand.FOLLOW and GetCurrentWho(h) == player then
+                local dist = GetDistance(h, player)
+                if dist > 100 and dist < 500 then
+                    -- Apply physics assistance (nudge toward player if way behind)
+                    local hPos = GetPosition(h)
+                    local dir = Normalize(playerPos - hPos)
+                    local force = 40.0 * (dist / 300.0) -- Scale force by distance
+                    
+                    local vel = GetVelocity(h)
+                    SetVelocity(h, SetVector(vel.x + dir.x * force, vel.y + 5.0, vel.z + dir.z * force))
+                end
+            end
+        end
+    end
+end
+
+function aiCore.Team:UpdateRescue()
+    if self.teamNum ~= 1 then return end -- Rescue system usually player-focused
+    
+    local player = GetPlayerHandle()
+    if not IsPerson(player) then
+        self.rescueTimer = 0
+        return
+    end
+    
+    if GetTime() > self.rescueTimer then
+        self.rescueTimer = GetTime() + 5.0
+        
+        -- Look for nearest available vehicle
+        local rescueUnit = nil
+        local minDist = 1000
+        
+        for _, h in ipairs(self.pool) do
+            local d = GetDistance(h, player)
+            if d < minDist then
+                minDist = d
+                rescueUnit = h
+            end
+        end
+        
+        if rescueUnit then
+            SetCommand(rescueUnit, AiCommand.RESCUE, 1, player)
+            if aiCore.Debug then print("Team " .. self.teamNum .. " sent rescue: " .. GetOdf(rescueUnit)) end
+        else
+            -- Try to build one
+            local factory = GetFactoryHandle(self.teamNum)
+            if IsAlive(factory) and CanBuild(factory) then
+                self.factoryMgr:addUnit("avtank", 100) -- High priority rescue tank
+            end
+        end
+    end
+end
+
+function aiCore.Team:UpdateTugs()
+    if GetTime() > self.tugTimer then
+        self.tugTimer = GetTime() + 10.0
+        
+        aiCore.RemoveDead(self.tugHandles)
+        
+        -- Manage production
+        if #self.tugHandles < self.Config.tugCount then
+            local factory = GetFactoryHandle(self.teamNum)
+            if IsAlive(factory) and CanBuild(factory) then
+                self.factoryMgr:addUnit("avtug", 90)
+            end
+        end
+        
+        -- Auto-scan for cargo
+        for obj in ObjectsInRange(500, GetRecyclerHandle(self.teamNum)) do
+            local odf = GetOdf(obj)
+            if string.find(odf, "relic") or string.find(odf, "artifact") then
+                -- Assign to idle tug
+                for _, tug in ipairs(self.tugHandles) do
+                    if not IsBusy(tug) then
+                        SetCommand(tug, AiCommand.PICKUP, 1, obj)
+                        break
+                    end
                 end
             end
         end
