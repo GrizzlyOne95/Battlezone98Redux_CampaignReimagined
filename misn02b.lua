@@ -71,6 +71,7 @@ end
 function AddObject(h)
     local team = GetTeamNum(h)
     local odf = GetOdf(h)
+    if odf then odf = string.gsub(odf, "%z", "") end
 
     -- Apply turbo to new enemy units on Very Hard difficulty
     if exu and exu.SetUnitTurbo and IsCraft(h) then

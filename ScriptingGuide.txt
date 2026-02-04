@@ -1,12 +1,10 @@
-Battlezone98ReduxLuaFunctions.txt documents all valid Lua 5.1 functions for Battlezone. 
+ScriptUtils.lua documents all valid Lua 5.1 functions for Battlezone. 
 
 All files ending in .ODF must be 8 characters or less! This also applies to files directly used in Lua scripts such as WAV/TRN/BZNe etc
 
-There is a DLL injection method we've gotten working that does offer some additional custom functions. If any are used, I need to be notified so we can add in the proper Lua hook code. These are in the "exu-functions.txt" file. RequireFix.lua is the method we use to load the DLL into the game. 
+There is a DLL injection method we've gotten working that does offer some additional custom functions. These are in the "exu_*.txt" files. RequireFix.lua is the method we use to load the DLL into the game. 
 
 BZFILE is a DLL injection I/O method. See bzfile.txt for documentation. 
-
-ai* Modules are custom Lua modules designed to manage AI systems. Feel free to use them anytime. (aiSpecial, aiRecProd, aiFacProd, aiBuildOS)
 
 All code written for this project must keep in mind this is for Lua 5.1 only, with no external libraries available such as IO, OS, DEBUG, etc. 
 

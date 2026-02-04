@@ -344,7 +344,9 @@ function Update()
         end
         
         -- Player Capture
-        if (GetOdf(user) == "svfi12") and (not key_captured) then
+        local userOdf = GetOdf(user)
+        if userOdf then userOdf = string.gsub(userOdf, "%z", "") end
+        if (userOdf == "svfi12") and (not key_captured) then
             if IsAlive(user) then GiveAmmo(user, 2000) end
             ClearObjectives()
             AddObjective("misn1200.otf", "green")
@@ -361,7 +363,9 @@ function Update()
         end
         
         -- Player left ship?
-        if key_captured and ((GetOdf(user) == "svfigh") or (GetOdf(user) == "svtank")) and (not out_of_ship) then
+        local userOdf = GetOdf(user)
+        if userOdf then userOdf = string.gsub(userOdf, "%z", "") end
+        if key_captured and ((userOdf == "svfigh") or (userOdf == "svtank")) and (not out_of_ship) then
             out_of_ship = true
         end
         

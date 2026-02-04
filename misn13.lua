@@ -132,6 +132,7 @@ function AddObject(h)
     -- In C++ this logic is in AddObject. In Lua, we check handles in Update mostly,
     -- but for "svapc13" etc we might need to grab them if they spawn.
     local odf = GetOdf(h)
+    if odf then odf = string.gsub(odf, "%z", "") end
     if team == 2 then
         if odf == "svapc13" then 
             if not sv1 then sv1 = h

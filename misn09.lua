@@ -333,8 +333,12 @@ function Update()
         deploy_check = GetTime() + 2.0
         -- In Lua, checking deployment usually involves ODF check (factory vs muf) or animation state.
         -- Assuming GetOdf works
-        if IsAlive(nsdfmuf) and (GetOdf(nsdfmuf) == "avfact" or GetClassLabel(nsdfmuf) == "factory") then
-             muf_deployed = true
+        if IsAlive(nsdfmuf) then
+            local odf = GetOdf(nsdfmuf)
+            if odf then odf = string.gsub(odf, "%z", "") end
+            if (odf == "avfact" or GetClassLabel(nsdfmuf) == "factory") then
+                 muf_deployed = true
+            end
         end
     end
     

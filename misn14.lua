@@ -86,7 +86,8 @@ function AddObject(h)
         aiCore.AddObject(h)
     end
     
-    if (GetOdf(h) == "avapc") and (team == 1) then
+    local odf = GetOdf(h); if odf then odf = string.gsub(odf, "%z", "") end
+    if (odf == "avapc") and (team == 1) then
         found = true
         apc = h
     end

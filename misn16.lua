@@ -80,7 +80,7 @@ function AddObject(h)
     local team = GetTeamNum(h)
     
     if team == 1 then
-        local odf = GetOdf(h)
+        local odf = GetOdf(h); if odf then odf = string.gsub(odf, "%z", "") end
         if odf == "svtank" or odf == "svturr" or odf == "svfigh" or odf == "svwalk" then
             SendToAttack(h)
         elseif odf == "svscav" or odf == "svhaul" then

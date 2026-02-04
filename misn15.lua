@@ -84,7 +84,7 @@ function AddObject(h)
     local team = GetTeamNum(h)
     
     if team == 1 then
-        local odf = GetOdf(h)
+        local odf = GetOdf(h); if odf then odf = string.gsub(odf, "%z", "") end
         if odf == "avscav" then
             found = true
             scav_du_jour = h
@@ -106,7 +106,8 @@ function AddObject(h)
 end
 
 function DeleteObject(h)
-    if GetTeamNum(h) == 1 and GetOdf(h) == "absilo" then
+    local odf = GetOdf(h); if odf then odf = string.gsub(odf, "%z", "") end
+    if GetTeamNum(h) == 1 and odf == "absilo" then
         silocount = silocount - 1
     end
 end

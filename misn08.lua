@@ -142,6 +142,7 @@ function AddObject(h)
     
     -- Mission Handles (C++ AddObject replacement)
     local odf = GetOdf(h)
+    if odf then odf = string.gsub(odf, "%z", "") end
     if not nsdfmuf and odf == "avfact" then nsdfmuf = h end -- C++ "avmu8" -> likely avfact in Lua or ODF map
     if not ccaapc and odf == "svapc" then ccaapc = h end
     if not guntower1 and odf == "abtowe" then guntower1 = h

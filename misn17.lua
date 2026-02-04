@@ -105,7 +105,7 @@ function AddObject(h)
         aiCore.AddObject(h)
     end
     
-    local odf = GetOdf(h)
+    local odf = GetOdf(h); if odf then odf = string.gsub(odf, "%z", "") end
     if odf == "avartl" then
         if not art1 then art1 = h
         elseif not art2 then art2 = h

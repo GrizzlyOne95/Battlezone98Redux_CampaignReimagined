@@ -99,6 +99,22 @@ function Update()
         AddObjective("Template Objective Activated", "white")
         objective_flag = true
     end
+    
+    -- CINEMATIC HANDLING Example
+    -- if start_cinematic then
+    --     CameraPath("my_cam_path", 1000, 2000, some_handle)
+    -- end
+end
+
+-- DATA SYNC (Network Commands)
+function Receive(id, type, val1, val2, str)
+    -- Type 7: Custom Script Commands
+    if type == 7 then
+        if str == "START_CINEMATIC_1" then
+            -- Example: Set a local flag to start playing camera path in Update()
+            -- start_cinematic = true 
+        end
+    end
 end
 
 -- NETCODE REMINDERS (from ScriptingGuide.txt):

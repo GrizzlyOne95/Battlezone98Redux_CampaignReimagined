@@ -220,7 +220,9 @@ function Update()
         local function FindUnit(odf)
             local nearby = GetObjectsInRange(ccarecycle, 500.0, "any") -- Look near base
             for _, h in ipairs(nearby) do
-                if GetOdf(h) == odf then return h end
+                local check = GetOdf(h)
+                if check then check = string.gsub(check, "%z", "") end
+                if check == odf then return h end
             end
             -- Fallback, check map wide? Map is small enough or rely on dynamic add.
             return nil
@@ -239,6 +241,7 @@ function Update()
         -- Re-implement C++ AddObject Logic roughly:
         for _, h in ipairs(units) do
             local odf = GetOdf(h)
+            if odf then odf = string.gsub(odf, "%z", "") end
             if not ccatug and odf == "svhaul" then ccatug = h end
             if not ccafighter1 and odf == "svfigh" then ccafighter1 = h 
             elseif not ccafighter2 and odf == "svfigh" then ccafighter2 = h end
