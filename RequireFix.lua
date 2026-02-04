@@ -29,47 +29,47 @@ do
 
     local function getSteamWorkshopDirectory()
         local gameDirectory = getGameDirectory()
-        local workshopRelativePath = "steamapps/workshop/content/301650"
-
-        -- Remove the common directory from the game directory
-        local commonDirectory = "steamapps\\common\\Battlezone 98 Redux"
-        local commonDirectoryIndex = string.find(gameDirectory, commonDirectory)
-
-        if commonDirectoryIndex then
-            gameDirectory = gameDirectory:sub(1, commonDirectoryIndex - 2)
+        -- Try to find Steam library root to locate workshop content
+        local commonIndex = string.find(gameDirectory, "steamapps\\common\\Battlezone 98 Redux")
+        if commonIndex then
+            local steamRoot = gameDirectory:sub(1, commonIndex - 1)
+            return steamRoot .. "steamapps\\workshop\\content\\301650"
         end
-
-        -- Combine paths using path.join
-        local steamWorkshopDirectory = gameDirectory .. "\\" .. workshopRelativePath:gsub("/", "\\")
-
-        return steamWorkshopDirectory
+        return nil
     end
 
     -- This sets the path and cpath to the user defined value, it can take a 
     -- single workshop ID or a table of IDs and add them sequentially to the 
     -- correct path -VTrider
     local function Initialize(workshopID)
-        local workshopDirectory = getSteamWorkshopDirectory()
+        local gameDirectory = getGameDirectory()
+        local workshopDir = getSteamWorkshopDirectory()
         local defaultPath = package.path
         local defaultCPath = package.cpath
         local LuaPath = defaultPath
         local DLLPath = defaultCPath
 
-        if type(workshopID) == "table" then
-            for key, value in pairs(workshopID) do
-                local modDirectory = workshopDirectory .. "\\" .. value
-                LuaPath = LuaPath .. ";" .. modDirectory .. "\\?.lua"
-                DLLPath = DLLPath .. ";" .. modDirectory .. "\\?.dll"
+        local function addPaths(id)
+            -- 1. Local Addon Path
+            local localPath = gameDirectory .. "\\addon\\" .. id
+            LuaPath = LuaPath .. ";" .. localPath .. "\\?.lua"
+            DLLPath = DLLPath .. ";" .. localPath .. "\\?.dll"
+            
+            -- 2. Workshop Path
+            if workshopDir then
+                local wsPath = workshopDir .. "\\" .. id
+                LuaPath = LuaPath .. ";" .. wsPath .. "\\?.lua"
+                DLLPath = DLLPath .. ";" .. wsPath .. "\\?.dll"
             end
-
-            package.path = LuaPath
-            package.cpath = DLLPath
-            return
         end
 
-        local modDirectory = workshopDirectory .. "\\" .. workshopID
-        local LuaPath = defaultPath .. ";" .. modDirectory .. "\\?.lua"
-        local DLLPath = defaultCPath .. ";" .. modDirectory .. "\\?.dll"
+        if type(workshopID) == "table" then
+            for _, id in pairs(workshopID) do
+                addPaths(id)
+            end
+        else
+            addPaths(workshopID)
+        end
 
         package.path = LuaPath
         package.cpath = DLLPath
