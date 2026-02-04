@@ -13,7 +13,7 @@ local aiCore = require("aiCore")
 local function SetupAI()
     -- Team 1: Black Dogs (Player)
     -- Team 2: CAA (Enemy)
-    local caa = aiCore.AddTeam(2, aiCore.Factions.CAA) 
+    local caa = aiCore.AddTeam(2, aiCore.Factions.CCA) 
     
     local diff = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
     if diff <= 1 then
