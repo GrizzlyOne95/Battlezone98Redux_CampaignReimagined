@@ -1,0 +1,1 @@
+You can command a wingman just like a turret, but the wingman does not have to deploy in order to be effective in combat.

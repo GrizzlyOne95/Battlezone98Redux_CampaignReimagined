@@ -1,0 +1,1 @@
+The recycler exists in a deployed and mobile state. It can only build units when it is deployed over a geyser power source. This recycler is currently deployed. Press the zero key to get it to pack up and ready to relocate to a geyser near a scrap field.

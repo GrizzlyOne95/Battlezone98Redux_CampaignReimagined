@@ -10,6 +10,7 @@ RequireFix.Initialize({"campaignReimagined", "3659600763"})
 local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
+local Subtitles = require("Subtitles")
 
 -- Global Variables (State)
 local camera1 = false
@@ -113,6 +114,7 @@ function Update()
     local player = GetPlayerHandle()
     if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     aiCore.Update()
+    Subtitles.Update()
     
     if not start_done then
         DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
@@ -136,11 +138,13 @@ function Update()
         SetUserTarget(bgoal)
         SetObjectiveName(bgoal, "Scrap Field Alpha")
         start_done = true
+        Subtitles.Initialize("durations.csv")
+
         camera1 = true
         cam_time = GetTime() + 30.0
         CameraReady()
-        --audmsg = AudioMessage("misn0230.wav")
-        audmsg = AudioMessage("misn0201.wav")
+        --audmsg = Subtitles.Play("misn0230.wav")
+        audmsg = Subtitles.Play("misn0201.wav")
     end
 
     -- Camera Logic
@@ -170,7 +174,7 @@ function Update()
             SetPosition(player, "playermove")
             StopAudioMessage(audmsg)
             audmsg = nil
-            AudioMessage("misn0224.wav")
+            Subtitles.Play("misn0224.wav")
             wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
             AddObjective("misn02b1.otf", "white")
         end
@@ -180,7 +184,7 @@ function Update()
     if not patrol1 and found and IsAlive(bhandle) and IsAlive(bscav) and GetDistance(bhandle, bscav) < 75.0 then
         for i=1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn1") end
 
-        AudioMessage("misn0233.wav")
+        Subtitles.Play("misn0233.wav")
         message1 = true
         patrol1 = true
         
@@ -210,7 +214,7 @@ function Update()
         Follow(bscav, bhome)
         ClearObjectives()
         AddObjective("misn02b2.otf", "white")
-        AudioMessage("misn0225.wav")
+        Subtitles.Play("misn0225.wav")
         local bbase = GetHandle("apbase-1_camerapod")
         SetUserTarget(bbase)
         message2 = true
@@ -221,7 +225,7 @@ function Update()
         if not IsAlive(player) or not IsAlive(bscav) or (message3 and not IsAlive(scav2)) or not IsAlive(bhome) or not IsAlive(recycler) then
             ClearObjectives()
             AddObjective("misn02b4.otf", "red")
-            audmsg = AudioMessage("misn0227.wav")
+            audmsg = Subtitles.Play("misn0227.wav")
             mission_lost = true
         end
     end
@@ -239,7 +243,7 @@ function Update()
         Retreat(scav2, "retreat")
         SetObjectiveOn(scav2)
         SetObjectiveOff(bscav)
-        AudioMessage("misn0228.wav")
+        Subtitles.Play("misn0228.wav")
         last_wave_time = GetTime() + 10.0
         NextSecond = GetTime() + 1.0
         message3 = true
@@ -268,7 +272,7 @@ function Update()
         AddObjective("misn02b3.otf", "green")
         if IsAlive(bscav) then AddHealth(bscav, 1000.0) end
         if IsAlive(scav2) then AddHealth(scav2, 1000.0) end
-        audmsg = AudioMessage("misn0234.wav")
+        audmsg = Subtitles.Play("misn0234.wav")
         mission_won = true
     end
 
