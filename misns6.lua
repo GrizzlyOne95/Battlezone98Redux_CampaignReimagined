@@ -207,8 +207,8 @@ function Update()
                     
                     if path ~= "" then Mine(m, path) end -- Assuming path is 0=mines
                     
-                    next_target = next_target + 1
-                    if next_target > 5 then next_target = 0 end
+                    -- Randomize next target for better AI
+                    next_target = math.random(0, 5)
                 end
             end
         end

@@ -129,7 +129,13 @@ local check_a = 99999.0
 local check_b = 99999.0
 local check_c = 99999.0
 local unit_spawn_time1 = 99999.0
+local check_b = 99999.0
+local check_c = 99999.0
+local unit_spawn_time1 = 99999.0
 local supply_spawn_time = 99999.0
+
+-- Fix: Track engineers properly
+local cons_in_apc = 0
 
 -- Config
 local difficulty = 2
@@ -339,7 +345,8 @@ function Update()
     -- Pickup Logic
     -- C++ has complex GetDistance checks < 20.0f
     local function CheckPickup(con, flag_in, time_var, flag_safe)
-        if (not flag_in) and IsAlive(con) and (GetDistance(con, apc) < 20.0) then
+        if (not flag_in) and IsAlive(con) and (GetDistance(con, apc) < 30.0) then -- Increased radius
+            cons_in_apc = cons_in_apc + 1
             return true, GetTime() + 0.2
         end
         return flag_in, time_var
@@ -439,14 +446,14 @@ function Update()
     -- This part is complex state machine in C++. Assuming player drives APC to location.
     
     -- Recycler Drop Logic
-    if first_message_done and (not get_recycle) and (GetTime() > check_a) and (GetDistance(apc, svrecycle) < 50.0) then
+    if first_message_done and (not get_recycle) and (GetTime() > check_a) and (GetDistance(apc, svrecycle) < 65.0) then
         -- Decrement passenger count logic simplified here
-        if (fully_loaded or two_loaded or one_loaded) and (not apc_empty) then
+        if (cons_in_apc > 0) then
             get_recycle = true
             CameraReady()
             Stop(apc, 0)
             unit_spawn_time1 = GetTime() + 2.0
-            -- simplify passenger tracking
+            cons_in_apc = cons_in_apc - 1 -- Use one
         end
     end
     
@@ -488,9 +495,10 @@ function Update()
     end
     
     -- Muf Drop Logic (Similar)
-    if first_message_done and (not get_muf) and (GetTime() > check_b) and (GetDistance(apc, svmuf) < 40.0) then
-        if (not apc_empty) then -- Simplified check
+    if first_message_done and (not get_muf) and (GetTime() > check_b) and (GetDistance(apc, svmuf) < 65.0) then
+        if (cons_in_apc > 0) then 
             get_muf = true; CameraReady(); Stop(apc, 0); unit_spawn_time1 = GetTime() + 2.0
+            cons_in_apc = cons_in_apc - 1
         end
     end
     

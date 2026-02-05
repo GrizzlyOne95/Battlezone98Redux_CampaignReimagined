@@ -13,6 +13,11 @@ local DiffUtils = require("DiffUtils")
 -- Helper for AI
 local function SetupAI()
     DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    
+    -- Configure Player Team (1) for Scavenger Assist
+    if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
+        aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", true)
+    end
 end
 
 -- Variables
@@ -156,6 +161,13 @@ function AddObject(h)
 		found = true
 		tug = h
 	end
+
+    -- Scavenger Assist Registration (Team 1)
+    if (team == 1) and IsOdf(h, "scavenger") then
+        if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
+            aiCore.ActiveTeams[1]:RegisterScavenger(h)
+        end
+    end
 
     -- aiCore and DiffUtils handle Team 1 enhancements and Turbo automatically
     

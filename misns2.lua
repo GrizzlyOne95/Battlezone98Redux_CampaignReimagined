@@ -278,6 +278,15 @@ function Update()
            SetIndependence(bd6, 1)
            SetIndependence(bd7, 1)
            SetIndependence(bd8, 1)
+           
+           -- Flanker Buffs (Hard+)
+           if exu and exu.SetUnitTurbo and difficulty >= 3 then
+               exu.SetUnitTurbo(bd5, true)
+               exu.SetUnitTurbo(bd6, true)
+               exu.SetUnitTurbo(bd7, true)
+               exu.SetUnitTurbo(bd8, true)
+           end
+           
            wave2gone = true
         end
     end
