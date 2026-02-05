@@ -34,6 +34,7 @@ local repeat_time = 0.0
 local forgiveness = 40.0
 local jump_done = 0.0
 local num_reps = 0
+local max_reps = 4 -- Default
 local on_point = 0
 
 -- Handles
@@ -66,12 +67,31 @@ function Start()
     -- Initialize Subtitles with duration file if available
     Subtitles.Initialize("durations.csv")
     
-    -- Setup teams if needed, though training usually assumes pre-set teams
-    -- DiffUtils.SetupTeams(1, 2, 0) 
+    -- Setup teams
+    DiffUtils.SetupTeams(1, 2, 0) 
+    
+    -- QOL Improvements
+    if exu then
+        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
+        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+    end
+    
+    -- Dynamic Difficulty
+    local diff_idx = DiffUtils.Get().index -- 0 to 4
+    -- Forgiveness: E(60), N(50), H(40), VH(30)
+    forgiveness = 60.0 - (diff_idx * 7.5) 
+    if forgiveness < 30.0 then forgiveness = 30.0 end
+    
+    -- Max Reps: E(8), N(5), H(3), VH(2)
+    -- Default was 4 in C++ (actually test was >4, so 5 fails)
+    local max_reps_table = {8, 6, 5, 3, 2}
+    max_reps = max_reps_table[diff_idx + 1] or 4
 end
 
 function Update()
     Subtitles.Update()
+
+    if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     
     local player = GetPlayerHandle()
     local player_pos = GetPosition(player)
@@ -296,7 +316,7 @@ function Update()
     end
     
     -- Loss Condition (Too many reps)
-    if num_reps > 4 and not lost then
+    if num_reps > max_reps and not lost then
         repeat_time = 99999.0
         ClearObjectives()
         AddObjective("misn0102.otf", "red")

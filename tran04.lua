@@ -79,6 +79,12 @@ function Start()
     player = GetHandle("player-1_hover")
     
     camera_delay = 99999.0
+    
+    -- QOL Improvements
+    if exu then
+        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
+        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+    end
 end
 
 function AddObject(h)
@@ -101,6 +107,7 @@ end
 
 function Update()
     Subtitles.Update()
+    if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     
     if not start_done then
         -- Handles Safety
@@ -119,6 +126,13 @@ function Update()
         AddObjective("tran0401.otf", "white")
         
         start_done = true
+        
+        -- Dynamic Difficulty: Buff Targets on Hard+
+        local diff = DiffUtils.Get().index
+        if diff >= 3 then -- Hard or Very Hard
+            if IsAlive(target1) then AddHealth(target1, 1000) end
+            if IsAlive(target2) then AddHealth(target2, 1000) end
+        end
     end
     
     if not message1 and IsAlive(recycler) and IsSelected(recycler) then

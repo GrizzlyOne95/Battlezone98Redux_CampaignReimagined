@@ -62,6 +62,12 @@ function Start()
     attacker = GetHandle("svfigh-1_wingman")
     
     delay_message = 99999.0
+    
+    -- QOL Improvements
+    if exu then
+        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
+        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+    end
 end
 
 function AddObject(h)
@@ -81,6 +87,7 @@ end
 
 function Update()
     Subtitles.Update()
+    if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     
     if not start_done then
         Subtitles.Play("tran0301.wav")
@@ -94,6 +101,12 @@ function Update()
             SetObjectiveOn(recycler)
             SetObjectiveName(recycler, "Recycler")
             SetScrap(1, 7)
+        end
+        
+        -- Difficulty Scaling for Attacker
+        if IsAlive(attacker) and DiffUtils.Get().enemyTurbo then
+             -- Turbo only on Very Hard (or Hard if tweaked in DiffUtils)
+             if exu and exu.SetUnitTurbo then exu.SetUnitTurbo(attacker, true) end
         end
         
         ClearObjectives()

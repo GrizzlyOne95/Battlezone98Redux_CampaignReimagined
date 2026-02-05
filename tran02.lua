@@ -69,6 +69,12 @@ function Start()
     
     repeat_time = 99999.0
     hint_delay = 99999.0
+    
+    -- QOL Improvements
+    if exu then
+        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
+        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+    end
 end
 
 local function PlayReminder(time, msg_id)
@@ -92,6 +98,7 @@ end
 
 function Update()
     Subtitles.Update()
+    if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     
     if IsAlive(turret) then
         repeat_time = PlayReminder(repeat_time, message)
