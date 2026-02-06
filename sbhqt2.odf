@@ -1,0 +1,15 @@
+[GameObjectClass]
+baseName = "sbhqcp"
+classLabel = "i76building"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 12500
+maxAmmo = 0
+unitName = "Check-Point Tower"
+heatSignature = 0.8
+imageSignature = 8.0
+radarSignature = 1.0
+
+[BuildingClass]
+soundAmbient = "misn1231.wav"
+

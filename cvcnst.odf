@@ -1,0 +1,62 @@
+[GameObjectClass]
+classLabel = "constructionrig"
+collisionRadius = 7.0
+scrapValue = 7
+scrapCost = 6
+buildTime = 8.5
+maxHealth = 1800
+maxAmmo = 0
+collisionRadius = 5.0
+unitName = "Constructor"
+aiName = "RigFriend"
+aiName2 = "RigEnemy"
+heatSignature = 3.5
+imageSignature = 5.5
+radarSignature = 0.1
+
+[CraftClass]
+rangeScan = 360.0
+periodScan = 5.0f
+velocJam = 5.0f
+selectUser1Msg = "cvconsv1.wav"
+selectUser2Msg = "cvconsv6.wav"
+selectWaitMsg = "cvconsva.wav"
+selectGoMsg = "cvconsv8.wav"
+selectOtherMsg = "cvconsva.wav"
+attackMsg = "cvconsv2.wav"
+goMsg = "cvconsv0.wav"
+user1Msg = "cvconsv2.wav"
+user2Msg = "cvconsv7.wav"
+followMsg = "cvconsv3.wav"
+otherMsg = "cvconsv9.wav"
+diedMsg = "abetty1.wav"
+
+[HoverCraftClass]
+setAltitude = 1.0
+accelDragStop = 4.0
+accelDragFull = 1.0
+alphaTrack = 20.0
+alphaDamp = 5.0
+pitchPitch = 0.25
+pitchThrust = 0.1
+rollStrafe = 0.1
+rollSteer = 0.1
+velocForward = 12.0
+velocReverse = 12.0
+velocStrafe = 12.0
+accelThrust = 50.0
+accelBrake = 75.0
+omegaSpin = 2.5
+omegaTurn = 1.25
+alphaSteer = 6.25
+accelJump = 0.0
+
+[ProducerClass]
+buildItem1 = "cbspow"
+buildItem2 = "cbtowe"
+buildItem3 = "cbcomm"
+buildItem4 = "cbbarr"
+buildItem5 = "cbsilo"
+buildItem6 = "cbsupp"
+buildItem7 = "cbhang"
+
