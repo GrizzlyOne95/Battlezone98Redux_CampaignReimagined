@@ -23,22 +23,7 @@ local function SetupAI()
     
     -- Configure CCA (Team 2)
     if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[2] then
-        -- Define minimal build list to keep base active
-        -- Recycler builds (Scavs, Turrets, Scouts)
-        aiCore.ActiveTeams[2].recyclerBuildList = {
-            [1] = {odf = "svscav", priority = 1},
-            [2] = {odf = "svscav", priority = 2},
-            [3] = {odf = "svturr", priority = 3},
-            [4] = {odf = "svturr", priority = 4},
-            [5] = {odf = "svfigh", priority = 5},
-            [6] = {odf = "svfigh", priority = 6}
-        }
-        -- Factory builds (Tanks, Scouts) - Will only process if Factory exists
-        aiCore.ActiveTeams[2].factoryBuildList = {
-            [1] = {odf = "svtank", priority = 1},
-            [2] = {odf = "svltnk", priority = 2},
-            [3] = {odf = "svtank", priority = 3} --only recyclers build fighters (svfigh)
-        }
+        aiCore.ActiveTeams[2]:SetStrategy("Balanced")
         aiCore.ActiveTeams[2].Config.resourceBoost = true
         
         -- Plan Base Construction

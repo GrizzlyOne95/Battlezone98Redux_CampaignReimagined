@@ -1694,12 +1694,14 @@ function aiCore.Team:AddObject(h)
     local cls = aiCore.NilToString(GetClassLabel(h))
     
     -- Link to build lists
+    local linked = false
     local function link(list, mgr)
         if mgr.queue[1] and mgr.queue[1].odf == odf then
             if IsValid(mgr.handle) and GetDistance(h, mgr.handle) < 150 then
                 local priority = mgr.queue[1].priority
                 list[priority].handle = h
                 table.remove(mgr.queue, 1)
+                linked = true
             end
         end
     end
@@ -1713,6 +1715,7 @@ function aiCore.Team:AddObject(h)
         if GetDistance(h, qItem.path) < 60 then
             self.buildingList[qItem.priority].handle = h
             table.remove(self.constructorMgr.queue, 1)
+            linked = true
         end
     end
     
@@ -1730,7 +1733,7 @@ function aiCore.Team:AddObject(h)
         table.insert(self.minelayers, h)
     elseif string.match(odf, "^cv") or string.match(odf, "^mv") or string.match(odf, "^dv") then
         table.insert(self.cloakers, h)
-        table.insert(self.pool, h)
+        if linked then table.insert(self.pool, h) end
     elseif string.find(cls, "turret") or string.find(cls, "tower") or string.match(odf, "turr") then
         table.insert(self.turrets, h)
     elseif string.find(cls, "tug") or string.find(cls, "haul") then
@@ -1755,9 +1758,11 @@ function aiCore.Team:AddObject(h)
     -- Double Weapon Tracking (Wingmen/Walkers)
     if string.find(cls, "wingman") or string.find(cls, "walker") then
         table.insert(self.doubleUsers, h) 
-        table.insert(self.pool, h)
-        if IsValid(self.recyclerMgr.handle) and self.teamNum ~= 1 then -- Don't force player units to base
-            Goto(h, self.recyclerMgr.handle)
+        if linked then
+            table.insert(self.pool, h)
+            if IsValid(self.recyclerMgr.handle) and self.teamNum ~= 1 then -- Don't force player units to base
+                Goto(h, self.recyclerMgr.handle)
+            end
         end
     end
 
