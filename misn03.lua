@@ -10,6 +10,7 @@ local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
+local PersistentConfig = require("PersistentConfig")
 
 -- Helper for AI
 local function SetupAI()
@@ -139,7 +140,9 @@ local M = {
     audmsg = nil,
     
     -- Tables
-    solar_list = {false, false, false} -- Track objective status for solar2, solar3, solar4
+    solar_list = {false, false, false}, -- Track objective status for solar2, solar3, solar4
+
+    -- Input State Logic is now handled by PersistentConfig module
 }
 
 function Save()
@@ -149,6 +152,22 @@ end
 function Load(data, aiData)
     if data then M = data end
     if aiData then aiCore.Load(aiData) end
+    aiCore.Bootstrap() -- Refresh/Capture units
+    ApplyQOL() -- Reapply engine settings
+end
+
+-- EXU/QOL Persistence Helper
+function ApplyQOL()
+    if not exu then return end
+    
+    if exu.EnableShotConvergence then exu.EnableShotConvergence() end
+    if exu.SetSmartCursorRange then exu.SetSmartCursorRange(600) end
+    if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
+    if exu.EnableOrdnanceTweak then exu.EnableOrdnanceTweak(1.0) end
+    if exu.SetSelectNone then exu.SetSelectNone(true) end
+
+    -- Initialize Persistent Config (Loads, Applies, and Greets)
+    PersistentConfig.Initialize()
 end
 
 
@@ -184,13 +203,16 @@ function Start()
     M.crate1 = GetHandle("crate1")
     M.crate2 = GetHandle("crate2")
     M.crate3 = GetHandle("crate3")
+    M.guy1 = GetHandle("guy1")
+    M.guy2 = GetHandle("guy2")
+    M.sucker = GetHandle("sucker")
     
     if exu then
-        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+        -- ApplyQOL() -- This is now handled by PersistentConfig.Initialize() which is called in ApplyQOL()
         if exu.SetGlobalTurbo then exu.SetGlobalTurbo(true) end
     end
     SetupAI() -- Initialize AI on Start
+    aiCore.Bootstrap() -- Capture pre-placed units
 end
 
 function AddObject(h)
@@ -230,20 +252,25 @@ function AddObject(h)
     
     -- Only register units with aiCore if they are produced by the AI (near factory/recycler)
     -- Scripted waves spawn far away and should be ignored to prevent Squad hijacking
-    if team == 2 then
+    if team == 2 or team == 1 then
         local register = false
-        local prod = {GetRecyclerHandle(2), GetFactoryHandle(2)}
         
-        for _, p in ipairs(prod) do
-            if IsValid(p) and GetDistance(h, p) < 150 then
-                register = true
-                break
+        if team == 2 then
+            local prod = {GetRecyclerHandle(2), GetFactoryHandle(2)}
+            for _, p in ipairs(prod) do
+                if IsValid(p) and GetDistance(h, p) < 150 then
+                    register = true
+                    break
+                end
             end
-        end
-        
-        -- Also check if it IS the recycler/factory/constructor itself
-        if h == GetRecyclerHandle(team) or h == GetFactoryHandle(team) or h == GetConstructorHandle(team) or h == GetArmoryHandle(team) then
-            register = true
+            
+            -- Also check if it IS the recycler/factory/constructor itself
+            if h == GetRecyclerHandle(team) or h == GetFactoryHandle(team) or h == GetConstructorHandle(team) or h == GetArmoryHandle(team) then
+                register = true
+            end
+        else
+            -- Always register player-team scavengers for assist
+            if IsOdf(h, "avscav") then register = true end
         end
 
         if register then
@@ -263,6 +290,8 @@ function Update()
     
     aiCore.Update()
     subtit.Update()
+    PersistentConfig.UpdateInputs()
+    PersistentConfig.UpdateHeadlights()
 
 
     -- Update Objective Health Status
@@ -280,10 +309,7 @@ function Update()
     end
 
     if not M.start_done then
-        if exu then
-            if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-            if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
-        end
+        ApplyQOL()
 
         -- Dynamic Starting Resources
         SetScrap(1, math.max(4, DiffUtils.ScaleRes(10)))
@@ -291,6 +317,15 @@ function Update()
         SetScrap(2, 40) -- Give AI Team 2 starting scrap
 
         subtit.Initialize("durations.csv")
+
+        -- Steam Integration: Personalized Greeting
+        if exu and exu.GetSteam64 then
+            local steamID = exu.GetSteam64()
+            if steamID and steamID ~= "" then
+                Print("Welcome back, Commander. SteamID: " .. steamID)
+                -- We could also use this for specific rewards or greetings if we had a mapping
+            end
+        end
 
         SetObjectiveOn(M.solar1)
         SetObjectiveName(M.solar1, "Command Tower")
@@ -433,7 +468,8 @@ function Update()
                     M.patrol_respawn_timers[i] = GetTime() + delay
                 elseif GetTime() > M.patrol_respawn_timers[i] then
                     -- Spawn now
-                    local new_soldier = BuildObject("aspilop", 1, M.build5)
+                    local pos = GetPositionNear(GetPosition(M.build5), 0, 10)
+                    local new_soldier = BuildObject("aspilop", 1, pos)
                     if IsAlive(new_soldier) then
                         -- Jump!
                         local vel = GetVelocity(new_soldier)
@@ -541,14 +577,17 @@ function Update()
         end
         if diff >= 3 then -- Hard: Guaranteed light tanks
             type1 = "svltnk"
-            type2 = "svltnk"
+            type2 = "svtank"
             -- Extra unit for hard difficulty
-            local extra = BuildObject("svfigh", 2, spawns[math.random(1,3)])
+            local pos = GetPositionNear(GetPosition(spawns[math.random(1,3)]), 0, 40)
+            local extra = BuildObject("svfigh", 2, pos)
             Attack(extra, M.solar1)
         end
 
-        M.wave2_1 = BuildObject(type1, 2, spawns[math.random(1,3)])
-        M.wave2_2 = BuildObject(type2, 2, spawns[math.random(1,3)])
+        local p1 = spawns[math.random(1,3)]
+        local p2 = spawns[math.random(1,3)]
+        M.wave2_1 = BuildObject(type1, 2, GetPositionNear(GetPosition(p1), 0, 40))
+        M.wave2_2 = BuildObject(type2, 2, GetPositionNear(GetPosition(p2), 0, 40))
         
         Attack(M.wave2_1, M.solar1)
         Goto(M.wave2_2, M.solar1)
@@ -560,8 +599,10 @@ function Update()
         local type3 = "svfigh"
         if diff >= 3 then type3 = "svltnk" end
 
-        M.wave3_1 = BuildObject(type3, 2, spawns[math.random(1,3)])
-        M.wave3_2 = BuildObject("svfigh", 2, spawns[math.random(1,3)])
+        local p1 = spawns[math.random(1,3)]
+        local p2 = spawns[math.random(1,3)]
+        M.wave3_1 = BuildObject(type3, 2, GetPositionNear(GetPosition(p1), 0, 40))
+        M.wave3_2 = BuildObject("svfigh", 2, GetPositionNear(GetPosition(p2), 0, 40))
         
         Attack(M.wave3_1, M.solar1, 1)
         Attack(M.wave3_2, M.solar1, 1)
@@ -580,12 +621,16 @@ function Update()
     end
 
     if not M.fourth_wave_done and M.fourth_wave_time < GetTime() then
-        M.wave4_1 = BuildObject("svapc", 2, spawns[math.random(1,3)])
-        M.wave4_2 = BuildObject("svtank", 2, spawns[math.random(1,3)])
-        M.wave5_1 = BuildObject("svfigh", 2, spawns[math.random(1,3)])
+        local p1 = spawns[math.random(1,3)]
+        local p2 = spawns[math.random(1,3)]
+        local p3 = spawns[math.random(1,3)]
+        M.wave4_1 = BuildObject("svapc", 2, GetPositionNear(GetPosition(p1), 0, 40))
+        M.wave4_2 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p2), 0, 40))
+        M.wave5_1 = BuildObject("svfigh", 2, GetPositionNear(GetPosition(p3), 0, 40))
 
         if diff >= 3 then
-            local extra_tank = BuildObject("svtank", 2, spawns[math.random(1,3)])
+            local p_extra = spawns[math.random(1,3)]
+            local extra_tank = BuildObject("svtank", 2, GetPositionNear(GetPosition(p_extra), 0, 40))
             Attack(extra_tank, M.solar2, 1)
         end
 
@@ -612,8 +657,9 @@ function Update()
 
     if not M.help_spawn and M.support_time < GetTime() then
         -- MODIFIED: Spawn APCs and Escorts early (Reinforcements)
-        M.rescue1 = BuildObject("avapc2", 1, "lpadspawn")
-        M.rescue2 = BuildObject("avapc2", 1, "lpadspawn")
+        local lpos = GetPosition("lpadspawn")
+        M.rescue1 = BuildObject("avapc2", 1, GetPositionNear(lpos, 0, 30))
+        M.rescue2 = BuildObject("avapc2", 1, GetPositionNear(lpos, 0, 30))
         SetCritical(M.rescue1, true)
         SetCritical(M.rescue2, true)
         -- Don't show on map yet, but help player find one
@@ -623,8 +669,8 @@ function Update()
         -- Use ID misn0303.otf so we can update it later
         AddObjective("misn0303.otf", "white", 8.0, "Protect Transport APCs") 
 
-        M.help1 = BuildObject("avfigh", 1, "lpadspawn") -- Scout
-        M.help2 = BuildObject("avtank", 1, "lpadspawn") -- Tank
+        M.help1 = BuildObject("avfigh", 1, GetPositionNear(lpos, 0, 30)) -- Scout
+        M.help2 = BuildObject("avtank", 1, GetPositionNear(lpos, 0, 30)) -- Tank
         
         subtit.Play("misn0314.wav")
         
@@ -661,10 +707,10 @@ function Update()
         M.prop3 = BuildObject("svtank", 2, "tank1_spawn")
         M.prop4 = BuildObject("svtank", 2, "tank2_spawn")
         M.prop5 = BuildObject("svfigh", 2, "fighter1_spawn")
-        M.guy1 = BuildObject("sssold", 2, "guy1_spawn")
-        M.guy2 = BuildObject("sssold", 2, "guy2_spawn")
-        M.guy3 = BuildObject("sssold", 2, "guy1_spawn")
-        M.guy4 = BuildObject("sssold", 2, "guy2_spawn")
+        M.guy1 = BuildObject("sssold", 2, GetPositionNear(GetPosition("guy1_spawn"), 0, 10))
+        M.guy2 = BuildObject("sssold", 2, GetPositionNear(GetPosition("guy2_spawn"), 0, 10))
+        M.guy3 = BuildObject("sssold", 2, GetPositionNear(GetPosition("guy1_spawn"), 0, 10))
+        M.guy4 = BuildObject("sssold", 2, GetPositionNear(GetPosition("guy2_spawn"), 0, 10))
 
         Defend(M.prop1, 1)
         Goto(M.prop2, "tank1_spawn", 1)
@@ -686,8 +732,9 @@ function Update()
 
     if M.camera_ready and not M.more_show and not M.movie_over then
         if M.new_unit_time < GetTime() then
-            M.prop8 = BuildObject("svfigh", 2, "muf_spawn")
-            M.prop9 = BuildObject("svfigh", 2, "muf_spawn")
+            local mpos = GetPosition("muf_spawn")
+            M.prop8 = BuildObject("svfigh", 2, GetPositionNear(mpos, 0, 20))
+            M.prop9 = BuildObject("svfigh", 2, GetPositionNear(mpos, 0, 20))
             Goto(M.prop8, "tank2_spawn", 1)
             Goto(M.prop9, "fighter1_spawn", 1)
             M.more_show = true
@@ -700,10 +747,12 @@ function Update()
         
         -- Delay the pull out time until they actually arrive
         M.pull_out_time = 999999.0 
-        M.turret_move_time = GetTime() + 30.0
+        M.turret_move_time = GetTime() + 15.0
 
         SetObjectiveOff(M.solar1)
         SetObjectiveOff(M.solar2)
+        SetObjectiveOff(M.solar3)
+        SetObjectiveOff(M.solar4)
 
         if IsAlive(M.rescue1) then
             SetObjectiveOn(M.rescue1)
@@ -715,6 +764,11 @@ function Update()
         end
         SetObjectiveOn(M.launch)
         SetObjectiveName(M.launch, "Launch Pad")
+
+        -- Lockdown Player Recycler immediately
+        if IsAlive(M.avrecycler) then
+             SetCommand(M.avrecycler, 9) -- AiCommand.NO_DROPOFF
+        end
 
         ClearObjectives()
         AddObjective("misn0311.otf", "green")
@@ -732,12 +786,9 @@ function Update()
 
     if M.movie_over and not M.remove_props then
         M.audmsg = subtit.Play("misn0306.wav")
-        M.cca_delay_timer = GetTime() + 90.0 -- Set delay
+        M.cca_delay_timer = GetTime() + 60.0 -- Set delay
         M.remove_props = true
-        -- Lockdown Player Recycler immediately
-        if IsAlive(M.avrecycler) then
-             SetCommand(M.avrecycler, 9) -- AiCommand.NO_DROPOFF
-        end
+        
     end
     
     -- MODIFIED: Check delay before deploying
@@ -789,7 +840,8 @@ function Update()
             
             -- Spawn Massive Swarm
             for i=1, 10 do
-                local s = BuildObject("svtank", 2, spawns[math.random(1,3)])
+                local sp = spawns[math.random(1,3)]
+                local s = BuildObject("svtank", 2, GetPositionNear(GetPosition(sp), 0, 50))
                 PrepOutroUnit(s)
                 Goto(s, "line" .. math.random(1,3), 1)
             end
@@ -831,6 +883,7 @@ function Update()
             SetObjectiveOff(M.solar2)
             SetObjectiveOff(M.solar3)
             SetObjectiveOff(M.solar4)
+            SetObjectiveOff(M.solar5)
             
             M.ambush_message_time = GetTime() + 15.0
             M.trans_underway = true
@@ -849,7 +902,7 @@ function Update()
             if exu and exu.GetDifficulty and exu.GetDifficulty() >= 2 then -- Hard+
                  -- MODIFIED: Enemy forces follow the blocking turrets
                 local b1 = BuildObject("svtank", 2, "turret_path1")
-                local b2 = BuildObject("svtank", 2, "turret_path2")
+                local b2 = BuildObject("svfigh", 2, "turret_path2")
                 Follow(b1, M.turret1)
                 Follow(b2, M.turret2)
             end
@@ -868,11 +921,13 @@ function Update()
         subtit.Play("misn0315.wav")
         -- MODIFIED: Split Spawns (Recycler locked down earlier)
         
-        M.wave6_1 = BuildObject("svtank", 2, "wspawn") -- West
-        M.wave6_2 = BuildObject("svtank", 2, spawns[2]) -- South
-        M.wave6_3 = BuildObject("svtank", 2, "wspawn") 
-        local w4 = BuildObject("svtank", 2, spawns[2])
-        local w5 = BuildObject("svtank", 2, "wspawn")
+        local wsp = GetPosition("wspawn")
+        local ssp = GetPosition(spawns[2])
+        M.wave6_1 = BuildObject("svtank", 2, GetPositionNear(wsp, 0, 40)) -- West
+        M.wave6_2 = BuildObject("svtank", 2, GetPositionNear(ssp, 0, 40)) -- South
+        M.wave6_3 = BuildObject("svtank", 2, GetPositionNear(wsp, 0, 40)) 
+        local w4 = BuildObject("svtank", 2, GetPositionNear(ssp, 0, 40))
+        local w5 = BuildObject("svtank", 2, GetPositionNear(wsp, 0, 40))
         
         if IsAlive(M.avrecycler) then
             Attack(M.wave6_1, M.avrecycler)
@@ -891,13 +946,19 @@ function Update()
         subtit.Play("misn0310.wav")
         if IsAlive(M.rescue1) then SetObjectiveOff(M.rescue1) end
         if IsAlive(M.rescue2) then SetObjectiveOff(M.rescue2) end
+
+        Follow (M.rescue1, M.launch, 1)
+        Follow (M.rescue2, M.launch, 1)
         
         ClearObjectives()
         AddObjective("misn0313.otf", "green")
         AddObjective("misn0304.otf", "white")
-        M.wave7_1 = BuildObject("svtank", 2, spawns[math.random(1,3)])
-        M.wave7_2 = BuildObject("svtank", 2, spawns[math.random(1,3)])
-        M.wave7_3 = BuildObject("svtank", 2, spawns[math.random(1,3)])
+        local p1 = spawns[math.random(1,3)]
+        local p2 = spawns[math.random(1,3)]
+        local p3 = spawns[math.random(1,3)]
+        M.wave7_1 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p1), 0, 40))
+        M.wave7_2 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p2), 0, 40))
+        M.wave7_3 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p3), 0, 40))
         Goto(M.wave7_1, "base", 1)
         Goto(M.wave7_2, "base", 1)
         Goto(M.wave7_3, "base", 1)
@@ -924,8 +985,10 @@ function Update()
     end
 
     if not M.final_objective and M.third_objective and CountUnitsNearObject(M.geyser, 5000.0, 2, "svtank") < 5 then
-        M.wave7_4 = BuildObject("svtank", 2, spawns[math.random(1,3)])
-        M.wave7_5 = BuildObject("svtank", 2, spawns[math.random(1,3)])
+        local p4 = spawns[math.random(1,3)]
+        local p5 = spawns[math.random(1,3)]
+        M.wave7_4 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p4), 0, 40))
+        M.wave7_5 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p5), 0, 40))
         Goto(M.wave7_4, "base", 1)
         Goto(M.wave7_5, "base", 1)
     end
@@ -959,9 +1022,9 @@ function Update()
         M.next_shot = GetTime() + 18.5
         M.new_unit_time = GetTime() + 2.0
         M.audmsg = subtit.Play("misn0316.wav")
-        M.prop1 = BuildObject("svtank", 2, "spawna")
-        M.prop2 = BuildObject("svtank", 2, "spawnb")
-        M.prop3 = BuildObject("svtank", 2, "spawnc")
+        M.prop1 = BuildObject("svtank", 2, GetPositionNear(GetPosition("spawna"), 0, 40))
+        M.prop2 = BuildObject("svtank", 2, GetPositionNear(GetPosition("spawnb"), 0, 40))
+        M.prop3 = BuildObject("svtank", 2, GetPositionNear(GetPosition("spawnc"), 0, 40))
         CameraReady()
         M.startfinishingmovie = true
     end
@@ -1033,7 +1096,7 @@ function Update()
 
     if M.climax1 and not M.clear_debis and M.clear_debis_time < GetTime() then
         if IsAlive(M.build3) then Damage(M.build3, 20000) end
-        M.prop8 = BuildObject("svtank", 2, M.cam_geyser)
+        M.prop8 = BuildObject("svtank", 2, GetPositionNear(GetPosition(M.cam_geyser), 0, 20))
         Retreat(M.prop8, "climax_path2", 1)
         M.clear_debis = true
     end
@@ -1041,8 +1104,9 @@ function Update()
     if M.climax1 and not M.climax2 then
         if GetDistance(M.prop1, M.cam_geyser) < 100.0 then
             Retreat(M.prop1, "climax_path2", 1)
-            M.prop9 = BuildObject("svfigh", 2, "solar_spot")
-            M.prop0 = BuildObject("svfigh", 2, "solar_spot")
+            local s_pos = GetPosition("solar_spot")
+            M.prop9 = BuildObject("svfigh", 2, GetPositionNear(s_pos, 0, 20))
+            M.prop0 = BuildObject("svfigh", 2, GetPositionNear(s_pos, 0, 20))
             Retreat(M.prop9, "camera_pass", 1)
             Retreat(M.prop0, "camera_pass", 1)
             if IsAlive(M.hanger) then Damage(M.hanger, 20000) end
@@ -1060,7 +1124,7 @@ function Update()
 
         Retreat(M.prop2, "solar_spot")
         Retreat(M.prop8, "spawn_scrap1", 1)
-        M.sucker = BuildObject("abwpow", 1, "sucker_spot")
+        M.sucker = BuildObject("abwpow", 1, GetPositionNear(GetPosition("sucker_spot"), 0, 10))
         M.last_blown = true
     end
 
@@ -1132,8 +1196,4 @@ function Update()
         FailMission(GetTime() + 10.0, "misn03f4.des")
     end
 
-    if not IsAlive(M.launch) and not M.lost then
-        FailMission(GetTime() + 1.0)
-        M.lost = true
-    end
-end
+-- Local settings logic has been moved to PersistentConfig.lua

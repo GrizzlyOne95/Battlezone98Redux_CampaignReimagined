@@ -36,9 +36,25 @@ local function SetupAI()
         -- Factory builds (Tanks, Scouts) - Will only process if Factory exists
         aiCore.ActiveTeams[2].factoryBuildList = {
             [1] = {odf = "svtank", priority = 1},
-            [2] = {odf = "svtank", priority = 2},
-            [3] = {odf = "svfigh", priority = 3}
+            [2] = {odf = "svltnk", priority = 2},
+            [3] = {odf = "svtank", priority = 3} --only recyclers build fighters (svfigh)
         }
+        aiCore.ActiveTeams[2].Config.resourceBoost = true
+        
+        -- Plan Base Construction
+        local cca = aiCore.ActiveTeams[2]
+        cca:PlanDefensivePerimeter(2, 2) -- 2 powers, 2 towers each
+        
+        -- Place Silo at optimal scrap location
+        local siloPos = cca:FindOptimalSiloLocation(200, 350)
+        if siloPos then
+            cca:AddBuilding(aiCore.Units[cca.faction].silo, siloPos, 5)
+        end
+        
+        -- Place Barracks
+        local recPos = GetPosition(GetRecyclerHandle(2))
+        local bPos = GetPositionNear(recPos, 80, 120)
+        cca:AddBuilding(aiCore.Units[cca.faction].barracks, BuildDirectionalMatrix(bPos, Normalize(bPos - recPos)), 8)
     end
 end
 
@@ -147,6 +163,31 @@ local M = {
     difficulty = 2 -- Default Medium
 }
 
+-- Helper for Difficulty-Scaled Tug Arrival
+local function GetTugDelay()
+    local baseDelay = 180.0 -- Medium (Default)
+    if M.difficulty >= 4 then return 0.0      -- Very Hard: Immediate
+    elseif M.difficulty == 3 then baseDelay = 60.0   -- Hard
+    elseif M.difficulty == 1 then baseDelay = 300.0  -- Easy
+    elseif M.difficulty == 0 then baseDelay = 450.0  -- Very Easy
+    end
+    return DiffUtils.ScaleTimer(baseDelay)
+end
+
+-- EXU/QOL Persistence Helper
+function ApplyQOL()
+    if not exu then return end
+    
+    if exu.EnableShotConvergence then exu.EnableShotConvergence() end
+    if exu.SetSmartCursorRange then exu.SetSmartCursorRange(600) end
+    if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
+    if exu.EnableOrdnanceTweak then exu.EnableOrdnanceTweak(1.0) end
+    if exu.SetSelectNone then exu.SetSelectNone(true) end
+
+    -- Initialize Persistent Config
+    PersistentConfig.Initialize()
+end
+
 function Start()
 	-- One-time initialization logic
 	relicstartpos = math.random(0, 3)
@@ -159,15 +200,12 @@ function Start()
         print("Difficulty: " .. tostring(difficulty))
 
         if difficulty >= 3 then
-            AddObjective("hard_diff", "red", 8.0, "High Difficulty: Enemy presence intensified.")
+            AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
         elseif difficulty <= 1 then
             AddObjective("easy_diff", "green", 8.0, "Low Difficulty: Enemy presence reduced.")
         end
 
-        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
-        if exu.EnableOrdnanceTweak then exu.EnableOrdnanceTweak(1.0) end
-        if exu.SetSelectNone then exu.SetSelectNone(false) end
+        ApplyQOL()
     end
 
     -- Dynamic Starting Resources
@@ -175,6 +213,7 @@ function Start()
     SetPilot(1, DiffUtils.ScaleRes(10))
     
     SetupAI() -- Initialize AI
+    aiCore.Bootstrap() -- Capture pre-placed units/buildings
     
     subtit.Initialize()
 end
@@ -195,12 +234,11 @@ function AddObject(h)
              nearBase = true
         end
         
-        -- Also include the buildings themselves
-        -- coreUnits logic removed as undefined, assuming simple check
-        
         if nearBase then
             aiCore.AddObject(h)
         end
+    elseif team == 1 then
+        aiCore.AddObject(h)
     end
     
     -- TURBO Logic (Hard+)
@@ -322,6 +360,13 @@ function Update()
         Patrol(M.cheat5, pathB)
         Patrol(M.cheat6, pathB)
         
+        for i = 1, DiffUtils.ScaleEnemy(6) - 6 do
+            local path = (i % 2 == 0) and pathA or pathB
+            local h = BuildObject("svfigh", 2, M.relic)
+            Patrol(h, path)
+            SetIndependence(h, 1)
+        end
+        
         SetIndependence(M.cheat1, 1)
         SetIndependence(M.cheat2, 1)
         SetIndependence(M.cheat3, 1)
@@ -358,6 +403,13 @@ function Update()
         Patrol(M.surv2, pathB)
         SetIndependence(M.surv1, 1)
         SetIndependence(M.surv2, 1)
+        
+        for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
+            local path = (i % 2 == 0) and pathA or pathB
+            local h = BuildObject("svfigh", 2, M.relic)
+            Patrol(h, path)
+            SetIndependence(h, 1)
+        end
         
         M.surveysent = true
         M.reconcca = GetTime() + DiffUtils.ScaleTimer(60.0)
@@ -434,6 +486,12 @@ function Update()
         M.svtug = BuildObject("svhaul", 2, M.svrec)
         M.tuge1 = BuildObject("svfigh", 2, M.svrec)
         M.tuge2 = BuildObject("svfigh", 2, M.svrec)
+        
+        for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
+            local h = BuildObject("svfigh", 2, M.svrec)
+            Attack(h, M.player, 1) -- Focus on player to protect tug
+            SetIndependence(h, 1)
+        end
         Pickup(M.svtug, M.relic)
         Follow(M.tuge1, M.svtug)
         Follow(M.tuge2, M.svtug)
@@ -501,7 +559,7 @@ function Update()
                 -- Shared discovery logic
                 M.relicseen = true
                 M.newobjective = true
-                M.ccatug = GetTime() + DiffUtils.ScaleTimer(200.0) + math.random(-5, 10)
+                M.ccatug = GetTime() + GetTugDelay() + math.random(-5, 10)
                 M.discoverrelic = true
                 CameraReady()
                 M.cintime1 = GetTime() + 23.0
@@ -522,7 +580,7 @@ function Update()
 			M.aud3 = subtit.Play("misn0409.wav")
 			M.relicseen = true
 			M.newobjective = true
-			M.ccatug = GetTime() + DiffUtils.ScaleTimer(200.0) + math.random(-5, 10)
+			M.ccatug = GetTime() + GetTugDelay() + math.random(-5, 10)
 			M.discoverrelic = true
 			CameraReady()
 			M.cintime1 = GetTime() + 23.0
@@ -572,7 +630,7 @@ function Update()
 		Attack(M.w1u1, M.avrec, 1)
 		Attack(M.w1u2, M.avrec, 1)
 		
-		for i=1, DiffUtils.ScaleEnemy(1)-1 do
+		for i=1, DiffUtils.ScaleEnemy(2)-2 do
 			local h = BuildObject("svfigh", 2, "wave1"); Attack(h, M.avrec, 1); SetIndependence(h, 1)
 		end
 
@@ -598,6 +656,12 @@ function Update()
 		Goto(M.w2u2, M.avrec, 1)
 		SetIndependence(M.w2u1, 1)
 		SetIndependence(M.w2u2, 1)
+        
+        for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
+            local h = BuildObject("svfigh", 2, "spawn2new")
+            Goto(h, M.avrec, 1)
+            SetIndependence(h, 1)
+        end
 		M.wavenumber = 3
 		M.wave2arrive = false
 		M.wave2 = 99999.0
@@ -622,6 +686,12 @@ function Update()
 		SetIndependence(M.w3u1, 1)
 		SetIndependence(M.w3u2, 1)
 		SetIndependence(M.w3u3, 1)
+        
+        for i = 1, DiffUtils.ScaleEnemy(3) - 3 do
+            local h = BuildObject("svfigh", 2, M.svrec)
+            Goto(h, M.avrec, 1)
+            SetIndependence(h, 1)
+        end
 		M.wavenumber = 4
 		M.wave3arrive = false
 		M.wave3 = 99999.0
@@ -646,6 +716,12 @@ function Update()
 		SetIndependence(M.w4u1, 1)
 		SetIndependence(M.w4u2, 1)
 		SetIndependence(M.w4u3, 1)
+        
+        for i = 1, DiffUtils.ScaleEnemy(3) - 3 do
+            local h = BuildObject("svfigh", 2, "spawnotherside")
+            Goto(h, M.avrec, 1)
+            SetIndependence(h, 1)
+        end
 		M.wavenumber = 5
 		M.wave4arrive = false
 		M.wave4 = 99999.0
@@ -670,6 +746,12 @@ function Update()
 		SetIndependence(M.w5u2, 1)
 		SetIndependence(M.w5u3, 1)
 		SetIndependence(M.w5u4, 1)
+        
+        for i = 1, DiffUtils.ScaleEnemy(4) - 4 do
+            local h = BuildObject("svfigh", 2, M.svrec)
+            Goto(h, M.avrec, 1)
+            SetIndependence(h, 1)
+        end
 		M.wavenumber = 6
 		M.wave5arrive = false
 		M.wave5 = 99999.0
@@ -849,5 +931,7 @@ end
 function Load(missionData, aiData)
     M = missionData
     if aiData then aiCore.Load(aiData) end
+    aiCore.Bootstrap() -- Refresh/Capture pre-placed or existing units
+    ApplyQOL() -- Reapply engine settings
     subtit.Initialize()
 end

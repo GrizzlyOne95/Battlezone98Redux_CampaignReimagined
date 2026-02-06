@@ -276,6 +276,12 @@ Gets the local player's reverse mouse setting.
 function SetReverseMouse(newMouse: bool) -> nil
 Sets the local player's reverse mouse setting.
 
+function GetSubtitlesEnabled() -> bool
+Gets whether or not subtitles are enabled.
+
+function SetSubtitlesEnabled(enabled: bool) -> nil
+Sets whether or not subtitles are enabled.
+
 Radar
 These functions can query and modify the in game radar.
 

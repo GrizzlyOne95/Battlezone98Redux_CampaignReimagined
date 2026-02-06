@@ -27,6 +27,7 @@ local message4 = false
 local message5 = false
 local mission_won = false
 local mission_lost = false
+local bootstrap_done = false
 
 local wave_timer = 0.0
 local last_wave_time = 99999.0
@@ -49,23 +50,44 @@ local bhandle2 = nil
 
 -- Save function: Returns values to be saved
 function Save()
-    return camera1, camera2, camera3, found, found2, start_done, patrol1,
-           message1, message2, message3, message4, message5, mission_won, mission_lost,
-           wave_timer, last_wave_time, cam_time, NextSecond,
-           bscav, bscout, scav2, audmsg,
-           dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2
+    local missionData = {
+        camera1, camera2, camera3, found, found2, start_done, patrol1,
+        message1, message2, message3, message4, message5, mission_won, mission_lost,
+        bootstrap_done,
+        wave_timer, last_wave_time, cam_time, NextSecond,
+        bscav, bscout, scav2, audmsg,
+        dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2
+    }
+    return missionData, aiCore.Save()
 end
 
 -- Load function: Restores values from save
-function Load(...)
-    local arg = {...}
-    if #arg > 0 then
+function Load(missionData, aiData)
+    if missionData then
         camera1, camera2, camera3, found, found2, start_done, patrol1,
         message1, message2, message3, message4, message5, mission_won, mission_lost,
+        bootstrap_done,
         wave_timer, last_wave_time, cam_time, NextSecond,
         bscav, bscout, scav2, audmsg,
-        dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2 = unpack(arg)
+        dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2 = unpack(missionData)
     end
+    if aiData then aiCore.Load(aiData) end
+    aiCore.Bootstrap() -- Capture objects on load
+    ApplyQOL() -- Reapply engine settings
+end
+
+-- EXU/QOL Persistence Helper
+function ApplyQOL()
+    if not exu then return end
+    
+    if exu.EnableShotConvergence then exu.EnableShotConvergence() end
+    if exu.SetSmartCursorRange then exu.SetSmartCursorRange(600) end
+    if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
+    if exu.EnableOrdnanceTweak then exu.EnableOrdnanceTweak(1.0) end
+    if exu.SetSelectNone then exu.SetSelectNone(true) end
+
+    -- Initialize Persistent Config
+    PersistentConfig.Initialize()
 end
 
 -- AddObject function: Called when a game object is added
@@ -107,6 +129,20 @@ function AddObject(h)
             end
         end
     end
+
+    -- Register with aiCore
+    if team == 1 or team == 2 then
+        local register = false
+        if team == 1 then
+             if IsOdf(h, "avscav") then register = true end
+        else
+             -- CCA Team 2 in this mission is strictly scripted waves, 
+             -- but we still register them to aiCore so they can be tracked 
+             -- even if not "produced" by a factory here.
+             register = true 
+        end
+        if register then aiCore.AddObject(h) end
+    end
 end
 
 -- Update function: Called every frame
@@ -118,10 +154,7 @@ function Update()
     
     if not start_done then
         DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
-        if exu then
-            if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-            if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
-        end
+        ApplyQOL()
 
         SetPilot(1, DiffUtils.ScaleRes(2))
         SetScrap(1, math.max(4, DiffUtils.ScaleRes(5)))
@@ -212,6 +245,12 @@ function Update()
 
     if not message4 and found2 then
         message4 = true
+    end
+
+    -- Capture pre-placed units if start_done just flipped
+    if start_done and not bootstrap_done then
+        aiCore.Bootstrap()
+        bootstrap_done = true
     end
 
     -- Wave Logic

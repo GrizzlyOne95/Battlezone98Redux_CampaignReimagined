@@ -32,10 +32,29 @@ end
 function Subtitles.Initialize(durationCsv)
     -- Ensure clear queue on start
     subtitles.clear_queue()
-    subtitles.set_opacity(0.0) -- Start hidden
+    subtitles.set_opacity(0.5) -- Set to 50% opacity for better readability with borders
     if durationCsv then
         Subtitles.LoadDurations(durationCsv)
     end
+end
+
+--- Wrapper for showing a transient message without audio
+--- @param text string The text to display
+--- @param r number|nil Red (0-1)
+--- @param g number|nil Green (0-1)
+--- @param b number|nil Blue (0-1)
+--- @param duration number|nil Duration in seconds
+function Subtitles.Display(text, r, g, b, duration)
+    subtitles.clear_queue()
+    subtitles.set_opacity(0.5) -- Ensure visible
+    
+    r = r or 1.0
+    g = g or 1.0
+    b = b or 1.0
+    duration = duration or 3.0
+    
+    local wrapped = Subtitles.WrapText(text, 50)
+    subtitles.submit(wrapped, duration, r, g, b)
 end
 
 --- Helper to wrap text at a certain character limit
