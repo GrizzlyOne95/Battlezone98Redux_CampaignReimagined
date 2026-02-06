@@ -230,6 +230,45 @@ function PersistentConfig.UpdateInputs()
         ShowFeedback("Headlight Beam: " .. modeName)
     end
     InputState.last_b_state = b_combo
+
+    -- Help Popup (SHIFT + / which is ?)
+    -- Note: "/" might be mapped as "OEM_2" or similar depending on engine, but "/" is standard attempt.
+    local slash_key = exu.GetGameKey("/") or exu.GetGameKey("?")
+    local help_combo = slash_key and exu.GetGameKey("SHIFT")
+    if help_combo and not InputState.last_help_state then
+        local helpMsg = "HOTKEYS:\n" ..
+                        "CTRL+ALT+S: Toggle Subtitles\n" ..
+                        "L: Toggle NPC Headlights\n" ..
+                        "SHIFT+H: Cycle Headlight Color\n" ..
+                        "SHIFT+B: Toggle Beam Mode\n" ..
+                        "SHIFT+?: Show Help"
+        
+        -- Show for longer duration (e.g. 5 seconds)
+        if subtitles and subtitles.submit then
+            subtitles.clear_queue()
+            subtitles.set_opacity(0.5)
+            subtitles.submit(helpMsg, 5.0, 1.0, 1.0, 1.0)
+        end
+    end
+    InputState.last_help_state = help_combo
+
+    -- Pause Menu Handling (Escape Key)
+    -- If ESC is pressed, we hide subtitles. If Update runs again (resume), we restore them.
+    if exu.GetGameKey("ESCAPE") then
+        if not InputState.SubtitlesPaused then
+            if subtitles and subtitles.set_opacity then
+                subtitles.set_opacity(0.0)
+            end
+            InputState.SubtitlesPaused = true
+        end
+    else
+        if InputState.SubtitlesPaused then
+            if subtitles and subtitles.set_opacity then
+                subtitles.set_opacity(0.5)
+            end
+            InputState.SubtitlesPaused = false
+        end
+    end
 end
 
 function PersistentConfig.UpdateHeadlights()
@@ -255,6 +294,25 @@ function PersistentConfig.Initialize()
             Log("Steam User ID Found: " .. steamID)
             ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0)
         end
+    end
+
+    -- Hook Mission End Functions to clear subtitles
+    if not PersistentConfig.HooksInstalled then
+        if SucceedMission then
+            local oldSucceed = SucceedMission
+            SucceedMission = function(...)
+                if subtitles and subtitles.clear_queue then subtitles.clear_queue() end
+                oldSucceed(...)
+            end
+        end
+        if FailMission then
+            local oldFail = FailMission
+            FailMission = function(...)
+                if subtitles and subtitles.clear_queue then subtitles.clear_queue() end
+                oldFail(...)
+            end
+        end
+        PersistentConfig.HooksInstalled = true
     end
 end
 
