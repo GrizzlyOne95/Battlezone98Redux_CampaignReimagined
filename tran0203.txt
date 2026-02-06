@@ -1,1 +1,0 @@
-Good, press SHIP to close the COM channel. I want to show you another way to open a COM channel when you don't have a visual on a unit.

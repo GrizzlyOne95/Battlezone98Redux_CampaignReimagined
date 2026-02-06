@@ -1,1 +1,0 @@
-One last thing commander, let's get familiar with the new command system in your V-thruster. Up ahead you'll find a T4 badger turret. I'll add it to your control interface. Let's go through the steps of positioning the turret on the battlefield.

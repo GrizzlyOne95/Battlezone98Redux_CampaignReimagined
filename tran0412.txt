@@ -1,1 +1,0 @@
-Wingman will automatically engage enemy targets when they come into close proximity.

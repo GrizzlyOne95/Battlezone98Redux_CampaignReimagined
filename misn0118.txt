@@ -1,1 +1,0 @@
-To open communications with the turret, you can point your smart reticle at it, triggering the select command. Pressing the space bar will then select the unit.
