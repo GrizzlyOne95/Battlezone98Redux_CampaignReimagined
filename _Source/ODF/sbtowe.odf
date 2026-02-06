@@ -12,9 +12,9 @@ heatSignature = 0.8
 imageSignature = 8.0
 radarSignature = 1.0
 weaponHard1 = "GC1"
-weaponName1 = "gtminis"
+weaponName1 = "gtminis2"
 weaponHard2 = "GC2"
-weaponName2 = "gtminis"
+weaponName2 = "gtminis2"
 
 [CraftClass]
 rangeScan = 200.0

@@ -6,15 +6,15 @@ scrapCost = 6
 maxHealth = 5400
 maxAmmo = ""
 unitName = "Scout"
-aiName = "TankFriend"
-aiName2 = "TankEnemy"
+aiName = "RocketTankFriend"
+aiName2 = "RocketTankEnemy"
 heatSignature = 2.0
 imageSignature = 1.5
 radarSignature = 0.1
 weaponHard1 = "GC1"
-weaponName1 = "gminigun"
+weaponName1 = "gminigrn"
 weaponHard2 = "GC2"
-weaponName2 = "gminigun"
+weaponName2 = "gminigrn"
 
 [CraftClass]
 rangeScan = 270.0

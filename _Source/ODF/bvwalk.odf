@@ -12,9 +12,9 @@ heatSignature = 0.06999999999999999
 imageSignature = 3.5
 radarSignature = 0.7
 weaponHard1 = "GC1"
-weaponName1 = "gatstab"
+weaponName1 = "gspstab"
 weaponHard2 = "GC2"
-weaponName2 = "gatstab"
+weaponName2 = "gspstab"
 
 [CraftClass]
 rangeScan = 200.0
