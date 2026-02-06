@@ -57,7 +57,53 @@ end
 ----------------------------------------------------------------------------------
 
 aiCore.Factions = {NSDF = 1, CCA = 2, CRA = 3, BDOG = 4}
+aiCore.Factions = {NSDF = 1, CCA = 2, CRA = 3, BDOG = 4}
 aiCore.FactionNames = {[1] = "NSDF", [2] = "CCA", [3] = "CRA", [4] = "BDOG"}
+
+-- Smart Power Detection
+function aiCore.DetectWorldPower()
+    if aiCore.WorldPowerKey then return aiCore.WorldPowerKey end
+    
+    local trnFile = GetMapTRNFilename()
+    if not trnFile or trnFile == "" then 
+        aiCore.WorldPowerKey = "sPower" -- Default
+        return aiCore.WorldPowerKey
+    end
+    
+    local odf = OpenODF(trnFile)
+    if not odf then
+        aiCore.WorldPowerKey = "sPower"
+        return aiCore.WorldPowerKey
+    end
+    
+    local palette = GetODFString(odf, "Color", "Palette", "")
+    if palette == "" then 
+        -- Fallback: try filename guessing if palette is missing
+        local lowerTrn = string.lower(trnFile)
+        if string.find(lowerTrn, "venus") then palette = "venus"
+        elseif string.find(lowerTrn, "mars") then palette = "mars"
+        elseif string.find(lowerTrn, "titan") then palette = "titan"
+        else palette = "moon" end
+    end
+    palette = string.lower(palette)
+    
+    -- Map Palette/World to Power Type
+    -- Solar: Moon, Io, Europa, Ganymede
+    -- Lightning: Venus
+    -- Wind: Mars, Titan, Achilles, Elysium
+    
+    if string.find(palette, "venus") then
+        aiCore.WorldPowerKey = "lPower"
+    elseif string.find(palette, "mars") or string.find(palette, "titan") or string.find(palette, "achilles") or string.find(palette, "elysium") then
+        aiCore.WorldPowerKey = "wPower"
+    else
+        -- Default to Solar (Moon, Io, Europa, Ganymede, etc)
+        aiCore.WorldPowerKey = "sPower"
+    end
+    
+    if aiCore.Debug then print("aiCore: Smart Power Detection based on " .. palette .. " -> " .. aiCore.WorldPowerKey) end
+    return aiCore.WorldPowerKey
+end
 
 -- Unit ODF Tables (Consolidated)
 aiCore.Units = {}
@@ -74,7 +120,7 @@ aiCore.Units[aiCore.Factions.NSDF] = {
     tank = "avtank", lighttank = "avltnk", tug = "avhaul",
     howitzer = "avartl", minelayer = "avmine", rockettank = "avrckt",
     apc = "avapc", bomber = "avhraz", walker = "avwalk",
-    unique = "avltmp", ammobot = "ammobot", repair = "aprepa",
+    unique = "avltmp", repair = "aprepa",
     ammo = "apammo", pilot = "aspilo"
 }
 
@@ -88,7 +134,7 @@ aiCore.Units[aiCore.Factions.CCA] = {
     tank = "svtank", lighttank = "svltnk", tug = "svhaul",
     howitzer = "svartl", minelayer = "svmine", rockettank = "svrckt",
     apc = "svapc", bomber = "svhraz", walker = "svwalk",
-    unique = "svwamp", ammobot = "ammobot", repair = "aprepa",
+    unique = "svsav", repair = "aprepa",
     ammo = "apammo", pilot = "sspilo"
 }
 
@@ -102,7 +148,7 @@ aiCore.Units[aiCore.Factions.CRA] = {
     tank = "cvtnk", lighttank = "cvltnk", tug = "cvhaul",
     howitzer = "cvartl", minelayer = "cvmine", rockettank = "cvrckt",
     apc = "cvapc", bomber = "cvhraz", walker = "cvwalk",
-    unique = "cvhtnk", ammobot = "ammobot", repair = "aprepa",
+    unique = "cvhtnk", repair = "aprepa",
     ammo = "apammo", pilot = "cspilo"
 }
 
@@ -116,7 +162,7 @@ aiCore.Units[aiCore.Factions.BDOG] = {
     tank = "bvtank", lighttank = "bvltnk", tug = "bvhaul",
     howitzer = "bvartl", minelayer = "bvmine", rockettank = "bvrckt",
     apc = "bvapc", bomber = "bvhraz", walker = "bvwalk",
-    unique = "bvrdev", ammobot = "ammobot", repair = "aprepa",
+    unique = "bvrdev", repair = "aprepa",
     ammo = "apammo", pilot = "bspilo"
 }
 
@@ -1771,7 +1817,12 @@ function aiCore.Team:PlanDefensivePerimeter(powerCount, towersPerPower)
     if not IsValid(recycler) then return end
     local recyclerPos = GetPosition(recycler)
     
-    local powerOdf = aiCore.Units[self.faction].sPower
+    -- Smart Power Selection
+    local powerKey = aiCore.DetectWorldPower()
+    local powerOdf = aiCore.Units[self.faction][powerKey]
+    -- Fallback if specific power ODF missing for faction
+    if not powerOdf then powerOdf = aiCore.Units[self.faction].sPower end
+    
     local towerOdf = aiCore.Units[self.faction].gunTower
     
     local foundPowers = 0
