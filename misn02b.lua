@@ -10,7 +10,7 @@ RequireFix.Initialize({"campaignReimagined", "3659600763"})
 local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
-local Subtitles = require("Subtitles")
+local subtit = require("ScriptSubtitles")
 
 -- Global Variables (State)
 local camera1 = false
@@ -114,7 +114,7 @@ function Update()
     local player = GetPlayerHandle()
     if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     aiCore.Update()
-    Subtitles.Update()
+    subtit.Update()
     
     if not start_done then
         DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
@@ -124,7 +124,7 @@ function Update()
         end
 
         SetPilot(1, DiffUtils.ScaleRes(2))
-        SetScrap(1, DiffUtils.ScaleRes(5))
+        SetScrap(1, math.max(4, DiffUtils.ScaleRes(5)))
         SetAIP("misn02.aip")
         
         dummy = GetHandle("fake_player")
@@ -138,18 +138,34 @@ function Update()
         SetUserTarget(bgoal)
         SetObjectiveName(bgoal, "Scrap Field Alpha")
         start_done = true
-        Subtitles.Initialize("durations.csv")
+        subtit.Initialize("durations.csv")
+
+        -- Spawn pilots at Recycler based on difficulty
+        local d = DiffUtils.Get().index
+        local pilotCount = 0
+        if d == 0 then pilotCount = 3 -- Very Easy
+        elseif d == 1 then pilotCount = 2 -- Easy
+        elseif d == 2 or d == 3 then pilotCount = 1 -- Medium/Hard
+        end -- Very Hard (4) gets 0
+
+        for i = 1, pilotCount do
+            BuildObject("aspilo", 1, "avrecy-1_recycler")
+        end
 
         camera1 = true
         cam_time = GetTime() + 30.0
         CameraReady()
-        --audmsg = Subtitles.Play("misn0230.wav")
-        audmsg = Subtitles.Play("misn0201.wav")
+        audmsg = subtit.Play("misn0230.wav")
+        --audmsg = subtit.Play("misn0201.wav")
     end
 
     -- Camera Logic
     if camera1 then
         if CameraPath("fixcam", 1200, 250, lander) or CameraCancelled() or IsAudioMessageDone(audmsg) then
+            -- Only stop subtitles if the user skipped the cinematic
+            if CameraCancelled() then
+                subtit.Stop()
+            end
             camera1 = false
             cam_time = GetTime() + 10.0
             camera2 = true
@@ -172,9 +188,10 @@ function Update()
             CameraFinish()
             if IsAlive(dummy) then RemoveObject(dummy) end
             SetPosition(player, "playermove")
-            StopAudioMessage(audmsg)
+            subtit.Stop() -- Stop previous audio and clear subtitles
             audmsg = nil
-            Subtitles.Play("misn0224.wav")
+            subtit.Play("misn0201.wav")
+            subtit.Play("misn0224.wav")
             wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
             AddObjective("misn02b1.otf", "white")
         end
@@ -184,7 +201,7 @@ function Update()
     if not patrol1 and found and IsAlive(bhandle) and IsAlive(bscav) and GetDistance(bhandle, bscav) < 75.0 then
         for i=1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn1") end
 
-        Subtitles.Play("misn0233.wav")
+        subtit.Play("misn0233.wav")
         message1 = true
         patrol1 = true
         
@@ -214,7 +231,7 @@ function Update()
         Follow(bscav, bhome)
         ClearObjectives()
         AddObjective("misn02b2.otf", "white")
-        Subtitles.Play("misn0225.wav")
+        subtit.Play("misn0225.wav")
         local bbase = GetHandle("apbase-1_camerapod")
         SetUserTarget(bbase)
         message2 = true
@@ -225,7 +242,7 @@ function Update()
         if not IsAlive(player) or not IsAlive(bscav) or (message3 and not IsAlive(scav2)) or not IsAlive(bhome) or not IsAlive(recycler) then
             ClearObjectives()
             AddObjective("misn02b4.otf", "red")
-            audmsg = Subtitles.Play("misn0227.wav")
+            audmsg = subtit.Play("misn0227.wav")
             mission_lost = true
         end
     end
@@ -243,10 +260,16 @@ function Update()
         Retreat(scav2, "retreat")
         SetObjectiveOn(scav2)
         SetObjectiveOff(bscav)
-        Subtitles.Play("misn0228.wav")
+        subtit.Play("misn0228.wav")
         last_wave_time = GetTime() + 10.0
         NextSecond = GetTime() + 1.0
         message3 = true
+
+        -- Flanking Ambush: Spawn enemies behind the player at spawn1
+        for i=1, DiffUtils.ScaleEnemy(1) do 
+             local h = BuildObject("svfigh", 2, "spawn1")
+             Attack(h, scav2) 
+        end
     end
 
     -- Health Regen
@@ -272,7 +295,7 @@ function Update()
         AddObjective("misn02b3.otf", "green")
         if IsAlive(bscav) then AddHealth(bscav, 1000.0) end
         if IsAlive(scav2) then AddHealth(scav2, 1000.0) end
-        audmsg = Subtitles.Play("misn0234.wav")
+        audmsg = subtit.Play("misn0234.wav")
         mission_won = true
     end
 

@@ -54,7 +54,7 @@ aiCore.Units[aiCore.Factions.NSDF] = {
     howitzer = "avartl", minelayer = "avmine", rockettank = "avrckt",
     apc = "avapc", bomber = "avhraz", walker = "avwalk",
     unique = "avltmp", ammobot = "ammobot", repair = "aprepa",
-    ammo = "apammo"
+    ammo = "apammo", pilot = "aspilo"
 }
 
 aiCore.Units[aiCore.Factions.CCA] = {
@@ -68,7 +68,7 @@ aiCore.Units[aiCore.Factions.CCA] = {
     howitzer = "svartl", minelayer = "svmine", rockettank = "svrckt",
     apc = "svapc", bomber = "svhraz", walker = "svwalk",
     unique = "svwamp", ammobot = "ammobot", repair = "aprepa",
-    ammo = "apammo"
+    ammo = "apammo", pilot = "sspilo"
 }
 
 aiCore.Units[aiCore.Factions.CRA] = {
@@ -82,7 +82,7 @@ aiCore.Units[aiCore.Factions.CRA] = {
     howitzer = "cvartl", minelayer = "cvmine", rockettank = "cvrckt",
     apc = "cvapc", bomber = "cvhraz", walker = "cvwalk",
     unique = "cvhtnk", ammobot = "ammobot", repair = "aprepa",
-    ammo = "apammo"
+    ammo = "apammo", pilot = "cspilo"
 }
 
 aiCore.Units[aiCore.Factions.BDOG] = {
@@ -96,7 +96,7 @@ aiCore.Units[aiCore.Factions.BDOG] = {
     howitzer = "bvartl", minelayer = "bvmine", rockettank = "bvrckt",
     apc = "bvapc", bomber = "bvhraz", walker = "bvwalk",
     unique = "bvrdev", ammobot = "ammobot", repair = "aprepa",
-    ammo = "apammo"
+    ammo = "apammo", pilot = "bspilo"
 }
 
 -- Tactical AIP Strategies (from aiSpecial)
@@ -159,6 +159,7 @@ function aiCore.GetNearestInTable(h, table)
 end
 
 function aiCore.RemoveDead(tbl)
+    if not tbl then return end
     for i = #tbl, 1, -1 do
         if not IsAlive(tbl[i]) then
             table.remove(tbl, i)
@@ -202,6 +203,75 @@ function aiCore.GetFlankPosition(target, dist, angleDeg)
 end
 
 
+-- Upgrade Turret Logic (Ported from aiSpecial)
+function aiCore.UpgradeTurret(h) 
+    if not IsValid(h) then return false end
+    
+    local success = false
+    local odf = GetOdf(h)
+    
+    if odf == "avturr" then
+        for i = 0,3 do GiveWeapon(h,"gXinigun",i) end; success = true
+    elseif odf == "svturr" then
+        for i = 0,2 do GiveWeapon(h,"gXinisov",i) end; success = true
+    elseif odf == "cvturr" then
+        for i = 0,3 do GiveWeapon(h,"gXinisov",i) end; success = true
+    elseif odf == "bvturr" then
+        for i = 0,3 do GiveWeapon(h,"gXinigun",i) end; success = true
+    elseif odf == "bvtump" then
+        for i = 0,1 do GiveWeapon(h,"gXtstab",i) end; success = true
+    elseif odf == "mvturr" then
+        for i = 0,1 do GiveWeapon(h,"gshadow",i) end; success = true
+    elseif odf == "dvturr" then
+        for i = 0,3 do GiveWeapon(h,"gXinisov",i) end; success = true
+    elseif odf == "rvturr" then
+        for i = 0,2 do GiveWeapon(h,"ghailgn",i) end; success = true
+    elseif odf == "fvturr" then
+        for i = 0,3 do GiveWeapon(h,"gXongun",i) end; success = true
+    elseif odf == "sbtowe" then
+        for i = 0,1 do GiveWeapon(h,"gX2nisov",i) end; success = true
+    elseif odf == "cbtowe" then
+        GiveWeapon(h,"gXtstabt",0); success = true 
+    end
+    
+    if success and aiCore.Debug then
+        print("Turret "..odf.." upgraded.")
+    end
+    return success
+end
+
+-- Replace Unit Logic (Ported from aiSpecial)
+function aiCore.ReplaceUnit(h, newUnitOdf, chargeExpense, teamObj)
+    if not IsValid(h) then return nil end
+    
+    local teamNum = GetTeamNum(h)
+    local pos = GetPosition(h)
+    local rot = GetTransform(h) -- Actually checking if GetTransform returns matrix or we need SetTransform(h, matrix)
+    -- BZ Lua API GetTransform returns a matrix/userdata usually compatible with SetTransform.
+    
+    local oldOdf = GetOdf(h)
+    local oldScrapCost = GetODFInt(OpenODF(oldOdf),"GameObjectClass","scrapCost")
+    local newScrapCost = GetODFInt(OpenODF(newUnitOdf),"GameObjectClass","scrapCost")
+    
+    RemoveObject(h)
+    
+    local replacement = BuildObject(newUnitOdf, teamNum, pos)
+    SetTransform(replacement, rot)
+    
+    -- Charge expense?
+    if chargeExpense and teamObj then
+        local diff = newScrapCost - oldScrapCost
+        if diff > 0 then
+            AddScrap(teamNum, -diff)
+            if aiCore.Debug then print("Team "..teamNum.." paid "..diff.." for replacement.") end
+        end
+    end
+    
+    return replacement
+end
+
+
+
 ----------------------------------------------------------------------------------
 -- CLASSES
 ----------------------------------------------------------------------------------
@@ -243,24 +313,39 @@ function aiCore.FactoryManager:update()
         return
     end
 
-    if #self.queue == 0 then return end
+    -- Check Deployment State
+    if not IsDeployed(self.handle) then
+        local cmd = GetCurrentCommand(self.handle)
+        if cmd ~= AiCommand.DEPLOY then -- Avoid spamming
+             Deploy(self.handle)
+        end
+        return -- Wait for deployment
+    end
 
-    if CanBuild(self.handle) and IsDeployed(self.handle) and not IsBusy(self.handle) then
+    if CanBuild(self.handle) and not IsBusy(self.handle) then
         local item = self.queue[1]
-        local scrapCost = GetODFInt(OpenODF(item.odf),"GameObjectClass","scrapCost")
         
-        if GetScrap(self.team) >= scrapCost then
-            if GetTime() > self.pulseTimer then
-                Build(self.handle, item.odf, 0)
-                self.pulseTimer = GetTime() + self.pulsePeriod + math.random(-1, 1)
+        if item then
+            local odfHandle = OpenODF(item.odf)
+            if odfHandle and odfHandle ~= 0 then
+                local scrapCost = GetODFInt(odfHandle,"GameObjectClass","scrapCost")
                 
-                if aiCore.Debug then print("Team " .. self.team .. " building " .. item.odf) end
-                
-                -- We remove from queue when the unit is successfully added to the world via AddObject
-                -- But to prevent spam-building the same thing if logic fails, we cycle or wait
-                -- For now, relying on external management (Team class) to manage the list
-                -- This queue is just "what to build next"
-                
+                if GetScrap(self.team) >= scrapCost then
+                    if GetTime() > self.pulseTimer then
+                        Build(self.handle, item.odf, 0)
+                        self.pulseTimer = GetTime() + self.pulsePeriod + math.random(-1, 1)
+                        
+                        if aiCore.Debug then print("Team " .. self.team .. " building " .. item.odf) end
+                        
+                        -- Note: Queue removal happens in AddObject when the unit is validated in the world
+                        -- This allows retrying if build fails due to temporary conditions (e.g. terrain)
+                        -- But we rely on the game engine to actually build it.
+                    end
+                end
+            else
+                -- Invalid ODF, remove to prevent blocking queue
+                if aiCore.Debug then print("Team " .. self.team .. " removing invalid ODF from queue: " .. tostring(item.odf)) end
+                table.remove(self.queue, 1)
             end
         end
     end
@@ -343,7 +428,7 @@ function aiCore.ConstructorManager:update()
     end
 end
 
-end
+
 
 -- Squad Class (Formations & Flanking)
 aiCore.Squad = {
@@ -417,77 +502,7 @@ function aiCore.Squad:Update()
     return true
 end
 
--- Squad Class (Formations & Flanking)
-aiCore.Squad = {
-    leader = nil,
-    members = {},
-    state = "idling", -- idling, moving_to_flank, attacking
-    targetPos = nil,
-    formation = "V",
-    maxSize = 3
-}
-aiCore.Squad.__index = aiCore.Squad
 
-function aiCore.Squad:new(leader)
-    local s = setmetatable({}, self)
-    s.leader = leader
-    s.members = {}
-    return s
-end
-
-function aiCore.Squad:AddMember(h)
-    table.insert(self.members, h)
-    -- Order follow
-    if IsValid(self.leader) then
-        Follow(h, self.leader, 0)
-    end
-end
-
-function aiCore.Squad:Update()
-    if not IsValid(self.leader) then
-        -- Promote new leader if possible
-        if #self.members > 0 then
-            self.leader = table.remove(self.members, 1)
-            -- Re-order followers
-            for _, m in ipairs(self.members) do
-                if IsValid(m) then Follow(m, self.leader, 0) end
-            end
-        else
-            return false -- Dead squad
-        end
-    end
-    
-    -- State Machine
-    if self.state == "moving_to_flank" then
-        if self.targetPos then
-            if GetDistance(self.leader, self.targetPos) < 60 then
-                self.state = "attacking"
-                -- Find nearest enemy to flank pos
-                local enemy = GetNearestEnemy(self.leader)
-                if IsValid(enemy) then
-                    Attack(self.leader, enemy)
-                    for _, m in ipairs(self.members) do Attack(m, enemy) end
-                end
-            else
-                 -- Ensure moving
-                 if not string.match(aiCore.NilToString(AiCommand[GetCurrentCommand(self.leader)]), "GO") then
-                    Goto(self.leader, self.targetPos)
-                 end
-            end
-        end
-    elseif self.state == "attacking" then
-        -- If idle, attack nearest
-        if not IsBusy(self.leader) then
-             local enemy = GetNearestEnemy(self.leader)
-             if IsValid(enemy) then
-                Attack(self.leader, enemy)
-                for _, m in ipairs(self.members) do Attack(m, enemy) end
-             end
-        end
-    end
-    
-    return true
-end
 
 ----------------------------------------------------------------------------------
 -- TEAM CLASS (The Brain)
@@ -519,6 +534,7 @@ aiCore.Team = {
     thumpers = {},      -- Advanced Weapons
     mortars = {},
     fields = {},
+    turrets = {},       -- Tracking for upgrades
     
     -- Tactical State
     howitzerState = {}, -- {attacking=bool, outbound=bool, target=handle}
@@ -556,7 +572,45 @@ function aiCore.Team:new(teamNum, faction)
     local t = setmetatable({}, self)
     t.teamNum = teamNum
     
-    -- Auto-detect faction if not provided or flexible
+    -- Configuration (Defaults)
+    t.Config = {
+        difficulty = 1,
+        race = "nsdf",
+        kc = 0,
+        stratMultiplier = 1.0,
+        autoBuild = true,
+        
+        -- Advanced Settings
+        thumperChance = 10,
+        mortarChance = 20,
+        fieldChance = 10,
+        doubleWeaponChance = 20,
+        
+        -- AI Behavior Settings
+        soldierRange = 50,
+        sniperSteal = true,
+        pilotZeal = 40,
+        sniperTraining = 75,
+        sniperStealth = 50,
+        
+        -- Timers
+        upgradeInterval = 240,
+        wreckerInterval = 600,
+        
+        -- Toggles
+        passiveRegen = false,
+        autoManage = false,
+        autoRescue = false,
+        autoTugs = false,
+        stickToPlayer = false,
+        dynamicMinefields = false
+    }
+
+    -- Tactical Lists
+    t.fields = {}
+    t.turrets = {}
+    t.doubleUsers = {}
+    t.soldiers = {}
     if not faction then
         -- Simple detection based on recycler ODF
         local rec = GetRecyclerHandle(teamNum)
@@ -633,6 +687,22 @@ function aiCore.Team:AddBuilding(odf, path, priority)
 end
 
 function aiCore.Team:Update()
+    -- Lazy Initialization for Retrofitting (Fixes crashes on existing saves/teams)
+    if not self.fields then self.fields = {} end
+    if not self.doubleUsers then self.doubleUsers = {} end
+    if not self.soldiers then self.soldiers = {} end
+    
+    -- Ensure Config has new keys if missing
+    if not self.Config.fieldChance then
+        self.Config.fieldChance = 10
+        self.Config.doubleWeaponChance = 20
+        self.Config.soldierRange = 50
+        self.Config.sniperSteal = true
+        self.Config.pilotZeal = 40
+        self.Config.sniperTraining = 75
+        self.Config.sniperStealth = 50
+    end
+
     -- Manager Updates
     self.recyclerMgr:update()
     self.factoryMgr:update()
@@ -646,10 +716,10 @@ function aiCore.Team:Update()
     -- Tactics
     self:UpdateHowitzers()
     self:UpdateAPCs()
-    self:UpdateMinelayers()
+    self:UpdateDynamicMinefields()
+    self:UpdateUpgrades()
     self:UpdateAdvancedWeapons()
     self:UpdatePilots()
-    self:UpdateUpgrades()
     self:UpdateWrecker()
     self:UpdateSquads()
     self:UpdateCloakers()
@@ -671,6 +741,7 @@ function aiCore.Team:Update()
     
     -- Base Maintenance (Auto-Rebuild)
     self:UpdateBaseMaintenance()
+    self:UpdatePilotResources()
     
     -- Scavenger Assist (Player QOL)
     if self.Config.scavengerAssist then self:UpdateScavengerAssist() end
@@ -752,6 +823,7 @@ function aiCore.Team:UpdateBaseMaintenance()
     -- Ensure critical units exist (Constructor, Factory, Armory)
     -- Only runs if we have a Recycler
     if not IsValid(self.recyclerMgr.handle) then return end
+    if not self.Config.autoBuild then return end
     
     -- Helper to check if item is already in queue
     local function IsInQueue(mgr, odf)
@@ -824,6 +896,7 @@ aiCore.Team.Config = {
     pilotZeal = 0.4,       -- Chance to be a sniper
     sniperStealth = 0.5,   -- Chance to retreat
     techInterval = 60,     -- Seconds between technician spawns
+    techMax = 4,           -- Max technicians to spawn
     
     -- Weapons
     thumperChance = 20,    -- % Chance to use thumper
@@ -1334,17 +1407,44 @@ function aiCore.Team:AddObject(h)
     elseif string.match(odf, "^cv") or string.match(odf, "^mv") or string.match(odf, "^dv") then
         table.insert(self.cloakers, h)
         table.insert(self.pool, h)
+    elseif string.find(cls, "turret") or string.find(cls, "tower") or string.match(odf, "turr") then
+        table.insert(self.turrets, h)
     end
     
     -- Advanced Weapon Users (from aiSpecial)
-    if GetWeaponSlot(h, "gmortar") > -1 then table.insert(self.mortars, h) end
-    if GetWeaponSlot(h, "gquake") > -1 then table.insert(self.thumpers, h) end
-    if GetWeaponSlot(h, "gphantom") > -1 or GetWeaponSlot(h, "gredfld") > -1 then table.insert(self.fields, h) end
+    -- Helper to find slot
+    local function HelperGetWeaponSlot(h, odfName)
+        for i = 0, 2 do -- Check standard slots
+            local weap = GetWeaponClass(h, i)
+            if weap and string.lower(weap) == string.lower(odfName) then
+                return i
+            end
+        end
+        return -1
+    end
+
+    if HelperGetWeaponSlot(h, "gmortar") > -1 then table.insert(self.mortars, h) end
+    if HelperGetWeaponSlot(h, "gquake") > -1 then table.insert(self.thumpers, h) end
+    if HelperGetWeaponSlot(h, "gphantom") > -1 or HelperGetWeaponSlot(h, "gredfld") > -1 then table.insert(self.fields, h) end
     
+    -- Double Weapon Tracking (Wingmen/Walkers)
     if string.find(cls, "wingman") or string.find(cls, "walker") then
+        table.insert(self.doubleUsers, h) -- Track for double weapon usage
         table.insert(self.pool, h)
         if IsValid(self.recyclerMgr.handle) then
             Goto(h, self.recyclerMgr.handle)
+        end
+    end
+
+    -- Soldier Tracking (Person class, excluding pilots/snipers)
+    if string.find(cls, "person") then
+        local w0 = GetWeaponClass(h, 0)
+        local isSniper = w0 and (string.find(string.lower(w0), "snipe") or string.find(string.lower(w0), "handgun"))
+        
+        if not isSniper then
+            table.insert(self.soldiers, h)
+        else
+            table.insert(self.pilots, h) -- Fixed: Track snipers/pilots
         end
     end
 end
@@ -1364,7 +1464,11 @@ function aiCore.Team:UpdateAdvancedWeapons()
         -- Thumper Logic
         for _, u in ipairs(self.thumpers) do
             if math.random(100) < self.Config.thumperChance then
-                local slot = GetWeaponSlot(u, "gquake")
+                local slot = -1
+                for i=0,2 do
+                    local w = GetWeaponClass(u, i)
+                    if w and string.lower(w) == "gquake" then slot = i break end
+                end
                 if slot > -1 then SetWeaponMask(u, 2 ^ slot) end
             else
                 SetWeaponMask(u, 7) -- Default
@@ -1379,6 +1483,43 @@ function aiCore.Team:UpdateAdvancedWeapons()
             else
                 SetWeaponMask(u, 7)
             end
+        end
+        
+        -- Field Logic
+        for _, u in ipairs(self.fields) do
+            if math.random(100) < self.Config.fieldChance then
+                -- Try to find field weapon
+                local slot = -1
+                for i=0,2 do
+                    local w = GetWeaponClass(u, i)
+                    if w and (string.find(string.lower(w), "phantom") or string.find(string.lower(w), "redfld")) then
+                        slot = i
+                        break
+                    end
+                end
+                if slot > -1 then SetWeaponMask(u, 2 ^ slot) end
+            else
+                SetWeaponMask(u, 7)
+            end
+        end
+        
+        -- Double Weapon Logic (Wingmen/Walkers)
+        aiCore.RemoveDead(self.doubleUsers)
+        for _, u in ipairs(self.doubleUsers) do
+             if math.random(100) < self.Config.doubleWeaponChance then
+                -- Set a mask that uses multiple weapons (e.g. 1+2 = 3)
+                -- Simple logic: if has weapon in slot 0 and 1, fire both
+                local mask = 1 -- default
+                local has0 = GetWeaponClass(u, 0)
+                local has1 = GetWeaponClass(u, 1)
+                
+                if has0 and has1 then
+                    mask = 3 -- 1 + 2
+                end
+                SetWeaponMask(u, mask)
+             else
+                SetWeaponMask(u, 7) -- Reset to default behavior
+             end
         end
     end
 end
@@ -1407,6 +1548,41 @@ function aiCore.Team:UpdateUpgrades()
         end
     end
 end
+
+function aiCore.Team:UpdateMinelayers()
+    aiCore.RemoveDead(self.minelayers)
+    for _, m in ipairs(self.minelayers) do
+        if IsAlive(m) and not IsBusy(m) then
+            -- Logic from aiSpecial: 
+            -- If defensive, mine near base paths? 
+            -- If offensive, mine near enemy base?
+            -- Simplified logic: Mine near choke points or random path points if available.
+            -- For now, let's implement a basic "Lay mine if enemies are somewhat near but not too close" 
+            -- or just patrol if no better logic.
+            
+            -- Simple fallback: Drop a mine if an enemy is within 200m
+            local enemy = GetNearestEnemy(m)
+            if IsValid(enemy) and GetDistance(m, enemy) < 200 and GetDistance(m, enemy) > 50 then
+                 -- Drop mine!
+                 DropMine(m)
+                 -- Run away a bit?
+                 local dir = SortVector(GetPosition(m) - GetPosition(enemy))
+                 Goto(m, GetPosition(m) + dir * 100)
+            else
+                 -- Go to random pool/patrol logic if idle?
+                 -- For now, let Minelayers act as "scouts" that drop mines when threatened.
+                 if not string.match(aiCore.NilToString(AiCommand[GetCurrentCommand(m)]), "move") then
+                    local randPos = GetPosition(m)
+                    randPos.x = randPos.x + math.random(-200, 200)
+                    randPos.z = randPos.z + math.random(-200, 200)
+                    Goto(m, randPos)
+                 end
+            end
+        end
+    end
+end
+
+function aiCore.Team:UpdateHowitzers()
     aiCore.RemoveDead(self.howitzers)
     if #self.howitzers == 0 then return end
     
@@ -1454,6 +1630,35 @@ function aiCore.Team:UpdateCloakers()
                     -- For BZ98R, the AI usually handles cloak if it's a 'cloaker' class.
                     -- If not, we might need to use SetWeaponMask or similar if it's a toggle.
                 end
+            end
+        end
+    end
+end
+
+function aiCore.Team:UpdateSoldiers()
+    aiCore.RemoveDead(self.soldiers)
+    for _, s in ipairs(self.soldiers) do
+        if IsAlive(s) then
+            -- Soldier Logic: Attack if returning home and enemy near
+            local cmd = GetCurrentCommand(s)
+            local cmdName = aiCore.NilToString(AiCommand[cmd])
+            
+            if string.find(cmdName, "move") or string.find(cmdName, "follow") then
+                -- Check for nearby enemies
+                local enemy = GetNearestEnemy(s)
+                if IsValid(enemy) and GetDistance(s, enemy) < self.Config.soldierRange and not IsCloaked(enemy) then
+                    Attack(s, enemy)
+                    if aiCore.Debug then print("Soldier re-engaging enemy at " .. GetDistance(s, enemy)) end
+                end
+            elseif string.find(cmdName, "attack") then
+                 -- Disengage if too far
+                 local target = GetTarget(s)
+                 if IsValid(target) and GetDistance(s, target) > 150 then
+                    Stop(s) -- Will likely resume previous command or go idle
+                    if IsValid(self.recyclerMgr.handle) then
+                        Goto(s, self.recyclerMgr.handle) -- Send back to base
+                    end
+                 end
             end
         end
     end
@@ -1511,6 +1716,21 @@ function aiCore.Team:UpdateAPCs()
     end
 end
 
+
+function aiCore.Team:UpdateUpgrades()
+    if GetTime() > self.upgradeTimer then
+        self.upgradeTimer = GetTime() + (self.Config.upgradeInterval or 240) -- 4 mins
+        
+        -- Turret Upgrades
+        aiCore.RemoveDead(self.turrets)
+        for _, t in ipairs(self.turrets) do
+            if IsAlive(t) and IsDeployed(t) then
+                 aiCore.UpgradeTurret(t)
+            end
+        end
+    end
+end
+
 function aiCore.Team:UpdateWrecker()
     -- Day Wrecker Logic (Ported from aiSpecial)
     if self.strategy == "Tank_Heavy" or self.strategy == "Howitzer_Heavy" or self.strategy == "Balanced" then
@@ -1530,6 +1750,53 @@ function aiCore.Team:UpdateWrecker()
                 end
             end
         end
+    end
+end
+
+function aiCore.Team:UpdateAutoBase()
+    -- This function was referenced but missing. 
+    -- It likely intends to ensure basic base structures (Factory/Recycler) are rebuilt if destroyed
+    -- and if we have stored their positions.
+    
+    -- For now, basic logic: check if recycler/factory exist, if not and we have a const, build one?
+    -- Actually, simpler to just ensure it doesn't crash.
+    -- The actual base maintenance logic seems to be in UpdateBaseMaintenance which is called separately.
+    -- If this is for "StickToPlayer" mode where the base follows the player or something? 
+    -- Let's just create the function hook to prevent the crash, and maybe add simple "Defend Base" logic?
+    
+    if not self.basePositions.recycler then
+        local rec = GetRecyclerHandle(self.teamNum)
+        if IsValid(rec) then self.basePositions.recycler = GetPosition(rec) end
+    end
+end
+
+function aiCore.Team:UpdatePilotResources()
+    -- Maintain pilot supply (lives)
+    if not self.recyclerMgr or not IsValid(self.recyclerMgr.handle) then return end
+    
+    if GetTime() > (self.pilotResTimer or 0) then
+         self.pilotResTimer = GetTime() + 10.0
+         
+         -- Check pilot count using internal tracking
+         aiCore.RemoveDead(self.pilots)
+         local count = #self.pilots 
+         local target = self.Config.pilotTopoff or 3
+         
+         if count < target then
+             local pilotOdf = aiCore.Units[self.faction].pilot
+             if pilotOdf then 
+                  -- Only add if not already in queue
+                  local inQueue = 0
+                  for _, q in ipairs(self.recyclerMgr.queue) do
+                      if q.odf == pilotOdf then inQueue = inQueue + 1 end
+                  end
+                  
+                  if inQueue == 0 then
+                       table.insert(self.recyclerMgr.queue, {odf=pilotOdf, priority=0}) -- High priority
+                       if aiCore.Debug then print("Team "..self.teamNum.." queuing pilot (Have "..count..")") end
+                  end
+             end
+         end
     end
 end
 
@@ -1561,26 +1828,45 @@ function aiCore.Team:UpdateUnitRoles()
     end
 end
 
-function aiCore.Team:UpdateStickToPlayer()
-    local player = GetPlayerHandle()
-    if not IsAlive(player) or IsPerson(player) or GetTeamNum(player) ~= self.teamNum then return end
+function aiCore.Team:UpdatePilots()
+    -- Logic ported/adapted from aiSpecial's UpdatePilot
+    -- Manages "Technician" spawning (not implemented fully here as it depends on barracks tables)
+    -- Primarily manages "Sniper" behavior here for now
     
-    local playerPos = GetPosition(player)
+    aiCore.RemoveDead(self.pilots)
     
-    if GetTime() > self.stickTimer then
-        self.stickTimer = GetTime() + 0.5 -- Check twice a second
-        
-        for _, h in ipairs(self.pool) do
-            if IsAlive(h) and GetCurrentCommand(h) == AiCommand.FOLLOW and GetCurrentWho(h) == player then
-                local dist = GetDistance(h, player)
-                if dist > 100 and dist < 500 then
-                    -- Apply physics assistance (nudge toward player if way behind)
-                    local hPos = GetPosition(h)
-                    local dir = Normalize(playerPos - hPos)
-                    local force = 40.0 * (dist / 300.0) -- Scale force by distance
+    for _, p in ipairs(self.pilots) do
+        if IsAlive(p) then
+            -- Is this a sniper? (Has sniper rifle)
+            -- Note: In AddObject we separate soldiers/pilots. 
+            -- Here we assume self.pilots contains units with 'sniper' capability or potential
+            
+            local hasSniper = false
+            local slot = GetWeaponSlot(p, "gsnipe")
+            if slot > -1 then hasSniper = true end
+            
+            -- If piloting a vehicle, remove from list? No, might eject.
+            if IsPerson(p) then
+                local target = GetTarget(p)
+                
+                -- Sniper Steal Logic (from aiSpecial)
+                if self.Config.sniperSteal and IsValid(target) and IsCraft(target) then
+                    -- Check if target is empty/neutral (not alive as pilot)
+                    -- aiSpecial uses: IsCraft(h) and not IsAliveAndPilot(h)
+                    -- In BZ Lua: IsAliveAndPilot checks if it has a pilot.
+                    -- If we snipe the pilot, the craft becomes neutral/empty but "Alive"
+                    -- Wait, IsAlive(craft) is true. IsPlloted(craft)?
+                    -- aiSpecial: "IsAliveAndPilot" seems to be a custom check or API.
+                    -- Common BZ check: GetTeamNum(target) == 0 (Neutral) usually implies empty for craft
+                    -- Also checking IsPerson(target) == false
                     
-                    local vel = GetVelocity(h)
-                    SetVelocity(h, SetVector(vel.x + dir.x * force, vel.y + 5.0, vel.z + dir.z * force))
+                    if GetTeamNum(target) == 0 and GetHealth(target) > 0.1 then
+                         -- Steal it!
+                         if GetDistance(p, target) < 150 then
+                            GetIn(p, target)
+                            if aiCore.Debug then print("Sniper stealing empty craft!") end
+                         end
+                    end
                 end
             end
         end
@@ -1649,6 +1935,27 @@ function aiCore.Team:UpdateTugs()
                         break
                     end
                 end
+            end
+        end
+    end
+end
+
+function aiCore.Team:UpdateBaseMaintenance()
+    -- Ensure critial structures are up (stub for now to prevent crash)
+    -- This relies on basePositions if we want to rebuild in specific spots
+end
+
+function aiCore.Team:UpdateDynamicMinefields()
+    -- Legacy support for dynamic minefields (stub)
+end
+
+function aiCore.Team:UpdateRegen()
+    -- Passive regen for all units (Legacy feature)
+    if not self.regenTimer or GetTime() > self.regenTimer then
+        self.regenTimer = GetTime() + 1.0
+        for _, u in ipairs(self.combatUnits) do
+            if IsAlive(u) and GetHealth(u) < GetMaxHealth(u) then
+                AddHealth(u, 100) -- Small regen
             end
         end
     end

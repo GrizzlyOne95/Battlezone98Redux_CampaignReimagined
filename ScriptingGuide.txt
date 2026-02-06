@@ -8,6 +8,8 @@ BZFILE is a DLL injection I/O method. See bzfile.txt for documentation.
 
 All code written for this project must keep in mind this is for Lua 5.1 only, with no external libraries available such as IO, OS, DEBUG, etc. 
 
+For spawning more than one object, it works well to use GetPositionNear for the same point, then objects don't spawn clustered on top of each other. 
+
 Remember to use "end" for terminating functions, not "}"
 
 For other unit types, they have a different class label, for example howitzers are "howitzer", APC's are "apc", walkers are "walker", turrets are "turrettank", minelayers are "minelayer" etc. 

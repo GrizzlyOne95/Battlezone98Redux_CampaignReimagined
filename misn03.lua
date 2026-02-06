@@ -9,6 +9,7 @@ RequireFix.Initialize({"campaignReimagined", "3659600763"})
 local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
+local subtit = require("ScriptSubtitles")
 
 -- Helper for AI
 local function SetupAI()
@@ -135,7 +136,10 @@ local M = {
     x = 4000,
     z = 1,
     y = 1,
-    audmsg = nil
+    audmsg = nil,
+    
+    -- Tables
+    solar_list = {false, false, false} -- Track objective status for solar2, solar3, solar4
 }
 
 function Save()
@@ -247,6 +251,8 @@ function AddObject(h)
         end
     end
 
+end
+
 function Update()
     M.user = GetPlayerHandle()
     if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
@@ -256,6 +262,7 @@ function Update()
     if exu and exu.GetDifficulty then diff = exu.GetDifficulty() end
     
     aiCore.Update()
+    subtit.Update()
 
 
     -- Update Objective Health Status
@@ -265,6 +272,12 @@ function Update()
     if IsAlive(M.solar2) then
         SetObjectiveName(M.solar2, "Solar Array: " .. math.floor(GetHealth(M.solar2) * 100) .. "%")
     end
+    if IsAlive(M.solar3) then
+        SetObjectiveName(M.solar3, "Solar Array: " .. math.floor(GetHealth(M.solar3) * 100) .. "%")
+    end
+    if IsAlive(M.solar4) then
+        SetObjectiveName(M.solar4, "Solar Array: " .. math.floor(GetHealth(M.solar4) * 100) .. "%")
+    end
 
     if not M.start_done then
         if exu then
@@ -273,16 +286,40 @@ function Update()
         end
 
         -- Dynamic Starting Resources
-        SetScrap(1, DiffUtils.ScaleRes(10))
+        SetScrap(1, math.max(4, DiffUtils.ScaleRes(10)))
         SetPilot(1, DiffUtils.ScaleRes(10))
+        SetScrap(2, 40) -- Give AI Team 2 starting scrap
+
+        subtit.Initialize("durations.csv")
 
         SetObjectiveOn(M.solar1)
         SetObjectiveName(M.solar1, "Command Tower")
         SetCritical(M.solar1, true)
 
+        -- Solar Array Objectives (Difficulty Based)
+        -- We only mark the number we are required to save
+        local diff = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
+        local required = 1
+        if diff == 3 then required = 2
+        elseif diff > 3 then required = 3 end
+
         SetObjectiveOn(M.solar2)
         SetObjectiveName(M.solar2, "Solar Array")
-        SetCritical(M.solar2, true)
+        SetCritical(M.solar2, false)
+        M.solar_list[1] = true
+
+        if required >= 2 and IsAlive(M.solar3) then
+             SetObjectiveOn(M.solar3)
+             SetObjectiveName(M.solar3, "Solar Array")
+             SetCritical(M.solar3, false)
+             M.solar_list[2] = true
+        end
+        if required >= 3 and IsAlive(M.solar4) then
+             SetObjectiveOn(M.solar4)
+             SetObjectiveName(M.solar4, "Solar Array")
+             SetCritical(M.solar4, false)
+             M.solar_list[3] = true
+        end
 
         -- Difficulty Health Scaling for Critical Buildings
         local m = DiffUtils.Get()
@@ -325,18 +362,59 @@ function Update()
     if IsAlive(M.solar1) and not M.solar1_warned then
         if GetHealth(M.solar1) < 0.4 then
             -- Using a generic warning sound or reusing a mission sound
-            AudioMessage("misn0302.wav") 
-            AddObjective("misn0301.otf", "red")
+            subtit.Play("misn0708.wav") 
+            UpdateObjective("misn0301.otf", "yellow")
             M.solar1_warned = true
         end
     end
 
     if IsAlive(M.solar2) and not M.solar2_warned then
         if GetHealth(M.solar2) < 0.4 then
-            AudioMessage("misn0303.wav")
-            AddObjective("misn0301.otf", "red")
+            subtit.Play("misn0708.wav")
+            UpdateObjective("misn0301.otf", "yellow")
             M.solar2_warned = true
         end
+    end
+
+    -- Solar Array Defense Logic (Count Check)
+    local solarCount = 0
+    if IsAlive(M.solar2) then solarCount = solarCount + 1 end
+    if IsAlive(M.solar3) then solarCount = solarCount + 1 end
+    if IsAlive(M.solar4) then solarCount = solarCount + 1 end
+    
+    local required = 1
+    if diff == 3 then required = 2 -- Hard
+    elseif diff > 3 then required = 3 end -- Very Hard
+
+    -- Dynamic Objective Update: Ensure we always show 'required' number of living arrays
+    -- If S2 dies (and was marked), reveal S3, etc.
+    local visibleCount = 0
+    local arrays = {M.solar2, M.solar3, M.solar4}
+    
+    for i, h in ipairs(arrays) do
+        if IsAlive(h) and M.solar_list[i] then
+            visibleCount = visibleCount + 1
+        end
+    end
+    
+    if visibleCount < required then
+        -- Find a hidden survivor and mark it
+        for i, h in ipairs(arrays) do
+            if IsAlive(h) and not M.solar_list[i] then
+                SetObjectiveOn(h)
+                SetObjectiveName(h, "Solar Array")
+                SetCritical(h, false)
+                M.solar_list[i] = true
+                visibleCount = visibleCount + 1
+                if visibleCount >= required then break end
+            end
+        end
+    end
+
+    if solarCount < required and not M.lost then
+        -- Trigger Failure
+        FailMission(GetTime() + 5.0)
+        M.lost = true
     end
 
     -- Foot Soldier Patrols
@@ -384,12 +462,15 @@ function Update()
     if IsAlive(M.solar1) and not M.show_tank_attack then
         if GetTime() > M.next_second then
             AddHealth(M.solar1, 50)
+            if IsAlive(M.solar2) then AddHealth(M.solar2, 50) end
+            if IsAlive(M.solar3) then AddHealth(M.solar3, 50) end
+            if IsAlive(M.solar4) then AddHealth(M.solar4, 50) end
             M.next_second = GetTime() + 1.0
         end
     end
 
     if not M.message1 and M.start_done then
-        M.audmsg = AudioMessage("misn0311.wav")
+        M.audmsg = subtit.Play("misn0311.wav")
         M.message1 = true
     end
 
@@ -415,11 +496,19 @@ function Update()
                 M.new_message_time = GetTime() + 10.0
                 M.start_retreat = true
             end
+            end
         end
-    end
 
+        -- If all enemies are dead (regardless of difficulty), advance the plot
+        if not IsAlive(M.wave1_1) and not IsAlive(M.wave1_2) then
+            -- Only set if not already retreating (to avoid overriding timer if one died earlier)
+            if not M.start_retreat then
+                M.new_message_time = GetTime() + 2.0
+                M.start_retreat = true
+            end
+        end
     if M.start_retreat and M.new_message_time < GetTime() and not M.done_retreat then
-        AudioMessage("misn0312.wav")
+        subtit.Play("misn0312.wav")
         ClearObjectives()
         AddObjective("misn0302.otf", "white")
         AddObjective("misn0301.otf", "white")
@@ -527,16 +616,17 @@ function Update()
         M.rescue2 = BuildObject("avapc2", 1, "lpadspawn")
         SetCritical(M.rescue1, true)
         SetCritical(M.rescue2, true)
-        SetObjectiveOn(M.rescue1)
+        -- Don't show on map yet, but help player find one
+        SetUserTarget(M.rescue1)
         SetObjectiveName(M.rescue1, "Transport 1")
-        SetObjectiveOn(M.rescue2)
         SetObjectiveName(M.rescue2, "Transport 2")
-        AddObjective("misn0303.otf", "white") -- Escort transports
+        -- Use ID misn0303.otf so we can update it later
+        AddObjective("misn0303.otf", "white", 8.0, "Protect Transport APCs") 
 
         M.help1 = BuildObject("avfigh", 1, "lpadspawn") -- Scout
         M.help2 = BuildObject("avtank", 1, "lpadspawn") -- Tank
         
-        AudioMessage("misn0314.wav")
+        subtit.Play("misn0314.wav")
         
         -- Convoy to base
         Goto(M.rescue1, "apc1_spawn")
@@ -549,13 +639,15 @@ function Update()
         M.help_spawn = true
     end
 
+
+
     if not M.second_objective and M.apc_spawn_time < GetTime() then
         M.apc_spawn_time = GetTime() + 1.0
         M.z = CountUnitsNearObject(M.user, 500.0, 2, "svtank")
         M.y = CountUnitsNearObject(M.user, 500.0, 2, "svfigh")
 
         if M.z == 0 and M.y == 0 then
-            M.audmsg = AudioMessage("misn0305.wav")
+            M.audmsg = subtit.Play("misn0305.wav")
             M.second_objective = true
         end
     end
@@ -604,7 +696,7 @@ function Update()
 
     if M.start_movie and not M.movie_over and (CameraCancelled() or M.movie_time < GetTime()) then
         CameraFinish()
-        StopAudioMessage(M.audmsg)
+        subtit.Stop()
         
         -- Delay the pull out time until they actually arrive
         M.pull_out_time = 999999.0 
@@ -629,50 +721,117 @@ function Update()
         AddObjective("misn0312.otf", "green")
         AddObjective("misn0303.otf", "white")
 
+        --Goto(M.rescue1, "rescue_path", 1)
+        --Goto(M.rescue2, "rescue_path", 1)
+
+        Defend2(M.help1, M.rescue1, 0)
+        Defend2(M.help2, M.rescue2, 0)
+
         M.movie_over = true
     end
 
     if M.movie_over and not M.remove_props then
-        M.audmsg = AudioMessage("misn0306.wav")
-        
-        -- MODIFIED: Order enemy production to invade base instead of deleting
-        if IsAlive(M.prop1) then Goto(M.prop1, M.geyser) end
-        if IsAlive(M.prop2) then Goto(M.prop2, M.geyser) end
-        
-        -- Spawn attack force on player recycler to simulate base being overrun
-        local atk1 = BuildObject("svtank", 2, "recy_spawn")
-        local atk2 = BuildObject("svtank", 2, "muf_spawn")
-        if IsAlive(M.avrecycler) then
-            Attack(atk1, M.avrecycler)
-            Attack(atk2, M.avrecycler)
-        end
-
-        RemoveObject(M.prop3)
-        RemoveObject(M.prop4)
-        RemoveObject(M.prop5)
-        if IsAlive(M.prop8) then RemoveObject(M.prop8) end
-        if IsAlive(M.prop9) then RemoveObject(M.prop9) end
-        if IsAlive(M.guy1) then RemoveObject(M.guy1) end
-        if IsAlive(M.guy2) then RemoveObject(M.guy2) end
-        if IsAlive(M.guy3) then RemoveObject(M.guy3) end
-        if IsAlive(M.guy4) then RemoveObject(M.guy4) end
-
+        M.audmsg = subtit.Play("misn0306.wav")
+        M.cca_delay_timer = GetTime() + 90.0 -- Set delay
         M.remove_props = true
+        -- Lockdown Player Recycler immediately
+        if IsAlive(M.avrecycler) then
+             SetCommand(M.avrecycler, 9) -- AiCommand.NO_DROPOFF
+        end
+    end
+    
+    -- MODIFIED: Check delay before deploying
+    if M.remove_props and not M.cca_deployed then
+        if GetTime() < M.cca_delay_timer then
+             -- FORCE STOP to prevent auto-deploy
+             if IsAlive(M.prop1) then Stop(M.prop1, 1) end
+             if IsAlive(M.prop2) then Stop(M.prop2, 1) end
+        else
+            -- Order enemy production to invade base
+            -- Use SetCommand for GO_TO_GEYSER (16)
+            if IsAlive(M.prop1) then SetCommand(M.prop1, 16, 1) end 
+            if IsAlive(M.prop2) then SetCommand(M.prop2, 16, 1) end
+            
+            -- Spawn attack force handled in ambush block
+            RemoveObject(M.prop3)
+            RemoveObject(M.prop4)
+            RemoveObject(M.prop5)
+            if IsAlive(M.prop8) then RemoveObject(M.prop8) end
+            if IsAlive(M.prop9) then RemoveObject(M.prop9) end
+            if IsAlive(M.guy1) then RemoveObject(M.guy1) end
+            if IsAlive(M.guy2) then RemoveObject(M.guy2) end
+            if IsAlive(M.guy3) then RemoveObject(M.guy3) end
+            if IsAlive(M.guy4) then RemoveObject(M.guy4) end
+            
+            M.cca_deployed = true
+        end
+    end
+
+    -- ... (skip APC check block as it remains same) ...
+
+    if M.startfinishingmovie and not M.tanks_go then
+        if M.new_unit_time < GetTime() then
+             -- MODIFIED: Outro Swarm & Invincibility (Fixed Health Bug)
+             local function PrepOutroUnit(h)
+                if IsAlive(h) then
+                    SetMaxHealth(h, 50000) -- Massive Health for "Invincibility"
+                    SetCurHealth(h, 50000) 
+                    SetWeaponMask(h, 3) -- Double Weapons
+                end
+             end
+             
+            Goto(M.prop1, "line1", 1)
+            Goto(M.prop2, "line2", 1)
+            Goto(M.prop3, "line3", 1)
+            PrepOutroUnit(M.prop1)
+            PrepOutroUnit(M.prop2)
+            PrepOutroUnit(M.prop3)
+            
+            -- Spawn Massive Swarm
+            for i=1, 10 do
+                local s = BuildObject("svtank", 2, spawns[math.random(1,3)])
+                PrepOutroUnit(s)
+                Goto(s, "line" .. math.random(1,3), 1)
+            end
+            
+            M.tanks_go = true
+        else
+            Defend(M.prop1)
+            Defend(M.prop2)
+            Defend(M.prop3)
+        end
     end
 
     -- NEW: Check if APCs have arrived at base to "load up"
     if M.movie_over and not M.apc_arrived_at_base then
-        if GetDistance(M.rescue1, "apc1_spawn") < 50.0 and GetDistance(M.rescue2, "apc2_spawn") < 50.0 then
+        -- Increased tolerance to 150.0 to ensure trigger
+        if GetDistance(M.rescue1, "apc1_spawn") < 150.0 and GetDistance(M.rescue2, "apc2_spawn") < 150.0 then
             M.apc_arrived_at_base = true
             -- Set timer to leave after loading (5 seconds)
-            M.pull_out_time = GetTime() + 5.0 
+            M.pull_out_time = GetTime() + 2.0 
         end
     end
 
     if M.remove_props then
         if not M.trans_underway and M.pull_out_time < GetTime() then
-            Retreat(M.rescue1, "rescue_path")
-            Retreat(M.rescue2, "rescue_path")
+            -- MODIFIED: Follow path to launch pad, escorts follow transports
+            Goto(M.rescue1, "rescue_path")
+            Goto(M.rescue2, "rescue_path")
+            Follow(M.help1, M.rescue2, 0)
+            Follow(M.help2, M.rescue1, 0)
+            
+            -- Enable Objectives on departure
+            SetObjectiveOn(M.rescue1)
+            SetObjectiveOn(M.rescue2)
+            -- Update existing objective instead of adding new one
+            UpdateObjective("misn0303.otf", "white", 8.0, "Escort to Launch Pad") 
+            
+            -- Clear old objectives (Command Tower / Arrays)
+            SetObjectiveOff(M.solar1)
+            SetObjectiveOff(M.solar2)
+            SetObjectiveOff(M.solar3)
+            SetObjectiveOff(M.solar4)
+            
             M.ambush_message_time = GetTime() + 15.0
             M.trans_underway = true
             M.rescue_move_done = true
@@ -687,15 +846,17 @@ function Update()
             Retreat(M.turret4, "base")
             
             -- Spawn fighters to help turrets on Hard/Very Hard
-            if exu and exu.GetDifficulty and exu.GetDifficulty() >= 3 then
-                local f1 = BuildObject("svfigh", 2, "turret_path1")
-                local f2 = BuildObject("svfigh", 2, "turret_path2")
-                if IsAlive(M.rescue1) then Attack(f1, M.rescue1) end
-                if IsAlive(M.rescue2) then Attack(f2, M.rescue2) end
+            if exu and exu.GetDifficulty and exu.GetDifficulty() >= 2 then -- Hard+
+                 -- MODIFIED: Enemy forces follow the blocking turrets
+                local b1 = BuildObject("svtank", 2, "turret_path1")
+                local b2 = BuildObject("svtank", 2, "turret_path2")
+                Follow(b1, M.turret1)
+                Follow(b2, M.turret2)
             end
 
             M.turret_move_done = true
         end
+        -- ... existing attack logic preserved ...
         if IsAlive(M.wave1_1) then Attack(M.wave1_1, M.rescue1, 1) end
         if IsAlive(M.wave1_2) then Attack(M.wave1_2, M.rescue1, 1) end
         if IsAlive(M.wave5_1) then Attack(M.wave5_1, M.rescue2, 1) end
@@ -704,20 +865,30 @@ function Update()
     end
 
     if M.trans_underway and M.ambush_message_time < GetTime() and not M.ambush_message then
-        AudioMessage("misn0315.wav")
-        M.wave6_1 = BuildObject("svfigh", 2, spawns[math.random(1,3)])
-        M.wave6_2 = BuildObject("svtank", 2, spawns[math.random(1,3)])
-        M.wave6_3 = BuildObject("svtank", 2, spawns[math.random(1,3)])
-        Attack(M.wave6_1, M.solar2, 1)
-        Attack(M.wave6_2, M.solar1, 1)
-        Goto(M.wave6_3, "base", 1)
+        subtit.Play("misn0315.wav")
+        -- MODIFIED: Split Spawns (Recycler locked down earlier)
+        
+        M.wave6_1 = BuildObject("svtank", 2, "wspawn") -- West
+        M.wave6_2 = BuildObject("svtank", 2, spawns[2]) -- South
+        M.wave6_3 = BuildObject("svtank", 2, "wspawn") 
+        local w4 = BuildObject("svtank", 2, spawns[2])
+        local w5 = BuildObject("svtank", 2, "wspawn")
+        
+        if IsAlive(M.avrecycler) then
+            Attack(M.wave6_1, M.avrecycler)
+            Attack(M.wave6_2, M.avrecycler)
+            Attack(M.wave6_3, M.avrecycler)
+            Attack(w4, M.avrecycler)
+            Attack(w5, M.avrecycler)
+        end
+        
         M.ambush_message = true
     end
 
     if M.remove_props and not M.lost and not M.third_objective and
        GetDistance(M.rescue1, M.launch) < 100.0 and GetDistance(M.rescue2, M.launch) < 100.0 then
         
-        AudioMessage("misn0310.wav")
+        subtit.Play("misn0310.wav")
         if IsAlive(M.rescue1) then SetObjectiveOff(M.rescue1) end
         if IsAlive(M.rescue2) then SetObjectiveOff(M.rescue2) end
         
@@ -739,7 +910,7 @@ function Update()
         ClearObjectives()
         AddObjective("misn0313.otf", "green")
         AddObjective("misn0304.otf", "white")
-        AudioMessage("misn0310.wav")
+        subtit.Play("misn0310.wav")
         M.second_warning = true
     end
 
@@ -748,7 +919,7 @@ function Update()
         ClearObjectives()
         AddObjective("misn0313.otf", "green")
         AddObjective("misn0304.otf", "white")
-        AudioMessage("misn0310.wav")
+        subtit.Play("misn0310.wav")
         M.last_warning = true
     end
 
@@ -787,7 +958,7 @@ function Update()
         M.clean_sweep_time = GetTime() + 14.0
         M.next_shot = GetTime() + 18.5
         M.new_unit_time = GetTime() + 2.0
-        M.audmsg = AudioMessage("misn0316.wav")
+        M.audmsg = subtit.Play("misn0316.wav")
         M.prop1 = BuildObject("svtank", 2, "spawna")
         M.prop2 = BuildObject("svtank", 2, "spawnb")
         M.prop3 = BuildObject("svtank", 2, "spawnc")
@@ -801,18 +972,20 @@ function Update()
         M.camera_on = true
     end
 
-    if M.startfinishingmovie and not M.tanks_go then
-        if M.new_unit_time < GetTime() then
-            Goto(M.prop1, "line1", 1)
-            Goto(M.prop2, "line2", 1)
-            Goto(M.prop3, "line3", 1)
-            M.tanks_go = true
-        else
-            Defend(M.prop1)
-            Defend(M.prop2)
-            Defend(M.prop3)
-        end
-    end
+	if M.startfinishingmovie and not M.tanks_go then
+		if M.new_unit_time < GetTime() then
+			Goto(M.prop1, "line1", 1)
+			Goto(M.prop2, "line2", 1)
+			Goto(M.prop3, "line3", 1)
+			M.tanks_go = true
+		else
+			Defend(M.prop1)
+			Defend(M.prop2)
+			Defend(M.prop3)
+		end
+	end
+
+
 
     if M.startfinishingmovie and M.clean_sweep_time < GetTime() and not M.clean_sweep then
         M.clean_sweep = true
@@ -824,7 +997,7 @@ function Update()
     end
 
     if M.camera_2 and not M.speach2 then
-        M.audmsg = AudioMessage("misn0317.wav")
+        M.audmsg = subtit.Play("misn0317.wav")
         M.speach2 = true
     end
 
@@ -854,7 +1027,7 @@ function Update()
         Retreat(M.prop2, "spawn_scrap1", 1)
         Retreat(M.prop3, "spawn_scrap1", 1)
         M.clear_debis_time = GetTime() + 6.0
-        M.audmsg = AudioMessage("misn0318.wav")
+        M.audmsg = subtit.Play("misn0318.wav")
         M.climax1 = true
     end
 
@@ -911,7 +1084,7 @@ function Update()
     end
 
     if not M.dead1 and not M.show_tank_attack and not M.second_objective and not IsAlive(M.solar1) then
-        AudioMessage("misn0302.wav")
+        subtit.Play("misn0302.wav")
         ClearObjectives()
         AddObjective("misn0311.otf", "red")
         AddObjective("misn0312.otf", "white")
@@ -925,7 +1098,7 @@ function Update()
     end
 
     if not M.dead2 and not M.tanks_go and not IsAlive(M.solar2) and not M.second_objective then
-        AudioMessage("misn0303.wav")
+        subtit.Play("misn0303.wav")
         ClearObjectives()
         AddObjective("misn0311.otf", "red")
         AddObjective("misn0312.otf", "white")
@@ -939,7 +1112,7 @@ function Update()
     end
 
     if M.movie_over and not M.dead3 and not IsAlive(M.rescue1) and not M.third_objective then
-        AudioMessage("misn0304.wav")
+        subtit.Play("misn0304.wav")
         ClearObjectives()
         AddObjective("misn0311.otf", "green")
         AddObjective("misn0312.otf", "green")
@@ -949,7 +1122,7 @@ function Update()
         FailMission(GetTime() + 10.0, "misn03f4.des")
     end
     if M.movie_over and not M.dead3 and not IsAlive(M.rescue2) and not M.third_objective then
-        AudioMessage("misn0304.wav")
+        subtit.Play("misn0304.wav")
         ClearObjectives()
         AddObjective("misn0311.otf", "green")
         AddObjective("misn0312.otf", "green")
