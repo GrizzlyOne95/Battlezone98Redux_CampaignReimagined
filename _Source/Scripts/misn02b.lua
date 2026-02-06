@@ -89,7 +89,14 @@ function ApplyQOL()
     -- Initialize Persistent Config
     PersistentConfig.Initialize()
 end
-
+function Start()
+    local difficulty = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
+    if difficulty >= 3 then
+        AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
+    elseif difficulty <= 1 then
+        AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
+    end
+end
 -- AddObject function: Called when a game object is added
 function AddObject(h)
     local team = GetTeamNum(h)

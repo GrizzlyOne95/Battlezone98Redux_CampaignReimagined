@@ -181,13 +181,13 @@ function Start()
     if exu then
         local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.version or "Unknown"
         print("EXU Version: " .. tostring(ver))
-        difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
-        print("Difficulty: " .. tostring(difficulty))
+        M.difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
+        print("Difficulty: " .. tostring(M.difficulty))
 
-        if difficulty >= 3 then
+        if M.difficulty >= 3 then
             AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
-        elseif difficulty <= 1 then
-            AddObjective("easy_diff", "green", 8.0, "Low Difficulty: Enemy presence reduced.")
+        elseif M.difficulty <= 1 then
+            AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
         end
 
         ApplyQOL()

@@ -213,6 +213,13 @@ function Start()
     end
     SetupAI() -- Initialize AI on Start
     aiCore.Bootstrap() -- Capture pre-placed units
+
+    local difficulty = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
+    if difficulty >= 3 then
+        AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
+    elseif difficulty <= 1 then
+        AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
+    end
 end
 
 function AddObject(h)
