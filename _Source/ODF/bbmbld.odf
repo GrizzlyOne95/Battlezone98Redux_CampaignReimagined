@@ -1,0 +1,16 @@
+[GameObjectClass]
+classLabel = "supplydepot"
+scrapCost = 5
+scrapValue = 3
+maxHealth = 1700
+maxAmmo = 0
+unitName = "Field HQ"
+heatSignature = 0.5599999999999999
+imageSignature = 5.6
+radarSignature = 0.7
+
+[SupplyDepotClass]
+supplyRange = 50.0
+supplyDelay = 1.0
+supplyAmount = 50
+

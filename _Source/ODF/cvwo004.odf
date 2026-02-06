@@ -1,0 +1,23 @@
+[OrdnanceClass]
+baseName = "shell"
+classLabel = "grenade"
+shotGeometry = "ghartl00.geo"
+shotSound = "Ordin_c.wav"
+xplGround = "xgasxpl"
+xplVehicle = "xgasxpl"
+xplBuilding = "xgasxpl"
+ammoCost = 5
+lifeSpan = 60.0
+shotSpeed = 75.0
+damageBallistic = 0
+damageConcussion = 400
+damageFlame = 0
+damageImpact = 0
+
+[RocketClass]
+smokeRadius = 0.5
+smokeDelay = 0.05
+smokePause = 0.01
+smokeTexture = "lsmoke.0"
+smokeFrames = 16
+

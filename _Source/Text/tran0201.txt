@@ -1,0 +1,1 @@
+Okay commander, today we'll practice using the command interface. We've got a T7 badger turret up ahead. The T7 is an excellent defensive weapon when deployed, but it's very vulnerable in moving. Let's walk through the steps of commanding the turret.

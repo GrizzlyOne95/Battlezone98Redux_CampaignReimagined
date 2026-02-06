@@ -1,0 +1,57 @@
+[GameObjectClass]
+classLabel = "tug"
+scrapValue = 5
+scrapCost = 5
+hasPilot = 0
+buildTime = 4.25
+maxHealth = 4500
+maxAmmo = 0
+unitName = "Tug"
+aiName = "TugFriend"
+aiName2 = "TugEnemy"
+heatSignature = 0.5
+imageSignature = 3.0
+radarSignature = 0.1
+
+[CraftClass]
+rangeScan = 180.0
+periodScan = 0.0
+velocJam = 0.0
+selectWaitMsg = "cvhaulv0.wav"
+selectCarryMsg = "cvhaulvb.wav"
+selectGoMsg = "cvhaulvc.wav"
+selectOtherMsg = "cvhaulve.wav"
+pickupMsg = "cvhaulv1.wav"
+dropoffMsg = "cvhaulv2.wav"
+followMsg = "cvhaulv3.wav"
+repairMsg = "cvhaulv4.wav"
+rescueMsg = "cvhaulv5.wav"
+recycleMsg = "cvhaulv6.wav"
+otherMsg = "cvhaulvd.wav"
+diedMsg = "abetty3.wav"
+
+[HoverCraftClass]
+setAltitude = 3.0
+accelDragStop = 4.0
+accelDragFull = 1.0
+alphaTrack = 10.0
+alphaDamp = 3.0
+pitchPitch = 0.3
+pitchThrust = 0.1
+rollStrafe = 0.1
+rollSteer = 0.1
+velocForward = 12.0
+velocReverse = 12.0
+velocStrafe = 12.0
+accelThrust = 50.0
+accelBrake = 50.0
+omegaSpin = 2.5
+omegaTurn = 1.25
+alphaSteer = 6.25
+accelJump = 0.0
+soundThrust = "cvhaule3.wav"
+soundSteer = "cvhaule5.wav"
+
+[TugClass]
+dockSpeed = 5.0
+

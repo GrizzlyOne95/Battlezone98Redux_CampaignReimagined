@@ -1,0 +1,59 @@
+[GameObjectClass]
+baseName = "svfigh"
+classLabel = "wingman"
+scrapValue = 3
+scrapCost = 6
+maxHealth = 2250
+maxAmmo = 600
+collisionRadius = 3.0
+unitName = "Fighter"
+aiName = "TankFriend"
+aiName2 = "TankEnemy"
+weaponHard1 = "GC1"
+weaponName1 = "grktbomb"
+weaponHard2 = "GR1"
+weaponName2 = "grktbomb"
+
+[CraftClass]
+rangeScan = 400.0f
+periodScan = 2.0f
+velocJam = 5.0f
+selectAttackMsg = "svfighvd.wav"
+selectWaitMsg = "svfighvf.wav"
+selectGoMsg = "svfighvg.wav"
+selectOtherMsg = "svfighvj.wav"
+goMsg = "svfighv0.wav"
+attackMsg = "svfighv2.wav"
+followMeMsg = "svfighv3.wav"
+followMsg = "svfighv7.wav"
+repairMsg = "svfighv4.wav"
+reloadMsg = "svfighv5.wav"
+rescueMsg = "svfighv8.wav"
+recycleMsg = "svfighvf.wav"
+otherMsg = "svfighvh.wav"
+user1Msg = "svfighv6.wav"
+killedMsg = "svfighvm.wav"
+diedMsg = "sbetty3.wav"
+
+[HoverCraftClass]
+setAltitude = 1.5
+accelDragStop = 3.5
+accelDragFull = 1.0
+alphaTrack = 20.0
+alphaDamp = 5.0
+pitchPitch = 0.25
+pitchThrust = 0.1
+rollStrafe = 0.1
+rollSteer = 0.1
+velocForward = 38.0
+velocReverse = 27.0
+velocStrafe = 23.0
+accelThrust = 25.0
+accelBrake = 75.0
+omegaSpin = 4.0
+omegaTurn = 1.6
+alphaSteer = 3.6
+accelJump = 24.0
+soundThrust = "svfighe0.wav"
+soundTurbo = "svfighe3.wav"
+

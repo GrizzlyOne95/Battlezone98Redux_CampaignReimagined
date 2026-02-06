@@ -1,0 +1,20 @@
+# Ignore everything in root by default
+/*
+
+# Unignore specific root files
+!/.gitignore
+!/README.md
+!/LICENSE
+!/manage_mod.ps1
+!/task.md
+!/implementation_plan.md
+
+# Unignore the Source folder
+!/_Source/
+
+# Ignore the Release folder (build artifact)
+/_Release/
+
+# Ignore system files
+thumbs.db
+desktop.ini

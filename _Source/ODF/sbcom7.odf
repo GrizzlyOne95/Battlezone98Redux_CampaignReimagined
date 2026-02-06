@@ -1,0 +1,20 @@
+[GameObjectClass]
+baseName = "sbcomm"
+classLabel = "commtower"
+scrapCost = 6
+scrapValue = 4
+maxHealth = 8750
+maxAmmo = 0
+unitName = "Comm Tower"
+SetName = "Radar Array"
+heatSignature = 0.8
+imageSignature = 8.0
+radarSignature = 1.0
+
+[BuildingClass]
+soundAmbient = "sbcomme0.wav"
+
+[CommTowerClass]
+rangeScan = 500.0
+periodScan = 0.0
+

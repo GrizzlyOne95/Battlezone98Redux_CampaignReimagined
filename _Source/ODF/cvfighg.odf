@@ -1,0 +1,64 @@
+[GameObjectClass]
+baseName = "cvfigh"
+classLabel = "wingman"
+scrapValue = 4
+scrapCost = 5
+buildTime = 10.2
+maxHealth = 1710
+maxAmmo = 600
+collisionRadius = 3.0
+weaponMask = 00011
+unitName = "Fighter"
+aiName = "ScoutFriend"
+aiName2 = "ScoutEnemy"
+heatSignature = 2.0
+imageSignature = 1.5
+radarSignature = 0.1
+weaponHard1 = "GC1"
+weaponName1 = "gminigun"
+weaponMask = 00011
+
+[CraftClass]
+rangeScan = 360.0
+periodScan = 5.0f
+velocJam = 5.0f
+selectAttackMsg = "cvfighvd.wav"
+selectWaitMsg = "cvfighvf.wav"
+selectGoMsg = "cvfighvg.wav"
+selectOtherMsg = "cvfighvj.wav"
+goMsg = "cvfighv0.wav"
+attackMsg = "cvfighv2.wav"
+followMeMsg = "cvfigh3.wav"
+followMsg = "cvfighv7.wav"
+repairMsg = "cvfighv4.wav"
+reloadMsg = "cvfighv5.wav"
+rescueMsg = "cvfighv8.wav"
+recycleMsg = "cvfighvf.wav"
+otherMsg = "cvfighvh.wav"
+user1Msg = "cvfighv6.wav"
+killedMsg = "cvfighvm.wav"
+diedMsg = "abetty3.wav"
+cloakAllowed = "True"
+
+[HoverCraftClass]
+setAltitude = 0.9
+accelDragStop = 3.5
+accelDragFull = 1.0
+alphaTrack = 20.0
+alphaDamp = 5.0
+pitchPitch = 0.25
+pitchThrust = 0.1
+rollStrafe = 0.1
+rollSteer = 0.1
+velocForward = 40.0
+velocReverse = 40.0
+velocStrafe = 30.0
+accelThrust = 40.0
+accelBrake = 40.0
+omegaSpin = 7.1875
+omegaTurn = 3.4375
+alphaSteer = 6.25
+accelJump = 25.0
+soundThrust = "cvfighe0.wav"
+soundTurbo = "cvfighe3.wav"
+

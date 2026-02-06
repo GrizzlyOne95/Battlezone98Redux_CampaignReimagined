@@ -1,0 +1,19 @@
+[GameObjectClass]
+classLabel = "commtower"
+collisionRadius = 7.0
+scrapCost = 5
+scrapValue = 4
+maxHealth = 1800
+maxAmmo = 0
+unitName = "Comm Tower"
+heatSignature = 0.8
+imageSignature = 8.0
+radarSignature = 1.0
+
+[CommTowerClass]
+rangeScan = 500.0
+periodScan = 0.0
+
+[BuildingClass]
+soundAmbient = "sbcomme0.wav"
+
