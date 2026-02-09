@@ -14,7 +14,10 @@ local PersistentConfig = require("PersistentConfig")
 
 -- Helper for AI
 local function SetupAI()
-    DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    
+    -- Disable factory management for player (prevent forced deployment)
+    playerTeam:SetConfig("manageFactories", false)
 end
 
 -- Mission State
@@ -329,7 +332,7 @@ function Update()
         if exu and exu.GetSteam64 then
             local steamID = exu.GetSteam64()
             if steamID and steamID ~= "" then
-                Print("Welcome back, Commander. SteamID: " .. steamID)
+                print("Welcome back, Commander. SteamID: " .. steamID)
                 -- We could also use this for specific rewards or greetings if we had a mapping
             end
         end
@@ -1042,18 +1045,7 @@ function Update()
         M.camera_on = true
     end
 
-	if M.startfinishingmovie and not M.tanks_go then
-		if M.new_unit_time < GetTime() then
-			Goto(M.prop1, "line1", 1)
-			Goto(M.prop2, "line2", 1)
-			Goto(M.prop3, "line3", 1)
-			M.tanks_go = true
-		else
-			Defend(M.prop1)
-			Defend(M.prop2)
-			Defend(M.prop3)
-		end
-	end
+
 
 
 
@@ -1072,10 +1064,18 @@ function Update()
     end
 
     if M.camera_2 and not M.show_tank_attack then
-        if GetDistance(M.prop1, M.shot_geyser) < 20.0 then
-            if IsAlive(M.solar1) then
+        -- MODIFIED: Increased distance to 80.0 to prevent softlock from traffic jams (swarm)
+        -- Added fail-safe for dead prop
+        if not IsAlive(M.prop1) or GetDistance(M.prop1, M.shot_geyser) < 80.0 then
+            
+            if IsAlive(M.prop1) then
                 Attack(M.prop1, M.solar1)
+            end
+            if IsAlive(M.prop2) then
                 Attack(M.prop2, M.solar1)
+            end
+
+            if IsAlive(M.solar1) then
                 if IsAlive(M.solar2) then Damage(M.solar2, 20000) end
                 if IsAlive(M.solar3) then Damage(M.solar3, 20000) end
                 if IsAlive(M.solar4) then Damage(M.solar4, 20000) end
@@ -1137,7 +1137,7 @@ function Update()
 
     if M.last_blown and not M.end_shot and GetDistance(M.prop1, M.sucker) < 65.0 then
         Attack(M.prop1, M.sucker, 1)
-        M.camera_off_time = GetTime() + 1.5
+        M.camera_off_time = GetTime() + 6.0 -- MODIFIED: Increased from 1.5s to 6.0s
         M.end_shot = true
     end
 
@@ -1204,3 +1204,4 @@ function Update()
     end
 
 -- Local settings logic has been moved to PersistentConfig.lua
+end

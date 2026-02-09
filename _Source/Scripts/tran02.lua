@@ -10,7 +10,7 @@ local RequireFix = require("RequireFix")
 RequireFix.Initialize({"campaignReimagined", "3659600763"}) 
 local exu = require("exu")
 local DiffUtils = require("DiffUtils")
-local Subtitles = require("Subtitles")
+local Subtitles = require("ScriptSubtitles")
 
 -- Mission State
 local lost = false

@@ -10,6 +10,7 @@ local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
+local PersistentConfig = require("PersistentConfig")
 
 -- Helper for AI
 local function SetupAI()
@@ -19,6 +20,7 @@ local function SetupAI()
     -- Configure Player Team (1) for Scavenger Assist
     if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
         aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", true)
+        aiCore.ActiveTeams[1]:SetConfig("manageFactories", false)
     end
     
     -- Configure CCA (Team 2)

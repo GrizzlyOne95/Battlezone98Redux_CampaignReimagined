@@ -441,6 +441,9 @@ aiCore.FactoryManager.__index = aiCore.FactoryManager
 function aiCore.FactoryManager:new(team, isRecycler)
     local fm = setmetatable({}, self)
     fm.team = team
+    -- We need a reference to the team object to check config, but it might not be fully initialized yet.
+    -- We will bind it later or look it up.
+    -- fm.teamObj will be assigned in aiCore.Team:new
     fm.isRecycler = isRecycler
     fm.queue = {}
     return fm
@@ -457,6 +460,9 @@ function aiCore.FactoryManager:update()
     end
 
     -- Check Deployment State
+    -- MODIFIED: Only manage deployment if configured to do so
+    if not self.teamObj.Config.manageFactories then return end
+
     if not IsDeployed(self.handle) then
         local cmd = GetCurrentCommand(self.handle)
         if cmd ~= AiCommand.DEPLOY then -- Avoid spamming
@@ -494,6 +500,11 @@ function aiCore.FactoryManager:update()
     end
 end
 
+function aiCore.FactoryManager:addUnit(odf, priority)
+    table.insert(self.queue, {odf = odf, priority = priority})
+    table.sort(self.queue, function(a,b) return a.priority < b.priority end)
+end
+
 -- Constructor Manager
 aiCore.ConstructorManager = {
     handle = nil,
@@ -508,6 +519,7 @@ aiCore.ConstructorManager.__index = aiCore.ConstructorManager
 function aiCore.ConstructorManager:new(team)
     local cm = setmetatable({}, self)
     cm.team = team
+    -- cm.teamObj will be assigned in aiCore.Team:new
     cm.queue = {}
     return cm
 end
@@ -518,6 +530,9 @@ function aiCore.ConstructorManager:update()
         self.sentToRecycler = false
         return
     end
+
+    -- MODIFIED: Do not manage constructor if disabled
+    if not self.teamObj.Config.manageFactories then return end
 
     if #self.queue == 0 then
         -- Robust idling: Return to recycler if idle
@@ -746,7 +761,11 @@ function aiCore.Team:new(teamNum, faction)
         autoRescue = false,
         autoTugs = false,
         stickToPlayer = false,
-        dynamicMinefields = false
+        stickToPlayer = false,
+        dynamicMinefields = false,
+        
+        -- New Config
+        manageFactories = true -- Default to true for AI teams
     }
 
     -- Tactical Lists
@@ -779,8 +798,11 @@ function aiCore.Team:new(teamNum, faction)
     t.faction = faction or 1 -- Default to NSDF if unknown
     
     t.recyclerMgr = aiCore.FactoryManager:new(teamNum, true)
+    t.recyclerMgr.teamObj = t -- Bind reference
     t.factoryMgr = aiCore.FactoryManager:new(teamNum, false)
+    t.factoryMgr.teamObj = t -- Bind reference
     t.constructorMgr = aiCore.ConstructorManager:new(teamNum)
+    t.constructorMgr.teamObj = t -- Bind reference
     
     t.recyclerBuildList = {}
     t.factoryBuildList = {}
@@ -959,6 +981,7 @@ function aiCore.Team:UpdateBaseMaintenance()
     -- Only runs if we have a Recycler
     if not IsValid(self.recyclerMgr.handle) then return end
     if not self.Config.autoBuild then return end
+    if not self.Config.manageFactories then return end -- MODIFIED: Skip if disabled
     
     -- Helper to check if item is already in queue
     local function IsInQueue(mgr, odf)

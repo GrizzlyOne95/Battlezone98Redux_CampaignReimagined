@@ -63,32 +63,46 @@ local function ParseLine(line)
 end
 
 function PersistentConfig.LoadConfig()
-    local f = bzfile.Open(configPath, "r")
-    if not f then 
-        print("PersistentConfig: No config file found at " .. configPath .. ". Using defaults.")
-        return 
-    end
-
-    local line = f:Readln()
-    while line do
-        local key, val = ParseLine(line)
-        if key then
-            if key == "HeadlightDiffuseR" then PersistentConfig.Settings.HeadlightDiffuse.R = tonumber(val) or 5.0
-            elseif key == "HeadlightDiffuseG" then PersistentConfig.Settings.HeadlightDiffuse.G = tonumber(val) or 5.0
-            elseif key == "HeadlightDiffuseB" then PersistentConfig.Settings.HeadlightDiffuse.B = tonumber(val) or 5.0
-            elseif key == "HeadlightSpecularR" then PersistentConfig.Settings.HeadlightSpecular.R = tonumber(val) or 5.0
-            elseif key == "HeadlightSpecularG" then PersistentConfig.Settings.HeadlightSpecular.G = tonumber(val) or 5.0
-            elseif key == "HeadlightSpecularB" then PersistentConfig.Settings.HeadlightSpecular.B = tonumber(val) or 5.0
-            elseif key == "HeadlightBeamMode" then PersistentConfig.Settings.HeadlightBeamMode = tonumber(val) or 1
-            elseif key == "HeadlightFalloff" then PersistentConfig.Settings.HeadlightRange.Falloff = tonumber(val) or 1.0
-            elseif key == "HeadlightVisible" then PersistentConfig.Settings.HeadlightVisible = (val == "true")
-            elseif key == "SubtitlesEnabled" then PersistentConfig.Settings.SubtitlesEnabled = (val == "true")
-            elseif key == "OtherHeadlightsDisabled" then PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
-            end
+    -- Attempt to verify file existence via io if possible, but bzfile is safer context
+    -- Use pcall to catch "not open" error if bzfile.Open returns a zombie handle
+    local status, err = pcall(function()
+        local f = bzfile.Open(configPath, "r")
+        if not f then 
+            print("PersistentConfig: No config file found at " .. configPath .. ". Using defaults.")
+            return 
         end
-        line = f:Readln()
+
+        local line = f:Readln()
+        while line do
+            local key, val = ParseLine(line)
+            if key then
+                if key == "HeadlightDiffuseR" then PersistentConfig.Settings.HeadlightDiffuse.R = tonumber(val) or 5.0
+                elseif key == "HeadlightDiffuseG" then PersistentConfig.Settings.HeadlightDiffuse.G = tonumber(val) or 5.0
+                elseif key == "HeadlightDiffuseB" then PersistentConfig.Settings.HeadlightDiffuse.B = tonumber(val) or 5.0
+                elseif key == "HeadlightSpecularR" then PersistentConfig.Settings.HeadlightSpecular.R = tonumber(val) or 5.0
+                elseif key == "HeadlightSpecularG" then PersistentConfig.Settings.HeadlightSpecular.G = tonumber(val) or 5.0
+                elseif key == "HeadlightSpecularB" then PersistentConfig.Settings.HeadlightSpecular.B = tonumber(val) or 5.0
+                elseif key == "HeadlightBeamMode" then PersistentConfig.Settings.HeadlightBeamMode = tonumber(val) or 1
+                elseif key == "HeadlightFalloff" then PersistentConfig.Settings.HeadlightRange.Falloff = tonumber(val) or 1.0
+                elseif key == "HeadlightVisible" then PersistentConfig.Settings.HeadlightVisible = (val == "true")
+                elseif key == "SubtitlesEnabled" then PersistentConfig.Settings.SubtitlesEnabled = (val == "true")
+                elseif key == "OtherHeadlightsDisabled" then PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
+                end
+            end
+            line = f:Readln()
+        end
+        f:Close()
+    end)
+
+    if not status then
+        if tostring(err):find("not open") then
+            print("PersistentConfig: No config found (first run), creating new defaults.")
+        else
+            print("PersistentConfig: Error loading config: " .. tostring(err))
+        end
+    else
+        print("PersistentConfig: Settings loaded.")
     end
-    f:Close()
     
     -- Sync ranges based on mode
     local mode = PersistentConfig.Settings.HeadlightBeamMode
@@ -96,31 +110,36 @@ function PersistentConfig.LoadConfig()
         PersistentConfig.Settings.HeadlightRange.InnerAngle = BeamModes[mode].Inner
         PersistentConfig.Settings.HeadlightRange.OuterAngle = BeamModes[mode].Outer
     end
-    
-    print("PersistentConfig: Settings loaded.")
 end
 
 function PersistentConfig.SaveConfig()
-    local f = bzfile.Open(configPath, "w", "trunc")
-    if not f then
-        print("PersistentConfig: Failed to open config file for writing!")
-        return
-    end
+    local status, err = pcall(function()
+        local f = bzfile.Open(configPath, "w", "trunc")
+        if not f then
+            print("PersistentConfig: Failed to open config file for writing!")
+            return
+        end
 
-    f:Writeln("HeadlightDiffuseR=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.R))
-    f:Writeln("HeadlightDiffuseG=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.G))
-    f:Writeln("HeadlightDiffuseB=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.B))
-    f:Writeln("HeadlightSpecularR=" .. tostring(PersistentConfig.Settings.HeadlightSpecular.R))
-    f:Writeln("HeadlightSpecularG=" .. tostring(PersistentConfig.Settings.HeadlightSpecular.G))
-    f:Writeln("HeadlightSpecularB=" .. tostring(PersistentConfig.Settings.HeadlightSpecular.B))
-    f:Writeln("HeadlightBeamMode=" .. tostring(PersistentConfig.Settings.HeadlightBeamMode))
-    f:Writeln("HeadlightFalloff=" .. tostring(PersistentConfig.Settings.HeadlightRange.Falloff))
-    f:Writeln("HeadlightVisible=" .. tostring(PersistentConfig.Settings.HeadlightVisible))
-    f:Writeln("SubtitlesEnabled=" .. tostring(PersistentConfig.Settings.SubtitlesEnabled))
-    f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
+        f:Writeln("HeadlightDiffuseR=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.R))
+        f:Writeln("HeadlightDiffuseG=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.G))
+        f:Writeln("HeadlightDiffuseB=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.B))
+        f:Writeln("HeadlightSpecularR=" .. tostring(PersistentConfig.Settings.HeadlightSpecular.R))
+        f:Writeln("HeadlightSpecularG=" .. tostring(PersistentConfig.Settings.HeadlightSpecular.G))
+        f:Writeln("HeadlightSpecularB=" .. tostring(PersistentConfig.Settings.HeadlightSpecular.B))
+        f:Writeln("HeadlightBeamMode=" .. tostring(PersistentConfig.Settings.HeadlightBeamMode))
+        f:Writeln("HeadlightFalloff=" .. tostring(PersistentConfig.Settings.HeadlightRange.Falloff))
+        f:Writeln("HeadlightVisible=" .. tostring(PersistentConfig.Settings.HeadlightVisible))
+        f:Writeln("SubtitlesEnabled=" .. tostring(PersistentConfig.Settings.SubtitlesEnabled))
+        f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
+        
+        f:Close()
+    end)
     
-    f:Close()
-    print("PersistentConfig: Settings saved.")
+    if not status then
+        print("PersistentConfig: Error saving config: " .. tostring(err))
+    else
+        print("PersistentConfig: Settings saved.")
+    end
 end
 
 function PersistentConfig.ApplySettings()
@@ -145,7 +164,7 @@ function PersistentConfig.ApplySettings()
             exu.SetHeadlightRange(h, PersistentConfig.Settings.HeadlightRange.InnerAngle, PersistentConfig.Settings.HeadlightRange.OuterAngle, PersistentConfig.Settings.HeadlightRange.Falloff)
         end
         if exu.SetHeadlightVisible then
-            exu.SetHeadlightVisible(PersistentConfig.Settings.HeadlightVisible)
+            exu.SetHeadlightVisible(h, PersistentConfig.Settings.HeadlightVisible)
         end
     end
 
@@ -169,12 +188,13 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_s_state = s_combo
 
-    -- Toggle Non-Player Headlights (L key)
-    local l_state = exu.GetGameKey("L")
-    if l_state and not InputState.last_l_state then
+    -- Toggle NPC Headlights (SHIFT + U)
+    local u_key = exu.GetGameKey("U")
+    local u_combo = u_key and exu.GetGameKey("SHIFT")
+    if u_combo and not InputState.last_u_state then
         PersistentConfig.Settings.OtherHeadlightsDisabled = not PersistentConfig.Settings.OtherHeadlightsDisabled
         PersistentConfig.SaveConfig()
-        ShowFeedback("Other Headlights: " .. (PersistentConfig.Settings.OtherHeadlightsDisabled and "DISABLED" or "ENABLED"))
+        ShowFeedback("NPC Lights: " .. (PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON"))
         
         if not PersistentConfig.Settings.OtherHeadlightsDisabled then
             local player = GetPlayerHandle()
@@ -185,12 +205,12 @@ function PersistentConfig.UpdateInputs()
             end
         end
     end
-    InputState.last_l_state = l_state
+    InputState.last_u_state = u_combo
 
-    -- Cycle Headlight Color (SHIFT + H)
-    local h_key = exu.GetGameKey("H")
-    local h_combo = h_key and exu.GetGameKey("SHIFT")
-    if h_combo and not InputState.last_h_state then
+    -- Cycle Headlight Color (SHIFT + V)
+    local v_key = exu.GetGameKey("V")
+    local v_combo = v_key and exu.GetGameKey("SHIFT")
+    if v_combo and not InputState.last_v_state then
         local colors = {
             {5.0, 5.0, 5.0}, -- Bright White
             {5.0, 1.0, 1.0}, -- Bright Red
@@ -217,31 +237,27 @@ function PersistentConfig.UpdateInputs()
         PersistentConfig.ApplySettings()
         ShowFeedback("Headlight Color Cycled", PersistentConfig.Settings.HeadlightDiffuse.R, PersistentConfig.Settings.HeadlightDiffuse.G, PersistentConfig.Settings.HeadlightDiffuse.B)
     end
-    InputState.last_h_state = h_combo
+    InputState.last_v_state = v_combo
 
-    -- Toggle Headlight Beam Mode (SHIFT + B)
-    local b_key = exu.GetGameKey("B")
-    local b_combo = b_key and exu.GetGameKey("SHIFT")
-    if b_combo and not InputState.last_b_state then
+    -- Toggle Headlight Beam Mode (SHIFT + K)
+    local k_key = exu.GetGameKey("K")
+    local k_combo = k_key and exu.GetGameKey("SHIFT")
+    if k_combo and not InputState.last_k_state then
         PersistentConfig.Settings.HeadlightBeamMode = (PersistentConfig.Settings.HeadlightBeamMode % 2) + 1
         PersistentConfig.SaveConfig()
         PersistentConfig.ApplySettings()
         local modeName = PersistentConfig.Settings.HeadlightBeamMode == 1 and "FOCUSED" or "WIDE"
         ShowFeedback("Headlight Beam: " .. modeName)
     end
-    InputState.last_b_state = b_combo
+    InputState.last_k_state = k_combo
 
-    -- Help Popup (SHIFT + / which is ?)
-    -- Note: "/" might be mapped as "OEM_2" or similar depending on engine, but "/" is standard attempt.
-    local slash_key = exu.GetGameKey("/") or exu.GetGameKey("?")
-    local help_combo = slash_key and exu.GetGameKey("SHIFT")
+    -- Help Popup (SHIFT + J)
+    local j_key = exu.GetGameKey("J")
+    local help_combo = j_key and exu.GetGameKey("SHIFT")
     if help_combo and not InputState.last_help_state then
-        local helpMsg = "HOTKEYS:\n" ..
-                        "CTRL+ALT+S: Toggle Subtitles\n" ..
-                        "L: Toggle NPC Headlights\n" ..
-                        "SHIFT+H: Cycle Headlight Color\n" ..
-                        "SHIFT+B: Toggle Beam Mode\n" ..
-                        "SHIFT+?: Show Help"
+        -- Condensed Help Text
+        local helpMsg = "KEYS: C+A+S:Subs | Sh+U:NPC-Lit\n" ..
+                        "Sh+V:Color | Sh+K:Beam | Sh+J:Help"
         
         -- Show for longer duration (e.g. 5 seconds)
         if subtitles and subtitles.submit then
@@ -250,6 +266,7 @@ function PersistentConfig.UpdateInputs()
             subtitles.submit(helpMsg, 5.0, 1.0, 1.0, 1.0)
         end
     end
+
     InputState.last_help_state = help_combo
 
     -- Pause Menu Handling (Escape Key)

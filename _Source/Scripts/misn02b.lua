@@ -11,6 +11,7 @@ local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
+local PersistentConfig = require("PersistentConfig")
 
 -- Global Variables (State)
 local camera1 = false
@@ -160,10 +161,11 @@ function Update()
     subtit.Update()
     
     if not start_done then
-        DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+        local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+        playerTeam:SetConfig("manageFactories", false)
         ApplyQOL()
 
-        SetPilot(1, DiffUtils.ScaleRes(2))
+        SetPilot(1, math.max(1, DiffUtils.ScaleRes(2)))
         SetScrap(1, math.max(4, DiffUtils.ScaleRes(5)))
         SetAIP("misn02.aip")
         
@@ -231,7 +233,7 @@ function Update()
             subtit.Stop() -- Stop previous audio and clear subtitles
             audmsg = nil
             subtit.Play("misn0201.wav")
-            subtit.Play("misn0224.wav")
+            --subtit.Play("misn0224.wav")
             wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
             AddObjective("misn02b1.otf", "white")
         end
