@@ -1,6 +1,3 @@
-# Ignore everything in root by default
-/*
-
 # Unignore specific root files
 !/.gitignore
 !/README.md
