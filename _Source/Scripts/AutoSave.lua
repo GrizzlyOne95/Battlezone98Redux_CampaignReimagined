@@ -615,6 +615,22 @@ end
 --- Internal Writers
 ---
 
+local function WriteProp(file, key, value, isArray)
+    if isArray then
+        file:Writeln(key .. " [1] = ")
+        file:Writeln(tostring(value))
+    else
+        file:Writeln(key .. " = " .. tostring(value))
+    end
+end
+
+local function FloatStr(v)
+    if v == 0 then return "0" end
+    if v > 1e29 then return "1e+030" end
+    if v < -1e29 then return "-1e+030" end
+    return tostring(v)
+end
+
 function AutoSave._WriteSaveFile(file)
     -- Assign IDs
     local idCounter = 1
@@ -627,12 +643,12 @@ function AutoSave._WriteSaveFile(file)
     end
 
     -- Header
-    file:Writeln("version [1] = 2016")
-    file:Writeln("binarySave [1] = false")
+    WriteProp(file, "version", "2016", true)
+    WriteProp(file, "binarySave", "false", true)
     file:Writeln("msn_filename = " .. GetMissionFilename())
-    file:Writeln("seq_count [1] = " .. tostring(idCounter + 1000))
-    file:Writeln("missionSave [1] = false")
-    file:Writeln("runType [1] = 0")
+    WriteProp(file, "seq_count", idCounter + 1000, true)
+    WriteProp(file, "missionSave", "false", true)
+    WriteProp(file, "runType", "0", true)
     
     local desc = "AutoSave " .. tostring(math.floor(GetTime()))
     file:Writeln("saveGameDesc = " .. StringToHex(desc) .. "00")
@@ -645,11 +661,11 @@ function AutoSave._WriteSaveFile(file)
         if nat and nationMap[nat] then playerSide = nationMap[nat] end
     end
     file:Writeln("nPlayerSide = " .. playerSide)
-    file:Writeln("nMissionStatus [1] = 0")
-    file:Writeln("nOldMissionMode [1] = 0")
+    WriteProp(file, "nMissionStatus", "0", true)
+    WriteProp(file, "nOldMissionMode", "0", true)
     file:Writeln("TerrainName = " .. GetMapName())
-    file:Writeln("start_time [1] = " .. tostring(GetTime()))
-    file:Writeln("size [1] = " .. tostring(idCounter - 1))
+    WriteProp(file, "start_time", GetTime(), true)
+    WriteProp(file, "size", idCounter - 1, true)
     
     -- Iterate through all game objects
     for i = 1, 5120 do
@@ -672,10 +688,10 @@ end
 
 function AutoSave._WriteTeamGlobals(file)
     for i = 0, 15 do
-        file:Writeln("curScrap [1] = " .. tostring(GetScrap(i)))
-        file:Writeln("maxScrap [1] = " .. tostring(GetMaxScrap(i)))
-        file:Writeln("curPilot [1] = " .. tostring(GetPilot(i)))
-        file:Writeln("maxPilot [1] = " .. tostring(GetMaxPilot(i)))
+        WriteProp(file, "curScrap", GetScrap(i), true)
+        WriteProp(file, "maxScrap", GetMaxScrap(i), true)
+        WriteProp(file, "curPilot", GetPilot(i), true)
+        WriteProp(file, "maxPilot", GetMaxPilot(i), true)
         
         local allies = 0
         for j = 0, 15 do
@@ -683,44 +699,58 @@ function AutoSave._WriteTeamGlobals(file)
                 allies = allies + (2 ^ j)
             end
         end
-        file:Writeln("dwAllies [1] = " .. tostring(allies))
+        WriteProp(file, "dwAllies", allies, true)
     end
 end
 
 function AutoSave._WriteGameObject(file, obj)
     file:Writeln("[GameObject]")
-    file:Writeln("PrjID [1] = " .. CleanString(GetOdf(obj)))
+    WriteProp(file, "PrjID", CleanString(GetOdf(obj)), true)
     
     local id = HandleToID[obj] or 0
-    file:Writeln("seqno [1] = " .. tostring(id))
+    WriteProp(file, "seqno", id, true)
     
     local pos = GetPosition(obj)
     if pos then
         file:Writeln("pos [1] =")
-        file:Writeln("  x [1] = " .. tostring(pos.x))
-        file:Writeln("  y [1] = " .. tostring(pos.y))
-        file:Writeln("  z [1] = " .. tostring(pos.z))
+        file:Writeln("  x [1] = ")
+        file:Writeln(tostring(pos.x))
+        file:Writeln("  y [1] = ")
+        file:Writeln(tostring(pos.y))
+        file:Writeln("  z [1] = ")
+        file:Writeln(tostring(pos.z))
     end
 
-    file:Writeln("team [1] = " .. tostring(GetTeamNum(obj)))
+    WriteProp(file, "team", GetTeamNum(obj), true)
     file:Writeln("label = " .. (GetLabel(obj) or ""))
-    file:Writeln("isUser [1] = " .. (obj == GetPlayerHandle() and "1" or "0"))
+    WriteProp(file, "isUser", (obj == GetPlayerHandle() and "1" or "0"), true)
     file:Writeln("obj_addr = " .. string.format("%08x", id))
     
     -- Position and Rotation Fix
     AutoSave._WriteTransform(file, obj)
-    file:Writeln("abandoned [1] = 0")
+    WriteProp(file, "abandoned", "0", true)
+    
+    -- Second pos (Physics pos)
+    if pos then
+        file:Writeln("pos [1] =")
+        file:Writeln("  x [1] = ")
+        file:Writeln(tostring(pos.x))
+        file:Writeln("  y [1] = ")
+        file:Writeln(tostring(pos.y))
+        file:Writeln("  z [1] = ")
+        file:Writeln(tostring(pos.z))
+    end
     
     -- Physics Momentum Fix
     AutoSave._WritePhysics(file, obj)
     
-    file:Writeln("seqNo [1] = " .. tostring(id))
+    WriteProp(file, "seqNo", id, true)
     file:Writeln("name = " .. (GetLabel(obj) or ""))
-    file:Writeln("isCritical [1] = " .. (IsCritical(obj) and "true" or "false"))
-    file:Writeln("isObjective [1] = " .. (IsObjectiveOn and IsObjectiveOn(obj) and "true" or "false"))
-    file:Writeln("isSelected [1] = " .. (IsSelected(obj) and "true" or "false"))
-    file:Writeln("isVisible [1] = 2")
-    file:Writeln("seen [1] = 80000006")
+    WriteProp(file, "isCritical", (IsCritical(obj) and "true" or "false"), true)
+    WriteProp(file, "isObjective", (IsObjectiveOn and IsObjectiveOn(obj) and "true" or "false"), true)
+    WriteProp(file, "isSelected", (IsSelected(obj) and "true" or "false"), true)
+    WriteProp(file, "isVisible", "2", true)
+    WriteProp(file, "seen", "80000006", true)
     
     AutoSave._WriteHealthAmmo(file, obj)
     
@@ -728,21 +758,21 @@ function AutoSave._WriteGameObject(file, obj)
     AutoSave._WriteAIState(file, obj)
     
     file:Writeln("undefptr = 00000000")
-    file:Writeln("isCargo [1] = false")
-    file:Writeln("independence [1] = " .. tostring(GetIndependence(obj)))
+    WriteProp(file, "isCargo", "false", true)
+    WriteProp(file, "independence", GetIndependence(obj), true)
     
     -- Pilot Information
     local pilot = GetPilotClass(obj)
-    file:Writeln("curPilot [1] = " .. (pilot and CleanString(pilot) or ""))
-    file:Writeln("perceivedTeam [1] = " .. tostring(GetPerceivedTeam(obj)))
+    WriteProp(file, "curPilot", (pilot and CleanString(pilot) or ""), true)
+    WriteProp(file, "perceivedTeam", GetPerceivedTeam(obj), true)
     
     for w = 0, 4 do
         local wClass = GetWeaponClass(obj, w)
-        file:Writeln("wpnID [1] = " .. (wClass and CleanString(wClass) or ""))
+        WriteProp(file, "wpnID", (wClass and CleanString(wClass) or ""), true)
     end
     
-    file:Writeln("enabled [1] = f")
-    file:Writeln("selected [1] = 0")
+    WriteProp(file, "enabled", "f", true)
+    WriteProp(file, "selected", "0", true)
 end
 
 function AutoSave._WriteTransform(file, obj)
@@ -750,19 +780,31 @@ function AutoSave._WriteTransform(file, obj)
     if transform then
         file:Writeln("transform [1] =")
         -- Orientation Matrix
-        file:Writeln("  right_x [1] = " .. tostring(transform.right.x))
-        file:Writeln("  right_y [1] = " .. tostring(transform.right.y))
-        file:Writeln("  right_z [1] = " .. tostring(transform.right.z))
-        file:Writeln("  up_x [1] = " .. tostring(transform.up.x))
-        file:Writeln("  up_y [1] = " .. tostring(transform.up.y))
-        file:Writeln("  up_z [1] = " .. tostring(transform.up.z))
-        file:Writeln("  front_x [1] = " .. tostring(transform.front.x))
-        file:Writeln("  front_y [1] = " .. tostring(transform.front.y))
-        file:Writeln("  front_z [1] = " .. tostring(transform.front.z))
+        file:Writeln("  right_x [1] = ")
+        file:Writeln(tostring(transform.right.x))
+        file:Writeln("  right_y [1] = ")
+        file:Writeln(tostring(transform.right.y))
+        file:Writeln("  right_z [1] = ")
+        file:Writeln(tostring(transform.right.z))
+        file:Writeln("  up_x [1] = ")
+        file:Writeln(tostring(transform.up.x))
+        file:Writeln("  up_y [1] = ")
+        file:Writeln(tostring(transform.up.y))
+        file:Writeln("  up_z [1] = ")
+        file:Writeln(tostring(transform.up.z))
+        file:Writeln("  front_x [1] = ")
+        file:Writeln(tostring(transform.front.x))
+        file:Writeln("  front_y [1] = ")
+        file:Writeln(tostring(transform.front.y))
+        file:Writeln("  front_z [1] = ")
+        file:Writeln(tostring(transform.front.z))
         -- Origin Position
-        file:Writeln("  posit_x [1] = " .. tostring(transform.posit.x))
-        file:Writeln("  posit_y [1] = " .. tostring(transform.posit.y))
-        file:Writeln("  posit_z [1] = " .. tostring(transform.posit.z))
+        file:Writeln("  posit_x [1] = ")
+        file:Writeln(tostring(transform.posit.x))
+        file:Writeln("  posit_y [1] = ")
+        file:Writeln(tostring(transform.posit.y))
+        file:Writeln("  posit_z [1] = ")
+        file:Writeln(tostring(transform.posit.z))
     end
 end
 
@@ -770,19 +812,49 @@ function AutoSave._WritePhysics(file, obj)
     local vel = GetVelocity(obj)
     local omega = GetOmega(obj)
     local v_mag = math.sqrt(vel.x^2 + vel.y^2 + vel.z^2)
+    local mass = 1750 -- Default mass
+    if exu and exu.GetMass then
+        local m = exu.GetMass(obj)
+        if m and m > 0 then mass = m end
+    end
 
-    file:Writeln(" v_mag [1] = " .. tostring(v_mag))
-    file:Writeln(" v_mag_inv [1] = " .. tostring(v_mag > 0 and 1/v_mag or 1e+030))
+    file:Writeln("euler =")
+    file:Writeln(" mass [1] = ")
+    file:Writeln(tostring(mass))
+    file:Writeln(" mass_inv [1] = ")
+    file:Writeln(FloatStr(mass > 0 and 1/mass or 1e+030))
+    file:Writeln(" v_mag [1] = ")
+    file:Writeln(FloatStr(v_mag))
+    file:Writeln(" v_mag_inv [1] = ")
+    file:Writeln(FloatStr(v_mag > 0 and 1/v_mag or 1e+030))
+    file:Writeln(" I [1] = ")
+    file:Writeln("1")
+    file:Writeln(" k_i [1] = ")
+    file:Writeln(tostring(mass))
     
     file:Writeln(" v [1] =")
-    file:Writeln("  x [1] = " .. tostring(vel.x))
-    file:Writeln("  y [1] = " .. tostring(vel.y))
-    file:Writeln("  z [1] = " .. tostring(vel.z))
+    file:Writeln("  x [1] = ")
+    file:Writeln(tostring(vel.x))
+    file:Writeln("  y [1] = ")
+    file:Writeln(tostring(vel.y))
+    file:Writeln("  z [1] = ")
+    file:Writeln(tostring(vel.z))
     
     file:Writeln(" omega [1] =")
-    file:Writeln("  x [1] = " .. tostring(omega.x))
-    file:Writeln("  y [1] = " .. tostring(omega.y))
-    file:Writeln("  z [1] = " .. tostring(omega.z))
+    file:Writeln("  x [1] = ")
+    file:Writeln(tostring(omega.x))
+    file:Writeln("  y [1] = ")
+    file:Writeln(tostring(omega.y))
+    file:Writeln("  z [1] = ")
+    file:Writeln(tostring(omega.z))
+    
+    file:Writeln(" Accel [1] =")
+    file:Writeln("  x [1] = ")
+    file:Writeln("0")
+    file:Writeln("  y [1] = ")
+    file:Writeln("0")
+    file:Writeln("  z [1] = ")
+    file:Writeln("0")
 end
 
 function AutoSave._WriteHealthAmmo(file, obj)
@@ -790,18 +862,18 @@ function AutoSave._WriteHealthAmmo(file, obj)
     local curHealth = GetCurHealth(obj)
     local maxHealth = GetMaxHealth(obj)
     if curHealth and maxHealth then
-        file:Writeln("curHealth [1] = " .. tostring(curHealth))
-        file:Writeln("maxHealth [1] = " .. tostring(maxHealth))
-        file:Writeln("healthRatio [1] = " .. tostring(maxHealth > 0 and curHealth / maxHealth or 0))
+        WriteProp(file, "healthRatio", (maxHealth > 0 and curHealth / maxHealth or 0), true)
+        WriteProp(file, "curHealth", curHealth, true)
+        WriteProp(file, "maxHealth", maxHealth, true)
     end
     
     -- Ammo
     local curAmmo = GetCurAmmo(obj)
     local maxAmmo = GetMaxAmmo(obj)
     if curAmmo and maxAmmo then
-        file:Writeln("curAmmo [1] = " .. tostring(curAmmo))
-        file:Writeln("maxAmmo [1] = " .. tostring(maxAmmo))
-        file:Writeln("ammoRatio [1] = " .. tostring(maxAmmo > 0 and curAmmo / maxAmmo or 0))
+        WriteProp(file, "ammoRatio", (maxAmmo > 0 and curAmmo / maxAmmo or 0), true)
+        WriteProp(file, "curAmmo", curAmmo, true)
+        WriteProp(file, "maxAmmo", maxAmmo, true)
     end
 end
 
@@ -809,29 +881,29 @@ function AutoSave._WriteAIState(file, obj)
     local cmd = GetCurrentCommand(obj)
     for i = 1, 2 do
         if i == 1 and cmd then
-            file:Writeln("priority [1] = 0")
+            WriteProp(file, "priority", "0", true)
             file:Writeln("what = " .. string.format("%08x", cmd))
-            file:Writeln("who [1] = 0")
+            WriteProp(file, "who", "0", true)
             file:Writeln("where = 00000000")
-            file:Writeln("param [1] = ")
+            WriteProp(file, "param", "", true)
         else
-            file:Writeln("priority [1] = 0")
+            WriteProp(file, "priority", "0", true)
             file:Writeln("what = 00000000")
-            file:Writeln("who [1] = 0")
+            WriteProp(file, "who", "0", true)
             file:Writeln("where = 00000000")
-            file:Writeln("param [1] = ")
+            WriteProp(file, "param", "", true)
         end
     end
 end
 
 function AutoSave._WriteAiMission(file)
     file:Writeln("[AiMission]")
-    file:Writeln("size [1] = 0")
+    WriteProp(file, "size", "0", true)
 end
 
 function AutoSave._WriteAOIs(file)
     file:Writeln("[AOIs]")
-    file:Writeln("size [1] = 0")
+    WriteProp(file, "size", "0", true)
 end
 
 function AutoSave._WriteAiPaths(file)
@@ -840,27 +912,29 @@ function AutoSave._WriteAiPaths(file)
     
     if bznData and bznData.AiPaths then
         file:Writeln("[AiPaths]")
-        file:Writeln("count [1] = " .. tostring(#bznData.AiPaths))
+        WriteProp(file, "count", #bznData.AiPaths, true)
         
         for _, path in ipairs(bznData.AiPaths) do
             file:Writeln("[AiPath]")
             file:Writeln("old_ptr = 0")
             
             if path.label then
-                file:Writeln("size [1] = " .. tostring(string.len(path.label) + 1))
+                WriteProp(file, "size", string.len(path.label) + 1, true)
                 file:Writeln("label = " .. path.label)
             else
-                file:Writeln("size [1] = 0")
+                WriteProp(file, "size", "0", true)
             end
             
             local pointCount = path.points and #path.points or 0
-            file:Writeln("pointCount [1] = " .. tostring(pointCount))
+            WriteProp(file, "pointCount", pointCount, true)
             
             if pointCount > 0 then
                 file:Writeln("points [" .. pointCount .. "] =")
                 for _, pt in ipairs(path.points) do
-                    file:Writeln("  x [1] = " .. tostring(pt.x))
-                    file:Writeln("  z [1] = " .. tostring(pt.z))
+                    file:Writeln("  x [1] = ")
+                    file:Writeln(tostring(pt.x))
+                    file:Writeln("  z [1] = ")
+                    file:Writeln(tostring(pt.z))
                 end
             end
             
@@ -872,51 +946,51 @@ function AutoSave._WriteAiPaths(file)
         end
     else
         file:Writeln("[AiPaths]")
-        file:Writeln("count [1] = 0")
+        WriteProp(file, "count", "0", true)
     end
 end
 
 function AutoSave._WriteAiTasks(file)
     file:Writeln("[AiTasks]")
-    file:Writeln("count [1] = 0")
+    WriteProp(file, "count", "0", true)
 end
 
 function AutoSave._WriteMissionFooter(file)
     -- Audio Message Queue
-    file:Writeln("size [1] = 0")
-    file:Writeln("seqNo [1] = 0")
+    WriteProp(file, "size", "0", true)
+    WriteProp(file, "seqNo", "0", true)
     file:Writeln("msg = ")
     file:Writeln("lastMsg = ")
     
     -- AIP
-    file:Writeln("aip_team_count [1] = 0")
+    WriteProp(file, "aip_team_count", "0", true)
     
     -- Difficulty
     local diff = 1
     if exu and exu.GetDifficulty then
         diff = exu.GetDifficulty()
     end
-    file:Writeln("difficultySetting [1] = " .. tostring(diff))
+    WriteProp(file, "difficultySetting", diff, true)
     
     -- Camera & Quake
-    file:Writeln("cameraReady [1] = false")
-    file:Writeln("cameraCallCount [1] = 0")
-    file:Writeln("quakeMag [1] = 0")
-    file:Writeln("frac [1] = 0")
+    WriteProp(file, "cameraReady", "false", true)
+    WriteProp(file, "cameraCallCount", "0", true)
+    WriteProp(file, "quakeMag", "0", true)
+    WriteProp(file, "frac", "0", true)
     
     -- Cockpit Timer
     local timer = 0
     if GetCockpitTimer then timer = GetCockpitTimer() end
-    file:Writeln("timer [1] = " .. tostring(timer))
-    file:Writeln("warn [1] = -2147483648")
-    file:Writeln("alert [1] = -2147483648")
-    file:Writeln("countdown [1] = true")
-    file:Writeln("active [1] = " .. (timer > 0 and "true" or "false"))
-    file:Writeln("show [1] = " .. (timer > 0 and "true" or "false"))
+    WriteProp(file, "timer", timer, true)
+    WriteProp(file, "warn", "-2147483648", true)
+    WriteProp(file, "alert", "-2147483648", true)
+    WriteProp(file, "countdown", "true", true)
+    WriteProp(file, "active", (timer > 0 and "true" or "false"), true)
+    WriteProp(file, "show", (timer > 0 and "true" or "false"), true)
     
     -- Objectives
-    file:Writeln("objectiveCount [1] = 0")
-    file:Writeln("objectiveLast [1] = 0")
+    WriteProp(file, "objectiveCount", "0", true)
+    WriteProp(file, "objectiveLast", "0", true)
     
     -- Groups
     file:Writeln("groupNum = 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
