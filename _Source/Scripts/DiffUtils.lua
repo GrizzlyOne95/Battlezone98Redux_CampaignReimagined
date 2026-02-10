@@ -8,14 +8,32 @@ local DiffUtils = {}
 -- 0: Very Easy, 1: Easy, 2: Medium, 3: Hard, 4: Very Hard
 function DiffUtils.Get()
     local d = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
-    return {
-        index = d,
+    local m = {
+        index = (d >= 0 and d <= 4) and d or 2,
         res = ({1.5, 1.25, 1.0, 0.75, 0.5})[d+1] or 1.0,
         enemy = ({0.5, 0.75, 1.0, 1.5, 2.0})[d+1] or 1.0,
         timer = ({1.5, 1.25, 1.0, 0.8, 0.7})[d+1] or 1.0,
         zeal = ({0.1, 0.2, 0.4, 0.8, 1.0})[d+1] or 0.4,
-        enemyTurbo = (d >= 4)
+        enemyTurbo = (d >= 4),
+
+        -- aiCore Specifics
+        thumperChance = ({0, 5, 10, 20, 40})[d+1] or 10,
+        mortarChance = ({0, 10, 20, 35, 50})[d+1] or 20,
+        fieldChance = ({0, 5, 10, 15, 30})[d+1] or 10,
+        doubleWeaponChance = ({0, 10, 20, 40, 80})[d+1] or 20,
+        howitzerChance = ({10, 30, 50, 75, 100})[d+1] or 50,
+
+        upgradeInterval = ({600, 400, 240, 180, 120})[d+1] or 240,
+        wreckerInterval = ({1200, 900, 600, 450, 300})[d+1] or 600,
+        pilotTopoff = ({2, 3, 4, 6, 8})[d+1] or 4,
+        resourceBoost = (d >= 2), -- Medium and above get boosts
+        
+        -- New: Tactical Features
+        enableWreckers = (d >= 3), -- Hard and above
+        paratrooperChance = ({0, 0, 10, 25, 40})[d+1] or 0,
+        paratrooperInterval = ({0, 0, 600, 400, 300})[d+1] or 600
     }
+    return m
 end
 
 -- Scales a value by the relevant multiplier
@@ -31,9 +49,23 @@ function DiffUtils.SetupTeams(playerFaction, enemyFaction, enemyTeamNum)
     local playerTeam = aiCore.AddTeam(1, playerFaction)
     playerTeam:SetConfig("pilotZeal", 1.0)
     
-    -- Enemy Team (Adaptive Zeal)
+    -- Enemy Team (Adaptive zeal & settings)
     local enemyTeam = aiCore.AddTeam(enemyTeamNum or 2, enemyFaction)
     enemyTeam:SetConfig("pilotZeal", m.zeal)
+    enemyTeam:SetConfig("thumperChance", m.thumperChance)
+    enemyTeam:SetConfig("mortarChance", m.mortarChance)
+    enemyTeam:SetConfig("fieldChance", m.fieldChance)
+    enemyTeam:SetConfig("doubleWeaponChance", m.doubleWeaponChance)
+    enemyTeam:SetConfig("howitzerChance", m.howitzerChance)
+    enemyTeam:SetConfig("upgradeInterval", m.upgradeInterval)
+    enemyTeam:SetConfig("wreckerInterval", m.wreckerInterval)
+    enemyTeam:SetConfig("pilotTopoff", m.pilotTopoff)
+    enemyTeam:SetConfig("resourceBoost", m.resourceBoost)
+    
+    -- New: Difficulty Features
+    enemyTeam:SetConfig("enableWreckers", m.enableWreckers)
+    enemyTeam:SetConfig("paratrooperChance", m.paratrooperChance)
+    enemyTeam:SetConfig("paratrooperInterval", m.paratrooperInterval)
     
     -- Global Environment
     if exu then
