@@ -13,7 +13,8 @@ PersistentConfig.Settings = {
     HeadlightBeamMode = 1, -- 1 = Focused, 2 = Wide
     HeadlightVisible = true,
     SubtitlesEnabled = true,
-    OtherHeadlightsDisabled = false
+    OtherHeadlightsDisabled = false,
+    AutoRepairWingmen = false  -- Auto-repair toggle for player wingmen
 }
 
 local configPath = bzfile.GetWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
@@ -44,6 +45,7 @@ local InputState = {
     last_u_state = false,
     last_b_state = false,
     last_help_state = false,
+    last_x_state = false,  -- Auto-repair toggle
     SubtitlesPaused = false
 }
 
@@ -89,6 +91,7 @@ function PersistentConfig.LoadConfig()
                 elseif key == "HeadlightVisible" then PersistentConfig.Settings.HeadlightVisible = (val == "true")
                 elseif key == "SubtitlesEnabled" then PersistentConfig.Settings.SubtitlesEnabled = (val == "true")
                 elseif key == "OtherHeadlightsDisabled" then PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
+                elseif key == "AutoRepairWingmen" then PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
                 end
             end
             line = f:Readln()
@@ -140,6 +143,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("HeadlightVisible=" .. tostring(PersistentConfig.Settings.HeadlightVisible))
         f:Writeln("SubtitlesEnabled=" .. tostring(PersistentConfig.Settings.SubtitlesEnabled))
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
+        f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         
         f:Close()
         print("PersistentConfig: File closed successfully")
@@ -257,12 +261,27 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_b_state = b_key
 
+    -- Toggle Auto-Repair for Wingmen (X for "Auto-fiX")
+    local x_key = exu.GetGameKey("X")
+    if x_key and not InputState.last_x_state then
+        PersistentConfig.Settings.AutoRepairWingmen = not PersistentConfig.Settings.AutoRepairWingmen
+        PersistentConfig.SaveConfig()
+        
+        -- Apply to player team (team 1) immediately via aiCore
+        if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
+            aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
+        end
+        
+        ShowFeedback("Auto-Repair: " .. (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    end
+    InputState.last_x_state = x_key
+
     -- Help Popup (/ or ? key) - using stock BZ API
     local help_pressed = (LastGameKey == "/" or LastGameKey == "?")
     if help_pressed and not InputState.last_help_state then
         -- Condensed Help Text
         local helpMsg = "KEYS: F:Light | C:Color | U:AI-Lights\n" ..
-                        "B:Beam | /:Help | ESC:Hide-Subs"
+                        "B:Beam | X:Auto-Repair | /:Help | ESC:Hide-Subs"
         
         -- Show for longer duration (e.g. 5 seconds)
         if subtitles and subtitles.submit then

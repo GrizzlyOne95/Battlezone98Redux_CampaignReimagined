@@ -41,7 +41,7 @@ local function SetupAI()
         -- Place Barracks
         local recPos = GetPosition(GetRecyclerHandle(2))
         local bPos = GetPositionNear(recPos, 80, 120)
-        cca:AddBuilding(aiCore.Units[cca.faction].barracks, BuildDirectionalMatrix(bPos, Normalize(bPos - recPos)), 8)
+        cca:AddBuilding(aiCore.Units[cca.faction].barracks, bPos, 8)
     end
 end
 
@@ -176,6 +176,8 @@ function ApplyQOL()
 end
 
 function Start()
+	M.TPS = 20  -- Default TPS value
+	
 	-- One-time initialization logic
 	relicstartpos = math.random(0, 3)
 	
@@ -194,12 +196,14 @@ function Start()
 
         ApplyQOL()
     end
+    
+    -- Initialize AI for enemy team
+    SetupAI()
 
     -- Dynamic Starting Resources
     SetScrap(1, DiffUtils.ScaleRes(40)) -- Increased base scrap
     SetPilot(1, DiffUtils.ScaleRes(10))
     
-    SetupAI() -- Initialize AI
     aiCore.Bootstrap() -- Capture pre-placed units/buildings
     
     subtit.Initialize()
