@@ -40,31 +40,32 @@ function LavaEffects.Update()
     for craft in AllCraft() do
         if IsValid(craft) and IsAlive(craft) then
             -- Skip buildings unless configured
+            local shouldProcess = true
             if not LavaEffects.Config.affectBuildings and IsBuilding(craft) then
-                goto continue
+                shouldProcess = false
             end
             
-            -- Get craft position
-            local pos = GetPosition(craft)
-            if not pos then goto continue end
-            
-            -- Query material at position
-            local material = MatTracker.GetMaterialAt(pos.x, pos.z)
-            if not material then goto continue end
-            
-            -- Check if on lava
-            if MatTracker.IsLavaMaterial(material) then
-                LavaEffects._ApplyLavaEffects(craft)
-                newCraftOnLava[craft] = true
-            else
-                -- Restore normal speed if leaving lava
-                if LavaEffects.craftOnLava[craft] then
-                    LavaEffects._RemoveLavaEffects(craft)
+            if shouldProcess then
+                -- Get craft position
+                local pos = GetPosition(craft)
+                if pos then
+                    -- Query material at position
+                    local material = MatTracker.GetMaterialAt(pos.x, pos.z)
+                    if material then
+                        -- Check if on lava
+                        if MatTracker.IsLavaMaterial(material) then
+                            LavaEffects._ApplyLavaEffects(craft)
+                            newCraftOnLava[craft] = true
+                        else
+                            -- Restore normal speed if leaving lava
+                            if LavaEffects.craftOnLava[craft] then
+                                LavaEffects._RemoveLavaEffects(craft)
+                            end
+                        end
+                    end
                 end
             end
         end
-        
-        ::continue::
     end
     
     -- Update tracking
