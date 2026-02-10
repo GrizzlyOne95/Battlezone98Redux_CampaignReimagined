@@ -1,7 +1,7 @@
-# Ignore everything in root (working directory)
+# Ignore everything in root by default
 /*
 
-# Allow specific root files
+# Unignore specific root files
 !/.gitignore
 !/README.md
 !/LICENSE
