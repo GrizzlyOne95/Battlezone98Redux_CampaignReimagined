@@ -9,6 +9,46 @@ local currentAudioHandle = nil
 local DEFAULT_DURATION = 8.0 
 local durations = {}
 
+--- Helper to read a 4-byte little-endian integer from a string
+local function readInt32LE(s, pos)
+    local b1, b2, b3, b4 = string.byte(s, pos, pos + 3)
+    if not b1 or not b2 or not b3 or not b4 then return 0 end
+    return b1 + b2 * 256 + b3 * 65536 + b4 * 16777216
+end
+
+--- Attempt to extract duration from a WAV header
+--- @param wavFilename string
+local function GetWavDuration(wavFilename)
+    local content = UseItem(wavFilename)
+    if not content or #content < 44 then return nil end
+    
+    -- RIFF Check
+    if content:sub(1,4) ~= "RIFF" or content:sub(9,12) ~= "WAVE" then return nil end
+    
+    local pos = 13
+    local byteRate = 0
+    -- Scan chunks (fmt, data, etc.)
+    while pos + 8 < #content do
+        local chunkID = content:sub(pos, pos + 3)
+        local chunkSize = readInt32LE(content, pos + 4)
+        
+        if chunkID == "fmt " then
+            -- ByteRate is at offset 8 in the fmt chunk (pos + 8 + 8)
+            byteRate = readInt32LE(content, pos + 16)
+        elseif chunkID == "data" then
+            if byteRate > 0 then
+                return chunkSize / byteRate
+            end
+        end
+        
+        -- Move to next chunk (8 bytes header + data size)
+        pos = pos + 8 + chunkSize
+        -- Safety breakout for malformed headers
+        if chunkSize < 0 or pos > #content then break end
+    end
+    return nil
+end
+
 --- Load durations from a CSV file (Filename,Duration)
 --- @param csvFilename string
 function Subtitles.LoadDurations(csvFilename)
@@ -33,9 +73,10 @@ function Subtitles.Initialize(durationCsv)
     -- Ensure clear queue on start
     subtitles.clear_queue()
     subtitles.set_opacity(0.5) -- Set to 50% opacity for better readability with borders
-    if durationCsv then
-        Subtitles.LoadDurations(durationCsv)
-    end
+    
+    -- Load default durations if nothing specified
+    durationCsv = durationCsv or "_Source/Config/durations.csv"
+    Subtitles.LoadDurations(durationCsv)
 end
 
 --- Wrapper for showing a transient message without audio
@@ -51,7 +92,11 @@ function Subtitles.Display(text, r, g, b, duration)
     r = r or 1.0
     g = g or 1.0
     b = b or 1.0
-    duration = duration or 3.0
+    
+    -- Heuristic for display duration: ~15 chars per second, min 3s
+    if not duration then
+        duration = math.max(3.0, #text / 18.0)
+    end
     
     local wrapped = Subtitles.WrapText(text, 50)
     subtitles.submit(wrapped, duration, r, g, b)
@@ -107,12 +152,23 @@ function Subtitles.Play(wavFilename, r, g, b)
 
     if content then
         -- Determine duration
-        local dur = durations[string.lower(wavFilename)] or DEFAULT_DURATION
+        -- 1. Check CSV database
+        local dur = durations[string.lower(wavFilename)]
+        
+        -- 2. Try to extract from WAV header
+        if not dur then
+            dur = GetWavDuration(wavFilename)
+        end
+        
+        -- 3. Heuristic: Calculate based on character count as final fallback
+        if not dur then
+            dur = math.max(DEFAULT_DURATION, #content / 18.0)
+        end
         
         -- Submit with looked up duration
         local final_text = Subtitles.WrapText(content, 50)
         
-        -- Split into pages if too long (max 4 lines per page)
+        -- Split into pages if too long (max 2 lines per page for better readability)
         local lines = {}
         for line in string.gmatch(final_text, "[^\r\n]+") do
             table.insert(lines, line)
@@ -132,12 +188,13 @@ function Subtitles.Play(wavFilename, r, g, b)
             table.insert(chunks, table.concat(current_chunk, "\n"))
         end
         
-        -- Submit chunks with distributed duration
-        local total_chunks = #chunks
-        if total_chunks > 0 then
-            local chunk_dur = dur / total_chunks
+        -- Submit chunks with weighted duration (longer chunks get more time)
+        local total_chars = #content
+        if total_chars > 0 then
             for _, chunk in ipairs(chunks) do
-                subtitles.submit(chunk, chunk_dur, r, g, b)
+                local chunk_weight = #chunk / total_chars
+                local chunk_dur = dur * chunk_weight
+                subtitles.submit(chunk, math.max(1.5, chunk_dur), r, g, b)
             end
         end
     else

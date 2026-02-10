@@ -7,14 +7,15 @@ local PersistentConfig = {}
 
 -- Default Settings
 PersistentConfig.Settings = {
-    HeadlightDiffuse = {R = 5.0, G = 5.0, B = 5.0}, -- Increased default brightness
+    HeadlightDiffuse = {R = 5.0, G = 5.0, B = 5.0}, -- White
     HeadlightSpecular = {R = 5.0, G = 5.0, B = 5.0},
-    HeadlightRange = {InnerAngle = 0.1, OuterAngle = 0.2, Falloff = 1.0}, -- Default to Focused
-    HeadlightBeamMode = 1, -- 1 = Focused, 2 = Wide
+    HeadlightRange = {InnerAngle = 0.6, OuterAngle = 0.9, Falloff = 1.0}, -- Default to Wide
+    HeadlightBeamMode = 2, -- 1 = Focused, 2 = Wide
     HeadlightVisible = true,
     SubtitlesEnabled = true,
-    OtherHeadlightsDisabled = false,
-    AutoRepairWingmen = false  -- Auto-repair toggle for player wingmen
+    OtherHeadlightsDisabled = true, -- AI Lights Off by default
+    AutoRepairWingmen = true,  -- Auto-repair ON by default
+    RainbowMode = false -- Special color effect
 }
 
 local configPath = bzfile.GetWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
@@ -40,10 +41,10 @@ end
 
 -- Internal State
 local InputState = {
-    last_f_state = false,
-    last_c_state = false,
-    last_u_state = false,
-    last_b_state = false,
+    last_v_state = false, -- Headlight (V)
+    last_z_state = false, -- Color (Z)
+    last_j_state = false, -- AI Lights (J)
+    last_b_state = false, -- Beam (B)
     last_help_state = false,
     last_x_state = false,  -- Auto-repair toggle
     SubtitlesPaused = false
@@ -64,6 +65,25 @@ local function ParseLine(line)
         return key, value
     end
     return nil
+end
+
+-- Helper to convert Hue to RGB (Simple Rainbow)
+local function HueToRGB(h)
+    local r, g, b
+    local i = math.floor(h * 6)
+    local f = h * 6 - i
+    local q = 1 - f
+    local t = f
+
+    i = i % 6
+    if i == 0 then r, g, b = 1, t, 0
+    elseif i == 1 then r, g, b = q, 1, 0
+    elseif i == 2 then r, g, b = 0, 1, t
+    elseif i == 3 then r, g, b = 0, q, 1
+    elseif i == 4 then r, g, b = t, 0, 1
+    elseif i == 5 then r, g, b = 1, 0, q
+    end
+    return r * 5.0, g * 5.0, b * 5.0 -- Scale to bright BZ intensities
 end
 
 function PersistentConfig.LoadConfig()
@@ -92,6 +112,7 @@ function PersistentConfig.LoadConfig()
                 elseif key == "SubtitlesEnabled" then PersistentConfig.Settings.SubtitlesEnabled = (val == "true")
                 elseif key == "OtherHeadlightsDisabled" then PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
                 elseif key == "AutoRepairWingmen" then PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
+                elseif key == "RainbowMode" then PersistentConfig.Settings.RainbowMode = (val == "true")
                 end
             end
             line = f:Readln()
@@ -144,6 +165,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("SubtitlesEnabled=" .. tostring(PersistentConfig.Settings.SubtitlesEnabled))
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
+        f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
         
         f:Close()
         print("PersistentConfig: File closed successfully")
@@ -187,54 +209,85 @@ function PersistentConfig.ApplySettings()
     end
 end
 
+-- Show help overlay
+function PersistentConfig.ShowHelp()
+    -- Condensed Help Text
+    local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
+                    "B:Beam | X:Auto-Repair | /:Help | ESC:Hide-Subs"
+    
+    -- Show with high precedence (clear queue, force opacity)
+    if subtitles and subtitles.submit then
+        subtitles.clear_queue()
+        subtitles.set_opacity(0.5)
+        subtitles.submit(helpMsg, 8.0, 1.0, 1.0, 1.0) -- Show for 8 seconds at start
+    end
+end
+
 -- Reusable update logic for all missions
 function PersistentConfig.UpdateInputs()
     if not exu or not exu.GetGameKey then return end
 
-    -- Toggle Player Headlight (F)
-    local f_key = exu.GetGameKey("F")
-    if f_key and not InputState.last_f_state then
+    -- Toggle Player Headlight (V)
+    local v_key = exu.GetGameKey("V")
+    if v_key and not InputState.last_v_state then
         PersistentConfig.Settings.HeadlightVisible = not PersistentConfig.Settings.HeadlightVisible
         PersistentConfig.SaveConfig()
         PersistentConfig.ApplySettings()
         ShowFeedback("Player Light: " .. (PersistentConfig.Settings.HeadlightVisible and "ON" or "OFF"))
     end
-    InputState.last_f_state = f_key
+    InputState.last_v_state = v_key
 
-    -- Cycle Headlight Color (C)
-    local c_key = exu.GetGameKey("C")
-    if c_key and not InputState.last_c_state then
+    -- Cycle Headlight Color (Z) - Moved from Alt+C to Z
+    local z_key = exu.GetGameKey("Z")
+    if z_key and not InputState.last_z_state then
         local colors = {
             {5.0, 5.0, 5.0}, -- Bright White
             {5.0, 1.0, 1.0}, -- Bright Red
             {1.0, 5.0, 1.0}, -- Bright Green
             {1.0, 1.0, 5.0}, -- Bright Blue
-            {5.0, 5.0, 1.0}  -- Bright Yellow
+            {5.0, 5.0, 1.0}, -- Bright Yellow
+            {1.0, 5.0, 5.0}, -- Cyan
+            {5.0, 1.0, 5.0}, -- Magenta
+            {5.0, 2.5, 1.0}, -- Orange
+            {2.5, 1.0, 5.0}, -- Purple
+            {1.0, 5.0, 2.5}, -- Teal
+            {-1, -1, -1}     -- [SPECIAL] Rainbow Mode
         }
         
         local currentIdx = 1
-        for i, c in ipairs(colors) do
-            if math.abs(PersistentConfig.Settings.HeadlightDiffuse.R - c[1]) < 0.1 and
-               math.abs(PersistentConfig.Settings.HeadlightDiffuse.G - c[2]) < 0.1 and
-               math.abs(PersistentConfig.Settings.HeadlightDiffuse.B - c[3]) < 0.1 then
-                currentIdx = i
-                break
+        if PersistentConfig.Settings.RainbowMode then
+            currentIdx = #colors
+        else
+            for i, c in ipairs(colors) do
+                if math.abs(PersistentConfig.Settings.HeadlightDiffuse.R - c[1]) < 0.1 and
+                   math.abs(PersistentConfig.Settings.HeadlightDiffuse.G - c[2]) < 0.1 and
+                   math.abs(PersistentConfig.Settings.HeadlightDiffuse.B - c[3]) < 0.1 then
+                    currentIdx = i
+                    break
+                end
             end
         end
         
         local nextIdx = (currentIdx % #colors) + 1
-        PersistentConfig.Settings.HeadlightDiffuse.R = colors[nextIdx][1]
-        PersistentConfig.Settings.HeadlightDiffuse.G = colors[nextIdx][2]
-        PersistentConfig.Settings.HeadlightDiffuse.B = colors[nextIdx][3]
+        if nextIdx == #colors then
+            PersistentConfig.Settings.RainbowMode = true
+            ShowFeedback("Rainbow Mode: ACTIVATE", 1.0, 0.5, 1.0)
+        else
+            PersistentConfig.Settings.RainbowMode = false
+            PersistentConfig.Settings.HeadlightDiffuse.R = colors[nextIdx][1]
+            PersistentConfig.Settings.HeadlightDiffuse.G = colors[nextIdx][2]
+            PersistentConfig.Settings.HeadlightDiffuse.B = colors[nextIdx][3]
+            ShowFeedback("Headlight Color Cycled", PersistentConfig.Settings.HeadlightDiffuse.R, PersistentConfig.Settings.HeadlightDiffuse.G, PersistentConfig.Settings.HeadlightDiffuse.B)
+        end
+        
         PersistentConfig.SaveConfig()
         PersistentConfig.ApplySettings()
-        ShowFeedback("Headlight Color Cycled", PersistentConfig.Settings.HeadlightDiffuse.R, PersistentConfig.Settings.HeadlightDiffuse.G, PersistentConfig.Settings.HeadlightDiffuse.B)
     end
-    InputState.last_c_state = c_key
+    InputState.last_z_state = z_key
 
-    -- Toggle AI/NPC Headlights (U)
-    local u_key = exu.GetGameKey("U")
-    if u_key and not InputState.last_u_state then
+    -- Toggle AI/NPC Headlights (J) - Moved from Alt+U to J
+    local j_key = exu.GetGameKey("J")
+    if j_key and not InputState.last_j_state then
         PersistentConfig.Settings.OtherHeadlightsDisabled = not PersistentConfig.Settings.OtherHeadlightsDisabled
         PersistentConfig.SaveConfig()
         ShowFeedback("AI Lights: " .. (PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON"))
@@ -248,9 +301,9 @@ function PersistentConfig.UpdateInputs()
             end
         end
     end
-    InputState.last_u_state = u_key
+    InputState.last_j_state = j_key
 
-    -- Toggle Headlight Beam Mode (B for "Beams")
+    -- Toggle Headlight Beam Mode (B) - Removed Alt requirement
     local b_key = exu.GetGameKey("B")
     if b_key and not InputState.last_b_state then
         PersistentConfig.Settings.HeadlightBeamMode = (PersistentConfig.Settings.HeadlightBeamMode % 2) + 1
@@ -279,16 +332,7 @@ function PersistentConfig.UpdateInputs()
     -- Help Popup (/ or ? key) - using stock BZ API
     local help_pressed = (LastGameKey == "/" or LastGameKey == "?")
     if help_pressed and not InputState.last_help_state then
-        -- Condensed Help Text
-        local helpMsg = "KEYS: F:Light | C:Color | U:AI-Lights\n" ..
-                        "B:Beam | X:Auto-Repair | /:Help | ESC:Hide-Subs"
-        
-        -- Show for longer duration (e.g. 5 seconds)
-        if subtitles and subtitles.submit then
-            subtitles.clear_queue()
-            subtitles.set_opacity(0.5)
-            subtitles.submit(helpMsg, 5.0, 1.0, 1.0, 1.0)
-        end
+        PersistentConfig.ShowHelp()
     end
     InputState.last_help_state = help_pressed
 
@@ -307,6 +351,19 @@ function PersistentConfig.UpdateInputs()
                 subtitles.set_opacity(0.5)
             end
             InputState.SubtitlesPaused = false
+        end
+    end
+
+    -- Update Rainbow Color if active
+    if PersistentConfig.Settings.RainbowMode and PersistentConfig.Settings.HeadlightVisible then
+        local hue = (GetTime() * 0.2) % 1.0 -- Cycle every 5 seconds
+        local r, g, b = HueToRGB(hue)
+        local h = GetPlayerHandle()
+        if IsValid(h) and exu.SetHeadlightDiffuse then
+            exu.SetHeadlightDiffuse(h, r, g, b)
+            if exu.SetHeadlightSpecular then
+                exu.SetHeadlightSpecular(h, r, g, b)
+            end
         end
     end
 end
@@ -328,6 +385,9 @@ function PersistentConfig.Initialize()
     -- Ensure config file is created if it doesn't exist
     PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings()
+
+    -- Show help reminder on every mission start
+    PersistentConfig.ShowHelp()
     
     -- Standardized Steam Greeting
     if exu and exu.GetSteam64 then

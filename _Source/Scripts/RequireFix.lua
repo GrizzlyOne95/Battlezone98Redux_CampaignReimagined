@@ -3,14 +3,17 @@
 
 -- Module by DivisionByZero, GrizzlyOne95, and VTrider
 
--- Version 1.0
+-- Version 1.1
 
 local RequireFix = {}
 do
 
-    local version = "1.0"
+    local version = "1.1"
+    
+    -- Cache original paths to prevent bloat on multiple initializations
+    local original_path = package.path
+    local original_cpath = package.cpath
 
-    -- Function to print field names of an object
     local function splitAtSemicolon(str)
         local results = {}
         for substr in string.gmatch(str, '([^;]+)') do
@@ -20,46 +23,77 @@ do
     end
 
     local function getGameDirectory()
-        local path = splitAtSemicolon(package.cpath)[2]
-        return string.match(path, "(.*)\\%?")
+        -- Resilient scan: check all paths in cpath for common markers
+        local paths = splitAtSemicolon(package.cpath)
+        for _, path in ipairs(paths) do
+            -- Look for the path containing the game engine DLLs or the standard 'addon' folder
+            local match = string.match(path, "(.*)\\addon")
+            if not match then
+                -- Match against the folder containing the executable if possible
+                match = string.match(path, "(.*)\\?")
+            end
+            
+            if match then
+                -- Simple sanity check: does it look like a BZ98R/BZCC folder?
+                -- (We don't do deep file checks here to keep it fast, but we prioritize the addon-related path)
+                if string.find(match:lower(), "battlezone") or string.find(path:lower(), "addon") then
+                    return match
+                end
+            end
+        end
+        
+        -- Fallback to original logic if scan fails
+        local path = paths[2] or paths[1]
+        return string.match(path, "(.*)\\%?") or "."
     end
-
-    -- directory = getGameDirectory()
-    -- print("bz directory is: " .. directory)
 
     local function getSteamWorkshopDirectory()
         local gameDirectory = getGameDirectory()
-        -- Try to find Steam library root to locate workshop content
-        local commonIndex = string.find(gameDirectory, "steamapps\\common\\Battlezone 98 Redux")
-        if commonIndex then
-            local steamRoot = gameDirectory:sub(1, commonIndex - 1)
-            return steamRoot .. "steamapps\\workshop\\content\\301650"
+        -- Improved detection to handle GOG or variations in folder naming
+        local steamRootIndex = string.find(gameDirectory:lower(), "steamapps\\common")
+        if steamRootIndex then
+            local steamRoot = gameDirectory:sub(1, steamRootIndex - 1)
+            
+            -- Hardcoded for BZ98R (301650)
+            local appID = "301650"
+            
+            return steamRoot .. "steamapps\\workshop\\content\\" .. appID
         end
         return nil
     end
 
-    -- This sets the path and cpath to the user defined value, it can take a 
-    -- single workshop ID or a table of IDs and add them sequentially to the 
-    -- correct path -VTrider
     local function Initialize(workshopID)
         local gameDirectory = getGameDirectory()
         local workshopDir = getSteamWorkshopDirectory()
-        local defaultPath = package.path
-        local defaultCPath = package.cpath
-        local LuaPath = defaultPath
-        local DLLPath = defaultCPath
+        
+        -- Always start from original paths to prevent duplicates/bloat
+        local LuaPath = original_path
+        local DLLPath = original_cpath
 
         local function addPaths(id)
-            -- 1. Local Addon Path
-            local localPath = gameDirectory .. "\\addon\\" .. id
-            LuaPath = LuaPath .. ";" .. localPath .. "\\?.lua"
-            DLLPath = DLLPath .. ";" .. localPath .. "\\?.dll"
+            local roots = {
+                gameDirectory .. "\\addon\\" .. id,
+                gameDirectory .. "\\mods\\" .. id,
+                gameDirectory .. "\\packaged_mods\\" .. id
+            }
             
-            -- 2. Workshop Path
+            -- 3rd Party Workshop Path
             if workshopDir then
-                local wsPath = workshopDir .. "\\" .. id
-                LuaPath = LuaPath .. ";" .. wsPath .. "\\?.lua"
-                DLLPath = DLLPath .. ";" .. wsPath .. "\\?.dll"
+                table.insert(roots, workshopDir .. "\\" .. id)
+            end
+
+            for _, root in ipairs(roots) do
+                -- Root level
+                LuaPath = LuaPath .. ";" .. root .. "\\?.lua"
+                DLLPath = DLLPath .. ";" .. root .. "\\?.dll"
+                
+                -- Scripts subfolder
+                LuaPath = LuaPath .. ";" .. root .. "\\Scripts\\?.lua"
+                DLLPath = DLLPath .. ";" .. root .. "\\Scripts\\?.dll"
+                
+                -- Lua subfolder
+                LuaPath = LuaPath .. ";" .. root .. "\\Lua\\?.lua"
+                DLLPath = DLLPath .. ";" .. root .. "\\Lua\\?.dll"
             end
         end
 
@@ -75,9 +109,6 @@ do
         package.cpath = DLLPath
     end
 
-    -- Example usage
-    -- local steamWorkshopDirectory = getSteamWorkshopDirectory()
-    -- print("Steam Workshop Directory:" .. steamWorkshopDirectory)
     RequireFix.version                   = version
     RequireFix.getSteamWorkshopDirectory = getSteamWorkshopDirectory
     RequireFix.Initialize                = Initialize
