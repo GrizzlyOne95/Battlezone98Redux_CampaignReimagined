@@ -754,7 +754,10 @@ function Update()
 
     if M.start_movie and not M.movie_over and (CameraCancelled() or M.movie_time < GetTime()) then
         CameraFinish()
-        subtit.Stop()
+        -- Only stop subtitles if the user skipped the cinematic
+        if CameraCancelled() then
+            subtit.Stop()
+        end
         
         -- Delay the pull out time until they actually arrive
         M.pull_out_time = 999999.0 
@@ -1145,7 +1148,10 @@ function Update()
     if M.camera_on and not M.camera_off and (CameraCancelled() or M.camera_off_time < GetTime()) then
         M.startfinishingmovie = false
         CameraFinish()
-        StopAudioMessage(M.audmsg)
+        -- Only stop subtitles if the user skipped the cinematic
+        if CameraCancelled() then
+            subtit.Stop()
+        end
         SucceedMission(0.1, "misn03w1.des")
         M.camera_off = true
     end

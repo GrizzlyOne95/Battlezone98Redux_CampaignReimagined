@@ -517,7 +517,10 @@ function Update()
         CameraPath("ccareliccam", 3000, 1000, M.svtug)
         if (IsAudioMessageDone(M.aud10) and IsAudioMessageDone(M.aud11) and IsAudioMessageDone(M.aud12) and IsAudioMessageDone(M.aud13)) or CameraCancelled() then
             CameraFinish()
-            subtit.Stop() -- Stops and clears
+            -- Only stop subtitles if the user skipped the cinematic
+            if CameraCancelled() then
+                subtit.Stop()
+            end
             FailMission(GetTime(), "misn04l1.des")
             M.done = true
         end
@@ -581,11 +584,13 @@ function Update()
 		end
 	end
 	
-	-- Cinematic Logic for Discovery
 	if (M.discoverrelic) and (not M.cin1done) then
 		if (M.discoverrelic and IsAudioMessageDone(M.aud2) and IsAudioMessageDone(M.aud3)) or CameraCancelled() then
 			CameraFinish()
-			subtit.Stop() -- Stops current
+			-- Only stop subtitles if the user skipped the cinematic
+			if CameraCancelled() then
+				subtit.Stop()
+			end
 			M.cin1done = true
 		end
 	end

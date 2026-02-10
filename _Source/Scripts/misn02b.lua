@@ -248,7 +248,10 @@ function Update()
             end
             
             SetPosition(player, "playermove")
-            subtit.Stop() -- Stop previous audio and clear subtitles
+            -- Only stop subtitles if the user skipped the cinematic
+            if CameraCancelled() then
+                subtit.Stop()
+            end
             audmsg = nil
             subtit.Play("misn0201.wav")
             --subtit.Play("misn0224.wav")
