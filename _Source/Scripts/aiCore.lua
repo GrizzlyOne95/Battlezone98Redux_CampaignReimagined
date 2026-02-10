@@ -5,6 +5,391 @@
 
 local DiffUtils = require("DiffUtils")
 
+----------------------------------------------------------------------------------
+-- INTEGRATED UTILITY
+----------------------------------------------------------------------------------
+local utility = {}
+utility.ClassLabel = {
+    HOWITZER = "howitzer",
+    APC = "apc",
+    MINELAYER = "minelayer",
+    TURRET = "turret",
+    SCAVENGER = "scavenger",
+    TUG = "tug",
+    WINGMAN = "wingman",
+    WALKER = "walker",
+    PERSON = "person",
+    BUILDING = "i76building",
+    RECYCLER = "recycler",
+    FACTORY = "factory",
+    ARMORY = "armory",
+    CONSTRUCTOR = "constructionrig",
+    BARRACKS = "barracks",
+    POWERPLANT = "powerplant",
+    SUPPLY_DEPOT = "supplydepot",
+    REPAIR_DEPOT = "repairdepot",
+    BUILDING_RADAR_SAFE = "i76building2", -- Prop buildings that don't ping on radar
+    SPECIAL_ITEM = "specialitem",         -- Dummy special weapon for scripting
+    POWERUP_GENERIC = "powerup",          -- Generic powerup (no pickup/reject sounds)
+    DROPOFF = "dropoff",                  -- Inert powerup useful for scripting
+    SIGN = "i76sign",                     -- Small building/prop type (pylons)
+    SPRAYBOMB = "spraybomb"               -- Deployed splinter mortar
+}
+utility.ClassId = {
+    NONE = 0,
+
+    HELICOPTER = 1,
+    STRUCTURE1 = 2, -- Wooden Structures
+    POWERUP = 3,
+    PERSON = 4,
+    SIGN = 5,
+    VEHICLE = 6,
+    SCRAP = 7,
+    BRIDGE = 8, -- A structure which can contain the floor
+    FLOOR = 9, -- The floor in a bridge
+    STRUCTURE2 = 10, -- Metal Structures
+    SCROUNGE = 11,
+    SPINNER = 15,
+
+    HEADLIGHT_MASK = 38,
+
+    EYEPOINT = 40,
+    COM = 42,
+
+    WEAPON = 50,
+    ORDNANCE = 51,
+    EXPLOSION = 52,
+    CHUNK = 53,
+    SORT_OBJECT = 54,
+    NONCOLLIDABLE = 55,
+
+    VEHICLE_GEOMETRY = 60,
+    STRUCTURE_GEOMETRY = 61,
+    WEAPON_GEOMETRY = 63,
+    ORDNANCE_GEOMETRY = 64,
+    TURRET_GEOMETRY = 65,
+    ROTOR_GEOMETRY = 66,
+    NACELLE_GEOMETRY = 67,
+    FIN_GEOMETRY = 68,
+    COCKPIT_GEOMETRY = 69,
+
+    WEAPON_HARDPOINT = 70,
+    CANNON_HARDPOINT = 71,
+    ROCKET_HARDPOINT = 72,
+    MORTAR_HARDPOINT = 73,
+    SPECIAL_HARDPOINT = 74,
+
+    FLAME_EMITTER = 75,
+    SMOKE_EMITTER = 76,
+    DUST_EMITTER = 77,
+
+    PARKING_LOT = 81,
+
+    [0] = "NONE",
+    [1] = "HELICOPTER",
+    [2] = "STRUCTURE1", -- Wooden Structures
+    [3] = "POWERUP",
+    [4] = "PERSON",
+    [5] = "SIGN",
+    [6] = "VEHICLE",
+    [7] = "SCRAP",
+    [8] = "BRIDGE", -- A structure which can contain the floor
+    [9] = "FLOOR", -- The floor in a bridge
+    [10] = "STRUCTURE2", -- Metal Structures
+    [11] = "SCROUNGE",
+    [15] = "SPINNER",
+    [38] = "HEADLIGHT_MASK",
+    [40] = "EYEPOINT",
+    [42] = "COM",
+    [50] = "WEAPON",
+    [51] = "ORDNANCE",
+    [52] = "EXPLOSION",
+    [53] = "CHUNK",
+    [54] = "SORT_OBJECT",
+    [55] = "NONCOLLIDABLE",
+    [60] = "VEHICLE_GEOMETRY",
+    [61] = "STRUCTURE_GEOMETRY",
+    [63] = "WEAPON_GEOMETRY",
+    [64] = "ORDNANCE_GEOMETRY",
+    [65] = "TURRET_GEOMETRY",
+    [66] = "ROTOR_GEOMETRY",
+    [67] = "NACELLE_GEOMETRY",
+    [68] = "FIN_GEOMETRY",
+    [69] = "COCKPIT_GEOMETRY",
+    [70] = "WEAPON_HARDPOINT",
+    [71] = "CANNON_HARDPOINT",
+    [72] = "ROCKET_HARDPOINT",
+    [73] = "MORTAR_HARDPOINT",
+    [74] = "SPECIAL_HARDPOINT",
+    [75] = "FLAME_EMITTER",
+    [76] = "SMOKE_EMITTER",
+    [77] = "DUST_EMITTER",
+    [81] = "PARKING_LOT",
+}
+utility.ClassSig = {
+    RECYCLER = "RCYC",
+    FACTORY = "FACT",
+    ARMORY = "ARMR",
+    CONSTRUCTOR = "CNST",
+    SUPPLY_DEPOT = "SDEP",
+    REPAIR_DEPOT = "RDEP"
+}
+utility.AiCommand = {
+    NONE = 0,
+    SELECT = 1,
+    STOP = 2,
+    GO = 3,
+    ATTACK = 4,
+    FOLLOW = 5,
+    FORMATION = 6,
+    PICKUP = 7,
+    DROPOFF = 8,
+    NO_DROPOFF = 9,
+    GET_REPAIR = 10,
+    GET_RELOAD = 11,
+    GET_WEAPON = 12,
+    GET_CAMERA = 13,
+    GET_BOMB = 14,
+    DEFEND = 15,
+    GO_TO_GEYSER = 16,
+    RESCUE = 17,
+    RECYCLE = 18,
+    SCAVENGE = 19,
+    HUNT = 20,
+    BUILD = 21,
+    PATROL = 22,
+    STAGE = 23,
+    SEND = 24,
+    GET_IN = 25,
+    LAY_MINES = 26,
+    CLOAK = 27, -- {VERSION 2.1+}
+    DECLOAK = 28, -- {VERSION 2.1+}
+    [0] = "NONE",
+    [1] = "SELECT",
+    [2] = "STOP",
+    [3] = "GO",
+    [4] = "ATTACK",
+    [5] = "FOLLOW",
+    [6] = "FORMATION",
+    [7] = "PICKUP",
+    [8] = "DROPOFF",
+    [9] = "NO_DROPOFF",
+    [10] = "GET_REPAIR",
+    [11] = "GET_RELOAD",
+    [12] = "GET_WEAPON",
+    [13] = "GET_CAMERA",
+    [14] = "GET_BOMB",
+    [15] = "DEFEND",
+    [16] = "GO_TO_GEYSER",
+    [17] = "RESCUE",
+    [18] = "RECYCLE",
+    [19] = "SCAVENGE",
+    [20] = "HUNT",
+    [21] = "BUILD",
+    [22] = "PATROL",
+    [23] = "STAGE",
+    [24] = "SEND",
+    [25] = "GET_IN",
+    [26] = "LAY_MINES",
+    [27] = "CLOAK", -- {VERSION 2.1+}
+    [28] = "DECLOAK", -- {VERSION 2.1+}
+}
+function utility.IsTable(object) return (type(object) == 'table') end
+function utility.IsVector(object)
+    if type(object) ~= "userdata" then return false end
+    local mt = getmetatable(object)
+    return mt and mt.__type == "VECTOR_3D"
+end
+
+----------------------------------------------------------------------------------
+-- INTEGRATED PRODUCER
+----------------------------------------------------------------------------------
+local producer = {
+    Queue = {}, -- table<TeamNum, list<Job>>
+    Orders = {} -- table<Handle, Job>
+}
+function producer.QueueJob(odf, team, location, builder, data)
+    if not producer.Queue[team] then producer.Queue[team] = {} end
+    table.insert(producer.Queue[team], {
+        odf = odf,
+        location = location,
+        builder = builder, -- TeamSlotInteger (Optional)
+        data = data
+    })
+end
+
+function producer.ProcessQueues(teamObj)
+    local team = teamObj.teamNum
+    local queue = producer.Queue[team]
+    if not queue or #queue == 0 then return end
+    
+    -- Identify available producers
+    local producers = {}
+    if IsValid(teamObj.recyclerMgr.handle) and not IsBusy(teamObj.recyclerMgr.handle) then
+        table.insert(producers, teamObj.recyclerMgr.handle)
+    end
+    if IsValid(teamObj.factoryMgr.handle) and not IsBusy(teamObj.factoryMgr.handle) and IsDeployed(teamObj.factoryMgr.handle) then
+        table.insert(producers, teamObj.factoryMgr.handle)
+    end
+    if IsValid(teamObj.constructorMgr.handle) and not IsBusy(teamObj.constructorMgr.handle) then
+        table.insert(producers, teamObj.constructorMgr.handle)
+    end
+    
+    if #producers == 0 then return end
+    
+    local scrap = GetScrap(team)
+    local maxScrap = GetMaxScrap(team)
+    local pilot = GetPilot(team)
+    
+    local removals = {}
+    for i, job in ipairs(queue) do
+        local cost = GetScrapCost(job.odf)
+        local pilotCost = GetPilotCost(job.odf)
+        
+        if cost <= maxScrap and pilotCost <= pilot then
+            if cost <= scrap then
+                -- Find compatible producer
+                local foundProducer = nil
+                for _, h in ipairs(producers) do
+                    -- Simple compatibility check: constructor for buildings, others for units
+                    local isBuilding = IsBuilding(job.odf) or string.match(job.odf, "^[I|i|b|B][B|b]")
+                    local procSig = GetClassLabel(h)
+                    
+                    local canBuild = false
+                    if isBuilding and procSig == "constructionrig" then canBuild = true
+                    elseif not isBuilding and (procSig == "recycler" or procSig == "factory") then canBuild = true end
+                    
+                    if canBuild and not producer.Orders[h] then
+                        foundProducer = h
+                        break
+                    end
+                end
+                
+                if foundProducer then
+                    if job.location then
+                        -- Handle path or position
+                        local pos = job.location
+                        if type(pos) == "string" then pos = paths.GetPosition(pos, 0) end
+                        Build(foundProducer, job.odf, 1, pos)
+                    else
+                        Build(foundProducer, job.odf)
+                    end
+                    producer.Orders[foundProducer] = job
+                    table.insert(removals, i)
+                    -- Remove producer from available list for this tick
+                    for idx, h in ipairs(producers) do
+                        if h == foundProducer then table.remove(producers, idx); break end
+                    end
+                end
+            else
+                break -- Wait for scrap if we can't afford the next high-priority item
+            end
+        end
+        if #producers == 0 then break end
+    end
+    
+    -- Clean up queue
+    for i = #removals, 1, -1 do
+        table.remove(queue, removals[i])
+    end
+end
+
+function producer.ProcessCreated(h)
+    local odf = string.lower(GetOdf(h))
+    for proc, job in pairs(producer.Orders) do
+        if IsValid(proc) and string.lower(job.odf) == odf then
+            local dist = GetDistance(h, proc)
+            if dist < 100 then
+                 -- Match found
+                 producer.Orders[proc] = nil
+                 return true
+            end
+        end
+    end
+    return false
+end
+
+----------------------------------------------------------------------------------
+-- INTEGRATED BZN PARSER & MISSION DATA
+----------------------------------------------------------------------------------
+local bzn = {}
+local BinaryFieldType = { DATA_VOID = 0, DATA_ID = 1, DATA_CHAR = 2, DATA_BOOL = 3, DATA_SHORT = 4, DATA_LONG = 5, DATA_FLOAT = 6, DATA_VEC2D = 7, DATA_VEC3D = 8, DATA_MAT3DOLD = 9, DATA_PTR = 10 }
+
+local function parseFloatLE(str, offset)
+    local b1, b2, b3, b4 = string.byte(str, offset + 1, offset + 4)
+    if not b4 then return 0 end
+    local sign = bit.band(b4, 0x80) == 0x80 and 1 or 0
+    local exponent = bit.lshift(bit.band(b4, 0x7F), 1) + bit.rshift(bit.band(b3, 0x80), 7)
+    local mantissa = bit.lshift(bit.band(b3, 0x7F), 16) + bit.lshift(b2, 8) + b1
+    if exponent == 0 then return 0 end
+    if exponent == 255 then return mantissa == 0 and (sign == 1 and -math.huge or math.huge) or 0/0 end
+    return ((-1)^sign) * (1 + mantissa / 2^23) * 2^(exponent - 127)
+end
+
+local Tokenizer = {}
+Tokenizer.__index = Tokenizer
+function Tokenizer.new(data)
+    return setmetatable({ data = data, pos = 1, version = 1000, type_size = 2, size_size = 2 }, Tokenizer)
+end
+function Tokenizer:ReadToken()
+    if self.pos > #self.data then return nil end
+    local type = string.byte(self.data, self.pos)
+    self.pos = self.pos + self.type_size
+    local size = string.byte(self.data, self.pos) + bit.lshift(string.byte(self.data, self.pos + 1), 8)
+    self.pos = self.pos + self.size_size
+    local value = self.data:sub(self.pos, self.pos + size - 1)
+    self.pos = self.pos + size
+    return { 
+        type = type, 
+        data = value, 
+        GetString = function(s) return s.data:gsub("%z.*", "") end, 
+        GetInt32 = function(s) local b1,b2,b3,b4 = string.byte(s.data,1,4); return b1+b2*256+b3*65536+b4*16777216 end, 
+        GetBoolean = function(s) return string.byte(s.data,1) ~= 0 end, 
+        GetVector2D = function(s, i) local off = (i or 0) * 8; return SetVector(parseFloatLE(s.data, off), 0, parseFloatLE(s.data, off + 4)) end 
+    }
+end
+
+function bzn.Open(name)
+    local filedata = UseItem(name)
+    if not filedata then return nil end
+    local reader = Tokenizer.new(filedata)
+    local res = { AiPaths = {} }
+    local tok = reader:ReadToken() -- version
+    if not tok then return nil end
+    res.version = tok:GetInt32(); reader.version = res.version
+    if res.version > 1022 then reader:ReadToken(); tok = reader:ReadToken(); res.msn_filename = tok:GetString() end
+    reader:ReadToken() -- seq_count
+    if res.version >= 1016 then reader:ReadToken() end -- missionSave
+    if res.version ~= 1001 then tok = reader:ReadToken(); res.TerrainName = tok:GetString() end
+    return res
+end
+
+local mission = {
+    MapBaseType = { Deathmatch = "D", KingOfTheHill = "K", Strategy = "S", Single = "*" },
+    ModTypes = { Multiplayer = "multiplayer", InstantAction = "instant_action", Campaign = "campaign", Mod = "mod" },
+    Bzn = nil
+}
+function mission.TryLoadBZN()
+    if not mission.Bzn then mission.Bzn = bzn.Open(GetMissionFilename()) end
+end
+
+local paths = {}
+function paths.GetPosition(p, pt)
+    pt = pt or 0
+    if GetPathPointCount(p) > pt then return GetPosition(p, pt) end
+    return nil
+end
+function paths.GetPathPointCount(p) return GetPathPointCount(p) or 0 end
+function paths.IteratePath(p)
+    local count = paths.GetPathPointCount(p)
+    local i = 0
+    return function()
+        if i < count then
+            local pos = paths.GetPosition(p, i); i = i + 1; return i, pos
+        end
+    end
+end
+
 aiCore = {}
 aiCore.Debug = false
 
@@ -65,6 +450,21 @@ aiCore.FactionNames = {[1] = "NSDF", [2] = "CCA", [3] = "CRA", [4] = "BDOG"}
 function aiCore.DetectWorldPower()
     if aiCore.WorldPowerKey then return aiCore.WorldPowerKey end
     
+    -- Try to leverage mission module if Bzn is loaded
+    mission.TryLoadBZN()
+    if mission.Bzn and mission.Bzn.TerrainName then
+        local terrain = string.lower(mission.Bzn.TerrainName)
+        if string.find(terrain, "venus") then
+            aiCore.WorldPowerKey = "lPower"
+        elseif string.find(terrain, "mars") or string.find(terrain, "titan") or string.find(terrain, "achilles") or string.find(terrain, "elysium") then
+            aiCore.WorldPowerKey = "wPower"
+        else
+            aiCore.WorldPowerKey = "sPower"
+        end
+        if aiCore.Debug then print("aiCore: Smart Power Detection (BZN Metadata) -> " .. aiCore.WorldPowerKey) end
+        return aiCore.WorldPowerKey
+    end
+
     local trnFile = GetMapTRNFilename()
     if not trnFile or trnFile == "" then 
         aiCore.WorldPowerKey = "sPower" -- Default
@@ -543,8 +943,8 @@ end
 function aiCore.HowitzerManager:AddObject(h)
     if not IsValid(h) or GetTeamNum(h) ~= self.teamNum then return end
     
-    local cls = string.lower(GetClassLabel(h) or "")
-    if string.find(cls, "howitzer") or string.find(cls, "artillery") then
+    local cls = aiCore.NilToString(GetClassLabel(h))
+    if string.find(cls, utility.ClassLabel.HOWITZER) or string.find(cls, "artillery") then
         table.insert(self.howitzers, h)
         if aiCore.Debug then print("Team " .. self.teamNum .. " added howitzer: " .. GetOdf(h)) end
     end
@@ -674,7 +1074,7 @@ function aiCore.MinelayerManager:CalculateMinefields()
         if i ~= self.teamNum and i ~= 0 then
             local enemyRec = GetRecyclerHandle(i)
             if IsValid(enemyRec) then
-                enemyBase = GetPosition(enemyRec)
+                enemyBase = paths.GetPosition(enemyRec)
                 break
             end
         end
@@ -744,7 +1144,7 @@ function aiCore.MinelayerManager:UpdateMinelayer(h)
         self.outbound[h] = false
         
         -- Find nearest supply depot
-        local supply = GetNearestVehicle(h, GetTeamNum(h), "CLASS_SUPPLYDEPOT")
+        local supply = GetNearestVehicle(h, GetTeamNum(h), utility.ClassSig.SUPPLY_DEPOT)
         if IsValid(supply) then
             Goto(h, supply, 0)
             if aiCore.Debug then print("Minelayer returning to reload") end
@@ -852,8 +1252,8 @@ function aiCore.APCManager:UpdateAPC(apc)
     -- Search for nearby pilots
     for obj in ObjectsInRange(self.pickupRange, GetPosition(apc)) do
         if IsValid(obj) and GetTeamNum(obj) == self.teamNum then
-            local cls = string.lower(GetClassLabel(obj) or "")
-            if string.find(cls, "person") and not IsInCargo(obj) then
+            local cls = aiCore.NilToString(GetClassLabel(obj))
+            if string.find(cls, utility.ClassLabel.PERSON) and not IsInCargo(obj) then
                 local dist = GetDistance(apc, obj)
                 if dist < nearestDist then
                     nearestPilot = obj
@@ -1034,9 +1434,9 @@ function aiCore.GuardManager:FindAndAssignGuards(target, guardList, needed)
         if assigned >= needed then break end
         
         if IsValid(obj) and GetTeamNum(obj) == self.teamNum and not IsBusy(obj) then
-            local cls = string.lower(GetClassLabel(obj) or "")
+            local cls = aiCore.NilToString(GetClassLabel(obj))
             -- Tanks, scouts, or turrets make good guards
-            if (string.find(cls, "tank") or string.find(cls, "scout") or string.find(cls, "turret")) 
+            if (string.find(cls, utility.ClassLabel.TANK) or string.find(cls, utility.ClassLabel.WINGMAN) or string.find(cls, utility.ClassLabel.TURRET)) 
                and not IsBuilding(obj) and not IsDeployed(obj) then
                 
                 -- Make sure not already guarding
@@ -1406,8 +1806,7 @@ function aiCore.FactoryManager:update()
         return
     end
 
-    -- Check Deployment State
-    -- MODIFIED: Only manage deployment if configured to do so
+    -- Deployment is still managed here if needed
     if self.teamObj and self.teamObj.Config and not self.teamObj.Config.manageFactories then return end
 
     if not IsDeployed(self.handle) then
@@ -1419,33 +1818,7 @@ function aiCore.FactoryManager:update()
         return -- Wait for deployment
     end
 
-    if CanBuild(self.handle) and not IsBusy(self.handle) then
-        local item = self.queue[1]
-        
-        if item then
-            local odfHandle = OpenODF(item.odf)
-            if odfHandle and odfHandle ~= 0 then
-                local scrapCost = GetODFInt(odfHandle,"GameObjectClass","scrapCost")
-                
-                if GetScrap(self.team) >= scrapCost then
-                    if GetTime() > self.pulseTimer then
-                        Build(self.handle, item.odf, 0)
-                        self.pulseTimer = GetTime() + self.pulsePeriod + math.random(-1, 1)
-                        
-                        if aiCore.Debug then print("Team " .. self.team .. " building " .. item.odf) end
-                        
-                        -- Note: Queue removal happens in AddObject when the unit is validated in the world
-                        -- This allows retrying if build fails due to temporary conditions (e.g. terrain)
-                        -- But we rely on the game engine to actually build it.
-                    end
-                end
-            else
-                -- Invalid ODF, remove to prevent blocking queue
-                if aiCore.Debug then print("Team " .. self.team .. " removing invalid ODF from queue: " .. tostring(item.odf)) end
-                table.remove(self.queue, 1)
-            end
-        end
-    end
+    -- Building is now handled by integrated producer via jobs queued in CheckBuildList
 end
 
 function aiCore.FactoryManager:addUnit(odf, priority)
@@ -1495,48 +1868,7 @@ function aiCore.ConstructorManager:update()
     end
 
     self.sentToRecycler = false
-    local item = self.queue[1]
-
-    if CanBuild(self.handle) and not IsBusy(self.handle) then
-        local dist = GetDistance(self.handle, item.path)
-        if dist > aiCore.Constants.CONSTRUCTOR_TRAVEL_THRESHOLD then
-            if not string.match(aiCore.NilToString(AiCommand[GetCurrentCommand(self.handle)]), "GO") then
-                Goto(self.handle, item.path, 0)
-            end
-        else
-            -- Check for existing buildings or blocking
-            local existing = false
-            for obj in ObjectsInRange(aiCore.Constants.BUILDING_DETECTION_RANGE, item.path) do
-                if IsOdf(obj, item.odf) and GetTeamNum(obj) == self.team then
-                    existing = true
-                    break
-                end
-            end
-
-            if existing then
-                table.remove(self.queue, 1) -- Remove if already built
-            else
-                -- Spacing check (New from aiBuildOS)
-                -- Add null safety check for teamObj
-                if not self.teamObj then
-                    if aiCore.Debug then print("Constructor " .. self.team .. " missing teamObj reference") end
-                    return
-                end
-                local spacingOk, reason = self.teamObj:CheckBuildingSpacing(item.odf, item.path, aiCore.Constants.BUILDING_SPACING)
-                
-                if not spacingOk then
-                    if aiCore.Debug then print("Constructor " .. self.team .. " spacing issue: " .. reason) end
-                    table.remove(self.queue, 1) -- Skip if it can't be placed safely
-                else
-                    local scrapCost = GetODFInt(OpenODF(item.odf),"GameObjectClass","scrapCost")
-                    if GetScrap(self.team) >= scrapCost and GetTime() > self.pulseTimer then
-                        Build(self.handle, item.odf, 1) -- Drop building here
-                        self.pulseTimer = GetTime() + self.pulsePeriod
-                    end
-                end
-            end
-        end
-    end
+    -- Building is now handled by integrated producer via jobs queued in CheckConstruction
 end
 
 
@@ -2090,6 +2422,9 @@ function aiCore.Team:new(teamNum, faction)
     t.constructorMgr = aiCore.ConstructorManager:new(teamNum)
     t.constructorMgr.teamObj = t -- Bind reference
     
+    -- Initialize Integrated Producer Queue
+    if not producer.Queue[teamNum] then producer.Queue[teamNum] = {} end
+    
     t.recyclerBuildList = {}
     t.factoryBuildList = {}
     t.buildingList = {}
@@ -2380,6 +2715,9 @@ function aiCore.Team:Update()
     self:CheckBuildList(self.recyclerBuildList, self.recyclerMgr)
     self:CheckBuildList(self.factoryBuildList, self.factoryMgr)
     self:CheckConstruction()
+    
+    -- MODIFIED: Process Integrated Production Queues
+    producer.ProcessQueues(self)
     
     -- Strategy rotation
     self:UpdateStrategyRotation()
@@ -2681,7 +3019,12 @@ end
 
 -- Helper for Engineer Base Capturing (Legacy Misns7)
 function aiCore.Team:ReclaimBuilding(building, engineer)
-    -- ... (existing logic)
+    if not IsValid(building) or not IsValid(engineer) then return end
+    
+    local cls = aiCore.NilToString(GetClassLabel(building))
+    if string.find(cls, utility.ClassLabel.BUILDING) or IsBuilding(building) then
+        -- ...
+    end
 end
 
 -- Stealth Logic (Legacy Misn12)
@@ -2985,7 +3328,7 @@ function aiCore.Team:UpdatePilots()
     if IsValid(self.recyclerMgr.handle) then
         for obj in ObjectsInRange(300, self.recyclerMgr.handle) do
             local cls = aiCore.NilToString(GetClassLabel(obj))
-            if string.find(cls, "barracks") or string.find(cls, "training") then
+            if string.find(cls, utility.ClassLabel.BARRACKS) or string.find(cls, "training") then
                 table.insert(barracks, obj)
             end
         end
@@ -3141,10 +3484,9 @@ end
 function aiCore.Team:CheckBuildList(list, mgr)
     for p, item in pairs(list) do
         if not IsValid(item.handle) then
-            -- Check if we already have it in the world but didn't link it (e.g. pre-placed)
+            -- Link-up logic for existing objects
             local nearby = GetNearestObject(mgr.handle or GetRecyclerHandle(self.teamNum))
-            if IsValid(nearby) and IsOdf(nearby, item.odf) and GetDistance(nearby, mgr.handle) < 100 and GetTeamNum(nearby) == self.teamNum then
-                 -- Is this handle already taken by another priority?
+            if IsValid(nearby) and IsOdf(nearby, item.odf) and GetDistance(nearby, mgr.handle) < 150 and GetTeamNum(nearby) == self.teamNum then
                  local taken = false
                  for _, other in pairs(list) do 
                     if other.handle == nearby then taken = true break end 
@@ -3154,22 +3496,21 @@ function aiCore.Team:CheckBuildList(list, mgr)
                  end
             end
             
-            -- If still nil, add to queue if not present
             if not IsValid(item.handle) then
                 local inQueue = false
+                -- Check aiCore shadow queue
                 for _, qItem in ipairs(mgr.queue) do
                     if qItem.priority == p then inQueue = true break end
                 end
                 
                 if not inQueue then
+                    -- Record in shadow queue to prevent double-ordering
                     table.insert(mgr.queue, {odf = item.odf, priority = p})
-                    -- Sort queue by priority (Low to High? No, usually High priority first. 
-                    -- But wait, standard lua sort is <.
-                    -- If Priority 1 is "High" and 10 is "Low", we want 1 first.
-                    -- My previous sort was a.priority > b.priority (10 first).
-                    -- Let's stick to: 0 is Highest (Emergency). 1 is High. 10 is Low.
-                    -- So we want Ascending order (lowest number first).
-                    table.sort(mgr.queue, function(a,b) return a.priority < b.priority end)
+                    
+                    -- Hand off to integrated producer
+                    producer.QueueJob(item.odf, self.teamNum, nil, nil, {source = "aiCore", priority = p, type = "unit"})
+                    
+                    if aiCore.Debug then print("aiCore: Team " .. self.teamNum .. " queued " .. item.odf .. " (unit)") end
                 end
             end
         end
@@ -3179,9 +3520,11 @@ end
 function aiCore.Team:CheckConstruction()
     for p, item in pairs(self.buildingList) do
         if not IsValid(item.handle) then
-            -- define search radius
+            local pos = item.path
+            if type(pos) == "string" then pos = paths.GetPosition(pos, 0) end
+
             local found = nil
-            for obj in ObjectsInRange(50, item.path) do
+            for obj in ObjectsInRange(60, pos) do
                 if IsOdf(obj, item.odf) and GetTeamNum(obj) == self.teamNum then
                     found = obj
                     break
@@ -3191,14 +3534,17 @@ function aiCore.Team:CheckConstruction()
             if found then
                 item.handle = found
             else
-                -- Add to constructor queue if not present
                 local inQueue = false
                 for _, qItem in ipairs(self.constructorMgr.queue) do
                     if qItem.priority == p then inQueue = true break end
                 end
                 if not inQueue then
                     table.insert(self.constructorMgr.queue, {odf = item.odf, path = item.path, priority = p})
-                    table.sort(self.constructorMgr.queue, function(a,b) return a.priority < b.priority end)
+                    
+                    -- Queue building via integrated producer
+                    producer.QueueJob(item.odf, self.teamNum, item.path, nil, {source = "aiCore", priority = p, type = "building"})
+                    
+                    if aiCore.Debug then print("aiCore: Team " .. self.teamNum .. " queued building " .. item.odf) end
                 end
             end
         end
@@ -3211,6 +3557,11 @@ function aiCore.Team:AddObject(h)
     
     local odf = GetOdf(h)
     local cls = aiCore.NilToString(GetClassLabel(h))
+    
+    -- MODIFIED: Integrated Producer Tracking
+    if producer.ProcessCreated(h) then
+        if aiCore.Debug then print("aiCore: Integrated Producer -> Built " .. odf) end
+    end
     
     -- Link to build lists
     local linked = false
@@ -3239,23 +3590,23 @@ function aiCore.Team:AddObject(h)
     end
     
     -- Scavenger Assist (Auto-Registration)
-    if cls == "scavenger" then
+    if cls == utility.ClassLabel.SCAVENGER then
         self:RegisterScavenger(h)
     end
     
     -- Add to tactical lists
-    if string.find(cls, "howitzer") then
+    if string.find(cls, utility.ClassLabel.HOWITZER) then
         table.insert(self.howitzers, h)
-    elseif string.find(cls, "apc") then
+    elseif string.find(cls, utility.ClassLabel.APC) then
         table.insert(self.apcs, h)
-    elseif string.find(cls, "minelayer") then
+    elseif string.find(cls, utility.ClassLabel.MINELAYER) then
         table.insert(self.minelayers, h)
     elseif string.match(odf, "^cv") or string.match(odf, "^mv") or string.match(odf, "^dv") then
         table.insert(self.cloakers, h)
         if linked then table.insert(self.pool, h) end
-    elseif string.find(cls, "turret") or string.find(cls, "tower") or string.match(odf, "turr") then
+    elseif string.find(cls, utility.ClassLabel.TURRET) or string.find(cls, "tower") or string.match(odf, "turr") then
         table.insert(self.turrets, h)
-    elseif string.find(cls, "tug") or string.find(cls, "haul") then
+    elseif string.find(cls, utility.ClassLabel.TUG) or string.find(cls, "haul") then
         table.insert(self.tugHandles, h)
     end
     
@@ -3275,7 +3626,7 @@ function aiCore.Team:AddObject(h)
     if HelperGetWeaponSlot(h, "gphantom") > -1 or HelperGetWeaponSlot(h, "gredfld") > -1 then table.insert(self.fields, h) end
     
     -- Double Weapon Tracking (Wingmen/Walkers)
-    if string.find(cls, "wingman") or string.find(cls, "walker") then
+    if string.find(cls, utility.ClassLabel.WINGMAN) or string.find(cls, utility.ClassLabel.WALKER) then
         table.insert(self.doubleUsers, h) 
         if linked then
             table.insert(self.pool, h)
@@ -3286,7 +3637,7 @@ function aiCore.Team:AddObject(h)
     end
 
     -- Soldier Tracking (Person class, excluding pilots/snipers)
-    if string.find(cls, "person") then
+    if string.find(cls, utility.ClassLabel.PERSON) then
         local w0 = GetWeaponClass(h, 0)
         local isSniper = w0 and (string.find(string.lower(w0), "snipe") or string.find(string.lower(w0), "handgun"))
         if not isSniper then

@@ -93,6 +93,48 @@ function Sync-ToSource {
     Write-Host "`nSync complete: $added added, $updated updated, $skipped unchanged" -ForegroundColor Cyan
 }
 
+function Sync-FromSource {
+    Write-Host "Syncing files FROM $SourceDir to root..." -ForegroundColor Cyan
+
+    if (-not (Test-Path $SourceDir)) {
+        Write-Error "Source directory '$SourceDir' not found!"
+        return
+    }
+
+    # Get all files in _Source directory recursively
+    $sourceFiles = Get-ChildItem -Path $SourceDir -Recurse -File
+    
+    $updated = 0
+    $added = 0
+    $skipped = 0
+    
+    foreach ($file in $sourceFiles) {
+        $rootPath = Join-Path $CurrentDir $file.Name
+        
+        if (Test-Path $rootPath) {
+            $rootItem = Get-Item $rootPath
+            
+            # If source version is newer, copy to root
+            if ($file.LastWriteTime -gt $rootItem.LastWriteTime) {
+                Copy-Item -Path $file.FullName -Destination $rootPath -Force
+                Write-Host "Updated: $($file.Name)" -ForegroundColor Yellow
+                $updated++
+            }
+            else {
+                $skipped++
+            }
+        }
+        else {
+            # New file in source, copy to root
+            Copy-Item -Path $file.FullName -Destination $rootPath -Force
+            Write-Host "Added: $($file.Name)" -ForegroundColor Green
+            $added++
+        }
+    }
+    
+    Write-Host "`nSync complete: $added added, $updated updated, $skipped unchanged" -ForegroundColor Cyan
+}
+
 function Get-TargetSubfolder($fileName) {
     $ext = [System.IO.Path]::GetExtension($fileName).ToLower()
     
@@ -230,9 +272,10 @@ function Show-Menu {
     Write-Host "  - _Source = Organized backup" -ForegroundColor DarkGray
     Write-Host "  - _Release = Build output" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "1. Sync to Source (Pull addon -> root/source, then root -> _Source)"
-    Write-Host "2. Build Release (Sync + Build to _Release)"
-    Write-Host "3. Sync from Addon only (Pull changes from parent directory)"
+    Write-Host "1. Sync To Source (Pull addon -> root/source, then root -> _Source)"
+    Write-Host "2. Sync From Source (Flatten _Source -> root for Git updates)"
+    Write-Host "3. Build Release (Sync To Source + Build to _Release)"
+    Write-Host "4. Sync from Addon only (Pull changes from parent directory)"
     Write-Host "Q. Quit"
     Write-Host ""
     
@@ -240,8 +283,9 @@ function Show-Menu {
     
     switch ($choice) {
         "1" { Sync-ToSource; Pause; Show-Menu }
-        "2" { Build-Release; Pause; Show-Menu }
-        "3" { Sync-FromAddon; Pause; Show-Menu }
+        "2" { Sync-FromSource; Pause; Show-Menu }
+        "3" { Build-Release; Pause; Show-Menu }
+        "4" { Sync-FromAddon; Pause; Show-Menu }
         "Q" { exit }
         "q" { exit }
         default { Write-Host "Invalid option." -ForegroundColor Red; Pause; Show-Menu }
@@ -251,6 +295,9 @@ function Show-Menu {
 # Check for args to run non-interactively
 if ($args[0] -eq "-sync") {
     Sync-ToSource
+}
+elseif ($args[0] -eq "-fromsource") {
+    Sync-FromSource
 }
 elseif ($args[0] -eq "-release") {
     Build-Release
