@@ -8,7 +8,7 @@ SetLabel = SetLabel or SettLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({"campaignReimagined", "3659600763"})
 local exu = require("exu")
-local aiCore = require("aiCore")
+aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
@@ -168,6 +168,7 @@ function Update()
     if not start_done then
         local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
         playerTeam:SetConfig("manageFactories", false)
+        playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
         ApplyQOL()
 
         SetPilot(1, math.max(1, DiffUtils.ScaleRes(2)))

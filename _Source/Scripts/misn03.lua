@@ -7,7 +7,7 @@ SetLabel = SetLabel or SettLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({"campaignReimagined", "3659600763"})
 local exu = require("exu")
-local aiCore = require("aiCore")
+aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
@@ -18,6 +18,7 @@ local function SetupAI()
     
     -- Disable factory management for player (prevent forced deployment)
     playerTeam:SetConfig("manageFactories", false)
+    playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
 end
 
 -- Mission State

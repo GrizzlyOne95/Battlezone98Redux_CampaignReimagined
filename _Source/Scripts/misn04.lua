@@ -7,7 +7,7 @@ SetLabel = SetLabel or SettLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({"campaignReimagined", "3659600763"})
 local exu = require("exu")
-local aiCore = require("aiCore")
+aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
@@ -21,6 +21,7 @@ local function SetupAI()
     if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
         aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", true)
         aiCore.ActiveTeams[1]:SetConfig("manageFactories", false)
+        aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     end
     
     -- Configure CCA (Team 2)
