@@ -251,6 +251,8 @@ function Update()
     
     aiCore.Update()
     subtit.Update()
+    PersistentConfig.UpdateInputs()
+    PersistentConfig.UpdateHeadlights()
 	
 	if (not M.missionstart) then
 		M.wave1 = GetTime() + DiffUtils.ScaleTimer(30.0) + math.random(-5, 10)

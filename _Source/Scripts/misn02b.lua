@@ -91,6 +91,9 @@ function ApplyQOL()
     PersistentConfig.Initialize()
 end
 function Start()
+
+    Ally(1,5)
+    Ally(5,1)
     local difficulty = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
     if difficulty >= 3 then
         AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
@@ -159,6 +162,8 @@ function Update()
     if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     aiCore.Update()
     subtit.Update()
+    PersistentConfig.UpdateInputs()
+    PersistentConfig.UpdateHeadlights()
     
     if not start_done then
         local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
@@ -181,6 +186,9 @@ function Update()
         SetObjectiveName(bgoal, "Scrap Field Alpha")
         start_done = true
         subtit.Initialize("durations.csv")
+        
+        -- Establish alliance between player (team 1) and dummy tank (team 5)
+        Ally(1, 5)
 
         -- Spawn pilots at Recycler based on difficulty
         local d = DiffUtils.Get().index
@@ -228,7 +236,16 @@ function Update()
             camera3 = false
             cam_time = 99999.0
             CameraFinish()
-            if IsAlive(dummy) then RemoveObject(dummy) end
+            
+            -- Reassign dummy tank instead of removing it
+            if IsAlive(dummy) then
+                SetTeamNum(dummy, 5)  -- Set to team 5
+                Ally(1, 5)  -- Make teams 1 and 5 allies
+                if IsAlive(recycler) then
+                    Defend2(dummy, recycler, 0)  -- Set to defend the recycler
+                end
+            end
+            
             SetPosition(player, "playermove")
             subtit.Stop() -- Stop previous audio and clear subtitles
             audmsg = nil

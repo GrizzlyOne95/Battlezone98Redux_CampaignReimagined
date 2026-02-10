@@ -16,7 +16,7 @@ PersistentConfig.Settings = {
     OtherHeadlightsDisabled = false
 }
 
-local configPath = bzfile.GetWorkingDirectory() .. "config\\campaign_settings.cfg"
+local configPath = bzfile.GetWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
 
 -- Logging Helper
 local function Log(msg)
@@ -39,10 +39,12 @@ end
 
 -- Internal State
 local InputState = {
-    last_s_state = false,
-    last_l_state = false,
-    last_h_state = false,
-    last_b_state = false
+    last_f_state = false,
+    last_c_state = false,
+    last_u_state = false,
+    last_b_state = false,
+    last_help_state = false,
+    SubtitlesPaused = false
 }
 
 -- Beam Definitions
@@ -113,13 +115,20 @@ function PersistentConfig.LoadConfig()
 end
 
 function PersistentConfig.SaveConfig()
+    print("=== PersistentConfig: Attempting to save config ===")
+    print("Config path: " .. tostring(configPath))
+    print("Working directory: " .. tostring(bzfile.GetWorkingDirectory()))
+    
     local status, err = pcall(function()
         local f = bzfile.Open(configPath, "w", "trunc")
         if not f then
             print("PersistentConfig: Failed to open config file for writing!")
+            print("Attempted path: " .. configPath)
             return
         end
 
+        print("PersistentConfig: File opened successfully, writing settings...")
+        
         f:Writeln("HeadlightDiffuseR=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.R))
         f:Writeln("HeadlightDiffuseG=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.G))
         f:Writeln("HeadlightDiffuseB=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.B))
@@ -133,12 +142,13 @@ function PersistentConfig.SaveConfig()
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
         
         f:Close()
+        print("PersistentConfig: File closed successfully")
     end)
     
     if not status then
         print("PersistentConfig: Error saving config: " .. tostring(err))
     else
-        print("PersistentConfig: Settings saved.")
+        print("PersistentConfig: Settings saved successfully to: " .. configPath)
     end
 end
 
@@ -177,40 +187,19 @@ end
 function PersistentConfig.UpdateInputs()
     if not exu or not exu.GetGameKey then return end
 
-    -- Toggle Subtitles (CTRL + ALT + S)
-    local s_key = exu.GetGameKey("S")
-    local s_combo = s_key and exu.GetGameKey("CTRL") and exu.GetGameKey("ALT")
-    if s_combo and not InputState.last_s_state then
-        PersistentConfig.Settings.SubtitlesEnabled = not PersistentConfig.Settings.SubtitlesEnabled
+    -- Toggle Player Headlight (F)
+    local f_key = exu.GetGameKey("F")
+    if f_key and not InputState.last_f_state then
+        PersistentConfig.Settings.HeadlightVisible = not PersistentConfig.Settings.HeadlightVisible
         PersistentConfig.SaveConfig()
         PersistentConfig.ApplySettings()
-        ShowFeedback("Subtitles: " .. (PersistentConfig.Settings.SubtitlesEnabled and "ON" or "OFF"))
+        ShowFeedback("Player Light: " .. (PersistentConfig.Settings.HeadlightVisible and "ON" or "OFF"))
     end
-    InputState.last_s_state = s_combo
+    InputState.last_f_state = f_key
 
-    -- Toggle NPC Headlights (SHIFT + U)
-    local u_key = exu.GetGameKey("U")
-    local u_combo = u_key and exu.GetGameKey("SHIFT")
-    if u_combo and not InputState.last_u_state then
-        PersistentConfig.Settings.OtherHeadlightsDisabled = not PersistentConfig.Settings.OtherHeadlightsDisabled
-        PersistentConfig.SaveConfig()
-        ShowFeedback("NPC Lights: " .. (PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON"))
-        
-        if not PersistentConfig.Settings.OtherHeadlightsDisabled then
-            local player = GetPlayerHandle()
-            for h in AllCraft() do
-                if h ~= player and exu.SetHeadlightVisible then
-                    exu.SetHeadlightVisible(h, true)
-                end
-            end
-        end
-    end
-    InputState.last_u_state = u_combo
-
-    -- Cycle Headlight Color (SHIFT + V)
-    local v_key = exu.GetGameKey("V")
-    local v_combo = v_key and exu.GetGameKey("SHIFT")
-    if v_combo and not InputState.last_v_state then
+    -- Cycle Headlight Color (C)
+    local c_key = exu.GetGameKey("C")
+    if c_key and not InputState.last_c_state then
         local colors = {
             {5.0, 5.0, 5.0}, -- Bright White
             {5.0, 1.0, 1.0}, -- Bright Red
@@ -237,27 +226,43 @@ function PersistentConfig.UpdateInputs()
         PersistentConfig.ApplySettings()
         ShowFeedback("Headlight Color Cycled", PersistentConfig.Settings.HeadlightDiffuse.R, PersistentConfig.Settings.HeadlightDiffuse.G, PersistentConfig.Settings.HeadlightDiffuse.B)
     end
-    InputState.last_v_state = v_combo
+    InputState.last_c_state = c_key
 
-    -- Toggle Headlight Beam Mode (SHIFT + K)
-    local k_key = exu.GetGameKey("K")
-    local k_combo = k_key and exu.GetGameKey("SHIFT")
-    if k_combo and not InputState.last_k_state then
+    -- Toggle AI/NPC Headlights (U)
+    local u_key = exu.GetGameKey("U")
+    if u_key and not InputState.last_u_state then
+        PersistentConfig.Settings.OtherHeadlightsDisabled = not PersistentConfig.Settings.OtherHeadlightsDisabled
+        PersistentConfig.SaveConfig()
+        ShowFeedback("AI Lights: " .. (PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON"))
+        
+        if not PersistentConfig.Settings.OtherHeadlightsDisabled then
+            local player = GetPlayerHandle()
+            for h in AllCraft() do
+                if h ~= player and exu.SetHeadlightVisible then
+                    exu.SetHeadlightVisible(h, true)
+                end
+            end
+        end
+    end
+    InputState.last_u_state = u_key
+
+    -- Toggle Headlight Beam Mode (B for "Beams")
+    local b_key = exu.GetGameKey("B")
+    if b_key and not InputState.last_b_state then
         PersistentConfig.Settings.HeadlightBeamMode = (PersistentConfig.Settings.HeadlightBeamMode % 2) + 1
         PersistentConfig.SaveConfig()
         PersistentConfig.ApplySettings()
         local modeName = PersistentConfig.Settings.HeadlightBeamMode == 1 and "FOCUSED" or "WIDE"
-        ShowFeedback("Headlight Beam: " .. modeName)
+        ShowFeedback("Beam: " .. modeName)
     end
-    InputState.last_k_state = k_combo
+    InputState.last_b_state = b_key
 
-    -- Help Popup (SHIFT + J)
-    local j_key = exu.GetGameKey("J")
-    local help_combo = j_key and exu.GetGameKey("SHIFT")
-    if help_combo and not InputState.last_help_state then
+    -- Help Popup (/ or ? key) - using stock BZ API
+    local help_pressed = (LastGameKey == "/" or LastGameKey == "?")
+    if help_pressed and not InputState.last_help_state then
         -- Condensed Help Text
-        local helpMsg = "KEYS: C+A+S:Subs | Sh+U:NPC-Lit\n" ..
-                        "Sh+V:Color | Sh+K:Beam | Sh+J:Help"
+        local helpMsg = "KEYS: F:Light | C:Color | U:AI-Lights\n" ..
+                        "B:Beam | /:Help | ESC:Hide-Subs"
         
         -- Show for longer duration (e.g. 5 seconds)
         if subtitles and subtitles.submit then
@@ -266,18 +271,17 @@ function PersistentConfig.UpdateInputs()
             subtitles.submit(helpMsg, 5.0, 1.0, 1.0, 1.0)
         end
     end
+    InputState.last_help_state = help_pressed
 
-    InputState.last_help_state = help_combo
-
-    -- Pause Menu Handling (Escape Key)
-    -- If ESC is pressed, we hide subtitles. If Update runs again (resume), we restore them.
+    -- Pause Menu Handling (Escape Key) - IMMEDIATE effect
     if exu.GetGameKey("ESCAPE") then
-        if not InputState.SubtitlesPaused then
-            if subtitles and subtitles.set_opacity then
-                subtitles.set_opacity(0.0)
-            end
-            InputState.SubtitlesPaused = true
+        if subtitles and subtitles.set_opacity then
+            subtitles.set_opacity(0.0)
         end
+        if subtitles and subtitles.clear_queue then
+            subtitles.clear_queue()
+        end
+        InputState.SubtitlesPaused = true
     else
         if InputState.SubtitlesPaused then
             if subtitles and subtitles.set_opacity then
@@ -302,14 +306,19 @@ end
 
 function PersistentConfig.Initialize()
     PersistentConfig.LoadConfig()
+    -- Ensure config file is created if it doesn't exist
+    PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings()
     
     -- Standardized Steam Greeting
     if exu and exu.GetSteam64 then
         local steamID = exu.GetSteam64()
-        if steamID ~= "" then
-            Log("Steam User ID Found: " .. steamID)
+        -- Valid Steam64 IDs are 17 digits long, so check for at least 10 to be safe
+        if steamID and steamID ~= "" and steamID ~= "0" and #steamID >= 10 then
+            print("Steam User ID Found: " .. steamID)
             ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0)
+        else
+            print("Steam ID not available or invalid: " .. tostring(steamID))
         end
     end
 

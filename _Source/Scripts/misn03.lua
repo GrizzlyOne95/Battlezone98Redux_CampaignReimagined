@@ -456,7 +456,7 @@ function Update()
         end
     end
 
-    if solarCount < required and not M.lost then
+    if solarCount < required and not M.lost and not M.final_objective then
         -- Trigger Failure
         FailMission(GetTime() + 5.0)
         M.lost = true

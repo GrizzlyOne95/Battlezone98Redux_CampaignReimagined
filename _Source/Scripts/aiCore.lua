@@ -3,6 +3,8 @@
 -- Combines functionality from aiFacProd, aiRecProd, aiBuildOS, and aiSpecial
 -- Supported Factions: NSDF, CCA, CRA, BDOG
 
+local DiffUtils = require("DiffUtils")
+
 aiCore = {}
 aiCore.Debug = false
 
@@ -56,7 +58,6 @@ end
 -- CONFIGURATION & CONSTANTS
 ----------------------------------------------------------------------------------
 
-aiCore.Factions = {NSDF = 1, CCA = 2, CRA = 3, BDOG = 4}
 aiCore.Factions = {NSDF = 1, CCA = 2, CRA = 3, BDOG = 4}
 aiCore.FactionNames = {[1] = "NSDF", [2] = "CCA", [3] = "CRA", [4] = "BDOG"}
 
@@ -310,10 +311,7 @@ function aiCore.RemoveDead(tbl)
     end
 end
 
-function aiCore.NilToString(s)
-    if s == nil then return "NIL" end
-    return s
-end
+
 
 function aiCore.Lift(h, height)
     if not IsValid(h) then return end
@@ -419,6 +417,17 @@ end
 -- CLASSES
 ----------------------------------------------------------------------------------
 
+-- Constants for magic numbers
+aiCore.Constants = {
+    CONSTRUCTOR_IDLE_DISTANCE = 100,  -- Distance to recycler before returning when idle
+    CONSTRUCTOR_TRAVEL_THRESHOLD = 60, -- Distance before traveling to build site
+    BUILDING_DETECTION_RANGE = 40,     -- Range to check for existing buildings
+    BUILDING_SPACING = 50,             -- Spacing between buildings
+    STRATEGY_ROTATION_INTERVAL = 600,  -- Seconds between strategy changes
+    PILOT_RESOURCE_INTERVAL = 20,      -- Seconds between pilot checks
+    RESCUE_CHECK_INTERVAL = 10         -- Seconds between rescue checks
+}
+
 -- Generic Build Queue Item
 aiCore.BuildItem = {
     odf = "",
@@ -461,11 +470,12 @@ function aiCore.FactoryManager:update()
 
     -- Check Deployment State
     -- MODIFIED: Only manage deployment if configured to do so
-    if not self.teamObj.Config.manageFactories then return end
+    if self.teamObj and self.teamObj.Config and not self.teamObj.Config.manageFactories then return end
 
     if not IsDeployed(self.handle) then
         local cmd = GetCurrentCommand(self.handle)
-        if cmd ~= AiCommand.DEPLOY then -- Avoid spamming
+        -- Only issue Deploy command if not already deploying or undeploying
+        if cmd ~= AiCommand.DEPLOY and cmd ~= AiCommand.UNDEPLOY then
              Deploy(self.handle)
         end
         return -- Wait for deployment
@@ -532,13 +542,13 @@ function aiCore.ConstructorManager:update()
     end
 
     -- MODIFIED: Do not manage constructor if disabled
-    if not self.teamObj.Config.manageFactories then return end
+    if self.teamObj and self.teamObj.Config and not self.teamObj.Config.manageFactories then return end
 
     if #self.queue == 0 then
         -- Robust idling: Return to recycler if idle
         local recycler = GetRecyclerHandle(self.team)
         if IsValid(recycler) and not self.sentToRecycler then
-            if GetDistance(self.handle, recycler) > 100 then
+            if GetDistance(self.handle, recycler) > aiCore.Constants.CONSTRUCTOR_IDLE_DISTANCE then
                 Goto(self.handle, recycler, 0)
                 self.sentToRecycler = true
             end
@@ -551,14 +561,14 @@ function aiCore.ConstructorManager:update()
 
     if CanBuild(self.handle) and not IsBusy(self.handle) then
         local dist = GetDistance(self.handle, item.path)
-        if dist > 60 then
+        if dist > aiCore.Constants.CONSTRUCTOR_TRAVEL_THRESHOLD then
             if not string.match(aiCore.NilToString(AiCommand[GetCurrentCommand(self.handle)]), "GO") then
                 Goto(self.handle, item.path, 0)
             end
         else
             -- Check for existing buildings or blocking
             local existing = false
-            for obj in ObjectsInRange(40, item.path) do
+            for obj in ObjectsInRange(aiCore.Constants.BUILDING_DETECTION_RANGE, item.path) do
                 if IsOdf(obj, item.odf) and GetTeamNum(obj) == self.team then
                     existing = true
                     break
@@ -569,7 +579,12 @@ function aiCore.ConstructorManager:update()
                 table.remove(self.queue, 1) -- Remove if already built
             else
                 -- Spacing check (New from aiBuildOS)
-                local spacingOk, reason = self.team:CheckBuildingSpacing(item.odf, item.path, 50)
+                -- Add null safety check for teamObj
+                if not self.teamObj then
+                    if aiCore.Debug then print("Constructor " .. self.team .. " missing teamObj reference") end
+                    return
+                end
+                local spacingOk, reason = self.teamObj:CheckBuildingSpacing(item.odf, item.path, aiCore.Constants.BUILDING_SPACING)
                 
                 if not spacingOk then
                     if aiCore.Debug then print("Constructor " .. self.team .. " spacing issue: " .. reason) end
@@ -760,7 +775,6 @@ function aiCore.Team:new(teamNum, faction)
         autoManage = false,
         autoRescue = false,
         autoTugs = false,
-        stickToPlayer = false,
         stickToPlayer = false,
         dynamicMinefields = false,
         
@@ -1013,11 +1027,9 @@ function aiCore.Team:UpdateBaseMaintenance()
         -- Check if an undeployed factory vehicle exists
         local nearby = GetNearestObject(self.recyclerMgr.handle)
         if IsValid(nearby) and GetTeamNum(nearby) == self.teamNum and IsOdf(nearby, odf) then
-            -- It exists, maybe tell it to deploy?
+            -- Factory exists but not deployed - send to geyser
             if not IsDeployed(nearby) and not IsBusy(nearby) then
-                 --Deploy(nearby)
-                 --Should order it to "GO TO GEYSER"
-                 SetCommand(nearby, AiCommand.GO_TO_GEYSER, 1)
+                SetCommand(nearby, AiCommand.GO_TO_GEYSER, 1)
             end
             pending = true
         end
@@ -1408,9 +1420,9 @@ end
 
 function aiCore.Team:UpdateStrategyRotation()
     if self.strategyLocked then return end
-    if not self.strategyTimer then self.strategyTimer = GetTime() + 600 end
+    if not self.strategyTimer then self.strategyTimer = GetTime() + aiCore.Constants.STRATEGY_ROTATION_INTERVAL end
     if GetTime() > self.strategyTimer then
-        self.strategyTimer = GetTime() + 600
+        self.strategyTimer = GetTime() + aiCore.Constants.STRATEGY_ROTATION_INTERVAL
         local strats = {"Balanced", "Tank_Heavy", "Howitzer_Heavy", "Bomber_Heavy"}
         self:SetStrategy(strats[math.random(#strats)])
     end
@@ -1434,7 +1446,7 @@ end
 
 function aiCore.Team:UpdatePilotResources()
     if GetTime() > (self.pilotResTimer or 0) then
-        self.pilotResTimer = GetTime() + 20.0
+        self.pilotResTimer = GetTime() + aiCore.Constants.PILOT_RESOURCE_INTERVAL
         aiCore.RemoveDead(self.pilots)
         if #self.pilots < (self.Config.pilotTopoff or 4) then
             local pilotOdf = aiCore.Units[self.faction].pilot
@@ -1470,7 +1482,7 @@ function aiCore.Team:UpdateRescue()
     if self.teamNum ~= 1 or not self.Config.autoRescue then return end
     local player = GetPlayerHandle()
     if IsPerson(player) and GetTime() > (self.rescueTimer or 0) then
-        self.rescueTimer = GetTime() + 10.0
+        self.rescueTimer = GetTime() + aiCore.Constants.RESCUE_CHECK_INTERVAL
         local veh = self.pool[1]
         if IsValid(veh) then SetCommand(veh, AiCommand.RESCUE, 1, player) end
     end

@@ -19,7 +19,7 @@ weaponHard3 = "GR1"
 weaponName3 = "gsandbag"
 weaponHard4 = "GS1"
 weaponName4 = ""
-weaponMask = 00001
+weaponMask = 00111
 
 [CraftClass]
 rangeScan = 300.0f

@@ -1,18 +1,16 @@
-# Ignore everything in root by default
+# Ignore everything in root (working directory)
 /*
 
-# Unignore specific root files
+# Allow specific root files
 !/.gitignore
 !/README.md
 !/LICENSE
-!/manage_mod.ps1
-!/task.md
-!/implementation_plan.md
+!/Manage-CampaignFiles.ps1
 
-# Unignore the Source folder
+# Allow _Source folder (organized source structure)
 !/_Source/
 
-# Ignore the Release folder (build artifact)
+# Ignore _Release folder (generated/build artifact)
 /_Release/
 
 # Ignore system files
