@@ -394,6 +394,37 @@ function PersistentConfig.UpdateHeadlights()
     end
 end
 
+-- Helper to parse bzlogger.txt for Steam ID/Username
+local function ParseBzLogger()
+    -- Try to open bzlogger.txt in the current directory (Game Root)
+    -- We use io.open because bzfile might be restricted to mod scope, but standard io often works for local files
+    -- If GetWorkingDirectory() is the game root, this should work.
+    local logPath = "bzlogger.txt"
+    local f = io.open(logPath, "r")
+    
+    if not f then
+        print("PersistentConfig: Could not open " .. logPath .. " for parsing.")
+        return nil, nil
+    end
+
+    print("PersistentConfig: Scanning " .. logPath .. " for Steam credentials...")
+    local steamID, username
+    
+    -- Scan line by line
+    -- Looking for: "Authenticated to BZRNet As S<ID>:<Username>"
+    for line in f:lines() do
+        local id, name = line:match("Authenticated to BZRNet As S(%d+):(.+)")
+        if id and name then
+            steamID = id
+            username = name
+            break -- Found it, stop scanning
+        end
+    end
+    
+    f:close()
+    return steamID, username
+end
+
 function PersistentConfig.Initialize()
     PersistentConfig.LoadConfig()
     -- Ensure config file is created if it doesn't exist
@@ -403,16 +434,50 @@ function PersistentConfig.Initialize()
     -- Show help reminder on every mission start
     PersistentConfig.ShowHelp()
     
-    -- Standardized Steam Greeting
+    -- Standardized Steam Greeting with Fallback
+    local steamID
+    local username
+    
+    -- 1. Try Engine Call
     if exu and exu.GetSteam64 then
-        local steamID = exu.GetSteam64()
-        -- Valid Steam64 IDs are 17 digits long, so check for at least 10 to be safe
-        if steamID and steamID ~= "" and steamID ~= "0" and #steamID >= 10 then
-            print("Steam User ID Found: " .. steamID)
-            ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0)
-        else
-            print("Steam ID not available or invalid: " .. tostring(steamID))
+        steamID = exu.GetSteam64()
+    end
+
+    -- 2. Fallback to Log Parsing if ID is invalid
+    if not steamID or steamID == "" or steamID == "0" then
+        print("PersistentConfig: exu.GetSteam64() returned invalid ID. Attempting fallback...")
+        local logID, logName = ParseBzLogger()
+        if logID then
+            steamID = logID
+            username = logName
+            print("PersistentConfig: Retrieved Steam ID from bzlogger: " .. tostring(steamID))
         end
+    else
+        print("PersistentConfig: Engine reported Steam ID: " .. tostring(steamID))
+    end
+
+    -- 3. Display Welcome Message
+    if steamID and #steamID >= 10 then
+        -- Custom Name Mapping
+        -- Format: ["SteamID64"] = "Custom Name/Message"
+        local CustomNames = {
+            ["76561198241259700"] = "GlizzyJuan", -- GrizzlyOne95
+            ["76561198104781489"] = "British Twat", --JJ
+            ["76561199014392897"] = "Car Nerd", --DriveLine
+            --["76561198000000000"] = "Friend Name", 
+        }
+
+        local displayName = CustomNames[steamID] or username
+
+        if displayName then
+            ShowFeedback("Welcome back, Commander " .. displayName .. ".", 0.5, 0.8, 1.0)
+            print("Steam User: " .. displayName .. " (" .. steamID .. ")")
+        else
+            ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0)
+            print("Steam User ID: " .. steamID)
+        end
+    else
+        print("PersistentConfig: Failed to retrieve Steam 64 ID.")
     end
 
     -- Hook Mission End Functions to clear subtitles
