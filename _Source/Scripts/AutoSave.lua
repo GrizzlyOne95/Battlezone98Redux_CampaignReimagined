@@ -551,19 +551,37 @@ AutoSave.lastSaveTime = 0.0
 ---
 
 -- Create a save file in the specified slot (1-10)
-function AutoSave.CreateSave(slotNumber)
+function AutoSave.CreateSave(slotNumber, saveDescription)
     slotNumber = slotNumber or AutoSave.Config.currentSlot
     if slotNumber < 1 or slotNumber > 10 then
         print("AutoSave: Invalid slot number " .. slotNumber)
         return false
     end
     
-    local saveDir = bzfile.GetWorkingDirectory() .. "\\save"
+    local saveDir = bzfile.GetWorkingDirectory() .. "Save"
     local filename = saveDir .. "\\game" .. slotNumber .. ".sav"
     
     print("AutoSave: Generating save file: " .. filename)
     
     -- Open file for writing (truncate existing)
+    -- Cache selected and objective objects for the current save
+    AutoSave.CurrentSelected = {}
+    if SelectedObjects then
+        for obj in SelectedObjects() do
+            AutoSave.CurrentSelected[obj] = true
+        end
+    end
+
+    AutoSave.CurrentObjectives = {}
+    if ObjectiveObjects then
+        -- Workaround for broken iterator that only returns first result:
+        -- Since it only returns the first, we capture it.
+        -- If we can't find more, we at least have that one.
+        for obj in ObjectiveObjects() do
+            AutoSave.CurrentObjectives[obj] = true
+        end
+    end
+
     local file = bzfile.Open(filename, "w", "trunc")
     if not file then
         print("AutoSave: Failed to open file for writing")
@@ -571,7 +589,7 @@ function AutoSave.CreateSave(slotNumber)
     end
     
     -- Write save file content
-    AutoSave._WriteSaveFile(file)
+    AutoSave._WriteSaveFile(file, saveDescription)
     
     -- Close file
     file:Close()
@@ -602,12 +620,80 @@ end
 
 -- Update function (call from mission Update())
 function AutoSave.Update()
-    if not AutoSave.Config.enabled then return end
+    -- Check PersistentConfig first, fallback to internal config
+    local enabled = AutoSave.Config.enabled
+    local config = package.loaded["PersistentConfig"]
+    if config and config.Settings then
+        enabled = config.Settings.enableAutoSave
+    end
+
+    if not enabled then return end
     
     AutoSave.timer = AutoSave.timer + GetTimeStep()
     if AutoSave.timer >= AutoSave.Config.autoSaveInterval then
         AutoSave.CreateSave()
         AutoSave.timer = 0.0
+    end
+end
+
+-- Helper to get classLabel from ODF
+local function GetClassLabel(obj)
+    local odf = GetOdf(obj)
+    if not odf then return nil end
+    local odfh = OpenODF(odf)
+    if not odfh then return nil end
+    local label, found = GetODFString(odfh, "GameObjectClass", "classLabel")
+    return found and label:lower() or nil
+end
+
+-- Global state to save (defaults to matching mission M table)
+AutoSave.SaveTable = nil
+
+-- Recursive Lua value writer
+local function WriteLuaValue(file, val)
+    local vType = type(val)
+    if vType == "boolean" then
+        file:Writeln("type [1] =")
+        file:Writeln("1")
+        file:Writeln("b [1] =")
+        file:Writeln(val and "true" or "false")
+    elseif vType == "number" then
+        file:Writeln("type [1] =")
+        file:Writeln("3")
+        file:Writeln("f [1] =")
+        file:Writeln(FloatStr(val))
+    elseif vType == "userdata" then
+        -- Check if it's a handle we've mapped
+        local id = HandleToID[val]
+        if id then
+            file:Writeln("type [1] =")
+            file:Writeln("2")
+            file:Writeln("h [1] =")
+            file:Writeln(tostring(id))
+        else
+            -- If it's a handle not in our map (e.g. invalid), save as NULL handle
+            file:Writeln("type [1] =")
+            file:Writeln("2")
+            file:Writeln("h [1] =")
+            file:Writeln("0")
+        end
+    elseif vType == "string" then
+        file:Writeln("type [1] =")
+        file:Writeln("4")
+        file:Writeln("l [1] =")
+        file:Writeln(tostring(#val))
+        file:Writeln("s = " .. val)
+    elseif vType == "table" then
+        local count = 0
+        for _ in pairs(val) do count = count + 1 end
+        file:Writeln("type [1] =")
+        file:Writeln("5")
+        file:Writeln("count [1] =")
+        file:Writeln(tostring(count))
+        for k, v in pairs(val) do
+            WriteLuaValue(file, k)
+            WriteLuaValue(file, v)
+        end
     end
 end
 
@@ -631,15 +717,12 @@ local function FloatStr(v)
     return tostring(v)
 end
 
-function AutoSave._WriteSaveFile(file)
+function AutoSave._WriteSaveFile(file, saveDescription)
     -- Assign IDs
     local idCounter = 1
-    for i = 1, 5120 do
-        local obj = GetHandle(i)
-        if IsValid(obj) then
-            HandleToID[obj] = idCounter
-            idCounter = idCounter + 1
-        end
+    for obj in AllObjects() do
+        HandleToID[obj] = idCounter
+        idCounter = idCounter + 1
     end
 
     -- Header
@@ -650,7 +733,7 @@ function AutoSave._WriteSaveFile(file)
     WriteProp(file, "missionSave", "false", true)
     WriteProp(file, "runType", "0", true)
     
-    local desc = "AutoSave " .. tostring(math.floor(GetTime()))
+    local desc = saveDescription or ("AutoSave " .. tostring(math.floor(GetTime())))
     file:Writeln("saveGameDesc = " .. StringToHex(desc) .. "00")
     
     local playerHandle = GetPlayerHandle()
@@ -668,17 +751,17 @@ function AutoSave._WriteSaveFile(file)
     WriteProp(file, "size", idCounter - 1, true)
     
     -- Iterate through all game objects
-    for i = 1, 5120 do
-        local obj = GetHandle(i)
-        if IsValid(obj) then
-            AutoSave._WriteGameObject(file, obj)
-        end
+    for obj in AllObjects() do
+        AutoSave._WriteGameObject(file, obj)
     end
     
-    -- Team Globals
+    -- Team Globals (Resources) - No header in sav
     AutoSave._WriteTeamGlobals(file)
     
-    -- Write remaining sections
+    -- Mission State (LuaMission) - No header in sav
+    AutoSave._WriteLuaMission(file)
+    
+    -- AI Sections - With headers
     AutoSave._WriteAiMission(file)
     AutoSave._WriteAOIs(file)
     AutoSave._WriteAiPaths(file)
@@ -686,16 +769,41 @@ function AutoSave._WriteSaveFile(file)
     AutoSave._WriteMissionFooter(file)
 end
 
+function AutoSave._WriteLuaMission(file)
+    -- We'll write the LuaMission state if SaveTable is provided
+    -- In game1.sav, this follows TeamGlobals without a header
+    local state = AutoSave.SaveTable or _G.M or {}
+    
+    -- If state is a single table and not a list of tables to be saved,
+    -- wrap it in a list so we can iterate. 
+    -- We assume if it has a count > 0 and the first element is a table, it's a multi-save.
+    local tables = {}
+    if type(state) == "table" and state[1] ~= nil then
+        tables = state
+    else
+        tables = { state }
+    end
+    
+    file:Writeln("name = LuaMission")
+    file:Writeln("sObject = 00000063") -- Engine assigned ID
+    WriteProp(file, "started", "true", true)
+    WriteProp(file, "count", #tables, true) -- Number of script objects
+    
+    for _, tbl in ipairs(tables) do
+        WriteLuaValue(file, tbl)
+    end
+end
+
 function AutoSave._WriteTeamGlobals(file)
     for i = 0, 15 do
-        WriteProp(file, "curScrap", GetScrap(i), true)
-        WriteProp(file, "maxScrap", GetMaxScrap(i), true)
-        WriteProp(file, "curPilot", GetPilot(i), true)
-        WriteProp(file, "maxPilot", GetMaxPilot(i), true)
+        WriteProp(file, "curScrap", GetScrap(i) or 0, true)
+        WriteProp(file, "maxScrap", GetMaxScrap(i) or 0, true)
+        WriteProp(file, "curPilot", GetPilot(i) or 0, true)
+        WriteProp(file, "maxPilot", GetMaxPilot(i) or 0, true)
         
         local allies = 0
         for j = 0, 15 do
-            if IsTeamAllied(i, j) then
+            if i == j or (IsTeamAllied and IsTeamAllied(i, j)) then
                 allies = allies + (2 ^ j)
             end
         end
@@ -726,11 +834,66 @@ function AutoSave._WriteGameObject(file, obj)
     WriteProp(file, "isUser", (obj == GetPlayerHandle() and "1" or "0"), true)
     file:Writeln("obj_addr = " .. string.format("%08x", id))
     
-    -- Position and Rotation Fix
+    -- Transform Section
     AutoSave._WriteTransform(file, obj)
+
+    -- Class Specific Data Part 1 (Buildings, Geysers, Recyclers, etc.)
+    local classLabel = GetClassLabel(obj)
+    
+    if classLabel == "geyser" then
+        WriteProp(file, "tempBuilding", "false", true)
+    elseif classLabel == "turret" or classLabel == "building" or classLabel == "i76building" or classLabel == "i76building2" then
+        -- Turrets and buildings often have these undeffloats
+        file:Writeln("undeffloat [1] =")
+        file:Writeln("2")
+        file:Writeln("undeffloat [1] =")
+        file:Writeln("0")
+        file:Writeln("undeffloat [1] =")
+        file:Writeln("8")
+        file:Writeln("undeffloat [1] =")
+        file:Writeln("0.7")
+        file:Writeln("undefraw = 02000000")
+        file:Writeln("undeffloat [1] =")
+        file:Writeln("-0.0505719")
+        file:Writeln("undefbool [1] =")
+        file:Writeln("false")
+    elseif classLabel == "recycler" or classLabel == "factory" or classLabel == "armory" or classLabel == "constructionrig" or classLabel == "turrettank" or classLabel "howitzer"then
+        local odfh = OpenODF(GetOdf(obj))
+        local tDeploy = 5
+        local tUndeploy = 5
+        if odfh then
+            tDeploy = GetODFFloat(odfh, "DeployableClass", "timeDeploy", 5)
+            tUndeploy = GetODFFloat(odfh, "DeployableClass", "timeUndeploy", 5)
+        end
+        file:Writeln("undefptr = 00000000")
+        WriteProp(file, "timeDeploy", tDeploy, true)
+        WriteProp(file, "timeUndeploy", tUndeploy, true)
+        file:Writeln("undefptr = 00000000")
+        file:Writeln("state = 02000000")
+        file:Writeln("delayTimer [1] =")
+        file:Writeln("0")
+        file:Writeln("nextRepair [1] =")
+        file:Writeln(FloatStr(GetTime()))
+        file:Writeln("buildClass [1] =")
+        file:Writeln("")
+        file:Writeln("buildDoneTime [1] =")
+        file:Writeln("0")
+    end
+
     WriteProp(file, "abandoned", "0", true)
     
-    -- Second pos (Physics pos)
+    -- Cloaking
+    local cloakState = "00000000"
+    if IsCloaked and IsCloaked(obj) then
+        cloakState = "01000000"
+    end
+    file:Writeln("cloakState = " .. cloakState)
+    WriteProp(file, "cloakTransBeginTime", "0", true)
+    WriteProp(file, "cloakTransEndTime", "0", true)
+    
+    WriteProp(file, "illumination", "1", true)
+
+    -- Physics Pos (second pos)
     if pos then
         file:Writeln("pos [1] =")
         file:Writeln("  x [1] = ")
@@ -741,20 +904,35 @@ function AutoSave._WriteGameObject(file, obj)
         file:Writeln(tostring(pos.z))
     end
     
-    -- Physics Momentum Fix
+    -- Euler / Momentum
     AutoSave._WritePhysics(file, obj)
     
     WriteProp(file, "seqNo", id, true)
-    file:Writeln("name = " .. (GetLabel(obj) or ""))
+    file:Writeln("name = ") -- Engine usually puts name empty in sav unless specifically set
+
     WriteProp(file, "isCritical", (IsCritical(obj) and "true" or "false"), true)
-    WriteProp(file, "isObjective", (IsObjectiveOn and IsObjectiveOn(obj) and "true" or "false"), true)
-    WriteProp(file, "isSelected", (IsSelected(obj) and "true" or "false"), true)
+    WriteProp(file, "isObjective", (AutoSave.CurrentObjectives[obj] and "true" or "false"), true)
+    WriteProp(file, "isSelected", (AutoSave.CurrentSelected[obj] and "true" or "false"), true)
     WriteProp(file, "isVisible", "2", true)
     WriteProp(file, "seen", "80000006", true)
     
+    -- Damage/Collision Timers (Engine uses -1e+030 as null/min)
+    file:Writeln("playerShot [1] =")
+    file:Writeln("-1e+030")
+    file:Writeln("playerCollide [1] =")
+    file:Writeln("-1e+030")
+    file:Writeln("friendShot [1] =")
+    file:Writeln("-1e+030")
+    file:Writeln("friendCollide [1] =")
+    file:Writeln("-1e+030")
+    file:Writeln("enemyShot [1] =")
+    file:Writeln("-1e+030")
+    file:Writeln("groundCollide [1] =")
+    file:Writeln("0")
+
     AutoSave._WriteHealthAmmo(file, obj)
     
-    -- AI State Fix
+    -- AI State
     AutoSave._WriteAIState(file, obj)
     
     file:Writeln("undefptr = 00000000")
@@ -897,8 +1075,9 @@ function AutoSave._WriteAIState(file, obj)
 end
 
 function AutoSave._WriteAiMission(file)
+    -- This section includes Engine AI task assignments
     file:Writeln("[AiMission]")
-    WriteProp(file, "size", "0", true)
+    WriteProp(file, "size", "0", true) -- We don't replicate individual task objects yet
 end
 
 function AutoSave._WriteAOIs(file)
@@ -956,44 +1135,67 @@ function AutoSave._WriteAiTasks(file)
 end
 
 function AutoSave._WriteMissionFooter(file)
-    -- Audio Message Queue
-    WriteProp(file, "size", "0", true)
-    WriteProp(file, "seqNo", "0", true)
+    -- This section includes message queues, AIP assignments, and objective states
+    file:Writeln("size [1] =")
+    file:Writeln("0") -- Message queue size
+    file:Writeln("seqNo [1] =")
+    file:Writeln("0")
     file:Writeln("msg = ")
     file:Writeln("lastMsg = ")
     
-    -- AIP
-    WriteProp(file, "aip_team_count", "0", true)
+    file:Writeln("aip_team_count [1] =")
+    file:Writeln("1") -- Assume at least team 2 has an AIP if it's a mission
+    file:Writeln("team [1] =")
+    file:Writeln("2")
+    file:Writeln("aipName = ") -- AIP filename without extension
     
-    -- Difficulty
-    local diff = 1
-    if exu and exu.GetDifficulty then
-        diff = exu.GetDifficulty()
+    WriteProp(file, "difficultySetting", "1", true)
+    
+    -- Camera State Deduction:
+    -- cameraReady is true if a cinematic camera is active.
+    -- We deduce this by checking if a pan is in progress (not PanDone).
+    -- Or if the mission explicitly tracks it in M.camera_ready.
+    local state = AutoSave.SaveTable or _G.M or {}
+    local isCinematic = (state.camera_ready == true) or (state.cinematic == true)
+    if not isCinematic then
+        -- PanDone() returns false if a CameraPath is moving.
+        if PanDone and not PanDone() then
+            isCinematic = true
+        end
     end
-    WriteProp(file, "difficultySetting", diff, true)
     
-    -- Camera & Quake
-    WriteProp(file, "cameraReady", "false", true)
+    WriteProp(file, "cameraReady", (isCinematic and "true" or "false"), true)
     WriteProp(file, "cameraCallCount", "0", true)
     WriteProp(file, "quakeMag", "0", true)
     WriteProp(file, "frac", "0", true)
+    WriteProp(file, "timer", "0", true)
     
-    -- Cockpit Timer
-    local timer = 0
-    if GetCockpitTimer then timer = GetCockpitTimer() end
-    WriteProp(file, "timer", timer, true)
-    WriteProp(file, "warn", "-2147483648", true)
-    WriteProp(file, "alert", "-2147483648", true)
+    file:Writeln("warn [1] =")
+    file:Writeln("-2147483648")
+    file:Writeln("alert [1] =")
+    file:Writeln("-2147483648")
+    
     WriteProp(file, "countdown", "true", true)
-    WriteProp(file, "active", (timer > 0 and "true" or "false"), true)
-    WriteProp(file, "show", (timer > 0 and "true" or "false"), true)
+    WriteProp(file, "active", "false", true)
+    WriteProp(file, "show", "false", true)
     
     -- Objectives
-    WriteProp(file, "objectiveCount", "0", true)
-    WriteProp(file, "objectiveLast", "0", true)
+    local objCount = 0
+    for _ in pairs(AutoSave.CurrentObjectives) do objCount = objCount + 1 end
+    WriteProp(file, "objectiveCount", objCount, true)
     
-    -- Groups
-    file:Writeln("groupNum = 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
+    -- In a real save, these match the OTF names and colors
+    -- For now we leave placeholders if count > 0
+    for obj in pairs(AutoSave.CurrentObjectives) do
+        file:Writeln("name = mission.otf")
+        file:Writeln("color [1] =")
+        file:Writeln("-1") -- White
+    end
+    
+    WriteProp(file, "objectiveLast", FloatStr(GetTime()), true)
+    
+    -- Groups (Group keys 0-9)
+    file:Writeln("groupNum = 00000000000000000000000000000000000000000000000000000000000000000000000000000000")
     file:Writeln("groupList = 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
 end
 

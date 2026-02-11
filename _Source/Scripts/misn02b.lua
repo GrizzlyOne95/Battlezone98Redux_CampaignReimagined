@@ -12,6 +12,7 @@ aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
+local AutoSave = require("AutoSave")
 
 -- Global Variables (State)
 local camera1 = false
@@ -29,6 +30,7 @@ local message5 = false
 local mission_won = false
 local mission_lost = false
 local bootstrap_done = false
+local autosave_done = false
 
 local wave_timer = 0.0
 local last_wave_time = 99999.0
@@ -54,7 +56,7 @@ function Save()
     local missionData = {
         camera1, camera2, camera3, found, found2, start_done, patrol1,
         message1, message2, message3, message4, message5, mission_won, mission_lost,
-        bootstrap_done,
+        bootstrap_done, autosave_done,
         wave_timer, last_wave_time, cam_time, NextSecond,
         bscav, bscout, scav2, audmsg,
         dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2
@@ -67,7 +69,7 @@ function Load(missionData, aiData)
     if missionData then
         camera1, camera2, camera3, found, found2, start_done, patrol1,
         message1, message2, message3, message4, message5, mission_won, mission_lost,
-        bootstrap_done,
+        bootstrap_done, autosave_done,
         wave_timer, last_wave_time, cam_time, NextSecond,
         bscav, bscout, scav2, audmsg,
         dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2 = unpack(missionData)
@@ -162,6 +164,15 @@ function Update()
     subtit.Update()
     PersistentConfig.UpdateInputs()
     PersistentConfig.UpdateHeadlights()
+    AutoSave.Update()
+    
+    -- AutoSave Trigger (30 seconds into mission)
+    if not autosave_done and GetTime() > 30.0 then
+        -- Set mission state for AutoSave capture
+        AutoSave.SaveTable = { Save() }
+        AutoSave.CreateSave(10, "AutoSave")
+        autosave_done = true
+    end
     
     if not start_done then
         local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)

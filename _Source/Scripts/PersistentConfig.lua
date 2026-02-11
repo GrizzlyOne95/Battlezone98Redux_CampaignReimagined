@@ -2,6 +2,7 @@
 local bzfile = require("bzfile")
 local exu = require("exu")
 local subtitles = require("subtitles")
+local autosave = require("AutoSave")
 
 local PersistentConfig = {}
 
@@ -15,7 +16,8 @@ PersistentConfig.Settings = {
     SubtitlesEnabled = true,
     OtherHeadlightsDisabled = true, -- AI Lights Off by default
     AutoRepairWingmen = true,  -- Auto-repair ON by default
-    RainbowMode = false -- Special color effect
+    RainbowMode = false, -- Special color effect
+    enableAutoSave = false -- Experimental: ON/OFF
 }
 
 local configPath = bzfile.GetWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
@@ -47,6 +49,7 @@ local InputState = {
     last_b_state = false, -- Beam (B)
     last_help_state = false,
     last_x_state = false,  -- Auto-repair toggle
+    last_n_state = false,  -- Manual Save (N)
     SubtitlesPaused = false
 }
 
@@ -113,6 +116,7 @@ function PersistentConfig.LoadConfig()
                 elseif key == "OtherHeadlightsDisabled" then PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
                 elseif key == "AutoRepairWingmen" then PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
                 elseif key == "RainbowMode" then PersistentConfig.Settings.RainbowMode = (val == "true")
+                elseif key == "enableAutoSave" then PersistentConfig.Settings.enableAutoSave = (val == "true")
                 end
             end
             line = f:Readln()
@@ -166,6 +170,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
+        f:Writeln("enableAutoSave=" .. tostring(PersistentConfig.Settings.enableAutoSave))
         
         f:Close()
         print("PersistentConfig: File closed successfully")
@@ -213,7 +218,7 @@ end
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-                    "B:Beam | X:Auto-Repair | /:Help | ESC:Hide-Subs"
+                    "B:Beam | X:Auto-Repair | N:AutoSave | /:Help | ESC:Hide-Subs"
     
     -- Show with high precedence (clear queue, force opacity)
     if subtitles and subtitles.submit then
@@ -328,6 +333,15 @@ function PersistentConfig.UpdateInputs()
         ShowFeedback("Auto-Repair: " .. (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF"), 0.8, 1.0, 0.8)
     end
     InputState.last_x_state = x_key
+
+    -- Toggle AutoSave (N for "New AutoSave")
+    local n_key = exu.GetGameKey("N")
+    if n_key and not InputState.last_n_state then
+        PersistentConfig.Settings.enableAutoSave = not PersistentConfig.Settings.enableAutoSave
+        PersistentConfig.SaveConfig()
+        ShowFeedback("AutoSave: " .. (PersistentConfig.Settings.enableAutoSave and "ON (5m)" or "OFF"), 0.6, 1.0, 0.6)
+    end
+    InputState.last_n_state = n_key
 
     -- Help Popup (/ or ? key) - using stock BZ API
     local help_pressed = (LastGameKey == "/" or LastGameKey == "?")

@@ -1764,30 +1764,6 @@ end
 -- UTILITY FUNCTIONS
 ----------------------------------------------------------------------------------
 
-function aiCore.IsAreaFlat(centerPos, radius, checkPoints, flatThreshold, flatPercentage)
-    radius = radius or 10.0
-    checkPoints = checkPoints or 8
-    flatThreshold = flatThreshold or 0.966 -- cos(15 degrees)
-    flatPercentage = flatPercentage or 0.75
-    
-    local centerHeight, centerNormal = GetTerrainHeightAndNormal(centerPos)
-    if centerNormal.y < flatThreshold then return false, 0.0 end
-    
-    local flatPoints = 1
-    local totalPoints = 1 + checkPoints
-    
-    for i = 0, checkPoints - 1 do
-        local angle = (i / checkPoints) * 2 * math.pi
-        local x = centerPos.x + radius * math.cos(angle)
-        local z = centerPos.z + radius * math.sin(angle)
-        local testPos = SetVector(x, centerPos.y, z)
-        local _, normal = GetTerrainHeightAndNormal(testPos)
-        if normal.y >= flatThreshold then flatPoints = flatPoints + 1 end
-    end
-    
-    local actual = flatPoints / totalPoints
-    return actual >= flatPercentage, actual
-end
 
 function aiCore.IsTracked(h, teamNum)
     local team = aiCore.ActiveTeams[teamNum]
@@ -1906,47 +1882,6 @@ function aiCore.GetFlankPosition(target, dist, angleDeg)
 end
 
 -- Find the most valuable enemy building for tactical strikes
-function aiCore.Team:FindCriticalTarget()
-    local bestTarget = nil
-    local bestPrio = 99
-    
-    -- Search for non-allied buildings
-    for i = 1, 15 do
-        if i ~= self.teamNum and i ~= 0 and not IsAlly(self.teamNum, i) then
-            -- 1. Recycler (Ultimate Priority)
-            local r = GetRecyclerHandle(i)
-            if IsValid(r) then return r end
-            
-            -- 2. Factory (High Priority)
-            local f = GetFactoryHandle(i)
-            if IsValid(f) then return f end
-            
-            -- 3. Scan for Power and others
-            for h in GetHandleByTeam(i) do
-                if IsValid(h) and IsBuilding(h) then
-                    local cls = string.lower(aiCore.NilToString(GetClassLabel(h)))
-                    local prio = 99
-                    
-                    if string.find(cls, "powerplant") or string.find(cls, "generator") then
-                        prio = 3
-                    elseif string.find(cls, "armory") or string.find(cls, "constructionrig") then
-                        prio = 4
-                    elseif string.find(cls, "training") or string.find(cls, "barracks") then
-                        prio = 5
-                    end
-                    
-                    if prio < bestPrio then
-                        bestPrio = prio
-                        bestTarget = h
-                        if prio == 3 then break end -- Power is good enough to stop looking in this team
-                    end
-                end
-            end
-        end
-    end
-    
-    return bestTarget
-end
 
 
 -- Upgrade Turret Logic (Ported from aiSpecial)
@@ -2625,10 +2560,12 @@ function aiCore.Team:new(teamNum, faction)
         -- Toggles
         passiveRegen = false,
         autoManage = false,
+        autoRepairWingmen = false,
         autoRescue = false,
         autoTugs = false,
         stickToPlayer = false,
         dynamicMinefields = false,
+        scavengerAssist = false,
         
         -- Minefield positions
         minefields = {},  -- List of positions for minelayers
@@ -2651,23 +2588,57 @@ function aiCore.Team:new(teamNum, faction)
         reclaimEngineers = false,
         
         -- Factory Management
-        manageFactories = true -- Default to true for AI teams
+        manageFactories = true, -- Default to true for AI teams
+
+        -- Wreckers & Paratroopers
+        enableWreckers = false,
+        paratrooperChance = 0,
+        paratrooperInterval = 600,
+
+        -- Construction Defaults
+        siloMinDistance = 250.0,
+        siloMaxDistance = 450.0
     }
 
     -- Tactical Lists
     t.scavengers = {}
     t.howitzers = {}
+    t.howitzerGuards = {}
     t.apcs = {}
     t.minelayers = {}
     t.cloakers = {}
     t.mortars = {}
     t.thumpers = {}
     t.fields = {}
-    t.pilots = {}
     t.turrets = {}
     t.doubleUsers = {}
     t.soldiers = {}
     t.tugHandles = {}
+    t.pool = {}
+    t.squads = {}
+    t.combatUnits = {}
+    t.guards = {}
+    
+    -- Tactical State
+    t.howitzerState = {}
+    t.wreckerTimer = GetTime() + (t.Config.wreckerInterval or 600)
+    t.upgradeTimer = GetTime() + (t.Config.upgradeInterval or 240)
+    t.strategyTimer = GetTime() + aiCore.Constants.STRATEGY_ROTATION_INTERVAL
+    t.weaponTimer = GetTime() + 1.0
+    t.resourceBoostTimer = GetTime() + 10.0
+    t.scavAssistTimer = 0
+    t.techTimer = 0
+    t.pilotResTimer = 0
+    t.rescueTimer = 0
+    t.paratrooperTimer = 0
+    
+    t.stealthState = {
+        discovered = false,
+        warnings = 0,
+        playerInVehicle = true,
+        lastCheckPos = nil
+    }
+
     if not faction then
         -- Simple detection based on recycler ODF
         local rec = GetRecyclerHandle(teamNum)
@@ -2690,22 +2661,24 @@ function aiCore.Team:new(teamNum, faction)
     t.constructorMgr = aiCore.ConstructorManager:new(teamNum)
     t.constructorMgr.teamObj = t -- Bind reference
     
+    -- Initialize Managers
+    t.weaponMgr = aiCore.WeaponManager.new(teamNum)
+    t.cloakMgr = aiCore.CloakingManager.new(teamNum)
+    t.howitzerMgr = aiCore.HowitzerManager.new(teamNum)
+    t.minelayerMgr = aiCore.MinelayerManager.new(teamNum)
+    t.apcMgr = aiCore.APCManager.new(teamNum)
+    t.turretMgr = aiCore.TurretManager.new(teamNum)
+    t.guardMgr = aiCore.GuardManager.new(teamNum)
+    t.wingmanMgr = aiCore.WingmanManager.new(teamNum)
+    t.defenseMgr = aiCore.DefenseManager.new(teamNum)
+    t.depotMgr = aiCore.DepotManager.new(teamNum)
+
     -- Initialize Integrated Producer Queue
     if not producer.Queue[teamNum] then producer.Queue[teamNum] = {} end
     
     t.recyclerBuildList = {}
     t.factoryBuildList = {}
     t.buildingList = {}
-    
-    t.combatUnits = {} 
-    
-    t.pool = {} -- Units waiting for assignment
-    t.squads = {} -- Active squads
-    
-    t.resourceBoostTimer = GetTime() + 10.0 -- Randomized boost starts soon
-    t.lastArmoryTarget = nil -- Track for Day Wrecker fix
-    t.defenseMgr = aiCore.DefenseManager.new(teamNum)
-    t.depotMgr = aiCore.DepotManager.new(teamNum)
     
     return t
 end
@@ -2848,7 +2821,7 @@ end
 function aiCore.Team:CheckBuildingSpacing(odf, position, minSpacing)
     minSpacing = minSpacing or 70  -- Default from pilotMode
     
-    -- Check against existing buildings in buildingList
+    -- 1. Check against existing buildings in buildingList
     for _, building in pairs(self.buildingList) do
         if building.path and GetDistance(position, building.path) < minSpacing then
             return false, "Too close to planned building"
@@ -2858,10 +2831,17 @@ function aiCore.Team:CheckBuildingSpacing(odf, position, minSpacing)
         end
     end
     
-    -- Check against all buildings in range
+    -- 2. Check against all buildings in range
     for obj in ObjectsInRange(minSpacing, position) do
-        if GetTeamNum(obj) == self.teamNum and IsBuilding(obj) then
-            return false, "Too close to building: " .. GetOdf(obj)
+        if IsBuilding(obj) and GetTeamNum(obj) == self.teamNum then
+            -- Same type strict spacing
+            if IsOdf(obj, odf) then
+                return false, "Same type too close"
+            end
+            -- General crowding
+            if GetDistance(obj, position) < (minSpacing * 0.6) then
+                return false, "Area too crowded"
+            end
         end
     end
     
@@ -2869,120 +2849,9 @@ function aiCore.Team:CheckBuildingSpacing(odf, position, minSpacing)
 end
 
 
--- Plan defensive perimeter with power generators and gun towers
-function aiCore.Team:PlanDefensivePerimeter(powerCount, towerCount)
-    if not IsValid(self.recyclerMgr.handle) then return end
-    
-    local recPos = GetPosition(self.recyclerMgr.handle)
-    local powerOdf = aiCore.Units[self.faction][aiCore.DetectWorldPower()]
-    local towerOdf = aiCore.Units[self.faction].gunTower
-    
-    if not powerOdf or not towerOdf then
-        if aiCore.Debug then print("Team " .. self.teamNum .. " missing power or tower ODF") end
-        return
-    end
-    
-    -- Place power generators in a circle
-    local powerRadius = 120
-    local angleStep = 360 / powerCount
-    for i = 0, powerCount - 1 do
-        local angle = i * angleStep + math.random(-15, 15)
-        local rad = math.rad(angle)
-        local pos = SetVector(
-            recPos.x + math.cos(rad) * powerRadius,
-            recPos.y,
-            recPos.z + math.sin(rad) * powerRadius
-        )
-        
-        -- Validate position
-        local isFlat, flatness = aiCore.IsAreaFlat(pos, 20, 6, 0.95, 0.80)
-        if isFlat then
-            self:AddBuilding(powerOdf, pos, i + 1)
-        end
-    end
-    
-    -- Place gun towers further out
-    local towerRadius = 180
-    local towersPerPower = math.ceil(towerCount / powerCount)
-    local priority = powerCount + 1
-    
-    for i = 0, powerCount - 1 do
-        local baseAngle = i * angleStep
-        for j = 1, towersPerPower do
-            if priority - powerCount > towerCount then break end
-            
-            local offset = (j - (towersPerPower / 2)) * 25
-            local angle = baseAngle + offset + math.random(-10, 10)
-            local rad = math.rad(angle)
-            local pos = SetVector(
-                recPos.x + math.cos(rad) * towerRadius,
-                recPos.y,
-                recPos.z + math.sin(rad) * towerRadius
-            )
-            
-            -- Validate position
-            local isFlat, flatness = aiCore.IsAreaFlat(pos, 15, 6, 0.95, 0.75)
-            if isFlat then
-                self:AddBuilding(towerOdf, pos, priority)
-                priority = priority + 1
-            end
-        end
-    end
-    
-    if aiCore.Debug then 
-        print("Team " .. self.teamNum .. " planned defensive perimeter: " .. powerCount .. " powers, " .. towerCount .. " towers") 
-    end
-end
 
 
 function aiCore.Team:Update()
-    -- Lazy Initialization for Retrofitting (Fixes crashes on existing saves/teams)
-    if not self.fields then self.fields = {} end
-    if not self.doubleUsers then self.doubleUsers = {} end
-    if not self.soldiers then self.soldiers = {} end
-    if not self.cloakers then self.cloakers = {} end
-    if not self.howitzers then self.howitzers = {} end
-    if not self.apcs then self.apcs = {} end
-    if not self.minelayers then self.minelayers = {} end
-    if not self.thumpers then self.thumpers = {} end
-    if not self.mortars then self.mortars = {} end
-    if not self.turrets then self.turrets = {} end
-    if not self.scavengers then self.scavengers = {} end
-    if not self.pilots then self.pilots = {} end
-    if not self.tugHandles then self.tugHandles = {} end
-    if not self.pool then self.pool = {} end
-    if not self.guards then self.guards = {} end
-    
-    -- Initialize Phase 1 Managers
-    if not self.weaponMgr then self.weaponMgr = aiCore.WeaponManager.new(self.teamNum) end
-    if not self.cloakMgr then self.cloakMgr = aiCore.CloakingManager.new(self.teamNum) end
-    if not self.howitzerMgr then self.howitzerMgr = aiCore.HowitzerManager.new(self.teamNum) end
-    if not self.minelayerMgr then self.minelayerMgr = aiCore.MinelayerManager.new(self.teamNum) end
-    
-    -- Initialize Phase 2 Managers
-    if not self.apcMgr then self.apcMgr = aiCore.APCManager.new(self.teamNum) end
-    if not self.turretMgr then self.turretMgr = aiCore.TurretManager.new(self.teamNum) end
-    if not self.guardMgr then self.guardMgr = aiCore.GuardManager.new(self.teamNum) end
-    if not self.wingmanMgr then self.wingmanMgr = aiCore.WingmanManager.new(self.teamNum) end
-    
-    -- Ensure Config has new keys if missing
-    if self.Config.fieldChance == nil then
-        self.Config.fieldChance = 10
-        self.Config.doubleWeaponChance = 20
-        self.Config.soldierRange = 50
-        self.Config.sniperSteal = true
-        self.Config.pilotZeal = 0.4
-        self.Config.sniperTraining = 75
-        self.Config.sniperStealth = 0.5
-        self.Config.autoRepairWingmen = false  -- Disabled by default, user can enable
-        self.Config.resourceBoost = false
-        
-        -- New Features
-        self.Config.enableWreckers = false
-        self.Config.paratrooperChance = 0
-        self.Config.paratrooperInterval = 600
-    end
-
     -- Manager Updates
     self.recyclerMgr:update()
     self.factoryMgr:update()
@@ -3166,62 +3035,6 @@ function aiCore.Team:UpdateBaseMaintenance()
 end
 
 -- Configuration / Dynamic Difficulty Hooks
-aiCore.Team.Config = {
-    -- Pilots
-    pilotZeal = 0.4,       -- Chance to be a sniper
-    sniperStealth = 0.5,   -- Chance to retreat
-    techInterval = 60,     -- Seconds between technician spawns
-    techMax = 4,           -- Max technicians to spawn
-    
-    -- Weapons
-    thumperChance = 20,    -- % Chance to use thumper
-    mortarChance = 30,     -- % Chance to use mortar
-    doubleWeaponChance = 20, -- % Chance for double weapon mask
-    
-    -- Minelayers
-    minefields = {},       -- List of path names or positions
-    
-    howitzerChance = 50,
-    upgradeInterval = 180,
-    wreckerInterval = 600,
-    
-    -- pilotMode Automation (Default OFF)
-    autoManage = false,       -- Enable unit role distribution
-    autoBuild = false,        -- Enable automatic base building
-    autoRescue = false,       -- Enable player rescue system
-    autoTugs = false,         -- Enable automatic cargo management
-    stickToPlayer = false,    -- Enable physics assistance for wingmen
-    
-    -- Sub-config for automation
-    followPercentage = 30,
-    patrolPercentage = 30,
-    guardPercentage = 40,
-    scavengerCount = 4,
-    tugCount = 2,
-    buildingSpacing = 80,
-    rescueDelay = 2.0,
-    
-    -- New Features
-    enableWreckers = false,
-    paratrooperChance = 0,
-    paratrooperInterval = 600,
-    
-    -- Reinforcements
-    orbitalReinforce = true,
-    
-    -- Legacy Features (C++ Gems)
-    passiveRegen = false,      -- Enable Recycler health regeneration
-    regenRate = 20.0,          -- Health per second
-    reclaimEngineers = false,  -- Enable auto-reclaim for engineers
-    dynamicMinefields = false, -- Enable proximity-based mine spawning
-    
-    scavengerAssist = false,    -- Enable automanagement of friendly scavengers
-    
-    -- Construction Defaults
-    buildingSpacing = 70.0,
-    siloMinDistance = 250.0,
-    siloMaxDistance = 450.0
-}
 
 -- Setter for Difficulty Tweaking
 function aiCore.Team:SetConfig(key, value)
@@ -3237,23 +3050,6 @@ function aiCore.Team:SetMinefields(fields)
 end
 
 -- Building Spacing Helper (from aiBuildOS)
-function aiCore.Team:CheckBuildingSpacing(odf, position, minDistance)
-    minDistance = minDistance or 50
-    
-    for obj in ObjectsInRange(minDistance, position) do
-        if IsBuilding(obj) and GetTeamNum(obj) == self.teamNum then
-            -- Same type strict spacing
-            if IsOdf(obj, odf) then
-                return false, "Same type too close"
-            end
-            -- General crowding
-            if GetDistance(obj, position) < (minDistance * 0.6) then
-                return false, "Area too crowded"
-            end
-        end
-    end
-    return true, "OK"
-end
 
 function aiCore.Team:UpdateRegen()
     -- Consolidated Regen: Recycler (High Rate) + Combat Units (Low Rate)
@@ -3348,110 +3144,9 @@ end
 -- TACTICAL LOGIC EXTENSIONS
 ----------------------------------------------------------------------------------
 
-function aiCore.Team:UpdateMinelayers()
-    aiCore.RemoveDead(self.minelayers)
-    if #self.minelayers == 0 then return end
-    
-    -- 1. Ensure minefields exist
-    if #self.Config.minefields == 0 then
-        if IsValid(self.recyclerMgr.handle) then
-            for i=1, 3 do
-                local pos = GetPositionNear(GetPosition(self.recyclerMgr.handle), 150, 400)
-                table.insert(self.Config.minefields, pos)
-            end
-        end
-        return 
-    end
-    
-    for i, m in ipairs(self.minelayers) do
-        if IsAlive(m) and not IsBusy(m) then
-            -- A. Reactive Mining (Self defense)
-            local enemy = GetNearestEnemy(m)
-            if IsValid(enemy) and GetDistance(m, enemy) < 200 and GetDistance(m, enemy) > 60 then
-                 local mineOdf = aiCore.Units[self.faction].mine or "proxmine"
-                 BuildObject(mineOdf, 0, GetPosition(m))
-                 local dir = Normalize(GetPosition(m) - GetPosition(enemy))
-                 Goto(m, GetPosition(m) + dir * 100)
-            
-            -- B. Systematic Mining (Laying Fields)
-            elseif GetAmmo(m) > 0.8 then
-                local field = self.Config.minefields[math.random(#self.Config.minefields)]
-                Mine(m, field, 1)
-            
-            -- C. Resupply
-            elseif GetAmmo(m) < 0.2 then
-                -- Search for supply depot or return to base
-                local foundSupp = false
-                local supplyOdf = aiCore.Units[self.faction].supply
-                for obj in ObjectsInRange(500, m) do
-                    if IsOdf(obj, supplyOdf) and IsAlive(obj) then
-                        Goto(m, obj, 1)
-                        foundSupp = true
-                        break
-                    end
-                end
-                
-                if not foundSupp and IsValid(self.recyclerMgr.handle) then
-                    Goto(m, self.recyclerMgr.handle, 1)
-                end
-            end
-        end
-    end
-end
+-- DEPRECATED: Combined into MinelayerManager:Update
 
-function aiCore.Team:UpdateAdvancedWeapons()
-    -- Consolidated Special Weapon Management (Duration/Period from aiSpecial)
-    aiCore.RemoveDead(self.mortars)
-    aiCore.RemoveDead(self.thumpers)
-    aiCore.RemoveDead(self.fields)
-
-    if not self.weaponTimer then self.weaponTimer = GetTime() + 1.0 end
-    if GetTime() < self.weaponTimer then return end
-
-    if not self.specialActive then
-        -- Logic to ACTIVATE special weapons
-        self.specialActive = true
-        self.weaponTimer = GetTime() + (self.Config.specialDuration or 5.0)
-        
-        -- Activate for random subset
-        local lists = {self.mortars, self.thumpers, self.fields}
-        for _, list in ipairs(lists) do
-            for _, u in ipairs(list) do
-                if IsAlive(u) and math.random() < 0.7 then
-                    local mask = 0
-                    if list == self.thumpers then mask = aiCore.GetWeaponMask(u, {"quake", "thump"})
-                    elseif list == self.mortars then mask = aiCore.GetWeaponMask(u, {"mortar", "splint", "mdmgun"})
-                    elseif list == self.fields then mask = aiCore.GetWeaponMask(u, {"phantom", "redfld", "sitecam"})
-                    end
-                    if mask > 0 then SetWeaponMask(u, mask) end
-                end
-            end
-        end
-        
-        -- Double Weapon Users
-        aiCore.RemoveDead(self.doubleUsers)
-        for _, u in ipairs(self.doubleUsers) do
-             if math.random() < (self.Config.doubleWeaponChance or 0.2) then
-                SetWeaponMask(u, 3) -- Link 1+2
-             end
-        end
-    else
-        -- Logic to DEACTIVATE
-        self.specialActive = false
-        self.weaponTimer = GetTime() + (self.Config.specialPeriod or 25.0)
-        
-        local allSpecial = {}
-        for _, list in ipairs({self.mortars, self.thumpers, self.fields, self.doubleUsers}) do
-            for _, u in ipairs(list) do table.insert(allSpecial, u) end
-        end
-        
-        for _, u in ipairs(allSpecial) do
-            if IsAlive(u) then
-                self:ResetWeaponMask(u)
-            end
-        end
-    end
-end
+-- DEPRECATED: Combined into WeaponManager:Update
 
 function aiCore.Team:ResetWeaponMask(h)
     local w0 = utility.CleanString(GetWeaponClass(h, 0))
@@ -3509,35 +3204,7 @@ function aiCore.Team:UpdateParatroopers()
     end
 end
 
-function aiCore.Team:UpdateHowitzers()
-    aiCore.RemoveDead(self.howitzers)
-    if #self.howitzers == 0 then return end
-    
-    local target = nil
-    -- Find nearest enemy building or unit
-    for h in ObjectsInRange(2000, self.howitzers[1]) do
-        if GetTeamNum(h) ~= self.teamNum and IsAlive(h) and IsBuilding(h) then
-            target = h
-            break
-        end
-    end
-    
-    if not target then target = GetNearestEnemy(self.howitzers[1]) end
-    if not IsValid(target) then return end
-    
-    for i, h in ipairs(self.howitzers) do
-        if not IsBusy(h) then
-            local dist = GetDistance(h, target)
-            if dist > 350 then
-                Attack(h, target)
-            elseif dist < 120 then
-                -- Tactical Retreat (from aiSpecial)
-                local dir = Normalize(GetPosition(h) - GetPosition(target))
-                Goto(h, GetPosition(h) + dir * 100)
-            end
-        end
-    end
-end
+-- DEPRECATED: Combined into HowitzerManager:Update
 
 function aiCore.Team:UpdateAPCs()
     -- DEPRECATED: Combined into APCManager:UpdateAPC
