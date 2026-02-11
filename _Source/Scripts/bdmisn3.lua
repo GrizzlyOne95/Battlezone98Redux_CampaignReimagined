@@ -73,8 +73,8 @@ local difficulty = 2
 function Start()
     if exu then
         difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
-        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
+        if exu.SetReticleRange then exu.SetReticleRange(500) end
     end
     SetupAI()
     start_done = false
@@ -481,8 +481,8 @@ local difficulty = 2
 function Start()
     if exu then
         difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
-        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
+        if exu.SetReticleRange then exu.SetReticleRange(500) end
     end
     SetupAI()
     start_done = false
@@ -815,3 +815,4 @@ function Update()
     if lost and sound_complete[10] then FailMission(GetTime() + 2.0, "bd03lseb.des") end
 end
 >>>>>>> 30fa079494619a8bd6565c444554253b8b48a7b9
+

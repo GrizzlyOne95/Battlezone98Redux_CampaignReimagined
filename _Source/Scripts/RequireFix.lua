@@ -30,7 +30,7 @@ do
             local match = string.match(path, "(.*)\\addon")
             if not match then
                 -- Match against the folder containing the executable if possible
-                match = string.match(path, "(.*)\\?")
+                match = string.match(path, "(.*)\\\\%%?")
             end
             
             if match then
@@ -44,7 +44,7 @@ do
         
         -- Fallback to original logic if scan fails
         local path = paths[2] or paths[1]
-        return string.match(path, "(.*)\\%?") or "."
+        return string.match(path, "(.*)\\\\%%?") or "."
     end
 
     local function getSteamWorkshopDirectory()

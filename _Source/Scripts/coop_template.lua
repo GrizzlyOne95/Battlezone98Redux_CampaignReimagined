@@ -39,8 +39,8 @@ end
 function Start()
     -- Enable modern QOL features
     if exu then
-        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(400) end
+        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
+        if exu.SetReticleRange then exu.SetReticleRange(400) end
     end
 
     -- Initial Player Sync
@@ -121,3 +121,4 @@ end
 -- 1. SetLocal() is required after every lua BuildObject if you want clients to see it correctly.
 -- 2. MakeExplosion() is 100% local (good for VFX, bad for synced damage).
 -- 3. Pass variables via 'Send/Receive' if long-range state sync is needed.
+

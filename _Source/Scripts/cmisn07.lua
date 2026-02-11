@@ -72,8 +72,8 @@ local otf2 = {"ch07002n.otf", "ch07002e.otf"}
 
 function Start()
     if exu then
-        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
+        if exu.SetReticleRange then exu.SetReticleRange(500) end
         if exu.SetGlobalTurbo then exu.SetGlobalTurbo(true) end
     end
     SetupAI()
@@ -374,3 +374,4 @@ function Update()
     ammo1 = CheckPk(ammo1, "ammo_1", false); ammo2 = CheckPk(ammo2, "ammo_2", false)
     repair1 = CheckPk(repair1, "repair_1", true); repair2 = CheckPk(repair2, "repair_2", true)
 end
+

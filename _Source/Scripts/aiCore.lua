@@ -229,6 +229,7 @@ function producer.QueueJob(odf, team, location, builder, data)
 end
 
 function producer.ProcessQueues(teamObj)
+    if teamObj.Config and not teamObj.Config.manageFactories then return end
     local team = teamObj.teamNum
     local queue = producer.Queue[team]
     if not queue or #queue == 0 then return end
@@ -404,7 +405,11 @@ aiCore = {}
 aiCore.Debug = false
 
 function aiCore.Save()
-    return aiCore.ActiveTeams
+    return {
+        teams = aiCore.ActiveTeams,
+        globalDefense = aiCore.GlobalDefenseManagers,
+        globalDepot = aiCore.GlobalDepotManagers
+    }
 end
 
 function aiCore.NilToString(s)
@@ -430,14 +435,37 @@ end
 
 function aiCore.Load(data)
     if not data then return end
-    aiCore.ActiveTeams = data
+    
+    if data.teams then
+        aiCore.ActiveTeams = data.teams
+        aiCore.GlobalDefenseManagers = data.globalDefense or {}
+        aiCore.GlobalDepotManagers = data.globalDepot or {}
+    else
+        aiCore.ActiveTeams = data
+        aiCore.GlobalDefenseManagers = {}
+        aiCore.GlobalDepotManagers = {}
+    end
     
     -- Restore Metatables
     for _, team in pairs(aiCore.ActiveTeams) do
         setmetatable(team, aiCore.Team)
-        if team.recyclerMgr then setmetatable(team.recyclerMgr, aiCore.FactoryManager) end
-        if team.factoryMgr then setmetatable(team.factoryMgr, aiCore.FactoryManager) end
-        if team.constructorMgr then setmetatable(team.constructorMgr, aiCore.ConstructorManager) end
+        if team.recyclerMgr then setmetatable(team.recyclerMgr, aiCore.FactoryManager); team.recyclerMgr.teamObj = team end
+        if team.factoryMgr then setmetatable(team.factoryMgr, aiCore.FactoryManager); team.factoryMgr.teamObj = team end
+        if team.constructorMgr then setmetatable(team.constructorMgr, aiCore.ConstructorManager); team.constructorMgr.teamObj = team end
+        
+        -- Restore Phase 1 Managers
+        if team.weaponMgr then setmetatable(team.weaponMgr, aiCore.WeaponManager) end
+        if team.cloakMgr then setmetatable(team.cloakMgr, aiCore.CloakingManager) end
+        if team.howitzerMgr then setmetatable(team.howitzerMgr, aiCore.HowitzerManager) end
+        if team.minelayerMgr then setmetatable(team.minelayerMgr, aiCore.MinelayerManager) end
+        
+        -- Restore Phase 2 Managers
+        if team.apcMgr then setmetatable(team.apcMgr, aiCore.APCManager); team.apcMgr.teamObj = team end
+        if team.turretMgr then setmetatable(team.turretMgr, aiCore.TurretManager) end
+        if team.guardMgr then setmetatable(team.guardMgr, aiCore.GuardManager) end
+        if team.wingmanMgr then setmetatable(team.wingmanMgr, aiCore.WingmanManager) end
+        if team.defenseMgr then setmetatable(team.defenseMgr, aiCore.DefenseManager) end
+        if team.depotMgr then setmetatable(team.depotMgr, aiCore.DepotManager) end
         
         -- Restore Squad Metatables
         if team.squads then
@@ -1008,13 +1036,10 @@ end
 function aiCore.HowitzerManager:UpdateSquadOrders()
     -- Find enemy buildings as targets
     local enemyBuildings = {}
-    for i = 1, 15 do
-        if i ~= self.teamNum and i ~= 0 then
-            for obj in GetHandleByTeam(i) do
-                if IsValid(obj) and IsBuilding(obj) then
-                    table.insert(enemyBuildings, obj)
-                end
-            end
+    for obj in AllBuildings() do
+        local team = GetTeamNum(obj)
+        if team ~= self.teamNum and team ~= 0 then
+            table.insert(enemyBuildings, obj)
         end
     end
     

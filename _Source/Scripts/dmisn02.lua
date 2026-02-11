@@ -118,7 +118,7 @@ end
 
 function Start()
     if exu then
-        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
+        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
         if exu.SetGlobalTurbo then exu.SetGlobalTurbo(true) end
     end
     LoadBestScore()
@@ -253,3 +253,4 @@ function Update()
         if not invehicle and user > 0 then invehicle = true end
     end
 end
+

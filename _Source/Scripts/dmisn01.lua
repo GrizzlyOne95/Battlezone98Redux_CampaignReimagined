@@ -31,8 +31,8 @@ local moveZ = 98568.0
 
 function Start()
     if exu then
-        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
+        if exu.SetReticleRange then exu.SetReticleRange(500) end
         if exu.SetGlobalTurbo then exu.SetGlobalTurbo(true) end
     end
     start_done = false
@@ -183,3 +183,4 @@ function Update()
         end
     end
 end
+

@@ -106,11 +106,9 @@ local M = {
 
 function ApplyQOL()
     if not exu then return end
-    if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-    if exu.SetSmartCursorRange then exu.SetSmartCursorRange(600) end
+    if exu.SetShotConvergence then exu.SetShotConvergence(true) end
+    if exu.SetReticleRange then exu.SetReticleRange(600) end
     if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
-    if exu.EnableOrdnanceTweak then exu.EnableOrdnanceTweak(1.0) end
-    if exu.SetSelectNone then exu.SetSelectNone(true) end
     PersistentConfig.Initialize()
 end
 
@@ -688,3 +686,5 @@ function Load(missionData, aiData)
     ApplyQOL()
     subtit.Initialize()
 end
+
+

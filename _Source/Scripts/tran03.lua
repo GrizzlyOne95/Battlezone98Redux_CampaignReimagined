@@ -65,8 +65,8 @@ function Start()
     
     -- QOL Improvements
     if exu then
-        if exu.EnableShotConvergence then exu.EnableShotConvergence() end
-        if exu.SetSmartCursorRange then exu.SetSmartCursorRange(500) end
+        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
+        if exu.SetReticleRange then exu.SetReticleRange(500) end
     end
 end
 
@@ -205,3 +205,4 @@ function Update()
     end
 
 end
+
