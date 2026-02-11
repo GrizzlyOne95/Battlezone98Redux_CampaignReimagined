@@ -13,6 +13,7 @@ local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local AutoSave = require("AutoSave")
+local PhysicsImpact = require("PhysicsImpact")
 
 -- Global Variables (State)
 local camera1 = false
@@ -89,6 +90,12 @@ function ApplyQOL()
 
     -- Initialize Persistent Config
     PersistentConfig.Initialize()
+
+    -- Enable distance-based unit culling (from Culling.lua)
+    if exu.SetCullingEnabled then
+        exu.SetCullingEnabled(true)
+        exu.SetCullDistance(500.0)
+    end
 end
 function Start()
 
