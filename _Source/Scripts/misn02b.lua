@@ -107,6 +107,11 @@ function Start()
     elseif difficulty <= 1 then
         AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
     end
+
+    if exu and exu.Renderer and exu.Renderer.DebugGetOgreName then
+        local h = GetPlayerHandle()
+        print("Ogre Verification: " .. tostring(exu.Renderer.DebugGetOgreName(h)))
+    end
 end
 -- AddObject function: Called when a game object is added
 function AddObject(h)
