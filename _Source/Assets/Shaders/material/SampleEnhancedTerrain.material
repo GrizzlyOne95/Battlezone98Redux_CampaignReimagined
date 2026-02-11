@@ -1,0 +1,71 @@
+// Sample material for Battlezone 98 Redux demonstrating enhanced detail map controls
+// Created for testing the new DX9 terrain shader features.
+
+material SampleEnhancedTerrain : BZTerrainBase
+{
+	set $shininess "64"
+    set $ambient "1 1 1"
+    set $diffuse "1 1 1"
+	set $specular "1 1 1"
+	set $blendPower "1.5"
+	
+	// Custom detail map settings
+	set $detailTiling "16.0"
+	set $detailAlbedoScale "2.5"
+	set $detailRoughnessScale "0.8"
+	set $detailNormalScale "1.5"
+
+	technique
+	{
+		scheme high-pssm
+		lod_index 0
+		
+		pass : BZTerrainPassSchemeHighPSSM
+		{
+			fragment_program_ref TerrainHighPSSM_fragment
+			{
+				param_named blendPower float $blendPower
+				param_named detailTiling float $detailTiling
+				param_named detailAlbedoScale float $detailAlbedoScale
+				param_named detailRoughnessScale float $detailRoughnessScale
+				param_named detailNormalScale float $detailNormalScale
+			}
+		}
+	}
+
+	technique
+	{
+		scheme high
+		lod_index 0
+		
+		pass : BZTerrainPassSchemeHigh
+		{
+			fragment_program_ref TerrainHighShadow_fragment
+			{
+				param_named blendPower float $blendPower
+				param_named detailTiling float $detailTiling
+				param_named detailAlbedoScale float $detailAlbedoScale
+				param_named detailRoughnessScale float $detailRoughnessScale
+				param_named detailNormalScale float $detailNormalScale
+			}
+		}
+	}
+	
+	technique
+	{
+		scheme high-noshadow
+		lod_index 0
+		
+		pass : BZTerrainPassSchemeHighNoShadow
+		{
+			fragment_program_ref TerrainHighNoShadow_fragment
+			{
+				param_named blendPower float $blendPower
+				param_named detailTiling float $detailTiling
+				param_named detailAlbedoScale float $detailAlbedoScale
+				param_named detailRoughnessScale float $detailRoughnessScale
+				param_named detailNormalScale float $detailNormalScale
+			}
+		}
+	}
+}

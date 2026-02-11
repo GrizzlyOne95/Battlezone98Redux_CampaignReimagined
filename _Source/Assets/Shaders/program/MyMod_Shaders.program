@@ -1,0 +1,28 @@
+// shaders/MyMod_Shaders.program
+
+// Define the Vertex Program (The "Vertex Shader" name you pass to Lua)
+vertex_program MyMod/PBR_VS hlsl
+{
+    source MyMod_base.hlsl      // Your unique filename
+    entry_point VS_Main         // Function name inside HLSL (can be same as original)
+    target vs_2_0               // Target profile
+
+    default_params
+    {
+        // ... params ...
+        param_named_auto worldViewProj worldviewproj_matrix
+    }
+}
+
+// Define the Fragment Program (The "Fragment Shader" name you pass to Lua)
+fragment_program MyMod/PBR_PS hlsl
+{
+    source MyMod_base.hlsl      // Your unique filename
+    entry_point PS_Main         // Function name inside HLSL (can be same as original)
+    target ps_2_0               // Target profile
+
+    default_params
+    {
+        // ... params ...
+    }
+}
