@@ -64,53 +64,11 @@ float3x3 cotangent_frame(float3 N, float3 p, float2 uv)
 #endif
 
 // ===============================================================================================
-// PBR Helper Functions (Cook-Torrance BRDF) - Adapted for SM3.0
+// Blinn-Phong Helper Functions (Standard)
 // ===============================================================================================
-static const float PI = 3.14159265359;
 
-// Normal Distribution Function (GGX)
-float DistributionGGX(float3 N, float3 H, float roughness)
-{
-    float a = roughness*roughness;
-    float a2 = a*a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH*NdotH;
+// No complex BRDF functions needed for Blinn-Phong
 
-    float nom   = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-
-    return nom / max(denom, 0.0000001); // avoid divide by zero
-}
-
-// Geometry Function (Schlick-GGX)
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-    float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
-
-    float nom   = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-
-    return nom / denom;
-}
-
-// Geometry Function (Smith)
-float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
-{
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
-}
-
-// Fresnel Equation (Schlick)
-float3 FresnelSchlick(float cosTheta, float3 F0)
-{
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-}
 // ===============================================================================================
 
 void base_vertex(
@@ -318,34 +276,20 @@ void base_fragment(
 
 	// Sample Diffuse (Albedo)
 	float4 diffuseTex = tex2D(diffuseMap, vTexCoord);
-	float3 albedo = pow(diffuseTex.rgb, 2.2); // Simple Gamma -> Linear approximation
-
-	// Sample ORM Map (Occlusion, Roughness, Metallic) via Specular Map slot
-	// Default values if no map
-	float ao = 1.0;
-	float roughness = 0.5;
-	float metallic = 0.0;
-
-#if defined(SPECULARMAP_ENABLED)
-	float4 ormTex = tex2D(specularMap, vTexCoord);
-	// Assumption: R=AO, G=Roughness, B=Metallic
-	ao = ormTex.r;
-	roughness = ormTex.g;
-	metallic = ormTex.b;
-#endif
+	float3 albedo = diffuseTex.rgb; // Standard Blinn-Phong usually works in Gamma space or assumes textures are already correct
 
 #if defined(VERTEX_LIGHTING)
 	// Fallback for Vertex Lighting (just use standard output)
 	float3 lightResult = vLightResult * shadow + sceneAmbient.xyz;
-	float3 finalColor = lightResult * diffuseTex.rgb;
+	float3 finalColor = lightResult * albedo;
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
 	finalColor += vSpecularResult;
 #endif
-	oColor.xyz = finalColor; // Non-PBR fallback
+	oColor.xyz = finalColor; 
 
 #else
 	
-	// PBR Lighting Calculation
+	// Standard Blinn-Phong Lighting Calculation
 	float3 N = normalize(vViewNormal);
 #if defined(NORMALMAP_ENABLED) 
 	// ... (existing TBN calculation) ...
@@ -361,10 +305,9 @@ void base_fragment(
 
 	float3 V = normalize(-vViewPosition); // View vector
 
-	float3 F0 = float3(0.04, 0.04, 0.04); 
-	F0 = lerp(F0, albedo, metallic);
-
-	float3 Lo = float3(0.0, 0.0, 0.0);
+	// Accumulate light results
+	float3 totalDiffuse = float3(0,0,0);
+	float3 totalSpecular = float3(0,0,0);
 
 #if MAX_LIGHTS > 1
 	// for each possible light source...
@@ -380,6 +323,8 @@ void base_fragment(
 		float3 L = lightPosition[i].xyz - (vViewPosition * lightPosition[i].w);
 		float distance = length(L);
 		L = normalize(L);
+		
+		// Half vector for Blinn-Phong
 		float3 H = normalize(V + L);
 
 		// Attenuation
@@ -396,42 +341,37 @@ void base_fragment(
 
 		if (i == 0) attenuation *= shadow; // Apply shadow to sun/first light
 
-		float3 radiance = lightDiffuse[i].rgb * attenuation; 
-
-		// Cook-Torrance BRDF
-		float NDF = DistributionGGX(N, H, roughness);
-		float G   = GeometrySmith(N, V, L, roughness);
-		float3 F  = FresnelSchlick(max(dot(H, V), 0.0), F0);
-
-		float3 numerator    = NDF * G * F;
-		float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-		float3 specular = numerator / denominator;
-
-		float3 kS = F;
-		float3 kD = float3(1.0, 1.0, 1.0) - kS;
-		kD *= 1.0 - metallic;
-
+		// Diffuse Term
 		float NdotL = max(dot(N, L), 0.0);
-		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+		totalDiffuse += lightDiffuse[i].rgb * NdotL * attenuation;
+
+#if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
+		// Specular Term (Blinn-Phong)
+		float NdotH = max(dot(N, H), 0.0);
+		float specularIntensity = pow(NdotH, materialShininess);
+		totalSpecular += lightSpecular[i].rgb * specularIntensity * attenuation;
+#endif
 	}
 #if MAX_LIGHTS == 1
 	}
 #endif
 
-	// Ambient Lighting (Simplified IBL approximation)
-	float3 ambient = float3(0.03, 0.03, 0.03) * albedo * ao; // Basic ambient
-	ambient += sceneAmbient.rgb * albedo * ao; // Add Engine Ambient
+	// Apply textures and combine
+	float3 finalDiffuse = (sceneAmbient.rgb + totalDiffuse) * albedo;
+	
+#if defined(SPECULARMAP_ENABLED)
+	// Specular map usually contains specular intensity in RGB
+	float3 specularTex = tex2D(specularMap, vTexCoord).rgb;
+	totalSpecular *= specularTex;
+#endif
 
-	float3 color = ambient + Lo;
+	float3 color = finalDiffuse + totalSpecular;
 
 	// Emissive
 #if defined(EMISSIVEMAP_ENABLED)
 	float3 emissive = tex2D(emissiveMap, vTexCoord).rgb;
 	color += emissive;
 #endif
-
-	// Tonemapping & Gamma Correction
-	color = pow(color, 1.0/2.2); // Gamma Correction back to sRGB
 
 	oColor.rgb = color;
 

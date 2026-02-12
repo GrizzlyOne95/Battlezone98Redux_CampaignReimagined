@@ -434,8 +434,26 @@ void base_fragment(
 #endif
 
 	// Ambient Lighting (Simplified IBL approximation)
-	float3 ambient = float3(0.03, 0.03, 0.03) * albedo * ao; // Basic ambient
-	ambient += sceneAmbient.rgb * albedo * ao; // Add Engine Ambient
+	// float3 ambient = float3(0.03, 0.03, 0.03) * albedo * ao; // Basic ambient
+	
+	// Pseudo-IBL: Simple Sky/Ground gradient reflection
+	float3 R = reflect(-V, N); // Reflection vector
+	float3 skyColor = float3(0.3, 0.4, 0.5); // Cool sky
+	float3 groundColor = float3(0.1, 0.1, 0.1); // Dark ground
+	float3 envColor = lerp(groundColor, skyColor, smoothstep(-0.2, 0.2, R.y));
+	
+	// Dim reflection by roughness (simulating blur)
+	envColor *= (1.0 - roughness); 
+	
+	// Fresnel for ambient (rough approximation)
+	float3 kS_ambient = FresnelSchlick(max(dot(N, V), 0.0), F0);
+	float3 kD_ambient = 1.0 - kS_ambient;
+	kD_ambient *= 1.0 - metallic;
+	
+	float3 diffuseAmbient = sceneAmbient.rgb * albedo * ao; // Use engine ambient as irradiance
+	float3 specularAmbient = envColor * kS_ambient * ao; // Environment reflection
+	
+	float3 ambient = diffuseAmbient + specularAmbient;
 
 	float3 color = ambient + Lo;
 
