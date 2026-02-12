@@ -1,7 +1,7 @@
 -- Misn12 Mission Script (Converted from Misn12Mission.cpp)
 
 -- Compatibility for 1.5
-SetLabel = SetLabel or SettLabel
+SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")
@@ -609,8 +609,8 @@ function Update()
             -- In Lua we can just SetTeam or SetObjective.
             -- Simplified:
             if (not camera_swap1) and (GetDistance(user, center) < 100.0) then
-               if IsAlive(start_cam) then SetTeam(start_cam, 1) end
-               if IsAlive(check2_cam) then SetTeam(check2_cam, 1) end
+               if IsAlive(start_cam) then SetTeamNum(start_cam, 1) end
+               if IsAlive(check2_cam) then SetTeamNum(check2_cam, 1) end
                -- ... etc
                camera_swap1 = true
                if not camera_noise then AudioMessage("misn1229.wav"); camera_noise = true end

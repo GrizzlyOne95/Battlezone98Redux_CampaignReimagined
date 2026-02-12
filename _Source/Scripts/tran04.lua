@@ -3,7 +3,7 @@
 -- Training Mission 4: Advanced Command (Factory, Camera, Wingman)
 
 -- Compatibility
-SetLabel = SetLabel or SettLabel
+SetLabel = SetLabel or SetLabel
 
 -- Libraries
 local RequireFix = require("RequireFix")

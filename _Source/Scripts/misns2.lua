@@ -1,7 +1,7 @@
 -- Misns2 Mission Script (Converted from Misns2Mission.cpp)
 
 -- Compatibility for 1.5
-SetLabel = SetLabel or SettLabel
+SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")
@@ -119,7 +119,7 @@ function Update()
         t2 = GetHandle("svapc1_apc")
         t3 = GetHandle("svapc2_apc")
         -- Ensure APCs are team 1
-        SetTeam(t1, 1); SetTeam(t2, 1); SetTeam(t3, 1)
+        SetTeamNum(t1, 1); SetTeamNum(t2, 1); SetTeamNum(t3, 1)
         
         wave1start = GetTime() + DiffUtils.ScaleTimer(10.0)
         missionstart = true

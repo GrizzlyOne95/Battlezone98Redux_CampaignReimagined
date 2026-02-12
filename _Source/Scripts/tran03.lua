@@ -3,7 +3,7 @@
 -- Training Mission 3: Strategy & Building
 
 -- Compatibility
-SetLabel = SetLabel or SettLabel
+SetLabel = SetLabel or SetLabel
 
 -- Libraries
 local RequireFix = require("RequireFix")

@@ -26,8 +26,8 @@
 ---Divide two vectors.
 ---@operator div(vector): vector
 ---@field x number The X component of the vector.
----@field y number The Y component of the vector. 
----@field z number The Z component of the vector. 
+---@field y number The Y component of the vector.
+---@field z number The Z component of the vector.
 
 ---This is a custom userdata representing an orientation and position in space.<br>
 ---It has four vector components:
@@ -292,7 +292,7 @@ function StopAudioMessage(msg) end
 function IsAudioMessagePlaying() end
 
 ---Sound Effects
---[[These functions control sound effects, either positional 3D sounds attached 
+--[[These functions control sound effects, either positional 3D sounds attached
 to objects or global 2D sounds.
 
 Sound effects use the Effects Volume setting from the Audio Options menu.]]
@@ -1014,7 +1014,7 @@ function SelectedObjects() end
 function ObjectiveObjects() end
 
 ---Scrap Management
---[[These functions remove scrap, either to reduce the global game object count 
+--[[These functions remove scrap, either to reduce the global game object count
 or to remove clutter around a location.]]
 
 ---While the global scrap count is above the limit, remove the oldest scrap piece. If no limit is given, it uses the default limit of 300.
@@ -1975,7 +1975,7 @@ function IsNetGame() end
 ---@return boolean
 function IsHosting() end
 
----Sets the game object as local to the machine the script is running on, transferring ownership from its original owner if it was remote. 
+---Sets the game object as local to the machine the script is running on, transferring ownership from its original owner if it was remote.
 ---
 ---⚠️ **Important safety tip:** only call this on one machine at a time!
 ---@param h handle
