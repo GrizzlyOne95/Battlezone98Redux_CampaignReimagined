@@ -12,6 +12,10 @@ error("This is a definition file, use require(\"exu\")")
 --- @alias GameObject* lightuserdata pointer the underlying object of a Handle
 --- @alias Ordnance* lightuserdata pointer to the ordnance object
 
+--- @alias Handle handle
+--- @alias Vector vector
+--- @alias Matrix matrix
+
 --- Structs
 
 --- Note the inconsistent capitalization, this is intentional since it's the way
@@ -48,17 +52,17 @@ exu.CAMERA = {
     THIRD_PERSON = 0x101,
 
     -- View modes
-    COCKPIT = 1, -- F1
-    NO_COCKPIT = 2, -- F2
-    CHASE = 4, -- F3
-    ORBIT = 5, -- F4
-    NO_HUD = 3, -- F5
-    EDITOR = 6, -- F9
-    CHEAT_SATELLITE = 7, -- F10
-    FREECAM = 9, -- F11
+    COCKPIT = 1,          -- F1
+    NO_COCKPIT = 2,       -- F2
+    CHASE = 4,            -- F3
+    ORBIT = 5,            -- F4
+    NO_HUD = 3,           -- F5
+    EDITOR = 6,           -- F9
+    CHEAT_SATELLITE = 7,  -- F10
+    FREECAM = 9,          -- F11
 
     TOGGLE_SATELLITE = 8, -- this code is used when satellite is activated with the 9 key
-    TERRAIN_EDIT = 0x2A, -- CTRL+E
+    TERRAIN_EDIT = 0x2A,  -- CTRL+E
 }
 
 --- @class Defaults
@@ -103,10 +107,11 @@ exu.ORDNANCE = {
     INIT_TRANSFORM = 2, -- The initial transform of the ordnance when it was spawned/shot
     OWNER = 3,          -- The handle of the ordnance's owner (usually who shot it unless it's been spawned manually, then it could be anything)
     INIT_TIME = 4,      -- The time that the ordnance was spawned/shot
+    VELOCITY = 5        -- Current velocity vector
 }
 
 --- @class RadarState
-exu.RADAR= {
+exu.RADAR = {
     MINIMAP = 0,
     RADAR = 1
 }
@@ -121,7 +126,7 @@ exu.SATELLITE = {
 ---
 --- These functions are related to the camera in-game and its attributes
 
---- Gets the values of the camera origins that can be useful for computing perspective transformations. 
+--- Gets the values of the camera origins that can be useful for computing perspective transformations.
 --- @nodiscard
 --- @return CameraOrigins
 function exu.GetCameraOrigins() end
@@ -466,6 +471,11 @@ function exu.BuildOrdnance(odf, transform, owner) end
 --- @param attribute OrdnanceAttributes
 --- @return any
 function exu.GetOrdnanceAttribute(ordnanceHandle, attribute) end
+
+--- Sets the velocity of the given ordnance.
+--- @param ordnanceHandle Ordnance*
+--- @param velocity Vector
+function exu.SetOrdnanceVelocity(ordnanceHandle, velocity) end
 
 --- Gets the global ballistic coefficient (how much mortars drop, default 4.9f).
 --- @nodiscard
