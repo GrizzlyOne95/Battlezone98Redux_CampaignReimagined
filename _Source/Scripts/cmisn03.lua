@@ -1,7 +1,7 @@
 -- cmisn03.lua (Converted from Chinese03Mission.cpp)
 
 -- Compatibility
-SetLabel = SetLabel or SettLabel
+SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")

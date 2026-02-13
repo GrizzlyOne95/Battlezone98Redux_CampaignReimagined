@@ -1,7 +1,7 @@
 -- Misn11 Mission Script (Converted from Misn11Mission.cpp)
 
 -- Compatibility for 1.5
-SetLabel = SetLabel or SettLabel
+SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")
@@ -148,7 +148,7 @@ function Update()
         betrayal_time = 99999.0
         AudioMessage("misn1103.wav") -- Transport 3 breaking off
         AudioMessage("misn1104.wav") -- Farewell
-        SetTeam(openh, 2)
+        SetTeamNum(openh, 2)
         Defend(turr1)
         Defend(turr3)
         AudioMessage("misn1105.wav")

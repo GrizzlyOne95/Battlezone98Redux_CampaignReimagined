@@ -1,7 +1,7 @@
 -- Misn17 Mission Script (Converted from Misn17Mission.cpp)
 
 -- Compatibility for 1.5
-SetLabel = SetLabel or SettLabel
+SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")

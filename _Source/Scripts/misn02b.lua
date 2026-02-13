@@ -2,7 +2,7 @@
 -- Converted from Tran05Mission.cpp
 
 -- Compatibility for 1.5 vs Redux naming
-SetLabel = SetLabel or SettLabel
+SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")
@@ -12,8 +12,6 @@ aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
-local AutoSave = require("AutoSave")
-local PhysicsImpact = require("PhysicsImpact")
 
 -- Global Variables (State)
 local camera1 = false
@@ -31,7 +29,6 @@ local message5 = false
 local mission_won = false
 local mission_lost = false
 local bootstrap_done = false
-local autosave_done = false
 
 local wave_timer = 0.0
 local last_wave_time = 99999.0
@@ -57,7 +54,7 @@ function Save()
     local missionData = {
         camera1, camera2, camera3, found, found2, start_done, patrol1,
         message1, message2, message3, message4, message5, mission_won, mission_lost,
-        bootstrap_done, autosave_done,
+        bootstrap_done,
         wave_timer, last_wave_time, cam_time, NextSecond,
         bscav, bscout, scav2, audmsg,
         dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2
@@ -70,7 +67,7 @@ function Load(missionData, aiData)
     if missionData then
         camera1, camera2, camera3, found, found2, start_done, patrol1,
         message1, message2, message3, message4, message5, mission_won, mission_lost,
-        bootstrap_done, autosave_done,
+        bootstrap_done,
         wave_timer, last_wave_time, cam_time, NextSecond,
         bscav, bscout, scav2, audmsg,
         dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2 = unpack(missionData)
@@ -90,12 +87,6 @@ function ApplyQOL()
 
     -- Initialize Persistent Config
     PersistentConfig.Initialize()
-
-    -- Enable distance-based unit culling (from Culling.lua)
-    if exu.SetCullingEnabled then
-        exu.SetCullingEnabled(true)
-        exu.SetCullDistance(500.0)
-    end
 end
 function Start()
 
@@ -106,11 +97,6 @@ function Start()
         AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
     elseif difficulty <= 1 then
         AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
-    end
-
-    if exu and exu.Renderer and exu.Renderer.DebugGetOgreName then
-        local h = GetPlayerHandle()
-        print("Ogre Verification: " .. tostring(exu.Renderer.DebugGetOgreName(h)))
     end
 end
 -- AddObject function: Called when a game object is added
@@ -176,15 +162,6 @@ function Update()
     subtit.Update()
     PersistentConfig.UpdateInputs()
     PersistentConfig.UpdateHeadlights()
-    AutoSave.Update()
-    
-    -- AutoSave Trigger (30 seconds into mission)
-    if not autosave_done and GetTime() > 30.0 then
-        -- Set mission state for AutoSave capture
-        AutoSave.SaveTable = { Save() }
-        AutoSave.CreateSave(10, "AutoSave")
-        autosave_done = true
-    end
     
     if not start_done then
         local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)

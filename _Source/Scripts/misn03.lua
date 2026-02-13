@@ -1,7 +1,7 @@
 -- misn03mission.lua
 
 -- Compatibility for 1.5
-SetLabel = SetLabel or SettLabel
+SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")

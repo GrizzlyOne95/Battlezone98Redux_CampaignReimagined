@@ -1,7 +1,7 @@
 -- Misn14 Mission Script (Converted from Misn14Mission.cpp)
 
 -- Compatibility for 1.5
-SetLabel = SetLabel or SettLabel
+SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")
@@ -342,16 +342,16 @@ function Update()
         local units = GetObjectsInRange(player, 5000.0, "any") -- Scan large area
         for _, o in ipairs(units) do
             if GetTeamNum(o) == 2 and IsCraft(o) then
-                SetTeam(o, 0)
+                SetTeamNum(o, 0)
                 Retreat(o, "escape")
             end
         end
         
-        if IsAlive(base) then SetTeam(base, 1) end
-        if IsAlive(tow1) then SetTeam(tow1, 1) end
-        if IsAlive(tow2) then SetTeam(tow2, 1) end
-        if IsAlive(tow3) then SetTeam(tow3, 1) end
-        if IsAlive(tow4) then SetTeam(tow4, 1) end
+        if IsAlive(base) then SetTeamNum(base, 1) end
+        if IsAlive(tow1) then SetTeamNum(tow1, 1) end
+        if IsAlive(tow2) then SetTeamNum(tow2, 1) end
+        if IsAlive(tow3) then SetTeamNum(tow3, 1) end
+        if IsAlive(tow4) then SetTeamNum(tow4, 1) end
     end
     
     -- Post-Rescue 3 events
