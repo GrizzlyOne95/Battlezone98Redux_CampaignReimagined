@@ -665,7 +665,7 @@ AutoSave.Config = {
 }
 
 -- State
-AutoSave.timer = 0.0
+AutoSave.timer = 300.0 -- Trigger immediately on first update/enable
 AutoSave.lastSaveTime = 0.0
 
 ---
@@ -887,8 +887,20 @@ end
 
 function AutoSave._WriteLuaMission(file)
     -- We'll write the LuaMission state if SaveTable is provided
-    -- In game1.sav, this follows TeamGlobals without a header
-    local state = AutoSave.SaveTable or _G.M or {}
+    -- Priority: AutoSave.SaveTable > Global Save() function > Global M table
+    local state = AutoSave.SaveTable
+
+    if not state then
+        if Save and type(Save) == "function" then
+            -- Mission uses custom Save() function (like misn02b.lua)
+            -- Save() returns (missionData, aiData)
+            local missionData, aiData = Save()
+            state = { missionData, aiData }
+        else
+            -- Default to global M table if it exists
+            state = _G.M or {}
+        end
+    end
 
     -- If state is a single table and not a list of tables to be saved,
     -- wrap it in a list so we can iterate.

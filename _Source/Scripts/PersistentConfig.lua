@@ -18,7 +18,8 @@ PersistentConfig.Settings = {
     OtherHeadlightsDisabled = true, -- AI Lights Off by default
     AutoRepairWingmen = nil,        -- Initialized via difficulty if not in config
     RainbowMode = false,            -- Special color effect
-    enableAutoSave = false          -- Experimental: ON/OFF
+    enableAutoSave = false,         -- Experimental: ON/OFF
+    AutoSaveSlot = 10               -- Default to slot 10
 }
 
 local function getWorkingDirectory()
@@ -192,6 +193,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.RainbowMode = (val == "true")
                 elseif key == "enableAutoSave" then
                     PersistentConfig.Settings.enableAutoSave = (val == "true")
+                elseif key == "AutoSaveSlot" then
+                    PersistentConfig.Settings.AutoSaveSlot = tonumber(val) or 10
                 end
             end
             line = f:Readln()
@@ -246,6 +249,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
         f:Writeln("enableAutoSave=" .. tostring(PersistentConfig.Settings.enableAutoSave))
+        f:Writeln("AutoSaveSlot=" .. tostring(PersistentConfig.Settings.AutoSaveSlot))
 
         f:Close()
         print("PersistentConfig: File closed successfully")
@@ -414,9 +418,14 @@ function PersistentConfig.UpdateInputs()
     if n_key and not InputState.last_n_state then
         PersistentConfig.Settings.enableAutoSave = not PersistentConfig.Settings.enableAutoSave
         PersistentConfig.SaveConfig()
-        ShowFeedback("AutoSave: " .. (PersistentConfig.Settings.enableAutoSave and "ON (5m)" or "OFF"), 0.6, 1.0, 0.6)
+        ShowFeedback("AutoSave: " .. (PersistentConfig.Settings.enableAutoSave and "ON" or "OFF"), 0.6, 1.0, 0.6)
     end
     InputState.last_n_state = n_key
+
+    -- Run AutoSave Update
+    if autosave and autosave.Update then
+        autosave.Update()
+    end
 
     -- Help Popup (/ or ? key) - using stock BZ API
     local help_pressed = (LastGameKey == "/" or LastGameKey == "?")
@@ -508,6 +517,11 @@ function PersistentConfig.Initialize()
     -- Ensure config file is created/updated
     PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings()
+
+    -- Sync AutoSave Slot
+    if autosave and autosave.SetSlot then
+        autosave.SetSlot(PersistentConfig.Settings.AutoSaveSlot)
+    end
 
     -- Show help reminder on every mission start
     PersistentConfig.ShowHelp()
