@@ -1,4 +1,5 @@
 -- PersistentConfig.lua
+---@diagnostic disable: lowercase-global, undefined-global
 local bzfile = require("bzfile")
 local exu = require("exu")
 local subtitles = require("subtitles")
@@ -8,16 +9,16 @@ local PersistentConfig = {}
 
 -- Default Settings
 PersistentConfig.Settings = {
-    HeadlightDiffuse = {R = 5.0, G = 5.0, B = 5.0}, -- White
-    HeadlightSpecular = {R = 5.0, G = 5.0, B = 5.0},
-    HeadlightRange = {InnerAngle = 0.6, OuterAngle = 0.9, Falloff = 1.0}, -- Default to Wide
-    HeadlightBeamMode = 2, -- 1 = Focused, 2 = Wide
+    HeadlightDiffuse = { R = 5.0, G = 5.0, B = 5.0 },                       -- White
+    HeadlightSpecular = { R = 5.0, G = 5.0, B = 5.0 },
+    HeadlightRange = { InnerAngle = 0.6, OuterAngle = 0.9, Falloff = 1.0 }, -- Default to Wide
+    HeadlightBeamMode = 2,                                                  -- 1 = Focused, 2 = Wide
     HeadlightVisible = true,
     SubtitlesEnabled = true,
     OtherHeadlightsDisabled = true, -- AI Lights Off by default
-    AutoRepairWingmen = true,  -- Auto-repair ON by default
-    RainbowMode = false, -- Special color effect
-    enableAutoSave = false -- Experimental: ON/OFF
+    AutoRepairWingmen = nil,        -- Initialized via difficulty if not in config
+    RainbowMode = false,            -- Special color effect
+    enableAutoSave = false          -- Experimental: ON/OFF
 }
 
 local configPath = bzfile.GetWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
@@ -48,15 +49,18 @@ local InputState = {
     last_j_state = false, -- AI Lights (J)
     last_b_state = false, -- Beam (B)
     last_help_state = false,
-    last_x_state = false,  -- Auto-repair toggle
-    last_n_state = false,  -- Manual Save (N)
-    SubtitlesPaused = false
+    last_x_state = false, -- Auto-repair toggle
+    last_n_state = false, -- Manual Save (N)
+    SubtitlesPaused = false,
+    SteamIDFound = false,
+    GreetingTriggered = false,
+    PollingStartTime = 0
 }
 
 -- Beam Definitions
 local BeamModes = {
-    [1] = {Inner = 0.1, Outer = 0.2}, -- Focused
-    [2] = {Inner = 0.6, Outer = 0.9}  -- Wide
+    [1] = { Inner = 0.1, Outer = 0.2 }, -- Focused
+    [2] = { Inner = 0.6, Outer = 0.9 }  -- Wide
 }
 
 -- Helper to parse a simple key=value line
@@ -79,12 +83,18 @@ local function HueToRGB(h)
     local t = f
 
     i = i % 6
-    if i == 0 then r, g, b = 1, t, 0
-    elseif i == 1 then r, g, b = q, 1, 0
-    elseif i == 2 then r, g, b = 0, 1, t
-    elseif i == 3 then r, g, b = 0, q, 1
-    elseif i == 4 then r, g, b = t, 0, 1
-    elseif i == 5 then r, g, b = 1, 0, q
+    if i == 0 then
+        r, g, b = 1, t, 0
+    elseif i == 1 then
+        r, g, b = q, 1, 0
+    elseif i == 2 then
+        r, g, b = 0, 1, t
+    elseif i == 3 then
+        r, g, b = 0, q, 1
+    elseif i == 4 then
+        r, g, b = t, 0, 1
+    elseif i == 5 then
+        r, g, b = 1, 0, q
     end
     return r * 5.0, g * 5.0, b * 5.0 -- Scale to bright BZ intensities
 end
@@ -94,29 +104,43 @@ function PersistentConfig.LoadConfig()
     -- Use pcall to catch "not open" error if bzfile.Open returns a zombie handle
     local status, err = pcall(function()
         local f = bzfile.Open(configPath, "r")
-        if not f then 
+        if not f then
             print("PersistentConfig: No config file found at " .. configPath .. ". Using defaults.")
-            return 
+            return
         end
 
         local line = f:Readln()
         while line do
             local key, val = ParseLine(line)
             if key then
-                if key == "HeadlightDiffuseR" then PersistentConfig.Settings.HeadlightDiffuse.R = tonumber(val) or 5.0
-                elseif key == "HeadlightDiffuseG" then PersistentConfig.Settings.HeadlightDiffuse.G = tonumber(val) or 5.0
-                elseif key == "HeadlightDiffuseB" then PersistentConfig.Settings.HeadlightDiffuse.B = tonumber(val) or 5.0
-                elseif key == "HeadlightSpecularR" then PersistentConfig.Settings.HeadlightSpecular.R = tonumber(val) or 5.0
-                elseif key == "HeadlightSpecularG" then PersistentConfig.Settings.HeadlightSpecular.G = tonumber(val) or 5.0
-                elseif key == "HeadlightSpecularB" then PersistentConfig.Settings.HeadlightSpecular.B = tonumber(val) or 5.0
-                elseif key == "HeadlightBeamMode" then PersistentConfig.Settings.HeadlightBeamMode = tonumber(val) or 1
-                elseif key == "HeadlightFalloff" then PersistentConfig.Settings.HeadlightRange.Falloff = tonumber(val) or 1.0
-                elseif key == "HeadlightVisible" then PersistentConfig.Settings.HeadlightVisible = (val == "true")
-                elseif key == "SubtitlesEnabled" then PersistentConfig.Settings.SubtitlesEnabled = (val == "true")
-                elseif key == "OtherHeadlightsDisabled" then PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
-                elseif key == "AutoRepairWingmen" then PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
-                elseif key == "RainbowMode" then PersistentConfig.Settings.RainbowMode = (val == "true")
-                elseif key == "enableAutoSave" then PersistentConfig.Settings.enableAutoSave = (val == "true")
+                if key == "HeadlightDiffuseR" then
+                    PersistentConfig.Settings.HeadlightDiffuse.R = tonumber(val) or 5.0
+                elseif key == "HeadlightDiffuseG" then
+                    PersistentConfig.Settings.HeadlightDiffuse.G = tonumber(val) or 5.0
+                elseif key == "HeadlightDiffuseB" then
+                    PersistentConfig.Settings.HeadlightDiffuse.B = tonumber(val) or 5.0
+                elseif key == "HeadlightSpecularR" then
+                    PersistentConfig.Settings.HeadlightSpecular.R = tonumber(val) or 5.0
+                elseif key == "HeadlightSpecularG" then
+                    PersistentConfig.Settings.HeadlightSpecular.G = tonumber(val) or 5.0
+                elseif key == "HeadlightSpecularB" then
+                    PersistentConfig.Settings.HeadlightSpecular.B = tonumber(val) or 5.0
+                elseif key == "HeadlightBeamMode" then
+                    PersistentConfig.Settings.HeadlightBeamMode = tonumber(val) or 1
+                elseif key == "HeadlightFalloff" then
+                    PersistentConfig.Settings.HeadlightRange.Falloff = tonumber(val) or 1.0
+                elseif key == "HeadlightVisible" then
+                    PersistentConfig.Settings.HeadlightVisible = (val == "true")
+                elseif key == "SubtitlesEnabled" then
+                    PersistentConfig.Settings.SubtitlesEnabled = (val == "true")
+                elseif key == "OtherHeadlightsDisabled" then
+                    PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
+                elseif key == "AutoRepairWingmen" then
+                    PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
+                elseif key == "RainbowMode" then
+                    PersistentConfig.Settings.RainbowMode = (val == "true")
+                elseif key == "enableAutoSave" then
+                    PersistentConfig.Settings.enableAutoSave = (val == "true")
                 end
             end
             line = f:Readln()
@@ -133,7 +157,7 @@ function PersistentConfig.LoadConfig()
     else
         print("PersistentConfig: Settings loaded.")
     end
-    
+
     -- Sync ranges based on mode
     local mode = PersistentConfig.Settings.HeadlightBeamMode
     if BeamModes[mode] then
@@ -146,7 +170,7 @@ function PersistentConfig.SaveConfig()
     print("=== PersistentConfig: Attempting to save config ===")
     print("Config path: " .. tostring(configPath))
     print("Working directory: " .. tostring(bzfile.GetWorkingDirectory()))
-    
+
     local status, err = pcall(function()
         local f = bzfile.Open(configPath, "w", "trunc")
         if not f then
@@ -156,7 +180,7 @@ function PersistentConfig.SaveConfig()
         end
 
         print("PersistentConfig: File opened successfully, writing settings...")
-        
+
         f:Writeln("HeadlightDiffuseR=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.R))
         f:Writeln("HeadlightDiffuseG=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.G))
         f:Writeln("HeadlightDiffuseB=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.B))
@@ -171,11 +195,11 @@ function PersistentConfig.SaveConfig()
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
         f:Writeln("enableAutoSave=" .. tostring(PersistentConfig.Settings.enableAutoSave))
-        
+
         f:Close()
         print("PersistentConfig: File closed successfully")
     end)
-    
+
     if not status then
         print("PersistentConfig: Error saving config: " .. tostring(err))
     else
@@ -196,21 +220,20 @@ function PersistentConfig.ApplySettings()
         end
 
         if exu.SetHeadlightDiffuse then
-            exu.SetHeadlightDiffuse(h, PersistentConfig.Settings.HeadlightDiffuse.R, PersistentConfig.Settings.HeadlightDiffuse.G, PersistentConfig.Settings.HeadlightDiffuse.B)
+            exu.SetHeadlightDiffuse(h, PersistentConfig.Settings.HeadlightDiffuse.R,
+                PersistentConfig.Settings.HeadlightDiffuse.G, PersistentConfig.Settings.HeadlightDiffuse.B)
         end
         if exu.SetHeadlightSpecular then
-            exu.SetHeadlightSpecular(h, PersistentConfig.Settings.HeadlightSpecular.R, PersistentConfig.Settings.HeadlightSpecular.G, PersistentConfig.Settings.HeadlightSpecular.B)
+            exu.SetHeadlightSpecular(h, PersistentConfig.Settings.HeadlightSpecular.R,
+                PersistentConfig.Settings.HeadlightSpecular.G, PersistentConfig.Settings.HeadlightSpecular.B)
         end
         if exu.SetHeadlightRange then
-            exu.SetHeadlightRange(h, PersistentConfig.Settings.HeadlightRange.InnerAngle, PersistentConfig.Settings.HeadlightRange.OuterAngle, PersistentConfig.Settings.HeadlightRange.Falloff)
+            exu.SetHeadlightRange(h, PersistentConfig.Settings.HeadlightRange.InnerAngle,
+                PersistentConfig.Settings.HeadlightRange.OuterAngle, PersistentConfig.Settings.HeadlightRange.Falloff)
         end
         if exu.SetHeadlightVisible then
             exu.SetHeadlightVisible(h, PersistentConfig.Settings.HeadlightVisible)
         end
-    end
-
-    if exu.SetSubtitlesEnabled then
-        exu.SetSubtitlesEnabled(PersistentConfig.Settings.SubtitlesEnabled)
     end
 end
 
@@ -218,8 +241,8 @@ end
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-                    "B:Beam | X:Auto-Repair | N:AutoSave | /:Help | ESC:Hide-Subs"
-    
+        "B:Beam | X:Auto-Repair | N:AutoSave | /:Help | ESC:Hide-Subs"
+
     -- Show with high precedence (clear queue, force opacity)
     if subtitles and subtitles.submit then
         subtitles.clear_queue()
@@ -246,33 +269,33 @@ function PersistentConfig.UpdateInputs()
     local z_key = exu.GetGameKey("Z")
     if z_key and not InputState.last_z_state then
         local colors = {
-            {5.0, 5.0, 5.0}, -- Bright White
-            {5.0, 1.0, 1.0}, -- Bright Red
-            {1.0, 5.0, 1.0}, -- Bright Green
-            {1.0, 1.0, 5.0}, -- Bright Blue
-            {5.0, 5.0, 1.0}, -- Bright Yellow
-            {1.0, 5.0, 5.0}, -- Cyan
-            {5.0, 1.0, 5.0}, -- Magenta
-            {5.0, 2.5, 1.0}, -- Orange
-            {2.5, 1.0, 5.0}, -- Purple
-            {1.0, 5.0, 2.5}, -- Teal
-            {-1, -1, -1}     -- [SPECIAL] Rainbow Mode
+            { 5.0, 5.0, 5.0 }, -- Bright White
+            { 5.0, 1.0, 1.0 }, -- Bright Red
+            { 1.0, 5.0, 1.0 }, -- Bright Green
+            { 1.0, 1.0, 5.0 }, -- Bright Blue
+            { 5.0, 5.0, 1.0 }, -- Bright Yellow
+            { 1.0, 5.0, 5.0 }, -- Cyan
+            { 5.0, 1.0, 5.0 }, -- Magenta
+            { 5.0, 2.5, 1.0 }, -- Orange
+            { 2.5, 1.0, 5.0 }, -- Purple
+            { 1.0, 5.0, 2.5 }, -- Teal
+            { -1,  -1,  -1 }   -- [SPECIAL] Rainbow Mode
         }
-        
+
         local currentIdx = 1
         if PersistentConfig.Settings.RainbowMode then
             currentIdx = #colors
         else
             for i, c in ipairs(colors) do
                 if math.abs(PersistentConfig.Settings.HeadlightDiffuse.R - c[1]) < 0.1 and
-                   math.abs(PersistentConfig.Settings.HeadlightDiffuse.G - c[2]) < 0.1 and
-                   math.abs(PersistentConfig.Settings.HeadlightDiffuse.B - c[3]) < 0.1 then
+                    math.abs(PersistentConfig.Settings.HeadlightDiffuse.G - c[2]) < 0.1 and
+                    math.abs(PersistentConfig.Settings.HeadlightDiffuse.B - c[3]) < 0.1 then
                     currentIdx = i
                     break
                 end
             end
         end
-        
+
         local nextIdx = (currentIdx % #colors) + 1
         if nextIdx == #colors then
             PersistentConfig.Settings.RainbowMode = true
@@ -282,9 +305,10 @@ function PersistentConfig.UpdateInputs()
             PersistentConfig.Settings.HeadlightDiffuse.R = colors[nextIdx][1]
             PersistentConfig.Settings.HeadlightDiffuse.G = colors[nextIdx][2]
             PersistentConfig.Settings.HeadlightDiffuse.B = colors[nextIdx][3]
-            ShowFeedback("Headlight Color Cycled", PersistentConfig.Settings.HeadlightDiffuse.R, PersistentConfig.Settings.HeadlightDiffuse.G, PersistentConfig.Settings.HeadlightDiffuse.B)
+            ShowFeedback("Headlight Color Cycled", PersistentConfig.Settings.HeadlightDiffuse.R,
+                PersistentConfig.Settings.HeadlightDiffuse.G, PersistentConfig.Settings.HeadlightDiffuse.B)
         end
-        
+
         PersistentConfig.SaveConfig()
         PersistentConfig.ApplySettings()
     end
@@ -296,7 +320,7 @@ function PersistentConfig.UpdateInputs()
         PersistentConfig.Settings.OtherHeadlightsDisabled = not PersistentConfig.Settings.OtherHeadlightsDisabled
         PersistentConfig.SaveConfig()
         ShowFeedback("AI Lights: " .. (PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON"))
-        
+
         if not PersistentConfig.Settings.OtherHeadlightsDisabled then
             local player = GetPlayerHandle()
             for h in AllCraft() do
@@ -324,12 +348,12 @@ function PersistentConfig.UpdateInputs()
     if x_key and not InputState.last_x_state then
         PersistentConfig.Settings.AutoRepairWingmen = not PersistentConfig.Settings.AutoRepairWingmen
         PersistentConfig.SaveConfig()
-        
+
         -- Apply to player team (team 1) immediately via aiCore
         if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
             aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
         end
-        
+
         ShowFeedback("Auto-Repair: " .. (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF"), 0.8, 1.0, 0.8)
     end
     InputState.last_x_state = x_key
@@ -380,6 +404,31 @@ function PersistentConfig.UpdateInputs()
             end
         end
     end
+
+    -- Steam ID Polling (Try for first 10 seconds)
+    if not InputState.GreetingTriggered then
+        local now = GetTime()
+        if now - InputState.PollingStartTime < 10.0 then
+            local steamID, username
+            if exu and exu.GetSteam64 then
+                steamID = exu.GetSteam64()
+            end
+
+            if not steamID or steamID == "" or steamID == "0" then
+                steamID, username = ParseBzLogger()
+            end
+
+            if steamID and #steamID >= 10 then
+                PersistentConfig.TriggerGreeting(steamID, username)
+                InputState.GreetingTriggered = true
+                InputState.SteamIDFound = true
+            end
+        else
+            -- Polling timeout
+            InputState.GreetingTriggered = true
+            print("PersistentConfig: Steam ID polling timed out.")
+        end
+    end
 end
 
 function PersistentConfig.UpdateHeadlights()
@@ -388,7 +437,7 @@ function PersistentConfig.UpdateHeadlights()
 
     local player = GetPlayerHandle()
     for h in AllObjects() do
-        if h ~= player then
+        if h ~= player and exu.SetHeadlightVisible then
             exu.SetHeadlightVisible(h, false)
         end
     end
@@ -401,7 +450,7 @@ local function ParseBzLogger()
     -- If GetWorkingDirectory() is the game root, this should work.
     local logPath = "bzlogger.txt"
     local f = io.open(logPath, "r")
-    
+
     if not f then
         print("PersistentConfig: Could not open " .. logPath .. " for parsing.")
         return nil, nil
@@ -409,7 +458,7 @@ local function ParseBzLogger()
 
     print("PersistentConfig: Scanning " .. logPath .. " for Steam credentials...")
     local steamID, username
-    
+
     -- Scan line by line
     -- Looking for: "Authenticated to BZRNet As S<ID>:<Username>"
     for line in f:lines() do
@@ -420,64 +469,66 @@ local function ParseBzLogger()
             break -- Found it, stop scanning
         end
     end
-    
+
     f:close()
     return steamID, username
 end
 
+-- Shared Greeting Logic
+function PersistentConfig.TriggerGreeting(steamID, username)
+    local CustomNames = {
+        ["76561198241259700"] = "GlizzyJuan",   -- GrizzlyOne95
+        ["76561198104781489"] = "British Twat", --JJ
+        ["76561199014392897"] = "Car Nerd",     --DriveLine
+    }
+
+    local displayName = CustomNames[steamID] or username
+
+    if displayName then
+        ShowFeedback("Welcome back, Commander " .. displayName .. ".", 0.5, 0.8, 1.0)
+        print("Steam User: " .. displayName .. " (" .. steamID .. ")")
+    else
+        ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0)
+        print("Steam User ID: " .. steamID)
+    end
+end
+
 function PersistentConfig.Initialize()
     PersistentConfig.LoadConfig()
-    -- Ensure config file is created if it doesn't exist
+
+    -- Default Auto-Repair based on difficulty if not explicitly set in config
+    if PersistentConfig.Settings.AutoRepairWingmen == nil then
+        local d = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
+        PersistentConfig.Settings.AutoRepairWingmen = (d <= 1)
+        print("PersistentConfig: Defaulted Auto-Repair to " ..
+            (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF") .. " based on difficulty.")
+    end
+
+    -- Ensure config file is created/updated
     PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings()
 
     -- Show help reminder on every mission start
     PersistentConfig.ShowHelp()
-    
-    -- Standardized Steam Greeting with Fallback
+
+    -- Initial Steam Check & Init Polling
+    InputState.PollingStartTime = GetTime()
+
     local steamID
     local username
-    
-    -- 1. Try Engine Call
+
+    -- 1. Try Engine Call immediately
     if exu and exu.GetSteam64 then
         steamID = exu.GetSteam64()
     end
 
-    -- 2. Fallback to Log Parsing if ID is invalid
-    if not steamID or steamID == "" or steamID == "0" then
-        print("PersistentConfig: exu.GetSteam64() returned invalid ID. Attempting fallback...")
-        local logID, logName = ParseBzLogger()
-        if logID then
-            steamID = logID
-            username = logName
-            print("PersistentConfig: Retrieved Steam ID from bzlogger: " .. tostring(steamID))
-        end
-    else
-        print("PersistentConfig: Engine reported Steam ID: " .. tostring(steamID))
-    end
-
-    -- 3. Display Welcome Message
+    -- 2. Immediate check
     if steamID and #steamID >= 10 then
-        -- Custom Name Mapping
-        -- Format: ["SteamID64"] = "Custom Name/Message"
-        local CustomNames = {
-            ["76561198241259700"] = "GlizzyJuan", -- GrizzlyOne95
-            ["76561198104781489"] = "British Twat", --JJ
-            ["76561199014392897"] = "Car Nerd", --DriveLine
-            --["76561198000000000"] = "Friend Name", 
-        }
-
-        local displayName = CustomNames[steamID] or username
-
-        if displayName then
-            ShowFeedback("Welcome back, Commander " .. displayName .. ".", 0.5, 0.8, 1.0)
-            print("Steam User: " .. displayName .. " (" .. steamID .. ")")
-        else
-            ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0)
-            print("Steam User ID: " .. steamID)
-        end
+        PersistentConfig.TriggerGreeting(steamID, username)
+        InputState.GreetingTriggered = true
+        InputState.SteamIDFound = true
     else
-        print("PersistentConfig: Failed to retrieve Steam 64 ID.")
+        print("PersistentConfig: Initial Steam ID retrieval failed. Starting background polling...")
     end
 
     -- Hook Mission End Functions to clear subtitles

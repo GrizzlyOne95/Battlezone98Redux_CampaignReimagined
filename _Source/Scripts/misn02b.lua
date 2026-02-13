@@ -6,7 +6,7 @@ SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")
-RequireFix.Initialize({"campaignReimagined", "3659600763"})
+RequireFix.Initialize({ "campaignReimagined", "3659600763" })
 local exu = require("exu")
 aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
@@ -74,13 +74,13 @@ function Load(missionData, aiData)
     end
     if aiData then aiCore.Load(aiData) end
     aiCore.Bootstrap() -- Capture objects on load
-    ApplyQOL() -- Reapply engine settings
+    ApplyQOL()         -- Reapply engine settings
 end
 
 -- EXU/QOL Persistence Helper
 function ApplyQOL()
     if not exu then return end
-    
+
     if exu.SetShotConvergence then exu.SetShotConvergence(true) end
     if exu.SetReticleRange then exu.SetReticleRange(600) end
     if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
@@ -88,10 +88,10 @@ function ApplyQOL()
     -- Initialize Persistent Config
     PersistentConfig.Initialize()
 end
-function Start()
 
-    Ally(1,5)
-    Ally(5,1)
+function Start()
+    Ally(1, 5)
+    Ally(5, 1)
     local difficulty = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
     if difficulty >= 3 then
         AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
@@ -99,6 +99,7 @@ function Start()
         AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
     end
 end
+
 -- AddObject function: Called when a game object is added
 function AddObject(h)
     local team = GetTeamNum(h)
@@ -143,12 +144,12 @@ function AddObject(h)
     if team == 1 or team == 2 then
         local register = false
         if team == 1 then
-             if IsOdf(h, "avscav") then register = true end
+            if IsOdf(h, "avscav") then register = true end
         else
-             -- CCA Team 2 in this mission is strictly scripted waves, 
-             -- but we still register them to aiCore so they can be tracked 
-             -- even if not "produced" by a factory here.
-             register = true 
+            -- CCA Team 2 in this mission is strictly scripted waves,
+            -- but we still register them to aiCore so they can be tracked
+            -- even if not "produced" by a factory here.
+            register = true
         end
         if register then aiCore.AddObject(h) end
     end
@@ -162,17 +163,91 @@ function Update()
     subtit.Update()
     PersistentConfig.UpdateInputs()
     PersistentConfig.UpdateHeadlights()
-    
+
     if not start_done then
         local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
         playerTeam:SetConfig("manageFactories", false)
         playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
+
+        --[[
+        -- Available AI Configuration Flags (Reference from aiCore.lua):
+        -- flags marked [Diff] are managed by DiffUtils:SetupTeams() based on difficulty.
+        -- playerTeam:SetConfig("difficulty", 1)         -- [Stub]
+        -- playerTeam:SetConfig("race", "nsdf")          -- Default "nsdf"
+        -- playerTeam:SetConfig("kc", 0)                  -- [Stub]
+        -- playerTeam:SetConfig("stratMultiplier", 1.0)   -- [Stub]
+        -- playerTeam:SetConfig("autoBuild", true)
+
+        -- Advanced Settings
+        -- playerTeam:SetConfig("thumperChance", 10)       -- [Diff]
+        -- playerTeam:SetConfig("mortarChance", 20)        -- [Diff]
+        -- playerTeam:SetConfig("fieldChance", 10)         -- [Diff]
+        -- playerTeam:SetConfig("doubleWeaponChance", 20)  -- [Diff]
+        -- playerTeam:SetConfig("howitzerChance", 50)       -- [Diff]
+
+        -- AI Behavior Settings
+        -- playerTeam:SetConfig("soldierRange", 50)
+        -- playerTeam:SetConfig("sniperSteal", true)
+        -- playerTeam:SetConfig("pilotZeal", 0.4)          -- [Diff]
+        -- playerTeam:SetConfig("sniperTraining", 75)      -- [Diff]
+        -- playerTeam:SetConfig("sniperStealth", 0.5)      -- [Diff]
+        -- playerTeam:SetConfig("resourceBoost", false)    -- [Diff]
+
+        -- Timers
+        -- playerTeam:SetConfig("upgradeInterval", 240)    -- [Diff]
+        -- playerTeam:SetConfig("wreckerInterval", 600)    -- [Diff]
+        -- playerTeam:SetConfig("techInterval", 60)
+        -- playerTeam:SetConfig("techMax", 4)
+
+        -- Toggles
+        -- playerTeam:SetConfig("passiveRegen", false)     -- [Diff] (Player Only)
+        -- playerTeam:SetConfig("autoManage", false)
+        -- playerTeam:SetConfig("autoRepairWingmen", false) -- [Diff]
+        -- playerTeam:SetConfig("autoRescue", false)       -- [Diff] (Player Only)
+        -- playerTeam:SetConfig("autoTugs", false)
+        -- playerTeam:SetConfig("stickToPlayer", false)    -- [Diff] (Player Only)
+        -- playerTeam:SetConfig("dynamicMinefields", false)
+        -- playerTeam:SetConfig("scavengerAssist", false) -- [Diff] (Player Only)
+
+        -- Minefield positions
+        -- playerTeam:SetConfig("minefields", {}) -- List of positions for minelayers
+
+        -- Automation Sub-config
+        -- playerTeam:SetConfig("followPercentage", 30)
+        -- playerTeam:SetConfig("patrolPercentage", 30)
+        -- playerTeam:SetConfig("guardPercentage", 40)
+        -- playerTeam:SetConfig("scavengerCount", 4)
+        -- playerTeam:SetConfig("tugCount", 2)
+        -- playerTeam:SetConfig("buildingSpacing", 80)
+        -- playerTeam:SetConfig("rescueDelay", 2.0)
+        -- playerTeam:SetConfig("pilotTopoff", 4)          -- [Diff]
+
+        -- Reinforcements
+        -- playerTeam:SetConfig("orbitalReinforce", false) -- Default false
+
+        -- Legacy Features
+        -- playerTeam:SetConfig("regenRate", 0.0)          -- [Diff] (Building Regen)
+        -- playerTeam:SetConfig("reclaimEngineers", false)
+
+        -- Factory Management
+        -- playerTeam:SetConfig("manageFactories", true)
+
+        -- Wreckers & Paratroopers
+        -- playerTeam:SetConfig("enableWreckers", false)     -- [Diff]
+        -- playerTeam:SetConfig("enableParatroopers", false)  -- [Diff]
+        -- playerTeam:SetConfig("paratrooperChance", 0)       -- [Diff]
+        -- playerTeam:SetConfig("paratrooperInterval", 600)   -- [Diff]
+
+        -- Construction Defaults
+        -- playerTeam:SetConfig("siloMinDistance", 250.0)
+        -- playerTeam:SetConfig("siloMaxDistance", 450.0)
+        --]]
         ApplyQOL()
 
         SetPilot(1, math.max(1, DiffUtils.ScaleRes(2)))
         SetScrap(1, math.max(4, DiffUtils.ScaleRes(5)))
         SetAIP("misn02.aip")
-        
+
         dummy = GetHandle("fake_player")
         lander = GetHandle("avland0_wingman")
         bhandle = GetHandle("sscr_171_scrap")
@@ -180,22 +255,25 @@ function Update()
         recycler = GetHandle("avrecy-1_recycler")
         bgoal = GetHandle("apscrap-1_camerapod")
         bhandle2 = GetHandle("sscr_176_scrap")
-        
+
         SetUserTarget(bgoal)
         SetObjectiveName(bgoal, "Scrap Field Alpha")
         start_done = true
         subtit.Initialize("durations.csv")
-        
+
         -- Establish alliance between player (team 1) and dummy tank (team 5)
         Ally(1, 5)
 
         -- Spawn pilots at Recycler based on difficulty
         local d = DiffUtils.Get().index
         local pilotCount = 0
-        if d == 0 then pilotCount = 3 -- Very Easy
-        elseif d == 1 then pilotCount = 2 -- Easy
-        elseif d == 2 or d == 3 then pilotCount = 1 -- Medium/Hard
-        end -- Very Hard (4) gets 0
+        if d == 0 then
+            pilotCount = 3 -- Very Easy
+        elseif d == 1 then
+            pilotCount = 2 -- Easy
+        elseif d == 2 or d == 3 then
+            pilotCount = 1 -- Medium/Hard
+        end                -- Very Hard (4) gets 0
 
         for i = 1, pilotCount do
             BuildObject("aspilo", 1, "avrecy-1_recycler")
@@ -235,16 +313,16 @@ function Update()
             camera3 = false
             cam_time = 99999.0
             CameraFinish()
-            
+
             -- Reassign dummy tank instead of removing it
             if IsAlive(dummy) then
-                SetTeamNum(dummy, 5)  -- Set to team 5
-                Ally(1, 5)  -- Make teams 1 and 5 allies
+                SetTeamNum(dummy, 5)            -- Set to team 5
+                Ally(1, 5)                      -- Make teams 1 and 5 allies
                 if IsAlive(recycler) then
-                    Defend2(dummy, recycler, 0)  -- Set to defend the recycler
+                    Defend2(dummy, recycler, 0) -- Set to defend the recycler
                 end
             end
-            
+
             SetPosition(player, "playermove")
             -- Only stop subtitles if the user skipped the cinematic
             if CameraCancelled() then
@@ -260,12 +338,12 @@ function Update()
 
     -- Patrol 1 Logic
     if not patrol1 and found and IsAlive(bhandle) and IsAlive(bscav) and GetDistance(bhandle, bscav) < 75.0 then
-        for i=1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn1") end
+        for i = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn1") end
 
         subtit.Play("misn0233.wav")
         message1 = true
         patrol1 = true
-        
+
         if not message4 and found2 then
             message4 = true
         end
@@ -289,7 +367,7 @@ function Update()
     end
 
     if message5 and not message3 and GetTime() > wave_timer then
-        for i=1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn2") end
+        for i = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn2") end
         wave_timer = GetTime() + DiffUtils.ScaleTimer(45.0)
     end
 
@@ -333,9 +411,9 @@ function Update()
         message3 = true
 
         -- Flanking Ambush: Spawn enemies behind the player at spawn1
-        for i=1, DiffUtils.ScaleEnemy(1) do 
-             local h = BuildObject("svfigh", 2, "spawn1")
-             Attack(h, scav2) 
+        for i = 1, DiffUtils.ScaleEnemy(1) do
+            local h = BuildObject("svfigh", 2, "spawn1")
+            Attack(h, scav2)
         end
     end
 
@@ -347,7 +425,7 @@ function Update()
 
     -- Final Wave
     if last_wave_time < GetTime() then
-        for i=1, DiffUtils.ScaleEnemy(1) do
+        for i = 1, DiffUtils.ScaleEnemy(1) do
             local sid = BuildObject("svfigh", 2, "spawn4")
             if IsAlive(scav2) then Attack(sid, scav2) end
         end
@@ -370,5 +448,3 @@ function Update()
         SucceedMission(GetTime(), "misn02w1.des")
     end
 end
-
-

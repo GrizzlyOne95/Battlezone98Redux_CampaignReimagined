@@ -326,8 +326,9 @@ function exu.SetHeadlightSpecular(h, r, g, b) end
 function exu.SetHeadlightRange(h, innerAngle, outerAngle, falloff) end
 
 --- Sets whether or not a headlight is visible or hidden.
+--- @param h Handle
 --- @param visible boolean
-function exu.SetHeadlightVisible(visible) end
+function exu.SetHeadlightVisible(h, visible) end
 
 --- Gets the mass of the given object (most ships default to 1750 KG afaik).
 --- @nodiscard

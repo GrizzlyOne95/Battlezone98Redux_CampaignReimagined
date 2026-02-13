@@ -2899,10 +2899,10 @@ function aiCore.Team:new(teamNum, faction)
         pilotTopoff = 4,
 
         -- Reinforcements
-        orbitalReinforce = true,
+        orbitalReinforce = false,
 
         -- Legacy Features
-        regenRate = 20.0,
+        regenRate = 0.0,
         reclaimEngineers = false,
 
         -- Factory Management
@@ -3228,7 +3228,51 @@ function aiCore.Team:Update()
 end
 
 function aiCore.Team:UpdateStickToPlayer()
-    -- Placeholder for future stick-to-player behavior
+    if not self.Config.stickToPlayer or self.teamNum ~= 1 then return end
+    local player = GetPlayerHandle()
+    if not IsValid(player) then return end
+
+    local pPos = GetPosition(player)
+    aiCore.RemoveDead(self.combatUnits)
+    for _, u in ipairs(self.combatUnits) do
+        if IsValid(u) and IsCraft(u) then
+            local cmd = GetCurrentCommand(u)
+            local target = GetCurrentWho(u)
+            if target == player and (cmd == AiCommand.FOLLOW or cmd == AiCommand.FORMATION) then
+                local uPos = GetPosition(u)
+                local dist = GetDistance(u, player)
+
+                -- Assistance threshold (150M)
+                if dist > 150 then
+                    -- 1. Wake up pathing if severely lagging
+                    if dist > 350 then
+                        SetCommand(u, cmd, 0, player)
+                    end
+
+                    -- 2. Physical "Push" Assist (Velocity Vector Math)
+                    local dir = Normalize(pPos - uPos)
+                    local vel = GetVelocity(u)
+
+                    -- Strength scales with distance (max boost at 400m)
+                    local strength = math.min(1.0, (dist - 150) / 250) * 8.0
+
+                    -- Vertical Terrain Assistance
+                    -- Look ahead on terrain to "lift" them over hills
+                    local lookAhead = uPos + (dir * 20.0)
+                    local hDiff = GetTerrainHeight(lookAhead.x, lookAhead.z) - uPos.y
+                    if hDiff > 2.0 then
+                        dir.y = dir.y + (hDiff * 0.5) -- Add lift if going uphill
+                    end
+
+                    SetVelocity(u, vel + (dir * strength))
+
+                    if aiCore.Debug and math.random() < 0.01 then
+                        print("StickToPlayer Assist: Pushing " .. GetOdf(u) .. " (Dist: " .. math.floor(dist) .. ")")
+                    end
+                end
+            end
+        end
+    end
 end
 
 function aiCore.Team:UpdateResourceBoosting()
@@ -3379,10 +3423,15 @@ end
 -- Building Spacing Helper (from aiBuildOS)
 
 function aiCore.Team:UpdateRegen()
-    -- Consolidated Regen: Recycler (High Rate) + Combat Units (Low Rate)
+    -- Consolidated Regen: Recycler/Factory (High Rate) + Combat Units (Low Rate)
     local recycler = self.recyclerMgr.handle
     if IsValid(recycler) then
-        AddHealth(recycler, (self.Config.regenRate or 20.0) * 0.05)
+        AddHealth(recycler, (self.Config.regenRate or 0.0) * 0.05)
+    end
+
+    local factory = self.factoryMgr.handle
+    if IsValid(factory) then
+        AddHealth(factory, (self.Config.regenRate or 0.0) * 0.05)
     end
 
     if self.Config.passiveRegen then
@@ -3709,23 +3758,43 @@ function aiCore.Team:UpdatePilots()
                 end
             end
 
-            -- Craft Stealing (from aiSpecial)
+            -- Craft Stealing (Refined: Any unoccupied vehicle)
             if self.Config.sniperSteal then
                 local target = GetTarget(p)
-                if IsValid(target) and IsCraft(target) and GetTeamNum(target) == 0 then
-                    if GetDistance(p, target) < 150 then
+                -- If they have no target or current target is not stealable, look for nearby empty craft
+                if not IsValid(target) or not IsCraft(target) or IsAliveAndPilot(target) then
+                    for obj in ObjectsInRange(150, p) do
+                        if IsCraft(obj) and not IsAliveAndPilot(obj) then
+                            target = obj
+                            SetTarget(p, obj) -- Record finding
+                            break
+                        end
+                    end
+                end
+
+                if IsValid(target) and IsCraft(target) and not IsAliveAndPilot(target) then
+                    if GetDistance(p, target) < 10 then -- Narrowed for GetIn
                         GetIn(p, target)
-                        if aiCore.Debug then print("Team " .. self.teamNum .. " pilot stealing neutral craft.") end
+                        if aiCore.Debug then print("Team " .. self.teamNum .. " pilot stealing craft: " .. GetOdf(target)) end
                     else
-                        Goto(p, target)
+                        Goto(p, target, 1) -- High priority move to craft
                     end
                 end
             end
 
-            if not IsBusy(p) and dist > 300 then
-                -- Roam or wander back to base
-                if IsValid(self.recyclerMgr.handle) then
-                    Goto(p, GetPositionNear(GetPosition(self.recyclerMgr.handle), 50, 100))
+            -- Idle Patrol / Wander (Refined: Stay near base)
+            if not IsBusy(p) then
+                if not self.pilotPatrolTimer or GetTime() > (self.pilotPatrolTimer[p] or 0) then
+                    if not self.pilotPatrolTimer then self.pilotPatrolTimer = {} end
+                    self.pilotPatrolTimer[p] = GetTime() + 15.0 + math.random(10)
+
+                    local base = self.recyclerMgr.handle
+                    if IsValid(base) then
+                        local center = GetPosition(base)
+                        local roamPos = GetPositionNear(center, 40, 150)
+                        Goto(p, roamPos)
+                        if aiCore.Debug and math.random() < 0.05 then print("Pilot " .. tostring(p) .. " roaming base.") end
+                    end
                 end
             end
         end

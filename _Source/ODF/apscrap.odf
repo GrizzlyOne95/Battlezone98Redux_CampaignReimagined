@@ -3,14 +3,13 @@ baseName = "apcamr"
 classLabel = "camerapod"
 scrapCost = 1
 scrapValue = 0
-maxHealth = 750
+maxHealth = 500
 maxAmmo = 0
-unitName = "Radar Nav"
+unitName = "Scrap Field"
 aiName = "PowerUpProcess"
 aiName2 = "PowerUpProcess"
 
 [CameraPodClass]
 omegaSpin = 1.0
 rangeScan = 200.0
-periodScan = 5.0
-
+periodScan = 0.0
