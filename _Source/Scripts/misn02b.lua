@@ -123,6 +123,12 @@ function AddObject(h)
         bscav = h
         SetCritical(bscav, true)
         SetObjectiveOn(bscav)
+
+        -- Difficulty-based behavior for dummy tank
+        local d = DiffUtils.Get().index
+        if d < 2 and IsAlive(dummy) and not camera1 and not camera2 and not camera3 then
+            Follow(dummy, bscav)
+        end
     end
 
     if team == 2 and odf == "svfigh" then
@@ -289,9 +295,10 @@ function Update()
     -- Camera Logic
     if camera1 then
         if CameraPath("fixcam", 1200, 250, lander) or CameraCancelled() or IsAudioMessageDone(audmsg) then
-            -- Only stop subtitles if the user skipped the cinematic
+            -- Stop audio and subtitles if skipped
             if CameraCancelled() then
                 subtit.Stop()
+                audmsg = nil
             end
             camera1 = false
             cam_time = GetTime() + 10.0
@@ -316,20 +323,23 @@ function Update()
 
             -- Reassign dummy tank instead of removing it
             if IsAlive(dummy) then
-                SetTeamNum(dummy, 5)            -- Set to team 5
-                Ally(1, 5)                      -- Make teams 1 and 5 allies
-                if IsAlive(recycler) then
+                SetTeamNum(dummy, 5) -- Set to team 5
+                Ally(1, 5)           -- Make teams 1 and 5 allies
+
+                local d = DiffUtils.Get().index
+                if d < 2 and IsAlive(bscav) then
+                    Follow(dummy, bscav)
+                elseif IsAlive(recycler) then
                     Defend2(dummy, recycler, 0) -- Set to defend the recycler
                 end
             end
 
             SetPosition(player, "playermove")
-            -- Only stop subtitles if the user skipped the cinematic
+            -- Stop previous audio if the user skipped the cinematic, then start the next one
             if CameraCancelled() then
                 subtit.Stop()
             end
-            audmsg = nil
-            subtit.Play("misn0201.wav")
+            audmsg = subtit.Play("misn0201.wav")
             --subtit.Play("misn0224.wav")
             wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
             AddObjective("misn02b1.otf", "white")
@@ -409,6 +419,12 @@ function Update()
         last_wave_time = GetTime() + 10.0
         NextSecond = GetTime() + 1.0
         message3 = true
+
+        -- Dummy tank follow scav2 logic for lower difficulties
+        local d = DiffUtils.Get().index
+        if d < 2 and IsAlive(dummy) then
+            Follow(dummy, scav2)
+        end
 
         -- Flanking Ambush: Spawn enemies behind the player at spawn1
         for i = 1, DiffUtils.ScaleEnemy(1) do
