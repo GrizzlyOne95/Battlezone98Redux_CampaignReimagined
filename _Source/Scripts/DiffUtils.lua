@@ -3,7 +3,7 @@
 -- Centralized Difficulty Scaling for Battlezone 98 Redux
 -- Constants and helpers for Resources, Enemies, AI, and Timers.
 
-local exu = require("ExtraUtilities")
+local exu = require("exu")
 local DiffUtils = {}
 
 -- Returns a table of multipliers based on current game difficulty

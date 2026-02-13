@@ -3576,18 +3576,20 @@ function aiCore.Team:UpdateParatroopers()
         end
 
         for i = 1, count do
-            local spawnPos = GetPositionNear(target, 5, 20)
-            spawnPos.y = spawnPos.y + 400.0
-            local s = BuildObject(soldierOdf, self.teamNum, spawnPos)
-            if IsValid(s) then
-                ---@cast s handle
-                table.insert(self.soldiers, s)
-                Attack(s, target, 0)
-                -- Give them a little drift/random velocity so they don't fall in a perfect line
-                SetVelocity(s, SetVector(math.random(-5, 5), -2, math.random(-5, 5)))
+            local spawnPos = GetPositionNear(target, 5, 20) or GetPosition(target)
+            if spawnPos then
+                spawnPos.y = spawnPos.y + 400.0
+                local s = BuildObject(soldierOdf, self.teamNum, spawnPos)
+                if IsValid(s) then
+                    ---@cast s handle
+                    table.insert(self.soldiers, s)
+                    Attack(s, target, 0)
+                    -- Give them a little drift/random velocity so they don't fall in a perfect line
+                    SetVelocity(s, Vector(math.random(-5, 5), -2, math.random(-5, 5)))
 
-                -- MODIFED: Paratroopers technically "created" in sky - if they were powerups we'd swap team,
-                -- but soldiers are fine. However, we'll ensure they are on AI team.
+                    -- MODIFED: Paratroopers technically "created" in sky - if they were powerups we'd swap team,
+                    -- but soldiers are fine. However, we'll ensure they are on AI team.
+                end
             end
         end
     end

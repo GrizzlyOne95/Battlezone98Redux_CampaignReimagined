@@ -6,7 +6,7 @@ local Subtitles = {}
 
 -- State
 local currentAudioHandle = nil
-local DEFAULT_DURATION = 8.0 
+local DEFAULT_DURATION = 8.0
 local durations = {}
 
 --- Helper to read a 4-byte little-endian integer from a string
@@ -21,17 +21,17 @@ end
 local function GetWavDuration(wavFilename)
     local content = UseItem(wavFilename)
     if not content or #content < 44 then return nil end
-    
+
     -- RIFF Check
-    if content:sub(1,4) ~= "RIFF" or content:sub(9,12) ~= "WAVE" then return nil end
-    
+    if content:sub(1, 4) ~= "RIFF" or content:sub(9, 12) ~= "WAVE" then return nil end
+
     local pos = 13
     local byteRate = 0
     -- Scan chunks (fmt, data, etc.)
     while pos + 8 < #content do
         local chunkID = content:sub(pos, pos + 3)
         local chunkSize = readInt32LE(content, pos + 4)
-        
+
         if chunkID == "fmt " then
             -- ByteRate is at offset 8 in the fmt chunk (pos + 8 + 8)
             byteRate = readInt32LE(content, pos + 16)
@@ -40,7 +40,7 @@ local function GetWavDuration(wavFilename)
                 return chunkSize / byteRate
             end
         end
-        
+
         -- Move to next chunk (8 bytes header + data size)
         pos = pos + 8 + chunkSize
         -- Safety breakout for malformed headers
@@ -73,7 +73,7 @@ function Subtitles.Initialize(durationCsv)
     -- Ensure clear queue on start
     subtitles.clear_queue()
     subtitles.set_opacity(0.5) -- Set to 50% opacity for better readability with borders
-    
+
     -- Load default durations if nothing specified
     durationCsv = durationCsv or "_Source/Config/durations.csv"
     Subtitles.LoadDurations(durationCsv)
@@ -88,16 +88,16 @@ end
 function Subtitles.Display(text, r, g, b, duration)
     subtitles.clear_queue()
     subtitles.set_opacity(0.5) -- Ensure visible
-    
+
     r = r or 1.0
     g = g or 1.0
     b = b or 1.0
-    
+
     -- Heuristic for display duration: ~15 chars per second, min 3s
     if not duration then
         duration = math.max(3.0, #text / 18.0)
     end
-    
+
     local wrapped = Subtitles.WrapText(text, 50)
     subtitles.submit(wrapped, duration, r, g, b)
 end
@@ -124,8 +124,8 @@ end
 --- @param b number|nil Blue (0-1)
 --- @return userdata The audio message handle
 function Subtitles.Play(wavFilename, r, g, b)
-    -- Clear any existing subtitles to prevent overlaps or stale text from previous messages
-    subtitles.clear_queue()
+    -- Clear any existing audio and subtitles
+    Subtitles.Stop()
     subtitles.set_opacity(1.0) -- Ensure visible
 
     -- Default to white if not provided
@@ -140,7 +140,7 @@ function Subtitles.Play(wavFilename, r, g, b)
     -- 2. Try to find and load the subtitle text
     -- Convert .wav extension to .txt (case insensitive replacement if needed, but simple sub usually works)
     local txtFilename = string.gsub(wavFilename, "%.[wW][aA][vV]$", ".txt")
-    
+
     -- If no extension was present, append .txt
     if txtFilename == wavFilename then
         txtFilename = wavFilename .. ".txt"
@@ -154,29 +154,29 @@ function Subtitles.Play(wavFilename, r, g, b)
         -- Determine duration
         -- 1. Check CSV database
         local dur = durations[string.lower(wavFilename)]
-        
+
         -- 2. Try to extract from WAV header
         if not dur then
             dur = GetWavDuration(wavFilename)
         end
-        
+
         -- 3. Heuristic: Calculate based on character count as final fallback
         if not dur then
             dur = math.max(DEFAULT_DURATION, #content / 18.0)
         end
-        
+
         -- Submit with looked up duration
         local final_text = Subtitles.WrapText(content, 50)
-        
+
         -- Split into pages if too long (max 2 lines per page for better readability)
         local lines = {}
         for line in string.gmatch(final_text, "[^\r\n]+") do
             table.insert(lines, line)
         end
-        
+
         local chunks = {}
         local current_chunk = {}
-        
+
         for _, line in ipairs(lines) do
             table.insert(current_chunk, line)
             if #current_chunk >= 2 then
@@ -187,7 +187,7 @@ function Subtitles.Play(wavFilename, r, g, b)
         if #current_chunk > 0 then
             table.insert(chunks, table.concat(current_chunk, "\n"))
         end
-        
+
         -- Submit chunks with weighted duration (longer chunks get more time)
         local total_chars = #content
         if total_chars > 0 then

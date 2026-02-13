@@ -29,6 +29,7 @@ local message5 = false
 local mission_won = false
 local mission_lost = false
 local bootstrap_done = false
+local intro_skipped = false
 
 local wave_timer = 0.0
 local last_wave_time = 99999.0
@@ -57,7 +58,8 @@ function Save()
         bootstrap_done,
         wave_timer, last_wave_time, cam_time, NextSecond,
         bscav, bscout, scav2, audmsg,
-        dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2
+        dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2,
+        intro_skipped
     }
     return missionData, aiCore.Save()
 end
@@ -70,7 +72,8 @@ function Load(missionData, aiData)
         bootstrap_done,
         wave_timer, last_wave_time, cam_time, NextSecond,
         bscav, bscout, scav2, audmsg,
-        dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2 = unpack(missionData)
+        dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2,
+        intro_skipped = unpack(missionData)
     end
     if aiData then aiCore.Load(aiData) end
     aiCore.Bootstrap() -- Capture objects on load
@@ -298,6 +301,7 @@ function Update()
             -- Stop audio and subtitles if skipped
             if CameraCancelled() then
                 subtit.Stop()
+                intro_skipped = true
                 audmsg = nil
             end
             camera1 = false
@@ -336,10 +340,14 @@ function Update()
 
             SetPosition(player, "playermove")
             -- Stop previous audio if the user skipped the cinematic, then start the next one
-            if CameraCancelled() then
+            if CameraCancelled() or intro_skipped then
                 subtit.Stop()
+                intro_skipped = true
             end
-            audmsg = subtit.Play("misn0201.wav")
+
+            if not intro_skipped then
+                audmsg = subtit.Play("misn0201.wav")
+            end
             --subtit.Play("misn0224.wav")
             wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
             AddObjective("misn02b1.otf", "white")

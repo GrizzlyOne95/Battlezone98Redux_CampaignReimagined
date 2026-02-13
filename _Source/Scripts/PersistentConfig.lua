@@ -21,7 +21,10 @@ PersistentConfig.Settings = {
     enableAutoSave = false          -- Experimental: ON/OFF
 }
 
-local configPath = bzfile.GetWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
+local function getWorkingDirectory()
+    return (bzfile and bzfile.GetWorkingDirectory and bzfile.GetWorkingDirectory()) or "."
+end
+local configPath = getWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
 
 -- Logging Helper
 local function Log(msg)
@@ -39,6 +42,54 @@ local function ShowFeedback(msg, r, g, b)
         subtitles.clear_queue()
         subtitles.set_opacity(0.5) -- 50% opacity for better readability
         subtitles.submit(msg, 2.0, r or 0.8, g or 0.8, b or 1.0)
+    end
+end
+
+-- Helper to parse bzlogger.txt for Steam ID/Username
+local function ParseBzLogger()
+    if not bzfile or not bzfile.Open then return nil, nil end
+    local logPath = "bzlogger.txt"
+    local f = bzfile.Open(logPath, "r")
+
+    if not f then
+        print("PersistentConfig: Could not find " .. logPath .. " for parsing.")
+        return nil, nil
+    end
+
+    print("PersistentConfig: Scanning " .. logPath .. " for Steam credentials...")
+    local steamID, username
+
+    local line = f:Readln()
+    while line do
+        local id, name = line:match("Authenticated to BZRNet As S(%d+):(.+)")
+        if id and name then
+            steamID = id
+            username = name
+            break -- Found it, stop scanning
+        end
+        line = f:Readln()
+    end
+
+    f:Close()
+    return steamID, username
+end
+
+-- Shared Greeting Logic
+function PersistentConfig.TriggerGreeting(steamID, username)
+    local CustomNames = {
+        ["76561198241259700"] = "GlizzyJuan",   -- GrizzlyOne95
+        ["76561198104781489"] = "British Twat", --JJ
+        ["76561199014392897"] = "Car Nerd",     --DriveLine
+    }
+
+    local displayName = CustomNames[steamID] or username
+
+    if displayName then
+        ShowFeedback("Welcome back, Commander " .. displayName .. ".", 0.5, 0.8, 1.0)
+        print("Steam User: " .. displayName .. " (" .. steamID .. ")")
+    else
+        ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0)
+        print("Steam User ID: " .. steamID)
     end
 end
 
@@ -440,56 +491,6 @@ function PersistentConfig.UpdateHeadlights()
         if h ~= player and exu.SetHeadlightVisible then
             exu.SetHeadlightVisible(h, false)
         end
-    end
-end
-
--- Helper to parse bzlogger.txt for Steam ID/Username
-local function ParseBzLogger()
-    -- Try to open bzlogger.txt in the current directory (Game Root)
-    -- We use io.open because bzfile might be restricted to mod scope, but standard io often works for local files
-    -- If GetWorkingDirectory() is the game root, this should work.
-    local logPath = "bzlogger.txt"
-    local f = io.open(logPath, "r")
-
-    if not f then
-        print("PersistentConfig: Could not open " .. logPath .. " for parsing.")
-        return nil, nil
-    end
-
-    print("PersistentConfig: Scanning " .. logPath .. " for Steam credentials...")
-    local steamID, username
-
-    -- Scan line by line
-    -- Looking for: "Authenticated to BZRNet As S<ID>:<Username>"
-    for line in f:lines() do
-        local id, name = line:match("Authenticated to BZRNet As S(%d+):(.+)")
-        if id and name then
-            steamID = id
-            username = name
-            break -- Found it, stop scanning
-        end
-    end
-
-    f:close()
-    return steamID, username
-end
-
--- Shared Greeting Logic
-function PersistentConfig.TriggerGreeting(steamID, username)
-    local CustomNames = {
-        ["76561198241259700"] = "GlizzyJuan",   -- GrizzlyOne95
-        ["76561198104781489"] = "British Twat", --JJ
-        ["76561199014392897"] = "Car Nerd",     --DriveLine
-    }
-
-    local displayName = CustomNames[steamID] or username
-
-    if displayName then
-        ShowFeedback("Welcome back, Commander " .. displayName .. ".", 0.5, 0.8, 1.0)
-        print("Steam User: " .. displayName .. " (" .. steamID .. ")")
-    else
-        ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0)
-        print("Steam User ID: " .. steamID)
     end
 end
 
