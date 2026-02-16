@@ -103,13 +103,13 @@ end
 
 -- Internal State
 local InputState = {
-    last_v_state = false, -- Headlight (V)
-    last_z_state = false, -- Color (Z)
-    last_j_state = false, -- AI Lights (J)
-    last_b_state = false, -- Beam (B)
-    last_help_state = false,
-    last_x_state = false, -- Auto-repair toggle
-    last_n_state = false, -- Manual Save (N)
+    last_v_state = false,    -- Headlight (V)
+    last_z_state = false,    -- Color (Z)
+    last_j_state = false,    -- AI Lights (J)
+    last_b_state = false,    -- Beam (B)
+    last_help_state = false, --/ or ? on keyboard
+    last_x_state = false,    -- Auto-repair toggle
+    last_n_state = false,    -- Manual Save (N)
     SubtitlesPaused = false,
     SteamIDFound = false,
     GreetingTriggered = false,
@@ -200,7 +200,7 @@ function PersistentConfig.LoadConfig()
                 elseif key == "RainbowMode" then
                     PersistentConfig.Settings.RainbowMode = (val == "true")
                 elseif key == "enableAutoSave" then
-                    PersistentConfig.Settings.enableAutoSave = (val == "true")
+                    PersistentConfig.Settings.enableAutoSave = false -- Forces OFF
                 elseif key == "AutoSaveSlot" then
                     PersistentConfig.Settings.AutoSaveSlot = tonumber(val) or 10
                 end
@@ -256,8 +256,8 @@ function PersistentConfig.SaveConfig()
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
-        f:Writeln("enableAutoSave=" .. tostring(PersistentConfig.Settings.enableAutoSave))
         f:Writeln("AutoSaveSlot=" .. tostring(PersistentConfig.Settings.AutoSaveSlot))
+        f:Writeln("enableAutoSave=false") -- Always save as false
 
         f:Close()
         print("PersistentConfig: File closed successfully")
@@ -304,7 +304,7 @@ end
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-        "B:Beam | X:Auto-Repair | N:AutoSave | /:Help | ESC:Hide-Subs"
+        "B:Beam | X:Auto-Repair | N:Manual Save (Disabled) | /:Help | ESC:Hide-Subs"
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0)
 end
@@ -332,6 +332,8 @@ function PersistentConfig.UpdateInputs()
         if not isBusy or PersistentConfig.FeedbackQueue[1].bypass then
             local item = table.remove(PersistentConfig.FeedbackQueue, 1)
             if subtitles and subtitles.submit then
+                subtitles.clear_queue()
+                if subtitles.clear_current then subtitles.clear_current() end
                 subtitles.set_opacity(0.5)
                 subtitles.submit(item.msg, item.duration, item.r, item.g, item.b)
                 if subtit then
@@ -446,12 +448,10 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_x_state = x_key
 
-    -- Toggle AutoSave (N for "New AutoSave")
+    -- Toggle AutoSave (N for "New AutoSave") - DISABLED
     local n_key = exu.GetGameKey("N")
     if n_key and not InputState.last_n_state then
-        PersistentConfig.Settings.enableAutoSave = not PersistentConfig.Settings.enableAutoSave
-        PersistentConfig.SaveConfig()
-        ShowFeedback("AutoSave: " .. (PersistentConfig.Settings.enableAutoSave and "ON" or "OFF"), 0.6, 1.0, 0.6)
+        ShowFeedback("AutoSave Not Available", 1.0, 0.3, 0.3)
     end
     InputState.last_n_state = n_key
 

@@ -7,7 +7,7 @@ SetLabel = SetLabel or SetLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({ "campaignReimagined", "3659600763" })
 local exu = require("exu")
-aiCore = require("aiCore")
+local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
@@ -246,7 +246,7 @@ function Start()
 
     -- EXU/QOL Setup
     if exu then
-        local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.version or "Unknown"
+        local ver = (type(exu["GetVersion"]) == "function" and exu["GetVersion"]()) or exu["version"] or "Unknown"
         print("EXU Version: " .. tostring(ver))
         M.difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
         print("Difficulty: " .. tostring(M.difficulty))
@@ -314,7 +314,7 @@ function Update()
     -- void Misn04Mission::Execute(void) logic
 
     M.player = GetPlayerHandle()
-    if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
+    if exu and exu["UpdateOrdnance"] then exu["UpdateOrdnance"]() end
 
     aiCore.Update()
     subtit.Update()
@@ -627,7 +627,7 @@ function Update()
 
     if (not M.discoverrelic) then
         if (M.investigate < GetTime()) then
-            M.investigator = CountUnitsNearObject(M.relic, 400.0, 1, nil)
+            M.investigator = CountUnitsNearObject(M.relic, 400.0, 1, "")
             if IsAlive(M.reliccam) then
                 M.investigator = M.investigator - 1
             end
@@ -911,10 +911,10 @@ function Update()
     end
 
     if (M.missionwon) and (not M.missionend) then
-        if (not IsAlive(M.aud20) or IsAudioMessageDone(M.aud20)) and
-            (not IsAlive(M.aud21) or IsAudioMessageDone(M.aud21)) and
-            (not IsAlive(M.aud22) or IsAudioMessageDone(M.aud22)) and
-            (not IsAlive(M.aud23) or IsAudioMessageDone(M.aud23)) then
+        if (not M.aud20 or IsAudioMessageDone(M.aud20)) and
+            (not M.aud21 or IsAudioMessageDone(M.aud21)) and
+            (not M.aud22 or IsAudioMessageDone(M.aud22)) and
+            (not M.aud23 or IsAudioMessageDone(M.aud23)) then
             if not M.cin_started then
                 CameraReady()
                 M.cin_started = true

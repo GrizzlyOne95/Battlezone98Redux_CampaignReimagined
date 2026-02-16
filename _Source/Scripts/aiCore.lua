@@ -453,7 +453,7 @@ function Tokenizer:ReadToken()
         GetString = function(s) return s.data:gsub("%z.*", "") end,
         GetInt32 = function(s)
             local b1, b2, b3, b4 = string.byte(s.data, 1, 4); return (b1 or 0) + (b2 or 0) * 256 + (b3 or 0) * 65536 +
-            (b4 or 0) * 16777216
+                (b4 or 0) * 16777216
         end,
         GetBoolean = function(s) return (string.byte(s.data, 1) or 0) ~= 0 end,
         GetVector2D = function(s, i)
@@ -3595,7 +3595,7 @@ function aiCore.Team:UpdateParatroopers()
                     table.insert(self.soldiers, s)
                     Attack(s, target, 0)
                     -- Give them a little drift/random velocity so they don't fall in a perfect line
-                    SetVelocity(s, Vector(math.random(-5, 5), -2, math.random(-5, 5)))
+                    SetVelocity(s, SetVector(math.random(-5, 5), -2, math.random(-5, 5)))
 
                     -- MODIFED: Paratroopers technically "created" in sky - if they were powerups we'd swap team,
                     -- but soldiers are fine. However, we'll ensure they are on AI team.

@@ -88,6 +88,7 @@ end
 --- @param duration number|nil Duration in seconds
 function Subtitles.Display(text, r, g, b, duration)
     subtitles.clear_queue()
+    if subtitles.clear_current then subtitles.clear_current() end
     subtitles.set_opacity(0.5) -- Ensure visible
 
     r = r or 1.0

@@ -7,7 +7,7 @@ SetLabel = SetLabel or SetLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({ "campaignReimagined", "3659600763" })
 local exu = require("exu")
-aiCore = require("aiCore")
+local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
@@ -368,7 +368,7 @@ end
 
 function Update()
     M.user = GetPlayerHandle()
-    if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
+    if exu and exu["UpdateOrdnance"] then exu["UpdateOrdnance"]() end
 
     -- Get difficulty for dynamic adjustments (0=Very Easy, 1=Easy, 2=Medium, 3=Hard, 4=Very Hard)
     local diff = 2
@@ -552,7 +552,7 @@ function Update()
         for i = 1, 3 do
             local soldier = M.patrol_soldiers[i]
 
-            if not IsAlive(soldier) then
+            if soldier and not IsAlive(soldier) then
                 if M.patrol_respawn_timers[i] == 0 then
                     -- Schedule spawn
                     local delay = 30.0
@@ -570,8 +570,8 @@ function Update()
 
                         -- Orders
                         if i == 1 then
-                            SetPathLoop("footpatrol", true)
-                            Patrol(new_soldier, "footpatrol", 1)
+                            SetPathLoop("footpatrol")
+                            Follow(new_soldier, "footpatrol", 1)
                         elseif i == 2 then
                             Defend2(new_soldier, M.solar1)
                         elseif i == 3 then
