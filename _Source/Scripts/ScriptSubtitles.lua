@@ -8,6 +8,7 @@ local Subtitles = {}
 local currentAudioHandle = nil
 local DEFAULT_DURATION = 8.0
 local durations = {}
+Subtitles.LastEndTime = 0
 
 --- Helper to read a 4-byte little-endian integer from a string
 local function readInt32LE(s, pos)
@@ -100,6 +101,7 @@ function Subtitles.Display(text, r, g, b, duration)
 
     local wrapped = Subtitles.WrapText(text, 50)
     subtitles.submit(wrapped, duration, r, g, b)
+    Subtitles.LastEndTime = GetTime() + duration
 end
 
 --- Helper to wrap text at a certain character limit
@@ -194,7 +196,9 @@ function Subtitles.Play(wavFilename, r, g, b)
             for _, chunk in ipairs(chunks) do
                 local chunk_weight = #chunk / total_chars
                 local chunk_dur = dur * chunk_weight
-                subtitles.submit(chunk, math.max(1.5, chunk_dur), r, g, b)
+                local final_dur = math.max(1.5, chunk_dur)
+                subtitles.submit(chunk, final_dur, r, g, b)
+                Subtitles.LastEndTime = GetTime() + final_dur
             end
         end
     else
@@ -212,8 +216,27 @@ function Subtitles.Update()
             subtitles.clear_queue()
             if subtitles.clear_current then subtitles.clear_current() end
             currentAudioHandle = nil
+            -- When audio finishes, we might still have a visual duration pending
         end
     end
+end
+
+--- Check if the subtitle system is currently playing audio or displaying text
+--- @return boolean
+function Subtitles.IsActive()
+    if currentAudioHandle and not IsAudioMessageDone(currentAudioHandle) then
+        return true
+    end
+    if GetTime() < Subtitles.LastEndTime then
+        return true
+    end
+    return false
+end
+
+--- Returns the time when the current subtitle sequence will finish
+--- @return number
+function Subtitles.GetLastEndTime()
+    return Subtitles.LastEndTime
 end
 
 --- Stop the currently playing audio and clear subtitles

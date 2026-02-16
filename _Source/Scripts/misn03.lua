@@ -508,10 +508,10 @@ function Update()
 
     local required = 1
     if diff == 3 then
-        required = 2                      -- Hard
+        required = 2 -- Hard
     elseif diff > 3 then
         required = 3
-    end                                   -- Very Hard
+    end -- Very Hard
 
     -- Dynamic Objective Update: Ensure we always show 'required' number of living arrays
     -- If S2 dies (and was marked), reveal S3, etc.
@@ -603,7 +603,7 @@ function Update()
     end
 
     if M.start_done and GetDistance(M.avrecycler, "recycle_point") < 50.0 and not M.recycle_stop then
-        Stop(M.avrecycler, 0)
+        Goto(M.avrecycler, M.geyser, 0)
         M.recycle_stop = true
     end
 
@@ -862,7 +862,7 @@ function Update()
 
         -- Lockdown Player Recycler immediately
         if IsAlive(M.avrecycler) then
-            SetCommand(M.avrecycler, 9)  -- AiCommand.NO_DROPOFF
+            SetCommand(M.avrecycler, 9) -- AiCommand.NO_DROPOFF
         end
 
         ClearObjectives()
@@ -1284,4 +1284,5 @@ function Update()
     end
 
     -- Local settings logic has been moved to PersistentConfig.lua
+    PersistentConfig.UpdateInputs()
 end

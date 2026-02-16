@@ -1,0 +1,7 @@
+set_texture_alias GlossMap your_gloss.dds
+set_texture_alias MetallicMap your_metallic.dds
+
+set $glossStrength "1.0"
+set $glossBias "0.0"
+set $metallicStrength "1.0"
+set $metallicBias "0.0"

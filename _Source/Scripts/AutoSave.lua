@@ -74,7 +74,7 @@ do
 
     function BZNTokenBinary:GetInt32(i)
         local o = (i or 0) * 4 + 1; local b1, b2, b3, b4 = self.data:byte(o, o + 3)
-        return b4 * 0x1000000 + b3 * 0x10000 + b2 * 0x100 + b1
+        return (b4 or 0) * 0x1000000 + (b3 or 0) * 0x10000 + (b2 or 0) * 0x100 + (b1 or 0)
     end
 
     function BZNTokenBinary:GetUInt32(i) return self:GetInt32(i) end
@@ -189,11 +189,66 @@ do
 
     function BZNTokenValidation:Validate(n, t) return self.name == n end
 
+    local BZNTokenNull = {}
+    BZNTokenNull.__index = BZNTokenNull
+    function BZNTokenNull.new() return setmetatable({}, BZNTokenNull) end
+
+    function BZNTokenNull:IsBinary() return false end
+
+    function BZNTokenNull:IsValidationOnly() return false end
+
+    function BZNTokenNull:GetBoolean() return false end
+
+    function BZNTokenNull:GetInt32() return 0 end
+
+    function BZNTokenNull:GetUInt32() return 0 end
+
+    function BZNTokenNull:GetUInt32H() return 0 end
+
+    function BZNTokenNull:GetInt16() return 0 end
+
+    function BZNTokenNull:GetUInt16() return 0 end
+
+    function BZNTokenNull:GetSingle() return 0 end
+
+    function BZNTokenNull:GetString() return "" end
+
+    function BZNTokenNull:GetVector3D() return SetVector(0, 0, 0) end
+
+    function BZNTokenNull:GetVector2D() return SetVector(0, 0, 0) end
+
+    function BZNTokenNull:GetMatrixOld() return SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0) end
+
+    function BZNTokenNull:GetEuler()
+        return {
+            mass = 0,
+            mass_inv = 0,
+            v_mag = 0,
+            v_mag_inv = 0,
+            I = 0,
+            I_inv = 0,
+            v =
+                SetVector(0, 0, 0),
+            omega = SetVector(0, 0, 0),
+            Accel = SetVector(0, 0, 0)
+        }
+    end
+
+    function BZNTokenNull:Validate(n, t) return false end
+
     local Tokenizer = {}
     Tokenizer.__index = Tokenizer
     function Tokenizer.new(d)
         return setmetatable(
-            { data = d, pos = 1, type_size = 2, size_size = 2, complex_map = { points = 2, pos = 3, v = 3, omega = 3, Accel = 3, euler = 9, dropMat = 12, transform = 12, startMat = 12, saveMatrix = 12, buildMatrix = 12, bumpers = 3, Att = 4 } },
+            {
+                data = d,
+                pos = 1,
+                type_size = 2,
+                size_size = 2,
+                complex_map = { points = 2, pos = 3, v = 3, omega = 3, Accel = 3, euler = 9, dropMat = 12, transform = 12, startMat = 12, saveMatrix = 12, buildMatrix = 12, bumpers = 3, Att = 4 },
+                nullToken =
+                    BZNTokenNull.new()
+            },
             Tokenizer)
     end
 
@@ -298,7 +353,7 @@ do
                 return BZNTokenString.new(name, values)
             end
         end
-        return nil
+        return self.nullToken
     end
 
     function Tokenizer:ReadStringToken()
@@ -309,11 +364,11 @@ do
                 return self:ReadStringValueToken(line)
             end
         end
-        return nil
+        return self.nullToken
     end
 
     function Tokenizer:ReadBinaryToken()
-        if self:atEnd() then return nil end
+        if self:atEnd() then return self.nullToken end
         local t = self.data:byte(self.pos); self.pos = self.pos + self.type_size
         local s = self.data:byte(self.pos) + bit.lshift(self.data:byte(self.pos + 1), 8); self.pos = self.pos +
             self.size_size
@@ -570,21 +625,35 @@ do
         if bzn.version == 1011 or bzn.version == 1012 then reader:ReadToken() end
 
         -- Hydrate
-        local count = reader:ReadToken():GetInt32()
+        local tok_count = reader:ReadToken()
+        local count = tok_count and tok_count:GetInt32() or 0
         for i = 1, count do
             local obj = {}
             if not reader:inBinary() then reader:ReadToken() end -- [GameObject]
-            obj.PrjID = reader:ReadToken():GetString()
+            local tok_prj = reader:ReadToken()
+            obj.PrjID = tok_prj and tok_prj:GetString() or ""
             if bzn.version == 1001 then obj.PrjID = obj.PrjID:gsub("%z.*", "") end
             local classlabel = GetClassLabelFromODF(obj.PrjID .. ".odf")
-            reader:ReadToken(); obj.seqNo = reader:ReadToken():GetUInt16()
-            reader:ReadToken(); obj.pos = reader:ReadToken():GetVector3D()
-            reader:ReadToken(); obj.team = reader:ReadToken():GetUInt32()
-            reader:ReadToken(); obj.label = reader:ReadToken():GetString()
-            reader:ReadToken(); obj.isUser = reader:ReadToken():GetUInt32() ~= 0
+            reader:ReadToken();
+            local tok_seq = reader:ReadToken()
+            obj.seqNo = tok_seq and tok_seq:GetUInt16() or 0
+            reader:ReadToken();
+            local tok_pos = reader:ReadToken()
+            obj.pos = tok_pos and tok_pos:GetVector3D() or SetVector(0, 0, 0)
+            reader:ReadToken();
+            local tok_team = reader:ReadToken()
+            obj.team = tok_team and tok_team:GetUInt32() or 0
+            reader:ReadToken();
+            local tok_label = reader:ReadToken()
+            obj.label = tok_label and tok_label:GetString() or ""
+            reader:ReadToken();
+            local tok_user = reader:ReadToken()
+            obj.isUser = tok_user and (tok_user:GetUInt32() ~= 0) or false
             reader:ReadToken() -- obj_addr
             if bzn.version > 1001 then
-                reader:ReadToken(); obj.transform = reader:ReadToken():GetMatrixOld()
+                reader:ReadToken();
+                local tok_trans = reader:ReadToken()
+                obj.transform = tok_trans and tok_trans:GetMatrixOld() or SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
             end
 
             if classlabel and ClassReaders[classlabel] then
@@ -606,27 +675,38 @@ do
         if bzn.version == 1011 or bzn.version == 1012 then for i = 1, 8 do reader:ReadToken() end end
 
         if not reader:inBinary() then reader:ReadToken() end -- [AOIs]
-        local countAOIs = reader:ReadToken():GetInt32()
+        local tok_aois = reader:ReadToken()
+        local countAOIs = tok_aois and tok_aois:GetInt32() or 0
         for i = 1, countAOIs do
             if not reader:inBinary() then reader:ReadToken() end
             for j = 1, 6 do reader:ReadToken() end
         end
 
         if not reader:inBinary() then reader:ReadToken() end -- [AiPaths]
-        local countPaths = reader:ReadToken():GetInt32()
+        local tok_paths = reader:ReadToken()
+        local countPaths = tok_paths and tok_paths:GetInt32() or 0
         for i = 1, countPaths do
             local p = {}
             if not reader:inBinary() then reader:ReadToken() end -- [AiPath]
             reader:ReadToken()                                   -- old_ptr
-            local sz = reader:ReadToken():GetInt32()
-            if sz > 0 then p.label = reader:ReadToken():GetString() end
-            local pc = reader:ReadToken():GetInt32()
+            local tok_sz = reader:ReadToken()
+            local sz = tok_sz and tok_sz:GetInt32() or 0
+            if sz > 0 then
+                local tok_plabel = reader:ReadToken()
+                p.label = tok_plabel and tok_plabel:GetString() or ""
+            end
+            local tok_pc = reader:ReadToken()
+            local pc = tok_pc and tok_pc:GetInt32() or 0
             if pc > 0 then
                 p.points = {}
                 reader:ReadToken() -- points
-                for j = 1, pc do p.points[j] = reader:ReadToken():GetVector2D() end
+                for j = 1, pc do
+                    local tok_pt = reader:ReadToken()
+                    p.points[j] = tok_pt and tok_pt:GetVector2D() or SetVector(0, 0, 0)
+                end
             end
-            p.pathType = reader:ReadToken():GetUInt32H()
+            local tok_ptype = reader:ReadToken()
+            p.pathType = tok_ptype and tok_ptype:GetUInt32H() or 0
             table.insert(bzn.AiPaths, p)
         end
 
@@ -665,8 +745,52 @@ AutoSave.Config = {
 }
 
 -- State
-AutoSave.timer = 300.0 -- Trigger immediately on first update/enable
+AutoSave.timer = 290.0 -- Set to 290 so it fires shortly after the 10s safe window (total ~20s)
 AutoSave.lastSaveTime = 0.0
+AutoSave.ActiveObjectives = {}
+
+-- Passive Tracking Hooks
+local function TrackObjective(h, state)
+    if IsValid(h) then
+        if state then
+            AutoSave.ActiveObjectives[h] = true
+        else
+            AutoSave.ActiveObjectives[h] = nil
+        end
+    end
+end
+
+if not _G.oldSetObjectiveOn then
+    _G.oldSetObjectiveOn = _G.SetObjectiveOn
+    _G.SetObjectiveOn = function(h, color)
+        TrackObjective(h, true)
+        if _G.oldSetObjectiveOn then return _G.oldSetObjectiveOn(h, color) end
+    end
+end
+
+if not _G.oldSetObjectiveOff then
+    _G.oldSetObjectiveOff = _G.SetObjectiveOff
+    _G.SetObjectiveOff = function(h)
+        TrackObjective(h, false)
+        if _G.oldSetObjectiveOff then return _G.oldSetObjectiveOff(h) end
+    end
+end
+
+if not _G.oldAddObjective then
+    _G.oldAddObjective = _G.AddObjective
+    _G.AddObjective = function(h, color, priority)
+        TrackObjective(h, true)
+        if _G.oldAddObjective then return _G.oldAddObjective(h, color, priority) end
+    end
+end
+
+if not _G.oldClearObjectives then
+    _G.oldClearObjectives = _G.ClearObjectives
+    _G.ClearObjectives = function()
+        AutoSave.ActiveObjectives = {}
+        if _G.oldClearObjectives then return _G.oldClearObjectives() end
+    end
+end
 
 ---
 --- Public API
@@ -680,36 +804,33 @@ function AutoSave.CreateSave(slotNumber, saveDescription)
         return false
     end
 
-    local saveDir = bzfile.GetWorkingDirectory() .. "Save"
+    local saveDir = bzfile.GetWorkingDirectory() .. "\\Save"
     local filename = saveDir .. "\\game" .. slotNumber .. ".sav"
 
-    print("AutoSave: Generating save file: " .. filename)
+    print("AutoSave: [V4-FINAL-FIX] Generating save file: " .. filename)
 
-    -- Open file for writing (truncate existing)
-    -- Cache selected and objective objects for the current save
-    AutoSave.CurrentSelected = {}
-    if SelectedObjects then
-        for obj in SelectedObjects() do
-            AutoSave.CurrentSelected[obj] = true
-        end
-    end
-
+    print("AutoSave: Collecting objectives from tracked list...")
     AutoSave.CurrentObjectives = {}
-    if ObjectiveObjects then
-        -- Workaround for broken iterator that only returns first result:
-        -- Since it only returns the first, we capture it.
-        -- If we can't find more, we at least have that one.
-        for obj in ObjectiveObjects() do
-            AutoSave.CurrentObjectives[obj] = true
+    local count = 0
+    for h, _ in pairs(AutoSave.ActiveObjectives) do
+        if IsValid(h) then
+            count = count + 1
+            AutoSave.CurrentObjectives[h] = true
         end
     end
+    print("AutoSave: Found " .. count .. " active objectives.")
 
+    -- Selection is omitted for engine stability
+    AutoSave.CurrentSelected = {}
+
+    print("AutoSave: Opening file for writing: " .. filename)
     local file = bzfile.Open(filename, "w", "trunc")
     if not file then
-        print("AutoSave: Failed to open file for writing")
+        print("AutoSave: Failed to open file for writing: " .. filename)
         return false
     end
 
+    print("AutoSave: Writing contents...")
     -- Write save file content
     AutoSave._WriteSaveFile(file, saveDescription)
 
@@ -751,6 +872,9 @@ function AutoSave.Update()
 
     if not enabled then return end
 
+    -- Safety: Do not autosave in the first 10 seconds of a mission to avoid engine load locks
+    if GetTime() < 10.0 then return end
+
     AutoSave.timer = AutoSave.timer + GetTimeStep()
     if AutoSave.timer >= AutoSave.Config.autoSaveInterval then
         AutoSave.CreateSave()
@@ -772,9 +896,39 @@ end
 AutoSave.SaveTable = nil
 
 -- Recursive Lua value writer
-local function WriteLuaValue(file, val)
+-- Recursive Lua value writer with robust cycle detection
+local function WriteLuaValue(file, val, visited)
+    visited = visited or {}
     local vType = type(val)
-    if vType == "boolean" then
+
+    if vType == "table" then
+        if visited[val] then
+            file:Writeln("type [1] =")
+            file:Writeln("0") -- DATA_VOID for cycles
+            return
+        end
+        visited[val] = true
+
+        local count = 0
+        for k in pairs(val) do
+            -- Exclude common high-recursion/engine keys
+            if k ~= "teamObj" and k ~= "parent" and k ~= "_G" and k ~= "package" then
+                count = count + 1
+            end
+        end
+
+        file:Writeln("type [1] =")
+        file:Writeln("5")
+        file:Writeln("count [1] =")
+        file:Writeln(tostring(count))
+
+        for k, v in pairs(val) do
+            if k ~= "teamObj" and k ~= "parent" and k ~= "_G" and k ~= "package" then
+                WriteLuaValue(file, k, visited)
+                WriteLuaValue(file, v, visited)
+            end
+        end
+    elseif vType == "boolean" then
         file:Writeln("type [1] =")
         file:Writeln("1")
         file:Writeln("b [1] =")
@@ -785,37 +939,20 @@ local function WriteLuaValue(file, val)
         file:Writeln("f [1] =")
         file:Writeln(FloatStr(val))
     elseif vType == "userdata" then
-        -- Check if it's a handle we've mapped
-        local id = HandleToID[val]
-        if id then
-            file:Writeln("type [1] =")
-            file:Writeln("2")
-            file:Writeln("h [1] =")
-            file:Writeln(tostring(id))
-        else
-            -- If it's a handle not in our map (e.g. invalid), save as NULL handle
-            file:Writeln("type [1] =")
-            file:Writeln("2")
-            file:Writeln("h [1] =")
-            file:Writeln("0")
-        end
+        local id = HandleToID and HandleToID[val] or 0
+        file:Writeln("type [1] =")
+        file:Writeln("2")
+        file:Writeln("h [1] =")
+        file:Writeln(tostring(id))
     elseif vType == "string" then
         file:Writeln("type [1] =")
         file:Writeln("4")
         file:Writeln("l [1] =")
         file:Writeln(tostring(#val))
         file:Writeln("s = " .. val)
-    elseif vType == "table" then
-        local count = 0
-        for _ in pairs(val) do count = count + 1 end
+    else
         file:Writeln("type [1] =")
-        file:Writeln("5")
-        file:Writeln("count [1] =")
-        file:Writeln(tostring(count))
-        for k, v in pairs(val) do
-            WriteLuaValue(file, k)
-            WriteLuaValue(file, v)
-        end
+        file:Writeln("0")
     end
 end
 
@@ -825,7 +962,7 @@ end
 
 local function WriteProp(file, key, value, isArray)
     if isArray then
-        file:Writeln(key .. " [1] = ")
+        file:Writeln(key .. " [1] =")
         file:Writeln(tostring(value))
     else
         file:Writeln(key .. " = " .. tostring(value))
@@ -861,8 +998,10 @@ function AutoSave._WriteSaveFile(file, saveDescription)
     end
     file:Writeln("nPlayerSide = " .. playerSide)
     WriteProp(file, "nMissionStatus", "0", true)
-    WriteProp(file, "nOldMissionMode", "0", true)
-    file:Writeln("TerrainName = " .. GetMapTRNFilename())
+    WriteProp(file, "nOldMissionMode", "1", true)
+    local terrain = GetMapTRNFilename() or ""
+    terrain = terrain:gsub("%.trn$", "")
+    file:Writeln("TerrainName = " .. terrain)
     WriteProp(file, "start_time", GetTime(), true)
     WriteProp(file, "size", idCounter - 1, true)
 
@@ -940,111 +1079,64 @@ function AutoSave._WriteTeamGlobals(file)
 end
 
 function AutoSave._WriteGameObject(file, obj)
-    file:Writeln("[GameObject]")
-    WriteProp(file, "PrjID", CleanString(GetOdf(obj)), true)
+    if not IsValid(obj) then return end
 
     local id = HandleToID[obj] or 0
+    local odf = CleanString(GetOdf(obj))
+    local team = GetTeamNum(obj)
+    local pos = GetPosition(obj)
+    local label = GetLabel(obj) or ""
+
+    file:Writeln("[GameObject]")
+    WriteProp(file, "PrjID", odf, true)
     WriteProp(file, "seqno", id, true)
 
-    local pos = GetPosition(obj)
+    -- Primary Position
     if pos then
         file:Writeln("pos [1] =")
-        file:Writeln("  x [1] = ")
+        file:Writeln("  x [1] =")
         file:Writeln(tostring(pos.x))
-        file:Writeln("  y [1] = ")
+        file:Writeln("  y [1] =")
         file:Writeln(tostring(pos.y))
-        file:Writeln("  z [1] = ")
+        file:Writeln("  z [1] =")
         file:Writeln(tostring(pos.z))
     end
 
-    WriteProp(file, "team", GetTeamNum(obj), true)
-    file:Writeln("label = " .. (GetLabel(obj) or ""))
+    WriteProp(file, "team", team, true)
+    file:Writeln("label = " .. label)
     WriteProp(file, "isUser", (obj == GetPlayerHandle() and "1" or "0"), true)
     file:Writeln("obj_addr = " .. string.format("%08x", id))
 
     -- Transform Section
     AutoSave._WriteTransform(file, obj)
 
-    -- Class Specific Data Part 1 (Buildings, Geysers, Recyclers, etc.)
-    local classLabel = GetClassLabel(obj)
-
-    if classLabel == "geyser" then
-        WriteProp(file, "tempBuilding", "false", true)
-    elseif classLabel == "turret" or classLabel == "building" or classLabel == "i76building" or classLabel == "i76building2" then
-        -- Turrets and buildings often have these undeffloats
-        file:Writeln("undeffloat [1] =")
-        file:Writeln("2")
-        file:Writeln("undeffloat [1] =")
-        file:Writeln("0")
-        file:Writeln("undeffloat [1] =")
-        file:Writeln("8")
-        file:Writeln("undeffloat [1] =")
-        file:Writeln("0.7")
-        file:Writeln("undefraw = 02000000")
-        file:Writeln("undeffloat [1] =")
-        file:Writeln("-0.0505719")
-        file:Writeln("undefbool [1] =")
-        file:Writeln("false")
-    elseif classLabel == "recycler" or classLabel == "factory" or classLabel == "armory" or classLabel == "constructionrig" or classLabel == "turrettank" or classLabel == "howitzer" then
-        local odfh = OpenODF(GetOdf(obj))
-        local tDeploy = 5
-        local tUndeploy = 5
-        if odfh then
-            tDeploy = GetODFFloat(odfh, "DeployableClass", "timeDeploy", 5)
-            tUndeploy = GetODFFloat(odfh, "DeployableClass", "timeUndeploy", 5)
-        end
-        file:Writeln("undefptr = 00000000")
-        WriteProp(file, "timeDeploy", tDeploy, true)
-        WriteProp(file, "timeUndeploy", tUndeploy, true)
-        file:Writeln("undefptr = 00000000")
-        file:Writeln("state = 02000000")
-        file:Writeln("delayTimer [1] =")
-        file:Writeln("0")
-        file:Writeln("nextRepair [1] =")
-        file:Writeln(FloatStr(GetTime()))
-        file:Writeln("buildClass [1] =")
-        file:Writeln("")
-        file:Writeln("buildDoneTime [1] =")
-        file:Writeln("0")
-    end
-
-    WriteProp(file, "abandoned", "0", true)
-
-    -- Cloaking
-    local cloakState = "00000000"
-    if IsCloaked and IsCloaked(obj) then
-        cloakState = "01000000"
-    end
-    file:Writeln("cloakState = " .. cloakState)
-    WriteProp(file, "cloakTransBeginTime", "0", true)
-    WriteProp(file, "cloakTransEndTime", "0", true)
-
+    WriteProp(file, "tempBuilding", "false", true)
     WriteProp(file, "illumination", "1", true)
 
-    -- Physics Pos (second pos)
+    -- Second Position (Physics Pos)
     if pos then
         file:Writeln("pos [1] =")
-        file:Writeln("  x [1] = ")
+        file:Writeln("  x [1] =")
         file:Writeln(tostring(pos.x))
-        file:Writeln("  y [1] = ")
+        file:Writeln("  y [1] =")
         file:Writeln(tostring(pos.y))
-        file:Writeln("  z [1] = ")
+        file:Writeln("  z [1] =")
         file:Writeln(tostring(pos.z))
     end
 
-    -- Euler / Momentum
+    -- Euler / Physics Section
     AutoSave._WritePhysics(file, obj)
 
     WriteProp(file, "seqNo", id, true)
-    file:Writeln("name = ") -- Engine usually puts name empty in sav unless specifically set
+    file:Writeln("name = ")
 
     WriteProp(file, "isCritical", (IsCritical(obj) and "true" or "false"), true)
     WriteProp(file, "isObjective", (AutoSave.CurrentObjectives[obj] and "true" or "false"), true)
     WriteProp(file, "isSelected", (AutoSave.CurrentSelected[obj] and "true" or "false"), true)
     WriteProp(file, "isVisible", "2", true)
-    WriteProp(file, "seen", "80000006", true)
+    WriteProp(file, "seen", "2", true)
 
-    -- Damage/Collision Timers (Engine uses -1e+030 as null/min)
+    -- Timers, Health, Ammo
     file:Writeln("playerShot [1] =")
     file:Writeln("-1e+030")
     file:Writeln("playerCollide [1] =")
@@ -1060,12 +1152,12 @@ function AutoSave._WriteGameObject(file, obj)
 
     AutoSave._WriteHealthAmmo(file, obj)
 
-    -- AI State
+    -- AI State / Priorities
     AutoSave._WriteAIState(file, obj)
 
-    file:Writeln("undefptr = 00000000")
+    file:Writeln("undefptr = 00000002")
     WriteProp(file, "isCargo", "false", true)
-    WriteProp(file, "independence", GetIndependence(obj), true)
+    WriteProp(file, "independence", "1", true)
 
     -- Pilot Information
     local pilot = GetPilotClass(obj)
@@ -1078,7 +1170,7 @@ function AutoSave._WriteGameObject(file, obj)
     end
 
     WriteProp(file, "enabled", "f", true)
-    WriteProp(file, "selected", "0", true)
+    WriteProp(file, "selected", (obj == GetPlayerHandle() and "1" or "0"), true)
 end
 
 function AutoSave._WriteTransform(file, obj)
@@ -1086,30 +1178,30 @@ function AutoSave._WriteTransform(file, obj)
     if transform then
         file:Writeln("transform [1] =")
         -- Orientation Matrix
-        file:Writeln("  right_x [1] = ")
+        file:Writeln("  right_x [1] =")
         file:Writeln(tostring(transform.right.x))
-        file:Writeln("  right_y [1] = ")
+        file:Writeln("  right_y [1] =")
         file:Writeln(tostring(transform.right.y))
-        file:Writeln("  right_z [1] = ")
+        file:Writeln("  right_z [1] =")
         file:Writeln(tostring(transform.right.z))
-        file:Writeln("  up_x [1] = ")
+        file:Writeln("  up_x [1] =")
         file:Writeln(tostring(transform.up.x))
-        file:Writeln("  up_y [1] = ")
+        file:Writeln("  up_y [1] =")
         file:Writeln(tostring(transform.up.y))
-        file:Writeln("  up_z [1] = ")
+        file:Writeln("  up_z [1] =")
         file:Writeln(tostring(transform.up.z))
-        file:Writeln("  front_x [1] = ")
+        file:Writeln("  front_x [1] =")
         file:Writeln(tostring(transform.front.x))
-        file:Writeln("  front_y [1] = ")
+        file:Writeln("  front_y [1] =")
         file:Writeln(tostring(transform.front.y))
-        file:Writeln("  front_z [1] = ")
+        file:Writeln("  front_z [1] =")
         file:Writeln(tostring(transform.front.z))
         -- Origin Position
-        file:Writeln("  posit_x [1] = ")
+        file:Writeln("  posit_x [1] =")
         file:Writeln(tostring(transform.posit.x))
-        file:Writeln("  posit_y [1] = ")
+        file:Writeln("  posit_y [1] =")
         file:Writeln(tostring(transform.posit.y))
-        file:Writeln("  posit_z [1] = ")
+        file:Writeln("  posit_z [1] =")
         file:Writeln(tostring(transform.posit.z))
     end
 end
@@ -1123,44 +1215,49 @@ function AutoSave._WritePhysics(file, obj)
         local m = exu.GetMass(obj)
         if m and m > 0 then mass = m end
     end
+    -- Geyser special case
+    local odf = CleanString(GetOdf(obj)):lower()
+    if odf:find("geizr") or odf:find("geyser") then
+        mass = 0
+    end
 
     file:Writeln("euler =")
-    file:Writeln(" mass [1] = ")
+    file:Writeln(" mass [1] =")
     file:Writeln(tostring(mass))
-    file:Writeln(" mass_inv [1] = ")
+    file:Writeln(" mass_inv [1] =")
     file:Writeln(FloatStr(mass > 0 and 1 / mass or 1e+030))
-    file:Writeln(" v_mag [1] = ")
+    file:Writeln(" v_mag [1] =")
     file:Writeln(FloatStr(v_mag))
-    file:Writeln(" v_mag_inv [1] = ")
+    file:Writeln(" v_mag_inv [1] =")
     file:Writeln(FloatStr(v_mag > 0 and 1 / v_mag or 1e+030))
-    file:Writeln(" I [1] = ")
+    file:Writeln(" I [1] =")
     file:Writeln("1")
-    file:Writeln(" k_i [1] = ")
-    file:Writeln(tostring(mass))
+    file:Writeln(" k_i [1] =")
+    file:Writeln("0")
 
     file:Writeln(" v [1] =")
-    file:Writeln("  x [1] = ")
+    file:Writeln("  x [1] =")
     file:Writeln(tostring(vel.x))
-    file:Writeln("  y [1] = ")
+    file:Writeln("  y [1] =")
     file:Writeln(tostring(vel.y))
-    file:Writeln("  z [1] = ")
+    file:Writeln("  z [1] =")
     file:Writeln(tostring(vel.z))
 
     file:Writeln(" omega [1] =")
-    file:Writeln("  x [1] = ")
+    file:Writeln("  x [1] =")
     file:Writeln(tostring(omega.x))
-    file:Writeln("  y [1] = ")
+    file:Writeln("  y [1] =")
     file:Writeln(tostring(omega.y))
-    file:Writeln("  z [1] = ")
+    file:Writeln("  z [1] =")
     file:Writeln(tostring(omega.z))
 
     file:Writeln(" Accel [1] =")
-    file:Writeln("  x [1] = ")
-    file:Writeln("0")
-    file:Writeln("  y [1] = ")
-    file:Writeln("0")
-    file:Writeln("  z [1] = ")
-    file:Writeln("0")
+    file:Writeln("  x [1] =")
+    file:Writeln("-4.31602e+008")
+    file:Writeln("  y [1] =")
+    file:Writeln("-4.31602e+008")
+    file:Writeln("  z [1] =")
+    file:Writeln("-4.31602e+008")
 end
 
 function AutoSave._WriteHealthAmmo(file, obj)
@@ -1184,21 +1281,13 @@ function AutoSave._WriteHealthAmmo(file, obj)
 end
 
 function AutoSave._WriteAIState(file, obj)
-    local cmd = GetCurrentCommand(obj)
+    local cmd = GetCurrentCommand(obj) or 0
     for i = 1, 2 do
-        if i == 1 and cmd then
-            WriteProp(file, "priority", "0", true)
-            file:Writeln("what = " .. string.format("%08x", cmd))
-            WriteProp(file, "who", "0", true)
-            file:Writeln("where = 00000000")
-            WriteProp(file, "param", "", true)
-        else
-            WriteProp(file, "priority", "0", true)
-            file:Writeln("what = 00000000")
-            WriteProp(file, "who", "0", true)
-            file:Writeln("where = 00000000")
-            WriteProp(file, "param", "", true)
-        end
+        WriteProp(file, "priority", "0", true)
+        file:Writeln("what = " .. string.format("%08x", cmd))
+        WriteProp(file, "who", "0", true)
+        file:Writeln("where = 00000000")
+        WriteProp(file, "param", "", true)
     end
 end
 
@@ -1238,9 +1327,9 @@ function AutoSave._WriteAiPaths(file)
             if pointCount > 0 then
                 file:Writeln("points [" .. pointCount .. "] =")
                 for _, pt in ipairs(path.points) do
-                    file:Writeln("  x [1] = ")
+                    file:Writeln("  x [1] =")
                     file:Writeln(tostring(pt.x))
-                    file:Writeln("  z [1] = ")
+                    file:Writeln("  z [1] =")
                     file:Writeln(tostring(pt.z))
                 end
             end

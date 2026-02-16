@@ -752,6 +752,14 @@ function exu.SetVoiceVolume(volume) end
 ---
 --- These functions are either existing in game but unbound in stock lua, or are in stock lua but were removed.
 
+--- Sets the shader for the given material.
+--- @param materialName string
+--- @param technique integer
+--- @param pass integer
+--- @param vertexShader string|nil
+--- @param fragmentShader string|nil
+function exu.SetShader(materialName, technique, pass, vertexShader, fragmentShader) end
+
 --- Interprets the given string as lua code and executes it.
 --- @param code string
 function exu.DoString(code) end

@@ -7,6 +7,9 @@ local autosave = require("AutoSave")
 
 local PersistentConfig = {}
 
+-- Internal Feedback Queue
+PersistentConfig.FeedbackQueue = {}
+
 -- Default Settings
 PersistentConfig.Settings = {
     HeadlightDiffuse = { R = 5.0, G = 5.0, B = 5.0 },                       -- White
@@ -37,13 +40,17 @@ local function Log(msg)
 end
 
 -- On-Screen Feedback Helper
-local function ShowFeedback(msg, r, g, b)
-    Log(msg) -- Always log to console/Print
-    if subtitles and subtitles.submit then
-        subtitles.clear_queue()
-        subtitles.set_opacity(0.5) -- 50% opacity for better readability
-        subtitles.submit(msg, 2.0, r or 0.8, g or 0.8, b or 1.0)
-    end
+local function ShowFeedback(msg, r, g, b, duration, bypass)
+    -- Push to queue instead of displaying immediately
+    table.insert(PersistentConfig.FeedbackQueue, {
+        msg = msg,
+        r = r or 0.8,
+        g = g or 0.8,
+        b = b or 1.0,
+        duration = duration or 2.0,
+        bypass = (bypass == nil) and true or bypass -- Default to true for responsiveness
+    })
+    Log(msg)                                        -- Always log to console
 end
 
 -- Helper to parse bzlogger.txt for Steam ID/Username
@@ -106,7 +113,8 @@ local InputState = {
     SubtitlesPaused = false,
     SteamIDFound = false,
     GreetingTriggered = false,
-    PollingStartTime = 0
+    PollingStartTime = 0,
+    last_poll_time = 0
 }
 
 -- Beam Definitions
@@ -298,16 +306,41 @@ function PersistentConfig.ShowHelp()
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
         "B:Beam | X:Auto-Repair | N:AutoSave | /:Help | ESC:Hide-Subs"
 
-    -- Show with high precedence (clear queue, force opacity)
-    if subtitles and subtitles.submit then
-        subtitles.clear_queue()
-        subtitles.set_opacity(0.5)
-        subtitles.submit(helpMsg, 8.0, 1.0, 1.0, 1.0) -- Show for 8 seconds at start
-    end
+    ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0)
 end
 
 -- Reusable update logic for all missions
 function PersistentConfig.UpdateInputs()
+    -- Process Feedback Queue
+    if #PersistentConfig.FeedbackQueue > 0 then
+        -- Check if mission subtitles are active
+        local subtit = package.loaded["ScriptSubtitles"]
+        local isBusy = false
+
+        if subtit and subtit.IsActive then
+            if subtit.IsActive() then
+                isBusy = true
+            else
+                -- Check for 5 second silence after last subtitle
+                local endTime = subtit.GetLastEndTime() or 0
+                if GetTime() < endTime + 5.0 then
+                    isBusy = true
+                end
+            end
+        end
+
+        if not isBusy or PersistentConfig.FeedbackQueue[1].bypass then
+            local item = table.remove(PersistentConfig.FeedbackQueue, 1)
+            if subtitles and subtitles.submit then
+                subtitles.set_opacity(0.5)
+                subtitles.submit(item.msg, item.duration, item.r, item.g, item.b)
+                if subtit then
+                    subtit.LastEndTime = GetTime() + item.duration
+                end
+            end
+        end
+    end
+
     if not exu or not exu.GetGameKey then return end
 
     -- Toggle Player Headlight (V)
@@ -465,23 +498,26 @@ function PersistentConfig.UpdateInputs()
         end
     end
 
-    -- Steam ID Polling (Try for first 10 seconds)
+    -- Steam ID Polling (Try for first 10 seconds, once per second)
     if not InputState.GreetingTriggered then
         local now = GetTime()
         if now - InputState.PollingStartTime < 10.0 then
-            local steamID, username
-            if exu and exu.GetSteam64 then
-                steamID = exu.GetSteam64()
-            end
+            if now - (InputState.last_poll_time or 0) > 1.0 then
+                InputState.last_poll_time = now
+                local steamID, username
+                if exu and exu.GetSteam64 then
+                    steamID = exu.GetSteam64()
+                end
 
-            if not steamID or steamID == "" or steamID == "0" then
-                steamID, username = ParseBzLogger()
-            end
+                if not steamID or steamID == "" or steamID == "0" then
+                    steamID, username = ParseBzLogger()
+                end
 
-            if steamID and #steamID >= 10 then
-                PersistentConfig.TriggerGreeting(steamID, username)
-                InputState.GreetingTriggered = true
-                InputState.SteamIDFound = true
+                if steamID and #steamID >= 10 then
+                    PersistentConfig.TriggerGreeting(steamID, username)
+                    InputState.GreetingTriggered = true
+                    InputState.SteamIDFound = true
+                end
             end
         else
             -- Polling timeout
@@ -505,6 +541,11 @@ end
 
 function PersistentConfig.Initialize()
     PersistentConfig.LoadConfig()
+
+    -- Reset Passive Tracking in AutoSave
+    if autosave then
+        autosave.ActiveObjectives = {}
+    end
 
     -- Default Auto-Repair based on difficulty if not explicitly set in config
     if PersistentConfig.Settings.AutoRepairWingmen == nil then

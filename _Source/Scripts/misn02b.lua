@@ -338,7 +338,7 @@ function Update()
                 end
             end
 
-            SetPosition(player, "playermove")
+            --SetPosition(player, "playermove")
             -- Stop previous audio if the user skipped the cinematic, then start the next one
             if CameraCancelled() or intro_skipped then
                 subtit.Stop()

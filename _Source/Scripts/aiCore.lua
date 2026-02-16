@@ -424,6 +424,15 @@ local function parseFloatLE(str, offset)
     return ((-1) ^ sign) * (1 + mantissa / 2 ^ 23) * 2 ^ (exponent - 127)
 end
 
+local nullToken = {
+    type = 0,
+    data = "",
+    GetString = function() return "" end,
+    GetInt32 = function() return 0 end,
+    GetBoolean = function() return false end,
+    GetVector2D = function() return SetVector(0, 0, 0) end
+}
+
 local Tokenizer = {}
 Tokenizer.__index = Tokenizer
 function Tokenizer.new(data)
@@ -431,7 +440,7 @@ function Tokenizer.new(data)
 end
 
 function Tokenizer:ReadToken()
-    if self.pos > #self.data then return nil end
+    if self.pos > #self.data then return nullToken end
     local type = string.byte(self.data, self.pos)
     self.pos = self.pos + self.type_size
     local size = string.byte(self.data, self.pos) + bit.lshift(string.byte(self.data, self.pos + 1), 8)
@@ -443,9 +452,10 @@ function Tokenizer:ReadToken()
         data = value,
         GetString = function(s) return s.data:gsub("%z.*", "") end,
         GetInt32 = function(s)
-            local b1, b2, b3, b4 = string.byte(s.data, 1, 4); return b1 + b2 * 256 + b3 * 65536 + b4 * 16777216
+            local b1, b2, b3, b4 = string.byte(s.data, 1, 4); return (b1 or 0) + (b2 or 0) * 256 + (b3 or 0) * 65536 +
+            (b4 or 0) * 16777216
         end,
-        GetBoolean = function(s) return string.byte(s.data, 1) ~= 0 end,
+        GetBoolean = function(s) return (string.byte(s.data, 1) or 0) ~= 0 end,
         GetVector2D = function(s, i)
             local off = (i or 0) * 8; return SetVector(parseFloatLE(s.data, off), 0, parseFloatLE(s.data, off + 4))
         end
