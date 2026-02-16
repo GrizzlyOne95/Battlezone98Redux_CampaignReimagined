@@ -603,7 +603,7 @@ function Update()
     end
 
     if M.start_done and GetDistance(M.avrecycler, "recycle_point") < 50.0 and not M.recycle_stop then
-        Goto(M.avrecycler, M.geyser, 0)
+        SetCommand(M.avrecycler, 16, 1, M.geyser)
         M.recycle_stop = true
     end
 
