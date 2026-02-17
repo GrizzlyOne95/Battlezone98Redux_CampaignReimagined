@@ -3,6 +3,7 @@ baseName = "apammo"
 classLabel = "ammopack"
 scrapCost = 1
 scrapValue = 0
+buildTime = 0.5
 maxHealth = 150
 maxAmmo = 0
 unitName = "Ammo"

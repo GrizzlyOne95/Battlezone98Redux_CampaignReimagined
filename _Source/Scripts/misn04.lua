@@ -19,18 +19,27 @@ local function SetupAI()
     -- Configure Player Team (1) for Scavenger Assist
     -- Configure Player Team (1) for Scavenger Assist
     if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
-        aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", true)
+        aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
         aiCore.ActiveTeams[1]:SetConfig("manageFactories", false)
         aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     end
 
     -- Configure CCA (Team 2)
     if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[2] then
-        aiCore.ActiveTeams[2]:SetStrategy("Balanced")
+        aiCore.ActiveTeams[2]:SetStrategy("Light_Force")
         aiCore.ActiveTeams[2].Config.resourceBoost = true
+        aiCore.ActiveTeams[2].Config.autoManage = true
+        aiCore.ActiveTeams[2].Config.autoBuild = true
+        aiCore.ActiveTeams[2].Config.manageFactories = true
+        aiCore.ActiveTeams[2].Config.requireConstructorFirst = true
+        aiCore.ActiveTeams[2].Config.minScavengers = 4
+
+        -- Add constructor to recycler build list at highest priority.
+        local cca = aiCore.ActiveTeams[2]
+        cca.strategyLocked = true
+        cca:AddUnitToBuildList(cca.recyclerBuildList, aiCore.Units[cca.faction].constructor, 0)
 
         -- Plan Base Construction
-        local cca = aiCore.ActiveTeams[2]
         cca:PlanDefensivePerimeter(2, 2) -- 2 powers, 2 towers each
 
         -- Place Silo at optimal scrap location
@@ -642,6 +651,9 @@ function Update()
             M.discoverrelic = true
             CameraReady()
             M.cintime1 = GetTime() + 23.0
+
+            -- Set user target to relic for visibility
+            SetUserTarget(M.relic)
         end
     end
 

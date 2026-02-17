@@ -14,4 +14,4 @@ soundPickup = "weapon.wav"
 soundReject = "mnu_buzz.wav"
 
 [AmmoPowerupClass]
-ammoUp = 500
+ammoUp = 700

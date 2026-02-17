@@ -14,4 +14,4 @@ soundPickup = "repair.wav"
 soundReject = "mnu_buzz.wav"
 
 [HealthPowerupClass]
-healthUp = 1000
+healthUp = 1250

@@ -21,7 +21,7 @@ PersistentConfig.Settings = {
     OtherHeadlightsDisabled = true, -- AI Lights Off by default
     AutoRepairWingmen = nil,        -- Initialized via difficulty if not in config
     RainbowMode = false,            -- Special color effect
-    enableAutoSave = false,         -- Experimental: ON/OFF
+    ScavengerAssistEnabled = true,  -- Auto-scavenge for player scavengers
     AutoSaveSlot = 10               -- Default to slot 10
 }
 
@@ -93,10 +93,10 @@ function PersistentConfig.TriggerGreeting(steamID, username)
     local displayName = CustomNames[steamID] or username
 
     if displayName then
-        ShowFeedback("Welcome back, Commander " .. displayName .. ".", 0.5, 0.8, 1.0)
+        ShowFeedback("Welcome back, Commander " .. displayName .. ".", 0.5, 0.8, 1.0, 5.0, false)
         print("Steam User: " .. displayName .. " (" .. steamID .. ")")
     else
-        ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0)
+        ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0, 5.0, false)
         print("Steam User ID: " .. steamID)
     end
 end
@@ -199,8 +199,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
                 elseif key == "RainbowMode" then
                     PersistentConfig.Settings.RainbowMode = (val == "true")
-                elseif key == "enableAutoSave" then
-                    PersistentConfig.Settings.enableAutoSave = false -- Forces OFF
+                elseif key == "ScavengerAssistEnabled" then
+                    PersistentConfig.Settings.ScavengerAssistEnabled = (val == "true")
                 elseif key == "AutoSaveSlot" then
                     PersistentConfig.Settings.AutoSaveSlot = tonumber(val) or 10
                 end
@@ -257,7 +257,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
         f:Writeln("AutoSaveSlot=" .. tostring(PersistentConfig.Settings.AutoSaveSlot))
-        f:Writeln("enableAutoSave=false") -- Always save as false
+        f:Writeln("ScavengerAssistEnabled=" .. tostring(PersistentConfig.Settings.ScavengerAssistEnabled))
 
         f:Close()
         print("PersistentConfig: File closed successfully")
@@ -304,9 +304,9 @@ end
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-        "B:Beam | X:Auto-Repair | N:Manual Save (Disabled) | /:Help | ESC:Hide-Subs"
+        "B:Beam | X:Auto-Repair | N:Scav-Assist | /:Help | ESC:Hide-Subs"
 
-    ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0)
+    ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
 end
 
 -- Reusable update logic for all missions
@@ -448,10 +448,19 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_x_state = x_key
 
-    -- Toggle AutoSave (N for "New AutoSave") - DISABLED
+    -- Toggle Scavenger Assist (N for "scaveNger")
     local n_key = exu.GetGameKey("N")
     if n_key and not InputState.last_n_state then
-        ShowFeedback("AutoSave Not Available", 1.0, 0.3, 0.3)
+        PersistentConfig.Settings.ScavengerAssistEnabled = not PersistentConfig.Settings.ScavengerAssistEnabled
+        PersistentConfig.SaveConfig()
+
+        -- Apply to player team (team 1) immediately via aiCore
+        if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
+            aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
+        end
+
+        ShowFeedback("Scavenger Assist: " .. (PersistentConfig.Settings.ScavengerAssistEnabled and "ON" or "OFF"), 0.8,
+            1.0, 0.8)
     end
     InputState.last_n_state = n_key
 

@@ -177,6 +177,8 @@ function Update()
         local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
         playerTeam:SetConfig("manageFactories", false)
         playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
+        playerTeam:SetConfig("enableParatroopers", false)
+        enemyTeam:SetConfig("enableParatroopers", false)
 
         --[[
         -- Available AI Configuration Flags (Reference from aiCore.lua):

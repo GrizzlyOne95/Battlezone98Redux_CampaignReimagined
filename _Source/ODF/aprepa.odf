@@ -4,6 +4,7 @@ classLabel = "repairkit"
 scrapCost = 1
 scrapValue = 0
 maxHealth = 150
+buildTime = 0.5
 maxAmmo = 0
 unitName = "Repair"
 aiName = "PowerUpProcess"

@@ -16,9 +16,15 @@ local PersistentConfig = require("PersistentConfig")
 local function SetupAI()
     local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
 
-    -- Disable factory management for player (prevent forced deployment)
+    -- Disable all management for player (Team 1 is fully manual)
     playerTeam:SetConfig("manageFactories", false)
+    playerTeam:SetConfig("autoManage", false)
     playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
+
+    -- Disable management for enemy Initially (They are prop-based units for much of Misn03)
+    enemyTeam:SetConfig("manageFactories", false)
+    enemyTeam:SetConfig("autoManage", false)
+    enemyTeam:SetConfig("autoBuild", false)
 end
 
 -- Mission State
@@ -552,7 +558,7 @@ function Update()
         for i = 1, 3 do
             local soldier = M.patrol_soldiers[i]
 
-            if soldier and not IsAlive(soldier) then
+            if not IsAlive(soldier) then
                 if M.patrol_respawn_timers[i] == 0 then
                     -- Schedule spawn
                     local delay = 30.0
@@ -888,6 +894,13 @@ function Update()
     if M.remove_props and not M.cca_deployed then
         if not IsAlive(M.avrecycler) then
             -- Player's Recycler is down. Order enemy production to invade base.
+            -- Enable AI management so they can build reinforcements
+            local enemyTeam = aiCore.ActiveTeams[2]
+            if enemyTeam then
+                enemyTeam:SetConfig("manageFactories", true)
+                enemyTeam:SetConfig("autoManage", true)
+            end
+
             -- Use SetCommand for GO_TO_GEYSER (16)
             if IsAlive(M.prop1) then SetCommand(M.prop1, 16, 1) end
             if IsAlive(M.prop2) then SetCommand(M.prop2, 16, 1) end
