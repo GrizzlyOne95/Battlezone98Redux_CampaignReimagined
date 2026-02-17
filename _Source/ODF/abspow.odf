@@ -14,5 +14,5 @@ radarSignature = 1.0
 soundAmbient = "absolce1.wav"
 
 [PowerPlantClass]
-powerRange = 250.0
+powerRadius = 250.0
 

@@ -13,5 +13,5 @@ radarSignature = 1.0
 soundAmbient = "ablplane0.wav"
 
 [PowerPlantClass]
-powerRange = 100.0
+powerRadius = 100.0
 
