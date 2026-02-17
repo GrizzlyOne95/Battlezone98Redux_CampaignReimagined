@@ -2444,6 +2444,7 @@ function aiCore.FactoryManager:new(team, isRecycler)
     -- fm.teamObj will be assigned in aiCore.Team:new
     fm.isRecycler = isRecycler
     fm.queue = {}
+    fm.lastDeployCommandTime = 0
     return fm
 end
 
@@ -2467,7 +2468,11 @@ function aiCore.FactoryManager:update()
         if cmd ~= AiCommand.DEPLOY and cmd ~= AiCommand.UNDEPLOY and
             cmd ~= AiCommand.GO and cmd ~= AiCommand.GO_TO_GEYSER and
             cmd ~= AiCommand.DEFEND and cmd ~= AiCommand.FOLLOW then
-            Deploy(self.handle)
+            local currentTime = GetTime()
+            if currentTime >= (self.lastDeployCommandTime or 0) + 10 then
+                SetCommand(self.handle, AiCommand.GO_TO_GEYSER, 0)
+                self.lastDeployCommandTime = currentTime
+            end
         end
         return -- Wait for deployment
     end
@@ -3240,6 +3245,7 @@ function aiCore.Team:new(teamNum, faction)
     t.factoryBuildList = {}
     t.buildingList = {}
 
+    t.lastFactoryDeployTime = 0
     return t
 end
 
@@ -3486,6 +3492,11 @@ end
 
 function aiCore.Team:UpdateStickToPlayer()
     if not self.Config.stickToPlayer or self.teamNum ~= 1 then return end
+
+    if not self.stickToPlayerTimer then self.stickToPlayerTimer = 0.0 end
+    if GetTime() < self.stickToPlayerTimer then return end
+    self.stickToPlayerTimer = GetTime() + 10.0
+
     local player = GetPlayerHandle()
     if not IsValid(player) then return end
 
@@ -3503,7 +3514,9 @@ function aiCore.Team:UpdateStickToPlayer()
                 if dist > 150 then
                     -- 1. Wake up pathing if severely lagging
                     if dist > 350 then
-                        SetCommand(u, cmd, 0, player)
+                        if GetCurrentCommand(u) ~= cmd or GetCurrentWho(u) ~= player then
+                            SetCommand(u, cmd, 0, player)
+                        end
                     end
 
                     -- 2. Physical "Push" Assist (Velocity Vector Math)
@@ -3643,8 +3656,12 @@ function aiCore.Team:UpdateBaseMaintenance()
         local nearby = GetNearestObject(self.recyclerMgr.handle)
         if IsValid(nearby) and GetTeamNum(nearby) == self.teamNum and IsOdf(nearby, odf) then
             -- Factory exists but not deployed - send to geyser
-            if not IsDeployed(nearby) and not IsBusy(nearby) then
-                SetCommand(nearby, AiCommand.GO_TO_GEYSER, 1)
+            if not IsDeployed(nearby) and not IsBusy(nearby) and GetCurrentCommand(nearby) ~= AiCommand.GO_TO_GEYSER then
+                local currentTime = GetTime()
+                if currentTime >= (self.lastFactoryDeployTime or 0) + 10 then
+                    SetCommand(nearby, AiCommand.GO_TO_GEYSER, 1)
+                    self.lastFactoryDeployTime = currentTime
+                end
             end
             pending = true
         end
@@ -4084,7 +4101,9 @@ function aiCore.Team:UpdatePilots()
                     if GetAmmo(p) < 0.1 or dist > 300 then
                         GiveWeapon(p, "handgun", 0)
                     elseif IsValid(enemy) then
-                        Attack(p, enemy)
+                        if GetCurrentCommand(p) ~= AiCommand.ATTACK or GetCurrentWho(p) ~= enemy then
+                            Attack(p, enemy)
+                        end
                     end
                 end
             end
@@ -4108,7 +4127,9 @@ function aiCore.Team:UpdatePilots()
                         GetIn(p, target)
                         if aiCore.Debug then print("Team " .. self.teamNum .. " pilot stealing craft: " .. GetOdf(target)) end
                     else
-                        Goto(p, target, 1) -- High priority move to craft
+                        if GetCurrentCommand(p) ~= AiCommand.GO or GetCurrentWho(p) ~= target then
+                            Goto(p, target, 1) -- High priority move to craft
+                        end
                     end
                 end
             end
