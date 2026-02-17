@@ -2,16 +2,16 @@
 classLabel = "powerplant"
 scrapCost = 6
 scrapValue = 4
-maxHealth = 2000
+maxHealth = 3000
 maxAmmo = 0
 unitName = "W-Power"
 heatSignature = 0.8
-imageSignature = 8.0
+imageSignature = 10.0
 radarSignature = 1.0
 
 [BuildingClass]
 soundAmbient = "abwpowe0.wav"
 
 [PowerPlantClass]
-powerRange = 100.0
+powerRange = 150.0
 

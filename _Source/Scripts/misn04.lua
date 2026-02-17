@@ -26,32 +26,31 @@ local function SetupAI()
 
     -- Configure CCA (Team 2)
     if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[2] then
-        aiCore.ActiveTeams[2]:SetStrategy("Light_Force")
-        aiCore.ActiveTeams[2].Config.resourceBoost = true
-        aiCore.ActiveTeams[2].Config.autoManage = true
-        aiCore.ActiveTeams[2].Config.autoBuild = true
-        aiCore.ActiveTeams[2].Config.manageFactories = true
-        aiCore.ActiveTeams[2].Config.requireConstructorFirst = true
-        aiCore.ActiveTeams[2].Config.minScavengers = 4
-
-        -- Add constructor to recycler build list at highest priority.
         local cca = aiCore.ActiveTeams[2]
-        cca.strategyLocked = true
-        cca:AddUnitToBuildList(cca.recyclerBuildList, aiCore.Units[cca.faction].constructor, 0)
+        cca:SetMaintainList(
+            { scout = 2, scavenger = 4, constructor = 1 },                    -- Recycler
+            { tank = 1, lighttank = 1, rockettank = 1, apc = 1, turret = 6 }, -- Factory
+            true                                                              -- Locked
+        )
 
-        -- Plan Base Construction
-        cca:PlanDefensivePerimeter(2, 2) -- 2 powers, 2 towers each
+        -- Fully Automate Base and Units
+        cca.Config.autoManage = true
+        cca.Config.autoBuild = true
+        cca.Config.manageFactories = true
+        cca.Config.manageConstructor = true
+        cca.Config.resourceBoost = true
+        cca.Config.minScavengers = 4
+        cca.Config.requireConstructorFirst = true
 
-        -- Place Silo at optimal scrap location
+        -- High-level Base Planning
+        cca:PlanDefensivePerimeter(2, 1) -- 2 powers, 1 tower each (Interleaved)
+
+        -- ExpandBase will automatically handle Barracks, Supply, Comm, Hangar, and HQ over time.
+        -- We just need to plan the optimal Silo location since it's terrain-dependent.
         local siloPos = cca:FindOptimalSiloLocation(200, 350)
         if siloPos then
             cca:AddBuilding(aiCore.Units[cca.faction].silo, siloPos, 5)
         end
-
-        -- Place Barracks
-        local recPos = GetPosition(GetRecyclerHandle(2))
-        local bPos = GetPositionNear(recPos, 80, 120)
-        cca:AddBuilding(aiCore.Units[cca.faction].barracks, bPos, 8)
     end
 end
 

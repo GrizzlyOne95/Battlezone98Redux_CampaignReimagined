@@ -48,7 +48,20 @@ function DiffUtils.Get()
         sniperStealth = ({ 0.1, 0.25, 0.5, 0.75, 1.0 })[d + 1],
 
         -- Auto-Repair (Low Difficulty)
-        autoRepairWingmen = (d <= 1)
+        autoRepairWingmen = (d <= 1),
+
+        -- Unit Caps (Difficulty based)
+        unitCaps = {
+            scout = ({ 1, 2, 4, 6, 8 })[d + 1],
+            tank = ({ 2, 4, 8, 12, 16 })[d + 1],
+            heavy = ({ 0, 1, 2, 4, 6 })[d + 1],
+            siege = ({ 0, 1, 2, 4, 6 })[d + 1],
+            bomber = ({ 0, 1, 2, 4, 6 })[d + 1],
+            apc = ({ 0, 1, 2, 3, 4 })[d + 1],
+            missile = ({ 1, 2, 3, 4, 6 })[d + 1],
+            tower = ({ 2, 4, 6, 10, 15 })[d + 1],
+            minelayer = ({ 0, 1, 2, 3, 4 })[d + 1]
+        }
     }
     return m
 end
@@ -86,6 +99,7 @@ function DiffUtils.SetupTeams(playerFaction, enemyFaction, enemyTeamNum)
     enemyTeam:SetConfig("wreckerInterval", m.wreckerInterval)
     enemyTeam:SetConfig("pilotTopoff", m.pilotTopoff)
     enemyTeam:SetConfig("resourceBoost", m.resourceBoost)
+    enemyTeam:SetConfig("unitCaps", m.unitCaps)
 
     -- New: Difficulty Features
     enemyTeam:SetConfig("enableWreckers", m.enableWreckers)

@@ -1,8 +1,8 @@
 [GameObjectClass]
 classLabel = "powerplant"
 scrapCost = 4
-scrapValue = 3
-maxHealth = 2500
+scrapValue = 2
+maxHealth = 1500
 maxAmmo = 0
 collisionRadius = 4.0
 unitName = "S-Power"
@@ -14,5 +14,5 @@ radarSignature = 1.0
 soundAmbient = "absolce1.wav"
 
 [PowerPlantClass]
-powerRange = 200.0
+powerRange = 250.0
 
