@@ -615,44 +615,56 @@ function Update()
 
     -- Discover Relic logic (Investigator count)
     if (not M.discoverrelic) then
+        -- Check for enemies near the PLAYER (250m radius) before triggering discovery
+        local enemiesNearPlayer = CountUnitsNearObject(M.player, 250.0, 2, "")
+
         -- Calipso Logic (Restored from C++ lines 448-468)
         -- Checks if an AI teammate finds the relic first
-        local calipso = GetNearestVehicle(M.relic)
-        if IsAlive(calipso) then
-            if (GetTeamNum(calipso) == 1) and (GetDistance(M.relic, calipso) <= 75.0) and (calipso ~= M.player) then
-                M.aud1 = subtit.Play("misn0407.wav") -- "I've found something..."
-                M.aud3 = subtit.Play("misn0409.wav")
-                -- Shared discovery logic
-                M.relicseen = true
-                M.newobjective = true
-                M.ccatug = GetTime() + GetTugDelay() + math.random(-5, 10)
-                M.discoverrelic = true
-                CameraReady()
-                M.cintime1 = GetTime() + 23.0
+        if (enemiesNearPlayer == 0) then
+            local calipso = GetNearestVehicle(M.relic)
+            if IsAlive(calipso) then
+                if (GetTeamNum(calipso) == 1) and (GetDistance(M.relic, calipso) <= 75.0) and (calipso ~= M.player) then
+                    M.found = true                       -- Set state flag for tug pickup check
+                    M.aud1 = subtit.Play("misn0407.wav") -- "I've found something..."
+                    M.aud3 = subtit.Play("misn0409.wav")
+                    -- Shared discovery logic
+                    M.relicseen = true
+                    M.newobjective = true
+                    M.ccatug = GetTime() + GetTugDelay() + math.random(-5, 10)
+                    M.discoverrelic = true
+                    CameraReady()
+                    M.cintime1 = GetTime() + 23.0
+                end
             end
         end
     end
 
     if (not M.discoverrelic) then
         if (M.investigate < GetTime()) then
+            -- Fallback: Directly check player distance if counting is flaky
+            local playerNear = (GetDistance(M.player, M.relic) < 150.0)
+            local enemiesNearPlayer = CountUnitsNearObject(M.player, 250.0, 2, "")
+
             M.investigator = CountUnitsNearObject(M.relic, 400.0, 1, "")
-            if IsAlive(M.reliccam) then
+            -- Only subtract camera pod if it is actually within the detection range
+            if IsAlive(M.reliccam) and (GetDistance(M.reliccam, M.relic) < 400.0) then
                 M.investigator = M.investigator - 1
             end
-        end
 
-        if (M.investigator >= 1) then
-            M.aud2 = subtit.Play("misn0408.wav")
-            M.aud3 = subtit.Play("misn0409.wav")
-            M.relicseen = true
-            M.newobjective = true
-            M.ccatug = GetTime() + GetTugDelay() + math.random(-5, 10)
-            M.discoverrelic = true
-            CameraReady()
-            M.cintime1 = GetTime() + 23.0
+            if (enemiesNearPlayer == 0) and ((M.investigator >= 1) or playerNear) then
+                M.found = true -- Set state flag for tug pickup check
+                M.aud2 = subtit.Play("misn0408.wav")
+                M.aud3 = subtit.Play("misn0409.wav")
+                M.relicseen = true
+                M.newobjective = true
+                M.ccatug = GetTime() + GetTugDelay() + math.random(-5, 10)
+                M.discoverrelic = true
+                CameraReady()
+                M.cintime1 = GetTime() + 23.0
 
-            -- Set user target to relic for visibility
-            SetUserTarget(M.relic)
+                -- Set user target to relic for visibility
+                SetUserTarget(M.relic)
+            end
         end
     end
 
