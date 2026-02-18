@@ -22,7 +22,8 @@ PersistentConfig.Settings = {
     AutoRepairWingmen = nil,        -- Initialized via difficulty if not in config
     RainbowMode = false,            -- Special color effect
     ScavengerAssistEnabled = true,  -- Auto-scavenge for player scavengers
-    AutoSaveSlot = 10               -- Default to slot 10
+    AutoSaveSlot = 10,              -- Default to slot 10
+    AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
 }
 
 local function getWorkingDirectory()
@@ -59,8 +60,14 @@ local function ParseBzLogger()
     local logPath = "bzlogger.txt"
     local f = bzfile.Open(logPath, "r")
 
+    -- Fallback to parent directory if not found
     if not f then
-        print("PersistentConfig: Could not find " .. logPath .. " for parsing.")
+        logPath = "../bzlogger.txt"
+        f = bzfile.Open(logPath, "r")
+    end
+
+    if not f then
+        print("PersistentConfig: Could not find bzlogger.txt for parsing.")
         return nil, nil
     end
 
@@ -82,22 +89,31 @@ local function ParseBzLogger()
     return steamID, username
 end
 
+-- Storage for User Info
+PersistentConfig.User = {
+    SteamID = nil,
+    Username = nil
+}
+
 -- Shared Greeting Logic
 function PersistentConfig.TriggerGreeting(steamID, username)
+    PersistentConfig.User.SteamID = steamID
+    PersistentConfig.User.Username = username
+
     local CustomNames = {
         ["76561198241259700"] = "GlizzyJuan",   -- GrizzlyOne95
         ["76561198104781489"] = "British Twat", --JJ
         ["76561199014392897"] = "Car Nerd",     --DriveLine
     }
 
-    local displayName = CustomNames[steamID] or username
+    local displayName = CustomNames[tostring(steamID)] or username
 
     if displayName then
         ShowFeedback("Welcome back, Commander " .. displayName .. ".", 0.5, 0.8, 1.0, 5.0, false)
-        print("Steam User: " .. displayName .. " (" .. steamID .. ")")
+        print("Steam User: " .. displayName .. " (" .. tostring(steamID) .. ")")
     else
         ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0, 5.0, false)
-        print("Steam User ID: " .. steamID)
+        print("Steam User ID: " .. tostring(steamID))
     end
 end
 
@@ -109,12 +125,14 @@ local InputState = {
     last_b_state = false,    -- Beam (B)
     last_help_state = false, --/ or ? on keyboard
     last_x_state = false,    -- Auto-repair toggle
-    last_n_state = false,    -- Manual Save (N)
+    last_u_state = false,    -- Scavenger Assist (U)
     SubtitlesPaused = false,
     SteamIDFound = false,
     GreetingTriggered = false,
     PollingStartTime = 0,
-    last_poll_time = 0
+    last_poll_time = 0,
+    last_repair_time = 0,
+    repair_interval = 1.0 -- Run repair logic every 1 second
 }
 
 -- Beam Definitions
@@ -203,6 +221,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.ScavengerAssistEnabled = (val == "true")
                 elseif key == "AutoSaveSlot" then
                     PersistentConfig.Settings.AutoSaveSlot = tonumber(val) or 10
+                elseif key == "AutoRepairBuildings" then
+                    PersistentConfig.Settings.AutoRepairBuildings = (val == "true")
                 end
             end
             line = f:Readln()
@@ -258,6 +278,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
         f:Writeln("AutoSaveSlot=" .. tostring(PersistentConfig.Settings.AutoSaveSlot))
         f:Writeln("ScavengerAssistEnabled=" .. tostring(PersistentConfig.Settings.ScavengerAssistEnabled))
+        f:Writeln("AutoRepairBuildings=" .. tostring(PersistentConfig.Settings.AutoRepairBuildings))
 
         f:Close()
         print("PersistentConfig: File closed successfully")
@@ -304,7 +325,7 @@ end
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-        "B:Beam | X:Auto-Repair | N:Scav-Assist | /:Help | ESC:Hide-Subs"
+        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | /:Help"
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
 end
@@ -422,9 +443,11 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_j_state = j_key
 
-    -- Toggle Headlight Beam Mode (B) - Removed Alt requirement
+    -- Toggle Headlight Beam Mode (B) - Removed Alt requirement, but check for Bail (Ctrl+B)
     local b_key = exu.GetGameKey("B")
-    if b_key and not InputState.last_b_state then
+    local ctrl_down = (exu.GetGameKey("CONTROL") or exu.GetGameKey("CTRL"))
+
+    if b_key and not ctrl_down and not InputState.last_b_state then
         PersistentConfig.Settings.HeadlightBeamMode = (PersistentConfig.Settings.HeadlightBeamMode % 2) + 1
         PersistentConfig.SaveConfig()
         PersistentConfig.ApplySettings()
@@ -435,22 +458,35 @@ function PersistentConfig.UpdateInputs()
 
     -- Toggle Auto-Repair for Wingmen (X for "Auto-fiX")
     local x_key = exu.GetGameKey("X")
+    local shift_down = false
+    if exu.GetGameKey("SHIFT") then shift_down = true end
+
     if x_key and not InputState.last_x_state then
-        PersistentConfig.Settings.AutoRepairWingmen = not PersistentConfig.Settings.AutoRepairWingmen
-        PersistentConfig.SaveConfig()
+        if shift_down then
+            -- Shift+X: Toggle Building Repair
+            PersistentConfig.Settings.AutoRepairBuildings = not PersistentConfig.Settings.AutoRepairBuildings
+            PersistentConfig.SaveConfig()
+            ShowFeedback("Building Repair: " .. (PersistentConfig.Settings.AutoRepairBuildings and "ON" or "OFF"), 0.8,
+                1.0, 0.8)
+        else
+            -- X: Toggle Wingman Repair
+            PersistentConfig.Settings.AutoRepairWingmen = not PersistentConfig.Settings.AutoRepairWingmen
+            PersistentConfig.SaveConfig()
 
-        -- Apply to player team (team 1) immediately via aiCore
-        if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
-            aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
+            -- Apply to player team (team 1) immediately via aiCore
+            if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
+                aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
+            end
+
+            ShowFeedback("Wingman Auto-Repair: " .. (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF"), 0.8,
+                1.0, 0.8)
         end
-
-        ShowFeedback("Auto-Repair: " .. (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF"), 0.8, 1.0, 0.8)
     end
     InputState.last_x_state = x_key
 
-    -- Toggle Scavenger Assist (N for "scaveNger")
-    local n_key = exu.GetGameKey("N")
-    if n_key and not InputState.last_n_state then
+    -- Toggle Scavenger Assist (U)
+    local u_key = exu.GetGameKey("U")
+    if u_key and not InputState.last_u_state then
         PersistentConfig.Settings.ScavengerAssistEnabled = not PersistentConfig.Settings.ScavengerAssistEnabled
         PersistentConfig.SaveConfig()
 
@@ -462,7 +498,7 @@ function PersistentConfig.UpdateInputs()
         ShowFeedback("Scavenger Assist: " .. (PersistentConfig.Settings.ScavengerAssistEnabled and "ON" or "OFF"), 0.8,
             1.0, 0.8)
     end
-    InputState.last_n_state = n_key
+    InputState.last_u_state = u_key
 
     -- Run AutoSave Update
     if autosave and autosave.Update then
@@ -477,7 +513,7 @@ function PersistentConfig.UpdateInputs()
     InputState.last_help_state = help_pressed
 
     -- Pause Menu Handling (Escape Key) - IMMEDIATE effect
-    if exu.GetGameKey("ESCAPE") then
+    if exu.GetGameKey("ESCAPE") or LastGameKey == "ESCAPE" or LastGameKey == "ESC" or exu.GetGameKey("ESC") then
         if subtitles and subtitles.set_opacity then
             subtitles.set_opacity(0.0)
         end
@@ -519,7 +555,14 @@ function PersistentConfig.UpdateInputs()
                 end
 
                 if not steamID or steamID == "" or steamID == "0" then
-                    steamID, username = ParseBzLogger()
+                    -- Fallback to log for ID
+                    local logID, logName = ParseBzLogger()
+                    if logID then steamID = logID end
+                    if logName then username = logName end
+                elseif not username then
+                    -- Have ID but no name, check log for name
+                    local _, logName = ParseBzLogger()
+                    if logName then username = logName end
                 end
 
                 if steamID and #steamID >= 10 then
@@ -532,6 +575,97 @@ function PersistentConfig.UpdateInputs()
             -- Polling timeout
             InputState.GreetingTriggered = true
             print("PersistentConfig: Steam ID polling timed out.")
+        end
+    end
+
+
+    -- Run Building Repair Logic
+    if PersistentConfig.Settings.AutoRepairBuildings then
+        local now = GetTime()
+        if now - InputState.last_repair_time > InputState.repair_interval then
+            InputState.last_repair_time = now
+            PersistentConfig.UpdateBuildingRepair()
+        end
+    end
+end
+
+-- ODF Property Cache to avoid repeated file I/O
+PersistentConfig.ODFCache = {}
+
+local function GetPowerRadius(odfname)
+    if not odfname then return 200.0 end
+
+    -- Check Cache
+    if PersistentConfig.ODFCache[odfname] then
+        return PersistentConfig.ODFCache[odfname]
+    end
+
+    -- Default
+    local radius = 200.0
+
+    -- Try to read ODF using native API
+    if OpenODF and GetODFFloat then
+        local odf = OpenODF(odfname)
+        if odf then
+            -- GetODFFloat(odf, section, label, default)
+            local val, found = GetODFFloat(odf, "PowerPlantClass", "powerRadius", 200.0)
+            if found then
+                radius = val
+            end
+        else
+            print("PersistentConfig: Could not open ODF " .. odfname)
+        end
+    end
+
+    -- Cache it
+    PersistentConfig.ODFCache[odfname] = radius
+    return radius
+end
+
+function PersistentConfig.UpdateBuildingRepair()
+    -- Logic: Heal player buildings (Team 1) if within powerRadius of a power source (classLabel "powerplant")
+    local playerTeam = 1
+    local powerSources = {}
+    local healAmount = 20 -- 20 HP per second
+
+    -- 1. Find all player power sources
+    for h in AllObjects() do
+        if GetTeamNum(h) == playerTeam and IsAlive(h) then
+            local label = GetClassLabel(h)
+            if label == "powerplant" then
+                -- Store handle AND its specific radius
+                local odf = GetOdf(h)
+                local rad = GetPowerRadius(odf)
+                table.insert(powerSources, { handle = h, radius = rad })
+            end
+        end
+    end
+
+    if #powerSources == 0 then return end
+
+    -- 2. Find repairable buildings and turrets
+    for h in AllObjects() do
+        if GetTeamNum(h) == playerTeam and IsAlive(h) then
+            local label = GetClassLabel(h)
+            -- Heal Buildings AND Turrets (Gun Towers are vehicles with class 'turret')
+            if IsBuilding(h) or label == "turret" then
+                local curHealth = GetHealth(h) -- Returns 0.0 to 1.0
+
+                if curHealth < 1.0 then
+                    -- Check distance to nearest power
+                    local nearPower = false
+                    for _, p in ipairs(powerSources) do
+                        if GetDistance(h, p.handle) < p.radius then
+                            nearPower = true
+                            break
+                        end
+                    end
+
+                    if nearPower then
+                        AddHealth(h, healAmount)
+                    end
+                end
+            end
         end
     end
 end
@@ -587,7 +721,14 @@ function PersistentConfig.Initialize()
         steamID = exu.GetSteam64()
     end
 
-    -- 2. Immediate check
+    -- 2. Try to get name from log if missing (or ID if EXU failed)
+    local logID, logName = ParseBzLogger()
+    if logName then username = logName end
+    if (not steamID or steamID == "" or steamID == "0") and logID then
+        steamID = logID
+    end
+
+    -- 3. Immediate check
     if steamID and #steamID >= 10 then
         PersistentConfig.TriggerGreeting(steamID, username)
         InputState.GreetingTriggered = true

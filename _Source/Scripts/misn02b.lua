@@ -35,6 +35,7 @@ local wave_timer = 0.0
 local last_wave_time = 99999.0
 local cam_time = 0.0
 local NextSecond = 99999.0
+local bio_timer = 0
 
 local bscav = nil
 local bscout = nil
@@ -59,7 +60,7 @@ function Save()
         wave_timer, last_wave_time, cam_time, NextSecond,
         bscav, bscout, scav2, audmsg,
         dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2,
-        intro_skipped
+        intro_skipped, bio_timer
     }
     return missionData, aiCore.Save()
 end
@@ -73,8 +74,9 @@ function Load(missionData, aiData)
         wave_timer, last_wave_time, cam_time, NextSecond,
         bscav, bscout, scav2, audmsg,
         dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2,
-        intro_skipped = unpack(missionData)
+        intro_skipped, bio_timer = unpack(missionData)
     end
+    if bio_timer == nil then bio_timer = 0 end
     if aiData then aiCore.Load(aiData) end
     aiCore.Bootstrap() -- Capture objects on load
     ApplyQOL()         -- Reapply engine settings
@@ -172,6 +174,16 @@ function Update()
     subtit.Update()
     PersistentConfig.UpdateInputs()
     PersistentConfig.UpdateHeadlights()
+
+    -- Holographic Bio Logic
+    if (camera1 or camera2 or camera3) and GetTime() >= bio_timer then
+        local player = GetPlayerHandle()
+        if IsAlive(player) then
+            -- Spawns the holographic bio above the player
+            BuildObject("xbio", 1, player)
+        end
+        bio_timer = GetTime() + 5.0
+    end
 
     if not start_done then
         local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)

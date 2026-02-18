@@ -1,0 +1,30 @@
+[ExplosionClass]
+classLabel = "explosion"
+
+explSound = ""
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 1
+
+particleClass1 = "xbio.core"
+particleCount1 = 1
+particleVeloc1 = "0.0 5.0 0.0"
+
+[Core]
+simulateBase = "sim_null"
+lifeTime = 5
+renderBase = "draw_sprite"
+textureName = "bio.png"
+startColor = "255 255 255 1000"
+finishColor = "255 255 255 0"
+startRadius = 10
+finishRadius = 10
+animateTime = 5
+attenuateConstant = 1
+attenuateLinear = 1
+attenuateQuadratic = 0
+maxCount = 1

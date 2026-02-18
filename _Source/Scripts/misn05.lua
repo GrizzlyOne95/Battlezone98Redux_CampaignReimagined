@@ -5,29 +5,42 @@ SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")
-RequireFix.Initialize({"campaignReimagined", "3659600763"})
+RequireFix.Initialize({ "campaignReimagined", "3659600763" })
 local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
+local PersistentConfig = require("PersistentConfig")
+local Environment = require("Environment")
+local PhysicsImpact = require("PhysicsImpact")
 
 -- Helper for AI
 local function SetupAI()
     DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
-    
+
     -- Configure Player Team (1) for Scavenger Assist
     if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
-        aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", true)
+        aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
+        aiCore.ActiveTeams[1]:SetConfig("manageFactories", false)
+        aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     end
-    
+
     -- Configure CCA (Team 2)
     if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[2] then
-        aiCore.ActiveTeams[2]:SetStrategy("Balanced")
-        aiCore.ActiveTeams[2].Config.resourceBoost = true
-        
-        -- Basic base planning
         local cca = aiCore.ActiveTeams[2]
-        cca:PlanDefensivePerimeter(2, 2) -- 2 powers, 2 towers each
+        cca:SetMaintainList(
+            { scout = 2, scavenger = 4, constructor = 1 },                                 -- Recycler
+            { tank = 1, lighttank = 1, bomber = 1, turret = 6, howitzer = 3, armory = 1 }, -- Factory
+            true                                                                           -- Locked
+        )
+        cca.Config.resourceBoost = true
+        cca.Config.autoManage = true
+        cca.Config.autoBuild = true
+        cca.Config.manageFactories = true
+        cca.Config.manageConstructor = true
+        cca.Config.requireConstructorFirst = true
+
+        cca:PlanDefensivePerimeter(2, 4) -- 2 powers, 4 towers each
     end
 end
 
@@ -55,7 +68,7 @@ local M = {
     takeoutfactory = false,
     attacktimeset = false,
     attackstatement = false,
-    
+
     -- Attack Wave sub-states
     aw1sent = false,
     aw2sent = false,
@@ -78,20 +91,50 @@ local M = {
     aw2t = 99999999999.0,
     aw3t = 99999999999.0,
     aw4t = 99999999999.0,
-    
+
     -- Send Times array for shuffling
-    sendTime = {99999999.0, 99999999.0, 99999999.0, 99999999.0},
+    sendTime = { 99999999.0, 99999999.0, 99999999.0, 99999999.0 },
 
     -- Handles
-    lemnos = nil, player = nil, svrec = nil, avrec = nil,
-    wBu1 = nil, wBu2 = nil, wBu3 = nil,
-    w1u1 = nil, w1u2 = nil, w1u3 = nil, w1u4 = nil,
-    w2u1 = nil, w2u2 = nil, w2u3 = nil, w2u4 = nil,
-    w3u1 = nil, w3u2 = nil, w3u3 = nil, w3u4 = nil,
-    w4u1 = nil, w4u2 = nil, w4u3 = nil, w4u4 = nil,
-    rand1 = nil, rand2 = nil,
-    aw1 = nil, aw2 = nil, aw3 = nil, aw4 = nil, aw5 = nil,
-    aw1a = nil, aw2a = nil, aw3a = nil, aw4a = nil, aw5a = nil, aw6a = nil, aw7a = nil, aw8a = nil, aw9a = nil,
+    lemnos = nil,
+    player = nil,
+    svrec = nil,
+    avrec = nil,
+    wBu1 = nil,
+    wBu2 = nil,
+    wBu3 = nil,
+    w1u1 = nil,
+    w1u2 = nil,
+    w1u3 = nil,
+    w1u4 = nil,
+    w2u1 = nil,
+    w2u2 = nil,
+    w2u3 = nil,
+    w2u4 = nil,
+    w3u1 = nil,
+    w3u2 = nil,
+    w3u3 = nil,
+    w3u4 = nil,
+    w4u1 = nil,
+    w4u2 = nil,
+    w4u3 = nil,
+    w4u4 = nil,
+    rand1 = nil,
+    rand2 = nil,
+    aw1 = nil,
+    aw2 = nil,
+    aw3 = nil,
+    aw4 = nil,
+    aw5 = nil,
+    aw1a = nil,
+    aw2a = nil,
+    aw3a = nil,
+    aw4a = nil,
+    aw5a = nil,
+    aw6a = nil,
+    aw7a = nil,
+    aw8a = nil,
+    aw9a = nil,
     cam1 = nil,
 
     -- Additional Logic Vars
@@ -110,10 +153,13 @@ function ApplyQOL()
     if exu.SetReticleRange then exu.SetReticleRange(600) end
     if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
     PersistentConfig.Initialize()
+    Environment.Init()
+    PhysicsImpact.Init()
 end
 
 function Start()
-	-- EXU/QOL Setup
+    M.TPS = 20
+    -- EXU/QOL Setup
     if exu then
         local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.version or "Unknown"
         print("EXU Version: " .. tostring(ver))
@@ -143,6 +189,9 @@ end
 function AddObject(h)
     local team = GetTeamNum(h)
 
+    Environment.OnObjectCreated(h)
+    PhysicsImpact.OnObjectCreated(h)
+
     -- EXU Turbo
     if exu and exu.SetUnitTurbo and IsCraft(h) then
         if team == 1 then
@@ -153,16 +202,16 @@ function AddObject(h)
             end
         end
     end
-    
+
     -- AI Core Hook
     if team == 2 then
         local nearBase = false
         if M.svrec and IsAlive(M.svrec) and GetDistance(h, M.svrec) < 400 then
             nearBase = true
-        elseif TryGetHandle("cca_base") and GetDistance(h, "cca_base") < 400 then
+        elseif GetHandle("cca_base") and GetDistance(h, "cca_base") < 400 then
             nearBase = true
         end
-        
+
         if nearBase then
             aiCore.AddObject(h)
         end
@@ -175,27 +224,31 @@ function DeleteObject(h)
 end
 
 function Update()
-	M.player = GetPlayerHandle()
+    M.player = GetPlayerHandle()
     if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     aiCore.Update()
+    Environment.Update(1.0 / M.TPS)
+    PhysicsImpact.Update(1.0 / M.TPS)
     subtit.Update()
+    PersistentConfig.UpdateInputs()
+    PersistentConfig.UpdateHeadlights()
 
     -- Game Start / Initial Setup
     if not M.game_start then
         SetScrap(1, DiffUtils.ScaleRes(40))
         SetScrap(2, DiffUtils.ScaleRes(40))
         SetPilot(1, DiffUtils.ScaleRes(10))
-        
+
         M.lemnos = GetHandle("oblema110_i76building")
         M.svrec = GetHandle("svrecy-1_recycler")
         M.avrec = GetHandle("avrecy-1_recycler")
-        
+
         SetAIP("misn05.aip")
         subtit.Play("misn0501.wav")
         M.game_start = true
-        
+
         M.randomwave = GetTime() + DiffUtils.ScaleTimer(5.0)
-        
+
         M.cam1 = GetHandle("cam1")
         SetLabel(M.cam1, "Volcano")
         M.newobjective = true
@@ -235,8 +288,8 @@ function Update()
                 M.rand2 = BuildObject("svfigh", 2, M.svrec)
                 Attack(M.rand1, M.avrec)
                 Attack(M.rand2, M.avrec)
-                
-                for i=1, DiffUtils.ScaleEnemy(1)-1 do
+
+                for i = 1, DiffUtils.ScaleEnemy(1) - 1 do
                     local h = BuildObject("svfigh", 2, M.svrec); Attack(h, M.avrec); SetIndependence(h, 1)
                 end
                 SetIndependence(M.rand1, 1)
@@ -264,26 +317,26 @@ function Update()
         M.reconfactory = true
         M.newobjective = true
         M.start = GetTime() + DiffUtils.ScaleTimer(90.0)
-        
+
         -- Cut Cinematic: Recon Factory
         M.lemcinstart = GetTime() - 0.1
         M.lemcinend = GetTime() + 4.0
     end
-    
+
     -- Cinematic Logic
     if (not M.lemcin1) and (M.lemcinstart < GetTime()) and M.reconfactory then
         CameraReady()
         M.lemcin1 = true
     end
-    
+
     if M.lemcin1 and (not M.lemcin2) then
         if M.lemcinend > GetTime() then
-             CameraObject(M.player, 0, 5000, -5000, M.lemnos)
+            CameraObject(M.player, 0, 5000, -5000, M.lemnos)
         else
-             CameraFinish()
-             M.lemcin2 = true
+            CameraFinish()
+            M.lemcin2 = true
         end
-        
+
         if CameraCancelled() then
             CameraFinish()
             M.lemcin2 = true
@@ -298,7 +351,7 @@ function Update()
             GetTime() + DiffUtils.ScaleTimer(130.0),
             GetTime() + DiffUtils.ScaleTimer(190.0)
         }
-        
+
         for i = 1, 10 do
             local j, k = math.random(1, 4), math.random(1, 4)
             M.sendTime[j], M.sendTime[k] = M.sendTime[k], M.sendTime[j]
@@ -315,19 +368,19 @@ function Update()
         M.w1u2 = BuildObject("svfigh", 2, M.svrec)
         M.w1u3 = BuildObject("svturr", 2, M.svrec)
         M.w1u4 = BuildObject("svturr", 2, M.svrec)
-        
-        for i=1, DiffUtils.ScaleEnemy(1)-1 do
+
+        for i = 1, DiffUtils.ScaleEnemy(1) - 1 do
             local h = BuildObject("svfigh", 2, M.svrec); Attack(h, M.avrec); SetIndependence(h, 1)
         end
         M.sent1Done = true
-        
+
         Follow(M.w1u1, M.w1u3)
         Follow(M.w1u2, M.w1u4)
         SetIndependence(M.w1u1, 1)
         SetIndependence(M.w1u2, 1)
         Goto(M.w1u3, "defendrim2")
         Goto(M.w1u4, "defendrim1")
-        
+
         M.check1 = true
         M.check2 = true
         M.check3 = true
@@ -352,7 +405,7 @@ function Update()
         Patrol(M.w1u2, "attackpatrol1", 1)
         M.check2 = false
     end
-    
+
     -- Wave 2 (Tanks + Turrets)
     if (M.sendTime[2] < GetTime()) and (not M.sent2Done) then
         local type2 = "svtank"
@@ -362,8 +415,8 @@ function Update()
         M.w2u2 = BuildObject(type2, 2, M.svrec)
         M.w2u3 = BuildObject("svturr", 2, M.svrec)
         M.w2u4 = BuildObject("svturr", 2, M.svrec)
-        
-        for i=1, DiffUtils.ScaleEnemy(1)-1 do
+
+        for i = 1, DiffUtils.ScaleEnemy(1) - 1 do
             local h = BuildObject(type2, 2, M.svrec); Attack(h, M.avrec); SetIndependence(h, 1)
         end
         M.sent2Done = true
@@ -400,8 +453,8 @@ function Update()
         M.sent3Done = true
         Patrol(M.w3u3, "attackpatrol1", 1)
         Patrol(M.w3u4, "attackpatrol1", 1)
-        
-        for i=1, DiffUtils.ScaleEnemy(2)-2 do
+
+        for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
             local h = BuildObject("svfigh", 2, M.svrec); Patrol(h, "attackpatrol1", 1); SetIndependence(h, 1)
         end
     end
@@ -416,8 +469,8 @@ function Update()
         M.sent4Done = true
         Patrol(M.w4u3, "attackpatrol1", 1)
         Patrol(M.w4u4, "attackpatrol1", 1)
-        
-        for i=1, DiffUtils.ScaleEnemy(2)-2 do
+
+        for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
             local h = BuildObject(type4, 2, M.svrec); Patrol(h, "attackpatrol1", 1); SetIndependence(h, 1)
         end
     end
@@ -426,6 +479,7 @@ function Update()
     if M.reconfactory and (not M.reconed) then
         if IsInfo("oblema") or (M.start < GetTime()) then
             subtit.Play("misn0515.wav")
+            SetObjectiveName(M.lemnos, "Lemnos Factory")
             M.readtime = GetTime() + 10.0
             M.reconed = true
         end
@@ -452,13 +506,12 @@ function Update()
     end
 
     -- Check if all waves are dead to trigger Final Attack
-    if M.sent1Done and M.sent2Done and M.sent3Done and M.sent4Done and 
-       (not IsAlive(M.w1u1)) and (not IsAlive(M.w1u2)) and (not IsAlive(M.w1u3)) and (not IsAlive(M.w1u4)) and
-       (not IsAlive(M.w2u1)) and (not IsAlive(M.w2u2)) and (not IsAlive(M.w2u3)) and (not IsAlive(M.w2u4)) and
-       (not IsAlive(M.w3u1)) and (not IsAlive(M.w3u2)) and (not IsAlive(M.w3u3)) and (not IsAlive(M.w3u4)) and
-       (not IsAlive(M.w4u1)) and (not IsAlive(M.w4u2)) and (not IsAlive(M.w4u3)) and (not IsAlive(M.w4u4)) and
-       (not M.attacktimeset) then
-       
+    if M.sent1Done and M.sent2Done and M.sent3Done and M.sent4Done and
+        (not IsAlive(M.w1u1)) and (not IsAlive(M.w1u2)) and (not IsAlive(M.w1u3)) and (not IsAlive(M.w1u4)) and
+        (not IsAlive(M.w2u1)) and (not IsAlive(M.w2u2)) and (not IsAlive(M.w2u3)) and (not IsAlive(M.w2u4)) and
+        (not IsAlive(M.w3u1)) and (not IsAlive(M.w3u2)) and (not IsAlive(M.w3u3)) and (not IsAlive(M.w3u4)) and
+        (not IsAlive(M.w4u1)) and (not IsAlive(M.w4u2)) and (not IsAlive(M.w4u3)) and (not IsAlive(M.w4u4)) and
+        (not M.attacktimeset) then
         subtit.Play("misn0507.wav")
         M.platoonhere = GetTime() + DiffUtils.ScaleTimer(45.0)
         M.attacktimeset = true
@@ -467,42 +520,44 @@ function Update()
 
     -- Spawn Final Attackers
     if (not IsAlive(M.aw1)) and (not IsAlive(M.aw2)) and (not IsAlive(M.aw3)) and (not IsAlive(M.aw4)) and (not IsAlive(M.aw5)) and
-       (M.platoonhere < GetTime()) and M.go and IsAlive(M.svrec) then
-       
+        (M.platoonhere < GetTime()) and M.go and IsAlive(M.svrec) then
         subtit.Play("misn0508.wav")
         subtit.Play("misn0509.wav")
-        
+
         local attacksent = math.random(0, 3)
         M.attackstatement = false
-        
+
         M.aw1 = BuildObject("svhraz", 2, M.svrec)
         M.aw2 = BuildObject("svhraz", 2, M.svrec)
         M.aw3 = BuildObject("svhraz", 2, M.svrec)
-        
-        for i=1, DiffUtils.ScaleEnemy(3)-3 do
+
+        for i = 1, DiffUtils.ScaleEnemy(3) - 3 do
             local h = BuildObject("svhraz", 2, M.svrec); SetIndependence(h, 1)
         end
-        
+
         local dest = "destroy1"
-        if attacksent == 1 then dest = "destroy2"
-        elseif attacksent == 2 then dest = "destroy3"
-        elseif attacksent == 3 then dest = "destroy4"
+        if attacksent == 1 then
+            dest = "destroy2"
+        elseif attacksent == 2 then
+            dest = "destroy3"
+        elseif attacksent == 3 then
+            dest = "destroy4"
         end
-        
+
         Goto(M.aw1, dest)
         Goto(M.aw2, dest)
         Goto(M.aw3, dest)
-        
+
         if M.difficulty >= 3 then
             M.aw4 = BuildObject("svhraz", 2, M.svrec)
             M.aw5 = BuildObject("svhraz", 2, M.svrec)
             Goto(M.aw4, dest)
             Goto(M.aw5, dest)
         end
-        
+
         M.bombtime = GetTime() + DiffUtils.ScaleTimer(10.0)
-        M.attackcmd = false 
-        
+        M.attackcmd = false
+
         M.aw1t = GetTime() + DiffUtils.ScaleTimer(15.0)
         M.aw2t = GetTime() + DiffUtils.ScaleTimer(55.0)
         M.aw3t = GetTime() + DiffUtils.ScaleTimer(110.0)
@@ -512,14 +567,14 @@ function Update()
     -- Attack Command Switch (Razors switch to attack Factory)
     if (not M.attackcmd) and (M.bombtime < GetTime()) then
         local function CheckAndAttack(u)
-             if IsAlive(u) then
+            if IsAlive(u) then
                 if (GetDistance(u, "dest1") < 60.0) or (GetDistance(u, "dest2") < 60.0) then
                     Attack(u, M.lemnos)
                     SetIndependence(u, 1)
                     return true
                 end
-             end
-             return false
+            end
+            return false
         end
 
         if CheckAndAttack(M.aw1) or CheckAndAttack(M.aw2) or CheckAndAttack(M.aw3) or CheckAndAttack(M.aw4) or CheckAndAttack(M.aw5) then
@@ -527,13 +582,13 @@ function Update()
         end
         M.bombtime = GetTime() + 3.0
     end
-    
+
     -- Platoon Closing In Warning
     if (not M.attackstatement) then
         local function IsThreat(u)
             return IsAlive(u) and (GetDistance(u, M.lemnos) < 500.0)
         end
-        
+
         if IsThreat(M.aw1) or IsThreat(M.aw2) or IsThreat(M.aw3) or IsThreat(M.aw4) or IsThreat(M.aw5) then
             subtit.Play("misn0510.wav")
             M.attackstatement = true
@@ -596,13 +651,13 @@ function Update()
     if (not IsAlive(M.svrec)) and (not M.possiblewin) then
         M.possiblewin = true
         subtit.Play("misn0516.wav")
-        
+
         M.aw1aattack = true
         M.aw2aattack = true
         M.aw3aattack = true
         M.aw4aattack = true
         M.aw9aattack = true
-        
+
         M.sent1Done = true
         M.sent2Done = true
         M.sent3Done = true
@@ -611,7 +666,7 @@ function Update()
         M.aw2sent = true
         M.aw3sent = true
         M.aw4sent = true
-        
+
         local all_units = {
             M.w1u1, M.w1u2, M.w1u3, M.w1u4,
             M.w2u1, M.w2u2, M.w2u3, M.w2u4,
@@ -620,7 +675,7 @@ function Update()
             M.aw1, M.aw2, M.aw3, M.aw4, M.aw5,
             M.aw1a, M.aw2a, M.aw3a, M.aw4a, M.aw5a, M.aw6a, M.aw7a, M.aw8a, M.aw9a
         }
-        
+
         local remaining = false
         for _, u in ipairs(all_units) do
             if IsAlive(u) then
@@ -629,17 +684,17 @@ function Update()
                 remaining = true
             end
         end
-        
+
         if remaining then
-             subtit.Play("misn0517.wav")
+            subtit.Play("misn0517.wav")
         end
-        
+
         M.takeoutfactory = true
     end
-    
+
     -- Win Condition
     if M.sent1Done and M.sent2Done and M.sent3Done and M.sent4Done and M.aw1sent and M.aw2sent and M.aw3sent and M.aw4sent and (not M.missionwon) then
-         local all_units = {
+        local all_units = {
             M.w1u1, M.w1u2, M.w1u3, M.w1u4,
             M.w2u1, M.w2u2, M.w2u3, M.w2u4,
             M.w3u1, M.w3u2, M.w3u3, M.w3u4,
@@ -649,9 +704,12 @@ function Update()
         }
         local any_alive = false
         for _, u in ipairs(all_units) do
-            if IsAlive(u) then any_alive = true break end
+            if IsAlive(u) then
+                any_alive = true
+                break
+            end
         end
-        
+
         if not any_alive then
             M.missionwon = true
             M.newobjective = true
@@ -686,5 +744,3 @@ function Load(missionData, aiData)
     ApplyQOL()
     subtit.Initialize()
 end
-
-

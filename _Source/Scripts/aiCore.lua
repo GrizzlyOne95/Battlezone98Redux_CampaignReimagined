@@ -1585,26 +1585,81 @@ function aiCore.HowitzerManager:OrganizeSquads()
 end
 
 function aiCore.HowitzerManager:UpdateSquadOrders()
-    -- Find enemy buildings as targets
-    local enemyBuildings = {}
-    for obj in AllBuildings() do
+    -- Local constants for safety
+    local AiCommand = { GO = 1, ATTACK = 2 }
+
+    -- Prioritize Core Infrastructure Targets
+    local targets = {}
+    local enemyTeam = 3 - self.teamNum
+
+    -- 1. Core Buildings
+    local rec = GetRecyclerHandle(enemyTeam)
+    if IsValid(rec) then table.insert(targets, rec) end
+
+    local fac = GetFactoryHandle(enemyTeam)
+    if IsValid(fac) then table.insert(targets, fac) end
+
+    local arm = GetArmoryHandle(enemyTeam)
+    if IsValid(arm) then table.insert(targets, arm) end
+
+    local con = GetConstructorHandle(enemyTeam)
+    if IsValid(con) then table.insert(targets, con) end
+
+    -- 3. Offensive/Defensive Assets (Turrets, Howitzers, Gun Towers)
+    -- Scan specifically for these threats
+    -- Note: ObjectsInRange or AllObjects scan might be expensive, so limit scope if possible.
+    -- Better to iterate AllObjects just once if we need multiple types.
+    for obj in AllObjects() do
         local team = GetTeamNum(obj)
-        if team ~= self.teamNum and team ~= 0 then
-            table.insert(enemyBuildings, obj)
+        if team == enemyTeam then
+            local cls = string.lower(GetClassLabel(obj) or "")
+            -- Gun Towers often classlabel 'turret', Turret Tanks often 'turrettank' or just 'turret'
+            -- Player Howitzers 'howitzer' or 'artillery'
+            if string.find(cls, "turret") or string.find(cls, "howitzer") or string.find(cls, "turrettank") then
+                table.insert(targets, obj)
+            end
         end
     end
 
-    if #enemyBuildings == 0 then return end
+    -- Fallback: Any enemy building if no high-value targets found
+    if #targets == 0 then
+        for obj in AllBuildings() do
+            if GetTeamNum(obj) == enemyTeam then
+                table.insert(targets, obj)
+            end
+        end
+    end
+
+    if #targets == 0 then return end
 
     -- Assign targets to squads
     for squadNum, squad in ipairs(self.squads) do
         if #squad > 0 then
-            local targetIndex = ((squadNum - 1) % #enemyBuildings) + 1
-            local target = enemyBuildings[targetIndex]
+            -- Pick a random target for this squad update cycle
+            local targetIndex = math.random(1, #targets)
+            local target = targets[targetIndex]
 
             for _, h in ipairs(squad) do
                 if IsValid(h) and IsValid(target) then
-                    Attack(h, target, 1) -- Priority attack
+                    local dist = GetDistance(h, target)
+                    if dist > 500 then
+                        -- Move to engagement range (approx 450m)
+                        -- Calculate approach vector
+                        local tPos = GetPosition(target)
+                        local hPos = GetPosition(h)
+                        local dir = Normalize(hPos - tPos)
+                        local movePos = tPos + dir * 450
+
+                        -- Use pathfinding safe-move
+                        if GetCurrentCommand(h) ~= AiCommand.GO or GetDistance(h, movePos) > 20 then
+                            Goto(h, movePos)
+                        end
+                    else
+                        -- In range, clear to engage
+                        if GetCurrentCommand(h) ~= AiCommand.ATTACK or GetCurrentWho(h) ~= target then
+                            Attack(h, target, 1)
+                        end
+                    end
                 end
             end
         end
@@ -4359,25 +4414,29 @@ function aiCore.Team:UpdateResourceBoosting()
 end
 
 function aiCore.Team:UpdateScavengerAssist()
-    -- Initialize deferred independence list if needed
-    if not self.scavDeferredIndependence then
-        self.scavDeferredIndependence = {}
-    end
+    -- Initialize state table for multi-frame workaround
+    if not self.scavengerResetState then self.scavengerResetState = {} end
 
-    -- First, restore independence for scavengers from the previous frame
-    -- This ensures SetCommand has a frame to suppress VO before independence is restored
-    for i = #self.scavDeferredIndependence, 1, -1 do
-        local h = self.scavDeferredIndependence[i]
-        if IsValid(h) then
-            SetIndependence(h, 1)
-            SetCommand(h, AiCommand.SCAVENGE, 0) -- Drop to low priority
+    -- Process pending resets (Staggered over frames)
+    for h, step in pairs(self.scavengerResetState) do
+        if not IsValid(h) then
+            self.scavengerResetState[h] = nil
+        else
+            if step == 1 then
+                -- Frame 2: Issue Non-Forced Command
+                SetCommand(h, AiCommand.SCAVENGE, 0)
+                self.scavengerResetState[h] = 2
+            elseif step == 2 then
+                -- Frame 3: Restore to Player Team
+                SetTeamNum(h, self.teamNum)
+                self.scavengerResetState[h] = nil
+            end
         end
-        table.remove(self.scavDeferredIndependence, i)
     end
 
     -- Check if it's time to issue new scavenge commands
     if (self.scavAssistTimer or 0) > GetTime() then return end
-    self.scavAssistTimer = GetTime() + 10.0 -- Refresh every 10s
+    self.scavAssistTimer = GetTime() + 5.0 -- Refresh every 5s
 
     if not self.scavengers then self.scavengers = {} end
 
@@ -4385,17 +4444,16 @@ function aiCore.Team:UpdateScavengerAssist()
     aiCore.RemoveDead(self.scavengers)
 
     for _, h in ipairs(self.scavengers) do
-        -- Only assist if not selected and not currently executing a player/script order
-        if IsValid(h) and not IsSelected(h) then
+        -- Only assist if not selected, not processing a reset, and valid
+        if IsValid(h) and not IsSelected(h) and not self.scavengerResetState[h] then
             local cmd = GetCurrentCommand(h)
 
             -- Auto-scavenge if idle OR refresh if already scavenging
-            -- This keeps scavengers refreshed while respecting other player commands (FOLLOW, GO, etc.)
             if (cmd == 0) or (cmd == AiCommand.SCAVENGE) then
-                -- Issue high-priority command (1) to suppress radio voice-over
-                SetCommand(h, AiCommand.SCAVENGE, 1)
-                -- Defer independence restoration to next frame so VO suppression works
-                table.insert(self.scavDeferredIndependence, h)
+                -- WORKAROUND: Force Scavenge without locking control
+                -- Frame 1: Switch to Team 0 (Neutral)
+                SetTeamNum(h, 0)
+                self.scavengerResetState[h] = 1
             end
         end
     end

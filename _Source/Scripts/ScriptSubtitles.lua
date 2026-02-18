@@ -76,7 +76,7 @@ function Subtitles.Initialize(durationCsv)
     subtitles.set_opacity(0.5) -- Set to 50% opacity for better readability with borders
 
     -- Load default durations if nothing specified
-    durationCsv = durationCsv or "_Source/Config/durations.csv"
+    durationCsv = durationCsv or "durations.csv"
     Subtitles.LoadDurations(durationCsv)
 end
 
