@@ -439,17 +439,17 @@ function producer.ProcessQueues(teamObj)
             if cost <= scrap then
                 local foundProducer = nil
                 for _, h in ipairs(producers) do
-                    local isBuilding = IsBuilding(job.odf) or string.match(job.odf, "^[I|i|b|B][B|b]")
+                    local isBuildingJob = (job.data and job.data.type == "building")
                     local procSig = utility.CleanString(GetClassLabel(h))
 
                     local canBuild = false
                     if requiredProducer and procSig ~= requiredProducer then
                         canBuild = false
-                    elseif isBuilding and procSig == "constructionrig" then
+                    elseif isBuildingJob and procSig == "constructionrig" then
                         canBuild = true
-                    elseif not isBuilding and procSig == "recycler" then
+                    elseif not isBuildingJob and procSig == "recycler" then
                         canBuild = true
-                    elseif not isBuilding and procSig == "factory" and not recyclerOnlyUnit then
+                    elseif not isBuildingJob and procSig == "factory" and not recyclerOnlyUnit then
                         canBuild = true
                     end
 
@@ -1733,7 +1733,7 @@ function aiCore.APCManager:UpdateAPC(apc)
     ---@diagnostic disable-next-line: param-type-mismatch
     local h = GetTerrainHeightAndNormal(pos)
     ---@diagnostic disable-next-line: undefined-global
-    local waterH = GetWaterLevel()
+    local waterH = 0.0 -- GetWaterLevel() -- BZ1 doesn't have this function
     if h < waterH then
         -- In water, try to move to land
         ---@diagnostic disable-next-line: param-type-mismatch, undefined-global
@@ -2517,7 +2517,9 @@ aiCore.ConstructorManager = {
     queue = {},
     pulseTimer = 0.0,
     pulsePeriod = 8.0,
-    sentToRecycler = false
+    sentToRecycler = false,
+    activeJob = nil,
+    jobState = nil -- "moving" or "building"
 }
 aiCore.ConstructorManager.__index = aiCore.ConstructorManager
 
@@ -2532,15 +2534,99 @@ end
 function aiCore.ConstructorManager:update()
     if not IsValid(self.handle) then
         self.handle = GetConstructorHandle(self.team)
+        if IsValid(self.handle) then
+            -- self.pulseTimer = self.pulsePeriod + math.random((0*self.pulsePeriod), self.pulsePeriod) + GetTime()
+        end
         self.sentToRecycler = false
+        self.activeJob = nil
         return
     end
 
-    -- MODIFIED: Do not manage constructor if disabled
     if self.teamObj and self.teamObj.Config and not self.teamObj.Config.manageConstructor then return end
 
-    if #self.queue == 0 then
-        -- Robust idling: Return to recycler if idle
+    -- Check if the active job has been completed
+    if self.activeJob then
+        local pos = self.activeJob.path
+        if type(pos) == "string" then pos = paths.GetPosition(pos, 0) end
+        local building_exists = false
+        if pos then -- Check if pos is valid
+            for obj in ObjectsInRange(40, pos) do
+                if IsOdf(obj, self.activeJob.odf) and GetTeamNum(obj) == self.team then
+                    building_exists = true
+                    break
+                end
+            end
+        end
+        if building_exists then
+            if aiCore.Debug then print("Constructor job " .. self.activeJob.odf .. " verified complete.") end
+            self.activeJob = nil
+        end
+    end
+
+    -- If no active job, try to get one from the queue
+    if not self.activeJob and #self.queue > 0 then
+        table.sort(self.queue, function(one, two) return one.priority > two.priority end) -- sort queue
+        self.activeJob = table.remove(self.queue, 1)
+        self.sentToRecycler = false
+        if aiCore.Debug then print("Constructor starts job: " .. self.activeJob.odf) end
+    end
+
+    -- Manage the active job
+    if self.activeJob then
+        local constructor = self.handle
+        
+        -- If constructor is busy OR cannot build (e.g. deploying), do nothing and let it finish.
+        if not CanBuild(constructor) or IsBusy(constructor) then
+            return
+        end
+
+        -- If we are here, the constructor is IDLE and ABLE to take a command.
+        local pos = self.activeJob.path
+        if type(pos) == "string" then pos = paths.GetPosition(pos, 0) end
+
+        if not pos then -- If path is invalid, junk the job
+            self.activeJob = nil
+            return
+        end
+
+        if not string.match(AiCommand[GetCurrentCommand(constructor)], "GO") and GetDistance(constructor, pos) > 60.0 then
+            -- Move to site
+            Goto(constructor, pos, 0)
+            if aiCore.Debug then print("Constructor GOTO " .. self.activeJob.odf .. " site.") end
+        elseif GetDistance(constructor, pos) <= 60.0 then
+            -- At site, try to build
+            -- Pre-build checks
+            local scrapCost = GetODFInt(OpenODF(self.activeJob.odf), "GameObjectClass", "scrapCost")
+            if GetScrap(self.team) >= scrapCost then
+                -- Check for existing building
+                local existingBuilding = nil
+                for obj in ObjectsInRange(40, pos) do
+                    if IsOdf(obj, self.activeJob.odf) and GetTeamNum(obj) == self.team then
+                        existingBuilding = obj
+                        break
+                    end
+                end
+
+                if existingBuilding then
+                    if aiCore.Debug then print("Constructor job " .. self.activeJob.odf .. " cancelled (already exists).") end
+                    -- Associate and remove from queue is complex, just aborting job is safer for aiCore
+                    self.activeJob = nil
+                    return
+                else
+                    -- Only build if pulse timer conditions are met
+                    if GetTime() <= self.pulseTimer then
+                        -- Keep waiting
+                    else
+                        -- Issue BuildAt command
+                        if aiCore.Debug then print("Constructor issuing BuildAt for " .. self.activeJob.odf) end
+                        BuildAt(constructor, self.activeJob.odf, pos)
+                        self.pulseTimer = self.pulsePeriod + math.random((0*self.pulsePeriod ),self.pulsePeriod) + GetTime()
+                    end
+                end
+            end
+        end
+    else
+        -- No active job and queue is empty: idle at recycler
         local recycler = GetRecyclerHandle(self.team)
         if IsValid(recycler) and not self.sentToRecycler then
             if GetDistance(self.handle, recycler) > aiCore.Constants.CONSTRUCTOR_IDLE_DISTANCE then
@@ -2548,11 +2634,7 @@ function aiCore.ConstructorManager:update()
                 self.sentToRecycler = true
             end
         end
-        return
     end
-
-    self.sentToRecycler = false
-    -- Building is now handled by integrated producer via jobs queued in CheckConstruction
 end
 
 -- Squad Class (Formations & Flanking)
@@ -3391,9 +3473,10 @@ end
 
 -- Find optimal location for silo near scrap (enhanced from pilotMode)
 function aiCore.Team:FindOptimalSiloLocation(minDist, maxDist)
-    if not IsValid(self.recyclerMgr.handle) then return nil end
+    local recycler = GetRecyclerHandle(self.teamNum)
+    if not IsValid(recycler) then return nil end
 
-    local recPos = GetPosition(self.recyclerMgr.handle)
+    local recPos = GetPosition(recycler)
     local bestPos = nil
     local bestScrapDensity = 0
     local scrapScanRadius = 100 -- Scan radius for scrap density
@@ -3907,15 +3990,15 @@ function aiCore.Team:UpdateRetreat()
 end
 
 function aiCore.Team:Update()
-    -- Manager Updates
-    self.recyclerMgr:update()
-    self.factoryMgr:update()
-    self.constructorMgr:update()
-
     -- Replenish Queues from Build Lists
     self:CheckBuildList(self.recyclerBuildList, self.recyclerMgr)
     self:CheckBuildList(self.factoryBuildList, self.factoryMgr)
     self:CheckConstruction()
+
+    -- Manager Updates
+    self.recyclerMgr:update()
+    self.factoryMgr:update()
+    self.constructorMgr:update()
 
     -- MODIFIED: Process Integrated Production Queues
     producer.ProcessQueues(self)
@@ -4848,36 +4931,38 @@ function aiCore.Team:CheckBuildList(list, mgr)
 
                 if not inQueue then
                     -- DIFFICULTY CAP CHECK
+                    local cap_reached = false
                     local caps = self.Config.unitCaps
                     if caps and item.category then
                         local cap = caps[item.category]
                         if cap then
                             local currentCount = self:GetUnitCountByCategory(item.category)
                             if currentCount >= cap then
+                                cap_reached = true
                                 if aiCore.Debug then
                                     print("aiCore: Team " ..
                                         self.teamNum ..
                                         " skipping " ..
                                         item.odf .. " (Cap reached: " .. currentCount .. "/" .. cap .. ")")
                                 end
-                                goto nextPriority
                             end
                         end
                     end
 
-                    -- Record in shadow queue to prevent double-ordering
-                    table.insert(mgr.queue, { odf = item.odf, priority = p })
-                    table.sort(mgr.queue, function(a, b) return a.priority < b.priority end)
+                    if not cap_reached then
+                        -- Record in shadow queue to prevent double-ordering
+                        table.insert(mgr.queue, { odf = item.odf, priority = p })
+                        table.sort(mgr.queue, function(a, b) return a.priority < b.priority end)
 
-                    -- Hand off to integrated producer
-                    producer.QueueJob(item.odf, self.teamNum, nil, nil,
-                        { source = "aiCore", priority = p, type = "unit", producer = (mgr.isRecycler and "recycler" or "factory") })
+                        -- Hand off to integrated producer
+                        producer.QueueJob(item.odf, self.teamNum, nil, nil,
+                            { source = "aiCore", priority = p, type = "unit", producer = (mgr.isRecycler and "recycler" or "factory") })
 
-                    if aiCore.Debug then print("aiCore: Team " .. self.teamNum .. " queued " .. item.odf .. " (unit)") end
+                        if aiCore.Debug then print("aiCore: Team " .. self.teamNum .. " queued " .. item.odf .. " (unit)") end
+                    end
                 end
             end
         end
-        ::nextPriority::
     end
 end
 
@@ -4909,12 +4994,9 @@ function aiCore.Team:CheckConstruction()
                 end
                 if not inQueue then
                     table.insert(self.constructorMgr.queue, { odf = item.odf, path = item.path, priority = p })
+                    table.sort(self.constructorMgr.queue, function(a, b) return a.priority < b.priority end)
 
-                    -- Queue building via integrated producer
-                    producer.QueueJob(item.odf, self.teamNum, item.path, nil,
-                        { source = "aiCore", priority = p, type = "building" })
-
-                    if aiCore.Debug then print("aiCore: Team " .. self.teamNum .. " queued building " .. item.odf) end
+                    if aiCore.Debug then print("aiCore: Team " .. self.teamNum .. " queued building for constructor: " .. item.odf) end
                 end
             end
         end
@@ -4982,6 +5064,13 @@ function aiCore.Team:AddObject(h)
             table.remove(self.constructorMgr.queue, i)
             linked = true
             break
+        end
+    end
+
+    -- Direct Manager Handle Assignments
+    if cls == utility.ClassLabel.CONSTRUCTOR then
+        if self.constructorMgr then
+            self.constructorMgr.handle = h
         end
     end
 
@@ -5098,7 +5187,7 @@ function aiCore.Team:PlanDefensivePerimeter(powerCount, towersPerPower)
     powerCount = powerCount or 4
     towersPerPower = towersPerPower or 1
 
-    local recycler = self.recyclerMgr.handle
+    local recycler = GetRecyclerHandle(self.teamNum)
     if not IsValid(recycler) then return end
     local recyclerPos = GetPosition(recycler)
 

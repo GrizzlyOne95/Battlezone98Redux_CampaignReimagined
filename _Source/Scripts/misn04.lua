@@ -607,7 +607,7 @@ function Update()
         M.missionfail = true
     end
     if (M.missionfail) then
-        if (M.warn == 4) and IsAudioMessageDone(M.aud14) then
+        if (M.warn == 4) and M.aud14 and IsAudioMessageDone(M.aud14) then
             FailMission(GetTime(), "misn04l4.des")
             M.warn = 0
         end
@@ -619,9 +619,9 @@ function Update()
         -- Checks if an AI teammate finds the relic first
         local calipso = GetNearestVehicle(M.relic)
         if IsAlive(calipso) then
-            if (GetTeamNum(calipso) == 1) and (GetDistance(M.relic, calipso) <= 500.0) and (calipso ~= M.player) then
-                subtit.Play("misn0407.wav") -- "I've found something..."
-
+            if (GetTeamNum(calipso) == 1) and (GetDistance(M.relic, calipso) <= 75.0) and (calipso ~= M.player) then
+                M.aud1 = subtit.Play("misn0407.wav") -- "I've found something..."
+                M.aud3 = subtit.Play("misn0409.wav")
                 -- Shared discovery logic
                 M.relicseen = true
                 M.newobjective = true
@@ -657,7 +657,7 @@ function Update()
     end
 
     if (M.discoverrelic) and (not M.cin1done) then
-        if (M.discoverrelic and IsAudioMessageDone(M.aud2) and IsAudioMessageDone(M.aud3)) or CameraCancelled() then
+        if (M.discoverrelic and ((M.aud1 and IsAudioMessageDone(M.aud1)) or (M.aud2 and IsAudioMessageDone(M.aud2) and M.aud3 and IsAudioMessageDone(M.aud3)))) or CameraCancelled() then
             CameraFinish()
             -- Only stop subtitles if the user skipped the cinematic
             if CameraCancelled() then
@@ -950,8 +950,8 @@ function Update()
     end
 
     if (not M.missionwon) and (not IsAlive(M.avrec)) and (not M.missionfail) then
-        subtit.Play("misn0421.wav")
-        subtit.Play("misn0422.wav")
+        M.aud21 = subtit.Play("misn0421.wav")
+        M.aud22 = subtit.Play("misn0422.wav")
         M.missionfail = true
         FailMission(GetTime() + 20.0, "misn04l3.des")
     end
