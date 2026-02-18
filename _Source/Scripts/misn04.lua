@@ -11,6 +11,8 @@ local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
+local Environment = require("Environment")
+local PhysicsImpact = require("PhysicsImpact")
 
 -- Helper for AI
 local function SetupAI()
@@ -242,8 +244,12 @@ function ApplyQOL()
     if exu.SetReticleRange then exu.SetReticleRange(600) end
     if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
 
+
     -- Initialize Persistent Config
     PersistentConfig.Initialize()
+
+    -- Initialize Environment
+    Environment.Init()
 end
 
 function Start()
@@ -303,6 +309,9 @@ function AddObject(h)
         aiCore.AddObject(h)
     end
 
+    -- Environment hook for new units
+    Environment.OnObjectCreated(h)
+
     -- TURBO Logic (Hard+)
     if exu and M.difficulty >= 2 and team == 2 and IsOdf(h, "vehicle") then
         exu.SetUnitTurbo(h, true) -- speed boost for enemy units
@@ -325,6 +334,7 @@ function Update()
     if exu and exu["UpdateOrdnance"] then exu["UpdateOrdnance"]() end
 
     aiCore.Update()
+    Environment.Update(1.0 / M.TPS)
     subtit.Update()
     PersistentConfig.UpdateInputs()
     PersistentConfig.UpdateHeadlights()
@@ -339,6 +349,7 @@ function Update()
         M.basecam = GetHandle("apcamr-1_camerapod")
         M.svrec = GetHandle("svrecy-1_recycler")
         M.avrec = GetHandle("avrecy-1_recycler")
+        SetObjectiveName(M.avrec, "Recycler Montana")
         M.relic = BuildObject("obdata", 0, "relicstart1")
         M.pu1 = GetHandle("svfigh-1_wingman")
         -- pu2 commented out in C++

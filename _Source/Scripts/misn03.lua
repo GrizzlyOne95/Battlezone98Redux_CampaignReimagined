@@ -249,6 +249,7 @@ function Start()
     M.y = 1
 
     M.avrecycler = GetHandle("avrec3-1_recycler")
+    SetObjectiveName(M.avrecycler, "Recycler Montana")
     M.scav1 = GetHandle("scav1")
     M.scav2 = GetHandle("scav2")
     M.wave1_1 = GetHandle("svfigh1")
@@ -773,8 +774,14 @@ function Update()
         subtit.Play("misn0314.wav")
 
         -- Convoy to base
-        Goto(M.rescue1, "apc1_spawn")
-        Goto(M.rescue2, "apc2_spawn")
+        -- MODIFIED: APCs follow Barracks (M.build5) with Priority 1 (Story Prop)
+        if IsAlive(M.build5) then
+            Follow(M.rescue1, M.build5, 1)
+            Follow(M.rescue2, M.build5, 1)
+        else
+            Goto(M.rescue1, "apc1_spawn", 1)
+            Goto(M.rescue2, "apc2_spawn", 1)
+        end
 
         -- Escorts guard APCs (Player controllable: priority 0)
         Follow(M.help1, M.rescue2, 0)
@@ -866,9 +873,9 @@ function Update()
         SetObjectiveOn(M.launch)
         SetObjectiveName(M.launch, "Launch Pad")
 
-        -- Lockdown Player Recycler immediately
+        -- Player Recycler escapes to Launch Pad
         if IsAlive(M.avrecycler) then
-            SetCommand(M.avrecycler, 9) -- AiCommand.NO_DROPOFF
+            Follow(M.avrecycler, M.launch, 1)
         end
 
         ClearObjectives()
@@ -1099,7 +1106,8 @@ function Update()
     end
 
     if not M.startfinishingmovie and M.final_objective then
-        if IsAlive(M.avrecycler) then RemoveObject(M.avrecycler) end
+        -- Don't remove Recycler; let it ride
+        --if IsAlive(M.avrecycler) then RemoveObject(M.avrecycler) end
         if IsAlive(M.scav1) then RemoveObject(M.scav1) end
         if IsAlive(M.scav2) then RemoveObject(M.scav2) end
         if IsAlive(M.scav3) then RemoveObject(M.scav3) end
@@ -1287,6 +1295,17 @@ function Update()
     end
     if M.movie_over and not M.dead3 and not IsAlive(M.rescue2) and not M.third_objective then
         subtit.Play("misn0304.wav")
+        ClearObjectives()
+        AddObjective("misn0311.otf", "green")
+        AddObjective("misn0312.otf", "green")
+        AddObjective("misn0303.otf", "red")
+        M.lost = true
+        M.dead3 = true
+        FailMission(GetTime() + 10.0, "misn03f4.des")
+    end
+    -- New Fail Condition for Recycler
+    if M.movie_over and not M.dead3 and not IsAlive(M.avrecycler) and not M.third_objective then
+        subtit.Play("misn0304.wav") -- Reuse "Vehicle Destroyed"
         ClearObjectives()
         AddObjective("misn0311.otf", "green")
         AddObjective("misn0312.otf", "green")

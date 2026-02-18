@@ -77,6 +77,43 @@ function utility.CleanString(s)
     return s2
 end
 
+---@diagnostic disable-next-line: undefined-global
+local exu = exu
+
+-- Gets the mass of the given object (most ships default to 1750 KG)
+function GetMass(h)
+    if exu and exu.getmass then
+        return exu.getmass(h)
+    end
+    return 1750
+end
+
+-- Sets the mass of the given object. This affects collisions and knockback.
+function SetMass(h, m)
+    if exu and exu.setmass then
+        exu.setmass(h, m)
+    end
+end
+
+-- Evaluate whether a given target can be sniped
+function utility.CanSnipe(h)
+    if not IsValid(h) then return false end
+    local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+    if IsCraft(h) and
+        not string.find(cls, "walker") and
+        not string.find(cls, "recycler") and
+        not string.find(cls, "factory") and
+        not string.find(cls, "armory") and
+        not string.find(cls, "constructionrig") and
+        not string.find(cls, "turret") and
+        not (string.find(cls, "turrettank") and IsDeployed(h)) and
+        not string.find(string.lower(GetOdf(h)), "hvsat") and
+        not string.find(cls, "sav") then
+        return true
+    end
+    return false
+end
+
 local function FireWeaponMask(h, mask)
     SetWeaponMask(h, mask)
 end
@@ -617,7 +654,8 @@ function aiCore.Save()
     local data = {
         teams = aiCore.ActiveTeams,
         globalDefense = aiCore.GlobalDefenseManagers,
-        globalDepot = aiCore.GlobalDepotManagers
+        globalDepot = aiCore.GlobalDepotManagers,
+        producer = (producer and producer.Queue) or {} -- Save producer queue state
     }
     return aiCore.StripCircular(data)
 end
@@ -678,6 +716,50 @@ function aiCore.GetOdfWeaponMask(h)
     return (mask > 0) and mask or nil
 end
 
+-- Automatically adjusts the mass of a craft based on its classification.
+function aiCore.ApplyDynamicMass(h)
+    if not IsValid(h) or not IsCraft(h) then return end
+
+    local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+    local mass = 1750 -- Baseline for vehicle mass is 1750 KG
+
+    -- Special handling: Use ODF unitName for generic 'wingman' classes
+    if string.find(cls, "wingman") then
+        local odf = OpenODF(GetOdf(h))
+        if odf then
+            local unitName = string.lower(GetODFString(odf, "GameObjectClass", "unitName", ""))
+
+            if string.find(unitName, "scout") or string.find(unitName, "fighter") then
+                mass = 1200
+            elseif string.find(unitName, "light tank") then
+                mass = 1500
+            elseif string.find(unitName, "tank") then -- Catch-all for "Tank", "Assault Tank", etc.
+                mass = 1750
+            elseif string.find(unitName, "rocket") or string.find(unitName, "missile") then
+                mass = 1850
+            elseif string.find(unitName, "bomber") then
+                mass = 2000
+            elseif string.find(unitName, "walker") then
+                mass = 4000
+            elseif string.find(unitName, "apc") then
+                mass = 3000
+            end
+        end
+    elseif string.find(cls, "walker") then
+        mass = 4000
+    elseif string.find(cls, "apc") then
+        mass = 3000
+    elseif string.find(cls, "howitzer") or string.find(cls, "artillery") then
+        mass = 2200
+    end
+
+    if aiCore.Debug then
+        print("aiCore: Dynamic Mass Applied -> " .. utility.CleanString(GetOdf(h)) .. " (" .. mass .. " KG)")
+    end
+
+    SetMass(h, mass)
+end
+
 function aiCore.Load(data)
     if not data then return end
 
@@ -685,6 +767,9 @@ function aiCore.Load(data)
         aiCore.ActiveTeams = data.teams
         aiCore.GlobalDefenseManagers = data.globalDefense or {}
         aiCore.GlobalDepotManagers = data.globalDepot or {}
+        if data.producer and producer then
+            producer.Queue = data.producer
+        end
     else
         aiCore.ActiveTeams = data
         aiCore.GlobalDefenseManagers = {}
@@ -705,20 +790,38 @@ function aiCore.Load(data)
         end
 
         -- Restore Phase 1 Managers
-        if team.weaponMgr then setmetatable(team.weaponMgr, aiCore.WeaponManager) end
-        if team.cloakMgr then setmetatable(team.cloakMgr, aiCore.CloakingManager) end
-        if team.howitzerMgr then setmetatable(team.howitzerMgr, aiCore.HowitzerManager) end
-        if team.minelayerMgr then setmetatable(team.minelayerMgr, aiCore.MinelayerManager) end
+        if team.weaponMgr then
+            setmetatable(team.weaponMgr, aiCore.WeaponManager); team.weaponMgr.teamObj = team
+        end
+        if team.cloakMgr then
+            setmetatable(team.cloakMgr, aiCore.CloakingManager); team.cloakMgr.teamObj = team
+        end
+        if team.howitzerMgr then
+            setmetatable(team.howitzerMgr, aiCore.HowitzerManager); team.howitzerMgr.teamObj = team
+        end
+        if team.minelayerMgr then
+            setmetatable(team.minelayerMgr, aiCore.MinelayerManager); team.minelayerMgr.teamObj = team
+        end
 
         -- Restore Phase 2 Managers
         if team.apcMgr then
             setmetatable(team.apcMgr, aiCore.APCManager); team.apcMgr.teamObj = team
         end
-        if team.turretMgr then setmetatable(team.turretMgr, aiCore.TurretManager) end
-        if team.guardMgr then setmetatable(team.guardMgr, aiCore.GuardManager) end
-        if team.wingmanMgr then setmetatable(team.wingmanMgr, aiCore.WingmanManager) end
-        if team.defenseMgr then setmetatable(team.defenseMgr, aiCore.DefenseManager) end
-        if team.depotMgr then setmetatable(team.depotMgr, aiCore.DepotManager) end
+        if team.turretMgr then
+            setmetatable(team.turretMgr, aiCore.TurretManager); team.turretMgr.teamObj = team
+        end
+        if team.guardMgr then
+            setmetatable(team.guardMgr, aiCore.GuardManager); team.guardMgr.teamObj = team
+        end
+        if team.wingmanMgr then
+            setmetatable(team.wingmanMgr, aiCore.WingmanManager); team.wingmanMgr.teamObj = team
+        end
+        if team.defenseMgr then
+            setmetatable(team.defenseMgr, aiCore.DefenseManager); team.defenseMgr.teamObj = team
+        end
+        if team.depotMgr then
+            setmetatable(team.depotMgr, aiCore.DepotManager); team.depotMgr.teamObj = team
+        end
 
         -- Restore Squad Metatables
         if team.squads then
@@ -734,6 +837,12 @@ function aiCore.Load(data)
     end
     for _, mgr in pairs(aiCore.GlobalDepotManagers) do
         setmetatable(mgr, aiCore.DepotManager)
+    end
+
+    -- RE-APPLY DYNAMIC MASS (Persistence Workaround)
+    -- This ensures that mass is restored after a save-load cycle.
+    for h in AllCraft() do
+        aiCore.ApplyDynamicMass(h)
     end
 end
 
@@ -752,22 +861,22 @@ function aiCore.DetectWorldPower()
     mission.TryLoadBZN()
     if mission.Bzn and mission.Bzn.TerrainName then
         local terrain = string.lower(mission.Bzn.TerrainName)
-        
+
         -- Lightning Power: High-energy, chaotic, or electromagnetic worlds
         if string.find(terrain, "venus") or string.find(terrain, "ganymede") or string.find(terrain, "elysium") then
             aiCore.WorldPowerKey = "lPower"
-            
-        -- Wind Power: Atmospheric pressure and high-velocity gas worlds
+
+            -- Wind Power: Atmospheric pressure and high-velocity gas worlds
         elseif string.find(terrain, "mars") or string.find(terrain, "titan") or string.find(terrain, "achilles") then
             aiCore.WorldPowerKey = "wPower"
-            
-        -- Solar Power: Default for low-atmosphere/high-visibility (Moon, Io, Europa)
+
+            -- Solar Power: Default for low-atmosphere/high-visibility (Moon, Io, Europa)
         else
             aiCore.WorldPowerKey = "sPower"
         end
 
-        if aiCore.Debug then 
-            print("aiCore: Smart Power Detection (BZN Metadata) -> " .. aiCore.WorldPowerKey) 
+        if aiCore.Debug then
+            print("aiCore: Smart Power Detection (BZN Metadata) -> " .. aiCore.WorldPowerKey)
         end
         return aiCore.WorldPowerKey
     end
@@ -1173,6 +1282,46 @@ function aiCore.WeaponManager:Update()
 
     -- Update double weapon users
     self:UpdateDoubleWeapons(dt)
+
+    -- Targeted Retaliation (New)
+    self:UpdateRetaliation(dt)
+end
+
+function aiCore.WeaponManager:UpdateRetaliation(dt)
+    if not self.teamObj or not self.teamObj.combatUnits then return end
+
+    -- Check for attackers and switch weapons reactively
+    for _, u in ipairs(self.teamObj.combatUnits) do
+        if IsValid(u) and IsAlive(u) then
+            local attacker = GetWhoShotMe(u)
+            if IsValid(attacker) and IsAlive(attacker) and (GetTime() - GetLastEnemyShot(u)) < 5.0 then
+                local cls = string.lower(utility.CleanString(GetClassLabel(attacker)))
+
+                -- Person -> Mortar
+                if cls == utility.ClassLabel.PERSON then
+                    local mortarMask = aiCore.GetWeaponMask(u, self.mortarWeapons)
+                    if mortarMask > 0 then
+                        FireWeaponMask(u, mortarMask)
+                        if aiCore.Debug then
+                            print("WeaponManager: Retaliating against Person with Mortar (" ..
+                                GetOdf(u) .. ")")
+                        end
+                    end
+
+                    -- Walker -> Thumper
+                elseif cls == utility.ClassLabel.WALKER then
+                    local thumperMask = aiCore.GetWeaponMask(u, "gthumper")
+                    if thumperMask > 0 then
+                        FireWeaponMask(u, thumperMask)
+                        if aiCore.Debug then
+                            print("WeaponManager: Disorienting Walker with Thumper (" ..
+                                GetOdf(u) .. ")")
+                        end
+                    end
+                end
+            end
+        end
+    end
 end
 
 function aiCore.WeaponManager:UpdateThumpers(dt)
@@ -1934,14 +2083,22 @@ function aiCore.DefenseManager:Update()
     for h, data in pairs(self.defenses) do
         if not IsValid(h) then
             self.defenses[h] = nil
-        else
+        elseif IsAlive(h) then
             local curAmmo = GetCurAmmo(h)
             local curHealth = GetCurHealth(h)
+            ---@type handle|nil
             local target = GetCurrentWho(h)
+            local isDeployed = IsDeployed(h)
+
+            -- 0. Ammo-Based Firing Detection (Delay target switching if actively shooting)
+            local isFiring = curAmmo < data.lastAmmo - 0.1
+            if isFiring then
+                data.nextCheckTime = GetTime() + 1.0 -- Push out check
+            end
 
             -- 1. Check if "Stuck" (Firing at something blocked but not consuming ammo)
-            if IsValid(target) and IsDeployed(h) then
-                if math.abs(curAmmo - data.lastAmmo) < 0.1 then -- Ammo not dropping significantly
+            if target and IsValid(target) and isDeployed then
+                if not isFiring then -- Ammo not dropping significantly
                     data.stuckTimer = data.stuckTimer + self.updatePeriod
                 else
                     data.stuckTimer = 0.0
@@ -1950,27 +2107,79 @@ function aiCore.DefenseManager:Update()
                 data.stuckTimer = 0.0
             end
 
-            -- 2. Check for Incoming Fire
-            local attacker = GetWhoShotMe(h)
-            local shotTime = GetLastEnemyShot(h)
-            local justShot = (GetTime() - shotTime) < 5.0 -- Shot in last 5 seconds
+            -- 2. Range Enforcement (Drop targets beyond 200m)
+            if target and IsValid(target) then
+                ---@cast target handle
+                if GetDistance(h, target) > 200.0 then
+                    target = nil
+                    Stop(h)
+                end
+            end
 
-            -- 3. Switch Target Logic
-            -- Switch if:
-            --   - Stuck for 6+ seconds AND someone is shooting us
-            --   - OR taking heavy damage (Health drop) and current target isn't dying
-            local switching = false
-            if IsValid(attacker) and IsAlive(attacker) and GetTeamNum(attacker) ~= self.teamNum then
-                if (data.stuckTimer > 6.0 and justShot) or (curHealth < data.lastHealth - 100) then
-                    if target ~= attacker then
-                        if aiCore.Debug then
-                            print("DefenseManager: " ..
-                                GetOdf(h) .. " switching to attacker: " .. GetOdf(attacker))
+            -- 3. Perform Advanced Target Selection
+            if GetTime() >= (data.nextCheckTime or 0) then
+                local attacker = GetWhoShotMe(h)
+                local justShot = (GetTime() - GetLastEnemyShot(h)) < 5.0
+
+                -- Helper for finding best target (Based on EnemyCheck in towerai.lua)
+                local function FindBestTarget()
+                    local closest = nil
+                    local closestDist = 200.0
+                    local isPerson = true
+
+                    for h2 in ObjectsInRange(200.0, h) do
+                        if IsValid(h2) and IsAlive(h2) and not IsAlly(h, h2) then
+                            -- Respect Perceived Teams
+                            local isEnemyPerceived = not IsTeamAllied(GetTeamNum(h), GetPerceivedTeam(h2))
+                            local isSelfPerceived = not IsTeamAllied(GetPerceivedTeam(h), GetTeamNum(h2))
+
+                            if isEnemyPerceived and isSelfPerceived and not IsCloaked(h2) then
+                                local d = GetDistance(h, h2)
+                                if IsCraft(h2) then
+                                    if d < closestDist or isPerson then
+                                        closest = h2
+                                        closestDist = d
+                                    end
+                                    isPerson = false
+                                elseif isPerson and IsPerson(h2) then
+                                    -- People must be in front (firing arc)
+                                    local front = GetFront(h)
+                                    local disp = GetPosition(h2) - GetPosition(h)
+                                    if d < closestDist and (front.x * disp.x + front.y * disp.y + front.z * disp.z) > 0 then
+                                        closest = h2
+                                        closestDist = d
+                                    end
+                                end
+                            end
                         end
-                        Attack(h, attacker, 0) -- Force AI switch
-                        data.stuckTimer = 0.0
-                        switching = true
                     end
+                    return closest
+                end
+
+                local bestTarget = FindBestTarget()
+
+                -- 4. Target Switching Logic
+                if IsValid(attacker) and IsAlive(attacker) and GetTeamNum(attacker) ~= self.teamNum then
+                    -- Reactive Retaliation
+                    local idleAndShot = (not target or not IsValid(target) or GetCurrentCommand(h) == utility.AiCommand.STOP) and
+                        justShot
+                    if idleAndShot or (data.stuckTimer > 6.0 and justShot) or (curHealth < data.lastHealth - 100) then
+                        if target ~= attacker then
+                            Attack(h, attacker, 0)
+                            data.stuckTimer = 0.0
+                            bestTarget = attacker -- Overwrite bestTarget with retaliatory target
+                        end
+                    end
+                end
+
+                if IsValid(bestTarget) and bestTarget ~= target then
+                    ---@cast bestTarget handle
+                    Attack(h, bestTarget, 0)
+                    data.nextCheckTime = GetTime() + 3.0 -- Post-switch delay (switchCheckDelay)
+                elseif not IsValid(bestTarget) and target and IsValid(target) then
+                    -- Keep current target or drop if invalid
+                else
+                    data.nextCheckTime = GetTime() + 1.0 -- Idle check delay
                 end
             end
 
@@ -2271,6 +2480,10 @@ function aiCore.Bootstrap()
 
     for h in AllObjects() do
         count = count + 1
+        if IsCraft(h) then
+            aiCore.ApplyDynamicMass(h)
+        end
+
         local team = GetTeamNum(h)
         if aiCore.ActiveTeams[team] then
             if not aiCore.IsTracked(h, team) then
@@ -2431,6 +2644,10 @@ aiCore.Constants = {
 }
 
 -- Generic Build Queue Item
+---@class aiCore.BuildItem
+---@field odf string
+---@field priority number
+---@field path any
 aiCore.BuildItem = {
     odf = "",
     priority = 0,
@@ -2442,9 +2659,12 @@ aiCore.BuildItem.__index = aiCore.BuildItem
 ---@class aiCore.FactoryManager
 ---@field team number
 ---@field handle any
----@field queue table
+---@field queue aiCore.BuildItem[]
 ---@field isRecycler boolean
 ---@field teamObj aiCore.Team
+---@field pulseTimer number
+---@field pulsePeriod number
+---@field lastDeployCommandTime number
 aiCore.FactoryManager = {
     handle = nil,
     team = 0,
@@ -2508,9 +2728,13 @@ end
 ---@class aiCore.ConstructorManager
 ---@field team number
 ---@field handle any
----@field queue table
+---@field queue aiCore.BuildItem[]
 ---@field sentToRecycler boolean
 ---@field teamObj aiCore.Team
+---@field pulseTimer number
+---@field pulsePeriod number
+---@field activeJob aiCore.BuildItem|nil
+---@field jobState string|nil
 aiCore.ConstructorManager = {
     handle = nil,
     team = 0,
@@ -2574,7 +2798,7 @@ function aiCore.ConstructorManager:update()
     -- Manage the active job
     if self.activeJob then
         local constructor = self.handle
-        
+
         -- If constructor is busy OR cannot build (e.g. deploying), do nothing and let it finish.
         if not CanBuild(constructor) or IsBusy(constructor) then
             return
@@ -2620,7 +2844,8 @@ function aiCore.ConstructorManager:update()
                         -- Issue BuildAt command
                         if aiCore.Debug then print("Constructor issuing BuildAt for " .. self.activeJob.odf) end
                         BuildAt(constructor, self.activeJob.odf, pos)
-                        self.pulseTimer = self.pulsePeriod + math.random((0*self.pulsePeriod ),self.pulsePeriod) + GetTime()
+                        self.pulseTimer = self.pulsePeriod + math.random((0 * self.pulsePeriod), self.pulsePeriod) +
+                            GetTime()
                     end
                 end
             end
@@ -4044,6 +4269,7 @@ function aiCore.Team:Update()
 
     self:UpdateBaseMaintenance()
     self:UpdatePilotResources()
+    self:UpdatePilots()
     self:UpdateResourceBoosting()
     self:UpdateWrecker()
     self:UpdateParatroopers()
@@ -4654,44 +4880,96 @@ function aiCore.Team:UpdatePilots()
         end
     end
 
-    if #barracks > 0 and #self.pilots < (self.Config.techMax or 4) then
-        if not self.techTimer then self.techTimer = GetTime() + (self.Config.techInterval or 60) end
-        if GetTime() > self.techTimer then
-            local fac = barracks[math.random(#barracks)]
-            if IsValid(fac) and IsAlive(fac) then
-                local pilotOdf = aiCore.GuessPilotOdf(fac)
-                local pos = GetPosition(fac)
-                pos.z = pos.z + 15
-                local pilot = BuildObject(pilotOdf, self.teamNum, pos)
-                if IsValid(pilot) then
-                    table.insert(self.pilots, pilot)
-                    Goto(pilot, GetPositionNear(pos, 50, 150))
+    if #barracks > 0 then
+        local dispensingBarracks = barracks[math.random(#barracks)]
+
+        -- A. Technician Spawning (from Barracks)
+        if #self.pilots < (self.Config.techMax or 4) then
+            if not self.techTimer then self.techTimer = GetTime() + (self.Config.techInterval or 60) end
+            if GetTime() > self.techTimer then
+                if IsValid(dispensingBarracks) and IsAlive(dispensingBarracks) then
+                    local pilotOdf = aiCore.GuessPilotOdf(dispensingBarracks)
+                    local pos = GetPosition(dispensingBarracks)
+                    pos.z = pos.z + 15
+                    local pilot = BuildObject(pilotOdf, self.teamNum, pos)
+                    if IsValid(pilot) then
+                        table.insert(self.pilots, pilot)
+                        Goto(pilot, GetPositionNear(pos, 50, 150))
+
+                        -- Initial role assignment
+                        if math.random(100) <= (self.Config.pilotZeal * 100) then
+                            self.sniperState = self.sniperState or {}
+                            self.sniperState[pilot] = true
+                        end
+                    end
+                end
+                self.techTimer = GetTime() + (self.Config.techInterval or 60) + math.random(10)
+            end
+        end
+
+        -- B. Orbital Reinforcements (from aiSpecial.lua)
+        if self.Config.orbitalReinforce then
+            local currentPilots = GetPilot(self.teamNum)
+            local maxPilots = GetMaxPilot(self.teamNum)
+
+            if currentPilots < (maxPilots / 3) then
+                if not self.orbitalTimer or GetTime() > self.orbitalTimer then
+                    self.orbitalTimer = GetTime() + (self.Config.techInterval or 60)
+
+                    if math.random() * 100 <= 30 then
+                        local maxReinforcements = 3
+                        local needed = maxPilots - currentPilots
+                        local reinforcingPilots = math.random(0, math.min(needed, maxReinforcements))
+
+                        local dropPoint = GetPositionNear(GetPosition(dispensingBarracks), 20, 150)
+                        for j = 1, reinforcingPilots do
+                            local droppedPilot = BuildObject(aiCore.GuessPilotOdf(dispensingBarracks), self.teamNum,
+                                dropPoint)
+                            if IsValid(droppedPilot) then
+                                Follow(droppedPilot, dispensingBarracks)
+                                table.insert(self.pilots, droppedPilot)
+                                aiCore.Lift(droppedPilot, 200) -- Arrival from orbit
+                                if aiCore.Debug then print("Team " .. self.teamNum .. " orbital reinforcement deployed.") end
+                            end
+                        end
+                    end
                 end
             end
-            self.techTimer = GetTime() + (self.Config.techInterval or 60) + math.random(10)
         end
     end
 
     -- 2. Individual Pilot Logic
     for _, p in ipairs(self.pilots) do
         if IsAlive(p) and IsPerson(p) then
-            -- Individual Pilot Logic (Technician Behavior)
             local weapon0 = utility.CleanString(GetWeaponClass(p, 0))
             local enemy = GetNearestEnemy(p)
             local dist = IsValid(enemy) and GetDistance(p, enemy) or 9999
+            local ammo = GetAmmo(p)
 
             -- Sniper Modification
             if p ~= GetPlayerHandle() then
+                local isSniper = self.sniperState and self.sniperState[p]
+
                 if weapon0 ~= "" and string.find(weapon0, "handgun") then
-                    if IsValid(enemy) and dist < 200 and math.random() < (self.Config.pilotZeal or 0.4) then
-                        GiveWeapon(p, "gsnipe", 0)
+                    if isSniper and IsValid(enemy) and dist < (self.Config.sniperRange or 200) then
+                        if utility.CanSnipe(enemy) and math.random(100) <= (self.Config.sniperTraining or 75) and ammo >= 0.3 then
+                            GiveWeapon(p, "gsnipe", 0)
+                            if aiCore.Debug then print("Pilot " .. tostring(p) .. " equipping sniper rifle.") end
+                        end
+                        -- Always attack if zealous
+                        if GetCurrentCommand(p) ~= utility.AiCommand.ATTACK then
+                            Attack(p, enemy)
+                        end
                     end
                 elseif weapon0 ~= "" and string.find(weapon0, "gsnipe") then
                     -- Sniper Tactics
-                    if GetAmmo(p) < 0.1 or dist > 300 then
+                    if ammo < 0.1 or dist > (self.Config.sniperRange or 300) or not utility.CanSnipe(enemy) then
                         GiveWeapon(p, "handgun", 0)
+                        if ammo < 0.1 and math.random(100) <= (self.Config.sniperStealth or 50) then
+                            Stop(p) -- Return to base logic handled by idle wander
+                        end
                     elseif IsValid(enemy) then
-                        if GetCurrentCommand(p) ~= AiCommand.ATTACK or GetCurrentWho(p) ~= enemy then
+                        if GetCurrentCommand(p) ~= utility.AiCommand.ATTACK or GetCurrentWho(p) ~= enemy then
                             Attack(p, enemy)
                         end
                     end
@@ -4717,7 +4995,7 @@ function aiCore.Team:UpdatePilots()
                         GetIn(p, target)
                         if aiCore.Debug then print("Team " .. self.teamNum .. " pilot stealing craft: " .. GetOdf(target)) end
                     else
-                        if GetCurrentCommand(p) ~= AiCommand.GO or GetCurrentWho(p) ~= target then
+                        if GetCurrentCommand(p) ~= utility.AiCommand.GO or GetCurrentWho(p) ~= target then
                             Goto(p, target, 1) -- High priority move to craft
                         end
                     end
@@ -4735,7 +5013,6 @@ function aiCore.Team:UpdatePilots()
                         local center = GetPosition(base)
                         local roamPos = GetPositionNear(center, 40, 150)
                         Goto(p, roamPos)
-                        if aiCore.Debug and math.random() < 0.05 then print("Pilot " .. tostring(p) .. " roaming base.") end
                     end
                 end
             end
@@ -4996,7 +5273,10 @@ function aiCore.Team:CheckConstruction()
                     table.insert(self.constructorMgr.queue, { odf = item.odf, path = item.path, priority = p })
                     table.sort(self.constructorMgr.queue, function(a, b) return a.priority < b.priority end)
 
-                    if aiCore.Debug then print("aiCore: Team " .. self.teamNum .. " queued building for constructor: " .. item.odf) end
+                    if aiCore.Debug then
+                        print("aiCore: Team " ..
+                            self.teamNum .. " queued building for constructor: " .. item.odf)
+                    end
                 end
             end
         end
@@ -5279,6 +5559,12 @@ end
 
 function aiCore.AddObject(h)
     if not IsValid(h) then return end
+
+    -- Apply Dynamic Mass to all crafts registered
+    if IsCraft(h) then
+        aiCore.ApplyDynamicMass(h)
+    end
+
     local teamNum = GetTeamNum(h)
 
     -- AI Team Logic

@@ -269,6 +269,7 @@ function Update()
 
         SetUserTarget(bgoal)
         SetObjectiveName(bgoal, "Scrap Field Alpha")
+        --SetObjectiveName(recycler, "Recycler Montana")
         start_done = true
         subtit.Initialize("durations.csv")
 
