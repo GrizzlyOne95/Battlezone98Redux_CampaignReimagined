@@ -1,6 +1,0 @@
-import * from "sprites.material"
-
-material bio.png : BZSprite/Additive
-{
-    set_texture_alias DiffuseMap bio.png
-}

@@ -445,7 +445,7 @@ function PersistentConfig.UpdateInputs()
 
     -- Toggle Headlight Beam Mode (B) - Removed Alt requirement, but check for Bail (Ctrl+B)
     local b_key = exu.GetGameKey("B")
-    local ctrl_down = (exu.GetGameKey("CONTROL") or exu.GetGameKey("CTRL"))
+    local ctrl_down = exu.GetGameKey("CTRL")
 
     if b_key and not ctrl_down and not InputState.last_b_state then
         PersistentConfig.Settings.HeadlightBeamMode = (PersistentConfig.Settings.HeadlightBeamMode % 2) + 1
@@ -513,7 +513,7 @@ function PersistentConfig.UpdateInputs()
     InputState.last_help_state = help_pressed
 
     -- Pause Menu Handling (Escape Key) - IMMEDIATE effect
-    if exu.GetGameKey("ESCAPE") or LastGameKey == "ESCAPE" or LastGameKey == "ESC" or exu.GetGameKey("ESC") then
+    if exu.GetGameKey("ESCAPE") or LastGameKey == "ESCAPE" then
         if subtitles and subtitles.set_opacity then
             subtitles.set_opacity(0.0)
         end
