@@ -11,52 +11,52 @@
 local exu = require("exu")
 
 local PhysicsImpact = {
-    -- Global tuning multipliers
-    GlobalRecoil = 0.5,
-    GlobalKnockback = 1.0,
-    GlobalShake = 0.2,
+    -- Global tuning multipliers (reduced for less intrusive feel)
+    GlobalRecoil = 0.3,
+    GlobalKnockback = 0.5,
+    GlobalShake = 0.15,
 
     -- The master table for fine-tuning
     -- recoil, knockback, shake: multipliers for forces
     Weapons = {
-        -- CANNONS
-        ["blast"]    = { recoil = 8.5, knockback = 10.0, shake = 1.2 }, -- gblast
-        ["blastb"]   = { recoil = 9.0, knockback = 11.0, shake = 1.3 }, -- gblastb
-        ["blastg"]   = { recoil = 8.0, knockback = 9.0, shake = 1.1 },  -- gblastg
-        ["bolt"]     = { recoil = 2.0, knockback = 4.0, shake = 0.5 },
-        ["snipe"]    = { recoil = 12.0, knockback = 15.0, shake = 1.8 },
+        -- HEAVY CANNONS (keep super heavy)
+        ["blast"]    = { recoil = 12.0, knockback = 18.0, shake = 1.5 }, -- gblast
+        ["blastb"]   = { recoil = 14.0, knockback = 20.0, shake = 1.8 }, -- gblastb
+        ["blastg"]   = { recoil = 10.0, knockback = 15.0, shake = 1.3 },  -- gblastg
+        ["bolt"]     = { recoil = 3.0, knockback = 5.0, shake = 0.6 },
+        ["snipe"]    = { recoil = 15.0, knockback = 20.0, shake = 2.0 },
 
-        -- MACHINE GUNS
-        ["bullet1"]  = { recoil = 0.2, knockback = 0.4, shake = 0.1 },
-        ["bullet1a"] = { recoil = 0.3, knockback = 0.5, shake = 0.2 },
-        ["bullet1b"] = { recoil = 0.2, knockback = 0.4, shake = 0.1 },
-        ["bullet1g"] = { recoil = 0.2, knockback = 0.3, shake = 0.1 },
-        ["bullet2"]  = { recoil = 0.4, knockback = 0.6, shake = 0.2 },
-        ["bullet5"]  = { recoil = 0.4, knockback = 0.6, shake = 0.2 },
-        ["bullet6"]  = { recoil = 12.0, knockback = 15.0, shake = 1.8 },
-        ["bullet6a"] = { recoil = 8.0, knockback = 10.0, shake = 1.2 },
+        -- MACHINE GUNS (barely perceptible now)
+        ["bullet1"]  = { recoil = 0.05, knockback = 0.1, shake = 0.02 },
+        ["bullet1a"] = { recoil = 0.08, knockback = 0.15, shake = 0.03 },
+        ["bullet1b"] = { recoil = 0.05, knockback = 0.1, shake = 0.02 },
+        ["bullet1g"] = { recoil = 0.05, knockback = 0.1, shake = 0.02 },
+        ["bullet2"]  = { recoil = 0.1, knockback = 0.2, shake = 0.04 },
+        ["bullet5"]  = { recoil = 0.1, knockback = 0.2, shake = 0.04 },
+        ["bullet6"]  = { recoil = 15.0, knockback = 20.0, shake = 2.0 }, -- Gauss (heavy)
+        ["bullet6a"] = { recoil = 10.0, knockback = 14.0, shake = 1.5 }, -- Railgun
 
-        -- ROCKETS / MISSILES
-        ["rocket"]   = { recoil = 5.0, knockback = 12.0, shake = 0.8 },
-        ["rocket2"]  = { recoil = 6.0, knockback = 15.0, shake = 1.0 },
-        ["rocket3"]  = { recoil = 4.5, knockback = 10.0, shake = 0.7 },
-        ["heatmsl"]  = { recoil = 3.0, knockback = 8.0, shake = 0.5 },
-        ["imagemsl"] = { recoil = 2.0, knockback = 5.0, shake = 0.4 },
-        ["swarmer"]  = { recoil = 1.0, knockback = 2.0, shake = 0.2 },
+        -- ROCKETS / MISSILES (moderate - impactful but not crazy)
+        ["rocket"]   = { recoil = 4.0, knockback = 8.0, shake = 0.6 },
+        ["rocket2"]  = { recoil = 5.0, knockback = 10.0, shake = 0.8 },
+        ["rocket3"]  = { recoil = 3.5, knockback = 7.0, shake = 0.5 },
+        ["heatmsl"]  = { recoil = 2.5, knockback = 6.0, shake = 0.4 },
+        ["imagemsl"] = { recoil = 1.5, knockback = 4.0, shake = 0.3 },
+        ["swarmer"]  = { recoil = 0.8, knockback = 1.5, shake = 0.15 },
 
-        -- MORTARS / GRENADES
-        ["grenade"]  = { recoil = 12.0, knockback = 20.0, shake = 2.0 },
-        ["splintbm"] = { recoil = 10.0, knockback = 5.0, shake = 1.5 },
-        ["splinter"] = { recoil = 0.0, knockback = 5.0, shake = 0.0 },
-        ["bouncebm"] = { recoil = 15.0, knockback = 25.0, shake = 2.5 },
+        -- MORTARS / GRENADES (keep heavy)
+        ["grenade"]  = { recoil = 15.0, knockback = 25.0, shake = 2.5 },
+        ["splintbm"] = { recoil = 8.0, knockback = 4.0, shake = 1.0 },
+        ["splinter"] = { recoil = 0.0, knockback = 4.0, shake = 0.0 },
+        ["bouncebm"] = { recoil = 18.0, knockback = 30.0, shake = 3.0 },
 
-        -- CHARGE WEAPONS
-        ["charge1"]  = { recoil = 1.0, knockback = 2.0, shake = 0.2 },
-        ["charge2"]  = { recoil = 2.0, knockback = 4.0, shake = 0.4 },
-        ["charge3"]  = { recoil = 4.0, knockback = 8.0, shake = 0.8 },
-        ["charge4"]  = { recoil = 7.0, knockback = 12.0, shake = 1.2 },
-        ["charge5"]  = { recoil = 10.0, knockback = 18.0, shake = 1.8 },
-        ["charge6"]  = { recoil = 15.0, knockback = 25.0, shake = 2.5 },
+        -- CHARGE WEAPONS (scale with charge level)
+        ["charge1"]  = { recoil = 0.5, knockback = 1.0, shake = 0.1 },
+        ["charge2"]  = { recoil = 1.5, knockback = 3.0, shake = 0.3 },
+        ["charge3"]  = { recoil = 3.0, knockback = 6.0, shake = 0.6 },
+        ["charge4"]  = { recoil = 5.0, knockback = 10.0, shake = 1.0 },
+        ["charge5"]  = { recoil = 8.0, knockback = 15.0, shake = 1.5 },
+        ["charge6"]  = { recoil = 12.0, knockback = 22.0, shake = 2.2 },
 
         -- SPECIAL
         ["flashch"]  = { recoil = 0.0, knockback = 0.1, shake = 0.0 },
@@ -112,7 +112,7 @@ local function GetStats(odfName)
 end
 
 function exu.BulletInit(odf, shooter, transform)
-    if not IsHandle(shooter) then return end
+    if not IsValid(shooter) then return end
 
     local stats = GetStats(odf)
     if stats.recoil <= 0 and stats.shake <= 0 then return end
@@ -149,7 +149,7 @@ function exu.BulletHit(odf, shooter, hitObject, transform, ordnanceHandle)
     local stats = GetStats(odf)
 
     -- 1. KNOCKBACK (Physics)
-    if IsHandle(hitObject) and stats.knockback > 0 then
+    if IsValid(hitObject) and stats.knockback > 0 then
         local front = SetVector(transform.front_x, transform.front_y, transform.front_z)
         local dir = Normalize(front)
         local vel = GetVelocity(hitObject)

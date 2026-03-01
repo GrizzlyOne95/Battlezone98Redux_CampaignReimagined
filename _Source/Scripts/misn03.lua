@@ -346,26 +346,12 @@ function AddObject(h)
 
     -- Only register units with aiCore if they are produced by the AI (near factory/recycler)
     -- Scripted waves spawn far away and should be ignored to prevent Squad hijacking
-    if team == 2 or team == 1 then
+    -- MODIFIED for Misn03: Skip Team 2 (CCA) to prevent interference with scripted logic
+    if team == 1 then
         local register = false
 
-        if team == 2 then
-            local prod = { GetRecyclerHandle(2), GetFactoryHandle(2) }
-            for _, p in ipairs(prod) do
-                if IsValid(p) and GetDistance(h, p) < 150 then
-                    register = true
-                    break
-                end
-            end
-
-            -- Also check if it IS the recycler/factory/constructor itself
-            if h == GetRecyclerHandle(team) or h == GetFactoryHandle(team) or h == GetConstructorHandle(team) or h == GetArmoryHandle(team) then
-                register = true
-            end
-        else
-            -- Always register player-team scavengers for assist
-            if IsOdf(h, "avscav") then register = true end
-        end
+        -- Always register player-team scavengers for assist
+        if IsOdf(h, "avscav") then register = true end
 
         if register then
             aiCore.AddObject(h)
@@ -900,30 +886,32 @@ function Update()
     -- MODIFIED: Check for player recycler destruction before deploying
     if M.remove_props and not M.cca_deployed then
         if not IsAlive(M.avrecycler) then
-            -- Player's Recycler is down. Order enemy production to invade base.
-            -- Enable AI management so they can build reinforcements
-            local enemyTeam = aiCore.ActiveTeams[2]
-            if enemyTeam then
-                enemyTeam:SetConfig("manageFactories", true)
-                enemyTeam:SetConfig("autoManage", true)
+            if not M.cca_deploy_timer then
+                M.cca_deploy_timer = GetTime() + 15.0 -- 15 second delay before deployment
             end
 
-            -- Use SetCommand for GO_TO_GEYSER (16)
-            if IsAlive(M.prop1) then SetCommand(M.prop1, 16, 1) end
-            if IsAlive(M.prop2) then SetCommand(M.prop2, 16, 1) end
+            if GetTime() > M.cca_deploy_timer then
+                -- Player's Recycler is down. Order enemy production to invade base.
+                -- AI Tracking is disabled for Team 2 in AddObject for this mission.
 
-            -- Spawn attack force handled in ambush block
-            RemoveObject(M.prop3)
-            RemoveObject(M.prop4)
-            RemoveObject(M.prop5)
-            if IsAlive(M.prop8) then RemoveObject(M.prop8) end
-            if IsAlive(M.prop9) then RemoveObject(M.prop9) end
-            if IsAlive(M.guy1) then RemoveObject(M.guy1) end
-            if IsAlive(M.guy2) then RemoveObject(M.guy2) end
-            if IsAlive(M.guy3) then RemoveObject(M.guy3) end
-            if IsAlive(M.guy4) then RemoveObject(M.guy4) end
+                -- Use SetCommand for GO_TO_GEYSER (16)
+                -- Priority 1 is used to ensure it overrides any idling behaviors
+                if IsAlive(M.prop1) then SetCommand(M.prop1, 16, 1) end
+                if IsAlive(M.prop2) then SetCommand(M.prop2, 16, 1) end
 
-            M.cca_deployed = true
+                -- Spawn attack force handled in ambush block
+                RemoveObject(M.prop3)
+                RemoveObject(M.prop4)
+                RemoveObject(M.prop5)
+                if IsAlive(M.prop8) then RemoveObject(M.prop8) end
+                if IsAlive(M.prop9) then RemoveObject(M.prop9) end
+                if IsAlive(M.guy1) then RemoveObject(M.guy1) end
+                if IsAlive(M.guy2) then RemoveObject(M.guy2) end
+                if IsAlive(M.guy3) then RemoveObject(M.guy3) end
+                if IsAlive(M.guy4) then RemoveObject(M.guy4) end
+
+                M.cca_deployed = true
+            end
         end
     end
 
@@ -976,8 +964,9 @@ function Update()
     if M.remove_props then
         if not M.trans_underway and M.pull_out_time < GetTime() then
             -- MODIFIED: Follow path to launch pad, escorts follow transports
-            Goto(M.rescue1, "rescue_path")
-            Goto(M.rescue2, "rescue_path")
+            -- Ensure they stop following the barracks (priority 1 override)
+            Goto(M.rescue1, "rescue_path", 1)
+            Goto(M.rescue2, "rescue_path", 1)
             Follow(M.help1, M.rescue2, 0)
             Follow(M.help2, M.rescue1, 0)
 

@@ -103,6 +103,12 @@ function Start()
     elseif difficulty <= 1 then
         AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
     end
+
+    for h in AllCraft() do
+        SetObjectiveOff(h)
+    end
+
+    --TestEXU()
 end
 
 -- AddObject function: Called when a game object is added
@@ -177,12 +183,13 @@ function Update()
 
     -- Holographic Bio Logic
     if (camera1 or camera2 or camera3) and GetTime() >= bio_timer then
-        local player = GetPlayerHandle()
-        if IsAlive(player) then
-            -- Spawns the holographic bio above the player
-            BuildObject("xbio", 1, player)
-        end
-        bio_timer = GetTime() + 5.0
+        --if IsAlive(player) then
+        -- Spawns the holographic bio above the player
+        local pos = GetPosition(player)
+        pos.y = pos.y + 10.0
+        MakeExplosion("xbio", pos)
+        -- end
+        bio_timer = GetTime() + 10.0
     end
 
     if not start_done then

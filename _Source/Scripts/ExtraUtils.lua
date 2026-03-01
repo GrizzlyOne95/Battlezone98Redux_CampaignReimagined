@@ -11,10 +11,8 @@ error("This is a definition file, use require(\"exu\")")
 
 --- @alias GameObject* lightuserdata pointer the underlying object of a Handle
 --- @alias Ordnance* lightuserdata pointer to the ordnance object
-
---- @alias Handle handle
---- @alias Vector vector
---- @alias Matrix matrix
+--- @alias Handle lightuserdata
+--- @alias Vector any
 
 --- Structs
 
@@ -107,7 +105,6 @@ exu.ORDNANCE = {
     INIT_TRANSFORM = 2, -- The initial transform of the ordnance when it was spawned/shot
     OWNER = 3,          -- The handle of the ordnance's owner (usually who shot it unless it's been spawned manually, then it could be anything)
     INIT_TIME = 4,      -- The time that the ordnance was spawned/shot
-    VELOCITY = 5        -- Current velocity vector
 }
 
 --- @class RadarState
@@ -180,6 +177,15 @@ function exu.GetCameraZoom(camera) end
 --- @param zoom number
 --- @return nil
 function exu.SetCameraZoom(camera, zoom) end
+
+--- Gets the field of view (FOV) of the current camera.
+--- @nodiscard
+--- @return number
+function exu.GetCameraFOV() end
+
+--- Sets the field of view (FOV) of the current camera.
+--- @param fov number
+function exu.SetCameraFOV(fov) end
 
 --- Control Panel
 ---
@@ -286,15 +292,54 @@ function exu.SetSunSpecular(newColor) end
 ---
 --- These functions act on game objects (handles) to query and modify various attributes.
 
---- Sets the local player's user ship to the given handle.
---- @param h Handle
-function exu.SetAsUser(h) end
+--- Changes the object's team to user team (Team 1).
+--- @param handle Handle
+function exu.SetAsUser(handle) end
+
+--- Sets the material name for an entity or sub-entity.
+--- @param handle Handle
+--- @param materialName string
+--- @param subEntityIndex number? optional, if provided sets for SubEntity, otherwise sets for the whole Entity.
+function exu.SetMaterialName(handle, materialName, subEntityIndex) end
+
+--- Gets the material name for an entity or sub-entity.
+--- @param handle Handle
+--- @param subEntityIndex number? optional, if provided gets for SubEntity, otherwise gets for SubEntity 0.
+--- @return string? materialName
+function exu.GetMaterialName(handle, subEntityIndex) end
+
+--- Gets the number of sub-entities for an entity.
+--- @param handle Handle
+--- @return number count
+function exu.GetNumSubEntities(handle) end
 
 --- Gets if the given comm tower is powered or not, throws an error if the handle is not a comm tower.
 --- @nodiscard
 --- @param h Handle
 --- @return boolean
 function exu.IsCommTowerPowered(h) end
+
+--- Sets the visibility of the underlying Ogre Entity for the given object.
+--- @param h Handle
+--- @param visible boolean
+function exu.SetObjectVisible(h, visible) end
+
+--- Scans for Ogre MovableObjects starting with the given prefix.
+--- If setVisible is true, attempts to make them visible.
+--- Logs found objects to bzlogger.txt.
+---
+--- Example:
+--- ```lua
+--- -- Scan for "chunk0" to "chunk99" and make them visible
+--- local count = exu.ScanForChunks("chunk", 100, true)
+--- print("Found " .. count .. " chunks")
+--- ```
+---
+--- @param prefix string
+--- @param count integer
+--- @param setVisible boolean? default false
+--- @return integer foundCount
+function exu.ScanForChunks(prefix, count, setVisible) end
 
 --- Converts a GameObject* into a handle that can be used in lua.
 --- @nodiscard
@@ -346,6 +391,14 @@ function exu.SetMass(h) end
 --- @return GameObject*
 function exu.GetObj(h) end
 
+--- Gets the current radar display range (the circular shroud radius)
+--- @return number range
+function exu.GetRadarDisplayRange() end
+
+--- Sets the radar display range (the circular shroud radius)
+--- @param range number
+function exu.SetRadarDisplayRange(range) end
+
 --- Gets the radar scan period for the given object (if it has a radar).
 --- @nodiscard
 --- @param h Handle
@@ -376,7 +429,14 @@ function exu.GetVelocJam(h) end
 
 --- Sets the velocjam value for the given object.
 --- @param h Handle
-function exu.SetVelocJam(h) end
+--- @param maxSpeed number
+function exu.SetVelocJam(h, maxSpeed) end
+
+--- Gets the active weapon mask for the given object.
+--- @nodiscard
+--- @param h Handle
+--- @return weaponmask
+function exu.GetWeaponMask(h) end
 
 --- Graphics Options
 
@@ -473,11 +533,6 @@ function exu.BuildOrdnance(odf, transform, owner) end
 --- @return any
 function exu.GetOrdnanceAttribute(ordnanceHandle, attribute) end
 
---- Sets the velocity of the given ordnance.
---- @param ordnanceHandle Ordnance*
---- @param velocity Vector
-function exu.SetOrdnanceVelocity(ordnanceHandle, velocity) end
-
 --- Gets the global ballistic coefficient (how much mortars drop, default 4.9f).
 --- @nodiscard
 --- @return number
@@ -489,6 +544,17 @@ function exu.GetCoeffBallistic() end
 --- if you changed it at any point.
 --- @param coeff number
 function exu.SetCoeffBallistic(coeff) end
+
+--- Sets the bounce randomness magnitude for the given ordnance ODF.
+--- @param odf string
+--- @param magnitude number
+function exu.SetOrdnanceBounceRandom(odf, magnitude) end
+
+--- Gets the bounce randomness magnitude for the given ordnance ODF.
+--- @nodiscard
+--- @param odf string
+--- @return number
+function exu.GetOrdnanceBounceRandom(odf) end
 
 --- OS
 ---
@@ -609,6 +675,26 @@ function exu.GetRadarState() end
 --- @param state number
 function exu.SetRadarState(state) end
 
+--- Gets the sun direction in world space
+--- @return Vector direction
+function exu.GetSunDirection() end
+
+--- Sets the sun direction in world space
+--- @param direction Vector
+function exu.SetSunDirection(direction) end
+
+--- Gets the sun power scale (intensity multiplier)
+--- @return number scale
+function exu.GetSunPowerScale() end
+
+--- Sets the sun power scale (intensity multiplier)
+--- @param scale number
+function exu.SetSunPowerScale(scale) end
+
+--- Sets the sun shadow far distance
+--- @param distance number
+function exu.SetSunShadowFarDistance(distance) end
+
 --- Reticle
 ---
 --- These functions can query various information about the smart reticle.
@@ -712,6 +798,73 @@ function exu.GetSatZoom() end
 --- @param zoom number
 function exu.SetSatZoom(zoom) end
 
+--- Ogre Integration
+---
+--- These functions interact directly with the Ogre graphics engine.
+
+--- Gets the current fog settings.
+--- @return Fog
+function exu.GetFog() end
+
+--- Sets the fog settings.
+--- @param fog Fog
+function exu.SetFog(fog) end
+
+--- Gets the sun ambient color.
+--- @return Color
+function exu.GetSunAmbient() end
+
+--- Sets the sun ambient color.
+--- @param color Color
+function exu.SetSunAmbient(color) end
+
+--- Gets the sun diffuse color.
+--- @return Color
+function exu.GetSunDiffuse() end
+
+--- Sets the sun diffuse color.
+--- @param color Color
+function exu.SetSunDiffuse(color) end
+
+--- Gets the sun specular color.
+--- @return Color
+function exu.GetSunSpecular() end
+
+--- Sets the sun specular color.
+--- @param color Color
+function exu.SetSunSpecular(color) end
+
+--- Gets the sun direction.
+--- @return Vector
+function exu.GetSunDirection() end
+
+--- Sets the sun direction.
+--- @param direction Vector
+function exu.SetSunDirection(direction) end
+
+--- Gets the sun power scale.
+--- @return number
+function exu.GetSunPowerScale() end
+
+--- Sets the sun power scale.
+--- @param scale number
+function exu.SetSunPowerScale(scale) end
+
+--- Sets the sun shadow far distance.
+--- @param distance number
+function exu.SetSunShadowFarDistance(distance) end
+
+--- Gets the material name of an object's entity or sub-entity.
+--- @param handle Handle
+--- @param subEntityIndex number? Optional sub-entity index (default 0)
+--- @return string?
+function exu.GetMaterialName(handle, subEntityIndex) end
+
+--- Gets the number of sub-entities in an object's entity.
+--- @param handle Handle
+--- @return number
+function exu.GetNumSubEntities(handle) end
+
 --- Steam
 ---
 --- These functions can get information from steam.
@@ -751,14 +904,6 @@ function exu.SetVoiceVolume(volume) end
 --- Stock Extensions
 ---
 --- These functions are either existing in game but unbound in stock lua, or are in stock lua but were removed.
-
---- Sets the shader for the given material.
---- @param materialName string
---- @param technique integer
---- @param pass integer
---- @param vertexShader string|nil
---- @param fragmentShader string|nil
-function exu.SetShader(materialName, technique, pass, vertexShader, fragmentShader) end
 
 --- Interprets the given string as lua code and executes it.
 --- @param code string

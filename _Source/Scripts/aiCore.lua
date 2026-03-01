@@ -95,6 +95,18 @@ function SetMass(h, m)
     end
 end
 
+-- Gets the selected weapon slot index from EXU (0 = slot 1). Returns -1 if not available.
+function GetSelectedWeaponSlot(h)
+    if exu and exu.getweaponmask then
+        return exu.getweaponmask(h)
+    end
+    -- Fallback for different casing
+    if exu and exu.GetWeaponMask then
+        return exu.GetWeaponMask(h)
+    end
+    return -1 -- Return -1 to indicate failure/not available
+end
+
 -- Evaluate whether a given target can be sniped
 function utility.CanSnipe(h)
     if not IsValid(h) then return false end
@@ -4674,6 +4686,16 @@ end
 
 function aiCore.Team:ResetWeaponMask(h)
     if not IsValid(h) then return end
+
+    -- Priority 0: Use EXU to get the player's live selected weapon
+    local selectedSlot = GetSelectedWeaponSlot(h)
+    if selectedSlot >= 0 then
+        local weaponClass = utility.CleanString(GetWeaponClass(h, selectedSlot))
+        if weaponClass ~= "" then
+            SetWeaponMask(h, 2 ^ selectedSlot)
+            return
+        end
+    end
 
     -- Priority 1: ODF weaponMask line
     local odfMask = aiCore.GetOdfWeaponMask(h)

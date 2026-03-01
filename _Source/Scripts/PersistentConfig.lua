@@ -23,7 +23,10 @@ PersistentConfig.Settings = {
     RainbowMode = false,            -- Special color effect
     ScavengerAssistEnabled = true,  -- Auto-scavenge for player scavengers
     AutoSaveSlot = 10,              -- Default to slot 10
+    AutoSaveEnabled = true,         -- AutoSave enabled by default
+    AutoSaveInterval = 300,         -- Auto-save every 5 minutes (300 seconds)
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
+    RetroLighting = false,          -- Disables PBR and custom shader lighting equations
 }
 
 local function getWorkingDirectory()
@@ -104,6 +107,7 @@ function PersistentConfig.TriggerGreeting(steamID, username)
         ["76561198241259700"] = "GlizzyJuan",   -- GrizzlyOne95
         ["76561198104781489"] = "British Twat", --JJ
         ["76561199014392897"] = "Car Nerd",     --DriveLine
+        ["76561198095046296"] = "HF Imperium",  --HyperFighter
     }
 
     local displayName = CustomNames[tostring(steamID)] or username
@@ -126,6 +130,7 @@ local InputState = {
     last_help_state = false, --/ or ? on keyboard
     last_x_state = false,    -- Auto-repair toggle
     last_u_state = false,    -- Scavenger Assist (U)
+    last_l_state = false,    -- Retro Lighting (Shift+L)
     SubtitlesPaused = false,
     SteamIDFound = false,
     GreetingTriggered = false,
@@ -137,8 +142,8 @@ local InputState = {
 
 -- Beam Definitions
 local BeamModes = {
-    [1] = { Inner = 0.1, Outer = 0.2 }, -- Focused
-    [2] = { Inner = 0.6, Outer = 0.9 }  -- Wide
+    [1] = { Inner = 0.2, Outer = 0.4, Multiplier = 2.0 }, -- Focused (Brighter/Longer)
+    [2] = { Inner = 1.1, Outer = 1.5, Multiplier = 0.8 }  -- Wide (Wider/Shorter)
 }
 
 -- Helper to parse a simple key=value line
@@ -221,8 +226,14 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.ScavengerAssistEnabled = (val == "true")
                 elseif key == "AutoSaveSlot" then
                     PersistentConfig.Settings.AutoSaveSlot = tonumber(val) or 10
+                elseif key == "AutoSaveEnabled" then
+                    PersistentConfig.Settings.AutoSaveEnabled = (val == "true")
+                elseif key == "AutoSaveInterval" then
+                    PersistentConfig.Settings.AutoSaveInterval = tonumber(val) or 300
                 elseif key == "AutoRepairBuildings" then
                     PersistentConfig.Settings.AutoRepairBuildings = (val == "true")
+                elseif key == "RetroLighting" then
+                    PersistentConfig.Settings.RetroLighting = (val == "true")
                 end
             end
             line = f:Readln()
@@ -277,8 +288,11 @@ function PersistentConfig.SaveConfig()
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
         f:Writeln("AutoSaveSlot=" .. tostring(PersistentConfig.Settings.AutoSaveSlot))
+        f:Writeln("AutoSaveEnabled=" .. tostring(PersistentConfig.Settings.AutoSaveEnabled))
+        f:Writeln("AutoSaveInterval=" .. tostring(PersistentConfig.Settings.AutoSaveInterval))
         f:Writeln("ScavengerAssistEnabled=" .. tostring(PersistentConfig.Settings.ScavengerAssistEnabled))
         f:Writeln("AutoRepairBuildings=" .. tostring(PersistentConfig.Settings.AutoRepairBuildings))
+        f:Writeln("RetroLighting=" .. tostring(PersistentConfig.Settings.RetroLighting))
 
         f:Close()
         print("PersistentConfig: File closed successfully")
@@ -303,13 +317,16 @@ function PersistentConfig.ApplySettings()
             PersistentConfig.Settings.HeadlightRange.OuterAngle = BeamModes[mode].Outer
         end
 
+        local mult = BeamModes[mode] and BeamModes[mode].Multiplier or 1.0
+
         if exu.SetHeadlightDiffuse then
-            exu.SetHeadlightDiffuse(h, PersistentConfig.Settings.HeadlightDiffuse.R,
-                PersistentConfig.Settings.HeadlightDiffuse.G, PersistentConfig.Settings.HeadlightDiffuse.B)
+            exu.SetHeadlightDiffuse(h, PersistentConfig.Settings.HeadlightDiffuse.R * mult,
+                PersistentConfig.Settings.HeadlightDiffuse.G * mult, PersistentConfig.Settings.HeadlightDiffuse.B * mult)
         end
         if exu.SetHeadlightSpecular then
-            exu.SetHeadlightSpecular(h, PersistentConfig.Settings.HeadlightSpecular.R,
-                PersistentConfig.Settings.HeadlightSpecular.G, PersistentConfig.Settings.HeadlightSpecular.B)
+            exu.SetHeadlightSpecular(h, PersistentConfig.Settings.HeadlightSpecular.R * mult,
+                PersistentConfig.Settings.HeadlightSpecular.G * mult,
+                PersistentConfig.Settings.HeadlightSpecular.B * mult)
         end
         if exu.SetHeadlightRange then
             exu.SetHeadlightRange(h, PersistentConfig.Settings.HeadlightRange.InnerAngle,
@@ -319,13 +336,17 @@ function PersistentConfig.ApplySettings()
             exu.SetHeadlightVisible(h, PersistentConfig.Settings.HeadlightVisible)
         end
     end
+
+    if exu.SetRetroLightingMode then
+        exu.SetRetroLightingMode(PersistentConfig.Settings.RetroLighting)
+    end
 end
 
 -- Show help overlay
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | /:Help"
+        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | Shift+L:Retro | /:Help"
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
 end
@@ -500,10 +521,18 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_u_state = u_key
 
-    -- Run AutoSave Update
-    if autosave and autosave.Update then
-        autosave.Update()
+    -- Toggle Retro Lighting (Shift+L)
+    local l_key = exu.GetGameKey("L")
+    local shift_down = false
+    if exu.GetGameKey("SHIFT") then shift_down = true end
+
+    if l_key and shift_down and not InputState.last_l_state then
+        PersistentConfig.Settings.RetroLighting = not PersistentConfig.Settings.RetroLighting
+        PersistentConfig.SaveConfig()
+        PersistentConfig.ApplySettings()
+        ShowFeedback("Retro Lighting: " .. (PersistentConfig.Settings.RetroLighting and "ON" or "OFF"), 0.8, 1.0, 0.8)
     end
+    InputState.last_l_state = l_key
 
     -- Help Popup (/ or ? key) - using stock BZ API
     local help_pressed = (LastGameKey == "/" or LastGameKey == "?")
@@ -534,11 +563,13 @@ function PersistentConfig.UpdateInputs()
     if PersistentConfig.Settings.RainbowMode and PersistentConfig.Settings.HeadlightVisible then
         local hue = (GetTime() * 0.2) % 1.0 -- Cycle every 5 seconds
         local r, g, b = HueToRGB(hue)
+        local mode = PersistentConfig.Settings.HeadlightBeamMode
+        local mult = BeamModes[mode] and BeamModes[mode].Multiplier or 1.0
         local h = GetPlayerHandle()
         if IsValid(h) and exu.SetHeadlightDiffuse then
-            exu.SetHeadlightDiffuse(h, r, g, b)
+            exu.SetHeadlightDiffuse(h, r * mult, g * mult, b * mult)
             if exu.SetHeadlightSpecular then
-                exu.SetHeadlightSpecular(h, r, g, b)
+                exu.SetHeadlightSpecular(h, r * mult, g * mult, b * mult)
             end
         end
     end
