@@ -222,6 +222,9 @@ local M = {
     difficulty = 2 -- Default Medium
 }
 
+_G.M = M
+_G.aiCore = aiCore
+
 -- Helper for Difficulty-Scaled Tug Arrival
 local function GetTugDelay()
     local baseDelay = 180.0 -- Medium (Default)
@@ -251,8 +254,6 @@ function ApplyQOL()
 
     -- Initialize Environment
     Environment.Init()
-    autosave.Config.autoSaveInterval = 5 -- DEBUG: trigger after 30 seconds
-    print("AutoSave DEBUG: interval set to 30s for testing")
 end
 
 function Start()
@@ -337,9 +338,9 @@ function Update()
     if exu and exu["UpdateOrdnance"] then exu["UpdateOrdnance"]() end
 
     aiCore.Update()
-    Environment.Update(1.0 / M.TPS)
+    Environment.Update(1.0 / (M.TPS or 20))
     subtit.Update()
-    autosave.Update(1.0 / M.TPS)
+    autosave.Update(1.0 / (M.TPS or 20))
     PersistentConfig.UpdateInputs()
     PersistentConfig.UpdateHeadlights()
 
@@ -666,7 +667,10 @@ function Save()
 end
 
 function Load(data, aiData)
-    if data then M = data end
+    if data then
+        M = data
+        _G.M = M
+    end
     if aiData then aiCore.Load(aiData) end
     aiCore.Bootstrap()
     ApplyQOL()
