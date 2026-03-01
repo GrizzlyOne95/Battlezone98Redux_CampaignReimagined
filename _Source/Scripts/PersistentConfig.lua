@@ -346,7 +346,7 @@ end
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | Shift+L:Retro | /:Help"
+        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | Shift+L:AutoSave | /:Help"
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
 end
@@ -521,16 +521,19 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_u_state = u_key
 
-    -- Toggle Retro Lighting (Shift+L)
+    -- Toggle AutoSave (Shift+L)
     local l_key = exu.GetGameKey("L")
-    local shift_down = false
-    if exu.GetGameKey("SHIFT") then shift_down = true end
+    local shift_down_l = false
+    if exu.GetGameKey("SHIFT") then shift_down_l = true end
 
-    if l_key and shift_down and not InputState.last_l_state then
-        PersistentConfig.Settings.RetroLighting = not PersistentConfig.Settings.RetroLighting
+    if l_key and shift_down_l and not InputState.last_l_state then
+        PersistentConfig.Settings.AutoSaveEnabled = not PersistentConfig.Settings.AutoSaveEnabled
         PersistentConfig.SaveConfig()
-        PersistentConfig.ApplySettings()
-        ShowFeedback("Retro Lighting: " .. (PersistentConfig.Settings.RetroLighting and "ON" or "OFF"), 0.8, 1.0, 0.8)
+        -- Propagate immediately to AutoSave module
+        if autosave and autosave.Config then
+            autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
+        end
+        ShowFeedback("Auto-Save: " .. (PersistentConfig.Settings.AutoSaveEnabled and "ON" or "OFF"), 0.8, 1.0, 0.8)
     end
     InputState.last_l_state = l_key
 

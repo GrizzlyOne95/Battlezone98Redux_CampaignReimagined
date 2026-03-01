@@ -95,18 +95,6 @@ function SetMass(h, m)
     end
 end
 
--- Gets the selected weapon slot index from EXU (0 = slot 1). Returns -1 if not available.
-function GetSelectedWeaponSlot(h)
-    if exu and exu.getweaponmask then
-        return exu.getweaponmask(h)
-    end
-    -- Fallback for different casing
-    if exu and exu.GetWeaponMask then
-        return exu.GetWeaponMask(h)
-    end
-    return -1 -- Return -1 to indicate failure/not available
-end
-
 -- Evaluate whether a given target can be sniped
 function utility.CanSnipe(h)
     if not IsValid(h) then return false end
@@ -4435,12 +4423,6 @@ function aiCore.Team:UpdateScavengerAssist()
             self.scavengerResetState[h] = nil
         else
             if step == 1 then
-                -- Frame 2: Issue Non-Forced Command
-                SetCommand(h, AiCommand.SCAVENGE, 0)
-                self.scavengerResetState[h] = 2
-            elseif step == 2 then
-                -- Frame 3: Restore to Player Team
-                SetTeamNum(h, self.teamNum)
                 self.scavengerResetState[h] = nil
             end
         end
@@ -4460,12 +4442,18 @@ function aiCore.Team:UpdateScavengerAssist()
         if IsValid(h) and not IsSelected(h) and not self.scavengerResetState[h] then
             local cmd = GetCurrentCommand(h)
 
-            -- Auto-scavenge if idle OR refresh if already scavenging
+            -- Auto-scavenge if idle, or pulse-refresh if already scavenging so the
+            -- unit recalculates the closest available scrap deposit.
+            -- VO suppression: switch to team 0 before issuing the command so the
+            -- engine doesn't treat it as a player order (which triggers scavenger VO).
+            -- Restore team 1 immediately after in the same tick — by the time the AI
+            -- evaluates the route on the next update, the unit is already back on the
+            -- correct team and will path to a valid recycler.
             if (cmd == 0) or (cmd == AiCommand.SCAVENGE) then
-                -- WORKAROUND: Force Scavenge without locking control
-                -- Frame 1: Switch to Team 0 (Neutral)
                 SetTeamNum(h, 0)
-                self.scavengerResetState[h] = 1
+                SetCommand(h, AiCommand.SCAVENGE, 0)
+                SetTeamNum(h, self.teamNum)
+                self.scavengerResetState[h] = 1 -- One-frame guard to prevent double-trigger
             end
         end
     end
@@ -4686,16 +4674,6 @@ end
 
 function aiCore.Team:ResetWeaponMask(h)
     if not IsValid(h) then return end
-
-    -- Priority 0: Use EXU to get the player's live selected weapon
-    local selectedSlot = GetSelectedWeaponSlot(h)
-    if selectedSlot >= 0 then
-        local weaponClass = utility.CleanString(GetWeaponClass(h, selectedSlot))
-        if weaponClass ~= "" then
-            SetWeaponMask(h, 2 ^ selectedSlot)
-            return
-        end
-    end
 
     -- Priority 1: ODF weaponMask line
     local odfMask = aiCore.GetOdfWeaponMask(h)

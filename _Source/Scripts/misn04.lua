@@ -251,6 +251,8 @@ function ApplyQOL()
 
     -- Initialize Environment
     Environment.Init()
+    autosave.Config.autoSaveInterval = 5 -- DEBUG: trigger after 30 seconds
+    print("AutoSave DEBUG: interval set to 30s for testing")
 end
 
 function Start()

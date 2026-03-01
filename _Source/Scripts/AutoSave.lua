@@ -604,6 +604,7 @@ function AutoSave._WriteSaveFile(file, desc)
     local missionFilename = GetMissionFilename()
     local terrainName = missionFilename:gsub("%.bzn$", "")
     local currentTime = GetTime()
+    local playerHandle = GetPlayerHandle()
 
     -- Scan for counts and max seqno
     local objCount = 0
@@ -611,8 +612,8 @@ function AutoSave._WriteSaveFile(file, desc)
     for h in AllObjects() do
         if IsValid(h) then
             objCount = objCount + 1
-            local id = h -- handle IS the seqno in BZ98R
-            if id > maxSeqNo then maxSeqNo = id end
+            local id = tonumber(tostring(h), 16)
+            if id and id > maxSeqNo then maxSeqNo = id end
         end
     end
 
@@ -645,9 +646,9 @@ function AutoSave._WriteSaveFile(file, desc)
             file:Writeln("[GameObject]")
             file:Writeln("PrjID [1] =")
             local odf = GetOdf(h):gsub("[%z%s]+$", ""):gsub("%.odf$", "")
-            file:Writeln(IsPlayer(h) and "player" or odf)
+            file:Writeln((h == playerHandle) and "player" or odf)
             file:Writeln("seqno [1] =")
-            file:Writeln(tostring(h))
+            file:Writeln(tostring(tonumber(tostring(h), 16)))
 
             local pos = GetPosition(h)
             file:Writeln("pos [1] =")
@@ -659,8 +660,8 @@ function AutoSave._WriteSaveFile(file, desc)
             file:Writeln(tostring(GetTeamNum(h)))
             file:Writeln("label = " .. (GetLabel(h) or ""))
             file:Writeln("isUser [1] =")
-            file:Writeln(IsPlayer(h) and "1" or "0")
-            file:Writeln("obj_addr = " .. string.format("%08x", h))
+            file:Writeln((h == playerHandle) and "1" or "0")
+            file:Writeln("obj_addr = " .. tostring(h))
 
             local t = GetTransform(h)
             file:Writeln("transform [1] =")
@@ -712,7 +713,7 @@ function AutoSave._WriteSaveFile(file, desc)
             file:Writeln("  z [1] ="); file:Writeln("0")
 
             file:Writeln("seqNo [1] =")
-            file:Writeln(tostring(h))
+            file:Writeln(tostring(tonumber(tostring(h), 16)))
             file:Writeln("name = ")
             file:Writeln("isCritical [1] =")
             file:Writeln("false")
@@ -761,7 +762,7 @@ function AutoSave._WriteSaveFile(file, desc)
             file:Writeln("false")
             file:Writeln("independence [1] =")
             file:Writeln("1")
-            file:Writeln("curPilot = " .. (IsPlayer(h) and "aspilo" or ""))
+            file:Writeln("curPilot = " .. ((h == playerHandle) and "aspilo" or ""))
             file:Writeln("perceivedTeam [1] =")
             file:Writeln(tostring(GetTeamNum(h)))
             for j = 1, 5 do
@@ -769,9 +770,9 @@ function AutoSave._WriteSaveFile(file, desc)
                 file:Writeln("")
             end
             file:Writeln("enabled [1] =")
-            file:Writeln(IsPlayer(h) and "1" or "0")
+            file:Writeln((h == playerHandle) and "1" or "0")
             file:Writeln("selected [1] =")
-            file:Writeln(IsPlayer(h) and "1" or "0")
+            file:Writeln((h == playerHandle) and "1" or "0")
         end
     end
 
