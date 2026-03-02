@@ -89,6 +89,7 @@ local M = {
     solar2_warned = false,
     patrols_spawned = false,
     apc_arrived_at_base = false,
+    apc_bonus_pilots_spawned = false,
     patrol_soldiers = { nil, nil, nil },
     patrol_respawn_timers = { 0, 0, 0 },
 
@@ -832,8 +833,8 @@ function Update()
         if CameraCancelled() then subtit.Stop() end
 
         -- Spawn transports at their spawn points (matches original C++)
-        M.rescue1 = BuildObject("avapc", 1, "apc1_spawn")
-        M.rescue2 = BuildObject("avapc", 1, "apc2_spawn")
+        --M.rescue1 = BuildObject("avapc", 1, "apc1_spawn")
+       -- M.rescue2 = BuildObject("avapc", 1, "apc2_spawn")
 
         -- Fixed pull-out timer (matches original: 28s) and turret retreat (30s)
         M.pull_out_time = GetTime() + 28.0
@@ -925,6 +926,26 @@ function Update()
             M.ambush_message_time = GetTime() + 15.0
             M.trans_underway = true
             M.rescue_move_done = true
+        end
+    end
+
+    -- Bonus pilot grant: when rescue APCs reach barracks area, spawn extra pilots near APCs.
+    if M.remove_props and not M.apc_bonus_pilots_spawned and IsAlive(M.build5) then
+        local barracksPos = GetPosition(M.build5)
+        local r1Close = IsAlive(M.rescue1) and GetDistance(M.rescue1, barracksPos) < 130.0
+        local r2Close = IsAlive(M.rescue2) and GetDistance(M.rescue2, barracksPos) < 130.0
+
+        if r1Close or r2Close then
+            local function SpawnPilotPair(apc)
+                if not IsAlive(apc) then return end
+                local apos = GetPosition(apc)
+                BuildObject("aspilo", 1, GetPositionNear(apos, 5, 18))
+                BuildObject("aspilo", 1, GetPositionNear(apos, 5, 18))
+            end
+
+            SpawnPilotPair(M.rescue1)
+            SpawnPilotPair(M.rescue2)
+            M.apc_bonus_pilots_spawned = true
         end
     end
 

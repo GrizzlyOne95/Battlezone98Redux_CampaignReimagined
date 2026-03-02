@@ -46,11 +46,11 @@ local function SetupAI()
         cca.Config.requireConstructorFirst = true
 
         -- High-level Base Planning
-        cca:PlanDefensivePerimeter(2, 1) -- 2 powers, 1 tower each (Interleaved)
+        cca:PlanDefensivePerimeter(2, 4) -- 2 powers, 1 tower each (Interleaved)
 
         -- ExpandBase will automatically handle Barracks, Supply, Comm, Hangar, and HQ over time.
         -- We just need to plan the optimal Silo location since it's terrain-dependent.
-        local siloPos = cca:FindOptimalSiloLocation(400, 700)
+        local siloPos = cca:FindOptimalSiloLocation(500, 900)
         if siloPos then
             cca:AddBuilding(aiCore.Units[cca.faction].silo, siloPos, 5)
         end
@@ -379,7 +379,7 @@ function Update()
         Patrol(M.pu8, "outerpatrol")
 
         AddObjective("misn0401.otf", "white")
-        AddObjective("misn0402.otf", "white")
+        --AddObjective("misn0402.otf", "white")
 
         M.missionstart = true
     end
@@ -636,7 +636,7 @@ function Update()
                 M.discoverrelic = true
                 M.aud1 = subtit.Play("misn0403.wav")
                 SetObjectiveName(M.relic, "Alien Relic")
-                SetUserTarget(M.relic)
+                SetObjectiveOn(M.relic)
                 M.investigate = GetTime() + 90.0
             end
         end
@@ -645,7 +645,7 @@ function Update()
         if M.discoverrelic and not M.basesecure then
             if M.aud1 and IsAudioMessageDone(M.aud1) then
                 SetObjectiveName(M.relic, "Alien Relic")
-                SetUserTarget(M.relic)
+                SetObjectiveOn(M.relic)
                 M.basesecure = true
             end
         end
@@ -703,7 +703,6 @@ function Update()
             if GetTime() > M.startendcin or CameraCancelled() then
                 CameraFinish()
                 M.missionfail = false
-                CameraCancelled(false)
                 FailMission(GetTime() + 5.0)
             end
         end
@@ -754,7 +753,6 @@ function Update()
             if GetTime() > M.startendcin or CameraCancelled() then
                 CameraFinish()
                 M.chewedout = true
-                CameraCancelled(false)
                 M.investigate = GetTime() + 5.0
             end
         end
@@ -764,8 +762,10 @@ function Update()
             M.z = CountUnitsNearObject(M.svrec, 2000.0, 2, "vehicle")
             if IsAlive(M.tug) and GetDistance(M.tug, M.avrec) < 100.0 and M.z == 0 then
                 M.missionwon = true
-                M.aud12 = subtit.Play("misn0410.wav")
-                M.endcindone = GetTime() + 15.0
+                M.cin_started = false
+                M.endcinfinish = false
+                M.aud12 = subtit.Play("misn0426.wav")
+                M.endcindone = GetTime() + 20.0
             end
         end
 
@@ -774,15 +774,14 @@ function Update()
                 CameraReady()
                 M.cin_started = true
             end
-            if CameraReady() then
-                M.startendcin = GetTime() + 15.0
-                CameraPath("winpath", 100, 200, M.avrec)
-                SetUserTarget(M.avrec)
+            if CameraReady() and not M.endcinfinish then
+                M.startendcin = GetTime() + 20.0
+                CameraPath("endcin", 100, 200, M.player)
+                M.endcinfinish = true
             end
             if (M.aud12 and IsAudioMessageDone(M.aud12)) or GetTime() > M.startendcin or CameraCancelled() then
                 CameraFinish()
                 M.missionwon = false
-                CameraCancelled(false)
                 SucceedMission(GetTime() + 5.0)
             end
         end

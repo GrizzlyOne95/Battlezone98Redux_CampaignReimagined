@@ -139,6 +139,9 @@ local InputState = {
     last_repair_time = 0,
     repair_interval = 1.0,  -- Run repair logic every 1 second
     lastPlayerHandle = nil, -- Track player handle to detect craft changes
+    lastWeaponMask = nil,
+    lastWeaponPlayer = nil,
+    nextWeaponHudCheck = 0.0,
 }
 
 -- Beam Definitions
@@ -156,6 +159,164 @@ local function ParseLine(line)
         return key, value
     end
     return nil
+end
+
+local function CleanString(s)
+    if not s then return "" end
+    return string.gsub(tostring(s), "%z", "")
+end
+
+local function IsMaskBitSet(mask, slot)
+    local div = 2 ^ slot
+    return (math.floor(mask / div) % 2) >= 1
+end
+
+local function GetCurrentWeaponMask(player)
+    if not IsValid(player) then return 0 end
+
+    if type(GetWeaponMask) == "function" then
+        local ok, value = pcall(GetWeaponMask, player)
+        if ok and type(value) == "number" then
+            return math.max(0, math.floor(value + 0.5))
+        end
+    end
+
+    -- Fallback if GetWeaponMask isn't available in this environment.
+    local mask = 0
+    for slot = 0, 4 do
+        local weapon = CleanString(GetWeaponClass(player, slot))
+        if weapon ~= "" then
+            mask = mask + (2 ^ slot)
+        end
+    end
+    return mask
+end
+
+local function ProbeRangeFromOdf(odf)
+    if not odf or not GetODFFloat then return nil end
+
+    local probes = {
+        { "WeaponClass", "maxRange" },
+        { "WeaponClass", "engageRange" },
+        { "WeaponClass", "range" },
+        { "OrdnanceClass", "maxRange" },
+        { "OrdnanceClass", "engageRange" },
+        { "OrdnanceClass", "range" },
+        { "GunClass", "maxRange" },
+        { "GunClass", "range" },
+        { "RocketClass", "maxRange" },
+        { "RocketClass", "range" },
+        { "MissileClass", "maxRange" },
+        { "MissileClass", "range" },
+        { "MortarClass", "maxRange" },
+        { "MortarClass", "range" },
+        { nil, "maxRange" },
+        { nil, "engageRange" },
+        { nil, "range" }
+    }
+
+    local best = nil
+    for _, probe in ipairs(probes) do
+        local value, found = GetODFFloat(odf, probe[1], probe[2], 0.0)
+        if found and value and value > 0 then
+            if not best or value > best then best = value end
+        end
+    end
+    return best
+end
+
+local function ResolveOrdnanceName(odf)
+    if not odf or not GetODFString then return nil end
+    local sections = { "WeaponClass", "OrdnanceClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil }
+    local labels = { "ordName", "ordnanceName", "shotClass", "projectileClass" }
+
+    for _, section in ipairs(sections) do
+        for _, label in ipairs(labels) do
+            local value, found = GetODFString(odf, section, label, "")
+            local cleaned = CleanString(value)
+            if found and cleaned ~= "" then
+                return cleaned
+            end
+        end
+    end
+    return nil
+end
+
+local function GetWeaponRangeMeters(weaponOdfName)
+    if not weaponOdfName or weaponOdfName == "" then return nil end
+    PersistentConfig.WeaponRangeCache = PersistentConfig.WeaponRangeCache or {}
+
+    local key = string.lower(weaponOdfName)
+    if PersistentConfig.WeaponRangeCache[key] ~= nil then
+        return PersistentConfig.WeaponRangeCache[key]
+    end
+
+    local range = nil
+    if OpenODF then
+        local weaponOdf = OpenODF(weaponOdfName)
+        if weaponOdf then
+            range = ProbeRangeFromOdf(weaponOdf)
+            if not range then
+                local ordName = ResolveOrdnanceName(weaponOdf)
+                if ordName then
+                    local ordOdf = OpenODF(ordName)
+                    if ordOdf then
+                        range = ProbeRangeFromOdf(ordOdf)
+                    end
+                end
+            end
+        end
+    end
+
+    PersistentConfig.WeaponRangeCache[key] = range
+    return range
+end
+
+local function BuildWeaponStatsText(player, mask)
+    local parts = {}
+    for slot = 0, 4 do
+        if IsMaskBitSet(mask, slot) then
+            local weapon = CleanString(GetWeaponClass(player, slot))
+            if weapon ~= "" then
+                local range = GetWeaponRangeMeters(weapon)
+                local rangeText = range and tostring(math.floor(range + 0.5)) .. "m" or "?"
+                table.insert(parts, "S" .. tostring(slot + 1) .. " " .. weapon .. ":" .. rangeText)
+            end
+        end
+    end
+
+    if #parts == 0 then
+        return nil
+    end
+    return "WPN " .. table.concat(parts, " | ")
+end
+
+local function UpdateWeaponStatsDisplay(player)
+    if not IsValid(player) then
+        InputState.lastWeaponMask = nil
+        InputState.lastWeaponPlayer = nil
+        return
+    end
+
+    local now = GetTime()
+    if now < (InputState.nextWeaponHudCheck or 0.0) then return end
+    InputState.nextWeaponHudCheck = now + 0.25
+
+    local mask = GetCurrentWeaponMask(player)
+    local playerChanged = (InputState.lastWeaponPlayer ~= player)
+    local maskChanged = (InputState.lastWeaponMask ~= mask)
+    if not playerChanged and not maskChanged then return end
+
+    InputState.lastWeaponMask = mask
+    InputState.lastWeaponPlayer = player
+
+    if mask <= 0 then return end
+
+    local msg = BuildWeaponStatsText(player, mask)
+    if msg then
+        -- Don't bypass mission chatter; queue this as a small informational HUD line.
+        ShowFeedback(msg, 0.75, 1.0, 0.75, 2.4, false)
+    end
 end
 
 -- Helper to convert Hue to RGB (Simple Rainbow)
@@ -362,7 +523,11 @@ function PersistentConfig.UpdateInputs()
             PersistentConfig.ApplySettings()
         end
         InputState.lastPlayerHandle = currentPlayerHandle
+        InputState.lastWeaponMask = nil
+        InputState.lastWeaponPlayer = nil
     end
+
+    UpdateWeaponStatsDisplay(currentPlayerHandle)
 
     -- Process Feedback Queue
     if #PersistentConfig.FeedbackQueue > 0 then
@@ -562,6 +727,13 @@ function PersistentConfig.UpdateInputs()
         end
         if subtitles and subtitles.clear_queue then
             subtitles.clear_queue()
+        end
+        if subtitles and subtitles.clear_current then
+            subtitles.clear_current()
+        end
+        local subtit = package.loaded["ScriptSubtitles"]
+        if subtit then
+            subtit.LastEndTime = GetTime()
         end
         InputState.SubtitlesPaused = true
     else
@@ -791,6 +963,7 @@ function PersistentConfig.Initialize()
             local oldSucceed = SucceedMission
             SucceedMission = function(...)
                 if subtitles and subtitles.clear_queue then subtitles.clear_queue() end
+                if subtitles and subtitles.clear_current then subtitles.clear_current() end
                 oldSucceed(...)
             end
         end
@@ -798,6 +971,7 @@ function PersistentConfig.Initialize()
             local oldFail = FailMission
             FailMission = function(...)
                 if subtitles and subtitles.clear_queue then subtitles.clear_queue() end
+                if subtitles and subtitles.clear_current then subtitles.clear_current() end
                 oldFail(...)
             end
         end

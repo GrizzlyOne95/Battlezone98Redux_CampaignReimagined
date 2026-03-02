@@ -68,6 +68,10 @@ local M = {
     takeoutfactory = false,
     attacktimeset = false,
     attackstatement = false,
+    endseq_started = false,
+    endseq_spawned = false,
+    endseq_cutscene_done = false,
+    endseq_commander_revealed = false,
 
     -- Attack Wave sub-states
     aw1sent = false,
@@ -144,7 +148,12 @@ local M = {
     lemcin2 = false,
     lemcinstart = 99999999.0,
     lemcinend = 99999999.0,
-    difficulty = 2
+    endseq_cutscene_end = 99999999.0,
+    endseq_post_wait_end = 99999999.0,
+    difficulty = 2,
+    cmdEldritch = nil,
+    endCamTank = nil,
+    endFleet = {}
 }
 
 function ApplyQOL()
@@ -713,20 +722,77 @@ function Update()
         if not any_alive then
             M.missionwon = true
             M.newobjective = true
-            subtit.Play("misn0511.wav")
+            M.endseq_started = false
+            M.endseq_spawned = false
+            M.endseq_cutscene_done = false
+            M.endseq_commander_revealed = false
+        end
+    end
+
+    -- Mission win sequence: spawn allied fleet cinematic, then reveal commander and finish.
+    if M.missionwon then
+        if not M.endseq_started then
+            M.endseq_started = true
+            M.endseq_cutscene_end = GetTime() + 10.0
+            M.endseq_post_wait_end = 99999999.0
+
+            -- Team 3 helpers allied with player (non-commandable friendly force).
+            Ally(1, 3)
+            Ally(3, 1)
+
+            -- Spawn a friendly armored fleet and move toward Lemnos.
+            local anchor = M.avrec
+            if not IsAlive(anchor) then anchor = M.player end
+            M.endFleet = {}
+            for i = 1, 7 do
+                local spawnPos = GetPositionNear(GetPosition(anchor), 40, 140)
+                local t = BuildObject("avtank", 3, spawnPos)
+                if IsAlive(t) then
+                    table.insert(M.endFleet, t)
+                    Goto(t, M.lemnos, 1)
+                end
+            end
+
+            M.endCamTank = M.endFleet[1]
+            M.cmdEldritch = M.endFleet[1]
+            M.aud11 = subtit.Play("misn0511.wav")
+            CameraReady()
+        end
+
+        if M.endseq_started and not M.endseq_cutscene_done then
+            if (GetTime() < M.endseq_cutscene_end) and (not CameraCancelled()) then
+                local camTank = M.endCamTank
+                if not IsAlive(camTank) then
+                    camTank = M.player
+                end
+                CameraObject(camTank, -25, 18, -85, M.lemnos)
+            else
+                CameraFinish()
+                CameraCancelled(false)
+                M.endseq_cutscene_done = true
+                M.endseq_post_wait_end = GetTime() + 15.0
+            end
+        end
+
+        if M.endseq_cutscene_done and (not M.endseq_commander_revealed) and GetTime() >= M.endseq_post_wait_end then
+            if IsAlive(M.cmdEldritch) then
+                SetObjectiveOn(M.cmdEldritch)
+                SetObjectiveName(M.cmdEldritch, "Commander Eldritch")
+            end
+            M.endseq_commander_revealed = true
             subtit.Play("misn0512.wav")
-            SucceedMission(GetTime() + 15.0, "misn05w1.des")
+            SucceedMission(GetTime() + 1.0, "misn05w1.des")
         end
     end
 
     -- Fail Conditions
-    if (not IsAlive(M.avrec)) and (not M.missionfail) then
+    if (not M.missionwon) and (not IsAlive(M.avrec)) and (not M.missionfail) then
         FailMission(GetTime() + 15.0, "misn05l1.des")
         subtit.Play("misn0513.wav")
         M.missionfail = true
     end
 
-    if (not IsAlive(M.lemnos)) and (not M.missionfail) then
+    if (not M.missionwon) and (not IsAlive(M.lemnos)) and (not M.missionfail) then
         FailMission(GetTime() + 15.0, "misn05l2.des")
         subtit.Play("misn0514.wav")
         M.missionfail = true
