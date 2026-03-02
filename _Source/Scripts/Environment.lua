@@ -20,7 +20,7 @@ Environment = {
 
     -- Mars-themed Colors and Fog
     -- Bright Martian day - warm orange-white light
-    DayAmbient = { r = 0.35, g = 0.30, b = 0.25 },
+    DayAmbient = { r = 1, g = 0.95, b = 0.90 },
     DayDiffuse = { r = 1.0, g = 0.9, b = 0.75 },
     DayFog = { r = 0.65, g = 0.45, b = 0.25, start = 200, ending = 700 },
 
@@ -250,7 +250,7 @@ end
 function Environment.SyncGameplayImpacts()
     local count = 0
     local maxObjects = 200 -- Safety limit to prevent lag/crash
-    for h in AllObjects() do
+    for h in AllCraft() do
         if count >= maxObjects then break end
         Environment.ProcessObjectNightEffects(h)
         count = count + 1
@@ -258,7 +258,7 @@ function Environment.SyncGameplayImpacts()
 end
 
 function Environment.ProcessObjectNightEffects(h)
-    if not h or not IsValid(h) or not IsCraft(h) then return end
+    if not h or not IsValid(h) then return end
 
     -- Safety check for exu functions
     if not exu.SetRadarRange or not exu.SetRadarPeriod or not exu.SetVelocJam then return end

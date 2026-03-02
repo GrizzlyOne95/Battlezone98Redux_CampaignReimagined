@@ -22,7 +22,7 @@ local PhysicsImpact = {
         -- HEAVY CANNONS (keep super heavy)
         ["blast"]    = { recoil = 12.0, knockback = 18.0, shake = 1.5 }, -- gblast
         ["blastb"]   = { recoil = 14.0, knockback = 20.0, shake = 1.8 }, -- gblastb
-        ["blastg"]   = { recoil = 10.0, knockback = 15.0, shake = 1.3 },  -- gblastg
+        ["blastg"]   = { recoil = 10.0, knockback = 15.0, shake = 1.3 }, -- gblastg
         ["bolt"]     = { recoil = 3.0, knockback = 5.0, shake = 0.6 },
         ["snipe"]    = { recoil = 15.0, knockback = 20.0, shake = 2.0 },
 
@@ -33,8 +33,8 @@ local PhysicsImpact = {
         ["bullet1g"] = { recoil = 0.05, knockback = 0.1, shake = 0.02 },
         ["bullet2"]  = { recoil = 0.1, knockback = 0.2, shake = 0.04 },
         ["bullet5"]  = { recoil = 0.1, knockback = 0.2, shake = 0.04 },
-        ["bullet6"]  = { recoil = 15.0, knockback = 20.0, shake = 2.0 }, -- Gauss (heavy)
-        ["bullet6a"] = { recoil = 10.0, knockback = 14.0, shake = 1.5 }, -- Railgun
+        ["bullet6"]  = { recoil = 0.15, knockback = 0.25, shake = 0.03 },
+        ["bullet6a"] = { recoil = 0.15, knockback = 0.25, shake = 0.03 },
 
         -- ROCKETS / MISSILES (moderate - impactful but not crazy)
         ["rocket"]   = { recoil = 4.0, knockback = 8.0, shake = 0.6 },
@@ -60,7 +60,7 @@ local PhysicsImpact = {
 
         -- SPECIAL
         ["flashch"]  = { recoil = 0.0, knockback = 0.1, shake = 0.0 },
-        ["seismic"]  = { recoil = 0.0, knockback = 50.0, shake = 5.0 },
+        ["seismic"]  = { recoil = 5, knockback = 50.0, shake = 5.0 },
     },
 
     Cache = {},

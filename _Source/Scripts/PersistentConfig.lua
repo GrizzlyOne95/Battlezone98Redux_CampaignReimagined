@@ -12,19 +12,19 @@ PersistentConfig.FeedbackQueue = {}
 
 -- Default Settings
 PersistentConfig.Settings = {
-    HeadlightDiffuse = { R = 5.0, G = 5.0, B = 5.0 },                       -- White
-    HeadlightSpecular = { R = 5.0, G = 5.0, B = 5.0 },
-    HeadlightRange = { InnerAngle = 0.6, OuterAngle = 0.9, Falloff = 1.0 }, -- Default to Wide
-    HeadlightBeamMode = 2,                                                  -- 1 = Focused, 2 = Wide
+    HeadlightDiffuse = { R = 5.0, G = 5.0, B = 5.0 },                         -- White
+    HeadlightSpecular = { R = 8.0, G = 8.0, B = 8.0 },                         -- Brighter specular
+    HeadlightRange = { InnerAngle = 0.6, OuterAngle = 0.9, Falloff = 0.35 },   -- Default to Wide
+    HeadlightBeamMode = 2,                                                      -- 1 = Focused, 2 = Wide
     HeadlightVisible = true,
     SubtitlesEnabled = true,
     OtherHeadlightsDisabled = true, -- AI Lights Off by default
-    AutoRepairWingmen = nil,        -- Initialized via difficulty if not in config
+    AutoRepairWingmen = true,       -- Auto-repair wingmen on by default
     RainbowMode = false,            -- Special color effect
-    ScavengerAssistEnabled = true,  -- Auto-scavenge for player scavengers
+    ScavengerAssistEnabled = false, -- Auto-scavenge for player scavengers
     AutoSaveSlot = 10,              -- Default to slot 10
-    AutoSaveEnabled = true,         -- AutoSave enabled by default
-    AutoSaveInterval = 300,         -- Auto-save every 5 minutes (300 seconds)
+    AutoSaveEnabled = false,        -- AutoSave disabled by default
+    AutoSaveInterval = 200,         -- Auto-save every 200 seconds
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
     RetroLighting = false,          -- Disables PBR and custom shader lighting equations
 }
@@ -137,7 +137,8 @@ local InputState = {
     PollingStartTime = 0,
     last_poll_time = 0,
     last_repair_time = 0,
-    repair_interval = 1.0 -- Run repair logic every 1 second
+    repair_interval = 1.0,  -- Run repair logic every 1 second
+    lastPlayerHandle = nil, -- Track player handle to detect craft changes
 }
 
 -- Beam Definitions
@@ -203,15 +204,15 @@ function PersistentConfig.LoadConfig()
                 elseif key == "HeadlightDiffuseB" then
                     PersistentConfig.Settings.HeadlightDiffuse.B = tonumber(val) or 5.0
                 elseif key == "HeadlightSpecularR" then
-                    PersistentConfig.Settings.HeadlightSpecular.R = tonumber(val) or 5.0
+                    PersistentConfig.Settings.HeadlightSpecular.R = tonumber(val) or 8.0
                 elseif key == "HeadlightSpecularG" then
-                    PersistentConfig.Settings.HeadlightSpecular.G = tonumber(val) or 5.0
+                    PersistentConfig.Settings.HeadlightSpecular.G = tonumber(val) or 8.0
                 elseif key == "HeadlightSpecularB" then
-                    PersistentConfig.Settings.HeadlightSpecular.B = tonumber(val) or 5.0
+                    PersistentConfig.Settings.HeadlightSpecular.B = tonumber(val) or 8.0
                 elseif key == "HeadlightBeamMode" then
-                    PersistentConfig.Settings.HeadlightBeamMode = tonumber(val) or 1
+                    PersistentConfig.Settings.HeadlightBeamMode = tonumber(val) or 2
                 elseif key == "HeadlightFalloff" then
-                    PersistentConfig.Settings.HeadlightRange.Falloff = tonumber(val) or 1.0
+                    PersistentConfig.Settings.HeadlightRange.Falloff = tonumber(val) or 0.35
                 elseif key == "HeadlightVisible" then
                     PersistentConfig.Settings.HeadlightVisible = (val == "true")
                 elseif key == "SubtitlesEnabled" then
@@ -229,7 +230,7 @@ function PersistentConfig.LoadConfig()
                 elseif key == "AutoSaveEnabled" then
                     PersistentConfig.Settings.AutoSaveEnabled = (val == "true")
                 elseif key == "AutoSaveInterval" then
-                    PersistentConfig.Settings.AutoSaveInterval = tonumber(val) or 300
+                    PersistentConfig.Settings.AutoSaveInterval = tonumber(val) or 200
                 elseif key == "AutoRepairBuildings" then
                     PersistentConfig.Settings.AutoRepairBuildings = (val == "true")
                 elseif key == "RetroLighting" then
@@ -353,6 +354,16 @@ end
 
 -- Reusable update logic for all missions
 function PersistentConfig.UpdateInputs()
+    -- Detect player craft change and reapply headlight settings
+    local currentPlayerHandle = GetPlayerHandle()
+    if currentPlayerHandle ~= InputState.lastPlayerHandle then
+        if IsValid(currentPlayerHandle) then
+            print("PersistentConfig: Player entered new craft, reapplying headlight settings.")
+            PersistentConfig.ApplySettings()
+        end
+        InputState.lastPlayerHandle = currentPlayerHandle
+    end
+
     -- Process Feedback Queue
     if #PersistentConfig.FeedbackQueue > 0 then
         -- Check if mission subtitles are active
@@ -731,14 +742,17 @@ function PersistentConfig.Initialize()
         print("PersistentConfig: Defaulted Auto-Repair to " ..
             (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF") .. " based on difficulty.")
     end
-
-    -- Ensure config file is created/updated
     PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings()
 
-    -- Sync AutoSave Slot
-    if autosave and autosave.SetSlot then
-        autosave.SetSlot(PersistentConfig.Settings.AutoSaveSlot)
+    -- Sync AutoSave config from settings
+    if autosave and autosave.Config then
+        autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
+        autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
+        autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
+        print("PersistentConfig: AutoSave synced - enabled=" .. tostring(autosave.Config.enabled) ..
+            " interval=" .. tostring(autosave.Config.autoSaveInterval) ..
+            " slot=" .. tostring(autosave.Config.currentSlot))
     end
 
     -- Show help reminder on every mission start

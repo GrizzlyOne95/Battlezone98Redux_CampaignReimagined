@@ -13,7 +13,7 @@ local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local Environment = require("Environment")
 local PhysicsImpact = require("PhysicsImpact")
-local autosave = require("AutoSave")
+--local autosave = require("AutoSave")
 
 -- Helper for AI
 local function SetupAI()
@@ -83,6 +83,11 @@ local M = {
     wave3dead = false,
     wave4dead = false,
     wave5dead = false,
+    wave1arrive = false,
+    wave2arrive = false,
+    wave3arrive = false,
+    wave4arrive = false,
+    wave5arrive = false,
     possiblewin = false,
     loopbreak = false,
     basesecure = false,
@@ -151,6 +156,8 @@ local M = {
     avrec = nil,
     w1u1 = nil,
     w1u2 = nil,
+    w1u3 = nil, -- Hard+ extra
+    w1u4 = nil, -- Very Hard extra
     w2u1 = nil,
     w2u2 = nil,
     w2u3 = nil,
@@ -251,8 +258,6 @@ function ApplyQOL()
 
     -- Initialize Environment
     Environment.Init()
-    autosave.Config.autoSaveInterval = 5 -- DEBUG: trigger after 30 seconds
-    print("AutoSave DEBUG: interval set to 30s for testing")
 end
 
 function Start()
@@ -339,7 +344,7 @@ function Update()
     aiCore.Update()
     Environment.Update(1.0 / M.TPS)
     subtit.Update()
-    autosave.Update(1.0 / M.TPS)
+    -- autosave.Update(1.0 / M.TPS)
     PersistentConfig.UpdateInputs()
     PersistentConfig.UpdateHeadlights()
 
@@ -394,48 +399,236 @@ function Update()
 
     -- Cheater logic (skip waves if cheater)
     if (not M.cheater) then
-        -- Wave 1
-        if (not M.firstwave and M.wave1 < GetTime()) then
-            M.wave2 = GetTime() + DiffUtils.ScaleTimer(120.0) + math.random(-10, 20)
-            M.w1u1 = BuildObject("svfigh", 2, "spawn1")
-            M.w1u2 = BuildObject("svfigh", 2, "spawn1")
-            M.w1u3 = BuildObject("svfigh", 2, "spawn1")
-            M.w1u4 = BuildObject("svfigh", 2, "spawn1")
-            M.w1u5 = BuildObject("svfigh", 2, "spawn1")
-            M.w1u6 = BuildObject("svfigh", 2, "spawn1")
+        -- =====================================================================
+        -- WAVE SYSTEM: Kill-chain (restored from original C++, difficulty scaled)
+        -- Each wave only spawns after ALL units from the previous wave are dead.
+        -- Approach audio fires when any unit closes within 300 of the recycler.
+        -- Death audio fires when the last unit of a wave is destroyed.
+        -- =====================================================================
 
-            Patrol(M.w1u1, "outerpatrol")
-            Patrol(M.w1u2, "outerpatrol")
-            Patrol(M.w1u3, "outerpatrol")
-            Patrol(M.w1u4, "outerpatrol")
-            Patrol(M.w1u5, "outerpatrol")
-            Patrol(M.w1u6, "outerpatrol")
-
+        -- Wave 1: Timer-based start → 2+ svfigh attack from "wave1" path
+        if M.wavenumber == 1 and M.wave1 < GetTime() then
+            M.w1u1 = BuildObject("svfigh", 2, "wave1")
+            M.w1u2 = BuildObject("svfigh", 2, "wave1")
+            Attack(M.w1u1, M.avrec, 1); SetIndependence(M.w1u1, 1)
+            Attack(M.w1u2, M.avrec, 1); SetIndependence(M.w1u2, 1)
+            if M.difficulty >= 3 then -- Hard: 1 extra fighter
+                M.w1u3 = BuildObject("svfigh", 2, "wave1")
+                Attack(M.w1u3, M.avrec, 1); SetIndependence(M.w1u3, 1)
+            end
+            if M.difficulty >= 4 then -- Very Hard: 2nd extra fighter
+                M.w1u4 = BuildObject("svfigh", 2, "wave1")
+                Attack(M.w1u4, M.avrec, 1); SetIndependence(M.w1u4, 1)
+            end
+            M.wavenumber = 2
+            M.wave1arrive = false
             M.firstwave = true
         end
 
-        if (M.firstwave and not M.chewedout) then
-            local u = BuildObject("svtank", 2, "spawn2")
-            Patrol(u, "outerpatrol")
-            SetIndependence(u, 0)
-            M.chewedout = true
-        end
-        if (not M.chewedout) then
-            SetIndependence(M.pu1, 0)
-            SetIndependence(M.pu3, 0)
-            SetIndependence(M.pu6, 0)
-            SetIndependence(M.pu8, 0)
-            SetIndependence(M.w1u1, 0)
-            SetIndependence(M.w1u2, 0)
+        -- Wave 1: Approach warning
+        if M.wavenumber == 2 and not M.wave1arrive and IsAlive(M.avrec) then
+            if (M.w1u1 and IsAlive(M.w1u1) and GetDistance(M.avrec, M.w1u1) < 300) or
+                (M.w1u2 and IsAlive(M.w1u2) and GetDistance(M.avrec, M.w1u2) < 300) or
+                (M.w1u3 and IsAlive(M.w1u3) and GetDistance(M.avrec, M.w1u3) < 300) or
+                (M.w1u4 and IsAlive(M.w1u4) and GetDistance(M.avrec, M.w1u4) < 300) then
+                subtit.Play("misn0402.wav")
+                M.wave1arrive = true
+            end
         end
 
-        -- Wave 2
-        if (not M.secondwave and M.wave2 < GetTime()) then
-            M.wave3 = GetTime() + DiffUtils.ScaleTimer(150.0) + math.random(-15, 30)
-            M.w2u1 = BuildObject("svtank", 2, "spawn2")
-            M.w2u2 = BuildObject("svtank", 2, "spawn2")
+        -- Wave 1: All dead → queue Wave 2 (+60s)
+        if M.wavenumber == 2 and not M.build2 then
+            if (not (M.w1u1 and IsAlive(M.w1u1))) and
+                (not (M.w1u2 and IsAlive(M.w1u2))) and
+                (not (M.w1u3 and IsAlive(M.w1u3))) and
+                (not (M.w1u4 and IsAlive(M.w1u4))) then
+                subtit.Play("misn0403.wav")
+                M.wave2 = GetTime() + DiffUtils.ScaleTimer(60.0)
+                M.build2 = true
+                M.wave1dead = true
+            end
+        end
+
+        -- Wave 2: svtank + svfigh from "spawn2new"
+        if M.wave2 < GetTime() and IsAlive(M.svrec) and not M.secondwave then
+            M.w2u1 = BuildObject("svtank", 2, "spawn2new")
+            M.w2u2 = BuildObject("svfigh", 2, "spawn2new")
+            Goto(M.w2u1, M.avrec, 1); SetIndependence(M.w2u1, 1)
+            Goto(M.w2u2, M.avrec, 1); SetIndependence(M.w2u2, 1)
+            if M.difficulty >= 3 then -- Hard+: extra fighter
+                M.w2u3 = BuildObject("svfigh", 2, "spawn2new")
+                Goto(M.w2u3, M.avrec, 1); SetIndependence(M.w2u3, 1)
+            end
+            M.wavenumber = 3
+            M.wave2arrive = false
+            M.wave2 = 99999.0
             M.secondwave = true
         end
+
+        -- Wave 2: Approach warning
+        if M.wavenumber == 3 and not M.wave2arrive and IsAlive(M.avrec) then
+            if (M.w2u1 and IsAlive(M.w2u1) and GetDistance(M.avrec, M.w2u1) < 300) or
+                (M.w2u2 and IsAlive(M.w2u2) and GetDistance(M.avrec, M.w2u2) < 300) or
+                (M.w2u3 and IsAlive(M.w2u3) and GetDistance(M.avrec, M.w2u3) < 300) then
+                subtit.Play("misn0404.wav")
+                M.wave2arrive = true
+            end
+        end
+
+        -- Wave 2: All dead → queue Wave 3 (+74s)
+        if M.wavenumber == 3 and not M.build3 then
+            if (not (M.w2u1 and IsAlive(M.w2u1))) and
+                (not (M.w2u2 and IsAlive(M.w2u2))) and
+                (not (M.w2u3 and IsAlive(M.w2u3))) then
+                subtit.Play("misn0405.wav")
+                M.wave3 = GetTime() + DiffUtils.ScaleTimer(74.0)
+                M.build3 = true
+                M.wave2dead = true
+            end
+        end
+
+        -- Wave 3: 3x svfigh from svrec position
+        if M.wave3 < GetTime() and IsAlive(M.svrec) and not M.thirdwave then
+            M.w3u1 = BuildObject("svfigh", 2, M.svrec)
+            M.w3u2 = BuildObject("svfigh", 2, M.svrec)
+            M.w3u3 = BuildObject("svfigh", 2, M.svrec)
+            Goto(M.w3u1, M.avrec, 1); SetIndependence(M.w3u1, 1)
+            Goto(M.w3u2, M.avrec, 1); SetIndependence(M.w3u2, 1)
+            Goto(M.w3u3, M.avrec, 1); SetIndependence(M.w3u3, 1)
+            if M.difficulty >= 3 then -- Hard+: extra tank
+                M.w3u4 = BuildObject("svtank", 2, M.svrec)
+                Goto(M.w3u4, M.avrec, 1); SetIndependence(M.w3u4, 1)
+            end
+            M.wavenumber = 4
+            M.wave3arrive = false
+            M.wave3 = 99999.0
+            M.thirdwave = true
+        end
+
+        -- Wave 3: Approach warning
+        if M.wavenumber == 4 and not M.wave3arrive and IsAlive(M.avrec) then
+            if (M.w3u1 and IsAlive(M.w3u1) and GetDistance(M.avrec, M.w3u1) < 300) or
+                (M.w3u2 and IsAlive(M.w3u2) and GetDistance(M.avrec, M.w3u2) < 300) or
+                (M.w3u3 and IsAlive(M.w3u3) and GetDistance(M.avrec, M.w3u3) < 300) or
+                (M.w3u4 and IsAlive(M.w3u4) and GetDistance(M.avrec, M.w3u4) < 300) then
+                subtit.Play("misn0410.wav")
+                M.wave3arrive = true
+            end
+        end
+
+        -- Wave 3: All dead → queue Wave 4 (+60s)
+        if M.wavenumber == 4 and not M.build4 then
+            if (not (M.w3u1 and IsAlive(M.w3u1))) and
+                (not (M.w3u2 and IsAlive(M.w3u2))) and
+                (not (M.w3u3 and IsAlive(M.w3u3))) and
+                (not (M.w3u4 and IsAlive(M.w3u4))) then
+                subtit.Play("misn0411.wav")
+                M.wave4 = GetTime() + DiffUtils.ScaleTimer(60.0)
+                M.build4 = true
+                M.wave3dead = true
+            end
+        end
+
+        -- Wave 4: svtank + 2x svfigh from "spawnotherside"
+        if M.wave4 < GetTime() and IsAlive(M.svrec) and not M.fourthwave then
+            M.w4u1 = BuildObject("svtank", 2, "spawnotherside")
+            M.w4u2 = BuildObject("svfigh", 2, "spawnotherside")
+            M.w4u3 = BuildObject("svfigh", 2, "spawnotherside")
+            Goto(M.w4u1, M.avrec, 1); SetIndependence(M.w4u1, 1)
+            Goto(M.w4u2, M.avrec, 1); SetIndependence(M.w4u2, 1)
+            Goto(M.w4u3, M.avrec, 1); SetIndependence(M.w4u3, 1)
+            if M.difficulty >= 3 then -- Hard+: extra tank
+                M.w4u4 = BuildObject("svtank", 2, "spawnotherside")
+                Goto(M.w4u4, M.avrec, 1); SetIndependence(M.w4u4, 1)
+            end
+            if M.difficulty >= 4 then -- Very Hard: extra fighter
+                M.w4u5 = BuildObject("svfigh", 2, "spawnotherside")
+                Goto(M.w4u5, M.avrec, 1); SetIndependence(M.w4u5, 1)
+            end
+            M.wavenumber = 5
+            M.wave4arrive = false
+            M.wave4 = 99999.0
+            M.fourthwave = true
+        end
+
+        -- Wave 4: Approach warning
+        if M.wavenumber == 5 and not M.wave4arrive and IsAlive(M.avrec) then
+            if (M.w4u1 and IsAlive(M.w4u1) and GetDistance(M.avrec, M.w4u1) < 300) or
+                (M.w4u2 and IsAlive(M.w4u2) and GetDistance(M.avrec, M.w4u2) < 300) or
+                (M.w4u3 and IsAlive(M.w4u3) and GetDistance(M.avrec, M.w4u3) < 300) or
+                (M.w4u4 and IsAlive(M.w4u4) and GetDistance(M.avrec, M.w4u4) < 300) or
+                (M.w4u5 and IsAlive(M.w4u5) and GetDistance(M.avrec, M.w4u5) < 300) then
+                subtit.Play("misn0412.wav")
+                M.wave4arrive = true
+            end
+        end
+
+        -- Wave 4: All dead → queue Wave 5 (+30s)
+        if M.wavenumber == 5 and not M.build5 then
+            if (not (M.w4u1 and IsAlive(M.w4u1))) and
+                (not (M.w4u2 and IsAlive(M.w4u2))) and
+                (not (M.w4u3 and IsAlive(M.w4u3))) and
+                (not (M.w4u4 and IsAlive(M.w4u4))) and
+                (not (M.w4u5 and IsAlive(M.w4u5))) then
+                subtit.Play("misn0413.wav")
+                M.wave5 = GetTime() + DiffUtils.ScaleTimer(30.0)
+                M.build5 = true
+                M.wave4dead = true
+            end
+        end
+
+        -- Wave 5: svtank + 3x svfigh from svrec position
+        if M.wave5 < GetTime() and IsAlive(M.svrec) and not M.fifthwave then
+            M.w5u1 = BuildObject("svtank", 2, M.svrec)
+            M.w5u2 = BuildObject("svfigh", 2, M.svrec)
+            M.w5u3 = BuildObject("svfigh", 2, M.svrec)
+            M.w5u4 = BuildObject("svfigh", 2, M.svrec)
+            Goto(M.w5u1, M.avrec, 1); SetIndependence(M.w5u1, 1)
+            Goto(M.w5u2, M.avrec, 1); SetIndependence(M.w5u2, 1)
+            Goto(M.w5u3, M.avrec, 1); SetIndependence(M.w5u3, 1)
+            Goto(M.w5u4, M.avrec, 1); SetIndependence(M.w5u4, 1)
+            if M.difficulty >= 3 then -- Hard+: extra tank
+                M.w5u5 = BuildObject("svtank", 2, M.svrec)
+                Goto(M.w5u5, M.avrec, 1); SetIndependence(M.w5u5, 1)
+            end
+            if M.difficulty >= 4 then -- Very Hard: extra fighter
+                M.w5u6 = BuildObject("svfigh", 2, M.svrec)
+                Goto(M.w5u6, M.avrec, 1); SetIndependence(M.w5u6, 1)
+            end
+            M.wavenumber = 6
+            M.wave5arrive = false
+            M.wave5 = 99999.0
+            M.fifthwave = true
+        end
+
+        -- Wave 5: Approach warning
+        if M.wavenumber == 6 and not M.wave5arrive and IsAlive(M.avrec) then
+            if (M.w5u1 and IsAlive(M.w5u1) and GetDistance(M.avrec, M.w5u1) < 300) or
+                (M.w5u2 and IsAlive(M.w5u2) and GetDistance(M.avrec, M.w5u2) < 300) or
+                (M.w5u3 and IsAlive(M.w5u3) and GetDistance(M.avrec, M.w5u3) < 300) or
+                (M.w5u4 and IsAlive(M.w5u4) and GetDistance(M.avrec, M.w5u4) < 300) or
+                (M.w5u5 and IsAlive(M.w5u5) and GetDistance(M.avrec, M.w5u5) < 300) or
+                (M.w5u6 and IsAlive(M.w5u6) and GetDistance(M.avrec, M.w5u6) < 300) then
+                subtit.Play("misn0414.wav")
+                M.wave5arrive = true
+            end
+        end
+
+        -- Wave 5: All dead → mark complete (enables win check)
+        if M.wavenumber == 6 and not M.wave5dead then
+            if (not (M.w5u1 and IsAlive(M.w5u1))) and
+                (not (M.w5u2 and IsAlive(M.w5u2))) and
+                (not (M.w5u3 and IsAlive(M.w5u3))) and
+                (not (M.w5u4 and IsAlive(M.w5u4))) and
+                (not (M.w5u5 and IsAlive(M.w5u5))) and
+                (not (M.w5u6 and IsAlive(M.w5u6))) then
+                M.wave5dead = true
+            end
+        end
+
+        -- =====================================================================
+        -- RELIC / TUG / WIN / FAIL LOGIC
+        -- =====================================================================
 
         -- Monitor Relic Discovery
         if not M.discoverrelic and IsAlive(M.player) then
@@ -448,7 +641,7 @@ function Update()
             end
         end
 
-        -- Audio logic for discovery
+        -- Audio completion for relic discovery
         if M.discoverrelic and not M.basesecure then
             if M.aud1 and IsAudioMessageDone(M.aud1) then
                 SetObjectiveName(M.relic, "Alien Relic")
@@ -464,8 +657,8 @@ function Update()
                 M.investigate = 999999999.0
                 M.aud2 = subtit.Play("misn0404.wav")
                 SetObjectiveOff(M.relic)
-                if IsAlive(M.w1u1) then Attack(M.w1u1, M.tug, 1) end
-                if IsAlive(M.w1u2) then Attack(M.w1u2, M.tug, 1) end
+                if M.w1u1 and IsAlive(M.w1u1) then Attack(M.w1u1, M.tug, 1) end
+                if M.w1u2 and IsAlive(M.w1u2) then Attack(M.w1u2, M.tug, 1) end
             end
         end
 
@@ -477,27 +670,9 @@ function Update()
             end
         end
 
-        -- Wave 3
-        if (not M.thirdwave and M.wave3 < GetTime()) then
-            M.wave4 = GetTime() + DiffUtils.ScaleTimer(180.0) + math.random(-20, 40)
-            M.w3u1 = BuildObject("svfigh", 2, "spawn3")
-            M.w3u2 = BuildObject("svfigh", 2, "spawn3")
-            M.w3u3 = BuildObject("svtank", 2, "spawn3")
-
-            if M.difficulty >= 3 then
-                local extra = BuildObject("svtank", 2, "spawn3")
-                Attack(extra, M.tug, 1)
-                SetIndependence(extra, 0)
-            end
-            Pickup(M.w3u1, M.relic)
-            Follow(M.w3u2, M.w3u1, 1)
-            Follow(M.w3u3, M.w3u1, 1)
-            M.thirdwave = true
-        end
-
-        -- Check if CCA captured relic
+        -- Check if CCA captured relic (via wave 3 transport)
         if M.thirdwave and not M.ccahasrelic then
-            if IsAlive(M.w3u1) then
+            if M.w3u1 and IsAlive(M.w3u1) then
                 if HasCargo(M.w3u1) then
                     M.ccahasrelic = true
                     M.aud4 = subtit.Play("misn0406.wav")
@@ -509,14 +684,14 @@ function Update()
             end
         end
 
-        -- Relic failure
+        -- Relic failure: CCA transport reaches its base
         if M.ccahasrelic and not M.missionfail then
-            if GetDistance(M.w3u1, "spawn3") < 100.0 then
+            if M.w3u1 and GetDistance(M.w3u1, "spawn3") < 100.0 then
                 M.missionfail = true
             end
         end
 
-        if M.missionfail then
+        if M.missionfail and M.w3u1 then
             if not M.cin_started then
                 CameraReady()
                 M.cin_started = true
@@ -525,7 +700,7 @@ function Update()
                 M.startendcin = GetTime() + 10.0
                 CameraPath("failpath", 100, 200, M.w3u1)
             end
-            if GetTime() > M.startendcin or CameraCancelled() or (M.aud10 and IsAudioMessageDone(M.aud10)) or (M.aud11 and IsAudioMessageDone(M.aud11)) or (M.aud12 and IsAudioMessageDone(M.aud12)) or (M.aud13 and IsAudioMessageDone(M.aud13)) or (M.aud14 and IsAudioMessageDone(M.aud14)) then
+            if GetTime() > M.startendcin or CameraCancelled() then
                 CameraFinish()
                 M.missionfail = false
                 CameraCancelled(false)
@@ -533,7 +708,7 @@ function Update()
             end
         end
 
-        -- Relic stolen failure
+        -- Relic not secured in time: investigate timeout failure
         if not M.missionfail2 and not M.relicsecure and not M.ccahasrelic then
             if GetTime() > M.investigate then
                 M.missionfail2 = true
@@ -547,18 +722,7 @@ function Update()
             end
         end
 
-        -- Wave 4
-        if (not M.fourthwave and M.wave4 < GetTime()) then
-            M.wave5 = GetTime() + DiffUtils.ScaleTimer(200) + math.random(-25, 50)
-            M.w4u1 = BuildObject("svtank", 2, "spawn2")
-            M.w4u2 = BuildObject("svtank", 2, "spawn2")
-            M.w4u3 = BuildObject("svtank", 2, "spawn1")
-            M.w4u4 = BuildObject("svtank", 2, "spawn1")
-
-            M.fourthwave = true
-        end
-
-        -- Monitor CCA Base
+        -- Monitor CCA Base attack
         if not M.attackccabase then
             M.z = CountUnitsNearObject(M.svrec, 1000.0, 1, "avtank")
             if M.z > 2 then
@@ -577,7 +741,7 @@ function Update()
             end
         end
 
-        -- Victory Movie
+        -- Victory cinematic (CCA base cleared)
         if M.ccabasedestroyed and not M.chewedout then
             if not M.cin_started then
                 CameraReady()
@@ -595,17 +759,7 @@ function Update()
             end
         end
 
-        -- Wave 5
-        if (not M.fifthwave and M.wave5 < GetTime()) then
-            M.w5u1 = BuildObject("svtank", 2, "spawn3")
-            M.w5u2 = BuildObject("svtank", 2, "spawn3")
-            M.w5u3 = BuildObject("svtank", 2, "spawn2")
-            M.w5u4 = BuildObject("svtank", 2, "spawn2")
-
-            M.fifthwave = true
-        end
-
-        -- Check Win condition
+        -- Win condition: all 5 waves cleared, tug delivered relic, no enemies near base
         if M.fifthwave and not M.missionwon then
             M.z = CountUnitsNearObject(M.svrec, 2000.0, 2, "vehicle")
             if IsAlive(M.tug) and GetDistance(M.tug, M.avrec) < 100.0 and M.z == 0 then
@@ -625,8 +779,6 @@ function Update()
                 CameraPath("winpath", 100, 200, M.avrec)
                 SetUserTarget(M.avrec)
             end
-
-            -- Wait for audio OR timer PLUS some buffer
             if (M.aud12 and IsAudioMessageDone(M.aud12)) or GetTime() > M.startendcin or CameraCancelled() then
                 CameraFinish()
                 M.missionwon = false
@@ -635,7 +787,7 @@ function Update()
             end
         end
 
-        -- Check Tug health failure
+        -- Tug destroyed failure
         if M.tug and not IsAlive(M.tug) and not M.missionfail then
             M.missionfail = true
             M.aud13 = subtit.Play("misn0411.wav")
@@ -647,7 +799,7 @@ function Update()
             end
         end
 
-        -- Check Recycler health failure
+        -- Recycler destroyed failure
         if not IsAlive(M.avrec) and not M.missionfail then
             M.missionfail = true
             M.aud14 = subtit.Play("misn0412.wav")

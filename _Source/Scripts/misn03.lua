@@ -741,39 +741,34 @@ function Update()
     end
 
     if not M.help_spawn and M.support_time < GetTime() then
-        -- MODIFIED: Spawn APCs and Escorts early (Reinforcements)
-        local lpos = GetPosition("lpadspawn")
-        M.rescue1 = BuildObject("avapc2", 1, GetPositionNear(lpos, 0, 30))
-        M.rescue2 = BuildObject("avapc2", 1, GetPositionNear(lpos, 0, 30))
-        SetCritical(M.rescue1, true)
-        SetCritical(M.rescue2, true)
-        -- Don't show on map yet, but help player find one
-        SetUserTarget(M.rescue1)
-        SetObjectiveName(M.rescue1, "Transport 1")
-        SetObjectiveName(M.rescue2, "Transport 2")
-        -- Use ID misn0303.otf so we can update it later
-        AddObjective("misn0303.otf", "white", 8.0, "Protect Transport APCs")
-
-        M.help1 = BuildObject("avfigh", 1, GetPositionNear(lpos, 0, 30)) -- Scout
-        M.help2 = BuildObject("avtank", 1, GetPositionNear(lpos, 0, 30)) -- Tank
-
+        -- Spawn escort reinforcements (matches original C++ behaviour)
+        local lpos = GetPosition("spawn_scrap2")
+        M.help1 = BuildObject("avfigh", 1, lpos)
+        M.help2 = BuildObject("avtank", 1, lpos)
         subtit.Play("misn0314.wav")
-
-        -- Convoy to base
-        -- MODIFIED: APCs follow Barracks (M.build5) with Priority 1 (Story Prop)
-        if IsAlive(M.build5) then
-            Follow(M.rescue1, M.build5, 1)
-            Follow(M.rescue2, M.build5, 1)
-        else
-            Goto(M.rescue1, "apc1_spawn", 1)
-            Goto(M.rescue2, "apc2_spawn", 1)
-        end
-
-        -- Escorts guard APCs (Player controllable: priority 0)
-        Follow(M.help1, M.rescue2, 0)
-        Follow(M.help2, M.rescue1, 0)
-
+        Goto(M.help1, M.solar2, 0)
+        Goto(M.help2, M.solar2, 0)
         M.help_spawn = true
+    end
+
+    if M.help_spawn and IsAlive(M.help1) and IsAlive(M.solar2) and not M.help_stop1 then
+        if GetDistance(M.help1, M.solar2) < 75.0 then
+            Stop(M.help1, 0)
+            M.help_stop1 = true
+        end
+    end
+    if M.help_spawn and IsAlive(M.help2) and IsAlive(M.solar2) and not M.help_stop2 then
+        if GetDistance(M.help2, M.solar2) < 75.0 then
+            Stop(M.help2, 0)
+            M.help_stop2 = true
+        end
+    end
+    if M.help_spawn and not M.help_arrive then
+        if GetDistance(M.help1, M.user) < 50.0 or GetDistance(M.help2, M.user) < 50.0 then
+            Goto(M.help1, M.solar2, 0)
+            Goto(M.help2, M.solar2, 0)
+            M.help_arrive = true
+        end
     end
 
 
@@ -834,88 +829,52 @@ function Update()
 
     if M.start_movie and not M.movie_over and (CameraCancelled() or M.movie_time < GetTime()) then
         CameraFinish()
-        -- Only stop subtitles if the user skipped the cinematic
-        if CameraCancelled() then
-            subtit.Stop()
-        end
+        if CameraCancelled() then subtit.Stop() end
 
-        -- Delay the pull out time until they actually arrive
-        M.pull_out_time = 999999.0
-        M.turret_move_time = GetTime() + 15.0
+        -- Spawn transports at their spawn points (matches original C++)
+        M.rescue1 = BuildObject("avapc", 1, "apc1_spawn")
+        M.rescue2 = BuildObject("avapc", 1, "apc2_spawn")
+
+        -- Fixed pull-out timer (matches original: 28s) and turret retreat (30s)
+        M.pull_out_time = GetTime() + 28.0
+        M.turret_move_time = GetTime() + 30.0
 
         SetObjectiveOff(M.solar1)
         SetObjectiveOff(M.solar2)
         SetObjectiveOff(M.solar3)
         SetObjectiveOff(M.solar4)
 
-        if IsAlive(M.rescue1) then
-            SetObjectiveOn(M.rescue1)
-            SetObjectiveName(M.rescue1, "Transport 1")
-        end
-        if IsAlive(M.rescue2) then
-            SetObjectiveOn(M.rescue2)
-            SetObjectiveName(M.rescue2, "Transport 2")
-        end
+        SetObjectiveOn(M.rescue1)
+        SetObjectiveName(M.rescue1, "Transport 1")
+        SetObjectiveOn(M.rescue2)
+        SetObjectiveName(M.rescue2, "Transport 2")
         SetObjectiveOn(M.launch)
         SetObjectiveName(M.launch, "Launch Pad")
-
-        -- Player Recycler escapes to Launch Pad
-        if IsAlive(M.avrecycler) then
-            Follow(M.avrecycler, M.launch, 1)
-        end
 
         ClearObjectives()
         AddObjective("misn0311.otf", "green")
         AddObjective("misn0312.otf", "green")
         AddObjective("misn0303.otf", "white")
 
-        --Goto(M.rescue1, "rescue_path", 1)
-        --Goto(M.rescue2, "rescue_path", 1)
-
-        Defend2(M.help1, M.rescue1, 0)
-        Defend2(M.help2, M.rescue2, 0)
-
         M.movie_over = true
     end
 
     if M.movie_over and not M.remove_props then
         M.audmsg = subtit.Play("misn0306.wav")
+        -- Remove all cinematic props immediately (matches original C++)
+        RemoveObject(M.prop1)
+        RemoveObject(M.prop2)
+        RemoveObject(M.prop3)
+        RemoveObject(M.prop4)
+        RemoveObject(M.prop5)
+        if IsAlive(M.prop8) then RemoveObject(M.prop8) end
+        if IsAlive(M.prop9) then RemoveObject(M.prop9) end
+        if IsAlive(M.guy1) then RemoveObject(M.guy1) end
+        if IsAlive(M.guy2) then RemoveObject(M.guy2) end
+        if IsAlive(M.guy3) then RemoveObject(M.guy3) end
+        if IsAlive(M.guy4) then RemoveObject(M.guy4) end
         M.remove_props = true
     end
-
-    -- MODIFIED: Check for player recycler destruction before deploying
-    if M.remove_props and not M.cca_deployed then
-        if not IsAlive(M.avrecycler) then
-            if not M.cca_deploy_timer then
-                M.cca_deploy_timer = GetTime() + 15.0 -- 15 second delay before deployment
-            end
-
-            if GetTime() > M.cca_deploy_timer then
-                -- Player's Recycler is down. Order enemy production to invade base.
-                -- AI Tracking is disabled for Team 2 in AddObject for this mission.
-
-                -- Use SetCommand for GO_TO_GEYSER (16)
-                -- Priority 1 is used to ensure it overrides any idling behaviors
-                if IsAlive(M.prop1) then SetCommand(M.prop1, 16, 1) end
-                if IsAlive(M.prop2) then SetCommand(M.prop2, 16, 1) end
-
-                -- Spawn attack force handled in ambush block
-                RemoveObject(M.prop3)
-                RemoveObject(M.prop4)
-                RemoveObject(M.prop5)
-                if IsAlive(M.prop8) then RemoveObject(M.prop8) end
-                if IsAlive(M.prop9) then RemoveObject(M.prop9) end
-                if IsAlive(M.guy1) then RemoveObject(M.guy1) end
-                if IsAlive(M.guy2) then RemoveObject(M.guy2) end
-                if IsAlive(M.guy3) then RemoveObject(M.guy3) end
-                if IsAlive(M.guy4) then RemoveObject(M.guy4) end
-
-                M.cca_deployed = true
-            end
-        end
-    end
-
-    -- ... (skip APC check block as it remains same) ...
 
     if M.startfinishingmovie and not M.tanks_go then
         if M.new_unit_time < GetTime() then
@@ -951,37 +910,17 @@ function Update()
         end
     end
 
-    -- NEW: Check if APCs have arrived at base to "load up"
-    if M.movie_over and not M.apc_arrived_at_base then
-        -- Increased tolerance to 150.0 to ensure trigger
-        if GetDistance(M.rescue1, "apc1_spawn") < 150.0 and GetDistance(M.rescue2, "apc2_spawn") < 150.0 then
-            M.apc_arrived_at_base = true
-            -- Set timer to leave after loading (5 seconds)
-            M.pull_out_time = GetTime() + 2.0
-        end
-    end
+    -- (apc_arrived_at_base logic removed; pull_out_time is set directly in movie_over block)
+
 
     if M.remove_props then
         if not M.trans_underway and M.pull_out_time < GetTime() then
-            -- MODIFIED: Follow path to launch pad, escorts follow transports
-            -- Ensure they stop following the barracks (priority 1 override)
-            Goto(M.rescue1, "rescue_path", 1)
-            Goto(M.rescue2, "rescue_path", 1)
-            Follow(M.help1, M.rescue2, 0)
-            Follow(M.help2, M.rescue1, 0)
-
-            -- Enable Objectives on departure
-            SetObjectiveOn(M.rescue1)
-            SetObjectiveOn(M.rescue2)
-            -- Update existing objective instead of adding new one
-            UpdateObjective("misn0303.otf", "white", 8.0, "Escort to Launch Pad")
-
-            -- Clear old objectives (Command Tower / Arrays)
-            SetObjectiveOff(M.solar1)
-            SetObjectiveOff(M.solar2)
-            SetObjectiveOff(M.solar3)
-            SetObjectiveOff(M.solar4)
-            SetObjectiveOff(M.solar5)
+            -- Retreat transports to launch pad (matches original C++)
+            Retreat(M.rescue1, "rescue_path")
+            Retreat(M.rescue2, "rescue_path")
+            -- Escorts follow transports (player-controllable, priority 0)
+            if IsAlive(M.help1) then Follow(M.help1, M.rescue2, 0) end
+            if IsAlive(M.help2) then Follow(M.help2, M.rescue1, 0) end
 
             M.ambush_message_time = GetTime() + 15.0
             M.trans_underway = true
