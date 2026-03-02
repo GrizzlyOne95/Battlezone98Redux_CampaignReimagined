@@ -405,10 +405,75 @@ do
 
     function Tokenizer:ReadToken() return self:inBinary() and self:ReadBinaryToken() or self:ReadStringToken() end
 
+    local function ParseAiPathsFromText(filedata)
+        local lines = {}
+        for line in (filedata .. "\n"):gmatch("([^\r\n]*)[\r\n]") do
+            lines[#lines + 1] = line
+        end
+
+        local function trim(s) return (s and s:match("^%s*(.-)%s*$")) or "" end
+        local function parseHexLine(line)
+            local v = trim((line or ""):match("=(.*)$"))
+            return tonumber(v, 16) or 0
+        end
+        local function parseNumLine(line)
+            return tonumber(trim(line)) or 0
+        end
+        local function parseLabelLine(line)
+            return trim((line or ""):match("^label%s*=%s*(.*)$") or "")
+        end
+
+        local i, n = 1, #lines
+        while i <= n and trim(lines[i]) ~= "[AiPaths]" do i = i + 1 end
+        if i > n then return nil end
+        i = i + 1
+
+        while i <= n and trim(lines[i]) ~= "count [1] =" do i = i + 1 end
+        if i > n then return nil end
+        i = i + 1
+        local countPaths = parseNumLine(lines[i]); i = i + 1
+
+        local out = { AiPaths = {} }
+        for _ = 1, countPaths do
+            while i <= n and trim(lines[i]) ~= "[AiPath]" do i = i + 1 end
+            if i > n then break end
+            i = i + 1
+
+            local p = { points = {} }
+            p.old_ptr = parseHexLine(lines[i]); i = i + 1 -- old_ptr
+            i = i + 1                                     -- size [1] =
+            local labelSize = parseNumLine(lines[i]); i = i + 1
+            if labelSize > 0 then
+                p.label = parseLabelLine(lines[i]); i = i + 1
+            end
+            i = i + 1 -- pointCount [1] =
+            local pointCount = parseNumLine(lines[i]); i = i + 1
+            if pointCount > 0 then
+                i = i + 1 -- points [n] =
+                for j = 1, pointCount do
+                    i = i + 1 -- x [1] =
+                    i = i + 1
+                    local x = parseNumLine(lines[i])
+                    i = i + 1 -- z [1] =
+                    i = i + 1
+                    local z = parseNumLine(lines[i])
+                    p.points[j] = SetVector(x, 0, z)
+                end
+            end
+            p.pathType = parseHexLine(lines[i]); i = i + 1 -- pathType
+            out.AiPaths[#out.AiPaths + 1] = p
+        end
+        return out
+    end
+
     BZN_Open = function(name)
         local filedata = UseItem(name)
         if not filedata then
             print("AutoSave: Could not load BZN file: " .. tostring(name)); return nil
+        end
+        if filedata:find("%[AiPaths%]") then
+            local parsed = ParseAiPathsFromText(filedata)
+            if parsed then return parsed end
         end
         local reader = Tokenizer.new(filedata)
         local bzn = { AiPaths = {} }
@@ -423,7 +488,8 @@ do
                 for i = 1, countPaths do
                     local p = {}
                     if not reader:inBinary() then reader:ReadToken() end -- Skip [AiPath]
-                    reader:ReadToken()                                   -- old_ptr
+                    local tok_old = reader:ReadToken()                   -- old_ptr
+                    p.old_ptr = tok_old:GetUInt32H()
                     local tok_sz = reader:ReadToken()
                     if tok_sz:GetInt32() > 0 then p.label = reader:ReadToken():GetString() end
                     local tok_pc = reader:ReadToken()
@@ -433,7 +499,8 @@ do
                         local tok_pts = reader:ReadToken()
                         for j = 1, pc do p.points[j] = tok_pts:GetVector2D(j - 1) end
                     end
-                    p.pathType = reader:ReadToken():GetUInt32H()
+                    local tok_path_type = reader:ReadToken()
+                    p.pathType = tok_path_type:GetUInt32H()
                     table.insert(bzn.AiPaths, p)
                 end
                 break
@@ -703,20 +770,59 @@ function AutoSave._WriteSaveFile(file, desc)
     local processMap = {} -- h -> processID
     local missionList = {}
 
+    local supportedMissionNames = {
+        UserProcess = true,
+        MUFEnemy = true,
+        MUFFriend = true,
+        RecyclerFriend = true,
+        RecyclerEnemy = true,
+        TurretTankEnemy = true,
+        ScoutFriend = true,
+        ScoutEnemy = true,
+        ScavengerEnemy = true,
+        SoldierFriend = true,
+        SoldierEnemy = true
+    }
+    local odfAiNameCache = {} -- odfNameLower -> { aiName = string, aiName2 = string }
+
     local function GetProcessName(h)
         if h == playerHandle then return "UserProcess" end
-        local odf = string.lower(GetOdf(h))
-        if odf:find("svmuf") then return "MUFEnemy" end
-        if odf:find("avmuf") then return "MUFFriend" end
-        if odf:find("avrecy") then return "RecyclerFriend" end
-        if odf:find("svrecy") then return "RecyclerEnemy" end
-        if odf:find("svturr") then return "TurretTankEnemy" end
-        if odf:find("svfigh") or odf:find("avfigh") then
-            return GetTeamNum(h) == 1 and "ScoutFriend" or "ScoutEnemy"
+        local odfName = string.lower(GetOdf(h) or "")
+        local team = GetTeamNum(h)
+        local playerTeam = (playerHandle and IsValid(playerHandle)) and GetTeamNum(playerHandle) or 1
+
+        -- Prefer authoritative process names from ODF (aiName / aiName2) over filename heuristics.
+        local aiPair = odfAiNameCache[odfName]
+        if not aiPair then
+            local aiName, aiName2 = nil, nil
+            local odfHandle = OpenODF(odfName)
+            if odfHandle then
+                aiName = GetODFString(odfHandle, "GameObjectClass", "aiName", nil)
+                aiName2 = GetODFString(odfHandle, "GameObjectClass", "aiName2", nil)
+                if aiName == "NULL" then aiName = nil end
+                if aiName2 == "NULL" then aiName2 = nil end
+            end
+            aiPair = { aiName = aiName, aiName2 = aiName2 }
+            odfAiNameCache[odfName] = aiPair
         end
-        if odf:find("svscav") then return "ScavengerEnemy" end
-        if odf:find("pilo") then
-            return GetTeamNum(h) == 1 and "SoldierFriend" or "SoldierEnemy"
+
+        local preferred = (team == playerTeam) and aiPair.aiName or aiPair.aiName2
+        local alternate = (team == playerTeam) and aiPair.aiName2 or aiPair.aiName
+        if preferred and supportedMissionNames[preferred] then return preferred end
+        if alternate and supportedMissionNames[alternate] then return alternate end
+
+        -- Fallback for ODFs missing aiName fields or custom edge cases.
+        if odfName:find("svmuf") then return "MUFEnemy" end
+        if odfName:find("avmuf") then return "MUFFriend" end
+        if odfName:find("avrecy") then return "RecyclerFriend" end
+        if odfName:find("svrecy") then return "RecyclerEnemy" end
+        if odfName:find("svturr") then return "TurretTankEnemy" end
+        if odfName:find("svfigh") or odfName:find("avfigh") then
+            return team == playerTeam and "ScoutFriend" or "ScoutEnemy"
+        end
+        if odfName:find("svscav") then return "ScavengerEnemy" end
+        if odfName:find("pilo") or odfName:find("sold") then
+            return team == playerTeam and "SoldierFriend" or "SoldierEnemy"
         end
         return nil
     end
@@ -824,14 +930,17 @@ function AutoSave._WriteSaveFile(file, desc)
         -- Logic for Craft vs Building fields
         local isCraft = IsCraft(h) or IsPerson(h)
         local isBuilding = not isCraft
-        local odf = string.lower(GetOdf(h) or "")
-        local isFactory = odf:find("svmuf") or odf:find("avmuf")
-
-        -- Cache ODF for factory to read deploy times
-        local factoryODF = nil
-        if isFactory then
-            factoryODF = OpenODF(odf)
+        local odfName = string.lower(GetOdf(h) or "")
+        local odfHandle = OpenODF(odfName)
+        local classLabel = ""
+        if odfHandle then
+            classLabel = string.lower(GetODFString(odfHandle, "GameObjectClass", "classLabel", "") or "")
         end
+        local isFactory = (classLabel == "factory")
+        local isScrap = (classLabel == "scrap")
+
+        -- Reuse the already-opened ODF for factory-specific fields.
+        local factoryODF = isFactory and odfHandle or nil
 
         if isFactory then
             local timeDeploy = factoryODF and GetODFFloat(factoryODF, nil, "timeDeploy", 5) or 5
@@ -853,7 +962,6 @@ function AutoSave._WriteSaveFile(file, desc)
         end
 
         -- illumination: factories should be 0, scrap should be 0, craft should be 1
-        local isScrap = odf:find("sscr")
         if isFactory then
             file:Writeln("illumination [1] =")
             file:Writeln("0")
@@ -874,7 +982,7 @@ function AutoSave._WriteSaveFile(file, desc)
         file:Writeln("  z [1] ="); file:Writeln(NumToStr(t.posit_z))
 
         -- Euler physics block
-        local m         = (exu and exu.GetMass and exu.GetMass(h)) or 1500
+        local m         = (exu and exu.GetMass and exu.GetMass(h)) or 1750
         local mass_inv  = (m > 0 and (1 / m) or 1e+030)
         local v         = GetVelocity(h) or SetVector(0, 0, 0)
         local vm        = math.sqrt(v.x ^ 2 + v.y ^ 2 + v.z ^ 2)
@@ -903,15 +1011,13 @@ function AutoSave._WriteSaveFile(file, desc)
         -- Factory-specific fields
         if isFactory then
             file:Writeln("state = 02000000")
-            -- delayTimer: time since factory started (random small value)
-            file:Writeln("delayTimer [1] ="); file:Writeln(NumToStr(math.random() * 0.1))
-            -- nextRepair: when next repair happens (future time)
-            file:Writeln("nextRepair [1] ="); file:Writeln(NumToStr(currentTime + 999))
+            -- Deterministic placeholders for fields that are not exposed by Lua APIs.
+            file:Writeln("delayTimer [1] ="); file:Writeln("0")
+            file:Writeln("nextRepair [1] ="); file:Writeln(NumToStr(currentTime + 1))
             -- buildClass: get from ODF's classToBuild
             local classToBuild = factoryODF and GetODFString(factoryODF, nil, "classToBuild", "") or ""
             file:Writeln("buildClass [1] ="); file:Writeln(classToBuild or "")
-            -- buildDoneTime: if building something, when it completes
-            file:Writeln("buildDoneTime [1] ="); file:Writeln(NumToStr(currentTime + 999))
+            file:Writeln("buildDoneTime [1] ="); file:Writeln(NumToStr(currentTime + 1))
         end
 
         file:Writeln("seqNo [1] =")
@@ -1046,30 +1152,35 @@ function AutoSave._WriteSaveFile(file, desc)
             file:Writeln("selectList = 01000000000000000000000000000000000000000000000000000000000000000000000000000000")
             file:Writeln("selectNext = 01000000000000000000000000000000000000000000000000000000000000000000000000000000")
         elseif m.name == "MUFEnemy" or m.name == "MUFFriend" then
-            file:Writeln("curState = 02000000")
-            file:Writeln("nextState = 02000000")
+            local mODF = OpenODF(string.lower(GetOdf(m.h) or ""))
+            local classToBuild = mODF and GetODFString(mODF, nil, "classToBuild", "") or ""
+            file:Writeln("curState = 06000000")
+            file:Writeln("nextState = 06000000")
             file:Writeln("craft = " .. ToHex(m.fOwner))
             file:Writeln("release [1] ="); file:Writeln("false")
             file:Writeln("where = 00000000")
             file:Writeln("whoHandle [1] ="); file:Writeln("0")
             file:Writeln("lastHit [1] ="); file:Writeln("0")
             file:Writeln("task = " .. ToHex(taskMap[m.h] or 0))
-            file:Writeln("classtobuild [1] ="); file:Writeln("")
+            file:Writeln("classtobuild [1] ="); file:Writeln(classToBuild or "")
         elseif m.name == "RecyclerFriend" or m.name == "RecyclerEnemy" then
+            local mODF = OpenODF(string.lower(GetOdf(m.h) or ""))
+            local classToBuild = mODF and GetODFString(mODF, nil, "classToBuild", "") or ""
+            local recyclerState = (m.name == "RecyclerFriend") and "08000000" or "06000000"
             file:Writeln("undefptr = 00000000")
             file:Writeln("fWhat = 00000000")
             file:Writeln("lastHit [1] ="); file:Writeln("0")
             file:Writeln("attacked [1] ="); file:Writeln("0")
             file:Writeln("waitToSetup [1] ="); file:Writeln("0")
-            file:Writeln("curState = 03000000")
-            file:Writeln("nextState = 03000000")
+            file:Writeln("curState = " .. recyclerState)
+            file:Writeln("nextState = " .. recyclerState)
             file:Writeln("craft = " .. ToHex(m.fOwner))
             file:Writeln("release [1] ="); file:Writeln("false")
             file:Writeln("where = 00000000")
             file:Writeln("whoHandle [1] ="); file:Writeln("0")
             file:Writeln("lastHit [1] ="); file:Writeln("0")
             file:Writeln("task = " .. ToHex(taskMap[m.h] or 0))
-            file:Writeln("classtobuild [1] ="); file:Writeln("")
+            file:Writeln("classtobuild [1] ="); file:Writeln(classToBuild or "")
         elseif m.name == "ScavengerEnemy" then
             file:Writeln("oldhealth [1] ="); file:Writeln("0")
             file:Writeln("curState [1] ="); file:Writeln("4")
@@ -1090,6 +1201,8 @@ function AutoSave._WriteSaveFile(file, desc)
             file:Writeln("task = " .. ToHex(taskMap[m.h] or 0))
         elseif m.name == "TurretTankEnemy" or m.name == "ScoutEnemy" or m.name == "ScoutFriend" or
             m.name == "SoldierEnemy" or m.name == "SoldierFriend" then
+            local curWho = GetCurrentWho and GetCurrentWho(m.h) or nil
+            local hasWho = curWho and IsValid(curWho)
             if m.name == "ScoutEnemy" or m.name == "ScoutFriend" or m.name == "SoldierEnemy" or m.name == "SoldierFriend" then
                 file:Writeln("isFriend [1] ="); file:Writeln((m.name == "ScoutFriend" or m.name == "SoldierFriend") and
                     "true" or "false")
@@ -1104,15 +1217,15 @@ function AutoSave._WriteSaveFile(file, desc)
             end
             file:Writeln("attackUser [1] ="); file:Writeln("false")
             file:Writeln("independence [1] ="); file:Writeln("1")
-            file:Writeln("curState [1] ="); file:Writeln(m.name:find("Soldier") and "7" or "3")
+            file:Writeln("curState [1] ="); file:Writeln(m.name:find("Soldier") and "7" or "4")
             file:Writeln("nextState [1] ="); file:Writeln("0")
             file:Writeln("saveState [1] ="); file:Writeln("0")
             file:Writeln("saveWho [1] ="); file:Writeln("0")
             file:Writeln("nextEnemyCheck [1] ="); file:Writeln("0")
             file:Writeln("me = " .. ToHex(m.fOwner))
             file:Writeln("task = " .. ToHex(taskMap[m.h] or 0))
-            file:Writeln("whoHandle [1] ="); file:Writeln("0")
-            file:Writeln("where = 00000000")
+            file:Writeln("whoHandle [1] ="); file:Writeln(hasWho and HandleToSignedDec(curWho) or "0")
+            file:Writeln("where = " .. (hasWho and ToHex(objAddrMap[curWho] or 0) or "00000000"))
             file:Writeln("release [1] ="); file:Writeln("false")
             file:Writeln("exact [1] ="); file:Writeln("true")
             file:Writeln("whatClass [1] ="); file:Writeln("")
@@ -1154,7 +1267,7 @@ function AutoSave._WriteSaveFile(file, desc)
 
     for i, p in ipairs(aiPaths) do
         local pts = p.points or {}
-        local pathSeqNo = pathIDStart + i - 1
+        local pathSeqNo = p.old_ptr or (pathIDStart + i - 1)
 
         file:Writeln("[AiPath]")
         file:Writeln("old_ptr = " .. ToHex(pathSeqNo))
@@ -1198,104 +1311,167 @@ function AutoSave._WriteSaveFile(file, desc)
     file:Writeln("[AiTasks]")
     file:Writeln("count [1] =")
     file:Writeln(tostring(#taskObjects))
+    local defaultPathId = (aiPaths[1] and (aiPaths[1].old_ptr or pathIDStart)) or 0
 
     for i, h in ipairs(taskObjects) do
         local cmd                                      = GetCurrentCommand and GetCurrentCommand(h) or 0
         local who                                      = GetCurrentWho and GetCurrentWho(h) or nil
         local hpos                                     = GetPosition(h)
-        local meHex                                    = HandleToHex(h)
+        local meHex                                    = ToHex(objAddrMap[h] or 0)
         local sObjHex                                  = ToHex(taskMap[h])
 
-        -- Determine task type and per-task defaults from the current command
-        local taskName, curState, nextState, blastDist = "SitTask", 6, -1, 75
-        local isAttack                                 = false
+        local whoValid = who and IsValid(who)
+        local whoPos = whoValid and GetPosition(who) or hpos
+        local whoHandleVal = whoValid and HandleToSignedDec(who) or "0"
+        local attackTargetHex = (whoValid and ToHex(objAddrMap[who] or 0)) or "00000000"
+
+        -- Determine task type and per-task defaults from the current command.
+        local taskName, curState, nextState = "SitTask", 6, -1
+        local blastDist, steerFactor, switchDist = 75, 3, 10
+        local writesGotoPrefix = false
+        local writesRecycleTask = false
 
         if cmd == (AiCmd.ATTACK or 4) then
-            taskName  = "SoldierAttack"
-            curState  = 2
-            nextState = 2
-            blastDist = 40
-            isAttack  = true
+            taskName, curState, nextState, blastDist = "SoldierAttack", 2, 2, 40
+        elseif cmd == (AiCmd.GO_TO_GEYSER or 16) then
+            taskName, curState, nextState, writesGotoPrefix = "GotoGeyser", 2, -1, true
+        elseif cmd == (AiCmd.SCAVENGE or 19) then
+            taskName, curState, nextState, writesGotoPrefix = "ScavGotoScrap", 2, -1, true
+            steerFactor = 1
+            switchDist = 5
+        elseif cmd == (AiCmd.RECYCLE or 18) then
+            taskName, writesRecycleTask = "RecycleTask", true
         elseif cmd == (AiCmd.GO or 3) or cmd == (AiCmd.PATROL or 22) or
-            cmd == (AiCmd.HUNT or 20) or cmd == (AiCmd.SCAVENGE or 19) then
-            -- Use SitTask as a safe fallback; on load the mission script /
-            -- aiCore.Bootstrap() will re-assign appropriate commands.
-            taskName  = "SitTask"
-            curState  = 6
-            nextState = -1
-            blastDist = 75
-        end
-
-        -- himHandle: target as signed 32-bit decimal (0 if no valid target)
-        local himHandleVal = "0"
-        local attackTargetHex = "00000000"
-        if isAttack and who and IsValid(who) then
-            himHandleVal    = HandleToSignedDec(who)
-            attackTargetHex = HandleToHex(who)
+            cmd == (AiCmd.HUNT or 20) or cmd == (AiCmd.FOLLOW or 5) or
+            cmd == (AiCmd.DEFEND or 15) then
+            taskName, curState, nextState, writesGotoPrefix = "GotoTask", 2, -1, true
         end
 
         file:Writeln("name = " .. taskName)
         file:Writeln("sObject = " .. sObjHex)
-        file:Writeln("curState [1] =")
-        file:Writeln(tostring(curState))
-        file:Writeln("nextState [1] =")
-        file:Writeln(tostring(nextState))
-        file:Writeln("me = " .. meHex)
-        file:Writeln("himHandle [1] =")
-        file:Writeln(himHandleVal)
-        file:Writeln("wasInTransition [1] =")
-        file:Writeln("false")
-        file:Writeln("saveState [1] =")
-        file:Writeln("13")
-        file:Writeln("saveHandle [1] =")
-        file:Writeln("0")
-        file:Writeln("gotoPoint [1] =")
-        file:Writeln("  x [1] ="); file:Writeln(NumToStr(hpos.x))
-        file:Writeln("  y [1] ="); file:Writeln(NumToStr(hpos.y))
-        file:Writeln("  z [1] ="); file:Writeln(NumToStr(hpos.z))
-        file:Writeln("plan = 00000000")
-        file:Writeln("planPoint [1] =")
-        file:Writeln("0")
-        file:Writeln("braccelFactor [1] =")
-        file:Writeln("0.05")
-        file:Writeln("steerFactor [1] =")
-        file:Writeln("3")
-        file:Writeln("strafeFactor [1] =")
-        file:Writeln("0.05")
-        file:Writeln("avoidSkip [1] =")
-        file:Writeln("0")
-        file:Writeln("nextStuck [1] =")
-        file:Writeln("0")
-        file:Writeln("lastStuck [1] =")
-        file:Writeln("  x [1] ="); file:Writeln("0")
-        file:Writeln("  y [1] ="); file:Writeln("0")
-        file:Writeln("  z [1] ="); file:Writeln("0")
-        file:Writeln("stuckState [1] =")
-        file:Writeln("0")
-        file:Writeln("pitch [1] =")
-        file:Writeln("0")
-        file:Writeln("blastDist [1] =")
-        file:Writeln(tostring(blastDist))
-        file:Writeln("fireConeX [1] =")
-        file:Writeln("0")
-        file:Writeln("fireConeY [1] =")
-        file:Writeln("0")
-        file:Writeln("switchDist [1] =")
-        file:Writeln("10")
-        file:Writeln("attackStart [1] =")
-        file:Writeln("0")
-        file:Writeln("attackTarget = " .. attackTargetHex)
-        file:Writeln("noHitTime [1] =")
-        file:Writeln("0")
-        file:Writeln("followDx [1] =")
-        file:Writeln("0")
-        file:Writeln("followDz [1] =")
-        file:Writeln("0")
-        file:Writeln("lastStopped [1] =")
-        file:Writeln("0")
-        file:Writeln("followTarget = 00000000")
-        file:Writeln("timeOut [1] =")
-        file:Writeln("0")
+
+        if writesRecycleTask then
+            file:Writeln("me = " .. meHex)
+            file:Writeln("subtask = 00000000")
+            file:Writeln("lastScrap [1] =")
+            file:Writeln("  x [1] ="); file:Writeln(NumToStr(hpos.x))
+            file:Writeln("  y [1] ="); file:Writeln(NumToStr(hpos.y))
+            file:Writeln("  z [1] ="); file:Writeln(NumToStr(hpos.z))
+            file:Writeln("scrapHandle [1] =")
+            file:Writeln(whoHandleVal)
+            file:Writeln("dropHandle [1] =")
+            file:Writeln("0")
+            file:Writeln("curState [1] =")
+            file:Writeln("2")
+            file:Writeln("nextState [1] =")
+            file:Writeln("8")
+            file:Writeln("where [1] =")
+            file:Writeln("  x [1] ="); file:Writeln("0")
+            file:Writeln("  y [1] ="); file:Writeln("0")
+            file:Writeln("  z [1] ="); file:Writeln("0")
+            file:Writeln("nextCheck [1] =")
+            file:Writeln("0")
+            file:Writeln("lastRecyclerPos [1] =")
+            file:Writeln("  x [1] ="); file:Writeln("0")
+            file:Writeln("  y [1] ="); file:Writeln("0")
+            file:Writeln("  z [1] ="); file:Writeln("0")
+            file:Writeln("nextStuck [1] =")
+            file:Writeln("0")
+            file:Writeln("lastStuck [1] =")
+            file:Writeln("  x [1] ="); file:Writeln("0")
+            file:Writeln("  y [1] ="); file:Writeln("0")
+            file:Writeln("  z [1] ="); file:Writeln("0")
+            file:Writeln("stuckState [1] =")
+            file:Writeln("0")
+        else
+            if taskName == "GotoGeyser" then
+                file:Writeln("oneGeyser [1] =")
+                file:Writeln("0")
+            elseif taskName == "ScavGotoScrap" then
+                file:Writeln("nearSq [1] =")
+                file:Writeln("36")
+                file:Writeln("wasNear [1] =")
+                file:Writeln("false")
+                file:Writeln("nearTime [1] =")
+                file:Writeln("0")
+            end
+
+            if writesGotoPrefix then
+                file:Writeln("path = " .. ToHex(defaultPathId))
+                file:Writeln("pathPoint [1] =")
+                file:Writeln("1")
+                file:Writeln("release [1] =")
+                file:Writeln((taskName == "GotoTask") and "false" or "true")
+                file:Writeln("exact [1] =")
+                file:Writeln("true")
+                file:Writeln("destPoint [1] =")
+                file:Writeln("  x [1] ="); file:Writeln(NumToStr(whoPos.x))
+                file:Writeln("  y [1] ="); file:Writeln(NumToStr(whoPos.y))
+                file:Writeln("  z [1] ="); file:Writeln(NumToStr(whoPos.z))
+            end
+
+            file:Writeln("curState [1] =")
+            file:Writeln(tostring(curState))
+            file:Writeln("nextState [1] =")
+            file:Writeln(tostring(nextState))
+            file:Writeln("me = " .. meHex)
+            file:Writeln("himHandle [1] =")
+            file:Writeln((whoValid and taskName ~= "SitTask") and whoHandleVal or "0")
+            file:Writeln("wasInTransition [1] =")
+            file:Writeln("false")
+            file:Writeln("saveState [1] =")
+            file:Writeln("13")
+            file:Writeln("saveHandle [1] =")
+            file:Writeln("0")
+            file:Writeln("gotoPoint [1] =")
+            file:Writeln("  x [1] ="); file:Writeln(NumToStr(whoPos.x))
+            file:Writeln("  y [1] ="); file:Writeln(NumToStr(whoPos.y))
+            file:Writeln("  z [1] ="); file:Writeln(NumToStr(whoPos.z))
+            file:Writeln("plan = 00000000")
+            file:Writeln("planPoint [1] =")
+            file:Writeln("0")
+            file:Writeln("braccelFactor [1] =")
+            file:Writeln("0.05")
+            file:Writeln("steerFactor [1] =")
+            file:Writeln(tostring(steerFactor))
+            file:Writeln("strafeFactor [1] =")
+            file:Writeln("0.05")
+            file:Writeln("avoidSkip [1] =")
+            file:Writeln("0")
+            file:Writeln("nextStuck [1] =")
+            file:Writeln("0")
+            file:Writeln("lastStuck [1] =")
+            file:Writeln("  x [1] ="); file:Writeln("0")
+            file:Writeln("  y [1] ="); file:Writeln("0")
+            file:Writeln("  z [1] ="); file:Writeln("0")
+            file:Writeln("stuckState [1] =")
+            file:Writeln("0")
+            file:Writeln("pitch [1] =")
+            file:Writeln("0")
+            file:Writeln("blastDist [1] =")
+            file:Writeln(tostring(blastDist))
+            file:Writeln("fireConeX [1] =")
+            file:Writeln("0")
+            file:Writeln("fireConeY [1] =")
+            file:Writeln("0")
+            file:Writeln("switchDist [1] =")
+            file:Writeln(tostring(switchDist))
+            file:Writeln("attackStart [1] =")
+            file:Writeln("0")
+            file:Writeln("attackTarget = " ..
+                ((taskName == "SoldierAttack" and whoValid) and attackTargetHex or "00000000"))
+            file:Writeln("noHitTime [1] =")
+            file:Writeln("0")
+            file:Writeln("followDx [1] =")
+            file:Writeln("0")
+            file:Writeln("followDz [1] =")
+            file:Writeln("0")
+            file:Writeln("lastStopped [1] =")
+            file:Writeln("0")
+            file:Writeln("followTarget = 00000000")
+            file:Writeln("timeOut [1] =")
+            file:Writeln("0")
+        end
     end
 
     -- -----------------------------------------------------------------------
