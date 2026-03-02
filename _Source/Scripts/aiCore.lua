@@ -4430,7 +4430,7 @@ function aiCore.Team:UpdateScavengerAssist()
 
     -- Check if it's time to issue new scavenge commands
     if (self.scavAssistTimer or 0) > GetTime() then return end
-    self.scavAssistTimer = GetTime() + 5.0 -- Refresh every 5s
+    self.scavAssistTimer = GetTime() + 15.0 -- Refresh every 5s
 
     if not self.scavengers then self.scavengers = {} end
 
@@ -4449,10 +4449,12 @@ function aiCore.Team:UpdateScavengerAssist()
             -- Restore team 1 immediately after in the same tick — by the time the AI
             -- evaluates the route on the next update, the unit is already back on the
             -- correct team and will path to a valid recycler.
+
+            --THIS DOESNT WORK JUST REMOVED IT FROM THE ODF WAVV FO RNOW LOL
             if (cmd == 0) or (cmd == AiCommand.SCAVENGE) then
-                SetTeamNum(h, 0)
+                --SetTeamNum(h, 0)
                 SetCommand(h, AiCommand.SCAVENGE, 0)
-                SetTeamNum(h, self.teamNum)
+                --SetTeamNum(h, self.teamNum)
                 self.scavengerResetState[h] = 1 -- One-frame guard to prevent double-trigger
             end
         end

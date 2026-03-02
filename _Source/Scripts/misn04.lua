@@ -50,7 +50,7 @@ local function SetupAI()
 
         -- ExpandBase will automatically handle Barracks, Supply, Comm, Hangar, and HQ over time.
         -- We just need to plan the optimal Silo location since it's terrain-dependent.
-        local siloPos = cca:FindOptimalSiloLocation(200, 350)
+        local siloPos = cca:FindOptimalSiloLocation(400, 700)
         if siloPos then
             cca:AddBuilding(aiCore.Units[cca.faction].silo, siloPos, 5)
         end

@@ -527,11 +527,9 @@ end
 -- ---------------------------------------------------------------------------
 local function IsSerializable(v)
     local t = type(v)
-    return t == "boolean" or t == "number" or t == "string" or t == "table"
-    -- userdata (handles) and functions are intentionally skipped.
+    return t == "boolean" or t == "number" or t == "string" or t == "table" or t == "userdata"
     -- Nil is naturally excluded by pairs() iteration.
-    -- Handles will be nil after Load(); mission code re-acquires them via
-    -- GetPlayerHandle(), GetHandle(), etc. on the first Update() tick.
+    -- Handles are included and serialized as type 2.
 end
 
 -- ---------------------------------------------------------------------------
@@ -570,8 +568,8 @@ function AutoSave._WriteLuaValue(file, name, value, indent)
         file:Writeln(prefix .. tostring(count))
         for k, v in pairs(value) do
             if IsSerializable(k) and IsSerializable(v) then
-                AutoSave._WriteLuaValue(file, nil, k, indent)
-                AutoSave._WriteLuaValue(file, nil, v, indent)
+                AutoSave._WriteLuaValue(file, nil, k, 0)
+                AutoSave._WriteLuaValue(file, nil, v, 0)
             end
         end
     elseif type(value) == "userdata" then
@@ -763,7 +761,7 @@ function AutoSave._WriteSaveFile(file, desc)
     file:Writeln("false")
     file:Writeln("msn_filename = " .. missionFilename)
     file:Writeln("seq_count [1] =")
-    file:Writeln(tostring(math.max(496, globalID + #taskObjects + #aiPaths)))
+    file:Writeln(tostring(math.max(globalID + #taskObjects + #aiPaths, 504)))
     file:Writeln("missionSave [1] =")
     file:Writeln("false")
     file:Writeln("runType [1] =")
@@ -825,7 +823,22 @@ function AutoSave._WriteSaveFile(file, desc)
 
         -- Logic for Craft vs Building fields
         local isCraft = IsCraft(h) or IsPerson(h)
-        if isCraft then
+        local isBuilding = not isCraft
+        local odf = string.lower(GetOdf(h) or "")
+        local isFactory = odf:find("svmuf") or odf:find("avmuf")
+
+        -- Cache ODF for factory to read deploy times
+        local factoryODF = nil
+        if isFactory then
+            factoryODF = OpenODF(odf)
+        end
+
+        if isFactory then
+            local timeDeploy = factoryODF and GetODFFloat(factoryODF, nil, "timeDeploy", 5) or 5
+            local timeUndeploy = factoryODF and GetODFFloat(factoryODF, nil, "timeUndeploy", 5) or 5
+            file:Writeln("timeDeploy [1] ="); file:Writeln(NumToStr(timeDeploy))
+            file:Writeln("timeUndeploy [1] ="); file:Writeln(NumToStr(timeUndeploy))
+        elseif isCraft then
             file:Writeln("abandoned [1] =")
             file:Writeln("0")
             file:Writeln("cloakState = 00000000")
@@ -839,8 +852,18 @@ function AutoSave._WriteSaveFile(file, desc)
             file:Writeln("false")
         end
 
-        file:Writeln("illumination [1] =")
-        file:Writeln("1")
+        -- illumination: factories should be 0, scrap should be 0, craft should be 1
+        local isScrap = odf:find("sscr")
+        if isFactory then
+            file:Writeln("illumination [1] =")
+            file:Writeln("0")
+        elseif isScrap then
+            file:Writeln("illumination [1] =")
+            file:Writeln("0")
+        else
+            file:Writeln("illumination [1] =")
+            file:Writeln("1")
+        end
 
         -- FIX #2: Second pos block (physics centre-of-mass position)
         -- Slightly offset from the visual transform position; we use the
@@ -851,17 +874,18 @@ function AutoSave._WriteSaveFile(file, desc)
         file:Writeln("  z [1] ="); file:Writeln(NumToStr(t.posit_z))
 
         -- Euler physics block
-        local m     = (exu and exu.GetMass and exu.GetMass(h)) or 1500
-        local v     = GetVelocity(h) or SetVector(0, 0, 0)
-        local vm    = math.sqrt(v.x ^ 2 + v.y ^ 2 + v.z ^ 2)
-        local omega = GetOmega(h) or SetVector(0, 0, 0)
+        local m         = (exu and exu.GetMass and exu.GetMass(h)) or 1500
+        local mass_inv  = (m > 0 and (1 / m) or 1e+030)
+        local v         = GetVelocity(h) or SetVector(0, 0, 0)
+        local vm        = math.sqrt(v.x ^ 2 + v.y ^ 2 + v.z ^ 2)
+        local v_mag_inv = (vm > 0 and (1 / vm) or 1e+030)
+        local omega     = GetOmega(h) or SetVector(0, 0, 0)
         file:Writeln("euler =")
         file:Writeln(" mass [1] ="); file:Writeln(NumToStr(m))
-        file:Writeln(" mass_inv [1] ="); file:Writeln(NumToStr(m > 0 and 1 / m or 0))
+        file:Writeln(" mass_inv [1] ="); file:Writeln(NumToStr(mass_inv))
         file:Writeln(" v_mag [1] ="); file:Writeln(NumToStr(vm))
-        file:Writeln(" v_mag_inv [1] ="); file:Writeln(vm > 0 and NumToStr(1 / vm) or "1e+030")
+        file:Writeln(" v_mag_inv [1] ="); file:Writeln(NumToStr(v_mag_inv))
         file:Writeln(" I [1] ="); file:Writeln("1")
-        -- FIX #3: k_i should be the mass, not "1"
         file:Writeln(" k_i [1] ="); file:Writeln(NumToStr(m))
         file:Writeln(" v [1] =")
         file:Writeln("  x [1] ="); file:Writeln(NumToStr(v.x))
@@ -875,6 +899,20 @@ function AutoSave._WriteSaveFile(file, desc)
         file:Writeln("  x [1] ="); file:Writeln("0")
         file:Writeln("  y [1] ="); file:Writeln("0")
         file:Writeln("  z [1] ="); file:Writeln("0")
+
+        -- Factory-specific fields
+        if isFactory then
+            file:Writeln("state = 02000000")
+            -- delayTimer: time since factory started (random small value)
+            file:Writeln("delayTimer [1] ="); file:Writeln(NumToStr(math.random() * 0.1))
+            -- nextRepair: when next repair happens (future time)
+            file:Writeln("nextRepair [1] ="); file:Writeln(NumToStr(currentTime + 999))
+            -- buildClass: get from ODF's classToBuild
+            local classToBuild = factoryODF and GetODFString(factoryODF, nil, "classToBuild", "") or ""
+            file:Writeln("buildClass [1] ="); file:Writeln(classToBuild or "")
+            -- buildDoneTime: if building something, when it completes
+            file:Writeln("buildDoneTime [1] ="); file:Writeln(NumToStr(currentTime + 999))
+        end
 
         file:Writeln("seqNo [1] =")
         file:Writeln(tostring(seqno))
@@ -923,7 +961,7 @@ function AutoSave._WriteSaveFile(file, desc)
             file:Writeln("")
         end
 
-        file:Writeln("undefptr = " .. ToHex(processMap[h] or 0))
+        file:Writeln("undefptr = " .. ToHex(idMap[h] or 0))
         file:Writeln("isCargo [1] =")
         file:Writeln("false")
         file:Writeln("independence [1] =")
@@ -1054,7 +1092,7 @@ function AutoSave._WriteSaveFile(file, desc)
             m.name == "SoldierEnemy" or m.name == "SoldierFriend" then
             if m.name == "ScoutEnemy" or m.name == "ScoutFriend" or m.name == "SoldierEnemy" or m.name == "SoldierFriend" then
                 file:Writeln("isFriend [1] ="); file:Writeln((m.name == "ScoutFriend" or m.name == "SoldierFriend") and
-                "true" or "false")
+                    "true" or "false")
                 file:Writeln("engageRange [1] ="); file:Writeln("40000")
                 file:Writeln("followRange [1] ="); file:Writeln("15625")
                 file:Writeln("weaponRange [1] ="); file:Writeln("40000")
