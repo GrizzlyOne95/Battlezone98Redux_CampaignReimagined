@@ -23,6 +23,11 @@ Environment = {
     -- Cycle config
     CycleDuration        = 900, -- seconds (15 min)
 
+    -- EXU sunlight hooks are currently unstable in BZR 2.2.301 and can crash
+    -- during phase transitions, so keep dynamic fog/gameplay and disable the
+    -- sun mutation path unless explicitly re-enabled after EXU is fixed.
+    EnableSunLighting    = true,
+
     -- Gameplay modifiers (night)
     RadarRangeNerf       = 0.7, -- 30% range reduction
     RadarPeriodNerf      = 2.0, -- 100% slower scan
@@ -340,34 +345,36 @@ function Environment.Update(timestep)
     end
 
     -- ── Apply atmosphere (dirty-check to avoid redundant API calls) ────────
-    local lastA = Environment.LastAmbient
-    if not lastA
-        or targetAmbient.r ~= lastA.r
-        or targetAmbient.g ~= lastA.g
-        or targetAmbient.b ~= lastA.b
-    then
-        exu.SetSunAmbient(targetAmbient.r, targetAmbient.g, targetAmbient.b)
-        Environment.LastAmbient = { r = targetAmbient.r, g = targetAmbient.g, b = targetAmbient.b }
-    end
+    if Environment.EnableSunLighting then
+        local lastA = Environment.LastAmbient
+        if not lastA
+            or targetAmbient.r ~= lastA.r
+            or targetAmbient.g ~= lastA.g
+            or targetAmbient.b ~= lastA.b
+        then
+            exu.SetSunAmbient(targetAmbient.r, targetAmbient.g, targetAmbient.b)
+            Environment.LastAmbient = { r = targetAmbient.r, g = targetAmbient.g, b = targetAmbient.b }
+        end
 
-    local lastD = Environment.LastDiffuse
-    if not lastD
-        or targetDiffuse.r ~= lastD.r
-        or targetDiffuse.g ~= lastD.g
-        or targetDiffuse.b ~= lastD.b
-    then
-        exu.SetSunDiffuse(targetDiffuse.r, targetDiffuse.g, targetDiffuse.b)
-        Environment.LastDiffuse = { r = targetDiffuse.r, g = targetDiffuse.g, b = targetDiffuse.b }
-    end
+        local lastD = Environment.LastDiffuse
+        if not lastD
+            or targetDiffuse.r ~= lastD.r
+            or targetDiffuse.g ~= lastD.g
+            or targetDiffuse.b ~= lastD.b
+        then
+            exu.SetSunDiffuse(targetDiffuse.r, targetDiffuse.g, targetDiffuse.b)
+            Environment.LastDiffuse = { r = targetDiffuse.r, g = targetDiffuse.g, b = targetDiffuse.b }
+        end
 
-    local lastS = Environment.LastSpecular
-    if not lastS
-        or targetSpecular.r ~= lastS.r
-        or targetSpecular.g ~= lastS.g
-        or targetSpecular.b ~= lastS.b
-    then
-        exu.SetSunSpecular(targetSpecular.r, targetSpecular.g, targetSpecular.b)
-        Environment.LastSpecular = { r = targetSpecular.r, g = targetSpecular.g, b = targetSpecular.b }
+        local lastS = Environment.LastSpecular
+        if not lastS
+            or targetSpecular.r ~= lastS.r
+            or targetSpecular.g ~= lastS.g
+            or targetSpecular.b ~= lastS.b
+        then
+            exu.SetSunSpecular(targetSpecular.r, targetSpecular.g, targetSpecular.b)
+            Environment.LastSpecular = { r = targetSpecular.r, g = targetSpecular.g, b = targetSpecular.b }
+        end
     end
 
     local lastF = Environment.LastFog

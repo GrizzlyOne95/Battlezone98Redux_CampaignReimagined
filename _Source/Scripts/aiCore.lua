@@ -5183,14 +5183,25 @@ end
 function aiCore.Team:UpdateStickToPlayer()
     if self.teamNum ~= 1 then return end
 
+    local now = GetTime()
+    self.stickAssistState = self.stickAssistState or {}
     if not self.stickToPlayerTimer then self.stickToPlayerTimer = 0.0 end
-    if GetTime() < self.stickToPlayerTimer then return end
-    self.stickToPlayerTimer = GetTime() + 1.0
+    if now < self.stickToPlayerTimer then return end
+    self.stickToPlayerTimer = now + 0.15
 
     local player = GetPlayerHandle()
     if not IsValid(player) then return end
 
     local pPos = GetPosition(player)
+    local pVel = GetVelocity(player)
+    local pFront = GetFront(player)
+    if not pFront then pFront = Normalize(pVel) end
+    pFront = Normalize(SetVector(pFront.x, 0, pFront.z))
+    if pFront.x == 0 and pFront.y == 0 and pFront.z == 0 then
+        pFront = SetVector(0, 0, 1)
+    end
+
+    local nextState = {}
     aiCore.RemoveDead(self.combatUnits)
     for _, u in ipairs(self.combatUnits) do
         if IsValid(u) and IsCraft(u) then
@@ -5200,15 +5211,21 @@ function aiCore.Team:UpdateStickToPlayer()
             local isWingman = (cls == "wingman")
             local isPlayerAnchorOrder = target == player and
                 (cmd == AiCommand.FOLLOW or cmd == AiCommand.FORMATION or (isWingman and cmd == AiCommand.DEFEND))
+            local state = self.stickAssistState[u] or {
+                lastDist = 999999.0,
+                stuckTime = 0.0,
+                nextSnapTime = 0.0
+            }
+            nextState[u] = state
 
             -- Wingmen always get this QoL assist on player anchor orders.
             -- Other units keep the old behavior, gated behind stickToPlayer.
             if isPlayerAnchorOrder and (isWingman or self.Config.stickToPlayer) then
                 local uPos = GetPosition(u)
                 local dist = GetDistance(u, player)
+                local assistRange = isWingman and 90.0 or 150.0
 
-                -- Assistance threshold (150M)
-                if dist > 150 then
+                if dist > assistRange then
                     local shouldAssist = true
 
                     -- Don't interfere while the unit is actively fighting nearby threats.
@@ -5218,39 +5235,59 @@ function aiCore.Team:UpdateStickToPlayer()
                     end
 
                     if shouldAssist then
-                        -- 1. Wake up pathing if severely lagging
-                        if dist > 350 then
-                            if GetCurrentCommand(u) ~= cmd or GetCurrentWho(u) ~= player then
-                                aiCore.TrySetCommand(u, cmd, GetUncommandablePriority(), player, nil, nil, nil,
-                                    { minInterval = 1.2, overrideProtected = true })
-                            end
-                        end
+                        -- Pull toward a trailing anchor instead of the player's exact center.
+                        local backOff = math.min(55.0, (isWingman and 22.0 or 32.0) + dist * 0.08)
+                        local anchorPos = pPos - (pFront * backOff)
+                        anchorPos.y = GetTerrainHeight(anchorPos.x, anchorPos.z) + 3.0
 
-                        -- 2. Physical "Push" Assist (Velocity Vector Math)
-                        local dir = Normalize(pPos - uPos)
+                        local dir = Normalize(anchorPos - uPos)
                         local vel = GetVelocity(u)
+                        local lookNear = uPos + (dir * 10.0)
+                        local lookFar = uPos + (dir * 22.0)
+                        local climbNear = math.max(0.0, GetTerrainHeight(lookNear.x, lookNear.z) - uPos.y)
+                        local climbFar = math.max(0.0, GetTerrainHeight(lookFar.x, lookFar.z) - uPos.y)
+                        local playerClimb = math.max(0.0, pPos.y - uPos.y)
+                        dir.y = dir.y + (climbNear * 0.22) + (climbFar * 0.16) + (playerClimb * 0.05)
+                        dir = Normalize(dir)
 
-                        -- Strength scales with distance (max boost at 400m)
-                        local strength = math.min(1.0, (dist - 150) / 250) * 8.0
+                        local catchupSpeed = math.min(isWingman and 28.0 or 18.0,
+                            7.0 + math.max(0.0, dist - assistRange) * 0.08)
+                        local desiredVel = (pVel * 0.75) + (dir * catchupSpeed)
+                        local blend = isWingman and 0.45 or 0.30
+                        if dist > 240 then blend = blend + 0.15 end
 
-                        -- Vertical Terrain Assistance
-                        -- Look ahead on terrain to "lift" them over hills
-                        local lookAhead = uPos + (dir * 20.0)
-                        local hDiff = GetTerrainHeight(lookAhead.x, lookAhead.z) - uPos.y
-                        if hDiff > 2.0 then
-                            dir.y = dir.y + (hDiff * 0.5) -- Add lift if going uphill
+                        SetVelocity(u, (vel * (1.0 - blend)) + (desiredVel * blend))
+
+                        local progress = (state.lastDist or dist) - dist
+                        if progress < 1.5 and dist > (assistRange + 40.0) then
+                            state.stuckTime = (state.stuckTime or 0.0) + 0.15
+                        else
+                            state.stuckTime = 0.0
                         end
 
-                        SetVelocity(u, vel + (dir * strength))
+                        local verticalGap = math.abs(pPos.y - uPos.y)
+                        if now >= (state.nextSnapTime or 0.0) and
+                            (dist > 520.0 or (state.stuckTime > 1.2 and dist > 180.0 and verticalGap > 18.0)) then
+                            local snapPos = anchorPos - (dir * (isWingman and 10.0 or 16.0))
+                            snapPos.y = GetTerrainHeight(snapPos.x, snapPos.z) + 2.0
+                            SetPosition(u, snapPos)
+                            SetVelocity(u, desiredVel)
+                            state.stuckTime = 0.0
+                            state.nextSnapTime = now + 2.5
+                        end
 
                         if aiCore.Debug and math.random() < 0.01 then
-                            print("StickToPlayer Assist: Pushing " .. GetOdf(u) .. " (Dist: " .. math.floor(dist) .. ")")
+                            print("StickToPlayer Assist: Blending " .. GetOdf(u) .. " (Dist: " .. math.floor(dist) .. ")")
                         end
                     end
+                else
+                    state.stuckTime = 0.0
                 end
+                state.lastDist = dist
             end
         end
     end
+    self.stickAssistState = nextState
 end
 
 function aiCore.Team:UpdateResourceBoosting()

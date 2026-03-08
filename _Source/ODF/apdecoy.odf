@@ -1,0 +1,20 @@
+[GameObjectClass]
+baseName = "apcamr"
+classLabel = "dropoff"
+scrapCost = 1
+scrapValue = 0
+maxHealth = 100
+maxAmmo = 0
+lifeTime = 10
+heatSignature = 1
+imageSignature = 1
+radarSignature = 0.2
+unitName = "Decoy Nav"
+aiName = "PowerUpProcess"
+aiName2 = "PowerUpProcess"
+
+[CameraPodClass]
+omegaSpin = 1.0
+rangeScan = 200.0
+periodScan = 5.0
+

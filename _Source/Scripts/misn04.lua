@@ -15,6 +15,193 @@ local Environment = require("Environment")
 local PhysicsImpact = require("PhysicsImpact")
 --local autosave = require("AutoSave")
 
+local M
+
+local function NewMissionState()
+    return {
+        missionstart = false,
+        warn = 0,
+        safety = 0,
+        retreat = false,
+        surveysent = false,
+        reconsent = false,
+        firstwave = false,
+        secondwave = false,
+        thirdwave = false,
+        fourthwave = false,
+        fifthwave = false,
+        discrelic = false,
+        ccatugsent = false,
+        attackccabase = false,
+        ccabasedestroyed = false,
+        fifthwavedestroyed = false,
+        missionend = false,
+        wavenumber = 1,
+        missionwon = false,
+        wave1dead = false,
+        wave2dead = false,
+        wave3dead = false,
+        wave4dead = false,
+        wave5dead = false,
+        wave1arrive = false,
+        wave2arrive = false,
+        wave3arrive = false,
+        wave4arrive = false,
+        wave5arrive = false,
+        possiblewin = false,
+        loopbreak = false,
+        basesecure = false,
+        newobjective = false,
+        relicsecure = false,
+        discoverrelic = false,
+        missionfail2 = false,
+        aud10 = nil,
+        aud11 = nil,
+        aud12 = nil,
+        aud13 = nil,
+        aud14 = nil,
+        ccahasrelic = false,
+        relicseen = false,
+        obset = false,
+        wave1 = 0,
+        wave2 = 99999.0,
+        wave3 = 99999.0,
+        wave4 = 99999.0,
+        wave5 = 99999.0,
+        endcindone = 999999.0,
+        startendcin = 999999.0,
+        ccatug = 999999999999.0,
+        notfound = 999999999999999.0,
+        build2 = false,
+        build3 = false,
+        build4 = false,
+        build5 = false,
+        halfway = false,
+        svrec = nil,
+        pu1 = nil,
+        pu2 = nil,
+        pu3 = nil,
+        pu4 = nil,
+        pu5 = nil,
+        pu6 = nil,
+        pu7 = nil,
+        pu8 = nil,
+        navbeacon = nil,
+        cheat1 = nil,
+        cheat2 = nil,
+        cheat3 = nil,
+        cheat4 = nil,
+        cheat5 = nil,
+        cheat6 = nil,
+        cheat7 = nil,
+        cheat8 = nil,
+        cheat9 = nil,
+        cheat10 = nil,
+        tug = nil,
+        svtug = nil,
+        tuge1 = nil,
+        tuge2 = nil,
+        player = nil,
+        surv1 = nil,
+        surv2 = nil,
+        surv3 = nil,
+        surv4 = nil,
+        cam1 = nil,
+        cam2 = nil,
+        cam3 = nil,
+        basecam = nil,
+        reliccam = nil,
+        avrec = nil,
+        w1u1 = nil,
+        w1u2 = nil,
+        w1u3 = nil,
+        w1u4 = nil,
+        w2u1 = nil,
+        w2u2 = nil,
+        w2u3 = nil,
+        w3u1 = nil,
+        w3u2 = nil,
+        w3u3 = nil,
+        w3u4 = nil,
+        w4u1 = nil,
+        w4u2 = nil,
+        w4u3 = nil,
+        w4u4 = nil,
+        w4u5 = nil,
+        w5u1 = nil,
+        w5u2 = nil,
+        w5u3 = nil,
+        w5u4 = nil,
+        w5u5 = nil,
+        w5u6 = nil,
+        spawn1 = nil,
+        spawn2 = nil,
+        spawn3 = nil,
+        relic = nil,
+        calipso = nil,
+        turret1 = nil,
+        turret2 = nil,
+        turret3 = nil,
+        turret4 = nil,
+        aud1 = nil,
+        aud2 = nil,
+        aud3 = nil,
+        aud4 = nil,
+        aud20 = nil,
+        aud21 = nil,
+        aud22 = nil,
+        aud23 = nil,
+        doneaud20 = false,
+        doneaud21 = false,
+        doneaud22 = false,
+        doneaud23 = false,
+        done = false,
+        secureloopbreak = false,
+        found = false,
+        endcinfinish = false,
+        loopbreak2 = false,
+        investigate = 999999999.0,
+        investigator = 0,
+        tur1 = 999999999.0,
+        tur2 = 999999999.0,
+        tur3 = 999999999.0,
+        tur4 = 999999999.0,
+        tur1sent = false,
+        tur2sent = false,
+        tur3sent = false,
+        tur4sent = false,
+        cin1done = false,
+        missionfail = false,
+        chewedout = false,
+        relicmoved = false,
+        height = 500,
+        cintime1 = 9999999999.0,
+        fetch = 0,
+        reconcca = 0,
+        relicstartpos = 0,
+        cheater = false,
+        cin_started = false,
+        difficulty = 2
+    }
+end
+
+local function RefreshMissionHandles()
+    M.cam1 = GetHandle("apcamr352_camerapod")
+    M.cam2 = GetHandle("apcamr350_camerapod")
+    M.cam3 = GetHandle("apcamr351_camerapod")
+    M.basecam = GetHandle("apcamr-1_camerapod")
+    M.svrec = GetHandle("svrecy-1_recycler")
+    M.avrec = GetHandle("avrecy-1_recycler")
+
+    if IsValid(M.avrec) then
+        SetObjectiveName(M.avrec, "Recycler Montana")
+    end
+    if IsValid(M.cam1) then SetObjectiveName(M.cam1, "SW Geyser") end
+    if IsValid(M.cam2) then SetObjectiveName(M.cam2, "NW Geyser") end
+    if IsValid(M.cam3) then SetObjectiveName(M.cam3, "NE Geyser") end
+    if IsValid(M.basecam) then SetObjectiveName(M.basecam, "CCA Base") end
+end
+
 -- Helper for AI
 local function SetupAI()
     DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
@@ -42,6 +229,7 @@ local function SetupAI()
         cca.Config.manageFactories = true
         cca.Config.manageConstructor = true
         cca.Config.resourceBoost = true
+        cca.Config.allowProducerRelocation = false
         cca.Config.minScavengers = 4
         cca.Config.requireConstructorFirst = true
 
@@ -58,176 +246,7 @@ local function SetupAI()
 end
 
 -- Variables
-local M = {
-    missionstart = false,
-    warn = 0,
-    safety = 0,
-    retreat = false,
-    surveysent = false,
-    reconsent = false,
-    firstwave = false,
-    secondwave = false,
-    thirdwave = false,
-    fourthwave = false,
-    fifthwave = false,
-    discrelic = false,
-    ccatugsent = false,
-    attackccabase = false,
-    ccabasedestroyed = false,
-    fifthwavedestroyed = false,
-    missionend = false,
-    wavenumber = 1,
-    missionwon = false,
-    wave1dead = false,
-    wave2dead = false,
-    wave3dead = false,
-    wave4dead = false,
-    wave5dead = false,
-    wave1arrive = false,
-    wave2arrive = false,
-    wave3arrive = false,
-    wave4arrive = false,
-    wave5arrive = false,
-    possiblewin = false,
-    loopbreak = false,
-    basesecure = false,
-    newobjective = false,
-    relicsecure = false,
-    discoverrelic = false,
-    missionfail2 = false,
-    aud10 = nil,
-    aud11 = nil,
-    aud12 = nil,
-    aud13 = nil,
-    aud14 = nil,
-    ccahasrelic = false,
-    relicseen = false,
-    obset = false,
-    wave1 = 0,
-    wave2 = 99999.0,
-    wave3 = 99999.0,
-    wave4 = 99999.0,
-    wave5 = 99999.0,
-    endcindone = 999999.0,
-    startendcin = 999999.0,
-    ccatug = 999999999999.0,
-    notfound = 999999999999999.0,
-    build2 = false,
-    build3 = false,
-    build4 = false,
-    build5 = false,
-    halfway = false,
-
-    -- Handles (init to nil)
-    svrec = nil,
-    pu1 = nil,
-    pu2 = nil,
-    pu3 = nil,
-    pu4 = nil,
-    pu5 = nil,
-    pu6 = nil,
-    pu7 = nil,
-    pu8 = nil,
-    navbeacon = nil,
-    cheat1 = nil,
-    cheat2 = nil,
-    cheat3 = nil,
-    cheat4 = nil,
-    cheat5 = nil,
-    cheat6 = nil,
-    cheat7 = nil,
-    cheat8 = nil,
-    cheat9 = nil,
-    cheat10 = nil,
-    tug = nil,
-    svtug = nil,
-    tuge1 = nil,
-    tuge2 = nil,
-    player = nil,
-    surv1 = nil,
-    surv2 = nil,
-    surv3 = nil,
-    surv4 = nil,
-    cam1 = nil,
-    cam2 = nil,
-    cam3 = nil,
-    basecam = nil,
-    reliccam = nil,
-    avrec = nil,
-    w1u1 = nil,
-    w1u2 = nil,
-    w1u3 = nil, -- Hard+ extra
-    w1u4 = nil, -- Very Hard extra
-    w2u1 = nil,
-    w2u2 = nil,
-    w2u3 = nil,
-    w3u1 = nil,
-    w3u2 = nil,
-    w3u3 = nil,
-    w3u4 = nil,
-    w4u1 = nil,
-    w4u2 = nil,
-    w4u3 = nil,
-    w4u4 = nil,
-    w4u5 = nil,
-    w5u1 = nil,
-    w5u2 = nil,
-    w5u3 = nil,
-    w5u4 = nil,
-    w5u5 = nil,
-    w5u6 = nil,
-    spawn1 = nil,
-    spawn2 = nil,
-    spawn3 = nil,
-    relic = nil,
-    calipso = nil,
-    turret1 = nil,
-    turret2 = nil,
-    turret3 = nil,
-    turret4 = nil,
-
-    aud1 = nil,
-    aud2 = nil,
-    aud3 = nil,
-    aud4 = nil,
-    aud20 = nil,
-    aud21 = nil,
-    aud22 = nil,
-    aud23 = nil,
-
-    doneaud20 = false,
-    doneaud21 = false,
-    doneaud22 = false,
-    doneaud23 = false,
-    done = false,
-    secureloopbreak = false,
-    found = false,
-    endcinfinish = false,
-    loopbreak2 = false,
-    investigate = 999999999.0,
-    investigator = 0,
-    tur1 = 999999999.0,
-    tur2 = 999999999.0,
-    tur3 = 999999999.0,
-    tur4 = 999999999.0,
-    tur1sent = false,
-    tur2sent = false,
-    tur3sent = false,
-    tur4sent = false,
-    cin1done = false,
-    missionfail = false,
-    chewedout = false,
-    relicmoved = false,
-    height = 500,
-    cintime1 = 9999999999.0,
-    fetch = 0,
-    reconcca = 0,
-    relicstartpos = 0,
-    cheater = false,
-
-    cin_started = false,
-    difficulty = 2 -- Default Medium
-}
+M = NewMissionState()
 
 -- Helper for Difficulty-Scaled Tug Arrival
 local function GetTugDelay()
@@ -261,6 +280,7 @@ function ApplyQOL()
 end
 
 function Start()
+    M = NewMissionState()
     M.TPS = 20 -- Default TPS value
 
     -- One-time initialization logic
@@ -352,13 +372,7 @@ function Update()
         M.wave1 = GetTime() + DiffUtils.ScaleTimer(30.0) + math.random(-5, 10)
         M.fetch = GetTime() + DiffUtils.ScaleTimer(240.0)
         subtit.Play("misn0401.wav")
-        M.cam1 = GetHandle("apcamr352_camerapod")
-        M.cam2 = GetHandle("apcamr350_camerapod")
-        M.cam3 = GetHandle("apcamr351_camerapod")
-        M.basecam = GetHandle("apcamr-1_camerapod")
-        M.svrec = GetHandle("svrecy-1_recycler")
-        M.avrec = GetHandle("avrecy-1_recycler")
-        SetObjectiveName(M.avrec, "Recycler Montana")
+        RefreshMissionHandles()
         M.relic = BuildObject("obdata", 0, "relicstart1")
         M.pu1 = GetHandle("svfigh-1_wingman")
         -- pu2 commented out in C++
@@ -368,18 +382,13 @@ function Update()
         -- pu7 commented out
         M.pu8 = GetHandle("svfigh278_wingman")
 
-        SetObjectiveName(M.cam1, "SW Geyser")
-        SetObjectiveName(M.cam2, "NW Geyser")
-        SetObjectiveName(M.cam3, "NE Geyser")
-        SetObjectiveName(M.basecam, "CCA Base")
-
         Patrol(M.pu1, "innerpatrol")
         Patrol(M.pu3, "innerpatrol")
         Patrol(M.pu6, "outerpatrol")
         Patrol(M.pu8, "outerpatrol")
 
         AddObjective("misn0401.otf", "white")
-        --AddObjective("misn0402.otf", "white")
+        AddObjective("misn0400.otf", "white")
 
         M.missionstart = true
     end
@@ -634,7 +643,8 @@ function Update()
         if not M.discoverrelic and IsAlive(M.player) then
             if (GetDistance(M.player, M.relic) < 150.0) or (M.tug and IsAlive(M.tug) and GetDistance(M.tug, M.relic) < 150.0) then
                 M.discoverrelic = true
-                M.aud1 = subtit.Play("misn0403.wav")
+                M.aud1 = subtit.Play("misn0408.wav")
+                M.aud2 = subtit.Play("misn0409.wav")
                 SetObjectiveName(M.relic, "Alien Relic")
                 SetObjectiveOn(M.relic)
                 M.investigate = GetTime() + 90.0
@@ -643,7 +653,7 @@ function Update()
 
         -- Audio completion for relic discovery
         if M.discoverrelic and not M.basesecure then
-            if M.aud1 and IsAudioMessageDone(M.aud1) then
+            if M.aud1 and M.aud2 and IsAudioMessageDone(M.aud1) and IsAudioMessageDone(M.aud2) then
                 SetObjectiveName(M.relic, "Alien Relic")
                 SetObjectiveOn(M.relic)
                 M.basesecure = true
@@ -655,7 +665,7 @@ function Update()
             if M.tug and IsAlive(M.tug) and HasCargo(M.tug) then
                 M.relicsecure = true
                 M.investigate = 999999999.0
-                M.aud2 = subtit.Play("misn0404.wav")
+                subtit.Play("misn0419.wav")
                 SetObjectiveOff(M.relic)
                 if M.w1u1 and IsAlive(M.w1u1) then Attack(M.w1u1, M.tug, 1) end
                 if M.w1u2 and IsAlive(M.w1u2) then Attack(M.w1u2, M.tug, 1) end
@@ -666,7 +676,6 @@ function Update()
         if M.relicsecure and not M.retreat then
             if GetDistance(M.tug, "relicstart1") > 40.0 then
                 M.retreat = true
-                M.aud3 = subtit.Play("misn0405.wav")
             end
         end
 
@@ -675,7 +684,7 @@ function Update()
             if M.w3u1 and IsAlive(M.w3u1) then
                 if HasCargo(M.w3u1) then
                     M.ccahasrelic = true
-                    M.aud4 = subtit.Play("misn0406.wav")
+                    M.aud4 = subtit.Play("misn0427.wav")
                     Goto(M.w3u1, "spawn3", 1)
                     M.reliccam = M.w3u1
                     SetObjectiveOn(M.w3u1)
@@ -711,7 +720,7 @@ function Update()
         if not M.missionfail2 and not M.relicsecure and not M.ccahasrelic then
             if GetTime() > M.investigate then
                 M.missionfail2 = true
-                M.aud10 = subtit.Play("misn0407.wav")
+                M.aud10 = subtit.Play("misn0694.wav")
             end
         end
 
@@ -726,7 +735,7 @@ function Update()
             M.z = CountUnitsNearObject(M.svrec, 1000.0, 1, "avtank")
             if M.z > 2 then
                 M.attackccabase = true
-                M.aud11 = subtit.Play("misn0408.wav")
+                M.aud11 = subtit.Play("misn0423.wav")
             end
         end
 
@@ -735,7 +744,6 @@ function Update()
             if IsAlive(v) then
                 if GetTeamNum(v) == 1 and GetDistance(v, "cca_base") < 600.0 then
                     M.ccabasedestroyed = true
-                    M.aud11 = subtit.Play("misn0409.wav")
                 end
             end
         end
@@ -764,7 +772,7 @@ function Update()
                 M.missionwon = true
                 M.cin_started = false
                 M.endcinfinish = false
-                M.aud12 = subtit.Play("misn0426.wav")
+                M.aud12 = subtit.Play("misn0425.wav")
                 M.endcindone = GetTime() + 20.0
             end
         end
@@ -801,7 +809,8 @@ function Update()
         -- Recycler destroyed failure
         if not IsAlive(M.avrec) and not M.missionfail then
             M.missionfail = true
-            M.aud14 = subtit.Play("misn0412.wav")
+            subtit.Play("misn0421.wav")
+            M.aud14 = subtit.Play("misn0422.wav")
         end
 
         if M.missionfail then
@@ -820,5 +829,6 @@ function Load(data, aiData)
     if data then M = data end
     if aiData then aiCore.Load(aiData) end
     aiCore.Bootstrap()
+    RefreshMissionHandles()
     ApplyQOL()
 end
