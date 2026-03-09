@@ -6,9 +6,9 @@ There is a DLL injection method we've gotten working that does offer some additi
 
 BZFILE is a DLL injection I/O method. See bzfile.txt for documentation. 
 
-All code written for this project must keep in mind this is for Lua 5.1 only, with no external libraries available such as IO, OS, DEBUG, etc. 
+All code written for this project must keep in mind this is for Lua 5.1 only, with no external libraries available such as IO, OS, DEBUG, etc unless specified with custom DLL's.
 
-For spawning more than one object, it works well to use GetPositionNear for the same point, then objects don't spawn clustered on top of each other. 
+For spawning more than one object, it works well to use GetPositionNear (instead of GetPosition) for the same point, then objects don't spawn clustered on top of each other. 
 
 Remember to use "end" for terminating functions, not "}"
 

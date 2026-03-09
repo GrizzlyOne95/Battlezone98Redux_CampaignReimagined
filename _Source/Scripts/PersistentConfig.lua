@@ -7,8 +7,10 @@ local autosave = require("AutoSave")
 
 local PersistentConfig = {}
 local WEAPON_STATS_CHANNEL = 1
+local PDA_FEEDBACK_CHANNEL = 2
 PersistentConfig.Debug = false
 local InputState
+PersistentConfig.PlayerChargeWeaponState = PersistentConfig.PlayerChargeWeaponState or nil
 
 -- Internal Feedback Queue
 PersistentConfig.FeedbackQueue = {}
@@ -31,6 +33,9 @@ PersistentConfig.Settings = {
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
     RetroLighting = false,          -- Disables PBR and custom shader lighting equations
     WeaponStatsHud = true,          -- Persistent weapon stats panel
+    SubtitleOpacity = 0.50,         -- Main subtitle opacity
+    SubtitleTextSizePreset = 2,     -- 1=Small 2=Medium 3=Large 4=Huge
+    PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
     PdaTextSizePreset = 2,          -- 1=Small 2=Medium 3=Large 4=Huge
     PdaWindowSizePreset = 2,        -- 1=Narrow 2=Normal 3=Wide 4=Ultra
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
@@ -87,7 +92,7 @@ local function Log(msg)
 end
 
 -- On-Screen Feedback Helper
-local function ShowFeedback(msg, r, g, b, duration, bypass)
+local function ShowFeedback(msg, r, g, b, duration, bypass, target)
     -- Push to queue instead of displaying immediately
     table.insert(PersistentConfig.FeedbackQueue, {
         msg = msg,
@@ -95,7 +100,8 @@ local function ShowFeedback(msg, r, g, b, duration, bypass)
         g = g or 0.8,
         b = b or 1.0,
         duration = duration or 2.0,
-        bypass = (bypass == nil) and true or bypass -- Default to true for responsiveness
+        bypass = (bypass == nil) and true or bypass, -- Default to true for responsiveness
+        target = target or "subtitle",
     })
     Log(msg)                                        -- Always log to console
 end
@@ -132,6 +138,29 @@ local function GetPdaColorPreset()
     return PdaColorPresets[ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)]
 end
 
+local function GetSubtitleTextSizePreset()
+    return PdaTextSizePresets[ClampIndex(PersistentConfig.Settings.SubtitleTextSizePreset, 1, #PdaTextSizePresets, 2)]
+end
+
+local function ClampUnitInterval(value, fallback)
+    local n = tonumber(value)
+    if not n then return fallback end
+    if n < 0.0 then return 0.0 end
+    if n > 1.0 then return 1.0 end
+    return n
+end
+
+local function AdjustOpacity(value, delta)
+    local step = 0.05
+    local current = ClampUnitInterval(value, 1.0)
+    local direction = (delta or 0) < 0 and -1 or 1
+    return ClampUnitInterval(math.floor((current / step) + 0.5 + direction) * step, current)
+end
+
+local function FormatOpacity(value)
+    return string.format("%d%%", math.floor((ClampUnitInterval(value, 1.0) * 100.0) + 0.5))
+end
+
 local function BuildPdaHeader(activePage)
     local labels = {
         [PdaPages.STATS] = "STATS",
@@ -151,49 +180,85 @@ local function BuildPdaHeader(activePage)
     return table.concat(parts, "  ")
 end
 
+local function GetPdaLayoutMetrics()
+    local width, height = 1920, 1080
+    local uiScale = 2
+    local textPreset = GetPdaTextSizePreset()
+    local windowPreset = GetPdaWindowSizePreset()
+
+    if exu and exu.GetScreenResolution then
+        local ok, screenW, screenH = pcall(exu.GetScreenResolution)
+        if ok and type(screenW) == "number" and screenW > 0 and type(screenH) == "number" and screenH > 0 then
+            width, height = screenW, screenH
+        end
+    elseif exu and exu.GetGameResolution then
+        local ok, gameW, gameH = pcall(exu.GetGameResolution)
+        if ok and type(gameW) == "number" and gameW > 0 and type(gameH) == "number" and gameH > 0 then
+            width, height = gameW, gameH
+        end
+    end
+    if exu and exu.GetUIScaling then
+        local ok, value = pcall(exu.GetUIScaling)
+        if ok and type(value) == "number" and value > 0 then
+            uiScale = value
+        end
+    end
+
+    local function Clamp(value, minimum, maximum)
+        if value < minimum then return minimum end
+        if value > maximum then return maximum end
+        return value
+    end
+
+    local aspect = width / math.max(height, 1)
+    local aspectScale = Clamp((16.0 / 9.0) / aspect, 0.80, 1.35)
+    local uiScaleFactor = Clamp((uiScale / 2.0) ^ 0.45, 0.85, 1.45)
+    local textScale = Clamp(0.30 * aspectScale * uiScaleFactor * textPreset.scale, 0.22, 0.52)
+    local wrapWidth = Clamp(0.31 * Clamp(1.0 / aspectScale, 0.9, 1.2) * uiScaleFactor * windowPreset.width, 0.24, 0.56)
+    local panelX = Clamp(0.02, 0.0, math.max(0.0, 1.0 - wrapWidth))
+
+    return {
+        textScale = textScale,
+        wrapWidth = wrapWidth,
+        panelX = panelX,
+        paddingX = 6.0 * textPreset.scale,
+        paddingY = 5.0 * textPreset.scale,
+        opacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.0),
+        feedbackTextScale = Clamp(textScale * 0.86, 0.20, 0.42),
+        feedbackY = 0.90,
+    }
+end
+
+local function ShowPdaFeedback(msg, r, g, b, duration)
+    if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
+        local colorPreset = GetPdaColorPreset()
+        local layout = GetPdaLayoutMetrics()
+        subtitles.set_channel_layout(PDA_FEEDBACK_CHANNEL, layout.panelX, layout.feedbackY, 0.0, 1.0, layout.feedbackTextScale,
+            layout.wrapWidth, layout.paddingX, layout.paddingY, layout.opacity)
+        subtitles.clear_queue(PDA_FEEDBACK_CHANNEL)
+        if subtitles.clear_current then
+            subtitles.clear_current(PDA_FEEDBACK_CHANNEL)
+        end
+        subtitles.submit_to(PDA_FEEDBACK_CHANNEL, msg, duration or 2.5, r or colorPreset.r, g or colorPreset.g, b or colorPreset.b)
+        return
+    end
+
+    if subtitles and subtitles.submit then
+        subtitles.clear_queue()
+        if subtitles.clear_current then subtitles.clear_current() end
+        subtitles.set_opacity(ClampUnitInterval(PersistentConfig.Settings.SubtitleOpacity, 0.5))
+        subtitles.submit(msg, duration or 2.5, r or 1.0, g or 1.0, b or 1.0)
+    end
+end
+
 local function ShowWeaponStats(msg, duration)
     if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
-        local width, height = 1920, 1080
-        local uiScale = 2
-        local textPreset = GetPdaTextSizePreset()
-        local windowPreset = GetPdaWindowSizePreset()
+        local layout = GetPdaLayoutMetrics()
         local colorPreset = GetPdaColorPreset()
-        if exu and exu.GetScreenResolution then
-            local ok, screenW, screenH = pcall(exu.GetScreenResolution)
-            if ok and type(screenW) == "number" and screenW > 0 and type(screenH) == "number" and screenH > 0 then
-                width, height = screenW, screenH
-            end
-        elseif exu and exu.GetGameResolution then
-            local ok, gameW, gameH = pcall(exu.GetGameResolution)
-            if ok and type(gameW) == "number" and gameW > 0 and type(gameH) == "number" and gameH > 0 then
-                width, height = gameW, gameH
-            end
-        end
-        if exu and exu.GetUIScaling then
-            local ok, value = pcall(exu.GetUIScaling)
-            if ok and type(value) == "number" and value > 0 then
-                uiScale = value
-            end
-        end
-
-        local function Clamp(value, minimum, maximum)
-            if value < minimum then return minimum end
-            if value > maximum then return maximum end
-            return value
-        end
-
-        local aspect = width / math.max(height, 1)
-        local aspectScale = Clamp((16.0 / 9.0) / aspect, 0.80, 1.35)
-        local uiScaleFactor = Clamp((uiScale / 2.0) ^ 0.45, 0.85, 1.45)
-        local textScale = Clamp(0.30 * aspectScale * uiScaleFactor * textPreset.scale, 0.22, 0.52)
-        local wrapWidth = Clamp(0.31 * Clamp(1.0 / aspectScale, 0.9, 1.2) * uiScaleFactor * windowPreset.width, 0.24, 0.56)
-        local panelX = Clamp(0.02, 0.0, math.max(0.0, 1.0 - wrapWidth))
-        local paddingX = 6.0 * textPreset.scale
-        local paddingY = 5.0 * textPreset.scale
 
         -- Anchor the panel on the left-middle of the screen with left alignment.
-        subtitles.set_channel_layout(WEAPON_STATS_CHANNEL, panelX, 0.50, 0.0, 0.5, textScale, wrapWidth, paddingX, paddingY,
-            1.0)
+        subtitles.set_channel_layout(WEAPON_STATS_CHANNEL, layout.panelX, 0.50, 0.0, 0.5, layout.textScale, layout.wrapWidth,
+            layout.paddingX, layout.paddingY, layout.opacity)
         subtitles.clear_queue(WEAPON_STATS_CHANNEL)
         if subtitles.clear_current then
             subtitles.clear_current(WEAPON_STATS_CHANNEL)
@@ -211,6 +276,15 @@ local function ClearWeaponStats()
     end
     if subtitles and subtitles.clear_current then
         subtitles.clear_current(WEAPON_STATS_CHANNEL)
+    end
+end
+
+local function ClearPdaFeedback()
+    if subtitles and subtitles.clear_queue then
+        subtitles.clear_queue(PDA_FEEDBACK_CHANNEL)
+    end
+    if subtitles and subtitles.clear_current then
+        subtitles.clear_current(PDA_FEEDBACK_CHANNEL)
     end
 end
 
@@ -360,6 +434,21 @@ local function CleanString(s)
     return string.gsub(tostring(s), "%z", "")
 end
 
+local function HasOdfNumber(value, found)
+    if type(found) == "boolean" then
+        return found and type(value) == "number" and value > 0
+    end
+    return type(value) == "number" and value > 0
+end
+
+local function HasOdfString(value, found)
+    local cleaned = CleanString(value)
+    if type(found) == "boolean" then
+        return found and cleaned ~= ""
+    end
+    return cleaned ~= ""
+end
+
 local function IsMaskBitSet(mask, slot)
     local div = 2 ^ slot
     return (math.floor(mask / div) % 2) >= 1
@@ -433,7 +522,7 @@ local function ProbeRangeFromOdf(odf)
     local best = nil
     for _, probe in ipairs(probes) do
         local value, found = GetODFFloat(odf, probe[1], probe[2], 0.0)
-        if found and value and value > 0 then
+        if HasOdfNumber(value, found) then
             if not best or value > best then best = value end
         end
     end
@@ -444,16 +533,16 @@ local function ProbeTravelRangeFromOdf(odf)
     if not odf or not GetODFFloat then return nil end
 
     local lifeSpan, lifeFound = GetODFFloat(odf, "OrdnanceClass", "lifeSpan", 0.0)
-    if not lifeFound or not lifeSpan or lifeSpan <= 0 then
+    if not HasOdfNumber(lifeSpan, lifeFound) then
         lifeSpan, lifeFound = GetODFFloat(odf, nil, "lifeSpan", 0.0)
     end
 
     local shotSpeed, speedFound = GetODFFloat(odf, "OrdnanceClass", "shotSpeed", 0.0)
-    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+    if not HasOdfNumber(shotSpeed, speedFound) then
         shotSpeed, speedFound = GetODFFloat(odf, nil, "shotSpeed", 0.0)
     end
 
-    if lifeFound and speedFound and lifeSpan and shotSpeed and lifeSpan > 0 and shotSpeed > 0 then
+    if HasOdfNumber(lifeSpan, lifeFound) and HasOdfNumber(shotSpeed, speedFound) then
         if lifeSpan >= 120.0 then
             return nil
         end
@@ -468,19 +557,19 @@ local function GetOdfClassLabel(odf)
 
     local value, found = GetODFString(odf, "OrdnanceClass", "classLabel", "")
     local cleaned = CleanString(value)
-    if found and cleaned ~= "" then
+    if HasOdfString(cleaned, found) then
         return string.lower(cleaned)
     end
 
     value, found = GetODFString(odf, "WeaponClass", "classLabel", "")
     cleaned = CleanString(value)
-    if found and cleaned ~= "" then
+    if HasOdfString(cleaned, found) then
         return string.lower(cleaned)
     end
 
     value, found = GetODFString(odf, nil, "classLabel", "")
     cleaned = CleanString(value)
-    if found and cleaned ~= "" then
+    if HasOdfString(cleaned, found) then
         return string.lower(cleaned)
     end
 
@@ -501,10 +590,10 @@ local function ProbeBallisticRangeFromOdf(odf)
     end
 
     local shotSpeed, speedFound = GetODFFloat(odf, "OrdnanceClass", "shotSpeed", 0.0)
-    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+    if not HasOdfNumber(shotSpeed, speedFound) then
         shotSpeed, speedFound = GetODFFloat(odf, nil, "shotSpeed", 0.0)
     end
-    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+    if not HasOdfNumber(shotSpeed, speedFound) then
         return nil
     end
 
@@ -548,7 +637,7 @@ local function GetWeaponDisplayName(weaponOdfName)
         if weaponOdf then
             local value, found = GetODFString(weaponOdf, "WeaponClass", "wpnName", "")
             local cleaned = CleanString(value)
-            if found and cleaned ~= "" then
+            if HasOdfString(cleaned, found) then
                 displayName = cleaned
             end
         end
@@ -562,16 +651,23 @@ local function GetWeaponDisplayName(weaponOdfName)
     return displayName
 end
 
+local WEAPON_VALUE_SECTIONS = {
+    "WeaponClass", "OrdnanceClass", "CannonClass", "ChargeGunClass", "GunClass", "RocketClass", "MissileClass",
+    "MortarClass", "DispenserClass", "LauncherClass", "TargetingGunClass", "RadarLauncherClass", "PopperGunClass",
+    "ObjectLobberClass", "RemoteDetonatorClass", "LeaderRoundClass", nil
+}
+
+local WEAPON_REFERENCE_LABELS = { "ordName", "ordnanceName", "shotClass", "projectileClass", "objectClass" }
+local WEAPON_RANGE_LABELS = { "maxRange", "engageRange", "maxDist", "engageDist", "shotRange", "range", "lockRange" }
+local WEAPON_DELAY_LABELS = { "shotDelay", "reloadTime", "reloadDelay", "firstDelay" }
+
 local function ResolveOrdnanceName(odf)
     if not odf or not GetODFString then return nil end
-    local sections = { "WeaponClass", "OrdnanceClass", "CannonClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil }
-    local labels = { "ordName", "ordnanceName", "shotClass", "projectileClass" }
-
-    for _, section in ipairs(sections) do
-        for _, label in ipairs(labels) do
+    for _, section in ipairs(WEAPON_VALUE_SECTIONS) do
+        for _, label in ipairs(WEAPON_REFERENCE_LABELS) do
             local value, found = GetODFString(odf, section, label, "")
             local cleaned = CleanString(value)
-            if found and cleaned ~= "" then
+            if HasOdfString(cleaned, found) then
                 return cleaned
             end
         end
@@ -581,16 +677,90 @@ end
 
 local function ProbeValueFromOdf(odf, labels, sections)
     if not odf or not GetODFFloat then return nil end
-    sections = sections or { "WeaponClass", "OrdnanceClass", "CannonClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil }
+    sections = sections or WEAPON_VALUE_SECTIONS
     for _, section in ipairs(sections) do
         for _, label in ipairs(labels) do
             local value, found = GetODFFloat(odf, section, label, 0.0)
-            if found and value and value > 0 then
+            if HasOdfNumber(value, found) then
                 return value
             end
         end
     end
     return nil
+end
+
+local function ProbeMaxValueFromOdf(odf, labels, sections)
+    if not odf or not GetODFFloat then return nil end
+    sections = sections or WEAPON_VALUE_SECTIONS
+    local best = nil
+    for _, section in ipairs(sections) do
+        for _, label in ipairs(labels) do
+            local value, found = GetODFFloat(odf, section, label, 0.0)
+            if HasOdfNumber(value, found) and (not best or value > best) then
+                best = value
+            end
+        end
+    end
+    return best
+end
+
+local function ProbeIndexedFloatFromOdf(odf, sections, prefix, index)
+    if not odf or not GetODFFloat then return nil end
+    sections = sections or WEAPON_VALUE_SECTIONS
+    local label = tostring(prefix or "") .. tostring(index or "")
+    for _, section in ipairs(sections) do
+        local value, found = GetODFFloat(odf, section, label, 0.0)
+        if HasOdfNumber(value, found) then
+            return value
+        end
+    end
+    return nil
+end
+
+local function ProbeIndexedStringFromOdf(odf, sections, prefixes, index)
+    if not odf or not GetODFString then return nil end
+    sections = sections or WEAPON_VALUE_SECTIONS
+    prefixes = prefixes or WEAPON_REFERENCE_LABELS
+    for _, section in ipairs(sections) do
+        for _, prefix in ipairs(prefixes) do
+            local value, found = GetODFString(odf, section, tostring(prefix) .. tostring(index or ""), "")
+            local cleaned = CleanString(value)
+            if HasOdfString(cleaned, found) then
+                return cleaned
+            end
+        end
+    end
+    return nil
+end
+
+local function GetResolvedWeaponRangeFromOdf(odf)
+    if not odf then return nil end
+    local range = ProbeMaxValueFromOdf(odf, WEAPON_RANGE_LABELS)
+    if not range then
+        range = ProbeBallisticRangeFromOdf(odf)
+    end
+    if not range then
+        range = ProbeTravelRangeFromOdf(odf)
+    end
+    return range
+end
+
+local function GetResolvedWeaponRangeByName(odfName)
+    if not odfName or odfName == "" or not OpenODF then return nil end
+    local odf = OpenODF(odfName)
+    if not odf then return nil end
+    return GetResolvedWeaponRangeFromOdf(odf)
+end
+
+local function GetBurstCycleTime(shotDelay, salvoCount, salvoDelay)
+    local count = math.max(1, math.floor((tonumber(salvoCount) or 1) + 0.5))
+    local delay = math.max(0.0, tonumber(shotDelay) or 0.0)
+    local intraBurst = math.max(0.0, tonumber(salvoDelay) or 0.0) * math.max(0, count - 1)
+    local cycleTime = delay + intraBurst
+    if cycleTime <= 0.001 then
+        cycleTime = delay > 0.001 and delay or nil
+    end
+    return cycleTime, count
 end
 
 local function ProbeShotSpeedFromOdf(odf)
@@ -618,7 +788,7 @@ local function IsBallisticWeaponData(weaponOdf, ordOdf)
 
     if GetODFFloat and ordOdf then
         local value, found = GetODFFloat(ordOdf, "MortarClass", "shotSpeed", 0.0)
-        if found and value and value > 0.0 then
+        if HasOdfNumber(value, found) then
             return true
         end
     end
@@ -629,14 +799,18 @@ end
 local function ProbeDamageFromOdf(odf)
     if not odf or not GetODFFloat then return nil end
     local sections = { "WeaponClass", "OrdnanceClass", "CannonClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil }
-    local labels = { "damage", "damage1", "damage2", "damage3", "damage4", "damage5", "damage6", "damage7", "damage8" }
+    local labels = {
+        "damage",
+        "damage1", "damage2", "damage3", "damage4", "damage5", "damage6", "damage7", "damage8",
+        "damageBallistic", "damageConcussion", "damageFlame", "damageImpact", "damageArea", "damageEM"
+    }
 
     for _, section in ipairs(sections) do
         local totalDamage = 0.0
         local foundAny = false
         for _, label in ipairs(labels) do
             local value, found = GetODFFloat(odf, section, label, 0.0)
-            if found and value and value > 0 then
+            if HasOdfNumber(value, found) then
                 totalDamage = totalDamage + value
                 foundAny = true
             end
@@ -647,6 +821,53 @@ local function ProbeDamageFromOdf(odf)
     end
 
     return nil
+end
+
+local function BuildChargeWeaponLevels(weaponOdf)
+    if not weaponOdf or not OpenODF then return nil end
+
+    local classLabel = GetOdfClassLabel(weaponOdf)
+    if classLabel ~= "chargegun" then return nil end
+
+    local ordnanceCount = math.floor((ProbeValueFromOdf(weaponOdf, { "ordnanceCount" }, { "ChargeGunClass", "WeaponClass" }) or 0.0) + 0.5)
+    if ordnanceCount <= 0 then return nil end
+
+    local levels = {}
+    for index = 1, ordnanceCount do
+        local ordName = ProbeIndexedStringFromOdf(weaponOdf, { "ChargeGunClass", "WeaponClass" }, WEAPON_REFERENCE_LABELS, index)
+        if ordName and ordName ~= "" and string.upper(ordName) ~= "NULL" then
+            local ordOdf = OpenODF(ordName)
+            if ordOdf then
+                local perProjectileDamage = ProbeDamageFromOdf(ordOdf)
+                local shotDelay = ProbeIndexedFloatFromOdf(weaponOdf, { "ChargeGunClass", "WeaponClass" }, "shotDelay", index)
+                local salvoCount = ProbeIndexedFloatFromOdf(weaponOdf, { "ChargeGunClass", "WeaponClass" }, "salvoCount", index) or 1.0
+                local salvoDelay = ProbeIndexedFloatFromOdf(weaponOdf, { "ChargeGunClass", "WeaponClass" }, "salvoDelay", index) or 0.0
+                local cycleTime, shotCount = GetBurstCycleTime(shotDelay, salvoCount, salvoDelay)
+                local totalDamage = perProjectileDamage and (perProjectileDamage * shotCount) or nil
+
+                table.insert(levels, {
+                    chargeIndex = index,
+                    ordName = ordName,
+                    range = GetResolvedWeaponRangeFromOdf(ordOdf),
+                    perProjectileDamage = perProjectileDamage,
+                    damage = totalDamage,
+                    shotDelay = shotDelay,
+                    salvoCount = shotCount,
+                    salvoDelay = salvoDelay,
+                    cycleTime = cycleTime,
+                    dps = (totalDamage and cycleTime and cycleTime > 0.001) and (totalDamage / cycleTime) or nil,
+                    shotSpeed = ProbeShotSpeedFromOdf(ordOdf),
+                    ballistic = IsBallisticWeaponData(weaponOdf, ordOdf),
+                })
+            end
+        end
+    end
+
+    if #levels <= 0 then
+        return nil
+    end
+
+    return levels
 end
 
 local function GetVehicleDisplayName(h)
@@ -665,7 +886,7 @@ local function GetVehicleDisplayName(h)
             if odf then
                 local value, found = GetODFString(odf, "GameObjectClass", "unitName", "")
                 local cleaned = CleanString(value)
-                if found and cleaned ~= "" and string.upper(cleaned) ~= "NULL" then
+                if HasOdfString(cleaned, found) and string.upper(cleaned) ~= "NULL" then
                     PersistentConfig.UnitNameCache[key] = cleaned
                     return cleaned
                 end
@@ -697,20 +918,21 @@ local function GetWeaponRangeMeters(weaponOdfName)
     if OpenODF then
         local weaponOdf = OpenODF(weaponOdfName)
         if weaponOdf then
-            range = ProbeRangeFromOdf(weaponOdf)
+            range = ProbeMaxValueFromOdf(weaponOdf, WEAPON_RANGE_LABELS)
+            if not range then
+                local chargeLevels = BuildChargeWeaponLevels(weaponOdf)
+                if chargeLevels and #chargeLevels > 0 then
+                    for _, level in ipairs(chargeLevels) do
+                        if level.range and (not range or level.range > range) then
+                            range = level.range
+                        end
+                    end
+                end
+            end
             if not range then
                 local ordName = ResolveOrdnanceName(weaponOdf)
                 if ordName then
-                    local ordOdf = OpenODF(ordName)
-                    if ordOdf then
-                        range = ProbeRangeFromOdf(ordOdf)
-                        if not range then
-                            range = ProbeBallisticRangeFromOdf(ordOdf)
-                        end
-                        if not range then
-                            range = ProbeTravelRangeFromOdf(ordOdf)
-                        end
-                    end
+                    range = GetResolvedWeaponRangeByName(ordName)
                 end
             end
         end
@@ -732,23 +954,62 @@ local function GetWeaponStats(weaponOdfName)
     local stats = {
         displayName = GetWeaponDisplayName(weaponOdfName) or weaponOdfName,
         range = GetWeaponRangeMeters(weaponOdfName),
+        rangeMin = nil,
+        rangeMax = nil,
         damage = nil,
+        damageMin = nil,
+        damageMax = nil,
         dps = nil,
+        dpsMin = nil,
+        dpsMax = nil,
         shotDelay = nil,
         shotSpeed = nil,
         ballistic = false,
+        salvoCount = 1,
+        salvoDelay = 0.0,
+        chargeLevels = nil,
     }
 
     if OpenODF then
         local weaponOdf = OpenODF(weaponOdfName)
         local ordOdf = nil
         if weaponOdf then
+            local chargeLevels = BuildChargeWeaponLevels(weaponOdf)
+            if chargeLevels and #chargeLevels > 0 then
+                stats.chargeLevels = chargeLevels
+                for _, level in ipairs(chargeLevels) do
+                    if level.range then
+                        stats.rangeMin = stats.rangeMin and math.min(stats.rangeMin, level.range) or level.range
+                        stats.rangeMax = stats.rangeMax and math.max(stats.rangeMax, level.range) or level.range
+                    end
+                    if level.damage then
+                        stats.damageMin = stats.damageMin and math.min(stats.damageMin, level.damage) or level.damage
+                        stats.damageMax = stats.damageMax and math.max(stats.damageMax, level.damage) or level.damage
+                    end
+                    if level.dps then
+                        stats.dpsMin = stats.dpsMin and math.min(stats.dpsMin, level.dps) or level.dps
+                        stats.dpsMax = stats.dpsMax and math.max(stats.dpsMax, level.dps) or level.dps
+                    end
+                    if level.shotSpeed and (not stats.shotSpeed or level.shotSpeed > stats.shotSpeed) then
+                        stats.shotSpeed = level.shotSpeed
+                    end
+                    stats.ballistic = stats.ballistic or level.ballistic
+                end
+                stats.range = stats.rangeMax or stats.rangeMin or stats.range
+                stats.damage = stats.damageMax or stats.damageMin
+                stats.dps = stats.dpsMax or stats.dpsMin
+                PersistentConfig.WeaponDataCache[key] = stats
+                return stats
+            end
+
             local ordName = ResolveOrdnanceName(weaponOdf)
             if ordName then
                 ordOdf = OpenODF(ordName)
             end
 
-            stats.shotDelay = ProbeValueFromOdf(weaponOdf, { "shotDelay", "reloadTime", "reloadDelay" })
+            stats.shotDelay = ProbeValueFromOdf(weaponOdf, WEAPON_DELAY_LABELS)
+            stats.salvoCount = ProbeValueFromOdf(weaponOdf, { "salvoCount" }) or 1.0
+            stats.salvoDelay = ProbeValueFromOdf(weaponOdf, { "salvoDelay" }) or 0.0
             stats.damage = ProbeDamageFromOdf(weaponOdf)
             stats.shotSpeed = ProbeShotSpeedFromOdf(weaponOdf)
         end
@@ -758,7 +1019,13 @@ local function GetWeaponStats(weaponOdfName)
                 stats.damage = ProbeDamageFromOdf(ordOdf)
             end
             if not stats.shotDelay then
-                stats.shotDelay = ProbeValueFromOdf(ordOdf, { "shotDelay", "reloadTime", "reloadDelay" })
+                stats.shotDelay = ProbeValueFromOdf(ordOdf, WEAPON_DELAY_LABELS)
+            end
+            if stats.salvoCount <= 1.0 then
+                stats.salvoCount = ProbeValueFromOdf(ordOdf, { "salvoCount" }) or stats.salvoCount
+            end
+            if stats.salvoDelay <= 0.0 then
+                stats.salvoDelay = ProbeValueFromOdf(ordOdf, { "salvoDelay" }) or stats.salvoDelay
             end
             if not stats.shotSpeed then
                 stats.shotSpeed = ProbeShotSpeedFromOdf(ordOdf)
@@ -768,12 +1035,107 @@ local function GetWeaponStats(weaponOdfName)
         stats.ballistic = IsBallisticWeaponData(weaponOdf, ordOdf)
     end
 
-    if stats.damage and stats.shotDelay and stats.shotDelay > 0.001 then
-        stats.dps = stats.damage / stats.shotDelay
+    local cycleTime, shotCount = GetBurstCycleTime(stats.shotDelay, stats.salvoCount, stats.salvoDelay)
+    if stats.damage then
+        stats.damage = stats.damage * shotCount
+        stats.damageMin = stats.damage
+        stats.damageMax = stats.damage
+    end
+    if stats.range then
+        stats.rangeMin = stats.range
+        stats.rangeMax = stats.range
+    end
+    if stats.damage and cycleTime and cycleTime > 0.001 then
+        stats.dps = stats.damage / cycleTime
+        stats.dpsMin = stats.dps
+        stats.dpsMax = stats.dps
     end
 
     PersistentConfig.WeaponDataCache[key] = stats
     return stats
+end
+
+local function FindChargeLevelForWeapon(weaponStats, chargeIndex, ordName)
+    local levels = weaponStats and weaponStats.chargeLevels or nil
+    if not levels or #levels <= 0 then return nil end
+
+    local ordKey = string.lower(CleanString(ordName))
+    for _, level in ipairs(levels) do
+        if chargeIndex and (level.chargeIndex == chargeIndex) then
+            return level
+        end
+        if ordKey ~= "" and string.lower(CleanString(level.ordName)) == ordKey then
+            return level
+        end
+    end
+
+    return nil
+end
+
+local function GetDisplayedWeaponStats(player, weaponOdfName, weaponStats)
+    if not weaponStats or not weaponStats.chargeLevels or not IsValid(player) or player ~= GetPlayerHandle() then
+        return weaponStats
+    end
+
+    local state = PersistentConfig.PlayerChargeWeaponState
+    if not state then
+        return weaponStats
+    end
+
+    if string.lower(CleanString(state.weaponOdf)) ~= string.lower(CleanString(weaponOdfName)) then
+        return weaponStats
+    end
+
+    local level = FindChargeLevelForWeapon(weaponStats, state.chargeIndex, state.ordName)
+    if not level then
+        return weaponStats
+    end
+
+    return {
+        displayName = weaponStats.displayName,
+        range = level.range or weaponStats.range,
+        rangeMin = level.range or weaponStats.rangeMin,
+        rangeMax = level.range or weaponStats.rangeMax,
+        damage = level.damage or weaponStats.damage,
+        damageMin = level.damage or weaponStats.damageMin,
+        damageMax = level.damage or weaponStats.damageMax,
+        dps = level.dps or weaponStats.dps,
+        dpsMin = level.dps or weaponStats.dpsMin,
+        dpsMax = level.dps or weaponStats.dpsMax,
+        shotDelay = level.shotDelay or weaponStats.shotDelay,
+        shotSpeed = level.shotSpeed or weaponStats.shotSpeed,
+        ballistic = (level.ballistic == nil) and weaponStats.ballistic or level.ballistic,
+        salvoCount = level.salvoCount or weaponStats.salvoCount,
+        salvoDelay = level.salvoDelay or weaponStats.salvoDelay,
+        chargeLevels = weaponStats.chargeLevels,
+        currentChargeLevel = level.chargeIndex,
+        currentChargeOrdName = level.ordName,
+    }
+end
+
+local function UpdatePlayerChargeWeaponState(odf, shooter)
+    if not IsValid(shooter) or shooter ~= GetPlayerHandle() then return end
+
+    local ordKey = string.lower(CleanString(odf))
+    if ordKey == "" then return end
+
+    for slot = 0, 4 do
+        local weapon = CleanString(GetWeaponClass(shooter, slot))
+        if weapon ~= "" then
+            local weaponStats = GetWeaponStats(weapon)
+            local level = FindChargeLevelForWeapon(weaponStats, nil, ordKey)
+            if level then
+                PersistentConfig.PlayerChargeWeaponState = {
+                    weaponOdf = string.lower(CleanString(weapon)),
+                    chargeIndex = level.chargeIndex,
+                    ordName = string.lower(CleanString(level.ordName or ordKey)),
+                    slot = slot,
+                    updatedAt = GetTime(),
+                }
+                return
+            end
+        end
+    end
 end
 
 local function GetHorizontalDistanceBetweenHandles(a, b)
@@ -871,7 +1233,7 @@ local function ReadIndexedOdfStrings(odf, section, prefix, maxCount)
     for i = 1, maxCount do
         local value, found = GetODFString(odf, section, prefix .. tostring(i), "")
         local cleaned = CleanString(value)
-        if found and cleaned ~= "" then
+        if HasOdfString(cleaned, found) then
             table.insert(items, cleaned)
             misses = 0
         else
@@ -899,7 +1261,7 @@ local function GetUnitBuildEntry(unitOdfName)
         if odf then
             local displayName = unitOdfName
             local unitName, unitNameFound = GetODFString(odf, "GameObjectClass", "unitName", "")
-            if unitNameFound and CleanString(unitName) ~= "" and string.upper(CleanString(unitName)) ~= "NULL" then
+            if HasOdfString(unitName, unitNameFound) and string.upper(CleanString(unitName)) ~= "NULL" then
                 displayName = CleanString(unitName)
             end
 
@@ -909,7 +1271,7 @@ local function GetUnitBuildEntry(unitOdfName)
                 local hardpoint, hardpointFound = GetODFString(odf, "GameObjectClass", "weaponHard" .. tostring(slotIndex), "")
                 local weaponName, _ = GetODFString(odf, "GameObjectClass", "weaponName" .. tostring(slotIndex), "")
                 local cleanedHardpoint = CleanString(hardpoint)
-                if hardpointFound and cleanedHardpoint ~= "" then
+                if HasOdfString(cleanedHardpoint, hardpointFound) then
                     local stockWeapon = CleanString(weaponName)
                     table.insert(slots, {
                         slot = slotIndex - 1,
@@ -926,7 +1288,7 @@ local function GetUnitBuildEntry(unitOdfName)
                 odf = unitOdfName,
                 key = key,
                 displayName = displayName or unitOdfName,
-                scrapCost = (costFound and scrapCost) or 0.0,
+                scrapCost = tonumber(scrapCost) or 0.0,
                 slots = slots,
             }
         end
@@ -978,14 +1340,14 @@ local function ResolveWeaponPowerupInfo(powerupOdfName)
         if odf then
             local weaponName, found = GetODFString(odf, "WeaponPowerupClass", "weaponName", "")
             local cleanedWeapon = CleanString(weaponName)
-            if found and cleanedWeapon ~= "" then
+            if HasOdfString(cleanedWeapon, found) then
                 local scrapCost, costFound = GetODFFloat(odf, "GameObjectClass", "scrapCost", 0.0)
                 info = {
                     powerupOdf = powerupOdfName,
                     powerupKey = key,
                     weaponName = cleanedWeapon,
                     displayName = GetWeaponDisplayName(cleanedWeapon) or cleanedWeapon,
-                    scrapCost = (costFound and scrapCost) or 0.0,
+                    scrapCost = tonumber(scrapCost) or 0.0,
                 }
             end
         end
@@ -1389,6 +1751,81 @@ local function BuildMeterBar(label, fraction, currentValue, maxValue)
         math.floor((clamped * 100.0) + 0.5), numericText)
 end
 
+local function FormatWeaponRangeText(weaponStats, effectiveRange)
+    local minRange = weaponStats and weaponStats.rangeMin or nil
+    local maxRange = weaponStats and weaponStats.rangeMax or nil
+    local baseRange = weaponStats and weaponStats.range or nil
+    local rangeText = FormatWholeNumber(baseRange)
+
+    if minRange and maxRange and math.abs(maxRange - minRange) >= 5.0 then
+        rangeText = FormatWholeNumber(minRange) .. "-" .. FormatWholeNumber(maxRange)
+    end
+
+    if weaponStats and weaponStats.ballistic and effectiveRange and baseRange and
+        math.abs(effectiveRange - baseRange) >= 5.0 then
+        rangeText = rangeText .. ">" .. FormatWholeNumber(effectiveRange)
+    end
+
+    return rangeText
+end
+
+local function FormatWeaponDamageText(weaponStats)
+    if not weaponStats then return "n/a" end
+    if weaponStats.damageMin and weaponStats.damageMax and math.abs(weaponStats.damageMax - weaponStats.damageMin) >= 1.0 then
+        return FormatWholeNumber(weaponStats.damageMin) .. "-" .. FormatWholeNumber(weaponStats.damageMax)
+    end
+    return FormatWholeNumber(weaponStats.damage)
+end
+
+local function FormatWeaponDpsText(weaponStats)
+    if not weaponStats then return "n/a" end
+    if weaponStats.dpsMin and weaponStats.dpsMax and math.abs(weaponStats.dpsMax - weaponStats.dpsMin) >= 0.1 then
+        return FormatDps(weaponStats.dpsMin) .. "-" .. FormatDps(weaponStats.dpsMax)
+    end
+    return FormatDps(weaponStats.dps)
+end
+
+local function BuildChargeSummaryText(weaponStats)
+    local levels = weaponStats and weaponStats.chargeLevels or nil
+    if not levels or #levels <= 0 then return nil end
+
+    local picks = {}
+    local candidateIndices = { 1, math.floor((#levels + 1) * 0.5), #levels }
+    local currentChargeLevel = weaponStats and weaponStats.currentChargeLevel or nil
+    for _, idx in ipairs(candidateIndices) do
+        idx = math.max(1, math.min(#levels, idx))
+        if not picks[idx] then
+            picks[idx] = true
+        end
+    end
+    if currentChargeLevel then
+        for idx, level in ipairs(levels) do
+            if (level.chargeIndex or idx) == currentChargeLevel then
+                picks[idx] = true
+                break
+            end
+        end
+    end
+
+    local parts = { "  CHG" }
+    for idx = 1, #levels do
+        if picks[idx] then
+            local level = levels[idx]
+            local statText = FormatWholeNumber(level.damage)
+            if level.dps then
+                statText = statText .. "/" .. FormatDps(level.dps)
+            end
+            local levelLabel = string.format("L%d", level.chargeIndex or idx)
+            if currentChargeLevel and (level.chargeIndex or idx) == currentChargeLevel then
+                levelLabel = levelLabel .. "*"
+            end
+            table.insert(parts, string.format("%s %s", levelLabel, statText))
+        end
+    end
+
+    return table.concat(parts, "  ")
+end
+
 local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compareTarget, comparePosition, compareDistance)
     local hardpointCount = 0
     local shooterPos = type(GetPosition) == "function" and GetPosition(h) or nil
@@ -1398,7 +1835,7 @@ local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compa
             local weapon = CleanString(GetWeaponClass(h, slot))
             if weapon ~= "" then
                 hardpointCount = hardpointCount + 1
-                local weaponStats = GetWeaponStats(weapon) or {}
+                local weaponStats = GetDisplayedWeaponStats(h, weapon, GetWeaponStats(weapon) or {}) or {}
                 local effectiveRange = weaponStats.range
                 local distanceForCompare = compareDistance
                 if compareTarget and IsValid(compareTarget) then
@@ -1421,16 +1858,16 @@ local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compa
                     status = status:sub(1, 1) .. "*"
                 end
 
-                local rangeText = FormatWholeNumber(weaponStats.range)
-                if weaponStats.ballistic and effectiveRange and weaponStats.range and
-                    math.abs(effectiveRange - weaponStats.range) >= 5.0 then
-                    rangeText = rangeText .. ">" .. FormatWholeNumber(effectiveRange)
-                end
+                local rangeText = FormatWeaponRangeText(weaponStats, effectiveRange)
 
                 table.insert(lines, string.format("S%d %s %s", slot + 1, status, weaponStats.displayName or weapon))
                 table.insert(lines,
                     string.format("  RNG %sm  DMG %s  DPS %s", rangeText,
-                        FormatWholeNumber(weaponStats.damage), FormatDps(weaponStats.dps)))
+                        FormatWeaponDamageText(weaponStats), FormatWeaponDpsText(weaponStats)))
+                local chargeSummary = BuildChargeSummaryText(weaponStats)
+                if chargeSummary then
+                    table.insert(lines, chargeSummary)
+                end
             end
         end
     end
@@ -1542,19 +1979,23 @@ end
 
 local function BuildSettingsPageText()
     local lines = { BuildPdaHeader(PdaPages.SETTINGS) }
-    local selection = ClampIndex(InputState.pdaSettingsIndex, 1, 3, 1)
+    local selection = ClampIndex(InputState.pdaSettingsIndex, 1, 6, 1)
     local textPreset = GetPdaTextSizePreset()
     local windowPreset = GetPdaWindowSizePreset()
     local colorPreset = GetPdaColorPreset()
+    local subtitlePreset = GetSubtitleTextSizePreset()
 
     local function AddSetting(index, label, value)
         local prefix = (selection == index) and ">" or " "
         table.insert(lines, string.format("%s %-11s %s", prefix, label, value))
     end
 
-    AddSetting(1, "TEXT SIZE", textPreset.name)
-    AddSetting(2, "WINDOW", windowPreset.name)
-    AddSetting(3, "HUD COLOR", colorPreset.name)
+    AddSetting(1, "PDA TEXT", textPreset.name)
+    AddSetting(2, "PDA WINDOW", windowPreset.name)
+    AddSetting(3, "PDA ALPHA", FormatOpacity(PersistentConfig.Settings.PdaOpacity))
+    AddSetting(4, "SUB SIZE", subtitlePreset.name)
+    AddSetting(5, "SUB ALPHA", FormatOpacity(PersistentConfig.Settings.SubtitleOpacity))
+    AddSetting(6, "HUD COLOR", colorPreset.name)
     table.insert(lines, "")
     table.insert(lines, "UP/DOWN SELECT")
     table.insert(lines, "LEFT/RIGHT CHANGE")
@@ -1819,6 +2260,12 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.RetroLighting = (val == "true")
                 elseif key == "WeaponStatsHud" then
                     PersistentConfig.Settings.WeaponStatsHud = (val == "true")
+                elseif key == "SubtitleOpacity" then
+                    PersistentConfig.Settings.SubtitleOpacity = tonumber(val) or 0.50
+                elseif key == "SubtitleTextSizePreset" then
+                    PersistentConfig.Settings.SubtitleTextSizePreset = tonumber(val) or 2
+                elseif key == "PdaOpacity" then
+                    PersistentConfig.Settings.PdaOpacity = tonumber(val) or 1.00
                 elseif key == "PdaTextSizePreset" then
                     PersistentConfig.Settings.PdaTextSizePreset = tonumber(val) or 2
                 elseif key == "PdaWindowSizePreset" then
@@ -1857,6 +2304,10 @@ function PersistentConfig.LoadConfig()
         PersistentConfig.Settings.HeadlightRange.InnerAngle = BeamModes[mode].Inner
         PersistentConfig.Settings.HeadlightRange.OuterAngle = BeamModes[mode].Outer
     end
+    PersistentConfig.Settings.SubtitleOpacity = ClampUnitInterval(PersistentConfig.Settings.SubtitleOpacity, 0.50)
+    PersistentConfig.Settings.PdaOpacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.00)
+    PersistentConfig.Settings.SubtitleTextSizePreset = ClampIndex(PersistentConfig.Settings.SubtitleTextSizePreset, 1,
+        #PdaTextSizePresets, 2)
     PersistentConfig.Settings.PdaTextSizePreset = ClampIndex(PersistentConfig.Settings.PdaTextSizePreset, 1, #PdaTextSizePresets, 2)
     PersistentConfig.Settings.PdaWindowSizePreset = ClampIndex(PersistentConfig.Settings.PdaWindowSizePreset, 1,
         #PdaWindowSizePresets, 2)
@@ -1898,6 +2349,9 @@ function PersistentConfig.SaveConfig()
         f:Writeln("AutoRepairBuildings=" .. tostring(PersistentConfig.Settings.AutoRepairBuildings))
         f:Writeln("RetroLighting=" .. tostring(PersistentConfig.Settings.RetroLighting))
         f:Writeln("WeaponStatsHud=" .. tostring(PersistentConfig.Settings.WeaponStatsHud))
+        f:Writeln("SubtitleOpacity=" .. tostring(PersistentConfig.Settings.SubtitleOpacity))
+        f:Writeln("SubtitleTextSizePreset=" .. tostring(PersistentConfig.Settings.SubtitleTextSizePreset))
+        f:Writeln("PdaOpacity=" .. tostring(PersistentConfig.Settings.PdaOpacity))
         f:Writeln("PdaTextSizePreset=" .. tostring(PersistentConfig.Settings.PdaTextSizePreset))
         f:Writeln("PdaWindowSizePreset=" .. tostring(PersistentConfig.Settings.PdaWindowSizePreset))
         f:Writeln("PdaColorPreset=" .. tostring(PersistentConfig.Settings.PdaColorPreset))
@@ -1922,39 +2376,49 @@ function PersistentConfig.SaveConfig()
 end
 
 function PersistentConfig.ApplySettings()
-    if not exu then return end
-
-    local h = GetPlayerHandle()
-    if IsValid(h) then
+    if exu then
+        local h = GetPlayerHandle()
+        if IsValid(h) then
         -- Sync ranges based on mode before applying
-        local mode = PersistentConfig.Settings.HeadlightBeamMode
-        if BeamModes[mode] then
-            PersistentConfig.Settings.HeadlightRange.InnerAngle = BeamModes[mode].Inner
-            PersistentConfig.Settings.HeadlightRange.OuterAngle = BeamModes[mode].Outer
+            local mode = PersistentConfig.Settings.HeadlightBeamMode
+            if BeamModes[mode] then
+                PersistentConfig.Settings.HeadlightRange.InnerAngle = BeamModes[mode].Inner
+                PersistentConfig.Settings.HeadlightRange.OuterAngle = BeamModes[mode].Outer
+            end
+
+            local mult = BeamModes[mode] and BeamModes[mode].Multiplier or 1.0
+
+            if exu.SetHeadlightDiffuse then
+                exu.SetHeadlightDiffuse(h, PersistentConfig.Settings.HeadlightDiffuse.R * mult,
+                    PersistentConfig.Settings.HeadlightDiffuse.G * mult, PersistentConfig.Settings.HeadlightDiffuse.B * mult)
+            end
+            if exu.SetHeadlightSpecular then
+                exu.SetHeadlightSpecular(h, PersistentConfig.Settings.HeadlightSpecular.R * mult,
+                    PersistentConfig.Settings.HeadlightSpecular.G * mult,
+                    PersistentConfig.Settings.HeadlightSpecular.B * mult)
+            end
+            if exu.SetHeadlightRange then
+                exu.SetHeadlightRange(h, PersistentConfig.Settings.HeadlightRange.InnerAngle,
+                    PersistentConfig.Settings.HeadlightRange.OuterAngle, PersistentConfig.Settings.HeadlightRange.Falloff)
+            end
+            if exu.SetHeadlightVisible then
+                exu.SetHeadlightVisible(h, PersistentConfig.Settings.HeadlightVisible)
+            end
         end
 
-        local mult = BeamModes[mode] and BeamModes[mode].Multiplier or 1.0
-
-        if exu.SetHeadlightDiffuse then
-            exu.SetHeadlightDiffuse(h, PersistentConfig.Settings.HeadlightDiffuse.R * mult,
-                PersistentConfig.Settings.HeadlightDiffuse.G * mult, PersistentConfig.Settings.HeadlightDiffuse.B * mult)
-        end
-        if exu.SetHeadlightSpecular then
-            exu.SetHeadlightSpecular(h, PersistentConfig.Settings.HeadlightSpecular.R * mult,
-                PersistentConfig.Settings.HeadlightSpecular.G * mult,
-                PersistentConfig.Settings.HeadlightSpecular.B * mult)
-        end
-        if exu.SetHeadlightRange then
-            exu.SetHeadlightRange(h, PersistentConfig.Settings.HeadlightRange.InnerAngle,
-                PersistentConfig.Settings.HeadlightRange.OuterAngle, PersistentConfig.Settings.HeadlightRange.Falloff)
-        end
-        if exu.SetHeadlightVisible then
-            exu.SetHeadlightVisible(h, PersistentConfig.Settings.HeadlightVisible)
+        if exu.SetRetroLightingMode then
+            exu.SetRetroLightingMode(PersistentConfig.Settings.RetroLighting)
         end
     end
 
-    if exu.SetRetroLightingMode then
-        exu.SetRetroLightingMode(PersistentConfig.Settings.RetroLighting)
+    local subtit = package.loaded["ScriptSubtitles"]
+    if subtit and subtit.SetOpacity then
+        subtit.SetOpacity(PersistentConfig.Settings.SubtitleOpacity)
+    elseif subtitles and subtitles.set_opacity then
+        subtitles.set_opacity(PersistentConfig.Settings.SubtitleOpacity)
+    end
+    if subtit and subtit.SetTextSizePreset then
+        subtit.SetTextSizePreset(PersistentConfig.Settings.SubtitleTextSizePreset)
     end
 end
 
@@ -2011,12 +2475,17 @@ function PersistentConfig.UpdateInputs()
             end
         end
 
-        if not isBusy or PersistentConfig.FeedbackQueue[1].bypass then
+        local nextItem = PersistentConfig.FeedbackQueue[1]
+        if nextItem and (nextItem.target == "pda" or not isBusy or nextItem.bypass) then
             local item = table.remove(PersistentConfig.FeedbackQueue, 1)
-            if subtitles and subtitles.submit then
+            if item.target == "pda" then
+                ShowPdaFeedback(item.msg, item.r, item.g, item.b, item.duration)
+            elseif subtit and subtit.Display then
+                subtit.Display(item.msg, item.r, item.g, item.b, item.duration)
+            elseif subtitles and subtitles.submit then
                 subtitles.clear_queue()
                 if subtitles.clear_current then subtitles.clear_current() end
-                subtitles.set_opacity(0.5)
+                subtitles.set_opacity(ClampUnitInterval(PersistentConfig.Settings.SubtitleOpacity, 0.5))
                 subtitles.submit(item.msg, item.duration, item.r, item.g, item.b)
                 if subtit then
                     subtit.LastEndTime = GetTime() + item.duration
@@ -2130,6 +2599,7 @@ function PersistentConfig.UpdateInputs()
         InputState.pdaPage = CycleIndex(InputState.pdaPage, PdaPages.COUNT, -1, PdaPages.STATS)
         PlayPdaSound("mnu_back.wav")
         RefreshWeaponHud()
+        ClearPdaFeedback()
         if PersistentConfig.Settings.WeaponStatsHud then
             UpdateWeaponStatsDisplay(GetPlayerHandle())
         end
@@ -2138,6 +2608,7 @@ function PersistentConfig.UpdateInputs()
         InputState.pdaPage = CycleIndex(InputState.pdaPage, PdaPages.COUNT, 1, PdaPages.STATS)
         PlayPdaSound("mnu_next.wav")
         RefreshWeaponHud()
+        ClearPdaFeedback()
         if PersistentConfig.Settings.WeaponStatsHud then
             UpdateWeaponStatsDisplay(GetPlayerHandle())
         end
@@ -2149,14 +2620,14 @@ function PersistentConfig.UpdateInputs()
 
     if InputState.pdaPage == PdaPages.SETTINGS then
         if pda_up_key then
-            InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, 3, -1, 1)
+            InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, 6, -1, 1)
             PlayPdaSound("mnu_clik.wav")
             RefreshWeaponHud()
             if PersistentConfig.Settings.WeaponStatsHud then
                 UpdateWeaponStatsDisplay(GetPlayerHandle())
             end
         elseif pda_down_key then
-            InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, 3, 1, 1)
+            InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, 6, 1, 1)
             PlayPdaSound("mnu_clik.wav")
             RefreshWeaponHud()
             if PersistentConfig.Settings.WeaponStatsHud then
@@ -2165,7 +2636,7 @@ function PersistentConfig.UpdateInputs()
         end
 
         local sizeChanged = false
-        local selection = ClampIndex(InputState.pdaSettingsIndex, 1, 3, 1)
+        local selection = ClampIndex(InputState.pdaSettingsIndex, 1, 6, 1)
         if pda_left_key then
             if selection == 1 then
                 PersistentConfig.Settings.PdaTextSizePreset = CycleIndex(PersistentConfig.Settings.PdaTextSizePreset,
@@ -2173,6 +2644,13 @@ function PersistentConfig.UpdateInputs()
             elseif selection == 2 then
                 PersistentConfig.Settings.PdaWindowSizePreset = CycleIndex(PersistentConfig.Settings.PdaWindowSizePreset,
                     #PdaWindowSizePresets, -1, 2)
+            elseif selection == 3 then
+                PersistentConfig.Settings.PdaOpacity = AdjustOpacity(PersistentConfig.Settings.PdaOpacity, -1)
+            elseif selection == 4 then
+                PersistentConfig.Settings.SubtitleTextSizePreset = CycleIndex(PersistentConfig.Settings.SubtitleTextSizePreset,
+                    #PdaTextSizePresets, -1, 2)
+            elseif selection == 5 then
+                PersistentConfig.Settings.SubtitleOpacity = AdjustOpacity(PersistentConfig.Settings.SubtitleOpacity, -1)
             else
                 PersistentConfig.Settings.PdaColorPreset = CycleIndex(PersistentConfig.Settings.PdaColorPreset,
                     #PdaColorPresets, -1, 2)
@@ -2185,6 +2663,13 @@ function PersistentConfig.UpdateInputs()
             elseif selection == 2 then
                 PersistentConfig.Settings.PdaWindowSizePreset = CycleIndex(PersistentConfig.Settings.PdaWindowSizePreset,
                     #PdaWindowSizePresets, 1, 2)
+            elseif selection == 3 then
+                PersistentConfig.Settings.PdaOpacity = AdjustOpacity(PersistentConfig.Settings.PdaOpacity, 1)
+            elseif selection == 4 then
+                PersistentConfig.Settings.SubtitleTextSizePreset = CycleIndex(PersistentConfig.Settings.SubtitleTextSizePreset,
+                    #PdaTextSizePresets, 1, 2)
+            elseif selection == 5 then
+                PersistentConfig.Settings.SubtitleOpacity = AdjustOpacity(PersistentConfig.Settings.SubtitleOpacity, 1)
             else
                 PersistentConfig.Settings.PdaColorPreset = CycleIndex(PersistentConfig.Settings.PdaColorPreset,
                     #PdaColorPresets, 1, 2)
@@ -2195,6 +2680,7 @@ function PersistentConfig.UpdateInputs()
         if sizeChanged then
             PlayPdaSound("mnu_enab.wav")
             PersistentConfig.SaveConfig()
+            PersistentConfig.ApplySettings()
             RefreshWeaponHud()
             if PersistentConfig.Settings.WeaponStatsHud then
                 UpdateWeaponStatsDisplay(GetPlayerHandle())
@@ -2575,7 +3061,7 @@ local function ApplyUnitPresetToObject(h)
 
     local surcharge = math.floor(GetPresetSurchargeForEntry(entry) + 0.5)
     if surcharge > 0 and type(GetScrap) == "function" and GetScrap(team) < surcharge then
-        ShowFeedback("Preset skipped: need +" .. tostring(surcharge) .. " scrap", 1.0, 0.35, 0.35, 2.5, false)
+        ShowFeedback("Preset skipped: need +" .. tostring(surcharge) .. " scrap", 1.0, 0.35, 0.35, 2.5, false, "pda")
         return false
     end
 
@@ -2597,7 +3083,7 @@ local function ApplyUnitPresetToObject(h)
     end
     if applied then
         ShowFeedback("Preset applied: " .. (entry.displayName or odfName) .. " +" .. tostring(surcharge) .. " scrap",
-            0.35, 1.0, 0.35, 2.5, false)
+            0.35, 1.0, 0.35, 2.5, false, "pda")
     end
     return applied
 end
@@ -2614,6 +3100,32 @@ function PersistentConfig.OnObjectCreated(h)
     end
 
     ApplyUnitPresetToObject(h)
+end
+
+local function InstallPlayerChargeTrackingHook()
+    if PersistentConfig.PlayerChargeHookInstalled or not exu then
+        return
+    end
+
+    local handler = function(odf, shooter, transform, ordnanceHandle)
+        UpdatePlayerChargeWeaponState(odf, shooter)
+    end
+
+    if aiCore and type(aiCore.RegisterExuCallback) == "function" then
+        if aiCore.RegisterExuCallback("BulletInit", handler) then
+            PersistentConfig.PlayerChargeHookInstalled = true
+            return
+        end
+    end
+
+    local oldBulletInit = exu.BulletInit
+    exu.BulletInit = function(...)
+        handler(...)
+        if oldBulletInit then
+            return oldBulletInit(...)
+        end
+    end
+    PersistentConfig.PlayerChargeHookInstalled = true
 end
 
 function PersistentConfig.Initialize()
@@ -2633,6 +3145,7 @@ function PersistentConfig.Initialize()
     end
     PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings()
+    InstallPlayerChargeTrackingHook()
     MarkOtherHeadlightsDirty()
 
     -- Sync AutoSave config from settings

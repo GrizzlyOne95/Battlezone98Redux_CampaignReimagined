@@ -166,6 +166,7 @@ local function GetDefaultWeaponMask(h)
 end
 
 local WeaponRangeCache = {}
+local MissileWeaponProfileCache = {}
 
 local function IsMaskBitSet(mask, slot)
     local div = 2 ^ slot
@@ -189,6 +190,134 @@ local function GetCurrentWeaponMaskValue(h)
     return 0
 end
 
+local function HasOdfNumber(value, found)
+    if type(found) == "boolean" then
+        return found and type(value) == "number" and value > 0
+    end
+    return type(value) == "number" and value > 0
+end
+
+local function HasOdfString(value, found)
+    local cleaned = utility.CleanString(value)
+    if type(found) == "boolean" then
+        return found and cleaned ~= ""
+    end
+    return cleaned ~= ""
+end
+
+local function RemoveMaskBits(mask, removeMask)
+    local result = 0
+    for slot = 0, 4 do
+        local bit = 2 ^ slot
+        if IsMaskBitSet(mask, slot) and not IsMaskBitSet(removeMask or 0, slot) then
+            result = result + bit
+        end
+    end
+    return result
+end
+
+local function MergeMaskBits(maskA, maskB)
+    local result = maskA or 0
+    for slot = 0, 4 do
+        local bit = 2 ^ slot
+        if IsMaskBitSet(maskB or 0, slot) and not IsMaskBitSet(result, slot) then
+            result = result + bit
+        end
+    end
+    return result
+end
+
+local function ProbeLifeSpanFromOdf(odf)
+    if not odf or not GetODFFloat then return nil end
+
+    local value, found = GetODFFloat(odf, "OrdnanceClass", "lifeSpan", 0.0)
+    if HasOdfNumber(value, found) then
+        return value
+    end
+
+    value, found = GetODFFloat(odf, nil, "lifeSpan", 0.0)
+    if HasOdfNumber(value, found) then
+        return value
+    end
+
+    return nil
+end
+
+local function ProbeDamageFromOdf(odf)
+    if not odf or not GetODFFloat then return nil end
+
+    local genericDamage, genericFound = GetODFFloat(odf, "OrdnanceClass", "damage", 0.0)
+    if not HasOdfNumber(genericDamage, genericFound) then
+        genericDamage, genericFound = GetODFFloat(odf, nil, "damage", 0.0)
+    end
+
+    local typedDamage = 0.0
+    local typedLabels = {
+        "damageBallistic",
+        "damageConcussion",
+        "damageFlame",
+        "damageImpact",
+        "damageArea",
+        "damageEM",
+        "damageThermal",
+        "damageExplosive",
+        "damageShields",
+    }
+
+    for _, label in ipairs(typedLabels) do
+        local value, found = GetODFFloat(odf, "OrdnanceClass", label, 0.0)
+        if not HasOdfNumber(value, found) then
+            value, found = GetODFFloat(odf, nil, label, 0.0)
+        end
+        if HasOdfNumber(value, found) then
+            typedDamage = typedDamage + value
+        end
+    end
+
+    if typedDamage > 0.0 then
+        return typedDamage
+    end
+    if HasOdfNumber(genericDamage, genericFound) then
+        return genericDamage
+    end
+
+    local stagedDamage = 0.0
+    for i = 1, 8 do
+        local label = "damage" .. i
+        local value, found = GetODFFloat(odf, "OrdnanceClass", label, 0.0)
+        if not HasOdfNumber(value, found) then
+            value, found = GetODFFloat(odf, nil, label, 0.0)
+        end
+        if HasOdfNumber(value, found) then
+            stagedDamage = stagedDamage + value
+        end
+    end
+
+    if stagedDamage > 0.0 then
+        return stagedDamage
+    end
+    return nil
+end
+
+local function ProbeSalvoCountFromOdf(odf)
+    if not odf or not GetODFFloat then return 1.0 end
+
+    local sections = { "WeaponClass", "LauncherClass", "RocketClass", "MissileClass", nil }
+    local labels = { "salvoCount", "shotCount", "burstCount" }
+    local best = 1.0
+
+    for _, section in ipairs(sections) do
+        for _, label in ipairs(labels) do
+            local value, found = GetODFFloat(odf, section, label, 0.0)
+            if HasOdfNumber(value, found) and value > best then
+                best = value
+            end
+        end
+    end
+
+    return math.max(1.0, best)
+end
+
 local function ProbeRangeFromOdf(odf)
     if not odf or not GetODFFloat then return nil end
 
@@ -205,6 +334,10 @@ local function ProbeRangeFromOdf(odf)
         { "OrdnanceClass", "engageDist" },
         { "OrdnanceClass", "shotRange" },
         { "OrdnanceClass", "range" },
+        { "CannonClass", "maxRange" },
+        { "CannonClass", "maxDist" },
+        { "CannonClass", "shotRange" },
+        { "CannonClass", "range" },
         { "GunClass", "maxRange" },
         { "GunClass", "maxDist" },
         { "GunClass", "shotRange" },
@@ -232,7 +365,7 @@ local function ProbeRangeFromOdf(odf)
     local best = nil
     for _, probe in ipairs(probes) do
         local value, found = GetODFFloat(odf, probe[1], probe[2], 0.0)
-        if found and value and value > 0 and (not best or value > best) then
+        if HasOdfNumber(value, found) and (not best or value > best) then
             best = value
         end
     end
@@ -243,16 +376,16 @@ local function ProbeTravelRangeFromOdf(odf)
     if not odf or not GetODFFloat then return nil end
 
     local lifeSpan, lifeFound = GetODFFloat(odf, "OrdnanceClass", "lifeSpan", 0.0)
-    if not lifeFound or not lifeSpan or lifeSpan <= 0 then
+    if not HasOdfNumber(lifeSpan, lifeFound) then
         lifeSpan, lifeFound = GetODFFloat(odf, nil, "lifeSpan", 0.0)
     end
 
     local shotSpeed, speedFound = GetODFFloat(odf, "OrdnanceClass", "shotSpeed", 0.0)
-    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+    if not HasOdfNumber(shotSpeed, speedFound) then
         shotSpeed, speedFound = GetODFFloat(odf, nil, "shotSpeed", 0.0)
     end
 
-    if lifeFound and speedFound and lifeSpan and shotSpeed and lifeSpan > 0 and shotSpeed > 0 then
+    if HasOdfNumber(lifeSpan, lifeFound) and HasOdfNumber(shotSpeed, speedFound) then
         if lifeSpan >= 120.0 then
             return nil
         end
@@ -267,19 +400,19 @@ local function GetOdfClassLabel(odf)
 
     local value, found = GetODFString(odf, "OrdnanceClass", "classLabel", "")
     local cleaned = utility.CleanString(value)
-    if found and cleaned ~= "" then
+    if HasOdfString(cleaned, found) then
         return string.lower(cleaned)
     end
 
     value, found = GetODFString(odf, "WeaponClass", "classLabel", "")
     cleaned = utility.CleanString(value)
-    if found and cleaned ~= "" then
+    if HasOdfString(cleaned, found) then
         return string.lower(cleaned)
     end
 
     value, found = GetODFString(odf, nil, "classLabel", "")
     cleaned = utility.CleanString(value)
-    if found and cleaned ~= "" then
+    if HasOdfString(cleaned, found) then
         return string.lower(cleaned)
     end
 
@@ -300,10 +433,10 @@ local function ProbeBallisticRangeFromOdf(odf)
     end
 
     local shotSpeed, speedFound = GetODFFloat(odf, "OrdnanceClass", "shotSpeed", 0.0)
-    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+    if not HasOdfNumber(shotSpeed, speedFound) then
         shotSpeed, speedFound = GetODFFloat(odf, nil, "shotSpeed", 0.0)
     end
-    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+    if not HasOdfNumber(shotSpeed, speedFound) then
         return nil
     end
 
@@ -323,18 +456,82 @@ end
 
 local function ResolveOrdnanceName(odf)
     if not odf or not GetODFString then return nil end
-    local sections = { "WeaponClass", "OrdnanceClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil }
+    local sections = { "WeaponClass", "OrdnanceClass", "CannonClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil }
     local labels = { "ordName", "ordnanceName", "shotClass", "projectileClass" }
 
     for _, section in ipairs(sections) do
         for _, label in ipairs(labels) do
             local value, found = GetODFString(odf, section, label, "")
             local cleaned = utility.CleanString(value)
-            if found and cleaned ~= "" then
+            if HasOdfString(cleaned, found) then
                 return cleaned
             end
         end
     end
+    return nil
+end
+
+local function GetMissileWeaponProfile(odfName)
+    local cleanedName = string.lower(utility.CleanString(odfName))
+    if cleanedName == "" then return nil end
+
+    local cached = MissileWeaponProfileCache[cleanedName]
+    if cached ~= nil then
+        return cached or nil
+    end
+
+    local profile = nil
+    if OpenODF then
+        local baseOdf = OpenODF(cleanedName)
+        if baseOdf then
+            local ordName = ResolveOrdnanceName(baseOdf)
+            local ordOdf = nil
+            if ordName and ordName ~= "" then
+                ordOdf = OpenODF(ordName)
+            else
+                ordName = cleanedName
+                ordOdf = baseOdf
+            end
+
+            if ordOdf then
+                local damage = ProbeDamageFromOdf(ordOdf)
+                local lifeSpan = ProbeLifeSpanFromOdf(ordOdf)
+                local salvoCount = ProbeSalvoCountFromOdf(baseOdf)
+                if damage and damage > 0.0 then
+                    profile = {
+                        weaponOdf = cleanedName,
+                        ordName = string.lower(utility.CleanString(ordName)),
+                        damage = damage * salvoCount,
+                        damagePerProjectile = damage,
+                        lifeSpan = lifeSpan or 10.0,
+                        salvoCount = salvoCount,
+                    }
+                end
+            end
+        end
+    end
+
+    MissileWeaponProfileCache[cleanedName] = profile or false
+    return profile
+end
+
+local function GetUnitCurrentHealthPoints(h)
+    if not IsValid(h) then return nil end
+
+    local maxHealth = GetMaxHealth(h)
+    local curHealth = GetCurHealth(h)
+    if type(curHealth) == "number" and curHealth > 0.0 then
+        return curHealth
+    end
+
+    if type(maxHealth) == "number" and maxHealth > 0.0 then
+        local normalized = GetHealth(h)
+        if type(normalized) == "number" and normalized > 0.0 and normalized <= 2.0 then
+            return maxHealth * normalized
+        end
+        return maxHealth
+    end
+
     return nil
 end
 
@@ -906,6 +1103,7 @@ end
 
 aiCore.CountermeasureState = aiCore.CountermeasureState or {}
 aiCore.TrackedOrdnanceThreats = aiCore.TrackedOrdnanceThreats or {}
+aiCore.TrackedMissileAllocations = aiCore.TrackedMissileAllocations or {}
 
 function aiCore.GetCountermeasureMask(h, threatType)
     if not IsValid(h) then return 0 end
@@ -1003,6 +1201,94 @@ function aiCore.RegisterTrackedOrdnanceThreat(odf, shooter, transform, ordnanceH
         lastDistance = 999999.0
     }
     return true
+end
+
+function aiCore.RegisterTrackedMissileAllocation(odf, shooter, transform, ordnanceHandle)
+    if not ordnanceHandle or not IsValid(shooter) or not IsAlive(shooter) then return false end
+
+    local target = aiCore.SelectLikelyMissileTarget(shooter, transform)
+    if not IsValid(target) or not IsAlive(target) or IsAlly(shooter, target) then
+        return false
+    end
+
+    local profile = GetMissileWeaponProfile(odf)
+    if not profile or not profile.damage or profile.damage <= 0.0 then
+        return false
+    end
+
+    local now = GetTime()
+    aiCore.TrackedMissileAllocations[ordnanceHandle] = {
+        ordnanceHandle = ordnanceHandle,
+        odf = string.lower(utility.CleanString(profile.ordName or odf)),
+        shooter = shooter,
+        teamNum = GetTeamNum(shooter),
+        target = target,
+        damage = profile.damage,
+        createdAt = now,
+        expiresAt = now + math.max(1.0, profile.lifeSpan or 10.0) + 0.35,
+    }
+    return true
+end
+
+function aiCore.UpdateTrackedMissileAllocations()
+    local now = GetTime()
+    for ordnanceHandle, entry in pairs(aiCore.TrackedMissileAllocations) do
+        local shooter = entry.shooter
+        local target = entry.target
+        if now > (entry.expiresAt or 0.0)
+            or not IsValid(target)
+            or not IsAlive(target)
+            or not IsValid(shooter)
+            or not IsAlive(shooter)
+            or IsAlly(shooter, target) then
+            aiCore.TrackedMissileAllocations[ordnanceHandle] = nil
+        end
+    end
+end
+
+function aiCore.GetPendingMissileDamage(teamNum, target)
+    if not IsValid(target) then return 0.0 end
+
+    local total = 0.0
+    for _, entry in pairs(aiCore.TrackedMissileAllocations) do
+        if entry.teamNum == teamNum and entry.target == target then
+            total = total + (entry.damage or 0.0)
+        end
+    end
+    return total
+end
+
+function aiCore.FindMissileRetargetCandidate(shooter, currentTarget, teamNum, searchRadius, killBuffer)
+    if not IsValid(shooter) or not IsAlive(shooter) then return nil end
+
+    searchRadius = tonumber(searchRadius) or 200.0
+    killBuffer = tonumber(killBuffer) or 1.1
+
+    local bestTarget = nil
+    local bestScore = nil
+    for candidate in ObjectsInRange(searchRadius, shooter) do
+        if IsValid(candidate)
+            and IsAlive(candidate)
+            and candidate ~= currentTarget
+            and not IsAlly(shooter, candidate)
+            and (IsCraft(candidate) or IsBuilding(candidate)) then
+            local targetHealth = GetUnitCurrentHealthPoints(candidate)
+            if targetHealth and targetHealth > 0.0 then
+                local pendingDamage = aiCore.GetPendingMissileDamage(teamNum, candidate)
+                local deficit = (targetHealth * killBuffer) - pendingDamage
+                if deficit > 0.0 then
+                    local dist = GetDistance(shooter, candidate)
+                    local score = dist + math.min(deficit, 1200.0) * 0.05
+                    if not bestScore or score < bestScore then
+                        bestScore = score
+                        bestTarget = candidate
+                    end
+                end
+            end
+        end
+    end
+
+    return bestTarget
 end
 
 function aiCore.UpdateTrackedOrdnanceThreats()
@@ -1130,11 +1416,15 @@ function aiCore.SetupOrdnanceHooks()
     local initInstalled = aiCore.RegisterExuCallback("BulletInit", function(odf, shooter, transform, ordnanceHandle)
         if not aiCore.IsTrackingMissileOdf(odf) then return end
         aiCore.RegisterTrackedOrdnanceThreat(odf, shooter, transform, ordnanceHandle)
+        aiCore.RegisterTrackedMissileAllocation(odf, shooter, transform, ordnanceHandle)
     end)
 
     local hitInstalled = aiCore.RegisterExuCallback("BulletHit", function(odf, shooter, hitObject, transform, ordnanceHandle)
         if ordnanceHandle and aiCore.TrackedOrdnanceThreats then
             aiCore.TrackedOrdnanceThreats[ordnanceHandle] = nil
+        end
+        if ordnanceHandle and aiCore.TrackedMissileAllocations then
+            aiCore.TrackedMissileAllocations[ordnanceHandle] = nil
         end
     end)
 
@@ -2375,6 +2665,14 @@ function aiCore.WeaponManager.new(teamNum)
     self.doubleMaskCheckAt = {}
     self.doubleMaskInterval = 0.9
 
+    -- Missile users with non-missile fallback
+    self.missileUsers = {}
+    self.missileClampState = {}
+    self.missileUpdateAt = 0.0
+    self.missileUpdatePeriod = 0.2
+    self.missileKillBuffer = 1.1
+    self.missileRetargetRadius = 200.0
+
     -- Retaliation sweeps can touch every combat unit, so keep them off the per-frame path.
     self.retaliationUpdateAt = 0.0
     self.retaliationUpdatePeriod = 0.25
@@ -2439,6 +2737,53 @@ function aiCore.WeaponManager:AddObject(h)
         table.insert(self.doubleUsers, h)
         if aiCore.Debug then print("Team " .. self.teamNum .. " added double weapon user: " .. GetOdf(h)) end
     end
+
+    local missileSlots = {}
+    local missileMask = 0
+    local supportMask = 0
+    local unresolvedMissile = false
+    for i = 0, 4 do
+        local weapon = string.lower(utility.CleanString(GetWeaponClass(h, i)))
+        if weapon ~= "" then
+            local bit = 2 ^ i
+            if aiCore.GetMissileThreatType(weapon) then
+                local profile = GetMissileWeaponProfile(weapon)
+                if profile and profile.damage and profile.damage > 0.0 then
+                    table.insert(missileSlots, {
+                        slot = i,
+                        mask = bit,
+                        weapon = weapon,
+                        damage = profile.damage,
+                    })
+                    missileMask = missileMask + bit
+                else
+                    unresolvedMissile = true
+                end
+            else
+                supportMask = supportMask + bit
+            end
+        end
+    end
+
+    if not unresolvedMissile and #missileSlots > 0 then
+        table.sort(missileSlots, function(a, b)
+            if a.damage == b.damage then
+                return a.slot < b.slot
+            end
+            return a.damage < b.damage
+        end)
+
+        table.insert(self.missileUsers, {
+            handle = h,
+            missileSlots = missileSlots,
+            missileMask = missileMask,
+            supportMask = supportMask,
+            missileOnly = supportMask <= 0,
+        })
+        if aiCore.Debug then
+            print("Team " .. self.teamNum .. " added missile efficiency user: " .. GetOdf(h))
+        end
+    end
 end
 
 function aiCore.WeaponManager:Update()
@@ -2459,6 +2804,9 @@ function aiCore.WeaponManager:Update()
 
     -- Update double weapon users
     self:UpdateDoubleWeapons(dt)
+
+    -- Clamp missile launchers after the normal mask selection pass.
+    self:UpdateMissileEfficiency(dt)
 
     -- Targeted Retaliation (New)
     self:UpdateRetaliation(dt)
@@ -4313,17 +4661,25 @@ function aiCore.FactoryManager:update()
     if self.teamObj and self.teamObj.Config and not self.teamObj.Config.manageFactories then return end
 
     if not IsDeployed(self.handle) then
+        local currentTime = GetTime()
+        if self.teamObj and self.teamObj.ShouldDeferProducerDeploy and self.teamObj:ShouldDeferProducerDeploy(self.handle, currentTime) then
+            return
+        end
+
         local cmd = GetCurrentCommand(self.handle)
         -- Only issue Deploy command if not already deploying or undeploying
         -- AND not moving/defending (to prevent loops if unit is scripted to move while undeployed)
         if cmd ~= AiCommand.DEPLOY and cmd ~= AiCommand.UNDEPLOY and
             cmd ~= AiCommand.GO and cmd ~= AiCommand.GO_TO_GEYSER and
             cmd ~= AiCommand.DEFEND and cmd ~= AiCommand.FOLLOW then
-            local currentTime = GetTime()
             if currentTime >= (self.lastDeployCommandTime or 0) + 10 then
-                aiCore.TrySetCommand(self.handle, AiCommand.GO_TO_GEYSER, GetUncommandablePriority(), nil, nil, nil, nil,
-                    { minInterval = 1.0, overrideProtected = true })
-                self.lastDeployCommandTime = currentTime
+                if aiCore.TrySetCommand(self.handle, AiCommand.GO_TO_GEYSER, GetUncommandablePriority(), nil, nil, nil, nil,
+                        { minInterval = 1.0, overrideProtected = true }) then
+                    if self.teamObj and self.teamObj.MarkProducerDeployGrace then
+                        self.teamObj:MarkProducerDeployGrace(self.handle, currentTime, AiCommand.GO_TO_GEYSER)
+                    end
+                    self.lastDeployCommandTime = currentTime
+                end
             end
         end
         return -- Wait for deployment
@@ -5198,6 +5554,8 @@ end
 ---@field paratrooperTimer number
 ---@field tugTimer number
 ---@field stickTimer number
+---@field currentRescueVehicle any
+---@field rescueAttemptExpiry number
 aiCore.Team = {
     teamNum = 0,
     faction = 0,
@@ -5248,6 +5606,8 @@ aiCore.Team = {
     strategicGoals = {},
     strategicGoalCache = {},
     strategicGoalTimer = 0.0,
+    baseCenter = nil,
+    baseCenterUpdateAt = 0.0,
     lastLaunchedGoalKey = nil,
     strategicMode = "balanced",
     strategicModeReason = "default",
@@ -5259,6 +5619,7 @@ aiCore.Team = {
     scrapTrackedUnits = {},
     scrapOrderState = {},
     scrapOutpostTimer = 0.0,
+    producerDeployState = {},
     buildAccountWeights = {},
     buildAccountSpend = {},
     buildAccountTimer = 0.0,
@@ -5285,6 +5646,8 @@ aiCore.Team = {
     -- pilotMode State
     roleTimer = 0,
     rescueTimer = 0,
+    currentRescueVehicle = nil,
+    rescueAttemptExpiry = 0.0,
     tugTimer = 0,
     stickTimer = 0,
 
@@ -5357,6 +5720,7 @@ function aiCore.Team:new(teamNum, faction)
         tugCount = 2,
         buildingSpacing = 80,
         rescueDelay = 2.0,
+        rescueAttemptTimeout = 20.0,
         pilotTopoff = 4,
         tacticalRecomputeInterval = 8.0,
         tacticalThreatPriority = 150.0,
@@ -5415,6 +5779,10 @@ function aiCore.Team:new(teamNum, faction)
         tacticalFormationOcclusionRadius = 35.0,
         tacticalFormationOcclusionDot = 0.92,
         strategicSiegeRiskThreshold = 5.5,
+        baseCenterRefreshInterval = 4.0,
+        basePlanMoveThreshold = 20.0,
+        basePlanRecenterRadius = 360.0,
+        producerDeployGrace = 18.0,
 
         -- Reinforcements
         orbitalReinforce = false,
@@ -5482,6 +5850,8 @@ function aiCore.Team:new(teamNum, faction)
     t.strategicGoals = {}
     t.strategicGoalCache = {}
     t.strategicGoalTimer = 0.0
+    t.baseCenter = nil
+    t.baseCenterUpdateAt = 0.0
     t.lastLaunchedGoalKey = nil
     t.strategicMode = "balanced"
     t.strategicModeReason = "default"
@@ -5493,6 +5863,7 @@ function aiCore.Team:new(teamNum, faction)
     t.scrapTrackedUnits = {}
     t.scrapOrderState = {}
     t.scrapOutpostTimer = 0.0
+    t.producerDeployState = {}
     t.buildAccountWeights = { offense = 1.0, defense = 1.0, rebuild = 1.0, economy = 1.0 }
     t.buildAccountSpend = { offense = 0.0, defense = 0.0, rebuild = 0.0, economy = 0.0 }
     t.buildAccountTimer = 0.0
@@ -5510,6 +5881,8 @@ function aiCore.Team:new(teamNum, faction)
     t.techTimer = 0
     t.pilotResTimer = 0
     t.rescueTimer = 0
+    t.currentRescueVehicle = nil
+    t.rescueAttemptExpiry = 0.0
     t.paratrooperTimer = 0
 
     t.stealthState = {
@@ -5576,6 +5949,296 @@ function aiCore.Team:new(teamNum, faction)
 
     t.lastFactoryDeployTime = 0
     return t
+end
+
+local function CopyVector(pos)
+    if not pos then return nil end
+    return SetVector(pos.x, pos.y, pos.z)
+end
+
+local function AddWeightedPosition(accum, pos, weight)
+    if not pos or not weight or weight <= 0.0 then return end
+    accum.x = accum.x + (pos.x * weight)
+    accum.y = accum.y + (pos.y * weight)
+    accum.z = accum.z + (pos.z * weight)
+    accum.weight = accum.weight + weight
+end
+
+function aiCore.Team:GetProducerDeployGrace()
+    return math.max(6.0, (self.Config and self.Config.producerDeployGrace) or 18.0)
+end
+
+function aiCore.Team:MarkProducerDeployGrace(h, now, command)
+    if not IsValid(h) then return end
+    self.producerDeployState = self.producerDeployState or {}
+    self.producerDeployState[h] = self.producerDeployState[h] or {}
+    local state = self.producerDeployState[h]
+    state.holdUntil = (now or GetTime()) + self:GetProducerDeployGrace()
+    state.command = command or GetCurrentCommand(h)
+end
+
+function aiCore.Team:ShouldDeferProducerDeploy(h, now)
+    if not IsValid(h) then return false end
+
+    self.producerDeployState = self.producerDeployState or {}
+    local state = self.producerDeployState[h]
+    if not state then
+        state = { holdUntil = 0.0, command = AiCommand.NONE }
+        self.producerDeployState[h] = state
+    end
+
+    if IsDeployed(h) then
+        self.producerDeployState[h] = nil
+        return false
+    end
+
+    local currentTime = now or GetTime()
+    local cmd = GetCurrentCommand(h)
+    if cmd == AiCommand.GO_TO_GEYSER or cmd == AiCommand.DEPLOY or cmd == AiCommand.UNDEPLOY then
+        state.holdUntil = math.max(state.holdUntil or 0.0, currentTime + self:GetProducerDeployGrace())
+        state.command = cmd
+    end
+
+    if currentTime < (state.holdUntil or 0.0) then
+        return true
+    end
+
+    return false
+end
+
+function aiCore.Team:RefreshPlannedBaseStructures(previousCenter, newCenter)
+    if not previousCenter or not newCenter then return end
+
+    local delta = newCenter - previousCenter
+    local moveDist = Length(delta)
+    if moveDist < (self.Config.basePlanMoveThreshold or 20.0) then return end
+
+    local localRadius = self.Config.basePlanRecenterRadius or 360.0
+
+    local function ShiftPath(path)
+        if type(path) == "string" or not path then return path end
+
+        local isMatrixLike = path.posit_x ~= nil and path.posit_y ~= nil and path.posit_z ~= nil
+        local pathPos = isMatrixLike and MatrixToPosition(path) or path
+        if not pathPos then return path end
+        if DistanceBetweenRefs(pathPos, previousCenter) > localRadius then return path end
+
+        local shifted = SetVector(pathPos.x + delta.x, pathPos.y + delta.y, pathPos.z + delta.z)
+        shifted.y = GetTerrainHeight(shifted.x, shifted.z)
+
+        if isMatrixLike then
+            local facing = Normalize(shifted - newCenter)
+            if Length(facing) <= 0.01 then
+                facing = aiCore.VecFacing.N
+            end
+            return aiCore.BuildDirectionalMatrix(shifted, facing)
+        end
+
+        return shifted
+    end
+
+    for _, item in pairs(self.buildingList or aiCore.EmptyList) do
+        if item and not IsValid(item.handle) then
+            item.path = ShiftPath(item.path)
+        end
+    end
+
+    for _, qItem in ipairs(self.constructorMgr and self.constructorMgr.queue or aiCore.EmptyList) do
+        if qItem and not IsValid(qItem.handle) then
+            qItem.path = ShiftPath(qItem.path)
+        end
+    end
+end
+
+function aiCore.WeaponManager:UpdateMissileEfficiency(dt)
+    local now = GetTime()
+    if now < (self.missileUpdateAt or 0.0) then return end
+    self.missileUpdateAt = now + (self.missileUpdatePeriod or 0.2)
+
+    for i = #self.missileUsers, 1, -1 do
+        local user = self.missileUsers[i]
+        local h = user.handle
+        if not IsValid(h) or not IsAlive(h) then
+            self.missileClampState[h] = nil
+            table.remove(self.missileUsers, i)
+        else
+            local state = self.missileClampState[h]
+            local currentMask = GetCurrentWeaponMaskValue(h)
+            if currentMask <= 0 then
+                currentMask = GetDefaultWeaponMask(h)
+            end
+
+            local baseMask = currentMask
+            if state and state.active and state.lastMask == currentMask and state.baseMask and state.baseMask > 0 then
+                baseMask = state.baseMask
+            end
+
+            local target = GetCurrentWho(h)
+            local validTarget = IsValid(target) and IsAlive(target) and not IsAlly(h, target)
+            if not validTarget then
+                if state and state.active and state.baseMask and state.baseMask > 0 then
+                    SetWeaponMask(h, state.baseMask)
+                end
+                self.missileClampState[h] = nil
+            else
+                local targetHealth = GetUnitCurrentHealthPoints(target)
+                if not targetHealth or targetHealth <= 0.0 then
+                    if state and state.active and state.baseMask and state.baseMask > 0 then
+                        SetWeaponMask(h, state.baseMask)
+                    end
+                    self.missileClampState[h] = nil
+                else
+                    local pendingDamage = aiCore.GetPendingMissileDamage(self.teamNum, target)
+                    local neededDamage = (targetHealth * (self.missileKillBuffer or 1.1)) - pendingDamage
+
+                    local supportMask = RemoveMaskBits(baseMask, user.missileMask)
+                    if supportMask <= 0 then
+                        supportMask = user.supportMask or 0
+                    end
+
+                    if neededDamage <= 0.0 and user.missileOnly then
+                        local alternateTarget = aiCore.FindMissileRetargetCandidate(h, target, self.teamNum,
+                            self.missileRetargetRadius or 200.0, self.missileKillBuffer or 1.1)
+                        if IsValid(alternateTarget) then
+                            aiCore.TryAttack(h, alternateTarget, GetCommandableAttackPriority(),
+                                { minInterval = 0.35, overrideProtected = true })
+                            target = alternateTarget
+                            targetHealth = GetUnitCurrentHealthPoints(target)
+                            pendingDamage = aiCore.GetPendingMissileDamage(self.teamNum, target)
+                            neededDamage = (targetHealth and targetHealth > 0.0)
+                                and ((targetHealth * (self.missileKillBuffer or 1.1)) - pendingDamage)
+                                or 0.0
+                        end
+                    end
+
+                    local desiredMissileMask = 0
+                    if neededDamage > 0.0 then
+                        for _, slotInfo in ipairs(user.missileSlots) do
+                            desiredMissileMask = MergeMaskBits(desiredMissileMask, slotInfo.mask)
+                            neededDamage = neededDamage - (slotInfo.damage or 0.0)
+                            if neededDamage <= 0.0 then
+                                break
+                            end
+                        end
+                    end
+
+                    if supportMask <= 0 then
+                        if desiredMissileMask <= 0 then
+                            if state and state.active and state.baseMask and currentMask == state.lastMask then
+                                SetWeaponMask(h, state.baseMask)
+                            end
+                            self.missileClampState[h] = nil
+                        else
+                            local desiredMask = desiredMissileMask
+                            if desiredMask ~= baseMask then
+                                SetWeaponMask(h, desiredMask)
+                                self.missileClampState[h] = {
+                                    active = true,
+                                    baseMask = baseMask,
+                                    lastMask = desiredMask,
+                                }
+                            else
+                                if state and state.active and state.baseMask and currentMask == state.lastMask then
+                                    SetWeaponMask(h, state.baseMask)
+                                end
+                                self.missileClampState[h] = nil
+                            end
+                        end
+                    else
+                        local desiredMask = MergeMaskBits(supportMask, desiredMissileMask)
+                        if desiredMask ~= baseMask then
+                            SetWeaponMask(h, desiredMask)
+                            self.missileClampState[h] = {
+                                active = true,
+                                baseMask = baseMask,
+                                lastMask = desiredMask,
+                            }
+                        else
+                            if state and state.active and state.baseMask and currentMask == state.lastMask then
+                                SetWeaponMask(h, state.baseMask)
+                            end
+                            self.missileClampState[h] = nil
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+function aiCore.Team:UpdateBaseCenter(force)
+    local now = GetTime()
+    if not force and now < (self.baseCenterUpdateAt or 0.0) then
+        return self.baseCenter
+    end
+
+    self.baseCenterUpdateAt = now + (self.Config.baseCenterRefreshInterval or 4.0)
+
+    local accum = { x = 0.0, y = 0.0, z = 0.0, weight = 0.0 }
+    local recycler = GetRecyclerHandle(self.teamNum)
+    local factory = GetFactoryHandle(self.teamNum)
+    local armory = GetArmoryHandle(self.teamNum)
+    local constructor = GetConstructorHandle(self.teamNum)
+
+    local function AddRef(ref, weight)
+        if IsValid(ref) and IsAlive(ref) then
+            AddWeightedPosition(accum, GetPosition(ref), weight)
+        end
+    end
+
+    AddRef(recycler, IsValid(recycler) and (IsDeployed(recycler) and 6.0 or 5.0) or 0.0)
+    AddRef(factory, IsValid(factory) and (IsDeployed(factory) and 4.5 or 3.0) or 0.0)
+    AddRef(armory, 2.0)
+
+    for _, obj in ipairs(aiCore.GetCachedBuildings(self.teamNum)) do
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) then
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            local weight = 1.0
+            if cls == utility.ClassLabel.POWERPLANT or cls == utility.ClassLabel.SCRAP_SILO then
+                weight = 0.75
+            elseif cls == utility.ClassLabel.SUPPLY_DEPOT or cls == utility.ClassLabel.REPAIR_DEPOT then
+                weight = 0.9
+            end
+            AddRef(obj, weight)
+        end
+    end
+
+    if accum.weight <= 0.0 then
+        AddRef(constructor, 1.5)
+    end
+
+    if accum.weight <= 0.0 then
+        return self.baseCenter
+    end
+
+    local center = SetVector(accum.x / accum.weight, accum.y / accum.weight, accum.z / accum.weight)
+    center.y = GetTerrainHeight(center.x, center.z)
+
+    local previousCenter = self.baseCenter and CopyVector(self.baseCenter) or nil
+    self.baseCenter = center
+    self.basePositions = self.basePositions or {}
+    self.basePositions.center = CopyVector(center)
+    if IsValid(recycler) then self.basePositions.recycler = CopyVector(GetPosition(recycler)) end
+    if IsValid(factory) then self.basePositions.factory = CopyVector(GetPosition(factory)) end
+    if previousCenter then
+        self:RefreshPlannedBaseStructures(previousCenter, center)
+    end
+
+    return self.baseCenter
+end
+
+function aiCore.Team:GetBaseCenter(force)
+    return self:UpdateBaseCenter(force)
+end
+
+function aiCore.Team:GetBaseReference(force)
+    local recycler = GetRecyclerHandle(self.teamNum)
+    if IsValid(recycler) then return recycler end
+
+    local factory = GetFactoryHandle(self.teamNum)
+    if IsValid(factory) then return factory end
+
+    return self:GetBaseCenter(force)
 end
 
 function aiCore.Team:UpdateOffensiveRetaliation()
@@ -5806,9 +6469,6 @@ end
 
 -- Find optimal location for silo near scrap (enhanced from pilotMode)
 function aiCore.Team:FindOptimalSiloLocation(minDist, maxDist)
-    local recycler = GetRecyclerHandle(self.teamNum)
-    if not IsValid(recycler) then return nil end
-
     minDist = minDist or self.Config.siloMinDistance or 250.0
     maxDist = maxDist or self.Config.siloMaxDistance or 450.0
     maxDist = math.max(maxDist, 500.0) -- Ensure broad search around base.
@@ -5818,7 +6478,9 @@ function aiCore.Team:FindOptimalSiloLocation(minDist, maxDist)
         maxDist = t
     end
 
-    local recPos = GetPosition(recycler)
+    local recycler = GetRecyclerHandle(self.teamNum)
+    local recPos = self:GetBaseCenter(true) or (IsValid(recycler) and GetPosition(recycler) or nil)
+    if not recPos then return nil end
     local bestPos = nil
     local bestScrapDensity = 0
     local scrapScanRadius = 120
@@ -5919,8 +6581,8 @@ end
 -- Find a flat location for a base building
 function aiCore.Team:FindFlatBaseLocation(odf, minDist, maxDist, spacing)
     local recycler = GetRecyclerHandle(self.teamNum)
-    if not IsValid(recycler) then return nil end
-    local recPos = GetPosition(recycler)
+    local recPos = self:GetBaseCenter(true) or (IsValid(recycler) and GetPosition(recycler) or nil)
+    if not recPos then return nil end
 
     -- Relaxed loop: try to find a spot, increasing distance if needed
     local currentMax = maxDist
@@ -6382,6 +7044,7 @@ end
 
 function aiCore.Team:Update()
     local now = GetTime()
+    self:UpdateBaseCenter()
     self:UpdateStrategicFSM()
 
     if now >= (self.buildMaintenanceAt or 0.0) then
@@ -6464,7 +7127,10 @@ function aiCore.Team:UpdateStickToPlayer()
     self.stickToPlayerTimer = now + assistStep
 
     local player = GetPlayerHandle()
-    if not IsValid(player) then return end
+    if not IsValid(player) or IsPerson(player) then
+        self.stickAssistState = {}
+        return
+    end
 
     local pPos = GetPosition(player)
     local pVel = GetVelocity(player)
@@ -6484,7 +7150,7 @@ function aiCore.Team:UpdateStickToPlayer()
             local cls = string.lower(utility.CleanString(GetClassLabel(u)))
             local isWingman = (cls == "wingman")
             local isPlayerAnchorOrder = target == player and
-                (cmd == AiCommand.FOLLOW or cmd == AiCommand.FORMATION or (isWingman and cmd == AiCommand.DEFEND))
+                (cmd == AiCommand.FOLLOW or cmd == AiCommand.FORMATION or cmd == AiCommand.DEFEND)
             local state = self.stickAssistState[u] or {
                 lastDist = 999999.0,
                 stuckTime = 0.0,
@@ -6773,11 +7439,14 @@ function aiCore.Team:UpdateBaseMaintenance()
         -- Check if an undeployed factory vehicle exists
         if pending then
             -- Factory exists but not deployed - send to geyser
-            if not IsDeployed(nearby) and not IsBusy(nearby) and GetCurrentCommand(nearby) ~= AiCommand.GO_TO_GEYSER then
+            local deferDeploy = self:ShouldDeferProducerDeploy(nearby, now)
+            if not deferDeploy and not IsDeployed(nearby) and not IsBusy(nearby) and GetCurrentCommand(nearby) ~= AiCommand.GO_TO_GEYSER then
                 if now >= (self.lastFactoryDeployTime or 0) + 10 then
-                    aiCore.TrySetCommand(nearby, AiCommand.GO_TO_GEYSER, 1, nil, nil, nil, nil,
-                        { minInterval = 1.0, overrideProtected = true })
-                    self.lastFactoryDeployTime = now
+                    if aiCore.TrySetCommand(nearby, AiCommand.GO_TO_GEYSER, 1, nil, nil, nil, nil,
+                            { minInterval = 1.0, overrideProtected = true }) then
+                        self:MarkProducerDeployGrace(nearby, now, AiCommand.GO_TO_GEYSER)
+                        self.lastFactoryDeployTime = now
+                    end
                 end
             end
         end
@@ -7999,6 +8668,14 @@ function aiCore.Team:GetNearestEnemyProducerDistance(pos)
         best = math.min(best, DistanceBetweenRefs(factory, pos))
     end
 
+    if best >= 999999 then
+        local enemyAi = aiCore.ActiveTeams and aiCore.ActiveTeams[enemyTeam] or nil
+        local enemyCenter = enemyAi and enemyAi:GetBaseCenter(true) or nil
+        if enemyCenter then
+            best = math.min(best, DistanceBetweenRefs(enemyCenter, pos))
+        end
+    end
+
     return best
 end
 
@@ -8913,6 +9590,7 @@ function aiCore.Team:UpdateUnitRoles()
     if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
 
     local recycler = GetRecyclerHandle(self.teamNum)
+    local baseRef = self:GetBaseReference()
     local player = (self.Config.stickToPlayer and self.teamNum == 1) and GetPlayerHandle() or nil
 
     local recyclerThreat = nil
@@ -8945,7 +9623,7 @@ function aiCore.Team:UpdateUnitRoles()
         end
     end
 
-    local strategicDefenseGoal = self:SelectStrategicGoal(recycler or self.recyclerMgr.handle, math.huge,
+    local strategicDefenseGoal = self:SelectStrategicGoal(recycler or baseRef or self.recyclerMgr.handle, math.huge,
         { defenseOnly = true, allowUnderstrength = true })
     if strategicDefenseGoal then
         threatenedFront = strategicDefenseGoal.target or threatenedFront
@@ -8964,7 +9642,7 @@ function aiCore.Team:UpdateUnitRoles()
     local walkerAttackGoal = nil
     local walkerAttackTarget = nil
     if not recyclerUnderAttack then
-        walkerAttackGoal = self:SelectStrategicGoal(recycler or self.recyclerMgr.handle, math.huge,
+        walkerAttackGoal = self:SelectStrategicGoal(recycler or baseRef or self.recyclerMgr.handle, math.huge,
             { attackOnly = true, allowUnderstrength = true })
         walkerAttackTarget = walkerAttackGoal and (walkerAttackGoal.target or self:ResolveStrategicGoalTarget(walkerAttackGoal)) or nil
     end
@@ -9069,13 +9747,75 @@ end
 function aiCore.Team:UpdateRescue()
     if self.teamNum ~= 1 or not self.Config.autoRescue then return end
     local player = GetPlayerHandle()
-    if IsPerson(player) and GetTime() > (self.rescueTimer or 0) then
-        self.rescueTimer = GetTime() + aiCore.Constants.RESCUE_CHECK_INTERVAL
-        PruneSpecializedPoolUnits(self.pool)
-        local veh = self.pool[1]
-        if IsValid(veh) then
-            aiCore.TrySetCommand(veh, AiCommand.RESCUE, 1, player, nil, nil, nil,
-                { minInterval = 1.0, overrideProtected = true })
+    local now = GetTime()
+
+    if not IsPerson(player) then
+        self.currentRescueVehicle = nil
+        self.rescueAttemptExpiry = 0.0
+        return
+    end
+
+    local activeRescue = self.currentRescueVehicle
+    if IsValid(activeRescue) and IsAlive(activeRescue) then
+        local activeCmd = GetCurrentCommand(activeRescue)
+        local activeTarget = GetCurrentWho(activeRescue)
+        if activeCmd == AiCommand.RESCUE and activeTarget == player and now < (self.rescueAttemptExpiry or 0.0) then
+            return
+        end
+    else
+        self.currentRescueVehicle = nil
+        self.rescueAttemptExpiry = 0.0
+    end
+
+    if now < (self.rescueTimer or 0.0) then return end
+    self.rescueTimer = now + aiCore.Constants.RESCUE_CHECK_INTERVAL
+
+    local bestVehicle = nil
+    local bestScore = math.huge
+    local seen = {}
+
+    local function ConsiderRescueVehicle(veh)
+        if not IsValid(veh) or not IsAlive(veh) or seen[veh] then return end
+        seen[veh] = true
+        if veh == player or IsPerson(veh) or IsBuilding(veh) or IsDeployed(veh) then return end
+
+        local cls = string.lower(utility.CleanString(GetClassLabel(veh)))
+        if string.find(cls, utility.ClassLabel.SCAVENGER) ~= nil
+            or string.find(cls, utility.ClassLabel.CONSTRUCTOR) ~= nil
+            or string.find(cls, utility.ClassLabel.TUG) ~= nil
+            or IsSpecializedPoolClass(cls) then
+            return
+        end
+
+        local dist = GetDistance(veh, player)
+        local cmd = GetCurrentCommand(veh)
+        local score = dist
+        if cmd == AiCommand.NONE or cmd == AiCommand.STOP then
+            score = score - 60.0
+        elseif cmd == AiCommand.FOLLOW or cmd == AiCommand.DEFEND or cmd == AiCommand.FORMATION then
+            score = score - 25.0
+        end
+
+        if score < bestScore then
+            bestScore = score
+            bestVehicle = veh
+        end
+    end
+
+    PruneSpecializedPoolUnits(self.pool)
+    for _, veh in ipairs(self.pool or aiCore.EmptyList) do
+        ConsiderRescueVehicle(veh)
+    end
+    for _, veh in ipairs(self.combatUnits or aiCore.EmptyList) do
+        ConsiderRescueVehicle(veh)
+    end
+
+    if IsValid(bestVehicle) then
+        local didSend = aiCore.TrySetCommand(bestVehicle, AiCommand.RESCUE, GetCommandableAttackPriority(), player, nil, nil, nil,
+            { minInterval = 0.5, overrideProtected = true })
+        if didSend then
+            self.currentRescueVehicle = bestVehicle
+            self.rescueAttemptExpiry = now + (self.Config.rescueAttemptTimeout or 20.0)
         end
     end
 end
@@ -9251,6 +9991,8 @@ function aiCore.Team:UpdatePilots()
                 local enemyCloaked = IsValid(enemy) and IsCloaked(enemy)
                 local canStartSniperAttack = isSniper and IsValid(enemy) and dist < sniperRange and grounded and not enemyCloaked and
                     (cmd == utility.AiCommand.GO or (cmd == utility.AiCommand.NONE and ammo >= 0.3))
+                local canMaintainSniperCombat = isSniper and IsValid(enemy) and dist < sniperRange and grounded and
+                    not enemyCloaked and utility.CanSnipe(enemy) and ammo >= 0.3
 
                 -- Sniper behavior (ported from aiSpecial): attack first, rifle equip is the training roll.
                 if weapon0 ~= "" and string.find(weapon0, "handgun") then
@@ -9273,25 +10015,31 @@ function aiCore.Team:UpdatePilots()
                     local target = GetTarget(p)
                     local stealthRoll = self.Config.sniperStealth or 50
                     if stealthRoll <= 1.0 then stealthRoll = stealthRoll * 100 end
+                    local emptyCraftTarget = IsValid(target) and IsCraft(target) and not IsAliveAndPilot(target)
 
                     -- Legacy handoff: if the marked target is now empty craft, commandeer it.
-                    if IsValid(target) and IsCraft(target) and not IsAliveAndPilot(target) and cmd ~= utility.AiCommand.GET_IN then
+                    if emptyCraftTarget then
                         GiveWeapon(p, "handgun", 0)
+                        weapon0 = "handgun"
                         self.sniperEquipTime[p] = nil
-                        if actionReady then
+                        if actionReady and cmd ~= utility.AiCommand.GET_IN then
                             GetIn(p, target)
                             self.pilotActionTimer[p] = now + 1.2
                         end
                     elseif ammo <= 0.3 then
                         GiveWeapon(p, "handgun", 0)
+                        weapon0 = "handgun"
                         self.sniperEquipTime[p] = nil
                         if math.random(100) <= stealthRoll then
                             Stop(p)
                         end
-                    elseif (not IsValid(enemy) or dist >= sniperRange or enemyCloaked or not grounded) and cmd == utility.AiCommand.ATTACK then
+                    elseif not canMaintainSniperCombat then
                         GiveWeapon(p, "handgun", 0)
+                        weapon0 = "handgun"
                         self.sniperEquipTime[p] = nil
-                        Stop(p)
+                        if cmd == utility.AiCommand.ATTACK then
+                            Stop(p)
+                        end
                     end
                 end
 
@@ -9317,9 +10065,10 @@ function aiCore.Team:UpdatePilots()
                     if IsValid(target) and IsCraft(target) and not IsAliveAndPilot(target) then
                         -- A pilot cannot move with a sniper rifle equipped.
                         if weapon0 ~= "" and string.find(weapon0, "gsnipe") then
+                            GiveWeapon(p, "handgun", 0)
+                            weapon0 = "handgun"
+                            self.sniperEquipTime[p] = nil
                             if actionReady then
-                                GiveWeapon(p, "handgun", 0)
-                                self.sniperEquipTime[p] = nil
                                 self.pilotActionTimer[p] = now + 0.6
                             end
                         elseif GetDistance(p, target) < 10 then -- Narrowed for GetIn
@@ -9935,7 +10684,7 @@ end
 
 ---@return any
 function aiCore.Team:FindCriticalTarget()
-    local origin = IsValid(self.recyclerMgr.handle) and self.recyclerMgr.handle or self.factoryMgr.handle
+    local origin = self:GetBaseReference() or self.factoryMgr.handle
     local strategicGoal = self:SelectStrategicGoal(origin, math.huge, { attackOnly = true, allowUnderstrength = true })
     if strategicGoal then
         local target = strategicGoal.target
@@ -9981,8 +10730,8 @@ function aiCore.Team:PlanDefensivePerimeter(powerCount, towersPerPower)
     towersPerPower = towersPerPower or 1
 
     local recycler = GetRecyclerHandle(self.teamNum)
-    if not IsValid(recycler) then return end
-    local recyclerPos = GetPosition(recycler)
+    local recyclerPos = self:GetBaseCenter(true) or (IsValid(recycler) and GetPosition(recycler) or nil)
+    if not recyclerPos then return end
 
     -- Smart Power Selection
     local powerKey = aiCore.DetectWorldPower()
@@ -10089,6 +10838,7 @@ function aiCore.Update()
 
     aiCore.RefreshObjectCache(false)
     aiCore.UpdateTrackedOrdnanceThreats()
+    aiCore.UpdateTrackedMissileAllocations()
     aiCore.UpdatePlayerRushAggression()
 
     if now >= (aiCore._commandStateCleanupTimer or 0.0) then

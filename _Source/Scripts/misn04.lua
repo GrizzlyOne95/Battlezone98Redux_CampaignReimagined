@@ -229,6 +229,7 @@ local function SetupAI()
         cca.Config.manageFactories = true
         cca.Config.manageConstructor = true
         cca.Config.resourceBoost = true
+        cca.resourceBoostTimer = GetTime() + DiffUtils.ScaleTimer(300.0)
         cca.Config.allowProducerRelocation = false
         cca.Config.minScavengers = 4
         cca.Config.requireConstructorFirst = true

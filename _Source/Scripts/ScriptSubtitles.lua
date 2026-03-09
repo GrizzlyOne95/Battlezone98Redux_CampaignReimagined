@@ -1,14 +1,113 @@
 -- Subtitles.lua
 -- Wrapper for subtitles.dll with automated text loading
 local subtitles = require("subtitles")
+local exu = require("exu")
 
 local Subtitles = {}
+local SUBTITLE_CHANNEL = 3
+local TEXT_PRESETS = {
+    [1] = { scale = 0.85 },
+    [2] = { scale = 1.00 },
+    [3] = { scale = 1.15 },
+    [4] = { scale = 1.30 },
+}
 
 -- State
 local currentAudioHandle = nil
 local DEFAULT_DURATION = 8.0
 local durations = {}
 Subtitles.LastEndTime = 0
+Subtitles.Config = {
+    opacity = 0.5,
+    textSizePreset = 2,
+}
+
+local function Clamp(value, minimum, maximum)
+    if value < minimum then return minimum end
+    if value > maximum then return maximum end
+    return value
+end
+
+local function GetTextPreset()
+    local idx = math.floor(tonumber(Subtitles.Config.textSizePreset) or 2)
+    return TEXT_PRESETS[idx] or TEXT_PRESETS[2]
+end
+
+local function ApplySubtitleLayout()
+    if not subtitles.set_channel_layout or not subtitles.submit_to then
+        return false
+    end
+
+    local width, height = 1920, 1080
+    local uiScale = 2.0
+    local preset = GetTextPreset()
+
+    if exu and exu.GetScreenResolution then
+        local ok, screenW, screenH = pcall(exu.GetScreenResolution)
+        if ok and type(screenW) == "number" and screenW > 0 and type(screenH) == "number" and screenH > 0 then
+            width, height = screenW, screenH
+        end
+    elseif exu and exu.GetGameResolution then
+        local ok, gameW, gameH = pcall(exu.GetGameResolution)
+        if ok and type(gameW) == "number" and gameW > 0 and type(gameH) == "number" and gameH > 0 then
+            width, height = gameW, gameH
+        end
+    end
+
+    if exu and exu.GetUIScaling then
+        local ok, value = pcall(exu.GetUIScaling)
+        if ok and type(value) == "number" and value > 0 then
+            uiScale = value
+        end
+    end
+
+    local aspect = width / math.max(height, 1)
+    local aspectScale = Clamp((16.0 / 9.0) / aspect, 0.78, 1.35)
+    local uiScaleFactor = Clamp((uiScale / 2.0) ^ 0.42, 0.85, 1.45)
+    local textScale = Clamp(0.27 * aspectScale * uiScaleFactor * preset.scale, 0.20, 0.48)
+    local wrapWidth = Clamp(0.46 * Clamp(1.0 / aspectScale, 0.92, 1.18) * uiScaleFactor, 0.34, 0.72)
+    local paddingX = 6.0 * preset.scale
+    local paddingY = 5.0 * preset.scale
+    local opacity = Clamp(tonumber(Subtitles.Config.opacity) or 0.5, 0.0, 1.0)
+
+    subtitles.set_channel_layout(SUBTITLE_CHANNEL, 0.5, 0.95, 0.5, 1.0, textScale, wrapWidth, paddingX, paddingY, opacity)
+    return true
+end
+
+local function ClearSubtitleChannel()
+    if subtitles.clear_queue then
+        subtitles.clear_queue(SUBTITLE_CHANNEL)
+    end
+    if subtitles.clear_current then
+        subtitles.clear_current(SUBTITLE_CHANNEL)
+    end
+end
+
+local function SubmitSubtitleText(text, duration, r, g, b)
+    if ApplySubtitleLayout() then
+        ClearSubtitleChannel()
+        subtitles.submit_to(SUBTITLE_CHANNEL, text, duration, r, g, b)
+    else
+        subtitles.clear_queue()
+        if subtitles.clear_current then subtitles.clear_current() end
+        subtitles.set_opacity(Clamp(tonumber(Subtitles.Config.opacity) or 0.5, 0.0, 1.0))
+        subtitles.submit(text, duration, r, g, b)
+    end
+end
+
+function Subtitles.SetOpacity(value)
+    Subtitles.Config.opacity = Clamp(tonumber(value) or 0.5, 0.0, 1.0)
+    if subtitles.set_opacity then
+        subtitles.set_opacity(Subtitles.Config.opacity)
+    end
+end
+
+function Subtitles.SetTextSizePreset(preset)
+    local idx = math.floor(tonumber(preset) or 2)
+    if idx < 1 then idx = 1 end
+    if idx > #TEXT_PRESETS then idx = #TEXT_PRESETS end
+    Subtitles.Config.textSizePreset = idx
+end
 
 --- Helper to read a 4-byte little-endian integer from a string
 local function readInt32LE(s, pos)
@@ -73,7 +172,8 @@ end
 function Subtitles.Initialize(durationCsv)
     -- Ensure clear queue on start
     subtitles.clear_queue()
-    subtitles.set_opacity(0.5) -- Set to 50% opacity for better readability with borders
+    ClearSubtitleChannel()
+    Subtitles.SetOpacity(Subtitles.Config.opacity)
 
     -- Load default durations if nothing specified
     durationCsv = durationCsv or "durations.csv"
@@ -87,10 +187,6 @@ end
 --- @param b number|nil Blue (0-1)
 --- @param duration number|nil Duration in seconds
 function Subtitles.Display(text, r, g, b, duration)
-    subtitles.clear_queue()
-    if subtitles.clear_current then subtitles.clear_current() end
-    subtitles.set_opacity(0.5) -- Ensure visible
-
     r = r or 1.0
     g = g or 1.0
     b = b or 1.0
@@ -101,7 +197,7 @@ function Subtitles.Display(text, r, g, b, duration)
     end
 
     local wrapped = Subtitles.WrapText(text, 50)
-    subtitles.submit(wrapped, duration, r, g, b)
+    SubmitSubtitleText(wrapped, duration, r, g, b)
     Subtitles.LastEndTime = GetTime() + duration
 end
 
@@ -129,7 +225,7 @@ end
 function Subtitles.Play(wavFilename, r, g, b)
     -- Clear any existing audio and subtitles
     Subtitles.Stop()
-    subtitles.set_opacity(1.0) -- Ensure visible
+    Subtitles.SetOpacity(Subtitles.Config.opacity)
 
     -- Default to white if not provided
     if r == nil then r = 1.0 end
@@ -194,11 +290,18 @@ function Subtitles.Play(wavFilename, r, g, b)
         -- Submit chunks with weighted duration (longer chunks get more time)
         local total_chars = #content
         if total_chars > 0 then
+            if ApplySubtitleLayout() then
+                ClearSubtitleChannel()
+            end
             for _, chunk in ipairs(chunks) do
                 local chunk_weight = #chunk / total_chars
                 local chunk_dur = dur * chunk_weight
                 local final_dur = math.max(1.5, chunk_dur)
-                subtitles.submit(chunk, final_dur, r, g, b)
+                if ApplySubtitleLayout() then
+                    subtitles.submit_to(SUBTITLE_CHANNEL, chunk, final_dur, r, g, b)
+                else
+                    subtitles.submit(chunk, final_dur, r, g, b)
+                end
                 Subtitles.LastEndTime = GetTime() + final_dur
             end
         end
@@ -216,6 +319,7 @@ function Subtitles.Update()
         if IsAudioMessageDone(currentAudioHandle) then
             subtitles.clear_queue()
             if subtitles.clear_current then subtitles.clear_current() end
+            ClearSubtitleChannel()
             currentAudioHandle = nil
             -- When audio finishes, we might still have a visual duration pending
         end
@@ -248,6 +352,7 @@ function Subtitles.Stop()
     end
     subtitles.clear_queue()
     if subtitles.clear_current then subtitles.clear_current() end
+    ClearSubtitleChannel()
     -- subtitles.set_opacity(0.0) -- Hide immediately (No longer needed with clear_current)
 end
 
