@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-03-09
+
+### PDA / Weapon HUD Expansion
+- Reworked the weapon HUD into a multi-page PDA with `STATS`, `TARGET`, `SETTINGS`, and `PRESETS` pages.
+- Moved the PDA panel to the left-middle of the screen and scaled it from EXU HUD/UI scale, screen aspect, and user size presets.
+- Added PDA settings for text size, window size, and HUD color presets (`dark green`, `green`, `blue`, `white`).
+- Added page navigation on `[` and `]`, plus arrow-key editing for `SETTINGS` and `PRESETS`.
+- Added stock menu sound effects for PDA page changes and interactive settings changes.
+- Updated the in-game help text to document the new PDA controls.
+
+### Targeting and Weapon Data
+- Added reticle-aware aim fallback so the PDA updates immediately from `GetReticleObject()` or `GetReticlePos()` when there is no explicit target lock.
+- Added a dedicated `TARGET` page with unit name, target distance, closure/ETA, speed, ammo, hull, and hardpoint summaries.
+- Improved weapon stat extraction to read `CannonClass` timing/range fields and ordnance damage correctly for cases like `gtminis2.odf`.
+- Added cached ODF-driven weapon stats for range, damage, DPS, shot delay, shot speed, and ballistic detection.
+- Added elevation-adjusted ballistic range estimation so mortar-style weapons show a more realistic effective range versus uphill or downhill targets.
+
+### Unit Presets
+- Added a `PRESETS` PDA page that inspects live recycler/factory build lists and armory upgrade pools.
+- Added persistent per-unit, per-slot loadout presets sourced from actual armory powerups and mapped back to weapon ODFs.
+- New player-built units now receive preset weapons on creation and charge a positive-only scrap surcharge when the preset is applied.
+- Preset application is now gated by nearby production structure proximity so mission-spawned allied units are far less likely to be modified accidentally.
+- Added `Armory not available` handling when no valid armory exists.
+
+### Subtitle Runtime
+- Bundled an updated `subtitles.dll` with channelized subtitle layout support used by the PDA window.
+
+### Verification
+- `luac -p _Source/Scripts/PersistentConfig.lua`
+
 ## 2026-03-08
 
 ### AI and Mission Fixes
