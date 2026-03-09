@@ -372,7 +372,7 @@ end
 
 local function RetreatIfAlive(h, path)
     if h and IsAlive(h) then
-        Retreat(h, path)
+        Retreat(h, path, GetTeamNum(h) == 1 and 0 or 1)
     end
 end
 
@@ -396,10 +396,10 @@ function Update()
         -- pu7 commented out
         M.pu8 = GetHandle("svfigh278_wingman")
 
-        Patrol(M.pu1, "innerpatrol")
-        Patrol(M.pu3, "innerpatrol")
-        Patrol(M.pu6, "outerpatrol")
-        Patrol(M.pu8, "outerpatrol")
+        Patrol(M.pu1, "innerpatrol", 0)
+        Patrol(M.pu3, "innerpatrol", 0)
+        Patrol(M.pu6, "outerpatrol", 0)
+        Patrol(M.pu8, "outerpatrol", 0)
 
         AddObjective("misn0401.otf", "white")
         AddObjective("misn0400.otf", "white")

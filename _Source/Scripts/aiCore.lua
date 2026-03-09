@@ -133,6 +133,17 @@ local function GetUncommandablePriority()
     return COMMAND_PRIORITY_UNCOMMANDABLE
 end
 
+local function NormalizeScriptPriority(h, priority)
+    if not IsValid(h) then return priority end
+    if GetTeamNum(h) == 1 then
+        return COMMAND_PRIORITY_COMMANDABLE
+    end
+    if priority == nil then
+        return COMMAND_PRIORITY_UNCOMMANDABLE
+    end
+    return priority
+end
+
 local function GetDefaultWeaponMask(h)
     local w0 = utility and utility.CleanString(GetWeaponClass(h, 0)) or ""
     local w1 = utility and utility.CleanString(GetWeaponClass(h, 1)) or ""
@@ -152,6 +163,251 @@ local function GetDefaultWeaponMask(h)
         end
     end
     return 1
+end
+
+local WeaponRangeCache = {}
+
+local function IsMaskBitSet(mask, slot)
+    local div = 2 ^ slot
+    return (math.floor(mask / div) % 2) >= 1
+end
+
+local function GetCurrentWeaponMaskValue(h)
+    if not IsValid(h) then return 0 end
+
+    if type(GetWeaponMask) == "function" then
+        local ok, value = pcall(GetWeaponMask, h)
+        if ok and type(value) == "number" then
+            return math.max(0, math.floor(value + 0.5))
+        end
+    end
+
+    local fallback = GetDefaultWeaponMask(h)
+    if fallback and fallback > 0 then
+        return fallback
+    end
+    return 0
+end
+
+local function ProbeRangeFromOdf(odf)
+    if not odf or not GetODFFloat then return nil end
+
+    local probes = {
+        { "WeaponClass", "maxRange" },
+        { "WeaponClass", "engageRange" },
+        { "WeaponClass", "maxDist" },
+        { "WeaponClass", "engageDist" },
+        { "WeaponClass", "shotRange" },
+        { "WeaponClass", "range" },
+        { "OrdnanceClass", "maxRange" },
+        { "OrdnanceClass", "engageRange" },
+        { "OrdnanceClass", "maxDist" },
+        { "OrdnanceClass", "engageDist" },
+        { "OrdnanceClass", "shotRange" },
+        { "OrdnanceClass", "range" },
+        { "GunClass", "maxRange" },
+        { "GunClass", "maxDist" },
+        { "GunClass", "shotRange" },
+        { "GunClass", "range" },
+        { "RocketClass", "maxRange" },
+        { "RocketClass", "maxDist" },
+        { "RocketClass", "shotRange" },
+        { "RocketClass", "range" },
+        { "MissileClass", "maxRange" },
+        { "MissileClass", "maxDist" },
+        { "MissileClass", "shotRange" },
+        { "MissileClass", "range" },
+        { "MortarClass", "maxRange" },
+        { "MortarClass", "maxDist" },
+        { "MortarClass", "shotRange" },
+        { "MortarClass", "range" },
+        { nil, "maxRange" },
+        { nil, "engageRange" },
+        { nil, "maxDist" },
+        { nil, "engageDist" },
+        { nil, "shotRange" },
+        { nil, "range" }
+    }
+
+    local best = nil
+    for _, probe in ipairs(probes) do
+        local value, found = GetODFFloat(odf, probe[1], probe[2], 0.0)
+        if found and value and value > 0 and (not best or value > best) then
+            best = value
+        end
+    end
+    return best
+end
+
+local function ProbeTravelRangeFromOdf(odf)
+    if not odf or not GetODFFloat then return nil end
+
+    local lifeSpan, lifeFound = GetODFFloat(odf, "OrdnanceClass", "lifeSpan", 0.0)
+    if not lifeFound or not lifeSpan or lifeSpan <= 0 then
+        lifeSpan, lifeFound = GetODFFloat(odf, nil, "lifeSpan", 0.0)
+    end
+
+    local shotSpeed, speedFound = GetODFFloat(odf, "OrdnanceClass", "shotSpeed", 0.0)
+    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+        shotSpeed, speedFound = GetODFFloat(odf, nil, "shotSpeed", 0.0)
+    end
+
+    if lifeFound and speedFound and lifeSpan and shotSpeed and lifeSpan > 0 and shotSpeed > 0 then
+        if lifeSpan >= 120.0 then
+            return nil
+        end
+        return lifeSpan * shotSpeed
+    end
+
+    return nil
+end
+
+local function GetOdfClassLabel(odf)
+    if not odf or not GetODFString then return nil end
+
+    local value, found = GetODFString(odf, "OrdnanceClass", "classLabel", "")
+    local cleaned = utility.CleanString(value)
+    if found and cleaned ~= "" then
+        return string.lower(cleaned)
+    end
+
+    value, found = GetODFString(odf, "WeaponClass", "classLabel", "")
+    cleaned = utility.CleanString(value)
+    if found and cleaned ~= "" then
+        return string.lower(cleaned)
+    end
+
+    value, found = GetODFString(odf, nil, "classLabel", "")
+    cleaned = utility.CleanString(value)
+    if found and cleaned ~= "" then
+        return string.lower(cleaned)
+    end
+
+    return nil
+end
+
+local function ProbeBallisticRangeFromOdf(odf)
+    if not odf or not GetODFFloat then return nil end
+
+    local classLabel = GetOdfClassLabel(odf)
+    local ballisticClasses = {
+        grenade = true,
+        bouncebomb = true,
+        spraybomb = true,
+    }
+    if not ballisticClasses[classLabel] then
+        return nil
+    end
+
+    local shotSpeed, speedFound = GetODFFloat(odf, "OrdnanceClass", "shotSpeed", 0.0)
+    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+        shotSpeed, speedFound = GetODFFloat(odf, nil, "shotSpeed", 0.0)
+    end
+    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+        return nil
+    end
+
+    local coeff = 4.9
+    if exu and exu.GetCoeffBallistic then
+        local ok, value = pcall(exu.GetCoeffBallistic)
+        if ok and type(value) == "number" and value > 0.0 then
+            coeff = value
+        end
+    end
+    if coeff <= 0.0 then
+        return nil
+    end
+
+    return (shotSpeed * shotSpeed) / (2.0 * coeff)
+end
+
+local function ResolveOrdnanceName(odf)
+    if not odf or not GetODFString then return nil end
+    local sections = { "WeaponClass", "OrdnanceClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil }
+    local labels = { "ordName", "ordnanceName", "shotClass", "projectileClass" }
+
+    for _, section in ipairs(sections) do
+        for _, label in ipairs(labels) do
+            local value, found = GetODFString(odf, section, label, "")
+            local cleaned = utility.CleanString(value)
+            if found and cleaned ~= "" then
+                return cleaned
+            end
+        end
+    end
+    return nil
+end
+
+local function GetWeaponRangeMeters(weaponOdfName)
+    if not weaponOdfName or weaponOdfName == "" then return nil end
+    local key = string.lower(weaponOdfName)
+    if WeaponRangeCache[key] ~= nil then
+        return WeaponRangeCache[key]
+    end
+
+    local range = nil
+    if OpenODF then
+        local weaponOdf = OpenODF(weaponOdfName)
+        if weaponOdf then
+            range = ProbeRangeFromOdf(weaponOdf)
+            if not range then
+                local ordName = ResolveOrdnanceName(weaponOdf)
+                if ordName then
+                    local ordOdf = OpenODF(ordName)
+                    if ordOdf then
+                        range = ProbeRangeFromOdf(ordOdf)
+                        if not range then
+                            range = ProbeBallisticRangeFromOdf(ordOdf)
+                        end
+                        if not range then
+                            range = ProbeTravelRangeFromOdf(ordOdf)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    WeaponRangeCache[key] = range
+    return range
+end
+
+local function GetCurrentWeaponRangeMeters(h)
+    if not IsValid(h) then return nil end
+
+    local mask = GetCurrentWeaponMaskValue(h)
+    if mask <= 0 then
+        mask = GetDefaultWeaponMask(h)
+    end
+
+    local bestRange = nil
+    for slot = 0, 4 do
+        if IsMaskBitSet(mask, slot) then
+            local weapon = utility.CleanString(GetWeaponClass(h, slot))
+            if weapon ~= "" then
+                local range = GetWeaponRangeMeters(weapon)
+                if range and range > 0 and (not bestRange or range > bestRange) then
+                    bestRange = range
+                end
+            end
+        end
+    end
+
+    if bestRange then
+        return bestRange
+    end
+
+    for slot = 0, 4 do
+        local weapon = utility.CleanString(GetWeaponClass(h, slot))
+        if weapon ~= "" then
+            local range = GetWeaponRangeMeters(weapon)
+            if range and range > 0 and (not bestRange or range > bestRange) then
+                bestRange = range
+            end
+        end
+    end
+
+    return bestRange
 end
 
 -- Math / Vector Utils
@@ -493,6 +749,7 @@ function aiCore.TryAttack(h, target, priority, opts)
     if not IsValid(h) or not IsValid(target) then return false end
     if not aiCore.CanIssueCommand(h, AiCommand.ATTACK, opts) then return false end
     if GetCurrentCommand(h) == AiCommand.ATTACK and GetCurrentWho(h) == target then return false end
+    priority = NormalizeScriptPriority(h, priority)
     Attack(h, target, priority)
     aiCore.RecordCommand(h, AiCommand.ATTACK, target)
     return true
@@ -502,6 +759,7 @@ function aiCore.TryPickup(h, target, priority, opts)
     if not IsValid(h) or not IsValid(target) then return false end
     if not aiCore.CanIssueCommand(h, AiCommand.PICKUP, opts) then return false end
     if GetCurrentCommand(h) == AiCommand.PICKUP and GetCurrentWho(h) == target then return false end
+    priority = NormalizeScriptPriority(h, priority)
     Pickup(h, target, priority)
     aiCore.RecordCommand(h, AiCommand.PICKUP, target)
     return true
@@ -511,6 +769,7 @@ function aiCore.TryScavenge(h, target, priority, opts)
     if not IsValid(h) or not IsValid(target) then return false end
     if not aiCore.CanIssueCommand(h, AiCommand.SCAVENGE, opts) then return false end
     if GetCurrentCommand(h) == AiCommand.SCAVENGE and GetCurrentWho(h) == target then return false end
+    priority = NormalizeScriptPriority(h, priority)
     SetCommand(h, AiCommand.SCAVENGE, priority, target, nil, nil, nil)
     aiCore.RecordCommand(h, AiCommand.SCAVENGE, target)
     return true
@@ -519,6 +778,7 @@ end
 function aiCore.TrySetCommand(h, command, priority, who, where, when, param, opts)
     if not IsValid(h) then return false end
     if not aiCore.CanIssueCommand(h, command, opts) then return false end
+    priority = NormalizeScriptPriority(h, priority)
     SetCommand(h, command, priority, who, where, when, param)
     aiCore.RecordCommand(h, command, who)
     return true
@@ -2507,6 +2767,9 @@ function aiCore.HowitzerManager.new(teamNum)
     self.squadSize = 3
     self.orderPeriod = 30.0
     self.orderTimer = 0.0
+    self.playerAttackRange = 480.0
+    self.playerStandoffRange = 450.0
+    self.playerOrderState = {}
     return self
 end
 
@@ -2524,8 +2787,13 @@ function aiCore.HowitzerManager:Update()
     -- Remove invalid howitzers
     for i = #self.howitzers, 1, -1 do
         if not IsValid(self.howitzers[i]) then
+            self.playerOrderState[self.howitzers[i]] = nil
             table.remove(self.howitzers, i)
         end
+    end
+
+    if self.teamNum == 1 then
+        self:UpdatePlayerHowitzerOrders()
     end
 
     -- Organize into squads
@@ -2538,6 +2806,67 @@ function aiCore.HowitzerManager:Update()
     if self.orderTimer >= self.orderPeriod then
         self.orderTimer = 0.0
         self:UpdateSquadOrders()
+    end
+end
+
+function aiCore.HowitzerManager:UpdatePlayerHowitzerOrders()
+    for _, h in ipairs(self.howitzers) do
+        if IsValid(h) and IsAlive(h) then
+            local range = GetCurrentWeaponRangeMeters(h) or self.playerAttackRange or 480.0
+            local standoff = math.max(80.0, math.min(self.playerStandoffRange or 450.0, range - 30.0))
+            local state = self.playerOrderState[h] or {}
+            local cmd = GetCurrentCommand(h)
+            local currentTarget = GetCurrentWho(h)
+
+            if cmd == AiCommand.ATTACK and IsValid(currentTarget) and IsAlive(currentTarget) and not IsAlly(h, currentTarget) then
+                state.target = currentTarget
+            elseif cmd == AiCommand.NONE then
+                local movePos = state.movePos
+                if not movePos or Length(GetPosition(h) - movePos) > 60.0 then
+                    state.target = nil
+                    state.movePos = nil
+                end
+            elseif cmd ~= AiCommand.GO then
+                state.target = nil
+                state.movePos = nil
+            end
+
+            local target = state.target
+            if IsValid(target) and IsAlive(target) and not IsAlly(h, target) then
+                local dist = GetDistance(h, target)
+                if dist > range then
+                    local targetPos = GetPosition(target)
+                    local unitPos = GetPosition(h)
+                    local dir = Normalize(unitPos - targetPos)
+                    if dir.x == 0 and dir.y == 0 and dir.z == 0 then
+                        dir = SetVector(1, 0, 0)
+                    end
+
+                    local movePos = targetPos + (dir * standoff)
+                    local groundY = GetTerrainHeight(movePos.x, movePos.z)
+                    movePos.y = math.max(groundY + 2.0, movePos.y)
+
+                    state.target = target
+                    state.movePos = movePos
+                    self.playerOrderState[h] = state
+
+                    aiCore.TrySetCommand(h, AiCommand.GO, GetCommandableAttackPriority(), nil, movePos, nil, nil,
+                        { minInterval = 0.35 })
+                else
+                    if cmd ~= AiCommand.ATTACK or currentTarget ~= target then
+                        aiCore.TryAttack(h, target, GetCommandableAttackPriority(),
+                            { minInterval = 0.35, overrideProtected = true })
+                    end
+                    state.target = nil
+                    state.movePos = nil
+                    self.playerOrderState[h] = state
+                end
+            else
+                self.playerOrderState[h] = nil
+            end
+        else
+            self.playerOrderState[h] = nil
+        end
     end
 end
 
@@ -4529,7 +4858,8 @@ function aiCore.WingmanManager:AddObject(h)
             unit = h,
             lastCommandTime = 0,
             previousCommand = nil,
-            previousTarget = nil
+            previousTarget = nil,
+            restorePriority = GetTeamNum(h) == 1 and GetCommandableAttackPriority() or GetUncommandablePriority()
         }
         if aiCore.Debug then
             print("Team " .. self.teamNum .. " added wingman: " .. GetOdf(h))
@@ -4701,23 +5031,25 @@ function aiCore.WingmanManager:ShouldRestoreCommand(unit, cmd, health, ammo, ent
     return (cmd == AiCommand.NONE
             or (cmd == AiCommand.GET_REPAIR and health >= 0.95)
             or (cmd == AiCommand.GET_RELOAD and ammo >= 0.95))
-        and IsValid(entry.previousTarget)
         and entry.previousCommand ~= nil
+        and (entry.previousTarget == nil or IsValid(entry.previousTarget))
 end
 
 -- Helper: Save command
 function aiCore.WingmanManager:SavePreviousCommand(entry)
     entry.previousCommand = GetCurrentCommand(entry.unit)
     entry.previousTarget = GetCurrentWho(entry.unit)
+    entry.restorePriority = GetTeamNum(entry.unit) == 1 and GetCommandableAttackPriority() or GetUncommandablePriority()
 end
 
 -- Helper: Restore command
 function aiCore.WingmanManager:RestorePreviousCommand(entry)
     if entry.previousCommand then
-        aiCore.TrySetCommand(entry.unit, entry.previousCommand, GetUncommandablePriority(), entry.previousTarget, nil,
+        aiCore.TrySetCommand(entry.unit, entry.previousCommand, entry.restorePriority, entry.previousTarget, nil,
             nil, nil, { minInterval = 0.5, overrideProtected = true })
         entry.previousCommand = nil
         entry.previousTarget = nil
+        entry.restorePriority = nil
     end
 end
 
@@ -5903,7 +6235,7 @@ function aiCore.Team:GetPrimaryEnemyTeam()
     local bestTeam = -1
     local bestScore = -1
 
-    for team = 0, 15 do
+    for team = 1, 15 do
         if team ~= self.teamNum and not IsTeamAllied(team, self.teamNum) then
             local score = 0
             score = score + #aiCore.GetCachedTeamCraft(team)

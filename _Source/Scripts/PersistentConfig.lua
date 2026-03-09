@@ -63,7 +63,32 @@ end
 
 local function ShowWeaponStats(msg, duration)
     if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
-        subtitles.set_channel_layout(WEAPON_STATS_CHANNEL, 0.985, 0.11, 1.0, 0.0, 0.6, 0.14, 6.0, 5.0, 1.0)
+        local width, height = 1920, 1080
+        if exu and exu.GetScreenResolution then
+            local ok, screenW, screenH = pcall(exu.GetScreenResolution)
+            if ok and type(screenW) == "number" and screenW > 0 and type(screenH) == "number" and screenH > 0 then
+                width, height = screenW, screenH
+            end
+        elseif exu and exu.GetGameResolution then
+            local ok, gameW, gameH = pcall(exu.GetGameResolution)
+            if ok and type(gameW) == "number" and gameW > 0 and type(gameH) == "number" and gameH > 0 then
+                width, height = gameW, gameH
+            end
+        end
+
+        local function Clamp(value, minimum, maximum)
+            if value < minimum then return minimum end
+            if value > maximum then return maximum end
+            return value
+        end
+
+        local aspect = width / math.max(height, 1)
+        local widthScale = Clamp((16.0 / 9.0) / aspect, 0.75, 1.35)
+        local panelWidth = Clamp(0.24 * widthScale, 0.20, 0.30)
+        local panelHeight = Clamp(0.18 * Clamp(1.0 / widthScale, 0.9, 1.2), 0.16, 0.22)
+
+        -- Anchor the panel on the right-middle of the screen with right alignment.
+        subtitles.set_channel_layout(WEAPON_STATS_CHANNEL, 0.985, 0.50, 1.0, 0.5, panelWidth, panelHeight, 6.0, 5.0, 1.0)
         subtitles.clear_queue(WEAPON_STATS_CHANNEL)
         if subtitles.clear_current then
             subtitles.clear_current(WEAPON_STATS_CHANNEL)
@@ -176,7 +201,7 @@ InputState = {
     last_x_state = false,    -- Auto-repair toggle
     last_u_state = false,    -- Scavenger Assist (U)
     last_l_state = false,    -- Retro Lighting (Shift+L)
-    last_s_state = false,    -- Weapon HUD toggle (Ctrl+S)
+    last_y_state = false,    -- Weapon HUD toggle (Y)
     SubtitlesPaused = false,
     SteamIDFound = false,
     GreetingTriggered = false,
@@ -482,12 +507,55 @@ local function GetHudTargetInfo(player)
     return target, distance
 end
 
+local function GetPlayerSpeedMeters(player)
+    if not IsValid(player) then return 0 end
+    local vel = GetVelocity(player) or { x = 0, y = 0, z = 0 }
+    return math.sqrt((vel.x * vel.x) + (vel.y * vel.y) + (vel.z * vel.z))
+end
+
+local function GetTargetClosureInfo(player, target, targetDistance)
+    if not IsValid(player) or not IsValid(target) or not targetDistance or targetDistance <= 0 then
+        return nil, nil
+    end
+
+    local playerPos = GetPosition(player)
+    local targetPos = GetPosition(target)
+    if not playerPos or not targetPos then
+        return nil, nil
+    end
+
+    local toTarget = targetPos - playerPos
+    local distance = math.sqrt((toTarget.x * toTarget.x) + (toTarget.y * toTarget.y) + (toTarget.z * toTarget.z))
+    if distance <= 0.001 then
+        return nil, 0.0
+    end
+
+    local dir = SetVector(toTarget.x / distance, toTarget.y / distance, toTarget.z / distance)
+    local playerVel = GetVelocity(player) or { x = 0, y = 0, z = 0 }
+    local targetVel = GetVelocity(target) or { x = 0, y = 0, z = 0 }
+    local relVel = SetVector(playerVel.x - targetVel.x, playerVel.y - targetVel.y, playerVel.z - targetVel.z)
+    local closure = (relVel.x * dir.x) + (relVel.y * dir.y) + (relVel.z * dir.z)
+
+    if closure <= 0.1 then
+        return closure, nil
+    end
+
+    return closure, targetDistance / closure
+end
+
 local function BuildWeaponStatsText(player, mask)
-    local lines = { "WPN" }
+    local lines = { "PDA" }
     local target, targetDistance = GetHudTargetInfo(player)
+    local speed = math.floor(GetPlayerSpeedMeters(player) + 0.5)
+    table.insert(lines, "SPD " .. tostring(speed) .. "m/s")
     if target and targetDistance then
         table.insert(lines, "TGT " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
+        local closureRate, eta = GetTargetClosureInfo(player, target, targetDistance)
+        local closureText = closureRate and tostring(math.floor(math.max(0.0, closureRate) + 0.5)) .. "m/s" or "--"
+        local etaText = eta and string.format("%.1fs", eta) or "--"
+        table.insert(lines, "CLS " .. closureText .. " ETA " .. etaText)
     end
+    table.insert(lines, "WPN")
 
     for slot = 0, 4 do
         if IsMaskBitSet(mask, slot) then
@@ -768,7 +836,7 @@ end
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | Ctrl+S:Weapon HUD | Shift+L:AutoSave | /:Help"
+        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | Y:Weapon HUD | Shift+L:AutoSave | /:Help"
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
 end
@@ -904,7 +972,7 @@ function PersistentConfig.UpdateInputs()
     -- Toggle Headlight Beam Mode (B) - Removed Alt requirement, but check for Bail (Ctrl+B)
     local b_key = exu.GetGameKey("B")
     local ctrl_down = exu.GetGameKey("CTRL")
-    local s_key = exu.GetGameKey("S")
+    local y_key = exu.GetGameKey("Y")
 
     if b_key and not ctrl_down and not InputState.last_b_state then
         PersistentConfig.Settings.HeadlightBeamMode = (PersistentConfig.Settings.HeadlightBeamMode % 2) + 1
@@ -915,7 +983,7 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_b_state = b_key
 
-    if ctrl_down and s_key and not InputState.last_s_state then
+    if y_key and not ctrl_down and not InputState.last_y_state then
         PersistentConfig.Settings.WeaponStatsHud = not PersistentConfig.Settings.WeaponStatsHud
         PersistentConfig.SaveConfig()
         InputState.lastWeaponMask = nil
@@ -930,7 +998,7 @@ function PersistentConfig.UpdateInputs()
         end
         ShowFeedback("Weapon HUD: " .. (PersistentConfig.Settings.WeaponStatsHud and "ON" or "OFF"), 0.35, 0.65, 1.0, 2.5, false)
     end
-    InputState.last_s_state = s_key
+    InputState.last_y_state = y_key
 
     -- Toggle Auto-Repair for Wingmen (X for "Auto-fiX")
     local x_key = exu.GetGameKey("X")
