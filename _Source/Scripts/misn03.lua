@@ -9,6 +9,7 @@ RequireFix.Initialize({ "campaignReimagined", "3659600763" })
 local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
+local MissionLifecycle = require("MissionLifecycle")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 
@@ -221,27 +222,41 @@ local M = {
     -- Input State Logic is now handled by PersistentConfig module
 }
 
+local lifecycle = MissionLifecycle.New({
+    exu = exu,
+    aiCore = aiCore,
+    subtit = subtit,
+    PersistentConfig = PersistentConfig,
+    reticleRange = 600,
+    ordnanceVelocityInheritance = true,
+    globalTurbo = true,
+    updateOrdnance = true,
+    monitorDifficultyChanges = true,
+    difficultyPollInterval = 1.0,
+    clearTurboWhenDisabled = true,
+    setupAI = SetupAI,
+    initializeSubtitlesOnStart = false,
+    initializeSubtitlesOnLoad = false,
+    refreshDifficultyOnLoad = true,
+    hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." },
+    easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." },
+    turboValue = function(_, team, state)
+        if team == 1 then
+            return true
+        end
+        if team ~= 0 and state.difficulty and state.difficulty > 3 then
+            return true
+        end
+    end
+})
+
 function Save()
-    return M, aiCore.Save()
+    return lifecycle:Save(M)
 end
 
 function Load(data, aiData)
     if data then M = data end
-    if aiData then aiCore.Load(aiData) end
-    aiCore.Bootstrap() -- Refresh/Capture units
-    ApplyQOL()         -- Reapply engine settings
-end
-
--- EXU/QOL Persistence Helper
-function ApplyQOL()
-    if not exu then return end
-
-    if exu.SetShotConvergence then exu.SetShotConvergence(true) end
-    if exu.SetReticleRange then exu.SetReticleRange(600) end
-    if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
-
-    -- Initialize Persistent Config (Loads, Applies, and Greets)
-    PersistentConfig.Initialize()
+    lifecycle:Load(M, aiData)
 end
 
 function Start()
@@ -281,35 +296,13 @@ function Start()
     M.guy2 = GetHandle("guy2")
     M.sucker = GetHandle("sucker")
 
-    if exu then
-        -- ApplyQOL() -- This is now handled by PersistentConfig.Initialize() which is called in ApplyQOL()
-        if exu.SetGlobalTurbo then exu.SetGlobalTurbo(true) end
-    end
-    SetupAI()          -- Initialize AI on Start
-    aiCore.Bootstrap() -- Capture pre-placed units
-
-    local difficulty = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
-    if difficulty >= 3 then
-        AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
-    elseif difficulty <= 1 then
-        AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
-    end
+    lifecycle:Start(M)
 end
 
 function AddObject(h)
     local team = GetTeamNum(h)
 
-    -- Apply turbo to new enemy units on Very Hard difficulty
-    if exu and exu.SetUnitTurbo and IsCraft(h) then
-        if team == 1 then
-            exu.SetUnitTurbo(h, true)
-        elseif team ~= 0 then
-            local diff = (exu.GetDifficulty and exu.GetDifficulty()) or 2
-            if diff > 3 then
-                exu.SetUnitTurbo(h, true)
-            end
-        end
-    end
+    lifecycle:OnObjectCreated(M, h)
 
     if IsOdf(h, "avturr") then
         if M.avturret1 == nil then
@@ -362,16 +355,13 @@ end
 
 function Update()
     M.user = GetPlayerHandle()
-    if exu and exu["UpdateOrdnance"] then exu["UpdateOrdnance"]() end
 
     -- Get difficulty for dynamic adjustments (0=Very Easy, 1=Easy, 2=Medium, 3=Hard, 4=Very Hard)
     local diff = 2
     if exu and exu.GetDifficulty then diff = exu.GetDifficulty() end
 
     aiCore.Update()
-    subtit.Update()
-    PersistentConfig.UpdateInputs()
-    PersistentConfig.UpdateHeadlights()
+    lifecycle:Update(M, 1.0 / (M.TPS or 20))
 
 
     -- Update Objective Health Status
@@ -389,7 +379,7 @@ function Update()
     end
 
     if not M.start_done then
-        ApplyQOL()
+        lifecycle:ApplyQOL()
 
         -- Dynamic Starting Resources
         SetScrap(1, math.max(4, DiffUtils.ScaleRes(10)))
@@ -1264,6 +1254,4 @@ function Update()
         FailMission(GetTime() + 10.0, "misn03f4.des")
     end
 
-    -- Local settings logic has been moved to PersistentConfig.lua
-    PersistentConfig.UpdateInputs()
 end

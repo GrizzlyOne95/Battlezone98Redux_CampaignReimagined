@@ -79,6 +79,12 @@ Environment = {
     OriginalRadarRanges  = {},
     OriginalRadarPeriods = {},
     OriginalVelocJams    = {},
+    CraftHandles         = {},
+    CraftCursor          = 1,
+    PendingGameplaySync  = false,
+    GameplayBatchSize    = 32,
+    GameplayRefreshAt    = 0.0,
+    GameplayBatchAt      = 0.0,
 
     -- Dust storm (gravity wobble, separate from fog "dust" state)
     DustStormTimer       = 0,
@@ -191,6 +197,11 @@ function Environment.Init()
     Environment.FogTo          = CopyFog(clearPreset)
     Environment.FogBlendTimer  = Environment.FogBlendDuration -- already at target
     Environment.FogChangeTimer = RandomFogInterval()
+    Environment.CraftHandles   = {}
+    Environment.CraftCursor    = 1
+    Environment.PendingGameplaySync = true
+    Environment.GameplayRefreshAt = 0.0
+    Environment.GameplayBatchAt = 0.0
 
     Environment.Initialized    = true
     print("Environment: Initialized")
@@ -398,9 +409,13 @@ function Environment.Update(timestep)
     Environment.IsNight    = (nightBlend > 0.5)
     Environment.NightBlend = nightBlend
 
-    if math.abs(nightBlend - Environment.LastNightBlend) > 0.005 then
-        Environment.SyncGameplayImpacts()
+    if math.abs(nightBlend - Environment.LastNightBlend) > 0.02 then
+        Environment.PendingGameplaySync = true
         Environment.LastNightBlend = nightBlend
+    end
+
+    if Environment.PendingGameplaySync then
+        Environment.SyncGameplayImpacts()
     end
 end
 
@@ -409,11 +424,37 @@ end
 -- =============================================================================
 
 function Environment.SyncGameplayImpacts()
+    local now = GetTime()
+    if now >= (Environment.GameplayRefreshAt or 0.0) or not Environment.CraftHandles or #Environment.CraftHandles == 0 then
+        local craftHandles = {}
+        for h in AllCraft() do
+            craftHandles[#craftHandles + 1] = h
+        end
+        Environment.CraftHandles = craftHandles
+        Environment.CraftCursor = 1
+        Environment.GameplayRefreshAt = now + 2.0
+    end
+
+    if now < (Environment.GameplayBatchAt or 0.0) then
+        return
+    end
+    Environment.GameplayBatchAt = now + 0.05
+
+    local craftHandles = Environment.CraftHandles or {}
     local count = 0
-    for h in AllCraft() do
-        if count >= 200 then break end
-        Environment.ProcessObjectNightEffects(h)
+    local cursor = Environment.CraftCursor or 1
+
+    while cursor <= #craftHandles and count < (Environment.GameplayBatchSize or 32) do
+        Environment.ProcessObjectNightEffects(craftHandles[cursor])
+        cursor = cursor + 1
         count = count + 1
+    end
+
+    if cursor > #craftHandles then
+        Environment.CraftCursor = 1
+        Environment.PendingGameplaySync = false
+    else
+        Environment.CraftCursor = cursor
     end
 end
 
@@ -460,6 +501,11 @@ end
 
 function Environment.OnObjectCreated(h)
     if not h or not IsValid(h) then return end
+    if IsCraft(h) then
+        Environment.CraftHandles = Environment.CraftHandles or {}
+        Environment.CraftHandles[#Environment.CraftHandles + 1] = h
+        Environment.PendingGameplaySync = true
+    end
     Environment.ProcessObjectNightEffects(h)
 end
 

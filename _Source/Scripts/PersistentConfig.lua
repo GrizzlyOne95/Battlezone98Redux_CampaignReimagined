@@ -6,6 +6,9 @@ local subtitles = require("subtitles")
 local autosave = require("AutoSave")
 
 local PersistentConfig = {}
+local WEAPON_STATS_CHANNEL = 1
+PersistentConfig.Debug = false
+local InputState
 
 -- Internal Feedback Queue
 PersistentConfig.FeedbackQueue = {}
@@ -27,6 +30,7 @@ PersistentConfig.Settings = {
     AutoSaveInterval = 200,         -- Auto-save every 200 seconds
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
     RetroLighting = false,          -- Disables PBR and custom shader lighting equations
+    WeaponStatsHud = true,          -- Persistent weapon stats panel
 }
 
 local function getWorkingDirectory()
@@ -55,6 +59,47 @@ local function ShowFeedback(msg, r, g, b, duration, bypass)
         bypass = (bypass == nil) and true or bypass -- Default to true for responsiveness
     })
     Log(msg)                                        -- Always log to console
+end
+
+local function ShowWeaponStats(msg, duration)
+    if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
+        subtitles.set_channel_layout(WEAPON_STATS_CHANNEL, 0.985, 0.11, 1.0, 0.0, 0.6, 0.14, 6.0, 5.0, 1.0)
+        subtitles.clear_queue(WEAPON_STATS_CHANNEL)
+        if subtitles.clear_current then
+            subtitles.clear_current(WEAPON_STATS_CHANNEL)
+        end
+        subtitles.submit_to(WEAPON_STATS_CHANNEL, msg, duration or 2.4, 0.35, 0.65, 1.0)
+    else
+        ShowFeedback(msg, 0.35, 0.65, 1.0, duration or 2.4, false)
+    end
+end
+
+local function ClearWeaponStats()
+    if subtitles and subtitles.clear_queue then
+        subtitles.clear_queue(WEAPON_STATS_CHANNEL)
+    end
+    if subtitles and subtitles.clear_current then
+        subtitles.clear_current(WEAPON_STATS_CHANNEL)
+    end
+end
+
+local function MarkOtherHeadlightsDirty()
+    InputState.otherHeadlightsDirty = true
+end
+
+local function ApplyOtherHeadlightVisibility(h, visible, player)
+    if not exu or not exu.SetHeadlightVisible or not IsValid(h) then return false end
+    if h == player then
+        InputState.otherHeadlightVisibility[h] = nil
+        return false
+    end
+    if InputState.otherHeadlightVisibility[h] == visible then
+        return false
+    end
+
+    exu.SetHeadlightVisible(h, visible)
+    InputState.otherHeadlightVisibility[h] = visible
+    return true
 end
 
 -- Helper to parse bzlogger.txt for Steam ID/Username
@@ -122,7 +167,7 @@ function PersistentConfig.TriggerGreeting(steamID, username)
 end
 
 -- Internal State
-local InputState = {
+InputState = {
     last_v_state = false,    -- Headlight (V)
     last_z_state = false,    -- Color (Z)
     last_j_state = false,    -- AI Lights (J)
@@ -131,6 +176,7 @@ local InputState = {
     last_x_state = false,    -- Auto-repair toggle
     last_u_state = false,    -- Scavenger Assist (U)
     last_l_state = false,    -- Retro Lighting (Shift+L)
+    last_s_state = false,    -- Weapon HUD toggle (Ctrl+S)
     SubtitlesPaused = false,
     SteamIDFound = false,
     GreetingTriggered = false,
@@ -141,7 +187,11 @@ local InputState = {
     lastPlayerHandle = nil, -- Track player handle to detect craft changes
     lastWeaponMask = nil,
     lastWeaponPlayer = nil,
+    lastWeaponText = nil,
+    lastWeaponTarget = nil,
     nextWeaponHudCheck = 0.0,
+    otherHeadlightVisibility = {},
+    otherHeadlightsDirty = true,
 }
 
 -- Beam Definitions
@@ -198,20 +248,37 @@ local function ProbeRangeFromOdf(odf)
     local probes = {
         { "WeaponClass", "maxRange" },
         { "WeaponClass", "engageRange" },
+        { "WeaponClass", "maxDist" },
+        { "WeaponClass", "engageDist" },
+        { "WeaponClass", "shotRange" },
         { "WeaponClass", "range" },
         { "OrdnanceClass", "maxRange" },
         { "OrdnanceClass", "engageRange" },
+        { "OrdnanceClass", "maxDist" },
+        { "OrdnanceClass", "engageDist" },
+        { "OrdnanceClass", "shotRange" },
         { "OrdnanceClass", "range" },
         { "GunClass", "maxRange" },
+        { "GunClass", "maxDist" },
+        { "GunClass", "shotRange" },
         { "GunClass", "range" },
         { "RocketClass", "maxRange" },
+        { "RocketClass", "maxDist" },
+        { "RocketClass", "shotRange" },
         { "RocketClass", "range" },
         { "MissileClass", "maxRange" },
+        { "MissileClass", "maxDist" },
+        { "MissileClass", "shotRange" },
         { "MissileClass", "range" },
         { "MortarClass", "maxRange" },
+        { "MortarClass", "maxDist" },
+        { "MortarClass", "shotRange" },
         { "MortarClass", "range" },
         { nil, "maxRange" },
         { nil, "engageRange" },
+        { nil, "maxDist" },
+        { nil, "engageDist" },
+        { nil, "shotRange" },
         { nil, "range" }
     }
 
@@ -223,6 +290,117 @@ local function ProbeRangeFromOdf(odf)
         end
     end
     return best
+end
+
+local function ProbeTravelRangeFromOdf(odf)
+    if not odf or not GetODFFloat then return nil end
+
+    local lifeSpan, lifeFound = GetODFFloat(odf, "OrdnanceClass", "lifeSpan", 0.0)
+    if not lifeFound or not lifeSpan or lifeSpan <= 0 then
+        lifeSpan, lifeFound = GetODFFloat(odf, nil, "lifeSpan", 0.0)
+    end
+
+    local shotSpeed, speedFound = GetODFFloat(odf, "OrdnanceClass", "shotSpeed", 0.0)
+    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+        shotSpeed, speedFound = GetODFFloat(odf, nil, "shotSpeed", 0.0)
+    end
+
+    if lifeFound and speedFound and lifeSpan and shotSpeed and lifeSpan > 0 and shotSpeed > 0 then
+        if lifeSpan >= 120.0 then
+            return nil
+        end
+        return lifeSpan * shotSpeed
+    end
+
+    return nil
+end
+
+local function GetOdfClassLabel(odf)
+    if not odf or not GetODFString then return nil end
+
+    local value, found = GetODFString(odf, "OrdnanceClass", "classLabel", "")
+    local cleaned = CleanString(value)
+    if found and cleaned ~= "" then
+        return string.lower(cleaned)
+    end
+
+    value, found = GetODFString(odf, "WeaponClass", "classLabel", "")
+    cleaned = CleanString(value)
+    if found and cleaned ~= "" then
+        return string.lower(cleaned)
+    end
+
+    value, found = GetODFString(odf, nil, "classLabel", "")
+    cleaned = CleanString(value)
+    if found and cleaned ~= "" then
+        return string.lower(cleaned)
+    end
+
+    return nil
+end
+
+local function ProbeBallisticRangeFromOdf(odf)
+    if not odf or not GetODFFloat then return nil end
+
+    local classLabel = GetOdfClassLabel(odf)
+    local ballisticClasses = {
+        grenade = true,
+        bouncebomb = true,
+        spraybomb = true,
+    }
+    if not ballisticClasses[classLabel] then
+        return nil
+    end
+
+    local shotSpeed, speedFound = GetODFFloat(odf, "OrdnanceClass", "shotSpeed", 0.0)
+    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+        shotSpeed, speedFound = GetODFFloat(odf, nil, "shotSpeed", 0.0)
+    end
+    if not speedFound or not shotSpeed or shotSpeed <= 0 then
+        return nil
+    end
+
+    local coeff = 4.9
+    if exu and exu.GetCoeffBallistic then
+        local ok, value = pcall(exu.GetCoeffBallistic)
+        if ok and type(value) == "number" and value > 0.0 then
+            coeff = value
+        end
+    end
+    if coeff <= 0.0 then
+        return nil
+    end
+
+    return (shotSpeed * shotSpeed) / (2.0 * coeff)
+end
+
+local function GetWeaponDisplayName(weaponOdfName)
+    if not weaponOdfName or weaponOdfName == "" then return nil end
+    PersistentConfig.WeaponNameCache = PersistentConfig.WeaponNameCache or {}
+
+    local key = string.lower(weaponOdfName)
+    if PersistentConfig.WeaponNameCache[key] ~= nil then
+        return PersistentConfig.WeaponNameCache[key]
+    end
+
+    local displayName = nil
+    if OpenODF and GetODFString then
+        local weaponOdf = OpenODF(weaponOdfName)
+        if weaponOdf then
+            local value, found = GetODFString(weaponOdf, "WeaponClass", "wpnName", "")
+            local cleaned = CleanString(value)
+            if found and cleaned ~= "" then
+                displayName = cleaned
+            end
+        end
+    end
+
+    if not displayName or displayName == "" then
+        displayName = weaponOdfName
+    end
+
+    PersistentConfig.WeaponNameCache[key] = displayName
+    return displayName
 end
 
 local function ResolveOrdnanceName(odf)
@@ -262,6 +440,12 @@ local function GetWeaponRangeMeters(weaponOdfName)
                     local ordOdf = OpenODF(ordName)
                     if ordOdf then
                         range = ProbeRangeFromOdf(ordOdf)
+                        if not range then
+                            range = ProbeBallisticRangeFromOdf(ordOdf)
+                        end
+                        if not range then
+                            range = ProbeTravelRangeFromOdf(ordOdf)
+                        end
                     end
                 end
             end
@@ -272,50 +456,123 @@ local function GetWeaponRangeMeters(weaponOdfName)
     return range
 end
 
+local function GetHudTargetInfo(player)
+    if not IsValid(player) or type(GetUserTarget) ~= "function" then
+        return nil, nil
+    end
+
+    local target = GetUserTarget()
+    if not IsValid(target) or not IsAlive(target) then
+        return nil, nil
+    end
+
+    if target == player then
+        return nil, nil
+    end
+
+    if type(IsAlly) == "function" and IsAlly(player, target) then
+        return nil, nil
+    end
+
+    local distance = GetDistance(player, target)
+    if not distance or distance <= 0 then
+        return nil, nil
+    end
+
+    return target, distance
+end
+
 local function BuildWeaponStatsText(player, mask)
-    local parts = {}
+    local lines = { "WPN" }
+    local target, targetDistance = GetHudTargetInfo(player)
+    if target and targetDistance then
+        table.insert(lines, "TGT " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
+    end
+
     for slot = 0, 4 do
         if IsMaskBitSet(mask, slot) then
             local weapon = CleanString(GetWeaponClass(player, slot))
             if weapon ~= "" then
+                local displayName = GetWeaponDisplayName(weapon)
                 local range = GetWeaponRangeMeters(weapon)
-                local rangeText = range and tostring(math.floor(range + 0.5)) .. "m" or "?"
-                table.insert(parts, "S" .. tostring(slot + 1) .. " " .. weapon .. ":" .. rangeText)
+                local rangeText = range and tostring(math.floor(range + 0.5)) .. "m" or "n/a"
+                local status = "."
+                if target and targetDistance then
+                    if range then
+                        status = (targetDistance <= range) and "+" or "-"
+                    else
+                        status = "?"
+                    end
+                end
+                table.insert(lines, "S" .. tostring(slot + 1) .. " " .. status .. " " .. displayName .. " " .. rangeText)
             end
         end
     end
 
-    if #parts == 0 then
+    if #lines <= 1 then
         return nil
     end
-    return "WPN " .. table.concat(parts, " | ")
+    return table.concat(lines, "\n")
 end
 
 local function UpdateWeaponStatsDisplay(player)
+    if not PersistentConfig.Settings.WeaponStatsHud then
+        if InputState.lastWeaponMask ~= nil or InputState.lastWeaponPlayer ~= nil or InputState.lastWeaponText ~= nil then
+            InputState.lastWeaponMask = nil
+            InputState.lastWeaponPlayer = nil
+            InputState.lastWeaponText = nil
+            InputState.lastWeaponTarget = nil
+            ClearWeaponStats()
+        end
+        return
+    end
+
     if not IsValid(player) then
-        InputState.lastWeaponMask = nil
-        InputState.lastWeaponPlayer = nil
+        if InputState.lastWeaponMask ~= nil or InputState.lastWeaponPlayer ~= nil or InputState.lastWeaponText ~= nil then
+            InputState.lastWeaponMask = nil
+            InputState.lastWeaponPlayer = nil
+            InputState.lastWeaponText = nil
+            InputState.lastWeaponTarget = nil
+            ClearWeaponStats()
+        end
         return
     end
 
     local now = GetTime()
     if now < (InputState.nextWeaponHudCheck or 0.0) then return end
-    InputState.nextWeaponHudCheck = now + 0.25
+    InputState.nextWeaponHudCheck = now + 0.10
 
     local mask = GetCurrentWeaponMask(player)
+    local target = nil
+    local targetDistance = nil
+    if type(GetUserTarget) == "function" then
+        target, targetDistance = GetHudTargetInfo(player)
+    end
     local playerChanged = (InputState.lastWeaponPlayer ~= player)
     local maskChanged = (InputState.lastWeaponMask ~= mask)
-    if not playerChanged and not maskChanged then return end
+    local targetChanged = (InputState.lastWeaponTarget ~= target)
+
+    if mask <= 0 then
+        InputState.lastWeaponMask = mask
+        InputState.lastWeaponPlayer = player
+        InputState.lastWeaponText = nil
+        InputState.lastWeaponTarget = target
+        ClearWeaponStats()
+        return
+    end
+
+    local msg = BuildWeaponStatsText(player, mask)
+    local textChanged = (InputState.lastWeaponText ~= msg)
 
     InputState.lastWeaponMask = mask
     InputState.lastWeaponPlayer = player
+    InputState.lastWeaponText = msg
+    InputState.lastWeaponTarget = target
 
-    if mask <= 0 then return end
-
-    local msg = BuildWeaponStatsText(player, mask)
-    if msg then
-        -- Don't bypass mission chatter; queue this as a small informational HUD line.
-        ShowFeedback(msg, 0.75, 1.0, 0.75, 2.4, false)
+    if (playerChanged or maskChanged or targetChanged or textChanged) and msg then
+        ShowWeaponStats(msg, 86400.0)
+    elseif not msg then
+        ClearWeaponStats()
     end
 end
 
@@ -396,6 +653,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.AutoRepairBuildings = (val == "true")
                 elseif key == "RetroLighting" then
                     PersistentConfig.Settings.RetroLighting = (val == "true")
+                elseif key == "WeaponStatsHud" then
+                    PersistentConfig.Settings.WeaponStatsHud = (val == "true")
                 end
             end
             line = f:Readln()
@@ -455,6 +714,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("ScavengerAssistEnabled=" .. tostring(PersistentConfig.Settings.ScavengerAssistEnabled))
         f:Writeln("AutoRepairBuildings=" .. tostring(PersistentConfig.Settings.AutoRepairBuildings))
         f:Writeln("RetroLighting=" .. tostring(PersistentConfig.Settings.RetroLighting))
+        f:Writeln("WeaponStatsHud=" .. tostring(PersistentConfig.Settings.WeaponStatsHud))
 
         f:Close()
         print("PersistentConfig: File closed successfully")
@@ -508,7 +768,7 @@ end
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | Shift+L:AutoSave | /:Help"
+        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | Ctrl+S:Weapon HUD | Shift+L:AutoSave | /:Help"
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
 end
@@ -518,13 +778,22 @@ function PersistentConfig.UpdateInputs()
     -- Detect player craft change and reapply headlight settings
     local currentPlayerHandle = GetPlayerHandle()
     if currentPlayerHandle ~= InputState.lastPlayerHandle then
+        if InputState.lastPlayerHandle then
+            InputState.otherHeadlightVisibility[InputState.lastPlayerHandle] = nil
+        end
+        if currentPlayerHandle then
+            InputState.otherHeadlightVisibility[currentPlayerHandle] = nil
+        end
         if IsValid(currentPlayerHandle) then
             print("PersistentConfig: Player entered new craft, reapplying headlight settings.")
             PersistentConfig.ApplySettings()
         end
+        MarkOtherHeadlightsDirty()
         InputState.lastPlayerHandle = currentPlayerHandle
         InputState.lastWeaponMask = nil
         InputState.lastWeaponPlayer = nil
+        InputState.lastWeaponText = nil
+        InputState.lastWeaponTarget = nil
     end
 
     UpdateWeaponStatsDisplay(currentPlayerHandle)
@@ -628,21 +897,14 @@ function PersistentConfig.UpdateInputs()
         PersistentConfig.Settings.OtherHeadlightsDisabled = not PersistentConfig.Settings.OtherHeadlightsDisabled
         PersistentConfig.SaveConfig()
         ShowFeedback("AI Lights: " .. (PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON"))
-
-        if not PersistentConfig.Settings.OtherHeadlightsDisabled then
-            local player = GetPlayerHandle()
-            for h in AllCraft() do
-                if h ~= player and exu.SetHeadlightVisible then
-                    exu.SetHeadlightVisible(h, true)
-                end
-            end
-        end
+        MarkOtherHeadlightsDirty()
     end
     InputState.last_j_state = j_key
 
     -- Toggle Headlight Beam Mode (B) - Removed Alt requirement, but check for Bail (Ctrl+B)
     local b_key = exu.GetGameKey("B")
     local ctrl_down = exu.GetGameKey("CTRL")
+    local s_key = exu.GetGameKey("S")
 
     if b_key and not ctrl_down and not InputState.last_b_state then
         PersistentConfig.Settings.HeadlightBeamMode = (PersistentConfig.Settings.HeadlightBeamMode % 2) + 1
@@ -652,6 +914,23 @@ function PersistentConfig.UpdateInputs()
         ShowFeedback("Beam: " .. modeName)
     end
     InputState.last_b_state = b_key
+
+    if ctrl_down and s_key and not InputState.last_s_state then
+        PersistentConfig.Settings.WeaponStatsHud = not PersistentConfig.Settings.WeaponStatsHud
+        PersistentConfig.SaveConfig()
+        InputState.lastWeaponMask = nil
+        InputState.lastWeaponPlayer = nil
+        InputState.lastWeaponText = nil
+        InputState.lastWeaponTarget = nil
+        InputState.nextWeaponHudCheck = 0.0
+        if PersistentConfig.Settings.WeaponStatsHud then
+            UpdateWeaponStatsDisplay(GetPlayerHandle())
+        else
+            ClearWeaponStats()
+        end
+        ShowFeedback("Weapon HUD: " .. (PersistentConfig.Settings.WeaponStatsHud and "ON" or "OFF"), 0.35, 0.65, 1.0, 2.5, false)
+    end
+    InputState.last_s_state = s_key
 
     -- Toggle Auto-Repair for Wingmen (X for "Auto-fiX")
     local x_key = exu.GetGameKey("X")
@@ -722,25 +1001,9 @@ function PersistentConfig.UpdateInputs()
 
     -- Pause Menu Handling (Escape Key) - IMMEDIATE effect
     if exu.GetGameKey("ESCAPE") or LastGameKey == "ESCAPE" then
-        if subtitles and subtitles.set_opacity then
-            subtitles.set_opacity(0.0)
-        end
-        if subtitles and subtitles.clear_queue then
-            subtitles.clear_queue()
-        end
-        if subtitles and subtitles.clear_current then
-            subtitles.clear_current()
-        end
-        local subtit = package.loaded["ScriptSubtitles"]
-        if subtit then
-            subtit.LastEndTime = GetTime()
-        end
         InputState.SubtitlesPaused = true
     else
         if InputState.SubtitlesPaused then
-            if subtitles and subtitles.set_opacity then
-                subtitles.set_opacity(0.5)
-            end
             InputState.SubtitlesPaused = false
         end
     end
@@ -843,9 +1106,10 @@ function PersistentConfig.UpdateBuildingRepair()
     -- Logic: Heal player buildings (Team 1) if within powerRadius of a power source (classLabel "powerplant")
     local playerTeam = 1
     local powerSources = {}
+    local repairTargets = {}
     local healAmount = 20 -- 20 HP per second
 
-    -- 1. Find all player power sources
+    -- Collect power sources and damaged repair targets in one world pass.
     for h in AllObjects() do
         if GetTeamNum(h) == playerTeam and IsAlive(h) then
             local label = GetClassLabel(h)
@@ -854,49 +1118,83 @@ function PersistentConfig.UpdateBuildingRepair()
                 local odf = GetOdf(h)
                 local rad = GetPowerRadius(odf)
                 table.insert(powerSources, { handle = h, radius = rad })
+            elseif (IsBuilding(h) or label == "turret") and GetHealth(h) < 1.0 then
+                repairTargets[#repairTargets + 1] = h
             end
         end
     end
 
-    if #powerSources == 0 then return end
+    if #powerSources == 0 or #repairTargets == 0 then return end
 
-    -- 2. Find repairable buildings and turrets
-    for h in AllObjects() do
-        if GetTeamNum(h) == playerTeam and IsAlive(h) then
-            local label = GetClassLabel(h)
-            -- Heal Buildings AND Turrets (Gun Towers are vehicles with class 'turret')
-            if IsBuilding(h) or label == "turret" then
-                local curHealth = GetHealth(h) -- Returns 0.0 to 1.0
-
-                if curHealth < 1.0 then
-                    -- Check distance to nearest power
-                    local nearPower = false
-                    for _, p in ipairs(powerSources) do
-                        if GetDistance(h, p.handle) < p.radius then
-                            nearPower = true
-                            break
-                        end
-                    end
-
-                    if nearPower then
-                        AddHealth(h, healAmount)
-                    end
-                end
+    -- Heal Buildings AND Turrets (Gun Towers are vehicles with class 'turret')
+    for i = 1, #repairTargets do
+        local h = repairTargets[i]
+        local nearPower = false
+        for j = 1, #powerSources do
+            local p = powerSources[j]
+            if GetDistance(h, p.handle) < p.radius then
+                nearPower = true
+                break
             end
+        end
+
+        if nearPower then
+            AddHealth(h, healAmount)
         end
     end
 end
 
 function PersistentConfig.UpdateHeadlights()
     if not exu or not exu.SetHeadlightVisible then return end
+
+    local player = GetPlayerHandle()
+    if not PersistentConfig.Settings.OtherHeadlightsDisabled then
+        if not InputState.otherHeadlightsDirty then return end
+
+        local restored = 0
+        for h, visible in pairs(InputState.otherHeadlightVisibility) do
+            if not IsValid(h) or h == player then
+                InputState.otherHeadlightVisibility[h] = nil
+            elseif visible == false then
+                exu.SetHeadlightVisible(h, true)
+                InputState.otherHeadlightVisibility[h] = true
+                restored = restored + 1
+            end
+        end
+        InputState.otherHeadlightsDirty = false
+        if PersistentConfig.Debug and restored > 0 then
+            print("PersistentConfig: restored headlights for " .. tostring(restored) .. " handle(s).")
+        end
+        return
+    end
+
+    if not InputState.otherHeadlightsDirty then return end
+
+    local updated = 0
+    for h in AllObjects() do
+        if ApplyOtherHeadlightVisibility(h, false, player) then
+            updated = updated + 1
+        end
+    end
+
+    for h, _ in pairs(InputState.otherHeadlightVisibility) do
+        if not IsValid(h) or h == player then
+            InputState.otherHeadlightVisibility[h] = nil
+        end
+    end
+
+    InputState.otherHeadlightsDirty = false
+    if PersistentConfig.Debug and updated > 0 then
+        print("PersistentConfig: disabled headlights for " .. tostring(updated) .. " handle(s).")
+    end
+end
+
+function PersistentConfig.OnObjectCreated(h)
+    if not exu or not exu.SetHeadlightVisible then return end
     if not PersistentConfig.Settings.OtherHeadlightsDisabled then return end
 
     local player = GetPlayerHandle()
-    for h in AllObjects() do
-        if h ~= player and exu.SetHeadlightVisible then
-            exu.SetHeadlightVisible(h, false)
-        end
-    end
+    ApplyOtherHeadlightVisibility(h, false, player)
 end
 
 function PersistentConfig.Initialize()
@@ -916,6 +1214,7 @@ function PersistentConfig.Initialize()
     end
     PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings()
+    MarkOtherHeadlightsDirty()
 
     -- Sync AutoSave config from settings
     if autosave and autosave.Config then

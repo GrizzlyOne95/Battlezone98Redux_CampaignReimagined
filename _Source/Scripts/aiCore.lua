@@ -9,8 +9,7 @@ local DiffUtils = require("DiffUtils")
 -- Polyfills
 
 function AllBuildings()
-    local t = {}
-    for h in AllObjects() do if IsBuilding(h) then table.insert(t, h) end end
+    local t = (aiCore and aiCore.GetCachedBuildings and aiCore.GetCachedBuildings()) or {}
     local i = 0
     return function()
         i = i + 1; return t[i]
@@ -53,6 +52,7 @@ utility.ClassLabel = {
     WINGMAN = "wingman",
     WALKER = "walker",
     PERSON = "person",
+    SCRAP = "scrap",
     BUILDING = "i76building",
     RECYCLER = "recycler",
     FACTORY = "factory",
@@ -67,7 +67,9 @@ utility.ClassLabel = {
     POWERUP_GENERIC = "powerup",          -- Generic powerup (no pickup/reject sounds)
     DROPOFF = "dropoff",                  -- Inert powerup useful for scripting
     SIGN = "i76sign",                     -- Small building/prop type (pylons)
-    SPRAYBOMB = "spraybomb"               -- Deployed splinter mortar
+    CAMERA_POD = "camerapod",
+    SPRAYBOMB = "spraybomb",              -- Deployed splinter mortar
+    SCRAP_SILO = "scrapsilo"
 }
 
 -- Clean strings of null padding (Engine Bug Fix)
@@ -160,16 +162,111 @@ function Normalize(v)
     return SetVector(v.x / len, v.y / len, v.z / len)
 end
 
+local function DotProduct(a, b)
+    return (a.x * b.x) + (a.y * b.y) + (a.z * b.z)
+end
+
+local function MatrixToPosition(m)
+    if not m then return nil end
+    return SetVector(m.posit_x, m.posit_y, m.posit_z)
+end
+
+local function UniqueInsert(list, value)
+    if not list then return false end
+    for _, existing in ipairs(list) do
+        if existing == value then
+            return false
+        end
+    end
+    table.insert(list, value)
+    return true
+end
+
 aiCore = {}
 function aiCore.GetDistance(h1, h2)
     if not IsValid(h1) or not IsValid(h2) then return 999999 end
     return GetDistance(h1, h2)
 end
 
+function aiCore.SafeGetTeamSlot(slot, teamNum)
+    if not GetTeamSlot then return nil end
+    local ok, h = pcall(GetTeamSlot, slot, teamNum)
+    if ok and IsValid(h) then
+        return h
+    end
+    return nil
+end
+
 -- Polyfill for GetTerrainHeight if missing
 function GetTerrainHeight(x, z)
     local h, n = GetTerrainHeightAndNormal(SetVector(x, 0, z))
     return h
+end
+
+aiCore.OdfMetaCache = aiCore.OdfMetaCache or {}
+
+function aiCore.GetOdfMeta(odfName)
+    local cleanOdf = string.lower(utility.CleanString(odfName or ""))
+    if cleanOdf == "" then
+        return nil
+    end
+
+    local cached = aiCore.OdfMetaCache[cleanOdf]
+    if cached then
+        return cached
+    end
+
+    local meta = {
+        odf = cleanOdf,
+        classLabel = "",
+        unitName = "",
+        pilotCost = 0,
+        weaponNames = {},
+        personRole = nil
+    }
+
+    local odf = OpenODF(cleanOdf)
+    if odf then
+        meta.classLabel = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "classLabel", "")))
+        meta.unitName = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "unitName", "")))
+        local pilotCost = GetODFInt(odf, "GameObjectClass", "pilotCost", 0)
+        meta.pilotCost = tonumber(pilotCost) or 0
+
+        for i = 1, 5 do
+            local weaponName = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "weaponName" .. i, "")))
+            if weaponName ~= "" then
+                table.insert(meta.weaponNames, weaponName)
+            end
+        end
+
+        if meta.classLabel == utility.ClassLabel.PERSON then
+            local hasSniper = false
+            local hasSoldierWeapon = false
+            for _, weaponName in ipairs(meta.weaponNames) do
+                if string.find(weaponName, "snipe") then
+                    hasSniper = true
+                end
+                if string.find(weaponName, "minig")
+                    or string.find(weaponName, "stab")
+                    or string.find(weaponName, "mortar")
+                    or string.find(weaponName, "rkt")
+                    or string.find(weaponName, "bomb") then
+                    hasSoldierWeapon = true
+                end
+            end
+
+            if meta.pilotCost <= 0 or hasSoldierWeapon then
+                meta.personRole = "soldier"
+            elseif hasSniper or string.find(meta.unitName, "player") then
+                meta.personRole = "sniper"
+            else
+                meta.personRole = "pilot"
+            end
+        end
+    end
+
+    aiCore.OdfMetaCache[cleanOdf] = meta
+    return meta
 end
 
 utility.ClassId = {
@@ -401,6 +498,24 @@ function aiCore.TryAttack(h, target, priority, opts)
     return true
 end
 
+function aiCore.TryPickup(h, target, priority, opts)
+    if not IsValid(h) or not IsValid(target) then return false end
+    if not aiCore.CanIssueCommand(h, AiCommand.PICKUP, opts) then return false end
+    if GetCurrentCommand(h) == AiCommand.PICKUP and GetCurrentWho(h) == target then return false end
+    Pickup(h, target, priority)
+    aiCore.RecordCommand(h, AiCommand.PICKUP, target)
+    return true
+end
+
+function aiCore.TryScavenge(h, target, priority, opts)
+    if not IsValid(h) or not IsValid(target) then return false end
+    if not aiCore.CanIssueCommand(h, AiCommand.SCAVENGE, opts) then return false end
+    if GetCurrentCommand(h) == AiCommand.SCAVENGE and GetCurrentWho(h) == target then return false end
+    SetCommand(h, AiCommand.SCAVENGE, priority, target, nil, nil, nil)
+    aiCore.RecordCommand(h, AiCommand.SCAVENGE, target)
+    return true
+end
+
 function aiCore.TrySetCommand(h, command, priority, who, where, when, param, opts)
     if not IsValid(h) then return false end
     if not aiCore.CanIssueCommand(h, command, opts) then return false end
@@ -409,13 +524,31 @@ function aiCore.TrySetCommand(h, command, priority, who, where, when, param, opt
     return true
 end
 
+function aiCore.TrySetTurbo(h, enabled)
+    if not IsValid(h) or not exu then return false end
+    local setTurbo = exu.SetUnitTurbo or exu.setunitturbo
+    if not setTurbo then return false end
+    local teamNum = GetTeamNum(h)
+    if teamNum == 1 then
+        enabled = true
+    else
+        local team = aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[teamNum] or nil
+        local difficulty = (team and team.Config and team.Config.difficulty) or 2
+        if difficulty < 4 then
+            enabled = false
+        end
+    end
+    local ok = pcall(setTurbo, h, enabled and true or false)
+    return ok
+end
+
 function aiCore.IsMissileThreat(attacker)
     if not IsValid(attacker) then return false end
     for i = 0, 4 do
         local w = string.lower(utility.CleanString(GetWeaponClass(attacker, i)))
         if w ~= "" then
             if string.find(w, "heat") or string.find(w, "image") or string.find(w, "hornet") or string.find(w, "shad")
-                or string.find(w, "missile") then
+                or string.find(w, "comet") or string.find(w, "radar") or string.find(w, "missile") then
                 return true
             end
         end
@@ -423,30 +556,74 @@ function aiCore.IsMissileThreat(attacker)
     return false
 end
 
+function aiCore.GetMissileThreatTypeFromHandle(attacker)
+    if not IsValid(attacker) then return nil end
+    for i = 0, 4 do
+        local w = utility.CleanString(GetWeaponClass(attacker, i))
+        if w ~= "" then
+            local threatType = aiCore.GetMissileThreatType(w)
+            if threatType then
+                return threatType
+            end
+        end
+    end
+    return nil
+end
+
+function aiCore.GetMissileThreatType(odf)
+    local s = string.lower(utility.CleanString(odf))
+    if s == "" then return nil end
+
+    if string.find(s, "comet") or string.find(s, "radar") or string.find(s, "radarmsl") then
+        return "radar"
+    end
+    if string.find(s, "hornet") or string.find(s, "heat") or string.find(s, "heatmsl") then
+        return "heat"
+    end
+    if string.find(s, "shad") or string.find(s, "image") or string.find(s, "imagemsl") then
+        return "image"
+    end
+    if string.find(s, "msl") or string.find(s, "missile") then
+        return "tracking"
+    end
+
+    local odfHandle = OpenODF(s)
+    if odfHandle then
+        local weaponClass = string.lower(utility.CleanString(GetODFString(odfHandle, "WeaponClass", "classLabel", "")))
+        local ordName = string.lower(utility.CleanString(GetODFString(odfHandle, "WeaponClass", "ordName", "")))
+        local radarObject = string.lower(utility.CleanString(GetODFString(odfHandle, "RadarLauncherClass", "objectClass", "")))
+
+        if weaponClass == "radarlauncher" or radarObject == "radarmsl" or string.find(ordName, "radar") then
+            return "radar"
+        end
+        if weaponClass == "thermallauncher" or string.find(ordName, "heat") then
+            return "heat"
+        end
+        if weaponClass == "imagelauncher" or string.find(ordName, "image") then
+            return "image"
+        end
+        if string.find(ordName, "msl") or string.find(ordName, "missile") then
+            return "tracking"
+        end
+    end
+
+    return nil
+end
+
 function aiCore.GetDecoyOdfForUnit(h)
-    local nation = string.lower(utility.CleanString(GetNation(h)))
-    if nation == "" then nation = "a" end
-    local odf = nation .. "pcamr"
-    if OpenODF(odf) then return odf end
-    if OpenODF("apcamr") then return "apcamr" end
+    if OpenODF("apdecoy") then return "apdecoy" end
     return nil
 end
 
 aiCore.DecoyState = aiCore.DecoyState or {}
 function aiCore.TryDeployDecoy(h, cooldown)
     if not IsValid(h) or not IsAlive(h) or not IsCraft(h) then return false end
+    if h == GetPlayerHandle() then return false end
     local now = GetTime()
     local state = aiCore.DecoyState[h] or { nextTime = 0.0 }
     aiCore.DecoyState[h] = state
     cooldown = cooldown or 8.0
     if now < (state.nextTime or 0.0) then return false end
-
-    local navMask = aiCore.GetWeaponMask(h, { "navdrop", "camr" })
-    if navMask > 0 then
-        FireWeaponMask(h, navMask)
-        state.nextTime = now + cooldown
-        return true
-    end
 
     local odf = aiCore.GetDecoyOdfForUnit(h)
     if odf then
@@ -464,13 +641,140 @@ function aiCore.TryDeployDecoy(h, cooldown)
 end
 
 function aiCore.IsTrackingMissileOdf(odf)
-    local s = string.lower(utility.CleanString(odf))
-    if s == "" then return false end
-    return string.find(s, "heat") ~= nil
-        or string.find(s, "image") ~= nil
-        or string.find(s, "hornet") ~= nil
-        or string.find(s, "shad") ~= nil
-        or string.find(s, "msl") ~= nil
+    return aiCore.GetMissileThreatType(odf) ~= nil
+end
+
+aiCore.CountermeasureState = aiCore.CountermeasureState or {}
+aiCore.TrackedOrdnanceThreats = aiCore.TrackedOrdnanceThreats or {}
+
+function aiCore.GetCountermeasureMask(h, threatType)
+    if not IsValid(h) then return 0 end
+    if threatType == "radar" then
+        return aiCore.GetWeaponMask(h, { "redfld" })
+    end
+    if threatType == "heat" or threatType == "image" then
+        return aiCore.GetWeaponMask(h, { "phantom" })
+    end
+    return 0
+end
+
+function aiCore.TryUseMissileCountermeasure(h, threatType, distance)
+    if not IsValid(h) or not IsAlive(h) then return false end
+    if h == GetPlayerHandle() then return false end
+
+    local now = GetTime()
+    local state = aiCore.CountermeasureState[h] or {
+        nextFieldTime = 0.0,
+        nextDecoyTime = 0.0
+    }
+    aiCore.CountermeasureState[h] = state
+
+    local dedicatedMask = aiCore.GetCountermeasureMask(h, threatType)
+    if dedicatedMask > 0 and now >= (state.nextFieldTime or 0.0) then
+        FireWeaponMask(h, dedicatedMask)
+        state.nextFieldTime = now + 3.5
+        return true
+    end
+
+    local decoyThreshold = (threatType == "radar") and 150.0 or 120.0
+    if distance <= decoyThreshold and now >= (state.nextDecoyTime or 0.0) then
+        if aiCore.TryDeployDecoy(h, 5.0) then
+            state.nextDecoyTime = now + 1.0
+            return true
+        end
+    end
+
+    return false
+end
+
+function aiCore.SelectLikelyMissileTarget(shooter, transform)
+    if not IsValid(shooter) or not transform then return nil end
+
+    local directTarget = GetCurrentWho(shooter)
+    if IsValid(directTarget) and IsAlive(directTarget) and IsCraft(directTarget) and not IsAlly(shooter, directTarget) then
+        return directTarget
+    end
+
+    local ordPos = MatrixToPosition(transform) or GetPosition(shooter)
+    if not ordPos then return nil end
+
+    local front = Normalize(SetVector(transform.front_x, transform.front_y, transform.front_z))
+    local bestTarget = nil
+    local bestScore = 999999
+
+    for candidate in ObjectsInRange(650.0, ordPos) do
+        if IsValid(candidate) and IsAlive(candidate) and IsCraft(candidate) and not IsAlly(shooter, candidate) then
+            local toTarget = GetPosition(candidate) - ordPos
+            local forwardDist = DotProduct(front, toTarget)
+            if forwardDist > 0 then
+                local lateralVec = toTarget - (front * forwardDist)
+                local lateralDist = Length(lateralVec)
+                if lateralDist < 140.0 then
+                    local score = lateralDist + (forwardDist * 0.12)
+                    if score < bestScore then
+                        bestScore = score
+                        bestTarget = candidate
+                    end
+                end
+            end
+        end
+    end
+
+    return bestTarget
+end
+
+function aiCore.RegisterTrackedOrdnanceThreat(odf, shooter, transform, ordnanceHandle)
+    if not exu or not exu.GetOrdnanceAttribute then return false end
+    if not ordnanceHandle or not IsValid(shooter) then return false end
+
+    local threatType = aiCore.GetMissileThreatType(odf)
+    if not threatType then return false end
+
+    local target = aiCore.SelectLikelyMissileTarget(shooter, transform)
+    if not IsValid(target) then return false end
+
+    aiCore.TrackedOrdnanceThreats[ordnanceHandle] = {
+        odf = string.lower(utility.CleanString(odf)),
+        shooter = shooter,
+        target = target,
+        threatType = threatType,
+        createdAt = GetTime(),
+        expiresAt = GetTime() + 12.0,
+        lastDistance = 999999.0
+    }
+    return true
+end
+
+function aiCore.UpdateTrackedOrdnanceThreats()
+    if not exu or not exu.GetOrdnanceAttribute then return end
+
+    local now = GetTime()
+    local transformAttr = (exu.ORDNANCE and exu.ORDNANCE.TRANSFORM) or 1
+    for ordnanceHandle, threat in pairs(aiCore.TrackedOrdnanceThreats) do
+        local target = threat.target
+        if not IsValid(target) or not IsAlive(target) or now > (threat.expiresAt or 0.0) then
+            aiCore.TrackedOrdnanceThreats[ordnanceHandle] = nil
+        else
+            local ok, transform = pcall(exu.GetOrdnanceAttribute, ordnanceHandle, transformAttr)
+            local ordPos = ok and transform and MatrixToPosition(transform) or nil
+            if not ordPos then
+                if now > ((threat.createdAt or now) + 1.5) then
+                    aiCore.TrackedOrdnanceThreats[ordnanceHandle] = nil
+                end
+            else
+                local distance = Length(GetPosition(target) - ordPos)
+                local closing = distance < ((threat.lastDistance or distance) - 2.0)
+                threat.lastDistance = distance
+
+                local responseDistance = (threat.threatType == "radar") and 220.0 or 180.0
+                if closing and distance <= responseDistance then
+                    if aiCore.TryUseMissileCountermeasure(target, threat.threatType, distance) then
+                        aiCore.TrackedOrdnanceThreats[ordnanceHandle] = nil
+                    end
+                end
+            end
+        end
+    end
 end
 
 aiCore.ExuCallbackMux = aiCore.ExuCallbackMux or {
@@ -563,41 +867,18 @@ end
 
 function aiCore.SetupOrdnanceHooks()
     if aiCore._ordnanceHooksInstalled then return end
-    local installed = aiCore.RegisterExuCallback("BulletInit", function(odf, shooter, transform)
+    local initInstalled = aiCore.RegisterExuCallback("BulletInit", function(odf, shooter, transform, ordnanceHandle)
         if not aiCore.IsTrackingMissileOdf(odf) then return end
-        if not IsValid(shooter) then return end
-        if not transform then return end
+        aiCore.RegisterTrackedOrdnanceThreat(odf, shooter, transform, ordnanceHandle)
+    end)
 
-        local sPos = GetPosition(shooter)
-        if not sPos then return end
-        local front = SetVector(transform.front_x, transform.front_y, transform.front_z)
-        local nFront = Normalize(front)
-        local shooterTeam = GetTeamNum(shooter)
-
-        local candidates = {}
-        for h in ObjectsInRange(325.0, sPos) do
-            if IsValid(h) and IsAlive(h) and IsCraft(h) and not IsAlly(shooter, h) then
-                local toTarget = Normalize(GetPosition(h) - sPos)
-                local facing = DotProduct(nFront, toTarget)
-                if facing > 0.55 then
-                    table.insert(candidates, h)
-                end
-            end
-        end
-
-        table.sort(candidates, function(a, b)
-            return GetDistance(a, shooter) < GetDistance(b, shooter)
-        end)
-
-        local deployed = 0
-        for _, h in ipairs(candidates) do
-            if GetTeamNum(h) ~= shooterTeam and aiCore.TryDeployDecoy(h, 8.0) then
-                deployed = deployed + 1
-                if deployed >= 3 then break end
-            end
+    local hitInstalled = aiCore.RegisterExuCallback("BulletHit", function(odf, shooter, hitObject, transform, ordnanceHandle)
+        if ordnanceHandle and aiCore.TrackedOrdnanceThreats then
+            aiCore.TrackedOrdnanceThreats[ordnanceHandle] = nil
         end
     end)
-    aiCore._ordnanceHooksInstalled = installed and true or false
+
+    aiCore._ordnanceHooksInstalled = (initInstalled or hitInstalled) and true or false
 end
 
 -- Path Utilities
@@ -629,55 +910,308 @@ function paths.IteratePath(p)
     end
 end
 
+local function ResolveReferencePosition(ref)
+    if ref == nil then return nil end
+    if type(ref) == "string" then
+        return paths.GetPosition(ref, 0)
+    end
+    if type(ref) == "lightuserdata" and IsValid(ref) then
+        return GetPosition(ref)
+    end
+    if type(ref) == "userdata" then
+        local okValid, isValidRef = pcall(IsValid, ref)
+        if okValid and isValidRef then
+            local okPos, pos = pcall(GetPosition, ref)
+            if okPos and pos ~= nil then
+                return pos
+            end
+        end
+        local ok, x, y, z = pcall(function()
+            return ref.posit_x, ref.posit_y, ref.posit_z
+        end)
+        if ok and x ~= nil and y ~= nil and z ~= nil then
+            return SetVector(x, y, z)
+        end
+    end
+    return ref
+end
+
+local function DistanceBetweenRefs(a, b)
+    local aPos = ResolveReferencePosition(a)
+    local bPos = ResolveReferencePosition(b)
+    if not aPos or not bPos then return 999999 end
+    local ok, distance = pcall(function()
+        return Length(aPos - bPos)
+    end)
+    if ok and distance ~= nil then
+        return distance
+    end
+
+    local okA, validA = pcall(IsValid, a)
+    local okB, validB = pcall(IsValid, b)
+    if okA and validA and okB and validB then
+        local okDist, handleDistance = pcall(GetDistance, a, b)
+        if okDist and handleDistance ~= nil then
+            return handleDistance
+        end
+    end
+
+    return 999999
+end
+
+local function RemoveFromList(list, value)
+    if not list then return false end
+    for i = #list, 1, -1 do
+        if list[i] == value then
+            table.remove(list, i)
+            return true
+        end
+    end
+    return false
+end
+
+local function IsSpecializedPoolClass(classLabel)
+    if not classLabel or classLabel == "" then return false end
+    return string.find(classLabel, utility.ClassLabel.MINELAYER) ~= nil
+        or string.find(classLabel, utility.ClassLabel.HOWITZER) ~= nil
+        or string.find(classLabel, utility.ClassLabel.TURRET) ~= nil
+        or string.find(classLabel, utility.ClassLabel.TURRET_TANK) ~= nil
+        or string.find(classLabel, utility.ClassLabel.APC) ~= nil
+        or string.find(classLabel, utility.ClassLabel.TUG) ~= nil
+        or string.find(classLabel, utility.ClassLabel.WALKER) ~= nil
+end
+
+local function PruneSpecializedPoolUnits(list)
+    if not list then return end
+    for i = #list, 1, -1 do
+        local h = list[i]
+        local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+        if not IsValid(h) or IsSpecializedPoolClass(cls) then
+            table.remove(list, i)
+        end
+    end
+end
+
+local function Clamp(value, minimum, maximum)
+    if value < minimum then return minimum end
+    if value > maximum then return maximum end
+    return value
+end
+
+local function GetStrategicRefKey(ref)
+    if ref == nil then return nil end
+    if type(ref) == "string" then
+        return "path:" .. ref
+    end
+    if IsValid(ref) then
+        return ref
+    end
+
+    local pos = ResolveReferencePosition(ref)
+    if pos then
+        return string.format("pos:%d:%d", math.floor(pos.x + 0.5), math.floor(pos.z + 0.5))
+    end
+
+    return tostring(ref)
+end
+
+function aiCore.EstimateCombatStrength(h)
+    if not IsValid(h) or not IsAlive(h) then return 0.0 end
+
+    local classLabel = string.lower(utility.CleanString(GetClassLabel(h)))
+    local maxHealth = math.max(GetMaxHealth(h) or 0.0, 1.0)
+    local healthRatio = Clamp((GetCurHealth(h) or maxHealth) / maxHealth, 0.15, 1.5)
+
+    if IsBuilding(h) then
+        local base = 1.5
+        if string.find(classLabel, utility.ClassLabel.RECYCLER)
+            or string.find(classLabel, utility.ClassLabel.FACTORY)
+            or string.find(classLabel, utility.ClassLabel.ARMORY)
+            or string.find(classLabel, utility.ClassLabel.CONSTRUCTOR) then
+            base = 4.5
+        elseif string.find(classLabel, utility.ClassLabel.REPAIR_DEPOT)
+            or string.find(classLabel, utility.ClassLabel.SUPPLY_DEPOT)
+            or string.find(classLabel, utility.ClassLabel.HOWITZER)
+            or string.find(classLabel, utility.ClassLabel.TURRET) then
+            base = 3.5
+        elseif string.find(classLabel, utility.ClassLabel.POWERPLANT)
+            or string.find(classLabel, utility.ClassLabel.BARRACKS) then
+            base = 2.5
+        end
+        return base * healthRatio
+    end
+
+    if not IsCraft(h) then
+        return 0.5 * healthRatio
+    end
+
+    local weaponScore = 0.0
+    for i = 0, 4 do
+        local w = string.lower(utility.CleanString(GetWeaponClass(h, i)))
+        if w ~= "" then
+            weaponScore = weaponScore + 0.45
+            if string.find(w, "msl") or string.find(w, "missile") then
+                weaponScore = weaponScore + 0.2
+            elseif string.find(w, "mortar") or string.find(w, "howitzer") then
+                weaponScore = weaponScore + 0.35
+            elseif string.find(w, "thump") then
+                weaponScore = weaponScore + 0.6
+            end
+        end
+    end
+
+    local classBonus = 0.8
+    if string.find(classLabel, utility.ClassLabel.WALKER) then
+        classBonus = 3.0
+    elseif string.find(classLabel, utility.ClassLabel.HOWITZER) then
+        classBonus = 2.7
+    elseif string.find(classLabel, "tank") or string.find(classLabel, "rocket") or string.find(classLabel, "bomber") then
+        classBonus = 2.0
+    elseif string.find(classLabel, utility.ClassLabel.APC) or string.find(classLabel, utility.ClassLabel.MINELAYER) then
+        classBonus = 1.4
+    elseif string.find(classLabel, utility.ClassLabel.SCAVENGER) or string.find(classLabel, utility.ClassLabel.TUG) then
+        classBonus = 0.7
+    elseif string.find(classLabel, utility.ClassLabel.PERSON) then
+        classBonus = 0.4
+    end
+
+    return (classBonus + weaponScore) * healthRatio
+end
+
 aiCore.EmptyList = aiCore.EmptyList or {}
 aiCore.ObjectCache = aiCore.ObjectCache or {
-    lastUpdate = -999.0,
-    updateInterval = 2.0,
+    lastCraftUpdate = -999.0,
+    craftUpdateInterval = 1.0,
+    lastObjectUpdate = -999.0,
+    objectUpdateInterval = 8.0,
     teamCraft = {},
+    teamBuildings = {},
     teamTargets = {},
-    pilotPersons = {}
+    pilotPersons = {},
+    scrapObjects = {},
+    allBuildings = {}
 }
 
 function aiCore.InvalidateObjectCache()
-    aiCore.ObjectCache.lastUpdate = -999.0
+    aiCore.ObjectCache.lastCraftUpdate = -999.0
+    aiCore.ObjectCache.lastObjectUpdate = -999.0
+end
+
+local function RebuildTeamTargetCache(cache)
+    local teamTargets = {}
+
+    for teamNum, craftList in pairs(cache.teamCraft or {}) do
+        local merged = {}
+        for i = 1, #craftList do
+            merged[#merged + 1] = craftList[i]
+        end
+        teamTargets[teamNum] = merged
+    end
+
+    for teamNum, buildingList in pairs(cache.teamBuildings or {}) do
+        local merged = teamTargets[teamNum]
+        if not merged then
+            merged = {}
+            teamTargets[teamNum] = merged
+        end
+        for i = 1, #buildingList do
+            merged[#merged + 1] = buildingList[i]
+        end
+    end
+
+    cache.teamTargets = teamTargets
 end
 
 function aiCore.RefreshObjectCache(force)
     local cache = aiCore.ObjectCache
     local now = GetTime()
-    if not force and now < (cache.lastUpdate + cache.updateInterval) then
+    local refreshCraft = force or now >= ((cache.lastCraftUpdate or -999.0) + (cache.craftUpdateInterval or 1.0))
+    local refreshObjects = force or now >= ((cache.lastObjectUpdate or -999.0) + (cache.objectUpdateInterval or 8.0))
+    if not refreshCraft and not refreshObjects then
         return
     end
 
-    local teamCraft = {}
-    local teamTargets = {}
-    local pilotPersons = {}
-
-    for h in AllObjects() do
-        if IsValid(h) and IsAlive(h) then
-            local team = GetTeamNum(h)
-            if team and team >= 0 then
-                if not teamCraft[team] then teamCraft[team] = {} end
-                if not teamTargets[team] then teamTargets[team] = {} end
-
-                if IsCraft(h) then
-                    table.insert(teamCraft[team], h)
-                    table.insert(teamTargets[team], h)
-                elseif IsBuilding(h) then
-                    table.insert(teamTargets[team], h)
+    if refreshCraft then
+        local teamCraft = {}
+        for h in AllCraft() do
+            if IsValid(h) and IsAlive(h) then
+                local team = GetTeamNum(h)
+                if team and team >= 0 then
+                    local craftList = teamCraft[team]
+                    if not craftList then
+                        craftList = {}
+                        teamCraft[team] = craftList
+                    end
+                    craftList[#craftList + 1] = h
                 end
             end
-
-            if IsPerson(h) then
-                table.insert(pilotPersons, h)
-            end
         end
+        cache.teamCraft = teamCraft
+        cache.lastCraftUpdate = now
     end
 
-    cache.lastUpdate = now
-    cache.teamCraft = teamCraft
-    cache.teamTargets = teamTargets
-    cache.pilotPersons = pilotPersons
+    if refreshObjects then
+        local teamBuildings = {}
+        local allBuildings = {}
+        local pilotPersons = {}
+        local scrapObjects = {}
+
+        for h in AllObjects() do
+            if IsValid(h) and IsAlive(h) then
+                if IsBuilding(h) then
+                    allBuildings[#allBuildings + 1] = h
+                    local team = GetTeamNum(h)
+                    if team and team >= 0 then
+                        local buildingList = teamBuildings[team]
+                        if not buildingList then
+                            buildingList = {}
+                            teamBuildings[team] = buildingList
+                        end
+                        buildingList[#buildingList + 1] = h
+                    end
+                elseif IsPerson(h) then
+                    pilotPersons[#pilotPersons + 1] = h
+                else
+                    local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+                    if cls == utility.ClassLabel.SCRAP then
+                        scrapObjects[#scrapObjects + 1] = h
+                    end
+                end
+            end
+        end
+
+        cache.teamBuildings = teamBuildings
+        cache.allBuildings = allBuildings
+        cache.pilotPersons = pilotPersons
+        cache.scrapObjects = scrapObjects
+        cache.lastObjectUpdate = now
+    end
+
+    RebuildTeamTargetCache(cache)
+end
+
+function aiCore.GetCachedBuildings(teamNum)
+    aiCore.RefreshObjectCache(false)
+    if teamNum == nil then
+        return aiCore.ObjectCache.allBuildings or aiCore.EmptyList
+    end
+    local list = aiCore.ObjectCache.teamBuildings[teamNum]
+    if list then return list end
+    return aiCore.EmptyList
+end
+
+function aiCore.GetCachedScrapObjects()
+    aiCore.RefreshObjectCache(false)
+    local list = aiCore.ObjectCache.scrapObjects
+    if list then return list end
+    return aiCore.EmptyList
+end
+
+function aiCore.GetCachedPilotPersons()
+    aiCore.RefreshObjectCache(false)
+    local list = aiCore.ObjectCache.pilotPersons
+    if list then return list end
+    return aiCore.EmptyList
 end
 
 function aiCore.GetCachedTeamCraft(teamNum)
@@ -694,18 +1228,44 @@ function aiCore.GetCachedTeamTargets(teamNum)
     return aiCore.EmptyList
 end
 
-function aiCore.GetCachedPilotPersons()
-    aiCore.RefreshObjectCache(false)
-    local list = aiCore.ObjectCache.pilotPersons
-    if list then return list end
-    return aiCore.EmptyList
-end
 
 -- Integrated Producer Logic
 producer = {
     Queue = {}, -- table<TeamNum, list<Job>>
     Orders = {} -- table<Handle, Job>
 }
+
+function producer.GetQueueOwner(teamNum, teamObj)
+    if teamObj and teamObj.teamNum == teamNum then return teamObj end
+    if aiCore and aiCore.ActiveTeams then
+        return aiCore.ActiveTeams[teamNum]
+    end
+    return nil
+end
+
+function producer.GetJobSortScore(job, teamObj)
+    local basePriority = (job and job.data and job.data.priority) or 999999
+    if teamObj and teamObj.GetEffectiveBuildPriority then
+        return teamObj:GetEffectiveBuildPriority((job.data and job.data.account) or nil, basePriority, job.data)
+    end
+    return basePriority
+end
+
+function producer.SortQueue(teamNum, teamObj)
+    local queue = producer.Queue[teamNum]
+    if not queue then return end
+    local owner = producer.GetQueueOwner(teamNum, teamObj)
+    table.sort(queue, function(a, b)
+        local ap = producer.GetJobSortScore(a, owner)
+        local bp = producer.GetJobSortScore(b, owner)
+        if ap == bp then
+            local apr = (a.data and a.data.priority) or 999999
+            local bpr = (b.data and b.data.priority) or 999999
+            return apr < bpr
+        end
+        return ap < bp
+    end)
+end
 
 function producer.QueueJob(odf, team, location, builder, data)
     if not producer.Queue[team] then producer.Queue[team] = {} end
@@ -715,11 +1275,7 @@ function producer.QueueJob(odf, team, location, builder, data)
         builder = builder, -- TeamSlotInteger (Optional)
         data = data
     })
-    table.sort(producer.Queue[team], function(a, b)
-        local ap = (a.data and a.data.priority) or 999999
-        local bp = (b.data and b.data.priority) or 999999
-        return ap < bp
-    end)
+    producer.SortQueue(team)
 end
 
 function producer.ProcessQueues(teamObj)
@@ -727,6 +1283,9 @@ function producer.ProcessQueues(teamObj)
     local team = teamObj.teamNum
     local queue = producer.Queue[team]
     if not queue or #queue == 0 then return end
+    if teamObj.UpdateBuildAccountState then
+        teamObj:UpdateBuildAccountState()
+    end
 
     -- Recover from stuck/failed build orders so one bad command cannot block a producer forever.
     for proc, active in pairs(producer.Orders) do
@@ -749,15 +1308,13 @@ function producer.ProcessQueues(teamObj)
             end
             if not exists then
                 table.insert(queue, 1, job)
-                table.sort(queue, function(a, b)
-                    local ap = (a.data and a.data.priority) or 999999
-                    local bp = (b.data and b.data.priority) or 999999
-                    return ap < bp
-                end)
+                producer.SortQueue(team, teamObj)
             end
             producer.Orders[proc] = nil
         end
     end
+
+    producer.SortQueue(team, teamObj)
 
     -- Identify available producers
     local producers = {}
@@ -845,6 +1402,9 @@ function producer.ProcessQueues(teamObj)
                             { minInterval = 0.4, ignoreThrottle = true, overrideProtected = true })
                     else
                         Build(foundProducer, job.odf)
+                    end
+                    if teamObj.RecordBuildAccountSpend then
+                        teamObj:RecordBuildAccountSpend((job.data and job.data.account) or nil, cost + (pilotCost * 4))
                     end
                     producer.Orders[foundProducer] = { job = job, issuedAt = GetTime() }
                     table.insert(removals, i)
@@ -1523,6 +2083,7 @@ function aiCore.WeaponManager.new(teamNum)
     self.thumperPeriod = 15.0
     self.thumperDuration = 0.5
     self.thumperRate = 30
+    self.thumperWeapons = { "gquake", "gthumper", "quake", "thump" }
 
     -- Field projector users
     self.fieldUsers = {}
@@ -1551,6 +2112,12 @@ function aiCore.WeaponManager.new(teamNum)
     -- Double weapon users
     self.doubleUsers = {}
     self.doubleRate = 20
+    self.doubleMaskCheckAt = {}
+    self.doubleMaskInterval = 0.9
+
+    -- Retaliation sweeps can touch every combat unit, so keep them off the per-frame path.
+    self.retaliationUpdateAt = 0.0
+    self.retaliationUpdatePeriod = 0.25
 
     -- Timers
     self.thumperTimer = 0.0
@@ -1565,7 +2132,7 @@ function aiCore.WeaponManager:AddObject(h)
     if not IsValid(h) or GetTeamNum(h) ~= self.teamNum then return end
 
     -- Check for thumper weapons
-    local thumperMask = aiCore.GetWeaponMask(h, "gthumper")
+    local thumperMask = aiCore.GetWeaponMask(h, self.thumperWeapons)
     if thumperMask > 0 then
         table.insert(self.thumperUsers, { handle = h, mask = thumperMask, timer = 0.0 })
         if aiCore.Debug then print("Team " .. self.teamNum .. " added thumper user: " .. GetOdf(h)) end
@@ -1604,7 +2171,9 @@ function aiCore.WeaponManager:AddObject(h)
     -- Check for double weapons (hardpoints >= 2)
     local weaponCount = 0
     for i = 0, 4 do
-        if GetWeaponClass(h, i) then weaponCount = weaponCount + 1 end
+        if utility.CleanString(GetWeaponClass(h, i)) ~= "" then
+            weaponCount = weaponCount + 1
+        end
     end
     if weaponCount >= 2 then
         table.insert(self.doubleUsers, h)
@@ -1637,29 +2206,54 @@ end
 
 function aiCore.WeaponManager:UpdateRetaliation(dt)
     if not self.teamObj or not self.teamObj.combatUnits then return end
+    local now = GetTime()
+    if now < (self.retaliationUpdateAt or 0.0) then return end
+    self.retaliationUpdateAt = now + (self.retaliationUpdatePeriod or 0.25)
 
     -- Check for attackers and switch weapons reactively
     for _, u in ipairs(self.teamObj.combatUnits) do
         if IsValid(u) and IsAlive(u) then
             local attacker = GetWhoShotMe(u)
-            if IsValid(attacker) and IsAlive(attacker) and (GetTime() - GetLastEnemyShot(u)) < 5.0 then
+            if IsValid(attacker) and IsAlive(attacker) and (now - GetLastEnemyShot(u)) < 5.0 then
                 local cls = string.lower(utility.CleanString(GetClassLabel(attacker)))
+                local isPlayerHandle = (u == GetPlayerHandle())
+
+                if aiCore.IsMissileThreat(attacker) then
+                    local threatType = aiCore.GetMissileThreatTypeFromHandle(attacker) or "tracking"
+                    aiCore.TryUseMissileCountermeasure(u, threatType, GetDistance(u, attacker))
+                end
 
                 -- Person -> Mortar
-                if cls == utility.ClassLabel.PERSON then
-                    local mortarMask = aiCore.GetWeaponMask(u, self.mortarWeapons)
-                    if mortarMask > 0 then
-                        FireWeaponMask(u, mortarMask)
+                if cls == utility.ClassLabel.PERSON and not isPlayerHandle then
+                    local popgunMask = aiCore.GetWeaponMask(u, { "popgun" })
+                    local blastMask = aiCore.GetWeaponMask(u, { "mdmgun", "mortar", "splint", "acidcl", "thrower", "arblst", "rktbomb" })
+                    local mineMask = aiCore.GetWeaponMask(u, { "proxmin", "mitsmin", "mcurmin" })
+                    if popgunMask > 0 then
+                        SetWeaponMask(u, popgunMask)
+                        FireWeaponMask(u, popgunMask)
                         if aiCore.Debug then
-                            print("WeaponManager: Retaliating against Person with Mortar (" ..
+                            print("WeaponManager: Using popgun against infantry/sniper (" .. GetOdf(u) .. ")")
+                        end
+                    elseif blastMask > 0 then
+                        SetWeaponMask(u, blastMask)
+                        FireWeaponMask(u, blastMask)
+                        if aiCore.Debug then
+                            print("WeaponManager: Retaliating against Person with explosive weapon (" ..
                                 GetOdf(u) .. ")")
+                        end
+                    elseif mineMask > 0 then
+                        SetWeaponMask(u, mineMask)
+                        FireWeaponMask(u, mineMask)
+                        if aiCore.Debug then
+                            print("WeaponManager: Retaliating against Person with mine fallback (" .. GetOdf(u) .. ")")
                         end
                     end
 
                     -- Walker -> Thumper
-                elseif cls == utility.ClassLabel.WALKER then
-                    local thumperMask = aiCore.GetWeaponMask(u, "gthumper")
+                elseif cls == utility.ClassLabel.WALKER and not isPlayerHandle then
+                    local thumperMask = aiCore.GetWeaponMask(u, self.thumperWeapons)
                     if thumperMask > 0 then
+                        SetWeaponMask(u, thumperMask)
                         FireWeaponMask(u, thumperMask)
                         if aiCore.Debug then
                             print("WeaponManager: Disorienting Walker with Thumper (" ..
@@ -1679,12 +2273,29 @@ function aiCore.WeaponManager:UpdateThumpers(dt)
             table.remove(self.thumperUsers, i)
         else
             user.timer = user.timer + dt
+            local isPlayerHandle = (user.handle == GetPlayerHandle())
+            local shouldPulse = false
+            local target = GetCurrentWho(user.handle)
+            if IsValid(target) and IsAlive(target) then
+                local targetCls = string.lower(utility.CleanString(GetClassLabel(target)))
+                if string.find(targetCls, utility.ClassLabel.WALKER) then
+                    shouldPulse = true
+                end
+            end
+            if not shouldPulse then
+                local nearest = GetNearestEnemy(user.handle)
+                if IsValid(nearest) and GetDistance(user.handle, nearest) <= 200.0 then
+                    local nearestCls = string.lower(utility.CleanString(GetClassLabel(nearest)))
+                    shouldPulse = string.find(nearestCls, utility.ClassLabel.WALKER) ~= nil or math.random(100) < self.thumperRate
+                end
+            end
 
             -- Pulse cycle: fire for duration, wait for period
             local cycleTime = user.timer % self.thumperPeriod
             if cycleTime < self.thumperDuration then
                 -- Fire thumper
-                if user.handle ~= GetPlayerHandle() and math.random(100) < self.thumperRate then
+                if not isPlayerHandle and shouldPulse then
+                    SetWeaponMask(user.handle, user.mask)
                     FireWeaponMask(user.handle, user.mask)
                 end
             else
@@ -1771,16 +2382,16 @@ end
 
 function aiCore.WeaponManager:UpdateDoubleWeapons(dt)
     -- Cycle through double weapon users and apply masks
+    local now = GetTime()
     for i = #self.doubleUsers, 1, -1 do
         local h = self.doubleUsers[i]
         if not IsValid(h) then
             table.remove(self.doubleUsers, i)
+            self.doubleMaskCheckAt[h] = nil
         else
-            if self.teamObj then
-                -- Periodically re-evaluate double weapon mask to allow for toggling/randomness
-                if math.random(100) < 5 then -- 5% chance per frame to re-evaluate
-                    self.teamObj:SetDoubleWeaponMask(h, self.doubleRate)
-                end
+            if self.teamObj and now >= (self.doubleMaskCheckAt[h] or 0.0) then
+                self.doubleMaskCheckAt[h] = now + (self.doubleMaskInterval or 0.9) + math.random() * 0.35
+                self.teamObj:SetDoubleWeaponMask(h, self.doubleRate)
             end
         end
     end
@@ -1953,8 +2564,16 @@ end
 function aiCore.HowitzerManager:UpdateSquadOrders()
     local Cmd = utility.AiCommand
 
-    -- Prioritize Core Infrastructure Targets
+    -- Prioritize support infrastructure and constructors before core production.
     local targets = {}
+    local seenTargets = {}
+    local function AddTarget(h)
+        if IsValid(h) and IsAlive(h) and not seenTargets[h] then
+            seenTargets[h] = true
+            table.insert(targets, h)
+        end
+    end
+
     local enemyTeam = -1
     if self.teamObj and self.teamObj.GetPrimaryEnemyTeam then
         enemyTeam = self.teamObj:GetPrimaryEnemyTeam()
@@ -1963,35 +2582,41 @@ function aiCore.HowitzerManager:UpdateSquadOrders()
         enemyTeam = (self.teamNum == 1) and 2 or 1
     end
 
-    -- 1. Core Buildings
-    local rec = GetRecyclerHandle(enemyTeam)
-    if IsValid(rec) then table.insert(targets, rec) end
-
-    local fac = GetFactoryHandle(enemyTeam)
-    if IsValid(fac) then table.insert(targets, fac) end
-
-    local arm = GetArmoryHandle(enemyTeam)
-    if IsValid(arm) then table.insert(targets, arm) end
-
-    local con = GetConstructorHandle(enemyTeam)
-    if IsValid(con) then table.insert(targets, con) end
-
-    -- 3. Offensive/Defensive Assets (Turrets, Howitzers, Gun Towers)
+    -- Tier 1: Sustainment and field support.
     for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
         if IsValid(obj) and IsAlive(obj) then
-            local cls = string.lower(GetClassLabel(obj) or "")
-            if string.find(cls, "turret") or string.find(cls, "howitzer") or string.find(cls, "turrettank") then
-                table.insert(targets, obj)
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            if cls == utility.ClassLabel.REPAIR_DEPOT or cls == utility.ClassLabel.SUPPLY_DEPOT
+                or cls == utility.ClassLabel.CONSTRUCTOR or cls == utility.ClassLabel.SCRAP_SILO
+                or string.find(cls, utility.ClassLabel.HOWITZER) then
+                AddTarget(obj)
             end
         end
     end
 
-    -- Fallback: Any enemy building if no high-value targets found
-    if #targets == 0 then
-        for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
-            if IsValid(obj) and IsBuilding(obj) then
-                table.insert(targets, obj)
+    local con = GetConstructorHandle(enemyTeam)
+    AddTarget(con)
+
+    -- Tier 2: Defensive network and other high-value battlefield assets.
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
+        if IsValid(obj) and IsAlive(obj) then
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            if string.find(cls, "turret") or string.find(cls, "turrettank") or string.find(cls, utility.ClassLabel.HOWITZER)
+                or cls == utility.ClassLabel.POWERPLANT or cls == utility.ClassLabel.BARRACKS
+                or string.find(cls, "commtower") or string.find(cls, "proximity") then
+                AddTarget(obj)
             end
+        end
+    end
+
+    -- Tier 3: Core production and command buildings.
+    AddTarget(GetRecyclerHandle(enemyTeam))
+    AddTarget(GetFactoryHandle(enemyTeam))
+    AddTarget(GetArmoryHandle(enemyTeam))
+
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) then
+            AddTarget(obj)
         end
     end
 
@@ -2165,7 +2790,9 @@ function aiCore.MinelayerManager:UpdateMinelayer(h)
         local myPos = GetPosition(h)
         for obj in ObjectsInRange(1000, myPos) do
             if IsValid(obj) and GetTeamNum(obj) == GetTeamNum(h) then
-                if GetClassLabel(obj) == utility.ClassSig.SUPPLY_DEPOT then
+                local objClass = string.lower(utility.CleanString(GetClassLabel(obj)))
+                local objSig = string.upper(utility.CleanString(GetClassSig(obj)))
+                if objClass == utility.ClassLabel.SUPPLY_DEPOT or objSig == utility.ClassSig.SUPPLY_DEPOT then
                     local dist = GetDistance(h, obj)
                     if dist < bestDist then
                         bestDist = dist
@@ -2246,8 +2873,7 @@ function aiCore.APCManager.new(teamNum)
     local self = setmetatable({}, aiCore.APCManager)
     self.teamNum = teamNum
     self.apcs = {}
-    self.pickupRange = 150
-    self.deployRange = 120 -- Distance to enemy before deploying
+    self.attackRange = 120 -- Distance to enemy before switching from GO to ATTACK
     self.updatePeriod = 5.0
     self.updateTimer = 0.0
     return self
@@ -2268,69 +2894,75 @@ function aiCore.APCManager:Update()
     if self.updateTimer < self.updatePeriod then return end
     self.updateTimer = 0.0
 
+    local attackTargets = {}
+    for target in AllCraft() do
+        if self:IsAttackableEnemyUnit(nil, target) then
+            attackTargets[#attackTargets + 1] = target
+        end
+    end
+
     for i = #self.apcs, 1, -1 do
         local apc = self.apcs[i]
         if not IsValid(apc) then
             table.remove(self.apcs, i)
         else
-            self:UpdateAPC(apc)
+            self:UpdateAPC(apc, attackTargets)
         end
     end
 end
 
-function aiCore.APCManager:UpdateAPC(apc)
-    if IsBusy(apc) then return end
+function aiCore.APCManager:IsAttackableEnemyUnit(apc, target)
+    if not IsValid(target) or not IsAlive(target) then return false end
+    if IsValid(apc) and IsAlly(apc, target) then return false end
+    if IsBuilding(target) then return false end
 
-    -- Emergency Deployment (Low Health Protection)
-    local health = GetCurHealth(apc) / GetMaxHealth(apc)
-    local emergencyThreshold = (self.teamNum == 1) and 0.25 or 0.30
-    if health < emergencyThreshold and not IsDeployed(apc) then
-        local attacker = GetWhoShotMe(apc)
-        local enemyNear = false
-        if IsValid(attacker) and not IsTeamAllied(GetTeamNum(attacker), self.teamNum) then
-            enemyNear = GetDistance(apc, attacker) < (self.deployRange * 1.75)
-        end
+    local cls = string.lower(utility.CleanString(GetClassLabel(target)))
+    if cls == utility.ClassLabel.CAMERA_POD
+        or cls == utility.ClassLabel.SPECIAL_ITEM
+        or cls == utility.ClassLabel.POWERUP_GENERIC
+        or cls == utility.ClassLabel.DROPOFF
+        or cls == utility.ClassLabel.SIGN
+        or cls == "wpnpower"
+        or cls == "ammopack"
+        or cls == "repairkit" then
+        return false
+    end
 
-        if not enemyNear then
-            local nearbyEnemy = GetNearestEnemy(apc)
-            if IsValid(nearbyEnemy) then
-                enemyNear = GetDistance(apc, nearbyEnemy) < (self.deployRange * 1.5)
+    return IsCraft(target)
+end
+
+function aiCore.APCManager:GetNearestAttackableEnemy(apc, candidates)
+    local best = nil
+    local bestDist = 999999
+
+    local attacker = GetWhoShotMe(apc)
+    if self:IsAttackableEnemyUnit(apc, attacker) then
+        return attacker, DistanceBetweenRefs(apc, attacker)
+    end
+
+    for i = 1, #(candidates or aiCore.EmptyList) do
+        local target = candidates[i]
+        if self:IsAttackableEnemyUnit(apc, target) then
+            local dist = DistanceBetweenRefs(apc, target)
+            if dist < bestDist then
+                best = target
+                bestDist = dist
             end
-        end
-
-        if enemyNear then
-            Deploy(apc)
-            if aiCore.Debug then print("APC Emergency Deployment (Critical Health)") end
-            return
         end
     end
 
-    -- If deployed, check if we should undeploy
-    if IsDeployed(apc) then
-        local enemy = GetNearestEnemy(apc)
-        if not IsValid(enemy) or GetDistance(apc, enemy) > (self.deployRange * 2) then
-            Deploy(apc) -- Toggle deploy
-        end
+    return best, bestDist
+end
+
+function aiCore.APCManager:UpdateAPC(apc, attackTargets)
+    local currentCmd = GetCurrentCommand(apc)
+
+    if IsBusy(apc) and currentCmd ~= AiCommand.GET_RELOAD and currentCmd ~= AiCommand.GET_REPAIR then
         return
     end
 
-    -- Not deployed - look for pilots to pick up
-    local nearestPilot = nil
-    local nearestDist = self.pickupRange
+    local enemyTarget, enemyDist = self:GetNearestAttackableEnemy(apc, attackTargets)
 
-    -- Search for nearby pilots
-    for obj in ObjectsInRange(self.pickupRange, GetPosition(apc)) do
-        if IsValid(obj) and GetTeamNum(obj) == self.teamNum then
-            local cls = aiCore.NilToString(GetClassLabel(obj))
-            if string.find(cls, utility.ClassLabel.PERSON) and true --[[ TODO: Check InCargo ]] then
-                local dist = GetDistance(apc, obj)
-                if dist < nearestDist then
-                    nearestPilot = obj
-                    nearestDist = dist
-                end
-            end
-        end
-    end
     -- Find safe position
     local pos = GetPosition(apc)
     ---@diagnostic disable-next-line: param-type-mismatch
@@ -2338,37 +2970,29 @@ function aiCore.APCManager:UpdateAPC(apc)
     ---@diagnostic disable-next-line: undefined-global
     local waterH = 0.0 -- GetWaterLevel() -- BZ1 doesn't have this function
     if h < waterH then
-        -- In water, try to move to land
-        ---@diagnostic disable-next-line: param-type-mismatch, undefined-global
-        local path = GetNearestPath(apc)
-        if IsValid(path) then
-            local landPos = GetPosition(path, 0)
+        -- In water, fall back to the recycler instead of relying on an unavailable path API.
+        local recycler = GetRecyclerHandle(self.teamNum)
+        if IsValid(recycler) then
+            aiCore.TrySetCommand(apc, AiCommand.GO, GetUncommandablePriority(), recycler, nil, nil, nil,
+                { minInterval = 1.0 })
+        else
+            local landPos = GetPositionNear(pos, 60, 140)
             if landPos then
+                landPos.y = GetTerrainHeight(landPos.x, landPos.z)
                 aiCore.TrySetCommand(apc, AiCommand.GO, GetUncommandablePriority(), nil, landPos, nil, nil,
                     { minInterval = 1.0 })
             end
         end
     end
 
-    -- Pick up pilot
-    if nearestPilot then
-        Pickup(apc, nearestPilot)
-        if aiCore.Debug then print("APC picking up pilot") end
-        return
-    end
-
-    -- No pilots nearby - check if we should deploy
-    -- Aggressive Targeting (Prioritize Critical Infrastructure)
-    local target = (self.teamObj and self.teamObj.FindCriticalTarget) and self.teamObj:FindCriticalTarget() or nil
-    if not target or not IsValid(target) then target = GetNearestEnemy(apc) end
-
-    if target and IsValid(target) then
-        local dist = GetDistance(apc, target)
-        if dist < self.deployRange then
-            Deploy(apc)
-            if aiCore.Debug then print("APC deploying for assault on " .. GetOdf(target)) end
-        else
-            aiCore.TryAttack(apc, target, GetUncommandablePriority(), { minInterval = 0.7 })
+    if enemyTarget and IsValid(enemyTarget) then
+        if enemyDist <= (self.attackRange or 120.0) then
+            if aiCore.TryAttack(apc, enemyTarget, GetUncommandablePriority(), { minInterval = 0.7 }) and aiCore.Debug then
+                print("APC attacking enemy unit " .. tostring(GetOdf(enemyTarget)))
+            end
+        elseif currentCmd ~= AiCommand.GO or GetCurrentWho(apc) ~= enemyTarget then
+            aiCore.TrySetCommand(apc, AiCommand.GO, GetUncommandablePriority(), enemyTarget, nil, nil, nil,
+                { minInterval = 0.9 })
         end
     end
 end
@@ -2852,10 +3476,7 @@ function aiCore.GuardManager:FindAndAssignGuards(target, guardList, needed)
     if self.teamObj and self.teamObj.combatUnits then
         sourceList = self.teamObj.combatUnits
     else
-        -- Fallback: collect from AllObjects
-        for obj in AllObjects() do
-            table.insert(sourceList, obj)
-        end
+        sourceList = aiCore.GetCachedTeamCraft(self.teamNum)
     end
 
     for _, obj in pairs(sourceList) do
@@ -2960,6 +3581,7 @@ function aiCore.SetAIP(aipFile, teamNum)
 
     -- Apply strategy to team
     local team = aiCore.ActiveTeams[teamNum]
+    team.baseStrategy = strategyName
     team:SetStrategy(strategyName)
 
     if aiCore.Debug then
@@ -2986,7 +3608,7 @@ function aiCore.IsTracked(h, teamNum)
     local lists = {
         team.scavengers, team.howitzers, team.apcs, team.minelayers,
         team.cloakers, team.turrets, team.doubleUsers, team.soldiers,
-        team.mortars, team.thumpers, team.fields, team.pilots, team.pool
+        team.mortars, team.thumpers, team.fields, team.pilots, team.pool, team.combatUnits
     }
 
     for _, list in ipairs(lists) do
@@ -3382,8 +4004,55 @@ function aiCore.FactoryManager:update()
 end
 
 function aiCore.FactoryManager:addUnit(odf, priority)
-    table.insert(self.queue, { odf = odf, priority = priority })
-    table.sort(self.queue, function(a, b) return a.priority < b.priority end)
+    priority = priority or 999999
+    local producerType = self.isRecycler and "recycler" or "factory"
+    local account = "offense"
+    local category = nil
+    if self.teamObj and self.teamObj.GetBuildAccountForUnit then
+        account = self.teamObj:GetBuildAccountForUnit(nil, odf, producerType)
+    end
+    if self.teamObj and self.teamObj.CanQueueUnitByRules then
+        local allowed = self.teamObj:CanQueueUnitByRules(category, odf)
+        if not allowed then
+            return
+        end
+    end
+
+    for _, item in ipairs(self.queue) do
+        if item.odf == odf and item.priority == priority then
+            return
+        end
+    end
+
+    table.insert(self.queue, { odf = odf, priority = priority, account = account, category = category })
+    table.sort(self.queue, function(a, b)
+        local ap = a.priority or 999999
+        local bp = b.priority or 999999
+        if self.teamObj and self.teamObj.GetEffectiveBuildPriority then
+            ap = self.teamObj:GetEffectiveBuildPriority(a.account, ap, a)
+            bp = self.teamObj:GetEffectiveBuildPriority(b.account, bp, b)
+        end
+        if ap == bp then return (a.priority or 999999) < (b.priority or 999999) end
+        return ap < bp
+    end)
+
+    local existingQueue = producer.Queue[self.team]
+    if existingQueue then
+        for _, job in ipairs(existingQueue) do
+            if job.odf == odf and job.data and job.data.priority == priority and job.data.producer == producerType then
+                return
+            end
+        end
+    end
+
+    producer.QueueJob(odf, self.team, nil, nil, {
+        source = "FactoryManager:addUnit",
+        priority = priority,
+        type = "unit",
+        producer = producerType,
+        account = account,
+        category = category
+    })
 end
 
 -- Constructor Manager
@@ -3451,7 +4120,18 @@ function aiCore.ConstructorManager:update()
 
     -- If no active job, try to get one from the queue
     if not self.activeJob and #self.queue > 0 then
-        table.sort(self.queue, function(one, two) return one.priority > two.priority end) -- sort queue
+        table.sort(self.queue, function(one, two)
+            local ap = one.priority or 999999
+            local bp = two.priority or 999999
+            if self.teamObj and self.teamObj.GetEffectiveBuildPriority then
+                ap = self.teamObj:GetEffectiveBuildPriority(one.account, ap, one)
+                bp = self.teamObj:GetEffectiveBuildPriority(two.account, bp, two)
+            end
+            if ap == bp then
+                return (one.priority or 999999) < (two.priority or 999999)
+            end
+            return ap < bp
+        end)
         self.activeJob = table.remove(self.queue, 1)
         self.sentToRecycler = false
         if aiCore.Debug then print("Constructor starts job: " .. self.activeJob.odf) end
@@ -3537,7 +4217,16 @@ aiCore.Squad = {
     flankStartTime = 0.0,
     flankTimeout = 22.0,
     attackStyle = "independent", -- independent | formation_rush
-    formationLead = nil
+    formationLead = nil,
+    teamObj = nil,
+    goalMode = nil,
+    goalKey = nil,
+    goalAnchor = nil,
+    goalTarget = nil,
+    goalPos = nil,
+    goalRadius = 220.0,
+    estimatedStrength = 0.0,
+    currentTarget = nil
 }
 aiCore.Squad.__index = aiCore.Squad
 
@@ -3550,6 +4239,15 @@ function aiCore.Squad:new(leader)
     s.flankTimeout = 22.0
     s.attackStyle = "independent"
     s.formationLead = nil
+    s.teamObj = nil
+    s.goalMode = nil
+    s.goalKey = nil
+    s.goalAnchor = nil
+    s.goalTarget = nil
+    s.goalPos = nil
+    s.goalRadius = 220.0
+    s.estimatedStrength = 0.0
+    s.currentTarget = nil
     return s
 end
 
@@ -3577,10 +4275,42 @@ function aiCore.Squad:ChooseFormationLead()
     return units[math.random(1, #units)]
 end
 
+function aiCore.Squad:IsAttackLaneCrowded(target)
+    if not self.teamObj or not IsValid(self.leader) or not IsValid(target) then return false end
+
+    local leaderPos = GetPosition(self.leader)
+    local targetPos = GetPosition(target)
+    local toTarget = targetPos - leaderPos
+    local dist = Length(toTarget)
+    if dist <= 1.0 then return false end
+
+    local dir = Normalize(toTarget)
+    local dotThreshold = self.teamObj.Config.tacticalFormationOcclusionDot or 0.92
+    local crowdRadius = self.teamObj.Config.tacticalFormationOcclusionRadius or 35.0
+
+    for _, ally in ipairs(self.teamObj.combatUnits or aiCore.EmptyList) do
+        if IsValid(ally) and ally ~= self.leader and GetTeamNum(ally) == self.teamObj.teamNum then
+            local allyPos = GetPosition(ally)
+            local toAlly = allyPos - leaderPos
+            local allyDist = Length(toAlly)
+            if allyDist > 10.0 and allyDist < dist then
+                local dirDot = DotProduct(dir, Normalize(toAlly))
+                local lateral = Length(toAlly - (dir * allyDist))
+                if dirDot >= dotThreshold and lateral <= crowdRadius then
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end
+
 function aiCore.Squad:IssueAttackOrders(target)
     if not IsValid(target) then return end
+    self.currentTarget = target
 
-    if self.attackStyle == "formation_rush" then
+    if self.attackStyle == "formation_rush" or (IsCraft(target) and self:IsAttackLaneCrowded(target)) then
         if not IsValid(self.formationLead) then
             self.formationLead = self:ChooseFormationLead()
         end
@@ -3611,6 +4341,65 @@ function aiCore.Squad:AddMember(h)
     if IsValid(self.leader) then
         aiCore.TrySetCommand(h, AiCommand.FOLLOW, GetUncommandablePriority(), self.leader, nil, nil, nil,
             { minInterval = 0.8 })
+    end
+end
+
+function aiCore.Squad:SetStrategicGoal(goal, teamObj)
+    self.teamObj = teamObj
+    self.goalMode = goal and goal.mode or nil
+    self.goalKey = goal and goal.key or nil
+    self.goalAnchor = goal and goal.anchor or nil
+    self.goalTarget = goal and goal.target or nil
+    self.goalPos = goal and goal.position or nil
+    self.goalRadius = goal and goal.radius or 220.0
+    self.currentTarget = nil
+end
+
+function aiCore.Squad:ResolveStrategicTarget()
+    if IsValid(self.currentTarget) and IsAlive(self.currentTarget) and self.teamObj then
+        local retain = self.teamObj:GetEconomicTargetValue(self.currentTarget, self.goalPos or ResolveReferencePosition(self.goalAnchor))
+        if retain > 0.0 then
+            return self.currentTarget
+        end
+    end
+    if IsValid(self.goalTarget) and IsAlive(self.goalTarget) then
+        return self.goalTarget
+    end
+    if self.teamObj and self.teamObj.ResolveStrategicGoalTarget then
+        self.goalTarget = self.teamObj:ResolveStrategicGoalTarget(self)
+        if IsValid(self.goalTarget) then
+            self.currentTarget = self.goalTarget
+            return self.goalTarget
+        end
+    end
+    return nil
+end
+
+function aiCore.Squad:IssueDefendOrders()
+    local anchor = self.goalAnchor
+    local defendPos = ResolveReferencePosition(anchor) or self.goalPos
+
+    if IsValid(anchor) then
+        aiCore.TrySetCommand(self.leader, AiCommand.DEFEND, GetCommandableAttackPriority(), anchor, nil, nil, nil,
+            { minInterval = 0.8 })
+        for _, m in ipairs(self.members) do
+            if IsValid(m) then
+                aiCore.TrySetCommand(m, AiCommand.DEFEND, GetCommandableAttackPriority(), anchor, nil, nil, nil,
+                    { minInterval = 0.8 })
+            end
+        end
+        return
+    end
+
+    if defendPos then
+        aiCore.TrySetCommand(self.leader, AiCommand.GO, GetUncommandablePriority(), nil, defendPos, nil, nil,
+            { minInterval = 0.8 })
+        for _, m in ipairs(self.members) do
+            if IsValid(m) then
+                aiCore.TrySetCommand(m, AiCommand.GO, GetUncommandablePriority(), nil, defendPos, nil, nil,
+                    { minInterval = 0.8 })
+            end
+        end
     end
 end
 
@@ -3651,8 +4440,10 @@ function aiCore.Squad:Update()
 
             if allArrived or timedOut then
                 self.state = "attacking"
-                -- Find nearest enemy to flank pos
-                local enemy = GetNearestEnemy(self.leader)
+                local enemy = self:ResolveStrategicTarget()
+                if not IsValid(enemy) then
+                    enemy = GetNearestEnemy(self.leader)
+                end
                 if IsValid(enemy) then
                     self:IssueAttackOrders(enemy)
                 end
@@ -3674,11 +4465,19 @@ function aiCore.Squad:Update()
             self.state = "attacking"
         end
     elseif self.state == "attacking" then
-        -- If idle, attack nearest
+        local enemy = self:ResolveStrategicTarget()
+        if IsValid(enemy) and (not IsBusy(self.leader) or GetCurrentWho(self.leader) ~= enemy) then
+            self:IssueAttackOrders(enemy)
+        elseif self.goalMode == "defend" and not IsBusy(self.leader) then
+            self:IssueDefendOrders()
+        end
+
         if not IsBusy(self.leader) then
-            local enemy = GetNearestEnemy(self.leader)
+            enemy = IsValid(enemy) and enemy or GetNearestEnemy(self.leader)
             if IsValid(enemy) then
                 self:IssueAttackOrders(enemy)
+            elseif self.goalMode == "defend" then
+                self:IssueDefendOrders()
             end
         end
     end
@@ -4114,6 +4913,25 @@ aiCore.Team = {
     enemyTargets = {},  -- prioritized list of enemy buildings
     offensiveRetaliation = {},
     offensiveRetaliationTimer = 0.0,
+    strategicGoals = {},
+    strategicGoalCache = {},
+    strategicGoalTimer = 0.0,
+    lastLaunchedGoalKey = nil,
+    strategicMode = "balanced",
+    strategicModeReason = "default",
+    strategicModeTimer = 0.0,
+    strategicModeStrategy = nil,
+    scrapHotspots = {},
+    scrapMemory = {},
+    scrapHotspotTimer = 0.0,
+    scrapTrackedUnits = {},
+    scrapOrderState = {},
+    scrapOutpostTimer = 0.0,
+    buildAccountWeights = {},
+    buildAccountSpend = {},
+    buildAccountTimer = 0.0,
+    buildAccountUpdatedAt = 0.0,
+    baseStrategy = "Balanced",
 
     -- Production Lists (Desired State)
     recyclerBuildList = {}, -- {priority = {odf="", handle=nil}}
@@ -4208,6 +5026,63 @@ function aiCore.Team:new(teamNum, faction)
         buildingSpacing = 80,
         rescueDelay = 2.0,
         pilotTopoff = 4,
+        tacticalRecomputeInterval = 8.0,
+        tacticalThreatPriority = 150.0,
+        tacticalDistancePriority = 3.0,
+        tacticalDefendBuildingsPriority = 30.0,
+        tacticalAttackEnemyBasePriority = 75.0,
+        tacticalPersistencePriority = 30.0,
+        tacticalScriptedPriority = 50.0,
+        tacticalMinMatchingForceRatio = 1.0,
+        tacticalMaxMatchingForceRatio = 2.25,
+        tacticalBuildingDefenseForceMin = 1.0,
+        tacticalBuildingDefenseForceMax = 2.0,
+        tacticalThreatRadius = 220.0,
+        tacticalGoalRadius = 260.0,
+        tacticalRelaxationCycles = 2,
+        tacticalRelaxationStep = 180.0,
+        tacticalRelaxationCoefficient = 0.45,
+        tacticalMinSquadUnits = 3,
+        tacticalMaxSquadUnits = 5,
+        tacticalDefenseBias = 15.0,
+        strategicFsmInterval = 18.0,
+        strategicPressureThreshold = 4.0,
+        strategicSiegeTime = 900.0,
+        strategicRecoverScrapRatio = 0.22,
+        strategicAttackRatio = 1.15,
+        strategicRecoverRatio = 0.72,
+        buildAccountBias = 2.2,
+        buildAccountSpendDecay = 0.09,
+        buildAccountSpendScale = 18.0,
+        scrapAwareness = true,
+        scrapHotspotInterval = 12.0,
+        scrapHotspotRadius = 110.0,
+        scrapHotspotMinValue = 8.0,
+        scrapHotspotMemoryDuration = 120.0,
+        scrapHotspotBattleWeight = 1.4,
+        scrapHotspotSiloValue = 14.0,
+        scrapHotspotSiloDropoffDistance = 260.0,
+        scrapHotspotClaimRadius = 200.0,
+        scrapHotspotExtraScavengerValue = 16.0,
+        scrapHotspotExtraScavengerStep = 10.0,
+        scrapHotspotMaxExtraScavengers = 3,
+        scrapDenyRadius = 160.0,
+        scrapHotspotOutpostValue = 24.0,
+        scrapHotspotOutpostDropoffDistance = 330.0,
+        scrapHotspotOutpostEnemyProducerRadius = 600.0,
+        scrapHotspotOutpostContestedThreat = 2.5,
+        scrapHotspotOutpostTowerCount = 2,
+        scrapHotspotOutpostSupportRadius = 120.0,
+        scrapHotspotOutpostCooldown = 10.0,
+        tacticalEconomicPriority = 70.0,
+        tacticalHotspotDenialPriority = 55.0,
+        tacticalSiegePriority = 35.0,
+        tacticalSiegeAvoidance = 18.0,
+        tacticalSiegeForceFactor = 0.8,
+        tacticalTargetRetentionPriority = 45.0,
+        tacticalFormationOcclusionRadius = 35.0,
+        tacticalFormationOcclusionDot = 0.92,
+        strategicSiegeRiskThreshold = 5.5,
 
         -- Reinforcements
         orbitalReinforce = false,
@@ -4221,6 +5096,25 @@ function aiCore.Team:new(teamNum, faction)
         manageConstructor = true,
         requireConstructorFirst = false,
         minScavengers = 0,
+        unitCaps = {},
+        slotCaps = {
+            offense = 10,
+            defense = 10,
+            utility = 10,
+            recycler = 1,
+            factory = 1,
+            armory = 1,
+            constructor = 1
+        },
+        buildingCaps = {
+            power = 7,
+            comm = 7,
+            repair = 7,
+            supply = 7,
+            silo = 7,
+            barracks = 7,
+            guntower = 7
+        },
 
         -- Wreckers & Paratroopers
         enableWreckers = false,
@@ -4253,6 +5147,25 @@ function aiCore.Team:new(teamNum, faction)
     t.guards = {}
     t.offensiveRetaliation = {}
     t.offensiveRetaliationTimer = 0.0
+    t.strategicGoals = {}
+    t.strategicGoalCache = {}
+    t.strategicGoalTimer = 0.0
+    t.lastLaunchedGoalKey = nil
+    t.strategicMode = "balanced"
+    t.strategicModeReason = "default"
+    t.strategicModeTimer = 0.0
+    t.strategicModeStrategy = nil
+    t.scrapHotspots = {}
+    t.scrapMemory = {}
+    t.scrapHotspotTimer = 0.0
+    t.scrapTrackedUnits = {}
+    t.scrapOrderState = {}
+    t.scrapOutpostTimer = 0.0
+    t.buildAccountWeights = { offense = 1.0, defense = 1.0, rebuild = 1.0, economy = 1.0 }
+    t.buildAccountSpend = { offense = 0.0, defense = 0.0, rebuild = 0.0, economy = 0.0 }
+    t.buildAccountTimer = 0.0
+    t.buildAccountUpdatedAt = GetTime()
+    t.baseStrategy = "Balanced"
 
     -- Tactical State
     t.howitzerState = {}
@@ -4406,6 +5319,9 @@ function aiCore.Team:SetStrategy(stratName)
         appliedName = "Balanced"
     end
     self.strategy = appliedName
+    if not self._applyingFsmStrategy then
+        self.baseStrategy = appliedName
+    end
 
     -- Reset Lists
     self.recyclerBuildList = {}
@@ -4419,7 +5335,7 @@ function aiCore.Team:SetStrategy(stratName)
         local unitType = strat.Recycler[i]
         local odf = aiCore.Units[self.faction][unitType]
         if odf then
-            self:AddUnitToBuildList(self.recyclerBuildList, odf, i, unitType)
+            self:AddUnitToBuildList(self.recyclerBuildList, odf, i, unitType, "recycler")
         end
     end
 
@@ -4439,9 +5355,9 @@ function aiCore.Team:SetStrategy(stratName)
                 while self.recyclerBuildList[priority] do
                     priority = priority + 1
                 end
-                self:AddUnitToBuildList(self.recyclerBuildList, odf, priority, unitType)
+                self:AddUnitToBuildList(self.recyclerBuildList, odf, priority, unitType, "recycler")
             else
-                self:AddUnitToBuildList(self.factoryBuildList, odf, i, unitType)
+                self:AddUnitToBuildList(self.factoryBuildList, odf, i, unitType, "factory")
             end
         end
     end
@@ -4482,8 +5398,15 @@ function aiCore.Team:SetMaintainList(recyclerUnits, factoryUnits, locked)
     self:SetCustomStrategy(strat, locked)
 end
 
-function aiCore.Team:AddUnitToBuildList(list, odf, priority, category)
-    list[priority] = { odf = odf, priority = priority, handle = nil, category = category }
+function aiCore.Team:AddUnitToBuildList(list, odf, priority, category, producerType)
+    list[priority] = {
+        odf = odf,
+        priority = priority,
+        handle = nil,
+        category = category,
+        producer = producerType,
+        account = self:GetBuildAccountForUnit(category, odf, producerType)
+    }
 end
 
 function aiCore.Team:AddBuilding(odf, path, priority)
@@ -4502,7 +5425,13 @@ function aiCore.Team:AddBuilding(odf, path, priority)
         priority = hasPriority and (lowestPriority - 1) or 1
     end
 
-    self.buildingList[priority] = { odf = odf, priority = priority, path = path, handle = nil }
+    self.buildingList[priority] = {
+        odf = odf,
+        priority = priority,
+        path = path,
+        handle = nil,
+        account = self:GetBuildAccountForBuilding(odf)
+    }
 end
 
 -- Enhanced terrain validation (from pilotMode.lua)
@@ -4587,7 +5516,7 @@ function aiCore.Team:FindOptimalSiloLocation(minDist, maxDist)
     end
 
     for _, testPos in ipairs(candidates) do
-        local distToRec = GetDistance(testPos, recPos)
+        local distToRec = DistanceBetweenRefs(testPos, recPos)
         if distToRec >= minDist and distToRec <= maxDist then
             testPos.y = GetTerrainHeight(testPos.x, testPos.z)
             local isFlat = aiCore.IsAreaFlat(testPos, 20, 6, 0.940, 0.70)
@@ -4623,10 +5552,10 @@ function aiCore.Team:CheckBuildingSpacing(odf, position, minSpacing)
 
     -- 1. Check against existing buildings in buildingList
     for _, building in pairs(self.buildingList) do
-        if building.path and GetDistance(position, building.path) < minSpacing then
+        if building.path and DistanceBetweenRefs(position, building.path) < minSpacing then
             return false, "Too close to planned building"
         end
-        if IsValid(building.handle) and GetDistance(position, building.handle) < minSpacing then
+        if IsValid(building.handle) and DistanceBetweenRefs(position, building.handle) < minSpacing then
             return false, "Too close to existing building"
         end
     end
@@ -4717,8 +5646,8 @@ function aiCore.Team:PlanGunTower(priority, powerHandle)
     else
         -- Fallback to finding a power plant
         local powerPlant = nil
-        for obj in AllBuildings() do
-            if GetTeamNum(obj) == self.teamNum and (GetClassLabel(obj) == "powerplant" or IsOdf(obj, powerOdf)) then
+        for _, obj in ipairs(aiCore.GetCachedBuildings(self.teamNum)) do
+            if GetClassLabel(obj) == "powerplant" or IsOdf(obj, powerOdf) then
                 powerPlant = obj
                 break
             end
@@ -4796,8 +5725,8 @@ function aiCore.Team:PlanCommTower(priority)
 
     -- 1. Find existing power
     local powerPlant = nil
-    for obj in AllBuildings() do
-        if GetTeamNum(obj) == self.teamNum and (GetClassLabel(obj) == "powerplant" or IsOdf(obj, powerOdf)) then
+    for _, obj in ipairs(aiCore.GetCachedBuildings(self.teamNum)) do
+        if GetClassLabel(obj) == "powerplant" or IsOdf(obj, powerOdf) then
             powerPlant = obj
             break
         end
@@ -4874,8 +5803,8 @@ function aiCore.Team:HasBuilding(typeKey)
     end
 
     -- Check existing
-    for obj in AllBuildings() do
-        if GetTeamNum(obj) == self.teamNum and IsOdf(obj, odf) then
+    for _, obj in ipairs(aiCore.GetCachedBuildings(self.teamNum)) do
+        if IsOdf(obj, odf) then
             return true
         end
     end
@@ -4918,8 +5847,8 @@ function aiCore.Team:AnalyzeEnemy()
         enemyTeam = (self.teamNum == 1) and 2 or 1
     end
 
-    for h in AllCraft() do
-        if IsValid(h) and IsAlive(h) and GetTeamNum(h) == enemyTeam then
+    for _, h in ipairs(aiCore.GetCachedTeamCraft(enemyTeam)) do
+        if IsValid(h) and IsAlive(h) then
             local odfName = GetOdf(h)
             local odf = OpenODF(odfName)
             if odf then
@@ -4952,8 +5881,8 @@ function aiCore.Team:AnalyzeEnemy()
     end
 
     -- Count static defenses
-    for h in AllBuildings() do
-        if IsValid(h) and IsAlive(h) and GetTeamNum(h) == enemyTeam then
+    for _, h in ipairs(aiCore.GetCachedBuildings(enemyTeam)) do
+        if IsValid(h) and IsAlive(h) then
             local odfName = GetOdf(h)
             local odf = OpenODF(odfName)
             if odf then
@@ -4977,16 +5906,8 @@ function aiCore.Team:GetPrimaryEnemyTeam()
     for team = 0, 15 do
         if team ~= self.teamNum and not IsTeamAllied(team, self.teamNum) then
             local score = 0
-            for h in AllCraft() do
-                if IsValid(h) and IsAlive(h) and GetTeamNum(h) == team then
-                    score = score + 1
-                end
-            end
-            for h in AllBuildings() do
-                if IsValid(h) and IsAlive(h) and GetTeamNum(h) == team then
-                    score = score + 0.5
-                end
-            end
+            score = score + #aiCore.GetCachedTeamCraft(team)
+            score = score + (#aiCore.GetCachedBuildings(team) * 0.5)
 
             -- Bias toward the player team in campaign/single-player.
             if team == playerTeam then
@@ -5042,17 +5963,25 @@ function aiCore.Team:UpdateRaiders()
     if GetTime() < self.raiderTimer then return end
     self.raiderTimer = GetTime() + 15.0
 
-    -- Look for enemy scavengers
-    local enemyScavs = {}
     local enemyTeam = self:GetPrimaryEnemyTeam()
     if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
-    for h in AllCraft() do
-        if IsValid(h) and IsAlive(h) and GetTeamNum(h) == enemyTeam and string.find(string.lower(GetClassLabel(h)), "scavenger") then
-            table.insert(enemyScavs, h)
+
+    local denyTargets = {}
+    for _, hotspot in ipairs(self.scrapHotspots or aiCore.EmptyList) do
+        if IsValid(hotspot.denyTarget) then
+            table.insert(denyTargets, hotspot.denyTarget)
         end
     end
 
-    if #enemyScavs > 0 and #self.pool > 0 then
+    if #denyTargets == 0 then
+        for h in AllCraft() do
+            if IsValid(h) and IsAlive(h) and GetTeamNum(h) == enemyTeam and string.find(string.lower(GetClassLabel(h)), "scavenger") then
+                table.insert(denyTargets, h)
+            end
+        end
+    end
+
+    if #denyTargets > 0 and #self.pool > 0 then
         -- Detach unit from pool to hunt
         local raider = nil
         -- Prefer Scouts, then Tanks
@@ -5076,11 +6005,11 @@ function aiCore.Team:UpdateRaiders()
         end
 
         if raider and IsValid(raider) then
-            local target = enemyScavs[math.random(#enemyScavs)]
+            local target = denyTargets[math.random(#denyTargets)]
             if GetCurrentCommand(raider) ~= AiCommand.ATTACK or GetCurrentWho(raider) ~= target then
                 aiCore.TryAttack(raider, target, GetCommandableAttackPriority(), { minInterval = 0.75 })
                 if aiCore.Debug then
-                    print("Team " .. self.teamNum .. " dispatching raider against scavenger.")
+                    print("Team " .. self.teamNum .. " dispatching raider against scrap denial target.")
                 end
             end
         end
@@ -5120,21 +6049,32 @@ function aiCore.Team:UpdateRetreat()
 end
 
 function aiCore.Team:Update()
-    -- Replenish Queues from Build Lists
-    self:CheckBuildList(self.recyclerBuildList, self.recyclerMgr)
-    self:CheckBuildList(self.factoryBuildList, self.factoryMgr)
-    self:CheckConstruction()
+    local now = GetTime()
+    self:UpdateStrategicFSM()
+
+    if now >= (self.buildMaintenanceAt or 0.0) then
+        self.buildMaintenanceAt = now + 0.35
+
+        -- Replenish Queues from Build Lists
+        self:CheckBuildList(self.recyclerBuildList, self.recyclerMgr)
+        self:CheckBuildList(self.factoryBuildList, self.factoryMgr)
+        self:CheckConstruction()
+    end
 
     -- Manager Updates
     self.recyclerMgr:update()
     self.factoryMgr:update()
     self.constructorMgr:update()
 
-    -- MODIFIED: Process Integrated Production Queues
-    producer.ProcessQueues(self)
+    if now >= (self.producerProcessAt or 0.0) then
+        self.producerProcessAt = now + 0.25
+        -- MODIFIED: Process Integrated Production Queues
+        producer.ProcessQueues(self)
+    end
 
     -- Strategy rotation
     self:UpdateStrategyRotation()
+    self:UpdateScrapAwareness()
     if self.Config.autoManage then self:UpdateRaiders() end
 
     -- Update Phase 1 Managers
@@ -5172,6 +6112,7 @@ function aiCore.Team:Update()
     self:UpdatePilotResources()
     self:UpdatePilots()
     self:UpdateResourceBoosting()
+    self:UpdateUpgrades()
     self:UpdateWrecker()
     self:UpdateParatroopers()
     self:UpdateSoldiers()
@@ -5183,11 +6124,12 @@ end
 function aiCore.Team:UpdateStickToPlayer()
     if self.teamNum ~= 1 then return end
 
+    local assistStep = 0.15
     local now = GetTime()
     self.stickAssistState = self.stickAssistState or {}
     if not self.stickToPlayerTimer then self.stickToPlayerTimer = 0.0 end
     if now < self.stickToPlayerTimer then return end
-    self.stickToPlayerTimer = now + 0.15
+    self.stickToPlayerTimer = now + assistStep
 
     local player = GetPlayerHandle()
     if not IsValid(player) then return end
@@ -5214,7 +6156,10 @@ function aiCore.Team:UpdateStickToPlayer()
             local state = self.stickAssistState[u] or {
                 lastDist = 999999.0,
                 stuckTime = 0.0,
-                nextSnapTime = 0.0
+                nextSnapTime = 0.0,
+                noMoveTime = 0.0,
+                lastPos = nil,
+                lastPlayerY = nil
             }
             nextState[u] = state
 
@@ -5223,9 +6168,30 @@ function aiCore.Team:UpdateStickToPlayer()
             if isPlayerAnchorOrder and (isWingman or self.Config.stickToPlayer) then
                 local uPos = GetPosition(u)
                 local dist = GetDistance(u, player)
-                local assistRange = isWingman and 90.0 or 150.0
+                local assistRange = isWingman and 300.0 or 150.0
+                local movement = math.huge
+                if state.lastPos then
+                    movement = Length(uPos - state.lastPos)
+                end
+                local progress = (state.lastDist or dist) - dist
+                local verticalGap = pPos.y - uPos.y
+                local playerVerticalDelta = state.lastPlayerY and (pPos.y - state.lastPlayerY) or 0.0
+                local moveThreshold = isWingman and 3.5 or 1.8
+                local farAway = dist > assistRange
 
-                if dist > assistRange then
+                if farAway and movement < moveThreshold then
+                    state.noMoveTime = (state.noMoveTime or 0.0) + assistStep
+                else
+                    state.noMoveTime = 0.0
+                end
+
+                local stuckAssist = farAway and (state.noMoveTime or 0.0) > (isWingman and 1.2 or 1.6)
+                local elevationAssist = isWingman and
+                    math.abs(verticalGap) > 18.0 and
+                    dist > 80.0 and
+                    (math.abs(playerVerticalDelta) > 5.0 or math.abs(progress) < 3.0)
+
+                if stuckAssist or elevationAssist then
                     local shouldAssist = true
 
                     -- Don't interfere while the unit is actively fighting nearby threats.
@@ -5236,9 +6202,10 @@ function aiCore.Team:UpdateStickToPlayer()
 
                     if shouldAssist then
                         -- Pull toward a trailing anchor instead of the player's exact center.
-                        local backOff = math.min(55.0, (isWingman and 22.0 or 32.0) + dist * 0.08)
+                        local backOff = math.min(isWingman and 72.0 or 55.0, (isWingman and 26.0 or 32.0) + dist * 0.06)
                         local anchorPos = pPos - (pFront * backOff)
-                        anchorPos.y = GetTerrainHeight(anchorPos.x, anchorPos.z) + 3.0
+                        local anchorGround = GetTerrainHeight(anchorPos.x, anchorPos.z)
+                        anchorPos.y = math.max(anchorGround + 1.0, math.min(pPos.y, anchorGround + 7.0))
 
                         local dir = Normalize(anchorPos - uPos)
                         local vel = GetVelocity(u)
@@ -5246,44 +6213,69 @@ function aiCore.Team:UpdateStickToPlayer()
                         local lookFar = uPos + (dir * 22.0)
                         local climbNear = math.max(0.0, GetTerrainHeight(lookNear.x, lookNear.z) - uPos.y)
                         local climbFar = math.max(0.0, GetTerrainHeight(lookFar.x, lookFar.z) - uPos.y)
-                        local playerClimb = math.max(0.0, pPos.y - uPos.y)
-                        dir.y = dir.y + (climbNear * 0.22) + (climbFar * 0.16) + (playerClimb * 0.05)
+                        local playerClimb = pPos.y - uPos.y
+                        dir.y = Clamp(dir.y + (climbNear * 0.10) + (climbFar * 0.06) + (playerClimb * 0.02), -0.08, 0.18)
                         dir = Normalize(dir)
 
-                        local catchupSpeed = math.min(isWingman and 28.0 or 18.0,
-                            7.0 + math.max(0.0, dist - assistRange) * 0.08)
-                        local desiredVel = (pVel * 0.75) + (dir * catchupSpeed)
-                        local blend = isWingman and 0.45 or 0.30
-                        if dist > 240 then blend = blend + 0.15 end
+                        local desiredVel
+                        local blend
+                        if stuckAssist then
+                            local catchupSpeed = math.min(isWingman and 44.0 or 24.0,
+                                (isWingman and 13.0 or 8.0) + math.max(0.0, dist - assistRange) * (isWingman and 0.11 or 0.08))
+                            local verticalVel = Clamp((anchorPos.y - uPos.y) * 0.14, -2.5, 4.0)
+                            desiredVel = (pVel * (isWingman and 0.92 or 0.80)) +
+                                (dir * catchupSpeed) +
+                                SetVector(0, verticalVel, 0)
+                            blend = isWingman and 0.62 or 0.38
+                            if dist > 500 then
+                                blend = blend + 0.10
+                            end
+                        else
+                            local horizontalDir = Normalize(SetVector(dir.x, 0, dir.z))
+                            local terrainPush = horizontalDir * (isWingman and 7.5 or 4.0)
+                            local verticalVel = Clamp(verticalGap * 0.22, -4.0, 5.5)
+                            desiredVel = (vel * 0.55) + (pVel * (isWingman and 0.45 or 0.30)) +
+                                terrainPush +
+                                SetVector(0, verticalVel, 0)
+                            blend = isWingman and 0.26 or 0.18
+                        end
 
                         SetVelocity(u, (vel * (1.0 - blend)) + (desiredVel * blend))
 
-                        local progress = (state.lastDist or dist) - dist
-                        if progress < 1.5 and dist > (assistRange + 40.0) then
-                            state.stuckTime = (state.stuckTime or 0.0) + 0.15
+                        if stuckAssist and progress < 1.0 then
+                            state.stuckTime = (state.stuckTime or 0.0) + assistStep
                         else
                             state.stuckTime = 0.0
                         end
 
-                        local verticalGap = math.abs(pPos.y - uPos.y)
                         if now >= (state.nextSnapTime or 0.0) and
-                            (dist > 520.0 or (state.stuckTime > 1.2 and dist > 180.0 and verticalGap > 18.0)) then
+                            (dist > 520.0 or (state.stuckTime > 1.2 and dist > 180.0)) then
                             local snapPos = anchorPos - (dir * (isWingman and 10.0 or 16.0))
                             snapPos.y = GetTerrainHeight(snapPos.x, snapPos.z) + 2.0
                             SetPosition(u, snapPos)
                             SetVelocity(u, desiredVel)
                             state.stuckTime = 0.0
+                            state.noMoveTime = 0.0
                             state.nextSnapTime = now + 2.5
                         end
 
                         if aiCore.Debug and math.random() < 0.01 then
-                            print("StickToPlayer Assist: Blending " .. GetOdf(u) .. " (Dist: " .. math.floor(dist) .. ")")
+                            print("StickToPlayer Assist: " .. GetOdf(u) .. " dist=" .. math.floor(dist) ..
+                                " stuck=" .. tostring(stuckAssist) .. " elev=" .. tostring(elevationAssist))
                         end
                     end
                 else
                     state.stuckTime = 0.0
+                    state.noMoveTime = 0.0
                 end
                 state.lastDist = dist
+                state.lastPos = SetVector(uPos.x, uPos.y, uPos.z)
+                state.lastPlayerY = pPos.y
+            else
+                state.stuckTime = 0.0
+                state.noMoveTime = 0.0
+                state.lastPos = nil
+                state.lastPlayerY = nil
             end
         end
     end
@@ -5343,20 +6335,16 @@ function aiCore.Team:UpdateScavengerAssist()
         if IsValid(h) and not IsSelected(h) and not self.scavengerResetState[h] then
             local cmd = GetCurrentCommand(h)
 
-            -- Auto-scavenge if idle, or pulse-refresh if already scavenging so the
-            -- unit recalculates the closest available scrap deposit.
-            -- VO suppression: switch to team 0 before issuing the command so the
-            -- engine doesn't treat it as a player order (which triggers scavenger VO).
-            -- Restore team 1 immediately after in the same tick — by the time the AI
-            -- evaluates the route on the next update, the unit is already back on the
-            -- correct team and will path to a valid recycler.
+            if self.teamNum == 1 and SetIndependence then
+                SetIndependence(h, 0)
+            end
 
-            --THIS DOESNT WORK JUST REMOVED IT FROM THE ODF WAVV FO RNOW LOL
-            if (cmd == 0) or (cmd == AiCommand.SCAVENGE) then
-                --SetTeamNum(h, 0)
-                aiCore.TrySetCommand(h, AiCommand.SCAVENGE, GetUncommandablePriority(), nil, nil, nil, nil,
-                    { minInterval = 2.0, overrideProtected = true })
-                --SetTeamNum(h, self.teamNum)
+            if cmd == AiCommand.NONE or cmd == AiCommand.SCAVENGE then
+                SetCommand(h, AiCommand.SCAVENGE, 0, nil, nil, nil, nil)
+                aiCore.RecordCommand(h, AiCommand.SCAVENGE, nil)
+                if self.teamNum == 1 and SetIndependence then
+                    SetIndependence(h, 0)
+                end
                 self.scavengerResetState[h] = 1 -- One-frame guard to prevent double-trigger
             end
         end
@@ -5365,40 +6353,76 @@ end
 
 function aiCore.Team:RegisterScavenger(h)
     if not self.scavengers then self.scavengers = {} end
-    table.insert(self.scavengers, h)
+    UniqueInsert(self.scavengers, h)
+
+    if not self.Config.scavengerAssist or not IsValid(h) then return end
+    if self.teamNum == 1 and SetIndependence then
+        SetIndependence(h, 0)
+    end
+
+    SetCommand(h, AiCommand.SCAVENGE, 0, nil, nil, nil, nil)
+    aiCore.RecordCommand(h, AiCommand.SCAVENGE, nil)
+
+    if self.teamNum == 1 and SetIndependence then
+        SetIndependence(h, 0)
+    end
+
+    self.scavengerResetState = self.scavengerResetState or {}
+    self.scavengerResetState[h] = 1
 end
 
 function aiCore.Team:UpdateBaseMaintenance()
+    local now = GetTime()
+    if now < (self.baseMaintenanceAt or 0.0) then return end
+    self.baseMaintenanceAt = now + 1.0
+
     -- Ensure critical units exist (Constructor, Factory, Armory)
     -- Only runs if we have a Recycler
     if not IsValid(self.recyclerMgr.handle) then return end
     if not self.Config.autoBuild then return end
 
-    -- Helper to check if item is already in queue
-    local function IsInQueue(mgr, odf, checkConstructor)
-        -- Check recycler queue
-        for _, item in ipairs(mgr.queue) do
-            if item.odf == odf then return true end
-        end
-        -- Check constructor queue (if requested) and master building list
-        if checkConstructor and self.constructorMgr then
-            for _, item in ipairs(self.constructorMgr.queue) do
-                if item.odf == odf then return true end
-            end
-            -- Check master building list (planned buildings)
-            for _, item in pairs(self.buildingList) do
-                if item.odf == odf then return true end
+    local function NormalizeOdfKey(odf)
+        if type(odf) ~= "string" then return "" end
+        return string.lower(utility.CleanString(odf))
+    end
+
+    local queuedOdFs = {}
+    local function MarkQueued(list)
+        for i = 1, #(list or aiCore.EmptyList) do
+            local item = list[i]
+            local odfKey = NormalizeOdfKey(item and (item.odf or item))
+            if odfKey ~= "" then
+                queuedOdFs[odfKey] = true
             end
         end
-        return false
+    end
+    MarkQueued(self.recyclerMgr.queue)
+    if self.constructorMgr then
+        MarkQueued(self.constructorMgr.queue)
+    end
+    for _, item in pairs(self.buildingList or aiCore.EmptyList) do
+        local odfKey = NormalizeOdfKey(item and (item.odf or item))
+        if odfKey ~= "" then
+            queuedOdFs[odfKey] = true
+        end
+    end
+
+    local nearbyByOdf = {}
+    for obj in ObjectsInRange(260, self.recyclerMgr.handle) do
+        if IsValid(obj) and GetTeamNum(obj) == self.teamNum then
+            local odfKey = NormalizeOdfKey(GetOdf(obj))
+            if odfKey ~= "" and not nearbyByOdf[odfKey] then
+                nearbyByOdf[odfKey] = obj
+            end
+        end
     end
 
     -- 1. Constructor
     if self.Config.manageConstructor and not IsValid(self.constructorMgr.handle) then
         local odf = aiCore.Units[self.faction].constructor
-        if not IsInQueue(self.recyclerMgr, odf, false) then
+        if odf and not queuedOdFs[NormalizeOdfKey(odf)] then
             if aiCore.Debug then print("Team " .. self.teamNum .. " ordering replacement Constructor.") end
-            table.insert(self.recyclerMgr.queue, 1, { odf = odf, priority = 0 })
+            self.recyclerMgr:addUnit(odf, 0)
         end
     end
 
@@ -5409,27 +6433,26 @@ function aiCore.Team:UpdateBaseMaintenance()
         -- Are we supposed to have one? Yes, usually.
         -- Check if we merely haven't deployed it yet (e.g. "avmuf" vehicle exists)
         local odf = aiCore.Units[self.faction].factory
-        local pending = false
+        local odfKey = NormalizeOdfKey(odf)
+        local nearby = nearbyByOdf[odfKey]
+        local pending = IsValid(nearby)
 
         ---@cast odf string
         -- Check if an undeployed factory vehicle exists
-        local nearby = GetNearestObject(self.recyclerMgr.handle)
-        if IsValid(nearby) and GetTeamNum(nearby) == self.teamNum and IsOdf(nearby, odf) then
+        if pending then
             -- Factory exists but not deployed - send to geyser
             if not IsDeployed(nearby) and not IsBusy(nearby) and GetCurrentCommand(nearby) ~= AiCommand.GO_TO_GEYSER then
-                local currentTime = GetTime()
-                if currentTime >= (self.lastFactoryDeployTime or 0) + 10 then
+                if now >= (self.lastFactoryDeployTime or 0) + 10 then
                     aiCore.TrySetCommand(nearby, AiCommand.GO_TO_GEYSER, 1, nil, nil, nil, nil,
                         { minInterval = 1.0, overrideProtected = true })
-                    self.lastFactoryDeployTime = currentTime
+                    self.lastFactoryDeployTime = now
                 end
             end
-            pending = true
         end
 
-        if not pending and not IsInQueue(self.recyclerMgr, odf, true) then
+        if not pending and odf and not queuedOdFs[odfKey] then
             if aiCore.Debug then print("Team " .. self.teamNum .. " ordering replacement Factory.") end
-            table.insert(self.recyclerMgr.queue, 1, { odf = odf, priority = 0 })
+            self.recyclerMgr:addUnit(odf, 0)
         end
     end
 
@@ -5437,23 +6460,16 @@ function aiCore.Team:UpdateBaseMaintenance()
     local armory = GetArmoryHandle(self.teamNum)
     if not IsValid(armory) then
         local odf = aiCore.Units[self.faction].armory
+        local odfKey = NormalizeOdfKey(odf)
 
         -- Similar check for undeployed armory vehicle
-        local pending = false
-        local nearby = nil
-        if IsValid(self.recyclerMgr.handle) then
-            nearby = GetNearestObject(self.recyclerMgr.handle)
-        end
-        -- Reuse nearby check is flimsy if they are far apart, but usually they build near recycler.
-        -- Ideally we scan, but for now rely on queue.
+        local pending = IsValid(nearbyByOdf[odfKey])
 
-        if not IsInQueue(self.recyclerMgr, odf, true) then
+        if not pending and odf and not queuedOdFs[odfKey] then
             -- Only build armory if we assume we need one.
             -- Let's check config or just default to yes.
             if aiCore.Debug then print("Team " .. self.teamNum .. " ordering replacement Armory.") end
-            -- Insert at priority 2 (lower than constructor/factory)
-            table.insert(self.recyclerMgr.queue, { odf = odf, priority = 0.5 })
-            table.sort(self.recyclerMgr.queue, function(a, b) return a.priority < b.priority end) -- Sort for priority
+            self.recyclerMgr:addUnit(odf, 0.5)
         end
     end
 end
@@ -5471,6 +6487,1667 @@ end
 function aiCore.Team:SetMinefields(fields)
     -- fields can be a table of path names {"path1", "path2"}
     self.Config.minefields = fields
+end
+
+function aiCore.GetTeamCombatStrength(teamNum)
+    local total = 0.0
+    for _, obj in ipairs(aiCore.GetCachedTeamCraft(teamNum)) do
+        if IsValid(obj) and IsAlive(obj) then
+            total = total + aiCore.EstimateCombatStrength(obj)
+        end
+    end
+    return total
+end
+
+function aiCore.Team:GetBuildAccountForUnit(category, odf, producerType)
+    local normalized = string.lower(utility.CleanString(category or ""))
+    local cleanOdf = string.lower(utility.CleanString(odf or ""))
+    local units = aiCore.Units[self.faction] or {}
+
+    if normalized == "scavenger" or normalized == "tug"
+        or (units.scavenger and cleanOdf == string.lower(units.scavenger))
+        or (units.tug and cleanOdf == string.lower(units.tug)) then
+        return "economy"
+    end
+    if normalized == "constructor"
+        or (units.constructor and cleanOdf == string.lower(units.constructor))
+        or (units.factory and cleanOdf == string.lower(units.factory))
+        or (units.armory and cleanOdf == string.lower(units.armory))
+        or (units.recycler and cleanOdf == string.lower(units.recycler)) then
+        return "rebuild"
+    end
+    if normalized == "tower" or normalized == "turret" or normalized == "minelayer" then
+        return "defense"
+    end
+    if normalized == "scout" and producerType == "recycler" then
+        return "defense"
+    end
+    if normalized == "howitzer" or normalized == "siege" then
+        return "offense"
+    end
+    if normalized == "apc" or normalized == "bomber" or normalized == "tank" or normalized == "lighttank"
+        or normalized == "rockettank" or normalized == "unique" or normalized == "heavy" or normalized == "walker" then
+        return "offense"
+    end
+    return "offense"
+end
+
+function aiCore.Team:GetBuildAccountForBuilding(odf)
+    local cleanOdf = string.lower(utility.CleanString(odf or ""))
+    local units = aiCore.Units[self.faction] or {}
+    local meta = aiCore.GetOdfMeta(cleanOdf)
+    local classLabel = meta and meta.classLabel or ""
+
+    if cleanOdf == string.lower(units.recycler or "")
+        or cleanOdf == string.lower(units.factory or "")
+        or cleanOdf == string.lower(units.armory or "")
+        or cleanOdf == string.lower(units.constructor or "") then
+        return "rebuild"
+    end
+    if cleanOdf == string.lower(units.silo or "")
+        or cleanOdf == string.lower(units.supply or "")
+        or cleanOdf == string.lower(units.power or "")
+        or cleanOdf == string.lower(units.sPower or "")
+        or cleanOdf == string.lower(units.barracks or "")
+        or cleanOdf == string.lower(units.commTower or "")
+        or cleanOdf == string.lower(units.hangar or "")
+        or cleanOdf == string.lower(units.hq or "") then
+        return "economy"
+    end
+    if cleanOdf == string.lower(units.repair or "")
+        or cleanOdf == string.lower(units.howitzer or "")
+        or cleanOdf == string.lower(units.turret or "")
+        or cleanOdf == string.lower(units.gunTower or "") then
+        return "defense"
+    end
+
+    if classLabel == utility.ClassLabel.RECYCLER
+        or classLabel == utility.ClassLabel.FACTORY
+        or classLabel == utility.ClassLabel.ARMORY
+        or classLabel == utility.ClassLabel.CONSTRUCTOR then
+        return "rebuild"
+    end
+    if classLabel == utility.ClassLabel.SCRAP_SILO
+        or classLabel == utility.ClassLabel.SUPPLY_DEPOT
+        or classLabel == utility.ClassLabel.POWERPLANT
+        or classLabel == utility.ClassLabel.BARRACKS
+        or classLabel == "commtower" then
+        return "economy"
+    end
+    if classLabel == utility.ClassLabel.REPAIR_DEPOT
+        or classLabel == utility.ClassLabel.HOWITZER
+        or classLabel == utility.ClassLabel.TURRET
+        or classLabel == utility.ClassLabel.TURRET_TANK then
+        return "defense"
+    end
+
+    return "economy"
+end
+
+function aiCore.Team:GetRuleUnitRoleBucket(category, odf)
+    local normalized = string.lower(utility.CleanString(category or ""))
+    local cleanOdf = string.lower(utility.CleanString(odf or ""))
+    local units = aiCore.Units[self.faction] or {}
+    local meta = aiCore.GetOdfMeta(cleanOdf)
+    local classLabel = meta and meta.classLabel or ""
+
+    if normalized == "" then
+        if units.scavenger and cleanOdf == string.lower(units.scavenger) then normalized = "scavenger" end
+        if units.tug and cleanOdf == string.lower(units.tug) then normalized = "tug" end
+        if units.apc and cleanOdf == string.lower(units.apc) then normalized = "apc" end
+        if units.minelayer and cleanOdf == string.lower(units.minelayer) then normalized = "minelayer" end
+        if units.howitzer and cleanOdf == string.lower(units.howitzer) then normalized = "howitzer" end
+        if units.turret and cleanOdf == string.lower(units.turret) then normalized = "turret" end
+        if units.gunTower and cleanOdf == string.lower(units.gunTower) then normalized = "tower" end
+        if units.constructor and cleanOdf == string.lower(units.constructor) then normalized = "constructor" end
+        if units.recycler and cleanOdf == string.lower(units.recycler) then normalized = "recycler" end
+        if units.factory and cleanOdf == string.lower(units.factory) then normalized = "factory" end
+        if units.armory and cleanOdf == string.lower(units.armory) then normalized = "armory" end
+    end
+
+    if normalized == "" then
+        if classLabel == utility.ClassLabel.PERSON then
+            normalized = meta and meta.personRole or "pilot"
+        elseif classLabel == utility.ClassLabel.SCAVENGER then
+            normalized = "scavenger"
+        elseif classLabel == utility.ClassLabel.TUG then
+            normalized = "tug"
+        elseif classLabel == utility.ClassLabel.APC then
+            normalized = "apc"
+        elseif classLabel == utility.ClassLabel.MINELAYER then
+            normalized = "minelayer"
+        elseif classLabel == utility.ClassLabel.HOWITZER then
+            normalized = "howitzer"
+        elseif classLabel == utility.ClassLabel.TURRET or classLabel == utility.ClassLabel.TURRET_TANK then
+            normalized = "turret"
+        elseif classLabel == utility.ClassLabel.CONSTRUCTOR then
+            normalized = "constructor"
+        elseif classLabel == utility.ClassLabel.RECYCLER then
+            normalized = "recycler"
+        elseif classLabel == utility.ClassLabel.FACTORY then
+            normalized = "factory"
+        elseif classLabel == utility.ClassLabel.ARMORY then
+            normalized = "armory"
+        end
+    end
+
+    if normalized == "recycler" or normalized == "factory" or normalized == "armory" or normalized == "constructor" then
+        return normalized
+    end
+    if normalized == "pilot" or normalized == "sniper" or normalized == "soldier" then
+        return nil
+    end
+    if normalized == "scavenger" or normalized == "tug" or normalized == "apc" or normalized == "minelayer" then
+        return "utility"
+    end
+    if normalized == "howitzer" or normalized == "siege" or normalized == "turret" or normalized == "tower" then
+        return "defense"
+    end
+    if normalized ~= "" then
+        return "offense"
+    end
+    return (cleanOdf ~= "") and "offense" or nil
+end
+
+function aiCore.Team:GetRuleUnitRoleBucketForHandle(h)
+    if not IsValid(h) or not IsAlive(h) or not IsCraft(h) then return nil end
+
+    local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+    if cls == utility.ClassLabel.RECYCLER then return "recycler" end
+    if cls == utility.ClassLabel.FACTORY then return "factory" end
+    if cls == utility.ClassLabel.ARMORY then return "armory" end
+    if cls == utility.ClassLabel.CONSTRUCTOR then return "constructor" end
+    if string.find(cls, utility.ClassLabel.SCAVENGER) or string.find(cls, utility.ClassLabel.TUG)
+        or string.find(cls, utility.ClassLabel.APC) or string.find(cls, utility.ClassLabel.MINELAYER) then
+        return "utility"
+    end
+    if string.find(cls, utility.ClassLabel.HOWITZER) or string.find(cls, utility.ClassLabel.TURRET)
+        or string.find(cls, utility.ClassLabel.TURRET_TANK) then
+        return "defense"
+    end
+    if string.find(cls, utility.ClassLabel.PERSON) then
+        return nil
+    end
+    return "offense"
+end
+
+function aiCore.Team:GetRuleSlotCap(bucket)
+    local caps = self.Config.slotCaps or aiCore.EmptyList
+    return caps[bucket]
+end
+
+function aiCore.Team:GetRuleUnitRoleCount(bucket)
+    if not bucket then return 0 end
+
+    local count = 0
+    for _, obj in ipairs(aiCore.GetCachedTeamCraft(self.teamNum)) do
+        if IsValid(obj) and IsAlive(obj) and self:GetRuleUnitRoleBucketForHandle(obj) == bucket then
+            count = count + 1
+        end
+    end
+
+    for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do
+        if self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
+            count = count + 1
+        end
+    end
+
+    return count
+end
+
+function aiCore.Team:GetRuleBuildingKey(odf, obj)
+    local units = aiCore.Units[self.faction] or {}
+    local cleanOdf = string.lower(utility.CleanString(odf or ""))
+    local cls = obj and string.lower(utility.CleanString(GetClassLabel(obj))) or ""
+    local meta = aiCore.GetOdfMeta(cleanOdf)
+    local metaClass = meta and meta.classLabel or ""
+
+    if cls == "" then
+        cls = metaClass
+    end
+
+    if cls == utility.ClassLabel.RECYCLER or cleanOdf == string.lower(units.recycler or "") then return "recycler" end
+    if cls == utility.ClassLabel.FACTORY or cleanOdf == string.lower(units.factory or "") then return "factory" end
+    if cls == utility.ClassLabel.ARMORY or cleanOdf == string.lower(units.armory or "") then return "armory" end
+    if cls == utility.ClassLabel.CONSTRUCTOR or cleanOdf == string.lower(units.constructor or "") then return "constructor" end
+    if cls == utility.ClassLabel.POWERPLANT or cleanOdf == string.lower(units.power or "") or cleanOdf == string.lower(units.sPower or "") then return "power" end
+    if cls == utility.ClassLabel.REPAIR_DEPOT or cleanOdf == string.lower(units.hangar or "") then return "repair" end
+    if cls == utility.ClassLabel.SUPPLY_DEPOT or cleanOdf == string.lower(units.supply or "") then return "supply" end
+    if cls == utility.ClassLabel.SCRAP_SILO or cleanOdf == string.lower(units.silo or "") then return "silo" end
+    if cls == utility.ClassLabel.BARRACKS or cleanOdf == string.lower(units.barracks or "") then return "barracks" end
+    if cls == "commtower" or cleanOdf == string.lower(units.commTower or "") then return "comm" end
+    if cls == utility.ClassLabel.TURRET or cleanOdf == string.lower(units.gunTower or "") or cleanOdf == string.lower(units.gunTower2 or "") then return "guntower" end
+    return nil
+end
+
+function aiCore.Team:GetRuleBuildingCap(key)
+    if not key then return nil end
+    if key == "recycler" or key == "factory" or key == "armory" or key == "constructor" then
+        return (self.Config.slotCaps or aiCore.EmptyList)[key] or 1
+    end
+    return (self.Config.buildingCaps or aiCore.EmptyList)[key]
+end
+
+function aiCore.Team:GetRuleBuildingCount(key)
+    if not key then return 0 end
+
+    local count = 0
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(self.teamNum)) do
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) and self:GetRuleBuildingKey(GetOdf(obj), obj) == key then
+            count = count + 1
+        end
+    end
+
+    if key == "recycler" and IsValid(aiCore.SafeGetTeamSlot and aiCore.SafeGetTeamSlot(TeamSlot.RECYCLER, self.teamNum) or nil) then
+        count = math.max(count, 1)
+    elseif key == "factory" and IsValid(aiCore.SafeGetTeamSlot and aiCore.SafeGetTeamSlot(TeamSlot.FACTORY, self.teamNum) or nil) then
+        count = math.max(count, 1)
+    elseif key == "armory" and IsValid(aiCore.SafeGetTeamSlot and aiCore.SafeGetTeamSlot(TeamSlot.ARMORY, self.teamNum) or nil) then
+        count = math.max(count, 1)
+    elseif key == "constructor" and IsValid(aiCore.SafeGetTeamSlot and aiCore.SafeGetTeamSlot(TeamSlot.CONSTRUCT, self.teamNum) or nil) then
+        count = math.max(count, 1)
+    end
+
+    for _, qItem in ipairs(self.constructorMgr.queue or aiCore.EmptyList) do
+        if self:GetRuleBuildingKey(qItem.odf) == key then
+            count = count + 1
+        end
+    end
+    if self.constructorMgr.activeJob and self:GetRuleBuildingKey(self.constructorMgr.activeJob.odf) == key then
+        count = count + 1
+    end
+
+    return count
+end
+
+function aiCore.Team:CanQueueUnitByRules(category, odf)
+    local bucket = self:GetRuleUnitRoleBucket(category, odf)
+    local cap = self:GetRuleSlotCap(bucket)
+    if bucket and cap and self:GetRuleUnitRoleCount(bucket) >= cap then
+        return false, string.format("%s cap %d reached", bucket, cap)
+    end
+    return true, nil
+end
+
+function aiCore.Team:CanQueueBuildingByRules(odf)
+    local key = self:GetRuleBuildingKey(odf)
+    local cap = self:GetRuleBuildingCap(key)
+    if key and cap and self:GetRuleBuildingCount(key) >= cap then
+        return false, string.format("%s cap %d reached", key, cap)
+    end
+    return true, nil
+end
+
+function aiCore.Team:GetInfrastructureDeficit()
+    local deficit = 0.0
+    if not IsValid(GetRecyclerHandle(self.teamNum)) then deficit = deficit + 4.0 end
+    if not IsValid(GetFactoryHandle(self.teamNum)) then deficit = deficit + 2.0 end
+    if not IsValid(GetArmoryHandle(self.teamNum)) then deficit = deficit + 1.5 end
+    if not IsValid(GetConstructorHandle(self.teamNum)) then deficit = deficit + 2.0 end
+    return deficit
+end
+
+function aiCore.Team:GetStrategicPressureSummary()
+    local defendPressure = 0.0
+    local attackPressure = 0.0
+    local bestDefend = 0.0
+    local bestAttack = 0.0
+
+    for _, goal in ipairs(self:RecomputeStrategicGoals(false)) do
+        local value = (goal.threat or 0.0) + ((goal.scriptedValue or 0.0) * 0.5)
+        if goal.mode == "defend" then
+            defendPressure = defendPressure + value
+            if value > bestDefend then bestDefend = value end
+        else
+            attackPressure = attackPressure + value + ((goal.enemyBuildings or 0.0) * 0.35)
+            if value > bestAttack then bestAttack = value end
+        end
+    end
+
+    return {
+        defend = defendPressure,
+        attack = attackPressure,
+        peakDefend = bestDefend,
+        peakAttack = bestAttack
+    }
+end
+
+function aiCore.Team:ChooseModeStrategy(mode)
+    local counter = self:GetCounterStrategy()
+    local baseStrategy = self.baseStrategy or self.strategy or "Balanced"
+    local scrapRatio = GetScrap(self.teamNum) / math.max(GetMaxScrap(self.teamNum), 1)
+
+    if mode == "recover" then
+        if counter == "Tank_Heavy" or counter == "Rocket_Heavy" then
+            return counter
+        end
+        return "Balanced"
+    end
+    if mode == "defend" then
+        return counter or "Tank_Heavy"
+    end
+    if mode == "harass" then
+        if counter == "Rocket_Heavy" or counter == "APC_Heavy" then
+            return counter
+        end
+        return "Light_Force"
+    end
+    if mode == "siege" then
+        if scrapRatio > 0.55 then
+            return "Howitzer_Heavy"
+        end
+        return "Bomber_Heavy"
+    end
+    if mode == "pressure" then
+        return counter or baseStrategy
+    end
+    return counter or baseStrategy
+end
+
+function aiCore.Team:EvaluateStrategicMode()
+    local enemyTeam = self:GetPrimaryEnemyTeam()
+    if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+
+    local ownStrength = aiCore.GetTeamCombatStrength(self.teamNum)
+    local enemyStrength = aiCore.GetTeamCombatStrength(enemyTeam)
+    local unitRatio = ownStrength / math.max(enemyStrength, 1.0)
+    local scrapRatio = GetScrap(self.teamNum) / math.max(GetMaxScrap(self.teamNum), 1)
+    local pressure = self:GetStrategicPressureSummary()
+    local deficit = self:GetInfrastructureDeficit()
+    local missionTime = GetTime()
+    local hotspotScore = (self.scrapHotspots and self.scrapHotspots[1] and self.scrapHotspots[1].score) or 0.0
+    local pressureThreshold = self.Config.strategicPressureThreshold or 4.0
+    local bestSiege = 0.0
+
+    for _, goal in ipairs(self:RecomputeStrategicGoals(false)) do
+        if goal.mode == "attack" and (goal.siegeRisk or 0.0) > bestSiege then
+            bestSiege = goal.siegeRisk or 0.0
+        end
+    end
+
+    if deficit >= 3.5 or (scrapRatio <= (self.Config.strategicRecoverScrapRatio or 0.22) and unitRatio < 1.0)
+        or unitRatio <= (self.Config.strategicRecoverRatio or 0.72) then
+        return "recover",
+            string.format("recover deficit=%.1f scrap=%.2f ratio=%.2f", deficit, scrapRatio, unitRatio)
+    end
+
+    if pressure.peakDefend >= pressureThreshold or pressure.defend >= (pressureThreshold * 1.5) then
+        return "defend",
+            string.format("defend pressure=%.2f ratio=%.2f", pressure.peakDefend, unitRatio)
+    end
+
+    if (missionTime >= (self.Config.strategicSiegeTime or 900.0) or bestSiege >= (self.Config.strategicSiegeRiskThreshold or 5.5))
+        and unitRatio >= 0.95
+        and pressure.attack >= (pressureThreshold * 0.8) then
+        return "siege",
+            string.format("siege t=%.0f attack=%.2f ratio=%.2f risk=%.2f", missionTime, pressure.attack, unitRatio, bestSiege)
+    end
+
+    if hotspotScore >= (self.Config.scrapHotspotMinValue or 8.0) and unitRatio >= 0.9 then
+        return "harass",
+            string.format("harass hotspot=%.2f ratio=%.2f", hotspotScore, unitRatio)
+    end
+
+    if unitRatio >= (self.Config.strategicAttackRatio or 1.15) and scrapRatio >= 0.30 then
+        return "pressure",
+            string.format("pressure ratio=%.2f scrap=%.2f", unitRatio, scrapRatio)
+    end
+
+    return "balanced",
+        string.format("balanced ratio=%.2f scrap=%.2f defend=%.2f", unitRatio, scrapRatio, pressure.defend)
+end
+
+function aiCore.Team:UpdateBuildAccountState()
+    self.buildAccountWeights = self.buildAccountWeights or { offense = 1.0, defense = 1.0, rebuild = 1.0, economy = 1.0 }
+    self.buildAccountSpend = self.buildAccountSpend or { offense = 0.0, defense = 0.0, rebuild = 0.0, economy = 0.0 }
+
+    local now = GetTime()
+    local last = self.buildAccountUpdatedAt or now
+    local delta = math.max(0.0, now - last)
+    self.buildAccountUpdatedAt = now
+
+    if delta > 0 then
+        local decay = self.Config.buildAccountSpendDecay or 0.09
+        local factor = math.exp(-decay * delta)
+        for account, spent in pairs(self.buildAccountSpend) do
+            self.buildAccountSpend[account] = math.max(0.0, (spent or 0.0) * factor)
+        end
+    end
+
+    if now < (self.buildAccountTimer or 0.0) then
+        return
+    end
+    self.buildAccountTimer = now + math.max(2.0, (self.Config.strategicFsmInterval or 18.0) * 0.25)
+
+    local weights = { offense = 1.0, defense = 1.0, rebuild = 1.0, economy = 1.0 }
+    local mode = self.strategicMode or "balanced"
+
+    if mode == "recover" then
+        weights.rebuild = 3.0
+        weights.economy = 2.2
+        weights.defense = 1.8
+        weights.offense = 0.7
+    elseif mode == "defend" then
+        weights.defense = 2.8
+        weights.rebuild = 1.8
+        weights.economy = 1.2
+        weights.offense = 0.9
+    elseif mode == "harass" then
+        weights.offense = 1.9
+        weights.economy = 1.5
+        weights.defense = 1.1
+    elseif mode == "pressure" then
+        weights.offense = 2.4
+        weights.defense = 1.1
+        weights.economy = 1.0
+        weights.rebuild = 0.9
+    elseif mode == "siege" then
+        weights.offense = 2.6
+        weights.defense = 1.0
+        weights.economy = 0.9
+        weights.rebuild = 0.9
+    end
+
+    local deficit = self:GetInfrastructureDeficit()
+    if deficit > 0 then
+        weights.rebuild = weights.rebuild + deficit
+    end
+
+    local pressure = self:GetStrategicPressureSummary()
+    if pressure.defend > 0 then
+        weights.defense = weights.defense + math.min(2.5, pressure.defend * 0.12)
+    end
+
+    local scrapRatio = GetScrap(self.teamNum) / math.max(GetMaxScrap(self.teamNum), 1)
+    if scrapRatio < 0.25 then
+        weights.economy = weights.economy + 0.7
+        weights.offense = math.max(0.5, weights.offense - 0.25)
+    end
+
+    if self.Config.scrapAwareness and self.scrapHotspots and #self.scrapHotspots > 0 then
+        weights.economy = weights.economy + 0.4
+    end
+
+    for account, value in pairs(weights) do
+        self.buildAccountWeights[account] = math.max(0.25, value)
+    end
+end
+
+function aiCore.Team:GetEffectiveBuildPriority(account, basePriority, data)
+    self:UpdateBuildAccountState()
+
+    local acct = account or (data and data.account) or "offense"
+    local priority = tonumber(basePriority) or 999999
+    local weight = (self.buildAccountWeights and self.buildAccountWeights[acct]) or 1.0
+    local spent = (self.buildAccountSpend and self.buildAccountSpend[acct]) or 0.0
+    local spendScale = self.Config.buildAccountSpendScale or 18.0
+    local spendPenalty = spent / math.max(spendScale, 1.0)
+    local weightBias = self.Config.buildAccountBias or 2.2
+
+    return priority - ((weight - 1.0) * weightBias) + spendPenalty
+end
+
+function aiCore.Team:RecordBuildAccountSpend(account, amount)
+    local acct = account or "offense"
+    self.buildAccountSpend = self.buildAccountSpend or {}
+    self.buildAccountSpend[acct] = (self.buildAccountSpend[acct] or 0.0) + math.max(0.0, amount or 0.0)
+end
+
+function aiCore.Team:UpdateStrategicFSM()
+    if self.strategyLocked then
+        self.strategicMode = self.strategicMode or "balanced"
+        self:UpdateBuildAccountState()
+        return
+    end
+
+    local now = GetTime()
+    if now < (self.strategicModeTimer or 0.0) then
+        return
+    end
+    self.strategicModeTimer = now + (self.Config.strategicFsmInterval or 18.0)
+
+    local mode, reason = self:EvaluateStrategicMode()
+    if mode ~= self.strategicMode then
+        self.buildAccountTimer = 0.0
+    end
+    self.strategicMode = mode or "balanced"
+    self.strategicModeReason = reason or "n/a"
+    self.strategicModeStrategy = self:ChooseModeStrategy(self.strategicMode)
+    self:UpdateBuildAccountState()
+
+    if self.strategicModeStrategy and self.strategicModeStrategy ~= self.strategy then
+        self._applyingFsmStrategy = true
+        self:SetStrategy(self.strategicModeStrategy)
+        self._applyingFsmStrategy = nil
+    end
+end
+
+function aiCore.Team:AddStrategicGoal(ref, priority, minForce, maxForce, mode, radius)
+    self.strategicGoals = self.strategicGoals or {}
+    table.insert(self.strategicGoals, {
+        ref = ref,
+        priority = priority or 0.0,
+        minForce = minForce,
+        maxForce = maxForce,
+        mode = mode or "attack",
+        radius = radius or self.Config.tacticalGoalRadius or 260.0
+    })
+    self.strategicGoalTimer = 0.0
+end
+
+function aiCore.Team:AdjustRegionPriority(ref, priority, minForce, maxForce, mode, radius)
+    self:AddStrategicGoal(ref, priority, minForce, maxForce, mode, radius)
+end
+
+function aiCore.Team:SetRegionPriority(ref, priority, minForce, maxForce, mode, radius)
+    self:AddStrategicGoal(ref, priority, minForce, maxForce, mode, radius)
+end
+
+function aiCore.Team:ClearStrategicGoals()
+    self.strategicGoals = {}
+    self.strategicGoalCache = {}
+    self.strategicGoalTimer = 0.0
+    self.lastLaunchedGoalKey = nil
+end
+
+function aiCore.Team:GetEnemyThreatAtPosition(pos, enemyTeam, radius)
+    if not pos then return 0.0, nil, 999999 end
+
+    local bestThreat = nil
+    local bestDist = 999999
+    local total = 0.0
+    radius = radius or self.Config.tacticalThreatRadius or 220.0
+
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
+        if IsValid(obj) and IsAlive(obj) and (IsCraft(obj) or IsBuilding(obj)) then
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            local canProjectThreat = IsCraft(obj)
+                or string.find(cls, utility.ClassLabel.HOWITZER)
+                or string.find(cls, utility.ClassLabel.TURRET)
+                or string.find(cls, utility.ClassLabel.TURRET_TANK)
+            if canProjectThreat then
+                local d = DistanceBetweenRefs(obj, pos)
+                if d <= radius then
+                    total = total + aiCore.EstimateCombatStrength(obj)
+                    if d < bestDist then
+                        bestThreat = obj
+                        bestDist = d
+                    end
+                end
+            end
+        end
+    end
+
+    return total, bestThreat, bestDist
+end
+
+function aiCore.Team:GetRelaxedThreatAtPosition(pos, enemyTeam, radius)
+    local baseRadius = radius or self.Config.tacticalThreatRadius or 220.0
+    local total, bestThreat, bestDist = self:GetEnemyThreatAtPosition(pos, enemyTeam, baseRadius)
+    local cycles = math.max(0, math.floor(self.Config.tacticalRelaxationCycles or 0))
+    local coeff = self.Config.tacticalRelaxationCoefficient or 0.0
+    local step = self.Config.tacticalRelaxationStep or baseRadius
+
+    if not pos or cycles <= 0 or coeff <= 0.0 then
+        return total, bestThreat, bestDist
+    end
+
+    local maxRadius = baseRadius + (step * cycles)
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
+        if IsValid(obj) and IsAlive(obj) and (IsCraft(obj) or IsBuilding(obj)) then
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            local canProjectThreat = IsCraft(obj)
+                or string.find(cls, utility.ClassLabel.HOWITZER)
+                or string.find(cls, utility.ClassLabel.TURRET)
+                or string.find(cls, utility.ClassLabel.TURRET_TANK)
+
+            if canProjectThreat then
+                local d = DistanceBetweenRefs(obj, pos)
+                if d > baseRadius and d <= maxRadius then
+                    local ring = math.ceil((d - baseRadius) / math.max(step, 1.0))
+                    local bleed = coeff ^ math.max(ring, 1)
+                    total = total + (aiCore.EstimateCombatStrength(obj) * bleed)
+                    if bestThreat == nil or not IsValid(bestThreat) or d < bestDist then
+                        bestThreat = obj
+                        bestDist = d
+                    end
+                end
+            end
+        end
+    end
+
+    return total, bestThreat, bestDist
+end
+
+function aiCore.Team:CountBuildingsNearPosition(teamNum, pos, radius)
+    if not pos then return 0 end
+    local count = 0
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(teamNum)) do
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) and DistanceBetweenRefs(obj, pos) <= radius then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+function aiCore.Team:GetBuildingGoalWeight(obj)
+    if not IsValid(obj) then return 0 end
+    local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+    if string.find(cls, utility.ClassLabel.RECYCLER)
+        or string.find(cls, utility.ClassLabel.FACTORY)
+        or string.find(cls, utility.ClassLabel.ARMORY)
+        or string.find(cls, utility.ClassLabel.CONSTRUCTOR) then
+        return 3
+    end
+    if string.find(cls, utility.ClassLabel.REPAIR_DEPOT)
+        or string.find(cls, utility.ClassLabel.SUPPLY_DEPOT)
+        or string.find(cls, utility.ClassLabel.HOWITZER)
+        or string.find(cls, utility.ClassLabel.TURRET)
+        or string.find(cls, utility.ClassLabel.TURRET_TANK) then
+        return 2
+    end
+    if string.find(cls, utility.ClassLabel.POWERPLANT)
+        or string.find(cls, utility.ClassLabel.BARRACKS) then
+        return 1.5
+    end
+    return 1
+end
+
+function aiCore.Team:GetEconomicTargetValue(obj, hotspotPos)
+    if not IsValid(obj) or not IsAlive(obj) then return 0.0 end
+
+    local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+    local value = 0.0
+
+    if string.find(cls, utility.ClassLabel.CONSTRUCTOR) then
+        value = 5.5
+    elseif cls == utility.ClassLabel.REPAIR_DEPOT or cls == utility.ClassLabel.SUPPLY_DEPOT then
+        value = 5.0
+    elseif cls == utility.ClassLabel.SCRAP_SILO or string.find(cls, "silo") then
+        value = 4.5
+    elseif cls == utility.ClassLabel.POWERPLANT then
+        value = 3.75
+    elseif cls == utility.ClassLabel.BARRACKS then
+        value = 2.5
+    elseif string.find(cls, utility.ClassLabel.RECYCLER)
+        or string.find(cls, utility.ClassLabel.FACTORY)
+        or string.find(cls, utility.ClassLabel.ARMORY) then
+        value = 3.25
+    end
+
+    if hotspotPos and value > 0.0 and DistanceBetweenRefs(obj, hotspotPos) <= (self.Config.scrapDenyRadius or 160.0) then
+        value = value + 1.75
+    end
+
+    return value
+end
+
+function aiCore.Team:GetHotspotDenialValue(pos)
+    if not pos or not self.scrapHotspots then return 0.0 end
+
+    local best = 0.0
+    local radius = self.Config.scrapDenyRadius or 160.0
+    for _, hotspot in ipairs(self.scrapHotspots) do
+        local d = DistanceBetweenRefs(hotspot.position, pos)
+        if d <= radius then
+            local value = (hotspot.totalValue or 0.0) + ((hotspot.denyScore or 0.0) * 0.5)
+            value = value * (1.0 - (d / math.max(radius, 1.0)))
+            if value > best then
+                best = value
+            end
+        end
+    end
+
+    return best
+end
+
+function aiCore.Team:GetSiegeRiskAtPosition(pos, enemyTeam, radius)
+    if not pos then return 0.0 end
+
+    local risk = 0.0
+    radius = radius or (self.Config.tacticalThreatRadius or 220.0)
+
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
+        if IsValid(obj) and IsAlive(obj) and DistanceBetweenRefs(obj, pos) <= radius then
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            if cls == utility.ClassLabel.TURRET or string.find(cls, utility.ClassLabel.TURRET_TANK) then
+                risk = risk + 1.5
+            elseif string.find(cls, utility.ClassLabel.HOWITZER) then
+                risk = risk + 2.0
+            elseif cls == utility.ClassLabel.POWERPLANT then
+                risk = risk + 0.85
+            elseif string.find(cls, utility.ClassLabel.WALKER) then
+                risk = risk + 1.75
+            elseif IsCraft(obj) and (string.find(cls, utility.ClassLabel.RECYCLER) or string.find(cls, utility.ClassLabel.FACTORY)) and IsDeployed(obj) then
+                risk = risk + 1.1
+            end
+        end
+    end
+
+    return risk
+end
+
+function aiCore.Team:FinalizeStrategicGoal(goal)
+    local minRatio = self.Config.tacticalMinMatchingForceRatio or 1.0
+    local maxRatio = self.Config.tacticalMaxMatchingForceRatio or 2.25
+    local buildingMin = self.Config.tacticalBuildingDefenseForceMin or 1.0
+    local buildingMax = self.Config.tacticalBuildingDefenseForceMax or 2.0
+    local buildingWeight = (goal.friendlyBuildings or 0) + (goal.enemyBuildings or 0)
+
+    local minForce = (goal.threat or 0.0) * minRatio + (buildingWeight * buildingMin)
+    local maxForce = (goal.threat or 0.0) * maxRatio + (buildingWeight * buildingMax)
+
+    if goal.mode == "attack" then
+        minForce = math.max(minForce, 2.0)
+        local siegeForce = (goal.siegeRisk or 0.0) * (self.Config.tacticalSiegeForceFactor or 0.8)
+        minForce = minForce + siegeForce
+        maxForce = maxForce + (siegeForce * 1.35)
+    elseif goal.mode == "defend" then
+        minForce = math.max(minForce, 1.5)
+    end
+
+    if goal.minForce then
+        minForce = math.max(minForce, goal.minForce)
+    end
+    if goal.maxForce then
+        maxForce = math.max(maxForce, goal.maxForce)
+    end
+
+    goal.requiredMinForce = minForce
+    goal.requiredMaxForce = math.max(maxForce, minForce)
+    return goal
+end
+
+function aiCore.Team:RecomputeStrategicGoals(force)
+    local now = GetTime()
+    if not force and now < (self.strategicGoalTimer or 0.0) and self.strategicGoalCache then
+        return self.strategicGoalCache
+    end
+
+    local goals = {}
+    local enemyTeam = self:GetPrimaryEnemyTeam()
+    if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+    local goalRadius = self.Config.tacticalGoalRadius or 260.0
+
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) then
+            local pos = GetPosition(obj)
+            local threat = 0.0
+            local siegeRisk = 0.0
+            if pos then
+                threat = self:GetRelaxedThreatAtPosition(pos, enemyTeam, self.Config.tacticalThreatRadius or 220.0)
+                siegeRisk = self:GetSiegeRiskAtPosition(pos, enemyTeam, (self.Config.tacticalThreatRadius or 220.0) * 1.1)
+            end
+            local hotspotDenial = self:GetHotspotDenialValue(pos)
+            local economicValue = self:GetEconomicTargetValue(obj, pos)
+            table.insert(goals, self:FinalizeStrategicGoal({
+                key = obj,
+                mode = "attack",
+                target = obj,
+                anchor = obj,
+                position = pos,
+                radius = goalRadius,
+                threat = threat,
+                friendlyBuildings = 0,
+                enemyBuildings = self:GetBuildingGoalWeight(obj),
+                scriptedValue = economicValue + hotspotDenial,
+                economicValue = economicValue,
+                hotspotDenial = hotspotDenial,
+                siegeRisk = siegeRisk
+            }))
+        end
+    end
+
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(self.teamNum)) do
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) then
+            local pos = GetPosition(obj)
+            local threat, attacker = self:GetRelaxedThreatAtPosition(pos, enemyTeam, self.Config.tacticalThreatRadius or 220.0)
+            local healthRatio = Clamp((GetCurHealth(obj) or GetMaxHealth(obj) or 1.0) / math.max(GetMaxHealth(obj) or 1.0, 1.0), 0.0,
+                1.0)
+            local pressure = (1.0 - healthRatio) * 4.0
+            if threat > 0.0 or pressure > 0.25 then
+                table.insert(goals, self:FinalizeStrategicGoal({
+                    key = "defend:" .. tostring(obj),
+                    mode = "defend",
+                    target = attacker,
+                    anchor = obj,
+                    position = pos,
+                    radius = goalRadius,
+                    threat = threat + pressure,
+                    friendlyBuildings = self:GetBuildingGoalWeight(obj),
+                    enemyBuildings = 0,
+                    scriptedValue = pressure
+                }))
+            end
+        end
+    end
+
+    for _, goal in ipairs(self.strategicGoals or aiCore.EmptyList) do
+        local pos = ResolveReferencePosition(goal.ref)
+        if pos then
+            local threat, attacker = self:GetRelaxedThreatAtPosition(pos, enemyTeam, goal.radius or goalRadius)
+            local enemyBuildings = self:CountBuildingsNearPosition(enemyTeam, pos, goal.radius or goalRadius)
+            local friendlyBuildings = self:CountBuildingsNearPosition(self.teamNum, pos, goal.radius or goalRadius)
+            local target = attacker
+            local siegeRisk = self:GetSiegeRiskAtPosition(pos, enemyTeam, goal.radius or goalRadius)
+            local hotspotDenial = self:GetHotspotDenialValue(pos)
+            local economicValue = IsValid(goal.ref) and self:GetEconomicTargetValue(goal.ref, pos) or 0.0
+
+            if goal.mode ~= "defend" and IsValid(goal.ref) then
+                target = goal.ref
+            end
+
+            table.insert(goals, self:FinalizeStrategicGoal({
+                key = GetStrategicRefKey(goal.ref),
+                mode = goal.mode or "attack",
+                target = target,
+                anchor = goal.ref,
+                position = pos,
+                radius = goal.radius or goalRadius,
+                threat = threat,
+                friendlyBuildings = friendlyBuildings,
+                enemyBuildings = enemyBuildings,
+                scriptedValue = (goal.priority or 0.0) + hotspotDenial + economicValue,
+                economicValue = economicValue,
+                hotspotDenial = hotspotDenial,
+                siegeRisk = siegeRisk,
+                minForce = goal.minForce,
+                maxForce = goal.maxForce
+            }))
+        end
+    end
+
+    self.strategicGoalCache = goals
+    self.strategicGoalTimer = now + (self.Config.tacticalRecomputeInterval or 8.0)
+    return goals
+end
+
+function aiCore.Team:ScoreStrategicGoal(goal, originRef, previousGoalKey)
+    local goalPos = goal.position or ResolveReferencePosition(goal.anchor or goal.target)
+    if not goalPos then return -999999 end
+
+    local distance = DistanceBetweenRefs(originRef, goalPos)
+    local score = 0.0
+    score = score + ((self.Config.tacticalThreatPriority or 150.0) * (goal.threat or 0.0))
+    score = score - ((self.Config.tacticalDistancePriority or 3.0) * (distance / 50.0))
+    score = score + ((self.Config.tacticalDefendBuildingsPriority or 30.0) * (goal.friendlyBuildings or 0.0))
+    score = score + ((self.Config.tacticalAttackEnemyBasePriority or 75.0) * (goal.enemyBuildings or 0.0))
+    score = score + ((self.Config.tacticalScriptedPriority or 50.0) * (goal.scriptedValue or 0.0))
+    score = score + ((self.Config.tacticalEconomicPriority or 70.0) * (goal.economicValue or 0.0))
+    score = score + ((self.Config.tacticalHotspotDenialPriority or 55.0) * (goal.hotspotDenial or 0.0))
+
+    if previousGoalKey ~= nil and previousGoalKey == goal.key then
+        score = score + (self.Config.tacticalPersistencePriority or 30.0)
+    end
+    if self.lastLaunchedGoalKey ~= nil and self.lastLaunchedGoalKey == goal.key then
+        score = score + ((self.Config.tacticalPersistencePriority or 30.0) * 0.5)
+    end
+    if goal.mode == "defend" then
+        score = score + (self.Config.tacticalDefenseBias or 15.0)
+    elseif (goal.siegeRisk or 0.0) > 0.0 then
+        if self.strategicMode == "siege" then
+            score = score + ((self.Config.tacticalSiegePriority or 35.0) * (goal.siegeRisk or 0.0))
+        else
+            score = score - ((self.Config.tacticalSiegeAvoidance or 18.0) * (goal.siegeRisk or 0.0))
+        end
+    end
+
+    return score
+end
+
+function aiCore.Team:SelectStrategicGoal(originRef, availableStrength, opts)
+    opts = opts or {}
+    local bestGoal = nil
+    local bestScore = -999999
+
+    for _, goal in ipairs(self:RecomputeStrategicGoals(opts.forceRecompute)) do
+        local includeGoal = true
+        if opts.attackOnly and goal.mode ~= "attack" then includeGoal = false end
+        if opts.defenseOnly and goal.mode ~= "defend" then includeGoal = false end
+
+        if includeGoal then
+            local requiredMin = goal.requiredMinForce or 0.0
+            local enoughForce = opts.allowUnderstrength or availableStrength == nil or availableStrength >= requiredMin
+            if enoughForce then
+                local score = self:ScoreStrategicGoal(goal, originRef, opts.previousGoalKey)
+                if score > bestScore then
+                    bestGoal = goal
+                    bestScore = score
+                end
+            end
+        end
+    end
+
+    return bestGoal, bestScore
+end
+
+function aiCore.Team:GetPoolStrength()
+    local total = 0.0
+    for _, u in ipairs(self.pool) do
+        local cls = string.lower(utility.CleanString(GetClassLabel(u)))
+        if IsValid(u) and IsAlive(u) and not IsSpecializedPoolClass(cls) then
+            total = total + aiCore.EstimateCombatStrength(u)
+        end
+    end
+    return total
+end
+
+function aiCore.Team:BuildSquadFromPoolForGoal(goal)
+    local ranked = {}
+    for _, u in ipairs(self.pool) do
+        local cls = string.lower(utility.CleanString(GetClassLabel(u)))
+        if IsValid(u) and IsAlive(u) and not IsSpecializedPoolClass(cls) then
+            table.insert(ranked, { unit = u, strength = aiCore.EstimateCombatStrength(u) })
+        end
+    end
+
+    table.sort(ranked, function(a, b) return a.strength > b.strength end)
+
+    local minUnits = self.Config.tacticalMinSquadUnits or 3
+    local maxUnits = self.Config.tacticalMaxSquadUnits or 5
+    local neededForce = goal and goal.requiredMinForce or 0.0
+    local chosen = {}
+    local totalStrength = 0.0
+
+    for _, entry in ipairs(ranked) do
+        table.insert(chosen, entry.unit)
+        totalStrength = totalStrength + entry.strength
+        if #chosen >= maxUnits then break end
+        if #chosen >= minUnits and totalStrength >= neededForce then
+            break
+        end
+    end
+
+    if #chosen < minUnits then
+        return nil, nil, 0.0
+    end
+    if goal and totalStrength + 0.01 < (goal.requiredMinForce or 0.0) then
+        return nil, nil, totalStrength
+    end
+
+    for _, unit in ipairs(chosen) do
+        RemoveFromList(self.pool, unit)
+    end
+
+    local leader = table.remove(chosen, 1)
+    if not IsValid(leader) then
+        for _, unit in ipairs(chosen) do
+            UniqueInsert(self.pool, unit)
+        end
+        return nil, nil, 0.0
+    end
+
+    local squad = aiCore.Squad:new(leader)
+    squad.teamObj = self
+    squad.estimatedStrength = totalStrength
+    for _, member in ipairs(chosen) do
+        if IsValid(member) then
+            squad:AddMember(member)
+        end
+    end
+
+    return squad, leader, totalStrength
+end
+
+function aiCore.Team:ResolveStrategicGoalTarget(goalState)
+    local mode = goalState.goalMode or goalState.mode or "attack"
+    local anchor = goalState.goalAnchor or goalState.anchor
+    local pos = goalState.goalPos or goalState.position or ResolveReferencePosition(anchor)
+    local radius = goalState.goalRadius or goalState.radius or self.Config.tacticalGoalRadius or 260.0
+    if not pos then return nil end
+
+    local enemyTeam = self:GetPrimaryEnemyTeam()
+    if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+
+    local best = nil
+    local bestScore = 999999
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
+        if IsValid(obj) and IsAlive(obj) and (IsCraft(obj) or IsBuilding(obj)) then
+            local d = DistanceBetweenRefs(obj, pos)
+            if mode ~= "defend" or d <= radius then
+                local score = d
+                if IsBuilding(obj) then score = score - 20.0 end
+                if mode ~= "defend" then
+                    score = score - ((self:GetEconomicTargetValue(obj, pos) or 0.0) * 55.0)
+                    score = score - (self:GetHotspotDenialValue(GetPosition(obj)) * 40.0)
+                end
+                if mode == "defend" and not IsCraft(obj) then score = score + 40.0 end
+                if score < bestScore then
+                    best = obj
+                    bestScore = score
+                end
+            end
+        end
+    end
+
+    return best
+end
+
+function aiCore.Team:GetObjectScrapValue(obj)
+    if not IsValid(obj) then return 0.0 end
+    local odf = OpenODF(GetOdf(obj))
+    if not odf then return 1.0 end
+    local value = GetODFInt(odf, "GameObjectClass", "scrapValue", 0)
+    if value <= 0 then
+        value = GetODFInt(odf, "GameObjectClass", "scrapCost", 0)
+    end
+    return math.max(1.0, value)
+end
+
+function aiCore.Team:AddScrapMemory(pos, value, sourceTag)
+    if not pos or value <= 0 then return end
+    self.scrapMemory = self.scrapMemory or {}
+    table.insert(self.scrapMemory, {
+        position = SetVector(pos.x, pos.y, pos.z),
+        value = value,
+        source = sourceTag or "battle",
+        expiresAt = GetTime() + (self.Config.scrapHotspotMemoryDuration or 120.0)
+    })
+end
+
+function aiCore.Team:TrackCombatLossesForScrap()
+    self.scrapTrackedUnits = self.scrapTrackedUnits or {}
+
+    for h, state in pairs(self.scrapTrackedUnits) do
+        if not IsValid(h) or not IsAlive(h) then
+            if state.position and (state.strength or 0.0) >= 1.5 then
+                self:AddScrapMemory(state.position, state.strength, "loss")
+            end
+            self.scrapTrackedUnits[h] = nil
+        end
+    end
+
+    for _, u in ipairs(self.combatUnits or aiCore.EmptyList) do
+        if IsValid(u) and IsAlive(u) then
+            self.scrapTrackedUnits[u] = self.scrapTrackedUnits[u] or {}
+            local state = self.scrapTrackedUnits[u]
+            local pos = GetPosition(u)
+            if pos then
+                state.position = SetVector(pos.x, pos.y, pos.z)
+                state.time = GetTime()
+                state.strength = aiCore.EstimateCombatStrength(u)
+            end
+        end
+    end
+end
+
+function aiCore.Team:GetNearestFriendlyScrapDropoff(pos)
+    local best = nil
+    local bestDist = 999999
+
+    local recycler = GetRecyclerHandle(self.teamNum)
+    if IsValid(recycler) then
+        best = recycler
+        bestDist = DistanceBetweenRefs(recycler, pos)
+    end
+
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(self.teamNum)) do
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) then
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            if cls == utility.ClassLabel.SCRAP_SILO then
+                local d = DistanceBetweenRefs(obj, pos)
+                if d < bestDist then
+                    best = obj
+                    bestDist = d
+                end
+            end
+        end
+    end
+
+    return best, bestDist
+end
+
+function aiCore.Team:HasPlannedSiloNear(pos, radius)
+    local siloOdf = aiCore.Units[self.faction].silo
+    if not siloOdf then return false end
+    radius = radius or 120.0
+
+    for _, building in pairs(self.buildingList) do
+        if building.odf == siloOdf and DistanceBetweenRefs(building.path, pos) <= radius then
+            return true
+        end
+    end
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(self.teamNum)) do
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) then
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            if (cls == utility.ClassLabel.SCRAP_SILO or IsOdf(obj, siloOdf)) and DistanceBetweenRefs(obj, pos) <= radius then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function aiCore.Team:HasPlannedBuildingNear(odf, pos, radius)
+    if not odf or not pos then return false end
+    radius = radius or 120.0
+
+    for _, building in pairs(self.buildingList) do
+        if building.odf == odf and DistanceBetweenRefs(building.path, pos) <= radius then
+            return true
+        end
+    end
+
+    return false
+end
+
+function aiCore.Team:CountExistingOrPlannedBuildingsNear(pos, radius, matcher)
+    if not pos or not matcher then return 0 end
+
+    local count = 0
+    for _, building in pairs(self.buildingList) do
+        if DistanceBetweenRefs(building.path, pos) <= radius and matcher(building.odf, nil, true) then
+            count = count + 1
+        end
+    end
+
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(self.teamNum)) do
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) and DistanceBetweenRefs(obj, pos) <= radius then
+            if matcher(GetOdf(obj), obj, false) then
+                count = count + 1
+            end
+        end
+    end
+
+    return count
+end
+
+function aiCore.Team:GetNearestEnemyProducerDistance(pos)
+    local enemyTeam = self:GetPrimaryEnemyTeam()
+    if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+
+    local best = 999999
+    local recycler = GetRecyclerHandle(enemyTeam)
+    if IsValid(recycler) then
+        best = math.min(best, DistanceBetweenRefs(recycler, pos))
+    end
+
+    local factory = GetFactoryHandle(enemyTeam)
+    if IsValid(factory) then
+        best = math.min(best, DistanceBetweenRefs(factory, pos))
+    end
+
+    return best
+end
+
+function aiCore.Team:FindOutpostStructureLocation(anchorPos, focusPos, odf, minDist, maxDist)
+    if not anchorPos or not odf then return nil end
+
+    minDist = minDist or 28.0
+    maxDist = maxDist or 80.0
+    local facingBase = focusPos or anchorPos
+
+    for dist = minDist, maxDist, 12.0 do
+        for angle = 0, 315, 45 do
+            local rad = math.rad(angle)
+            local testPos = SetVector(
+                anchorPos.x + math.cos(rad) * dist,
+                anchorPos.y,
+                anchorPos.z + math.sin(rad) * dist
+            )
+            testPos.y = GetTerrainHeight(testPos.x, testPos.z)
+            if aiCore.IsAreaFlat(testPos, 12, 6, 0.92, 0.65) and self:CheckBuildingSpacing(odf, testPos, 45) then
+                return aiCore.BuildDirectionalMatrix(testPos, Normalize(facingBase - testPos))
+            end
+        end
+    end
+
+    return nil
+end
+
+function aiCore.Team:FindSiloLocationNearHotspot(centerPos)
+    if not centerPos then return nil end
+    local distances = { 25.0, 40.0, 55.0, 70.0 }
+
+    for _, dist in ipairs(distances) do
+        for angle = 0, 315, 45 do
+            local rad = math.rad(angle)
+            local testPos = SetVector(
+                centerPos.x + math.cos(rad) * dist,
+                centerPos.y,
+                centerPos.z + math.sin(rad) * dist
+            )
+            testPos.y = GetTerrainHeight(testPos.x, testPos.z)
+            local isFlat = aiCore.IsAreaFlat(testPos, 14, 6, 0.94, 0.68)
+            if isFlat then
+                local ok = self:CheckBuildingSpacing(aiCore.Units[self.faction].silo, testPos, 65)
+                if ok then
+                    return testPos
+                end
+            end
+        end
+    end
+
+    return nil
+end
+
+function aiCore.Team:GetEnemyScrapDenyTarget(centerPos, radius)
+    local enemyTeam = self:GetPrimaryEnemyTeam()
+    if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+
+    local best = nil
+    local bestScore = -999999
+    radius = radius or (self.Config.scrapDenyRadius or 160.0)
+
+    for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
+        if IsValid(obj) and IsAlive(obj) and DistanceBetweenRefs(obj, centerPos) <= radius then
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            local score = -DistanceBetweenRefs(obj, centerPos)
+            if string.find(cls, utility.ClassLabel.SCAVENGER) then
+                score = score + 12.0
+            elseif string.find(cls, utility.ClassLabel.CONSTRUCTOR) then
+                score = score + 10.0
+            elseif cls == utility.ClassLabel.SCRAP_SILO or string.find(cls, "silo") then
+                score = score + 9.0
+            elseif IsBuilding(obj) then
+                score = score + 2.0
+            end
+            if score > bestScore then
+                best = obj
+                bestScore = score
+            end
+        end
+    end
+
+    return best, bestScore
+end
+
+function aiCore.Team:RefreshScrapHotspots()
+    self.scrapHotspots = {}
+    self.scrapMemory = self.scrapMemory or {}
+
+    local now = GetTime()
+    local survivors = {}
+    for _, memory in ipairs(self.scrapMemory) do
+        if now < (memory.expiresAt or 0.0) then
+            table.insert(survivors, memory)
+        end
+    end
+    self.scrapMemory = survivors
+
+    local clusterRadius = self.Config.scrapHotspotRadius or 110.0
+    local minValue = self.Config.scrapHotspotMinValue or 8.0
+    local clusters = {}
+
+    for _, obj in ipairs(aiCore.GetCachedScrapObjects()) do
+        if IsValid(obj) and IsAlive(obj) then
+            local pos = GetPosition(obj)
+            local value = self:GetObjectScrapValue(obj)
+            local chosen = nil
+            for _, cluster in ipairs(clusters) do
+                if DistanceBetweenRefs(cluster.position, pos) <= clusterRadius then
+                    chosen = cluster
+                    break
+                end
+            end
+
+            if not chosen then
+                chosen = {
+                    position = SetVector(pos.x, pos.y, pos.z),
+                    scrapValue = 0.0,
+                    scrapCount = 0,
+                    targetScrap = obj,
+                    targetScrapValue = value,
+                    scrapHandles = {}
+                }
+                table.insert(clusters, chosen)
+            end
+
+            chosen.scrapHandles[#chosen.scrapHandles + 1] = obj
+            chosen.scrapValue = chosen.scrapValue + value
+            chosen.scrapCount = chosen.scrapCount + 1
+            if chosen.targetScrap == nil or not IsValid(chosen.targetScrap) or value > (chosen.targetScrapValue or 0.0) then
+                chosen.targetScrap = obj
+                chosen.targetScrapValue = value
+            end
+
+            local weight = value / math.max(chosen.scrapValue, 1.0)
+            chosen.position = chosen.position + ((pos - chosen.position) * weight)
+            chosen.position.y = GetTerrainHeight(chosen.position.x, chosen.position.z)
+        end
+    end
+
+    for _, cluster in ipairs(clusters) do
+        local battleValue = 0.0
+        for _, memory in ipairs(self.scrapMemory) do
+            if DistanceBetweenRefs(memory.position, cluster.position) <= (clusterRadius * 1.35) then
+                battleValue = battleValue + (memory.value or 0.0)
+            end
+        end
+
+        local enemyTeam = self:GetPrimaryEnemyTeam()
+        if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+        local _, dropoffDist = self:GetNearestFriendlyScrapDropoff(cluster.position)
+        local denyTarget, denyScore = self:GetEnemyScrapDenyTarget(cluster.position)
+        local enemyThreat = self:GetRelaxedThreatAtPosition(cluster.position, enemyTeam, self.Config.tacticalThreatRadius or 220.0)
+        cluster.battleValue = battleValue
+        cluster.dropoffDist = dropoffDist or 999999
+        cluster.totalValue = cluster.scrapValue + (battleValue * (self.Config.scrapHotspotBattleWeight or 1.4))
+        cluster.denyTarget = denyTarget
+        cluster.denyScore = math.max(0.0, denyScore or 0.0)
+        cluster.enemyThreat = enemyThreat or 0.0
+        cluster.contested = IsValid(denyTarget) or (cluster.enemyThreat >= (self.Config.scrapHotspotOutpostContestedThreat or 2.5))
+        cluster.score = cluster.totalValue - ((cluster.dropoffDist or 0.0) / 80.0)
+        if IsValid(denyTarget) then
+            cluster.score = cluster.score + 4.0
+        end
+        cluster.score = cluster.score + (cluster.denyScore * 0.35) + (cluster.enemyThreat * 0.5)
+
+        if cluster.totalValue >= minValue then
+            table.insert(self.scrapHotspots, cluster)
+        end
+    end
+
+    table.sort(self.scrapHotspots, function(a, b) return (a.score or 0.0) > (b.score or 0.0) end)
+end
+
+function aiCore.Team:GetBestAvailableHotspotScrap(hotspot, seeker, claimed)
+    if not hotspot or not seeker then return nil end
+
+    local bestScrap = nil
+    local bestDist = 999999
+    for _, obj in ipairs(hotspot.scrapHandles or aiCore.EmptyList) do
+        if IsValid(obj) and IsAlive(obj) and (not claimed or not claimed[obj]) then
+            local d = DistanceBetweenRefs(seeker, obj)
+            if d < bestDist then
+                bestDist = d
+                bestScrap = obj
+            end
+        end
+    end
+
+    if IsValid(bestScrap) then
+        return bestScrap
+    end
+
+    if IsValid(hotspot.targetScrap) and IsAlive(hotspot.targetScrap) and (not claimed or not claimed[hotspot.targetScrap]) then
+        return hotspot.targetScrap
+    end
+
+    return nil
+end
+
+function aiCore.Team:AssignScavengersToHotspots()
+    if not self.scavengers or #self.scavengers == 0 then return end
+    if not self.scrapHotspots or #self.scrapHotspots == 0 then return end
+
+    self.scrapOrderState = self.scrapOrderState or {}
+    local claimed = {}
+
+    for _, hotspot in ipairs(self.scrapHotspots) do
+        local assigned = 0
+        local maxAssignments = math.min(3, math.max(1, math.floor((hotspot.totalValue or 0.0) / 8.0)))
+
+        for _, scav in ipairs(self.scavengers) do
+            if assigned >= maxAssignments then break end
+            if IsValid(scav) and IsAlive(scav) and not IsSelected(scav) then
+                local currentCmd = GetCurrentCommand(scav)
+                local currentWho = GetCurrentWho(scav)
+                local currentState = self.scrapOrderState[scav]
+                local busyOnThisHotspot = currentState and currentState.hotspotPos and
+                    DistanceBetweenRefs(currentState.hotspotPos, hotspot.position) <= 40.0 and
+                    currentCmd == AiCommand.SCAVENGE and IsValid(currentWho)
+
+                if busyOnThisHotspot then
+                    assigned = assigned + 1
+                elseif currentCmd == AiCommand.NONE or currentCmd == AiCommand.SCAVENGE or currentCmd == AiCommand.GO
+                    or (currentCmd == AiCommand.SCAVENGE and not IsValid(currentWho)) then
+                    local bestScrap = self:GetBestAvailableHotspotScrap(hotspot, scav, claimed)
+                    if IsValid(bestScrap) then
+                        if aiCore.TryScavenge(scav, bestScrap, GetUncommandablePriority(),
+                                { minInterval = 1.0, overrideProtected = true }) then
+                            claimed[bestScrap] = true
+                            self.scrapOrderState[scav] = {
+                                hotspotPos = hotspot.position,
+                                target = bestScrap,
+                                issuedAt = GetTime()
+                            }
+                            assigned = assigned + 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+function aiCore.Team:PlanHotspotOutpost()
+    if not self.Config.autoBuild or not self.Config.manageConstructor then return end
+    if not IsValid(self.constructorMgr.handle) or IsBusy(self.constructorMgr.handle) then return end
+    if GetTime() < (self.scrapOutpostTimer or 0.0) then return end
+
+    local units = aiCore.Units[self.faction] or {}
+    local siloOdf = units.silo
+    local powerOdf = units.power or units.sPower
+    local repairOdf = units.repair
+    local supplyOdf = units.supply
+    local towerOdf = units.gunTower
+    local supportRadius = self.Config.scrapHotspotOutpostSupportRadius or 120.0
+
+    for _, hotspot in ipairs(self.scrapHotspots or aiCore.EmptyList) do
+        local producerDist = self:GetNearestEnemyProducerDistance(hotspot.position)
+        local richEnough = (hotspot.totalValue or 0.0) >= (self.Config.scrapHotspotOutpostValue or 24.0)
+        local remoteEnough = (hotspot.dropoffDist or 0.0) >= (self.Config.scrapHotspotOutpostDropoffDistance or 330.0)
+        local safeEnough = producerDist >= (self.Config.scrapHotspotOutpostEnemyProducerRadius or 600.0)
+
+        if richEnough and remoteEnough and (safeEnough or hotspot.contested) then
+            local anchor = hotspot.outpostAnchor
+            if not anchor then
+                anchor = self:FindSiloLocationNearHotspot(hotspot.position)
+                hotspot.outpostAnchor = anchor
+            end
+
+            if anchor then
+                local needSilo = not self:HasPlannedSiloNear(anchor, supportRadius)
+                if needSilo and siloOdf then
+                    self:AddBuilding(siloOdf, aiCore.BuildDirectionalMatrix(anchor, Normalize(hotspot.position - anchor)))
+                    self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
+                    return
+                end
+
+                if powerOdf then
+                    local powerCount = self:CountExistingOrPlannedBuildingsNear(anchor, supportRadius,
+                        function(odf, obj)
+                            local cls = obj and string.lower(utility.CleanString(GetClassLabel(obj))) or ""
+                            return (obj and cls == utility.ClassLabel.POWERPLANT) or odf == powerOdf
+                        end)
+                    if powerCount == 0 then
+                        local powerPos = self:FindOutpostStructureLocation(anchor, hotspot.position, powerOdf, 30.0, 70.0)
+                        if powerPos then
+                            self:AddBuilding(powerOdf, powerPos)
+                            self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
+                            return
+                        end
+                    end
+                end
+
+                if hotspot.contested and repairOdf then
+                    local repairCount = self:CountExistingOrPlannedBuildingsNear(anchor, supportRadius,
+                        function(odf, obj)
+                            local cls = obj and string.lower(utility.CleanString(GetClassLabel(obj))) or ""
+                            return (obj and cls == utility.ClassLabel.REPAIR_DEPOT) or odf == repairOdf
+                        end)
+                    if repairCount == 0 then
+                        local repairPos = self:FindOutpostStructureLocation(anchor, hotspot.position, repairOdf, 34.0, 78.0)
+                        if repairPos then
+                            self:AddBuilding(repairOdf, repairPos)
+                            self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
+                            return
+                        end
+                    end
+                end
+
+                if supplyOdf and ((hotspot.totalValue or 0.0) >= ((self.Config.scrapHotspotOutpostValue or 24.0) + 8.0) or hotspot.contested) then
+                    local supplyCount = self:CountExistingOrPlannedBuildingsNear(anchor, supportRadius,
+                        function(odf, obj)
+                            local cls = obj and string.lower(utility.CleanString(GetClassLabel(obj))) or ""
+                            return (obj and cls == utility.ClassLabel.SUPPLY_DEPOT) or odf == supplyOdf
+                        end)
+                    if supplyCount == 0 then
+                        local supplyPos = self:FindOutpostStructureLocation(anchor, hotspot.position, supplyOdf, 40.0, 84.0)
+                        if supplyPos then
+                            self:AddBuilding(supplyOdf, supplyPos)
+                            self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
+                            return
+                        end
+                    end
+                end
+
+                if towerOdf then
+                    local desiredTowers = math.max(1, math.floor(self.Config.scrapHotspotOutpostTowerCount or 2))
+                    local towerCount = self:CountExistingOrPlannedBuildingsNear(anchor, supportRadius,
+                        function(odf, obj)
+                            local cls = obj and string.lower(utility.CleanString(GetClassLabel(obj))) or ""
+                            return (obj and (cls == utility.ClassLabel.TURRET or string.find(cls, utility.ClassLabel.TURRET_TANK))) or odf == towerOdf
+                        end)
+                    if towerCount < desiredTowers then
+                        local towerPos = self:FindOutpostStructureLocation(anchor, hotspot.position, towerOdf, 44.0, 92.0)
+                        if towerPos then
+                            self:AddBuilding(towerOdf, towerPos)
+                            self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
+                            return
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+function aiCore.Team:PlanHotspotSilo()
+    if not self.Config.autoBuild or not self.Config.manageConstructor then return end
+    if not IsValid(self.constructorMgr.handle) then return end
+    if IsBusy(self.constructorMgr.handle) then return end
+
+    for _, hotspot in ipairs(self.scrapHotspots or aiCore.EmptyList) do
+        local totalValue = hotspot.totalValue or 0.0
+        local dropoffDist = hotspot.dropoffDist or 999999
+        if totalValue >= (self.Config.scrapHotspotSiloValue or 14.0)
+            and dropoffDist >= (self.Config.scrapHotspotSiloDropoffDistance or 260.0)
+            and not self:HasPlannedSiloNear(hotspot.position, 130.0) then
+            local siloPos = self:FindSiloLocationNearHotspot(hotspot.position)
+            if siloPos then
+                self:AddBuilding(aiCore.Units[self.faction].silo, siloPos, 11)
+                if aiCore.Debug then
+                    print("Team " .. self.teamNum .. " planning silo near contested scrap field.")
+                end
+                return
+            end
+        end
+    end
+end
+
+function aiCore.Team:GetDesiredScavengerCountFromHotspots()
+    local baseDesired = math.max(self.Config.scavengerCount or 0, self.Config.minScavengers or 0)
+    if not self.scrapHotspots or #self.scrapHotspots == 0 then
+        return baseDesired, 0
+    end
+
+    local threshold = self.Config.scrapHotspotExtraScavengerValue or 16.0
+    local step = math.max(1.0, self.Config.scrapHotspotExtraScavengerStep or 10.0)
+    local maxExtra = math.max(0, math.floor(self.Config.scrapHotspotMaxExtraScavengers or 3))
+    local extraWanted = 0
+
+    for _, hotspot in ipairs(self.scrapHotspots) do
+        local totalValue = hotspot.totalValue or 0.0
+        if totalValue >= threshold then
+            extraWanted = extraWanted + (1 + math.floor((totalValue - threshold) / step))
+            if extraWanted >= maxExtra then
+                extraWanted = maxExtra
+                break
+            end
+        end
+    end
+
+    return baseDesired + extraWanted, extraWanted
+end
+
+function aiCore.Team:UpdateScavengerProductionFromHotspots()
+    if not self.Config.autoBuild or not self.Config.manageFactories then return end
+
+    local scavengerOdf = aiCore.Units[self.faction] and aiCore.Units[self.faction].scavenger or nil
+    if not scavengerOdf then return end
+
+    local desiredCount, extraWanted = self:GetDesiredScavengerCountFromHotspots()
+    if extraWanted <= 0 then return end
+
+    local currentCount = self:GetUnitCountByCategory("scavenger")
+    local missing = desiredCount - currentCount
+    if missing <= 0 then return end
+
+    local caps = self.Config.unitCaps
+    if caps and caps.scavenger then
+        missing = math.min(missing, math.max(0, caps.scavenger - currentCount))
+        if missing <= 0 then return end
+    end
+
+    for i = 1, missing do
+        self.recyclerMgr:addUnit(scavengerOdf, 1.10 + (i * 0.05))
+    end
+
+    if aiCore.Debug then
+        print("Team " ..
+            self.teamNum ..
+            " ordering " .. missing .. " extra scavenger(s) for rich scrap hotspot(s).")
+    end
+end
+
+function aiCore.Team:UpdateScavengerFieldMicro()
+    if not self.scavengers then return end
+
+    for _, scav in ipairs(self.scavengers) do
+        if IsValid(scav) and IsAlive(scav) and not IsSelected(scav) then
+            local cmd = GetCurrentCommand(scav)
+            local target = GetCurrentWho(scav)
+            local shouldTurbo = true
+
+            if cmd == AiCommand.SCAVENGE then
+                local nearDropoff = false
+                local dropoff = GetNearestBuilding(scav)
+                if IsValid(dropoff) then
+                    local cls = string.lower(utility.CleanString(GetClassLabel(dropoff)))
+                    nearDropoff = (cls == utility.ClassLabel.SCRAP_SILO or cls == utility.ClassLabel.RECYCLER) and GetDistance(scav, dropoff) <= 55.0
+                end
+
+                local nearScrap = IsValid(target) and string.lower(utility.CleanString(GetClassLabel(target))) == utility.ClassLabel.SCRAP and GetDistance(scav, target) <= 45.0
+                shouldTurbo = not (nearDropoff or nearScrap)
+
+                if not IsValid(target) then
+                    for _, hotspot in ipairs(self.scrapHotspots or aiCore.EmptyList) do
+                        if DistanceBetweenRefs(scav, hotspot.position) <= (self.Config.scrapHotspotClaimRadius or 200.0) then
+                            local bestScrap = self:GetBestAvailableHotspotScrap(hotspot, scav)
+                            if IsValid(bestScrap) then
+                                aiCore.TryScavenge(scav, bestScrap, GetUncommandablePriority(),
+                                    { minInterval = 1.0, overrideProtected = true })
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+
+            aiCore.TrySetTurbo(scav, shouldTurbo)
+        end
+    end
+end
+
+function aiCore.Team:UpdateScrapAwareness()
+    if self.Config.scrapAwareness == false then return end
+
+    if GetTime() >= (self.scrapLossTrackAt or 0.0) then
+        self.scrapLossTrackAt = GetTime() + 0.5
+        self:TrackCombatLossesForScrap()
+    end
+
+    if GetTime() < (self.scrapHotspotTimer or 0.0) then return end
+    self.scrapHotspotTimer = GetTime() + (self.Config.scrapHotspotInterval or 12.0)
+
+    self:RefreshScrapHotspots()
+    self:AssignScavengersToHotspots()
+    self:UpdateScavengerFieldMicro()
+    self:UpdateScavengerProductionFromHotspots()
+    self:PlanHotspotOutpost()
+    self:PlanHotspotSilo()
 end
 
 -- Building Spacing Helper (from aiBuildOS)
@@ -5503,6 +8180,8 @@ end
 function aiCore.Team:UpdateDynamicMinefields()
     -- Ported from Misn07: Spawn mines near enemies in designated zones
     if #self.Config.minefields == 0 then return end
+    if GetTime() < (self.dynamicMinefieldAt or 0.0) then return end
+    self.dynamicMinefieldAt = GetTime() + 0.75
 
     for _, zone in ipairs(self.Config.minefields) do
         -- zone can be a path name or {x,y,z}
@@ -5805,12 +8484,22 @@ function aiCore.Team:UpdateStrategyRotation()
     if GetTime() > self.strategyTimer then
         self.strategyTimer = GetTime() + aiCore.Constants.STRATEGY_ROTATION_INTERVAL
 
-        -- Try reactive strategy first
+        local desired = self:ChooseModeStrategy(self.strategicMode or "balanced")
         local counter = self:GetCounterStrategy()
-        if counter then
-            self:SetStrategy(counter)
-        else
-            self:SetStrategy(self:ChooseFallbackStrategy())
+
+        if self.strategicMode == "pressure" or self.strategicMode == "defend" then
+            desired = counter or desired
+        elseif self.strategicMode == "balanced" or not desired then
+            desired = counter or self:ChooseFallbackStrategy()
+        end
+
+        if desired then
+            self.strategicModeStrategy = desired
+            if desired ~= self.strategy then
+                self._applyingFsmStrategy = true
+                self:SetStrategy(desired)
+                self._applyingFsmStrategy = nil
+            end
         end
     end
 end
@@ -5864,6 +8553,9 @@ function aiCore.Team:UpdateCloakers()
 end
 
 function aiCore.Team:UpdateSoldiers()
+    if GetTime() < (self.soldierUpdateAt or 0.0) then return end
+    self.soldierUpdateAt = GetTime() + 0.4
+
     aiCore.RemoveDead(self.soldiers)
     for _, s in ipairs(self.soldiers) do
         if IsAlive(s) then
@@ -5907,6 +8599,7 @@ function aiCore.Team:UpdateUnitRoles()
 
     local recyclerUnderAttack = IsValid(recyclerThreat) and recyclerThreatDist < 250
     local threatenedFront = recyclerThreat
+    local threatenedAnchor = recycler
     if not IsValid(threatenedFront) and IsValid(recycler) then
         local bestDist = 999999
         for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
@@ -5920,8 +8613,81 @@ function aiCore.Team:UpdateUnitRoles()
         end
     end
 
+    local strategicDefenseGoal = self:SelectStrategicGoal(recycler or self.recyclerMgr.handle, math.huge,
+        { defenseOnly = true, allowUnderstrength = true })
+    if strategicDefenseGoal then
+        threatenedFront = strategicDefenseGoal.target or threatenedFront
+        threatenedAnchor = strategicDefenseGoal.anchor or threatenedAnchor
+        recyclerUnderAttack = recyclerUnderAttack or ((strategicDefenseGoal.threat or 0.0) > 0.0)
+    end
+
+    local walkerHotspot = nil
+    for _, hotspot in ipairs(self.scrapHotspots or aiCore.EmptyList) do
+        if hotspot and (hotspot.contested or IsValid(hotspot.denyTarget)) then
+            walkerHotspot = hotspot
+            break
+        end
+    end
+
+    local walkerAttackGoal = nil
+    local walkerAttackTarget = nil
+    if not recyclerUnderAttack then
+        walkerAttackGoal = self:SelectStrategicGoal(recycler or self.recyclerMgr.handle, math.huge,
+            { attackOnly = true, allowUnderstrength = true })
+        walkerAttackTarget = walkerAttackGoal and (walkerAttackGoal.target or self:ResolveStrategicGoalTarget(walkerAttackGoal)) or nil
+    end
+    local walkerFlankAngle = ((self.teamNum * 97) + 45) % 360
+
     local function AssignRole(u)
         if not IsValid(u) or not IsAlive(u) or IsBuilding(u) then return end
+        local classLabel = string.lower(utility.CleanString(GetClassLabel(u)))
+        local isWalker = string.find(classLabel, utility.ClassLabel.WALKER) ~= nil
+        if isWalker then
+            local cmd = GetCurrentCommand(u)
+            local idle = (cmd == AiCommand.NONE or cmd == AiCommand.GO or cmd == AiCommand.PATROL)
+            if recyclerUnderAttack and IsValid(recycler) then
+                aiCore.TrySetCommand(u, AiCommand.DEFEND, 1, recycler, nil, nil, nil, { minInterval = 1.1 })
+                return
+            end
+
+            if walkerHotspot then
+                if IsValid(walkerHotspot.denyTarget) then
+                    aiCore.TryAttack(u, walkerHotspot.denyTarget, GetCommandableAttackPriority(), { minInterval = 1.1 })
+                    return
+                elseif idle and walkerHotspot.position then
+                    aiCore.TrySetCommand(u, AiCommand.GO, 0, nil, walkerHotspot.position, nil, nil, { minInterval = 1.4 })
+                    return
+                end
+            end
+
+            if IsValid(walkerAttackTarget) then
+                if GetDistance(u, walkerAttackTarget) > 260 then
+                    local flankPos = self:GetValidFlankPosition(walkerAttackTarget, walkerFlankAngle)
+                    if flankPos then
+                        aiCore.TrySetCommand(u, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
+                            { minInterval = 1.3 })
+                        return
+                    end
+                end
+                aiCore.TryAttack(u, walkerAttackTarget, GetCommandableAttackPriority(), { minInterval = 1.1 })
+                return
+            end
+
+            if IsValid(threatenedAnchor) then
+                aiCore.TrySetCommand(u, AiCommand.DEFEND, 1, threatenedAnchor, nil, nil, nil, { minInterval = 1.1 })
+                return
+            end
+
+            if idle and IsValid(recycler) then
+                local patrolPos = GetPositionNear(GetPosition(recycler), 80, 220)
+                if patrolPos then
+                    aiCore.TrySetCommand(u, AiCommand.GO, 0, nil, patrolPos, nil, nil, { minInterval = 1.5 })
+                end
+            end
+            return
+        end
+
+        if IsSpecializedPoolClass(classLabel) then return end
         local cmd = GetCurrentCommand(u)
         local idle = (cmd == AiCommand.NONE or cmd == AiCommand.GO or cmd == AiCommand.PATROL)
 
@@ -5940,6 +8706,11 @@ function aiCore.Team:UpdateUnitRoles()
             return
         end
 
+        if idle and IsValid(threatenedAnchor) then
+            aiCore.TrySetCommand(u, AiCommand.DEFEND, 1, threatenedAnchor, nil, nil, nil, { minInterval = 0.9 })
+            return
+        end
+
         if idle and IsValid(recycler) then
             local patrolPos = GetPositionNear(GetPosition(recycler), 40, 170)
             if patrolPos then
@@ -5948,11 +8719,18 @@ function aiCore.Team:UpdateUnitRoles()
         end
     end
 
+    local processed = {}
     for _, u in ipairs(self.combatUnits) do
-        AssignRole(u)
+        if not processed[u] then
+            processed[u] = true
+            AssignRole(u)
+        end
     end
     for _, u in ipairs(self.pool) do
-        AssignRole(u)
+        if not processed[u] then
+            processed[u] = true
+            AssignRole(u)
+        end
     end
 end
 
@@ -5961,6 +8739,7 @@ function aiCore.Team:UpdateRescue()
     local player = GetPlayerHandle()
     if IsPerson(player) and GetTime() > (self.rescueTimer or 0) then
         self.rescueTimer = GetTime() + aiCore.Constants.RESCUE_CHECK_INTERVAL
+        PruneSpecializedPoolUnits(self.pool)
         local veh = self.pool[1]
         if IsValid(veh) then
             aiCore.TrySetCommand(veh, AiCommand.RESCUE, 1, player, nil, nil, nil,
@@ -5973,11 +8752,17 @@ function aiCore.Team:UpdateTugs()
 end
 
 function aiCore.Team:UpdatePilots()
+    local now = GetTime()
+    if now < (self.pilotUpdateAt or 0.0) then return end
+    self.pilotUpdateAt = now + 0.35
+
     -- Consolidated Pilot Management: technician spawning + sniper logic + craft stealing
     aiCore.RemoveDead(self.pilots)
     if not self.pilotActionTimer then self.pilotActionTimer = {} end
     if not self.sniperEquipTime then self.sniperEquipTime = {} end
     if not self.sniperState then self.sniperState = {} end
+    if not self.pilotStealScanAt then self.pilotStealScanAt = {} end
+    if not self.pilotPatrolTimer then self.pilotPatrolTimer = {} end
     local sniperRoleChance = aiCore.GetSniperRoleChancePercent(self)
     local sniperAttackChance = aiCore.GetSniperAttackChancePercent(self)
     local sniperRange = self.Config.sniperRange or 200
@@ -5999,18 +8784,42 @@ function aiCore.Team:UpdatePilots()
             self.sniperState[h] = nil
         end
     end
+    for h, _ in pairs(self.pilotStealScanAt) do
+        if not IsValid(h) then
+            self.pilotStealScanAt[h] = nil
+        end
+    end
+    for h, _ in pairs(self.pilotPatrolTimer) do
+        if not IsValid(h) then
+            self.pilotPatrolTimer[h] = nil
+        end
+    end
 
     -- 1. Technician Spawning (from Barracks)
     local barracks = {}
-    if IsValid(self.recyclerMgr.handle) then
-        local recHandle = self.recyclerMgr.handle
-        ---@cast recHandle handle
-        for obj in ObjectsInRange(300, recHandle) do
-            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
-            if string.find(cls, utility.ClassLabel.BARRACKS) or string.find(cls, "training") then
-                table.insert(barracks, obj)
+    if now >= (self.barracksRefreshAt or 0.0) then
+        self.barracksRefreshAt = now + 3.0
+        local recycler = self.recyclerMgr.handle
+        if IsValid(recycler) then
+            for _, obj in ipairs(aiCore.GetCachedBuildings(self.teamNum)) do
+                if IsValid(obj) and IsAlive(obj) and GetDistance(obj, recycler) <= 300 then
+                    local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+                    if string.find(cls, utility.ClassLabel.BARRACKS) or string.find(cls, "training") then
+                        barracks[#barracks + 1] = obj
+                    end
+                end
             end
         end
+        self.cachedBarracks = barracks
+    else
+        local cachedBarracks = self.cachedBarracks or aiCore.EmptyList
+        for i = 1, #cachedBarracks do
+            local barracksHandle = cachedBarracks[i]
+            if IsValid(barracksHandle) and IsAlive(barracksHandle) then
+                barracks[#barracks + 1] = barracksHandle
+            end
+        end
+        self.cachedBarracks = barracks
     end
 
     if #barracks > 0 then
@@ -6018,8 +8827,8 @@ function aiCore.Team:UpdatePilots()
 
         -- A. Technician Spawning (from Barracks)
         if #self.pilots < (self.Config.techMax or 4) then
-            if not self.techTimer then self.techTimer = GetTime() + (self.Config.techInterval or 60) end
-            if GetTime() > self.techTimer then
+            if not self.techTimer then self.techTimer = now + (self.Config.techInterval or 60) end
+            if now > self.techTimer then
                 if IsValid(dispensingBarracks) and IsAlive(dispensingBarracks) then
                     local pilotOdf = aiCore.GuessPilotOdf(dispensingBarracks)
                     local pos = GetPosition(dispensingBarracks)
@@ -6036,7 +8845,7 @@ function aiCore.Team:UpdatePilots()
                         end
                     end
                 end
-                self.techTimer = GetTime() + (self.Config.techInterval or 60) + math.random(10)
+                self.techTimer = now + (self.Config.techInterval or 60) + math.random(10)
             end
         end
 
@@ -6046,7 +8855,7 @@ function aiCore.Team:UpdatePilots()
             local maxPilots = GetMaxPilot(self.teamNum)
 
             if currentPilots < (maxPilots / 3) then
-                if not self.orbitalTimer or GetTime() > self.orbitalTimer then
+                if not self.orbitalTimer or now > self.orbitalTimer then
                     local diff = aiCore.GetDifficultyLevel()
                     local intervalScale = 1.0
                     if diff <= 1 then
@@ -6054,7 +8863,7 @@ function aiCore.Team:UpdatePilots()
                     elseif diff >= 3 then
                         intervalScale = 0.85
                     end
-                    self.orbitalTimer = GetTime() + ((self.Config.techInterval or 60) * intervalScale)
+                    self.orbitalTimer = now + ((self.Config.techInterval or 60) * intervalScale)
 
                     if math.random(100) <= aiCore.GetOrbitalReinforceChance() then
                         local maxReinforcements = 3
@@ -6095,7 +8904,7 @@ function aiCore.Team:UpdatePilots()
                     end
                 end
                 local ammo = GetAmmo(p)
-                local actionReady = GetTime() >= (self.pilotActionTimer[p] or 0)
+                local actionReady = now >= (self.pilotActionTimer[p] or 0)
                 local isSniper = self.sniperState[p]
                 if isSniper == nil then
                     isSniper = math.random(100) <= sniperRoleChance
@@ -6118,13 +8927,13 @@ function aiCore.Team:UpdatePilots()
                         if actionReady and (cmd ~= utility.AiCommand.ATTACK or GetCurrentWho(p) ~= enemy) then
                             aiCore.TryAttack(p, enemy, GetCommandableAttackPriority(), { minInterval = 0.5 })
                             SetTarget(p, enemy)
-                            self.pilotActionTimer[p] = GetTime() + 0.6
+                            self.pilotActionTimer[p] = now + 0.6
                         end
 
                         if actionReady and math.random(100) <= sniperAttackChance and utility.CanSnipe(enemy) and ammo >= 0.3 then
                             GiveWeapon(p, "gsnipe", 0)
-                            self.sniperEquipTime[p] = GetTime()
-                            self.pilotActionTimer[p] = GetTime() + 0.4
+                            self.sniperEquipTime[p] = now
+                            self.pilotActionTimer[p] = now + 0.4
                             if aiCore.Debug then print("Pilot " .. tostring(p) .. " equipping sniper rifle.") end
                         end
                     end
@@ -6139,7 +8948,7 @@ function aiCore.Team:UpdatePilots()
                         self.sniperEquipTime[p] = nil
                         if actionReady then
                             GetIn(p, target)
-                            self.pilotActionTimer[p] = GetTime() + 1.2
+                            self.pilotActionTimer[p] = now + 1.2
                         end
                     elseif ammo <= 0.3 then
                         GiveWeapon(p, "handgun", 0)
@@ -6160,13 +8969,17 @@ function aiCore.Team:UpdatePilots()
                     local target = GetTarget(p)
                     -- If they have no target or current target is not stealable, look for nearby empty craft
                     if not IsValid(target) or not IsCraft(target) or IsAliveAndPilot(target) then
-                        for obj in ObjectsInRange(150, p) do
-                            if IsCraft(obj) and not IsAliveAndPilot(obj) then
-                                target = obj
-                                SetTarget(p, obj) -- Record finding
-                                break
+                        if now >= (self.pilotStealScanAt[p] or 0.0) then
+                            self.pilotStealScanAt[p] = now + 1.25
+                            for obj in ObjectsInRange(150, p) do
+                                if IsCraft(obj) and not IsAliveAndPilot(obj) then
+                                    target = obj
+                                    SetTarget(p, obj) -- Record finding
+                                    break
+                                end
                             end
                         end
+                        target = GetTarget(p)
                     end
 
                     if IsValid(target) and IsCraft(target) and not IsAliveAndPilot(target) then
@@ -6175,19 +8988,19 @@ function aiCore.Team:UpdatePilots()
                             if actionReady then
                                 GiveWeapon(p, "handgun", 0)
                                 self.sniperEquipTime[p] = nil
-                                self.pilotActionTimer[p] = GetTime() + 0.6
+                                self.pilotActionTimer[p] = now + 0.6
                             end
                         elseif GetDistance(p, target) < 10 then -- Narrowed for GetIn
                             if actionReady then
                                 GetIn(p, target)
-                                self.pilotActionTimer[p] = GetTime() + 1.5
+                                self.pilotActionTimer[p] = now + 1.5
                                 if aiCore.Debug then print("Team " .. self.teamNum .. " pilot stealing craft: " .. GetOdf(target)) end
                             end
                         else
                             if actionReady and (GetCurrentCommand(p) ~= utility.AiCommand.GO or GetCurrentWho(p) ~= target) then
                                 aiCore.TrySetCommand(p, utility.AiCommand.GO, GetCommandableAttackPriority(), target, nil, nil, nil,
                                     { minInterval = 0.8, overrideProtected = true }) -- High priority move to craft
-                                self.pilotActionTimer[p] = GetTime() + 1.0
+                                self.pilotActionTimer[p] = now + 1.0
                             end
                         end
                     end
@@ -6195,9 +9008,8 @@ function aiCore.Team:UpdatePilots()
 
                 -- Idle Patrol / Wander (Refined: Stay near base)
                 if not IsBusy(p) then
-                    if not self.pilotPatrolTimer or GetTime() > (self.pilotPatrolTimer[p] or 0) then
-                        if not self.pilotPatrolTimer then self.pilotPatrolTimer = {} end
-                        self.pilotPatrolTimer[p] = GetTime() + 15.0 + math.random(10)
+                    if now > (self.pilotPatrolTimer[p] or 0) then
+                        self.pilotPatrolTimer[p] = now + 15.0 + math.random(10)
 
                         local base = self.recyclerMgr.handle
                         if IsValid(base) then
@@ -6246,75 +9058,96 @@ function aiCore.Team:UpdateSquads()
         return (math.random(100) <= chance) and "formation_rush" or "independent"
     end
 
-    local function BuildSquadFromPool(size)
-        if #self.pool < size then return nil, nil end
-        local leader = table.remove(self.pool, 1)
-        if not IsValid(leader) then return nil, nil end
+    local function IssueGoalOrders(squad, leader, goal, angle)
+        if not squad or not goal then return false end
 
-        local squad = aiCore.Squad:new(leader)
-        squad:SetAttackStyle(RollFlankAttackStyle())
-        for i = 1, size - 1 do
-            local m = table.remove(self.pool, 1)
-            if IsValid(m) then squad:AddMember(m) end
-        end
-        return squad, leader
-    end
+        squad:SetStrategicGoal(goal, self)
 
-    local function ResolveTarget(leader)
-        local enemyTeam = self:GetPrimaryEnemyTeam()
-        if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
-        local target = GetRecyclerHandle(enemyTeam)
-        if not IsValid(target) then target = GetFactoryHandle(enemyTeam) end
-        if not IsValid(target) then target = GetNearestEnemy(leader) end
-        return target
-    end
+        if goal.mode == "attack" then
+            local target = squad:ResolveStrategicTarget()
+            if not IsValid(target) then return false end
 
-    local function IssueFlankOrAttack(squad, leader, target, angle)
-        if not IsValid(target) then return end
-        local flankPos = self:GetValidFlankPosition(target, angle)
-        squad.flankStartTime = GetTime()
-        if flankPos then
-            squad.targetPos = flankPos
-            squad.state = "moving_to_flank"
-            aiCore.TrySetCommand(leader, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
-                { minInterval = 0.7, ignoreThrottle = true })
-            for _, m in ipairs(squad.members) do
-                if IsValid(m) then
-                    aiCore.TrySetCommand(m, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
-                        { minInterval = 0.7, ignoreThrottle = true })
+            local flankPos = self:GetValidFlankPosition(target, angle)
+            squad.flankStartTime = GetTime()
+            if flankPos then
+                squad.targetPos = flankPos
+                squad.state = "moving_to_flank"
+                aiCore.TrySetCommand(leader, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
+                    { minInterval = 0.7, ignoreThrottle = true })
+                for _, m in ipairs(squad.members) do
+                    if IsValid(m) then
+                        aiCore.TrySetCommand(m, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
+                            { minInterval = 0.7, ignoreThrottle = true })
+                    end
                 end
+            else
+                squad.state = "attacking"
+                squad:IssueAttackOrders(target)
             end
-        else
-            squad.state = "attacking"
-            squad:IssueAttackOrders(target)
+            self.lastLaunchedGoalKey = goal.key
+            return true
         end
+
+        squad.state = "attacking"
+        local target = squad:ResolveStrategicTarget()
+        if IsValid(target) then
+            squad:IssueAttackOrders(target)
+        else
+            squad:IssueDefendOrders()
+        end
+        self.lastLaunchedGoalKey = goal.key
+        return true
     end
 
     -- 1. Manage Pool (Form Squads)
     aiCore.RemoveDead(self.pool)
-    local squadSize = 3 + math.random(0, 1)
-    if #self.pool >= squadSize then
-        local newSquad, leader = BuildSquadFromPool(squadSize)
-        if leader and IsValid(leader) then
-            local target = ResolveTarget(leader)
-            local baseAngle = math.random(0, 359)
-            if target and IsValid(target) then
-                IssueFlankOrAttack(newSquad, leader, target, baseAngle)
-                if aiCore.Debug then
-                    print("Team " .. self.teamNum .. " formed squad. Rallying flank strike...")
-                end
-            end
-            table.insert(self.squads, newSquad)
-
-            -- Optional pincer strike: split available pool into a second squad approaching opposite side.
-            if target and IsValid(target) and #self.pool >= squadSize and math.random(100) <= 35 then
-                local pincerSquad, pincerLeader = BuildSquadFromPool(squadSize)
-                if pincerLeader and IsValid(pincerLeader) then
-                    local oppositeAngle = (baseAngle + 180) % 360
-                    IssueFlankOrAttack(pincerSquad, pincerLeader, target, oppositeAngle)
-                    table.insert(self.squads, pincerSquad)
+    PruneSpecializedPoolUnits(self.pool)
+    local poolStrength = self:GetPoolStrength()
+    if poolStrength > 0.0 then
+        local launchOrigin = IsValid(self.recyclerMgr.handle) and self.recyclerMgr.handle or self.pool[1]
+        local goal = self:SelectStrategicGoal(launchOrigin, poolStrength, { previousGoalKey = self.lastLaunchedGoalKey })
+        if goal then
+            local newSquad, leader = self:BuildSquadFromPoolForGoal(goal)
+            if leader and IsValid(leader) then
+                newSquad:SetAttackStyle((goal.mode == "attack") and RollFlankAttackStyle() or "independent")
+                local baseAngle = math.random(0, 359)
+                if IssueGoalOrders(newSquad, leader, goal, baseAngle) then
+                    table.insert(self.squads, newSquad)
                     if aiCore.Debug then
-                        print("Team " .. self.teamNum .. " launched pincer flank.")
+                        print("Team " .. self.teamNum .. " formed squad for " .. tostring(goal.mode) .. " goal.")
+                    end
+                else
+                    UniqueInsert(self.pool, leader)
+                    for _, member in ipairs(newSquad.members) do
+                        if IsValid(member) then
+                            UniqueInsert(self.pool, member)
+                        end
+                    end
+                end
+
+                local remainingStrength = self:GetPoolStrength()
+                if goal.mode == "attack" and remainingStrength > 0.0 and math.random(100) <= 35 then
+                    local pincerGoal = self:SelectStrategicGoal(launchOrigin, remainingStrength,
+                        { previousGoalKey = goal.key })
+                    if pincerGoal and pincerGoal.key == goal.key then
+                        local pincerSquad, pincerLeader = self:BuildSquadFromPoolForGoal(pincerGoal)
+                        if pincerLeader and IsValid(pincerLeader) then
+                            pincerSquad:SetAttackStyle(RollFlankAttackStyle())
+                            local oppositeAngle = (baseAngle + 180) % 360
+                            if IssueGoalOrders(pincerSquad, pincerLeader, pincerGoal, oppositeAngle) then
+                                table.insert(self.squads, pincerSquad)
+                                if aiCore.Debug then
+                                    print("Team " .. self.teamNum .. " launched pincer flank.")
+                                end
+                            else
+                                UniqueInsert(self.pool, pincerLeader)
+                                for _, member in ipairs(pincerSquad.members) do
+                                    if IsValid(member) then
+                                        UniqueInsert(self.pool, member)
+                                    end
+                                end
+                            end
+                        end
                     end
                 end
             end
@@ -6384,19 +9217,22 @@ function aiCore.Team:GetUnitCountByCategory(category)
         effectiveCategory = "howitzer"
     end
     local odfToMatch = aiCore.Units[self.faction][effectiveCategory]
+    local seen = {}
+    local function CountUnit(unit)
+        if odfToMatch and IsValid(unit) and IsAlive(unit) and not seen[unit] and IsOdf(unit, odfToMatch) then
+            seen[unit] = true
+            count = count + 1
+        end
+    end
 
     -- 1. Check Tactical Lists (Active Units)
     if category == "scout" or category == "tank" or category == "lighttank" or category == "rockettank" or
         category == "bomber" or category == "unique" or category == "heavy" or category == "walker" then
         for _, u in ipairs(self.combatUnits) do
-            if IsValid(u) and IsAlive(u) and IsOdf(u, odfToMatch) then
-                count = count + 1
-            end
+            CountUnit(u)
         end
         for _, u in ipairs(self.pool) do
-            if IsValid(u) and IsAlive(u) and IsOdf(u, odfToMatch) then
-                count = count + 1
-            end
+            CountUnit(u)
         end
     elseif category == "siege" or category == "howitzer" then
         count = #self.howitzers
@@ -6433,8 +9269,9 @@ function aiCore.Team:CheckBuildList(list, mgr)
         local item = list[p]
         if not IsValid(item.handle) then
             -- Link-up logic for existing objects
-            local nearby = GetNearestObject(mgr.handle or GetRecyclerHandle(self.teamNum))
-            if IsValid(nearby) and IsOdf(nearby, item.odf) and GetDistance(nearby, mgr.handle) < 150 and GetTeamNum(nearby) == self.teamNum then
+            local anchor = mgr.handle or GetRecyclerHandle(self.teamNum)
+            local nearby = IsValid(anchor) and GetNearestObject(anchor) or nil
+            if IsValid(anchor) and IsValid(nearby) and IsOdf(nearby, item.odf) and GetDistance(nearby, anchor) < 150 and GetTeamNum(nearby) == self.teamNum then
                 local taken = false
                 for _, other in pairs(list) do
                     if other.handle == nearby then
@@ -6460,8 +9297,15 @@ function aiCore.Team:CheckBuildList(list, mgr)
                 if not inQueue then
                     -- DIFFICULTY CAP CHECK
                     local cap_reached = false
+                    local allowed, ruleReason = self:CanQueueUnitByRules(item.category, item.odf)
+                    if not allowed then
+                        cap_reached = true
+                        if aiCore.Debug then
+                            print("aiCore: Team " .. self.teamNum .. " skipping " .. item.odf .. " (" .. tostring(ruleReason) .. ")")
+                        end
+                    end
                     local caps = self.Config.unitCaps
-                    if caps and item.category then
+                    if not cap_reached and caps and item.category then
                         local cap = caps[item.category]
                         if cap then
                             local currentCount = self:GetUnitCountByCategory(item.category)
@@ -6479,12 +9323,34 @@ function aiCore.Team:CheckBuildList(list, mgr)
 
                     if not cap_reached then
                         -- Record in shadow queue to prevent double-ordering
-                        table.insert(mgr.queue, { odf = item.odf, priority = p })
-                        table.sort(mgr.queue, function(a, b) return a.priority < b.priority end)
+                        table.insert(mgr.queue, {
+                            odf = item.odf,
+                            priority = p,
+                            account = item.account,
+                            category = item.category,
+                            producer = item.producer
+                        })
+                        table.sort(mgr.queue, function(a, b)
+                            local ap = a.priority or 999999
+                            local bp = b.priority or 999999
+                            if self.GetEffectiveBuildPriority then
+                                ap = self:GetEffectiveBuildPriority(a.account, ap, a)
+                                bp = self:GetEffectiveBuildPriority(b.account, bp, b)
+                            end
+                            if ap == bp then return (a.priority or 999999) < (b.priority or 999999) end
+                            return ap < bp
+                        end)
 
                         -- Hand off to integrated producer
                         producer.QueueJob(item.odf, self.teamNum, nil, nil,
-                            { source = "aiCore", priority = p, type = "unit", producer = (mgr.isRecycler and "recycler" or "factory") })
+                            {
+                                source = "aiCore",
+                                priority = p,
+                                type = "unit",
+                                producer = (mgr.isRecycler and "recycler" or "factory"),
+                                account = item.account,
+                                category = item.category
+                            })
 
                         if aiCore.Debug then print("aiCore: Team " .. self.teamNum .. " queued " .. item.odf .. " (unit)") end
                     end
@@ -6495,7 +9361,12 @@ function aiCore.Team:CheckBuildList(list, mgr)
 end
 
 function aiCore.Team:CheckConstruction()
-    for p, item in pairs(self.buildingList) do
+    local priorities = {}
+    for p in pairs(self.buildingList) do table.insert(priorities, p) end
+    table.sort(priorities, function(a, b) return a < b end)
+
+    for _, p in ipairs(priorities) do
+        local item = self.buildingList[p]
         if not IsValid(item.handle) then
             local pos = item.path
             if type(pos) == "string" then pos = paths.GetPosition(pos, 0) end
@@ -6521,12 +9392,30 @@ function aiCore.Team:CheckConstruction()
                     end
                 end
                 if not inQueue then
-                    table.insert(self.constructorMgr.queue, { odf = item.odf, path = item.path, priority = p })
-                    table.sort(self.constructorMgr.queue, function(a, b) return a.priority < b.priority end)
+                    local allowed, ruleReason = self:CanQueueBuildingByRules(item.odf)
+                    if allowed then
+                        table.insert(self.constructorMgr.queue, {
+                            odf = item.odf,
+                            path = item.path,
+                            priority = p,
+                            account = item.account
+                        })
+                        table.sort(self.constructorMgr.queue, function(a, b)
+                            local ap = a.priority or 999999
+                            local bp = b.priority or 999999
+                            if self.GetEffectiveBuildPriority then
+                                ap = self:GetEffectiveBuildPriority(a.account, ap, a)
+                                bp = self:GetEffectiveBuildPriority(b.account, bp, b)
+                            end
+                            if ap == bp then return (a.priority or 999999) < (b.priority or 999999) end
+                            return ap < bp
+                        end)
 
-                    if aiCore.Debug then
-                        print("aiCore: Team " ..
-                            self.teamNum .. " queued building for constructor: " .. item.odf)
+                        if aiCore.Debug then
+                            print("aiCore: Team " .. self.teamNum .. " queued building for constructor: " .. item.odf)
+                        end
+                    elseif aiCore.Debug then
+                        print("aiCore: Team " .. self.teamNum .. " skipping building " .. item.odf .. " (" .. tostring(ruleReason) .. ")")
                     end
                 end
             end
@@ -6540,6 +9429,8 @@ function aiCore.Team:AddObject(h)
 
     local odf = string.lower(utility.CleanString(GetOdf(h)))
     local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+    local isApc = string.find(cls, utility.ClassLabel.APC) ~= nil
+    local isSpecializedPoolUnit = IsSpecializedPoolClass(cls)
 
     -- BUG FIX: Day Wrecker / Powerup Workaround (Team 1 + GO command)
     -- As seen in aiSpecial.CreateWrecker: projectiles need Team 1 to receive GO commands properly in BZR
@@ -6613,32 +9504,32 @@ function aiCore.Team:AddObject(h)
 
     -- Add to tactical lists
     if string.find(cls, utility.ClassLabel.HOWITZER) then
-        table.insert(self.howitzers, h)
-    elseif string.find(cls, utility.ClassLabel.APC) then
-        table.insert(self.apcs, h)
+        UniqueInsert(self.howitzers, h)
+    elseif isApc then
+        UniqueInsert(self.apcs, h)
     elseif string.find(cls, utility.ClassLabel.MINELAYER) then
-        table.insert(self.minelayers, h)
+        UniqueInsert(self.minelayers, h)
     elseif string.match(odf, "^cv") or string.match(odf, "^mv") or string.match(odf, "^dv") then
-        table.insert(self.cloakers, h)
-        if linked then table.insert(self.pool, h) end
+        UniqueInsert(self.cloakers, h)
+        if linked then UniqueInsert(self.pool, h) end
     elseif string.find(cls, utility.ClassLabel.TURRET) or string.find(cls, "tower") or string.match(odf, "turr") then
-        table.insert(self.turrets, h)
+        UniqueInsert(self.turrets, h)
     elseif string.find(cls, utility.ClassLabel.TUG) or string.find(cls, "haul") then
-        table.insert(self.tugHandles, h)
+        UniqueInsert(self.tugHandles, h)
     elseif IsPerson(h) and odf == string.lower(aiCore.Units[self.faction].soldier or "") then
-        table.insert(self.soldiers, h)
+        UniqueInsert(self.soldiers, h)
     end
 
     -- Advanced Weapon Users (from aiSpecial patterns)
-    if aiCore.GetWeaponMask(h, { "mortar", "splint", "acidcl", "mdmgun" }) > 0 then table.insert(self.mortars, h) end
-    if aiCore.GetWeaponMask(h, { "quake", "thump" }) > 0 then table.insert(self.thumpers, h) end
-    if aiCore.GetWeaponMask(h, { "phantom", "redfld", "sitecam" }) > 0 then table.insert(self.fields, h) end
+    if aiCore.GetWeaponMask(h, { "mortar", "splint", "acidcl", "mdmgun" }) > 0 then UniqueInsert(self.mortars, h) end
+    if aiCore.GetWeaponMask(h, { "gquake", "gthumper", "quake", "thump" }) > 0 then UniqueInsert(self.thumpers, h) end
+    if aiCore.GetWeaponMask(h, { "phantom", "redfld", "sitecam" }) > 0 then UniqueInsert(self.fields, h) end
 
     -- Double Weapon Tracking (Wingmen/Walkers)
     if string.find(cls, utility.ClassLabel.WINGMAN) or string.find(cls, utility.ClassLabel.WALKER) then
-        table.insert(self.doubleUsers, h)
-        if linked then
-            table.insert(self.pool, h)
+        UniqueInsert(self.doubleUsers, h)
+        if linked and not string.find(cls, utility.ClassLabel.WALKER) then
+            UniqueInsert(self.pool, h)
             if IsValid(self.recyclerMgr.handle) and self.teamNum ~= 1 then -- Don't force player units to base
                 aiCore.TrySetCommand(h, AiCommand.GO, GetUncommandablePriority(), self.recyclerMgr.handle, nil, nil, nil,
                     { minInterval = 0.8, ignoreThrottle = true })
@@ -6651,10 +9542,22 @@ function aiCore.Team:AddObject(h)
         local w0 = GetWeaponClass(h, 0)
         local isSniper = w0 and (string.find(string.lower(w0), "snipe") or string.find(string.lower(w0), "handgun"))
         if not isSniper then
-            table.insert(self.soldiers, h)
+            UniqueInsert(self.soldiers, h)
         else
-            table.insert(self.pilots, h)
+            UniqueInsert(self.pilots, h)
         end
+    end
+
+    local isCombatCraft = IsCraft(h) and not IsBuilding(h) and
+        not string.find(cls, utility.ClassLabel.SCAVENGER) and
+        not string.find(cls, utility.ClassLabel.RECYCLER) and
+        not string.find(cls, utility.ClassLabel.FACTORY) and
+        not string.find(cls, utility.ClassLabel.CONSTRUCTOR) and
+        not string.find(cls, utility.ClassLabel.TUG) and
+        not isApc and
+        not string.find(cls, utility.ClassLabel.PERSON)
+    if isCombatCraft then
+        UniqueInsert(self.combatUnits, h)
     end
 
     if linked and IsCraft(h) then
@@ -6662,9 +9565,7 @@ function aiCore.Team:AddObject(h)
             string.find(cls, utility.ClassLabel.RECYCLER) or
             string.find(cls, utility.ClassLabel.FACTORY) or
             string.find(cls, utility.ClassLabel.CONSTRUCTOR) or
-            string.find(cls, utility.ClassLabel.TUG) or
-            string.find(cls, utility.ClassLabel.TURRET) or
-            string.find(cls, utility.ClassLabel.MINELAYER)
+            isSpecializedPoolUnit
 
         if not isSupport then
             local inPool = false
@@ -6674,9 +9575,16 @@ function aiCore.Team:AddObject(h)
                 end
             end
             if not inPool then
-                table.insert(self.pool, h)
+                UniqueInsert(self.pool, h)
             end
         end
+    end
+
+    if isApc then
+        RemoveFromList(self.combatUnits, h)
+    end
+    if isSpecializedPoolUnit then
+        RemoveFromList(self.pool, h)
     end
 
     -- Route to Phase 1 Managers
@@ -6695,6 +9603,19 @@ end
 
 ---@return any
 function aiCore.Team:FindCriticalTarget()
+    local origin = IsValid(self.recyclerMgr.handle) and self.recyclerMgr.handle or self.factoryMgr.handle
+    local strategicGoal = self:SelectStrategicGoal(origin, math.huge, { attackOnly = true, allowUnderstrength = true })
+    if strategicGoal then
+        local target = strategicGoal.target
+        if IsValid(target) and IsAlive(target) then
+            return target
+        end
+        target = self:ResolveStrategicGoalTarget(strategicGoal)
+        if IsValid(target) and IsAlive(target) then
+            return target
+        end
+    end
+
     local enemyTeam = self:GetPrimaryEnemyTeam()
     if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
     local recycler = GetRecyclerHandle(enemyTeam)
@@ -6706,14 +9627,20 @@ function aiCore.Team:FindCriticalTarget()
     local armory = GetArmoryHandle(enemyTeam)
     if IsAlive(armory) then return armory end
 
-    -- Fallback: any building
+    local best = nil
+    local bestScore = -999999
     for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
         if IsValid(obj) and IsBuilding(obj) and IsAlive(obj) then
-            return obj
+            local score = self:GetEconomicTargetValue(obj, GetPosition(obj))
+            score = score + self:GetHotspotDenialValue(GetPosition(obj))
+            if score > bestScore then
+                best = obj
+                bestScore = score
+            end
         end
     end
 
-    return nil
+    return best
 end
 
 function aiCore.Team:PlanDefensivePerimeter(powerCount, towersPerPower)
@@ -6787,6 +9714,9 @@ aiCore.GlobalOffenseManagers = {} -- team -> OffenseRetaliationManager
 
 function aiCore.AddTeam(teamNum, faction)
     local t = aiCore.Team:new(teamNum, faction)
+    if DiffUtils and DiffUtils.ApplyAiCoreDifficulty then
+        DiffUtils.ApplyAiCoreDifficulty(t, nil, teamNum)
+    end
     aiCore.ActiveTeams[teamNum] = t
     return t
 end
@@ -6826,6 +9756,7 @@ function aiCore.Update()
     end
 
     aiCore.RefreshObjectCache(false)
+    aiCore.UpdateTrackedOrdnanceThreats()
     aiCore.UpdatePlayerRushAggression()
 
     if now >= (aiCore._commandStateCleanupTimer or 0.0) then
@@ -6833,6 +9764,11 @@ function aiCore.Update()
         for h, _ in pairs(aiCore.CommandState) do
             if not IsValid(h) then
                 aiCore.CommandState[h] = nil
+            end
+        end
+        for h, _ in pairs(aiCore.CountermeasureState or {}) do
+            if not IsValid(h) then
+                aiCore.CountermeasureState[h] = nil
             end
         end
     end

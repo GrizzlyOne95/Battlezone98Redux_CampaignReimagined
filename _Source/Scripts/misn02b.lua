@@ -10,6 +10,7 @@ RequireFix.Initialize({ "campaignReimagined", "3659600763" })
 local exu = require("exu")
 aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
+local MissionLifecycle = require("MissionLifecycle")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 
@@ -51,6 +52,33 @@ local recycler = nil
 local bgoal = nil
 local bhandle2 = nil
 
+local lifecycleState = { difficulty = 2 }
+local lifecycle = MissionLifecycle.New({
+    exu = exu,
+    aiCore = aiCore,
+    subtit = subtit,
+    PersistentConfig = PersistentConfig,
+    reticleRange = 600,
+    ordnanceVelocityInheritance = true,
+    updateOrdnance = true,
+    monitorDifficultyChanges = true,
+    difficultyPollInterval = 1.0,
+    clearTurboWhenDisabled = true,
+    initializeSubtitlesOnStart = false,
+    initializeSubtitlesOnLoad = false,
+    refreshDifficultyOnLoad = true,
+    hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." },
+    easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." },
+    turboValue = function(_, team, state)
+        if team == 1 then
+            return true
+        end
+        if team ~= 0 and state.difficulty and state.difficulty > 3 then
+            return true
+        end
+    end
+})
+
 -- Save function: Returns values to be saved
 function Save()
     local missionData = {
@@ -77,32 +105,15 @@ function Load(missionData, aiData)
         intro_skipped, bio_timer = unpack(missionData)
     end
     if bio_timer == nil then bio_timer = 0 end
-    if aiData then aiCore.Load(aiData) end
-    aiCore.Bootstrap() -- Capture objects on load
-    ApplyQOL()         -- Reapply engine settings
-end
-
--- EXU/QOL Persistence Helper
-function ApplyQOL()
-    if not exu then return end
-
-    if exu.SetShotConvergence then exu.SetShotConvergence(true) end
-    if exu.SetReticleRange then exu.SetReticleRange(600) end
-    if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
-
-    -- Initialize Persistent Config
-    PersistentConfig.Initialize()
+    lifecycle:Load(lifecycleState, aiData)
 end
 
 function Start()
     Ally(1, 5)
     Ally(5, 1)
-    local difficulty = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
-    if difficulty >= 3 then
-        AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
-    elseif difficulty <= 1 then
-        AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
-    end
+    lifecycle:RefreshDifficulty(lifecycleState)
+    lifecycle:ApplyDifficultyObjectives(lifecycleState)
+    lifecycle:ApplyTurboToAll(lifecycleState)
 
     for h in AllCraft() do
         SetObjectiveOff(h)
@@ -117,17 +128,7 @@ function AddObject(h)
     local odf = GetOdf(h)
     if odf then odf = string.gsub(odf, "%z", "") end
 
-    -- Apply turbo to new enemy units on Very Hard difficulty
-    if exu and exu.SetUnitTurbo and IsCraft(h) then
-        if team == 1 then
-            exu.SetUnitTurbo(h, true)
-        elseif team ~= 0 then
-            local diff = (exu.GetDifficulty and exu.GetDifficulty()) or 2
-            if diff > 3 then
-                exu.SetUnitTurbo(h, true)
-            end
-        end
-    end
+    lifecycle:OnObjectCreated(lifecycleState, h)
 
     if team == 1 and odf == "avscav" and bscav == nil then
         found = true
@@ -175,11 +176,8 @@ end
 -- Update function: Called every frame
 function Update()
     local player = GetPlayerHandle()
-    if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     aiCore.Update()
-    subtit.Update()
-    PersistentConfig.UpdateInputs()
-    PersistentConfig.UpdateHeadlights()
+    lifecycle:Update(lifecycleState, 1.0 / 20.0)
 
     -- Holographic Bio Logic
     if (camera1 or camera2 or camera3) and GetTime() >= bio_timer then
@@ -272,7 +270,7 @@ function Update()
         -- playerTeam:SetConfig("siloMinDistance", 250.0)
         -- playerTeam:SetConfig("siloMaxDistance", 450.0)
         --]]
-        ApplyQOL()
+        lifecycle:ApplyQOL()
 
         SetPilot(1, math.max(1, DiffUtils.ScaleRes(2)))
         SetScrap(1, math.max(4, DiffUtils.ScaleRes(5)))
