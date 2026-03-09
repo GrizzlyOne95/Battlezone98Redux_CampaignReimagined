@@ -167,6 +167,34 @@ end
 
 local WeaponRangeCache = {}
 local MissileWeaponProfileCache = {}
+local WeaponHardpointCache = {}
+
+local function GetWeaponHardpointCode(h, slot)
+    if not IsValid(h) or type(slot) ~= "number" then return nil end
+
+    local odfName = string.lower(utility.CleanString(GetOdf(h)))
+    if odfName == "" then return nil end
+
+    local cache = WeaponHardpointCache[odfName]
+    if not cache then
+        cache = {}
+        if OpenODF and GetODFString then
+            local odf = OpenODF(odfName)
+            if odf then
+                for i = 0, 4 do
+                    local value, found = GetODFString(odf, "GameObjectClass", "weaponHard" .. tostring(i + 1), "")
+                    local cleaned = utility.CleanString(value)
+                    if (type(found) == "boolean" and found and cleaned ~= "") or (type(found) ~= "boolean" and cleaned ~= "") then
+                        cache[i] = string.lower(cleaned)
+                    end
+                end
+            end
+        end
+        WeaponHardpointCache[odfName] = cache
+    end
+
+    return cache[slot]
+end
 
 local function IsMaskBitSet(mask, slot)
     local div = 2 ^ slot
@@ -2746,6 +2774,8 @@ function aiCore.WeaponManager:AddObject(h)
         local weapon = string.lower(utility.CleanString(GetWeaponClass(h, i)))
         if weapon ~= "" then
             local bit = 2 ^ i
+            local hardpoint = GetWeaponHardpointCode(h, i) or ""
+            local isSpecialSlot = string.sub(hardpoint, 1, 2) == "gs"
             if aiCore.GetMissileThreatType(weapon) then
                 local profile = GetMissileWeaponProfile(weapon)
                 if profile and profile.damage and profile.damage > 0.0 then
@@ -2759,7 +2789,7 @@ function aiCore.WeaponManager:AddObject(h)
                 else
                     unresolvedMissile = true
                 end
-            else
+            elseif not isSpecialSlot then
                 supportMask = supportMask + bit
             end
         end
