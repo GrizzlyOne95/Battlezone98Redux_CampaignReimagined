@@ -132,6 +132,9 @@ function MissionLifecycle:InitializeSubtitles()
     elseif cfg.subtit and cfg.subtit.Initialize then
         cfg.subtit.Initialize()
     end
+
+    -- Re-apply persistent subtitle/UI settings after subtitle init resets its channel state.
+    Call(cfg.PersistentConfig, "ApplySettings")
 end
 
 function MissionLifecycle:Start(state)

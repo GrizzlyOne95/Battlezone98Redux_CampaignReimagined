@@ -259,6 +259,8 @@ local lifecycle = MissionLifecycle.New({
     reticleRange = 600,
     ordnanceVelocityInheritance = true,
     updateOrdnance = true,
+    updateEnvironment = true,
+    environmentOnObjectCreated = true,
     monitorDifficultyChanges = true,
     difficultyPollInterval = 1.0,
     clearTurboWhenDisabled = true,
@@ -267,6 +269,12 @@ local lifecycle = MissionLifecycle.New({
     beforeBootstrapStart = function()
         SetScrap(1, DiffUtils.ScaleRes(40))
         SetPilot(1, 10)
+    end,
+    afterStart = function()
+        Environment.Update(0.0)
+    end,
+    afterLoad = function()
+        Environment.Update(0.0)
     end,
     hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." },
     easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." },

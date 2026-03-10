@@ -37,6 +37,7 @@ PersistentConfig.Settings = {
     SubtitleTextSizePreset = 2,     -- 1=Small 2=Medium 3=Large 4=Huge
     PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
     PdaTextSizePreset = 2,          -- 1=Small 2=Medium 3=Large 4=Huge
+    PdaMenuTextSizePreset = 2,      -- 1=Small 2=Medium 3=Large 4=Huge
     PdaWindowSizePreset = 2,        -- 1=Narrow 2=Normal 3=Wide 4=Ultra
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
 }
@@ -55,6 +56,7 @@ local PresetProducerKinds = {
 }
 
 PersistentConfig.UnitPresets = {}
+local GetSettingsPageEntries
 
 local PdaTextSizePresets = {
     [1] = { name = "SMALL", scale = 0.85 },
@@ -64,10 +66,10 @@ local PdaTextSizePresets = {
 }
 
 local PdaWindowSizePresets = {
-    [1] = { name = "NARROW", width = 0.88 },
+    [1] = { name = "NARROW", width = 0.78 },
     [2] = { name = "NORMAL", width = 1.00 },
-    [3] = { name = "WIDE", width = 1.16 },
-    [4] = { name = "ULTRA", width = 1.30 },
+    [3] = { name = "WIDE", width = 1.28 },
+    [4] = { name = "ULTRA", width = 1.58 },
 }
 
 local PdaColorPresets = {
@@ -75,6 +77,20 @@ local PdaColorPresets = {
     [2] = { name = "GREEN", r = 0.18, g = 0.92, b = 0.18 },
     [3] = { name = "BLUE", r = 0.35, g = 0.65, b = 1.00 },
     [4] = { name = "WHITE", r = 1.00, g = 1.00, b = 1.00 },
+}
+
+local HeadlightColorPresets = {
+    [1] = { name = "WHITE", r = 5.0, g = 5.0, b = 5.0 },
+    [2] = { name = "RED", r = 5.0, g = 1.0, b = 1.0 },
+    [3] = { name = "GREEN", r = 1.0, g = 5.0, b = 1.0 },
+    [4] = { name = "BLUE", r = 1.0, g = 1.0, b = 5.0 },
+    [5] = { name = "YELLOW", r = 5.0, g = 5.0, b = 1.0 },
+    [6] = { name = "CYAN", r = 1.0, g = 5.0, b = 5.0 },
+    [7] = { name = "MAGENTA", r = 5.0, g = 1.0, b = 5.0 },
+    [8] = { name = "ORANGE", r = 5.0, g = 2.5, b = 1.0 },
+    [9] = { name = "PURPLE", r = 2.5, g = 1.0, b = 5.0 },
+    [10] = { name = "TEAL", r = 1.0, g = 5.0, b = 2.5 },
+    [11] = { name = "RAINBOW", rainbow = true, feedbackR = 1.0, feedbackG = 0.5, feedbackB = 1.0 },
 }
 
 local function getWorkingDirectory()
@@ -130,6 +146,10 @@ local function GetPdaTextSizePreset()
     return PdaTextSizePresets[ClampIndex(PersistentConfig.Settings.PdaTextSizePreset, 1, #PdaTextSizePresets, 2)]
 end
 
+local function GetPdaMenuTextSizePreset()
+    return PdaTextSizePresets[ClampIndex(PersistentConfig.Settings.PdaMenuTextSizePreset, 1, #PdaTextSizePresets, 2)]
+end
+
 local function GetPdaWindowSizePreset()
     return PdaWindowSizePresets[ClampIndex(PersistentConfig.Settings.PdaWindowSizePreset, 1, #PdaWindowSizePresets, 2)]
 end
@@ -180,10 +200,13 @@ local function BuildPdaHeader(activePage)
     return table.concat(parts, "  ")
 end
 
-local function GetPdaLayoutMetrics()
+local function GetPdaLayoutMetrics(page)
     local width, height = 1920, 1080
     local uiScale = 2
-    local textPreset = GetPdaTextSizePreset()
+    local activePage = ClampIndex(page or (InputState and InputState.pdaPage) or PdaPages.STATS, 1, PdaPages.COUNT,
+        PdaPages.STATS)
+    local menuPage = (activePage == PdaPages.SETTINGS or activePage == PdaPages.PRESETS)
+    local textPreset = menuPage and GetPdaMenuTextSizePreset() or GetPdaTextSizePreset()
     local windowPreset = GetPdaWindowSizePreset()
 
     if exu and exu.GetScreenResolution then
@@ -213,15 +236,16 @@ local function GetPdaLayoutMetrics()
     local aspect = width / math.max(height, 1)
     local aspectScale = Clamp((16.0 / 9.0) / aspect, 0.80, 1.35)
     local uiScaleFactor = Clamp((uiScale / 2.0) ^ 0.45, 0.85, 1.45)
+    local windowScale = Clamp(windowPreset.width * Clamp(1.0 / (textPreset.scale ^ 0.25), 0.85, 1.08), 0.70, 1.65)
     local textScale = Clamp(0.30 * aspectScale * uiScaleFactor * textPreset.scale, 0.22, 0.52)
-    local wrapWidth = Clamp(0.31 * Clamp(1.0 / aspectScale, 0.9, 1.2) * uiScaleFactor * windowPreset.width, 0.24, 0.56)
+    local wrapWidth = Clamp(0.31 * Clamp(1.0 / aspectScale, 0.9, 1.2) * uiScaleFactor * windowScale, 0.20, 0.72)
     local panelX = Clamp(0.02, 0.0, math.max(0.0, 1.0 - wrapWidth))
 
     return {
         textScale = textScale,
         wrapWidth = wrapWidth,
         panelX = panelX,
-        paddingX = 6.0 * textPreset.scale,
+        paddingX = 6.0 * textPreset.scale * Clamp(windowScale, 0.90, 1.40),
         paddingY = 5.0 * textPreset.scale,
         opacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.0),
         feedbackTextScale = Clamp(textScale * 0.86, 0.20, 0.42),
@@ -232,7 +256,7 @@ end
 local function ShowPdaFeedback(msg, r, g, b, duration)
     if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
         local colorPreset = GetPdaColorPreset()
-        local layout = GetPdaLayoutMetrics()
+        local layout = GetPdaLayoutMetrics(InputState and InputState.pdaPage or PdaPages.SETTINGS)
         subtitles.set_channel_layout(PDA_FEEDBACK_CHANNEL, layout.panelX, layout.feedbackY, 0.0, 1.0, layout.feedbackTextScale,
             layout.wrapWidth, layout.paddingX, layout.paddingY, layout.opacity)
         subtitles.clear_queue(PDA_FEEDBACK_CHANNEL)
@@ -253,7 +277,7 @@ end
 
 local function ShowWeaponStats(msg, duration)
     if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
-        local layout = GetPdaLayoutMetrics()
+        local layout = GetPdaLayoutMetrics(InputState and InputState.pdaPage or PdaPages.STATS)
         local colorPreset = GetPdaColorPreset()
 
         -- Anchor the panel on the left-middle of the screen with left alignment.
@@ -381,7 +405,7 @@ InputState = {
     last_x_state = false,    -- Auto-repair toggle
     last_u_state = false,    -- Scavenger Assist (U)
     last_l_state = false,    -- Retro Lighting (Shift+L)
-    last_y_state = false,    -- Weapon HUD toggle (Y)
+    last_y_state = false,    -- PDA toggle (Y)
     last_left_bracket_state = false,
     last_right_bracket_state = false,
     last_pda_up_state = false,
@@ -1979,24 +2003,27 @@ end
 
 local function BuildSettingsPageText()
     local lines = { BuildPdaHeader(PdaPages.SETTINGS) }
-    local selection = ClampIndex(InputState.pdaSettingsIndex, 1, 6, 1)
-    local textPreset = GetPdaTextSizePreset()
-    local windowPreset = GetPdaWindowSizePreset()
-    local colorPreset = GetPdaColorPreset()
-    local subtitlePreset = GetSubtitleTextSizePreset()
+    local settingsEntries = (GetSettingsPageEntries and GetSettingsPageEntries()) or {}
+    local count = math.max(#settingsEntries, 1)
+    local selection = ClampIndex(InputState.pdaSettingsIndex, 1, count, 1)
+    local visibleRows = 10
+    local startIndex = math.max(1, math.min(selection - math.floor(visibleRows / 2), math.max(1, count - visibleRows + 1)))
+    local endIndex = math.min(count, startIndex + visibleRows - 1)
 
-    local function AddSetting(index, label, value)
-        local prefix = (selection == index) and ">" or " "
-        table.insert(lines, string.format("%s %-11s %s", prefix, label, value))
+    table.insert(lines, string.format("ITEM %02d/%02d", selection, count))
+
+    if #settingsEntries == 0 then
+        table.insert(lines, "NO SETTINGS AVAILABLE")
+    else
+        for index = startIndex, endIndex do
+            local entry = settingsEntries[index]
+            local prefix = (selection == index) and ">" or " "
+            table.insert(lines, string.format("%s %-12s %s", prefix, entry.label, entry.value))
+        end
     end
 
-    AddSetting(1, "PDA TEXT", textPreset.name)
-    AddSetting(2, "PDA WINDOW", windowPreset.name)
-    AddSetting(3, "PDA ALPHA", FormatOpacity(PersistentConfig.Settings.PdaOpacity))
-    AddSetting(4, "SUB SIZE", subtitlePreset.name)
-    AddSetting(5, "SUB ALPHA", FormatOpacity(PersistentConfig.Settings.SubtitleOpacity))
-    AddSetting(6, "HUD COLOR", colorPreset.name)
     table.insert(lines, "")
+    table.insert(lines, string.format("SHOWING %02d-%02d OF %02d", startIndex, endIndex, count))
     table.insert(lines, "UP/DOWN SELECT")
     table.insert(lines, "LEFT/RIGHT CHANGE")
     table.insert(lines, "[ / ] SWITCH PAGE")
@@ -2146,7 +2173,6 @@ local function UpdateWeaponStatsDisplay(player)
     InputState.nextWeaponHudCheck = now + 0.10
 
     local mask = GetCurrentWeaponMask(player)
-    local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.STATS)
     local target = nil
     local targetDistance = nil
     if type(GetUserTarget) == "function" then
@@ -2178,6 +2204,300 @@ local function UpdateWeaponStatsDisplay(player)
     elseif not msg then
         ClearWeaponStats()
     end
+end
+
+local function RefreshPdaOverlay()
+    RefreshWeaponHud()
+    UpdateWeaponStatsDisplay(GetPlayerHandle())
+end
+
+local function CommitPdaSettingChange(options)
+    PersistentConfig.SaveConfig()
+
+    if options and options.applySettings then
+        PersistentConfig.ApplySettings()
+    end
+    if options and options.markOtherHeadlightsDirty then
+        MarkOtherHeadlightsDirty()
+    end
+    if options and options.syncAutoRepairWingmen and aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
+        aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
+    end
+    if options and options.syncScavengerAssist and aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
+        aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
+    end
+    if options and options.syncAutoSave and autosave and autosave.Config then
+        autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
+        autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
+        autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
+    end
+
+    RefreshPdaOverlay()
+end
+
+local function GetHeadlightColorPresetIndex()
+    if PersistentConfig.Settings.RainbowMode then
+        return #HeadlightColorPresets
+    end
+
+    for index, preset in ipairs(HeadlightColorPresets) do
+        if not preset.rainbow and
+            math.abs(PersistentConfig.Settings.HeadlightDiffuse.R - preset.r) < 0.1 and
+            math.abs(PersistentConfig.Settings.HeadlightDiffuse.G - preset.g) < 0.1 and
+            math.abs(PersistentConfig.Settings.HeadlightDiffuse.B - preset.b) < 0.1 then
+            return index
+        end
+    end
+
+    return 1
+end
+
+local function CycleHeadlightColor(delta)
+    local nextIndex = CycleIndex(GetHeadlightColorPresetIndex(), #HeadlightColorPresets, delta, 1)
+    local preset = HeadlightColorPresets[nextIndex]
+
+    if preset.rainbow then
+        PersistentConfig.Settings.RainbowMode = true
+        ShowFeedback("Rainbow Mode: ACTIVATE", preset.feedbackR or 1.0, preset.feedbackG or 0.5, preset.feedbackB or 1.0)
+    else
+        PersistentConfig.Settings.RainbowMode = false
+        PersistentConfig.Settings.HeadlightDiffuse.R = preset.r
+        PersistentConfig.Settings.HeadlightDiffuse.G = preset.g
+        PersistentConfig.Settings.HeadlightDiffuse.B = preset.b
+        ShowFeedback("Headlight Color: " .. preset.name, preset.r, preset.g, preset.b)
+    end
+
+    CommitPdaSettingChange({ applySettings = true })
+    return true
+end
+
+local function SetPlayerHeadlightVisible(enabled)
+    local visible = not not enabled
+    if PersistentConfig.Settings.HeadlightVisible == visible then
+        return false
+    end
+
+    PersistentConfig.Settings.HeadlightVisible = visible
+    CommitPdaSettingChange({ applySettings = true })
+    ShowFeedback("Player Light: " .. (visible and "ON" or "OFF"))
+    return true
+end
+
+local function SetOtherHeadlightsEnabled(enabled)
+    local showOthers = not not enabled
+    if PersistentConfig.Settings.OtherHeadlightsDisabled == (not showOthers) then
+        return false
+    end
+
+    PersistentConfig.Settings.OtherHeadlightsDisabled = not showOthers
+    CommitPdaSettingChange({ markOtherHeadlightsDirty = true })
+    ShowFeedback("AI Lights: " .. (showOthers and "ON" or "OFF"))
+    return true
+end
+
+local function CycleHeadlightBeamMode(delta)
+    local nextMode = CycleIndex(PersistentConfig.Settings.HeadlightBeamMode, #BeamModes, delta, 2)
+    if PersistentConfig.Settings.HeadlightBeamMode == nextMode then
+        return false
+    end
+
+    PersistentConfig.Settings.HeadlightBeamMode = nextMode
+    CommitPdaSettingChange({ applySettings = true })
+    ShowFeedback("Beam: " .. (nextMode == 1 and "FOCUSED" or "WIDE"))
+    return true
+end
+
+local function SetWeaponStatsHudEnabled(enabled)
+    local visible = not not enabled
+    if PersistentConfig.Settings.WeaponStatsHud == visible then
+        return false
+    end
+
+    PersistentConfig.Settings.WeaponStatsHud = visible
+    CommitPdaSettingChange()
+    ShowFeedback("PDA: " .. (visible and "ON" or "OFF"), 0.35, 0.65, 1.0, 2.5, false)
+    return true
+end
+
+local function SetAutoRepairBuildingsEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.AutoRepairBuildings == value then
+        return false
+    end
+
+    PersistentConfig.Settings.AutoRepairBuildings = value
+    CommitPdaSettingChange()
+    ShowFeedback("Building Repair: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    return true
+end
+
+local function SetAutoRepairWingmenEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.AutoRepairWingmen == value then
+        return false
+    end
+
+    PersistentConfig.Settings.AutoRepairWingmen = value
+    CommitPdaSettingChange({ syncAutoRepairWingmen = true })
+    ShowFeedback("Wingman Auto-Repair: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    return true
+end
+
+local function SetScavengerAssistEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.ScavengerAssistEnabled == value then
+        return false
+    end
+
+    PersistentConfig.Settings.ScavengerAssistEnabled = value
+    CommitPdaSettingChange({ syncScavengerAssist = true })
+    ShowFeedback("Scavenger Assist: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    return true
+end
+
+local function SetAutoSaveEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.AutoSaveEnabled == value then
+        return false
+    end
+
+    PersistentConfig.Settings.AutoSaveEnabled = value
+    CommitPdaSettingChange({ syncAutoSave = true })
+    ShowFeedback("Auto-Save: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    return true
+end
+
+GetSettingsPageEntries = function()
+    local function DirectionEnabled(delta)
+        return (delta or 0) > 0
+    end
+
+    return {
+        {
+            label = "PDA TEXT",
+            value = GetPdaTextSizePreset().name,
+            adjust = function(delta)
+                PersistentConfig.Settings.PdaTextSizePreset = CycleIndex(PersistentConfig.Settings.PdaTextSizePreset,
+                    #PdaTextSizePresets, delta, 2)
+                CommitPdaSettingChange({ applySettings = true })
+                return true
+            end,
+        },
+        {
+            label = "PDA MENU",
+            value = GetPdaMenuTextSizePreset().name,
+            adjust = function(delta)
+                PersistentConfig.Settings.PdaMenuTextSizePreset = CycleIndex(PersistentConfig.Settings.PdaMenuTextSizePreset,
+                    #PdaTextSizePresets, delta, 2)
+                CommitPdaSettingChange({ applySettings = true })
+                return true
+            end,
+        },
+        {
+            label = "PDA WINDOW",
+            value = GetPdaWindowSizePreset().name,
+            adjust = function(delta)
+                PersistentConfig.Settings.PdaWindowSizePreset = CycleIndex(PersistentConfig.Settings.PdaWindowSizePreset,
+                    #PdaWindowSizePresets, delta, 2)
+                CommitPdaSettingChange({ applySettings = true })
+                return true
+            end,
+        },
+        {
+            label = "PDA ALPHA",
+            value = FormatOpacity(PersistentConfig.Settings.PdaOpacity),
+            adjust = function(delta)
+                PersistentConfig.Settings.PdaOpacity = AdjustOpacity(PersistentConfig.Settings.PdaOpacity, delta)
+                CommitPdaSettingChange({ applySettings = true })
+                return true
+            end,
+        },
+        {
+            label = "HUD COLOR",
+            value = GetPdaColorPreset().name,
+            adjust = function(delta)
+                PersistentConfig.Settings.PdaColorPreset = CycleIndex(PersistentConfig.Settings.PdaColorPreset,
+                    #PdaColorPresets, delta, 2)
+                CommitPdaSettingChange({ applySettings = true })
+                return true
+            end,
+        },
+        {
+            label = "SUB SIZE",
+            value = GetSubtitleTextSizePreset().name,
+            adjust = function(delta)
+                PersistentConfig.Settings.SubtitleTextSizePreset = CycleIndex(PersistentConfig.Settings.SubtitleTextSizePreset,
+                    #PdaTextSizePresets, delta, 2)
+                CommitPdaSettingChange({ applySettings = true })
+                return true
+            end,
+        },
+        {
+            label = "SUB ALPHA",
+            value = FormatOpacity(PersistentConfig.Settings.SubtitleOpacity),
+            adjust = function(delta)
+                PersistentConfig.Settings.SubtitleOpacity = AdjustOpacity(PersistentConfig.Settings.SubtitleOpacity, delta)
+                CommitPdaSettingChange({ applySettings = true })
+                return true
+            end,
+        },
+        {
+            label = "PLAYER LIGHT",
+            value = PersistentConfig.Settings.HeadlightVisible and "ON" or "OFF",
+            adjust = function(delta)
+                return SetPlayerHeadlightVisible(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "LIGHT COLOR",
+            value = HeadlightColorPresets[GetHeadlightColorPresetIndex()].name,
+            adjust = function(delta)
+                return CycleHeadlightColor(delta)
+            end,
+        },
+        {
+            label = "AI LIGHTS",
+            value = PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON",
+            adjust = function(delta)
+                return SetOtherHeadlightsEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "BEAM",
+            value = PersistentConfig.Settings.HeadlightBeamMode == 1 and "FOCUSED" or "WIDE",
+            adjust = function(delta)
+                return CycleHeadlightBeamMode(delta)
+            end,
+        },
+        {
+            label = "WING REPAIR",
+            value = PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF",
+            adjust = function(delta)
+                return SetAutoRepairWingmenEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "BLDG REPAIR",
+            value = PersistentConfig.Settings.AutoRepairBuildings and "ON" or "OFF",
+            adjust = function(delta)
+                return SetAutoRepairBuildingsEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "SCAV ASSIST",
+            value = PersistentConfig.Settings.ScavengerAssistEnabled and "ON" or "OFF",
+            adjust = function(delta)
+                return SetScavengerAssistEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "AUTOSAVE",
+            value = PersistentConfig.Settings.AutoSaveEnabled and "ON" or "OFF",
+            adjust = function(delta)
+                return SetAutoSaveEnabled(DirectionEnabled(delta))
+            end,
+        },
+    }
 end
 
 -- Helper to convert Hue to RGB (Simple Rainbow)
@@ -2268,6 +2588,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.PdaOpacity = tonumber(val) or 1.00
                 elseif key == "PdaTextSizePreset" then
                     PersistentConfig.Settings.PdaTextSizePreset = tonumber(val) or 2
+                elseif key == "PdaMenuTextSizePreset" then
+                    PersistentConfig.Settings.PdaMenuTextSizePreset = tonumber(val) or 2
                 elseif key == "PdaWindowSizePreset" then
                     PersistentConfig.Settings.PdaWindowSizePreset = tonumber(val) or 2
                 elseif key == "PdaColorPreset" then
@@ -2309,6 +2631,8 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.SubtitleTextSizePreset = ClampIndex(PersistentConfig.Settings.SubtitleTextSizePreset, 1,
         #PdaTextSizePresets, 2)
     PersistentConfig.Settings.PdaTextSizePreset = ClampIndex(PersistentConfig.Settings.PdaTextSizePreset, 1, #PdaTextSizePresets, 2)
+    PersistentConfig.Settings.PdaMenuTextSizePreset = ClampIndex(PersistentConfig.Settings.PdaMenuTextSizePreset, 1,
+        #PdaTextSizePresets, 2)
     PersistentConfig.Settings.PdaWindowSizePreset = ClampIndex(PersistentConfig.Settings.PdaWindowSizePreset, 1,
         #PdaWindowSizePresets, 2)
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
@@ -2353,6 +2677,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("SubtitleTextSizePreset=" .. tostring(PersistentConfig.Settings.SubtitleTextSizePreset))
         f:Writeln("PdaOpacity=" .. tostring(PersistentConfig.Settings.PdaOpacity))
         f:Writeln("PdaTextSizePreset=" .. tostring(PersistentConfig.Settings.PdaTextSizePreset))
+        f:Writeln("PdaMenuTextSizePreset=" .. tostring(PersistentConfig.Settings.PdaMenuTextSizePreset))
         f:Writeln("PdaWindowSizePreset=" .. tostring(PersistentConfig.Settings.PdaWindowSizePreset))
         f:Writeln("PdaColorPreset=" .. tostring(PersistentConfig.Settings.PdaColorPreset))
         for unitKey, preset in pairs(PersistentConfig.UnitPresets) do
@@ -2426,8 +2751,8 @@ end
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
     local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | Y:Weapon HUD | Shift+L:AutoSave\n" ..
-        "[:Prev Page | ]:Next Page | Settings/Presets: Arrows Edit | /:Help"
+        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | Y:PDA | Shift+L:AutoSave\n" ..
+        "[:Prev Page | ]:Next Page | SETTINGS page mirrors these options | /:Help"
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
 end
@@ -2499,69 +2824,21 @@ function PersistentConfig.UpdateInputs()
     -- Toggle Player Headlight (V)
     local v_key = exu.GetGameKey("V")
     if v_key and not InputState.last_v_state then
-        PersistentConfig.Settings.HeadlightVisible = not PersistentConfig.Settings.HeadlightVisible
-        PersistentConfig.SaveConfig()
-        PersistentConfig.ApplySettings()
-        ShowFeedback("Player Light: " .. (PersistentConfig.Settings.HeadlightVisible and "ON" or "OFF"))
+        SetPlayerHeadlightVisible(not PersistentConfig.Settings.HeadlightVisible)
     end
     InputState.last_v_state = v_key
 
     -- Cycle Headlight Color (Z) - Moved from Alt+C to Z
     local z_key = exu.GetGameKey("Z")
     if z_key and not InputState.last_z_state then
-        local colors = {
-            { 5.0, 5.0, 5.0 }, -- Bright White
-            { 5.0, 1.0, 1.0 }, -- Bright Red
-            { 1.0, 5.0, 1.0 }, -- Bright Green
-            { 1.0, 1.0, 5.0 }, -- Bright Blue
-            { 5.0, 5.0, 1.0 }, -- Bright Yellow
-            { 1.0, 5.0, 5.0 }, -- Cyan
-            { 5.0, 1.0, 5.0 }, -- Magenta
-            { 5.0, 2.5, 1.0 }, -- Orange
-            { 2.5, 1.0, 5.0 }, -- Purple
-            { 1.0, 5.0, 2.5 }, -- Teal
-            { -1,  -1,  -1 }   -- [SPECIAL] Rainbow Mode
-        }
-
-        local currentIdx = 1
-        if PersistentConfig.Settings.RainbowMode then
-            currentIdx = #colors
-        else
-            for i, c in ipairs(colors) do
-                if math.abs(PersistentConfig.Settings.HeadlightDiffuse.R - c[1]) < 0.1 and
-                    math.abs(PersistentConfig.Settings.HeadlightDiffuse.G - c[2]) < 0.1 and
-                    math.abs(PersistentConfig.Settings.HeadlightDiffuse.B - c[3]) < 0.1 then
-                    currentIdx = i
-                    break
-                end
-            end
-        end
-
-        local nextIdx = (currentIdx % #colors) + 1
-        if nextIdx == #colors then
-            PersistentConfig.Settings.RainbowMode = true
-            ShowFeedback("Rainbow Mode: ACTIVATE", 1.0, 0.5, 1.0)
-        else
-            PersistentConfig.Settings.RainbowMode = false
-            PersistentConfig.Settings.HeadlightDiffuse.R = colors[nextIdx][1]
-            PersistentConfig.Settings.HeadlightDiffuse.G = colors[nextIdx][2]
-            PersistentConfig.Settings.HeadlightDiffuse.B = colors[nextIdx][3]
-            ShowFeedback("Headlight Color Cycled", PersistentConfig.Settings.HeadlightDiffuse.R,
-                PersistentConfig.Settings.HeadlightDiffuse.G, PersistentConfig.Settings.HeadlightDiffuse.B)
-        end
-
-        PersistentConfig.SaveConfig()
-        PersistentConfig.ApplySettings()
+        CycleHeadlightColor(1)
     end
     InputState.last_z_state = z_key
 
     -- Toggle AI/NPC Headlights (J) - Moved from Alt+U to J
     local j_key = exu.GetGameKey("J")
     if j_key and not InputState.last_j_state then
-        PersistentConfig.Settings.OtherHeadlightsDisabled = not PersistentConfig.Settings.OtherHeadlightsDisabled
-        PersistentConfig.SaveConfig()
-        ShowFeedback("AI Lights: " .. (PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON"))
-        MarkOtherHeadlightsDirty()
+        SetOtherHeadlightsEnabled(PersistentConfig.Settings.OtherHeadlightsDisabled)
     end
     InputState.last_j_state = j_key
 
@@ -2571,24 +2848,12 @@ function PersistentConfig.UpdateInputs()
     local y_key = exu.GetGameKey("Y")
 
     if b_key and not ctrl_down and not InputState.last_b_state then
-        PersistentConfig.Settings.HeadlightBeamMode = (PersistentConfig.Settings.HeadlightBeamMode % 2) + 1
-        PersistentConfig.SaveConfig()
-        PersistentConfig.ApplySettings()
-        local modeName = PersistentConfig.Settings.HeadlightBeamMode == 1 and "FOCUSED" or "WIDE"
-        ShowFeedback("Beam: " .. modeName)
+        CycleHeadlightBeamMode(1)
     end
     InputState.last_b_state = b_key
 
     if y_key and not ctrl_down and not InputState.last_y_state then
-        PersistentConfig.Settings.WeaponStatsHud = not PersistentConfig.Settings.WeaponStatsHud
-        PersistentConfig.SaveConfig()
-        RefreshWeaponHud()
-        if PersistentConfig.Settings.WeaponStatsHud then
-            UpdateWeaponStatsDisplay(GetPlayerHandle())
-        else
-            ClearWeaponStats()
-        end
-        ShowFeedback("Weapon HUD: " .. (PersistentConfig.Settings.WeaponStatsHud and "ON" or "OFF"), 0.35, 0.65, 1.0, 2.5, false)
+        SetWeaponStatsHudEnabled(not PersistentConfig.Settings.WeaponStatsHud)
     end
     InputState.last_y_state = y_key
 
@@ -2598,20 +2863,14 @@ function PersistentConfig.UpdateInputs()
     if left_bracket_pressed then
         InputState.pdaPage = CycleIndex(InputState.pdaPage, PdaPages.COUNT, -1, PdaPages.STATS)
         PlayPdaSound("mnu_back.wav")
-        RefreshWeaponHud()
         ClearPdaFeedback()
-        if PersistentConfig.Settings.WeaponStatsHud then
-            UpdateWeaponStatsDisplay(GetPlayerHandle())
-        end
+        RefreshPdaOverlay()
     end
     if right_bracket_pressed then
         InputState.pdaPage = CycleIndex(InputState.pdaPage, PdaPages.COUNT, 1, PdaPages.STATS)
         PlayPdaSound("mnu_next.wav")
-        RefreshWeaponHud()
         ClearPdaFeedback()
-        if PersistentConfig.Settings.WeaponStatsHud then
-            UpdateWeaponStatsDisplay(GetPlayerHandle())
-        end
+        RefreshPdaOverlay()
     end
     local pda_up_key = ConsumePendingGameKeyMatch({ "UP", "UPARROW" })
     local pda_down_key = ConsumePendingGameKeyMatch({ "DOWN", "DOWNARROW" })
@@ -2619,72 +2878,30 @@ function PersistentConfig.UpdateInputs()
     local pda_right_key = ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
 
     if InputState.pdaPage == PdaPages.SETTINGS then
+        local settingsEntries = GetSettingsPageEntries()
+        local settingsCount = math.max(#settingsEntries, 1)
+
         if pda_up_key then
-            InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, 6, -1, 1)
+            InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, settingsCount, -1, 1)
             PlayPdaSound("mnu_clik.wav")
-            RefreshWeaponHud()
-            if PersistentConfig.Settings.WeaponStatsHud then
-                UpdateWeaponStatsDisplay(GetPlayerHandle())
-            end
+            RefreshPdaOverlay()
         elseif pda_down_key then
-            InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, 6, 1, 1)
+            InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, settingsCount, 1, 1)
             PlayPdaSound("mnu_clik.wav")
-            RefreshWeaponHud()
-            if PersistentConfig.Settings.WeaponStatsHud then
-                UpdateWeaponStatsDisplay(GetPlayerHandle())
-            end
+            RefreshPdaOverlay()
         end
 
-        local sizeChanged = false
-        local selection = ClampIndex(InputState.pdaSettingsIndex, 1, 6, 1)
+        local settingChanged = false
+        local selection = ClampIndex(InputState.pdaSettingsIndex, 1, settingsCount, 1)
+        local entry = settingsEntries[selection]
         if pda_left_key then
-            if selection == 1 then
-                PersistentConfig.Settings.PdaTextSizePreset = CycleIndex(PersistentConfig.Settings.PdaTextSizePreset,
-                    #PdaTextSizePresets, -1, 2)
-            elseif selection == 2 then
-                PersistentConfig.Settings.PdaWindowSizePreset = CycleIndex(PersistentConfig.Settings.PdaWindowSizePreset,
-                    #PdaWindowSizePresets, -1, 2)
-            elseif selection == 3 then
-                PersistentConfig.Settings.PdaOpacity = AdjustOpacity(PersistentConfig.Settings.PdaOpacity, -1)
-            elseif selection == 4 then
-                PersistentConfig.Settings.SubtitleTextSizePreset = CycleIndex(PersistentConfig.Settings.SubtitleTextSizePreset,
-                    #PdaTextSizePresets, -1, 2)
-            elseif selection == 5 then
-                PersistentConfig.Settings.SubtitleOpacity = AdjustOpacity(PersistentConfig.Settings.SubtitleOpacity, -1)
-            else
-                PersistentConfig.Settings.PdaColorPreset = CycleIndex(PersistentConfig.Settings.PdaColorPreset,
-                    #PdaColorPresets, -1, 2)
-            end
-            sizeChanged = true
+            settingChanged = entry and entry.adjust and entry.adjust(-1) or false
         elseif pda_right_key then
-            if selection == 1 then
-                PersistentConfig.Settings.PdaTextSizePreset = CycleIndex(PersistentConfig.Settings.PdaTextSizePreset,
-                    #PdaTextSizePresets, 1, 2)
-            elseif selection == 2 then
-                PersistentConfig.Settings.PdaWindowSizePreset = CycleIndex(PersistentConfig.Settings.PdaWindowSizePreset,
-                    #PdaWindowSizePresets, 1, 2)
-            elseif selection == 3 then
-                PersistentConfig.Settings.PdaOpacity = AdjustOpacity(PersistentConfig.Settings.PdaOpacity, 1)
-            elseif selection == 4 then
-                PersistentConfig.Settings.SubtitleTextSizePreset = CycleIndex(PersistentConfig.Settings.SubtitleTextSizePreset,
-                    #PdaTextSizePresets, 1, 2)
-            elseif selection == 5 then
-                PersistentConfig.Settings.SubtitleOpacity = AdjustOpacity(PersistentConfig.Settings.SubtitleOpacity, 1)
-            else
-                PersistentConfig.Settings.PdaColorPreset = CycleIndex(PersistentConfig.Settings.PdaColorPreset,
-                    #PdaColorPresets, 1, 2)
-            end
-            sizeChanged = true
+            settingChanged = entry and entry.adjust and entry.adjust(1) or false
         end
 
-        if sizeChanged then
+        if settingChanged then
             PlayPdaSound("mnu_enab.wav")
-            PersistentConfig.SaveConfig()
-            PersistentConfig.ApplySettings()
-            RefreshWeaponHud()
-            if PersistentConfig.Settings.WeaponStatsHud then
-                UpdateWeaponStatsDisplay(GetPlayerHandle())
-            end
         end
     elseif InputState.pdaPage == PdaPages.PRESETS then
         local context = GetPresetPageContext()
@@ -2693,17 +2910,11 @@ function PersistentConfig.UpdateInputs()
         if pda_up_key then
             InputState.presetRow = CycleIndex(InputState.presetRow, rowCount, -1, 1)
             PlayPdaSound("mnu_clik.wav")
-            RefreshWeaponHud()
-            if PersistentConfig.Settings.WeaponStatsHud then
-                UpdateWeaponStatsDisplay(GetPlayerHandle())
-            end
+            RefreshPdaOverlay()
         elseif pda_down_key then
             InputState.presetRow = CycleIndex(InputState.presetRow, rowCount, 1, 1)
             PlayPdaSound("mnu_clik.wav")
-            RefreshWeaponHud()
-            if PersistentConfig.Settings.WeaponStatsHud then
-                UpdateWeaponStatsDisplay(GetPlayerHandle())
-            end
+            RefreshPdaOverlay()
         end
 
         local changedPreset = false
@@ -2726,10 +2937,7 @@ function PersistentConfig.UpdateInputs()
         if changedPreset then
             PlayPdaSound("mnu_enab.wav")
             PersistentConfig.SaveConfig()
-            RefreshWeaponHud()
-            if PersistentConfig.Settings.WeaponStatsHud then
-                UpdateWeaponStatsDisplay(GetPlayerHandle())
-            end
+            RefreshPdaOverlay()
         end
     end
 
@@ -2741,22 +2949,10 @@ function PersistentConfig.UpdateInputs()
     if x_key and not InputState.last_x_state then
         if shift_down then
             -- Shift+X: Toggle Building Repair
-            PersistentConfig.Settings.AutoRepairBuildings = not PersistentConfig.Settings.AutoRepairBuildings
-            PersistentConfig.SaveConfig()
-            ShowFeedback("Building Repair: " .. (PersistentConfig.Settings.AutoRepairBuildings and "ON" or "OFF"), 0.8,
-                1.0, 0.8)
+            SetAutoRepairBuildingsEnabled(not PersistentConfig.Settings.AutoRepairBuildings)
         else
             -- X: Toggle Wingman Repair
-            PersistentConfig.Settings.AutoRepairWingmen = not PersistentConfig.Settings.AutoRepairWingmen
-            PersistentConfig.SaveConfig()
-
-            -- Apply to player team (team 1) immediately via aiCore
-            if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
-                aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
-            end
-
-            ShowFeedback("Wingman Auto-Repair: " .. (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF"), 0.8,
-                1.0, 0.8)
+            SetAutoRepairWingmenEnabled(not PersistentConfig.Settings.AutoRepairWingmen)
         end
     end
     InputState.last_x_state = x_key
@@ -2764,16 +2960,7 @@ function PersistentConfig.UpdateInputs()
     -- Toggle Scavenger Assist (U)
     local u_key = exu.GetGameKey("U")
     if u_key and not InputState.last_u_state then
-        PersistentConfig.Settings.ScavengerAssistEnabled = not PersistentConfig.Settings.ScavengerAssistEnabled
-        PersistentConfig.SaveConfig()
-
-        -- Apply to player team (team 1) immediately via aiCore
-        if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
-            aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
-        end
-
-        ShowFeedback("Scavenger Assist: " .. (PersistentConfig.Settings.ScavengerAssistEnabled and "ON" or "OFF"), 0.8,
-            1.0, 0.8)
+        SetScavengerAssistEnabled(not PersistentConfig.Settings.ScavengerAssistEnabled)
     end
     InputState.last_u_state = u_key
 
@@ -2783,13 +2970,7 @@ function PersistentConfig.UpdateInputs()
     if exu.GetGameKey("SHIFT") then shift_down_l = true end
 
     if l_key and shift_down_l and not InputState.last_l_state then
-        PersistentConfig.Settings.AutoSaveEnabled = not PersistentConfig.Settings.AutoSaveEnabled
-        PersistentConfig.SaveConfig()
-        -- Propagate immediately to AutoSave module
-        if autosave and autosave.Config then
-            autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
-        end
-        ShowFeedback("Auto-Save: " .. (PersistentConfig.Settings.AutoSaveEnabled and "ON" or "OFF"), 0.8, 1.0, 0.8)
+        SetAutoSaveEnabled(not PersistentConfig.Settings.AutoSaveEnabled)
     end
     InputState.last_l_state = l_key
 
