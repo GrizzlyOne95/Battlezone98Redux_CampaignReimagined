@@ -11,8 +11,6 @@ error("This is a definition file, use require(\"exu\")")
 
 --- @alias GameObject* lightuserdata pointer the underlying object of a Handle
 --- @alias Ordnance* lightuserdata pointer to the ordnance object
---- @alias Handle lightuserdata
---- @alias Vector any
 
 --- Structs
 
@@ -28,6 +26,7 @@ error("This is a definition file, use require(\"exu\")")
 --- @field r number
 --- @field g number
 --- @field b number
+--- @field a number
 
 --- @class Fog
 --- @field r number
@@ -35,6 +34,24 @@ error("This is a definition file, use require(\"exu\")")
 --- @field b number
 --- @field start number meters
 --- @field ending number meters
+
+--- @class SkyBoxParams
+--- @field distance number
+
+--- @class SkyDomeParams
+--- @field curvature number
+--- @field distance number
+--- @field tiling number
+--- @field xsegments integer
+--- @field ysegments integer
+--- @field ysegments_keep integer
+
+--- @class SkyPlaneParams
+--- @field bow number
+--- @field scale number
+--- @field tiling number
+--- @field xsegments integer
+--- @field ysegments integer
 
 --- @class exu
 --- @field Origins CameraOrigins
@@ -50,17 +67,17 @@ exu.CAMERA = {
     THIRD_PERSON = 0x101,
 
     -- View modes
-    COCKPIT = 1,          -- F1
-    NO_COCKPIT = 2,       -- F2
-    CHASE = 4,            -- F3
-    ORBIT = 5,            -- F4
-    NO_HUD = 3,           -- F5
-    EDITOR = 6,           -- F9
-    CHEAT_SATELLITE = 7,  -- F10
-    FREECAM = 9,          -- F11
+    COCKPIT = 1, -- F1
+    NO_COCKPIT = 2, -- F2
+    CHASE = 4, -- F3
+    ORBIT = 5, -- F4
+    NO_HUD = 3, -- F5
+    EDITOR = 6, -- F9
+    CHEAT_SATELLITE = 7, -- F10
+    FREECAM = 9, -- F11
 
     TOGGLE_SATELLITE = 8, -- this code is used when satellite is activated with the 9 key
-    TERRAIN_EDIT = 0x2A,  -- CTRL+E
+    TERRAIN_EDIT = 0x2A, -- CTRL+E
 }
 
 --- @class Defaults
@@ -98,6 +115,13 @@ exu.OGRE = {
     }
 }
 
+--- @class OverlayMetricsMode
+exu.OVERLAY_METRICS = {
+    RELATIVE = 0,
+    PIXELS = 1,
+    RELATIVE_ASPECT_ADJUSTED = 2
+}
+
 --- @class OrdnanceAttributes
 exu.ORDNANCE = {
     ODF = 0,            -- The odf that corresponds to the ordnance
@@ -108,7 +132,7 @@ exu.ORDNANCE = {
 }
 
 --- @class RadarState
-exu.RADAR = {
+exu.RADAR= {
     MINIMAP = 0,
     RADAR = 1
 }
@@ -123,7 +147,7 @@ exu.SATELLITE = {
 ---
 --- These functions are related to the camera in-game and its attributes
 
---- Gets the values of the camera origins that can be useful for computing perspective transformations.
+--- Gets the values of the camera origins that can be useful for computing perspective transformations. 
 --- @nodiscard
 --- @return CameraOrigins
 function exu.GetCameraOrigins() end
@@ -161,6 +185,52 @@ function exu.SetCameraMinZoom(zoom) end
 --- @return CameraState
 function exu.GetCameraView() end
 
+--- Gets the current camera field of view in radians.
+--- @nodiscard
+--- @return number
+function exu.GetCameraFOV() end
+
+--- Gets the current active Ogre camera clip distances.
+--- @nodiscard
+--- @return number | nil, number | nil
+function exu.GetCameraClipDistances() end
+
+--- Sets the current active Ogre camera clip distances.
+--- @param nearClip number
+--- @param farClip number
+function exu.SetCameraClipDistances(nearClip, farClip) end
+
+--- Gets the current active Ogre camera aspect ratio.
+--- @nodiscard
+--- @return number | nil
+function exu.GetCameraAspectRatio() end
+
+--- Sets the current active Ogre camera aspect ratio.
+--- @param ratio number
+function exu.SetCameraAspectRatio(ratio) end
+
+--- Gets the current active Ogre camera projection type.
+--- 0 = orthographic, 1 = perspective.
+--- @nodiscard
+--- @return integer | nil
+function exu.GetCameraProjectionType() end
+
+--- Sets the current active Ogre camera projection type.
+--- 0 = orthographic, 1 = perspective.
+--- @param projectionType integer
+function exu.SetCameraProjectionType(projectionType) end
+
+--- Gets the current active Ogre camera polygon mode.
+--- 1 = points, 2 = wireframe, 3 = solid.
+--- @nodiscard
+--- @return integer | nil
+function exu.GetCameraPolygonMode() end
+
+--- Sets the current active Ogre camera polygon mode.
+--- 1 = points, 2 = wireframe, 3 = solid.
+--- @param polygonMode integer
+function exu.SetCameraPolygonMode(polygonMode) end
+
 --- Sets the current camera view mode.
 --- @param view CameraState | any
 function exu.SetCameraView(view) end
@@ -177,15 +247,6 @@ function exu.GetCameraZoom(camera) end
 --- @param zoom number
 --- @return nil
 function exu.SetCameraZoom(camera, zoom) end
-
---- Gets the field of view (FOV) of the current camera.
---- @nodiscard
---- @return number
-function exu.GetCameraFOV() end
-
---- Sets the field of view (FOV) of the current camera.
---- @param fov number
-function exu.SetCameraFOV(fov) end
 
 --- Control Panel
 ---
@@ -243,6 +304,22 @@ function exu.SetGravity(x, y, z) end
 --- @param v Vector
 function exu.SetGravity(v) end
 
+--- Returns a table with the current scene ambient light parameters.
+--- @nodiscard
+--- @return Color
+function exu.GetAmbientLight() end
+
+--- Sets the current scene ambient light parameters. Can take either three or four number parameters or a color table.
+--- @param r number
+--- @param g number
+--- @param b number
+--- @param a number? optional
+function exu.SetAmbientLight(r, g, b, a) end
+
+--- Sets the current scene ambient light parameters. Can take either three or four number parameters or a color table.
+--- @param newColor Color
+function exu.SetAmbientLight(newColor) end
+
 --- Returns a table with the current sun ambient parameters.
 --- @nodiscard
 --- @return Color
@@ -288,30 +365,246 @@ function exu.SetSunSpecular(r, g, b) end
 --- @param newColor Color
 function exu.SetSunSpecular(newColor) end
 
+--- Returns the current sun direction vector.
+--- @nodiscard
+--- @return Vector
+function exu.GetSunDirection() end
+
+--- Sets the current sun direction vector. Can take either a vector or three number parameters.
+--- @param x number
+--- @param y number
+--- @param z number
+function exu.SetSunDirection(x, y, z) end
+
+--- Sets the current sun direction vector. Can take either a vector or three number parameters.
+--- @param direction Vector
+function exu.SetSunDirection(direction) end
+
+--- Returns the current sun power scale multiplier.
+--- @nodiscard
+--- @return number
+function exu.GetSunPowerScale() end
+
+--- Sets the current sun power scale multiplier.
+--- @param powerScale number
+function exu.SetSunPowerScale(powerScale) end
+
+--- Returns the current sun shadow far distance.
+--- @nodiscard
+--- @return number
+function exu.GetSunShadowFarDistance() end
+
+--- Sets the current sun shadow far distance.
+--- @param distance number
+function exu.SetSunShadowFarDistance(distance) end
+
+--- Returns the current skybox generation parameters if a skybox node exists.
+--- @nodiscard
+--- @return SkyBoxParams | nil
+function exu.GetSkyBoxParams() end
+
+--- Returns the current skydome generation parameters if a skydome node exists.
+--- @nodiscard
+--- @return SkyDomeParams | nil
+function exu.GetSkyDomeParams() end
+
+--- Returns the current skyplane generation parameters if a skyplane node exists.
+--- @nodiscard
+--- @return SkyPlaneParams | nil
+function exu.GetSkyPlaneParams() end
+
+--- Returns whether scene bounding boxes are currently shown.
+--- @nodiscard
+--- @return boolean
+function exu.GetShowBoundingBoxes() end
+
+--- Enables or disables scene bounding boxes.
+--- @param enabled boolean
+function exu.SetShowBoundingBoxes(enabled) end
+
+--- Returns whether debug shadows are currently shown.
+--- @nodiscard
+--- @return boolean
+function exu.GetShowDebugShadows() end
+
+--- Enables or disables debug shadows.
+--- @param enabled boolean
+function exu.SetShowDebugShadows(enabled) end
+
+--- Returns whether the current active viewport renders shadows.
+--- @nodiscard
+--- @return boolean
+function exu.GetViewportShadowsEnabled() end
+
+--- Enables or disables shadow rendering on the current active viewport.
+--- @param enabled boolean
+function exu.SetViewportShadowsEnabled(enabled) end
+
+--- Returns the current scene visibility mask.
+--- @nodiscard
+--- @return integer | nil
+function exu.GetSceneVisibilityMask() end
+
+--- Sets the current scene visibility mask.
+--- @param mask integer
+function exu.SetSceneVisibilityMask(mask) end
+
+--- Returns whether the scene manager currently has a skybox node.
+--- @nodiscard
+--- @return boolean
+function exu.HasSkyBoxNode() end
+
+--- Returns whether the scene manager currently has a skydome node.
+--- @nodiscard
+--- @return boolean
+function exu.HasSkyDomeNode() end
+
+--- Returns whether the scene manager currently has a skyplane node.
+--- @nodiscard
+--- @return boolean
+function exu.HasSkyPlaneNode() end
+
+--- Overlay
+---
+--- These functions expose Ogre overlays for custom HUD and UI work.
+
+--- Creates a new named overlay.
+--- @param name string
+--- @return boolean
+function exu.CreateOverlay(name) end
+
+--- Destroys an existing named overlay.
+--- @param name string
+function exu.DestroyOverlay(name) end
+
+--- Shows an existing named overlay.
+--- @param name string
+function exu.ShowOverlay(name) end
+
+--- Hides an existing named overlay.
+--- @param name string
+function exu.HideOverlay(name) end
+
+--- Sets the z-order of an overlay.
+--- Valid range is 0 to 650.
+--- @param name string
+--- @param zOrder integer
+function exu.SetOverlayZOrder(name, zOrder) end
+
+--- Sets the scroll offset on an overlay.
+--- @param name string
+--- @param x number
+--- @param y number
+function exu.SetOverlayScroll(name, x, y) end
+
+--- Creates a new overlay element.
+--- Useful built-in element types include `"Panel"`, `"BorderPanel"`, and `"TextArea"`.
+--- @param typeName string
+--- @param instanceName string
+--- @return boolean
+function exu.CreateOverlayElement(typeName, instanceName) end
+
+--- Destroys an existing overlay element by name.
+--- @param name string
+function exu.DestroyOverlayElement(name) end
+
+--- Returns whether an overlay element exists by name.
+--- @nodiscard
+--- @param name string
+--- @return boolean
+function exu.HasOverlayElement(name) end
+
+--- Attaches a container element to an overlay as a 2D root.
+--- The container must have been created through `CreateOverlayElement` as `"Panel"` or `"BorderPanel"`.
+--- @param overlayName string
+--- @param containerName string
+function exu.AddOverlay2D(overlayName, containerName) end
+
+--- Removes a container element from an overlay's 2D roots.
+--- @param overlayName string
+--- @param containerName string
+function exu.RemoveOverlay2D(overlayName, containerName) end
+
+--- Adds a child element to a parent container.
+--- The parent container must have been created through `CreateOverlayElement` as `"Panel"` or `"BorderPanel"`.
+--- @param parentName string
+--- @param childName string
+function exu.AddOverlayElementChild(parentName, childName) end
+
+--- Removes a child element from a parent container by child name.
+--- @param parentName string
+--- @param childName string
+function exu.RemoveOverlayElementChild(parentName, childName) end
+
+--- Shows an overlay element by name.
+--- @param name string
+function exu.ShowOverlayElement(name) end
+
+--- Hides an overlay element by name.
+--- @param name string
+function exu.HideOverlayElement(name) end
+
+--- Sets the metrics mode for an overlay element.
+--- See `exu.OVERLAY_METRICS`.
+--- @param name string
+--- @param mode OverlayMetricsMode | integer
+function exu.SetOverlayMetricsMode(name, mode) end
+
+--- Sets the position of an overlay element.
+--- @param name string
+--- @param left number
+--- @param top number
+function exu.SetOverlayPosition(name, left, top) end
+
+--- Sets the dimensions of an overlay element.
+--- @param name string
+--- @param width number
+--- @param height number
+function exu.SetOverlayDimensions(name, width, height) end
+
+--- Sets the material name of an overlay element.
+--- @param name string
+--- @param materialName string
+function exu.SetOverlayMaterial(name, materialName) end
+
+--- Sets the color of an overlay element.
+--- Can take either four number parameters or a color table.
+--- @param name string
+--- @param r number
+--- @param g number
+--- @param b number
+--- @param a number? optional
+function exu.SetOverlayColor(name, r, g, b, a) end
+
+--- Sets the color of an overlay element.
+--- Can take either four number parameters or a color table.
+--- @param name string
+--- @param color Color
+function exu.SetOverlayColor(name, color) end
+
+--- Sets the caption text of an overlay element.
+--- This is primarily useful for text areas.
+--- @param name string
+--- @param text string
+function exu.SetOverlayCaption(name, text) end
+
+--- Sets the font name of a text area created through `CreateOverlayElement("TextArea", ...)`.
+--- @param name string
+--- @param fontName string
+function exu.SetOverlayTextFont(name, fontName) end
+
+--- Sets the character height of a text area created through `CreateOverlayElement("TextArea", ...)`.
+--- @param name string
+--- @param charHeight number
+function exu.SetOverlayTextCharHeight(name, charHeight) end
+
 --- GameObject
 ---
 --- These functions act on game objects (handles) to query and modify various attributes.
 
---- Changes the object's team to user team (Team 1).
---- @param handle Handle
-function exu.SetAsUser(handle) end
-
---- Sets the material name for an entity or sub-entity.
---- @param handle Handle
---- @param materialName string
---- @param subEntityIndex number? optional, if provided sets for SubEntity, otherwise sets for the whole Entity.
-function exu.SetMaterialName(handle, materialName, subEntityIndex) end
-
---- Gets the material name for an entity or sub-entity.
---- @param handle Handle
---- @param subEntityIndex number? optional, if provided gets for SubEntity, otherwise gets for SubEntity 0.
---- @return string? materialName
-function exu.GetMaterialName(handle, subEntityIndex) end
-
---- Gets the number of sub-entities for an entity.
---- @param handle Handle
---- @return number count
-function exu.GetNumSubEntities(handle) end
+--- Sets the local player's user ship to the given handle.
+--- @param h Handle
+function exu.SetAsUser(h) end
 
 --- Gets if the given comm tower is powered or not, throws an error if the handle is not a comm tower.
 --- @nodiscard
@@ -319,33 +612,172 @@ function exu.GetNumSubEntities(handle) end
 --- @return boolean
 function exu.IsCommTowerPowered(h) end
 
---- Sets the visibility of the underlying Ogre Entity for the given object.
---- @param h Handle
---- @param visible boolean
-function exu.SetObjectVisible(h, visible) end
-
---- Scans for Ogre MovableObjects starting with the given prefix.
---- If setVisible is true, attempts to make them visible.
---- Logs found objects to bzlogger.txt.
----
---- Example:
---- ```lua
---- -- Scan for "chunk0" to "chunk99" and make them visible
---- local count = exu.ScanForChunks("chunk", 100, true)
---- print("Found " .. count .. " chunks")
---- ```
----
---- @param prefix string
---- @param count integer
---- @param setVisible boolean? default false
---- @return integer foundCount
-function exu.ScanForChunks(prefix, count, setVisible) end
-
 --- Converts a GameObject* into a handle that can be used in lua.
 --- @nodiscard
 --- @param obj GameObject*
 --- @return integer
 function exu.GetHandle(obj) end
+
+--- Gets whether the object's Ogre entity is currently visible.
+--- @nodiscard
+--- @param h Handle
+--- @return boolean | nil
+function exu.GetEntityVisible(h) end
+
+--- Gets whether the object's Ogre entity currently casts shadows.
+--- @nodiscard
+--- @param h Handle
+--- @return boolean | nil
+function exu.GetEntityCastShadows(h) end
+
+--- Gets the object's Ogre rendering distance.
+--- @nodiscard
+--- @param h Handle
+--- @return number | nil
+function exu.GetEntityRenderingDistance(h) end
+
+--- Gets the object's Ogre visibility flags mask.
+--- @nodiscard
+--- @param h Handle
+--- @return integer | nil
+function exu.GetEntityVisibilityFlags(h) end
+
+--- Gets the object's Ogre query flags mask.
+--- @nodiscard
+--- @param h Handle
+--- @return integer | nil
+function exu.GetEntityQueryFlags(h) end
+
+--- Gets the object's Ogre render queue group.
+--- @nodiscard
+--- @param h Handle
+--- @return integer | nil
+function exu.GetEntityRenderQueueGroup(h) end
+
+--- Sets whether the object's Ogre entity is visible.
+--- @param h Handle
+--- @param visible boolean
+function exu.SetEntityVisible(h, visible) end
+
+--- Sets whether the object's Ogre entity casts shadows.
+--- @param h Handle
+--- @param castShadows boolean
+function exu.SetEntityCastShadows(h, castShadows) end
+
+--- Sets the object's Ogre rendering distance.
+--- @param h Handle
+--- @param distance number
+function exu.SetEntityRenderingDistance(h, distance) end
+
+--- Sets the object's Ogre visibility flags mask.
+--- @param h Handle
+--- @param flags integer
+function exu.SetEntityVisibilityFlags(h, flags) end
+
+--- Sets the object's Ogre query flags mask.
+--- @param h Handle
+--- @param flags integer
+function exu.SetEntityQueryFlags(h, flags) end
+
+--- Sets the object's Ogre render queue group.
+--- @param h Handle
+--- @param group integer
+function exu.SetEntityRenderQueueGroup(h, group) end
+
+--- Sets whether a specific sub-entity is visible.
+--- @param h Handle
+--- @param subEntityIndex integer
+--- @param visible boolean
+function exu.SetSubEntityVisible(h, subEntityIndex, visible) end
+
+--- Gets the number of Ogre sub-entities attached to the object's render entity.
+--- @nodiscard
+--- @param h Handle
+--- @return integer | nil
+function exu.GetSubEntityCount(h) end
+
+--- Gets the number of Ogre sub-entities attached to the object's render entity.
+--- @nodiscard
+--- @param h Handle
+--- @return integer | nil
+function exu.GetNumSubEntities(h) end
+
+--- Gets the material name used by the given sub-entity.
+--- @nodiscard
+--- @param h Handle
+--- @param subEntityIndex integer
+--- @return string | nil
+function exu.GetSubEntityMaterial(h, subEntityIndex) end
+
+--- Gets the material name used by the object's render entity.
+--- If no sub-entity index is provided, returns the material on sub-entity 0.
+--- @nodiscard
+--- @param h Handle
+--- @param subEntityIndex integer? optional
+--- @return string | nil
+function exu.GetMaterialName(h, subEntityIndex) end
+
+--- Sets the material name used by the object's whole render entity.
+--- The resource group defaults to "General".
+--- @param h Handle
+--- @param materialName string
+--- @param resourceGroup string? optional
+function exu.SetEntityMaterial(h, materialName, resourceGroup) end
+
+--- Sets the material name used by a specific sub-entity.
+--- The resource group defaults to "General".
+--- @param h Handle
+--- @param subEntityIndex integer
+--- @param materialName string
+--- @param resourceGroup string? optional
+function exu.SetSubEntityMaterial(h, subEntityIndex, materialName, resourceGroup) end
+
+--- Sets the material name used by the object's render entity.
+--- If a sub-entity index is provided, changes only that sub-entity. Otherwise changes the whole entity.
+--- The resource group defaults to "General".
+--- @param h Handle
+--- @param materialName string
+--- @param subEntityIndex integer? optional
+--- @param resourceGroup string? optional
+function exu.SetMaterialName(h, materialName, subEntityIndex, resourceGroup) end
+
+--- Returns whether the entity has a named animation state.
+--- @nodiscard
+--- @param h Handle
+--- @param animationName string
+--- @return boolean
+function exu.HasEntityAnimation(h, animationName) end
+
+--- Returns the current values for a named entity animation state.
+--- @nodiscard
+--- @param h Handle
+--- @param animationName string
+--- @return table | nil
+function exu.GetEntityAnimationInfo(h, animationName) end
+
+--- Enables or disables a named entity animation state.
+--- @param h Handle
+--- @param animationName string
+--- @param enabled boolean
+function exu.SetEntityAnimationEnabled(h, animationName, enabled) end
+
+--- Sets whether a named entity animation loops.
+--- @param h Handle
+--- @param animationName string
+--- @param loop boolean
+function exu.SetEntityAnimationLoop(h, animationName, loop) end
+
+--- Sets the blend weight of a named entity animation.
+--- @param h Handle
+--- @param animationName string
+--- @param weight number
+function exu.SetEntityAnimationWeight(h, animationName, weight) end
+
+--- Sets the current time position of a named entity animation.
+--- @param h Handle
+--- @param animationName string
+--- @param timePosition number
+function exu.SetEntityAnimationTime(h, animationName, timePosition) end
 
 --- Sets the diffuse color of the headlight of the given object (if it exists).
 --- @param h Handle
@@ -375,6 +807,61 @@ function exu.SetHeadlightRange(h, innerAngle, outerAngle, falloff) end
 --- @param visible boolean
 function exu.SetHeadlightVisible(h, visible) end
 
+--- Gets the power scale of the object's Ogre light, if it has one.
+--- @nodiscard
+--- @param h Handle
+--- @return number | nil
+function exu.GetLightPowerScale(h) end
+
+--- Sets the power scale of the object's Ogre light.
+--- @param h Handle
+--- @param powerScale number
+function exu.SetLightPowerScale(h, powerScale) end
+
+--- Gets the position of the object's Ogre light.
+--- @nodiscard
+--- @param h Handle
+--- @return Vector | nil
+function exu.GetLightPosition(h) end
+
+--- Sets the position of the object's Ogre light.
+--- @param h Handle
+--- @param x number
+--- @param y number
+--- @param z number
+function exu.SetLightPosition(h, x, y, z) end
+
+--- Sets the position of the object's Ogre light.
+--- @param h Handle
+--- @param position Vector
+function exu.SetLightPosition(h, position) end
+
+--- Gets the direction of the object's Ogre light.
+--- @nodiscard
+--- @param h Handle
+--- @return Vector | nil
+function exu.GetLightDirection(h) end
+
+--- Sets the direction of the object's Ogre light.
+--- @param h Handle
+--- @param x number
+--- @param y number
+--- @param z number
+function exu.SetLightDirection(h, x, y, z) end
+
+--- Sets the direction of the object's Ogre light.
+--- @param h Handle
+--- @param direction Vector
+function exu.SetLightDirection(h, direction) end
+
+--- Sets the attenuation parameters of the object's Ogre light.
+--- @param h Handle
+--- @param range number
+--- @param constant number
+--- @param linear number
+--- @param quadratic number
+function exu.SetLightAttenuation(h, range, constant, linear, quadratic) end
+
 --- Gets the mass of the given object (most ships default to 1750 KG afaik).
 --- @nodiscard
 --- @param h Handle
@@ -390,14 +877,6 @@ function exu.SetMass(h) end
 --- @param h Handle
 --- @return GameObject*
 function exu.GetObj(h) end
-
---- Gets the current radar display range (the circular shroud radius)
---- @return number range
-function exu.GetRadarDisplayRange() end
-
---- Sets the radar display range (the circular shroud radius)
---- @param range number
-function exu.SetRadarDisplayRange(range) end
 
 --- Gets the radar scan period for the given object (if it has a radar).
 --- @nodiscard
@@ -429,14 +908,7 @@ function exu.GetVelocJam(h) end
 
 --- Sets the velocjam value for the given object.
 --- @param h Handle
---- @param maxSpeed number
-function exu.SetVelocJam(h, maxSpeed) end
-
---- Gets the active weapon mask for the given object.
---- @nodiscard
---- @param h Handle
---- @return weaponmask
-function exu.GetWeaponMask(h) end
+function exu.SetVelocJam(h) end
 
 --- Graphics Options
 
@@ -477,6 +949,19 @@ function exu.BuildAsyncObject(...) end
 --- Functions the same as BuildObject except the resulting object is always synchronized regardless of hosting status.
 --- @return Handle
 function exu.BuildSyncObject(...) end
+
+--- Returns the custom kill message set for the given team if it exists
+--- @nodiscard
+--- @param team integer
+--- @return string | nil
+function exu.GetCustomKillMessage(team) end
+
+--- Sets a custom kill message for the given team.
+--- Can be used to rename generic AI teams (Team 5 etc.)
+--- [Custom name] killed by [Custom name 2]
+--- @param team integer
+--- @param message string MUST BE <32 CHARACTERS
+function exu.SetCustomKillMessage(team, message) end
 
 --- Gets the local player's life count.
 --- @nodiscard
@@ -544,17 +1029,6 @@ function exu.GetCoeffBallistic() end
 --- if you changed it at any point.
 --- @param coeff number
 function exu.SetCoeffBallistic(coeff) end
-
---- Sets the bounce randomness magnitude for the given ordnance ODF.
---- @param odf string
---- @param magnitude number
-function exu.SetOrdnanceBounceRandom(odf, magnitude) end
-
---- Gets the bounce randomness magnitude for the given ordnance ODF.
---- @nodiscard
---- @param odf string
---- @return number
-function exu.GetOrdnanceBounceRandom(odf) end
 
 --- OS
 ---
@@ -675,26 +1149,6 @@ function exu.GetRadarState() end
 --- @param state number
 function exu.SetRadarState(state) end
 
---- Gets the sun direction in world space
---- @return Vector direction
-function exu.GetSunDirection() end
-
---- Sets the sun direction in world space
---- @param direction Vector
-function exu.SetSunDirection(direction) end
-
---- Gets the sun power scale (intensity multiplier)
---- @return number scale
-function exu.GetSunPowerScale() end
-
---- Sets the sun power scale (intensity multiplier)
---- @param scale number
-function exu.SetSunPowerScale(scale) end
-
---- Sets the sun shadow far distance
---- @param distance number
-function exu.SetSunShadowFarDistance(distance) end
-
 --- Reticle
 ---
 --- These functions can query various information about the smart reticle.
@@ -797,73 +1251,6 @@ function exu.GetSatZoom() end
 --- Make sure to stay within the boundaries defined by min and max zoom, otherwise it'll cause issues.
 --- @param zoom number
 function exu.SetSatZoom(zoom) end
-
---- Ogre Integration
----
---- These functions interact directly with the Ogre graphics engine.
-
---- Gets the current fog settings.
---- @return Fog
-function exu.GetFog() end
-
---- Sets the fog settings.
---- @param fog Fog
-function exu.SetFog(fog) end
-
---- Gets the sun ambient color.
---- @return Color
-function exu.GetSunAmbient() end
-
---- Sets the sun ambient color.
---- @param color Color
-function exu.SetSunAmbient(color) end
-
---- Gets the sun diffuse color.
---- @return Color
-function exu.GetSunDiffuse() end
-
---- Sets the sun diffuse color.
---- @param color Color
-function exu.SetSunDiffuse(color) end
-
---- Gets the sun specular color.
---- @return Color
-function exu.GetSunSpecular() end
-
---- Sets the sun specular color.
---- @param color Color
-function exu.SetSunSpecular(color) end
-
---- Gets the sun direction.
---- @return Vector
-function exu.GetSunDirection() end
-
---- Sets the sun direction.
---- @param direction Vector
-function exu.SetSunDirection(direction) end
-
---- Gets the sun power scale.
---- @return number
-function exu.GetSunPowerScale() end
-
---- Sets the sun power scale.
---- @param scale number
-function exu.SetSunPowerScale(scale) end
-
---- Sets the sun shadow far distance.
---- @param distance number
-function exu.SetSunShadowFarDistance(distance) end
-
---- Gets the material name of an object's entity or sub-entity.
---- @param handle Handle
---- @param subEntityIndex number? Optional sub-entity index (default 0)
---- @return string?
-function exu.GetMaterialName(handle, subEntityIndex) end
-
---- Gets the number of sub-entities in an object's entity.
---- @param handle Handle
---- @return number
-function exu.GetNumSubEntities(handle) end
 
 --- Steam
 ---

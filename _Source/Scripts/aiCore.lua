@@ -4697,16 +4697,18 @@ function aiCore.FactoryManager:update()
         end
 
         local cmd = GetCurrentCommand(self.handle)
+        local allowRelocation = not (self.teamObj and self.teamObj.Config and self.teamObj.Config.allowProducerRelocation == false)
+        local deployCommand = allowRelocation and AiCommand.GO_TO_GEYSER or AiCommand.DEPLOY
         -- Only issue Deploy command if not already deploying or undeploying
         -- AND not moving/defending (to prevent loops if unit is scripted to move while undeployed)
         if cmd ~= AiCommand.DEPLOY and cmd ~= AiCommand.UNDEPLOY and
             cmd ~= AiCommand.GO and cmd ~= AiCommand.GO_TO_GEYSER and
             cmd ~= AiCommand.DEFEND and cmd ~= AiCommand.FOLLOW then
             if currentTime >= (self.lastDeployCommandTime or 0) + 10 then
-                if aiCore.TrySetCommand(self.handle, AiCommand.GO_TO_GEYSER, GetUncommandablePriority(), nil, nil, nil, nil,
+                if aiCore.TrySetCommand(self.handle, deployCommand, GetUncommandablePriority(), nil, nil, nil, nil,
                         { minInterval = 1.0, overrideProtected = true }) then
                     if self.teamObj and self.teamObj.MarkProducerDeployGrace then
-                        self.teamObj:MarkProducerDeployGrace(self.handle, currentTime, AiCommand.GO_TO_GEYSER)
+                        self.teamObj:MarkProducerDeployGrace(self.handle, currentTime, deployCommand)
                     end
                     self.lastDeployCommandTime = currentTime
                 end
@@ -5735,6 +5737,7 @@ function aiCore.Team:new(teamNum, faction)
         offensiveRetaliation = true,
         autoRescue = false,
         autoTugs = false,
+        allowProducerRelocation = true,
         stickToPlayer = false,
         dynamicMinefields = false,
         scavengerAssist = false,
@@ -6448,6 +6451,10 @@ function aiCore.Team:AddBuilding(odf, path, priority)
             end
         end
         priority = hasPriority and (lowestPriority - 1) or 1
+    else
+        while self.buildingList[priority] do
+            priority = priority + 1
+        end
     end
 
     self.buildingList[priority] = {
@@ -7464,17 +7471,19 @@ function aiCore.Team:UpdateBaseMaintenance()
         local odfKey = NormalizeOdfKey(odf)
         local nearby = nearbyByOdf[odfKey]
         local pending = IsValid(nearby)
+        local allowRelocation = self.Config.allowProducerRelocation ~= false
+        local deployCommand = allowRelocation and AiCommand.GO_TO_GEYSER or AiCommand.DEPLOY
 
         ---@cast odf string
         -- Check if an undeployed factory vehicle exists
         if pending then
             -- Factory exists but not deployed - send to geyser
             local deferDeploy = self:ShouldDeferProducerDeploy(nearby, now)
-            if not deferDeploy and not IsDeployed(nearby) and not IsBusy(nearby) and GetCurrentCommand(nearby) ~= AiCommand.GO_TO_GEYSER then
+            if not deferDeploy and not IsDeployed(nearby) and not IsBusy(nearby) and GetCurrentCommand(nearby) ~= deployCommand then
                 if now >= (self.lastFactoryDeployTime or 0) + 10 then
-                    if aiCore.TrySetCommand(nearby, AiCommand.GO_TO_GEYSER, 1, nil, nil, nil, nil,
+                    if aiCore.TrySetCommand(nearby, deployCommand, 1, nil, nil, nil, nil,
                             { minInterval = 1.0, overrideProtected = true }) then
-                        self:MarkProducerDeployGrace(nearby, now, AiCommand.GO_TO_GEYSER)
+                        self:MarkProducerDeployGrace(nearby, now, deployCommand)
                         self.lastFactoryDeployTime = now
                     end
                 end

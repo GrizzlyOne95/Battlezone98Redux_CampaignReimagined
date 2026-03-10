@@ -5,12 +5,9 @@ local exu = require("exu")
 
 local Subtitles = {}
 local SUBTITLE_CHANNEL = 3
-local TEXT_PRESETS = {
-    [1] = { scale = 0.85, wrapScale = 1.00, charLimit = 54 },
-    [2] = { scale = 1.00, wrapScale = 1.35, charLimit = 78 },
-    [3] = { scale = 1.15, wrapScale = 1.95, charLimit = 114 },
-    [4] = { scale = 1.30, wrapScale = 3.00, charLimit = 150 },
-}
+local FONT_SCALE_MIN = 0.85
+local FONT_SCALE_MAX = 2.00
+local BASE_CHAR_LIMIT = 78
 
 -- State
 local currentAudioHandle = nil
@@ -20,7 +17,8 @@ local activeSequenceSource = nil
 Subtitles.LastEndTime = 0
 Subtitles.Config = {
     opacity = 0.5,
-    textSizePreset = 2,
+    fontScale = 1.0,
+    enabled = true,
 }
 
 local function Clamp(value, minimum, maximum)
@@ -29,19 +27,26 @@ local function Clamp(value, minimum, maximum)
     return value
 end
 
-local function GetTextPreset()
-    local idx = math.floor(tonumber(Subtitles.Config.textSizePreset) or 2)
-    return TEXT_PRESETS[idx] or TEXT_PRESETS[2]
+local function ClampRange(value, minimum, maximum, fallback)
+    local n = tonumber(value)
+    if not n then return fallback end
+    if n < minimum then return minimum end
+    if n > maximum then return maximum end
+    return n
+end
+
+local function GetFontScale()
+    return ClampRange(Subtitles.Config.fontScale, FONT_SCALE_MIN, FONT_SCALE_MAX, 1.0)
 end
 
 local function GetWrapCharacterLimit()
-    return GetTextPreset().charLimit or 78
+    return BASE_CHAR_LIMIT
 end
 
 local function GetSubtitleLayoutMetrics()
     local width, height = 1920, 1080
     local uiScale = 2.0
-    local preset = GetTextPreset()
+    local fontScale = GetFontScale()
 
     if exu and exu.GetScreenResolution then
         local ok, screenW, screenH = pcall(exu.GetScreenResolution)
@@ -67,10 +72,10 @@ local function GetSubtitleLayoutMetrics()
     local uiScaleFactor = Clamp((uiScale / 2.0) ^ 0.32, 0.90, 1.30)
 
     return {
-        textScale = Clamp(0.38 * aspectScale * uiScaleFactor * preset.scale, 0.28, 0.58),
-        wrapWidth = Clamp(0.84 * Clamp(1.0 / aspectScale, 0.90, 1.22) * preset.wrapScale, 0.68, 2.60),
-        paddingX = 10.0 * preset.scale,
-        paddingY = 8.0 * preset.scale,
+        textScale = Clamp(0.38 * aspectScale * uiScaleFactor * fontScale, 0.28, 0.90),
+        wrapWidth = Clamp(0.84 * Clamp(1.0 / aspectScale, 0.90, 1.22) * fontScale, 0.68, 4.50),
+        paddingX = 10.0 * fontScale,
+        paddingY = 8.0 * fontScale,
         opacity = Clamp(tonumber(Subtitles.Config.opacity) or 0.5, 0.0, 1.0),
     }
 end
@@ -103,6 +108,9 @@ local function ClearDefaultSubtitleQueue()
 end
 
 local function SubmitSequenceEntries(entries)
+    if not Subtitles.Config.enabled then
+        return
+    end
     if not entries or #entries == 0 then
         return
     end
@@ -176,6 +184,9 @@ local function BuildSequenceEntries(source)
 end
 
 local function ResubmitActiveSequence()
+    if not Subtitles.Config.enabled then
+        return
+    end
     if not activeSequenceSource then
         return
     end
@@ -256,12 +267,25 @@ function Subtitles.SetOpacity(value)
     ResubmitActiveSequence()
 end
 
+function Subtitles.SetEnabled(value)
+    Subtitles.Config.enabled = not not value
+    if not Subtitles.Config.enabled then
+        ClearActiveSequence()
+        Subtitles.LastEndTime = GetTime()
+    end
+end
+
+function Subtitles.SetFontScale(value)
+    Subtitles.Config.fontScale = ClampRange(value, FONT_SCALE_MIN, FONT_SCALE_MAX, 1.0)
+    ResubmitActiveSequence()
+end
+
 function Subtitles.SetTextSizePreset(preset)
     local idx = math.floor(tonumber(preset) or 2)
     if idx < 1 then idx = 1 end
-    if idx > #TEXT_PRESETS then idx = #TEXT_PRESETS end
-    Subtitles.Config.textSizePreset = idx
-    ResubmitActiveSequence()
+    if idx > 4 then idx = 4 end
+    local legacyScale = (idx == 1 and 0.85) or (idx == 3 and 1.15) or (idx == 4 and 1.30) or 1.0
+    Subtitles.SetFontScale(legacyScale)
 end
 
 --- Helper to read a 4-byte little-endian integer from a string
@@ -328,7 +352,7 @@ function Subtitles.Initialize(durationCsv)
     -- Ensure clear queue on start
     ClearActiveSequence()
     Subtitles.SetOpacity(Subtitles.Config.opacity)
-    Subtitles.SetTextSizePreset(Subtitles.Config.textSizePreset)
+    Subtitles.SetFontScale(Subtitles.Config.fontScale)
 
     -- Load default durations if nothing specified
     durationCsv = durationCsv or "durations.csv"
@@ -342,6 +366,9 @@ end
 --- @param b number|nil Blue (0-1)
 --- @param duration number|nil Duration in seconds
 function Subtitles.Display(text, r, g, b, duration)
+    if not Subtitles.Config.enabled then
+        return
+    end
     r = r or 1.0
     g = g or 1.0
     b = b or 1.0
@@ -388,6 +415,9 @@ function Subtitles.Play(wavFilename, r, g, b)
     -- 1. Play the audio
     local handle = AudioMessage(wavFilename)
     currentAudioHandle = handle
+    if not Subtitles.Config.enabled then
+        return handle
+    end
 
     -- 2. Try to find and load the subtitle text
     -- Convert .wav extension to .txt (case insensitive replacement if needed, but simple sub usually works)
@@ -448,6 +478,9 @@ end
 --- Check if the subtitle system is currently playing audio or displaying text
 --- @return boolean
 function Subtitles.IsActive()
+    if not Subtitles.Config.enabled then
+        return false
+    end
     if currentAudioHandle and not IsAudioMessageDone(currentAudioHandle) then
         return true
     end

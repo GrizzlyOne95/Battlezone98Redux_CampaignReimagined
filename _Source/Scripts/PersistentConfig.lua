@@ -18,7 +18,7 @@ PersistentConfig.FeedbackQueue = {}
 -- Default Settings
 PersistentConfig.Settings = {
     HeadlightDiffuse = { R = 5.0, G = 5.0, B = 5.0 },                         -- White
-    HeadlightSpecular = { R = 8.0, G = 8.0, B = 8.0 },                         -- Brighter specular
+    HeadlightSpecular = { R = 5.0, G = 5.0, B = 5.0 },                         -- White specular
     HeadlightRange = { InnerAngle = 0.6, OuterAngle = 0.9, Falloff = 0.35 },   -- Default to Wide
     HeadlightBeamMode = 2,                                                      -- 1 = Focused, 2 = Wide
     HeadlightVisible = true,
@@ -26,7 +26,7 @@ PersistentConfig.Settings = {
     OtherHeadlightsDisabled = true, -- AI Lights Off by default
     AutoRepairWingmen = true,       -- Auto-repair wingmen on by default
     RainbowMode = false,            -- Special color effect
-    ScavengerAssistEnabled = false, -- Auto-scavenge for player scavengers
+    ScavengerAssistEnabled = true,  -- Auto-scavenge for player scavengers
     AutoSaveSlot = 10,              -- Default to slot 10
     AutoSaveEnabled = false,        -- AutoSave disabled by default
     AutoSaveInterval = 200,         -- Auto-save every 200 seconds
@@ -34,11 +34,9 @@ PersistentConfig.Settings = {
     RetroLighting = false,          -- Disables PBR and custom shader lighting equations
     WeaponStatsHud = true,          -- Persistent weapon stats panel
     SubtitleOpacity = 0.50,         -- Main subtitle opacity
-    SubtitleTextSizePreset = 2,     -- 1=Small 2=Medium 3=Large 4=Huge
+    SubtitleFontScale = 2.00,       -- Subtitle font scale (0.85-2.00)
     PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
-    PdaTextSizePreset = 2,          -- 1=Small 2=Medium 3=Large 4=Huge
-    PdaMenuTextSizePreset = 2,      -- 1=Small 2=Medium 3=Large 4=Huge
-    PdaWindowSizePreset = 2,        -- 1=Narrow 2=Normal 3=Wide 4=Ultra
+    PdaFontScale = 1.30,            -- PDA font/window scale (0.85-1.30)
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
 }
 
@@ -58,18 +56,18 @@ local PresetProducerKinds = {
 PersistentConfig.UnitPresets = {}
 local GetSettingsPageEntries
 
-local PdaTextSizePresets = {
-    [1] = { name = "SMALL", scale = 0.85 },
-    [2] = { name = "MEDIUM", scale = 1.00 },
-    [3] = { name = "LARGE", scale = 1.15 },
-    [4] = { name = "HUGE", scale = 1.30 },
-}
+local PDA_FONT_SCALE_MIN = 0.85
+local PDA_FONT_SCALE_MAX = 1.30
+local PDA_FONT_SCALE_STEP = 0.05
+local SUBTITLE_FONT_SCALE_MIN = 0.85
+local SUBTITLE_FONT_SCALE_MAX = 2.00
+local SUBTITLE_FONT_SCALE_STEP = 0.05
 
-local PdaWindowSizePresets = {
-    [1] = { name = "NARROW", width = 0.78 },
-    [2] = { name = "NORMAL", width = 1.00 },
-    [3] = { name = "WIDE", width = 1.28 },
-    [4] = { name = "ULTRA", width = 1.58 },
+local LEGACY_TEXT_PRESET_SCALES = {
+    [1] = 0.85,
+    [2] = 1.00,
+    [3] = 1.15,
+    [4] = 1.30,
 }
 
 local PdaColorPresets = {
@@ -136,30 +134,30 @@ local function ClampIndex(value, minimum, maximum, fallback)
     return n
 end
 
+local function ClampRange(value, minimum, maximum, fallback)
+    local n = tonumber(value)
+    if not n then return fallback end
+    if n < minimum then return minimum end
+    if n > maximum then return maximum end
+    return n
+end
+
 local function CycleIndex(value, count, delta, fallback)
     local index = ClampIndex(value, 1, count, fallback or 1)
     local step = math.floor(tonumber(delta) or 0)
     return ((index - 1 + step) % count) + 1
 end
 
-local function GetPdaTextSizePreset()
-    return PdaTextSizePresets[ClampIndex(PersistentConfig.Settings.PdaTextSizePreset, 1, #PdaTextSizePresets, 2)]
-end
-
-local function GetPdaMenuTextSizePreset()
-    return PdaTextSizePresets[ClampIndex(PersistentConfig.Settings.PdaMenuTextSizePreset, 1, #PdaTextSizePresets, 2)]
-end
-
-local function GetPdaWindowSizePreset()
-    return PdaWindowSizePresets[ClampIndex(PersistentConfig.Settings.PdaWindowSizePreset, 1, #PdaWindowSizePresets, 2)]
+local function GetPdaFontScale()
+    return ClampRange(PersistentConfig.Settings.PdaFontScale, PDA_FONT_SCALE_MIN, PDA_FONT_SCALE_MAX, 1.0)
 end
 
 local function GetPdaColorPreset()
     return PdaColorPresets[ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)]
 end
 
-local function GetSubtitleTextSizePreset()
-    return PdaTextSizePresets[ClampIndex(PersistentConfig.Settings.SubtitleTextSizePreset, 1, #PdaTextSizePresets, 2)]
+local function GetSubtitleFontScale()
+    return ClampRange(PersistentConfig.Settings.SubtitleFontScale, SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX, 1.0)
 end
 
 local function ClampUnitInterval(value, fallback)
@@ -179,6 +177,36 @@ end
 
 local function FormatOpacity(value)
     return string.format("%d%%", math.floor((ClampUnitInterval(value, 1.0) * 100.0) + 0.5))
+end
+
+local function AdjustScale(value, delta, minimum, maximum, step)
+    local stepValue = step or 0.05
+    local current = ClampRange(value, minimum, maximum, 1.0)
+    local snapped = math.floor((current / stepValue) + 0.5) * stepValue
+    if (delta or 0) == 0 then
+        return ClampRange(snapped, minimum, maximum, current)
+    end
+    local direction = (delta or 0) < 0 and -1 or 1
+    return ClampRange(snapped + (direction * stepValue), minimum, maximum, snapped)
+end
+
+local function FormatScale(value, minimum, maximum)
+    local n = ClampRange(value, minimum, maximum, 1.0)
+    return string.format("%d%%", math.floor((n * 100.0) + 0.5))
+end
+
+local function LegacyPresetFromScale(scale)
+    local target = ClampRange(scale, SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX, 1.0)
+    local bestIndex = 2
+    local bestDiff = math.huge
+    for idx, value in pairs(LEGACY_TEXT_PRESET_SCALES) do
+        local diff = math.abs(target - value)
+        if diff < bestDiff then
+            bestDiff = diff
+            bestIndex = idx
+        end
+    end
+    return bestIndex
 end
 
 local function BuildPdaHeader(activePage)
@@ -205,9 +233,7 @@ local function GetPdaLayoutMetrics(page)
     local uiScale = 2
     local activePage = ClampIndex(page or (InputState and InputState.pdaPage) or PdaPages.STATS, 1, PdaPages.COUNT,
         PdaPages.STATS)
-    local menuPage = (activePage == PdaPages.SETTINGS or activePage == PdaPages.PRESETS)
-    local textPreset = menuPage and GetPdaMenuTextSizePreset() or GetPdaTextSizePreset()
-    local windowPreset = GetPdaWindowSizePreset()
+    local fontScale = GetPdaFontScale()
 
     if exu and exu.GetScreenResolution then
         local ok, screenW, screenH = pcall(exu.GetScreenResolution)
@@ -236,19 +262,18 @@ local function GetPdaLayoutMetrics(page)
     local aspect = width / math.max(height, 1)
     local aspectScale = Clamp((16.0 / 9.0) / aspect, 0.80, 1.35)
     local uiScaleFactor = Clamp((uiScale / 2.0) ^ 0.45, 0.85, 1.45)
-    local windowScale = Clamp(windowPreset.width * Clamp(1.0 / (textPreset.scale ^ 0.25), 0.85, 1.08), 0.70, 1.65)
-    local textScale = Clamp(0.30 * aspectScale * uiScaleFactor * textPreset.scale, 0.22, 0.52)
-    local wrapWidth = Clamp(0.31 * Clamp(1.0 / aspectScale, 0.9, 1.2) * uiScaleFactor * windowScale, 0.20, 0.72)
-    local panelX = Clamp(0.02, 0.0, math.max(0.0, 1.0 - wrapWidth))
+    local textScale = Clamp(0.30 * aspectScale * uiScaleFactor * fontScale, 0.22, 0.60)
+    local wrapWidth = Clamp(0.31 * Clamp(1.0 / aspectScale, 0.9, 1.2) * uiScaleFactor * fontScale, 0.24, 0.70)
+    local panelX = Clamp(0.01, 0.0, math.max(0.0, 1.0 - wrapWidth))
 
     return {
         textScale = textScale,
         wrapWidth = wrapWidth,
         panelX = panelX,
-        paddingX = 6.0 * textPreset.scale * Clamp(windowScale, 0.90, 1.40),
-        paddingY = 5.0 * textPreset.scale,
+        paddingX = 6.0 * fontScale,
+        paddingY = 5.0 * fontScale,
         opacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.0),
-        feedbackTextScale = Clamp(textScale * 0.86, 0.20, 0.42),
+        feedbackTextScale = Clamp(textScale * 0.86, 0.20, 0.46),
         feedbackY = 0.90,
     }
 end
@@ -2315,7 +2340,34 @@ local function SetWeaponStatsHudEnabled(enabled)
 
     PersistentConfig.Settings.WeaponStatsHud = visible
     CommitPdaSettingChange()
+    if visible then
+        RefreshPdaOverlay()
+    else
+        RefreshWeaponHud()
+        ClearWeaponStats()
+        ClearPdaFeedback()
+    end
     ShowFeedback("PDA: " .. (visible and "ON" or "OFF"), 0.35, 0.65, 1.0, 2.5, false)
+    return true
+end
+
+local function SetSubtitlesEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.SubtitlesEnabled == value then
+        return false
+    end
+
+    PersistentConfig.Settings.SubtitlesEnabled = value
+    CommitPdaSettingChange({ applySettings = true })
+    if not value then
+        local subtit = package.loaded["ScriptSubtitles"]
+        if subtit and subtit.ClearActive then
+            subtit.ClearActive()
+        end
+        if subtitles and subtitles.clear_queue then subtitles.clear_queue() end
+        if subtitles and subtitles.clear_current then subtitles.clear_current() end
+    end
+    ShowFeedback("Subtitles: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -2374,31 +2426,11 @@ GetSettingsPageEntries = function()
 
     return {
         {
-            label = "PDA TEXT",
-            value = GetPdaTextSizePreset().name,
+            label = "PDA SIZE",
+            value = FormatScale(PersistentConfig.Settings.PdaFontScale, PDA_FONT_SCALE_MIN, PDA_FONT_SCALE_MAX),
             adjust = function(delta)
-                PersistentConfig.Settings.PdaTextSizePreset = CycleIndex(PersistentConfig.Settings.PdaTextSizePreset,
-                    #PdaTextSizePresets, delta, 2)
-                CommitPdaSettingChange({ applySettings = true })
-                return true
-            end,
-        },
-        {
-            label = "PDA MENU",
-            value = GetPdaMenuTextSizePreset().name,
-            adjust = function(delta)
-                PersistentConfig.Settings.PdaMenuTextSizePreset = CycleIndex(PersistentConfig.Settings.PdaMenuTextSizePreset,
-                    #PdaTextSizePresets, delta, 2)
-                CommitPdaSettingChange({ applySettings = true })
-                return true
-            end,
-        },
-        {
-            label = "PDA WINDOW",
-            value = GetPdaWindowSizePreset().name,
-            adjust = function(delta)
-                PersistentConfig.Settings.PdaWindowSizePreset = CycleIndex(PersistentConfig.Settings.PdaWindowSizePreset,
-                    #PdaWindowSizePresets, delta, 2)
+                PersistentConfig.Settings.PdaFontScale = AdjustScale(PersistentConfig.Settings.PdaFontScale, delta,
+                    PDA_FONT_SCALE_MIN, PDA_FONT_SCALE_MAX, PDA_FONT_SCALE_STEP)
                 CommitPdaSettingChange({ applySettings = true })
                 return true
             end,
@@ -2423,11 +2455,18 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "SUB SIZE",
-            value = GetSubtitleTextSizePreset().name,
+            label = "SUBTITLES",
+            value = PersistentConfig.Settings.SubtitlesEnabled and "ON" or "OFF",
             adjust = function(delta)
-                PersistentConfig.Settings.SubtitleTextSizePreset = CycleIndex(PersistentConfig.Settings.SubtitleTextSizePreset,
-                    #PdaTextSizePresets, delta, 2)
+                return SetSubtitlesEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "SUB SIZE",
+            value = FormatScale(PersistentConfig.Settings.SubtitleFontScale, SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX),
+            adjust = function(delta)
+                PersistentConfig.Settings.SubtitleFontScale = AdjustScale(PersistentConfig.Settings.SubtitleFontScale, delta,
+                    SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX, SUBTITLE_FONT_SCALE_STEP)
                 CommitPdaSettingChange({ applySettings = true })
                 return true
             end,
@@ -2529,6 +2568,10 @@ function PersistentConfig.LoadConfig()
     -- Attempt to verify file existence via io if possible, but bzfile is safer context
     -- Use pcall to catch "not open" error if bzfile.Open returns a zombie handle
     PersistentConfig.UnitPresets = {}
+    local loadedSubtitleFontScale
+    local loadedPdaFontScale
+    local legacySubtitlePreset
+    local legacyPdaTextPreset
     local status, err = pcall(function()
         local f = bzfile.Open(configPath, "r")
         if not f then
@@ -2547,11 +2590,11 @@ function PersistentConfig.LoadConfig()
                 elseif key == "HeadlightDiffuseB" then
                     PersistentConfig.Settings.HeadlightDiffuse.B = tonumber(val) or 5.0
                 elseif key == "HeadlightSpecularR" then
-                    PersistentConfig.Settings.HeadlightSpecular.R = tonumber(val) or 8.0
+                    PersistentConfig.Settings.HeadlightSpecular.R = tonumber(val) or 5.0
                 elseif key == "HeadlightSpecularG" then
-                    PersistentConfig.Settings.HeadlightSpecular.G = tonumber(val) or 8.0
+                    PersistentConfig.Settings.HeadlightSpecular.G = tonumber(val) or 5.0
                 elseif key == "HeadlightSpecularB" then
-                    PersistentConfig.Settings.HeadlightSpecular.B = tonumber(val) or 8.0
+                    PersistentConfig.Settings.HeadlightSpecular.B = tonumber(val) or 5.0
                 elseif key == "HeadlightBeamMode" then
                     PersistentConfig.Settings.HeadlightBeamMode = tonumber(val) or 2
                 elseif key == "HeadlightFalloff" then
@@ -2582,16 +2625,16 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.WeaponStatsHud = (val == "true")
                 elseif key == "SubtitleOpacity" then
                     PersistentConfig.Settings.SubtitleOpacity = tonumber(val) or 0.50
+                elseif key == "SubtitleFontScale" then
+                    loadedSubtitleFontScale = tonumber(val)
                 elseif key == "SubtitleTextSizePreset" then
-                    PersistentConfig.Settings.SubtitleTextSizePreset = tonumber(val) or 2
+                    legacySubtitlePreset = tonumber(val)
                 elseif key == "PdaOpacity" then
                     PersistentConfig.Settings.PdaOpacity = tonumber(val) or 1.00
+                elseif key == "PdaFontScale" then
+                    loadedPdaFontScale = tonumber(val)
                 elseif key == "PdaTextSizePreset" then
-                    PersistentConfig.Settings.PdaTextSizePreset = tonumber(val) or 2
-                elseif key == "PdaMenuTextSizePreset" then
-                    PersistentConfig.Settings.PdaMenuTextSizePreset = tonumber(val) or 2
-                elseif key == "PdaWindowSizePreset" then
-                    PersistentConfig.Settings.PdaWindowSizePreset = tonumber(val) or 2
+                    legacyPdaTextPreset = tonumber(val)
                 elseif key == "PdaColorPreset" then
                     PersistentConfig.Settings.PdaColorPreset = tonumber(val) or 2
                 elseif key == "UnitPreset" then
@@ -2620,6 +2663,20 @@ function PersistentConfig.LoadConfig()
         print("PersistentConfig: Settings loaded.")
     end
 
+    if loadedSubtitleFontScale then
+        PersistentConfig.Settings.SubtitleFontScale = loadedSubtitleFontScale
+    elseif legacySubtitlePreset then
+        local idx = ClampIndex(legacySubtitlePreset, 1, #LEGACY_TEXT_PRESET_SCALES, 2)
+        PersistentConfig.Settings.SubtitleFontScale = LEGACY_TEXT_PRESET_SCALES[idx] or 1.0
+    end
+
+    if loadedPdaFontScale then
+        PersistentConfig.Settings.PdaFontScale = loadedPdaFontScale
+    elseif legacyPdaTextPreset then
+        local idx = ClampIndex(legacyPdaTextPreset, 1, #LEGACY_TEXT_PRESET_SCALES, 2)
+        PersistentConfig.Settings.PdaFontScale = LEGACY_TEXT_PRESET_SCALES[idx] or 1.0
+    end
+
     -- Sync ranges based on mode
     local mode = PersistentConfig.Settings.HeadlightBeamMode
     if BeamModes[mode] then
@@ -2628,13 +2685,10 @@ function PersistentConfig.LoadConfig()
     end
     PersistentConfig.Settings.SubtitleOpacity = ClampUnitInterval(PersistentConfig.Settings.SubtitleOpacity, 0.50)
     PersistentConfig.Settings.PdaOpacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.00)
-    PersistentConfig.Settings.SubtitleTextSizePreset = ClampIndex(PersistentConfig.Settings.SubtitleTextSizePreset, 1,
-        #PdaTextSizePresets, 2)
-    PersistentConfig.Settings.PdaTextSizePreset = ClampIndex(PersistentConfig.Settings.PdaTextSizePreset, 1, #PdaTextSizePresets, 2)
-    PersistentConfig.Settings.PdaMenuTextSizePreset = ClampIndex(PersistentConfig.Settings.PdaMenuTextSizePreset, 1,
-        #PdaTextSizePresets, 2)
-    PersistentConfig.Settings.PdaWindowSizePreset = ClampIndex(PersistentConfig.Settings.PdaWindowSizePreset, 1,
-        #PdaWindowSizePresets, 2)
+    PersistentConfig.Settings.SubtitleFontScale = ClampRange(PersistentConfig.Settings.SubtitleFontScale,
+        SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX, 1.0)
+    PersistentConfig.Settings.PdaFontScale = ClampRange(PersistentConfig.Settings.PdaFontScale,
+        PDA_FONT_SCALE_MIN, PDA_FONT_SCALE_MAX, 1.0)
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
 end
 
@@ -2674,11 +2728,9 @@ function PersistentConfig.SaveConfig()
         f:Writeln("RetroLighting=" .. tostring(PersistentConfig.Settings.RetroLighting))
         f:Writeln("WeaponStatsHud=" .. tostring(PersistentConfig.Settings.WeaponStatsHud))
         f:Writeln("SubtitleOpacity=" .. tostring(PersistentConfig.Settings.SubtitleOpacity))
-        f:Writeln("SubtitleTextSizePreset=" .. tostring(PersistentConfig.Settings.SubtitleTextSizePreset))
+        f:Writeln("SubtitleFontScale=" .. tostring(PersistentConfig.Settings.SubtitleFontScale))
         f:Writeln("PdaOpacity=" .. tostring(PersistentConfig.Settings.PdaOpacity))
-        f:Writeln("PdaTextSizePreset=" .. tostring(PersistentConfig.Settings.PdaTextSizePreset))
-        f:Writeln("PdaMenuTextSizePreset=" .. tostring(PersistentConfig.Settings.PdaMenuTextSizePreset))
-        f:Writeln("PdaWindowSizePreset=" .. tostring(PersistentConfig.Settings.PdaWindowSizePreset))
+        f:Writeln("PdaFontScale=" .. tostring(PersistentConfig.Settings.PdaFontScale))
         f:Writeln("PdaColorPreset=" .. tostring(PersistentConfig.Settings.PdaColorPreset))
         for unitKey, preset in pairs(PersistentConfig.UnitPresets) do
             for slotIndex = 1, 5 do
@@ -2742,8 +2794,15 @@ function PersistentConfig.ApplySettings()
     elseif subtitles and subtitles.set_opacity then
         subtitles.set_opacity(PersistentConfig.Settings.SubtitleOpacity)
     end
-    if subtit and subtit.SetTextSizePreset then
-        subtit.SetTextSizePreset(PersistentConfig.Settings.SubtitleTextSizePreset)
+    if subtit then
+        if subtit.SetEnabled then
+            subtit.SetEnabled(PersistentConfig.Settings.SubtitlesEnabled)
+        end
+        if subtit.SetFontScale then
+            subtit.SetFontScale(PersistentConfig.Settings.SubtitleFontScale)
+        elseif subtit.SetTextSizePreset then
+            subtit.SetTextSizePreset(LegacyPresetFromScale(PersistentConfig.Settings.SubtitleFontScale))
+        end
     end
 end
 
@@ -2804,7 +2863,11 @@ function PersistentConfig.UpdateInputs()
         if nextItem and (nextItem.target == "pda" or not isBusy or nextItem.bypass) then
             local item = table.remove(PersistentConfig.FeedbackQueue, 1)
             if item.target == "pda" then
-                ShowPdaFeedback(item.msg, item.r, item.g, item.b, item.duration)
+                if PersistentConfig.Settings.WeaponStatsHud then
+                    ShowPdaFeedback(item.msg, item.r, item.g, item.b, item.duration)
+                end
+            elseif not PersistentConfig.Settings.SubtitlesEnabled then
+                -- Drop subtitle messages while subtitles are disabled.
             elseif subtit and subtit.Display then
                 subtit.Display(item.msg, item.r, item.g, item.b, item.duration)
             elseif subtitles and subtitles.submit then
@@ -2856,6 +2919,10 @@ function PersistentConfig.UpdateInputs()
         SetWeaponStatsHudEnabled(not PersistentConfig.Settings.WeaponStatsHud)
     end
     InputState.last_y_state = y_key
+
+    if not PersistentConfig.Settings.WeaponStatsHud then
+        return
+    end
 
     local left_bracket_pressed = ConsumePendingGameKeyMatch({ "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET" })
     local right_bracket_pressed = ConsumePendingGameKeyMatch({ "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET" })
