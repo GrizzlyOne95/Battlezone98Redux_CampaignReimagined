@@ -217,11 +217,14 @@ local function SetupAI()
     -- Configure CCA (Team 2)
     if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[2] then
         local cca = aiCore.ActiveTeams[2]
-        cca:SetMaintainList(
-            { scavenger = 4, constructor = 1 },               -- Recycler
-            { tank = 2, lighttank = 1, apc = 1, turret = 6 }, -- Factory
-            true                                              -- Locked
-        )
+        cca:SetCustomStrategy({
+            Recycler = {
+                "scavenger", "scavenger", "scavenger", "scavenger",
+                "constructor",
+                "armory",
+            },
+            Factory = { "tank", "tank", "lighttank", "apc", "turret", "turret", "turret", "turret", "turret", "turret" }
+        }, true)
 
         -- Fully Automate Base and Units
         cca.Config.autoManage = true
@@ -235,7 +238,7 @@ local function SetupAI()
         cca.Config.requireConstructorFirst = true
 
         -- High-level Base Planning
-        cca:PlanDefensivePerimeter(2, 4) -- 2 powers, 1 tower each (Interleaved)
+        cca:PlanDefensivePerimeter(2, 2) -- 2 powers, 1 tower each (Interleaved)
 
         -- ExpandBase will automatically handle Barracks, Supply, Comm, Hangar, and HQ over time.
         -- We just need to plan the optimal Silo location since it's terrain-dependent.
@@ -493,6 +496,7 @@ function Update()
 
     if M.obset and AudioDone(M.aud4) and IsAlive(M.reliccam) then
         SetObjectiveName(M.reliccam, "Investigate CCA")
+        SetUserTarget(M.reliccam)
         M.newobjective = true
         M.obset = false
     end
@@ -536,9 +540,9 @@ function Update()
 
     if M.ccahasrelic and IsAlive(M.svtug) and GetDistance(M.svtug, M.svrec) < 60.0 and not M.missionfail2 then
         M.aud10 = subtit.Play("misn0431.wav")
-        M.aud11 = subtit.Play("misn0432.wav")
-        M.aud12 = subtit.Play("misn0433.wav")
-        M.aud13 = subtit.Play("misn0434.wav")
+        M.aud11 = subtit.Queue("misn0432.wav")
+        M.aud12 = subtit.Queue("misn0433.wav")
+        M.aud13 = subtit.Queue("misn0434.wav")
         M.missionfail2 = true
         CameraReady()
     end
@@ -580,7 +584,7 @@ function Update()
 
     if not M.discoverrelic and M.investigator >= 1 then
         M.aud2 = subtit.Play("misn0408.wav")
-        M.aud3 = subtit.Play("misn0409.wav")
+        M.aud3 = subtit.Queue("misn0409.wav")
         M.relicseen = true
         M.newobjective = true
         M.ccatug = GetTime() + GetTugDelay()

@@ -45,12 +45,26 @@ local PdaPages = {
     TARGET = 2,
     SETTINGS = 3,
     PRESETS = 4,
-    COUNT = 4,
+    QUEUE = 5,
+    COMMAND = 6,
+    COUNT = 6,
 }
 
 local PresetProducerKinds = {
     [1] = { name = "RECYCLER", getter = GetRecyclerHandle, short = "REC" },
     [2] = { name = "FACTORY", getter = GetFactoryHandle, short = "FAC" },
+}
+
+local PRESET_SURCHARGE_CONFIG = {
+    mortarFlat = 1.0,
+    multipliers = { 0.5, 0.25 },
+    tailMultiplier = 0.1,
+}
+
+local PRESET_BUILD_CONFIG = {
+    keyWindow = 0.5,
+    refundGrace = 1.0,
+    scrapConfirmTolerance = 0.5,
 }
 
 PersistentConfig.UnitPresets = {}
@@ -215,6 +229,8 @@ local function BuildPdaHeader(activePage)
         [PdaPages.TARGET] = "TARGET",
         [PdaPages.SETTINGS] = "SETTINGS",
         [PdaPages.PRESETS] = "PRESETS",
+        [PdaPages.QUEUE] = "QUEUE",
+        [PdaPages.COMMAND] = "COMMAND",
     }
     local parts = { "PDA" }
     for page = 1, PdaPages.COUNT do
@@ -455,10 +471,30 @@ InputState = {
     presetProducerIndex = 1,
     presetUnitIndex = 1,
     presetRow = 1,
+    queueProducerIndex = 1,
+    queueRow = 1,
     pendingGameKeys = {},
     processedCreationHandles = {},
     otherHeadlightVisibility = {},
     otherHeadlightsDirty = true,
+    lastTeamScrap = {},
+    lastBuildKey = nil,
+    producerBusyState = {},
+    pendingBuilds = {},
+    producerQueues = {},
+    commanderOverview = {
+        initialized = false,
+        lastUpdate = 0,
+        interval = 1.0,
+        handles = {},
+        handleSet = {},
+        stats = {
+            counts = {},
+            unpoweredTurrets = 0,
+            unpoweredComm = 0,
+            powerSources = 0,
+        },
+    },
 }
 
 -- Beam Definitions
@@ -1491,17 +1527,55 @@ local function GetPresetSurchargeForEntry(entry)
     if not preset then return 0.0 end
 
     local total = 0.0
+    local manualExtras = {}
+    local mortarUpgrades = 0
+    local function IsDifferentWeapon(slotInfo, selectedOption)
+        if not slotInfo or not selectedOption or not selectedOption.weaponName or selectedOption.weaponName == "" then
+            return false
+        end
+        local selected = string.lower(CleanString(selectedOption.weaponName))
+        local stock = string.lower(CleanString(slotInfo.stockWeapon or ""))
+        if stock == "" then
+            return true
+        end
+        return selected ~= stock
+    end
+
     for _, slotInfo in ipairs(entry.slots or {}) do
         local selectedPowerup = preset[slotInfo.slotIndex]
         if selectedPowerup and selectedPowerup ~= "" then
             local options = armoryOptions[slotInfo.category] and armoryOptions[slotInfo.category].options or {}
             local selectedOption = options[FindWeaponOptionIndex(options, selectedPowerup)]
             if selectedOption and selectedOption.weaponName and selectedOption.weaponName ~= "" then
-                local extra = (selectedOption.scrapCost or 0.0) - GetStockWeaponUpgradeCost(slotInfo, options)
-                if extra > 0.0 then
-                    total = total + extra
+                if slotInfo.category == "special" then
+                    -- Special slots are free.
+                elseif slotInfo.category == "mortar" then
+                    -- Mortar slots have a flat +1 surcharge when upgraded.
+                    if IsDifferentWeapon(slotInfo, selectedOption) then
+                        mortarUpgrades = mortarUpgrades + 1
+                    end
+                else
+                    local extra = (selectedOption.scrapCost or 0.0) - GetStockWeaponUpgradeCost(slotInfo, options)
+                    if extra > 0.0 and (slotInfo.category == "cannon" or slotInfo.category == "rocket") then
+                        table.insert(manualExtras, extra)
+                    end
                 end
             end
+        end
+    end
+
+    if mortarUpgrades > 0 then
+        local mortarFlat = (PRESET_SURCHARGE_CONFIG and PRESET_SURCHARGE_CONFIG.mortarFlat) or 1.0
+        total = total + (mortarUpgrades * mortarFlat)
+    end
+
+    if #manualExtras > 0 then
+        table.sort(manualExtras, function(a, b) return a > b end)
+        local multipliers = (PRESET_SURCHARGE_CONFIG and PRESET_SURCHARGE_CONFIG.multipliers) or { 0.5, 0.25 }
+        local tailMultiplier = (PRESET_SURCHARGE_CONFIG and PRESET_SURCHARGE_CONFIG.tailMultiplier) or 0.1
+        for index, extra in ipairs(manualExtras) do
+            local mult = multipliers[index] or tailMultiplier
+            total = total + (extra * mult)
         end
     end
 
@@ -1579,6 +1653,50 @@ local function GetPresetPageContext()
     }
 end
 
+local function GetQueuePageContext()
+    local team = GetPlayerTeamNum()
+    local availableKinds = {}
+    for kindIndex, kind in ipairs(PresetProducerKinds) do
+        local producer = GetProducerHandleForKind(kindIndex, team)
+        if IsValid(producer) then
+            table.insert(availableKinds, {
+                kindIndex = kindIndex,
+                label = kind.name,
+                handle = producer,
+                entries = GetProducerBuildEntries(producer),
+            })
+        end
+    end
+
+    if #availableKinds == 0 then
+        return {
+            available = false,
+            team = team,
+            producerKinds = {},
+        }
+    end
+
+    InputState.queueProducerIndex = ClampIndex(InputState.queueProducerIndex, 1, #availableKinds, 1)
+    local producerInfo = availableKinds[InputState.queueProducerIndex]
+    local unitEntries = producerInfo.entries or {}
+    local rows = {
+        { kind = "producer" },
+        { kind = "queue_item" },
+        { kind = "queue_count" },
+        { kind = "queue_status" },
+    }
+    InputState.queueRow = ClampIndex(InputState.queueRow, 1, math.max(#rows, 1), 1)
+
+    return {
+        available = true,
+        team = team,
+        producerKinds = availableKinds,
+        producerInfo = producerInfo,
+        unitEntries = unitEntries,
+        rows = rows,
+    }
+end
+
 local function GetPresetSlotOption(slotInfo, armoryOptions, unitPreset)
     if not slotInfo or not armoryOptions then
         return nil, 1
@@ -1618,6 +1736,58 @@ local function ApplyPresetDelta(unitOdfName, slotIndex, delta, context)
         unitPreset[slotIndex] = selected.powerupOdf
     else
         unitPreset[slotIndex] = nil
+    end
+    return true
+end
+
+local function AdjustQueueItem(context, delta)
+    if not context or not context.producerInfo or not context.unitEntries or #context.unitEntries == 0 then
+        return false
+    end
+    local queue = GetProducerQueueState(context.producerInfo.kindIndex)
+    if queue.locked then return false end
+    local newIndex = CycleIndex(queue.itemIndex or 1, #context.unitEntries, delta, 1)
+    if newIndex == queue.itemIndex then return false end
+    queue.itemIndex = newIndex
+    local entry = context.unitEntries[newIndex]
+    queue.unitOdf = entry and entry.odf or ""
+    if (queue.count or 0) > 0 then
+        queue.remaining = queue.count
+        queue.pendingIssue = nil
+        queue.inProgress = false
+    end
+    return true
+end
+
+local function AdjustQueueCount(context, delta)
+    if not context or not context.producerInfo then return false end
+    local queue = GetProducerQueueState(context.producerInfo.kindIndex)
+    if queue.locked then return false end
+    local current = queue.count or 0
+    local newCount = math.max(0, math.min(99, current + delta))
+    if newCount == current then return false end
+    queue.count = newCount
+    if newCount <= 0 then
+        queue.remaining = 0
+        queue.pendingIssue = nil
+        queue.inProgress = false
+    else
+        queue.remaining = newCount
+        queue.pendingIssue = nil
+        queue.inProgress = false
+    end
+    return true
+end
+
+local function ToggleQueueLock(context)
+    if not context or not context.producerInfo then return false end
+    local queue = GetProducerQueueState(context.producerInfo.kindIndex)
+    queue.locked = not queue.locked
+    if not queue.locked then
+        queue.pendingIssue = nil
+        queue.inProgress = false
+    elseif (queue.remaining or 0) <= 0 and (queue.count or 0) > 0 then
+        queue.remaining = queue.count
     end
     return true
 end
@@ -1948,18 +2118,22 @@ local function BuildStatsPageText(player, mask)
     table.insert(lines, "SPD  " .. tostring(speed) .. "m/s")
     if target and targetDistance then
         local label = (aimInfo and aimInfo.source == "target") and "TGT" or "AIM"
+        table.insert(lines, (label == "TGT") and "MODE TARGET" or "MODE RETICLE")
         table.insert(lines, label .. "  " .. GetVehicleDisplayName(target) .. "  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
         local closureRate, eta = GetTargetClosureInfo(player, target, targetDistance)
         local closureText = closureRate and tostring(math.floor(math.max(0.0, closureRate) + 0.5)) .. "m/s" or "--"
         local etaText = eta and string.format("%.1fs", eta) or "--"
         table.insert(lines, "CLS  " .. closureText .. "  ETA " .. etaText)
+        table.insert(lines, "CLS = closing rate")
     elseif aimPosition and targetDistance then
         local playerPos = type(GetPosition) == "function" and GetPosition(player) or nil
         local deltaY = playerPos and ((aimPosition.y or 0.0) - (playerPos.y or 0.0)) or 0.0
+        table.insert(lines, "MODE GROUND")
         table.insert(lines, "AIM  GROUND  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
         table.insert(lines, "ELV  " .. tostring(math.floor(deltaY + (deltaY >= 0 and 0.5 or -0.5))) .. "m")
     end
     table.insert(lines, "HARDPOINTS")
+    table.insert(lines, "LEGEND + IN RNG  - OUT  * ACTIVE")
 
     local hardpointCount = AppendWeaponStatsLines(lines, player, installedMask, mask, target, aimPosition, targetDistance)
     table.insert(lines, "TOTAL " .. tostring(hardpointCount))
@@ -1985,6 +2159,7 @@ local function BuildTargetPageText(player)
     if not target and aimPosition then
         local playerPos = type(GetPosition) == "function" and GetPosition(player) or nil
         local deltaY = playerPos and ((aimPosition.y or 0.0) - (playerPos.y or 0.0)) or 0.0
+        table.insert(lines, "MODE RETICLE")
         table.insert(lines, "UNIT AIM POINT")
         table.insert(lines, "ROLE TERRAIN")
         table.insert(lines, "DST  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
@@ -2017,7 +2192,9 @@ local function BuildTargetPageText(player)
     table.insert(lines, "SPD  " .. tostring(speed) .. "m/s")
     table.insert(lines, "CLS  " .. (closureRate and tostring(math.floor(math.max(0.0, closureRate) + 0.5)) .. "m/s" or "--") ..
         "  ETA " .. (eta and string.format("%.1fs", eta) or "--"))
+    table.insert(lines, "CLS = closing rate")
     table.insert(lines, "HARDPOINTS")
+    table.insert(lines, "LEGEND + IN RNG  - OUT  * ACTIVE")
 
     local hardpointCount = AppendWeaponStatsLines(lines, target, installedMask, activeMask, player, nil, targetDistance)
     table.insert(lines, "TOTAL " .. tostring(hardpointCount))
@@ -2099,10 +2276,94 @@ local function BuildPresetPageText()
         table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "UNIT", "NONE"))
     end
 
+    local selectedRow = context.rows and context.rows[rowIndex] or nil
+    if selectedRow and selectedRow.kind == "slot" and selectedEntry then
+        local slotInfo = selectedRow.slotInfo
+        local unitPreset = GetUnitPresetRecord(selectedEntry.odf)
+        local option = GetPresetSlotOption(slotInfo, context.armoryOptions, unitPreset)
+        local selectedWeapon = option and option.weaponName or ""
+        local stockWeapon = slotInfo and slotInfo.stockWeapon or ""
+        if selectedWeapon == "" then
+            selectedWeapon = stockWeapon
+        end
+        local stockStats = (stockWeapon ~= "" and GetWeaponStats(stockWeapon)) or nil
+        local selectedStats = (selectedWeapon ~= "" and GetWeaponStats(selectedWeapon)) or nil
+
+        local function FormatDelta(value, unit, decimals)
+            if value == nil then return "n/a" end
+            local format = "%+.0f"
+            if decimals and decimals > 0 then
+                format = "%+." .. tostring(decimals) .. "f"
+            end
+            return string.format(format, value) .. (unit or "")
+        end
+
+        local baseSurcharge = math.floor(GetPresetSurchargeForEntry(selectedEntry) + 0.5)
+        local original = unitPreset and unitPreset[slotInfo.slotIndex] or nil
+        if unitPreset then
+            unitPreset[slotInfo.slotIndex] = nil
+        end
+        local withoutSurcharge = math.floor(GetPresetSurchargeForEntry(selectedEntry) + 0.5)
+        if unitPreset then
+            unitPreset[slotInfo.slotIndex] = original
+        end
+        local deltaCost = math.max(0, baseSurcharge - withoutSurcharge)
+
+        local dpsDelta = (selectedStats and selectedStats.dps or nil) and
+            ((selectedStats.dps or 0.0) - (stockStats and stockStats.dps or 0.0)) or nil
+        local rangeDelta = (selectedStats and selectedStats.range or nil) and
+            ((selectedStats.range or 0.0) - (stockStats and stockStats.range or 0.0)) or nil
+        local delayDelta = (selectedStats and selectedStats.shotDelay or nil) and
+            ((selectedStats.shotDelay or 0.0) - (stockStats and stockStats.shotDelay or 0.0)) or nil
+
+        table.insert(lines, "")
+        table.insert(lines, string.format("COMPARE S%d", slotInfo.slotIndex))
+        table.insert(lines, string.format("COST +%d scrap", deltaCost))
+        table.insert(lines, string.format("DPS  %s", FormatDelta(dpsDelta, "", 1)))
+        table.insert(lines, string.format("RNG  %s", FormatDelta(rangeDelta, "m", 0)))
+        table.insert(lines, string.format("DEL  %s", FormatDelta(delayDelta, "s", 2)))
+    end
+
     table.insert(lines, "")
     table.insert(lines, "Preset applies after build.")
     table.insert(lines, "No refunds for downgrades.")
     table.insert(lines, "UP/DOWN SELECT  LEFT/RIGHT CHANGE")
+    return table.concat(lines, "\n")
+end
+
+local function BuildQueuePageText()
+    local lines = { BuildPdaHeader(PdaPages.QUEUE) }
+    local context = GetQueuePageContext()
+
+    if not context.available then
+        table.insert(lines, "NO PRODUCERS AVAILABLE")
+        table.insert(lines, "Recycler/Factory missing.")
+        table.insert(lines, "[ / ] SWITCH PAGE")
+        return table.concat(lines, "\n")
+    end
+
+    local rowIndex = ClampIndex(InputState.queueRow, 1, math.max(#context.rows, 1), 1)
+    local queue = GetProducerQueueState(context.producerInfo.kindIndex)
+
+    local function RowPrefix(index)
+        return (rowIndex == index) and ">" or " "
+    end
+
+    local queueItemName = "NONE"
+    if #context.unitEntries > 0 then
+        local queueEntry = context.unitEntries[ClampIndex(queue.itemIndex or 1, 1, #context.unitEntries, 1)]
+        queueItemName = queueEntry and (queueEntry.displayName or queueEntry.odf) or "NONE"
+    end
+
+    table.insert(lines, string.format("%s %-11s %s", RowPrefix(1), "PRODUCER", context.producerInfo.label))
+    table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "QUEUE ITEM", queueItemName))
+    table.insert(lines, string.format("%s %-11s %d", RowPrefix(3), "QUEUE COUNT", queue.count or 0))
+    table.insert(lines, string.format("%s %-11s %s", RowPrefix(4), "QUEUE", queue.status or "Queue Off"))
+
+    table.insert(lines, "")
+    table.insert(lines, "ENTER TO LOCK/UNLOCK")
+    table.insert(lines, "UP/DOWN SELECT  LEFT/RIGHT CHANGE")
+    table.insert(lines, "[ / ] SWITCH PAGE")
     return table.concat(lines, "\n")
 end
 
@@ -2156,6 +2417,473 @@ local function ConsumePendingGameKeyMatch(variants)
     return false
 end
 
+local function ConsumePendingNumberKey()
+    local queue = InputState.pendingGameKeys
+    if not queue or #queue == 0 then
+        return nil
+    end
+    for index, key in ipairs(queue) do
+        local digit = nil
+        if #key == 1 and key:match("%d") then
+            digit = tonumber(key)
+        else
+            local match = key:match("NUMPAD(%d)") or key:match("KP(%d)") or key:match("NUM(%d)")
+            if match then
+                digit = tonumber(match)
+            end
+        end
+        if digit and digit >= 1 and digit <= 9 then
+            table.remove(queue, index)
+            return digit
+        end
+    end
+    return nil
+end
+
+local function GetSelectedProducerHandle(team)
+    if type(IsSelected) ~= "function" then return nil end
+    for kindIndex, _ in ipairs(PresetProducerKinds) do
+        local producer = GetProducerHandleForKind(kindIndex, team)
+        if IsValid(producer) and IsSelected(producer) then
+            return producer
+        end
+    end
+    return nil
+end
+
+local function GetBuildEntryForProducer(producer, index)
+    if not IsValid(producer) or not index then return nil end
+    local entries = GetProducerBuildEntries(producer)
+    return entries and entries[index] or nil
+end
+
+local function GetProducerQueueState(kindIndex)
+    InputState.producerQueues = InputState.producerQueues or {}
+    if not InputState.producerQueues[kindIndex] then
+        InputState.producerQueues[kindIndex] = {
+            itemIndex = 1,
+            count = 0,
+            remaining = 0,
+            unitOdf = "",
+            status = "Queue Off",
+            pendingIssue = nil,
+            inProgress = false,
+            locked = false,
+        }
+    end
+    return InputState.producerQueues[kindIndex]
+end
+
+local function GetUnitBuildTimeSeconds(unitOdfName)
+    if not unitOdfName or unitOdfName == "" then return 0.0 end
+    PersistentConfig.UnitBuildTimeCache = PersistentConfig.UnitBuildTimeCache or {}
+    local key = string.lower(unitOdfName)
+    if PersistentConfig.UnitBuildTimeCache[key] ~= nil then
+        return PersistentConfig.UnitBuildTimeCache[key]
+    end
+    local buildTime = 0.0
+    if OpenODF and GetODFFloat then
+        local odf = OpenODF(unitOdfName)
+        if odf then
+            local val, found = GetODFFloat(odf, nil, "buildTime", 0.0)
+            if found then
+                buildTime = val
+            end
+        end
+    end
+    PersistentConfig.UnitBuildTimeCache[key] = buildTime
+    return buildTime
+end
+
+local function UpdateTeamScrapSnapshot(team)
+    if type(GetScrap) ~= "function" then return nil end
+    local current = GetScrap(team) or 0.0
+    local last = InputState.lastTeamScrap[team]
+    if last == nil then
+        InputState.lastTeamScrap[team] = current
+        return 0.0
+    end
+    InputState.lastTeamScrap[team] = current
+    return last - current
+end
+
+local function StartPresetSurchargeForEntry(team, producer, entry)
+    if not entry then return end
+    local now = GetTime()
+    local surcharge = math.floor(GetPresetSurchargeForEntry(entry) + 0.5)
+    local applyAllowed = true
+    local charged = false
+    if surcharge > 0 and type(GetScrap) == "function" then
+        local currentScrap = GetScrap(team)
+        if currentScrap < surcharge then
+            applyAllowed = false
+            ShowFeedback("Not enough scrap for upgrades. Building stock loadout.", 1.0, 0.35, 0.35, 2.5, false, "pda")
+        elseif type(AddScrap) == "function" then
+            AddScrap(team, -surcharge)
+            charged = true
+        end
+    end
+
+    if surcharge > 0 or not applyAllowed then
+        local buildTime = GetUnitBuildTimeSeconds(entry.odf)
+        local expectedFinish = now + (buildTime or 0.0)
+        table.insert(InputState.pendingBuilds, {
+            producer = producer,
+            team = team,
+            unitOdf = entry.odf,
+            unitKey = string.lower(CleanString(entry.odf or "")),
+            surcharge = surcharge,
+            charged = charged,
+            applyAllowed = applyAllowed,
+            startedAt = now,
+            expectedFinishAt = expectedFinish,
+        })
+    end
+end
+
+local function RecordBuildKeyIfPressed(team)
+    local keyIndex = ConsumePendingNumberKey()
+    if not keyIndex then return end
+    local producer = GetSelectedProducerHandle(team)
+    if not producer then return end
+    InputState.lastBuildKey = {
+        producer = producer,
+        keyIndex = keyIndex,
+        time = GetTime(),
+        team = team,
+    }
+end
+
+local function TryStartBuildForProducer(producer, team, scrapDelta)
+    local keyInfo = InputState.lastBuildKey
+    if not keyInfo or keyInfo.producer ~= producer or keyInfo.team ~= team then return end
+    local now = GetTime()
+    if (now - (keyInfo.time or 0.0)) > (PRESET_BUILD_CONFIG.keyWindow or 0.5) then
+        return
+    end
+    local entry = GetBuildEntryForProducer(producer, keyInfo.keyIndex)
+    if not entry then return end
+
+    local stockCost = entry.scrapCost or 0.0
+    local tolerance = (PRESET_BUILD_CONFIG and PRESET_BUILD_CONFIG.scrapConfirmTolerance) or 0.5
+    if type(scrapDelta) == "number" and stockCost > 0.0 then
+        if scrapDelta < (stockCost - tolerance) then
+            return
+        end
+    end
+
+    StartPresetSurchargeForEntry(team, producer, entry)
+    InputState.lastBuildKey = nil
+end
+
+local function UpdateProducerQueues(team)
+    local now = GetTime()
+    for kindIndex, _ in ipairs(PresetProducerKinds) do
+        local producer = GetProducerHandleForKind(kindIndex, team)
+        local queue = GetProducerQueueState(kindIndex)
+        queue.handle = producer
+        local entries = IsValid(producer) and GetProducerBuildEntries(producer) or {}
+        local entryCount = #entries
+        local selectedEntry = nil
+        if entryCount == 0 then
+            queue.itemIndex = 1
+            queue.unitOdf = ""
+            queue.status = "Queue Off"
+            queue.remaining = 0
+            queue.pendingIssue = nil
+            queue.inProgress = false
+            queue.count = 0
+            queue.locked = false
+        else
+            queue.itemIndex = ClampIndex(queue.itemIndex, 1, entryCount, 1)
+            selectedEntry = entries[queue.itemIndex]
+            queue.unitOdf = selectedEntry and selectedEntry.odf or ""
+        end
+
+        if queue.count <= 0 then
+            queue.remaining = 0
+            queue.status = "Queue Off"
+            queue.pendingIssue = nil
+            queue.inProgress = false
+            queue.locked = false
+        elseif not IsValid(producer) then
+            queue.status = "Queue Paused: Producer Missing"
+        else
+            if not queue.locked then
+                queue.status = "Queue Ready: Press Enter"
+            else
+                if queue.pendingIssue and not IsBusy(producer) then
+                    local window = (PRESET_BUILD_CONFIG and PRESET_BUILD_CONFIG.keyWindow) or 0.5
+                    if (now - (queue.pendingIssue.time or 0.0)) > window then
+                        queue.remaining = queue.remaining + 1
+                        queue.pendingIssue = nil
+                    end
+                end
+
+                if IsSelected(producer) then
+                    queue.status = "Queue Paused: Prod Selected"
+                elseif IsBusy(producer) then
+                    if queue.inProgress then
+                        queue.status = "Queue Building"
+                    else
+                        queue.status = "Queue Paused: Manual Build"
+                    end
+                else
+                    if queue.remaining <= 0 then
+                        queue.status = "Queue Complete"
+                    else
+                        local stockCost = selectedEntry and selectedEntry.scrapCost or 0.0
+                        if type(GetScrap) == "function" and stockCost > 0.0 and GetScrap(team) < stockCost then
+                            queue.status = "Queue Paused: Low Scrap"
+                        elseif not queue.pendingIssue then
+                            if queue.unitOdf and queue.unitOdf ~= "" and type(Build) == "function" then
+                                Build(producer, queue.unitOdf)
+                                queue.pendingIssue = { unitOdf = queue.unitOdf, time = now }
+                                queue.remaining = math.max(0, (queue.remaining or 0) - 1)
+                                queue.status = "Queue Starting..."
+                            end
+                        else
+                            queue.status = "Queue Starting..."
+                        end
+                    end
+                end
+            end
+            if queue.count > 0 then
+                local remaining = math.max(0, queue.remaining or 0)
+                queue.status = string.format("%s (%d/%d)", queue.status, remaining, queue.count)
+            end
+        end
+    end
+end
+
+local function UpdateProducerBuildState(team, scrapDelta)
+    local busyState = InputState.producerBusyState
+    for kindIndex, _ in ipairs(PresetProducerKinds) do
+        local producer = GetProducerHandleForKind(kindIndex, team)
+        if IsValid(producer) then
+            local isBusy = IsBusy(producer)
+            local wasBusy = busyState[producer] or false
+            if not wasBusy and isBusy then
+                local queue = GetProducerQueueState(kindIndex)
+                local window = (PRESET_BUILD_CONFIG and PRESET_BUILD_CONFIG.keyWindow) or 0.5
+                if queue and queue.pendingIssue and (GetTime() - (queue.pendingIssue.time or 0.0)) <= window then
+                    queue.inProgress = true
+                    local entry = GetUnitBuildEntry(queue.pendingIssue.unitOdf)
+                    StartPresetSurchargeForEntry(team, producer, entry)
+                    queue.pendingIssue = nil
+                else
+                    TryStartBuildForProducer(producer, team, scrapDelta)
+                end
+            elseif wasBusy and not isBusy then
+                local queue = GetProducerQueueState(kindIndex)
+                if queue and queue.inProgress then
+                    queue.inProgress = false
+                end
+            end
+            busyState[producer] = isBusy
+        end
+    end
+    for handle, _ in pairs(busyState) do
+        if not IsValid(handle) then
+            busyState[handle] = nil
+        end
+    end
+end
+
+local function FindPendingBuildForUnit(team, unitOdfName, h)
+    local pending = InputState.pendingBuilds
+    if not pending or #pending == 0 then return nil end
+    local wanted = string.lower(CleanString(unitOdfName or ""))
+    local now = GetTime()
+    local grace = (PRESET_BUILD_CONFIG and PRESET_BUILD_CONFIG.refundGrace) or 1.0
+    local bestIndex = nil
+    for index, record in ipairs(pending) do
+        if record.team == team and record.unitKey == wanted then
+            if now <= ((record.expectedFinishAt or 0.0) + grace) then
+                if IsValid(h) and IsValid(record.producer) and type(GetDistance) == "function" then
+                    local distance = GetDistance(h, record.producer)
+                    if distance and distance <= 12.0 then
+                        return index, record
+                    end
+                end
+                if not bestIndex then
+                    bestIndex = index
+                end
+            end
+        end
+    end
+    if bestIndex then
+        return bestIndex, pending[bestIndex]
+    end
+    return nil
+end
+
+local function UpdatePendingBuildRefunds()
+    local pending = InputState.pendingBuilds
+    if not pending or #pending == 0 then return end
+    local now = GetTime()
+    local grace = (PRESET_BUILD_CONFIG and PRESET_BUILD_CONFIG.refundGrace) or 1.0
+    for index = #pending, 1, -1 do
+        local record = pending[index]
+        local expireAt = (record.expectedFinishAt or 0.0) + grace
+        local producerValid = IsValid(record.producer)
+        local earlyExpire = (not producerValid) and now > ((record.startedAt or 0.0) + 0.5)
+        if now > expireAt or earlyExpire then
+            if record.charged and record.surcharge and record.surcharge > 0 and type(AddScrap) == "function" then
+                AddScrap(record.team, record.surcharge)
+            end
+            table.remove(pending, index)
+        end
+    end
+end
+
+local function IsCommanderTrackedHandle(h)
+    if not IsValid(h) then return false end
+    if type(IsBuilding) == "function" and IsBuilding(h) then
+        return true
+    end
+    local label = CleanString((type(GetClassLabel) == "function" and GetClassLabel(h)) or "")
+    return label == "turret" or label == "commtower" or label == "powerplant"
+end
+
+local function RegisterCommanderHandle(h)
+    local overview = InputState.commanderOverview
+    if not overview or not IsCommanderTrackedHandle(h) then return end
+    if type(GetTeamNum) == "function" then
+        local team = GetPlayerTeamNum()
+        if GetTeamNum(h) ~= team then
+            return
+        end
+    end
+    if overview.handleSet[h] then return end
+    overview.handleSet[h] = true
+    table.insert(overview.handles, h)
+end
+
+local function InitializeCommanderOverview()
+    local overview = InputState.commanderOverview
+    if not overview or overview.initialized then return end
+    overview.initialized = true
+    overview.handles = {}
+    overview.handleSet = {}
+    for h in AllObjects() do
+        RegisterCommanderHandle(h)
+    end
+end
+
+local function UpdateCommanderOverview()
+    local overview = InputState.commanderOverview
+    if not overview then return end
+    InitializeCommanderOverview()
+    local now = GetTime()
+    if now - (overview.lastUpdate or 0.0) < (overview.interval or 1.0) then return end
+    overview.lastUpdate = now
+
+    local counts = {
+        hangar = 0,
+        supply = 0,
+        comm = 0,
+        silo = 0,
+        barracks = 0,
+        turret = 0,
+    }
+    local powerSources = {}
+    local turrets = {}
+    local comms = {}
+
+    for index = #overview.handles, 1, -1 do
+        local h = overview.handles[index]
+        if not IsValid(h) or (type(IsAlive) == "function" and not IsAlive(h)) then
+            overview.handleSet[h] = nil
+            table.remove(overview.handles, index)
+        else
+            local label = CleanString((type(GetClassLabel) == "function" and GetClassLabel(h)) or "")
+            if label == "powerplant" then
+                local odf = type(GetOdf) == "function" and GetOdf(h) or nil
+                local radius = GetPowerRadius(odf)
+                table.insert(powerSources, { handle = h, radius = radius })
+            elseif label == "repairdepot" then
+                counts.hangar = counts.hangar + 1
+            elseif label == "supplydepot" then
+                counts.supply = counts.supply + 1
+            elseif label == "commtower" then
+                counts.comm = counts.comm + 1
+                table.insert(comms, h)
+            elseif label == "turret" then
+                counts.turret = counts.turret + 1
+                table.insert(turrets, h)
+            elseif label == "scrapsilo" then
+                counts.silo = counts.silo + 1
+            elseif label == "barracks" then
+                counts.barracks = counts.barracks + 1
+            end
+        end
+    end
+
+    local unpoweredTurrets = 0
+    local unpoweredComm = 0
+    if #powerSources > 0 then
+        for _, turret in ipairs(turrets) do
+            local powered = false
+            for _, power in ipairs(powerSources) do
+                if GetDistance(turret, power.handle) < power.radius then
+                    powered = true
+                    break
+                end
+            end
+            if not powered then
+                unpoweredTurrets = unpoweredTurrets + 1
+            end
+        end
+        for _, comm in ipairs(comms) do
+            local powered = false
+            for _, power in ipairs(powerSources) do
+                if GetDistance(comm, power.handle) < power.radius then
+                    powered = true
+                    break
+                end
+            end
+            if not powered then
+                unpoweredComm = unpoweredComm + 1
+            end
+        end
+    else
+        unpoweredTurrets = #turrets
+        unpoweredComm = #comms
+    end
+
+    overview.stats = {
+        counts = counts,
+        unpoweredTurrets = unpoweredTurrets,
+        unpoweredComm = unpoweredComm,
+        powerSources = #powerSources,
+    }
+end
+
+local function BuildCommandPageText()
+    local lines = { BuildPdaHeader(PdaPages.COMMAND) }
+    local overview = InputState.commanderOverview
+    if not overview or not overview.initialized then
+        table.insert(lines, "Commander Overview")
+        table.insert(lines, "Scanning structures...")
+        return table.concat(lines, "\n")
+    end
+
+    local stats = overview.stats or {}
+    local counts = stats.counts or {}
+    table.insert(lines, "Commander Overview")
+    table.insert(lines, string.format("HANGAR   %d", counts.hangar or 0))
+    table.insert(lines, string.format("SUPPLY   %d", counts.supply or 0))
+    table.insert(lines, string.format("COMM     %d", counts.comm or 0))
+    table.insert(lines, string.format("SILO     %d", counts.silo or 0))
+    table.insert(lines, string.format("BARRACKS %d", counts.barracks or 0))
+    table.insert(lines, string.format("TOWER    %d", counts.turret or 0))
+    table.insert(lines, "")
+    table.insert(lines, string.format("UNPOWERED TOWERS %d", stats.unpoweredTurrets or 0))
+    table.insert(lines, string.format("UNPOWERED COMM   %d", stats.unpoweredComm or 0))
+    return table.concat(lines, "\n")
+end
+
 local function BuildWeaponStatsText(player, mask)
     local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.STATS)
     if page == PdaPages.TARGET then
@@ -2166,6 +2894,12 @@ local function BuildWeaponStatsText(player, mask)
     end
     if page == PdaPages.PRESETS then
         return BuildPresetPageText()
+    end
+    if page == PdaPages.QUEUE then
+        return BuildQueuePageText()
+    end
+    if page == PdaPages.COMMAND then
+        return BuildCommandPageText()
     end
     return BuildStatsPageText(player, mask)
 end
@@ -2809,9 +3543,7 @@ end
 -- Show help overlay
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
-    local helpMsg = "KEYS: V:Headlight On/Off | Z:Color | J:AI-Lights\n" ..
-        "B:Beam | X:Auto-Repair | Shift+X:Build-Repair | U:Scav-Assist | Y:PDA | Shift+L:AutoSave\n" ..
-        "[:Prev Page | ]:Next Page | SETTINGS page mirrors these options | /:Help"
+    local helpMsg = "Use Y to toggle PDA."
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
 end
@@ -2881,6 +3613,14 @@ function PersistentConfig.UpdateInputs()
             end
         end
     end
+
+    local team = GetPlayerTeamNum()
+    local scrapDelta = UpdateTeamScrapSnapshot(team)
+    RecordBuildKeyIfPressed(team)
+    UpdateProducerQueues(team)
+    UpdateProducerBuildState(team, scrapDelta)
+    UpdatePendingBuildRefunds()
+    UpdateCommanderOverview()
 
     if not exu or not exu.GetGameKey then return end
 
@@ -3003,7 +3743,48 @@ function PersistentConfig.UpdateInputs()
 
         if changedPreset then
             PlayPdaSound("mnu_enab.wav")
-            PersistentConfig.SaveConfig()
+            if changedPreset then
+                PersistentConfig.SaveConfig()
+            end
+            RefreshPdaOverlay()
+        end
+    elseif InputState.pdaPage == PdaPages.QUEUE then
+        local context = GetQueuePageContext()
+        local rowCount = math.max(#(context.rows or {}), 1)
+
+        if pda_up_key then
+            InputState.queueRow = CycleIndex(InputState.queueRow, rowCount, -1, 1)
+            PlayPdaSound("mnu_clik.wav")
+            RefreshPdaOverlay()
+        elseif pda_down_key then
+            InputState.queueRow = CycleIndex(InputState.queueRow, rowCount, 1, 1)
+            PlayPdaSound("mnu_clik.wav")
+            RefreshPdaOverlay()
+        end
+
+        local changedQueue = false
+        local row = context.rows and context.rows[ClampIndex(InputState.queueRow, 1, rowCount, 1)] or nil
+        local delta = pda_left_key and -1 or (pda_right_key and 1 or 0)
+        if delta ~= 0 and row then
+            if row.kind == "producer" and #context.producerKinds > 0 then
+                InputState.queueProducerIndex = CycleIndex(InputState.queueProducerIndex, #context.producerKinds, delta, 1)
+                InputState.queueRow = 1
+                changedQueue = true
+            elseif row.kind == "queue_item" then
+                changedQueue = AdjustQueueItem(context, delta)
+            elseif row.kind == "queue_count" then
+                changedQueue = AdjustQueueCount(context, delta)
+            end
+        end
+
+        local enterPressed = ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
+        if enterPressed then
+            if ToggleQueueLock(context) then
+                PlayPdaSound("mnu_enab.wav")
+                RefreshPdaOverlay()
+            end
+        elseif changedQueue then
+            PlayPdaSound("mnu_enab.wav")
             RefreshPdaOverlay()
         end
     end
@@ -3307,8 +4088,20 @@ local function ApplyUnitPresetToObject(h)
         return false
     end
 
+    local pendingIndex, pending = FindPendingBuildForUnit(team, odfName, h)
+    if pending and not pending.applyAllowed then
+        if pendingIndex then
+            table.remove(InputState.pendingBuilds, pendingIndex)
+        end
+        return false
+    end
+
     local surcharge = math.floor(GetPresetSurchargeForEntry(entry) + 0.5)
-    if surcharge > 0 and type(GetScrap) == "function" and GetScrap(team) < surcharge then
+    if pending and pending.surcharge then
+        surcharge = pending.surcharge
+    end
+    local skipCharge = pending and pending.charged
+    if surcharge > 0 and not skipCharge and type(GetScrap) == "function" and GetScrap(team) < surcharge then
         ShowFeedback("Preset skipped: need +" .. tostring(surcharge) .. " scrap", 1.0, 0.35, 0.35, 2.5, false, "pda")
         return false
     end
@@ -3326,12 +4119,18 @@ local function ApplyUnitPresetToObject(h)
         end
     end
 
-    if applied and surcharge > 0 and type(AddScrap) == "function" then
+    if applied and surcharge > 0 and type(AddScrap) == "function" and not skipCharge then
         AddScrap(team, -surcharge)
     end
     if applied then
         ShowFeedback("Preset applied: " .. (entry.displayName or odfName) .. " +" .. tostring(surcharge) .. " scrap",
             0.35, 1.0, 0.35, 2.5, false, "pda")
+    end
+    if pendingIndex then
+        if not applied and pending and pending.charged and type(AddScrap) == "function" and pending.surcharge > 0 then
+            AddScrap(team, pending.surcharge)
+        end
+        table.remove(InputState.pendingBuilds, pendingIndex)
     end
     return applied
 end
@@ -3341,6 +4140,8 @@ function PersistentConfig.OnObjectCreated(h)
         return
     end
     InputState.processedCreationHandles[h] = true
+
+    RegisterCommanderHandle(h)
 
     if exu and exu.SetHeadlightVisible and PersistentConfig.Settings.OtherHeadlightsDisabled then
         local player = GetPlayerHandle()

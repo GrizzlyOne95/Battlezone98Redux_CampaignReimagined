@@ -107,7 +107,7 @@ local function ClearDefaultSubtitleQueue()
     end
 end
 
-local function SubmitSequenceEntries(entries)
+local function SubmitSequenceEntries(entries, append)
     if not Subtitles.Config.enabled then
         return
     end
@@ -116,12 +116,16 @@ local function SubmitSequenceEntries(entries)
     end
 
     if ApplySubtitleLayout() then
-        ClearSubtitleChannel()
+        if not append then
+            ClearSubtitleChannel()
+        end
         for _, entry in ipairs(entries) do
             subtitles.submit_to(SUBTITLE_CHANNEL, entry.text, entry.duration, entry.r, entry.g, entry.b)
         end
     else
-        ClearDefaultSubtitleQueue()
+        if not append then
+            ClearDefaultSubtitleQueue()
+        end
         subtitles.set_opacity(Clamp(tonumber(Subtitles.Config.opacity) or 0.5, 0.0, 1.0))
         for _, entry in ipairs(entries) do
             subtitles.submit(entry.text, entry.duration, entry.r, entry.g, entry.b)
@@ -225,12 +229,20 @@ local function ResubmitActiveSequence()
     Subtitles.LastEndTime = GetTime() + remainingDuration
 end
 
-local function StartSequence(source)
+local function StartSequence(source, append)
     activeSequenceSource = source
-    activeSequenceSource.startedAt = GetTime()
+    if not append then
+        activeSequenceSource.startedAt = GetTime()
+    else
+        activeSequenceSource.startedAt = math.max(GetTime(), Subtitles.LastEndTime or 0)
+    end
     local entries, totalDuration = BuildSequenceEntries(activeSequenceSource)
-    SubmitSequenceEntries(entries)
-    Subtitles.LastEndTime = activeSequenceSource.startedAt + totalDuration
+    SubmitSequenceEntries(entries, append)
+    if not append then
+        Subtitles.LastEndTime = activeSequenceSource.startedAt + totalDuration
+    else
+        Subtitles.LastEndTime = Subtitles.LastEndTime + totalDuration
+    end
 end
 
 local function SubmitSubtitleText(text, duration, r, g, b)
@@ -459,6 +471,58 @@ function Subtitles.Play(wavFilename, r, g, b)
         activeSequenceSource = nil
         print("Subtitles: Could not find text file " .. txtFilename)
         -- Optionally clear queue if we want silence to clear previous subs
+    end
+
+	return handle
+end
+
+--- Play an audio message and queue associated subtitles
+--- @param wavFilename string The .wav file to play
+--- @param r number|nil Red (0-1)
+--- @param g number|nil Green (0-1)
+--- @param b number|nil Blue (0-1)
+--- @return userdata The audio message handle
+function Subtitles.Queue(wavFilename, r, g, b)
+    Subtitles.SetOpacity(Subtitles.Config.opacity)
+
+    if r == nil then r = 1.0 end
+    if g == nil then g = 1.0 end
+    if b == nil then b = 1.0 end
+
+    local handle = AudioMessage(wavFilename)
+    
+    if currentAudioHandle and not IsAudioMessageDone(currentAudioHandle) then
+        currentAudioHandle = handle
+    else
+        currentAudioHandle = handle
+    end
+
+    if not Subtitles.Config.enabled then
+        return handle
+    end
+
+    local txtFilename = string.gsub(wavFilename, "%.[wW][aA][vV]$", ".txt")
+    if txtFilename == wavFilename then
+        txtFilename = wavFilename .. ".txt"
+    end
+    local content = UseItem(txtFilename)
+
+    if content then
+        local dur = durations[string.lower(wavFilename)]
+        if not dur then dur = GetWavDuration(wavFilename) end
+        if not dur then dur = math.max(DEFAULT_DURATION, #content / 18.0) end
+
+        StartSequence({
+            mode = "play",
+            text = content,
+            duration = dur,
+            r = r,
+            g = g,
+            b = b,
+        }, true)
+    else
+        activeSequenceSource = nil
+        print("Subtitles: Could not find text file " .. txtFilename)
     end
 
     return handle

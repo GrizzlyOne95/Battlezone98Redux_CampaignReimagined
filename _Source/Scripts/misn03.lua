@@ -1018,7 +1018,7 @@ function Update()
         ClearObjectives()
         AddObjective("misn0313.otf", "green")
         AddObjective("misn0304.otf", "white")
-        subtit.Play("misn0310.wav")
+        subtit.Queue("misn0310.wav")
         M.second_warning = true
     end
 
@@ -1027,7 +1027,7 @@ function Update()
         ClearObjectives()
         AddObjective("misn0313.otf", "green")
         AddObjective("misn0304.otf", "white")
-        subtit.Play("misn0310.wav")
+        subtit.Queue("misn0310.wav")
         M.last_warning = true
     end
 

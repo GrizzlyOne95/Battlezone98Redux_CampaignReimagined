@@ -233,6 +233,16 @@ local function HasOdfString(value, found)
     return cleaned ~= ""
 end
 
+local function IsIndependenceLocked(h)
+    if not IsValid(h) then return false end
+    if type(GetIndependence) ~= "function" then return false end
+    local ok, value = pcall(GetIndependence, h)
+    if ok and type(value) == "number" then
+        return value <= 0
+    end
+    return false
+end
+
 local function RemoveMaskBits(mask, removeMask)
     local result = 0
     for slot = 0, 4 do
@@ -1286,6 +1296,30 @@ function aiCore.GetPendingMissileDamage(teamNum, target)
     return total
 end
 
+function aiCore.GetPendingMissileDamageForShooter(shooter, target)
+    if not IsValid(shooter) or not IsValid(target) then return 0.0 end
+
+    local total = 0.0
+    for _, entry in pairs(aiCore.TrackedMissileAllocations) do
+        if entry.shooter == shooter and entry.target == target then
+            total = total + (entry.damage or 0.0)
+        end
+    end
+    return total
+end
+
+function aiCore.GetPendingMissileCountForShooter(shooter, target)
+    if not IsValid(shooter) or not IsValid(target) then return 0 end
+
+    local count = 0
+    for _, entry in pairs(aiCore.TrackedMissileAllocations) do
+        if entry.shooter == shooter and entry.target == target then
+            count = count + 1
+        end
+    end
+    return count
+end
+
 function aiCore.FindMissileRetargetCandidate(shooter, currentTarget, teamNum, searchRadius, killBuffer)
     if not IsValid(shooter) or not IsAlive(shooter) then return nil end
 
@@ -1713,14 +1747,16 @@ function aiCore.RefreshObjectCache(force)
         local teamCraft = {}
         for h in AllCraft() do
             if IsValid(h) and IsAlive(h) then
-                local team = GetTeamNum(h)
-                if team and team >= 0 then
-                    local craftList = teamCraft[team]
-                    if not craftList then
-                        craftList = {}
-                        teamCraft[team] = craftList
+                if not IsIndependenceLocked(h) then
+                    local team = GetTeamNum(h)
+                    if team and team >= 0 then
+                        local craftList = teamCraft[team]
+                        if not craftList then
+                            craftList = {}
+                            teamCraft[team] = craftList
+                        end
+                        craftList[#craftList + 1] = h
                     end
-                    craftList[#craftList + 1] = h
                 end
             end
         end
@@ -1748,7 +1784,9 @@ function aiCore.RefreshObjectCache(force)
                         buildingList[#buildingList + 1] = h
                     end
                 elseif IsPerson(h) then
-                    pilotPersons[#pilotPersons + 1] = h
+                    if not IsIndependenceLocked(h) then
+                        pilotPersons[#pilotPersons + 1] = h
+                    end
                 else
                     local cls = string.lower(utility.CleanString(GetClassLabel(h)))
                     if cls == utility.ClassLabel.SCRAP then
@@ -2770,6 +2808,7 @@ function aiCore.WeaponManager:AddObject(h)
     local missileMask = 0
     local supportMask = 0
     local unresolvedMissile = false
+    local maxMissileDamage = 0.0
     for i = 0, 4 do
         local weapon = string.lower(utility.CleanString(GetWeaponClass(h, i)))
         if weapon ~= "" then
@@ -2779,6 +2818,9 @@ function aiCore.WeaponManager:AddObject(h)
             if aiCore.GetMissileThreatType(weapon) then
                 local profile = GetMissileWeaponProfile(weapon)
                 if profile and profile.damage and profile.damage > 0.0 then
+                    if profile.damage > maxMissileDamage then
+                        maxMissileDamage = profile.damage
+                    end
                     table.insert(missileSlots, {
                         slot = i,
                         mask = bit,
@@ -2809,6 +2851,7 @@ function aiCore.WeaponManager:AddObject(h)
             missileMask = missileMask,
             supportMask = supportMask,
             missileOnly = supportMask <= 0,
+            missileMaxDamage = maxMissileDamage,
         })
         if aiCore.Debug then
             print("Team " .. self.teamNum .. " added missile efficiency user: " .. GetOdf(h))
@@ -4341,15 +4384,22 @@ function aiCore.Bootstrap()
 
     for h in AllObjects() do
         count = count + 1
+        local skip = false
         if IsCraft(h) then
-            aiCore.ApplyDynamicMass(h)
+            if IsIndependenceLocked(h) then
+                skip = true
+            else
+                aiCore.ApplyDynamicMass(h)
+            end
         end
 
-        local team = GetTeamNum(h)
-        if aiCore.ActiveTeams[team] then
-            if not aiCore.IsTracked(h, team) then
-                aiCore.AddObject(h)
-                registered = registered + 1
+        if not skip then
+            local team = GetTeamNum(h)
+            if aiCore.ActiveTeams[team] then
+                if not aiCore.IsTracked(h, team) then
+                    aiCore.AddObject(h)
+                    registered = registered + 1
+                end
             end
         end
     end
@@ -6152,6 +6202,14 @@ function aiCore.WeaponManager:UpdateMissileEfficiency(dt)
                 else
                     local pendingDamage = aiCore.GetPendingMissileDamage(self.teamNum, target)
                     local neededDamage = (targetHealth * (self.missileKillBuffer or 1.1)) - pendingDamage
+                    local selfPendingCount = aiCore.GetPendingMissileCountForShooter(h, target)
+
+                    if user.missileMaxDamage and user.missileMaxDamage > 0.0 then
+                        local lowHealthThreshold = user.missileMaxDamage * (self.missileKillBuffer or 1.1)
+                        if targetHealth <= lowHealthThreshold and selfPendingCount >= 1 then
+                            neededDamage = -1.0
+                        end
+                    end
 
                     local supportMask = RemoveMaskBits(baseMask, user.missileMask)
                     if supportMask <= 0 then
@@ -10607,6 +10665,7 @@ end
 function aiCore.Team:AddObject(h)
     -- Duplicate check
     if aiCore.IsTracked(h, self.teamNum) then return end
+    if (IsCraft(h) or IsPerson(h)) and IsIndependenceLocked(h) then return end
 
     local odf = string.lower(utility.CleanString(GetOdf(h)))
     local cls = string.lower(utility.CleanString(GetClassLabel(h)))
@@ -10986,6 +11045,7 @@ end
 
 function aiCore.AddObject(h)
     if not IsValid(h) then return end
+    if (IsCraft(h) or IsPerson(h)) and IsIndependenceLocked(h) then return end
     aiCore.InvalidateObjectCache()
 
     -- Apply Dynamic Mass to all crafts registered
