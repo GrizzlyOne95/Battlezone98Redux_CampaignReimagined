@@ -12,15 +12,15 @@ heatSignature = 3.0
 imageSignature = 5.0
 radarSignature = 1.0
 weaponHard1 = "GC1"
-weaponName1 = "gatstab"
+weaponName1 = "gatstaba"
 weaponHard2 = "GC2"
-weaponName2 = "gatstab"
+weaponName2 = "gatstaba"
 weaponHard3 = "GM1"
 weaponName3 = "gpopgun"
 weaponMask = 00011
 
 [CraftClass]
-rangeScan = 287.5
+rangeScan = 250.0
 periodScan = 0.0
 velocJam = 0.0
 selectAttackMsg = "avwalkvd.wav"
