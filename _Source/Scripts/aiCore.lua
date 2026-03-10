@@ -4819,10 +4819,17 @@ function aiCore.ConstructorManager:update()
     -- Check if the active job has been completed
     if self.activeJob then
         local pos = self.activeJob.path
-        if type(pos) == "string" then pos = paths.GetPosition(pos, 0) end
+        local posVec = nil
+        if type(pos) == "string" then
+            posVec = paths.GetPosition(pos, 0)
+        elseif type(pos) == "table" and pos.posit_x ~= nil then
+            posVec = MatrixToPosition(pos)
+        else
+            posVec = pos
+        end
         local building_exists = false
-        if pos then -- Check if pos is valid
-            for obj in ObjectsInRange(40, pos) do
+        if posVec then -- Check if pos is valid
+            for obj in ObjectsInRange(40, posVec) do
                 if IsOdf(obj, self.activeJob.odf) and GetTeamNum(obj) == self.team then
                     building_exists = true
                     break
@@ -4832,6 +4839,7 @@ function aiCore.ConstructorManager:update()
         if building_exists then
             if aiCore.Debug then print("Constructor job " .. self.activeJob.odf .. " verified complete.") end
             self.activeJob = nil
+            self.jobState = nil
         end
     end
 
@@ -4865,26 +4873,43 @@ function aiCore.ConstructorManager:update()
 
         -- If we are here, the constructor is IDLE and ABLE to take a command.
         local pos = self.activeJob.path
-        if type(pos) == "string" then pos = paths.GetPosition(pos, 0) end
+        local posVec = nil
+        local buildPos = pos
+        if type(pos) == "string" then
+            posVec = paths.GetPosition(pos, 0)
+            buildPos = posVec
+        elseif type(pos) == "table" and pos.posit_x ~= nil then
+            posVec = MatrixToPosition(pos)
+        else
+            posVec = pos
+            buildPos = pos
+        end
 
-        if not pos then -- If path is invalid, junk the job
+        if not posVec then -- If path is invalid, junk the job
             self.activeJob = nil
+            self.jobState = nil
             return
         end
 
-        if not string.match(AiCommand[GetCurrentCommand(constructor)], "GO") and GetDistance(constructor, pos) > 60.0 then
+        local cmd = GetCurrentCommand(constructor)
+        if cmd == AiCommand.BUILD then
+            return
+        end
+        local cmdName = AiCommand[cmd] or ""
+
+        if not string.match(cmdName, "GO") and GetDistance(constructor, posVec) > 60.0 then
             -- Move to site
-            aiCore.TrySetCommand(constructor, AiCommand.GO, GetUncommandablePriority(), nil, pos, nil, nil,
+            aiCore.TrySetCommand(constructor, AiCommand.GO, GetUncommandablePriority(), nil, posVec, nil, nil,
                 { minInterval = 1.0 })
             if aiCore.Debug then print("Constructor GOTO " .. self.activeJob.odf .. " site.") end
-        elseif GetDistance(constructor, pos) <= 60.0 then
+        elseif GetDistance(constructor, posVec) <= 60.0 then
             -- At site, try to build
             -- Pre-build checks
             local scrapCost = GetODFInt(OpenODF(self.activeJob.odf), "GameObjectClass", "scrapCost")
             if GetScrap(self.team) >= scrapCost then
                 -- Check for existing building
                 local existingBuilding = nil
-                for obj in ObjectsInRange(40, pos) do
+                for obj in ObjectsInRange(40, posVec) do
                     if IsOdf(obj, self.activeJob.odf) and GetTeamNum(obj) == self.team then
                         existingBuilding = obj
                         break
@@ -4895,6 +4920,7 @@ function aiCore.ConstructorManager:update()
                     if aiCore.Debug then print("Constructor job " .. self.activeJob.odf .. " cancelled (already exists).") end
                     -- Associate and remove from queue is complex, just aborting job is safer for aiCore
                     self.activeJob = nil
+                    self.jobState = nil
                     return
                 else
                     -- Only build if pulse timer conditions are met
@@ -4903,7 +4929,7 @@ function aiCore.ConstructorManager:update()
                     else
                         -- Issue BuildAt command
                         if aiCore.Debug then print("Constructor issuing BuildAt for " .. self.activeJob.odf) end
-                        BuildAt(constructor, self.activeJob.odf, pos)
+                        BuildAt(constructor, self.activeJob.odf, buildPos)
                         self.pulseTimer = self.pulsePeriod + math.random((0 * self.pulsePeriod), self.pulsePeriod) +
                             GetTime()
                     end
@@ -5721,6 +5747,9 @@ function aiCore.Team:new(teamNum, faction)
         sniperTraining = 75,
         sniperStealth = 0.5,
         sniperTimeout = 8.0,
+        pilotEmergencyBarracksThreshold = 3,
+        pilotEmergencyBarracksPriority = 3,
+        pilotEmergencyCheckInterval = 6.0,
         flankFormationRushChance = 40, -- Chance a flank squad attacks in formation-rush mode
         resourceBoost = false,
 
@@ -9555,6 +9584,19 @@ end
 function aiCore.Team:UpdateAutoBase()
     if not self.Config.autoBuild then return end
     local constructor = self.constructorMgr.handle
+
+    if self.Config.autoManage then
+        if not self.pilotEmergencyCheckAt or GetTime() > self.pilotEmergencyCheckAt then
+            self.pilotEmergencyCheckAt = GetTime() + (self.Config.pilotEmergencyCheckInterval or 6.0)
+            local pilots = GetPilot(self.teamNum)
+            if pilots >= 0 and pilots < (self.Config.pilotEmergencyBarracksThreshold or 3) then
+                if not self:HasBuilding("barracks") then
+                    self:PlanBarracks(self.Config.pilotEmergencyBarracksPriority or 3)
+                end
+            end
+        end
+    end
+
     if not IsValid(constructor) or IsBusy(constructor) then return end
 
     -- Periodic Base Expansion Check
@@ -10027,23 +10069,41 @@ function aiCore.Team:UpdatePilots()
                 if pos then
                     grounded = (pos.y - GetTerrainHeight(pos.x, pos.z)) < 5.0
                 end
-                local enemyCloaked = IsValid(enemy) and IsCloaked(enemy)
-                local canStartSniperAttack = isSniper and IsValid(enemy) and dist < sniperRange and grounded and not enemyCloaked and
-                    (cmd == utility.AiCommand.GO or (cmd == utility.AiCommand.NONE and ammo >= 0.3))
-                local canMaintainSniperCombat = isSniper and IsValid(enemy) and dist < sniperRange and grounded and
-                    not enemyCloaked and utility.CanSnipe(enemy) and ammo >= 0.3
+                local attackTarget = nil
+                if cmd == utility.AiCommand.ATTACK then
+                    local who = GetCurrentWho(p)
+                    if IsValid(who) then
+                        attackTarget = who
+                    end
+                end
+                local sniperTarget = nil
+                local currentTarget = GetTarget(p)
+                if IsValid(currentTarget) and utility.CanSnipe(currentTarget) then
+                    sniperTarget = currentTarget
+                elseif IsValid(attackTarget) and utility.CanSnipe(attackTarget) then
+                    sniperTarget = attackTarget
+                elseif IsValid(enemy) and dist < sniperRange and utility.CanSnipe(enemy) then
+                    sniperTarget = enemy
+                end
+                local targetDist = IsValid(sniperTarget) and GetDistance(p, sniperTarget) or 9999
+                local targetCloaked = IsValid(sniperTarget) and IsCloaked(sniperTarget)
+                local canStartSniperAttack = isSniper and IsValid(sniperTarget) and grounded and not targetCloaked and
+                    (cmd == utility.AiCommand.GO or cmd == utility.AiCommand.NONE or cmd == utility.AiCommand.ATTACK) and
+                    (targetDist < sniperRange or cmd == utility.AiCommand.ATTACK) and ammo >= 0.3
+                local canMaintainSniperCombat = isSniper and IsValid(sniperTarget) and targetDist < sniperRange and grounded and
+                    not targetCloaked and utility.CanSnipe(sniperTarget) and ammo >= 0.3
 
                 -- Sniper behavior (ported from aiSpecial): attack first, rifle equip is the training roll.
                 if weapon0 ~= "" and string.find(weapon0, "handgun") then
                     self.sniperEquipTime[p] = nil
                     if canStartSniperAttack then
-                        if actionReady and (cmd ~= utility.AiCommand.ATTACK or GetCurrentWho(p) ~= enemy) then
-                            aiCore.TryAttack(p, enemy, GetCommandableAttackPriority(), { minInterval = 0.5 })
-                            SetTarget(p, enemy)
+                        if actionReady and (cmd ~= utility.AiCommand.ATTACK or GetCurrentWho(p) ~= sniperTarget) then
+                            aiCore.TryAttack(p, sniperTarget, GetCommandableAttackPriority(), { minInterval = 0.5 })
+                            SetTarget(p, sniperTarget)
                             self.pilotActionTimer[p] = now + 0.6
                         end
 
-                        if actionReady and math.random(100) <= sniperAttackChance and utility.CanSnipe(enemy) and ammo >= 0.3 then
+                        if actionReady and math.random(100) <= sniperAttackChance then
                             GiveWeapon(p, "gsnipe", 0)
                             self.sniperEquipTime[p] = now
                             self.pilotActionTimer[p] = now + 0.4
@@ -10083,7 +10143,7 @@ function aiCore.Team:UpdatePilots()
                 end
 
                 -- Craft Stealing (Refined: Any unoccupied vehicle)
-                local focusingSniperCombat = isSniper and IsValid(enemy) and dist < (sniperRange + 40) and grounded and not enemyCloaked
+                local focusingSniperCombat = isSniper and IsValid(sniperTarget) and targetDist < (sniperRange + 40) and grounded and not targetCloaked
                 if self.Config.sniperSteal and not focusingSniperCombat then
                     local target = GetTarget(p)
                     -- If they have no target or current target is not stealable, look for nearby empty craft
@@ -10300,11 +10360,12 @@ function aiCore.Team:UpdateUpgrades()
             -- 1. Heal/Resupply Turrets
             for obj in ObjectsInRange(500, armory) do -- Range check optimization
                 if GetTeamNum(obj) == self.teamNum then
+                    local isBuilding = IsBuilding(obj)
                     if GetHealth(obj) < 0.5 then
                         target = obj
                         powerup = "aprepa"
                         break
-                    elseif GetAmmo(obj) < 0.3 then
+                    elseif not isBuilding and GetAmmo(obj) < 0.3 then
                         target = obj
                         powerup = "apammo"
                         break
