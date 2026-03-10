@@ -12,10 +12,10 @@ heatSignature = 0.8
 imageSignature = 8.0
 radarSignature = 1.0
 weaponHard1 = "GC1"
-weaponName1 = "gblast"
+weaponName1 = "gspstabn"
 
 [CraftClass]
-rangeScan = 229.99999999999997
+rangeScan = 200.0
 periodScan = 0.0
 velocJam = 0.0
 
