@@ -5801,6 +5801,7 @@ function aiCore.Team:new(teamNum, faction)
         pilotEmergencyBarracksPriority = 3,
         pilotEmergencyCheckInterval = 6.0,
         flankFormationRushChance = 40, -- Chance a flank squad attacks in formation-rush mode
+        flankAttackChance = 55, -- Chance a squad attempts a staged flank instead of direct attack
         resourceBoost = false,
 
         -- Timers
@@ -9725,6 +9726,16 @@ function aiCore.Team:UpdateUnitRoles()
     if now < (self.roleTimer or 0) then return end
     self.roleTimer = now + 5.0
 
+    local squadUnits = {}
+    for _, sq in ipairs(self.squads or aiCore.EmptyList) do
+        if sq then
+            if IsValid(sq.leader) then squadUnits[sq.leader] = true end
+            for _, m in ipairs(sq.members or aiCore.EmptyList) do
+                if IsValid(m) then squadUnits[m] = true end
+            end
+        end
+    end
+
     local enemyTeam = self:GetPrimaryEnemyTeam()
     if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
 
@@ -9870,13 +9881,13 @@ function aiCore.Team:UpdateUnitRoles()
 
     local processed = {}
     for _, u in ipairs(self.combatUnits) do
-        if not processed[u] then
+        if not processed[u] and not squadUnits[u] then
             processed[u] = true
             AssignRole(u)
         end
     end
     for _, u in ipairs(self.pool) do
-        if not processed[u] then
+        if not processed[u] and not squadUnits[u] then
             processed[u] = true
             AssignRole(u)
         end
@@ -10296,6 +10307,19 @@ function aiCore.Team:UpdateSquads()
         return (math.random(100) <= chance) and "formation_rush" or "independent"
     end
 
+    local function RollFlankEngagement()
+        local chance = self.Config.flankAttackChance
+        if chance == nil then chance = 55 end
+        if chance < 0 then chance = 0 end
+        if chance > 100 then chance = 100 end
+
+        -- Prefer fewer staged flanks for non-player enemies.
+        if not aiCore.IsEnemyOfPlayerTeam(self.teamNum) then
+            chance = math.min(chance, 25)
+        end
+        return (math.random(100) <= chance)
+    end
+
     local function IssueGoalOrders(squad, leader, goal, angle)
         if not squad or not goal then return false end
 
@@ -10305,18 +10329,23 @@ function aiCore.Team:UpdateSquads()
             local target = squad:ResolveStrategicTarget()
             if not IsValid(target) then return false end
 
-            local flankPos = self:GetValidFlankPosition(target, angle)
-            squad.flankStartTime = GetTime()
-            if flankPos then
-                squad.targetPos = flankPos
-                squad.state = "moving_to_flank"
-                aiCore.TrySetCommand(leader, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
-                    { minInterval = 0.7, ignoreThrottle = true })
-                for _, m in ipairs(squad.members) do
-                    if IsValid(m) then
-                        aiCore.TrySetCommand(m, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
-                            { minInterval = 0.7, ignoreThrottle = true })
+            if RollFlankEngagement() then
+                local flankPos = self:GetValidFlankPosition(target, angle)
+                squad.flankStartTime = GetTime()
+                if flankPos then
+                    squad.targetPos = flankPos
+                    squad.state = "moving_to_flank"
+                    aiCore.TrySetCommand(leader, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
+                        { minInterval = 0.7, ignoreThrottle = true })
+                    for _, m in ipairs(squad.members) do
+                        if IsValid(m) then
+                            aiCore.TrySetCommand(m, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
+                                { minInterval = 0.7, ignoreThrottle = true })
+                        end
                     end
+                else
+                    squad.state = "attacking"
+                    squad:IssueAttackOrders(target)
                 end
             else
                 squad.state = "attacking"

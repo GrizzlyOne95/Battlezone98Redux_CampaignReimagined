@@ -181,7 +181,9 @@ local function NewMissionState()
         relicstartpos = 0,
         cheater = false,
         cin_started = false,
-        difficulty = 2
+        difficulty = 2,
+        tugobjective = false,
+        ccatugretry = false
     }
 end
 
@@ -306,6 +308,21 @@ local function GetTugDelay()
     return DiffUtils.ScaleTimer(baseDelay)
 end
 
+-- Helper for Difficulty-Scaled Tug Retry
+local function GetTugRetryDelay()
+    local baseDelay = 120.0 -- Medium (Default)
+    if M.difficulty >= 4 then
+        baseDelay = 45.0    -- Very Hard
+    elseif M.difficulty == 3 then
+        baseDelay = 75.0    -- Hard
+    elseif M.difficulty == 1 then
+        baseDelay = 180.0   -- Easy
+    elseif M.difficulty == 0 then
+        baseDelay = 240.0   -- Very Easy
+    end
+    return DiffUtils.ScaleTimer(baseDelay)
+end
+
 function Start()
     M = NewMissionState()
 
@@ -382,6 +399,11 @@ local function GetRelicCinemaPath()
     return "reliccin" .. tostring(GetRelicVariantIndex())
 end
 
+local function SpawnNear(spawn, minRadius, maxRadius)
+    local center = GetPosition(spawn)
+    return GetPositionNear(center, minRadius, maxRadius) or center
+end
+
 local function RetreatIfAlive(h, path)
     if h and IsAlive(h) then
         Retreat(h, path, GetTeamNum(h) == 1 and 0 or 1)
@@ -399,7 +421,7 @@ function Update()
         M.fetch = GetTime() + DiffUtils.ScaleTimer(240.0)
         subtit.Play("misn0401.wav")
         RefreshMissionHandles()
-        M.relic = BuildObject("obdata", 0, "relicstart1")
+        M.relic = BuildObject("obdata", 0, SpawnNear("relicstart1", 0, 10))
         M.pu1 = GetHandle("svfigh-1_wingman")
         -- pu2 commented out in C++
         M.pu3 = GetHandle("svfigh282_wingman")
@@ -436,12 +458,12 @@ function Update()
 
     if not M.reconsent and not M.cheater and IsAlive(M.player) and IsAlive(M.relic) and GetDistance(M.player, M.relic) < 600.0 then
         local pathA, pathB = GetRelicPatrolPaths()
-        M.cheat1 = BuildObject("svfigh", 2, M.relic)
-        M.cheat2 = BuildObject("svfigh", 2, M.relic)
-        M.cheat3 = BuildObject("svfigh", 2, M.relic)
-        M.cheat4 = BuildObject("svfigh", 2, M.relic)
-        M.cheat5 = BuildObject("svfigh", 2, M.relic)
-        M.cheat6 = BuildObject("svfigh", 2, M.relic)
+        M.cheat1 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
+        M.cheat2 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
+        M.cheat3 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
+        M.cheat4 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
+        M.cheat5 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
+        M.cheat6 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
 
         Patrol(M.cheat1, pathA); SetIndependence(M.cheat1, 1)
         Patrol(M.cheat2, pathA); SetIndependence(M.cheat2, 1)
@@ -457,8 +479,8 @@ function Update()
 
     if M.fetch < GetTime() and not M.surveysent and IsAlive(M.relic) then
         local pathA, pathB = GetRelicPatrolPaths()
-        M.surv1 = BuildObject("svfigh", 2, M.relic)
-        M.surv2 = BuildObject("svfigh", 2, M.relic)
+        M.surv1 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
+        M.surv2 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
         Patrol(M.surv1, pathA); SetIndependence(M.surv1, 1)
         Patrol(M.surv2, pathB); SetIndependence(M.surv2, 1)
         M.surveysent = true
@@ -466,29 +488,29 @@ function Update()
     end
 
     if not M.tur1sent and M.tur1 < GetTime() and IsAlive(M.svrec) then
-        M.turret1 = BuildObject("svturr", 2, M.svrec)
+        M.turret1 = BuildObject("svturr", 2, SpawnNear(M.svrec, 5, 25))
         Goto(M.turret1, "turret1")
         M.tur1sent = true
     end
     if not M.tur2sent and M.tur2 < GetTime() and IsAlive(M.svrec) then
-        M.turret2 = BuildObject("svturr", 2, M.svrec)
+        M.turret2 = BuildObject("svturr", 2, SpawnNear(M.svrec, 5, 25))
         Goto(M.turret2, "turret2")
         M.tur2sent = true
     end
     if not M.tur3sent and M.tur3 < GetTime() and IsAlive(M.svrec) then
-        M.turret3 = BuildObject("svturr", 2, M.svrec)
+        M.turret3 = BuildObject("svturr", 2, SpawnNear(M.svrec, 5, 25))
         Goto(M.turret3, "turret3")
         M.tur3sent = true
     end
     if not M.tur4sent and M.tur4 < GetTime() and IsAlive(M.svrec) then
-        M.turret4 = BuildObject("svturr", 2, M.svrec)
+        M.turret4 = BuildObject("svturr", 2, SpawnNear(M.svrec, 5, 25))
         Goto(M.turret4, "turret4")
         M.tur4sent = true
     end
 
     if M.reconcca < GetTime() and not M.reconsent and M.surveysent then
         M.aud4 = subtit.Play("misn0406.wav")
-        M.reliccam = BuildObject("apcamr", 1, GetRelicCamSpawn())
+        M.reliccam = BuildObject("apcamr", 1, SpawnNear(GetRelicCamSpawn(), 0, 10))
         M.reconsent = true
         M.obset = true
         M.notfound = GetTime() + 90.0
@@ -496,7 +518,7 @@ function Update()
 
     if M.obset and AudioDone(M.aud4) and IsAlive(M.reliccam) then
         SetObjectiveName(M.reliccam, "Investigate CCA")
-        SetUserTarget(M.reliccam)
+        SetObjectiveOn(M.reliccam)
         M.newobjective = true
         M.obset = false
     end
@@ -507,8 +529,20 @@ function Update()
         if M.relic and IsAlive(M.relic) then
             SetObjectiveOff(M.relic)
         end
+        SetObjectiveOn(M.tug)
+        M.tugobjective = true
         if M.tuge1 and IsAlive(M.tuge1) then Attack(M.tuge1, M.tug) end
         if M.tuge2 and IsAlive(M.tuge2) then Attack(M.tuge2, M.tug) end
+    end
+
+    if M.tugobjective and not M.relicsecure and (not (M.tug and IsAlive(M.tug))) then
+        if M.relic and IsAlive(M.relic) then
+            SetObjectiveOn(M.relic)
+        end
+        if M.tug then
+            SetObjectiveOff(M.tug)
+        end
+        M.tugobjective = false
     end
 
     if M.reconsent and IsAlive(M.relic) and IsAlive(M.avrec) and GetDistance(M.relic, M.avrec) < 100.0 and not M.relicsecure then
@@ -517,14 +551,15 @@ function Update()
         M.newobjective = true
     end
 
-    if M.ccatug < GetTime() and not M.ccatugsent and IsAlive(M.svrec) then
-        M.svtug = BuildObject("svhaul", 2, M.svrec)
-        M.tuge1 = BuildObject("svfigh", 2, M.svrec)
-        M.tuge2 = BuildObject("svfigh", 2, M.svrec)
+    if M.ccatug < GetTime() and not M.ccatugsent and IsAlive(M.svrec) and IsAlive(M.relic) and not M.relicsecure then
+        M.svtug = BuildObject("svhaul", 2, SpawnNear(M.svrec, 5, 40))
+        M.tuge1 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+        M.tuge2 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
         Pickup(M.svtug, M.relic)
         Follow(M.tuge1, M.svtug)
         Follow(M.tuge2, M.svtug)
         M.ccatugsent = true
+        M.ccatugretry = false
     end
 
     if M.ccatugsent and not M.ccahasrelic and IsAlive(M.svtug) then
@@ -535,6 +570,14 @@ function Update()
             subtit.Play("misn0427.wav")
             SetObjectiveOn(M.svtug)
             SetObjectiveName(M.svtug, "CCA Tug")
+        end
+    end
+
+    if M.ccatugsent and not M.ccahasrelic and not M.relicsecure and IsAlive(M.svrec) and IsAlive(M.relic) then
+        if not (M.svtug and IsAlive(M.svtug)) and not M.ccatugretry then
+            M.ccatug = GetTime() + GetTugRetryDelay()
+            M.ccatugsent = false
+            M.ccatugretry = true
         end
     end
 
@@ -589,6 +632,12 @@ function Update()
         M.newobjective = true
         M.ccatug = GetTime() + GetTugDelay()
         M.discoverrelic = true
+        if M.reliccam and IsAlive(M.reliccam) then
+            SetObjectiveOff(M.reliccam)
+        end
+        if M.relic and IsAlive(M.relic) then
+            SetObjectiveOn(M.relic)
+        end
         CameraReady()
         M.cintime1 = GetTime() + 23.0
     end
@@ -624,16 +673,16 @@ function Update()
     if (not M.cheater) then
         -- Wave 1
         if M.wavenumber == 1 and M.wave1 < GetTime() then
-            M.w1u1 = BuildObject("svfigh", 2, "wave1")
-            M.w1u2 = BuildObject("svfigh", 2, "wave1")
+            M.w1u1 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
+            M.w1u2 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
             Attack(M.w1u1, M.avrec, 1); SetIndependence(M.w1u1, 1)
             Attack(M.w1u2, M.avrec, 1); SetIndependence(M.w1u2, 1)
             if M.difficulty >= 3 then
-                M.w1u3 = BuildObject("svfigh", 2, "wave1")
+                M.w1u3 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
                 Attack(M.w1u3, M.avrec, 1); SetIndependence(M.w1u3, 1)
             end
             if M.difficulty >= 4 then
-                M.w1u4 = BuildObject("svfigh", 2, "wave1")
+                M.w1u4 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
                 Attack(M.w1u4, M.avrec, 1); SetIndependence(M.w1u4, 1)
             end
             M.wavenumber = 2
@@ -661,12 +710,12 @@ function Update()
 
         -- Wave 2
         if M.wave2 < GetTime() and IsAlive(M.svrec) and not M.secondwave then
-            M.w2u1 = BuildObject("svtank", 2, "spawn2new")
-            M.w2u2 = BuildObject("svfigh", 2, "spawn2new")
+            M.w2u1 = BuildObject("svtank", 2, SpawnNear("spawn2new", 5, 40))
+            M.w2u2 = BuildObject("svfigh", 2, SpawnNear("spawn2new", 5, 40))
             Goto(M.w2u1, M.avrec, 1); SetIndependence(M.w2u1, 1)
             Goto(M.w2u2, M.avrec, 1); SetIndependence(M.w2u2, 1)
             if M.difficulty >= 3 then -- Hard+: extra fighter
-                M.w2u3 = BuildObject("svfigh", 2, "spawn2new")
+                M.w2u3 = BuildObject("svfigh", 2, SpawnNear("spawn2new", 5, 40))
                 Goto(M.w2u3, M.avrec, 1); SetIndependence(M.w2u3, 1)
             end
             M.wavenumber = 3
@@ -694,14 +743,14 @@ function Update()
 
         -- Wave 3
         if M.wave3 < GetTime() and IsAlive(M.svrec) and not M.thirdwave then
-            M.w3u1 = BuildObject("svfigh", 2, M.svrec)
-            M.w3u2 = BuildObject("svfigh", 2, M.svrec)
-            M.w3u3 = BuildObject("svfigh", 2, M.svrec)
+            M.w3u1 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+            M.w3u2 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+            M.w3u3 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
             Goto(M.w3u1, M.avrec, 1); SetIndependence(M.w3u1, 1)
             Goto(M.w3u2, M.avrec, 1); SetIndependence(M.w3u2, 1)
             Goto(M.w3u3, M.avrec, 1); SetIndependence(M.w3u3, 1)
             if M.difficulty >= 3 then -- Hard+: extra tank
-                M.w3u4 = BuildObject("svtank", 2, M.svrec)
+                M.w3u4 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
                 Goto(M.w3u4, M.avrec, 1); SetIndependence(M.w3u4, 1)
             end
             M.wavenumber = 4
@@ -731,18 +780,18 @@ function Update()
 
         -- Wave 4
         if M.wave4 < GetTime() and IsAlive(M.svrec) and not M.fourthwave then
-            M.w4u1 = BuildObject("svtank", 2, "spawnotherside")
-            M.w4u2 = BuildObject("svfigh", 2, "spawnotherside")
-            M.w4u3 = BuildObject("svfigh", 2, "spawnotherside")
+            M.w4u1 = BuildObject("svtank", 2, SpawnNear("spawnotherside", 5, 40))
+            M.w4u2 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
+            M.w4u3 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
             Goto(M.w4u1, M.avrec, 1); SetIndependence(M.w4u1, 1)
             Goto(M.w4u2, M.avrec, 1); SetIndependence(M.w4u2, 1)
             Goto(M.w4u3, M.avrec, 1); SetIndependence(M.w4u3, 1)
             if M.difficulty >= 3 then -- Hard+: extra tank
-                M.w4u4 = BuildObject("svtank", 2, "spawnotherside")
+                M.w4u4 = BuildObject("svtank", 2, SpawnNear("spawnotherside", 5, 40))
                 Goto(M.w4u4, M.avrec, 1); SetIndependence(M.w4u4, 1)
             end
             if M.difficulty >= 4 then -- Very Hard: extra fighter
-                M.w4u5 = BuildObject("svfigh", 2, "spawnotherside")
+                M.w4u5 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
                 Goto(M.w4u5, M.avrec, 1); SetIndependence(M.w4u5, 1)
             end
             M.wavenumber = 5
@@ -774,20 +823,20 @@ function Update()
 
         -- Wave 5
         if M.wave5 < GetTime() and IsAlive(M.svrec) and not M.fifthwave then
-            M.w5u1 = BuildObject("svtank", 2, M.svrec)
-            M.w5u2 = BuildObject("svfigh", 2, M.svrec)
-            M.w5u3 = BuildObject("svfigh", 2, M.svrec)
-            M.w5u4 = BuildObject("svfigh", 2, M.svrec)
+            M.w5u1 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
+            M.w5u2 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+            M.w5u3 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+            M.w5u4 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
             Goto(M.w5u1, M.avrec, 1); SetIndependence(M.w5u1, 1)
             Goto(M.w5u2, M.avrec, 1); SetIndependence(M.w5u2, 1)
             Goto(M.w5u3, M.avrec, 1); SetIndependence(M.w5u3, 1)
             Goto(M.w5u4, M.avrec, 1); SetIndependence(M.w5u4, 1)
             if M.difficulty >= 3 then -- Hard+: extra tank
-                M.w5u5 = BuildObject("svtank", 2, M.svrec)
+                M.w5u5 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
                 Goto(M.w5u5, M.avrec, 1); SetIndependence(M.w5u5, 1)
             end
             if M.difficulty >= 4 then -- Very Hard: extra fighter
-                M.w5u6 = BuildObject("svfigh", 2, M.svrec)
+                M.w5u6 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
                 Goto(M.w5u6, M.avrec, 1); SetIndependence(M.w5u6, 1)
             end
             M.wavenumber = 6
