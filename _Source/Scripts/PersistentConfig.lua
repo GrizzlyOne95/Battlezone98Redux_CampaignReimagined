@@ -69,6 +69,7 @@ local PRESET_BUILD_CONFIG = {
 
 PersistentConfig.UnitPresets = {}
 local GetSettingsPageEntries
+local GetProducerQueueState
 
 local PDA_FONT_SCALE_MIN = 0.85
 local PDA_FONT_SCALE_MAX = 1.30
@@ -1658,7 +1659,14 @@ local function GetQueuePageContext()
     local availableKinds = {}
     for kindIndex, kind in ipairs(PresetProducerKinds) do
         local producer = GetProducerHandleForKind(kindIndex, team)
-        if IsValid(producer) then
+        local deployed = true
+        if type(IsDeployed) == "function" then
+            local ok, result = pcall(IsDeployed, producer)
+            if ok then
+                deployed = result and true or false
+            end
+        end
+        if IsValid(producer) and deployed then
             table.insert(availableKinds, {
                 kindIndex = kindIndex,
                 label = kind.name,
@@ -2336,8 +2344,8 @@ local function BuildQueuePageText()
     local context = GetQueuePageContext()
 
     if not context.available then
-        table.insert(lines, "NO PRODUCERS AVAILABLE")
-        table.insert(lines, "Recycler/Factory missing.")
+        table.insert(lines, "")
+        table.insert(lines, "UNDEPLOYED")
         table.insert(lines, "[ / ] SWITCH PAGE")
         return table.concat(lines, "\n")
     end
@@ -2457,7 +2465,7 @@ local function GetBuildEntryForProducer(producer, index)
     return entries and entries[index] or nil
 end
 
-local function GetProducerQueueState(kindIndex)
+GetProducerQueueState = function(kindIndex)
     InputState.producerQueues = InputState.producerQueues or {}
     if not InputState.producerQueues[kindIndex] then
         InputState.producerQueues[kindIndex] = {
