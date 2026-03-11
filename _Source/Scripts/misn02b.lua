@@ -10,243 +10,143 @@ RequireFix.Initialize({ "campaignReimagined", "3659600763" })
 local exu = require("exu")
 aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
-local MissionLifecycle = require("MissionLifecycle")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
-local unpack = table.unpack or unpack
 
 local LABEL_BSCAV = "misn02b_bscav"
 local LABEL_BSCOUT = "misn02b_bscout"
 local LABEL_SCAV2 = "misn02b_scav2"
 local RefreshHandlesAfterLoad
-local load_pending = false
-local load_grace_until = 0.0
-local pending_ai_data = nil
 
--- Global Variables (State)
-local camera1 = false
-local camera2 = false
-local camera3 = false
-local found = false
-local found2 = false
-local start_done = false
-local patrol1 = false
-local message1 = false
-local message2 = false
-local message3 = false
-local message4 = false
-local message5 = false
-local mission_won = false
-local mission_lost = false
-local bootstrap_done = false
-local intro_skipped = false
+local difficulty = 2
+local hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." }
+local easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." }
 
-local wave_timer = 0.0
-local last_wave_time = 99999.0
-local cam_time = 0.0
-local NextSecond = 99999.0
-local bio_timer = 0
-
-local bscav = nil
-local bscout = nil
-local scav2 = nil
-local audmsg = nil
-
--- Handles that are looked up
-local dummy = nil
-local lander = nil
-local bhandle = nil
-local bhome = nil
-local recycler = nil
-local bgoal = nil
-local bhandle2 = nil
-
-local lifecycleState = { difficulty = 2 }
-local SAVE_VERSION = 1
-local lifecycle = MissionLifecycle.New({
-    exu = exu,
-    aiCore = aiCore,
-    subtit = subtit,
-    PersistentConfig = PersistentConfig,
-    reticleRange = 600,
-    ordnanceVelocityInheritance = true,
-    updateOrdnance = true,
-    monitorDifficultyChanges = true,
-    difficultyPollInterval = 1.0,
-    clearTurboWhenDisabled = true,
-    initializeSubtitlesOnStart = false,
-    initializeSubtitlesOnLoad = false,
-    refreshDifficultyOnLoad = true,
-    hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." },
-    easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." },
-    turboValue = function(_, team, state)
-        if team == 1 then
-            return true
-        end
-        if team ~= 0 and state.difficulty and state.difficulty > 3 then
-            return true
+local function RefreshDifficulty()
+    if exu and exu.GetDifficulty then
+        local d = exu.GetDifficulty()
+        if d ~= nil then
+            difficulty = d
         end
     end
-})
-
-local function PackMissionState()
-    local data = {}
-    local i = 0
-    local function push(v)
-        i = i + 1
-        data[i] = v
-    end
-
-    push(SAVE_VERSION)
-    push(camera1)
-    push(camera2)
-    push(camera3)
-    push(found)
-    push(found2)
-    push(start_done)
-    push(patrol1)
-    push(message1)
-    push(message2)
-    push(message3)
-    push(message4)
-    push(message5)
-    push(mission_won)
-    push(mission_lost)
-    push(bootstrap_done)
-    push(wave_timer)
-    push(last_wave_time)
-    push(cam_time)
-    push(NextSecond)
-    push(nil) -- bscav (restored after load)
-    push(nil) -- bscout (restored after load)
-    push(nil) -- scav2 (restored after load)
-    push(nil) -- audmsg (audio handles are not saved)
-    push(nil) -- dummy (restored after load)
-    push(nil) -- lander (restored after load)
-    push(nil) -- bhandle (restored after load)
-    push(nil) -- bhome (restored after load)
-    push(nil) -- recycler (restored after load)
-    push(nil) -- bgoal (restored after load)
-    push(nil) -- bhandle2 (restored after load)
-    push(intro_skipped)
-    push(bio_timer)
-
-    return data, i
+    return difficulty
 end
 
--- Save function: Returns values to be saved (no audio handles)
-function Save()
-    local data, count = PackMissionState()
-    return unpack(data, 1, count), aiCore.Save()
+local function ApplyDifficultyObjectives()
+    if difficulty >= 3 then
+        AddObjective(hardDifficultyObjective[1], hardDifficultyObjective[2], hardDifficultyObjective[3], hardDifficultyObjective[4])
+    elseif difficulty <= 1 then
+        AddObjective(easyDifficultyObjective[1], easyDifficultyObjective[2], easyDifficultyObjective[3], easyDifficultyObjective[4])
+    end
 end
 
--- Load function: Restores values from save
-function Load(...)
-    local count = select("#", ...)
-    if count == 0 then return end
-
-    local args = { ... }
-    local first = args[1]
-    pending_ai_data = nil
-    if count > 1 and type(args[count]) == "table" then
-        pending_ai_data = args[count]
+local function ApplyQOL()
+    if exu then
+        if exu.SetReticleRange then
+            exu.SetReticleRange(600)
+        end
+        if exu.SetOrdnanceVelocInheritance then
+            exu.SetOrdnanceVelocInheritance(true)
+        end
     end
 
-    if type(first) == "table" then
-        local missionData = first
-        local idx = 1
-        if type(missionData[idx]) == "number" then
-            idx = idx + 1 -- SAVE_VERSION
-        end
+    if PersistentConfig and PersistentConfig.Initialize then
+        PersistentConfig.Initialize()
+    end
+end
 
-        camera1 = missionData[idx]; idx = idx + 1
-        camera2 = missionData[idx]; idx = idx + 1
-        camera3 = missionData[idx]; idx = idx + 1
-        found = missionData[idx]; idx = idx + 1
-        found2 = missionData[idx]; idx = idx + 1
-        start_done = missionData[idx]; idx = idx + 1
-        patrol1 = missionData[idx]; idx = idx + 1
-        message1 = missionData[idx]; idx = idx + 1
-        message2 = missionData[idx]; idx = idx + 1
-        message3 = missionData[idx]; idx = idx + 1
-        message4 = missionData[idx]; idx = idx + 1
-        message5 = missionData[idx]; idx = idx + 1
-        mission_won = missionData[idx]; idx = idx + 1
-        mission_lost = missionData[idx]; idx = idx + 1
-        bootstrap_done = missionData[idx]; idx = idx + 1
-        wave_timer = missionData[idx]; idx = idx + 1
-        last_wave_time = missionData[idx]; idx = idx + 1
-        cam_time = missionData[idx]; idx = idx + 1
-        NextSecond = missionData[idx]; idx = idx + 1
-        bscav = missionData[idx]; idx = idx + 1
-        bscout = missionData[idx]; idx = idx + 1
-        scav2 = missionData[idx]; idx = idx + 1
-        idx = idx + 1 -- audmsg placeholder
-        dummy = missionData[idx]; idx = idx + 1
-        lander = missionData[idx]; idx = idx + 1
-        bhandle = missionData[idx]; idx = idx + 1
-        bhome = missionData[idx]; idx = idx + 1
-        recycler = missionData[idx]; idx = idx + 1
-        bgoal = missionData[idx]; idx = idx + 1
-        bhandle2 = missionData[idx]; idx = idx + 1
-        intro_skipped = missionData[idx]; idx = idx + 1
-        bio_timer = missionData[idx]; idx = idx + 1
+local function TurboValue(team)
+    if team == 1 then
+        return true
+    end
+    if team ~= 0 and difficulty and difficulty > 3 then
+        return true
+    end
+end
 
-        audmsg = nil
-        if wave_timer == nil then wave_timer = 0 end
-        if last_wave_time == nil then last_wave_time = 99999.0 end
-        if cam_time == nil then cam_time = 0.0 end
-        if NextSecond == nil then NextSecond = 99999.0 end
-        if bio_timer == nil then bio_timer = 0 end
-        load_pending = true
+local function ApplyTurbo(h)
+    if not (exu and exu.SetUnitTurbo and IsCraft(h)) then
         return
     end
-
-    local idx = 1
-    if type(args[idx]) == "number" then
-        idx = idx + 1 -- SAVE_VERSION
+    local value = TurboValue(GetTeamNum(h))
+    if value ~= nil and value ~= false then
+        exu.SetUnitTurbo(h, value)
+    else
+        exu.SetUnitTurbo(h, false)
     end
+end
 
-    camera1 = args[idx]; idx = idx + 1
-    camera2 = args[idx]; idx = idx + 1
-    camera3 = args[idx]; idx = idx + 1
-    found = args[idx]; idx = idx + 1
-    found2 = args[idx]; idx = idx + 1
-    start_done = args[idx]; idx = idx + 1
-    patrol1 = args[idx]; idx = idx + 1
-    message1 = args[idx]; idx = idx + 1
-    message2 = args[idx]; idx = idx + 1
-    message3 = args[idx]; idx = idx + 1
-    message4 = args[idx]; idx = idx + 1
-    message5 = args[idx]; idx = idx + 1
-    mission_won = args[idx]; idx = idx + 1
-    mission_lost = args[idx]; idx = idx + 1
-    bootstrap_done = args[idx]; idx = idx + 1
-    wave_timer = args[idx]; idx = idx + 1
-    last_wave_time = args[idx]; idx = idx + 1
-    cam_time = args[idx]; idx = idx + 1
-    NextSecond = args[idx]; idx = idx + 1
-    bscav = args[idx]; idx = idx + 1
-    bscout = args[idx]; idx = idx + 1
-    scav2 = args[idx]; idx = idx + 1
-    idx = idx + 1 -- audmsg placeholder
-    dummy = args[idx]; idx = idx + 1
-    lander = args[idx]; idx = idx + 1
-    bhandle = args[idx]; idx = idx + 1
-    bhome = args[idx]; idx = idx + 1
-    recycler = args[idx]; idx = idx + 1
-    bgoal = args[idx]; idx = idx + 1
-    bhandle2 = args[idx]; idx = idx + 1
-    intro_skipped = args[idx]; idx = idx + 1
-    bio_timer = args[idx]; idx = idx + 1
+local function ApplyTurboToAll()
+    if not (exu and exu.SetUnitTurbo) then
+        return
+    end
+    for h in AllCraft() do
+        ApplyTurbo(h)
+    end
+end
 
-    audmsg = nil
-    if wave_timer == nil then wave_timer = 0 end
-    if last_wave_time == nil then last_wave_time = 99999.0 end
-    if cam_time == nil then cam_time = 0.0 end
-    if NextSecond == nil then NextSecond = 99999.0 end
-    if bio_timer == nil then bio_timer = 0 end
-    load_pending = true
+local function UpdateModules(dt)
+    if exu and exu.UpdateOrdnance then
+        exu.UpdateOrdnance()
+    end
+    if subtit and subtit.Update then
+        subtit.Update()
+    end
+    if PersistentConfig then
+        if PersistentConfig.UpdateInputs then PersistentConfig.UpdateInputs() end
+        if PersistentConfig.UpdateHeadlights then PersistentConfig.UpdateHeadlights() end
+    end
+end
+
+local function NewMissionState()
+    return {
+        camera1 = false,
+        camera2 = false,
+        camera3 = false,
+        found = false,
+        found2 = false,
+        start_done = false,
+        patrol1 = false,
+        message1 = false,
+        message2 = false,
+        message3 = false,
+        message4 = false,
+        message5 = false,
+        mission_won = false,
+        mission_lost = false,
+        bootstrap_done = false,
+        intro_skipped = false,
+        wave_timer = 0.0,
+        last_wave_time = 99999.0,
+        cam_time = 0.0,
+        NextSecond = 99999.0,
+        bio_timer = 0,
+        bscav = nil,
+        bscout = nil,
+        scav2 = nil,
+        audmsg = nil,
+        dummy = nil,
+        lander = nil,
+        bhandle = nil,
+        bhome = nil,
+        recycler = nil,
+        bgoal = nil,
+        bhandle2 = nil,
+        loading_done = false,
+        loadGracePeriod = 0
+    }
+end
+local M = NewMissionState()
+
+function Save()
+    return M
+end
+
+function Load(...)
+    local missionData = ...
+    M = missionData or M
+    M.loading_done = false
+    M.loadGracePeriod = GetTime() + 2.0
 end
 
 local function AudioDone(msg)
@@ -254,32 +154,32 @@ local function AudioDone(msg)
 end
 
 RefreshHandlesAfterLoad = function()
-    dummy = GetHandle("fake_player")
-    lander = GetHandle("avland0_wingman")
-    bhandle = GetHandle("sscr_171_scrap")
-    bhome = GetHandle("abcomm1_i76building")
-    recycler = GetHandle("avrecy-1_recycler")
-    bgoal = GetHandle("apscrap-1_camerapod")
-    bhandle2 = GetHandle("sscr_176_scrap")
+    M.dummy = GetHandle("fake_player")
+    M.lander = GetHandle("avland0_wingman")
+    M.bhandle = GetHandle("sscr_171_scrap")
+    M.bhome = GetHandle("abcomm1_i76building")
+    M.recycler = GetHandle("avrecy-1_recycler")
+    M.bgoal = GetHandle("apscrap-1_camerapod")
+    M.bhandle2 = GetHandle("sscr_176_scrap")
 
-    bscav = GetHandle(LABEL_BSCAV)
-    bscout = GetHandle(LABEL_BSCOUT)
-    scav2 = GetHandle(LABEL_SCAV2)
+    M.bscav = GetHandle(LABEL_BSCAV)
+    M.bscout = GetHandle(LABEL_BSCOUT)
+    M.scav2 = GetHandle(LABEL_SCAV2)
 
-    local foundScav = IsValid and IsValid(bscav)
-    local foundScav2 = IsValid and IsValid(scav2)
-    local foundScout = IsValid and IsValid(bscout)
+    local foundScav = IsValid and IsValid(M.bscav)
+    local foundScav2 = IsValid and IsValid(M.scav2)
+    local foundScout = IsValid and IsValid(M.bscout)
 
     for h in AllCraft() do
         if not foundScav or not foundScav2 then
             if IsOdf(h, "avscav") and GetTeamNum(h) == 1 then
                 if not foundScav then
-                    bscav = h
-                    if SetLabel then SetLabel(bscav, LABEL_BSCAV) end
+                    M.bscav = h
+                    if SetLabel then SetLabel(M.bscav, LABEL_BSCAV) end
                     foundScav = true
                 elseif not foundScav2 then
-                    scav2 = h
-                    if SetLabel then SetLabel(scav2, LABEL_SCAV2) end
+                    M.scav2 = h
+                    if SetLabel then SetLabel(M.scav2, LABEL_SCAV2) end
                     foundScav2 = true
                 end
             end
@@ -287,8 +187,8 @@ RefreshHandlesAfterLoad = function()
 
         if not foundScout then
             if IsOdf(h, "svfigh") and GetTeamNum(h) == 2 then
-                bscout = h
-                if SetLabel then SetLabel(bscout, LABEL_BSCOUT) end
+                M.bscout = h
+                if SetLabel then SetLabel(M.bscout, LABEL_BSCOUT) end
                 foundScout = true
             end
         end
@@ -297,26 +197,44 @@ RefreshHandlesAfterLoad = function()
     end
 end
 
+local function SetupAI()
+    local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    playerTeam:SetConfig("manageFactories", false)
+    playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
+    playerTeam:SetConfig("enableParatroopers", false)
+    enemyTeam:SetConfig("enableParatroopers", false)
+end
+
+local function ApplyPostLoadInit()
+    Ally(1, 5)
+    Ally(5, 1)
+    SetAIP("misn02.aip")
+    subtit.Initialize("durations.csv")
+
+    if M.bgoal and IsAlive(M.bgoal) then
+        SetUserTarget(M.bgoal)
+        SetObjectiveName(M.bgoal, "Scrap Field Alpha")
+    end
+
+    for h in AllCraft() do
+        SetObjectiveOff(h)
+    end
+end
+
 function Start()
     Ally(1, 5)
     Ally(5, 1)
-    lifecycle:RefreshDifficulty(lifecycleState)
-    lifecycle:ApplyDifficultyObjectives(lifecycleState)
-    lifecycle:ApplyTurboToAll(lifecycleState)
+    RefreshDifficulty()
+    ApplyDifficultyObjectives()
+    ApplyTurboToAll()
 
     for h in AllCraft() do
         SetObjectiveOff(h)
     end
 
-    --TestEXU()
-end
+    M.loading_done = true
 
-function PostLoad()
-    RefreshHandlesAfterLoad()
-    lifecycle:Load(lifecycleState, pending_ai_data)
-    pending_ai_data = nil
-    load_pending = false
-    load_grace_until = GetTime() + 2.0
+    --TestEXU()
 end
 
 -- AddObject function: Called when a game object is added
@@ -325,32 +243,35 @@ function AddObject(h)
     local odf = GetOdf(h)
     if odf then odf = string.gsub(odf, "%z", "") end
 
-    lifecycle:OnObjectCreated(lifecycleState, h)
+    if PersistentConfig and PersistentConfig.OnObjectCreated then
+        PersistentConfig.OnObjectCreated(h)
+    end
+    ApplyTurbo(h)
 
-    if team == 1 and odf == "avscav" and bscav == nil then
-        found = true
-        bscav = h
-        if SetLabel then SetLabel(bscav, LABEL_BSCAV) end
-        SetCritical(bscav, true)
-        SetObjectiveOn(bscav)
+    if team == 1 and odf == "avscav" and M.bscav == nil then
+        M.found = true
+        M.bscav = h
+        if SetLabel then SetLabel(M.bscav, LABEL_BSCAV) end
+        SetCritical(M.bscav, true)
+        SetObjectiveOn(M.bscav)
 
-        -- Difficulty-based behavior for dummy tank
+        -- Difficulty-based behavior for M.dummy tank
         local d = DiffUtils.Get().index
-        if d < 2 and IsAlive(dummy) and not camera1 and not camera2 and not camera3 then
-            Follow(dummy, bscav)
+        if d < 2 and IsAlive(M.dummy) and not M.camera1 and not M.camera2 and not M.camera3 then
+            Follow(M.dummy, M.bscav)
         end
     end
 
     if team == 2 and odf == "svfigh" then
-        if not found2 then
-            found2 = true
-            bscout = h
-            if SetLabel then SetLabel(bscout, LABEL_BSCOUT) end
-            Goto(bscout, "patrol1")
-            SetObjectiveOn(bscout)
+        if not M.found2 then
+            M.found2 = true
+            M.bscout = h
+            if SetLabel then SetLabel(M.bscout, LABEL_BSCOUT) end
+            Goto(M.bscout, "M.patrol1")
+            SetObjectiveOn(M.bscout)
         else
-            if IsAlive(bscav) and IsAlive(bgoal) and GetDistance(bscav, bgoal) < 200.0 then
-                Attack(h, bscav)
+            if IsAlive(M.bscav) and IsAlive(M.bgoal) and GetDistance(M.bscav, M.bgoal) < 200.0 then
+                Attack(h, M.bscav)
             else
                 Goto(h, "patrol2")
             end
@@ -374,33 +295,37 @@ end
 
 -- Update function: Called every frame
 function Update()
-    if load_pending then
+    if GetTime() < (M.loadGracePeriod or 0) then
         return
     end
-    if GetTime() < load_grace_until then
-        return
+    if not M.loading_done then
+        RefreshHandlesAfterLoad()
+        RefreshDifficulty()
+        ApplyDifficultyObjectives()
+        ApplyQOL()
+        SetupAI()
+        aiCore.Bootstrap()
+        ApplyTurboToAll()
+        ApplyPostLoadInit()
+        M.loading_done = true
     end
     local player = GetPlayerHandle()
     aiCore.Update()
-    lifecycle:Update(lifecycleState, 1.0 / 20.0)
+    UpdateModules(1.0 / 20.0)
 
     -- Holographic Bio Logic
-    if (camera1 or camera2 or camera3) and GetTime() >= bio_timer then
+    if (M.camera1 or M.camera2 or M.camera3) and GetTime() >= M.bio_timer then
         --if IsAlive(player) then
         -- Spawns the holographic bio above the player
         local pos = GetPosition(player)
         pos.y = pos.y + 10.0
         MakeExplosion("xbio", pos)
         -- end
-        bio_timer = GetTime() + 10.0
+        M.bio_timer = GetTime() + 10.0
     end
 
-    if not start_done then
-        local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
-        playerTeam:SetConfig("manageFactories", false)
-        playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
-        playerTeam:SetConfig("enableParatroopers", false)
-        enemyTeam:SetConfig("enableParatroopers", false)
+    if not M.start_done then
+        SetupAI()
 
         --[[
         -- Available AI Configuration Flags (Reference from aiCore.lua):
@@ -475,27 +400,27 @@ function Update()
         -- playerTeam:SetConfig("siloMinDistance", 250.0)
         -- playerTeam:SetConfig("siloMaxDistance", 450.0)
         --]]
-        lifecycle:ApplyQOL()
+        ApplyQOL()
 
         SetPilot(1, math.max(1, DiffUtils.ScaleRes(2)))
         SetScrap(1, math.max(4, DiffUtils.ScaleRes(5)))
         SetAIP("misn02.aip")
 
-        dummy = GetHandle("fake_player")
-        lander = GetHandle("avland0_wingman")
-        bhandle = GetHandle("sscr_171_scrap")
-        bhome = GetHandle("abcomm1_i76building")
-        recycler = GetHandle("avrecy-1_recycler")
-        bgoal = GetHandle("apscrap-1_camerapod")
-        bhandle2 = GetHandle("sscr_176_scrap")
+        M.dummy = GetHandle("fake_player")
+        M.lander = GetHandle("avland0_wingman")
+        M.bhandle = GetHandle("sscr_171_scrap")
+        M.bhome = GetHandle("abcomm1_i76building")
+        M.recycler = GetHandle("avrecy-1_recycler")
+        M.bgoal = GetHandle("apscrap-1_camerapod")
+        M.bhandle2 = GetHandle("sscr_176_scrap")
 
-        SetUserTarget(bgoal)
-        SetObjectiveName(bgoal, "Scrap Field Alpha")
-        --SetObjectiveName(recycler, "Recycler Montana")
-        start_done = true
+        SetUserTarget(M.bgoal)
+        SetObjectiveName(M.bgoal, "Scrap Field Alpha")
+        --SetObjectiveName(M.recycler, "Recycler Montana")
+        M.start_done = true
         subtit.Initialize("durations.csv")
 
-        -- Establish alliance between player (team 1) and dummy tank (team 5)
+        -- Establish alliance between player (team 1) and M.dummy tank (team 5)
         Ally(1, 5)
 
         -- Spawn pilots at Recycler based on difficulty
@@ -513,188 +438,189 @@ function Update()
             BuildObject("aspilo", 1, "avrecy-1_recycler")
         end
 
-        camera1 = true
-        cam_time = GetTime() + 30.0
+        M.camera1 = true
+        M.cam_time = GetTime() + 30.0
         CameraReady()
-        audmsg = subtit.Play("misn0230.wav")
-        --audmsg = subtit.Play("misn0201.wav")
+        M.audmsg = subtit.Play("misn0230.wav")
+        --M.audmsg = subtit.Play("misn0201.wav")
     end
 
     -- Camera Logic
-    if camera1 then
-        if CameraPath("fixcam", 1200, 250, lander) or CameraCancelled() or AudioDone(audmsg) then
+    if M.camera1 then
+        if CameraPath("fixcam", 1200, 250, M.lander) or CameraCancelled() or AudioDone(M.audmsg) then
             -- Stop audio and subtitles if skipped
             if CameraCancelled() then
                 subtit.Stop()
-                intro_skipped = true
-                audmsg = nil
+                M.intro_skipped = true
+                M.audmsg = nil
             end
-            camera1 = false
-            cam_time = GetTime() + 10.0
-            camera2 = true
+            M.camera1 = false
+            M.cam_time = GetTime() + 10.0
+            M.camera2 = true
         end
     end
 
-    if camera2 then
-        camera2 = false
-        camera3 = true
-        if IsAlive(dummy) then
-            Goto(dummy, "player_path")
+    if M.camera2 then
+        M.camera2 = false
+        M.camera3 = true
+        if IsAlive(M.dummy) then
+            Goto(M.dummy, "player_path")
         end
-        cam_time = GetTime() + 25.0
+        M.cam_time = GetTime() + 25.0
     end
 
-    if camera3 then
-        if CameraPath("zoomcam", 1200, 800, dummy) or AudioDone(audmsg) or CameraCancelled() then
-            camera3 = false
-            cam_time = 99999.0
+    if M.camera3 then
+        if CameraPath("zoomcam", 1200, 800, M.dummy) or AudioDone(M.audmsg) or CameraCancelled() then
+            M.camera3 = false
+            M.cam_time = 99999.0
             CameraFinish()
 
-            -- Reassign dummy tank instead of removing it
-            if IsAlive(dummy) then
-                SetTeamNum(dummy, 5) -- Set to team 5
+            -- Reassign M.dummy tank instead of removing it
+            if IsAlive(M.dummy) then
+                SetTeamNum(M.dummy, 5) -- Set to team 5
                 Ally(1, 5)           -- Make teams 1 and 5 allies
 
                 local d = DiffUtils.Get().index
-                if d < 2 and IsAlive(bscav) then
-                    Follow(dummy, bscav)
-                elseif IsAlive(recycler) then
-                    Defend2(dummy, recycler, 0) -- Set to defend the recycler
+                if d < 2 and IsAlive(M.bscav) then
+                    Follow(M.dummy, M.bscav)
+                elseif IsAlive(M.recycler) then
+                    Defend2(M.dummy, M.recycler, 0) -- Set to defend the M.recycler
                 end
             end
 
             --SetPosition(player, "playermove")
             -- Stop previous audio if the user skipped the cinematic, then start the next one
-            if CameraCancelled() or intro_skipped then
+            if CameraCancelled() or M.intro_skipped then
                 subtit.Stop()
-                intro_skipped = true
+                M.intro_skipped = true
             end
 
-            if not intro_skipped then
-                audmsg = subtit.Play("misn0201.wav")
+            if not M.intro_skipped then
+                M.audmsg = subtit.Play("misn0201.wav")
             end
             --subtit.Play("misn0224.wav")
-            wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
+            M.wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
             AddObjective("misn02b1.otf", "white")
         end
     end
 
     -- Patrol 1 Logic
-    if not patrol1 and found and IsAlive(bhandle) and IsAlive(bscav) and GetDistance(bhandle, bscav) < 75.0 then
+    if not M.patrol1 and M.found and IsAlive(M.bhandle) and IsAlive(M.bscav) and GetDistance(M.bhandle, M.bscav) < 75.0 then
         for i = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn1") end
 
         subtit.Play("misn0233.wav")
-        message1 = true
-        patrol1 = true
+        M.message1 = true
+        M.patrol1 = true
 
-        if not message4 and found2 then
-            message4 = true
+        if not M.message4 and M.found2 then
+            M.message4 = true
         end
     end
 
-    if not message4 and found2 then
-        message4 = true
+    if not M.message4 and M.found2 then
+        M.message4 = true
     end
 
-    -- Capture pre-placed units if start_done just flipped
-    if start_done and not bootstrap_done then
+    -- Capture pre-placed units if M.start_done just flipped
+    if M.start_done and not M.bootstrap_done then
         aiCore.Bootstrap()
-        bootstrap_done = true
+        M.bootstrap_done = true
     end
 
     -- Wave Logic
-    if message4 and not message5 and IsAlive(bscav) and IsAlive(bhandle2) and GetDistance(bscav, bhandle2) < 200.0 then
+    if M.message4 and not M.message5 and IsAlive(M.bscav) and IsAlive(M.bhandle2) and GetDistance(M.bscav, M.bhandle2) < 200.0 then
         BuildObject("svfigh", 2, "spawn2")
-        message5 = true
-        wave_timer = GetTime() + 30.0
+        M.message5 = true
+        M.wave_timer = GetTime() + 30.0
     end
 
-    if message5 and not message3 and GetTime() > wave_timer then
+    if M.message5 and not M.message3 and GetTime() > M.wave_timer then
         for i = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn2") end
-        wave_timer = GetTime() + DiffUtils.ScaleTimer(45.0)
+        M.wave_timer = GetTime() + DiffUtils.ScaleTimer(45.0)
     end
 
     -- Retreat Logic
-    if message1 and message5 and not message2 and IsAlive(bscav) and GetLastEnemyShot(bscav) > 0 then
-        Follow(bscav, bhome)
+    if M.message1 and M.message5 and not M.message2 and IsAlive(M.bscav) and GetLastEnemyShot(M.bscav) > 0 then
+        Follow(M.bscav, M.bhome)
         ClearObjectives()
         AddObjective("misn02b2.otf", "white")
         subtit.Play("misn0225.wav")
         local bbase = GetHandle("apbase-1_camerapod")
         SetUserTarget(bbase)
-        message2 = true
+        M.message2 = true
     end
 
     -- Loss Condition
-    if bscav ~= nil and not mission_lost then
-        if not IsAlive(player) or not IsAlive(bscav) or (message3 and not IsAlive(scav2)) or not IsAlive(bhome) or not IsAlive(recycler) then
+    if M.bscav ~= nil and not M.mission_lost then
+        if not IsAlive(player) or not IsAlive(M.bscav) or (M.message3 and not IsAlive(M.scav2)) or not IsAlive(M.bhome) or not IsAlive(M.recycler) then
             ClearObjectives()
             AddObjective("misn02b4.otf", "red")
-            audmsg = subtit.Play("misn0227.wav")
-            mission_lost = true
+            M.audmsg = subtit.Play("misn0227.wav")
+            M.mission_lost = true
         end
     end
 
-    if mission_lost and AudioDone(audmsg) then
+    if M.mission_lost and AudioDone(M.audmsg) then
         FailMission(GetTime(), "misn02l1.des")
     end
 
     -- Rescue Logic
-    if IsAlive(player) and message1 and message4 and IsAlive(bhome) and IsAlive(bscav) and GetDistance(bhome, bscav) < 300.0 and not message3 then
-        Follow(bscav, bhome)
-        wave_timer = GetTime() + 45.0
-        scav2 = BuildObject("avscav", 1, "spawn3")
-        if SetLabel then SetLabel(scav2, LABEL_SCAV2) end
-        SetCritical(scav2, true)
-        Retreat(scav2, "retreat")
-        SetObjectiveOn(scav2)
-        SetObjectiveOff(bscav)
+    if IsAlive(player) and M.message1 and M.message4 and IsAlive(M.bhome) and IsAlive(M.bscav) and GetDistance(M.bhome, M.bscav) < 300.0 and not M.message3 then
+        Follow(M.bscav, M.bhome)
+        M.wave_timer = GetTime() + 45.0
+        M.scav2 = BuildObject("avscav", 1, "spawn3")
+        if SetLabel then SetLabel(M.scav2, LABEL_SCAV2) end
+        SetCritical(M.scav2, true)
+        Retreat(M.scav2, "retreat")
+        SetObjectiveOn(M.scav2)
+        SetObjectiveOff(M.bscav)
         subtit.Play("misn0228.wav")
-        last_wave_time = GetTime() + 10.0
-        NextSecond = GetTime() + 1.0
-        message3 = true
+        M.last_wave_time = GetTime() + 10.0
+        M.NextSecond = GetTime() + 1.0
+        M.message3 = true
 
-        -- Dummy tank follow scav2 logic for lower difficulties
+        -- Dummy tank follow M.scav2 logic for lower difficulties
         local d = DiffUtils.Get().index
-        if d < 2 and IsAlive(dummy) then
-            Follow(dummy, scav2)
+        if d < 2 and IsAlive(M.dummy) then
+            Follow(M.dummy, M.scav2)
         end
 
         -- Flanking Ambush: Spawn enemies behind the player at spawn1
         for i = 1, DiffUtils.ScaleEnemy(1) do
             local h = BuildObject("svfigh", 2, "spawn1")
-            Attack(h, scav2)
+            Attack(h, M.scav2)
         end
     end
 
     -- Health Regen
-    if IsAlive(bscav) and message3 and GetTime() > NextSecond then
-        AddHealth(bscav, 200.0)
-        NextSecond = GetTime() + 1.0
+    if IsAlive(M.bscav) and M.message3 and GetTime() > M.NextSecond then
+        AddHealth(M.bscav, 200.0)
+        M.NextSecond = GetTime() + 1.0
     end
 
     -- Final Wave
-    if last_wave_time < GetTime() then
+    if M.last_wave_time < GetTime() then
         for i = 1, DiffUtils.ScaleEnemy(1) do
             local sid = BuildObject("svfigh", 2, "spawn4")
-            if IsAlive(scav2) then Attack(sid, scav2) end
+            if IsAlive(M.scav2) then Attack(sid, M.scav2) end
         end
-        last_wave_time = 99999.0
+        M.last_wave_time = 99999.0
     end
 
     -- Win Condition
-    if message3 and not mission_won and IsAlive(bhome) and IsAlive(scav2) and GetDistance(bhome, scav2) < 200.0 then
+    if M.message3 and not M.mission_won and IsAlive(M.bhome) and IsAlive(M.scav2) and GetDistance(M.bhome, M.scav2) < 200.0 then
         ClearObjectives()
-        SetObjectiveOff(scav2)
-        if IsAlive(bscav) then SetObjectiveOff(bscav) end
+        SetObjectiveOff(M.scav2)
+        if IsAlive(M.bscav) then SetObjectiveOff(M.bscav) end
         AddObjective("misn02b3.otf", "green")
-        if IsAlive(bscav) then AddHealth(bscav, 1000.0) end
-        if IsAlive(scav2) then AddHealth(scav2, 1000.0) end
-        audmsg = subtit.Play("misn0234.wav")
-        mission_won = true
+        if IsAlive(M.bscav) then AddHealth(M.bscav, 1000.0) end
+        if IsAlive(M.scav2) then AddHealth(M.scav2, 1000.0) end
+        M.audmsg = subtit.Play("misn0234.wav")
+        M.mission_won = true
     end
 
-    if mission_won and AudioDone(audmsg) then
+    if M.mission_won and AudioDone(M.audmsg) then
         SucceedMission(GetTime(), "misn02w1.des")
     end
 end
+
