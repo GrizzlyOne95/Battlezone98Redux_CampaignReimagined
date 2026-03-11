@@ -6,6 +6,7 @@
 !/README.md
 !/LICENSE
 !/Manage-CampaignFiles.ps1
+!/workshop.config.example.json
 
 # Allow _Source folder (organized source structure)
 !/_Source/

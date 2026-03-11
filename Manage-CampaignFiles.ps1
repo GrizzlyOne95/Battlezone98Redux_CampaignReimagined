@@ -234,8 +234,14 @@ function Sync-FromAddon {
 }
 
 function Build-Release {
+    param(
+        [switch]$SkipSync
+    )
+
     # Sync to source first to ensure it's up to date!
-    Sync-ToSource
+    if (-not $SkipSync) {
+        Sync-ToSource
+    }
 
     Write-Host "`nBuilding release to $ReleaseDir (FLATTENED)..." -ForegroundColor Cyan
 
@@ -260,6 +266,157 @@ function Build-Release {
     Write-Host "Release build complete. Files are in $ReleaseDir" -ForegroundColor Green
 }
 
+function Resolve-PathIfRelative($pathValue) {
+    if (-not $pathValue) { return $null }
+    if ([System.IO.Path]::IsPathRooted($pathValue)) { return $pathValue }
+    return (Join-Path $PSScriptRoot $pathValue)
+}
+
+function Escape-VdfValue($text) {
+    if ($null -eq $text) { return "" }
+    return ($text -replace '"', '\"')
+}
+
+function Get-PublishConfig {
+    $configPath = Join-Path $PSScriptRoot "workshop.config.json"
+    if (-not (Test-Path $configPath)) {
+        Write-Error "Missing publish config: $configPath (copy workshop.config.example.json to workshop.config.json and fill it in)."
+        return $null
+    }
+
+    try {
+        $cfg = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+    }
+    catch {
+        Write-Error "Failed to parse workshop.config.json: $_"
+        return $null
+    }
+
+    if (-not $cfg.AppId) { $cfg | Add-Member -NotePropertyName AppId -NotePropertyValue "301650" }
+    if (-not $cfg.ContentFolder) { $cfg | Add-Member -NotePropertyName ContentFolder -NotePropertyValue "_Release" }
+
+    $cfg.ContentFolder = Resolve-PathIfRelative $cfg.ContentFolder
+    $cfg.PreviewFile = Resolve-PathIfRelative $cfg.PreviewFile
+    $cfg.DescriptionFile = Resolve-PathIfRelative $cfg.DescriptionFile
+    $cfg.SteamCmdPath = Resolve-PathIfRelative $cfg.SteamCmdPath
+
+    if (-not $cfg.SteamCmdPath -or -not (Test-Path $cfg.SteamCmdPath)) {
+        Write-Error "SteamCmdPath not found. Set SteamCmdPath in workshop.config.json."
+        return $null
+    }
+    if (-not $cfg.SteamUser) {
+        Write-Error "SteamUser is required in workshop.config.json."
+        return $null
+    }
+    if (-not $cfg.PublishedFileId) {
+        Write-Error "PublishedFileId is required in workshop.config.json."
+        return $null
+    }
+
+    return $cfg
+}
+
+function Invoke-GitPush {
+    param(
+        [string]$Message
+    )
+
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        Write-Warning "git not found in PATH. Skipping git push."
+        return
+    }
+
+    $status = git status --porcelain
+    if (-not $status) {
+        Write-Host "Git working tree clean. Skipping commit/push." -ForegroundColor DarkGray
+        return
+    }
+
+    if (-not $Message) {
+        $Message = "Auto-publish " + (Get-Date -Format "yyyy-MM-dd HH:mm")
+    }
+
+    git add -A
+    git commit -m $Message
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Git commit failed."
+        return
+    }
+
+    git push
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Git push failed."
+        return
+    }
+}
+
+function Write-WorkshopVdf {
+    param(
+        $Config,
+        [string]$ChangeNote
+    )
+
+    $vdfPath = Join-Path $PSScriptRoot "workshop_build.vdf"
+    $lines = @()
+    $lines += '"workshopitem"'
+    $lines += '{'
+    $lines += "  `"appid`" `"$([string]$Config.AppId)`""
+    $lines += "  `"publishedfileid`" `"$([string]$Config.PublishedFileId)`""
+    $lines += "  `"contentfolder`" `"$([string](Escape-VdfValue $Config.ContentFolder))`""
+
+    if ($Config.PreviewFile) { $lines += "  `"previewfile`" `"$([string](Escape-VdfValue $Config.PreviewFile))`"" }
+    if ($Config.Visibility) { $lines += "  `"visibility`" `"$([string]$Config.Visibility)`"" }
+    if ($Config.Title) { $lines += "  `"title`" `"$([string](Escape-VdfValue $Config.Title))`"" }
+    if ($Config.DescriptionFile) {
+        $lines += "  `"descriptionfile`" `"$([string](Escape-VdfValue $Config.DescriptionFile))`""
+    }
+    elseif ($Config.Description) {
+        $lines += "  `"description`" `"$([string](Escape-VdfValue $Config.Description))`""
+    }
+    if ($ChangeNote) { $lines += "  `"changenote`" `"$([string](Escape-VdfValue $ChangeNote))`"" }
+
+    $lines += "}"
+
+    Set-Content -Path $vdfPath -Value $lines -Encoding ASCII
+    return $vdfPath
+}
+
+function Invoke-WorkshopUpload {
+    param(
+        [string]$ChangeNote
+    )
+
+    $cfg = Get-PublishConfig
+    if (-not $cfg) { return }
+
+    if (-not (Test-Path $cfg.ContentFolder)) {
+        Write-Error "ContentFolder not found: $($cfg.ContentFolder). Build the release first."
+        return
+    }
+
+    $vdfPath = Write-WorkshopVdf -Config $cfg -ChangeNote $ChangeNote
+
+    $args = @("+login", $cfg.SteamUser)
+    if ($cfg.SteamPass) { $args += $cfg.SteamPass }
+    $args += "+workshop_build_item"
+    $args += $vdfPath
+    $args += "+quit"
+
+    Write-Host "Uploading to Steam Workshop..." -ForegroundColor Cyan
+    & $cfg.SteamCmdPath @args
+}
+
+function Publish-All {
+    param(
+        [string]$Message
+    )
+
+    Sync-ToSource
+    Build-Release -SkipSync
+    Invoke-GitPush -Message $Message
+    Invoke-WorkshopUpload -ChangeNote $Message
+}
+
 function Show-Menu {
     Clear-Host
     Write-Host "==========================================" -ForegroundColor Cyan
@@ -276,6 +433,7 @@ function Show-Menu {
     Write-Host "2. Sync From Source (Flatten _Source -> root for Git updates)"
     Write-Host "3. Build Release (Sync To Source + Build to _Release)"
     Write-Host "4. Sync from Addon only (Pull changes from parent directory)"
+    Write-Host "5. Publish (Sync + Build + Git push + Workshop upload)"
     Write-Host "Q. Quit"
     Write-Host ""
     
@@ -286,6 +444,7 @@ function Show-Menu {
         "2" { Sync-FromSource; Pause; Show-Menu }
         "3" { Build-Release; Pause; Show-Menu }
         "4" { Sync-FromAddon; Pause; Show-Menu }
+        "5" { Publish-All; Pause; Show-Menu }
         "Q" { exit }
         "q" { exit }
         default { Write-Host "Invalid option." -ForegroundColor Red; Pause; Show-Menu }
@@ -304,6 +463,13 @@ elseif ($args[0] -eq "-release") {
 }
 elseif ($args[0] -eq "-addon") {
     Sync-FromAddon
+}
+elseif ($args[0] -eq "-publish") {
+    $message = $null
+    if ($args.Count -gt 1) {
+        $message = ($args[1..($args.Count - 1)] -join " ")
+    }
+    Publish-All -Message $message
 }
 else {
     Show-Menu

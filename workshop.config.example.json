@@ -1,0 +1,13 @@
+{
+  "SteamCmdPath": "C:\\steamcmd\\steamcmd.exe",
+  "SteamUser": "your_steam_username",
+  "SteamPass": "",
+  "AppId": "301650",
+  "PublishedFileId": "1234567890",
+  "ContentFolder": "_Release",
+  "PreviewFile": "",
+  "Visibility": "0",
+  "Title": "",
+  "Description": "",
+  "DescriptionFile": ""
+}
