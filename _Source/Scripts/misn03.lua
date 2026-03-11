@@ -13,6 +13,10 @@ local MissionLifecycle = require("MissionLifecycle")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 
+local load_pending = false
+local load_grace_until = 0.0
+local pending_ai_data = nil
+
 -- Helper for AI
 local function SetupAI()
     local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
@@ -256,7 +260,19 @@ end
 
 function Load(data, aiData)
     if data then M = data end
-    lifecycle:Load(M, aiData)
+    if type(aiData) == "table" then
+        pending_ai_data = aiData
+    else
+        pending_ai_data = nil
+    end
+    load_pending = true
+end
+
+function PostLoad()
+    lifecycle:Load(M, pending_ai_data)
+    pending_ai_data = nil
+    load_pending = false
+    load_grace_until = GetTime() + 2.0
 end
 
 function Start()
@@ -354,6 +370,12 @@ function AddObject(h)
 end
 
 function Update()
+    if load_pending then
+        return
+    end
+    if GetTime() < load_grace_until then
+        return
+    end
     M.user = GetPlayerHandle()
 
     -- Get difficulty for dynamic adjustments (0=Very Easy, 1=Easy, 2=Medium, 3=Hard, 4=Very Hard)

@@ -4663,6 +4663,57 @@ function aiCore.IsEnemyOfPlayerTeam(teamNum)
     return teamNum ~= playerTeam and not IsTeamAllied(teamNum, playerTeam)
 end
 
+function aiCore.GetPlayerRecyclerHandle()
+    local player = GetPlayerHandle()
+    if not IsValid(player) then return nil end
+    return GetRecyclerHandle(GetTeamNum(player))
+end
+
+function aiCore.IsGeyserObject(h)
+    if not IsValid(h) then return false end
+    local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+    if cls ~= "" and string.find(cls, "geyser") then return true end
+    local label = string.lower(utility.CleanString(GetLabel(h)))
+    if label ~= "" and string.find(label, "geyser") then return true end
+    local odf = string.lower(utility.CleanString(GetOdf(h)))
+    if odf ~= "" and string.find(odf, "geyser") then return true end
+    return false
+end
+
+function aiCore.IsGeyserOpen(geyser)
+    if not IsValid(geyser) then return false end
+    local radius = 10.0
+    for obj in ObjectsInRange(radius, geyser) do
+        if IsValid(obj) and IsAlive(obj) then
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            if (string.find(cls, utility.ClassLabel.RECYCLER)
+                    or string.find(cls, utility.ClassLabel.FACTORY)
+                    or string.find(cls, utility.ClassLabel.ARMORY)) and (IsDeployed(obj) or IsBuilding(obj)) then
+                return false
+            end
+        end
+    end
+    return true
+end
+
+function aiCore.FindClosestOpenGeyser(reference)
+    if not IsValid(reference) then return nil end
+    local best = nil
+    local bestDist = 999999.0
+
+    for obj in AllObjects() do
+        if IsValid(obj) and aiCore.IsGeyserObject(obj) and aiCore.IsGeyserOpen(obj) then
+            local d = DistanceBetweenRefs(reference, obj)
+            if d < bestDist then
+                best = obj
+                bestDist = d
+            end
+        end
+    end
+
+    return best, bestDist
+end
+
 function aiCore.GetSniperRoleChancePercent(teamObj)
     local base = math.floor(((teamObj and teamObj.Config and teamObj.Config.pilotZeal) or 0.4) * 100)
     if aiCore.IsEnemyOfPlayerTeam(teamObj and teamObj.teamNum or -1) then
@@ -5801,6 +5852,7 @@ function aiCore.Team:new(teamNum, faction)
         pilotEmergencyBarracksPriority = 3,
         pilotEmergencyCheckInterval = 6.0,
         flankFormationRushChance = 40, -- Chance a flank squad attacks in formation-rush mode
+        flankAttackChance = 55, -- Chance a squad attempts a staged flank instead of direct attack
         resourceBoost = false,
 
         -- Timers
@@ -5975,6 +6027,7 @@ function aiCore.Team:new(teamNum, faction)
     t.scrapTrackedUnits = {}
     t.scrapOrderState = {}
     t.scrapOutpostTimer = 0.0
+    t.armorySuicideStates = {}
     t.producerDeployState = {}
     t.buildAccountWeights = { offense = 1.0, defense = 1.0, rebuild = 1.0, economy = 1.0 }
     t.buildAccountSpend = { offense = 0.0, defense = 0.0, rebuild = 0.0, economy = 0.0 }
@@ -7233,6 +7286,7 @@ function aiCore.Team:Update()
     self:UpdateResourceBoosting()
     self:UpdateUpgrades()
     self:UpdateWrecker()
+    self:UpdateArmorySuicide()
     self:UpdateParatroopers()
     self:UpdateSoldiers()
 
@@ -7813,6 +7867,16 @@ function aiCore.Team:GetRuleUnitRoleCount(bucket)
         end
     end
 
+    if bucket == "recycler" then
+        if IsValid(GetRecyclerHandle(self.teamNum)) then count = math.max(count, 1) end
+    elseif bucket == "factory" then
+        if IsValid(GetFactoryHandle(self.teamNum)) then count = math.max(count, 1) end
+    elseif bucket == "armory" then
+        if IsValid(GetArmoryHandle(self.teamNum)) then count = math.max(count, 1) end
+    elseif bucket == "constructor" then
+        if IsValid(GetConstructorHandle(self.teamNum)) then count = math.max(count, 1) end
+    end
+
     for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do
         if self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
             count = count + 1
@@ -7865,14 +7929,14 @@ function aiCore.Team:GetRuleBuildingCount(key)
         end
     end
 
-    if key == "recycler" and IsValid(aiCore.SafeGetTeamSlot and aiCore.SafeGetTeamSlot(TeamSlot.RECYCLER, self.teamNum) or nil) then
-        count = math.max(count, 1)
-    elseif key == "factory" and IsValid(aiCore.SafeGetTeamSlot and aiCore.SafeGetTeamSlot(TeamSlot.FACTORY, self.teamNum) or nil) then
-        count = math.max(count, 1)
-    elseif key == "armory" and IsValid(aiCore.SafeGetTeamSlot and aiCore.SafeGetTeamSlot(TeamSlot.ARMORY, self.teamNum) or nil) then
-        count = math.max(count, 1)
-    elseif key == "constructor" and IsValid(aiCore.SafeGetTeamSlot and aiCore.SafeGetTeamSlot(TeamSlot.CONSTRUCT, self.teamNum) or nil) then
-        count = math.max(count, 1)
+    if key == "recycler" then
+        if IsValid(GetRecyclerHandle(self.teamNum)) then count = math.max(count, 1) end
+    elseif key == "factory" then
+        if IsValid(GetFactoryHandle(self.teamNum)) then count = math.max(count, 1) end
+    elseif key == "armory" then
+        if IsValid(GetArmoryHandle(self.teamNum)) then count = math.max(count, 1) end
+    elseif key == "constructor" then
+        if IsValid(GetConstructorHandle(self.teamNum)) then count = math.max(count, 1) end
     end
 
     for _, qItem in ipairs(self.constructorMgr.queue or aiCore.EmptyList) do
@@ -9542,6 +9606,85 @@ function aiCore.Team:UpdateWrecker()
     end
 end
 
+function aiCore.Team:StartArmorySuicide(armory)
+    if not IsValid(armory) or not IsAlive(armory) then return false end
+    if not aiCore.IsEnemyOfPlayerTeam(self.teamNum) then return false end
+    self.armorySuicideStates = self.armorySuicideStates or {}
+    if self.armorySuicideStates[armory] then return true end
+
+    local playerRecycler = aiCore.GetPlayerRecyclerHandle()
+    if not IsValid(playerRecycler) then return false end
+
+    local geyser = aiCore.FindClosestOpenGeyser(playerRecycler)
+    if not IsValid(geyser) then return false end
+
+    self.armorySuicideStates[armory] = {
+        geyser = geyser,
+        stage = "moving",
+        nextOrderTime = 0.0,
+        built = 0,
+        granted = false
+    }
+
+    aiCore.TrySetCommand(armory, AiCommand.GO_TO_GEYSER, GetUncommandablePriority(), geyser, nil, nil, nil,
+        { minInterval = 1.0, overrideProtected = true })
+    return true
+end
+
+function aiCore.Team:UpdateArmorySuicide()
+    if not self.armorySuicideStates then return end
+    local now = GetTime()
+
+    for armory, state in pairs(self.armorySuicideStates) do
+        if not IsValid(armory) or not IsAlive(armory) then
+            self.armorySuicideStates[armory] = nil
+        else
+            local geyser = state.geyser
+            if not IsValid(geyser) then
+                local playerRecycler = aiCore.GetPlayerRecyclerHandle()
+                if IsValid(playerRecycler) then
+                    geyser = aiCore.FindClosestOpenGeyser(playerRecycler)
+                    state.geyser = geyser
+                end
+            end
+
+            if not IsValid(geyser) then
+                self.armorySuicideStates[armory] = nil
+            else
+                if state.stage == "moving" then
+                    if IsDeployed(armory) and DistanceBetweenRefs(armory, geyser) <= 35.0 then
+                        state.stage = "detonate"
+                    elseif now >= (state.nextOrderTime or 0.0) then
+                        aiCore.TrySetCommand(armory, AiCommand.GO_TO_GEYSER, GetUncommandablePriority(), geyser, nil, nil, nil,
+                            { minInterval = 1.0, overrideProtected = true })
+                        state.nextOrderTime = now + 6.0
+                    end
+                end
+
+                if state.stage == "detonate" then
+                    if not state.granted then
+                        AddScrap(self.teamNum, 60)
+                        state.granted = true
+                    end
+
+                    if state.built < 3 and CanBuild(armory) then
+                        local wreckerOdf = "apwrck"
+                        self.lastArmoryTarget = armory
+                        for i = state.built + 1, 3 do
+                            BuildAt(armory, wreckerOdf, armory, 1)
+                        end
+                        state.built = 3
+                    end
+
+                    if state.built >= 3 then
+                        self.armorySuicideStates[armory] = nil
+                    end
+                end
+            end
+        end
+    end
+end
+
 function aiCore.Team:ChooseFallbackStrategy()
     local options = { "Balanced", "Tank_Heavy", "Howitzer_Heavy", "Bomber_Heavy" }
     local weights = {
@@ -9725,6 +9868,16 @@ function aiCore.Team:UpdateUnitRoles()
     if now < (self.roleTimer or 0) then return end
     self.roleTimer = now + 5.0
 
+    local squadUnits = {}
+    for _, sq in ipairs(self.squads or aiCore.EmptyList) do
+        if sq then
+            if IsValid(sq.leader) then squadUnits[sq.leader] = true end
+            for _, m in ipairs(sq.members or aiCore.EmptyList) do
+                if IsValid(m) then squadUnits[m] = true end
+            end
+        end
+    end
+
     local enemyTeam = self:GetPrimaryEnemyTeam()
     if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
 
@@ -9870,13 +10023,13 @@ function aiCore.Team:UpdateUnitRoles()
 
     local processed = {}
     for _, u in ipairs(self.combatUnits) do
-        if not processed[u] then
+        if not processed[u] and not squadUnits[u] then
             processed[u] = true
             AssignRole(u)
         end
     end
     for _, u in ipairs(self.pool) do
-        if not processed[u] then
+        if not processed[u] and not squadUnits[u] then
             processed[u] = true
             AssignRole(u)
         end
@@ -10296,6 +10449,19 @@ function aiCore.Team:UpdateSquads()
         return (math.random(100) <= chance) and "formation_rush" or "independent"
     end
 
+    local function RollFlankEngagement()
+        local chance = self.Config.flankAttackChance
+        if chance == nil then chance = 55 end
+        if chance < 0 then chance = 0 end
+        if chance > 100 then chance = 100 end
+
+        -- Prefer fewer staged flanks for non-player enemies.
+        if not aiCore.IsEnemyOfPlayerTeam(self.teamNum) then
+            chance = math.min(chance, 25)
+        end
+        return (math.random(100) <= chance)
+    end
+
     local function IssueGoalOrders(squad, leader, goal, angle)
         if not squad or not goal then return false end
 
@@ -10305,18 +10471,23 @@ function aiCore.Team:UpdateSquads()
             local target = squad:ResolveStrategicTarget()
             if not IsValid(target) then return false end
 
-            local flankPos = self:GetValidFlankPosition(target, angle)
-            squad.flankStartTime = GetTime()
-            if flankPos then
-                squad.targetPos = flankPos
-                squad.state = "moving_to_flank"
-                aiCore.TrySetCommand(leader, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
-                    { minInterval = 0.7, ignoreThrottle = true })
-                for _, m in ipairs(squad.members) do
-                    if IsValid(m) then
-                        aiCore.TrySetCommand(m, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
-                            { minInterval = 0.7, ignoreThrottle = true })
+            if RollFlankEngagement() then
+                local flankPos = self:GetValidFlankPosition(target, angle)
+                squad.flankStartTime = GetTime()
+                if flankPos then
+                    squad.targetPos = flankPos
+                    squad.state = "moving_to_flank"
+                    aiCore.TrySetCommand(leader, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
+                        { minInterval = 0.7, ignoreThrottle = true })
+                    for _, m in ipairs(squad.members) do
+                        if IsValid(m) then
+                            aiCore.TrySetCommand(m, AiCommand.GO, GetUncommandablePriority(), nil, flankPos, nil, nil,
+                                { minInterval = 0.7, ignoreThrottle = true })
+                        end
                     end
+                else
+                    squad.state = "attacking"
+                    squad:IssueAttackOrders(target)
                 end
             else
                 squad.state = "attacking"
@@ -10671,6 +10842,9 @@ function aiCore.Team:AddObject(h)
     local cls = string.lower(utility.CleanString(GetClassLabel(h)))
     local isApc = string.find(cls, utility.ClassLabel.APC) ~= nil
     local isSpecializedPoolUnit = IsSpecializedPoolClass(cls)
+    local units = aiCore.Units[self.faction] or {}
+    local isArmory = (cls == utility.ClassLabel.ARMORY) or
+        (units.armory and odf == string.lower(utility.CleanString(units.armory)))
 
     -- BUG FIX: Day Wrecker / Powerup Workaround (Team 1 + GO command)
     -- As seen in aiSpecial.CreateWrecker: projectiles need Team 1 to receive GO commands properly in BZR
@@ -10691,6 +10865,12 @@ function aiCore.Team:AddObject(h)
     -- MODIFIED: Integrated Producer Tracking
     if producer.ProcessCreated(h) then
         if aiCore.Debug then print("aiCore: Integrated Producer -> Built " .. odf) end
+    end
+
+    if isArmory and aiCore.IsEnemyOfPlayerTeam(self.teamNum) then
+        if math.random(100) <= 10 then
+            self:StartArmorySuicide(h)
+        end
     end
 
     -- Link to build lists

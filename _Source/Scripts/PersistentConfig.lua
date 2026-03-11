@@ -15,8 +15,19 @@ PersistentConfig.PlayerChargeWeaponState = PersistentConfig.PlayerChargeWeaponSt
 -- Internal Feedback Queue
 PersistentConfig.FeedbackQueue = {}
 
--- Default Settings
-PersistentConfig.Settings = {
+-- Default Settings (cloned into Settings to allow reset)
+local function DeepCopy(value)
+    if type(value) ~= "table" then
+        return value
+    end
+    local result = {}
+    for k, v in pairs(value) do
+        result[k] = DeepCopy(v)
+    end
+    return result
+end
+
+PersistentConfig.DefaultSettings = {
     HeadlightDiffuse = { R = 5.0, G = 5.0, B = 5.0 },                         -- White
     HeadlightSpecular = { R = 5.0, G = 5.0, B = 5.0 },                         -- White specular
     HeadlightRange = { InnerAngle = 0.6, OuterAngle = 0.9, Falloff = 0.35 },   -- Default to Wide
@@ -39,6 +50,8 @@ PersistentConfig.Settings = {
     PdaFontScale = 1.30,            -- PDA font/window scale (0.85-1.30)
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
 }
+
+PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
 
 local PdaPages = {
     STATS = 1,
@@ -242,7 +255,21 @@ local function BuildPdaHeader(activePage)
             table.insert(parts, label)
         end
     end
-    return table.concat(parts, "  ")
+    return "**BATTLEZONE PDA**\n" .. table.concat(parts, "  ")
+end
+
+local function FormatHotkeyValue(value, key)
+    if not key or key == "" then
+        return value
+    end
+    return string.format("%s (%s)", value, key)
+end
+
+local function AppendPdaNavHints(lines)
+    table.insert(lines, "")
+    table.insert(lines, "ARROWS MOVE")
+    table.insert(lines, "ENTER ACTION")
+    table.insert(lines, "[ / ] SWITCH PAGE")
 end
 
 local function GetPdaLayoutMetrics(page)
@@ -446,7 +473,7 @@ InputState = {
     last_help_state = false, --/ or ? on keyboard
     last_x_state = false,    -- Auto-repair toggle
     last_u_state = false,    -- Scavenger Assist (U)
-    last_l_state = false,    -- Retro Lighting (Shift+L)
+    last_l_state = false,    -- Reserved
     last_y_state = false,    -- PDA toggle (Y)
     last_left_bracket_state = false,
     last_right_bracket_state = false,
@@ -534,6 +561,9 @@ local function HasOdfString(value, found)
     end
     return cleaned ~= ""
 end
+
+-- Forward declaration (used by commander overview before definition).
+local GetPowerRadius
 
 local function IsMaskBitSet(mask, slot)
     local div = 2 ^ slot
@@ -2147,6 +2177,7 @@ local function BuildStatsPageText(player, mask)
     table.insert(lines, "TOTAL " .. tostring(hardpointCount))
     table.insert(lines, BuildMeterBar("AMMO", playerAmmo, curAmmo, maxAmmo))
     table.insert(lines, BuildMeterBar("HULL", playerHealth, curHealth, maxHealth))
+    AppendPdaNavHints(lines)
     return table.concat(lines, "\n")
 end
 
@@ -2160,7 +2191,7 @@ local function BuildTargetPageText(player)
     if not aimInfo or not targetDistance then
         table.insert(lines, "NO TARGET")
         table.insert(lines, "Aim at a unit to inspect it.")
-        table.insert(lines, "[ / ] SWITCH PAGE")
+        AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
 
@@ -2176,6 +2207,7 @@ local function BuildTargetPageText(player)
             string.format("POS  %d %d %d", math.floor((aimPosition.x or 0.0) + 0.5), math.floor((aimPosition.y or 0.0) + 0.5),
                 math.floor((aimPosition.z or 0.0) + 0.5)))
         table.insert(lines, "Reticle position")
+        AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
 
@@ -2208,6 +2240,7 @@ local function BuildTargetPageText(player)
     table.insert(lines, "TOTAL " .. tostring(hardpointCount))
     table.insert(lines, BuildMeterBar("AMMO", targetAmmo, curAmmo, maxAmmo))
     table.insert(lines, BuildMeterBar("HULL", targetHealth, curHealth, maxHealth))
+    AppendPdaNavHints(lines)
     return table.concat(lines, "\n")
 end
 
@@ -2236,6 +2269,7 @@ local function BuildSettingsPageText()
     table.insert(lines, string.format("SHOWING %02d-%02d OF %02d", startIndex, endIndex, count))
     table.insert(lines, "UP/DOWN SELECT")
     table.insert(lines, "LEFT/RIGHT CHANGE")
+    table.insert(lines, "ENTER ACTION")
     table.insert(lines, "[ / ] SWITCH PAGE")
     return table.concat(lines, "\n")
 end
@@ -2248,14 +2282,14 @@ local function BuildPresetPageText()
         table.insert(lines, "ARMORY NOT AVAILABLE")
         table.insert(lines, "Build an Armory to edit")
         table.insert(lines, "unit upgrade presets.")
-        table.insert(lines, "[ / ] SWITCH PAGE")
+        AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
 
     if #context.producerKinds == 0 then
         table.insert(lines, "NO PRODUCERS AVAILABLE")
         table.insert(lines, "Recycler/Factory missing.")
-        table.insert(lines, "[ / ] SWITCH PAGE")
+        AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
 
@@ -2336,6 +2370,8 @@ local function BuildPresetPageText()
     table.insert(lines, "Preset applies after build.")
     table.insert(lines, "No refunds for downgrades.")
     table.insert(lines, "UP/DOWN SELECT  LEFT/RIGHT CHANGE")
+    table.insert(lines, "ENTER ACTION")
+    table.insert(lines, "[ / ] SWITCH PAGE")
     return table.concat(lines, "\n")
 end
 
@@ -2346,7 +2382,7 @@ local function BuildQueuePageText()
     if not context.available then
         table.insert(lines, "")
         table.insert(lines, "UNDEPLOYED")
-        table.insert(lines, "[ / ] SWITCH PAGE")
+        AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
 
@@ -2874,6 +2910,7 @@ local function BuildCommandPageText()
     if not overview or not overview.initialized then
         table.insert(lines, "Commander Overview")
         table.insert(lines, "Scanning structures...")
+        AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
 
@@ -2889,6 +2926,7 @@ local function BuildCommandPageText()
     table.insert(lines, "")
     table.insert(lines, string.format("UNPOWERED TOWERS %d", stats.unpoweredTurrets or 0))
     table.insert(lines, string.format("UNPOWERED COMM   %d", stats.unpoweredComm or 0))
+    AppendPdaNavHints(lines)
     return table.concat(lines, "\n")
 end
 
@@ -3197,6 +3235,13 @@ GetSettingsPageEntries = function()
             end,
         },
         {
+            label = "PDA HUD",
+            value = FormatHotkeyValue(PersistentConfig.Settings.WeaponStatsHud and "ON" or "OFF", "Y"),
+            adjust = function(delta)
+                return SetWeaponStatsHudEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
             label = "SUBTITLES",
             value = PersistentConfig.Settings.SubtitlesEnabled and "ON" or "OFF",
             adjust = function(delta)
@@ -3224,35 +3269,35 @@ GetSettingsPageEntries = function()
         },
         {
             label = "PLAYER LIGHT",
-            value = PersistentConfig.Settings.HeadlightVisible and "ON" or "OFF",
+            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightVisible and "ON" or "OFF", "V"),
             adjust = function(delta)
                 return SetPlayerHeadlightVisible(DirectionEnabled(delta))
             end,
         },
         {
             label = "LIGHT COLOR",
-            value = HeadlightColorPresets[GetHeadlightColorPresetIndex()].name,
+            value = FormatHotkeyValue(HeadlightColorPresets[GetHeadlightColorPresetIndex()].name, "Z"),
             adjust = function(delta)
                 return CycleHeadlightColor(delta)
             end,
         },
         {
             label = "AI LIGHTS",
-            value = PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON",
+            value = FormatHotkeyValue(PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON", "J"),
             adjust = function(delta)
                 return SetOtherHeadlightsEnabled(DirectionEnabled(delta))
             end,
         },
         {
             label = "BEAM",
-            value = PersistentConfig.Settings.HeadlightBeamMode == 1 and "FOCUSED" or "WIDE",
+            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightBeamMode == 1 and "FOCUSED" or "WIDE", "B"),
             adjust = function(delta)
                 return CycleHeadlightBeamMode(delta)
             end,
         },
         {
             label = "WING REPAIR",
-            value = PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF",
+            value = FormatHotkeyValue(PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF", "X"),
             adjust = function(delta)
                 return SetAutoRepairWingmenEnabled(DirectionEnabled(delta))
             end,
@@ -3266,7 +3311,7 @@ GetSettingsPageEntries = function()
         },
         {
             label = "SCAV ASSIST",
-            value = PersistentConfig.Settings.ScavengerAssistEnabled and "ON" or "OFF",
+            value = FormatHotkeyValue(PersistentConfig.Settings.ScavengerAssistEnabled and "ON" or "OFF", "U"),
             adjust = function(delta)
                 return SetScavengerAssistEnabled(DirectionEnabled(delta))
             end,
@@ -3276,6 +3321,17 @@ GetSettingsPageEntries = function()
             value = PersistentConfig.Settings.AutoSaveEnabled and "ON" or "OFF",
             adjust = function(delta)
                 return SetAutoSaveEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "RESET CFG",
+            value = "RIGHT TO RESET",
+            adjust = function(delta)
+                if DirectionEnabled(delta) then
+                    PersistentConfig.ResetToDefaults()
+                    return true
+                end
+                return false
             end,
         },
     }
@@ -3494,6 +3550,22 @@ function PersistentConfig.SaveConfig()
     end
 end
 
+function PersistentConfig.ResetToDefaults()
+    PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
+    PersistentConfig.UnitPresets = {}
+    PersistentConfig.SaveConfig()
+    PersistentConfig.ApplySettings()
+    MarkOtherHeadlightsDirty()
+
+    if autosave and autosave.Config then
+        autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
+        autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
+        autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
+    end
+
+    ShowFeedback("Settings reset to defaults.", 0.7, 1.0, 0.7, 4.0, false)
+end
+
 function PersistentConfig.ApplySettings()
     if exu then
         local h = GetPlayerHandle()
@@ -3551,7 +3623,7 @@ end
 -- Show help overlay
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
-    local helpMsg = "Use Y to toggle PDA."
+    local helpMsg = "Use Y to toggle PDA. Reset in Settings."
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
 end
@@ -3799,17 +3871,8 @@ function PersistentConfig.UpdateInputs()
 
     -- Toggle Auto-Repair for Wingmen (X for "Auto-fiX")
     local x_key = exu.GetGameKey("X")
-    local shift_down = false
-    if exu.GetGameKey("SHIFT") then shift_down = true end
-
     if x_key and not InputState.last_x_state then
-        if shift_down then
-            -- Shift+X: Toggle Building Repair
-            SetAutoRepairBuildingsEnabled(not PersistentConfig.Settings.AutoRepairBuildings)
-        else
-            -- X: Toggle Wingman Repair
-            SetAutoRepairWingmenEnabled(not PersistentConfig.Settings.AutoRepairWingmen)
-        end
+        SetAutoRepairWingmenEnabled(not PersistentConfig.Settings.AutoRepairWingmen)
     end
     InputState.last_x_state = x_key
 
@@ -3820,15 +3883,7 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_u_state = u_key
 
-    -- Toggle AutoSave (Shift+L)
-    local l_key = exu.GetGameKey("L")
-    local shift_down_l = false
-    if exu.GetGameKey("SHIFT") then shift_down_l = true end
-
-    if l_key and shift_down_l and not InputState.last_l_state then
-        SetAutoSaveEnabled(not PersistentConfig.Settings.AutoSaveEnabled)
-    end
-    InputState.last_l_state = l_key
+    -- AutoSave and Reset are settings-menu only (no hotkeys).
 
     -- Help Popup (/ or ? key) - using stock BZ API
     local help_pressed = (LastGameKey == "/" or LastGameKey == "?")
@@ -3910,7 +3965,7 @@ end
 -- ODF Property Cache to avoid repeated file I/O
 PersistentConfig.ODFCache = {}
 
-local function GetPowerRadius(odfname)
+GetPowerRadius = function(odfname)
     if not odfname then return 200.0 end
 
     -- Check Cache

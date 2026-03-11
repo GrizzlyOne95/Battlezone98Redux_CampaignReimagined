@@ -13,6 +13,15 @@ local DiffUtils = require("DiffUtils")
 local MissionLifecycle = require("MissionLifecycle")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
+local unpack = table.unpack or unpack
+
+local LABEL_BSCAV = "misn02b_bscav"
+local LABEL_BSCOUT = "misn02b_bscout"
+local LABEL_SCAV2 = "misn02b_scav2"
+local RefreshHandlesAfterLoad
+local load_pending = false
+local load_grace_until = 0.0
+local pending_ai_data = nil
 
 -- Global Variables (State)
 local camera1 = false
@@ -53,6 +62,7 @@ local bgoal = nil
 local bhandle2 = nil
 
 local lifecycleState = { difficulty = 2 }
+local SAVE_VERSION = 1
 local lifecycle = MissionLifecycle.New({
     exu = exu,
     aiCore = aiCore,
@@ -79,33 +89,212 @@ local lifecycle = MissionLifecycle.New({
     end
 })
 
--- Save function: Returns values to be saved
+local function PackMissionState()
+    local data = {}
+    local i = 0
+    local function push(v)
+        i = i + 1
+        data[i] = v
+    end
+
+    push(SAVE_VERSION)
+    push(camera1)
+    push(camera2)
+    push(camera3)
+    push(found)
+    push(found2)
+    push(start_done)
+    push(patrol1)
+    push(message1)
+    push(message2)
+    push(message3)
+    push(message4)
+    push(message5)
+    push(mission_won)
+    push(mission_lost)
+    push(bootstrap_done)
+    push(wave_timer)
+    push(last_wave_time)
+    push(cam_time)
+    push(NextSecond)
+    push(nil) -- bscav (restored after load)
+    push(nil) -- bscout (restored after load)
+    push(nil) -- scav2 (restored after load)
+    push(nil) -- audmsg (audio handles are not saved)
+    push(nil) -- dummy (restored after load)
+    push(nil) -- lander (restored after load)
+    push(nil) -- bhandle (restored after load)
+    push(nil) -- bhome (restored after load)
+    push(nil) -- recycler (restored after load)
+    push(nil) -- bgoal (restored after load)
+    push(nil) -- bhandle2 (restored after load)
+    push(intro_skipped)
+    push(bio_timer)
+
+    return data, i
+end
+
+-- Save function: Returns values to be saved (no audio handles)
 function Save()
-    local missionData = {
-        camera1, camera2, camera3, found, found2, start_done, patrol1,
-        message1, message2, message3, message4, message5, mission_won, mission_lost,
-        bootstrap_done,
-        wave_timer, last_wave_time, cam_time, NextSecond,
-        bscav, bscout, scav2, audmsg,
-        dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2,
-        intro_skipped, bio_timer
-    }
-    return missionData, aiCore.Save()
+    local data, count = PackMissionState()
+    return unpack(data, 1, count), aiCore.Save()
 end
 
 -- Load function: Restores values from save
-function Load(missionData, aiData)
-    if missionData then
-        camera1, camera2, camera3, found, found2, start_done, patrol1,
-        message1, message2, message3, message4, message5, mission_won, mission_lost,
-        bootstrap_done,
-        wave_timer, last_wave_time, cam_time, NextSecond,
-        bscav, bscout, scav2, audmsg,
-        dummy, lander, bhandle, bhome, recycler, bgoal, bhandle2,
-        intro_skipped, bio_timer = unpack(missionData)
+function Load(...)
+    local count = select("#", ...)
+    if count == 0 then return end
+
+    local args = { ... }
+    local first = args[1]
+    pending_ai_data = nil
+    if count > 1 and type(args[count]) == "table" then
+        pending_ai_data = args[count]
     end
+
+    if type(first) == "table" then
+        local missionData = first
+        local idx = 1
+        if type(missionData[idx]) == "number" then
+            idx = idx + 1 -- SAVE_VERSION
+        end
+
+        camera1 = missionData[idx]; idx = idx + 1
+        camera2 = missionData[idx]; idx = idx + 1
+        camera3 = missionData[idx]; idx = idx + 1
+        found = missionData[idx]; idx = idx + 1
+        found2 = missionData[idx]; idx = idx + 1
+        start_done = missionData[idx]; idx = idx + 1
+        patrol1 = missionData[idx]; idx = idx + 1
+        message1 = missionData[idx]; idx = idx + 1
+        message2 = missionData[idx]; idx = idx + 1
+        message3 = missionData[idx]; idx = idx + 1
+        message4 = missionData[idx]; idx = idx + 1
+        message5 = missionData[idx]; idx = idx + 1
+        mission_won = missionData[idx]; idx = idx + 1
+        mission_lost = missionData[idx]; idx = idx + 1
+        bootstrap_done = missionData[idx]; idx = idx + 1
+        wave_timer = missionData[idx]; idx = idx + 1
+        last_wave_time = missionData[idx]; idx = idx + 1
+        cam_time = missionData[idx]; idx = idx + 1
+        NextSecond = missionData[idx]; idx = idx + 1
+        bscav = missionData[idx]; idx = idx + 1
+        bscout = missionData[idx]; idx = idx + 1
+        scav2 = missionData[idx]; idx = idx + 1
+        idx = idx + 1 -- audmsg placeholder
+        dummy = missionData[idx]; idx = idx + 1
+        lander = missionData[idx]; idx = idx + 1
+        bhandle = missionData[idx]; idx = idx + 1
+        bhome = missionData[idx]; idx = idx + 1
+        recycler = missionData[idx]; idx = idx + 1
+        bgoal = missionData[idx]; idx = idx + 1
+        bhandle2 = missionData[idx]; idx = idx + 1
+        intro_skipped = missionData[idx]; idx = idx + 1
+        bio_timer = missionData[idx]; idx = idx + 1
+
+        audmsg = nil
+        if wave_timer == nil then wave_timer = 0 end
+        if last_wave_time == nil then last_wave_time = 99999.0 end
+        if cam_time == nil then cam_time = 0.0 end
+        if NextSecond == nil then NextSecond = 99999.0 end
+        if bio_timer == nil then bio_timer = 0 end
+        load_pending = true
+        return
+    end
+
+    local idx = 1
+    if type(args[idx]) == "number" then
+        idx = idx + 1 -- SAVE_VERSION
+    end
+
+    camera1 = args[idx]; idx = idx + 1
+    camera2 = args[idx]; idx = idx + 1
+    camera3 = args[idx]; idx = idx + 1
+    found = args[idx]; idx = idx + 1
+    found2 = args[idx]; idx = idx + 1
+    start_done = args[idx]; idx = idx + 1
+    patrol1 = args[idx]; idx = idx + 1
+    message1 = args[idx]; idx = idx + 1
+    message2 = args[idx]; idx = idx + 1
+    message3 = args[idx]; idx = idx + 1
+    message4 = args[idx]; idx = idx + 1
+    message5 = args[idx]; idx = idx + 1
+    mission_won = args[idx]; idx = idx + 1
+    mission_lost = args[idx]; idx = idx + 1
+    bootstrap_done = args[idx]; idx = idx + 1
+    wave_timer = args[idx]; idx = idx + 1
+    last_wave_time = args[idx]; idx = idx + 1
+    cam_time = args[idx]; idx = idx + 1
+    NextSecond = args[idx]; idx = idx + 1
+    bscav = args[idx]; idx = idx + 1
+    bscout = args[idx]; idx = idx + 1
+    scav2 = args[idx]; idx = idx + 1
+    idx = idx + 1 -- audmsg placeholder
+    dummy = args[idx]; idx = idx + 1
+    lander = args[idx]; idx = idx + 1
+    bhandle = args[idx]; idx = idx + 1
+    bhome = args[idx]; idx = idx + 1
+    recycler = args[idx]; idx = idx + 1
+    bgoal = args[idx]; idx = idx + 1
+    bhandle2 = args[idx]; idx = idx + 1
+    intro_skipped = args[idx]; idx = idx + 1
+    bio_timer = args[idx]; idx = idx + 1
+
+    audmsg = nil
+    if wave_timer == nil then wave_timer = 0 end
+    if last_wave_time == nil then last_wave_time = 99999.0 end
+    if cam_time == nil then cam_time = 0.0 end
+    if NextSecond == nil then NextSecond = 99999.0 end
     if bio_timer == nil then bio_timer = 0 end
-    lifecycle:Load(lifecycleState, aiData)
+    load_pending = true
+end
+
+local function AudioDone(msg)
+    return (not msg) or IsAudioMessageDone(msg)
+end
+
+RefreshHandlesAfterLoad = function()
+    dummy = GetHandle("fake_player")
+    lander = GetHandle("avland0_wingman")
+    bhandle = GetHandle("sscr_171_scrap")
+    bhome = GetHandle("abcomm1_i76building")
+    recycler = GetHandle("avrecy-1_recycler")
+    bgoal = GetHandle("apscrap-1_camerapod")
+    bhandle2 = GetHandle("sscr_176_scrap")
+
+    bscav = GetHandle(LABEL_BSCAV)
+    bscout = GetHandle(LABEL_BSCOUT)
+    scav2 = GetHandle(LABEL_SCAV2)
+
+    local foundScav = IsValid and IsValid(bscav)
+    local foundScav2 = IsValid and IsValid(scav2)
+    local foundScout = IsValid and IsValid(bscout)
+
+    for h in AllCraft() do
+        if not foundScav or not foundScav2 then
+            if IsOdf(h, "avscav") and GetTeamNum(h) == 1 then
+                if not foundScav then
+                    bscav = h
+                    if SetLabel then SetLabel(bscav, LABEL_BSCAV) end
+                    foundScav = true
+                elseif not foundScav2 then
+                    scav2 = h
+                    if SetLabel then SetLabel(scav2, LABEL_SCAV2) end
+                    foundScav2 = true
+                end
+            end
+        end
+
+        if not foundScout then
+            if IsOdf(h, "svfigh") and GetTeamNum(h) == 2 then
+                bscout = h
+                if SetLabel then SetLabel(bscout, LABEL_BSCOUT) end
+                foundScout = true
+            end
+        end
+
+        if foundScav and foundScav2 and foundScout then break end
+    end
 end
 
 function Start()
@@ -122,6 +311,14 @@ function Start()
     --TestEXU()
 end
 
+function PostLoad()
+    RefreshHandlesAfterLoad()
+    lifecycle:Load(lifecycleState, pending_ai_data)
+    pending_ai_data = nil
+    load_pending = false
+    load_grace_until = GetTime() + 2.0
+end
+
 -- AddObject function: Called when a game object is added
 function AddObject(h)
     local team = GetTeamNum(h)
@@ -133,6 +330,7 @@ function AddObject(h)
     if team == 1 and odf == "avscav" and bscav == nil then
         found = true
         bscav = h
+        if SetLabel then SetLabel(bscav, LABEL_BSCAV) end
         SetCritical(bscav, true)
         SetObjectiveOn(bscav)
 
@@ -147,6 +345,7 @@ function AddObject(h)
         if not found2 then
             found2 = true
             bscout = h
+            if SetLabel then SetLabel(bscout, LABEL_BSCOUT) end
             Goto(bscout, "patrol1")
             SetObjectiveOn(bscout)
         else
@@ -175,6 +374,12 @@ end
 
 -- Update function: Called every frame
 function Update()
+    if load_pending then
+        return
+    end
+    if GetTime() < load_grace_until then
+        return
+    end
     local player = GetPlayerHandle()
     aiCore.Update()
     lifecycle:Update(lifecycleState, 1.0 / 20.0)
@@ -317,7 +522,7 @@ function Update()
 
     -- Camera Logic
     if camera1 then
-        if CameraPath("fixcam", 1200, 250, lander) or CameraCancelled() or IsAudioMessageDone(audmsg) then
+        if CameraPath("fixcam", 1200, 250, lander) or CameraCancelled() or AudioDone(audmsg) then
             -- Stop audio and subtitles if skipped
             if CameraCancelled() then
                 subtit.Stop()
@@ -340,7 +545,7 @@ function Update()
     end
 
     if camera3 then
-        if CameraPath("zoomcam", 1200, 800, dummy) or IsAudioMessageDone(audmsg) or CameraCancelled() then
+        if CameraPath("zoomcam", 1200, 800, dummy) or AudioDone(audmsg) or CameraCancelled() then
             camera3 = false
             cam_time = 99999.0
             CameraFinish()
@@ -430,7 +635,7 @@ function Update()
         end
     end
 
-    if mission_lost and IsAudioMessageDone(audmsg) then
+    if mission_lost and AudioDone(audmsg) then
         FailMission(GetTime(), "misn02l1.des")
     end
 
@@ -439,6 +644,7 @@ function Update()
         Follow(bscav, bhome)
         wave_timer = GetTime() + 45.0
         scav2 = BuildObject("avscav", 1, "spawn3")
+        if SetLabel then SetLabel(scav2, LABEL_SCAV2) end
         SetCritical(scav2, true)
         Retreat(scav2, "retreat")
         SetObjectiveOn(scav2)
@@ -488,7 +694,7 @@ function Update()
         mission_won = true
     end
 
-    if mission_won and IsAudioMessageDone(audmsg) then
+    if mission_won and AudioDone(audmsg) then
         SucceedMission(GetTime(), "misn02w1.des")
     end
 end
