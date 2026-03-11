@@ -16,3 +16,24 @@
 # Ignore system files
 thumbs.db
 desktop.ini
+_Source/cpp_lua_mission_flow_report.md
+_Source/cybermap.lgt
+_Source/exu_backup_20260307_203705.dll
+_Source/exu_backup_20260309_2000.dll
+_Source/exu_backup_20260309_163909.dll
+_Source/exu_backup_20260309_163909.pdb
+_Source/exu_backup_20260309_182205.dll
+_Source/misn04.hg2
+_Source/multst26.lgt
+_Source/n64.code-workspace
+_Source/Config/fix_locations.csv
+_Source/Scripts/aiBuildOS.lua
+_Source/Scripts/autorepair.lua
+_Source/Scripts/AutoSave_Example.lua
+_Source/Scripts/Culling.lua
+_Source/Scripts/LavaEffects_Example.lua
+_Source/Scripts/MaterialSwap.lua
+_Source/Scripts/Renderer.lua
+_Source/Scripts/ShaderSwap.lua
+_Source/Text/need_defs.txt
+_Source/Text/OgreMain.dumpbin.exports.txt
