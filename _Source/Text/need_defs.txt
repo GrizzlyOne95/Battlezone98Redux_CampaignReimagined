@@ -1,0 +1,240 @@
+    GetClassId
+
+    ClassId
+
+    GetFront
+
+    SetTransform
+
+    GetTransform
+
+    GetOmega
+
+    SetOmega
+
+    GetCircularPos
+
+    GetLastFriendShot
+
+    GetObjectiveName
+
+    GetNearestObject
+
+    GetNearestObject
+
+    GetNearestObject
+
+    GetNearestObject
+
+    GetNearestVehicle
+
+    GetNearestVehicle
+
+    GetNearestVehicle
+
+    GetNearestVehicle
+
+    GetNearestBuilding
+
+    GetNearestBuilding
+
+    GetNearestBuilding
+
+    GetNearestBuilding
+
+    GetNearestEnemy
+
+    GetNearestEnemy
+
+    GetNearestEnemy
+
+    GetNearestEnemy
+
+    GetNearestFriend
+
+    GetNearestFriend
+
+    GetNearestFriend
+
+    GetNearestFriend
+
+    GetNearestUnitOnTeam
+
+    GetNearestUnitOnTeam
+
+    GetNearestUnitOnTeam
+
+    GetNearestUnitOnTeam
+
+    CountUnitsNearObject
+
+    TeamSlot
+
+    GetTimeStep
+
+    StartCockpitTimerUp
+
+    GetWindingNumber
+
+    GetWindingNumber
+
+    GetWindingNumber
+
+    IsInsideArea
+
+    IsInsideArea
+
+    IsInsideArea
+
+    Defend
+
+    Defend2
+
+    Build
+
+    BuildAt
+
+    BuildAt
+
+    BuildAt
+
+    BuildAt
+
+    CameraPathDir
+
+    PanDone
+
+    CameraCancelled
+
+    GetFloorHeightAndNormal
+
+    GetFloorHeightAndNormal
+
+    GetFloorHeightAndNormal
+
+    GetFloorHeightAndNormal
+
+    UseItem
+
+    ColorFade
+
+    SetVector
+
+    DotProduct
+
+    CrossProduct
+
+    Normalize
+
+    Length
+
+    LengthSquared
+
+    SetMatrix
+
+    IdentityMatrix
+
+    BuildAxisRotationMatrix
+
+    BuildAxisRotationMatrix
+
+    BuildPositionRotationMatrix
+
+    BuildPositionRotationMatrix
+
+    BuildOrthogonalMatrix
+
+    BuildDirectionalMatrix
+
+All of the duplicate ones are the ones that have overloads, actually let me see if I can include them
+GoombaBZ
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+| Function                    | Overload |
+| --------------------------- | -------- |
+| GetClassId                  |          |
+| ClassId                     |          |
+| GetFront                    |          |
+| SetTransform                |          |
+| GetTransform                |          |
+| GetOmega                    |          |
+| SetOmega                    |          |
+| GetCircularPos              |          |
+| GetLastFriendShot           |          |
+| GetObjectiveName            |          |
+| GetNearestObject            | handle   |
+| GetNearestObject            | path     |
+| GetNearestObject            | vector   |

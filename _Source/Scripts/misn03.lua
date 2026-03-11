@@ -9,13 +9,10 @@ RequireFix.Initialize({ "campaignReimagined", "3659600763" })
 local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
-local MissionLifecycle = require("MissionLifecycle")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 
-local load_pending = false
-local load_grace_until = 0.0
-local pending_ai_data = nil
+local difficulty = 2
 
 -- Helper for AI
 local function SetupAI()
@@ -219,6 +216,8 @@ local M = {
     z = 1,
     y = 1,
     audmsg = nil,
+    loading_done = false,
+    loadGracePeriod = 0,
 
     -- Tables
     solar_list = { false, false, false }, -- Track objective status for solar2, solar3, solar4
@@ -226,53 +225,97 @@ local M = {
     -- Input State Logic is now handled by PersistentConfig module
 }
 
-local lifecycle = MissionLifecycle.New({
-    exu = exu,
-    aiCore = aiCore,
-    subtit = subtit,
-    PersistentConfig = PersistentConfig,
-    reticleRange = 600,
-    ordnanceVelocityInheritance = true,
-    globalTurbo = true,
-    updateOrdnance = true,
-    monitorDifficultyChanges = true,
-    difficultyPollInterval = 1.0,
-    clearTurboWhenDisabled = true,
-    setupAI = SetupAI,
-    initializeSubtitlesOnStart = false,
-    initializeSubtitlesOnLoad = false,
-    refreshDifficultyOnLoad = true,
-    hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." },
-    easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." },
-    turboValue = function(_, team, state)
-        if team == 1 then
-            return true
-        end
-        if team ~= 0 and state.difficulty and state.difficulty > 3 then
-            return true
+local hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." }
+local easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." }
+
+local function RefreshDifficulty()
+    if exu and exu.GetDifficulty then
+        local d = exu.GetDifficulty()
+        if d ~= nil then
+            difficulty = d
         end
     end
-})
+    return difficulty
+end
+
+local function ApplyDifficultyObjectives()
+    if difficulty >= 3 then
+        AddObjective(hardDifficultyObjective[1], hardDifficultyObjective[2], hardDifficultyObjective[3], hardDifficultyObjective[4])
+    elseif difficulty <= 1 then
+        AddObjective(easyDifficultyObjective[1], easyDifficultyObjective[2], easyDifficultyObjective[3], easyDifficultyObjective[4])
+    end
+end
+
+local function ApplyQOL()
+    if exu then
+        if exu.SetReticleRange then
+            exu.SetReticleRange(600)
+        end
+        if exu.SetOrdnanceVelocInheritance then
+            exu.SetOrdnanceVelocInheritance(true)
+        end
+        if exu.SetGlobalTurbo then
+            exu.SetGlobalTurbo(true)
+        end
+    end
+
+    if PersistentConfig and PersistentConfig.Initialize then
+        PersistentConfig.Initialize()
+    end
+end
+
+local function TurboValue(team)
+    if team == 1 then
+        return true
+    end
+    if team ~= 0 and difficulty and difficulty > 3 then
+        return true
+    end
+end
+
+local function ApplyTurbo(h)
+    if not (exu and exu.SetUnitTurbo and IsCraft(h)) then
+        return
+    end
+    local value = TurboValue(GetTeamNum(h))
+    if value ~= nil and value ~= false then
+        exu.SetUnitTurbo(h, value)
+    else
+        exu.SetUnitTurbo(h, false)
+    end
+end
+
+local function ApplyTurboToAll()
+    if not (exu and exu.SetUnitTurbo) then
+        return
+    end
+    for h in AllCraft() do
+        ApplyTurbo(h)
+    end
+end
+
+local function UpdateModules(dt)
+    if exu and exu.UpdateOrdnance then
+        exu.UpdateOrdnance()
+    end
+    if subtit and subtit.Update then
+        subtit.Update()
+    end
+    if PersistentConfig then
+        if PersistentConfig.UpdateInputs then PersistentConfig.UpdateInputs() end
+        if PersistentConfig.UpdateHeadlights then PersistentConfig.UpdateHeadlights() end
+    end
+end
 
 function Save()
-    return lifecycle:Save(M)
+    return M
 end
 
-function Load(data, aiData)
-    if data then M = data end
-    if type(aiData) == "table" then
-        pending_ai_data = aiData
-    else
-        pending_ai_data = nil
-    end
-    load_pending = true
-end
-
-function PostLoad()
-    lifecycle:Load(M, pending_ai_data)
-    pending_ai_data = nil
-    load_pending = false
-    load_grace_until = GetTime() + 2.0
+function Load(...)
+    local missionData = ...
+    M = missionData or M
+    M.loading_done = false
+    M.loadGracePeriod = GetTime() + 2.0
 end
 
 function Start()
@@ -312,13 +355,23 @@ function Start()
     M.guy2 = GetHandle("guy2")
     M.sucker = GetHandle("sucker")
 
-    lifecycle:Start(M)
+    M.TPS = M.TPS or 20
+    RefreshDifficulty()
+    ApplyDifficultyObjectives()
+    ApplyQOL()
+    SetupAI()
+    aiCore.Bootstrap()
+    ApplyTurboToAll()
+    M.loading_done = true
 end
 
 function AddObject(h)
     local team = GetTeamNum(h)
 
-    lifecycle:OnObjectCreated(M, h)
+    if PersistentConfig and PersistentConfig.OnObjectCreated then
+        PersistentConfig.OnObjectCreated(h)
+    end
+    ApplyTurbo(h)
 
     if IsOdf(h, "avturr") then
         if M.avturret1 == nil then
@@ -370,11 +423,17 @@ function AddObject(h)
 end
 
 function Update()
-    if load_pending then
+    if GetTime() < (M.loadGracePeriod or 0) then
         return
     end
-    if GetTime() < load_grace_until then
-        return
+    if not M.loading_done then
+        RefreshDifficulty()
+        ApplyDifficultyObjectives()
+        ApplyQOL()
+        SetupAI()
+        aiCore.Bootstrap()
+        ApplyTurboToAll()
+        M.loading_done = true
     end
     M.user = GetPlayerHandle()
 
@@ -383,7 +442,7 @@ function Update()
     if exu and exu.GetDifficulty then diff = exu.GetDifficulty() end
 
     aiCore.Update()
-    lifecycle:Update(M, 1.0 / (M.TPS or 20))
+    UpdateModules(1.0 / (M.TPS or 20))
 
 
     -- Update Objective Health Status
@@ -401,7 +460,7 @@ function Update()
     end
 
     if not M.start_done then
-        lifecycle:ApplyQOL()
+        ApplyQOL()
 
         -- Dynamic Starting Resources
         SetScrap(1, math.max(4, DiffUtils.ScaleRes(10)))

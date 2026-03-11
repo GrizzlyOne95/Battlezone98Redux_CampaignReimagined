@@ -9,19 +9,13 @@ RequireFix.Initialize({ "campaignReimagined", "3659600763" })
 local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
-local MissionLifecycle = require("MissionLifecycle")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local Environment = require("Environment")
 --local autosave = require("AutoSave")
-local unpack = table.unpack or unpack
 
-local load_pending = false
-local load_grace_until = 0.0
-local pending_ai_data = nil
 
 local M
-local SAVE_VERSION = 1
 
 local function NewMissionState()
     return {
@@ -189,7 +183,9 @@ local function NewMissionState()
         cin_started = false,
         difficulty = 2,
         tugobjective = false,
-        ccatugretry = false
+        ccatugretry = false,
+        loading_done = false,
+        loadGracePeriod = 0
     }
 end
 
@@ -259,45 +255,94 @@ end
 
 -- Variables
 M = NewMissionState()
+local DEFAULT_TPS = 20
+local hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." }
+local easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." }
 
-local lifecycle = MissionLifecycle.New({
-    exu = exu,
-    aiCore = aiCore,
-    subtit = subtit,
-    PersistentConfig = PersistentConfig,
-    Environment = Environment,
-    defaultTPS = 20,
-    reticleRange = 600,
-    ordnanceVelocityInheritance = true,
-    updateOrdnance = true,
-    updateEnvironment = true,
-    environmentOnObjectCreated = true,
-    monitorDifficultyChanges = true,
-    difficultyPollInterval = 1.0,
-    clearTurboWhenDisabled = true,
-    refreshHandles = RefreshMissionHandles,
-    setupAI = SetupAI,
-    beforeBootstrapStart = function()
-        SetScrap(1, DiffUtils.ScaleRes(40))
-        SetPilot(1, 10)
-    end,
-    afterStart = function()
-        Environment.Update(0.0)
-    end,
-    afterLoad = function()
-        Environment.Update(0.0)
-    end,
-    hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." },
-    easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." },
-    turboValue = function(_, team, state)
-        if team == 1 then
-            return true
-        end
-        if team ~= 0 and state.difficulty >= 3 then
-            return true
+local function RefreshDifficulty()
+    if exu and exu.GetDifficulty then
+        local d = exu.GetDifficulty()
+        if d ~= nil then
+            M.difficulty = d
         end
     end
-})
+    if M.difficulty == nil then
+        M.difficulty = 2
+    end
+    return M.difficulty
+end
+
+local function ApplyDifficultyObjectives()
+    if M.difficulty >= 3 then
+        AddObjective(hardDifficultyObjective[1], hardDifficultyObjective[2], hardDifficultyObjective[3], hardDifficultyObjective[4])
+    elseif M.difficulty <= 1 then
+        AddObjective(easyDifficultyObjective[1], easyDifficultyObjective[2], easyDifficultyObjective[3], easyDifficultyObjective[4])
+    end
+end
+
+local function ApplyQOL()
+    if exu then
+        if exu.SetReticleRange then
+            exu.SetReticleRange(600)
+        end
+        if exu.SetOrdnanceVelocInheritance then
+            exu.SetOrdnanceVelocInheritance(true)
+        end
+    end
+
+    if PersistentConfig and PersistentConfig.Initialize then
+        PersistentConfig.Initialize()
+    end
+    if Environment and Environment.Init then
+        Environment.Init()
+    end
+end
+
+local function TurboValue(team)
+    if team == 1 then
+        return true
+    end
+    if team ~= 0 and M.difficulty >= 3 then
+        return true
+    end
+end
+
+local function ApplyTurbo(h)
+    if not (exu and exu.SetUnitTurbo and IsCraft(h)) then
+        return
+    end
+    local value = TurboValue(GetTeamNum(h))
+    if value ~= nil and value ~= false then
+        exu.SetUnitTurbo(h, value)
+    else
+        exu.SetUnitTurbo(h, false)
+    end
+end
+
+local function ApplyTurboToAll()
+    if not (exu and exu.SetUnitTurbo) then
+        return
+    end
+    for h in AllCraft() do
+        ApplyTurbo(h)
+    end
+end
+
+local function UpdateModules(dt)
+    if exu and exu.UpdateOrdnance then
+        exu.UpdateOrdnance()
+    end
+    if Environment and Environment.Update then
+        Environment.Update(dt)
+    end
+    if subtit and subtit.Update then
+        subtit.Update()
+    end
+    if PersistentConfig then
+        if PersistentConfig.UpdateInputs then PersistentConfig.UpdateInputs() end
+        if PersistentConfig.UpdateHeadlights then PersistentConfig.UpdateHeadlights() end
+    end
+end
 
 -- Helper for Difficulty-Scaled Tug Arrival
 local function GetTugDelay()
@@ -331,11 +376,23 @@ end
 
 function Start()
     M = NewMissionState()
+    M.TPS = M.TPS or DEFAULT_TPS
 
     -- One-time initialization logic
     M.relicstartpos = math.random(0, 3)
 
-    lifecycle:Start(M)
+    SetScrap(1, DiffUtils.ScaleRes(40))
+    SetPilot(1, 10)
+    RefreshDifficulty()
+    ApplyDifficultyObjectives()
+    ApplyQOL()
+    SetupAI()
+    aiCore.Bootstrap()
+    ApplyTurboToAll()
+    if Environment and Environment.Update then
+        Environment.Update(0.0)
+    end
+    M.loading_done = true
 end
 
 -- Save/Load removed from here, moving logic to bottom functions
@@ -360,7 +417,13 @@ function AddObject(h)
         aiCore.AddObject(h)
     end
 
-    lifecycle:OnObjectCreated(M, h)
+    if PersistentConfig and PersistentConfig.OnObjectCreated then
+        PersistentConfig.OnObjectCreated(h)
+    end
+    if Environment and Environment.OnObjectCreated then
+        Environment.OnObjectCreated(h)
+    end
+    ApplyTurbo(h)
 
     -- Capture Player Tug for Audio (Corrected to avhaul per C++)
     if team == 1 and IsOdf(h, "avhaul") then
@@ -417,16 +480,26 @@ local function RetreatIfAlive(h, path)
 end
 
 function Update()
-    if load_pending then
+    if GetTime() < (M.loadGracePeriod or 0) then
         return
     end
-    if GetTime() < load_grace_until then
-        return
+    if not M.loading_done then
+        RefreshMissionHandles()
+        RefreshDifficulty()
+        ApplyDifficultyObjectives()
+        ApplyQOL()
+        SetupAI()
+        aiCore.Bootstrap()
+        ApplyTurboToAll()
+        if Environment and Environment.Update then
+            Environment.Update(0.0)
+        end
+        M.loading_done = true
     end
     M.player = GetPlayerHandle()
     aiCore.Update()
     -- autosave.Update(1.0 / M.TPS)
-    lifecycle:Update(M, 1.0 / M.TPS)
+    UpdateModules(1.0 / M.TPS)
 
     if (not M.missionstart) then
         M.wave1 = GetTime() + DiffUtils.ScaleTimer(30.0) + math.random(-5, 10)
@@ -1039,404 +1112,13 @@ function Update()
     end
 end
 
-local function PackMissionState()
-    local data = {}
-    local i = 0
-    local function push(v)
-        i = i + 1
-        data[i] = v
-    end
-
-    push(SAVE_VERSION)
-    push(M.missionstart)
-    push(M.warn)
-    push(M.safety)
-    push(M.retreat)
-    push(M.surveysent)
-    push(M.reconsent)
-    push(M.firstwave)
-    push(M.secondwave)
-    push(M.thirdwave)
-    push(M.fourthwave)
-    push(M.fifthwave)
-    push(M.discrelic)
-    push(M.ccatugsent)
-    push(M.attackccabase)
-    push(M.ccabasedestroyed)
-    push(M.fifthwavedestroyed)
-    push(M.missionend)
-    push(M.endmission)
-    push(M.wavenumber)
-    push(M.missionwon)
-    push(M.wave1dead)
-    push(M.wave2dead)
-    push(M.wave3dead)
-    push(M.wave4dead)
-    push(M.wave5dead)
-    push(M.wave1arrive)
-    push(M.wave2arrive)
-    push(M.wave3arrive)
-    push(M.wave4arrive)
-    push(M.wave5arrive)
-    push(M.possiblewin)
-    push(M.loopbreak)
-    push(M.basesecure)
-    push(M.newobjective)
-    push(M.relicsecure)
-    push(M.discoverrelic)
-    push(M.missionfail2)
-    push(nil) -- aud10
-    push(nil) -- aud11
-    push(nil) -- aud12
-    push(nil) -- aud13
-    push(nil) -- aud14
-    push(M.ccahasrelic)
-    push(M.relicseen)
-    push(M.obset)
-    push(M.wave1)
-    push(M.wave2)
-    push(M.wave3)
-    push(M.wave4)
-    push(M.wave5)
-    push(M.endcindone)
-    push(M.startendcin)
-    push(M.ccatug)
-    push(M.notfound)
-    push(M.build2)
-    push(M.build3)
-    push(M.build4)
-    push(M.build5)
-    push(M.halfway)
-    push(M.svrec)
-    push(M.pu1)
-    push(M.pu2)
-    push(M.pu3)
-    push(M.pu4)
-    push(M.pu5)
-    push(M.pu6)
-    push(M.pu7)
-    push(M.pu8)
-    push(M.navbeacon)
-    push(M.cheat1)
-    push(M.cheat2)
-    push(M.cheat3)
-    push(M.cheat4)
-    push(M.cheat5)
-    push(M.cheat6)
-    push(M.cheat7)
-    push(M.cheat8)
-    push(M.cheat9)
-    push(M.cheat10)
-    push(M.tug)
-    push(M.svtug)
-    push(M.tuge1)
-    push(M.tuge2)
-    push(M.player)
-    push(M.surv1)
-    push(M.surv2)
-    push(M.surv3)
-    push(M.surv4)
-    push(M.cam1)
-    push(M.cam2)
-    push(M.cam3)
-    push(M.basecam)
-    push(M.reliccam)
-    push(M.avrec)
-    push(M.w1u1)
-    push(M.w1u2)
-    push(M.w1u3)
-    push(M.w1u4)
-    push(M.w2u1)
-    push(M.w2u2)
-    push(M.w2u3)
-    push(M.w3u1)
-    push(M.w3u2)
-    push(M.w3u3)
-    push(M.w3u4)
-    push(M.w4u1)
-    push(M.w4u2)
-    push(M.w4u3)
-    push(M.w4u4)
-    push(M.w4u5)
-    push(M.w5u1)
-    push(M.w5u2)
-    push(M.w5u3)
-    push(M.w5u4)
-    push(M.w5u5)
-    push(M.w5u6)
-    push(M.spawn1)
-    push(M.spawn2)
-    push(M.spawn3)
-    push(M.relic)
-    push(M.calipso)
-    push(M.turret1)
-    push(M.turret2)
-    push(M.turret3)
-    push(M.turret4)
-    push(nil) -- aud1
-    push(nil) -- aud2
-    push(nil) -- aud3
-    push(nil) -- aud4
-    push(nil) -- aud20
-    push(nil) -- aud21
-    push(nil) -- aud22
-    push(nil) -- aud23
-    push(M.doneaud20)
-    push(M.doneaud21)
-    push(M.doneaud22)
-    push(M.doneaud23)
-    push(M.done)
-    push(M.secureloopbreak)
-    push(M.found)
-    push(M.endcinfinish)
-    push(M.loopbreak2)
-    push(M.investigate)
-    push(M.investigator)
-    push(M.tur1)
-    push(M.tur2)
-    push(M.tur3)
-    push(M.tur4)
-    push(M.tur1sent)
-    push(M.tur2sent)
-    push(M.tur3sent)
-    push(M.tur4sent)
-    push(M.cin1done)
-    push(M.missionfail)
-    push(M.chewedout)
-    push(M.relicmoved)
-    push(M.height)
-    push(M.cintime1)
-    push(M.fetch)
-    push(M.reconcca)
-    push(M.relicstartpos)
-    push(M.cheater)
-    push(M.cin_started)
-    push(M.difficulty)
-    push(M.TPS)
-    push(M.tugobjective)
-    push(M.ccatugretry)
-
-    return data, i
-end
-
 function Save()
-    local data, count = PackMissionState()
-    return unpack(data, 1, count), aiCore.Save()
+    return M
 end
 
 function Load(...)
-    local count = select("#", ...)
-    if count == 0 then return end
-
-    local args = { ... }
-    pending_ai_data = nil
-    if count > 1 and type(args[count]) == "table" then
-        pending_ai_data = args[count]
-    end
-
-    if type(args[1]) == "table" and args[1].missionstart ~= nil then
-        local merged = NewMissionState()
-        for k, v in pairs(args[1]) do
-            merged[k] = v
-        end
-        M = merged
-        M.aud1 = nil
-        M.aud2 = nil
-        M.aud3 = nil
-        M.aud4 = nil
-        M.aud10 = nil
-        M.aud11 = nil
-        M.aud12 = nil
-        M.aud13 = nil
-        M.aud14 = nil
-        M.aud20 = nil
-        M.aud21 = nil
-        M.aud22 = nil
-        M.aud23 = nil
-        if not M.TPS then M.TPS = lifecycle.cfg.defaultTPS or 20 end
-        load_pending = true
-        return
-    end
-
-    local idx = 1
-    if type(args[idx]) == "number" then
-        idx = idx + 1 -- SAVE_VERSION
-    end
-
-    M = NewMissionState()
-
-    local function set(field)
-        local value = args[idx]
-        idx = idx + 1
-        if value ~= nil then
-            M[field] = value
-        end
-    end
-
-    set("missionstart")
-    set("warn")
-    set("safety")
-    set("retreat")
-    set("surveysent")
-    set("reconsent")
-    set("firstwave")
-    set("secondwave")
-    set("thirdwave")
-    set("fourthwave")
-    set("fifthwave")
-    set("discrelic")
-    set("ccatugsent")
-    set("attackccabase")
-    set("ccabasedestroyed")
-    set("fifthwavedestroyed")
-    set("missionend")
-    set("endmission")
-    set("wavenumber")
-    set("missionwon")
-    set("wave1dead")
-    set("wave2dead")
-    set("wave3dead")
-    set("wave4dead")
-    set("wave5dead")
-    set("wave1arrive")
-    set("wave2arrive")
-    set("wave3arrive")
-    set("wave4arrive")
-    set("wave5arrive")
-    set("possiblewin")
-    set("loopbreak")
-    set("basesecure")
-    set("newobjective")
-    set("relicsecure")
-    set("discoverrelic")
-    set("missionfail2")
-    idx = idx + 5 -- aud10..aud14 placeholders
-    set("ccahasrelic")
-    set("relicseen")
-    set("obset")
-    set("wave1")
-    set("wave2")
-    set("wave3")
-    set("wave4")
-    set("wave5")
-    set("endcindone")
-    set("startendcin")
-    set("ccatug")
-    set("notfound")
-    set("build2")
-    set("build3")
-    set("build4")
-    set("build5")
-    set("halfway")
-    set("svrec")
-    set("pu1")
-    set("pu2")
-    set("pu3")
-    set("pu4")
-    set("pu5")
-    set("pu6")
-    set("pu7")
-    set("pu8")
-    set("navbeacon")
-    set("cheat1")
-    set("cheat2")
-    set("cheat3")
-    set("cheat4")
-    set("cheat5")
-    set("cheat6")
-    set("cheat7")
-    set("cheat8")
-    set("cheat9")
-    set("cheat10")
-    set("tug")
-    set("svtug")
-    set("tuge1")
-    set("tuge2")
-    set("player")
-    set("surv1")
-    set("surv2")
-    set("surv3")
-    set("surv4")
-    set("cam1")
-    set("cam2")
-    set("cam3")
-    set("basecam")
-    set("reliccam")
-    set("avrec")
-    set("w1u1")
-    set("w1u2")
-    set("w1u3")
-    set("w1u4")
-    set("w2u1")
-    set("w2u2")
-    set("w2u3")
-    set("w3u1")
-    set("w3u2")
-    set("w3u3")
-    set("w3u4")
-    set("w4u1")
-    set("w4u2")
-    set("w4u3")
-    set("w4u4")
-    set("w4u5")
-    set("w5u1")
-    set("w5u2")
-    set("w5u3")
-    set("w5u4")
-    set("w5u5")
-    set("w5u6")
-    set("spawn1")
-    set("spawn2")
-    set("spawn3")
-    set("relic")
-    set("calipso")
-    set("turret1")
-    set("turret2")
-    set("turret3")
-    set("turret4")
-    idx = idx + 8 -- aud1..aud4, aud20..aud23 placeholders
-    set("doneaud20")
-    set("doneaud21")
-    set("doneaud22")
-    set("doneaud23")
-    set("done")
-    set("secureloopbreak")
-    set("found")
-    set("endcinfinish")
-    set("loopbreak2")
-    set("investigate")
-    set("investigator")
-    set("tur1")
-    set("tur2")
-    set("tur3")
-    set("tur4")
-    set("tur1sent")
-    set("tur2sent")
-    set("tur3sent")
-    set("tur4sent")
-    set("cin1done")
-    set("missionfail")
-    set("chewedout")
-    set("relicmoved")
-    set("height")
-    set("cintime1")
-    set("fetch")
-    set("reconcca")
-    set("relicstartpos")
-    set("cheater")
-    set("cin_started")
-    set("difficulty")
-    set("TPS")
-    set("tugobjective")
-    set("ccatugretry")
-
-    if not M.TPS then M.TPS = lifecycle.cfg.defaultTPS or 20 end
-    load_pending = true
-end
-
-function PostLoad()
-    lifecycle:Load(M, pending_ai_data)
-    pending_ai_data = nil
-    load_pending = false
-    load_grace_until = GetTime() + 2.0
+    local missionData = ...
+    M = missionData or M
+    M.loading_done = false
+    M.loadGracePeriod = GetTime() + 2.0
 end

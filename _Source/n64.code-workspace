@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "Z64Tools"
+		},
+		{
+			"name": "N64SoundTools",
+			"path": "N64SoundTools"
+		},
+		{
+			"name": "GLideN64-SceneRipper",
+			"path": "GLideN64-SceneRipper"
+		},
+		{
+			"path": "../RMG"
+		},
+		{
+			"path": "sm64tools"
+		},
+		{
+			"path": "Z64Utils"
+		}
+	],
+	"settings": {}
+}
