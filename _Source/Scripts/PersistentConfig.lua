@@ -4,6 +4,8 @@ local bzfile = require("bzfile")
 local exu = require("exu")
 local subtitles = require("subtitles")
 local autosave = require("AutoSave")
+local RuntimeEnhancements = require("RuntimeEnhancements")
+local ConservativeCulling = require("ConservativeCulling")
 
 local PersistentConfig = {}
 local WEAPON_STATS_CHANNEL = 1
@@ -146,6 +148,29 @@ local function ShowFeedback(msg, r, g, b, duration, bypass, target)
         target = target or "subtitle",
     })
     Log(msg)                                        -- Always log to console
+end
+
+local function WarnIfNativeFeaturesUnavailable()
+    if InputState and InputState.NativeFeatureWarningShown then
+        return
+    end
+
+    if not ((exu and exu.isStub) or (bzfile and bzfile.isStub)) then
+        return
+    end
+
+    if InputState then
+        InputState.NativeFeatureWarningShown = true
+    end
+
+    local message =
+        "Unsupported runtime detected. Supported: Windows, or Linux via Steam/Proton. Native-only features are degraded and performance may be worse."
+
+    if AddObjective then
+        AddObjective("native_runtime_warning", "red", 15.0, message)
+    end
+
+    ShowFeedback(message, 1.0, 0.2, 0.2, 10.0, true)
 end
 
 local function PlayPdaSound(filename)
@@ -385,6 +410,65 @@ local function MarkOtherHeadlightsDirty()
     InputState.otherHeadlightsDirty = true
 end
 
+local function AddTrackedHandle(list, set, h)
+    if not h or not IsValid(h) or set[h] then
+        return false
+    end
+
+    set[h] = true
+    list[#list + 1] = h
+    return true
+end
+
+local function RemoveTrackedHandle(list, set, h)
+    if not h or not set[h] then
+        return
+    end
+
+    set[h] = nil
+    for index = #list, 1, -1 do
+        if list[index] == h then
+            table.remove(list, index)
+            break
+        end
+    end
+end
+
+local function IsHeadlightTrackedHandle(h)
+    if not h or not IsValid(h) then
+        return false
+    end
+
+    if type(IsCraft) == "function" and IsCraft(h) then
+        return true
+    end
+
+    local label = CleanString((type(GetClassLabel) == "function" and GetClassLabel(h)) or "")
+    return label == "turret"
+end
+
+local function IsRepairPowerHandle(h)
+    if not h or not IsValid(h) then
+        return false
+    end
+
+    local label = CleanString((type(GetClassLabel) == "function" and GetClassLabel(h)) or "")
+    return label == "powerplant"
+end
+
+local function IsRepairTargetHandle(h)
+    if not h or not IsValid(h) then
+        return false
+    end
+
+    if type(IsBuilding) == "function" and IsBuilding(h) then
+        return true
+    end
+
+    local label = CleanString((type(GetClassLabel) == "function" and GetClassLabel(h)) or "")
+    return label == "turret"
+end
+
 local function ApplyOtherHeadlightVisibility(h, visible, player)
     if not exu or not exu.SetHeadlightVisible or not IsValid(h) then return false end
     if h == player then
@@ -398,6 +482,83 @@ local function ApplyOtherHeadlightVisibility(h, visible, player)
     exu.SetHeadlightVisible(h, visible)
     InputState.otherHeadlightVisibility[h] = visible
     return true
+end
+
+local RegisterCommanderHandle
+local RemoveCommanderHandle
+
+local function RegisterTrackedWorldHandle(h)
+    local tracking = InputState and InputState.worldTracking
+    if not tracking or not h or not IsValid(h) then
+        return
+    end
+
+    if not AddTrackedHandle(tracking.handles, tracking.handleSet, h) then
+        return
+    end
+
+    if IsHeadlightTrackedHandle(h) then
+        AddTrackedHandle(tracking.headlightHandles, tracking.headlightHandleSet, h)
+    end
+
+    if IsCommanderTrackedHandle(h) then
+        RegisterCommanderHandle(h)
+    end
+
+    if IsRepairPowerHandle(h) then
+        AddTrackedHandle(tracking.repairPowerHandles, tracking.repairPowerHandleSet, h)
+    end
+
+    if IsRepairTargetHandle(h) then
+        AddTrackedHandle(tracking.repairTargetHandles, tracking.repairTargetHandleSet, h)
+    end
+end
+
+local function RemoveTrackedWorldHandle(h)
+    local tracking = InputState and InputState.worldTracking
+    if not tracking or not h then
+        return
+    end
+
+    RemoveTrackedHandle(tracking.handles, tracking.handleSet, h)
+    RemoveTrackedHandle(tracking.headlightHandles, tracking.headlightHandleSet, h)
+    RemoveTrackedHandle(tracking.repairPowerHandles, tracking.repairPowerHandleSet, h)
+    RemoveTrackedHandle(tracking.repairTargetHandles, tracking.repairTargetHandleSet, h)
+    RemoveCommanderHandle(h)
+    InputState.otherHeadlightVisibility[h] = nil
+end
+
+local function ResetTrackedWorldHandles()
+    local tracking = InputState and InputState.worldTracking
+    if not tracking then
+        return
+    end
+
+    tracking.initialized = false
+    tracking.handles = {}
+    tracking.handleSet = {}
+    tracking.headlightHandles = {}
+    tracking.headlightHandleSet = {}
+    tracking.repairPowerHandles = {}
+    tracking.repairPowerHandleSet = {}
+    tracking.repairTargetHandles = {}
+    tracking.repairTargetHandleSet = {}
+end
+
+local function InitializeTrackedWorldHandles()
+    local tracking = InputState and InputState.worldTracking
+    if not tracking or tracking.initialized then
+        return
+    end
+
+    tracking.initialized = true
+    if not AllObjects then
+        return
+    end
+
+    for h in AllObjects() do
+        RegisterTrackedWorldHandle(h)
+    end
 end
 
 -- Helper to parse bzlogger.txt for Steam ID/Username
@@ -505,6 +666,17 @@ InputState = {
     processedCreationHandles = {},
     otherHeadlightVisibility = {},
     otherHeadlightsDirty = true,
+    worldTracking = {
+        initialized = false,
+        handles = {},
+        handleSet = {},
+        headlightHandles = {},
+        headlightHandleSet = {},
+        repairPowerHandles = {},
+        repairPowerHandleSet = {},
+        repairTargetHandles = {},
+        repairTargetHandleSet = {},
+    },
     lastTeamScrap = {},
     lastBuildKey = nil,
     producerBusyState = {},
@@ -2802,29 +2974,52 @@ local function IsCommanderTrackedHandle(h)
     return label == "turret" or label == "commtower" or label == "powerplant"
 end
 
-local function RegisterCommanderHandle(h)
+RegisterCommanderHandle = function(h)
     local overview = InputState.commanderOverview
     if not overview or not IsCommanderTrackedHandle(h) then return end
-    if type(GetTeamNum) == "function" then
-        local team = GetPlayerTeamNum()
-        if GetTeamNum(h) ~= team then
-            return
-        end
-    end
     if overview.handleSet[h] then return end
     overview.handleSet[h] = true
     table.insert(overview.handles, h)
 end
 
+RemoveCommanderHandle = function(h)
+    local overview = InputState.commanderOverview
+    if not overview or not h or not overview.handleSet[h] then
+        return
+    end
+
+    overview.handleSet[h] = nil
+    for index = #overview.handles, 1, -1 do
+        if overview.handles[index] == h then
+            table.remove(overview.handles, index)
+            break
+        end
+    end
+end
+
+local function ResetCommanderOverview()
+    local overview = InputState.commanderOverview
+    if not overview then
+        return
+    end
+
+    overview.initialized = false
+    overview.lastUpdate = 0.0
+    overview.handles = {}
+    overview.handleSet = {}
+    overview.stats = {
+        counts = {},
+        unpoweredTurrets = 0,
+        unpoweredComm = 0,
+        powerSources = 0,
+    }
+end
+
 local function InitializeCommanderOverview()
     local overview = InputState.commanderOverview
     if not overview or overview.initialized then return end
+    InitializeTrackedWorldHandles()
     overview.initialized = true
-    overview.handles = {}
-    overview.handleSet = {}
-    for h in AllObjects() do
-        RegisterCommanderHandle(h)
-    end
 end
 
 local function UpdateCommanderOverview()
@@ -2834,6 +3029,7 @@ local function UpdateCommanderOverview()
     local now = GetTime()
     if now - (overview.lastUpdate or 0.0) < (overview.interval or 1.0) then return end
     overview.lastUpdate = now
+    local playerTeam = GetPlayerTeamNum()
 
     local counts = {
         hangar = 0,
@@ -2852,6 +3048,8 @@ local function UpdateCommanderOverview()
         if not IsValid(h) or (type(IsAlive) == "function" and not IsAlive(h)) then
             overview.handleSet[h] = nil
             table.remove(overview.handles, index)
+        elseif type(GetTeamNum) == "function" and GetTeamNum(h) ~= playerTeam then
+            -- Keep the handle tracked for future team changes/captures, but skip counting it for the current player team.
         else
             local label = CleanString((type(GetClassLabel) == "function" and GetClassLabel(h)) or "")
             if label == "powerplant" then
@@ -3642,6 +3840,9 @@ end
 
 -- Reusable update logic for all missions
 function PersistentConfig.UpdateInputs()
+    RuntimeEnhancements.Update()
+    ConservativeCulling.Update()
+
     -- Detect player craft change and reapply headlight settings
     local currentPlayerHandle = GetPlayerHandle()
     if currentPlayerHandle ~= InputState.lastPlayerHandle then
@@ -4009,23 +4210,30 @@ end
 
 function PersistentConfig.UpdateBuildingRepair()
     -- Logic: Heal player buildings (Team 1) if within powerRadius of a power source (classLabel "powerplant")
+    InitializeTrackedWorldHandles()
+
     local playerTeam = 1
     local powerSources = {}
     local repairTargets = {}
     local healAmount = 20 -- 20 HP per second
+    local tracking = InputState.worldTracking
 
-    -- Collect power sources and damaged repair targets in one world pass.
-    for h in AllObjects() do
-        if GetTeamNum(h) == playerTeam and IsAlive(h) then
-            local label = GetClassLabel(h)
-            if label == "powerplant" then
-                -- Store handle AND its specific radius
-                local odf = GetOdf(h)
-                local rad = GetPowerRadius(odf)
-                table.insert(powerSources, { handle = h, radius = rad })
-            elseif (IsBuilding(h) or label == "turret") and GetHealth(h) < 1.0 then
-                repairTargets[#repairTargets + 1] = h
-            end
+    for index = #tracking.repairPowerHandles, 1, -1 do
+        local h = tracking.repairPowerHandles[index]
+        if not IsValid(h) then
+            RemoveTrackedWorldHandle(h)
+        elseif GetTeamNum(h) == playerTeam and IsAlive(h) then
+            local odf = GetOdf(h)
+            powerSources[#powerSources + 1] = { handle = h, radius = GetPowerRadius(odf) }
+        end
+    end
+
+    for index = #tracking.repairTargetHandles, 1, -1 do
+        local h = tracking.repairTargetHandles[index]
+        if not IsValid(h) then
+            RemoveTrackedWorldHandle(h)
+        elseif GetTeamNum(h) == playerTeam and IsAlive(h) and GetHealth(h) < 1.0 then
+            repairTargets[#repairTargets + 1] = h
         end
     end
 
@@ -4051,6 +4259,7 @@ end
 
 function PersistentConfig.UpdateHeadlights()
     if not exu or not exu.SetHeadlightVisible then return end
+    InitializeTrackedWorldHandles()
 
     local player = GetPlayerHandle()
     if not PersistentConfig.Settings.OtherHeadlightsDisabled then
@@ -4076,8 +4285,12 @@ function PersistentConfig.UpdateHeadlights()
     if not InputState.otherHeadlightsDirty then return end
 
     local updated = 0
-    for h in AllObjects() do
-        if ApplyOtherHeadlightVisibility(h, false, player) then
+    local tracking = InputState.worldTracking
+    for index = #tracking.headlightHandles, 1, -1 do
+        local h = tracking.headlightHandles[index]
+        if not IsValid(h) then
+            RemoveTrackedWorldHandle(h)
+        elseif ApplyOtherHeadlightVisibility(h, false, player) then
             updated = updated + 1
         end
     end
@@ -4216,7 +4429,12 @@ function PersistentConfig.OnObjectCreated(h)
     end
     InputState.processedCreationHandles[h] = true
 
-    RegisterCommanderHandle(h)
+    RuntimeEnhancements.OnObjectCreated(h)
+    ConservativeCulling.OnObjectCreated(h)
+    RegisterTrackedWorldHandle(h)
+    if aiCore and type(aiCore.TrackWorldObject) == "function" then
+        aiCore.TrackWorldObject(h)
+    end
 
     if exu and exu.SetHeadlightVisible and PersistentConfig.Settings.OtherHeadlightsDisabled then
         local player = GetPlayerHandle()
@@ -4224,6 +4442,19 @@ function PersistentConfig.OnObjectCreated(h)
     end
 
     ApplyUnitPresetToObject(h)
+end
+
+function PersistentConfig.OnObjectDeleted(h)
+    if not h then
+        return
+    end
+
+    InputState.processedCreationHandles[h] = nil
+    RemoveTrackedWorldHandle(h)
+
+    if aiCore and type(aiCore.DeleteObject) == "function" then
+        aiCore.DeleteObject(h)
+    end
 end
 
 local function InstallPlayerChargeTrackingHook()
@@ -4253,7 +4484,14 @@ local function InstallPlayerChargeTrackingHook()
 end
 
 function PersistentConfig.Initialize()
+    ResetTrackedWorldHandles()
+    ResetCommanderOverview()
+    InputState.processedCreationHandles = {}
+    InputState.otherHeadlightVisibility = {}
+    RuntimeEnhancements.Initialize()
+    ConservativeCulling.Initialize()
     PersistentConfig.LoadConfig()
+    WarnIfNativeFeaturesUnavailable()
 
     -- Reset Passive Tracking in AutoSave
     if autosave then
@@ -4333,6 +4571,13 @@ function PersistentConfig.Initialize()
             CreateObject = function(h)
                 PersistentConfig.OnObjectCreated(h)
                 return oldCreateObject(h)
+            end
+        end
+        local oldDeleteObject = DeleteObject
+        DeleteObject = function(h)
+            PersistentConfig.OnObjectDeleted(h)
+            if oldDeleteObject then
+                return oldDeleteObject(h)
             end
         end
         if SucceedMission then

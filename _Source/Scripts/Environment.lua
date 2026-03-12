@@ -3,6 +3,7 @@
 -- Handles Day/Night cycles, independent fog events, and gameplay impacts.
 
 local exu = require("exu")
+local RuntimeEnhancements = require("RuntimeEnhancements")
 
 -- =============================================================================
 -- Lighting keyframe layout (progress = seconds into the 900s cycle):
@@ -23,10 +24,12 @@ Environment = {
     -- Cycle config
     CycleDuration        = 900, -- seconds (15 min)
 
-    -- EXU sunlight hooks are currently unstable in BZR 2.2.301 and can crash
-    -- during phase transitions, so keep dynamic fog/gameplay and disable the
-    -- sun mutation path unless explicitly re-enabled after EXU is fixed.
     EnableSunLighting    = true,
+    EnableVisualRuntime  = true,
+    DaySunPowerScale     = 1.15,
+    NightSunPowerScale   = 0.22,
+    DayShadowFarDistance = 900.0,
+    NightShadowFarDistance = 220.0,
 
     -- Gameplay modifiers (night)
     RadarRangeNerf       = 0.7, -- 30% range reduction
@@ -96,6 +99,10 @@ Environment = {
     LastDiffuse          = nil,
     LastSpecular         = nil,
     LastFog              = nil,
+    LastSunDirection     = nil,
+    LastSunPowerScale    = nil,
+    LastShadowFarDistance = nil,
+    LastViewportShadows  = nil,
 
     DebugScale           = 1.0,
     Initialized          = false,
@@ -137,6 +144,32 @@ local function FogEqual(a, b)
         and a.fogStart == b.fogStart and a.fogEnd == b.fogEnd
 end
 
+local function FloatChanged(a, b, epsilon)
+    return a == nil or b == nil or math.abs(a - b) > (epsilon or 0.001)
+end
+
+local function ColorChanged(a, b, epsilon)
+    if not a or not b then
+        return true
+    end
+    return FloatChanged(a.r, b.r, epsilon)
+        or FloatChanged(a.g, b.g, epsilon)
+        or FloatChanged(a.b, b.b, epsilon)
+end
+
+local function NormalizeDirection(direction)
+    local length = math.sqrt((direction.x * direction.x) + (direction.y * direction.y) + (direction.z * direction.z))
+    if length <= 0.0001 then
+        return { x = 0.0, y = -1.0, z = 0.0 }
+    end
+
+    return {
+        x = direction.x / length,
+        y = direction.y / length,
+        z = direction.z / length,
+    }
+end
+
 -- Weighted random pick from FogWeights, excluding the current state
 local function PickNextFogState()
     local weights = Environment.FogWeights
@@ -167,6 +200,8 @@ end
 -- =============================================================================
 
 function Environment.Init()
+    RuntimeEnhancements.Initialize()
+
     -- Read map TRN for the "clear" fog baseline
     if GetMapTRNFilename then
         local trnFilename = GetMapTRNFilename()
@@ -256,6 +291,27 @@ local function ComputeLighting(progress)
     end
 
     return ambient, diffuse, specular
+end
+
+local function ComputeSunState(progress, nightBlend)
+    local cycle = progress / Environment.CycleDuration
+    local sunAngle = (cycle * math.pi * 2.0) - (math.pi * 0.5)
+    local daylight = 1.0 - nightBlend
+    local elevation = math.max(0.0, math.sin(sunAngle))
+    local horizon = math.cos(sunAngle)
+
+    local direction = NormalizeDirection({
+        x = (horizon * 0.65) + 0.18,
+        y = -((0.18 * (1.0 - daylight)) + (0.95 * elevation) + (0.12 * daylight)),
+        z = -0.30 + (horizon * 0.20),
+    })
+
+    return {
+        direction = direction,
+        powerScale = Lerp(Environment.NightSunPowerScale, Environment.DaySunPowerScale, daylight),
+        shadowFarDistance = Lerp(Environment.NightShadowFarDistance, Environment.DayShadowFarDistance, daylight),
+        viewportShadows = daylight > 0.08,
+    }
 end
 
 -- =============================================================================
@@ -417,6 +473,43 @@ function Environment.Update(timestep)
     if Environment.PendingGameplaySync then
         Environment.SyncGameplayImpacts()
     end
+
+    if Environment.EnableVisualRuntime then
+        RuntimeEnhancements.Update(timestep)
+    end
+
+    local sunState = ComputeSunState(progress, nightBlend)
+
+    if Environment.EnableSunLighting then
+        if exu.SetSunDirection and (not Environment.LastSunDirection
+                or ColorChanged(
+                    { r = sunState.direction.x, g = sunState.direction.y, b = sunState.direction.z },
+                    { r = Environment.LastSunDirection.x, g = Environment.LastSunDirection.y, b = Environment.LastSunDirection.z },
+                    0.002))
+        then
+            exu.SetSunDirection(sunState.direction.x, sunState.direction.y, sunState.direction.z)
+            Environment.LastSunDirection = {
+                x = sunState.direction.x,
+                y = sunState.direction.y,
+                z = sunState.direction.z,
+            }
+        end
+
+        if exu.SetSunPowerScale and FloatChanged(Environment.LastSunPowerScale, sunState.powerScale, 0.002) then
+            exu.SetSunPowerScale(sunState.powerScale)
+            Environment.LastSunPowerScale = sunState.powerScale
+        end
+
+        if exu.SetSunShadowFarDistance and FloatChanged(Environment.LastShadowFarDistance, sunState.shadowFarDistance, 0.5) then
+            exu.SetSunShadowFarDistance(sunState.shadowFarDistance)
+            Environment.LastShadowFarDistance = sunState.shadowFarDistance
+        end
+
+        if exu.SetViewportShadowsEnabled and Environment.LastViewportShadows ~= sunState.viewportShadows then
+            exu.SetViewportShadowsEnabled(sunState.viewportShadows)
+            Environment.LastViewportShadows = sunState.viewportShadows
+        end
+    end
 end
 
 -- =============================================================================
@@ -506,6 +599,7 @@ function Environment.OnObjectCreated(h)
         Environment.CraftHandles[#Environment.CraftHandles + 1] = h
         Environment.PendingGameplaySync = true
     end
+    RuntimeEnhancements.OnObjectCreated(h)
     Environment.ProcessObjectNightEffects(h)
 end
 

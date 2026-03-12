@@ -1692,10 +1692,13 @@ end
 
 aiCore.EmptyList = aiCore.EmptyList or {}
 aiCore.ObjectCache = aiCore.ObjectCache or {
+    dirty = true,
     lastCraftUpdate = -999.0,
     craftUpdateInterval = 1.0,
     lastObjectUpdate = -999.0,
     objectUpdateInterval = 8.0,
+    handles = {},
+    handleSet = {},
     teamCraft = {},
     teamBuildings = {},
     teamTargets = {},
@@ -1705,8 +1708,60 @@ aiCore.ObjectCache = aiCore.ObjectCache or {
 }
 
 function aiCore.InvalidateObjectCache()
+    aiCore.ObjectCache.dirty = true
     aiCore.ObjectCache.lastCraftUpdate = -999.0
     aiCore.ObjectCache.lastObjectUpdate = -999.0
+end
+
+local function AddCachedHandle(list, set, h)
+    if not h or not IsValid(h) or set[h] then
+        return false
+    end
+
+    set[h] = true
+    list[#list + 1] = h
+    return true
+end
+
+local function RemoveCachedHandle(list, set, h)
+    if not h or not set[h] then
+        return
+    end
+
+    set[h] = nil
+    for index = #list, 1, -1 do
+        if list[index] == h then
+            table.remove(list, index)
+            break
+        end
+    end
+end
+
+function aiCore.ResetObjectCacheTracking()
+    local cache = aiCore.ObjectCache
+    cache.handles = {}
+    cache.handleSet = {}
+    cache.teamCraft = {}
+    cache.teamBuildings = {}
+    cache.teamTargets = {}
+    cache.pilotPersons = {}
+    cache.scrapObjects = {}
+    cache.allBuildings = {}
+    aiCore.InvalidateObjectCache()
+end
+
+function aiCore.TrackWorldObject(h)
+    if AddCachedHandle(aiCore.ObjectCache.handles, aiCore.ObjectCache.handleSet, h) then
+        aiCore.InvalidateObjectCache()
+        return true
+    end
+
+    return false
+end
+
+function aiCore.UntrackWorldObject(h)
+    RemoveCachedHandle(aiCore.ObjectCache.handles, aiCore.ObjectCache.handleSet, h)
+    aiCore.InvalidateObjectCache()
 end
 
 local function RebuildTeamTargetCache(cache)
@@ -1739,14 +1794,22 @@ function aiCore.RefreshObjectCache(force)
     local now = GetTime()
     local refreshCraft = force or now >= ((cache.lastCraftUpdate or -999.0) + (cache.craftUpdateInterval or 1.0))
     local refreshObjects = force or now >= ((cache.lastObjectUpdate or -999.0) + (cache.objectUpdateInterval or 8.0))
-    if not refreshCraft and not refreshObjects then
+    if not force and not cache.dirty and not refreshCraft and not refreshObjects then
         return
     end
 
-    if refreshCraft then
-        local teamCraft = {}
-        for h in AllCraft() do
-            if IsValid(h) and IsAlive(h) then
+    local teamCraft = {}
+    local teamBuildings = {}
+    local allBuildings = {}
+    local pilotPersons = {}
+    local scrapObjects = {}
+
+    for index = #cache.handles, 1, -1 do
+        local h = cache.handles[index]
+        if not IsValid(h) then
+            RemoveCachedHandle(cache.handles, cache.handleSet, h)
+        elseif IsAlive(h) then
+            if IsCraft(h) then
                 if not IsIndependenceLocked(h) then
                     local team = GetTeamNum(h)
                     if team and team >= 0 then
@@ -1758,50 +1821,38 @@ function aiCore.RefreshObjectCache(force)
                         craftList[#craftList + 1] = h
                     end
                 end
-            end
-        end
-        cache.teamCraft = teamCraft
-        cache.lastCraftUpdate = now
-    end
-
-    if refreshObjects then
-        local teamBuildings = {}
-        local allBuildings = {}
-        local pilotPersons = {}
-        local scrapObjects = {}
-
-        for h in AllObjects() do
-            if IsValid(h) and IsAlive(h) then
-                if IsBuilding(h) then
-                    allBuildings[#allBuildings + 1] = h
-                    local team = GetTeamNum(h)
-                    if team and team >= 0 then
-                        local buildingList = teamBuildings[team]
-                        if not buildingList then
-                            buildingList = {}
-                            teamBuildings[team] = buildingList
-                        end
-                        buildingList[#buildingList + 1] = h
+            elseif IsBuilding(h) then
+                allBuildings[#allBuildings + 1] = h
+                local team = GetTeamNum(h)
+                if team and team >= 0 then
+                    local buildingList = teamBuildings[team]
+                    if not buildingList then
+                        buildingList = {}
+                        teamBuildings[team] = buildingList
                     end
-                elseif IsPerson(h) then
-                    if not IsIndependenceLocked(h) then
-                        pilotPersons[#pilotPersons + 1] = h
-                    end
-                else
-                    local cls = string.lower(utility.CleanString(GetClassLabel(h)))
-                    if cls == utility.ClassLabel.SCRAP then
-                        scrapObjects[#scrapObjects + 1] = h
-                    end
+                    buildingList[#buildingList + 1] = h
+                end
+            elseif IsPerson(h) then
+                if not IsIndependenceLocked(h) then
+                    pilotPersons[#pilotPersons + 1] = h
+                end
+            else
+                local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+                if cls == utility.ClassLabel.SCRAP then
+                    scrapObjects[#scrapObjects + 1] = h
                 end
             end
         end
-
-        cache.teamBuildings = teamBuildings
-        cache.allBuildings = allBuildings
-        cache.pilotPersons = pilotPersons
-        cache.scrapObjects = scrapObjects
-        cache.lastObjectUpdate = now
     end
+
+    cache.teamCraft = teamCraft
+    cache.teamBuildings = teamBuildings
+    cache.allBuildings = allBuildings
+    cache.pilotPersons = pilotPersons
+    cache.scrapObjects = scrapObjects
+    cache.lastCraftUpdate = now
+    cache.lastObjectUpdate = now
+    cache.dirty = false
 
     RebuildTeamTargetCache(cache)
 end
@@ -4379,11 +4430,13 @@ end
 
 function aiCore.Bootstrap()
     if aiCore.Debug then print("aiCore: Bootstrapping world state...") end
+    aiCore.ResetObjectCacheTracking()
     local count = 0
     local registered = 0
 
     for h in AllObjects() do
         count = count + 1
+        aiCore.TrackWorldObject(h)
         local skip = false
         if IsCraft(h) then
             if IsIndependenceLocked(h) then
@@ -4408,6 +4461,7 @@ function aiCore.Bootstrap()
         print("aiCore: Bootstrap complete. Processed " ..
             count .. " objects, registered " .. registered .. " new units.")
     end
+    aiCore.RefreshObjectCache(true)
 end
 
 ----------------------------------------------------------------------------------
@@ -11248,7 +11302,7 @@ end
 function aiCore.AddObject(h)
     if not IsValid(h) then return end
     if (IsCraft(h) or IsPerson(h)) and IsIndependenceLocked(h) then return end
-    aiCore.InvalidateObjectCache()
+    aiCore.TrackWorldObject(h)
 
     -- Apply Dynamic Mass to all crafts registered
     if IsCraft(h) then
@@ -11287,7 +11341,7 @@ function aiCore.AddObject(h)
 end
 
 function aiCore.DeleteObject(h)
-    aiCore.InvalidateObjectCache()
+    aiCore.UntrackWorldObject(h)
 end
 
 -- Helper to set up construction

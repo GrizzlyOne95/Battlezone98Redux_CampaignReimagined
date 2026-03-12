@@ -12,9 +12,9 @@ local exu = require("exu")
 
 local PhysicsImpact = {
     -- Global tuning multipliers (reduced for less intrusive feel)
-    GlobalRecoil = 0.3,
-    GlobalKnockback = 0.5,
-    GlobalShake = 0.15,
+    GlobalRecoil = 0.34,
+    GlobalKnockback = 0.56,
+    GlobalShake = 0.18,
 
     -- The master table for fine-tuning
     -- recoil, knockback, shake: multipliers for forces
