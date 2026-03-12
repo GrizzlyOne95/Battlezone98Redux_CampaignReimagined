@@ -3864,10 +3864,21 @@ function PersistentConfig.UpdateInputs()
         InputState.lastWeaponTarget = nil
     end
 
-    UpdateWeaponStatsDisplay(currentPlayerHandle)
+    local pauseMenuOpen = false
+    if exu and exu.IsPauseMenuOpen then
+        pauseMenuOpen = exu.IsPauseMenuOpen()
+    end
+    InputState.SubtitlesPaused = pauseMenuOpen
+
+    if pauseMenuOpen then
+        ClearWeaponStats()
+        ClearPdaFeedback()
+    else
+        UpdateWeaponStatsDisplay(currentPlayerHandle)
+    end
 
     -- Process Feedback Queue
-    if #PersistentConfig.FeedbackQueue > 0 then
+    if not pauseMenuOpen and #PersistentConfig.FeedbackQueue > 0 then
         -- Check if mission subtitles are active
         local subtit = package.loaded["ScriptSubtitles"]
         local isBusy = false
@@ -4105,13 +4116,16 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_help_state = help_pressed
 
-    -- Pause Menu Handling (Escape Key) - IMMEDIATE effect
-    if exu.GetGameKey("ESCAPE") or LastGameKey == "ESCAPE" then
+    -- Pause Menu Handling
+    if not exu.IsPauseMenuOpen and (exu.GetGameKey("ESCAPE") or LastGameKey == "ESCAPE") then
         InputState.SubtitlesPaused = true
-    else
-        if InputState.SubtitlesPaused then
-            InputState.SubtitlesPaused = false
-        end
+    elseif not exu.IsPauseMenuOpen and InputState.SubtitlesPaused then
+        InputState.SubtitlesPaused = false
+    end
+
+    if InputState.SubtitlesPaused then
+        ClearWeaponStats()
+        ClearPdaFeedback()
     end
 
     -- Update Rainbow Color if active

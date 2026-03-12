@@ -162,6 +162,9 @@ Gets whether or not a key is held.
 
 A full list of keys can be found here.
 
+function IsPauseMenuOpen() -> bool
+Returns whether the in-game pause or Escape menu is currently open.
+
 Multiplayer
 These functions work exclusively in multiplayer to help with various things.
 

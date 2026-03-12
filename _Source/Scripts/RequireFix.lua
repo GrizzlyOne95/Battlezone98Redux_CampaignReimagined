@@ -231,6 +231,10 @@ do
             return false
         end
 
+        function stub.IsPauseMenuOpen()
+            return false
+        end
+
         return setmetatable(stub, {
             __index = function()
                 return function()
