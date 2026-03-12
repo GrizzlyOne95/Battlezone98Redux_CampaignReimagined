@@ -445,12 +445,12 @@ PersistentConfig.User = {
 function PersistentConfig.TriggerGreeting(steamID, username)
     PersistentConfig.User.SteamID = steamID
     PersistentConfig.User.Username = username
-
     local CustomNames = {
         ["76561198241259700"] = "GlizzyJuan",   -- GrizzlyOne95
         ["76561198104781489"] = "British Twat", --JJ
         ["76561199014392897"] = "Car Nerd",     --DriveLine
         ["76561198095046296"] = "HF Imperium",  --HyperFighter
+        ["76561198884003346"] = "Linux Nerd",        --Piercing
     }
 
     local displayName = CustomNames[tostring(steamID)] or username
@@ -1382,6 +1382,10 @@ local function GetUnitBuildEntry(unitOdfName)
             end
 
             local scrapCost, costFound = GetODFFloat(odf, "GameObjectClass", "scrapCost", 0.0)
+            local pilotCost = 0.0
+            if GetODFInt then
+                pilotCost = GetODFInt(odf, "GameObjectClass", "pilotCost", 0) or 0
+            end
             local slots = {}
             for slotIndex = 1, 5 do
                 local hardpoint, hardpointFound = GetODFString(odf, "GameObjectClass", "weaponHard" .. tostring(slotIndex), "")
@@ -1405,6 +1409,7 @@ local function GetUnitBuildEntry(unitOdfName)
                 key = key,
                 displayName = displayName or unitOdfName,
                 scrapCost = tonumber(scrapCost) or 0.0,
+                pilotCost = tonumber(pilotCost) or 0.0,
                 slots = slots,
             }
         end
@@ -2677,8 +2682,15 @@ local function UpdateProducerQueues(team)
                         queue.status = "Queue Complete"
                     else
                         local stockCost = selectedEntry and selectedEntry.scrapCost or 0.0
-                        if type(GetScrap) == "function" and stockCost > 0.0 and GetScrap(team) < stockCost then
+                        local pilotCost = selectedEntry and selectedEntry.pilotCost or 0.0
+                        local lowScrap = type(GetScrap) == "function" and stockCost > 0.0 and GetScrap(team) < stockCost
+                        local lowPilots = type(GetPilot) == "function" and pilotCost > 0.0 and GetPilot(team) < pilotCost
+                        if lowScrap and lowPilots then
+                            queue.status = "Queue Paused: Low Scrap/Pilots"
+                        elseif lowScrap then
                             queue.status = "Queue Paused: Low Scrap"
+                        elseif lowPilots then
+                            queue.status = "Queue Paused: Low Pilots"
                         elseif not queue.pendingIssue then
                             if queue.unitOdf and queue.unitOdf ~= "" and type(Build) == "function" then
                                 Build(producer, queue.unitOdf)

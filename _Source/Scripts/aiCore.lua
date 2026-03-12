@@ -10125,6 +10125,7 @@ function aiCore.Team:UpdatePilots()
     if not self.pilotActionTimer then self.pilotActionTimer = {} end
     if not self.sniperEquipTime then self.sniperEquipTime = {} end
     if not self.sniperState then self.sniperState = {} end
+    if not self.sniperAttackTarget then self.sniperAttackTarget = {} end
     if not self.pilotStealScanAt then self.pilotStealScanAt = {} end
     if not self.pilotPatrolTimer then self.pilotPatrolTimer = {} end
     local sniperRoleChance = aiCore.GetSniperRoleChancePercent(self)
@@ -10146,6 +10147,11 @@ function aiCore.Team:UpdatePilots()
     for h, _ in pairs(self.sniperState) do
         if not IsValid(h) then
             self.sniperState[h] = nil
+        end
+    end
+    for h, _ in pairs(self.sniperAttackTarget) do
+        if not IsValid(h) then
+            self.sniperAttackTarget[h] = nil
         end
     end
     for h, _ in pairs(self.pilotStealScanAt) do
@@ -10287,34 +10293,46 @@ function aiCore.Team:UpdatePilots()
                         attackTarget = who
                     end
                 end
-                local sniperTarget = nil
                 local currentTarget = GetTarget(p)
-                if IsValid(currentTarget) and utility.CanSnipe(currentTarget) then
-                    sniperTarget = currentTarget
-                elseif IsValid(attackTarget) and utility.CanSnipe(attackTarget) then
-                    sniperTarget = attackTarget
-                elseif IsValid(enemy) and dist < sniperRange and utility.CanSnipe(enemy) then
-                    sniperTarget = enemy
+                local function IsOccupiedSniperTarget(target)
+                    return IsValid(target) and utility.CanSnipe(target) and IsAliveAndPilot(target)
+                end
+                local sniperCandidate = nil
+                if IsOccupiedSniperTarget(currentTarget) then
+                    sniperCandidate = currentTarget
+                elseif IsOccupiedSniperTarget(attackTarget) then
+                    sniperCandidate = attackTarget
+                elseif IsOccupiedSniperTarget(enemy) and dist < sniperRange then
+                    sniperCandidate = enemy
+                end
+                local sniperTarget = self.sniperAttackTarget[p]
+                if not IsOccupiedSniperTarget(sniperTarget) then
+                    self.sniperAttackTarget[p] = nil
+                    sniperTarget = nil
+                end
+                if not IsValid(sniperTarget) and isSniper and actionReady and grounded and ammo >= 0.3 and
+                    IsValid(sniperCandidate) and GetDistance(p, sniperCandidate) < sniperRange and not IsCloaked(sniperCandidate) and
+                    math.random(100) <= sniperAttackChance then
+                    self.sniperAttackTarget[p] = sniperCandidate
+                    sniperTarget = sniperCandidate
                 end
                 local targetDist = IsValid(sniperTarget) and GetDistance(p, sniperTarget) or 9999
                 local targetCloaked = IsValid(sniperTarget) and IsCloaked(sniperTarget)
-                local canStartSniperAttack = isSniper and IsValid(sniperTarget) and grounded and not targetCloaked and
-                    (cmd == utility.AiCommand.GO or cmd == utility.AiCommand.NONE or cmd == utility.AiCommand.ATTACK) and
-                    (targetDist < sniperRange or cmd == utility.AiCommand.ATTACK) and ammo >= 0.3
-                local canMaintainSniperCombat = isSniper and IsValid(sniperTarget) and targetDist < sniperRange and grounded and
-                    not targetCloaked and utility.CanSnipe(sniperTarget) and ammo >= 0.3
+                local canStartSniperAttack = isSniper and IsOccupiedSniperTarget(sniperTarget) and grounded and
+                    not targetCloaked and targetDist < sniperRange and ammo >= 0.3
+                local canMaintainSniperCombat = canStartSniperAttack
 
-                -- Sniper behavior (ported from aiSpecial): attack first, rifle equip is the training roll.
+                -- Sniper behavior: first commit to a specific snipe target, then arm the rifle once attacking it.
                 if weapon0 ~= "" and string.find(weapon0, "handgun") then
                     self.sniperEquipTime[p] = nil
                     if canStartSniperAttack then
+                        if currentTarget ~= sniperTarget then
+                            SetTarget(p, sniperTarget)
+                        end
                         if actionReady and (cmd ~= utility.AiCommand.ATTACK or GetCurrentWho(p) ~= sniperTarget) then
                             aiCore.TryAttack(p, sniperTarget, GetCommandableAttackPriority(), { minInterval = 0.5 })
-                            SetTarget(p, sniperTarget)
                             self.pilotActionTimer[p] = now + 0.6
-                        end
-
-                        if actionReady and math.random(100) <= sniperAttackChance then
+                        elseif actionReady then
                             GiveWeapon(p, "gsnipe", 0)
                             self.sniperEquipTime[p] = now
                             self.pilotActionTimer[p] = now + 0.4
@@ -10329,6 +10347,7 @@ function aiCore.Team:UpdatePilots()
 
                     -- Legacy handoff: if the marked target is now empty craft, commandeer it.
                     if emptyCraftTarget then
+                        self.sniperAttackTarget[p] = nil
                         GiveWeapon(p, "handgun", 0)
                         weapon0 = "handgun"
                         self.sniperEquipTime[p] = nil
@@ -10337,6 +10356,7 @@ function aiCore.Team:UpdatePilots()
                             self.pilotActionTimer[p] = now + 1.2
                         end
                     elseif ammo <= 0.3 then
+                        self.sniperAttackTarget[p] = nil
                         GiveWeapon(p, "handgun", 0)
                         weapon0 = "handgun"
                         self.sniperEquipTime[p] = nil
@@ -10344,6 +10364,7 @@ function aiCore.Team:UpdatePilots()
                             Stop(p)
                         end
                     elseif not canMaintainSniperCombat then
+                        self.sniperAttackTarget[p] = nil
                         GiveWeapon(p, "handgun", 0)
                         weapon0 = "handgun"
                         self.sniperEquipTime[p] = nil
@@ -10375,6 +10396,7 @@ function aiCore.Team:UpdatePilots()
                     if IsValid(target) and IsCraft(target) and not IsAliveAndPilot(target) then
                         -- A pilot cannot move with a sniper rifle equipped.
                         if weapon0 ~= "" and string.find(weapon0, "gsnipe") then
+                            self.sniperAttackTarget[p] = nil
                             GiveWeapon(p, "handgun", 0)
                             weapon0 = "handgun"
                             self.sniperEquipTime[p] = nil
