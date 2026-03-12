@@ -746,6 +746,22 @@ function UnAlly(team1, team2) end
 ---@param team2 teamnum
 function IsTeamAllied(team1, team2) end
 
+---**[campaignReimagined]** Applies a runtime tint to all objects on the given team.
+---This is rebuilt from scratch on mission start/load and automatically applied to newly created objects.
+---Color components may be passed as either `0..1` or `0..255`.
+---@param team teamnum
+---@param r number
+---@param g number
+---@param b number
+function SetTeamColor(team, r, g, b) end
+
+---**[campaignReimagined]** Removes a runtime team color override and returns that team to its base materials.
+---@param team teamnum
+function ClearTeamColor(team) end
+
+---**[campaignReimagined]** Restores the default built-in campaignReimagined team color profiles.
+function ResetTeamColors() end
+
 ---Returns true if game object "me" considers game object "him" an ally. Returns false otherwise.
 ---
 ---Due to the possibility of player-initiated "half-alliances", IsAlly(me, him) might not return the same result as IsAlly(him, me).

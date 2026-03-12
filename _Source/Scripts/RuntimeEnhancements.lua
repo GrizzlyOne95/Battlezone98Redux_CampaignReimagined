@@ -1,6 +1,37 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 local exu = require("exu")
 
+local DEFAULT_TEAM_PROFILES = {
+    [2] = {
+        name = "team2_nsdf",
+        add = { r = 0.06, g = 0.12, b = 0.22 },
+        ambientScale = 0.92,
+        diffuseScale = 0.90,
+        specularScale = 0.95,
+        emissiveScale = 0.90,
+    },
+    [3] = {
+        name = "team3_nsdf",
+        add = { r = 0.22, g = 0.08, b = 0.03 },
+        ambientScale = 0.95,
+        diffuseScale = 0.90,
+        specularScale = 0.98,
+        emissiveScale = 1.00,
+    },
+}
+
+local function DeepCopy(value)
+    if type(value) ~= "table" then
+        return value
+    end
+
+    local result = {}
+    for key, entry in pairs(value) do
+        result[key] = DeepCopy(entry)
+    end
+    return result
+end
+
 local RuntimeEnhancements = {
     Initialized = false,
     SupportsDynamicMaterials = false,
@@ -8,24 +39,7 @@ local RuntimeEnhancements = {
     SupportsPilotVisuals = false,
     ResourceGroup = "General",
 
-    TeamProfiles = {
-        [2] = {
-            name = "team2_nsdf",
-            add = { r = 0.06, g = 0.12, b = 0.22 },
-            ambientScale = 0.92,
-            diffuseScale = 0.90,
-            specularScale = 0.95,
-            emissiveScale = 0.90,
-        },
-        [3] = {
-            name = "team3_nsdf",
-            add = { r = 0.22, g = 0.08, b = 0.03 },
-            ambientScale = 0.95,
-            diffuseScale = 0.90,
-            specularScale = 0.98,
-            emissiveScale = 1.00,
-        },
-    },
+    TeamProfiles = DeepCopy(DEFAULT_TEAM_PROFILES),
 
     MaterialVariants = {},
     MaterialBaseColors = {},
@@ -36,6 +50,8 @@ local RuntimeEnhancements = {
     VisualBatchAt = 0.0,
     VisualCursor = 1,
     VisualBatchSize = 16,
+    VisualNeedsRebuild = true,
+    VisualCompactAt = 0.0,
 
     ThreatScanAt = 0.0,
     ThreatenedUntil = 0.0,
@@ -64,29 +80,42 @@ local function CopyColor(color)
     }
 end
 
-local function ApplyProfile(color, profile, scale, addScale)
+local function ApplyProfile(color, profile, scale, addScale, allowTint)
     local result = CopyColor(color)
+    result.r = Clamp01(result.r * (scale or 1.0))
+    result.g = Clamp01(result.g * (scale or 1.0))
+    result.b = Clamp01(result.b * (scale or 1.0))
+
     if not profile then
         return result
     end
 
+    if allowTint and profile.tint then
+        local tint = profile.tint
+        local mix = Clamp01(profile.tintMix or addScale or 0.0)
+        result.r = Clamp01((result.r * (1.0 - mix)) + (tonumber(tint.r) or 0.0) * mix)
+        result.g = Clamp01((result.g * (1.0 - mix)) + (tonumber(tint.g) or 0.0) * mix)
+        result.b = Clamp01((result.b * (1.0 - mix)) + (tonumber(tint.b) or 0.0) * mix)
+        return result
+    end
+
     local add = profile.add or { r = 0.0, g = 0.0, b = 0.0 }
-    result.r = Clamp01((result.r * (scale or 1.0)) + (add.r or 0.0) * (addScale or 0.0))
-    result.g = Clamp01((result.g * (scale or 1.0)) + (add.g or 0.0) * (addScale or 0.0))
-    result.b = Clamp01((result.b * (scale or 1.0)) + (add.b or 0.0) * (addScale or 0.0))
+    result.r = Clamp01(result.r + (add.r or 0.0) * (addScale or 0.0))
+    result.g = Clamp01(result.g + (add.g or 0.0) * (addScale or 0.0))
+    result.b = Clamp01(result.b + (add.b or 0.0) * (addScale or 0.0))
     return result
 end
 
 local function BuildPassColors(baseColors, profile, occupied)
     local colors = type(baseColors) == "table" and baseColors or {}
 
-    local ambient = ApplyProfile(colors.ambient or colors.diffuse, profile, profile and profile.ambientScale or 1.0, 0.35)
-    local diffuse = ApplyProfile(colors.diffuse or colors.ambient, profile, profile and profile.diffuseScale or 1.0, 0.60)
-    local specular = ApplyProfile(colors.specular or colors.diffuse, profile, profile and profile.specularScale or 1.0, 0.20)
+    local ambient = ApplyProfile(colors.ambient or colors.diffuse, profile, profile and profile.ambientScale or 1.0, 0.35, false)
+    local diffuse = ApplyProfile(colors.diffuse or colors.ambient, profile, profile and profile.diffuseScale or 1.0, 0.60, true)
+    local specular = ApplyProfile(colors.specular or colors.diffuse, profile, profile and profile.specularScale or 1.0, 0.20, false)
     local emissive
 
     if occupied then
-        emissive = ApplyProfile(colors.emissive or colors.selfIllumination, profile, profile and profile.emissiveScale or 1.0, 0.45)
+        emissive = ApplyProfile(colors.emissive or colors.selfIllumination, profile, profile and profile.emissiveScale or 1.0, 0.45, false)
     else
         emissive = { r = 0.0, g = 0.0, b = 0.0, a = 1.0 }
     end
@@ -167,7 +196,7 @@ local function SupportsPilotVehicleVisuals(h)
 end
 
 local function RegisterHandle(h)
-    if not h or not IsValid(h) or not IsCraft(h) then
+    if not h or not IsValid(h) then
         return
     end
 
@@ -198,11 +227,14 @@ local function RegisterHandle(h)
 end
 
 local function PrepareState(state)
-    if not state or state.prepared then
+    if not state then
+        return false
+    end
+
+    if state.prepared and state.materials ~= nil then
         return state and state.materials ~= nil
     end
 
-    state.prepared = true
     if not RuntimeEnhancements.SupportsDynamicMaterials then
         return false
     end
@@ -212,6 +244,7 @@ local function PrepareState(state)
         return false
     end
 
+    state.prepared = true
     local materials = {}
     local subCount = (exu.GetSubEntityCount and exu.GetSubEntityCount(h))
         or (exu.GetNumSubEntities and exu.GetNumSubEntities(h))
@@ -241,6 +274,7 @@ local function PrepareState(state)
     end
 
     if #materials == 0 then
+        state.prepared = false
         return false
     end
 
@@ -276,18 +310,40 @@ local function ApplyStateVisuals(state)
 end
 
 local function RefreshVisualHandleList()
+    RuntimeEnhancements.ObjectStates = {}
     RuntimeEnhancements.VisualHandles = {}
     RuntimeEnhancements.VisualHandleSet = {}
 
-    if not AllCraft then
+    if not AllObjects then
         return
     end
 
-    for h in AllCraft() do
+    for h in AllObjects() do
         RegisterHandle(h)
     end
 
     RuntimeEnhancements.VisualCursor = 1
+    RuntimeEnhancements.VisualNeedsRebuild = false
+end
+
+local function CompactVisualHandleList()
+    local compactedHandles = {}
+    local compactedSet = {}
+
+    for _, h in ipairs(RuntimeEnhancements.VisualHandles) do
+        if h and IsValid(h) and not compactedSet[h] then
+            compactedSet[h] = true
+            compactedHandles[#compactedHandles + 1] = h
+        else
+            RuntimeEnhancements.ObjectStates[h] = nil
+        end
+    end
+
+    RuntimeEnhancements.VisualHandles = compactedHandles
+    RuntimeEnhancements.VisualHandleSet = compactedSet
+    if RuntimeEnhancements.VisualCursor > #compactedHandles then
+        RuntimeEnhancements.VisualCursor = 1
+    end
 end
 
 local function UpdateVisualStates(now)
@@ -296,9 +352,11 @@ local function UpdateVisualStates(now)
     end
     RuntimeEnhancements.VisualBatchAt = now + 0.05
 
-    if now >= (RuntimeEnhancements.VisualRefreshAt or 0.0) or #RuntimeEnhancements.VisualHandles == 0 then
+    if RuntimeEnhancements.VisualNeedsRebuild or #RuntimeEnhancements.VisualHandles == 0 then
         RefreshVisualHandleList()
-        RuntimeEnhancements.VisualRefreshAt = now + 2.0
+    elseif now >= (RuntimeEnhancements.VisualCompactAt or 0.0) then
+        CompactVisualHandleList()
+        RuntimeEnhancements.VisualCompactAt = now + 5.0
     end
 
     local processed = 0
@@ -440,6 +498,81 @@ function RuntimeEnhancements.Initialize()
     RuntimeEnhancements.SupportsPilotVisuals = RuntimeEnhancements.SupportsDynamicMaterials
 end
 
+local function NormalizeTeamColorComponent(value)
+    local numeric = tonumber(value) or 0.0
+    if numeric > 1.0 then
+        numeric = numeric / 255.0
+    end
+    return Clamp01(numeric)
+end
+
+local function TeamColorName(teamNum, color)
+    local r = math.floor((Clamp01(color.r) * 255.0) + 0.5)
+    local g = math.floor((Clamp01(color.g) * 255.0) + 0.5)
+    local b = math.floor((Clamp01(color.b) * 255.0) + 0.5)
+    return string.format("team%d_%02x%02x%02x", teamNum, r, g, b)
+end
+
+function RuntimeEnhancements.ResetVisualState()
+    RuntimeEnhancements.MaterialVariants = {}
+    RuntimeEnhancements.ObjectStates = {}
+    RuntimeEnhancements.VisualHandles = {}
+    RuntimeEnhancements.VisualHandleSet = {}
+    RuntimeEnhancements.VisualCursor = 1
+    RuntimeEnhancements.VisualRefreshAt = 0.0
+    RuntimeEnhancements.VisualBatchAt = 0.0
+    RuntimeEnhancements.VisualCompactAt = 0.0
+    RuntimeEnhancements.VisualNeedsRebuild = true
+end
+
+function RuntimeEnhancements.ResetTeamColors()
+    RuntimeEnhancements.TeamProfiles = DeepCopy(DEFAULT_TEAM_PROFILES)
+    RuntimeEnhancements.ResetVisualState()
+end
+
+function RuntimeEnhancements.SetTeamColor(teamNum, r, g, b)
+    local resolvedTeam = math.max(0, math.floor(tonumber(teamNum) or 0))
+    local color = {
+        r = NormalizeTeamColorComponent(r),
+        g = NormalizeTeamColorComponent(g),
+        b = NormalizeTeamColorComponent(b),
+    }
+
+    RuntimeEnhancements.TeamProfiles[resolvedTeam] = {
+        name = TeamColorName(resolvedTeam, color),
+        tint = color,
+        tintMix = 0.72,
+        ambientScale = 0.95,
+        diffuseScale = 0.98,
+        specularScale = 0.95,
+        emissiveScale = 1.00,
+    }
+
+    RuntimeEnhancements.ResetVisualState()
+    if RuntimeEnhancements.Initialized and RuntimeEnhancements.SupportsDynamicMaterials then
+        RefreshVisualHandleList()
+    end
+
+    return true
+end
+
+function RuntimeEnhancements.ClearTeamColor(teamNum)
+    local resolvedTeam = math.max(0, math.floor(tonumber(teamNum) or 0))
+    RuntimeEnhancements.TeamProfiles[resolvedTeam] = nil
+    RuntimeEnhancements.ResetVisualState()
+    if RuntimeEnhancements.Initialized and RuntimeEnhancements.SupportsDynamicMaterials then
+        RefreshVisualHandleList()
+    end
+end
+
+function RuntimeEnhancements.RebuildVisuals()
+    RuntimeEnhancements.Initialize()
+    RuntimeEnhancements.ResetVisualState()
+    if RuntimeEnhancements.SupportsDynamicMaterials then
+        RefreshVisualHandleList()
+    end
+end
+
 function RuntimeEnhancements.OnObjectCreated(h)
     RuntimeEnhancements.Initialize()
     if not (RuntimeEnhancements.SupportsDynamicMaterials or RuntimeEnhancements.SupportsAutoLevel) then
@@ -447,6 +580,9 @@ function RuntimeEnhancements.OnObjectCreated(h)
     end
 
     RegisterHandle(h)
+    if RuntimeEnhancements.SupportsDynamicMaterials then
+        ApplyStateVisuals(RuntimeEnhancements.ObjectStates[h])
+    end
 end
 
 function RuntimeEnhancements.Update()
@@ -464,6 +600,18 @@ function RuntimeEnhancements.Update()
     if RuntimeEnhancements.SupportsAutoLevel then
         UpdateAutoLevel(now)
     end
+end
+
+SetTeamColor = function(teamNum, r, g, b)
+    return RuntimeEnhancements.SetTeamColor(teamNum, r, g, b)
+end
+
+ClearTeamColor = function(teamNum)
+    return RuntimeEnhancements.ClearTeamColor(teamNum)
+end
+
+ResetTeamColors = function()
+    return RuntimeEnhancements.ResetTeamColors()
 end
 
 return RuntimeEnhancements

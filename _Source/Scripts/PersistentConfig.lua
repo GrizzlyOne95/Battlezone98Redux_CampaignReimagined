@@ -4489,6 +4489,7 @@ function PersistentConfig.Initialize()
     InputState.processedCreationHandles = {}
     InputState.otherHeadlightVisibility = {}
     RuntimeEnhancements.Initialize()
+    RuntimeEnhancements.RebuildVisuals()
     ConservativeCulling.Initialize()
     PersistentConfig.LoadConfig()
     WarnIfNativeFeaturesUnavailable()
