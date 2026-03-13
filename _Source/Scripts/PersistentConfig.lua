@@ -42,7 +42,7 @@ PersistentConfig.DefaultSettings = {
     ScavengerAssistEnabled = true,  -- Auto-scavenge for player scavengers
     AutoSaveSlot = 10,              -- Default to slot 10
     AutoSaveEnabled = false,        -- AutoSave disabled by default
-    AutoSaveInterval = 200,         -- Auto-save every 200 seconds
+    AutoSaveInterval = 300,         -- Auto-save every 5 minutes
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
     RetroLighting = false,          -- Disables PBR and custom shader lighting equations
     WeaponStatsHud = true,          -- Persistent weapon stats panel
@@ -94,6 +94,15 @@ local PDA_FONT_SCALE_STEP = 0.05
 local SUBTITLE_FONT_SCALE_MIN = 0.85
 local SUBTITLE_FONT_SCALE_MAX = 2.00
 local SUBTITLE_FONT_SCALE_STEP = 0.05
+PersistentConfig.AutoSaveUi = {
+    slotMin = 1,
+    slotMax = 10,
+    intervalOptions = {
+        { seconds = 120, label = "2 MIN" },
+        { seconds = 300, label = "5 MIN" },
+        { seconds = 600, label = "10 MIN" },
+    },
+}
 
 local LEGACY_TEXT_PRESET_SCALES = {
     [1] = 0.85,
@@ -213,6 +222,91 @@ end
 
 local function GetSubtitleFontScale()
     return ClampRange(PersistentConfig.Settings.SubtitleFontScale, SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX, 1.0)
+end
+
+function PersistentConfig._GetAutoSaveSlot()
+    return ClampIndex(PersistentConfig.Settings.AutoSaveSlot, PersistentConfig.AutoSaveUi.slotMin,
+        PersistentConfig.AutoSaveUi.slotMax, PersistentConfig.DefaultSettings.AutoSaveSlot)
+end
+
+function PersistentConfig._GetAutoSaveIntervalOptionIndex(value)
+    local requested = math.floor((tonumber(value) or PersistentConfig.DefaultSettings.AutoSaveInterval) + 0.5)
+    if requested == 200 then
+        return 2
+    end
+
+    local bestIndex = 1
+    local bestDiff = math.huge
+    for index, option in ipairs(PersistentConfig.AutoSaveUi.intervalOptions) do
+        local diff = math.abs(requested - option.seconds)
+        if diff < bestDiff then
+            bestIndex = index
+            bestDiff = diff
+        end
+    end
+    return bestIndex
+end
+
+function PersistentConfig._GetAutoSaveIntervalOption()
+    local index = PersistentConfig._GetAutoSaveIntervalOptionIndex(PersistentConfig.Settings.AutoSaveInterval)
+    return PersistentConfig.AutoSaveUi.intervalOptions[index], index
+end
+
+function PersistentConfig._ClearAutoSaveEnablePrompt()
+    if not InputState then
+        return false
+    end
+
+    local hadPrompt = InputState.autoSaveEnableArmed or InputState.autoSaveConfirmSlot
+    InputState.autoSaveEnableArmed = false
+    InputState.autoSaveConfirmSlot = nil
+    return not not hadPrompt
+end
+
+function PersistentConfig._GetAutoSaveStatusValue()
+    if PersistentConfig.Settings.AutoSaveEnabled then
+        return "ON"
+    end
+    if InputState and InputState.autoSaveEnableArmed then
+        return "CONFIRM"
+    end
+    return "OFF"
+end
+
+function PersistentConfig._GetAutoSaveEnterHint()
+    if PersistentConfig.Settings.AutoSaveEnabled then
+        return "LEFT DISABLE"
+    end
+
+    local slot = PersistentConfig._GetAutoSaveSlot()
+    if InputState and InputState.autoSaveEnableArmed then
+        return string.format("ENTER CONFIRM SLOT %d", slot)
+    end
+    return string.format("ENTER ARM SLOT %d", slot)
+end
+
+function PersistentConfig._BuildAutoSaveWarningLines(selectedEntry)
+    local slot = PersistentConfig._GetAutoSaveSlot()
+    local showDetails = PersistentConfig.Settings.AutoSaveEnabled
+        or (InputState and InputState.autoSaveEnableArmed)
+        or (selectedEntry and (selectedEntry.key == "autosave" or selectedEntry.key == "autosave_slot" or
+            selectedEntry.key == "autosave_interval"))
+
+    if not showDetails then
+        return nil
+    end
+
+    local lines = {}
+    if InputState and InputState.autoSaveEnableArmed then
+        lines[#lines + 1] = string.format("WARNING ENTER AGAIN TO USE SLOT %d", slot)
+    elseif PersistentConfig.Settings.AutoSaveEnabled then
+        lines[#lines + 1] = string.format("WARNING AUTOSAVE RESERVES SLOT %d", slot)
+    else
+        lines[#lines + 1] = string.format("AUTOSAVE CAN RESERVE SLOT %d", slot)
+    end
+    lines[#lines + 1] = string.format("FIRST USE BACKS UP game%d.sav", slot)
+    lines[#lines + 1] = "BACKUP PATH Save\\AutoSaveBackups"
+    return lines
 end
 
 local function ClampUnitInterval(value, fallback)
@@ -749,6 +843,8 @@ InputState = {
     queueProducerIndex = 1,
     queueRow = 1,
     pendingGameKeys = {},
+    autoSaveEnableArmed = false,
+    autoSaveConfirmSlot = nil,
     processedCreationHandles = {},
     otherHeadlightVisibility = {},
     otherHeadlightsDirty = true,
@@ -1034,11 +1130,34 @@ local WEAPON_VALUE_SECTIONS = {
 local WEAPON_REFERENCE_LABELS = { "ordName", "ordnanceName", "shotClass", "projectileClass", "objectClass" }
 local WEAPON_RANGE_LABELS = { "maxRange", "engageRange", "maxDist", "engageDist", "shotRange", "range", "lockRange" }
 local WEAPON_DELAY_LABELS = { "shotDelay", "reloadTime", "reloadDelay", "firstDelay" }
+local DAMAGE_LABELS = {
+    "damage",
+    "damage1", "damage2", "damage3", "damage4", "damage5", "damage6", "damage7", "damage8",
+    "damageBallistic", "damageConcussion", "damageFlame", "damageImpact", "damageArea", "damageEM"
+}
+local DAMAGE_SECTIONS = { "WeaponClass", "OrdnanceClass", "ExplosionClass", "CannonClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil }
+local EXPLOSION_REFERENCE_LABELS = { "xplVehicle", "xplCar", "xplBuilding", "xplGround", "xplPilot" }
+local EXPLOSION_RADIUS_LABELS = { "damageRadius", "explRadius" }
 
 local function ResolveOrdnanceName(odf)
     if not odf or not GetODFString then return nil end
     for _, section in ipairs(WEAPON_VALUE_SECTIONS) do
         for _, label in ipairs(WEAPON_REFERENCE_LABELS) do
+            local value, found = GetODFString(odf, section, label, "")
+            local cleaned = CleanString(value)
+            if HasOdfString(cleaned, found) then
+                return cleaned
+            end
+        end
+    end
+    return nil
+end
+
+local function ProbeStringFromOdf(odf, labels, sections)
+    if not odf or not GetODFString then return nil end
+    sections = sections or WEAPON_VALUE_SECTIONS
+    for _, section in ipairs(sections) do
+        for _, label in ipairs(labels or {}) do
             local value, found = GetODFString(odf, section, label, "")
             local cleaned = CleanString(value)
             if HasOdfString(cleaned, found) then
@@ -1170,19 +1289,14 @@ local function IsBallisticWeaponData(weaponOdf, ordOdf)
     return false
 end
 
-local function ProbeDamageFromOdf(odf)
+local function ProbeDamageFromOdf(odf, sections)
     if not odf or not GetODFFloat then return nil end
-    local sections = { "WeaponClass", "OrdnanceClass", "CannonClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil }
-    local labels = {
-        "damage",
-        "damage1", "damage2", "damage3", "damage4", "damage5", "damage6", "damage7", "damage8",
-        "damageBallistic", "damageConcussion", "damageFlame", "damageImpact", "damageArea", "damageEM"
-    }
+    sections = sections or DAMAGE_SECTIONS
 
     for _, section in ipairs(sections) do
         local totalDamage = 0.0
         local foundAny = false
-        for _, label in ipairs(labels) do
+        for _, label in ipairs(DAMAGE_LABELS) do
             local value, found = GetODFFloat(odf, section, label, 0.0)
             if HasOdfNumber(value, found) then
                 totalDamage = totalDamage + value
@@ -1195,6 +1309,145 @@ local function ProbeDamageFromOdf(odf)
     end
 
     return nil
+end
+
+local function ProbeExplosionProfilesFromOdf(odf)
+    if not odf or not OpenODF then return nil end
+
+    local profiles = {}
+    local seen = {}
+    for _, label in ipairs(EXPLOSION_REFERENCE_LABELS) do
+        local explosionName = ProbeStringFromOdf(odf, { label }, WEAPON_VALUE_SECTIONS)
+        if explosionName and explosionName ~= "" then
+            local key = string.lower(explosionName)
+            if not seen[key] then
+                seen[key] = true
+                local explosionOdf = OpenODF(explosionName)
+                if explosionOdf then
+                    local damage = ProbeDamageFromOdf(explosionOdf, { "ExplosionClass", nil })
+                    local radius = ProbeMaxValueFromOdf(explosionOdf, EXPLOSION_RADIUS_LABELS, { "ExplosionClass", nil })
+                    if damage or radius then
+                        profiles[#profiles + 1] = {
+                            name = explosionName,
+                            damage = damage or 0.0,
+                            radius = radius or 0.0,
+                        }
+                    end
+                end
+            end
+        end
+    end
+
+    if #profiles <= 0 then
+        return nil
+    end
+
+    return profiles
+end
+
+local function MergeExplosionProfiles(...)
+    local merged = {}
+    local seen = {}
+
+    for i = 1, select("#", ...) do
+        local profiles = select(i, ...)
+        if profiles then
+            for _, profile in ipairs(profiles) do
+                local key = string.lower(CleanString(profile.name or ""))
+                if key == "" then
+                    key = tostring(#merged + 1)
+                end
+                if not seen[key] then
+                    seen[key] = true
+                    merged[#merged + 1] = profile
+                end
+            end
+        end
+    end
+
+    if #merged <= 0 then
+        return nil
+    end
+
+    return merged
+end
+
+local function BuildImpactDamageSummary(baseDamage, explosionProfiles)
+    local summary = {
+        damage = baseDamage,
+        damageMin = baseDamage,
+        damageMax = baseDamage,
+        splashRadius = nil,
+        splashRadiusMin = nil,
+        splashRadiusMax = nil,
+    }
+
+    local totals = {}
+    if type(baseDamage) == "number" and baseDamage > 0.0 then
+        totals[#totals + 1] = baseDamage
+    end
+
+    if explosionProfiles then
+        for _, profile in ipairs(explosionProfiles) do
+            local radius = tonumber(profile.radius) or 0.0
+            local damage = tonumber(profile.damage) or 0.0
+            if radius > 0.0 then
+                summary.splashRadiusMin = summary.splashRadiusMin and math.min(summary.splashRadiusMin, radius) or radius
+                summary.splashRadiusMax = summary.splashRadiusMax and math.max(summary.splashRadiusMax, radius) or radius
+            end
+            if damage > 0.0 or (type(baseDamage) == "number" and baseDamage and baseDamage > 0.0) then
+                totals[#totals + 1] = math.max(0.0, (baseDamage or 0.0) + damage)
+            end
+        end
+    end
+
+    if #totals > 0 then
+        table.sort(totals)
+        summary.damageMin = totals[1]
+        summary.damageMax = totals[#totals]
+        summary.damage = totals[#totals]
+    end
+
+    summary.splashRadius = summary.splashRadiusMax or summary.splashRadiusMin
+    return summary
+end
+
+local function GetWeaponAmmoCostPerProjectile(weaponOdf, ordOdf)
+    local value = ordOdf and ProbeValueFromOdf(ordOdf, { "ammoCost" }) or nil
+    if value and value >= 0.0 then
+        return value
+    end
+
+    value = weaponOdf and ProbeValueFromOdf(weaponOdf, { "ammoCost" }) or nil
+    if value and value >= 0.0 then
+        return value
+    end
+
+    return nil
+end
+
+local function GetWeaponReticleName(weaponOdfName, chargeIndex)
+    if not weaponOdfName or weaponOdfName == "" or not OpenODF then return nil end
+    PersistentConfig.WeaponReticleCache = PersistentConfig.WeaponReticleCache or {}
+
+    local cacheKey = string.lower(weaponOdfName) .. ":" .. tostring(chargeIndex or 0)
+    if PersistentConfig.WeaponReticleCache[cacheKey] ~= nil then
+        return PersistentConfig.WeaponReticleCache[cacheKey]
+    end
+
+    local reticle = nil
+    local weaponOdf = OpenODF(weaponOdfName)
+    if weaponOdf then
+        if chargeIndex and chargeIndex > 0 then
+            reticle = ProbeIndexedStringFromOdf(weaponOdf, { "ChargeGunClass", "WeaponClass" }, { "wpnReticle" }, chargeIndex)
+        end
+        if not reticle then
+            reticle = ProbeStringFromOdf(weaponOdf, { "wpnReticle" }, { "WeaponClass", "ChargeGunClass", "TargetingGunClass", nil })
+        end
+    end
+
+    PersistentConfig.WeaponReticleCache[cacheKey] = reticle or false
+    return reticle
 end
 
 local function BuildChargeWeaponLevels(weaponOdf)
@@ -1213,25 +1466,41 @@ local function BuildChargeWeaponLevels(weaponOdf)
             local ordOdf = OpenODF(ordName)
             if ordOdf then
                 local perProjectileDamage = ProbeDamageFromOdf(ordOdf)
+                local damageSummary = BuildImpactDamageSummary(perProjectileDamage, ProbeExplosionProfilesFromOdf(ordOdf))
                 local shotDelay = ProbeIndexedFloatFromOdf(weaponOdf, { "ChargeGunClass", "WeaponClass" }, "shotDelay", index)
                 local salvoCount = ProbeIndexedFloatFromOdf(weaponOdf, { "ChargeGunClass", "WeaponClass" }, "salvoCount", index) or 1.0
                 local salvoDelay = ProbeIndexedFloatFromOdf(weaponOdf, { "ChargeGunClass", "WeaponClass" }, "salvoDelay", index) or 0.0
                 local cycleTime, shotCount = GetBurstCycleTime(shotDelay, salvoCount, salvoDelay)
-                local totalDamage = perProjectileDamage and (perProjectileDamage * shotCount) or nil
+                local damageMin = damageSummary.damageMin and (damageSummary.damageMin * shotCount) or nil
+                local damageMax = damageSummary.damageMax and (damageSummary.damageMax * shotCount) or nil
+                local totalDamage = damageMax or damageMin
+                local ammoCostPerProjectile = GetWeaponAmmoCostPerProjectile(nil, ordOdf)
+                local ammoCost = ammoCostPerProjectile and (ammoCostPerProjectile * shotCount) or nil
 
                 table.insert(levels, {
                     chargeIndex = index,
                     ordName = ordName,
                     range = GetResolvedWeaponRangeFromOdf(ordOdf),
-                    perProjectileDamage = perProjectileDamage,
+                    perProjectileDamage = damageSummary.damage,
                     damage = totalDamage,
+                    damageMin = damageMin,
+                    damageMax = damageMax,
                     shotDelay = shotDelay,
                     salvoCount = shotCount,
                     salvoDelay = salvoDelay,
                     cycleTime = cycleTime,
                     dps = (totalDamage and cycleTime and cycleTime > 0.001) and (totalDamage / cycleTime) or nil,
+                    dpsMin = (damageMin and cycleTime and cycleTime > 0.001) and (damageMin / cycleTime) or nil,
+                    dpsMax = (damageMax and cycleTime and cycleTime > 0.001) and (damageMax / cycleTime) or nil,
                     shotSpeed = ProbeShotSpeedFromOdf(ordOdf),
                     ballistic = IsBallisticWeaponData(weaponOdf, ordOdf),
+                    ammoCostPerProjectile = ammoCostPerProjectile,
+                    ammoCost = ammoCost,
+                    ammoCostMin = ammoCost,
+                    ammoCostMax = ammoCost,
+                    splashRadius = damageSummary.splashRadius,
+                    splashRadiusMin = damageSummary.splashRadiusMin,
+                    splashRadiusMax = damageSummary.splashRadiusMax,
                 })
             end
         end
@@ -1336,11 +1605,17 @@ local function GetWeaponStats(weaponOdfName)
         dps = nil,
         dpsMin = nil,
         dpsMax = nil,
+        ammoCost = nil,
+        ammoCostMin = nil,
+        ammoCostMax = nil,
         shotDelay = nil,
         shotSpeed = nil,
         ballistic = false,
         salvoCount = 1,
         salvoDelay = 0.0,
+        splashRadius = nil,
+        splashRadiusMin = nil,
+        splashRadiusMax = nil,
         chargeLevels = nil,
     }
 
@@ -1356,22 +1631,48 @@ local function GetWeaponStats(weaponOdfName)
                         stats.rangeMin = stats.rangeMin and math.min(stats.rangeMin, level.range) or level.range
                         stats.rangeMax = stats.rangeMax and math.max(stats.rangeMax, level.range) or level.range
                     end
-                    if level.damage then
-                        stats.damageMin = stats.damageMin and math.min(stats.damageMin, level.damage) or level.damage
-                        stats.damageMax = stats.damageMax and math.max(stats.damageMax, level.damage) or level.damage
+                    local levelDamageMin = level.damageMin or level.damage
+                    local levelDamageMax = level.damageMax or level.damage
+                    if levelDamageMin then
+                        stats.damageMin = stats.damageMin and math.min(stats.damageMin, levelDamageMin) or levelDamageMin
                     end
-                    if level.dps then
-                        stats.dpsMin = stats.dpsMin and math.min(stats.dpsMin, level.dps) or level.dps
-                        stats.dpsMax = stats.dpsMax and math.max(stats.dpsMax, level.dps) or level.dps
+                    if levelDamageMax then
+                        stats.damageMax = stats.damageMax and math.max(stats.damageMax, levelDamageMax) or levelDamageMax
+                    end
+                    local levelDpsMin = level.dpsMin or level.dps
+                    local levelDpsMax = level.dpsMax or level.dps
+                    if levelDpsMin then
+                        stats.dpsMin = stats.dpsMin and math.min(stats.dpsMin, levelDpsMin) or levelDpsMin
+                    end
+                    if levelDpsMax then
+                        stats.dpsMax = stats.dpsMax and math.max(stats.dpsMax, levelDpsMax) or levelDpsMax
                     end
                     if level.shotSpeed and (not stats.shotSpeed or level.shotSpeed > stats.shotSpeed) then
                         stats.shotSpeed = level.shotSpeed
+                    end
+                    local levelAmmoMin = level.ammoCostMin or level.ammoCost
+                    local levelAmmoMax = level.ammoCostMax or level.ammoCost
+                    if levelAmmoMin ~= nil then
+                        stats.ammoCostMin = stats.ammoCostMin and math.min(stats.ammoCostMin, levelAmmoMin) or levelAmmoMin
+                    end
+                    if levelAmmoMax ~= nil then
+                        stats.ammoCostMax = stats.ammoCostMax and math.max(stats.ammoCostMax, levelAmmoMax) or levelAmmoMax
+                    end
+                    local splashMin = level.splashRadiusMin or level.splashRadius
+                    local splashMax = level.splashRadiusMax or level.splashRadius
+                    if splashMin then
+                        stats.splashRadiusMin = stats.splashRadiusMin and math.min(stats.splashRadiusMin, splashMin) or splashMin
+                    end
+                    if splashMax then
+                        stats.splashRadiusMax = stats.splashRadiusMax and math.max(stats.splashRadiusMax, splashMax) or splashMax
                     end
                     stats.ballistic = stats.ballistic or level.ballistic
                 end
                 stats.range = stats.rangeMax or stats.rangeMin or stats.range
                 stats.damage = stats.damageMax or stats.damageMin
                 stats.dps = stats.dpsMax or stats.dpsMin
+                stats.ammoCost = stats.ammoCostMax or stats.ammoCostMin
+                stats.splashRadius = stats.splashRadiusMax or stats.splashRadiusMin
                 PersistentConfig.WeaponDataCache[key] = stats
                 return stats
             end
@@ -1385,12 +1686,16 @@ local function GetWeaponStats(weaponOdfName)
             stats.salvoCount = ProbeValueFromOdf(weaponOdf, { "salvoCount" }) or 1.0
             stats.salvoDelay = ProbeValueFromOdf(weaponOdf, { "salvoDelay" }) or 0.0
             stats.damage = ProbeDamageFromOdf(weaponOdf)
+            stats.ammoCost = GetWeaponAmmoCostPerProjectile(weaponOdf, nil)
             stats.shotSpeed = ProbeShotSpeedFromOdf(weaponOdf)
         end
 
         if ordOdf then
             if not stats.damage then
                 stats.damage = ProbeDamageFromOdf(ordOdf)
+            end
+            if stats.ammoCost == nil then
+                stats.ammoCost = GetWeaponAmmoCostPerProjectile(weaponOdf, ordOdf)
             end
             if not stats.shotDelay then
                 stats.shotDelay = ProbeValueFromOdf(ordOdf, WEAPON_DELAY_LABELS)
@@ -1407,22 +1712,41 @@ local function GetWeaponStats(weaponOdfName)
         end
 
         stats.ballistic = IsBallisticWeaponData(weaponOdf, ordOdf)
+
+        local damageSummary = BuildImpactDamageSummary(stats.damage,
+            MergeExplosionProfiles(ProbeExplosionProfilesFromOdf(weaponOdf), ProbeExplosionProfilesFromOdf(ordOdf)))
+        stats.damage = damageSummary.damage
+        stats.damageMin = damageSummary.damageMin
+        stats.damageMax = damageSummary.damageMax
+        stats.splashRadius = damageSummary.splashRadius
+        stats.splashRadiusMin = damageSummary.splashRadiusMin
+        stats.splashRadiusMax = damageSummary.splashRadiusMax
     end
 
     local cycleTime, shotCount = GetBurstCycleTime(stats.shotDelay, stats.salvoCount, stats.salvoDelay)
-    if stats.damage then
-        stats.damage = stats.damage * shotCount
-        stats.damageMin = stats.damage
-        stats.damageMax = stats.damage
+    if stats.damageMin or stats.damageMax or stats.damage then
+        stats.damageMin = (stats.damageMin or stats.damage) and ((stats.damageMin or stats.damage) * shotCount) or nil
+        stats.damageMax = (stats.damageMax or stats.damage) and ((stats.damageMax or stats.damage) * shotCount) or nil
+        stats.damage = stats.damageMax or stats.damageMin
     end
     if stats.range then
         stats.rangeMin = stats.range
         stats.rangeMax = stats.range
     end
-    if stats.damage and cycleTime and cycleTime > 0.001 then
-        stats.dps = stats.damage / cycleTime
-        stats.dpsMin = stats.dps
-        stats.dpsMax = stats.dps
+    if stats.ammoCost ~= nil then
+        local totalAmmoCost = stats.ammoCost * shotCount
+        stats.ammoCost = totalAmmoCost
+        stats.ammoCostMin = totalAmmoCost
+        stats.ammoCostMax = totalAmmoCost
+    end
+    if cycleTime and cycleTime > 0.001 then
+        if stats.damageMin then
+            stats.dpsMin = stats.damageMin / cycleTime
+        end
+        if stats.damageMax then
+            stats.dpsMax = stats.damageMax / cycleTime
+        end
+        stats.dps = stats.dpsMax or stats.dpsMin
     end
 
     PersistentConfig.WeaponDataCache[key] = stats
@@ -1471,16 +1795,22 @@ local function GetDisplayedWeaponStats(player, weaponOdfName, weaponStats)
         rangeMin = level.range or weaponStats.rangeMin,
         rangeMax = level.range or weaponStats.rangeMax,
         damage = level.damage or weaponStats.damage,
-        damageMin = level.damage or weaponStats.damageMin,
-        damageMax = level.damage or weaponStats.damageMax,
-        dps = level.dps or weaponStats.dps,
-        dpsMin = level.dps or weaponStats.dpsMin,
-        dpsMax = level.dps or weaponStats.dpsMax,
+        damageMin = level.damageMin or level.damage or weaponStats.damageMin,
+        damageMax = level.damageMax or level.damage or weaponStats.damageMax,
+        dps = level.dpsMax or level.dps or weaponStats.dps,
+        dpsMin = level.dpsMin or level.dps or weaponStats.dpsMin,
+        dpsMax = level.dpsMax or level.dps or weaponStats.dpsMax,
+        ammoCost = level.ammoCost or weaponStats.ammoCost,
+        ammoCostMin = level.ammoCostMin or level.ammoCost or weaponStats.ammoCostMin,
+        ammoCostMax = level.ammoCostMax or level.ammoCost or weaponStats.ammoCostMax,
         shotDelay = level.shotDelay or weaponStats.shotDelay,
         shotSpeed = level.shotSpeed or weaponStats.shotSpeed,
         ballistic = (level.ballistic == nil) and weaponStats.ballistic or level.ballistic,
         salvoCount = level.salvoCount or weaponStats.salvoCount,
         salvoDelay = level.salvoDelay or weaponStats.salvoDelay,
+        splashRadius = level.splashRadius or weaponStats.splashRadius,
+        splashRadiusMin = level.splashRadiusMin or level.splashRadius or weaponStats.splashRadiusMin,
+        splashRadiusMax = level.splashRadiusMax or level.splashRadius or weaponStats.splashRadiusMax,
         chargeLevels = weaponStats.chargeLevels,
         currentChargeLevel = level.chargeIndex,
         currentChargeOrdName = level.ordName,
@@ -2305,6 +2635,69 @@ local function FormatWeaponDpsText(weaponStats)
     return FormatDps(weaponStats.dps)
 end
 
+local function FormatWeaponSplashText(weaponStats)
+    if not weaponStats then return nil end
+
+    local minRadius = weaponStats.splashRadiusMin or weaponStats.splashRadius
+    local maxRadius = weaponStats.splashRadiusMax or weaponStats.splashRadius
+    if not maxRadius or maxRadius <= 0.0 then
+        return nil
+    end
+    if minRadius and math.abs(maxRadius - minRadius) >= 1.0 then
+        return FormatWholeNumber(minRadius) .. "-" .. FormatWholeNumber(maxRadius) .. "m"
+    end
+    return FormatWholeNumber(maxRadius) .. "m"
+end
+
+local function FormatWeaponShotsLeftText(weaponStats, currentAmmo)
+    if not weaponStats then return nil end
+
+    local function ComputeShots(ammoCost)
+        if ammoCost == nil then
+            return nil
+        end
+        ammoCost = tonumber(ammoCost) or 0.0
+        if ammoCost <= 0.001 then
+            return math.huge
+        end
+        if type(currentAmmo) ~= "number" then
+            return nil
+        end
+        return math.max(0, math.floor((currentAmmo / ammoCost) + 0.0001))
+    end
+
+    local minShots = ComputeShots(weaponStats.ammoCostMax or weaponStats.ammoCost)
+    local maxShots = ComputeShots(weaponStats.ammoCostMin or weaponStats.ammoCost)
+    if minShots == nil and maxShots == nil then
+        return nil
+    end
+
+    local function FormatShots(value)
+        if value == math.huge then
+            return "INF"
+        end
+        if value == nil then
+            return "n/a"
+        end
+        return tostring(value)
+    end
+
+    if minShots == maxShots then
+        return FormatShots(minShots)
+    end
+
+    if minShots == nil then
+        return FormatShots(maxShots)
+    end
+    if maxShots == nil then
+        return FormatShots(minShots)
+    end
+
+    local low = math.min(minShots, maxShots)
+    local high = math.max(minShots, maxShots)
+    return FormatShots(low) .. "-" .. FormatShots(high)
+end
+
 local function BuildChargeSummaryText(weaponStats)
     local levels = weaponStats and weaponStats.chargeLevels or nil
     if not levels or #levels <= 0 then return nil end
@@ -2349,6 +2742,7 @@ end
 local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compareTarget, comparePosition, compareDistance)
     local hardpointCount = 0
     local shooterPos = type(GetPosition) == "function" and GetPosition(h) or nil
+    local currentAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(h) or nil
 
     for slot = 0, 4 do
         if IsMaskBitSet(installedMask, slot) then
@@ -2384,6 +2778,18 @@ local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compa
                 table.insert(lines,
                     string.format("  RNG %sm  DMG %s  DPS %s", rangeText,
                         FormatWeaponDamageText(weaponStats), FormatWeaponDpsText(weaponStats)))
+                local shotsText = FormatWeaponShotsLeftText(weaponStats, currentAmmo)
+                local splashText = FormatWeaponSplashText(weaponStats)
+                if shotsText or splashText then
+                    local detailParts = {}
+                    if shotsText then
+                        detailParts[#detailParts + 1] = "SHOTS " .. shotsText
+                    end
+                    if splashText then
+                        detailParts[#detailParts + 1] = "AOE " .. splashText
+                    end
+                    table.insert(lines, "  " .. table.concat(detailParts, "  "))
+                end
                 local chargeSummary = BuildChargeSummaryText(weaponStats)
                 if chargeSummary then
                     table.insert(lines, chargeSummary)
@@ -2399,12 +2805,50 @@ local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compa
     return hardpointCount
 end
 
+local function GetPrimaryReticleLine(player)
+    if not IsValid(player) then return nil end
+
+    local activeMask = GetCurrentWeaponMask(player)
+    local installedMask = GetInstalledWeaponMask(player)
+    local searchMask = (activeMask and activeMask > 0) and activeMask or installedMask
+    if not searchMask or searchMask <= 0 then
+        return nil
+    end
+
+    for slot = 0, 4 do
+        if IsMaskBitSet(searchMask, slot) then
+            local weapon = CleanString(GetWeaponClass(player, slot))
+            if weapon ~= "" then
+                local displayedStats = GetDisplayedWeaponStats(player, weapon, GetWeaponStats(weapon) or {}) or {}
+                local reticle = GetWeaponReticleName(weapon, displayedStats.currentChargeLevel)
+                if reticle and reticle ~= "" then
+                    return string.format("RET  S%d %s", slot + 1, reticle)
+                end
+            end
+        end
+    end
+
+    return nil
+end
+
+local function DescribeAimMode(aimInfo)
+    if not aimInfo then
+        return "NO TARGET"
+    end
+    if aimInfo.source == "target" then
+        return "TARGET LOCK"
+    end
+    if aimInfo.source == "reticle_object" then
+        return "SMART RETICLE"
+    end
+    if aimInfo.source == "reticle_pos" then
+        return "GROUND RETICLE"
+    end
+    return "TARGET"
+end
+
 local function BuildStatsPageText(player, mask)
     local lines = { BuildPdaHeader(PdaPages.STATS) }
-    local aimInfo = GetAimInfo(player, false)
-    local target = aimInfo and aimInfo.handle or nil
-    local targetDistance = aimInfo and aimInfo.distance or nil
-    local aimPosition = aimInfo and aimInfo.position or nil
     local speed = math.floor(GetPlayerSpeedMeters(player) + 0.5)
     local unitName = GetVehicleDisplayName(player) or "Unknown"
     local playerHealth = (type(GetHealth) == "function") and (GetHealth(player) or 0.0) or 0.0
@@ -2417,29 +2861,14 @@ local function BuildStatsPageText(player, mask)
 
     table.insert(lines, "UNIT " .. unitName)
     table.insert(lines, "SPD  " .. tostring(speed) .. "m/s")
-    if target and targetDistance then
-        local label = (aimInfo and aimInfo.source == "target") and "TGT" or "AIM"
-        table.insert(lines, (label == "TGT") and "MODE TARGET" or "MODE RETICLE")
-        table.insert(lines, label .. "  " .. GetVehicleDisplayName(target) .. "  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
-        local closureRate, eta = GetTargetClosureInfo(player, target, targetDistance)
-        local closureText = closureRate and tostring(math.floor(math.max(0.0, closureRate) + 0.5)) .. "m/s" or "--"
-        local etaText = eta and string.format("%.1fs", eta) or "--"
-        table.insert(lines, "CLS  " .. closureText .. "  ETA " .. etaText)
-        table.insert(lines, "CLS = closing rate")
-    elseif aimPosition and targetDistance then
-        local playerPos = type(GetPosition) == "function" and GetPosition(player) or nil
-        local deltaY = playerPos and ((aimPosition.y or 0.0) - (playerPos.y or 0.0)) or 0.0
-        table.insert(lines, "MODE GROUND")
-        table.insert(lines, "AIM  GROUND  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
-        table.insert(lines, "ELV  " .. tostring(math.floor(deltaY + (deltaY >= 0 and 0.5 or -0.5))) .. "m")
-    end
-    table.insert(lines, "HARDPOINTS")
-    table.insert(lines, "LEGEND + IN RNG  - OUT  * ACTIVE")
-
-    local hardpointCount = AppendWeaponStatsLines(lines, player, installedMask, mask, target, aimPosition, targetDistance)
-    table.insert(lines, "TOTAL " .. tostring(hardpointCount))
-    table.insert(lines, BuildMeterBar("AMMO", playerAmmo, curAmmo, maxAmmo))
     table.insert(lines, BuildMeterBar("HULL", playerHealth, curHealth, maxHealth))
+    table.insert(lines, BuildMeterBar("AMMO", playerAmmo, curAmmo, maxAmmo))
+    table.insert(lines, "")
+    table.insert(lines, "HARDPOINTS")
+    table.insert(lines, "LEGEND * ACTIVE")
+
+    local hardpointCount = AppendWeaponStatsLines(lines, player, installedMask, mask, nil, nil, nil)
+    table.insert(lines, "TOTAL " .. tostring(hardpointCount))
     AppendPdaNavHints(lines)
     return table.concat(lines, "\n")
 end
@@ -2450,6 +2879,12 @@ local function BuildTargetPageText(player)
     local target = aimInfo and aimInfo.handle or nil
     local targetDistance = aimInfo and aimInfo.distance or nil
     local aimPosition = aimInfo and aimInfo.position or nil
+    local reticleLine = GetPrimaryReticleLine(player)
+
+    table.insert(lines, "MODE " .. DescribeAimMode(aimInfo))
+    if reticleLine then
+        table.insert(lines, reticleLine)
+    end
 
     if not aimInfo or not targetDistance then
         table.insert(lines, "NO TARGET")
@@ -2461,7 +2896,6 @@ local function BuildTargetPageText(player)
     if not target and aimPosition then
         local playerPos = type(GetPosition) == "function" and GetPosition(player) or nil
         local deltaY = playerPos and ((aimPosition.y or 0.0) - (playerPos.y or 0.0)) or 0.0
-        table.insert(lines, "MODE RETICLE")
         table.insert(lines, "UNIT AIM POINT")
         table.insert(lines, "ROLE TERRAIN")
         table.insert(lines, "DST  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
@@ -2523,8 +2957,17 @@ local function BuildSettingsPageText()
     else
         for index = startIndex, endIndex do
             local entry = settingsEntries[index]
-            local prefix = (selection == index) and ">" or " "
+            local prefix = (selection == index) and ">" or ((entry and entry.warning) and "!" or " ")
             table.insert(lines, string.format("%s %-12s %s", prefix, entry.label, entry.value))
+        end
+    end
+
+    local selectedEntry = settingsEntries[selection]
+    local autoSaveWarningLines = PersistentConfig._BuildAutoSaveWarningLines(selectedEntry)
+    if autoSaveWarningLines and #autoSaveWarningLines > 0 then
+        table.insert(lines, "")
+        for _, line in ipairs(autoSaveWarningLines) do
+            table.insert(lines, line)
         end
     end
 
@@ -2532,7 +2975,7 @@ local function BuildSettingsPageText()
     table.insert(lines, string.format("SHOWING %02d-%02d OF %02d", startIndex, endIndex, count))
     table.insert(lines, "UP/DOWN SELECT")
     table.insert(lines, "LEFT/RIGHT CHANGE")
-    table.insert(lines, "ENTER ACTION")
+    table.insert(lines, (selectedEntry and selectedEntry.actionHint) or "ENTER ACTION")
     table.insert(lines, "[ / ] SWITCH PAGE")
     return table.concat(lines, "\n")
 end
@@ -3485,14 +3928,81 @@ end
 
 local function SetAutoSaveEnabled(enabled)
     local value = not not enabled
+    local slot = PersistentConfig._GetAutoSaveSlot()
+    local interval = PersistentConfig._GetAutoSaveIntervalOption()
+
+    if not value then
+        PersistentConfig._ClearAutoSaveEnablePrompt()
+    end
     if PersistentConfig.Settings.AutoSaveEnabled == value then
         return false
     end
 
     PersistentConfig.Settings.AutoSaveEnabled = value
     CommitPdaSettingChange({ syncAutoSave = true })
-    ShowFeedback("Auto-Save: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    if value then
+        ShowFeedback(string.format("Auto-Save: ON (slot %d, %s)", slot, interval.label), 1.0, 0.35, 0.35, 3.5, false,
+            "pda")
+    else
+        ShowFeedback("Auto-Save: OFF", 0.8, 1.0, 0.8, 2.5, false, "pda")
+    end
     return true
+end
+
+function PersistentConfig._AdjustAutoSaveSlot(delta)
+    local direction = ((delta or 0) < 0) and -1 or 1
+    local current = PersistentConfig._GetAutoSaveSlot()
+    local nextSlot = ClampIndex(current + direction, PersistentConfig.AutoSaveUi.slotMin, PersistentConfig.AutoSaveUi.slotMax,
+        current)
+    if nextSlot == current then
+        return false
+    end
+
+    PersistentConfig.Settings.AutoSaveSlot = nextSlot
+    PersistentConfig._ClearAutoSaveEnablePrompt()
+    CommitPdaSettingChange({ syncAutoSave = true })
+
+    local active = PersistentConfig.Settings.AutoSaveEnabled
+    ShowFeedback(string.format("Auto-Save Slot: %d%s", nextSlot, active and " (ACTIVE)" or ""), active and 1.0 or 0.8,
+        active and 0.35 or 1.0, active and 0.35 or 0.8, 3.0, false, "pda")
+    return true
+end
+
+function PersistentConfig._AdjustAutoSaveInterval(delta)
+    local direction = ((delta or 0) < 0) and -1 or 1
+    local _, currentIndex = PersistentConfig._GetAutoSaveIntervalOption()
+    local nextIndex = CycleIndex(currentIndex, #PersistentConfig.AutoSaveUi.intervalOptions, direction, currentIndex)
+    if nextIndex == currentIndex then
+        return false
+    end
+
+    local option = PersistentConfig.AutoSaveUi.intervalOptions[nextIndex]
+    PersistentConfig.Settings.AutoSaveInterval = option.seconds
+    PersistentConfig._ClearAutoSaveEnablePrompt()
+    CommitPdaSettingChange({ syncAutoSave = true })
+    ShowFeedback("Auto-Save Interval: " .. option.label, 0.8, 1.0, 0.8, 2.5, false, "pda")
+    return true
+end
+
+function PersistentConfig._HandleAutoSaveEnableAction()
+    if PersistentConfig.Settings.AutoSaveEnabled then
+        ShowFeedback(string.format("Auto-Save is active in slot %d. Press LEFT to disable.", PersistentConfig._GetAutoSaveSlot()), 1.0,
+            0.35, 0.35, 3.5, false, "pda")
+        return false
+    end
+
+    local slot = PersistentConfig._GetAutoSaveSlot()
+    if not (InputState and InputState.autoSaveEnableArmed and InputState.autoSaveConfirmSlot == slot) then
+        InputState.autoSaveEnableArmed = true
+        InputState.autoSaveConfirmSlot = slot
+        RefreshPdaOverlay()
+        ShowFeedback(string.format("Confirm Auto-Save: slot %d will be backed up and used. Press ENTER again.", slot),
+            1.0, 0.25, 0.25, 4.0, false, "pda")
+        return true
+    end
+
+    PersistentConfig._ClearAutoSaveEnablePrompt()
+    return SetAutoSaveEnabled(true)
 end
 
 local function SetPilotModeEnabled(enabled)
@@ -3632,10 +4142,40 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "AUTOSAVE",
-            value = PersistentConfig.Settings.AutoSaveEnabled and "ON" or "OFF",
+            key = "autosave_slot",
+            label = PersistentConfig.Settings.AutoSaveEnabled and "AUTO SLOT !" or "AUTO SLOT",
+            value = PersistentConfig.Settings.AutoSaveEnabled and string.format("!! SLOT %d !!", PersistentConfig._GetAutoSaveSlot())
+                or string.format("SLOT %d", PersistentConfig._GetAutoSaveSlot()),
+            warning = PersistentConfig.Settings.AutoSaveEnabled or (InputState and InputState.autoSaveEnableArmed) or false,
             adjust = function(delta)
-                return SetAutoSaveEnabled(DirectionEnabled(delta))
+                return PersistentConfig._AdjustAutoSaveSlot(delta)
+            end,
+        },
+        {
+            key = "autosave_interval",
+            label = "AUTO INT",
+            value = PersistentConfig._GetAutoSaveIntervalOption().label,
+            warning = (InputState and InputState.autoSaveEnableArmed) or false,
+            adjust = function(delta)
+                return PersistentConfig._AdjustAutoSaveInterval(delta)
+            end,
+        },
+        {
+            key = "autosave",
+            label = "AUTOSAVE",
+            value = PersistentConfig._GetAutoSaveStatusValue(),
+            warning = PersistentConfig.Settings.AutoSaveEnabled or (InputState and InputState.autoSaveEnableArmed) or false,
+            actionHint = PersistentConfig._GetAutoSaveEnterHint(),
+            adjust = function(delta)
+                if PersistentConfig.Settings.AutoSaveEnabled and (delta or 0) < 0 then
+                    return SetAutoSaveEnabled(false)
+                end
+
+                ShowFeedback("Auto-Save enable requires ENTER confirmation.", 1.0, 0.35, 0.35, 3.0, false, "pda")
+                return false
+            end,
+            action = function()
+                return PersistentConfig._HandleAutoSaveEnableAction()
             end,
         },
         {
@@ -3729,7 +4269,7 @@ function PersistentConfig.LoadConfig()
                 elseif key == "AutoSaveEnabled" then
                     PersistentConfig.Settings.AutoSaveEnabled = (val == "true")
                 elseif key == "AutoSaveInterval" then
-                    PersistentConfig.Settings.AutoSaveInterval = tonumber(val) or 200
+                    PersistentConfig.Settings.AutoSaveInterval = tonumber(val) or 300
                 elseif key == "AutoRepairBuildings" then
                     PersistentConfig.Settings.AutoRepairBuildings = (val == "true")
                 elseif key == "RetroLighting" then
@@ -3805,6 +4345,8 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.PdaFontScale = ClampRange(PersistentConfig.Settings.PdaFontScale,
         PDA_FONT_SCALE_MIN, PDA_FONT_SCALE_MAX, 1.0)
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
+    PersistentConfig.Settings.AutoSaveSlot = PersistentConfig._GetAutoSaveSlot()
+    PersistentConfig.Settings.AutoSaveInterval = PersistentConfig._GetAutoSaveIntervalOption().seconds
 end
 
 function PersistentConfig.SaveConfig()
@@ -4088,12 +4630,14 @@ function PersistentConfig.UpdateInputs()
     local right_bracket_pressed = ConsumePendingGameKeyMatch({ "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET" })
 
     if left_bracket_pressed then
+        PersistentConfig._ClearAutoSaveEnablePrompt()
         InputState.pdaPage = CycleIndex(InputState.pdaPage, PdaPages.COUNT, -1, PdaPages.STATS)
         PlayPdaSound("mnu_back.wav")
         ClearPdaFeedback()
         RefreshPdaOverlay()
     end
     if right_bracket_pressed then
+        PersistentConfig._ClearAutoSaveEnablePrompt()
         InputState.pdaPage = CycleIndex(InputState.pdaPage, PdaPages.COUNT, 1, PdaPages.STATS)
         PlayPdaSound("mnu_next.wav")
         ClearPdaFeedback()
@@ -4103,16 +4647,19 @@ function PersistentConfig.UpdateInputs()
     local pda_down_key = ConsumePendingGameKeyMatch({ "DOWN", "DOWNARROW" })
     local pda_left_key = ConsumePendingGameKeyMatch({ "LEFT", "LEFTARROW" })
     local pda_right_key = ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
+    local enterPressed = ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
 
     if InputState.pdaPage == PdaPages.SETTINGS then
         local settingsEntries = GetSettingsPageEntries()
         local settingsCount = math.max(#settingsEntries, 1)
 
         if pda_up_key then
+            PersistentConfig._ClearAutoSaveEnablePrompt()
             InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, settingsCount, -1, 1)
             PlayPdaSound("mnu_clik.wav")
             RefreshPdaOverlay()
         elseif pda_down_key then
+            PersistentConfig._ClearAutoSaveEnablePrompt()
             InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, settingsCount, 1, 1)
             PlayPdaSound("mnu_clik.wav")
             RefreshPdaOverlay()
@@ -4125,6 +4672,8 @@ function PersistentConfig.UpdateInputs()
             settingChanged = entry and entry.adjust and entry.adjust(-1) or false
         elseif pda_right_key then
             settingChanged = entry and entry.adjust and entry.adjust(1) or false
+        elseif enterPressed then
+            settingChanged = entry and entry.action and entry.action() or false
         end
 
         if settingChanged then
@@ -4197,7 +4746,6 @@ function PersistentConfig.UpdateInputs()
             end
         end
 
-        local enterPressed = ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
         if enterPressed then
             if ToggleQueueLock(context) then
                 PlayPdaSound("mnu_enab.wav")
