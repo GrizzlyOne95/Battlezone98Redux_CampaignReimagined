@@ -136,11 +136,25 @@ local function resolveMissionDisplayName()
 end
 
 local function getSlotPaths(slot)
-    local saveDir = bzfile.GetWorkingDirectory() .. "\\Save\\"
-    return saveDir .. "game" .. slot .. ".sav", saveDir .. "game" .. slot .. ".bak"
+    local saveDir = joinPath(bzfile.GetWorkingDirectory(), "Save")
+    local backupDir = joinPath(saveDir, "AutoSaveBackups")
+    local filename = joinPath(saveDir, "game" .. slot .. ".sav")
+    local backupname = joinPath(backupDir, "game" .. slot .. ".pre_autosave.sav")
+    return filename, backupname, backupDir
 end
 
-local function backupOriginalSaveIfNeeded(filename, backupname)
+local function ensureBackupDirectory(backupDir)
+    if not backupDir or backupDir == "" or type(bzfile) ~= "table" or type(bzfile.MakeDirectory) ~= "function" then
+        return
+    end
+
+    local ok, err = pcall(bzfile.MakeDirectory, backupDir)
+    if not ok then
+        print("AutoSave: NOTE - could not pre-create backup directory " .. tostring(backupDir) .. ": " .. tostring(err))
+    end
+end
+
+local function backupOriginalSaveIfNeeded(filename, backupname, backupDir)
     local existingBackup = bzfile.Open(backupname, "r")
     if existingBackup then
         existingBackup:Close()
@@ -159,6 +173,7 @@ local function backupOriginalSaveIfNeeded(filename, backupname)
         return true
     end
 
+    ensureBackupDirectory(backupDir)
     local backupFile = bzfile.Open(backupname, "w", "trunc")
     if not backupFile then
         print("AutoSave: WARNING - could not open backup file for writing: " .. backupname)
@@ -173,9 +188,9 @@ end
 
 function AutoSave.CreateSave(slot, desc)
     local slotNum = slot or AutoSave.Config.currentSlot
-    local filename, backupname = getSlotPaths(slotNum)
+    local filename, backupname, backupDir = getSlotPaths(slotNum)
 
-    if not backupOriginalSaveIfNeeded(filename, backupname) then
+    if not backupOriginalSaveIfNeeded(filename, backupname, backupDir) then
         print("AutoSave: backup failed, aborting native save for " .. filename)
         return false
     end
