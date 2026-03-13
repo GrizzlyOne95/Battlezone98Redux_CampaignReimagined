@@ -46,6 +46,7 @@ PersistentConfig.DefaultSettings = {
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
     RetroLighting = false,          -- Disables PBR and custom shader lighting equations
     WeaponStatsHud = true,          -- Persistent weapon stats panel
+    PilotModeEnabled = false,       -- Player-side pilot mode automation
     SubtitleOpacity = 0.50,         -- Main subtitle opacity
     SubtitleFontScale = 2.00,       -- Subtitle font scale (0.85-2.00)
     PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
@@ -346,6 +347,89 @@ local function GetPdaLayoutMetrics(page)
         feedbackTextScale = Clamp(textScale * 0.86, 0.20, 0.46),
         feedbackY = 0.90,
     }
+end
+
+local EXPERIMENTAL_OVERLAY = {
+    overlay = "cr_experimental_overlay",
+    root = "cr_experimental_overlay_root",
+    text = "cr_experimental_overlay_text",
+}
+
+local function DestroyExperimentalOverlay()
+    if not exu then
+        return
+    end
+
+    if exu.HideOverlay then
+        pcall(exu.HideOverlay, EXPERIMENTAL_OVERLAY.overlay)
+    end
+    if exu.RemoveOverlayElementChild then
+        pcall(exu.RemoveOverlayElementChild, EXPERIMENTAL_OVERLAY.root, EXPERIMENTAL_OVERLAY.text)
+    end
+    if exu.RemoveOverlay2D then
+        pcall(exu.RemoveOverlay2D, EXPERIMENTAL_OVERLAY.overlay, EXPERIMENTAL_OVERLAY.root)
+    end
+    if exu.DestroyOverlayElement then
+        pcall(exu.DestroyOverlayElement, EXPERIMENTAL_OVERLAY.text)
+        pcall(exu.DestroyOverlayElement, EXPERIMENTAL_OVERLAY.root)
+    end
+    if exu.DestroyOverlay then
+        pcall(exu.DestroyOverlay, EXPERIMENTAL_OVERLAY.overlay)
+    end
+end
+
+local function TryCreateExperimentalOverlay()
+    if not exu or not exu.CreateOverlay or not exu.CreateOverlayElement or not exu.AddOverlay2D then
+        return false
+    end
+
+    DestroyExperimentalOverlay()
+
+    local layout = GetPdaLayoutMetrics(PdaPages.STATS)
+    local metricsMode = (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.RELATIVE) or 0
+    local ok = true
+
+    local function SafeCall(fn, ...)
+        if not ok or type(fn) ~= "function" then
+            return nil
+        end
+
+        local success, result = pcall(fn, ...)
+        if not success then
+            ok = false
+            Log("PersistentConfig: Experimental overlay call failed: " .. tostring(result))
+            return nil
+        end
+        return result
+    end
+
+    SafeCall(exu.CreateOverlay, EXPERIMENTAL_OVERLAY.overlay)
+    SafeCall(exu.CreateOverlayElement, "Panel", EXPERIMENTAL_OVERLAY.root)
+    SafeCall(exu.CreateOverlayElement, "TextArea", EXPERIMENTAL_OVERLAY.text)
+    SafeCall(exu.AddOverlay2D, EXPERIMENTAL_OVERLAY.overlay, EXPERIMENTAL_OVERLAY.root)
+    SafeCall(exu.AddOverlayElementChild, EXPERIMENTAL_OVERLAY.root, EXPERIMENTAL_OVERLAY.text)
+    SafeCall(exu.SetOverlayZOrder, EXPERIMENTAL_OVERLAY.overlay, 640)
+
+    SafeCall(exu.SetOverlayMetricsMode, EXPERIMENTAL_OVERLAY.root, metricsMode)
+    SafeCall(exu.SetOverlayPosition, EXPERIMENTAL_OVERLAY.root, layout.panelX, 0.03)
+    SafeCall(exu.SetOverlayDimensions, EXPERIMENTAL_OVERLAY.root, math.max(layout.wrapWidth, 0.24), 0.08)
+
+    SafeCall(exu.SetOverlayMetricsMode, EXPERIMENTAL_OVERLAY.text, metricsMode)
+    SafeCall(exu.SetOverlayPosition, EXPERIMENTAL_OVERLAY.text, 0.0, 0.0)
+    SafeCall(exu.SetOverlayDimensions, EXPERIMENTAL_OVERLAY.text, math.max(layout.wrapWidth, 0.24), 0.08)
+    SafeCall(exu.SetOverlayTextFont, EXPERIMENTAL_OVERLAY.text, "BZONE")
+    SafeCall(exu.SetOverlayTextCharHeight, EXPERIMENTAL_OVERLAY.text, 0.03)
+    SafeCall(exu.SetOverlayColor, EXPERIMENTAL_OVERLAY.text, 0.18, 0.92, 0.18, 1.0)
+    SafeCall(exu.SetOverlayCaption, EXPERIMENTAL_OVERLAY.text, "EXPERIMENTAL OGRE OVERLAY")
+    SafeCall(exu.ShowOverlayElement, EXPERIMENTAL_OVERLAY.root)
+    SafeCall(exu.ShowOverlayElement, EXPERIMENTAL_OVERLAY.text)
+    SafeCall(exu.ShowOverlay, EXPERIMENTAL_OVERLAY.overlay)
+
+    if ok then
+        Log("PersistentConfig: Experimental EXU overlay probe created.")
+    end
+
+    return ok
 end
 
 local function ShowPdaFeedback(msg, r, g, b, duration)
@@ -3411,6 +3495,18 @@ local function SetAutoSaveEnabled(enabled)
     return true
 end
 
+local function SetPilotModeEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.PilotModeEnabled == value then
+        return false
+    end
+
+    PersistentConfig.Settings.PilotModeEnabled = value
+    CommitPdaSettingChange()
+    ShowFeedback("Pilot Mode: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    return true
+end
+
 GetSettingsPageEntries = function()
     local function DirectionEnabled(delta)
         return (delta or 0) > 0
@@ -3529,6 +3625,13 @@ GetSettingsPageEntries = function()
             end,
         },
         {
+            label = "PILOT MODE",
+            value = PersistentConfig.Settings.PilotModeEnabled and "ON" or "OFF",
+            adjust = function(delta)
+                return SetPilotModeEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
             label = "AUTOSAVE",
             value = PersistentConfig.Settings.AutoSaveEnabled and "ON" or "OFF",
             adjust = function(delta)
@@ -3633,6 +3736,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.RetroLighting = (val == "true")
                 elseif key == "WeaponStatsHud" then
                     PersistentConfig.Settings.WeaponStatsHud = (val == "true")
+                elseif key == "PilotModeEnabled" then
+                    PersistentConfig.Settings.PilotModeEnabled = (val == "true")
                 elseif key == "SubtitleOpacity" then
                     PersistentConfig.Settings.SubtitleOpacity = tonumber(val) or 0.50
                 elseif key == "SubtitleFontScale" then
@@ -3737,6 +3842,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("AutoRepairBuildings=" .. tostring(PersistentConfig.Settings.AutoRepairBuildings))
         f:Writeln("RetroLighting=" .. tostring(PersistentConfig.Settings.RetroLighting))
         f:Writeln("WeaponStatsHud=" .. tostring(PersistentConfig.Settings.WeaponStatsHud))
+        f:Writeln("PilotModeEnabled=" .. tostring(PersistentConfig.Settings.PilotModeEnabled))
         f:Writeln("SubtitleOpacity=" .. tostring(PersistentConfig.Settings.SubtitleOpacity))
         f:Writeln("SubtitleFontScale=" .. tostring(PersistentConfig.Settings.SubtitleFontScale))
         f:Writeln("PdaOpacity=" .. tostring(PersistentConfig.Settings.PdaOpacity))
@@ -4525,6 +4631,7 @@ function PersistentConfig.Initialize()
     end
     PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings()
+    TryCreateExperimentalOverlay()
     InstallPlayerChargeTrackingHook()
     MarkOtherHeadlightsDirty()
 

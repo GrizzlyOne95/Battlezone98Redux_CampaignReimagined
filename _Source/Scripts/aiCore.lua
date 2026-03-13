@@ -662,6 +662,18 @@ local function MatrixToPosition(m)
     return SetVector(m.posit_x, m.posit_y, m.posit_z)
 end
 
+local function DeepCopyValue(value)
+    if type(value) ~= "table" then
+        return value
+    end
+
+    local copy = {}
+    for k, v in pairs(value) do
+        copy[k] = DeepCopyValue(v)
+    end
+    return copy
+end
+
 local function UniqueInsert(list, value)
     if not list then return false end
     for _, existing in ipairs(list) do
@@ -11245,6 +11257,30 @@ function aiCore.AddTeam(teamNum, faction)
     if DiffUtils and DiffUtils.ApplyAiCoreDifficulty then
         DiffUtils.ApplyAiCoreDifficulty(t, nil, teamNum)
     end
+    aiCore.ActiveTeams[teamNum] = t
+    return t
+end
+
+function aiCore.ResetTeam(teamNum, faction, configTemplate)
+    local previous = aiCore.ActiveTeams[teamNum]
+    local nextFaction = faction or (previous and previous.faction) or 1
+    local t = aiCore.Team:new(teamNum, nextFaction)
+    local sourceConfig = configTemplate or (previous and previous.Config) or nil
+
+    if sourceConfig then
+        t.Config = DeepCopyValue(sourceConfig)
+    end
+
+    if previous then
+        t.strategy = previous.strategy
+        t.baseStrategy = previous.baseStrategy
+        t.strategyLocked = previous.strategyLocked
+    end
+
+    if producer and producer.Queue then
+        producer.Queue[teamNum] = {}
+    end
+
     aiCore.ActiveTeams[teamNum] = t
     return t
 end

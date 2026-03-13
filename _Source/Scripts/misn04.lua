@@ -13,6 +13,7 @@ local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local Environment = require("Environment")
 local autosave = require("AutoSave")
+local PlayerPilotMode = require("PlayerPilotMode")
 
 
 local M
@@ -252,6 +253,14 @@ local function SetupAI()
     end
 end
 
+local function PilotModeCanManageHandle(h)
+    if not h or not IsValid(h) then
+        return false
+    end
+
+    return h ~= GetPlayerHandle()
+end
+
 -- Variables
 M = NewMissionState()
 local DEFAULT_TPS = 20
@@ -388,6 +397,17 @@ function Start()
     SetupAI()
     aiCore.Bootstrap()
     ApplyTurboToAll()
+    PlayerPilotMode.Initialize({
+        profile = {
+            autoManage = true,
+            autoRescue = true,
+            stickToPlayer = true,
+            manageFactories = true,
+            autoBuild = true,
+            autoTugs = false,
+        },
+        shouldManageHandle = PilotModeCanManageHandle,
+    })
     if Environment and Environment.Update then
         Environment.Update(0.0)
     end
@@ -413,7 +433,7 @@ function AddObject(h)
             aiCore.AddObject(h)
         end
     elseif team == 1 then
-        aiCore.AddObject(h)
+        PlayerPilotMode.AddObject(h)
     end
 
     if PersistentConfig and PersistentConfig.OnObjectCreated then
@@ -487,6 +507,17 @@ function Update()
         RefreshDifficulty()
         ApplyDifficultyObjectives()
         ApplyQOL()
+        PlayerPilotMode.Initialize({
+            profile = {
+                autoManage = true,
+                autoRescue = true,
+                stickToPlayer = true,
+                manageFactories = true,
+                autoBuild = true,
+                autoTugs = false,
+            },
+            shouldManageHandle = PilotModeCanManageHandle,
+        })
         SetupAI()
         aiCore.Bootstrap()
         ApplyTurboToAll()
@@ -496,6 +527,18 @@ function Update()
         M.loading_done = true
     end
     M.player = GetPlayerHandle()
+    PlayerPilotMode.SetCargoJob("misn04_relic", {
+        enabled = M.discoverrelic and not M.relicsecure,
+        target = M.relic,
+        dropoff = M.avrec,
+        preferredCarrier = M.tug,
+        autoProduceTug = true,
+        reissueInterval = 0.75,
+        dropoffRadius = 85.0,
+        tugBuildRetryDelay = 10.0,
+        tugBuildSuccessDelay = 25.0,
+    })
+    PlayerPilotMode.Update()
     aiCore.Update()
     if autosave and autosave.Update then
         autosave.Update(1.0 / M.TPS)
