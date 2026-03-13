@@ -27,7 +27,7 @@ local function readAllText(path)
     end
 
     local ok, data = pcall(function()
-        return file:Read()
+        return file:Dump()
     end)
     file:Close()
 
@@ -59,14 +59,24 @@ local function getMissionTitleFromLocalization(missionFilename)
         return nil
     end
 
-    local target = ("mission_title:" .. missionFilename):lower()
+    local normalizedMission = missionFilename:lower()
+    local targets = {
+        "mission_title:" .. normalizedMission
+    }
+    if not normalizedMission:match("%.bzn$") then
+        targets[#targets + 1] = "mission_title:" .. normalizedMission .. ".bzn"
+    end
+
     for line in data:gmatch("[^\r\n]+") do
         local normalized = trim(line)
-        if normalized:lower():sub(1, #target) == target then
-            local title = normalized:match("^[^~]*~([^~]+)")
-            title = trim(title)
-            if title ~= "" then
-                return title
+        local lowered = normalized:lower()
+        for _, target in ipairs(targets) do
+            if lowered:sub(1, #target) == target then
+                local title = normalized:match("^[^~]*~([^~]+)")
+                title = trim(title)
+                if title ~= "" then
+                    return title
+                end
             end
         end
     end
@@ -143,7 +153,7 @@ local function backupOriginalSaveIfNeeded(filename, backupname)
         return true
     end
 
-    local data = existingSave:Read()
+    local data = existingSave:Dump()
     existingSave:Close()
     if not data or #data == 0 then
         return true
