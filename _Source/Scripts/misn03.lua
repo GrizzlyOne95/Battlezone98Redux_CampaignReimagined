@@ -11,8 +11,10 @@ local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
+local PlayerPilotMode = require("PlayerPilotMode")
 
 local difficulty = 2
+local M
 
 -- Helper for AI
 local function SetupAI()
@@ -29,8 +31,20 @@ local function SetupAI()
     enemyTeam:SetConfig("autoBuild", false)
 end
 
+local function PilotModeCanManageHandle(h)
+    if not h or not IsValid(h) then
+        return false
+    end
+
+    if h == M.rescue1 or h == M.rescue2 or h == M.help1 or h == M.help2 then
+        return false
+    end
+
+    return h ~= GetPlayerHandle()
+end
+
 -- Mission State
-local M = {
+M = {
     -- Bools
     first_wave_done = false,
     second_wave_done = false,
@@ -368,6 +382,16 @@ function Start()
     SetupAI()
     aiCore.Bootstrap()
     ApplyTurboToAll()
+    PlayerPilotMode.Initialize({
+        profile = {
+            autoManage = false,
+            autoRescue = true,
+            stickToPlayer = false,
+            manageFactories = false,
+            autoBuild = false,
+        },
+        shouldManageHandle = PilotModeCanManageHandle,
+    })
     M.loading_done = true
 end
 
@@ -423,7 +447,7 @@ function AddObject(h)
         if IsOdf(h, "avscav") then register = true end
 
         if register then
-            aiCore.AddObject(h)
+            PlayerPilotMode.AddObject(h)
         end
     end
 end
@@ -436,6 +460,16 @@ function Update()
         RefreshDifficulty()
         ApplyDifficultyObjectives()
         ApplyQOL()
+        PlayerPilotMode.Initialize({
+            profile = {
+                autoManage = false,
+                autoRescue = true,
+                stickToPlayer = false,
+                manageFactories = false,
+                autoBuild = false,
+            },
+            shouldManageHandle = PilotModeCanManageHandle,
+        })
         SetupAI()
         aiCore.Bootstrap()
         ApplyTurboToAll()
@@ -447,6 +481,7 @@ function Update()
     local diff = 2
     if exu and exu.GetDifficulty then diff = exu.GetDifficulty() end
 
+    PlayerPilotMode.Update()
     aiCore.Update()
     UpdateModules(1.0 / (M.TPS or 20))
 

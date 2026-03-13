@@ -12,6 +12,7 @@ aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
+local PlayerPilotMode = require("PlayerPilotMode")
 
 local LABEL_BSCAV = "misn02b_bscav"
 local LABEL_BSCOUT = "misn02b_bscout"
@@ -205,6 +206,18 @@ local function SetupAI()
     enemyTeam:SetConfig("enableParatroopers", false)
 end
 
+local function PilotModeCanManageHandle(h)
+    if not h or not IsValid(h) then
+        return false
+    end
+
+    if h == M.bscav or h == M.scav2 or h == M.dummy then
+        return false
+    end
+
+    return h ~= GetPlayerHandle()
+end
+
 local function ApplyPostLoadInit()
     Ally(1, 5)
     Ally(5, 1)
@@ -227,6 +240,16 @@ function Start()
     RefreshDifficulty()
     ApplyDifficultyObjectives()
     ApplyTurboToAll()
+    PlayerPilotMode.Initialize({
+        profile = {
+            autoManage = false,
+            autoRescue = true,
+            stickToPlayer = true,
+            manageFactories = false,
+            autoBuild = false,
+        },
+        shouldManageHandle = PilotModeCanManageHandle,
+    })
 
     for h in AllCraft() do
         SetObjectiveOff(h)
@@ -289,7 +312,13 @@ function AddObject(h)
             -- even if not "produced" by a factory here.
             register = true
         end
-        if register then aiCore.AddObject(h) end
+        if register then
+            if team == 1 then
+                PlayerPilotMode.AddObject(h)
+            else
+                aiCore.AddObject(h)
+            end
+        end
     end
 end
 
@@ -303,6 +332,16 @@ function Update()
         RefreshDifficulty()
         ApplyDifficultyObjectives()
         ApplyQOL()
+        PlayerPilotMode.Initialize({
+            profile = {
+                autoManage = false,
+                autoRescue = true,
+                stickToPlayer = true,
+                manageFactories = false,
+                autoBuild = false,
+            },
+            shouldManageHandle = PilotModeCanManageHandle,
+        })
         SetupAI()
         aiCore.Bootstrap()
         ApplyTurboToAll()
@@ -310,6 +349,7 @@ function Update()
         M.loading_done = true
     end
     local player = GetPlayerHandle()
+    PlayerPilotMode.Update()
     aiCore.Update()
     UpdateModules(1.0 / 20.0)
 
