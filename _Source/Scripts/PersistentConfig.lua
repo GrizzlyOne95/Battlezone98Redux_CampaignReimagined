@@ -85,6 +85,7 @@ local PRESET_BUILD_CONFIG = {
 PersistentConfig.UnitPresets = {}
 local GetSettingsPageEntries
 local GetProducerQueueState
+local CleanString
 
 local PDA_FONT_SCALE_MIN = 0.85
 local PDA_FONT_SCALE_MAX = 1.30
@@ -484,6 +485,7 @@ local function ApplyOtherHeadlightVisibility(h, visible, player)
     return true
 end
 
+local IsCommanderTrackedHandle
 local RegisterCommanderHandle
 local RemoveCommanderHandle
 
@@ -714,7 +716,7 @@ local function ParseLine(line)
     return nil
 end
 
-local function CleanString(s)
+CleanString = function(s)
     if not s then return "" end
     return string.gsub(tostring(s), "%z", "")
 end
@@ -2965,7 +2967,7 @@ local function UpdatePendingBuildRefunds()
     end
 end
 
-local function IsCommanderTrackedHandle(h)
+IsCommanderTrackedHandle = function(h)
     if not IsValid(h) then return false end
     if type(IsBuilding) == "function" and IsBuilding(h) then
         return true
@@ -3868,7 +3870,15 @@ function PersistentConfig.UpdateInputs()
     if exu and exu.IsPauseMenuOpen then
         pauseMenuOpen = exu.IsPauseMenuOpen()
     end
-    InputState.SubtitlesPaused = pauseMenuOpen
+    local escapePressed = LastGameKey == "ESCAPE"
+    if exu and exu.GetGameKey and exu.GetGameKey("ESCAPE") then
+        escapePressed = true
+    end
+
+    InputState.SubtitlesPaused = pauseMenuOpen or escapePressed
+    if subtitles and subtitles.set_suspended then
+        subtitles.set_suspended(InputState.SubtitlesPaused)
+    end
 
     if pauseMenuOpen then
         ClearWeaponStats()
@@ -4115,13 +4125,6 @@ function PersistentConfig.UpdateInputs()
         PersistentConfig.ShowHelp()
     end
     InputState.last_help_state = help_pressed
-
-    -- Pause Menu Handling
-    if not exu.IsPauseMenuOpen and (exu.GetGameKey("ESCAPE") or LastGameKey == "ESCAPE") then
-        InputState.SubtitlesPaused = true
-    elseif not exu.IsPauseMenuOpen and InputState.SubtitlesPaused then
-        InputState.SubtitlesPaused = false
-    end
 
     if InputState.SubtitlesPaused then
         ClearWeaponStats()
