@@ -3,14 +3,32 @@
 
 local bzfile = require("bzfile")
 local exu = require("exu")
+local subtitles = nil
+
+do
+    local ok, module = pcall(require, "subtitles")
+    if ok and type(module) == "table" then
+        subtitles = module
+    end
+end
 
 local AutoSave = {}
+local AUTOSAVE_SUBTITLE_CHANNEL = 4
+local AUTOSAVE_SUBTITLE_DURATION = 3.0
+local SUBTITLE_FONT_SCALE_MIN = 0.85
+local SUBTITLE_FONT_SCALE_MAX = 2.00
 
 AutoSave.Config = {
     enabled = true,
     autoSaveInterval = 300,
     currentSlot = 1
 }
+
+local function clamp(value, minimum, maximum)
+    if value < minimum then return minimum end
+    if value > maximum then return maximum end
+    return value
+end
 
 local function trim(value)
     return tostring(value or ""):match("^%s*(.-)%s*$")
@@ -49,6 +67,108 @@ local function joinPath(root, leaf)
     end
 
     return root .. "\\" .. leaf
+end
+
+local function getSubtitleSettings()
+    local persistentConfig = package.loaded["PersistentConfig"]
+    local scriptSubtitles = package.loaded["ScriptSubtitles"]
+    local settings = {
+        enabled = false,
+        opacity = 0.5,
+        fontScale = 1.0,
+    }
+
+    if persistentConfig and persistentConfig.Settings then
+        if persistentConfig.Settings.SubtitlesEnabled ~= nil then
+            settings.enabled = not not persistentConfig.Settings.SubtitlesEnabled
+        end
+        if persistentConfig.Settings.SubtitleOpacity ~= nil then
+            settings.opacity = tonumber(persistentConfig.Settings.SubtitleOpacity) or settings.opacity
+        end
+        if persistentConfig.Settings.SubtitleFontScale ~= nil then
+            settings.fontScale = tonumber(persistentConfig.Settings.SubtitleFontScale) or settings.fontScale
+        end
+    end
+
+    if scriptSubtitles and scriptSubtitles.Config then
+        if scriptSubtitles.Config.enabled ~= nil then
+            settings.enabled = not not scriptSubtitles.Config.enabled
+        end
+        if scriptSubtitles.Config.opacity ~= nil then
+            settings.opacity = tonumber(scriptSubtitles.Config.opacity) or settings.opacity
+        end
+        if scriptSubtitles.Config.fontScale ~= nil then
+            settings.fontScale = tonumber(scriptSubtitles.Config.fontScale) or settings.fontScale
+        end
+    end
+
+    settings.opacity = clamp(settings.opacity, 0.0, 1.0)
+    settings.fontScale = clamp(settings.fontScale, SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX)
+    return settings
+end
+
+local function getAutoSaveSubtitleLayout(fontScale)
+    local width, height = 1920, 1080
+    local uiScale = 2.0
+
+    if exu and exu.GetScreenResolution then
+        local ok, screenW, screenH = pcall(exu.GetScreenResolution)
+        if ok and type(screenW) == "number" and screenW > 0 and type(screenH) == "number" and screenH > 0 then
+            width, height = screenW, screenH
+        end
+    elseif exu and exu.GetGameResolution then
+        local ok, gameW, gameH = pcall(exu.GetGameResolution)
+        if ok and type(gameW) == "number" and gameW > 0 and type(gameH) == "number" and gameH > 0 then
+            width, height = gameW, gameH
+        end
+    end
+
+    if exu and exu.GetUIScaling then
+        local ok, value = pcall(exu.GetUIScaling)
+        if ok and type(value) == "number" and value > 0 then
+            uiScale = value
+        end
+    end
+
+    local aspect = width / math.max(height, 1)
+    local aspectScale = clamp((16.0 / 9.0) / aspect, 0.82, 1.35)
+    local uiScaleFactor = clamp((uiScale / 2.0) ^ 0.32, 0.90, 1.30)
+    local compactFontScale = clamp(fontScale ^ 0.45, 0.92, 1.20)
+
+    return {
+        x = 0.015,
+        y = 0.975,
+        textScale = clamp(0.20 * aspectScale * uiScaleFactor * compactFontScale, 0.18, 0.32),
+        wrapWidth = clamp(0.22 * clamp(1.0 / aspectScale, 0.90, 1.18) * compactFontScale, 0.18, 0.34),
+        paddingX = 8.0 * compactFontScale,
+        paddingY = 6.0 * compactFontScale,
+        borderSize = 1.0,
+    }
+end
+
+local function showAutoSaveNotification()
+    if not subtitles or not subtitles.submit_to or not subtitles.set_channel_layout then
+        return
+    end
+
+    local settings = getSubtitleSettings()
+    if not settings.enabled then
+        return
+    end
+
+    local layout = getAutoSaveSubtitleLayout(settings.fontScale)
+    if subtitles.set_opacity then
+        pcall(subtitles.set_opacity, settings.opacity)
+    end
+    if subtitles.clear_queue then
+        pcall(subtitles.clear_queue, AUTOSAVE_SUBTITLE_CHANNEL)
+    end
+    if subtitles.clear_current then
+        pcall(subtitles.clear_current, AUTOSAVE_SUBTITLE_CHANNEL)
+    end
+    pcall(subtitles.set_channel_layout, AUTOSAVE_SUBTITLE_CHANNEL, layout.x, layout.y, 0.0, 1.0, layout.textScale,
+        layout.wrapWidth, layout.paddingX, layout.paddingY, layout.borderSize)
+    pcall(subtitles.submit_to, AUTOSAVE_SUBTITLE_CHANNEL, "Autosaving...", AUTOSAVE_SUBTITLE_DURATION, 0.82, 1.0, 0.82)
 end
 
 local function getMissionTitleFromLocalization(missionFilename)
@@ -203,6 +323,7 @@ function AutoSave.CreateSave(slot, desc)
     local ok, pathOrError = exu.SaveGame(slotNum, desc)
     if ok then
         print("AutoSave: native save completed to " .. tostring(pathOrError or filename))
+        showAutoSaveNotification()
         return true
     end
 
