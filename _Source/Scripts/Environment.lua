@@ -1,6 +1,6 @@
 -- Environment.lua
 -- Dynamic atmosphere system for Battlezone 98 Redux
--- Handles Day/Night cycles, independent fog events, and gameplay impacts.
+-- Handles Day/Night cycles, time-of-day fog, and gameplay impacts.
 
 local exu = require("exu")
 local RuntimeEnhancements = require("RuntimeEnhancements")
@@ -13,11 +13,13 @@ local RuntimeEnhancements = require("RuntimeEnhancements")
 --   D              D    SP    N                   N    SR      D
 --
 --   D  = DayAmbient / DayDiffuse        (white, 1.0 across the board)
---   SP = SunsetPeak                     (orange-red)
+--   SP = SunsetPeak                     (orange-amber)
 --   N  = NightAmbient / NightDiffuse    (near-black blue tint)
---   SR = SunrisePeak                    (orange-gold)
+--   SR = SunrisePeak                    (pink-gold)
 --
--- Fog is INDEPENDENT of lighting – it runs its own random state machine.
+-- Fog follows the same time-of-day rhythm:
+--   clear by day, thicker and warmer at sunset, very thick and blue at night,
+--   then cooler pink at sunrise before clearing again.
 -- =============================================================================
 
 Environment = {
@@ -26,6 +28,12 @@ Environment = {
 
     EnableSunLighting    = true,
     EnableVisualRuntime  = true,
+    PresetMode           = "auto", -- "auto", "earth", or "moon"
+    WorldPreset          = "earth",
+    WorldPalette         = "",
+    SunDirectionMode     = "ogre", -- "ogre" (safe default) or "legacy"
+    NativeTimeOfDayOnInit = false, -- optional one-shot sync to EXU native time-of-day
+    MapTimeOfDay         = 1200,
     DaySunPowerScale     = 1.15,
     NightSunPowerScale   = 0.22,
     DayShadowFarDistance = 900.0,
@@ -42,37 +50,27 @@ Environment = {
     DayDiffuse           = { r = 0.5, g = 0.5, b = 0.5 },
     DaySpecular          = { r = 0.5, g = 0.5, b = 0.5 },
     -- Sunset peak (hit at progress = 500, midpoint of the 100s sunset window)
-    SunsetAmbient        = { r = 0.55, g = 0.20, b = 0.08 },
-    SunsetDiffuse        = { r = 1.00, g = 0.45, b = 0.10 },
-    SunsetSpecular       = { r = 0.50, g = 0.20, b = 0.05 },
+    SunsetAmbient        = { r = 0.46, g = 0.23, b = 0.12 },
+    SunsetDiffuse        = { r = 1.00, g = 0.56, b = 0.18 },
+    SunsetSpecular       = { r = 0.64, g = 0.30, b = 0.12 },
     -- Night: near-black with a faint blue tint
-    NightAmbient         = { r = 0.01, g = 0.01, b = 0.03 },
-    NightDiffuse         = { r = 0.04, g = 0.04, b = 0.10 },
-    NightSpecular        = { r = 0.01, g = 0.01, b = 0.03 },
+    NightAmbient         = { r = 0.02, g = 0.02, b = 0.05 },
+    NightDiffuse         = { r = 0.08, g = 0.10, b = 0.18 },
+    NightSpecular        = { r = 0.03, g = 0.04, b = 0.08 },
     -- Sunrise peak (hit at progress = 875, midpoint of the 50s sunrise window)
-    SunriseAmbient       = { r = 0.45, g = 0.22, b = 0.05 },
-    SunriseDiffuse       = { r = 0.90, g = 0.55, b = 0.15 },
-    SunriseSpecular      = { r = 0.48, g = 0.30, b = 0.10 },
+    SunriseAmbient       = { r = 0.30, g = 0.22, b = 0.30 },
+    SunriseDiffuse       = { r = 0.98, g = 0.72, b = 0.64 },
+    SunriseSpecular      = { r = 0.70, g = 0.46, b = 0.42 },
 
-    -- ── Fog presets ───────────────────────────────────────────────────────────
-    -- "clear" values are overwritten from the map TRN at init time.
-    FogPresets           = {
-        clear = { r = 0.65, g = 0.45, b = 0.25, fogStart = 200, fogEnd = 700 },
-        haze  = { r = 0.55, g = 0.35, b = 0.18, fogStart = 80, fogEnd = 350 },
-        fog   = { r = 0.30, g = 0.30, b = 0.35, fogStart = 30, fogEnd = 150 },
-        dust  = { r = 0.50, g = 0.30, b = 0.12, fogStart = 5, fogEnd = 45 },
-    },
-
-    -- Weighted chance (relative, not %) of picking each fog state
-    FogWeights           = { clear = 50, haze = 30, fog = 15, dust = 5 },
-
-    -- Fog state machine
-    FogStateName         = "clear",
-    FogFrom              = nil, -- filled in Init()
-    FogTo                = nil, -- filled in Init()
-    FogBlendTimer        = 30,   -- starts equal to FogBlendDuration = already at target
-    FogBlendDuration     = 30,   -- seconds to crossfade between fog states
-    FogChangeTimer       = 0,    -- countdown (seconds) to next random change
+    -- ── Fog keyframes ─────────────────────────────────────────────────────────
+    -- Day fog is overwritten from the map TRN at init time, then the other
+    -- presets are derived from it to preserve each map's baseline feel.
+    DayFog               = { r = 0.65, g = 0.45, b = 0.25, fogStart = 200, fogEnd = 700 },
+    SunsetFog            = { r = 0.78, g = 0.58, b = 0.38, fogStart = 120, fogEnd = 460 },
+    NightFog             = { r = 0.10, g = 0.12, b = 0.20, fogStart = 40, fogEnd = 220 },
+    SunriseFog           = { r = 0.82, g = 0.66, b = 0.72, fogStart = 90, fogEnd = 400 },
+    DustStormFog         = { r = 0.50, g = 0.30, b = 0.12, fogStart = 5, fogEnd = 45 },
+    FogManualOverride    = nil,
 
     -- Night / gameplay state
     IsNight              = false,
@@ -89,7 +87,7 @@ Environment = {
     GameplayRefreshAt    = 0.0,
     GameplayBatchAt      = 0.0,
 
-    -- Dust storm (gravity wobble, separate from fog "dust" state)
+    -- Dust storm (gravity wobble and heavy dust override)
     DustStormTimer       = 0,
     IsDustStorm          = false,
     LastGravity          = nil,
@@ -139,6 +137,10 @@ local function CopyFog(f)
     return { r = f.r, g = f.g, b = f.b, fogStart = f.fogStart, fogEnd = f.fogEnd }
 end
 
+local function CopyColor(c)
+    return { r = c.r, g = c.g, b = c.b }
+end
+
 local function FogEqual(a, b)
     return a.r == b.r and a.g == b.g and a.b == b.b
         and a.fogStart == b.fogStart and a.fogEnd == b.fogEnd
@@ -170,29 +172,232 @@ local function NormalizeDirection(direction)
     }
 end
 
--- Weighted random pick from FogWeights, excluding the current state
-local function PickNextFogState()
-    local weights = Environment.FogWeights
-    local current = Environment.FogStateName
-    local pool = {}
-    local total = 0
-    for state, w in pairs(weights) do
-        if state ~= current then
-            pool[#pool + 1] = { state = state, w = w }
-            total = total + w
-        end
+local function GetSunDirectionSetter()
+    if Environment.SunDirectionMode == "ogre" and exu.SetOgreSunDirection then
+        return exu.SetOgreSunDirection
     end
-    local roll = math.random() * total
-    local cumul = 0
-    for _, entry in ipairs(pool) do
-        cumul = cumul + entry.w
-        if roll <= cumul then return entry.state end
-    end
-    return "clear"
+
+    return exu.SetSunDirection
 end
 
-local function RandomFogInterval()
-    return 60 + math.random() * 120  -- 60–180 seconds between fog state changes
+local function GetAmbientLightSetter()
+    return exu.SetAmbientLight or exu.SetSunAmbient
+end
+
+local function Clamp01(value)
+    return math.max(0.0, math.min(1.0, value))
+end
+
+local function ClampColor(color)
+    return {
+        r = Clamp01(color.r),
+        g = Clamp01(color.g),
+        b = Clamp01(color.b),
+    }
+end
+
+local function ModulateColor(base, tint, scale)
+    local appliedScale = scale or 1.0
+    return ClampColor({
+        r = base.r * tint.r * appliedScale,
+        g = base.g * tint.g * appliedScale,
+        b = base.b * tint.b * appliedScale,
+    })
+end
+
+local function ClampFog(fog)
+    local start = math.max(1.0, fog.fogStart)
+    local ending = math.max(start + 1.0, fog.fogEnd)
+    return {
+        r = Clamp01(fog.r),
+        g = Clamp01(fog.g),
+        b = Clamp01(fog.b),
+        fogStart = start,
+        fogEnd = ending,
+    }
+end
+
+local function StringContainsAny(value, needles)
+    if not value or value == "" then
+        return false
+    end
+
+    local lower = string.lower(value)
+    for _, needle in ipairs(needles) do
+        if string.find(lower, needle, 1, true) then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function DetectWorldPreset(trnFilename, trn)
+    local presetMode = string.lower(Environment.PresetMode or "auto")
+    if presetMode ~= "auto" then
+        return presetMode, presetMode
+    end
+
+    local palette = ""
+    if trn and GetODFString then
+        palette = string.lower(GetODFString(trn, "Color", "Palette", "") or "")
+    end
+
+    local missionFilename = ""
+    if GetMissionFilename then
+        missionFilename = string.lower((GetMissionFilename() or ""):gsub("%z.*", ""))
+    end
+
+    local moonHints = {
+        "moon",
+        "luna",
+        "europa",
+        "io",
+        "selene",
+        "apollo",
+        "misn02b",
+        "misn03",
+    }
+
+    if StringContainsAny(palette, moonHints)
+        or StringContainsAny(trnFilename, moonHints)
+        or StringContainsAny(missionFilename, moonHints)
+    then
+        return "moon", palette
+    end
+
+    return "earth", palette
+end
+
+local function BuildEarthFogKeyframes(baseFog)
+    local warmSunsetTint = { r = 0.92, g = 0.58, b = 0.34 }
+    local coolNightTint = { r = 0.10, g = 0.12, b = 0.20 }
+    local pinkSunriseTint = { r = 0.88, g = 0.68, b = 0.74 }
+    local dayColor = { r = baseFog.r, g = baseFog.g, b = baseFog.b }
+
+    Environment.DayFog = CopyFog(baseFog)
+    Environment.SunsetFog = ClampFog({
+        r = Lerp(dayColor.r, warmSunsetTint.r, 0.38),
+        g = Lerp(dayColor.g, warmSunsetTint.g, 0.38),
+        b = Lerp(dayColor.b, warmSunsetTint.b, 0.38),
+        fogStart = baseFog.fogStart * 0.62,
+        fogEnd = baseFog.fogEnd * 0.72,
+    })
+    Environment.NightFog = ClampFog({
+        r = Lerp(dayColor.r, coolNightTint.r, 0.82),
+        g = Lerp(dayColor.g, coolNightTint.g, 0.82),
+        b = Lerp(dayColor.b, coolNightTint.b, 0.82),
+        fogStart = baseFog.fogStart * 0.22,
+        fogEnd = baseFog.fogEnd * 0.36,
+    })
+    Environment.SunriseFog = ClampFog({
+        r = Lerp(dayColor.r, pinkSunriseTint.r, 0.48),
+        g = Lerp(dayColor.g, pinkSunriseTint.g, 0.48),
+        b = Lerp(dayColor.b, pinkSunriseTint.b, 0.48),
+        fogStart = baseFog.fogStart * 0.54,
+        fogEnd = baseFog.fogEnd * 0.66,
+    })
+end
+
+local function BuildMoonFogKeyframes(baseFog)
+    local dayTint = { r = 0.50, g = 0.52, b = 0.58 }
+    local duskTint = { r = 0.46, g = 0.45, b = 0.56 }
+    local nightTint = { r = 0.15, g = 0.17, b = 0.24 }
+    local dawnTint = { r = 0.54, g = 0.50, b = 0.62 }
+    local dayStart = math.max(baseFog.fogStart * 1.75, 420.0)
+    local dayEnd = math.max(baseFog.fogEnd * 2.10, dayStart + 700.0)
+
+    Environment.DayFog = ClampFog({
+        r = Lerp(baseFog.r, dayTint.r, 0.82),
+        g = Lerp(baseFog.g, dayTint.g, 0.82),
+        b = Lerp(baseFog.b, dayTint.b, 0.82),
+        fogStart = dayStart,
+        fogEnd = dayEnd,
+    })
+    Environment.SunsetFog = ClampFog({
+        r = duskTint.r,
+        g = duskTint.g,
+        b = duskTint.b,
+        fogStart = dayStart * 0.90,
+        fogEnd = dayEnd * 0.92,
+    })
+    Environment.NightFog = ClampFog({
+        r = nightTint.r,
+        g = nightTint.g,
+        b = nightTint.b,
+        fogStart = dayStart * 0.62,
+        fogEnd = dayEnd * 0.68,
+    })
+    Environment.SunriseFog = ClampFog({
+        r = dawnTint.r,
+        g = dawnTint.g,
+        b = dawnTint.b,
+        fogStart = dayStart * 0.86,
+        fogEnd = dayEnd * 0.88,
+    })
+end
+
+local function ApplyWorldPreset(presetName, baseAmbient, baseDiffuse, baseSpecular, baseFog)
+    if presetName == "moon" then
+        Environment.DayAmbient = ModulateColor(baseAmbient, { r = 0.64, g = 0.68, b = 0.82 }, 0.70)
+        Environment.DayDiffuse = ModulateColor(baseDiffuse, { r = 1.20, g = 1.16, b = 1.08 }, 1.00)
+        Environment.DaySpecular = ModulateColor(baseSpecular, { r = 1.30, g = 1.26, b = 1.18 }, 1.08)
+
+        Environment.SunsetAmbient = ModulateColor(baseAmbient, { r = 0.34, g = 0.36, b = 0.46 }, 0.62)
+        Environment.SunsetDiffuse = ModulateColor(baseDiffuse, { r = 0.74, g = 0.78, b = 0.90 }, 0.82)
+        Environment.SunsetSpecular = ModulateColor(baseSpecular, { r = 0.86, g = 0.88, b = 0.96 }, 0.86)
+
+        Environment.NightAmbient = { r = 0.01, g = 0.012, b = 0.030 }
+        Environment.NightDiffuse = { r = 0.04, g = 0.06, b = 0.11 }
+        Environment.NightSpecular = { r = 0.02, g = 0.03, b = 0.06 }
+
+        Environment.SunriseAmbient = ModulateColor(baseAmbient, { r = 0.44, g = 0.40, b = 0.52 }, 0.84)
+        Environment.SunriseDiffuse = ModulateColor(baseDiffuse, { r = 0.88, g = 0.82, b = 0.94 }, 0.92)
+        Environment.SunriseSpecular = ModulateColor(baseSpecular, { r = 0.96, g = 0.92, b = 1.00 }, 0.94)
+
+        Environment.DaySunPowerScale = 1.32
+        Environment.NightSunPowerScale = 0.10
+        Environment.DayShadowFarDistance = 1150.0
+        Environment.NightShadowFarDistance = 260.0
+
+        BuildMoonFogKeyframes(baseFog)
+        return
+    end
+
+    Environment.DayAmbient = CopyColor(baseAmbient)
+    Environment.DayDiffuse = CopyColor(baseDiffuse)
+    Environment.DaySpecular = CopyColor(baseSpecular)
+
+    Environment.SunsetAmbient = { r = 0.46, g = 0.23, b = 0.12 }
+    Environment.SunsetDiffuse = { r = 1.00, g = 0.56, b = 0.18 }
+    Environment.SunsetSpecular = { r = 0.64, g = 0.30, b = 0.12 }
+
+    Environment.NightAmbient = { r = 0.02, g = 0.02, b = 0.05 }
+    Environment.NightDiffuse = { r = 0.08, g = 0.10, b = 0.18 }
+    Environment.NightSpecular = { r = 0.03, g = 0.04, b = 0.08 }
+
+    Environment.SunriseAmbient = { r = 0.30, g = 0.22, b = 0.30 }
+    Environment.SunriseDiffuse = { r = 0.98, g = 0.72, b = 0.64 }
+    Environment.SunriseSpecular = { r = 0.70, g = 0.46, b = 0.42 }
+
+    Environment.DaySunPowerScale = 1.15
+    Environment.NightSunPowerScale = 0.22
+    Environment.DayShadowFarDistance = 900.0
+    Environment.NightShadowFarDistance = 220.0
+
+    BuildEarthFogKeyframes(baseFog)
+end
+
+local function ComputeNightBlend(progress)
+    if progress < 450 then
+        return 0
+    elseif progress < 550 then
+        return (progress - 450) / 100
+    elseif progress < 850 then
+        return 1
+    end
+
+    return 1 - (progress - 850) / 50
 end
 
 -- =============================================================================
@@ -202,36 +407,52 @@ end
 function Environment.Init()
     RuntimeEnhancements.Initialize()
 
+    local trnFilename = nil
+    local trn = nil
+    local baseAmbient = CopyColor(Environment.DayAmbient)
+    local baseDiffuse = CopyColor(Environment.DayDiffuse)
+    local baseSpecular = CopyColor(Environment.DaySpecular)
+    local baseFog = CopyFog(Environment.DayFog)
+
     -- Read map TRN for the "clear" fog baseline
     if GetMapTRNFilename then
-        local trnFilename = GetMapTRNFilename()
+        trnFilename = GetMapTRNFilename()
         if trnFilename and trnFilename ~= "" then
-            local trn = OpenODF(trnFilename)
+            trn = OpenODF(trnFilename)
             if trn then
+                local intensity              = GetODFInt(trn, "NormalView", "Intensity", 128) / 255
+                local ambient                = GetODFInt(trn, "NormalView", "Ambient", 96) / 255
                 local fogStart               = GetODFFloat(trn, "NormalView", "FogStart", 200)
                 local fogEnd                 = GetODFFloat(trn, "NormalView", "FogEnd", 700)
+                Environment.MapTimeOfDay     = GetODFInt(trn, "NormalView", "Time", Environment.MapTimeOfDay)
                 -- Use TRN fog colour if present, otherwise keep the warm-dust default
                 local fr                     = GetODFFloat(trn, "NormalView", "FogColorR", 0.65)
                 local fg                     = GetODFFloat(trn, "NormalView", "FogColorG", 0.45)
                 local fb                     = GetODFFloat(trn, "NormalView", "FogColorB", 0.25)
-                Environment.FogPresets.clear = {
+                local specular               = Clamp01((intensity * 0.85) + 0.10)
+                baseAmbient                  = { r = ambient, g = ambient, b = ambient }
+                baseDiffuse                  = { r = intensity, g = intensity, b = intensity }
+                baseSpecular                 = { r = specular, g = specular, b = Clamp01(specular * 0.98) }
+                baseFog = {
                     r = fr,
                     g = fg,
                     b = fb,
                     fogStart = fogStart,
                     fogEnd = fogEnd,
                 }
-                print("Environment: TRN fog loaded – start=" .. fogStart .. " end=" .. fogEnd)
+                print("Environment: TRN loaded – time=" .. tostring(Environment.MapTimeOfDay) .. " fogStart=" .. fogStart .. " fogEnd=" .. fogEnd)
             end
         end
     end
 
-    -- Seed fog state machine at "clear"
-    local clearPreset          = Environment.FogPresets.clear
-    Environment.FogFrom        = CopyFog(clearPreset)
-    Environment.FogTo          = CopyFog(clearPreset)
-    Environment.FogBlendTimer  = Environment.FogBlendDuration -- already at target
-    Environment.FogChangeTimer = RandomFogInterval()
+    Environment.WorldPreset, Environment.WorldPalette = DetectWorldPreset(trnFilename, trn)
+    ApplyWorldPreset(Environment.WorldPreset, baseAmbient, baseDiffuse, baseSpecular, baseFog)
+    print("Environment: Preset -> [" .. Environment.WorldPreset .. "] palette=" .. tostring(Environment.WorldPalette))
+
+    if Environment.NativeTimeOfDayOnInit and exu.SetTimeOfDay then
+        exu.SetTimeOfDay(Environment.MapTimeOfDay)
+    end
+
     Environment.CraftHandles   = {}
     Environment.CraftCursor    = 1
     Environment.PendingGameplaySync = true
@@ -294,6 +515,12 @@ local function ComputeLighting(progress)
 end
 
 local function ComputeSunState(progress, nightBlend)
+    local cycle = progress / Environment.CycleDuration
+    local sunAngle = (cycle * math.pi * 2.0) - (math.pi * 0.5)
+    local elevation = math.max(0.0, math.sin(sunAngle))
+    local horizon = math.cos(sunAngle)
+    local daylight = 1.0 - nightBlend
+
     if nightBlend <= 0.02 then
         return {
             direction = NormalizeDirection({ x = 0.62, y = -0.73, z = -0.29 }),
@@ -312,56 +539,43 @@ local function ComputeSunState(progress, nightBlend)
         }
     end
 
-    local cycle = progress / Environment.CycleDuration
-    local sunAngle = (cycle * math.pi * 2.0) - (math.pi * 0.5)
-    local daylight = 1.0 - nightBlend
-    local elevation = math.max(0.0, math.sin(sunAngle))
-    local horizon = math.cos(sunAngle)
-
     local direction = NormalizeDirection({
         x = (horizon * 0.65) + 0.18,
         y = -((0.18 * (1.0 - daylight)) + (0.95 * elevation) + (0.12 * daylight)),
         z = -0.30 + (horizon * 0.20),
     })
 
+    local lightFactor = math.min(1.0, (daylight * 0.6) + (elevation * 0.4))
+    local shadowFactor = math.min(1.0, (daylight * 0.45) + (elevation * 0.55))
+
     return {
         direction = direction,
-        powerScale = Lerp(Environment.NightSunPowerScale, Environment.DaySunPowerScale, daylight),
-        shadowFarDistance = Lerp(Environment.NightShadowFarDistance, Environment.DayShadowFarDistance, daylight),
-        viewportShadows = daylight > 0.08,
+        powerScale = Lerp(Environment.NightSunPowerScale, Environment.DaySunPowerScale, lightFactor),
+        shadowFarDistance = Lerp(Environment.NightShadowFarDistance, Environment.DayShadowFarDistance, shadowFactor),
+        viewportShadows = daylight > 0.10,
     }
 end
 
 -- =============================================================================
--- Fog – independent random state machine
+-- Fog – keyed to time of day
 -- =============================================================================
 
-local function UpdateFogMachine()
-    local E  = Environment
-    local dt = GetTimeStep()  -- seconds, per scriptutils
+local function ComputeFog(progress)
+    local E = Environment
 
-    -- Advance blend
-    E.FogBlendTimer = math.min(E.FogBlendTimer + dt, E.FogBlendDuration)
-    local blendT = E.FogBlendTimer / E.FogBlendDuration
-
-    -- Countdown to next change (only start a new transition once the current one finishes)
-    E.FogChangeTimer = E.FogChangeTimer - dt
-    if E.FogChangeTimer <= 0 and blendT >= 1 then
-        local nextState  = PickNextFogState()
-        local preset     = E.FogPresets[nextState]
-
-        E.FogFrom        = CopyFog(E.FogTo) -- freeze current interpolated position as "from"
-        E.FogTo          = CopyFog(preset)
-        E.FogStateName   = nextState
-        E.FogBlendTimer  = 0
-        E.FogChangeTimer = RandomFogInterval()
-        blendT           = 0
-
-        print("Environment: Fog → [" .. nextState .. "]")
-        if AddTMsg then AddTMsg("Environment: Fog → [" .. nextState .. "]") end
+    if progress < 450 then
+        return CopyFog(E.DayFog)
+    elseif progress < 500 then
+        return LerpFog(E.DayFog, E.SunsetFog, (progress - 450) / 50)
+    elseif progress < 550 then
+        return LerpFog(E.SunsetFog, E.NightFog, (progress - 500) / 50)
+    elseif progress < 850 then
+        return CopyFog(E.NightFog)
+    elseif progress < 875 then
+        return LerpFog(E.NightFog, E.SunriseFog, (progress - 850) / 25)
     end
 
-    return LerpFog(E.FogFrom, E.FogTo, blendT)
+    return LerpFog(E.SunriseFog, E.DayFog, (progress - 875) / 25)
 end
 
 -- =============================================================================
@@ -395,28 +609,27 @@ function Environment.Update(timestep)
         Environment.LastPhase = currentPhase
     end
 
+    local nightBlend = ComputeNightBlend(progress)
+    Environment.IsNight    = (nightBlend > 0.5)
+    Environment.NightBlend = nightBlend
+
     -- ── Lighting ──────────────────────────────────────────────────────────
     local targetAmbient, targetDiffuse, targetSpecular = ComputeLighting(progress)
+    local targetFog = ComputeFog(progress)
+    local setAmbientLight = GetAmbientLightSetter()
 
-    -- ── Fog (independent) ─────────────────────────────────────────────────
+    -- ── Fog / dust storm override ─────────────────────────────────────────
     local wasDustStorm = Environment.IsDustStorm
     local isDustStorm = (Environment.DustStormTimer > 0)
-
-    -- Blend into/out of the dust preset when a storm starts or ends
-    if isDustStorm ~= wasDustStorm then
-        Environment.FogFrom       = CopyFog(Environment.FogTo)
-        Environment.FogTo         = CopyFog(isDustStorm and Environment.FogPresets.dust or
-        Environment.FogPresets[Environment.FogStateName])
-        Environment.FogBlendTimer = 0
-    end
-
     Environment.IsDustStorm = isDustStorm
-
-    local targetFog = UpdateFogMachine()
+    if Environment.FogManualOverride then
+        targetFog = CopyFog(Environment.FogManualOverride)
+    end
 
     -- ── Dust storm gravity wobble ─────────────────────────────────────────
     if Environment.DustStormTimer > 0 then
         Environment.DustStormTimer = Environment.DustStormTimer - timestep
+        targetFog = CopyFog(Environment.DustStormFog)
         if not Environment.LastGravity or (curTime - Environment.LastGravity) > 0.5 then
             local t    = GetTime()
             local wobX = math.sin(t * 5.0) * 0.5
@@ -432,30 +645,30 @@ function Environment.Update(timestep)
     -- ── Apply atmosphere (dirty-check to avoid redundant API calls) ────────
     if Environment.EnableSunLighting then
         local lastA = Environment.LastAmbient
-        if not lastA
+        if setAmbientLight and (not lastA
             or targetAmbient.r ~= lastA.r
             or targetAmbient.g ~= lastA.g
-            or targetAmbient.b ~= lastA.b
+            or targetAmbient.b ~= lastA.b)
         then
-            exu.SetSunAmbient(targetAmbient.r, targetAmbient.g, targetAmbient.b)
+            setAmbientLight(targetAmbient.r, targetAmbient.g, targetAmbient.b)
             Environment.LastAmbient = { r = targetAmbient.r, g = targetAmbient.g, b = targetAmbient.b }
         end
 
         local lastD = Environment.LastDiffuse
-        if not lastD
+        if exu.SetSunDiffuse and (not lastD
             or targetDiffuse.r ~= lastD.r
             or targetDiffuse.g ~= lastD.g
-            or targetDiffuse.b ~= lastD.b
+            or targetDiffuse.b ~= lastD.b)
         then
             exu.SetSunDiffuse(targetDiffuse.r, targetDiffuse.g, targetDiffuse.b)
             Environment.LastDiffuse = { r = targetDiffuse.r, g = targetDiffuse.g, b = targetDiffuse.b }
         end
 
         local lastS = Environment.LastSpecular
-        if not lastS
+        if exu.SetSunSpecular and (not lastS
             or targetSpecular.r ~= lastS.r
             or targetSpecular.g ~= lastS.g
-            or targetSpecular.b ~= lastS.b
+            or targetSpecular.b ~= lastS.b)
         then
             exu.SetSunSpecular(targetSpecular.r, targetSpecular.g, targetSpecular.b)
             Environment.LastSpecular = { r = targetSpecular.r, g = targetSpecular.g, b = targetSpecular.b }
@@ -467,21 +680,6 @@ function Environment.Update(timestep)
         exu.SetFog(targetFog.r, targetFog.g, targetFog.b, targetFog.fogStart, targetFog.fogEnd)
         Environment.LastFog = CopyFog(targetFog)
     end
-
-    -- ── Night blend for gameplay effects ──────────────────────────────────
-    local nightBlend
-    if progress < 450 then
-        nightBlend = 0
-    elseif progress < 550 then
-        nightBlend = (progress - 450) / 100
-    elseif progress < 850 then
-        nightBlend = 1
-    else
-        nightBlend = 1 - (progress - 850) / 50
-    end
-
-    Environment.IsNight    = (nightBlend > 0.5)
-    Environment.NightBlend = nightBlend
 
     if math.abs(nightBlend - Environment.LastNightBlend) > 0.02 then
         Environment.PendingGameplaySync = true
@@ -497,15 +695,16 @@ function Environment.Update(timestep)
     end
 
     local sunState = ComputeSunState(progress, nightBlend)
+    local setSunDirection = GetSunDirectionSetter()
 
     if Environment.EnableSunLighting then
-        if exu.SetSunDirection and (not Environment.LastSunDirection
+        if setSunDirection and (not Environment.LastSunDirection
                 or ColorChanged(
                     { r = sunState.direction.x, g = sunState.direction.y, b = sunState.direction.z },
                     { r = Environment.LastSunDirection.x, g = Environment.LastSunDirection.y, b = Environment.LastSunDirection.z },
                     0.002))
         then
-            exu.SetSunDirection(sunState.direction.x, sunState.direction.y, sunState.direction.z)
+            setSunDirection(sunState.direction.x, sunState.direction.y, sunState.direction.z)
             Environment.LastSunDirection = {
                 x = sunState.direction.x,
                 y = sunState.direction.y,
@@ -631,19 +830,34 @@ function Environment.TriggerDustStorm(duration)
     print("Environment: Dust storm triggered for " .. Environment.DustStormTimer .. "s")
 end
 
--- Force an immediate fog transition to a named preset ("clear","haze","fog","dust")
+-- Force a fog preset override ("day","sunset","night","sunrise","dust"), or
+-- pass "auto" / nil to resume the normal time-of-day fog curve.
 function Environment.SetFogState(stateName, blendDuration)
-    local preset = Environment.FogPresets[stateName]
+    local _ = blendDuration
+    if stateName == nil or stateName == "auto" then
+        Environment.FogManualOverride = nil
+        Environment.LastFog = nil
+        return
+    end
+
+    local normalized = string.lower(tostring(stateName))
+    local presets = {
+        clear = Environment.DayFog,
+        day = Environment.DayFog,
+        sunset = Environment.SunsetFog,
+        dusk = Environment.SunsetFog,
+        night = Environment.NightFog,
+        sunrise = Environment.SunriseFog,
+        dawn = Environment.SunriseFog,
+        dust = Environment.DustStormFog,
+    }
+    local preset = presets[normalized]
     if not preset then
         print("Environment: Unknown fog state '" .. tostring(stateName) .. "'")
         return
     end
-    Environment.FogFrom          = CopyFog(Environment.FogTo or preset)
-    Environment.FogTo            = CopyFog(preset)
-    Environment.FogStateName     = stateName
-    Environment.FogBlendTimer    = 0
-    Environment.FogBlendDuration = blendDuration or Environment.FogBlendDuration
-    Environment.FogChangeTimer   = RandomFogInterval()
+    Environment.FogManualOverride = CopyFog(preset)
+    Environment.LastFog = nil
 end
 
 return Environment
