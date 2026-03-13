@@ -12,7 +12,7 @@ local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local Environment = require("Environment")
---local autosave = require("AutoSave")
+local autosave = require("AutoSave")
 
 
 local M
@@ -225,7 +225,6 @@ local function SetupAI()
             Recycler = {
                 "scavenger", "scavenger", "scavenger", "scavenger",
                 "constructor",
-                "armory",
             },
             Factory = { "tank", "tank", "lighttank", "apc", "turret", "turret", "turret", "turret", "turret", "turret" }
         }, true)
@@ -498,7 +497,9 @@ function Update()
     end
     M.player = GetPlayerHandle()
     aiCore.Update()
-    -- autosave.Update(1.0 / M.TPS)
+    if autosave and autosave.Update then
+        autosave.Update(1.0 / M.TPS)
+    end
     UpdateModules(1.0 / M.TPS)
 
     if (not M.missionstart) then

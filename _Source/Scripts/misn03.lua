@@ -92,6 +92,12 @@ local M = {
     patrols_spawned = false,
     apc_arrived_at_base = false,
     apc_bonus_pilots_spawned = false,
+    recycler_follow_transport = false,
+    recycler_follow_launch = false,
+    recycler_pack_transport_issued = false,
+    recycler_follow_transport_issued = false,
+    recycler_pack_launch_issued = false,
+    recycler_follow_launch_issued = false,
     patrol_soldiers = { nil, nil, nil },
     patrol_respawn_timers = { 0, 0, 0 },
 
@@ -636,7 +642,7 @@ function Update()
                         -- Orders
                         if i == 1 then
                             SetPathLoop("footpatrol")
-                            Follow(new_soldier, "footpatrol", 1)
+                            Patrol(new_soldier, "footpatrol", 1)
                         elseif i == 2 then
                             Defend2(new_soldier, M.solar1)
                         elseif i == 3 then
@@ -823,35 +829,11 @@ function Update()
         SetUserTarget(M.rescue1)
         Follow(M.rescue1, M.build5)
         Follow(M.rescue2, M.build5)
-        Follow(M.help1, M.rescue2, 0) 
-        Follow(M.help2, M.rescue1, 0) 
+        Follow(M.help1, M.rescue1, 0)
+        Follow(M.help2, M.rescue2, 0)
         subtit.Play("misn0314.wav")
-        Goto(M.help1, M.solar2, 0)
-        Goto(M.help2, M.solar2, 0)
         M.help_spawn = true
     end
-
-    if M.help_spawn and IsAlive(M.help1) and IsAlive(M.solar2) and not M.help_stop1 then
-        if GetDistance(M.help1, M.solar2) < 75.0 then
-            Stop(M.help1, 0)
-            M.help_stop1 = true
-        end
-    end
-    if M.help_spawn and IsAlive(M.help2) and IsAlive(M.solar2) and not M.help_stop2 then
-        if GetDistance(M.help2, M.solar2) < 75.0 then
-            Stop(M.help2, 0)
-            M.help_stop2 = true
-        end
-    end
-    if M.help_spawn and not M.help_arrive then
-        if GetDistance(M.help1, M.user) < 50.0 or GetDistance(M.help2, M.user) < 50.0 then
-            Goto(M.help1, M.solar2, 0)
-            Goto(M.help2, M.solar2, 0)
-            M.help_arrive = true
-        end
-    end
-
-
 
     if not M.second_objective and M.apc_spawn_time < GetTime() then
         M.apc_spawn_time = GetTime() + 1.0
@@ -936,6 +918,23 @@ function Update()
         AddObjective("misn0312.otf", "green")
         AddObjective("misn0303.otf", "white")
 
+        M.recycler_follow_transport = true
+        M.recycler_follow_launch = false
+        M.recycler_pack_transport_issued = false
+        M.recycler_follow_transport_issued = false
+        M.recycler_pack_launch_issued = false
+        M.recycler_follow_launch_issued = false
+
+        if IsAlive(M.avrecycler) and IsAlive(M.rescue2) then
+            if IsDeployed(M.avrecycler) then
+                SetCommand(M.avrecycler, AiCommand.UNDEPLOY, 1)
+                M.recycler_pack_transport_issued = true
+            else
+                Follow(M.avrecycler, M.rescue2, 1)
+                M.recycler_follow_transport_issued = true
+            end
+        end
+
         M.movie_over = true
     end
 
@@ -954,6 +953,18 @@ function Update()
         if IsAlive(M.guy3) then RemoveObject(M.guy3) end
         if IsAlive(M.guy4) then RemoveObject(M.guy4) end
         M.remove_props = true
+    end
+
+    if M.recycler_follow_transport and not M.third_objective and
+        M.recycler_pack_transport_issued and not M.recycler_follow_transport_issued and
+        IsAlive(M.avrecycler) and IsAlive(M.rescue2) and not IsDeployed(M.avrecycler) then
+        Follow(M.avrecycler, M.rescue2, 1)
+        M.recycler_follow_transport_issued = true
+    elseif M.recycler_follow_launch and
+        M.recycler_pack_launch_issued and not M.recycler_follow_launch_issued and
+        IsAlive(M.avrecycler) and IsAlive(M.launch) and not IsDeployed(M.avrecycler) then
+        Follow(M.avrecycler, M.launch, 1)
+        M.recycler_follow_launch_issued = true
     end
 
     if M.startfinishingmovie and not M.tanks_go then
@@ -999,8 +1010,8 @@ function Update()
             Retreat(M.rescue1, "rescue_path")
             Retreat(M.rescue2, "rescue_path")
             -- Escorts follow transports (player-controllable, priority 0)
-            if IsAlive(M.help1) then Follow(M.help1, M.rescue2, 0) end
-            if IsAlive(M.help2) then Follow(M.help2, M.rescue1, 0) end
+            if IsAlive(M.help1) then Follow(M.help1, M.rescue1, 0) end
+            if IsAlive(M.help2) then Follow(M.help2, M.rescue2, 0) end
 
             M.ambush_message_time = GetTime() + 15.0
             M.trans_underway = true
@@ -1085,6 +1096,20 @@ function Update()
 
         Follow(M.rescue1, M.launch, 1)
         Follow(M.rescue2, M.launch, 1)
+        M.recycler_follow_transport = false
+        M.recycler_follow_launch = true
+        M.recycler_pack_launch_issued = false
+        M.recycler_follow_launch_issued = false
+
+        if IsAlive(M.avrecycler) and IsAlive(M.launch) then
+            if IsDeployed(M.avrecycler) then
+                SetCommand(M.avrecycler, AiCommand.UNDEPLOY, 1)
+                M.recycler_pack_launch_issued = true
+            else
+                Follow(M.avrecycler, M.launch, 1)
+                M.recycler_follow_launch_issued = true
+            end
+        end
 
         ClearObjectives()
         AddObjective("misn0313.otf", "green")

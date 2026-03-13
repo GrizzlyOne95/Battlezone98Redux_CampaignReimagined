@@ -294,6 +294,24 @@ local function ComputeLighting(progress)
 end
 
 local function ComputeSunState(progress, nightBlend)
+    if nightBlend <= 0.02 then
+        return {
+            direction = NormalizeDirection({ x = 0.62, y = -0.73, z = -0.29 }),
+            powerScale = Environment.DaySunPowerScale,
+            shadowFarDistance = Environment.DayShadowFarDistance,
+            viewportShadows = true,
+        }
+    end
+
+    if nightBlend >= 0.98 then
+        return {
+            direction = NormalizeDirection({ x = -0.18, y = -0.42, z = -0.89 }),
+            powerScale = Environment.NightSunPowerScale,
+            shadowFarDistance = Environment.NightShadowFarDistance,
+            viewportShadows = false,
+        }
+    end
+
     local cycle = progress / Environment.CycleDuration
     local sunAngle = (cycle * math.pi * 2.0) - (math.pi * 0.5)
     local daylight = 1.0 - nightBlend

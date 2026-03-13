@@ -981,9 +981,10 @@ function aiCore.RecordCommand(h, cmd, target)
 end
 
 function aiCore.TryAttack(h, target, priority, opts)
+    opts = opts or {}
     if not IsValid(h) or not IsValid(target) then return false end
     if not aiCore.CanIssueCommand(h, AiCommand.ATTACK, opts) then return false end
-    if GetCurrentCommand(h) == AiCommand.ATTACK and GetCurrentWho(h) == target then return false end
+    if not opts.forceIssue and GetCurrentCommand(h) == AiCommand.ATTACK and GetCurrentWho(h) == target then return false end
     priority = NormalizeScriptPriority(h, priority)
     Attack(h, target, priority)
     aiCore.RecordCommand(h, AiCommand.ATTACK, target)
@@ -3929,11 +3930,12 @@ function aiCore.DefenseManager.new(teamNum)
     self.defenses = {} -- {handle = {lastAmmo=f, lastHealth=f, nextCheckTime=f, stuckTimer=f, classLabel=s}}
     self.updatePeriod = 0.5
     self.detectionRadius = 275.0
-    self.shotCheckDelay = 1.0
-    self.switchCheckDelay = 1.0
+    self.rangeBuffer = 30.0
+    self.shotCheckDelay = 0.5
+    self.switchCheckDelay = 0.5
     self.keepCheckDelay = 0.5
     self.idleCheckDelay = 0.5
-    self.stuckSwitchDelay = 2.0
+    self.stuckSwitchDelay = 1.0
     self.updateTimer = 0.0
     return self
 end
@@ -3970,13 +3972,13 @@ function aiCore.DefenseManager:Update()
     self.updateTimer = 0.0
 
     local now = GetTime()
-    local detectionRadius = self.detectionRadius or 275.0
-    local function FindBestTarget(defense, currentTarget)
+    local baseDetectionRadius = self.detectionRadius or 275.0
+    local function FindBestTarget(defense, currentTarget, searchRadius)
         local closest = nil
-        local closestDist = detectionRadius
+        local closestDist = searchRadius
         local personOnly = true
 
-        for candidate in ObjectsInRange(detectionRadius, defense) do
+        for candidate in ObjectsInRange(searchRadius, defense) do
             if IsValid(candidate) and IsAlive(candidate) and candidate ~= currentTarget and not IsAlly(defense, candidate) and
                 not IsCloaked(candidate) then
                 local isEnemyPerceived = not IsTeamAllied(GetTeamNum(defense), GetPerceivedTeam(candidate))
@@ -4013,10 +4015,12 @@ function aiCore.DefenseManager:Update()
             local target = GetCurrentWho(h)
             local classLabel = data.classLabel or string.lower(utility.CleanString(GetClassLabel(h)))
             local isTurretTank = string.find(classLabel, "turrettank") ~= nil
+            local weaponRange = GetCurrentWeaponRangeMeters(h) or 0.0
+            local detectionRadius = math.max(baseDetectionRadius, weaponRange + (self.rangeBuffer or 30.0))
             if not (isTurretTank and not IsDeployed(h)) then
                 local isFiring = curAmmo < (data.lastAmmo - 0.05)
                 if isFiring then
-                    data.nextCheckTime = now + (self.shotCheckDelay or 1.0)
+                    data.nextCheckTime = now + (self.shotCheckDelay or 0.5)
                 end
 
                 local targetValid = IsValid(target) and IsAlive(target) and not IsCloaked(target) and
@@ -4038,7 +4042,7 @@ function aiCore.DefenseManager:Update()
                     local attacker = GetWhoShotMe(h)
                     local justShot = (now - GetLastEnemyShot(h)) < 5.0
                     local forceSwitch = data.stuckTimer >= (self.stuckSwitchDelay or 2.0)
-                    local bestTarget = FindBestTarget(h, forceSwitch and target or nil)
+                    local bestTarget = FindBestTarget(h, forceSwitch and target or nil, detectionRadius)
 
                     if IsValid(attacker) and IsAlive(attacker) and not IsAlly(h, attacker) and
                         ((not IsValid(target) and justShot) or (forceSwitch and justShot) or (curHealth < data.lastHealth - 100)) then
@@ -4047,10 +4051,19 @@ function aiCore.DefenseManager:Update()
 
                     if IsValid(bestTarget) then
                         if bestTarget ~= target then
-                            if aiCore.TryAttack(h, bestTarget, GetCommandableAttackPriority(), { minInterval = 0.4 }) then
+                            if aiCore.TryAttack(h, bestTarget, GetCommandableAttackPriority(),
+                                    { minInterval = 0.15, ignoreThrottle = true, forceIssue = true }) then
                                 data.stuckTimer = 0.0
-                                data.nextCheckTime = now + (self.switchCheckDelay or 1.0)
+                                data.nextCheckTime = now + (self.switchCheckDelay or 0.5)
                             end
+                        else
+                            data.nextCheckTime = now + (self.keepCheckDelay or 0.5)
+                        end
+                    elseif forceSwitch and targetValid then
+                        if aiCore.TryAttack(h, target, GetCommandableAttackPriority(),
+                                { minInterval = 0.15, ignoreThrottle = true, forceIssue = true }) then
+                            data.stuckTimer = 0.0
+                            data.nextCheckTime = now + (self.switchCheckDelay or 0.5)
                         else
                             data.nextCheckTime = now + (self.keepCheckDelay or 0.5)
                         end
@@ -4453,6 +4466,9 @@ function aiCore.Bootstrap()
                     aiCore.AddObject(h)
                     registered = registered + 1
                 end
+            else
+                aiCore.AddObject(h)
+                registered = registered + 1
             end
         end
     end
@@ -7608,8 +7624,10 @@ function aiCore.Team:UpdateBaseMaintenance()
 
     -- Ensure critical units exist (Constructor, Factory, Armory)
     -- Only runs if we have a Recycler
-    if not IsValid(self.recyclerMgr.handle) then return end
+    local recycler = GetRecyclerHandle(self.teamNum)
+    if not IsValid(recycler) then return end
     if not self.Config.autoBuild then return end
+    self.recyclerMgr.handle = recycler
 
     local function NormalizeOdfKey(odf)
         if type(odf) ~= "string" then return "" end
@@ -7637,74 +7655,70 @@ function aiCore.Team:UpdateBaseMaintenance()
         end
     end
 
-    local nearbyByOdf = {}
-    for obj in ObjectsInRange(260, self.recyclerMgr.handle) do
-        if IsValid(obj) and GetTeamNum(obj) == self.teamNum then
-            local odfKey = NormalizeOdfKey(GetOdf(obj))
-            if odfKey ~= "" and not nearbyByOdf[odfKey] then
-                nearbyByOdf[odfKey] = obj
-            end
+    local function QueueProducerIfMissing(handle, odf, priority)
+        local odfKey = NormalizeOdfKey(odf)
+        if IsValid(handle) or odfKey == "" or queuedOdFs[odfKey] then
+            return false
         end
+        self.recyclerMgr:addUnit(odf, priority)
+        return true
+    end
+
+    local function DeployProducerIfReady(handle, command)
+        if not IsValid(handle) or IsDeployed(handle) or IsBusy(handle) then
+            return false
+        end
+        if GetCurrentCommand(handle) == command then
+            return false
+        end
+        return aiCore.TrySetCommand(handle, command, GetUncommandablePriority(), nil, nil, nil, nil,
+            { minInterval = 1.0, overrideProtected = true })
     end
 
     -- 1. Constructor
-    if self.Config.manageConstructor and not IsValid(self.constructorMgr.handle) then
+    local constructor = GetConstructorHandle(self.teamNum)
+    self.constructorMgr.handle = constructor
+    if self.Config.manageConstructor and not IsValid(constructor) then
         local odf = aiCore.Units[self.faction].constructor
-        if odf and not queuedOdFs[NormalizeOdfKey(odf)] then
+        if odf and QueueProducerIfMissing(constructor, odf, 0) then
             if aiCore.Debug then print("Team " .. self.teamNum .. " ordering replacement Constructor.") end
-            self.recyclerMgr:addUnit(odf, 0)
         end
     end
 
     if not self.Config.manageFactories then return end
 
     -- 2. Factory
-    if not IsValid(self.factoryMgr.handle) then
-        -- Are we supposed to have one? Yes, usually.
-        -- Check if we merely haven't deployed it yet (e.g. "avmuf" vehicle exists)
-        local odf = aiCore.Units[self.faction].factory
-        local odfKey = NormalizeOdfKey(odf)
-        local nearby = nearbyByOdf[odfKey]
-        local pending = IsValid(nearby)
+    local factory = GetFactoryHandle(self.teamNum)
+    self.factoryMgr.handle = factory
+    if IsValid(factory) then
         local allowRelocation = self.Config.allowProducerRelocation ~= false
         local deployCommand = allowRelocation and AiCommand.GO_TO_GEYSER or AiCommand.DEPLOY
-
-        ---@cast odf string
-        -- Check if an undeployed factory vehicle exists
-        if pending then
-            -- Factory exists but not deployed - send to geyser
-            local deferDeploy = self:ShouldDeferProducerDeploy(nearby, now)
-            if not deferDeploy and not IsDeployed(nearby) and not IsBusy(nearby) and GetCurrentCommand(nearby) ~= deployCommand then
-                if now >= (self.lastFactoryDeployTime or 0) + 10 then
-                    if aiCore.TrySetCommand(nearby, deployCommand, 1, nil, nil, nil, nil,
-                            { minInterval = 1.0, overrideProtected = true }) then
-                        self:MarkProducerDeployGrace(nearby, now, deployCommand)
-                        self.lastFactoryDeployTime = now
-                    end
-                end
+        local deferDeploy = self:ShouldDeferProducerDeploy(factory, now)
+        if not deferDeploy and now >= (self.lastFactoryDeployTime or 0) + 10 then
+            if DeployProducerIfReady(factory, deployCommand) then
+                self:MarkProducerDeployGrace(factory, now, deployCommand)
+                self.lastFactoryDeployTime = now
             end
         end
-
-        if not pending and odf and not queuedOdFs[odfKey] then
+    else
+        local odf = aiCore.Units[self.faction].factory
+        if odf and QueueProducerIfMissing(factory, odf, 0) then
             if aiCore.Debug then print("Team " .. self.teamNum .. " ordering replacement Factory.") end
-            self.recyclerMgr:addUnit(odf, 0)
         end
     end
 
-    -- 3. Armory (Optional? Assume yes for AI)
+    -- 3. Armory
     local armory = GetArmoryHandle(self.teamNum)
-    if not IsValid(armory) then
+    if IsValid(armory) then
+        if now >= (self.lastArmoryDeployTime or 0) + 10 then
+            if DeployProducerIfReady(armory, AiCommand.DEPLOY) then
+                self.lastArmoryDeployTime = now
+            end
+        end
+    else
         local odf = aiCore.Units[self.faction].armory
-        local odfKey = NormalizeOdfKey(odf)
-
-        -- Similar check for undeployed armory vehicle
-        local pending = IsValid(nearbyByOdf[odfKey])
-
-        if not pending and odf and not queuedOdFs[odfKey] then
-            -- Only build armory if we assume we need one.
-            -- Let's check config or just default to yes.
+        if odf and QueueProducerIfMissing(armory, odf, 0.5) then
             if aiCore.Debug then print("Team " .. self.teamNum .. " ordering replacement Armory.") end
-            self.recyclerMgr:addUnit(odf, 0.5)
         end
     end
 end
@@ -7914,21 +7928,39 @@ end
 function aiCore.Team:GetRuleUnitRoleCount(bucket)
     if not bucket then return 0 end
 
+    if bucket == "recycler" then
+        return IsValid(GetRecyclerHandle(self.teamNum)) and 1 or 0
+    elseif bucket == "factory" then
+        local count = IsValid(GetFactoryHandle(self.teamNum)) and 1 or 0
+        for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do
+            if self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
+                count = count + 1
+            end
+        end
+        return count
+    elseif bucket == "armory" then
+        local count = IsValid(GetArmoryHandle(self.teamNum)) and 1 or 0
+        for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do
+            if self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
+                count = count + 1
+            end
+        end
+        return count
+    elseif bucket == "constructor" then
+        local count = IsValid(GetConstructorHandle(self.teamNum)) and 1 or 0
+        for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do
+            if self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
+                count = count + 1
+            end
+        end
+        return count
+    end
+
     local count = 0
     for _, obj in ipairs(aiCore.GetCachedTeamCraft(self.teamNum)) do
         if IsValid(obj) and IsAlive(obj) and self:GetRuleUnitRoleBucketForHandle(obj) == bucket then
             count = count + 1
         end
-    end
-
-    if bucket == "recycler" then
-        if IsValid(GetRecyclerHandle(self.teamNum)) then count = math.max(count, 1) end
-    elseif bucket == "factory" then
-        if IsValid(GetFactoryHandle(self.teamNum)) then count = math.max(count, 1) end
-    elseif bucket == "armory" then
-        if IsValid(GetArmoryHandle(self.teamNum)) then count = math.max(count, 1) end
-    elseif bucket == "constructor" then
-        if IsValid(GetConstructorHandle(self.teamNum)) then count = math.max(count, 1) end
     end
 
     for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do

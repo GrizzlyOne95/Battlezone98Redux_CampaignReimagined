@@ -77,20 +77,26 @@ end
 
 function AutoSave.Update(dtime)
     if not AutoSave.Config.enabled then
+        AutoSave._wasEnabled = false
         return
     end
 
     local now = GetTime()
-    if not AutoSave._lastSaveTime then
+    local missionName = GetMissionFilename():gsub("%.bzn$", "")
+    local missionTime = math.floor(now)
+
+    if not AutoSave._wasEnabled or not AutoSave._lastSaveTime then
+        print("AutoSave: initial save at " .. missionTime .. "s")
+        AutoSave.CreateSave(nil, string.format("%s AutoSave %ds", missionName, missionTime))
         AutoSave._lastSaveTime = now
+        AutoSave._wasEnabled = true
+        return
     end
 
     if (now - AutoSave._lastSaveTime) < AutoSave.Config.autoSaveInterval then
         return
     end
 
-    local missionName = GetMissionFilename():gsub("%.bzn$", "")
-    local missionTime = math.floor(now)
     print("AutoSave: saving at " .. missionTime .. "s")
 
     AutoSave.CreateSave(nil, string.format("%s AutoSave %ds", missionName, missionTime))
