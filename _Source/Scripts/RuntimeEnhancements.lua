@@ -43,6 +43,9 @@ local RuntimeEnhancements = {
 
     MaterialVariants = {},
     MaterialBaseColors = {},
+    MaterialFailureCount = 0,
+    MaterialFailureLimit = 3,
+    MaterialFailureReported = false,
     ObjectStates = {},
     VisualHandles = {},
     VisualHandleSet = {},
@@ -141,6 +144,34 @@ local function GetMaterialVariantKey(materialName, profile, occupied)
     return table.concat({ materialName, profileName, occupancy }, "|")
 end
 
+local function DisableDynamicMaterials(reason)
+    if not RuntimeEnhancements.SupportsDynamicMaterials then
+        return
+    end
+
+    RuntimeEnhancements.SupportsDynamicMaterials = false
+    RuntimeEnhancements.SupportsPilotVisuals = false
+    RuntimeEnhancements.MaterialVariants = {}
+    RuntimeEnhancements.MaterialBaseColors = {}
+    RuntimeEnhancements.ObjectStates = {}
+    RuntimeEnhancements.VisualHandles = {}
+    RuntimeEnhancements.VisualHandleSet = {}
+    RuntimeEnhancements.VisualCursor = 1
+    RuntimeEnhancements.VisualNeedsRebuild = false
+
+    if not RuntimeEnhancements.MaterialFailureReported and print then
+        print("RuntimeEnhancements: disabled dynamic materials after native material failure (" .. tostring(reason or "unknown") .. ")")
+    end
+    RuntimeEnhancements.MaterialFailureReported = true
+end
+
+local function NoteMaterialFailure(stage, materialName)
+    RuntimeEnhancements.MaterialFailureCount = (RuntimeEnhancements.MaterialFailureCount or 0) + 1
+    if RuntimeEnhancements.MaterialFailureCount >= (RuntimeEnhancements.MaterialFailureLimit or 3) then
+        DisableDynamicMaterials(tostring(stage or "material") .. ":" .. tostring(materialName or "unknown"))
+    end
+end
+
 local function EnsureMaterialVariant(materialName, profile, occupied)
     local variantKey = GetMaterialVariantKey(materialName, profile, occupied)
     local cached = RuntimeEnhancements.MaterialVariants[variantKey]
@@ -161,6 +192,8 @@ local function EnsureMaterialVariant(materialName, profile, occupied)
         baseColors = exu.GetMaterialPassColors(materialName, 0, 0, group)
         if type(baseColors) == "table" then
             RuntimeEnhancements.MaterialBaseColors[materialName] = baseColors
+        else
+            NoteMaterialFailure("GetMaterialPassColors", materialName)
         end
     end
 
@@ -170,12 +203,14 @@ local function EnsureMaterialVariant(materialName, profile, occupied)
 
     if exu.CloneMaterial and not exu.CloneMaterial(materialName, cloneName, group) then
         if not (exu.MaterialExists and exu.MaterialExists(cloneName, group)) then
+            NoteMaterialFailure("CloneMaterial", materialName)
             return nil
         end
     end
 
     local passColors = BuildPassColors(baseColors, profile, occupied)
     if exu.SetMaterialPassColors and not exu.SetMaterialPassColors(cloneName, passColors, 0, 0, group) then
+        NoteMaterialFailure("SetMaterialPassColors", cloneName)
         return nil
     end
 
