@@ -146,16 +146,44 @@ local function getAutoSaveSubtitleLayout(fontScale)
     }
 end
 
-local function showAutoSaveNotification()
-    if not subtitles or not subtitles.submit_to or not subtitles.set_channel_layout then
-        return
+local function tryExperimentalAutoSaveOverlay(duration)
+    local persistentConfig = package.loaded["PersistentConfig"]
+    if not persistentConfig or type(persistentConfig.TryShowAutoSaveOverlayInfo) ~= "function" then
+        print("AutoSave: EXU overlay unavailable (PersistentConfig helper missing)")
+        return false
     end
 
+    local ok, shown = pcall(persistentConfig.TryShowAutoSaveOverlayInfo, "Autosaving...", duration or
+        AUTOSAVE_SUBTITLE_DURATION, 0.82, 1.0, 0.82)
+    if not ok then
+        print("AutoSave: EXU overlay call failed: " .. tostring(shown))
+        return false
+    end
+    if shown == true then
+        print("AutoSave: notification using EXU overlay")
+        return true
+    end
+    print("AutoSave: EXU overlay not shown; subtitle fallback will be used")
+    return false
+end
+
+local function showAutoSaveNotification()
     local settings = getSubtitleSettings()
     if not settings.enabled then
+        print("AutoSave: notification suppressed because subtitles are disabled")
         return
     end
 
+    if tryExperimentalAutoSaveOverlay(AUTOSAVE_SUBTITLE_DURATION) then
+        return
+    end
+
+    if not subtitles or not subtitles.submit_to or not subtitles.set_channel_layout then
+        print("AutoSave: subtitle notification unavailable")
+        return
+    end
+
+    print("AutoSave: notification using subtitle fallback")
     local layout = getAutoSaveSubtitleLayout(settings.fontScale)
     if subtitles.set_opacity then
         pcall(subtitles.set_opacity, settings.opacity)

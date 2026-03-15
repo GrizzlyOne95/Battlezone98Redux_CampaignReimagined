@@ -186,7 +186,9 @@ local function NewMissionState()
         tugobjective = false,
         ccatugretry = false,
         loading_done = false,
-        loadGracePeriod = 0
+        loadGracePeriod = 0,
+        overlayBootTestAt = nil,
+        overlayBootTestDone = false
     }
 end
 
@@ -352,6 +354,38 @@ local function UpdateModules(dt)
     end
 end
 
+local function RunOverlayBootTest()
+    if M.overlayBootTestDone then
+        return
+    end
+
+    if not PersistentConfig or not PersistentConfig.ExperimentalOverlayUseCustomFont then
+        M.overlayBootTestDone = true
+        return
+    end
+
+    local triggerAt = tonumber(M.overlayBootTestAt) or 0.0
+    if GetTime() < triggerAt then
+        return
+    end
+
+    M.overlayBootTestDone = true
+    print(string.format("misn04: running EXU overlay boot test at %.2fs", GetTime()))
+
+    if exu and exu.GetViewportOverlaysEnabled then
+        local stateOk, overlaysEnabled = pcall(exu.GetViewportOverlaysEnabled)
+        print("misn04: viewport overlays enabled before boot test = " .. tostring(stateOk and overlaysEnabled or "unavailable"))
+    end
+
+    if not PersistentConfig or type(PersistentConfig.TryShowAutoSaveOverlayInfo) ~= "function" then
+        print("misn04: overlay boot test unavailable (PersistentConfig helper missing)")
+        return
+    end
+
+    local ok, shown = pcall(PersistentConfig.TryShowAutoSaveOverlayInfo, "EXU OVERLAY TEST", 6.0, 1.0, 0.35, 0.15)
+    print("misn04: overlay boot test result ok=" .. tostring(ok) .. " shown=" .. tostring(shown))
+end
+
 -- Helper for Difficulty-Scaled Tug Arrival
 local function GetTugDelay()
     local baseDelay = 180.0 -- Medium (Default)
@@ -411,6 +445,7 @@ function Start()
     if Environment and Environment.Update then
         Environment.Update(0.0)
     end
+    M.overlayBootTestAt = GetTime() + 1.0
     M.loading_done = true
 end
 
@@ -544,6 +579,7 @@ function Update()
         autosave.Update(1.0 / M.TPS)
     end
     UpdateModules(1.0 / M.TPS)
+    RunOverlayBootTest()
 
     if (not M.missionstart) then
         M.wave1 = GetTime() + DiffUtils.ScaleTimer(30.0) + math.random(-5, 10)
