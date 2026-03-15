@@ -17,7 +17,7 @@ PersistentConfig.ExperimentalOverlayReady = false
 PersistentConfig.ExperimentalOverlayFailed = false
 PersistentConfig.ExperimentalOverlayVisible = false
 PersistentConfig.ExperimentalOverlayExpireAt = 0.0
-PersistentConfig.ExperimentalOverlayDebugBox = true
+PersistentConfig.ExperimentalOverlayDebugBox = false
 PersistentConfig.ExperimentalOverlayPending = nil
 local InputState
 PersistentConfig.PlayerChargeWeaponState = PersistentConfig.PlayerChargeWeaponState or nil
@@ -581,7 +581,7 @@ function PersistentConfig._TryCreateExperimentalOverlay()
     SafeCall(exu.SetOverlayMetricsMode, ids.root, metricsMode)
     SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
     SafeCall(exu.SetOverlayDimensions, ids.root, layout.wrapWidth, layout.panelHeight)
-    if exu.SetOverlayMaterial then
+    if PersistentConfig.ExperimentalOverlayDebugBox and exu.SetOverlayMaterial then
         SafeCall(exu.SetOverlayMaterial, ids.root, "BaseWhiteNoLighting")
     end
     if PersistentConfig.ExperimentalOverlayDebugBox then
@@ -600,7 +600,11 @@ function PersistentConfig._TryCreateExperimentalOverlay()
         end
     end
     SafeCall(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
-    SafeCall(exu.SetOverlayColor, ids.text, 0.82, 1.0, 0.82, 1.0)
+    if exu.SetOverlayTextColor then
+        SafeCall(exu.SetOverlayTextColor, ids.text, 0.82, 1.0, 0.82, 1.0)
+    else
+        SafeCall(exu.SetOverlayColor, ids.text, 0.82, 1.0, 0.82, 1.0)
+    end
     SafeCall(exu.SetOverlayCaption, ids.text, "")
     SafeCall(exu.ShowOverlayElement, ids.root)
     SafeCall(exu.ShowOverlayElement, ids.text)
@@ -652,7 +656,7 @@ function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
 
     SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
     SafeCall(exu.SetOverlayDimensions, ids.root, layout.wrapWidth, layout.panelHeight)
-    if exu.SetOverlayMaterial then
+    if PersistentConfig.ExperimentalOverlayDebugBox and exu.SetOverlayMaterial then
         SafeCall(exu.SetOverlayMaterial, ids.root, "BaseWhiteNoLighting")
     end
     if PersistentConfig.ExperimentalOverlayDebugBox then
@@ -663,7 +667,11 @@ function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
     SafeCall(exu.SetOverlayDimensions, ids.text, layout.wrapWidth, layout.panelHeight)
     SafeCall(exu.SetOverlayPosition, ids.text, 0.010, 0.006)
     SafeCall(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
-    SafeCall(exu.SetOverlayColor, ids.text, r or 0.82, g or 1.0, b or 0.82, 1.0)
+    if exu.SetOverlayTextColor then
+        SafeCall(exu.SetOverlayTextColor, ids.text, r or 0.82, g or 1.0, b or 0.82, 1.0)
+    else
+        SafeCall(exu.SetOverlayColor, ids.text, r or 0.82, g or 1.0, b or 0.82, 1.0)
+    end
     SafeCall(exu.SetOverlayCaption, ids.text, msg)
     SafeCall(exu.ShowOverlayElement, ids.root)
     SafeCall(exu.ShowOverlayElement, ids.text)
