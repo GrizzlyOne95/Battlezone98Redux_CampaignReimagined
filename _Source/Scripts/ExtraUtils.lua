@@ -380,6 +380,27 @@ function exu.SetSunDirection(x, y, z) end
 --- @param direction Vector
 function exu.SetSunDirection(direction) end
 
+--- Sets the current terrain master light direction directly through Ogre.
+--- This is an Ogre-only override and does not update the native Battlezone time-of-day state.
+--- Can take either a vector or three number parameters.
+--- @param x number
+--- @param y number
+--- @param z number
+function exu.SetOgreSunDirection(x, y, z) end
+
+--- Sets the current terrain master light direction directly through Ogre.
+--- This is an Ogre-only override and does not update the native Battlezone time-of-day state.
+--- Can take either a vector or three number parameters.
+--- @param direction Vector
+function exu.SetOgreSunDirection(direction) end
+
+--- Sets the native map time-of-day using the TRN HHMM format, such as 600, 1200, or 1830.
+--- Minutes are stored, but the native light-model path currently advances in hour-sized steps.
+--- When `refreshSun` is true or omitted, the terrain master light is rebuilt immediately.
+--- @param timeOfDay integer
+--- @param refreshSun boolean|nil
+function exu.SetTimeOfDay(timeOfDay, refreshSun) end
+
 --- Returns the current sun power scale multiplier.
 --- @nodiscard
 --- @return number
@@ -591,6 +612,7 @@ function exu.SetOverlayCaption(name, text) end
 --- Sets the font name of a text area created through `CreateOverlayElement("TextArea", ...)`.
 --- @param name string
 --- @param fontName string
+--- @return boolean success True when the font was bound successfully.
 function exu.SetOverlayTextFont(name, fontName) end
 
 --- Sets the character height of a text area created through `CreateOverlayElement("TextArea", ...)`.
@@ -1088,8 +1110,21 @@ function exu.GetScreenResolution() end
 --- @param message string
 function exu.MessageBox(message) end
 
+--- Triggers the game's native save serializer.
+--- Pass either a save slot number (1-10, mapped to `Save\\game<slot>.sav`) or a save path string.
+--- The optional `saveType` argument defaults to 0 and maps to the native second parameter.
+--- You may also pass a description override as the second argument, or as the third argument after `saveType`.
+--- Description overrides only rewrite the `saveGameDesc` field in text saves after the native save succeeds.
+--- This should be called during active gameplay, not from shell menus or loading screens.
+--- @param slotOrPath integer | string
+--- @param saveType integer | string?
+--- @param description string?
+--- @return boolean success
+--- @return string pathOrError
+function exu.SaveGame(slotOrPath, saveType, description) end
+
 --- Patches
----
+--- 
 --- These functions control various patches to modify game behavior.
 
 --- Wrapper for AddScrap that does not trigger the exu.AddScrap callback.
@@ -1192,6 +1227,17 @@ function exu.GetRadarState() end
 --- Sets the current radar state.
 --- @param state number
 function exu.SetRadarState(state) end
+
+--- Gets the radar-specific HUD size scale. 1.0 is the stock full-size radar.
+--- Values below 1 shrink the radar, values above 1 enlarge it.
+--- @nodiscard
+--- @return number
+function exu.GetRadarSizeScale() end
+
+--- Sets the radar-specific HUD size scale and refreshes the radar layout immediately.
+--- Note that changing the game's HUD scaling option may overwrite this value.
+--- @param scale number
+function exu.SetRadarSizeScale(scale) end
 
 --- Reticle
 ---

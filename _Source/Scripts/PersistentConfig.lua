@@ -8,9 +8,17 @@ local RuntimeEnhancements = require("RuntimeEnhancements")
 local ConservativeCulling = require("ConservativeCulling")
 
 local PersistentConfig = {}
-local WEAPON_STATS_CHANNEL = 1
-local PDA_FEEDBACK_CHANNEL = 2
+PersistentConfig.Channels = {
+    WeaponStats = 1,
+    PdaFeedback = 2,
+}
 PersistentConfig.Debug = false
+PersistentConfig.ExperimentalOverlayReady = false
+PersistentConfig.ExperimentalOverlayFailed = false
+PersistentConfig.ExperimentalOverlayVisible = false
+PersistentConfig.ExperimentalOverlayExpireAt = 0.0
+PersistentConfig.ExperimentalOverlayDebugBox = true
+PersistentConfig.ExperimentalOverlayPending = nil
 local InputState
 PersistentConfig.PlayerChargeWeaponState = PersistentConfig.PlayerChargeWeaponState or nil
 
@@ -71,16 +79,17 @@ local PresetProducerKinds = {
     [2] = { name = "FACTORY", getter = GetFactoryHandle, short = "FAC" },
 }
 
-local PRESET_SURCHARGE_CONFIG = {
-    mortarFlat = 1.0,
-    multipliers = { 0.5, 0.25 },
-    tailMultiplier = 0.1,
-}
-
-local PRESET_BUILD_CONFIG = {
-    keyWindow = 0.5,
-    refundGrace = 1.0,
-    scrapConfirmTolerance = 0.5,
+PersistentConfig.PresetConfig = {
+    surcharge = {
+        mortarFlat = 1.0,
+        multipliers = { 0.5, 0.25 },
+        tailMultiplier = 0.1,
+    },
+    build = {
+        keyWindow = 0.5,
+        refundGrace = 1.0,
+        scrapConfirmTolerance = 0.5,
+    },
 }
 
 PersistentConfig.UnitPresets = {}
@@ -88,12 +97,10 @@ local GetSettingsPageEntries
 local GetProducerQueueState
 local CleanString
 
-local PDA_FONT_SCALE_MIN = 0.85
-local PDA_FONT_SCALE_MAX = 1.30
-local PDA_FONT_SCALE_STEP = 0.05
-local SUBTITLE_FONT_SCALE_MIN = 0.85
-local SUBTITLE_FONT_SCALE_MAX = 2.00
-local SUBTITLE_FONT_SCALE_STEP = 0.05
+PersistentConfig.FontScale = {
+    pda = { min = 0.85, max = 1.30, step = 0.05 },
+    subtitle = { min = 0.85, max = 2.00, step = 0.05 },
+}
 PersistentConfig.AutoSaveUi = {
     slotMin = 1,
     slotMax = 10,
@@ -135,7 +142,7 @@ local HeadlightColorPresets = {
 local function getWorkingDirectory()
     return (bzfile and bzfile.GetWorkingDirectory and bzfile.GetWorkingDirectory()) or "."
 end
-local configPath = getWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
+PersistentConfig.ConfigPath = getWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
 
 -- Logging Helper
 local function Log(msg)
@@ -213,7 +220,8 @@ local function CycleIndex(value, count, delta, fallback)
 end
 
 local function GetPdaFontScale()
-    return ClampRange(PersistentConfig.Settings.PdaFontScale, PDA_FONT_SCALE_MIN, PDA_FONT_SCALE_MAX, 1.0)
+    return ClampRange(PersistentConfig.Settings.PdaFontScale, PersistentConfig.FontScale.pda.min,
+        PersistentConfig.FontScale.pda.max, 1.0)
 end
 
 local function GetPdaColorPreset()
@@ -221,7 +229,8 @@ local function GetPdaColorPreset()
 end
 
 local function GetSubtitleFontScale()
-    return ClampRange(PersistentConfig.Settings.SubtitleFontScale, SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX, 1.0)
+    return ClampRange(PersistentConfig.Settings.SubtitleFontScale, PersistentConfig.FontScale.subtitle.min,
+        PersistentConfig.FontScale.subtitle.max, 1.0)
 end
 
 function PersistentConfig._GetAutoSaveSlot()
@@ -345,7 +354,7 @@ local function FormatScale(value, minimum, maximum)
 end
 
 local function LegacyPresetFromScale(scale)
-    local target = ClampRange(scale, SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX, 1.0)
+    local target = ClampRange(scale, PersistentConfig.FontScale.subtitle.min, PersistentConfig.FontScale.subtitle.max, 1.0)
     local bestIndex = 2
     local bestDiff = math.huge
     for idx, value in pairs(LEGACY_TEXT_PRESET_SCALES) do
@@ -393,12 +402,9 @@ local function AppendPdaNavHints(lines)
     table.insert(lines, "[ / ] SWITCH PAGE")
 end
 
-local function GetPdaLayoutMetrics(page)
+function PersistentConfig._GetUiResolutionMetrics()
     local width, height = 1920, 1080
     local uiScale = 2
-    local activePage = ClampIndex(page or (InputState and InputState.pdaPage) or PdaPages.STATS, 1, PdaPages.COUNT,
-        PdaPages.STATS)
-    local fontScale = GetPdaFontScale()
 
     if exu and exu.GetScreenResolution then
         local ok, screenW, screenH = pcall(exu.GetScreenResolution)
@@ -418,18 +424,22 @@ local function GetPdaLayoutMetrics(page)
         end
     end
 
-    local function Clamp(value, minimum, maximum)
-        if value < minimum then return minimum end
-        if value > maximum then return maximum end
-        return value
-    end
+    return width, height, uiScale
+end
+
+local function GetPdaLayoutMetrics(page)
+    local width, height, uiScale = PersistentConfig._GetUiResolutionMetrics()
+    local activePage = ClampIndex(page or (InputState and InputState.pdaPage) or PdaPages.STATS, 1, PdaPages.COUNT,
+        PdaPages.STATS)
+    local fontScale = GetPdaFontScale()
 
     local aspect = width / math.max(height, 1)
-    local aspectScale = Clamp((16.0 / 9.0) / aspect, 0.80, 1.35)
-    local uiScaleFactor = Clamp((uiScale / 2.0) ^ 0.45, 0.85, 1.45)
-    local textScale = Clamp(0.30 * aspectScale * uiScaleFactor * fontScale, 0.22, 0.60)
-    local wrapWidth = Clamp(0.31 * Clamp(1.0 / aspectScale, 0.9, 1.2) * uiScaleFactor * fontScale, 0.24, 0.70)
-    local panelX = Clamp(0.01, 0.0, math.max(0.0, 1.0 - wrapWidth))
+    local aspectScale = math.min(1.35, math.max(0.80, (16.0 / 9.0) / aspect))
+    local uiScaleFactor = math.min(1.45, math.max(0.85, (uiScale / 2.0) ^ 0.45))
+    local textScale = math.min(0.60, math.max(0.22, 0.30 * aspectScale * uiScaleFactor * fontScale))
+    local wrapWidth = math.min(0.70, math.max(0.24,
+        0.31 * math.min(1.2, math.max(0.9, 1.0 / aspectScale)) * uiScaleFactor * fontScale))
+    local panelX = math.min(math.max(0.0, 1.0 - wrapWidth), math.max(0.0, 0.01))
 
     return {
         textScale = textScale,
@@ -438,48 +448,97 @@ local function GetPdaLayoutMetrics(page)
         paddingX = 6.0 * fontScale,
         paddingY = 5.0 * fontScale,
         opacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.0),
-        feedbackTextScale = Clamp(textScale * 0.86, 0.20, 0.46),
+        feedbackTextScale = math.min(0.46, math.max(0.20, textScale * 0.86)),
         feedbackY = 0.90,
     }
 end
 
-local EXPERIMENTAL_OVERLAY = {
-    overlay = "cr_experimental_overlay",
-    root = "cr_experimental_overlay_root",
-    text = "cr_experimental_overlay_text",
-}
+function PersistentConfig._GetAutoSaveOverlayLayout()
+    local width, height, uiScale = PersistentConfig._GetUiResolutionMetrics()
+    local fontScale = GetSubtitleFontScale()
+    local aspect = width / math.max(height, 1)
+    local aspectScale = math.min(1.35, math.max(0.82, (16.0 / 9.0) / aspect))
+    local uiScaleFactor = math.min(1.30, math.max(0.90, (uiScale / 2.0) ^ 0.32))
+    local compactFontScale = math.min(1.20, math.max(0.92, fontScale ^ 0.45))
+    local wrapWidth = math.min(0.34, math.max(0.18,
+        0.22 * math.min(1.18, math.max(0.90, 1.0 / aspectScale)) * compactFontScale))
+    local charHeight = math.min(0.042, math.max(0.024, 0.026 * aspectScale * uiScaleFactor * compactFontScale))
+    local panelHeight = math.min(0.120, math.max(0.065, charHeight * 2.4))
 
-local function DestroyExperimentalOverlay()
+    return {
+        panelX = 0.04,
+        panelY = math.min(0.84, math.max(0.70, 0.82 - (panelHeight * 0.5))),
+        wrapWidth = math.max(wrapWidth, 0.38),
+        panelHeight = panelHeight,
+        charHeight = charHeight,
+    }
+end
+
+PersistentConfig.ExperimentalOverlayIds = {
+    overlay = "cr_experimental_autosave_overlay",
+    root = "cr_experimental_autosave_overlay_root",
+    text = "cr_experimental_autosave_overlay_text",
+}
+PersistentConfig.ExperimentalOverlayFont = "CRBZoneOverlayFont"
+PersistentConfig.ExperimentalOverlayUseCustomFont = true
+
+function PersistentConfig._HideExperimentalOverlay()
+    local ids = PersistentConfig.ExperimentalOverlayIds
+    PersistentConfig.ExperimentalOverlayVisible = false
+    PersistentConfig.ExperimentalOverlayExpireAt = 0.0
+    if exu and exu.HideOverlay then
+        pcall(exu.HideOverlay, ids.overlay)
+    end
+end
+
+function PersistentConfig._DestroyExperimentalOverlay()
+    local ids = PersistentConfig.ExperimentalOverlayIds
+    PersistentConfig.ExperimentalOverlayReady = false
+    PersistentConfig.ExperimentalOverlayVisible = false
+    PersistentConfig.ExperimentalOverlayExpireAt = 0.0
+
     if not exu then
         return
     end
 
-    if exu.HideOverlay then
-        pcall(exu.HideOverlay, EXPERIMENTAL_OVERLAY.overlay)
-    end
+    PersistentConfig._HideExperimentalOverlay()
     if exu.RemoveOverlayElementChild then
-        pcall(exu.RemoveOverlayElementChild, EXPERIMENTAL_OVERLAY.root, EXPERIMENTAL_OVERLAY.text)
+        pcall(exu.RemoveOverlayElementChild, ids.root, ids.text)
     end
     if exu.RemoveOverlay2D then
-        pcall(exu.RemoveOverlay2D, EXPERIMENTAL_OVERLAY.overlay, EXPERIMENTAL_OVERLAY.root)
+        pcall(exu.RemoveOverlay2D, ids.overlay, ids.root)
     end
     if exu.DestroyOverlayElement then
-        pcall(exu.DestroyOverlayElement, EXPERIMENTAL_OVERLAY.text)
-        pcall(exu.DestroyOverlayElement, EXPERIMENTAL_OVERLAY.root)
+        pcall(exu.DestroyOverlayElement, ids.text)
+        pcall(exu.DestroyOverlayElement, ids.root)
     end
     if exu.DestroyOverlay then
-        pcall(exu.DestroyOverlay, EXPERIMENTAL_OVERLAY.overlay)
+        pcall(exu.DestroyOverlay, ids.overlay)
     end
 end
 
-local function TryCreateExperimentalOverlay()
-    if not exu or not exu.CreateOverlay or not exu.CreateOverlayElement or not exu.AddOverlay2D then
+function PersistentConfig._TryCreateExperimentalOverlay()
+    local ids = PersistentConfig.ExperimentalOverlayIds
+    if PersistentConfig.ExperimentalOverlayReady then
+        return true
+    end
+
+    if PersistentConfig.ExperimentalOverlayFailed then
         return false
     end
 
-    DestroyExperimentalOverlay()
+    if not exu or not exu.CreateOverlay or not exu.CreateOverlayElement or not exu.AddOverlay2D
+        or not exu.AddOverlayElementChild or not exu.SetOverlayZOrder or not exu.SetOverlayMetricsMode
+        or not exu.SetOverlayPosition or not exu.SetOverlayDimensions or not exu.SetOverlayTextFont
+        or not exu.SetOverlayTextCharHeight or not exu.SetOverlayColor or not exu.SetOverlayCaption
+        or not exu.ShowOverlayElement or not exu.ShowOverlay or not exu.HideOverlay then
+        PersistentConfig.ExperimentalOverlayFailed = true
+        return false
+    end
 
-    local layout = GetPdaLayoutMetrics(PdaPages.STATS)
+    PersistentConfig._DestroyExperimentalOverlay()
+
+    local layout = PersistentConfig._GetAutoSaveOverlayLayout()
     local metricsMode = (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.RELATIVE) or 0
     local ok = true
 
@@ -497,46 +556,166 @@ local function TryCreateExperimentalOverlay()
         return result
     end
 
-    SafeCall(exu.CreateOverlay, EXPERIMENTAL_OVERLAY.overlay)
-    SafeCall(exu.CreateOverlayElement, "Panel", EXPERIMENTAL_OVERLAY.root)
-    SafeCall(exu.CreateOverlayElement, "TextArea", EXPERIMENTAL_OVERLAY.text)
-    SafeCall(exu.AddOverlay2D, EXPERIMENTAL_OVERLAY.overlay, EXPERIMENTAL_OVERLAY.root)
-    SafeCall(exu.AddOverlayElementChild, EXPERIMENTAL_OVERLAY.root, EXPERIMENTAL_OVERLAY.text)
-    SafeCall(exu.SetOverlayZOrder, EXPERIMENTAL_OVERLAY.overlay, 640)
+    if SafeCall(exu.CreateOverlay, ids.overlay) == false then
+        ok = false
+        Log("PersistentConfig: Experimental overlay creation returned false for overlay " .. tostring(ids.overlay))
+    end
+    if SafeCall(exu.CreateOverlayElement, "Panel", ids.root) == false then
+        ok = false
+        Log("PersistentConfig: Experimental overlay creation returned false for root " .. tostring(ids.root))
+    end
+    if SafeCall(exu.CreateOverlayElement, "TextArea", ids.text) == false then
+        ok = false
+        Log("PersistentConfig: Experimental overlay creation returned false for text " .. tostring(ids.text))
+    end
+    if exu.HasOverlayElement then
+        if SafeCall(exu.HasOverlayElement, ids.root) ~= true or SafeCall(exu.HasOverlayElement, ids.text) ~= true then
+            ok = false
+            Log("PersistentConfig: Experimental overlay elements failed to materialize after creation.")
+        end
+    end
+    SafeCall(exu.AddOverlay2D, ids.overlay, ids.root)
+    SafeCall(exu.AddOverlayElementChild, ids.root, ids.text)
+    SafeCall(exu.SetOverlayZOrder, ids.overlay, 640)
 
-    SafeCall(exu.SetOverlayMetricsMode, EXPERIMENTAL_OVERLAY.root, metricsMode)
-    SafeCall(exu.SetOverlayPosition, EXPERIMENTAL_OVERLAY.root, layout.panelX, 0.03)
-    SafeCall(exu.SetOverlayDimensions, EXPERIMENTAL_OVERLAY.root, math.max(layout.wrapWidth, 0.24), 0.08)
+    SafeCall(exu.SetOverlayMetricsMode, ids.root, metricsMode)
+    SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
+    SafeCall(exu.SetOverlayDimensions, ids.root, layout.wrapWidth, layout.panelHeight)
+    if exu.SetOverlayMaterial then
+        SafeCall(exu.SetOverlayMaterial, ids.root, "BaseWhiteNoLighting")
+    end
+    if PersistentConfig.ExperimentalOverlayDebugBox then
+        SafeCall(exu.SetOverlayColor, ids.root, 0.85, 0.10, 0.10, 0.88)
+    else
+        SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.55)
+    end
 
-    SafeCall(exu.SetOverlayMetricsMode, EXPERIMENTAL_OVERLAY.text, metricsMode)
-    SafeCall(exu.SetOverlayPosition, EXPERIMENTAL_OVERLAY.text, 0.0, 0.0)
-    SafeCall(exu.SetOverlayDimensions, EXPERIMENTAL_OVERLAY.text, math.max(layout.wrapWidth, 0.24), 0.08)
-    SafeCall(exu.SetOverlayTextFont, EXPERIMENTAL_OVERLAY.text, "BZONE")
-    SafeCall(exu.SetOverlayTextCharHeight, EXPERIMENTAL_OVERLAY.text, 0.03)
-    SafeCall(exu.SetOverlayColor, EXPERIMENTAL_OVERLAY.text, 0.18, 0.92, 0.18, 1.0)
-    SafeCall(exu.SetOverlayCaption, EXPERIMENTAL_OVERLAY.text, "EXPERIMENTAL OGRE OVERLAY")
-    SafeCall(exu.ShowOverlayElement, EXPERIMENTAL_OVERLAY.root)
-    SafeCall(exu.ShowOverlayElement, EXPERIMENTAL_OVERLAY.text)
-    SafeCall(exu.ShowOverlay, EXPERIMENTAL_OVERLAY.overlay)
+    SafeCall(exu.SetOverlayMetricsMode, ids.text, metricsMode)
+    SafeCall(exu.SetOverlayPosition, ids.text, 0.010, 0.006)
+    SafeCall(exu.SetOverlayDimensions, ids.text, layout.wrapWidth, layout.panelHeight)
+    if PersistentConfig.ExperimentalOverlayUseCustomFont then
+        if SafeCall(exu.SetOverlayTextFont, ids.text, PersistentConfig.ExperimentalOverlayFont) ~= true then
+            ok = false
+            Log("PersistentConfig: Experimental overlay font bind failed for " .. tostring(PersistentConfig.ExperimentalOverlayFont))
+        end
+    end
+    SafeCall(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
+    SafeCall(exu.SetOverlayColor, ids.text, 0.82, 1.0, 0.82, 1.0)
+    SafeCall(exu.SetOverlayCaption, ids.text, "")
+    SafeCall(exu.ShowOverlayElement, ids.root)
+    SafeCall(exu.ShowOverlayElement, ids.text)
+    SafeCall(exu.HideOverlay, ids.overlay)
 
     if ok then
-        Log("PersistentConfig: Experimental EXU overlay probe created.")
+        PersistentConfig.ExperimentalOverlayReady = true
+        PersistentConfig.ExperimentalOverlayFailed = false
+        Log("PersistentConfig: Experimental EXU overlay initialized for notifications.")
+    else
+        PersistentConfig.ExperimentalOverlayFailed = true
+        PersistentConfig._DestroyExperimentalOverlay()
     end
 
     return ok
+end
+
+function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
+    local ids = PersistentConfig.ExperimentalOverlayIds
+    if not msg or msg == "" then
+        return false
+    end
+
+    if not PersistentConfig.ExperimentalOverlayUseCustomFont then
+        Log("PersistentConfig: Autosave overlay skipped because custom font rendering is disabled.")
+        return false
+    end
+
+    if not PersistentConfig._TryCreateExperimentalOverlay() then
+        return false
+    end
+
+    local layout = PersistentConfig._GetAutoSaveOverlayLayout()
+    local ok = true
+
+    local function SafeCall(fn, ...)
+        if not ok or type(fn) ~= "function" then
+            return nil
+        end
+
+        local success, result = pcall(fn, ...)
+        if not success then
+            ok = false
+            Log("PersistentConfig: Autosave overlay call failed: " .. tostring(result))
+            return nil
+        end
+        return result
+    end
+
+    SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
+    SafeCall(exu.SetOverlayDimensions, ids.root, layout.wrapWidth, layout.panelHeight)
+    if exu.SetOverlayMaterial then
+        SafeCall(exu.SetOverlayMaterial, ids.root, "BaseWhiteNoLighting")
+    end
+    if PersistentConfig.ExperimentalOverlayDebugBox then
+        SafeCall(exu.SetOverlayColor, ids.root, 0.85, 0.10, 0.10, 0.88)
+    else
+        SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.55)
+    end
+    SafeCall(exu.SetOverlayDimensions, ids.text, layout.wrapWidth, layout.panelHeight)
+    SafeCall(exu.SetOverlayPosition, ids.text, 0.010, 0.006)
+    SafeCall(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
+    SafeCall(exu.SetOverlayColor, ids.text, r or 0.82, g or 1.0, b or 0.82, 1.0)
+    SafeCall(exu.SetOverlayCaption, ids.text, msg)
+    SafeCall(exu.ShowOverlayElement, ids.root)
+    SafeCall(exu.ShowOverlayElement, ids.text)
+    SafeCall(exu.ShowOverlay, ids.overlay)
+
+    if not ok then
+        PersistentConfig.ExperimentalOverlayReady = false
+        PersistentConfig.ExperimentalOverlayFailed = true
+        PersistentConfig._DestroyExperimentalOverlay()
+        return false
+    end
+
+    PersistentConfig.ExperimentalOverlayVisible = true
+    PersistentConfig.ExperimentalOverlayExpireAt = GetTime() + math.max(tonumber(duration) or 3.0, 0.1)
+    Log(string.format("PersistentConfig: Autosave overlay shown text=%q font=%s panelMaterial=BaseWhiteNoLighting pos=(%.3f,%.3f) size=(%.3f,%.3f) debugBox=%s",
+        msg, PersistentConfig.ExperimentalOverlayUseCustomFont and tostring(PersistentConfig.ExperimentalOverlayFont) or "disabled",
+        layout.panelX, layout.panelY, layout.wrapWidth, layout.panelHeight,
+        tostring(PersistentConfig.ExperimentalOverlayDebugBox)))
+    return true
+end
+
+function PersistentConfig.TryShowAutoSaveOverlayInfo(msg, duration, r, g, b)
+    if not msg or msg == "" then
+        return false
+    end
+
+    if not PersistentConfig.ExperimentalOverlayUseCustomFont then
+        return false
+    end
+
+    local now = GetTime()
+    if now < 0.75 then
+        PersistentConfig.ExperimentalOverlayPending = nil
+        Log("PersistentConfig: Autosave overlay deferred to subtitle fallback because startup is too early.")
+        return false
+    end
+
+    return PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
 end
 
 local function ShowPdaFeedback(msg, r, g, b, duration)
     if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
         local colorPreset = GetPdaColorPreset()
         local layout = GetPdaLayoutMetrics(InputState and InputState.pdaPage or PdaPages.SETTINGS)
-        subtitles.set_channel_layout(PDA_FEEDBACK_CHANNEL, layout.panelX, layout.feedbackY, 0.0, 1.0, layout.feedbackTextScale,
+        subtitles.set_channel_layout(PersistentConfig.Channels.PdaFeedback, layout.panelX, layout.feedbackY, 0.0, 1.0, layout.feedbackTextScale,
             layout.wrapWidth, layout.paddingX, layout.paddingY, layout.opacity)
-        subtitles.clear_queue(PDA_FEEDBACK_CHANNEL)
+        subtitles.clear_queue(PersistentConfig.Channels.PdaFeedback)
         if subtitles.clear_current then
-            subtitles.clear_current(PDA_FEEDBACK_CHANNEL)
+            subtitles.clear_current(PersistentConfig.Channels.PdaFeedback)
         end
-        subtitles.submit_to(PDA_FEEDBACK_CHANNEL, msg, duration or 2.5, r or colorPreset.r, g or colorPreset.g, b or colorPreset.b)
+        subtitles.submit_to(PersistentConfig.Channels.PdaFeedback, msg, duration or 2.5, r or colorPreset.r,
+            g or colorPreset.g, b or colorPreset.b)
         return
     end
 
@@ -554,13 +733,15 @@ local function ShowWeaponStats(msg, duration)
         local colorPreset = GetPdaColorPreset()
 
         -- Anchor the panel on the left-middle of the screen with left alignment.
-        subtitles.set_channel_layout(WEAPON_STATS_CHANNEL, layout.panelX, 0.50, 0.0, 0.5, layout.textScale, layout.wrapWidth,
+        subtitles.set_channel_layout(PersistentConfig.Channels.WeaponStats, layout.panelX, 0.50, 0.0, 0.5,
+            layout.textScale, layout.wrapWidth,
             layout.paddingX, layout.paddingY, layout.opacity)
-        subtitles.clear_queue(WEAPON_STATS_CHANNEL)
+        subtitles.clear_queue(PersistentConfig.Channels.WeaponStats)
         if subtitles.clear_current then
-            subtitles.clear_current(WEAPON_STATS_CHANNEL)
+            subtitles.clear_current(PersistentConfig.Channels.WeaponStats)
         end
-        subtitles.submit_to(WEAPON_STATS_CHANNEL, msg, duration or 2.4, colorPreset.r, colorPreset.g, colorPreset.b)
+        subtitles.submit_to(PersistentConfig.Channels.WeaponStats, msg, duration or 2.4, colorPreset.r,
+            colorPreset.g, colorPreset.b)
     else
         local colorPreset = GetPdaColorPreset()
         ShowFeedback(msg, colorPreset.r, colorPreset.g, colorPreset.b, duration or 2.4, false)
@@ -569,19 +750,19 @@ end
 
 local function ClearWeaponStats()
     if subtitles and subtitles.clear_queue then
-        subtitles.clear_queue(WEAPON_STATS_CHANNEL)
+        subtitles.clear_queue(PersistentConfig.Channels.WeaponStats)
     end
     if subtitles and subtitles.clear_current then
-        subtitles.clear_current(WEAPON_STATS_CHANNEL)
+        subtitles.clear_current(PersistentConfig.Channels.WeaponStats)
     end
 end
 
 local function ClearPdaFeedback()
     if subtitles and subtitles.clear_queue then
-        subtitles.clear_queue(PDA_FEEDBACK_CHANNEL)
+        subtitles.clear_queue(PersistentConfig.Channels.PdaFeedback)
     end
     if subtitles and subtitles.clear_current then
-        subtitles.clear_current(PDA_FEEDBACK_CHANNEL)
+        subtitles.clear_current(PersistentConfig.Channels.PdaFeedback)
     end
 end
 
@@ -2189,14 +2370,15 @@ local function GetPresetSurchargeForEntry(entry)
     end
 
     if mortarUpgrades > 0 then
-        local mortarFlat = (PRESET_SURCHARGE_CONFIG and PRESET_SURCHARGE_CONFIG.mortarFlat) or 1.0
+        local surchargeConfig = PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.surcharge
+        local mortarFlat = (surchargeConfig and surchargeConfig.mortarFlat) or 1.0
         total = total + (mortarUpgrades * mortarFlat)
     end
 
     if #manualExtras > 0 then
         table.sort(manualExtras, function(a, b) return a > b end)
-        local multipliers = (PRESET_SURCHARGE_CONFIG and PRESET_SURCHARGE_CONFIG.multipliers) or { 0.5, 0.25 }
-        local tailMultiplier = (PRESET_SURCHARGE_CONFIG and PRESET_SURCHARGE_CONFIG.tailMultiplier) or 0.1
+        local multipliers = (surchargeConfig and surchargeConfig.multipliers) or { 0.5, 0.25 }
+        local tailMultiplier = (surchargeConfig and surchargeConfig.tailMultiplier) or 0.1
         for index, extra in ipairs(manualExtras) do
             local mult = multipliers[index] or tailMultiplier
             total = total + (extra * mult)
@@ -3308,14 +3490,15 @@ local function TryStartBuildForProducer(producer, team, scrapDelta)
     local keyInfo = InputState.lastBuildKey
     if not keyInfo or keyInfo.producer ~= producer or keyInfo.team ~= team then return end
     local now = GetTime()
-    if (now - (keyInfo.time or 0.0)) > (PRESET_BUILD_CONFIG.keyWindow or 0.5) then
+    local buildConfig = PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build
+    if (now - (keyInfo.time or 0.0)) > ((buildConfig and buildConfig.keyWindow) or 0.5) then
         return
     end
     local entry = GetBuildEntryForProducer(producer, keyInfo.keyIndex)
     if not entry then return end
 
     local stockCost = entry.scrapCost or 0.0
-    local tolerance = (PRESET_BUILD_CONFIG and PRESET_BUILD_CONFIG.scrapConfirmTolerance) or 0.5
+    local tolerance = (buildConfig and buildConfig.scrapConfirmTolerance) or 0.5
     if type(scrapDelta) == "number" and stockCost > 0.0 then
         if scrapDelta < (stockCost - tolerance) then
             return
@@ -3363,7 +3546,8 @@ local function UpdateProducerQueues(team)
                 queue.status = "Queue Ready: Press Enter"
             else
                 if queue.pendingIssue and not IsBusy(producer) then
-                    local window = (PRESET_BUILD_CONFIG and PRESET_BUILD_CONFIG.keyWindow) or 0.5
+                    local window = ((PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build)
+                        and PersistentConfig.PresetConfig.build.keyWindow) or 0.5
                     if (now - (queue.pendingIssue.time or 0.0)) > window then
                         queue.remaining = queue.remaining + 1
                         queue.pendingIssue = nil
@@ -3422,7 +3606,8 @@ local function UpdateProducerBuildState(team, scrapDelta)
             local wasBusy = busyState[producer] or false
             if not wasBusy and isBusy then
                 local queue = GetProducerQueueState(kindIndex)
-                local window = (PRESET_BUILD_CONFIG and PRESET_BUILD_CONFIG.keyWindow) or 0.5
+                local window = ((PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build)
+                    and PersistentConfig.PresetConfig.build.keyWindow) or 0.5
                 if queue and queue.pendingIssue and (GetTime() - (queue.pendingIssue.time or 0.0)) <= window then
                     queue.inProgress = true
                     local entry = GetUnitBuildEntry(queue.pendingIssue.unitOdf)
@@ -3452,7 +3637,8 @@ local function FindPendingBuildForUnit(team, unitOdfName, h)
     if not pending or #pending == 0 then return nil end
     local wanted = string.lower(CleanString(unitOdfName or ""))
     local now = GetTime()
-    local grace = (PRESET_BUILD_CONFIG and PRESET_BUILD_CONFIG.refundGrace) or 1.0
+    local grace = ((PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build)
+        and PersistentConfig.PresetConfig.build.refundGrace) or 1.0
     local bestIndex = nil
     for index, record in ipairs(pending) do
         if record.team == team and record.unitKey == wanted then
@@ -3479,7 +3665,8 @@ local function UpdatePendingBuildRefunds()
     local pending = InputState.pendingBuilds
     if not pending or #pending == 0 then return end
     local now = GetTime()
-    local grace = (PRESET_BUILD_CONFIG and PRESET_BUILD_CONFIG.refundGrace) or 1.0
+    local grace = ((PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build)
+        and PersistentConfig.PresetConfig.build.refundGrace) or 1.0
     for index = #pending, 1, -1 do
         local record = pending[index]
         local expireAt = (record.expectedFinishAt or 0.0) + grace
@@ -4025,10 +4212,12 @@ GetSettingsPageEntries = function()
     return {
         {
             label = "PDA SIZE",
-            value = FormatScale(PersistentConfig.Settings.PdaFontScale, PDA_FONT_SCALE_MIN, PDA_FONT_SCALE_MAX),
+            value = FormatScale(PersistentConfig.Settings.PdaFontScale, PersistentConfig.FontScale.pda.min,
+                PersistentConfig.FontScale.pda.max),
             adjust = function(delta)
                 PersistentConfig.Settings.PdaFontScale = AdjustScale(PersistentConfig.Settings.PdaFontScale, delta,
-                    PDA_FONT_SCALE_MIN, PDA_FONT_SCALE_MAX, PDA_FONT_SCALE_STEP)
+                    PersistentConfig.FontScale.pda.min, PersistentConfig.FontScale.pda.max,
+                    PersistentConfig.FontScale.pda.step)
                 CommitPdaSettingChange({ applySettings = true })
                 return true
             end,
@@ -4068,10 +4257,12 @@ GetSettingsPageEntries = function()
         },
         {
             label = "SUB SIZE",
-            value = FormatScale(PersistentConfig.Settings.SubtitleFontScale, SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX),
+            value = FormatScale(PersistentConfig.Settings.SubtitleFontScale, PersistentConfig.FontScale.subtitle.min,
+                PersistentConfig.FontScale.subtitle.max),
             adjust = function(delta)
                 PersistentConfig.Settings.SubtitleFontScale = AdjustScale(PersistentConfig.Settings.SubtitleFontScale, delta,
-                    SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX, SUBTITLE_FONT_SCALE_STEP)
+                    PersistentConfig.FontScale.subtitle.min, PersistentConfig.FontScale.subtitle.max,
+                    PersistentConfig.FontScale.subtitle.step)
                 CommitPdaSettingChange({ applySettings = true })
                 return true
             end,
@@ -4226,9 +4417,9 @@ function PersistentConfig.LoadConfig()
     local legacySubtitlePreset
     local legacyPdaTextPreset
     local status, err = pcall(function()
-        local f = bzfile.Open(configPath, "r")
+        local f = bzfile.Open(PersistentConfig.ConfigPath, "r")
         if not f then
-            print("PersistentConfig: No config file found at " .. configPath .. ". Using defaults.")
+            print("PersistentConfig: No config file found at " .. PersistentConfig.ConfigPath .. ". Using defaults.")
             return
         end
 
@@ -4341,9 +4532,9 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.SubtitleOpacity = ClampUnitInterval(PersistentConfig.Settings.SubtitleOpacity, 0.50)
     PersistentConfig.Settings.PdaOpacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.00)
     PersistentConfig.Settings.SubtitleFontScale = ClampRange(PersistentConfig.Settings.SubtitleFontScale,
-        SUBTITLE_FONT_SCALE_MIN, SUBTITLE_FONT_SCALE_MAX, 1.0)
+        PersistentConfig.FontScale.subtitle.min, PersistentConfig.FontScale.subtitle.max, 1.0)
     PersistentConfig.Settings.PdaFontScale = ClampRange(PersistentConfig.Settings.PdaFontScale,
-        PDA_FONT_SCALE_MIN, PDA_FONT_SCALE_MAX, 1.0)
+        PersistentConfig.FontScale.pda.min, PersistentConfig.FontScale.pda.max, 1.0)
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
     PersistentConfig.Settings.AutoSaveSlot = PersistentConfig._GetAutoSaveSlot()
     PersistentConfig.Settings.AutoSaveInterval = PersistentConfig._GetAutoSaveIntervalOption().seconds
@@ -4351,14 +4542,14 @@ end
 
 function PersistentConfig.SaveConfig()
     print("=== PersistentConfig: Attempting to save config ===")
-    print("Config path: " .. tostring(configPath))
+    print("Config path: " .. tostring(PersistentConfig.ConfigPath))
     print("Working directory: " .. tostring(bzfile.GetWorkingDirectory()))
 
     local status, err = pcall(function()
-        local f = bzfile.Open(configPath, "w", "trunc")
+        local f = bzfile.Open(PersistentConfig.ConfigPath, "w", "trunc")
         if not f then
             print("PersistentConfig: Failed to open config file for writing!")
-            print("Attempted path: " .. configPath)
+            print("Attempted path: " .. PersistentConfig.ConfigPath)
             return
         end
 
@@ -4406,7 +4597,7 @@ function PersistentConfig.SaveConfig()
     if not status then
         print("PersistentConfig: Error saving config: " .. tostring(err))
     else
-        print("PersistentConfig: Settings saved successfully to: " .. configPath)
+        print("PersistentConfig: Settings saved successfully to: " .. PersistentConfig.ConfigPath)
     end
 end
 
@@ -4523,9 +4714,23 @@ function PersistentConfig.UpdateInputs()
         escapePressed = true
     end
 
+    if PersistentConfig.ExperimentalOverlayVisible then
+        local hideAt = PersistentConfig.ExperimentalOverlayExpireAt or 0.0
+        if pauseMenuOpen or GetTime() >= hideAt then
+            PersistentConfig._HideExperimentalOverlay()
+        end
+    end
+
     InputState.SubtitlesPaused = pauseMenuOpen or escapePressed
     if subtitles and subtitles.set_suspended then
         subtitles.set_suspended(InputState.SubtitlesPaused)
+    end
+
+    local pendingOverlay = PersistentConfig.ExperimentalOverlayPending
+    if pendingOverlay and not InputState.SubtitlesPaused and GetTime() >= (pendingOverlay.readyAt or 0.0) then
+        PersistentConfig.ExperimentalOverlayPending = nil
+        PersistentConfig._ShowAutoSaveOverlayNow(pendingOverlay.msg, pendingOverlay.duration, pendingOverlay.r,
+            pendingOverlay.g, pendingOverlay.b)
     end
 
     if pauseMenuOpen then
@@ -5179,7 +5384,8 @@ function PersistentConfig.Initialize()
     end
     PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings()
-    TryCreateExperimentalOverlay()
+    -- Keep EXU overlay/font initialization lazy so startup does not touch the
+    -- custom Ogre font path before the UI runtime is fully ready.
     InstallPlayerChargeTrackingHook()
     MarkOtherHeadlightsDirty()
 
