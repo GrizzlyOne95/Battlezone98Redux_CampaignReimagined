@@ -17,9 +17,40 @@ PersistentConfig.ExperimentalOverlayReady = false
 PersistentConfig.ExperimentalOverlayFailed = false
 PersistentConfig.ExperimentalOverlayVisible = false
 PersistentConfig.ExperimentalOverlayExpireAt = 0.0
-PersistentConfig.ExperimentalOverlayDebugBox = false
+PersistentConfig.ExperimentalOverlayDebugBox = true
+PersistentConfig.ExperimentalOverlayForcePixelMetrics = true
+PersistentConfig.ExperimentalOverlayDebugZOrder = 650
 PersistentConfig.ExperimentalOverlayPending = nil
+PersistentConfig.PdaOverlay = {
+    ready = false,
+    failed = false,
+    font = "CRBZoneOverlayFont",
+    useCustomFont = true,
+    zOrder = 645,
+    statsVisible = false,
+    feedbackVisible = false,
+    feedbackExpireAt = 0.0,
+    ids = {
+        stats = {
+            overlay = "cr_pda_stats_overlay",
+            root = "cr_pda_stats_overlay_root",
+            backdrop = "cr_pda_stats_overlay_backdrop",
+            header = "cr_pda_stats_overlay_header",
+            title = "cr_pda_stats_overlay_title",
+            tabs = "cr_pda_stats_overlay_tabs",
+            text = "cr_pda_stats_overlay_text",
+            footer = "cr_pda_stats_overlay_footer",
+        },
+        feedback = {
+            overlay = "cr_pda_feedback_overlay",
+            root = "cr_pda_feedback_overlay_root",
+            backdrop = "cr_pda_feedback_overlay_backdrop",
+            text = "cr_pda_feedback_overlay_text",
+        },
+    },
+}
 local InputState
+local ShowFeedback
 PersistentConfig.PlayerChargeWeaponState = PersistentConfig.PlayerChargeWeaponState or nil
 
 -- Internal Feedback Queue
@@ -48,7 +79,7 @@ PersistentConfig.DefaultSettings = {
     AutoRepairWingmen = true,       -- Auto-repair wingmen on by default
     RainbowMode = false,            -- Special color effect
     ScavengerAssistEnabled = true,  -- Auto-scavenge for player scavengers
-    AutoSaveSlot = 10,              -- Default to slot 10
+    AutoSaveSlot = 10,              -- Legacy setting kept for config compatibility
     AutoSaveEnabled = false,        -- AutoSave disabled by default
     AutoSaveInterval = 300,         -- Auto-save every 5 minutes
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
@@ -102,6 +133,8 @@ PersistentConfig.FontScale = {
     subtitle = { min = 0.85, max = 2.00, step = 0.05 },
 }
 PersistentConfig.AutoSaveUi = {
+    filePath = "Save\\auto.sav",
+    fileLabel = "AUTO.SAV",
     slotMin = 1,
     slotMax = 10,
     intervalOptions = {
@@ -109,6 +142,15 @@ PersistentConfig.AutoSaveUi = {
         { seconds = 300, label = "5 MIN" },
         { seconds = 600, label = "10 MIN" },
     },
+}
+
+PersistentConfig.OpenShimInstaller = {
+    bundledRootName = "winmm.dll",
+    restartObjectiveId = "openshim_restart_required",
+    updateObjectiveId = "openshim_update_required",
+    manualObjectiveId = "openshim_install_manual",
+    restartMessage = "OpenShim installed. Restart Battlezone to enable native AutoSave UI.",
+    updateMessage = "OpenShim updated. Restart Battlezone to enable the latest native AutoSave UI.",
 }
 
 local LEGACY_TEXT_PRESET_SCALES = {
@@ -144,6 +186,139 @@ local function getWorkingDirectory()
 end
 PersistentConfig.ConfigPath = getWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
 
+local function BzFileExists(path)
+    if not path or path == "" then
+        return false
+    end
+
+    if bzfile and type(bzfile.Exists) == "function" then
+        local ok, exists = pcall(bzfile.Exists, path)
+        if ok then
+            return not not exists
+        end
+    end
+
+    if io and type(io.open) == "function" then
+        local file = io.open(path, "rb")
+        if file then
+            file:close()
+            return true
+        end
+    end
+
+    if bzfile and type(bzfile.Open) == "function" then
+        local ok = pcall(function()
+            local handle = bzfile.Open(path, "r")
+            handle:Read(1)
+            handle:Close()
+        end)
+        if ok then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function GetBzFileHash(path)
+    if not path or path == "" then
+        return nil
+    end
+
+    if bzfile and type(bzfile.GetFileHash) == "function" then
+        local ok, hashOrNil, errorMessage = pcall(bzfile.GetFileHash, path, "sha256")
+        if ok and type(hashOrNil) == "string" and hashOrNil ~= "" then
+            return string.lower(hashOrNil)
+        end
+
+        local detail = ok and tostring(errorMessage or "unknown error") or tostring(hashOrNil)
+        print("PersistentConfig: GetFileHash failed for " .. tostring(path) .. ": " .. detail)
+    end
+
+    return nil
+end
+
+local function GetBundledOpenShimSourcePath()
+    local workingDirectory = getWorkingDirectory()
+    local candidates = {
+        workingDirectory .. "\\addon\\campaignReimagined\\" .. PersistentConfig.OpenShimInstaller.bundledRootName,
+        workingDirectory .. "\\addon\\campaignReimagined\\_Release\\" .. PersistentConfig.OpenShimInstaller.bundledRootName,
+        workingDirectory .. "\\addon\\campaignReimagined\\_Source\\Bin\\" .. PersistentConfig.OpenShimInstaller.bundledRootName,
+    }
+
+    for _, candidate in ipairs(candidates) do
+        if BzFileExists(candidate) then
+            return candidate
+        end
+    end
+
+    return nil
+end
+
+local function NotifyOpenShimInstall(message, color, objectiveId)
+    local tint = color or { r = 1.0, g = 0.85, b = 0.2 }
+    if AddObjective and objectiveId and objectiveId ~= "" then
+        AddObjective(objectiveId, "yellow", 15.0, message)
+    end
+    ShowFeedback(message, tint.r, tint.g, tint.b, 12.0, true)
+end
+
+local function EnsureBundledOpenShimInstalled()
+    if PersistentConfig.OpenShimInstallChecked then
+        return
+    end
+    PersistentConfig.OpenShimInstallChecked = true
+
+    if not (bzfile and type(bzfile.CopyFile) == "function") then
+        print("PersistentConfig: bzfile.CopyFile unavailable; skipping OpenShim self-install.")
+        return
+    end
+
+    local workingDirectory = getWorkingDirectory()
+    local destinationPath = workingDirectory .. "\\winmm.dll"
+    local sourcePath = GetBundledOpenShimSourcePath()
+    if not sourcePath then
+        print("PersistentConfig: No bundled OpenShim winmm.dll found; skipping self-install.")
+        return
+    end
+
+    local destinationExists = BzFileExists(destinationPath)
+    local shouldOverwrite = false
+    local successMessage = PersistentConfig.OpenShimInstaller.restartMessage
+    local successObjectiveId = PersistentConfig.OpenShimInstaller.restartObjectiveId
+    local manualMessage = "OpenShim self-install failed. Copy addon\\campaignReimagined\\winmm.dll to the game folder manually."
+
+    if destinationExists then
+        local sourceHash = GetBzFileHash(sourcePath)
+        local destinationHash = GetBzFileHash(destinationPath)
+        if sourceHash and destinationHash and sourceHash == destinationHash then
+            return
+        end
+        if not (sourceHash and destinationHash) then
+            print("PersistentConfig: OpenShim hash comparison unavailable; leaving existing winmm.dll unchanged.")
+            return
+        end
+
+        shouldOverwrite = true
+        successMessage = PersistentConfig.OpenShimInstaller.updateMessage
+        successObjectiveId = PersistentConfig.OpenShimInstaller.updateObjectiveId
+        manualMessage =
+            "OpenShim update is available, but winmm.dll could not be replaced while Battlezone was running. Close the game and copy addon\\campaignReimagined\\winmm.dll to the game folder."
+    end
+
+    local ok, copied, copyError = pcall(bzfile.CopyFile, sourcePath, destinationPath, shouldOverwrite)
+    if ok and copied then
+        print("PersistentConfig: Installed bundled OpenShim to " .. destinationPath)
+        NotifyOpenShimInstall(successMessage, nil, successObjectiveId)
+        return
+    end
+
+    local errorText = ok and tostring(copyError or "copy failed") or tostring(copied)
+    print("PersistentConfig: OpenShim self-install failed: " .. errorText)
+    NotifyOpenShimInstall(manualMessage, { r = 1.0, g = 0.35, b = 0.35 },
+        PersistentConfig.OpenShimInstaller.manualObjectiveId)
+end
+
 -- Logging Helper
 local function Log(msg)
     if Print then
@@ -154,7 +329,7 @@ local function Log(msg)
 end
 
 -- On-Screen Feedback Helper
-local function ShowFeedback(msg, r, g, b, duration, bypass, target)
+ShowFeedback = function(msg, r, g, b, duration, bypass, target)
     -- Push to queue instead of displaying immediately
     table.insert(PersistentConfig.FeedbackQueue, {
         msg = msg,
@@ -261,6 +436,14 @@ function PersistentConfig._GetAutoSaveIntervalOption()
     return PersistentConfig.AutoSaveUi.intervalOptions[index], index
 end
 
+function PersistentConfig._GetAutoSavePath()
+    return PersistentConfig.AutoSaveUi.filePath or "Save\\auto.sav"
+end
+
+function PersistentConfig._GetAutoSaveFileLabel()
+    return PersistentConfig.AutoSaveUi.fileLabel or "AUTO.SAV"
+end
+
 function PersistentConfig._ClearAutoSaveEnablePrompt()
     if not InputState then
         return false
@@ -287,33 +470,32 @@ function PersistentConfig._GetAutoSaveEnterHint()
         return "LEFT DISABLE"
     end
 
-    local slot = PersistentConfig._GetAutoSaveSlot()
     if InputState and InputState.autoSaveEnableArmed then
-        return string.format("ENTER CONFIRM SLOT %d", slot)
+        return "ENTER CONFIRM"
     end
-    return string.format("ENTER ARM SLOT %d", slot)
+    return "ENTER ARM"
 end
 
 function PersistentConfig._BuildAutoSaveWarningLines(selectedEntry)
-    local slot = PersistentConfig._GetAutoSaveSlot()
     local showDetails = PersistentConfig.Settings.AutoSaveEnabled
         or (InputState and InputState.autoSaveEnableArmed)
-        or (selectedEntry and (selectedEntry.key == "autosave" or selectedEntry.key == "autosave_slot" or
+        or (selectedEntry and (selectedEntry.key == "autosave" or selectedEntry.key == "autosave_file" or
             selectedEntry.key == "autosave_interval"))
 
     if not showDetails then
         return nil
     end
 
+    local targetPath = PersistentConfig._GetAutoSavePath()
     local lines = {}
     if InputState and InputState.autoSaveEnableArmed then
-        lines[#lines + 1] = string.format("WARNING ENTER AGAIN TO USE SLOT %d", slot)
+        lines[#lines + 1] = string.format("WARNING ENTER AGAIN TO USE %s", targetPath)
     elseif PersistentConfig.Settings.AutoSaveEnabled then
-        lines[#lines + 1] = string.format("WARNING AUTOSAVE RESERVES SLOT %d", slot)
+        lines[#lines + 1] = string.format("WARNING AUTOSAVE WRITES %s", targetPath)
     else
-        lines[#lines + 1] = string.format("AUTOSAVE CAN RESERVE SLOT %d", slot)
+        lines[#lines + 1] = string.format("AUTOSAVE TARGET %s", targetPath)
     end
-    lines[#lines + 1] = string.format("FIRST USE BACKS UP game%d.sav", slot)
+    lines[#lines + 1] = string.format("FIRST USE BACKS UP %s", PersistentConfig._GetAutoSaveFileLabel())
     lines[#lines + 1] = "BACKUP PATH Save\\AutoSaveBackups"
     return lines
 end
@@ -453,13 +635,29 @@ local function GetPdaLayoutMetrics(page)
     }
 end
 
-function PersistentConfig._GetAutoSaveOverlayLayout()
+function PersistentConfig._GetAutoSaveOverlayLayout(pixelMode)
     local width, height, uiScale = PersistentConfig._GetUiResolutionMetrics()
     local fontScale = GetSubtitleFontScale()
     local aspect = width / math.max(height, 1)
     local aspectScale = math.min(1.35, math.max(0.82, (16.0 / 9.0) / aspect))
     local uiScaleFactor = math.min(1.30, math.max(0.90, (uiScale / 2.0) ^ 0.32))
     local compactFontScale = math.min(1.20, math.max(0.92, fontScale ^ 0.45))
+    if pixelMode then
+        local horizontalMargin = math.max(32, math.floor(width * 0.04))
+        local wrapWidth = math.max(640, width - (horizontalMargin * 2))
+        local charHeight = math.max(34, math.floor(30 * uiScaleFactor))
+        local panelHeight = math.max(120, math.floor(charHeight * 2.8))
+        return {
+            panelX = horizontalMargin,
+            panelY = math.max(40, math.floor(height * 0.18)),
+            wrapWidth = wrapWidth,
+            panelHeight = panelHeight,
+            charHeight = charHeight,
+            textOffsetX = 20,
+            textOffsetY = 18,
+        }
+    end
+
     local wrapWidth = math.min(0.34, math.max(0.18,
         0.22 * math.min(1.18, math.max(0.90, 1.0 / aspectScale)) * compactFontScale))
     local charHeight = math.min(0.042, math.max(0.024, 0.026 * aspectScale * uiScaleFactor * compactFontScale))
@@ -471,6 +669,8 @@ function PersistentConfig._GetAutoSaveOverlayLayout()
         wrapWidth = math.max(wrapWidth, 0.38),
         panelHeight = panelHeight,
         charHeight = charHeight,
+        textOffsetX = 0.010,
+        textOffsetY = 0.006,
     }
 end
 
@@ -538,8 +738,12 @@ function PersistentConfig._TryCreateExperimentalOverlay()
 
     PersistentConfig._DestroyExperimentalOverlay()
 
-    local layout = PersistentConfig._GetAutoSaveOverlayLayout()
     local metricsMode = (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.RELATIVE) or 0
+    if PersistentConfig.ExperimentalOverlayForcePixelMetrics and exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.PIXELS then
+        metricsMode = exu.OVERLAY_METRICS.PIXELS
+    end
+    local layout = PersistentConfig._GetAutoSaveOverlayLayout(
+        metricsMode == (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.PIXELS))
     local ok = true
 
     local function SafeCall(fn, ...)
@@ -576,7 +780,8 @@ function PersistentConfig._TryCreateExperimentalOverlay()
     end
     SafeCall(exu.AddOverlay2D, ids.overlay, ids.root)
     SafeCall(exu.AddOverlayElementChild, ids.root, ids.text)
-    SafeCall(exu.SetOverlayZOrder, ids.overlay, 640)
+    local overlayZOrder = ClampRange(PersistentConfig.ExperimentalOverlayDebugZOrder, 0, 650, 640)
+    SafeCall(exu.SetOverlayZOrder, ids.overlay, overlayZOrder)
 
     SafeCall(exu.SetOverlayMetricsMode, ids.root, metricsMode)
     SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
@@ -591,7 +796,7 @@ function PersistentConfig._TryCreateExperimentalOverlay()
     end
 
     SafeCall(exu.SetOverlayMetricsMode, ids.text, metricsMode)
-    SafeCall(exu.SetOverlayPosition, ids.text, 0.010, 0.006)
+    SafeCall(exu.SetOverlayPosition, ids.text, layout.textOffsetX or 0.010, layout.textOffsetY or 0.006)
     SafeCall(exu.SetOverlayDimensions, ids.text, layout.wrapWidth, layout.panelHeight)
     if PersistentConfig.ExperimentalOverlayUseCustomFont then
         if SafeCall(exu.SetOverlayTextFont, ids.text, PersistentConfig.ExperimentalOverlayFont) ~= true then
@@ -637,7 +842,12 @@ function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
         return false
     end
 
-    local layout = PersistentConfig._GetAutoSaveOverlayLayout()
+    local metricsMode = (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.RELATIVE) or 0
+    if PersistentConfig.ExperimentalOverlayForcePixelMetrics and exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.PIXELS then
+        metricsMode = exu.OVERLAY_METRICS.PIXELS
+    end
+    local layout = PersistentConfig._GetAutoSaveOverlayLayout(
+        metricsMode == (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.PIXELS))
     local ok = true
 
     local function SafeCall(fn, ...)
@@ -665,12 +875,16 @@ function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
         SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.55)
     end
     SafeCall(exu.SetOverlayDimensions, ids.text, layout.wrapWidth, layout.panelHeight)
-    SafeCall(exu.SetOverlayPosition, ids.text, 0.010, 0.006)
+    SafeCall(exu.SetOverlayPosition, ids.text, layout.textOffsetX or 0.010, layout.textOffsetY or 0.006)
     SafeCall(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
+    local textR, textG, textB = r or 0.82, g or 1.0, b or 0.82
+    if PersistentConfig.ExperimentalOverlayDebugBox then
+        textR, textG, textB = 0.0, 0.0, 0.0
+    end
     if exu.SetOverlayTextColor then
-        SafeCall(exu.SetOverlayTextColor, ids.text, r or 0.82, g or 1.0, b or 0.82, 1.0)
+        SafeCall(exu.SetOverlayTextColor, ids.text, textR, textG, textB, 1.0)
     else
-        SafeCall(exu.SetOverlayColor, ids.text, r or 0.82, g or 1.0, b or 0.82, 1.0)
+        SafeCall(exu.SetOverlayColor, ids.text, textR, textG, textB, 1.0)
     end
     SafeCall(exu.SetOverlayCaption, ids.text, msg)
     SafeCall(exu.ShowOverlayElement, ids.root)
@@ -712,7 +926,717 @@ function PersistentConfig.TryShowAutoSaveOverlayInfo(msg, duration, r, g, b)
     return PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
 end
 
+function PersistentConfig._NormalizeOverlayText(text)
+    text = tostring(text or "")
+    text = text:gsub("\r\n", "\n")
+    text = text:gsub("\r", "\n")
+    return text
+end
+
+function PersistentConfig._CountOverlayTextLines(text)
+    local normalized = PersistentConfig._NormalizeOverlayText(text)
+    local count = 0
+    for _ in (normalized .. "\n"):gmatch("(.-)\n") do
+        count = count + 1
+    end
+    return math.max(count, 1)
+end
+
+function PersistentConfig._GetOverlayLongestLineLength(text)
+    local longest = 0
+    for line in (PersistentConfig._NormalizeOverlayText(text) .. "\n"):gmatch("(.-)\n") do
+        longest = math.max(longest, #line)
+    end
+    return longest
+end
+
+function PersistentConfig._SplitOverlayToken(token, maxCharsPerLine)
+    local parts = {}
+    token = tostring(token or "")
+    maxCharsPerLine = math.max(tonumber(maxCharsPerLine) or 12, 4)
+
+    while #token > maxCharsPerLine do
+        local take = math.max(maxCharsPerLine - 1, 1)
+        parts[#parts + 1] = token:sub(1, take) .. "-"
+        token = token:sub(take + 1)
+    end
+
+    if token ~= "" then
+        parts[#parts + 1] = token
+    end
+    if #parts == 0 then
+        parts[1] = ""
+    end
+    return parts
+end
+
+function PersistentConfig._WrapOverlayText(text, maxCharsPerLine)
+    text = PersistentConfig._NormalizeOverlayText(text)
+    maxCharsPerLine = math.max(tonumber(maxCharsPerLine) or 32, 8)
+
+    local wrappedLines = {}
+    for paragraph in (text .. "\n"):gmatch("(.-)\n") do
+        if paragraph == "" then
+            wrappedLines[#wrappedLines + 1] = ""
+        else
+            local current = ""
+            for word in paragraph:gmatch("%S+") do
+                local pieces = PersistentConfig._SplitOverlayToken(word, maxCharsPerLine)
+                for _, piece in ipairs(pieces) do
+                    if current == "" then
+                        current = piece
+                    elseif (#current + 1 + #piece) <= maxCharsPerLine then
+                        current = current .. " " .. piece
+                    else
+                        wrappedLines[#wrappedLines + 1] = current
+                        current = piece
+                    end
+                end
+            end
+            if current ~= "" then
+                wrappedLines[#wrappedLines + 1] = current
+            end
+        end
+    end
+
+    return table.concat(wrappedLines, "\n")
+end
+
+function PersistentConfig._EstimateOverlayCharsPerLine(widthPixels, charHeightPixels, widthFactor, horizontalPadding)
+    widthPixels = math.max(tonumber(widthPixels) or 0, 16)
+    charHeightPixels = math.max(tonumber(charHeightPixels) or 0, 1)
+    widthFactor = math.max(tonumber(widthFactor) or 0.82, 0.55)
+    horizontalPadding = math.max(tonumber(horizontalPadding) or 0, 0)
+
+    local usableWidth = math.max(widthPixels - (horizontalPadding * 2), charHeightPixels * 4)
+    return math.max(8, math.floor(usableWidth / (charHeightPixels * widthFactor)))
+end
+
+function PersistentConfig._WrapOverlayTextToPixels(text, widthPixels, charHeightPixels, widthFactor, horizontalPadding)
+    local maxCharsPerLine = PersistentConfig._EstimateOverlayCharsPerLine(widthPixels, charHeightPixels, widthFactor,
+        horizontalPadding)
+    return PersistentConfig._WrapOverlayText(text, maxCharsPerLine)
+end
+
+function PersistentConfig._GetOverlayTextBlockHeight(charHeightPixels, lineCount, lineSpacing)
+    charHeightPixels = math.max(tonumber(charHeightPixels) or 0, 1)
+    lineCount = math.max(tonumber(lineCount) or 0, 1)
+    lineSpacing = math.max(tonumber(lineSpacing) or 1.10, 1.0)
+    return math.max(charHeightPixels + 4, math.floor(charHeightPixels * lineSpacing * lineCount + 6))
+end
+
+function PersistentConfig._CanUsePdaOverlay()
+    if PersistentConfig.PdaOverlay.failed then
+        return false
+    end
+
+    return exu and exu.CreateOverlay and exu.DestroyOverlay and exu.ShowOverlay and exu.HideOverlay
+        and exu.CreateOverlayElement and exu.DestroyOverlayElement and exu.AddOverlay2D and exu.RemoveOverlay2D
+        and exu.AddOverlayElementChild and exu.RemoveOverlayElementChild and exu.SetOverlayZOrder
+        and exu.SetOverlayMetricsMode and exu.SetOverlayPosition and exu.SetOverlayDimensions
+        and exu.SetOverlayColor and exu.SetOverlayCaption and exu.SetOverlayMaterial
+        and exu.SetOverlayTextCharHeight and exu.SetOverlayTextFont and exu.ShowOverlayElement
+        and exu.HideOverlayElement and exu.SetOverlayParameter and exu.OVERLAY_METRICS
+        and exu.OVERLAY_METRICS.PIXELS
+end
+
+function PersistentConfig._GetPdaOverlayMetricsMode()
+    if not (exu and exu.OVERLAY_METRICS) then
+        return nil
+    end
+    return exu.OVERLAY_METRICS.PIXELS
+end
+
+function PersistentConfig._SplitPdaOverlaySections(rawText)
+    local lines = {}
+    for line in (PersistentConfig._NormalizeOverlayText(rawText) .. "\n"):gmatch("(.-)\n") do
+        lines[#lines + 1] = line
+    end
+
+    local title = lines[1] or "BATTLEZONE PDA"
+    title = title:gsub("^%*%*(.-)%*%*$", "%1")
+    local tabs = lines[2] or ""
+    local footer = ""
+    local bodyStart = 3
+    local bodyEnd = #lines
+
+    if #lines >= 6 and lines[#lines - 3] == "" then
+        footer = table.concat({ lines[#lines - 2] or "", lines[#lines - 1] or "", lines[#lines] or "" }, "\n")
+        bodyEnd = #lines - 4
+    end
+
+    if bodyEnd < bodyStart then
+        bodyEnd = bodyStart - 1
+    end
+
+    local bodyLines = {}
+    for index = bodyStart, bodyEnd do
+        bodyLines[#bodyLines + 1] = lines[index]
+    end
+
+    return {
+        title = title,
+        tabs = tabs,
+        body = table.concat(bodyLines, "\n"),
+        footer = footer,
+    }
+end
+
+function PersistentConfig._GetPdaOverlayColorSet(r, g, b)
+    local preset = GetPdaColorPreset()
+    local baseR = ClampUnitInterval(r, preset.r)
+    local baseG = ClampUnitInterval(g, preset.g)
+    local baseB = ClampUnitInterval(b, preset.b)
+    local opacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.0)
+
+    local backgroundAlpha = math.min(0.82, 0.22 + (opacity * 0.38))
+    local headerAlpha = math.min(0.76, 0.20 + (opacity * 0.34))
+    local borderAlpha = math.min(1.0, 0.68 + (opacity * 0.28))
+    local textAlpha = math.min(1.0, 0.92 + (opacity * 0.08))
+
+    return {
+        backdrop = {
+            r = math.min(0.14, 0.012 + (baseR * 0.05)),
+            g = math.min(0.14, 0.012 + (baseG * 0.05)),
+            b = math.min(0.14, 0.012 + (baseB * 0.05)),
+            a = backgroundAlpha,
+        },
+        header = {
+            r = math.min(0.18, 0.018 + (baseR * 0.08)),
+            g = math.min(0.18, 0.018 + (baseG * 0.08)),
+            b = math.min(0.18, 0.018 + (baseB * 0.08)),
+            a = headerAlpha,
+        },
+        border = {
+            r = math.min(1.0, 0.30 + (baseR * 0.85)),
+            g = math.min(1.0, 0.30 + (baseG * 0.85)),
+            b = math.min(1.0, 0.30 + (baseB * 0.85)),
+            a = borderAlpha,
+        },
+        text = {
+            r = math.min(1.0, 0.52 + (baseR * 0.60)),
+            g = math.min(1.0, 0.52 + (baseG * 0.60)),
+            b = math.min(1.0, 0.52 + (baseB * 0.60)),
+            a = textAlpha,
+        },
+        title = {
+            r = math.min(1.0, 0.72 + (baseR * 0.38)),
+            g = math.min(1.0, 0.72 + (baseG * 0.38)),
+            b = math.min(1.0, 0.72 + (baseB * 0.38)),
+            a = 1.0,
+        },
+        footer = {
+            r = math.min(1.0, 0.42 + (baseR * 0.52)),
+            g = math.min(1.0, 0.42 + (baseG * 0.52)),
+            b = math.min(1.0, 0.42 + (baseB * 0.52)),
+            a = textAlpha,
+        },
+    }
+end
+
+function PersistentConfig._GetPdaOverlayPixelLayout(kind, rawText, page)
+    local screenW, screenH, uiScale = PersistentConfig._GetUiResolutionMetrics()
+    local layout = GetPdaLayoutMetrics(page)
+    local isFeedback = (kind == "feedback")
+    local alignmentY = isFeedback and 1.0 or 0.5
+    local anchorY = isFeedback and layout.feedbackY or 0.50
+    local marginX = math.max(18, math.floor(screenW * 0.010))
+    local marginY = math.max(16, math.floor(screenH * 0.014))
+    local screenScale = math.min(1.40, math.max(0.85, screenH / 1080.0))
+    local uiScaleFactor = math.min(1.30, math.max(0.90, (uiScale / 2.0) ^ 0.25))
+    local pdaScale = GetPdaFontScale()
+
+    if isFeedback then
+        local maxTextWidth = ClampRange(math.floor(screenW * math.min(0.34, layout.wrapWidth * 0.95)), 260,
+            math.floor(screenW * 0.42), 420)
+        local charHeight = ClampRange(math.floor((12.0 * pdaScale * uiScaleFactor * screenScale) + 0.5), 14, 24, 16)
+        local paddingX = math.max(14, math.floor(charHeight * 0.70))
+        local paddingY = math.max(10, math.floor(charHeight * 0.48))
+        local borderSize = math.max(2, math.floor(charHeight * 0.12))
+        local wrappedText = PersistentConfig._WrapOverlayTextToPixels(rawText, maxTextWidth, charHeight, 0.72, 0)
+        local textHeight = PersistentConfig._GetOverlayTextBlockHeight(charHeight,
+            PersistentConfig._CountOverlayTextLines(wrappedText), 1.08)
+        local longestLine = PersistentConfig._GetOverlayLongestLineLength(wrappedText)
+        local estimatedTextWidth = math.min(maxTextWidth,
+            math.max(charHeight * 10, math.floor((longestLine * charHeight * 0.72) + 10)))
+        local panelWidth = estimatedTextWidth + (paddingX * 2) + (borderSize * 2)
+        local panelHeight = textHeight + (paddingY * 2) + (borderSize * 2)
+        local panelX = math.max(marginX, math.floor(screenW * layout.panelX))
+        local panelY = math.floor((screenH * anchorY) - (panelHeight * alignmentY))
+        panelY = ClampRange(panelY, marginY, screenH - panelHeight - marginY, marginY)
+        panelX = ClampRange(panelX, marginX, screenW - panelWidth - marginX, marginX)
+
+        return {
+            panelX = panelX,
+            panelY = panelY,
+            panelWidth = panelWidth,
+            panelHeight = panelHeight,
+            borderSize = borderSize,
+            backdropX = borderSize,
+            backdropY = borderSize,
+            backdropWidth = math.max(panelWidth - (borderSize * 2), 2),
+            backdropHeight = math.max(panelHeight - (borderSize * 2), 2),
+            textX = borderSize + paddingX,
+            textY = borderSize + paddingY,
+            textWidth = math.max(panelWidth - ((borderSize + paddingX) * 2), 32),
+            textHeight = textHeight,
+            charHeight = charHeight,
+            wrappedText = wrappedText,
+        }
+    end
+
+    local sections = PersistentConfig._SplitPdaOverlaySections(rawText)
+    local contentWidth = ClampRange(math.floor(screenW * math.min(0.34, layout.wrapWidth + 0.02)), 360,
+        math.min(620, screenW - 100), 460)
+    local bodyCharHeight = ClampRange(math.floor((14.5 * pdaScale * uiScaleFactor * screenScale) + 0.5), 16, 28, 19)
+    local titleCharHeight = math.max(bodyCharHeight + 3, math.floor(bodyCharHeight * 1.14))
+    local tabsCharHeight = math.max(13, math.floor(bodyCharHeight * 0.78))
+    local footerCharHeight = math.max(11, math.floor(bodyCharHeight * 0.68))
+    local paddingX = math.max(16, math.floor(bodyCharHeight * 0.62))
+    local paddingY = math.max(12, math.floor(bodyCharHeight * 0.44))
+    local borderSize = math.max(2, math.floor(bodyCharHeight * 0.10))
+    local headerPaddingTop = math.max(6, math.floor(bodyCharHeight * 0.18))
+    local sectionGap = math.max(6, math.floor(bodyCharHeight * 0.18))
+
+    local wrappedTabs = PersistentConfig._WrapOverlayTextToPixels(sections.tabs, contentWidth, tabsCharHeight, 0.72, 0)
+    local wrappedBody = PersistentConfig._WrapOverlayTextToPixels(sections.body, contentWidth, bodyCharHeight, 0.68, 0)
+    local wrappedFooter = PersistentConfig._WrapOverlayTextToPixels(sections.footer, contentWidth, footerCharHeight, 0.72, 0)
+
+    local titleHeight = PersistentConfig._GetOverlayTextBlockHeight(titleCharHeight, 1, 1.0)
+    local tabsHeight = PersistentConfig._GetOverlayTextBlockHeight(tabsCharHeight,
+        PersistentConfig._CountOverlayTextLines(wrappedTabs), 1.02)
+    local bodyHeight = PersistentConfig._GetOverlayTextBlockHeight(bodyCharHeight,
+        PersistentConfig._CountOverlayTextLines(wrappedBody), 1.08)
+    local footerHeight = 0
+    if wrappedFooter ~= "" then
+        footerHeight = PersistentConfig._GetOverlayTextBlockHeight(footerCharHeight,
+            PersistentConfig._CountOverlayTextLines(wrappedFooter), 1.05)
+    end
+
+    local headerHeight = titleHeight + tabsHeight + headerPaddingTop + 8
+    local panelWidth = contentWidth + (paddingX * 2) + (borderSize * 2)
+    local panelHeight = headerHeight + bodyHeight + footerHeight + (paddingY * 2) + (borderSize * 2) + sectionGap
+    if footerHeight > 0 then
+        panelHeight = panelHeight + sectionGap
+    end
+
+    local panelX = math.max(marginX, math.floor(screenW * layout.panelX))
+    local panelY = math.floor((screenH * anchorY) - (panelHeight * alignmentY))
+    panelY = ClampRange(panelY, marginY, screenH - panelHeight - marginY, marginY)
+    panelX = ClampRange(panelX, marginX, screenW - panelWidth - marginX, marginX)
+
+    local headerX = borderSize
+    local headerY = borderSize
+    local headerWidth = math.max(panelWidth - (borderSize * 2), 2)
+    local backdropY = borderSize
+    local backdropHeight = math.max(panelHeight - (borderSize * 2), 2)
+    local bodyTextY = borderSize + headerHeight + paddingY
+    local footerTextY = bodyTextY + bodyHeight + sectionGap
+
+    return {
+        panelX = panelX,
+        panelY = panelY,
+        panelWidth = panelWidth,
+        panelHeight = panelHeight,
+        borderSize = borderSize,
+        backdropX = borderSize,
+        backdropY = backdropY,
+        backdropWidth = math.max(panelWidth - (borderSize * 2), 2),
+        backdropHeight = backdropHeight,
+        headerX = headerX,
+        headerY = headerY,
+        headerWidth = headerWidth,
+        headerHeight = headerHeight,
+        titleX = borderSize + paddingX,
+        titleY = borderSize + headerPaddingTop,
+        titleWidth = contentWidth,
+        titleHeight = titleHeight,
+        titleCharHeight = titleCharHeight,
+        titleText = sections.title,
+        tabsX = borderSize + paddingX,
+        tabsY = borderSize + headerPaddingTop + titleHeight - 4,
+        tabsWidth = contentWidth,
+        tabsHeight = tabsHeight,
+        tabsCharHeight = tabsCharHeight,
+        tabsText = wrappedTabs,
+        textX = borderSize + paddingX,
+        textY = bodyTextY,
+        textWidth = contentWidth,
+        textHeight = bodyHeight,
+        charHeight = bodyCharHeight,
+        wrappedText = wrappedBody,
+        footerX = borderSize + paddingX,
+        footerY = footerTextY,
+        footerWidth = contentWidth,
+        footerHeight = footerHeight,
+        footerCharHeight = footerCharHeight,
+        footerText = wrappedFooter,
+    }
+end
+
+function PersistentConfig._HidePdaOverlay(kind)
+    local state = PersistentConfig.PdaOverlay
+    local ids = state.ids[kind]
+    if not ids or not (exu and exu.HideOverlay) then
+        return
+    end
+
+    if kind == "stats" then
+        state.statsVisible = false
+    elseif kind == "feedback" then
+        state.feedbackVisible = false
+        state.feedbackExpireAt = 0.0
+    end
+
+    pcall(exu.HideOverlay, ids.overlay)
+end
+
+function PersistentConfig._DestroyPdaOverlay(kind)
+    local state = PersistentConfig.PdaOverlay
+    local ids = state.ids[kind]
+    if not ids or not exu then
+        return
+    end
+    local childIds = { ids.backdrop, ids.header, ids.title, ids.tabs, ids.text, ids.footer }
+
+    PersistentConfig._HidePdaOverlay(kind)
+    if exu.RemoveOverlayElementChild then
+        for _, childId in ipairs(childIds) do
+            if childId then
+                pcall(exu.RemoveOverlayElementChild, ids.root, childId)
+            end
+        end
+    end
+    if exu.RemoveOverlay2D then
+        pcall(exu.RemoveOverlay2D, ids.overlay, ids.root)
+    end
+    if exu.DestroyOverlayElement then
+        for index = #childIds, 1, -1 do
+            local childId = childIds[index]
+            if childId then
+                pcall(exu.DestroyOverlayElement, childId)
+            end
+        end
+        pcall(exu.DestroyOverlayElement, ids.root)
+    end
+    if exu.DestroyOverlay then
+        pcall(exu.DestroyOverlay, ids.overlay)
+    end
+
+    state.ready = false
+    state.created = state.created or {}
+    state.created[kind] = false
+end
+
+function PersistentConfig._DestroyAllPdaOverlays()
+    PersistentConfig._DestroyPdaOverlay("feedback")
+    PersistentConfig._DestroyPdaOverlay("stats")
+end
+
+function PersistentConfig._ResetPdaOverlayState()
+    local state = PersistentConfig.PdaOverlay
+    state.ready = false
+    state.failed = false
+    state.created = {}
+    state.statsVisible = false
+    state.feedbackVisible = false
+    state.feedbackExpireAt = 0.0
+end
+
+function PersistentConfig._TryCreatePdaOverlay(kind)
+    local state = PersistentConfig.PdaOverlay
+    state.created = state.created or {}
+    if state.created[kind] then
+        return true
+    end
+
+    if not PersistentConfig._CanUsePdaOverlay() then
+        state.failed = true
+        return false
+    end
+
+    local ids = state.ids[kind]
+    if not ids then
+        state.failed = true
+        return false
+    end
+
+    PersistentConfig._DestroyPdaOverlay(kind)
+
+    local metricsMode = PersistentConfig._GetPdaOverlayMetricsMode()
+    local overlayZOrder = state.zOrder or 645
+    if kind == "feedback" then
+        overlayZOrder = overlayZOrder + 1
+    end
+    local panelIds = { ids.backdrop, ids.header }
+    local textIds = { ids.text, ids.title, ids.tabs, ids.footer }
+    local childIds = { ids.backdrop, ids.header, ids.title, ids.tabs, ids.text, ids.footer }
+    local ok = true
+
+    local function SafeCall(fn, ...)
+        if not ok or type(fn) ~= "function" then
+            return nil
+        end
+
+        local success, result = pcall(fn, ...)
+        if not success then
+            ok = false
+            Log("PersistentConfig: PDA overlay call failed: " .. tostring(result))
+            return nil
+        end
+        return result
+    end
+
+    if SafeCall(exu.CreateOverlay, ids.overlay) == false then
+        ok = false
+    end
+    if SafeCall(exu.CreateOverlayElement, "BorderPanel", ids.root) == false then
+        ok = false
+    end
+    for _, panelId in ipairs(panelIds) do
+        if panelId and SafeCall(exu.CreateOverlayElement, "Panel", panelId) == false then
+            ok = false
+        end
+    end
+    for _, textId in ipairs(textIds) do
+        if textId and SafeCall(exu.CreateOverlayElement, "TextArea", textId) == false then
+            ok = false
+        end
+    end
+    if exu.HasOverlayElement then
+        if SafeCall(exu.HasOverlayElement, ids.root) ~= true then
+            ok = false
+        end
+        for _, childId in ipairs(childIds) do
+            if childId and SafeCall(exu.HasOverlayElement, childId) ~= true then
+                ok = false
+            end
+        end
+    end
+
+    SafeCall(exu.AddOverlay2D, ids.overlay, ids.root)
+    for _, childId in ipairs(childIds) do
+        if childId then
+            SafeCall(exu.AddOverlayElementChild, ids.root, childId)
+        end
+    end
+    SafeCall(exu.SetOverlayZOrder, ids.overlay, ClampRange(overlayZOrder, 0, 650, 645))
+
+    SafeCall(exu.SetOverlayMetricsMode, ids.root, metricsMode)
+    for _, childId in ipairs(childIds) do
+        if childId then
+            SafeCall(exu.SetOverlayMetricsMode, childId, metricsMode)
+        end
+    end
+
+    SafeCall(exu.SetOverlayParameter, ids.root, "transparent", true)
+    SafeCall(exu.SetOverlayParameter, ids.root, "border_size", "2 2 2 2")
+    SafeCall(exu.SetOverlayParameter, ids.root, "border_material", "BaseWhiteNoLighting")
+    for _, panelId in ipairs(panelIds) do
+        if panelId then
+            SafeCall(exu.SetOverlayMaterial, panelId, "BaseWhiteNoLighting")
+        end
+    end
+    for _, textId in ipairs(textIds) do
+        if textId then
+            SafeCall(exu.SetOverlayParameter, textId, "alignment", "left")
+        end
+    end
+
+    if state.useCustomFont then
+        for _, textId in ipairs(textIds) do
+            if textId and SafeCall(exu.SetOverlayTextFont, textId, state.font) ~= true then
+                ok = false
+                Log("PersistentConfig: PDA overlay font bind failed for " .. tostring(state.font))
+            end
+        end
+    end
+
+    for _, textId in ipairs(textIds) do
+        if textId then
+            SafeCall(exu.SetOverlayCaption, textId, "")
+        end
+    end
+    SafeCall(exu.ShowOverlayElement, ids.root)
+    for _, childId in ipairs(childIds) do
+        if childId then
+            SafeCall(exu.ShowOverlayElement, childId)
+        end
+    end
+    SafeCall(exu.HideOverlay, ids.overlay)
+
+    if not ok then
+        state.failed = true
+        PersistentConfig._DestroyPdaOverlay(kind)
+        return false
+    end
+
+    state.ready = true
+    state.failed = false
+    state.created[kind] = true
+    return true
+end
+
+function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page)
+    if not rawText or rawText == "" then
+        return false
+    end
+
+    if GetTime() < 0.25 then
+        return false
+    end
+
+    if not PersistentConfig._TryCreatePdaOverlay(kind) then
+        return false
+    end
+
+    local ids = PersistentConfig.PdaOverlay.ids[kind]
+    local layout = PersistentConfig._GetPdaOverlayPixelLayout(kind, rawText, page)
+    local colors = PersistentConfig._GetPdaOverlayColorSet(r, g, b)
+    local ok = true
+
+    local function SafeCall(fn, ...)
+        if not ok or type(fn) ~= "function" then
+            return nil
+        end
+
+        local success, result = pcall(fn, ...)
+        if not success then
+            ok = false
+            Log("PersistentConfig: PDA overlay update failed: " .. tostring(result))
+            return nil
+        end
+        return result
+    end
+
+    local borderSizeString = string.format("%d %d %d %d", layout.borderSize, layout.borderSize, layout.borderSize,
+        layout.borderSize)
+
+    SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
+    SafeCall(exu.SetOverlayDimensions, ids.root, layout.panelWidth, layout.panelHeight)
+    SafeCall(exu.SetOverlayParameter, ids.root, "transparent", true)
+    SafeCall(exu.SetOverlayParameter, ids.root, "border_size", borderSizeString)
+    SafeCall(exu.SetOverlayParameter, ids.root, "border_material", "BaseWhiteNoLighting")
+    SafeCall(exu.SetOverlayColor, ids.root, colors.border.r, colors.border.g, colors.border.b, colors.border.a)
+
+    SafeCall(exu.SetOverlayPosition, ids.backdrop, layout.backdropX, layout.backdropY)
+    SafeCall(exu.SetOverlayDimensions, ids.backdrop, layout.backdropWidth, layout.backdropHeight)
+    SafeCall(exu.SetOverlayColor, ids.backdrop, colors.backdrop.r, colors.backdrop.g, colors.backdrop.b,
+        colors.backdrop.a)
+
+    if ids.header and layout.headerWidth and layout.headerHeight then
+        SafeCall(exu.SetOverlayPosition, ids.header, layout.headerX, layout.headerY)
+        SafeCall(exu.SetOverlayDimensions, ids.header, layout.headerWidth, layout.headerHeight)
+        SafeCall(exu.SetOverlayColor, ids.header, colors.header.r, colors.header.g, colors.header.b, colors.header.a)
+    end
+
+    if ids.title and layout.titleText then
+        SafeCall(exu.SetOverlayPosition, ids.title, layout.titleX, layout.titleY)
+        SafeCall(exu.SetOverlayDimensions, ids.title, layout.titleWidth, layout.titleHeight)
+        SafeCall(exu.SetOverlayTextCharHeight, ids.title, layout.titleCharHeight)
+        if exu.SetOverlayTextColor then
+            SafeCall(exu.SetOverlayTextColor, ids.title, colors.title.r, colors.title.g, colors.title.b, colors.title.a)
+        else
+            SafeCall(exu.SetOverlayColor, ids.title, colors.title.r, colors.title.g, colors.title.b, colors.title.a)
+        end
+        SafeCall(exu.SetOverlayCaption, ids.title, layout.titleText)
+    end
+
+    if ids.tabs and layout.tabsText then
+        SafeCall(exu.SetOverlayPosition, ids.tabs, layout.tabsX, layout.tabsY)
+        SafeCall(exu.SetOverlayDimensions, ids.tabs, layout.tabsWidth, layout.tabsHeight)
+        SafeCall(exu.SetOverlayTextCharHeight, ids.tabs, layout.tabsCharHeight)
+        if exu.SetOverlayTextColor then
+            SafeCall(exu.SetOverlayTextColor, ids.tabs, colors.text.r, colors.text.g, colors.text.b, colors.text.a)
+        else
+            SafeCall(exu.SetOverlayColor, ids.tabs, colors.text.r, colors.text.g, colors.text.b, colors.text.a)
+        end
+        SafeCall(exu.SetOverlayCaption, ids.tabs, layout.tabsText)
+    end
+
+    SafeCall(exu.SetOverlayPosition, ids.text, layout.textX, layout.textY)
+    SafeCall(exu.SetOverlayDimensions, ids.text, layout.textWidth, layout.textHeight)
+    SafeCall(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
+    if exu.SetOverlayTextColor then
+        SafeCall(exu.SetOverlayTextColor, ids.text, colors.text.r, colors.text.g, colors.text.b, colors.text.a)
+    else
+        SafeCall(exu.SetOverlayColor, ids.text, colors.text.r, colors.text.g, colors.text.b, colors.text.a)
+    end
+    SafeCall(exu.SetOverlayCaption, ids.text, layout.wrappedText)
+
+    if ids.footer and layout.footerText and layout.footerText ~= "" then
+        SafeCall(exu.SetOverlayPosition, ids.footer, layout.footerX, layout.footerY)
+        SafeCall(exu.SetOverlayDimensions, ids.footer, layout.footerWidth, layout.footerHeight)
+        SafeCall(exu.SetOverlayTextCharHeight, ids.footer, layout.footerCharHeight)
+        if exu.SetOverlayTextColor then
+            SafeCall(exu.SetOverlayTextColor, ids.footer, colors.footer.r, colors.footer.g, colors.footer.b,
+                colors.footer.a)
+        else
+            SafeCall(exu.SetOverlayColor, ids.footer, colors.footer.r, colors.footer.g, colors.footer.b, colors.footer.a)
+        end
+        SafeCall(exu.SetOverlayCaption, ids.footer, layout.footerText)
+    elseif ids.footer then
+        SafeCall(exu.SetOverlayCaption, ids.footer, "")
+    end
+
+    SafeCall(exu.ShowOverlayElement, ids.root)
+    SafeCall(exu.ShowOverlayElement, ids.backdrop)
+    if ids.header then
+        SafeCall(exu.ShowOverlayElement, ids.header)
+    end
+    if ids.title then
+        SafeCall(exu.ShowOverlayElement, ids.title)
+    end
+    if ids.tabs then
+        SafeCall(exu.ShowOverlayElement, ids.tabs)
+    end
+    SafeCall(exu.ShowOverlayElement, ids.text)
+    if ids.footer then
+        SafeCall(exu.ShowOverlayElement, ids.footer)
+    end
+    SafeCall(exu.ShowOverlay, ids.overlay)
+
+    if not ok then
+        PersistentConfig.PdaOverlay.ready = false
+        PersistentConfig.PdaOverlay.failed = true
+        PersistentConfig._DestroyPdaOverlay(kind)
+        return false
+    end
+
+    if kind == "stats" then
+        PersistentConfig.PdaOverlay.statsVisible = true
+    elseif kind == "feedback" then
+        PersistentConfig.PdaOverlay.feedbackVisible = true
+        PersistentConfig.PdaOverlay.feedbackExpireAt = GetTime() + math.max(tonumber(duration) or 2.5, 0.10)
+    end
+
+    return true
+end
+
+function PersistentConfig._UpdatePdaOverlayTimers()
+    if not PersistentConfig.PdaOverlay.feedbackVisible then
+        return
+    end
+
+    local hideAt = PersistentConfig.PdaOverlay.feedbackExpireAt or 0.0
+    if GetTime() >= hideAt then
+        PersistentConfig._HidePdaOverlay("feedback")
+    end
+end
+
 local function ShowPdaFeedback(msg, r, g, b, duration)
+    if PersistentConfig.Settings.WeaponStatsHud
+        and PersistentConfig._ShowPdaOverlay("feedback", msg, duration or 2.5, r, g, b,
+            InputState and InputState.pdaPage or PdaPages.SETTINGS) then
+        if subtitles and subtitles.clear_queue then
+            subtitles.clear_queue(PersistentConfig.Channels.PdaFeedback)
+        end
+        if subtitles and subtitles.clear_current then
+            subtitles.clear_current(PersistentConfig.Channels.PdaFeedback)
+        end
+        return
+    end
+
     if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
         local colorPreset = GetPdaColorPreset()
         local layout = GetPdaLayoutMetrics(InputState and InputState.pdaPage or PdaPages.SETTINGS)
@@ -736,6 +1660,17 @@ local function ShowPdaFeedback(msg, r, g, b, duration)
 end
 
 local function ShowWeaponStats(msg, duration)
+    if PersistentConfig._ShowPdaOverlay("stats", msg, duration or 86400.0, nil, nil, nil,
+            InputState and InputState.pdaPage or PdaPages.STATS) then
+        if subtitles and subtitles.clear_queue then
+            subtitles.clear_queue(PersistentConfig.Channels.WeaponStats)
+        end
+        if subtitles and subtitles.clear_current then
+            subtitles.clear_current(PersistentConfig.Channels.WeaponStats)
+        end
+        return
+    end
+
     if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
         local layout = GetPdaLayoutMetrics(InputState and InputState.pdaPage or PdaPages.STATS)
         local colorPreset = GetPdaColorPreset()
@@ -757,6 +1692,7 @@ local function ShowWeaponStats(msg, duration)
 end
 
 local function ClearWeaponStats()
+    PersistentConfig._HidePdaOverlay("stats")
     if subtitles and subtitles.clear_queue then
         subtitles.clear_queue(PersistentConfig.Channels.WeaponStats)
     end
@@ -766,6 +1702,7 @@ local function ClearWeaponStats()
 end
 
 local function ClearPdaFeedback()
+    PersistentConfig._HidePdaOverlay("feedback")
     if subtitles and subtitles.clear_queue then
         subtitles.clear_queue(PersistentConfig.Channels.PdaFeedback)
     end
@@ -3932,13 +4869,14 @@ local function UpdateWeaponStatsDisplay(player)
 
     local msg = BuildWeaponStatsText(player, mask)
     local textChanged = (InputState.lastWeaponText ~= msg)
+    local overlayNeedsRefresh = PersistentConfig._CanUsePdaOverlay() and not PersistentConfig.PdaOverlay.statsVisible
 
     InputState.lastWeaponMask = mask
     InputState.lastWeaponPlayer = player
     InputState.lastWeaponText = msg
     InputState.lastWeaponTarget = target
 
-    if (playerChanged or maskChanged or targetChanged or textChanged) and msg then
+    if (playerChanged or maskChanged or targetChanged or textChanged or overlayNeedsRefresh) and msg then
         ShowWeaponStats(msg, 86400.0)
     elseif not msg then
         ClearWeaponStats()
@@ -3948,6 +4886,14 @@ end
 local function RefreshPdaOverlay()
     RefreshWeaponHud()
     UpdateWeaponStatsDisplay(GetPlayerHandle())
+end
+
+local function RebuildPdaOverlay()
+    PersistentConfig._DestroyAllPdaOverlays()
+    PersistentConfig._ResetPdaOverlayState()
+    ClearWeaponStats()
+    ClearPdaFeedback()
+    RefreshPdaOverlay()
 end
 
 local function CommitPdaSettingChange(options)
@@ -3971,7 +4917,7 @@ local function CommitPdaSettingChange(options)
         autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
     end
 
-    RefreshPdaOverlay()
+    RebuildPdaOverlay()
 end
 
 local function GetHeadlightColorPresetIndex()
@@ -4123,7 +5069,6 @@ end
 
 local function SetAutoSaveEnabled(enabled)
     local value = not not enabled
-    local slot = PersistentConfig._GetAutoSaveSlot()
     local interval = PersistentConfig._GetAutoSaveIntervalOption()
 
     if not value then
@@ -4136,8 +5081,8 @@ local function SetAutoSaveEnabled(enabled)
     PersistentConfig.Settings.AutoSaveEnabled = value
     CommitPdaSettingChange({ syncAutoSave = true })
     if value then
-        ShowFeedback(string.format("Auto-Save: ON (slot %d, %s)", slot, interval.label), 1.0, 0.35, 0.35, 3.5, false,
-            "pda")
+        ShowFeedback(string.format("Auto-Save: ON (%s, %s)", PersistentConfig._GetAutoSaveFileLabel(), interval.label), 1.0,
+            0.35, 0.35, 3.5, false, "pda")
     else
         ShowFeedback("Auto-Save: OFF", 0.8, 1.0, 0.8, 2.5, false, "pda")
     end
@@ -4145,22 +5090,8 @@ local function SetAutoSaveEnabled(enabled)
 end
 
 function PersistentConfig._AdjustAutoSaveSlot(delta)
-    local direction = ((delta or 0) < 0) and -1 or 1
-    local current = PersistentConfig._GetAutoSaveSlot()
-    local nextSlot = ClampIndex(current + direction, PersistentConfig.AutoSaveUi.slotMin, PersistentConfig.AutoSaveUi.slotMax,
-        current)
-    if nextSlot == current then
-        return false
-    end
-
-    PersistentConfig.Settings.AutoSaveSlot = nextSlot
-    PersistentConfig._ClearAutoSaveEnablePrompt()
-    CommitPdaSettingChange({ syncAutoSave = true })
-
-    local active = PersistentConfig.Settings.AutoSaveEnabled
-    ShowFeedback(string.format("Auto-Save Slot: %d%s", nextSlot, active and " (ACTIVE)" or ""), active and 1.0 or 0.8,
-        active and 0.35 or 1.0, active and 0.35 or 0.8, 3.0, false, "pda")
-    return true
+    ShowFeedback("Auto-Save file is fixed to Save\\auto.sav.", 0.8, 1.0, 0.8, 3.0, false, "pda")
+    return false
 end
 
 function PersistentConfig._AdjustAutoSaveInterval(delta)
@@ -4181,18 +5112,17 @@ end
 
 function PersistentConfig._HandleAutoSaveEnableAction()
     if PersistentConfig.Settings.AutoSaveEnabled then
-        ShowFeedback(string.format("Auto-Save is active in slot %d. Press LEFT to disable.", PersistentConfig._GetAutoSaveSlot()), 1.0,
-            0.35, 0.35, 3.5, false, "pda")
+        ShowFeedback(string.format("Auto-Save writes %s. Press LEFT to disable.", PersistentConfig._GetAutoSavePath()), 1.0, 0.35,
+            0.35, 3.5, false, "pda")
         return false
     end
 
-    local slot = PersistentConfig._GetAutoSaveSlot()
-    if not (InputState and InputState.autoSaveEnableArmed and InputState.autoSaveConfirmSlot == slot) then
+    if not (InputState and InputState.autoSaveEnableArmed) then
         InputState.autoSaveEnableArmed = true
-        InputState.autoSaveConfirmSlot = slot
+        InputState.autoSaveConfirmSlot = PersistentConfig._GetAutoSavePath()
         RefreshPdaOverlay()
-        ShowFeedback(string.format("Confirm Auto-Save: slot %d will be backed up and used. Press ENTER again.", slot),
-            1.0, 0.25, 0.25, 4.0, false, "pda")
+        ShowFeedback(string.format("Confirm Auto-Save: %s will be backed up and used. Press ENTER again.",
+            PersistentConfig._GetAutoSavePath()), 1.0, 0.25, 0.25, 4.0, false, "pda")
         return true
     end
 
@@ -4341,10 +5271,10 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            key = "autosave_slot",
-            label = PersistentConfig.Settings.AutoSaveEnabled and "AUTO SLOT !" or "AUTO SLOT",
-            value = PersistentConfig.Settings.AutoSaveEnabled and string.format("!! SLOT %d !!", PersistentConfig._GetAutoSaveSlot())
-                or string.format("SLOT %d", PersistentConfig._GetAutoSaveSlot()),
+            key = "autosave_file",
+            label = PersistentConfig.Settings.AutoSaveEnabled and "AUTO FILE!" or "AUTO FILE",
+            value = PersistentConfig.Settings.AutoSaveEnabled and ("!! " .. PersistentConfig._GetAutoSaveFileLabel() .. " !!")
+                or PersistentConfig._GetAutoSaveFileLabel(),
             warning = PersistentConfig.Settings.AutoSaveEnabled or (InputState and InputState.autoSaveEnableArmed) or false,
             adjust = function(delta)
                 return PersistentConfig._AdjustAutoSaveSlot(delta)
@@ -4620,6 +5550,7 @@ function PersistentConfig.ResetToDefaults()
         autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
         autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
         autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
+        autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
     end
 
     ShowFeedback("Settings reset to defaults.", 0.7, 1.0, 0.7, 4.0, false)
@@ -4741,9 +5672,14 @@ function PersistentConfig.UpdateInputs()
             pendingOverlay.g, pendingOverlay.b)
     end
 
+    PersistentConfig._UpdatePdaOverlayTimers()
+
+    local keepPdaOverlayLive = PersistentConfig._CanUsePdaOverlay()
     if pauseMenuOpen then
-        ClearWeaponStats()
-        ClearPdaFeedback()
+        if not keepPdaOverlayLive then
+            ClearWeaponStats()
+            ClearPdaFeedback()
+        end
     else
         UpdateWeaponStatsDisplay(currentPlayerHandle)
     end
@@ -4993,7 +5929,7 @@ function PersistentConfig.UpdateInputs()
     end
     InputState.last_help_state = help_pressed
 
-    if InputState.SubtitlesPaused then
+    if InputState.SubtitlesPaused and not keepPdaOverlayLive then
         ClearWeaponStats()
         ClearPdaFeedback()
     end
@@ -5368,6 +6304,8 @@ local function InstallPlayerChargeTrackingHook()
 end
 
 function PersistentConfig.Initialize()
+    PersistentConfig._DestroyAllPdaOverlays()
+    PersistentConfig._ResetPdaOverlayState()
     ResetTrackedWorldHandles()
     ResetCommanderOverview()
     InputState.processedCreationHandles = {}
@@ -5377,6 +6315,7 @@ function PersistentConfig.Initialize()
     ConservativeCulling.Initialize()
     PersistentConfig.LoadConfig()
     WarnIfNativeFeaturesUnavailable()
+    EnsureBundledOpenShimInstalled()
 
     -- Reset Passive Tracking in AutoSave
     if autosave then
@@ -5402,9 +6341,10 @@ function PersistentConfig.Initialize()
         autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
         autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
         autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
+        autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
         print("PersistentConfig: AutoSave synced - enabled=" .. tostring(autosave.Config.enabled) ..
             " interval=" .. tostring(autosave.Config.autoSaveInterval) ..
-            " slot=" .. tostring(autosave.Config.currentSlot))
+            " path=" .. tostring(autosave.Config.currentPath))
     end
 
     -- Show help reminder on every mission start
@@ -5470,6 +6410,7 @@ function PersistentConfig.Initialize()
         if SucceedMission then
             local oldSucceed = SucceedMission
             SucceedMission = function(...)
+                PersistentConfig._DestroyAllPdaOverlays()
                 if subtitles and subtitles.clear_queue then subtitles.clear_queue() end
                 if subtitles and subtitles.clear_current then subtitles.clear_current() end
                 oldSucceed(...)
@@ -5478,6 +6419,7 @@ function PersistentConfig.Initialize()
         if FailMission then
             local oldFail = FailMission
             FailMission = function(...)
+                PersistentConfig._DestroyAllPdaOverlays()
                 if subtitles and subtitles.clear_queue then subtitles.clear_queue() end
                 if subtitles and subtitles.clear_current then subtitles.clear_current() end
                 oldFail(...)

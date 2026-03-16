@@ -188,7 +188,18 @@ local function NewMissionState()
         loading_done = false,
         loadGracePeriod = 0,
         overlayBootTestAt = nil,
-        overlayBootTestDone = false
+        overlayBootTestDone = false,
+        overlayDemoReady = false,
+        overlayDemoVisible = false,
+        overlayDemoToggleLatch = false,
+        overlayDemoAutoHideAt = nil,
+        overlayDemoStatusNextAt = 0.0,
+        overlayDemoTextureMaterial = nil,
+        overlayDemoSuppressed = false,
+        overlayDemoResumeAfterSuppression = false,
+        overlayDemoResumeDuration = 0.0,
+        overlayPauseDebugSignature = "",
+        overlayPauseDebugDumpLatch = false
     }
 end
 
@@ -268,6 +279,21 @@ M = NewMissionState()
 local DEFAULT_TPS = 20
 local hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." }
 local easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." }
+local OVERLAY_DEMO_IDS = {
+    overlay = "misn04_overlay_demo",
+    root = "misn04_overlay_demo_root",
+    backdrop = "misn04_overlay_demo_backdrop",
+    header = "misn04_overlay_demo_header",
+    title = "misn04_overlay_demo_title",
+    body = "misn04_overlay_demo_body",
+    swatchFrame = "misn04_overlay_demo_swatch_frame",
+    swatch = "misn04_overlay_demo_swatch",
+    strip = "misn04_overlay_demo_strip",
+    swatchText = "misn04_overlay_demo_swatch_text",
+    footer = "misn04_overlay_demo_footer",
+}
+local OVERLAY_DEMO_TEXTURE_CANDIDATES = { "HUDcombi", "HUDcomba", "reticle1" }
+local OVERLAY_DEMO_SOLID_MATERIAL = "BaseWhiteNoLighting"
 
 local function RefreshDifficulty()
     if exu and exu.GetDifficulty then
@@ -354,36 +380,701 @@ local function UpdateModules(dt)
     end
 end
 
+local function OverlayCall(fn, ...)
+    if type(fn) ~= "function" then
+        return false, "missing"
+    end
+
+    local ok, result = pcall(fn, ...)
+    if not ok then
+        print("misn04: overlay demo call failed: " .. tostring(result))
+        return false, result
+    end
+    if result == false then
+        return false, "returned false"
+    end
+    return true, result
+end
+
+local function DestroyOverlayDemo()
+    if not exu then
+        return
+    end
+
+    local ids = OVERLAY_DEMO_IDS
+    if exu.DestroyOverlayElement then
+        pcall(exu.DestroyOverlayElement, ids.footer)
+        pcall(exu.DestroyOverlayElement, ids.swatchText)
+        pcall(exu.DestroyOverlayElement, ids.strip)
+        pcall(exu.DestroyOverlayElement, ids.swatch)
+        pcall(exu.DestroyOverlayElement, ids.swatchFrame)
+        pcall(exu.DestroyOverlayElement, ids.body)
+        pcall(exu.DestroyOverlayElement, ids.title)
+        pcall(exu.DestroyOverlayElement, ids.header)
+        pcall(exu.DestroyOverlayElement, ids.backdrop)
+        pcall(exu.DestroyOverlayElement, ids.root)
+    end
+    if exu.DestroyOverlay then
+        pcall(exu.DestroyOverlay, ids.overlay)
+    end
+end
+
+local function GetOverlayDemoTextureMaterial()
+    if not (exu and exu.MaterialExists) then
+        return nil
+    end
+
+    for _, materialName in ipairs(OVERLAY_DEMO_TEXTURE_CANDIDATES) do
+        local okDefault, existsDefault = pcall(exu.MaterialExists, materialName)
+        if okDefault and existsDefault then
+            return materialName
+        end
+
+        local okModable, existsModable = pcall(exu.MaterialExists, materialName, "Modable")
+        if okModable and existsModable then
+            return materialName
+        end
+    end
+
+    return nil
+end
+
+local function SetOverlayDemoVisible(visible, duration)
+    if not (M.overlayDemoReady and exu) then
+        return false
+    end
+
+    local ids = OVERLAY_DEMO_IDS
+    if visible then
+        OverlayCall(exu.ShowOverlay, ids.overlay)
+        M.overlayDemoVisible = true
+        M.overlayDemoAutoHideAt = GetTime() + math.max(tonumber(duration) or 20.0, 0.5)
+    else
+        OverlayCall(exu.HideOverlay, ids.overlay)
+        M.overlayDemoVisible = false
+        M.overlayDemoAutoHideAt = nil
+    end
+
+    return true
+end
+
+local function NormalizeWrapInput(text)
+    text = tostring(text or "")
+    text = text:gsub("\r\n", "\n")
+    text = text:gsub("\r", "\n")
+    return text
+end
+
+local function CountOverlayLines(text)
+    local normalized = NormalizeWrapInput(text)
+    local count = 0
+    for _ in (normalized .. "\n"):gmatch("(.-)\n") do
+        count = count + 1
+    end
+    return math.max(count, 1)
+end
+
+local function SplitOverlayToken(token, maxCharsPerLine)
+    local parts = {}
+    token = tostring(token or "")
+    maxCharsPerLine = math.max(tonumber(maxCharsPerLine) or 12, 4)
+
+    while #token > maxCharsPerLine do
+        local take = math.max(maxCharsPerLine - 1, 1)
+        parts[#parts + 1] = token:sub(1, take) .. "-"
+        token = token:sub(take + 1)
+    end
+
+    if token ~= "" then
+        parts[#parts + 1] = token
+    end
+    if #parts == 0 then
+        parts[1] = ""
+    end
+    return parts
+end
+
+local function WrapOverlayText(text, maxCharsPerLine)
+    text = NormalizeWrapInput(text)
+    maxCharsPerLine = math.max(tonumber(maxCharsPerLine) or 32, 8)
+
+    local wrappedLines = {}
+    for paragraph in (text .. "\n"):gmatch("(.-)\n") do
+        if paragraph == "" then
+            wrappedLines[#wrappedLines + 1] = ""
+        else
+            local current = ""
+            for word in paragraph:gmatch("%S+") do
+                local pieces = SplitOverlayToken(word, maxCharsPerLine)
+                for _, piece in ipairs(pieces) do
+                    if current == "" then
+                        current = piece
+                    elseif (#current + 1 + #piece) <= maxCharsPerLine then
+                        current = current .. " " .. piece
+                    else
+                        wrappedLines[#wrappedLines + 1] = current
+                        current = piece
+                    end
+                end
+            end
+            if current ~= "" then
+                wrappedLines[#wrappedLines + 1] = current
+            end
+        end
+    end
+
+    return table.concat(wrappedLines, "\n")
+end
+
+local function EstimateOverlayCharsPerLine(widthPixels, charHeightPixels, widthFactor, horizontalPadding)
+    widthPixels = math.max(tonumber(widthPixels) or 0, 16)
+    charHeightPixels = math.max(tonumber(charHeightPixels) or 0, 1)
+    widthFactor = math.max(tonumber(widthFactor) or 1.0, 0.55)
+    horizontalPadding = math.max(tonumber(horizontalPadding) or 0, 0)
+
+    local usableWidth = math.max(widthPixels - (horizontalPadding * 2), charHeightPixels * 4)
+    return math.max(8, math.floor(usableWidth / (charHeightPixels * widthFactor)))
+end
+
+local function WrapOverlayTextToPixels(text, widthPixels, charHeightPixels, widthFactor, horizontalPadding)
+    local maxCharsPerLine = EstimateOverlayCharsPerLine(widthPixels, charHeightPixels, widthFactor, horizontalPadding)
+    return WrapOverlayText(text, maxCharsPerLine)
+end
+
+local function GetOverlayTextBlockHeight(charHeightPixels, lineCount, lineSpacing)
+    charHeightPixels = math.max(tonumber(charHeightPixels) or 0, 1)
+    lineCount = math.max(tonumber(lineCount) or 0, 1)
+    lineSpacing = math.max(tonumber(lineSpacing) or 1.18, 1.0)
+    return math.max(charHeightPixels + 4, math.floor(charHeightPixels * lineSpacing * lineCount + 6))
+end
+
+local function GetOverlayDemoScreenMetrics()
+    local screenW, screenH
+    if exu and exu.GetScreenResolution then
+        local ok, w, h = pcall(exu.GetScreenResolution)
+        if ok then
+            screenW = tonumber(w)
+            screenH = tonumber(h)
+        end
+    end
+    if (not screenW or not screenH) and exu and exu.GetGameResolution then
+        local ok, w, h = pcall(exu.GetGameResolution)
+        if ok then
+            screenW = tonumber(w)
+            screenH = tonumber(h)
+        end
+    end
+
+    if not screenW or not screenH or screenW <= 0 or screenH <= 0 then
+        return nil, nil
+    end
+
+    return screenW, screenH
+end
+
+local function GetOverlayDemoRootPosition(rootWidth, rootHeight)
+    local screenW, screenH = GetOverlayDemoScreenMetrics()
+    if not screenW or not screenH then
+        return 140, 360
+    end
+
+    rootWidth = math.max(tonumber(rootWidth) or 0, 0)
+    rootHeight = math.max(tonumber(rootHeight) or 0, 0)
+
+    local x = math.floor(math.max(96, screenW * 0.07))
+    local y = math.floor(math.max(260, screenH * 0.36))
+    x = math.min(x, math.max(24, screenW - rootWidth - 24))
+    y = math.min(y, math.max(24, screenH - rootHeight - 24))
+    return x, y
+end
+
+local function GetPauseDebugState()
+    if not (exu and exu.GetPauseMenuDebugState) then
+        return nil
+    end
+
+    local ok, state = pcall(exu.GetPauseMenuDebugState)
+    if not ok or type(state) ~= "table" then
+        return nil
+    end
+
+    return state
+end
+
+local function GetPauseDebugSignature(state)
+    if type(state) ~= "table" then
+        return "unavailable"
+    end
+
+    return table.concat({
+        tostring(state.ok),
+        tostring(state.pauseOpen),
+        tostring(state.singleplayerPauseOpen),
+        tostring(state.multiplayerPauseOpen),
+        tostring(state.cursorVisible),
+        tostring(state.currentScreenMatchesPauseRoot),
+        tostring(state.uiCurrentScreen),
+        tostring(state.uiWrapperActive),
+        tostring(state.uiCurrentScreenType),
+        tostring(state.uiCurrentScreenTypeName),
+        tostring(state.multiplayerPauseFlag),
+    }, "|")
+end
+
+local function LogPauseDebugState(reason, state)
+    if type(state) ~= "table" then
+        print("misn04: pause debug unavailable (" .. tostring(reason or "unknown") .. ")")
+        return
+    end
+
+    print(string.format(
+        "misn04: pause debug [%s] ok=%s pause=%s sp=%s mp=%s cursor=%s matchRoot=%s screen=0x%08X wrapper=%s type=%s(%s) mpFlag=%s spRoot=0x%08X mpRoot=0x%08X",
+        tostring(reason or "state"),
+        tostring(state.ok),
+        tostring(state.pauseOpen),
+        tostring(state.singleplayerPauseOpen),
+        tostring(state.multiplayerPauseOpen),
+        tostring(state.cursorVisible),
+        tostring(state.currentScreenMatchesPauseRoot),
+        tonumber(state.uiCurrentScreen) or 0,
+        tostring(state.uiWrapperActive),
+        tostring(state.uiCurrentScreenType),
+        tostring(state.uiCurrentScreenTypeName),
+        tostring(state.multiplayerPauseFlag),
+        tonumber(state.singleplayerPauseRoot) or 0,
+        tonumber(state.multiplayerPauseRoot) or 0
+    ))
+end
+
+local function UpdatePauseDebugTracing()
+    local state = GetPauseDebugState()
+    local signature = GetPauseDebugSignature(state)
+    if signature ~= (M.overlayPauseDebugSignature or "") then
+        M.overlayPauseDebugSignature = signature
+        LogPauseDebugState("transition", state)
+    end
+
+    if exu and exu.GetGameKey then
+        local dumpDown = exu.GetGameKey("F10") and true or false
+        if dumpDown and not M.overlayPauseDebugDumpLatch then
+            LogPauseDebugState("manual-f10", state)
+        end
+        M.overlayPauseDebugDumpLatch = dumpDown
+    end
+end
+
+local function BuildOverlayDemoLayout()
+    local textureMaterial = M.overlayDemoTextureMaterial
+    local materialName = textureMaterial or "solid fallback"
+    local theme = { r = 0.18, g = 0.92, b = 0.18 }
+    local pale = { r = 0.86, g = 1.00, b = 0.86 }
+    local rootWidth = 628
+    local bodyCharHeight = 15
+    local swatchCharHeight = 12
+    local footerCharHeight = 12
+    local titleCharHeight = 20
+    local bodyX, bodyY, bodyWidth = 22, 60, 382
+    local swatchFrameX, swatchFrameY, swatchFrameWidth = 424, 18, 184
+    local swatchInset = 8
+    local swatchWidth = swatchFrameWidth - (swatchInset * 2)
+    local swatchHeight = 88
+    local swatchTextWidth = swatchWidth
+
+    local bodyRaw = table.concat({
+        "PAGE   [STATS] TARGET SETTINGS PRESETS QUEUE COMMAND",
+        "MODE   OGRE OVERLAY HUD PROTOTYPE",
+        "STATE  WRAP + AUTO SIZE + SAFE CLAMP",
+        "QUEUE  GAMEPLAY HUD ONLY",
+        string.format("CLOCK  %.1fs   DIFF %s", GetTime(), tostring(M.difficulty or "?")),
+        "GOAL   PDA + SUBTITLE MIGRATION TARGET",
+    }, "\n")
+    local swatchRaw
+    if textureMaterial then
+        swatchRaw = table.concat({
+            "SENSOR FEED",
+            materialName,
+            "UV CROP",
+        }, "\n")
+    else
+        swatchRaw = table.concat({
+            "SENSOR FEED",
+            "TEXTURE OFFLINE",
+            "SOLID",
+        }, "\n")
+    end
+    local footerRaw = "F9 TOGGLE DEMO   |   F10 DUMP UI STATE   |   TARGET PDA / SUBTITLES"
+
+    local bodyText = WrapOverlayTextToPixels(bodyRaw, bodyWidth, bodyCharHeight, 1.18, 0)
+    local swatchText = WrapOverlayTextToPixels(swatchRaw, swatchTextWidth, swatchCharHeight, 1.16, 0)
+    local footerText = WrapOverlayTextToPixels(footerRaw, rootWidth - 44, footerCharHeight, 1.12, 0)
+
+    local bodyHeight = math.max(132, GetOverlayTextBlockHeight(bodyCharHeight, CountOverlayLines(bodyText), 1.28))
+    local swatchTextHeight = GetOverlayTextBlockHeight(swatchCharHeight, CountOverlayLines(swatchText), 1.22)
+    local swatchFrameHeight = swatchInset + swatchHeight + 12 + swatchTextHeight + swatchInset
+    local stripY = math.max(bodyY + bodyHeight, swatchFrameY + swatchFrameHeight) + 14
+    local footerHeight = GetOverlayTextBlockHeight(footerCharHeight, CountOverlayLines(footerText), 1.20)
+    local footerY = stripY + 18
+    local rootHeight = footerY + footerHeight + 18
+    local rootX, rootY = GetOverlayDemoRootPosition(rootWidth, rootHeight)
+
+    return {
+        materialName = materialName,
+        textureMaterial = textureMaterial,
+        theme = theme,
+        pale = pale,
+        rootX = rootX,
+        rootY = rootY,
+        rootWidth = rootWidth,
+        rootHeight = rootHeight,
+        titleText = "BATTLEZONE PDA",
+        titleX = 22,
+        titleY = 14,
+        titleWidth = rootWidth - 44,
+        titleHeight = 24,
+        titleCharHeight = titleCharHeight,
+        headerX = 12,
+        headerY = 12,
+        headerWidth = rootWidth - 24,
+        headerHeight = 30,
+        bodyText = bodyText,
+        bodyX = bodyX,
+        bodyY = bodyY,
+        bodyWidth = bodyWidth,
+        bodyHeight = bodyHeight,
+        bodyCharHeight = bodyCharHeight,
+        swatchFrameX = swatchFrameX,
+        swatchFrameY = swatchFrameY,
+        swatchFrameWidth = swatchFrameWidth,
+        swatchFrameHeight = swatchFrameHeight,
+        swatchX = swatchInset,
+        swatchY = swatchInset,
+        swatchWidth = swatchWidth,
+        swatchHeight = swatchHeight,
+        swatchText = swatchText,
+        swatchTextX = swatchInset,
+        swatchTextY = swatchInset + swatchHeight + 10,
+        swatchTextWidth = swatchTextWidth,
+        swatchTextHeight = swatchTextHeight,
+        swatchCharHeight = swatchCharHeight,
+        stripX = 20,
+        stripY = stripY,
+        stripWidth = rootWidth - 40,
+        stripHeight = 12,
+        footerText = footerText,
+        footerX = 22,
+        footerY = footerY,
+        footerWidth = rootWidth - 44,
+        footerHeight = footerHeight,
+        footerCharHeight = footerCharHeight,
+    }
+end
+
+local function RefreshOverlayDemoCaptions()
+    if not (M.overlayDemoReady and exu and exu.SetOverlayCaption) then
+        return
+    end
+
+    local ids = OVERLAY_DEMO_IDS
+    local layout = BuildOverlayDemoLayout()
+
+    exu.SetOverlayPosition(ids.root, layout.rootX, layout.rootY)
+    exu.SetOverlayDimensions(ids.root, layout.rootWidth, layout.rootHeight)
+
+    exu.SetOverlayDimensions(ids.backdrop, layout.rootWidth - 8, layout.rootHeight - 8)
+
+    exu.SetOverlayPosition(ids.header, layout.headerX, layout.headerY)
+    exu.SetOverlayDimensions(ids.header, layout.headerWidth, layout.headerHeight)
+
+    exu.SetOverlayPosition(ids.title, layout.titleX, layout.titleY)
+    exu.SetOverlayDimensions(ids.title, layout.titleWidth, layout.titleHeight)
+    exu.SetOverlayCaption(ids.title, layout.titleText)
+
+    exu.SetOverlayPosition(ids.body, layout.bodyX, layout.bodyY)
+    exu.SetOverlayDimensions(ids.body, layout.bodyWidth, layout.bodyHeight)
+    exu.SetOverlayCaption(ids.body, layout.bodyText)
+
+    exu.SetOverlayPosition(ids.swatchFrame, layout.swatchFrameX, layout.swatchFrameY)
+    exu.SetOverlayDimensions(ids.swatchFrame, layout.swatchFrameWidth, layout.swatchFrameHeight)
+
+    exu.SetOverlayPosition(ids.swatch, layout.swatchX, layout.swatchY)
+    exu.SetOverlayDimensions(ids.swatch, layout.swatchWidth, layout.swatchHeight)
+
+    exu.SetOverlayPosition(ids.swatchText, layout.swatchTextX, layout.swatchTextY)
+    exu.SetOverlayDimensions(ids.swatchText, layout.swatchTextWidth, layout.swatchTextHeight)
+    exu.SetOverlayCaption(ids.swatchText, layout.swatchText)
+
+    exu.SetOverlayPosition(ids.strip, layout.stripX, layout.stripY)
+    exu.SetOverlayDimensions(ids.strip, layout.stripWidth, layout.stripHeight)
+
+    exu.SetOverlayPosition(ids.footer, layout.footerX, layout.footerY)
+    exu.SetOverlayDimensions(ids.footer, layout.footerWidth, layout.footerHeight)
+    exu.SetOverlayCaption(ids.footer, layout.footerText)
+end
+
+local function TryCreateOverlayDemo()
+    if M.overlayDemoReady then
+        return true
+    end
+
+    local requiredApi = {
+        "CreateOverlay",
+        "CreateOverlayElement",
+        "AddOverlay2D",
+        "AddOverlayElementChild",
+        "SetOverlayMetricsMode",
+        "SetOverlayPosition",
+        "SetOverlayDimensions",
+        "SetOverlayMaterial",
+        "SetOverlayColor",
+        "SetOverlayCaption",
+        "SetOverlayTextCharHeight",
+        "SetOverlayTextColor",
+        "SetOverlayTextFont",
+        "SetOverlayParameter",
+        "SetOverlayZOrder",
+        "ShowOverlay",
+        "HideOverlay",
+    }
+    local missingApi = {}
+    if type(exu) ~= "table" then
+        missingApi[#missingApi + 1] = "exu"
+    else
+        for _, apiName in ipairs(requiredApi) do
+            if type(exu[apiName]) ~= "function" then
+                missingApi[#missingApi + 1] = apiName
+            end
+        end
+    end
+
+    if #missingApi > 0 then
+        print("misn04: overlay demo unavailable; missing EXU API = " .. table.concat(missingApi, ", "))
+        return false
+    end
+
+    DestroyOverlayDemo()
+
+    local ids = OVERLAY_DEMO_IDS
+    local metricsMode = (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.PIXELS) or 1
+    local fontName = (PersistentConfig and PersistentConfig.ExperimentalOverlayFont) or "CRBZoneOverlayFont"
+    local textureMaterial = GetOverlayDemoTextureMaterial()
+    local ok = true
+
+    local function MustCall(fn, ...)
+        if not ok then
+            return false
+        end
+
+        local success = OverlayCall(fn, ...)
+        if not success then
+            ok = false
+            return false
+        end
+        return true
+    end
+
+    local function OptionalCall(fn, ...)
+        if not ok then
+            return false
+        end
+
+        local success = OverlayCall(fn, ...)
+        return success
+    end
+
+    MustCall(exu.CreateOverlay, ids.overlay)
+    MustCall(exu.CreateOverlayElement, "BorderPanel", ids.root)
+    MustCall(exu.CreateOverlayElement, "Panel", ids.backdrop)
+    MustCall(exu.CreateOverlayElement, "Panel", ids.header)
+    MustCall(exu.CreateOverlayElement, "TextArea", ids.title)
+    MustCall(exu.CreateOverlayElement, "TextArea", ids.body)
+    MustCall(exu.CreateOverlayElement, "BorderPanel", ids.swatchFrame)
+    MustCall(exu.CreateOverlayElement, "Panel", ids.swatch)
+    MustCall(exu.CreateOverlayElement, "Panel", ids.strip)
+    MustCall(exu.CreateOverlayElement, "TextArea", ids.swatchText)
+    MustCall(exu.CreateOverlayElement, "TextArea", ids.footer)
+
+    MustCall(exu.AddOverlay2D, ids.overlay, ids.root)
+    MustCall(exu.AddOverlayElementChild, ids.root, ids.backdrop)
+    MustCall(exu.AddOverlayElementChild, ids.root, ids.header)
+    MustCall(exu.AddOverlayElementChild, ids.root, ids.title)
+    MustCall(exu.AddOverlayElementChild, ids.root, ids.body)
+    MustCall(exu.AddOverlayElementChild, ids.root, ids.swatchFrame)
+    MustCall(exu.AddOverlayElementChild, ids.swatchFrame, ids.swatch)
+    MustCall(exu.AddOverlayElementChild, ids.root, ids.strip)
+    MustCall(exu.AddOverlayElementChild, ids.swatchFrame, ids.swatchText)
+    MustCall(exu.AddOverlayElementChild, ids.root, ids.footer)
+    MustCall(exu.SetOverlayZOrder, ids.overlay, 642)
+
+    local elementNames = {
+        ids.root, ids.backdrop, ids.header, ids.title, ids.body, ids.swatchFrame,
+        ids.swatch, ids.strip, ids.swatchText, ids.footer,
+    }
+    for _, elementName in ipairs(elementNames) do
+        MustCall(exu.SetOverlayMetricsMode, elementName, metricsMode)
+    end
+
+    M.overlayDemoTextureMaterial = textureMaterial
+    local layout = BuildOverlayDemoLayout()
+
+    MustCall(exu.SetOverlayPosition, ids.root, layout.rootX, layout.rootY)
+    MustCall(exu.SetOverlayDimensions, ids.root, layout.rootWidth, layout.rootHeight)
+    MustCall(exu.SetOverlayColor, ids.root, 0.82, 1.00, 0.82, 0.98)
+    MustCall(exu.SetOverlayParameter, ids.root, "transparent", true)
+    MustCall(exu.SetOverlayParameter, ids.root, "border_material", OVERLAY_DEMO_SOLID_MATERIAL)
+    MustCall(exu.SetOverlayParameter, ids.root, "border_size", "2 2 2 2")
+
+    MustCall(exu.SetOverlayPosition, ids.backdrop, 4, 4)
+    MustCall(exu.SetOverlayDimensions, ids.backdrop, layout.rootWidth - 8, layout.rootHeight - 8)
+    MustCall(exu.SetOverlayColor, ids.backdrop, 0.01, 0.06, 0.02, 0.86)
+
+    MustCall(exu.SetOverlayPosition, ids.header, layout.headerX, layout.headerY)
+    MustCall(exu.SetOverlayDimensions, ids.header, layout.headerWidth, layout.headerHeight)
+    if textureMaterial then
+        MustCall(exu.SetOverlayMaterial, ids.header, textureMaterial)
+    end
+    MustCall(exu.SetOverlayColor, ids.header, 0.06, 0.24, 0.08, 0.76)
+    if textureMaterial then
+        MustCall(exu.SetOverlayParameter, ids.header, "uv_coords", "0.02 0.05 0.94 0.22")
+    end
+
+    MustCall(exu.SetOverlayPosition, ids.title, layout.titleX, layout.titleY)
+    MustCall(exu.SetOverlayDimensions, ids.title, layout.titleWidth, layout.titleHeight)
+    MustCall(exu.SetOverlayTextCharHeight, ids.title, layout.titleCharHeight)
+    OptionalCall(exu.SetOverlayTextFont, ids.title, fontName)
+    MustCall(exu.SetOverlayParameter, ids.title, "alignment", "left")
+    MustCall(exu.SetOverlayParameter, ids.title, "colour_top", "0.94 1.0 0.94 1.0")
+    MustCall(exu.SetOverlayParameter, ids.title, "colour_bottom", "0.52 1.0 0.52 1.0")
+
+    MustCall(exu.SetOverlayPosition, ids.body, layout.bodyX, layout.bodyY)
+    MustCall(exu.SetOverlayDimensions, ids.body, layout.bodyWidth, layout.bodyHeight)
+    MustCall(exu.SetOverlayTextCharHeight, ids.body, layout.bodyCharHeight)
+    OptionalCall(exu.SetOverlayTextFont, ids.body, fontName)
+    MustCall(exu.SetOverlayParameter, ids.body, "alignment", "left")
+    MustCall(exu.SetOverlayTextColor, ids.body, 0.88, 1.00, 0.88, 1.0)
+
+    MustCall(exu.SetOverlayPosition, ids.swatchFrame, layout.swatchFrameX, layout.swatchFrameY)
+    MustCall(exu.SetOverlayDimensions, ids.swatchFrame, layout.swatchFrameWidth, layout.swatchFrameHeight)
+    MustCall(exu.SetOverlayColor, ids.swatchFrame, 0.74, 1.00, 0.74, 0.94)
+    MustCall(exu.SetOverlayParameter, ids.swatchFrame, "transparent", true)
+    MustCall(exu.SetOverlayParameter, ids.swatchFrame, "border_material", OVERLAY_DEMO_SOLID_MATERIAL)
+    MustCall(exu.SetOverlayParameter, ids.swatchFrame, "border_size", "2 2 2 2")
+
+    MustCall(exu.SetOverlayPosition, ids.swatch, layout.swatchX, layout.swatchY)
+    MustCall(exu.SetOverlayDimensions, ids.swatch, layout.swatchWidth, layout.swatchHeight)
+    if textureMaterial then
+        MustCall(exu.SetOverlayMaterial, ids.swatch, textureMaterial)
+    end
+    MustCall(exu.SetOverlayColor, ids.swatch, 0.18, 0.72, 0.22, 0.82)
+    if textureMaterial then
+        MustCall(exu.SetOverlayParameter, ids.swatch, "uv_coords", "0.12 0.06 0.88 0.54")
+    end
+
+    MustCall(exu.SetOverlayPosition, ids.swatchText, layout.swatchTextX, layout.swatchTextY)
+    MustCall(exu.SetOverlayDimensions, ids.swatchText, layout.swatchTextWidth, layout.swatchTextHeight)
+    MustCall(exu.SetOverlayTextCharHeight, ids.swatchText, layout.swatchCharHeight)
+    OptionalCall(exu.SetOverlayTextFont, ids.swatchText, fontName)
+    MustCall(exu.SetOverlayParameter, ids.swatchText, "alignment", "center")
+    MustCall(exu.SetOverlayParameter, ids.swatchText, "colour_top", "0.92 1.0 0.92 1.0")
+    MustCall(exu.SetOverlayParameter, ids.swatchText, "colour_bottom", "0.50 1.0 0.50 1.0")
+
+    MustCall(exu.SetOverlayPosition, ids.strip, layout.stripX, layout.stripY)
+    MustCall(exu.SetOverlayDimensions, ids.strip, layout.stripWidth, layout.stripHeight)
+    if textureMaterial then
+        MustCall(exu.SetOverlayMaterial, ids.strip, textureMaterial)
+    end
+    MustCall(exu.SetOverlayColor, ids.strip, 0.24, 0.94, 0.28, 0.52)
+    if textureMaterial then
+        MustCall(exu.SetOverlayParameter, ids.strip, "tiling", "0 7 1")
+        MustCall(exu.SetOverlayParameter, ids.strip, "uv_coords", "0.00 0.00 1.00 0.12")
+    end
+
+    MustCall(exu.SetOverlayPosition, ids.footer, layout.footerX, layout.footerY)
+    MustCall(exu.SetOverlayDimensions, ids.footer, layout.footerWidth, layout.footerHeight)
+    MustCall(exu.SetOverlayTextCharHeight, ids.footer, layout.footerCharHeight)
+    OptionalCall(exu.SetOverlayTextFont, ids.footer, fontName)
+    MustCall(exu.SetOverlayParameter, ids.footer, "alignment", "left")
+    MustCall(exu.SetOverlayParameter, ids.footer, "colour_top", "0.86 1.0 0.86 1.0")
+    MustCall(exu.SetOverlayParameter, ids.footer, "colour_bottom", "0.42 0.92 0.42 1.0")
+
+    if not ok then
+        DestroyOverlayDemo()
+        return false
+    end
+
+    M.overlayDemoReady = true
+    M.overlayDemoVisible = false
+    M.overlayDemoStatusNextAt = 0.0
+    RefreshOverlayDemoCaptions()
+    SetOverlayDemoVisible(false)
+    return true
+end
+
+local function UpdateOverlayDemo()
+    UpdatePauseDebugTracing()
+
+    local suppressOverlay = false
+    if exu and exu.IsPauseMenuOpen then
+        local ok, pauseOpen = pcall(exu.IsPauseMenuOpen)
+        if ok and pauseOpen then
+            suppressOverlay = true
+        end
+    end
+    if not suppressOverlay and exu and exu.GetViewportOverlaysEnabled then
+        local ok, overlaysEnabled = pcall(exu.GetViewportOverlaysEnabled)
+        if ok and overlaysEnabled == false then
+            suppressOverlay = true
+        end
+    end
+
+    if suppressOverlay then
+        if M.overlayDemoVisible then
+            M.overlayDemoResumeAfterSuppression = true
+            M.overlayDemoResumeDuration = math.max((tonumber(M.overlayDemoAutoHideAt) or GetTime()) - GetTime(), 0.5)
+            SetOverlayDemoVisible(false)
+        end
+        M.overlayDemoSuppressed = true
+        return
+    end
+
+    if M.overlayDemoSuppressed then
+        M.overlayDemoSuppressed = false
+        if M.overlayDemoResumeAfterSuppression then
+            SetOverlayDemoVisible(true, math.max(tonumber(M.overlayDemoResumeDuration) or 5.0, 0.5))
+        end
+        M.overlayDemoResumeAfterSuppression = false
+        M.overlayDemoResumeDuration = 0.0
+    end
+
+    if exu and exu.GetGameKey then
+        local toggleDown = exu.GetGameKey("F9") and true or false
+        if toggleDown and not M.overlayDemoToggleLatch then
+            if TryCreateOverlayDemo() then
+                SetOverlayDemoVisible(not M.overlayDemoVisible, 20.0)
+            end
+        end
+        M.overlayDemoToggleLatch = toggleDown
+    end
+
+    if M.overlayDemoReady and GetTime() >= (tonumber(M.overlayDemoStatusNextAt) or 0.0) then
+        RefreshOverlayDemoCaptions()
+        M.overlayDemoStatusNextAt = GetTime() + 0.25
+    end
+
+    if M.overlayDemoVisible and tonumber(M.overlayDemoAutoHideAt) and GetTime() >= M.overlayDemoAutoHideAt then
+        SetOverlayDemoVisible(false)
+    end
+end
+
 local function RunOverlayBootTest()
     if M.overlayBootTestDone then
         return
     end
 
-    if not PersistentConfig or not PersistentConfig.ExperimentalOverlayUseCustomFont then
-        M.overlayBootTestDone = true
-        return
-    end
-
-    local triggerAt = tonumber(M.overlayBootTestAt) or 0.0
-    if GetTime() < triggerAt then
-        return
-    end
-
     M.overlayBootTestDone = true
-    print(string.format("misn04: running EXU overlay boot test at %.2fs", GetTime()))
-
-    if exu and exu.GetViewportOverlaysEnabled then
-        local stateOk, overlaysEnabled = pcall(exu.GetViewportOverlaysEnabled)
-        print("misn04: viewport overlays enabled before boot test = " .. tostring(stateOk and overlaysEnabled or "unavailable"))
+    if M.overlayDemoReady then
+        SetOverlayDemoVisible(false)
+        DestroyOverlayDemo()
     end
-
-    if not PersistentConfig or type(PersistentConfig.TryShowAutoSaveOverlayInfo) ~= "function" then
-        print("misn04: overlay boot test unavailable (PersistentConfig helper missing)")
-        return
-    end
-
-    local ok, shown = pcall(PersistentConfig.TryShowAutoSaveOverlayInfo, "EXU OVERLAY TEST", 6.0, 1.0, 0.35, 0.15)
-    print("misn04: overlay boot test result ok=" .. tostring(ok) .. " shown=" .. tostring(shown))
 end
 
 -- Helper for Difficulty-Scaled Tug Arrival
@@ -417,6 +1108,7 @@ local function GetTugRetryDelay()
 end
 
 function Start()
+    DestroyOverlayDemo()
     M = NewMissionState()
     M.TPS = M.TPS or DEFAULT_TPS
 
@@ -580,6 +1272,7 @@ function Update()
     end
     UpdateModules(1.0 / M.TPS)
     RunOverlayBootTest()
+    UpdateOverlayDemo()
 
     if (not M.missionstart) then
         M.wave1 = GetTime() + DiffUtils.ScaleTimer(30.0) + math.random(-5, 10)
@@ -1197,8 +1890,22 @@ function Save()
 end
 
 function Load(...)
+    DestroyOverlayDemo()
     local missionData = ...
     M = missionData or M
     M.loading_done = false
+    M.overlayDemoReady = false
+    M.overlayDemoVisible = false
+    M.overlayDemoToggleLatch = false
+    M.overlayDemoAutoHideAt = nil
+    M.overlayDemoStatusNextAt = 0.0
+    M.overlayDemoTextureMaterial = nil
+    M.overlayDemoSuppressed = false
+    M.overlayDemoResumeAfterSuppression = false
+    M.overlayDemoResumeDuration = 0.0
+    M.overlayPauseDebugSignature = ""
+    M.overlayPauseDebugDumpLatch = false
+    M.overlayBootTestDone = false
+    M.overlayBootTestAt = GetTime() + 1.0
     M.loadGracePeriod = GetTime() + 2.0
 end

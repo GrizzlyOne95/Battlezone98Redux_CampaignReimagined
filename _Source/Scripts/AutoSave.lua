@@ -21,7 +21,8 @@ local SUBTITLE_FONT_SCALE_MAX = 2.00
 AutoSave.Config = {
     enabled = true,
     autoSaveInterval = 300,
-    currentSlot = 1
+    currentSlot = 1,
+    currentPath = "Save\\auto.sav",
 }
 
 local function clamp(value, minimum, maximum)
@@ -283,11 +284,23 @@ local function resolveMissionDisplayName()
     return displayName
 end
 
-local function getSlotPaths(slot)
+local function getAutoSavePaths()
     local saveDir = joinPath(bzfile.GetWorkingDirectory(), "Save")
     local backupDir = joinPath(saveDir, "AutoSaveBackups")
-    local filename = joinPath(saveDir, "game" .. slot .. ".sav")
-    local backupname = joinPath(backupDir, "game" .. slot .. ".pre_autosave.sav")
+    local configuredPath = trim(AutoSave.Config.currentPath)
+    local relativePath = configuredPath ~= "" and configuredPath or "Save\\auto.sav"
+    local filename = relativePath
+    if not relativePath:match("^[A-Za-z]:[\\/]")
+        and not relativePath:match("^[\\/]")
+        and not relativePath:lower():match("^save[\\/]") then
+        filename = joinPath(saveDir, relativePath)
+    elseif relativePath:lower():match("^save[\\/]") then
+        filename = joinPath(bzfile.GetWorkingDirectory(), relativePath)
+    end
+
+    local basename = filename:match("([^\\/]+)$") or "auto.sav"
+    local backupStem = basename:gsub("%.sav$", "")
+    local backupname = joinPath(backupDir, backupStem .. ".pre_autosave.sav")
     return filename, backupname, backupDir
 end
 
@@ -335,8 +348,7 @@ local function backupOriginalSaveIfNeeded(filename, backupname, backupDir)
 end
 
 function AutoSave.CreateSave(slot, desc)
-    local slotNum = slot or AutoSave.Config.currentSlot
-    local filename, backupname, backupDir = getSlotPaths(slotNum)
+    local filename, backupname, backupDir = getAutoSavePaths()
 
     if not backupOriginalSaveIfNeeded(filename, backupname, backupDir) then
         print("AutoSave: backup failed, aborting native save for " .. filename)
@@ -348,7 +360,7 @@ function AutoSave.CreateSave(slot, desc)
         return false
     end
 
-    local ok, pathOrError = exu.SaveGame(slotNum, desc)
+    local ok, pathOrError = exu.SaveGame(filename, desc)
     if ok then
         print("AutoSave: native save completed to " .. tostring(pathOrError or filename))
         showAutoSaveNotification()

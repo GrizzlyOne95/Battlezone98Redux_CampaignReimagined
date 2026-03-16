@@ -966,11 +966,29 @@ function exu.GetAiProcess(h) end
 function exu.GetAiProcessTypeName(h) end
 
 --- Gets AI process debug info for the given object.
---- Fields may include `process`, `vtable`, `rawTypeName`, `typeName`, and `hierarchy`.
+--- Fields may include `process`, `vtable`, `rawTypeName`, `typeName`, `hierarchy`, scanned child objects, and aligned memory field scans.
 --- @nodiscard
 --- @param h Handle
+--- @param scanBytes? integer Defaults to 256. Max 512.
 --- @return table | nil
 function exu.GetAiProcessInfo(h) end
+
+--- Gets the first likely task/attack child object discovered inside the AI process.
+--- This is heuristic and intended for reverse-engineering and diagnostics.
+--- The returned table may include `candidates`, `children`, and aligned `fields`.
+--- @nodiscard
+--- @param h Handle
+--- @param scanBytes? integer Defaults to 256. Max 512.
+--- @return table | nil
+function exu.GetAiTaskInfo(h) end
+
+--- Gets an aligned 32-bit field scan for the most likely AI task/attack object.
+--- Each entry may include integer, float, pointer, RTTI, and handle interpretations.
+--- @nodiscard
+--- @param h Handle
+--- @param scanBytes? integer Defaults to 256. Max 512.
+--- @return table | nil
+function exu.GetAiTaskFieldScan(h) end
 
 --- Gets the radar scan period for the given object (if it has a radar).
 --- @nodiscard
