@@ -27,6 +27,7 @@ PersistentConfig.PdaOverlay = {
     font = "CRBZoneOverlayFont",
     useCustomFont = true,
     zOrder = 645,
+    structureVersion = 2,
     statsVisible = false,
     feedbackVisible = false,
     feedbackExpireAt = 0.0,
@@ -34,6 +35,7 @@ PersistentConfig.PdaOverlay = {
         stats = {
             overlay = "cr_pda_stats_overlay",
             root = "cr_pda_stats_overlay_root",
+            frame = "cr_pda_stats_overlay_frame",
             backdrop = "cr_pda_stats_overlay_backdrop",
             header = "cr_pda_stats_overlay_header",
             title = "cr_pda_stats_overlay_title",
@@ -1297,7 +1299,7 @@ function PersistentConfig._DestroyPdaOverlay(kind)
     if not ids or not exu then
         return
     end
-    local childIds = { ids.backdrop, ids.header, ids.title, ids.tabs, ids.text, ids.footer }
+    local childIds = { ids.frame, ids.backdrop, ids.header, ids.title, ids.tabs, ids.text, ids.footer }
 
     PersistentConfig._HidePdaOverlay(kind)
     if exu.RemoveOverlayElementChild then
@@ -1325,7 +1327,9 @@ function PersistentConfig._DestroyPdaOverlay(kind)
 
     state.ready = false
     state.created = state.created or {}
+    state.createdVersion = state.createdVersion or {}
     state.created[kind] = false
+    state.createdVersion[kind] = nil
 end
 
 function PersistentConfig._DestroyAllPdaOverlays()
@@ -1338,6 +1342,7 @@ function PersistentConfig._ResetPdaOverlayState()
     state.ready = false
     state.failed = false
     state.created = {}
+    state.createdVersion = {}
     state.statsVisible = false
     state.feedbackVisible = false
     state.feedbackExpireAt = 0.0
@@ -1346,8 +1351,20 @@ end
 function PersistentConfig._TryCreatePdaOverlay(kind)
     local state = PersistentConfig.PdaOverlay
     state.created = state.created or {}
+    state.createdVersion = state.createdVersion or {}
+    local ids = state.ids[kind]
     if state.created[kind] then
-        return true
+        local expectedVersion = state.structureVersion or 1
+        local versionMatches = (state.createdVersion[kind] == expectedVersion)
+        local frameOk = true
+        if ids and ids.frame and exu and exu.HasOverlayElement then
+            local ok, hasFrame = pcall(exu.HasOverlayElement, ids.frame)
+            frameOk = ok and hasFrame == true
+        end
+        if versionMatches and frameOk then
+            return true
+        end
+        state.created[kind] = false
     end
 
     if not PersistentConfig._CanUsePdaOverlay() then
@@ -1355,7 +1372,6 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
         return false
     end
 
-    local ids = state.ids[kind]
     if not ids then
         state.failed = true
         return false
@@ -1368,9 +1384,9 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
     if kind == "feedback" then
         overlayZOrder = overlayZOrder + 1
     end
-    local panelIds = { ids.backdrop, ids.header }
+    local panelIds = { ids.frame, ids.backdrop, ids.header }
     local textIds = { ids.text, ids.title, ids.tabs, ids.footer }
-    local childIds = { ids.backdrop, ids.header, ids.title, ids.tabs, ids.text, ids.footer }
+    local childIds = { ids.frame, ids.backdrop, ids.header, ids.title, ids.tabs, ids.text, ids.footer }
     local ok = true
 
     local function SafeCall(fn, ...)
@@ -1390,11 +1406,16 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
     if SafeCall(exu.CreateOverlay, ids.overlay) == false then
         ok = false
     end
-    if SafeCall(exu.CreateOverlayElement, "BorderPanel", ids.root) == false then
+    local rootTypeName = ids.frame and "Panel" or "BorderPanel"
+    if SafeCall(exu.CreateOverlayElement, rootTypeName, ids.root) == false then
         ok = false
     end
     for _, panelId in ipairs(panelIds) do
-        if panelId and SafeCall(exu.CreateOverlayElement, "Panel", panelId) == false then
+        local panelTypeName = "Panel"
+        if panelId == ids.frame then
+            panelTypeName = "BorderPanel"
+        end
+        if panelId and SafeCall(exu.CreateOverlayElement, panelTypeName, panelId) == false then
             ok = false
         end
     end
@@ -1430,12 +1451,18 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
     end
 
     SafeCall(exu.SetOverlayParameter, ids.root, "transparent", true)
-    SafeCall(exu.SetOverlayParameter, ids.root, "border_size", "2 2 2 2")
-    SafeCall(exu.SetOverlayParameter, ids.root, "border_material", "BaseWhiteNoLighting")
+    SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.0)
     for _, panelId in ipairs(panelIds) do
         if panelId then
             SafeCall(exu.SetOverlayMaterial, panelId, "BaseWhiteNoLighting")
         end
+    end
+    if ids.frame then
+        SafeCall(exu.SetOverlayParameter, ids.frame, "border_size", "2 2 2 2")
+        SafeCall(exu.SetOverlayParameter, ids.frame, "border_material", "BaseWhiteNoLighting")
+    else
+        SafeCall(exu.SetOverlayParameter, ids.root, "border_size", "2 2 2 2")
+        SafeCall(exu.SetOverlayParameter, ids.root, "border_material", "BaseWhiteNoLighting")
     end
     for _, textId in ipairs(textIds) do
         if textId then
@@ -1474,6 +1501,7 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
     state.ready = true
     state.failed = false
     state.created[kind] = true
+    state.createdVersion[kind] = state.structureVersion or 1
     return true
 end
 
@@ -1515,18 +1543,31 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
     SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
     SafeCall(exu.SetOverlayDimensions, ids.root, layout.panelWidth, layout.panelHeight)
     SafeCall(exu.SetOverlayParameter, ids.root, "transparent", true)
-    SafeCall(exu.SetOverlayParameter, ids.root, "border_size", borderSizeString)
-    SafeCall(exu.SetOverlayParameter, ids.root, "border_material", "BaseWhiteNoLighting")
-    SafeCall(exu.SetOverlayColor, ids.root, colors.border.r, colors.border.g, colors.border.b, colors.border.a)
+    SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.0)
+
+    if ids.frame then
+        SafeCall(exu.SetOverlayPosition, ids.frame, 0, 0)
+        SafeCall(exu.SetOverlayDimensions, ids.frame, layout.panelWidth, layout.panelHeight)
+        SafeCall(exu.SetOverlayMaterial, ids.frame, "BaseWhiteNoLighting")
+        SafeCall(exu.SetOverlayParameter, ids.frame, "border_size", borderSizeString)
+        SafeCall(exu.SetOverlayParameter, ids.frame, "border_material", "BaseWhiteNoLighting")
+        SafeCall(exu.SetOverlayColor, ids.frame, colors.border.r, colors.border.g, colors.border.b, colors.border.a)
+    else
+        SafeCall(exu.SetOverlayParameter, ids.root, "border_size", borderSizeString)
+        SafeCall(exu.SetOverlayParameter, ids.root, "border_material", "BaseWhiteNoLighting")
+        SafeCall(exu.SetOverlayColor, ids.root, colors.border.r, colors.border.g, colors.border.b, colors.border.a)
+    end
 
     SafeCall(exu.SetOverlayPosition, ids.backdrop, layout.backdropX, layout.backdropY)
     SafeCall(exu.SetOverlayDimensions, ids.backdrop, layout.backdropWidth, layout.backdropHeight)
+    SafeCall(exu.SetOverlayMaterial, ids.backdrop, "BaseWhiteNoLighting")
     SafeCall(exu.SetOverlayColor, ids.backdrop, colors.backdrop.r, colors.backdrop.g, colors.backdrop.b,
         colors.backdrop.a)
 
     if ids.header and layout.headerWidth and layout.headerHeight then
         SafeCall(exu.SetOverlayPosition, ids.header, layout.headerX, layout.headerY)
         SafeCall(exu.SetOverlayDimensions, ids.header, layout.headerWidth, layout.headerHeight)
+        SafeCall(exu.SetOverlayMaterial, ids.header, "BaseWhiteNoLighting")
         SafeCall(exu.SetOverlayColor, ids.header, colors.header.r, colors.header.g, colors.header.b, colors.header.a)
     end
 
@@ -1580,6 +1621,9 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
     end
 
     SafeCall(exu.ShowOverlayElement, ids.root)
+    if ids.frame then
+        SafeCall(exu.ShowOverlayElement, ids.frame)
+    end
     SafeCall(exu.ShowOverlayElement, ids.backdrop)
     if ids.header then
         SafeCall(exu.ShowOverlayElement, ids.header)
