@@ -635,6 +635,10 @@ function RuntimeEnhancements.Update()
     if RuntimeEnhancements.SupportsAutoLevel then
         UpdateAutoLevel(now)
     end
+
+    if exu and exu.UpdateCommandReplacements then
+        exu.UpdateCommandReplacements()
+    end
 end
 
 SetTeamColor = function(teamNum, r, g, b)
