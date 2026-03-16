@@ -11365,6 +11365,11 @@ function aiCore.Update()
             aiCore.GlobalOffenseManagers[team]:Update()
         end
     end
+
+    local exuLib = rawget(_G, "exu")
+    if exuLib and exuLib.UpdateCommandReplacements then
+        exuLib.UpdateCommandReplacements()
+    end
 end
 
 function aiCore.AddObject(h)

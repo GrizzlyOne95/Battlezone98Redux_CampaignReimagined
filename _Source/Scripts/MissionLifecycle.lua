@@ -306,6 +306,10 @@ function MissionLifecycle:Update(state, dt)
     if cfg.updatePhysicsImpact then
         Call(cfg.PhysicsImpact, "Update", dt)
     end
+
+    if exu and exu.UpdateCommandReplacements then
+        exu.UpdateCommandReplacements()
+    end
 end
 
 function MissionLifecycle:Save(state)
