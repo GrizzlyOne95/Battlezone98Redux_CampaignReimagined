@@ -5435,6 +5435,7 @@ function aiCore.WingmanManager.new(teamNum)
     self.updateTimer = 0.0
     self.podChance = 1.0
     self.podSearchRadius = 275.0
+    self.depotSearchRadius = 650.0
     self.followThreshold = 110
     self.enemySearchRadius = 200
     self.commandDelay = 10
@@ -5512,7 +5513,7 @@ function aiCore.WingmanManager:UpdateWingman(entry)
     end
 
     -- Calculate search radius based on follow state
-    local searchRadius = self:GetSearchRadius(unit, currentCommand)
+    local searchRadii = self:GetSearchRadii(unit, currentCommand)
 
     -- Check if unit can act independently
     if self:CanSeekSupplies(unit, currentCommand, health, ammo) then
@@ -5520,7 +5521,7 @@ function aiCore.WingmanManager:UpdateWingman(entry)
 
         -- Priority 1: Health (repair depot)
         if health <= healthThreshold then
-            local depot = self:FindNearestRepairDepot(unit, searchRadius)
+            local depot = self:FindNearestRepairDepot(unit, searchRadii.depot)
             if depot and GetTime() >= entry.lastCommandTime + self.commandDelay then
                 self:SavePreviousCommand(entry)
                 aiCore.TrySetCommand(unit, AiCommand.GET_REPAIR, GetUncommandablePriority(), depot, nil, nil, nil,
@@ -5532,7 +5533,7 @@ function aiCore.WingmanManager:UpdateWingman(entry)
 
         -- Priority 2: Ammo (supply depot)
         if not commandIssued and ammo <= ammoThreshold then
-            local depot = self:FindNearestSupplyDepot(unit, searchRadius)
+            local depot = self:FindNearestSupplyDepot(unit, searchRadii.depot)
             if depot and GetTime() >= entry.lastCommandTime + self.commandDelay then
                 self:SavePreviousCommand(entry)
                 aiCore.TrySetCommand(unit, AiCommand.GET_RELOAD, GetUncommandablePriority(), depot, nil, nil, nil,
@@ -5544,7 +5545,7 @@ function aiCore.WingmanManager:UpdateWingman(entry)
 
         -- Fallback: Repair pods
         if not commandIssued and health <= healthThreshold then
-            local pod = self:FindNearestRepairPod(unit, searchRadius)
+            local pod = self:FindNearestRepairPod(unit, searchRadii.pod)
             if pod and GetTime() >= entry.lastCommandTime + self.commandDelay then
                 if math.random() <= self.podChance then
                     self:SavePreviousCommand(entry)
@@ -5558,7 +5559,7 @@ function aiCore.WingmanManager:UpdateWingman(entry)
 
         -- Fallback: Ammo pods
         if not commandIssued and ammo <= ammoThreshold then
-            local pod = self:FindNearestAmmoPod(unit, searchRadius)
+            local pod = self:FindNearestAmmoPod(unit, searchRadii.pod)
             if pod and GetTime() >= entry.lastCommandTime + self.commandDelay then
                 if math.random() <= self.podChance then
                     self:SavePreviousCommand(entry)
@@ -5589,9 +5590,10 @@ function aiCore.WingmanManager:IsInBattle(unit)
     return false
 end
 
--- Helper: Calculate search radius based on follow state
-function aiCore.WingmanManager:GetSearchRadius(unit, currentCommand)
-    local searchRadius = self.podSearchRadius
+-- Helper: Calculate pod/depot search radii based on follow state
+function aiCore.WingmanManager:GetSearchRadii(unit, currentCommand)
+    local podSearchRadius = self.podSearchRadius
+    local depotSearchRadius = math.max(self.depotSearchRadius or self.podSearchRadius, self.podSearchRadius)
 
     if currentCommand == AiCommand.FOLLOW or currentCommand == AiCommand.DEFEND or currentCommand == AiCommand.FORMATION then
         local target = GetCurrentWho(unit)
@@ -5600,14 +5602,24 @@ function aiCore.WingmanManager:GetSearchRadius(unit, currentCommand)
             local velMag = math.sqrt(vel.x ^ 2 + vel.y ^ 2 + vel.z ^ 2)
 
             if velMag < self.followVelocity then
-                searchRadius = math.min(self.podSearchRadius, self.followThreshold)
+                podSearchRadius = math.min(self.podSearchRadius, self.followVelocityThreshold)
             else
-                searchRadius = math.min(self.podSearchRadius, self.followThreshold * 0.8)
+                local movingFollowRadius = math.min(self.podSearchRadius, self.followThreshold * 0.8)
+                podSearchRadius = movingFollowRadius
+                depotSearchRadius = math.min(depotSearchRadius, movingFollowRadius)
             end
         end
     end
 
-    return searchRadius
+    return {
+        pod = podSearchRadius,
+        depot = depotSearchRadius,
+    }
+end
+
+function aiCore.WingmanManager:GetSearchRadius(unit, currentCommand)
+    local radii = self:GetSearchRadii(unit, currentCommand)
+    return radii and radii.pod or self.podSearchRadius
 end
 
 -- Helper: Can unit seek supplies?

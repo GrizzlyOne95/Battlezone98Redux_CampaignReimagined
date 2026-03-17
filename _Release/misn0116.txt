@@ -1,1 +1,0 @@
-To help keep track of enemies, press T to target them. As long as your enemy remains in radar range, he will appear in your target camera, and the arrows in your HUD will identify its direction.

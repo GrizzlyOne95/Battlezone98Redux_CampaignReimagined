@@ -1,1 +1,0 @@
-Notice the green line drawn into the radar. This will help you keep track of your units on the battlefield. At the bottom of each line in the radar, you will see a green colored circle with a number in it. Press the one key to select your turret.
