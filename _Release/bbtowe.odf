@@ -1,0 +1,32 @@
+[GameObjectClass]
+classLabel = "turret"
+scrapCost = 6
+scrapValue = 4
+maxHealth = 4250
+maxAmmo = 50000
+collisionRadius = 5.0
+unitName = "Gun Tower"
+aiName = "GunTowerFriend"
+aiName2 = "GunTowerEnemy"
+heatSignature = 0.5599999999999999
+imageSignature = 5.6
+radarSignature = 0.7
+weaponHard1 = "GC1"
+weaponName1 = "gblastb"
+
+[CraftClass]
+rangeScan = 200.0
+periodScan = 0.0
+velocJam = 0.0
+
+[TurretCraftClass]
+setAltitude = 0.0
+omegaTurret = 2.0
+alphaTurret = 4.0
+alphaTrack = 10.0
+alphaDamp = 3.0
+pitchPitch = 0.5
+
+[BuildingClass]
+SoundAmbient = "abtowee0.wav"
+

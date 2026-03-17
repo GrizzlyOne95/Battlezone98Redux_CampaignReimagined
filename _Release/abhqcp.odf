@@ -1,0 +1,15 @@
+[GameObjectClass]
+classLabel = "i76building"
+collisionRadius = 5.0
+scrapCost = 0
+scrapValue = 0
+maxHealth = 20000
+maxAmmo = 0
+unitName = "Command"
+heatSignature = 0.8
+imageSignature = 8.0
+radarSignature = 1.0
+
+[BuildingClass]
+soundAmbient = "abhqcpe0.wav"
+

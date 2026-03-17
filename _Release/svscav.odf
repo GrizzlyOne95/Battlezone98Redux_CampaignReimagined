@@ -1,0 +1,60 @@
+[GameObjectClass]
+classLabel = "scavenger"
+collisionRadius = 5.0
+scrapValue = 2
+scrapCost = 4
+buildTime = 5.0
+maxHealth = 3625
+maxAmmo = 0
+unitName = "Scavenger"
+aiName = "ScavengerFriend"
+aiName2 = "ScavengerEnemy"
+heatSignature = 0.2
+imageSignature = 1.5
+radarSignature = 0.1
+
+[CraftClass]
+rangeScan = 200.0
+periodScan = 0.0
+velocJam = 0.0
+selectGoMsg = "svscavn.wav"
+selectPickupMsg = "svscavk.wav"
+selectDropoffMsg = "svscavm.wav"
+selectOtherMsg = "svscav0.wav"
+goMsg = "svscav1.wav"
+stopMsg = "svscav7.wav"
+followMsg = "svscav6.wav"
+rescueMsg = "svscavb.wav"
+repairMsg = "svscava.wav"
+recycleMsg = "svscavc.wav"
+otherMsg = "svscavj.wav"
+diedMsg = "sbetty4.wav"
+
+[HoverCraftClass]
+setAltitude = 0.5
+accelDragStop = 4.0
+accelDragFull = 1.0
+alphaTrack = 10.0
+alphaDamp = 3.0
+pitchPitch = 0.3
+pitchThrust = 0.05
+rollStrafe = 0.1
+rollSteer = 0.1
+velocForward = 15.0
+velocReverse = 15.0
+velocStrafe = 15.0
+accelThrust = 50.0
+accelBrake = 50.0
+omegaSpin = 2.8000000000000003
+omegaTurn = 1.2000000000000002
+alphaSteer = 4.0
+accelJump = 0.0
+soundThrust = "svscave3.wav"
+soundTurbo = "svscave6.wav"
+soundDeploy = "trdeploy.wav"
+soundUndeploy = "trundepl.wav"
+
+[ScavengerClass]
+maxScrap = 3
+soundPickup = "NULL"
+

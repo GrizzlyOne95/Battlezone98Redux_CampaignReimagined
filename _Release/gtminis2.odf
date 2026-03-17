@@ -1,0 +1,11 @@
+[WeaponClass]
+classLabel = "machinegun"
+ordName = "bullet6"
+wpnName = "Chaingun"
+fireSound = "gmsov00.wav"
+wpnReticle = "gminigun"
+wpnPriority = 1
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.30

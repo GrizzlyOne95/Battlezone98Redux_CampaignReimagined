@@ -1,0 +1,105 @@
+[GameObjectClass]
+baseName = "cvslf"
+classLabel = "armory"
+collisionRadius = 7.0
+scrapValue = 5
+scrapCost = 5
+buildTime = 8.5
+maxHealth = 7200
+maxAmmo = 0
+collisionRadius = 5.0
+unitName = "Armory"
+aiName = "SLFFriend"
+aiName2 = "SLFEnemy"
+heatSignature = 0.5
+imageSignature = 2.0
+radarSignature = 1.0
+weaponHard1 = "ARM"
+weaponName1 = "gobject"
+
+[CraftClass]
+rangeScan = 450.0
+periodScan = 5.0
+velocJam = 0.0
+selectOtherMsg = "cvslfv0.wav"
+selectGoMsg = "cvslfve.wav"
+selectUser2Msg = "cvslfvo.wav"
+selectUser1Msg = "cvslfvp.wav"
+otherMsg = "cvslfvg.wav"
+goMsg = "cvslfv7.wav"
+repairMsg = "cvslfvh.wav"
+attackMsg = "cvslfvd.wav"
+followMsg = "cvslfv8.wav"
+recycleMsg = "cvslfg.wav"
+selectAttackMsg = "cvslfvf.wav"
+killedMsg = "cvslfv2.wav"
+reloadMsg = "cvslfvn.wav"
+rescueMsg = "cvslfv3.wav"
+user1Msg = "cvslfv4.wav"
+user2Msg = "cvslfvk.wav"
+deployedMsg = "cvslfvp.wav"
+packedMsg = "cvslfvc.wav"
+diedMsg = "abetty1.wav"
+
+[HoverCraftClass]
+setAltitude = 1.5
+accelDragStop = 4.0
+accelDragFull = 1.0
+alphaTrack = 20.0
+alphaDamp = 5.0
+pitchPitch = 0.1
+pitchThrust = 0.05
+rollStrafe = 0.05
+rollSteer = 0.05
+velocForward = 15.0
+velocReverse = 15.0
+velocStrafe = 15.0
+accelThrust = 50.0
+accelBrake = 20.0
+omegaSpin = 2.5
+omegaTurn = 1.25
+alphaSteer = 6.25
+accelJump = 0.0
+
+[ProducerClass]
+timeDeploy = 5.0
+timeUndeploy = 5.0
+timeRepair = 1.0
+healthRepair = 100
+scrapHold = 99
+pilotHold = 0
+buildItem1 = "sprepa"
+buildItem2 = "spammo"
+buildItem3 = "spcamr"
+buildItem4 = "apwrcka"
+blockedGeyserMsg = "cvslfvb.wav"
+soundBuild = "avslfe1.wav"
+
+[ArmoryClass]
+cannonItem1 = "apmini"
+cannonItem2 = "apstab"
+cannonItem3 = "cpsstb"
+cannonItem4 = "apmagg"
+cannonItem5 = "apflsh"
+cannonItem6 = "apbolt"
+cannonItem7 = "apblst"
+rocketItem1 = "apshdw"
+rocketItem2 = "aphorn"
+rocketItem3 = "apcmet"
+rocketItem4 = "aptagg"
+rocketItem5 = "apsand"
+rocketItem6 = "aprktb"
+mortarItem1 = ""
+mortarItem2 = ""
+mortarItem3 = ""
+mortarItem4 = ""
+specialItem1 = "apflar"
+specialItem2 = "apmcur"
+specialItem3 = "apmits"
+specialItem4 = "approx"
+specialItem5 = "apthmp"
+specialItem6 = "apredf"
+specialItem7 = "apphan"
+specialItem8 = "apsite"
+specialItem9 = "apmasg"
+

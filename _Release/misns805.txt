@@ -1,0 +1,1 @@
+Cominat, the instruments show some strange readings from the hybrid chips. They show abnormal response to commands.

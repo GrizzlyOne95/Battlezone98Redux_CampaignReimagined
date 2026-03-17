@@ -1,0 +1,1 @@
+Good! The Recycler is now ready to move. Use your command interface to open a COM channel with the Recycler and order it to follow you to a new geyser at checkpoint 1. Keep in mind that the Recycler is big and slow may not be able to keep up with you.

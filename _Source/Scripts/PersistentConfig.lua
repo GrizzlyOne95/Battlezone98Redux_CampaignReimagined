@@ -88,6 +88,7 @@ PersistentConfig.DefaultSettings = {
     WeaponStatsHud = true,          -- Persistent weapon stats panel
     PilotModeEnabled = false,       -- Player-side pilot mode automation
     UnitVerbosity = 1,              -- 1=Normal 2=Decreased 3=None
+    UnderAttackAlertMode = 3,       -- 1=None 2=Minimal 3=Normal
     SubtitleOpacity = 0.50,         -- Main subtitle opacity
     SubtitleFontScale = 2.00,       -- Subtitle font scale (0.85-2.00)
     PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
@@ -194,6 +195,12 @@ PersistentConfig.UnitVerbosityPresets = {
     [3] = { name = "NONE", muted = true, throttleMs = 60000, queueDepthLimit = 1, queueStaleMs = 0 },
 }
 
+PersistentConfig.UnderAttackAlertModes = {
+    [1] = { id = 1, name = "NONE" },
+    [2] = { id = 2, name = "MINIMAL" },
+    [3] = { id = 3, name = "NORMAL" },
+}
+
 local PdaPanelMaterialFamilies = {
     { key = "DG", r = 0.10, g = 0.42, b = 0.10 },
     { key = "G", r = 0.18, g = 0.92, b = 0.18 },
@@ -205,6 +212,12 @@ local PdaPanelMaterialFamilies = {
 local ScrapPilotHudLayouts = {
     [1] = { name = "STOCK" },
     [2] = { name = "LEGACY" },
+}
+
+local ScrapPilotHudMaterialSwap = {
+    materials = { "HUDcombi", "HUDcomba" },
+    defaultTexture = "GreenHUD.png",
+    legacyTexture = "GreenHUD_2.png",
 }
 
 local HeadlightColorPresets = {
@@ -569,6 +582,20 @@ local function GetScrapPilotHudLayout()
     return ScrapPilotHudLayouts[ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2)]
 end
 
+function PersistentConfig._ApplyScrapPilotHudMaterial()
+    if not (exu and exu.SetMaterialTexture) then
+        return
+    end
+
+    local isLegacyLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2
+    local textureName = isLegacyLayout and ScrapPilotHudMaterialSwap.legacyTexture or
+        ScrapPilotHudMaterialSwap.defaultTexture
+
+    for _, materialName in ipairs(ScrapPilotHudMaterialSwap.materials) do
+        exu.SetMaterialTexture(materialName, textureName)
+    end
+end
+
 local function GetSubtitleFontScale()
     return ClampRange(PersistentConfig.Settings.SubtitleFontScale, PersistentConfig.FontScale.subtitle.min,
         PersistentConfig.FontScale.subtitle.max, 1.0)
@@ -613,6 +640,11 @@ end
 function PersistentConfig._GetUnitVerbosityPreset()
     return PersistentConfig.UnitVerbosityPresets[ClampIndex(PersistentConfig.Settings.UnitVerbosity, 1,
         #PersistentConfig.UnitVerbosityPresets, 1)]
+end
+
+function PersistentConfig._GetUnderAttackAlertModePreset()
+    return PersistentConfig.UnderAttackAlertModes[ClampIndex(PersistentConfig.Settings.UnderAttackAlertMode, 1,
+        #PersistentConfig.UnderAttackAlertModes, 3)]
 end
 
 function PersistentConfig._ResolveUnitVoProfileForCurrentTeam()
@@ -661,6 +693,20 @@ function PersistentConfig._ApplyUnitVoSettings()
     local okStale = pcall(exu.SetUnitVoQueueStaleMs, profile.queueStaleMs)
 
     return okMuted and okThrottle and okDepth and okStale
+end
+
+function PersistentConfig._ApplyUnderAttackAlertMode()
+    if not exu or type(exu.SetUnderAttackAlertMode) ~= "function" then
+        return false
+    end
+
+    local preset = PersistentConfig._GetUnderAttackAlertModePreset()
+    local ok, result = pcall(exu.SetUnderAttackAlertMode, preset.id or 3)
+    if not ok then
+        return false
+    end
+
+    return result ~= false
 end
 
 function PersistentConfig._GetAutoSaveSlot()
@@ -2361,6 +2407,20 @@ local function NormalizeWeaponMask(mask)
         return 0
     end
     return math.max(0, math.floor(mask + 0.5))
+end
+
+local function FormatWeaponMaskBits(mask)
+    local normalized = NormalizeWeaponMask(mask)
+    local chars = {}
+    for slot = 4, 0, -1 do
+        chars[#chars + 1] = IsMaskBitSet(normalized, slot) and "1" or "0"
+    end
+    return table.concat(chars)
+end
+
+local function FormatWeaponMaskDebugText(mask)
+    local normalized = NormalizeWeaponMask(mask)
+    return string.format("Mask  %s (%d)", FormatWeaponMaskBits(normalized), normalized)
 end
 
 local function FilterWeaponMaskToInstalled(mask, installedMask)
@@ -4543,11 +4603,15 @@ local function BuildTargetPageText(player, selectedMask)
     local target = aimInfo and aimInfo.handle or nil
     local targetDistance = aimInfo and aimInfo.distance or nil
     local aimPosition = aimInfo and aimInfo.position or nil
+    local selectedWeaponMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
     local reticleLine = GetTargetPageWeaponSummary(player, selectedMask)
 
     table.insert(lines, "MODE " .. DescribeAimMode(aimInfo))
     if reticleLine then
         table.insert(lines, reticleLine)
+    end
+    if selectedWeaponMask > 0 then
+        table.insert(lines, FormatWeaponMaskDebugText(selectedWeaponMask))
     end
 
     if not aimInfo or not targetDistance then
@@ -4581,7 +4645,6 @@ local function BuildTargetPageText(player, selectedMask)
     local maxHealth = type(GetMaxHealth) == "function" and GetMaxHealth(target) or nil
     local curAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(target) or nil
     local maxAmmo = type(GetMaxAmmo) == "function" and GetMaxAmmo(target) or nil
-    local selectedWeaponMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
     local _, eta = GetTargetClosureInfo(player, target, targetDistance)
 
     table.insert(lines, "UNIT " .. unitName)
@@ -5388,14 +5451,8 @@ local function UpdateWeaponStatsDisplay(player)
 
     local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.STATS)
     local mask = GetCurrentWeaponMask(player)
-    if page == PdaPages.TARGET and exu and type(exu.GetSelectedWeaponMask) == "function" then
-        local ok, selectedMask = pcall(exu.GetSelectedWeaponMask, player)
-        if ok and type(selectedMask) == "number" then
-            selectedMask = math.max(0, math.floor(selectedMask + 0.5))
-            if selectedMask > 0 then
-                mask = selectedMask
-            end
-        end
+    if page == PdaPages.TARGET then
+        mask = ResolveLiveSelectedWeaponMask(player, mask)
     end
     local target = nil
     local targetDistance = nil
@@ -5448,6 +5505,8 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
     if not exu then
         return
     end
+
+    PersistentConfig._ApplyScrapPilotHudMaterial()
 
     if exu.SetScrapHudColor then
         if ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2 then
@@ -5657,6 +5716,20 @@ function PersistentConfig._CycleUnitVerbosity(delta)
     return true
 end
 
+function PersistentConfig._CycleUnderAttackAlertMode(delta)
+    local nextIndex = CycleIndex(PersistentConfig.Settings.UnderAttackAlertMode, #PersistentConfig.UnderAttackAlertModes,
+        delta, 3)
+    if PersistentConfig.Settings.UnderAttackAlertMode == nextIndex then
+        return false
+    end
+
+    PersistentConfig.Settings.UnderAttackAlertMode = nextIndex
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    ShowFeedback("Under Attack Alert: " .. PersistentConfig._GetUnderAttackAlertModePreset().name, 0.8, 1.0, 0.8, 2.5,
+        false, "pda")
+    return true
+end
+
 function PersistentConfig._SettingsActions.SetAutoRepairBuildingsEnabled(enabled)
     local value = not not enabled
     if PersistentConfig.Settings.AutoRepairBuildings == value then
@@ -5854,6 +5927,13 @@ GetSettingsPageEntries = function()
             end,
         },
         {
+            label = "Attack Alert",
+            value = PersistentConfig._GetUnderAttackAlertModePreset().name,
+            adjust = function(delta)
+                return PersistentConfig._CycleUnderAttackAlertMode(delta)
+            end,
+        },
+        {
             label = "Faction Flames",
             value = PersistentConfig.Settings.DynamicFactionFlameColors and "On" or "Off",
             adjust = function(delta)
@@ -6038,6 +6118,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.SubtitlesEnabled = (val == "true")
                 elseif key == "UnitVerbosity" then
                     PersistentConfig.Settings.UnitVerbosity = tonumber(val) or 1
+                elseif key == "UnderAttackAlertMode" then
+                    PersistentConfig.Settings.UnderAttackAlertMode = tonumber(val) or 3
                 elseif key == "OtherHeadlightsDisabled" then
                     PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
                 elseif key == "AutoRepairWingmen" then
@@ -6130,6 +6212,8 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.PdaOpacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.00)
     PersistentConfig.Settings.UnitVerbosity = ClampIndex(PersistentConfig.Settings.UnitVerbosity, 1,
         #PersistentConfig.UnitVerbosityPresets, 1)
+    PersistentConfig.Settings.UnderAttackAlertMode = ClampIndex(PersistentConfig.Settings.UnderAttackAlertMode, 1,
+        #PersistentConfig.UnderAttackAlertModes, 3)
     PersistentConfig.Settings.SubtitleFontScale = ClampRange(PersistentConfig.Settings.SubtitleFontScale,
         PersistentConfig.FontScale.subtitle.min, PersistentConfig.FontScale.subtitle.max, 1.0)
     PersistentConfig.Settings.PdaFontScale = ClampRange(PersistentConfig.Settings.PdaFontScale,
@@ -6168,6 +6252,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("HeadlightVisible=" .. tostring(PersistentConfig.Settings.HeadlightVisible))
         f:Writeln("SubtitlesEnabled=" .. tostring(PersistentConfig.Settings.SubtitlesEnabled))
         f:Writeln("UnitVerbosity=" .. tostring(PersistentConfig.Settings.UnitVerbosity))
+        f:Writeln("UnderAttackAlertMode=" .. tostring(PersistentConfig.Settings.UnderAttackAlertMode))
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
@@ -6262,6 +6347,7 @@ function PersistentConfig.ApplySettings()
         PersistentConfig._SyncRadarSizeScale(true)
         PersistentConfig._ApplyDynamicFactionFlameColors()
         PersistentConfig._ApplyUnitVoSettings()
+        PersistentConfig._ApplyUnderAttackAlertMode()
     end
 
     PersistentConfig.ApplyScrapPilotHudLayout()

@@ -1,0 +1,1 @@
+Now, we're ready to give the turret an order. Press the one key to command the selected turret to follow you.

@@ -1,0 +1,31 @@
+material CR_Terrain_Moon01 : BZTerrainBaseTemplate
+{
+    set_texture_alias DiffuseMap      mn_base_d.dds
+    set_texture_alias DetailMap       mn_detail_atlas.dds
+    set_texture_alias DetailNormalMap mn_detail_n.dds
+    set_texture_alias NormalMap       mn_base_n.dds
+    set_texture_alias SpecularMap     mn_base_s.dds
+    set_texture_alias EmissiveMap     black.png
+    set_texture_alias GlossMap        mn_base_g.dds
+    set_texture_alias MetallicMap     mn_base_m.dds
+
+    set $terrainNormalStrength "1.25"
+    set $terrainDiffuseBoost "1.10"
+    set $detailContrastStrength "1.10"
+    set $detailFadeStart "6.0"
+    set $detailFadeRange "34.0"
+    set $slopeDetailStrength "0.55"
+
+    set $tileBlendStrength "0.65"
+    set $detailNormalStrength "1.25"
+
+    set $specAAStrength "0.60"
+    set $wrapDiffuse "0.10"
+    set $rimStrength "0.03"
+    set $rimPower "2.2"
+
+    set $glossStrength "1.10"
+    set $glossBias "0.01"
+    set $metallicStrength "1.05"
+    set $metallicBias "0.00"
+}

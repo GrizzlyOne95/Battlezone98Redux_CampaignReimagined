@@ -1,0 +1,1 @@
+Good. All factories require a power source just like the recycler. Use your command interface to order the unit factory to deploy on a geyser.

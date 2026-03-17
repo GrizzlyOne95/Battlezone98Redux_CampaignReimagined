@@ -1,0 +1,30 @@
+Structs
+VTrider edited this page on May 4, 2025 · 7 revisions
+This page contains documentation for structs, returned as tables from lua functions.
+
+Camera Origins
+-- All number values
+-- Note the inconsistent capitalization, this is intentional since it's the way
+-- the game does it internally
+Origins = {
+    Orig_x = 0.0, -- Half of your horizontal resolution in pixels
+    Orig_y = 0.0, -- Half of your vertical resolution in pixels
+    Const_x = 0.0, -- Normalized coordinates
+    Const_y = 0.0 -- Normalized coordinates (Const_x negated)
+}
+Color
+-- All fields are number values
+Color = {
+    r = 0.0, 
+    g = 0.0,
+    b = 0.0
+}
+Fog
+-- All fields are number values
+Fog = {
+    r = 0.0,
+    g = 0.0,
+    b = 0.0,
+    start = 0.0,
+    ending = 0.0
+}

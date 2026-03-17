@@ -1,0 +1,14 @@
+[WeaponClass]
+baseName = "ghartill"
+classLabel = "mortar"
+ordName = "cvwo004"
+wpnName = "Howitzer"
+fireSound = "ghart00.wav"
+wpnReticle = "gmortar"
+wpnLadder = "gmortar.L0"
+wpnPriority = 6
+wpnCategory = "MORT"
+
+[CannonClass]
+shotDelay = 2.5
+

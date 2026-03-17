@@ -1,0 +1,15 @@
+material CR_Object_Subtle01 : BZBaseTemplate
+{
+    set_texture_alias DiffuseMap  myobject_d.dds
+    set_texture_alias NormalMap   myobject_n.dds
+    set_texture_alias SpecularMap myobject_s.dds
+    set_texture_alias EmissiveMap myobject_e.dds
+
+    set $objectNormalStrength "1.15"
+    set $objectDiffuseBoost "1.10"
+    set $objectDiffuseDetailStrength "1.05"
+    set $specAAStrength "0.55"
+    set $wrapDiffuse "0.10"
+    set $rimStrength "0.04"
+    set $rimPower "2.4"
+}

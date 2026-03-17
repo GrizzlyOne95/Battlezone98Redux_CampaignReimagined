@@ -1,0 +1,17 @@
+[GameObjectClass] // Green Bolt Mine, created by General BlackDragon
+classLabel = "wpnpower"
+baseName = "apspec"
+scrapCost = 1
+scrapValue = 0
+maxHealth = 150
+maxAmmo = 0
+unitName = NULL
+aiName = "PowerUpProcess"
+aiName2 = "PowerUpProcess"
+
+[PowerUpClass]
+soundPickup = "apspec.wav"
+soundReject = "mnu_buzz.wav"
+
+[WeaponPowerupClass]
+weaponName = "gboltmig"
