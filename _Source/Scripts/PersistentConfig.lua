@@ -5794,6 +5794,18 @@ function PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(e
     return true
 end
 
+function PersistentConfig._SettingsActions.SetRetroLightingEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.RetroLighting == value then
+        return false
+    end
+
+    PersistentConfig.Settings.RetroLighting = value
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    ShowFeedback("OG Lighting: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8, 2.5, false, "pda")
+    return true
+end
+
 function PersistentConfig._SettingsActions.SetAutoSaveEnabled(enabled)
     local value = not not enabled
     local interval = PersistentConfig._GetAutoSaveIntervalOption()
@@ -5938,6 +5950,13 @@ GetSettingsPageEntries = function()
             value = PersistentConfig.Settings.DynamicFactionFlameColors and "On" or "Off",
             adjust = function(delta)
                 return PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "OG Lighting",
+            value = PersistentConfig.Settings.RetroLighting and "On" or "Off",
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetRetroLightingEnabled(DirectionEnabled(delta))
             end,
         },
         {
