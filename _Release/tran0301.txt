@@ -1,1 +1,0 @@
-In this mission, we'll introduce you to factories. Factories reprocess a material we call biometal scrap, into new vehicles, weapons, and supplies. We found scrap fields around the moon that probably came from meteor showers. Engineering has created scavenger units which are like big mobile vacuum cleaners designed to gather scrap.

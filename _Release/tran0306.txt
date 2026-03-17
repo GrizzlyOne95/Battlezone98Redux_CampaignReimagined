@@ -1,1 +1,0 @@
-Point your smart reticle at the geyser and notice that the diamond on the ground changes to a white line. The command interface automatically recognizes that the recycler has a special interaction with the geyser. Press the space bar while pointing at the geyser to get the recycler to deploy on the power source.

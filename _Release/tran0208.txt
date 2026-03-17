@@ -1,1 +1,0 @@
-Good, let's get the turret to deploy. Point your smart reticle at the ground and press the space bar to order the turret to move to that position and deploy.

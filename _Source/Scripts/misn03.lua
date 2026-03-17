@@ -465,18 +465,11 @@ function AddObject(h)
         end
     end
 
-    -- Only register units with aiCore if they are produced by the AI (near factory/recycler)
-    -- Scripted waves spawn far away and should be ignored to prevent Squad hijacking
-    -- MODIFIED for Misn03: Skip Team 2 (CCA) to prevent interference with scripted logic
+    -- Register eligible player-team spawns immediately so aiCore wingman/depot logic
+    -- does not have to wait for PlayerPilotMode's periodic rescan.
+    -- Scripted Team 2 waves still stay out of aiCore to avoid hijacking mission behavior.
     if team == 1 then
-        local register = false
-
-        -- Always register player-team scavengers for assist
-        if IsOdf(h, "avscav") then register = true end
-
-        if register then
-            PlayerPilotMode.AddObject(h)
-        end
+        PlayerPilotMode.AddObject(h)
     end
 end
 
