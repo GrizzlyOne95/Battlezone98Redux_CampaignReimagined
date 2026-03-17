@@ -126,6 +126,12 @@ Sets the mass of the given object. This affects collisions and knockback.
 function GetObj(h: handle) -> GameObject*
 Converts a handle into a GameObject* that can be used in patching and debugging.
 
+function GetSelectedWeaponMask(h: handle) -> number | nil
+Gets the live selected-weapon mask from the object's carrier, filtered down to mounted weapons. Use this when you need the player's current weapon selection rather than the stock stored weapon-mask field.
+
+function GetWeaponSelectionInfo(h: handle) -> table | nil
+Returns a low-level diagnostic table for weapon-selection state. This may include the stored weapon mask, mode-list masks/active slot, and carrier-selected / carrier-enabled masks for debugging selection mismatches.
+
 function GetRadarPeriod(h: handle) -> number
 Gets the radar scan period for the given object (if it has a radar).
 

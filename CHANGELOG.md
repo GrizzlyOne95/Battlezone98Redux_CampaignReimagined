@@ -15,6 +15,10 @@
 - Moved the `Autosaving...` notification to a compact bottom-left overlay layout.
 - Added an immediate mission-start autosave trigger when autosave is enabled so the overlay can be verified without waiting for the interval timer.
 
+### HUD Settings
+- Added a persistent `Radar Size` PDA setting backed by `exu.GetRadarSizeScale()` / `exu.SetRadarSizeScale()`.
+- Reapply the saved radar size automatically if the stock HUD scaling menu overwrites the live radar layout scale.
+
 ### Verification
 - `luac -p _Source/Scripts/ScriptSubtitles.lua`
 - `luac -p _Source/Scripts/PersistentConfig.lua`

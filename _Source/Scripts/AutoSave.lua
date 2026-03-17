@@ -2,19 +2,10 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 
 local bzfile = require("bzfile")
-local exu = require("exu")
-local subtitles = nil
-
-do
-    local ok, module = pcall(require, "subtitles")
-    if ok and type(module) == "table" then
-        subtitles = module
-    end
-end
 
 local AutoSave = {}
-local AUTOSAVE_SUBTITLE_CHANNEL = 4
 local AUTOSAVE_SUBTITLE_DURATION = 3.0
+local AUTOSAVE_INITIAL_DELAY_SECONDS = 10.0
 local SUBTITLE_FONT_SCALE_MIN = 0.85
 local SUBTITLE_FONT_SCALE_MAX = 2.00
 
@@ -109,45 +100,6 @@ local function getSubtitleSettings()
     return settings
 end
 
-local function getAutoSaveSubtitleLayout(fontScale)
-    local width, height = 1920, 1080
-    local uiScale = 2.0
-
-    if exu and exu.GetScreenResolution then
-        local ok, screenW, screenH = pcall(exu.GetScreenResolution)
-        if ok and type(screenW) == "number" and screenW > 0 and type(screenH) == "number" and screenH > 0 then
-            width, height = screenW, screenH
-        end
-    elseif exu and exu.GetGameResolution then
-        local ok, gameW, gameH = pcall(exu.GetGameResolution)
-        if ok and type(gameW) == "number" and gameW > 0 and type(gameH) == "number" and gameH > 0 then
-            width, height = gameW, gameH
-        end
-    end
-
-    if exu and exu.GetUIScaling then
-        local ok, value = pcall(exu.GetUIScaling)
-        if ok and type(value) == "number" and value > 0 then
-            uiScale = value
-        end
-    end
-
-    local aspect = width / math.max(height, 1)
-    local aspectScale = clamp((16.0 / 9.0) / aspect, 0.82, 1.35)
-    local uiScaleFactor = clamp((uiScale / 2.0) ^ 0.32, 0.90, 1.30)
-    local compactFontScale = clamp(fontScale ^ 0.45, 0.92, 1.20)
-
-    return {
-        x = 0.015,
-        y = 0.975,
-        textScale = clamp(0.20 * aspectScale * uiScaleFactor * compactFontScale, 0.18, 0.32),
-        wrapWidth = clamp(0.22 * clamp(1.0 / aspectScale, 0.90, 1.18) * compactFontScale, 0.18, 0.34),
-        paddingX = 8.0 * compactFontScale,
-        paddingY = 6.0 * compactFontScale,
-        borderSize = 1.0,
-    }
-end
-
 local function tryExperimentalAutoSaveOverlay(duration)
     local persistentConfig = package.loaded["PersistentConfig"]
     if not persistentConfig or type(persistentConfig.TryShowAutoSaveOverlayInfo) ~= "function" then
@@ -165,7 +117,7 @@ local function tryExperimentalAutoSaveOverlay(duration)
         print("AutoSave: notification using EXU overlay")
         return true
     end
-    print("AutoSave: EXU overlay not shown; subtitle fallback will be used")
+    print("AutoSave: EXU overlay not shown; mission overlay fallback will be used")
     return false
 end
 
@@ -180,25 +132,14 @@ local function showAutoSaveNotification()
         return
     end
 
-    if not subtitles or not subtitles.submit_to or not subtitles.set_channel_layout then
-        print("AutoSave: subtitle notification unavailable")
+    local scriptSubtitles = package.loaded["ScriptSubtitles"]
+    if not scriptSubtitles or type(scriptSubtitles.Display) ~= "function" then
+        print("AutoSave: mission overlay notification unavailable")
         return
     end
 
-    print("AutoSave: notification using subtitle fallback")
-    local layout = getAutoSaveSubtitleLayout(settings.fontScale)
-    if subtitles.set_opacity then
-        pcall(subtitles.set_opacity, settings.opacity)
-    end
-    if subtitles.clear_queue then
-        pcall(subtitles.clear_queue, AUTOSAVE_SUBTITLE_CHANNEL)
-    end
-    if subtitles.clear_current then
-        pcall(subtitles.clear_current, AUTOSAVE_SUBTITLE_CHANNEL)
-    end
-    pcall(subtitles.set_channel_layout, AUTOSAVE_SUBTITLE_CHANNEL, layout.x, layout.y, 0.0, 1.0, layout.textScale,
-        layout.wrapWidth, layout.paddingX, layout.paddingY, layout.borderSize)
-    pcall(subtitles.submit_to, AUTOSAVE_SUBTITLE_CHANNEL, "Autosaving...", AUTOSAVE_SUBTITLE_DURATION, 0.82, 1.0, 0.82)
+    print("AutoSave: notification using mission overlay fallback")
+    pcall(scriptSubtitles.Display, "Autosaving...", 0.82, 1.0, 0.82, AUTOSAVE_SUBTITLE_DURATION)
 end
 
 local function getMissionTitleFromLocalization(missionFilename)
@@ -283,6 +224,38 @@ local function resolveMissionDisplayName()
     AutoSave._cachedMissionFilename = missionFilename
     AutoSave._cachedMissionTitle = displayName
     return displayName
+end
+
+local function resolveMissionSaveName()
+    local missionFilename = trim((GetMissionFilename() or ""):gsub("%z.*", ""))
+    if missionFilename == "" then
+        return "UnknownMission"
+    end
+
+    local missionBase = missionFilename:gsub("%.bzn$", "")
+    missionBase = trim(missionBase)
+    if missionBase == "" then
+        return "UnknownMission"
+    end
+
+    return missionBase
+end
+
+local function formatMissionMinutesLabel(missionSeconds)
+    local roundedTenths = math.floor(((tonumber(missionSeconds) or 0) / 60.0) * 10 + 0.5)
+    local wholeMinutes = math.floor(roundedTenths / 10)
+    local tenthMinutes = roundedTenths % 10
+    if tenthMinutes == 0 then
+        return tostring(wholeMinutes)
+    end
+
+    return string.format("%d.%d", wholeMinutes, tenthMinutes)
+end
+
+local function buildAutoSaveDescription(missionSeconds)
+    local missionName = resolveMissionSaveName()
+    local missionMinutes = formatMissionMinutesLabel(missionSeconds)
+    return string.format("%s AutoSave %s m", missionName, missionMinutes)
 end
 
 local function getAutoSavePaths()
@@ -378,19 +351,28 @@ end
 function AutoSave.Update(dtime)
     if not AutoSave.Config.enabled then
         AutoSave._wasEnabled = false
+        AutoSave._initialDelayDeadline = nil
         return
     end
 
     local now = GetTime()
-    local missionName = resolveMissionDisplayName()
     local missionTime = math.floor(now)
 
     if AutoSave._forceInitialSave or not AutoSave._wasEnabled or not AutoSave._lastSaveTime then
+        if not AutoSave._initialDelayDeadline then
+            AutoSave._initialDelayDeadline = now + AUTOSAVE_INITIAL_DELAY_SECONDS
+            print(string.format("AutoSave: delaying initial save for %.1fs", AUTOSAVE_INITIAL_DELAY_SECONDS))
+        end
+        if now < AutoSave._initialDelayDeadline then
+            return
+        end
+
         print("AutoSave: initial save at " .. missionTime .. "s")
-        AutoSave.CreateSave(nil, string.format("%s AutoSave %ds", missionName, missionTime))
+        AutoSave.CreateSave(nil, buildAutoSaveDescription(now))
         AutoSave._lastSaveTime = now
         AutoSave._wasEnabled = true
         AutoSave._forceInitialSave = false
+        AutoSave._initialDelayDeadline = nil
         return
     end
 
@@ -400,7 +382,7 @@ function AutoSave.Update(dtime)
 
     print("AutoSave: saving at " .. missionTime .. "s")
 
-    AutoSave.CreateSave(nil, string.format("%s AutoSave %ds", missionName, missionTime))
+    AutoSave.CreateSave(nil, buildAutoSaveDescription(now))
     AutoSave._lastSaveTime = now
 end
 

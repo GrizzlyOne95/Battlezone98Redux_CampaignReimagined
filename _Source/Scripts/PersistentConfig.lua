@@ -2,7 +2,6 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 local bzfile = require("bzfile")
 local exu = require("exu")
-local subtitles = require("subtitles")
 local autosave = require("AutoSave")
 local RuntimeEnhancements = require("RuntimeEnhancements")
 local ConservativeCulling = require("ConservativeCulling")
@@ -88,12 +87,15 @@ PersistentConfig.DefaultSettings = {
     RetroLighting = false,          -- Disables PBR and custom shader lighting equations
     WeaponStatsHud = true,          -- Persistent weapon stats panel
     PilotModeEnabled = false,       -- Player-side pilot mode automation
+    UnitVerbosity = 1,              -- 1=Normal 2=Decreased 3=None
     SubtitleOpacity = 0.50,         -- Main subtitle opacity
     SubtitleFontScale = 2.00,       -- Subtitle font scale (0.85-2.00)
     PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
     PdaFontScale = 1.30,            -- PDA font/window scale (0.85-1.30)
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
     ScrapPilotHudLayout = 2,        -- 1=Stock 2=Legacy
+    RadarSizeScale = 1.00,          -- Independent radar size scale
+    DynamicFactionFlameColors = false, -- Team flame colors from faction nation codes
 }
 
 PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
@@ -127,14 +129,21 @@ PersistentConfig.PresetConfig = {
 }
 
 PersistentConfig.UnitPresets = {}
+PersistentConfig._SettingsActions = {}
 local GetSettingsPageEntries
 local GetProducerQueueState
 local CleanString
 local ClampUnitInterval
+local GetPlayerTeamNum
 
 PersistentConfig.FontScale = {
     pda = { min = 0.85, max = 1.30, step = 0.05 },
     subtitle = { min = 0.85, max = 2.00, step = 0.05 },
+}
+PersistentConfig.RadarUi = {
+    min = 0.50,
+    max = 2.00,
+    step = 0.05,
 }
 PersistentConfig.AutoSaveUi = {
     filePath = "Save\\auto.sav",
@@ -145,6 +154,14 @@ PersistentConfig.AutoSaveUi = {
         { seconds = 120, label = "2 min" },
         { seconds = 300, label = "5 min" },
         { seconds = 600, label = "10 min" },
+    },
+}
+PersistentConfig.UnitVoUi = {
+    applyTeam = 1,
+    fallbackBaseline = {
+        throttleMs = 0,
+        queueDepthLimit = 2,
+        queueStaleMs = 2000,
     },
 }
 
@@ -169,6 +186,12 @@ local PdaColorPresets = {
     [2] = { name = "GREEN", r = 0.18, g = 0.92, b = 0.18 },
     [3] = { name = "BLUE", r = 0.35, g = 0.65, b = 1.00 },
     [4] = { name = "WHITE", r = 1.00, g = 1.00, b = 1.00 },
+}
+
+PersistentConfig.UnitVerbosityPresets = {
+    [1] = { name = "NORMAL", useBaseline = true },
+    [2] = { name = "DECREASED", throttleMs = 750, queueDepthLimit = 1, queueStaleMs = 1200 },
+    [3] = { name = "NONE", muted = true, throttleMs = 60000, queueDepthLimit = 1, queueStaleMs = 0 },
 }
 
 local PdaPanelMaterialFamilies = {
@@ -272,12 +295,37 @@ local function GetBundledOpenShimSourcePath()
     return nil
 end
 
-local function NotifyOpenShimInstall(message, color, objectiveId)
-    local tint = color or { r = 1.0, g = 0.85, b = 0.2 }
-    if AddObjective and objectiveId and objectiveId ~= "" then
-        AddObjective(objectiveId, "yellow", 15.0, message)
+local function ConfirmBundledOpenShimCopy(sourcePath, destinationPath)
+    if not BzFileExists(destinationPath) then
+        return false
     end
-    ShowFeedback(message, tint.r, tint.g, tint.b, 12.0, true)
+
+    local sourceHash = GetBzFileHash(sourcePath)
+    local destinationHash = GetBzFileHash(destinationPath)
+    if sourceHash and destinationHash then
+        return sourceHash == destinationHash
+    end
+
+    return true
+end
+
+local function ShowOpenShimInstallMissionOutcome(succeeded)
+    local missionTime = (GetTime and GetTime()) or 0.0
+    if succeeded then
+        if SucceedMission then
+            SucceedMission(missionTime, "install.des")
+            return
+        end
+        ShowFeedback("OpenShim installed.", 1.0, 0.85, 0.2, 12.0, true)
+        return
+    end
+
+    if FailMission then
+        FailMission(missionTime, "nocopy.des")
+        return
+    end
+
+    ShowFeedback("OpenShim self-install failed.", 1.0, 0.35, 0.35, 12.0, true)
 end
 
 local function EnsureBundledOpenShimInstalled()
@@ -301,10 +349,6 @@ local function EnsureBundledOpenShimInstalled()
 
     local destinationExists = BzFileExists(destinationPath)
     local shouldOverwrite = false
-    local successMessage = PersistentConfig.OpenShimInstaller.restartMessage
-    local successObjectiveId = PersistentConfig.OpenShimInstaller.restartObjectiveId
-    local manualMessage = "OpenShim self-install failed. Copy addon\\campaignReimagined\\winmm.dll to the game folder manually."
-
     if destinationExists then
         local sourceHash = GetBzFileHash(sourcePath)
         local destinationHash = GetBzFileHash(destinationPath)
@@ -317,23 +361,18 @@ local function EnsureBundledOpenShimInstalled()
         end
 
         shouldOverwrite = true
-        successMessage = PersistentConfig.OpenShimInstaller.updateMessage
-        successObjectiveId = PersistentConfig.OpenShimInstaller.updateObjectiveId
-        manualMessage =
-            "OpenShim update is available, but winmm.dll could not be replaced while Battlezone was running. Close the game and copy addon\\campaignReimagined\\winmm.dll to the game folder."
     end
 
     local ok, copied, copyError = pcall(bzfile.CopyFile, sourcePath, destinationPath, shouldOverwrite)
-    if ok and copied then
+    if ok and copied and ConfirmBundledOpenShimCopy(sourcePath, destinationPath) then
         print("PersistentConfig: Installed bundled OpenShim to " .. destinationPath)
-        NotifyOpenShimInstall(successMessage, nil, successObjectiveId)
+        ShowOpenShimInstallMissionOutcome(true)
         return
     end
 
-    local errorText = ok and tostring(copyError or "copy failed") or tostring(copied)
+    local errorText = ok and tostring(copyError or "copy failed or could not be confirmed") or tostring(copied)
     print("PersistentConfig: OpenShim self-install failed: " .. errorText)
-    NotifyOpenShimInstall(manualMessage, { r = 1.0, g = 0.35, b = 0.35 },
-        PersistentConfig.OpenShimInstaller.manualObjectiveId)
+    ShowOpenShimInstallMissionOutcome(false)
 end
 
 -- Logging Helper
@@ -474,6 +513,14 @@ local function GetPdaFontScale()
         PersistentConfig.FontScale.pda.max, 1.0)
 end
 
+local function GetScriptSubtitles()
+    local subtit = package.loaded["ScriptSubtitles"]
+    if type(subtit) == "table" then
+        return subtit
+    end
+    return nil
+end
+
 function PersistentConfig._GetPdaOverlaySpaceWidth(charHeight)
     local height = math.max(tonumber(charHeight) or 0, 1)
     return math.max(4, math.floor((height * 0.70) + 0.5))
@@ -525,6 +572,95 @@ end
 local function GetSubtitleFontScale()
     return ClampRange(PersistentConfig.Settings.SubtitleFontScale, PersistentConfig.FontScale.subtitle.min,
         PersistentConfig.FontScale.subtitle.max, 1.0)
+end
+
+function PersistentConfig._CaptureUnitVoBaseline()
+    if PersistentConfig.UnitVoBaseline then
+        return PersistentConfig.UnitVoBaseline
+    end
+
+    local fallback = PersistentConfig.UnitVoUi.fallbackBaseline or {
+        throttleMs = 0,
+        queueDepthLimit = 2,
+        queueStaleMs = 2000,
+    }
+    local baseline = {
+        throttleMs = tonumber(fallback.throttleMs) or 0,
+        queueDepthLimit = tonumber(fallback.queueDepthLimit) or 2,
+        queueStaleMs = tonumber(fallback.queueStaleMs) or 2000,
+    }
+
+    if exu then
+        local okThrottle, throttle = pcall(exu.GetUnitVoThrottle)
+        local okDepth, depth = pcall(exu.GetUnitVoQueueDepthLimit)
+        local okStale, staleMs = pcall(exu.GetUnitVoQueueStaleMs)
+
+        if okThrottle and tonumber(throttle) ~= nil then
+            baseline.throttleMs = math.max(0, math.floor(tonumber(throttle) + 0.5))
+        end
+        if okDepth and tonumber(depth) ~= nil then
+            baseline.queueDepthLimit = math.max(0, math.floor(tonumber(depth) + 0.5))
+        end
+        if okStale and tonumber(staleMs) ~= nil then
+            baseline.queueStaleMs = math.max(0, math.floor(tonumber(staleMs) + 0.5))
+        end
+    end
+
+    PersistentConfig.UnitVoBaseline = baseline
+    return baseline
+end
+
+function PersistentConfig._GetUnitVerbosityPreset()
+    return PersistentConfig.UnitVerbosityPresets[ClampIndex(PersistentConfig.Settings.UnitVerbosity, 1,
+        #PersistentConfig.UnitVerbosityPresets, 1)]
+end
+
+function PersistentConfig._ResolveUnitVoProfileForCurrentTeam()
+    local baseline = PersistentConfig._CaptureUnitVoBaseline()
+    local preset = PersistentConfig._GetUnitVerbosityPreset()
+    if not preset then
+        return baseline
+    end
+
+    if GetPlayerTeamNum() ~= (PersistentConfig.UnitVoUi.applyTeam or 1) or preset.useBaseline then
+        return {
+            name = preset.name or "NORMAL",
+            muted = false,
+            throttleMs = baseline.throttleMs,
+            queueDepthLimit = baseline.queueDepthLimit,
+            queueStaleMs = baseline.queueStaleMs,
+        }
+    end
+
+    return {
+        name = preset.name or "QUIET",
+        muted = not not preset.muted,
+        throttleMs = math.max(0, math.floor(tonumber(preset.throttleMs) or baseline.throttleMs)),
+        queueDepthLimit = math.max(0, math.floor(tonumber(preset.queueDepthLimit) or baseline.queueDepthLimit)),
+        queueStaleMs = math.max(0, math.floor(tonumber(preset.queueStaleMs) or baseline.queueStaleMs)),
+    }
+end
+
+function PersistentConfig._ApplyUnitVoSettings()
+    if not exu then
+        return false
+    end
+    if type(exu.SetUnitVoThrottle) ~= "function" or
+        type(exu.SetUnitVoQueueDepthLimit) ~= "function" or
+        type(exu.SetUnitVoQueueStaleMs) ~= "function" then
+        return false
+    end
+
+    local profile = PersistentConfig._ResolveUnitVoProfileForCurrentTeam()
+    local okMuted = true
+    if type(exu.SetUnitVoMuted) == "function" then
+        okMuted = pcall(exu.SetUnitVoMuted, not not profile.muted)
+    end
+    local okThrottle = pcall(exu.SetUnitVoThrottle, profile.throttleMs)
+    local okDepth = pcall(exu.SetUnitVoQueueDepthLimit, profile.queueDepthLimit)
+    local okStale = pcall(exu.SetUnitVoQueueStaleMs, profile.queueStaleMs)
+
+    return okMuted and okThrottle and okDepth and okStale
 end
 
 function PersistentConfig._GetAutoSaveSlot()
@@ -1010,7 +1146,7 @@ function PersistentConfig.TryShowAutoSaveOverlayInfo(msg, duration, r, g, b)
     local now = GetTime()
     if now < 0.75 then
         PersistentConfig.ExperimentalOverlayPending = nil
-        Log("PersistentConfig: Autosave overlay deferred to subtitle fallback because startup is too early.")
+        Log("PersistentConfig: Autosave overlay deferred to mission overlay fallback because startup is too early.")
         return false
     end
 
@@ -1101,6 +1237,20 @@ function PersistentConfig._EstimateOverlayCharsPerLine(widthPixels, charHeightPi
 
     local usableWidth = math.max(widthPixels - (horizontalPadding * 2), charHeightPixels * 4)
     return math.max(8, math.floor(usableWidth / (charHeightPixels * widthFactor)))
+end
+
+function PersistentConfig._EstimateOverlayTextPixelWidth(text, charHeightPixels, widthFactor, horizontalPadding)
+    local longestLine = PersistentConfig._GetOverlayLongestLineLength(text)
+    if longestLine <= 0 then
+        return 0
+    end
+
+    charHeightPixels = math.max(tonumber(charHeightPixels) or 0, 1)
+    widthFactor = math.max(tonumber(widthFactor) or 0.82, 0.55)
+    horizontalPadding = math.max(tonumber(horizontalPadding) or 0, 0)
+
+    local textWidth = math.floor((longestLine * charHeightPixels * widthFactor) + 10 + 0.5)
+    return math.max(charHeightPixels * 4, textWidth + (horizontalPadding * 2))
 end
 
 function PersistentConfig._WrapOverlayTextToPixels(text, widthPixels, charHeightPixels, widthFactor, horizontalPadding)
@@ -1205,21 +1355,21 @@ function PersistentConfig._GetPdaOverlayColorSet(r, g, b)
             a = borderAlpha,
         },
         text = {
-            r = math.min(1.0, 0.52 + (baseR * 0.60)),
-            g = math.min(1.0, 0.52 + (baseG * 0.60)),
-            b = math.min(1.0, 0.52 + (baseB * 0.60)),
+            r = math.min(1.0, 0.10 + (baseR * 0.92)),
+            g = math.min(1.0, 0.10 + (baseG * 0.92)),
+            b = math.min(1.0, 0.10 + (baseB * 0.92)),
             a = textAlpha,
         },
         title = {
-            r = math.min(1.0, 0.72 + (baseR * 0.38)),
-            g = math.min(1.0, 0.72 + (baseG * 0.38)),
-            b = math.min(1.0, 0.72 + (baseB * 0.38)),
+            r = math.min(1.0, 0.14 + (baseR * 0.94)),
+            g = math.min(1.0, 0.14 + (baseG * 0.94)),
+            b = math.min(1.0, 0.14 + (baseB * 0.94)),
             a = 1.0,
         },
         footer = {
-            r = math.min(1.0, 0.42 + (baseR * 0.52)),
-            g = math.min(1.0, 0.42 + (baseG * 0.52)),
-            b = math.min(1.0, 0.42 + (baseB * 0.52)),
+            r = math.min(1.0, 0.08 + (baseR * 0.88)),
+            g = math.min(1.0, 0.08 + (baseG * 0.88)),
+            b = math.min(1.0, 0.08 + (baseB * 0.88)),
             a = textAlpha,
         },
     }
@@ -1281,10 +1431,15 @@ function PersistentConfig._GetPdaOverlayPixelLayout(kind, rawText, page)
     local titleCharHeight = math.max(bodyCharHeight + 3, math.floor(bodyCharHeight * 1.14))
     local tabsCharHeight = math.max(12, math.floor(bodyCharHeight * 0.70))
     local footerCharHeight = math.max(11, math.floor(bodyCharHeight * 0.68))
-    local baseContentWidth = ClampRange(math.floor(screenW * math.min(0.38, layout.wrapWidth + 0.05)), 360,
-        math.min(700, screenW - 100), 500)
-    local tabLineWidth = math.floor(PersistentConfig._GetOverlayLongestLineLength(sections.tabs) * tabsCharHeight * 0.62)
-    local contentWidth = ClampRange(math.max(baseContentWidth, tabLineWidth + 12), 360, math.min(760, screenW - 90), 500)
+    local commandMenuWidth = math.floor(171 * math.max(uiScale, 1))
+    local baseContentWidth = ClampRange(commandMenuWidth + math.max(22, math.floor(screenW * 0.012)), 280,
+        math.min(540, screenW - 110), 360)
+    local maxContentWidth = math.min(720, screenW - 90)
+    local tabLineWidth = PersistentConfig._EstimateOverlayTextPixelWidth(sections.tabs, tabsCharHeight, 0.62, 0)
+    local bodyLineWidth = PersistentConfig._EstimateOverlayTextPixelWidth(sections.body, bodyCharHeight, 0.68, 0)
+    local footerLineWidth = PersistentConfig._EstimateOverlayTextPixelWidth(sections.footer, footerCharHeight, 0.72, 0)
+    local contentWidth = ClampRange(math.max(baseContentWidth, tabLineWidth + 12, bodyLineWidth + 10, footerLineWidth + 10),
+        baseContentWidth, maxContentWidth, baseContentWidth)
     local paddingX = math.max(16, math.floor(bodyCharHeight * 0.62))
     local paddingY = math.max(12, math.floor(bodyCharHeight * 0.44))
     local borderSize = math.max(2, math.floor(bodyCharHeight * 0.10))
@@ -1796,87 +1951,45 @@ local function ShowPdaFeedback(msg, r, g, b, duration)
     if PersistentConfig.Settings.WeaponStatsHud
         and PersistentConfig._ShowPdaOverlay("feedback", msg, duration or 2.5, r, g, b,
             InputState and InputState.pdaPage or PdaPages.SETTINGS) then
-        if subtitles and subtitles.clear_queue then
-            subtitles.clear_queue(PersistentConfig.Channels.PdaFeedback)
-        end
-        if subtitles and subtitles.clear_current then
-            subtitles.clear_current(PersistentConfig.Channels.PdaFeedback)
-        end
         return
     end
 
-    if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
-        local colorPreset = GetPdaColorPreset()
-        local layout = GetPdaLayoutMetrics(InputState and InputState.pdaPage or PdaPages.SETTINGS)
-        subtitles.set_channel_layout(PersistentConfig.Channels.PdaFeedback, layout.panelX, layout.feedbackY, 0.0, 1.0, layout.feedbackTextScale,
-            layout.wrapWidth, layout.paddingX, layout.paddingY, layout.opacity)
-        subtitles.clear_queue(PersistentConfig.Channels.PdaFeedback)
-        if subtitles.clear_current then
-            subtitles.clear_current(PersistentConfig.Channels.PdaFeedback)
-        end
-        subtitles.submit_to(PersistentConfig.Channels.PdaFeedback, msg, duration or 2.5, r or colorPreset.r,
-            g or colorPreset.g, b or colorPreset.b)
+    local subtit = GetScriptSubtitles()
+    local colorPreset = GetPdaColorPreset()
+    if subtit and subtit.Display then
+        subtit.Display(msg, r or colorPreset.r, g or colorPreset.g, b or colorPreset.b, duration or 2.5)
         return
     end
 
-    if subtitles and subtitles.submit then
-        subtitles.clear_queue()
-        if subtitles.clear_current then subtitles.clear_current() end
-        subtitles.set_opacity(ClampUnitInterval(PersistentConfig.Settings.SubtitleOpacity, 0.5))
-        subtitles.submit(msg, duration or 2.5, r or 1.0, g or 1.0, b or 1.0)
+    if msg and msg ~= "" then
+        Log(string.format("PersistentConfig: ScriptSubtitles unavailable; dropped PDA feedback '%s'.",
+            tostring(msg or "")))
     end
 end
 
 local function ShowWeaponStats(msg, duration)
     if PersistentConfig._ShowPdaOverlay("stats", msg, duration or 86400.0, nil, nil, nil,
             InputState and InputState.pdaPage or PdaPages.STATS) then
-        if subtitles and subtitles.clear_queue then
-            subtitles.clear_queue(PersistentConfig.Channels.WeaponStats)
-        end
-        if subtitles and subtitles.clear_current then
-            subtitles.clear_current(PersistentConfig.Channels.WeaponStats)
-        end
         return
     end
 
-    if subtitles and subtitles.set_channel_layout and subtitles.submit_to then
-        local layout = GetPdaLayoutMetrics(InputState and InputState.pdaPage or PdaPages.STATS)
-        local colorPreset = GetPdaColorPreset()
-
-        -- Anchor the panel on the left-middle of the screen with left alignment.
-        subtitles.set_channel_layout(PersistentConfig.Channels.WeaponStats, layout.panelX, 0.50, 0.0, 0.5,
-            layout.textScale, layout.wrapWidth,
-            layout.paddingX, layout.paddingY, layout.opacity)
-        subtitles.clear_queue(PersistentConfig.Channels.WeaponStats)
-        if subtitles.clear_current then
-            subtitles.clear_current(PersistentConfig.Channels.WeaponStats)
-        end
-        subtitles.submit_to(PersistentConfig.Channels.WeaponStats, msg, duration or 2.4, colorPreset.r,
-            colorPreset.g, colorPreset.b)
-    else
-        local colorPreset = GetPdaColorPreset()
-        ShowFeedback(msg, colorPreset.r, colorPreset.g, colorPreset.b, duration or 2.4, false)
+    -- Avoid spawning the legacy PDA window during the brief startup window where the
+    -- EXU overlay path has not finished coming online yet. A later refresh will show
+    -- the proper overlay instead of leaving both renderers visible at once.
+    if GetTime() < 0.25 or PersistentConfig._CanUsePdaOverlay() then
+        return
     end
+
+    local colorPreset = GetPdaColorPreset()
+    ShowFeedback(msg, colorPreset.r, colorPreset.g, colorPreset.b, duration or 2.4, false)
 end
 
 local function ClearWeaponStats()
     PersistentConfig._HidePdaOverlay("stats")
-    if subtitles and subtitles.clear_queue then
-        subtitles.clear_queue(PersistentConfig.Channels.WeaponStats)
-    end
-    if subtitles and subtitles.clear_current then
-        subtitles.clear_current(PersistentConfig.Channels.WeaponStats)
-    end
 end
 
 local function ClearPdaFeedback()
     PersistentConfig._HidePdaOverlay("feedback")
-    if subtitles and subtitles.clear_queue then
-        subtitles.clear_queue(PersistentConfig.Channels.PdaFeedback)
-    end
-    if subtitles and subtitles.clear_current then
-        subtitles.clear_current(PersistentConfig.Channels.PdaFeedback)
-    end
 end
 
 local function MarkOtherHeadlightsDirty()
@@ -2128,8 +2241,11 @@ InputState = {
     lastWeaponPlayer = nil,
     lastWeaponText = nil,
     lastWeaponTarget = nil,
+    lastUnitVoTeam = nil,
     autoSaveStartupPending = false,
     nextWeaponHudCheck = 0.0,
+    nextRadarScaleCheck = 0.0,
+    nextFactionFlameRefresh = 0.0,
     pdaPage = PdaPages.STATS,
     pdaSettingsIndex = 1,
     presetProducerIndex = 1,
@@ -2238,6 +2354,67 @@ local function GetCurrentWeaponMask(player)
         end
     end
     return mask
+end
+
+local function NormalizeWeaponMask(mask)
+    if type(mask) ~= "number" then
+        return 0
+    end
+    return math.max(0, math.floor(mask + 0.5))
+end
+
+local function FilterWeaponMaskToInstalled(mask, installedMask)
+    local filtered = 0
+    local sourceMask = NormalizeWeaponMask(mask)
+    local mountedMask = NormalizeWeaponMask(installedMask)
+    for slot = 0, 4 do
+        if IsMaskBitSet(sourceMask, slot) and IsMaskBitSet(mountedMask, slot) then
+            filtered = filtered + (2 ^ slot)
+        end
+    end
+    return filtered
+end
+
+local GetInstalledWeaponMask
+
+local function ResolveLiveSelectedWeaponMask(player, fallbackMask)
+    if not IsValid(player) then
+        return 0
+    end
+
+    local installedMask = GetInstalledWeaponMask(player)
+
+    if exu and type(exu.GetWeaponSelectionInfo) == "function" then
+        local ok, info = pcall(exu.GetWeaponSelectionInfo, player)
+        if ok and type(info) == "table" then
+            local selectedReadyMask = FilterWeaponMaskToInstalled(info.selectedReadyMask, installedMask)
+            if selectedReadyMask > 0 then
+                return selectedReadyMask
+            end
+
+            local selectedMountedMask = FilterWeaponMaskToInstalled(info.selectedMountedMask, installedMask)
+            if selectedMountedMask > 0 then
+                return selectedMountedMask
+            end
+
+            local activeSlot = tonumber(info.modeListActiveSlot)
+            if activeSlot and activeSlot >= 0 and activeSlot <= 4 and IsMaskBitSet(installedMask, activeSlot) then
+                return 2 ^ activeSlot
+            end
+        end
+    end
+
+    if exu and type(exu.GetSelectedWeaponMask) == "function" then
+        local ok, selectedMask = pcall(exu.GetSelectedWeaponMask, player)
+        if ok then
+            local filteredMask = FilterWeaponMaskToInstalled(selectedMask, installedMask)
+            if filteredMask > 0 then
+                return filteredMask
+            end
+        end
+    end
+
+    return FilterWeaponMaskToInstalled(fallbackMask, installedMask)
 end
 
 local function ProbeRangeFromOdf(odf)
@@ -3183,7 +3360,7 @@ local function GetEffectiveWeaponRangeMeters(weaponStats, shooterPos, targetPos)
     return (weaponStats.shotSpeed * math.sqrt(discriminant)) / (2.0 * coeff)
 end
 
-local function GetPlayerTeamNum()
+GetPlayerTeamNum = function()
     local player = GetPlayerHandle()
     if IsValid(player) and type(GetTeamNum) == "function" then
         local team = GetTeamNum(player)
@@ -3202,6 +3379,128 @@ local function GetProducerHandleForKind(kindIndex, team)
         return handle
     end
     return nil
+end
+
+local function GetRadarSizeScaleSetting()
+    return ClampRange(PersistentConfig.Settings.RadarSizeScale, PersistentConfig.RadarUi.min,
+        PersistentConfig.RadarUi.max, PersistentConfig.DefaultSettings.RadarSizeScale)
+end
+
+function PersistentConfig._SyncRadarSizeScale(force)
+    if not exu or type(exu.SetRadarSizeScale) ~= "function" then
+        return false
+    end
+
+    local targetScale = GetRadarSizeScaleSetting()
+    if not force and type(exu.GetRadarSizeScale) == "function" then
+        local ok, currentScale = pcall(exu.GetRadarSizeScale)
+        if ok and type(currentScale) == "number" and math.abs(currentScale - targetScale) < 0.01 then
+            return false
+        end
+    end
+
+    local ok = pcall(exu.SetRadarSizeScale, targetScale)
+    return ok
+end
+
+local function RefreshWorldTeamNationCache(force)
+    local cache = PersistentConfig.TeamNationCache or {
+        nextRefreshAt = 0.0,
+        namesByTeam = {},
+    }
+    PersistentConfig.TeamNationCache = cache
+
+    local now = (type(GetTime) == "function" and GetTime()) or 0.0
+    if not force and now < (cache.nextRefreshAt or 0.0) then
+        return cache.namesByTeam
+    end
+
+    local namesByTeam = {}
+    if type(AllObjects) == "function" and type(GetTeamNum) == "function" and type(GetNation) == "function" then
+        for h in AllObjects() do
+            if IsValid(h) then
+                local teamNum = tonumber(GetTeamNum(h))
+                if teamNum and teamNum >= 1 and teamNum <= 15 and not namesByTeam[teamNum] then
+                    local nation = string.lower(CleanString(GetNation(h)))
+                    if nation ~= "" then
+                        namesByTeam[teamNum] = nation
+                    end
+                end
+            end
+        end
+    end
+
+    cache.namesByTeam = namesByTeam
+    cache.nextRefreshAt = now + 2.0
+    return namesByTeam
+end
+
+local function GetTeamNationName(team)
+    local player = GetPlayerHandle()
+    if team == GetPlayerTeamNum() and IsValid(player) then
+        return string.lower(CleanString(GetNation(player)))
+    end
+
+    local getters = { GetRecyclerHandle, GetFactoryHandle, GetArmoryHandle, GetConstructorHandle }
+    for _, getter in ipairs(getters) do
+        if type(getter) == "function" then
+            local ok, handle = pcall(getter, team)
+            if ok and IsValid(handle) then
+                local nation = string.lower(CleanString(GetNation(handle)))
+                if nation ~= "" then
+                    return nation
+                end
+            end
+        end
+    end
+
+    local namesByTeam = RefreshWorldTeamNationCache(false)
+    return namesByTeam[team]
+end
+
+local function GetFactionFlameColorForTeam(team)
+    if type(GetNation) ~= "function" then
+        return "default"
+    end
+
+    local nation = GetTeamNationName(team)
+    if not nation or nation == "" then
+        return "default"
+    end
+
+    local code = string.sub(nation, 1, 1)
+    if code == "a" or code == "b" then
+        return "blue"
+    end
+    if code == "c" then
+        return "green"
+    end
+    if code == "s" then
+        return "red"
+    end
+
+    return "default"
+end
+
+function PersistentConfig._ApplyDynamicFactionFlameColors()
+    if not exu or type(exu.SetTeamEngineFlameColor) ~= "function" or type(exu.ClearTeamEngineFlameColor) ~= "function" then
+        return false
+    end
+
+    for team = 1, 15 do
+        if PersistentConfig.Settings.DynamicFactionFlameColors then
+            local color = GetFactionFlameColorForTeam(team)
+            if color == "default" then
+                pcall(exu.ClearTeamEngineFlameColor, team)
+            else
+                pcall(exu.SetTeamEngineFlameColor, team, color)
+            end
+        else
+            pcall(exu.ClearTeamEngineFlameColor, team)
+        end
+    end
+
+    return true
 end
 
 local function GetHardpointCategory(hardpointName)
@@ -3820,7 +4119,7 @@ local function GetAnyHudTargetInfo(player)
     return aimInfo.handle, aimInfo.distance
 end
 
-local function GetInstalledWeaponMask(h)
+GetInstalledWeaponMask = function(h)
     if not IsValid(h) then return 0 end
     local mask = 0
     for slot = 0, 4 do
@@ -4094,7 +4393,7 @@ local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compa
 
                 table.insert(lines, string.format("S%d %s %s", slot + 1, status, weaponStats.displayName or weapon))
                 table.insert(lines,
-                    string.format("  RNG %sm  DMG %s  DPS %s", rangeText,
+                    string.format("  Range %sm  Damage %s  DPS %s", rangeText,
                         FormatWeaponDamageText(weaponStats), FormatWeaponDpsText(weaponStats)))
                 local shotsText = FormatWeaponShotsLeftText(weaponStats, currentAmmo)
                 local splashText = FormatWeaponSplashText(weaponStats)
@@ -4123,10 +4422,50 @@ local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compa
     return hardpointCount
 end
 
+local function AppendTargetWeaponStatusLines(lines, h, selectedMask, compareTarget, comparePosition, compareDistance)
+    local count = 0
+    local shooterPos = type(GetPosition) == "function" and GetPosition(h) or nil
+
+    for slot = 0, 4 do
+        if IsMaskBitSet(selectedMask, slot) then
+            local weapon = CleanString(GetWeaponClass(h, slot))
+            if weapon ~= "" then
+                count = count + 1
+                local weaponStats = GetDisplayedWeaponStats(h, weapon, GetWeaponStats(weapon) or {}) or {}
+                local effectiveRange = weaponStats.range
+                local distanceForCompare = compareDistance
+
+                if compareTarget and IsValid(compareTarget) then
+                    local targetPos = type(GetPosition) == "function" and GetPosition(compareTarget) or nil
+                    effectiveRange = GetEffectiveWeaponRangeMeters(weaponStats, shooterPos, targetPos) or weaponStats.range
+                    distanceForCompare = GetHorizontalDistanceBetweenHandles(h, compareTarget) or compareDistance
+                elseif comparePosition then
+                    effectiveRange = GetEffectiveWeaponRangeMeters(weaponStats, shooterPos, comparePosition) or weaponStats.range
+                    distanceForCompare = GetHorizontalDistanceBetweenPositions(shooterPos, comparePosition) or compareDistance
+                end
+
+                local status = "UNKNOWN"
+                if distanceForCompare and effectiveRange then
+                    status = (distanceForCompare <= effectiveRange) and "IN RANGE" or "OUT OF RANGE"
+                end
+
+                local displayName = CleanString(weaponStats.displayName or weapon)
+                table.insert(lines, string.format("S%d %-18s %s", slot + 1, displayName, status))
+            end
+        end
+    end
+
+    if count == 0 then
+        table.insert(lines, "NONE")
+    end
+
+    return count
+end
+
 local function GetTargetPageWeaponSummary(player, selectedMask)
     if not IsValid(player) then return nil end
 
-    local searchMask = math.max(0, math.floor(tonumber(selectedMask) or 0))
+    local searchMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
     if not searchMask or searchMask <= 0 then
         return nil
     end
@@ -4152,7 +4491,7 @@ local function GetTargetPageWeaponSummary(player, selectedMask)
         return nil
     end
 
-    return "WPN  " .. table.concat(parts, " | ")
+    return "Weapons  " .. table.concat(parts, " | ")
 end
 
 local function DescribeAimMode(aimInfo)
@@ -4186,7 +4525,7 @@ local function BuildStatsPageText(player, mask)
     local distanceText = targetDistance and (tostring(math.floor(targetDistance + 0.5)) .. "m") or "--"
 
     table.insert(lines, "UNIT " .. unitName)
-    table.insert(lines, "SPD  " .. tostring(speed) .. "m/s  DST  " .. distanceText)
+    table.insert(lines, "Speed  " .. tostring(speed) .. "m/s  Distance  " .. distanceText)
     table.insert(lines, BuildMeterBar("HULL", playerHealth, curHealth, maxHealth))
     table.insert(lines, BuildMeterBar("AMMO", playerAmmo, curAmmo, maxAmmo))
     table.insert(lines, "")
@@ -4223,7 +4562,7 @@ local function BuildTargetPageText(player, selectedMask)
         local deltaY = playerPos and ((aimPosition.y or 0.0) - (playerPos.y or 0.0)) or 0.0
         table.insert(lines, "UNIT AIM POINT")
         table.insert(lines, "ROLE TERRAIN")
-        table.insert(lines, "DST  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
+        table.insert(lines, "Distance  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
         table.insert(lines, "ELV  " .. tostring(math.floor(deltaY + (deltaY >= 0 and 0.5 or -0.5))) .. "m")
         table.insert(lines,
             string.format("POS  %d %d %d", math.floor((aimPosition.x or 0.0) + 0.5), math.floor((aimPosition.y or 0.0) + 0.5),
@@ -4242,32 +4581,31 @@ local function BuildTargetPageText(player, selectedMask)
     local maxHealth = type(GetMaxHealth) == "function" and GetMaxHealth(target) or nil
     local curAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(target) or nil
     local maxAmmo = type(GetMaxAmmo) == "function" and GetMaxAmmo(target) or nil
-    local selectedWeaponMask = math.max(0, math.floor(tonumber(selectedMask) or 0))
+    local selectedWeaponMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
     local _, eta = GetTargetClosureInfo(player, target, targetDistance)
 
     table.insert(lines, "UNIT " .. unitName)
     if role ~= "" then
         table.insert(lines, "ROLE " .. role)
     end
-    table.insert(lines, "DST  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
-    table.insert(lines, "SPD  " .. tostring(speed) .. "m/s")
-    table.insert(lines, "ETA  " .. (eta and string.format("%.1fs", eta) or "--"))
+    table.insert(lines, "Distance  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
+    table.insert(lines, "Speed  " .. tostring(speed) .. "m/s")
+    table.insert(lines, "Arrival  " .. (eta and string.format("%.1fs", eta) or "--"))
 
     local selectedWeaponLines = {}
     local selectedWeaponCount = 0
     if selectedWeaponMask > 0 then
-        selectedWeaponCount = AppendWeaponStatsLines(selectedWeaponLines, player, selectedWeaponMask, selectedWeaponMask, target, nil,
+        selectedWeaponCount = AppendTargetWeaponStatusLines(selectedWeaponLines, player, selectedWeaponMask, target, nil,
             targetDistance)
     end
     if selectedWeaponCount > 0 then
         table.insert(lines, "SELECTED")
-        table.insert(lines, "RNG  + In  - Out")
         for _, line in ipairs(selectedWeaponLines) do
             table.insert(lines, line)
         end
         table.insert(lines, "TOTAL " .. tostring(selectedWeaponCount))
     else
-        table.insert(lines, "WPN  None selected")
+        table.insert(lines, "Weapons  None selected")
     end
     table.insert(lines, BuildMeterBar("AMMO", targetAmmo, curAmmo, maxAmmo))
     table.insert(lines, BuildMeterBar("HULL", targetHealth, curHealth, maxHealth))
@@ -4283,6 +4621,7 @@ local function BuildSettingsPageText()
     local visibleRows = 10
     local startIndex = math.max(1, math.min(selection - math.floor(visibleRows / 2), math.max(1, count - visibleRows + 1)))
     local endIndex = math.min(count, startIndex + visibleRows - 1)
+    local labelWidth = 0
 
     table.insert(lines, string.format("Item %02d/%02d", selection, count))
 
@@ -4291,8 +4630,14 @@ local function BuildSettingsPageText()
     else
         for index = startIndex, endIndex do
             local entry = settingsEntries[index]
+            labelWidth = math.max(labelWidth, #(entry and entry.label or ""))
+        end
+        labelWidth = ClampRange(labelWidth, 8, 20, 12)
+
+        for index = startIndex, endIndex do
+            local entry = settingsEntries[index]
             local prefix = (selection == index) and ">" or ((entry and entry.warning) and "!" or " ")
-            table.insert(lines, string.format("%s %-12s %s", prefix, entry.label, entry.value))
+            table.insert(lines, string.format("%s %-" .. tostring(labelWidth) .. "s %s", prefix, entry.label, entry.value))
         end
     end
 
@@ -4391,8 +4736,8 @@ local function BuildPresetPageText()
         table.insert(lines, string.format("Compare S%d", slotInfo.slotIndex))
         table.insert(lines, string.format("Cost +%d scrap", deltaCost))
         table.insert(lines, string.format("DPS  %s", FormatDelta(dpsDelta, "", 1)))
-        table.insert(lines, string.format("RNG  %s", FormatDelta(rangeDelta, "m", 0)))
-        table.insert(lines, string.format("DEL  %s", FormatDelta(delayDelta, "s", 2)))
+        table.insert(lines, string.format("Range  %s", FormatDelta(rangeDelta, "m", 0)))
+        table.insert(lines, string.format("Delay  %s", FormatDelta(delayDelta, "s", 2)))
     end
 
     table.insert(lines, "")
@@ -5131,32 +5476,28 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
         return
     end
 
-    local screenW, screenH = 1920, 1080
-    if exu.GetGameResolution then
-        local okW, okH = exu.GetGameResolution()
-        screenW = tonumber(okW) or screenW
-        screenH = tonumber(okH) or screenH
-    end
+    local screenW, screenH, uiScale = PersistentConfig._GetUiResolutionMetrics()
+    uiScale = math.max(tonumber(uiScale) or 1, 1)
 
-    local uiScale = 1
-    if exu.GetUIScaling then
-        uiScale = math.max(tonumber(exu.GetUIScaling()) or 1, 1)
-    end
-
-    local edgePaddingX = math.floor(screenW * 0.01)
-    local edgePaddingY = math.floor(screenH * 0.02)
-    local estimatedCommandMenuWidth = math.floor(165 * uiScale)
-    local commandMenuInset = math.floor(18 * uiScale)
-    local commandMenuGap = math.floor(6 * uiScale)
-    local anchorX = edgePaddingX + estimatedCommandMenuWidth - commandMenuInset + commandMenuGap
-    local scrapY = edgePaddingY - math.floor(2 * uiScale)
+    -- Keep the legacy counter aligned to the stock command menu footprint, which scales with the HUD rather than
+    -- the current screen resolution. This prevents the text from drifting back into the menu at higher HUD scales.
+    local commandMenuLeft = math.floor(8 * uiScale)
+    local commandMenuTop = math.floor(10 * uiScale)
+    local estimatedCommandMenuWidth = math.floor(171 * uiScale)
+    local commandMenuGap = math.floor(10 * uiScale)
+    local anchorX = commandMenuLeft + estimatedCommandMenuWidth + commandMenuGap
+    local scrapY = commandMenuTop + math.floor(2 * uiScale)
     local pilotY = scrapY + math.floor(48 * uiScale)
+
+    anchorX = ClampRange(anchorX, 0, math.max(0, screenW - math.floor(96 * uiScale)), anchorX)
+    scrapY = ClampRange(scrapY, 0, math.max(0, screenH - math.floor(80 * uiScale)), scrapY)
+    pilotY = ClampRange(pilotY, 0, math.max(0, screenH - math.floor(32 * uiScale)), pilotY)
 
     exu.SetScrapHudTopLeft(anchorX, scrapY)
     exu.SetPilotHudTopLeft(anchorX, pilotY)
 end
 
-local function CommitPdaSettingChange(options)
+function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     PersistentConfig.SaveConfig()
 
     if options and options.applySettings then
@@ -5181,7 +5522,7 @@ local function CommitPdaSettingChange(options)
     RebuildPdaOverlay()
 end
 
-local function GetHeadlightColorPresetIndex()
+function PersistentConfig._SettingsActions.GetHeadlightColorPresetIndex()
     if PersistentConfig.Settings.RainbowMode then
         return #HeadlightColorPresets
     end
@@ -5198,8 +5539,9 @@ local function GetHeadlightColorPresetIndex()
     return 1
 end
 
-local function CycleHeadlightColor(delta)
-    local nextIndex = CycleIndex(GetHeadlightColorPresetIndex(), #HeadlightColorPresets, delta, 1)
+function PersistentConfig._SettingsActions.CycleHeadlightColor(delta)
+    local nextIndex = CycleIndex(PersistentConfig._SettingsActions.GetHeadlightColorPresetIndex(), #HeadlightColorPresets,
+        delta, 1)
     local preset = HeadlightColorPresets[nextIndex]
 
     if preset.rainbow then
@@ -5213,54 +5555,54 @@ local function CycleHeadlightColor(delta)
         ShowFeedback("Headlight Color: " .. preset.name, preset.r, preset.g, preset.b)
     end
 
-    CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
     return true
 end
 
-local function SetPlayerHeadlightVisible(enabled)
+function PersistentConfig._SettingsActions.SetPlayerHeadlightVisible(enabled)
     local visible = not not enabled
     if PersistentConfig.Settings.HeadlightVisible == visible then
         return false
     end
 
     PersistentConfig.Settings.HeadlightVisible = visible
-    CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
     ShowFeedback("Player Light: " .. (visible and "ON" or "OFF"))
     return true
 end
 
-local function SetOtherHeadlightsEnabled(enabled)
+function PersistentConfig._SettingsActions.SetOtherHeadlightsEnabled(enabled)
     local showOthers = not not enabled
     if PersistentConfig.Settings.OtherHeadlightsDisabled == (not showOthers) then
         return false
     end
 
     PersistentConfig.Settings.OtherHeadlightsDisabled = not showOthers
-    CommitPdaSettingChange({ markOtherHeadlightsDirty = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ markOtherHeadlightsDirty = true })
     ShowFeedback("AI Lights: " .. (showOthers and "ON" or "OFF"))
     return true
 end
 
-local function CycleHeadlightBeamMode(delta)
+function PersistentConfig._SettingsActions.CycleHeadlightBeamMode(delta)
     local nextMode = CycleIndex(PersistentConfig.Settings.HeadlightBeamMode, #BeamModes, delta, 2)
     if PersistentConfig.Settings.HeadlightBeamMode == nextMode then
         return false
     end
 
     PersistentConfig.Settings.HeadlightBeamMode = nextMode
-    CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
     ShowFeedback("Beam: " .. (nextMode == 1 and "FOCUSED" or "WIDE"))
     return true
 end
 
-local function SetWeaponStatsHudEnabled(enabled)
+function PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(enabled)
     local visible = not not enabled
     if PersistentConfig.Settings.WeaponStatsHud == visible then
         return false
     end
 
     PersistentConfig.Settings.WeaponStatsHud = visible
-    CommitPdaSettingChange()
+    PersistentConfig._SettingsActions.CommitPdaSettingChange()
     if visible then
         RefreshPdaOverlay()
     else
@@ -5272,75 +5614,114 @@ local function SetWeaponStatsHudEnabled(enabled)
     return true
 end
 
-local function CycleScrapPilotHudLayout(delta)
+function PersistentConfig._SettingsActions.CycleScrapPilotHudLayout(delta)
     local nextIndex = CycleIndex(PersistentConfig.Settings.ScrapPilotHudLayout, #ScrapPilotHudLayouts, delta, 2)
     if PersistentConfig.Settings.ScrapPilotHudLayout == nextIndex then
         return false
     end
 
     PersistentConfig.Settings.ScrapPilotHudLayout = nextIndex
-    CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
     ShowFeedback("Scrap/Pilot: " .. GetScrapPilotHudLayout().name, 0.8, 1.0, 0.8, 2.5, false, "pda")
     return true
 end
 
-local function SetSubtitlesEnabled(enabled)
+function PersistentConfig._SettingsActions.SetSubtitlesEnabled(enabled)
     local value = not not enabled
     if PersistentConfig.Settings.SubtitlesEnabled == value then
         return false
     end
 
     PersistentConfig.Settings.SubtitlesEnabled = value
-    CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
     if not value then
-        local subtit = package.loaded["ScriptSubtitles"]
+        local subtit = GetScriptSubtitles()
         if subtit and subtit.ClearActive then
             subtit.ClearActive()
         end
-        if subtitles and subtitles.clear_queue then subtitles.clear_queue() end
-        if subtitles and subtitles.clear_current then subtitles.clear_current() end
     end
     ShowFeedback("Subtitles: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
-local function SetAutoRepairBuildingsEnabled(enabled)
+function PersistentConfig._CycleUnitVerbosity(delta)
+    local nextIndex = CycleIndex(PersistentConfig.Settings.UnitVerbosity, #PersistentConfig.UnitVerbosityPresets, delta,
+        1)
+    if PersistentConfig.Settings.UnitVerbosity == nextIndex then
+        return false
+    end
+
+    PersistentConfig.Settings.UnitVerbosity = nextIndex
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    ShowFeedback("Unit Verbosity: " .. PersistentConfig._GetUnitVerbosityPreset().name, 0.8, 1.0, 0.8, 2.5, false, "pda")
+    return true
+end
+
+function PersistentConfig._SettingsActions.SetAutoRepairBuildingsEnabled(enabled)
     local value = not not enabled
     if PersistentConfig.Settings.AutoRepairBuildings == value then
         return false
     end
 
     PersistentConfig.Settings.AutoRepairBuildings = value
-    CommitPdaSettingChange()
+    PersistentConfig._SettingsActions.CommitPdaSettingChange()
     ShowFeedback("Building Repair: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
-local function SetAutoRepairWingmenEnabled(enabled)
+function PersistentConfig._SettingsActions.SetAutoRepairWingmenEnabled(enabled)
     local value = not not enabled
     if PersistentConfig.Settings.AutoRepairWingmen == value then
         return false
     end
 
     PersistentConfig.Settings.AutoRepairWingmen = value
-    CommitPdaSettingChange({ syncAutoRepairWingmen = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncAutoRepairWingmen = true })
     ShowFeedback("Wingman Auto-Repair: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
-local function SetScavengerAssistEnabled(enabled)
+function PersistentConfig._SettingsActions.SetScavengerAssistEnabled(enabled)
     local value = not not enabled
     if PersistentConfig.Settings.ScavengerAssistEnabled == value then
         return false
     end
 
     PersistentConfig.Settings.ScavengerAssistEnabled = value
-    CommitPdaSettingChange({ syncScavengerAssist = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncScavengerAssist = true })
     ShowFeedback("Scavenger Assist: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
-local function SetAutoSaveEnabled(enabled)
+function PersistentConfig._SettingsActions.AdjustRadarSizeScale(delta)
+    local nextScale = AdjustScale(PersistentConfig.Settings.RadarSizeScale, delta,
+        PersistentConfig.RadarUi.min, PersistentConfig.RadarUi.max, PersistentConfig.RadarUi.step)
+    nextScale = ClampRange(nextScale, PersistentConfig.RadarUi.min, PersistentConfig.RadarUi.max,
+        PersistentConfig.DefaultSettings.RadarSizeScale)
+    if math.abs(PersistentConfig.Settings.RadarSizeScale - nextScale) < 0.001 then
+        return false
+    end
+
+    PersistentConfig.Settings.RadarSizeScale = nextScale
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    ShowFeedback("Radar Size: " .. FormatScale(nextScale, PersistentConfig.RadarUi.min, PersistentConfig.RadarUi.max),
+        0.8, 1.0, 0.8, 2.5, false, "pda")
+    return true
+end
+
+function PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.DynamicFactionFlameColors == value then
+        return false
+    end
+
+    PersistentConfig.Settings.DynamicFactionFlameColors = value
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    ShowFeedback("Faction Flames: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8, 2.5, false, "pda")
+    return true
+end
+
+function PersistentConfig._SettingsActions.SetAutoSaveEnabled(enabled)
     local value = not not enabled
     local interval = PersistentConfig._GetAutoSaveIntervalOption()
 
@@ -5352,7 +5733,7 @@ local function SetAutoSaveEnabled(enabled)
     end
 
     PersistentConfig.Settings.AutoSaveEnabled = value
-    CommitPdaSettingChange({ syncAutoSave = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncAutoSave = true })
     if value then
         ShowFeedback(string.format("Auto-Save: ON (%s)", interval.label), 0.8, 1.0, 0.8, 2.5, false, "pda")
     else
@@ -5377,14 +5758,14 @@ function PersistentConfig._AdjustAutoSaveInterval(delta)
     local option = PersistentConfig.AutoSaveUi.intervalOptions[nextIndex]
     PersistentConfig.Settings.AutoSaveInterval = option.seconds
     PersistentConfig._ClearAutoSaveEnablePrompt()
-    CommitPdaSettingChange({ syncAutoSave = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncAutoSave = true })
     ShowFeedback("Auto-Save Interval: " .. option.label, 0.8, 1.0, 0.8, 2.5, false, "pda")
     return true
 end
 
 function PersistentConfig._HandleAutoSaveEnableAction()
     PersistentConfig._ClearAutoSaveEnablePrompt()
-    return SetAutoSaveEnabled(not PersistentConfig.Settings.AutoSaveEnabled)
+    return PersistentConfig._SettingsActions.SetAutoSaveEnabled(not PersistentConfig.Settings.AutoSaveEnabled)
 end
 
 function PersistentConfig._SetPilotModeEnabled(enabled)
@@ -5394,7 +5775,7 @@ function PersistentConfig._SetPilotModeEnabled(enabled)
     end
 
     PersistentConfig.Settings.PilotModeEnabled = value
-    CommitPdaSettingChange()
+    PersistentConfig._SettingsActions.CommitPdaSettingChange()
     ShowFeedback("Pilot Mode: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
@@ -5413,7 +5794,7 @@ GetSettingsPageEntries = function()
                 PersistentConfig.Settings.PdaFontScale = AdjustScale(PersistentConfig.Settings.PdaFontScale, delta,
                     PersistentConfig.FontScale.pda.min, PersistentConfig.FontScale.pda.max,
                     PersistentConfig.FontScale.pda.step)
-                CommitPdaSettingChange({ applySettings = true })
+                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
                 return true
             end,
         },
@@ -5422,7 +5803,7 @@ GetSettingsPageEntries = function()
             value = FormatOpacity(PersistentConfig.Settings.PdaOpacity),
             adjust = function(delta)
                 PersistentConfig.Settings.PdaOpacity = AdjustOpacity(PersistentConfig.Settings.PdaOpacity, delta)
-                CommitPdaSettingChange({ applySettings = true })
+                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
                 return true
             end,
         },
@@ -5432,49 +5813,71 @@ GetSettingsPageEntries = function()
             adjust = function(delta)
                 PersistentConfig.Settings.PdaColorPreset = CycleIndex(PersistentConfig.Settings.PdaColorPreset,
                     #PdaColorPresets, delta, 2)
-                CommitPdaSettingChange({ applySettings = true })
+                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
                 return true
             end,
         },
         {
-            label = "Scrap/Pilot",
+            label = "Scrap/Pilot HUD",
             value = GetScrapPilotHudLayout().name,
             adjust = function(delta)
-                return CycleScrapPilotHudLayout(delta)
+                return PersistentConfig._SettingsActions.CycleScrapPilotHudLayout(delta)
             end,
         },
         {
-            label = "PDA HUD",
+            label = "Radar Size",
+            value = FormatScale(PersistentConfig.Settings.RadarSizeScale, PersistentConfig.RadarUi.min,
+                PersistentConfig.RadarUi.max),
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.AdjustRadarSizeScale(delta)
+            end,
+        },
+        {
+            label = "PDA Panel",
             value = FormatHotkeyValue(PersistentConfig.Settings.WeaponStatsHud and "On" or "Off", "Y"),
             adjust = function(delta)
-                return SetWeaponStatsHudEnabled(DirectionEnabled(delta))
+                return PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(DirectionEnabled(delta))
             end,
         },
         {
             label = "Subtitles",
             value = PersistentConfig.Settings.SubtitlesEnabled and "On" or "Off",
             adjust = function(delta)
-                return SetSubtitlesEnabled(DirectionEnabled(delta))
+                return PersistentConfig._SettingsActions.SetSubtitlesEnabled(DirectionEnabled(delta))
             end,
         },
         {
-            label = "Sub Size",
+            label = "Unit Voices",
+            value = PersistentConfig._GetUnitVerbosityPreset().name,
+            adjust = function(delta)
+                return PersistentConfig._CycleUnitVerbosity(delta)
+            end,
+        },
+        {
+            label = "Faction Flames",
+            value = PersistentConfig.Settings.DynamicFactionFlameColors and "On" or "Off",
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "Subtitle Size",
             value = FormatScale(PersistentConfig.Settings.SubtitleFontScale, PersistentConfig.FontScale.subtitle.min,
                 PersistentConfig.FontScale.subtitle.max),
             adjust = function(delta)
                 PersistentConfig.Settings.SubtitleFontScale = AdjustScale(PersistentConfig.Settings.SubtitleFontScale, delta,
                     PersistentConfig.FontScale.subtitle.min, PersistentConfig.FontScale.subtitle.max,
                     PersistentConfig.FontScale.subtitle.step)
-                CommitPdaSettingChange({ applySettings = true })
+                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
                 return true
             end,
         },
         {
-            label = "Sub Alpha",
+            label = "Subtitle Alpha",
             value = FormatOpacity(PersistentConfig.Settings.SubtitleOpacity),
             adjust = function(delta)
                 PersistentConfig.Settings.SubtitleOpacity = AdjustOpacity(PersistentConfig.Settings.SubtitleOpacity, delta)
-                CommitPdaSettingChange({ applySettings = true })
+                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
                 return true
             end,
         },
@@ -5482,49 +5885,50 @@ GetSettingsPageEntries = function()
             label = "Player Light",
             value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightVisible and "On" or "Off", "V"),
             adjust = function(delta)
-                return SetPlayerHeadlightVisible(DirectionEnabled(delta))
+                return PersistentConfig._SettingsActions.SetPlayerHeadlightVisible(DirectionEnabled(delta))
             end,
         },
         {
             label = "Light Color",
-            value = FormatHotkeyValue(HeadlightColorPresets[GetHeadlightColorPresetIndex()].name, "Z"),
+            value = FormatHotkeyValue(
+                HeadlightColorPresets[PersistentConfig._SettingsActions.GetHeadlightColorPresetIndex()].name, "Z"),
             adjust = function(delta)
-                return CycleHeadlightColor(delta)
+                return PersistentConfig._SettingsActions.CycleHeadlightColor(delta)
             end,
         },
         {
             label = "AI Lights",
             value = FormatHotkeyValue(PersistentConfig.Settings.OtherHeadlightsDisabled and "Off" or "On", "J"),
             adjust = function(delta)
-                return SetOtherHeadlightsEnabled(DirectionEnabled(delta))
+                return PersistentConfig._SettingsActions.SetOtherHeadlightsEnabled(DirectionEnabled(delta))
             end,
         },
         {
             label = "Beam",
             value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightBeamMode == 1 and "Focused" or "Wide", "B"),
             adjust = function(delta)
-                return CycleHeadlightBeamMode(delta)
+                return PersistentConfig._SettingsActions.CycleHeadlightBeamMode(delta)
             end,
         },
         {
-            label = "Wing Repair",
+            label = "Wingman Repair",
             value = FormatHotkeyValue(PersistentConfig.Settings.AutoRepairWingmen and "On" or "Off", "X"),
             adjust = function(delta)
-                return SetAutoRepairWingmenEnabled(DirectionEnabled(delta))
+                return PersistentConfig._SettingsActions.SetAutoRepairWingmenEnabled(DirectionEnabled(delta))
             end,
         },
         {
-            label = "Bldg Repair",
+            label = "Building Repair",
             value = PersistentConfig.Settings.AutoRepairBuildings and "On" or "Off",
             adjust = function(delta)
-                return SetAutoRepairBuildingsEnabled(DirectionEnabled(delta))
+                return PersistentConfig._SettingsActions.SetAutoRepairBuildingsEnabled(DirectionEnabled(delta))
             end,
         },
         {
-            label = "Scav Assist",
+            label = "Scavenger Assist",
             value = FormatHotkeyValue(PersistentConfig.Settings.ScavengerAssistEnabled and "On" or "Off", "U"),
             adjust = function(delta)
-                return SetScavengerAssistEnabled(DirectionEnabled(delta))
+                return PersistentConfig._SettingsActions.SetScavengerAssistEnabled(DirectionEnabled(delta))
             end,
         },
         {
@@ -5536,7 +5940,7 @@ GetSettingsPageEntries = function()
         },
         {
             key = "autosave_interval",
-            label = "Auto Int",
+            label = "Auto Interval",
             value = PersistentConfig._GetAutoSaveIntervalOption().label,
             adjust = function(delta)
                 return PersistentConfig._AdjustAutoSaveInterval(delta)
@@ -5548,14 +5952,14 @@ GetSettingsPageEntries = function()
             value = PersistentConfig._GetAutoSaveStatusValue(),
             actionHint = PersistentConfig._GetAutoSaveEnterHint(),
             adjust = function(delta)
-                return SetAutoSaveEnabled((delta or 0) > 0)
+                return PersistentConfig._SettingsActions.SetAutoSaveEnabled((delta or 0) > 0)
             end,
             action = function()
                 return PersistentConfig._HandleAutoSaveEnableAction()
             end,
         },
         {
-            label = "Reset CFG",
+            label = "Reset Config",
             value = "Right to reset",
             adjust = function(delta)
                 if DirectionEnabled(delta) then
@@ -5632,6 +6036,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.HeadlightVisible = (val == "true")
                 elseif key == "SubtitlesEnabled" then
                     PersistentConfig.Settings.SubtitlesEnabled = (val == "true")
+                elseif key == "UnitVerbosity" then
+                    PersistentConfig.Settings.UnitVerbosity = tonumber(val) or 1
                 elseif key == "OtherHeadlightsDisabled" then
                     PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
                 elseif key == "AutoRepairWingmen" then
@@ -5670,6 +6076,10 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.PdaColorPreset = tonumber(val) or 2
                 elseif key == "ScrapPilotHudLayout" then
                     PersistentConfig.Settings.ScrapPilotHudLayout = tonumber(val) or 2
+                elseif key == "RadarSizeScale" then
+                    PersistentConfig.Settings.RadarSizeScale = tonumber(val) or 1.0
+                elseif key == "DynamicFactionFlameColors" then
+                    PersistentConfig.Settings.DynamicFactionFlameColors = (val == "true")
                 elseif key == "UnitPreset" then
                     local unitOdf, slotIndex, powerupOdf = string.match(val, "([^|]+)|([^|]+)|(.+)")
                     local unitKey = string.lower(CleanString(unitOdf or ""))
@@ -5718,6 +6128,8 @@ function PersistentConfig.LoadConfig()
     end
     PersistentConfig.Settings.SubtitleOpacity = ClampUnitInterval(PersistentConfig.Settings.SubtitleOpacity, 0.50)
     PersistentConfig.Settings.PdaOpacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.00)
+    PersistentConfig.Settings.UnitVerbosity = ClampIndex(PersistentConfig.Settings.UnitVerbosity, 1,
+        #PersistentConfig.UnitVerbosityPresets, 1)
     PersistentConfig.Settings.SubtitleFontScale = ClampRange(PersistentConfig.Settings.SubtitleFontScale,
         PersistentConfig.FontScale.subtitle.min, PersistentConfig.FontScale.subtitle.max, 1.0)
     PersistentConfig.Settings.PdaFontScale = ClampRange(PersistentConfig.Settings.PdaFontScale,
@@ -5725,6 +6137,7 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
     PersistentConfig.Settings.ScrapPilotHudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1,
         #ScrapPilotHudLayouts, 2)
+    PersistentConfig.Settings.RadarSizeScale = GetRadarSizeScaleSetting()
     PersistentConfig.Settings.AutoSaveSlot = PersistentConfig._GetAutoSaveSlot()
     PersistentConfig.Settings.AutoSaveInterval = PersistentConfig._GetAutoSaveIntervalOption().seconds
 end
@@ -5754,6 +6167,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("HeadlightFalloff=" .. tostring(PersistentConfig.Settings.HeadlightRange.Falloff))
         f:Writeln("HeadlightVisible=" .. tostring(PersistentConfig.Settings.HeadlightVisible))
         f:Writeln("SubtitlesEnabled=" .. tostring(PersistentConfig.Settings.SubtitlesEnabled))
+        f:Writeln("UnitVerbosity=" .. tostring(PersistentConfig.Settings.UnitVerbosity))
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
@@ -5771,6 +6185,8 @@ function PersistentConfig.SaveConfig()
         f:Writeln("PdaFontScale=" .. tostring(PersistentConfig.Settings.PdaFontScale))
         f:Writeln("PdaColorPreset=" .. tostring(PersistentConfig.Settings.PdaColorPreset))
         f:Writeln("ScrapPilotHudLayout=" .. tostring(PersistentConfig.Settings.ScrapPilotHudLayout))
+        f:Writeln("RadarSizeScale=" .. tostring(PersistentConfig.Settings.RadarSizeScale))
+        f:Writeln("DynamicFactionFlameColors=" .. tostring(PersistentConfig.Settings.DynamicFactionFlameColors))
         for unitKey, preset in pairs(PersistentConfig.UnitPresets) do
             for slotIndex = 1, 5 do
                 local powerupOdf = preset[slotIndex]
@@ -5842,15 +6258,17 @@ function PersistentConfig.ApplySettings()
         if exu.SetRetroLightingMode then
             exu.SetRetroLightingMode(PersistentConfig.Settings.RetroLighting)
         end
+
+        PersistentConfig._SyncRadarSizeScale(true)
+        PersistentConfig._ApplyDynamicFactionFlameColors()
+        PersistentConfig._ApplyUnitVoSettings()
     end
 
     PersistentConfig.ApplyScrapPilotHudLayout()
 
-    local subtit = package.loaded["ScriptSubtitles"]
+    local subtit = GetScriptSubtitles()
     if subtit and subtit.SetOpacity then
         subtit.SetOpacity(PersistentConfig.Settings.SubtitleOpacity)
-    elseif subtitles and subtitles.set_opacity then
-        subtitles.set_opacity(PersistentConfig.Settings.SubtitleOpacity)
     end
     if subtit then
         if subtit.SetEnabled then
@@ -5924,12 +6342,9 @@ function PersistentConfig.UpdateInputs()
     end
 
     InputState.SubtitlesPaused = pauseMenuOpen or escapePressed
-    local scriptSubtitles = package.loaded["ScriptSubtitles"]
+    local scriptSubtitles = GetScriptSubtitles()
     if scriptSubtitles and scriptSubtitles.SetSuspended then
         scriptSubtitles.SetSuspended(InputState.SubtitlesPaused)
-    end
-    if subtitles and subtitles.set_suspended then
-        subtitles.set_suspended(InputState.SubtitlesPaused)
     end
 
     local pendingOverlay = PersistentConfig.ExperimentalOverlayPending
@@ -5954,7 +6369,7 @@ function PersistentConfig.UpdateInputs()
     -- Process Feedback Queue
     if not pauseMenuOpen and #PersistentConfig.FeedbackQueue > 0 then
         -- Check if mission subtitles are active
-        local subtit = package.loaded["ScriptSubtitles"]
+        local subtit = GetScriptSubtitles()
         local isBusy = false
 
         if subtit and subtit.IsActive then
@@ -5980,19 +6395,24 @@ function PersistentConfig.UpdateInputs()
                 -- Drop subtitle messages while subtitles are disabled.
             elseif subtit and subtit.Display then
                 subtit.Display(item.msg, item.r, item.g, item.b, item.duration)
-            elseif subtitles and subtitles.submit then
-                subtitles.clear_queue()
-                if subtitles.clear_current then subtitles.clear_current() end
-                subtitles.set_opacity(ClampUnitInterval(PersistentConfig.Settings.SubtitleOpacity, 0.5))
-                subtitles.submit(item.msg, item.duration, item.r, item.g, item.b)
-                if subtit then
-                    subtit.LastEndTime = GetTime() + item.duration
-                end
             end
         end
     end
 
     local team = GetPlayerTeamNum()
+    if InputState.lastUnitVoTeam ~= team then
+        PersistentConfig._ApplyUnitVoSettings()
+        InputState.lastUnitVoTeam = team
+    end
+    local now = GetTime()
+    if now >= (InputState.nextRadarScaleCheck or 0.0) then
+        InputState.nextRadarScaleCheck = now + 0.5
+        PersistentConfig._SyncRadarSizeScale(false)
+    end
+    if now >= (InputState.nextFactionFlameRefresh or 0.0) then
+        InputState.nextFactionFlameRefresh = now + 1.0
+        PersistentConfig._ApplyDynamicFactionFlameColors()
+    end
     local scrapDelta = UpdateTeamScrapSnapshot(team)
     RecordBuildKeyIfPressed(team)
     UpdateProducerQueues(team)
@@ -6005,21 +6425,21 @@ function PersistentConfig.UpdateInputs()
     -- Toggle Player Headlight (V)
     local v_key = exu.GetGameKey("V")
     if v_key and not InputState.last_v_state then
-        SetPlayerHeadlightVisible(not PersistentConfig.Settings.HeadlightVisible)
+        PersistentConfig._SettingsActions.SetPlayerHeadlightVisible(not PersistentConfig.Settings.HeadlightVisible)
     end
     InputState.last_v_state = v_key
 
     -- Cycle Headlight Color (Z) - Moved from Alt+C to Z
     local z_key = exu.GetGameKey("Z")
     if z_key and not InputState.last_z_state then
-        CycleHeadlightColor(1)
+        PersistentConfig._SettingsActions.CycleHeadlightColor(1)
     end
     InputState.last_z_state = z_key
 
     -- Toggle AI/NPC Headlights (J) - Moved from Alt+U to J
     local j_key = exu.GetGameKey("J")
     if j_key and not InputState.last_j_state then
-        SetOtherHeadlightsEnabled(PersistentConfig.Settings.OtherHeadlightsDisabled)
+        PersistentConfig._SettingsActions.SetOtherHeadlightsEnabled(PersistentConfig.Settings.OtherHeadlightsDisabled)
     end
     InputState.last_j_state = j_key
 
@@ -6029,12 +6449,12 @@ function PersistentConfig.UpdateInputs()
     local y_key = exu.GetGameKey("Y")
 
     if b_key and not ctrl_down and not InputState.last_b_state then
-        CycleHeadlightBeamMode(1)
+        PersistentConfig._SettingsActions.CycleHeadlightBeamMode(1)
     end
     InputState.last_b_state = b_key
 
     if y_key and not ctrl_down and not InputState.last_y_state then
-        SetWeaponStatsHudEnabled(not PersistentConfig.Settings.WeaponStatsHud)
+        PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(not PersistentConfig.Settings.WeaponStatsHud)
     end
     InputState.last_y_state = y_key
 
@@ -6176,14 +6596,14 @@ function PersistentConfig.UpdateInputs()
     -- Toggle Auto-Repair for Wingmen (X for "Auto-fiX")
     local x_key = exu.GetGameKey("X")
     if x_key and not InputState.last_x_state then
-        SetAutoRepairWingmenEnabled(not PersistentConfig.Settings.AutoRepairWingmen)
+        PersistentConfig._SettingsActions.SetAutoRepairWingmenEnabled(not PersistentConfig.Settings.AutoRepairWingmen)
     end
     InputState.last_x_state = x_key
 
     -- Toggle Scavenger Assist (U)
     local u_key = exu.GetGameKey("U")
     if u_key and not InputState.last_u_state then
-        SetScavengerAssistEnabled(not PersistentConfig.Settings.ScavengerAssistEnabled)
+        PersistentConfig._SettingsActions.SetScavengerAssistEnabled(not PersistentConfig.Settings.ScavengerAssistEnabled)
     end
     InputState.last_u_state = u_key
 
@@ -6699,8 +7119,10 @@ function PersistentConfig.Initialize()
             local oldSucceed = SucceedMission
             SucceedMission = function(...)
                 PersistentConfig._DestroyAllPdaOverlays()
-                if subtitles and subtitles.clear_queue then subtitles.clear_queue() end
-                if subtitles and subtitles.clear_current then subtitles.clear_current() end
+                local subtit = GetScriptSubtitles()
+                if subtit and subtit.ClearActive then
+                    subtit.ClearActive()
+                end
                 oldSucceed(...)
             end
         end
@@ -6708,8 +7130,10 @@ function PersistentConfig.Initialize()
             local oldFail = FailMission
             FailMission = function(...)
                 PersistentConfig._DestroyAllPdaOverlays()
-                if subtitles and subtitles.clear_queue then subtitles.clear_queue() end
-                if subtitles and subtitles.clear_current then subtitles.clear_current() end
+                local subtit = GetScriptSubtitles()
+                if subtit and subtit.ClearActive then
+                    subtit.ClearActive()
+                end
                 oldFail(...)
             end
         end

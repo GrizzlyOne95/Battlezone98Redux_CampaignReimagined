@@ -44,6 +44,12 @@ return {
         [2] = { name = "LEGACY" },
     },
 
+    UnitVerbosityPresets = {
+        [1] = { name = "NORMAL" },
+        [2] = { name = "DECREASED", throttleMs = 750, queueDepthLimit = 1, queueStaleMs = 1200 },
+        [3] = { name = "NONE", muted = true, throttleMs = 60000, queueDepthLimit = 1, queueStaleMs = 0 },
+    },
+
     HeadlightColorPresets = {
         [1] = { name = "WHITE", r = 5.0, g = 5.0, b = 5.0 },
         [2] = { name = "RED", r = 5.0, g = 1.0, b = 1.0 },
