@@ -27,7 +27,7 @@ PersistentConfig.PdaOverlay = {
     font = "CRBZoneOverlayFont",
     useCustomFont = true,
     zOrder = 645,
-    structureVersion = 2,
+    structureVersion = 3,
     statsVisible = false,
     feedbackVisible = false,
     feedbackExpireAt = 0.0,
@@ -328,6 +328,64 @@ local function Log(msg)
     else
         print(msg)
     end
+end
+
+PersistentConfig._BuildLuaTrace = function(err)
+    local text = tostring(err)
+    if debug and type(debug.traceback) == "function" then
+        return debug.traceback(text, 2)
+    end
+    return text
+end
+
+PersistentConfig._DescribeHandleForLog = function(h)
+    local parts = { "handle=" .. tostring(h) }
+
+    if type(IsValid) == "function" then
+        local ok, value = pcall(IsValid, h)
+        parts[#parts + 1] = "valid=" .. tostring(ok and value or ("error:" .. tostring(value)))
+    end
+
+    if type(GetOdf) == "function" then
+        local ok, value = pcall(GetOdf, h)
+        if ok and value then
+            parts[#parts + 1] = "odf=" .. tostring(value)
+        end
+    end
+
+    if type(GetClassSig) == "function" then
+        local ok, value = pcall(GetClassSig, h)
+        if ok and value then
+            parts[#parts + 1] = "class=" .. tostring(value)
+        end
+    end
+
+    if type(GetTeamNum) == "function" then
+        local ok, value = pcall(GetTeamNum, h)
+        if ok and value ~= nil then
+            parts[#parts + 1] = "team=" .. tostring(value)
+        end
+    end
+
+    return table.concat(parts, " ")
+end
+
+PersistentConfig._InvokeWithTrace = function(label, fn, ...)
+    if type(fn) ~= "function" then
+        return nil
+    end
+
+    local args = { ... }
+    local ok, result = xpcall(function()
+        return fn((table.unpack or unpack)(args))
+    end, PersistentConfig._BuildLuaTrace)
+
+    if not ok then
+        Log("[lua-trace] " .. label .. " failed: " .. tostring(result))
+        error(result, 0)
+    end
+
+    return result
 end
 
 -- On-Screen Feedback Helper
@@ -1454,7 +1512,10 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
     SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.0)
     for _, panelId in ipairs(panelIds) do
         if panelId then
-            SafeCall(exu.SetOverlayMaterial, panelId, "BaseWhiteNoLighting")
+            if panelId == ids.frame then
+                SafeCall(exu.SetOverlayMaterial, panelId, "BaseWhiteNoLighting")
+                SafeCall(exu.SetOverlayParameter, panelId, "transparent", true)
+            end
         end
     end
     if ids.frame then
@@ -1549,6 +1610,7 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
         SafeCall(exu.SetOverlayPosition, ids.frame, 0, 0)
         SafeCall(exu.SetOverlayDimensions, ids.frame, layout.panelWidth, layout.panelHeight)
         SafeCall(exu.SetOverlayMaterial, ids.frame, "BaseWhiteNoLighting")
+        SafeCall(exu.SetOverlayParameter, ids.frame, "transparent", true)
         SafeCall(exu.SetOverlayParameter, ids.frame, "border_size", borderSizeString)
         SafeCall(exu.SetOverlayParameter, ids.frame, "border_material", "BaseWhiteNoLighting")
         SafeCall(exu.SetOverlayColor, ids.frame, colors.border.r, colors.border.g, colors.border.b, colors.border.a)
@@ -1560,14 +1622,12 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
 
     SafeCall(exu.SetOverlayPosition, ids.backdrop, layout.backdropX, layout.backdropY)
     SafeCall(exu.SetOverlayDimensions, ids.backdrop, layout.backdropWidth, layout.backdropHeight)
-    SafeCall(exu.SetOverlayMaterial, ids.backdrop, "BaseWhiteNoLighting")
     SafeCall(exu.SetOverlayColor, ids.backdrop, colors.backdrop.r, colors.backdrop.g, colors.backdrop.b,
         colors.backdrop.a)
 
     if ids.header and layout.headerWidth and layout.headerHeight then
         SafeCall(exu.SetOverlayPosition, ids.header, layout.headerX, layout.headerY)
         SafeCall(exu.SetOverlayDimensions, ids.header, layout.headerWidth, layout.headerHeight)
-        SafeCall(exu.SetOverlayMaterial, ids.header, "BaseWhiteNoLighting")
         SafeCall(exu.SetOverlayColor, ids.header, colors.header.r, colors.header.g, colors.header.b, colors.header.a)
     end
 
@@ -6293,19 +6353,27 @@ function PersistentConfig.OnObjectCreated(h)
     end
     InputState.processedCreationHandles[h] = true
 
-    RuntimeEnhancements.OnObjectCreated(h)
-    ConservativeCulling.OnObjectCreated(h)
-    RegisterTrackedWorldHandle(h)
+    local handleInfo = PersistentConfig._DescribeHandleForLog(h)
+
+    PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated RuntimeEnhancements " .. handleInfo,
+        RuntimeEnhancements.OnObjectCreated, h)
+    PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated ConservativeCulling " .. handleInfo,
+        ConservativeCulling.OnObjectCreated, h)
+    PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated RegisterTrackedWorldHandle " .. handleInfo,
+        RegisterTrackedWorldHandle, h)
     if aiCore and type(aiCore.TrackWorldObject) == "function" then
-        aiCore.TrackWorldObject(h)
+        PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated aiCore.TrackWorldObject " .. handleInfo,
+            aiCore.TrackWorldObject, h)
     end
 
     if exu and exu.SetHeadlightVisible and PersistentConfig.Settings.OtherHeadlightsDisabled then
         local player = GetPlayerHandle()
-        ApplyOtherHeadlightVisibility(h, false, player)
+        PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated ApplyOtherHeadlightVisibility " .. handleInfo,
+            ApplyOtherHeadlightVisibility, h, false, player)
     end
 
-    ApplyUnitPresetToObject(h)
+    PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated ApplyUnitPresetToObject " .. handleInfo,
+        ApplyUnitPresetToObject, h)
 end
 
 function PersistentConfig.OnObjectDeleted(h)
@@ -6433,15 +6501,21 @@ function PersistentConfig.Initialize()
         local oldAddObject = AddObject
         if type(oldAddObject) == "function" then
             AddObject = function(h)
-                PersistentConfig.OnObjectCreated(h)
-                return oldAddObject(h)
+                local handleInfo = PersistentConfig._DescribeHandleForLog(h)
+                PersistentConfig._InvokeWithTrace("PersistentConfig.AddObjectHook OnObjectCreated " .. handleInfo,
+                    PersistentConfig.OnObjectCreated, h)
+                return PersistentConfig._InvokeWithTrace("PersistentConfig.AddObjectHook oldAddObject " .. handleInfo,
+                    oldAddObject, h)
             end
         end
         local oldCreateObject = CreateObject
         if type(oldCreateObject) == "function" then
             CreateObject = function(h)
-                PersistentConfig.OnObjectCreated(h)
-                return oldCreateObject(h)
+                local handleInfo = PersistentConfig._DescribeHandleForLog(h)
+                PersistentConfig._InvokeWithTrace("PersistentConfig.CreateObjectHook OnObjectCreated " .. handleInfo,
+                    PersistentConfig.OnObjectCreated, h)
+                return PersistentConfig._InvokeWithTrace("PersistentConfig.CreateObjectHook oldCreateObject " .. handleInfo,
+                    oldCreateObject, h)
             end
         end
         local oldDeleteObject = DeleteObject
