@@ -19,6 +19,7 @@ local OVERLAY_Z_ORDER = 644
 local OVERLAY_IDS = {
     overlay = "cr_mission_subtitle_overlay",
     root = "cr_mission_subtitle_overlay_root",
+    frame = "cr_mission_subtitle_overlay_frame",
     backdrop = "cr_mission_subtitle_overlay_backdrop",
     text = "cr_mission_subtitle_overlay_text",
 }
@@ -198,6 +199,35 @@ local function GetOverlayFontName()
     return OVERLAY_FONT_NAME
 end
 
+local function GetOverlaySpaceWidth(charHeight)
+    local persistentConfig = GetPersistentConfig()
+    if persistentConfig and type(persistentConfig._GetPdaOverlaySpaceWidth) == "function" then
+        local ok, width = pcall(persistentConfig._GetPdaOverlaySpaceWidth, charHeight)
+        if ok and type(width) == "number" then
+            return width
+        end
+    end
+
+    local height = math.max(tonumber(charHeight) or 0, 1)
+    return math.max(4, math.floor((height * 0.70) + 0.5))
+end
+
+local function GetSubtitlePanelMaterial(section, r, g, b)
+    local persistentConfig = GetPersistentConfig()
+    if not persistentConfig or type(persistentConfig._GetPdaOverlayMaterialFamily) ~= "function" then
+        return nil
+    end
+
+    local ok, family = pcall(persistentConfig._GetPdaOverlayMaterialFamily, r, g, b)
+    if not ok or type(family) ~= "table" or type(family.key) ~= "string" or family.key == "" then
+        return nil
+    end
+
+    local opacity = Clamp(tonumber(Subtitles.Config.opacity) or 0.5, 0.0, 1.0)
+    local alphaStep = Clamp(math.floor((opacity / 0.05) + 0.5), 0, 20)
+    return string.format("CRPda%s_%s_A%02d", tostring(section or "Backdrop"), family.key, alphaStep)
+end
+
 local function CanUseOverlayRenderer()
     if overlayState.failed then
         return false
@@ -251,6 +281,7 @@ local function DestroySubtitleOverlay()
     end
 
     if exu.RemoveOverlayElementChild then
+        pcall(exu.RemoveOverlayElementChild, ids.root, ids.frame)
         pcall(exu.RemoveOverlayElementChild, ids.root, ids.backdrop)
         pcall(exu.RemoveOverlayElementChild, ids.root, ids.text)
     end
@@ -260,6 +291,7 @@ local function DestroySubtitleOverlay()
     if exu.DestroyOverlayElement then
         pcall(exu.DestroyOverlayElement, ids.text)
         pcall(exu.DestroyOverlayElement, ids.backdrop)
+        pcall(exu.DestroyOverlayElement, ids.frame)
         pcall(exu.DestroyOverlayElement, ids.root)
     end
     if exu.DestroyOverlay then
@@ -274,28 +306,31 @@ local function GetSubtitleOverlayLayout(text)
     local aspectScale = Clamp((16.0 / 9.0) / aspect, 0.78, 1.35)
     local uiScaleFactor = Clamp((uiScale / 2.0) ^ 0.32, 0.90, 1.30)
     local charHeight = Clamp(math.floor((18.0 * aspectScale * uiScaleFactor * fontScale) + 0.5), 16, 40)
-    local maxTextWidth = Clamp(math.floor(width * 0.74), 360, math.max(360, width - 72))
+    local maxTextWidth = Clamp(math.floor(width * 0.56), 320, math.max(320, width - 96))
     local paddingX = math.max(18, math.floor(charHeight * 0.68))
     local paddingY = math.max(12, math.floor(charHeight * 0.48))
+    local borderSize = math.max(2, math.floor(charHeight * 0.10))
     local wrappedText = WrapTextToPixels(text, maxTextWidth, charHeight, 0.68, 0)
     local textHeight = GetOverlayTextBlockHeight(charHeight, CountOverlayTextLines(wrappedText), 1.08)
-    local longestLine = GetOverlayLongestLineLength(wrappedText)
-    local estimatedTextWidth = math.min(maxTextWidth,
-        math.max(charHeight * 10, math.floor((longestLine * charHeight * 0.68) + 12)))
-    local panelWidth = estimatedTextWidth + (paddingX * 2)
-    local panelHeight = textHeight + (paddingY * 2)
-    local marginY = math.max(20, math.floor(height * 0.035))
+    local panelWidth = maxTextWidth + (paddingX * 2) + (borderSize * 2)
+    local panelHeight = textHeight + (paddingY * 2) + (borderSize * 2)
     local panelX = math.max(12, math.floor((width - panelWidth) * 0.5))
-    local panelY = math.max(12, height - panelHeight - marginY)
+    local anchorY = math.floor(height * 0.955)
+    local panelY = math.max(12, anchorY - panelHeight)
 
     return {
         panelX = panelX,
         panelY = panelY,
         panelWidth = panelWidth,
         panelHeight = panelHeight,
-        textX = paddingX,
-        textY = paddingY,
-        textWidth = math.max(panelWidth - (paddingX * 2), 32),
+        borderSize = borderSize,
+        backdropX = borderSize,
+        backdropY = borderSize,
+        backdropWidth = math.max(panelWidth - (borderSize * 2), 2),
+        backdropHeight = math.max(panelHeight - (borderSize * 2), 2),
+        textX = math.floor(panelWidth * 0.5),
+        textY = borderSize + paddingY,
+        textWidth = math.max(panelWidth - ((paddingX + borderSize) * 2), 32),
         textHeight = textHeight,
         charHeight = charHeight,
         wrappedText = wrappedText,
@@ -357,19 +392,22 @@ local function TryCreateSubtitleOverlay()
 
     Call(exu.CreateOverlay, ids.overlay)
     Call(exu.CreateOverlayElement, "Panel", ids.root)
+    Call(exu.CreateOverlayElement, "BorderPanel", ids.frame)
     Call(exu.CreateOverlayElement, "Panel", ids.backdrop)
     Call(exu.CreateOverlayElement, "TextArea", ids.text)
     Call(exu.AddOverlay2D, ids.overlay, ids.root)
+    Call(exu.AddOverlayElementChild, ids.root, ids.frame)
     Call(exu.AddOverlayElementChild, ids.root, ids.backdrop)
     Call(exu.AddOverlayElementChild, ids.root, ids.text)
     Call(exu.SetOverlayZOrder, ids.overlay, OVERLAY_Z_ORDER)
     Call(exu.SetOverlayMetricsMode, ids.root, metricsMode)
+    Call(exu.SetOverlayMetricsMode, ids.frame, metricsMode)
     Call(exu.SetOverlayMetricsMode, ids.backdrop, metricsMode)
     Call(exu.SetOverlayMetricsMode, ids.text, metricsMode)
     Call(exu.SetOverlayParameter, ids.root, "transparent", true)
     Call(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.0)
-    Call(exu.SetOverlayMaterial, ids.backdrop, "BaseWhiteNoLighting")
-    Call(exu.SetOverlayParameter, ids.backdrop, "transparent", true)
+    Call(exu.SetOverlayMaterial, ids.frame, "BaseWhiteNoLighting")
+    Call(exu.SetOverlayParameter, ids.frame, "transparent", true)
     Call(exu.SetOverlayParameter, ids.text, "alignment", "center")
     Call(exu.SetOverlayCaption, ids.text, "")
     if Call(exu.SetOverlayTextFont, ids.text, fontName) ~= true then
@@ -377,6 +415,7 @@ local function TryCreateSubtitleOverlay()
         print("Subtitles: overlay font bind failed for " .. tostring(fontName))
     end
     Call(exu.ShowOverlayElement, ids.root)
+    Call(exu.ShowOverlayElement, ids.frame)
     Call(exu.ShowOverlayElement, ids.backdrop)
     Call(exu.ShowOverlayElement, ids.text)
     Call(exu.HideOverlay, ids.overlay)
@@ -401,6 +440,8 @@ local function ShowSubtitleOverlay(entry)
     local ids = OVERLAY_IDS
     local layout = GetSubtitleOverlayLayout(entry.text)
     local colors = GetSubtitleOverlayColors(entry.r, entry.g, entry.b)
+    local backdropMaterial = GetSubtitlePanelMaterial("Backdrop", entry.r, entry.g, entry.b)
+    local borderMaterial = GetSubtitlePanelMaterial("Border", entry.r, entry.g, entry.b)
 
     local function Call(fn, ...)
         local success, result = SafeOverlayCall(fn, ...)
@@ -412,13 +453,27 @@ local function ShowSubtitleOverlay(entry)
 
     Call(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
     Call(exu.SetOverlayDimensions, ids.root, layout.panelWidth, layout.panelHeight)
-    Call(exu.SetOverlayPosition, ids.backdrop, 0, 0)
-    Call(exu.SetOverlayDimensions, ids.backdrop, layout.panelWidth, layout.panelHeight)
-    Call(exu.SetOverlayColor, ids.backdrop, colors.backdrop.r, colors.backdrop.g, colors.backdrop.b, colors.backdrop.a)
+    Call(exu.SetOverlayPosition, ids.frame, 0, 0)
+    Call(exu.SetOverlayDimensions, ids.frame, layout.panelWidth, layout.panelHeight)
+    Call(exu.SetOverlayParameter, ids.frame, "border_size",
+        string.format("%d %d %d %d", layout.borderSize, layout.borderSize, layout.borderSize, layout.borderSize))
+    if borderMaterial then
+        Call(exu.SetOverlayParameter, ids.frame, "border_material", borderMaterial)
+    end
+    Call(exu.SetOverlayColor, ids.frame, 1.0, 1.0, 1.0, 1.0)
+    Call(exu.SetOverlayPosition, ids.backdrop, layout.backdropX, layout.backdropY)
+    Call(exu.SetOverlayDimensions, ids.backdrop, layout.backdropWidth, layout.backdropHeight)
+    if backdropMaterial then
+        Call(exu.SetOverlayMaterial, ids.backdrop, backdropMaterial)
+        Call(exu.SetOverlayColor, ids.backdrop, 1.0, 1.0, 1.0, 1.0)
+    else
+        Call(exu.SetOverlayMaterial, ids.backdrop, "BaseWhiteNoLighting")
+        Call(exu.SetOverlayColor, ids.backdrop, colors.backdrop.r, colors.backdrop.g, colors.backdrop.b, colors.backdrop.a)
+    end
     Call(exu.SetOverlayPosition, ids.text, layout.textX, layout.textY)
     Call(exu.SetOverlayDimensions, ids.text, layout.textWidth, layout.textHeight)
     Call(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
-    Call(exu.SetOverlayParameter, ids.text, "space_width", math.max(4, math.floor((layout.charHeight * 0.70) + 0.5)))
+    Call(exu.SetOverlayParameter, ids.text, "space_width", GetOverlaySpaceWidth(layout.charHeight))
     if exu.SetOverlayTextColor then
         Call(exu.SetOverlayTextColor, ids.text, colors.text.r, colors.text.g, colors.text.b, colors.text.a)
     else
@@ -426,6 +481,7 @@ local function ShowSubtitleOverlay(entry)
     end
     Call(exu.SetOverlayCaption, ids.text, layout.wrappedText)
     Call(exu.ShowOverlayElement, ids.root)
+    Call(exu.ShowOverlayElement, ids.frame)
     Call(exu.ShowOverlayElement, ids.backdrop)
     Call(exu.ShowOverlayElement, ids.text)
     Call(exu.ShowOverlay, ids.overlay)

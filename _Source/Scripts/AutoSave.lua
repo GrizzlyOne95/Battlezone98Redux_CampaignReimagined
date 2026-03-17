@@ -24,6 +24,7 @@ AutoSave.Config = {
     currentSlot = 1,
     currentPath = "Save\\auto.sav",
 }
+AutoSave._forceInitialSave = false
 
 local function clamp(value, minimum, maximum)
     if value < minimum then return minimum end
@@ -384,11 +385,12 @@ function AutoSave.Update(dtime)
     local missionName = resolveMissionDisplayName()
     local missionTime = math.floor(now)
 
-    if not AutoSave._wasEnabled or not AutoSave._lastSaveTime then
+    if AutoSave._forceInitialSave or not AutoSave._wasEnabled or not AutoSave._lastSaveTime then
         print("AutoSave: initial save at " .. missionTime .. "s")
         AutoSave.CreateSave(nil, string.format("%s AutoSave %ds", missionName, missionTime))
         AutoSave._lastSaveTime = now
         AutoSave._wasEnabled = true
+        AutoSave._forceInitialSave = false
         return
     end
 
