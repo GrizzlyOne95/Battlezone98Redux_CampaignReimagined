@@ -17,7 +17,7 @@ PersistentConfig.ExperimentalOverlayReady = false
 PersistentConfig.ExperimentalOverlayFailed = false
 PersistentConfig.ExperimentalOverlayVisible = false
 PersistentConfig.ExperimentalOverlayExpireAt = 0.0
-PersistentConfig.ExperimentalOverlayDebugBox = true
+PersistentConfig.ExperimentalOverlayDebugBox = false
 PersistentConfig.ExperimentalOverlayForcePixelMetrics = true
 PersistentConfig.ExperimentalOverlayDebugZOrder = 650
 PersistentConfig.ExperimentalOverlayPending = nil
@@ -27,7 +27,7 @@ PersistentConfig.PdaOverlay = {
     font = "CRBZoneOverlayFont",
     useCustomFont = true,
     zOrder = 645,
-    structureVersion = 3,
+    structureVersion = 7,
     statsVisible = false,
     feedbackVisible = false,
     feedbackExpireAt = 0.0,
@@ -93,6 +93,7 @@ PersistentConfig.DefaultSettings = {
     PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
     PdaFontScale = 1.30,            -- PDA font/window scale (0.85-1.30)
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
+    ScrapPilotHudLayout = 2,        -- 1=Stock 2=Legacy
 }
 
 PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
@@ -129,6 +130,7 @@ PersistentConfig.UnitPresets = {}
 local GetSettingsPageEntries
 local GetProducerQueueState
 local CleanString
+local ClampUnitInterval
 
 PersistentConfig.FontScale = {
     pda = { min = 0.85, max = 1.30, step = 0.05 },
@@ -140,9 +142,9 @@ PersistentConfig.AutoSaveUi = {
     slotMin = 1,
     slotMax = 10,
     intervalOptions = {
-        { seconds = 120, label = "2 MIN" },
-        { seconds = 300, label = "5 MIN" },
-        { seconds = 600, label = "10 MIN" },
+        { seconds = 120, label = "2 min" },
+        { seconds = 300, label = "5 min" },
+        { seconds = 600, label = "10 min" },
     },
 }
 
@@ -167,6 +169,19 @@ local PdaColorPresets = {
     [2] = { name = "GREEN", r = 0.18, g = 0.92, b = 0.18 },
     [3] = { name = "BLUE", r = 0.35, g = 0.65, b = 1.00 },
     [4] = { name = "WHITE", r = 1.00, g = 1.00, b = 1.00 },
+}
+
+local PdaPanelMaterialFamilies = {
+    { key = "DG", r = 0.10, g = 0.42, b = 0.10 },
+    { key = "G", r = 0.18, g = 0.92, b = 0.18 },
+    { key = "B", r = 0.35, g = 0.65, b = 1.00 },
+    { key = "W", r = 1.00, g = 1.00, b = 1.00 },
+    { key = "R", r = 1.00, g = 0.35, b = 0.35 },
+}
+
+local ScrapPilotHudLayouts = {
+    [1] = { name = "STOCK" },
+    [2] = { name = "LEGACY" },
 }
 
 local HeadlightColorPresets = {
@@ -459,8 +474,52 @@ local function GetPdaFontScale()
         PersistentConfig.FontScale.pda.max, 1.0)
 end
 
+function PersistentConfig._GetPdaOverlaySpaceWidth(charHeight)
+    local height = math.max(tonumber(charHeight) or 0, 1)
+    return math.max(4, math.floor((height * 0.70) + 0.5))
+end
+
 local function GetPdaColorPreset()
     return PdaColorPresets[ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)]
+end
+
+local function GetPdaPanelMaterialTargetColor(r, g, b)
+    local preset = GetPdaColorPreset()
+    return ClampUnitInterval(r, preset.r), ClampUnitInterval(g, preset.g), ClampUnitInterval(b, preset.b)
+end
+
+function PersistentConfig._GetPdaOverlayMaterialAlphaStep()
+    local opacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.0)
+    return ClampRange(math.floor((opacity / 0.05) + 0.5), 0, 20, 20)
+end
+
+function PersistentConfig._GetPdaOverlayMaterialFamily(r, g, b)
+    local targetR, targetG, targetB = GetPdaPanelMaterialTargetColor(r, g, b)
+    local bestFamily = PdaPanelMaterialFamilies[2]
+    local bestDistance = math.huge
+
+    for _, family in ipairs(PdaPanelMaterialFamilies) do
+        local dr = family.r - targetR
+        local dg = family.g - targetG
+        local db = family.b - targetB
+        local distance = (dr * dr) + (dg * dg) + (db * db)
+        if distance < bestDistance then
+            bestDistance = distance
+            bestFamily = family
+        end
+    end
+
+    return bestFamily
+end
+
+function PersistentConfig._GetPdaOverlayPanelMaterial(section, r, g, b)
+    local family = PersistentConfig._GetPdaOverlayMaterialFamily(r, g, b)
+    local alphaStep = PersistentConfig._GetPdaOverlayMaterialAlphaStep()
+    return string.format("CRPda%s_%s_A%02d", tostring(section or "Backdrop"), family.key, alphaStep)
+end
+
+local function GetScrapPilotHudLayout()
+    return ScrapPilotHudLayouts[ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2)]
 end
 
 local function GetSubtitleFontScale()
@@ -516,51 +575,18 @@ function PersistentConfig._ClearAutoSaveEnablePrompt()
 end
 
 function PersistentConfig._GetAutoSaveStatusValue()
-    if PersistentConfig.Settings.AutoSaveEnabled then
-        return "ON"
-    end
-    if InputState and InputState.autoSaveEnableArmed then
-        return "CONFIRM"
-    end
-    return "OFF"
+    return PersistentConfig.Settings.AutoSaveEnabled and "On" or "Off"
 end
 
 function PersistentConfig._GetAutoSaveEnterHint()
-    if PersistentConfig.Settings.AutoSaveEnabled then
-        return "LEFT DISABLE"
-    end
-
-    if InputState and InputState.autoSaveEnableArmed then
-        return "ENTER CONFIRM"
-    end
-    return "ENTER ARM"
+    return "Enter Toggle"
 end
 
 function PersistentConfig._BuildAutoSaveWarningLines(selectedEntry)
-    local showDetails = PersistentConfig.Settings.AutoSaveEnabled
-        or (InputState and InputState.autoSaveEnableArmed)
-        or (selectedEntry and (selectedEntry.key == "autosave" or selectedEntry.key == "autosave_file" or
-            selectedEntry.key == "autosave_interval"))
-
-    if not showDetails then
-        return nil
-    end
-
-    local targetPath = PersistentConfig._GetAutoSavePath()
-    local lines = {}
-    if InputState and InputState.autoSaveEnableArmed then
-        lines[#lines + 1] = string.format("WARNING ENTER AGAIN TO USE %s", targetPath)
-    elseif PersistentConfig.Settings.AutoSaveEnabled then
-        lines[#lines + 1] = string.format("WARNING AUTOSAVE WRITES %s", targetPath)
-    else
-        lines[#lines + 1] = string.format("AUTOSAVE TARGET %s", targetPath)
-    end
-    lines[#lines + 1] = string.format("FIRST USE BACKS UP %s", PersistentConfig._GetAutoSaveFileLabel())
-    lines[#lines + 1] = "BACKUP PATH Save\\AutoSaveBackups"
-    return lines
+    return nil
 end
 
-local function ClampUnitInterval(value, fallback)
+function ClampUnitInterval(value, fallback)
     local n = tonumber(value)
     if not n then return fallback end
     if n < 0.0 then return 0.0 end
@@ -611,14 +637,14 @@ end
 
 local function BuildPdaHeader(activePage)
     local labels = {
-        [PdaPages.STATS] = "STATS",
-        [PdaPages.TARGET] = "TARGET",
-        [PdaPages.SETTINGS] = "SETTINGS",
-        [PdaPages.PRESETS] = "PRESETS",
-        [PdaPages.QUEUE] = "QUEUE",
-        [PdaPages.COMMAND] = "COMMAND",
+        [PdaPages.STATS] = "Stats",
+        [PdaPages.TARGET] = "Target",
+        [PdaPages.SETTINGS] = "Settings",
+        [PdaPages.PRESETS] = "Presets",
+        [PdaPages.QUEUE] = "Queue",
+        [PdaPages.COMMAND] = "Command",
     }
-    local parts = { "PDA" }
+    local parts = {}
     for page = 1, PdaPages.COUNT do
         local label = labels[page]
         if page == activePage then
@@ -627,7 +653,7 @@ local function BuildPdaHeader(activePage)
             table.insert(parts, label)
         end
     end
-    return "**BATTLEZONE PDA**\n" .. table.concat(parts, "  ")
+    return "**Battlezone PDA**\n" .. table.concat(parts, " ")
 end
 
 local function FormatHotkeyValue(value, key)
@@ -637,11 +663,15 @@ local function FormatHotkeyValue(value, key)
     return string.format("%s (%s)", value, key)
 end
 
-local function AppendPdaNavHints(lines)
+local function AppendPdaFooter(lines, line1, line2, line3)
     table.insert(lines, "")
-    table.insert(lines, "ARROWS MOVE")
-    table.insert(lines, "ENTER ACTION")
-    table.insert(lines, "[ / ] SWITCH PAGE")
+    table.insert(lines, line1 or "--------------------------------")
+    table.insert(lines, line2 or "[ / ] SWITCH PAGE")
+    table.insert(lines, line3 or "Y Toggle PDA")
+end
+
+local function AppendPdaNavHints(lines)
+    AppendPdaFooter(lines, "--------------------------------", "[ / ] Switch Page", "Y Toggle PDA")
 end
 
 function PersistentConfig._GetUiResolutionMetrics()
@@ -1246,12 +1276,14 @@ function PersistentConfig._GetPdaOverlayPixelLayout(kind, rawText, page)
     end
 
     local sections = PersistentConfig._SplitPdaOverlaySections(rawText)
-    local contentWidth = ClampRange(math.floor(screenW * math.min(0.34, layout.wrapWidth + 0.02)), 360,
-        math.min(620, screenW - 100), 460)
     local bodyCharHeight = ClampRange(math.floor((14.5 * pdaScale * uiScaleFactor * screenScale) + 0.5), 16, 28, 19)
     local titleCharHeight = math.max(bodyCharHeight + 3, math.floor(bodyCharHeight * 1.14))
-    local tabsCharHeight = math.max(13, math.floor(bodyCharHeight * 0.78))
+    local tabsCharHeight = math.max(12, math.floor(bodyCharHeight * 0.70))
     local footerCharHeight = math.max(11, math.floor(bodyCharHeight * 0.68))
+    local baseContentWidth = ClampRange(math.floor(screenW * math.min(0.38, layout.wrapWidth + 0.05)), 360,
+        math.min(700, screenW - 100), 500)
+    local tabLineWidth = math.floor(PersistentConfig._GetOverlayLongestLineLength(sections.tabs) * tabsCharHeight * 0.62)
+    local contentWidth = ClampRange(math.max(baseContentWidth, tabLineWidth + 12), 360, math.min(760, screenW - 90), 500)
     local paddingX = math.max(16, math.floor(bodyCharHeight * 0.62))
     local paddingY = math.max(12, math.floor(bodyCharHeight * 0.44))
     local borderSize = math.max(2, math.floor(bodyCharHeight * 0.10))
@@ -1307,15 +1339,15 @@ function PersistentConfig._GetPdaOverlayPixelLayout(kind, rawText, page)
         headerY = headerY,
         headerWidth = headerWidth,
         headerHeight = headerHeight,
-        titleX = borderSize + paddingX,
+        titleX = borderSize + math.floor(headerWidth * 0.5),
         titleY = borderSize + headerPaddingTop,
-        titleWidth = contentWidth,
+        titleWidth = headerWidth,
         titleHeight = titleHeight,
         titleCharHeight = titleCharHeight,
         titleText = sections.title,
-        tabsX = borderSize + paddingX,
+        tabsX = borderSize + math.floor(headerWidth * 0.5),
         tabsY = borderSize + headerPaddingTop + titleHeight - 4,
-        tabsWidth = contentWidth,
+        tabsWidth = headerWidth,
         tabsHeight = tabsHeight,
         tabsCharHeight = tabsCharHeight,
         tabsText = wrappedTabs,
@@ -1510,24 +1542,38 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
 
     SafeCall(exu.SetOverlayParameter, ids.root, "transparent", true)
     SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.0)
+    
+    local preset = GetPdaColorPreset()
+    local backdropMaterial = PersistentConfig._GetPdaOverlayPanelMaterial("Backdrop", preset.r, preset.g, preset.b)
+    local headerMaterial = PersistentConfig._GetPdaOverlayPanelMaterial("Header", preset.r, preset.g, preset.b)
+    local borderMaterial = PersistentConfig._GetPdaOverlayPanelMaterial("Border", preset.r, preset.g, preset.b)
     for _, panelId in ipairs(panelIds) do
         if panelId then
             if panelId == ids.frame then
                 SafeCall(exu.SetOverlayMaterial, panelId, "BaseWhiteNoLighting")
                 SafeCall(exu.SetOverlayParameter, panelId, "transparent", true)
+            elseif panelId == ids.backdrop or panelId == ids.header then
+                local panelMaterial = (panelId == ids.header) and headerMaterial or backdropMaterial
+                if panelMaterial then
+                    SafeCall(exu.SetOverlayMaterial, panelId, panelMaterial)
+                end
             end
         end
     end
     if ids.frame then
         SafeCall(exu.SetOverlayParameter, ids.frame, "border_size", "2 2 2 2")
-        SafeCall(exu.SetOverlayParameter, ids.frame, "border_material", "BaseWhiteNoLighting")
+        SafeCall(exu.SetOverlayParameter, ids.frame, "border_material", borderMaterial)
     else
         SafeCall(exu.SetOverlayParameter, ids.root, "border_size", "2 2 2 2")
-        SafeCall(exu.SetOverlayParameter, ids.root, "border_material", "BaseWhiteNoLighting")
+        SafeCall(exu.SetOverlayParameter, ids.root, "border_material", borderMaterial)
     end
     for _, textId in ipairs(textIds) do
         if textId then
-            SafeCall(exu.SetOverlayParameter, textId, "alignment", "left")
+            local alignment = "left"
+            if textId == ids.title or textId == ids.tabs then
+                alignment = "center"
+            end
+            SafeCall(exu.SetOverlayParameter, textId, "alignment", alignment)
         end
     end
 
@@ -1582,6 +1628,10 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
     local ids = PersistentConfig.PdaOverlay.ids[kind]
     local layout = PersistentConfig._GetPdaOverlayPixelLayout(kind, rawText, page)
     local colors = PersistentConfig._GetPdaOverlayColorSet(r, g, b)
+    local panelR, panelG, panelB = GetPdaPanelMaterialTargetColor(r, g, b)
+    local backdropMaterial = PersistentConfig._GetPdaOverlayPanelMaterial("Backdrop", panelR, panelG, panelB)
+    local headerMaterial = PersistentConfig._GetPdaOverlayPanelMaterial("Header", panelR, panelG, panelB)
+    local borderMaterial = PersistentConfig._GetPdaOverlayPanelMaterial("Border", panelR, panelG, panelB)
     local ok = true
 
     local function SafeCall(fn, ...)
@@ -1604,7 +1654,7 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
     SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
     SafeCall(exu.SetOverlayDimensions, ids.root, layout.panelWidth, layout.panelHeight)
     SafeCall(exu.SetOverlayParameter, ids.root, "transparent", true)
-    SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.0)
+    SafeCall(exu.SetOverlayColor, ids.root, 1.0, 1.0, 1.0, 1.0)
 
     if ids.frame then
         SafeCall(exu.SetOverlayPosition, ids.frame, 0, 0)
@@ -1612,29 +1662,36 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
         SafeCall(exu.SetOverlayMaterial, ids.frame, "BaseWhiteNoLighting")
         SafeCall(exu.SetOverlayParameter, ids.frame, "transparent", true)
         SafeCall(exu.SetOverlayParameter, ids.frame, "border_size", borderSizeString)
-        SafeCall(exu.SetOverlayParameter, ids.frame, "border_material", "BaseWhiteNoLighting")
-        SafeCall(exu.SetOverlayColor, ids.frame, colors.border.r, colors.border.g, colors.border.b, colors.border.a)
+        SafeCall(exu.SetOverlayParameter, ids.frame, "border_material", borderMaterial)
+        SafeCall(exu.SetOverlayColor, ids.frame, 1.0, 1.0, 1.0, 1.0)
     else
         SafeCall(exu.SetOverlayParameter, ids.root, "border_size", borderSizeString)
-        SafeCall(exu.SetOverlayParameter, ids.root, "border_material", "BaseWhiteNoLighting")
-        SafeCall(exu.SetOverlayColor, ids.root, colors.border.r, colors.border.g, colors.border.b, colors.border.a)
+        SafeCall(exu.SetOverlayParameter, ids.root, "border_material", borderMaterial)
+        SafeCall(exu.SetOverlayColor, ids.root, 1.0, 1.0, 1.0, 1.0)
     end
 
     SafeCall(exu.SetOverlayPosition, ids.backdrop, layout.backdropX, layout.backdropY)
     SafeCall(exu.SetOverlayDimensions, ids.backdrop, layout.backdropWidth, layout.backdropHeight)
-    SafeCall(exu.SetOverlayColor, ids.backdrop, colors.backdrop.r, colors.backdrop.g, colors.backdrop.b,
-        colors.backdrop.a)
+    if backdropMaterial then
+        SafeCall(exu.SetOverlayMaterial, ids.backdrop, backdropMaterial)
+    end
+    SafeCall(exu.SetOverlayColor, ids.backdrop, 1.0, 1.0, 1.0, 1.0)
 
     if ids.header and layout.headerWidth and layout.headerHeight then
         SafeCall(exu.SetOverlayPosition, ids.header, layout.headerX, layout.headerY)
         SafeCall(exu.SetOverlayDimensions, ids.header, layout.headerWidth, layout.headerHeight)
-        SafeCall(exu.SetOverlayColor, ids.header, colors.header.r, colors.header.g, colors.header.b, colors.header.a)
+        if headerMaterial then
+            SafeCall(exu.SetOverlayMaterial, ids.header, headerMaterial)
+        end
+        SafeCall(exu.SetOverlayColor, ids.header, 1.0, 1.0, 1.0, 1.0)
     end
 
     if ids.title and layout.titleText then
         SafeCall(exu.SetOverlayPosition, ids.title, layout.titleX, layout.titleY)
         SafeCall(exu.SetOverlayDimensions, ids.title, layout.titleWidth, layout.titleHeight)
         SafeCall(exu.SetOverlayTextCharHeight, ids.title, layout.titleCharHeight)
+        SafeCall(exu.SetOverlayParameter, ids.title, "space_width",
+            PersistentConfig._GetPdaOverlaySpaceWidth(layout.titleCharHeight))
         if exu.SetOverlayTextColor then
             SafeCall(exu.SetOverlayTextColor, ids.title, colors.title.r, colors.title.g, colors.title.b, colors.title.a)
         else
@@ -1647,6 +1704,8 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
         SafeCall(exu.SetOverlayPosition, ids.tabs, layout.tabsX, layout.tabsY)
         SafeCall(exu.SetOverlayDimensions, ids.tabs, layout.tabsWidth, layout.tabsHeight)
         SafeCall(exu.SetOverlayTextCharHeight, ids.tabs, layout.tabsCharHeight)
+        SafeCall(exu.SetOverlayParameter, ids.tabs, "space_width",
+            PersistentConfig._GetPdaOverlaySpaceWidth(layout.tabsCharHeight))
         if exu.SetOverlayTextColor then
             SafeCall(exu.SetOverlayTextColor, ids.tabs, colors.text.r, colors.text.g, colors.text.b, colors.text.a)
         else
@@ -1658,6 +1717,8 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
     SafeCall(exu.SetOverlayPosition, ids.text, layout.textX, layout.textY)
     SafeCall(exu.SetOverlayDimensions, ids.text, layout.textWidth, layout.textHeight)
     SafeCall(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
+    SafeCall(exu.SetOverlayParameter, ids.text, "space_width",
+        PersistentConfig._GetPdaOverlaySpaceWidth(layout.charHeight))
     if exu.SetOverlayTextColor then
         SafeCall(exu.SetOverlayTextColor, ids.text, colors.text.r, colors.text.g, colors.text.b, colors.text.a)
     else
@@ -1669,6 +1730,8 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
         SafeCall(exu.SetOverlayPosition, ids.footer, layout.footerX, layout.footerY)
         SafeCall(exu.SetOverlayDimensions, ids.footer, layout.footerWidth, layout.footerHeight)
         SafeCall(exu.SetOverlayTextCharHeight, ids.footer, layout.footerCharHeight)
+        SafeCall(exu.SetOverlayParameter, ids.footer, "space_width",
+            PersistentConfig._GetPdaOverlaySpaceWidth(layout.footerCharHeight))
         if exu.SetOverlayTextColor then
             SafeCall(exu.SetOverlayTextColor, ids.footer, colors.footer.r, colors.footer.g, colors.footer.b,
                 colors.footer.a)
@@ -3850,8 +3913,25 @@ local function FormatWeaponRangeText(weaponStats, effectiveRange)
     return rangeText
 end
 
+function PersistentConfig._EstimateSplashAverageValue(minValue, maxValue, splashRadius)
+    local minDamage = tonumber(minValue)
+    local maxDamage = tonumber(maxValue)
+    if minDamage == nil then return maxDamage end
+    if maxDamage == nil then return minDamage end
+
+    local radius = math.max(0.0, tonumber(splashRadius) or 0.0)
+    local splashWeight = ClampRange(0.35 + (math.min(radius, 30.0) / 100.0), 0.35, 0.65, 0.45)
+    return minDamage + ((maxDamage - minDamage) * splashWeight)
+end
+
 local function FormatWeaponDamageText(weaponStats)
     if not weaponStats then return "n/a" end
+    local splashRadius = weaponStats.splashRadiusMax or weaponStats.splashRadius
+    if splashRadius and splashRadius > 0.0 and weaponStats.damageMin and weaponStats.damageMax and
+        math.abs(weaponStats.damageMax - weaponStats.damageMin) >= 1.0 then
+        return "~" ..
+            FormatWholeNumber(PersistentConfig._EstimateSplashAverageValue(weaponStats.damageMin, weaponStats.damageMax, splashRadius))
+    end
     if weaponStats.damageMin and weaponStats.damageMax and math.abs(weaponStats.damageMax - weaponStats.damageMin) >= 1.0 then
         return FormatWholeNumber(weaponStats.damageMin) .. "-" .. FormatWholeNumber(weaponStats.damageMax)
     end
@@ -3860,6 +3940,12 @@ end
 
 local function FormatWeaponDpsText(weaponStats)
     if not weaponStats then return "n/a" end
+    local splashRadius = weaponStats.splashRadiusMax or weaponStats.splashRadius
+    if splashRadius and splashRadius > 0.0 and weaponStats.dpsMin and weaponStats.dpsMax and
+        math.abs(weaponStats.dpsMax - weaponStats.dpsMin) >= 0.1 then
+        return "~" ..
+            FormatDps(PersistentConfig._EstimateSplashAverageValue(weaponStats.dpsMin, weaponStats.dpsMax, splashRadius))
+    end
     if weaponStats.dpsMin and weaponStats.dpsMax and math.abs(weaponStats.dpsMax - weaponStats.dpsMin) >= 0.1 then
         return FormatDps(weaponStats.dpsMin) .. "-" .. FormatDps(weaponStats.dpsMax)
     end
@@ -3979,6 +4065,9 @@ local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compa
         if IsMaskBitSet(installedMask, slot) then
             local weapon = CleanString(GetWeaponClass(h, slot))
             if weapon ~= "" then
+                if hardpointCount > 0 then
+                    table.insert(lines, "")
+                end
                 hardpointCount = hardpointCount + 1
                 local weaponStats = GetDisplayedWeaponStats(h, weapon, GetWeaponStats(weapon) or {}) or {}
                 local effectiveRange = weaponStats.range
@@ -3999,10 +4088,6 @@ local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compa
                         status = "? "
                     end
                 end
-                if activeMask and IsMaskBitSet(activeMask, slot) then
-                    status = status:sub(1, 1) .. "*"
-                end
-
                 local rangeText = FormatWeaponRangeText(weaponStats, effectiveRange)
 
                 table.insert(lines, string.format("S%d %s %s", slot + 1, status, weaponStats.displayName or weapon))
@@ -4081,6 +4166,7 @@ end
 local function BuildStatsPageText(player, mask)
     local lines = { BuildPdaHeader(PdaPages.STATS) }
     local speed = math.floor(GetPlayerSpeedMeters(player) + 0.5)
+    local _, targetDistance = GetHudTargetInfo(player)
     local unitName = GetVehicleDisplayName(player) or "Unknown"
     local playerHealth = (type(GetHealth) == "function") and (GetHealth(player) or 0.0) or 0.0
     local playerAmmo = (type(GetAmmo) == "function") and (GetAmmo(player) or 0.0) or 0.0
@@ -4089,14 +4175,14 @@ local function BuildStatsPageText(player, mask)
     local curAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(player) or nil
     local maxAmmo = type(GetMaxAmmo) == "function" and GetMaxAmmo(player) or nil
     local installedMask = GetInstalledWeaponMask(player)
+    local distanceText = targetDistance and (tostring(math.floor(targetDistance + 0.5)) .. "m") or "--"
 
     table.insert(lines, "UNIT " .. unitName)
-    table.insert(lines, "SPD  " .. tostring(speed) .. "m/s")
+    table.insert(lines, "SPD  " .. tostring(speed) .. "m/s  DST  " .. distanceText)
     table.insert(lines, BuildMeterBar("HULL", playerHealth, curHealth, maxHealth))
     table.insert(lines, BuildMeterBar("AMMO", playerAmmo, curAmmo, maxAmmo))
     table.insert(lines, "")
     table.insert(lines, "HARDPOINTS")
-    table.insert(lines, "LEGEND * ACTIVE")
 
     local hardpointCount = AppendWeaponStatsLines(lines, player, installedMask, mask, nil, nil, nil)
     table.insert(lines, "TOTAL " .. tostring(hardpointCount))
@@ -4150,7 +4236,7 @@ local function BuildTargetPageText(player)
     local maxAmmo = type(GetMaxAmmo) == "function" and GetMaxAmmo(target) or nil
     local installedMask = GetInstalledWeaponMask(target)
     local activeMask = GetCurrentWeaponMask(target)
-    local closureRate, eta = GetTargetClosureInfo(player, target, targetDistance)
+    local _, eta = GetTargetClosureInfo(player, target, targetDistance)
 
     table.insert(lines, "UNIT " .. unitName)
     if role ~= "" then
@@ -4158,14 +4244,20 @@ local function BuildTargetPageText(player)
     end
     table.insert(lines, "DST  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
     table.insert(lines, "SPD  " .. tostring(speed) .. "m/s")
-    table.insert(lines, "CLS  " .. (closureRate and tostring(math.floor(math.max(0.0, closureRate) + 0.5)) .. "m/s" or "--") ..
-        "  ETA " .. (eta and string.format("%.1fs", eta) or "--"))
-    table.insert(lines, "CLS = closing rate")
-    table.insert(lines, "HARDPOINTS")
-    table.insert(lines, "LEGEND + IN RNG  - OUT  * ACTIVE")
+    table.insert(lines, "ETA  " .. (eta and string.format("%.1fs", eta) or "--"))
 
-    local hardpointCount = AppendWeaponStatsLines(lines, target, installedMask, activeMask, player, nil, targetDistance)
-    table.insert(lines, "TOTAL " .. tostring(hardpointCount))
+    local hardpointLines = {}
+    local hardpointCount = AppendWeaponStatsLines(hardpointLines, target, installedMask, activeMask, player, nil, targetDistance)
+    if hardpointCount > 0 then
+        table.insert(lines, "HARDPOINTS")
+        table.insert(lines, "RNG  + In  - Out")
+        for _, line in ipairs(hardpointLines) do
+            table.insert(lines, line)
+        end
+        table.insert(lines, "TOTAL " .. tostring(hardpointCount))
+    else
+        table.insert(lines, "ARM  None")
+    end
     table.insert(lines, BuildMeterBar("AMMO", targetAmmo, curAmmo, maxAmmo))
     table.insert(lines, BuildMeterBar("HULL", targetHealth, curHealth, maxHealth))
     AppendPdaNavHints(lines)
@@ -4181,10 +4273,10 @@ local function BuildSettingsPageText()
     local startIndex = math.max(1, math.min(selection - math.floor(visibleRows / 2), math.max(1, count - visibleRows + 1)))
     local endIndex = math.min(count, startIndex + visibleRows - 1)
 
-    table.insert(lines, string.format("ITEM %02d/%02d", selection, count))
+    table.insert(lines, string.format("Item %02d/%02d", selection, count))
 
     if #settingsEntries == 0 then
-        table.insert(lines, "NO SETTINGS AVAILABLE")
+        table.insert(lines, "No settings available")
     else
         for index = startIndex, endIndex do
             local entry = settingsEntries[index]
@@ -4193,21 +4285,10 @@ local function BuildSettingsPageText()
         end
     end
 
-    local selectedEntry = settingsEntries[selection]
-    local autoSaveWarningLines = PersistentConfig._BuildAutoSaveWarningLines(selectedEntry)
-    if autoSaveWarningLines and #autoSaveWarningLines > 0 then
-        table.insert(lines, "")
-        for _, line in ipairs(autoSaveWarningLines) do
-            table.insert(lines, line)
-        end
-    end
-
-    table.insert(lines, "")
-    table.insert(lines, string.format("SHOWING %02d-%02d OF %02d", startIndex, endIndex, count))
-    table.insert(lines, "UP/DOWN SELECT")
-    table.insert(lines, "LEFT/RIGHT CHANGE")
-    table.insert(lines, (selectedEntry and selectedEntry.actionHint) or "ENTER ACTION")
-    table.insert(lines, "[ / ] SWITCH PAGE")
+    AppendPdaFooter(lines,
+        "--------------------------------",
+        string.format("Show %02d-%02d/%02d  [ / ] Page", startIndex, endIndex, count),
+        "Up/Down Select  Left/Right Change")
     return table.concat(lines, "\n")
 end
 
@@ -4216,7 +4297,7 @@ local function BuildPresetPageText()
     local context = GetPresetPageContext()
 
     if not context.available then
-        table.insert(lines, "ARMORY NOT AVAILABLE")
+        table.insert(lines, "Armory not available")
         table.insert(lines, "Build an Armory to edit")
         table.insert(lines, "unit upgrade presets.")
         AppendPdaNavHints(lines)
@@ -4224,7 +4305,7 @@ local function BuildPresetPageText()
     end
 
     if #context.producerKinds == 0 then
-        table.insert(lines, "NO PRODUCERS AVAILABLE")
+        table.insert(lines, "No producers available")
         table.insert(lines, "Recycler/Factory missing.")
         AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
@@ -4237,9 +4318,9 @@ local function BuildPresetPageText()
         return (rowIndex == index) and ">" or " "
     end
 
-    table.insert(lines, string.format("%s %-11s %s", RowPrefix(1), "PRODUCER", context.producerInfo.label))
+    table.insert(lines, string.format("%s %-11s %s", RowPrefix(1), "Producer", context.producerInfo.label))
     if selectedEntry then
-        table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "UNIT", selectedEntry.displayName))
+        table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "Unit", selectedEntry.displayName))
         local unitPreset = GetUnitPresetRecord(selectedEntry.odf)
         for slotOffset, slotInfo in ipairs(selectedEntry.slots or {}) do
             local option = GetPresetSlotOption(slotInfo, context.armoryOptions, unitPreset)
@@ -4248,11 +4329,11 @@ local function BuildPresetPageText()
                     GetHardpointCategoryLabel(slotInfo.category), FormatPresetSlotValue(slotInfo, option)))
         end
         local surchargeRow = 2 + #(selectedEntry.slots or {}) + 1
-        table.insert(lines,
-            string.format("%s %-11s +%s", RowPrefix(surchargeRow), "SURCHARGE",
+            table.insert(lines,
+            string.format("%s %-11s +%s", RowPrefix(surchargeRow), "Surcharge",
                 FormatWholeNumber(GetPresetSurchargeForEntry(selectedEntry)) .. " scrap"))
     else
-        table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "UNIT", "NONE"))
+        table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "Unit", "None"))
     end
 
     local selectedRow = context.rows and context.rows[rowIndex] or nil
@@ -4296,8 +4377,8 @@ local function BuildPresetPageText()
             ((selectedStats.shotDelay or 0.0) - (stockStats and stockStats.shotDelay or 0.0)) or nil
 
         table.insert(lines, "")
-        table.insert(lines, string.format("COMPARE S%d", slotInfo.slotIndex))
-        table.insert(lines, string.format("COST +%d scrap", deltaCost))
+        table.insert(lines, string.format("Compare S%d", slotInfo.slotIndex))
+        table.insert(lines, string.format("Cost +%d scrap", deltaCost))
         table.insert(lines, string.format("DPS  %s", FormatDelta(dpsDelta, "", 1)))
         table.insert(lines, string.format("RNG  %s", FormatDelta(rangeDelta, "m", 0)))
         table.insert(lines, string.format("DEL  %s", FormatDelta(delayDelta, "s", 2)))
@@ -4306,9 +4387,8 @@ local function BuildPresetPageText()
     table.insert(lines, "")
     table.insert(lines, "Preset applies after build.")
     table.insert(lines, "No refunds for downgrades.")
-    table.insert(lines, "UP/DOWN SELECT  LEFT/RIGHT CHANGE")
-    table.insert(lines, "ENTER ACTION")
-    table.insert(lines, "[ / ] SWITCH PAGE")
+    AppendPdaFooter(lines, "--------------------------------", "Enter Action  [ / ] Switch Page",
+        "Up/Down Select  Left/Right Change")
     return table.concat(lines, "\n")
 end
 
@@ -4318,7 +4398,7 @@ local function BuildQueuePageText()
 
     if not context.available then
         table.insert(lines, "")
-        table.insert(lines, "UNDEPLOYED")
+        table.insert(lines, "Undeployed")
         AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
@@ -4336,15 +4416,13 @@ local function BuildQueuePageText()
         queueItemName = queueEntry and (queueEntry.displayName or queueEntry.odf) or "NONE"
     end
 
-    table.insert(lines, string.format("%s %-11s %s", RowPrefix(1), "PRODUCER", context.producerInfo.label))
-    table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "QUEUE ITEM", queueItemName))
-    table.insert(lines, string.format("%s %-11s %d", RowPrefix(3), "QUEUE COUNT", queue.count or 0))
-    table.insert(lines, string.format("%s %-11s %s", RowPrefix(4), "QUEUE", queue.status or "Queue Off"))
+    table.insert(lines, string.format("%s %-11s %s", RowPrefix(1), "Producer", context.producerInfo.label))
+    table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "Queue Item", queueItemName))
+    table.insert(lines, string.format("%s %-11s %d", RowPrefix(3), "Queue Count", queue.count or 0))
+    table.insert(lines, string.format("%s %-11s %s", RowPrefix(4), "Queue", queue.status or "Queue Off"))
 
-    table.insert(lines, "")
-    table.insert(lines, "ENTER TO LOCK/UNLOCK")
-    table.insert(lines, "UP/DOWN SELECT  LEFT/RIGHT CHANGE")
-    table.insert(lines, "[ / ] SWITCH PAGE")
+    AppendPdaFooter(lines, "--------------------------------", "Enter Lock/Unlock  [ / ] Page",
+        "Up/Down Select  Left/Right Change")
     return table.concat(lines, "\n")
 end
 
@@ -5000,6 +5078,63 @@ local function RebuildPdaOverlay()
     RefreshPdaOverlay()
 end
 
+function PersistentConfig.ApplyScrapPilotHudLayout()
+    if not exu then
+        return
+    end
+
+    if exu.SetScrapHudColor then
+        if ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2 then
+            exu.SetScrapHudColor(0xFF007FFF)
+        else
+            exu.SetScrapHudColor(0xFFFFFFFF)
+        end
+    end
+
+    if exu.SetPilotHudColor then
+        if ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2 then
+            exu.SetPilotHudColor(0xFF00FF00)
+        else
+            exu.SetPilotHudColor(0xFFFFFFFF)
+        end
+    end
+
+    if ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) ~= 2 then
+        if exu.SetScrapPilotHudOffset then
+            exu.SetScrapPilotHudOffset(0, 0)
+        end
+        return
+    end
+
+    if not (exu.SetScrapHudTopLeft and exu.SetPilotHudTopLeft) then
+        return
+    end
+
+    local screenW, screenH = 1920, 1080
+    if exu.GetGameResolution then
+        local okW, okH = exu.GetGameResolution()
+        screenW = tonumber(okW) or screenW
+        screenH = tonumber(okH) or screenH
+    end
+
+    local uiScale = 1
+    if exu.GetUIScaling then
+        uiScale = math.max(tonumber(exu.GetUIScaling()) or 1, 1)
+    end
+
+    local edgePaddingX = math.floor(screenW * 0.01)
+    local edgePaddingY = math.floor(screenH * 0.02)
+    local estimatedCommandMenuWidth = math.floor(165 * uiScale)
+    local commandMenuInset = math.floor(18 * uiScale)
+    local commandMenuGap = math.floor(6 * uiScale)
+    local anchorX = edgePaddingX + estimatedCommandMenuWidth - commandMenuInset + commandMenuGap
+    local scrapY = edgePaddingY - math.floor(2 * uiScale)
+    local pilotY = scrapY + math.floor(48 * uiScale)
+
+    exu.SetScrapHudTopLeft(anchorX, scrapY)
+    exu.SetPilotHudTopLeft(anchorX, pilotY)
+end
+
 local function CommitPdaSettingChange(options)
     PersistentConfig.SaveConfig()
 
@@ -5115,6 +5250,18 @@ local function SetWeaponStatsHudEnabled(enabled)
     return true
 end
 
+local function CycleScrapPilotHudLayout(delta)
+    local nextIndex = CycleIndex(PersistentConfig.Settings.ScrapPilotHudLayout, #ScrapPilotHudLayouts, delta, 2)
+    if PersistentConfig.Settings.ScrapPilotHudLayout == nextIndex then
+        return false
+    end
+
+    PersistentConfig.Settings.ScrapPilotHudLayout = nextIndex
+    CommitPdaSettingChange({ applySettings = true })
+    ShowFeedback("Scrap/Pilot: " .. GetScrapPilotHudLayout().name, 0.8, 1.0, 0.8, 2.5, false, "pda")
+    return true
+end
+
 local function SetSubtitlesEnabled(enabled)
     local value = not not enabled
     if PersistentConfig.Settings.SubtitlesEnabled == value then
@@ -5185,8 +5332,7 @@ local function SetAutoSaveEnabled(enabled)
     PersistentConfig.Settings.AutoSaveEnabled = value
     CommitPdaSettingChange({ syncAutoSave = true })
     if value then
-        ShowFeedback(string.format("Auto-Save: ON (%s, %s)", PersistentConfig._GetAutoSaveFileLabel(), interval.label), 1.0,
-            0.35, 0.35, 3.5, false, "pda")
+        ShowFeedback(string.format("Auto-Save: ON (%s)", interval.label), 0.8, 1.0, 0.8, 2.5, false, "pda")
     else
         ShowFeedback("Auto-Save: OFF", 0.8, 1.0, 0.8, 2.5, false, "pda")
     end
@@ -5215,26 +5361,11 @@ function PersistentConfig._AdjustAutoSaveInterval(delta)
 end
 
 function PersistentConfig._HandleAutoSaveEnableAction()
-    if PersistentConfig.Settings.AutoSaveEnabled then
-        ShowFeedback(string.format("Auto-Save writes %s. Press LEFT to disable.", PersistentConfig._GetAutoSavePath()), 1.0, 0.35,
-            0.35, 3.5, false, "pda")
-        return false
-    end
-
-    if not (InputState and InputState.autoSaveEnableArmed) then
-        InputState.autoSaveEnableArmed = true
-        InputState.autoSaveConfirmSlot = PersistentConfig._GetAutoSavePath()
-        RefreshPdaOverlay()
-        ShowFeedback(string.format("Confirm Auto-Save: %s will be backed up and used. Press ENTER again.",
-            PersistentConfig._GetAutoSavePath()), 1.0, 0.25, 0.25, 4.0, false, "pda")
-        return true
-    end
-
     PersistentConfig._ClearAutoSaveEnablePrompt()
-    return SetAutoSaveEnabled(true)
+    return SetAutoSaveEnabled(not PersistentConfig.Settings.AutoSaveEnabled)
 end
 
-local function SetPilotModeEnabled(enabled)
+function PersistentConfig._SetPilotModeEnabled(enabled)
     local value = not not enabled
     if PersistentConfig.Settings.PilotModeEnabled == value then
         return false
@@ -5253,7 +5384,7 @@ GetSettingsPageEntries = function()
 
     return {
         {
-            label = "PDA SIZE",
+            label = "PDA Size",
             value = FormatScale(PersistentConfig.Settings.PdaFontScale, PersistentConfig.FontScale.pda.min,
                 PersistentConfig.FontScale.pda.max),
             adjust = function(delta)
@@ -5265,7 +5396,7 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "PDA ALPHA",
+            label = "PDA Alpha",
             value = FormatOpacity(PersistentConfig.Settings.PdaOpacity),
             adjust = function(delta)
                 PersistentConfig.Settings.PdaOpacity = AdjustOpacity(PersistentConfig.Settings.PdaOpacity, delta)
@@ -5274,7 +5405,7 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "HUD COLOR",
+            label = "HUD Color",
             value = GetPdaColorPreset().name,
             adjust = function(delta)
                 PersistentConfig.Settings.PdaColorPreset = CycleIndex(PersistentConfig.Settings.PdaColorPreset,
@@ -5284,21 +5415,28 @@ GetSettingsPageEntries = function()
             end,
         },
         {
+            label = "Scrap/Pilot",
+            value = GetScrapPilotHudLayout().name,
+            adjust = function(delta)
+                return CycleScrapPilotHudLayout(delta)
+            end,
+        },
+        {
             label = "PDA HUD",
-            value = FormatHotkeyValue(PersistentConfig.Settings.WeaponStatsHud and "ON" or "OFF", "Y"),
+            value = FormatHotkeyValue(PersistentConfig.Settings.WeaponStatsHud and "On" or "Off", "Y"),
             adjust = function(delta)
                 return SetWeaponStatsHudEnabled(DirectionEnabled(delta))
             end,
         },
         {
-            label = "SUBTITLES",
-            value = PersistentConfig.Settings.SubtitlesEnabled and "ON" or "OFF",
+            label = "Subtitles",
+            value = PersistentConfig.Settings.SubtitlesEnabled and "On" or "Off",
             adjust = function(delta)
                 return SetSubtitlesEnabled(DirectionEnabled(delta))
             end,
         },
         {
-            label = "SUB SIZE",
+            label = "Sub Size",
             value = FormatScale(PersistentConfig.Settings.SubtitleFontScale, PersistentConfig.FontScale.subtitle.min,
                 PersistentConfig.FontScale.subtitle.max),
             adjust = function(delta)
@@ -5310,7 +5448,7 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "SUB ALPHA",
+            label = "Sub Alpha",
             value = FormatOpacity(PersistentConfig.Settings.SubtitleOpacity),
             adjust = function(delta)
                 PersistentConfig.Settings.SubtitleOpacity = AdjustOpacity(PersistentConfig.Settings.SubtitleOpacity, delta)
@@ -5319,101 +5457,84 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "PLAYER LIGHT",
-            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightVisible and "ON" or "OFF", "V"),
+            label = "Player Light",
+            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightVisible and "On" or "Off", "V"),
             adjust = function(delta)
                 return SetPlayerHeadlightVisible(DirectionEnabled(delta))
             end,
         },
         {
-            label = "LIGHT COLOR",
+            label = "Light Color",
             value = FormatHotkeyValue(HeadlightColorPresets[GetHeadlightColorPresetIndex()].name, "Z"),
             adjust = function(delta)
                 return CycleHeadlightColor(delta)
             end,
         },
         {
-            label = "AI LIGHTS",
-            value = FormatHotkeyValue(PersistentConfig.Settings.OtherHeadlightsDisabled and "OFF" or "ON", "J"),
+            label = "AI Lights",
+            value = FormatHotkeyValue(PersistentConfig.Settings.OtherHeadlightsDisabled and "Off" or "On", "J"),
             adjust = function(delta)
                 return SetOtherHeadlightsEnabled(DirectionEnabled(delta))
             end,
         },
         {
-            label = "BEAM",
-            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightBeamMode == 1 and "FOCUSED" or "WIDE", "B"),
+            label = "Beam",
+            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightBeamMode == 1 and "Focused" or "Wide", "B"),
             adjust = function(delta)
                 return CycleHeadlightBeamMode(delta)
             end,
         },
         {
-            label = "WING REPAIR",
-            value = FormatHotkeyValue(PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF", "X"),
+            label = "Wing Repair",
+            value = FormatHotkeyValue(PersistentConfig.Settings.AutoRepairWingmen and "On" or "Off", "X"),
             adjust = function(delta)
                 return SetAutoRepairWingmenEnabled(DirectionEnabled(delta))
             end,
         },
         {
-            label = "BLDG REPAIR",
-            value = PersistentConfig.Settings.AutoRepairBuildings and "ON" or "OFF",
+            label = "Bldg Repair",
+            value = PersistentConfig.Settings.AutoRepairBuildings and "On" or "Off",
             adjust = function(delta)
                 return SetAutoRepairBuildingsEnabled(DirectionEnabled(delta))
             end,
         },
         {
-            label = "SCAV ASSIST",
-            value = FormatHotkeyValue(PersistentConfig.Settings.ScavengerAssistEnabled and "ON" or "OFF", "U"),
+            label = "Scav Assist",
+            value = FormatHotkeyValue(PersistentConfig.Settings.ScavengerAssistEnabled and "On" or "Off", "U"),
             adjust = function(delta)
                 return SetScavengerAssistEnabled(DirectionEnabled(delta))
             end,
         },
         {
-            label = "PILOT MODE",
-            value = PersistentConfig.Settings.PilotModeEnabled and "ON" or "OFF",
+            label = "Pilot Mode",
+            value = PersistentConfig.Settings.PilotModeEnabled and "On" or "Off",
             adjust = function(delta)
-                return SetPilotModeEnabled(DirectionEnabled(delta))
-            end,
-        },
-        {
-            key = "autosave_file",
-            label = PersistentConfig.Settings.AutoSaveEnabled and "AUTO FILE!" or "AUTO FILE",
-            value = PersistentConfig.Settings.AutoSaveEnabled and ("!! " .. PersistentConfig._GetAutoSaveFileLabel() .. " !!")
-                or PersistentConfig._GetAutoSaveFileLabel(),
-            warning = PersistentConfig.Settings.AutoSaveEnabled or (InputState and InputState.autoSaveEnableArmed) or false,
-            adjust = function(delta)
-                return PersistentConfig._AdjustAutoSaveSlot(delta)
+                return PersistentConfig._SetPilotModeEnabled(DirectionEnabled(delta))
             end,
         },
         {
             key = "autosave_interval",
-            label = "AUTO INT",
+            label = "Auto Int",
             value = PersistentConfig._GetAutoSaveIntervalOption().label,
-            warning = (InputState and InputState.autoSaveEnableArmed) or false,
             adjust = function(delta)
                 return PersistentConfig._AdjustAutoSaveInterval(delta)
             end,
         },
         {
             key = "autosave",
-            label = "AUTOSAVE",
+            label = "Autosave",
             value = PersistentConfig._GetAutoSaveStatusValue(),
-            warning = PersistentConfig.Settings.AutoSaveEnabled or (InputState and InputState.autoSaveEnableArmed) or false,
             actionHint = PersistentConfig._GetAutoSaveEnterHint(),
             adjust = function(delta)
-                if PersistentConfig.Settings.AutoSaveEnabled and (delta or 0) < 0 then
-                    return SetAutoSaveEnabled(false)
-                end
-
-                ShowFeedback("Auto-Save enable requires ENTER confirmation.", 1.0, 0.35, 0.35, 3.0, false, "pda")
-                return false
+                return SetAutoSaveEnabled((delta or 0) > 0)
             end,
             action = function()
                 return PersistentConfig._HandleAutoSaveEnableAction()
             end,
         },
         {
-            label = "RESET CFG",
-            value = "RIGHT TO RESET",
+            label = "Reset CFG",
+            value = "Right to reset",
             adjust = function(delta)
                 if DirectionEnabled(delta) then
                     PersistentConfig.ResetToDefaults()
@@ -5426,7 +5547,7 @@ GetSettingsPageEntries = function()
 end
 
 -- Helper to convert Hue to RGB (Simple Rainbow)
-local function HueToRGB(h)
+function PersistentConfig._HueToRGB(h)
     local r, g, b
     local i = math.floor(h * 6)
     local f = h * 6 - i
@@ -5525,6 +5646,8 @@ function PersistentConfig.LoadConfig()
                     legacyPdaTextPreset = tonumber(val)
                 elseif key == "PdaColorPreset" then
                     PersistentConfig.Settings.PdaColorPreset = tonumber(val) or 2
+                elseif key == "ScrapPilotHudLayout" then
+                    PersistentConfig.Settings.ScrapPilotHudLayout = tonumber(val) or 2
                 elseif key == "UnitPreset" then
                     local unitOdf, slotIndex, powerupOdf = string.match(val, "([^|]+)|([^|]+)|(.+)")
                     local unitKey = string.lower(CleanString(unitOdf or ""))
@@ -5578,6 +5701,8 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.PdaFontScale = ClampRange(PersistentConfig.Settings.PdaFontScale,
         PersistentConfig.FontScale.pda.min, PersistentConfig.FontScale.pda.max, 1.0)
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
+    PersistentConfig.Settings.ScrapPilotHudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1,
+        #ScrapPilotHudLayouts, 2)
     PersistentConfig.Settings.AutoSaveSlot = PersistentConfig._GetAutoSaveSlot()
     PersistentConfig.Settings.AutoSaveInterval = PersistentConfig._GetAutoSaveIntervalOption().seconds
 end
@@ -5623,6 +5748,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("PdaOpacity=" .. tostring(PersistentConfig.Settings.PdaOpacity))
         f:Writeln("PdaFontScale=" .. tostring(PersistentConfig.Settings.PdaFontScale))
         f:Writeln("PdaColorPreset=" .. tostring(PersistentConfig.Settings.PdaColorPreset))
+        f:Writeln("ScrapPilotHudLayout=" .. tostring(PersistentConfig.Settings.ScrapPilotHudLayout))
         for unitKey, preset in pairs(PersistentConfig.UnitPresets) do
             for slotIndex = 1, 5 do
                 local powerupOdf = preset[slotIndex]
@@ -5695,6 +5821,8 @@ function PersistentConfig.ApplySettings()
             exu.SetRetroLightingMode(PersistentConfig.Settings.RetroLighting)
         end
     end
+
+    PersistentConfig.ApplyScrapPilotHudLayout()
 
     local subtit = package.loaded["ScriptSubtitles"]
     if subtit and subtit.SetOpacity then
@@ -6041,7 +6169,7 @@ function PersistentConfig.UpdateInputs()
     -- Update Rainbow Color if active
     if PersistentConfig.Settings.RainbowMode and PersistentConfig.Settings.HeadlightVisible then
         local hue = (GetTime() * 0.2) % 1.0 -- Cycle every 5 seconds
-        local r, g, b = HueToRGB(hue)
+        local r, g, b = PersistentConfig._HueToRGB(hue)
         local mode = PersistentConfig.Settings.HeadlightBeamMode
         local mult = BeamModes[mode] and BeamModes[mode].Multiplier or 1.0
         local h = GetPlayerHandle()
@@ -6186,6 +6314,11 @@ function PersistentConfig.UpdateHeadlights()
     InitializeTrackedWorldHandles()
 
     local player = GetPlayerHandle()
+    if IsValid(player) then
+        exu.SetHeadlightVisible(player, PersistentConfig.Settings.HeadlightVisible)
+        InputState.otherHeadlightVisibility[player] = nil
+    end
+
     if not PersistentConfig.Settings.OtherHeadlightsDisabled then
         if not InputState.otherHeadlightsDirty then return end
 
@@ -6231,7 +6364,7 @@ function PersistentConfig.UpdateHeadlights()
     end
 end
 
-local function IsBuildablePlayerUnitOdf(unitOdfName, team)
+function PersistentConfig._IsBuildablePlayerUnitOdf(unitOdfName, team)
     local wanted = string.lower(CleanString(unitOdfName or ""))
     if wanted == "" then return false end
     for kindIndex, _ in ipairs(PresetProducerKinds) do
@@ -6247,7 +6380,7 @@ local function IsBuildablePlayerUnitOdf(unitOdfName, team)
     return false
 end
 
-local function HasNearbyProducingStructureForUnit(unitOdfName, team, h, maxDistance)
+function PersistentConfig._HasNearbyProducingStructureForUnit(unitOdfName, team, h, maxDistance)
     local wanted = string.lower(CleanString(unitOdfName or ""))
     if wanted == "" or not IsValid(h) or type(GetDistance) ~= "function" then
         return false
@@ -6268,7 +6401,7 @@ local function HasNearbyProducingStructureForUnit(unitOdfName, team, h, maxDista
     return false
 end
 
-local function ApplyUnitPresetToObject(h)
+function PersistentConfig._ApplyUnitPresetToObject(h)
     if not IsValid(h) or not IsCraft(h) or IsBuilding(h) or IsPerson(h) then return false end
 
     local team = GetPlayerTeamNum()
@@ -6282,10 +6415,10 @@ local function ApplyUnitPresetToObject(h)
     if odfKey == "" or not preset then
         return false
     end
-    if not IsBuildablePlayerUnitOdf(odfName, team) then
+    if not PersistentConfig._IsBuildablePlayerUnitOdf(odfName, team) then
         return false
     end
-    if not HasNearbyProducingStructureForUnit(odfName, team, h, 10.0) then
+    if not PersistentConfig._HasNearbyProducingStructureForUnit(odfName, team, h, 10.0) then
         return false
     end
 
@@ -6373,7 +6506,7 @@ function PersistentConfig.OnObjectCreated(h)
     end
 
     PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated ApplyUnitPresetToObject " .. handleInfo,
-        ApplyUnitPresetToObject, h)
+        PersistentConfig._ApplyUnitPresetToObject, h)
 end
 
 function PersistentConfig.OnObjectDeleted(h)
@@ -6389,7 +6522,7 @@ function PersistentConfig.OnObjectDeleted(h)
     end
 end
 
-local function InstallPlayerChargeTrackingHook()
+function PersistentConfig._InstallPlayerChargeTrackingHook()
     if PersistentConfig.PlayerChargeHookInstalled or not exu then
         return
     end
@@ -6445,7 +6578,7 @@ function PersistentConfig.Initialize()
     PersistentConfig.ApplySettings()
     -- Keep EXU overlay/font initialization lazy so startup does not touch the
     -- custom Ogre font path before the UI runtime is fully ready.
-    InstallPlayerChargeTrackingHook()
+    PersistentConfig._InstallPlayerChargeTrackingHook()
     MarkOtherHeadlightsDirty()
 
     -- Sync AutoSave config from settings

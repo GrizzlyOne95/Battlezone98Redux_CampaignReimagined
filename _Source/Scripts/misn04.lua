@@ -350,6 +350,7 @@ local FEATURE_TEST_EDGE_PATH_VARIANT = {
 }
 local FEATURE_TEST_VO_FILENAME = "avrecyv0.wav"
 local FEATURE_TEST_VO_ALTERNATES = { "avrecyv0.wav", "avrecyv1.wav" }
+local FEATURE_TEST_AUTO_RUN = false
 
 local function RefreshDifficulty()
     if exu and exu.GetDifficulty then
@@ -374,37 +375,8 @@ end
 
 local function ApplyQOL()
     if exu then
-        if exu.SetScrapHudTopLeft and exu.SetPilotHudTopLeft then
-            -- Temporary EXU HUD text test: approximate a legacy-style vertical stack just to
-            -- the right of the command menu, scaled by the current UI size.
-            local screenW, screenH = 1920, 1080
-            if exu.GetGameResolution then
-                local okW, okH = exu.GetGameResolution()
-                screenW = tonumber(okW) or screenW
-                screenH = tonumber(okH) or screenH
-            end
-
-            local uiScale = 1
-            if exu.GetUIScaling then
-                uiScale = math.max(tonumber(exu.GetUIScaling()) or 1, 1)
-            end
-
-            local edgePaddingX = math.floor(screenW * 0.01)
-            local edgePaddingY = math.floor(screenH * 0.02)
-            local estimatedCommandMenuWidth = math.floor(165 * uiScale)
-            local commandMenuGap = math.floor(10 * uiScale)
-            local anchorX = edgePaddingX + estimatedCommandMenuWidth + commandMenuGap
-            local scrapY = edgePaddingY + math.floor(2 * uiScale)
-            local pilotY = scrapY + math.floor(58 * uiScale)
-
-            exu.SetScrapHudTopLeft(anchorX, scrapY)
-            exu.SetPilotHudTopLeft(anchorX, pilotY)
-            if exu.SetScrapHudColor then
-                exu.SetScrapHudColor(0xFF007FFF)
-            end
-            if exu.SetPilotHudColor then
-                exu.SetPilotHudColor(0xFF00FF00)
-            end
+        if PersistentConfig and PersistentConfig.ApplyScrapPilotHudLayout then
+            PersistentConfig.ApplyScrapPilotHudLayout()
         elseif exu.SetScrapPilotHudTopLeft then
             exu.SetScrapPilotHudTopLeft(500, 22)
         elseif exu.SetScrapPilotHudOffset then
@@ -2131,7 +2103,7 @@ local function UpdateFeatureValidation()
         return
     end
 
-    if M.featureTestAutoAt and GetTime() >= M.featureTestAutoAt then
+    if FEATURE_TEST_AUTO_RUN and M.featureTestAutoAt and GetTime() >= M.featureTestAutoAt then
         M.featureTestAutoAt = nil
         RunFeatureValidation(false)
     end
@@ -2216,7 +2188,7 @@ function Start()
         Environment.Update(0.0)
     end
     M.overlayBootTestAt = GetTime() + 1.0
-    M.featureTestAutoAt = GetTime() + 4.0
+    M.featureTestAutoAt = FEATURE_TEST_AUTO_RUN and (GetTime() + 4.0) or nil
     M.loading_done = true
 end
 
@@ -2986,7 +2958,7 @@ function Load(...)
     M.overlayPauseDebugDumpLatch = false
     M.overlayBootTestDone = false
     M.overlayBootTestAt = GetTime() + 1.0
-    M.featureTestAutoAt = GetTime() + 4.0
+    M.featureTestAutoAt = FEATURE_TEST_AUTO_RUN and (GetTime() + 4.0) or nil
     M.featureTestCompleted = false
     M.featureTestRunLatch = false
     M.featureTestTriggerLatch = false

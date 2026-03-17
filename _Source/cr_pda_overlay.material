@@ -1,0 +1,7563 @@
+// Auto-generated PDA overlay fill materials.
+// Keep in sync with PersistentConfig._GetPdaOverlayPanelMaterial().
+
+material CRPdaBackdrop_DG_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.2200
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.2000
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.6800
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.2390
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.2170
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.6940
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.2580
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.2340
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.7080
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.2770
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.2510
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.7220
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.2960
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.2680
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.7360
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.3150
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.2850
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.7500
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.3340
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.3020
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.7640
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.3530
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.3190
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.7780
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.3720
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.3360
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.7920
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.3910
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.3530
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.8060
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.4100
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.3700
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.8200
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.4290
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.3870
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.8340
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.4480
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.4040
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.8480
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.4670
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.4210
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.8620
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.4860
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.4380
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.8760
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.5050
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.4550
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.8900
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.5240
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.4720
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.9040
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.5430
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.4890
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.9180
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.5620
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.5060
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.9320
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.5810
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.5230
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.9460
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_DG_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0170 0.0330 0.0170
+                alpha_op_ex source1 src_manual src_current 0.6000
+            }
+        }
+    }
+}
+
+material CRPdaHeader_DG_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0260 0.0516 0.0260
+                alpha_op_ex source1 src_manual src_current 0.5400
+            }
+        }
+    }
+}
+
+material CRPdaBorder_DG_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.3850 0.6570 0.3850
+                alpha_op_ex source1 src_manual src_current 0.9600
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.2200
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.2000
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.6800
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.2390
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.2170
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.6940
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.2580
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.2340
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.7080
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.2770
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.2510
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.7220
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.2960
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.2680
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.7360
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.3150
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.2850
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.7500
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.3340
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.3020
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.7640
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.3530
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.3190
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.7780
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.3720
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.3360
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.7920
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.3910
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.3530
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.8060
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.4100
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.3700
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.8200
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.4290
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.3870
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.8340
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.4480
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.4040
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.8480
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.4670
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.4210
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.8620
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.4860
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.4380
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.8760
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.5050
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.4550
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.8900
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.5240
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.4720
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.9040
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.5430
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.4890
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.9180
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.5620
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.5060
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.9320
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.5810
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.5230
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.9460
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_G_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0210 0.0580 0.0210
+                alpha_op_ex source1 src_manual src_current 0.6000
+            }
+        }
+    }
+}
+
+material CRPdaHeader_G_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0324 0.0916 0.0324
+                alpha_op_ex source1 src_manual src_current 0.5400
+            }
+        }
+    }
+}
+
+material CRPdaBorder_G_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.4530 1.0000 0.4530
+                alpha_op_ex source1 src_manual src_current 0.9600
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.2200
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2000
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.6800
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.2390
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2170
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.6940
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.2580
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2340
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7080
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.2770
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2510
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7220
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.2960
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2680
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7360
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.3150
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2850
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7500
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.3340
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3020
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7640
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.3530
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3190
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7780
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.3720
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3360
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7920
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.3910
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3530
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8060
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.4100
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3700
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8200
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.4290
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3870
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8340
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.4480
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4040
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8480
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.4670
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4210
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8620
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.4860
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4380
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8760
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.5050
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4550
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8900
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.5240
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4720
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.9040
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.5430
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4890
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.9180
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.5620
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.5060
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.9320
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.5810
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.5230
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.9460
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_B_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0295 0.0445 0.0620
+                alpha_op_ex source1 src_manual src_current 0.6000
+            }
+        }
+    }
+}
+
+material CRPdaHeader_B_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0460 0.0700 0.0980
+                alpha_op_ex source1 src_manual src_current 0.5400
+            }
+        }
+    }
+}
+
+material CRPdaBorder_B_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.5975 0.8525 1.0000
+                alpha_op_ex source1 src_manual src_current 0.9600
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.2200
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2000
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.6800
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.2390
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2170
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.6940
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.2580
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2340
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7080
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.2770
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2510
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7220
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.2960
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2680
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7360
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.3150
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.2850
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7500
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.3340
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3020
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7640
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.3530
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3190
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7780
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.3720
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3360
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.7920
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.3910
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3530
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8060
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.4100
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3700
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8200
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.4290
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.3870
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8340
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.4480
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4040
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8480
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.4670
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4210
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8620
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.4860
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4380
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8760
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.5050
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4550
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.8900
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.5240
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4720
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.9040
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.5430
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.4890
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.9180
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.5620
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.5060
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.9320
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.5810
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.5230
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.9460
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_W_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0620 0.0620
+                alpha_op_ex source1 src_manual src_current 0.6000
+            }
+        }
+    }
+}
+
+material CRPdaHeader_W_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0980 0.0980
+                alpha_op_ex source1 src_manual src_current 0.5400
+            }
+        }
+    }
+}
+
+material CRPdaBorder_W_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 1.0000 1.0000
+                alpha_op_ex source1 src_manual src_current 0.9600
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.2200
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.2000
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A00
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.6800
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.2390
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.2170
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A01
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.6940
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.2580
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.2340
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A02
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.7080
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.2770
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.2510
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A03
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.7220
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.2960
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.2680
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A04
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.7360
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.3150
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.2850
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A05
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.7500
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.3340
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.3020
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A06
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.7640
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.3530
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.3190
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A07
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.7780
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.3720
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.3360
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A08
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.7920
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.3910
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.3530
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A09
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.8060
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.4100
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.3700
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A10
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.8200
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.4290
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.3870
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A11
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.8340
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.4480
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.4040
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A12
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.8480
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.4670
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.4210
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A13
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.8620
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.4860
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.4380
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A14
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.8760
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.5050
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.4550
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A15
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.8900
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.5240
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.4720
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A16
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.9040
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.5430
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.4890
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A17
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.9180
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.5620
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.5060
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A18
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.9320
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.5810
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.5230
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A19
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.9460
+            }
+        }
+    }
+}
+
+material CRPdaBackdrop_R_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0620 0.0295 0.0295
+                alpha_op_ex source1 src_manual src_current 0.6000
+            }
+        }
+    }
+}
+
+material CRPdaHeader_R_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0980 0.0460 0.0460
+                alpha_op_ex source1 src_manual src_current 0.5400
+            }
+        }
+    }
+}
+
+material CRPdaBorder_R_A20
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 1.0000 0.5975 0.5975
+                alpha_op_ex source1 src_manual src_current 0.9600
+            }
+        }
+    }
+}
+
