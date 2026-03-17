@@ -1,0 +1,1 @@
+Open a calm channel with your turret by using the command interface in the top left of your HUD. When a menu is green, you have units in that category. Press the 2 key to view your defensive units.

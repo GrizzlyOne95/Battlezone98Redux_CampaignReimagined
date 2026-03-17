@@ -1,0 +1,6 @@
+[BuildingClass]
+soundAmbient = "absolce1.wav"
+
+[PowerPlantClass]
+powerRadius = 2500.0
+

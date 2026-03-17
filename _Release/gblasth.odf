@@ -1,0 +1,11 @@
+[WeaponClass]
+classLabel = "cannon"
+ordName = "blasth"
+wpnName = "Blast Cannon"
+fireSound = "gblas00.wav"
+wpnReticle = "gblast"
+wpnPriority = 10
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 1.0

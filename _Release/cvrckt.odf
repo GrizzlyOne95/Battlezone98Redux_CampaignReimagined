@@ -1,0 +1,69 @@
+[GameObjectClass]
+classLabel = "wingman"
+scrapValue = 5
+scrapCost = 6
+buildTime = 8.5
+maxHealth = 2430
+maxAmmo = 1000
+unitName = "Rocket Tank"
+aiName = "RocketTankFriend"
+aiName2 = "RocketTankEnemy"
+heatSignature = 0.5
+imageSignature = 2.5
+radarSignature = 0.1
+weaponHard1 = "GR1"
+weaponName1 = "gshadow"
+weaponHard2 = "GR2"
+weaponName2 = "gshadow"
+weaponHard3 = "GM1"
+weaponName3 = "gmdmgun"
+weaponHard4 = "GS1"
+weaponName4 = "gproxmin"
+weaponMask = 00011
+
+[CraftClass]
+rangeScan = 270.0
+periodScan = 5.0f
+velocJam = 5.0f
+selectAttackMsg = "cvrcktv0.wav"
+selectGoMsg = "cvrcktv1.wav"
+selectFollowMsg = "cvrcktvg.wav"
+selectOtherMsg = "cvrcktvm.wav"
+goMsg = "cvrcktvk.wav"
+goObjectMsg = "cvrcktvf.wav"
+attackMsg = "cvrcktv2.wav"
+followMeMsg = "cvrcktv4.wav"
+followMsg = "cvrcktvb.wav"
+repairMsg = "cvrcktv8.wav"
+reloadMsg = "cvrcktv9.wav"
+rescueMsg = "cvrcktvc.wav"
+recycleMsg = "cvrcktvd.wav"
+otherMsg = "cvrcktvk.wav"
+user1Msg = "cvrcktva.wav"
+killedMsg = "cvrcktv3.wav"
+diedMsg = "abetty3.wav"
+cloakAllowed = "True"
+
+
+[HoverCraftClass]
+setAltitude = 1.0
+accelDragStop = 3.5
+accelDragFull = 1.0
+alphaTrack = 20.0
+alphaDamp = 5.0
+pitchPitch = 0.25
+pitchThrust = 0.1
+rollStrafe = 0.1
+rollSteer = 0.1
+velocForward = 20.0
+velocReverse = 15.0
+velocStrafe = 20.0
+accelThrust = 20.0
+accelBrake = 75.0
+omegaSpin = 4.375
+omegaTurn = 1.875
+alphaSteer = 6.25
+accelJump = 20.0
+soundThrust = "avrckte0.wav"
+soundTurbo = "avrckte1.wav"
+

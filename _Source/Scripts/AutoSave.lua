@@ -226,36 +226,18 @@ local function resolveMissionDisplayName()
     return displayName
 end
 
-local function resolveMissionSaveName()
-    local missionFilename = trim((GetMissionFilename() or ""):gsub("%z.*", ""))
-    if missionFilename == "" then
-        return "UnknownMission"
-    end
-
-    local missionBase = missionFilename:gsub("%.bzn$", "")
-    missionBase = trim(missionBase)
-    if missionBase == "" then
-        return "UnknownMission"
-    end
-
-    return missionBase
-end
-
 local function formatMissionMinutesLabel(missionSeconds)
-    local roundedTenths = math.floor(((tonumber(missionSeconds) or 0) / 60.0) * 10 + 0.5)
-    local wholeMinutes = math.floor(roundedTenths / 10)
-    local tenthMinutes = roundedTenths % 10
-    if tenthMinutes == 0 then
-        return tostring(wholeMinutes)
-    end
-
-    return string.format("%d.%d", wholeMinutes, tenthMinutes)
+    local wholeMinutes = math.floor(math.max(0.0, tonumber(missionSeconds) or 0.0) / 60.0)
+    return tostring(wholeMinutes)
 end
 
 local function buildAutoSaveDescription(missionSeconds)
-    local missionName = resolveMissionSaveName()
+    local missionName = trim(resolveMissionDisplayName())
+    if missionName == "" then
+        missionName = "Unknown Mission"
+    end
     local missionMinutes = formatMissionMinutesLabel(missionSeconds)
-    return string.format("%s AutoSave %s m", missionName, missionMinutes)
+    return string.format("%s AutoSave %s M", missionName, missionMinutes)
 end
 
 local function getAutoSavePaths()

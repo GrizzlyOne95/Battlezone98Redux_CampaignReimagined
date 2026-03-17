@@ -1,0 +1,427 @@
+Functions
+VTrider edited this page on Dec 27, 2025 · 60 revisions
+This page contains documentation for the primary Extra Utilities functions.
+
+Key:
+
+function ExampleFunction(parameter: [param type]) -> [return type]
+Camera
+These are functions related to the camera in game and it's attributes.
+
+function GetCameraOrigins() -> table
+Gets the values of the camera origins that can be useful for computing perspective transformations. See the table here.
+
+function GetCameraTransformMatrix() -> matrix
+Gets the transform matrix of the current camera.
+
+function GetCameraViewMatrix() -> matrix
+Gets the view matrix of the current camera.
+
+function GetCameraMaxZoom() -> number
+Gets the maximum zoom factor for all cameras.
+
+function SetCameraMaxZoom(zoom: number) -> nil
+Sets the maximum zoom factor for all cameras.
+
+function GetCameraMinZoom() -> number
+Gets the minimum zoom factor for all cameras.
+
+function SetCameraMinZoom(zoom: number) -> nil
+Sets the minimum zoom factor for all cameras.
+
+function GetCameraView() -> number
+Gets the current camera view mode. See the camera enum for options.
+
+function SetCameraView(view: number) -> nil
+Sets the current camera view mode. I highly recommend using the provided constants as opposed to the raw number indices.
+
+function GetCameraZoom(camera: number) -> number
+Gets the zoom factor of the given camera. See the camera enum for options.
+
+function SetCameraZoom(camera: number, zoom: number) -> nil
+Sets the zoom factor of the given camera.
+
+Note this will override the min/max zoom until the player tries to zoom with -+.
+
+Control Panel
+These functions control the selection that is handled through the control panel.
+
+function SelectAdd(h: handle) -> nil
+Adds the given unit to the local player's selection.
+
+function SelectNone() -> nil
+Clears the local player's selection (equivalent to pressing tab with stock keybinds).
+
+function SelectOne(h: handle) -> nil
+Sets the local player's selection to the given handle and de-selects everything else.
+
+Environment
+These functions can query and modify attributes about the environment like gravity and lighting.
+
+function GetFog() -> Fog
+Returns a table with the current map fog parameters.
+
+function SetFog(r: number, g: number, b: number, start: number, ending: number) -> nil
+function SetFog(newFog: Fog) -> nil
+Sets the current map fog parameters. Can take either five number parameters or a fog table.
+
+function GetGravity() -> vector
+Gets the current value of the local player's gravity velocity vector.
+
+function SetGravity(x: number, y: number, z: number) -> nil
+function SetGravity(v: vector) -> nil
+Sets the local player's current gravity velocity vector. This affects all units owned by the local player. Can take either three number parameters or a bz vector userdata. Multiplayer note: must be manually synced between clients, not doing so may result in things like ai and ordnance becoming nondeterministic.
+
+function GetSunAmbient() -> Color
+Returns a table with the current sun ambient parameters.
+
+function SetSunAmbient(r: number, g: number, b: number) -> nil
+function SetSunAmbient(newColor: Color) -> nil
+Sets the current map sun ambient parameters. Can take either three number parameters or a color table.
+
+function GetSunDiffuse() -> Color
+Returns a table with the current sun diffuse parameters.
+
+function SetSunDiffuse(r: number, g: number, b: number) -> nil
+function SetSunDiffuse(newColor: Color) -> nil
+Sets the current map sun diffuse parameters. Can take either three number parameters or a color table.
+
+function GetSunSpecular() -> Color
+Returns a table with the current sun specular parameters.
+
+function SetSunSpecular(r: number, g: number, b: number) -> nil
+function SetSunSpecular(newColor: Color) -> nil
+Sets the current map sun specular parameters. Can take either three number parameters or a color table.
+
+GameObject
+These functions act on game objects (handles) to query and modify various attributes.
+
+function SetAsUser(h: handle) -> nil
+Sets the local player's user ship to the given handle.
+
+function IsCommTowerPowered(h: handle) -> boolean
+Gets if the given comm tower is powered or not, throws an error if the handle is not a comm tower.
+
+function GetHandle(obj: GameObject*) -> int
+Converts a GameObject* into a handle that can be used in lua.
+
+function SetHeadlightDiffuse(h: handle, r: number, g: number, b: number) -> nil
+Sets the diffuse color of the headlight of the given object (if it exists).
+
+function SetHeadlightSpecular(h: handle, r: number, g: number, b: number) -> nil
+Sets the specular color of the headlight of the given object (if it exists).
+
+function SetHeadlightRange(h: handle, innerAngle: number, outerAngle: number, falloff: number) -> nil
+Sets the range parameters of the headlight of the given object (if it exists). From the Ogre documentation: "Sets the range of a spotlight, i.e. the angle of the inner and outer cones and the rate of falloff between them." 1.0 falloff is linear, <0 is slower and >0 is faster. Angles measured in radians.
+
+function SetHeadlightVisible(visible: bool) -> nil
+Sets whether or not a headlight is visible or hidden.
+
+function GetMass(h: handle) -> number
+Gets the mass of the given object (most ships default to 1750 KG afaik).
+
+function SetMass(h: handle) -> nil
+Sets the mass of the given object. This affects collisions and knockback.
+
+function GetObj(h: handle) -> GameObject*
+Converts a handle into a GameObject* that can be used in patching and debugging.
+
+function GetRadarPeriod(h: handle) -> number
+Gets the radar scan period for the given object (if it has a radar).
+
+function SetRadarPeriod(h: handle, period: number) -> nil
+Sets the radar scan period for the given object.
+
+function GetRadarRange(h: handle) -> number
+Gets the radar range of the given object (if it has a radar).
+
+function SetRadarRange(h: handle, range: number) -> nil
+Sets the radar range of the given object.
+
+function GetVelocJam(h: handle) -> number
+Gets the velocjam value for the given object (in m/s).
+
+function SetVelocJam(h: handle) -> nil
+Sets the velocjam value for the given object.
+
+Graphics Options
+function GetFullscreen() -> bool
+Gets if the game is currently in fullscreen.
+
+function GetGameResolution() -> integer, integer
+Gets the actual resolution of the game, returns two values for X and Y pixel count.
+
+function GetUIScaling() -> integer
+Gets the current UI scaling factor (1, 2, 3, etc).
+
+IO
+These functions handle input/output that the stock game doesn't provide.
+
+function GetGameKey(key: string) -> bool
+Gets whether or not a key is held.
+
+A full list of keys can be found here.
+
+Multiplayer
+These functions work exclusively in multiplayer to help with various things.
+
+function BuildAsyncObject(...) -> handle
+Functions the same as BuildObject except the resulting object is always asynchronous regardless of hosting status.
+
+function BuildSyncObject(...) -> handle
+Functions the same as BuildObject except the resulting object is always synchronized regardless of hosting status.
+
+function GetLives() -> number
+Gets the local player's life count.
+
+function SetLives(lives: number) -> nil
+Sets the local player's life count. This must be called during or after Start(), otherwise lives are not initialized in the map yet.
+
+function GetMyNetID() -> number
+Gets the net ID of the local player (the parameter that would appear in CreatePlayer())
+
+function GetShowScoreboard() -> bool
+Gets if the multiplayer scoreboard is visible.
+
+function SetShowScoreboard(state: bool) -> nil
+Sets the state of the multiplayer scoreboard. (Default toggle key M).
+
+function DisableStartingRecycler() -> nil
+Prevents the starting recycler from spawning in strategy and MPI missions. CALL LOOSE IN THE SCRIPT PRE-START!
+
+Ordnance
+These functions modify the behavior of ordnance.
+
+function BuildOrdnance(odf: string, transform: matrix, owner: handle) -> Ordnance*
+Builds an ordnance of the given odf (omit the .odf extension like with BuildObject) at the given transform matrix. You must also provide an owner handle since the game appears to require this. Passing in GetPlayerHandle() should be sufficient unless you want to utilize the ownership for something else. Returns a handle to the ordnance object that can be used in GetOrdnanceAttribute(). Ordnances are short lived, DO NOT access this value for longer than it's lifespan. If you need to hold on to a handle you should verify it still exists by checking current time minus it's init time (from GetOrdnanceAttribute) is less than the lifespan defined in the odf. You can also use the exu.BulletHit callback to detect if the value is no longer valid, however this does not account for ordnance despawning or being destroyed through other means.
+
+Multiplayer Note: You should not Send() another player a local ordnance handle, they are likely client side and I haven't rigorously tested it in MP.
+
+function GetOrdnanceAttribute(ordnanceHandle: Ordnance*, attribute: AttributeCode) -> any
+Queries an ordnance handle for certain values. See the valid attribute codes.
+
+function GetCoeffBallistic() -> number
+Gets the global ballistic coefficient (how much mortars drop, default 4.9f).
+
+function SetCoeffBallistic(coeff: number) -> nil
+Sets the global ballistic coefficient. Multiplayer note: must be manually synced, otherwise ordnance may behave nondeterministically.
+
+OS
+These functions can get various information from the operating system (windows only).
+
+function GetScreenResolution() -> number, number
+Gets the screen resolution for the local user. First value in the multi-return is the width in pixels, second is the height.
+
+function MessageBox(message: string) -> nil
+Displays an application modal windows message box with the given message, useful for debugging.
+
+Patches
+These functions control various patches to modify game behavior.
+
+function AddScrapSilent(team, amount) -> number
+Wrapper for AddScrap that does not trigger the exu.AddScrap callback.
+
+function GetGlobalTurbo() -> bool
+Gets whether or not the global turbo mode patch is enabled (default false).
+
+function SetGlobalTurbo(state: bool) -> nil
+Sets the state of the global turbo mode patch.
+
+function GetUnitTurbo(h: handle) -> bool
+Gets whether a unit has turbo enabled (off by default).
+
+function SetUnitTurbo(h: handle, state: bool) -> nil
+Sets turbo for an individual unit that overrides the global setting.
+
+function GetOrdnanceVelocInheritance() -> bool
+Gets the state of the ordnance velocity inheritance patch (see below).
+
+function SetOrdnanceVelocInheritance(state: bool) -> nil
+Makes projectiles inherit the velocity of the shooter, and patches the TLI for both the player and AI to account for this, currently does NOT work in multiplayer, and the TLI on mortars is not accurate.
+
+function GetShotConvergence() -> bool
+Returns whether or not the hovercraft shot convergence patch is enabled.
+
+function SetShotConvergence(enabled: bool) -> nil
+Sets the hovercraft shot convergence patch true or false (default false).
+
+Play Option
+These functions query and modify certain options in the stock options menu.
+
+Reminder, just because you can change these settings via script doesn't mean you should - these have accessibility implications and forcing TLI off for example can make the game frustrating to play.
+
+function GetDifficulty() -> number
+Gets the local player's difficulty setting.
+
+function SetDifficulty(difficulty: number) -> nil
+Sets the local player's difficulty setting. See the difficulty enum for options.
+
+Note that it won't change what it says in the menu, but it will in fact change in-game. It also won't work in multiplayer where the difficulty is locked to very hard.
+
+function GetAutoLevel() -> bool
+Gets the local player's automatic leveling setting.
+
+function SetAutoLevel(newAL: bool) -> nil
+Sets the local player's automatic leveling setting.
+
+function GetTLI() -> bool
+Gets the local player's target lead indicator setting.
+
+function SetTLI(newTLI: bool) -> nil
+Sets the local player's target lead indicator setting.
+
+function GetReverseMouse() -> bool
+Gets the local player's reverse mouse setting.
+
+function SetReverseMouse(newMouse: bool) -> nil
+Sets the local player's reverse mouse setting.
+
+function GetSubtitlesEnabled() -> bool
+Gets whether or not subtitles are enabled.
+
+function SetSubtitlesEnabled(enabled: bool) -> nil
+Sets whether or not subtitles are enabled.
+
+Radar
+These functions can query and modify the in game radar.
+
+function GetRadarState() -> number
+Gets the state of the radar. See the radar enum for options. 0 = minimap 1 = radar
+
+function SetRadarState(state: number) -> nil
+Sets the current radar state.
+
+Reticle
+These functions can query various information about the smart reticle.
+
+function GetReticleMatrix() -> matrix
+Gets the transform matrix of the reticle.
+
+function GetReticleObject() -> handle
+Gets the handle of the object under the local user's reticle, as well as the satellite cursor.
+
+(The object that appears next to "SPACE No Action (object)" in the command interface).
+
+The object must be within smart reticle range in order to be detected.
+
+function GetReticlePos() -> vector
+Gets the location on terrain of the player's reticle.
+
+Must be within smart reticle range, otherwise it will return the last known value.
+
+Additionally, while looking at an object or into the sky it will return the last known value.
+
+function GetReticleRange() -> float
+Gets the current range of the smart cursor (default 200m).
+
+function SetReticleRange(range: number) -> nil
+Sets the current range of the smart cursor.
+
+Satellite
+These functions can query various information about the satellite view.
+
+function GetSatCameraPos() -> vector
+Gets the current position of the player's camera in satellite view.
+
+The Y coordinate becomes static when you pan the camera, otherwise it follows the player's Y coordinate.
+
+function GetSatClickPos() -> vector
+Gets the last position the player clicked in satellite view.
+
+Persists after satellite is closed so be sure to handle this case.
+
+function GetSatCursorPos() -> vector
+Gets the current position of the cursor in satellite view.
+
+If satellite is disabled it will return the last known position of the cursor.
+
+function GetSatMaxZoom() -> number
+Gets the maximum zoom level of satellite view.
+
+Default = 8
+
+function SetSatMaxZoom(zoom: float) -> nil
+Sets the maximum zoom level of satellite view.
+
+Default = 8
+
+function GetSatMinZoom() -> number
+Gets the minimum zoom level of satellite view.
+
+Default = 2
+
+function SetSatMinZoom(zoom: number) -> nil
+Sets the minimum zoom level of satellite view.
+
+Default = 2
+
+function GetSatPanSpeed() -> number
+Gets the current pan speed of satellite view.
+
+Default = 1250
+
+function SetSatPanSpeed(speed: number) -> nil
+Sets the current pan speed of satellite view.
+
+Default = 1250
+
+function GetSatState() -> bool
+Gets the satellite state of the local player. See the satellite enum for options.
+
+1 = enabled
+
+0 = disabled
+
+function GetSatZoom() -> number
+Gets the current zoom level of satellite view.
+
+Default = 4
+
+function SetSatZoom(zoom: number) -> nil
+Sets the current zoom level of satellite view.
+
+Make sure to stay within the boundaries defined by min and max zoom, otherwise it'll cause issues.
+
+Steam
+This function can get information from steam.
+
+function GetSteam64() -> string
+Gets the Steam 64 ID of the local player.
+
+Sound Options
+These functions can query information about the stock sound bar settings.
+
+function GetMusicVolume() -> number
+Gets the value of the music slider from 0-10.
+
+function GetEffectsVolume() -> number
+Gets the value of the effects slider from 0-10.
+
+function SetEffectsVolume(volume: number) -> nil
+Sets the value of the effects slider from 0-10.
+
+function GetVoiceVolume() -> number
+Gets the value of the voice slider from 0-10.
+
+function SetVoiceVolume(volume: number) -> nil
+Sets the value of the voice slider from 0-10.
+
+Stock Extensions
+These functions are either existing in game but unbound in stock lua, or are in stock lua but were removed.
+
+function DoString(code: tostring) -> nil
+Interprets the given string as lua code and executes it.
+
+function MatrixInverse(mat: matrix) -> matrix
+Returns the inverse of the given matrix.
+
+function ScreenToWorld(screenX: integer, screenY: integer) -> vector
+Transforms the given screen coordinates in pixels to a position in the world. Returns a unit vector that originates at your camera and points into the world in the direction that matches the position of the given coordinates on screen. Note that if you want something to appear at a consistent place on the screen regardless of resolution, you should use a ratio of the current resolution like (currentScreenWidth * 0.5) rather than a hardcoded pixel value.
+
+function VectorUnrotate(v: vector, m: matrix) -> vector
+Transforms the given vector by the inverse of the matrix. Equivalent to 
+v
+m
+−
+1
+ with BZ row vector matrices.

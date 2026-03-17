@@ -1,0 +1,31 @@
+[GameObjectClass]
+classLabel = "turret"
+scrapCost = 6
+scrapValue = 3
+maxHealth = 5000
+maxAmmo = 2000
+unitName = "Lander"
+aiName = "GunTowerFriend"
+aiName2 = "GunTowerEnemy"
+heatSignature = 0.8
+imageSignature = 8.0
+radarSignature = 1.0
+
+[CraftClass]
+rangeScan = 287.5
+periodScan = 0.0
+velocJam = 0.0
+
+[HoverCraftClass]
+soundThrust = "avlande0.wav"
+
+[TurretCraftClass]
+setAltitude = 0.0
+omegaTurret = 0.7
+alphaTurret = 2.0
+alphaTrack = 10.0
+alphaDamp = 3.0
+pitchPitch = 0.5
+timeDeploy = 5.0
+timeUndeploy = 0.7
+

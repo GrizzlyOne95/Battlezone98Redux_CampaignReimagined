@@ -1,0 +1,63 @@
+[GameObjectClass]
+classLabel = "apc"
+collisionRadius = 7.0
+scrapValue = 4
+scrapCost = 4
+buildTime = 8.5
+maxHealth = 4500
+maxAmmo = 0
+unitName = "APC"
+aiName = "APCFriend"
+aiName2 = "APCEnemy"
+nation = "chinese"
+heatSignature = 0.2
+imageSignature = 3.5
+radarSignature = 0.1
+
+[CraftClass]
+rangeScan = 180.0
+periodScan = 0.0
+velocJam = 0.0
+selectWaitMsg = "cvapcva.wav"
+selectDropoffMsg = "cvapcvf.wav"
+selectPickupMsg = "cvapcvg.wav"
+selectFollowMsg = "cvapcvh.wav"
+selectOtherMsg = "cvapcvj.wav"
+goMsg = "cvapcv0.wav"
+attackMsg = "cvapcv9.wav"
+followMsg = "cvapcvh.wav"
+followMeMsg = "cvapcv0.wav"
+repairMsg = "cvapcv4.wav"
+recycleMsg = "cvapcv6.wav"
+rescueMsg = "cvapcv5.wav"
+otherMsg = "cvapcvh.wav"
+deployedMsg = "cvapcv2.wav"
+diedMsg = "abetty3.wav"
+
+[HoverCraftClass]
+setAltitude = 1.5
+accelDragStop = 4.0
+accelDragFull = 1.0
+alphaTrack = 10.0
+alphaDamp = 3.0
+pitchPitch = 0.3
+pitchThrust = 0.1
+rollStrafe = 0.1
+rollSteer = 0.1
+velocForward = 12.0
+velocReverse = 12.0
+velocStrafe = 12.0
+accelThrust = 5.76
+accelBrake = 50.0
+omegaSpin = 2.5
+omegaTurn = 1.25
+alphaSteer = 6.25
+accelJump = 0.0
+
+[APCClass]
+soldierType = "cssold"
+soldierCount = 5
+timeDeploy = 2.0
+soundThrust = "cvapce0.wav"
+soundTurbo = "cvapce3.wav"
+

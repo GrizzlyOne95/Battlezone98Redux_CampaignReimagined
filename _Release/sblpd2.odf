@@ -1,0 +1,15 @@
+[GameObjectClass]
+baseName = "sblpad"
+classLabel = "i76building"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 8750
+maxAmmo = 0
+unitName = "Launch Pad"
+heatSignature = 0.8
+imageSignature = 8.0
+radarSignature = 1.0
+
+[BuildingClass]
+soundAmbient = "sblpade0.wav"
+

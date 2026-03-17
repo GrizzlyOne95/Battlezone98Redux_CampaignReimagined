@@ -1,0 +1,1 @@
+Notice how your wingman blinks in the radar when it is under attack. This one form you whenever one of your units is under attack.

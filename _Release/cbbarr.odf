@@ -1,0 +1,17 @@
+[GameObjectClass]
+classLabel = "barracks"
+scrapCost = 6
+scrapValue = 3
+maxHealth = 4500
+maxAmmo = 0
+unitName = "Barracks"
+heatSignature = 0.8
+imageSignature = 8.0
+radarSignature = 1.0
+
+[BarracksClass]
+pilotHold = 5
+
+[BuildingClass]
+soundAmbient = "sbbarre0.wav"
+
