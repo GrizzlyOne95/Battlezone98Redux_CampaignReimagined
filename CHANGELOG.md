@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-03-16
+
+### Subtitle Overlay Migration
+- Ported mission subtitles from the legacy subtitle DLL path to the built-in EXU/Ogre overlay runtime, while keeping the old DLL submission path as a fallback.
+- Reworked subtitle rendering to use PDA-style overlay panels/materials instead of the previous shell-style subtitle window.
+- Wired subtitle pause/suspension, opacity, and font scaling to the same persistent PDA settings used by the rest of the HUD.
+
+### Target Page and Weapon Selection
+- Updated the PDA `TARGET` page to use `exu.GetSelectedWeaponMask()` so it shows the player's currently selected weapons instead of collapsing to the top weapon slot.
+- Added per-weapon in-range markers against the current target using the selected-weapon mask path.
+
+### AutoSave HUD
+- Moved the `Autosaving...` notification to a compact bottom-left overlay layout.
+- Added an immediate mission-start autosave trigger when autosave is enabled so the overlay can be verified without waiting for the interval timer.
+
+### Verification
+- `luac -p _Source/Scripts/ScriptSubtitles.lua`
+- `luac -p _Source/Scripts/PersistentConfig.lua`
+- `luac -p _Source/Scripts/AutoSave.lua`
+
 ## 2026-03-09
 
 ### PDA / Weapon HUD Expansion

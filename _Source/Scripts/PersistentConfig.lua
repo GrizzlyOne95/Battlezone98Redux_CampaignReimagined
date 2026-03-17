@@ -733,34 +733,35 @@ function PersistentConfig._GetAutoSaveOverlayLayout(pixelMode)
     local uiScaleFactor = math.min(1.30, math.max(0.90, (uiScale / 2.0) ^ 0.32))
     local compactFontScale = math.min(1.20, math.max(0.92, fontScale ^ 0.45))
     if pixelMode then
-        local horizontalMargin = math.max(32, math.floor(width * 0.04))
-        local wrapWidth = math.max(640, width - (horizontalMargin * 2))
-        local charHeight = math.max(34, math.floor(30 * uiScaleFactor))
-        local panelHeight = math.max(120, math.floor(charHeight * 2.8))
+        local horizontalMargin = math.max(18, math.floor(width * 0.015))
+        local verticalMargin = math.max(18, math.floor(height * 0.028))
+        local wrapWidth = math.max(220, math.floor(width * 0.16))
+        local charHeight = math.max(18, math.floor(18 * uiScaleFactor * compactFontScale))
+        local panelHeight = math.max(42, math.floor(charHeight * 2.1))
         return {
             panelX = horizontalMargin,
-            panelY = math.max(40, math.floor(height * 0.18)),
+            panelY = math.max(12, height - panelHeight - verticalMargin),
             wrapWidth = wrapWidth,
             panelHeight = panelHeight,
             charHeight = charHeight,
-            textOffsetX = 20,
-            textOffsetY = 18,
+            textOffsetX = math.max(8, math.floor(charHeight * 0.45)),
+            textOffsetY = math.max(5, math.floor(charHeight * 0.24)),
         }
     end
 
-    local wrapWidth = math.min(0.34, math.max(0.18,
-        0.22 * math.min(1.18, math.max(0.90, 1.0 / aspectScale)) * compactFontScale))
-    local charHeight = math.min(0.042, math.max(0.024, 0.026 * aspectScale * uiScaleFactor * compactFontScale))
-    local panelHeight = math.min(0.120, math.max(0.065, charHeight * 2.4))
+    local wrapWidth = math.min(0.24, math.max(0.14,
+        0.16 * math.min(1.18, math.max(0.90, 1.0 / aspectScale)) * compactFontScale))
+    local charHeight = math.min(0.026, math.max(0.016, 0.018 * aspectScale * uiScaleFactor * compactFontScale))
+    local panelHeight = math.min(0.060, math.max(0.036, charHeight * 2.1))
 
     return {
-        panelX = 0.04,
-        panelY = math.min(0.84, math.max(0.70, 0.82 - (panelHeight * 0.5))),
-        wrapWidth = math.max(wrapWidth, 0.38),
+        panelX = 0.018,
+        panelY = math.max(0.90, 0.97 - panelHeight),
+        wrapWidth = wrapWidth,
         panelHeight = panelHeight,
         charHeight = charHeight,
-        textOffsetX = 0.010,
-        textOffsetY = 0.006,
+        textOffsetX = 0.006,
+        textOffsetY = 0.003,
     }
 end
 
@@ -2127,6 +2128,7 @@ InputState = {
     lastWeaponPlayer = nil,
     lastWeaponText = nil,
     lastWeaponTarget = nil,
+    autoSaveStartupPending = false,
     nextWeaponHudCheck = 0.0,
     pdaPage = PdaPages.STATS,
     pdaSettingsIndex = 1,
@@ -4121,23 +4123,10 @@ local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compa
     return hardpointCount
 end
 
-local function GetTargetPageWeaponSummary(player)
+local function GetTargetPageWeaponSummary(player, selectedMask)
     if not IsValid(player) then return nil end
 
-    local activeMask = GetCurrentWeaponMask(player)
-    local installedMask = GetInstalledWeaponMask(player)
-    local activeCount = 0
-    local installedCount = 0
-    for slot = 0, 4 do
-        if IsMaskBitSet(activeMask, slot) then
-            activeCount = activeCount + 1
-        end
-        if IsMaskBitSet(installedMask, slot) then
-            installedCount = installedCount + 1
-        end
-    end
-    local useInstalledFallback = activeCount <= 1 and installedCount > 1
-    local searchMask = ((activeMask and activeMask > 0) and not useInstalledFallback) and activeMask or installedMask
+    local searchMask = math.max(0, math.floor(tonumber(selectedMask) or 0))
     if not searchMask or searchMask <= 0 then
         return nil
     end
@@ -4209,13 +4198,13 @@ local function BuildStatsPageText(player, mask)
     return table.concat(lines, "\n")
 end
 
-local function BuildTargetPageText(player)
+local function BuildTargetPageText(player, selectedMask)
     local lines = { BuildPdaHeader(PdaPages.TARGET) }
     local aimInfo = GetAimInfo(player, true)
     local target = aimInfo and aimInfo.handle or nil
     local targetDistance = aimInfo and aimInfo.distance or nil
     local aimPosition = aimInfo and aimInfo.position or nil
-    local reticleLine = GetTargetPageWeaponSummary(player)
+    local reticleLine = GetTargetPageWeaponSummary(player, selectedMask)
 
     table.insert(lines, "MODE " .. DescribeAimMode(aimInfo))
     if reticleLine then
@@ -4253,8 +4242,7 @@ local function BuildTargetPageText(player)
     local maxHealth = type(GetMaxHealth) == "function" and GetMaxHealth(target) or nil
     local curAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(target) or nil
     local maxAmmo = type(GetMaxAmmo) == "function" and GetMaxAmmo(target) or nil
-    local installedMask = GetInstalledWeaponMask(target)
-    local activeMask = GetCurrentWeaponMask(target)
+    local selectedWeaponMask = math.max(0, math.floor(tonumber(selectedMask) or 0))
     local _, eta = GetTargetClosureInfo(player, target, targetDistance)
 
     table.insert(lines, "UNIT " .. unitName)
@@ -4265,17 +4253,21 @@ local function BuildTargetPageText(player)
     table.insert(lines, "SPD  " .. tostring(speed) .. "m/s")
     table.insert(lines, "ETA  " .. (eta and string.format("%.1fs", eta) or "--"))
 
-    local hardpointLines = {}
-    local hardpointCount = AppendWeaponStatsLines(hardpointLines, target, installedMask, activeMask, player, nil, targetDistance)
-    if hardpointCount > 0 then
-        table.insert(lines, "HARDPOINTS")
+    local selectedWeaponLines = {}
+    local selectedWeaponCount = 0
+    if selectedWeaponMask > 0 then
+        selectedWeaponCount = AppendWeaponStatsLines(selectedWeaponLines, player, selectedWeaponMask, selectedWeaponMask, target, nil,
+            targetDistance)
+    end
+    if selectedWeaponCount > 0 then
+        table.insert(lines, "SELECTED")
         table.insert(lines, "RNG  + In  - Out")
-        for _, line in ipairs(hardpointLines) do
+        for _, line in ipairs(selectedWeaponLines) do
             table.insert(lines, line)
         end
-        table.insert(lines, "TOTAL " .. tostring(hardpointCount))
+        table.insert(lines, "TOTAL " .. tostring(selectedWeaponCount))
     else
-        table.insert(lines, "ARM  None")
+        table.insert(lines, "WPN  None selected")
     end
     table.insert(lines, BuildMeterBar("AMMO", targetAmmo, curAmmo, maxAmmo))
     table.insert(lines, BuildMeterBar("HULL", targetHealth, curHealth, maxHealth))
@@ -5005,7 +4997,7 @@ end
 local function BuildWeaponStatsText(player, mask)
     local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.STATS)
     if page == PdaPages.TARGET then
-        return BuildTargetPageText(player)
+        return BuildTargetPageText(player, mask)
     end
     if page == PdaPages.SETTINGS then
         return BuildSettingsPageText()
@@ -5049,7 +5041,17 @@ local function UpdateWeaponStatsDisplay(player)
     if now < (InputState.nextWeaponHudCheck or 0.0) then return end
     InputState.nextWeaponHudCheck = now + 0.10
 
+    local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.STATS)
     local mask = GetCurrentWeaponMask(player)
+    if page == PdaPages.TARGET and exu and type(exu.GetSelectedWeaponMask) == "function" then
+        local ok, selectedMask = pcall(exu.GetSelectedWeaponMask, player)
+        if ok and type(selectedMask) == "number" then
+            selectedMask = math.max(0, math.floor(selectedMask + 0.5))
+            if selectedMask > 0 then
+                mask = selectedMask
+            end
+        end
+    end
     local target = nil
     local targetDistance = nil
     if type(GetUserTarget) == "function" then
@@ -5173,6 +5175,7 @@ local function CommitPdaSettingChange(options)
         autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
         autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
         autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
+        autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
     end
 
     RebuildPdaOverlay()
@@ -5904,6 +5907,15 @@ function PersistentConfig.UpdateInputs()
         escapePressed = true
     end
 
+    if InputState.autoSaveStartupPending then
+        if not (autosave and autosave.Config and autosave.Config.enabled and autosave.Update) then
+            InputState.autoSaveStartupPending = false
+        elseif not pauseMenuOpen then
+            InputState.autoSaveStartupPending = false
+            autosave.Update(0.0)
+        end
+    end
+
     if PersistentConfig.ExperimentalOverlayVisible then
         local hideAt = PersistentConfig.ExperimentalOverlayExpireAt or 0.0
         if pauseMenuOpen or GetTime() >= hideAt then
@@ -6610,6 +6622,8 @@ function PersistentConfig.Initialize()
         autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
         autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
         autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
+        autosave._forceInitialSave = autosave.Config.enabled and true or false
+        InputState.autoSaveStartupPending = autosave.Config.enabled and true or false
         print("PersistentConfig: AutoSave synced - enabled=" .. tostring(autosave.Config.enabled) ..
             " interval=" .. tostring(autosave.Config.autoSaveInterval) ..
             " path=" .. tostring(autosave.Config.currentPath))
