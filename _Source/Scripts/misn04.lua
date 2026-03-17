@@ -2015,6 +2015,8 @@ local function ProbeFeatureVoice()
         "SetUnitVoQueueDepthLimit",
         "GetUnitVoQueueStaleMs",
         "SetUnitVoQueueStaleMs",
+        "GetUnitVoMuted",
+        "SetUnitVoMuted",
         "GetUnitVoAlternates",
         "SetUnitVoAlternates",
     }
@@ -2028,40 +2030,48 @@ local function ProbeFeatureVoice()
     local okThrottle, throttle = pcall(exu.GetUnitVoThrottle)
     local okDepth, depth = pcall(exu.GetUnitVoQueueDepthLimit)
     local okStale, staleMs = pcall(exu.GetUnitVoQueueStaleMs)
+    local okMuted, muted = pcall(exu.GetUnitVoMuted)
     local okAlternates, alternates = pcall(exu.GetUnitVoAlternates, FEATURE_TEST_VO_FILENAME)
 
     local originalThrottle = tonumber(throttle) or 0
     local originalDepth = tonumber(depth) or 0
     local originalStaleMs = tonumber(staleMs) or 0
+    local originalMuted = okMuted and not not muted or false
 
     local okSetThrottle, setThrottleResult = pcall(exu.SetUnitVoThrottle, math.max(originalThrottle, 750))
     local okSetDepth, setDepthResult = pcall(exu.SetUnitVoQueueDepthLimit, math.max(originalDepth, 2))
     local okSetStale, setStaleResult = pcall(exu.SetUnitVoQueueStaleMs, math.max(originalStaleMs, 2000))
+    local okSetMuted, setMutedResult = pcall(exu.SetUnitVoMuted, not originalMuted)
+    local okReadMuted, mutedAfterSet = pcall(exu.GetUnitVoMuted)
     local okSetAlternates, setAlternatesResult = pcall(exu.SetUnitVoAlternates, FEATURE_TEST_VO_FILENAME, FEATURE_TEST_VO_ALTERNATES)
     local okReadAlternates, alternatesAfterSet = pcall(exu.GetUnitVoAlternates, FEATURE_TEST_VO_FILENAME)
 
     pcall(exu.SetUnitVoThrottle, originalThrottle)
     pcall(exu.SetUnitVoQueueDepthLimit, originalDepth)
     pcall(exu.SetUnitVoQueueStaleMs, originalStaleMs)
+    pcall(exu.SetUnitVoMuted, originalMuted)
     pcall(exu.SetUnitVoAlternates, FEATURE_TEST_VO_FILENAME, okAlternates and alternates or nil)
 
     FeatureNote(
         "unit_vo",
         string.format(
-            "throttle=%d depth=%d staleMs=%d originalAlternates=%s setOk=%s/%s/%s/%s readback=%s validated on %s",
+            "throttle=%d depth=%d staleMs=%d muted=%s originalAlternates=%s setOk=%s/%s/%s/%s/%s readback=%s mutedReadback=%s validated on %s",
             originalThrottle,
             originalDepth,
             originalStaleMs,
+            tostring(originalMuted),
             FeatureDescribeValue(okAlternates and alternates or nil),
             tostring(okSetThrottle and setThrottleResult ~= false),
             tostring(okSetDepth and setDepthResult ~= false),
             tostring(okSetStale and setStaleResult ~= false),
+            tostring(okSetMuted and setMutedResult ~= false),
             tostring(okSetAlternates and setAlternatesResult ~= false),
             FeatureDescribeValue(okReadAlternates and alternatesAfterSet or nil),
+            tostring(okReadMuted and mutedAfterSet),
             FEATURE_TEST_VO_FILENAME
         )
     )
-    return okThrottle and okDepth and okStale
+    return okThrottle and okDepth and okStale and okMuted
 end
 
 local function ProbeFeatureBuildMenuBridge()

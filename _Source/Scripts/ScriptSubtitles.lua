@@ -1,16 +1,8 @@
 -- Subtitles.lua
--- Wrapper for mission subtitles with EXU/Ogre overlay rendering and subtitles.dll fallback
-local subtitles = nil
-do
-    local ok, module = pcall(require, "subtitles")
-    if ok then
-        subtitles = module
-    end
-end
+-- Wrapper for mission subtitles using the EXU/Ogre overlay renderer.
 local exu = require("exu")
 
 local Subtitles = {}
-local SUBTITLE_CHANNEL = 3
 local FONT_SCALE_MIN = 0.85
 local FONT_SCALE_MAX = 2.00
 local BASE_CHAR_LIMIT = 78
@@ -600,12 +592,65 @@ local function SetOverlayRendererSuspended(suspended)
     UpdateOverlayLastEndTime()
 end
 
+local function DetectWrappedUiSuspended()
+    if not (exu and exu.GetPauseMenuDebugState) then
+        return false
+    end
+
+    local ok, state = pcall(exu.GetPauseMenuDebugState)
+    if not ok or type(state) ~= "table" then
+        return false
+    end
+
+    if state.pauseOpen or state.singleplayerPauseOpen or state.multiplayerPauseOpen
+        or state.currentScreenMatchesPauseRoot then
+        return true
+    end
+
+    local wrapperActive = state.uiWrapperActive
+    if type(wrapperActive) == "number" then
+        wrapperActive = wrapperActive ~= 0
+    else
+        wrapperActive = not not wrapperActive
+    end
+    if not wrapperActive then
+        return false
+    end
+
+    local currentScreen = tonumber(state.uiCurrentScreen) or 0
+    if currentScreen == 0 then
+        return false
+    end
+
+    local cursorVisible = state.cursorVisible
+    if type(cursorVisible) == "number" then
+        cursorVisible = cursorVisible ~= 0
+    else
+        cursorVisible = not not cursorVisible
+    end
+    if cursorVisible then
+        return true
+    end
+
+    local screenType = tonumber(state.uiCurrentScreenType)
+    if screenType and screenType ~= 0 then
+        return true
+    end
+
+    local screenTypeName = tostring(state.uiCurrentScreenTypeName or ""):lower()
+    return screenTypeName ~= "" and screenTypeName ~= "unknown" and screenTypeName ~= "game"
+end
+
 local function DetectRuntimeSuspended()
     if exu and exu.IsPauseMenuOpen then
         local ok, paused = pcall(exu.IsPauseMenuOpen)
         if ok and paused then
             return true
         end
+    end
+
+    if DetectWrappedUiSuspended() then
+        return true
     end
 
     if exu and exu.GetGameKey then
@@ -621,60 +666,8 @@ end
 local function UpdateRendererSuspensionState()
     local suspended = Subtitles.Config.suspended or DetectRuntimeSuspended()
 
-    if subtitles and subtitles.set_suspended then
-        pcall(subtitles.set_suspended, suspended)
-    end
-
     if overlayState.currentEntry or #overlayState.queue > 0 or overlayState.ready then
         SetOverlayRendererSuspended(suspended)
-    end
-end
-
-local function GetSubtitleLayoutMetrics()
-    local width, height, uiScale = GetUiResolutionMetrics()
-    local fontScale = GetFontScale()
-
-    local aspect = width / math.max(height, 1)
-    local aspectScale = Clamp((16.0 / 9.0) / aspect, 0.78, 1.35)
-    local uiScaleFactor = Clamp((uiScale / 2.0) ^ 0.32, 0.90, 1.30)
-
-    return {
-        textScale = Clamp(0.38 * aspectScale * uiScaleFactor * fontScale, 0.28, 0.90),
-        wrapWidth = Clamp(0.84 * Clamp(1.0 / aspectScale, 0.90, 1.22) * fontScale, 0.68, 4.50),
-        paddingX = 10.0 * fontScale,
-        paddingY = 8.0 * fontScale,
-        opacity = Clamp(tonumber(Subtitles.Config.opacity) or 0.5, 0.0, 1.0),
-    }
-end
-
-local function ApplySubtitleLayout()
-    if not subtitles or not subtitles.set_channel_layout or not subtitles.submit_to then
-        return false
-    end
-
-    local layout = GetSubtitleLayoutMetrics()
-    subtitles.set_channel_layout(SUBTITLE_CHANNEL, 0.5, 0.97, 0.5, 1.0, layout.textScale, layout.wrapWidth, layout.paddingX,
-        layout.paddingY, layout.opacity)
-    return true
-end
-
-local function ClearSubtitleChannel()
-    if subtitles and subtitles.clear_queue then
-        subtitles.clear_queue(SUBTITLE_CHANNEL)
-    end
-    if subtitles and subtitles.clear_current then
-        subtitles.clear_current(SUBTITLE_CHANNEL)
-    end
-end
-
-local function ClearDefaultSubtitleQueue()
-    if not subtitles then
-        return
-    end
-
-    subtitles.clear_queue()
-    if subtitles.clear_current then
-        subtitles.clear_current()
     end
 end
 
@@ -690,27 +683,7 @@ local function SubmitSequenceEntries(entries, append)
         return "overlay"
     end
 
-    if ApplySubtitleLayout() then
-        if not append then
-            ClearSubtitleChannel()
-        end
-        for _, entry in ipairs(entries) do
-            subtitles.submit_to(SUBTITLE_CHANNEL, entry.text, entry.duration, entry.r, entry.g, entry.b)
-        end
-        return "dll"
-    else
-        if not subtitles or not subtitles.submit then
-            return nil
-        end
-        if not append then
-            ClearDefaultSubtitleQueue()
-        end
-        subtitles.set_opacity(Clamp(tonumber(Subtitles.Config.opacity) or 0.5, 0.0, 1.0))
-        for _, entry in ipairs(entries) do
-            subtitles.submit(entry.text, entry.duration, entry.r, entry.g, entry.b)
-        end
-        return "dll"
-    end
+    return nil
 end
 
 local function BuildSequenceEntries(source)
@@ -827,15 +800,11 @@ local function StartSequence(source, append)
     else
         activeSequenceSource.startedAt = math.max(GetTime(), Subtitles.LastEndTime or 0)
     end
-    local entries, totalDuration = BuildSequenceEntries(activeSequenceSource)
+    local entries = BuildSequenceEntries(activeSequenceSource)
     local renderMode = SubmitSequenceEntries(entries, append)
     if renderMode == "overlay" then
         UpdateRendererSuspensionState()
         UpdateOverlayLastEndTime()
-    elseif renderMode == "dll" and not append then
-        Subtitles.LastEndTime = activeSequenceSource.startedAt + totalDuration
-    elseif renderMode == "dll" then
-        Subtitles.LastEndTime = Subtitles.LastEndTime + totalDuration
     else
         activeSequenceSource = nil
         Subtitles.LastEndTime = GetTime()
@@ -856,8 +825,6 @@ end
 local function ClearActiveSequence()
     activeSequenceSource = nil
     ClearOverlayQueueState()
-    ClearDefaultSubtitleQueue()
-    ClearSubtitleChannel()
 end
 
 function Subtitles.RefreshActive()
@@ -871,9 +838,6 @@ end
 
 function Subtitles.SetOpacity(value)
     Subtitles.Config.opacity = Clamp(tonumber(value) or 0.5, 0.0, 1.0)
-    if subtitles and subtitles.set_opacity then
-        subtitles.set_opacity(Subtitles.Config.opacity)
-    end
     ResubmitActiveSequence()
 end
 
@@ -1184,7 +1148,6 @@ function Subtitles.Stop()
         currentAudioHandle = nil
     end
     ClearActiveSequence()
-    -- subtitles.set_opacity(0.0) -- Hide immediately (No longer needed with clear_current)
 end
 
 return Subtitles
