@@ -3270,6 +3270,18 @@ local function SetScavengerAssistEnabled(enabled)
     return true
 end
 
+local function SetRetroLightingEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.RetroLighting == value then
+        return false
+    end
+
+    PersistentConfig.Settings.RetroLighting = value
+    CommitPdaSettingChange({ applySettings = true })
+    ShowFeedback("OG Lighting: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8, 2.5, false, "pda")
+    return true
+end
+
 local function SetAutoSaveEnabled(enabled)
     local value = not not enabled
     if PersistentConfig.Settings.AutoSaveEnabled == value then
@@ -3397,6 +3409,13 @@ GetSettingsPageEntries = function()
             value = FormatHotkeyValue(PersistentConfig.Settings.ScavengerAssistEnabled and "ON" or "OFF", "U"),
             adjust = function(delta)
                 return SetScavengerAssistEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "OG LIGHTING",
+            value = PersistentConfig.Settings.RetroLighting and "ON" or "OFF",
+            adjust = function(delta)
+                return SetRetroLightingEnabled(DirectionEnabled(delta))
             end,
         },
         {
