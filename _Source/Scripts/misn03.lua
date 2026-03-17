@@ -16,6 +16,30 @@ local PlayerPilotMode = require("PlayerPilotMode")
 local difficulty = 2
 local M
 
+local function TraceUpdateCall(label, fn, ...)
+    if type(fn) ~= "function" then
+        return nil
+    end
+
+    local args = { ... }
+    local ok, result = xpcall(function()
+        return fn((table.unpack or unpack)(args))
+    end, function(err)
+        local text = tostring(err)
+        if debug and type(debug.traceback) == "function" then
+            return debug.traceback(text, 2)
+        end
+        return text
+    end)
+
+    if not ok then
+        print("[lua-trace] " .. label .. " failed: " .. tostring(result))
+        error(result, 0)
+    end
+
+    return result
+end
+
 -- Helper for AI
 local function SetupAI()
     local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
@@ -316,14 +340,18 @@ end
 
 local function UpdateModules(dt)
     if exu and exu.UpdateOrdnance then
-        exu.UpdateOrdnance()
+        TraceUpdateCall("misn03.UpdateModules exu.UpdateOrdnance", exu.UpdateOrdnance)
     end
     if subtit and subtit.Update then
-        subtit.Update()
+        TraceUpdateCall("misn03.UpdateModules subtit.Update", subtit.Update)
     end
     if PersistentConfig then
-        if PersistentConfig.UpdateInputs then PersistentConfig.UpdateInputs() end
-        if PersistentConfig.UpdateHeadlights then PersistentConfig.UpdateHeadlights() end
+        if PersistentConfig.UpdateInputs then
+            TraceUpdateCall("misn03.UpdateModules PersistentConfig.UpdateInputs", PersistentConfig.UpdateInputs)
+        end
+        if PersistentConfig.UpdateHeadlights then
+            TraceUpdateCall("misn03.UpdateModules PersistentConfig.UpdateHeadlights", PersistentConfig.UpdateHeadlights)
+        end
     end
 end
 
@@ -481,9 +509,9 @@ function Update()
     local diff = 2
     if exu and exu.GetDifficulty then diff = exu.GetDifficulty() end
 
-    PlayerPilotMode.Update()
-    aiCore.Update()
-    UpdateModules(1.0 / (M.TPS or 20))
+    TraceUpdateCall("misn03.Update PlayerPilotMode.Update", PlayerPilotMode.Update)
+    TraceUpdateCall("misn03.Update aiCore.Update", aiCore.Update)
+    TraceUpdateCall("misn03.Update UpdateModules", UpdateModules, 1.0 / (M.TPS or 20))
 
 
     -- Update Objective Health Status

@@ -18,6 +18,30 @@ local PlayerPilotMode = require("PlayerPilotMode")
 
 local M
 
+local function TraceUpdateCall(label, fn, ...)
+    if type(fn) ~= "function" then
+        return nil
+    end
+
+    local args = { ... }
+    local ok, result = xpcall(function()
+        return fn((table.unpack or unpack)(args))
+    end, function(err)
+        local text = tostring(err)
+        if debug and type(debug.traceback) == "function" then
+            return debug.traceback(text, 2)
+        end
+        return text
+    end)
+
+    if not ok then
+        print("[lua-trace] " .. label .. " failed: " .. tostring(result))
+        error(result, 0)
+    end
+
+    return result
+end
+
 local function NewMissionState()
     return {
         missionstart = false,
@@ -199,7 +223,27 @@ local function NewMissionState()
         overlayDemoResumeAfterSuppression = false,
         overlayDemoResumeDuration = 0.0,
         overlayPauseDebugSignature = "",
-        overlayPauseDebugDumpLatch = false
+        overlayPauseDebugDumpLatch = false,
+        featureTestAutoAt = nil,
+        featureTestCompleted = false,
+        featureTestRunCount = 0,
+        featureTestRunLatch = false,
+        featureTestTriggerLatch = false,
+        featureTestCommandHandle = nil,
+        featureTestCommandInstalled = false,
+        featureTestCommandCallbackCount = 0,
+        featureTestMaterialRestore = nil,
+        featureTestMaterialRestoreAt = nil,
+        featureTestRadarRestore = nil,
+        featureTestRadarRestoreAt = nil,
+        featureTestEdgePathRestore = nil,
+        featureTestEdgePathRestoreAt = nil,
+        featureTestEnvironmentPreview = nil,
+        featureTestEnvironmentRestore = nil,
+        featureTestEnvironmentRestoreAt = nil,
+        featureTestAiRestore = nil,
+        featureTestAiRestoreAt = nil,
+        featureTestNotes = {},
     }
 end
 
@@ -294,6 +338,18 @@ local OVERLAY_DEMO_IDS = {
 }
 local OVERLAY_DEMO_TEXTURE_CANDIDATES = { "HUDcombi", "HUDcomba", "reticle1" }
 local OVERLAY_DEMO_SOLID_MATERIAL = "BaseWhiteNoLighting"
+local FEATURE_TEST_REPLACEMENT_COMMAND = "Hunt"
+local FEATURE_TEST_REPLACEMENT_LABEL = "Hold"
+local FEATURE_TEST_EDGE_PATH_BASE = {
+    { x = 4016, z = 99112 },
+    { x = 704, z = 101504 },
+}
+local FEATURE_TEST_EDGE_PATH_VARIANT = {
+    { x = 3904, z = 99328 },
+    { x = 816, z = 101288 },
+}
+local FEATURE_TEST_VO_FILENAME = "avrecyv0.wav"
+local FEATURE_TEST_VO_ALTERNATES = { "avrecyv0.wav", "avrecyv1.wav" }
 
 local function RefreshDifficulty()
     if exu and exu.GetDifficulty then
@@ -318,6 +374,42 @@ end
 
 local function ApplyQOL()
     if exu then
+        if exu.SetScrapHudTopLeft and exu.SetPilotHudTopLeft then
+            -- Temporary EXU HUD text test: approximate a legacy-style vertical stack just to
+            -- the right of the command menu, scaled by the current UI size.
+            local screenW, screenH = 1920, 1080
+            if exu.GetGameResolution then
+                local okW, okH = exu.GetGameResolution()
+                screenW = tonumber(okW) or screenW
+                screenH = tonumber(okH) or screenH
+            end
+
+            local uiScale = 1
+            if exu.GetUIScaling then
+                uiScale = math.max(tonumber(exu.GetUIScaling()) or 1, 1)
+            end
+
+            local edgePaddingX = math.floor(screenW * 0.01)
+            local edgePaddingY = math.floor(screenH * 0.02)
+            local estimatedCommandMenuWidth = math.floor(165 * uiScale)
+            local commandMenuGap = math.floor(10 * uiScale)
+            local anchorX = edgePaddingX + estimatedCommandMenuWidth + commandMenuGap
+            local scrapY = edgePaddingY + math.floor(2 * uiScale)
+            local pilotY = scrapY + math.floor(58 * uiScale)
+
+            exu.SetScrapHudTopLeft(anchorX, scrapY)
+            exu.SetPilotHudTopLeft(anchorX, pilotY)
+            if exu.SetScrapHudColor then
+                exu.SetScrapHudColor(0xFF007FFF)
+            end
+            if exu.SetPilotHudColor then
+                exu.SetPilotHudColor(0xFF00FF00)
+            end
+        elseif exu.SetScrapPilotHudTopLeft then
+            exu.SetScrapPilotHudTopLeft(500, 22)
+        elseif exu.SetScrapPilotHudOffset then
+            exu.SetScrapPilotHudOffset(-400, -220)
+        end
         if exu.SetReticleRange then
             exu.SetReticleRange(600)
         end
@@ -366,17 +458,24 @@ end
 
 local function UpdateModules(dt)
     if exu and exu.UpdateOrdnance then
-        exu.UpdateOrdnance()
+        TraceUpdateCall("misn04.UpdateModules exu.UpdateOrdnance", exu.UpdateOrdnance)
+    end
+    if exu and exu.UpdateCommandReplacements then
+        TraceUpdateCall("misn04.UpdateModules exu.UpdateCommandReplacements", exu.UpdateCommandReplacements)
     end
     if Environment and Environment.Update then
-        Environment.Update(dt)
+        TraceUpdateCall("misn04.UpdateModules Environment.Update", Environment.Update, dt)
     end
     if subtit and subtit.Update then
-        subtit.Update()
+        TraceUpdateCall("misn04.UpdateModules subtit.Update", subtit.Update)
     end
     if PersistentConfig then
-        if PersistentConfig.UpdateInputs then PersistentConfig.UpdateInputs() end
-        if PersistentConfig.UpdateHeadlights then PersistentConfig.UpdateHeadlights() end
+        if PersistentConfig.UpdateInputs then
+            TraceUpdateCall("misn04.UpdateModules PersistentConfig.UpdateInputs", PersistentConfig.UpdateInputs)
+        end
+        if PersistentConfig.UpdateHeadlights then
+            TraceUpdateCall("misn04.UpdateModules PersistentConfig.UpdateHeadlights", PersistentConfig.UpdateHeadlights)
+        end
     end
 end
 
@@ -702,7 +801,7 @@ local function BuildOverlayDemoLayout()
             "SOLID",
         }, "\n")
     end
-    local footerRaw = "F9 TOGGLE DEMO   |   F10 DUMP UI STATE   |   TARGET PDA / SUBTITLES"
+    local footerRaw = "F6 RUN TESTS   |   F7 TRIGGER HUNT REPLACEMENT   |   F9 DEMO   |   F10 UI DUMP"
 
     local bodyText = WrapOverlayTextToPixels(bodyRaw, bodyWidth, bodyCharHeight, 1.18, 0)
     local swatchText = WrapOverlayTextToPixels(swatchRaw, swatchTextWidth, swatchCharHeight, 1.16, 0)
@@ -1077,6 +1176,985 @@ local function RunOverlayBootTest()
     end
 end
 
+local function FeatureLog(message, showHud, duration)
+    message = tostring(message or "")
+    print("misn04: [feature-test] " .. message)
+    if showHud and type(ShowFeedback) == "function" then
+        pcall(ShowFeedback, message, 0.70, 1.00, 0.70, duration or 4.0, false)
+    end
+end
+
+local function FeatureNote(key, value)
+    M.featureTestNotes[key] = tostring(value or "")
+    FeatureLog(key .. ": " .. tostring(value or ""))
+end
+
+local function FeatureExuCall(apiName, ...)
+    if not exu or type(exu[apiName]) ~= "function" then
+        return false, "missing"
+    end
+
+    local ok, result1, result2, result3, result4 = pcall(exu[apiName], ...)
+    if not ok then
+        return false, result1
+    end
+
+    return true, result1, result2, result3, result4
+end
+
+local function FeatureDescribeValue(value, depth)
+    depth = tonumber(depth) or 0
+    if depth > 2 then
+        return "{...}"
+    end
+
+    local valueType = type(value)
+    if valueType == "nil" then
+        return "nil"
+    end
+    if valueType == "boolean" or valueType == "number" then
+        return tostring(value)
+    end
+    if valueType == "string" then
+        return value
+    end
+    if valueType ~= "table" then
+        return valueType
+    end
+
+    local preferred = { "typeName", "rawTypeName", "state", "curState", "nextState", "x", "y", "z", "r", "g", "b", "a" }
+    local parts = {}
+    local seen = {}
+    for _, key in ipairs(preferred) do
+        if value[key] ~= nil then
+            parts[#parts + 1] = tostring(key) .. "=" .. FeatureDescribeValue(value[key], depth + 1)
+            seen[key] = true
+        end
+    end
+
+    local count = 0
+    for key, entry in pairs(value) do
+        if not seen[key] then
+            parts[#parts + 1] = tostring(key) .. "=" .. FeatureDescribeValue(entry, depth + 1)
+            count = count + 1
+            if count >= 4 then
+                break
+            end
+        end
+    end
+
+    return "{" .. table.concat(parts, ", ") .. "}"
+end
+
+local function FeatureDescribeMask(value)
+    local numeric = tonumber(value)
+    if numeric == nil then
+        return tostring(value)
+    end
+
+    if numeric < 0 then
+        numeric = numeric + 4294967296
+    end
+    return string.format("0x%08X", numeric)
+end
+
+local function CopyFeatureColor(color)
+    if type(color) ~= "table" then
+        return nil
+    end
+
+    return {
+        r = tonumber(color.r) or 0.0,
+        g = tonumber(color.g) or 0.0,
+        b = tonumber(color.b) or 0.0,
+        a = tonumber(color.a) or 1.0,
+    }
+end
+
+local function CopyFeatureVector(vec)
+    if type(vec) ~= "table" then
+        return nil
+    end
+
+    return {
+        x = tonumber(vec.x) or 0.0,
+        y = tonumber(vec.y) or 0.0,
+        z = tonumber(vec.z) or 0.0,
+    }
+end
+
+local function CopyFeatureFog(fog)
+    if type(fog) ~= "table" then
+        return nil
+    end
+
+    local copied = {
+        r = tonumber(fog.r) or 0.0,
+        g = tonumber(fog.g) or 0.0,
+        b = tonumber(fog.b) or 0.0,
+    }
+
+    copied.start = tonumber(fog.start) or tonumber(fog.fogStart) or 0.0
+    copied.ending = tonumber(fog.ending) or tonumber(fog.fogEnd) or copied.start
+    return copied
+end
+
+local function CopyFeaturePassColors(colors)
+    if type(colors) ~= "table" then
+        return nil
+    end
+
+    return {
+        ambient = CopyFeatureColor(colors.ambient),
+        diffuse = CopyFeatureColor(colors.diffuse),
+        specular = CopyFeatureColor(colors.specular),
+        emissive = CopyFeatureColor(colors.emissive or colors.selfIllumination),
+    }
+end
+
+local function GetFeatureAlliedCraft()
+    local preferred = {
+        M.pu1, M.pu3, M.pu6, M.pu8, M.tug,
+    }
+
+    for _, h in ipairs(preferred) do
+        if h and IsValid(h) and IsAlive(h) and IsCraft(h) and not IsBuilding(h) and h ~= GetPlayerHandle() then
+            return h
+        end
+    end
+
+    for h in AllCraft() do
+        if h and IsValid(h) and IsAlive(h) and IsCraft(h) and not IsBuilding(h) and GetTeamNum(h) == 1 and h ~= GetPlayerHandle() then
+            return h
+        end
+    end
+
+    return nil
+end
+
+local function GetFeatureVisualHandle()
+    local player = GetPlayerHandle()
+    if player and IsValid(player) and IsAlive(player) and IsCraft(player) then
+        return player
+    end
+
+    local ally = GetFeatureAlliedCraft()
+    if ally and IsValid(ally) then
+        return ally
+    end
+
+    return M.avrec
+end
+
+local function RestoreFeatureMaterialSwap()
+    local info = M.featureTestMaterialRestore
+    if not info or not info.handle or not IsValid(info.handle) or not exu then
+        M.featureTestMaterialRestore = nil
+        M.featureTestMaterialRestoreAt = nil
+        return
+    end
+
+    if info.entityMaterial and exu.SetEntityMaterial then
+        pcall(exu.SetEntityMaterial, info.handle, info.entityMaterial, info.resourceGroup)
+    end
+    if info.subMaterial and info.subIndex ~= nil and exu.SetSubEntityMaterial then
+        pcall(exu.SetSubEntityMaterial, info.handle, info.subIndex, info.subMaterial, info.resourceGroup)
+    end
+    if info.materialName and exu.SetMaterialName then
+        if info.subIndex ~= nil then
+            pcall(exu.SetMaterialName, info.handle, info.materialName, info.subIndex, info.resourceGroup)
+        else
+            pcall(exu.SetMaterialName, info.handle, info.materialName, nil, info.resourceGroup)
+        end
+    end
+
+    M.featureTestMaterialRestore = nil
+    M.featureTestMaterialRestoreAt = nil
+    FeatureLog("Material hot-swap test restored")
+end
+
+local function RestoreFeatureRadar()
+    local info = M.featureTestRadarRestore
+    if not info or not exu then
+        M.featureTestRadarRestore = nil
+        M.featureTestRadarRestoreAt = nil
+        return
+    end
+
+    if info.state ~= nil and exu.SetRadarState then
+        pcall(exu.SetRadarState, info.state)
+    end
+    if info.scale ~= nil and exu.SetRadarSizeScale then
+        pcall(exu.SetRadarSizeScale, info.scale)
+    end
+
+    M.featureTestRadarRestore = nil
+    M.featureTestRadarRestoreAt = nil
+    FeatureLog("Radar test restored")
+end
+
+local function RestoreFeatureEdgePath()
+    local info = M.featureTestEdgePathRestore
+    if not info or not exu then
+        M.featureTestEdgePathRestore = nil
+        M.featureTestEdgePathRestoreAt = nil
+        return
+    end
+
+    if info.points and exu.SetEdgePathCoords then
+        pcall(exu.SetEdgePathCoords, info.points)
+    end
+    if exu.RefreshEdgePathBounds then
+        pcall(exu.RefreshEdgePathBounds)
+    end
+
+    M.featureTestEdgePathRestore = nil
+    M.featureTestEdgePathRestoreAt = nil
+    FeatureLog("Edge-path/minimap bounds test restored")
+end
+
+local function ApplyFeatureEnvironmentPreview()
+    local preview = M.featureTestEnvironmentPreview
+    if not preview or not exu then
+        return
+    end
+
+    if preview.fog and exu.SetFog then
+        pcall(exu.SetFog, preview.fog)
+    end
+    if preview.gravity and exu.SetGravity then
+        pcall(exu.SetGravity, preview.gravity)
+    end
+    if preview.ambient and exu.SetAmbientLight then
+        pcall(exu.SetAmbientLight, preview.ambient)
+    end
+    if preview.sunAmbient and exu.SetSunAmbient then
+        pcall(exu.SetSunAmbient, preview.sunAmbient)
+    end
+    if preview.sunDiffuse and exu.SetSunDiffuse then
+        pcall(exu.SetSunDiffuse, preview.sunDiffuse)
+    end
+    if preview.sunSpecular and exu.SetSunSpecular then
+        pcall(exu.SetSunSpecular, preview.sunSpecular)
+    end
+    if preview.sunDirection and exu.SetSunDirection then
+        pcall(exu.SetSunDirection, preview.sunDirection)
+    end
+    if preview.timeOfDay ~= nil and exu.SetTimeOfDay then
+        pcall(exu.SetTimeOfDay, preview.timeOfDay, true)
+    end
+    if preview.sunPowerScale ~= nil and exu.SetSunPowerScale then
+        pcall(exu.SetSunPowerScale, preview.sunPowerScale)
+    end
+    if preview.shadowFarDistance ~= nil and exu.SetSunShadowFarDistance then
+        pcall(exu.SetSunShadowFarDistance, preview.shadowFarDistance)
+    end
+    if preview.viewportShadows ~= nil and exu.SetViewportShadowsEnabled then
+        pcall(exu.SetViewportShadowsEnabled, preview.viewportShadows)
+    end
+    if preview.sceneVisibilityMask ~= nil and exu.SetSceneVisibilityMask then
+        pcall(exu.SetSceneVisibilityMask, preview.sceneVisibilityMask)
+    end
+end
+
+local function RestoreFeatureEnvironment()
+    local info = M.featureTestEnvironmentRestore
+    if not info or not exu then
+        M.featureTestEnvironmentPreview = nil
+        M.featureTestEnvironmentRestore = nil
+        M.featureTestEnvironmentRestoreAt = nil
+        return
+    end
+
+    M.featureTestEnvironmentPreview = nil
+
+    if info.fog and exu.SetFog then
+        pcall(exu.SetFog, info.fog)
+    end
+    if info.gravity and exu.SetGravity then
+        pcall(exu.SetGravity, info.gravity)
+    end
+    if info.ambient and exu.SetAmbientLight then
+        pcall(exu.SetAmbientLight, info.ambient)
+    end
+    if info.sunAmbient and exu.SetSunAmbient then
+        pcall(exu.SetSunAmbient, info.sunAmbient)
+    end
+    if info.sunDiffuse and exu.SetSunDiffuse then
+        pcall(exu.SetSunDiffuse, info.sunDiffuse)
+    end
+    if info.sunSpecular and exu.SetSunSpecular then
+        pcall(exu.SetSunSpecular, info.sunSpecular)
+    end
+    if info.sunDirection and exu.SetSunDirection then
+        pcall(exu.SetSunDirection, info.sunDirection)
+    end
+    if info.timeOfDay ~= nil and exu.SetTimeOfDay then
+        pcall(exu.SetTimeOfDay, info.timeOfDay, true)
+    end
+    if info.sunPowerScale ~= nil and exu.SetSunPowerScale then
+        pcall(exu.SetSunPowerScale, info.sunPowerScale)
+    end
+    if info.shadowFarDistance ~= nil and exu.SetSunShadowFarDistance then
+        pcall(exu.SetSunShadowFarDistance, info.shadowFarDistance)
+    end
+    if info.viewportShadows ~= nil and exu.SetViewportShadowsEnabled then
+        pcall(exu.SetViewportShadowsEnabled, info.viewportShadows)
+    end
+    if info.sceneVisibilityMask ~= nil and exu.SetSceneVisibilityMask then
+        pcall(exu.SetSceneVisibilityMask, info.sceneVisibilityMask)
+    end
+    if Environment and Environment.Update then
+        Environment.Update(0.0)
+    end
+
+    M.featureTestEnvironmentRestore = nil
+    M.featureTestEnvironmentRestoreAt = nil
+    FeatureLog("Environment preview test restored")
+end
+
+local function RestoreFeatureAiTask()
+    local info = M.featureTestAiRestore
+    if not info or not info.handle or not IsValid(info.handle) or not exu or not exu.SetAiTaskState then
+        M.featureTestAiRestore = nil
+        M.featureTestAiRestoreAt = nil
+        return
+    end
+
+    pcall(exu.SetAiTaskState, info.handle, info.state)
+    M.featureTestAiRestore = nil
+    M.featureTestAiRestoreAt = nil
+    FeatureLog("AI task-state test restored")
+end
+
+local function UpdateFeatureRestores()
+    if M.featureTestEnvironmentPreview then
+        ApplyFeatureEnvironmentPreview()
+    end
+
+    local now = GetTime()
+    if M.featureTestMaterialRestoreAt and now >= M.featureTestMaterialRestoreAt then
+        RestoreFeatureMaterialSwap()
+    end
+    if M.featureTestRadarRestoreAt and now >= M.featureTestRadarRestoreAt then
+        RestoreFeatureRadar()
+    end
+    if M.featureTestEdgePathRestoreAt and now >= M.featureTestEdgePathRestoreAt then
+        RestoreFeatureEdgePath()
+    end
+    if M.featureTestEnvironmentRestoreAt and now >= M.featureTestEnvironmentRestoreAt then
+        RestoreFeatureEnvironment()
+    end
+    if M.featureTestAiRestoreAt and now >= M.featureTestAiRestoreAt then
+        RestoreFeatureAiTask()
+    end
+end
+
+local function FeatureCommandReplacementCallback(unit, stockCommand, replacementLabel, origin)
+    M.featureTestCommandCallbackCount = (tonumber(M.featureTestCommandCallbackCount) or 0) + 1
+    FeatureLog(string.format(
+        "Command replacement fired (%s -> %s via %s, count=%d)",
+        tostring(stockCommand),
+        tostring(replacementLabel),
+        tostring(origin),
+        M.featureTestCommandCallbackCount
+    ), true, 3.5)
+    return true
+end
+
+local function ProbeFeatureOverlay()
+    FeatureNote("overlay", "overlay demo disabled")
+end
+
+local function ProbeFeatureCommandReplacement(handle)
+    if not handle or not IsValid(handle) then
+        FeatureNote("command_menu", "waiting for an allied craft to validate Hunt replacement")
+        return false
+    end
+
+    local required = {
+        "ReplaceStockCmd",
+        "RemoveStockCmdReplacement",
+        "HasStockCmdReplacement",
+        "GetStockCmdReplacement",
+        "TriggerStockCmdReplacement",
+        "UpdateCommandReplacements",
+    }
+    for _, apiName in ipairs(required) do
+        if not exu or type(exu[apiName]) ~= "function" then
+            FeatureNote("command_menu", "missing EXU API " .. apiName)
+            return false
+        end
+    end
+
+    if M.featureTestCommandHandle and M.featureTestCommandHandle ~= handle and exu.RemoveStockCmdReplacement then
+        pcall(exu.RemoveStockCmdReplacement, M.featureTestCommandHandle, FEATURE_TEST_REPLACEMENT_COMMAND)
+    end
+
+    local okReplace, replaceResult = pcall(
+        exu.ReplaceStockCmd,
+        handle,
+        FEATURE_TEST_REPLACEMENT_COMMAND,
+        FEATURE_TEST_REPLACEMENT_LABEL,
+        FeatureCommandReplacementCallback
+    )
+    if not okReplace or replaceResult == false then
+        FeatureNote("command_menu", "ReplaceStockCmd failed: " .. tostring(replaceResult))
+        return false
+    end
+
+    M.featureTestCommandHandle = handle
+    M.featureTestCommandInstalled = true
+
+    local okHas, hasReplacement = pcall(exu.HasStockCmdReplacement, handle, FEATURE_TEST_REPLACEMENT_COMMAND)
+    local okMeta, metadata = pcall(exu.GetStockCmdReplacement, handle, FEATURE_TEST_REPLACEMENT_COMMAND)
+    local okTrigger, triggerHandled = pcall(exu.TriggerStockCmdReplacement, handle, FEATURE_TEST_REPLACEMENT_COMMAND)
+
+    FeatureNote(
+        "command_menu",
+        string.format(
+            "registered Hunt replacement on handle=%s has=%s meta=%s manualTrigger=%s callbackCount=%d (F7 re-triggers; select the wingman to verify label swap)",
+            tostring(handle),
+            tostring(okHas and hasReplacement or false),
+            FeatureDescribeValue(okMeta and metadata or nil),
+            tostring(okTrigger and triggerHandled or false),
+            tonumber(M.featureTestCommandCallbackCount) or 0
+        )
+    )
+    return true
+end
+
+local function ProbeFeatureMaterials(handle)
+    if not handle or not IsValid(handle) then
+        FeatureNote("materials", "waiting for a live craft/building handle")
+        return false
+    end
+
+    local required = {
+        "GetMaterialName",
+        "SetEntityMaterial",
+        "SetMaterialName",
+        "MaterialExists",
+        "CloneMaterial",
+        "GetMaterialPassColors",
+        "SetMaterialPassColors",
+    }
+    for _, apiName in ipairs(required) do
+        if not exu or type(exu[apiName]) ~= "function" then
+            FeatureNote("materials", "missing EXU API " .. apiName)
+            return false
+        end
+    end
+
+    local resourceGroup = "General"
+    local subCount = 0
+    if exu.GetSubEntityCount then
+        local okSubCount, value = pcall(exu.GetSubEntityCount, handle)
+        if okSubCount then
+            subCount = math.max(math.floor(tonumber(value) or 0), 0)
+        end
+    elseif exu.GetNumSubEntities then
+        local okSubCount, value = pcall(exu.GetNumSubEntities, handle)
+        if okSubCount then
+            subCount = math.max(math.floor(tonumber(value) or 0), 0)
+        end
+    end
+
+    local subIndex = subCount > 0 and 0 or nil
+    local okEntityName, entityMaterial = pcall(exu.GetMaterialName, handle)
+    local subMaterial = nil
+    if subIndex ~= nil and exu.GetSubEntityMaterial then
+        local okSubName, value = pcall(exu.GetSubEntityMaterial, handle, subIndex)
+        if okSubName then
+            subMaterial = value
+        end
+    end
+    local baseMaterial = subMaterial or entityMaterial
+    if type(baseMaterial) ~= "string" or baseMaterial == "" then
+        FeatureNote("materials", "could not resolve a base material on handle " .. tostring(handle))
+        return false
+    end
+
+    local okExists, exists = pcall(exu.MaterialExists, baseMaterial, resourceGroup)
+    local cloneName = string.format("campaignReimagined/misn04_feature/%s/%d", tostring(baseMaterial):gsub("[^%w_]+", "_"), math.floor(GetTime() * 1000))
+    local okClone, cloned = pcall(exu.CloneMaterial, baseMaterial, cloneName, resourceGroup)
+    if (not okClone or cloned == false) and not (okExists and exists) then
+        FeatureNote(
+            "materials",
+            string.format(
+                "CloneMaterial failed base=%s entity=%s sub=%s subIndex=%s subCount=%d existsOk=%s exists=%s cloneOk=%s clone=%s",
+                tostring(baseMaterial),
+                tostring(entityMaterial),
+                tostring(subMaterial),
+                tostring(subIndex),
+                subCount,
+                tostring(okExists),
+                tostring(exists),
+                tostring(okClone),
+                tostring(cloned)
+            )
+        )
+        return false
+    end
+
+    local okColors, passColors = pcall(exu.GetMaterialPassColors, baseMaterial, 0, 0, resourceGroup)
+    local previewColors = CopyFeaturePassColors(okColors and passColors or nil) or {}
+    previewColors.diffuse = previewColors.diffuse or { r = 0.60, g = 0.75, b = 0.65, a = 1.0 }
+    previewColors.ambient = previewColors.ambient or { r = 0.25, g = 0.35, b = 0.28, a = 1.0 }
+    previewColors.specular = previewColors.specular or { r = 0.10, g = 0.16, b = 0.12, a = 1.0 }
+    previewColors.emissive = previewColors.emissive or { r = 0.0, g = 0.12, b = 0.03, a = 1.0 }
+
+    previewColors.diffuse.r = math.min((previewColors.diffuse.r or 0.6) + 0.18, 1.0)
+    previewColors.diffuse.g = math.min((previewColors.diffuse.g or 0.75) + 0.08, 1.0)
+    previewColors.diffuse.b = math.max((previewColors.diffuse.b or 0.65) - 0.15, 0.0)
+    previewColors.emissive.g = math.min((previewColors.emissive.g or 0.12) + 0.18, 1.0)
+
+    local okSetColors, setColorsResult = pcall(exu.SetMaterialPassColors, cloneName, previewColors, 0, 0, resourceGroup)
+    if not okSetColors or setColorsResult == false then
+        FeatureNote(
+            "materials",
+            string.format(
+                "SetMaterialPassColors failed clone=%s getColorsOk=%s passColors=%s setOk=%s setResult=%s",
+                tostring(cloneName),
+                tostring(okColors),
+                FeatureDescribeValue(okColors and passColors or nil),
+                tostring(okSetColors),
+                tostring(setColorsResult)
+            )
+        )
+        return false
+    end
+
+    if exu.SetEntityMaterial then
+        pcall(exu.SetEntityMaterial, handle, cloneName, resourceGroup)
+    end
+    if subIndex ~= nil and exu.SetSubEntityMaterial then
+        pcall(exu.SetSubEntityMaterial, handle, subIndex, cloneName, resourceGroup)
+    end
+    if exu.SetMaterialName then
+        if subIndex ~= nil then
+            pcall(exu.SetMaterialName, handle, cloneName, subIndex, resourceGroup)
+        else
+            pcall(exu.SetMaterialName, handle, cloneName, nil, resourceGroup)
+        end
+    end
+
+    local appliedEntityOk, appliedEntity = pcall(exu.GetMaterialName, handle)
+    local appliedSubOk, appliedSub = false, nil
+    if subIndex ~= nil and exu.GetSubEntityMaterial then
+        appliedSubOk, appliedSub = pcall(exu.GetSubEntityMaterial, handle, subIndex)
+    end
+
+    M.featureTestMaterialRestore = {
+        handle = handle,
+        entityMaterial = okEntityName and entityMaterial or nil,
+        subMaterial = subMaterial,
+        materialName = baseMaterial,
+        subIndex = subIndex,
+        resourceGroup = resourceGroup,
+    }
+    M.featureTestMaterialRestoreAt = GetTime() + 6.0
+
+    FeatureNote(
+        "materials",
+        string.format(
+            "base=%s entity=%s sub=%s exists=%s clone=%s readbackEntity=%s readbackSub=%s subEntities=%d preview live for 6s",
+            tostring(baseMaterial),
+            tostring(entityMaterial),
+            tostring(subMaterial),
+            tostring(okExists and exists or false),
+            tostring(cloneName),
+            tostring(appliedEntityOk and appliedEntity or "n/a"),
+            tostring(appliedSubOk and appliedSub or "n/a"),
+            subCount
+        )
+    )
+    return true
+end
+
+local function ProbeFeatureRadar()
+    if not exu or type(exu.GetRadarSizeScale) ~= "function" or type(exu.SetRadarSizeScale) ~= "function" then
+        FeatureNote("radar", "missing EXU radar scale APIs")
+        return false
+    end
+
+    local okScale, scale = pcall(exu.GetRadarSizeScale)
+    local okState, state = pcall(exu.GetRadarState)
+    local originalScale = tonumber(scale) or 1.0
+    local originalState = tonumber(state) or 0
+    local previewScale = math.max(0.60, math.min(originalScale * 0.75, 1.60))
+
+    if exu.SetRadarState then
+        pcall(exu.SetRadarState, 0)
+    end
+    pcall(exu.SetRadarSizeScale, previewScale)
+
+    M.featureTestRadarRestore = {
+        state = originalState,
+        scale = originalScale,
+    }
+    M.featureTestRadarRestoreAt = GetTime() + 5.0
+
+    FeatureNote("radar", string.format("state=%s scale %.2f -> %.2f for 5s", tostring(originalState), originalScale, previewScale))
+    return okScale and okState
+end
+
+local function ProbeFeatureEdgePath()
+    if not exu or type(exu.SetEdgePathCoords) ~= "function" or type(exu.RefreshEdgePathBounds) ~= "function" then
+        FeatureNote("edge_path", "missing EXU edge_path APIs")
+        return false
+    end
+
+    pcall(exu.SetEdgePathCoords, FEATURE_TEST_EDGE_PATH_VARIANT)
+    pcall(exu.RefreshEdgePathBounds)
+
+    M.featureTestEdgePathRestore = {
+        points = FEATURE_TEST_EDGE_PATH_BASE,
+    }
+    M.featureTestEdgePathRestoreAt = GetTime() + 5.0
+
+    FeatureNote("edge_path", "applied temporary runtime edge_path variant for 5s")
+    return true
+end
+
+local function ProbeFeatureEnvironment()
+    if not exu then
+        FeatureNote("environment", "EXU not loaded")
+        return false
+    end
+
+    local okFog, fog = FeatureExuCall("GetFog")
+    local okGravity, gravity = FeatureExuCall("GetGravity")
+    local okAmbient, ambient = FeatureExuCall("GetAmbientLight")
+    local okSunAmbient, sunAmbient = FeatureExuCall("GetSunAmbient")
+    local okSunDiffuse, sunDiffuse = FeatureExuCall("GetSunDiffuse")
+    local okSunSpecular, sunSpecular = FeatureExuCall("GetSunSpecular")
+    local okSunDirection, sunDirection = FeatureExuCall("GetSunDirection")
+    local okSunPower, sunPowerScale = FeatureExuCall("GetSunPowerScale")
+    local okShadowFar, shadowFarDistance = FeatureExuCall("GetSunShadowFarDistance")
+    local okViewportShadows, viewportShadows = FeatureExuCall("GetViewportShadowsEnabled")
+    local okVisibilityMask, sceneVisibilityMask = FeatureExuCall("GetSceneVisibilityMask")
+    local okSkyBoxNode, hasSkyBoxNode = FeatureExuCall("HasSkyBoxNode")
+    local okSkyDomeNode, hasSkyDomeNode = FeatureExuCall("HasSkyDomeNode")
+    local okSkyPlaneNode, hasSkyPlaneNode = FeatureExuCall("HasSkyPlaneNode")
+    local okSkyBoxParams, skyBoxParams = FeatureExuCall("GetSkyBoxParams")
+    local okSkyDomeParams, skyDomeParams = FeatureExuCall("GetSkyDomeParams")
+    local okSkyPlaneParams, skyPlaneParams = FeatureExuCall("GetSkyPlaneParams")
+
+    local baseFog = CopyFeatureFog(okFog and fog or nil)
+    local previewFog = baseFog and {
+        r = math.min(baseFog.r + 0.05, 1.0),
+        g = math.min(baseFog.g + 0.03, 1.0),
+        b = math.max(baseFog.b - 0.04, 0.0),
+        start = math.max(baseFog.start * 0.90, 10.0),
+        ending = math.max(baseFog.ending * 0.90, (baseFog.start * 0.90) + 25.0),
+    } or nil
+
+    local baseAmbient = CopyFeatureColor(okAmbient and ambient or nil)
+    local previewAmbient = baseAmbient and {
+        r = math.min(baseAmbient.r + 0.06, 1.0),
+        g = math.min(baseAmbient.g + 0.03, 1.0),
+        b = math.max(baseAmbient.b - 0.03, 0.0),
+        a = baseAmbient.a,
+    } or nil
+
+    local baseSunAmbient = CopyFeatureColor(okSunAmbient and sunAmbient or nil)
+    local previewSunAmbient = baseSunAmbient and {
+        r = math.min(baseSunAmbient.r + 0.08, 1.0),
+        g = math.min(baseSunAmbient.g + 0.04, 1.0),
+        b = math.max(baseSunAmbient.b - 0.04, 0.0),
+    } or nil
+
+    local baseSunDiffuse = CopyFeatureColor(okSunDiffuse and sunDiffuse or nil)
+    local previewSunDiffuse = baseSunDiffuse and {
+        r = math.min(baseSunDiffuse.r + 0.10, 1.0),
+        g = math.min(baseSunDiffuse.g + 0.04, 1.0),
+        b = math.max(baseSunDiffuse.b - 0.05, 0.0),
+    } or nil
+
+    local baseSunSpecular = CopyFeatureColor(okSunSpecular and sunSpecular or nil)
+    local previewSunSpecular = baseSunSpecular and {
+        r = math.min(baseSunSpecular.r + 0.05, 1.0),
+        g = math.min(baseSunSpecular.g + 0.03, 1.0),
+        b = math.max(baseSunSpecular.b - 0.02, 0.0),
+    } or nil
+
+    local baseSunDirection = CopyFeatureVector(okSunDirection and sunDirection or nil)
+    local previewSunDirection = baseSunDirection and {
+        x = baseSunDirection.x,
+        y = baseSunDirection.y,
+        z = baseSunDirection.z,
+    } or nil
+
+    local originalTimeOfDay = Environment and Environment.MapTimeOfDay or 1200
+    local previewSunPowerScale = okSunPower and tonumber(sunPowerScale) and (tonumber(sunPowerScale) * 0.85) or nil
+    local previewShadowFarDistance = okShadowFar and tonumber(shadowFarDistance) and (tonumber(shadowFarDistance) * 0.85) or nil
+
+    M.featureTestEnvironmentRestore = {
+        fog = baseFog,
+        gravity = CopyFeatureVector(okGravity and gravity or nil),
+        ambient = baseAmbient,
+        sunAmbient = baseSunAmbient,
+        sunDiffuse = baseSunDiffuse,
+        sunSpecular = baseSunSpecular,
+        sunDirection = baseSunDirection,
+        timeOfDay = originalTimeOfDay,
+        sunPowerScale = okSunPower and tonumber(sunPowerScale) or nil,
+        shadowFarDistance = okShadowFar and tonumber(shadowFarDistance) or nil,
+        viewportShadows = okViewportShadows and viewportShadows or nil,
+        sceneVisibilityMask = okVisibilityMask and sceneVisibilityMask or nil,
+    }
+    M.featureTestEnvironmentPreview = {
+        fog = previewFog,
+        gravity = CopyFeatureVector(okGravity and gravity or nil),
+        ambient = previewAmbient,
+        sunAmbient = previewSunAmbient,
+        sunDiffuse = previewSunDiffuse,
+        sunSpecular = previewSunSpecular,
+        sunDirection = previewSunDirection,
+        timeOfDay = originalTimeOfDay,
+        sunPowerScale = previewSunPowerScale,
+        shadowFarDistance = previewShadowFarDistance,
+        viewportShadows = okViewportShadows and viewportShadows or nil,
+        sceneVisibilityMask = okVisibilityMask and sceneVisibilityMask or nil,
+    }
+    M.featureTestEnvironmentRestoreAt = GetTime() + 5.0
+    ApplyFeatureEnvironmentPreview()
+
+    FeatureNote(
+        "environment",
+        string.format(
+            "fog=%s gravity=%s skyBox=%s skyDome=%s skyPlane=%s viewportShadows=%s visibilityMask=%s sunDir=%s preview live for 5s",
+            FeatureDescribeValue(okFog and fog or nil),
+            FeatureDescribeValue(okGravity and gravity or nil),
+            tostring(okSkyBoxNode and hasSkyBoxNode or okSkyBoxParams and skyBoxParams ~= nil),
+            tostring(okSkyDomeNode and hasSkyDomeNode or okSkyDomeParams and skyDomeParams ~= nil),
+            tostring(okSkyPlaneNode and hasSkyPlaneNode or okSkyPlaneParams and skyPlaneParams ~= nil),
+            tostring(okViewportShadows and viewportShadows or "n/a"),
+            tostring(okVisibilityMask and FeatureDescribeMask(sceneVisibilityMask) or "n/a"),
+            FeatureDescribeValue(okSunDirection and sunDirection or nil)
+        )
+    )
+    return true
+end
+
+local function ProbeFeatureAi(handle)
+    if not handle or not IsValid(handle) then
+        FeatureNote("ai_task", "waiting for an allied craft to validate AI task helpers")
+        return false
+    end
+
+    local required = {
+        "GetAiProcessState",
+        "GetAiTaskState",
+        "SetAiTaskState",
+        "GetAiRecycleTaskState",
+    }
+    for _, apiName in ipairs(required) do
+        if not exu or type(exu[apiName]) ~= "function" then
+            FeatureNote("ai_task", "missing EXU API " .. apiName)
+            return false
+        end
+    end
+
+    local okProcess, processState = pcall(exu.GetAiProcessState, handle)
+    local okTask, taskState = pcall(exu.GetAiTaskState, handle)
+    local okRecycle, recycleState = pcall(exu.GetAiRecycleTaskState, handle)
+    if not okTask or type(taskState) ~= "table" then
+        FeatureNote("ai_task", "GetAiTaskState unavailable on handle " .. tostring(handle))
+        return false
+    end
+
+    local restoreState = {}
+    local previewState = {}
+    local mutableFields = { "braccel", "strafe", "steer", "omega", "omegaScale", "pitch", "gotoForce" }
+    for _, fieldName in ipairs(mutableFields) do
+        local value = tonumber(taskState[fieldName])
+        if value ~= nil then
+            restoreState[fieldName] = value
+            previewState[fieldName] = value
+        end
+    end
+    if taskState.gotoDir ~= nil then
+        restoreState.gotoDir = taskState.gotoDir
+        previewState.gotoDir = taskState.gotoDir
+    end
+    if taskState.turbo ~= nil then
+        restoreState.turbo = taskState.turbo and true or false
+        previewState.turbo = not not taskState.turbo
+    end
+
+    if previewState.strafe ~= nil then
+        previewState.strafe = math.max(-1.0, math.min(1.0, previewState.strafe + 0.20))
+    end
+    if previewState.steer ~= nil then
+        previewState.steer = math.max(-1.0, math.min(1.0, previewState.steer + 0.10))
+    end
+
+    local okSet, setResult = pcall(exu.SetAiTaskState, handle, previewState)
+    if not okSet or setResult == false then
+        FeatureNote(
+            "ai_task",
+            string.format(
+                "SetAiTaskState failed handle=%s task=%s preview=%s okSet=%s setResult=%s",
+                tostring(handle),
+                FeatureDescribeValue(taskState),
+                FeatureDescribeValue(previewState),
+                tostring(okSet),
+                tostring(setResult)
+            )
+        )
+        return false
+    end
+
+    local okVerify, verifiedTaskState = pcall(exu.GetAiTaskState, handle)
+
+    M.featureTestAiRestore = {
+        handle = handle,
+        state = restoreState,
+    }
+    M.featureTestAiRestoreAt = GetTime() + 1.5
+
+    FeatureNote(
+        "ai_task",
+        string.format(
+            "process=%s task=%s recycle=%s preview=%s readback=%s applied for 1.5s on handle=%s",
+            FeatureDescribeValue(okProcess and processState or nil),
+            FeatureDescribeValue(taskState),
+            FeatureDescribeValue(okRecycle and recycleState or nil),
+            FeatureDescribeValue(previewState),
+            FeatureDescribeValue(okVerify and verifiedTaskState or nil),
+            tostring(handle)
+        )
+    )
+    return true
+end
+
+local function ProbeFeatureVoice()
+    if not exu then
+        FeatureNote("unit_vo", "EXU not loaded")
+        return false
+    end
+
+    local required = {
+        "GetUnitVoThrottle",
+        "SetUnitVoThrottle",
+        "GetUnitVoQueueDepthLimit",
+        "SetUnitVoQueueDepthLimit",
+        "GetUnitVoQueueStaleMs",
+        "SetUnitVoQueueStaleMs",
+        "GetUnitVoAlternates",
+        "SetUnitVoAlternates",
+    }
+    for _, apiName in ipairs(required) do
+        if type(exu[apiName]) ~= "function" then
+            FeatureNote("unit_vo", "missing EXU API " .. apiName)
+            return false
+        end
+    end
+
+    local okThrottle, throttle = pcall(exu.GetUnitVoThrottle)
+    local okDepth, depth = pcall(exu.GetUnitVoQueueDepthLimit)
+    local okStale, staleMs = pcall(exu.GetUnitVoQueueStaleMs)
+    local okAlternates, alternates = pcall(exu.GetUnitVoAlternates, FEATURE_TEST_VO_FILENAME)
+
+    local originalThrottle = tonumber(throttle) or 0
+    local originalDepth = tonumber(depth) or 0
+    local originalStaleMs = tonumber(staleMs) or 0
+
+    local okSetThrottle, setThrottleResult = pcall(exu.SetUnitVoThrottle, math.max(originalThrottle, 750))
+    local okSetDepth, setDepthResult = pcall(exu.SetUnitVoQueueDepthLimit, math.max(originalDepth, 2))
+    local okSetStale, setStaleResult = pcall(exu.SetUnitVoQueueStaleMs, math.max(originalStaleMs, 2000))
+    local okSetAlternates, setAlternatesResult = pcall(exu.SetUnitVoAlternates, FEATURE_TEST_VO_FILENAME, FEATURE_TEST_VO_ALTERNATES)
+    local okReadAlternates, alternatesAfterSet = pcall(exu.GetUnitVoAlternates, FEATURE_TEST_VO_FILENAME)
+
+    pcall(exu.SetUnitVoThrottle, originalThrottle)
+    pcall(exu.SetUnitVoQueueDepthLimit, originalDepth)
+    pcall(exu.SetUnitVoQueueStaleMs, originalStaleMs)
+    pcall(exu.SetUnitVoAlternates, FEATURE_TEST_VO_FILENAME, okAlternates and alternates or nil)
+
+    FeatureNote(
+        "unit_vo",
+        string.format(
+            "throttle=%d depth=%d staleMs=%d originalAlternates=%s setOk=%s/%s/%s/%s readback=%s validated on %s",
+            originalThrottle,
+            originalDepth,
+            originalStaleMs,
+            FeatureDescribeValue(okAlternates and alternates or nil),
+            tostring(okSetThrottle and setThrottleResult ~= false),
+            tostring(okSetDepth and setDepthResult ~= false),
+            tostring(okSetStale and setStaleResult ~= false),
+            tostring(okSetAlternates and setAlternatesResult ~= false),
+            FeatureDescribeValue(okReadAlternates and alternatesAfterSet or nil),
+            FEATURE_TEST_VO_FILENAME
+        )
+    )
+    return okThrottle and okDepth and okStale
+end
+
+local function ProbeFeatureBuildMenuBridge()
+    FeatureNote("build_menu", "OpenShim producer-build-menu bridge is config-driven; no Lua mission call is exposed to test here")
+end
+
+local function RunFeatureValidation(force)
+    if not exu then
+        return false
+    end
+    if M.featureTestCompleted and not force then
+        return true
+    end
+
+    local commandHandle = GetFeatureAlliedCraft()
+    local visualHandle = GetFeatureVisualHandle()
+
+    FeatureLog("Running EXU feature validation probes (F6 reruns, F7 re-triggers Hunt callback, F9 overlay demo)", true, 5.0)
+    ProbeFeatureOverlay()
+    ProbeFeatureCommandReplacement(commandHandle)
+    ProbeFeatureMaterials(visualHandle)
+    ProbeFeatureRadar()
+    ProbeFeatureEdgePath()
+    ProbeFeatureEnvironment()
+    ProbeFeatureAi(commandHandle)
+    ProbeFeatureBuildMenuBridge()
+    ProbeFeatureVoice()
+
+    M.featureTestCompleted = true
+    M.featureTestRunCount = (tonumber(M.featureTestRunCount) or 0) + 1
+    FeatureLog("Feature validation pass complete", true, 4.0)
+    return true
+end
+
+local function UpdateFeatureValidation()
+    UpdateFeatureRestores()
+
+    if not exu or type(exu.GetGameKey) ~= "function" then
+        return
+    end
+
+    if M.featureTestAutoAt and GetTime() >= M.featureTestAutoAt then
+        M.featureTestAutoAt = nil
+        RunFeatureValidation(false)
+    end
+
+    local rerunDown = exu.GetGameKey("F6") and true or false
+    if rerunDown and not M.featureTestRunLatch then
+        RunFeatureValidation(true)
+    end
+    M.featureTestRunLatch = rerunDown
+
+    local triggerDown = exu.GetGameKey("F7") and true or false
+    if triggerDown and not M.featureTestTriggerLatch then
+        if M.featureTestCommandInstalled and M.featureTestCommandHandle and IsValid(M.featureTestCommandHandle)
+            and exu.TriggerStockCmdReplacement then
+            local ok, handled = pcall(exu.TriggerStockCmdReplacement, M.featureTestCommandHandle, FEATURE_TEST_REPLACEMENT_COMMAND)
+            FeatureLog("Manual Hunt replacement trigger: " .. tostring(ok and handled or false), true, 3.0)
+        else
+            FeatureLog("Manual Hunt replacement trigger unavailable; rerun F6 after allied wingmen spawn", true, 3.0)
+        end
+    end
+    M.featureTestTriggerLatch = triggerDown
+end
+
 -- Helper for Difficulty-Scaled Tug Arrival
 local function GetTugDelay()
     local baseDelay = 180.0 -- Medium (Default)
@@ -1138,6 +2216,7 @@ function Start()
         Environment.Update(0.0)
     end
     M.overlayBootTestAt = GetTime() + 1.0
+    M.featureTestAutoAt = GetTime() + 4.0
     M.loading_done = true
 end
 
@@ -1265,14 +2344,14 @@ function Update()
         tugBuildRetryDelay = 10.0,
         tugBuildSuccessDelay = 25.0,
     })
-    PlayerPilotMode.Update()
-    aiCore.Update()
+    TraceUpdateCall("misn04.Update PlayerPilotMode.Update", PlayerPilotMode.Update)
+    TraceUpdateCall("misn04.Update aiCore.Update", aiCore.Update)
     if autosave and autosave.Update then
-        autosave.Update(1.0 / M.TPS)
+        TraceUpdateCall("misn04.Update autosave.Update", autosave.Update, 1.0 / M.TPS)
     end
-    UpdateModules(1.0 / M.TPS)
-    RunOverlayBootTest()
-    UpdateOverlayDemo()
+    TraceUpdateCall("misn04.Update UpdateModules", UpdateModules, 1.0 / M.TPS)
+    TraceUpdateCall("misn04.Update RunOverlayBootTest", RunOverlayBootTest)
+    TraceUpdateCall("misn04.Update UpdateFeatureValidation", UpdateFeatureValidation)
 
     if (not M.missionstart) then
         M.wave1 = GetTime() + DiffUtils.ScaleTimer(30.0) + math.random(-5, 10)
@@ -1907,5 +2986,24 @@ function Load(...)
     M.overlayPauseDebugDumpLatch = false
     M.overlayBootTestDone = false
     M.overlayBootTestAt = GetTime() + 1.0
+    M.featureTestAutoAt = GetTime() + 4.0
+    M.featureTestCompleted = false
+    M.featureTestRunLatch = false
+    M.featureTestTriggerLatch = false
+    M.featureTestCommandHandle = nil
+    M.featureTestCommandInstalled = false
+    M.featureTestCommandCallbackCount = 0
+    M.featureTestMaterialRestore = nil
+    M.featureTestMaterialRestoreAt = nil
+    M.featureTestRadarRestore = nil
+    M.featureTestRadarRestoreAt = nil
+    M.featureTestEdgePathRestore = nil
+    M.featureTestEdgePathRestoreAt = nil
+    M.featureTestEnvironmentPreview = nil
+    M.featureTestEnvironmentRestore = nil
+    M.featureTestEnvironmentRestoreAt = nil
+    M.featureTestAiRestore = nil
+    M.featureTestAiRestoreAt = nil
+    M.featureTestNotes = {}
     M.loadGracePeriod = GetTime() + 2.0
 end
