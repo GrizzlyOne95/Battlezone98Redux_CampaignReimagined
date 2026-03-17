@@ -4121,30 +4121,49 @@ local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compa
     return hardpointCount
 end
 
-local function GetPrimaryReticleLine(player)
+local function GetTargetPageWeaponSummary(player)
     if not IsValid(player) then return nil end
 
     local activeMask = GetCurrentWeaponMask(player)
     local installedMask = GetInstalledWeaponMask(player)
-    local searchMask = (activeMask and activeMask > 0) and activeMask or installedMask
+    local activeCount = 0
+    local installedCount = 0
+    for slot = 0, 4 do
+        if IsMaskBitSet(activeMask, slot) then
+            activeCount = activeCount + 1
+        end
+        if IsMaskBitSet(installedMask, slot) then
+            installedCount = installedCount + 1
+        end
+    end
+    local useInstalledFallback = activeCount <= 1 and installedCount > 1
+    local searchMask = ((activeMask and activeMask > 0) and not useInstalledFallback) and activeMask or installedMask
     if not searchMask or searchMask <= 0 then
         return nil
     end
 
+    local parts = {}
     for slot = 0, 4 do
         if IsMaskBitSet(searchMask, slot) then
             local weapon = CleanString(GetWeaponClass(player, slot))
             if weapon ~= "" then
                 local displayedStats = GetDisplayedWeaponStats(player, weapon, GetWeaponStats(weapon) or {}) or {}
                 local reticle = GetWeaponReticleName(weapon, displayedStats.currentChargeLevel)
+                local displayName = CleanString(displayedStats.displayName or weapon)
+                local part = string.format("S%d %s", slot + 1, displayName)
                 if reticle and reticle ~= "" then
-                    return string.format("RET  S%d %s", slot + 1, reticle)
+                    part = string.format("S%d %s/%s", slot + 1, reticle, displayName)
                 end
+                parts[#parts + 1] = part
             end
         end
     end
 
-    return nil
+    if #parts == 0 then
+        return nil
+    end
+
+    return "WPN  " .. table.concat(parts, " | ")
 end
 
 local function DescribeAimMode(aimInfo)
@@ -4196,7 +4215,7 @@ local function BuildTargetPageText(player)
     local target = aimInfo and aimInfo.handle or nil
     local targetDistance = aimInfo and aimInfo.distance or nil
     local aimPosition = aimInfo and aimInfo.position or nil
-    local reticleLine = GetPrimaryReticleLine(player)
+    local reticleLine = GetTargetPageWeaponSummary(player)
 
     table.insert(lines, "MODE " .. DescribeAimMode(aimInfo))
     if reticleLine then
@@ -5893,6 +5912,10 @@ function PersistentConfig.UpdateInputs()
     end
 
     InputState.SubtitlesPaused = pauseMenuOpen or escapePressed
+    local scriptSubtitles = package.loaded["ScriptSubtitles"]
+    if scriptSubtitles and scriptSubtitles.SetSuspended then
+        scriptSubtitles.SetSuspended(InputState.SubtitlesPaused)
+    end
     if subtitles and subtitles.set_suspended then
         subtitles.set_suspended(InputState.SubtitlesPaused)
     end
