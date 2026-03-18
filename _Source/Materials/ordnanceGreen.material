@@ -1,0 +1,16 @@
+import * from "CR_BZBase.material"
+
+material ordnanceGreen : CR_BZBase
+{
+	set_texture_alias DiffuseMap color_ramp_plasma_green.dds
+	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias SpecularMap black.dds
+	set_texture_alias EmissiveMap black.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $bias "0"
+}
+

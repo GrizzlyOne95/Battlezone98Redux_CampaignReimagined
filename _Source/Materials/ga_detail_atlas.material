@@ -1,0 +1,17 @@
+import * from "CR_BZTerrainBase.material"
+
+material GA_DETAIL_ATLAS : CR_BZTerrainBase
+{
+	set_texture_alias DiffuseMap GANYMEDE_ATLAS_D.dds
+	set_texture_alias DetailMap ma_detail.dds
+	set_texture_alias NormalMap GANYMEDE_ATLAS_N.dds
+	set_texture_alias SpecularMap GANYMEDE_ATLAS_S.dds
+	set_texture_alias EmissiveMap black.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".25 .25 .25"
+	set $shininess "31"
+	set $bias "0"
+}
+

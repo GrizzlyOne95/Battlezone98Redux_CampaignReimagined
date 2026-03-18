@@ -1,0 +1,42 @@
+material testground
+{
+    technique
+    {
+	pass
+	{
+	    vertex_program_ref DiffuseSpecularNormalEmissiveBase_vertex
+	    {
+	    }
+	    fragment_program_ref DiffuseSpecularNormalEmissiveBase_fragment
+	    {
+	    }
+
+	    ambient 0.5 0.5 0.5
+	    diffuse 1 1 1
+	    specular .96 .86 .67 127
+	
+	    texture_unit diffuseMap
+	    {
+            texture MOON_ATLAS_D.dds
+	    }
+
+	    texture_unit normalMap
+	    {
+		texture MOON_ATLAS_N.dds
+	    }
+
+	    texture_unit specularMap
+	    {
+		texture abcomm_S.dds
+	    }
+
+	    texture_unit emissiveMap
+	    {
+		texture black.png
+	    }
+	}
+    }
+}
+
+
+

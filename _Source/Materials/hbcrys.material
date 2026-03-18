@@ -1,0 +1,16 @@
+import * from "CR_BZBase.material"
+
+material hbcrys : CR_BZBase
+{
+	set_texture_alias DiffuseMap hbfact00_D.dds
+	set_texture_alias NormalMap hbfact00_N.dds
+	set_texture_alias SpecularMap hbfact00_S.dds
+	set_texture_alias EmissiveMap hbfact00_E.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+

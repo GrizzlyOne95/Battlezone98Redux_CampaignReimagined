@@ -1,0 +1,20 @@
+import * from "CR_BZBase.material"
+
+material SBCOMM : CR_BZBase
+{
+	set_texture_alias DiffuseMap sbcomm_d.dds
+	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias SpecularMap sbcomm_S.dds
+	set_texture_alias EmissiveMap sbcomm_e.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+
+
+
+
+

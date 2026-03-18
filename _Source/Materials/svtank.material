@@ -1,0 +1,36 @@
+import * from "CR_BZBase.material"
+
+material svtank00 : CR_BZBase
+{
+	set_texture_alias DiffuseMap svtank_d.dds
+	set_texture_alias NormalMap svtank_N.dds
+	set_texture_alias SpecularMap svtank_S.dds
+	set_texture_alias EmissiveMap svtank_e.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+
+material svtank01 : CR_BZBaseCockpit
+{
+	set_texture_alias DiffuseMap soviet_units_cockpit_d.dds
+	set_texture_alias NormalMap soviet_units_cockpit_n.dds
+	set_texture_alias SpecularMap soviet_units_cockpit_S.dds
+	set_texture_alias EmissiveMap soviet_units_cockpit_e.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+
+
+
+
+
+
+

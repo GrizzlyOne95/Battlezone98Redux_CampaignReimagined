@@ -1,0 +1,101 @@
+//VERTEX
+
+vertex_program CR_Sky_vertexHLSL4 hlsl
+{
+    source CR_sky-sm4.hlsl
+    target vs_4_0
+    entry_point sky_vertex
+}
+
+vertex_program CR_Sky_vertexHLSL hlsl
+{
+    source CR_sky.hlsl
+    target vs_3_0
+    entry_point sky_vertex
+}
+
+vertex_program CR_Sky_vertexGLSL glsl
+{
+    source CR_sky-vertex.glsl
+	syntax glsl120
+    entry_point vs_main
+}
+
+vertex_program CR_Sky_vertexGLSLES glsles
+{
+	source sky-vertex.glsles
+	syntax glsles
+	entry_point vs_main
+}
+
+//FRAGMENT
+
+fragment_program CR_Sky_fragmentHLSL4 hlsl
+{
+    source CR_sky-sm4.hlsl
+    target ps_4_0
+    entry_point sky_fragment
+}
+
+fragment_program CR_Sky_fragmentHLSL hlsl
+{
+    source CR_sky.hlsl
+    target ps_3_0
+    entry_point sky_fragment
+}
+
+fragment_program CR_Sky_fragmentGLSL glsl
+{
+    source CR_sky-fragment.glsl
+	syntax glsl120
+    entry_point ps_main
+	
+	default_params
+    {
+		param_named diffuseMap int 0
+    }
+}
+
+fragment_program CR_Sky_fragmentGLSLES glsles
+{
+	source sky-fragment.glsles
+	syntax glsles
+	entry_point ps_main
+
+	default_params
+	{
+		param_named diffuseMap int 0
+	}
+}
+
+//UNIFIED
+
+vertex_program CR_Sky_vertex unified
+{
+	delegate  CR_Sky_vertexGLSLES
+	delegate  CR_Sky_vertexGLSL
+	delegate  CR_Sky_vertexHLSL4
+	delegate  CR_Sky_vertexHLSL
+
+	default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+    }
+}
+
+fragment_program CR_Sky_fragment unified
+{
+	delegate CR_Sky_fragmentGLSLES
+	delegate CR_Sky_fragmentGLSL
+	delegate CR_Sky_fragmentHLSL4
+	delegate CR_Sky_fragmentHLSL
+	
+	default_params
+    {
+    }
+} 
+
+
+
+
+
