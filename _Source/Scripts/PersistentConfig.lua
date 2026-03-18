@@ -7,6 +7,7 @@ local RuntimeEnhancements = require("RuntimeEnhancements")
 local ConservativeCulling = require("ConservativeCulling")
 
 local PersistentConfig = {}
+PersistentConfig.ReactiveReticleModule = require("ReactiveReticle")
 PersistentConfig.Channels = {
     WeaponStats = 1,
     PdaFeedback = 2,
@@ -93,7 +94,7 @@ PersistentConfig.DefaultSettings = {
     PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
     PdaFontScale = 1.30,            -- PDA font/window scale (0.85-1.30)
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
-    TargetReticlePopupMode = 1,     -- 1=Default 2=Neutral Only 3=Explicit Only
+    TargetReticlePopupMode = 1,     -- 1=Default 3=Explicit Only (legacy 2 downgrades to Default)
     ScrapPilotHudLayout = 2,        -- 1=Stock 2=Legacy
     RadarSizeScale = 1.00,          -- Independent radar size scale
     DynamicFactionFlameColors = false, -- Team flame colors from faction nation codes
@@ -196,9 +197,8 @@ PersistentConfig.UnitVerbosityPresets = {
 }
 
 PersistentConfig.TargetReticlePopupPresets = {
-    [1] = { name = "DEFAULT" },
-    [2] = { name = "NEUTRAL ONLY" },
-    [3] = { name = "EXPLICIT ONLY" },
+    [1] = { name = "DEFAULT", mode = 1 },
+    [2] = { name = "EXPLICIT ONLY", mode = 3 },
 }
 
 local PdaPanelMaterialFamilies = {
@@ -213,6 +213,12 @@ local ScrapPilotHudLayouts = {
     [1] = { name = "STOCK" },
     [2] = { name = "LEGACY" },
 }
+local ScrapPilotHudMaterialNames = {
+    "HUDcombi",
+    "HUDcomba",
+}
+local StockScrapPilotHudTexture = "GreenHUD.png"
+local LegacyScrapPilotHudTexture = "GreenHUD_2.png"
 
 local HeadlightColorPresets = {
     [1] = { name = "WHITE", r = 5.0, g = 5.0, b = 5.0 },
@@ -568,9 +574,15 @@ local function GetPdaColorPreset()
     return PdaColorPresets[ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)]
 end
 
+function PersistentConfig._GetTargetReticlePopupPresetIndex()
+    if PersistentConfig.Settings.TargetReticlePopupMode == 3 then
+        return 2
+    end
+    return 1
+end
+
 function PersistentConfig._GetTargetReticlePopupPreset()
-    return PersistentConfig.TargetReticlePopupPresets[ClampIndex(PersistentConfig.Settings.TargetReticlePopupMode, 1,
-        #PersistentConfig.TargetReticlePopupPresets, 1)]
+    return PersistentConfig.TargetReticlePopupPresets[PersistentConfig._GetTargetReticlePopupPresetIndex()]
 end
 
 local function GetPdaPanelMaterialTargetColor(r, g, b)
@@ -5492,8 +5504,20 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
         return
     end
 
+    local layoutIndex = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2)
+
+    if exu.SetMaterialTexture then
+        local hudTexture = (layoutIndex == 2) and LegacyScrapPilotHudTexture or StockScrapPilotHudTexture
+        if PersistentConfig._AppliedScrapPilotHudTexture ~= hudTexture then
+            for _, materialName in ipairs(ScrapPilotHudMaterialNames) do
+                pcall(exu.SetMaterialTexture, materialName, hudTexture)
+            end
+            PersistentConfig._AppliedScrapPilotHudTexture = hudTexture
+        end
+    end
+
     if exu.SetScrapHudColor then
-        if ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2 then
+        if layoutIndex == 2 then
             exu.SetScrapHudColor(0xFF007FFF)
         else
             exu.SetScrapHudColor(0xFFFFFFFF)
@@ -5501,14 +5525,14 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
     end
 
     if exu.SetPilotHudColor then
-        if ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2 then
+        if layoutIndex == 2 then
             exu.SetPilotHudColor(0xFF00FF00)
         else
             exu.SetPilotHudColor(0xFFFFFFFF)
         end
     end
 
-    if ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) ~= 2 then
+    if layoutIndex ~= 2 then
         if exu.SetScrapPilotHudOffset then
             exu.SetScrapPilotHudOffset(0, 0)
         end
@@ -5701,13 +5725,13 @@ function PersistentConfig._CycleUnitVerbosity(delta)
 end
 
 function PersistentConfig._CycleTargetReticlePopupMode(delta)
-    local nextIndex = CycleIndex(PersistentConfig.Settings.TargetReticlePopupMode,
-        #PersistentConfig.TargetReticlePopupPresets, delta, 1)
-    if PersistentConfig.Settings.TargetReticlePopupMode == nextIndex then
+    local currentIndex = PersistentConfig._GetTargetReticlePopupPresetIndex()
+    local nextIndex = CycleIndex(currentIndex, #PersistentConfig.TargetReticlePopupPresets, delta, 1)
+    if currentIndex == nextIndex then
         return false
     end
 
-    PersistentConfig.Settings.TargetReticlePopupMode = nextIndex
+    PersistentConfig.Settings.TargetReticlePopupMode = PersistentConfig.TargetReticlePopupPresets[nextIndex].mode
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
     ShowFeedback("Hit Reticle: " .. PersistentConfig._GetTargetReticlePopupPreset().name, 0.8, 1.0, 0.8, 2.5, false,
         "pda")
@@ -5916,6 +5940,13 @@ GetSettingsPageEntries = function()
             end,
         },
         {
+            label = "Retro Lighting",
+            value = PersistentConfig.Settings.RetroLighting and "On" or "Off",
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetRetroLightingEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
             label = "Subtitles",
             value = PersistentConfig.Settings.SubtitlesEnabled and "On" or "Off",
             adjust = function(delta)
@@ -5934,13 +5965,6 @@ GetSettingsPageEntries = function()
             value = PersistentConfig.Settings.DynamicFactionFlameColors and "On" or "Off",
             adjust = function(delta)
                 return PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(DirectionEnabled(delta))
-            end,
-        },
-        {
-            label = "Retro Lighting",
-            value = PersistentConfig.Settings.RetroLighting and "On" or "Off",
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetRetroLightingEnabled(DirectionEnabled(delta))
             end,
         },
         {
@@ -6220,8 +6244,7 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.PdaFontScale = ClampRange(PersistentConfig.Settings.PdaFontScale,
         PersistentConfig.FontScale.pda.min, PersistentConfig.FontScale.pda.max, 1.0)
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
-    PersistentConfig.Settings.TargetReticlePopupMode = ClampIndex(PersistentConfig.Settings.TargetReticlePopupMode, 1,
-        #PersistentConfig.TargetReticlePopupPresets, 1)
+    PersistentConfig.Settings.TargetReticlePopupMode = PersistentConfig._GetTargetReticlePopupPreset().mode
     PersistentConfig.Settings.ScrapPilotHudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1,
         #ScrapPilotHudLayouts, 2)
     PersistentConfig.Settings.RadarSizeScale = GetRadarSizeScaleSetting()
@@ -6446,6 +6469,7 @@ function PersistentConfig.UpdateInputs()
     end
 
     PersistentConfig._UpdatePdaOverlayTimers()
+    PersistentConfig.ReactiveReticleModule.Update()
 
     local keepPdaOverlayLive = PersistentConfig._CanUsePdaOverlay()
     if pauseMenuOpen then
@@ -7125,6 +7149,46 @@ function PersistentConfig.Initialize()
     -- Keep EXU overlay/font initialization lazy so startup does not touch the
     -- custom Ogre font path before the UI runtime is fully ready.
     PersistentConfig._InstallPlayerChargeTrackingHook()
+    PersistentConfig.ReactiveReticleModule.Reset()
+    PersistentConfig.ReactiveReticleModule.Initialize({
+        log = Log,
+        registerHitCallback = function(fn)
+            if aiCore and type(aiCore.RegisterExuCallback) == "function" then
+                return aiCore.RegisterExuCallback("BulletHit", fn)
+            end
+            return false
+        end,
+        resolveMaterial = function()
+            if not exu or exu.isStub then
+                return nil
+            end
+
+            local player = GetPlayerHandle and GetPlayerHandle() or nil
+            if not IsValid(player) then
+                return nil
+            end
+
+            local searchMask = ResolveLiveSelectedWeaponMask(player, GetCurrentWeaponMask(player))
+            if not searchMask or searchMask <= 0 then
+                return nil
+            end
+
+            for slot = 0, 4 do
+                if IsMaskBitSet(searchMask, slot) then
+                    local weapon = CleanString(GetWeaponClass(player, slot))
+                    if weapon ~= "" then
+                        local displayedStats = GetDisplayedWeaponStats(player, weapon, GetWeaponStats(weapon) or {}) or {}
+                        local reticle = CleanString(GetWeaponReticleName(weapon, displayedStats.currentChargeLevel))
+                        if reticle ~= "" then
+                            return reticle
+                        end
+                    end
+                end
+            end
+
+            return nil
+        end,
+    })
     MarkOtherHeadlightsDirty()
 
     -- Sync AutoSave config from settings
@@ -7210,6 +7274,7 @@ function PersistentConfig.Initialize()
             local oldSucceed = SucceedMission
             SucceedMission = function(...)
                 PersistentConfig._DestroyAllPdaOverlays()
+                PersistentConfig.ReactiveReticleModule.Reset()
                 local subtit = GetScriptSubtitles()
                 if subtit and subtit.ClearActive then
                     subtit.ClearActive()
@@ -7221,6 +7286,7 @@ function PersistentConfig.Initialize()
             local oldFail = FailMission
             FailMission = function(...)
                 PersistentConfig._DestroyAllPdaOverlays()
+                PersistentConfig.ReactiveReticleModule.Reset()
                 local subtit = GetScriptSubtitles()
                 if subtit and subtit.ClearActive then
                     subtit.ClearActive()
