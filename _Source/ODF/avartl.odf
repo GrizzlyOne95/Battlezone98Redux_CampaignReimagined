@@ -13,6 +13,12 @@ imageSignature = 2.0
 radarSignature = 1.0
 weaponHard1 = "GM1"
 weaponName1 = "ghartill"
+weaponHard2 = "GM2"
+weaponName2 = "ghartill"
+weaponHard3 = "GM3"
+weaponName3 = "ghartill"
+weaponHard4 = "GM4"
+weaponName4 = "ghartill"
 
 [CraftClass]
 rangeScan = 459.99999999999994

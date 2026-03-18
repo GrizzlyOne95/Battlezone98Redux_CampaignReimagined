@@ -1,10 +1,11 @@
-# Campaign Reimagined
+# Enhanced Shaders
 
-Workspace addon content and shipped script sources for Battlezone 98 Redux.
+Material, shader, and rendering-profile addon content for Battlezone 98 Redux.
 
-Current note:
-- `PersistentConfig.lua` now exposes an `OG Lighting` / `OG LIGHTING` toggle in both the source and release script trees so the PDA settings menu can drive the EXU retro-lighting viewport switch persistently.
+Current shader pass:
+- conservative stock-derived `CR_*` material/shader fork
+- shared DX9, DX11, and GL safety hardening
+- terrain atlas texel-center and packed-normal fixes aimed at stock terrain deformation issues
+- optional OG retro-lighting compatibility through the `og-*` material schemes used by the addon stack
 
-Repo layout:
-- `_Source/` is the editable script source.
-- `_Release/` mirrors the shipped addon-side script content.
+See [`ISSUE_TRIAGE.md`](ISSUE_TRIAGE.md) for the current rationale and issue-by-issue status for this pass.
