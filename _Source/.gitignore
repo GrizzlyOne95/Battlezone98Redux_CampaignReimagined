@@ -1,5 +1,7 @@
 # Ignore everything in root by default
 /*
+!/Scripts/
+/Scripts/*
 
 # Unignore specific root files
 !/.gitignore
@@ -38,3 +40,4 @@ _Source/Scripts/Renderer.lua
 _Source/Scripts/ShaderSwap.lua
 _Source/Text/need_defs.txt
 _Source/Text/OgreMain.dumpbin.exports.txt
+!/Scripts/ReactiveReticle.lua
