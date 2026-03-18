@@ -1310,6 +1310,13 @@ function exu.SetRadarSizeScale(scale) end
 --- @return boolean
 function exu.SetUnderAttackAlertMode(mode) end
 
+--- Sets the OpenShim target-reticle popup mode.
+--- 1 = Default, 3 = Explicit Only
+--- 2 remains reserved for the experimental neutral-only path and downgrades to Default in normal builds.
+--- @param mode integer
+--- @return boolean
+function exu.SetTargetReticlePopupMode(mode) end
+
 --- Reticle
 ---
 --- These functions can query various information about the smart reticle.
