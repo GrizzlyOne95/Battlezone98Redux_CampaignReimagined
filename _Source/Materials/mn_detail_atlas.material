@@ -1,0 +1,19 @@
+import * from "CR_BZTerrainBase.material"
+
+material MN_DETAIL_ATLAS : CR_BZTerrainBase
+{
+	set_texture_alias DiffuseMap moon_atlas_d.dds
+	set_texture_alias DetailMap mn_detail.dds
+	set_texture_alias NormalMap moon_atlas_n.dds
+	set_texture_alias SpecularMap moon_atlas_s.dds
+	set_texture_alias EmissiveMap black.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".25 .25 .25"
+	set $shininess "63"
+	set $bias "0"
+}
+
+
+

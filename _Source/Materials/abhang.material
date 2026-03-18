@@ -1,0 +1,17 @@
+import * from "CR_BZBase.material"
+
+material abhang00 : CR_BZBase
+{
+	set_texture_alias DiffuseMap abhang_D.dds
+	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias SpecularMap abhang_S.dds
+	set_texture_alias EmissiveMap abhang_E.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+
+

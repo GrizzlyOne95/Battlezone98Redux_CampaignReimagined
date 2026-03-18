@@ -1,0 +1,19 @@
+import * from "CR_BZBase.material"
+
+material CBSUPP : CR_BZBase
+{
+	set_texture_alias DiffuseMap cbsmbld_d.dds
+	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias SpecularMap cbsmbld_S.dds
+	set_texture_alias EmissiveMap cbsmbld_e.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+
+
+
+

@@ -1,0 +1,17 @@
+import * from "CR_BZBase.material"
+
+material avslf00 : CR_BZBase
+{
+	set_texture_alias DiffuseMap avslf_D.dds
+	set_texture_alias NormalMap avslf_N.dds
+	set_texture_alias SpecularMap avslf_S.dds
+	set_texture_alias EmissiveMap avslf_E.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+
+

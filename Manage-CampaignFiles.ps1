@@ -15,6 +15,7 @@ Set-Location $PSScriptRoot
 $SourceDir = "_Source"
 $ReleaseDir = "_Release"
 $CurrentDir = Get-Location
+$StructuredRuntimeDirs = @("flags", "OverlayFont")
 
 
 # Global error trap to keep window open on crash
@@ -92,6 +93,55 @@ function Get-ManagedFlatFiles($pathValue) {
     }
 }
 
+function Get-StructuredRuntimeFiles($pathValue) {
+    if (-not (Test-Path $pathValue)) {
+        return @()
+    }
+
+    foreach ($dirName in $StructuredRuntimeDirs) {
+        $dirPath = Join-Path $pathValue $dirName
+        if (Test-Path $dirPath) {
+            Get-ChildItem -Path $dirPath -Recurse -File -ErrorAction SilentlyContinue | Where-Object {
+                $_.Name -ne "desktop.ini" -and
+                $_.Name -ne "thumbs.db" -and
+                -not $_.Name.StartsWith(".")
+            }
+        }
+    }
+}
+
+function Get-RelativePathFromBase($basePath, $fullPath) {
+    $resolvedBase = (Resolve-Path $basePath).Path
+    if ($fullPath.StartsWith($resolvedBase, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $fullPath.Substring($resolvedBase.Length).TrimStart('\')
+    }
+
+    return $null
+}
+
+function Is-StructuredRuntimeRelativePath($relativePath) {
+    foreach ($dirName in $StructuredRuntimeDirs) {
+        if ($relativePath.Equals($dirName, [System.StringComparison]::OrdinalIgnoreCase) -or
+            $relativePath.StartsWith($dirName + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Get-ManagedSourceFiles {
+    if (-not (Test-Path $SourceDir)) {
+        return @()
+    }
+
+    $localDir = Join-Path (Resolve-Path $SourceDir).Path "Local"
+
+    Get-ChildItem -Path $SourceDir -Recurse -File | Where-Object {
+        -not $_.FullName.StartsWith($localDir + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)
+    }
+}
+
 function Sync-ToSource {
     Write-Host "Syncing files from deployed addon to $SourceDir..." -ForegroundColor Cyan
 
@@ -111,7 +161,7 @@ function Sync-ToSource {
     # Index existing source files for update (Name -> FullPath)
     $sourceMap = @{}
     if (Test-Path $SourceDir) {
-        $sourceFiles = Get-ChildItem -Path $SourceDir -Recurse -File
+        $sourceFiles = Get-ManagedSourceFiles
         foreach ($file in $sourceFiles) {
             if (-not $sourceMap.ContainsKey($file.Name)) {
                 $sourceMap[$file.Name] = $file.FullName
@@ -119,14 +169,44 @@ function Sync-ToSource {
         }
     }
 
-    $addonFiles = Get-ManagedFlatFiles $addonDir
+    $addonFiles = @(
+        Get-ManagedFlatFiles $addonDir
+        Get-StructuredRuntimeFiles $addonDir
+    )
     
     $updated = 0
     $added = 0
     $skipped = 0
     
     foreach ($file in $addonFiles) {
-        if ($sourceMap.ContainsKey($file.Name)) {
+        $addonRelativePath = Get-RelativePathFromBase $addonDir $file.FullName
+
+        if ($addonRelativePath -and (Is-StructuredRuntimeRelativePath $addonRelativePath)) {
+            $targetPath = Join-Path $SourceDir $addonRelativePath
+            $targetDir = Split-Path $targetPath -Parent
+
+            if (-not (Test-Path $targetDir)) {
+                New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+            }
+
+            if (Test-Path $targetPath) {
+                $srcItem = Get-Item $targetPath
+                if ($file.LastWriteTime -gt $srcItem.LastWriteTime) {
+                    Copy-Item -Path $file.FullName -Destination $targetPath -Force
+                    Write-Host "Updated: $addonRelativePath" -ForegroundColor Yellow
+                    $updated++
+                }
+                else {
+                    $skipped++
+                }
+            }
+            else {
+                Copy-Item -Path $file.FullName -Destination $targetPath -Force
+                Write-Host "Added: $addonRelativePath" -ForegroundColor Green
+                $added++
+            }
+        }
+        elseif ($sourceMap.ContainsKey($file.Name)) {
             # File exists in source - check if deployed version is newer
             $targetPath = $sourceMap[$file.Name]
             $srcItem = Get-Item $targetPath
@@ -173,14 +253,26 @@ function Sync-FromSource {
     }
 
     # Get all files in _Source directory recursively
-    $sourceFiles = Get-ChildItem -Path $SourceDir -Recurse -File
+    $sourceFiles = Get-ManagedSourceFiles
     
     $updated = 0
     $added = 0
     $skipped = 0
     
     foreach ($file in $sourceFiles) {
-        $addonPath = Join-Path $addonDir $file.Name
+        $sourceRelativePath = Get-RelativePathFromBase $SourceDir $file.FullName
+        $deployRelativePath = if ($sourceRelativePath -and (Is-StructuredRuntimeRelativePath $sourceRelativePath)) {
+            $sourceRelativePath
+        }
+        else {
+            $file.Name
+        }
+
+        $addonPath = Join-Path $addonDir $deployRelativePath
+        $addonPathParent = Split-Path $addonPath -Parent
+        if (-not (Test-Path $addonPathParent)) {
+            New-Item -ItemType Directory -Path $addonPathParent -Force | Out-Null
+        }
         
         if (Test-Path $addonPath) {
             $addonItem = Get-Item $addonPath
@@ -207,6 +299,22 @@ function Sync-FromSource {
 }
 
 function Get-TargetSubfolder($fileName) {
+    $normalizedName = $fileName.ToLowerInvariant()
+    switch -Regex ($normalizedName) {
+        '^bzogrelogfile\.log$' { return "Local/Logs" }
+        '^winmm_shim\.log$' { return "Local/Logs" }
+        '^n64\.code-workspace$' { return "Local/Workspace" }
+        '^cpp_lua_mission_flow_report\.md$' { return "Local/Reports" }
+        '^bzplyr\.def$' { return "Local/Config" }
+        '^exu_backup_.*\.(dll|pdb)$' { return "Local/Bin" }
+        '^exu\.pdb$' { return "Local/Bin" }
+        '^exu-og\.dll$' { return "Local/Bin" }
+        '^subtitles(-og)?\.dll$' { return "Local/Bin" }
+        '^subtitles\.pdb$' { return "Local/Bin" }
+        '^exu_callconv_test\.cod$' { return "Local/Tests" }
+        '^bzlogger\.txt$' { return "Local/Logs" }
+    }
+
     $ext = [System.IO.Path]::GetExtension($fileName).ToLower()
     
     switch ($ext) {
@@ -215,10 +323,30 @@ function Get-TargetSubfolder($fileName) {
         ".bzn" { return "Missions" }
         ".csv" { return "Config" }
         ".ini" { return "Config" }
+        ".ttf" { return "OverlayFont" }
+        ".otf" { return "OverlayFont" }
+        ".fontdef" { return "OverlayFont" }
+        ".material" { return "Materials" }
+        ".program" { return "Shaders" }
+        ".shader" { return "Shaders" }
+        ".fx" { return "Shaders" }
+        ".hlsl" { return "Shaders" }
+        ".glsl" { return "Shaders" }
+        ".cg" { return "Shaders" }
+        ".act" { return "Assets/ACT" }
+        ".dds" { return "Assets/Textures" }
+        ".mesh" { return "Assets/ModelFixes" }
+        ".skeleton" { return "Assets/ModelFixes" }
         ".jpg" { return "Assets" }
         ".tga" { return "Assets" }
         ".bmp" { return "Assets" }
         ".png" { return "Assets" }
+        ".lgt" { return "Local/Missions" }
+        ".trn" { return "Local/Missions" }
+        ".hg2" { return "Local/Missions" }
+        ".log" { return "Local/Logs" }
+        ".code-workspace" { return "Local/Workspace" }
+        ".cod" { return "Local/Tests" }
         ".txt" {
             if ($fileName.StartsWith("EXU_")) { return "Config" }
             return "Text"
@@ -247,9 +375,23 @@ function Build-Release {
     New-Item -ItemType Directory -Path $ReleaseDir -Force | Out-Null
 
     # Copy files FLATTENED
-    $files = Get-ChildItem -Path $SourceDir -Recurse -File
+    $files = Get-ManagedSourceFiles
     foreach ($file in $files) {
-        Copy-Item -Path $file.FullName -Destination $ReleaseDir -Force
+        $sourceRelativePath = Get-RelativePathFromBase $SourceDir $file.FullName
+        $releaseRelativePath = if ($sourceRelativePath -and (Is-StructuredRuntimeRelativePath $sourceRelativePath)) {
+            $sourceRelativePath
+        }
+        else {
+            $file.Name
+        }
+
+        $releasePath = Join-Path $ReleaseDir $releaseRelativePath
+        $releaseParent = Split-Path $releasePath -Parent
+        if (-not (Test-Path $releaseParent)) {
+            New-Item -ItemType Directory -Path $releaseParent -Force | Out-Null
+        }
+
+        Copy-Item -Path $file.FullName -Destination $releasePath -Force
     }
 
     Write-Host "Release build complete. Files are in $ReleaseDir" -ForegroundColor Green

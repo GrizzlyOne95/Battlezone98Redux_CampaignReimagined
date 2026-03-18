@@ -1,0 +1,34 @@
+import * from "CR_BZBase.material"
+
+material cvwalk00 : CR_BZBase
+{
+	set_texture_alias DiffuseMap cvwalk_d.dds
+	set_texture_alias NormalMap cvwalk_N.dds
+	set_texture_alias SpecularMap cvwalk_S.dds
+	set_texture_alias EmissiveMap cvwalk_e.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+
+material cvwalk01 : CR_BZBaseCockpit
+{
+	set_texture_alias DiffuseMap chinese_units_cockpit_d.dds
+	set_texture_alias NormalMap chinese_units_cockpit_n.dds
+	set_texture_alias SpecularMap chinese_units_cockpit_S.dds
+	set_texture_alias EmissiveMap chinese_units_cockpit_e.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+
+
+
+
+

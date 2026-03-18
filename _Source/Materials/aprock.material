@@ -1,0 +1,16 @@
+import * from "CR_BZBase.material"
+
+material aprock00 : CR_BZBase
+{
+	set_texture_alias DiffuseMap aprock00.dds
+	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias SpecularMap aprock00_S.dds
+	set_texture_alias EmissiveMap aprock00_E.dds
+	
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+
