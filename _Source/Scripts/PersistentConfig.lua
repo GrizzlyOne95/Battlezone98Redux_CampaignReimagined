@@ -88,12 +88,12 @@ PersistentConfig.DefaultSettings = {
     WeaponStatsHud = true,          -- Persistent weapon stats panel
     PilotModeEnabled = false,       -- Player-side pilot mode automation
     UnitVerbosity = 1,              -- 1=Normal 2=Decreased 3=None
-    UnderAttackAlertMode = 3,       -- 1=None 2=Minimal 3=Normal
     SubtitleOpacity = 0.50,         -- Main subtitle opacity
     SubtitleFontScale = 2.00,       -- Subtitle font scale (0.85-2.00)
     PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
     PdaFontScale = 1.30,            -- PDA font/window scale (0.85-1.30)
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
+    TargetReticlePopupMode = 1,     -- 1=Default 2=Neutral Only 3=Explicit Only
     ScrapPilotHudLayout = 2,        -- 1=Stock 2=Legacy
     RadarSizeScale = 1.00,          -- Independent radar size scale
     DynamicFactionFlameColors = false, -- Team flame colors from faction nation codes
@@ -195,10 +195,10 @@ PersistentConfig.UnitVerbosityPresets = {
     [3] = { name = "NONE", muted = true, throttleMs = 60000, queueDepthLimit = 1, queueStaleMs = 0 },
 }
 
-PersistentConfig.UnderAttackAlertModes = {
-    [1] = { id = 1, name = "NONE" },
-    [2] = { id = 2, name = "MINIMAL" },
-    [3] = { id = 3, name = "NORMAL" },
+PersistentConfig.TargetReticlePopupPresets = {
+    [1] = { name = "DEFAULT" },
+    [2] = { name = "NEUTRAL ONLY" },
+    [3] = { name = "EXPLICIT ONLY" },
 }
 
 local PdaPanelMaterialFamilies = {
@@ -212,12 +212,6 @@ local PdaPanelMaterialFamilies = {
 local ScrapPilotHudLayouts = {
     [1] = { name = "STOCK" },
     [2] = { name = "LEGACY" },
-}
-
-local ScrapPilotHudMaterialSwap = {
-    materials = { "HUDcombi", "HUDcomba" },
-    defaultTexture = "GreenHUD.png",
-    legacyTexture = "GreenHUD_2.png",
 }
 
 local HeadlightColorPresets = {
@@ -322,14 +316,19 @@ local function ConfirmBundledOpenShimCopy(sourcePath, destinationPath)
     return true
 end
 
-local function ShowOpenShimInstallMissionOutcome(succeeded)
+local function ShowOpenShimInstallMissionOutcome(state)
     local missionTime = (GetTime and GetTime()) or 0.0
-    if succeeded then
+    if state == "installed" then
         if SucceedMission then
             SucceedMission(missionTime, "install.des")
             return
         end
-        ShowFeedback("OpenShim installed.", 1.0, 0.85, 0.2, 12.0, true)
+        ShowFeedback(PersistentConfig.OpenShimInstaller.restartMessage, 1.0, 0.85, 0.2, 12.0, true)
+        return
+    end
+
+    if state == "updated" or state == "staged" then
+        ShowFeedback(PersistentConfig.OpenShimInstaller.updateMessage, 1.0, 0.85, 0.2, 12.0, true)
         return
     end
 
@@ -339,6 +338,20 @@ local function ShowOpenShimInstallMissionOutcome(succeeded)
     end
 
     ShowFeedback("OpenShim self-install failed.", 1.0, 0.35, 0.35, 12.0, true)
+end
+
+local function StageBundledOpenShimReplaceOnExit(sourcePath, destinationPath)
+    if not (bzfile and type(bzfile.ReplaceFileOnExit) == "function") then
+        return false, "bzfile.ReplaceFileOnExit unavailable"
+    end
+
+    local ok, scheduled, scheduleError = pcall(bzfile.ReplaceFileOnExit, sourcePath, destinationPath)
+    if ok and scheduled then
+        return true
+    end
+
+    local errorText = ok and tostring(scheduleError or "deferred replacement failed") or tostring(scheduled)
+    return false, errorText
 end
 
 local function EnsureBundledOpenShimInstalled()
@@ -362,6 +375,7 @@ local function EnsureBundledOpenShimInstalled()
 
     local destinationExists = BzFileExists(destinationPath)
     local shouldOverwrite = false
+    local installState = destinationExists and "updated" or "installed"
     if destinationExists then
         local sourceHash = GetBzFileHash(sourcePath)
         local destinationHash = GetBzFileHash(destinationPath)
@@ -369,8 +383,7 @@ local function EnsureBundledOpenShimInstalled()
             return
         end
         if not (sourceHash and destinationHash) then
-            print("PersistentConfig: OpenShim hash comparison unavailable; leaving existing winmm.dll unchanged.")
-            return
+            print("PersistentConfig: OpenShim hash comparison unavailable; attempting overwrite anyway.")
         end
 
         shouldOverwrite = true
@@ -379,13 +392,25 @@ local function EnsureBundledOpenShimInstalled()
     local ok, copied, copyError = pcall(bzfile.CopyFile, sourcePath, destinationPath, shouldOverwrite)
     if ok and copied and ConfirmBundledOpenShimCopy(sourcePath, destinationPath) then
         print("PersistentConfig: Installed bundled OpenShim to " .. destinationPath)
-        ShowOpenShimInstallMissionOutcome(true)
+        ShowOpenShimInstallMissionOutcome(installState)
         return
+    end
+
+    if shouldOverwrite then
+        local staged, stageError = StageBundledOpenShimReplaceOnExit(sourcePath, destinationPath)
+        if staged then
+            print("PersistentConfig: Queued bundled OpenShim replacement for next game restart at " .. destinationPath)
+            ShowOpenShimInstallMissionOutcome("staged")
+            return
+        end
+
+        local immediateError = ok and tostring(copyError or "copy failed or could not be confirmed") or tostring(copied)
+        print("PersistentConfig: Deferred OpenShim self-install also failed. Immediate error: " .. immediateError .. "; deferred error: " .. tostring(stageError))
     end
 
     local errorText = ok and tostring(copyError or "copy failed or could not be confirmed") or tostring(copied)
     print("PersistentConfig: OpenShim self-install failed: " .. errorText)
-    ShowOpenShimInstallMissionOutcome(false)
+    ShowOpenShimInstallMissionOutcome("failed")
 end
 
 -- Logging Helper
@@ -543,6 +568,11 @@ local function GetPdaColorPreset()
     return PdaColorPresets[ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)]
 end
 
+function PersistentConfig._GetTargetReticlePopupPreset()
+    return PersistentConfig.TargetReticlePopupPresets[ClampIndex(PersistentConfig.Settings.TargetReticlePopupMode, 1,
+        #PersistentConfig.TargetReticlePopupPresets, 1)]
+end
+
 local function GetPdaPanelMaterialTargetColor(r, g, b)
     local preset = GetPdaColorPreset()
     return ClampUnitInterval(r, preset.r), ClampUnitInterval(g, preset.g), ClampUnitInterval(b, preset.b)
@@ -580,20 +610,6 @@ end
 
 local function GetScrapPilotHudLayout()
     return ScrapPilotHudLayouts[ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2)]
-end
-
-function PersistentConfig._ApplyScrapPilotHudMaterial()
-    if not (exu and exu.SetMaterialTexture) then
-        return
-    end
-
-    local isLegacyLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2
-    local textureName = isLegacyLayout and ScrapPilotHudMaterialSwap.legacyTexture or
-        ScrapPilotHudMaterialSwap.defaultTexture
-
-    for _, materialName in ipairs(ScrapPilotHudMaterialSwap.materials) do
-        exu.SetMaterialTexture(materialName, textureName)
-    end
 end
 
 local function GetSubtitleFontScale()
@@ -642,11 +658,6 @@ function PersistentConfig._GetUnitVerbosityPreset()
         #PersistentConfig.UnitVerbosityPresets, 1)]
 end
 
-function PersistentConfig._GetUnderAttackAlertModePreset()
-    return PersistentConfig.UnderAttackAlertModes[ClampIndex(PersistentConfig.Settings.UnderAttackAlertMode, 1,
-        #PersistentConfig.UnderAttackAlertModes, 3)]
-end
-
 function PersistentConfig._ResolveUnitVoProfileForCurrentTeam()
     local baseline = PersistentConfig._CaptureUnitVoBaseline()
     local preset = PersistentConfig._GetUnitVerbosityPreset()
@@ -693,20 +704,6 @@ function PersistentConfig._ApplyUnitVoSettings()
     local okStale = pcall(exu.SetUnitVoQueueStaleMs, profile.queueStaleMs)
 
     return okMuted and okThrottle and okDepth and okStale
-end
-
-function PersistentConfig._ApplyUnderAttackAlertMode()
-    if not exu or type(exu.SetUnderAttackAlertMode) ~= "function" then
-        return false
-    end
-
-    local preset = PersistentConfig._GetUnderAttackAlertModePreset()
-    local ok, result = pcall(exu.SetUnderAttackAlertMode, preset.id or 3)
-    if not ok then
-        return false
-    end
-
-    return result ~= false
 end
 
 function PersistentConfig._GetAutoSaveSlot()
@@ -2407,20 +2404,6 @@ local function NormalizeWeaponMask(mask)
         return 0
     end
     return math.max(0, math.floor(mask + 0.5))
-end
-
-local function FormatWeaponMaskBits(mask)
-    local normalized = NormalizeWeaponMask(mask)
-    local chars = {}
-    for slot = 4, 0, -1 do
-        chars[#chars + 1] = IsMaskBitSet(normalized, slot) and "1" or "0"
-    end
-    return table.concat(chars)
-end
-
-local function FormatWeaponMaskDebugText(mask)
-    local normalized = NormalizeWeaponMask(mask)
-    return string.format("Mask  %s (%d)", FormatWeaponMaskBits(normalized), normalized)
 end
 
 local function FilterWeaponMaskToInstalled(mask, installedMask)
@@ -4603,15 +4586,11 @@ local function BuildTargetPageText(player, selectedMask)
     local target = aimInfo and aimInfo.handle or nil
     local targetDistance = aimInfo and aimInfo.distance or nil
     local aimPosition = aimInfo and aimInfo.position or nil
-    local selectedWeaponMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
     local reticleLine = GetTargetPageWeaponSummary(player, selectedMask)
 
     table.insert(lines, "MODE " .. DescribeAimMode(aimInfo))
     if reticleLine then
         table.insert(lines, reticleLine)
-    end
-    if selectedWeaponMask > 0 then
-        table.insert(lines, FormatWeaponMaskDebugText(selectedWeaponMask))
     end
 
     if not aimInfo or not targetDistance then
@@ -4645,6 +4624,7 @@ local function BuildTargetPageText(player, selectedMask)
     local maxHealth = type(GetMaxHealth) == "function" and GetMaxHealth(target) or nil
     local curAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(target) or nil
     local maxAmmo = type(GetMaxAmmo) == "function" and GetMaxAmmo(target) or nil
+    local selectedWeaponMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
     local _, eta = GetTargetClosureInfo(player, target, targetDistance)
 
     table.insert(lines, "UNIT " .. unitName)
@@ -5451,8 +5431,14 @@ local function UpdateWeaponStatsDisplay(player)
 
     local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.STATS)
     local mask = GetCurrentWeaponMask(player)
-    if page == PdaPages.TARGET then
-        mask = ResolveLiveSelectedWeaponMask(player, mask)
+    if page == PdaPages.TARGET and exu and type(exu.GetSelectedWeaponMask) == "function" then
+        local ok, selectedMask = pcall(exu.GetSelectedWeaponMask, player)
+        if ok and type(selectedMask) == "number" then
+            selectedMask = math.max(0, math.floor(selectedMask + 0.5))
+            if selectedMask > 0 then
+                mask = selectedMask
+            end
+        end
     end
     local target = nil
     local targetDistance = nil
@@ -5505,8 +5491,6 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
     if not exu then
         return
     end
-
-    PersistentConfig._ApplyScrapPilotHudMaterial()
 
     if exu.SetScrapHudColor then
         if ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2 then
@@ -5716,17 +5700,17 @@ function PersistentConfig._CycleUnitVerbosity(delta)
     return true
 end
 
-function PersistentConfig._CycleUnderAttackAlertMode(delta)
-    local nextIndex = CycleIndex(PersistentConfig.Settings.UnderAttackAlertMode, #PersistentConfig.UnderAttackAlertModes,
-        delta, 3)
-    if PersistentConfig.Settings.UnderAttackAlertMode == nextIndex then
+function PersistentConfig._CycleTargetReticlePopupMode(delta)
+    local nextIndex = CycleIndex(PersistentConfig.Settings.TargetReticlePopupMode,
+        #PersistentConfig.TargetReticlePopupPresets, delta, 1)
+    if PersistentConfig.Settings.TargetReticlePopupMode == nextIndex then
         return false
     end
 
-    PersistentConfig.Settings.UnderAttackAlertMode = nextIndex
+    PersistentConfig.Settings.TargetReticlePopupMode = nextIndex
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
-    ShowFeedback("Under Attack Alert: " .. PersistentConfig._GetUnderAttackAlertModePreset().name, 0.8, 1.0, 0.8, 2.5,
-        false, "pda")
+    ShowFeedback("Hit Reticle: " .. PersistentConfig._GetTargetReticlePopupPreset().name, 0.8, 1.0, 0.8, 2.5, false,
+        "pda")
     return true
 end
 
@@ -5802,7 +5786,7 @@ function PersistentConfig._SettingsActions.SetRetroLightingEnabled(enabled)
 
     PersistentConfig.Settings.RetroLighting = value
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
-    ShowFeedback("OG Lighting: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8, 2.5, false, "pda")
+    ShowFeedback("Retro Lighting: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8, 2.5, false, "pda")
     return true
 end
 
@@ -5925,6 +5909,13 @@ GetSettingsPageEntries = function()
             end,
         },
         {
+            label = "Hit Reticle",
+            value = PersistentConfig._GetTargetReticlePopupPreset().name,
+            adjust = function(delta)
+                return PersistentConfig._CycleTargetReticlePopupMode(delta)
+            end,
+        },
+        {
             label = "Subtitles",
             value = PersistentConfig.Settings.SubtitlesEnabled and "On" or "Off",
             adjust = function(delta)
@@ -5939,13 +5930,6 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "Attack Alert",
-            value = PersistentConfig._GetUnderAttackAlertModePreset().name,
-            adjust = function(delta)
-                return PersistentConfig._CycleUnderAttackAlertMode(delta)
-            end,
-        },
-        {
             label = "Faction Flames",
             value = PersistentConfig.Settings.DynamicFactionFlameColors and "On" or "Off",
             adjust = function(delta)
@@ -5953,7 +5937,7 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "OG Lighting",
+            label = "Retro Lighting",
             value = PersistentConfig.Settings.RetroLighting and "On" or "Off",
             adjust = function(delta)
                 return PersistentConfig._SettingsActions.SetRetroLightingEnabled(DirectionEnabled(delta))
@@ -6137,8 +6121,6 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.SubtitlesEnabled = (val == "true")
                 elseif key == "UnitVerbosity" then
                     PersistentConfig.Settings.UnitVerbosity = tonumber(val) or 1
-                elseif key == "UnderAttackAlertMode" then
-                    PersistentConfig.Settings.UnderAttackAlertMode = tonumber(val) or 3
                 elseif key == "OtherHeadlightsDisabled" then
                     PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
                 elseif key == "AutoRepairWingmen" then
@@ -6175,6 +6157,8 @@ function PersistentConfig.LoadConfig()
                     legacyPdaTextPreset = tonumber(val)
                 elseif key == "PdaColorPreset" then
                     PersistentConfig.Settings.PdaColorPreset = tonumber(val) or 2
+                elseif key == "TargetReticlePopupMode" then
+                    PersistentConfig.Settings.TargetReticlePopupMode = tonumber(val) or 1
                 elseif key == "ScrapPilotHudLayout" then
                     PersistentConfig.Settings.ScrapPilotHudLayout = tonumber(val) or 2
                 elseif key == "RadarSizeScale" then
@@ -6231,13 +6215,13 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.PdaOpacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.00)
     PersistentConfig.Settings.UnitVerbosity = ClampIndex(PersistentConfig.Settings.UnitVerbosity, 1,
         #PersistentConfig.UnitVerbosityPresets, 1)
-    PersistentConfig.Settings.UnderAttackAlertMode = ClampIndex(PersistentConfig.Settings.UnderAttackAlertMode, 1,
-        #PersistentConfig.UnderAttackAlertModes, 3)
     PersistentConfig.Settings.SubtitleFontScale = ClampRange(PersistentConfig.Settings.SubtitleFontScale,
         PersistentConfig.FontScale.subtitle.min, PersistentConfig.FontScale.subtitle.max, 1.0)
     PersistentConfig.Settings.PdaFontScale = ClampRange(PersistentConfig.Settings.PdaFontScale,
         PersistentConfig.FontScale.pda.min, PersistentConfig.FontScale.pda.max, 1.0)
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
+    PersistentConfig.Settings.TargetReticlePopupMode = ClampIndex(PersistentConfig.Settings.TargetReticlePopupMode, 1,
+        #PersistentConfig.TargetReticlePopupPresets, 1)
     PersistentConfig.Settings.ScrapPilotHudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1,
         #ScrapPilotHudLayouts, 2)
     PersistentConfig.Settings.RadarSizeScale = GetRadarSizeScaleSetting()
@@ -6271,7 +6255,6 @@ function PersistentConfig.SaveConfig()
         f:Writeln("HeadlightVisible=" .. tostring(PersistentConfig.Settings.HeadlightVisible))
         f:Writeln("SubtitlesEnabled=" .. tostring(PersistentConfig.Settings.SubtitlesEnabled))
         f:Writeln("UnitVerbosity=" .. tostring(PersistentConfig.Settings.UnitVerbosity))
-        f:Writeln("UnderAttackAlertMode=" .. tostring(PersistentConfig.Settings.UnderAttackAlertMode))
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
@@ -6288,6 +6271,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("PdaOpacity=" .. tostring(PersistentConfig.Settings.PdaOpacity))
         f:Writeln("PdaFontScale=" .. tostring(PersistentConfig.Settings.PdaFontScale))
         f:Writeln("PdaColorPreset=" .. tostring(PersistentConfig.Settings.PdaColorPreset))
+        f:Writeln("TargetReticlePopupMode=" .. tostring(PersistentConfig.Settings.TargetReticlePopupMode))
         f:Writeln("ScrapPilotHudLayout=" .. tostring(PersistentConfig.Settings.ScrapPilotHudLayout))
         f:Writeln("RadarSizeScale=" .. tostring(PersistentConfig.Settings.RadarSizeScale))
         f:Writeln("DynamicFactionFlameColors=" .. tostring(PersistentConfig.Settings.DynamicFactionFlameColors))
@@ -6362,11 +6346,13 @@ function PersistentConfig.ApplySettings()
         if exu.SetRetroLightingMode then
             exu.SetRetroLightingMode(PersistentConfig.Settings.RetroLighting)
         end
+        if exu.SetTargetReticlePopupMode then
+            exu.SetTargetReticlePopupMode(PersistentConfig.Settings.TargetReticlePopupMode)
+        end
 
         PersistentConfig._SyncRadarSizeScale(true)
         PersistentConfig._ApplyDynamicFactionFlameColors()
         PersistentConfig._ApplyUnitVoSettings()
-        PersistentConfig._ApplyUnderAttackAlertMode()
     end
 
     PersistentConfig.ApplyScrapPilotHudLayout()
