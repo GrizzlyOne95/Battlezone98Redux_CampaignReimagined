@@ -98,7 +98,7 @@ vertex_program CR_BaseHighNoShadow_vertexGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED=1
 }
 
 vertex_program CR_BaseHighShadow_vertexGLSLES glsles
@@ -107,8 +107,8 @@ vertex_program CR_BaseHighShadow_vertexGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	//preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,NORMALMAP_ENABLED=1
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1
+	//preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,NORMALMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1
 }
 
 vertex_program CR_BaseHighPSSM_vertexGLSLES glsles
@@ -117,8 +117,8 @@ vertex_program CR_BaseHighPSSM_vertexGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	//preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,NORMALMAP_ENABLED=1
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1
+	//preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PSSM_ENABLED=1,NORMALMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PSSM_ENABLED=1
 }
 
 
@@ -219,7 +219,7 @@ vertex_program CR_BaseHighNoShadow_vertexGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED=1
 }
 
 vertex_program CR_BaseHighShadow_vertexGLSL glsl
@@ -228,7 +228,7 @@ vertex_program CR_BaseHighShadow_vertexGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,NORMALMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,NORMALMAP_ENABLED=1
 }
 
 vertex_program CR_BaseHighPSSM_vertexGLSL glsl
@@ -237,7 +237,7 @@ vertex_program CR_BaseHighPSSM_vertexGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,NORMALMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PSSM_ENABLED=1,NORMALMAP_ENABLED=1
 }
 
 
@@ -338,7 +338,7 @@ vertex_program CR_BaseHighNoShadow_vertexHLSL4 hlsl
 	target vs_4_0
 	entry_point base_vertex
 
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED
+	preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED
 }
 
 vertex_program CR_BaseHighShadow_vertexHLSL4 hlsl
@@ -347,7 +347,7 @@ vertex_program CR_BaseHighShadow_vertexHLSL4 hlsl
 	target vs_4_0
 	entry_point base_vertex
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,NORMALMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,NORMALMAP_ENABLED=1
 }
 
 vertex_program CR_BaseHighPSSM_vertexHLSL4 hlsl
@@ -356,7 +356,7 @@ vertex_program CR_BaseHighPSSM_vertexHLSL4 hlsl
 	target vs_4_0
 	entry_point base_vertex
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,NORMALMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PSSM_ENABLED=1,NORMALMAP_ENABLED=1
 }
 
 
@@ -457,7 +457,7 @@ vertex_program CR_BaseHighNoShadow_vertexHLSL hlsl
 	target vs_3_0
 	entry_point base_vertex
 
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED
+	preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED
 }
 
 vertex_program CR_BaseHighShadow_vertexHLSL hlsl
@@ -466,7 +466,7 @@ vertex_program CR_BaseHighShadow_vertexHLSL hlsl
 	target vs_3_0
 	entry_point base_vertex
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,NORMALMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,NORMALMAP_ENABLED=1
 }
 
 vertex_program CR_BaseHighPSSM_vertexHLSL hlsl
@@ -475,7 +475,7 @@ vertex_program CR_BaseHighPSSM_vertexHLSL hlsl
 	target vs_3_0
 	entry_point base_vertex
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,NORMALMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PSSM_ENABLED=1,NORMALMAP_ENABLED=1
 }
 
 
@@ -650,7 +650,7 @@ fragment_program CR_BaseHighNoShadow_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -666,7 +666,7 @@ fragment_program CR_BaseHighShadow_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -683,59 +683,7 @@ fragment_program CR_BaseHighPSSM_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-		param_named shadowMap1 int 4
-		param_named shadowMap2 int 5
-		param_named shadowMap3 int 6
-	}
-}
-
-fragment_program CR_BaseENHighNoShadow_fragmentGLSLES glsles
-{
-	source base-fragment.glsles
-	syntax glsles
-	entry_point main
-
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-	}
-}
-
-fragment_program CR_BaseENHighShadow_fragmentGLSLES glsles
-{
-	source base-fragment.glsles
-	syntax glsles
-	entry_point main
-
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-		param_named shadowMap1 int 4
-	}
-}
-
-fragment_program CR_BaseENHighPSSM_fragmentGLSLES glsles
-{
-	source base-fragment.glsles
-	syntax glsles
-	entry_point main
-
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -756,7 +704,7 @@ fragment_program CR_BaseOGLowestNoShadow_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -769,7 +717,7 @@ fragment_program CR_BaseOGLowestShadow_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -783,7 +731,7 @@ fragment_program CR_BaseOGLowestPSSM_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -799,7 +747,7 @@ fragment_program CR_BaseOGLowNoShadow_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=1,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -812,7 +760,7 @@ fragment_program CR_BaseOGLowShadow_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -826,7 +774,7 @@ fragment_program CR_BaseOGLowPSSM_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -842,7 +790,7 @@ fragment_program CR_BaseOGMediumNoShadow_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -855,7 +803,7 @@ fragment_program CR_BaseOGMediumShadow_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -869,7 +817,7 @@ fragment_program CR_BaseOGMediumPSSM_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -885,7 +833,7 @@ fragment_program CR_BaseOGHighNoShadow_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -898,7 +846,7 @@ fragment_program CR_BaseOGHighShadow_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=3,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=3,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -912,7 +860,7 @@ fragment_program CR_BaseOGHighPSSM_fragmentGLSLES glsles
 	syntax glsles
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1084,7 +1032,7 @@ fragment_program CR_BaseHighNoShadow_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1100,7 +1048,7 @@ fragment_program CR_BaseHighShadow_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1117,59 +1065,7 @@ fragment_program CR_BaseHighPSSM_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-		param_named shadowMap1 int 4
-		param_named shadowMap2 int 5
-		param_named shadowMap3 int 6
-	}
-}
-
-fragment_program CR_BaseENHighNoShadow_fragmentGLSL glsl
-{
-	source CR_base-fragment.glsl
-	syntax glsl120
-	entry_point main
-
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-	}
-}
-
-fragment_program CR_BaseENHighShadow_fragmentGLSL glsl
-{
-	source CR_base-fragment.glsl
-	syntax glsl120
-	entry_point main
-
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-		param_named shadowMap1 int 4
-	}
-}
-
-fragment_program CR_BaseENHighPSSM_fragmentGLSL glsl
-{
-	source CR_base-fragment.glsl
-	syntax glsl120
-	entry_point main
-
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1190,7 +1086,7 @@ fragment_program CR_BaseOGLowestNoShadow_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1203,7 +1099,7 @@ fragment_program CR_BaseOGLowestShadow_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1217,7 +1113,7 @@ fragment_program CR_BaseOGLowestPSSM_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING=1,MAX_LIGHTS=1,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1233,7 +1129,7 @@ fragment_program CR_BaseOGLowNoShadow_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=1,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1246,7 +1142,7 @@ fragment_program CR_BaseOGLowShadow_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1260,7 +1156,7 @@ fragment_program CR_BaseOGLowPSSM_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1276,7 +1172,7 @@ fragment_program CR_BaseOGMediumNoShadow_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1289,7 +1185,7 @@ fragment_program CR_BaseOGMediumShadow_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1303,7 +1199,7 @@ fragment_program CR_BaseOGMediumPSSM_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1319,7 +1215,7 @@ fragment_program CR_BaseOGHighNoShadow_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1332,7 +1228,7 @@ fragment_program CR_BaseOGHighShadow_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=3,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=3,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1346,7 +1242,7 @@ fragment_program CR_BaseOGHighPSSM_fragmentGLSL glsl
 	syntax glsl120
 	entry_point main
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 	default_params
 	{
 		param_named diffuseMap int 0
@@ -1454,7 +1350,7 @@ fragment_program CR_BaseHighNoShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
+	preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
 }
 
 fragment_program CR_BaseHighShadow_fragmentHLSL4 hlsl
@@ -1463,7 +1359,7 @@ fragment_program CR_BaseHighShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
 }
 
 fragment_program CR_BaseHighPSSM_fragmentHLSL4 hlsl
@@ -1472,34 +1368,7 @@ fragment_program CR_BaseHighPSSM_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
-}
-
-fragment_program CR_BaseENHighNoShadow_fragmentHLSL4 hlsl
-{
-	source CR_base-sm4.hlsl
-	target ps_4_0
-	entry_point base_fragment
-
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
-}
-
-fragment_program CR_BaseENHighShadow_fragmentHLSL4 hlsl
-{
-	source CR_base-sm4.hlsl
-	target ps_4_0
-	entry_point base_fragment
-
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
-}
-
-fragment_program CR_BaseENHighPSSM_fragmentHLSL4 hlsl
-{
-	source CR_base-sm4.hlsl
-	target ps_4_0
-	entry_point base_fragment
-
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
 }
 
 //OG
@@ -1510,7 +1379,7 @@ fragment_program CR_BaseOGLowestNoShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGLowestShadow_fragmentHLSL4 hlsl
@@ -1519,7 +1388,7 @@ fragment_program CR_BaseOGLowestShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGLowestPSSM_fragmentHLSL4 hlsl
@@ -1528,7 +1397,7 @@ fragment_program CR_BaseOGLowestPSSM_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGLowNoShadow_fragmentHLSL4 hlsl
@@ -1537,7 +1406,7 @@ fragment_program CR_BaseOGLowNoShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=1,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGLowShadow_fragmentHLSL4 hlsl
@@ -1546,7 +1415,7 @@ fragment_program CR_BaseOGLowShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGLowPSSM_fragmentHLSL4 hlsl
@@ -1555,7 +1424,7 @@ fragment_program CR_BaseOGLowPSSM_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGMediumNoShadow_fragmentHLSL4 hlsl
@@ -1564,7 +1433,7 @@ fragment_program CR_BaseOGMediumNoShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGMediumShadow_fragmentHLSL4 hlsl
@@ -1573,7 +1442,7 @@ fragment_program CR_BaseOGMediumShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGMediumPSSM_fragmentHLSL4 hlsl
@@ -1582,7 +1451,7 @@ fragment_program CR_BaseOGMediumPSSM_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGHighNoShadow_fragmentHLSL4 hlsl
@@ -1591,7 +1460,7 @@ fragment_program CR_BaseOGHighNoShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGHighShadow_fragmentHLSL4 hlsl
@@ -1600,7 +1469,7 @@ fragment_program CR_BaseOGHighShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=3,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=3,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGHighPSSM_fragmentHLSL4 hlsl
@@ -1609,7 +1478,7 @@ fragment_program CR_BaseOGHighPSSM_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 
@@ -1710,7 +1579,7 @@ fragment_program CR_BaseHighNoShadow_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
+	preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
 }
 
 fragment_program CR_BaseHighShadow_fragmentHLSL hlsl
@@ -1719,7 +1588,7 @@ fragment_program CR_BaseHighShadow_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
 }
 
 fragment_program CR_BaseHighPSSM_fragmentHLSL hlsl
@@ -1728,34 +1597,7 @@ fragment_program CR_BaseHighPSSM_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
-}
-
-fragment_program CR_BaseENHighNoShadow_fragmentHLSL hlsl
-{
-	source CR_base.hlsl
-	target ps_3_0
-	entry_point base_fragment
-
-	preprocessor_defines MAX_LIGHTS=8,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
-}
-
-fragment_program CR_BaseENHighShadow_fragmentHLSL hlsl
-{
-	source CR_base.hlsl
-	target ps_3_0
-	entry_point base_fragment
-
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
-}
-
-fragment_program CR_BaseENHighPSSM_fragmentHLSL hlsl
-{
-	source CR_base.hlsl
-	target ps_3_0
-	entry_point base_fragment
-
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED
 }
 
 //OG
@@ -1766,7 +1608,7 @@ fragment_program CR_BaseOGLowestNoShadow_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGLowestShadow_fragmentHLSL hlsl
@@ -1775,7 +1617,7 @@ fragment_program CR_BaseOGLowestShadow_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGLowestPSSM_fragmentHLSL hlsl
@@ -1784,7 +1626,7 @@ fragment_program CR_BaseOGLowestPSSM_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines VERTEX_LIGHTING,MAX_LIGHTS=1,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGLowNoShadow_fragmentHLSL hlsl
@@ -1793,7 +1635,7 @@ fragment_program CR_BaseOGLowNoShadow_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=1,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGLowShadow_fragmentHLSL hlsl
@@ -1802,7 +1644,7 @@ fragment_program CR_BaseOGLowShadow_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGLowPSSM_fragmentHLSL hlsl
@@ -1811,7 +1653,7 @@ fragment_program CR_BaseOGLowPSSM_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGMediumNoShadow_fragmentHLSL hlsl
@@ -1820,7 +1662,7 @@ fragment_program CR_BaseOGMediumNoShadow_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGMediumShadow_fragmentHLSL hlsl
@@ -1829,7 +1671,7 @@ fragment_program CR_BaseOGMediumShadow_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGMediumPSSM_fragmentHLSL hlsl
@@ -1838,7 +1680,7 @@ fragment_program CR_BaseOGMediumPSSM_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=2,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGHighNoShadow_fragmentHLSL hlsl
@@ -1847,7 +1689,7 @@ fragment_program CR_BaseOGHighNoShadow_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGHighShadow_fragmentHLSL hlsl
@@ -1856,7 +1698,7 @@ fragment_program CR_BaseOGHighShadow_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=3,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=3,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 fragment_program CR_BaseOGHighPSSM_fragmentHLSL hlsl
@@ -1865,7 +1707,7 @@ fragment_program CR_BaseOGHighPSSM_fragmentHLSL hlsl
 	target ps_3_0
 	entry_point base_fragment
 
-	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,OG_RETRO_MODE=1
+	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,OG_RETRO_MODE=1,RETRO_UNLIT_MODE=1
 }
 
 
@@ -2296,12 +2138,12 @@ fragment_program CR_BaseHighNoShadow_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightSpecular derived_light_specular_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
+		param_named_auto lightSpecular derived_light_specular_colour_array 24
+		param_named_auto lightAttenuation light_attenuation_array 24
+		param_named_auto spotLightParams spotlight_params_array 24
+		param_named_auto lightPosition light_position_view_space_array 24
+		param_named_auto lightDirection light_direction_view_space_array 24
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto lightCount light_count
@@ -2319,12 +2161,12 @@ fragment_program CR_BaseHighShadow_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightSpecular derived_light_specular_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
+		param_named_auto lightSpecular derived_light_specular_colour_array 24
+		param_named_auto lightAttenuation light_attenuation_array 24
+		param_named_auto spotLightParams spotlight_params_array 24
+		param_named_auto lightPosition light_position_view_space_array 24
+		param_named_auto lightDirection light_direction_view_space_array 24
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -2343,286 +2185,12 @@ fragment_program CR_BaseHighPSSM_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightSpecular derived_light_specular_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 4
-		param_named_auto invShadowMapSize2 inverse_texture_size 5
-		param_named_auto invShadowMapSize3 inverse_texture_size 6
-		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
-		param_named_auto lightCount light_count
-		param_named transparency float 0.0
-	}
-}
-
-//ENHANCED
-// Initial scaffold: the en-* suite uses distinct material/program names but
-// currently mirrors the modern backend delegates until EN-specific variants
-// diverge.
-
-fragment_program CR_BaseENLowestNoShadow_fragment unified
-{
-	delegate CR_BaseLowestNoShadow_fragmentGLSLES
-	delegate CR_BaseLowestNoShadow_fragmentGLSL
-	delegate CR_BaseLowestNoShadow_fragmentHLSL4
-	delegate CR_BaseLowestNoShadow_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENLowestShadow_fragment unified
-{
-	delegate CR_BaseLowestShadow_fragmentGLSLES
-	delegate CR_BaseLowestShadow_fragmentGLSL
-	delegate CR_BaseLowestShadow_fragmentHLSL4
-	delegate CR_BaseLowestShadow_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 4
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENLowestPSSM_fragment unified
-{
-	delegate CR_BaseLowestPSSM_fragmentGLSLES
-	delegate CR_BaseLowestPSSM_fragmentGLSL
-	delegate CR_BaseLowestPSSM_fragmentHLSL4
-	delegate CR_BaseLowestPSSM_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 4
-		param_named_auto invShadowMapSize2 inverse_texture_size 5
-		param_named_auto invShadowMapSize3 inverse_texture_size 6
-		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENLowNoShadow_fragment unified
-{
-	delegate CR_BaseLowNoShadow_fragmentGLSLES
-	delegate CR_BaseLowNoShadow_fragmentGLSL
-	delegate CR_BaseLowNoShadow_fragmentHLSL4
-	delegate CR_BaseLowNoShadow_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
-		param_named_auto lightSpecular derived_light_specular_colour_array 1
-		param_named_auto lightAttenuation light_attenuation_array 1
-		param_named_auto spotLightParams spotlight_params_array 1
-		param_named_auto lightPosition light_position_view_space_array 1
-		param_named_auto lightDirection light_direction_view_space_array 1
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENLowShadow_fragment unified
-{
-	delegate CR_BaseLowShadow_fragmentGLSLES
-	delegate CR_BaseLowShadow_fragmentGLSL
-	delegate CR_BaseLowShadow_fragmentHLSL4
-	delegate CR_BaseLowShadow_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
-		param_named_auto lightSpecular derived_light_specular_colour_array 1
-		param_named_auto lightAttenuation light_attenuation_array 1
-		param_named_auto spotLightParams spotlight_params_array 1
-		param_named_auto lightPosition light_position_view_space_array 1
-		param_named_auto lightDirection light_direction_view_space_array 1
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 4
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENLowPSSM_fragment unified
-{
-	delegate CR_BaseLowPSSM_fragmentGLSLES
-	delegate CR_BaseLowPSSM_fragmentGLSL
-	delegate CR_BaseLowPSSM_fragmentHLSL4
-	delegate CR_BaseLowPSSM_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
-		param_named_auto lightSpecular derived_light_specular_colour_array 1
-		param_named_auto lightAttenuation light_attenuation_array 1
-		param_named_auto spotLightParams spotlight_params_array 1
-		param_named_auto lightPosition light_position_view_space_array 1
-		param_named_auto lightDirection light_direction_view_space_array 1
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 4
-		param_named_auto invShadowMapSize2 inverse_texture_size 5
-		param_named_auto invShadowMapSize3 inverse_texture_size 6
-		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENMediumNoShadow_fragment unified
-{
-	delegate CR_BaseMediumNoShadow_fragmentGLSLES
-	delegate CR_BaseMediumNoShadow_fragmentGLSL
-	delegate CR_BaseMediumNoShadow_fragmentHLSL4
-	delegate CR_BaseMediumNoShadow_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightSpecular derived_light_specular_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named_auto lightCount light_count
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENMediumShadow_fragment unified
-{
-	delegate CR_BaseMediumShadow_fragmentGLSLES
-	delegate CR_BaseMediumShadow_fragmentGLSL
-	delegate CR_BaseMediumShadow_fragmentHLSL4
-	delegate CR_BaseMediumShadow_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightSpecular derived_light_specular_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 4
-		param_named_auto lightCount light_count
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENMediumPSSM_fragment unified
-{
-	delegate CR_BaseMediumPSSM_fragmentGLSLES
-	delegate CR_BaseMediumPSSM_fragmentGLSL
-	delegate CR_BaseMediumPSSM_fragmentHLSL4
-	delegate CR_BaseMediumPSSM_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightSpecular derived_light_specular_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 4
-		param_named_auto invShadowMapSize2 inverse_texture_size 5
-		param_named_auto invShadowMapSize3 inverse_texture_size 6
-		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
-		param_named_auto lightCount light_count
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENHighNoShadow_fragment unified
-{
-	delegate CR_BaseENHighNoShadow_fragmentGLSLES
-	delegate CR_BaseENHighNoShadow_fragmentGLSL
-	delegate CR_BaseENHighNoShadow_fragmentHLSL4
-	delegate CR_BaseENHighNoShadow_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightSpecular derived_light_specular_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named_auto lightCount light_count
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENHighShadow_fragment unified
-{
-	delegate CR_BaseENHighShadow_fragmentGLSLES
-	delegate CR_BaseENHighShadow_fragmentGLSL
-	delegate CR_BaseENHighShadow_fragmentHLSL4
-	delegate CR_BaseENHighShadow_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightSpecular derived_light_specular_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
-		param_named_auto fogColour fog_colour
-		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 4
-		param_named_auto lightCount light_count
-		param_named transparency float 0.0
-	}
-}
-
-fragment_program CR_BaseENHighPSSM_fragment unified
-{
-	delegate CR_BaseENHighPSSM_fragmentGLSLES
-	delegate CR_BaseENHighPSSM_fragmentGLSL
-	delegate CR_BaseENHighPSSM_fragmentHLSL4
-	delegate CR_BaseENHighPSSM_fragmentHLSL
-	default_params
-	{
-		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto materialShininess surface_shininess
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightSpecular derived_light_specular_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
+		param_named_auto lightSpecular derived_light_specular_colour_array 24
+		param_named_auto lightAttenuation light_attenuation_array 24
+		param_named_auto spotLightParams spotlight_params_array 24
+		param_named_auto lightPosition light_position_view_space_array 24
+		param_named_auto lightDirection light_direction_view_space_array 24
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
