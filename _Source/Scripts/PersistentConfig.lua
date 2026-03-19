@@ -220,18 +220,6 @@ local ScrapPilotHudMaterialNames = {
     "HUDcomba",
 }
 local StockScrapPilotHudTexture = "GreenHUD.png"
-local LegacyScrapPilotHudTexture = "GreenHUD_2.png"
-local LegacyScrapPilotHudSpriteNames = {
-    "scrap_panel",
-    "pilot_panel",
-    "sscrap_panel",
-    "spilot_panel",
-    "fscrap_panel",
-    "fpilot_panel",
-}
-local LegacyScrapPilotHudSpritesHiddenState = nil
-local LegacyScrapPilotHudSpriteBridgeEnabled = false
-local LegacyScrapPilotHudSpriteBridgeWarned = false
 
 local HeadlightColorPresets = {
     [1] = { name = "WHITE", r = 5.0, g = 5.0, b = 5.0 },
@@ -3509,21 +3497,32 @@ local function ApplyLegacyScrapPilotHudTopLeft()
         return false
     end
 
-    -- These HUD placement APIs use the same virtual coordinate space the stock command menu uses,
-    -- so a stable top-left anchor keeps the counters parked beside that menu across resolutions.
-    local anchorX = 500
-    local scrapY = 22
-    local pilotY = 76
-
-    if type(exu.SetScrapPilotHudTopLeft) == "function" then
-        local ok, result = pcall(exu.SetScrapPilotHudTopLeft, anchorX, scrapY)
-        return ok and result ~= false
-    end
-
     if type(exu.SetScrapHudTopLeft) == "function" and type(exu.SetPilotHudTopLeft) == "function" then
+        local screenW, screenH, uiScale = PersistentConfig._GetUiResolutionMetrics()
+        uiScale = math.max(tonumber(uiScale) or 1, 1)
+
+        -- Keep the legacy counter aligned to the stock command menu footprint, which scales with the HUD rather than
+        -- the current screen resolution. This prevents the text from drifting back into the menu at higher HUD scales.
+        local commandMenuLeft = math.floor(8 * uiScale)
+        local commandMenuTop = math.floor(10 * uiScale)
+        local estimatedCommandMenuWidth = math.floor(171 * uiScale)
+        local commandMenuGap = math.floor(10 * uiScale)
+        local anchorX = commandMenuLeft + estimatedCommandMenuWidth + commandMenuGap
+        local scrapY = commandMenuTop + math.floor(2 * uiScale)
+        local pilotY = scrapY + math.floor(48 * uiScale)
+
+        anchorX = ClampRange(anchorX, 0, math.max(0, screenW - math.floor(96 * uiScale)), anchorX)
+        scrapY = ClampRange(scrapY, 0, math.max(0, screenH - math.floor(80 * uiScale)), scrapY)
+        pilotY = ClampRange(pilotY, 0, math.max(0, screenH - math.floor(32 * uiScale)), pilotY)
+
         local scrapOk, scrapResult = pcall(exu.SetScrapHudTopLeft, anchorX, scrapY)
         local pilotOk, pilotResult = pcall(exu.SetPilotHudTopLeft, anchorX, pilotY)
         return scrapOk and pilotOk and scrapResult ~= false and pilotResult ~= false
+    end
+
+    if type(exu.SetScrapPilotHudTopLeft) == "function" then
+        local ok, result = pcall(exu.SetScrapPilotHudTopLeft, 500, 22)
+        return ok and result ~= false
     end
 
     if type(exu.SetScrapPilotHudOffset) == "function" then
@@ -3532,6 +3531,30 @@ local function ApplyLegacyScrapPilotHudTopLeft()
     end
 
     return false
+end
+
+local StockScrapPilotHudSpriteNames = {
+    "scrap_panel",
+    "pilot_panel",
+    "sscrap_panel",
+    "spilot_panel",
+    "fscrap_panel",
+    "fpilot_panel",
+}
+
+local function SetStockScrapPilotHudSpritesVisible(visible)
+    if not exu or type(exu.SetHudSpriteVisible) ~= "function" then
+        return false
+    end
+
+    local anySucceeded = false
+    for _, spriteName in ipairs(StockScrapPilotHudSpriteNames) do
+        local ok, result = pcall(exu.SetHudSpriteVisible, spriteName, visible)
+        if ok and result ~= false then
+            anySucceeded = true
+        end
+    end
+    return anySucceeded
 end
 
 function PersistentConfig._SyncLightingMode(force)
@@ -3619,7 +3642,6 @@ function PersistentConfig._SyncRadarSizeScale(force)
         tostring(ok), tostring(callOk), tostring(result)))
     if ok and ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2 then
         -- Radar refreshes can snap the stock scrap/pilot counters and legacy HUD art back to their default anchor.
-        LegacyScrapPilotHudSpritesHiddenState = nil
         print("PersistentConfig: _SyncRadarSizeScale reapplying legacy scrap/pilot HUD layout")
         PersistentConfig.ApplyScrapPilotHudLayout()
     end
@@ -4599,100 +4621,6 @@ local function RebuildPdaOverlay()
     RefreshPdaOverlay()
 end
 
-local function SyncLegacyScrapPilotHudSprites(useLegacyLayout)
-    if not exu then
-        return false
-    end
-
-    if not LegacyScrapPilotHudSpriteBridgeEnabled then
-        if not LegacyScrapPilotHudSpriteBridgeWarned then
-            LegacyScrapPilotHudSpriteBridgeWarned = true
-            print("PersistentConfig: scrap/pilot sprite bridge disabled; skipping live HUD sprite visibility sync.")
-        end
-        return false
-    end
-
-    local now = (type(GetTime) == "function" and GetTime()) or 0.0
-    if now < 2.0 then
-        return false
-    end
-
-    if type(exu.GetCameraView) == "function" and type(exu.CAMERA) == "table" then
-        local ok, currentView = pcall(exu.GetCameraView)
-        if ok and (currentView == exu.CAMERA.EDITOR or currentView == exu.CAMERA.TERRAIN_EDIT) then
-            return false
-        end
-    end
-
-    if useLegacyLayout and LegacyScrapPilotHudSpritesHiddenState == true then
-        return false
-    end
-
-    if not useLegacyLayout then
-        if LegacyScrapPilotHudSpritesHiddenState == nil then
-            LegacyScrapPilotHudSpritesHiddenState = false
-            return false
-        end
-        if LegacyScrapPilotHudSpritesHiddenState == false then
-            return false
-        end
-    end
-
-    local changed = false
-    if useLegacyLayout then
-        if type(exu.SetHudSpriteVisible) ~= "function" then
-            return false
-        end
-
-        local allApplied = true
-        for _, spriteName in ipairs(LegacyScrapPilotHudSpriteNames) do
-            local ok, result = pcall(exu.SetHudSpriteVisible, spriteName, false)
-            if ok and result ~= false then
-                changed = true
-            else
-                allApplied = false
-            end
-        end
-        if allApplied then
-            LegacyScrapPilotHudSpritesHiddenState = true
-        end
-        return changed
-    end
-
-    if type(exu.RestoreHudSprite) == "function" then
-        local allApplied = true
-        for _, spriteName in ipairs(LegacyScrapPilotHudSpriteNames) do
-            local ok, result = pcall(exu.RestoreHudSprite, spriteName)
-            if ok and result ~= false then
-                changed = true
-            else
-                allApplied = false
-            end
-        end
-        if allApplied then
-            LegacyScrapPilotHudSpritesHiddenState = false
-        end
-        return changed
-    end
-
-    if type(exu.SetHudSpriteVisible) == "function" then
-        local allApplied = true
-        for _, spriteName in ipairs(LegacyScrapPilotHudSpriteNames) do
-            local ok, result = pcall(exu.SetHudSpriteVisible, spriteName, true)
-            if ok and result ~= false then
-                changed = true
-            else
-                allApplied = false
-            end
-        end
-        if allApplied then
-            LegacyScrapPilotHudSpritesHiddenState = false
-        end
-    end
-
-    return changed
-end
-
 function PersistentConfig.ApplyScrapPilotHudLayout()
     if not exu then
         return
@@ -4700,7 +4628,7 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
 
     local layoutIndex = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2)
     if exu.SetMaterialTexture then
-        local hudTexture = (layoutIndex == 2) and LegacyScrapPilotHudTexture or StockScrapPilotHudTexture
+        local hudTexture = StockScrapPilotHudTexture
         if PersistentConfig._AppliedScrapPilotHudTexture ~= hudTexture then
             for _, materialName in ipairs(ScrapPilotHudMaterialNames) do
                 pcall(exu.SetMaterialTexture, materialName, hudTexture)
@@ -4708,8 +4636,6 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
             PersistentConfig._AppliedScrapPilotHudTexture = hudTexture
         end
     end
-
-    SyncLegacyScrapPilotHudSprites(layoutIndex == 2)
 
     if exu.SetScrapHudColor then
         if layoutIndex == 2 then
@@ -4728,6 +4654,7 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
     end
 
     if layoutIndex ~= 2 then
+        SetStockScrapPilotHudSpritesVisible(true)
         if exu.SetScrapPilotHudOffset then
             exu.SetScrapPilotHudOffset(0, 0)
         end
@@ -4735,6 +4662,7 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
     end
 
     ApplyLegacyScrapPilotHudTopLeft()
+    SetStockScrapPilotHudSpritesVisible(false)
 end
 
 function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
@@ -4975,9 +4903,8 @@ function PersistentConfig._SettingsActions.AdjustRadarSizeScale(delta)
     end
 
     PersistentConfig.Settings.RadarSizeScale = nextScale
-    PersistentConfig._SettingsActions.CommitPdaSettingChange()
-    PersistentConfig._CancelRadarScaleResync()
-    ShowFeedback("Radar Size: " .. FormatScale(nextScale, PersistentConfig.RadarUi.min, PersistentConfig.RadarUi.max) .. " (next mission)",
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncRadarSize = true })
+    ShowFeedback("Radar Size: " .. FormatScale(nextScale, PersistentConfig.RadarUi.min, PersistentConfig.RadarUi.max),
         0.8, 1.0, 0.8, 2.5, false, "pda")
     return true
 end
@@ -5006,8 +4933,8 @@ function PersistentConfig._SettingsActions.CycleLightingMode(delta)
     end
 
     local _, preset = PersistentConfig._SetLightingModeIndex(nextIndex)
-    PersistentConfig._SettingsActions.CommitPdaSettingChange()
-    ShowFeedback("Lighting Mode: " .. ((preset and preset.name) or "DEFAULT") .. " (next mission)",
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncLightingMode = true })
+    ShowFeedback("Lighting Mode: " .. ((preset and preset.name) or "DEFAULT"),
         0.8, 1.0, 0.8, 3.0, false, "pda")
     return true
 end
@@ -5592,7 +5519,7 @@ function PersistentConfig.ApplySettings(options)
             end
         end
 
-        if options and options.syncLightingMode then
+        if applyAll or (options and options.syncLightingMode) then
             PersistentConfig._RequestLightingModeResync()
             PersistentConfig._SyncLightingMode(true)
         end
@@ -5600,7 +5527,7 @@ function PersistentConfig.ApplySettings(options)
             exu.SetTargetReticlePopupMode(PersistentConfig.Settings.TargetReticlePopupMode)
         end
 
-        if options and options.syncRadarSize then
+        if applyAll or (options and options.syncRadarSize) then
             PersistentConfig._RequestRadarScaleResync()
             PersistentConfig._SyncRadarSizeScale(true)
         end
@@ -5613,7 +5540,6 @@ function PersistentConfig.ApplySettings(options)
     end
 
     if applyAll or (options and options.applyScrapPilotHud) then
-        LegacyScrapPilotHudSpritesHiddenState = nil
         PersistentConfig.ApplyScrapPilotHudLayout()
     end
 
@@ -5677,11 +5603,12 @@ function PersistentConfig.UpdateInputs()
     if exu and exu.GetGameKey and exu.GetGameKey("ESCAPE") then
         escapePressed = true
     end
+    local uiInteractionSuppressed = pauseMenuOpen or escapePressed
 
     if InputState.autoSaveStartupPending then
         if not (autosave and autosave.Config and autosave.Config.enabled and autosave.Update) then
             InputState.autoSaveStartupPending = false
-        elseif not pauseMenuOpen then
+        elseif not uiInteractionSuppressed then
             InputState.autoSaveStartupPending = false
             autosave.Update(0.0)
         end
@@ -5689,12 +5616,12 @@ function PersistentConfig.UpdateInputs()
 
     if PersistentConfig.ExperimentalOverlayVisible then
         local hideAt = PersistentConfig.ExperimentalOverlayExpireAt or 0.0
-        if pauseMenuOpen or GetTime() >= hideAt then
+        if uiInteractionSuppressed or GetTime() >= hideAt then
             PersistentConfig._HideExperimentalOverlay()
         end
     end
 
-    InputState.SubtitlesPaused = pauseMenuOpen or escapePressed
+    InputState.SubtitlesPaused = uiInteractionSuppressed
     local scriptSubtitles = GetScriptSubtitles()
     if scriptSubtitles and scriptSubtitles.SetSuspended then
         scriptSubtitles.SetSuspended(InputState.SubtitlesPaused)
@@ -5710,19 +5637,16 @@ function PersistentConfig.UpdateInputs()
     PersistentConfig._UpdatePdaOverlayTimers()
     PersistentConfig.ReactiveReticleModule.Update()
 
-    local keepPdaOverlayLive = PersistentConfig._CanUsePdaOverlay()
-    if pauseMenuOpen then
-        if not keepPdaOverlayLive then
-            ClearWeaponStats()
-            ClearPdaFeedback()
-        end
+    if uiInteractionSuppressed then
+        ClearWeaponStats()
+        ClearPdaFeedback()
     else
         ProcessPendingPdaOverlayRefresh()
         UpdateWeaponStatsDisplay(currentPlayerHandle)
     end
 
     -- Process Feedback Queue
-    if not pauseMenuOpen and #PersistentConfig.FeedbackQueue > 0 then
+    if not uiInteractionSuppressed and #PersistentConfig.FeedbackQueue > 0 then
         -- Check if mission subtitles are active
         local subtit = GetScriptSubtitles()
         local isBusy = false

@@ -237,7 +237,8 @@ local function buildAutoSaveDescription(missionSeconds)
         missionName = "Unknown Mission"
     end
     local missionMinutes = formatMissionMinutesLabel(missionSeconds)
-    return string.format("%s AutoSave %s M", missionName, missionMinutes)
+    local minuteLabel = (missionMinutes == "1") and "min" or "min"
+    return string.format("%s - AutoSave - %s %s", missionName, missionMinutes, minuteLabel)
 end
 
 local function getAutoSavePaths()
@@ -257,7 +258,24 @@ local function getAutoSavePaths()
     local basename = filename:match("([^\\/]+)$") or "auto.sav"
     local backupStem = basename:gsub("%.sav$", "")
     local backupname = joinPath(backupDir, backupStem .. ".pre_autosave.sav")
-    return filename, backupname, backupDir
+    local labelPath = joinPath(saveDir, backupStem .. ".label.txt")
+    return filename, backupname, backupDir, labelPath
+end
+
+local function writeAutoSaveLabel(labelPath, desc)
+    local trimmed = trim(desc)
+    if labelPath == "" or trimmed == "" then
+        return
+    end
+
+    local labelFile = bzfile.Open(labelPath, "w", "trunc")
+    if not labelFile then
+        print("AutoSave: WARNING - could not open autosave label file for writing: " .. labelPath)
+        return
+    end
+
+    labelFile:Write(trimmed)
+    labelFile:Close()
 end
 
 local function ensureBackupDirectory(backupDir)
@@ -304,7 +322,7 @@ local function backupOriginalSaveIfNeeded(filename, backupname, backupDir)
 end
 
 function AutoSave.CreateSave(slot, desc)
-    local filename, backupname, backupDir = getAutoSavePaths()
+    local filename, backupname, backupDir, labelPath = getAutoSavePaths()
 
     if not backupOriginalSaveIfNeeded(filename, backupname, backupDir) then
         print("AutoSave: backup failed, aborting native save for " .. filename)
@@ -318,6 +336,7 @@ function AutoSave.CreateSave(slot, desc)
 
     local ok, pathOrError = exu.SaveGame(filename, desc)
     if ok then
+        writeAutoSaveLabel(labelPath, desc)
         print("AutoSave: native save completed to " .. tostring(pathOrError or filename))
         showAutoSaveNotification()
         return true
