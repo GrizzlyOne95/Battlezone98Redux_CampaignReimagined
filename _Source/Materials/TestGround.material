@@ -1,41 +1,16 @@
-material testground
+import * from "BZBase.material"
+
+material testground : BZBase
 {
-    technique
-    {
-	pass
-	{
-	    vertex_program_ref DiffuseSpecularNormalEmissiveBase_vertex
-	    {
-	    }
-	    fragment_program_ref DiffuseSpecularNormalEmissiveBase_fragment
-	    {
-	    }
+	set_texture_alias DiffuseMap MOON_ATLAS_D.dds
+	set_texture_alias NormalMap MOON_ATLAS_N.dds
+	set_texture_alias SpecularMap abcomm_S.dds
+	set_texture_alias EmissiveMap black.png
 
-	    ambient 0.5 0.5 0.5
-	    diffuse 1 1 1
-	    specular .96 .86 .67 127
-	
-	    texture_unit diffuseMap
-	    {
-            texture MOON_ATLAS_D.dds
-	    }
-
-	    texture_unit normalMap
-	    {
-		texture MOON_ATLAS_N.dds
-	    }
-
-	    texture_unit specularMap
-	    {
-		texture abcomm_S.dds
-	    }
-
-	    texture_unit emissiveMap
-	    {
-		texture black.png
-	    }
-	}
-    }
+	set $diffuse "1 1 1"
+	set $ambient "0.5 0.5 0.5"
+	set $specular ".96 .86 .67"
+	set $shininess "127"
 }
 
 

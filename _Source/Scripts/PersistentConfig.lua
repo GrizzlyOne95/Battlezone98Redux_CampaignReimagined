@@ -7,6 +7,7 @@ local RuntimeEnhancements = require("RuntimeEnhancements")
 local ConservativeCulling = require("ConservativeCulling")
 
 local PersistentConfig = {}
+PersistentConfig.D = require("PersistentConfigD")
 PersistentConfig.ReactiveReticleModule = require("ReactiveReticle")
 PersistentConfig.Channels = {
     WeaponStats = 1,
@@ -85,7 +86,8 @@ PersistentConfig.DefaultSettings = {
     AutoSaveEnabled = false,        -- AutoSave disabled by default
     AutoSaveInterval = 300,         -- Auto-save every 5 minutes
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
-    RetroLighting = false,          -- Disables PBR and custom shader lighting equations
+    LightingMode = 1,               -- 1=Default 2=Enhanced 3=Retro
+    RetroLighting = false,          -- Legacy compatibility mirror for LightingMode=Retro
     WeaponStatsHud = true,          -- Persistent weapon stats panel
     PilotModeEnabled = false,       -- Player-side pilot mode automation
     UnitVerbosity = 1,              -- 1=Normal 2=Decreased 3=None
@@ -219,6 +221,17 @@ local ScrapPilotHudMaterialNames = {
 }
 local StockScrapPilotHudTexture = "GreenHUD.png"
 local LegacyScrapPilotHudTexture = "GreenHUD_2.png"
+local LegacyScrapPilotHudSpriteNames = {
+    "scrap_panel",
+    "pilot_panel",
+    "sscrap_panel",
+    "spilot_panel",
+    "fscrap_panel",
+    "fpilot_panel",
+}
+local LegacyScrapPilotHudSpritesHiddenState = nil
+local LegacyScrapPilotHudSpriteBridgeEnabled = false
+local LegacyScrapPilotHudSpriteBridgeWarned = false
 
 local HeadlightColorPresets = {
     [1] = { name = "WHITE", r = 5.0, g = 5.0, b = 5.0 },
@@ -668,6 +681,24 @@ end
 function PersistentConfig._GetUnitVerbosityPreset()
     return PersistentConfig.UnitVerbosityPresets[ClampIndex(PersistentConfig.Settings.UnitVerbosity, 1,
         #PersistentConfig.UnitVerbosityPresets, 1)]
+end
+
+function PersistentConfig._GetLightingModePreset()
+    return PersistentConfig.LightingModePresets[ClampIndex(
+        PersistentConfig.Settings.LightingMode,
+        1,
+        #PersistentConfig.LightingModePresets,
+        PersistentConfig.DefaultSettings.LightingMode or 1
+    )]
+end
+
+function PersistentConfig._SetLightingModeIndex(value)
+    local index = ClampIndex(value, 1, #PersistentConfig.LightingModePresets,
+        PersistentConfig.DefaultSettings.LightingMode or 1)
+    local preset = PersistentConfig.LightingModePresets[index] or PersistentConfig.LightingModePresets[1]
+    PersistentConfig.Settings.LightingMode = index
+    PersistentConfig.Settings.RetroLighting = not not (preset and preset.retro)
+    return index, preset
 end
 
 function PersistentConfig._ResolveUnitVoProfileForCurrentTeam()
@@ -2299,7 +2330,14 @@ InputState = {
     lastUnitVoTeam = nil,
     autoSaveStartupPending = false,
     nextWeaponHudCheck = 0.0,
+    nextPdaOverlayRefresh = 0.0,
+    pdaOverlayRefreshPending = false,
+    pdaOverlayRefreshReason = nil,
     nextRadarScaleCheck = 0.0,
+    radarScaleSyncPending = false,
+    nextRetroLightingCheck = 0.0,
+    nextRetroLightingStabilizeUntil = 0.0,
+    lightingModeSyncPending = false,
     nextFactionFlameRefresh = 0.0,
     pdaPage = PdaPages.STATS,
     pdaSettingsIndex = 1,
@@ -2345,11 +2383,11 @@ InputState = {
     },
 }
 
+PersistentConfig.RetroLightingIntervals = PersistentConfig.D.RetroLightingIntervals
+PersistentConfig.LightingModePresets = PersistentConfig.D.LightingModePresets
+
 -- Beam Definitions
-local BeamModes = {
-    [1] = { Inner = 0.2, Outer = 0.4, Multiplier = 2.0 }, -- Focused (Brighter/Longer)
-    [2] = { Inner = 1.1, Outer = 1.5, Multiplier = 0.8 }  -- Wide (Wider/Shorter)
-}
+PersistentConfig.HeadlightBeamModes = PersistentConfig.D.BeamModes
 
 -- Helper to parse a simple key=value line
 local function ParseLine(line)
@@ -3441,12 +3479,131 @@ local function GetRadarSizeScaleSetting()
         PersistentConfig.RadarUi.max, PersistentConfig.DefaultSettings.RadarSizeScale)
 end
 
+local function GetAppliedRadarSizeScaleSetting()
+    local requestedScale = GetRadarSizeScaleSetting()
+    if requestedScale > 1.01 then
+        return requestedScale
+    end
+
+    -- The stock radar background art only lines up cleanly at the built-in small/medium/full sizes.
+    -- Snap reduced scales to the nearest supported shrink preset so the sweep and frame stay aligned.
+    local supportedScales = {
+        139.0 / 223.0,
+        179.0 / 223.0,
+        1.0,
+    }
+    local bestScale = supportedScales[#supportedScales]
+    local bestDiff = math.abs(bestScale - requestedScale)
+    for _, scale in ipairs(supportedScales) do
+        local diff = math.abs(scale - requestedScale)
+        if diff < bestDiff then
+            bestDiff = diff
+            bestScale = scale
+        end
+    end
+    return bestScale
+end
+
+local function ApplyLegacyScrapPilotHudTopLeft()
+    if not exu then
+        return false
+    end
+
+    -- These HUD placement APIs use the same virtual coordinate space the stock command menu uses,
+    -- so a stable top-left anchor keeps the counters parked beside that menu across resolutions.
+    local anchorX = 500
+    local scrapY = 22
+    local pilotY = 76
+
+    if type(exu.SetScrapPilotHudTopLeft) == "function" then
+        local ok, result = pcall(exu.SetScrapPilotHudTopLeft, anchorX, scrapY)
+        return ok and result ~= false
+    end
+
+    if type(exu.SetScrapHudTopLeft) == "function" and type(exu.SetPilotHudTopLeft) == "function" then
+        local scrapOk, scrapResult = pcall(exu.SetScrapHudTopLeft, anchorX, scrapY)
+        local pilotOk, pilotResult = pcall(exu.SetPilotHudTopLeft, anchorX, pilotY)
+        return scrapOk and pilotOk and scrapResult ~= false and pilotResult ~= false
+    end
+
+    if type(exu.SetScrapPilotHudOffset) == "function" then
+        local ok, result = pcall(exu.SetScrapPilotHudOffset, -400, -220)
+        return ok and result ~= false
+    end
+
+    return false
+end
+
+function PersistentConfig._SyncLightingMode(force)
+    if not exu then
+        return false
+    end
+
+    local preset = PersistentConfig._GetLightingModePreset()
+    local targetMode = (preset and preset.mode) or "default"
+    if not force and PersistentConfig._AppliedLightingMode == targetMode then
+        return false
+    end
+
+    local applied = false
+    if type(exu.SetLightingMode) == "function" then
+        local ok, result = pcall(exu.SetLightingMode, targetMode)
+        applied = ok and result ~= false
+    end
+    if not applied and type(exu.SetRetroLightingMode) == "function" then
+        local ok, result = pcall(exu.SetRetroLightingMode, targetMode == "retro")
+        applied = ok and result ~= false
+    end
+
+    if applied then
+        PersistentConfig._AppliedLightingMode = targetMode
+        PersistentConfig.Settings.RetroLighting = targetMode == "retro"
+    else
+        PersistentConfig._AppliedLightingMode = nil
+    end
+    return applied
+end
+
+PersistentConfig._SyncRetroLighting = PersistentConfig._SyncLightingMode
+
+function PersistentConfig._RequestLightingModeResync(duration)
+    local now = (type(GetTime) == "function" and GetTime()) or 0.0
+    local window = tonumber(duration) or PersistentConfig.RetroLightingIntervals.stabilizeDuration
+
+    InputState.lightingModeSyncPending = true
+    InputState.nextRetroLightingCheck = 0.0
+    if window > 0 then
+        InputState.nextRetroLightingStabilizeUntil = math.max(
+            tonumber(InputState.nextRetroLightingStabilizeUntil) or 0.0,
+            now + window
+        )
+    end
+end
+
+PersistentConfig._RequestRetroLightingResync = PersistentConfig._RequestLightingModeResync
+
+function PersistentConfig._CancelLightingModeResync()
+    InputState.lightingModeSyncPending = false
+    InputState.nextRetroLightingCheck = 0.0
+    InputState.nextRetroLightingStabilizeUntil = 0.0
+end
+
+function PersistentConfig._RequestRadarScaleResync()
+    InputState.radarScaleSyncPending = true
+    InputState.nextRadarScaleCheck = 0.0
+end
+
+function PersistentConfig._CancelRadarScaleResync()
+    InputState.radarScaleSyncPending = false
+    InputState.nextRadarScaleCheck = 0.0
+end
+
 function PersistentConfig._SyncRadarSizeScale(force)
     if not exu or type(exu.SetRadarSizeScale) ~= "function" then
         return false
     end
 
-    local targetScale = GetRadarSizeScaleSetting()
+    local targetScale = GetAppliedRadarSizeScaleSetting()
     if not force and type(exu.GetRadarSizeScale) == "function" then
         local ok, currentScale = pcall(exu.GetRadarSizeScale)
         if ok and type(currentScale) == "number" and math.abs(currentScale - targetScale) < 0.01 then
@@ -3454,7 +3611,18 @@ function PersistentConfig._SyncRadarSizeScale(force)
         end
     end
 
-    local ok = pcall(exu.SetRadarSizeScale, targetScale)
+    print(string.format("PersistentConfig: _SyncRadarSizeScale begin force=%s requested=%.3f applied=%.3f",
+        tostring(force), tonumber(PersistentConfig.Settings.RadarSizeScale) or -1, targetScale))
+    local callOk, result = pcall(exu.SetRadarSizeScale, targetScale)
+    local ok = callOk and result ~= false
+    print(string.format("PersistentConfig: _SyncRadarSizeScale result ok=%s callOk=%s result=%s",
+        tostring(ok), tostring(callOk), tostring(result)))
+    if ok and ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2 then
+        -- Radar refreshes can snap the stock scrap/pilot counters and legacy HUD art back to their default anchor.
+        LegacyScrapPilotHudSpritesHiddenState = nil
+        print("PersistentConfig: _SyncRadarSizeScale reapplying legacy scrap/pilot HUD layout")
+        PersistentConfig.ApplyScrapPilotHudLayout()
+    end
     return ok
 end
 
@@ -4222,53 +4390,6 @@ local function GetTargetClosureInfo(player, target, targetDistance)
     return closure, targetDistance / closure
 end
 
-local function FormatWholeNumber(value)
-    if value == nil then return "n/a" end
-    return tostring(math.floor(value + 0.5))
-end
-
-local function FormatDps(value)
-    if value == nil then return "n/a" end
-    if value >= 100 then
-        return FormatWholeNumber(value)
-    end
-    return string.format("%.1f", value)
-end
-
-local function BuildMeterBar(label, fraction, currentValue, maxValue)
-    local width = 28
-    local clamped = math.max(0.0, math.min(1.0, fraction or 0.0))
-    local filled = math.floor((clamped * width) + 0.5)
-    if filled > width then filled = width end
-    local empty = width - filled
-    local currentText = currentValue and FormatWholeNumber(currentValue) or nil
-    local maxText = maxValue and FormatWholeNumber(maxValue) or nil
-    local numericText = ""
-    if currentText and maxText then
-        numericText = " " .. currentText .. "/" .. maxText
-    end
-    return string.format("%-4s [%s%s] %3d%%%s", label, string.rep("=", filled), string.rep(".", empty),
-        math.floor((clamped * 100.0) + 0.5), numericText)
-end
-
-local function FormatWeaponRangeText(weaponStats, effectiveRange)
-    local minRange = weaponStats and weaponStats.rangeMin or nil
-    local maxRange = weaponStats and weaponStats.rangeMax or nil
-    local baseRange = weaponStats and weaponStats.range or nil
-    local rangeText = FormatWholeNumber(baseRange)
-
-    if minRange and maxRange and math.abs(maxRange - minRange) >= 5.0 then
-        rangeText = FormatWholeNumber(minRange) .. "-" .. FormatWholeNumber(maxRange)
-    end
-
-    if weaponStats and weaponStats.ballistic and effectiveRange and baseRange and
-        math.abs(effectiveRange - baseRange) >= 5.0 then
-        rangeText = rangeText .. ">" .. FormatWholeNumber(effectiveRange)
-    end
-
-    return rangeText
-end
-
 function PersistentConfig._EstimateSplashAverageValue(minValue, maxValue, splashRadius)
     local minDamage = tonumber(minValue)
     local maxDamage = tonumber(maxValue)
@@ -4280,1139 +4401,78 @@ function PersistentConfig._EstimateSplashAverageValue(minValue, maxValue, splash
     return minDamage + ((maxDamage - minDamage) * splashWeight)
 end
 
-local function FormatWeaponDamageText(weaponStats)
-    if not weaponStats then return "n/a" end
-    local splashRadius = weaponStats.splashRadiusMax or weaponStats.splashRadius
-    if splashRadius and splashRadius > 0.0 and weaponStats.damageMin and weaponStats.damageMax and
-        math.abs(weaponStats.damageMax - weaponStats.damageMin) >= 1.0 then
-        return "~" ..
-            FormatWholeNumber(PersistentConfig._EstimateSplashAverageValue(weaponStats.damageMin, weaponStats.damageMax, splashRadius))
-    end
-    if weaponStats.damageMin and weaponStats.damageMax and math.abs(weaponStats.damageMax - weaponStats.damageMin) >= 1.0 then
-        return FormatWholeNumber(weaponStats.damageMin) .. "-" .. FormatWholeNumber(weaponStats.damageMax)
-    end
-    return FormatWholeNumber(weaponStats.damage)
-end
+PersistentConfig.R = require("PersistentConfigR").Create({
+    PersistentConfig = PersistentConfig,
+    InputState = InputState,
+    PresetProducerKinds = PresetProducerKinds,
+    CleanString = CleanString,
+    ClampIndex = ClampIndex,
+    ShowFeedback = ShowFeedback,
+    GetProducerHandleForKind = GetProducerHandleForKind,
+    GetProducerBuildEntries = GetProducerBuildEntries,
+    GetPresetSurchargeForEntry = GetPresetSurchargeForEntry,
+    GetUnitBuildEntry = GetUnitBuildEntry,
+    InitializeTrackedWorldHandles = InitializeTrackedWorldHandles,
+    GetPlayerTeamNum = GetPlayerTeamNum,
+    GetPowerRadius = function(...)
+        return GetPowerRadius(...)
+    end,
+})
 
-local function FormatWeaponDpsText(weaponStats)
-    if not weaponStats then return "n/a" end
-    local splashRadius = weaponStats.splashRadiusMax or weaponStats.splashRadius
-    if splashRadius and splashRadius > 0.0 and weaponStats.dpsMin and weaponStats.dpsMax and
-        math.abs(weaponStats.dpsMax - weaponStats.dpsMin) >= 0.1 then
-        return "~" ..
-            FormatDps(PersistentConfig._EstimateSplashAverageValue(weaponStats.dpsMin, weaponStats.dpsMax, splashRadius))
-    end
-    if weaponStats.dpsMin and weaponStats.dpsMax and math.abs(weaponStats.dpsMax - weaponStats.dpsMin) >= 0.1 then
-        return FormatDps(weaponStats.dpsMin) .. "-" .. FormatDps(weaponStats.dpsMax)
-    end
-    return FormatDps(weaponStats.dps)
-end
+GetProducerQueueState = PersistentConfig.R.GetProducerQueueState
+IsCommanderTrackedHandle = PersistentConfig.R.IsCommanderTrackedHandle
+RegisterCommanderHandle = PersistentConfig.R.RegisterCommanderHandle
+RemoveCommanderHandle = PersistentConfig.R.RemoveCommanderHandle
+local QueueGameKey = PersistentConfig.R.QueueGameKey
+local ConsumePendingGameKeyMatch = PersistentConfig.R.ConsumePendingGameKeyMatch
+local UpdateTeamScrapSnapshot = PersistentConfig.R.UpdateTeamScrapSnapshot
+local RecordBuildKeyIfPressed = PersistentConfig.R.RecordBuildKeyIfPressed
+local UpdateProducerQueues = PersistentConfig.R.UpdateProducerQueues
+local UpdateProducerBuildState = PersistentConfig.R.UpdateProducerBuildState
+local FindPendingBuildForUnit = PersistentConfig.R.FindPendingBuildForUnit
+local UpdatePendingBuildRefunds = PersistentConfig.R.UpdatePendingBuildRefunds
+local ResetCommanderOverview = PersistentConfig.R.ResetCommanderOverview
+local UpdateCommanderOverview = PersistentConfig.R.UpdateCommanderOverview
 
-local function FormatWeaponSplashText(weaponStats)
-    if not weaponStats then return nil end
-
-    local minRadius = weaponStats.splashRadiusMin or weaponStats.splashRadius
-    local maxRadius = weaponStats.splashRadiusMax or weaponStats.splashRadius
-    if not maxRadius or maxRadius <= 0.0 then
-        return nil
-    end
-    if minRadius and math.abs(maxRadius - minRadius) >= 1.0 then
-        return FormatWholeNumber(minRadius) .. "-" .. FormatWholeNumber(maxRadius) .. "m"
-    end
-    return FormatWholeNumber(maxRadius) .. "m"
-end
-
-local function FormatWeaponShotsLeftText(weaponStats, currentAmmo)
-    if not weaponStats then return nil end
-
-    local function ComputeShots(ammoCost)
-        if ammoCost == nil then
-            return nil
+PersistentConfig.P = require("PersistentConfigP").Create({
+    PersistentConfig = PersistentConfig,
+    InputState = InputState,
+    PdaPages = PdaPages,
+    AppendPdaFooter = AppendPdaFooter,
+    AppendPdaNavHints = AppendPdaNavHints,
+    BuildPdaHeader = BuildPdaHeader,
+    ClampIndex = ClampIndex,
+    ClampRange = ClampRange,
+    CleanString = CleanString,
+    FormatPresetSlotValue = FormatPresetSlotValue,
+    GetAimInfo = GetAimInfo,
+    GetDisplayedWeaponStats = GetDisplayedWeaponStats,
+    GetEffectiveWeaponRangeMeters = GetEffectiveWeaponRangeMeters,
+    GetHardpointCategoryLabel = GetHardpointCategoryLabel,
+    GetHudTargetInfo = GetHudTargetInfo,
+    GetHorizontalDistanceBetweenHandles = GetHorizontalDistanceBetweenHandles,
+    GetHorizontalDistanceBetweenPositions = GetHorizontalDistanceBetweenPositions,
+    GetInstalledWeaponMask = GetInstalledWeaponMask,
+    GetPlayerSpeedMeters = GetPlayerSpeedMeters,
+    GetPresetPageContext = GetPresetPageContext,
+    GetPresetSlotOption = GetPresetSlotOption,
+    GetPresetSurchargeForEntry = GetPresetSurchargeForEntry,
+    GetProducerQueueState = GetProducerQueueState,
+    GetQueuePageContext = GetQueuePageContext,
+    GetSettingsPageEntries = function()
+        if GetSettingsPageEntries then
+            return GetSettingsPageEntries()
         end
-        ammoCost = tonumber(ammoCost) or 0.0
-        if ammoCost <= 0.001 then
-            return math.huge
-        end
-        if type(currentAmmo) ~= "number" then
-            return nil
-        end
-        return math.max(0, math.floor((currentAmmo / ammoCost) + 0.0001))
-    end
-
-    local minShots = ComputeShots(weaponStats.ammoCostMax or weaponStats.ammoCost)
-    local maxShots = ComputeShots(weaponStats.ammoCostMin or weaponStats.ammoCost)
-    if minShots == nil and maxShots == nil then
-        return nil
-    end
-
-    local function FormatShots(value)
-        if value == math.huge then
-            return "INF"
-        end
-        if value == nil then
-            return "n/a"
-        end
-        return tostring(value)
-    end
-
-    if minShots == maxShots then
-        return FormatShots(minShots)
-    end
-
-    if minShots == nil then
-        return FormatShots(maxShots)
-    end
-    if maxShots == nil then
-        return FormatShots(minShots)
-    end
-
-    local low = math.min(minShots, maxShots)
-    local high = math.max(minShots, maxShots)
-    return FormatShots(low) .. "-" .. FormatShots(high)
-end
-
-local function BuildChargeSummaryText(weaponStats)
-    local levels = weaponStats and weaponStats.chargeLevels or nil
-    if not levels or #levels <= 0 then return nil end
-
-    local picks = {}
-    local candidateIndices = { 1, math.floor((#levels + 1) * 0.5), #levels }
-    local currentChargeLevel = weaponStats and weaponStats.currentChargeLevel or nil
-    for _, idx in ipairs(candidateIndices) do
-        idx = math.max(1, math.min(#levels, idx))
-        if not picks[idx] then
-            picks[idx] = true
-        end
-    end
-    if currentChargeLevel then
-        for idx, level in ipairs(levels) do
-            if (level.chargeIndex or idx) == currentChargeLevel then
-                picks[idx] = true
-                break
-            end
-        end
-    end
-
-    local parts = { "  CHG" }
-    for idx = 1, #levels do
-        if picks[idx] then
-            local level = levels[idx]
-            local statText = FormatWholeNumber(level.damage)
-            if level.dps then
-                statText = statText .. "/" .. FormatDps(level.dps)
-            end
-            local levelLabel = string.format("L%d", level.chargeIndex or idx)
-            if currentChargeLevel and (level.chargeIndex or idx) == currentChargeLevel then
-                levelLabel = levelLabel .. "*"
-            end
-            table.insert(parts, string.format("%s %s", levelLabel, statText))
-        end
-    end
-
-    return table.concat(parts, "  ")
-end
-
-local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compareTarget, comparePosition, compareDistance)
-    local hardpointCount = 0
-    local shooterPos = type(GetPosition) == "function" and GetPosition(h) or nil
-    local currentAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(h) or nil
-
-    for slot = 0, 4 do
-        if IsMaskBitSet(installedMask, slot) then
-            local weapon = CleanString(GetWeaponClass(h, slot))
-            if weapon ~= "" then
-                if hardpointCount > 0 then
-                    table.insert(lines, "")
-                end
-                hardpointCount = hardpointCount + 1
-                local weaponStats = GetDisplayedWeaponStats(h, weapon, GetWeaponStats(weapon) or {}) or {}
-                local effectiveRange = weaponStats.range
-                local distanceForCompare = compareDistance
-                if compareTarget and IsValid(compareTarget) then
-                    local targetPos = type(GetPosition) == "function" and GetPosition(compareTarget) or nil
-                    effectiveRange = GetEffectiveWeaponRangeMeters(weaponStats, shooterPos, targetPos) or weaponStats.range
-                    distanceForCompare = GetHorizontalDistanceBetweenHandles(h, compareTarget) or compareDistance
-                elseif comparePosition then
-                    effectiveRange = GetEffectiveWeaponRangeMeters(weaponStats, shooterPos, comparePosition) or weaponStats.range
-                    distanceForCompare = GetHorizontalDistanceBetweenPositions(shooterPos, comparePosition) or compareDistance
-                end
-                local status = "  "
-                if distanceForCompare then
-                    if effectiveRange then
-                        status = (distanceForCompare <= effectiveRange) and "+ " or "- "
-                    else
-                        status = "? "
-                    end
-                end
-                local rangeText = FormatWeaponRangeText(weaponStats, effectiveRange)
-
-                table.insert(lines, string.format("S%d %s %s", slot + 1, status, weaponStats.displayName or weapon))
-                table.insert(lines,
-                    string.format("  Range %sm  Damage %s  DPS %s", rangeText,
-                        FormatWeaponDamageText(weaponStats), FormatWeaponDpsText(weaponStats)))
-                local shotsText = FormatWeaponShotsLeftText(weaponStats, currentAmmo)
-                local splashText = FormatWeaponSplashText(weaponStats)
-                if shotsText or splashText then
-                    local detailParts = {}
-                    if shotsText then
-                        detailParts[#detailParts + 1] = "SHOTS " .. shotsText
-                    end
-                    if splashText then
-                        detailParts[#detailParts + 1] = "AOE " .. splashText
-                    end
-                    table.insert(lines, "  " .. table.concat(detailParts, "  "))
-                end
-                local chargeSummary = BuildChargeSummaryText(weaponStats)
-                if chargeSummary then
-                    table.insert(lines, chargeSummary)
-                end
-            end
-        end
-    end
-
-    if hardpointCount == 0 then
-        table.insert(lines, "NONE")
-    end
-
-    return hardpointCount
-end
-
-local function AppendTargetWeaponStatusLines(lines, h, selectedMask, compareTarget, comparePosition, compareDistance)
-    local count = 0
-    local shooterPos = type(GetPosition) == "function" and GetPosition(h) or nil
-
-    for slot = 0, 4 do
-        if IsMaskBitSet(selectedMask, slot) then
-            local weapon = CleanString(GetWeaponClass(h, slot))
-            if weapon ~= "" then
-                count = count + 1
-                local weaponStats = GetDisplayedWeaponStats(h, weapon, GetWeaponStats(weapon) or {}) or {}
-                local effectiveRange = weaponStats.range
-                local distanceForCompare = compareDistance
-
-                if compareTarget and IsValid(compareTarget) then
-                    local targetPos = type(GetPosition) == "function" and GetPosition(compareTarget) or nil
-                    effectiveRange = GetEffectiveWeaponRangeMeters(weaponStats, shooterPos, targetPos) or weaponStats.range
-                    distanceForCompare = GetHorizontalDistanceBetweenHandles(h, compareTarget) or compareDistance
-                elseif comparePosition then
-                    effectiveRange = GetEffectiveWeaponRangeMeters(weaponStats, shooterPos, comparePosition) or weaponStats.range
-                    distanceForCompare = GetHorizontalDistanceBetweenPositions(shooterPos, comparePosition) or compareDistance
-                end
-
-                local status = "UNKNOWN"
-                if distanceForCompare and effectiveRange then
-                    status = (distanceForCompare <= effectiveRange) and "IN RANGE" or "OUT OF RANGE"
-                end
-
-                local displayName = CleanString(weaponStats.displayName or weapon)
-                table.insert(lines, string.format("S%d %-18s %s", slot + 1, displayName, status))
-            end
-        end
-    end
-
-    if count == 0 then
-        table.insert(lines, "NONE")
-    end
-
-    return count
-end
-
-local function GetTargetPageWeaponSummary(player, selectedMask)
-    if not IsValid(player) then return nil end
-
-    local searchMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
-    if not searchMask or searchMask <= 0 then
-        return nil
-    end
-
-    local parts = {}
-    for slot = 0, 4 do
-        if IsMaskBitSet(searchMask, slot) then
-            local weapon = CleanString(GetWeaponClass(player, slot))
-            if weapon ~= "" then
-                local displayedStats = GetDisplayedWeaponStats(player, weapon, GetWeaponStats(weapon) or {}) or {}
-                local reticle = GetWeaponReticleName(weapon, displayedStats.currentChargeLevel)
-                local displayName = CleanString(displayedStats.displayName or weapon)
-                local part = string.format("S%d %s", slot + 1, displayName)
-                if reticle and reticle ~= "" then
-                    part = string.format("S%d %s/%s", slot + 1, reticle, displayName)
-                end
-                parts[#parts + 1] = part
-            end
-        end
-    end
-
-    if #parts == 0 then
-        return nil
-    end
-
-    return "Weapons  " .. table.concat(parts, " | ")
-end
-
-local function DescribeAimMode(aimInfo)
-    if not aimInfo then
-        return "NO TARGET"
-    end
-    if aimInfo.source == "target" then
-        return "TARGET LOCK"
-    end
-    if aimInfo.source == "reticle_object" then
-        return "SMART RETICLE"
-    end
-    if aimInfo.source == "reticle_pos" then
-        return "GROUND RETICLE"
-    end
-    return "TARGET"
-end
-
-local function BuildStatsPageText(player, mask)
-    local lines = { BuildPdaHeader(PdaPages.STATS) }
-    local speed = math.floor(GetPlayerSpeedMeters(player) + 0.5)
-    local _, targetDistance = GetHudTargetInfo(player)
-    local unitName = GetVehicleDisplayName(player) or "Unknown"
-    local playerHealth = (type(GetHealth) == "function") and (GetHealth(player) or 0.0) or 0.0
-    local playerAmmo = (type(GetAmmo) == "function") and (GetAmmo(player) or 0.0) or 0.0
-    local curHealth = type(GetCurHealth) == "function" and GetCurHealth(player) or nil
-    local maxHealth = type(GetMaxHealth) == "function" and GetMaxHealth(player) or nil
-    local curAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(player) or nil
-    local maxAmmo = type(GetMaxAmmo) == "function" and GetMaxAmmo(player) or nil
-    local installedMask = GetInstalledWeaponMask(player)
-    local distanceText = targetDistance and (tostring(math.floor(targetDistance + 0.5)) .. "m") or "--"
-
-    table.insert(lines, "UNIT " .. unitName)
-    table.insert(lines, "Speed  " .. tostring(speed) .. "m/s  Distance  " .. distanceText)
-    table.insert(lines, BuildMeterBar("HULL", playerHealth, curHealth, maxHealth))
-    table.insert(lines, BuildMeterBar("AMMO", playerAmmo, curAmmo, maxAmmo))
-    table.insert(lines, "")
-    table.insert(lines, "HARDPOINTS")
-
-    local hardpointCount = AppendWeaponStatsLines(lines, player, installedMask, mask, nil, nil, nil)
-    table.insert(lines, "TOTAL " .. tostring(hardpointCount))
-    AppendPdaNavHints(lines)
-    return table.concat(lines, "\n")
-end
-
-local function BuildTargetPageText(player, selectedMask)
-    local lines = { BuildPdaHeader(PdaPages.TARGET) }
-    local aimInfo = GetAimInfo(player, true)
-    local target = aimInfo and aimInfo.handle or nil
-    local targetDistance = aimInfo and aimInfo.distance or nil
-    local aimPosition = aimInfo and aimInfo.position or nil
-    local reticleLine = GetTargetPageWeaponSummary(player, selectedMask)
-
-    table.insert(lines, "MODE " .. DescribeAimMode(aimInfo))
-    if reticleLine then
-        table.insert(lines, reticleLine)
-    end
-
-    if not aimInfo or not targetDistance then
-        table.insert(lines, "NO TARGET")
-        table.insert(lines, "Aim at a unit to inspect it.")
-        AppendPdaNavHints(lines)
-        return table.concat(lines, "\n")
-    end
-
-    if not target and aimPosition then
-        local playerPos = type(GetPosition) == "function" and GetPosition(player) or nil
-        local deltaY = playerPos and ((aimPosition.y or 0.0) - (playerPos.y or 0.0)) or 0.0
-        table.insert(lines, "UNIT AIM POINT")
-        table.insert(lines, "ROLE TERRAIN")
-        table.insert(lines, "Distance  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
-        table.insert(lines, "ELV  " .. tostring(math.floor(deltaY + (deltaY >= 0 and 0.5 or -0.5))) .. "m")
-        table.insert(lines,
-            string.format("POS  %d %d %d", math.floor((aimPosition.x or 0.0) + 0.5), math.floor((aimPosition.y or 0.0) + 0.5),
-                math.floor((aimPosition.z or 0.0) + 0.5)))
-        table.insert(lines, "Reticle position")
-        AppendPdaNavHints(lines)
-        return table.concat(lines, "\n")
-    end
-
-    local speed = math.floor(GetPlayerSpeedMeters(target) + 0.5)
-    local unitName = GetVehicleDisplayName(target) or "Unknown"
-    local role = CleanString((type(GetClassLabel) == "function" and GetClassLabel(target)) or "")
-    local targetHealth = (type(GetHealth) == "function") and (GetHealth(target) or 0.0) or 0.0
-    local targetAmmo = (type(GetAmmo) == "function") and (GetAmmo(target) or 0.0) or 0.0
-    local curHealth = type(GetCurHealth) == "function" and GetCurHealth(target) or nil
-    local maxHealth = type(GetMaxHealth) == "function" and GetMaxHealth(target) or nil
-    local curAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(target) or nil
-    local maxAmmo = type(GetMaxAmmo) == "function" and GetMaxAmmo(target) or nil
-    local selectedWeaponMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
-    local _, eta = GetTargetClosureInfo(player, target, targetDistance)
-
-    table.insert(lines, "UNIT " .. unitName)
-    if role ~= "" then
-        table.insert(lines, "ROLE " .. role)
-    end
-    table.insert(lines, "Distance  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
-    table.insert(lines, "Speed  " .. tostring(speed) .. "m/s")
-    table.insert(lines, "Arrival  " .. (eta and string.format("%.1fs", eta) or "--"))
-
-    local selectedWeaponLines = {}
-    local selectedWeaponCount = 0
-    if selectedWeaponMask > 0 then
-        selectedWeaponCount = AppendTargetWeaponStatusLines(selectedWeaponLines, player, selectedWeaponMask, target, nil,
-            targetDistance)
-    end
-    if selectedWeaponCount > 0 then
-        table.insert(lines, "SELECTED")
-        for _, line in ipairs(selectedWeaponLines) do
-            table.insert(lines, line)
-        end
-        table.insert(lines, "TOTAL " .. tostring(selectedWeaponCount))
-    else
-        table.insert(lines, "Weapons  None selected")
-    end
-    table.insert(lines, BuildMeterBar("AMMO", targetAmmo, curAmmo, maxAmmo))
-    table.insert(lines, BuildMeterBar("HULL", targetHealth, curHealth, maxHealth))
-    AppendPdaNavHints(lines)
-    return table.concat(lines, "\n")
-end
-
-local function BuildSettingsPageText()
-    local lines = { BuildPdaHeader(PdaPages.SETTINGS) }
-    local settingsEntries = (GetSettingsPageEntries and GetSettingsPageEntries()) or {}
-    local count = math.max(#settingsEntries, 1)
-    local selection = ClampIndex(InputState.pdaSettingsIndex, 1, count, 1)
-    local visibleRows = 10
-    local startIndex = math.max(1, math.min(selection - math.floor(visibleRows / 2), math.max(1, count - visibleRows + 1)))
-    local endIndex = math.min(count, startIndex + visibleRows - 1)
-    local labelWidth = 0
-
-    table.insert(lines, string.format("Item %02d/%02d", selection, count))
-
-    if #settingsEntries == 0 then
-        table.insert(lines, "No settings available")
-    else
-        for index = startIndex, endIndex do
-            local entry = settingsEntries[index]
-            labelWidth = math.max(labelWidth, #(entry and entry.label or ""))
-        end
-        labelWidth = ClampRange(labelWidth, 8, 20, 12)
-
-        for index = startIndex, endIndex do
-            local entry = settingsEntries[index]
-            local prefix = (selection == index) and ">" or ((entry and entry.warning) and "!" or " ")
-            table.insert(lines, string.format("%s %-" .. tostring(labelWidth) .. "s %s", prefix, entry.label, entry.value))
-        end
-    end
-
-    AppendPdaFooter(lines,
-        "--------------------------------",
-        string.format("Show %02d-%02d/%02d  [ / ] Page", startIndex, endIndex, count),
-        "Up/Down Select  Left/Right Change")
-    return table.concat(lines, "\n")
-end
-
-local function BuildPresetPageText()
-    local lines = { BuildPdaHeader(PdaPages.PRESETS) }
-    local context = GetPresetPageContext()
-
-    if not context.available then
-        table.insert(lines, "Armory not available")
-        table.insert(lines, "Build an Armory to edit")
-        table.insert(lines, "unit upgrade presets.")
-        AppendPdaNavHints(lines)
-        return table.concat(lines, "\n")
-    end
-
-    if #context.producerKinds == 0 then
-        table.insert(lines, "No producers available")
-        table.insert(lines, "Recycler/Factory missing.")
-        AppendPdaNavHints(lines)
-        return table.concat(lines, "\n")
-    end
-
-    local selectedEntry = context.selectedEntry
-    local rowIndex = ClampIndex(InputState.presetRow, 1, math.max(#context.rows, 1), 1)
-
-    local function RowPrefix(index)
-        return (rowIndex == index) and ">" or " "
-    end
-
-    table.insert(lines, string.format("%s %-11s %s", RowPrefix(1), "Producer", context.producerInfo.label))
-    if selectedEntry then
-        table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "Unit", selectedEntry.displayName))
-        local unitPreset = GetUnitPresetRecord(selectedEntry.odf)
-        for slotOffset, slotInfo in ipairs(selectedEntry.slots or {}) do
-            local option = GetPresetSlotOption(slotInfo, context.armoryOptions, unitPreset)
-            table.insert(lines,
-                string.format("%s S%d %-8s %s", RowPrefix(2 + slotOffset), slotInfo.slotIndex,
-                    GetHardpointCategoryLabel(slotInfo.category), FormatPresetSlotValue(slotInfo, option)))
-        end
-        local surchargeRow = 2 + #(selectedEntry.slots or {}) + 1
-            table.insert(lines,
-            string.format("%s %-11s +%s", RowPrefix(surchargeRow), "Surcharge",
-                FormatWholeNumber(GetPresetSurchargeForEntry(selectedEntry)) .. " scrap"))
-    else
-        table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "Unit", "None"))
-    end
-
-    local selectedRow = context.rows and context.rows[rowIndex] or nil
-    if selectedRow and selectedRow.kind == "slot" and selectedEntry then
-        local slotInfo = selectedRow.slotInfo
-        local unitPreset = GetUnitPresetRecord(selectedEntry.odf)
-        local option = GetPresetSlotOption(slotInfo, context.armoryOptions, unitPreset)
-        local selectedWeapon = option and option.weaponName or ""
-        local stockWeapon = slotInfo and slotInfo.stockWeapon or ""
-        if selectedWeapon == "" then
-            selectedWeapon = stockWeapon
-        end
-        local stockStats = (stockWeapon ~= "" and GetWeaponStats(stockWeapon)) or nil
-        local selectedStats = (selectedWeapon ~= "" and GetWeaponStats(selectedWeapon)) or nil
-
-        local function FormatDelta(value, unit, decimals)
-            if value == nil then return "n/a" end
-            local format = "%+.0f"
-            if decimals and decimals > 0 then
-                format = "%+." .. tostring(decimals) .. "f"
-            end
-            return string.format(format, value) .. (unit or "")
-        end
-
-        local baseSurcharge = math.floor(GetPresetSurchargeForEntry(selectedEntry) + 0.5)
-        local original = unitPreset and unitPreset[slotInfo.slotIndex] or nil
-        if unitPreset then
-            unitPreset[slotInfo.slotIndex] = nil
-        end
-        local withoutSurcharge = math.floor(GetPresetSurchargeForEntry(selectedEntry) + 0.5)
-        if unitPreset then
-            unitPreset[slotInfo.slotIndex] = original
-        end
-        local deltaCost = math.max(0, baseSurcharge - withoutSurcharge)
-
-        local dpsDelta = (selectedStats and selectedStats.dps or nil) and
-            ((selectedStats.dps or 0.0) - (stockStats and stockStats.dps or 0.0)) or nil
-        local rangeDelta = (selectedStats and selectedStats.range or nil) and
-            ((selectedStats.range or 0.0) - (stockStats and stockStats.range or 0.0)) or nil
-        local delayDelta = (selectedStats and selectedStats.shotDelay or nil) and
-            ((selectedStats.shotDelay or 0.0) - (stockStats and stockStats.shotDelay or 0.0)) or nil
-
-        table.insert(lines, "")
-        table.insert(lines, string.format("Compare S%d", slotInfo.slotIndex))
-        table.insert(lines, string.format("Cost +%d scrap", deltaCost))
-        table.insert(lines, string.format("DPS  %s", FormatDelta(dpsDelta, "", 1)))
-        table.insert(lines, string.format("Range  %s", FormatDelta(rangeDelta, "m", 0)))
-        table.insert(lines, string.format("Delay  %s", FormatDelta(delayDelta, "s", 2)))
-    end
-
-    table.insert(lines, "")
-    table.insert(lines, "Preset applies after build.")
-    table.insert(lines, "No refunds for downgrades.")
-    AppendPdaFooter(lines, "--------------------------------", "Enter Action  [ / ] Switch Page",
-        "Up/Down Select  Left/Right Change")
-    return table.concat(lines, "\n")
-end
-
-local function BuildQueuePageText()
-    local lines = { BuildPdaHeader(PdaPages.QUEUE) }
-    local context = GetQueuePageContext()
-
-    if not context.available then
-        table.insert(lines, "")
-        table.insert(lines, "Undeployed")
-        AppendPdaNavHints(lines)
-        return table.concat(lines, "\n")
-    end
-
-    local rowIndex = ClampIndex(InputState.queueRow, 1, math.max(#context.rows, 1), 1)
-    local queue = GetProducerQueueState(context.producerInfo.kindIndex)
-
-    local function RowPrefix(index)
-        return (rowIndex == index) and ">" or " "
-    end
-
-    local queueItemName = "NONE"
-    if #context.unitEntries > 0 then
-        local queueEntry = context.unitEntries[ClampIndex(queue.itemIndex or 1, 1, #context.unitEntries, 1)]
-        queueItemName = queueEntry and (queueEntry.displayName or queueEntry.odf) or "NONE"
-    end
-
-    table.insert(lines, string.format("%s %-11s %s", RowPrefix(1), "Producer", context.producerInfo.label))
-    table.insert(lines, string.format("%s %-11s %s", RowPrefix(2), "Queue Item", queueItemName))
-    table.insert(lines, string.format("%s %-11s %d", RowPrefix(3), "Queue Count", queue.count or 0))
-    table.insert(lines, string.format("%s %-11s %s", RowPrefix(4), "Queue", queue.status or "Queue Off"))
-
-    AppendPdaFooter(lines, "--------------------------------", "Enter Lock/Unlock  [ / ] Page",
-        "Up/Down Select  Left/Right Change")
-    return table.concat(lines, "\n")
-end
-
-local function RefreshWeaponHud()
-    InputState.lastWeaponMask = nil
-    InputState.lastWeaponPlayer = nil
-    InputState.lastWeaponText = nil
-    InputState.lastWeaponTarget = nil
-    InputState.nextWeaponHudCheck = 0.0
-end
-
-local function GetAnyGameKey(names)
-    if not exu or not exu.GetGameKey then return false end
-    for _, name in ipairs(names) do
-        local ok, pressed = pcall(exu.GetGameKey, name)
-        if ok and pressed then
-            return true
-        end
-    end
-    return false
-end
-
-local function NormalizeGameKey(key)
-    if type(key) ~= "string" then return "" end
-    return string.upper(CleanString(key))
-end
-
-local function QueueGameKey(key)
-    local normalized = NormalizeGameKey(key)
-    if normalized == "" then return end
-    InputState.pendingGameKeys = InputState.pendingGameKeys or {}
-    table.insert(InputState.pendingGameKeys, normalized)
-    if #InputState.pendingGameKeys > 32 then
-        table.remove(InputState.pendingGameKeys, 1)
-    end
-end
-
-local function ConsumePendingGameKeyMatch(variants)
-    local queue = InputState.pendingGameKeys
-    if not queue or #queue == 0 then
-        return false
-    end
-    for index, key in ipairs(queue) do
-        for _, variant in ipairs(variants) do
-            if key == variant then
-                table.remove(queue, index)
-                return true
-            end
-        end
-    end
-    return false
-end
-
-local function ConsumePendingNumberKey()
-    local queue = InputState.pendingGameKeys
-    if not queue or #queue == 0 then
-        return nil
-    end
-    for index, key in ipairs(queue) do
-        local digit = nil
-        if #key == 1 and key:match("%d") then
-            digit = tonumber(key)
-        else
-            local match = key:match("NUMPAD(%d)") or key:match("KP(%d)") or key:match("NUM(%d)")
-            if match then
-                digit = tonumber(match)
-            end
-        end
-        if digit and digit >= 1 and digit <= 9 then
-            table.remove(queue, index)
-            return digit
-        end
-    end
-    return nil
-end
-
-local function GetSelectedProducerHandle(team)
-    if type(IsSelected) ~= "function" then return nil end
-    for kindIndex, _ in ipairs(PresetProducerKinds) do
-        local producer = GetProducerHandleForKind(kindIndex, team)
-        if IsValid(producer) and IsSelected(producer) then
-            return producer
-        end
-    end
-    return nil
-end
-
-local function GetBuildEntryForProducer(producer, index)
-    if not IsValid(producer) or not index then return nil end
-    local entries = GetProducerBuildEntries(producer)
-    return entries and entries[index] or nil
-end
-
-GetProducerQueueState = function(kindIndex)
-    InputState.producerQueues = InputState.producerQueues or {}
-    if not InputState.producerQueues[kindIndex] then
-        InputState.producerQueues[kindIndex] = {
-            itemIndex = 1,
-            count = 0,
-            remaining = 0,
-            unitOdf = "",
-            status = "Queue Off",
-            pendingIssue = nil,
-            inProgress = false,
-            locked = false,
-        }
-    end
-    return InputState.producerQueues[kindIndex]
-end
-
-local function GetUnitBuildTimeSeconds(unitOdfName)
-    if not unitOdfName or unitOdfName == "" then return 0.0 end
-    PersistentConfig.UnitBuildTimeCache = PersistentConfig.UnitBuildTimeCache or {}
-    local key = string.lower(unitOdfName)
-    if PersistentConfig.UnitBuildTimeCache[key] ~= nil then
-        return PersistentConfig.UnitBuildTimeCache[key]
-    end
-    local buildTime = 0.0
-    if OpenODF and GetODFFloat then
-        local odf = OpenODF(unitOdfName)
-        if odf then
-            local val, found = GetODFFloat(odf, nil, "buildTime", 0.0)
-            if found then
-                buildTime = val
-            end
-        end
-    end
-    PersistentConfig.UnitBuildTimeCache[key] = buildTime
-    return buildTime
-end
-
-local function UpdateTeamScrapSnapshot(team)
-    if type(GetScrap) ~= "function" then return nil end
-    local current = GetScrap(team) or 0.0
-    local last = InputState.lastTeamScrap[team]
-    if last == nil then
-        InputState.lastTeamScrap[team] = current
-        return 0.0
-    end
-    InputState.lastTeamScrap[team] = current
-    return last - current
-end
-
-local function StartPresetSurchargeForEntry(team, producer, entry)
-    if not entry then return end
-    local now = GetTime()
-    local surcharge = math.floor(GetPresetSurchargeForEntry(entry) + 0.5)
-    local applyAllowed = true
-    local charged = false
-    if surcharge > 0 and type(GetScrap) == "function" then
-        local currentScrap = GetScrap(team)
-        if currentScrap < surcharge then
-            applyAllowed = false
-            ShowFeedback("Not enough scrap for upgrades. Building stock loadout.", 1.0, 0.35, 0.35, 2.5, false, "pda")
-        elseif type(AddScrap) == "function" then
-            AddScrap(team, -surcharge)
-            charged = true
-        end
-    end
-
-    if surcharge > 0 or not applyAllowed then
-        local buildTime = GetUnitBuildTimeSeconds(entry.odf)
-        local expectedFinish = now + (buildTime or 0.0)
-        table.insert(InputState.pendingBuilds, {
-            producer = producer,
-            team = team,
-            unitOdf = entry.odf,
-            unitKey = string.lower(CleanString(entry.odf or "")),
-            surcharge = surcharge,
-            charged = charged,
-            applyAllowed = applyAllowed,
-            startedAt = now,
-            expectedFinishAt = expectedFinish,
-        })
-    end
-end
-
-local function RecordBuildKeyIfPressed(team)
-    local keyIndex = ConsumePendingNumberKey()
-    if not keyIndex then return end
-    local producer = GetSelectedProducerHandle(team)
-    if not producer then return end
-    InputState.lastBuildKey = {
-        producer = producer,
-        keyIndex = keyIndex,
-        time = GetTime(),
-        team = team,
-    }
-end
-
-local function TryStartBuildForProducer(producer, team, scrapDelta)
-    local keyInfo = InputState.lastBuildKey
-    if not keyInfo or keyInfo.producer ~= producer or keyInfo.team ~= team then return end
-    local now = GetTime()
-    local buildConfig = PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build
-    if (now - (keyInfo.time or 0.0)) > ((buildConfig and buildConfig.keyWindow) or 0.5) then
-        return
-    end
-    local entry = GetBuildEntryForProducer(producer, keyInfo.keyIndex)
-    if not entry then return end
-
-    local stockCost = entry.scrapCost or 0.0
-    local tolerance = (buildConfig and buildConfig.scrapConfirmTolerance) or 0.5
-    if type(scrapDelta) == "number" and stockCost > 0.0 then
-        if scrapDelta < (stockCost - tolerance) then
-            return
-        end
-    end
-
-    StartPresetSurchargeForEntry(team, producer, entry)
-    InputState.lastBuildKey = nil
-end
-
-local function UpdateProducerQueues(team)
-    local now = GetTime()
-    for kindIndex, _ in ipairs(PresetProducerKinds) do
-        local producer = GetProducerHandleForKind(kindIndex, team)
-        local queue = GetProducerQueueState(kindIndex)
-        queue.handle = producer
-        local entries = IsValid(producer) and GetProducerBuildEntries(producer) or {}
-        local entryCount = #entries
-        local selectedEntry = nil
-        if entryCount == 0 then
-            queue.itemIndex = 1
-            queue.unitOdf = ""
-            queue.status = "Queue Off"
-            queue.remaining = 0
-            queue.pendingIssue = nil
-            queue.inProgress = false
-            queue.count = 0
-            queue.locked = false
-        else
-            queue.itemIndex = ClampIndex(queue.itemIndex, 1, entryCount, 1)
-            selectedEntry = entries[queue.itemIndex]
-            queue.unitOdf = selectedEntry and selectedEntry.odf or ""
-        end
-
-        if queue.count <= 0 then
-            queue.remaining = 0
-            queue.status = "Queue Off"
-            queue.pendingIssue = nil
-            queue.inProgress = false
-            queue.locked = false
-        elseif not IsValid(producer) then
-            queue.status = "Queue Paused: Producer Missing"
-        else
-            if not queue.locked then
-                queue.status = "Queue Ready: Press Enter"
-            else
-                if queue.pendingIssue and not IsBusy(producer) then
-                    local window = ((PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build)
-                        and PersistentConfig.PresetConfig.build.keyWindow) or 0.5
-                    if (now - (queue.pendingIssue.time or 0.0)) > window then
-                        queue.remaining = queue.remaining + 1
-                        queue.pendingIssue = nil
-                    end
-                end
-
-                if IsSelected(producer) then
-                    queue.status = "Queue Paused: Prod Selected"
-                elseif IsBusy(producer) then
-                    if queue.inProgress then
-                        queue.status = "Queue Building"
-                    else
-                        queue.status = "Queue Paused: Manual Build"
-                    end
-                else
-                    if queue.remaining <= 0 then
-                        queue.status = "Queue Complete"
-                    else
-                        local stockCost = selectedEntry and selectedEntry.scrapCost or 0.0
-                        local pilotCost = selectedEntry and selectedEntry.pilotCost or 0.0
-                        local lowScrap = type(GetScrap) == "function" and stockCost > 0.0 and GetScrap(team) < stockCost
-                        local lowPilots = type(GetPilot) == "function" and pilotCost > 0.0 and GetPilot(team) < pilotCost
-                        if lowScrap and lowPilots then
-                            queue.status = "Queue Paused: Low Scrap/Pilots"
-                        elseif lowScrap then
-                            queue.status = "Queue Paused: Low Scrap"
-                        elseif lowPilots then
-                            queue.status = "Queue Paused: Low Pilots"
-                        elseif not queue.pendingIssue then
-                            if queue.unitOdf and queue.unitOdf ~= "" and type(Build) == "function" then
-                                Build(producer, queue.unitOdf)
-                                queue.pendingIssue = { unitOdf = queue.unitOdf, time = now }
-                                queue.remaining = math.max(0, (queue.remaining or 0) - 1)
-                                queue.status = "Queue Starting..."
-                            end
-                        else
-                            queue.status = "Queue Starting..."
-                        end
-                    end
-                end
-            end
-            if queue.count > 0 then
-                local remaining = math.max(0, queue.remaining or 0)
-                queue.status = string.format("%s (%d/%d)", queue.status, remaining, queue.count)
-            end
-        end
-    end
-end
-
-local function UpdateProducerBuildState(team, scrapDelta)
-    local busyState = InputState.producerBusyState
-    for kindIndex, _ in ipairs(PresetProducerKinds) do
-        local producer = GetProducerHandleForKind(kindIndex, team)
-        if IsValid(producer) then
-            local isBusy = IsBusy(producer)
-            local wasBusy = busyState[producer] or false
-            if not wasBusy and isBusy then
-                local queue = GetProducerQueueState(kindIndex)
-                local window = ((PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build)
-                    and PersistentConfig.PresetConfig.build.keyWindow) or 0.5
-                if queue and queue.pendingIssue and (GetTime() - (queue.pendingIssue.time or 0.0)) <= window then
-                    queue.inProgress = true
-                    local entry = GetUnitBuildEntry(queue.pendingIssue.unitOdf)
-                    StartPresetSurchargeForEntry(team, producer, entry)
-                    queue.pendingIssue = nil
-                else
-                    TryStartBuildForProducer(producer, team, scrapDelta)
-                end
-            elseif wasBusy and not isBusy then
-                local queue = GetProducerQueueState(kindIndex)
-                if queue and queue.inProgress then
-                    queue.inProgress = false
-                end
-            end
-            busyState[producer] = isBusy
-        end
-    end
-    for handle, _ in pairs(busyState) do
-        if not IsValid(handle) then
-            busyState[handle] = nil
-        end
-    end
-end
-
-local function FindPendingBuildForUnit(team, unitOdfName, h)
-    local pending = InputState.pendingBuilds
-    if not pending or #pending == 0 then return nil end
-    local wanted = string.lower(CleanString(unitOdfName or ""))
-    local now = GetTime()
-    local grace = ((PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build)
-        and PersistentConfig.PresetConfig.build.refundGrace) or 1.0
-    local bestIndex = nil
-    for index, record in ipairs(pending) do
-        if record.team == team and record.unitKey == wanted then
-            if now <= ((record.expectedFinishAt or 0.0) + grace) then
-                if IsValid(h) and IsValid(record.producer) and type(GetDistance) == "function" then
-                    local distance = GetDistance(h, record.producer)
-                    if distance and distance <= 12.0 then
-                        return index, record
-                    end
-                end
-                if not bestIndex then
-                    bestIndex = index
-                end
-            end
-        end
-    end
-    if bestIndex then
-        return bestIndex, pending[bestIndex]
-    end
-    return nil
-end
-
-local function UpdatePendingBuildRefunds()
-    local pending = InputState.pendingBuilds
-    if not pending or #pending == 0 then return end
-    local now = GetTime()
-    local grace = ((PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build)
-        and PersistentConfig.PresetConfig.build.refundGrace) or 1.0
-    for index = #pending, 1, -1 do
-        local record = pending[index]
-        local expireAt = (record.expectedFinishAt or 0.0) + grace
-        local producerValid = IsValid(record.producer)
-        local earlyExpire = (not producerValid) and now > ((record.startedAt or 0.0) + 0.5)
-        if now > expireAt or earlyExpire then
-            if record.charged and record.surcharge and record.surcharge > 0 and type(AddScrap) == "function" then
-                AddScrap(record.team, record.surcharge)
-            end
-            table.remove(pending, index)
-        end
-    end
-end
-
-IsCommanderTrackedHandle = function(h)
-    if not IsValid(h) then return false end
-    if type(IsBuilding) == "function" and IsBuilding(h) then
-        return true
-    end
-    local label = CleanString((type(GetClassLabel) == "function" and GetClassLabel(h)) or "")
-    return label == "turret" or label == "commtower" or label == "powerplant"
-end
-
-RegisterCommanderHandle = function(h)
-    local overview = InputState.commanderOverview
-    if not overview or not IsCommanderTrackedHandle(h) then return end
-    if overview.handleSet[h] then return end
-    overview.handleSet[h] = true
-    table.insert(overview.handles, h)
-end
-
-RemoveCommanderHandle = function(h)
-    local overview = InputState.commanderOverview
-    if not overview or not h or not overview.handleSet[h] then
-        return
-    end
-
-    overview.handleSet[h] = nil
-    for index = #overview.handles, 1, -1 do
-        if overview.handles[index] == h then
-            table.remove(overview.handles, index)
-            break
-        end
-    end
-end
-
-local function ResetCommanderOverview()
-    local overview = InputState.commanderOverview
-    if not overview then
-        return
-    end
-
-    overview.initialized = false
-    overview.lastUpdate = 0.0
-    overview.handles = {}
-    overview.handleSet = {}
-    overview.stats = {
-        counts = {},
-        unpoweredTurrets = 0,
-        unpoweredComm = 0,
-        powerSources = 0,
-    }
-end
-
-local function InitializeCommanderOverview()
-    local overview = InputState.commanderOverview
-    if not overview or overview.initialized then return end
-    InitializeTrackedWorldHandles()
-    overview.initialized = true
-end
-
-local function UpdateCommanderOverview()
-    local overview = InputState.commanderOverview
-    if not overview then return end
-    InitializeCommanderOverview()
-    local now = GetTime()
-    if now - (overview.lastUpdate or 0.0) < (overview.interval or 1.0) then return end
-    overview.lastUpdate = now
-    local playerTeam = GetPlayerTeamNum()
-
-    local counts = {
-        hangar = 0,
-        supply = 0,
-        comm = 0,
-        silo = 0,
-        barracks = 0,
-        turret = 0,
-    }
-    local powerSources = {}
-    local turrets = {}
-    local comms = {}
-
-    for index = #overview.handles, 1, -1 do
-        local h = overview.handles[index]
-        if not IsValid(h) or (type(IsAlive) == "function" and not IsAlive(h)) then
-            overview.handleSet[h] = nil
-            table.remove(overview.handles, index)
-        elseif type(GetTeamNum) == "function" and GetTeamNum(h) ~= playerTeam then
-            -- Keep the handle tracked for future team changes/captures, but skip counting it for the current player team.
-        else
-            local label = CleanString((type(GetClassLabel) == "function" and GetClassLabel(h)) or "")
-            if label == "powerplant" then
-                local odf = type(GetOdf) == "function" and GetOdf(h) or nil
-                local radius = GetPowerRadius(odf)
-                table.insert(powerSources, { handle = h, radius = radius })
-            elseif label == "repairdepot" then
-                counts.hangar = counts.hangar + 1
-            elseif label == "supplydepot" then
-                counts.supply = counts.supply + 1
-            elseif label == "commtower" then
-                counts.comm = counts.comm + 1
-                table.insert(comms, h)
-            elseif label == "turret" then
-                counts.turret = counts.turret + 1
-                table.insert(turrets, h)
-            elseif label == "scrapsilo" then
-                counts.silo = counts.silo + 1
-            elseif label == "barracks" then
-                counts.barracks = counts.barracks + 1
-            end
-        end
-    end
-
-    local unpoweredTurrets = 0
-    local unpoweredComm = 0
-    if #powerSources > 0 then
-        for _, turret in ipairs(turrets) do
-            local powered = false
-            for _, power in ipairs(powerSources) do
-                if GetDistance(turret, power.handle) < power.radius then
-                    powered = true
-                    break
-                end
-            end
-            if not powered then
-                unpoweredTurrets = unpoweredTurrets + 1
-            end
-        end
-        for _, comm in ipairs(comms) do
-            local powered = false
-            for _, power in ipairs(powerSources) do
-                if GetDistance(comm, power.handle) < power.radius then
-                    powered = true
-                    break
-                end
-            end
-            if not powered then
-                unpoweredComm = unpoweredComm + 1
-            end
-        end
-    else
-        unpoweredTurrets = #turrets
-        unpoweredComm = #comms
-    end
-
-    overview.stats = {
-        counts = counts,
-        unpoweredTurrets = unpoweredTurrets,
-        unpoweredComm = unpoweredComm,
-        powerSources = #powerSources,
-    }
-end
-
-local function BuildCommandPageText()
-    local lines = { BuildPdaHeader(PdaPages.COMMAND) }
-    local overview = InputState.commanderOverview
-    if not overview or not overview.initialized then
-        table.insert(lines, "Commander Overview")
-        table.insert(lines, "Scanning structures...")
-        AppendPdaNavHints(lines)
-        return table.concat(lines, "\n")
-    end
-
-    local stats = overview.stats or {}
-    local counts = stats.counts or {}
-    table.insert(lines, "Commander Overview")
-    table.insert(lines, string.format("HANGAR   %d", counts.hangar or 0))
-    table.insert(lines, string.format("SUPPLY   %d", counts.supply or 0))
-    table.insert(lines, string.format("COMM     %d", counts.comm or 0))
-    table.insert(lines, string.format("SILO     %d", counts.silo or 0))
-    table.insert(lines, string.format("BARRACKS %d", counts.barracks or 0))
-    table.insert(lines, string.format("TOWER    %d", counts.turret or 0))
-    table.insert(lines, "")
-    table.insert(lines, string.format("UNPOWERED TOWERS %d", stats.unpoweredTurrets or 0))
-    table.insert(lines, string.format("UNPOWERED COMM   %d", stats.unpoweredComm or 0))
-    AppendPdaNavHints(lines)
-    return table.concat(lines, "\n")
-end
-
-local function BuildWeaponStatsText(player, mask)
-    local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.STATS)
-    if page == PdaPages.TARGET then
-        return BuildTargetPageText(player, mask)
-    end
-    if page == PdaPages.SETTINGS then
-        return BuildSettingsPageText()
-    end
-    if page == PdaPages.PRESETS then
-        return BuildPresetPageText()
-    end
-    if page == PdaPages.QUEUE then
-        return BuildQueuePageText()
-    end
-    if page == PdaPages.COMMAND then
-        return BuildCommandPageText()
-    end
-    return BuildStatsPageText(player, mask)
-end
+        return {}
+    end,
+    GetTargetClosureInfo = GetTargetClosureInfo,
+    GetUnitPresetRecord = GetUnitPresetRecord,
+    GetVehicleDisplayName = GetVehicleDisplayName,
+    GetWeaponReticleName = GetWeaponReticleName,
+    GetWeaponStats = GetWeaponStats,
+    IsMaskBitSet = IsMaskBitSet,
+    ResolveLiveSelectedWeaponMask = ResolveLiveSelectedWeaponMask,
+})
 
 local function UpdateWeaponStatsDisplay(player)
     if not PersistentConfig.Settings.WeaponStatsHud then
@@ -5470,7 +4530,7 @@ local function UpdateWeaponStatsDisplay(player)
         return
     end
 
-    local msg = BuildWeaponStatsText(player, mask)
+    local msg = PersistentConfig.P.BuildWeaponStatsText(player, mask)
     local textChanged = (InputState.lastWeaponText ~= msg)
     local overlayNeedsRefresh = PersistentConfig._CanUsePdaOverlay() and not PersistentConfig.PdaOverlay.statsVisible
 
@@ -5486,9 +4546,49 @@ local function UpdateWeaponStatsDisplay(player)
     end
 end
 
+local function RefreshWeaponHud()
+    InputState.lastWeaponMask = nil
+    InputState.lastWeaponPlayer = nil
+    InputState.lastWeaponText = nil
+    InputState.lastWeaponTarget = nil
+    InputState.nextWeaponHudCheck = 0.0
+end
+
 local function RefreshPdaOverlay()
     RefreshWeaponHud()
     UpdateWeaponStatsDisplay(GetPlayerHandle())
+end
+
+local function RequestPdaOverlayRefresh(reason, delaySeconds)
+    local now = (type(GetTime) == "function" and GetTime()) or 0.0
+    local delay = math.max(tonumber(delaySeconds) or 0.05, 0.0)
+    InputState.pdaOverlayRefreshPending = true
+    InputState.nextPdaOverlayRefresh = now + delay
+    InputState.pdaOverlayRefreshReason = reason or "unspecified"
+    print(string.format("PersistentConfig: queued PDA overlay refresh (%s) for %.3f",
+        tostring(InputState.pdaOverlayRefreshReason), InputState.nextPdaOverlayRefresh))
+end
+
+local function ProcessPendingPdaOverlayRefresh()
+    if not InputState.pdaOverlayRefreshPending then
+        return false
+    end
+
+    local now = (type(GetTime) == "function" and GetTime()) or 0.0
+    if now < (InputState.nextPdaOverlayRefresh or 0.0) then
+        return false
+    end
+
+    local reason = InputState.pdaOverlayRefreshReason or "unspecified"
+    InputState.pdaOverlayRefreshPending = false
+    InputState.nextPdaOverlayRefresh = 0.0
+    InputState.pdaOverlayRefreshReason = nil
+
+    print(string.format("PersistentConfig: processing PDA overlay refresh (%s)", tostring(reason)))
+    ClearWeaponStats()
+    ClearPdaFeedback()
+    RefreshWeaponHud()
+    return true
 end
 
 local function RebuildPdaOverlay()
@@ -5499,13 +4599,106 @@ local function RebuildPdaOverlay()
     RefreshPdaOverlay()
 end
 
+local function SyncLegacyScrapPilotHudSprites(useLegacyLayout)
+    if not exu then
+        return false
+    end
+
+    if not LegacyScrapPilotHudSpriteBridgeEnabled then
+        if not LegacyScrapPilotHudSpriteBridgeWarned then
+            LegacyScrapPilotHudSpriteBridgeWarned = true
+            print("PersistentConfig: scrap/pilot sprite bridge disabled; skipping live HUD sprite visibility sync.")
+        end
+        return false
+    end
+
+    local now = (type(GetTime) == "function" and GetTime()) or 0.0
+    if now < 2.0 then
+        return false
+    end
+
+    if type(exu.GetCameraView) == "function" and type(exu.CAMERA) == "table" then
+        local ok, currentView = pcall(exu.GetCameraView)
+        if ok and (currentView == exu.CAMERA.EDITOR or currentView == exu.CAMERA.TERRAIN_EDIT) then
+            return false
+        end
+    end
+
+    if useLegacyLayout and LegacyScrapPilotHudSpritesHiddenState == true then
+        return false
+    end
+
+    if not useLegacyLayout then
+        if LegacyScrapPilotHudSpritesHiddenState == nil then
+            LegacyScrapPilotHudSpritesHiddenState = false
+            return false
+        end
+        if LegacyScrapPilotHudSpritesHiddenState == false then
+            return false
+        end
+    end
+
+    local changed = false
+    if useLegacyLayout then
+        if type(exu.SetHudSpriteVisible) ~= "function" then
+            return false
+        end
+
+        local allApplied = true
+        for _, spriteName in ipairs(LegacyScrapPilotHudSpriteNames) do
+            local ok, result = pcall(exu.SetHudSpriteVisible, spriteName, false)
+            if ok and result ~= false then
+                changed = true
+            else
+                allApplied = false
+            end
+        end
+        if allApplied then
+            LegacyScrapPilotHudSpritesHiddenState = true
+        end
+        return changed
+    end
+
+    if type(exu.RestoreHudSprite) == "function" then
+        local allApplied = true
+        for _, spriteName in ipairs(LegacyScrapPilotHudSpriteNames) do
+            local ok, result = pcall(exu.RestoreHudSprite, spriteName)
+            if ok and result ~= false then
+                changed = true
+            else
+                allApplied = false
+            end
+        end
+        if allApplied then
+            LegacyScrapPilotHudSpritesHiddenState = false
+        end
+        return changed
+    end
+
+    if type(exu.SetHudSpriteVisible) == "function" then
+        local allApplied = true
+        for _, spriteName in ipairs(LegacyScrapPilotHudSpriteNames) do
+            local ok, result = pcall(exu.SetHudSpriteVisible, spriteName, true)
+            if ok and result ~= false then
+                changed = true
+            else
+                allApplied = false
+            end
+        end
+        if allApplied then
+            LegacyScrapPilotHudSpritesHiddenState = false
+        end
+    end
+
+    return changed
+end
+
 function PersistentConfig.ApplyScrapPilotHudLayout()
     if not exu then
         return
     end
 
     local layoutIndex = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2)
-
     if exu.SetMaterialTexture then
         local hudTexture = (layoutIndex == 2) and LegacyScrapPilotHudTexture or StockScrapPilotHudTexture
         if PersistentConfig._AppliedScrapPilotHudTexture ~= hudTexture then
@@ -5515,6 +4708,8 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
             PersistentConfig._AppliedScrapPilotHudTexture = hudTexture
         end
     end
+
+    SyncLegacyScrapPilotHudSprites(layoutIndex == 2)
 
     if exu.SetScrapHudColor then
         if layoutIndex == 2 then
@@ -5539,36 +4734,25 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
         return
     end
 
-    if not (exu.SetScrapHudTopLeft and exu.SetPilotHudTopLeft) then
-        return
-    end
-
-    local screenW, screenH, uiScale = PersistentConfig._GetUiResolutionMetrics()
-    uiScale = math.max(tonumber(uiScale) or 1, 1)
-
-    -- Keep the legacy counter aligned to the stock command menu footprint, which scales with the HUD rather than
-    -- the current screen resolution. This prevents the text from drifting back into the menu at higher HUD scales.
-    local commandMenuLeft = math.floor(8 * uiScale)
-    local commandMenuTop = math.floor(10 * uiScale)
-    local estimatedCommandMenuWidth = math.floor(171 * uiScale)
-    local commandMenuGap = math.floor(10 * uiScale)
-    local anchorX = commandMenuLeft + estimatedCommandMenuWidth + commandMenuGap
-    local scrapY = commandMenuTop + math.floor(2 * uiScale)
-    local pilotY = scrapY + math.floor(48 * uiScale)
-
-    anchorX = ClampRange(anchorX, 0, math.max(0, screenW - math.floor(96 * uiScale)), anchorX)
-    scrapY = ClampRange(scrapY, 0, math.max(0, screenH - math.floor(80 * uiScale)), scrapY)
-    pilotY = ClampRange(pilotY, 0, math.max(0, screenH - math.floor(32 * uiScale)), pilotY)
-
-    exu.SetScrapHudTopLeft(anchorX, scrapY)
-    exu.SetPilotHudTopLeft(anchorX, pilotY)
+    ApplyLegacyScrapPilotHudTopLeft()
 end
 
 function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     PersistentConfig.SaveConfig()
 
-    if options and options.applySettings then
-        PersistentConfig.ApplySettings()
+    local needsApplySettings = options and (
+        options.applySettings or
+        options.applyHeadlights or
+        options.applyTargetReticle or
+        options.applyFactionFlames or
+        options.applyUnitVo or
+        options.applyScrapPilotHud or
+        options.applySubtitles or
+        options.syncLightingMode or
+        options.syncRadarSize
+    )
+    if needsApplySettings then
+        PersistentConfig.ApplySettings(options)
     end
     if options and options.markOtherHeadlightsDirty then
         MarkOtherHeadlightsDirty()
@@ -5586,7 +4770,14 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
         autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
     end
 
-    RebuildPdaOverlay()
+    if options and options.rebuildOverlay then
+        RebuildPdaOverlay()
+        return
+    end
+
+    -- Defer the live redraw until the next update tick so settings actions do not
+    -- mutate the overlay while the input handler is still unwinding.
+    RequestPdaOverlayRefresh("settings-commit", 0.05)
 end
 
 function PersistentConfig._SettingsActions.GetHeadlightColorPresetIndex()
@@ -5622,7 +4813,7 @@ function PersistentConfig._SettingsActions.CycleHeadlightColor(delta)
         ShowFeedback("Headlight Color: " .. preset.name, preset.r, preset.g, preset.b)
     end
 
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyHeadlights = true })
     return true
 end
 
@@ -5633,7 +4824,7 @@ function PersistentConfig._SettingsActions.SetPlayerHeadlightVisible(enabled)
     end
 
     PersistentConfig.Settings.HeadlightVisible = visible
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyHeadlights = true })
     ShowFeedback("Player Light: " .. (visible and "ON" or "OFF"))
     return true
 end
@@ -5651,13 +4842,13 @@ function PersistentConfig._SettingsActions.SetOtherHeadlightsEnabled(enabled)
 end
 
 function PersistentConfig._SettingsActions.CycleHeadlightBeamMode(delta)
-    local nextMode = CycleIndex(PersistentConfig.Settings.HeadlightBeamMode, #BeamModes, delta, 2)
+    local nextMode = CycleIndex(PersistentConfig.Settings.HeadlightBeamMode, #PersistentConfig.HeadlightBeamModes, delta, 2)
     if PersistentConfig.Settings.HeadlightBeamMode == nextMode then
         return false
     end
 
     PersistentConfig.Settings.HeadlightBeamMode = nextMode
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyHeadlights = true })
     ShowFeedback("Beam: " .. (nextMode == 1 and "FOCUSED" or "WIDE"))
     return true
 end
@@ -5671,7 +4862,7 @@ function PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(enabled)
     PersistentConfig.Settings.WeaponStatsHud = visible
     PersistentConfig._SettingsActions.CommitPdaSettingChange()
     if visible then
-        RefreshPdaOverlay()
+        RequestPdaOverlayRefresh("weapon-stats-toggle-on", 0.05)
     else
         RefreshWeaponHud()
         ClearWeaponStats()
@@ -5688,7 +4879,7 @@ function PersistentConfig._SettingsActions.CycleScrapPilotHudLayout(delta)
     end
 
     PersistentConfig.Settings.ScrapPilotHudLayout = nextIndex
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyScrapPilotHud = true })
     ShowFeedback("Scrap/Pilot: " .. GetScrapPilotHudLayout().name, 0.8, 1.0, 0.8, 2.5, false, "pda")
     return true
 end
@@ -5700,7 +4891,7 @@ function PersistentConfig._SettingsActions.SetSubtitlesEnabled(enabled)
     end
 
     PersistentConfig.Settings.SubtitlesEnabled = value
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySubtitles = true })
     if not value then
         local subtit = GetScriptSubtitles()
         if subtit and subtit.ClearActive then
@@ -5719,7 +4910,7 @@ function PersistentConfig._CycleUnitVerbosity(delta)
     end
 
     PersistentConfig.Settings.UnitVerbosity = nextIndex
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyUnitVo = true })
     ShowFeedback("Unit Verbosity: " .. PersistentConfig._GetUnitVerbosityPreset().name, 0.8, 1.0, 0.8, 2.5, false, "pda")
     return true
 end
@@ -5732,7 +4923,7 @@ function PersistentConfig._CycleTargetReticlePopupMode(delta)
     end
 
     PersistentConfig.Settings.TargetReticlePopupMode = PersistentConfig.TargetReticlePopupPresets[nextIndex].mode
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyTargetReticle = true })
     ShowFeedback("Hit Reticle: " .. PersistentConfig._GetTargetReticlePopupPreset().name, 0.8, 1.0, 0.8, 2.5, false,
         "pda")
     return true
@@ -5784,8 +4975,9 @@ function PersistentConfig._SettingsActions.AdjustRadarSizeScale(delta)
     end
 
     PersistentConfig.Settings.RadarSizeScale = nextScale
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
-    ShowFeedback("Radar Size: " .. FormatScale(nextScale, PersistentConfig.RadarUi.min, PersistentConfig.RadarUi.max),
+    PersistentConfig._SettingsActions.CommitPdaSettingChange()
+    PersistentConfig._CancelRadarScaleResync()
+    ShowFeedback("Radar Size: " .. FormatScale(nextScale, PersistentConfig.RadarUi.min, PersistentConfig.RadarUi.max) .. " (next mission)",
         0.8, 1.0, 0.8, 2.5, false, "pda")
     return true
 end
@@ -5797,20 +4989,26 @@ function PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(e
     end
 
     PersistentConfig.Settings.DynamicFactionFlameColors = value
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyFactionFlames = true })
     ShowFeedback("Faction Flames: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8, 2.5, false, "pda")
     return true
 end
 
-function PersistentConfig._SettingsActions.SetRetroLightingEnabled(enabled)
-    local value = not not enabled
-    if PersistentConfig.Settings.RetroLighting == value then
+function PersistentConfig._SettingsActions.CycleLightingMode(delta)
+    local nextIndex = CycleIndex(
+        PersistentConfig.Settings.LightingMode,
+        #PersistentConfig.LightingModePresets,
+        delta,
+        PersistentConfig.DefaultSettings.LightingMode or 1
+    )
+    if nextIndex == PersistentConfig.Settings.LightingMode then
         return false
     end
 
-    PersistentConfig.Settings.RetroLighting = value
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
-    ShowFeedback("Retro Lighting: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8, 2.5, false, "pda")
+    local _, preset = PersistentConfig._SetLightingModeIndex(nextIndex)
+    PersistentConfig._SettingsActions.CommitPdaSettingChange()
+    ShowFeedback("Lighting Mode: " .. ((preset and preset.name) or "DEFAULT") .. " (next mission)",
+        0.8, 1.0, 0.8, 3.0, false, "pda")
     return true
 end
 
@@ -5887,7 +5085,7 @@ GetSettingsPageEntries = function()
                 PersistentConfig.Settings.PdaFontScale = AdjustScale(PersistentConfig.Settings.PdaFontScale, delta,
                     PersistentConfig.FontScale.pda.min, PersistentConfig.FontScale.pda.max,
                     PersistentConfig.FontScale.pda.step)
-                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+                PersistentConfig._SettingsActions.CommitPdaSettingChange()
                 return true
             end,
         },
@@ -5896,7 +5094,7 @@ GetSettingsPageEntries = function()
             value = FormatOpacity(PersistentConfig.Settings.PdaOpacity),
             adjust = function(delta)
                 PersistentConfig.Settings.PdaOpacity = AdjustOpacity(PersistentConfig.Settings.PdaOpacity, delta)
-                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+                PersistentConfig._SettingsActions.CommitPdaSettingChange()
                 return true
             end,
         },
@@ -5906,7 +5104,7 @@ GetSettingsPageEntries = function()
             adjust = function(delta)
                 PersistentConfig.Settings.PdaColorPreset = CycleIndex(PersistentConfig.Settings.PdaColorPreset,
                     #PdaColorPresets, delta, 2)
-                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+                PersistentConfig._SettingsActions.CommitPdaSettingChange()
                 return true
             end,
         },
@@ -5940,10 +5138,10 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "Retro Lighting",
-            value = PersistentConfig.Settings.RetroLighting and "On" or "Off",
+            label = "Lighting Mode",
+            value = PersistentConfig._GetLightingModePreset().name,
             adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetRetroLightingEnabled(DirectionEnabled(delta))
+                return PersistentConfig._SettingsActions.CycleLightingMode(delta)
             end,
         },
         {
@@ -5975,7 +5173,7 @@ GetSettingsPageEntries = function()
                 PersistentConfig.Settings.SubtitleFontScale = AdjustScale(PersistentConfig.Settings.SubtitleFontScale, delta,
                     PersistentConfig.FontScale.subtitle.min, PersistentConfig.FontScale.subtitle.max,
                     PersistentConfig.FontScale.subtitle.step)
-                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySubtitles = true })
                 return true
             end,
         },
@@ -5984,7 +5182,7 @@ GetSettingsPageEntries = function()
             value = FormatOpacity(PersistentConfig.Settings.SubtitleOpacity),
             adjust = function(delta)
                 PersistentConfig.Settings.SubtitleOpacity = AdjustOpacity(PersistentConfig.Settings.SubtitleOpacity, delta)
-                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySettings = true })
+                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySubtitles = true })
                 return true
             end,
         },
@@ -6112,6 +5310,8 @@ function PersistentConfig.LoadConfig()
     local loadedPdaFontScale
     local legacySubtitlePreset
     local legacyPdaTextPreset
+    local loadedLightingMode
+    local legacyRetroLighting
     local status, err = pcall(function()
         local f = bzfile.Open(PersistentConfig.ConfigPath, "r")
         if not f then
@@ -6161,8 +5361,22 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.AutoSaveInterval = tonumber(val) or 300
                 elseif key == "AutoRepairBuildings" then
                     PersistentConfig.Settings.AutoRepairBuildings = (val == "true")
+                elseif key == "LightingMode" then
+                    local numericValue = tonumber(val)
+                    if numericValue then
+                        loadedLightingMode = numericValue
+                    else
+                        local lowered = string.lower(CleanString(val))
+                        if lowered == "default" then
+                            loadedLightingMode = 1
+                        elseif lowered == "enhanced" then
+                            loadedLightingMode = 2
+                        elseif lowered == "retro" then
+                            loadedLightingMode = 3
+                        end
+                    end
                 elseif key == "RetroLighting" then
-                    PersistentConfig.Settings.RetroLighting = (val == "true")
+                    legacyRetroLighting = (val == "true")
                 elseif key == "WeaponStatsHud" then
                     PersistentConfig.Settings.WeaponStatsHud = (val == "true")
                 elseif key == "PilotModeEnabled" then
@@ -6229,11 +5443,19 @@ function PersistentConfig.LoadConfig()
         PersistentConfig.Settings.PdaFontScale = LEGACY_TEXT_PRESET_SCALES[idx] or 1.0
     end
 
+    if loadedLightingMode ~= nil then
+        PersistentConfig._SetLightingModeIndex(loadedLightingMode)
+    elseif legacyRetroLighting ~= nil then
+        PersistentConfig._SetLightingModeIndex(legacyRetroLighting and 3 or 1)
+    else
+        PersistentConfig._SetLightingModeIndex(PersistentConfig.Settings.LightingMode)
+    end
+
     -- Sync ranges based on mode
     local mode = PersistentConfig.Settings.HeadlightBeamMode
-    if BeamModes[mode] then
-        PersistentConfig.Settings.HeadlightRange.InnerAngle = BeamModes[mode].Inner
-        PersistentConfig.Settings.HeadlightRange.OuterAngle = BeamModes[mode].Outer
+    if PersistentConfig.HeadlightBeamModes[mode] then
+        PersistentConfig.Settings.HeadlightRange.InnerAngle = PersistentConfig.HeadlightBeamModes[mode].Inner
+        PersistentConfig.Settings.HeadlightRange.OuterAngle = PersistentConfig.HeadlightBeamModes[mode].Outer
     end
     PersistentConfig.Settings.SubtitleOpacity = ClampUnitInterval(PersistentConfig.Settings.SubtitleOpacity, 0.50)
     PersistentConfig.Settings.PdaOpacity = ClampUnitInterval(PersistentConfig.Settings.PdaOpacity, 1.00)
@@ -6250,6 +5472,7 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.RadarSizeScale = GetRadarSizeScaleSetting()
     PersistentConfig.Settings.AutoSaveSlot = PersistentConfig._GetAutoSaveSlot()
     PersistentConfig.Settings.AutoSaveInterval = PersistentConfig._GetAutoSaveIntervalOption().seconds
+    PersistentConfig._SetLightingModeIndex(PersistentConfig.Settings.LightingMode)
 end
 
 function PersistentConfig.SaveConfig()
@@ -6286,6 +5509,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("AutoSaveInterval=" .. tostring(PersistentConfig.Settings.AutoSaveInterval))
         f:Writeln("ScavengerAssistEnabled=" .. tostring(PersistentConfig.Settings.ScavengerAssistEnabled))
         f:Writeln("AutoRepairBuildings=" .. tostring(PersistentConfig.Settings.AutoRepairBuildings))
+        f:Writeln("LightingMode=" .. tostring(PersistentConfig.Settings.LightingMode))
         f:Writeln("RetroLighting=" .. tostring(PersistentConfig.Settings.RetroLighting))
         f:Writeln("WeaponStatsHud=" .. tostring(PersistentConfig.Settings.WeaponStatsHud))
         f:Writeln("PilotModeEnabled=" .. tostring(PersistentConfig.Settings.PilotModeEnabled))
@@ -6335,18 +5559,20 @@ function PersistentConfig.ResetToDefaults()
     ShowFeedback("Settings reset to defaults.", 0.7, 1.0, 0.7, 4.0, false)
 end
 
-function PersistentConfig.ApplySettings()
+function PersistentConfig.ApplySettings(options)
+    local applyAll = not options
+
     if exu then
         local h = GetPlayerHandle()
-        if IsValid(h) then
+        if (applyAll or (options and options.applyHeadlights)) and IsValid(h) then
         -- Sync ranges based on mode before applying
             local mode = PersistentConfig.Settings.HeadlightBeamMode
-            if BeamModes[mode] then
-                PersistentConfig.Settings.HeadlightRange.InnerAngle = BeamModes[mode].Inner
-                PersistentConfig.Settings.HeadlightRange.OuterAngle = BeamModes[mode].Outer
+            if PersistentConfig.HeadlightBeamModes[mode] then
+                PersistentConfig.Settings.HeadlightRange.InnerAngle = PersistentConfig.HeadlightBeamModes[mode].Inner
+                PersistentConfig.Settings.HeadlightRange.OuterAngle = PersistentConfig.HeadlightBeamModes[mode].Outer
             end
 
-            local mult = BeamModes[mode] and BeamModes[mode].Multiplier or 1.0
+            local mult = PersistentConfig.HeadlightBeamModes[mode] and PersistentConfig.HeadlightBeamModes[mode].Multiplier or 1.0
 
             if exu.SetHeadlightDiffuse then
                 exu.SetHeadlightDiffuse(h, PersistentConfig.Settings.HeadlightDiffuse.R * mult,
@@ -6366,32 +5592,45 @@ function PersistentConfig.ApplySettings()
             end
         end
 
-        if exu.SetRetroLightingMode then
-            exu.SetRetroLightingMode(PersistentConfig.Settings.RetroLighting)
+        if options and options.syncLightingMode then
+            PersistentConfig._RequestLightingModeResync()
+            PersistentConfig._SyncLightingMode(true)
         end
-        if exu.SetTargetReticlePopupMode then
+        if (applyAll or (options and options.applyTargetReticle)) and exu.SetTargetReticlePopupMode then
             exu.SetTargetReticlePopupMode(PersistentConfig.Settings.TargetReticlePopupMode)
         end
 
-        PersistentConfig._SyncRadarSizeScale(true)
-        PersistentConfig._ApplyDynamicFactionFlameColors()
-        PersistentConfig._ApplyUnitVoSettings()
-    end
-
-    PersistentConfig.ApplyScrapPilotHudLayout()
-
-    local subtit = GetScriptSubtitles()
-    if subtit and subtit.SetOpacity then
-        subtit.SetOpacity(PersistentConfig.Settings.SubtitleOpacity)
-    end
-    if subtit then
-        if subtit.SetEnabled then
-            subtit.SetEnabled(PersistentConfig.Settings.SubtitlesEnabled)
+        if options and options.syncRadarSize then
+            PersistentConfig._RequestRadarScaleResync()
+            PersistentConfig._SyncRadarSizeScale(true)
         end
-        if subtit.SetFontScale then
-            subtit.SetFontScale(PersistentConfig.Settings.SubtitleFontScale)
-        elseif subtit.SetTextSizePreset then
-            subtit.SetTextSizePreset(LegacyPresetFromScale(PersistentConfig.Settings.SubtitleFontScale))
+        if applyAll or (options and options.applyFactionFlames) then
+            PersistentConfig._ApplyDynamicFactionFlameColors()
+        end
+        if applyAll or (options and options.applyUnitVo) then
+            PersistentConfig._ApplyUnitVoSettings()
+        end
+    end
+
+    if applyAll or (options and options.applyScrapPilotHud) then
+        LegacyScrapPilotHudSpritesHiddenState = nil
+        PersistentConfig.ApplyScrapPilotHudLayout()
+    end
+
+    if applyAll or (options and options.applySubtitles) then
+        local subtit = GetScriptSubtitles()
+        if subtit and subtit.SetOpacity then
+            subtit.SetOpacity(PersistentConfig.Settings.SubtitleOpacity)
+        end
+        if subtit then
+            if subtit.SetEnabled then
+                subtit.SetEnabled(PersistentConfig.Settings.SubtitlesEnabled)
+            end
+            if subtit.SetFontScale then
+                subtit.SetFontScale(PersistentConfig.Settings.SubtitleFontScale)
+            elseif subtit.SetTextSizePreset then
+                subtit.SetTextSizePreset(LegacyPresetFromScale(PersistentConfig.Settings.SubtitleFontScale))
+            end
         end
     end
 end
@@ -6478,6 +5717,7 @@ function PersistentConfig.UpdateInputs()
             ClearPdaFeedback()
         end
     else
+        ProcessPendingPdaOverlayRefresh()
         UpdateWeaponStatsDisplay(currentPlayerHandle)
     end
 
@@ -6520,9 +5760,24 @@ function PersistentConfig.UpdateInputs()
         InputState.lastUnitVoTeam = team
     end
     local now = GetTime()
-    if now >= (InputState.nextRadarScaleCheck or 0.0) then
+    if InputState.radarScaleSyncPending and now >= (InputState.nextRadarScaleCheck or 0.0) then
         InputState.nextRadarScaleCheck = now + 0.5
-        PersistentConfig._SyncRadarSizeScale(false)
+        if PersistentConfig._SyncRadarSizeScale(false) ~= false then
+            InputState.radarScaleSyncPending = false
+        end
+    end
+    if InputState.lightingModeSyncPending and now >= (InputState.nextRetroLightingCheck or 0.0) then
+        local stabilizeUntil = tonumber(InputState.nextRetroLightingStabilizeUntil) or 0.0
+        local interval = PersistentConfig.RetroLightingIntervals.heartbeat
+        if now < stabilizeUntil then
+            interval = PersistentConfig.RetroLightingIntervals.stabilize
+        end
+        InputState.nextRetroLightingCheck = now + interval
+        PersistentConfig._SyncLightingMode(true)
+        if now >= stabilizeUntil then
+            InputState.lightingModeSyncPending = false
+            InputState.nextRetroLightingStabilizeUntil = 0.0
+        end
     end
     if now >= (InputState.nextFactionFlameRefresh or 0.0) then
         InputState.nextFactionFlameRefresh = now + 1.0
@@ -6741,7 +5996,7 @@ function PersistentConfig.UpdateInputs()
         local hue = (GetTime() * 0.2) % 1.0 -- Cycle every 5 seconds
         local r, g, b = PersistentConfig._HueToRGB(hue)
         local mode = PersistentConfig.Settings.HeadlightBeamMode
-        local mult = BeamModes[mode] and BeamModes[mode].Multiplier or 1.0
+        local mult = PersistentConfig.HeadlightBeamModes[mode] and PersistentConfig.HeadlightBeamModes[mode].Multiplier or 1.0
         local h = GetPlayerHandle()
         if IsValid(h) and exu.SetHeadlightDiffuse then
             exu.SetHeadlightDiffuse(h, r * mult, g * mult, b * mult)
@@ -7145,7 +6400,7 @@ function PersistentConfig.Initialize()
             (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF") .. " based on difficulty.")
     end
     PersistentConfig.SaveConfig()
-    PersistentConfig.ApplySettings()
+    PersistentConfig.ApplySettings({ syncLightingMode = true, syncRadarSize = true })
     -- Keep EXU overlay/font initialization lazy so startup does not touch the
     -- custom Ogre font path before the UI runtime is fully ready.
     PersistentConfig._InstallPlayerChargeTrackingHook()

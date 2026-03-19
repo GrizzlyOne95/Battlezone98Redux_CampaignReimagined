@@ -3,9 +3,9 @@
 
 vertex_program CR_Ogre/DepthShadowmap/CasterVP_HLSL4 hlsl
 {
-    source DepthShadowmap-sm4.hlsl
+    source CR_DepthShadowmap-sm4.hlsl
     entry_point casterVP
-    target vs_4_0
+    target vs_4_0 vs_4_0_level_9_3 vs_4_0_level_9_1
 
     default_params
     {
@@ -17,7 +17,7 @@ vertex_program CR_Ogre/DepthShadowmap/CasterVP_HLSL4 hlsl
 
 vertex_program CR_Ogre/DepthShadowmap/CasterVP_HLSL hlsl
 {
-    source DepthShadowmap.hlsl
+    source CR_DepthShadowmap.hlsl
     entry_point casterVP
     target vs_2_0
 
@@ -31,9 +31,9 @@ vertex_program CR_Ogre/DepthShadowmap/CasterVP_HLSL hlsl
 
 fragment_program CR_Ogre/DepthShadowmap/CasterFP_HLSL4 hlsl
 {
-    source DepthShadowmap-sm4.hlsl
+    source CR_DepthShadowmap-sm4.hlsl
     entry_point casterFP
-    target ps_4_0
+    target ps_4_0 ps_4_0_level_9_3 ps_4_0_level_9_1
 	
     default_params
     {
@@ -43,7 +43,7 @@ fragment_program CR_Ogre/DepthShadowmap/CasterFP_HLSL4 hlsl
 
 fragment_program CR_Ogre/DepthShadowmap/CasterFP_HLSL hlsl
 {
-    source DepthShadowmap.hlsl
+    source CR_DepthShadowmap.hlsl
     entry_point casterFP
     target ps_2_0
 	
@@ -57,7 +57,7 @@ fragment_program CR_Ogre/DepthShadowmap/CasterFP_HLSL hlsl
 
 vertex_program CR_Ogre/DepthShadowmap/ReceiverVP_HLSL hlsl
 {
-    source DepthShadowmap.hlsl
+    source CR_DepthShadowmap.hlsl
     entry_point receiverVP
     target vs_2_0
 
@@ -75,7 +75,7 @@ vertex_program CR_Ogre/DepthShadowmap/ReceiverVP_HLSL hlsl
 
 fragment_program CR_Ogre/DepthShadowmap/ReceiverFP_HLSL hlsl
 {
-    source DepthShadowmap.hlsl
+    source CR_DepthShadowmap.hlsl
     entry_point receiverFP
 	target ps_2_0
 
@@ -92,7 +92,7 @@ fragment_program CR_Ogre/DepthShadowmap/ReceiverFP_HLSL hlsl
 
 fragment_program CR_Ogre/DepthShadowmap/ReceiverFPPCF_HLSL hlsl
 {
-    source DepthShadowmap.hlsl
+    source CR_DepthShadowmap.hlsl
     entry_point receiverFP
 	target ps_2_0
 
@@ -107,7 +107,7 @@ fragment_program CR_Ogre/DepthShadowmap/ReceiverFPPCF_HLSL hlsl
 }
 vertex_program CR_Ogre/DepthShadowmap/NormalMapReceiverVP_HLSL hlsl
 {
-    source DepthShadowmap.hlsl
+    source CR_DepthShadowmap.hlsl
     entry_point normalMapShadowReceiverVp
     target vs_2_0
 
@@ -122,7 +122,7 @@ vertex_program CR_Ogre/DepthShadowmap/NormalMapReceiverVP_HLSL hlsl
 
 fragment_program CR_Ogre/DepthShadowmap/NormalMapReceiverFP_HLSL hlsl
 {
-    source DepthShadowmap.hlsl
+    source CR_DepthShadowmap.hlsl
     entry_point normalMapShadowReceiverFp
 	target ps_2_0
 
@@ -139,7 +139,7 @@ fragment_program CR_Ogre/DepthShadowmap/NormalMapReceiverFP_HLSL hlsl
 }
 fragment_program CR_Ogre/DepthShadowmap/NormalMapReceiverFPPCF_HLSL hlsl
 {
-    source DepthShadowmap.hlsl
+    source CR_DepthShadowmap.hlsl
     entry_point normalMapShadowReceiverFp
 	target ps_2_0
 
@@ -162,7 +162,7 @@ fragment_program CR_Ogre/DepthShadowmap/NormalMapReceiverFPPCF_HLSL hlsl
 // **-- Begin GLSL Section --**
 vertex_program CR_Ogre/DepthShadowmap/CasterVP_GLSL glsl
 {
-    source DepthShadowmapCasterVp.glsl
+    source CR_DepthShadowmapCasterVp.glsl
 	
     default_params
     {
@@ -174,7 +174,7 @@ vertex_program CR_Ogre/DepthShadowmap/CasterVP_GLSL glsl
 
 fragment_program CR_Ogre/DepthShadowmap/CasterFP_GLSL glsl
 {
-    source DepthShadowmapCasterFp.glsl
+    source CR_DepthShadowmapCasterFp.glsl
 	
     default_params
     {
@@ -185,7 +185,7 @@ fragment_program CR_Ogre/DepthShadowmap/CasterFP_GLSL glsl
 
 vertex_program CR_Ogre/DepthShadowmap/ReceiverVP_GLSL glsl
 {
-    source DepthShadowmapReceiverVp.glsl
+    source CR_DepthShadowmapReceiverVp.glsl
 
     default_params
     {
@@ -201,7 +201,7 @@ vertex_program CR_Ogre/DepthShadowmap/ReceiverVP_GLSL glsl
 
 fragment_program CR_Ogre/DepthShadowmap/ReceiverFP_GLSL glsl
 {
-    source DepthShadowmapReceiverFp.glsl
+    source CR_DepthShadowmapReceiverFp.glsl
 
 	preprocessor_defines PCF=0
 
@@ -217,7 +217,7 @@ fragment_program CR_Ogre/DepthShadowmap/ReceiverFP_GLSL glsl
 
 fragment_program CR_Ogre/DepthShadowmap/ReceiverFPPCF_GLSL glsl
 {
-    source DepthShadowmapReceiverFp.glsl
+    source CR_DepthShadowmapReceiverFp.glsl
 
 	preprocessor_defines PCF=1
 
@@ -230,7 +230,7 @@ fragment_program CR_Ogre/DepthShadowmap/ReceiverFPPCF_GLSL glsl
 }
 vertex_program CR_Ogre/DepthShadowmap/NormalMapReceiverVP_GLSL glsl
 {
-    source DepthShadowmapNormalMapReceiverVp.glsl
+    source CR_DepthShadowmapNormalMapReceiverVp.glsl
 
     default_params
     {
@@ -243,7 +243,7 @@ vertex_program CR_Ogre/DepthShadowmap/NormalMapReceiverVP_GLSL glsl
 
 fragment_program CR_Ogre/DepthShadowmap/NormalMapReceiverFP_GLSL glsl
 {
-    source DepthShadowmapNormalMapReceiverFp.glsl
+    source CR_DepthShadowmapNormalMapReceiverFp.glsl
 
 	preprocessor_defines PCF=0
 
@@ -261,7 +261,7 @@ fragment_program CR_Ogre/DepthShadowmap/NormalMapReceiverFP_GLSL glsl
 }
 fragment_program CR_Ogre/DepthShadowmap/NormalMapReceiverFPPCF_GLSL glsl
 {
-    source DepthShadowmapNormalMapReceiverFp.glsl
+    source CR_DepthShadowmapNormalMapReceiverFp.glsl
 
 	preprocessor_defines PCF=1
 

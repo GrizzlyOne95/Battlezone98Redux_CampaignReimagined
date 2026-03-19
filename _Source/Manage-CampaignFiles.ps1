@@ -9,12 +9,22 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 
 # Manage-CampaignFiles.ps1
 # Script to manage development symlinks and release builds for Battlezone 98 Redux: Campaign Reimagined
-# Set location to script directory (elevation changes it to System32)
-Set-Location $PSScriptRoot
+# Resolve the campaign root even when the synced script copy is launched from _Source.
+$ScriptDir = $PSScriptRoot
+$RepoRoot = if ((Split-Path $ScriptDir -Leaf).Equals("_Source", [System.StringComparison]::OrdinalIgnoreCase)) {
+    Split-Path $ScriptDir -Parent
+}
+else {
+    $ScriptDir
+}
 
-$SourceDir = "_Source"
-$ReleaseDir = "_Release"
-$CurrentDir = Get-Location
+Set-Location $RepoRoot
+
+$SourceDir = Join-Path $RepoRoot "_Source"
+$ReleaseDir = Join-Path $RepoRoot "_Release"
+$CurrentDir = $RepoRoot
+$StructuredRuntimeDirs = @("flags", "OverlayFont")
+$LocalDeployExcludedSourceDirs = @("Materials", "Shaders")
 
 
 # Global error trap to keep window open on crash
@@ -24,11 +34,147 @@ trap {
     exit 1
 }
 
+function Get-AddonDirCandidates {
+    $candidates = [System.Collections.Generic.List[string]]::new()
+
+    $explicitAddon = Resolve-PathIfRelative $env:BZR_CAMPAIGN_ADDON_DIR
+    if ($explicitAddon) {
+        [void]$candidates.Add($explicitAddon)
+    }
+
+    $explicitGameRoot = Resolve-PathIfRelative $env:BZR_BATTLEZONE_ROOT
+    if ($explicitGameRoot) {
+        [void]$candidates.Add((Join-Path $explicitGameRoot "addon\campaignReimagined"))
+    }
+
+    $defaultRoots = @(
+        (Join-Path ([Environment]::GetFolderPath("MyDocuments")) "Battlezone 98 Redux"),
+        "C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux",
+        "C:\GOG Games\Battlezone 98 Redux"
+    )
+
+    foreach ($root in $defaultRoots) {
+        if ($root) {
+            [void]$candidates.Add((Join-Path $root "addon\campaignReimagined"))
+        }
+    }
+
+    $candidates | Where-Object { $_ } | Select-Object -Unique
+}
+
+function Resolve-AddonDir {
+    foreach ($candidate in Get-AddonDirCandidates) {
+        if (Test-Path $candidate) {
+            return $candidate
+        }
+    }
+
+    return $null
+}
+
+function Ensure-AddonDir {
+    $existing = Resolve-AddonDir
+    if ($existing) {
+        return $existing
+    }
+
+    foreach ($candidate in Get-AddonDirCandidates) {
+        $parent = Split-Path $candidate -Parent
+        if (Test-Path $parent) {
+            New-Item -ItemType Directory -Path $candidate -Force | Out-Null
+            return $candidate
+        }
+    }
+
+    Write-Warning "No campaign addon directory could be resolved. Set BZR_CAMPAIGN_ADDON_DIR or BZR_BATTLEZONE_ROOT if this machine uses a different layout."
+    return $null
+}
+
+function Get-ManagedFlatFiles($pathValue) {
+    if (-not (Test-Path $pathValue)) {
+        return @()
+    }
+
+    Get-ChildItem -Path $pathValue -File -ErrorAction SilentlyContinue | Where-Object {
+        $_.Name -ne "desktop.ini" -and
+        $_.Name -ne "thumbs.db" -and
+        -not $_.Name.StartsWith(".")
+    }
+}
+
+function Get-StructuredRuntimeFiles($pathValue) {
+    if (-not (Test-Path $pathValue)) {
+        return @()
+    }
+
+    foreach ($dirName in $StructuredRuntimeDirs) {
+        $dirPath = Join-Path $pathValue $dirName
+        if (Test-Path $dirPath) {
+            Get-ChildItem -Path $dirPath -Recurse -File -ErrorAction SilentlyContinue | Where-Object {
+                $_.Name -ne "desktop.ini" -and
+                $_.Name -ne "thumbs.db" -and
+                -not $_.Name.StartsWith(".")
+            }
+        }
+    }
+}
+
+function Get-RelativePathFromBase($basePath, $fullPath) {
+    $resolvedBase = (Resolve-Path $basePath).Path
+    if ($fullPath.StartsWith($resolvedBase, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $fullPath.Substring($resolvedBase.Length).TrimStart('\')
+    }
+
+    return $null
+}
+
+function Is-StructuredRuntimeRelativePath($relativePath) {
+    foreach ($dirName in $StructuredRuntimeDirs) {
+        if ($relativePath.Equals($dirName, [System.StringComparison]::OrdinalIgnoreCase) -or
+            $relativePath.StartsWith($dirName + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Is-LocalDeployExcludedSourceRelativePath($relativePath) {
+    if (-not $relativePath) {
+        return $false
+    }
+
+    foreach ($dirName in $LocalDeployExcludedSourceDirs) {
+        if ($relativePath.Equals($dirName, [System.StringComparison]::OrdinalIgnoreCase) -or
+            $relativePath.StartsWith($dirName + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Get-ManagedSourceFiles {
+    if (-not (Test-Path $SourceDir)) {
+        return @()
+    }
+
+    $localDir = Join-Path (Resolve-Path $SourceDir).Path "Local"
+
+    Get-ChildItem -Path $SourceDir -Recurse -File | Where-Object {
+        -not $_.FullName.StartsWith($localDir + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)
+    }
+}
+
 function Sync-ToSource {
-    # First, pull any newer files from addon directory
-    Sync-FromAddon
-    
-    Write-Host "Syncing files from root to $SourceDir..." -ForegroundColor Cyan
+    Write-Host "Syncing files from deployed addon to $SourceDir..." -ForegroundColor Cyan
+
+    $addonDir = Resolve-AddonDir
+    if (-not $addonDir) {
+        $checked = (Get-AddonDirCandidates | ForEach-Object { "  - $_" }) -join "`n"
+        Write-Warning "No deployed addon directory found. Checked:`n$checked"
+        return
+    }
 
     # Create _Source directory if it doesn't exist
     if (-not (Test-Path $SourceDir)) {
@@ -39,7 +185,7 @@ function Sync-ToSource {
     # Index existing source files for update (Name -> FullPath)
     $sourceMap = @{}
     if (Test-Path $SourceDir) {
-        $sourceFiles = Get-ChildItem -Path $SourceDir -Recurse -File
+        $sourceFiles = Get-ManagedSourceFiles
         foreach ($file in $sourceFiles) {
             if (-not $sourceMap.ContainsKey($file.Name)) {
                 $sourceMap[$file.Name] = $file.FullName
@@ -47,21 +193,45 @@ function Sync-ToSource {
         }
     }
 
-    # Get all files in root directory
-    $rootFiles = Get-ChildItem -Path $CurrentDir -File
+    $addonFiles = @(
+        Get-ManagedFlatFiles $addonDir
+        Get-StructuredRuntimeFiles $addonDir
+    )
     
     $updated = 0
     $added = 0
     $skipped = 0
     
-    foreach ($file in $rootFiles) {
-        # Skip script itself and system files
-        if ($file.Name -eq "Manage-CampaignFiles.ps1") { continue }
-        if ($file.Name.StartsWith(".")) { continue }
-        if ($file.Name -eq "desktop.ini" -or $file.Name -eq "thumbs.db") { continue }
+    foreach ($file in $addonFiles) {
+        $addonRelativePath = Get-RelativePathFromBase $addonDir $file.FullName
 
-        if ($sourceMap.ContainsKey($file.Name)) {
-            # File exists in source - check if root version is newer
+        if ($addonRelativePath -and (Is-StructuredRuntimeRelativePath $addonRelativePath)) {
+            $targetPath = Join-Path $SourceDir $addonRelativePath
+            $targetDir = Split-Path $targetPath -Parent
+
+            if (-not (Test-Path $targetDir)) {
+                New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+            }
+
+            if (Test-Path $targetPath) {
+                $srcItem = Get-Item $targetPath
+                if ($file.LastWriteTime -gt $srcItem.LastWriteTime) {
+                    Copy-Item -Path $file.FullName -Destination $targetPath -Force
+                    Write-Host "Updated: $addonRelativePath" -ForegroundColor Yellow
+                    $updated++
+                }
+                else {
+                    $skipped++
+                }
+            }
+            else {
+                Copy-Item -Path $file.FullName -Destination $targetPath -Force
+                Write-Host "Added: $addonRelativePath" -ForegroundColor Green
+                $added++
+            }
+        }
+        elseif ($sourceMap.ContainsKey($file.Name)) {
+            # File exists in source - check if deployed version is newer
             $targetPath = $sourceMap[$file.Name]
             $srcItem = Get-Item $targetPath
             
@@ -90,33 +260,56 @@ function Sync-ToSource {
         }
     }
     
-    Write-Host "`nSync complete: $added added, $updated updated, $skipped unchanged" -ForegroundColor Cyan
+    Write-Host "`nSync complete from ${addonDir}: $added added, $updated updated, $skipped unchanged" -ForegroundColor Cyan
 }
 
 function Sync-FromSource {
-    Write-Host "Syncing files FROM $SourceDir to root..." -ForegroundColor Cyan
+    Write-Host "Deploying files FROM $SourceDir to the runtime addon..." -ForegroundColor Cyan
 
     if (-not (Test-Path $SourceDir)) {
         Write-Error "Source directory '$SourceDir' not found!"
         return
     }
 
+    $addonDir = Ensure-AddonDir
+    if (-not $addonDir) {
+        return
+    }
+
     # Get all files in _Source directory recursively
-    $sourceFiles = Get-ChildItem -Path $SourceDir -Recurse -File
+    $sourceFiles = Get-ManagedSourceFiles
     
     $updated = 0
     $added = 0
     $skipped = 0
+    $excluded = 0
     
     foreach ($file in $sourceFiles) {
-        $rootPath = Join-Path $CurrentDir $file.Name
+        $sourceRelativePath = Get-RelativePathFromBase $SourceDir $file.FullName
+        if ($sourceRelativePath -and (Is-LocalDeployExcludedSourceRelativePath $sourceRelativePath)) {
+            $excluded++
+            continue
+        }
+
+        $deployRelativePath = if ($sourceRelativePath -and (Is-StructuredRuntimeRelativePath $sourceRelativePath)) {
+            $sourceRelativePath
+        }
+        else {
+            $file.Name
+        }
+
+        $addonPath = Join-Path $addonDir $deployRelativePath
+        $addonPathParent = Split-Path $addonPath -Parent
+        if (-not (Test-Path $addonPathParent)) {
+            New-Item -ItemType Directory -Path $addonPathParent -Force | Out-Null
+        }
         
-        if (Test-Path $rootPath) {
-            $rootItem = Get-Item $rootPath
+        if (Test-Path $addonPath) {
+            $addonItem = Get-Item $addonPath
             
-            # If source version is newer, copy to root
-            if ($file.LastWriteTime -gt $rootItem.LastWriteTime) {
-                Copy-Item -Path $file.FullName -Destination $rootPath -Force
+            # If source version is newer, copy to the deployed addon
+            if ($file.LastWriteTime -gt $addonItem.LastWriteTime) {
+                Copy-Item -Path $file.FullName -Destination $addonPath -Force
                 Write-Host "Updated: $($file.Name)" -ForegroundColor Yellow
                 $updated++
             }
@@ -125,17 +318,33 @@ function Sync-FromSource {
             }
         }
         else {
-            # New file in source, copy to root
-            Copy-Item -Path $file.FullName -Destination $rootPath -Force
+            # New file in source, copy to the deployed addon
+            Copy-Item -Path $file.FullName -Destination $addonPath -Force
             Write-Host "Added: $($file.Name)" -ForegroundColor Green
             $added++
         }
     }
     
-    Write-Host "`nSync complete: $added added, $updated updated, $skipped unchanged" -ForegroundColor Cyan
+    Write-Host "`nDeploy complete to ${addonDir}: $added added, $updated updated, $skipped unchanged, $excluded excluded from local root deploy" -ForegroundColor Cyan
 }
 
 function Get-TargetSubfolder($fileName) {
+    $normalizedName = $fileName.ToLowerInvariant()
+    switch -Regex ($normalizedName) {
+        '^bzogrelogfile\.log$' { return "Local/Logs" }
+        '^winmm_shim\.log$' { return "Local/Logs" }
+        '^n64\.code-workspace$' { return "Local/Workspace" }
+        '^cpp_lua_mission_flow_report\.md$' { return "Local/Reports" }
+        '^bzplyr\.def$' { return "Local/Config" }
+        '^exu_backup_.*\.(dll|pdb)$' { return "Local/Bin" }
+        '^exu\.pdb$' { return "Local/Bin" }
+        '^exu-og\.dll$' { return "Local/Bin" }
+        '^subtitles(-og)?\.dll$' { return "Local/Bin" }
+        '^subtitles\.pdb$' { return "Local/Bin" }
+        '^exu_callconv_test\.cod$' { return "Local/Tests" }
+        '^bzlogger\.txt$' { return "Local/Logs" }
+    }
+
     $ext = [System.IO.Path]::GetExtension($fileName).ToLower()
     
     switch ($ext) {
@@ -144,10 +353,30 @@ function Get-TargetSubfolder($fileName) {
         ".bzn" { return "Missions" }
         ".csv" { return "Config" }
         ".ini" { return "Config" }
+        ".ttf" { return "OverlayFont" }
+        ".otf" { return "OverlayFont" }
+        ".fontdef" { return "OverlayFont" }
+        ".material" { return "Materials" }
+        ".program" { return "Shaders" }
+        ".shader" { return "Shaders" }
+        ".fx" { return "Shaders" }
+        ".hlsl" { return "Shaders" }
+        ".glsl" { return "Shaders" }
+        ".cg" { return "Shaders" }
+        ".act" { return "Assets/ACT" }
+        ".dds" { return "Assets/Textures" }
+        ".mesh" { return "Assets/ModelFixes" }
+        ".skeleton" { return "Assets/ModelFixes" }
         ".jpg" { return "Assets" }
         ".tga" { return "Assets" }
         ".bmp" { return "Assets" }
         ".png" { return "Assets" }
+        ".lgt" { return "Local/Missions" }
+        ".trn" { return "Local/Missions" }
+        ".hg2" { return "Local/Missions" }
+        ".log" { return "Local/Logs" }
+        ".code-workspace" { return "Local/Workspace" }
+        ".cod" { return "Local/Tests" }
         ".txt" {
             if ($fileName.StartsWith("EXU_")) { return "Config" }
             return "Text"
@@ -157,92 +386,10 @@ function Get-TargetSubfolder($fileName) {
 }
 
 function Sync-FromAddon {
-    Write-Host "`nChecking for newer files in parent addon directory..." -ForegroundColor Cyan
-    
-    # Get parent addon directory
-    $addonDir = Split-Path $CurrentDir -Parent
-    
-    if (-not (Test-Path $addonDir)) {
-        Write-Warning "Parent addon directory not found: $addonDir"
-        return
-    }
-    
-    # Get all files in addon directory (exclude subdirectories)
-    $addonFiles = Get-ChildItem -Path $addonDir -File -ErrorAction SilentlyContinue | Where-Object {
-        # Exclude system files
-        $_.Name -ne "desktop.ini" -and 
-        $_.Name -ne "thumbs.db" -and 
-        -not $_.Name.StartsWith(".")
-    }
-    
-    if (-not $addonFiles) {
-        Write-Host "No files found in addon directory." -ForegroundColor DarkGray
-        return
-    }
-    
-    $updatedRoot = 0
-    $updatedSource = 0
-    $skipped = 0
-    
-    foreach ($addonFile in $addonFiles) {
-        $rootPath = Join-Path $CurrentDir $addonFile.Name
-        $rootUpdated = $false
-        $sourceUpdated = $false
-        
-        # Check if file exists in root directory
-        if (Test-Path $rootPath) {
-            $rootItem = Get-Item $rootPath
-            
-            # If addon version is newer, copy to root
-            if ($addonFile.LastWriteTime -gt $rootItem.LastWriteTime) {
-                Copy-Item -Path $addonFile.FullName -Destination $rootPath -Force
-                Write-Host "  Root: $($addonFile.Name)" -ForegroundColor Yellow
-                $updatedRoot++
-                $rootUpdated = $true
-            }
-        }
-        else {
-            # File doesn't exist in root, copy it
-            Copy-Item -Path $addonFile.FullName -Destination $rootPath -Force
-            Write-Host "  Root: $($addonFile.Name) [NEW]" -ForegroundColor Green
-            $updatedRoot++
-            $rootUpdated = $true
-        }
-        
-        # Check if file exists in _Source directory
-        if (Test-Path $SourceDir) {
-            $sourceFiles = Get-ChildItem -Path $SourceDir -Recurse -File | Where-Object { $_.Name -eq $addonFile.Name }
-            
-            foreach ($sourceFile in $sourceFiles) {
-                if ($addonFile.LastWriteTime -gt $sourceFile.LastWriteTime) {
-                    Copy-Item -Path $addonFile.FullName -Destination $sourceFile.FullName -Force
-                    if (-not $sourceUpdated) {
-                        Write-Host "  Source: $($addonFile.Name)" -ForegroundColor Magenta
-                        $updatedSource++
-                        $sourceUpdated = $true
-                    }
-                }
-            }
-        }
-        
-        if (-not $rootUpdated -and -not $sourceUpdated) {
-            $skipped++
-        }
-    }
-    
-    Write-Host "Addon sync complete: $updatedRoot to root, $updatedSource to source, $skipped unchanged`n" -ForegroundColor Cyan
+    Sync-ToSource
 }
 
 function Build-Release {
-    param(
-        [switch]$SkipSync
-    )
-
-    # Sync to source first to ensure it's up to date!
-    if (-not $SkipSync) {
-        Sync-ToSource
-    }
-
     Write-Host "`nBuilding release to $ReleaseDir (FLATTENED)..." -ForegroundColor Cyan
 
     if (-not (Test-Path $SourceDir)) {
@@ -258,9 +405,23 @@ function Build-Release {
     New-Item -ItemType Directory -Path $ReleaseDir -Force | Out-Null
 
     # Copy files FLATTENED
-    $files = Get-ChildItem -Path $SourceDir -Recurse -File
+    $files = Get-ManagedSourceFiles
     foreach ($file in $files) {
-        Copy-Item -Path $file.FullName -Destination $ReleaseDir -Force
+        $sourceRelativePath = Get-RelativePathFromBase $SourceDir $file.FullName
+        $releaseRelativePath = if ($sourceRelativePath -and (Is-StructuredRuntimeRelativePath $sourceRelativePath)) {
+            $sourceRelativePath
+        }
+        else {
+            $file.Name
+        }
+
+        $releasePath = Join-Path $ReleaseDir $releaseRelativePath
+        $releaseParent = Split-Path $releasePath -Parent
+        if (-not (Test-Path $releaseParent)) {
+            New-Item -ItemType Directory -Path $releaseParent -Force | Out-Null
+        }
+
+        Copy-Item -Path $file.FullName -Destination $releasePath -Force
     }
 
     Write-Host "Release build complete. Files are in $ReleaseDir" -ForegroundColor Green
@@ -269,7 +430,7 @@ function Build-Release {
 function Resolve-PathIfRelative($pathValue) {
     if (-not $pathValue) { return $null }
     if ([System.IO.Path]::IsPathRooted($pathValue)) { return $pathValue }
-    return (Join-Path $PSScriptRoot $pathValue)
+    return (Join-Path $RepoRoot $pathValue)
 }
 
 function Escape-VdfValue($text) {
@@ -278,7 +439,7 @@ function Escape-VdfValue($text) {
 }
 
 function Get-PublishConfig {
-    $configPath = Join-Path $PSScriptRoot "workshop.config.json"
+    $configPath = Join-Path $RepoRoot "workshop.config.json"
     if (-not (Test-Path $configPath)) {
         Write-Error "Missing publish config: $configPath (copy workshop.config.example.json to workshop.config.json and fill it in)."
         return $null
@@ -356,7 +517,7 @@ function Write-WorkshopVdf {
         [string]$ChangeNote
     )
 
-    $vdfPath = Join-Path $PSScriptRoot "workshop_build.vdf"
+    $vdfPath = Join-Path $RepoRoot "workshop_build.vdf"
     $lines = @()
     $lines += '"workshopitem"'
     $lines += '{'
@@ -411,8 +572,7 @@ function Publish-All {
         [string]$Message
     )
 
-    Sync-ToSource
-    Build-Release -SkipSync
+    Build-Release
     Invoke-GitPush -Message $Message
     Invoke-WorkshopUpload -ChangeNote $Message
 }
@@ -424,16 +584,15 @@ function Show-Menu {
     Write-Host "==========================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Current Workflow:" -ForegroundColor Yellow
-    Write-Host "  - Addon folder = Game loads from here" -ForegroundColor DarkGray
-    Write-Host "  - Root folder = Working directory (edit here)" -ForegroundColor DarkGray
-    Write-Host "  - _Source = Organized backup" -ForegroundColor DarkGray
+    Write-Host "  - _Source = Canonical source tree (edit here)" -ForegroundColor DarkGray
+    Write-Host "  - Addon folder = Runtime deploy target" -ForegroundColor DarkGray
     Write-Host "  - _Release = Build output" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "1. Sync To Source (Pull addon -> root/source, then root -> _Source)"
-    Write-Host "2. Sync From Source (Flatten _Source -> root for Git updates)"
-    Write-Host "3. Build Release (Sync To Source + Build to _Release)"
-    Write-Host "4. Sync from Addon only (Pull changes from parent directory)"
-    Write-Host "5. Publish (Sync + Build + Git push + Workshop upload)"
+    Write-Host "1. Sync To Source (Pull deployed addon -> _Source)"
+    Write-Host "2. Sync From Source (Flatten _Source -> deployed addon)"
+    Write-Host "3. Build Release (Build _Source -> _Release)"
+    Write-Host "4. Sync from Addon only (same as option 1)"
+    Write-Host "5. Publish (Build + Git push + Workshop upload)"
     Write-Host "Q. Quit"
     Write-Host ""
     
