@@ -1,3 +1,12 @@
+// Force OG retro mode to ignore modern map contributions even if a program
+// variant accidentally leaves those feature defines enabled.
+#if defined(OG_RETRO_MODE)
+#undef NORMALMAP_ENABLED
+#undef SPECULARMAP_ENABLED
+#undef SPECULAR_ENABLED
+#undef EMISSIVEMAP_ENABLED
+#endif
+
 #if defined(SHADOWRECEIVER)
 float PCF_Filter(in Texture2D map,
 					in SamplerState sam,
@@ -72,6 +81,15 @@ float3 safe_normalize(float3 v)
 	float lenSq = dot(v, v);
 	return (lenSq > 1e-8) ? v * rsqrt(lenSq) : float3(0.0, 0.0, 0.0);
 }
+
+#if defined(ENHANCED_MODE)
+float3 sharpen_normal_map(float3 normalTex)
+{
+	float2 sharpenedXY = normalTex.xy * 1.85;
+	float sharpenedZ = max(normalTex.z, 0.20);
+	return safe_normalize(float3(sharpenedXY, sharpenedZ));
+}
+#endif
 
 void ComputeSpotlightTerms(
 	float3 pixelToLight,
@@ -359,6 +377,9 @@ void terrain_fragment(
 
 	// per-pixel view normal
 	float3 normalTex = normalMap.Sample(normalSam, vTexCoord).xyz * 2.0 - 1.0;
+#if defined(ENHANCED_MODE)
+	normalTex = sharpen_normal_map(normalTex);
+#endif
 	float3 viewNormal = safe_normalize(mul(normalTex, tbn));
 #else
 	// per-pixel view normal
