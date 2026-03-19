@@ -1,5 +1,14 @@
 #version 120
 
+// Force OG retro mode to ignore modern map contributions even if a program
+// variant accidentally leaves those feature defines enabled.
+#if defined(OG_RETRO_MODE)
+#undef NORMALMAP_ENABLED
+#undef SPECULARMAP_ENABLED
+#undef SPECULAR_ENABLED
+#undef EMISSIVEMAP_ENABLED
+#endif
+
 #if defined(SHADOWRECEIVER)
 float PCF_Filter(in sampler2D map,
 					in vec4 uv,
@@ -100,6 +109,15 @@ vec3 safe_normalize(in vec3 v)
 	float lenSq = dot(v, v);
 	return (lenSq > 1e-8) ? v * inversesqrt(lenSq) : vec3(0.0, 0.0, 0.0);
 }
+
+#if defined(ENHANCED_MODE)
+vec3 sharpen_normal_map(in vec3 normalTex)
+{
+	vec2 sharpenedXY = normalTex.xy * 1.85;
+	float sharpenedZ = max(normalTex.z, 0.20);
+	return safe_normalize(vec3(sharpenedXY, sharpenedZ));
+}
+#endif
 
 void ComputeSpotlightTerms(
 	in vec3 pixelToLight,
@@ -239,6 +257,9 @@ void main()
 
 	// per-pixel view normal
 	vec3 normalTex = texture2D(normalMap, vTexCoord).xyz * 2.0 - 1.0;
+#if defined(ENHANCED_MODE)
+	normalTex = sharpen_normal_map(normalTex);
+#endif
 	vec3 viewNormal = safe_normalize(normalTex * tbn);
 #else
 	vec3 viewNormal = safe_normalize(vViewNormal);

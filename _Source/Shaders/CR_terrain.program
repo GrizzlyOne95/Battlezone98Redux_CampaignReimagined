@@ -2431,6 +2431,475 @@ fragment_program CR_TerrainOGHighPSSM_fragment unified
 	}
 }
 
+//ENHANCED
+// Keep distinct en-* program names for bundled materials while sharing the
+// modern low/medium delegates and using ENHANCED_MODE for the high tier.
+
+fragment_program CR_TerrainENHighNoShadow_fragmentGLSLES glsles
+{
+	source terrain-fragment.glsles
+	syntax glsles
+	entry_point main
+	preprocessor_defines MAX_LIGHTS=24,EMISSIVEMAP_ENABLED=1,SPECULARMAP_ENABLED=1,NORMALMAP_ENABLED=1,DETAILMAP_ENABLED=1,ENHANCED_MODE=1
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+	}
+}
+
+fragment_program CR_TerrainENHighShadow_fragmentGLSLES glsles
+{
+	source terrain-fragment.glsles
+	syntax glsles
+	entry_point main
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PCF_SIZE=3,EMISSIVEMAP_ENABLED=1,SPECULARMAP_ENABLED=1,NORMALMAP_ENABLED=1,DETAILMAP_ENABLED=1,ENHANCED_MODE=1
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+		param_named shadowMap1 int 5
+	}
+}
+
+fragment_program CR_TerrainENHighPSSM_fragmentGLSLES glsles
+{
+	source terrain-fragment.glsles
+	syntax glsles
+	entry_point main
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PCF_SIZE=3,PSSM_ENABLED=1,EMISSIVEMAP_ENABLED=1,SPECULARMAP_ENABLED=1,NORMALMAP_ENABLED=1,DETAILMAP_ENABLED=1,ENHANCED_MODE=1
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+		param_named shadowMap1 int 5
+		param_named shadowMap2 int 6
+		param_named shadowMap3 int 7
+	}
+}
+
+fragment_program CR_TerrainENHighNoShadow_fragmentGLSL glsl
+{
+	source terrain-fragment.glsl
+	syntax glsl
+	entry_point main
+	preprocessor_defines MAX_LIGHTS=24,EMISSIVEMAP_ENABLED=1,SPECULARMAP_ENABLED=1,NORMALMAP_ENABLED=1,DETAILMAP_ENABLED=1,ENHANCED_MODE=1
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+	}
+}
+
+fragment_program CR_TerrainENHighShadow_fragmentGLSL glsl
+{
+	source terrain-fragment.glsl
+	syntax glsl
+	entry_point main
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PCF_SIZE=3,EMISSIVEMAP_ENABLED=1,SPECULARMAP_ENABLED=1,NORMALMAP_ENABLED=1,DETAILMAP_ENABLED=1,ENHANCED_MODE=1
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+		param_named shadowMap1 int 5
+	}
+}
+
+fragment_program CR_TerrainENHighPSSM_fragmentGLSL glsl
+{
+	source terrain-fragment.glsl
+	syntax glsl
+	entry_point main
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PCF_SIZE=3,PSSM_ENABLED=1,EMISSIVEMAP_ENABLED=1,SPECULARMAP_ENABLED=1,NORMALMAP_ENABLED=1,DETAILMAP_ENABLED=1,ENHANCED_MODE=1
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+		param_named shadowMap1 int 5
+		param_named shadowMap2 int 6
+		param_named shadowMap3 int 7
+	}
+}
+
+fragment_program CR_TerrainENHighNoShadow_fragmentHLSL4 hlsl
+{
+	source terrain-sm4.hlsl
+	target ps_4_0
+	entry_point CR_TerrainHighFragment
+	preprocessor_defines MAX_LIGHTS=24,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+	}
+}
+
+fragment_program CR_TerrainENHighShadow_fragmentHLSL4 hlsl
+{
+	source terrain-sm4.hlsl
+	target ps_4_0
+	entry_point CR_TerrainHighFragment
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=3,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+		param_named shadowMap1 int 5
+	}
+}
+
+fragment_program CR_TerrainENHighPSSM_fragmentHLSL4 hlsl
+{
+	source terrain-sm4.hlsl
+	target ps_4_0
+	entry_point CR_TerrainHighFragment
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=3,PSSM_ENABLED,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+		param_named shadowMap1 int 5
+		param_named shadowMap2 int 6
+		param_named shadowMap3 int 7
+	}
+}
+
+fragment_program CR_TerrainENHighNoShadow_fragmentHLSL hlsl
+{
+	source terrain.hlsl
+	target ps_3_0
+	entry_point CR_TerrainHighFragment
+	preprocessor_defines MAX_LIGHTS=24,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+	}
+}
+
+fragment_program CR_TerrainENHighShadow_fragmentHLSL hlsl
+{
+	source terrain.hlsl
+	target ps_3_0
+	entry_point CR_TerrainHighFragment
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=3,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+		param_named shadowMap1 int 5
+	}
+}
+
+fragment_program CR_TerrainENHighPSSM_fragmentHLSL hlsl
+{
+	source terrain.hlsl
+	target ps_3_0
+	entry_point CR_TerrainHighFragment
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=3,PSSM_ENABLED,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named detailMap int 1
+		param_named normalMap int 2
+		param_named specularMap int 3
+		param_named emissiveMap int 4
+		param_named shadowMap1 int 5
+		param_named shadowMap2 int 6
+		param_named shadowMap3 int 7
+	}
+}
+
+fragment_program CR_TerrainENLowestPSSM_fragment unified
+{
+	delegate CR_TerrainLowestPSSM_fragmentGLSLES
+	delegate CR_TerrainLowestPSSM_fragmentGLSL
+	delegate CR_TerrainLowestPSSM_fragmentHLSL4
+	delegate CR_TerrainLowestPSSM_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto invShadowMapSize1 inverse_texture_size 5
+		param_named_auto invShadowMapSize2 inverse_texture_size 6
+		param_named_auto invShadowMapSize3 inverse_texture_size 7
+		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
+	}
+}
+
+fragment_program CR_TerrainENLowestShadow_fragment unified
+{
+	delegate CR_TerrainLowestShadow_fragmentGLSLES
+	delegate CR_TerrainLowestShadow_fragmentGLSL
+	delegate CR_TerrainLowestShadow_fragmentHLSL4
+	delegate CR_TerrainLowestShadow_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto invShadowMapSize1 inverse_texture_size 5
+	}
+}
+
+fragment_program CR_TerrainENLowestNoShadow_fragment unified
+{
+	delegate CR_TerrainLowestNoShadow_fragmentGLSLES
+	delegate CR_TerrainLowestNoShadow_fragmentGLSL
+	delegate CR_TerrainLowestNoShadow_fragmentHLSL4
+	delegate CR_TerrainLowestNoShadow_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+	}
+}
+
+fragment_program CR_TerrainENLowPSSM_fragment unified
+{
+	delegate CR_TerrainLowPSSM_fragmentGLSLES
+	delegate CR_TerrainLowPSSM_fragmentGLSL
+	delegate CR_TerrainLowPSSM_fragmentHLSL4
+	delegate CR_TerrainLowPSSM_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
+		param_named_auto lightAttenuation light_attenuation_array 1
+		param_named_auto spotLightParams spotlight_params_array 1
+		param_named_auto lightPosition light_position_view_space_array 1
+		param_named_auto lightDirection light_direction_view_space_array 1
+		param_named_auto invShadowMapSize1 inverse_texture_size 5
+		param_named_auto invShadowMapSize2 inverse_texture_size 6
+		param_named_auto invShadowMapSize3 inverse_texture_size 7
+		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
+	}
+}
+
+fragment_program CR_TerrainENLowShadow_fragment unified
+{
+	delegate CR_TerrainLowShadow_fragmentGLSLES
+	delegate CR_TerrainLowShadow_fragmentGLSL
+	delegate CR_TerrainLowShadow_fragmentHLSL4
+	delegate CR_TerrainLowShadow_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
+		param_named_auto lightAttenuation light_attenuation_array 1
+		param_named_auto spotLightParams spotlight_params_array 1
+		param_named_auto lightPosition light_position_view_space_array 1
+		param_named_auto lightDirection light_direction_view_space_array 1
+		param_named_auto invShadowMapSize1 inverse_texture_size 5
+	}
+}
+
+fragment_program CR_TerrainENLowNoShadow_fragment unified
+{
+	delegate CR_TerrainLowNoShadow_fragmentGLSLES
+	delegate CR_TerrainLowNoShadow_fragmentGLSL
+	delegate CR_TerrainLowNoShadow_fragmentHLSL4
+	delegate CR_TerrainLowNoShadow_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
+		param_named_auto lightAttenuation light_attenuation_array 1
+		param_named_auto spotLightParams spotlight_params_array 1
+		param_named_auto lightPosition light_position_view_space_array 1
+		param_named_auto lightDirection light_direction_view_space_array 1
+	}
+}
+
+fragment_program CR_TerrainENMediumNoShadow_fragment unified
+{
+	delegate CR_TerrainMediumNoShadow_fragmentGLSLES
+	delegate CR_TerrainMediumNoShadow_fragmentGLSL
+	delegate CR_TerrainMediumNoShadow_fragmentHLSL4
+	delegate CR_TerrainMediumNoShadow_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
+		param_named_auto lightAttenuation light_attenuation_array 8
+		param_named_auto spotLightParams spotlight_params_array 8
+		param_named_auto lightPosition light_position_view_space_array 8
+		param_named_auto lightDirection light_direction_view_space_array 8
+		param_named_auto lightCount light_count
+	}
+}
+
+fragment_program CR_TerrainENMediumShadow_fragment unified
+{
+	delegate CR_TerrainMediumShadow_fragmentGLSLES
+	delegate CR_TerrainMediumShadow_fragmentGLSL
+	delegate CR_TerrainMediumShadow_fragmentHLSL4
+	delegate CR_TerrainMediumShadow_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
+		param_named_auto lightAttenuation light_attenuation_array 8
+		param_named_auto spotLightParams spotlight_params_array 8
+		param_named_auto lightPosition light_position_view_space_array 8
+		param_named_auto lightDirection light_direction_view_space_array 8
+		param_named_auto lightCount light_count
+		param_named_auto invShadowMapSize1 inverse_texture_size 5
+	}
+}
+
+fragment_program CR_TerrainENMediumPSSM_fragment unified
+{
+	delegate CR_TerrainMediumPSSM_fragmentGLSLES
+	delegate CR_TerrainMediumPSSM_fragmentGLSL
+	delegate CR_TerrainMediumPSSM_fragmentHLSL4
+	delegate CR_TerrainMediumPSSM_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
+		param_named_auto lightAttenuation light_attenuation_array 8
+		param_named_auto spotLightParams spotlight_params_array 8
+		param_named_auto lightPosition light_position_view_space_array 8
+		param_named_auto lightDirection light_direction_view_space_array 8
+		param_named_auto lightCount light_count
+		param_named_auto invShadowMapSize1 inverse_texture_size 5
+		param_named_auto invShadowMapSize2 inverse_texture_size 6
+		param_named_auto invShadowMapSize3 inverse_texture_size 7
+		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
+	}
+}
+
+fragment_program CR_TerrainENHighNoShadow_fragment unified
+{
+	delegate CR_TerrainENHighNoShadow_fragmentGLSLES
+	delegate CR_TerrainENHighNoShadow_fragmentGLSL
+	delegate CR_TerrainENHighNoShadow_fragmentHLSL4
+	delegate CR_TerrainENHighNoShadow_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto materialShininess surface_shininess
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
+		param_named_auto lightSpecular derived_light_specular_colour_array 24
+		param_named_auto lightAttenuation light_attenuation_array 24
+		param_named_auto spotLightParams spotlight_params_array 24
+		param_named_auto lightPosition light_position_view_space_array 24
+		param_named_auto lightDirection light_direction_view_space_array 24
+		param_named_auto lightCount light_count
+	}
+}
+
+fragment_program CR_TerrainENHighShadow_fragment unified
+{
+	delegate CR_TerrainENHighShadow_fragmentGLSLES
+	delegate CR_TerrainENHighShadow_fragmentGLSL
+	delegate CR_TerrainENHighShadow_fragmentHLSL4
+	delegate CR_TerrainENHighShadow_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto materialShininess surface_shininess
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
+		param_named_auto lightSpecular derived_light_specular_colour_array 24
+		param_named_auto lightAttenuation light_attenuation_array 24
+		param_named_auto spotLightParams spotlight_params_array 24
+		param_named_auto lightPosition light_position_view_space_array 24
+		param_named_auto lightDirection light_direction_view_space_array 24
+		param_named_auto lightCount light_count
+		param_named_auto invShadowMapSize1 inverse_texture_size 5
+	}
+}
+
+fragment_program CR_TerrainENHighPSSM_fragment unified
+{
+	delegate CR_TerrainENHighPSSM_fragmentGLSLES
+	delegate CR_TerrainENHighPSSM_fragmentGLSL
+	delegate CR_TerrainENHighPSSM_fragmentHLSL4
+	delegate CR_TerrainENHighPSSM_fragmentHLSL
+
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto materialShininess surface_shininess
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
+		param_named_auto lightSpecular derived_light_specular_colour_array 24
+		param_named_auto lightAttenuation light_attenuation_array 24
+		param_named_auto spotLightParams spotlight_params_array 24
+		param_named_auto lightPosition light_position_view_space_array 24
+		param_named_auto lightDirection light_direction_view_space_array 24
+		param_named_auto lightCount light_count
+		param_named_auto invShadowMapSize1 inverse_texture_size 5
+		param_named_auto invShadowMapSize2 inverse_texture_size 6
+		param_named_auto invShadowMapSize3 inverse_texture_size 7
+		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
+	}
+}
+
 
 
 
