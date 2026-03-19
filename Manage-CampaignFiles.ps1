@@ -9,13 +9,22 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 
 # Manage-CampaignFiles.ps1
 # Script to manage development symlinks and release builds for Battlezone 98 Redux: Campaign Reimagined
-# Set location to script directory (elevation changes it to System32)
-Set-Location $PSScriptRoot
+# Resolve the campaign root even when the synced script copy is launched from _Source.
+$ScriptDir = $PSScriptRoot
+$RepoRoot = if ((Split-Path $ScriptDir -Leaf).Equals("_Source", [System.StringComparison]::OrdinalIgnoreCase)) {
+    Split-Path $ScriptDir -Parent
+}
+else {
+    $ScriptDir
+}
 
-$SourceDir = "_Source"
-$ReleaseDir = "_Release"
-$CurrentDir = Get-Location
+Set-Location $RepoRoot
+
+$SourceDir = Join-Path $RepoRoot "_Source"
+$ReleaseDir = Join-Path $RepoRoot "_Release"
+$CurrentDir = $RepoRoot
 $StructuredRuntimeDirs = @("flags", "OverlayFont")
+$LocalDeployExcludedSourceDirs = @("Materials", "Shaders")
 
 
 # Global error trap to keep window open on crash
@@ -121,6 +130,21 @@ function Get-RelativePathFromBase($basePath, $fullPath) {
 
 function Is-StructuredRuntimeRelativePath($relativePath) {
     foreach ($dirName in $StructuredRuntimeDirs) {
+        if ($relativePath.Equals($dirName, [System.StringComparison]::OrdinalIgnoreCase) -or
+            $relativePath.StartsWith($dirName + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Is-LocalDeployExcludedSourceRelativePath($relativePath) {
+    if (-not $relativePath) {
+        return $false
+    }
+
+    foreach ($dirName in $LocalDeployExcludedSourceDirs) {
         if ($relativePath.Equals($dirName, [System.StringComparison]::OrdinalIgnoreCase) -or
             $relativePath.StartsWith($dirName + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
             return $true
@@ -258,9 +282,15 @@ function Sync-FromSource {
     $updated = 0
     $added = 0
     $skipped = 0
+    $excluded = 0
     
     foreach ($file in $sourceFiles) {
         $sourceRelativePath = Get-RelativePathFromBase $SourceDir $file.FullName
+        if ($sourceRelativePath -and (Is-LocalDeployExcludedSourceRelativePath $sourceRelativePath)) {
+            $excluded++
+            continue
+        }
+
         $deployRelativePath = if ($sourceRelativePath -and (Is-StructuredRuntimeRelativePath $sourceRelativePath)) {
             $sourceRelativePath
         }
@@ -295,7 +325,7 @@ function Sync-FromSource {
         }
     }
     
-    Write-Host "`nDeploy complete to ${addonDir}: $added added, $updated updated, $skipped unchanged" -ForegroundColor Cyan
+    Write-Host "`nDeploy complete to ${addonDir}: $added added, $updated updated, $skipped unchanged, $excluded excluded from local root deploy" -ForegroundColor Cyan
 }
 
 function Get-TargetSubfolder($fileName) {
@@ -400,7 +430,7 @@ function Build-Release {
 function Resolve-PathIfRelative($pathValue) {
     if (-not $pathValue) { return $null }
     if ([System.IO.Path]::IsPathRooted($pathValue)) { return $pathValue }
-    return (Join-Path $PSScriptRoot $pathValue)
+    return (Join-Path $RepoRoot $pathValue)
 }
 
 function Escape-VdfValue($text) {
@@ -409,7 +439,7 @@ function Escape-VdfValue($text) {
 }
 
 function Get-PublishConfig {
-    $configPath = Join-Path $PSScriptRoot "workshop.config.json"
+    $configPath = Join-Path $RepoRoot "workshop.config.json"
     if (-not (Test-Path $configPath)) {
         Write-Error "Missing publish config: $configPath (copy workshop.config.example.json to workshop.config.json and fill it in)."
         return $null
@@ -487,7 +517,7 @@ function Write-WorkshopVdf {
         [string]$ChangeNote
     )
 
-    $vdfPath = Join-Path $PSScriptRoot "workshop_build.vdf"
+    $vdfPath = Join-Path $RepoRoot "workshop_build.vdf"
     $lines = @()
     $lines += '"workshopitem"'
     $lines += '{'

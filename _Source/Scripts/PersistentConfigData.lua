@@ -64,6 +64,18 @@ return {
         [11] = { name = "RAINBOW", rainbow = true, feedbackR = 1.0, feedbackG = 0.5, feedbackB = 1.0 },
     },
 
+    RetroLightingIntervals = {
+        heartbeat = 1.0,
+        stabilize = 0.10,
+        stabilizeDuration = 2.0,
+    },
+
+    LightingModePresets = {
+        [1] = { name = "DEFAULT", mode = "default", retro = false },
+        [2] = { name = "ENHANCED", mode = "enhanced", retro = false },
+        [3] = { name = "RETRO", mode = "retro", retro = true },
+    },
+
     BeamModes = {
         [1] = { Inner = 0.2, Outer = 0.4, Multiplier = 2.0 },
         [2] = { Inner = 1.1, Outer = 1.5, Multiplier = 0.8 },

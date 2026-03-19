@@ -1317,6 +1317,34 @@ function exu.SetUnderAttackAlertMode(mode) end
 --- @return boolean
 function exu.SetTargetReticlePopupMode(mode) end
 
+--- Sets the live rect for a named HUD sprite entry from `spritea.st`.
+--- Requires an OpenShim build that exposes the HUD sprite bridge.
+--- @param spriteName string
+--- @param x integer
+--- @param y integer
+--- @param w integer
+--- @param h integer
+--- @return boolean
+function exu.SetHudSpriteRect(spriteName, x, y, w, h) end
+
+--- Shows or hides a named HUD sprite entry at runtime.
+--- Requires an OpenShim build that exposes the HUD sprite bridge.
+--- @param spriteName string
+--- @param visible boolean
+--- @return boolean
+function exu.SetHudSpriteVisible(spriteName, visible) end
+
+--- Restores a named HUD sprite entry to its original runtime rect.
+--- Requires an OpenShim build that exposes the HUD sprite bridge.
+--- @param spriteName string
+--- @return boolean
+function exu.RestoreHudSprite(spriteName) end
+
+--- Restores all HUD sprite entries previously mutated through the bridge.
+--- Requires an OpenShim build that exposes the HUD sprite bridge.
+--- @return boolean
+function exu.RestoreAllHudSprites() end
+
 --- Reticle
 ---
 --- These functions can query various information about the smart reticle.

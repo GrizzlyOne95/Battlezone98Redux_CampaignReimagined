@@ -1314,6 +1314,438 @@ material CR_BZBase
 
 	technique
 	{
+        scheme en-high-pssm
+        lod_index 0
+		pass : BZPassSchemeHighPSSM
+ 		{
+			fragment_program_ref CR_BaseENHighPSSM_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-high-pssm
+        lod_index 1
+		pass : BZPassSchemeMediumNoShadow
+ 		{
+			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-high-pssm
+        lod_index 2
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-high
+        lod_index 0
+		pass : BZPassSchemeHigh
+ 		{
+			fragment_program_ref CR_BaseENHighShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-high
+        lod_index 1
+		pass : BZPassSchemeMediumNoShadow
+ 		{
+			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-high
+        lod_index 2
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-high-noshadow
+        lod_index 0
+		pass : BZPassSchemeHighNoShadow
+ 		{
+			fragment_program_ref CR_BaseENHighNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-high-noshadow
+        lod_index 1
+		pass : BZPassSchemeMediumNoShadow
+ 		{
+			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-high-noshadow
+        lod_index 2
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium-pssm
+        lod_index 0
+		pass : BZPassSchemeMediumPSSM
+ 		{
+			fragment_program_ref CR_BaseENMediumPSSM_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium-pssm
+        lod_index 1
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium-pssm
+        lod_index 2
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium
+        lod_index 0
+		pass : BZPassSchemeMedium
+ 		{
+			fragment_program_ref CR_BaseENMediumShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium
+        lod_index 1
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium
+        lod_index 2
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium-noshadow
+        lod_index 0
+		pass : BZPassSchemeMediumNoShadow
+ 		{
+			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium-noshadow
+        lod_index 1
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium-noshadow
+        lod_index 2
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low-pssm
+        lod_index 0
+		pass : BZPassSchemeLowPSSM
+ 		{
+			fragment_program_ref CR_BaseENLowPSSM_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low-pssm
+        lod_index 1
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low-pssm
+        lod_index 2
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low
+        lod_index 0
+		pass : BZPassSchemeLow
+ 		{
+			fragment_program_ref CR_BaseENLowShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low
+        lod_index 1
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low
+        lod_index 2
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low-noshadow
+        lod_index 0
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low-noshadow
+        lod_index 1
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low-noshadow
+        lod_index 2
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest-pssm
+        lod_index 0
+		pass : BZPassSchemeLowestPSSM
+ 		{
+			fragment_program_ref CR_BaseENLowestPSSM_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest-pssm
+        lod_index 1
+		pass : BZPassSchemeLowestNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest-pssm
+        lod_index 2
+		pass : BZPassSchemeLowestNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest
+        lod_index 0
+		pass : BZPassSchemeLowest
+ 		{
+			fragment_program_ref CR_BaseENLowestShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest
+        lod_index 1
+		pass : BZPassSchemeLowestNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest
+        lod_index 2
+		pass : BZPassSchemeLowestNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest-noshadow
+        lod_index 0
+		pass : BZPassSchemeLowestNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest-noshadow
+        lod_index 1
+		pass : BZPassSchemeLowestNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest-noshadow
+        lod_index 2
+		pass : BZPassSchemeLowestNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
         scheme og-high-pssm
         lod_index 0
 		pass : BZPassSchemeOGHighPSSM
@@ -1768,6 +2200,138 @@ material CR_BZBaseCockpit
  		{
 		}
     }
+
+	technique
+	{
+        scheme en-high-pssm
+		pass : BZPassSchemeHighNoShadow
+ 		{
+			fragment_program_ref CR_BaseENHighNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-high
+		pass : BZPassSchemeHighNoShadow
+ 		{
+			fragment_program_ref CR_BaseENHighNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-high-noshadow
+		pass : BZPassSchemeHighNoShadow
+ 		{
+			fragment_program_ref CR_BaseENHighNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium-pssm
+		pass : BZPassSchemeMediumNoShadow
+ 		{
+			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium
+		pass : BZPassSchemeMediumNoShadow
+ 		{
+			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-medium-noshadow
+		pass : BZPassSchemeMediumNoShadow
+ 		{
+			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low-pssm
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-low-noshadow
+		pass : BZPassSchemeLowNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest-pssm
+		pass : BZPassSchemeLowestNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest
+		pass : BZPassSchemeLowestNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			{
+			}
+		}
+	}
+
+	technique
+	{
+        scheme en-lowest-noshadow
+		pass : BZPassSchemeLowestNoShadow
+ 		{
+			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			{
+			}
+		}
+	}
 
 	technique
 	{
