@@ -9,3 +9,8 @@ Current shader pass:
 - optional OG retro-lighting compatibility through the `og-*` material schemes used by the addon stack
 
 See [`ISSUE_TRIAGE.md`](ISSUE_TRIAGE.md) for the current rationale and issue-by-issue status for this pass.
+
+## Credits
+
+- `GrizzlyOne95` for current addon maintenance, integration, and workspace stewardship.
+- `VTrider` for EXU-side groundwork that this addon stack builds on.
