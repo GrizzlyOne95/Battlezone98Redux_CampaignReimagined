@@ -4,7 +4,7 @@
 
 -- Compatibility and Library Setup
 local RequireFix = require("RequireFix")
-RequireFix.Initialize({"campaignReimagined", "3659600763"})
+RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
 local bzfile = require("bzfile")
 local DiffUtils = require("DiffUtils")

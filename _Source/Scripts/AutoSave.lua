@@ -11,8 +11,7 @@ local SUBTITLE_FONT_SCALE_MAX = 2.00
 
 AutoSave.Config = {
     enabled = true,
-    autoSaveInterval = 300,
-    currentSlot = 1,
+    autoSaveInterval = 120,
     currentPath = "Save\\auto.sav",
 }
 AutoSave._forceInitialSave = false

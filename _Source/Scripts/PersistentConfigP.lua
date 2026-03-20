@@ -481,22 +481,40 @@ function M.Create(deps)
         local startIndex = math.max(1, math.min(selection - math.floor(visibleRows / 2), math.max(1, count - visibleRows + 1)))
         local endIndex = math.min(count, startIndex + visibleRows - 1)
         local labelWidth = 0
-
-        table.insert(lines, string.format("Item %02d/%02d", selection, count))
+        local selectableCount = 0
+        local selectedOrdinal = 0
 
         if #settingsEntries == 0 then
+            table.insert(lines, "Item 00/00")
             table.insert(lines, "No settings available")
         else
+            for index = 1, #settingsEntries do
+                local entry = settingsEntries[index]
+                if entry and entry.selectable ~= false then
+                    selectableCount = selectableCount + 1
+                    if index == selection then
+                        selectedOrdinal = selectableCount
+                    end
+                end
+            end
+            table.insert(lines, string.format("Item %02d/%02d", selectedOrdinal, selectableCount))
+
             for index = startIndex, endIndex do
                 local entry = settingsEntries[index]
-                labelWidth = math.max(labelWidth, #(entry and entry.label or ""))
+                if entry and entry.selectable ~= false then
+                    labelWidth = math.max(labelWidth, #(entry.label or ""))
+                end
             end
             labelWidth = ClampRange(labelWidth, 8, 20, 12)
 
             for index = startIndex, endIndex do
                 local entry = settingsEntries[index]
-                local prefix = (selection == index) and ">" or ((entry and entry.warning) and "!" or " ")
-                table.insert(lines, string.format("%s %-" .. tostring(labelWidth) .. "s %s", prefix, entry.label, entry.value))
+                if entry and entry.selectable == false then
+                    table.insert(lines, string.format("  [%s]", entry.label or "Section"))
+                else
+                    local prefix = (selection == index) and ">" or ((entry and entry.warning) and "!" or " ")
+                    table.insert(lines, string.format("%s %-" .. tostring(labelWidth) .. "s %s", prefix, entry.label, entry.value))
+                end
             end
         end
 

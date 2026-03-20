@@ -81,10 +81,9 @@ PersistentConfig.DefaultSettings = {
     OtherHeadlightsDisabled = true, -- AI Lights Off by default
     AutoRepairWingmen = true,       -- Auto-repair wingmen on by default
     RainbowMode = false,            -- Special color effect
-    ScavengerAssistEnabled = true,  -- Auto-scavenge for player scavengers
-    AutoSaveSlot = 10,              -- Legacy setting kept for config compatibility
-    AutoSaveEnabled = false,        -- AutoSave disabled by default
-    AutoSaveInterval = 300,         -- Auto-save every 5 minutes
+    ScavengerAssistEnabled = false, -- Auto-scavenge for player scavengers
+    AutoSaveEnabled = true,         -- AutoSave enabled by default
+    AutoSaveInterval = 120,         -- Auto-save every 2 minutes
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
     LightingMode = 1,               -- 1=Default 2=Enhanced 3=Retro
     RetroLighting = false,          -- Legacy compatibility mirror for LightingMode=Retro
@@ -98,9 +97,9 @@ PersistentConfig.DefaultSettings = {
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
     UnderAttackAlertMode = 3,       -- 1=None 2=Spaced Out 3=Default
     TargetReticlePopupMode = 1,     -- 1=Default 3=Explicit Only (legacy 2 downgrades to Default)
-    ScrapPilotHudLayout = 2,        -- 1=Stock 2=Legacy
+    ScrapPilotHudLayout = 1,        -- 1=Stock 2=Legacy
     RadarSizeScale = 1.00,          -- Independent radar size scale
-    DynamicFactionFlameColors = false, -- Team flame colors from faction nation codes
+    DynamicFactionFlameColors = true, -- Team flame colors from faction nation codes
 }
 
 PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
@@ -153,8 +152,6 @@ PersistentConfig.RadarUi = {
 PersistentConfig.AutoSaveUi = {
     filePath = "Save\\auto.sav",
     fileLabel = "AUTO.SAV",
-    slotMin = 1,
-    slotMax = 10,
     intervalOptions = {
         { seconds = 120, label = "2 min" },
         { seconds = 300, label = "5 min" },
@@ -172,11 +169,11 @@ PersistentConfig.UnitVoUi = {
 
 PersistentConfig.OpenShimInstaller = {
     bundledRootName = "winmm.dll",
-    restartObjectiveId = "openshim_restart_required",
-    updateObjectiveId = "openshim_update_required",
-    manualObjectiveId = "openshim_install_manual",
-    restartMessage = "OpenShim installed. Restart Battlezone to enable native AutoSave UI.",
-    updateMessage = "OpenShim updated. Restart Battlezone to enable the latest native AutoSave UI.",
+    bundledWorkshopId = "3686673790",
+    installedDescriptionFile = "install.des",
+    updatedDescriptionFile = "update.des",
+    stagedDescriptionFile = "staged.des",
+    failureDescriptionFile = "nocopy.des",
 }
 
 local LEGACY_TEXT_PRESET_SCALES = {
@@ -247,6 +244,128 @@ local function getWorkingDirectory()
 end
 PersistentConfig.ConfigPath = getWorkingDirectory() .. "\\campaignReimagined_settings.cfg"
 
+local function InsertUniquePath(target, seen, value)
+    if not value or value == "" or seen[value] then
+        return
+    end
+
+    seen[value] = true
+    target[#target + 1] = value
+end
+
+local function SplitInstallerPathList(value)
+    local results = {}
+    for part in string.gmatch(value or "", "([^;]+)") do
+        results[#results + 1] = part
+    end
+    return results
+end
+
+local function NormalizeInstallerPath(value)
+    if type(value) ~= "string" or value == "" then
+        return nil
+    end
+
+    local normalized = value:gsub("/", "\\")
+    normalized = normalized:gsub("\\+", "\\")
+    normalized = normalized:gsub("\\$", "")
+    return normalized
+end
+
+local function GetWorkshopContentDirectory()
+    if bzfile and type(bzfile.GetWorkshopDirectory) == "function" then
+        local ok, path = pcall(bzfile.GetWorkshopDirectory)
+        if ok and type(path) == "string" and path ~= "" then
+            return NormalizeInstallerPath(path)
+        end
+    end
+
+    local pathLists = { package.cpath or "", package.path or "" }
+    local marker = "\\steamapps\\workshop\\content\\301650\\"
+
+    for _, pathList in ipairs(pathLists) do
+        for entry in string.gmatch(pathList, "([^;]+)") do
+            local normalized = NormalizeInstallerPath(entry)
+            if normalized then
+                local lower = string.lower(normalized)
+                local markerStart = string.find(lower, marker, 1, true)
+                if markerStart then
+                    return normalized:sub(1, markerStart + #marker - 2)
+                end
+            end
+        end
+    end
+
+    local workingDirectory = NormalizeInstallerPath(getWorkingDirectory())
+    if workingDirectory then
+        local lower = string.lower(workingDirectory)
+        local commonMarker = "\\steamapps\\common\\"
+        local markerStart = string.find(lower, commonMarker, 1, true)
+        if markerStart then
+            local steamRoot = workingDirectory:sub(1, markerStart - 1)
+            return steamRoot .. "\\steamapps\\workshop\\content\\301650"
+        end
+    end
+
+    return nil
+end
+
+local function ExtractInstallerRootFromPath(path, workshopId)
+    if not path then
+        return nil
+    end
+
+    local lower = string.lower(path)
+    local workshopMarker = "\\steamapps\\workshop\\content\\301650\\"
+    local workshopStart = string.find(lower, workshopMarker, 1, true)
+    if workshopStart then
+        local suffix = path:sub(workshopStart + #workshopMarker)
+        local slashIndex = string.find(suffix, "\\", 1, true)
+        local itemId = slashIndex and suffix:sub(1, slashIndex - 1) or suffix
+        if itemId ~= "" and (workshopId == "" or string.lower(itemId) == string.lower(workshopId)) then
+            return path:sub(1, workshopStart + #workshopMarker + #itemId - 1)
+        end
+    end
+
+    local markers = {
+        "\\addon\\",
+        "\\mods\\",
+        "\\packaged_mods\\",
+    }
+
+    for _, marker in ipairs(markers) do
+        local markerStart = string.find(lower, marker, 1, true)
+        if markerStart then
+            local suffix = path:sub(markerStart + #marker)
+            local slashIndex = string.find(suffix, "\\", 1, true)
+            if slashIndex then
+                return path:sub(1, markerStart + #marker + slashIndex - 2)
+            end
+            if suffix ~= "" then
+                return path
+            end
+        end
+    end
+
+    return nil
+end
+
+local function CollectInstallerRoots(workshopId)
+    local roots = {}
+    local seenRoots = {}
+    local pathLists = { package.cpath or "", package.path or "" }
+
+    for _, pathList in ipairs(pathLists) do
+        for _, entry in ipairs(SplitInstallerPathList(pathList)) do
+            local normalized = NormalizeInstallerPath(entry)
+            local root = ExtractInstallerRootFromPath(normalized, workshopId)
+            InsertUniquePath(roots, seenRoots, root)
+        end
+    end
+
+    return roots, seenRoots
+end
+
 local function BzFileExists(path)
     if not path or path == "" then
         return false
@@ -300,12 +419,31 @@ local function GetBzFileHash(path)
 end
 
 local function GetBundledOpenShimSourcePath()
-    local workingDirectory = getWorkingDirectory()
-    local candidates = {
-        workingDirectory .. "\\addon\\campaignReimagined\\" .. PersistentConfig.OpenShimInstaller.bundledRootName,
-        workingDirectory .. "\\addon\\campaignReimagined\\_Release\\" .. PersistentConfig.OpenShimInstaller.bundledRootName,
-        workingDirectory .. "\\addon\\campaignReimagined\\_Source\\Bin\\" .. PersistentConfig.OpenShimInstaller.bundledRootName,
-    }
+    local workingDirectory = NormalizeInstallerPath(getWorkingDirectory())
+    local workshopDirectory = GetWorkshopContentDirectory()
+    local workshopId = tostring(PersistentConfig.OpenShimInstaller.bundledWorkshopId or "")
+    local roots, seenRoots = CollectInstallerRoots(workshopId)
+    local candidates = {}
+
+    InsertUniquePath(roots, seenRoots, workingDirectory and (workingDirectory .. "\\addon\\" .. workshopId) or nil)
+    InsertUniquePath(roots, seenRoots, workingDirectory and (workingDirectory .. "\\mods\\" .. workshopId) or nil)
+    InsertUniquePath(roots, seenRoots, workingDirectory and (workingDirectory .. "\\packaged_mods\\" .. workshopId) or nil)
+
+    if workshopDirectory then
+        local normalizedWorkshop = NormalizeInstallerPath(workshopDirectory)
+        local lowerWorkshop = string.lower(normalizedWorkshop or "")
+        if workshopId ~= "" and lowerWorkshop:sub(-#workshopId) == string.lower(workshopId) then
+            InsertUniquePath(roots, seenRoots, normalizedWorkshop)
+        else
+            InsertUniquePath(roots, seenRoots, normalizedWorkshop and (normalizedWorkshop .. "\\" .. workshopId) or nil)
+        end
+    end
+
+    for _, root in ipairs(roots) do
+        candidates[#candidates + 1] = root .. "\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
+        candidates[#candidates + 1] = root .. "\\_Release\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
+        candidates[#candidates + 1] = root .. "\\_Source\\Bin\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
+    end
 
     for _, candidate in ipairs(candidates) do
         if BzFileExists(candidate) then
@@ -332,26 +470,33 @@ end
 
 local function ShowOpenShimInstallMissionOutcome(state)
     local missionTime = (GetTime and GetTime()) or 0.0
-    if state == "installed" then
+    if state == "installed" or state == "updated" or state == "staged" then
+        local descriptionFile = PersistentConfig.OpenShimInstaller.installedDescriptionFile
+        local fallbackMessage = "OpenShim installed. Restart Battlezone before continuing."
+
+        if state == "updated" then
+            descriptionFile = PersistentConfig.OpenShimInstaller.updatedDescriptionFile
+            fallbackMessage = "OpenShim updated. Restart Battlezone before continuing."
+        elseif state == "staged" then
+            descriptionFile = PersistentConfig.OpenShimInstaller.stagedDescriptionFile
+            fallbackMessage = "OpenShim update is queued for game exit. Close Battlezone, then relaunch before continuing."
+        end
+
         if SucceedMission then
-            SucceedMission(missionTime, "install.des")
+            SucceedMission(missionTime, descriptionFile)
             return
         end
-        ShowFeedback(PersistentConfig.OpenShimInstaller.restartMessage, 1.0, 0.85, 0.2, 12.0, true)
-        return
-    end
-
-    if state == "updated" or state == "staged" then
-        ShowFeedback(PersistentConfig.OpenShimInstaller.updateMessage, 1.0, 0.85, 0.2, 12.0, true)
+        ShowFeedback(fallbackMessage, 1.0, 0.85, 0.2, 12.0, true)
         return
     end
 
     if FailMission then
-        FailMission(missionTime, "nocopy.des")
+        FailMission(missionTime, PersistentConfig.OpenShimInstaller.failureDescriptionFile)
         return
     end
 
-    ShowFeedback("OpenShim self-install failed.", 1.0, 0.35, 0.35, 12.0, true)
+    ShowFeedback("OpenShim self-install failed. Restart Battlezone and verify the mod files.", 1.0, 0.35, 0.35,
+        12.0, true)
 end
 
 local function StageBundledOpenShimReplaceOnExit(sourcePath, destinationPath)
@@ -772,11 +917,6 @@ function PersistentConfig._ApplyUnitVoSettings()
     local okStale = pcall(exu.SetUnitVoQueueStaleMs, profile.queueStaleMs)
 
     return okMuted and okThrottle and okDepth and okStale
-end
-
-function PersistentConfig._GetAutoSaveSlot()
-    return ClampIndex(PersistentConfig.Settings.AutoSaveSlot, PersistentConfig.AutoSaveUi.slotMin,
-        PersistentConfig.AutoSaveUi.slotMax, PersistentConfig.DefaultSettings.AutoSaveSlot)
 end
 
 function PersistentConfig._GetAutoSaveIntervalOptionIndex(value)
@@ -4732,7 +4872,6 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     if options and options.syncAutoSave and autosave and autosave.Config then
         autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
         autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
-        autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
         autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
     end
 
@@ -5012,11 +5151,6 @@ function PersistentConfig._SettingsActions.SetAutoSaveEnabled(enabled)
     return true
 end
 
-function PersistentConfig._AdjustAutoSaveSlot(delta)
-    ShowFeedback("Auto-Save file is fixed to Save\\auto.sav.", 0.8, 1.0, 0.8, 3.0, false, "pda")
-    return false
-end
-
 function PersistentConfig._AdjustAutoSaveInterval(delta)
     local direction = ((delta or 0) < 0) and -1 or 1
     local _, currentIndex = PersistentConfig._GetAutoSaveIntervalOption()
@@ -5055,7 +5189,16 @@ GetSettingsPageEntries = function()
         return (delta or 0) > 0
     end
 
+    local function Section(label)
+        return {
+            label = label,
+            value = "",
+            selectable = false,
+        }
+    end
+
     return {
+        Section("Display"),
         {
             label = "PDA Size",
             value = FormatScale(PersistentConfig.Settings.PdaFontScale, PersistentConfig.FontScale.pda.min,
@@ -5103,12 +5246,49 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "PDA Panel",
+            label = "PDA / Weapon HUD",
             value = FormatHotkeyValue(PersistentConfig.Settings.WeaponStatsHud and "On" or "Off", "Y"),
             adjust = function(delta)
                 return PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(DirectionEnabled(delta))
             end,
         },
+        {
+            label = "Lighting Mode",
+            value = PersistentConfig._GetLightingModePreset().name,
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.CycleLightingMode(delta)
+            end,
+        },
+        {
+            label = "Player Light",
+            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightVisible and "On" or "Off", "V"),
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetPlayerHeadlightVisible(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "Light Color",
+            value = FormatHotkeyValue(
+                HeadlightColorPresets[PersistentConfig._SettingsActions.GetHeadlightColorPresetIndex()].name, "Z"),
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.CycleHeadlightColor(delta)
+            end,
+        },
+        {
+            label = "AI Lights",
+            value = FormatHotkeyValue(PersistentConfig.Settings.OtherHeadlightsDisabled and "Off" or "On", "J"),
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetOtherHeadlightsEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "Beam",
+            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightBeamMode == 1 and "Focused" or "Wide", "B"),
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.CycleHeadlightBeamMode(delta)
+            end,
+        },
+        Section("Audio / Feedback"),
         {
             label = "Attack Beep",
             value = PersistentConfig._GetUnderAttackAlertPreset().name,
@@ -5145,13 +5325,6 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "Faction Flames",
-            value = PersistentConfig.Settings.DynamicFactionFlameColors and "On" or "Off",
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(DirectionEnabled(delta))
-            end,
-        },
-        {
             label = "Subtitle Size",
             value = FormatScale(PersistentConfig.Settings.SubtitleFontScale, PersistentConfig.FontScale.subtitle.min,
                 PersistentConfig.FontScale.subtitle.max),
@@ -5172,35 +5345,7 @@ GetSettingsPageEntries = function()
                 return true
             end,
         },
-        {
-            label = "Player Light",
-            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightVisible and "On" or "Off", "V"),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetPlayerHeadlightVisible(DirectionEnabled(delta))
-            end,
-        },
-        {
-            label = "Light Color",
-            value = FormatHotkeyValue(
-                HeadlightColorPresets[PersistentConfig._SettingsActions.GetHeadlightColorPresetIndex()].name, "Z"),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.CycleHeadlightColor(delta)
-            end,
-        },
-        {
-            label = "AI Lights",
-            value = FormatHotkeyValue(PersistentConfig.Settings.OtherHeadlightsDisabled and "Off" or "On", "J"),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetOtherHeadlightsEnabled(DirectionEnabled(delta))
-            end,
-        },
-        {
-            label = "Beam",
-            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightBeamMode == 1 and "Focused" or "Wide", "B"),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.CycleHeadlightBeamMode(delta)
-            end,
-        },
+        Section("Gameplay"),
         {
             label = "Wingman Repair",
             value = FormatHotkeyValue(PersistentConfig.Settings.AutoRepairWingmen and "On" or "Off", "X"),
@@ -5230,6 +5375,14 @@ GetSettingsPageEntries = function()
             end,
         },
         {
+            label = "Faction Flames",
+            value = PersistentConfig.Settings.DynamicFactionFlameColors and "On" or "Off",
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(DirectionEnabled(delta))
+            end,
+        },
+        Section("AutoSave"),
+        {
             key = "autosave_interval",
             label = "Auto Interval",
             value = PersistentConfig._GetAutoSaveIntervalOption().label,
@@ -5249,6 +5402,7 @@ GetSettingsPageEntries = function()
                 return PersistentConfig._HandleAutoSaveEnableAction()
             end,
         },
+        Section("System"),
         {
             label = "Reset Config",
             value = "Right to reset",
@@ -5261,6 +5415,51 @@ GetSettingsPageEntries = function()
             end,
         },
     }
+end
+
+local function IsSelectableSettingsEntry(entry)
+    return entry and entry.selectable ~= false and (entry.adjust ~= nil or entry.action ~= nil)
+end
+
+local function FindNextSelectableSettingsIndex(entries, startIndex, delta)
+    local count = #entries
+    if count == 0 then
+        return 1
+    end
+
+    local index = ClampIndex(startIndex, 1, count, 1)
+    for _ = 1, count do
+        index = CycleIndex(index, count, delta, 1)
+        if IsSelectableSettingsEntry(entries[index]) then
+            return index
+        end
+    end
+
+    return ClampIndex(startIndex, 1, count, 1)
+end
+
+local function NormalizeSettingsSelection(entries, index)
+    local count = #entries
+    if count == 0 then
+        return 1
+    end
+
+    local clamped = ClampIndex(index, 1, count, 1)
+    if IsSelectableSettingsEntry(entries[clamped]) then
+        return clamped
+    end
+
+    local forward = FindNextSelectableSettingsIndex(entries, clamped, 1)
+    if IsSelectableSettingsEntry(entries[forward]) then
+        return forward
+    end
+
+    local backward = FindNextSelectableSettingsIndex(entries, clamped, -1)
+    if IsSelectableSettingsEntry(entries[backward]) then
+        return backward
+    end
+
+    return clamped
 end
 
 -- Helper to convert Hue to RGB (Simple Rainbow)
@@ -5340,7 +5539,7 @@ function PersistentConfig.LoadConfig()
                 elseif key == "ScavengerAssistEnabled" then
                     PersistentConfig.Settings.ScavengerAssistEnabled = (val == "true")
                 elseif key == "AutoSaveSlot" then
-                    PersistentConfig.Settings.AutoSaveSlot = tonumber(val) or 10
+                    -- Legacy key from the pre-OpenShim autosave slot workflow. Ignore it.
                 elseif key == "AutoSaveEnabled" then
                     PersistentConfig.Settings.AutoSaveEnabled = (val == "true")
                 elseif key == "AutoSaveInterval" then
@@ -5459,7 +5658,6 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.ScrapPilotHudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1,
         #ScrapPilotHudLayouts, 2)
     PersistentConfig.Settings.RadarSizeScale = GetRadarSizeScaleSetting()
-    PersistentConfig.Settings.AutoSaveSlot = PersistentConfig._GetAutoSaveSlot()
     PersistentConfig.Settings.AutoSaveInterval = PersistentConfig._GetAutoSaveIntervalOption().seconds
     PersistentConfig._SetLightingModeIndex(PersistentConfig.Settings.LightingMode)
 end
@@ -5493,7 +5691,6 @@ function PersistentConfig.SaveConfig()
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
-        f:Writeln("AutoSaveSlot=" .. tostring(PersistentConfig.Settings.AutoSaveSlot))
         f:Writeln("AutoSaveEnabled=" .. tostring(PersistentConfig.Settings.AutoSaveEnabled))
         f:Writeln("AutoSaveInterval=" .. tostring(PersistentConfig.Settings.AutoSaveInterval))
         f:Writeln("ScavengerAssistEnabled=" .. tostring(PersistentConfig.Settings.ScavengerAssistEnabled))
@@ -5542,7 +5739,6 @@ function PersistentConfig.ResetToDefaults()
     if autosave and autosave.Config then
         autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
         autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
-        autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
         autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
     end
 
@@ -5848,21 +6044,23 @@ function PersistentConfig.UpdateInputs()
     if InputState.pdaPage == PdaPages.SETTINGS then
         local settingsEntries = GetSettingsPageEntries()
         local settingsCount = math.max(#settingsEntries, 1)
+        InputState.pdaSettingsIndex = NormalizeSettingsSelection(settingsEntries, InputState.pdaSettingsIndex)
 
         if pda_up_key then
             PersistentConfig._ClearAutoSaveEnablePrompt()
-            InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, settingsCount, -1, 1)
+            InputState.pdaSettingsIndex = FindNextSelectableSettingsIndex(settingsEntries, InputState.pdaSettingsIndex, -1)
             PlayPdaSound("mnu_clik.wav")
             RefreshPdaOverlay()
         elseif pda_down_key then
             PersistentConfig._ClearAutoSaveEnablePrompt()
-            InputState.pdaSettingsIndex = CycleIndex(InputState.pdaSettingsIndex, settingsCount, 1, 1)
+            InputState.pdaSettingsIndex = FindNextSelectableSettingsIndex(settingsEntries, InputState.pdaSettingsIndex, 1)
             PlayPdaSound("mnu_clik.wav")
             RefreshPdaOverlay()
         end
 
         local settingChanged = false
-        local selection = ClampIndex(InputState.pdaSettingsIndex, 1, settingsCount, 1)
+        local selection = NormalizeSettingsSelection(settingsEntries, InputState.pdaSettingsIndex)
+        InputState.pdaSettingsIndex = selection
         local entry = settingsEntries[selection]
         if pda_left_key then
             settingChanged = entry and entry.adjust and entry.adjust(-1) or false
@@ -6440,7 +6638,6 @@ function PersistentConfig.Initialize()
     if autosave and autosave.Config then
         autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
         autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
-        autosave.Config.currentSlot = PersistentConfig.Settings.AutoSaveSlot
         autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
         autosave._forceInitialSave = autosave.Config.enabled and true or false
         InputState.autoSaveStartupPending = autosave.Config.enabled and true or false
