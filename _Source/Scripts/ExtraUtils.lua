@@ -1320,6 +1320,15 @@ function exu.SetTargetReticlePopupMode(mode) end
 --- Sets the live rect for a named HUD sprite entry from `spritea.st`.
 --- Requires an OpenShim build that exposes the HUD sprite bridge.
 --- @param spriteName string
+--- @return integer? x
+--- @return integer? y
+--- @return integer? w
+--- @return integer? h
+function exu.GetHudSpriteRect(spriteName) end
+
+--- Sets a named HUD sprite entry rect at runtime.
+--- Requires an OpenShim build that exposes the HUD sprite bridge.
+--- @param spriteName string
 --- @param x integer
 --- @param y integer
 --- @param w integer
