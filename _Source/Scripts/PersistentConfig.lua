@@ -96,6 +96,7 @@ PersistentConfig.DefaultSettings = {
     PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
     PdaFontScale = 1.30,            -- PDA font/window scale (0.85-1.30)
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
+    UnderAttackAlertMode = 3,       -- 1=None 2=Spaced Out 3=Default
     TargetReticlePopupMode = 1,     -- 1=Default 3=Explicit Only (legacy 2 downgrades to Default)
     ScrapPilotHudLayout = 2,        -- 1=Stock 2=Legacy
     RadarSizeScale = 1.00,          -- Independent radar size scale
@@ -201,6 +202,12 @@ PersistentConfig.UnitVerbosityPresets = {
 PersistentConfig.TargetReticlePopupPresets = {
     [1] = { name = "DEFAULT", mode = 1 },
     [2] = { name = "EXPLICIT ONLY", mode = 3 },
+}
+
+PersistentConfig.UnderAttackAlertPresets = {
+    [1] = { name = "DEFAULT", mode = 3 },
+    [2] = { name = "SPACED OUT", mode = 2 },
+    [3] = { name = "NONE", mode = 1 },
 }
 
 local PdaPanelMaterialFamilies = {
@@ -584,6 +591,36 @@ end
 
 function PersistentConfig._GetTargetReticlePopupPreset()
     return PersistentConfig.TargetReticlePopupPresets[PersistentConfig._GetTargetReticlePopupPresetIndex()]
+end
+
+function PersistentConfig._GetUnderAttackAlertPresetIndex()
+    if PersistentConfig.Settings.UnderAttackAlertMode == 2 then
+        return 2
+    elseif PersistentConfig.Settings.UnderAttackAlertMode == 1 then
+        return 3
+    end
+    return 1
+end
+
+function PersistentConfig._GetUnderAttackAlertPreset()
+    return PersistentConfig.UnderAttackAlertPresets[PersistentConfig._GetUnderAttackAlertPresetIndex()]
+end
+
+local function ParseUnderAttackAlertModeValue(value)
+    local numericValue = tonumber(value)
+    if numericValue then
+        return math.max(1, math.min(3, math.floor(numericValue + 0.5)))
+    end
+
+    local lowered = string.lower(CleanString(value or ""))
+    if lowered == "none" or lowered == "off" then
+        return 1
+    elseif lowered == "minimal" or lowered == "low" or lowered == "spaced" or lowered == "spacedout" or
+        lowered == "spaced-out" or lowered == "spaced_out" then
+        return 2
+    end
+
+    return 3
 end
 
 local function GetPdaPanelMaterialTargetColor(r, g, b)
@@ -4671,6 +4708,7 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     local needsApplySettings = options and (
         options.applySettings or
         options.applyHeadlights or
+        options.applyUnderAttackAlert or
         options.applyTargetReticle or
         options.applyFactionFlames or
         options.applyUnitVo or
@@ -4853,6 +4891,20 @@ function PersistentConfig._CycleTargetReticlePopupMode(delta)
     PersistentConfig.Settings.TargetReticlePopupMode = PersistentConfig.TargetReticlePopupPresets[nextIndex].mode
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyTargetReticle = true })
     ShowFeedback("Hit Reticle: " .. PersistentConfig._GetTargetReticlePopupPreset().name, 0.8, 1.0, 0.8, 2.5, false,
+        "pda")
+    return true
+end
+
+function PersistentConfig._CycleUnderAttackAlertMode(delta)
+    local currentIndex = PersistentConfig._GetUnderAttackAlertPresetIndex()
+    local nextIndex = CycleIndex(currentIndex, #PersistentConfig.UnderAttackAlertPresets, delta, 1)
+    if currentIndex == nextIndex then
+        return false
+    end
+
+    PersistentConfig.Settings.UnderAttackAlertMode = PersistentConfig.UnderAttackAlertPresets[nextIndex].mode
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyUnderAttackAlert = true })
+    ShowFeedback("Attack Beep: " .. PersistentConfig._GetUnderAttackAlertPreset().name, 0.8, 1.0, 0.8, 2.5, false,
         "pda")
     return true
 end
@@ -5055,6 +5107,13 @@ GetSettingsPageEntries = function()
             value = FormatHotkeyValue(PersistentConfig.Settings.WeaponStatsHud and "On" or "Off", "Y"),
             adjust = function(delta)
                 return PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "Attack Beep",
+            value = PersistentConfig._GetUnderAttackAlertPreset().name,
+            adjust = function(delta)
+                return PersistentConfig._CycleUnderAttackAlertMode(delta)
             end,
         },
         {
@@ -5322,6 +5381,8 @@ function PersistentConfig.LoadConfig()
                     legacyPdaTextPreset = tonumber(val)
                 elseif key == "PdaColorPreset" then
                     PersistentConfig.Settings.PdaColorPreset = tonumber(val) or 2
+                elseif key == "UnderAttackAlertMode" then
+                    PersistentConfig.Settings.UnderAttackAlertMode = ParseUnderAttackAlertModeValue(val)
                 elseif key == "TargetReticlePopupMode" then
                     PersistentConfig.Settings.TargetReticlePopupMode = tonumber(val) or 1
                 elseif key == "ScrapPilotHudLayout" then
@@ -5393,6 +5454,7 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.PdaFontScale = ClampRange(PersistentConfig.Settings.PdaFontScale,
         PersistentConfig.FontScale.pda.min, PersistentConfig.FontScale.pda.max, 1.0)
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
+    PersistentConfig.Settings.UnderAttackAlertMode = PersistentConfig._GetUnderAttackAlertPreset().mode
     PersistentConfig.Settings.TargetReticlePopupMode = PersistentConfig._GetTargetReticlePopupPreset().mode
     PersistentConfig.Settings.ScrapPilotHudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1,
         #ScrapPilotHudLayouts, 2)
@@ -5445,6 +5507,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("PdaOpacity=" .. tostring(PersistentConfig.Settings.PdaOpacity))
         f:Writeln("PdaFontScale=" .. tostring(PersistentConfig.Settings.PdaFontScale))
         f:Writeln("PdaColorPreset=" .. tostring(PersistentConfig.Settings.PdaColorPreset))
+        f:Writeln("UnderAttackAlertMode=" .. tostring(PersistentConfig.Settings.UnderAttackAlertMode))
         f:Writeln("TargetReticlePopupMode=" .. tostring(PersistentConfig.Settings.TargetReticlePopupMode))
         f:Writeln("ScrapPilotHudLayout=" .. tostring(PersistentConfig.Settings.ScrapPilotHudLayout))
         f:Writeln("RadarSizeScale=" .. tostring(PersistentConfig.Settings.RadarSizeScale))
@@ -5522,6 +5585,9 @@ function PersistentConfig.ApplySettings(options)
         if applyAll or (options and options.syncLightingMode) then
             PersistentConfig._RequestLightingModeResync()
             PersistentConfig._SyncLightingMode(true)
+        end
+        if (applyAll or (options and options.applyUnderAttackAlert)) and exu.SetUnderAttackAlertMode then
+            exu.SetUnderAttackAlertMode(PersistentConfig.Settings.UnderAttackAlertMode)
         end
         if (applyAll or (options and options.applyTargetReticle)) and exu.SetTargetReticlePopupMode then
             exu.SetTargetReticlePopupMode(PersistentConfig.Settings.TargetReticlePopupMode)

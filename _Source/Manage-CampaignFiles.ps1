@@ -154,6 +154,35 @@ function Is-LocalDeployExcludedSourceRelativePath($relativePath) {
     return $false
 }
 
+function Is-SourceAuthoritativeFlatFile($fileName) {
+    return $fileName -and $fileName.Equals("winmm.dll", [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Get-Sha256Hex($path) {
+    if (-not (Test-Path $path)) {
+        return $null
+    }
+
+    try {
+        return (Get-FileHash -Algorithm SHA256 -LiteralPath $path).Hash.ToLowerInvariant()
+    }
+    catch {
+        Write-Warning "Hash check failed for '$path': $_"
+        return $null
+    }
+}
+
+function Test-FilesMatchByHash($leftPath, $rightPath) {
+    $leftHash = Get-Sha256Hex $leftPath
+    $rightHash = Get-Sha256Hex $rightPath
+
+    if ($leftHash -and $rightHash) {
+        return $leftHash -eq $rightHash
+    }
+
+    return $null
+}
+
 function Get-ManagedSourceFiles {
     if (-not (Test-Path $SourceDir)) {
         return @()
@@ -234,8 +263,11 @@ function Sync-ToSource {
             # File exists in source - check if deployed version is newer
             $targetPath = $sourceMap[$file.Name]
             $srcItem = Get-Item $targetPath
-            
-            if ($file.LastWriteTime -gt $srcItem.LastWriteTime) {
+
+            if (Is-SourceAuthoritativeFlatFile $file.Name) {
+                $skipped++
+            }
+            elseif ($file.LastWriteTime -gt $srcItem.LastWriteTime) {
                 Copy-Item -Path $file.FullName -Destination $targetPath -Force
                 Write-Host "Updated: $($file.Name)" -ForegroundColor Yellow
                 $updated++
@@ -306,9 +338,22 @@ function Sync-FromSource {
         
         if (Test-Path $addonPath) {
             $addonItem = Get-Item $addonPath
-            
+
+            $hashMatch = $null
+            if (Is-SourceAuthoritativeFlatFile $file.Name) {
+                $hashMatch = Test-FilesMatchByHash $file.FullName $addonPath
+            }
+
+            # winmm.dll is source-authoritative: if the bytes differ, push the
+            # shipped copy even when the deployed addon file has a newer
+            # timestamp from a manual shim swap.
+            if ((Is-SourceAuthoritativeFlatFile $file.Name) -and ($hashMatch -ne $true)) {
+                Copy-Item -Path $file.FullName -Destination $addonPath -Force
+                Write-Host "Updated: $($file.Name) (authoritative source sync)" -ForegroundColor Yellow
+                $updated++
+            }
             # If source version is newer, copy to the deployed addon
-            if ($file.LastWriteTime -gt $addonItem.LastWriteTime) {
+            elseif ($file.LastWriteTime -gt $addonItem.LastWriteTime) {
                 Copy-Item -Path $file.FullName -Destination $addonPath -Force
                 Write-Host "Updated: $($file.Name)" -ForegroundColor Yellow
                 $updated++
@@ -333,6 +378,7 @@ function Get-TargetSubfolder($fileName) {
     switch -Regex ($normalizedName) {
         '^bzogrelogfile\.log$' { return "Local/Logs" }
         '^winmm_shim\.log$' { return "Local/Logs" }
+        '^winmm\.dll$' { return "Bin" }
         '^n64\.code-workspace$' { return "Local/Workspace" }
         '^cpp_lua_mission_flow_report\.md$' { return "Local/Reports" }
         '^bzplyr\.def$' { return "Local/Config" }
