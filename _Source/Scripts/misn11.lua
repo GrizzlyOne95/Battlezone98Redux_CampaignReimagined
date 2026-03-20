@@ -5,7 +5,7 @@ SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")
-RequireFix.Initialize({"campaignReimagined", "3659600763"})
+RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
