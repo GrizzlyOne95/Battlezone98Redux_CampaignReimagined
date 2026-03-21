@@ -11,6 +11,7 @@ local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
+local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 
 local difficulty = 2
@@ -504,6 +505,9 @@ function Update()
 
     TraceUpdateCall("misn03.Update PlayerPilotMode.Update", PlayerPilotMode.Update)
     TraceUpdateCall("misn03.Update aiCore.Update", aiCore.Update)
+    if autosave and autosave.Update then
+        TraceUpdateCall("misn03.Update autosave.Update", autosave.Update, 1.0 / (M.TPS or 20))
+    end
     TraceUpdateCall("misn03.Update UpdateModules", UpdateModules, 1.0 / (M.TPS or 20))
 
 

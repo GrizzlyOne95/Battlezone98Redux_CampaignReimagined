@@ -3940,6 +3940,7 @@ function aiCore.DefenseManager.new(teamNum)
     local self = setmetatable({}, aiCore.DefenseManager)
     self.teamNum = teamNum
     self.defenses = {} -- {handle = {lastAmmo=f, lastHealth=f, nextCheckTime=f, stuckTimer=f, classLabel=s}}
+    self.enabled = false -- Native patch now owns defense retargeting; keep this manager as a compatibility shim.
     self.updatePeriod = 0.5
     self.detectionRadius = 275.0
     self.rangeBuffer = 30.0
@@ -3953,6 +3954,7 @@ function aiCore.DefenseManager.new(teamNum)
 end
 
 function aiCore.DefenseManager:AddObject(h)
+    if not self.enabled then return end
     if not IsValid(h) then return end
     if self.defenses[h] then return end
 
@@ -3976,6 +3978,13 @@ function aiCore.DefenseManager:RemoveObject(h)
 end
 
 function aiCore.DefenseManager:Update()
+    if not self.enabled then
+        if next(self.defenses) ~= nil then
+            self.defenses = {}
+        end
+        return
+    end
+
     -- Defense management is generally safe (target switching), but respect autoManage for player
     if self.teamNum == 1 and self.teamObj and self.teamObj.Config and not self.teamObj.Config.autoManage then return end
 

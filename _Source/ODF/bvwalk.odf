@@ -8,6 +8,7 @@ maxAmmo = 2500
 unitName = "Walker"
 aiName = "GechFriend"
 aiName2 = "GechEnemy"
+retargetPeriodAI = 0.5
 heatSignature = 0.06999999999999999
 imageSignature = 3.5
 radarSignature = 0.7

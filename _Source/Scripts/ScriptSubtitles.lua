@@ -29,6 +29,7 @@ local overlayState = {
     queue = {},
     effectiveSuspended = false,
     suspendStartedAt = nil,
+    customFontDisabled = false,
 }
 Subtitles.LastEndTime = 0
 Subtitles.Config = {
@@ -176,13 +177,24 @@ local function WrapTextToPixels(text, widthPixels, charHeightPixels, widthFactor
 end
 
 local function GetOverlayFontName()
+    if overlayState.customFontDisabled then
+        return nil
+    end
+
     local persistentConfig = GetPersistentConfig()
     if persistentConfig then
-        if persistentConfig.PdaOverlay and persistentConfig.PdaOverlay.useCustomFont ~= false
-            and type(persistentConfig.PdaOverlay.font) == "string" and persistentConfig.PdaOverlay.font ~= "" then
-            return persistentConfig.PdaOverlay.font
+        if persistentConfig.PdaOverlay then
+            if persistentConfig.PdaOverlay.useCustomFont == false then
+                return nil
+            end
+            if type(persistentConfig.PdaOverlay.font) == "string" and persistentConfig.PdaOverlay.font ~= "" then
+                return persistentConfig.PdaOverlay.font
+            end
         end
-        if persistentConfig.ExperimentalOverlayUseCustomFont ~= false and type(persistentConfig.ExperimentalOverlayFont) == "string"
+        if persistentConfig.ExperimentalOverlayUseCustomFont == false then
+            return nil
+        end
+        if type(persistentConfig.ExperimentalOverlayFont) == "string"
             and persistentConfig.ExperimentalOverlayFont ~= "" then
             return persistentConfig.ExperimentalOverlayFont
         end
@@ -202,6 +214,23 @@ local function GetOverlaySpaceWidth(charHeight)
 
     local height = math.max(tonumber(charHeight) or 0, 1)
     return math.max(4, math.floor((height * 0.70) + 0.5))
+end
+
+local function DisableSubtitleCustomFont(reason)
+    if overlayState.customFontDisabled then
+        return
+    end
+
+    overlayState.customFontDisabled = true
+    print("Subtitles: disabling custom overlay font fallback (" .. tostring(reason or "unspecified") .. ")")
+
+    local persistentConfig = GetPersistentConfig()
+    if persistentConfig then
+        if persistentConfig.PdaOverlay then
+            persistentConfig.PdaOverlay.useCustomFont = false
+        end
+        persistentConfig.ExperimentalOverlayUseCustomFont = false
+    end
 end
 
 local function GetSubtitlePanelMaterial(section, r, g, b)
@@ -402,9 +431,11 @@ local function TryCreateSubtitleOverlay()
     Call(exu.SetOverlayParameter, ids.frame, "transparent", true)
     Call(exu.SetOverlayParameter, ids.text, "alignment", "center")
     Call(exu.SetOverlayCaption, ids.text, "")
-    if Call(exu.SetOverlayTextFont, ids.text, fontName) ~= true then
-        ok = false
+    if fontName and Call(exu.SetOverlayTextFont, ids.text, fontName) ~= true then
         print("Subtitles: overlay font bind failed for " .. tostring(fontName))
+        DisableSubtitleCustomFont("font-bind-failed")
+        DestroySubtitleOverlay()
+        return TryCreateSubtitleOverlay()
     end
     Call(exu.ShowOverlayElement, ids.root)
     Call(exu.ShowOverlayElement, ids.frame)
@@ -930,6 +961,8 @@ end
 function Subtitles.Initialize(durationCsv)
     -- Ensure clear queue on start
     ClearActiveSequence()
+    overlayState.failed = false
+    overlayState.customFontDisabled = false
     Subtitles.SetOpacity(Subtitles.Config.opacity)
     Subtitles.SetFontScale(Subtitles.Config.fontScale)
 

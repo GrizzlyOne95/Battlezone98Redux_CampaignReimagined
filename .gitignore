@@ -14,10 +14,6 @@
 !/Scripts/
 !/Shaders/
 !/Text/
-!/_Source/
-!/_Source/Scripts/
-!/_Source/Scripts/PersistentConfigD.lua
-!/_Source/Scripts/PersistentConfigP.lua
 
 # Intentional root files
 !/.gitignore

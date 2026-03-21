@@ -8,6 +8,7 @@ maxAmmo = 2000
 unitName = "Turret"
 aiName = "TurretTankFriend"
 aiName2 = "TurretTankEnemy"
+retargetPeriodAI = 0.5
 heatSignature = 0.1
 imageSignature = 2.0
 radarSignature = 0.1
