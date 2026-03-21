@@ -334,7 +334,10 @@ void terrain_fragment(
 
 	// combine ambient and shadowed light result
 #if defined(RETRO_UNLIT_MODE)
-	float3 lightResult = float3(0.0, 0.0, 0.0);
+	float3 lightResult = vLightResult;
+#if defined(SHADOWRECEIVER)
+	lightResult *= shadow;
+#endif
 #if defined(OG_RETRO_MODE)
 	lightResult += max(sceneAmbient.xyz * 1.10, float3(0.22, 0.22, 0.22));
 #else
@@ -402,7 +405,27 @@ void terrain_fragment(
 	float3 specularResult = float3(0,0,0);
 #endif
 
-#if !defined(RETRO_UNLIT_MODE)
+#if defined(RETRO_UNLIT_MODE)
+	if (lightCount > 0.0)
+	{
+		const int i = 0;
+		float3 pixelToLight = lightPosition[i].xyz - (viewPos * lightPosition[i].w);
+		float d = max(length(pixelToLight), 1e-6);
+		pixelToLight *= rcp(d);
+
+#if defined(SHADOWRECEIVER)
+		float attenuation = shadow;
+#else
+		float attenuation = 1.0;
+#endif
+
+		float diffuseTerm = max(dot(viewNormal, pixelToLight), 0.0);
+#if defined(OG_RETRO_MODE)
+		diffuseTerm = saturate(diffuseTerm * 0.55 + 0.20);
+#endif
+		lightResult.xyz += lightDiffuse[i].xyz * (attenuation * diffuseTerm);
+	}
+#else
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
 	float3 eyeDir = safe_normalize(-viewPos);
 #endif

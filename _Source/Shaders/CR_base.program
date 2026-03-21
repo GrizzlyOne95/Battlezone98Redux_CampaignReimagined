@@ -2263,11 +2263,6 @@ fragment_program CR_BaseOGLowNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
-		param_named_auto lightAttenuation light_attenuation_array 1
-		param_named_auto spotLightParams spotlight_params_array 1
-		param_named_auto lightPosition light_position_view_space_array 1
-		param_named_auto lightDirection light_direction_view_space_array 1
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named transparency float 0.0
@@ -2283,14 +2278,9 @@ fragment_program CR_BaseOGLowShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
-		param_named_auto lightAttenuation light_attenuation_array 1
-		param_named_auto spotLightParams spotlight_params_array 1
-		param_named_auto lightPosition light_position_view_space_array 1
-		param_named_auto lightDirection light_direction_view_space_array 1
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 1
+		param_named_auto invShadowMapSize1 inverse_texture_size 4
 		param_named transparency float 0.0
 	}
 }
@@ -2304,16 +2294,11 @@ fragment_program CR_BaseOGLowPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
-		param_named_auto lightAttenuation light_attenuation_array 1
-		param_named_auto spotLightParams spotlight_params_array 1
-		param_named_auto lightPosition light_position_view_space_array 1
-		param_named_auto lightDirection light_direction_view_space_array 1
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 1
-		param_named_auto invShadowMapSize2 inverse_texture_size 2
-		param_named_auto invShadowMapSize3 inverse_texture_size 3
+		param_named_auto invShadowMapSize1 inverse_texture_size 4
+		param_named_auto invShadowMapSize2 inverse_texture_size 5
+		param_named_auto invShadowMapSize3 inverse_texture_size 6
 		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
 		param_named transparency float 0.0
 	}
@@ -2328,14 +2313,8 @@ fragment_program CR_BaseOGMediumNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
-		param_named_auto lightCount light_count
 		param_named transparency float 0.0
 	}
 }
@@ -2349,15 +2328,9 @@ fragment_program CR_BaseOGMediumShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 1
-		param_named_auto lightCount light_count
+		param_named_auto invShadowMapSize1 inverse_texture_size 4
 		param_named transparency float 0.0
 	}
 }
@@ -2371,18 +2344,12 @@ fragment_program CR_BaseOGMediumPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 1
-		param_named_auto invShadowMapSize2 inverse_texture_size 2
-		param_named_auto invShadowMapSize3 inverse_texture_size 3
+		param_named_auto invShadowMapSize1 inverse_texture_size 4
+		param_named_auto invShadowMapSize2 inverse_texture_size 5
+		param_named_auto invShadowMapSize3 inverse_texture_size 6
 		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
-		param_named_auto lightCount light_count
 		param_named transparency float 0.0
 	}
 }
@@ -2396,14 +2363,8 @@ fragment_program CR_BaseOGHighNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
-		param_named_auto lightCount light_count
 		param_named transparency float 0.0
 	}
 }
@@ -2417,15 +2378,9 @@ fragment_program CR_BaseOGHighShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 1
-		param_named_auto lightCount light_count
+		param_named_auto invShadowMapSize1 inverse_texture_size 4
 		param_named transparency float 0.0
 	}
 }
@@ -2439,18 +2394,12 @@ fragment_program CR_BaseOGHighPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
-		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
-		param_named_auto lightAttenuation light_attenuation_array 8
-		param_named_auto spotLightParams spotlight_params_array 8
-		param_named_auto lightPosition light_position_view_space_array 8
-		param_named_auto lightDirection light_direction_view_space_array 8
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
-		param_named_auto invShadowMapSize1 inverse_texture_size 1
-		param_named_auto invShadowMapSize2 inverse_texture_size 2
-		param_named_auto invShadowMapSize3 inverse_texture_size 3
+		param_named_auto invShadowMapSize1 inverse_texture_size 4
+		param_named_auto invShadowMapSize2 inverse_texture_size 5
+		param_named_auto invShadowMapSize3 inverse_texture_size 6
 		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
-		param_named_auto lightCount light_count
 		param_named transparency float 0.0
 	}
 }

@@ -12,6 +12,7 @@ aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
+local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 
 local LABEL_BSCAV = "misn02b_bscav"
@@ -53,6 +54,13 @@ local function ApplyQOL()
 
     if PersistentConfig and PersistentConfig.Initialize then
         PersistentConfig.Initialize()
+    end
+end
+
+local function InitializeMissionSubtitles()
+    subtit.Initialize("durations.csv")
+    if PersistentConfig and PersistentConfig.ApplySettings then
+        PersistentConfig.ApplySettings()
     end
 end
 
@@ -206,6 +214,29 @@ local function SetupAI()
     enemyTeam:SetConfig("enableParatroopers", false)
 end
 
+local function InitializePilotMode()
+    PlayerPilotMode.Initialize({
+        profile = {
+            autoManage = false,
+            autoRescue = true,
+            stickToPlayer = true,
+            manageFactories = false,
+            autoBuild = false,
+        },
+        shouldManageHandle = PilotModeCanManageHandle,
+    })
+end
+
+local function InitializeMissionRuntime()
+    RefreshDifficulty()
+    ApplyDifficultyObjectives()
+    ApplyQOL()
+    InitializePilotMode()
+    SetupAI()
+    aiCore.Bootstrap()
+    ApplyTurboToAll()
+end
+
 local function PilotModeCanManageHandle(h)
     if not h or not IsValid(h) then
         return false
@@ -222,7 +253,7 @@ local function ApplyPostLoadInit()
     Ally(1, 5)
     Ally(5, 1)
     SetAIP("misn02.aip")
-    subtit.Initialize("durations.csv")
+    InitializeMissionSubtitles()
 
     if M.bgoal and IsAlive(M.bgoal) then
         SetUserTarget(M.bgoal)
@@ -235,21 +266,10 @@ local function ApplyPostLoadInit()
 end
 
 function Start()
+    M = NewMissionState()
     Ally(1, 5)
     Ally(5, 1)
-    RefreshDifficulty()
-    ApplyDifficultyObjectives()
-    ApplyTurboToAll()
-    PlayerPilotMode.Initialize({
-        profile = {
-            autoManage = false,
-            autoRescue = true,
-            stickToPlayer = true,
-            manageFactories = false,
-            autoBuild = false,
-        },
-        shouldManageHandle = PilotModeCanManageHandle,
-    })
+    InitializeMissionRuntime()
 
     for h in AllCraft() do
         SetObjectiveOff(h)
@@ -329,28 +349,16 @@ function Update()
     end
     if not M.loading_done then
         RefreshHandlesAfterLoad()
-        RefreshDifficulty()
-        ApplyDifficultyObjectives()
-        ApplyQOL()
-        PlayerPilotMode.Initialize({
-            profile = {
-                autoManage = false,
-                autoRescue = true,
-                stickToPlayer = true,
-                manageFactories = false,
-                autoBuild = false,
-            },
-            shouldManageHandle = PilotModeCanManageHandle,
-        })
-        SetupAI()
-        aiCore.Bootstrap()
-        ApplyTurboToAll()
+        InitializeMissionRuntime()
         ApplyPostLoadInit()
         M.loading_done = true
     end
     local player = GetPlayerHandle()
     PlayerPilotMode.Update()
     aiCore.Update()
+    if autosave and autosave.Update then
+        autosave.Update(1.0 / 20.0)
+    end
     UpdateModules(1.0 / 20.0)
 
     -- Holographic Bio Logic
@@ -365,8 +373,6 @@ function Update()
     end
 
     if not M.start_done then
-        SetupAI()
-
         --[[
         -- Available AI Configuration Flags (Reference from aiCore.lua):
         -- flags marked [Diff] are managed by DiffUtils:SetupTeams() based on difficulty.
@@ -440,8 +446,6 @@ function Update()
         -- playerTeam:SetConfig("siloMinDistance", 250.0)
         -- playerTeam:SetConfig("siloMaxDistance", 450.0)
         --]]
-        ApplyQOL()
-
         SetPilot(1, math.max(1, DiffUtils.ScaleRes(2)))
         SetScrap(1, math.max(4, DiffUtils.ScaleRes(5)))
         SetAIP("misn02.aip")
@@ -458,7 +462,7 @@ function Update()
         SetObjectiveName(M.bgoal, "Scrap Field Alpha")
         --SetObjectiveName(M.recycler, "Recycler Montana")
         M.start_done = true
-        subtit.Initialize("durations.csv")
+        InitializeMissionSubtitles()
 
         -- Establish alliance between player (team 1) and M.dummy tank (team 5)
         Ally(1, 5)

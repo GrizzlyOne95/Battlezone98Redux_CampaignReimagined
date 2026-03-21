@@ -7,6 +7,7 @@ maxAmmo = 2000
 unitName = "Lander"
 aiName = "GunTowerFriend"
 aiName2 = "GunTowerEnemy"
+retargetPeriodAI = 0.5
 heatSignature = 0.8
 imageSignature = 8.0
 radarSignature = 1.0

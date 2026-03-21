@@ -8,6 +8,7 @@ maxAmmo = 1500
 unitName = "Tank"
 aiName = "RocketTankFriend"
 aiName2 = "RocketTankEnemy"
+retargetPeriodAI = 0.5
 heatSignature = 1.2
 imageSignature = 3.0
 radarSignature = 0.1

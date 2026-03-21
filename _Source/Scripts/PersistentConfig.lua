@@ -95,6 +95,7 @@ PersistentConfig.DefaultSettings = {
     PdaOpacity = 1.00,              -- PDA/weapon HUD opacity
     PdaFontScale = 1.30,            -- PDA font/window scale (0.85-1.30)
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
+    TeamColorPreset = 1,            -- 1=Default 2+=runtime team 1 tint presets
     UnderAttackAlertMode = 3,       -- 1=None 2=Spaced Out 3=Default
     TargetReticlePopupMode = 1,     -- 1=Default 3=Explicit Only (legacy 2 downgrades to Default)
     ScrapPilotHudLayout = 1,        -- 1=Stock 2=Legacy
@@ -188,6 +189,16 @@ local PdaColorPresets = {
     [2] = { name = "GREEN", r = 0.18, g = 0.92, b = 0.18 },
     [3] = { name = "BLUE", r = 0.35, g = 0.65, b = 1.00 },
     [4] = { name = "WHITE", r = 1.00, g = 1.00, b = 1.00 },
+}
+
+local TeamColorPresets = {
+    [1] = { name = "DEFAULT", clear = true },
+    [2] = { name = "RED", r = 1.00, g = 0.28, b = 0.28 },
+    [3] = { name = "BLUE", r = 0.35, g = 0.65, b = 1.00 },
+    [4] = { name = "GREEN", r = 0.18, g = 0.92, b = 0.18 },
+    [5] = { name = "YELLOW", r = 1.00, g = 0.92, b = 0.20 },
+    [6] = { name = "WHITE", r = 1.00, g = 1.00, b = 1.00 },
+    [7] = { name = "MAGENTA", r = 0.95, g = 0.35, b = 1.00 },
 }
 
 PersistentConfig.UnitVerbosityPresets = {
@@ -727,6 +738,15 @@ local function GetPdaColorPreset()
     return PdaColorPresets[ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)]
 end
 
+function PersistentConfig._GetTeamColorPreset()
+    return TeamColorPresets[ClampIndex(
+        PersistentConfig.Settings.TeamColorPreset,
+        1,
+        #TeamColorPresets,
+        PersistentConfig.DefaultSettings.TeamColorPreset or 1
+    )]
+end
+
 function PersistentConfig._GetTargetReticlePopupPresetIndex()
     if PersistentConfig.Settings.TargetReticlePopupMode == 3 then
         return 2
@@ -1160,6 +1180,25 @@ PersistentConfig.ExperimentalOverlayIds = {
 PersistentConfig.ExperimentalOverlayFont = "CRBZoneOverlayFont"
 PersistentConfig.ExperimentalOverlayUseCustomFont = true
 
+local function DisablePdaOverlayCustomFont(reason)
+    local state = PersistentConfig.PdaOverlay
+    if state.useCustomFont == false then
+        return
+    end
+
+    state.useCustomFont = false
+    Log("PersistentConfig: disabling custom PDA overlay font fallback (" .. tostring(reason or "unspecified") .. ")")
+end
+
+local function DisableExperimentalOverlayCustomFont(reason)
+    if PersistentConfig.ExperimentalOverlayUseCustomFont == false then
+        return
+    end
+
+    PersistentConfig.ExperimentalOverlayUseCustomFont = false
+    Log("PersistentConfig: disabling custom autosave overlay font fallback (" .. tostring(reason or "unspecified") .. ")")
+end
+
 function PersistentConfig._HideExperimentalOverlay()
     local ids = PersistentConfig.ExperimentalOverlayIds
     PersistentConfig.ExperimentalOverlayVisible = false
@@ -1276,11 +1315,17 @@ function PersistentConfig._TryCreateExperimentalOverlay()
     SafeCall(exu.SetOverlayMetricsMode, ids.text, metricsMode)
     SafeCall(exu.SetOverlayPosition, ids.text, layout.textOffsetX or 0.010, layout.textOffsetY or 0.006)
     SafeCall(exu.SetOverlayDimensions, ids.text, layout.wrapWidth, layout.panelHeight)
+    local fontBindFailed = false
     if PersistentConfig.ExperimentalOverlayUseCustomFont then
         if SafeCall(exu.SetOverlayTextFont, ids.text, PersistentConfig.ExperimentalOverlayFont) ~= true then
-            ok = false
+            fontBindFailed = true
             Log("PersistentConfig: Experimental overlay font bind failed for " .. tostring(PersistentConfig.ExperimentalOverlayFont))
         end
+    end
+    if fontBindFailed and PersistentConfig.ExperimentalOverlayUseCustomFont then
+        DisableExperimentalOverlayCustomFont("font-bind-failed")
+        PersistentConfig._DestroyExperimentalOverlay()
+        return PersistentConfig._TryCreateExperimentalOverlay()
     end
     SafeCall(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
     if exu.SetOverlayTextColor then
@@ -1308,11 +1353,6 @@ end
 function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
     local ids = PersistentConfig.ExperimentalOverlayIds
     if not msg or msg == "" then
-        return false
-    end
-
-    if not PersistentConfig.ExperimentalOverlayUseCustomFont then
-        Log("PersistentConfig: Autosave overlay skipped because custom font rendering is disabled.")
         return false
     end
 
@@ -1387,10 +1427,6 @@ end
 
 function PersistentConfig.TryShowAutoSaveOverlayInfo(msg, duration, r, g, b)
     if not msg or msg == "" then
-        return false
-    end
-
-    if not PersistentConfig.ExperimentalOverlayUseCustomFont then
         return false
     end
 
@@ -1838,6 +1874,7 @@ function PersistentConfig._ResetPdaOverlayState()
     local state = PersistentConfig.PdaOverlay
     state.ready = false
     state.failed = false
+    state.useCustomFont = true
     state.created = {}
     state.createdVersion = {}
     state.statsVisible = false
@@ -1984,13 +2021,20 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
         end
     end
 
+    local fontBindFailed = false
     if state.useCustomFont then
         for _, textId in ipairs(textIds) do
             if textId and SafeCall(exu.SetOverlayTextFont, textId, state.font) ~= true then
-                ok = false
+                fontBindFailed = true
                 Log("PersistentConfig: PDA overlay font bind failed for " .. tostring(state.font))
+                break
             end
         end
+    end
+    if fontBindFailed and state.useCustomFont then
+        DisablePdaOverlayCustomFont("font-bind-failed")
+        PersistentConfig._DestroyPdaOverlay(kind)
+        return PersistentConfig._TryCreatePdaOverlay(kind)
     end
 
     for _, textId in ipairs(textIds) do
@@ -3645,28 +3689,7 @@ local function GetRadarSizeScaleSetting()
 end
 
 local function GetAppliedRadarSizeScaleSetting()
-    local requestedScale = GetRadarSizeScaleSetting()
-    if requestedScale > 1.01 then
-        return requestedScale
-    end
-
-    -- The stock radar background art only lines up cleanly at the built-in small/medium/full sizes.
-    -- Snap reduced scales to the nearest supported shrink preset so the sweep and frame stay aligned.
-    local supportedScales = {
-        139.0 / 223.0,
-        179.0 / 223.0,
-        1.0,
-    }
-    local bestScale = supportedScales[#supportedScales]
-    local bestDiff = math.abs(bestScale - requestedScale)
-    for _, scale in ipairs(supportedScales) do
-        local diff = math.abs(scale - requestedScale)
-        if diff < bestDiff then
-            bestDiff = diff
-            bestScale = scale
-        end
-    end
-    return bestScale
+    return GetRadarSizeScaleSetting()
 end
 
 local function ApplyLegacyScrapPilotHudTopLeft()
@@ -3734,6 +3757,66 @@ local function SetStockScrapPilotHudSpritesVisible(visible)
     return anySucceeded
 end
 
+local function NormalizeLightingModeValue(mode)
+    if type(mode) ~= "string" then
+        return nil
+    end
+
+    local lowered = string.lower(mode)
+    if lowered == "default" or lowered == "modern" then
+        return "default"
+    end
+    if lowered == "enhanced" or lowered == "en" then
+        return "enhanced"
+    end
+    if lowered == "retro" or lowered == "og" then
+        return "retro"
+    end
+    return nil
+end
+
+local function GetActiveLightingMode()
+    if not exu then
+        return nil
+    end
+
+    if type(exu.GetLightingMode) == "function" then
+        local ok, mode = pcall(exu.GetLightingMode)
+        if ok then
+            local normalized = NormalizeLightingModeValue(mode)
+            if normalized then
+                return normalized
+            end
+        end
+    end
+
+    if type(exu.GetRetroLightingMode) == "function" then
+        local ok, enabled = pcall(exu.GetRetroLightingMode)
+        if ok then
+            return enabled and "retro" or "default"
+        end
+    end
+
+    return nil
+end
+
+local function GetRequestedLightingMode()
+    local preset = PersistentConfig._GetLightingModePreset()
+    return NormalizeLightingModeValue(preset and preset.mode) or "default"
+end
+
+local function LocalLightsSuppressedByLightingMode()
+    return GetRequestedLightingMode() == "retro"
+end
+
+local function GetEffectivePlayerHeadlightVisible()
+    return PersistentConfig.Settings.HeadlightVisible and not LocalLightsSuppressedByLightingMode()
+end
+
+local function ShouldDisableOtherHeadlights()
+    return PersistentConfig.Settings.OtherHeadlightsDisabled or LocalLightsSuppressedByLightingMode()
+end
+
 function PersistentConfig._SyncLightingMode(force)
     if not exu then
         return false
@@ -3741,23 +3824,33 @@ function PersistentConfig._SyncLightingMode(force)
 
     local preset = PersistentConfig._GetLightingModePreset()
     local targetMode = (preset and preset.mode) or "default"
-    if not force and PersistentConfig._AppliedLightingMode == targetMode then
+    local activeMode = GetActiveLightingMode()
+    if not force and PersistentConfig._AppliedLightingMode == targetMode and activeMode == targetMode then
         return false
     end
 
     local applied = false
+    local verifiedMode = activeMode
     if type(exu.SetLightingMode) == "function" then
         local ok, result = pcall(exu.SetLightingMode, targetMode)
-        applied = ok and result ~= false
+        verifiedMode = GetActiveLightingMode()
+        applied = (verifiedMode == targetMode)
+        if not applied then
+            applied = ok and result ~= false and verifiedMode == nil
+        end
     end
-    if not applied and type(exu.SetRetroLightingMode) == "function" then
+    if not applied and type(exu.SetRetroLightingMode) == "function" and targetMode ~= "enhanced" then
         local ok, result = pcall(exu.SetRetroLightingMode, targetMode == "retro")
-        applied = ok and result ~= false
+        verifiedMode = GetActiveLightingMode()
+        applied = (verifiedMode == targetMode)
+        if not applied then
+            applied = ok and result ~= false and verifiedMode == nil
+        end
     end
 
     if applied then
-        PersistentConfig._AppliedLightingMode = targetMode
-        PersistentConfig.Settings.RetroLighting = targetMode == "retro"
+        PersistentConfig._AppliedLightingMode = verifiedMode or targetMode
+        PersistentConfig.Settings.RetroLighting = (PersistentConfig._AppliedLightingMode == "retro")
     else
         PersistentConfig._AppliedLightingMode = nil
     end
@@ -3815,13 +3908,14 @@ function PersistentConfig._SyncRadarSizeScale(force)
         tostring(force), tonumber(PersistentConfig.Settings.RadarSizeScale) or -1, targetScale))
     local callOk, result = pcall(exu.SetRadarSizeScale, targetScale)
     local ok = callOk and result ~= false
+    if ok and type(exu.GetRadarSizeScale) == "function" then
+        local readOk, currentScale = pcall(exu.GetRadarSizeScale)
+        if readOk and type(currentScale) == "number" then
+            ok = math.abs(currentScale - targetScale) < 0.01
+        end
+    end
     print(string.format("PersistentConfig: _SyncRadarSizeScale result ok=%s callOk=%s result=%s",
         tostring(ok), tostring(callOk), tostring(result)))
-    if ok and ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2) == 2 then
-        -- Radar refreshes can snap the stock scrap/pilot counters and legacy HUD art back to their default anchor.
-        print("PersistentConfig: _SyncRadarSizeScale reapplying legacy scrap/pilot HUD layout")
-        PersistentConfig.ApplyScrapPilotHudLayout()
-    end
     return ok
 end
 
@@ -3922,6 +4016,21 @@ function PersistentConfig._ApplyDynamicFactionFlameColors()
         end
     end
 
+    return true
+end
+
+function PersistentConfig._ApplyTeamColorSettings()
+    if type(SetTeamColor) ~= "function" or type(ClearTeamColor) ~= "function" then
+        return false
+    end
+
+    local preset = PersistentConfig._GetTeamColorPreset()
+    if not preset or preset.clear then
+        pcall(ClearTeamColor, 1)
+        return true
+    end
+
+    pcall(SetTeamColor, 1, preset.r, preset.g, preset.b)
     return true
 end
 
@@ -4848,6 +4957,7 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     local needsApplySettings = options and (
         options.applySettings or
         options.applyHeadlights or
+        options.applyTeamColors or
         options.applyUnderAttackAlert or
         options.applyTargetReticle or
         options.applyFactionFlames or
@@ -5112,6 +5222,30 @@ function PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(e
     return true
 end
 
+function PersistentConfig._SettingsActions.CycleTeamColor(delta)
+    local nextIndex = CycleIndex(
+        PersistentConfig.Settings.TeamColorPreset,
+        #TeamColorPresets,
+        delta,
+        PersistentConfig.DefaultSettings.TeamColorPreset or 1
+    )
+    if nextIndex == PersistentConfig.Settings.TeamColorPreset then
+        return false
+    end
+
+    PersistentConfig.Settings.TeamColorPreset = nextIndex
+    local preset = PersistentConfig._GetTeamColorPreset()
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyTeamColors = true })
+
+    if preset and not preset.clear then
+        ShowFeedback("Team 1 Color: " .. preset.name, preset.r, preset.g, preset.b, 2.5, false, "pda")
+    else
+        ShowFeedback("Team 1 Color: DEFAULT", 0.8, 1.0, 0.8, 2.5, false, "pda")
+    end
+
+    return true
+end
+
 function PersistentConfig._SettingsActions.CycleLightingMode(delta)
     local nextIndex = CycleIndex(
         PersistentConfig.Settings.LightingMode,
@@ -5143,6 +5277,16 @@ function PersistentConfig._SettingsActions.SetAutoSaveEnabled(enabled)
 
     PersistentConfig.Settings.AutoSaveEnabled = value
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncAutoSave = true })
+    if autosave then
+        autosave._initialDelayDeadline = nil
+        autosave._wasEnabled = false
+        if not value then
+            autosave._forceInitialSave = false
+        else
+            autosave._forceInitialSave = true
+            InputState.autoSaveStartupPending = true
+        end
+    end
     if value then
         ShowFeedback(string.format("Auto-Save: ON (%s)", interval.label), 0.8, 1.0, 0.8, 2.5, false, "pda")
     else
@@ -5231,6 +5375,13 @@ GetSettingsPageEntries = function()
             end,
         },
         {
+            label = "Team 1 Color",
+            value = PersistentConfig._GetTeamColorPreset().name,
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.CycleTeamColor(delta)
+            end,
+        },
+        {
             label = "Scrap/Pilot HUD",
             value = GetScrapPilotHudLayout().name,
             adjust = function(delta)
@@ -5301,13 +5452,6 @@ GetSettingsPageEntries = function()
             value = PersistentConfig._GetTargetReticlePopupPreset().name,
             adjust = function(delta)
                 return PersistentConfig._CycleTargetReticlePopupMode(delta)
-            end,
-        },
-        {
-            label = "Lighting Mode",
-            value = PersistentConfig._GetLightingModePreset().name,
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.CycleLightingMode(delta)
             end,
         },
         {
@@ -5580,6 +5724,8 @@ function PersistentConfig.LoadConfig()
                     legacyPdaTextPreset = tonumber(val)
                 elseif key == "PdaColorPreset" then
                     PersistentConfig.Settings.PdaColorPreset = tonumber(val) or 2
+                elseif key == "TeamColorPreset" then
+                    PersistentConfig.Settings.TeamColorPreset = tonumber(val) or 1
                 elseif key == "UnderAttackAlertMode" then
                     PersistentConfig.Settings.UnderAttackAlertMode = ParseUnderAttackAlertModeValue(val)
                 elseif key == "TargetReticlePopupMode" then
@@ -5653,6 +5799,8 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.PdaFontScale = ClampRange(PersistentConfig.Settings.PdaFontScale,
         PersistentConfig.FontScale.pda.min, PersistentConfig.FontScale.pda.max, 1.0)
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
+    PersistentConfig.Settings.TeamColorPreset = ClampIndex(PersistentConfig.Settings.TeamColorPreset, 1, #TeamColorPresets,
+        PersistentConfig.DefaultSettings.TeamColorPreset or 1)
     PersistentConfig.Settings.UnderAttackAlertMode = PersistentConfig._GetUnderAttackAlertPreset().mode
     PersistentConfig.Settings.TargetReticlePopupMode = PersistentConfig._GetTargetReticlePopupPreset().mode
     PersistentConfig.Settings.ScrapPilotHudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1,
@@ -5704,6 +5852,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("PdaOpacity=" .. tostring(PersistentConfig.Settings.PdaOpacity))
         f:Writeln("PdaFontScale=" .. tostring(PersistentConfig.Settings.PdaFontScale))
         f:Writeln("PdaColorPreset=" .. tostring(PersistentConfig.Settings.PdaColorPreset))
+        f:Writeln("TeamColorPreset=" .. tostring(PersistentConfig.Settings.TeamColorPreset))
         f:Writeln("UnderAttackAlertMode=" .. tostring(PersistentConfig.Settings.UnderAttackAlertMode))
         f:Writeln("TargetReticlePopupMode=" .. tostring(PersistentConfig.Settings.TargetReticlePopupMode))
         f:Writeln("ScrapPilotHudLayout=" .. tostring(PersistentConfig.Settings.ScrapPilotHudLayout))
@@ -5774,13 +5923,17 @@ function PersistentConfig.ApplySettings(options)
                     PersistentConfig.Settings.HeadlightRange.OuterAngle, PersistentConfig.Settings.HeadlightRange.Falloff)
             end
             if exu.SetHeadlightVisible then
-                exu.SetHeadlightVisible(h, PersistentConfig.Settings.HeadlightVisible)
+                exu.SetHeadlightVisible(h, GetEffectivePlayerHeadlightVisible())
             end
         end
 
         if applyAll or (options and options.syncLightingMode) then
             PersistentConfig._RequestLightingModeResync()
             PersistentConfig._SyncLightingMode(true)
+            if type(PersistentConfig.UpdateHeadlights) == "function" then
+                MarkOtherHeadlightsDirty()
+                PersistentConfig.UpdateHeadlights()
+            end
         end
         if (applyAll or (options and options.applyUnderAttackAlert)) and exu.SetUnderAttackAlertMode then
             exu.SetUnderAttackAlertMode(PersistentConfig.Settings.UnderAttackAlertMode)
@@ -5792,6 +5945,9 @@ function PersistentConfig.ApplySettings(options)
         if applyAll or (options and options.syncRadarSize) then
             PersistentConfig._RequestRadarScaleResync()
             PersistentConfig._SyncRadarSizeScale(true)
+        end
+        if applyAll or (options and options.applyTeamColors) then
+            PersistentConfig._ApplyTeamColorSettings()
         end
         if applyAll or (options and options.applyFactionFlames) then
             PersistentConfig._ApplyDynamicFactionFlameColors()
@@ -6328,11 +6484,11 @@ function PersistentConfig.UpdateHeadlights()
 
     local player = GetPlayerHandle()
     if IsValid(player) then
-        exu.SetHeadlightVisible(player, PersistentConfig.Settings.HeadlightVisible)
+        exu.SetHeadlightVisible(player, GetEffectivePlayerHeadlightVisible())
         InputState.otherHeadlightVisibility[player] = nil
     end
 
-    if not PersistentConfig.Settings.OtherHeadlightsDisabled then
+    if not ShouldDisableOtherHeadlights() then
         if not InputState.otherHeadlightsDirty then return end
 
         local restored = 0
@@ -6512,7 +6668,7 @@ function PersistentConfig.OnObjectCreated(h)
             aiCore.TrackWorldObject, h)
     end
 
-    if exu and exu.SetHeadlightVisible and PersistentConfig.Settings.OtherHeadlightsDisabled then
+    if exu and exu.SetHeadlightVisible and ShouldDisableOtherHeadlights() then
         local player = GetPlayerHandle()
         PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated ApplyOtherHeadlightVisibility " .. handleInfo,
             ApplyOtherHeadlightVisibility, h, false, player)
@@ -6562,6 +6718,9 @@ function PersistentConfig._InstallPlayerChargeTrackingHook()
 end
 
 function PersistentConfig.Initialize()
+    PersistentConfig._DestroyExperimentalOverlay()
+    PersistentConfig.ExperimentalOverlayFailed = false
+    PersistentConfig.ExperimentalOverlayUseCustomFont = true
     PersistentConfig._DestroyAllPdaOverlays()
     PersistentConfig._ResetPdaOverlayState()
     ResetTrackedWorldHandles()
