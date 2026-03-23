@@ -7,7 +7,7 @@ void textured_vertex(
 	out float2 vTexCoord : TEXCOORD0,
 	out float vDepth : TEXCOORD1,
 
-	out float4 oPosition : POSITION
+	out float4 oPosition : SV_POSITION
 )
 {
 	oPosition = mul(wvpMat, iPosition);
@@ -18,9 +18,11 @@ void textured_vertex(
 // -------------------------------------------
 
 void textured_fragment(
-	uniform sampler2D diffuseMap : register(s0),
+	uniform Texture2D diffuseMap : register(t0),
+	uniform SamplerState diffuseSam : register(s0),
 
 	uniform float4 diffuseColor,
+	uniform float4 materialEmissive,
 
 	uniform float3 fogColour,
 	uniform float4 fogParams,
@@ -28,14 +30,15 @@ void textured_fragment(
 	in float2 vTexCoord : TEXCOORD0,
 	in float vDepth : TEXCOORD1,
 
-	out float4 oColor : COLOR
+	out float4 oColor : SV_TARGET
 #ifdef LOGDEPTH_ENABLE
-	, out float oDepth : DEPTH
+	, out float oDepth : SV_DEPTH
 #endif
 )
 {
-	float4 diffuseTex = tex2D(diffuseMap, vTexCoord);
+	float4 diffuseTex = diffuseMap.Sample(diffuseSam, vTexCoord);
 	oColor = diffuseTex * diffuseColor;
+	oColor.rgb *= materialEmissive.rgb;
 
 	float fogValue = saturate((vDepth - fogParams.y) * fogParams.w);
 	oColor.xyz = lerp(oColor.xyz, fogColour, fogValue);

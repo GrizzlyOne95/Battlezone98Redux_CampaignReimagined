@@ -2462,7 +2462,7 @@ fragment_program CR_BaseENHighPSSM_fragmentGLSLES glsles
 
 fragment_program CR_BaseENHighNoShadow_fragmentGLSL glsl
 {
-	source base-fragment.glsl
+	source CR_base-fragment.glsl
 	syntax glsl
 	entry_point main
 
@@ -2478,7 +2478,7 @@ fragment_program CR_BaseENHighNoShadow_fragmentGLSL glsl
 
 fragment_program CR_BaseENHighShadow_fragmentGLSL glsl
 {
-	source base-fragment.glsl
+	source CR_base-fragment.glsl
 	syntax glsl
 	entry_point main
 
@@ -2495,7 +2495,7 @@ fragment_program CR_BaseENHighShadow_fragmentGLSL glsl
 
 fragment_program CR_BaseENHighPSSM_fragmentGLSL glsl
 {
-	source base-fragment.glsl
+	source CR_base-fragment.glsl
 	syntax glsl
 	entry_point main
 
@@ -2514,100 +2514,50 @@ fragment_program CR_BaseENHighPSSM_fragmentGLSL glsl
 
 fragment_program CR_BaseENHighNoShadow_fragmentHLSL4 hlsl
 {
-	source base-sm4.hlsl
+	source CR_base-sm4.hlsl
 	target ps_4_0
-	entry_point CR_BaseHighFragment
+	entry_point base_fragment
 	preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-	}
 }
 
 fragment_program CR_BaseENHighShadow_fragmentHLSL4 hlsl
 {
-	source base-sm4.hlsl
+	source CR_base-sm4.hlsl
 	target ps_4_0
-	entry_point CR_BaseHighFragment
+	entry_point base_fragment
 	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-		param_named shadowMap1 int 4
-	}
 }
 
 fragment_program CR_BaseENHighPSSM_fragmentHLSL4 hlsl
 {
-	source base-sm4.hlsl
+	source CR_base-sm4.hlsl
 	target ps_4_0
-	entry_point CR_BaseHighFragment
+	entry_point base_fragment
 	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-		param_named shadowMap1 int 4
-		param_named shadowMap2 int 5
-		param_named shadowMap3 int 6
-	}
 }
 
 fragment_program CR_BaseENHighNoShadow_fragmentHLSL hlsl
 {
-	source base.hlsl
+	source CR_base.hlsl
 	target ps_3_0
-	entry_point CR_BaseHighFragment
+	entry_point base_fragment
 	preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-	}
 }
 
 fragment_program CR_BaseENHighShadow_fragmentHLSL hlsl
 {
-	source base.hlsl
+	source CR_base.hlsl
 	target ps_3_0
-	entry_point CR_BaseHighFragment
+	entry_point base_fragment
 	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-		param_named shadowMap1 int 4
-	}
 }
 
 fragment_program CR_BaseENHighPSSM_fragmentHLSL hlsl
 {
-	source base.hlsl
+	source CR_base.hlsl
 	target ps_3_0
-	entry_point CR_BaseHighFragment
+	entry_point base_fragment
 	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=3,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE
-	default_params
-	{
-		param_named diffuseMap int 0
-		param_named normalMap int 1
-		param_named specularMap int 2
-		param_named emissiveMap int 3
-		param_named shadowMap1 int 4
-		param_named shadowMap2 int 5
-		param_named shadowMap3 int 6
-	}
 }
 
 fragment_program CR_BaseENLowestNoShadow_fragment unified
@@ -2670,6 +2620,7 @@ fragment_program CR_BaseENLowNoShadow_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
+		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
 		param_named_auto lightSpecular derived_light_specular_colour_array 1
 		param_named_auto lightAttenuation light_attenuation_array 1
@@ -2692,6 +2643,7 @@ fragment_program CR_BaseENLowShadow_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
+		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
 		param_named_auto lightSpecular derived_light_specular_colour_array 1
 		param_named_auto lightAttenuation light_attenuation_array 1
@@ -2715,6 +2667,7 @@ fragment_program CR_BaseENLowPSSM_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
+		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
 		param_named_auto lightSpecular derived_light_specular_colour_array 1
 		param_named_auto lightAttenuation light_attenuation_array 1
@@ -2741,6 +2694,7 @@ fragment_program CR_BaseENMediumNoShadow_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
+		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
 		param_named_auto lightSpecular derived_light_specular_colour_array 8
 		param_named_auto lightAttenuation light_attenuation_array 8
@@ -2764,6 +2718,7 @@ fragment_program CR_BaseENMediumShadow_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
+		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
 		param_named_auto lightSpecular derived_light_specular_colour_array 8
 		param_named_auto lightAttenuation light_attenuation_array 8
@@ -2788,6 +2743,7 @@ fragment_program CR_BaseENMediumPSSM_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
+		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
 		param_named_auto lightSpecular derived_light_specular_colour_array 8
 		param_named_auto lightAttenuation light_attenuation_array 8
@@ -2815,6 +2771,7 @@ fragment_program CR_BaseENHighNoShadow_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
+		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
 		param_named_auto lightSpecular derived_light_specular_colour_array 24
 		param_named_auto lightAttenuation light_attenuation_array 24
@@ -2838,6 +2795,7 @@ fragment_program CR_BaseENHighShadow_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
+		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
 		param_named_auto lightSpecular derived_light_specular_colour_array 24
 		param_named_auto lightAttenuation light_attenuation_array 24
@@ -2862,6 +2820,7 @@ fragment_program CR_BaseENHighPSSM_fragment unified
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
 		param_named_auto materialShininess surface_shininess
+		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
 		param_named_auto lightSpecular derived_light_specular_colour_array 24
 		param_named_auto lightAttenuation light_attenuation_array 24

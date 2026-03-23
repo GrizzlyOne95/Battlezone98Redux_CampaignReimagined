@@ -86,6 +86,9 @@ uniform sampler2D specularMap;
 #endif
 #if defined(EMISSIVEMAP_ENABLED)
 uniform sampler2D emissiveMap;
+#if defined(ENHANCED_MODE)
+uniform vec4 materialEmissive;
+#endif
 #endif
 
 #if defined(SHADOWRECEIVER)
@@ -398,7 +401,12 @@ void main()
 #if defined(EMISSIVEMAP_ENABLED)
 	//emissive texture
 	vec3 emissiveTex = texture2D(emissiveMap, vTexCoord).xyz;
+#if defined(ENHANCED_MODE)
+	float emissiveMask = step(1e-4, max(max(materialEmissive.x, materialEmissive.y), materialEmissive.z));
+	oColor.xyz += emissiveTex.xyz * emissiveMask;
+#else
 	oColor.xyz += emissiveTex.xyz;
+#endif
 #endif
 
 #if defined(MONOCHROME)

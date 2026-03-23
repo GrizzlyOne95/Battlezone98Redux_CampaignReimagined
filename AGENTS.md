@@ -1,27 +1,32 @@
 # campaignReimagined
 
 This repo is part of the local Battlezone workspace opened via
-`%USERPROFILE%\Documents\Battlezone98Redux_Shim.code-workspace`.
+`C:\Users\iestu\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace`.
+
+## Canonical Paths
+- Workspace File: `C:\Users\iestu\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace`
+- Destination/Runtime Mod Folder: `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790`
+- Source Repo for Git and edits: `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`
 
 ## Workspace Layout
-- Sibling repos normally live under `%USERPROFILE%\Documents\GIT\...`.
-- The primary local game install is typically `%USERPROFILE%\Documents\Battlezone 98 Redux`.
-- Prefer the workspace file and these conventions over hardcoded profile-specific paths.
+- Sibling repos may live under `%USERPROFILE%\Documents\GIT\...`, but this repo's canonical local source path is `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`.
+- The primary local runtime target for this repo is `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790`.
+- Prefer these canonical paths for this machine over older `Documents\Battlezone 98 Redux` or `addon\campaignReimagined` assumptions.
 
 ## Local Role
 - Primary addon source repo for Lua mission scripts, gameplay content, and packaged assets.
 
 ## Local Workflow
-- Make campaign content changes in `_Source`; that is the canonical tracked source tree on this machine.
-- Use `Manage-CampaignFiles.ps1` in the repo root when you need to sync from a deployed addon install, build `_Release`, deploy `_Source`, or publish.
-- Treat the deployed game addon folder as a runtime target, not a second git checkout.
-- Treat `_Release` as build output for workshop packaging, not the primary editing location.
+- Make campaign content changes directly in this repo root; `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined` is the canonical tracked source tree on this machine.
+- Use `Manage-CampaignFiles.ps1` in the repo root when you need to sync from the packaged mod runtime, deploy to the packaged mod runtime, or publish.
+- Treat `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790` as the primary runtime target for local verification.
+- Do not treat the game install's `addon\campaignReimagined` path as a second git checkout or source workspace.
 
 ## Cross-Repo Pointers
-- Native save behavior, hooks, and reverse-engineering notes live in `%USERPROFILE%\Documents\GIT\Battlezone98Redux_Shim`.
-- Subtitle support lives in `%USERPROFILE%\Documents\GIT\BZR-Subtitles`.
-- File I/O helpers live in `%USERPROFILE%\Documents\GIT\bzfile`.
-- Script extender support lives in `%USERPROFILE%\Documents\GIT\ExtraUtilities-G1`.
-- Shader/material work lives in `%USERPROFILE%\Documents\GIT\Battlezone98Redux_EnhancedShaders` and the deployed workspace game install.
+- Native save behavior, hooks, and reverse-engineering notes live in `C:\Users\iestu\Documents\GIT\BZR-OpenShim`.
+- Subtitle support lives in `C:\Users\iestu\Documents\GIT\BZR-Subtitles`.
+- File I/O helpers live in `C:\Users\iestu\Documents\GIT\bzfile`.
+- Script extender support lives in `C:\Users\iestu\Documents\ExtraUtilities`.
+- Shader/material work for this campaign now lives directly in `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790`; use `C:\Users\iestu\Documents\GIT\ogre-1.10.0` only when engine-side rendering behavior needs inspection.
 
-Open `%USERPROFILE%\Documents\Battlezone98Redux_Shim.code-workspace` when a task may span repos.
+Open `C:\Users\iestu\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace` when a task may span repos.

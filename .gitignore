@@ -1,4 +1,4 @@
-# Ignore everything in _Source root by default
+# Ignore unexpected runtime-flat root files by default
 /*
 
 # Allow organized source folders

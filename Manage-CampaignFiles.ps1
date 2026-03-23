@@ -8,23 +8,62 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 }
 
 # Manage-CampaignFiles.ps1
-# Script to manage development symlinks and release builds for Battlezone 98 Redux: Campaign Reimagined
-# Resolve the campaign root even when the synced script copy is launched from _Source.
+# Script to manage source/deploy workflow for Battlezone 98 Redux: Campaign Reimagined
+# The repo root is the canonical source tree. The packaged mod install is the runtime target.
 $ScriptDir = $PSScriptRoot
-$RepoRoot = if ((Split-Path $ScriptDir -Leaf).Equals("_Source", [System.StringComparison]::OrdinalIgnoreCase)) {
-    Split-Path $ScriptDir -Parent
-}
-else {
-    $ScriptDir
-}
+$RepoRoot = $ScriptDir
 
 Set-Location $RepoRoot
 
-$SourceDir = Join-Path $RepoRoot "_Source"
-$ReleaseDir = Join-Path $RepoRoot "_Release"
+$SourceDir = $RepoRoot
 $CurrentDir = $RepoRoot
+$DefaultPackagedModId = "3686673790"
 $StructuredRuntimeDirs = @("flags", "OverlayFont")
-$LocalDeployExcludedSourceDirs = @("Materials", "Shaders")
+$SourceExcludedRelativePaths = @(
+    ".git",
+    "docs",
+    "Local"
+)
+$SourceExcludedRootFiles = @(
+    ".gitignore",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "LICENSE.md",
+    "Manage-CampaignFiles.ps1",
+    "NOTICE.md",
+    "README.md",
+    "workshop_build.vdf",
+    "workshop.config.json",
+    "workshop.config.example.json"
+)
+
+function Is-PreservedRuntimeRelativePath($relativePath) {
+    if (-not $relativePath) {
+        return $false
+    }
+
+    $normalized = $relativePath -replace '/', '\'
+    $leafName = [System.IO.Path]::GetFileName($normalized)
+
+    if ($normalized.Equals("bzfile_replace_helper.exe", [System.StringComparison]::OrdinalIgnoreCase) -or
+        $normalized.Equals("bzfile_replace_helper.pdb", [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $true
+    }
+
+    if ($leafName.Equals("winmm.dll.pending", [System.StringComparison]::OrdinalIgnoreCase) -or
+        $leafName.EndsWith("_replace.log", [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $true
+    }
+
+    if ($normalized.StartsWith("OverlayFont\", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $overlayRelative = $normalized.Substring("OverlayFont\".Length)
+        if ($overlayRelative.Contains("\")) {
+            return $true
+        }
+    }
+
+    return $false
+}
 
 
 # Global error trap to keep window open on crash
@@ -34,9 +73,15 @@ trap {
     exit 1
 }
 
-function Get-AddonDirCandidates {
+function Get-RuntimeModDirCandidates {
     $candidates = [System.Collections.Generic.List[string]]::new()
 
+    $explicitRuntime = Resolve-PathIfRelative $env:BZR_CAMPAIGN_RUNTIME_DIR
+    if ($explicitRuntime) {
+        [void]$candidates.Add($explicitRuntime)
+    }
+
+    # Backward compatibility with the old environment variable name.
     $explicitAddon = Resolve-PathIfRelative $env:BZR_CAMPAIGN_ADDON_DIR
     if ($explicitAddon) {
         [void]$candidates.Add($explicitAddon)
@@ -44,7 +89,7 @@ function Get-AddonDirCandidates {
 
     $explicitGameRoot = Resolve-PathIfRelative $env:BZR_BATTLEZONE_ROOT
     if ($explicitGameRoot) {
-        [void]$candidates.Add((Join-Path $explicitGameRoot "addon\campaignReimagined"))
+        [void]$candidates.Add((Join-Path $explicitGameRoot "packaged_mods\$DefaultPackagedModId"))
     }
 
     $defaultRoots = @(
@@ -55,15 +100,15 @@ function Get-AddonDirCandidates {
 
     foreach ($root in $defaultRoots) {
         if ($root) {
-            [void]$candidates.Add((Join-Path $root "addon\campaignReimagined"))
+            [void]$candidates.Add((Join-Path $root "packaged_mods\$DefaultPackagedModId"))
         }
     }
 
     $candidates | Where-Object { $_ } | Select-Object -Unique
 }
 
-function Resolve-AddonDir {
-    foreach ($candidate in Get-AddonDirCandidates) {
+function Resolve-RuntimeModDir {
+    foreach ($candidate in Get-RuntimeModDirCandidates) {
         if (Test-Path $candidate) {
             return $candidate
         }
@@ -72,13 +117,13 @@ function Resolve-AddonDir {
     return $null
 }
 
-function Ensure-AddonDir {
-    $existing = Resolve-AddonDir
+function Ensure-RuntimeModDir {
+    $existing = Resolve-RuntimeModDir
     if ($existing) {
         return $existing
     }
 
-    foreach ($candidate in Get-AddonDirCandidates) {
+    foreach ($candidate in Get-RuntimeModDirCandidates) {
         $parent = Split-Path $candidate -Parent
         if (Test-Path $parent) {
             New-Item -ItemType Directory -Path $candidate -Force | Out-Null
@@ -86,7 +131,7 @@ function Ensure-AddonDir {
         }
     }
 
-    Write-Warning "No campaign addon directory could be resolved. Set BZR_CAMPAIGN_ADDON_DIR or BZR_BATTLEZONE_ROOT if this machine uses a different layout."
+    Write-Warning "No packaged mod runtime directory could be resolved. Set BZR_CAMPAIGN_RUNTIME_DIR or BZR_BATTLEZONE_ROOT if this machine uses a different layout."
     return $null
 }
 
@@ -139,14 +184,20 @@ function Is-StructuredRuntimeRelativePath($relativePath) {
     return $false
 }
 
-function Is-LocalDeployExcludedSourceRelativePath($relativePath) {
+function Is-ExcludedSourceRelativePath($relativePath) {
     if (-not $relativePath) {
         return $false
     }
 
-    foreach ($dirName in $LocalDeployExcludedSourceDirs) {
+    foreach ($dirName in $SourceExcludedRelativePaths) {
         if ($relativePath.Equals($dirName, [System.StringComparison]::OrdinalIgnoreCase) -or
             $relativePath.StartsWith($dirName + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    foreach ($fileName in $SourceExcludedRootFiles) {
+        if ($relativePath.Equals($fileName, [System.StringComparison]::OrdinalIgnoreCase)) {
             return $true
         }
     }
@@ -188,27 +239,29 @@ function Get-ManagedSourceFiles {
         return @()
     }
 
-    $localDir = Join-Path (Resolve-Path $SourceDir).Path "Local"
-
     Get-ChildItem -Path $SourceDir -Recurse -File | Where-Object {
-        -not $_.FullName.StartsWith($localDir + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)
+        $relativePath = Get-RelativePathFromBase $SourceDir $_.FullName
+        -not (Is-ExcludedSourceRelativePath $relativePath)
     }
 }
 
-function Sync-ToSource {
-    Write-Host "Syncing files from deployed addon to $SourceDir..." -ForegroundColor Cyan
-
-    $addonDir = Resolve-AddonDir
-    if (-not $addonDir) {
-        $checked = (Get-AddonDirCandidates | ForEach-Object { "  - $_" }) -join "`n"
-        Write-Warning "No deployed addon directory found. Checked:`n$checked"
-        return
+function Get-DeployRelativePathFromSourcePath($sourceFileFullName) {
+    $sourceRelativePath = Get-RelativePathFromBase $SourceDir $sourceFileFullName
+    if ($sourceRelativePath -and (Is-StructuredRuntimeRelativePath $sourceRelativePath)) {
+        return $sourceRelativePath
     }
 
-    # Create _Source directory if it doesn't exist
-    if (-not (Test-Path $SourceDir)) {
-        New-Item -ItemType Directory -Path $SourceDir -Force | Out-Null
-        Write-Host "Created $SourceDir directory." -ForegroundColor Yellow
+    return [System.IO.Path]::GetFileName($sourceFileFullName)
+}
+
+function Sync-ToSource {
+    Write-Host "Syncing files from packaged mod runtime to $SourceDir..." -ForegroundColor Cyan
+
+    $runtimeDir = Resolve-RuntimeModDir
+    if (-not $runtimeDir) {
+        $checked = (Get-RuntimeModDirCandidates | ForEach-Object { "  - $_" }) -join "`n"
+        Write-Warning "No packaged mod runtime directory found. Checked:`n$checked"
+        return
     }
 
     # Index existing source files for update (Name -> FullPath)
@@ -222,20 +275,20 @@ function Sync-ToSource {
         }
     }
 
-    $addonFiles = @(
-        Get-ManagedFlatFiles $addonDir
-        Get-StructuredRuntimeFiles $addonDir
+    $runtimeFiles = @(
+        Get-ManagedFlatFiles $runtimeDir
+        Get-StructuredRuntimeFiles $runtimeDir
     )
     
     $updated = 0
     $added = 0
     $skipped = 0
     
-    foreach ($file in $addonFiles) {
-        $addonRelativePath = Get-RelativePathFromBase $addonDir $file.FullName
+    foreach ($file in $runtimeFiles) {
+        $runtimeRelativePath = Get-RelativePathFromBase $runtimeDir $file.FullName
 
-        if ($addonRelativePath -and (Is-StructuredRuntimeRelativePath $addonRelativePath)) {
-            $targetPath = Join-Path $SourceDir $addonRelativePath
+        if ($runtimeRelativePath -and (Is-StructuredRuntimeRelativePath $runtimeRelativePath)) {
+            $targetPath = Join-Path $SourceDir $runtimeRelativePath
             $targetDir = Split-Path $targetPath -Parent
 
             if (-not (Test-Path $targetDir)) {
@@ -246,7 +299,7 @@ function Sync-ToSource {
                 $srcItem = Get-Item $targetPath
                 if ($file.LastWriteTime -gt $srcItem.LastWriteTime) {
                     Copy-Item -Path $file.FullName -Destination $targetPath -Force
-                    Write-Host "Updated: $addonRelativePath" -ForegroundColor Yellow
+                    Write-Host "Updated: $runtimeRelativePath" -ForegroundColor Yellow
                     $updated++
                 }
                 else {
@@ -255,7 +308,7 @@ function Sync-ToSource {
             }
             else {
                 Copy-Item -Path $file.FullName -Destination $targetPath -Force
-                Write-Host "Added: $addonRelativePath" -ForegroundColor Green
+                Write-Host "Added: $runtimeRelativePath" -ForegroundColor Green
                 $added++
             }
         }
@@ -292,69 +345,78 @@ function Sync-ToSource {
         }
     }
     
-    Write-Host "`nSync complete from ${addonDir}: $added added, $updated updated, $skipped unchanged" -ForegroundColor Cyan
+    Write-Host "`nSync complete from ${runtimeDir}: $added added, $updated updated, $skipped unchanged" -ForegroundColor Cyan
 }
 
-function Sync-FromSource {
-    Write-Host "Deploying files FROM $SourceDir to the runtime addon..." -ForegroundColor Cyan
+function Deploy-PackagedMod {
+    Write-Host "Deploying files FROM $SourceDir to the packaged mod runtime..." -ForegroundColor Cyan
 
     if (-not (Test-Path $SourceDir)) {
         Write-Error "Source directory '$SourceDir' not found!"
         return
     }
 
-    $addonDir = Ensure-AddonDir
-    if (-not $addonDir) {
+    $runtimeDir = Ensure-RuntimeModDir
+    if (-not $runtimeDir) {
         return
     }
 
-    # Get all files in _Source directory recursively
     $sourceFiles = Get-ManagedSourceFiles
+    $desiredRuntimePaths = @{}
+    foreach ($file in $sourceFiles) {
+        $desiredRuntimePaths[(Get-DeployRelativePathFromSourcePath $file.FullName)] = $true
+    }
+
+    $runtimeFiles = @(
+        Get-ManagedFlatFiles $runtimeDir
+        Get-StructuredRuntimeFiles $runtimeDir
+    )
+
+    foreach ($runtimeFile in $runtimeFiles) {
+        $runtimeRelativePath = Get-RelativePathFromBase $runtimeDir $runtimeFile.FullName
+        if ($runtimeRelativePath -and -not $desiredRuntimePaths.ContainsKey($runtimeRelativePath)) {
+            if (Is-PreservedRuntimeRelativePath $runtimeRelativePath) {
+                Write-Host "Preserved runtime-only file: $runtimeRelativePath" -ForegroundColor DarkGray
+            }
+            else {
+                Remove-Item -LiteralPath $runtimeFile.FullName -Force
+                Write-Host "Removed stale runtime file: $runtimeRelativePath" -ForegroundColor DarkYellow
+            }
+        }
+    }
     
     $updated = 0
     $added = 0
     $skipped = 0
-    $excluded = 0
     
     foreach ($file in $sourceFiles) {
-        $sourceRelativePath = Get-RelativePathFromBase $SourceDir $file.FullName
-        if ($sourceRelativePath -and (Is-LocalDeployExcludedSourceRelativePath $sourceRelativePath)) {
-            $excluded++
-            continue
-        }
+        $deployRelativePath = Get-DeployRelativePathFromSourcePath $file.FullName
 
-        $deployRelativePath = if ($sourceRelativePath -and (Is-StructuredRuntimeRelativePath $sourceRelativePath)) {
-            $sourceRelativePath
-        }
-        else {
-            $file.Name
-        }
-
-        $addonPath = Join-Path $addonDir $deployRelativePath
-        $addonPathParent = Split-Path $addonPath -Parent
-        if (-not (Test-Path $addonPathParent)) {
-            New-Item -ItemType Directory -Path $addonPathParent -Force | Out-Null
+        $runtimePath = Join-Path $runtimeDir $deployRelativePath
+        $runtimePathParent = Split-Path $runtimePath -Parent
+        if (-not (Test-Path $runtimePathParent)) {
+            New-Item -ItemType Directory -Path $runtimePathParent -Force | Out-Null
         }
         
-        if (Test-Path $addonPath) {
-            $addonItem = Get-Item $addonPath
+        if (Test-Path $runtimePath) {
+            $runtimeItem = Get-Item $runtimePath
 
             $hashMatch = $null
             if (Is-SourceAuthoritativeFlatFile $file.Name) {
-                $hashMatch = Test-FilesMatchByHash $file.FullName $addonPath
+                $hashMatch = Test-FilesMatchByHash $file.FullName $runtimePath
             }
 
             # winmm.dll is source-authoritative: if the bytes differ, push the
-            # shipped copy even when the deployed addon file has a newer
+            # shipped copy even when the deployed runtime file has a newer
             # timestamp from a manual shim swap.
             if ((Is-SourceAuthoritativeFlatFile $file.Name) -and ($hashMatch -ne $true)) {
-                Copy-Item -Path $file.FullName -Destination $addonPath -Force
+                Copy-Item -Path $file.FullName -Destination $runtimePath -Force
                 Write-Host "Updated: $($file.Name) (authoritative source sync)" -ForegroundColor Yellow
                 $updated++
             }
-            # If source version is newer, copy to the deployed addon
-            elseif ($file.LastWriteTime -gt $addonItem.LastWriteTime) {
-                Copy-Item -Path $file.FullName -Destination $addonPath -Force
+            # If source version is newer, copy to the deployed runtime
+            elseif ($file.LastWriteTime -gt $runtimeItem.LastWriteTime) {
+                Copy-Item -Path $file.FullName -Destination $runtimePath -Force
                 Write-Host "Updated: $($file.Name)" -ForegroundColor Yellow
                 $updated++
             }
@@ -363,14 +425,14 @@ function Sync-FromSource {
             }
         }
         else {
-            # New file in source, copy to the deployed addon
-            Copy-Item -Path $file.FullName -Destination $addonPath -Force
+            # New file in source, copy to the deployed runtime
+            Copy-Item -Path $file.FullName -Destination $runtimePath -Force
             Write-Host "Added: $($file.Name)" -ForegroundColor Green
             $added++
         }
     }
     
-    Write-Host "`nDeploy complete to ${addonDir}: $added added, $updated updated, $skipped unchanged, $excluded excluded from local root deploy" -ForegroundColor Cyan
+    Write-Host "`nDeploy complete to ${runtimeDir}: $added added, $updated updated, $skipped unchanged" -ForegroundColor Cyan
 }
 
 function Get-TargetSubfolder($fileName) {
@@ -378,7 +440,11 @@ function Get-TargetSubfolder($fileName) {
     switch -Regex ($normalizedName) {
         '^bzogrelogfile\.log$' { return "Local/Logs" }
         '^winmm_shim\.log$' { return "Local/Logs" }
+        '^[^\\]+_replace\.log$' { return "Local/Logs" }
         '^winmm\.dll$' { return "Bin" }
+        '^winmm\.dll\.pending$' { return "Local/Bin" }
+        '^bzfile_replace_helper\.exe$' { return "Bin" }
+        '^bzfile_replace_helper\.pdb$' { return "Local/Bin" }
         '^n64\.code-workspace$' { return "Local/Workspace" }
         '^cpp_lua_mission_flow_report\.md$' { return "Local/Reports" }
         '^bzplyr\.def$' { return "Local/Config" }
@@ -431,46 +497,17 @@ function Get-TargetSubfolder($fileName) {
     }
 }
 
-function Sync-FromAddon {
+function Sync-FromSource {
+    Deploy-PackagedMod
+}
+
+function Sync-FromRuntime {
     Sync-ToSource
 }
 
 function Build-Release {
-    Write-Host "`nBuilding release to $ReleaseDir (FLATTENED)..." -ForegroundColor Cyan
-
-    if (-not (Test-Path $SourceDir)) {
-        Write-Error "Source directory '$SourceDir' not found!"
-        return
-    }
-
-    # Clean Release Directory
-    if (Test-Path $ReleaseDir) {
-        Remove-Item $ReleaseDir -Recurse -Force
-        Write-Host "Cleaned existing release directory." -ForegroundColor Yellow
-    }
-    New-Item -ItemType Directory -Path $ReleaseDir -Force | Out-Null
-
-    # Copy files FLATTENED
-    $files = Get-ManagedSourceFiles
-    foreach ($file in $files) {
-        $sourceRelativePath = Get-RelativePathFromBase $SourceDir $file.FullName
-        $releaseRelativePath = if ($sourceRelativePath -and (Is-StructuredRuntimeRelativePath $sourceRelativePath)) {
-            $sourceRelativePath
-        }
-        else {
-            $file.Name
-        }
-
-        $releasePath = Join-Path $ReleaseDir $releaseRelativePath
-        $releaseParent = Split-Path $releasePath -Parent
-        if (-not (Test-Path $releaseParent)) {
-            New-Item -ItemType Directory -Path $releaseParent -Force | Out-Null
-        }
-
-        Copy-Item -Path $file.FullName -Destination $releasePath -Force
-    }
-
-    Write-Host "Release build complete. Files are in $ReleaseDir" -ForegroundColor Green
+    Write-Warning "Build-Release is deprecated. Deploying the packaged mod runtime instead."
+    Deploy-PackagedMod
 }
 
 function Resolve-PathIfRelative($pathValue) {
@@ -500,7 +537,14 @@ function Get-PublishConfig {
     }
 
     if (-not $cfg.AppId) { $cfg | Add-Member -NotePropertyName AppId -NotePropertyValue "301650" }
-    if (-not $cfg.ContentFolder) { $cfg | Add-Member -NotePropertyName ContentFolder -NotePropertyValue "_Release" }
+    if (-not $cfg.ContentFolder) {
+        $runtimeDir = Ensure-RuntimeModDir
+        if (-not $runtimeDir) {
+            return $null
+        }
+
+        $cfg | Add-Member -NotePropertyName ContentFolder -NotePropertyValue $runtimeDir
+    }
 
     $cfg.ContentFolder = Resolve-PathIfRelative $cfg.ContentFolder
     $cfg.PreviewFile = Resolve-PathIfRelative $cfg.PreviewFile
@@ -597,7 +641,7 @@ function Invoke-WorkshopUpload {
     if (-not $cfg) { return }
 
     if (-not (Test-Path $cfg.ContentFolder)) {
-        Write-Error "ContentFolder not found: $($cfg.ContentFolder). Build the release first."
+        Write-Error "ContentFolder not found: $($cfg.ContentFolder). Deploy the packaged mod runtime first."
         return
     }
 
@@ -618,7 +662,7 @@ function Publish-All {
         [string]$Message
     )
 
-    Build-Release
+    Deploy-PackagedMod
     Invoke-GitPush -Message $Message
     Invoke-WorkshopUpload -ChangeNote $Message
 }
@@ -630,15 +674,13 @@ function Show-Menu {
     Write-Host "==========================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Current Workflow:" -ForegroundColor Yellow
-    Write-Host "  - _Source = Canonical source tree (edit here)" -ForegroundColor DarkGray
-    Write-Host "  - Addon folder = Runtime deploy target" -ForegroundColor DarkGray
-    Write-Host "  - _Release = Build output" -ForegroundColor DarkGray
+    Write-Host "  - Repo root = Canonical source tree (edit here)" -ForegroundColor DarkGray
+    Write-Host "  - packaged_mods\$DefaultPackagedModId = Runtime deploy target" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "1. Sync To Source (Pull deployed addon -> _Source)"
-    Write-Host "2. Sync From Source (Flatten _Source -> deployed addon)"
-    Write-Host "3. Build Release (Build _Source -> _Release)"
-    Write-Host "4. Sync from Addon only (same as option 1)"
-    Write-Host "5. Publish (Build + Git push + Workshop upload)"
+    Write-Host "1. Sync To Source (Pull packaged mod runtime -> source tree)"
+    Write-Host "2. Deploy Packaged Mod (Flatten source tree -> packaged_mods\$DefaultPackagedModId)"
+    Write-Host "3. Publish (Deploy + Git push + Workshop upload)"
+    Write-Host "4. Sync from Runtime only (same as option 1)"
     Write-Host "Q. Quit"
     Write-Host ""
     
@@ -646,10 +688,9 @@ function Show-Menu {
     
     switch ($choice) {
         "1" { Sync-ToSource; Pause; Show-Menu }
-        "2" { Sync-FromSource; Pause; Show-Menu }
-        "3" { Build-Release; Pause; Show-Menu }
-        "4" { Sync-FromAddon; Pause; Show-Menu }
-        "5" { Publish-All; Pause; Show-Menu }
+        "2" { Deploy-PackagedMod; Pause; Show-Menu }
+        "3" { Publish-All; Pause; Show-Menu }
+        "4" { Sync-FromRuntime; Pause; Show-Menu }
         "Q" { exit }
         "q" { exit }
         default { Write-Host "Invalid option." -ForegroundColor Red; Pause; Show-Menu }
@@ -661,13 +702,16 @@ if ($args[0] -eq "-sync") {
     Sync-ToSource
 }
 elseif ($args[0] -eq "-fromsource") {
-    Sync-FromSource
+    Deploy-PackagedMod
+}
+elseif ($args[0] -eq "-deploy") {
+    Deploy-PackagedMod
 }
 elseif ($args[0] -eq "-release") {
-    Build-Release
+    Deploy-PackagedMod
 }
 elseif ($args[0] -eq "-addon") {
-    Sync-FromAddon
+    Sync-FromRuntime
 }
 elseif ($args[0] -eq "-publish") {
     $message = $null

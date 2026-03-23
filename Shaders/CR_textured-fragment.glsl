@@ -2,6 +2,7 @@
 
 uniform sampler2D diffuseMap;
 uniform vec4 diffuseColor;
+uniform vec4 materialEmissive;
 
 uniform vec3 fogColour;
 uniform vec4 fogParams;
@@ -14,6 +15,7 @@ void main()
 {
 	vec4 diffuseTex = texture2D(diffuseMap, vTexCoord);
 	vec4 oColor = diffuseTex * diffuseColor;
+	oColor.rgb *= materialEmissive.rgb;
 
 	float fogValue = clamp((vDepth - fogParams.y) * fogParams.w, 0.0, 1.0);
 	oColor.xyz = mix(oColor.xyz, fogColour, vec3(fogValue));

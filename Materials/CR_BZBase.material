@@ -2075,6 +2075,7 @@ material CR_BZBase
  		{
 			ambient $glow 
 			diffuse $glow 
+			emissive $glow
 			depth_bias $bias
 
 			vertex_program_ref CR_Textured_vertex
@@ -2436,6 +2437,7 @@ material CR_BZBaseCockpit
  		{
 			ambient $glow 
 			diffuse $glow 
+			emissive $glow
 			depth_bias $bias
 
 			vertex_program_ref CR_Textured_vertex
