@@ -4,12 +4,13 @@
 return {
     PdaPages = {
         STATS = 1,
-        TARGET = 2,
-        SETTINGS = 3,
-        PRESETS = 4,
-        QUEUE = 5,
-        COMMAND = 6,
-        COUNT = 6,
+        CAREER = 2,
+        TARGET = 3,
+        SETTINGS = 4,
+        PRESETS = 5,
+        QUEUE = 6,
+        COMMAND = 7,
+        COUNT = 7,
     },
 
     PresetProducerKinds = {
