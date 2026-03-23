@@ -23,6 +23,7 @@ function M.Create(deps)
     local GetHorizontalDistanceBetweenPositions = deps.GetHorizontalDistanceBetweenPositions
     local GetInstalledWeaponMask = deps.GetInstalledWeaponMask
     local GetPlayerSpeedMeters = deps.GetPlayerSpeedMeters
+    local CareerStatsModule = deps.CareerStatsModule
     local GetPresetPageContext = deps.GetPresetPageContext
     local GetPresetSlotOption = deps.GetPresetSlotOption
     local GetPresetSurchargeForEntry = deps.GetPresetSurchargeForEntry
@@ -369,6 +370,10 @@ function M.Create(deps)
         return "TARGET"
     end
 
+    local function FormatSummaryRatio(lhs, rhs)
+        return tostring(lhs or 0) .. "/" .. tostring(rhs or 0)
+    end
+
     local function BuildStatsPageText(player, mask)
         local lines = { BuildPdaHeader(PdaPages.STATS) }
         local speed = math.floor(GetPlayerSpeedMeters(player) + 0.5)
@@ -392,6 +397,43 @@ function M.Create(deps)
 
         local hardpointCount = AppendWeaponStatsLines(lines, player, installedMask, mask, nil, nil, nil)
         table.insert(lines, "TOTAL " .. tostring(hardpointCount))
+        AppendPdaNavHints(lines)
+        return table.concat(lines, "\n")
+    end
+
+    local function BuildCareerPageText(player)
+        local lines = { BuildPdaHeader(PdaPages.CAREER) }
+        local summary = (CareerStatsModule and CareerStatsModule.GetSummary and CareerStatsModule.GetSummary()) or nil
+        local career = summary and summary.career or {}
+        local mission = summary and summary.mission or {}
+
+        table.insert(lines, "CAREER")
+        table.insert(lines, string.format("Kills   %d  Deaths %d", career.totalKills or 0, career.totalDeaths or 0))
+        table.insert(lines, string.format("SP/MP   %s kills   %s deaths",
+            FormatSummaryRatio(career.spKills or 0, career.mpKills or 0),
+            FormatSummaryRatio(career.spDeaths or 0, career.mpDeaths or 0)))
+        table.insert(lines, string.format("Class   V %d  P %d  B %d",
+            career.vehicleKills or 0, career.pilotKills or 0, career.buildingKills or 0))
+        table.insert(lines, string.format("Snipes  %d  Sniper Kills %d",
+            career.snipes or 0, career.sniperKills or 0))
+        table.insert(lines, string.format("Missions %d  W %d  L %d",
+            career.missionsPlayed or 0, career.missionsWon or 0, career.missionsLost or 0))
+
+        table.insert(lines, "")
+        table.insert(lines, "CURRENT MISSION")
+        table.insert(lines, string.format("ID %s", summary and summary.missionKey or "unknown_mission"))
+        table.insert(lines, string.format("Kills   %d  Deaths %d", mission.kills or 0, mission.deaths or 0))
+        table.insert(lines, string.format("Class   V %d  P %d  B %d",
+            mission.vehicleKills or 0, mission.pilotKills or 0, mission.buildingKills or 0))
+        table.insert(lines, string.format("Snipes  %d  Sniper Kills %d",
+            mission.snipes or 0, mission.sniperKills or 0))
+
+        if IsValid(player) then
+            table.insert(lines, "")
+            table.insert(lines, "PROFILE " .. tostring(summary and summary.profileKey or "offline"))
+            table.insert(lines, "CRAFT " .. (GetVehicleDisplayName(player) or "Unknown"))
+        end
+
         AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
@@ -687,6 +729,9 @@ function M.Create(deps)
 
     local function BuildWeaponStatsText(player, mask)
         local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.STATS)
+        if page == PdaPages.CAREER then
+            return BuildCareerPageText(player)
+        end
         if page == PdaPages.TARGET then
             return BuildTargetPageText(player, mask)
         end

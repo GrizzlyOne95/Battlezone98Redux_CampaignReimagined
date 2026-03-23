@@ -5,10 +5,12 @@ local exu = require("exu")
 local autosave = require("AutoSave")
 local RuntimeEnhancements = require("RuntimeEnhancements")
 local ConservativeCulling = require("ConservativeCulling")
+local CareerStats = require("CareerStats")
 
 local PersistentConfig = {}
 PersistentConfig.D = require("PersistentConfigD")
 PersistentConfig.ReactiveReticleModule = require("ReactiveReticle")
+PersistentConfig.CareerStatsModule = CareerStats
 PersistentConfig.Channels = {
     WeaponStats = 1,
     PdaFeedback = 2,
@@ -113,12 +115,13 @@ PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
 
 local PdaPages = {
     STATS = 1,
-    TARGET = 2,
-    SETTINGS = 3,
-    PRESETS = 4,
-    QUEUE = 5,
-    COMMAND = 6,
-    COUNT = 6,
+    CAREER = 2,
+    TARGET = 3,
+    SETTINGS = 4,
+    PRESETS = 5,
+    QUEUE = 6,
+    COMMAND = 7,
+    COUNT = 7,
 }
 
 local PresetProducerKinds = {
@@ -1163,6 +1166,7 @@ end
 local function BuildPdaHeader(activePage)
     local labels = {
         [PdaPages.STATS] = "Stats",
+        [PdaPages.CAREER] = "Career",
         [PdaPages.TARGET] = "Target",
         [PdaPages.SETTINGS] = "Settings",
         [PdaPages.PRESETS] = "Presets",
@@ -5216,6 +5220,7 @@ PersistentConfig.P = require("PersistentConfigP").Create({
     GetHorizontalDistanceBetweenPositions = GetHorizontalDistanceBetweenPositions,
     GetInstalledWeaponMask = GetInstalledWeaponMask,
     GetPlayerSpeedMeters = GetPlayerSpeedMeters,
+    CareerStatsModule = PersistentConfig.CareerStatsModule,
     GetPresetPageContext = GetPresetPageContext,
     GetPresetSlotOption = GetPresetSlotOption,
     GetPresetSurchargeForEntry = GetPresetSurchargeForEntry,
@@ -5282,15 +5287,6 @@ local function UpdateWeaponStatsDisplay(player)
     local playerChanged = (InputState.lastWeaponPlayer ~= player)
     local maskChanged = (InputState.lastWeaponMask ~= mask)
     local targetChanged = (InputState.lastWeaponTarget ~= target)
-
-    if mask <= 0 and page == PdaPages.STATS then
-        InputState.lastWeaponMask = mask
-        InputState.lastWeaponPlayer = player
-        InputState.lastWeaponText = nil
-        InputState.lastWeaponTarget = target
-        ClearWeaponStats()
-        return
-    end
 
     local msg = PersistentConfig.P.BuildWeaponStatsText(player, mask)
     local textChanged = (InputState.lastWeaponText ~= msg)
@@ -6468,6 +6464,7 @@ end
 function PersistentConfig.UpdateInputs()
     RuntimeEnhancements.Update()
     ConservativeCulling.Update()
+    PersistentConfig.CareerStatsModule.Update()
 
     -- Detect player craft change and reapply headlight settings
     local currentPlayerHandle = GetPlayerHandle()
@@ -7284,6 +7281,29 @@ function PersistentConfig.Initialize()
             return nil
         end,
     })
+    PersistentConfig.CareerStatsModule.Initialize({
+        log = Log,
+        registerHitCallback = function(fn)
+            if aiCore and type(aiCore.RegisterExuCallback) == "function" then
+                return aiCore.RegisterExuCallback("BulletHit", fn)
+            end
+            return false
+        end,
+        resolveProfileKey = function()
+            local steamID = exu and exu.GetSteam64 and exu.GetSteam64() or nil
+            steamID = CleanString(steamID or "")
+            if steamID ~= "" and steamID ~= "0" then
+                return steamID
+            end
+
+            local logID = ParseBzLogger()
+            if logID then
+                return tostring(logID)
+            end
+
+            return "offline"
+        end,
+    })
     MarkOtherHeadlightsDirty()
 
     -- Sync AutoSave config from settings
@@ -7367,6 +7387,7 @@ function PersistentConfig.Initialize()
         if SucceedMission then
             local oldSucceed = SucceedMission
             SucceedMission = function(...)
+                PersistentConfig.CareerStatsModule.OnMissionEnd(true)
                 PersistentConfig._DestroyAllPdaOverlays()
                 PersistentConfig.ReactiveReticleModule.Reset()
                 local subtit = GetScriptSubtitles()
@@ -7379,6 +7400,7 @@ function PersistentConfig.Initialize()
         if FailMission then
             local oldFail = FailMission
             FailMission = function(...)
+                PersistentConfig.CareerStatsModule.OnMissionEnd(false)
                 PersistentConfig._DestroyAllPdaOverlays()
                 PersistentConfig.ReactiveReticleModule.Reset()
                 local subtit = GetScriptSubtitles()
