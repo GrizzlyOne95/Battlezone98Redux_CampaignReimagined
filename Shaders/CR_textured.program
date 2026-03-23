@@ -92,6 +92,7 @@ fragment_program CR_Textured_fragment unified
 	default_params
     {
 		param_named_auto diffuseColor surface_diffuse_colour
+		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
     }

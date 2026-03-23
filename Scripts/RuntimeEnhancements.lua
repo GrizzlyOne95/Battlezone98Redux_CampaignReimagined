@@ -1,5 +1,6 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 local exu = require("exu")
+local bzfile = require("bzfile")
 
 local DEFAULT_TEAM_PROFILES = {
     [2] = {
@@ -38,6 +39,9 @@ local RuntimeEnhancements = {
     SupportsAutoLevel = false,
     SupportsPilotVisuals = false,
     ResourceGroup = "General",
+    DebugVisualLogging = true,
+    DebugLogPath = nil,
+    DebugSessionStarted = false,
 
     TeamProfiles = DeepCopy(DEFAULT_TEAM_PROFILES),
 
@@ -63,6 +67,8 @@ local RuntimeEnhancements = {
     AutoLevelHoldUntil = 0.0,
     LastUpdateAt = -1.0,
 }
+
+local VARIANT_PREFIX = "campaignReimagined_rt_"
 
 local function Clamp01(value)
     if value < 0.0 then return 0.0 end
@@ -111,6 +117,7 @@ end
 
 local function BuildPassColors(baseColors, profile, occupied)
     local colors = type(baseColors) == "table" and baseColors or {}
+    local baseEmissive = colors.emissive or colors.selfIllumination
 
     local ambient = ApplyProfile(colors.ambient or colors.diffuse, profile, profile and profile.ambientScale or 1.0, 0.35, false)
     local diffuse = ApplyProfile(colors.diffuse or colors.ambient, profile, profile and profile.diffuseScale or 1.0, 0.60, true)
@@ -118,7 +125,9 @@ local function BuildPassColors(baseColors, profile, occupied)
     local emissive
 
     if occupied then
-        emissive = ApplyProfile(colors.emissive or colors.selfIllumination, profile, profile and profile.emissiveScale or 1.0, 0.45, false)
+        emissive = baseEmissive
+            and ApplyProfile(baseEmissive, profile, profile and profile.emissiveScale or 1.0, 0.45, false)
+            or { r = 1.0, g = 1.0, b = 1.0, a = 1.0 }
     else
         emissive = { r = 0.0, g = 0.0, b = 0.0, a = 1.0 }
     end
@@ -138,10 +147,239 @@ local function SanitizeMaterialName(materialName)
     return sanitized
 end
 
+local function CleanScriptString(value)
+    if type(value) ~= "string" then
+        return ""
+    end
+
+    local cleaned = value:match("^[^%z]*") or ""
+    cleaned = cleaned:match("^%s*(.-)%s*$") or ""
+    return cleaned
+end
+
+local function StripKnownVariantSuffixes(name)
+    local stripped = tostring(name or "")
+    local changed = true
+    while changed and stripped ~= "" do
+        changed = false
+
+        local withoutOccupancy = stripped:gsub("_occupied$", "", 1)
+        if withoutOccupancy ~= stripped then
+            stripped = withoutOccupancy
+            changed = true
+        end
+
+        withoutOccupancy = stripped:gsub("_empty$", "", 1)
+        if withoutOccupancy ~= stripped then
+            stripped = withoutOccupancy
+            changed = true
+        end
+
+        local withoutNeutral = stripped:gsub("_neutral$", "", 1)
+        if withoutNeutral ~= stripped then
+            stripped = withoutNeutral
+            changed = true
+        end
+
+        local withoutTeam = stripped:gsub("_team%d+_[0-9a-fA-F]+$", "", 1)
+        if withoutTeam ~= stripped then
+            stripped = withoutTeam
+            changed = true
+        end
+    end
+
+    return stripped
+end
+
+local function RecoverRuntimeVariantBaseName(segment)
+    local recovered = tostring(segment or "")
+    local changed = true
+    while changed and recovered ~= "" do
+        changed = false
+
+        if recovered:sub(1, #"campaignReimagined_") == "campaignReimagined_" then
+            recovered = recovered:sub(#"campaignReimagined_" + 1)
+            changed = true
+        end
+
+        if recovered:sub(1, #VARIANT_PREFIX) == VARIANT_PREFIX then
+            recovered = recovered:sub(#VARIANT_PREFIX + 1)
+            changed = true
+        end
+
+        local stripped = StripKnownVariantSuffixes(recovered)
+        if stripped ~= recovered then
+            recovered = stripped
+            changed = true
+        end
+    end
+
+    return recovered
+end
+
+local function IsRuntimeVariantMaterialName(materialName)
+    local name = CleanScriptString(materialName)
+    if name == "" then
+        return false
+    end
+
+    if name:sub(1, #VARIANT_PREFIX) == VARIANT_PREFIX then
+        return true
+    end
+
+    if name:sub(1, #"campaignReimagined/") ~= "campaignReimagined/" then
+        return false
+    end
+
+    return name:match("/occupied$") ~= nil or name:match("/empty$") ~= nil
+end
+
+local function NormalizeBaseMaterialName(materialName)
+    local name = CleanScriptString(materialName)
+    if name == "" then
+        return nil
+    end
+
+    if not IsRuntimeVariantMaterialName(name) then
+        return name
+    end
+
+    local segment = name
+    if name:sub(1, #"campaignReimagined/") == "campaignReimagined/" then
+        segment = name:sub(#"campaignReimagined/" + 1)
+        segment = segment:match("^([^/]+)") or segment
+    end
+
+    local recovered = RecoverRuntimeVariantBaseName(segment)
+    if recovered ~= "" then
+        return recovered
+    end
+
+    return name
+end
+
+local function BuildVariantMaterialName(baseMaterialName, profile, occupied)
+    local profileName = profile and profile.name or "neutral"
+    local occupancy = occupied and "occupied" or "empty"
+    return VARIANT_PREFIX
+        .. SanitizeMaterialName(baseMaterialName)
+        .. "_"
+        .. SanitizeMaterialName(profileName)
+        .. "_"
+        .. occupancy
+end
+
+local function GetDebugLogPath()
+    if RuntimeEnhancements.DebugLogPath then
+        return RuntimeEnhancements.DebugLogPath
+    end
+
+    local workingDirectory = "."
+    if bzfile and type(bzfile.GetWorkingDirectory) == "function" then
+        local ok, result = pcall(bzfile.GetWorkingDirectory)
+        if ok and type(result) == "string" and result ~= "" then
+            workingDirectory = result
+        end
+    end
+
+    RuntimeEnhancements.DebugLogPath = workingDirectory .. "\\runtime_enhancements_debug.log"
+    return RuntimeEnhancements.DebugLogPath
+end
+
+local function DebugVisualLog(message)
+    if not RuntimeEnhancements.DebugVisualLogging then
+        return
+    end
+
+    local now = type(GetTime) == "function" and tonumber(GetTime() or 0.0) or 0.0
+    local line = string.format("[%.3f] %s\n", now, tostring(message or ""))
+    local path = GetDebugLogPath()
+
+    if bzfile and type(bzfile.Open) == "function" then
+        local ok, file = pcall(bzfile.Open, path, "w", "app")
+        if ok and file then
+            local writeOk = pcall(function()
+                if type(file.Writeln) == "function" then
+                    file:Writeln(line:gsub("\n$", ""))
+                elseif type(file.Write) == "function" then
+                    file:Write(line)
+                end
+                if type(file.Flush) == "function" then
+                    file:Flush()
+                end
+                if type(file.Close) == "function" then
+                    file:Close()
+                end
+            end)
+            if writeOk then
+                return
+            end
+        end
+    end
+
+    if print then
+        print("RuntimeEnhancements: " .. tostring(message or ""))
+    end
+end
+
+local function DescribeHandle(h)
+    local odf = CleanScriptString(GetOdf and GetOdf(h) or "")
+    local team = type(GetTeamNum) == "function" and tostring(GetTeamNum(h)) or "?"
+    return string.format("handle=%s odf=%s team=%s", tostring(h), odf ~= "" and odf or "?", team)
+end
+
 local function GetMaterialVariantKey(materialName, profile, occupied)
     local profileName = profile and profile.name or "neutral"
     local occupancy = occupied and "occupied" or "empty"
     return table.concat({ materialName, profileName, occupancy }, "|")
+end
+
+local function ReadbackMaterialName(handle, subIndex)
+    if not handle or not IsValid(handle) then
+        return nil
+    end
+
+    if subIndex ~= nil and exu.GetSubEntityMaterial then
+        local ok, materialName = pcall(exu.GetSubEntityMaterial, handle, subIndex)
+        if ok and type(materialName) == "string" and materialName ~= "" then
+            return materialName
+        end
+    elseif exu.GetMaterialName then
+        local ok, materialName = pcall(exu.GetMaterialName, handle)
+        if ok and type(materialName) == "string" and materialName ~= "" then
+            return materialName
+        end
+    end
+
+    return nil
+end
+
+local function ApplyMaterialToHandle(handle, subIndex, materialName)
+    local group = RuntimeEnhancements.ResourceGroup
+    local setterOk = false
+
+    if subIndex ~= nil then
+        if exu.SetSubEntityMaterial then
+            local ok, result = pcall(exu.SetSubEntityMaterial, handle, subIndex, materialName, group)
+            setterOk = setterOk or (ok and result ~= false)
+        end
+        if exu.SetMaterialName then
+            local ok, result = pcall(exu.SetMaterialName, handle, materialName, subIndex, group)
+            setterOk = setterOk or (ok and result ~= false)
+        end
+    else
+        if exu.SetEntityMaterial then
+            local ok, result = pcall(exu.SetEntityMaterial, handle, materialName, group)
+            setterOk = setterOk or (ok and result ~= false)
+        end
+        if exu.SetMaterialName then
+            local ok, result = pcall(exu.SetMaterialName, handle, materialName, nil, group)
+            setterOk = setterOk or (ok and result ~= false)
+        end
+    end
+
+    local readback = ReadbackMaterialName(handle, subIndex)
+    return readback == materialName or setterOk, readback
 end
 
 local function DisableDynamicMaterials(reason)
@@ -173,27 +411,36 @@ local function NoteMaterialFailure(stage, materialName)
 end
 
 local function EnsureMaterialVariant(materialName, profile, occupied)
-    local variantKey = GetMaterialVariantKey(materialName, profile, occupied)
+    local baseMaterialName = NormalizeBaseMaterialName(materialName)
+    if not baseMaterialName or baseMaterialName == "" then
+        return nil
+    end
+
+    local variantKey = GetMaterialVariantKey(baseMaterialName, profile, occupied)
     local cached = RuntimeEnhancements.MaterialVariants[variantKey]
     if cached then
         return cached
     end
 
-    local cloneName = "campaignReimagined/" .. SanitizeMaterialName(materialName) .. "/" .. (profile and profile.name or "neutral") .. "/" .. (occupied and "occupied" or "empty")
+    local cloneName = BuildVariantMaterialName(baseMaterialName, profile, occupied)
     local group = RuntimeEnhancements.ResourceGroup
 
-    if exu.MaterialExists and exu.MaterialExists(cloneName, group) then
-        RuntimeEnhancements.MaterialVariants[variantKey] = cloneName
-        return cloneName
+    if exu.MaterialExists then
+        local okExists, exists = pcall(exu.MaterialExists, cloneName, group)
+        if okExists and exists then
+            RuntimeEnhancements.MaterialVariants[variantKey] = cloneName
+            return cloneName
+        end
     end
 
-    local baseColors = RuntimeEnhancements.MaterialBaseColors[materialName]
+    local baseColors = RuntimeEnhancements.MaterialBaseColors[baseMaterialName]
     if not baseColors and exu.GetMaterialPassColors then
-        baseColors = exu.GetMaterialPassColors(materialName, 0, 0, group)
+        local okColors, value = pcall(exu.GetMaterialPassColors, baseMaterialName, 0, 0, group)
+        baseColors = okColors and value or nil
         if type(baseColors) == "table" then
-            RuntimeEnhancements.MaterialBaseColors[materialName] = baseColors
+            RuntimeEnhancements.MaterialBaseColors[baseMaterialName] = baseColors
         else
-            NoteMaterialFailure("GetMaterialPassColors", materialName)
+            NoteMaterialFailure("GetMaterialPassColors", baseMaterialName)
         end
     end
 
@@ -201,20 +448,31 @@ local function EnsureMaterialVariant(materialName, profile, occupied)
         return nil
     end
 
-    if exu.CloneMaterial and not exu.CloneMaterial(materialName, cloneName, group) then
-        if not (exu.MaterialExists and exu.MaterialExists(cloneName, group)) then
-            NoteMaterialFailure("CloneMaterial", materialName)
+    if exu.CloneMaterial then
+        local okClone, cloned = pcall(exu.CloneMaterial, baseMaterialName, cloneName, group)
+        local cloneExists = false
+        if exu.MaterialExists then
+            local okExists, exists = pcall(exu.MaterialExists, cloneName, group)
+            cloneExists = okExists and exists or false
+        end
+        if (not okClone or cloned == false) and not cloneExists then
+            NoteMaterialFailure("CloneMaterial", baseMaterialName)
             return nil
         end
     end
 
     local passColors = BuildPassColors(baseColors, profile, occupied)
-    if exu.SetMaterialPassColors and not exu.SetMaterialPassColors(cloneName, passColors, 0, 0, group) then
-        NoteMaterialFailure("SetMaterialPassColors", cloneName)
-        return nil
+    if exu.SetMaterialPassColors then
+        local okSetColors, setResult = pcall(exu.SetMaterialPassColors, cloneName, passColors, 0, 0, group)
+        if not okSetColors or setResult == false then
+            NoteMaterialFailure("SetMaterialPassColors", cloneName)
+            DebugVisualLog(string.format("variant-fail material=%s base=%s clone=%s stage=SetMaterialPassColors occupied=%s", tostring(materialName), tostring(baseMaterialName), tostring(cloneName), tostring(occupied)))
+            return nil
+        end
     end
 
     RuntimeEnhancements.MaterialVariants[variantKey] = cloneName
+    DebugVisualLog(string.format("variant-ready material=%s base=%s clone=%s occupied=%s profile=%s", tostring(materialName), tostring(baseMaterialName), tostring(cloneName), tostring(occupied), tostring(profile and profile.name or "neutral")))
     return cloneName
 end
 
@@ -227,7 +485,24 @@ local function SupportsPilotVehicleVisuals(h)
         return false
     end
 
-    return GetPilotClass and GetPilotClass(h) ~= nil
+    return true
+end
+
+local function GetPilotVehicleOccupancy(h)
+    local valid = h and IsValid(h) or false
+    if not valid then
+        return false, false, false
+    end
+
+    local alive = IsAlive and IsAlive(h) or false
+    local aliveAndPilot = IsAliveAndPilot and IsAliveAndPilot(h) or false
+    local occupied = aliveAndPilot
+
+    if not IsAliveAndPilot and IsAlive then
+        occupied = alive
+    end
+
+    return occupied, alive, aliveAndPilot
 end
 
 local function RegisterHandle(h)
@@ -244,6 +519,7 @@ local function RegisterHandle(h)
     if not RuntimeEnhancements.VisualHandleSet[h] then
         RuntimeEnhancements.VisualHandleSet[h] = true
         RuntimeEnhancements.VisualHandles[#RuntimeEnhancements.VisualHandles + 1] = h
+        DebugVisualLog("register " .. DescribeHandle(h) .. string.format(" profile=%s supportsPilot=%s", tostring(profile and profile.name or "none"), tostring(supportsPilot)))
     end
 
     local state = RuntimeEnhancements.ObjectStates[h]
@@ -288,20 +564,22 @@ local function PrepareState(state)
 
     if subCount > 0 then
         for index = 0, subCount - 1 do
-            local baseMaterial = exu.GetSubEntityMaterial and exu.GetSubEntityMaterial(h, index)
+            local baseMaterial = NormalizeBaseMaterialName(ReadbackMaterialName(h, index))
             if type(baseMaterial) == "string" and baseMaterial ~= "" then
                 materials[#materials + 1] = {
                     index = index,
+                    base = baseMaterial,
                     occupied = EnsureMaterialVariant(baseMaterial, state.profile, true),
                     empty = state.supportsPilot and EnsureMaterialVariant(baseMaterial, state.profile, false) or nil,
                 }
             end
         end
     else
-        local baseMaterial = exu.GetMaterialName and exu.GetMaterialName(h)
+        local baseMaterial = NormalizeBaseMaterialName(ReadbackMaterialName(h, nil))
         if type(baseMaterial) == "string" and baseMaterial ~= "" then
             materials[#materials + 1] = {
                 index = nil,
+                base = baseMaterial,
                 occupied = EnsureMaterialVariant(baseMaterial, state.profile, true),
                 empty = state.supportsPilot and EnsureMaterialVariant(baseMaterial, state.profile, false) or nil,
             }
@@ -310,10 +588,12 @@ local function PrepareState(state)
 
     if #materials == 0 then
         state.prepared = false
+        DebugVisualLog("prepare-empty " .. DescribeHandle(h))
         return false
     end
 
     state.materials = materials
+    DebugVisualLog("prepare-ready " .. DescribeHandle(h) .. string.format(" materialCount=%d firstOccupied=%s firstEmpty=%s", #materials, tostring(materials[1] and materials[1].occupied or "nil"), tostring(materials[1] and materials[1].empty or "nil")))
     return true
 end
 
@@ -322,26 +602,29 @@ local function ApplyStateVisuals(state)
         return
     end
 
-    local occupied = state.supportsPilot and IsAliveAndPilot(state.handle) or true
+    local occupied, alive, aliveAndPilot = state.supportsPilot and GetPilotVehicleOccupancy(state.handle) or true, true, true
     local desiredMode = occupied and "occupied" or "empty"
     if state.visualMode == desiredMode then
         return
     end
 
+    DebugVisualLog("apply-begin " .. DescribeHandle(state.handle) .. string.format(" supportsPilot=%s occupied=%s alive=%s aliveAndPilot=%s previous=%s desired=%s materials=%d", tostring(state.supportsPilot), tostring(occupied), tostring(alive), tostring(aliveAndPilot), tostring(state.visualMode), tostring(desiredMode), #(state.materials or {})))
+
+    local allApplied = true
     for _, material in ipairs(state.materials) do
         local target = occupied and material.occupied or material.empty or material.occupied
         if target then
-            if material.index ~= nil then
-                if exu.SetSubEntityMaterial then
-                    exu.SetSubEntityMaterial(state.handle, material.index, target, RuntimeEnhancements.ResourceGroup)
-                end
-            elseif exu.SetEntityMaterial then
-                exu.SetEntityMaterial(state.handle, target, RuntimeEnhancements.ResourceGroup)
-            end
+            local applied, readback = ApplyMaterialToHandle(state.handle, material.index, target)
+            allApplied = allApplied and applied
+            DebugVisualLog("apply-material " .. DescribeHandle(state.handle) .. string.format(" index=%s target=%s ok=%s readback=%s", tostring(material.index), tostring(target), tostring(applied), tostring(readback)))
+        else
+            allApplied = false
+            DebugVisualLog("apply-material-missing " .. DescribeHandle(state.handle) .. string.format(" index=%s desired=%s", tostring(material.index), tostring(desiredMode)))
         end
     end
 
-    state.visualMode = desiredMode
+    state.visualMode = allApplied and desiredMode or nil
+    DebugVisualLog("apply-done " .. DescribeHandle(state.handle) .. string.format(" visualMode=%s allApplied=%s", tostring(state.visualMode), tostring(allApplied)))
 end
 
 local function RefreshVisualHandleList()
@@ -514,6 +797,10 @@ function RuntimeEnhancements.Initialize()
     end
 
     RuntimeEnhancements.Initialized = true
+    if not RuntimeEnhancements.DebugSessionStarted then
+        RuntimeEnhancements.DebugSessionStarted = true
+        DebugVisualLog("=== RuntimeEnhancements session start ===")
+    end
     RuntimeEnhancements.SupportsDynamicMaterials = exu
         and not exu.isStub
         and exu.MaterialExists
@@ -522,6 +809,8 @@ function RuntimeEnhancements.Initialize()
         and exu.SetMaterialPassColors
         and (exu.GetSubEntityCount or exu.GetNumSubEntities)
         and exu.GetSubEntityMaterial
+        and exu.GetMaterialName
+        and exu.SetMaterialName
         and exu.SetSubEntityMaterial
         and exu.SetEntityMaterial
 
@@ -531,6 +820,7 @@ function RuntimeEnhancements.Initialize()
         and exu.SetAutoLevel
 
     RuntimeEnhancements.SupportsPilotVisuals = RuntimeEnhancements.SupportsDynamicMaterials
+    DebugVisualLog(string.format("initialize supportsDynamicMaterials=%s supportsAutoLevel=%s", tostring(RuntimeEnhancements.SupportsDynamicMaterials), tostring(RuntimeEnhancements.SupportsAutoLevel)))
 end
 
 local function NormalizeTeamColorComponent(value)
@@ -548,7 +838,22 @@ local function TeamColorName(teamNum, color)
     return string.format("team%d_%02x%02x%02x", teamNum, r, g, b)
 end
 
+local function ResolveTeamColorProfile(teamNum)
+    local resolvedTeam = math.max(0, math.floor(tonumber(teamNum) or 0))
+    return resolvedTeam, RuntimeEnhancements.TeamProfiles[resolvedTeam]
+end
+
 function RuntimeEnhancements.ResetVisualState()
+    for _, state in pairs(RuntimeEnhancements.ObjectStates or {}) do
+        if state and state.handle and IsValid(state.handle) and type(state.materials) == "table" then
+            for _, material in ipairs(state.materials) do
+                if material and material.base then
+                    ApplyMaterialToHandle(state.handle, material.index, material.base)
+                end
+            end
+        end
+    end
+
     RuntimeEnhancements.MaterialVariants = {}
     RuntimeEnhancements.ObjectStates = {}
     RuntimeEnhancements.VisualHandles = {}
@@ -562,6 +867,7 @@ end
 
 function RuntimeEnhancements.ResetTeamColors()
     RuntimeEnhancements.TeamProfiles = DeepCopy(DEFAULT_TEAM_PROFILES)
+    DebugVisualLog("team-color-reset all")
     RuntimeEnhancements.ResetVisualState()
 end
 
@@ -582,6 +888,8 @@ function RuntimeEnhancements.SetTeamColor(teamNum, r, g, b)
         specularScale = 0.95,
         emissiveScale = 1.00,
     }
+    DebugVisualLog(string.format("team-color-set team=%d profile=%s", resolvedTeam,
+        tostring(RuntimeEnhancements.TeamProfiles[resolvedTeam] and RuntimeEnhancements.TeamProfiles[resolvedTeam].name or "nil")))
 
     RuntimeEnhancements.ResetVisualState()
     if RuntimeEnhancements.Initialized and RuntimeEnhancements.SupportsDynamicMaterials then
@@ -594,10 +902,17 @@ end
 function RuntimeEnhancements.ClearTeamColor(teamNum)
     local resolvedTeam = math.max(0, math.floor(tonumber(teamNum) or 0))
     RuntimeEnhancements.TeamProfiles[resolvedTeam] = nil
+    DebugVisualLog(string.format("team-color-clear team=%d", resolvedTeam))
     RuntimeEnhancements.ResetVisualState()
     if RuntimeEnhancements.Initialized and RuntimeEnhancements.SupportsDynamicMaterials then
         RefreshVisualHandleList()
     end
+    return true
+end
+
+function RuntimeEnhancements.GetTeamColorProfileName(teamNum)
+    local _, profile = ResolveTeamColorProfile(teamNum)
+    return profile and profile.name or nil
 end
 
 function RuntimeEnhancements.RebuildVisuals()
@@ -647,6 +962,10 @@ end
 
 ClearTeamColor = function(teamNum)
     return RuntimeEnhancements.ClearTeamColor(teamNum)
+end
+
+GetTeamColorProfileName = function(teamNum)
+    return RuntimeEnhancements.GetTeamColorProfileName(teamNum)
 end
 
 ResetTeamColors = function()

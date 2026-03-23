@@ -228,6 +228,9 @@ void base_fragment(
 #if defined(EMISSIVEMAP_ENABLED)
 	uniform Texture2D emissiveMap : register(t3),
 	uniform SamplerState emissiveSam : register(s3),
+#if defined(ENHANCED_MODE)
+	uniform float4 materialEmissive,
+#endif
 #endif
 #if defined(SHADOWRECEIVER) 
 	uniform Texture2D shadowMap1 : register(t4),	
@@ -505,7 +508,12 @@ void base_fragment(
 #if defined(EMISSIVEMAP_ENABLED)
 	// emissive texture
 	float3 emissiveTex = emissiveMap.Sample(emissiveSam, vTexCoord).xyz;
+#if defined(ENHANCED_MODE)
+	float emissiveMask = max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z)) > 1e-4 ? 1.0 : 0.0;
+	oColor.xyz += emissiveTex.xyz * emissiveMask;
+#else
 	oColor.xyz += emissiveTex.xyz;
+#endif
 #endif
 
 	// fog

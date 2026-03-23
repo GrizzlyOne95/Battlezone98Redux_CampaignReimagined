@@ -101,6 +101,12 @@ PersistentConfig.DefaultSettings = {
     ScrapPilotHudLayout = 1,        -- 1=Stock 2=Legacy
     RadarSizeScale = 1.00,          -- Independent radar size scale
     DynamicFactionFlameColors = true, -- Team flame colors from faction nation codes
+    BomberAiRangeEnabled = true,    -- Campaign enables EXU-gated bomber AI range behavior
+    HowitzerVolleyEnabled = true,   -- Campaign enables EXU-gated howitzer volley behavior
+    WeaponMaskCarrierBiasEnabled = true, -- Campaign enables EXU-gated weapon-mask carrier bias
+    AiOdfGameplayTuningEnabled = true, -- Campaign enables EXU-gated AI ODF gameplay tuning
+    TurretAimPitchEnabled = true,   -- Campaign enables EXU-gated turret aim pitch override
+    AttackRevealEnabled = true,     -- Campaign enables EXU-gated attack reveal where supported
 }
 
 PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
@@ -429,6 +435,67 @@ local function GetBzFileHash(path)
     return nil
 end
 
+local function GetPathLeaf(path)
+    if not path or path == "" then
+        return nil
+    end
+
+    return path:match("([^\\/]+)$") or path
+end
+
+local function GetOpenShimReplaceLogPath(destinationPath)
+    local normalized = NormalizeInstallerPath(destinationPath)
+    if not normalized or normalized == "" then
+        return nil
+    end
+
+    local directory = normalized:match("^(.*)\\[^\\]+$") or ""
+    local fileName = GetPathLeaf(normalized) or "winmm.dll"
+    local stem = fileName:gsub("%.[^.]+$", "")
+    local logFile = stem .. "_replace.log"
+    if directory == "" then
+        return logFile
+    end
+
+    return directory .. "\\" .. logFile
+end
+
+local function WriteOpenShimInstallerDescriptionFile(relativePath, text)
+    if not relativePath or relativePath == "" or type(text) ~= "string" or text == "" then
+        return nil
+    end
+
+    local workingDirectory = NormalizeInstallerPath(getWorkingDirectory())
+    if not workingDirectory or workingDirectory == "" then
+        return nil
+    end
+
+    local fullPath = workingDirectory .. "\\" .. relativePath
+    if bzfile and type(bzfile.Open) == "function" then
+        local ok, err = pcall(function()
+            local handle = bzfile.Open(fullPath, "w", "trunc")
+            handle:Write(text)
+            handle:Close()
+        end)
+        if ok then
+            return relativePath
+        end
+
+        print("PersistentConfig: Failed to write OpenShim installer description via bzfile: " .. tostring(err))
+    end
+
+    if io and type(io.open) == "function" then
+        local handle = io.open(fullPath, "w")
+        if handle then
+            handle:write(text)
+            handle:close()
+            return relativePath
+        end
+    end
+
+    return nil
+end
+
 local function GetBundledOpenShimSourcePath()
     local workingDirectory = NormalizeInstallerPath(getWorkingDirectory())
     local workshopDirectory = GetWorkshopContentDirectory()
@@ -479,7 +546,7 @@ local function ConfirmBundledOpenShimCopy(sourcePath, destinationPath)
     return true
 end
 
-local function ShowOpenShimInstallMissionOutcome(state)
+local function ShowOpenShimInstallMissionOutcome(state, failureLogPath)
     local missionTime = (GetTime and GetTime()) or 0.0
     if state == "installed" or state == "updated" or state == "staged" then
         local descriptionFile = PersistentConfig.OpenShimInstaller.installedDescriptionFile
@@ -501,13 +568,31 @@ local function ShowOpenShimInstallMissionOutcome(state)
         return
     end
 
+    local failureMessage = "OpenShim self-install failed. Restart Battlezone and verify the mod files."
+    local descriptionFile = PersistentConfig.OpenShimInstaller.failureDescriptionFile
+    if failureLogPath and failureLogPath ~= "" then
+        local logFileName = GetPathLeaf(failureLogPath) or "winmm_replace.log"
+        failureMessage = "OpenShim self-install failed. Check " .. logFileName .. " in the Battlezone folder."
+
+        local runtimeDescriptionFile = WriteOpenShimInstallerDescriptionFile(
+            "openshim_failure_runtime.des",
+            "Campaign Reimagined could not install or update OpenShim. Check " ..
+            failureLogPath ..
+            " for details, then restart Battlezone and verify the mod files before continuing.")
+        if runtimeDescriptionFile then
+            descriptionFile = runtimeDescriptionFile
+        end
+    end
+
     if FailMission then
-        FailMission(missionTime, PersistentConfig.OpenShimInstaller.failureDescriptionFile)
+        if descriptionFile == PersistentConfig.OpenShimInstaller.failureDescriptionFile and failureMessage ~= "" then
+            ShowFeedback(failureMessage, 1.0, 0.35, 0.35, 12.0, true)
+        end
+        FailMission(missionTime, descriptionFile)
         return
     end
 
-    ShowFeedback("OpenShim self-install failed. Restart Battlezone and verify the mod files.", 1.0, 0.35, 0.35,
-        12.0, true)
+    ShowFeedback(failureMessage, 1.0, 0.35, 0.35, 12.0, true)
 end
 
 local function StageBundledOpenShimReplaceOnExit(sourcePath, destinationPath)
@@ -537,6 +622,7 @@ local function EnsureBundledOpenShimInstalled()
 
     local workingDirectory = getWorkingDirectory()
     local destinationPath = workingDirectory .. "\\winmm.dll"
+    local replaceLogPath = GetOpenShimReplaceLogPath(destinationPath)
     local sourcePath = GetBundledOpenShimSourcePath()
     if not sourcePath then
         print("PersistentConfig: No bundled OpenShim winmm.dll found; skipping self-install.")
@@ -570,17 +656,24 @@ local function EnsureBundledOpenShimInstalled()
         local staged, stageError = StageBundledOpenShimReplaceOnExit(sourcePath, destinationPath)
         if staged then
             print("PersistentConfig: Queued bundled OpenShim replacement for next game restart at " .. destinationPath)
+            if replaceLogPath then
+                print("PersistentConfig: If the queued OpenShim replacement does not finish after exit, check " ..
+                    replaceLogPath)
+            end
             ShowOpenShimInstallMissionOutcome("staged")
             return
         end
 
         local immediateError = ok and tostring(copyError or "copy failed or could not be confirmed") or tostring(copied)
-        print("PersistentConfig: Deferred OpenShim self-install also failed. Immediate error: " .. immediateError .. "; deferred error: " .. tostring(stageError))
+        print("PersistentConfig: Deferred OpenShim self-install also failed. Immediate error: " ..
+            immediateError .. "; deferred error: " .. tostring(stageError) ..
+            (replaceLogPath and ("; helper log: " .. replaceLogPath) or ""))
     end
 
     local errorText = ok and tostring(copyError or "copy failed or could not be confirmed") or tostring(copied)
-    print("PersistentConfig: OpenShim self-install failed: " .. errorText)
-    ShowOpenShimInstallMissionOutcome("failed")
+    print("PersistentConfig: OpenShim self-install failed: " .. errorText ..
+        (replaceLogPath and ("; check " .. replaceLogPath) or ""))
+    ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
 end
 
 -- Logging Helper
@@ -736,6 +829,31 @@ end
 
 local function GetPdaColorPreset()
     return PdaColorPresets[ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)]
+end
+
+function PersistentConfig._ApplyMissionGameplayHookSettings()
+    if not exu then
+        return
+    end
+
+    if exu.SetBomberAiRangeEnabled then
+        exu.SetBomberAiRangeEnabled(not not PersistentConfig.Settings.BomberAiRangeEnabled)
+    end
+    if exu.SetHowitzerVolleyEnabled then
+        exu.SetHowitzerVolleyEnabled(not not PersistentConfig.Settings.HowitzerVolleyEnabled)
+    end
+    if exu.SetWeaponMaskCarrierBiasEnabled then
+        exu.SetWeaponMaskCarrierBiasEnabled(not not PersistentConfig.Settings.WeaponMaskCarrierBiasEnabled)
+    end
+    if exu.SetAiOdfGameplayTuningEnabled then
+        exu.SetAiOdfGameplayTuningEnabled(not not PersistentConfig.Settings.AiOdfGameplayTuningEnabled)
+    end
+    if exu.SetTurretAimPitchEnabled then
+        exu.SetTurretAimPitchEnabled(not not PersistentConfig.Settings.TurretAimPitchEnabled)
+    end
+    if exu.SetAttackRevealEnabled then
+        exu.SetAttackRevealEnabled(not not PersistentConfig.Settings.AttackRevealEnabled)
+    end
 end
 
 function PersistentConfig._GetTeamColorPreset()
@@ -2262,6 +2380,10 @@ local function ShowPdaFeedback(msg, r, g, b, duration)
     end
 end
 
+local function ShowSettingsFeedback(msg, r, g, b, duration)
+    ShowFeedback(msg, r, g, b, duration or 2.5, false, "pda")
+end
+
 local function ShowWeaponStats(msg, duration)
     if PersistentConfig._ShowPdaOverlay("stats", msg, duration or 86400.0, nil, nil, nil,
             InputState and InputState.pdaPage or PdaPages.STATS) then
@@ -2544,6 +2666,9 @@ InputState = {
     pdaOverlayRefreshReason = nil,
     nextRadarScaleCheck = 0.0,
     radarScaleSyncPending = false,
+    nextTeamColorCheck = 0.0,
+    nextTeamColorStabilizeUntil = 0.0,
+    teamColorSyncPending = false,
     nextRetroLightingCheck = 0.0,
     nextRetroLightingStabilizeUntil = 0.0,
     lightingModeSyncPending = false,
@@ -2594,6 +2719,11 @@ InputState = {
 
 PersistentConfig.RetroLightingIntervals = PersistentConfig.D.RetroLightingIntervals
 PersistentConfig.LightingModePresets = PersistentConfig.D.LightingModePresets
+PersistentConfig.TeamColorSyncIntervals = {
+    heartbeat = 1.0,
+    stabilize = 0.2,
+    stabilizeDuration = 1.5,
+}
 
 -- Beam Definitions
 PersistentConfig.HeadlightBeamModes = PersistentConfig.D.BeamModes
@@ -3692,6 +3822,8 @@ local function GetAppliedRadarSizeScaleSetting()
     return GetRadarSizeScaleSetting()
 end
 
+local CachedLegacyScrapPilotCommandMenuRect = nil
+
 local function ApplyLegacyScrapPilotHudTopLeft()
     if not exu then
         return false
@@ -3705,9 +3837,46 @@ local function ApplyLegacyScrapPilotHudTopLeft()
         -- the current screen resolution. This prevents the text from drifting back into the menu at higher HUD scales.
         local commandMenuLeft = math.floor(8 * uiScale)
         local commandMenuTop = math.floor(10 * uiScale)
-        local estimatedCommandMenuWidth = math.floor(171 * uiScale)
-        local commandMenuGap = math.floor(10 * uiScale)
-        local anchorX = commandMenuLeft + estimatedCommandMenuWidth + commandMenuGap
+        local commandMenuGap = math.max(4, math.floor(8 * uiScale))
+        local commandMenuTextClearance = math.max(20, math.floor(42 * uiScale))
+        local commandMenuRight = nil
+
+        if type(exu.GetCommandMenuRect) == "function" then
+            local rectOk, rectLeft, rectTop, rectRight, rectBottom = pcall(exu.GetCommandMenuRect)
+            if rectOk and type(rectLeft) == "number" and type(rectTop) == "number" and type(rectRight) == "number"
+                and type(rectBottom) == "number" then
+                CachedLegacyScrapPilotCommandMenuRect = {
+                    left = rectLeft,
+                    top = rectTop,
+                    right = rectRight,
+                    bottom = rectBottom,
+                }
+                commandMenuLeft = rectLeft
+                commandMenuRight = rectLeft + math.floor(193 * uiScale)
+
+                -- The native rect tracks the live command-button stack exactly. The stock frame extends slightly above
+                -- and to the right of that stack, so expand back out to the visible HUD frame when the sprite bridge
+                -- is unavailable.
+                commandMenuTop = rectTop - math.floor(16 * uiScale)
+            elseif type(CachedLegacyScrapPilotCommandMenuRect) == "table" then
+                commandMenuLeft = CachedLegacyScrapPilotCommandMenuRect.left or commandMenuLeft
+                commandMenuRight = (CachedLegacyScrapPilotCommandMenuRect.left or commandMenuLeft) +
+                    math.floor(193 * uiScale)
+                commandMenuTop = (CachedLegacyScrapPilotCommandMenuRect.top or commandMenuTop) -
+                    math.floor(16 * uiScale)
+            end
+        elseif type(CachedLegacyScrapPilotCommandMenuRect) == "table" then
+            commandMenuLeft = CachedLegacyScrapPilotCommandMenuRect.left or commandMenuLeft
+            commandMenuRight = (CachedLegacyScrapPilotCommandMenuRect.left or commandMenuLeft) +
+                math.floor(193 * uiScale)
+            commandMenuTop = (CachedLegacyScrapPilotCommandMenuRect.top or commandMenuTop) -
+                math.floor(16 * uiScale)
+        end
+
+        -- The stock scrap/pilot counter draw uses an internal text anchor that still leaves glyphs extending left of
+        -- the requested X position, so keep a little extra clearance beyond the menu frame edge.
+        local anchorX = (commandMenuRight or (commandMenuLeft + math.floor(193 * uiScale))) +
+            commandMenuGap + commandMenuTextClearance
         local scrapY = commandMenuTop + math.floor(2 * uiScale)
         local pilotY = scrapY + math.floor(48 * uiScale)
 
@@ -3742,14 +3911,69 @@ local StockScrapPilotHudSpriteNames = {
     "fpilot_panel",
 }
 
-local function SetStockScrapPilotHudSpritesVisible(visible)
-    if not exu or type(exu.SetHudSpriteVisible) ~= "function" then
+local function TrySetStockScrapPilotHudSpritesVisibleNative(visible)
+    if not exu then
         return false
+    end
+
+    -- OpenShim batches all six stock scrap/pilot frame sprites behind the stock panel bridge names, so try the
+    -- primary panel once first and only fall back to the older per-sprite loop when that native fast-path is absent.
+    local primarySpriteName = StockScrapPilotHudSpriteNames[1]
+    if not primarySpriteName then
+        return false
+    end
+
+    local ok = false
+    local result = false
+    if visible then
+        if type(exu.RestoreHudSprite) == "function" then
+            ok, result = pcall(exu.RestoreHudSprite, primarySpriteName)
+        end
+        if (not ok or result == false) and type(exu.SetHudSpriteVisible) == "function" then
+            ok, result = pcall(exu.SetHudSpriteVisible, primarySpriteName, true)
+        end
+    else
+        if type(exu.SetHudSpriteRect) == "function" then
+            ok, result = pcall(exu.SetHudSpriteRect, primarySpriteName, 0, 0, 0, 0)
+        end
+        if (not ok or result == false) and type(exu.SetHudSpriteVisible) == "function" then
+            ok, result = pcall(exu.SetHudSpriteVisible, primarySpriteName, false)
+        end
+    end
+
+    return ok and result ~= false
+end
+
+local function SetStockScrapPilotHudSpritesVisible(visible)
+    if not exu then
+        return false
+    end
+
+    if TrySetStockScrapPilotHudSpritesVisibleNative(visible) then
+        return true
     end
 
     local anySucceeded = false
     for _, spriteName in ipairs(StockScrapPilotHudSpriteNames) do
-        local ok, result = pcall(exu.SetHudSpriteVisible, spriteName, visible)
+        local ok = false
+        local result = false
+
+        if visible then
+            if type(exu.RestoreHudSprite) == "function" then
+                ok, result = pcall(exu.RestoreHudSprite, spriteName)
+            end
+            if (not ok or result == false) and type(exu.SetHudSpriteVisible) == "function" then
+                ok, result = pcall(exu.SetHudSpriteVisible, spriteName, true)
+            end
+        else
+            if type(exu.SetHudSpriteRect) == "function" then
+                ok, result = pcall(exu.SetHudSpriteRect, spriteName, 0, 0, 0, 0)
+            end
+            if (not ok or result == false) and type(exu.SetHudSpriteVisible) == "function" then
+                ok, result = pcall(exu.SetHudSpriteVisible, spriteName, false)
+            end
+        end
+
         if ok and result ~= false then
             anySucceeded = true
         end
@@ -3825,6 +4049,7 @@ function PersistentConfig._SyncLightingMode(force)
     local preset = PersistentConfig._GetLightingModePreset()
     local targetMode = (preset and preset.mode) or "default"
     local activeMode = GetActiveLightingMode()
+    local previousAppliedMode = PersistentConfig._AppliedLightingMode or activeMode
     if not force and PersistentConfig._AppliedLightingMode == targetMode and activeMode == targetMode then
         return false
     end
@@ -3849,8 +4074,13 @@ function PersistentConfig._SyncLightingMode(force)
     end
 
     if applied then
-        PersistentConfig._AppliedLightingMode = verifiedMode or targetMode
+        local resolvedMode = verifiedMode or targetMode
+        local modeChanged = previousAppliedMode ~= resolvedMode
+        PersistentConfig._AppliedLightingMode = resolvedMode
         PersistentConfig.Settings.RetroLighting = (PersistentConfig._AppliedLightingMode == "retro")
+        if modeChanged and RuntimeEnhancements and type(RuntimeEnhancements.ResetVisualState) == "function" then
+            pcall(RuntimeEnhancements.ResetVisualState)
+        end
     else
         PersistentConfig._AppliedLightingMode = nil
     end
@@ -3879,6 +4109,29 @@ function PersistentConfig._CancelLightingModeResync()
     InputState.lightingModeSyncPending = false
     InputState.nextRetroLightingCheck = 0.0
     InputState.nextRetroLightingStabilizeUntil = 0.0
+end
+
+function PersistentConfig._RequestTeamColorResync(duration)
+    local intervals = PersistentConfig.TeamColorSyncIntervals or {}
+    local now = (type(GetTime) == "function" and GetTime()) or 0.0
+    local window = tonumber(duration) or intervals.stabilizeDuration or 1.5
+
+    InputState.teamColorSyncPending = true
+    InputState.nextTeamColorCheck = 0.0
+    if window > 0 then
+        InputState.nextTeamColorStabilizeUntil = math.max(
+            tonumber(InputState.nextTeamColorStabilizeUntil) or 0.0,
+            now + window
+        )
+    else
+        InputState.nextTeamColorStabilizeUntil = 0.0
+    end
+end
+
+function PersistentConfig._CancelTeamColorResync()
+    InputState.teamColorSyncPending = false
+    InputState.nextTeamColorCheck = 0.0
+    InputState.nextTeamColorStabilizeUntil = 0.0
 end
 
 function PersistentConfig._RequestRadarScaleResync()
@@ -4019,19 +4272,220 @@ function PersistentConfig._ApplyDynamicFactionFlameColors()
     return true
 end
 
+function PersistentConfig._DescribeTeamColorProfileName(profileName)
+    local cleaned = CleanString(profileName or "")
+    if cleaned == "" then
+        return "default"
+    end
+    return cleaned
+end
+
+function PersistentConfig._GetRequestedTeamColorPresetIndex()
+    return ClampIndex(
+        PersistentConfig.Settings.TeamColorPreset,
+        1,
+        #TeamColorPresets,
+        PersistentConfig.DefaultSettings.TeamColorPreset or 1
+    )
+end
+
+function PersistentConfig._EncodeTeamColorComponent(value)
+    local numeric = tonumber(value) or 0.0
+    if numeric < 0.0 then
+        numeric = 0.0
+    elseif numeric > 1.0 then
+        numeric = 1.0
+    end
+    return math.floor((numeric * 255.0) + 0.5)
+end
+
+function PersistentConfig._GetRequestedTeamColorProfileName()
+    local preset = PersistentConfig._GetTeamColorPreset()
+    if not preset or preset.clear then
+        return nil
+    end
+
+    return string.format("team1_%02x%02x%02x",
+        PersistentConfig._EncodeTeamColorComponent(preset.r),
+        PersistentConfig._EncodeTeamColorComponent(preset.g),
+        PersistentConfig._EncodeTeamColorComponent(preset.b))
+end
+
+function PersistentConfig._GetRuntimeTeamColorProfileState()
+    local getter = nil
+    local source = nil
+    if RuntimeEnhancements and type(RuntimeEnhancements.GetTeamColorProfileName) == "function" then
+        getter = RuntimeEnhancements.GetTeamColorProfileName
+        source = "RuntimeEnhancements"
+    elseif type(GetTeamColorProfileName) == "function" then
+        getter = GetTeamColorProfileName
+        source = "global"
+    else
+        return false, nil, "unavailable"
+    end
+
+    local ok, profileName = pcall(getter, 1)
+    if not ok then
+        return false, nil, source .. "-error"
+    end
+
+    local cleaned = CleanString(profileName or "")
+    if cleaned == "" then
+        cleaned = nil
+    end
+    return true, cleaned, source
+end
+
+function PersistentConfig._LogTeamColorSync(message)
+    print("PersistentConfig: TeamColor " .. tostring(message))
+end
+
 function PersistentConfig._ApplyTeamColorSettings()
-    if type(SetTeamColor) ~= "function" or type(ClearTeamColor) ~= "function" then
+    local preset = PersistentConfig._GetTeamColorPreset()
+    local presetIndex = PersistentConfig._GetRequestedTeamColorPresetIndex()
+    local requestedProfileName = PersistentConfig._GetRequestedTeamColorProfileName()
+    local applyFn = nil
+    local applyTarget = nil
+
+    if not preset or preset.clear then
+        if RuntimeEnhancements and type(RuntimeEnhancements.ClearTeamColor) == "function" then
+            applyFn = RuntimeEnhancements.ClearTeamColor
+            applyTarget = "RuntimeEnhancements.ClearTeamColor"
+        elseif type(ClearTeamColor) == "function" then
+            applyFn = ClearTeamColor
+            applyTarget = "global ClearTeamColor"
+        end
+
+        if not applyFn then
+            PersistentConfig._LogTeamColorSync(string.format(
+                "apply preset=%d/%s requested=%s target=missing ok=false",
+                presetIndex,
+                tostring(preset and preset.name or "DEFAULT"),
+                PersistentConfig._DescribeTeamColorProfileName(requestedProfileName)
+            ))
+            return false
+        end
+
+        local ok, result = pcall(applyFn, 1)
+        local applied = ok and result ~= false
+        PersistentConfig._LogTeamColorSync(string.format(
+            "apply preset=%d/%s requested=%s target=%s ok=%s result=%s",
+            presetIndex,
+            tostring(preset and preset.name or "DEFAULT"),
+            PersistentConfig._DescribeTeamColorProfileName(requestedProfileName),
+            tostring(applyTarget),
+            tostring(applied),
+            tostring(result)
+        ))
+        return applied
+    end
+
+    if RuntimeEnhancements and type(RuntimeEnhancements.SetTeamColor) == "function" then
+        applyFn = RuntimeEnhancements.SetTeamColor
+        applyTarget = "RuntimeEnhancements.SetTeamColor"
+    elseif type(SetTeamColor) == "function" then
+        applyFn = SetTeamColor
+        applyTarget = "global SetTeamColor"
+    end
+
+    if not applyFn then
+        PersistentConfig._LogTeamColorSync(string.format(
+            "apply preset=%d/%s requested=%s target=missing ok=false",
+            presetIndex,
+            tostring(preset.name),
+            PersistentConfig._DescribeTeamColorProfileName(requestedProfileName)
+        ))
         return false
     end
 
+    local ok, result = pcall(applyFn, 1, preset.r, preset.g, preset.b)
+    local applied = ok and result ~= false
+    PersistentConfig._LogTeamColorSync(string.format(
+        "apply preset=%d/%s requested=%s target=%s ok=%s result=%s",
+        presetIndex,
+        tostring(preset.name),
+        PersistentConfig._DescribeTeamColorProfileName(requestedProfileName),
+        tostring(applyTarget),
+        tostring(applied),
+        tostring(result)
+    ))
+    return applied
+end
+
+function PersistentConfig._SyncTeamColorSettings(force, reason)
     local preset = PersistentConfig._GetTeamColorPreset()
-    if not preset or preset.clear then
-        pcall(ClearTeamColor, 1)
-        return true
+    local presetIndex = PersistentConfig._GetRequestedTeamColorPresetIndex()
+    local requestedProfileName = PersistentConfig._GetRequestedTeamColorProfileName()
+    local requestedLabel = PersistentConfig._DescribeTeamColorProfileName(requestedProfileName)
+    local cachedProfileName = PersistentConfig._AppliedTeamColorSignature
+    local actualAvailableBefore, actualProfileBefore, actualSourceBefore = PersistentConfig._GetRuntimeTeamColorProfileState()
+    local cacheMismatch = (cachedProfileName ~= requestedProfileName)
+    local runtimeMismatch = (not actualAvailableBefore) or (actualProfileBefore ~= requestedProfileName)
+    local needsApply = cacheMismatch or runtimeMismatch
+    local applied = false
+
+    PersistentConfig._LogTeamColorSync(string.format(
+        "sync-begin reason=%s force=%s preset=%d/%s requested=%s actual=%s source=%s cached=%s needsApply=%s",
+        tostring(reason or "unspecified"),
+        tostring(force),
+        presetIndex,
+        tostring(preset and preset.name or "DEFAULT"),
+        requestedLabel,
+        PersistentConfig._DescribeTeamColorProfileName(actualProfileBefore),
+        tostring(actualSourceBefore),
+        PersistentConfig._DescribeTeamColorProfileName(cachedProfileName),
+        tostring(needsApply)
+    ))
+
+    if needsApply then
+        applied = PersistentConfig._ApplyTeamColorSettings()
     end
 
-    pcall(SetTeamColor, 1, preset.r, preset.g, preset.b)
-    return true
+    local actualAvailableAfter, actualProfileAfter, actualSourceAfter = PersistentConfig._GetRuntimeTeamColorProfileState()
+    local verified = actualAvailableAfter and (actualProfileAfter == requestedProfileName)
+    if verified then
+        PersistentConfig._AppliedTeamColorSignature = requestedProfileName
+    elseif actualAvailableAfter then
+        PersistentConfig._AppliedTeamColorSignature = actualProfileAfter
+    else
+        PersistentConfig._AppliedTeamColorSignature = nil
+    end
+
+    local needsRebuild = force or applied or (actualProfileAfter ~= actualProfileBefore)
+    if needsRebuild
+        and RuntimeEnhancements
+        and type(RuntimeEnhancements.RebuildVisuals) == "function"
+    then
+        local rebuildReason = reason or "sync"
+        if applied then
+            rebuildReason = tostring(rebuildReason) .. "+apply"
+        elseif actualProfileAfter ~= actualProfileBefore then
+            rebuildReason = tostring(rebuildReason) .. "+runtime"
+        elseif force then
+            rebuildReason = tostring(rebuildReason) .. "+force"
+        end
+        PersistentConfig._LogTeamColorSync(string.format(
+            "rebuild reason=%s requested=%s actual=%s verified=%s",
+            tostring(rebuildReason),
+            requestedLabel,
+            PersistentConfig._DescribeTeamColorProfileName(actualProfileAfter),
+            tostring(verified)
+        ))
+        pcall(RuntimeEnhancements.RebuildVisuals)
+    end
+
+    PersistentConfig._LogTeamColorSync(string.format(
+        "sync-end reason=%s requested=%s actual=%s source=%s cached=%s applied=%s verified=%s",
+        tostring(reason or "unspecified"),
+        requestedLabel,
+        PersistentConfig._DescribeTeamColorProfileName(actualProfileAfter),
+        tostring(actualSourceAfter),
+        PersistentConfig._DescribeTeamColorProfileName(PersistentConfig._AppliedTeamColorSignature),
+        tostring(applied),
+        tostring(verified)
+    ))
+
+    return verified
 end
 
 local function GetHardpointCategory(hardpointName)
@@ -4941,7 +5395,9 @@ function PersistentConfig.ApplyScrapPilotHudLayout()
 
     if layoutIndex ~= 2 then
         SetStockScrapPilotHudSpritesVisible(true)
-        if exu.SetScrapPilotHudOffset then
+        if type(exu.RestoreScrapPilotHudDefault) == "function" then
+            pcall(exu.RestoreScrapPilotHudDefault)
+        elseif exu.SetScrapPilotHudOffset then
             exu.SetScrapPilotHudOffset(0, 0)
         end
         return
@@ -5019,13 +5475,14 @@ function PersistentConfig._SettingsActions.CycleHeadlightColor(delta)
 
     if preset.rainbow then
         PersistentConfig.Settings.RainbowMode = true
-        ShowFeedback("Rainbow Mode: ACTIVATE", preset.feedbackR or 1.0, preset.feedbackG or 0.5, preset.feedbackB or 1.0)
+        ShowSettingsFeedback("Rainbow Mode: ACTIVATE", preset.feedbackR or 1.0, preset.feedbackG or 0.5,
+            preset.feedbackB or 1.0)
     else
         PersistentConfig.Settings.RainbowMode = false
         PersistentConfig.Settings.HeadlightDiffuse.R = preset.r
         PersistentConfig.Settings.HeadlightDiffuse.G = preset.g
         PersistentConfig.Settings.HeadlightDiffuse.B = preset.b
-        ShowFeedback("Headlight Color: " .. preset.name, preset.r, preset.g, preset.b)
+        ShowSettingsFeedback("Headlight Color: " .. preset.name, preset.r, preset.g, preset.b)
     end
 
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyHeadlights = true })
@@ -5040,7 +5497,7 @@ function PersistentConfig._SettingsActions.SetPlayerHeadlightVisible(enabled)
 
     PersistentConfig.Settings.HeadlightVisible = visible
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyHeadlights = true })
-    ShowFeedback("Player Light: " .. (visible and "ON" or "OFF"))
+    ShowSettingsFeedback("Player Light: " .. (visible and "ON" or "OFF"))
     return true
 end
 
@@ -5052,7 +5509,7 @@ function PersistentConfig._SettingsActions.SetOtherHeadlightsEnabled(enabled)
 
     PersistentConfig.Settings.OtherHeadlightsDisabled = not showOthers
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ markOtherHeadlightsDirty = true })
-    ShowFeedback("AI Lights: " .. (showOthers and "ON" or "OFF"))
+    ShowSettingsFeedback("AI Lights: " .. (showOthers and "ON" or "OFF"))
     return true
 end
 
@@ -5064,7 +5521,7 @@ function PersistentConfig._SettingsActions.CycleHeadlightBeamMode(delta)
 
     PersistentConfig.Settings.HeadlightBeamMode = nextMode
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyHeadlights = true })
-    ShowFeedback("Beam: " .. (nextMode == 1 and "FOCUSED" or "WIDE"))
+    ShowSettingsFeedback("Beam: " .. (nextMode == 1 and "FOCUSED" or "WIDE"))
     return true
 end
 
@@ -5083,7 +5540,7 @@ function PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(enabled)
         ClearWeaponStats()
         ClearPdaFeedback()
     end
-    ShowFeedback("PDA: " .. (visible and "ON" or "OFF"), 0.35, 0.65, 1.0, 2.5, false)
+    ShowSettingsFeedback("PDA: " .. (visible and "ON" or "OFF"), 0.35, 0.65, 1.0)
     return true
 end
 
@@ -5095,7 +5552,7 @@ function PersistentConfig._SettingsActions.CycleScrapPilotHudLayout(delta)
 
     PersistentConfig.Settings.ScrapPilotHudLayout = nextIndex
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyScrapPilotHud = true })
-    ShowFeedback("Scrap/Pilot: " .. GetScrapPilotHudLayout().name, 0.8, 1.0, 0.8, 2.5, false, "pda")
+    ShowSettingsFeedback("Scrap/Pilot: " .. GetScrapPilotHudLayout().name, 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5113,7 +5570,7 @@ function PersistentConfig._SettingsActions.SetSubtitlesEnabled(enabled)
             subtit.ClearActive()
         end
     end
-    ShowFeedback("Subtitles: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    ShowSettingsFeedback("Subtitles: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5126,7 +5583,7 @@ function PersistentConfig._CycleUnitVerbosity(delta)
 
     PersistentConfig.Settings.UnitVerbosity = nextIndex
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyUnitVo = true })
-    ShowFeedback("Unit Verbosity: " .. PersistentConfig._GetUnitVerbosityPreset().name, 0.8, 1.0, 0.8, 2.5, false, "pda")
+    ShowSettingsFeedback("Unit Verbosity: " .. PersistentConfig._GetUnitVerbosityPreset().name, 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5139,8 +5596,7 @@ function PersistentConfig._CycleTargetReticlePopupMode(delta)
 
     PersistentConfig.Settings.TargetReticlePopupMode = PersistentConfig.TargetReticlePopupPresets[nextIndex].mode
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyTargetReticle = true })
-    ShowFeedback("Hit Reticle: " .. PersistentConfig._GetTargetReticlePopupPreset().name, 0.8, 1.0, 0.8, 2.5, false,
-        "pda")
+    ShowSettingsFeedback("Hit Reticle: " .. PersistentConfig._GetTargetReticlePopupPreset().name, 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5153,8 +5609,7 @@ function PersistentConfig._CycleUnderAttackAlertMode(delta)
 
     PersistentConfig.Settings.UnderAttackAlertMode = PersistentConfig.UnderAttackAlertPresets[nextIndex].mode
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyUnderAttackAlert = true })
-    ShowFeedback("Attack Beep: " .. PersistentConfig._GetUnderAttackAlertPreset().name, 0.8, 1.0, 0.8, 2.5, false,
-        "pda")
+    ShowSettingsFeedback("Attack Beep: " .. PersistentConfig._GetUnderAttackAlertPreset().name, 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5166,7 +5621,7 @@ function PersistentConfig._SettingsActions.SetAutoRepairBuildingsEnabled(enabled
 
     PersistentConfig.Settings.AutoRepairBuildings = value
     PersistentConfig._SettingsActions.CommitPdaSettingChange()
-    ShowFeedback("Building Repair: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    ShowSettingsFeedback("Building Repair: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5178,7 +5633,7 @@ function PersistentConfig._SettingsActions.SetAutoRepairWingmenEnabled(enabled)
 
     PersistentConfig.Settings.AutoRepairWingmen = value
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncAutoRepairWingmen = true })
-    ShowFeedback("Wingman Auto-Repair: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    ShowSettingsFeedback("Wingman Auto-Repair: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5190,7 +5645,7 @@ function PersistentConfig._SettingsActions.SetScavengerAssistEnabled(enabled)
 
     PersistentConfig.Settings.ScavengerAssistEnabled = value
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncScavengerAssist = true })
-    ShowFeedback("Scavenger Assist: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    ShowSettingsFeedback("Scavenger Assist: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5205,8 +5660,8 @@ function PersistentConfig._SettingsActions.AdjustRadarSizeScale(delta)
 
     PersistentConfig.Settings.RadarSizeScale = nextScale
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncRadarSize = true })
-    ShowFeedback("Radar Size: " .. FormatScale(nextScale, PersistentConfig.RadarUi.min, PersistentConfig.RadarUi.max),
-        0.8, 1.0, 0.8, 2.5, false, "pda")
+    ShowSettingsFeedback("Radar Size: " ..
+        FormatScale(nextScale, PersistentConfig.RadarUi.min, PersistentConfig.RadarUi.max), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5218,7 +5673,7 @@ function PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(e
 
     PersistentConfig.Settings.DynamicFactionFlameColors = value
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyFactionFlames = true })
-    ShowFeedback("Faction Flames: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8, 2.5, false, "pda")
+    ShowSettingsFeedback("Faction Flames: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5238,9 +5693,9 @@ function PersistentConfig._SettingsActions.CycleTeamColor(delta)
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyTeamColors = true })
 
     if preset and not preset.clear then
-        ShowFeedback("Team 1 Color: " .. preset.name, preset.r, preset.g, preset.b, 2.5, false, "pda")
+        ShowSettingsFeedback("Team 1 Color: " .. preset.name, preset.r, preset.g, preset.b)
     else
-        ShowFeedback("Team 1 Color: DEFAULT", 0.8, 1.0, 0.8, 2.5, false, "pda")
+        ShowSettingsFeedback("Team 1 Color: DEFAULT", 0.8, 1.0, 0.8)
     end
 
     return true
@@ -5259,8 +5714,8 @@ function PersistentConfig._SettingsActions.CycleLightingMode(delta)
 
     local _, preset = PersistentConfig._SetLightingModeIndex(nextIndex)
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncLightingMode = true })
-    ShowFeedback("Lighting Mode: " .. ((preset and preset.name) or "DEFAULT"),
-        0.8, 1.0, 0.8, 3.0, false, "pda")
+    ShowSettingsFeedback("Lighting Mode: " .. ((preset and preset.name) or "DEFAULT"),
+        0.8, 1.0, 0.8, 3.0)
     return true
 end
 
@@ -5288,9 +5743,9 @@ function PersistentConfig._SettingsActions.SetAutoSaveEnabled(enabled)
         end
     end
     if value then
-        ShowFeedback(string.format("Auto-Save: ON (%s)", interval.label), 0.8, 1.0, 0.8, 2.5, false, "pda")
+        ShowSettingsFeedback(string.format("Auto-Save: ON (%s)", interval.label), 0.8, 1.0, 0.8)
     else
-        ShowFeedback("Auto-Save: OFF", 0.8, 1.0, 0.8, 2.5, false, "pda")
+        ShowSettingsFeedback("Auto-Save: OFF", 0.8, 1.0, 0.8)
     end
     return true
 end
@@ -5307,7 +5762,7 @@ function PersistentConfig._AdjustAutoSaveInterval(delta)
     PersistentConfig.Settings.AutoSaveInterval = option.seconds
     PersistentConfig._ClearAutoSaveEnablePrompt()
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncAutoSave = true })
-    ShowFeedback("Auto-Save Interval: " .. option.label, 0.8, 1.0, 0.8, 2.5, false, "pda")
+    ShowSettingsFeedback("Auto-Save Interval: " .. option.label, 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5324,7 +5779,7 @@ function PersistentConfig._SetPilotModeEnabled(enabled)
 
     PersistentConfig.Settings.PilotModeEnabled = value
     PersistentConfig._SettingsActions.CommitPdaSettingChange()
-    ShowFeedback("Pilot Mode: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    ShowSettingsFeedback("Pilot Mode: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5736,6 +6191,18 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.RadarSizeScale = tonumber(val) or 1.0
                 elseif key == "DynamicFactionFlameColors" then
                     PersistentConfig.Settings.DynamicFactionFlameColors = (val == "true")
+                elseif key == "BomberAiRangeEnabled" then
+                    PersistentConfig.Settings.BomberAiRangeEnabled = (val == "true")
+                elseif key == "HowitzerVolleyEnabled" then
+                    PersistentConfig.Settings.HowitzerVolleyEnabled = (val == "true")
+                elseif key == "WeaponMaskCarrierBiasEnabled" then
+                    PersistentConfig.Settings.WeaponMaskCarrierBiasEnabled = (val == "true")
+                elseif key == "AiOdfGameplayTuningEnabled" then
+                    PersistentConfig.Settings.AiOdfGameplayTuningEnabled = (val == "true")
+                elseif key == "TurretAimPitchEnabled" then
+                    PersistentConfig.Settings.TurretAimPitchEnabled = (val == "true")
+                elseif key == "AttackRevealEnabled" then
+                    PersistentConfig.Settings.AttackRevealEnabled = (val == "true")
                 elseif key == "UnitPreset" then
                     local unitOdf, slotIndex, powerupOdf = string.match(val, "([^|]+)|([^|]+)|(.+)")
                     local unitKey = string.lower(CleanString(unitOdf or ""))
@@ -5858,6 +6325,12 @@ function PersistentConfig.SaveConfig()
         f:Writeln("ScrapPilotHudLayout=" .. tostring(PersistentConfig.Settings.ScrapPilotHudLayout))
         f:Writeln("RadarSizeScale=" .. tostring(PersistentConfig.Settings.RadarSizeScale))
         f:Writeln("DynamicFactionFlameColors=" .. tostring(PersistentConfig.Settings.DynamicFactionFlameColors))
+        f:Writeln("BomberAiRangeEnabled=" .. tostring(PersistentConfig.Settings.BomberAiRangeEnabled))
+        f:Writeln("HowitzerVolleyEnabled=" .. tostring(PersistentConfig.Settings.HowitzerVolleyEnabled))
+        f:Writeln("WeaponMaskCarrierBiasEnabled=" .. tostring(PersistentConfig.Settings.WeaponMaskCarrierBiasEnabled))
+        f:Writeln("AiOdfGameplayTuningEnabled=" .. tostring(PersistentConfig.Settings.AiOdfGameplayTuningEnabled))
+        f:Writeln("TurretAimPitchEnabled=" .. tostring(PersistentConfig.Settings.TurretAimPitchEnabled))
+        f:Writeln("AttackRevealEnabled=" .. tostring(PersistentConfig.Settings.AttackRevealEnabled))
         for unitKey, preset in pairs(PersistentConfig.UnitPresets) do
             for slotIndex = 1, 5 do
                 local powerupOdf = preset[slotIndex]
@@ -5891,7 +6364,7 @@ function PersistentConfig.ResetToDefaults()
         autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
     end
 
-    ShowFeedback("Settings reset to defaults.", 0.7, 1.0, 0.7, 4.0, false)
+    ShowSettingsFeedback("Settings reset to defaults.", 0.7, 1.0, 0.7, 4.0)
 end
 
 function PersistentConfig.ApplySettings(options)
@@ -5947,10 +6420,14 @@ function PersistentConfig.ApplySettings(options)
             PersistentConfig._SyncRadarSizeScale(true)
         end
         if applyAll or (options and options.applyTeamColors) then
-            PersistentConfig._ApplyTeamColorSettings()
+            PersistentConfig._RequestTeamColorResync()
+            PersistentConfig._SyncTeamColorSettings(applyAll, applyAll and "apply-settings-all" or "apply-settings")
         end
         if applyAll or (options and options.applyFactionFlames) then
             PersistentConfig._ApplyDynamicFactionFlameColors()
+        end
+        if applyAll or (options and options.applyMissionGameplayHooks) then
+            PersistentConfig._ApplyMissionGameplayHookSettings()
         end
         if applyAll or (options and options.applyUnitVo) then
             PersistentConfig._ApplyUnitVoSettings()
@@ -6082,10 +6559,12 @@ function PersistentConfig.UpdateInputs()
         end
 
         local nextItem = PersistentConfig.FeedbackQueue[1]
-        if nextItem and (nextItem.target == "pda" or not isBusy or nextItem.bypass) then
+        local pdaFeedbackReady = PersistentConfig.Settings.WeaponStatsHud or not isBusy
+        if nextItem and ((nextItem.target == "pda" and pdaFeedbackReady) or
+                (nextItem.target ~= "pda" and (not isBusy or nextItem.bypass))) then
             local item = table.remove(PersistentConfig.FeedbackQueue, 1)
             if item.target == "pda" then
-                if PersistentConfig.Settings.WeaponStatsHud then
+                if PersistentConfig.Settings.WeaponStatsHud or (PersistentConfig.Settings.SubtitlesEnabled and subtit and subtit.Display) then
                     ShowPdaFeedback(item.msg, item.r, item.g, item.b, item.duration)
                 end
             elseif not PersistentConfig.Settings.SubtitlesEnabled then
@@ -6106,6 +6585,20 @@ function PersistentConfig.UpdateInputs()
         InputState.nextRadarScaleCheck = now + 0.5
         if PersistentConfig._SyncRadarSizeScale(false) ~= false then
             InputState.radarScaleSyncPending = false
+        end
+    end
+    if InputState.teamColorSyncPending and now >= (InputState.nextTeamColorCheck or 0.0) then
+        local intervals = PersistentConfig.TeamColorSyncIntervals or {}
+        local stabilizeUntil = tonumber(InputState.nextTeamColorStabilizeUntil) or 0.0
+        local interval = tonumber(intervals.heartbeat) or 1.0
+        if now < stabilizeUntil then
+            interval = tonumber(intervals.stabilize) or 0.2
+        end
+        InputState.nextTeamColorCheck = now + interval
+        local teamColorVerified = PersistentConfig._SyncTeamColorSettings(false, "pending-resync")
+        if teamColorVerified and now >= stabilizeUntil then
+            InputState.teamColorSyncPending = false
+            InputState.nextTeamColorStabilizeUntil = 0.0
         end
     end
     if InputState.lightingModeSyncPending and now >= (InputState.nextRetroLightingCheck or 0.0) then
@@ -6747,7 +7240,7 @@ function PersistentConfig.Initialize()
             (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF") .. " based on difficulty.")
     end
     PersistentConfig.SaveConfig()
-    PersistentConfig.ApplySettings({ syncLightingMode = true, syncRadarSize = true })
+    PersistentConfig.ApplySettings({ syncLightingMode = true, syncRadarSize = true, applyMissionGameplayHooks = true })
     -- Keep EXU overlay/font initialization lazy so startup does not touch the
     -- custom Ogre font path before the UI runtime is fully ready.
     PersistentConfig._InstallPlayerChargeTrackingHook()

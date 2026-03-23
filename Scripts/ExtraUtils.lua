@@ -1317,6 +1317,15 @@ function exu.SetUnderAttackAlertMode(mode) end
 --- @return boolean
 function exu.SetTargetReticlePopupMode(mode) end
 
+--- Gets the live command-menu button footprint in screen pixels.
+--- Returns the current left, top, right, and bottom bounds of the stock top-left command menu.
+--- @nodiscard
+--- @return integer | nil left
+--- @return integer | nil top
+--- @return integer | nil right
+--- @return integer | nil bottom
+function exu.GetCommandMenuRect() end
+
 --- Sets the live rect for a named HUD sprite entry from `spritea.st`.
 --- Requires an OpenShim build that exposes the HUD sprite bridge.
 --- @param spriteName string

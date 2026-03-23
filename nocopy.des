@@ -1,1 +1,1 @@
-Campaign Reimagined could not install or update OpenShim. Restart Battlezone and verify the mod files before continuing.
+Campaign Reimagined could not install or update OpenShim. Check winmm_replace.log in the Battlezone folder, then restart Battlezone and verify the mod files before continuing.
