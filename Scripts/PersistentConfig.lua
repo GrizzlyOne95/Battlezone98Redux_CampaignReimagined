@@ -2597,37 +2597,11 @@ end
 
 -- Helper to parse bzlogger.txt for Steam ID/Username
 local function ParseBzLogger()
-    if not bzfile or not bzfile.Open then return nil, nil end
-    local logPath = "bzlogger.txt"
-    local f = bzfile.Open(logPath, "r")
-
-    -- Fallback to parent directory if not found
-    if not f then
-        logPath = "../bzlogger.txt"
-        f = bzfile.Open(logPath, "r")
-    end
-
-    if not f then
-        print("PersistentConfig: Could not find bzlogger.txt for parsing.")
-        return nil, nil
-    end
-
-    print("PersistentConfig: Scanning " .. logPath .. " for Steam credentials...")
-    local steamID, username
-
-    local line = f:Readln()
-    while line do
-        local id, name = line:match("Authenticated to BZRNet As S(%d+):(.+)")
-        if id and name then
-            steamID = id
-            username = name
-            break -- Found it, stop scanning
-        end
-        line = f:Readln()
-    end
-
-    f:Close()
-    return steamID, username
+    -- Reading the live BZLogger stream through bzfile during mission startup can
+    -- block the mission thread after the sim has already initialized. EXU's
+    -- Steam ID bridge is the safe primary path, so keep the log fallback
+    -- disabled until we have a non-blocking reader.
+    return nil, nil
 end
 
 -- Storage for User Info
