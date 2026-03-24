@@ -506,6 +506,12 @@ function exu.ShowOverlay(name) end
 --- @param name string
 function exu.HideOverlay(name) end
 
+--- Resets EXU's tracked Ogre overlay state and forces a fresh lazy rebuild later.
+--- Useful after mission loads where the underlying scene manager and overlay objects may have been replaced.
+--- @param reason string? optional log reason
+--- @return boolean success
+function exu.ResetOverlaySupport(reason) end
+
 --- Sets the z-order of an overlay.
 --- Valid range is 0 to 650.
 --- @param name string

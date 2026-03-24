@@ -1,6 +1,7 @@
 -- Subtitles.lua
 -- Wrapper for mission subtitles using the EXU/Ogre overlay renderer.
 local exu = require("exu")
+local bzfile = require("bzfile")
 
 local Subtitles = {}
 local FONT_SCALE_MIN = 0.85
@@ -30,7 +31,15 @@ local overlayState = {
     effectiveSuspended = false,
     suspendStartedAt = nil,
     customFontDisabled = false,
+    retryPending = false,
+    retryUntil = 0.0,
 }
+local legacyState = {
+    active = false,
+    objectiveName = "cr_runtime_subtitle",
+}
+local OVERLAY_FAILURE_NOTICE = "Ogre overlay failed to load. Please check logs."
+local OVERLAY_FAILURE_LOG_NAME = "campaignReimagined_subtitle_overlay_errors.log"
 Subtitles.LastEndTime = 0
 Subtitles.Config = {
     opacity = 0.5,
@@ -38,6 +47,63 @@ Subtitles.Config = {
     enabled = true,
     suspended = false,
 }
+
+local function SubtitleLog(message)
+    print("Subtitles: " .. tostring(message))
+end
+
+local function GetSubtitleFailureLogPath()
+    local workingDirectory = "."
+    if bzfile and type(bzfile.GetWorkingDirectory) == "function" then
+        local ok, result = pcall(bzfile.GetWorkingDirectory)
+        if ok and type(result) == "string" and result ~= "" then
+            workingDirectory = result
+        end
+    end
+    return workingDirectory .. "\\" .. OVERLAY_FAILURE_LOG_NAME
+end
+
+local function AppendSubtitleFailureLog(reason, source, extra)
+    local now = type(GetTime) == "function" and tonumber(GetTime() or 0.0) or 0.0
+    local line = string.format("[%.3f] reason=%s", now, tostring(reason or "unknown"))
+    if type(source) == "table" then
+        line = line .. string.format(" mode=%s duration=%.2f audio=%s text=%s",
+            tostring(source.mode or "nil"),
+            tonumber(source.duration) or -1.0,
+            tostring(source.audioFile or "nil"),
+            tostring(source.textFile or "nil"))
+    end
+    if extra and extra ~= "" then
+        line = line .. " details=" .. tostring(extra)
+    end
+    local path = GetSubtitleFailureLogPath()
+    if bzfile and type(bzfile.Open) == "function" then
+        local ok, file = pcall(bzfile.Open, path, "w", "app")
+        if ok and file then
+            local writeOk = pcall(function()
+                if type(file.Writeln) == "function" then
+                    file:Writeln(line)
+                elseif type(file.Write) == "function" then
+                    file:Write(line .. "\n")
+                end
+                if type(file.Flush) == "function" then
+                    file:Flush()
+                end
+                if type(file.Close) == "function" then
+                    file:Close()
+                end
+            end)
+            if writeOk then
+                return
+            end
+        end
+    end
+    local file = io.open(path, "a")
+    if file then
+        file:write(line .. "\n")
+        file:close()
+    end
+end
 
 local function Clamp(value, minimum, maximum)
     if value < minimum then return minimum end
@@ -264,6 +330,58 @@ local function CanUseOverlayRenderer()
         and exu.OVERLAY_METRICS.PIXELS
 end
 
+local function GetLegacyObjectiveColor(r, g, b)
+    local red = Clamp(tonumber(r) or 1.0, 0.0, 1.0)
+    local green = Clamp(tonumber(g) or 1.0, 0.0, 1.0)
+    local blue = Clamp(tonumber(b) or 1.0, 0.0, 1.0)
+
+    if red >= 0.65 and green >= 0.65 and blue <= 0.45 then
+        return "yellow"
+    end
+
+    if red >= green and red >= blue and red >= 0.55 then
+        return "red"
+    end
+    if green >= red and green >= blue and green >= 0.55 then
+        return "green"
+    end
+    if blue >= red and blue >= green and blue >= 0.55 then
+        return "blue"
+    end
+
+    return "white"
+end
+
+local function HideLegacySubtitle()
+    if legacyState.active and type(RemoveObjective) == "function" then
+        pcall(RemoveObjective, legacyState.objectiveName)
+    end
+
+    legacyState.active = false
+end
+
+local function ShowLegacySubtitle(entries)
+    if type(AddObjective) ~= "function" then
+        return false, nil
+    end
+    local duration = 8.0
+
+    local ok = false
+    if legacyState.active and type(UpdateObjective) == "function" then
+        ok = pcall(UpdateObjective, legacyState.objectiveName, "yellow", duration, OVERLAY_FAILURE_NOTICE)
+    end
+    if not ok then
+        ok = pcall(AddObjective, legacyState.objectiveName, "yellow", duration, OVERLAY_FAILURE_NOTICE)
+    end
+    if not ok then
+        return false, nil
+    end
+
+    legacyState.active = true
+    SubtitleLog("showing overlay failure notice in objective box")
+    return true, duration
+end
+
 local function SafeOverlayCall(fn, ...)
     if type(fn) ~= "function" then
         return false, nil
@@ -271,11 +389,25 @@ local function SafeOverlayCall(fn, ...)
 
     local ok, result = pcall(fn, ...)
     if not ok then
-        print("Subtitles: overlay call failed: " .. tostring(result))
+        SubtitleLog("overlay call failed: " .. tostring(result))
+        AppendSubtitleFailureLog("overlay-call-exception", activeSequenceSource, tostring(result))
+        return false, nil
+    end
+    if result == false then
+        SubtitleLog("overlay call returned false")
+        AppendSubtitleFailureLog("overlay-call-false", activeSequenceSource, tostring(fn))
         return false, nil
     end
 
     return true, result
+end
+
+local function BeginOverlayRetryWindow(duration)
+    local now = (type(GetTime) == "function" and GetTime()) or 0.0
+    local extra = math.max(tonumber(duration) or 0.0, 0.0)
+    overlayState.retryUntil = math.max(overlayState.retryUntil or 0.0, now + extra)
+    overlayState.retryPending = false
+    SubtitleLog(string.format("overlay retry window opened until %.3f (+%.2fs)", overlayState.retryUntil, extra))
 end
 
 local function HideSubtitleOverlay()
@@ -393,15 +525,28 @@ local function TryCreateSubtitleOverlay()
     end
 
     if not CanUseOverlayRenderer() then
+        SubtitleLog(string.format("overlay renderer unavailable failed=%s exu=%s",
+            tostring(overlayState.failed), tostring(not not exu)))
+        AppendSubtitleFailureLog("overlay-renderer-unavailable", activeSequenceSource,
+            string.format("failed=%s exu=%s", tostring(overlayState.failed), tostring(not not exu)))
+        return false
+    end
+
+    local persistentConfig = GetPersistentConfig()
+    local fontName = GetOverlayFontName()
+    if fontName and persistentConfig and type(persistentConfig._CanAttemptOverlayFontBind) == "function"
+        and not persistentConfig._CanAttemptOverlayFontBind() then
+        SubtitleLog("overlay font bind deferred by PersistentConfig")
+        AppendSubtitleFailureLog("overlay-font-bind-deferred", activeSequenceSource, tostring(fontName))
         return false
     end
 
     DestroySubtitleOverlay()
+    SubtitleLog("creating overlay renderer resources")
 
     local ok = true
     local ids = OVERLAY_IDS
     local metricsMode = exu.OVERLAY_METRICS.PIXELS
-    local fontName = GetOverlayFontName()
 
     local function Call(fn, ...)
         local success, result = SafeOverlayCall(fn, ...)
@@ -425,17 +570,21 @@ local function TryCreateSubtitleOverlay()
     Call(exu.SetOverlayMetricsMode, ids.frame, metricsMode)
     Call(exu.SetOverlayMetricsMode, ids.backdrop, metricsMode)
     Call(exu.SetOverlayMetricsMode, ids.text, metricsMode)
-    Call(exu.SetOverlayParameter, ids.root, "transparent", true)
     Call(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.0)
     Call(exu.SetOverlayMaterial, ids.frame, "BaseWhiteNoLighting")
-    Call(exu.SetOverlayParameter, ids.frame, "transparent", true)
+    Call(exu.SetOverlayParameter, ids.frame, "transparent", "true")
     Call(exu.SetOverlayParameter, ids.text, "alignment", "center")
     Call(exu.SetOverlayCaption, ids.text, "")
     if fontName and Call(exu.SetOverlayTextFont, ids.text, fontName) ~= true then
-        print("Subtitles: overlay font bind failed for " .. tostring(fontName))
-        DisableSubtitleCustomFont("font-bind-failed")
+        SubtitleLog("overlay font bind failed for " .. tostring(fontName))
+        AppendSubtitleFailureLog("overlay-font-bind-failed", activeSequenceSource, tostring(fontName))
+        if persistentConfig and type(persistentConfig._NoteOverlayFontBindFailure) == "function" then
+            persistentConfig._NoteOverlayFontBindFailure("subtitle")
+        end
         DestroySubtitleOverlay()
-        return TryCreateSubtitleOverlay()
+        return false
+    elseif fontName and persistentConfig and type(persistentConfig._NoteOverlayFontBindSuccess) == "function" then
+        persistentConfig._NoteOverlayFontBindSuccess()
     end
     Call(exu.ShowOverlayElement, ids.root)
     Call(exu.ShowOverlayElement, ids.frame)
@@ -445,12 +594,15 @@ local function TryCreateSubtitleOverlay()
 
     if not ok then
         overlayState.failed = true
+        SubtitleLog("overlay renderer initialization failed; marking overlayState.failed=true")
+        AppendSubtitleFailureLog("overlay-init-failed", activeSequenceSource, "overlayState.failed=true")
         DestroySubtitleOverlay()
         return false
     end
 
     overlayState.ready = true
     overlayState.failed = false
+    SubtitleLog("overlay renderer initialized successfully")
     return true
 end
 
@@ -711,7 +863,28 @@ local function SubmitSequenceEntries(entries, append)
     end
 
     if CanUseOverlayRenderer() and QueueOverlayEntries(entries, append) then
+        overlayState.retryPending = false
+        SubtitleLog(string.format("submit sequence via overlay entries=%d append=%s", #entries, tostring(not not append)))
         return "overlay"
+    end
+
+    if activeSequenceSource and GetTime() < (overlayState.retryUntil or 0.0) then
+        overlayState.retryPending = true
+        SubtitleLog(string.format("deferring subtitle fallback during retry window now=%.3f until=%.3f",
+            GetTime(), overlayState.retryUntil or 0.0))
+        return "pending"
+    end
+
+    overlayState.retryPending = false
+
+    AppendSubtitleFailureLog("overlay-unavailable", activeSequenceSource,
+        string.format("failed=%s ready=%s retryUntil=%.3f currentTime=%.3f entryCount=%d",
+            tostring(overlayState.failed), tostring(overlayState.ready),
+            tonumber(overlayState.retryUntil) or 0.0, GetTime(), #entries))
+
+    local legacyOk = ShowLegacySubtitle(entries)
+    if legacyOk then
+        return "notice"
     end
 
     return nil
@@ -831,14 +1004,20 @@ local function StartSequence(source, append)
     else
         activeSequenceSource.startedAt = math.max(GetTime(), Subtitles.LastEndTime or 0)
     end
-    local entries = BuildSequenceEntries(activeSequenceSource)
+    local entries, totalDuration = BuildSequenceEntries(activeSequenceSource)
     local renderMode = SubmitSequenceEntries(entries, append)
     if renderMode == "overlay" then
         UpdateRendererSuspensionState()
         UpdateOverlayLastEndTime()
+    elseif renderMode == "legacy" or renderMode == "notice" then
+        Subtitles.LastEndTime = (activeSequenceSource.startedAt or GetTime()) + totalDuration
+    elseif renderMode == "pending" then
+        Subtitles.LastEndTime = (activeSequenceSource.startedAt or GetTime()) + totalDuration
+        SubtitleLog(string.format("sequence pending overlay warm-up totalDuration=%.2f", totalDuration))
     else
         activeSequenceSource = nil
         Subtitles.LastEndTime = GetTime()
+        SubtitleLog("sequence submission failed; cleared active sequence")
     end
 end
 
@@ -856,6 +1035,7 @@ end
 local function ClearActiveSequence()
     activeSequenceSource = nil
     ClearOverlayQueueState()
+    HideLegacySubtitle()
 end
 
 function Subtitles.RefreshActive()
@@ -961,8 +1141,11 @@ end
 function Subtitles.Initialize(durationCsv)
     -- Ensure clear queue on start
     ClearActiveSequence()
+    DestroySubtitleOverlay()
     overlayState.failed = false
     overlayState.customFontDisabled = false
+    BeginOverlayRetryWindow(1.5)
+    SubtitleLog("initialize called; overlay state reset")
     Subtitles.SetOpacity(Subtitles.Config.opacity)
     Subtitles.SetFontScale(Subtitles.Config.fontScale)
 
@@ -1066,6 +1249,8 @@ function Subtitles.Play(wavFilename, r, g, b)
             r = r,
             g = g,
             b = b,
+            audioFile = wavFilename,
+            textFile = txtFilename,
         })
     else
         activeSequenceSource = nil
@@ -1119,6 +1304,8 @@ function Subtitles.Queue(wavFilename, r, g, b)
             r = r,
             g = g,
             b = b,
+            audioFile = wavFilename,
+            textFile = txtFilename,
         }, true)
     else
         activeSequenceSource = nil
@@ -1131,6 +1318,12 @@ end
 --- Update loop to synchronize subtitles with audio
 function Subtitles.Update()
     UpdateRendererSuspensionState()
+
+    if activeSequenceSource and overlayState.retryPending and not overlayState.currentEntry and #overlayState.queue == 0
+        and not legacyState.active and not overlayState.effectiveSuspended then
+        SubtitleLog("retrying active subtitle sequence after warm-up delay")
+        ResubmitActiveSequence()
+    end
 
     if overlayState.currentEntry and not overlayState.effectiveSuspended then
         local now = GetTime()
@@ -1181,6 +1374,17 @@ function Subtitles.Stop()
         currentAudioHandle = nil
     end
     ClearActiveSequence()
+end
+
+function Subtitles.EnableOverlayRendererForSession()
+    DestroySubtitleOverlay()
+    HideLegacySubtitle()
+    overlayState.failed = false
+    overlayState.customFontDisabled = false
+    overlayState.effectiveSuspended = false
+    overlayState.suspendStartedAt = nil
+    BeginOverlayRetryWindow(2.0)
+    SubtitleLog("EnableOverlayRendererForSession invoked; subtitle overlay state cleared")
 end
 
 return Subtitles

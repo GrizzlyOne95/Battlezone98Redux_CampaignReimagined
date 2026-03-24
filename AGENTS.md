@@ -1,25 +1,28 @@
-# campaignReimagined
+# campaignReimagined (Legacy Mirror)
 
-This repo is part of the local Battlezone workspace opened via
+This repo is a legacy local mirror/reference tree for campaignReimagined and is
+part of the Battlezone workspace opened via
 `C:\Users\iestu\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace`.
 
 ## Canonical Paths
 - Workspace File: `C:\Users\iestu\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace`
+- Canonical Source Repo for edits: `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`
 - Destination/Runtime Mod Folder: `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790`
-- Source Repo for Git and edits: `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`
 
 ## Workspace Layout
-- Sibling repos may live under `%USERPROFILE%\Documents\GIT\...`, but this repo's canonical local source path is `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`.
-- The primary local runtime target for this repo is `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790`.
-- Prefer these canonical paths for this machine over older `Documents\Battlezone 98 Redux` or `addon\campaignReimagined` assumptions.
+- This repo still exists for legacy sync, publishing, and historical `_Source`/`_Release` workflows, but the only active campaign paths right now are the Google Drive source repo and the packaged mod runtime folder.
+- The canonical local source path for campaign content on this machine is `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`.
+- The primary local runtime target is `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790`.
+- Prefer these canonical paths over older `Documents\Battlezone 98 Redux` or `addon\campaignReimagined` assumptions.
 
 ## Local Role
-- Primary addon source repo for Lua mission scripts, gameplay content, and packaged assets.
+- Legacy mirror/reference repo for campaign content and sync tooling.
 
 ## Local Workflow
-- Make campaign content changes directly in this repo root; `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined` is the canonical tracked source tree on this machine.
-- Use `Manage-CampaignFiles.ps1` in the repo root when you need to sync from the packaged mod runtime, deploy to the packaged mod runtime, or publish.
-- Treat `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790` as the primary runtime target for local verification.
+- Prefer making campaign content changes in `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`, not in this legacy mirror, unless the task explicitly targets this tree or its sync scripts.
+- If work must happen in this repo, `_Source` is the mirrored source subtree and not the primary source of truth on this machine.
+- Use `Manage-CampaignFiles.ps1` in the repo root when you need to sync from runtime, build `_Release`, deploy runtime content, or publish.
+- Treat `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790` as the runtime target for local verification.
 - Do not treat the game install's `addon\campaignReimagined` path as a second git checkout or source workspace.
 
 ## Cross-Repo Pointers
