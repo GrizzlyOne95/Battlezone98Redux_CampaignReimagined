@@ -1,6 +1,9 @@
 # Ignore unexpected runtime-flat root files by default
 /*
 
+# Allow source tree
+!/_Source/
+
 # Allow organized source folders
 !/Assets/
 !/Bin/
@@ -21,6 +24,8 @@
 !/CHANGELOG.md
 !/Manage-CampaignFiles.ps1
 !/README.md
+!/install/
+!/install/install_windows.ps1
 !/install.des
 !/update.des
 !/staged.des

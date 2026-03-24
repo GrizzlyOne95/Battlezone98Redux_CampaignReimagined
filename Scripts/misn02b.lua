@@ -142,7 +142,8 @@ local function NewMissionState()
         bgoal = nil,
         bhandle2 = nil,
         loading_done = false,
-        loadGracePeriod = 0
+        loadGracePeriod = 0,
+        overlayResetPending = false,
     }
 end
 local M = NewMissionState()
@@ -156,6 +157,26 @@ function Load(...)
     M = missionData or M
     M.loading_done = false
     M.loadGracePeriod = GetTime() + 2.0
+    M.overlayResetPending = true
+end
+
+local function ResetOverlayRuntimeAfterLoad()
+    if PersistentConfig and PersistentConfig.EnableOverlayRendererForSession then
+        PersistentConfig.EnableOverlayRendererForSession()
+    end
+
+    if exu and exu.ResetOverlaySupport then
+        local ok, result = pcall(exu.ResetOverlaySupport, "misn02b-load")
+        if not ok then
+            print("misn02b: overlay reset call failed: " .. tostring(result))
+        elseif result == false then
+            print("misn02b: overlay reset reported failure")
+        else
+            print("misn02b: overlay reset completed after load")
+        end
+    end
+
+    M.overlayResetPending = false
 end
 
 local function AudioDone(msg)
@@ -269,6 +290,9 @@ function Start()
     M = NewMissionState()
     Ally(1, 5)
     Ally(5, 1)
+    if PersistentConfig and PersistentConfig.EnableOverlayRendererForSession then
+        PersistentConfig.EnableOverlayRendererForSession()
+    end
     InitializeMissionRuntime()
 
     for h in AllCraft() do
@@ -348,6 +372,9 @@ function Update()
         return
     end
     if not M.loading_done then
+        if M.overlayResetPending then
+            ResetOverlayRuntimeAfterLoad()
+        end
         RefreshHandlesAfterLoad()
         InitializeMissionRuntime()
         ApplyPostLoadInit()

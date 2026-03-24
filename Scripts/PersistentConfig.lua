@@ -1396,6 +1396,10 @@ function PersistentConfig._TryCreateExperimentalOverlay()
             Log("PersistentConfig: Experimental overlay call failed: " .. tostring(result))
             return nil
         end
+        if result == false then
+            ok = false
+            Log("PersistentConfig: Experimental overlay call returned false.")
+        end
         return result
     end
 
@@ -1500,6 +1504,10 @@ function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
             ok = false
             Log("PersistentConfig: Autosave overlay call failed: " .. tostring(result))
             return nil
+        end
+        if result == false then
+            ok = false
+            Log("PersistentConfig: Autosave overlay call returned false.")
         end
         return result
     end
@@ -2004,6 +2012,15 @@ function PersistentConfig._ResetPdaOverlayState()
     state.feedbackExpireAt = 0.0
 end
 
+function PersistentConfig.EnableOverlayRendererForSession()
+    Log("PersistentConfig: EnableOverlayRendererForSession invoked; clearing overlay state for current session.")
+    PersistentConfig._DestroyExperimentalOverlay()
+    PersistentConfig.ExperimentalOverlayFailed = false
+    PersistentConfig.ExperimentalOverlayVisible = false
+    PersistentConfig._DestroyAllPdaOverlays()
+    PersistentConfig._ResetPdaOverlayState()
+end
+
 function PersistentConfig._TryCreatePdaOverlay(kind)
     local state = PersistentConfig.PdaOverlay
     state.created = state.created or {}
@@ -2034,6 +2051,7 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
     end
 
     PersistentConfig._DestroyPdaOverlay(kind)
+    Log(string.format("PersistentConfig: creating PDA overlay kind=%s", tostring(kind)))
 
     local metricsMode = PersistentConfig._GetPdaOverlayMetricsMode()
     local overlayZOrder = state.zOrder or 645
@@ -2055,6 +2073,10 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
             ok = false
             Log("PersistentConfig: PDA overlay call failed: " .. tostring(result))
             return nil
+        end
+        if result == false then
+            ok = false
+            Log("PersistentConfig: PDA overlay call returned false kind=" .. tostring(kind))
         end
         return result
     end
@@ -2106,7 +2128,6 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
         end
     end
 
-    SafeCall(exu.SetOverlayParameter, ids.root, "transparent", true)
     SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.0)
     
     local preset = GetPdaColorPreset()
@@ -2117,7 +2138,7 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
         if panelId then
             if panelId == ids.frame then
                 SafeCall(exu.SetOverlayMaterial, panelId, "BaseWhiteNoLighting")
-                SafeCall(exu.SetOverlayParameter, panelId, "transparent", true)
+                SafeCall(exu.SetOverlayParameter, panelId, "transparent", "true")
             elseif panelId == ids.backdrop or panelId == ids.header then
                 local panelMaterial = (panelId == ids.header) and headerMaterial or backdropMaterial
                 if panelMaterial then
@@ -2174,6 +2195,7 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
 
     if not ok then
         state.failed = true
+        Log(string.format("PersistentConfig: PDA overlay initialization failed kind=%s", tostring(kind)))
         PersistentConfig._DestroyPdaOverlay(kind)
         return false
     end
@@ -2182,6 +2204,7 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
     state.failed = false
     state.created[kind] = true
     state.createdVersion[kind] = state.structureVersion or 1
+    Log(string.format("PersistentConfig: PDA overlay initialized kind=%s", tostring(kind)))
     return true
 end
 
@@ -2218,6 +2241,10 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
             Log("PersistentConfig: PDA overlay update failed: " .. tostring(result))
             return nil
         end
+        if result == false then
+            ok = false
+            Log("PersistentConfig: PDA overlay update call returned false kind=" .. tostring(kind))
+        end
         return result
     end
 
@@ -2226,14 +2253,13 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
 
     SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
     SafeCall(exu.SetOverlayDimensions, ids.root, layout.panelWidth, layout.panelHeight)
-    SafeCall(exu.SetOverlayParameter, ids.root, "transparent", true)
     SafeCall(exu.SetOverlayColor, ids.root, 1.0, 1.0, 1.0, 1.0)
 
     if ids.frame then
         SafeCall(exu.SetOverlayPosition, ids.frame, 0, 0)
         SafeCall(exu.SetOverlayDimensions, ids.frame, layout.panelWidth, layout.panelHeight)
         SafeCall(exu.SetOverlayMaterial, ids.frame, "BaseWhiteNoLighting")
-        SafeCall(exu.SetOverlayParameter, ids.frame, "transparent", true)
+        SafeCall(exu.SetOverlayParameter, ids.frame, "transparent", "true")
         SafeCall(exu.SetOverlayParameter, ids.frame, "border_size", borderSizeString)
         SafeCall(exu.SetOverlayParameter, ids.frame, "border_material", borderMaterial)
         SafeCall(exu.SetOverlayColor, ids.frame, 1.0, 1.0, 1.0, 1.0)
@@ -5189,16 +5215,6 @@ GetProducerQueueState = PersistentConfig.R.GetProducerQueueState
 IsCommanderTrackedHandle = PersistentConfig.R.IsCommanderTrackedHandle
 RegisterCommanderHandle = PersistentConfig.R.RegisterCommanderHandle
 RemoveCommanderHandle = PersistentConfig.R.RemoveCommanderHandle
-local QueueGameKey = PersistentConfig.R.QueueGameKey
-local ConsumePendingGameKeyMatch = PersistentConfig.R.ConsumePendingGameKeyMatch
-local UpdateTeamScrapSnapshot = PersistentConfig.R.UpdateTeamScrapSnapshot
-local RecordBuildKeyIfPressed = PersistentConfig.R.RecordBuildKeyIfPressed
-local UpdateProducerQueues = PersistentConfig.R.UpdateProducerQueues
-local UpdateProducerBuildState = PersistentConfig.R.UpdateProducerBuildState
-local FindPendingBuildForUnit = PersistentConfig.R.FindPendingBuildForUnit
-local UpdatePendingBuildRefunds = PersistentConfig.R.UpdatePendingBuildRefunds
-local ResetCommanderOverview = PersistentConfig.R.ResetCommanderOverview
-local UpdateCommanderOverview = PersistentConfig.R.UpdateCommanderOverview
 
 PersistentConfig.P = require("PersistentConfigP").Create({
     PersistentConfig = PersistentConfig,
@@ -6615,12 +6631,12 @@ function PersistentConfig.UpdateInputs()
         InputState.nextFactionFlameRefresh = now + 1.0
         PersistentConfig._ApplyDynamicFactionFlameColors()
     end
-    local scrapDelta = UpdateTeamScrapSnapshot(team)
-    RecordBuildKeyIfPressed(team)
-    UpdateProducerQueues(team)
-    UpdateProducerBuildState(team, scrapDelta)
-    UpdatePendingBuildRefunds()
-    UpdateCommanderOverview()
+    local scrapDelta = PersistentConfig.R.UpdateTeamScrapSnapshot(team)
+    PersistentConfig.R.RecordBuildKeyIfPressed(team)
+    PersistentConfig.R.UpdateProducerQueues(team)
+    PersistentConfig.R.UpdateProducerBuildState(team, scrapDelta)
+    PersistentConfig.R.UpdatePendingBuildRefunds()
+    PersistentConfig.R.UpdateCommanderOverview()
 
     if not exu or not exu.GetGameKey then return end
 
@@ -6664,8 +6680,8 @@ function PersistentConfig.UpdateInputs()
         return
     end
 
-    local left_bracket_pressed = ConsumePendingGameKeyMatch({ "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET" })
-    local right_bracket_pressed = ConsumePendingGameKeyMatch({ "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET" })
+    local left_bracket_pressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET" })
+    local right_bracket_pressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET" })
 
     if left_bracket_pressed then
         PersistentConfig._ClearAutoSaveEnablePrompt()
@@ -6681,11 +6697,11 @@ function PersistentConfig.UpdateInputs()
         ClearPdaFeedback()
         RefreshPdaOverlay()
     end
-    local pda_up_key = ConsumePendingGameKeyMatch({ "UP", "UPARROW" })
-    local pda_down_key = ConsumePendingGameKeyMatch({ "DOWN", "DOWNARROW" })
-    local pda_left_key = ConsumePendingGameKeyMatch({ "LEFT", "LEFTARROW" })
-    local pda_right_key = ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
-    local enterPressed = ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
+    local pda_up_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "UP", "UPARROW" })
+    local pda_down_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "DOWN", "DOWNARROW" })
+    local pda_left_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "LEFT", "LEFTARROW" })
+    local pda_right_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
+    local enterPressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
 
     if InputState.pdaPage == PdaPages.SETTINGS then
         local settingsEntries = GetSettingsPageEntries()
@@ -7092,7 +7108,7 @@ function PersistentConfig._ApplyUnitPresetToObject(h)
         return false
     end
 
-    local pendingIndex, pending = FindPendingBuildForUnit(team, odfName, h)
+    local pendingIndex, pending = PersistentConfig.R.FindPendingBuildForUnit(team, odfName, h)
     if pending and not pending.applyAllowed then
         if pendingIndex then
             table.remove(InputState.pendingBuilds, pendingIndex)
@@ -7214,7 +7230,7 @@ function PersistentConfig.Initialize()
     PersistentConfig._DestroyAllPdaOverlays()
     PersistentConfig._ResetPdaOverlayState()
     ResetTrackedWorldHandles()
-    ResetCommanderOverview()
+    PersistentConfig.R.ResetCommanderOverview()
     InputState.processedCreationHandles = {}
     InputState.otherHeadlightVisibility = {}
     RuntimeEnhancements.Initialize()
@@ -7352,7 +7368,7 @@ function PersistentConfig.Initialize()
     if not PersistentConfig.HooksInstalled then
         local oldGameKey = GameKey
         GameKey = function(key)
-            QueueGameKey(key)
+            PersistentConfig.R.QueueGameKey(key)
             if oldGameKey then
                 return oldGameKey(key)
             end
