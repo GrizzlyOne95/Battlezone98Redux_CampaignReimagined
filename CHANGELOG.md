@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-03-24
+
+### Mission Startup Hang Fix
+- Fixed a mission-start hang that reproduced on `misn02b.bzn /edit` after `Game Simulation Initialized` completed.
+- Root cause: `PersistentConfig` synchronously scanned the live `bzlogger.txt` stream through `bzfile` while the game was still writing that log, and the read path could block the mission thread.
+- `PersistentConfig` now relies on `exu.GetSteam64()` for Steam identification and keeps the `bzlogger.txt` fallback disabled until a non-blocking reader exists.
+
 ## 2026-03-16
 
 ### Subtitle Overlay Migration
