@@ -164,6 +164,29 @@ local function resolveFilePath()
     return joinPath(workingDirectory, CareerStats.FileName)
 end
 
+local function fileExists(path)
+    if path == nil or path == "" then
+        return false
+    end
+
+    if bzfile and type(bzfile.Exists) == "function" then
+        local ok, exists = pcall(bzfile.Exists, path)
+        if ok then
+            return not not exists
+        end
+    end
+
+    if io and type(io.open) == "function" then
+        local file = io.open(path, "rb")
+        if file then
+            file:close()
+            return true
+        end
+    end
+
+    return false
+end
+
 local function parseLine(line)
     local cleaned = trim(line)
     if cleaned == "" or cleaned:sub(1, 1) == "#" then
@@ -286,21 +309,41 @@ local function loadData()
     CareerStats.Data = {}
 
     local path = resolveFilePath()
-    local file = safeCall(bzfile.Open, path, "r")
+    if not fileExists(path) then
+        return
+    end
+
+    local file
+    if io and type(io.open) == "function" then
+        file = io.open(path, "r")
+    else
+        file = safeCall(bzfile.Open, path, "r")
+    end
+
     if not file then
         return
     end
 
     local ok = pcall(function()
-        local line = file:Readln()
-        while line do
-            local key, value = parseLine(line)
-            if key then
-                CareerStats.Data[key] = value
+        if io and type(io.open) == "function" then
+            for line in file:lines() do
+                local key, value = parseLine(line)
+                if key then
+                    CareerStats.Data[key] = value
+                end
             end
-            line = file:Readln()
+            file:close()
+        else
+            local line = file:Readln()
+            while line do
+                local key, value = parseLine(line)
+                if key then
+                    CareerStats.Data[key] = value
+                end
+                line = file:Readln()
+            end
+            file:Close()
         end
-        file:Close()
     end)
 
     if not ok then
