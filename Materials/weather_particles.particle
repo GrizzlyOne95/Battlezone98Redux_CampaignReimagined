@@ -1,0 +1,117 @@
+// weather_particles.particle
+// Starter Ogre particle templates for Battlezone weather control.
+// These use materials already present in Campaign Reimagined so missions can
+// start testing immediately and swap in better textures later.
+
+particle_system Weather/Rain/Heavy
+{
+    material        raindrop.tga
+    particle_width  4
+    particle_height 22
+    cull_each       true
+    quota           6000
+    sorted          false
+    local_space     false
+    billboard_type  oriented_common
+    common_direction 0 -1 0
+
+    emitter Box
+    {
+        angle           0
+        emission_rate   260
+        time_to_live    4
+        time_to_live_min 3.4
+        time_to_live_max 4.6
+        direction       0 -1 0
+        velocity_min    42
+        velocity_max    58
+        width           220
+        height          24
+        depth           220
+    }
+
+    affector LinearForce
+    {
+        force_vector      0 -120 0
+        force_application add
+    }
+}
+
+particle_system Weather/Snow/Light
+{
+    material        particle_bz2.tga
+    particle_width  6
+    particle_height 6
+    cull_each       true
+    quota           3500
+    sorted          true
+    local_space     false
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        emission_rate       40
+        time_to_live        10
+        time_to_live_min    8
+        time_to_live_max    12
+        direction           0 -1 0
+        velocity_min        8
+        velocity_max        14
+        colour_range_start  1 1 1 0.85
+        colour_range_end    1 1 1 0.85
+        width               180
+        height              28
+        depth               180
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness 5
+    }
+
+    affector LinearForce
+    {
+        force_vector      0 -8 0
+        force_application add
+    }
+}
+
+particle_system Weather/Dust/Loop
+{
+    material        dust
+    particle_width  18
+    particle_height 18
+    cull_each       true
+    quota           1800
+    sorted          true
+    local_space     false
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               12
+        emission_rate       24
+        time_to_live        6
+        time_to_live_min    4
+        time_to_live_max    7
+        direction           1 0.08 0.18
+        velocity_min        6
+        velocity_max        12
+        colour_range_start  0.85 0.68 0.44 0.40
+        colour_range_end    0.62 0.46 0.26 0.22
+        width               180
+        height              24
+        depth               180
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness 16
+    }
+
+    affector Scaler
+    {
+        rate 5
+    }
+}
