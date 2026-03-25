@@ -187,6 +187,32 @@ local function fileExists(path)
     return false
 end
 
+local function ensureFileExists(path)
+    if fileExists(path) then
+        return true
+    end
+
+    local file = nil
+    if io and type(io.open) == "function" then
+        file = io.open(path, "w")
+        if file then
+            file:close()
+            return true
+        end
+    end
+
+    file = safeCall(bzfile.Open, path, "w", "trunc")
+    if file then
+        pcall(function()
+            file:Close()
+        end)
+        return true
+    end
+
+    LogMessage("CareerStats: failed to create career stats file: " .. tostring(path))
+    return false
+end
+
 local function parseLine(line)
     local cleaned = trim(line)
     if cleaned == "" or cleaned:sub(1, 1) == "#" then
@@ -309,7 +335,7 @@ local function loadData()
     CareerStats.Data = {}
 
     local path = resolveFilePath()
-    if not fileExists(path) then
+    if not ensureFileExists(path) then
         return
     end
 

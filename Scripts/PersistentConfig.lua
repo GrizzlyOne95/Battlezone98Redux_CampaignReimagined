@@ -523,7 +523,6 @@ local function GetBundledOpenShimSourcePath()
     for _, root in ipairs(roots) do
         candidates[#candidates + 1] = root .. "\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
         candidates[#candidates + 1] = root .. "\\_Release\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
-        candidates[#candidates + 1] = root .. "\\_Source\\Bin\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
     end
 
     for _, candidate in ipairs(candidates) do
