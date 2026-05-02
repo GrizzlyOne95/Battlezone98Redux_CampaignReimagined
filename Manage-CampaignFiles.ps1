@@ -18,7 +18,7 @@ Set-Location $RepoRoot
 $SourceDir = $RepoRoot
 $CurrentDir = $RepoRoot
 $DefaultPackagedModId = "3686673790"
-$StructuredRuntimeDirs = @("flags", "OverlayFont")
+$StructuredRuntimeDirs = @("flags", "OverlayFont", "chunkMeshes")
 $SourceExcludedRelativePaths = @(
     ".git",
     "docs",
@@ -184,6 +184,59 @@ function Is-StructuredRuntimeRelativePath($relativePath) {
     return $false
 }
 
+function Get-ChunkMeshesSourceRelativeRoot() {
+    return "Assets\chunkMeshes"
+}
+
+function TryMapSourceRelativePathToRuntimeRelativePath($sourceRelativePath) {
+    if (-not $sourceRelativePath) {
+        return $null
+    }
+
+    $normalized = $sourceRelativePath -replace '/', '\'
+    $chunkMeshesSourceRoot = Get-ChunkMeshesSourceRelativeRoot
+
+    if ($normalized.Equals($chunkMeshesSourceRoot, [System.StringComparison]::OrdinalIgnoreCase) -or
+        $normalized.StartsWith($chunkMeshesSourceRoot + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $suffix = $normalized.Substring($chunkMeshesSourceRoot.Length).TrimStart('\')
+        if ($suffix) {
+            return "chunkMeshes\$suffix"
+        }
+
+        return "chunkMeshes"
+    }
+
+    if (Is-StructuredRuntimeRelativePath $normalized) {
+        return $normalized
+    }
+
+    return $null
+}
+
+function TryMapRuntimeRelativePathToSourceRelativePath($runtimeRelativePath) {
+    if (-not $runtimeRelativePath) {
+        return $null
+    }
+
+    $normalized = $runtimeRelativePath -replace '/', '\'
+    if ($normalized.Equals("chunkMeshes", [System.StringComparison]::OrdinalIgnoreCase) -or
+        $normalized.StartsWith("chunkMeshes\", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $suffix = $normalized.Substring("chunkMeshes".Length).TrimStart('\')
+        $chunkMeshesSourceRoot = Get-ChunkMeshesSourceRelativeRoot
+        if ($suffix) {
+            return "$chunkMeshesSourceRoot\$suffix"
+        }
+
+        return $chunkMeshesSourceRoot
+    }
+
+    if (Is-StructuredRuntimeRelativePath $normalized) {
+        return $normalized
+    }
+
+    return $null
+}
+
 function Is-ExcludedSourceRelativePath($relativePath) {
     if (-not $relativePath) {
         return $false
@@ -247,11 +300,16 @@ function Get-ManagedSourceFiles {
 
 function Get-DeployRelativePathFromSourcePath($sourceFileFullName) {
     $sourceRelativePath = Get-RelativePathFromBase $SourceDir $sourceFileFullName
-    if ($sourceRelativePath -and (Is-StructuredRuntimeRelativePath $sourceRelativePath)) {
-        return $sourceRelativePath
+    $mappedRuntimeRelativePath = TryMapSourceRelativePathToRuntimeRelativePath $sourceRelativePath
+    if ($mappedRuntimeRelativePath) {
+        return $mappedRuntimeRelativePath
     }
 
     return [System.IO.Path]::GetFileName($sourceFileFullName)
+}
+
+function Get-DeployRelativePathsFromSourcePath($sourceFileFullName) {
+    return @(Get-DeployRelativePathFromSourcePath $sourceFileFullName)
 }
 
 function Sync-ToSource {
@@ -286,9 +344,18 @@ function Sync-ToSource {
     
     foreach ($file in $runtimeFiles) {
         $runtimeRelativePath = Get-RelativePathFromBase $runtimeDir $file.FullName
+        if (-not $runtimeRelativePath) {
+            continue
+        }
 
         if ($runtimeRelativePath -and (Is-StructuredRuntimeRelativePath $runtimeRelativePath)) {
-            $targetPath = Join-Path $SourceDir $runtimeRelativePath
+            $sourceRelativePath = TryMapRuntimeRelativePathToSourceRelativePath $runtimeRelativePath
+            $targetPath = if ($sourceRelativePath) {
+                Join-Path $SourceDir $sourceRelativePath
+            }
+            else {
+                Join-Path $SourceDir $runtimeRelativePath
+            }
             $targetDir = Split-Path $targetPath -Parent
 
             if (-not (Test-Path $targetDir)) {
@@ -364,7 +431,9 @@ function Deploy-PackagedMod {
     $sourceFiles = Get-ManagedSourceFiles
     $desiredRuntimePaths = @{}
     foreach ($file in $sourceFiles) {
-        $desiredRuntimePaths[(Get-DeployRelativePathFromSourcePath $file.FullName)] = $true
+        foreach ($deployRelativePath in Get-DeployRelativePathsFromSourcePath $file.FullName) {
+            $desiredRuntimePaths[$deployRelativePath] = $true
+        }
     }
 
     $runtimeFiles = @(
@@ -390,45 +459,47 @@ function Deploy-PackagedMod {
     $skipped = 0
     
     foreach ($file in $sourceFiles) {
-        $deployRelativePath = Get-DeployRelativePathFromSourcePath $file.FullName
-
-        $runtimePath = Join-Path $runtimeDir $deployRelativePath
-        $runtimePathParent = Split-Path $runtimePath -Parent
-        if (-not (Test-Path $runtimePathParent)) {
-            New-Item -ItemType Directory -Path $runtimePathParent -Force | Out-Null
-        }
-        
-        if (Test-Path $runtimePath) {
-            $runtimeItem = Get-Item $runtimePath
-
-            $hashMatch = $null
-            if (Is-SourceAuthoritativeFlatFile $file.Name) {
-                $hashMatch = Test-FilesMatchByHash $file.FullName $runtimePath
+        foreach ($deployRelativePath in Get-DeployRelativePathsFromSourcePath $file.FullName) {
+            $runtimePath = Join-Path $runtimeDir $deployRelativePath
+            $runtimePathParent = Split-Path $runtimePath -Parent
+            if (-not (Test-Path $runtimePathParent)) {
+                New-Item -ItemType Directory -Path $runtimePathParent -Force | Out-Null
             }
 
-            # winmm.dll is source-authoritative: if the bytes differ, push the
-            # shipped copy even when the deployed runtime file has a newer
-            # timestamp from a manual shim swap.
-            if ((Is-SourceAuthoritativeFlatFile $file.Name) -and ($hashMatch -ne $true)) {
-                Copy-Item -Path $file.FullName -Destination $runtimePath -Force
-                Write-Host "Updated: $($file.Name) (authoritative source sync)" -ForegroundColor Yellow
-                $updated++
-            }
-            # If source version is newer, copy to the deployed runtime
-            elseif ($file.LastWriteTime -gt $runtimeItem.LastWriteTime) {
-                Copy-Item -Path $file.FullName -Destination $runtimePath -Force
-                Write-Host "Updated: $($file.Name)" -ForegroundColor Yellow
-                $updated++
+            $displayPath = if ($deployRelativePath -eq $file.Name) { $file.Name } else { $deployRelativePath }
+
+            if (Test-Path $runtimePath) {
+                $runtimeItem = Get-Item $runtimePath
+
+                $hashMatch = $null
+                if (Is-SourceAuthoritativeFlatFile $file.Name) {
+                    $hashMatch = Test-FilesMatchByHash $file.FullName $runtimePath
+                }
+
+                # winmm.dll is source-authoritative: if the bytes differ, push the
+                # shipped copy even when the deployed runtime file has a newer
+                # timestamp from a manual shim swap.
+                if ((Is-SourceAuthoritativeFlatFile $file.Name) -and ($hashMatch -ne $true)) {
+                    Copy-Item -Path $file.FullName -Destination $runtimePath -Force
+                    Write-Host "Updated: $displayPath (authoritative source sync)" -ForegroundColor Yellow
+                    $updated++
+                }
+                # If source version is newer, copy to the deployed runtime
+                elseif ($file.LastWriteTime -gt $runtimeItem.LastWriteTime) {
+                    Copy-Item -Path $file.FullName -Destination $runtimePath -Force
+                    Write-Host "Updated: $displayPath" -ForegroundColor Yellow
+                    $updated++
+                }
+                else {
+                    $skipped++
+                }
             }
             else {
-                $skipped++
+                # New file in source, copy to the deployed runtime
+                Copy-Item -Path $file.FullName -Destination $runtimePath -Force
+                Write-Host "Added: $displayPath" -ForegroundColor Green
+                $added++
             }
-        }
-        else {
-            # New file in source, copy to the deployed runtime
-            Copy-Item -Path $file.FullName -Destination $runtimePath -Force
-            Write-Host "Added: $($file.Name)" -ForegroundColor Green
-            $added++
         }
     }
     
