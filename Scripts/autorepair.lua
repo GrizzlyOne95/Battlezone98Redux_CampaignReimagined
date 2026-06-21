@@ -65,13 +65,15 @@ end
 function FindNearestRepairPod(unit, searchRadius)
     local nearestPod = nil
     local podType = ""
-    local closestDistance = searchRadius or podSearchRadius  -- Use provided radius or default
+    local closestDistance = searchRadius or podSearchRadius
 
     for pod, _ in pairs(repairPodTable) do
-                    closestDistance = distance
-                    nearestPod = pod  -- Update nearestPod if a closer one is found
-                    podType = "repair"  -- Store the pod type
-                end
+        if IsValid(pod) then
+            local distance = GetDistance(unit, pod)
+            if distance < closestDistance then
+                closestDistance = distance
+                nearestPod = pod
+                podType = "repair"
             end
         end
     end
@@ -83,17 +85,19 @@ end
 function FindNearestAmmoPod(unit, searchRadius)
     local nearestPod = nil
     local podType = ""
-    local closestDistance = searchRadius or podSearchRadius  -- Use provided radius or default
+    local closestDistance = searchRadius or podSearchRadius
 
     for pod, _ in pairs(ammoPodTable) do
         if IsValid(pod) then
             local distance = GetDistance(unit, pod)
-            local pos = GetPosition(pod)
-            if pos then
-                local podHeight, _ = GetTerrainHeightAndNormal(pos) -- Get the terrain height under the pod
-                local podAboveGround = pos.y - (podHeight or 0) -- Calculate the height above ground
-                
-                if distance < closest  e
+            if distance < closestDistance then
+                closestDistance = distance
+                nearestPod = pod
+                podType = "ammo"
+            end
+        end
+    end
+
     return nearestPod, podType
 end
 
