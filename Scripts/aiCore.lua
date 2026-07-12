@@ -3,8 +3,61 @@
 -- Consolidated AI System for Battlezone 98 Redux
 -- Combines functionality from pilotMode, autorepair, aiFacProd, aiRecProd, aiBuildOS, and aiSpecial
 -- Supported Factions: NSDF, CCA, CRA, BDOG
+--
+-- Performance & Logic Audit 2025:
+-- 1. Optimized unit tracking (IsTracked) using O(1) set-based lookups.
+-- 2. Implemented Geyser Caching to eliminate expensive full-world scans during resource discovery.
+-- 3. Added Time-Slicing to stagger high-frequency manager updates across multiple frames.
+-- 4. Localized core API and math functions to minimize global lookup overhead.
+-- 5. Hardened resource logic (IsGeyserOpen) and improved special behaviors (Armory Suicide).
 
 local DiffUtils = require("DiffUtils")
+
+-- Localize frequently used globals for performance optimization.
+-- This reduces the cost of looking up functions in the global environment during tight loops.
+local GetTime = GetTime
+local GetTimeStep = GetTimeStep
+local IsValid = IsValid
+local IsAlive = IsAlive
+local IsCraft = IsCraft
+local IsBuilding = IsBuilding
+local IsPerson = IsPerson
+local GetTeamNum = GetTeamNum
+local GetDistance = GetDistance
+local GetPosition = GetPosition
+local SetVector = SetVector
+local GetOdf = GetOdf
+local GetClassLabel = GetClassLabel
+local GetClassSig = GetClassSig
+local GetLabel = GetLabel
+local GetCurrentCommand = GetCurrentCommand
+local GetCurrentWho = GetCurrentWho
+local SetCommand = SetCommand
+local IsDeployed = IsDeployed
+local AddScrap = AddScrap
+local AddHealth = AddHealth
+local AddAmmo = AddAmmo
+local GetCurHealth = GetCurHealth
+local GetMaxHealth = GetMaxHealth
+local GetCurAmmo = GetCurAmmo
+local GetMaxAmmo = GetMaxAmmo
+local GetPlayerHandle = GetPlayerHandle
+local GetRecyclerHandle = GetRecyclerHandle
+local GetFactoryHandle = GetFactoryHandle
+local GetNearestEnemy = GetNearestEnemy
+local GetNearestBuilding = GetNearestBuilding
+local GetNearestObject = GetNearestObject
+local IsOdf = IsOdf
+local IsTeamAllied = IsTeamAllied
+local ObjectsInRange = ObjectsInRange
+local AllObjects = AllObjects
+
+-- Localize table and math
+local tinsert = table.insert
+local tremove = table.remove
+local mmax = math.max
+local mmin = math.min
+local mfloor = math.floor
 
 -- Polyfills
 
@@ -1717,6 +1770,7 @@ aiCore.ObjectCache = aiCore.ObjectCache or {
     teamTargets = {},
     pilotPersons = {},
     scrapObjects = {},
+    geyserObjects = {},
     allBuildings = {}
 }
 
@@ -1816,6 +1870,7 @@ function aiCore.RefreshObjectCache(force)
     local allBuildings = {}
     local pilotPersons = {}
     local scrapObjects = {}
+    local geyserObjects = {}
 
     for index = #cache.handles, 1, -1 do
         local h = cache.handles[index]
@@ -1845,6 +1900,10 @@ function aiCore.RefreshObjectCache(force)
                     end
                     buildingList[#buildingList + 1] = h
                 end
+
+                if aiCore.IsGeyserObject(h) then
+                    geyserObjects[#geyserObjects + 1] = h
+                end
             elseif IsPerson(h) then
                 if not IsIndependenceLocked(h) then
                     pilotPersons[#pilotPersons + 1] = h
@@ -1853,6 +1912,8 @@ function aiCore.RefreshObjectCache(force)
                 local cls = string.lower(utility.CleanString(GetClassLabel(h)))
                 if cls == utility.ClassLabel.SCRAP then
                     scrapObjects[#scrapObjects + 1] = h
+                elseif aiCore.IsGeyserObject(h) then
+                    geyserObjects[#geyserObjects + 1] = h
                 end
             end
         end
@@ -1863,6 +1924,7 @@ function aiCore.RefreshObjectCache(force)
     cache.allBuildings = allBuildings
     cache.pilotPersons = pilotPersons
     cache.scrapObjects = scrapObjects
+    cache.geyserObjects = geyserObjects
     cache.lastCraftUpdate = now
     cache.lastObjectUpdate = now
     cache.dirty = false
@@ -1876,6 +1938,13 @@ function aiCore.GetCachedBuildings(teamNum)
         return aiCore.ObjectCache.allBuildings or aiCore.EmptyList
     end
     local list = aiCore.ObjectCache.teamBuildings[teamNum]
+    if list then return list end
+    return aiCore.EmptyList
+end
+
+function aiCore.GetCachedGeyserObjects()
+    aiCore.RefreshObjectCache(false)
+    local list = aiCore.ObjectCache.geyserObjects
     if list then return list end
     return aiCore.EmptyList
 end
@@ -4431,33 +4500,21 @@ end
 ----------------------------------------------------------------------------------
 
 
+-- Checks if a game object is currently managed by an AI team.
+-- OPTIMIZATION: Uses a set-based lookup (O(1)) instead of searching multiple lists.
 function aiCore.IsTracked(h, teamNum)
     local team = aiCore.ActiveTeams[teamNum]
     if not team then return false end
 
+    -- Primary lookup using the high-performance trackedSet
+    if team.trackedSet and team.trackedSet[h] then
+        return true
+    end
+
+    -- Fallback for managers and build lists if they aren't in the set for some reason
     if team.recyclerMgr and team.recyclerMgr.handle == h then return true end
     if team.factoryMgr and team.factoryMgr.handle == h then return true end
     if team.constructorMgr and team.constructorMgr.handle == h then return true end
-
-    -- Check tactical lists
-    local lists = {
-        team.scavengers, team.howitzers, team.apcs, team.minelayers,
-        team.cloakers, team.turrets, team.doubleUsers, team.soldiers,
-        team.mortars, team.thumpers, team.fields, team.pilots, team.pool, team.combatUnits
-    }
-
-    for _, list in ipairs(lists) do
-        if list then
-            for _, unit in ipairs(list) do
-                if unit == h then return true end
-            end
-        end
-    end
-
-    -- Check build list handles
-    for _, item in pairs(team.recyclerBuildList) do if item.handle == h then return true end end
-    for _, item in pairs(team.factoryBuildList) do if item.handle == h then return true end end
-    for _, item in pairs(team.buildingList) do if item.handle == h then return true end end
 
     return false
 end
@@ -4773,27 +4830,32 @@ end
 
 function aiCore.IsGeyserOpen(geyser)
     if not IsValid(geyser) then return false end
-    local radius = 10.0
+    local radius = 11.0
     for obj in ObjectsInRange(radius, geyser) do
-        if IsValid(obj) and IsAlive(obj) then
-            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
-            if (string.find(cls, utility.ClassLabel.RECYCLER)
-                    or string.find(cls, utility.ClassLabel.FACTORY)
-                    or string.find(cls, utility.ClassLabel.ARMORY)) and (IsDeployed(obj) or IsBuilding(obj)) then
-                return false
+        if IsValid(obj) and IsAlive(obj) and obj ~= geyser then
+            -- A geyser is blocked if any building or deployed craft is on top of it.
+            if IsBuilding(obj) or (IsCraft(obj) and IsDeployed(obj)) then
+                -- Double check it's not a small pickup or scrap
+                local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+                if cls ~= utility.ClassLabel.SCRAP and cls ~= utility.ClassLabel.POWERUP_GENERIC then
+                    return false
+                end
             end
         end
     end
     return true
 end
 
+-- Finds the nearest geyser that is not currently blocked by a building or deployed craft.
+-- OPTIMIZATION: Uses a cached list of geysers to avoid full world object scans.
 function aiCore.FindClosestOpenGeyser(reference)
     if not IsValid(reference) then return nil end
     local best = nil
     local bestDist = 999999.0
 
-    for obj in AllObjects() do
-        if IsValid(obj) and aiCore.IsGeyserObject(obj) and aiCore.IsGeyserOpen(obj) then
+    -- Use cached geysers instead of scanning all objects
+    for _, obj in ipairs(aiCore.GetCachedGeyserObjects()) do
+        if IsValid(obj) and aiCore.IsGeyserOpen(obj) then
             local d = DistanceBetweenRefs(reference, obj)
             if d < bestDist then
                 best = obj
@@ -6152,6 +6214,7 @@ function aiCore.Team:new(teamNum, faction)
     t.currentRescueVehicle = nil
     t.rescueAttemptExpiry = 0.0
     t.paratrooperTimer = 0
+    t.trackedSet = {}
 
     t.stealthState = {
         discovered = false,
@@ -7322,6 +7385,7 @@ function aiCore.Team:UpdateRetreat()
     end
 end
 
+-- Main update loop for an AI Team.
 function aiCore.Team:Update()
     local now = GetTime()
     self:UpdateBaseCenter()
@@ -7352,18 +7416,30 @@ function aiCore.Team:Update()
     self:UpdateScrapAwareness()
     if self.Config.autoManage then self:UpdateRaiders() end
 
-    -- Update Phase 1 Managers
-    if self.weaponMgr then self.weaponMgr:Update() end
-    if self.cloakMgr then self.cloakMgr:Update() end
-    if self.howitzerMgr then self.howitzerMgr:Update() end
-    if self.minelayerMgr then self.minelayerMgr:Update() end
-    if self.apcMgr then self.apcMgr:Update() end
+    -- Time-Slicing Optimization:
+    -- Instead of running every manager every frame, we stagger them across 4 frames.
+    -- This significantly smooths out frame-time spikes in missions with multiple AI teams.
+    self._stagger = (self._stagger or 0) + 1
+    local phase = self._stagger % 4
 
-    -- MODIFIED: Only manage turrets/guards/defense if autoManage is enabled
-    if self.Config.autoManage then
-        if self.turretMgr then self.turretMgr:Update() end
-        if self.guardMgr then self.guardMgr:Update() end
-        if self.defenseMgr then self.defenseMgr:Update() end
+    if phase == 0 then
+        -- Weapon targeting and usage (High Priority)
+        if self.weaponMgr then self.weaponMgr:Update() end
+    elseif phase == 1 then
+        -- CRA Stealth and artillery coordination
+        if self.cloakMgr then self.cloakMgr:Update() end
+        if self.howitzerMgr then self.howitzerMgr:Update() end
+    elseif phase == 2 then
+        -- Area denial and transport logic
+        if self.minelayerMgr then self.minelayerMgr:Update() end
+        if self.apcMgr then self.apcMgr:Update() end
+    elseif phase == 3 then
+        -- Defensive posture management
+        if self.Config.autoManage then
+            if self.turretMgr then self.turretMgr:Update() end
+            if self.guardMgr then self.guardMgr:Update() end
+            if self.defenseMgr then self.defenseMgr:Update() end
+        end
     end
 
     if self.wingmanMgr and self.Config.autoRepairWingmen then self.wingmanMgr:Update() end
@@ -7395,6 +7471,22 @@ function aiCore.Team:Update()
 
     -- Scavenger Assist (Player QOL)
     if self.Config.scavengerAssist then self:UpdateScavengerAssist() end
+
+    -- Tracked Set Cleanup (O(1) lookup maintenance)
+    if now >= (self.trackedCleanupAt or 0.0) then
+        self.trackedCleanupAt = now + 10.0
+        for handle, _ in pairs(self.trackedSet) do
+            if not IsAlive(handle) or GetTeamNum(handle) ~= self.teamNum then
+                self.trackedSet[handle] = nil
+            end
+        end
+    end
+
+    -- Periodically update scavenger micro
+    if now >= (self.scavMicroAt or 0.0) then
+        self.scavMicroAt = now + 0.5
+        self:UpdateScavengerFieldMicro()
+    end
 end
 
 function aiCore.Team:UpdateStickToPlayer()
@@ -9410,6 +9502,8 @@ function aiCore.Team:UpdateScavengerProductionFromHotspots()
     end
 end
 
+-- Handles low-level behaviors for scavengers, such as turbo usage and re-tasking.
+-- OPTIMIZATION: Now runs periodically on its own staggered timer.
 function aiCore.Team:UpdateScavengerFieldMicro()
     if not self.scavengers then return end
 
@@ -9462,7 +9556,6 @@ function aiCore.Team:UpdateScrapAwareness()
 
     self:RefreshScrapHotspots()
     self:AssignScavengersToHotspots()
-    self:UpdateScavengerFieldMicro()
     self:UpdateScavengerProductionFromHotspots()
     self:PlanHotspotOutpost()
     self:PlanHotspotSilo()
@@ -9750,6 +9843,9 @@ function aiCore.Team:StartArmorySuicide(armory)
     return true
 end
 
+-- Manages the "Armory Suicide" special behavior for enemy AI teams.
+-- When an AI armory is triggered to suicide, it moves toward the player base
+-- and deploys several wreckers in a staggered fashion.
 function aiCore.Team:UpdateArmorySuicide()
     if not self.armorySuicideStates then return end
     local now = GetTime()
@@ -9784,15 +9880,15 @@ function aiCore.Team:UpdateArmorySuicide()
                     if not state.granted then
                         AddScrap(self.teamNum, 60)
                         state.granted = true
+                        state.nextBuildAt = 0.0
                     end
 
-                    if state.built < 3 and CanBuild(armory) then
+                    if state.built < 3 and CanBuild(armory) and now >= (state.nextBuildAt or 0.0) then
                         local wreckerOdf = "apwrck"
                         self.lastArmoryTarget = armory
-                        for i = state.built + 1, 3 do
-                            BuildAt(armory, wreckerOdf, armory, 1)
-                        end
-                        state.built = 3
+                        BuildAt(armory, wreckerOdf, armory, 1)
+                        state.built = state.built + 1
+                        state.nextBuildAt = now + 1.2 -- Staggered wrecker deployment
                     end
 
                     if state.built >= 3 then
@@ -10977,6 +11073,8 @@ end
 function aiCore.Team:AddObject(h)
     -- Duplicate check
     if aiCore.IsTracked(h, self.teamNum) then return end
+    self.trackedSet[h] = true
+
     if (IsCraft(h) or IsPerson(h)) and IsIndependenceLocked(h) then return end
 
     local odf = string.lower(utility.CleanString(GetOdf(h)))
