@@ -371,6 +371,10 @@ function Load(...)
     M = missionData or M
     M.loading_done = false
     M.loadGracePeriod = GetTime() + 2.0
+    -- This flag rides along inside the saved M table, so without clearing it a
+    -- loaded game would skip PersistentConfig.Initialize entirely — no config
+    -- load, no settings apply: broken PDA text, subtitles, radar and lighting.
+    M.persistentConfigInitialized = false
 end
 
 function Start()

@@ -463,7 +463,14 @@ local function EnsureMaterialVariant(materialName, profile, occupied)
 
     local passColors = BuildPassColors(baseColors, profile, occupied)
     if exu.SetMaterialPassColors then
-        local okSetColors, setResult = pcall(exu.SetMaterialPassColors, cloneName, passColors, 0, 0, group)
+        -- Technique -1 / pass -1 tints every technique of the clone (except the
+        -- retro "og-" schemes, which EXU skips) so the color survives the
+        -- enhanced-lighting "en-" scheme and LOD technique switches. Older
+        -- exu.dll builds reject -1, so fall back to the legacy technique-0 call.
+        local okSetColors, setResult = pcall(exu.SetMaterialPassColors, cloneName, passColors, -1, -1, group)
+        if not okSetColors or setResult == false then
+            okSetColors, setResult = pcall(exu.SetMaterialPassColors, cloneName, passColors, 0, 0, group)
+        end
         if not okSetColors or setResult == false then
             NoteMaterialFailure("SetMaterialPassColors", cloneName)
             DebugVisualLog(string.format("variant-fail material=%s base=%s clone=%s stage=SetMaterialPassColors occupied=%s", tostring(materialName), tostring(baseMaterialName), tostring(cloneName), tostring(occupied)))
