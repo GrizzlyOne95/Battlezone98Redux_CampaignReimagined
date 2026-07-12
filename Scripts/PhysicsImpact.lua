@@ -157,6 +157,15 @@ function exu.BulletHit(odf, shooter, hitObject, transform, ordnanceHandle)
     end
 end
 
+-- Lifecycle no-ops kept for mission-script compatibility. The module became
+-- fully event-driven (exu.BulletInit/exu.BulletHit callbacks above), but
+-- misn05/06/07 still call Init/OnObjectCreated/Update every mission; without
+-- these stubs those calls raise "attempt to call field (a nil value)" and
+-- abort the mission's Start()/Update() mid-way.
+function PhysicsImpact.Init() end
+function PhysicsImpact.OnObjectCreated(h) end
+function PhysicsImpact.Update(dtime) end
+
 local count = 0
 for _ in pairs(PhysicsImpact.Weapons) do count = count + 1 end
 print("PhysicsImpact v1.5 loaded with " .. tostring(count) .. " tuned ordnances.")

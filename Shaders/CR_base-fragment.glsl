@@ -206,7 +206,12 @@ void main()
 		shadow = PCF_Filter(shadowMap3, vLightSpacePos3, invShadowMapSize3.xy);
 	}
 #endif
+#if defined(ENHANCED_MODE)
+	// deeper shadow floor gives enhanced mode more contact grounding
+	shadow = shadow * 0.78 + 0.22;
+#else
 	shadow = shadow * 0.7 + 0.3;
+#endif
 #if defined(OG_RETRO_MODE)
 	shadow = shadow * 0.5 + 0.5;
 #endif
@@ -267,7 +272,8 @@ void main()
 	// per-pixel view normal
 	vec3 normalTex = texture2D(normalMap, vTexCoord).xyz * 2.0 - 1.0;
 #if defined(ENHANCED_MODE)
-	normalTex = sharpen_normal_map(normalTex);
+	// fade the sharpening out with distance so it cannot shimmer far away
+	normalTex = mix(sharpen_normal_map(normalTex), normalTex, clamp(vDepth * 0.005, 0.0, 1.0));
 #endif
 	vec3 viewNormal = safe_normalize(normalTex.xyz * tbn);
 #else
@@ -376,6 +382,11 @@ void main()
 			vec3 specularColor = mix(vec3(0.025, 0.025, 0.025), vec3(0.04, 0.04, 0.04), pow(1.0 - ndotv, 5.0));
 #endif
 			float specularLobe = pow(ndoth, specularPower);
+#if defined(ENHANCED_MODE)
+			// Blinn-Phong energy normalization (unity at the stock power of
+			// 24) so tighter lobes read brighter instead of vanishing.
+			specularLobe *= min((specularPower + 8.0) * 0.03125, 3.0);
+#endif
 			specularResult.xyz += lightSpecular[i].xyz * specularAttenuation * diffuseTerm * specularLobe * specularColor;
 		}
 #endif
@@ -386,6 +397,12 @@ void main()
 #endif
 	}
 
+#endif
+
+#if defined(ENHANCED_MODE)
+	// subtle fresnel sky fill lifts silhouettes out of flat ambient
+	float rimTerm = pow(1.0 - max(dot(viewNormal, eyeDir), 0.0), 4.0);
+	lightResult.xyz += sceneAmbient.xyz * rimTerm * 0.35;
 #endif
 #endif
 

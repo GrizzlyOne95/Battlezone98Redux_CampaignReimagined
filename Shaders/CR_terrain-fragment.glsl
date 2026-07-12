@@ -200,7 +200,12 @@ void main()
 		shadow = PCF_Filter(shadowMap3, vLightSpacePos3, invShadowMapSize3.xy);
 	}
 #endif
+#if defined(ENHANCED_MODE)
+	// deeper shadow floor gives enhanced mode more contact grounding
+	shadow = shadow * 0.78 + 0.22;
+#else
 	shadow = shadow * 0.7 + 0.3;
+#endif
 #if defined(OG_RETRO_MODE)
 	shadow = shadow * 0.5 + 0.5;
 #endif
@@ -261,7 +266,8 @@ void main()
 	// per-pixel view normal
 	vec3 normalTex = texture2D(normalMap, vTexCoord).xyz * 2.0 - 1.0;
 #if defined(ENHANCED_MODE)
-	normalTex = sharpen_normal_map(normalTex);
+	// fade the sharpening out with distance so it cannot shimmer far away
+	normalTex = mix(sharpen_normal_map(normalTex), normalTex, clamp(vDepth * 0.005, 0.0, 1.0));
 #endif
 	vec3 viewNormal = safe_normalize(normalTex * tbn);
 #else
@@ -372,6 +378,11 @@ void main()
 			vec3 specularColor = mix(vec3(0.025, 0.025, 0.025), vec3(0.04, 0.04, 0.04), pow(1.0 - ndotv, 5.0));
 #endif
 			float specularLobe = pow(ndoth, specularPower);
+#if defined(ENHANCED_MODE)
+			// Blinn-Phong energy normalization (unity at the stock power of
+			// 24) so tighter lobes read brighter instead of vanishing.
+			specularLobe *= min((specularPower + 8.0) * 0.03125, 3.0);
+#endif
 			specularResult.xyz += lightSpecular[i].xyz * specularAttenuation * diffuseTerm * specularLobe * specularColor;
 		}
 #endif
@@ -402,11 +413,21 @@ void main()
 #endif
    
 #if defined(DETAILMAP_ENABLED)
-	// detail texture   
+	// detail texture
 	vec3 detailTex = texture2D(detailMap, fract(vTexCoord * 8.0)).xyz * 2.0;
 	vec3 fullbrightDetail = vec3(1.0, 1.0, 1.0);
+#if defined(ENHANCED_MODE)
+	// keep the base detail octave alive further out, and layer a tighter
+	// second octave close to the camera for crisper ground under the craft
+	float detailDistance = clamp(vDepth * 0.015, 0.0, 1.0);
+	vec3 detailColor = mix(detailTex, fullbrightDetail, detailDistance);
+	vec3 detailTexNear = texture2D(detailMap, fract(vTexCoord * 32.0)).xyz * 2.0;
+	float detailNearFade = clamp(vDepth * 0.08, 0.0, 1.0);
+	detailColor *= mix(mix(detailTexNear, fullbrightDetail, 0.5), fullbrightDetail, detailNearFade);
+#else
 	float detailDistance = clamp(vDepth * 0.025, 0.0, 1.0);
 	vec3 detailColor = mix(detailTex, fullbrightDetail, detailDistance);
+#endif
 #if defined(OG_RETRO_MODE)
 	oColor.xyz = mix(oColor.xyz, oColor.xyz * detailColor, diffuseTex.w * 0.35);
 #else

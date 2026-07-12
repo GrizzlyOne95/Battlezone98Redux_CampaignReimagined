@@ -534,20 +534,6 @@ local function GetBundledOpenShimSourcePath()
     return nil
 end
 
-local function ConfirmBundledOpenShimCopy(sourcePath, destinationPath)
-    if not BzFileExists(destinationPath) then
-        return false
-    end
-
-    local sourceHash = GetBzFileHash(sourcePath)
-    local destinationHash = GetBzFileHash(destinationPath)
-    if sourceHash and destinationHash then
-        return sourceHash == destinationHash
-    end
-
-    return true
-end
-
 local function ShowOpenShimInstallMissionOutcome(state, failureLogPath)
     local missionTime = (GetTime and GetTime()) or 0.0
     if state == "installed" or state == "updated" or state == "staged" then
@@ -571,44 +557,116 @@ local function ShowOpenShimInstallMissionOutcome(state, failureLogPath)
     end
 
     local failureMessage = "OpenShim self-install failed. Restart Battlezone and verify the mod files."
-    local descriptionFile = PersistentConfig.OpenShimInstaller.failureDescriptionFile
     if failureLogPath and failureLogPath ~= "" then
         local logFileName = GetPathLeaf(failureLogPath) or "winmm_replace.log"
         failureMessage = "OpenShim self-install failed. Check " .. logFileName .. " in the Battlezone folder."
 
-        local runtimeDescriptionFile = WriteOpenShimInstallerDescriptionFile(
-            "openshim_failure_runtime.des",
+        WriteOpenShimInstallerDescriptionFile(
+            "shimfail.des",
             "Campaign Reimagined could not install or update OpenShim. Check " ..
             failureLogPath ..
             " for details, then restart Battlezone and verify the mod files before continuing.")
-        if runtimeDescriptionFile then
-            descriptionFile = runtimeDescriptionFile
-        end
     end
 
-    if FailMission then
-        if descriptionFile == PersistentConfig.OpenShimInstaller.failureDescriptionFile and failureMessage ~= "" then
-            ShowFeedback(failureMessage, 1.0, 0.35, 0.35, 12.0, true)
-        end
-        FailMission(missionTime, descriptionFile)
-        return
-    end
-
+    -- A self-update failure must not abort the active campaign mission. The
+    -- installed shim may already be newer than the bundled copy, and installs
+    -- under Program Files can legitimately reject an in-process replacement.
     ShowFeedback(failureMessage, 1.0, 0.35, 0.35, 12.0, true)
 end
 
-local function StageBundledOpenShimReplaceOnExit(sourcePath, destinationPath)
-    if not (bzfile and type(bzfile.ReplaceFileOnExit) == "function") then
-        return false, "bzfile.ReplaceFileOnExit unavailable"
+local function GetBzFileVersion(path)
+    if not path or path == "" then
+        return nil
     end
 
-    local ok, scheduled, scheduleError = pcall(bzfile.ReplaceFileOnExit, sourcePath, destinationPath)
-    if ok and scheduled then
-        return true
+    if bzfile and type(bzfile.GetFileVersion) == "function" then
+        local ok, versionOrNil, errorMessage = pcall(bzfile.GetFileVersion, path)
+        if ok and type(versionOrNil) == "string" and versionOrNil ~= "" then
+            return versionOrNil
+        end
+
+        local detail = ok and tostring(errorMessage or "unknown error") or tostring(versionOrNil)
+        print("PersistentConfig: GetFileVersion failed for " .. tostring(path) .. ": " .. detail)
     end
 
-    local errorText = ok and tostring(scheduleError or "deferred replacement failed") or tostring(scheduled)
-    return false, errorText
+    return nil
+end
+
+local function CompareInstallerVersions(left, right)
+    local function Parts(value)
+        local parts = {}
+        for number in tostring(value or ""):gmatch("%d+") do
+            parts[#parts + 1] = tonumber(number) or 0
+        end
+        return parts
+    end
+
+    local leftParts = Parts(left)
+    local rightParts = Parts(right)
+    if #leftParts == 0 or #rightParts == 0 then
+        return nil
+    end
+
+    local count = math.max(#leftParts, #rightParts)
+    for index = 1, count do
+        local leftValue = leftParts[index] or 0
+        local rightValue = rightParts[index] or 0
+        if leftValue < rightValue then return -1 end
+        if leftValue > rightValue then return 1 end
+    end
+    return 0
+end
+
+local function GetOpenShimManifest()
+    local ok, manifestOrError = pcall(require, "OpenShimManifest")
+    if not ok or type(manifestOrError) ~= "table" then
+        print("PersistentConfig: OpenShim manifest unavailable: " .. tostring(manifestOrError))
+        return nil
+    end
+
+    local manifest = manifestOrError
+    manifest.sha256 = type(manifest.sha256) == "string" and string.lower(manifest.sha256) or nil
+    if manifest.formatVersion ~= 1 or
+        not manifest.sha256 or not manifest.sha256:match("^[0-9a-f]+$") or #manifest.sha256 ~= 64 or
+        type(manifest.version) ~= "string" or manifest.version == "" or
+        manifest.architecture ~= "x86" then
+        print("PersistentConfig: OpenShim manifest is malformed or unsupported.")
+        return nil
+    end
+
+    return manifest
+end
+
+local function ReadOpenShimInstallerStatus(path)
+    if not path or path == "" or not io or type(io.open) ~= "function" then
+        return nil
+    end
+
+    local handle = io.open(path, "r")
+    if not handle then
+        return nil
+    end
+
+    local values = {}
+    for line in handle:lines() do
+        local key, value = line:match("^([^=]+)=(.*)$")
+        if key then values[key] = value end
+    end
+    handle:close()
+    return values
+end
+
+local function AcknowledgeCompletedOpenShimUpdate(statusPath, expectedHash)
+    local status = ReadOpenShimInstallerStatus(statusPath)
+    if not status or status.state ~= "complete" or status.expected_sha256 ~= expectedHash then
+        return
+    end
+
+    print("PersistentConfig: Verified the staged OpenShim update after restart.")
+    ShowFeedback("OpenShim update verified.", 0.35, 1.0, 0.35, 8.0, true)
+    if bzfile and type(bzfile.Delete) == "function" then
+        pcall(bzfile.Delete, statusPath)
+    end
 end
 
 local function EnsureBundledOpenShimInstalled()
@@ -617,13 +675,14 @@ local function EnsureBundledOpenShimInstalled()
     end
     PersistentConfig.OpenShimInstallChecked = true
 
-    if not (bzfile and type(bzfile.CopyFile) == "function") then
-        print("PersistentConfig: bzfile.CopyFile unavailable; skipping OpenShim self-install.")
+    if not (bzfile and type(bzfile.StageOpenShimUpdate) == "function") then
+        print("PersistentConfig: hardened OpenShim staging is unavailable; leaving the active mission running.")
         return
     end
 
     local workingDirectory = getWorkingDirectory()
     local destinationPath = workingDirectory .. "\\winmm.dll"
+    local statusPath = workingDirectory .. "\\winmm_update.status"
     local replaceLogPath = GetOpenShimReplaceLogPath(destinationPath)
     local sourcePath = GetBundledOpenShimSourcePath()
     if not sourcePath then
@@ -631,49 +690,46 @@ local function EnsureBundledOpenShimInstalled()
         return
     end
 
-    local destinationExists = BzFileExists(destinationPath)
-    local shouldOverwrite = false
-    local installState = destinationExists and "updated" or "installed"
-    if destinationExists then
-        local sourceHash = GetBzFileHash(sourcePath)
-        local destinationHash = GetBzFileHash(destinationPath)
-        if sourceHash and destinationHash and sourceHash == destinationHash then
-            return
-        end
-        if not (sourceHash and destinationHash) then
-            print("PersistentConfig: OpenShim hash comparison unavailable; attempting overwrite anyway.")
-        end
-
-        shouldOverwrite = true
-    end
-
-    local ok, copied, copyError = pcall(bzfile.CopyFile, sourcePath, destinationPath, shouldOverwrite)
-    if ok and copied and ConfirmBundledOpenShimCopy(sourcePath, destinationPath) then
-        print("PersistentConfig: Installed bundled OpenShim to " .. destinationPath)
-        ShowOpenShimInstallMissionOutcome(installState)
+    local manifest = GetOpenShimManifest()
+    if not manifest then
+        ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
         return
     end
 
-    if shouldOverwrite then
-        local staged, stageError = StageBundledOpenShimReplaceOnExit(sourcePath, destinationPath)
-        if staged then
-            print("PersistentConfig: Queued bundled OpenShim replacement for next game restart at " .. destinationPath)
-            if replaceLogPath then
-                print("PersistentConfig: If the queued OpenShim replacement does not finish after exit, check " ..
-                    replaceLogPath)
-            end
-            ShowOpenShimInstallMissionOutcome("staged")
+    local sourceHash = GetBzFileHash(sourcePath)
+    if not sourceHash or sourceHash ~= manifest.sha256 then
+        print("PersistentConfig: Bundled OpenShim does not match OpenShimManifest.lua; refusing to stage it.")
+        ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
+        return
+    end
+
+    local destinationExists = BzFileExists(destinationPath)
+    if destinationExists then
+        local destinationHash = GetBzFileHash(destinationPath)
+        if destinationHash and destinationHash == manifest.sha256 then
+            AcknowledgeCompletedOpenShimUpdate(statusPath, manifest.sha256)
             return
         end
 
-        local immediateError = ok and tostring(copyError or "copy failed or could not be confirmed") or tostring(copied)
-        print("PersistentConfig: Deferred OpenShim self-install also failed. Immediate error: " ..
-            immediateError .. "; deferred error: " .. tostring(stageError) ..
-            (replaceLogPath and ("; helper log: " .. replaceLogPath) or ""))
+        local destinationVersion = GetBzFileVersion(destinationPath)
+        local versionComparison = CompareInstallerVersions(destinationVersion, manifest.version)
+        if versionComparison and versionComparison > 0 then
+            print("PersistentConfig: Installed OpenShim " .. tostring(destinationVersion) ..
+                " is newer than bundled version " .. tostring(manifest.version) .. "; skipping downgrade.")
+            return
+        end
     end
 
-    local errorText = ok and tostring(copyError or "copy failed or could not be confirmed") or tostring(copied)
-    print("PersistentConfig: OpenShim self-install failed: " .. errorText ..
+    local ok, staged, stageState, helperLogPath = pcall(bzfile.StageOpenShimUpdate, sourcePath, manifest.sha256)
+    if ok and staged then
+        print("PersistentConfig: OpenShim " .. tostring(manifest.version) .. " staged for verified replacement on exit." ..
+            (helperLogPath and (" Helper log: " .. tostring(helperLogPath)) or ""))
+        ShowOpenShimInstallMissionOutcome(stageState == "staged" and "staged" or "updated")
+        return
+    end
+
+    local errorText = ok and tostring(stageState or "staging failed") or tostring(staged)
+    print("PersistentConfig: Hardened OpenShim staging failed: " .. errorText ..
         (replaceLogPath and ("; check " .. replaceLogPath) or ""))
     ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
 end
@@ -2596,11 +2652,37 @@ end
 
 -- Helper to parse bzlogger.txt for Steam ID/Username
 local function ParseBzLogger()
-    -- Reading the live BZLogger stream through bzfile during mission startup can
-    -- block the mission thread after the sim has already initialized. EXU's
-    -- Steam ID bridge is the safe primary path, so keep the log fallback
-    -- disabled until we have a non-blocking reader.
-    return nil, nil
+    if not bzfile or not bzfile.Open then return nil, nil end
+    local logPath = "bzlogger.txt"
+    local f = bzfile.Open(logPath, "r")
+
+    -- Fallback to parent directory if not found
+    if not f then
+        logPath = "../bzlogger.txt"
+        f = bzfile.Open(logPath, "r")
+    end
+
+    if not f then
+        print("PersistentConfig: Could not find bzlogger.txt for parsing.")
+        return nil, nil
+    end
+
+    print("PersistentConfig: Scanning " .. logPath .. " for Steam credentials...")
+    local steamID, username
+
+    local line = f:Readln()
+    while line do
+        local id, name = line:match("Authenticated to BZRNet As S(%d+):(.+)")
+        if id and name then
+            steamID = id
+            username = name
+            break -- Found it, stop scanning
+        end
+        line = f:Readln()
+    end
+
+    f:Close()
+    return steamID, username
 end
 
 -- Storage for User Info
@@ -6633,7 +6715,10 @@ function PersistentConfig.UpdateInputs()
         -- only repair an actual renderer drift; forcing the same mode again
         -- tears down/rebuilds materials and produces a visible flash.
         PersistentConfig._SyncLightingMode(false)
-        if now >= stabilizeUntil then
+        -- Stay pending until the renderer actually reports the requested mode.
+        -- At mission start the viewport may not exist for several seconds, and
+        -- giving up on a timer used to leave enhanced/retro stuck on default.
+        if now >= stabilizeUntil and PersistentConfig._AppliedLightingMode == GetRequestedLightingMode() then
             InputState.lightingModeSyncPending = false
             InputState.nextRetroLightingStabilizeUntil = 0.0
         end
@@ -6641,6 +6726,11 @@ function PersistentConfig.UpdateInputs()
     if now >= (InputState.nextFactionFlameRefresh or 0.0) then
         InputState.nextFactionFlameRefresh = now + 1.0
         PersistentConfig._ApplyDynamicFactionFlameColors()
+        -- Cheap native drift repair: no-ops unless a rebuilt viewport (satellite
+        -- view, sniper scope, resolution change) lost the enhanced/retro scheme.
+        if exu and type(exu.EnforceLightingMode) == "function" then
+            pcall(exu.EnforceLightingMode)
+        end
     end
     local scrapDelta = PersistentConfig.R.UpdateTeamScrapSnapshot(team)
     PersistentConfig.R.RecordBuildKeyIfPressed(team)
@@ -7266,7 +7356,10 @@ function PersistentConfig.Initialize()
             (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF") .. " based on difficulty.")
     end
     PersistentConfig.SaveConfig()
-    PersistentConfig.ApplySettings({ syncLightingMode = true, syncRadarSize = true, applyMissionGameplayHooks = true })
+    -- Full apply: missions that do not route through MissionLifecycle's
+    -- InitializeSubtitles (which is the other applyAll site) still need the
+    -- scrap/pilot HUD layout, subtitles, team colors, etc. applied at start.
+    PersistentConfig.ApplySettings()
     local initialPlayerHandle = GetPlayerHandle()
     if IsValid(initialPlayerHandle) then
         -- ApplySettings above already covers the craft that existed at mission

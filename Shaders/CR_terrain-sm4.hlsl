@@ -324,7 +324,12 @@ void terrain_fragment(
 		shadow = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy);
 	}
 #endif
+#if defined(ENHANCED_MODE)
+	// deeper shadow floor gives enhanced mode more contact grounding
+	shadow = shadow * 0.78 + 0.22;
+#else
 	shadow = shadow * 0.7 + 0.3;
+#endif
 #if defined(OG_RETRO_MODE)
 	shadow = shadow * 0.5 + 0.5;
 #endif
@@ -381,7 +386,8 @@ void terrain_fragment(
 	// per-pixel view normal
 	float3 normalTex = normalMap.Sample(normalSam, vTexCoord).xyz * 2.0 - 1.0;
 #if defined(ENHANCED_MODE)
-	normalTex = sharpen_normal_map(normalTex);
+	// fade the sharpening out with distance so it cannot shimmer far away
+	normalTex = lerp(sharpen_normal_map(normalTex), normalTex, saturate(vDepth * 0.005));
 #endif
 	float3 viewNormal = safe_normalize(mul(normalTex, tbn));
 #else
@@ -492,6 +498,11 @@ void terrain_fragment(
 			float3 specularColor = lerp(float3(0.025, 0.025, 0.025), float3(0.04, 0.04, 0.04), pow(1.0 - ndotv, 5.0));
 #endif
 			float specularLobe = pow(ndoth, specularPower);
+#if defined(ENHANCED_MODE)
+			// Blinn-Phong energy normalization (unity at the stock power of
+			// 24) so tighter lobes read brighter instead of vanishing.
+			specularLobe *= min((specularPower + 8.0) * 0.03125, 3.0);
+#endif
 			specularResult.xyz += lightSpecular[i].xyz * specularAttenuation * diffuseTerm * specularLobe * specularColor;
 		}
 #endif
@@ -525,8 +536,18 @@ void terrain_fragment(
 	// detail texture
 	float3 detailTex = detailMap.Sample(detailSam, frac(vTexCoord * 8)).xyz * 2;
 	float3 fullbrightDetail = float3(1, 1, 1);
+#if defined(ENHANCED_MODE)
+	// keep the base detail octave alive further out, and layer a tighter
+	// second octave close to the camera for crisper ground under the craft
+	float detailDistance = saturate(vDepth * 0.015);
+	float3 detailColor = lerp(detailTex, fullbrightDetail, detailDistance);
+	float3 detailTexNear = detailMap.Sample(detailSam, frac(vTexCoord * 32.0)).xyz * 2.0;
+	float detailNearFade = saturate(vDepth * 0.08);
+	detailColor *= lerp(lerp(detailTexNear, fullbrightDetail, 0.5), fullbrightDetail, detailNearFade);
+#else
 	float detailDistance = saturate(vDepth * 0.025);
 	float3 detailColor = lerp(detailTex, fullbrightDetail, detailDistance);
+#endif
 #if defined(OG_RETRO_MODE)
 	oColor.xyz = lerp(oColor.xyz, oColor.xyz * detailColor, diffuseTex.a * 0.35);
 #else

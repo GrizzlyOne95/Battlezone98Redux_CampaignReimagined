@@ -229,7 +229,7 @@ end
 function Start()
     M.TPS = 20
     if exu then
-        local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.version or "Unknown"
+        local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.VERSION or exu.version or "Unknown"
         print("EXU Version: " .. tostring(ver))
         M.difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
         print("Difficulty: " .. tostring(M.difficulty))
@@ -272,7 +272,9 @@ function AddObject(h)
             exu.SetUnitTurbo(h, true)
         elseif team ~= 0 then
             if M.difficulty >= 2 then
-                exu.SetUnitTurbo(h, 2.5) -- Scaled turbo for enemies
+                -- exu.SetUnitTurbo is boolean on/off; the turbo magnitude is
+                -- engine-side. Passing a number raises and aborts AddObject.
+                exu.SetUnitTurbo(h, true)
             end
         end
     end
