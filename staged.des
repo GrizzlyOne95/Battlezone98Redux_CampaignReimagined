@@ -1,1 +1,1 @@
-Campaign Reimagined queued an OpenShim update for when Battlezone closes. Exit the game now, then relaunch before continuing. If the update still fails, check winmm_replace.log in the Battlezone folder.
+Campaign Reimagined queued an OpenShim update for when Battlezone closes. You will need to restart the game because you can't replace OpenShim while it's in use. Exit the game now, then relaunch before continuing. If the update still fails, check winmm_replace.log in the Battlezone folder.

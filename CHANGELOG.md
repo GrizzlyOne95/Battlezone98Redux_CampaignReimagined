@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-03-24
+
+### Mission Startup Hang Fix
+- Fixed a mission-start hang that reproduced on `misn02b.bzn /edit` after `Game Simulation Initialized` completed.
+- Root cause: startup still had two blocking `bzfile` read paths. `PersistentConfig` could scan the live `bzlogger.txt` stream while the game was still writing it, and `CareerStats` could open a missing `career_stats.cfg` as a zombie handle and then hang on the first read.
+- `PersistentConfig` now relies on `exu.GetSteam64()` for Steam identification and keeps the `bzlogger.txt` fallback disabled until a non-blocking reader exists.
+- `CareerStats` now checks file existence before opening `career_stats.cfg`, which avoids the zombie-handle read hang while preserving normal stats loads when the file is present.
+
 ## 2026-03-16
 
 ### Subtitle Overlay Migration
