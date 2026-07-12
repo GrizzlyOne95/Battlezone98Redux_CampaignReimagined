@@ -571,7 +571,7 @@ local function TryCreateSubtitleOverlay()
     Call(exu.SetOverlayMetricsMode, ids.backdrop, metricsMode)
     Call(exu.SetOverlayMetricsMode, ids.text, metricsMode)
     Call(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.0)
-    Call(exu.SetOverlayMaterial, ids.frame, "BaseWhiteNoLighting")
+    Call(exu.SetOverlayMaterial, ids.frame, "CR_UI")
     Call(exu.SetOverlayParameter, ids.frame, "transparent", "true")
     Call(exu.SetOverlayParameter, ids.text, "alignment", "center")
     Call(exu.SetOverlayCaption, ids.text, "")
@@ -642,7 +642,7 @@ local function ShowSubtitleOverlay(entry)
         Call(exu.SetOverlayMaterial, ids.backdrop, backdropMaterial)
         Call(exu.SetOverlayColor, ids.backdrop, 1.0, 1.0, 1.0, 1.0)
     else
-        Call(exu.SetOverlayMaterial, ids.backdrop, "BaseWhiteNoLighting")
+        Call(exu.SetOverlayMaterial, ids.backdrop, "CR_UI")
         Call(exu.SetOverlayColor, ids.backdrop, colors.backdrop.r, colors.backdrop.g, colors.backdrop.b, colors.backdrop.a)
     end
     Call(exu.SetOverlayPosition, ids.text, layout.textX, layout.textY)
@@ -1374,6 +1374,10 @@ function Subtitles.Stop()
         currentAudioHandle = nil
     end
     ClearActiveSequence()
+    -- Mission-end cleanup must remove the renderer too.  Hiding the overlay
+    -- alone leaves stale elements alive if the engine changes UI state on the
+    -- same frame as SucceedMission/FailMission.
+    DestroySubtitleOverlay()
 end
 
 function Subtitles.EnableOverlayRendererForSession()

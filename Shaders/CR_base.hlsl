@@ -239,6 +239,7 @@ void base_fragment(
 #endif
 
 	uniform float4 sceneAmbient,
+	uniform float4 diffuseColor,
 
 #if !defined(VERTEX_LIGHTING)
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
@@ -485,7 +486,7 @@ void base_fragment(
 
 	// diffuse texture
 	float4 diffuseTex = tex2D(diffuseMap, vTexCoord);
-	oColor.xyz = lightResult.xyz * diffuseTex.xyz;
+	oColor.xyz = lightResult.xyz * diffuseTex.xyz * diffuseColor.xyz;
 
 #if defined(SPECULARMAP_ENABLED)
 	oColor.xyz += specularResult.xyz;

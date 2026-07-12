@@ -523,7 +523,6 @@ local function GetBundledOpenShimSourcePath()
     for _, root in ipairs(roots) do
         candidates[#candidates + 1] = root .. "\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
         candidates[#candidates + 1] = root .. "\\_Release\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
-        candidates[#candidates + 1] = root .. "\\_Source\\Bin\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
     end
 
     for _, candidate in ipairs(candidates) do
@@ -1430,7 +1429,7 @@ function PersistentConfig._TryCreateExperimentalOverlay()
     SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
     SafeCall(exu.SetOverlayDimensions, ids.root, layout.wrapWidth, layout.panelHeight)
     if PersistentConfig.ExperimentalOverlayDebugBox and exu.SetOverlayMaterial then
-        SafeCall(exu.SetOverlayMaterial, ids.root, "BaseWhiteNoLighting")
+        SafeCall(exu.SetOverlayMaterial, ids.root, "CR_UI")
     end
     if PersistentConfig.ExperimentalOverlayDebugBox then
         SafeCall(exu.SetOverlayColor, ids.root, 0.85, 0.10, 0.10, 0.88)
@@ -1515,7 +1514,7 @@ function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
     SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
     SafeCall(exu.SetOverlayDimensions, ids.root, layout.wrapWidth, layout.panelHeight)
     if PersistentConfig.ExperimentalOverlayDebugBox and exu.SetOverlayMaterial then
-        SafeCall(exu.SetOverlayMaterial, ids.root, "BaseWhiteNoLighting")
+        SafeCall(exu.SetOverlayMaterial, ids.root, "CR_UI")
     end
     if PersistentConfig.ExperimentalOverlayDebugBox then
         SafeCall(exu.SetOverlayColor, ids.root, 0.85, 0.10, 0.10, 0.88)
@@ -1548,7 +1547,7 @@ function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
 
     PersistentConfig.ExperimentalOverlayVisible = true
     PersistentConfig.ExperimentalOverlayExpireAt = GetTime() + math.max(tonumber(duration) or 3.0, 0.1)
-    Log(string.format("PersistentConfig: Autosave overlay shown text=%q font=%s panelMaterial=BaseWhiteNoLighting pos=(%.3f,%.3f) size=(%.3f,%.3f) debugBox=%s",
+    Log(string.format("PersistentConfig: Autosave overlay shown text=%q font=%s panelMaterial=CR_UI pos=(%.3f,%.3f) size=(%.3f,%.3f) debugBox=%s",
         msg, PersistentConfig.ExperimentalOverlayUseCustomFont and tostring(PersistentConfig.ExperimentalOverlayFont) or "disabled",
         layout.panelX, layout.panelY, layout.wrapWidth, layout.panelHeight,
         tostring(PersistentConfig.ExperimentalOverlayDebugBox)))
@@ -2137,7 +2136,7 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
     for _, panelId in ipairs(panelIds) do
         if panelId then
             if panelId == ids.frame then
-                SafeCall(exu.SetOverlayMaterial, panelId, "BaseWhiteNoLighting")
+                SafeCall(exu.SetOverlayMaterial, panelId, "CR_UI")
                 SafeCall(exu.SetOverlayParameter, panelId, "transparent", "true")
             elseif panelId == ids.backdrop or panelId == ids.header then
                 local panelMaterial = (panelId == ids.header) and headerMaterial or backdropMaterial
@@ -2258,7 +2257,7 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
     if ids.frame then
         SafeCall(exu.SetOverlayPosition, ids.frame, 0, 0)
         SafeCall(exu.SetOverlayDimensions, ids.frame, layout.panelWidth, layout.panelHeight)
-        SafeCall(exu.SetOverlayMaterial, ids.frame, "BaseWhiteNoLighting")
+        SafeCall(exu.SetOverlayMaterial, ids.frame, "CR_UI")
         SafeCall(exu.SetOverlayParameter, ids.frame, "transparent", "true")
         SafeCall(exu.SetOverlayParameter, ids.frame, "border_size", borderSizeString)
         SafeCall(exu.SetOverlayParameter, ids.frame, "border_material", borderMaterial)
@@ -2703,6 +2702,10 @@ InputState = {
     nextRetroLightingStabilizeUntil = 0.0,
     lightingModeSyncPending = false,
     nextFactionFlameRefresh = 0.0,
+    nextScrapPilotHudRefresh = 0.0,
+    stockScrapPilotHudUnsupported = false,
+    missionEnded = false,
+    missionEndCleanupDone = false,
     pdaPage = PdaPages.STATS,
     pdaSettingsIndex = 1,
     presetProducerIndex = 1,
@@ -3975,7 +3978,7 @@ local function TrySetStockScrapPilotHudSpritesVisibleNative(visible)
 end
 
 local function SetStockScrapPilotHudSpritesVisible(visible)
-    if not exu then
+    if not exu or InputState.stockScrapPilotHudUnsupported then
         return false
     end
 
@@ -4007,6 +4010,12 @@ local function SetStockScrapPilotHudSpritesVisible(visible)
         if ok and result ~= false then
             anySucceeded = true
         end
+    end
+    if not anySucceeded then
+        -- The native bridge can be present while the stock sprite table is not
+        -- available for this renderer/build. Do not retry all six names every
+        -- update tick when the bridge has already reported that it cannot act.
+        InputState.stockScrapPilotHudUnsupported = true
     end
     return anySucceeded
 end
@@ -6478,9 +6487,34 @@ end
 
 -- Reusable update logic for all missions
 function PersistentConfig.UpdateInputs()
+    -- SucceedMission/FailMission can return to the end screen while the
+    -- mission script continues to tick for a few frames.  Do not let those
+    -- ticks recreate PDA overlays or resubmit subtitle state.
+    if InputState.missionEnded then
+        return
+    end
+
     RuntimeEnhancements.Update()
     ConservativeCulling.Update()
     PersistentConfig.CareerStatsModule.Update()
+
+    -- The engine may recreate or repopulate the stock scrap/pilot frame rects
+    -- after mission HUD initialization. Reassert the selected layout while the
+    -- legacy placement is active so the stock top frame cannot reappear after
+    -- the one-shot settings application.
+    if exu and PersistentConfig.Settings and not InputState.stockScrapPilotHudUnsupported then
+        local hudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2)
+        local nowForScrapPilotHud = GetTime()
+        local nextRefreshAt = InputState.nextScrapPilotHudRefresh or 0.0
+        if nextRefreshAt <= nowForScrapPilotHud or nextRefreshAt > nowForScrapPilotHud + 1.5 then
+            InputState.nextScrapPilotHudRefresh = nowForScrapPilotHud + 1.0
+            if hudLayout == 2 then
+                SetStockScrapPilotHudSpritesVisible(false)
+            else
+                SetStockScrapPilotHudSpritesVisible(true)
+            end
+        end
+    end
 
     -- Detect player craft change and reapply headlight settings
     local currentPlayerHandle = GetPlayerHandle()
@@ -6621,7 +6655,10 @@ function PersistentConfig.UpdateInputs()
             interval = PersistentConfig.RetroLightingIntervals.stabilize
         end
         InputState.nextRetroLightingCheck = now + interval
-        PersistentConfig._SyncLightingMode(true)
+        -- The commit path performs the one forced apply.  The settling loop must
+        -- only repair an actual renderer drift; forcing the same mode again
+        -- tears down/rebuilds materials and produces a visible flash.
+        PersistentConfig._SyncLightingMode(false)
         if now >= stabilizeUntil then
             InputState.lightingModeSyncPending = false
             InputState.nextRetroLightingStabilizeUntil = 0.0
@@ -7224,6 +7261,8 @@ function PersistentConfig._InstallPlayerChargeTrackingHook()
 end
 
 function PersistentConfig.Initialize()
+    InputState.missionEnded = false
+    InputState.missionEndCleanupDone = false
     PersistentConfig._DestroyExperimentalOverlay()
     PersistentConfig.ExperimentalOverlayFailed = false
     PersistentConfig.ExperimentalOverlayUseCustomFont = true
@@ -7254,6 +7293,13 @@ function PersistentConfig.Initialize()
     end
     PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings({ syncLightingMode = true, syncRadarSize = true, applyMissionGameplayHooks = true })
+    local initialPlayerHandle = GetPlayerHandle()
+    if IsValid(initialPlayerHandle) then
+        -- ApplySettings above already covers the craft that existed at mission
+        -- initialization. Avoid rebuilding all visual/HUD state again on the
+        -- first update tick just because lastPlayerHandle started as nil.
+        InputState.lastPlayerHandle = initialPlayerHandle
+    end
     -- Keep EXU overlay/font initialization lazy so startup does not touch the
     -- custom Ogre font path before the UI runtime is fully ready.
     PersistentConfig._InstallPlayerChargeTrackingHook()
@@ -7364,7 +7410,32 @@ function PersistentConfig.Initialize()
         print("PersistentConfig: Initial Steam ID retrieval failed. Starting background polling...")
     end
 
-    -- Hook Mission End Functions to clear subtitles
+    local function EnterMissionEndedState()
+        InputState.missionEnded = true
+        if InputState.missionEndCleanupDone then
+            return
+        end
+
+        InputState.missionEndCleanupDone = true
+        InputState.pdaOverlayRefreshPending = false
+        InputState.nextPdaOverlayRefresh = 0.0
+        PersistentConfig._DestroyAllPdaOverlays()
+        ClearWeaponStats()
+        ClearPdaFeedback()
+        PersistentConfig.ReactiveReticleModule.Reset()
+
+        local subtit = GetScriptSubtitles()
+        if subtit then
+            if type(subtit.Stop) == "function" then
+                pcall(subtit.Stop)
+            elseif type(subtit.ClearActive) == "function" then
+                pcall(subtit.ClearActive)
+            end
+        end
+    end
+
+    -- Hook Mission End Functions to clear subtitles and freeze custom HUD
+    -- maintenance until Initialize starts the next mission.
     if not PersistentConfig.HooksInstalled then
         local oldGameKey = GameKey
         GameKey = function(key)
@@ -7404,12 +7475,7 @@ function PersistentConfig.Initialize()
             local oldSucceed = SucceedMission
             SucceedMission = function(...)
                 PersistentConfig.CareerStatsModule.OnMissionEnd(true)
-                PersistentConfig._DestroyAllPdaOverlays()
-                PersistentConfig.ReactiveReticleModule.Reset()
-                local subtit = GetScriptSubtitles()
-                if subtit and subtit.ClearActive then
-                    subtit.ClearActive()
-                end
+                EnterMissionEndedState()
                 oldSucceed(...)
             end
         end
@@ -7417,12 +7483,7 @@ function PersistentConfig.Initialize()
             local oldFail = FailMission
             FailMission = function(...)
                 PersistentConfig.CareerStatsModule.OnMissionEnd(false)
-                PersistentConfig._DestroyAllPdaOverlays()
-                PersistentConfig.ReactiveReticleModule.Reset()
-                local subtit = GetScriptSubtitles()
-                if subtit and subtit.ClearActive then
-                    subtit.ClearActive()
-                end
+                EnterMissionEndedState()
                 oldFail(...)
             end
         end

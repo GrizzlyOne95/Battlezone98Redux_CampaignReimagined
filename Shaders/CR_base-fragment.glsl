@@ -139,6 +139,7 @@ void ComputeSpotlightTerms(
 }
 
 uniform vec4 sceneAmbient;
+uniform vec4 diffuseColor;
 #if !defined(VERTEX_LIGHTING)
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
 uniform float materialShininess;
@@ -390,7 +391,7 @@ void main()
 
 	// diffuse texture
 	vec4 diffuseTex = texture2D(diffuseMap, vTexCoord);
-	oColor.xyz = lightResult.xyz * diffuseTex.xyz;
+	oColor.xyz = lightResult.xyz * diffuseTex.xyz * diffuseColor.xyz;
 
 #if defined(SPECULARMAP_ENABLED)
 	oColor.xyz += specularResult.xyz;

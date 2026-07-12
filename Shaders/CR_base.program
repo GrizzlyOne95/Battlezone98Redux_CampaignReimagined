@@ -1936,6 +1936,7 @@ fragment_program CR_BaseLowestNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named transparency float 0.0
@@ -1951,6 +1952,7 @@ fragment_program CR_BaseLowestShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -1967,6 +1969,7 @@ fragment_program CR_BaseLowestPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -1988,6 +1991,7 @@ fragment_program CR_BaseLowNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
 		param_named_auto lightSpecular derived_light_specular_colour_array 1
@@ -2010,6 +2014,7 @@ fragment_program CR_BaseLowShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
 		param_named_auto lightSpecular derived_light_specular_colour_array 1
@@ -2033,6 +2038,7 @@ fragment_program CR_BaseLowPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
 		param_named_auto lightSpecular derived_light_specular_colour_array 1
@@ -2061,6 +2067,7 @@ fragment_program CR_BaseMediumNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
 		param_named_auto lightSpecular derived_light_specular_colour_array 8
@@ -2084,6 +2091,7 @@ fragment_program CR_BaseMediumShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
 		param_named_auto lightSpecular derived_light_specular_colour_array 8
@@ -2108,6 +2116,7 @@ fragment_program CR_BaseMediumPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
 		param_named_auto lightSpecular derived_light_specular_colour_array 8
@@ -2137,6 +2146,7 @@ fragment_program CR_BaseHighNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
 		param_named_auto lightSpecular derived_light_specular_colour_array 24
@@ -2160,6 +2170,7 @@ fragment_program CR_BaseHighShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
 		param_named_auto lightSpecular derived_light_specular_colour_array 24
@@ -2184,6 +2195,7 @@ fragment_program CR_BaseHighPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
 		param_named_auto lightSpecular derived_light_specular_colour_array 24
@@ -2213,6 +2225,7 @@ fragment_program CR_BaseOGLowestNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named transparency float 0.0
@@ -2228,6 +2241,7 @@ fragment_program CR_BaseOGLowestShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 1
@@ -2244,6 +2258,7 @@ fragment_program CR_BaseOGLowestPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 1
@@ -2263,6 +2278,7 @@ fragment_program CR_BaseOGLowNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named transparency float 0.0
@@ -2278,6 +2294,7 @@ fragment_program CR_BaseOGLowShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -2294,6 +2311,7 @@ fragment_program CR_BaseOGLowPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -2313,6 +2331,7 @@ fragment_program CR_BaseOGMediumNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named transparency float 0.0
@@ -2328,6 +2347,7 @@ fragment_program CR_BaseOGMediumShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -2344,6 +2364,7 @@ fragment_program CR_BaseOGMediumPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -2363,6 +2384,7 @@ fragment_program CR_BaseOGHighNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named transparency float 0.0
@@ -2378,6 +2400,7 @@ fragment_program CR_BaseOGHighShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -2394,6 +2417,7 @@ fragment_program CR_BaseOGHighPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -2569,6 +2593,7 @@ fragment_program CR_BaseENLowestNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named transparency float 0.0
@@ -2584,6 +2609,7 @@ fragment_program CR_BaseENLowestShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -2600,6 +2626,7 @@ fragment_program CR_BaseENLowestPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named_auto invShadowMapSize1 inverse_texture_size 4
@@ -2619,8 +2646,8 @@ fragment_program CR_BaseENLowNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
-		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
 		param_named_auto lightSpecular derived_light_specular_colour_array 1
 		param_named_auto lightAttenuation light_attenuation_array 1
@@ -2642,8 +2669,8 @@ fragment_program CR_BaseENLowShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
-		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
 		param_named_auto lightSpecular derived_light_specular_colour_array 1
 		param_named_auto lightAttenuation light_attenuation_array 1
@@ -2666,8 +2693,8 @@ fragment_program CR_BaseENLowPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
-		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
 		param_named_auto lightSpecular derived_light_specular_colour_array 1
 		param_named_auto lightAttenuation light_attenuation_array 1
@@ -2693,8 +2720,8 @@ fragment_program CR_BaseENMediumNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
-		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
 		param_named_auto lightSpecular derived_light_specular_colour_array 8
 		param_named_auto lightAttenuation light_attenuation_array 8
@@ -2717,8 +2744,8 @@ fragment_program CR_BaseENMediumShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
-		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
 		param_named_auto lightSpecular derived_light_specular_colour_array 8
 		param_named_auto lightAttenuation light_attenuation_array 8
@@ -2742,8 +2769,8 @@ fragment_program CR_BaseENMediumPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
-		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
 		param_named_auto lightSpecular derived_light_specular_colour_array 8
 		param_named_auto lightAttenuation light_attenuation_array 8
@@ -2770,6 +2797,7 @@ fragment_program CR_BaseENHighNoShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
@@ -2794,6 +2822,7 @@ fragment_program CR_BaseENHighShadow_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
@@ -2819,6 +2848,7 @@ fragment_program CR_BaseENHighPSSM_fragment unified
 	default_params
 	{
 		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialShininess surface_shininess
 		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto lightDiffuse derived_light_diffuse_colour_array 24

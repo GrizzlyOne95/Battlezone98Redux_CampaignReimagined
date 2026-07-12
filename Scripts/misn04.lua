@@ -337,7 +337,7 @@ local OVERLAY_DEMO_IDS = {
     footer = "misn04_overlay_demo_footer",
 }
 local OVERLAY_DEMO_TEXTURE_CANDIDATES = { "HUDcombi", "HUDcomba", "reticle1" }
-local OVERLAY_DEMO_SOLID_MATERIAL = "BaseWhiteNoLighting"
+local OVERLAY_DEMO_SOLID_MATERIAL = "CR_UI"
 local FEATURE_TEST_REPLACEMENT_COMMAND = "Hunt"
 local FEATURE_TEST_REPLACEMENT_LABEL = "Hold"
 local FEATURE_TEST_EDGE_PATH_BASE = {
