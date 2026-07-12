@@ -16,10 +16,15 @@ local PlayerPilotMode = require("PlayerPilotMode")
 
 local difficulty = 2
 local M
+local TRACE_UPDATE_CALLS = false
 
 local function TraceUpdateCall(label, fn, ...)
     if type(fn) ~= "function" then
         return nil
+    end
+
+    if not TRACE_UPDATE_CALLS then
+        return fn(...)
     end
 
     local args = { ... }
@@ -304,7 +309,8 @@ local function ApplyQOL()
         end
     end
 
-    if PersistentConfig and PersistentConfig.Initialize then
+    if PersistentConfig and PersistentConfig.Initialize and not M.persistentConfigInitialized then
+        M.persistentConfigInitialized = true
         PersistentConfig.Initialize()
     end
 end

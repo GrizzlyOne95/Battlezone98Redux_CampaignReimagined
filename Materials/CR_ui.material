@@ -18,6 +18,7 @@ material CR_UI
 
 			texture_unit
 			{
+				texture white.png
 				tex_address_mode clamp
 				filtering linear linear none
 			}
