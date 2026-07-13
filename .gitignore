@@ -8,6 +8,8 @@
 !/Assets/
 !/Bin/
 !/Config/
+!/InstallerPayload/
+!/InstallerPayload/**
 !/flags/
 !/Materials/
 !/Missions/
@@ -24,6 +26,7 @@
 !/CHANGELOG.md
 !/Manage-CampaignFiles.ps1
 !/README.md
+!/workshop.config.example.json
 !/install/
 !/install/install_windows.ps1
 !/install.des

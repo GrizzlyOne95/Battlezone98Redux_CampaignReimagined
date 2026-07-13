@@ -90,8 +90,21 @@ local function TryResolveMaterialState(materialName)
     end
 
     local cached = ReactiveReticle.MaterialStates[materialName]
-    if cached then
-        return cached
+    if cached ~= nil then
+        return cached or nil
+    end
+
+    -- Stock weapon reticle names (for example `gminigun`) are HUD sprite
+    -- tokens from a shared sprite sheet, not Ogre material names. Mutating a
+    -- material pass cannot recolor one such reticle and could tint every sprite
+    -- sharing the sheet. Treat a successful HUD sprite lookup as an intentional
+    -- unsupported path instead of reporting a missing material.
+    if type(exu.GetHudSpriteRect) == "function" then
+        local okSprite, _, _, spriteW, spriteH = pcall(exu.GetHudSpriteRect, materialName)
+        if okSprite and tonumber(spriteW) and tonumber(spriteH) then
+            ReactiveReticle.MaterialStates[materialName] = false
+            return nil
+        end
     end
 
     local resourceGroup = nil
@@ -105,6 +118,9 @@ local function TryResolveMaterialState(materialName)
 
     local okColors, colors = MaterialCall(exu.GetMaterialPassColors, materialName, nil, resourceGroup)
     if not okColors or type(colors) ~= "table" then
+        -- Cache the negative lookup. Without this sentinel, a missing reticle
+        -- material triggers several native Ogre lookups every rendered frame.
+        ReactiveReticle.MaterialStates[materialName] = false
         if not ReactiveReticle.FailureReported then
             ReactiveReticle.FailureReported = true
             LogMessage("ReactiveReticle: failed to read material colors for " .. tostring(materialName))
@@ -227,6 +243,8 @@ function ReactiveReticle.Reset()
     ReactiveReticle.FlashExpireAt = 0.0
     ReactiveReticle.CurrentMaterial = nil
     ReactiveReticle.LastAppliedMix = nil
+    ReactiveReticle.MaterialStates = {}
+    ReactiveReticle.FailureReported = false
 end
 
 function ReactiveReticle.Update()
