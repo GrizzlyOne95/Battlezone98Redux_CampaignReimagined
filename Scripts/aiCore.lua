@@ -59,6 +59,11 @@ local mmax = math.max
 local mmin = math.min
 local mfloor = math.floor
 
+-- Optional native-tactics bridge (per-unit standoff/retarget knobs via exu+OpenShim).
+-- Everything degrades gracefully when the module or the native API is absent.
+local aiNativeOk, aiNative = pcall(require, "aiNative")
+if not aiNativeOk then aiNative = nil end
+
 -- Polyfills
 
 function AllBuildings()
@@ -776,6 +781,8 @@ function aiCore.GetOdfMeta(odfName)
         odf = cleanOdf,
         classLabel = "",
         unitName = "",
+        aiName = "",
+        aiName2 = "",
         pilotCost = 0,
         weaponNames = {},
         personRole = nil
@@ -785,6 +792,8 @@ function aiCore.GetOdfMeta(odfName)
     if odf then
         meta.classLabel = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "classLabel", "")))
         meta.unitName = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "unitName", "")))
+        meta.aiName = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "aiName", "")))
+        meta.aiName2 = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "aiName2", "")))
         local pilotCost = GetODFInt(odf, "GameObjectClass", "pilotCost", 0)
         meta.pilotCost = tonumber(pilotCost) or 0
 
@@ -1101,6 +1110,452 @@ function aiCore.TrySetTurbo(h, enabled)
     end
     local ok = pcall(setTurbo, h, enabled and true or false)
     return ok
+end
+
+-- Fallback native-tactics config for teams without an aiCore.Team object —
+-- most importantly the player's own team, so friendly wingmen get the same
+-- combat behavior. Missions can edit this table directly or through
+-- aiCore.SetNativeTacticsConfig(nil, overrides).
+aiCore.DefaultNativeConfig = aiCore.DefaultNativeConfig or {
+    nativeTactics = true,
+    difficulty = 2,
+    nativeStandoffFraction = 0.85,
+    nativeStandoffMinWeaponRange = 90.0,
+    nativeTargetScoring = true,
+    nativeFocusFire = true,
+    nativeTargetDistanceWeight = 1.0,
+    nativeTargetFocusBonus = 125.0,
+    nativeTargetStickinessBonus = 45.0,
+    nativeTargetAttackerBonus = 90.0,
+    nativeTargetThreatBonus = 35.0,
+    nativeTargetFinishBonus = 40.0,
+    nativeScoutBuildingPenalty = 45.0,
+    nativeTargetClassBonuses = {
+        howitzer = 90.0,
+        constructor = 70.0,
+        scavenger = 55.0,
+        bomber = 45.0,
+        turrettank = 40.0,
+        turret = 35.0,
+        repair = 30.0,
+        supply = 25.0,
+        mine = 110.0,
+    },
+    nativeUnitProfiles = {
+        scout = {
+            standoff = false,
+            kiteEnterFraction = 0.70,
+            kiteDesiredFraction = 0.82,
+            kiteExitFraction = 0.94,
+            kitePreserveLos = true,
+            kiteStrafe = 0.55,
+            kiteSwitchPeriod = 3.5,
+            lowHealthThreshold = 0.35,
+            kiteLowHealthScale = 1.04,
+            retargetPeriod = 10.0,
+        },
+        bomber = {
+            engageRange = 300.0,
+            standoff = false,
+            kiteDesiredRange = 240.0,
+            kiteEnterRange = 220.0,
+            kiteExitRange = 260.0,
+            kitePreserveLos = true,
+        },
+        howitzer = { standoffFraction = 0.9 },
+    },
+}
+
+local function ResolveNativeConfig(team)
+    if team and team.Config then return team.Config end
+    return aiCore.DefaultNativeConfig
+end
+
+-- Exact engine AI-name tokens define semantic roles independently of ODF,
+-- class-label, or display-name conventions. Both tokens may be present on one
+-- ODF because the engine selects the friend/enemy process at runtime.
+local NativeAiRoleByName = {
+    scoutfriend = "scout",
+    scoutenemy = "scout",
+    bomberfriend = "bomber",
+    bomberenemy = "bomber",
+}
+
+function aiCore.GetNativeAiRole(meta)
+    if not meta then return nil end
+    return NativeAiRoleByName[meta.aiName] or NativeAiRoleByName[meta.aiName2]
+end
+
+-- Profile resolution: exact matcher overrides first (ODF, class, aiName,
+-- aiName2, unitName), then the exact semantic AI role, then the legacy
+-- longest-substring fallback for custom mission profiles.
+function aiCore.FindNativeUnitProfile(config, matchers, aiRole)
+    local profiles = config and config.nativeUnitProfiles
+    if type(profiles) ~= "table" then return nil end
+
+    for _, m in ipairs(matchers) do
+        if m and m ~= "" and profiles[m] then return profiles[m] end
+    end
+
+    if aiRole and profiles[aiRole] then
+        return profiles[aiRole]
+    end
+
+    local bestKey, best = nil, nil
+    for key, profile in pairs(profiles) do
+        local k = string.lower(tostring(key))
+        for _, m in ipairs(matchers) do
+            if m and m ~= "" and string.find(m, k, 1, true) then
+                if not bestKey or #k > #bestKey then
+                    bestKey, best = k, profile
+                end
+                break
+            end
+        end
+    end
+    return best
+end
+
+-- Push per-unit native AI tuning (fire range + standoff band + retarget
+-- cadence) for combat craft. Rides the OpenShim CalcRange/retarget hooks via
+-- exu.SetAiUnitTuning; policies are recomputed (not saved), so call again for
+-- every unit after Load(). team may be nil: DefaultNativeConfig then applies.
+function aiCore.ApplyNativeTactics(h, team)
+    if not aiNative or not aiNative.IsAvailable() then return end
+    if not IsValid(h) or not IsCraft(h) then return end
+
+    local config = ResolveNativeConfig(team)
+    if not config or not config.nativeTactics then return end
+
+    local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+    -- Producers and utility craft keep engine defaults.
+    if string.find(cls, "recycler")
+        or string.find(cls, "factory")
+        or string.find(cls, "armory")
+        or string.find(cls, "constructionrig")
+        or string.find(cls, "scavenger")
+        or string.find(cls, "tug")
+        or string.find(cls, "apc")
+        or string.find(cls, "minelayer") then
+        return
+    end
+
+    local odf = string.lower(utility.CleanString(GetOdf(h) or ""))
+    local meta = aiCore.GetOdfMeta(odf)
+    local aiRole = aiCore.GetNativeAiRole(meta)
+    local profile = aiCore.FindNativeUnitProfile(config, {
+        odf, cls,
+        (meta and meta.aiName) or "",
+        (meta and meta.aiName2) or "",
+        (meta and meta.unitName) or "",
+    }, aiRole) or {}
+    if profile.skip then return end
+
+    local policy = {}
+
+    -- Explicit fire-range floor (fixes weapons the engine underestimates,
+    -- e.g. dispenser bombs are hardcoded to 50 m by native CalcRange).
+    local engageRange = tonumber(profile.engageRange)
+    if engageRange and engageRange > 0 then
+        policy.engageRange = engageRange
+    end
+
+    local fireRange = engageRange or GetCurrentWeaponRangeMeters(h)
+
+    -- Firing-state kiting keeps fire permission separate from movement:
+    -- enter/exit form a hysteresis latch and desired is the reverse-force
+    -- equilibrium. OpenShim suppresses retreat frames that would lose terrain LOS.
+    local kiteDesired = tonumber(profile.kiteDesiredRange)
+    local kiteEnter = tonumber(profile.kiteEnterRange)
+    local kiteExit = tonumber(profile.kiteExitRange)
+    if fireRange and fireRange > 0 then
+        kiteDesired = kiteDesired or (fireRange * (tonumber(profile.kiteDesiredFraction) or 0.0))
+        kiteEnter = kiteEnter or (fireRange * (tonumber(profile.kiteEnterFraction) or 0.0))
+        kiteExit = kiteExit or (fireRange * (tonumber(profile.kiteExitFraction) or 0.0))
+    end
+    local lowHealthThreshold = tonumber(profile.lowHealthThreshold)
+    if lowHealthThreshold and lowHealthThreshold > 0.0 then
+        local maxHealth = GetMaxHealth(h) or 0.0
+        local healthFraction = maxHealth > 0.0
+            and math.max(0.0, math.min(1.0, (GetCurHealth(h) or maxHealth) / maxHealth)) or 1.0
+        local lowHealth = healthFraction <= lowHealthThreshold
+        policy.healthBand = lowHealth and "low" or "normal"
+        policy.healthThreshold = lowHealthThreshold
+        if lowHealth and kiteDesired and kiteEnter and kiteExit then
+            local scale = tonumber(profile.kiteLowHealthScale) or 1.0
+            kiteEnter = kiteEnter * scale
+            kiteDesired = kiteDesired * scale
+            kiteExit = kiteExit * scale
+            if fireRange and fireRange > 0 then
+                kiteExit = math.min(kiteExit, fireRange * 0.98)
+                kiteDesired = math.min(kiteDesired, kiteExit * 0.92)
+                kiteEnter = math.min(kiteEnter, kiteDesired * 0.88)
+            end
+        end
+    end
+    if kiteDesired and kiteEnter and kiteExit
+        and kiteEnter > 0 and kiteDesired > kiteEnter and kiteExit > kiteDesired then
+        policy.kiteDesiredRange = kiteDesired
+        policy.kiteEnterRange = kiteEnter
+        policy.kiteExitRange = kiteExit
+        policy.kitePreserveLos = profile.kitePreserveLos ~= false
+        local kiteStrafe = tonumber(profile.kiteStrafe)
+        local kiteSwitchPeriod = tonumber(profile.kiteSwitchPeriod)
+        if kiteStrafe and kiteStrafe > 0 then
+            policy.kiteStrafe = math.min(kiteStrafe, 1.0)
+            policy.kiteSwitchPeriod = (kiteSwitchPeriod and kiteSwitchPeriod > 0)
+                and kiteSwitchPeriod or 3.5
+        end
+    end
+
+    -- Standoff/kite band: hold at a fraction of the effective fire range
+    -- instead of driving to point-blank. Natively, units hold fire and back
+    -- off inside this distance (UnitTask closeSq).
+    if profile.standoff ~= false and fireRange
+        and fireRange >= (config.nativeStandoffMinWeaponRange or 90.0) then
+        local fraction = tonumber(profile.standoffFraction)
+            or config.nativeStandoffFraction or 0.85
+        policy.weaponRangeMin = fireRange * fraction
+    end
+
+    -- Faster forced target re-acquisition on higher difficulties.
+    local difficulty = config.difficulty or 1
+    local retarget = tonumber(profile.retargetPeriod)
+    if retarget and retarget > 0 then
+        policy.retargetPeriod = retarget
+    elseif difficulty >= 4 then
+        policy.retargetPeriod = 8.0
+    elseif difficulty >= 3 then
+        policy.retargetPeriod = 15.0
+    end
+
+    if policy.engageRange or policy.weaponRangeMin or policy.retargetPeriod
+        or policy.kiteDesiredRange then
+        local applied = aiNative.ApplyUnitPolicy(h, policy)
+        if policy.engageRange then
+            print(string.format(
+                "aiCore: native tactics odf=%s team=%d applied=%s engage=%.1f standoff=%.1f kite=%.1f/%.1f/%.1f",
+                odf, GetTeamNum(h), tostring(applied), policy.engageRange,
+                policy.weaponRangeMin or 0.0, policy.kiteEnterRange or 0.0,
+                policy.kiteDesiredRange or 0.0, policy.kiteExitRange or 0.0))
+        end
+        return applied
+    end
+    return false
+end
+
+-- Merge per-mission native-tactics overrides into a team's config, or into
+-- the global default config when teamNum is nil (player + unmanaged teams).
+-- Scalar fields overwrite; nativeUnitProfiles entries merge by key.
+function aiCore.SetNativeTacticsConfig(teamNum, overrides)
+    if type(overrides) ~= "table" then return false end
+    local team = teamNum and aiCore.ActiveTeams[teamNum] or nil
+    local config = ResolveNativeConfig(team)
+
+    for k, v in pairs(overrides) do
+        if k == "nativeUnitProfiles" and type(v) == "table" then
+            config.nativeUnitProfiles = config.nativeUnitProfiles or {}
+            for key, profile in pairs(v) do
+                config.nativeUnitProfiles[key] = profile
+            end
+        else
+            config[k] = v
+        end
+    end
+
+    aiCore.ReapplyNativeTactics()
+    return true
+end
+
+-- Set or replace one per-class profile (pass nil profile to remove it).
+-- teamNum nil = the global default config.
+function aiCore.SetNativeUnitProfile(teamNum, key, profile)
+    if not key then return false end
+    local team = teamNum and aiCore.ActiveTeams[teamNum] or nil
+    local config = ResolveNativeConfig(team)
+    config.nativeUnitProfiles = config.nativeUnitProfiles or {}
+    config.nativeUnitProfiles[string.lower(tostring(key))] = profile
+    aiCore.ReapplyNativeTactics()
+    return true
+end
+
+local function GetNativeSquadTarget(team, unit)
+    if not team or not team.squads then return nil end
+    for _, squad in ipairs(team.squads) do
+        local isMember = squad.leader == unit
+        if not isMember and squad.members then
+            for _, member in ipairs(squad.members) do
+                if member == unit then
+                    isMember = true
+                    break
+                end
+            end
+        end
+        if isMember and IsValid(squad.currentTarget) and IsAlive(squad.currentTarget) then
+            return squad.currentTarget
+        end
+    end
+    return nil
+end
+
+local function GetNativeClassBonus(config, candidate)
+    local bonuses = config and config.nativeTargetClassBonuses
+    if type(bonuses) ~= "table" then return 0.0 end
+    local cls = string.lower(utility.CleanString(GetClassLabel(candidate)))
+    local odf = string.lower(utility.CleanString(GetOdf(candidate) or ""))
+    local role = aiCore.GetNativeAiRole(aiCore.GetOdfMeta(odf))
+    local bestLength, bestBonus = 0, 0.0
+    for key, value in pairs(bonuses) do
+        local matcher = string.lower(tostring(key))
+        local bonus = tonumber(value)
+        if bonus and #matcher > bestLength
+            and (matcher == role
+                or string.find(cls, matcher, 1, true)
+                or string.find(odf, matcher, 1, true)) then
+            bestLength, bestBonus = #matcher, bonus
+        end
+    end
+    return bestBonus
+end
+
+-- Candidate scoring runs inside the stock ChooseAttackTarget search. The
+-- engine still decides eligibility, visibility, category precedence, range,
+-- and final task assignment; Lua only adjusts the distance-like comparison
+-- value for candidates that already passed those native gates.
+function aiCore.InstallNativeTargetScoring()
+    if aiCore._nativeTargetScoringInstalled then return true end
+    if not aiNative or not aiNative.SetTargetScoreHandler then return false end
+
+    local installed = aiNative.SetTargetScoreHandler(function(unit, candidate, baseDistance, stockLane)
+        if not IsValid(unit) or not IsValid(candidate) then return nil end
+        local team = aiCore.ActiveTeams[GetTeamNum(unit)]
+        local config = ResolveNativeConfig(team)
+        if not config or config.nativeTargetScoring == false then return nil end
+        local unitOdf = string.lower(utility.CleanString(GetOdf(unit) or ""))
+        local unitRole = aiCore.GetNativeAiRole(aiCore.GetOdfMeta(unitOdf))
+
+        local score = (tonumber(baseDistance) or 0.0)
+            * (tonumber(config.nativeTargetDistanceWeight) or 1.0)
+
+        -- Preserve a target long enough to finish an engagement without
+        -- preventing a materially closer or more dangerous target from winning.
+        if GetTarget(unit) == candidate then
+            score = score - (tonumber(config.nativeTargetStickinessBonus) or 45.0)
+        end
+        if GetWhoShotMe(unit) == candidate then
+            score = score - (tonumber(config.nativeTargetAttackerBonus) or 90.0)
+        end
+        if GetTarget(candidate) == unit then
+            score = score - (tonumber(config.nativeTargetThreatBonus) or 35.0)
+        end
+
+        -- Focus fire is now a preference inside native scoring, not a forced
+        -- post-selection replacement.
+        if config.nativeFocusFire then
+            local squadTarget = GetNativeSquadTarget(team, unit)
+            if squadTarget == candidate then
+                score = score - (tonumber(config.nativeTargetFocusBonus) or 125.0)
+            end
+        end
+
+        local maxHealth = GetMaxHealth(candidate) or 0.0
+        if maxHealth > 0.0 then
+            local healthFraction = math.max(0.0,
+                math.min(1.0, (GetCurHealth(candidate) or maxHealth) / maxHealth))
+            score = score - ((1.0 - healthFraction)
+                * (tonumber(config.nativeTargetFinishBonus) or 40.0))
+        end
+
+        score = score - GetNativeClassBonus(config, candidate)
+        if unitRole == "scout" and IsBuilding(candidate) then
+            -- Scouts still may attack a building when it is the native search's
+            -- best available lane, but prefer mobile threats and mine clearing.
+            score = score + (tonumber(config.nativeScoutBuildingPenalty) or 45.0)
+        end
+        return math.max(0.0, score)
+    end)
+
+    aiCore._nativeTargetScoringInstalled = installed and true or false
+    return aiCore._nativeTargetScoringInstalled
+end
+
+-- Default native target-selection handler: squad focus fire. When a squad
+-- member autonomously scans for an enemy and its squad already has a living
+-- target in range, redirect the pick to the squad target. Never vetoes.
+-- Gated per-team by Config.nativeFocusFire.
+function aiCore.InstallNativeTargetHandler()
+    if aiCore._nativeTargetHandlerInstalled then return true end
+    if not aiNative or not aiNative.SetTargetSelectHandler then return false end
+
+    local installed = aiNative.SetTargetSelectHandler(function(unit, candidate, rangeLimit)
+        local team = aiCore.ActiveTeams[GetTeamNum(unit)]
+        if not team or not team.Config or not team.Config.nativeFocusFire then return nil end
+        if not team.squads then return nil end
+
+        for _, squad in ipairs(team.squads) do
+            local target = squad.currentTarget
+            if IsValid(target) and IsAlive(target) then
+                local isMember = (squad.leader == unit)
+                if not isMember and squad.members then
+                    for _, m in ipairs(squad.members) do
+                        if m == unit then
+                            isMember = true
+                            break
+                        end
+                    end
+                end
+                if isMember then
+                    if target == candidate then return nil end
+                    local maxRange = (rangeLimit and rangeLimit > 0) and rangeLimit or 350.0
+                    if aiCore.GetDistance(unit, target) <= maxRange then
+                        return target
+                    end
+                    return nil
+                end
+            end
+        end
+        return nil
+    end)
+
+    aiCore._nativeTargetHandlerInstalled = installed and true or false
+    return aiCore._nativeTargetHandlerInstalled
+end
+
+function aiCore.ReapplyNativeTactics()
+    if not aiNative then return end
+    aiNative.ClearAll()
+    for h in AllCraft() do
+        -- team may be nil: player/unmanaged teams use DefaultNativeConfig.
+        aiCore.ApplyNativeTactics(h, aiCore.ActiveTeams[GetTeamNum(h)])
+    end
+end
+
+-- Mission scripts do not consistently forward every craft through
+-- aiCore.AddObject. In particular, several stock-style missions deliberately
+-- keep scripted enemy waves out of aiCore so their commands are not hijacked.
+-- Native tuning is command-neutral, so discover missing craft independently
+-- and push a policy once without registering them with any AI manager.
+function aiCore.SyncNativeTactics()
+    if not aiNative or not aiNative.IsAvailable() then return end
+
+    local now = GetTime()
+    if now < (aiCore._nextNativeTacticsSync or 0.0) then return end
+    aiCore._nextNativeTacticsSync = now + 1.0
+
+    for h in AllCraft() do
+        local existing = aiNative.GetUnitPolicy(h)
+        local healthBandChanged = false
+        if existing and existing.healthThreshold and existing.healthThreshold > 0.0 then
+            local maxHealth = GetMaxHealth(h) or 0.0
+            local healthFraction = maxHealth > 0.0
+                and math.max(0.0, math.min(1.0, (GetCurHealth(h) or maxHealth) / maxHealth)) or 1.0
+            local band = healthFraction <= existing.healthThreshold and "low" or "normal"
+            healthBandChanged = band ~= existing.healthBand
+        end
+        if not existing or healthBandChanged then
+            aiCore.ApplyNativeTactics(h, aiCore.ActiveTeams[GetTeamNum(h)])
+        end
+    end
 end
 
 function aiCore.IsMissileThreat(attacker)
@@ -2501,6 +2956,10 @@ function aiCore.Load(data)
     for h in AllCraft() do
         aiCore.ApplyDynamicMass(h)
     end
+
+    -- RE-APPLY NATIVE TACTICS: the shim's per-unit override map is keyed by
+    -- object pointers from the previous session, so it must be rebuilt.
+    aiCore.ReapplyNativeTactics()
 end
 
 ----------------------------------------------------------------------------------
@@ -6025,6 +6484,71 @@ function aiCore.Team:new(teamNum, faction)
         wreckerInterval = 600,
         techInterval = 60,
         techMax = 4,
+
+        -- Native tactics (per-unit fire range/standoff/retarget via exu+OpenShim).
+        -- engageRange floors the AI fire-range decision (unit stops its attack
+        -- run and opens fire at this distance); weaponRangeMin floors the native
+        -- "too close" band (units hold fire, back off and kite inside it).
+        nativeTactics = true,
+        nativeStandoffFraction = 0.85,
+        nativeStandoffMinWeaponRange = 90.0,
+        -- Native combat profiles. Exact ODF/class/AI-name keys override first;
+        -- ScoutFriend/ScoutEnemy and BomberFriend/BomberEnemy resolve exactly
+        -- to shared semantic roles; longest-substring matching is a fallback.
+        -- Fields: engageRange (m), standoffFraction (0..1 of fire range),
+        --         standoff (false = disable legacy close-band retreat),
+        --         kiteDesired/Enter/ExitRange (m) or matching Fraction fields,
+        --         kitePreserveLos, kiteStrafe, kiteSwitchPeriod,
+        --         lowHealthThreshold, kiteLowHealthScale,
+        --         retargetPeriod (s), skip.
+        -- Missions may replace/extend via aiCore.SetNativeUnitProfile().
+        nativeUnitProfiles = {
+            -- Dispenser-type weapons (bombs) get a hardcoded 50 m range from
+            -- the engine's CalcRange; force a real standoff drop distance.
+            bomber = {
+                engageRange = 300.0,
+                standoff = false,
+                kiteDesiredRange = 240.0,
+                kiteEnterRange = 220.0,
+                kiteExitRange = 260.0,
+                kitePreserveLos = true,
+            },
+            scout = {
+                standoff = false,
+                kiteEnterFraction = 0.70,
+                kiteDesiredFraction = 0.82,
+                kiteExitFraction = 0.94,
+                kitePreserveLos = true,
+                kiteStrafe = 0.55,
+                kiteSwitchPeriod = 3.5,
+                lowHealthThreshold = 0.35,
+                kiteLowHealthScale = 1.04,
+                retargetPeriod = 10.0,
+            },
+            howitzer = { standoffFraction = 0.9 },
+        },
+        -- Candidate scoring inside the native ChooseAttackTarget search. Focus
+        -- fire is a score bonus rather than a forced ATTACK replacement.
+        nativeFocusFire = true,
+        nativeTargetScoring = true,
+        nativeTargetDistanceWeight = 1.0,
+        nativeTargetFocusBonus = 125.0,
+        nativeTargetStickinessBonus = 45.0,
+        nativeTargetAttackerBonus = 90.0,
+        nativeTargetThreatBonus = 35.0,
+        nativeTargetFinishBonus = 40.0,
+        nativeScoutBuildingPenalty = 45.0,
+        nativeTargetClassBonuses = {
+            howitzer = 90.0,
+            constructor = 70.0,
+            scavenger = 55.0,
+            bomber = 45.0,
+            turrettank = 40.0,
+            turret = 35.0,
+            repair = 30.0,
+            supply = 25.0,
+            mine = 110.0,
+        },
 
         -- Toggles
         passiveRegen = false,
@@ -11431,6 +11955,7 @@ end
 
 function aiCore.Update()
     aiCore.SetupOrdnanceHooks()
+    aiCore.SyncNativeTactics()
 
     local now = GetTime()
     if now >= (aiCore._exuMuxCheckTimer or 0.0) then
@@ -11460,6 +11985,13 @@ function aiCore.Update()
     if now >= (aiCore._pilotSyncTimer or 0.0) then
         aiCore._pilotSyncTimer = now + 5.0
         aiCore.SyncPilotPersonTracking()
+    end
+
+    if aiNative then
+        aiNative.Update()
+        if not aiCore._nativeTargetScoringInstalled then
+            aiCore.InstallNativeTargetScoring()
+        end
     end
 
     -- Update AI Teams
@@ -11507,10 +12039,14 @@ function aiCore.AddObject(h)
     local team = aiCore.ActiveTeams[teamNum]
     if team then
         team:AddObject(h)
+        aiCore.ApplyNativeTactics(h, team)
     end
 
     -- Global/Player Logic (Ensure Team 1 turrets are tracked)
     if not team then
+        -- Player/unmanaged teams still get native combat tuning
+        -- (DefaultNativeConfig), so friendly wingmen fight smart too.
+        aiCore.ApplyNativeTactics(h, nil)
         if not aiCore.GlobalDefenseManagers[teamNum] then
             aiCore.GlobalDefenseManagers[teamNum] = aiCore.DefenseManager.new(teamNum)
         end
@@ -11534,6 +12070,10 @@ end
 
 function aiCore.DeleteObject(h)
     aiCore.UntrackWorldObject(h)
+    if aiNative then
+        aiNative.ClearUnit(h)
+        aiNative.UnwatchTaskState(h)
+    end
 end
 
 -- Helper to set up construction

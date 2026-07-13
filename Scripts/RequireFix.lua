@@ -13,6 +13,20 @@ do
     local initialized = false
     local lastGameDirectory = "."
     local lastWorkshopDirectory = nil
+    local moduleDirectory = nil
+
+    -- Redux can load the entry mission from an enabled Steam Workshop item
+    -- without adding that item's directory to package.path/package.cpath.  Use
+    -- this module's own source path as the authoritative runtime root so every
+    -- subsequent Lua/native require resolves from the same enabled item.
+    if debug and type(debug.getinfo) == "function" then
+        local info = debug.getinfo(1, "S")
+        local source = info and info.source
+        if type(source) == "string" and source:sub(1, 1) == "@" then
+            source = source:sub(2):gsub("/", "\\")
+            moduleDirectory = source:match("^(.*)\\[^\\]+$")
+        end
+    end
 
     local function WarnOnce(key, message)
         if warnedMessages[key] then
@@ -96,22 +110,43 @@ do
 
     local function DetectGameDirectory()
         local searchLists = { package.cpath or "", package.path or "", originalCPath, originalPath }
+        local relativeFallback = nil
+        local absoluteFallback = nil
         for _, pathList in ipairs(searchLists) do
             for _, entry in ipairs(SplitAtSemicolon(pathList)) do
                 local normalized = NormalizePath(entry)
                 local root = TrimKnownSuffix(normalized)
                 if root and root ~= "" then
-                    lastGameDirectory = root
-                    return root
+                    -- Relative entries such as `.\?.lua` appear first in
+                    -- Redux and used to make us return `.` before reaching
+                    -- the absolute Steam game path.  Prefer an absolute path
+                    -- so the sibling Workshop content directory can be
+                    -- derived reliably.
+                    if root:match("^%a:\\") or root:match("^\\\\") then
+                        absoluteFallback = absoluteFallback or root
+                        if string.lower(root):match("\\battlezone 98 redux$") then
+                            lastGameDirectory = root
+                            return root
+                        end
+                    else
+                        relativeFallback = relativeFallback or root
+                    end
                 end
             end
         end
 
+        lastGameDirectory = absoluteFallback or relativeFallback or lastGameDirectory
         return lastGameDirectory
     end
 
     local function DetectWorkshopDirectory(gameDirectory)
-        local paths = { package.cpath or "", package.path or "", originalCPath, originalPath }
+        local paths = {
+            moduleDirectory or "",
+            package.cpath or "",
+            package.path or "",
+            originalCPath,
+            originalPath,
+        }
         for _, pathList in ipairs(paths) do
             for _, entry in ipairs(SplitAtSemicolon(pathList)) do
                 local normalized = NormalizePath(entry)
@@ -154,17 +189,12 @@ do
         local gameDirectory = DetectGameDirectory()
         local workshopDirectory = DetectWorkshopDirectory(gameDirectory)
 
-        local luaPaths = SplitAtSemicolon(originalPath)
-        local dllPaths = SplitAtSemicolon(originalCPath)
+        local originalLuaPaths = SplitAtSemicolon(originalPath)
+        local originalDllPaths = SplitAtSemicolon(originalCPath)
+        local luaPaths = {}
+        local dllPaths = {}
         local seenLua = {}
         local seenDll = {}
-
-        for _, value in ipairs(luaPaths) do
-            seenLua[value] = true
-        end
-        for _, value in ipairs(dllPaths) do
-            seenDll[value] = true
-        end
 
         local ids = {}
         if type(workshopIDs) == "table" then
@@ -176,12 +206,19 @@ do
         end
 
         for _, id in ipairs(ids) do
-            local roots = {
-                gameDirectory and (gameDirectory .. "\\addon\\" .. id) or nil,
-                gameDirectory and (gameDirectory .. "\\mods\\" .. id) or nil,
-                gameDirectory and (gameDirectory .. "\\packaged_mods\\" .. id) or nil,
-                workshopDirectory and (workshopDirectory .. "\\" .. id) or nil,
-            }
+            -- Keep this array dense.  Lua 5.1 ipairs stops at the first nil;
+            -- a missing debug source path must not suppress every fallback.
+            local roots = {}
+            local function AddRoot(root)
+                if root and root ~= "" then
+                    roots[#roots + 1] = root
+                end
+            end
+            AddRoot(moduleDirectory)
+            AddRoot(gameDirectory and (gameDirectory .. "\\addon\\" .. id) or nil)
+            AddRoot(gameDirectory and (gameDirectory .. "\\mods\\" .. id) or nil)
+            AddRoot(gameDirectory and (gameDirectory .. "\\packaged_mods\\" .. id) or nil)
+            AddRoot(workshopDirectory and (workshopDirectory .. "\\" .. id) or nil)
 
             for _, root in ipairs(roots) do
                 if root then
@@ -194,6 +231,16 @@ do
                     InsertUnique(dllPaths, seenDll, root .. "\\Lua\\?.dll")
                 end
             end
+        end
+
+        -- The enabled mod should win resolution.  Keep Redux's stock paths as
+        -- fallbacks, but do not make every missing-module error enumerate them
+        -- before reaching the Workshop item.
+        for _, value in ipairs(originalLuaPaths) do
+            InsertUnique(luaPaths, seenLua, value)
+        end
+        for _, value in ipairs(originalDllPaths) do
+            InsertUnique(dllPaths, seenDll, value)
         end
 
         return table.concat(luaPaths, ";"), table.concat(dllPaths, ";"), gameDirectory, workshopDirectory

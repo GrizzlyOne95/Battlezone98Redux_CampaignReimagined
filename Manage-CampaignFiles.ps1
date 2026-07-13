@@ -1,6 +1,11 @@
 
-# Self-elevate if not admin
-if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+# Only live-install operations require elevation. Workshop builds/uploads use
+# an isolated staging directory and should not trigger a UAC prompt.
+$requestedAction = if ($args.Count -gt 0) { [string]$args[0] } else { "" }
+$elevatedActions = @("", "-deploy", "-fromsource", "-release")
+$requiresElevation = $elevatedActions -contains $requestedAction.ToLowerInvariant()
+if ($requiresElevation -and
+    -not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
     if ($args) { $arguments += " $args" }
     Start-Process powershell -Verb RunAs -ArgumentList $arguments
@@ -18,6 +23,9 @@ Set-Location $RepoRoot
 $SourceDir = $RepoRoot
 $CurrentDir = $RepoRoot
 $DefaultPackagedModId = "3686673790"
+$WorkshopAppId = "301650"
+$WorkshopPublishedFileId = "3686673790"
+$WorkshopLocalRoot = Join-Path $RepoRoot "Local\Workshop"
 # Battlezone installs the flat mod payload under one of these parent folders,
 # depending on the storefront/layout. GOG Galaxy uses "mods", the classic
 # packaged-mod layout uses "packaged_mods". Order = resolution priority.
@@ -26,12 +34,14 @@ $StructuredRuntimeDirs = @("flags", "OverlayFont", "chunkMeshes")
 $SourceExcludedRelativePaths = @(
     ".git",
     "docs",
-    "Local"
+    "Local",
+    "References"
 )
 $SourceExcludedRootFiles = @(
     ".gitignore",
     "AGENTS.md",
     "CHANGELOG.md",
+    "Config\net.ini",
     "LICENSE.md",
     "Manage-CampaignFiles.ps1",
     "NOTICE.md",
@@ -56,6 +66,11 @@ function Is-PreservedRuntimeRelativePath($relativePath) {
 
     if ($leafName.Equals("winmm.dll.pending", [System.StringComparison]::OrdinalIgnoreCase) -or
         $leafName.EndsWith("_replace.log", [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $true
+    }
+
+    if ($leafName.StartsWith("openshim_suite_", [System.StringComparison]::OrdinalIgnoreCase) -and
+        $leafName.Contains(".pending.")) {
         return $true
     }
 
@@ -98,6 +113,10 @@ function Get-RuntimeModDirCandidates {
         }
     }
 
+    # The GOG install (and other game-root mod folders) is the live runtime we
+    # play-test against, so it takes priority over the subscribed Steam
+    # Workshop payload — sync/deploy must target the files Redux actually
+    # loads on this machine, not the Workshop mirror.
     $defaultRoots = @(
         "C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux",
         (Join-Path ([Environment]::GetFolderPath("MyDocuments")) "Battlezone 98 Redux"),
@@ -112,6 +131,12 @@ function Get-RuntimeModDirCandidates {
             }
         }
     }
+
+    # Steam keeps subscribed Workshop payloads outside the game directory.
+    # Last-resort fallback only: it is a download cache, not the live install.
+    $steamWorkshopRuntime = Join-Path ${env:ProgramFiles(x86)} `
+        "Steam\steamapps\workshop\content\$WorkshopAppId\$WorkshopPublishedFileId"
+    [void]$candidates.Add($steamWorkshopRuntime)
 
     $candidates | Where-Object { $_ } | Select-Object -Unique
 }
@@ -251,6 +276,11 @@ function Is-ExcludedSourceRelativePath($relativePath) {
         return $false
     }
 
+    $leafName = [System.IO.Path]::GetFileName($relativePath)
+    if ($leafName -match '(?i)\.bak(?:[._-]|$)|\.pending(?:\.|$)|\.previous$') {
+        return $true
+    }
+
     foreach ($dirName in $SourceExcludedRelativePaths) {
         if ($relativePath.Equals($dirName, [System.StringComparison]::OrdinalIgnoreCase) -or
             $relativePath.StartsWith($dirName + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
@@ -303,7 +333,8 @@ function Get-ManagedSourceFiles {
 
     Get-ChildItem -Path $SourceDir -Recurse -File | Where-Object {
         $relativePath = Get-RelativePathFromBase $SourceDir $_.FullName
-        -not (Is-ExcludedSourceRelativePath $relativePath)
+        -not (Is-ExcludedSourceRelativePath $relativePath) -and
+        $_.Extension -ne ".pdb"
     }
 }
 
@@ -323,33 +354,73 @@ function Get-DeployRelativePathsFromSourcePath($sourceFileFullName) {
 
 function Update-OpenShimManifest {
     $shimPath = Join-Path $SourceDir "Bin\winmm.dll"
+    $openShimRepo = if ($env:BZR_OPENSHIM_REPO) {
+        Resolve-PathIfRelative $env:BZR_OPENSHIM_REPO
+    }
+    else {
+        Join-Path ([Environment]::GetFolderPath("MyDocuments")) "GIT\BZR-OpenShim"
+    }
+    $shimBuildPath = Join-Path $openShimRepo "bin\Release\winmm.dll"
+    $networkSourcePath = Join-Path $openShimRepo "net.ini"
+    $patchesSourcePath = Join-Path $openShimRepo "scripts\patches.json"
+    $payloadDir = Join-Path $SourceDir "InstallerPayload"
+    $networkPayloadPath = Join-Path $payloadDir "openshim_net.ini.payload"
+    $patchesPayloadPath = Join-Path $payloadDir "openshim_patches.json.payload"
     $manifestPath = Join-Path $SourceDir "Scripts\OpenShimManifest.lua"
-    if (-not (Test-Path $shimPath)) {
-        throw "Cannot generate OpenShim manifest because '$shimPath' does not exist."
+
+    foreach ($requiredPath in @($shimBuildPath, $networkSourcePath, $patchesSourcePath)) {
+        if (-not (Test-Path -LiteralPath $requiredPath)) {
+            throw "Cannot generate OpenShim suite manifest because '$requiredPath' does not exist."
+        }
     }
 
+    $refreshShim = -not (Test-Path -LiteralPath $shimPath)
+    if (-not $refreshShim) {
+        $buildHash = (Get-FileHash -LiteralPath $shimBuildPath -Algorithm SHA256).Hash
+        $bundledHash = (Get-FileHash -LiteralPath $shimPath -Algorithm SHA256).Hash
+        $refreshShim = $buildHash -ne $bundledHash
+    }
+    if ($refreshShim) {
+        [System.IO.Directory]::CreateDirectory((Split-Path $shimPath -Parent)) | Out-Null
+        [System.IO.File]::Copy($shimBuildPath, $shimPath, $true)
+        Write-Host "Refreshed bundled OpenShim from $shimBuildPath" -ForegroundColor Yellow
+    }
+
+    [System.IO.Directory]::CreateDirectory($payloadDir) | Out-Null
+    [System.IO.File]::Copy($networkSourcePath, $networkPayloadPath, $true)
+    [System.IO.File]::Copy($patchesSourcePath, $patchesPayloadPath, $true)
+
     $shimItem = Get-Item -LiteralPath $shimPath
+    $networkItem = Get-Item -LiteralPath $networkPayloadPath
+    $patchesItem = Get-Item -LiteralPath $patchesPayloadPath
     $shimHash = (Get-FileHash -LiteralPath $shimPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $networkHash = (Get-FileHash -LiteralPath $networkPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $patchesHash = (Get-FileHash -LiteralPath $patchesPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $shimVersion = $shimItem.VersionInfo.FileVersion
     if (-not $shimVersion) {
         throw "Cannot generate OpenShim manifest because winmm.dll has no file version."
     }
 
     $manifest = @(
-        "-- Generated by Manage-CampaignFiles.ps1 from Bin/winmm.dll."
-        "-- Do not edit the version, hash, or size by hand."
+        "-- Generated by Manage-CampaignFiles.ps1 from the managed OpenShim suite."
+        "-- Do not edit payload metadata by hand."
         "return {"
-        "    formatVersion = 1,"
+        "    formatVersion = 2,"
         "    version = `"$shimVersion`","
         "    sha256 = `"$shimHash`","
         "    size = $($shimItem.Length),"
         "    architecture = `"x86`","
+        "    payloads = {"
+        "        winmm = { source = `"winmm.dll`", destination = `"winmm.dll`", sha256 = `"$shimHash`", size = $($shimItem.Length), version = `"$shimVersion`", architecture = `"x86`" },"
+        "        network = { source = `"openshim_net.ini.payload`", destination = `"net.ini`", sha256 = `"$networkHash`", size = $($networkItem.Length) },"
+        "        patches = { source = `"openshim_patches.json.payload`", destination = `"scripts\\patches.json`", sha256 = `"$patchesHash`", size = $($patchesItem.Length) },"
+        "    },"
         "}"
         ""
     ) -join "`r`n"
 
     [System.IO.File]::WriteAllText($manifestPath, $manifest, [System.Text.UTF8Encoding]::new($false))
-    Write-Host "OpenShim manifest: version=$shimVersion sha256=$shimHash" -ForegroundColor DarkGray
+    Write-Host "OpenShim suite manifest: version=$shimVersion winmm=$shimHash net=$networkHash patches=$patchesHash" -ForegroundColor DarkGray
 }
 
 function Sync-ToSource {
@@ -385,6 +456,13 @@ function Sync-ToSource {
     foreach ($file in $runtimeFiles) {
         $runtimeRelativePath = Get-RelativePathFromBase $runtimeDir $file.FullName
         if (-not $runtimeRelativePath) {
+            continue
+        }
+
+        # Runtime-only artifacts (deploy backups, pending swaps) never belong
+        # in the source tree.
+        if ($file.Name -match '(?i)\.bak(?:[._-]|$)|\.pending(?:\.|$)|\.previous$') {
+            $skipped++
             continue
         }
 
@@ -633,7 +711,44 @@ function Escape-VdfValue($text) {
     return ($text -replace '"', '\"')
 }
 
+function Test-PathInsideDirectory {
+    param(
+        [string]$Candidate,
+        [string]$Root
+    )
+
+    if (-not $Candidate -or -not $Root) { return $false }
+    $candidateFull = [System.IO.Path]::GetFullPath($Candidate)
+    $rootFull = [System.IO.Path]::GetFullPath($Root).TrimEnd('\', '/') +
+        [System.IO.Path]::DirectorySeparatorChar
+    return $candidateFull.StartsWith($rootFull, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Find-SteamCmd {
+    $candidates = @(
+        "C:\steamcmd\steamcmd.exe",
+        "C:\SteamCMD\steamcmd.exe",
+        "C:\Program Files (x86)\Steam\steamcmd.exe",
+        (Join-Path $env:LOCALAPPDATA "SteamCMD\steamcmd.exe"),
+        (Join-Path $env:USERPROFILE "steamcmd\steamcmd.exe")
+    )
+    foreach ($candidate in $candidates) {
+        if ($candidate -and (Test-Path -LiteralPath $candidate)) {
+            return [System.IO.Path]::GetFullPath($candidate)
+        }
+    }
+
+    $command = Get-Command steamcmd.exe -ErrorAction SilentlyContinue
+    if ($command) { return $command.Source }
+    return $null
+}
+
 function Get-PublishConfig {
+    param(
+        [switch]$RequireSteamCmd,
+        [switch]$RequireSteamUser
+    )
+
     $configPath = Join-Path $RepoRoot "workshop.config.json"
     if (-not (Test-Path $configPath)) {
         Write-Error "Missing publish config: $configPath (copy workshop.config.example.json to workshop.config.json and fill it in)."
@@ -648,14 +763,12 @@ function Get-PublishConfig {
         return $null
     }
 
-    if (-not $cfg.AppId) { $cfg | Add-Member -NotePropertyName AppId -NotePropertyValue "301650" }
+    if (-not $cfg.AppId) { $cfg | Add-Member -NotePropertyName AppId -NotePropertyValue $WorkshopAppId }
+    if (-not $cfg.PublishedFileId) {
+        $cfg | Add-Member -NotePropertyName PublishedFileId -NotePropertyValue $WorkshopPublishedFileId
+    }
     if (-not $cfg.ContentFolder) {
-        $runtimeDir = Ensure-RuntimeModDir
-        if (-not $runtimeDir) {
-            return $null
-        }
-
-        $cfg | Add-Member -NotePropertyName ContentFolder -NotePropertyValue $runtimeDir
+        $cfg | Add-Member -NotePropertyName ContentFolder -NotePropertyValue "Local\Workshop\content"
     }
 
     $cfg.ContentFolder = Resolve-PathIfRelative $cfg.ContentFolder
@@ -663,53 +776,156 @@ function Get-PublishConfig {
     $cfg.DescriptionFile = Resolve-PathIfRelative $cfg.DescriptionFile
     $cfg.SteamCmdPath = Resolve-PathIfRelative $cfg.SteamCmdPath
 
-    if (-not $cfg.SteamCmdPath -or -not (Test-Path $cfg.SteamCmdPath)) {
-        Write-Error "SteamCmdPath not found. Set SteamCmdPath in workshop.config.json."
+    if ([string]$cfg.AppId -ne $WorkshopAppId -or
+        [string]$cfg.PublishedFileId -ne $WorkshopPublishedFileId) {
+        Write-Error "Workshop target lock failed. This repository may only update app $WorkshopAppId item $WorkshopPublishedFileId."
         return $null
     }
-    if (-not $cfg.SteamUser) {
-        Write-Error "SteamUser is required in workshop.config.json."
+
+    if (-not (Test-PathInsideDirectory -Candidate $cfg.ContentFolder -Root $WorkshopLocalRoot)) {
+        Write-Error "ContentFolder must be inside '$WorkshopLocalRoot' so clean staging is safe."
         return $null
     }
-    if (-not $cfg.PublishedFileId) {
-        Write-Error "PublishedFileId is required in workshop.config.json."
+
+    if (-not $cfg.SteamCmdPath) {
+        $resolvedSteamCmd = Find-SteamCmd
+        if ($resolvedSteamCmd) {
+            if ($cfg.PSObject.Properties["SteamCmdPath"]) {
+                $cfg.SteamCmdPath = $resolvedSteamCmd
+            }
+            else {
+                $cfg | Add-Member -NotePropertyName SteamCmdPath -NotePropertyValue $resolvedSteamCmd
+            }
+        }
+    }
+    if ($RequireSteamCmd -and
+        (-not $cfg.SteamCmdPath -or -not (Test-Path -LiteralPath $cfg.SteamCmdPath))) {
+        Write-Error "SteamCMD was not found. Set SteamCmdPath in workshop.config.json."
+        return $null
+    }
+
+    if (-not $cfg.SteamUser -and $env:STEAM_USERNAME) {
+        if ($cfg.PSObject.Properties["SteamUser"]) {
+            $cfg.SteamUser = $env:STEAM_USERNAME
+        }
+        else {
+            $cfg | Add-Member -NotePropertyName SteamUser -NotePropertyValue $env:STEAM_USERNAME
+        }
+    }
+    if ($RequireSteamUser -and -not $cfg.SteamUser) {
+        Write-Error "Set SteamUser in the ignored workshop.config.json or define STEAM_USERNAME."
+        return $null
+    }
+    if ($cfg.SteamPass) {
+        Write-Error "SteamPass must not be stored in workshop.config.json. Use -workshop-auth once and let SteamCMD cache authentication."
         return $null
     }
 
     return $cfg
 }
 
-function Invoke-GitPush {
+function Build-WorkshopContent {
     param(
-        [string]$Message
+        $Config
     )
 
-    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        Write-Warning "git not found in PATH. Skipping git push."
-        return
+    if (-not $Config) {
+        $Config = Get-PublishConfig
+    }
+    if (-not $Config) { return $null }
+
+    $contentFolder = [System.IO.Path]::GetFullPath([string]$Config.ContentFolder)
+    if (-not (Test-PathInsideDirectory -Candidate $contentFolder -Root $WorkshopLocalRoot)) {
+        throw "Refusing to clean Workshop staging outside '$WorkshopLocalRoot': $contentFolder"
     }
 
-    $status = git status --porcelain
-    if (-not $status) {
-        Write-Host "Git working tree clean. Skipping commit/push." -ForegroundColor DarkGray
-        return
+    Update-OpenShimManifest
+
+    if (Test-Path -LiteralPath $contentFolder) {
+        Remove-Item -LiteralPath $contentFolder -Recurse -Force
+    }
+    [System.IO.Directory]::CreateDirectory($contentFolder) | Out-Null
+
+    $destinationSources = @{}
+    $copied = 0
+    foreach ($file in @(Get-ManagedSourceFiles)) {
+        foreach ($deployRelativePath in @(Get-DeployRelativePathsFromSourcePath $file.FullName)) {
+            if ($destinationSources.ContainsKey($deployRelativePath)) {
+                $existingSource = $destinationSources[$deployRelativePath]
+                if (Test-FilesMatchByHash $existingSource $file.FullName) {
+                    Write-Host "Deduplicated identical flat file: $deployRelativePath" -ForegroundColor DarkGray
+                    continue
+                }
+                throw "Workshop flattening collision for '$deployRelativePath': '$existingSource' and '$($file.FullName)'"
+            }
+
+            $destinationSources[$deployRelativePath] = $file.FullName
+            $destinationPath = Join-Path $contentFolder $deployRelativePath
+            $destinationParent = Split-Path $destinationPath -Parent
+            [System.IO.Directory]::CreateDirectory($destinationParent) | Out-Null
+            Copy-Item -LiteralPath $file.FullName -Destination $destinationPath -Force
+            $copied++
+        }
     }
 
-    if (-not $Message) {
-        $Message = "Auto-publish " + (Get-Date -Format "yyyy-MM-dd HH:mm")
+    $requiredFiles = @(
+        "winmm.dll",
+        "bzfile.dll",
+        "bzfile_replace_helper.exe",
+        "exu.dll",
+        "openshim_net.ini.payload",
+        "openshim_patches.json.payload",
+        "RequireFix.lua",
+        "ScriptSubtitles.lua",
+        "OpenShimManifest.lua",
+        "PersistentConfig.lua",
+        "RuntimeEnhancements.lua",
+        "ReactiveReticle.lua",
+        "misn01.lua",
+        "misn02b.lua",
+        "misn03.lua",
+        "misn04.lua"
+    )
+    foreach ($relativePath in $requiredFiles) {
+        if (-not (Test-Path -LiteralPath (Join-Path $contentFolder $relativePath))) {
+            throw "Workshop staging is missing required file '$relativePath'."
+        }
     }
 
-    git add -A
-    git commit -m $Message
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "Git commit failed."
-        return
+    $stagedFiles = @(Get-ChildItem -LiteralPath $contentFolder -File -Recurse)
+    $forbiddenFiles = @($stagedFiles | Where-Object {
+        $_.Extension -in @(".pdb", ".log", ".status") -or
+        $_.Name -ieq "net.ini" -or
+        $_.Name -match '(?i)\.bak(?:[._-]|$)|\.pending(\.|$)|\.previous$|^workshop_build\.vdf$|^\.git'
+    })
+    if ($forbiddenFiles.Count -gt 0) {
+        $names = ($forbiddenFiles.FullName -join [Environment]::NewLine)
+        throw "Workshop staging contains forbidden local/debug files:$([Environment]::NewLine)$names"
     }
 
-    git push
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "Git push failed."
-        return
+    $contentManifestPath = Join-Path $WorkshopLocalRoot "content_manifest.sha256"
+    [System.IO.Directory]::CreateDirectory($WorkshopLocalRoot) | Out-Null
+    $manifestLines = foreach ($file in ($stagedFiles | Sort-Object FullName)) {
+        $relativePath = Get-RelativePathFromBase $contentFolder $file.FullName
+        $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+        "$hash  $($file.Length)  $relativePath"
+    }
+    [System.IO.File]::WriteAllLines(
+        $contentManifestPath,
+        $manifestLines,
+        [System.Text.UTF8Encoding]::new($false))
+
+    $totalBytes = ($stagedFiles | Measure-Object -Property Length -Sum).Sum
+    Write-Host "Workshop staging ready: $($stagedFiles.Count) files, $totalBytes bytes" -ForegroundColor Cyan
+    Write-Host "  Content:  $contentFolder" -ForegroundColor DarkGray
+    Write-Host "  Manifest: $contentManifestPath" -ForegroundColor DarkGray
+
+    return [pscustomobject]@{
+        ContentFolder = $contentFolder
+        ManifestPath = $contentManifestPath
+        FileCount = $stagedFiles.Count
+        TotalBytes = $totalBytes
+        CopiedCount = $copied
     }
 }
 
@@ -719,7 +935,8 @@ function Write-WorkshopVdf {
         [string]$ChangeNote
     )
 
-    $vdfPath = Join-Path $RepoRoot "workshop_build.vdf"
+    [System.IO.Directory]::CreateDirectory($WorkshopLocalRoot) | Out-Null
+    $vdfPath = Join-Path $WorkshopLocalRoot "workshop_build.vdf"
     $lines = @()
     $lines += '"workshopitem"'
     $lines += '{'
@@ -746,10 +963,14 @@ function Write-WorkshopVdf {
 
 function Invoke-WorkshopUpload {
     param(
-        [string]$ChangeNote
+        [string]$ChangeNote,
+        $Config
     )
 
-    $cfg = Get-PublishConfig
+    $cfg = $Config
+    if (-not $cfg) {
+        $cfg = Get-PublishConfig -RequireSteamCmd -RequireSteamUser
+    }
     if (-not $cfg) { return }
 
     if (-not (Test-Path $cfg.ContentFolder)) {
@@ -759,14 +980,67 @@ function Invoke-WorkshopUpload {
 
     $vdfPath = Write-WorkshopVdf -Config $cfg -ChangeNote $ChangeNote
 
-    $args = @("+login", $cfg.SteamUser)
-    if ($cfg.SteamPass) { $args += $cfg.SteamPass }
-    $args += "+workshop_build_item"
-    $args += $vdfPath
-    $args += "+quit"
+    $steamArgs = @(
+        "+@ShutdownOnFailedCommand", "1",
+        "+login", [string]$cfg.SteamUser,
+        "+workshop_build_item", $vdfPath,
+        "+quit"
+    )
 
-    Write-Host "Uploading to Steam Workshop..." -ForegroundColor Cyan
-    & $cfg.SteamCmdPath @args
+    [System.IO.Directory]::CreateDirectory($WorkshopLocalRoot) | Out-Null
+    $uploadLog = Join-Path $WorkshopLocalRoot ("steamcmd_upload_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".log")
+    Write-Host "Uploading app $WorkshopAppId item $WorkshopPublishedFileId to Steam Workshop..." -ForegroundColor Cyan
+    $output = @(& $cfg.SteamCmdPath @steamArgs 2>&1)
+    $exitCode = $LASTEXITCODE
+    $output | Tee-Object -FilePath $uploadLog | ForEach-Object { Write-Host $_ }
+
+    $outputText = $output -join "`n"
+    if ($exitCode -ne 0 -or $outputText -match '(?i)(ERROR!|FAILED\s*\()') {
+        throw "SteamCMD Workshop upload failed with exit code $exitCode. See '$uploadLog'."
+    }
+
+    $receipt = [ordered]@{
+        AppId = $WorkshopAppId
+        PublishedFileId = $WorkshopPublishedFileId
+        UploadedAt = (Get-Date).ToString("o")
+        ChangeNote = $ChangeNote
+        ContentFolder = [string]$cfg.ContentFolder
+        ContentManifest = (Join-Path $WorkshopLocalRoot "content_manifest.sha256")
+        SteamCmdLog = $uploadLog
+    }
+    $receipt | ConvertTo-Json -Depth 4 |
+        Set-Content -LiteralPath (Join-Path $WorkshopLocalRoot "last_upload.json") -Encoding UTF8
+    Write-Host "Workshop upload command completed for item $WorkshopPublishedFileId." -ForegroundColor Green
+}
+
+function Initialize-WorkshopAuth {
+    $cfg = Get-PublishConfig -RequireSteamCmd -RequireSteamUser
+    if (-not $cfg) { return }
+
+    Write-Host "Starting interactive SteamCMD authentication for '$($cfg.SteamUser)'." -ForegroundColor Cyan
+    Write-Host "SteamCMD may request your password and Steam Guard code; neither is stored in this repository." -ForegroundColor Yellow
+    & $cfg.SteamCmdPath "+login" ([string]$cfg.SteamUser) "+quit"
+    if ($LASTEXITCODE -ne 0) {
+        throw "SteamCMD authentication bootstrap failed with exit code $LASTEXITCODE."
+    }
+}
+
+function Build-WorkshopPackage {
+    param(
+        [string]$Message
+    )
+
+    $cfg = Get-PublishConfig
+    if (-not $cfg) { return }
+    if (-not $Message) {
+        $Message = "Campaign Reimagined update " + (Get-Date -Format "yyyy-MM-dd HH:mm")
+    }
+
+    $build = Build-WorkshopContent -Config $cfg
+    if (-not $build) { return }
+    $vdfPath = Write-WorkshopVdf -Config $cfg -ChangeNote $Message
+    Write-Host "Workshop dry run complete. Upload VDF: $vdfPath" -ForegroundColor Green
+    return $build
 }
 
 function Publish-All {
@@ -774,9 +1048,15 @@ function Publish-All {
         [string]$Message
     )
 
-    Deploy-PackagedMod
-    Invoke-GitPush -Message $Message
-    Invoke-WorkshopUpload -ChangeNote $Message
+    $cfg = Get-PublishConfig -RequireSteamCmd -RequireSteamUser
+    if (-not $cfg) { return }
+    if (-not $Message) {
+        $Message = "Campaign Reimagined update " + (Get-Date -Format "yyyy-MM-dd HH:mm")
+    }
+
+    $build = Build-WorkshopContent -Config $cfg
+    if (-not $build) { return }
+    Invoke-WorkshopUpload -ChangeNote $Message -Config $cfg
 }
 
 function Show-Menu {
@@ -794,8 +1074,10 @@ function Show-Menu {
     Write-Host ""
     Write-Host "1. Sync To Source (Pull packaged mod runtime -> source tree)"
     Write-Host "2. Deploy Packaged Mod (Flatten source tree -> mod install)"
-    Write-Host "3. Publish (Deploy + Git push + Workshop upload)"
+    Write-Host "3. Workshop Upload (clean staging + validation + upload)"
     Write-Host "4. Sync from Runtime only (same as option 1)"
+    Write-Host "5. Workshop Dry Run (clean staging + VDF only)"
+    Write-Host "6. SteamCMD Authentication Bootstrap"
     Write-Host "Q. Quit"
     Write-Host ""
     
@@ -806,6 +1088,8 @@ function Show-Menu {
         "2" { Deploy-PackagedMod; Pause; Show-Menu }
         "3" { Publish-All; Pause; Show-Menu }
         "4" { Sync-FromRuntime; Pause; Show-Menu }
+        "5" { Build-WorkshopPackage; Pause; Show-Menu }
+        "6" { Initialize-WorkshopAuth; Pause; Show-Menu }
         "Q" { exit }
         "q" { exit }
         default { Write-Host "Invalid option." -ForegroundColor Red; Pause; Show-Menu }
@@ -827,6 +1111,23 @@ elseif ($args[0] -eq "-release") {
 }
 elseif ($args[0] -eq "-addon") {
     Sync-FromRuntime
+}
+elseif ($args[0] -eq "-workshop-build") {
+    $message = $null
+    if ($args.Count -gt 1) {
+        $message = ($args[1..($args.Count - 1)] -join " ")
+    }
+    Build-WorkshopPackage -Message $message
+}
+elseif ($args[0] -eq "-workshop-auth") {
+    Initialize-WorkshopAuth
+}
+elseif ($args[0] -eq "-workshop-upload") {
+    $message = $null
+    if ($args.Count -gt 1) {
+        $message = ($args[1..($args.Count - 1)] -join " ")
+    }
+    Publish-All -Message $message
 }
 elseif ($args[0] -eq "-publish") {
     $message = $null

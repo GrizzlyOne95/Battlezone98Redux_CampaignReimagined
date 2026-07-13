@@ -434,3 +434,30 @@ m
 −
 1
  with BZ row vector matrices.
+
+Per-Unit AI Tuning (requires BZR OpenShim winmm.dll)
+These knobs ride the OpenShim CalcRange/retarget hooks. Per-unit values win over ODF-level engageRangeAI/weaponRangeMinAI tuning and apply regardless of SetAiOdfGameplayTuningEnabled. The native side keys by object pointer, so tuning must be re-applied after a save/load (aiCore does this automatically via aiNative.lua).
+
+function SetAiUnitTuning(h: handle, tuning: table) -> boolean
+Sets per-unit AI tuning. Table keys: engageRange (fire-range floor in meters), weaponRangeMin (legacy native "too close" floor in meters), retargetPeriod (seconds), kiteDesiredRange, kiteEnterRange, kiteExitRange (meters), kitePreserveLos (boolean), kiteStrafe (lateral steering strength from 0 to 1), and kiteSwitchPeriod (seconds between alternating retreat sides). The three kite ranges enable firing-state retreat with hysteresis: retreat begins at enter, reverses toward desired, and releases at exit while stock range/LOS still control firing. With kitePreserveLos, reverse movement is suppressed when its projected position would break terrain LOS; lateral retreat tests both sides and is omitted if neither preserves LOS. Omitted keys are unset; an empty table clears the unit's tuning.
+
+function GetAiUnitTuning(h: handle) -> table | nil
+Returns the tuning previously set for this handle this session, or nil.
+
+function ClearAiUnitTuning(h: handle) -> boolean
+Removes per-unit tuning for the handle.
+
+function ClearAllAiUnitTuning() -> boolean
+Removes all per-unit tuning (use after mission restart or load).
+
+function SetAiTargetSelectEnabled(enabled: boolean) -> boolean
+Installs (idempotent) the ChooseAttackTarget vtable-slot hooks for the wingman-family AI processes and gates dispatch into Lua. While enabled, exu.AiTargetSelect(unitHandle, candidateHandle|nil, rangeLimit|nil) is called after native target selection; return nil to keep the engine's pick, false to veto, or a handle to override (validated natively). Slots are RTTI- and value-verified before patching and are restored automatically when the DLL unloads.
+
+function GetAiTargetSelectEnabled() -> boolean
+Returns whether AiTargetSelect dispatch is currently enabled.
+
+function SetAiTargetScoringEnabled(enabled: boolean) -> boolean
+Installs and enables per-candidate scoring inside the stock ChooseAttackTarget searches. When enabled, exu.AiTargetScore(unitHandle, candidateHandle, baseDistanceMeters, stockLane) may return nil to keep the native distance, a non-negative number to use as the adjusted distance-like score, or false to reject that candidate. Lower scores win. Native eligibility, visibility, category lanes, hard range gates, and final task assignment remain authoritative.
+
+function GetAiTargetScoringEnabled() -> boolean
+Returns whether per-candidate native target-score dispatch is enabled.

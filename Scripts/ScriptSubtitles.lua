@@ -2,6 +2,7 @@
 -- Wrapper for mission subtitles using the EXU/Ogre overlay renderer.
 local exu = require("exu")
 local bzfile = require("bzfile")
+local LogPaths = require("LogPaths")
 
 local Subtitles = {}
 local FONT_SCALE_MIN = 0.85
@@ -53,14 +54,7 @@ local function SubtitleLog(message)
 end
 
 local function GetSubtitleFailureLogPath()
-    local workingDirectory = "."
-    if bzfile and type(bzfile.GetWorkingDirectory) == "function" then
-        local ok, result = pcall(bzfile.GetWorkingDirectory)
-        if ok and type(result) == "string" and result ~= "" then
-            workingDirectory = result
-        end
-    end
-    return workingDirectory .. "\\" .. OVERLAY_FAILURE_LOG_NAME
+    return LogPaths.Path(OVERLAY_FAILURE_LOG_NAME)
 end
 
 local function AppendSubtitleFailureLog(reason, source, extra)

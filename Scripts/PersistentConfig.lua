@@ -6,6 +6,7 @@ local autosave = require("AutoSave")
 local RuntimeEnhancements = require("RuntimeEnhancements")
 local ConservativeCulling = require("ConservativeCulling")
 local CareerStats = require("CareerStats")
+local LogPaths = require("LogPaths")
 
 local PersistentConfig = {}
 PersistentConfig.D = require("PersistentConfigD")
@@ -104,7 +105,7 @@ PersistentConfig.DefaultSettings = {
     RadarSizeScale = 1.00,          -- Independent radar size scale
     DynamicFactionFlameColors = true, -- Team flame colors from faction nation codes
     BomberAiRangeEnabled = true,    -- Campaign enables EXU-gated bomber AI range behavior
-    HowitzerVolleyEnabled = true,   -- Campaign enables EXU-gated howitzer volley behavior
+    HowitzerVolleyEnabled = false,  -- Full ArtilleryProcess replay is disabled pending a safe narrow hook
     WeaponMaskCarrierBiasEnabled = true, -- Campaign enables EXU-gated weapon-mask carrier bias
     AiOdfGameplayTuningEnabled = true, -- Campaign enables EXU-gated AI ODF gameplay tuning
     TurretAimPitchEnabled = true,   -- Campaign enables EXU-gated turret aim pitch override
@@ -452,15 +453,10 @@ local function GetOpenShimReplaceLogPath(destinationPath)
         return nil
     end
 
-    local directory = normalized:match("^(.*)\\[^\\]+$") or ""
     local fileName = GetPathLeaf(normalized) or "winmm.dll"
     local stem = fileName:gsub("%.[^.]+$", "")
     local logFile = stem .. "_replace.log"
-    if directory == "" then
-        return logFile
-    end
-
-    return directory .. "\\" .. logFile
+    return LogPaths.Path(logFile)
 end
 
 local function WriteOpenShimInstallerDescriptionFile(relativePath, text)
@@ -499,7 +495,12 @@ local function WriteOpenShimInstallerDescriptionFile(relativePath, text)
     return nil
 end
 
-local function GetBundledOpenShimSourcePath()
+local function GetBundledOpenShimPayloadPath(payloadName)
+    if type(payloadName) ~= "string" or payloadName == "" or
+        payloadName:find("[\\/]") then
+        return nil
+    end
+
     local workingDirectory = NormalizeInstallerPath(getWorkingDirectory())
     local workshopDirectory = GetWorkshopContentDirectory()
     local workshopId = tostring(PersistentConfig.OpenShimInstaller.bundledWorkshopId or "")
@@ -521,8 +522,8 @@ local function GetBundledOpenShimSourcePath()
     end
 
     for _, root in ipairs(roots) do
-        candidates[#candidates + 1] = root .. "\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
-        candidates[#candidates + 1] = root .. "\\_Release\\" .. PersistentConfig.OpenShimInstaller.bundledRootName
+        candidates[#candidates + 1] = root .. "\\" .. payloadName
+        candidates[#candidates + 1] = root .. "\\_Release\\" .. payloadName
     end
 
     for _, candidate in ipairs(candidates) do
@@ -559,7 +560,7 @@ local function ShowOpenShimInstallMissionOutcome(state, failureLogPath)
     local failureMessage = "OpenShim self-install failed. Restart Battlezone and verify the mod files."
     if failureLogPath and failureLogPath ~= "" then
         local logFileName = GetPathLeaf(failureLogPath) or "winmm_replace.log"
-        failureMessage = "OpenShim self-install failed. Check " .. logFileName .. " in the Battlezone folder."
+        failureMessage = "OpenShim self-install failed. Check logs\\" .. logFileName .. "."
 
         WriteOpenShimInstallerDescriptionFile(
             "shimfail.des",
@@ -625,11 +626,32 @@ local function GetOpenShimManifest()
     end
 
     local manifest = manifestOrError
+    local function NormalizePayload(payload)
+        if type(payload) ~= "table" then return nil end
+        payload.sha256 = type(payload.sha256) == "string" and string.lower(payload.sha256) or nil
+        if not payload.sha256 or not payload.sha256:match("^[0-9a-f]+$") or #payload.sha256 ~= 64 or
+            type(payload.source) ~= "string" or payload.source == "" or
+            type(payload.destination) ~= "string" or payload.destination == "" then
+            return nil
+        end
+        return payload
+    end
+
     manifest.sha256 = type(manifest.sha256) == "string" and string.lower(manifest.sha256) or nil
-    if manifest.formatVersion ~= 1 or
+    local payloads = manifest.payloads
+    local winmm = payloads and NormalizePayload(payloads.winmm) or nil
+    local network = payloads and NormalizePayload(payloads.network) or nil
+    local patches = payloads and NormalizePayload(payloads.patches) or nil
+    if manifest.formatVersion ~= 2 or
         not manifest.sha256 or not manifest.sha256:match("^[0-9a-f]+$") or #manifest.sha256 ~= 64 or
         type(manifest.version) ~= "string" or manifest.version == "" or
-        manifest.architecture ~= "x86" then
+        manifest.architecture ~= "x86" or
+        not winmm or not network or not patches or
+        winmm.source ~= "winmm.dll" or winmm.destination ~= "winmm.dll" or
+        network.source ~= "openshim_net.ini.payload" or network.destination ~= "net.ini" or
+        patches.source ~= "openshim_patches.json.payload" or patches.destination ~= "scripts\\patches.json" or
+        winmm.sha256 ~= manifest.sha256 or winmm.version ~= manifest.version or
+        winmm.architecture ~= "x86" then
         print("PersistentConfig: OpenShim manifest is malformed or unsupported.")
         return nil
     end
@@ -675,61 +697,88 @@ local function EnsureBundledOpenShimInstalled()
     end
     PersistentConfig.OpenShimInstallChecked = true
 
-    if not (bzfile and type(bzfile.StageOpenShimUpdate) == "function") then
-        print("PersistentConfig: hardened OpenShim staging is unavailable; leaving the active mission running.")
+    if not (bzfile and type(bzfile.StageOpenShimSuiteUpdate) == "function") then
+        print("PersistentConfig: hardened OpenShim suite staging is unavailable; leaving the active mission running.")
         return
     end
 
     local workingDirectory = getWorkingDirectory()
-    local destinationPath = workingDirectory .. "\\winmm.dll"
-    local statusPath = workingDirectory .. "\\winmm_update.status"
-    local replaceLogPath = GetOpenShimReplaceLogPath(destinationPath)
-    local sourcePath = GetBundledOpenShimSourcePath()
-    if not sourcePath then
-        print("PersistentConfig: No bundled OpenShim winmm.dll found; skipping self-install.")
-        return
-    end
-
     local manifest = GetOpenShimManifest()
+    local statusPath = workingDirectory .. "\\openshim_update.status"
+    local replaceLogPath = LogPaths.Path("openshim_update.log")
     if not manifest then
         ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
         return
     end
 
-    local sourceHash = GetBzFileHash(sourcePath)
-    if not sourceHash or sourceHash ~= manifest.sha256 then
-        print("PersistentConfig: Bundled OpenShim does not match OpenShimManifest.lua; refusing to stage it.")
-        ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
+    local orderedPayloads = {
+        manifest.payloads.winmm,
+        manifest.payloads.network,
+        manifest.payloads.patches,
+    }
+    local sourcePaths = {}
+    for index, payload in ipairs(orderedPayloads) do
+        local sourcePath = GetBundledOpenShimPayloadPath(payload.source)
+        if not sourcePath then
+            print("PersistentConfig: Bundled OpenShim suite payload is missing: " .. tostring(payload.source))
+            ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
+            return
+        end
+
+        local sourceHash = GetBzFileHash(sourcePath)
+        if not sourceHash or sourceHash ~= payload.sha256 then
+            print("PersistentConfig: Bundled OpenShim suite payload does not match the manifest: " ..
+                tostring(payload.source))
+            ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
+            return
+        end
+        sourcePaths[index] = sourcePath
+    end
+
+    local destinationPaths = {
+        workingDirectory .. "\\winmm.dll",
+        workingDirectory .. "\\net.ini",
+        workingDirectory .. "\\scripts\\patches.json",
+    }
+    local allCurrent = true
+    for index, payload in ipairs(orderedPayloads) do
+        local destinationHash = BzFileExists(destinationPaths[index]) and
+            GetBzFileHash(destinationPaths[index]) or nil
+        if destinationHash ~= payload.sha256 then
+            allCurrent = false
+        end
+    end
+    if allCurrent then
+        AcknowledgeCompletedOpenShimUpdate(statusPath, manifest.sha256)
         return
     end
 
-    local destinationExists = BzFileExists(destinationPath)
-    if destinationExists then
-        local destinationHash = GetBzFileHash(destinationPath)
-        if destinationHash and destinationHash == manifest.sha256 then
-            AcknowledgeCompletedOpenShimUpdate(statusPath, manifest.sha256)
-            return
-        end
-
-        local destinationVersion = GetBzFileVersion(destinationPath)
+    if BzFileExists(destinationPaths[1]) then
+        local destinationHash = GetBzFileHash(destinationPaths[1])
+        local destinationVersion = GetBzFileVersion(destinationPaths[1])
         local versionComparison = CompareInstallerVersions(destinationVersion, manifest.version)
-        if versionComparison and versionComparison > 0 then
+        if destinationHash ~= manifest.sha256 and versionComparison and versionComparison > 0 then
             print("PersistentConfig: Installed OpenShim " .. tostring(destinationVersion) ..
-                " is newer than bundled version " .. tostring(manifest.version) .. "; skipping downgrade.")
+                " is newer than bundled suite version " .. tostring(manifest.version) .. "; skipping downgrade.")
             return
         end
     end
 
-    local ok, staged, stageState, helperLogPath = pcall(bzfile.StageOpenShimUpdate, sourcePath, manifest.sha256)
+    local ok, staged, stageState, helperLogPath = pcall(
+        bzfile.StageOpenShimSuiteUpdate,
+        sourcePaths[1], orderedPayloads[1].sha256,
+        sourcePaths[2], orderedPayloads[2].sha256,
+        sourcePaths[3], orderedPayloads[3].sha256)
     if ok and staged then
-        print("PersistentConfig: OpenShim " .. tostring(manifest.version) .. " staged for verified replacement on exit." ..
+        print("PersistentConfig: OpenShim suite " .. tostring(manifest.version) ..
+            " staged for verified replacement on exit." ..
             (helperLogPath and (" Helper log: " .. tostring(helperLogPath)) or ""))
         ShowOpenShimInstallMissionOutcome(stageState == "staged" and "staged" or "updated")
         return
     end
 
     local errorText = ok and tostring(stageState or "staging failed") or tostring(staged)
-    print("PersistentConfig: Hardened OpenShim staging failed: " .. errorText ..
+    print("PersistentConfig: Hardened OpenShim suite staging failed: " .. errorText ..
         (replaceLogPath and ("; check " .. replaceLogPath) or ""))
     ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
 end
@@ -2650,15 +2699,15 @@ local function InitializeTrackedWorldHandles()
     end
 end
 
--- Helper to parse bzlogger.txt for Steam ID/Username
+-- Helper to parse BZLogger.txt for Steam ID/Username
 local function ParseBzLogger()
     if not bzfile or not bzfile.Open then return nil, nil end
-    local logPath = "bzlogger.txt"
+    local logPath = LogPaths.Path("BZLogger.txt")
     local f = bzfile.Open(logPath, "r")
 
-    -- Fallback to parent directory if not found
+    -- Compatibility fallback for installs that have not loaded the new shim.
     if not f then
-        logPath = "../bzlogger.txt"
+        logPath = "BZLogger.txt"
         f = bzfile.Open(logPath, "r")
     end
 

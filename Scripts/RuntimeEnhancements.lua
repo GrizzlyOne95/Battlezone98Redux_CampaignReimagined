@@ -1,6 +1,7 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 local exu = require("exu")
 local bzfile = require("bzfile")
+local LogPaths = require("LogPaths")
 
 local DEFAULT_TEAM_PROFILES = {
     [2] = {
@@ -207,6 +208,13 @@ local function RecoverRuntimeVariantBaseName(segment)
             changed = true
         end
 
+        -- Battlezone can replace an entity material with an engine-generated
+        -- rt_<base> alias while changing recycler/building render state.
+        if recovered:sub(1, 3) == "rt_" then
+            recovered = recovered:sub(4)
+            changed = true
+        end
+
         local stripped = StripKnownVariantSuffixes(recovered)
         if stripped ~= recovered then
             recovered = stripped
@@ -274,15 +282,7 @@ local function GetDebugLogPath()
         return RuntimeEnhancements.DebugLogPath
     end
 
-    local workingDirectory = "."
-    if bzfile and type(bzfile.GetWorkingDirectory) == "function" then
-        local ok, result = pcall(bzfile.GetWorkingDirectory)
-        if ok and type(result) == "string" and result ~= "" then
-            workingDirectory = result
-        end
-    end
-
-    RuntimeEnhancements.DebugLogPath = workingDirectory .. "\\runtime_enhancements_debug.log"
+    RuntimeEnhancements.DebugLogPath = LogPaths.Path("runtime_enhancements_debug.log")
     return RuntimeEnhancements.DebugLogPath
 end
 
@@ -537,6 +537,7 @@ local function RegisterHandle(h)
         state.prepared = false
         state.materials = nil
         state.visualMode = nil
+        state.nextVisualRetryAt = nil
     end
 
     state.profile = profile
@@ -564,33 +565,37 @@ local function PrepareState(state)
 
     state.prepared = true
     local materials = {}
+    local materialBases = state.materialBases
     local subCount = (exu.GetSubEntityCount and exu.GetSubEntityCount(h))
         or (exu.GetNumSubEntities and exu.GetNumSubEntities(h))
         or 0
     subCount = math.max(0, math.floor(tonumber(subCount) or 0))
 
-    if subCount > 0 then
-        for index = 0, subCount - 1 do
-            local baseMaterial = NormalizeBaseMaterialName(ReadbackMaterialName(h, index))
+    if not materialBases then
+        materialBases = {}
+        if subCount > 0 then
+            for index = 0, subCount - 1 do
+                local baseMaterial = NormalizeBaseMaterialName(ReadbackMaterialName(h, index))
+                if type(baseMaterial) == "string" and baseMaterial ~= "" then
+                    materialBases[#materialBases + 1] = { index = index, base = baseMaterial }
+                end
+            end
+        else
+            local baseMaterial = NormalizeBaseMaterialName(ReadbackMaterialName(h, nil))
             if type(baseMaterial) == "string" and baseMaterial ~= "" then
-                materials[#materials + 1] = {
-                    index = index,
-                    base = baseMaterial,
-                    occupied = EnsureMaterialVariant(baseMaterial, state.profile, true),
-                    empty = state.supportsPilot and EnsureMaterialVariant(baseMaterial, state.profile, false) or nil,
-                }
+                materialBases[#materialBases + 1] = { index = nil, base = baseMaterial }
             end
         end
-    else
-        local baseMaterial = NormalizeBaseMaterialName(ReadbackMaterialName(h, nil))
-        if type(baseMaterial) == "string" and baseMaterial ~= "" then
-            materials[#materials + 1] = {
-                index = nil,
-                base = baseMaterial,
-                occupied = EnsureMaterialVariant(baseMaterial, state.profile, true),
-                empty = state.supportsPilot and EnsureMaterialVariant(baseMaterial, state.profile, false) or nil,
-            }
-        end
+        state.materialBases = materialBases
+    end
+
+    for _, materialBase in ipairs(materialBases) do
+        materials[#materials + 1] = {
+            index = materialBase.index,
+            base = materialBase.base,
+            occupied = EnsureMaterialVariant(materialBase.base, state.profile, true),
+            empty = state.supportsPilot and EnsureMaterialVariant(materialBase.base, state.profile, false) or nil,
+        }
     end
 
     if #materials == 0 then
@@ -606,6 +611,11 @@ end
 
 local function ApplyStateVisuals(state)
     if not state or not PrepareState(state) then
+        return
+    end
+
+    local now = type(GetTime) == "function" and tonumber(GetTime() or 0.0) or 0.0
+    if state.nextVisualRetryAt and now < state.nextVisualRetryAt then
         return
     end
 
@@ -631,6 +641,7 @@ local function ApplyStateVisuals(state)
     end
 
     state.visualMode = allApplied and desiredMode or nil
+    state.nextVisualRetryAt = allApplied and nil or (now + 5.0)
     DebugVisualLog("apply-done " .. DescribeHandle(state.handle) .. string.format(" visualMode=%s allApplied=%s", tostring(state.visualMode), tostring(allApplied)))
 end
 
