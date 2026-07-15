@@ -4069,36 +4069,35 @@ function aiCore.DefenseManager:Update()
     local now = GetTime()
     local baseDetectionRadius = self.detectionRadius or 275.0
     local function FindBestTarget(defense, currentTarget, searchRadius)
-        local closest = nil
-        local closestDist = searchRadius
-        local personOnly = true
-
+        -- Value-weighted pick (artillery/producers/scavengers/snipers before plain
+        -- brawlers, wounded before healthy, nearer as a tiebreak). Craft naturally
+        -- outrank persons via score; persons are only eligible when in front, since
+        -- a turret cannot easily track something behind it.
+        local best, bestScore = nil, -math.huge
         for candidate in ObjectsInRange(searchRadius, defense) do
             if IsValid(candidate) and IsAlive(candidate) and candidate ~= currentTarget and not IsAlly(defense, candidate) and
                 not IsCloaked(candidate) then
                 local isEnemyPerceived = not IsTeamAllied(GetTeamNum(defense), GetPerceivedTeam(candidate))
                 local isSelfPerceived = not IsTeamAllied(GetPerceivedTeam(defense), GetTeamNum(candidate))
                 if isEnemyPerceived and isSelfPerceived then
-                    local d = GetDistance(defense, candidate)
-                    if IsCraft(candidate) then
-                        if d < closestDist or personOnly then
-                            closest = candidate
-                            closestDist = d
-                        end
-                        personOnly = false
-                    elseif personOnly and IsPerson(candidate) and d < closestDist then
+                    local eligible = IsCraft(candidate)
+                    if not eligible and IsPerson(candidate) then
                         local front = GetFront(defense)
                         local disp = GetPosition(candidate) - GetPosition(defense)
-                        if (front.x * disp.x + front.y * disp.y + front.z * disp.z) > 0 then
-                            closest = candidate
-                            closestDist = d
+                        eligible = (front.x * disp.x + front.y * disp.y + front.z * disp.z) > 0
+                    end
+                    if eligible then
+                        local s = aiCore.ScoreTarget(defense, candidate)
+                        if s > bestScore then
+                            best = candidate
+                            bestScore = s
                         end
                     end
                 end
             end
         end
 
-        return closest
+        return best
     end
 
     for h, data in pairs(self.defenses) do
@@ -5377,6 +5376,22 @@ function aiCore.Squad:ResolveStrategicTarget()
     return nil
 end
 
+-- Highest-value enemy craft near the squad leader (value + wounded + distance).
+-- Used as the local-engagement fallback so a squad without a strategic target
+-- concentrates fire on what matters (artillery/producers/wounded) instead of just
+-- the nearest enemy.
+function aiCore.Squad:PickLocalTarget(radius)
+    local leader = self.leader
+    if not IsValid(leader) then return nil end
+    local myTeam = GetTeamNum(leader)
+    local best = aiCore.PickBestTarget(leader, ObjectsInRange(radius or 260.0, leader),
+        function(c)
+            return c ~= leader and IsCraft(c) and not IsCloaked(c)
+                and not IsAlly(leader, c) and GetTeamNum(c) ~= myTeam
+        end)
+    return best
+end
+
 function aiCore.Squad:IssueDefendOrders()
     local anchor = self.goalAnchor
     local defendPos = ResolveReferencePosition(anchor) or self.goalPos
@@ -5444,7 +5459,7 @@ function aiCore.Squad:Update()
                 self.state = "attacking"
                 local enemy = self:ResolveStrategicTarget()
                 if not IsValid(enemy) then
-                    enemy = GetNearestEnemy(self.leader)
+                    enemy = self:PickLocalTarget() or GetNearestEnemy(self.leader)
                 end
                 if IsValid(enemy) then
                     self:IssueAttackOrders(enemy)
@@ -5475,7 +5490,7 @@ function aiCore.Squad:Update()
         end
 
         if not IsBusy(self.leader) then
-            enemy = IsValid(enemy) and enemy or GetNearestEnemy(self.leader)
+            enemy = IsValid(enemy) and enemy or self:PickLocalTarget() or GetNearestEnemy(self.leader)
             if IsValid(enemy) then
                 self:IssueAttackOrders(enemy)
             elseif self.goalMode == "defend" then
@@ -6024,6 +6039,82 @@ function aiCore.UsesSniperWeapon(h)
         if w ~= "" and string.find(w, "snipe") then return true end
     end
     return false
+end
+
+-- Base target values by role, high -> low. Tuned so the AI prefers to kill things
+-- that hurt it or its economy before trading blows with plain brawlers.
+aiCore.TargetValue = {
+    artillery = 45, -- howitzers hit hardest from safety
+    sniper    = 42, -- one-shots pilots; deny it fast
+    producer  = 40, -- constructor/recycler/factory/armory: cripples the enemy
+    scavenger = 34, -- starve their economy
+    missile   = 26, -- rocket/missile tanks
+    defense   = 20, -- turrets / gun towers
+    brawler   = 12, -- generic craft/tank
+    person    = 6,
+    default   = 10,
+}
+
+-- Balanced target score: role value, boosted for wounded targets (secure the kill)
+-- and lightly biased toward closer targets as a tiebreak. Higher = better target.
+-- Shared by mobile squads and static defenses so targeting reads consistently.
+function aiCore.ScoreTarget(attacker, target, opts)
+    if not IsValid(target) or not IsAlive(target) then return -math.huge end
+    opts = opts or {}
+    local tv = aiCore.TargetValue
+    local cls = string.lower(utility.CleanString(GetClassLabel(target) or ""))
+
+    local value
+    if string.find(cls, "howitzer") or string.find(cls, "artillery") then
+        value = tv.artillery
+    elseif aiCore.UsesSniperWeapon(target) then
+        value = tv.sniper
+    elseif cls == "constructionrig" or cls == "recycler" or cls == "factory" or cls == "armory" then
+        value = tv.producer
+    elseif cls == "scavenger" then
+        value = tv.scavenger
+    elseif string.find(cls, "tower") or cls == "turret" then
+        value = tv.defense
+    elseif IsCraft(target) and aiCore.IsMissileThreat(target) then
+        value = tv.missile
+    elseif cls == "person" then
+        value = tv.person
+    elseif IsCraft(target) then
+        value = tv.brawler
+    else
+        value = tv.default
+    end
+
+    -- Wounded bonus: prefer finishing low-health targets (fewer guns left firing).
+    local hpFrac = GetHealth(target) or 1.0
+    local woundedWeight = opts.woundedWeight or 0.6
+    value = value * (1.0 + woundedWeight * (1.0 - hpFrac))
+
+    -- Distance tiebreak: small, so value dominates but ties resolve to the nearer.
+    if IsValid(attacker) then
+        local d = GetDistance(attacker, target)
+        value = value - d * (opts.distanceWeight or 0.02)
+    end
+
+    return value
+end
+
+-- Picks the highest-scoring enemy from a candidate iterator/table. `candidates`
+-- may be a table (ipairs) or a function that returns the next candidate.
+function aiCore.PickBestTarget(attacker, candidates, filter, opts)
+    local best, bestScore = nil, -math.huge
+    local function consider(c)
+        if not IsValid(c) or not IsAlive(c) then return end
+        if filter and not filter(c) then return end
+        local s = aiCore.ScoreTarget(attacker, c, opts)
+        if s > bestScore then best, bestScore = c, s end
+    end
+    if type(candidates) == "function" then
+        for c in candidates do consider(c) end
+    else
+        for _, c in ipairs(candidates) do consider(c) end
+    end
+    return best, bestScore
 end
 
 -- Derives a native tuning table (see exu.SetAiUnitTuning schema) for a craft,
