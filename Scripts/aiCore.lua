@@ -6377,6 +6377,15 @@ function aiCore.Team:new(teamNum, faction)
         antiStarvationFloor = 12,     -- top up toward this when starved
         antiStarvationPeriod = 12.0,  -- seconds between nudges
         antiStarvationScavThreshold = nil, -- defaults to minScavengers (or 2)
+
+        -- Defensive-perimeter maintenance: periodically rebuild lost/never-placed
+        -- home-base power + gun towers up to the target recorded by
+        -- PlanDefensivePerimeter (missions can also set the targets directly).
+        maintainPerimeter = true,
+        perimeterMaintPeriod = 30.0,
+        perimeterRadius = 220.0,
+        perimeterPowerTarget = 0, -- 0 = rely on PlanDefensivePerimeter's recorded target
+        perimeterTowerTarget = 0,
         unitCaps = {},
         slotCaps = {
             offense = 10,
@@ -7715,6 +7724,7 @@ function aiCore.Team:Update()
     if self.Config.passiveRegen then self:UpdateRegen() end
 
     self:UpdateBaseMaintenance()
+    self:MaintainDefensivePerimeter()
     self:UpdatePilotResources()
     self:UpdatePilots()
     self:UpdateResourceBoosting()
@@ -11617,6 +11627,11 @@ function aiCore.Team:PlanDefensivePerimeter(powerCount, towersPerPower)
     powerCount = powerCount or 4
     towersPerPower = towersPerPower or 1
 
+    -- Record the intended perimeter so MaintainDefensivePerimeter can top it back
+    -- up over time (this planner is one-shot and does not replace losses itself).
+    self.perimeterPowerTarget = powerCount
+    self.perimeterTowerTarget = powerCount * towersPerPower
+
     local recycler = GetRecyclerHandle(self.teamNum)
     local recyclerPos = self:GetBaseCenter(true) or (IsValid(recycler) and GetPosition(recycler) or nil)
     if not recyclerPos then return end
@@ -11667,6 +11682,64 @@ function aiCore.Team:PlanDefensivePerimeter(powerCount, towersPerPower)
                     foundTowers = foundTowers + 1
                     self:AddBuilding(towerOdf, tMat, pPrio + foundTowers)
                 end
+            end
+        end
+    end
+end
+
+-- Keeps the home-base defensive ring populated over time. PlanDefensivePerimeter
+-- is one-shot at mission start, so a whiffed initial plan (bad terrain / base not
+-- settled) or a destroyed power/tower is never replaced. This periodically counts
+-- existing + planned powers and towers near the base and tops them back up to the
+-- recorded target, one building per pass (power before towers, since towers need
+-- power range). Idempotent: the single-building planners it calls honor building
+-- spacing, so it never double-stacks.
+function aiCore.Team:MaintainDefensivePerimeter()
+    if not self.Config.autoBuild or not self.Config.manageConstructor then return end
+    if self.Config.maintainPerimeter == false then return end
+    if GetTime() < (self.perimeterMaintAt or 0.0) then return end
+    self.perimeterMaintAt = GetTime() + (self.Config.perimeterMaintPeriod or 30.0)
+
+    -- Only meaningful once we have a constructor to build with and a base to ring.
+    if not (self.constructorMgr and IsValid(self.constructorMgr.handle)) then return end
+    local center = self:GetBaseCenter(true)
+    if not center then return end
+
+    local units = aiCore.Units[self.faction] or {}
+    local powerOdf = aiCore.Units[self.faction][aiCore.DetectWorldPower()] or units.sPower
+    local towerOdf = units.gunTower
+
+    local wantPowers = self.perimeterPowerTarget or self.Config.perimeterPowerTarget or 0
+    local wantTowers = self.perimeterTowerTarget or self.Config.perimeterTowerTarget or 0
+    local radius = self.Config.perimeterRadius or 220.0
+
+    -- Power first: gun towers must sit within a power plant's supply range.
+    if powerOdf and wantPowers > 0 then
+        local havePowers = self:CountExistingOrPlannedBuildingsNear(center, radius,
+            function(odf, obj)
+                local cls = obj and string.lower(utility.CleanString(GetClassLabel(obj))) or ""
+                return (obj and cls == utility.ClassLabel.POWERPLANT) or odf == powerOdf
+            end)
+        if havePowers < wantPowers then
+            if self:PlanPowerPlant(self.Config.perimeterPowerPriority or 18) and aiCore.Debug then
+                print(string.format("Team %d perimeter: replan power (%d/%d)",
+                    self.teamNum, havePowers + 1, wantPowers))
+            end
+            return
+        end
+    end
+
+    if towerOdf and wantTowers > 0 then
+        local haveTowers = self:CountExistingOrPlannedBuildingsNear(center, radius,
+            function(odf, obj)
+                local cls = obj and string.lower(utility.CleanString(GetClassLabel(obj))) or ""
+                return (obj and (string.find(cls, "tower") or cls == utility.ClassLabel.TURRET))
+                    or odf == towerOdf
+            end)
+        if haveTowers < wantTowers then
+            if self:PlanGunTower(self.Config.perimeterTowerPriority or 19) and aiCore.Debug then
+                print(string.format("Team %d perimeter: replan gun tower (%d/%d)",
+                    self.teamNum, haveTowers + 1, wantTowers))
             end
         end
     end
