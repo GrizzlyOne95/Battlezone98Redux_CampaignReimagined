@@ -6477,6 +6477,11 @@ function aiCore.Team:new(teamNum, faction)
         perimeterRadius = 220.0,
         perimeterPowerTarget = 0, -- 0 = rely on PlanDefensivePerimeter's recorded target
         perimeterTowerTarget = 0,
+
+        -- Self-preservation: pull damaged combat units back to repair/rally and send
+        -- them back once healed. nil retreat threshold = difficulty-scaled default.
+        retreatHealthThreshold = nil, -- fraction; nil -> min(0.45, 0.22 + 0.05*diff)
+        retreatRejoinHealth = 0.75,   -- rejoin the fight once healed to this
         unitCaps = {},
         slotCaps = {
             offense = 10,
@@ -7708,12 +7713,12 @@ function aiCore.Team:UpdateRaiders()
 end
 
 function aiCore.Team:UpdateRetreat()
-    -- Check combat units for low health
     if not self.retreatTimer then self.retreatTimer = 0 end
     if GetTime() < self.retreatTimer then return end
     self.retreatTimer = GetTime() + 2.0
+    self.retreatingUnits = self.retreatingUnits or {}
 
-    -- Find a repair source
+    -- Find a repair source.
     local depot = nil
     if self.depotMgr then
         for h, data in pairs(self.depotMgr.depots) do
@@ -7724,18 +7729,58 @@ function aiCore.Team:UpdateRetreat()
         end
     end
 
-    if not depot then return end -- No repair depot, no retreat logic
+    -- Where damaged units fall back to. Prefer a repair depot (they heal there);
+    -- otherwise only fall back if the team can recover health at all (passive
+    -- regen), rallying at the recycler. Pulling a unit that can never heal just
+    -- shrinks the army, so with no depot and no regen we leave units to fight.
+    local rally = depot
+    if not rally and self.Config.passiveRegen then
+        rally = GetRecyclerHandle(self.teamNum)
+    end
+    local canRecover = IsValid(rally)
+
+    local d = aiCore.GetDifficultyLevel() or 2
+    -- Smarter AI pulls back a little earlier; clamp to a sane band. Rejoin uses a
+    -- higher threshold (hysteresis) so units don't yo-yo in and out of the fight.
+    local retreatAt = self.Config.retreatHealthThreshold or math.min(0.45, 0.22 + 0.05 * d)
+    local rejoinAt = self.Config.retreatRejoinHealth or 0.75
+
+    local function orderFallback(u)
+        if depot then
+            aiCore.TrySetCommand(u, AiCommand.GET_REPAIR, 1, depot, nil, nil, nil,
+                { minInterval = 0.7, overrideProtected = true })
+        else
+            aiCore.TrySetCommand(u, AiCommand.GO, 1, rally, nil, nil, nil,
+                { minInterval = 0.7, overrideProtected = true })
+        end
+    end
 
     for _, u in ipairs(self.combatUnits) do
         if IsValid(u) and IsAlive(u) and not IsBuilding(u) then
             local health = GetHealth(u)
             local cmd = GetCurrentCommand(u)
-            -- Retreat if critical and not already getting help
-            if health < 0.25 and cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.GET_RELOAD then
-                aiCore.TrySetCommand(u, AiCommand.GET_REPAIR, 1, depot, nil, nil, nil,
-                    { minInterval = 0.7, overrideProtected = true })
+
+            if self.retreatingUnits[u] then
+                -- Rejoin once healed enough, or if the rally point is gone.
+                if health >= rejoinAt or not canRecover then
+                    self.retreatingUnits[u] = nil
+                    if cmd == AiCommand.GET_REPAIR or cmd == AiCommand.GO then
+                        Stop(u) -- release; offense/squad logic re-tasks it next pass
+                    end
+                elseif cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.GET_RELOAD
+                    and cmd ~= AiCommand.GO then
+                    orderFallback(u) -- got knocked off its retreat order; re-issue
+                end
+            elseif canRecover and health < retreatAt
+                and cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.GET_RELOAD then
+                self.retreatingUnits[u] = true
+                orderFallback(u)
             end
         end
+    end
+
+    for u in pairs(self.retreatingUnits) do
+        if not IsValid(u) then self.retreatingUnits[u] = nil end
     end
 end
 
