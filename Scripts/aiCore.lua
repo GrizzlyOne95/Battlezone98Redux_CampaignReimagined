@@ -1757,6 +1757,10 @@ function aiCore.EstimateCombatStrength(h)
 end
 
 aiCore.EmptyList = aiCore.EmptyList or {}
+local function NormalizeProducerOdf(odf)
+    return string.lower(utility.CleanString(odf or ""))
+end
+
 aiCore.ObjectCache = aiCore.ObjectCache or {
     dirty = true,
     lastCraftUpdate = -999.0,
@@ -1773,6 +1777,60 @@ aiCore.ObjectCache = aiCore.ObjectCache or {
     geyserObjects = {},
     allBuildings = {}
 }
+
+-- Deploy-agnostic world index. Unlike tactical caches, this intentionally keeps
+-- independence-locked craft because producer existence is a world-state question,
+-- not an AI-commandability question.
+aiCore.ObjectIndex = aiCore.ObjectIndex or { byTeamOdf = {}, handleMeta = {} }
+
+function aiCore.UnindexWorldObject(h)
+    local index = aiCore.ObjectIndex
+    local meta = index.handleMeta[h]
+    if not meta then return end
+    local teamMap = index.byTeamOdf[meta.team]
+    local odfSet = teamMap and teamMap[meta.odf]
+    if odfSet then
+        odfSet[h] = nil
+        if next(odfSet) == nil then teamMap[meta.odf] = nil end
+    end
+    index.handleMeta[h] = nil
+end
+
+function aiCore.IndexWorldObject(h)
+    if not IsValid(h) then return false end
+    aiCore.UnindexWorldObject(h)
+    local team = GetTeamNum(h)
+    local odf = NormalizeProducerOdf(GetOdf(h))
+    if team == nil or odf == "" then return false end
+    local index = aiCore.ObjectIndex
+    index.byTeamOdf[team] = index.byTeamOdf[team] or {}
+    index.byTeamOdf[team][odf] = index.byTeamOdf[team][odf] or {}
+    index.byTeamOdf[team][odf][h] = true
+    index.handleMeta[h] = { team = team, odf = odf, isCraft = IsCraft(h) }
+    return true
+end
+
+function aiCore.HasIndexedLiveObject(team, odf)
+    local key = NormalizeProducerOdf(odf)
+    local teamMap = aiCore.ObjectIndex.byTeamOdf[team]
+    local set = teamMap and teamMap[key]
+    if not set then return false end
+    for h in pairs(set) do
+        if IsValid(h) and IsAlive(h) and GetTeamNum(h) == team and NormalizeProducerOdf(GetOdf(h)) == key then
+            return true, h
+        end
+        aiCore.UnindexWorldObject(h)
+    end
+    return false
+end
+
+function aiCore.RebuildObjectIndex()
+    aiCore.ObjectIndex = { byTeamOdf = {}, handleMeta = {} }
+    if not AllObjects then return end
+    for h in AllObjects() do
+        if IsValid(h) then aiCore.IndexWorldObject(h) end
+    end
+end
 
 function aiCore.InvalidateObjectCache()
     aiCore.ObjectCache.dirty = true
@@ -1813,6 +1871,7 @@ function aiCore.ResetObjectCacheTracking()
     cache.teamTargets = {}
     cache.pilotPersons = {}
     cache.scrapObjects = {}
+    cache.geyserObjects = {}
     cache.allBuildings = {}
     aiCore.InvalidateObjectCache()
 end
@@ -1859,25 +1918,27 @@ end
 function aiCore.RefreshObjectCache(force)
     local cache = aiCore.ObjectCache
     local now = GetTime()
-    local refreshCraft = force or now >= ((cache.lastCraftUpdate or -999.0) + (cache.craftUpdateInterval or 1.0))
-    local refreshObjects = force or now >= ((cache.lastObjectUpdate or -999.0) + (cache.objectUpdateInterval or 8.0))
+    local refreshCraft = force or cache.dirty
+        or now >= ((cache.lastCraftUpdate or -999.0) + (cache.craftUpdateInterval or 1.0))
+    local refreshObjects = force or cache.dirty
+        or now >= ((cache.lastObjectUpdate or -999.0) + (cache.objectUpdateInterval or 8.0))
     if not force and not cache.dirty and not refreshCraft and not refreshObjects then
         return
     end
 
-    local teamCraft = {}
-    local teamBuildings = {}
-    local allBuildings = {}
-    local pilotPersons = {}
-    local scrapObjects = {}
-    local geyserObjects = {}
+    local teamCraft = refreshCraft and {} or cache.teamCraft
+    local teamBuildings = refreshObjects and {} or cache.teamBuildings
+    local allBuildings = refreshObjects and {} or cache.allBuildings
+    local pilotPersons = refreshCraft and {} or cache.pilotPersons
+    local scrapObjects = refreshObjects and {} or cache.scrapObjects
+    local geyserObjects = refreshObjects and {} or cache.geyserObjects
 
     for index = #cache.handles, 1, -1 do
         local h = cache.handles[index]
         if not IsValid(h) then
             RemoveCachedHandle(cache.handles, cache.handleSet, h)
         elseif IsAlive(h) then
-            if IsCraft(h) then
+            if refreshCraft and IsCraft(h) then
                 if not IsIndependenceLocked(h) then
                     local team = GetTeamNum(h)
                     if team and team >= 0 then
@@ -1889,7 +1950,7 @@ function aiCore.RefreshObjectCache(force)
                         craftList[#craftList + 1] = h
                     end
                 end
-            elseif IsBuilding(h) then
+            elseif refreshObjects and IsBuilding(h) then
                 allBuildings[#allBuildings + 1] = h
                 local team = GetTeamNum(h)
                 if team and team >= 0 then
@@ -1904,11 +1965,11 @@ function aiCore.RefreshObjectCache(force)
                 if aiCore.IsGeyserObject(h) then
                     geyserObjects[#geyserObjects + 1] = h
                 end
-            elseif IsPerson(h) then
+            elseif refreshCraft and IsPerson(h) then
                 if not IsIndependenceLocked(h) then
                     pilotPersons[#pilotPersons + 1] = h
                 end
-            else
+            elseif refreshObjects then
                 local cls = string.lower(utility.CleanString(GetClassLabel(h)))
                 if cls == utility.ClassLabel.SCRAP then
                     scrapObjects[#scrapObjects + 1] = h
@@ -1925,8 +1986,8 @@ function aiCore.RefreshObjectCache(force)
     cache.pilotPersons = pilotPersons
     cache.scrapObjects = scrapObjects
     cache.geyserObjects = geyserObjects
-    cache.lastCraftUpdate = now
-    cache.lastObjectUpdate = now
+    if refreshCraft then cache.lastCraftUpdate = now end
+    if refreshObjects then cache.lastObjectUpdate = now end
     cache.dirty = false
 
     RebuildTeamTargetCache(cache)
@@ -1981,8 +2042,169 @@ end
 -- Integrated Producer Logic
 producer = {
     Queue = {}, -- table<TeamNum, list<Job>>
-    Orders = {} -- table<Handle, Job>
+    Orders = {}, -- table<Handle, {job=Job, issuedAt=number, intentId=number}>
+    Intents = {}, -- table<IntentId, BuildIntent>
+    NextIntentId = 1,
+    Stats = {},
+    CostCache = {}
 }
+
+function producer.GetCosts(odf)
+    local key = NormalizeProducerOdf(odf)
+    local cached = producer.CostCache[key]
+    if cached then return cached.scrap, cached.pilot end
+    local scrap, pilot = 0, 0
+    local handle = OpenODF(odf)
+    if handle then
+        scrap = GetODFInt(handle, "GameObjectClass", "scrapCost", 0)
+        pilot = GetODFInt(handle, "GameObjectClass", "pilotCost", 0)
+    end
+    producer.CostCache[key] = { scrap = scrap, pilot = pilot }
+    return scrap, pilot
+end
+
+function producer.GetStats(team)
+    local stats = producer.Stats[team]
+    if not stats then
+        stats = { queued = 0, issued = 0, completed = 0, recovered = 0, dropped = 0, failed = 0 }
+        producer.Stats[team] = stats
+    end
+    return stats
+end
+
+function producer.RecordEvent(team, name)
+    if team == nil then return end
+    local stats = producer.GetStats(team)
+    stats[name] = (stats[name] or 0) + 1
+end
+
+function producer.EnsureIntent(job, team, state)
+    if not job then return nil end
+    local id = tonumber(job.intentId)
+    local intent = id and producer.Intents[id] or nil
+    if not intent then
+        id = producer.NextIntentId or 1
+        producer.NextIntentId = id + 1
+        job.intentId = id
+        intent = {
+            id = id,
+            team = team,
+            odf = NormalizeProducerOdf(job.odf),
+            state = state or "queued",
+            queuedAt = GetTime(),
+            job = job
+        }
+        producer.Intents[id] = intent
+        producer.RecordEvent(team, "queued")
+    else
+        intent.team = intent.team or team
+        intent.odf = intent.odf or NormalizeProducerOdf(job.odf)
+        intent.job = job
+        intent.state = state or intent.state
+    end
+    return intent
+end
+
+function producer.SetIntentState(intent, state, reason)
+    if not intent then return end
+    intent.state = state
+    intent.reason = reason
+    intent.updatedAt = GetTime()
+    if state == "issued" then intent.issuedAt = intent.updatedAt end
+    if state == "object_created" then intent.createdAt = intent.updatedAt end
+    if state == "completed" or state == "failed" or state == "cancelled" then
+        intent.completedAt = intent.updatedAt
+    end
+end
+
+function producer.HasPendingIntent(team, odf)
+    local key = NormalizeProducerOdf(odf)
+    if key == "" then return false end
+    for _, intent in pairs(producer.Intents or {}) do
+        if intent.team == team and intent.odf == key
+            and (intent.state == "queued" or intent.state == "issued" or intent.state == "object_created") then
+            return true, intent
+        end
+    end
+    return false
+end
+
+function producer.GetOldestAge(team, state)
+    local now = GetTime()
+    local oldest = 0.0
+    for _, intent in pairs(producer.Intents or {}) do
+        if intent.team == team and (not state or intent.state == state) then
+            local started = intent.issuedAt or intent.queuedAt or now
+            oldest = math.max(oldest, now - started)
+        end
+    end
+    return oldest
+end
+
+function producer.PruneIntents()
+    local now = GetTime()
+    for id, intent in pairs(producer.Intents or {}) do
+        if intent.state == "object_created" then
+            if IsValid(intent.object) and IsAlive(intent.object) then
+                local cls = string.lower(utility.CleanString(GetClassLabel(intent.object)))
+                local deployable = cls == utility.ClassLabel.RECYCLER or cls == utility.ClassLabel.FACTORY
+                    or cls == utility.ClassLabel.ARMORY or cls == utility.ClassLabel.CONSTRUCTOR
+                if not deployable or IsDeployed(intent.object) then
+                    producer.SetIntentState(intent, "completed", "materialized")
+                    producer.RecordEvent(intent.team, "completed")
+                end
+            else
+                producer.SetIntentState(intent, "failed", "created_object_lost")
+                producer.RecordEvent(intent.team, "failed")
+            end
+        end
+        if (intent.state == "completed" or intent.state == "failed" or intent.state == "cancelled")
+            and now - (intent.completedAt or intent.updatedAt or now) > 60.0 then
+            producer.Intents[id] = nil
+        end
+    end
+end
+
+function producer.ProcessDeleted(h)
+    for _, intent in pairs(producer.Intents or {}) do
+        if intent.state == "object_created" and intent.object == h then
+            producer.SetIntentState(intent, "failed", "delete_callback")
+            producer.RecordEvent(intent.team, "failed")
+        end
+    end
+end
+
+function producer.ReconcileIntents()
+    local activeOrders = {}
+    for _, active in pairs(producer.Orders or {}) do
+        local id = type(active) == "table" and active.intentId or nil
+        if id then activeOrders[id] = true end
+    end
+    for _, intent in pairs(producer.Intents or {}) do
+        if intent.state == "object_created" then
+            if not IsValid(intent.object) then
+                local found, object = aiCore.HasIndexedLiveObject(intent.team, intent.odf)
+                if found then
+                    intent.object = object
+                else
+                    producer.SetIntentState(intent, "failed", "load_reconcile_object_missing")
+                    producer.RecordEvent(intent.team, "failed")
+                end
+            end
+        elseif intent.state == "issued" and not activeOrders[intent.id] then
+            if intent.job and intent.team ~= nil then
+                producer.Queue[intent.team] = producer.Queue[intent.team] or {}
+                table.insert(producer.Queue[intent.team], intent.job)
+                producer.SetIntentState(intent, "queued", "load_reconcile_order_missing")
+                intent.queuedAt = GetTime()
+                producer.RecordEvent(intent.team, "recovered")
+            else
+                producer.SetIntentState(intent, "failed", "load_reconcile_order_missing")
+                producer.RecordEvent(intent.team, "failed")
+            end
+        end
+    end
+end
 
 function producer.GetQueueOwner(teamNum, teamObj)
     if teamObj and teamObj.teamNum == teamNum then return teamObj end
@@ -2018,20 +2240,26 @@ end
 
 function producer.QueueJob(odf, team, location, builder, data)
     if not producer.Queue[team] then producer.Queue[team] = {} end
-    table.insert(producer.Queue[team], {
+    local job = {
         odf = odf,
         location = location,
         builder = builder, -- TeamSlotInteger (Optional)
         data = data
-    })
+    }
+    producer.EnsureIntent(job, team, "queued")
+    table.insert(producer.Queue[team], job)
     producer.SortQueue(team)
+    return job
 end
 
 function producer.ProcessQueues(teamObj)
     if teamObj.Config and not teamObj.Config.manageFactories then return end
     local team = teamObj.teamNum
     local queue = producer.Queue[team]
-    if not queue or #queue == 0 then return end
+    if not queue then
+        queue = {}
+        producer.Queue[team] = queue
+    end
     if teamObj.UpdateBuildAccountState then
         teamObj:UpdateBuildAccountState()
     end
@@ -2044,9 +2272,35 @@ function producer.ProcessQueues(teamObj)
             job = active.job
             issuedAt = active.issuedAt or 0
         end
+        local savedTeam = type(active) == "table" and active.team or nil
+        local existingIntent = job and job.intentId and producer.Intents[job.intentId] or nil
+        local orderTeam = savedTeam or (existingIntent and existingIntent.team)
+            or (IsValid(proc) and GetTeamNum(proc)) or team
+        local intent = producer.EnsureIntent(job, orderTeam, "issued")
 
         if not IsValid(proc) then
-            producer.Orders[proc] = nil
+            if orderTeam == team then
+                producer.Orders[proc] = nil
+                local singletonExists = job and teamObj.IsSingletonProducerOdf
+                    and teamObj:IsSingletonProducerOdf(job.odf) and teamObj:HasLiveObjectOfOdf(job.odf)
+                if singletonExists then
+                    producer.SetIntentState(intent, "completed", "builder_invalid_singleton_exists")
+                    producer.RecordEvent(team, "dropped")
+                elseif job then
+                    local exists = false
+                    for _, q in ipairs(queue) do
+                        if q.intentId == job.intentId then exists = true; break end
+                    end
+                    if not exists then table.insert(queue, 1, job) end
+                    producer.SetIntentState(intent, "queued", "builder_invalid_recovery")
+                    intent.queuedAt = GetTime()
+                    intent.builder = nil
+                    producer.RecordEvent(team, "recovered")
+                else
+                    producer.SetIntentState(intent, "failed", "builder_invalid_no_job")
+                    producer.RecordEvent(team, "failed")
+                end
+            end
         elseif job and GetTeamNum(proc) == team and (GetTime() - issuedAt) > 20.0 and not IsBusy(proc) then
             -- A singleton producer (armory/factory/etc.) that now exists must not be
             -- rebuilt just because ProcessCreated never matched its spawn -- that is
@@ -2054,6 +2308,8 @@ function producer.ProcessQueues(teamObj)
             if teamObj and teamObj.IsSingletonProducerOdf and teamObj:IsSingletonProducerOdf(job.odf)
                 and teamObj:HasLiveObjectOfOdf(job.odf) then
                 producer.Orders[proc] = nil
+                producer.SetIntentState(intent, "completed", "singleton_already_exists")
+                producer.RecordEvent(team, "dropped")
             else
                 local exists = false
                 for _, q in ipairs(queue) do
@@ -2067,9 +2323,16 @@ function producer.ProcessQueues(teamObj)
                     producer.SortQueue(team, teamObj)
                 end
                 producer.Orders[proc] = nil
+                producer.SetIntentState(intent, "queued", "stuck_order_recovery")
+                intent.queuedAt = GetTime()
+                intent.builder = nil
+                producer.RecordEvent(team, "recovered")
             end
         end
     end
+
+    producer.PruneIntents()
+    if #queue == 0 then return end
 
     producer.SortQueue(team, teamObj)
 
@@ -2093,20 +2356,8 @@ function producer.ProcessQueues(teamObj)
 
     local removals = {}
 
-    local function GetScrapCost(odf)
-        local h = OpenODF(odf)
-        if not h then return 0 end
-        return GetODFInt(h, "GameObjectClass", "scrapCost", 0)
-    end
-    local function GetPilotCost(odf)
-        local h = OpenODF(odf)
-        if not h then return 0 end
-        return GetODFInt(h, "GameObjectClass", "pilotCost", 0)
-    end
-
     for i, job in ipairs(queue) do
-        local cost = GetScrapCost(job.odf)
-        local pilotCost = GetPilotCost(job.odf)
+        local cost, pilotCost = producer.GetCosts(job.odf)
         local factionUnits = aiCore.Units and aiCore.Units[teamObj.faction] or nil
         local constructorOdf = factionUnits and factionUnits.constructor or nil
         local scavengerOdf = factionUnits and factionUnits.scavenger or nil
@@ -2157,19 +2408,31 @@ function producer.ProcessQueues(teamObj)
                 end
 
                 if foundProducer then
+                    local intent = producer.EnsureIntent(job, team, "queued")
+                    local commandAccepted = false
                     if job.location then
                         local pos = job.location
                         if type(pos) == "string" then pos = paths.GetPosition(pos, 0) end
-                        aiCore.TrySetCommand(foundProducer, AiCommand.BUILD, 1, nil, pos, 0, job.odf,
+                        commandAccepted = aiCore.TrySetCommand(foundProducer, AiCommand.BUILD, 1, nil, pos, 0, job.odf,
                             { minInterval = 0.4, ignoreThrottle = true, overrideProtected = true })
                     else
                         Build(foundProducer, job.odf)
+                        commandAccepted = true
                     end
-                    if teamObj.RecordBuildAccountSpend then
-                        teamObj:RecordBuildAccountSpend((job.data and job.data.account) or nil, cost + (pilotCost * 4))
+                    if commandAccepted then
+                        if teamObj.RecordBuildAccountSpend then
+                            teamObj:RecordBuildAccountSpend((job.data and job.data.account) or nil, cost + (pilotCost * 4))
+                        end
+                        producer.SetIntentState(intent, "issued", "build_command")
+                        intent.builder = foundProducer
+                        producer.Orders[foundProducer] = {
+                            job = job, issuedAt = intent.issuedAt, intentId = intent.id, team = team
+                        }
+                        producer.RecordEvent(team, "issued")
+                        table.insert(removals, i)
                     end
-                    producer.Orders[foundProducer] = { job = job, issuedAt = GetTime() }
-                    table.insert(removals, i)
+                    -- Whether accepted or temporarily rejected, do not try to issue a
+                    -- second build command to the same producer in this pass.
                     for idx, h in ipairs(producers) do
                         if h == foundProducer then
                             table.remove(producers, idx); break
@@ -2189,17 +2452,32 @@ function producer.ProcessQueues(teamObj)
 end
 
 function producer.ProcessCreated(h)
+    if not IsValid(h) then return false end
     local odf = string.lower(utility.CleanString(GetOdf(h)))
+    local objectTeam = GetTeamNum(h)
     for proc, active in pairs(producer.Orders) do
         local job = active
         if type(active) == "table" and active.job then
             job = active.job
         end
 
-        if IsValid(proc) and job and string.lower(job.odf) == odf then
+        if IsValid(proc) and GetTeamNum(proc) == objectTeam and job
+            and NormalizeProducerOdf(job.odf) == odf then
             local dist = GetDistance(h, proc)
             if dist < 150 then
                 producer.Orders[proc] = nil
+                local intent = producer.Intents[(type(active) == "table" and active.intentId) or (job and job.intentId)]
+                    or producer.EnsureIntent(job, objectTeam, "issued")
+                producer.SetIntentState(intent, "object_created", "create_callback")
+                intent.object = h
+                intent.builder = proc
+                local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+                local deployable = cls == utility.ClassLabel.RECYCLER or cls == utility.ClassLabel.FACTORY
+                    or cls == utility.ClassLabel.ARMORY or cls == utility.ClassLabel.CONSTRUCTOR
+                if not deployable or IsDeployed(h) then
+                    producer.SetIntentState(intent, "completed", "create_callback")
+                    producer.RecordEvent(objectTeam, "completed")
+                end
                 return true
             end
         end
@@ -2303,6 +2581,95 @@ aiCore.Debug = false
 aiCore.Telemetry = false
 aiCore.TelemetryPeriod = 5.0
 
+function producer.ExportState()
+    local intents = {}
+    for id, intent in pairs(producer.Intents or {}) do
+        intents[id] = {
+            id = intent.id,
+            team = intent.team,
+            odf = intent.odf,
+            state = intent.state,
+            reason = intent.reason,
+            queuedAt = intent.queuedAt,
+            issuedAt = intent.issuedAt,
+            createdAt = intent.createdAt,
+            completedAt = intent.completedAt,
+            updatedAt = intent.updatedAt,
+            builder = intent.builder,
+            object = intent.object
+        }
+    end
+    local orders = {}
+    for builder, active in pairs(producer.Orders or {}) do
+        local job = (type(active) == "table" and active.job) or active
+        if job then
+            orders[#orders + 1] = {
+                builder = builder,
+                team = (type(active) == "table" and active.team)
+                    or (IsValid(builder) and GetTeamNum(builder)) or nil,
+                job = job,
+                issuedAt = (type(active) == "table" and active.issuedAt) or 0,
+                intentId = (type(active) == "table" and active.intentId) or job.intentId
+            }
+        end
+    end
+    return {
+        version = 2,
+        queue = producer.Queue,
+        orders = orders,
+        intents = intents,
+        nextIntentId = producer.NextIntentId,
+        stats = producer.Stats
+    }
+end
+
+function producer.ImportState(state)
+    producer.Queue = {}
+    producer.Orders = {}
+    producer.Intents = {}
+    producer.Stats = {}
+    producer.NextIntentId = 1
+    if not state then return end
+
+    if not state.version then
+        producer.Queue = state -- legacy saves stored the queue table directly
+    else
+        producer.Queue = state.queue or {}
+        producer.Intents = state.intents or {}
+        producer.Stats = state.stats or {}
+        producer.NextIntentId = state.nextIntentId or 1
+    end
+
+    for team, queue in pairs(producer.Queue) do
+        for _, job in ipairs(queue or aiCore.EmptyList) do
+            producer.EnsureIntent(job, team, "queued")
+        end
+    end
+
+    if state.version and state.orders then
+        for _, saved in ipairs(state.orders) do
+            local job = saved.job
+            local team = saved.team
+            local intent = job and producer.EnsureIntent(job, team, "issued") or nil
+            if IsValid(saved.builder) and job then
+                producer.Orders[saved.builder] = {
+                    job = job,
+                    issuedAt = saved.issuedAt or GetTime(),
+                    intentId = (intent and intent.id) or saved.intentId,
+                    team = team
+                }
+                if intent then intent.builder = saved.builder end
+            elseif job and team ~= nil then
+                producer.Queue[team] = producer.Queue[team] or {}
+                table.insert(producer.Queue[team], job)
+                producer.SetIntentState(intent, "queued", "load_reconcile_builder_missing")
+                intent.queuedAt = GetTime()
+                producer.RecordEvent(team, "recovered")
+            end
+        end
+    end
+end
+
 -- Helper to strip circular references before serializing
 function aiCore.StripCircular(data, seen)
     if type(data) ~= "table" then return data end
@@ -2327,7 +2694,7 @@ function aiCore.Save()
         globalDefense = aiCore.GlobalDefenseManagers,
         globalDepot = aiCore.GlobalDepotManagers,
         globalOffense = aiCore.GlobalOffenseManagers,
-        producer = (producer and producer.Queue) or {} -- Save producer queue state
+        producer = producer and producer.ExportState() or {}
     }
     return aiCore.StripCircular(data)
 end
@@ -2440,19 +2807,21 @@ function aiCore.Load(data)
         aiCore.GlobalDefenseManagers = data.globalDefense or {}
         aiCore.GlobalDepotManagers = data.globalDepot or {}
         aiCore.GlobalOffenseManagers = data.globalOffense or {}
-        if data.producer and producer then
-            producer.Queue = data.producer
-        end
+        if producer then producer.ImportState(data.producer) end
     else
         aiCore.ActiveTeams = data
         aiCore.GlobalDefenseManagers = {}
         aiCore.GlobalDepotManagers = {}
         aiCore.GlobalOffenseManagers = {}
+        if producer then producer.ImportState(nil) end
     end
 
     -- Restore Metatables
     for _, team in pairs(aiCore.ActiveTeams) do
         setmetatable(team, aiCore.Team)
+        team.telemetryCounters = team.telemetryCounters or { retreats = 0, rejoins = 0, losses = 0, strategicChanges = 0 }
+        team._managerPhase = team._managerPhase or ((team.teamNum or 0) % 4)
+        team._managerPhaseAt = team._managerPhaseAt or 0.0
         if team.recyclerMgr then
             setmetatable(team.recyclerMgr, aiCore.FactoryManager); team.recyclerMgr.teamObj = team
         end
@@ -2521,6 +2890,8 @@ function aiCore.Load(data)
     for h in AllCraft() do
         aiCore.ApplyDynamicMass(h)
     end
+    aiCore.RebuildObjectIndex()
+    producer.ReconcileIntents()
 end
 
 ----------------------------------------------------------------------------------
@@ -5403,7 +5774,7 @@ function aiCore.Squad:PickLocalTarget(radius)
         function(c)
             return c ~= leader and IsCraft(c) and not IsCloaked(c)
                 and not IsAlly(leader, c) and GetTeamNum(c) ~= myTeam
-        end)
+        end, { teamObj = self.teamObj, currentTarget = self.currentTarget })
     return best
 end
 
@@ -6070,6 +6441,30 @@ aiCore.TargetValue = {
     default   = 10,
 }
 
+aiCore.TargetAssignments = aiCore.TargetAssignments or {}
+
+function aiCore.RefreshTargetAssignments()
+    local assignments = {}
+    for teamNum, team in pairs(aiCore.ActiveTeams or aiCore.EmptyList) do
+        local teamAssignments = {}
+        for _, unit in ipairs(team.combatUnits or aiCore.EmptyList) do
+            if IsValid(unit) and IsAlive(unit) and GetCurrentCommand(unit) == AiCommand.ATTACK then
+                local target = GetCurrentWho(unit)
+                if IsValid(target) and IsAlive(target) then
+                    teamAssignments[target] = (teamAssignments[target] or 0) + 1
+                end
+            end
+        end
+        assignments[teamNum] = teamAssignments
+    end
+    aiCore.TargetAssignments = assignments
+end
+
+function aiCore.GetTargetAssignmentCount(teamNum, target)
+    local teamAssignments = aiCore.TargetAssignments and aiCore.TargetAssignments[teamNum]
+    return (teamAssignments and teamAssignments[target]) or 0
+end
+
 -- Balanced target score: role value, boosted for wounded targets (secure the kill)
 -- and lightly biased toward closer targets as a tiebreak. Higher = better target.
 -- Shared by mobile squads and static defenses so targeting reads consistently.
@@ -6109,6 +6504,26 @@ function aiCore.ScoreTarget(attacker, target, opts)
     if IsValid(attacker) then
         local d = GetDistance(attacker, target)
         value = value - d * (opts.distanceWeight or 0.02)
+
+        local weaponRange = GetCurrentWeaponRangeMeters(attacker) or 0
+        if weaponRange and weaponRange > 0 and d > weaponRange then
+            value = value - ((d - weaponRange) * (opts.outOfRangeWeight or 0.025))
+        end
+
+        local teamNum = GetTeamNum(attacker)
+        local teamObj = opts.teamObj or (aiCore.ActiveTeams and aiCore.ActiveTeams[teamNum])
+        local assigned = aiCore.GetTargetAssignmentCount(teamNum, target)
+        local targetStrength = aiCore.EstimateCombatStrength and aiCore.EstimateCombatStrength(target) or 1.0
+        local usefulAttackers = math.max(1, math.ceil(targetStrength / 6.0))
+        local excess = math.max(0, assigned - usefulAttackers)
+        local saturationPenalty = (teamObj and teamObj.Config.targetSaturationPenalty) or opts.saturationPenalty or 7.0
+        value = value - (excess * saturationPenalty)
+
+        if opts.currentTarget == target then
+            value = value + ((teamObj and teamObj.Config.targetStickinessBonus) or opts.stickinessBonus or 8.0)
+        end
+        local threatWeight = (teamObj and teamObj.Config.targetThreatWeight) or opts.threatWeight or 0.35
+        value = value + (targetStrength * threatWeight)
     end
 
     return value
@@ -6456,11 +6871,15 @@ function aiCore.Team:new(teamNum, faction)
         tacticalTargetRetentionPriority = 45.0,
         tacticalFormationOcclusionRadius = 35.0,
         tacticalFormationOcclusionDot = 0.92,
+        targetSaturationPenalty = 7.0,
+        targetStickinessBonus = 8.0,
+        targetThreatWeight = 0.35,
         strategicSiegeRiskThreshold = 5.5,
         baseCenterRefreshInterval = 4.0,
         basePlanMoveThreshold = 20.0,
         basePlanRecenterRadius = 360.0,
         producerDeployGrace = 18.0,
+        managerPhasePeriod = 0.10,
 
         -- Reinforcements
         orbitalReinforce = false,
@@ -6497,6 +6916,9 @@ function aiCore.Team:new(teamNum, faction)
         -- them back once healed. nil retreat threshold = difficulty-scaled default.
         retreatHealthThreshold = nil, -- fraction; nil -> min(0.45, 0.22 + 0.05*diff)
         retreatRejoinHealth = 0.75,   -- rejoin the fight once healed to this
+        retreatForceHealthThreshold = 0.62,
+        retreatForceRatio = 1.8,
+        retreatForceRadius = 180.0,
         unitCaps = {},
         slotCaps = {
             offense = 10,
@@ -6571,6 +6993,7 @@ function aiCore.Team:new(teamNum, faction)
     t.buildAccountTimer = 0.0
     t.buildAccountUpdatedAt = GetTime()
     t.baseStrategy = "Balanced"
+    t.telemetryCounters = { retreats = 0, rejoins = 0, losses = 0, strategicChanges = 0 }
 
     -- Tactical State
     t.howitzerState = {}
@@ -6587,6 +7010,8 @@ function aiCore.Team:new(teamNum, faction)
     t.rescueAttemptExpiry = 0.0
     t.paratrooperTimer = 0
     t.trackedSet = {}
+    t._managerPhase = teamNum % 4
+    t._managerPhaseAt = 0.0
 
     t.stealthState = {
         discovered = false,
@@ -7732,6 +8157,7 @@ function aiCore.Team:UpdateRetreat()
     if GetTime() < self.retreatTimer then return end
     self.retreatTimer = GetTime() + 2.0
     self.retreatingUnits = self.retreatingUnits or {}
+    self.telemetryCounters = self.telemetryCounters or { retreats = 0, rejoins = 0, losses = 0, strategicChanges = 0 }
 
     -- Find a repair source.
     local depot = nil
@@ -7759,6 +8185,24 @@ function aiCore.Team:UpdateRetreat()
     -- higher threshold (hysteresis) so units don't yo-yo in and out of the fight.
     local retreatAt = self.Config.retreatHealthThreshold or math.min(0.45, 0.22 + 0.05 * d)
     local rejoinAt = self.Config.retreatRejoinHealth or 0.75
+    local forceHealthAt = self.Config.retreatForceHealthThreshold or 0.62
+    local forceRatio = self.Config.retreatForceRatio or 1.8
+    local forceRadius = self.Config.retreatForceRadius or 180.0
+    local enemyTeam = self:GetPrimaryEnemyTeam()
+
+    local function isLocallyOutmatched(u, health)
+        if health >= forceHealthAt or enemyTeam == nil or enemyTeam < 0 then return false end
+        local pos = GetPosition(u)
+        local enemyStrength = self:GetEnemyThreatAtPosition(pos, enemyTeam, forceRadius)
+        if enemyStrength <= 0.0 then return false end
+        local friendlyStrength = 0.0
+        for _, ally in ipairs(self.combatUnits or aiCore.EmptyList) do
+            if IsValid(ally) and IsAlive(ally) and GetDistance(ally, u) <= forceRadius then
+                friendlyStrength = friendlyStrength + aiCore.EstimateCombatStrength(ally)
+            end
+        end
+        return enemyStrength > math.max(1.0, friendlyStrength) * forceRatio
+    end
 
     local function orderFallback(u)
         if depot then
@@ -7779,6 +8223,7 @@ function aiCore.Team:UpdateRetreat()
                 -- Rejoin once healed enough, or if the rally point is gone.
                 if health >= rejoinAt or not canRecover then
                     self.retreatingUnits[u] = nil
+                    self.telemetryCounters.rejoins = (self.telemetryCounters.rejoins or 0) + 1
                     if cmd == AiCommand.GET_REPAIR or cmd == AiCommand.GO then
                         Stop(u) -- release; offense/squad logic re-tasks it next pass
                     end
@@ -7786,9 +8231,13 @@ function aiCore.Team:UpdateRetreat()
                     and cmd ~= AiCommand.GO then
                     orderFallback(u) -- got knocked off its retreat order; re-issue
                 end
-            elseif canRecover and health < retreatAt
+            elseif canRecover and (health < retreatAt or isLocallyOutmatched(u, health))
                 and cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.GET_RELOAD then
-                self.retreatingUnits[u] = true
+                self.retreatingUnits[u] = {
+                    reason = (health < retreatAt) and "health" or "force_ratio",
+                    startedAt = GetTime()
+                }
+                self.telemetryCounters.retreats = (self.telemetryCounters.retreats or 0) + 1
                 orderFallback(u)
             end
         end
@@ -7830,26 +8279,23 @@ function aiCore.Team:Update()
     self:UpdateScrapAwareness()
     if self.Config.autoManage then self:UpdateRaiders() end
 
-    -- Time-Slicing Optimization:
-    -- Instead of running every manager every frame, we stagger them across 4 frames.
-    -- This significantly smooths out frame-time spikes in missions with multiple AI teams.
-    self._stagger = (self._stagger or 0) + 1
-    local phase = self._stagger % 4
+    -- Real-time scheduler: one manager phase per interval, offset by team number.
+    -- This is stable across frame rates and prevents every AI team from spiking on
+    -- the same frame.
+    if now >= (self._managerPhaseAt or 0.0) then
+        self._managerPhaseAt = now + (self.Config.managerPhasePeriod or 0.10)
+        local phase = self._managerPhase or (self.teamNum % 4)
+        self._managerPhase = (phase + 1) % 4
 
-    if phase == 0 then
-        -- Weapon targeting and usage (High Priority)
-        if self.weaponMgr then self.weaponMgr:Update() end
-    elseif phase == 1 then
-        -- CRA Stealth and artillery coordination
-        if self.cloakMgr then self.cloakMgr:Update() end
-        if self.howitzerMgr then self.howitzerMgr:Update() end
-    elseif phase == 2 then
-        -- Area denial and transport logic
-        if self.minelayerMgr then self.minelayerMgr:Update() end
-        if self.apcMgr then self.apcMgr:Update() end
-    elseif phase == 3 then
-        -- Defensive posture management
-        if self.Config.autoManage then
+        if phase == 0 then
+            if self.weaponMgr then self.weaponMgr:Update() end
+        elseif phase == 1 then
+            if self.cloakMgr then self.cloakMgr:Update() end
+            if self.howitzerMgr then self.howitzerMgr:Update() end
+        elseif phase == 2 then
+            if self.minelayerMgr then self.minelayerMgr:Update() end
+            if self.apcMgr then self.apcMgr:Update() end
+        elseif phase == 3 and self.Config.autoManage then
             if self.turretMgr then self.turretMgr:Update() end
             if self.guardMgr then self.guardMgr:Update() end
             if self.defenseMgr then self.defenseMgr:Update() end
@@ -8169,7 +8615,10 @@ function aiCore.Team:UpdateTelemetry()
         return n
     end
     local function qlen(mgr) return (mgr and mgr.queue) and #mgr.queue or 0 end
-    local function yn(h) return IsValid(h) and "Y" or "-" end
+    local function producerPresence(h, odf)
+        if IsValid(h) then return "Y" end
+        return self:HasLiveObjectOfOdf(odf) and "U" or "-"
+    end
 
     local retreating = 0
     if self.retreatingUnits then
@@ -8178,14 +8627,26 @@ function aiCore.Team:UpdateTelemetry()
         end
     end
     local prodQ = (producer.Queue and producer.Queue[self.teamNum]) and #producer.Queue[self.teamNum] or 0
+    local units = aiCore.Units[self.faction] or {}
+    local buildStats = producer.GetStats(self.teamNum)
+    local counters = self.telemetryCounters or aiCore.EmptyList
 
     print(string.format(
-        "[AI t%d] scrap=%d/%d (%+.1f/s) pilot=%d | scav=%d combat=%d retreat=%d | ctor=%s fac=%s arm=%s rec=%s | q rec=%d fac=%d ctor=%d prod=%d",
+        "[AI t%d] scrap=%d/%d (%+.1f/s) pilot=%d | scav=%d combat=%d retreat=%d | ctor=%s fac=%s arm=%s rec=%s | q rec=%d fac=%d ctor=%d prod=%d | mode=%s(%s)",
         self.teamNum, scrap, GetMaxScrap(self.teamNum), rate, GetPilot(self.teamNum),
         countAlive(self.scavengers), countAlive(self.combatUnits), retreating,
-        yn(GetConstructorHandle(self.teamNum)), yn(GetFactoryHandle(self.teamNum)),
-        yn(GetArmoryHandle(self.teamNum)), yn(GetRecyclerHandle(self.teamNum)),
-        qlen(self.recyclerMgr), qlen(self.factoryMgr), qlen(self.constructorMgr), prodQ))
+        producerPresence(GetConstructorHandle(self.teamNum), units.constructor),
+        producerPresence(GetFactoryHandle(self.teamNum), units.factory),
+        producerPresence(GetArmoryHandle(self.teamNum), units.armory),
+        producerPresence(GetRecyclerHandle(self.teamNum), units.recycler),
+        qlen(self.recyclerMgr), qlen(self.factoryMgr), qlen(self.constructorMgr), prodQ,
+        tostring(self.strategicMode or "balanced"), tostring(self.strategicModeReason or "n/a")))
+    print(string.format(
+        "[AI build t%d] age q=%.1fs issued=%.1fs | events q=%d i=%d done=%d recover=%d drop=%d fail=%d | combat retreat=%d rejoin=%d loss=%d modechg=%d",
+        self.teamNum, producer.GetOldestAge(self.teamNum, "queued"), producer.GetOldestAge(self.teamNum, "issued"),
+        buildStats.queued or 0, buildStats.issued or 0, buildStats.completed or 0,
+        buildStats.recovered or 0, buildStats.dropped or 0, buildStats.failed or 0,
+        counters.retreats or 0, counters.rejoins or 0, counters.losses or 0, counters.strategicChanges or 0))
 end
 
 function aiCore.Team:UpdateScavengerAssist()
@@ -8258,6 +8719,8 @@ end
 -- has not deployed, which makes the ensure/recovery paths rebuild it forever; this
 -- catches the object in either state by scanning the building AND craft caches.
 function aiCore.Team:HasLiveObjectOfOdf(odf)
+    local found = aiCore.HasIndexedLiveObject(self.teamNum, odf)
+    if found then return true end
     odf = string.lower(utility.CleanString(odf or ""))
     if odf == "" then return false end
     local function scan(list)
@@ -8328,11 +8791,13 @@ function aiCore.Team:UpdateBaseMaintenance()
         MarkQueued(producer.Queue[self.teamNum])
     end
     if producer.Orders then
-        for _, active in pairs(producer.Orders) do
+        for builder, active in pairs(producer.Orders) do
             local job = (type(active) == "table" and active.job) or active
-            local odfKey = NormalizeOdfKey(job and job.odf)
-            if odfKey ~= "" then
-                queuedOdFs[odfKey] = true
+            if IsValid(builder) and GetTeamNum(builder) == self.teamNum then
+                local odfKey = NormalizeOdfKey(job and job.odf)
+                if odfKey ~= "" then
+                    queuedOdFs[odfKey] = true
+                end
             end
         end
     end
@@ -8346,6 +8811,9 @@ function aiCore.Team:UpdateBaseMaintenance()
     local function QueueProducerIfMissing(handle, odf, priority)
         local odfKey = NormalizeOdfKey(odf)
         if IsValid(handle) or odfKey == "" or queuedOdFs[odfKey] then
+            return false
+        end
+        if producer.HasPendingIntent(self.teamNum, odf) then
             return false
         end
         -- Treat an existing-but-undeployed producer as present, so a GetXHandle that
@@ -8979,6 +9447,8 @@ function aiCore.Team:UpdateStrategicFSM()
     local mode, reason = self:EvaluateStrategicMode()
     if mode ~= self.strategicMode then
         self.buildAccountTimer = 0.0
+        self.telemetryCounters = self.telemetryCounters or { retreats = 0, rejoins = 0, losses = 0, strategicChanges = 0 }
+        self.telemetryCounters.strategicChanges = (self.telemetryCounters.strategicChanges or 0) + 1
     end
     self.strategicMode = mode or "balanced"
     self.strategicModeReason = reason or "n/a"
@@ -11439,6 +11909,15 @@ function aiCore.Team:GetUnitCountByCategory(category)
             count = count + 1
         end
     end
+    local function CountListed(list)
+        for _, unit in ipairs(list or aiCore.EmptyList) do
+            if IsValid(unit) and IsAlive(unit) and not seen[unit]
+                and (not odfToMatch or IsOdf(unit, odfToMatch)) then
+                seen[unit] = true
+                count = count + 1
+            end
+        end
+    end
 
     -- 1. Check Tactical Lists (Active Units)
     if category == "scout" or category == "tank" or category == "lighttank" or category == "rockettank" or
@@ -11450,23 +11929,35 @@ function aiCore.Team:GetUnitCountByCategory(category)
             CountUnit(u)
         end
     elseif category == "siege" or category == "howitzer" then
-        count = #self.howitzers
+        CountListed(self.howitzers)
     elseif category == "scavenger" then
-        count = #self.scavengers
+        CountListed(self.scavengers)
     elseif category == "apc" then
-        count = #self.apcs
+        CountListed(self.apcs)
     elseif category == "minelayer" then
-        count = #self.minelayers
+        CountListed(self.minelayers)
     elseif category == "tower" or category == "turret" then
-        count = #self.turrets
+        CountListed(self.turrets)
     elseif category == "tug" then
-        count = #self.tugHandles
+        CountListed(self.tugHandles)
     end
 
     -- 2. Check Integrated Producer (Units in progress)
     if odfToMatch and producer.Queue[self.teamNum] then
         for _, job in ipairs(producer.Queue[self.teamNum]) do
-            if job.odf == odfToMatch then
+            if NormalizeProducerOdf(job.odf) == NormalizeProducerOdf(odfToMatch) then
+                count = count + 1
+            end
+        end
+    end
+
+    -- 3. Count commands already issued to a producer. These have left Queue but
+    -- still consume the intended cap until their create callback arrives.
+    if odfToMatch then
+        for builder, active in pairs(producer.Orders or aiCore.EmptyList) do
+            local job = (type(active) == "table" and active.job) or active
+            if IsValid(builder) and GetTeamNum(builder) == self.teamNum and job
+                and NormalizeProducerOdf(job.odf) == NormalizeProducerOdf(odfToMatch) then
                 count = count + 1
             end
         end
@@ -11485,7 +11976,8 @@ function aiCore.Team:CheckBuildList(list, mgr)
         if not IsValid(item.handle) then
             -- Link-up logic for existing objects
             local anchor = mgr.handle or GetRecyclerHandle(self.teamNum)
-            local nearby = IsValid(anchor) and GetNearestObject(anchor) or nil
+            local _, indexed = aiCore.HasIndexedLiveObject(self.teamNum, item.odf)
+            local nearby = indexed
             if IsValid(anchor) and IsValid(nearby) and IsOdf(nearby, item.odf) and GetDistance(nearby, anchor) < 150 and GetTeamNum(nearby) == self.teamNum then
                 local taken = false
                 for _, other in pairs(list) do
@@ -11658,6 +12150,7 @@ function aiCore.Team:AddObject(h)
     if (cls == "daywrecker" or cls == "ammopack" or cls == "repairkit" or cls == "wpnpower" or cls == "camerapod") then
         if self.teamNum ~= 1 then -- If it belongs to an AI team
             SetTeamNum(h, 1)      -- Swap to player team
+            aiCore.IndexWorldObject(h)
             if IsValid(self.lastArmoryTarget) then
                 aiCore.TrySetCommand(h, AiCommand.GO, 1, self.lastArmoryTarget, nil, nil, nil,
                     { minInterval = 0.6, ignoreThrottle = true, overrideProtected = true })
@@ -12071,6 +12564,11 @@ function aiCore.Update()
     end
 
     aiCore.RefreshObjectCache(false)
+    if now >= (aiCore._objectIndexReconcileAt or 0.0) then
+        aiCore._objectIndexReconcileAt = now + 30.0
+        aiCore.RebuildObjectIndex()
+    end
+    aiCore.RefreshTargetAssignments()
     aiCore.UpdateTrackedOrdnanceThreats()
     aiCore.UpdateTrackedMissileAllocations()
     aiCore.UpdatePlayerRushAggression()
@@ -12125,6 +12623,7 @@ end
 
 function aiCore.AddObject(h)
     if not IsValid(h) then return end
+    aiCore.IndexWorldObject(h)
     if (IsCraft(h) or IsPerson(h)) and IsIndependenceLocked(h) then return end
     aiCore.TrackWorldObject(h)
 
@@ -12165,6 +12664,16 @@ function aiCore.AddObject(h)
 end
 
 function aiCore.DeleteObject(h)
+    local meta = aiCore.ObjectIndex and aiCore.ObjectIndex.handleMeta[h]
+    if meta and meta.isCraft then
+        local team = aiCore.ActiveTeams and aiCore.ActiveTeams[meta.team]
+        if team then
+            team.telemetryCounters = team.telemetryCounters or { retreats = 0, rejoins = 0, losses = 0, strategicChanges = 0 }
+            team.telemetryCounters.losses = (team.telemetryCounters.losses or 0) + 1
+        end
+    end
+    producer.ProcessDeleted(h)
+    aiCore.UnindexWorldObject(h)
     aiCore.UntrackWorldObject(h)
 end
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-14
+
+### AI Core Reliability and Tactics
+- Added a team-scoped build-intent lifecycle covering queued, issued, created, deployed/completed, recovered, and failed production states.
+- Hardened stuck-order recovery, cross-team creation matching, singleton replacement deduplication, unit-cap accounting, and save/load reconciliation for in-flight builds.
+- Added a deploy-agnostic per-team ODF index, split craft/object cache refreshes, cached ODF production costs, and moved manager staggering to a frame-rate-independent team-offset scheduler.
+- Added target-saturation, range, threat, and stickiness scoring plus local-force-aware retreat behavior.
+- Expanded AI telemetry with producer presence state, queue/order ages, lifecycle counters, combat losses, retreat/rejoin counts, and strategic-mode transitions.
+- Added `tests/aicore_regression.lua` with deterministic engine stubs covering 13 production, persistence, indexing, replacement, and targeting regressions.
+
 ## 2026-03-24
 
 ### Mission Startup Hang Fix
