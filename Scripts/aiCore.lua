@@ -2048,18 +2048,26 @@ function producer.ProcessQueues(teamObj)
         if not IsValid(proc) then
             producer.Orders[proc] = nil
         elseif job and GetTeamNum(proc) == team and (GetTime() - issuedAt) > 20.0 and not IsBusy(proc) then
-            local exists = false
-            for _, q in ipairs(queue) do
-                if q.odf == job.odf and q.data and job.data and q.data.priority == job.data.priority then
-                    exists = true
-                    break
+            -- A singleton producer (armory/factory/etc.) that now exists must not be
+            -- rebuilt just because ProcessCreated never matched its spawn -- that is
+            -- what re-built the CCA armory every ~20s. Drop the order in that case.
+            if teamObj and teamObj.IsSingletonProducerOdf and teamObj:IsSingletonProducerOdf(job.odf)
+                and teamObj:HasLiveObjectOfOdf(job.odf) then
+                producer.Orders[proc] = nil
+            else
+                local exists = false
+                for _, q in ipairs(queue) do
+                    if q.odf == job.odf and q.data and job.data and q.data.priority == job.data.priority then
+                        exists = true
+                        break
+                    end
                 end
+                if not exists then
+                    table.insert(queue, 1, job)
+                    producer.SortQueue(team, teamObj)
+                end
+                producer.Orders[proc] = nil
             end
-            if not exists then
-                table.insert(queue, 1, job)
-                producer.SortQueue(team, teamObj)
-            end
-            producer.Orders[proc] = nil
         end
     end
 
@@ -8245,6 +8253,39 @@ function aiCore.Team:RegisterScavenger(h)
     self.scavengerResetState[h] = 1
 end
 
+-- True if the team has a live object of this ODF, whether or not it is deployed.
+-- GetArmoryHandle/GetFactoryHandle can return nil for a producer that exists but
+-- has not deployed, which makes the ensure/recovery paths rebuild it forever; this
+-- catches the object in either state by scanning the building AND craft caches.
+function aiCore.Team:HasLiveObjectOfOdf(odf)
+    odf = string.lower(utility.CleanString(odf or ""))
+    if odf == "" then return false end
+    local function scan(list)
+        if not list then return false end
+        for _, h in ipairs(list) do
+            if IsValid(h) and IsAlive(h)
+                and string.lower(utility.CleanString(GetOdf(h) or "")) == odf then
+                return true
+            end
+        end
+        return false
+    end
+    return scan(aiCore.GetCachedBuildings(self.teamNum))
+        or scan(aiCore.GetCachedTeamCraft(self.teamNum))
+end
+
+-- True if this ODF is one of the team's singleton core producers (armory/factory/
+-- constructor/recycler) -- things that must never be duplicated.
+function aiCore.Team:IsSingletonProducerOdf(odf)
+    local u = aiCore.Units[self.faction] or {}
+    odf = string.lower(utility.CleanString(odf or ""))
+    if odf == "" then return false end
+    for _, key in ipairs({ "armory", "factory", "constructor", "recycler" }) do
+        if odf == string.lower(utility.CleanString(u[key] or "")) then return true end
+    end
+    return false
+end
+
 function aiCore.Team:UpdateBaseMaintenance()
     local now = GetTime()
     if now < (self.baseMaintenanceAt or 0.0) then return end
@@ -8276,13 +8317,24 @@ function aiCore.Team:UpdateBaseMaintenance()
     if self.constructorMgr then
         MarkQueued(self.constructorMgr.queue)
     end
-    -- Also count builds already handed to the integrated producer (in progress).
-    -- Without this, a replacement producer that has left the recycler queue but
-    -- is still under construction/deploy is invisible here, so the ~1s ensure
-    -- pass re-queues it every tick -> the armory (which self-destructs via the
-    -- suicide feature) gets rebuilt dozens of times.
+    -- Also count builds already handed to the integrated producer. A replacement
+    -- producer passes through TWO invisible-to-GetXHandle states before it exists:
+    --   1. queued for the integrated producer (producer.Queue), then
+    --   2. ISSUED and under construction (producer.Orders, keyed by builder),
+    --      which it leaves only when the finished unit spawns.
+    -- The construction window (2) outlasts a maintenance tick, so without counting
+    -- it the ensure pass re-queues the armory again and again -> multiple svslf.
     if producer.Queue and producer.Queue[self.teamNum] then
         MarkQueued(producer.Queue[self.teamNum])
+    end
+    if producer.Orders then
+        for _, active in pairs(producer.Orders) do
+            local job = (type(active) == "table" and active.job) or active
+            local odfKey = NormalizeOdfKey(job and job.odf)
+            if odfKey ~= "" then
+                queuedOdFs[odfKey] = true
+            end
+        end
     end
     for _, item in pairs(self.buildingList or aiCore.EmptyList) do
         local odfKey = NormalizeOdfKey(item and (item.odf or item))
@@ -8294,6 +8346,11 @@ function aiCore.Team:UpdateBaseMaintenance()
     local function QueueProducerIfMissing(handle, odf, priority)
         local odfKey = NormalizeOdfKey(odf)
         if IsValid(handle) or odfKey == "" or queuedOdFs[odfKey] then
+            return false
+        end
+        -- Treat an existing-but-undeployed producer as present, so a GetXHandle that
+        -- only reports deployed producers can't drive an endless rebuild loop.
+        if self:HasLiveObjectOfOdf(odf) then
             return false
         end
         self.recyclerMgr:addUnit(odf, priority)
