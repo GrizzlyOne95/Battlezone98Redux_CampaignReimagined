@@ -2116,8 +2116,13 @@ function producer.ProcessQueues(teamObj)
         local minScavengers = (teamObj.Config and teamObj.Config.minScavengers) or 0
         local shouldDeferForScavengers = minScavengers > 0 and requiredProducer == "recycler" and scavengerOdf and
             scavengerCount < minScavengers and recyclerOnlyUnit and job.odf ~= scavengerOdf
+        -- requireConstructorFirst holds back production until a constructor exists,
+        -- but must NEVER defer scavengers: they are the economy that funds the
+        -- constructor. Deferring them deadlocks the base (1 scavenger -> ~0 income
+        -- -> can't afford the constructor -> scavengers stay deferred forever).
         local shouldDeferForConstructor = teamObj.Config and teamObj.Config.requireConstructorFirst and
-            not constructorReady and requiredProducer == "recycler" and constructorOdf and job.odf ~= constructorOdf
+            not constructorReady and requiredProducer == "recycler" and constructorOdf and
+            job.odf ~= constructorOdf and job.odf ~= scavengerOdf
 
         if not shouldDeferForConstructor and not shouldDeferForScavengers and cost <= maxScrap and pilotCost <= pilotCharge then
             if cost <= scrap then
@@ -5985,6 +5990,244 @@ aiCore.Team = {
 }
 aiCore.Team.__index = aiCore.Team
 
+-- ============================================================================
+-- CombatTuningManager
+-- Bridges the Lua tactical brain to OpenShim's native per-unit AI execution
+-- (exu.SetAiUnitTuning). For each combat craft it derives an engagement profile
+-- from the unit's own weapon range + role and pushes it to the engine, so the
+-- native CalcRange/AttackTask/retarget hooks hold correct range and kite
+-- smoothly per-tick instead of the coarse Lua SetCommand path. Difficulty
+-- scales aggressiveness. Fully additive: managers/behaviours are unchanged;
+-- this only feeds the native layer. Missions can opt out with
+-- team.Config.nativeCombatTuning = false.
+-- ============================================================================
+
+-- A "bomber" is any craft that runs the modded BomberFriend/BomberEnemy AI
+-- (faction bombers avhraz/svhraz/cvhraz/bvhraz/svhr13, armed with grktbomb ~300 m).
+-- Their classLabel is plain "wingman", so the reliable signal is the ODF aiName
+-- fields, NOT the class label or a literal "bomber" string.
+function aiCore.IsBomberUnit(h)
+    if not IsValid(h) then return false end
+    local odf = OpenODF(GetOdf(h))
+    if not odf then return false end
+    local aiName = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "aiName", "") or ""))
+    local aiName2 = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "aiName2", "") or ""))
+    return string.find(aiName, "bomber") ~= nil or string.find(aiName2, "bomber") ~= nil
+end
+
+-- True if the craft carries a sniper-class weapon (snipe rifle / TAG cannon).
+-- Used to identify a target that punishes standoff, so we close on it.
+function aiCore.UsesSniperWeapon(h)
+    if not IsValid(h) then return false end
+    for i = 0, 4 do
+        local w = string.lower(utility.CleanString(GetWeaponClass(h, i) or ""))
+        if w ~= "" and string.find(w, "snipe") then return true end
+    end
+    return false
+end
+
+-- Derives a native tuning table (see exu.SetAiUnitTuning schema) for a craft,
+-- or nil if the unit should be left to stock/other managers.
+local function ComputeCombatProfile(h)
+    if not IsValid(h) or not IsCraft(h) then return nil end
+    if h == GetPlayerHandle() then return nil end -- never tune the human player
+
+    -- Howitzers/artillery keep their dedicated standoff manager; don't fight it.
+    local cls = aiCore.NilToString(GetClassLabel(h))
+    if utility.ClassLabel and utility.ClassLabel.HOWITZER and
+        (string.find(cls, utility.ClassLabel.HOWITZER) or string.find(cls, "artillery")) then
+        return nil
+    end
+
+    local wr = GetCurrentWeaponRangeMeters(h)
+    if not wr or wr <= 0 then return nil end -- unarmed (scavenger/constructor/etc.)
+
+    local d = aiCore.GetDifficultyLevel() or 2
+
+    -- Bombers (BomberFriend/BomberEnemy aiName, armed with grktbomb). The engine
+    -- hardcodes their dispenser range to ~50 m in CalcRange, so they suicide-dive.
+    -- The shim HAS a native bomberAiRole floor keyed on the ODF aiName, but its
+    -- ODF-token read is stale on GOG (never matches), so we apply the same floor
+    -- through the per-unit tuning path (pointer-keyed, verified working): push the
+    -- unit's real max weapon range as engageRange, with no kite band (they overfly
+    -- on attack runs, they don't stand off).
+    if aiCore.IsBomberUnit(h) then
+        return {
+            engageRange = mmax(wr, 300.0),
+            retargetPeriod = mmax(0.4, 1.2 - 0.15 * d),
+        }
+    end
+
+    -- Role detection from the weapon loadout.
+    local usesMissile = false
+    for i = 0, 4 do
+        local weapon = string.lower(utility.CleanString(GetWeaponClass(h, i) or ""))
+        if weapon ~= "" and aiCore.GetMissileThreatType(weapon) then
+            usesMissile = true
+            break
+        end
+    end
+    local isSniper = utility.CanSnipe and utility.CanSnipe(h)
+
+    local p = {
+        engageRange = wr,
+        retargetPeriod = mmax(0.4, 1.2 - 0.15 * d),
+    }
+
+    -- Applies a kite band only if the enter<desired<exit ordering is valid
+    -- (OpenShim ignores malformed bands); weaponRangeMin doubles as the floor.
+    local function band(desiredFrac, enterFrac, exitFrac, strafe, switch, los)
+        local desired = wr * desiredFrac
+        local enter = wr * enterFrac
+        local exit = wr * exitFrac
+        if enter > 0 and enter < desired and desired < exit then
+            p.kiteDesiredRange = desired
+            p.kiteEnterRange = enter
+            p.kiteExitRange = exit
+            p.kiteStrafe = mmin(1.0, strafe)
+            p.kiteSwitchPeriod = switch
+            p.kitePreserveLos = los and true or false
+            p.weaponRangeMin = enter
+        end
+    end
+
+    -- Strips any standoff band so the unit closes and commits to the kill.
+    local function clearKite()
+        p.kiteDesiredRange, p.kiteEnterRange, p.kiteExitRange = nil, nil, nil
+        p.kiteStrafe, p.kiteSwitchPeriod, p.kitePreserveLos = nil, nil, nil
+        p.weaponRangeMin = nil
+    end
+
+    if usesMissile then
+        -- Rocket tanks: hold near max missile range, keep LOS, evade laterally.
+        band(0.82, 0.55, 1.05, 0.25 + 0.08 * d, mmax(1.0, 3.5 - 0.5 * d), true)
+    elseif isSniper then
+        band(0.85, 0.60, 1.05, 0.20, mmax(1.5, 4.0 - 0.4 * d), true)
+    elseif d >= 3 then
+        -- Brawlers (tanks/thumpers) only kite on harder difficulties; otherwise
+        -- they close and fight so easy AI stays readable.
+        band(0.62, 0.35, 0.92, 0.35, mmax(1.2, 3.0 - 0.4 * d), false)
+    end
+
+    -- Contextual counters: adapt the engagement to the *current attack target's*
+    -- matchup, not just this unit's own loadout. Only while actively attacking a
+    -- live target; otherwise the self-derived profile above stands. The native
+    -- kite executor runs every frame, so the intent we set here (stand off vs.
+    -- rush) is applied continuously until the next profile refresh.
+    if GetCurrentCommand(h) == AiCommand.ATTACK then
+        local t = GetCurrentWho(h)
+        if IsValid(t) and IsAlive(t) and t ~= h then
+            local tcls = string.lower(utility.CleanString(GetClassLabel(t) or ""))
+            local targetArty = (string.find(tcls, "howitzer") ~= nil) or
+                (string.find(tcls, "artillery") ~= nil)
+            local targetSniper = aiCore.UsesSniperWeapon(t)
+            local tr = GetCurrentWeaponRangeMeters(t) or 0.0
+            local outranged = tr > 0 and wr < tr * 0.85
+            local outrange = tr > 0 and wr > tr * 1.15
+
+            if targetSniper or targetArty or outranged then
+                -- Snipers and artillery win at range and fold up close; if we are
+                -- outranged, dancing at the edge just feeds them free shots. Deny
+                -- the standoff: close in and stay locked on.
+                clearKite()
+                p.retargetPeriod = mmax(0.35, (p.retargetPeriod or 0.8) * 0.7)
+                p.counter = targetSniper and "rush-sniper" or
+                    (targetArty and "rush-arty" or "rush-outranged")
+            elseif outrange and not p.kiteDesiredRange then
+                -- We reach further than the target and aren't already standing off
+                -- from our role: exploit it with a max-range kite band + LOS.
+                band(0.85, 0.55, 1.05, 0.20 + 0.08 * d, mmax(1.0, 3.5 - 0.5 * d), true)
+                p.counter = "standoff-reach"
+            end
+        end
+    end
+
+    return p
+end
+
+aiCore.CombatTuningManager = {}
+aiCore.CombatTuningManager.__index = aiCore.CombatTuningManager
+
+-- The shim tags any craft whose ODF aiName/aiName2 is BomberFriend/BomberEnemy
+-- with bomberAiRole and can floor the engine's hardcoded ~50 m dispenser range
+-- with the real grktbomb range in CalcRange. We enable that native path here so
+-- it takes over automatically once its ODF-token lookup is fixed on GOG (it is
+-- currently stale and never matches units). Until then the actual bomber floor
+-- is delivered via the per-unit tuning path in ComputeCombatProfile (which is
+-- pointer-keyed and verified working); this toggle is a harmless no-op meanwhile.
+local g_bomberNativeRangeInit = false
+local function EnableNativeBomberRangeOnce()
+    if g_bomberNativeRangeInit then return end
+    g_bomberNativeRangeInit = true
+    if exu and exu.SetBomberAiRangeEnabled then
+        pcall(exu.SetBomberAiRangeEnabled, true)
+    end
+end
+
+function aiCore.CombatTuningManager.new(teamNum)
+    local self = setmetatable({}, aiCore.CombatTuningManager)
+    self.teamNum = teamNum
+    self.tuned = {}          -- handle -> true (already pushed, for debug/pruning)
+    self.tunedCounter = {}   -- handle -> last counter intent (debug re-print gate)
+    self.timer = 0.0
+    self.refreshPeriod = 5.0 -- re-apply sweep: covers save/load + missed spawns
+    self.enabled = true
+    EnableNativeBomberRangeOnce()
+    return self
+end
+
+function aiCore.CombatTuningManager:IsEnabled()
+    if not (exu and exu.SetAiUnitTuning) then return false end
+    local cfg = self.teamObj and self.teamObj.Config
+    if cfg and cfg.nativeCombatTuning == false then return false end
+    return self.enabled
+end
+
+-- Idempotent: recomputes and pushes the profile; safe to call repeatedly.
+function aiCore.CombatTuningManager:ApplyTo(h)
+    if not IsValid(h) or GetTeamNum(h) ~= self.teamNum then return end
+    local profile = ComputeCombatProfile(h)
+    if not profile then return end
+    if pcall(exu.SetAiUnitTuning, h, profile) then
+        -- Print on first tune or whenever the contextual counter intent changes.
+        local counter = profile.counter or "-"
+        if aiCore.Debug and self.tunedCounter[h] ~= counter then
+            print(string.format("Team %d combat-tune %s engage=%.0f counter=%s%s",
+                self.teamNum, GetOdf(h) or "?", profile.engageRange or 0, counter,
+                profile.kiteDesiredRange and string.format(" kite=%.0f/%.0f/%.0f str=%.2f",
+                    profile.kiteEnterRange, profile.kiteDesiredRange,
+                    profile.kiteExitRange, profile.kiteStrafe or 0) or ""))
+            self.tunedCounter[h] = counter
+        end
+        self.tuned[h] = true
+    end
+end
+
+function aiCore.CombatTuningManager:AddObject(h)
+    if not self:IsEnabled() then return end
+    self:ApplyTo(h)
+end
+
+function aiCore.CombatTuningManager:Update()
+    if not self:IsEnabled() then return end
+    self.timer = self.timer + GetTimeStep()
+    if self.timer < self.refreshPeriod then return end
+    self.timer = 0.0
+
+    local craft = aiCore.GetCachedTeamCraft(self.teamNum)
+    if craft then
+        for _, h in ipairs(craft) do
+            self:ApplyTo(h)
+        end
+    end
+    for h in pairs(self.tuned) do
+        if not IsValid(h) then
+            self.tuned[h] = nil
+            self.tunedCounter[h] = nil
+        end
+    end
+end
+
 ---@return aiCore.Team
 function aiCore.Team:new(teamNum, faction)
     ---@type aiCore.Team
@@ -6125,6 +6368,15 @@ function aiCore.Team:new(teamNum, faction)
         manageConstructor = true,
         requireConstructorFirst = false,
         minScavengers = 0,
+
+        -- Anti-starvation floor: nudge scrap up ONLY when an AI base is genuinely
+        -- stuck (scrap under the floor AND too few scavengers to grow income), so a
+        -- scrap-poor map or an early economy stall can't permanently deadlock the
+        -- base. Small, throttled, difficulty-scaled; stops once minScavengers is met.
+        antiStarvation = true,
+        antiStarvationFloor = 12,     -- top up toward this when starved
+        antiStarvationPeriod = 12.0,  -- seconds between nudges
+        antiStarvationScavThreshold = nil, -- defaults to minScavengers (or 2)
         unitCaps = {},
         slotCaps = {
             offense = 10,
@@ -6270,6 +6522,8 @@ function aiCore.Team:new(teamNum, faction)
     t.defenseMgr.teamObj = t
     t.depotMgr = aiCore.DepotManager.new(teamNum)
     t.depotMgr.teamObj = t
+    t.combatTuningMgr = aiCore.CombatTuningManager.new(teamNum)
+    t.combatTuningMgr.teamObj = t
 
     -- Initialize Integrated Producer Queue
     if not producer.Queue[teamNum] then producer.Queue[teamNum] = {} end
@@ -7444,6 +7698,7 @@ function aiCore.Team:Update()
 
     if self.wingmanMgr and self.Config.autoRepairWingmen then self.wingmanMgr:Update() end
     if self.depotMgr then self.depotMgr:Update() end
+    if self.combatTuningMgr then self.combatTuningMgr:Update() end
 
     -- pilotMode Automations
     if self.Config.autoManage then self:UpdateUnitRoles() end
@@ -7463,6 +7718,7 @@ function aiCore.Team:Update()
     self:UpdatePilotResources()
     self:UpdatePilots()
     self:UpdateResourceBoosting()
+    self:UpdateAntiStarvation()
     self:UpdateUpgrades()
     self:UpdateWrecker()
     self:UpdateArmorySuicide()
@@ -7677,6 +7933,51 @@ function aiCore.Team:UpdateResourceBoosting()
     end
 end
 
+-- Reactive anti-starvation floor. Unlike UpdateResourceBoosting (an unconditional
+-- periodic handout), this only fires when the base is demonstrably stuck: scrap
+-- below the floor AND fewer scavengers than it needs to recover income on its own.
+-- It tops scrap up toward a small floor so the recycler can afford a scavenger or
+-- the constructor and bootstrap out of the hole; it never funds an army, and it
+-- goes silent the moment the economy is healthy (enough scavengers).
+function aiCore.Team:UpdateAntiStarvation()
+    if not self.Config.autoBuild or self.Config.antiStarvation == false then return end
+    -- Human team (1) manages its own economy; only help AI bases.
+    if self.teamNum == 1 then return end
+    if not AddScrap then return end
+
+    if GetTime() < (self.antiStarveAt or 0) then return end
+    self.antiStarveAt = GetTime() + (self.Config.antiStarvationPeriod or 12.0)
+
+    local floor = self.Config.antiStarvationFloor or 12
+    if GetScrap(self.teamNum) >= floor then return end
+
+    -- Only help while the economy cannot recover itself (too few scavengers).
+    local scavThreshold = self.Config.antiStarvationScavThreshold
+        or math.max(self.Config.minScavengers or 0, 2)
+    local scavCount = 0
+    if self.scavengers then
+        for _, s in ipairs(self.scavengers) do
+            if IsValid(s) and IsAlive(s) then scavCount = scavCount + 1 end
+        end
+    end
+    if scavCount >= scavThreshold then return end
+
+    -- Need a live recycler to even spend the scrap on production.
+    if not IsValid(GetRecyclerHandle(self.teamNum)) then return end
+
+    -- Small, difficulty-scaled top-up toward the floor (never a windfall).
+    local m = (DiffUtils and DiffUtils.Get and DiffUtils.Get()) or { enemy = 1.0 }
+    local step = math.max(4, math.floor(6 * (m.enemy or 1.0)))
+    local give = math.min(floor - GetScrap(self.teamNum), step)
+    if give > 0 then
+        AddScrap(self.teamNum, give)
+        if aiCore.Debug then
+            print(string.format("Team %d anti-starvation +%d scrap (scav=%d/%d, floor=%d)",
+                self.teamNum, give, scavCount, scavThreshold, floor))
+        end
+    end
+end
+
 function aiCore.Team:UpdateScavengerAssist()
     -- Initialize state table for multi-frame workaround
     if not self.scavengerResetState then self.scavengerResetState = {} end
@@ -7772,6 +8073,14 @@ function aiCore.Team:UpdateBaseMaintenance()
     MarkQueued(self.recyclerMgr.queue)
     if self.constructorMgr then
         MarkQueued(self.constructorMgr.queue)
+    end
+    -- Also count builds already handed to the integrated producer (in progress).
+    -- Without this, a replacement producer that has left the recycler queue but
+    -- is still under construction/deploy is invisible here, so the ~1s ensure
+    -- pass re-queues it every tick -> the armory (which self-destructs via the
+    -- suicide feature) gets rebuilt dozens of times.
+    if producer.Queue and producer.Queue[self.teamNum] then
+        MarkQueued(producer.Queue[self.teamNum])
     end
     for _, item in pairs(self.buildingList or aiCore.EmptyList) do
         local odfKey = NormalizeOdfKey(item and (item.odf or item))
@@ -11258,6 +11567,7 @@ function aiCore.Team:AddObject(h)
     if self.wingmanMgr then self.wingmanMgr:AddObject(h) end
     if self.defenseMgr then self.defenseMgr:AddObject(h) end
     if self.depotMgr then self.depotMgr:AddObject(h) end
+    if self.combatTuningMgr then self.combatTuningMgr:AddObject(h) end
 end
 
 ---@return any
