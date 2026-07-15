@@ -2288,6 +2288,13 @@ end
 -- aiCore Logic
 aiCore.Debug = false
 
+-- Lightweight AI telemetry: one compact status line per managed team on a timer.
+-- Independent of aiCore.Debug (which is very verbose) so it can be left on during a
+-- normal playtest to watch the AI's economy, production and combat state. Toggle
+-- with aiCore.Telemetry = true (or per mission).
+aiCore.Telemetry = false
+aiCore.TelemetryPeriod = 5.0
+
 -- Helper to strip circular references before serializing
 function aiCore.StripCircular(data, seen)
     if type(data) ~= "table" then return data end
@@ -7861,6 +7868,7 @@ function aiCore.Team:Update()
 
     self:UpdateBaseMaintenance()
     self:MaintainDefensivePerimeter()
+    self:UpdateTelemetry()
     self:UpdatePilotResources()
     self:UpdatePilots()
     self:UpdateResourceBoosting()
@@ -8122,6 +8130,54 @@ function aiCore.Team:UpdateAntiStarvation()
                 self.teamNum, give, scavCount, scavThreshold, floor))
         end
     end
+end
+
+-- Emits one compact status line per managed team. Captures exactly the state that
+-- is otherwise painful to reconstruct from a live game: economy (scrap + net rate),
+-- population, core-producer presence, and every build-queue depth -- plus combat
+-- signals (units engaged / retreating). Read the '(+/-N/s)' rate to tell a growing
+-- economy from a stalled one at a glance.
+function aiCore.Team:UpdateTelemetry()
+    if not aiCore.Telemetry then return end
+    if GetTime() < (self.telemetryAt or 0.0) then return end
+    self.telemetryAt = GetTime() + (aiCore.TelemetryPeriod or 5.0)
+
+    local scrap = GetScrap(self.teamNum)
+    local rate = 0.0
+    if self._telemScrap ~= nil and self._telemTime then
+        local dt = GetTime() - self._telemTime
+        if dt > 0 then rate = (scrap - self._telemScrap) / dt end
+    end
+    self._telemScrap = scrap
+    self._telemTime = GetTime()
+
+    local function countAlive(list)
+        local n = 0
+        if list then
+            for _, h in ipairs(list) do
+                if IsValid(h) and IsAlive(h) then n = n + 1 end
+            end
+        end
+        return n
+    end
+    local function qlen(mgr) return (mgr and mgr.queue) and #mgr.queue or 0 end
+    local function yn(h) return IsValid(h) and "Y" or "-" end
+
+    local retreating = 0
+    if self.retreatingUnits then
+        for u in pairs(self.retreatingUnits) do
+            if IsValid(u) then retreating = retreating + 1 end
+        end
+    end
+    local prodQ = (producer.Queue and producer.Queue[self.teamNum]) and #producer.Queue[self.teamNum] or 0
+
+    print(string.format(
+        "[AI t%d] scrap=%d/%d (%+.1f/s) pilot=%d | scav=%d combat=%d retreat=%d | ctor=%s fac=%s arm=%s rec=%s | q rec=%d fac=%d ctor=%d prod=%d",
+        self.teamNum, scrap, GetMaxScrap(self.teamNum), rate, GetPilot(self.teamNum),
+        countAlive(self.scavengers), countAlive(self.combatUnits), retreating,
+        yn(GetConstructorHandle(self.teamNum)), yn(GetFactoryHandle(self.teamNum)),
+        yn(GetArmoryHandle(self.teamNum)), yn(GetRecyclerHandle(self.teamNum)),
+        qlen(self.recyclerMgr), qlen(self.factoryMgr), qlen(self.constructorMgr), prodQ))
 end
 
 function aiCore.Team:UpdateScavengerAssist()
