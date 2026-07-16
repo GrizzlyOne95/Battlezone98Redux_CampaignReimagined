@@ -35,6 +35,11 @@ fragment_program CR_Sky_fragmentHLSL4 hlsl
     source CR_sky-sm4.hlsl
     target ps_4_0
     entry_point sky_fragment
+	default_params
+	{
+		param_named_auto twinkleTime time_0_x 1000
+		param_named_auto twinkleControl surface_emissive_colour
+	}
 }
 
 fragment_program CR_Sky_fragmentHLSL hlsl
@@ -42,6 +47,11 @@ fragment_program CR_Sky_fragmentHLSL hlsl
     source CR_sky.hlsl
     target ps_3_0
     entry_point sky_fragment
+	default_params
+	{
+		param_named_auto twinkleTime time_0_x 1000
+		param_named_auto twinkleControl surface_emissive_colour
+	}
 }
 
 fragment_program CR_Sky_fragmentGLSL glsl
@@ -53,6 +63,8 @@ fragment_program CR_Sky_fragmentGLSL glsl
 	default_params
     {
 		param_named diffuseMap int 0
+		param_named_auto twinkleTime time_0_x 1000
+		param_named_auto twinkleControl surface_emissive_colour
     }
 }
 

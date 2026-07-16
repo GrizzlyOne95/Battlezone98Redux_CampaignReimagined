@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-07-16
+
+### PDA Navigation and Readability
+- Reorganized the PDA into `COMBAT`, `RECORDS`, `LOGISTICS`, and `SYSTEM` groups with short contextual sub-tabs.
+- Reordered pages around player workflow while retaining all seven views and their existing controls.
+- Streamlined the unit, target, career, command, queue, and loadout readouts; weapon details now use an Up/Down inspection cursor instead of expanding every hardpoint at once.
+- Split Settings into focused `Interface`, `Lighting`, `Audio & Alerts`, `Assistance`, `Saves`, and `System` categories while preserving continuous Up/Down navigation through every option.
+
+### AutoSave Notice
+- Extended the `Autosaving...` notice to five seconds and moved its dedicated EXU overlay to the bottom center of the screen.
+
+## 2026-07-13
+
+### Neutral Hit Reticle
+- Restored the persistent PDA `NEUTRAL ONLY` hit-reticle option now that OpenShim reads the Redux GameObject team through the correct `+0x18` interface subobject.
+- Saved mode `2` values are preserved and applied again instead of being migrated back to `DEFAULT`.
+
+## 2026-07-12
+
+### Empty Craft Running Lights
+- Added a persistent `Empty Craft Lights` PDA setting. By default, valid craft without a pilot now use an Ogre material variant with emissive lighting disabled; enabling the setting restores normal emissive running lights on empty craft.
+- The runtime visual pass uses `IsAliveAndPilot()` and reapplies the occupied emissive variant when a pilot enters the craft.
+- Added an optional persistent `Light Pulse` PDA setting. In enhanced lighting mode, occupied/emissive material variants now use a slow 2.4-second shader intensity pulse while empty variants remain black.
+- Added a persistent `Star Twinkle` PDA setting. The dedicated `STARS.MAP` pass now uses the campaign Ogre sky shader and gives star cells independent, time-driven brightness variation without per-frame Lua updates.
+
 ## 2026-03-24
 
 ### Mission Startup Hang Fix

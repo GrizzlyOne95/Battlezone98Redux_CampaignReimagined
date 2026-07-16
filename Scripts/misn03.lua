@@ -1438,4 +1438,10 @@ function Update()
         FailMission(GetTime() + 10.0, "misn03f4.des")
     end
 
+    -- Preserve the stock mission failure if the evacuation launch pad is destroyed.
+    if not M.lost and not IsAlive(M.launch) then
+        FailMission(GetTime() + 1.0)
+        M.lost = true
+    end
+
 end

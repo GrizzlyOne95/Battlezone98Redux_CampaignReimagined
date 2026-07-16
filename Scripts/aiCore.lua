@@ -784,6 +784,7 @@ function aiCore.GetOdfMeta(odfName)
         aiName = "",
         aiName2 = "",
         pilotCost = 0,
+        collisionRadius = 0.0,
         weaponNames = {},
         personRole = nil
     }
@@ -796,6 +797,8 @@ function aiCore.GetOdfMeta(odfName)
         meta.aiName2 = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "aiName2", "")))
         local pilotCost = GetODFInt(odf, "GameObjectClass", "pilotCost", 0)
         meta.pilotCost = tonumber(pilotCost) or 0
+        local collisionRadius = GetODFFloat(odf, "GameObjectClass", "collisionRadius", 0.0)
+        meta.collisionRadius = math.max(0.0, tonumber(collisionRadius) or 0.0)
 
         for i = 1, 5 do
             local weaponName = string.lower(utility.CleanString(GetODFString(odf, "GameObjectClass", "weaponName" .. i, "")))
@@ -2552,6 +2555,11 @@ function producer.ProcessQueues(teamObj)
     end
 
     for i, job in ipairs(queue) do
+        local isBuildingJob = (job.data and job.data.type == "building")
+        local ruleAllowed = true
+        if not isBuildingJob and teamObj.CanIssueUnitByRules then
+            ruleAllowed = teamObj:CanIssueUnitByRules(job)
+        end
         local cost = GetScrapCost(job.odf)
         local pilotCost = GetPilotCost(job.odf)
         local factionUnits = aiCore.Units and aiCore.Units[teamObj.faction] or nil
@@ -2574,11 +2582,11 @@ function producer.ProcessQueues(teamObj)
         local shouldDeferForConstructor = teamObj.Config and teamObj.Config.requireConstructorFirst and
             not constructorReady and requiredProducer == "recycler" and constructorOdf and job.odf ~= constructorOdf
 
-        if not shouldDeferForConstructor and not shouldDeferForScavengers and cost <= maxScrap and pilotCost <= pilotCharge then
+        if ruleAllowed and not shouldDeferForConstructor and not shouldDeferForScavengers
+            and cost <= maxScrap and pilotCost <= pilotCharge then
             if cost <= scrap then
                 local foundProducer = nil
                 for _, h in ipairs(producers) do
-                    local isBuildingJob = (job.data and job.data.type == "building")
                     local procSig = utility.CleanString(GetClassLabel(h))
 
                     local canBuild = false
@@ -2638,7 +2646,8 @@ function producer.ProcessCreated(h)
             job = active.job
         end
 
-        if IsValid(proc) and job and string.lower(job.odf) == odf then
+        if IsValid(proc) and GetTeamNum(h) == GetTeamNum(proc)
+            and job and string.lower(utility.CleanString(job.odf)) == odf then
             local dist = GetDistance(h, proc)
             if dist < 150 then
                 producer.Orders[proc] = nil
@@ -2888,6 +2897,7 @@ function aiCore.Load(data)
     -- Restore Metatables
     for _, team in pairs(aiCore.ActiveTeams) do
         setmetatable(team, aiCore.Team)
+        team.naturalProducerObjects = team.naturalProducerObjects or {}
         if team.recyclerMgr then
             setmetatable(team.recyclerMgr, aiCore.FactoryManager); team.recyclerMgr.teamObj = team
         end
@@ -5516,6 +5526,21 @@ function aiCore.ConstructorManager:new(team)
     return cm
 end
 
+function aiCore.ConstructorManager:RequeueActiveJob(reason)
+    local job = self.activeJob
+    if not job then return end
+    local delay = (self.teamObj and self.teamObj.Config.buildingPlacementRetryDelay) or 4.0
+    job.retryAt = GetTime() + math.max(1.0, delay)
+    job.blockedReason = reason
+    table.insert(self.queue, job)
+    self.activeJob = nil
+    self.jobState = nil
+    self.sentToRecycler = false
+    if aiCore.Debug then
+        print("aiCore: constructor deferred " .. tostring(job.odf) .. " (" .. tostring(reason) .. ")")
+    end
+end
+
 function aiCore.ConstructorManager:update()
     if not IsValid(self.handle) then
         self.handle = GetConstructorHandle(self.team)
@@ -5570,9 +5595,16 @@ function aiCore.ConstructorManager:update()
             end
             return ap < bp
         end)
-        self.activeJob = table.remove(self.queue, 1)
-        self.sentToRecycler = false
-        if aiCore.Debug then print("Constructor starts job: " .. self.activeJob.odf) end
+        local now = GetTime()
+        for index, queuedJob in ipairs(self.queue) do
+            if not queuedJob.retryAt or queuedJob.retryAt <= now then
+                self.activeJob = table.remove(self.queue, index)
+                self.activeJob.retryAt = nil
+                self.sentToRecycler = false
+                if aiCore.Debug then print("Constructor starts job: " .. self.activeJob.odf) end
+                break
+            end
+        end
     end
 
     -- Manage the active job
@@ -5602,6 +5634,43 @@ function aiCore.ConstructorManager:update()
             self.activeJob = nil
             self.jobState = nil
             return
+        end
+
+
+        if self.teamObj then
+            local rulesOk, rulesReason = self.teamObj:CanIssueBuildingByRules(self.activeJob)
+            if not rulesOk then
+                self:RequeueActiveJob(rulesReason)
+                return
+            end
+
+            local placementOptions = {
+                ignorePriority = self.activeJob.priority,
+                ignoreObject = constructor,
+                includePlannedPower = false
+            }
+            local placementOk, placementReason = self.teamObj:ValidateBuildingPlacement(
+                self.activeJob.odf, buildPos, placementOptions)
+            if not placementOk and placementReason ~= "power" then
+                local relocated = self.teamObj:FindAlternateBuildingPlacement(
+                    self.activeJob.odf, buildPos, placementOptions)
+                if relocated then
+                    self.activeJob.path = relocated
+                    local planned = self.teamObj.buildingList[self.activeJob.priority]
+                    if planned and planned.odf == self.activeJob.odf then
+                        planned.path = relocated
+                    end
+                    if aiCore.Debug then
+                        print("aiCore: relocated " .. tostring(self.activeJob.odf)
+                            .. " after placement check " .. tostring(placementReason))
+                    end
+                    return
+                end
+            end
+            if not placementOk then
+                self:RequeueActiveJob(placementReason)
+                return
+            end
         end
 
         local cmd = GetCurrentCommand(constructor)
@@ -6650,6 +6719,10 @@ function aiCore.Team:new(teamNum, faction)
         requireConstructorFirst = false,
         minScavengers = 0,
         unitCaps = {},
+        -- Producer-only equivalent of the player's ten Offense/Defense/Utility
+        -- command slots. Set to false (or <= 0) to disable; mission BuildObject
+        -- spawns never pass through this gate.
+        naturalProducerUnitClamp = 10,
         slotCaps = {
             offense = 10,
             defense = 10,
@@ -6660,14 +6733,27 @@ function aiCore.Team:new(teamNum, faction)
             constructor = 1
         },
         buildingCaps = {
-            power = 7,
-            comm = 7,
-            repair = 7,
-            supply = 7,
-            silo = 7,
-            barracks = 7,
-            guntower = 7
+            power = 10,
+            comm = 5,
+            repair = 5,
+            supply = 5,
+            silo = 5,
+            barracks = 5,
+            guntower = 10
         },
+        -- The stock AI's AIBuild_CanBuildHere is a no-op. These settings make
+        -- constructor jobs use the same practical tests as a player placement:
+        -- footprint flatness/slope, blocked floors, object overlap and power.
+        enforcePlayerBuildingRules = true,
+        buildingPlacementPadding = 10.0,
+        buildingPlacementMinRadius = 14.0,
+        buildingPlacementSampleStep = 10.0,
+        buildingPlacementMaxSlopeDegrees = 15.0,
+        buildingPlacementMaxHeightStdDev = 1.0,
+        buildingPlacementMaxHeightDelta = 3.0,
+        buildingPlacementMaxFloorSeparation = 1.5,
+        buildingPlacementRetryDelay = 4.0,
+        buildingPlacementRelocationRadius = 100.0,
 
         -- Wreckers & Paratroopers
         enableWreckers = false,
@@ -6697,6 +6783,9 @@ function aiCore.Team:new(teamNum, faction)
     t.pool = {}
     t.squads = {}
     t.combatUnits = {}
+    -- Provenance for player-style caps. Direct mission BuildObject spawns are
+    -- deliberately absent, even if the engine assigns them a command slot.
+    t.naturalProducerObjects = {}
     t.guards = {}
     t.offensiveRetaliation = {}
     t.offensiveRetaliationTimer = 0.0
@@ -7268,6 +7357,24 @@ function aiCore.Team:AddUnitToBuildList(list, odf, priority, category, producerT
 end
 
 function aiCore.Team:AddBuilding(odf, path, priority)
+    local placementOptions = { includePlannedPower = true }
+    local placementOk, placementReason = self:ValidateBuildingPlacement(odf, path, placementOptions)
+    if not placementOk and placementReason ~= "power" then
+        local relocated = self:FindAlternateBuildingPlacement(odf, path, placementOptions)
+        if relocated then
+            path = relocated
+            placementOk = true
+            placementReason = nil
+        end
+    end
+    if not placementOk then
+        if aiCore.Debug then
+            print("aiCore: Team " .. self.teamNum .. " rejected building " .. tostring(odf)
+                .. " (" .. tostring(placementReason) .. ")")
+        end
+        return false, placementReason
+    end
+
     if priority == nil then
         -- Default to lowest priority so explicit scripted priorities remain dominant.
         local hasPriority = false
@@ -7294,6 +7401,7 @@ function aiCore.Team:AddBuilding(odf, path, priority)
         handle = nil,
         account = self:GetBuildAccountForBuilding(odf)
     }
+    return true, nil
 end
 
 -- Enhanced terrain validation (from pilotMode.lua)
@@ -7332,6 +7440,226 @@ function aiCore.IsAreaFlat(centerPos, radius, checkPoints, flatThreshold, flatPe
     local isFlat = actualFlatPercentage >= flatPercentage
 
     return isFlat, actualFlatPercentage
+end
+
+local function ResolveBuildingPosition(reference)
+    if type(reference) == "string" then
+        return paths.GetPosition(reference, 0)
+    end
+    if type(reference) == "table" and reference.posit_x ~= nil then
+        return MatrixToPosition(reference)
+    end
+    if type(reference) == "table" and reference.x ~= nil then
+        return reference
+    end
+    if IsValid(reference) then
+        return GetPosition(reference)
+    end
+    return nil
+end
+
+local function BuildRelocatedReference(reference, position)
+    if type(reference) == "table" and reference.posit_x ~= nil then
+        local facing = SetVector(reference.front_x or 0.0, 0.0, reference.front_z or 1.0)
+        if math.abs(facing.x) + math.abs(facing.z) < 0.001 then
+            facing = aiCore.VecFacing.N
+        end
+        return aiCore.BuildDirectionalMatrix(position, Normalize(facing))
+    end
+    return position
+end
+
+function aiCore.Team:GetBuildingPlacementRadius(odf)
+    local meta = aiCore.GetOdfMeta(odf)
+    local collisionRadius = (meta and meta.collisionRadius) or 0.0
+    local padding = (self.Config and self.Config.buildingPlacementPadding) or 10.0
+    local minimum = (self.Config and self.Config.buildingPlacementMinRadius) or 14.0
+    return math.max(minimum, collisionRadius + padding)
+end
+
+function aiCore.Team:IsFriendlyTeam(otherTeam)
+    if otherTeam == self.teamNum then return true end
+    if IsTeamAllied then
+        local ok, allied = pcall(IsTeamAllied, self.teamNum, otherTeam)
+        if ok and allied then return true end
+    end
+    return false
+end
+
+function aiCore.Team:BuildingRequiresPower(odf)
+    local meta = aiCore.GetOdfMeta(odf)
+    local cls = meta and meta.classLabel or ""
+    return cls == "commtower"
+        or cls == utility.ClassLabel.TURRET
+        or string.find(cls, "shield", 1, true) ~= nil
+end
+
+function aiCore.Team:HasBuildingPower(position, includePlanned)
+    if not position then return false end
+
+    for teamNum = 0, 15 do
+        if self:IsFriendlyTeam(teamNum) then
+            for _, obj in ipairs(aiCore.GetCachedTeamTargets(teamNum)) do
+                if IsValid(obj) and IsAlive(obj)
+                    and string.lower(utility.CleanString(GetClassLabel(obj))) == utility.ClassLabel.POWERPLANT then
+                    local range = self:GetPowerRange(GetOdf(obj))
+                    if DistanceBetweenRefs(position, obj) < range then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+
+    if includePlanned then
+        for _, building in pairs(self.buildingList or aiCore.EmptyList) do
+            local meta = aiCore.GetOdfMeta(building.odf)
+            if meta and meta.classLabel == utility.ClassLabel.POWERPLANT then
+                local plannedPos = ResolveBuildingPosition(building.path)
+                if plannedPos and DistanceBetweenRefs(position, plannedPos) < self:GetPowerRange(building.odf) then
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+function aiCore.Team:IsBuildingPlacementBlocker(obj, ignoredObject)
+    if not IsValid(obj) or obj == ignoredObject then return false end
+    local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+    return IsBuilding(obj)
+        or cls == utility.ClassLabel.SCRAP
+        or cls == utility.ClassLabel.SIGN
+        or cls == utility.ClassLabel.POWERUP_GENERIC
+        or cls == utility.ClassLabel.DROPOFF
+        or cls == utility.ClassLabel.TURRET
+        or cls == utility.ClassLabel.TURRET_TANK
+end
+
+function aiCore.Team:ValidateBuildingTerrain(odf, position)
+    if not position then return false, "missing-position" end
+
+    local radius = self:GetBuildingPlacementRadius(odf)
+    local step = math.max(2.0, self.Config.buildingPlacementSampleStep or 10.0)
+    local maxSlope = math.max(0.0, self.Config.buildingPlacementMaxSlopeDegrees or 15.0)
+    local normalThreshold = math.cos(math.rad(maxSlope))
+    local maxFloorSeparation = self.Config.buildingPlacementMaxFloorSeparation or 1.5
+    local heights = {}
+    local minHeight = math.huge
+    local maxHeight = -math.huge
+    local sum = 0.0
+    local sumSquares = 0.0
+
+    local offsets = { 0.0 }
+    local distance = step
+    while distance < radius do
+        table.insert(offsets, distance)
+        table.insert(offsets, -distance)
+        distance = distance + step
+    end
+    table.insert(offsets, radius)
+    table.insert(offsets, -radius)
+
+    for _, xOffset in ipairs(offsets) do
+        for _, zOffset in ipairs(offsets) do
+            local sample = SetVector(position.x + xOffset, position.y, position.z + zOffset)
+            local ok, height, normal = pcall(GetTerrainHeightAndNormal, sample)
+            if not ok or type(height) ~= "number" or not normal then
+                return false, "blocked-terrain"
+            end
+            if (normal.y or 0.0) < normalThreshold then
+                return false, "terrain-slope"
+            end
+
+            if GetFloorHeightAndNormal and maxFloorSeparation >= 0.0 then
+                local floorOk, floorHeight = pcall(GetFloorHeightAndNormal, sample)
+                if floorOk and type(floorHeight) == "number"
+                    and math.abs(floorHeight - height) > maxFloorSeparation then
+                    return false, "blocked-floor"
+                end
+            end
+
+            table.insert(heights, height)
+            sum = sum + height
+            sumSquares = sumSquares + (height * height)
+            minHeight = math.min(minHeight, height)
+            maxHeight = math.max(maxHeight, height)
+        end
+    end
+
+    local count = #heights
+    if count == 0 then return false, "blocked-terrain" end
+    local variance = math.max(0.0, (sumSquares / count) - ((sum / count) ^ 2))
+    local stdDev = math.sqrt(variance)
+    if stdDev > (self.Config.buildingPlacementMaxHeightStdDev or 1.0)
+        or (maxHeight - minHeight) > (self.Config.buildingPlacementMaxHeightDelta or 3.0) then
+        return false, "terrain-flatness"
+    end
+
+    return true, nil
+end
+
+function aiCore.Team:ValidateBuildingPlacement(odf, reference, options)
+    if self.Config and self.Config.enforcePlayerBuildingRules == false then return true, nil end
+    options = options or {}
+    local position = ResolveBuildingPosition(reference)
+    if not position then return false, "missing-position" end
+
+    local terrainOk, terrainReason = self:ValidateBuildingTerrain(odf, position)
+    if not terrainOk then return false, terrainReason end
+
+    local footprint = self:GetBuildingPlacementRadius(odf)
+    for priority, building in pairs(self.buildingList or aiCore.EmptyList) do
+        if priority ~= options.ignorePriority and not IsValid(building.handle) then
+            local otherPos = ResolveBuildingPosition(building.path)
+            if otherPos then
+                local separation = footprint + self:GetBuildingPlacementRadius(building.odf)
+                if DistanceBetweenRefs(position, otherPos) < separation then
+                    return false, "planned-obstruction"
+                end
+            end
+        end
+    end
+
+    for obj in ObjectsInRange(footprint + 30.0, position) do
+        if self:IsBuildingPlacementBlocker(obj, options.ignoreObject) then
+            local otherMeta = aiCore.GetOdfMeta(GetOdf(obj))
+            local otherRadius = math.max(4.0, (otherMeta and otherMeta.collisionRadius) or 0.0)
+            if GetDistance(obj, position) < footprint + otherRadius then
+                return false, "object-obstruction"
+            end
+        end
+    end
+
+    if self:BuildingRequiresPower(odf) and not self:HasBuildingPower(position, options.includePlannedPower) then
+        return false, "power"
+    end
+
+    return true, nil
+end
+
+function aiCore.Team:FindAlternateBuildingPlacement(odf, reference, options)
+    options = options or {}
+    local origin = ResolveBuildingPosition(reference)
+    if not origin then return nil end
+
+    local maxRadius = self.Config.buildingPlacementRelocationRadius or 100.0
+    local step = math.max(12.0, self:GetBuildingPlacementRadius(odf))
+    for distance = step, maxRadius, step do
+        for angle = 0, 330, 30 do
+            local radians = math.rad(angle)
+            local x = origin.x + math.cos(radians) * distance
+            local z = origin.z + math.sin(radians) * distance
+            local candidate = SetVector(x, GetTerrainHeight(x, z), z)
+            local candidateReference = BuildRelocatedReference(reference, candidate)
+            local ok = self:ValidateBuildingPlacement(odf, candidateReference, options)
+            if ok then return candidateReference end
+        end
+    end
+
+    return nil
 end
 
 -- Find optimal location for silo near scrap (enhanced from pilotMode)
@@ -7442,7 +7770,11 @@ end
 function aiCore.Team:GetPowerRange(odf)
     local h = OpenODF(odf)
     if not h then return 200.0 end -- Default
-    return GetODFFloat(h, "PowerPlantClass", "powerRange", 200.0)
+    local range, found = GetODFFloat(h, "PowerPlantClass", "powerRange", 200.0)
+    if found then return range end
+    -- Several campaign ODFs use the older powerRadius spelling.
+    range, found = GetODFFloat(h, "PowerPlantClass", "powerRadius", 200.0)
+    return found and range or 200.0
 end
 
 -- Find a flat location for a base building
@@ -7490,8 +7822,7 @@ function aiCore.Team:PlanPowerPlant(priority)
     local powerOdf = aiCore.Units[self.faction][powerKey] or aiCore.Units[self.faction].sPower
     local pos = self:FindFlatBaseLocation(powerOdf, 80, 150, 60)
     if pos then
-        self:AddBuilding(powerOdf, pos, priority)
-        return true
+        return self:AddBuilding(powerOdf, pos, priority)
     end
     return false
 end
@@ -7553,8 +7884,7 @@ function aiCore.Team:PlanGunTower(priority, powerHandle)
         if isFlat then
             local ok, _ = self:CheckBuildingSpacing(towerOdf, testPos, 40)
             if ok then
-                self:AddBuilding(towerOdf, testPos, priority)
-                return true
+                return self:AddBuilding(towerOdf, testPos, priority)
             end
         end
     end
@@ -7565,7 +7895,7 @@ function aiCore.Team:PlanHangar(priority)
     local odf = aiCore.Units[self.faction].hangar
     local pos = self:FindFlatBaseLocation(odf, 130, 260, 120)
     if pos then
-        self:AddBuilding(odf, pos, priority); return true
+        return self:AddBuilding(odf, pos, priority)
     end
     return false
 end
@@ -7574,7 +7904,7 @@ function aiCore.Team:PlanSupplyDepot(priority)
     local odf = aiCore.Units[self.faction].supply
     local pos = self:FindFlatBaseLocation(odf, 120, 240, 110)
     if pos then
-        self:AddBuilding(odf, pos, priority); return true
+        return self:AddBuilding(odf, pos, priority)
     end
     return false
 end
@@ -7628,8 +7958,7 @@ function aiCore.Team:PlanCommTower(priority)
         if isFlat then
             local ok, _ = self:CheckBuildingSpacing(odf, testPos, 70)
             if ok then
-                self:AddBuilding(odf, testPos, priority)
-                return true
+                return self:AddBuilding(odf, testPos, priority)
             end
         end
     end
@@ -7640,7 +7969,7 @@ function aiCore.Team:PlanBarracks(priority)
     local odf = aiCore.Units[self.faction].barracks
     local pos = self:FindFlatBaseLocation(odf, 80, 150, 60)
     if pos then
-        self:AddBuilding(odf, pos, priority); return true
+        return self:AddBuilding(odf, pos, priority)
     end
     return false
 end
@@ -7649,7 +7978,7 @@ function aiCore.Team:PlanHQ(priority)
     local odf = aiCore.Units[self.faction].hq
     local pos = self:FindFlatBaseLocation(odf, 150, 250, 100)
     if pos then
-        self:AddBuilding(odf, pos, priority); return true
+        return self:AddBuilding(odf, pos, priority)
     end
     return false
 end
@@ -8374,9 +8703,23 @@ end
 
 -- Configuration / Dynamic Difficulty Hooks
 
+local BackfilledConfigKeys = {
+    naturalProducerUnitClamp = true,
+    enforcePlayerBuildingRules = true,
+    buildingPlacementPadding = true,
+    buildingPlacementMinRadius = true,
+    buildingPlacementSampleStep = true,
+    buildingPlacementMaxSlopeDegrees = true,
+    buildingPlacementMaxHeightStdDev = true,
+    buildingPlacementMaxHeightDelta = true,
+    buildingPlacementMaxFloorSeparation = true,
+    buildingPlacementRetryDelay = true,
+    buildingPlacementRelocationRadius = true
+}
+
 -- Setter for Difficulty Tweaking
 function aiCore.Team:SetConfig(key, value)
-    if self.Config[key] ~= nil then
+    if self.Config[key] ~= nil or BackfilledConfigKeys[key] then
         self.Config[key] = value
         if aiCore.Debug then print("Team " .. self.teamNum .. " config " .. key .. " set to " .. tostring(value)) end
     end
@@ -8569,51 +8912,110 @@ function aiCore.Team:GetRuleUnitRoleBucketForHandle(h)
     return "offense"
 end
 
+local PlayerTeamSlotRanges = {
+    -- Prefer the stock Lua TeamSlot constants at runtime. The numeric bounds
+    -- are validated fallbacks for editor/test contexts where TeamSlot is absent
+    -- (scriptutils.lua contains declaration placeholders, not runtime values).
+    offense = { "MIN_OFFENSE", "MAX_OFFENSE", 5, 14 },
+    defense = { "MIN_DEFENSE", "MAX_DEFENSE", 15, 24 },
+    utility = { "MIN_UTILITY", "MAX_UTILITY", 25, 34 },
+    power = { "MIN_POWER", "MAX_POWER", 45, 54 },
+    comm = { "MIN_COMM", "MAX_COMM", 55, 59 },
+    repair = { "MIN_REPAIR", "MAX_REPAIR", 60, 64 },
+    supply = { "MIN_SUPPLY", "MAX_SUPPLY", 65, 69 },
+    silo = { "MIN_SILO", "MAX_SILO", 70, 74 },
+    barracks = { "MIN_BARRACKS", "MAX_BARRACKS", 75, 79 },
+    guntower = { "MIN_GUNTOWER", "MAX_GUNTOWER", 80, 89 }
+}
+
+function aiCore.Team:GetNativeTeamSlotRange(key)
+    local range = key and PlayerTeamSlotRanges[key] or nil
+    if not range then return nil, nil end
+    local fallbackMinimum, fallbackMaximum = range[3], range[4]
+    local slots = rawget(_G, "TeamSlot")
+    if slots then
+        local minimum = tonumber(slots[range[1]])
+        local maximum = tonumber(slots[range[2]])
+        -- Reject the sequential values in declaration-only scriptutils stubs.
+        if minimum and maximum and maximum >= minimum
+            and (maximum - minimum) == (fallbackMaximum - fallbackMinimum) then
+            return minimum, maximum
+        end
+    end
+    return fallbackMinimum, fallbackMaximum
+end
+
+function aiCore.Team:GetNativeTeamSlotCount(key, naturalOnly)
+    local minimum, maximum = self:GetNativeTeamSlotRange(key)
+    if not minimum then return nil, nil end
+    local capacity = maximum - minimum + 1
+    if not GetTeamSlot then return nil, capacity end
+    local count = 0
+    local naturalObjects = self.naturalProducerObjects or aiCore.EmptyList
+    for slot = minimum, maximum do
+        local h = aiCore.SafeGetTeamSlot(slot, self.teamNum)
+        if h and (not naturalOnly or naturalObjects[h]) then
+            count = count + 1
+        end
+    end
+    return count, capacity
+end
+
 function aiCore.Team:GetRuleSlotCap(bucket)
+    if bucket == "offense" or bucket == "defense" or bucket == "utility" then
+        local clamp = self.Config.naturalProducerUnitClamp
+        if clamp == false then return nil end
+        if clamp == nil then clamp = 10 end -- Compatibility with saves made before this option existed.
+        if type(clamp) == "table" then clamp = clamp[bucket] end
+        clamp = tonumber(clamp)
+        if not clamp or clamp <= 0 then return nil end
+        return math.floor(clamp)
+    end
     local caps = self.Config.slotCaps or aiCore.EmptyList
     return caps[bucket]
 end
 
-function aiCore.Team:GetRuleUnitRoleCount(bucket)
+function aiCore.Team:GetRuleUnitRoleCount(bucket, excludeJob)
     if not bucket then return 0 end
 
+    local count = 0
     if bucket == "recycler" then
-        return IsValid(GetRecyclerHandle(self.teamNum)) and 1 or 0
+        count = IsValid(GetRecyclerHandle(self.teamNum)) and 1 or 0
     elseif bucket == "factory" then
-        local count = IsValid(GetFactoryHandle(self.teamNum)) and 1 or 0
-        for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do
-            if self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
-                count = count + 1
-            end
-        end
-        return count
+        count = IsValid(GetFactoryHandle(self.teamNum)) and 1 or 0
     elseif bucket == "armory" then
-        local count = IsValid(GetArmoryHandle(self.teamNum)) and 1 or 0
-        for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do
-            if self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
-                count = count + 1
-            end
-        end
-        return count
+        count = IsValid(GetArmoryHandle(self.teamNum)) and 1 or 0
     elseif bucket == "constructor" then
-        local count = IsValid(GetConstructorHandle(self.teamNum)) and 1 or 0
-        for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do
-            if self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
-                count = count + 1
+        count = IsValid(GetConstructorHandle(self.teamNum)) and 1 or 0
+    else
+        -- Only aiCore producer output consumes the optional clamp. Scripted
+        -- BuildObject waves may occupy stock slots but remain exempt here.
+        local nativeCount = self:GetNativeTeamSlotCount(bucket, true)
+        if nativeCount ~= nil then
+            count = nativeCount
+        else
+            for obj in pairs(self.naturalProducerObjects or aiCore.EmptyList) do
+                if IsValid(obj) and IsAlive(obj) and self:GetRuleUnitRoleBucketForHandle(obj) == bucket then
+                    count = count + 1
+                end
             end
         end
-        return count
     end
 
-    local count = 0
-    for _, obj in ipairs(aiCore.GetCachedTeamCraft(self.teamNum)) do
-        if IsValid(obj) and IsAlive(obj) and self:GetRuleUnitRoleBucketForHandle(obj) == bucket then
+    local reservedJobs = {}
+    for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do
+        reservedJobs[job] = true
+        if job ~= excludeJob and (not job.data or job.data.type ~= "building")
+            and self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
             count = count + 1
         end
     end
 
-    for _, job in ipairs((producer.Queue and producer.Queue[self.teamNum]) or aiCore.EmptyList) do
-        if self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
+    for proc, active in pairs(producer.Orders or aiCore.EmptyList) do
+        local job = (type(active) == "table" and active.job) or active
+        if IsValid(proc) and GetTeamNum(proc) == self.teamNum and job and not reservedJobs[job] and job ~= excludeJob
+            and (not job.data or job.data.type ~= "building")
+            and self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
             count = count + 1
         end
     end
@@ -8649,18 +9051,31 @@ end
 function aiCore.Team:GetRuleBuildingCap(key)
     if not key then return nil end
     if key == "recycler" or key == "factory" or key == "armory" or key == "constructor" then
-        return (self.Config.slotCaps or aiCore.EmptyList)[key] or 1
+        local configured = (self.Config.slotCaps or aiCore.EmptyList)[key]
+        if configured == false then return nil end
+        configured = tonumber(configured == nil and 1 or configured)
+        return (configured and configured > 0) and math.floor(configured) or nil
     end
-    return (self.Config.buildingCaps or aiCore.EmptyList)[key]
+    local configured = (self.Config.buildingCaps or aiCore.EmptyList)[key]
+    if configured == false then return nil end
+    configured = tonumber(configured)
+    local _, nativeCapacity = self:GetNativeTeamSlotCount(key)
+    if not configured then return nativeCapacity end
+    if configured <= 0 then return nil end
+    configured = math.floor(configured)
+    return nativeCapacity and math.min(configured, nativeCapacity) or configured
 end
 
-function aiCore.Team:GetRuleBuildingCount(key)
+function aiCore.Team:GetRuleBuildingCount(key, excludeJob)
     if not key then return 0 end
 
-    local count = 0
-    for _, obj in ipairs(aiCore.GetCachedTeamTargets(self.teamNum)) do
-        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) and self:GetRuleBuildingKey(GetOdf(obj), obj) == key then
-            count = count + 1
+    local nativeCount = self:GetNativeTeamSlotCount(key, true)
+    local count = nativeCount or 0
+    if nativeCount == nil then
+        for obj in pairs(self.naturalProducerObjects or aiCore.EmptyList) do
+            if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) and self:GetRuleBuildingKey(GetOdf(obj), obj) == key then
+                count = count + 1
+            end
         end
     end
 
@@ -8675,11 +9090,12 @@ function aiCore.Team:GetRuleBuildingCount(key)
     end
 
     for _, qItem in ipairs(self.constructorMgr.queue or aiCore.EmptyList) do
-        if self:GetRuleBuildingKey(qItem.odf) == key then
+        if qItem ~= excludeJob and self:GetRuleBuildingKey(qItem.odf) == key then
             count = count + 1
         end
     end
-    if self.constructorMgr.activeJob and self:GetRuleBuildingKey(self.constructorMgr.activeJob.odf) == key then
+    if self.constructorMgr.activeJob and self.constructorMgr.activeJob ~= excludeJob
+        and self:GetRuleBuildingKey(self.constructorMgr.activeJob.odf) == key then
         count = count + 1
     end
 
@@ -8695,10 +9111,30 @@ function aiCore.Team:CanQueueUnitByRules(category, odf)
     return true, nil
 end
 
+function aiCore.Team:CanIssueUnitByRules(job)
+    if not job then return true, nil end
+    local bucket = self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf)
+    local cap = self:GetRuleSlotCap(bucket)
+    if bucket and cap and self:GetRuleUnitRoleCount(bucket, job) >= cap then
+        return false, string.format("%s producer clamp %d reached", bucket, cap)
+    end
+    return true, nil
+end
+
 function aiCore.Team:CanQueueBuildingByRules(odf)
     local key = self:GetRuleBuildingKey(odf)
     local cap = self:GetRuleBuildingCap(key)
     if key and cap and self:GetRuleBuildingCount(key) >= cap then
+        return false, string.format("%s cap %d reached", key, cap)
+    end
+    return true, nil
+end
+
+function aiCore.Team:CanIssueBuildingByRules(job)
+    if not job then return true, nil end
+    local key = self:GetRuleBuildingKey(job.odf)
+    local cap = self:GetRuleBuildingCap(key)
+    if key and cap and self:GetRuleBuildingCount(key, job) >= cap then
         return false, string.format("%s cap %d reached", key, cap)
     end
     return true, nil
@@ -11380,6 +11816,7 @@ end
 
 function aiCore.Team:GetUnitCountByCategory(category)
     local count = 0
+    local naturalObjects = self.naturalProducerObjects or aiCore.EmptyList
     -- Treat 'heavy' as 'walker' and 'siege' as 'howitzer' for ODF lookup
     local effectiveCategory = category
     if category == "heavy" then
@@ -11390,9 +11827,18 @@ function aiCore.Team:GetUnitCountByCategory(category)
     local odfToMatch = aiCore.Units[self.faction][effectiveCategory]
     local seen = {}
     local function CountUnit(unit)
-        if odfToMatch and IsValid(unit) and IsAlive(unit) and not seen[unit] and IsOdf(unit, odfToMatch) then
+        if naturalObjects[unit] and odfToMatch and IsValid(unit) and IsAlive(unit)
+            and not seen[unit] and IsOdf(unit, odfToMatch) then
             seen[unit] = true
             count = count + 1
+        end
+    end
+    local function CountNaturalList(list)
+        for _, unit in ipairs(list or aiCore.EmptyList) do
+            if naturalObjects[unit] and IsValid(unit) and IsAlive(unit) and not seen[unit] then
+                seen[unit] = true
+                count = count + 1
+            end
         end
     end
 
@@ -11406,17 +11852,17 @@ function aiCore.Team:GetUnitCountByCategory(category)
             CountUnit(u)
         end
     elseif category == "siege" or category == "howitzer" then
-        count = #self.howitzers
+        CountNaturalList(self.howitzers)
     elseif category == "scavenger" then
-        count = #self.scavengers
+        CountNaturalList(self.scavengers)
     elseif category == "apc" then
-        count = #self.apcs
+        CountNaturalList(self.apcs)
     elseif category == "minelayer" then
-        count = #self.minelayers
+        CountNaturalList(self.minelayers)
     elseif category == "tower" or category == "turret" then
-        count = #self.turrets
+        CountNaturalList(self.turrets)
     elseif category == "tug" then
-        count = #self.tugHandles
+        CountNaturalList(self.tugHandles)
     end
 
     -- 2. Check Integrated Producer (Units in progress)
@@ -11425,6 +11871,13 @@ function aiCore.Team:GetUnitCountByCategory(category)
             if job.odf == odfToMatch then
                 count = count + 1
             end
+        end
+    end
+    for proc, active in pairs(producer.Orders or aiCore.EmptyList) do
+        local job = (type(active) == "table" and active.job) or active
+        if IsValid(proc) and GetTeamNum(proc) == self.teamNum and job
+            and string.lower(utility.CleanString(job.odf)) == string.lower(utility.CleanString(odfToMatch or "")) then
+            count = count + 1
         end
     end
 
@@ -11626,7 +12079,8 @@ function aiCore.Team:AddObject(h)
     end
 
     -- MODIFIED: Integrated Producer Tracking
-    if producer.ProcessCreated(h) then
+    local producedNaturally = producer.ProcessCreated(h)
+    if producedNaturally then
         if aiCore.Debug then print("aiCore: Integrated Producer -> Built " .. odf) end
     end
 
@@ -11671,6 +12125,16 @@ function aiCore.Team:AddObject(h)
             linked = true
             break
         end
+    end
+    local activeConstruction = self.constructorMgr and self.constructorMgr.activeJob or nil
+    if activeConstruction and activeConstruction.path
+        and string.lower(utility.CleanString(activeConstruction.odf)) == odf
+        and GetDistance(h, activeConstruction.path) < 60 then
+        producedNaturally = true
+    end
+    if producedNaturally or linked then
+        self.naturalProducerObjects = self.naturalProducerObjects or {}
+        self.naturalProducerObjects[h] = true
     end
 
     -- Direct Manager Handle Assignments
@@ -12070,6 +12534,11 @@ end
 
 function aiCore.DeleteObject(h)
     aiCore.UntrackWorldObject(h)
+    for _, team in pairs(aiCore.ActiveTeams or aiCore.EmptyList) do
+        if team.naturalProducerObjects then
+            team.naturalProducerObjects[h] = nil
+        end
+    end
     if aiNative then
         aiNative.ClearUnit(h)
         aiNative.UnwatchTaskState(h)

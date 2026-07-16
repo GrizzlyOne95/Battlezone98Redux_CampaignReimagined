@@ -515,8 +515,10 @@ void base_fragment(
 	// emissive texture
 	float3 emissiveTex = tex2D(emissiveMap, vTexCoord).xyz;
 #if defined(ENHANCED_MODE)
-	float emissiveMask = max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z)) > 1e-4 ? 1.0 : 0.0;
-	oColor.xyz += emissiveTex.xyz * emissiveMask;
+	// Runtime material variants drive this continuously for optional running-light
+	// pulsing. Empty craft use a zero emissive value and remain fully dark.
+	float emissiveIntensity = saturate(max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z)));
+	oColor.xyz += emissiveTex.xyz * emissiveIntensity;
 #else
 	oColor.xyz += emissiveTex.xyz;
 #endif

@@ -39,6 +39,11 @@ local RuntimeEnhancements = {
     SupportsDynamicMaterials = false,
     SupportsAutoLevel = false,
     SupportsPilotVisuals = false,
+    PilotVisualsEnabled = true,
+    EmissivePulseEnabled = false,
+    StarTwinkleEnabled = false,
+    StarTwinkleApplied = nil,
+    StarTwinkleRetryAt = 0.0,
     ResourceGroup = "General",
     DebugVisualLogging = true,
     DebugLogPath = nil,
@@ -48,6 +53,10 @@ local RuntimeEnhancements = {
 
     MaterialVariants = {},
     MaterialBaseColors = {},
+    PulseMaterials = {},
+    PulseUpdateAt = 0.0,
+    PulseUpdateInterval = 0.08,
+    PulsePeriod = 2.4,
     MaterialFailureCount = 0,
     MaterialFailureLimit = 3,
     MaterialFailureReported = false,
@@ -119,6 +128,15 @@ end
 local function BuildPassColors(baseColors, profile, occupied)
     local colors = type(baseColors) == "table" and baseColors or {}
     local baseEmissive = colors.emissive or colors.selfIllumination
+    if type(baseEmissive) ~= "table"
+        or math.max(tonumber(baseEmissive.r) or 0.0, tonumber(baseEmissive.g) or 0.0,
+            tonumber(baseEmissive.b) or 0.0) <= 0.00001 then
+        -- CR_BZBase stores the authored `$glow` value on its separate glow
+        -- technique, while technique 0 reports black self-illumination. The
+        -- material templates use white for running lights, so use that as the
+        -- occupied baseline instead of letting the pulse multiply black.
+        baseEmissive = { r = 1.0, g = 1.0, b = 1.0, a = 1.0 }
+    end
 
     local ambient = ApplyProfile(colors.ambient or colors.diffuse, profile, profile and profile.ambientScale or 1.0, 0.35, false)
     local diffuse = ApplyProfile(colors.diffuse or colors.ambient, profile, profile and profile.diffuseScale or 1.0, 0.60, true)
@@ -476,6 +494,20 @@ local function EnsureMaterialVariant(materialName, profile, occupied)
             DebugVisualLog(string.format("variant-fail material=%s base=%s clone=%s stage=SetMaterialPassColors occupied=%s", tostring(materialName), tostring(baseMaterialName), tostring(cloneName), tostring(occupied)))
             return nil
         end
+
+        -- The glow compositor renders a separate `scheme glow` technique.
+        -- Normal tint updates deliberately skip it, otherwise ambient and
+        -- diffuse team colors would make the entire craft bloom. Update only
+        -- its emissive value so empty-craft lights and the occupied pulse are
+        -- visible in the bloom mask as well as the enhanced base pass.
+        local glowColors = { emissive = DeepCopy(passColors.emissive) }
+        local okSetGlow, setGlowResult = pcall(exu.SetMaterialPassColors, cloneName, glowColors, -1, -1,
+            group, true)
+        if not okSetGlow or setGlowResult == false then
+            NoteMaterialFailure("SetMaterialPassColors(glow)", cloneName)
+            DebugVisualLog(string.format("variant-fail material=%s base=%s clone=%s stage=SetMaterialPassColors(glow) occupied=%s", tostring(materialName), tostring(baseMaterialName), tostring(cloneName), tostring(occupied)))
+            return nil
+        end
     end
 
     RuntimeEnhancements.MaterialVariants[variantKey] = cloneName
@@ -493,6 +525,21 @@ local function SupportsPilotVehicleVisuals(h)
     end
 
     return true
+end
+
+local function RegisterPulseMaterial(materialName, baseMaterialName, profile)
+    if not materialName or not baseMaterialName then
+        return
+    end
+
+    local baseColors = RuntimeEnhancements.MaterialBaseColors[baseMaterialName]
+    if type(baseColors) ~= "table" then
+        return
+    end
+
+    RuntimeEnhancements.PulseMaterials[materialName] = {
+        colors = BuildPassColors(baseColors, profile, true),
+    }
 end
 
 local function GetPilotVehicleOccupancy(h)
@@ -590,10 +637,12 @@ local function PrepareState(state)
     end
 
     for _, materialBase in ipairs(materialBases) do
+        local occupiedMaterial = EnsureMaterialVariant(materialBase.base, state.profile, true)
+        RegisterPulseMaterial(occupiedMaterial, materialBase.base, state.profile)
         materials[#materials + 1] = {
             index = materialBase.index,
             base = materialBase.base,
-            occupied = EnsureMaterialVariant(materialBase.base, state.profile, true),
+            occupied = occupiedMaterial,
             empty = state.supportsPilot and EnsureMaterialVariant(materialBase.base, state.profile, false) or nil,
         }
     end
@@ -619,7 +668,18 @@ local function ApplyStateVisuals(state)
         return
     end
 
-    local occupied, alive, aliveAndPilot = state.supportsPilot and GetPilotVehicleOccupancy(state.handle) or true, true, true
+    local occupied, alive, aliveAndPilot = true, true, true
+    if state.supportsPilot then
+        -- Keep the three return values intact. An and/or expression would
+        -- collapse the call to its first value and turn a legitimate false
+        -- occupancy result into the true fallback.
+        occupied, alive, aliveAndPilot = GetPilotVehicleOccupancy(state.handle)
+    end
+    if not RuntimeEnhancements.PilotVisualsEnabled then
+        -- Keep the normal emissive variant on every craft when the PDA option
+        -- allows empty-craft running lights.
+        occupied = true
+    end
     local desiredMode = occupied and "occupied" or "empty"
     if state.visualMode == desiredMode then
         return
@@ -641,8 +701,51 @@ local function ApplyStateVisuals(state)
     end
 
     state.visualMode = allApplied and desiredMode or nil
-    state.nextVisualRetryAt = allApplied and nil or (now + 5.0)
+    if allApplied then
+        state.nextVisualRetryAt = nil
+    else
+        state.nextVisualRetryAt = now + 5.0
+    end
     DebugVisualLog("apply-done " .. DescribeHandle(state.handle) .. string.format(" visualMode=%s allApplied=%s", tostring(state.visualMode), tostring(allApplied)))
+end
+
+local function ApplyEmissivePulse(now, force)
+    if not exu.SetMaterialPassColors then
+        return
+    end
+    if not RuntimeEnhancements.EmissivePulseEnabled and not force then
+        return
+    end
+    if not force and now < (RuntimeEnhancements.PulseUpdateAt or 0.0) then
+        return
+    end
+    RuntimeEnhancements.PulseUpdateAt = now + (RuntimeEnhancements.PulseUpdateInterval or 0.08)
+
+    local factor = 1.0
+    if RuntimeEnhancements.EmissivePulseEnabled then
+        local period = math.max(tonumber(RuntimeEnhancements.PulsePeriod) or 2.4, 0.1)
+        local phase = 0.5 + (0.5 * math.sin((now / period) * math.pi * 2.0))
+        factor = 0.72 + (0.28 * phase)
+    end
+
+    for materialName, record in pairs(RuntimeEnhancements.PulseMaterials) do
+        local base = record and record.colors
+        local baseEmissive = base and base.emissive
+        if type(baseEmissive) == "table" then
+            local emissive = DeepCopy(baseEmissive)
+            emissive.r = Clamp01((tonumber(baseEmissive.r) or 0.0) * factor)
+            emissive.g = Clamp01((tonumber(baseEmissive.g) or 0.0) * factor)
+            emissive.b = Clamp01((tonumber(baseEmissive.b) or 0.0) * factor)
+            local colors = { emissive = emissive }
+
+            local ok, result = pcall(exu.SetMaterialPassColors, materialName, colors, -1, -1,
+                RuntimeEnhancements.ResourceGroup, true)
+            if not ok or result == false then
+                pcall(exu.SetMaterialPassColors, materialName, colors, 0, 0,
+                    RuntimeEnhancements.ResourceGroup)
+            end
+        end
+    end
 end
 
 local function RefreshVisualHandleList()
@@ -873,6 +976,8 @@ function RuntimeEnhancements.ResetVisualState()
     end
 
     RuntimeEnhancements.MaterialVariants = {}
+    RuntimeEnhancements.PulseMaterials = {}
+    RuntimeEnhancements.PulseUpdateAt = 0.0
     RuntimeEnhancements.ObjectStates = {}
     RuntimeEnhancements.VisualHandles = {}
     RuntimeEnhancements.VisualHandleSet = {}
@@ -933,6 +1038,61 @@ function RuntimeEnhancements.GetTeamColorProfileName(teamNum)
     return profile and profile.name or nil
 end
 
+function RuntimeEnhancements.SetPilotVisualsEnabled(enabled)
+    local value = not not enabled
+    if RuntimeEnhancements.PilotVisualsEnabled == value then
+        return false
+    end
+
+    RuntimeEnhancements.PilotVisualsEnabled = value
+    DebugVisualLog("pilot-running-lights enabled=" .. tostring(value))
+    RuntimeEnhancements.RebuildVisuals()
+    return true
+end
+
+function RuntimeEnhancements.SetEmissivePulseEnabled(enabled)
+    local value = not not enabled
+    if RuntimeEnhancements.EmissivePulseEnabled == value then
+        return false
+    end
+
+    RuntimeEnhancements.EmissivePulseEnabled = value
+    RuntimeEnhancements.PulseUpdateAt = 0.0
+    ApplyEmissivePulse(type(GetTime) == "function" and GetTime() or 0.0, true)
+    DebugVisualLog("emissive-pulse enabled=" .. tostring(value))
+    return true
+end
+
+function RuntimeEnhancements.SetStarTwinkleEnabled(enabled)
+    local value = not not enabled
+    RuntimeEnhancements.StarTwinkleEnabled = value
+
+    if not (exu and exu.SetMaterialPassColors) then
+        RuntimeEnhancements.StarTwinkleApplied = nil
+        return false
+    end
+
+    local level = value and 1.0 or 0.0
+    local colors = { emissive = { r = level, g = level, b = level, a = 1.0 } }
+    local ok, result = pcall(exu.SetMaterialPassColors, "STARS.MAP", colors, -1, -1,
+        RuntimeEnhancements.ResourceGroup)
+    if not ok or result == false then
+        ok, result = pcall(exu.SetMaterialPassColors, "STARS.MAP", colors, 0, 0,
+            RuntimeEnhancements.ResourceGroup)
+    end
+
+    local applied = ok and result ~= false
+    if applied then
+        RuntimeEnhancements.StarTwinkleApplied = value
+    else
+        RuntimeEnhancements.StarTwinkleApplied = nil
+    end
+    RuntimeEnhancements.StarTwinkleRetryAt = applied and 0.0
+        or ((type(GetTime) == "function" and GetTime() or 0.0) + 1.0)
+    DebugVisualLog("star-twinkle enabled=" .. tostring(value) .. " applied=" .. tostring(applied))
+    return applied
+end
+
 function RuntimeEnhancements.RebuildVisuals()
     RuntimeEnhancements.Initialize()
     RuntimeEnhancements.ResetVisualState()
@@ -963,6 +1123,12 @@ function RuntimeEnhancements.Update()
 
     if RuntimeEnhancements.SupportsDynamicMaterials then
         UpdateVisualStates(now)
+        ApplyEmissivePulse(now, false)
+    end
+
+    if RuntimeEnhancements.StarTwinkleApplied ~= RuntimeEnhancements.StarTwinkleEnabled
+        and now >= (RuntimeEnhancements.StarTwinkleRetryAt or 0.0) then
+        RuntimeEnhancements.SetStarTwinkleEnabled(RuntimeEnhancements.StarTwinkleEnabled)
     end
 
     if RuntimeEnhancements.SupportsAutoLevel then

@@ -52,7 +52,7 @@ function M.Create(deps)
     end
 
     local function BuildMeterBar(label, fraction, currentValue, maxValue)
-        local width = 28
+        local width = 18
         local clamped = math.max(0.0, math.min(1.0, fraction or 0.0))
         local filled = math.floor((clamped * width) + 0.5)
         if filled > width then filled = width end
@@ -217,69 +217,74 @@ function M.Create(deps)
         return table.concat(parts, "  ")
     end
 
-    local function AppendWeaponStatsLines(lines, h, installedMask, activeMask, compareTarget, comparePosition, compareDistance)
-        local hardpointCount = 0
-        local shooterPos = type(GetPosition) == "function" and GetPosition(h) or nil
+    local function AppendWeaponStatsLines(lines, h, installedMask, activeMask)
+        local installedSlots = {}
         local currentAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(h) or nil
 
         for slot = 0, 4 do
             if IsMaskBitSet(installedMask, slot) then
                 local weapon = CleanString(GetWeaponClass(h, slot))
                 if weapon ~= "" then
-                    if hardpointCount > 0 then
-                        table.insert(lines, "")
-                    end
-                    hardpointCount = hardpointCount + 1
-                    local weaponStats = GetDisplayedWeaponStats(h, weapon, GetWeaponStats(weapon) or {}) or {}
-                    local effectiveRange = weaponStats.range
-                    local distanceForCompare = compareDistance
-                    if compareTarget and IsValid(compareTarget) then
-                        local targetPos = type(GetPosition) == "function" and GetPosition(compareTarget) or nil
-                        effectiveRange = GetEffectiveWeaponRangeMeters(weaponStats, shooterPos, targetPos) or weaponStats.range
-                        distanceForCompare = GetHorizontalDistanceBetweenHandles(h, compareTarget) or compareDistance
-                    elseif comparePosition then
-                        effectiveRange = GetEffectiveWeaponRangeMeters(weaponStats, shooterPos, comparePosition) or weaponStats.range
-                        distanceForCompare = GetHorizontalDistanceBetweenPositions(shooterPos, comparePosition) or compareDistance
-                    end
-                    local status = "  "
-                    if distanceForCompare then
-                        if effectiveRange then
-                            status = (distanceForCompare <= effectiveRange) and "+ " or "- "
-                        else
-                            status = "? "
-                        end
-                    end
-                    local rangeText = FormatWeaponRangeText(weaponStats, effectiveRange)
-
-                    table.insert(lines, string.format("S%d %s %s", slot + 1, status, weaponStats.displayName or weapon))
-                    table.insert(lines,
-                        string.format("  Range %sm  Damage %s  DPS %s", rangeText,
-                            FormatWeaponDamageText(weaponStats), FormatWeaponDpsText(weaponStats)))
-                    local shotsText = FormatWeaponShotsLeftText(weaponStats, currentAmmo)
-                    local splashText = FormatWeaponSplashText(weaponStats)
-                    if shotsText or splashText then
-                        local detailParts = {}
-                        if shotsText then
-                            detailParts[#detailParts + 1] = "SHOTS " .. shotsText
-                        end
-                        if splashText then
-                            detailParts[#detailParts + 1] = "AOE " .. splashText
-                        end
-                        table.insert(lines, "  " .. table.concat(detailParts, "  "))
-                    end
-                    local chargeSummary = BuildChargeSummaryText(weaponStats)
-                    if chargeSummary then
-                        table.insert(lines, chargeSummary)
-                    end
+                    installedSlots[#installedSlots + 1] = { slot = slot, weapon = weapon }
                 end
             end
         end
 
-        if hardpointCount == 0 then
+        if #installedSlots == 0 then
             table.insert(lines, "NONE")
+            return 0
         end
 
-        return hardpointCount
+        local selectedSlot = tonumber(InputState.pdaStatsSlot)
+        local selectedEntry = nil
+        for _, entry in ipairs(installedSlots) do
+            if entry.slot == selectedSlot then
+                selectedEntry = entry
+                break
+            end
+        end
+        if not selectedEntry then
+            for _, entry in ipairs(installedSlots) do
+                if IsMaskBitSet(activeMask, entry.slot) then
+                    selectedEntry = entry
+                    break
+                end
+            end
+        end
+        selectedEntry = selectedEntry or installedSlots[1]
+        InputState.pdaStatsSlot = selectedEntry.slot
+
+        for _, entry in ipairs(installedSlots) do
+            local weaponStats = GetDisplayedWeaponStats(h, entry.weapon, GetWeaponStats(entry.weapon) or {}) or {}
+            local cursor = entry.slot == selectedEntry.slot and ">" or " "
+            local active = IsMaskBitSet(activeMask, entry.slot) and "*" or " "
+            table.insert(lines, string.format("%s%s S%d %s", cursor, active, entry.slot + 1,
+                weaponStats.displayName or entry.weapon))
+        end
+
+        local selectedStats = GetDisplayedWeaponStats(h, selectedEntry.weapon,
+            GetWeaponStats(selectedEntry.weapon) or {}) or {}
+        local rangeText = FormatWeaponRangeText(selectedStats, selectedStats.range)
+        table.insert(lines, "")
+        table.insert(lines, string.format("DETAIL S%d", selectedEntry.slot + 1))
+        table.insert(lines, string.format("Range %sm  Damage %s  DPS %s", rangeText,
+            FormatWeaponDamageText(selectedStats), FormatWeaponDpsText(selectedStats)))
+
+        local detailParts = {}
+        local shotsText = FormatWeaponShotsLeftText(selectedStats, currentAmmo)
+        local splashText = FormatWeaponSplashText(selectedStats)
+        if shotsText then detailParts[#detailParts + 1] = "Shots " .. shotsText end
+        if splashText then detailParts[#detailParts + 1] = "Area " .. splashText end
+        if #detailParts > 0 then
+            table.insert(lines, table.concat(detailParts, "  "))
+        end
+
+        local chargeSummary = BuildChargeSummaryText(selectedStats)
+        if chargeSummary then
+            table.insert(lines, chargeSummary)
+        end
+
+        return #installedSlots
     end
 
     local function AppendTargetWeaponStatusLines(lines, h, selectedMask, compareTarget, comparePosition, compareDistance)
@@ -310,6 +315,10 @@ function M.Create(deps)
                     end
 
                     local displayName = CleanString(weaponStats.displayName or weapon)
+                    local reticle = CleanString(GetWeaponReticleName(weapon, weaponStats.currentChargeLevel))
+                    if reticle ~= "" then
+                        displayName = reticle .. "/" .. displayName
+                    end
                     table.insert(lines, string.format("S%d %-18s %s", slot + 1, displayName, status))
                 end
             end
@@ -320,38 +329,6 @@ function M.Create(deps)
         end
 
         return count
-    end
-
-    local function GetTargetPageWeaponSummary(player, selectedMask)
-        if not IsValid(player) then return nil end
-
-        local searchMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
-        if not searchMask or searchMask <= 0 then
-            return nil
-        end
-
-        local parts = {}
-        for slot = 0, 4 do
-            if IsMaskBitSet(searchMask, slot) then
-                local weapon = CleanString(GetWeaponClass(player, slot))
-                if weapon ~= "" then
-                    local displayedStats = GetDisplayedWeaponStats(player, weapon, GetWeaponStats(weapon) or {}) or {}
-                    local reticle = GetWeaponReticleName(weapon, displayedStats.currentChargeLevel)
-                    local displayName = CleanString(displayedStats.displayName or weapon)
-                    local part = string.format("S%d %s", slot + 1, displayName)
-                    if reticle and reticle ~= "" then
-                        part = string.format("S%d %s/%s", slot + 1, reticle, displayName)
-                    end
-                    parts[#parts + 1] = part
-                end
-            end
-        end
-
-        if #parts == 0 then
-            return nil
-        end
-
-        return "Weapons  " .. table.concat(parts, " | ")
     end
 
     local function DescribeAimMode(aimInfo)
@@ -388,16 +365,18 @@ function M.Create(deps)
         local installedMask = GetInstalledWeaponMask(player)
         local distanceText = targetDistance and (tostring(math.floor(targetDistance + 0.5)) .. "m") or "--"
 
-        table.insert(lines, "UNIT " .. unitName)
-        table.insert(lines, "Speed  " .. tostring(speed) .. "m/s  Distance  " .. distanceText)
+        table.insert(lines, "UNIT  " .. unitName)
+        table.insert(lines, "Speed " .. tostring(speed) .. "m/s  Target " .. distanceText)
         table.insert(lines, BuildMeterBar("HULL", playerHealth, curHealth, maxHealth))
         table.insert(lines, BuildMeterBar("AMMO", playerAmmo, curAmmo, maxAmmo))
         table.insert(lines, "")
-        table.insert(lines, "HARDPOINTS")
+        table.insert(lines, "WEAPONS  (* firing group)")
 
-        local hardpointCount = AppendWeaponStatsLines(lines, player, installedMask, mask, nil, nil, nil)
-        table.insert(lines, "TOTAL " .. tostring(hardpointCount))
-        AppendPdaNavHints(lines)
+        local hardpointCount = AppendWeaponStatsLines(lines, player, installedMask, mask)
+        if hardpointCount > 0 then
+            table.insert(lines, "Total " .. tostring(hardpointCount))
+        end
+        AppendPdaFooter(lines, "--------------------------------", "[ / ] Page  Y Close", "Up/Down Inspect Weapon")
         return table.concat(lines, "\n")
     end
 
@@ -407,32 +386,31 @@ function M.Create(deps)
         local career = summary and summary.career or {}
         local mission = summary and summary.mission or {}
 
-        table.insert(lines, "CAREER")
-        table.insert(lines, string.format("Kills   %d  Deaths %d", career.totalKills or 0, career.totalDeaths or 0))
-        table.insert(lines, string.format("SP/MP   %s kills   %s deaths",
-            FormatSummaryRatio(career.spKills or 0, career.mpKills or 0),
-            FormatSummaryRatio(career.spDeaths or 0, career.mpDeaths or 0)))
-        table.insert(lines, string.format("Class   V %d  P %d  B %d",
-            career.vehicleKills or 0, career.pilotKills or 0, career.buildingKills or 0))
-        table.insert(lines, string.format("Snipes  %d  Sniper Kills %d",
-            career.snipes or 0, career.sniperKills or 0))
-        table.insert(lines, string.format("Missions %d  W %d  L %d",
-            career.missionsPlayed or 0, career.missionsWon or 0, career.missionsLost or 0))
-
-        table.insert(lines, "")
         table.insert(lines, "CURRENT MISSION")
         table.insert(lines, string.format("ID %s", summary and summary.missionKey or "unknown_mission"))
-        table.insert(lines, string.format("Kills   %d  Deaths %d", mission.kills or 0, mission.deaths or 0))
-        table.insert(lines, string.format("Class   V %d  P %d  B %d",
+        table.insert(lines, string.format("Kills %d  Deaths %d", mission.kills or 0, mission.deaths or 0))
+        table.insert(lines, string.format("Targets  V %d  P %d  B %d",
             mission.vehicleKills or 0, mission.pilotKills or 0, mission.buildingKills or 0))
-        table.insert(lines, string.format("Snipes  %d  Sniper Kills %d",
+        table.insert(lines, string.format("Snipes %d  Sniper Kills %d",
             mission.snipes or 0, mission.sniperKills or 0))
 
-        if IsValid(player) then
-            table.insert(lines, "")
-            table.insert(lines, "PROFILE " .. tostring(summary and summary.profileKey or "offline"))
-            table.insert(lines, "CRAFT " .. (GetVehicleDisplayName(player) or "Unknown"))
-        end
+        table.insert(lines, "")
+        table.insert(lines, "CAREER TOTALS")
+        table.insert(lines, string.format("Missions %d  W %d  L %d",
+            career.missionsPlayed or 0, career.missionsWon or 0, career.missionsLost or 0))
+        table.insert(lines, string.format("Kills %d  Deaths %d", career.totalKills or 0, career.totalDeaths or 0))
+        table.insert(lines, string.format("SP/MP  K %s  D %s",
+            FormatSummaryRatio(career.spKills or 0, career.mpKills or 0),
+            FormatSummaryRatio(career.spDeaths or 0, career.mpDeaths or 0)))
+        table.insert(lines, string.format("Targets  V %d  P %d  B %d",
+            career.vehicleKills or 0, career.pilotKills or 0, career.buildingKills or 0))
+        table.insert(lines, string.format("Snipes %d  Sniper Kills %d",
+            career.snipes or 0, career.sniperKills or 0))
+
+        local profile = tostring(summary and summary.profileKey or "offline")
+        local craft = IsValid(player) and (GetVehicleDisplayName(player) or "Unknown") or "No craft"
+        table.insert(lines, "")
+        table.insert(lines, "PROFILE " .. profile .. "  |  CRAFT " .. craft)
 
         AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
@@ -444,16 +422,12 @@ function M.Create(deps)
         local target = aimInfo and aimInfo.handle or nil
         local targetDistance = aimInfo and aimInfo.distance or nil
         local aimPosition = aimInfo and aimInfo.position or nil
-        local reticleLine = GetTargetPageWeaponSummary(player, selectedMask)
 
         table.insert(lines, "MODE " .. DescribeAimMode(aimInfo))
-        if reticleLine then
-            table.insert(lines, reticleLine)
-        end
 
         if not aimInfo or not targetDistance then
-            table.insert(lines, "NO TARGET")
-            table.insert(lines, "Aim at a unit to inspect it.")
+            table.insert(lines, "")
+            table.insert(lines, "NO TARGET  Aim at a unit to inspect it.")
             AppendPdaNavHints(lines)
             return table.concat(lines, "\n")
         end
@@ -461,14 +435,12 @@ function M.Create(deps)
         if not target and aimPosition then
             local playerPos = type(GetPosition) == "function" and GetPosition(player) or nil
             local deltaY = playerPos and ((aimPosition.y or 0.0) - (playerPos.y or 0.0)) or 0.0
-            table.insert(lines, "UNIT AIM POINT")
-            table.insert(lines, "ROLE TERRAIN")
-            table.insert(lines, "Distance  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
-            table.insert(lines, "ELV  " .. tostring(math.floor(deltaY + (deltaY >= 0 and 0.5 or -0.5))) .. "m")
+            table.insert(lines, "AIM POINT  TERRAIN")
+            table.insert(lines, "Range " .. tostring(math.floor(targetDistance + 0.5)) .. "m  Elevation " ..
+                tostring(math.floor(deltaY + (deltaY >= 0 and 0.5 or -0.5))) .. "m")
             table.insert(lines,
-                string.format("POS  %d %d %d", math.floor((aimPosition.x or 0.0) + 0.5), math.floor((aimPosition.y or 0.0) + 0.5),
+                string.format("Position  %d %d %d", math.floor((aimPosition.x or 0.0) + 0.5), math.floor((aimPosition.y or 0.0) + 0.5),
                     math.floor((aimPosition.z or 0.0) + 0.5)))
-            table.insert(lines, "Reticle position")
             AppendPdaNavHints(lines)
             return table.concat(lines, "\n")
         end
@@ -485,13 +457,12 @@ function M.Create(deps)
         local selectedWeaponMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
         local _, eta = GetTargetClosureInfo(player, target, targetDistance)
 
-        table.insert(lines, "UNIT " .. unitName)
-        if role ~= "" then
-            table.insert(lines, "ROLE " .. role)
-        end
-        table.insert(lines, "Distance  " .. tostring(math.floor(targetDistance + 0.5)) .. "m")
-        table.insert(lines, "Speed  " .. tostring(speed) .. "m/s")
-        table.insert(lines, "Arrival  " .. (eta and string.format("%.1fs", eta) or "--"))
+        table.insert(lines, "UNIT  " .. unitName)
+        table.insert(lines, "TYPE  " .. (role ~= "" and role or "Unknown"))
+        table.insert(lines, "Range " .. tostring(math.floor(targetDistance + 0.5)) .. "m  Speed " ..
+            tostring(speed) .. "m/s  ETA " .. (eta and string.format("%.1fs", eta) or "--"))
+        table.insert(lines, BuildMeterBar("HULL", targetHealth, curHealth, maxHealth))
+        table.insert(lines, BuildMeterBar("AMMO", targetAmmo, curAmmo, maxAmmo))
 
         local selectedWeaponLines = {}
         local selectedWeaponCount = 0
@@ -500,16 +471,15 @@ function M.Create(deps)
                 targetDistance)
         end
         if selectedWeaponCount > 0 then
-            table.insert(lines, "SELECTED")
+            table.insert(lines, "")
+            table.insert(lines, "SELECTED WEAPONS")
             for _, line in ipairs(selectedWeaponLines) do
                 table.insert(lines, line)
             end
-            table.insert(lines, "TOTAL " .. tostring(selectedWeaponCount))
         else
-            table.insert(lines, "Weapons  None selected")
+            table.insert(lines, "")
+            table.insert(lines, "SELECTED WEAPONS  None")
         end
-        table.insert(lines, BuildMeterBar("AMMO", targetAmmo, curAmmo, maxAmmo))
-        table.insert(lines, BuildMeterBar("HULL", targetHealth, curHealth, maxHealth))
         AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
@@ -517,53 +487,67 @@ function M.Create(deps)
     local function BuildSettingsPageText()
         local lines = { BuildPdaHeader(PdaPages.SETTINGS) }
         local settingsEntries = (GetSettingsPageEntries and GetSettingsPageEntries()) or {}
-        local count = math.max(#settingsEntries, 1)
-        local selection = ClampIndex(InputState.pdaSettingsIndex, 1, count, 1)
-        local visibleRows = 10
-        local startIndex = math.max(1, math.min(selection - math.floor(visibleRows / 2), math.max(1, count - visibleRows + 1)))
-        local endIndex = math.min(count, startIndex + visibleRows - 1)
+        local selection = ClampIndex(InputState.pdaSettingsIndex, 1, math.max(#settingsEntries, 1), 1)
         local labelWidth = 0
-        local selectableCount = 0
-        local selectedOrdinal = 0
 
         if #settingsEntries == 0 then
-            table.insert(lines, "Item 00/00")
             table.insert(lines, "No settings available")
         else
+            if settingsEntries[selection] and settingsEntries[selection].selectable == false then
+                selection = math.min(selection + 1, #settingsEntries)
+                InputState.pdaSettingsIndex = selection
+            end
+
+            local sections = {}
             for index = 1, #settingsEntries do
                 local entry = settingsEntries[index]
-                if entry and entry.selectable ~= false then
-                    selectableCount = selectableCount + 1
-                    if index == selection then
-                        selectedOrdinal = selectableCount
+                if entry and entry.selectable == false then
+                    if #sections > 0 then
+                        sections[#sections].finish = index - 1
                     end
+                    sections[#sections + 1] = {
+                        label = entry.label or "Options",
+                        start = index + 1,
+                        finish = #settingsEntries,
+                    }
                 end
             end
-            table.insert(lines, string.format("Item %02d/%02d", selectedOrdinal, selectableCount))
 
-            for index = startIndex, endIndex do
-                local entry = settingsEntries[index]
-                if entry and entry.selectable ~= false then
-                    labelWidth = math.max(labelWidth, #(entry.label or ""))
+            local sectionIndex = 1
+            for index, section in ipairs(sections) do
+                if selection >= section.start and selection <= section.finish then
+                    sectionIndex = index
+                    break
                 end
+            end
+            local section = sections[sectionIndex] or { label = "Options", start = 1, finish = #settingsEntries }
+            local itemCount = math.max(0, section.finish - section.start + 1)
+            local itemOrdinal = math.max(1, selection - section.start + 1)
+
+            table.insert(lines, string.format("%s  %d/%d", string.upper(section.label), itemOrdinal, itemCount))
+            table.insert(lines, "")
+
+            for index = section.start, section.finish do
+                labelWidth = math.max(labelWidth, #((settingsEntries[index] and settingsEntries[index].label) or ""))
             end
             labelWidth = ClampRange(labelWidth, 8, 20, 12)
 
-            for index = startIndex, endIndex do
+            for index = section.start, section.finish do
                 local entry = settingsEntries[index]
-                if entry and entry.selectable == false then
-                    table.insert(lines, string.format("  [%s]", entry.label or "Section"))
-                else
+                if entry then
                     local prefix = (selection == index) and ">" or ((entry and entry.warning) and "!" or " ")
                     table.insert(lines, string.format("%s %-" .. tostring(labelWidth) .. "s %s", prefix, entry.label, entry.value))
                 end
             end
+
+            AppendPdaFooter(lines,
+                "--------------------------------",
+                string.format("Category %d/%d  [ / ] Page", sectionIndex, #sections),
+                "Up/Down Select  Left/Right Change")
+            return table.concat(lines, "\n")
         end
 
-        AppendPdaFooter(lines,
-            "--------------------------------",
-            string.format("Show %02d-%02d/%02d  [ / ] Page", startIndex, endIndex, count),
-            "Up/Down Select  Left/Right Change")
+        AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
 
@@ -660,9 +644,8 @@ function M.Create(deps)
         end
 
         table.insert(lines, "")
-        table.insert(lines, "Preset applies after build.")
-        table.insert(lines, "No refunds for downgrades.")
-        AppendPdaFooter(lines, "--------------------------------", "Enter Action  [ / ] Switch Page",
+        table.insert(lines, "Applies after build  |  No downgrade refund")
+        AppendPdaFooter(lines, "--------------------------------", "Enter Action  [ / ] Page",
             "Up/Down Select  Left/Right Change")
         return table.concat(lines, "\n")
     end
@@ -713,16 +696,13 @@ function M.Create(deps)
 
         local stats = overview.stats or {}
         local counts = stats.counts or {}
-        table.insert(lines, "Commander Overview")
-        table.insert(lines, string.format("HANGAR   %d", counts.hangar or 0))
-        table.insert(lines, string.format("SUPPLY   %d", counts.supply or 0))
-        table.insert(lines, string.format("COMM     %d", counts.comm or 0))
-        table.insert(lines, string.format("SILO     %d", counts.silo or 0))
-        table.insert(lines, string.format("BARRACKS %d", counts.barracks or 0))
-        table.insert(lines, string.format("TOWER    %d", counts.turret or 0))
+        table.insert(lines, "STRUCTURES")
+        table.insert(lines, string.format("Hangars %d  |  Supply %d", counts.hangar or 0, counts.supply or 0))
+        table.insert(lines, string.format("Comm %d     |  Silos %d", counts.comm or 0, counts.silo or 0))
+        table.insert(lines, string.format("Barracks %d |  Towers %d", counts.barracks or 0, counts.turret or 0))
         table.insert(lines, "")
-        table.insert(lines, string.format("UNPOWERED TOWERS %d", stats.unpoweredTurrets or 0))
-        table.insert(lines, string.format("UNPOWERED COMM   %d", stats.unpoweredComm or 0))
+        table.insert(lines, "POWER WARNINGS")
+        table.insert(lines, string.format("Towers %d  |  Comm %d", stats.unpoweredTurrets or 0, stats.unpoweredComm or 0))
         AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end

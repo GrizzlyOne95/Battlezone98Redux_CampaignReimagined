@@ -116,24 +116,26 @@ function DiffUtils.Get()
             minelayer = ({ 0, 1, 2, 3, 4 })[d + 1]
         },
 
-        -- Player-rule caps, optionally handicapped on lower difficulties.
+        -- Stock player command-slot capacities. Difficulty-specific composition
+        -- limits remain in unitCaps; aiCore's naturalProducerUnitClamp can be
+        -- set to false per mission without affecting scripted BuildObject waves.
         slotCaps = {
-            offense = ({ 6, 8, 10, 10, 10 })[d + 1],
-            defense = ({ 6, 8, 10, 10, 10 })[d + 1],
-            utility = ({ 6, 8, 10, 10, 10 })[d + 1],
+            offense = 10,
+            defense = 10,
+            utility = 10,
             recycler = 1,
             factory = 1,
             armory = 1,
             constructor = 1
         },
         buildingCaps = {
-            power = ({ 4, 5, 6, 7, 7 })[d + 1],
-            comm = ({ 3, 4, 5, 6, 7 })[d + 1],
-            repair = ({ 3, 4, 5, 6, 7 })[d + 1],
-            supply = ({ 3, 4, 5, 6, 7 })[d + 1],
-            silo = ({ 4, 5, 6, 7, 7 })[d + 1],
-            barracks = ({ 2, 3, 4, 5, 6 })[d + 1],
-            guntower = ({ 4, 5, 6, 7, 7 })[d + 1]
+            power = 10,
+            comm = 5,
+            repair = 5,
+            supply = 5,
+            silo = 5,
+            barracks = 5,
+            guntower = 10
         }
     }
     return m

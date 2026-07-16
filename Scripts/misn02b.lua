@@ -18,6 +18,7 @@ local PlayerPilotMode = require("PlayerPilotMode")
 local LABEL_BSCAV = "misn02b_bscav"
 local LABEL_BSCOUT = "misn02b_bscout"
 local LABEL_SCAV2 = "misn02b_scav2"
+local STOCK_PLAYER_START = { x = 3898.14, y = 108.9, z = 99443.6 }
 local RefreshHandlesAfterLoad
 
 local difficulty = 2
@@ -334,7 +335,7 @@ function AddObject(h)
             M.found2 = true
             M.bscout = h
             if SetLabel then SetLabel(M.bscout, LABEL_BSCOUT) end
-            Goto(M.bscout, "M.patrol1")
+            Goto(M.bscout, "patrol1")
             SetObjectiveOn(M.bscout)
         else
             if IsAlive(M.bscav) and IsAlive(M.bgoal) and GetDistance(M.bscav, M.bgoal) < 200.0 then
@@ -400,6 +401,10 @@ function Update()
     end
 
     if not M.start_done then
+        if IsAlive(player) then
+            SetPosition(player, STOCK_PLAYER_START)
+        end
+
         --[[
         -- Available AI Configuration Flags (Reference from aiCore.lua):
         -- flags marked [Diff] are managed by DiffUtils:SetupTeams() based on difficulty.
@@ -605,7 +610,7 @@ function Update()
         M.wave_timer = GetTime() + 30.0
     end
 
-    if M.message5 and not M.message3 and GetTime() > M.wave_timer then
+    if M.message5 and GetTime() > M.wave_timer then
         for i = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn2") end
         M.wave_timer = GetTime() + DiffUtils.ScaleTimer(45.0)
     end
