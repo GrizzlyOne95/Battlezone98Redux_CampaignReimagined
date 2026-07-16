@@ -7,6 +7,7 @@ local RuntimeEnhancements = require("RuntimeEnhancements")
 local ConservativeCulling = require("ConservativeCulling")
 local CareerStats = require("CareerStats")
 local LogPaths = require("LogPaths")
+local PersistentConfigData = require("PersistentConfigData")
 
 local PersistentConfig = {}
 PersistentConfig.D = require("PersistentConfigD")
@@ -82,6 +83,9 @@ PersistentConfig.DefaultSettings = {
     HeadlightVisible = true,
     SubtitlesEnabled = true,
     OtherHeadlightsDisabled = true, -- AI Lights Off by default
+    EmptyCraftLightsEnabled = false, -- Empty craft emissive/running lights off by default
+    EmissivePulseEnabled = false,   -- Gradual occupied-craft emissive pulse
+    StarTwinkleEnabled = false,     -- Ogre shader star brightness animation
     AutoRepairWingmen = true,       -- Auto-repair wingmen on by default
     RainbowMode = false,            -- Special color effect
     ScavengerAssistEnabled = false, -- Auto-scavenge for player scavengers
@@ -100,7 +104,7 @@ PersistentConfig.DefaultSettings = {
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
     TeamColorPreset = 1,            -- 1=Default 2+=runtime team 1 tint presets
     UnderAttackAlertMode = 3,       -- 1=None 2=Spaced Out 3=Default
-    TargetReticlePopupMode = 1,     -- 1=Default 3=Explicit Only (legacy 2 downgrades to Default)
+    TargetReticlePopupMode = 1,     -- 1=Default 2=Neutral Only 3=Explicit Only
     ScrapPilotHudLayout = 1,        -- 1=Stock 2=Legacy
     RadarSizeScale = 1.00,          -- Independent radar size scale
     DynamicFactionFlameColors = true, -- Team flame colors from faction nation codes
@@ -114,21 +118,9 @@ PersistentConfig.DefaultSettings = {
 
 PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
 
-local PdaPages = {
-    STATS = 1,
-    CAREER = 2,
-    TARGET = 3,
-    SETTINGS = 4,
-    PRESETS = 5,
-    QUEUE = 6,
-    COMMAND = 7,
-    COUNT = 7,
-}
-
-local PresetProducerKinds = {
-    [1] = { name = "RECYCLER", getter = GetRecyclerHandle, short = "REC" },
-    [2] = { name = "FACTORY", getter = GetFactoryHandle, short = "FAC" },
-}
+local PdaPages = PersistentConfigData.PdaPages
+local PdaNavigationGroups = PersistentConfigData.PdaNavigationGroups
+local PresetProducerKinds = PersistentConfigData.PresetProducerKinds
 
 PersistentConfig.PresetConfig = {
     surcharge = {
@@ -219,7 +211,8 @@ PersistentConfig.UnitVerbosityPresets = {
 
 PersistentConfig.TargetReticlePopupPresets = {
     [1] = { name = "DEFAULT", mode = 1 },
-    [2] = { name = "EXPLICIT ONLY", mode = 3 },
+    [2] = { name = "NEUTRAL ONLY", mode = 2 },
+    [3] = { name = "EXPLICIT ONLY", mode = 3 },
 }
 
 PersistentConfig.UnderAttackAlertPresets = {
@@ -973,8 +966,10 @@ function PersistentConfig._GetTeamColorPreset()
 end
 
 function PersistentConfig._GetTargetReticlePopupPresetIndex()
-    if PersistentConfig.Settings.TargetReticlePopupMode == 3 then
+    if PersistentConfig.Settings.TargetReticlePopupMode == 2 then
         return 2
+    elseif PersistentConfig.Settings.TargetReticlePopupMode == 3 then
+        return 3
     end
     return 1
 end
@@ -1268,25 +1263,29 @@ local function LegacyPresetFromScale(scale)
 end
 
 local function BuildPdaHeader(activePage)
-    local labels = {
-        [PdaPages.STATS] = "Stats",
-        [PdaPages.CAREER] = "Career",
-        [PdaPages.TARGET] = "Target",
-        [PdaPages.SETTINGS] = "Settings",
-        [PdaPages.PRESETS] = "Presets",
-        [PdaPages.QUEUE] = "Queue",
-        [PdaPages.COMMAND] = "Command",
-    }
-    local parts = {}
-    for page = 1, PdaPages.COUNT do
-        local label = labels[page]
-        if page == activePage then
-            table.insert(parts, "[" .. label .. "]")
-        else
-            table.insert(parts, label)
+    local categoryParts = {}
+    local activeGroup = PdaNavigationGroups[1]
+
+    for _, group in ipairs(PdaNavigationGroups) do
+        local groupActive = false
+        for _, entry in ipairs(group.pages) do
+            if entry.page == activePage then
+                groupActive = true
+                activeGroup = group
+                break
+            end
         end
+
+        categoryParts[#categoryParts + 1] = groupActive and ("[" .. group.label .. "]") or group.label
     end
-    return "**Battlezone PDA**\n" .. table.concat(parts, " ")
+
+    local pageParts = {}
+    for _, entry in ipairs(activeGroup.pages) do
+        pageParts[#pageParts + 1] = entry.page == activePage and ("[" .. entry.label .. "]") or entry.label
+    end
+
+    return "**BATTLEZONE PDA**\n" .. table.concat(categoryParts, "  ") ..
+        "\n" .. activeGroup.label .. "  " .. table.concat(pageParts, "  ")
 end
 
 local function FormatHotkeyValue(value, key)
@@ -1372,12 +1371,12 @@ function PersistentConfig._GetAutoSaveOverlayLayout(pixelMode)
         local charHeight = math.max(18, math.floor(18 * uiScaleFactor * compactFontScale))
         local panelHeight = math.max(42, math.floor(charHeight * 2.1))
         return {
-            panelX = horizontalMargin,
+            panelX = math.max(horizontalMargin, math.floor((width - wrapWidth) * 0.5)),
             panelY = math.max(12, height - panelHeight - verticalMargin),
             wrapWidth = wrapWidth,
             panelHeight = panelHeight,
             charHeight = charHeight,
-            textOffsetX = math.max(8, math.floor(charHeight * 0.45)),
+            textOffsetX = math.floor(wrapWidth * 0.5),
             textOffsetY = math.max(5, math.floor(charHeight * 0.24)),
         }
     end
@@ -1388,12 +1387,12 @@ function PersistentConfig._GetAutoSaveOverlayLayout(pixelMode)
     local panelHeight = math.min(0.060, math.max(0.036, charHeight * 2.1))
 
     return {
-        panelX = 0.018,
+        panelX = math.max(0.018, (1.0 - wrapWidth) * 0.5),
         panelY = math.max(0.90, 0.97 - panelHeight),
         wrapWidth = wrapWidth,
         panelHeight = panelHeight,
         charHeight = charHeight,
-        textOffsetX = 0.006,
+        textOffsetX = wrapWidth * 0.5,
         textOffsetY = 0.003,
     }
 end
@@ -1545,6 +1544,9 @@ function PersistentConfig._TryCreateExperimentalOverlay()
     SafeCall(exu.SetOverlayMetricsMode, ids.text, metricsMode)
     SafeCall(exu.SetOverlayPosition, ids.text, layout.textOffsetX or 0.010, layout.textOffsetY or 0.006)
     SafeCall(exu.SetOverlayDimensions, ids.text, layout.wrapWidth, layout.panelHeight)
+    if exu.SetOverlayParameter then
+        SafeCall(exu.SetOverlayParameter, ids.text, "alignment", "center")
+    end
     local fontBindFailed = false
     if PersistentConfig.ExperimentalOverlayUseCustomFont then
         if SafeCall(exu.SetOverlayTextFont, ids.text, PersistentConfig.ExperimentalOverlayFont) ~= true then
@@ -1651,7 +1653,7 @@ function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
     end
 
     PersistentConfig.ExperimentalOverlayVisible = true
-    PersistentConfig.ExperimentalOverlayExpireAt = GetTime() + math.max(tonumber(duration) or 3.0, 0.1)
+    PersistentConfig.ExperimentalOverlayExpireAt = GetTime() + math.max(tonumber(duration) or 5.0, 0.1)
     Log(string.format("PersistentConfig: Autosave overlay shown text=%q font=%s panelMaterial=CR_UI pos=(%.3f,%.3f) size=(%.3f,%.3f) debugBox=%s",
         msg, PersistentConfig.ExperimentalOverlayUseCustomFont and tostring(PersistentConfig.ExperimentalOverlayFont) or "disabled",
         layout.panelX, layout.panelY, layout.wrapWidth, layout.panelHeight,
@@ -1817,9 +1819,9 @@ function PersistentConfig._SplitPdaOverlaySections(rawText)
 
     local title = lines[1] or "BATTLEZONE PDA"
     title = title:gsub("^%*%*(.-)%*%*$", "%1")
-    local tabs = lines[2] or ""
+    local tabs = table.concat({ lines[2] or "", lines[3] or "" }, "\n")
     local footer = ""
-    local bodyStart = 3
+    local bodyStart = 4
     local bodyEnd = #lines
 
     if #lines >= 6 and lines[#lines - 3] == "" then
@@ -2812,6 +2814,7 @@ InputState = {
     missionEnded = false,
     missionEndCleanupDone = false,
     pdaPage = PdaPages.STATS,
+    pdaStatsSlot = 0,
     pdaSettingsIndex = 1,
     presetProducerIndex = 1,
     presetUnitIndex = 1,
@@ -5539,6 +5542,9 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     local needsApplySettings = options and (
         options.applySettings or
         options.applyHeadlights or
+        options.applyPilotVisuals or
+        options.applyEmissivePulse or
+        options.applyStarTwinkle or
         options.applyTeamColors or
         options.applyUnderAttackAlert or
         options.applyTargetReticle or
@@ -5923,7 +5929,7 @@ GetSettingsPageEntries = function()
     end
 
     return {
-        Section("Display"),
+        Section("Interface"),
         {
             label = "PDA Size",
             value = FormatScale(PersistentConfig.Settings.PdaFontScale, PersistentConfig.FontScale.pda.min,
@@ -5984,6 +5990,7 @@ GetSettingsPageEntries = function()
                 return PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(DirectionEnabled(delta))
             end,
         },
+        Section("Lighting"),
         {
             label = "Lighting Mode",
             value = PersistentConfig._GetLightingModePreset().name,
@@ -6014,13 +6021,62 @@ GetSettingsPageEntries = function()
             end,
         },
         {
+            label = "Empty Craft Lights",
+            value = PersistentConfig.Settings.EmptyCraftLightsEnabled and "On" or "Off",
+            adjust = function(delta)
+                local value = DirectionEnabled(delta)
+                if PersistentConfig.Settings.EmptyCraftLightsEnabled == value then
+                    return false
+                end
+                PersistentConfig.Settings.EmptyCraftLightsEnabled = value
+                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyPilotVisuals = true })
+                ShowSettingsFeedback("Empty Craft Lights: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+                return true
+            end,
+        },
+        {
+            label = "Light Pulse",
+            value = PersistentConfig.Settings.EmissivePulseEnabled and "On" or "Off",
+            adjust = function(delta)
+                local value = DirectionEnabled(delta)
+                if PersistentConfig.Settings.EmissivePulseEnabled == value then
+                    return false
+                end
+                PersistentConfig.Settings.EmissivePulseEnabled = value
+                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyEmissivePulse = true })
+                ShowSettingsFeedback("Light Pulse: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+                return true
+            end,
+        },
+        {
+            label = "Star Twinkle",
+            value = PersistentConfig.Settings.StarTwinkleEnabled and "On" or "Off",
+            adjust = function(delta)
+                local value = DirectionEnabled(delta)
+                if PersistentConfig.Settings.StarTwinkleEnabled == value then
+                    return false
+                end
+                PersistentConfig.Settings.StarTwinkleEnabled = value
+                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyStarTwinkle = true })
+                ShowSettingsFeedback("Star Twinkle: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+                return true
+            end,
+        },
+        {
             label = "Beam",
             value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightBeamMode == 1 and "Focused" or "Wide", "B"),
             adjust = function(delta)
                 return PersistentConfig._SettingsActions.CycleHeadlightBeamMode(delta)
             end,
         },
-        Section("Audio / Feedback"),
+        {
+            label = "Faction Flames",
+            value = PersistentConfig.Settings.DynamicFactionFlameColors and "On" or "Off",
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(DirectionEnabled(delta))
+            end,
+        },
+        Section("Audio & Alerts"),
         {
             label = "Attack Beep",
             value = PersistentConfig._GetUnderAttackAlertPreset().name,
@@ -6070,7 +6126,7 @@ GetSettingsPageEntries = function()
                 return true
             end,
         },
-        Section("Gameplay"),
+        Section("Assistance"),
         {
             label = "Wingman Repair",
             value = FormatHotkeyValue(PersistentConfig.Settings.AutoRepairWingmen and "On" or "Off", "X"),
@@ -6099,14 +6155,7 @@ GetSettingsPageEntries = function()
                 return PersistentConfig._SetPilotModeEnabled(DirectionEnabled(delta))
             end,
         },
-        {
-            label = "Faction Flames",
-            value = PersistentConfig.Settings.DynamicFactionFlameColors and "On" or "Off",
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(DirectionEnabled(delta))
-            end,
-        },
-        Section("AutoSave"),
+        Section("Saves"),
         {
             key = "autosave_interval",
             label = "Auto Interval",
@@ -6257,6 +6306,12 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.UnitVerbosity = tonumber(val) or 1
                 elseif key == "OtherHeadlightsDisabled" then
                     PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
+                elseif key == "EmptyCraftLightsEnabled" then
+                    PersistentConfig.Settings.EmptyCraftLightsEnabled = (val == "true")
+                elseif key == "EmissivePulseEnabled" then
+                    PersistentConfig.Settings.EmissivePulseEnabled = (val == "true")
+                elseif key == "StarTwinkleEnabled" then
+                    PersistentConfig.Settings.StarTwinkleEnabled = (val == "true")
                 elseif key == "AutoRepairWingmen" then
                     PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
                 elseif key == "RainbowMode" then
@@ -6430,6 +6485,9 @@ function PersistentConfig.SaveConfig()
         f:Writeln("SubtitlesEnabled=" .. tostring(PersistentConfig.Settings.SubtitlesEnabled))
         f:Writeln("UnitVerbosity=" .. tostring(PersistentConfig.Settings.UnitVerbosity))
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
+        f:Writeln("EmptyCraftLightsEnabled=" .. tostring(PersistentConfig.Settings.EmptyCraftLightsEnabled))
+        f:Writeln("EmissivePulseEnabled=" .. tostring(PersistentConfig.Settings.EmissivePulseEnabled))
+        f:Writeln("StarTwinkleEnabled=" .. tostring(PersistentConfig.Settings.StarTwinkleEnabled))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
         f:Writeln("AutoSaveEnabled=" .. tostring(PersistentConfig.Settings.AutoSaveEnabled))
@@ -6495,6 +6553,16 @@ end
 
 function PersistentConfig.ApplySettings(options)
     local applyAll = not options
+
+    if applyAll or (options and options.applyPilotVisuals) then
+        RuntimeEnhancements.SetPilotVisualsEnabled(not PersistentConfig.Settings.EmptyCraftLightsEnabled)
+    end
+    if applyAll or (options and options.applyEmissivePulse) then
+        RuntimeEnhancements.SetEmissivePulseEnabled(PersistentConfig.Settings.EmissivePulseEnabled)
+    end
+    if applyAll or (options and options.applyStarTwinkle) then
+        RuntimeEnhancements.SetStarTwinkleEnabled(PersistentConfig.Settings.StarTwinkleEnabled)
+    end
 
     if exu then
         local h = GetPlayerHandle()
@@ -6853,7 +6921,31 @@ function PersistentConfig.UpdateInputs()
     local pda_right_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
     local enterPressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
 
-    if InputState.pdaPage == PdaPages.SETTINGS then
+    if InputState.pdaPage == PdaPages.STATS then
+        local installedSlots = {}
+        if IsValid(currentPlayerHandle) then
+            local installedMask = GetInstalledWeaponMask(currentPlayerHandle)
+            for slot = 0, 4 do
+                if IsMaskBitSet(installedMask, slot) and CleanString(GetWeaponClass(currentPlayerHandle, slot)) ~= "" then
+                    installedSlots[#installedSlots + 1] = slot
+                end
+            end
+        end
+
+        if (pda_up_key or pda_down_key) and #installedSlots > 0 then
+            local currentIndex = 1
+            for index, slot in ipairs(installedSlots) do
+                if slot == InputState.pdaStatsSlot then
+                    currentIndex = index
+                    break
+                end
+            end
+            currentIndex = CycleIndex(currentIndex, #installedSlots, pda_up_key and -1 or 1, 1)
+            InputState.pdaStatsSlot = installedSlots[currentIndex]
+            PlayPdaSound("mnu_clik.wav")
+            RefreshPdaOverlay()
+        end
+    elseif InputState.pdaPage == PdaPages.SETTINGS then
         local settingsEntries = GetSettingsPageEntries()
         local settingsCount = math.max(#settingsEntries, 1)
         InputState.pdaSettingsIndex = NormalizeSettingsSelection(settingsEntries, InputState.pdaSettingsIndex)

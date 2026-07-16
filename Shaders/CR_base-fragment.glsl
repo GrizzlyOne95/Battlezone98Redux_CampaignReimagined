@@ -420,8 +420,10 @@ void main()
 	//emissive texture
 	vec3 emissiveTex = texture2D(emissiveMap, vTexCoord).xyz;
 #if defined(ENHANCED_MODE)
-	float emissiveMask = step(1e-4, max(max(materialEmissive.x, materialEmissive.y), materialEmissive.z));
-	oColor.xyz += emissiveTex.xyz * emissiveMask;
+	// Runtime material variants drive this continuously for optional running-light
+	// pulsing. Empty craft use a zero emissive value and remain fully dark.
+	float emissiveIntensity = clamp(max(max(materialEmissive.x, materialEmissive.y), materialEmissive.z), 0.0, 1.0);
+	oColor.xyz += emissiveTex.xyz * emissiveIntensity;
 #else
 	oColor.xyz += emissiveTex.xyz;
 #endif

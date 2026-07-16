@@ -4,7 +4,7 @@
 local bzfile = require("bzfile")
 
 local AutoSave = {}
-local AUTOSAVE_SUBTITLE_DURATION = 3.0
+local AUTOSAVE_SUBTITLE_DURATION = 5.0
 local AUTOSAVE_INITIAL_DELAY_SECONDS = 10.0
 local SUBTITLE_FONT_SCALE_MIN = 0.85
 local SUBTITLE_FONT_SCALE_MAX = 2.00

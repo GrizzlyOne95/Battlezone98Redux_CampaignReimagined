@@ -1,16 +1,50 @@
 -- PersistentConfigData.lua
 ---@diagnostic disable: lowercase-global, undefined-global
 
+local PdaPages = {
+    STATS = 1,
+    TARGET = 2,
+    CAREER = 3,
+    COMMAND = 4,
+    QUEUE = 5,
+    PRESETS = 6,
+    SETTINGS = 7,
+    COUNT = 7,
+}
+
 return {
-    PdaPages = {
-        STATS = 1,
-        CAREER = 2,
-        TARGET = 3,
-        SETTINGS = 4,
-        PRESETS = 5,
-        QUEUE = 6,
-        COMMAND = 7,
-        COUNT = 7,
+    PdaPages = PdaPages,
+
+    -- Page order follows the player's normal decision flow: inspect combat
+    -- state, review records, manage production, then adjust the system.
+    PdaNavigationGroups = {
+        {
+            label = "COMBAT",
+            pages = {
+                { page = PdaPages.STATS, label = "UNIT" },
+                { page = PdaPages.TARGET, label = "TARGET" },
+            },
+        },
+        {
+            label = "RECORDS",
+            pages = {
+                { page = PdaPages.CAREER, label = "CAREER" },
+            },
+        },
+        {
+            label = "LOGISTICS",
+            pages = {
+                { page = PdaPages.COMMAND, label = "BASE" },
+                { page = PdaPages.QUEUE, label = "QUEUE" },
+                { page = PdaPages.PRESETS, label = "LOADOUT" },
+            },
+        },
+        {
+            label = "SYSTEM",
+            pages = {
+                { page = PdaPages.SETTINGS, label = "OPTIONS" },
+            },
+        },
     },
 
     PresetProducerKinds = {
