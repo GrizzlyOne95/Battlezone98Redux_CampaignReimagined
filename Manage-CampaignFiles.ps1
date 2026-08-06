@@ -711,6 +711,63 @@ function Escape-VdfValue($text) {
     return ($text -replace '"', '\"')
 }
 
+# Prepares free-text (description, changenote) for a KeyValues quoted value.
+#
+# SteamCMD's KeyValues parser does NOT process escape sequences in this file.
+# Writing \" does not produce a quote -- the backslash is literal and the quote
+# still closes the value, after which the parser hits the closing brace and
+# fails with "got } in key in file workshopitem". Backslash escaping is wrong
+# for the same reason: \\ would show up as two backslashes in the published
+# text, and single backslashes (as in a Windows path) already pass through
+# untouched, which is why the contentfolder value works.
+#
+# Raw newlines inside a quoted value ARE legal and are preserved, so multi-line
+# descriptions need no transformation. The one character that cannot survive is
+# a literal double quote; those become apostrophes, which keeps the file plain
+# ASCII and renders sensibly in BBCode. Callers are told when it happens so the
+# substitution is never silent.
+function Escape-VdfText($text) {
+    if ($null -eq $text) { return "" }
+
+    $quoteCount = ([regex]::Matches($text, '"')).Count
+    if ($quoteCount -gt 0) {
+        Write-Host ("Note: replaced $quoteCount double quote(s) with apostrophes; " +
+            "SteamCMD's VDF parser cannot represent them.") -ForegroundColor DarkYellow
+    }
+
+    return ($text -replace '"', "'")
+}
+
+# Steam rejects descriptions past this length.
+$script:WorkshopDescriptionMaxLength = 8000
+
+# Resolves the description text that should be sent with an upload, from either
+# DescriptionFile or an inline Description. Returns $null when neither is set.
+# Throws when a configured file is missing or unusable, because silently
+# uploading without the description is exactly the failure this replaced.
+function Get-WorkshopDescriptionText {
+    param($Config)
+
+    if ($Config.DescriptionFile) {
+        if (-not (Test-Path -LiteralPath $Config.DescriptionFile)) {
+            throw "DescriptionFile not found: $($Config.DescriptionFile)"
+        }
+
+        $text = Get-Content -LiteralPath $Config.DescriptionFile -Raw
+        if ([string]::IsNullOrWhiteSpace($text)) {
+            throw "DescriptionFile is empty: $($Config.DescriptionFile)"
+        }
+
+        return $text.TrimEnd()
+    }
+
+    if ($Config.Description) {
+        return [string]$Config.Description
+    }
+
+    return $null
+}
+
 function Test-PathInsideDirectory {
     param(
         [string]$Candidate,
@@ -945,15 +1002,48 @@ function Write-WorkshopVdf {
     $lines += "  `"contentfolder`" `"$([string](Escape-VdfValue $Config.ContentFolder))`""
 
     if ($Config.PreviewFile) { $lines += "  `"previewfile`" `"$([string](Escape-VdfValue $Config.PreviewFile))`"" }
-    if ($Config.Visibility) { $lines += "  `"visibility`" `"$([string]$Config.Visibility)`"" }
+
+    # Explicit $null test, not a truthiness test: public is visibility 0, and
+    # `if (0)` is false in PowerShell, so a configured 0 used to be dropped and
+    # no visibility key was written at all.
+    #
+    # That mattered more than it looks. An upload that does not state a
+    # visibility leaves the item hidden, and a hidden item rejects the NEXT
+    # upload at the commit step with nothing but "Failed to update workshop item
+    # (Access Denied)". Pinning it here makes each publish reassert the intended
+    # visibility instead of silently taking the item off the Workshop.
+    # 0 = public, 1 = friends only, 2 = private, 3 = unlisted.
+    if ($null -ne $Config.Visibility -and "$($Config.Visibility)".Trim() -ne "") {
+        $lines += "  `"visibility`" `"$([string]$Config.Visibility)`""
+        Write-Host "Visibility: publishing as $($Config.Visibility) (0=public, 1=friends, 2=private, 3=unlisted)." -ForegroundColor DarkGray
+    }
+    else {
+        Write-Host ("Warning: no Visibility configured. SteamCMD leaves the item HIDDEN after " +
+            "upload, which makes the next upload fail with Access Denied. Set Visibility in " +
+            "workshop.config.json.") -ForegroundColor Yellow
+    }
     if ($Config.Title) { $lines += "  `"title`" `"$([string](Escape-VdfValue $Config.Title))`"" }
-    if ($Config.DescriptionFile) {
-        $lines += "  `"descriptionfile`" `"$([string](Escape-VdfValue $Config.DescriptionFile))`""
+    # "description" is the only description key workshop_build_item understands.
+    # This used to emit "descriptionfile" with a path whenever DescriptionFile
+    # was configured, which SteamCMD does not recognise: it discarded the key,
+    # reported "Committing update...Success.", updated the content, and left the
+    # description untouched. Read the file and inline it instead.
+    $descriptionText = Get-WorkshopDescriptionText -Config $Config
+    if ($descriptionText) {
+        if ($descriptionText.Length -gt $script:WorkshopDescriptionMaxLength) {
+            throw ("Description is $($descriptionText.Length) characters; Steam allows " +
+                "$script:WorkshopDescriptionMaxLength. Shorten it before uploading.")
+        }
+
+        $lines += "  `"description`" `"$([string](Escape-VdfText $descriptionText))`""
+        Write-Host ("Description: including $($descriptionText.Length) characters" +
+            $(if ($Config.DescriptionFile) { " from $($Config.DescriptionFile)" } else { "" })) -ForegroundColor DarkGray
     }
-    elseif ($Config.Description) {
-        $lines += "  `"description`" `"$([string](Escape-VdfValue $Config.Description))`""
+    else {
+        Write-Host "Description: none configured; leaving the published description unchanged." -ForegroundColor DarkGray
     }
-    if ($ChangeNote) { $lines += "  `"changenote`" `"$([string](Escape-VdfValue $ChangeNote))`"" }
+
+    if ($ChangeNote) { $lines += "  `"changenote`" `"$([string](Escape-VdfText $ChangeNote))`"" }
 
     $lines += "}"
 

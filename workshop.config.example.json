@@ -5,8 +5,8 @@
   "SteamCmdPath": "C:\\steamcmd\\steamcmd.exe",
   "SteamUser": "",
   "PreviewFile": null,
-  "DescriptionFile": null,
+  "DescriptionFile": "Local\\workshop_description.bbcode",
   "Description": null,
-  "Visibility": null,
+  "Visibility": "0",
   "Title": null
 }
