@@ -158,7 +158,10 @@ function Update()
                 local tottime = GetTime() - mission_start_time
                 local fps = frame_count / tottime
                 
-                local filePath = bzfile.GetWorkingDirectory() .. "addon\\bzbench.des"
+                -- Separator required: GetWorkingDirectory() returns no trailing
+                -- backslash, so this previously resolved outside the game folder
+                -- and the benchmark report was never written.
+                local filePath = bzfile.GetWorkingDirectory() .. "\\addon\\bzbench.des"
                 local f = bzfile.Open(filePath, "w", "trunc")
                 if f then
                     f:Writeln("Battlezone Benchmark Test")

@@ -59,7 +59,11 @@ local current_attackers = {} -- list of active attacker handles
 
 -- Helpers
 local function LoadBestScore()
-    local filePath = bzfile.GetWorkingDirectory() .. "emission.bst"
+    -- GetWorkingDirectory() has no trailing separator, so the separator has to
+    -- be supplied here. Without it the path became "...\Battlezone 98
+    -- Reduxemission.bst", which lands outside the game folder and bzfile
+    -- refuses it -- the best score never loaded or saved.
+    local filePath = bzfile.GetWorkingDirectory() .. "\\emission.bst"
     local f = bzfile.Open(filePath, "r")
     if f then
         local dump = f:Dump()
@@ -81,7 +85,11 @@ local function LoadBestScore()
 end
 
 local function SaveBestScore(newScore, newTime)
-    local filePath = bzfile.GetWorkingDirectory() .. "emission.bst"
+    -- GetWorkingDirectory() has no trailing separator, so the separator has to
+    -- be supplied here. Without it the path became "...\Battlezone 98
+    -- Reduxemission.bst", which lands outside the game folder and bzfile
+    -- refuses it -- the best score never loaded or saved.
+    local filePath = bzfile.GetWorkingDirectory() .. "\\emission.bst"
     local f = bzfile.Open(filePath, "w", "trunc")
     if f then
         if string.pack then
