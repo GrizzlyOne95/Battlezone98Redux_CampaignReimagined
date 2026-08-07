@@ -14,6 +14,10 @@ local PersistentConfig = require("PersistentConfig")
 local Environment = require("Environment")
 local PhysicsImpact = require("PhysicsImpact")
 
+-- BuildObject invokes AddObject synchronously. This guard lets explicit mission
+-- spawns bypass aiCore while leaving aiCore-produced CCA units managed normally.
+local spawningScriptedEnemy = false
+
 -- Helper for AI
 local function SetupAI()
     DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
@@ -153,8 +157,135 @@ local M = {
     difficulty = 2,
     cmdEldritch = nil,
     endCamTank = nil,
-    endFleet = {}
+    endFleet = {},
+
+    -- Script-owned enemy registries. scriptedEnemies isolates explicit mission
+    -- spawns from aiCore; preAttackEnemies gates the final Lemnos assault;
+    -- victoryEnemies gates mission completion.
+    scriptedEnemies = {},
+    preAttackEnemies = {},
+    victoryEnemies = {},
+
+    loading_done = false,
+    loadGracePeriod = 0,
 }
+
+local function AddUniqueHandle(list, h)
+    if not h or not IsValid(h) then return end
+    for _, existing in ipairs(list) do
+        if existing == h then return end
+    end
+    list[#list + 1] = h
+end
+
+local function PruneHandleList(list)
+    local out = {}
+    for _, h in ipairs(list or {}) do
+        if h and IsValid(h) then
+            out[#out + 1] = h
+        end
+    end
+    return out
+end
+
+local function RegisterScriptedEnemy(h, countsForPreAttack, countsForVictory)
+    if not h or not IsValid(h) then return h end
+
+    M.scriptedEnemies = M.scriptedEnemies or {}
+    M.preAttackEnemies = M.preAttackEnemies or {}
+    M.victoryEnemies = M.victoryEnemies or {}
+
+    AddUniqueHandle(M.scriptedEnemies, h)
+    if countsForPreAttack then AddUniqueHandle(M.preAttackEnemies, h) end
+    if countsForVictory then AddUniqueHandle(M.victoryEnemies, h) end
+    return h
+end
+
+local function SpawnScriptedEnemy(odf, spawn, countsForPreAttack, countsForVictory)
+    spawningScriptedEnemy = true
+    local ok, h = pcall(BuildObject, odf, 2, spawn)
+    spawningScriptedEnemy = false
+    if not ok then
+        error(h, 0)
+    end
+    return RegisterScriptedEnemy(h, countsForPreAttack, countsForVictory)
+end
+
+local function AnyAlive(list)
+    for _, h in ipairs(list or {}) do
+        if IsAlive(h) then return true end
+    end
+    return false
+end
+
+local function RefreshDifficulty()
+    if exu and exu.GetDifficulty then
+        local d = exu.GetDifficulty()
+        if d ~= nil then M.difficulty = d end
+    end
+    if M.difficulty == nil then M.difficulty = 2 end
+    return M.difficulty
+end
+
+local function RefreshMissionHandles()
+    local h = GetHandle("oblema110_i76building")
+    if h and IsValid(h) then M.lemnos = h end
+
+    h = GetHandle("svrecy-1_recycler")
+    if h and IsValid(h) then M.svrec = h end
+
+    h = GetHandle("avrecy-1_recycler")
+    if h and IsValid(h) then M.avrec = h end
+
+    h = GetHandle("cam1")
+    if h and IsValid(h) then
+        M.cam1 = h
+        if SetLabel then SetLabel(M.cam1, "Volcano") end
+    end
+end
+
+local function RebuildScriptedEnemyRegistry()
+    M.scriptedEnemies = PruneHandleList(M.scriptedEnemies)
+    M.preAttackEnemies = PruneHandleList(M.preAttackEnemies)
+    M.victoryEnemies = PruneHandleList(M.victoryEnemies)
+
+    -- Backward compatibility for saves made before the registries existed.
+    local preAttack = {
+        M.w1u1, M.w1u2, M.w1u3, M.w1u4,
+        M.w2u1, M.w2u2, M.w2u3, M.w2u4,
+        M.w3u1, M.w3u2, M.w3u3, M.w3u4,
+        M.w4u1, M.w4u2, M.w4u3, M.w4u4,
+    }
+    for _, h in ipairs(preAttack) do
+        RegisterScriptedEnemy(h, true, true)
+    end
+
+    local finalAttack = {
+        M.aw1, M.aw2, M.aw3, M.aw4, M.aw5,
+        M.aw1a, M.aw2a, M.aw3a, M.aw4a, M.aw5a,
+        M.aw6a, M.aw7a, M.aw8a, M.aw9a,
+    }
+    for _, h in ipairs(finalAttack) do
+        RegisterScriptedEnemy(h, false, true)
+    end
+
+    local nongating = { M.rand1, M.rand2, M.wBu1, M.wBu2, M.wBu3 }
+    for _, h in ipairs(nongating) do
+        RegisterScriptedEnemy(h, false, false)
+    end
+end
+
+local function ApplyTurboToAll()
+    if not (exu and exu.SetUnitTurbo) then return end
+    for h in AllCraft() do
+        local team = GetTeamNum(h)
+        if team == 1 then
+            exu.SetUnitTurbo(h, true)
+        elseif team ~= 0 then
+            exu.SetUnitTurbo(h, M.difficulty >= 2)
+        end
+    end
+end
 
 function ApplyQOL()
     if not exu then return end
@@ -166,13 +297,32 @@ function ApplyQOL()
     PhysicsImpact.Init()
 end
 
+local function RehydrateMissionRuntime()
+    M.TPS = M.TPS or 20
+    RefreshMissionHandles()
+    RefreshDifficulty()
+    ApplyQOL()
+    SetupAI()
+    aiCore.Bootstrap()
+    SetAIP("misn05.aip")
+    subtit.Initialize()
+    RebuildScriptedEnemyRegistry()
+    ApplyTurboToAll()
+    M.loading_done = true
+end
+
 function Start()
     M.TPS = 20
+    M.scriptedEnemies = M.scriptedEnemies or {}
+    M.preAttackEnemies = M.preAttackEnemies or {}
+    M.victoryEnemies = M.victoryEnemies or {}
+    M.loadGracePeriod = 0
+
     -- EXU/QOL Setup
     if exu then
         local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.VERSION or exu.version or "Unknown"
         print("EXU Version: " .. tostring(ver))
-        M.difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
+        RefreshDifficulty()
         print("Difficulty: " .. tostring(M.difficulty))
 
         if M.difficulty >= 3 then
@@ -187,17 +337,22 @@ function Start()
     SetupAI()
     aiCore.Bootstrap()
     subtit.Initialize()
+    M.loading_done = true
 
-    -- Spawn Mines
+    -- Persistent, clearable minefield: intentionally differs from the stock
+    -- proximity-respawn system. Mines can engage either side and stay destroyed.
     for i = 1, 23 do
         local pathName = "path_" .. i
-        local mine = BuildObject("boltmine", 3, pathName) -- Team 3 = Alien/Hostile
+        BuildObject("boltmine", 3, pathName) -- Team 3 = Alien/Hostile
     end
 end
 
 function AddObject(h)
     local team = GetTeamNum(h)
 
+    if PersistentConfig and PersistentConfig.OnObjectCreated then
+        PersistentConfig.OnObjectCreated(h)
+    end
     Environment.OnObjectCreated(h)
     PhysicsImpact.OnObjectCreated(h)
 
@@ -214,17 +369,20 @@ function AddObject(h)
         end
     end
 
-    -- AI Core Hook
+    -- AI Core Hook. Explicit mission-scripted Team 2 units are kept out of
+    -- aiCore so their Follow/Goto/Patrol/Attack orders remain authoritative.
     if team == 2 then
-        local nearBase = false
-        if M.svrec and IsAlive(M.svrec) and GetDistance(h, M.svrec) < 400 then
-            nearBase = true
-        elseif GetHandle("cca_base") and GetDistance(h, "cca_base") < 400 then
-            nearBase = true
-        end
+        if not spawningScriptedEnemy then
+            local nearBase = false
+            if M.svrec and IsAlive(M.svrec) and GetDistance(h, M.svrec) < 400 then
+                nearBase = true
+            elseif GetHandle("cca_base") and GetDistance(h, "cca_base") < 400 then
+                nearBase = true
+            end
 
-        if nearBase then
-            aiCore.AddObject(h)
+            if nearBase then
+                aiCore.AddObject(h)
+            end
         end
     elseif team == 1 then
         aiCore.AddObject(h)
@@ -235,6 +393,13 @@ function DeleteObject(h)
 end
 
 function Update()
+    if GetTime() < (M.loadGracePeriod or 0) then
+        return
+    end
+    if not M.loading_done then
+        RehydrateMissionRuntime()
+    end
+
     M.player = GetPlayerHandle()
     if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     aiCore.Update()
@@ -250,9 +415,7 @@ function Update()
         SetScrap(2, DiffUtils.ScaleRes(40))
         SetPilot(1, DiffUtils.ScaleRes(10))
 
-        M.lemnos = GetHandle("oblema110_i76building")
-        M.svrec = GetHandle("svrecy-1_recycler")
-        M.avrec = GetHandle("avrecy-1_recycler")
+        RefreshMissionHandles()
 
         SetAIP("misn05.aip")
         subtit.Play("misn0501.wav")
@@ -260,8 +423,7 @@ function Update()
 
         M.randomwave = GetTime() + DiffUtils.ScaleTimer(5.0)
 
-        M.cam1 = GetHandle("cam1")
-        SetLabel(M.cam1, "Volcano")
+        if M.cam1 and IsValid(M.cam1) and SetLabel then SetLabel(M.cam1, "Volcano") end
         M.newobjective = true
     end
 
@@ -295,13 +457,15 @@ function Update()
                 local type1 = "svfigh"
                 if M.difficulty >= 3 then type1 = "svltnk" end
 
-                M.rand1 = BuildObject(type1, 2, M.svrec)
-                M.rand2 = BuildObject("svfigh", 2, M.svrec)
+                M.rand1 = SpawnScriptedEnemy(type1, M.svrec, false, false)
+                M.rand2 = SpawnScriptedEnemy("svfigh", M.svrec, false, false)
                 Attack(M.rand1, M.avrec)
                 Attack(M.rand2, M.avrec)
 
                 for i = 1, DiffUtils.ScaleEnemy(1) - 1 do
-                    local h = BuildObject("svfigh", 2, M.svrec); Attack(h, M.avrec); SetIndependence(h, 1)
+                    local h = SpawnScriptedEnemy("svfigh", M.svrec, false, false)
+                    Attack(h, M.avrec)
+                    SetIndependence(h, 1)
                 end
                 SetIndependence(M.rand1, 1)
                 SetIndependence(M.rand2, 1)
@@ -375,13 +539,15 @@ function Update()
         local type1 = "svfigh"
         if M.difficulty >= 3 then type1 = "svltnk" end
 
-        M.w1u1 = BuildObject(type1, 2, M.svrec)
-        M.w1u2 = BuildObject("svfigh", 2, M.svrec)
-        M.w1u3 = BuildObject("svturr", 2, M.svrec)
-        M.w1u4 = BuildObject("svturr", 2, M.svrec)
+        M.w1u1 = SpawnScriptedEnemy(type1, M.svrec, true, true)
+        M.w1u2 = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
+        M.w1u3 = SpawnScriptedEnemy("svturr", M.svrec, true, true)
+        M.w1u4 = SpawnScriptedEnemy("svturr", M.svrec, true, true)
 
         for i = 1, DiffUtils.ScaleEnemy(1) - 1 do
-            local h = BuildObject("svfigh", 2, M.svrec); Attack(h, M.avrec); SetIndependence(h, 1)
+            local h = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
+            Attack(h, M.avrec)
+            SetIndependence(h, 1)
         end
         M.sent1Done = true
 
@@ -422,13 +588,15 @@ function Update()
         local type2 = "svtank"
         if M.difficulty <= 1 then type2 = "svltnk" end
 
-        M.w2u1 = BuildObject(type2, 2, M.svrec)
-        M.w2u2 = BuildObject(type2, 2, M.svrec)
-        M.w2u3 = BuildObject("svturr", 2, M.svrec)
-        M.w2u4 = BuildObject("svturr", 2, M.svrec)
+        M.w2u1 = SpawnScriptedEnemy(type2, M.svrec, true, true)
+        M.w2u2 = SpawnScriptedEnemy(type2, M.svrec, true, true)
+        M.w2u3 = SpawnScriptedEnemy("svturr", M.svrec, true, true)
+        M.w2u4 = SpawnScriptedEnemy("svturr", M.svrec, true, true)
 
         for i = 1, DiffUtils.ScaleEnemy(1) - 1 do
-            local h = BuildObject(type2, 2, M.svrec); Attack(h, M.avrec); SetIndependence(h, 1)
+            local h = SpawnScriptedEnemy(type2, M.svrec, true, true)
+            Attack(h, M.avrec)
+            SetIndependence(h, 1)
         end
         M.sent2Done = true
         Follow(M.w2u1, M.w2u3)
@@ -459,14 +627,16 @@ function Update()
 
     -- Wave 3
     if (M.sendTime[3] < GetTime()) and (not M.sent3Done) then
-        M.w3u3 = BuildObject("svfigh", 2, M.svrec)
-        M.w3u4 = BuildObject("svfigh", 2, M.svrec)
+        M.w3u3 = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
+        M.w3u4 = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
         M.sent3Done = true
         Patrol(M.w3u3, "attackpatrol1", 1)
         Patrol(M.w3u4, "attackpatrol1", 1)
 
         for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
-            local h = BuildObject("svfigh", 2, M.svrec); Patrol(h, "attackpatrol1", 1); SetIndependence(h, 1)
+            local h = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
+            Patrol(h, "attackpatrol1", 1)
+            SetIndependence(h, 1)
         end
     end
 
@@ -475,14 +645,16 @@ function Update()
         local type4 = "svltnk"
         if M.difficulty >= 3 then type4 = "svtank" end
 
-        M.w4u3 = BuildObject(type4, 2, M.svrec)
-        M.w4u4 = BuildObject(type4, 2, M.svrec)
+        M.w4u3 = SpawnScriptedEnemy(type4, M.svrec, true, true)
+        M.w4u4 = SpawnScriptedEnemy(type4, M.svrec, true, true)
         M.sent4Done = true
         Patrol(M.w4u3, "attackpatrol1", 1)
         Patrol(M.w4u4, "attackpatrol1", 1)
 
         for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
-            local h = BuildObject(type4, 2, M.svrec); Patrol(h, "attackpatrol1", 1); SetIndependence(h, 1)
+            local h = SpawnScriptedEnemy(type4, M.svrec, true, true)
+            Patrol(h, "attackpatrol1", 1)
+            SetIndependence(h, 1)
         end
     end
 
@@ -502,11 +674,11 @@ function Update()
         M.newobjective = true
     end
 
-    -- Base Wave (Spawns after recon)
+    -- Base Wave (Spawns after recon; intentionally does not gate progression)
     if IsAlive(M.svrec) and (not M.basewave) and M.reconfactory then
-        M.wBu1 = BuildObject("svtank", 2, M.svrec)
-        M.wBu2 = BuildObject("svfigh", 2, M.svrec)
-        M.wBu3 = BuildObject("svfigh", 2, M.svrec)
+        M.wBu1 = SpawnScriptedEnemy("svtank", M.svrec, false, false)
+        M.wBu2 = SpawnScriptedEnemy("svfigh", M.svrec, false, false)
+        M.wBu3 = SpawnScriptedEnemy("svfigh", M.svrec, false, false)
         Attack(M.wBu1, M.avrec)
         Attack(M.wBu2, M.avrec)
         Attack(M.wBu3, M.avrec)
@@ -516,13 +688,10 @@ function Update()
         M.basewave = true
     end
 
-    -- Check if all waves are dead to trigger Final Attack
+    -- Check if all four shuffled deployment waves, including difficulty extras,
+    -- are dead before triggering the final Lemnos assault.
     if M.sent1Done and M.sent2Done and M.sent3Done and M.sent4Done and
-        (not IsAlive(M.w1u1)) and (not IsAlive(M.w1u2)) and (not IsAlive(M.w1u3)) and (not IsAlive(M.w1u4)) and
-        (not IsAlive(M.w2u1)) and (not IsAlive(M.w2u2)) and (not IsAlive(M.w2u3)) and (not IsAlive(M.w2u4)) and
-        (not IsAlive(M.w3u1)) and (not IsAlive(M.w3u2)) and (not IsAlive(M.w3u3)) and (not IsAlive(M.w3u4)) and
-        (not IsAlive(M.w4u1)) and (not IsAlive(M.w4u2)) and (not IsAlive(M.w4u3)) and (not IsAlive(M.w4u4)) and
-        (not M.attacktimeset) then
+        (not AnyAlive(M.preAttackEnemies)) and (not M.attacktimeset) then
         subtit.Play("misn0507.wav")
         M.platoonhere = GetTime() + DiffUtils.ScaleTimer(45.0)
         M.attacktimeset = true
@@ -538,12 +707,13 @@ function Update()
         local attacksent = math.random(0, 3)
         M.attackstatement = false
 
-        M.aw1 = BuildObject("svhraz", 2, M.svrec)
-        M.aw2 = BuildObject("svhraz", 2, M.svrec)
-        M.aw3 = BuildObject("svhraz", 2, M.svrec)
+        M.aw1 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
+        M.aw2 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
+        M.aw3 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
 
         for i = 1, DiffUtils.ScaleEnemy(3) - 3 do
-            local h = BuildObject("svhraz", 2, M.svrec); SetIndependence(h, 1)
+            local h = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
+            SetIndependence(h, 1)
         end
 
         local dest = "destroy1"
@@ -560,8 +730,8 @@ function Update()
         Goto(M.aw3, dest)
 
         if M.difficulty >= 3 then
-            M.aw4 = BuildObject("svhraz", 2, M.svrec)
-            M.aw5 = BuildObject("svhraz", 2, M.svrec)
+            M.aw4 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
+            M.aw5 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
             Goto(M.aw4, dest)
             Goto(M.aw5, dest)
         end
@@ -608,22 +778,22 @@ function Update()
 
     -- Additional Waves (aw1a...aw9a) triggered by timers
     if (M.aw1t < GetTime()) and (not M.aw1sent) and IsAlive(M.svrec) then
-        M.aw2a = BuildObject("svfigh", 2, M.svrec)
+        M.aw2a = SpawnScriptedEnemy("svfigh", M.svrec, false, true)
         Attack(M.aw2a, M.lemnos)
         SetIndependence(M.aw2a, 1)
         M.aw1sent = true
     end
 
     if (M.aw2t < GetTime()) and (not M.aw2sent) and IsAlive(M.svrec) then
-        M.aw4a = BuildObject("svtank", 2, M.svrec)
+        M.aw4a = SpawnScriptedEnemy("svtank", M.svrec, false, true)
         Attack(M.aw4a, M.lemnos)
         SetIndependence(M.aw4a, 1)
         M.aw2sent = true
     end
 
     if (M.aw3t < GetTime()) and (not M.aw3sent) and IsAlive(M.svrec) then
-        M.aw5a = BuildObject("svfigh", 2, M.svrec)
-        M.aw6a = BuildObject("svfigh", 2, M.svrec)
+        M.aw5a = SpawnScriptedEnemy("svfigh", M.svrec, false, true)
+        M.aw6a = SpawnScriptedEnemy("svfigh", M.svrec, false, true)
         Attack(M.aw5a, M.lemnos)
         Attack(M.aw6a, M.lemnos)
         SetIndependence(M.aw5a, 1)
@@ -632,10 +802,10 @@ function Update()
     end
 
     if (M.aw4t < GetTime()) and (not M.aw4sent) and IsAlive(M.svrec) then
-        M.aw8a = BuildObject("svfigh", 2, M.svrec)
+        M.aw8a = SpawnScriptedEnemy("svfigh", M.svrec, false, true)
         local type9 = "svtank"
         if M.difficulty >= 3 then type9 = "svhraz" end
-        M.aw9a = BuildObject(type9, 2, M.svrec)
+        M.aw9a = SpawnScriptedEnemy(type9, M.svrec, false, true)
         Attack(M.aw8a, M.lemnos)
         Attack(M.aw9a, M.lemnos)
         SetIndependence(M.aw8a, 1)
@@ -658,7 +828,8 @@ function Update()
     M.aw4aattack = ForceAttack(M.aw4a, M.aw4aattack)
     M.aw9aattack = ForceAttack(M.aw9a, M.aw9aattack)
 
-    -- Possible Win (Recycler Dead) -> Send everything to factory
+    -- Possible Win (Recycler Dead) -> Send every registered victory-gating
+    -- scripted attacker to Lemnos, including anonymous difficulty extras.
     if (not IsAlive(M.svrec)) and (not M.possiblewin) then
         M.possiblewin = true
         subtit.Play("misn0516.wav")
@@ -678,17 +849,8 @@ function Update()
         M.aw3sent = true
         M.aw4sent = true
 
-        local all_units = {
-            M.w1u1, M.w1u2, M.w1u3, M.w1u4,
-            M.w2u1, M.w2u2, M.w2u3, M.w2u4,
-            M.w3u1, M.w3u2, M.w3u3, M.w3u4,
-            M.w4u1, M.w4u2, M.w4u3, M.w4u4,
-            M.aw1, M.aw2, M.aw3, M.aw4, M.aw5,
-            M.aw1a, M.aw2a, M.aw3a, M.aw4a, M.aw5a, M.aw6a, M.aw7a, M.aw8a, M.aw9a
-        }
-
         local remaining = false
-        for _, u in ipairs(all_units) do
+        for _, u in ipairs(M.victoryEnemies or {}) do
             if IsAlive(u) then
                 Attack(u, M.lemnos)
                 SetIndependence(u, 1)
@@ -703,25 +865,10 @@ function Update()
         M.takeoutfactory = true
     end
 
-    -- Win Condition
+    -- Win Condition. The registry includes all difficulty-added attackers so
+    -- mission completion cannot race ahead while an anonymous extra survives.
     if M.sent1Done and M.sent2Done and M.sent3Done and M.sent4Done and M.aw1sent and M.aw2sent and M.aw3sent and M.aw4sent and (not M.missionwon) then
-        local all_units = {
-            M.w1u1, M.w1u2, M.w1u3, M.w1u4,
-            M.w2u1, M.w2u2, M.w2u3, M.w2u4,
-            M.w3u1, M.w3u2, M.w3u3, M.w3u4,
-            M.w4u1, M.w4u2, M.w4u3, M.w4u4,
-            M.aw1, M.aw2, M.aw3, M.aw4, M.aw5,
-            M.aw1a, M.aw2a, M.aw3a, M.aw4a, M.aw5a, M.aw6a, M.aw7a, M.aw8a, M.aw9a
-        }
-        local any_alive = false
-        for _, u in ipairs(all_units) do
-            if IsAlive(u) then
-                any_alive = true
-                break
-            end
-        end
-
-        if not any_alive then
+        if not AnyAlive(M.victoryEnemies) then
             M.missionwon = true
             M.newobjective = true
             M.endseq_started = false
@@ -806,9 +953,14 @@ function Save()
 end
 
 function Load(missionData, aiData)
-    M = missionData
+    M = missionData or M
     if aiData then aiCore.Load(aiData) end
-    aiCore.Bootstrap()
-    ApplyQOL()
-    subtit.Initialize()
+
+    M.TPS = M.TPS or 20
+    M.scriptedEnemies = M.scriptedEnemies or {}
+    M.preAttackEnemies = M.preAttackEnemies or {}
+    M.victoryEnemies = M.victoryEnemies or {}
+    M.loading_done = false
+    M.loadGracePeriod = GetTime() + 2.0
+    spawningScriptedEnemy = false
 end
