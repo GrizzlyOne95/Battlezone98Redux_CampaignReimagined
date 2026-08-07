@@ -297,16 +297,45 @@ function ApplyQOL()
     PhysicsImpact.Init()
 end
 
+local function BootstrapWithoutScriptedEnemies()
+    local restoreIndependence = {}
+
+    -- aiCore.Bootstrap scans the whole world. Temporarily mark explicit mission
+    -- enemies as independence-locked so Bootstrap skips them, then restore each
+    -- unit's original value before normal mission updates resume.
+    if type(GetIndependence) == "function" and type(SetIndependence) == "function" then
+        for _, h in ipairs(M.scriptedEnemies or {}) do
+            if h and IsValid(h) and IsAlive(h) then
+                local ok, value = pcall(GetIndependence, h)
+                if ok then
+                    restoreIndependence[h] = value
+                    pcall(SetIndependence, h, 0)
+                end
+            end
+        end
+    end
+
+    aiCore.Bootstrap()
+
+    if type(SetIndependence) == "function" then
+        for h, value in pairs(restoreIndependence) do
+            if h and IsValid(h) then
+                pcall(SetIndependence, h, value)
+            end
+        end
+    end
+end
+
 local function RehydrateMissionRuntime()
     M.TPS = M.TPS or 20
     RefreshMissionHandles()
     RefreshDifficulty()
     ApplyQOL()
+    RebuildScriptedEnemyRegistry()
     SetupAI()
-    aiCore.Bootstrap()
+    BootstrapWithoutScriptedEnemies()
     SetAIP("misn05.aip")
     subtit.Initialize()
-    RebuildScriptedEnemyRegistry()
     ApplyTurboToAll()
     M.loading_done = true
 end
@@ -707,15 +736,6 @@ function Update()
         local attacksent = math.random(0, 3)
         M.attackstatement = false
 
-        M.aw1 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
-        M.aw2 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
-        M.aw3 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
-
-        for i = 1, DiffUtils.ScaleEnemy(3) - 3 do
-            local h = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
-            SetIndependence(h, 1)
-        end
-
         local dest = "destroy1"
         if attacksent == 1 then
             dest = "destroy2"
@@ -725,9 +745,18 @@ function Update()
             dest = "destroy4"
         end
 
+        M.aw1 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
+        M.aw2 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
+        M.aw3 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
         Goto(M.aw1, dest)
         Goto(M.aw2, dest)
         Goto(M.aw3, dest)
+
+        for i = 1, DiffUtils.ScaleEnemy(3) - 3 do
+            local h = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
+            Goto(h, dest)
+            SetIndependence(h, 1)
+        end
 
         if M.difficulty >= 3 then
             M.aw4 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
@@ -952,9 +981,8 @@ function Save()
     return M, aiCore.Save()
 end
 
-function Load(missionData, aiData)
+function Load(missionData, _)
     M = missionData or M
-    if aiData then aiCore.Load(aiData) end
 
     M.TPS = M.TPS or 20
     M.scriptedEnemies = M.scriptedEnemies or {}
