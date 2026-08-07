@@ -1,5 +1,6 @@
 // DX11 SM4 terrain shader path for Campaign Reimagined.
 // Enhanced mode uses the experimental legacy-compatible GGX direct-lighting model.
+// IBL_ENABLED layers static split-sum image-based lighting onto that DX11 path.
 // Keep shared PBR helpers synchronized with CR_base-sm4.hlsl.
 
 // Force OG retro mode to ignore modern map contributions even if a program
@@ -9,6 +10,12 @@
 #undef SPECULARMAP_ENABLED
 #undef SPECULAR_ENABLED
 #undef EMISSIVEMAP_ENABLED
+#undef IBL_ENABLED
+#endif
+
+// IBL is intentionally an Enhanced DX11 extension, never a standalone mode.
+#if defined(IBL_ENABLED) && !defined(ENHANCED_MODE)
+#undef IBL_ENABLED
 #endif
 
 #if defined(SHADOWRECEIVER)
@@ -117,6 +124,13 @@ static const float CR_PBR_MAX_LEGACY_F0 = 0.45;
 static const float CR_PBR_DIFFUSE_COMPENSATION = 2.70;
 static const float CR_PBR_SPECULAR_COMPENSATION = 1.00;
 
+// Static IBL calibration. Keep synchronized with CR_base-sm4.hlsl.
+static const float CR_IBL_DIFFUSE_INTENSITY = 0.62;
+static const float CR_IBL_SPECULAR_INTENSITY = 0.82;
+static const float CR_IBL_LEGACY_AMBIENT_RETAIN = 0.20;
+static const float CR_IBL_SCENE_TINT_STRENGTH = 0.18;
+static const float CR_IBL_MAX_SPECULAR_MIP = 7.0;
+
 float legacy_shininess_to_roughness(float shininess)
 {
     float scaledShininess = max(shininess * CR_PBR_SHININESS_SCALE, 0.0);
@@ -181,6 +195,21 @@ float3 fresnel_schlick(float cosTheta, float3 F0)
     float m2 = m * m;
     float m5 = m2 * m2 * m;
     return F0 + (1.0 - F0) * m5;
+}
+
+float3 fresnel_schlick_roughness(float cosTheta, float3 F0, float roughness)
+{
+    float m = saturate(1.0 - cosTheta);
+    float m2 = m * m;
+    float m5 = m2 * m2 * m;
+    float3 grazing = max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0);
+    return F0 + (grazing - F0) * m5;
+}
+
+float3 ibl_scene_tint(float3 sceneAmbient, float3 fogColour)
+{
+    float3 sceneTint = saturate(sceneAmbient + fogColour * 0.35);
+    return lerp(float3(1.0, 1.0, 1.0), sceneTint, CR_IBL_SCENE_TINT_STRENGTH);
 }
 
 void evaluate_legacy_pbr(
@@ -369,6 +398,32 @@ void terrain_fragment(
 #endif
 #endif
 
+#if defined(IBL_ENABLED)
+#if defined(PSSM_ENABLED)
+    uniform TextureCube irradianceMap : register(t8),
+    uniform SamplerState irradianceSam : register(s8),
+    uniform TextureCube prefilteredEnvMap : register(t9),
+    uniform SamplerState prefilteredEnvSam : register(s9),
+    uniform Texture2D brdfLut : register(t10),
+    uniform SamplerState brdfLutSam : register(s10),
+#elif defined(SHADOWRECEIVER)
+    uniform TextureCube irradianceMap : register(t6),
+    uniform SamplerState irradianceSam : register(s6),
+    uniform TextureCube prefilteredEnvMap : register(t7),
+    uniform SamplerState prefilteredEnvSam : register(s7),
+    uniform Texture2D brdfLut : register(t8),
+    uniform SamplerState brdfLutSam : register(s8),
+#else
+    uniform TextureCube irradianceMap : register(t5),
+    uniform SamplerState irradianceSam : register(s5),
+    uniform TextureCube prefilteredEnvMap : register(t6),
+    uniform SamplerState prefilteredEnvSam : register(s6),
+    uniform Texture2D brdfLut : register(t7),
+    uniform SamplerState brdfLutSam : register(s7),
+#endif
+    uniform float4x4 inverseViewMatrix,
+#endif
+
     uniform float4 sceneAmbient,
 
 #if !defined(VERTEX_LIGHTING)
@@ -526,6 +581,8 @@ void terrain_fragment(
 
 #if defined(OG_RETRO_MODE)
     float3 lightResult = max(sceneAmbient.xyz * 1.10, float3(0.22, 0.22, 0.22));
+#elif defined(IBL_ENABLED)
+    float3 lightResult = sceneAmbient.xyz * CR_IBL_LEGACY_AMBIENT_RETAIN;
 #else
     float3 lightResult = sceneAmbient.xyz;
 #endif
@@ -656,7 +713,32 @@ void terrain_fragment(
 
 #endif
 
-#if defined(ENHANCED_MODE)
+#if defined(IBL_ENABLED) && (defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED))
+    float NdotVForIBL = saturate(dot(viewNormal, eyeDir));
+    float3 ambientFresnel = fresnel_schlick_roughness(NdotVForIBL, surfaceF0, surfaceRoughness);
+    float3 diffuseEnergy = 1.0 - ambientFresnel;
+
+    float3 worldNormal = safe_normalize(mul(inverseViewMatrix, float4(viewNormal, 0.0)).xyz);
+    float3 viewReflection = reflect(-eyeDir, viewNormal);
+    float3 worldReflection = safe_normalize(mul(inverseViewMatrix, float4(viewReflection, 0.0)).xyz);
+
+    float3 environmentTint = ibl_scene_tint(sceneAmbient.xyz, fogColour.xyz);
+    float3 irradiance = irradianceMap.Sample(irradianceSam, worldNormal).xyz * environmentTint;
+    lightResult.xyz += irradiance * diffuseEnergy * CR_IBL_DIFFUSE_INTENSITY;
+
+    float specularMip = saturate(surfaceRoughness) * CR_IBL_MAX_SPECULAR_MIP;
+    float3 prefilteredEnvironment = prefilteredEnvMap.SampleLevel(
+        prefilteredEnvSam,
+        worldReflection,
+        specularMip).xyz * environmentTint;
+    float2 environmentBRDF = brdfLut.Sample(
+        brdfLutSam,
+        float2(NdotVForIBL, saturate(surfaceRoughness))).rg;
+
+    specularResult.xyz += prefilteredEnvironment
+                        * (surfaceF0 * environmentBRDF.x + environmentBRDF.y)
+                        * CR_IBL_SPECULAR_INTENSITY;
+#elif defined(ENHANCED_MODE)
     float NdotVForFill = saturate(dot(viewNormal, eyeDir));
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
     float3 grazingFresnel = fresnel_schlick(NdotVForFill, surfaceF0);
