@@ -20,6 +20,7 @@ local LABEL_BSCOUT = "misn02b_bscout"
 local LABEL_SCAV2 = "misn02b_scav2"
 local STOCK_PLAYER_START = { x = 3898.14, y = 108.9, z = 99443.6 }
 local RefreshHandlesAfterLoad
+local PilotModeCanManageHandle
 
 local difficulty = 2
 local hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." }
@@ -184,18 +185,27 @@ local function AudioDone(msg)
     return (not msg) or IsAudioMessageDone(msg)
 end
 
-RefreshHandlesAfterLoad = function()
-    M.dummy = GetHandle("fake_player")
-    M.lander = GetHandle("avland0_wingman")
-    M.bhandle = GetHandle("sscr_171_scrap")
-    M.bhome = GetHandle("abcomm1_i76building")
-    M.recycler = GetHandle("avrecy-1_recycler")
-    M.bgoal = GetHandle("apscrap-1_camerapod")
-    M.bhandle2 = GetHandle("sscr_176_scrap")
+local function KeepSavedHandleOrGet(current, label)
+    if current and IsValid(current) then
+        return current
+    end
+    return GetHandle(label)
+end
 
-    M.bscav = GetHandle(LABEL_BSCAV)
-    M.bscout = GetHandle(LABEL_BSCOUT)
-    M.scav2 = GetHandle(LABEL_SCAV2)
+RefreshHandlesAfterLoad = function()
+    -- Saved handles are authoritative when still valid. Named lookups are only
+    -- fallbacks for older/incomplete saves or objects that were recreated.
+    M.dummy = KeepSavedHandleOrGet(M.dummy, "fake_player")
+    M.lander = KeepSavedHandleOrGet(M.lander, "avland0_wingman")
+    M.bhandle = KeepSavedHandleOrGet(M.bhandle, "sscr_171_scrap")
+    M.bhome = KeepSavedHandleOrGet(M.bhome, "abcomm1_i76building")
+    M.recycler = KeepSavedHandleOrGet(M.recycler, "avrecy-1_recycler")
+    M.bgoal = KeepSavedHandleOrGet(M.bgoal, "apscrap-1_camerapod")
+    M.bhandle2 = KeepSavedHandleOrGet(M.bhandle2, "sscr_176_scrap")
+
+    M.bscav = KeepSavedHandleOrGet(M.bscav, LABEL_BSCAV)
+    M.bscout = KeepSavedHandleOrGet(M.bscout, LABEL_BSCOUT)
+    M.scav2 = KeepSavedHandleOrGet(M.scav2, LABEL_SCAV2)
 
     local foundScav = IsValid and IsValid(M.bscav)
     local foundScav2 = IsValid and IsValid(M.scav2)
@@ -233,7 +243,55 @@ local function SetupAI()
     playerTeam:SetConfig("manageFactories", false)
     playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     playerTeam:SetConfig("enableParatroopers", false)
+
+    -- Every Team 2 combat unit in Mission 02B is mission-scripted. Keep aiCore
+    -- available for shared systems, but do not let its strategic managers issue
+    -- competing orders to the Soviet patrols/waves.
+    enemyTeam:SetConfig("manageFactories", false)
+    enemyTeam:SetConfig("autoManage", false)
+    enemyTeam:SetConfig("autoBuild", false)
     enemyTeam:SetConfig("enableParatroopers", false)
+end
+
+local function BootstrapPlayerSideAI()
+    local restoreIndependence = {}
+
+    -- aiCore.Bootstrap scans the whole world, so temporarily lock Team 2 craft
+    -- out of that scan. Their original independence values are restored before
+    -- mission logic resumes.
+    if type(GetIndependence) == "function" and type(SetIndependence) == "function" then
+        for h in AllCraft() do
+            if h and IsValid(h) and GetTeamNum(h) == 2 then
+                local ok, value = pcall(GetIndependence, h)
+                if ok then
+                    restoreIndependence[h] = value
+                    pcall(SetIndependence, h, 0)
+                end
+            end
+        end
+    end
+
+    aiCore.Bootstrap()
+
+    if type(SetIndependence) == "function" then
+        for h, value in pairs(restoreIndependence) do
+            if h and IsValid(h) then
+                pcall(SetIndependence, h, value)
+            end
+        end
+    end
+end
+
+PilotModeCanManageHandle = function(h)
+    if not h or not IsValid(h) then
+        return false
+    end
+
+    if h == M.bscav or h == M.scav2 or h == M.dummy then
+        return false
+    end
+
+    return h ~= GetPlayerHandle()
 end
 
 local function InitializePilotMode()
@@ -255,20 +313,8 @@ local function InitializeMissionRuntime()
     ApplyQOL()
     InitializePilotMode()
     SetupAI()
-    aiCore.Bootstrap()
+    BootstrapPlayerSideAI()
     ApplyTurboToAll()
-end
-
-local function PilotModeCanManageHandle(h)
-    if not h or not IsValid(h) then
-        return false
-    end
-
-    if h == M.bscav or h == M.scav2 or h == M.dummy then
-        return false
-    end
-
-    return h ~= GetPlayerHandle()
 end
 
 local function ApplyPostLoadInit()
@@ -346,24 +392,10 @@ function AddObject(h)
         end
     end
 
-    -- Register with aiCore
-    if team == 1 or team == 2 then
-        local register = false
-        if team == 1 then
-            if IsOdf(h, "avscav") then register = true end
-        else
-            -- CCA Team 2 in this mission is strictly scripted waves,
-            -- but we still register them to aiCore so they can be tracked
-            -- even if not "produced" by a factory here.
-            register = true
-        end
-        if register then
-            if team == 1 then
-                PlayerPilotMode.AddObject(h)
-            else
-                aiCore.AddObject(h)
-            end
-        end
+    -- Team 2 is entirely script-owned in this mission; never register those
+    -- units with aiCore. Player scavengers can still use PlayerPilotMode.
+    if team == 1 and IsOdf(h, "avscav") then
+        PlayerPilotMode.AddObject(h)
     end
 end
 
@@ -597,9 +629,10 @@ function Update()
         M.message4 = true
     end
 
-    -- Capture pre-placed units if M.start_done just flipped
+    -- Capture pre-placed player-side units after mission initialization without
+    -- allowing aiCore to claim the scripted Team 2 force.
     if M.start_done and not M.bootstrap_done then
-        aiCore.Bootstrap()
+        BootstrapPlayerSideAI()
         M.bootstrap_done = true
     end
 
