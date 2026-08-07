@@ -50,6 +50,18 @@ jobs:
           clean: true
           persist-credentials: false
 
+      # The existing campaign publisher recursively scans the repository and
+      # flattens non-structured source files into the mod payload. .github is
+      # intentionally not mod content, so remove the checkout-only automation
+      # directory before invoking the publisher. The workflow itself is already
+      # loaded by the runner and does not need the on-disk YAML after checkout.
+      - name: Remove GitHub automation from mod source
+        shell: pwsh
+        run: |
+          if (Test-Path -LiteralPath ".github") {
+            Remove-Item -LiteralPath ".github" -Recurse -Force
+          }
+
       - name: Check out OpenShim
         uses: actions/checkout@v4
         with:
