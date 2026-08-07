@@ -2,10 +2,10 @@
   "AppId": "301650",
   "PublishedFileId": "3686673790",
   "ContentFolder": "Local\\Workshop\\content",
-  "SteamCmdPath": "C:\\steamcmd\\steamcmd.exe",
+  "SteamCmdPath": null,
   "SteamUser": "",
   "PreviewFile": null,
-  "DescriptionFile": "Local\\workshop_description.bbcode",
+  "DescriptionFile": "docs\\workshop_description.bbcode",
   "Description": null,
   "Visibility": "0",
   "Title": null
