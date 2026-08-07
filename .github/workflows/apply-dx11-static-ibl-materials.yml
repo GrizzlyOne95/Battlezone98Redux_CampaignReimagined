@@ -69,13 +69,11 @@ jobs:
           replace_program(terrain, 'CR_TerrainENHighShadow_fragment', 'CR_TerrainIBLHighShadow_fragment', 1)
           replace_program(terrain, 'CR_TerrainENHighNoShadow_fragment', 'CR_TerrainIBLHighNoShadow_fragment', 4)
 
-          Path('.github/workflows/apply-dx11-static-ibl-materials.yml').unlink()
-
       - name: Commit material wiring
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Materials .github/workflows/apply-dx11-static-ibl-materials.yml
+          git add Materials/CR_BZBase.material Materials/CR_BZTerrainBase.material
           git commit -m "feat: wire static IBL into Enhanced High materials"
           git push origin HEAD:feature/dx11-static-ibl
