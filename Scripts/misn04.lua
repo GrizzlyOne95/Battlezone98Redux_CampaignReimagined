@@ -173,6 +173,7 @@ local function NewMissionState()
         openingTurret3 = nil,
         openingTurret4 = nil,
         restoringOpeningDefenders = false,
+        scriptedTeam2Handles = {},
         aud1 = nil,
         aud2 = nil,
         aud3 = nil,
@@ -252,13 +253,22 @@ local function NewMissionState()
     }
 end
 
+local function KeepSavedHandleOrGet(current, label)
+    if current and IsValid(current) then
+        return current
+    end
+    return GetHandle(label)
+end
+
 local function RefreshMissionHandles()
-    M.cam1 = GetHandle("apcamr352_camerapod")
-    M.cam2 = GetHandle("apcamr350_camerapod")
-    M.cam3 = GetHandle("apcamr351_camerapod")
-    M.basecam = GetHandle("apcamr-1_camerapod")
-    M.svrec = GetHandle("svrecy-1_recycler")
-    M.avrec = GetHandle("avrecy-1_recycler")
+    -- A valid handle restored by the save is authoritative. Named lookups are
+    -- fallbacks for older/incomplete saves or a recreated static map object.
+    M.cam1 = KeepSavedHandleOrGet(M.cam1, "apcamr352_camerapod")
+    M.cam2 = KeepSavedHandleOrGet(M.cam2, "apcamr350_camerapod")
+    M.cam3 = KeepSavedHandleOrGet(M.cam3, "apcamr351_camerapod")
+    M.basecam = KeepSavedHandleOrGet(M.basecam, "apcamr-1_camerapod")
+    M.svrec = KeepSavedHandleOrGet(M.svrec, "svrecy-1_recycler")
+    M.avrec = KeepSavedHandleOrGet(M.avrec, "avrecy-1_recycler")
 
     if IsValid(M.avrec) then
         SetObjectiveName(M.avrec, "Recycler Montana")
@@ -273,7 +283,6 @@ end
 local function SetupAI()
     DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
 
-    -- Configure Player Team (1) for Scavenger Assist
     -- Configure Player Team (1) for Scavenger Assist
     if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
         aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
@@ -328,6 +337,113 @@ M = NewMissionState()
 local DEFAULT_TPS = 20
 local hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." }
 local easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." }
+
+-- Mission 04 deliberately has both an aiCore-managed CCA base and explicit
+-- mission-scripted CCA units. BuildObject calls made by this mission are tagged
+-- so AddObject/bootstrap can keep the two ownership domains separate.
+local EngineBuildObject = BuildObject
+local scriptedTeam2BuildInProgress = false
+local OPENING_SCRIPTED_TEAM2_LABELS = {
+    "svfigh-1_wingman",
+    "svfigh282_wingman",
+    "svfigh279_wingman",
+    "svfigh278_wingman",
+    "svturr272_turrettank",
+    "svturr273_turrettank",
+    "svturr274_turrettank",
+    "svturr-1_turrettank",
+}
+local SCRIPTED_TEAM2_STATE_KEYS = {
+    "pu1", "pu2", "pu3", "pu4", "pu5", "pu6", "pu7", "pu8",
+    "cheat1", "cheat2", "cheat3", "cheat4", "cheat5", "cheat6", "cheat7", "cheat8", "cheat9", "cheat10",
+    "surv1", "surv2", "surv3", "surv4",
+    "svtug", "tuge1", "tuge2",
+    "turret1", "turret2", "turret3", "turret4",
+    "openingTurret1", "openingTurret2", "openingTurret3", "openingTurret4",
+    "w1u1", "w1u2", "w1u3", "w1u4",
+    "w2u1", "w2u2", "w2u3",
+    "w3u1", "w3u2", "w3u3", "w3u4",
+    "w4u1", "w4u2", "w4u3", "w4u4", "w4u5",
+    "w5u1", "w5u2", "w5u3", "w5u4", "w5u5", "w5u6",
+}
+
+local function AddUniqueScriptedTeam2Handle(h)
+    if not h or not IsValid(h) or GetTeamNum(h) ~= 2 then return end
+    M.scriptedTeam2Handles = M.scriptedTeam2Handles or {}
+    for _, existing in ipairs(M.scriptedTeam2Handles) do
+        if existing == h then return end
+    end
+    M.scriptedTeam2Handles[#M.scriptedTeam2Handles + 1] = h
+end
+
+local function RebuildScriptedTeam2Registry()
+    local pruned = {}
+    for _, h in ipairs(M.scriptedTeam2Handles or {}) do
+        if h and IsValid(h) and GetTeamNum(h) == 2 then
+            pruned[#pruned + 1] = h
+        end
+    end
+    M.scriptedTeam2Handles = pruned
+
+    -- Backfill named script handles so saves made before this registry existed
+    -- still isolate the known mission-owned force.
+    for _, key in ipairs(SCRIPTED_TEAM2_STATE_KEYS) do
+        AddUniqueScriptedTeam2Handle(M[key])
+    end
+    for _, label in ipairs(OPENING_SCRIPTED_TEAM2_LABELS) do
+        AddUniqueScriptedTeam2Handle(GetHandle(label))
+    end
+end
+
+local function BootstrapPreservingScriptedTeam2()
+    RebuildScriptedTeam2Registry()
+    local restoreIndependence = {}
+
+    -- aiCore.Bootstrap scans every craft in the world. Temporarily independence-
+    -- lock only mission-owned CCA craft so the autonomous CCA base/economy is
+    -- rebuilt normally while scripted patrols, Tugs and waves remain untouched.
+    if type(GetIndependence) == "function" and type(SetIndependence) == "function" then
+        for _, h in ipairs(M.scriptedTeam2Handles or {}) do
+            if h and IsValid(h) and IsAlive(h) then
+                local ok, value = pcall(GetIndependence, h)
+                if ok then
+                    restoreIndependence[h] = value
+                    pcall(SetIndependence, h, 0)
+                end
+            end
+        end
+    end
+
+    aiCore.Bootstrap()
+
+    if type(SetIndependence) == "function" then
+        for h, value in pairs(restoreIndependence) do
+            if h and IsValid(h) then
+                pcall(SetIndependence, h, value)
+            end
+        end
+    end
+end
+
+local function MissionBuildObject(odf, team, spawn)
+    if team ~= 2 then
+        return EngineBuildObject(odf, team, spawn)
+    end
+
+    local previous = scriptedTeam2BuildInProgress
+    scriptedTeam2BuildInProgress = true
+    local ok, h = pcall(EngineBuildObject, odf, team, spawn)
+    scriptedTeam2BuildInProgress = previous
+    if not ok then
+        error(h, 0)
+    end
+
+    AddUniqueScriptedTeam2Handle(h)
+    return h
+end
+
+local BuildObject = MissionBuildObject
+
 local OVERLAY_DEMO_IDS = {
     overlay = "misn04_overlay_demo",
     root = "misn04_overlay_demo_root",
@@ -1022,7 +1138,7 @@ local function TryCreateOverlayDemo()
     MustCall(exu.SetOverlayParameter, ids.title, "colour_bottom", "0.52 1.0 0.52 1.0")
 
     MustCall(exu.SetOverlayPosition, ids.body, layout.bodyX, layout.bodyY)
-    MustCall(exu.SetOverlayDimensions, ids.body, layout.bodyWidth, layout.bodyHeight)
+    MustCall(exu.SetOverlayDimensions(ids.body, layout.bodyWidth, layout.bodyHeight))
     MustCall(exu.SetOverlayTextCharHeight, ids.body, layout.bodyCharHeight)
     OptionalCall(exu.SetOverlayTextFont, ids.body, fontName)
     MustCall(exu.SetOverlayParameter, ids.body, "alignment", "left")
@@ -2186,7 +2302,7 @@ function Start()
     ApplyDifficultyObjectives()
     ApplyQOL()
     SetupAI()
-    aiCore.Bootstrap()
+    BootstrapPreservingScriptedTeam2()
     ApplyTurboToAll()
     PlayerPilotMode.Initialize({
         profile = {
@@ -2213,8 +2329,9 @@ function AddObject(h)
     local team = GetTeamNum(h)
     local nearBase = false
 
-    -- Filter logic for AI
-    if team == 2 and not M.restoringOpeningDefenders then
+    -- aiCore manages the autonomous CCA base/economy, but explicit Team 2
+    -- BuildObject calls from this mission remain under script control.
+    if team == 2 and not M.restoringOpeningDefenders and not scriptedTeam2BuildInProgress then
         -- Only add if near base
         if M.svrec and IsAlive(M.svrec) and GetDistance(h, M.svrec) < 400.0 then
             nearBase = true
@@ -2312,6 +2429,7 @@ local function RestoreStockOpeningDefenders()
         end
         if h and IsValid(h) then
             SetIndependence(h, 1)
+            AddUniqueScriptedTeam2Handle(h)
         end
         M[stateKey] = h
     end
@@ -2346,7 +2464,7 @@ function Update()
             shouldManageHandle = PilotModeCanManageHandle,
         })
         SetupAI()
-        aiCore.Bootstrap()
+        BootstrapPreservingScriptedTeam2()
         ApplyTurboToAll()
         if Environment and Environment.Update then
             Environment.Update(0.0)
@@ -2631,199 +2749,199 @@ function Update()
     end
 
     -- Wave 1
-        if M.wavenumber == 1 and M.wave1 < GetTime() then
-            M.w1u1 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
-            M.w1u2 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
-            Attack(M.w1u1, M.avrec, 1); SetIndependence(M.w1u1, 1)
-            Attack(M.w1u2, M.avrec, 1); SetIndependence(M.w1u2, 1)
-            if M.difficulty >= 3 then
-                M.w1u3 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
-                Attack(M.w1u3, M.avrec, 1); SetIndependence(M.w1u3, 1)
-            end
-            if M.difficulty >= 4 then
-                M.w1u4 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
-                Attack(M.w1u4, M.avrec, 1); SetIndependence(M.w1u4, 1)
-            end
-            M.wavenumber = 2
-            M.wave1arrive = false
+    if M.wavenumber == 1 and M.wave1 < GetTime() then
+        M.w1u1 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
+        M.w1u2 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
+        Attack(M.w1u1, M.avrec, 1); SetIndependence(M.w1u1, 1)
+        Attack(M.w1u2, M.avrec, 1); SetIndependence(M.w1u2, 1)
+        if M.difficulty >= 3 then
+            M.w1u3 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
+            Attack(M.w1u3, M.avrec, 1); SetIndependence(M.w1u3, 1)
         end
-        if M.wavenumber == 2 and not M.wave1arrive and IsAlive(M.avrec) then
-            if (M.w1u1 and IsAlive(M.w1u1) and GetDistance(M.avrec, M.w1u1) < 300) or
-                (M.w1u2 and IsAlive(M.w1u2) and GetDistance(M.avrec, M.w1u2) < 300) or
-                (M.w1u3 and IsAlive(M.w1u3) and GetDistance(M.avrec, M.w1u3) < 300) or
-                (M.w1u4 and IsAlive(M.w1u4) and GetDistance(M.avrec, M.w1u4) < 300) then
-                subtit.Play("misn0402.wav")
-                M.wave1arrive = true
-                M.wave1dead = true
-            end
+        if M.difficulty >= 4 then
+            M.w1u4 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
+            Attack(M.w1u4, M.avrec, 1); SetIndependence(M.w1u4, 1)
         end
-        if M.wavenumber == 2 and not M.build2 and
-            not (M.w1u1 and IsAlive(M.w1u1)) and
-            not (M.w1u2 and IsAlive(M.w1u2)) and
-            not (M.w1u3 and IsAlive(M.w1u3)) and
-            not (M.w1u4 and IsAlive(M.w1u4)) then
-            M.wave2 = GetTime() + DiffUtils.ScaleTimer(60.0)
-            M.build2 = true
+        M.wavenumber = 2
+        M.wave1arrive = false
+    end
+    if M.wavenumber == 2 and not M.wave1arrive and IsAlive(M.avrec) then
+        if (M.w1u1 and IsAlive(M.w1u1) and GetDistance(M.avrec, M.w1u1) < 300) or
+            (M.w1u2 and IsAlive(M.w1u2) and GetDistance(M.avrec, M.w1u2) < 300) or
+            (M.w1u3 and IsAlive(M.w1u3) and GetDistance(M.avrec, M.w1u3) < 300) or
+            (M.w1u4 and IsAlive(M.w1u4) and GetDistance(M.avrec, M.w1u4) < 300) then
+            subtit.Play("misn0402.wav")
+            M.wave1arrive = true
             M.wave1dead = true
         end
+    end
+    if M.wavenumber == 2 and not M.build2 and
+        not (M.w1u1 and IsAlive(M.w1u1)) and
+        not (M.w1u2 and IsAlive(M.w1u2)) and
+        not (M.w1u3 and IsAlive(M.w1u3)) and
+        not (M.w1u4 and IsAlive(M.w1u4)) then
+        M.wave2 = GetTime() + DiffUtils.ScaleTimer(60.0)
+        M.build2 = true
+        M.wave1dead = true
+    end
 
-        -- Wave 2
-        if M.wave2 < GetTime() and IsAlive(M.svrec) and not M.secondwave then
-            M.w2u1 = BuildObject("svtank", 2, SpawnNear("spawn2new", 5, 40))
-            M.w2u2 = BuildObject("svfigh", 2, SpawnNear("spawn2new", 5, 40))
-            Goto(M.w2u1, M.avrec, 1); SetIndependence(M.w2u1, 1)
-            Goto(M.w2u2, M.avrec, 1); SetIndependence(M.w2u2, 1)
-            if M.difficulty >= 3 then -- Hard+: extra fighter
-                M.w2u3 = BuildObject("svfigh", 2, SpawnNear("spawn2new", 5, 40))
-                Goto(M.w2u3, M.avrec, 1); SetIndependence(M.w2u3, 1)
-            end
-            M.wavenumber = 3
-            M.wave2arrive = false
-            M.wave2 = 99999.0
-            M.secondwave = true
+    -- Wave 2
+    if M.wave2 < GetTime() and IsAlive(M.svrec) and not M.secondwave then
+        M.w2u1 = BuildObject("svtank", 2, SpawnNear("spawn2new", 5, 40))
+        M.w2u2 = BuildObject("svfigh", 2, SpawnNear("spawn2new", 5, 40))
+        Goto(M.w2u1, M.avrec, 1); SetIndependence(M.w2u1, 1)
+        Goto(M.w2u2, M.avrec, 1); SetIndependence(M.w2u2, 1)
+        if M.difficulty >= 3 then -- Hard+: extra fighter
+            M.w2u3 = BuildObject("svfigh", 2, SpawnNear("spawn2new", 5, 40))
+            Goto(M.w2u3, M.avrec, 1); SetIndependence(M.w2u3, 1)
         end
-        if M.wavenumber == 3 and not M.wave2arrive and IsAlive(M.avrec) then
-            if (M.w2u1 and IsAlive(M.w2u1) and GetDistance(M.avrec, M.w2u1) < 300) or
-                (M.w2u2 and IsAlive(M.w2u2) and GetDistance(M.avrec, M.w2u2) < 300) or
-                (M.w2u3 and IsAlive(M.w2u3) and GetDistance(M.avrec, M.w2u3) < 300) then
-                subtit.Play("misn0404.wav")
-                M.wave2arrive = true
-            end
+        M.wavenumber = 3
+        M.wave2arrive = false
+        M.wave2 = 99999.0
+        M.secondwave = true
+    end
+    if M.wavenumber == 3 and not M.wave2arrive and IsAlive(M.avrec) then
+        if (M.w2u1 and IsAlive(M.w2u1) and GetDistance(M.avrec, M.w2u1) < 300) or
+            (M.w2u2 and IsAlive(M.w2u2) and GetDistance(M.avrec, M.w2u2) < 300) or
+            (M.w2u3 and IsAlive(M.w2u3) and GetDistance(M.avrec, M.w2u3) < 300) then
+            subtit.Play("misn0404.wav")
+            M.wave2arrive = true
         end
-        if M.wavenumber == 3 and not M.build3 then
-            if (not (M.w2u1 and IsAlive(M.w2u1))) and
-                (not (M.w2u2 and IsAlive(M.w2u2))) and
-                (not (M.w2u3 and IsAlive(M.w2u3))) then
-                M.wave3 = GetTime() + DiffUtils.ScaleTimer(74.0)
-                M.build3 = true
-                M.wave2dead = true
-            end
+    end
+    if M.wavenumber == 3 and not M.build3 then
+        if (not (M.w2u1 and IsAlive(M.w2u1))) and
+            (not (M.w2u2 and IsAlive(M.w2u2))) and
+            (not (M.w2u3 and IsAlive(M.w2u3))) then
+            M.wave3 = GetTime() + DiffUtils.ScaleTimer(74.0)
+            M.build3 = true
+            M.wave2dead = true
         end
+    end
 
-        -- Wave 3
-        if M.wave3 < GetTime() and IsAlive(M.svrec) and not M.thirdwave then
-            M.w3u1 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-            M.w3u2 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-            M.w3u3 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-            Goto(M.w3u1, M.avrec, 1); SetIndependence(M.w3u1, 1)
-            Goto(M.w3u2, M.avrec, 1); SetIndependence(M.w3u2, 1)
-            Goto(M.w3u3, M.avrec, 1); SetIndependence(M.w3u3, 1)
-            if M.difficulty >= 3 then -- Hard+: extra tank
-                M.w3u4 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
-                Goto(M.w3u4, M.avrec, 1); SetIndependence(M.w3u4, 1)
-            end
-            M.wavenumber = 4
-            M.wave3arrive = false
-            M.wave3 = 99999.0
-            M.thirdwave = true
+    -- Wave 3
+    if M.wave3 < GetTime() and IsAlive(M.svrec) and not M.thirdwave then
+        M.w3u1 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+        M.w3u2 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+        M.w3u3 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+        Goto(M.w3u1, M.avrec, 1); SetIndependence(M.w3u1, 1)
+        Goto(M.w3u2, M.avrec, 1); SetIndependence(M.w3u2, 1)
+        Goto(M.w3u3, M.avrec, 1); SetIndependence(M.w3u3, 1)
+        if M.difficulty >= 3 then -- Hard+: extra tank
+            M.w3u4 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
+            Goto(M.w3u4, M.avrec, 1); SetIndependence(M.w3u4, 1)
         end
-        if M.wavenumber == 4 and not M.wave3arrive and IsAlive(M.avrec) then
-            if (M.w3u1 and IsAlive(M.w3u1) and GetDistance(M.avrec, M.w3u1) < 300) or
-                (M.w3u2 and IsAlive(M.w3u2) and GetDistance(M.avrec, M.w3u2) < 300) or
-                (M.w3u3 and IsAlive(M.w3u3) and GetDistance(M.avrec, M.w3u3) < 300) or
-                (M.w3u4 and IsAlive(M.w3u4) and GetDistance(M.avrec, M.w3u4) < 300) then
-                subtit.Play("misn0410.wav")
-                M.wave3arrive = true
-            end
+        M.wavenumber = 4
+        M.wave3arrive = false
+        M.wave3 = 99999.0
+        M.thirdwave = true
+    end
+    if M.wavenumber == 4 and not M.wave3arrive and IsAlive(M.avrec) then
+        if (M.w3u1 and IsAlive(M.w3u1) and GetDistance(M.avrec, M.w3u1) < 300) or
+            (M.w3u2 and IsAlive(M.w3u2) and GetDistance(M.avrec, M.w3u2) < 300) or
+            (M.w3u3 and IsAlive(M.w3u3) and GetDistance(M.avrec, M.w3u3) < 300) or
+            (M.w3u4 and IsAlive(M.w3u4) and GetDistance(M.avrec, M.w3u4) < 300) then
+            subtit.Play("misn0410.wav")
+            M.wave3arrive = true
         end
-        if M.wavenumber == 4 and not M.build4 then
-            if (not (M.w3u1 and IsAlive(M.w3u1))) and
-                (not (M.w3u2 and IsAlive(M.w3u2))) and
-                (not (M.w3u3 and IsAlive(M.w3u3))) and
-                (not (M.w3u4 and IsAlive(M.w3u4))) then
-                M.wave4 = GetTime() + DiffUtils.ScaleTimer(60.0)
-                M.build4 = true
-                M.wave3dead = true
-            end
+    end
+    if M.wavenumber == 4 and not M.build4 then
+        if (not (M.w3u1 and IsAlive(M.w3u1))) and
+            (not (M.w3u2 and IsAlive(M.w3u2))) and
+            (not (M.w3u3 and IsAlive(M.w3u3))) and
+            (not (M.w3u4 and IsAlive(M.w3u4))) then
+            M.wave4 = GetTime() + DiffUtils.ScaleTimer(60.0)
+            M.build4 = true
+            M.wave3dead = true
         end
+    end
 
-        -- Wave 4
-        if M.wave4 < GetTime() and IsAlive(M.svrec) and not M.fourthwave then
-            M.w4u1 = BuildObject("svtank", 2, SpawnNear("spawnotherside", 5, 40))
-            M.w4u2 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
-            M.w4u3 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
-            Goto(M.w4u1, M.avrec, 1); SetIndependence(M.w4u1, 1)
-            Goto(M.w4u2, M.avrec, 1); SetIndependence(M.w4u2, 1)
-            Goto(M.w4u3, M.avrec, 1); SetIndependence(M.w4u3, 1)
-            if M.difficulty >= 3 then -- Hard+: extra tank
-                M.w4u4 = BuildObject("svtank", 2, SpawnNear("spawnotherside", 5, 40))
-                Goto(M.w4u4, M.avrec, 1); SetIndependence(M.w4u4, 1)
-            end
-            if M.difficulty >= 4 then -- Very Hard: extra fighter
-                M.w4u5 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
-                Goto(M.w4u5, M.avrec, 1); SetIndependence(M.w4u5, 1)
-            end
-            M.wavenumber = 5
-            M.wave4arrive = false
-            M.wave4 = 99999.0
-            M.fourthwave = true
+    -- Wave 4
+    if M.wave4 < GetTime() and IsAlive(M.svrec) and not M.fourthwave then
+        M.w4u1 = BuildObject("svtank", 2, SpawnNear("spawnotherside", 5, 40))
+        M.w4u2 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
+        M.w4u3 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
+        Goto(M.w4u1, M.avrec, 1); SetIndependence(M.w4u1, 1)
+        Goto(M.w4u2, M.avrec, 1); SetIndependence(M.w4u2, 1)
+        Goto(M.w4u3, M.avrec, 1); SetIndependence(M.w4u3, 1)
+        if M.difficulty >= 3 then -- Hard+: extra tank
+            M.w4u4 = BuildObject("svtank", 2, SpawnNear("spawnotherside", 5, 40))
+            Goto(M.w4u4, M.avrec, 1); SetIndependence(M.w4u4, 1)
         end
-        if M.wavenumber == 5 and not M.wave4arrive and IsAlive(M.avrec) then
-            if (M.w4u1 and IsAlive(M.w4u1) and GetDistance(M.avrec, M.w4u1) < 300) or
-                (M.w4u2 and IsAlive(M.w4u2) and GetDistance(M.avrec, M.w4u2) < 300) or
-                (M.w4u3 and IsAlive(M.w4u3) and GetDistance(M.avrec, M.w4u3) < 300) or
-                (M.w4u4 and IsAlive(M.w4u4) and GetDistance(M.avrec, M.w4u4) < 300) or
-                (M.w4u5 and IsAlive(M.w4u5) and GetDistance(M.avrec, M.w4u5) < 300) then
-                subtit.Play("misn0412.wav")
-                M.wave4arrive = true
-            end
+        if M.difficulty >= 4 then -- Very Hard: extra fighter
+            M.w4u5 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
+            Goto(M.w4u5, M.avrec, 1); SetIndependence(M.w4u5, 1)
         end
-        if M.wavenumber == 5 and not M.build5 then
-            if (not (M.w4u1 and IsAlive(M.w4u1))) and
-                (not (M.w4u2 and IsAlive(M.w4u2))) and
-                (not (M.w4u3 and IsAlive(M.w4u3))) and
-                (not (M.w4u4 and IsAlive(M.w4u4))) and
-                (not (M.w4u5 and IsAlive(M.w4u5))) then
-                M.wave5 = GetTime() + DiffUtils.ScaleTimer(30.0)
-                M.build5 = true
-                M.wave4dead = true
-            end
+        M.wavenumber = 5
+        M.wave4arrive = false
+        M.wave4 = 99999.0
+        M.fourthwave = true
+    end
+    if M.wavenumber == 5 and not M.wave4arrive and IsAlive(M.avrec) then
+        if (M.w4u1 and IsAlive(M.w4u1) and GetDistance(M.avrec, M.w4u1) < 300) or
+            (M.w4u2 and IsAlive(M.w4u2) and GetDistance(M.avrec, M.w4u2) < 300) or
+            (M.w4u3 and IsAlive(M.w4u3) and GetDistance(M.avrec, M.w4u3) < 300) or
+            (M.w4u4 and IsAlive(M.w4u4) and GetDistance(M.avrec, M.w4u4) < 300) or
+            (M.w4u5 and IsAlive(M.w4u5) and GetDistance(M.avrec, M.w4u5) < 300) then
+            subtit.Play("misn0412.wav")
+            M.wave4arrive = true
         end
+    end
+    if M.wavenumber == 5 and not M.build5 then
+        if (not (M.w4u1 and IsAlive(M.w4u1))) and
+            (not (M.w4u2 and IsAlive(M.w4u2))) and
+            (not (M.w4u3 and IsAlive(M.w4u3))) and
+            (not (M.w4u4 and IsAlive(M.w4u4))) and
+            (not (M.w4u5 and IsAlive(M.w4u5))) then
+            M.wave5 = GetTime() + DiffUtils.ScaleTimer(30.0)
+            M.build5 = true
+            M.wave4dead = true
+        end
+    end
 
-        -- Wave 5
-        if M.wave5 < GetTime() and IsAlive(M.svrec) and not M.fifthwave then
-            M.w5u1 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
-            M.w5u2 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-            M.w5u3 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-            M.w5u4 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-            Goto(M.w5u1, M.avrec, 1); SetIndependence(M.w5u1, 1)
-            Goto(M.w5u2, M.avrec, 1); SetIndependence(M.w5u2, 1)
-            Goto(M.w5u3, M.avrec, 1); SetIndependence(M.w5u3, 1)
-            Goto(M.w5u4, M.avrec, 1); SetIndependence(M.w5u4, 1)
-            if M.difficulty >= 3 then -- Hard+: extra tank
-                M.w5u5 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
-                Goto(M.w5u5, M.avrec, 1); SetIndependence(M.w5u5, 1)
-            end
-            if M.difficulty >= 4 then -- Very Hard: extra fighter
-                M.w5u6 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-                Goto(M.w5u6, M.avrec, 1); SetIndependence(M.w5u6, 1)
-            end
-            M.wavenumber = 6
-            M.wave5arrive = false
-            M.wave5 = 99999.0
-            M.fifthwave = true
+    -- Wave 5
+    if M.wave5 < GetTime() and IsAlive(M.svrec) and not M.fifthwave then
+        M.w5u1 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
+        M.w5u2 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+        M.w5u3 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+        M.w5u4 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+        Goto(M.w5u1, M.avrec, 1); SetIndependence(M.w5u1, 1)
+        Goto(M.w5u2, M.avrec, 1); SetIndependence(M.w5u2, 1)
+        Goto(M.w5u3, M.avrec, 1); SetIndependence(M.w5u3, 1)
+        Goto(M.w5u4, M.avrec, 1); SetIndependence(M.w5u4, 1)
+        if M.difficulty >= 3 then -- Hard+: extra tank
+            M.w5u5 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
+            Goto(M.w5u5, M.avrec, 1); SetIndependence(M.w5u5, 1)
         end
-        if M.wavenumber == 6 and not M.wave5arrive and IsAlive(M.avrec) then
-            if (M.w5u1 and IsAlive(M.w5u1) and GetDistance(M.avrec, M.w5u1) < 300) or
-                (M.w5u2 and IsAlive(M.w5u2) and GetDistance(M.avrec, M.w5u2) < 300) or
-                (M.w5u3 and IsAlive(M.w5u3) and GetDistance(M.avrec, M.w5u3) < 300) or
-                (M.w5u4 and IsAlive(M.w5u4) and GetDistance(M.avrec, M.w5u4) < 300) or
-                (M.w5u5 and IsAlive(M.w5u5) and GetDistance(M.avrec, M.w5u5) < 300) or
-                (M.w5u6 and IsAlive(M.w5u6) and GetDistance(M.avrec, M.w5u6) < 300) then
-                subtit.Play("misn0414.wav")
-                M.wave5arrive = true
-            end
+        if M.difficulty >= 4 then -- Very Hard: extra fighter
+            M.w5u6 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+            Goto(M.w5u6, M.avrec, 1); SetIndependence(M.w5u6, 1)
         end
-        if M.wavenumber == 6 and not M.wave5dead then
-            if (not (M.w5u1 and IsAlive(M.w5u1))) and
-                (not (M.w5u2 and IsAlive(M.w5u2))) and
-                (not (M.w5u3 and IsAlive(M.w5u3))) and
-                (not (M.w5u4 and IsAlive(M.w5u4))) and
-                (not (M.w5u5 and IsAlive(M.w5u5))) and
-                (not (M.w5u6 and IsAlive(M.w5u6))) then
-                M.wave5dead = true
-            end
+        M.wavenumber = 6
+        M.wave5arrive = false
+        M.wave5 = 99999.0
+        M.fifthwave = true
+    end
+    if M.wavenumber == 6 and not M.wave5arrive and IsAlive(M.avrec) then
+        if (M.w5u1 and IsAlive(M.w5u1) and GetDistance(M.avrec, M.w5u1) < 300) or
+            (M.w5u2 and IsAlive(M.w5u2) and GetDistance(M.avrec, M.w5u2) < 300) or
+            (M.w5u3 and IsAlive(M.w5u3) and GetDistance(M.avrec, M.w5u3) < 300) or
+            (M.w5u4 and IsAlive(M.w5u4) and GetDistance(M.avrec, M.w5u4) < 300) or
+            (M.w5u5 and IsAlive(M.w5u5) and GetDistance(M.avrec, M.w5u5) < 300) or
+            (M.w5u6 and IsAlive(M.w5u6) and GetDistance(M.avrec, M.w5u6) < 300) then
+            subtit.Play("misn0414.wav")
+            M.wave5arrive = true
         end
+    end
+    if M.wavenumber == 6 and not M.wave5dead then
+        if (not (M.w5u1 and IsAlive(M.w5u1))) and
+            (not (M.w5u2 and IsAlive(M.w5u2))) and
+            (not (M.w5u3 and IsAlive(M.w5u3))) and
+            (not (M.w5u4 and IsAlive(M.w5u4))) and
+            (not (M.w5u5 and IsAlive(M.w5u5))) and
+            (not (M.w5u6 and IsAlive(M.w5u6))) then
+            M.wave5dead = true
+        end
+    end
     if not M.attackccabase and IsAlive(M.player) and IsAlive(M.svrec) and GetDistance(M.player, M.svrec) < 300.0 then
         subtit.Play("misn0423.wav")
         M.attackccabase = true
@@ -2992,6 +3110,7 @@ function Load(...)
     DestroyOverlayDemo()
     local missionData = ...
     M = missionData or M
+    M.scriptedTeam2Handles = M.scriptedTeam2Handles or {}
     M.loading_done = false
     M.overlayDemoReady = false
     M.overlayDemoVisible = false
