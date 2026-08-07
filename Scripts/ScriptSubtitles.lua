@@ -9,6 +9,7 @@ local FONT_SCALE_MIN = 0.85
 local FONT_SCALE_MAX = 2.00
 local BASE_CHAR_LIMIT = 78
 local OVERLAY_FONT_NAME = "CRBZoneOverlayFont"
+local OVERLAY_FONT_MATERIAL = "CR_OverlayFont"
 local OVERLAY_Z_ORDER = 644
 local OVERLAY_IDS = {
     overlay = "cr_mission_subtitle_overlay",
@@ -585,6 +586,13 @@ local function TryCreateSubtitleOverlay()
     Call(exu.ShowOverlayElement, ids.backdrop)
     Call(exu.ShowOverlayElement, ids.text)
     Call(exu.HideOverlay, ids.overlay)
+
+    -- Ogre 1.10 image fonts create a fixed-function material internally.
+    -- D3D11 has no fixed pipeline, so replace it after font binding with
+    -- the explicit shader-backed atlas material.
+    if fontName then
+        Call(exu.SetOverlayMaterial, ids.text, OVERLAY_FONT_MATERIAL)
+    end
 
     if not ok then
         overlayState.failed = true

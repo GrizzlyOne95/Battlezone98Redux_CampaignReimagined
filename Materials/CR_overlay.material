@@ -1,0 +1,56 @@
+// Campaign Reimagined overlay materials.
+//
+// The first technique is deliberately SM4-specific so D3D11 gets a fully
+// programmable overlay path. The second technique preserves the old fixed-
+// function behavior for DX9/OpenGL renderers that do not support the SM4
+// programs.
+
+material CR_OverlayFont
+{
+    technique
+    {
+        pass
+        {
+            vertex_program_ref CR_UI_vertexHLSL4
+            {
+            }
+            fragment_program_ref CR_UI_fragmentHLSL4
+            {
+            }
+
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+
+            texture_unit diffuseMap
+            {
+                texture bzfont.dds
+                tex_address_mode clamp
+                filtering linear linear none
+            }
+        }
+    }
+
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+
+            texture_unit
+            {
+                texture bzfont.dds
+                tex_address_mode clamp
+                filtering linear linear none
+            }
+        }
+    }
+}
