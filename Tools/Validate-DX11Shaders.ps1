@@ -37,11 +37,18 @@ New-Item $tempRoot -ItemType Directory | Out-Null
 
 $cases = @(
     @{
-        Name = 'base-vs-high'
+        Name = 'base-vs-high-cotangent'
         File = $baseShader
         Entry = 'base_vertex'
         Target = 'vs_4_0'
         Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1')
+    },
+    @{
+        Name = 'base-vs-high-tangent'
+        File = $baseShader
+        Entry = 'base_vertex'
+        Target = 'vs_4_0'
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'VERTEX_TANGENTS=1')
     },
     @{
         Name = 'base-ps-enhanced'
@@ -49,6 +56,27 @@ $cases = @(
         Entry = 'base_fragment'
         Target = 'ps_4_0'
         Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1')
+    },
+    @{
+        Name = 'base-ps-enhanced-tangent'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'VERTEX_TANGENTS=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1')
+    },
+    @{
+        Name = 'base-ps-enhanced-minimal'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=1', 'ENHANCED_MODE=1')
+    },
+    @{
+        Name = 'base-ps-enhanced-specular-no-map'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=1', 'SPECULAR_ENABLED=1', 'ENHANCED_MODE=1')
     },
     @{
         Name = 'base-ps-enhanced-shadow'
@@ -72,11 +100,18 @@ $cases = @(
         Defines = @('MAX_LIGHTS=8', 'OG_RETRO_MODE=1', 'RETRO_UNLIT_MODE=1')
     },
     @{
-        Name = 'terrain-vs-high'
+        Name = 'terrain-vs-high-cotangent'
         File = $terrainShader
         Entry = 'terrain_vertex'
         Target = 'vs_4_0'
         Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1')
+    },
+    @{
+        Name = 'terrain-vs-high-tangent'
+        File = $terrainShader
+        Entry = 'terrain_vertex'
+        Target = 'vs_4_0'
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'VERTEX_TANGENTS=1')
     },
     @{
         Name = 'terrain-ps-enhanced'
@@ -84,6 +119,20 @@ $cases = @(
         Entry = 'terrain_fragment'
         Target = 'ps_4_0'
         Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1')
+    },
+    @{
+        Name = 'terrain-ps-enhanced-tangent'
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'VERTEX_TANGENTS=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1')
+    },
+    @{
+        Name = 'terrain-ps-enhanced-minimal'
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=1', 'DETAILMAP_ENABLED=1', 'ENHANCED_MODE=1')
     },
     @{
         Name = 'terrain-ps-enhanced-shadow'
