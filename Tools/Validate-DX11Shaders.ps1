@@ -93,6 +93,27 @@ $cases = @(
         Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4')
     },
     @{
+        Name = 'base-ps-ibl-noshadow'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1')
+    },
+    @{
+        Name = 'base-ps-ibl-shadow'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PCF_SIZE=4')
+    },
+    @{
+        Name = 'base-ps-ibl-pssm'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4')
+    },
+    @{
         Name = 'base-ps-retro'
         File = $baseShader
         Entry = 'base_fragment'
@@ -147,6 +168,27 @@ $cases = @(
         Entry = 'terrain_fragment'
         Target = 'ps_4_0'
         Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4')
+    },
+    @{
+        Name = 'terrain-ps-ibl-noshadow'
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1')
+    },
+    @{
+        Name = 'terrain-ps-ibl-shadow'
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PCF_SIZE=4')
+    },
+    @{
+        Name = 'terrain-ps-ibl-pssm'
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4')
     },
     @{
         Name = 'terrain-ps-retro'
