@@ -1,12 +1,9 @@
 name: Apply DX11 static IBL material wiring
 
 on:
-  push:
-    branches:
-      - feature/dx11-static-ibl
   pull_request:
     branches:
-      - feature/dx11-legacy-pbr
+      - main
 
 permissions:
   contents: write
@@ -72,8 +69,6 @@ jobs:
           replace_program(terrain, 'CR_TerrainENHighShadow_fragment', 'CR_TerrainIBLHighShadow_fragment', 1)
           replace_program(terrain, 'CR_TerrainENHighNoShadow_fragment', 'CR_TerrainIBLHighNoShadow_fragment', 4)
 
-          # This workflow is intentionally one-shot. Remove it from the resulting
-          # branch commit so no workflow file is part of the final PR diff.
           Path('.github/workflows/apply-dx11-static-ibl-materials.yml').unlink()
 
       - name: Commit material wiring
