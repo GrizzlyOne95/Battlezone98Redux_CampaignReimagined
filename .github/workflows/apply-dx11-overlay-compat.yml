@@ -55,7 +55,8 @@ jobs:
           persistent = Path('Scripts/PersistentConfig.lua')
           replace_once(
               persistent,
-              '    if not ok then\n        Log(string.format("PersistentConfig: PDA overlay initialization failed kind=%s", tostring(kind)))\n',
+              '    SafeCall(exu.HideOverlay, ids.overlay)\n\n    if not ok then\n        state.failed = true\n',
+              '    SafeCall(exu.HideOverlay, ids.overlay)\n\n'
               '    -- TextArea font binding installs Ogre 1.10\'s fixed-function font\n'
               '    -- material. Rebind all custom-font text elements to the shader-backed\n'
               '    -- atlas material so D3D11 always has both VS and PS programs.\n'
@@ -66,7 +67,7 @@ jobs:
               '            end\n'
               '        end\n'
               '    end\n\n'
-              '    if not ok then\n        Log(string.format("PersistentConfig: PDA overlay initialization failed kind=%s", tostring(kind)))\n',
+              '    if not ok then\n        state.failed = true\n',
           )
           replace_once(
               persistent,
