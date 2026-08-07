@@ -5,6 +5,13 @@
 
 // Force OG retro mode to ignore modern map contributions even if a program
 // variant accidentally leaves those feature defines enabled.
+
+// TEMPORARY DIAGNOSTIC: when enabled, any pixel using the static IBL path is
+// strongly tinted magenta after normal lighting/fog. Remove after runtime proof.
+#ifndef CR_IBL_DEBUG_VISUALIZE
+#define CR_IBL_DEBUG_VISUALIZE 1
+#endif
+
 #if defined(OG_RETRO_MODE)
 #undef NORMALMAP_ENABLED
 #undef SPECULARMAP_ENABLED
@@ -803,6 +810,13 @@ void base_fragment(
 
     float fogValue = saturate((vDepth - fogParams.y) * fogParams.w);
     oColor.xyz = lerp(oColor.xyz, fogColour.xyz, fogValue);
+
+#if defined(IBL_ENABLED) && CR_IBL_DEBUG_VISUALIZE
+    // TEMP IBL DEBUG MARKER: unmistakable proof that the Enhanced-High IBL
+    // shader variant is actually drawing this pixel.
+    oColor.xyz = lerp(oColor.xyz, float3(1.0, 0.0, 1.0), 0.85);
+#endif
+
     oColor.a = saturate(transparency);
 
 #if defined(LOGDEPTH_ENABLE)
