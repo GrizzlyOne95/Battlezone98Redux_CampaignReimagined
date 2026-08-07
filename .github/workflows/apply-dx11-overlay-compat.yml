@@ -41,14 +41,15 @@ jobs:
           )
           replace_once(
               subtitles,
-              '    if not ok then\n        AppendSubtitleFailureLog("overlay-init-failed", activeSequenceSource, "overlayState.failed=true")\n',
+              '    Call(exu.HideOverlay, ids.overlay)\n\n    if not ok then\n        overlayState.failed = true\n',
+              '    Call(exu.HideOverlay, ids.overlay)\n\n'
               '    -- Ogre 1.10 image fonts create a fixed-function material internally.\n'
               '    -- D3D11 has no fixed pipeline, so replace it after font binding with\n'
               '    -- the explicit shader-backed atlas material.\n'
               '    if fontName then\n'
               '        Call(exu.SetOverlayMaterial, ids.text, OVERLAY_FONT_MATERIAL)\n'
               '    end\n\n'
-              '    if not ok then\n        AppendSubtitleFailureLog("overlay-init-failed", activeSequenceSource, "overlayState.failed=true")\n',
+              '    if not ok then\n        overlayState.failed = true\n',
           )
 
           persistent = Path('Scripts/PersistentConfig.lua')
