@@ -9,27 +9,66 @@ The publisher is locked to Battlezone 98 Redux app `301650` and Workshop item
 `3686673790`. It builds a clean payload under `Local/Workshop/content`; it never
 uploads the live game directory and does not commit or push Git changes.
 
+### GitHub Actions publishing
+
+The repository includes a manual `Publish Steam Workshop` workflow. Publishing
+is intentionally split between two machines:
+
+1. A GitHub-hosted Windows runner checks out Campaign Reimagined, checks out and
+   builds the selected OpenShim revision, creates the Workshop payload, validates
+   required/forbidden files, and writes the SHA-256 content manifest.
+2. A dedicated self-hosted Windows runner with cached SteamCMD authentication
+   downloads only that validated artifact, verifies its manifest again, and
+   uploads it to Steam.
+
+The Steam-authenticated runner does not check out or compile repository code.
+The workflow only runs through `workflow_dispatch`, refuses to publish anything
+other than `main`, and uses a concurrency lock so two uploads cannot collide.
+
+Setup instructions are in `docs/STEAM_WORKSHOP_RUNNER.md`. After the runner is
+configured, publishing is:
+
+```text
+Actions -> Publish Steam Workshop -> Run workflow
+```
+
+Enter the Workshop change note, normally leave `openshim_ref` at `main`, and
+choose whether the run is a dry run. Dry runs build and validate the complete
+payload without contacting Steam and do not require the self-hosted runner.
+
+The canonical Workshop description is tracked at
+`docs/workshop_description.bbcode`. It is included in the upload metadata but
+excluded from the Workshop content payload itself.
+
+### Local publishing
+
+Local publishing remains supported. When publishing from a Git checkout, use
+`docs/Invoke-WorkshopPublisher.ps1` as the entrypoint. The legacy manager
+recursively scans the repository, so the wrapper temporarily moves `.github/`
+outside the source tree while it runs and restores it afterward. This prevents
+GitHub workflow YAML from being flattened into the mod payload.
+
 1. Copy `workshop.config.example.json` to the ignored
    `workshop.config.json`.
 2. Set `SteamUser`, or define the `STEAM_USERNAME` environment variable.
 3. Bootstrap SteamCMD authentication once:
 
    ```powershell
-   .\Manage-CampaignFiles.ps1 -workshop-auth
+   .\docs\Invoke-WorkshopPublisher.ps1 -workshop-auth
    ```
 
 4. Build and validate without uploading:
 
    ```powershell
-   .\Manage-CampaignFiles.ps1 -workshop-build "Release candidate"
+   .\docs\Invoke-WorkshopPublisher.ps1 -workshop-build "Release candidate"
    ```
 
    The build refreshes `Bin/winmm.dll` from
    `Documents/GIT/BZR-OpenShim/bin/Release/winmm.dll` before generating the
    OpenShim manifest. Set `BZR_OPENSHIM_REPO` to override that repository path.
 
-   For a local Steam test without uploading, deploy directly to the installed
-   Workshop item:
+   For a local Steam test without uploading, deployment still uses the manager
+   directly because it does not build Workshop staging:
 
    ```powershell
    .\Manage-CampaignFiles.ps1 -deploy
@@ -38,7 +77,7 @@ uploads the live game directory and does not commit or push Git changes.
 5. Upload the validated payload:
 
    ```powershell
-   .\Manage-CampaignFiles.ps1 -workshop-upload "Describe the update"
+   .\docs\Invoke-WorkshopPublisher.ps1 -workshop-upload "Describe the update"
    ```
 
 ### Description and visibility
@@ -48,10 +87,8 @@ Two SteamCMD behaviours are worth knowing, because both fail silently:
 - `workshop_build_item` only understands an **inline** `description` key. A
   `descriptionfile` path is not a real key; SteamCMD discards it, reports
   `Committing update...Success.`, updates the content and leaves the published
-  description untouched. `DescriptionFile` in `workshop.config.json` is now read
-  by the publisher and inlined for you, so keep the canonical text in
-  `Local/workshop_description.bbcode`. That path is excluded from staging, so it
-  is not shipped inside the payload.
+  description untouched. `DescriptionFile` in `workshop.config.json` is read by
+  the publisher and inlined for you from `docs/workshop_description.bbcode`.
 - SteamCMD's KeyValues parser does **not** process escape sequences. Newlines
   are fine inside the quoted value, but a literal double quote ends it early and
   the upload dies with `got } in key in file workshopitem`. The publisher
@@ -67,4 +104,4 @@ Steam passwords are never read from the JSON configuration. SteamCMD may ask
 for a password and Steam Guard code during the authentication bootstrap, then
 reuse its locally cached login for subsequent uploads. Generated content,
 hash manifests, VDF files, receipts, and SteamCMD logs remain under the ignored
-`Local/Workshop` directory.
+`Local/Workshop` directory during local publishing.
