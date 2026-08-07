@@ -2410,7 +2410,7 @@ local STOCK_OPENING_DEFENDERS = {
     openingTurret1 = { label = "svturr272_turrettank", odf = "svturr", position = { x = 3718.68, y = 0.5, z = 99830.2 } },
     openingTurret2 = { label = "svturr273_turrettank", odf = "svturr", position = { x = 3586.0, y = 0.5, z = 99818.5 } },
     openingTurret3 = { label = "svturr274_turrettank", odf = "svturr", position = { x = 3622.48, y = 0.5, z = 99765.0 } },
-    openingTurret4 = { label = "svturr-1_turrettank", odf = "svturr", position = { x = 3671.84, y = 7.2247, z = 99900.1 } },
+    openingTurret4 = { label = "svturr-1_turrettank", odf = "svturr", position = { x = 3671.84, y = 0.5, z = 99900.1 } },
 }
 
 local function RestoreStockOpeningDefenders()
