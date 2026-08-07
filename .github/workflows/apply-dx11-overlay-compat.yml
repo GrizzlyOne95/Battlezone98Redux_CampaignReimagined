@@ -127,6 +127,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Materials/cr_pda_overlay.material Scripts/PersistentConfig.lua Scripts/ScriptSubtitles.lua Tools/Validate-DX11Shaders.ps1
+          git add Materials/cr_pda_overlay.material Scripts/PersistentConfig.lua Scripts/ScriptSubtitles.lua
+          git add -f Tools/Validate-DX11Shaders.ps1
           git commit -m "fix: make EXU overlays programmable on DX11"
           git push origin HEAD:agent/dx11-overlay-fix-final2
