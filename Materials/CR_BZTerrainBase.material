@@ -1519,8 +1519,29 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeHighPSSM
  		{
-			fragment_program_ref CR_TerrainENHighPSSM_fragment
+			fragment_program_ref CR_TerrainIBLHighPSSM_fragment
 			{
+			}
+
+			texture_unit irradianceMap
+			{
+				texture_alias IrradianceMap
+				cubic_texture cr_ibl_neutral_irradiance.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit prefilteredEnvMap
+			{
+				texture_alias PrefilteredEnvironmentMap
+				cubic_texture cr_ibl_neutral_prefilter.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit brdfLut
+			{
+				texture_alias EnvironmentBrdfLut
+				texture cr_ibl_brdf_lut.png 2d
+				tex_address_mode clamp
 			}
 		}
 	}
@@ -1531,8 +1552,29 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeHighNoShadow
  		{
-			fragment_program_ref CR_TerrainENHighNoShadow_fragment
+			fragment_program_ref CR_TerrainIBLHighNoShadow_fragment
 			{
+			}
+
+			texture_unit irradianceMap
+			{
+				texture_alias IrradianceMap
+				cubic_texture cr_ibl_neutral_irradiance.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit prefilteredEnvMap
+			{
+				texture_alias PrefilteredEnvironmentMap
+				cubic_texture cr_ibl_neutral_prefilter.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit brdfLut
+			{
+				texture_alias EnvironmentBrdfLut
+				texture cr_ibl_brdf_lut.png 2d
+				tex_address_mode clamp
 			}
 		}
 	}
@@ -1555,8 +1597,29 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeHigh
  		{
-			fragment_program_ref CR_TerrainENHighShadow_fragment
+			fragment_program_ref CR_TerrainIBLHighShadow_fragment
 			{
+			}
+
+			texture_unit irradianceMap
+			{
+				texture_alias IrradianceMap
+				cubic_texture cr_ibl_neutral_irradiance.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit prefilteredEnvMap
+			{
+				texture_alias PrefilteredEnvironmentMap
+				cubic_texture cr_ibl_neutral_prefilter.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit brdfLut
+			{
+				texture_alias EnvironmentBrdfLut
+				texture cr_ibl_brdf_lut.png 2d
+				tex_address_mode clamp
 			}
 		}
 	}
@@ -1567,8 +1630,29 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeHighNoShadow
  		{
-			fragment_program_ref CR_TerrainENHighNoShadow_fragment
+			fragment_program_ref CR_TerrainIBLHighNoShadow_fragment
 			{
+			}
+
+			texture_unit irradianceMap
+			{
+				texture_alias IrradianceMap
+				cubic_texture cr_ibl_neutral_irradiance.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit prefilteredEnvMap
+			{
+				texture_alias PrefilteredEnvironmentMap
+				cubic_texture cr_ibl_neutral_prefilter.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit brdfLut
+			{
+				texture_alias EnvironmentBrdfLut
+				texture cr_ibl_brdf_lut.png 2d
+				tex_address_mode clamp
 			}
 		}
 	}
@@ -1591,8 +1675,29 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeHighNoShadow
  		{
-			fragment_program_ref CR_TerrainENHighNoShadow_fragment
+			fragment_program_ref CR_TerrainIBLHighNoShadow_fragment
 			{
+			}
+
+			texture_unit irradianceMap
+			{
+				texture_alias IrradianceMap
+				cubic_texture cr_ibl_neutral_irradiance.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit prefilteredEnvMap
+			{
+				texture_alias PrefilteredEnvironmentMap
+				cubic_texture cr_ibl_neutral_prefilter.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit brdfLut
+			{
+				texture_alias EnvironmentBrdfLut
+				texture cr_ibl_brdf_lut.png 2d
+				tex_address_mode clamp
 			}
 		}
 	}
@@ -1603,8 +1708,29 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeHighNoShadow
  		{
-			fragment_program_ref CR_TerrainENHighNoShadow_fragment
+			fragment_program_ref CR_TerrainIBLHighNoShadow_fragment
 			{
+			}
+
+			texture_unit irradianceMap
+			{
+				texture_alias IrradianceMap
+				cubic_texture cr_ibl_neutral_irradiance.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit prefilteredEnvMap
+			{
+				texture_alias PrefilteredEnvironmentMap
+				cubic_texture cr_ibl_neutral_prefilter.dds combinedUVW
+				tex_address_mode clamp
+			}
+
+			texture_unit brdfLut
+			{
+				texture_alias EnvironmentBrdfLut
+				texture cr_ibl_brdf_lut.png 2d
+				tex_address_mode clamp
 			}
 		}
 	}
