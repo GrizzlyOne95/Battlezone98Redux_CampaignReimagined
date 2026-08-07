@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - feature/dx11-static-ibl
+  pull_request:
+    branches:
+      - feature/dx11-legacy-pbr
 
 permissions:
   contents: write
