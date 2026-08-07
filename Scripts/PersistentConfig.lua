@@ -1570,6 +1570,10 @@ function PersistentConfig._TryCreateExperimentalOverlay()
     SafeCall(exu.ShowOverlayElement, ids.text)
     SafeCall(exu.HideOverlay, ids.overlay)
 
+    if PersistentConfig.ExperimentalOverlayUseCustomFont and type(exu.SetOverlayMaterial) == "function" then
+        SafeCall(exu.SetOverlayMaterial, ids.text, "CR_OverlayFont")
+    end
+
     if ok then
         PersistentConfig.ExperimentalOverlayReady = true
         PersistentConfig.ExperimentalOverlayFailed = false
@@ -2298,6 +2302,17 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
         end
     end
     SafeCall(exu.HideOverlay, ids.overlay)
+
+    -- TextArea font binding installs Ogre 1.10's fixed-function font
+    -- material. Rebind all custom-font text elements to the shader-backed
+    -- atlas material so D3D11 always has both VS and PS programs.
+    if state.useCustomFont and type(exu.SetOverlayMaterial) == "function" then
+        for _, textId in ipairs(textIds) do
+            if textId then
+                SafeCall(exu.SetOverlayMaterial, textId, "CR_OverlayFont")
+            end
+        end
+    end
 
     if not ok then
         state.failed = true

@@ -1,0 +1,12 @@
+// Campaign Reimagined - DX11 overlay compatibility.
+//
+// Intentionally exposes an SM4-only tint fragment program. Overlay panel
+// materials put this in their first technique and retain the original fixed-
+// function pass as a fallback, so DX9/GL keep their existing rendering path.
+
+fragment_program CR_OverlayTint_fragmentHLSL4 hlsl
+{
+    source CR_overlay-sm4.hlsl
+    target ps_4_0
+    entry_point overlay_tint_fragment
+}
