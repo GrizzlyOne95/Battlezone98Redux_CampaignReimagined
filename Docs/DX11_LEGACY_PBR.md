@@ -11,6 +11,12 @@ This document describes the first experimental physically based direct-lighting 
 
 The implementation is shader-side only. It does not add renderer hooks, new render targets, environment probes, temporal resources, reflection passes, or new texture requirements.
 
+### Enhanced LOD behavior
+
+The existing Enhanced materials use the explicit `ENHigh*` programs at LOD 0, then fall back to shared medium/low fragment delegates at the existing material LOD thresholds (for example, `CR_BZBase` uses 250/300). Those shared delegates are also used by non-Enhanced render paths and do not expose the same feature/binding set. This first testable PBR milestone therefore leaves those shared programs untouched rather than making a broad program/material change that could affect DX9, GL, Retro, or lower-quality paths.
+
+In-game validation should watch specifically for a lighting/material-response transition at those LOD boundaries. If the GGX path is accepted visually, the follow-up should add dedicated DX11 Enhanced medium/low SM4 delegates so Legacy-PBR remains active through the complete Enhanced LOD chain without altering shared compatibility programs.
+
 ## Legacy material compatibility
 
 The game material library is treated as a **specular/gloss legacy source**, not as metallic/roughness data.
@@ -46,7 +52,7 @@ Finally, when a normal map is active, screen-space normal derivatives (`ddx` / `
 
 ## BRDF
 
-Enhanced SM4 direct lighting now uses a Cook-Torrance microfacet model built from:
+Enhanced High SM4 direct lighting now uses a Cook-Torrance microfacet model built from:
 
 - GGX / Trowbridge-Reitz normal distribution
 - Schlick-GGX geometry term
@@ -120,6 +126,7 @@ Compilation is necessary but not sufficient. In-game validation should specifica
 - directional sun, local point lights, and spotlights
 - multiple-light scenes
 - specular shimmer while moving the camera
+- lighting/material response at Enhanced LOD transitions
 - DX11 device-loss/crash behavior
 
 ## Known limitations / next stages
