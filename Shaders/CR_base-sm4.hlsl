@@ -1,3 +1,7 @@
+// DX11 SM4 shader path for Campaign Reimagined.
+// Enhanced mode uses the experimental legacy-compatible GGX direct-lighting model.
+// Keep this file synchronized with CR_terrain-sm4.hlsl for shared PBR helpers.
+
 // Force OG retro mode to ignore modern map contributions even if a program
 // variant accidentally leaves those feature defines enabled.
 #if defined(OG_RETRO_MODE)
@@ -7,548 +11,708 @@
 #undef EMISSIVEMAP_ENABLED
 #endif
 
-#if defined(SHADOWRECEIVER) 
-float PCF_Filter(in Texture2D map,
-					in SamplerState sam,
-					in float4 uv,
-					in float2 invMapSize)
+#if defined(SHADOWRECEIVER)
+float PCF_Filter(
+    in Texture2D map,
+    in SamplerState sam,
+    in float4 uv,
+    in float2 invMapSize)
 {
-	uv /= uv.w;
-	uv.z = min(uv.z, 1.0);
+    // Invalid projected coordinates can otherwise create INF/NaN values on DX11.
+    if (abs(uv.w) <= 1e-6)
+        return 1.0;
+
+    uv.xyz *= rcp(uv.w);
+    uv.w = 1.0;
+    uv.z = min(uv.z, 1.0);
+    invMapSize = max(invMapSize, float2(1e-8, 1e-8));
+
 #if PCF_SIZE > 1
-	float2 pixel = uv.xy / invMapSize - float2(float(PCF_SIZE-1)*0.5, float(PCF_SIZE-1)*0.5);
-	float2 c = floor(pixel);
-	float2 f = frac(pixel);
+    float2 pixel = uv.xy / invMapSize - float2(float(PCF_SIZE - 1) * 0.5, float(PCF_SIZE - 1) * 0.5);
+    float2 c = floor(pixel);
+    float2 f = frac(pixel);
 
-	float kernel[PCF_SIZE*PCF_SIZE];
-	{
-		[unroll] for (int y = 0; y < PCF_SIZE; ++y)
-		{
-			[unroll] for (int x = 0; x < PCF_SIZE; ++x)
-			{
-				int i = y * PCF_SIZE + x;
-				kernel[i] = step(uv.z, map.Sample(sam, (c + float2(x, y)) * invMapSize).x);
-			}
-		}
-	}
+    float kernel[PCF_SIZE * PCF_SIZE];
+    {
+        [unroll] for (int y = 0; y < PCF_SIZE; ++y)
+        {
+            [unroll] for (int x = 0; x < PCF_SIZE; ++x)
+            {
+                int i = y * PCF_SIZE + x;
+                kernel[i] = step(uv.z, map.Sample(sam, (c + float2(x, y)) * invMapSize).x);
+            }
+        }
+    }
 
-	float4 sum = float4(0.0, 0.0, 0.0, 0.0);
-	{
-		[unroll] for (int y = 0; y < PCF_SIZE - 1; ++y)
-		{
-			[unroll] for (int x = 0; x < PCF_SIZE - 1; ++x)
-			{
-				int i = y * PCF_SIZE + x;
-				sum += float4(kernel[i], kernel[i + 1], kernel[i + PCF_SIZE], kernel[i + PCF_SIZE + 1]);
-			}
-		}
-	}
+    float4 sum = float4(0.0, 0.0, 0.0, 0.0);
+    {
+        [unroll] for (int y = 0; y < PCF_SIZE - 1; ++y)
+        {
+            [unroll] for (int x = 0; x < PCF_SIZE - 1; ++x)
+            {
+                int i = y * PCF_SIZE + x;
+                sum += float4(kernel[i], kernel[i + 1], kernel[i + PCF_SIZE], kernel[i + PCF_SIZE + 1]);
+            }
+        }
+    }
 
-	return lerp(lerp(sum.x, sum.y, f.x), lerp(sum.z, sum.w, f.x), f.y) / float((PCF_SIZE-1)*(PCF_SIZE-1));
+    return lerp(lerp(sum.x, sum.y, f.x), lerp(sum.z, sum.w, f.x), f.y)
+        / float((PCF_SIZE - 1) * (PCF_SIZE - 1));
 #else
-	return step(uv.z, map.Sample(sam, uv.xy).x);
+    return step(uv.z, map.Sample(sam, uv.xy).x);
 #endif
 }
 #endif
 
 #if defined(NORMALMAP_ENABLED) && !defined(VERTEX_TANGENTS)
-// compute cotangent frame from normal, position, and texcoord
-// http://www.thetenthplanet.de/archives/1180
+// Compute a cotangent frame from derivatives for meshes without authored tangents.
 float3x3 cotangent_frame(float3 N, float3 p, float2 uv)
 {
-	// get edge vectors of the pixel triangle
-	float3 dp1 = ddx(p);
-	float3 dp2 = ddy(p);
-	float2 duv1 = ddx(uv);
-	float2 duv2 = ddy(uv);
+    float3 dp1 = ddx(p);
+    float3 dp2 = ddy(p);
+    float2 duv1 = ddx(uv);
+    float2 duv2 = ddy(uv);
 
-	// solve the linear system
-	float3 dp2perp = cross(N, dp2);
-	float3 dp1perp = cross(dp1, N);
-	float3 T = dp2perp * duv1.x + dp1perp * duv2.x;
-	float3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+    float3 dp2perp = cross(N, dp2);
+    float3 dp1perp = cross(dp1, N);
+    float3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+    float3 B = dp2perp * duv1.y + dp1perp * duv2.y;
 
-	// construct a scale-invariant frame
-	float invmax = rsqrt(max(dot(T, T), dot(B, B)) + 1e-30);
-	T *= invmax;
-	B *= invmax;
-	return float3x3(T, B, N);
+    float invmax = rsqrt(max(max(dot(T, T), dot(B, B)), 1e-20));
+    T *= invmax;
+    B *= invmax;
+    return float3x3(T, B, N);
 }
 #endif
 
 float3 safe_normalize(float3 v)
 {
-	float lenSq = dot(v, v);
-	return (lenSq > 1e-8) ? v * rsqrt(lenSq) : float3(0.0, 0.0, 0.0);
+    float lenSq = dot(v, v);
+    return (lenSq > 1e-8) ? v * rsqrt(lenSq) : float3(0.0, 0.0, 0.0);
+}
+
+float luminance_legacy(float3 c)
+{
+    return dot(c, float3(0.299, 0.587, 0.114));
 }
 
 #if defined(ENHANCED_MODE)
 float3 sharpen_normal_map(float3 normalTex)
 {
-	float2 sharpenedXY = normalTex.xy * 1.85;
-	float sharpenedZ = max(normalTex.z, 0.20);
-	return safe_normalize(float3(sharpenedXY, sharpenedZ));
+    float2 sharpenedXY = normalTex.xy * 1.85;
+    float sharpenedZ = max(normalTex.z, 0.20);
+    return safe_normalize(float3(sharpenedXY, sharpenedZ));
+}
+
+// -----------------------------------------------------------------------------
+// Legacy-PBR calibration
+// -----------------------------------------------------------------------------
+// BZR assets are legacy diffuse/specular/normal/emissive materials. These
+// constants deliberately remap that data conservatively instead of pretending
+// that a metallic/roughness texture set exists.
+//
+// Texture samples are consumed in the space Ogre provides. Do not add a manual
+// gamma decode here until the resource creation/sRGB flags are verified; doing
+// so risks double-gamma correction.
+static const float CR_PI = 3.14159265359;
+static const float CR_PBR_MIN_ROUGHNESS = 0.12;
+static const float CR_PBR_MAX_ROUGHNESS = 0.92;
+static const float CR_PBR_SHININESS_SCALE = 1.00;
+static const float CR_PBR_SPECULAR_ROUGHNESS_INFLUENCE = 0.10;
+static const float CR_PBR_NORMAL_VARIANCE_SCALE = 0.30;
+static const float CR_PBR_MAX_VARIANCE_ROUGHNESS = 0.35;
+static const float CR_PBR_DEFAULT_F0 = 0.04;
+static const float CR_PBR_MAX_LEGACY_F0 = 0.45;
+// Legacy light intensities were authored for non-normalized Lambert. This keeps
+// diffuse response recognizable while still applying Fresnel energy sharing.
+static const float CR_PBR_DIFFUSE_COMPENSATION = 2.70;
+static const float CR_PBR_SPECULAR_COMPENSATION = 1.00;
+
+float legacy_shininess_to_roughness(float shininess)
+{
+    float scaledShininess = max(shininess * CR_PBR_SHININESS_SCALE, 0.0);
+    float roughness = sqrt(2.0 / (scaledShininess + 2.0));
+    return clamp(roughness, CR_PBR_MIN_ROUGHNESS, CR_PBR_MAX_ROUGHNESS);
+}
+
+float3 legacy_specular_to_f0(float3 specularTex)
+{
+    specularTex = saturate(specularTex);
+    float peak = max(max(specularTex.r, specularTex.g), specularTex.b);
+    float3 tint = (peak > 1e-4) ? specularTex / peak : float3(1.0, 1.0, 1.0);
+    float strength = lerp(CR_PBR_DEFAULT_F0, CR_PBR_MAX_LEGACY_F0, pow(peak, 1.35));
+    // Weakly blend toward the authored tint so old bright specular maps can read
+    // as reflective without turning every high value into chrome.
+    return saturate(lerp(float3(CR_PBR_DEFAULT_F0, CR_PBR_DEFAULT_F0, CR_PBR_DEFAULT_F0),
+                         tint * strength,
+                         saturate(peak * 0.90)));
+}
+
+float derive_legacy_roughness(float materialShininess, float specularMask)
+{
+    float roughness = legacy_shininess_to_roughness(materialShininess);
+    // Legacy artists often used stronger specular for smoother regions, but
+    // intensity and roughness are distinct. Keep this influence deliberately weak.
+    float smoothnessBias = (specularMask - 0.5) * 2.0;
+    roughness *= 1.0 - smoothnessBias * CR_PBR_SPECULAR_ROUGHNESS_INFLUENCE;
+    return clamp(roughness, CR_PBR_MIN_ROUGHNESS, CR_PBR_MAX_ROUGHNESS);
+}
+
+float filter_roughness_from_normal_variance(float3 N, float roughness)
+{
+    float3 dNdx = ddx(N);
+    float3 dNdy = ddy(N);
+    float variance = max(dot(dNdx, dNdx), dot(dNdy, dNdy));
+    variance = min(variance * CR_PBR_NORMAL_VARIANCE_SCALE, CR_PBR_MAX_VARIANCE_ROUGHNESS);
+
+    // Combine in squared perceptual-roughness space. This is conservative, stable,
+    // and specifically targets sparkling from high-frequency normal variation.
+    float filtered = sqrt(max(roughness * roughness + variance, 0.0));
+    return clamp(filtered, CR_PBR_MIN_ROUGHNESS, CR_PBR_MAX_ROUGHNESS);
+}
+
+float distribution_ggx(float NdotH, float roughness)
+{
+    float a = max(roughness * roughness, 1e-4);
+    float a2 = a * a;
+    float n2 = NdotH * NdotH;
+    float denom = n2 * (a2 - 1.0) + 1.0;
+    return a2 / max(CR_PI * denom * denom, 1e-6);
+}
+
+float geometry_schlick_ggx(float NdotX, float roughness)
+{
+    float r = roughness + 1.0;
+    float k = (r * r) * 0.125;
+    return NdotX / max(NdotX * (1.0 - k) + k, 1e-6);
+}
+
+float geometry_smith(float NdotV, float NdotL, float roughness)
+{
+    return geometry_schlick_ggx(NdotV, roughness)
+         * geometry_schlick_ggx(NdotL, roughness);
+}
+
+float3 fresnel_schlick(float cosTheta, float3 F0)
+{
+    float m = saturate(1.0 - cosTheta);
+    float m2 = m * m;
+    float m5 = m2 * m2 * m;
+    return F0 + (1.0 - F0) * m5;
+}
+
+void evaluate_legacy_pbr(
+    float3 N,
+    float3 V,
+    float3 L,
+    float3 F0,
+    float roughness,
+    out float3 diffuseWeight,
+    out float3 specularBRDF,
+    out float NdotL)
+{
+    NdotL = saturate(dot(N, L));
+    float NdotV = saturate(dot(N, V));
+    diffuseWeight = float3(0.0, 0.0, 0.0);
+    specularBRDF = float3(0.0, 0.0, 0.0);
+
+    if (NdotL <= 0.0 || NdotV <= 0.0)
+        return;
+
+    float3 H = safe_normalize(V + L);
+    float NdotH = saturate(dot(N, H));
+    float VdotH = saturate(dot(V, H));
+
+    float D = distribution_ggx(NdotH, roughness);
+    float G = geometry_smith(NdotV, NdotL, roughness);
+    float3 F = fresnel_schlick(VdotH, F0);
+
+    specularBRDF = (D * G * F) / max(4.0 * NdotV * NdotL, 1e-5);
+    // No aggressive metallic inference in this milestone: diffuse remains present
+    // and is reduced only by Fresnel energy sharing.
+    diffuseWeight = (1.0 - F) * (CR_PBR_DIFFUSE_COMPENSATION / CR_PI);
 }
 #endif
 
 void ComputeSpotlightTerms(
-	float3 pixelToLight,
-	float3 lightDir,
-	float4 spotParams,
-	out float diffuseSpotAttenuation,
-	out float specularSpotAttenuation)
+    float3 pixelToLight,
+    float3 lightDir,
+    float4 spotParams,
+    out float diffuseSpotAttenuation,
+    out float specularSpotAttenuation)
 {
-	float spotRange = max(spotParams.x - spotParams.y, 1e-6);
-	float cone = dot(pixelToLight, safe_normalize(-lightDir));
-	float spotMask = saturate((cone - spotParams.y) / spotRange);
-	float spotEnabled = (spotParams.z > 1e-4) ? 1.0 : 0.0;
-	float spotPower = max(spotParams.z, 1.0);
-	diffuseSpotAttenuation = lerp(1.0, pow(max(spotMask, 1e-4), spotPower), spotEnabled);
-	specularSpotAttenuation = lerp(1.0, pow(max(spotMask, 1e-4), max(spotPower * 1.5, 1.0)), spotEnabled);
+    float spotRange = max(spotParams.x - spotParams.y, 1e-6);
+    float cone = dot(pixelToLight, safe_normalize(-lightDir));
+    float spotMask = saturate((cone - spotParams.y) / spotRange);
+    float spotEnabled = (spotParams.z > 1e-4) ? 1.0 : 0.0;
+    float spotPower = max(spotParams.z, 1.0);
+    diffuseSpotAttenuation = lerp(1.0, pow(max(spotMask, 1e-4), spotPower), spotEnabled);
+    specularSpotAttenuation = lerp(1.0, pow(max(spotMask, 1e-4), max(spotPower * 1.5, 1.0)), spotEnabled);
 }
 
 void base_vertex(
-	uniform float4x4 wvpMat,
-	uniform float4x4 worldViewMat,
+    uniform float4x4 wvpMat,
+    uniform float4x4 worldViewMat,
 
-#if defined(SHADOWRECEIVER) 
-	uniform float4x4 texWorldViewProj1,
+#if defined(SHADOWRECEIVER)
+    uniform float4x4 texWorldViewProj1,
 #if defined(PSSM_ENABLED)
-	uniform float4x4 texWorldViewProj2,
-	uniform float4x4 texWorldViewProj3,
+    uniform float4x4 texWorldViewProj2,
+    uniform float4x4 texWorldViewProj3,
 #endif
 #endif
 
 #if defined(VERTEX_LIGHTING)
-	uniform float4 lightPosition[MAX_LIGHTS],
-	uniform float4 lightDiffuse[MAX_LIGHTS],
+    uniform float4 lightPosition[MAX_LIGHTS],
+    uniform float4 lightDiffuse[MAX_LIGHTS],
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
-	uniform float4 lightSpecular[MAX_LIGHTS],
-	uniform float materialShininess,
+    uniform float4 lightSpecular[MAX_LIGHTS],
+    uniform float materialShininess,
 #endif
 #endif
 
-	in float4 iPosition : POSITION,
-	in float2 iTexCoord : TEXCOORD0,
-	in float3 iNormal : NORMAL,
+    in float4 iPosition : POSITION,
+    in float2 iTexCoord : TEXCOORD0,
+    in float3 iNormal : NORMAL,
 #if defined(NORMALMAP_ENABLED) && defined(VERTEX_TANGENTS)
-	in float3 iTangent : TANGENT,
+    in float3 iTangent : TANGENT,
 #endif
 
-#if defined (VERTEX_LIGHTING)
-	out float3 vLightResult : COLOR0,
+#if defined(VERTEX_LIGHTING)
+    out float3 vLightResult : COLOR0,
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
-	out float3 vSpecularResult : COLOR1,
+    out float3 vSpecularResult : COLOR1,
 #endif
 #endif
 
-	out float2 vTexCoord : TEXCOORD0,
+    out float2 vTexCoord : TEXCOORD0,
 
 #if !defined(VERTEX_LIGHTING)
-	out float3 vViewNormal : TEXCOORD1,
+    out float3 vViewNormal : TEXCOORD1,
 #if defined(NORMALMAP_ENABLED) && defined(VERTEX_TANGENTS)
-	out float3 vViewTangent : TEXCOORD2,
+    out float3 vViewTangent : TEXCOORD2,
 #endif
-	out float3 vViewPosition : TEXCOORD3,
+    out float3 vViewPosition : TEXCOORD3,
 #endif
 
-	out float vDepth : TEXCOORD4,
-#if defined(SHADOWRECEIVER) 
-	out float4 vLightSpacePos1 : TEXCOORD5,
+    out float vDepth : TEXCOORD4,
+#if defined(SHADOWRECEIVER)
+    out float4 vLightSpacePos1 : TEXCOORD5,
 #if defined(PSSM_ENABLED)
-	out float4 vLightSpacePos2 : TEXCOORD6,
-	out float4 vLightSpacePos3 : TEXCOORD7,
+    out float4 vLightSpacePos2 : TEXCOORD6,
+    out float4 vLightSpacePos3 : TEXCOORD7,
 #endif
 #endif
 
-	out float4 oPosition : SV_POSITION
+    out float4 oPosition : SV_POSITION
 )
 {
-	oPosition = mul(wvpMat, iPosition);
-
-	vTexCoord = iTexCoord;
+    oPosition = mul(wvpMat, iPosition);
+    vTexCoord = iTexCoord;
 
 #if defined(VERTEX_LIGHTING)
-	float3 vViewPosition, vViewNormal;
+    float3 vViewPosition, vViewNormal;
 #endif
-	vViewPosition = mul(worldViewMat, float4(iPosition.xyz, 1.0)).xyz;
-	vViewNormal = mul(worldViewMat, float4(iNormal.xyz, 0.0)).xyz;
+    vViewPosition = mul(worldViewMat, float4(iPosition.xyz, 1.0)).xyz;
+    vViewNormal = mul(worldViewMat, float4(iNormal.xyz, 0.0)).xyz;
 #if !defined(VERTEX_LIGHTING) && defined(NORMALMAP_ENABLED) && defined(VERTEX_TANGENTS)
-	vViewTangent = mul(worldViewMat, float4(iTangent.xyz, 0.0)).xyz;
+    vViewTangent = mul(worldViewMat, float4(iTangent.xyz, 0.0)).xyz;
 #endif
 
-	vDepth = oPosition.z;
+    vDepth = oPosition.z;
 
-#if defined(SHADOWRECEIVER) 
-	// calculate vertex position in light space
-	vLightSpacePos1 = mul(texWorldViewProj1, iPosition);
+#if defined(SHADOWRECEIVER)
+    vLightSpacePos1 = mul(texWorldViewProj1, iPosition);
 #if defined(PSSM_ENABLED)
-	vLightSpacePos2 = mul(texWorldViewProj2, iPosition);
-	vLightSpacePos3 = mul(texWorldViewProj3, iPosition);
+    vLightSpacePos2 = mul(texWorldViewProj2, iPosition);
+    vLightSpacePos3 = mul(texWorldViewProj3, iPosition);
 #endif
 #endif
 
 #if defined(VERTEX_LIGHTING)
-	// assume light 0 is the sun directional light
-	// get the direction from the pixel to the light source
-	float3 vertexNormal = safe_normalize(vViewNormal);
-	float3 pixelToLight = safe_normalize(lightPosition[0].xyz - (vViewPosition * lightPosition[0].w));
-	
-	// accumulate diffuse lighting
-	float attenuation = max(dot(vertexNormal, pixelToLight.xyz), 0.0);
+    // Compatibility path for lowest-quality variants. Enhanced PBR is used by
+    // the per-pixel EN high tier; do not perturb legacy vertex-lighting behavior.
+    float3 vertexNormal = safe_normalize(vViewNormal);
+    float3 pixelToLight = safe_normalize(lightPosition[0].xyz - (vViewPosition * lightPosition[0].w));
+
+    float attenuation = max(dot(vertexNormal, pixelToLight.xyz), 0.0);
 #if defined(OG_RETRO_MODE)
-	attenuation = saturate(attenuation * 0.55 + 0.20);
+    attenuation = saturate(attenuation * 0.55 + 0.20);
 #endif
-	vLightResult = lightDiffuse[0].xyz * attenuation;
+    vLightResult = lightDiffuse[0].xyz * attenuation;
 
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
-	// per-pixel view reflection
-	float3 viewReflect = reflect(safe_normalize(vViewPosition), vertexNormal);
-
-	// accumulate specular lighting
-	attenuation *= pow(max(dot(viewReflect, pixelToLight), 0.0), materialShininess);
-	vSpecularResult = lightSpecular[0].xyz * attenuation;
+    float3 viewReflect = reflect(safe_normalize(vViewPosition), vertexNormal);
+    attenuation *= pow(max(dot(viewReflect, pixelToLight), 0.0), materialShininess);
+    vSpecularResult = lightSpecular[0].xyz * attenuation;
 #endif
 #endif
 }
 
-// -------------------------------------------
-
 void base_fragment(
-	uniform Texture2D diffuseMap : register(t0),
-	uniform SamplerState diffuseSam : register(s0),
-#if defined(NORMALMAP_ENABLED) 
-	uniform Texture2D normalMap : register(t1),
-	uniform SamplerState normalSam : register(s1),
+    uniform Texture2D diffuseMap : register(t0),
+    uniform SamplerState diffuseSam : register(s0),
+#if defined(NORMALMAP_ENABLED)
+    uniform Texture2D normalMap : register(t1),
+    uniform SamplerState normalSam : register(s1),
 #endif
 #if defined(SPECULARMAP_ENABLED)
-	uniform Texture2D specularMap : register(t2),
-	uniform SamplerState specularSam : register(s2),
+    uniform Texture2D specularMap : register(t2),
+    uniform SamplerState specularSam : register(s2),
 #endif
 #if defined(EMISSIVEMAP_ENABLED)
-	uniform Texture2D emissiveMap : register(t3),
-	uniform SamplerState emissiveSam : register(s3),
+    uniform Texture2D emissiveMap : register(t3),
+    uniform SamplerState emissiveSam : register(s3),
 #if defined(ENHANCED_MODE)
-	uniform float4 materialEmissive,
+    uniform float4 materialEmissive,
 #endif
 #endif
-#if defined(SHADOWRECEIVER) 
-	uniform Texture2D shadowMap1 : register(t4),	
-	uniform SamplerState shadowSam1 : register(s4),
+#if defined(SHADOWRECEIVER)
+    uniform Texture2D shadowMap1 : register(t4),
+    uniform SamplerState shadowSam1 : register(s4),
 #if defined(PSSM_ENABLED)
-	uniform Texture2D shadowMap2 : register(t5),
-	uniform SamplerState shadowSam2 : register(s5),
-	uniform Texture2D shadowMap3 : register(t6),
-	uniform SamplerState shadowSam3 : register(s6),
+    uniform Texture2D shadowMap2 : register(t5),
+    uniform SamplerState shadowSam2 : register(s5),
+    uniform Texture2D shadowMap3 : register(t6),
+    uniform SamplerState shadowSam3 : register(s6),
 #endif
 
-	uniform float4 invShadowMapSize1,
+    uniform float4 invShadowMapSize1,
 #if defined(PSSM_ENABLED)
-	uniform float4 invShadowMapSize2,
-	uniform float4 invShadowMapSize3,
-	uniform float4 pssmSplitPoints,
+    uniform float4 invShadowMapSize2,
+    uniform float4 invShadowMapSize3,
+    uniform float4 pssmSplitPoints,
 #endif
 #endif
 
-	uniform float4 sceneAmbient,
-	uniform float4 diffuseColor,
+    uniform float4 sceneAmbient,
+    uniform float4 diffuseColor,
 
 #if !defined(VERTEX_LIGHTING)
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
-	uniform float materialShininess,
+    uniform float materialShininess,
 #endif
-	uniform float4 lightDiffuse[MAX_LIGHTS],
-	uniform float4 lightPosition[MAX_LIGHTS],
-	uniform float4 lightSpecular[MAX_LIGHTS],
-	uniform float4 lightAttenuation[MAX_LIGHTS],
-	uniform float4 spotLightParams[MAX_LIGHTS],
-	uniform float4 lightDirection[MAX_LIGHTS],
-	uniform float lightCount,
+    uniform float4 lightDiffuse[MAX_LIGHTS],
+    uniform float4 lightPosition[MAX_LIGHTS],
+    uniform float4 lightSpecular[MAX_LIGHTS],
+    uniform float4 lightAttenuation[MAX_LIGHTS],
+    uniform float4 spotLightParams[MAX_LIGHTS],
+    uniform float4 lightDirection[MAX_LIGHTS],
+    uniform float lightCount,
 #endif
 
-	uniform float4 fogColour,
-	uniform float4 fogParams,
-	uniform float transparency,
+    uniform float4 fogColour,
+    uniform float4 fogParams,
+    uniform float transparency,
 
-#if defined (VERTEX_LIGHTING)
-	in float3 vLightResult : COLOR0,
+#if defined(VERTEX_LIGHTING)
+    in float3 vLightResult : COLOR0,
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
-	in float3 vSpecularResult : COLOR1,
+    in float3 vSpecularResult : COLOR1,
 #endif
 #endif
-	in float2 vTexCoord : TEXCOORD0,
+    in float2 vTexCoord : TEXCOORD0,
 #if !defined(VERTEX_LIGHTING)
-	in float3 vViewNormal : TEXCOORD1,
+    in float3 vViewNormal : TEXCOORD1,
 #if defined(NORMALMAP_ENABLED) && defined(VERTEX_TANGENTS)
-	in float3 vViewTangent : TEXCOORD2,
+    in float3 vViewTangent : TEXCOORD2,
 #endif
-	in float3 vViewPosition : TEXCOORD3,
+    in float3 vViewPosition : TEXCOORD3,
 #endif
-	in float vDepth : TEXCOORD4,
-#if defined(SHADOWRECEIVER) 
-	in float4 vLightSpacePos1 : TEXCOORD5,
+    in float vDepth : TEXCOORD4,
+#if defined(SHADOWRECEIVER)
+    in float4 vLightSpacePos1 : TEXCOORD5,
 #if defined(PSSM_ENABLED)
-	in float4 vLightSpacePos2 : TEXCOORD6,
-	in float4 vLightSpacePos3 : TEXCOORD7,
+    in float4 vLightSpacePos2 : TEXCOORD6,
+    in float4 vLightSpacePos3 : TEXCOORD7,
 #endif
 #endif
 
-	out float4 oColor : SV_TARGET
+    out float4 oColor : SV_TARGET
 #if defined(LOGDEPTH_ENABLE)
-	, out float oDepth : SV_DEPTH
+    , out float oDepth : SV_DEPTH
 #endif
 )
 {
-#if defined(SHADOWRECEIVER) 
-	// shadow texture
-	float shadow;
+#if defined(SHADOWRECEIVER)
+    float shadow;
 #if defined(PSSM_ENABLED)
-	if (vDepth <= pssmSplitPoints.y)
-	{
+    if (vDepth <= pssmSplitPoints.y)
+    {
 #endif
-		shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy);
+        shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy);
 #if defined(PSSM_ENABLED)
-	}
-	else if (vDepth <= pssmSplitPoints.z)
-	{
-		shadow = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy);
-	}
-	else
-	{
-		shadow = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy);
-	}
+    }
+    else if (vDepth <= pssmSplitPoints.z)
+    {
+        shadow = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy);
+    }
+    else
+    {
+        shadow = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy);
+    }
 #endif
 #if defined(ENHANCED_MODE)
-	// deeper shadow floor gives enhanced mode more contact grounding
-	shadow = shadow * 0.78 + 0.22;
+    shadow = shadow * 0.78 + 0.22;
 #else
-	shadow = shadow * 0.7 + 0.3;
+    shadow = shadow * 0.7 + 0.3;
 #endif
 #if defined(OG_RETRO_MODE)
-	shadow = shadow * 0.5 + 0.5;
+    shadow = shadow * 0.5 + 0.5;
 #endif
 #endif
 
 #if defined(VERTEX_LIGHTING)
 
-	// combine ambient and shadowed light result
 #if defined(RETRO_UNLIT_MODE)
-	float3 lightResult = vLightResult;
+    float3 lightResult = vLightResult;
 #if defined(SHADOWRECEIVER)
-	lightResult *= shadow;
+    lightResult *= shadow;
 #endif
 #if defined(OG_RETRO_MODE)
-	lightResult += max(sceneAmbient.xyz * 1.10, float3(0.22, 0.22, 0.22));
+    lightResult += max(sceneAmbient.xyz * 1.10, float3(0.22, 0.22, 0.22));
 #else
-	lightResult += sceneAmbient.xyz;
+    lightResult += sceneAmbient.xyz;
 #endif
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
-	float3 specularResult = float3(0.0, 0.0, 0.0);
+    float3 specularResult = float3(0.0, 0.0, 0.0);
 #endif
 #else
-	float3 lightResult = vLightResult;
+    float3 lightResult = vLightResult;
 #if defined(SHADOWRECEIVER)
-	lightResult *= shadow;
+    lightResult *= shadow;
 #endif
 #if defined(OG_RETRO_MODE)
-	lightResult += max(sceneAmbient.xyz * 1.10, float3(0.22, 0.22, 0.22));
+    lightResult += max(sceneAmbient.xyz * 1.10, float3(0.22, 0.22, 0.22));
 #else
-	lightResult += sceneAmbient.xyz;
+    lightResult += sceneAmbient.xyz;
 #endif
-
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
-	float3 specularResult = vSpecularResult;
+    float3 specularResult = vSpecularResult;
 #endif
 #endif
-	
+
 #else
 
-	// per-pixel view position
-	float3 viewPos = vViewPosition;
+    float3 viewPos = vViewPosition;
 
-#if defined(NORMALMAP_ENABLED) 
-	// tangent basis
+#if defined(NORMALMAP_ENABLED)
 #if defined(VERTEX_TANGENTS)
-	float3 baseNormal = safe_normalize(vViewNormal);
-	float3 baseTangent = safe_normalize(vViewTangent);
-	float3 binormal = safe_normalize(cross(baseTangent, baseNormal));
-	float3x3 tbn = float3x3(baseTangent, binormal, baseNormal);
+    float3 baseNormal = safe_normalize(vViewNormal);
+    float3 baseTangent = safe_normalize(vViewTangent);
+    float3 binormal = safe_normalize(cross(baseTangent, baseNormal));
+    float3x3 tbn = float3x3(baseTangent, binormal, baseNormal);
 #else
-	float3x3 tbn = cotangent_frame(safe_normalize(vViewNormal), vViewPosition.xyz, vTexCoord);
+    float3x3 tbn = cotangent_frame(safe_normalize(vViewNormal), vViewPosition.xyz, vTexCoord);
 #endif
 
-	// per-pixel view normal
-	float3 normalTex = normalMap.Sample(normalSam, vTexCoord).xyz * 2.0 - 1.0;
+    float3 normalTex = normalMap.Sample(normalSam, vTexCoord).xyz * 2.0 - 1.0;
 #if defined(ENHANCED_MODE)
-	// fade the sharpening out with distance so it cannot shimmer far away
-	normalTex = lerp(sharpen_normal_map(normalTex), normalTex, saturate(vDepth * 0.005));
+    normalTex = lerp(sharpen_normal_map(normalTex), normalTex, saturate(vDepth * 0.005));
 #endif
-	float3 viewNormal = safe_normalize(mul(normalTex.xyz, tbn));
+    float3 viewNormal = safe_normalize(mul(normalTex.xyz, tbn));
 #else
-	float3 viewNormal = safe_normalize(vViewNormal);
+    float3 viewNormal = safe_normalize(vViewNormal);
 #endif
 
 #if defined(SPECULARMAP_ENABLED)
-	float3 specularTex = specularMap.Sample(specularSam, vTexCoord).xyz;
-	float specularMask = saturate(dot(specularTex, float3(0.299, 0.587, 0.114)));
-	float3 specularTint = lerp(float3(0.04, 0.04, 0.04), specularTex, specularMask);
+    float3 specularTex = specularMap.Sample(specularSam, vTexCoord).xyz;
+    float specularMask = saturate(luminance_legacy(specularTex));
+#if defined(ENHANCED_MODE)
+    float3 surfaceF0 = legacy_specular_to_f0(specularTex);
+#else
+    float3 specularTint = lerp(float3(0.04, 0.04, 0.04), specularTex, specularMask);
+#endif
+#elif defined(ENHANCED_MODE)
+    float specularMask = 0.5;
+    float3 surfaceF0 = float3(CR_PBR_DEFAULT_F0, CR_PBR_DEFAULT_F0, CR_PBR_DEFAULT_F0);
 #endif
 
-	float3 eyeDir = safe_normalize(-viewPos);
+#if defined(ENHANCED_MODE)
+#if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
+    float surfaceRoughness = derive_legacy_roughness(materialShininess, specularMask);
+#if defined(NORMALMAP_ENABLED)
+    surfaceRoughness = filter_roughness_from_normal_variance(viewNormal, surfaceRoughness);
+#endif
+#endif
+#endif
 
-	// start with ambient light and no specular
+    float3 eyeDir = safe_normalize(-viewPos);
+
 #if defined(OG_RETRO_MODE)
-	float3 lightResult = max(sceneAmbient.xyz * 1.10, float3(0.22, 0.22, 0.22));
+    float3 lightResult = max(sceneAmbient.xyz * 1.10, float3(0.22, 0.22, 0.22));
 #else
-	float3 lightResult = sceneAmbient.xyz;
+    float3 lightResult = sceneAmbient.xyz;
 #endif
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
-	float3 specularResult = float3(0,0,0);
+    float3 specularResult = float3(0.0, 0.0, 0.0);
 #endif
 
 #if defined(RETRO_UNLIT_MODE)
-	if (lightCount > 0.0)
-	{
-		const int i = 0;
-		float3 pixelToLight = lightPosition[i].xyz - (viewPos * lightPosition[i].w);
-		float d = max(length(pixelToLight), 1e-6);
-		pixelToLight *= rcp(d);
+    if (lightCount > 0.0)
+    {
+        const int i = 0;
+        float3 pixelToLight = lightPosition[i].xyz - (viewPos * lightPosition[i].w);
+        float d = max(length(pixelToLight), 1e-6);
+        pixelToLight *= rcp(d);
 
 #if defined(SHADOWRECEIVER)
-		float attenuation = shadow;
+        float attenuation = shadow;
 #else
-		float attenuation = 1.0;
+        float attenuation = 1.0;
 #endif
 
-		float diffuseTerm = max(dot(viewNormal, pixelToLight), 0.0);
+        float diffuseTerm = max(dot(viewNormal, pixelToLight), 0.0);
 #if defined(OG_RETRO_MODE)
-		diffuseTerm = saturate(diffuseTerm * 0.55 + 0.20);
+        diffuseTerm = saturate(diffuseTerm * 0.55 + 0.20);
 #endif
-		lightResult.xyz += lightDiffuse[i].xyz * (attenuation * diffuseTerm);
-	}
+        lightResult.xyz += lightDiffuse[i].xyz * (attenuation * diffuseTerm);
+    }
 #else
+
 #if MAX_LIGHTS > 1
-	// for each possible light source...
-	for (int i = 0; i < MAX_LIGHTS; ++i)
-	{
-		if (i >= int(lightCount))
-			break;
+    for (int i = 0; i < MAX_LIGHTS; ++i)
+    {
+        if (i >= int(lightCount))
+            break;
 #else
-	{
-		const int i = 0;
+    {
+        const int i = 0;
+#endif
+        float3 pixelToLight = lightPosition[i].xyz - (viewPos * lightPosition[i].w);
+        float d = max(length(pixelToLight), 1e-6);
+        pixelToLight *= rcp(d);
+
+        float attenuationDenom = lightAttenuation[i].y
+                               + d * (lightAttenuation[i].z + d * lightAttenuation[i].w);
+        float distanceAttenuation = saturate(rcp(max(attenuationDenom, 1e-6)));
+
+        float diffuseSpotAttenuation = 1.0;
+        float specularSpotAttenuation = 1.0;
+        ComputeSpotlightTerms(
+            pixelToLight,
+            lightDirection[i].xyz,
+            spotLightParams[i],
+            diffuseSpotAttenuation,
+            specularSpotAttenuation);
+
+        float attenuation = distanceAttenuation * diffuseSpotAttenuation;
+        float specularAttenuation = distanceAttenuation * specularSpotAttenuation;
+
+#if defined(SHADOWRECEIVER)
+        attenuation *= shadow;
+        specularAttenuation *= shadow;
 #endif
 
-		// get the direction from the pixel to the light source
-		float3 pixelToLight = lightPosition[i].xyz - (viewPos * lightPosition[i].w);
-		float d = max(length(pixelToLight), 1e-6);
-		pixelToLight *= rcp(d);
+#if defined(ENHANCED_MODE) && (defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED))
+        float3 diffuseWeight;
+        float3 specularBRDF;
+        float NdotL;
+        evaluate_legacy_pbr(
+            viewNormal,
+            eyeDir,
+            pixelToLight,
+            surfaceF0,
+            surfaceRoughness,
+            diffuseWeight,
+            specularBRDF,
+            NdotL);
 
-		float distanceAttenuation = saturate(1.0 /
-			(lightAttenuation[i].y + d * (lightAttenuation[i].z + d * lightAttenuation[i].w)));
-		float diffuseSpotAttenuation = 1.0;
-		float specularSpotAttenuation = 1.0;
-		ComputeSpotlightTerms(
-			pixelToLight,
-			lightDirection[i].xyz,
-			spotLightParams[i],
-			diffuseSpotAttenuation,
-			specularSpotAttenuation);
-
-		float attenuation = distanceAttenuation * diffuseSpotAttenuation;
-		float specularAttenuation = distanceAttenuation * specularSpotAttenuation;
-
-#if defined(SHADOWRECEIVER) 
-		// apply shadow attenuation
-		attenuation *= shadow;
-		specularAttenuation *= shadow;
-#endif
-
-		// accumulate diffuse lighting
-		float diffuseTerm = max(dot(viewNormal, pixelToLight), 0.0);
+        lightResult.xyz += lightDiffuse[i].xyz * attenuation * NdotL * diffuseWeight;
+        specularResult.xyz += lightSpecular[i].xyz
+                            * specularAttenuation
+                            * NdotL
+                            * specularBRDF
+                            * CR_PBR_SPECULAR_COMPENSATION;
+#elif defined(ENHANCED_MODE)
+        // Materials compiled without any specular feature still receive the same
+        // normalized diffuse response so Enhanced does not diverge by variant.
+        float NdotL = saturate(dot(viewNormal, pixelToLight));
+        lightResult.xyz += lightDiffuse[i].xyz
+                         * attenuation
+                         * NdotL
+                         * (CR_PBR_DIFFUSE_COMPENSATION / CR_PI);
+#else
+        float diffuseTerm = max(dot(viewNormal, pixelToLight), 0.0);
 #if defined(OG_RETRO_MODE)
-		diffuseTerm = saturate(diffuseTerm * 0.55 + 0.20);
+        diffuseTerm = saturate(diffuseTerm * 0.55 + 0.20);
 #endif
-		attenuation *= diffuseTerm;
-		lightResult.xyz += lightDiffuse[i].xyz * attenuation;
+        attenuation *= diffuseTerm;
+        lightResult.xyz += lightDiffuse[i].xyz * attenuation;
 
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
-		// accumulate specular lighting with a tighter lobe and tinted F0.
-		if (diffuseTerm > 0.0)
-		{
-			float3 halfVector = safe_normalize(pixelToLight + eyeDir);
-			float ndotv = max(dot(viewNormal, eyeDir), 0.0);
-			float ndoth = max(dot(viewNormal, halfVector), 0.0);
+        if (diffuseTerm > 0.0)
+        {
+            float3 halfVector = safe_normalize(pixelToLight + eyeDir);
+            float ndotv = max(dot(viewNormal, eyeDir), 0.0);
+            float ndoth = max(dot(viewNormal, halfVector), 0.0);
 #if defined(SPECULARMAP_ENABLED)
-			float specularPower = lerp(
-				max(materialShininess * 0.9 + 6.0, 8.0),
-				max(materialShininess * 2.25 + 24.0, 24.0),
-				specularMask);
-			float3 specularColor = lerp(specularTint * 0.65, specularTint, pow(1.0 - ndotv, 5.0));
+            float specularPower = lerp(
+                max(materialShininess * 0.9 + 6.0, 8.0),
+                max(materialShininess * 2.25 + 24.0, 24.0),
+                specularMask);
+            float3 specularColor = lerp(specularTint * 0.65, specularTint, pow(1.0 - ndotv, 5.0));
 #else
-			float specularPower = max(materialShininess * 1.5 + 12.0, 16.0);
-			float3 specularColor = lerp(float3(0.025, 0.025, 0.025), float3(0.04, 0.04, 0.04), pow(1.0 - ndotv, 5.0));
+            float specularPower = max(materialShininess * 1.5 + 12.0, 16.0);
+            float3 specularColor = lerp(float3(0.025, 0.025, 0.025), float3(0.04, 0.04, 0.04), pow(1.0 - ndotv, 5.0));
 #endif
-			float specularLobe = pow(ndoth, specularPower);
-#if defined(ENHANCED_MODE)
-			// Blinn-Phong energy normalization (unity at the stock power of
-			// 24) so tighter lobes read brighter instead of vanishing.
-			specularLobe *= min((specularPower + 8.0) * 0.03125, 3.0);
+            float specularLobe = pow(ndoth, specularPower);
+            specularResult.xyz += lightSpecular[i].xyz
+                                * specularAttenuation
+                                * diffuseTerm
+                                * specularLobe
+                                * specularColor;
+        }
 #endif
-			specularResult.xyz += lightSpecular[i].xyz * specularAttenuation * diffuseTerm * specularLobe * specularColor;
-		}
 #endif
 
 #if defined(SHADOWRECEIVER)
-		// clear shadow attenuation
-		shadow = 1.0;
+        // Preserve the existing convention that the primary/sun light receives
+        // the PSSM shadow and subsequent local lights do not.
+        shadow = 1.0;
 #endif
-	}
+    }
 
 #endif
 
 #if defined(ENHANCED_MODE)
-	// subtle fresnel sky fill lifts silhouettes out of flat ambient
-	float rimTerm = pow(1.0 - max(dot(viewNormal, eyeDir), 0.0), 4.0);
-	lightResult.xyz += sceneAmbient.xyz * rimTerm * 0.35;
+    // Temporary ambient grazing fill until a later IBL pass. Keep it subtle and
+    // derived from the same surface Fresnel concepts rather than a hard rim color.
+    float NdotVForFill = saturate(dot(viewNormal, eyeDir));
+#if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
+    float3 grazingFresnel = fresnel_schlick(NdotVForFill, surfaceF0);
+    lightResult.xyz += sceneAmbient.xyz * grazingFresnel * (1.0 - surfaceRoughness) * 0.20;
+#else
+    lightResult.xyz += sceneAmbient.xyz * pow(1.0 - NdotVForFill, 4.0) * 0.15;
+#endif
 #endif
 #endif
 
-	// diffuse texture
-	float4 diffuseTex = diffuseMap.Sample(diffuseSam, vTexCoord);
-	oColor.xyz = lightResult.xyz * diffuseTex.xyz * diffuseColor.xyz;
+    float4 diffuseTex = diffuseMap.Sample(diffuseSam, vTexCoord);
+    oColor.xyz = lightResult.xyz * diffuseTex.xyz * diffuseColor.xyz;
 
-#if defined(SPECULARMAP_ENABLED)
-	oColor.xyz += specularResult.xyz;
-#elif defined(SPECULAR_ENABLED)
-	oColor.xyz += specularResult.xyz;
+#if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
+    oColor.xyz += specularResult.xyz;
 #endif
 
 #if defined(EMISSIVEMAP_ENABLED)
-	// emissive texture
-	float3 emissiveTex = emissiveMap.Sample(emissiveSam, vTexCoord).xyz;
+    float3 emissiveTex = emissiveMap.Sample(emissiveSam, vTexCoord).xyz;
 #if defined(ENHANCED_MODE)
-	// Runtime material variants drive this continuously for optional running-light
-	// pulsing. Empty craft use a zero emissive value and remain fully dark.
-	float emissiveIntensity = saturate(max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z)));
-	oColor.xyz += emissiveTex.xyz * emissiveIntensity;
+    float emissiveIntensity = saturate(max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z)));
+    oColor.xyz += emissiveTex.xyz * emissiveIntensity;
 #else
-	oColor.xyz += emissiveTex.xyz;
+    oColor.xyz += emissiveTex.xyz;
 #endif
 #endif
 
-	// fog
-	float fogValue = saturate((vDepth - fogParams.y) * fogParams.w);
-	oColor.xyz = lerp(oColor.xyz, fogColour.xyz, fogValue);
+    float fogValue = saturate((vDepth - fogParams.y) * fogParams.w);
+    oColor.xyz = lerp(oColor.xyz, fogColour.xyz, fogValue);
+    oColor.a = saturate(transparency);
 
-	// output alpha
-	//oColor.a = diffuseTex.a;
-	oColor.a = saturate(transparency);
-
-#if defined(LOGDEPTH_ENABLE)	
-	// logarithmic depth
-	const float C = 0.1;
-	const float far = 1e+09;
-	const float offset = 1.0;
-	oDepth = log(C * vDepth + offset) / log(C * far + offset);
+#if defined(LOGDEPTH_ENABLE)
+    const float C = 0.1;
+    const float far = 1e+09;
+    const float offset = 1.0;
+    oDepth = log(C * vDepth + offset) / log(C * far + offset);
 #endif
 }
