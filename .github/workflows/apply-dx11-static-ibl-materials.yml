@@ -1,0 +1,83 @@
+name: Apply DX11 static IBL material wiring
+
+on:
+  push:
+    branches:
+      - feature/dx11-static-ibl
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/dx11-static-ibl
+          fetch-depth: 0
+
+      - name: Patch Enhanced High material techniques
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def ibl_units(prefix='\t\t\t'):
+              return f'''{prefix}texture_unit irradianceMap
+          {prefix}{{
+          {prefix}\ttexture_alias IrradianceMap
+          {prefix}\tcubic_texture cr_ibl_neutral_irradiance.dds combinedUVW
+          {prefix}\ttex_address_mode clamp
+          {prefix}}}
+          
+          {prefix}texture_unit prefilteredEnvMap
+          {prefix}{{
+          {prefix}\ttexture_alias PrefilteredEnvironmentMap
+          {prefix}\tcubic_texture cr_ibl_neutral_prefilter.dds combinedUVW
+          {prefix}\ttex_address_mode clamp
+          {prefix}}}
+          
+          {prefix}texture_unit brdfLut
+          {prefix}{{
+          {prefix}\ttexture_alias EnvironmentBrdfLut
+          {prefix}\ttexture cr_ibl_brdf_lut.png 2d
+          {prefix}\ttex_address_mode clamp
+          {prefix}}}
+          '''
+
+          def replace_program(path, old_name, new_name, expected):
+              text = path.read_text(encoding='utf-8')
+              needle = f'\t\t\tfragment_program_ref {old_name}\n\t\t\t{{\n\t\t\t}}\n'
+              actual = text.count(needle)
+              if actual != expected:
+                  raise RuntimeError(f'{path}: expected {expected} exact {old_name} blocks, found {actual}')
+              replacement = (
+                  f'\t\t\tfragment_program_ref {new_name}\n'
+                  f'\t\t\t{{\n\t\t\t}}\n\n'
+                  + ibl_units()
+              )
+              path.write_text(text.replace(needle, replacement), encoding='utf-8', newline='\n')
+
+          base = Path('Materials/CR_BZBase.material')
+          replace_program(base, 'CR_BaseENHighPSSM_fragment', 'CR_BaseIBLHighPSSM_fragment', 1)
+          replace_program(base, 'CR_BaseENHighShadow_fragment', 'CR_BaseIBLHighShadow_fragment', 1)
+          replace_program(base, 'CR_BaseENHighNoShadow_fragment', 'CR_BaseIBLHighNoShadow_fragment', 4)
+
+          terrain = Path('Materials/CR_BZTerrainBase.material')
+          replace_program(terrain, 'CR_TerrainENHighPSSM_fragment', 'CR_TerrainIBLHighPSSM_fragment', 1)
+          replace_program(terrain, 'CR_TerrainENHighShadow_fragment', 'CR_TerrainIBLHighShadow_fragment', 1)
+          replace_program(terrain, 'CR_TerrainENHighNoShadow_fragment', 'CR_TerrainIBLHighNoShadow_fragment', 4)
+
+          # This workflow is intentionally one-shot. Remove it from the resulting
+          # branch commit so no workflow file is part of the final PR diff.
+          Path('.github/workflows/apply-dx11-static-ibl-materials.yml').unlink()
+
+      - name: Commit material wiring
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Materials .github/workflows/apply-dx11-static-ibl-materials.yml
+          git commit -m "feat: wire static IBL into Enhanced High materials"
+          git push origin HEAD:feature/dx11-static-ibl
