@@ -1,6 +1,12 @@
 # Ignore unexpected runtime-flat root files by default
 /*
 
+# Allow GitHub automation and documentation
+!/.github/
+!/.github/**
+!/docs/
+!/docs/**
+
 # Allow source tree
 !/_Source/
 
