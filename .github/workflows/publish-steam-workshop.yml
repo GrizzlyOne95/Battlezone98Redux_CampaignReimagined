@@ -1,0 +1,347 @@
+name: Publish Steam Workshop
+
+run-name: >-
+  Workshop ${{ inputs.dry_run && 'dry run' || 'publish' }} —
+  ${{ inputs.change_note }} by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      change_note:
+        description: Steam Workshop change note
+        required: true
+        type: string
+      openshim_ref:
+        description: OpenShim branch, tag, or SHA to bundle
+        required: true
+        default: main
+        type: string
+      dry_run:
+        description: Build and validate only; do not upload to Steam
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: steam-workshop-3686673790
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and validate payload
+    runs-on: windows-2022
+    timeout-minutes: 30
+
+    steps:
+      - name: Restrict Workshop source to main
+        shell: pwsh
+        run: |
+          if ("${{ github.ref }}" -ne "refs/heads/main") {
+            throw "Steam Workshop publishing is restricted to the main branch. Re-run this workflow from main."
+          }
+
+      - name: Check out Campaign Reimagined
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          clean: true
+          persist-credentials: false
+
+      - name: Check out OpenShim
+        uses: actions/checkout@v4
+        with:
+          repository: GrizzlyOne95/Battlezone98Redux_Shim
+          ref: ${{ inputs.openshim_ref }}
+          path: _deps/Battlezone98Redux_Shim
+          clean: true
+          persist-credentials: false
+
+      - name: Build OpenShim Release
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (-not (Test-Path -LiteralPath $vswhere)) {
+            throw "vswhere.exe was not found on the GitHub-hosted Windows runner."
+          }
+
+          $msbuild = & $vswhere -latest -products * `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -find "MSBuild\**\Bin\MSBuild.exe" |
+            Select-Object -First 1
+
+          if (-not $msbuild) {
+            throw "MSBuild with the Visual C++ toolchain was not found."
+          }
+
+          $shimRepo = Join-Path $env:GITHUB_WORKSPACE "_deps\Battlezone98Redux_Shim"
+          $solution = Join-Path $shimRepo "BZROpenShim.sln"
+
+          & $msbuild $solution /m /p:Configuration=Release /p:Platform=Win32
+          if ($LASTEXITCODE -ne 0) {
+            throw "OpenShim Release build failed with exit code $LASTEXITCODE."
+          }
+
+          $shimDll = Join-Path $shimRepo "bin\Release\winmm.dll"
+          if (-not (Test-Path -LiteralPath $shimDll)) {
+            throw "OpenShim build completed without producing '$shimDll'."
+          }
+
+      - name: Prepare Workshop configuration
+        shell: pwsh
+        run: |
+          Copy-Item -LiteralPath "workshop.config.example.json" `
+            -Destination "workshop.config.json" -Force
+
+      - name: Build and validate Workshop payload
+        shell: pwsh
+        env:
+          BZR_OPENSHIM_REPO: ${{ github.workspace }}\_deps\Battlezone98Redux_Shim
+          WORKSHOP_CHANGE_NOTE: ${{ inputs.change_note }}
+        run: |
+          & .\Manage-CampaignFiles.ps1 -workshop-build $env:WORKSHOP_CHANGE_NOTE
+          if ($LASTEXITCODE -ne 0) {
+            throw "Workshop payload validation failed with exit code $LASTEXITCODE."
+          }
+
+      - name: Assemble immutable publish bundle
+        shell: pwsh
+        env:
+          OPENSHIM_REF: ${{ inputs.openshim_ref }}
+          WORKSHOP_CHANGE_NOTE: ${{ inputs.change_note }}
+        run: |
+          $bundle = Join-Path $env:GITHUB_WORKSPACE "Local\Workshop\publish_bundle"
+          if (Test-Path -LiteralPath $bundle) {
+            Remove-Item -LiteralPath $bundle -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path $bundle -Force | Out-Null
+
+          Copy-Item -LiteralPath "Local\Workshop\content" `
+            -Destination (Join-Path $bundle "content") -Recurse -Force
+          Copy-Item -LiteralPath "Local\Workshop\content_manifest.sha256" `
+            -Destination (Join-Path $bundle "content_manifest.sha256") -Force
+          Copy-Item -LiteralPath "docs\workshop_description.bbcode" `
+            -Destination (Join-Path $bundle "workshop_description.bbcode") -Force
+
+          $shimRepo = Join-Path $env:GITHUB_WORKSPACE "_deps\Battlezone98Redux_Shim"
+          $shimSha = (git -C $shimRepo rev-parse HEAD).Trim()
+          if (-not $shimSha) {
+            throw "Could not resolve the OpenShim commit SHA."
+          }
+
+          [ordered]@{
+            AppId = "301650"
+            PublishedFileId = "3686673790"
+            CampaignCommit = "${{ github.sha }}"
+            OpenShimRef = $env:OPENSHIM_REF
+            OpenShimCommit = $shimSha
+            ChangeNote = $env:WORKSHOP_CHANGE_NOTE
+            BuiltAtUtc = [DateTime]::UtcNow.ToString("o")
+          } | ConvertTo-Json -Depth 4 |
+            Set-Content -LiteralPath (Join-Path $bundle "publish_metadata.json") -Encoding UTF8
+
+      - name: Upload validated Workshop bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: steam-workshop-payload-${{ github.run_id }}
+          path: Local/Workshop/publish_bundle/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
+
+  publish:
+    name: Publish to Steam Workshop
+    if: ${{ !inputs.dry_run }}
+    needs: build
+    environment: steam-workshop
+    runs-on: [self-hosted, windows, x64, steam-workshop]
+    timeout-minutes: 20
+
+    steps:
+      - name: Download validated Workshop bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: steam-workshop-payload-${{ github.run_id }}
+          path: ${{ runner.temp }}\steam-workshop-payload
+
+      - name: Verify runner and payload
+        shell: pwsh
+        env:
+          STEAM_USERNAME: ${{ vars.STEAM_USERNAME }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:STEAM_USERNAME)) {
+            throw "Repository variable STEAM_USERNAME is not configured."
+          }
+
+          $bundle = Join-Path $env:RUNNER_TEMP "steam-workshop-payload"
+          $content = Join-Path $bundle "content"
+          $manifest = Join-Path $bundle "content_manifest.sha256"
+
+          if (-not (Test-Path -LiteralPath $content)) {
+            throw "Downloaded artifact is missing the Workshop content directory."
+          }
+          if (-not (Test-Path -LiteralPath $manifest)) {
+            throw "Downloaded artifact is missing content_manifest.sha256."
+          }
+
+          $root = [System.IO.Path]::GetFullPath($content).TrimEnd('\', '/') + '\'
+          foreach ($line in Get-Content -LiteralPath $manifest) {
+            if ($line -notmatch '^([0-9a-fA-F]{64})  ([0-9]+)  (.+)$') {
+              throw "Malformed manifest line: $line"
+            }
+
+            $expectedHash = $matches[1].ToLowerInvariant()
+            $expectedLength = [Int64]$matches[2]
+            $relativePath = $matches[3]
+            $fullPath = [System.IO.Path]::GetFullPath((Join-Path $content $relativePath))
+
+            if (-not $fullPath.StartsWith($root, [System.StringComparison]::OrdinalIgnoreCase)) {
+              throw "Manifest path escaped the content root: $relativePath"
+            }
+            if (-not (Test-Path -LiteralPath $fullPath)) {
+              throw "Manifest file is missing: $relativePath"
+            }
+
+            $item = Get-Item -LiteralPath $fullPath
+            if ($item.Length -ne $expectedLength) {
+              throw "Size mismatch for '$relativePath'."
+            }
+
+            $actualHash = (Get-FileHash -LiteralPath $fullPath -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualHash -ne $expectedHash) {
+              throw "SHA256 mismatch for '$relativePath'."
+            }
+          }
+
+          $steamCandidates = @(
+            "C:\steamcmd\steamcmd.exe",
+            "C:\SteamCMD\steamcmd.exe",
+            "C:\Program Files (x86)\Steam\steamcmd.exe",
+            (Join-Path $env:LOCALAPPDATA "SteamCMD\steamcmd.exe"),
+            (Join-Path $env:USERPROFILE "steamcmd\steamcmd.exe")
+          )
+
+          $steamCmd = $steamCandidates |
+            Where-Object { $_ -and (Test-Path -LiteralPath $_) } |
+            Select-Object -First 1
+
+          if (-not $steamCmd) {
+            $steamCommand = Get-Command steamcmd.exe -ErrorAction SilentlyContinue
+            if ($steamCommand) {
+              $steamCmd = $steamCommand.Source
+            }
+          }
+
+          if (-not $steamCmd) {
+            throw "SteamCMD was not found on this runner. Install it under C:\steamcmd or add steamcmd.exe to PATH."
+          }
+
+          "STEAMCMD_PATH=$steamCmd" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "WORKSHOP_CONTENT=$content" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "WORKSHOP_BUNDLE=$bundle" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Generate Steam Workshop VDF
+        shell: pwsh
+        env:
+          WORKSHOP_CHANGE_NOTE: ${{ inputs.change_note }}
+        run: |
+          $descriptionPath = Join-Path $env:WORKSHOP_BUNDLE "workshop_description.bbcode"
+          if (-not (Test-Path -LiteralPath $descriptionPath)) {
+            throw "Publish bundle is missing workshop_description.bbcode."
+          }
+
+          $description = (Get-Content -LiteralPath $descriptionPath -Raw).TrimEnd()
+          if ([string]::IsNullOrWhiteSpace($description)) {
+            throw "Workshop description is empty."
+          }
+          if ($description.Length -gt 8000) {
+            throw "Workshop description exceeds Steam's 8000-character limit."
+          }
+
+          # SteamCMD's KeyValues parser cannot represent a literal double quote
+          # inside these quoted values. Match the repository publisher's policy.
+          $description = $description -replace '"', "'"
+          $changeNote = ([string]$env:WORKSHOP_CHANGE_NOTE) -replace '"', "'"
+
+          $vdfPath = Join-Path $env:RUNNER_TEMP "campaign_reimagined_workshop_build.vdf"
+          $lines = @(
+            '"workshopitem"',
+            '{',
+            '  "appid" "301650"',
+            '  "publishedfileid" "3686673790"',
+            "  `"contentfolder`" `"$env:WORKSHOP_CONTENT`"",
+            '  "visibility" "0"',
+            "  `"description`" `"$description`"",
+            "  `"changenote`" `"$changeNote`"",
+            '}'
+          )
+
+          [System.IO.File]::WriteAllLines(
+            $vdfPath,
+            $lines,
+            [System.Text.Encoding]::ASCII)
+
+          "WORKSHOP_VDF=$vdfPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Upload to Steam Workshop
+        shell: pwsh
+        env:
+          STEAM_USERNAME: ${{ vars.STEAM_USERNAME }}
+          WORKSHOP_CHANGE_NOTE: ${{ inputs.change_note }}
+        run: |
+          $steamArgs = @(
+            "+@ShutdownOnFailedCommand", "1",
+            "+login", $env:STEAM_USERNAME,
+            "+workshop_build_item", $env:WORKSHOP_VDF,
+            "+quit"
+          )
+
+          Write-Host "Publishing Battlezone 98 Redux Workshop item 3686673790..."
+          $output = @(& $env:STEAMCMD_PATH @steamArgs 2>&1)
+          $exitCode = $LASTEXITCODE
+          $output | ForEach-Object { Write-Host $_ }
+
+          $outputText = $output -join "`n"
+          if ($exitCode -ne 0 -or $outputText -match '(?i)(ERROR!|FAILED\s*\()') {
+            throw "SteamCMD Workshop upload failed with exit code $exitCode."
+          }
+
+          $receiptPath = Join-Path $env:RUNNER_TEMP "steam_workshop_receipt.json"
+          $metadataPath = Join-Path $env:WORKSHOP_BUNDLE "publish_metadata.json"
+          $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
+
+          [ordered]@{
+            AppId = "301650"
+            PublishedFileId = "3686673790"
+            CampaignCommit = $metadata.CampaignCommit
+            OpenShimCommit = $metadata.OpenShimCommit
+            ChangeNote = $env:WORKSHOP_CHANGE_NOTE
+            UploadedAtUtc = [DateTime]::UtcNow.ToString("o")
+            WorkflowRunId = "${{ github.run_id }}"
+          } | ConvertTo-Json -Depth 4 |
+            Set-Content -LiteralPath $receiptPath -Encoding UTF8
+
+      - name: Upload publish receipt
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: steam-workshop-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}\steam_workshop_receipt.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove transient publish files
+        if: ${{ always() }}
+        shell: pwsh
+        run: |
+          $bundle = Join-Path $env:RUNNER_TEMP "steam-workshop-payload"
+          if (Test-Path -LiteralPath $bundle) {
+            Remove-Item -LiteralPath $bundle -Recurse -Force -ErrorAction SilentlyContinue
+          }
+
+          $vdf = Join-Path $env:RUNNER_TEMP "campaign_reimagined_workshop_build.vdf"
+          if (Test-Path -LiteralPath $vdf) {
+            Remove-Item -LiteralPath $vdf -Force -ErrorAction SilentlyContinue
+          }
