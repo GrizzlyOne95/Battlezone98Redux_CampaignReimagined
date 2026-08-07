@@ -29,6 +29,59 @@ local buildings = {} -- build1 to build8
 local moveX = 4142.0
 local moveZ = 98568.0
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        start_done = start_done,
+        camera1 = camera1,
+        camera2 = camera2,
+        angle = angle,
+        camera_time = camera_time,
+        lost = lost,
+        first_start = first_start,
+        cycle_count = cycle_count,
+        frame_count = frame_count,
+        mission_start_time = mission_start_time,
+        cycle_start_time = cycle_start_time,
+        last_time = last_time,
+        target = target,
+        foe1 = foe1,
+        foe2 = foe2,
+        foe3 = foe3,
+        foe4 = foe4,
+        friend1 = friend1,
+        art1 = art1,
+        buildings = buildings,
+        moveX = moveX,
+        moveZ = moveZ,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    start_done = state.start_done
+    camera1 = state.camera1
+    camera2 = state.camera2
+    angle = state.angle
+    camera_time = state.camera_time
+    lost = state.lost
+    first_start = state.first_start
+    cycle_count = state.cycle_count
+    frame_count = state.frame_count
+    mission_start_time = state.mission_start_time
+    cycle_start_time = state.cycle_start_time
+    last_time = state.last_time
+    target = state.target
+    foe1 = state.foe1
+    foe2 = state.foe2
+    foe3 = state.foe3
+    foe4 = state.foe4
+    friend1 = state.friend1
+    art1 = state.art1
+    buildings = state.buildings
+    moveX = state.moveX
+    moveZ = state.moveZ
+end
 function Start()
     if exu then
         if exu.SetShotConvergence then exu.SetShotConvergence(true) end
@@ -60,7 +113,7 @@ end
 function Update()
     local user = GetPlayerHandle()
     frame_count = frame_count + 1
-    
+
     if not start_done then
         cycle_start_time = GetTime()
         if not first_start then
@@ -68,19 +121,19 @@ function Update()
             mission_start_time = GetTime()
             CameraReady()
         end
-        
+
         -- C++ line 360-377
         target = BuildObject("avdemo", 1, "spawn_point")
         Goto(target, "go_path")
-        
+
         foe1 = BuildObject("svhraz", 2, "foe1")
         foe2 = BuildObject("svltnk", 2, "foe2")
         foe3 = BuildObject("svltnk", 2, "foe2")
         foe4 = BuildObject("svrckt", 2, "foe2")
-        
+
         friend1 = BuildObject("avhraz", 1, "friend1")
         art1 = BuildObject("avartl", 1, "art1")
-        
+
         buildings[1] = BuildObject("sbcomm", 2, "build1")
         buildings[2] = BuildObject("sbspow", 2, "build2")
         buildings[3] = BuildObject("sbhang", 2, "build3")
@@ -89,22 +142,22 @@ function Update()
         buildings[6] = BuildObject("sbwpow", 2, "build6")
         buildings[7] = BuildObject("sbwpow", 2, "build7")
         buildings[8] = BuildObject("sbwpow", 2, "build8")
-        
+
         Goto(foe1, buildings[1])
         Goto(foe2, buildings[1])
         Goto(foe3, buildings[1])
         Goto(foe4, buildings[1])
         Follow(friend1, target)
-        
+
         start_done = true
         camera1 = true
         camera2 = false
         angle = 0
         camera_time = GetTime() + 7.0
     end
-    
+
     if lost then return end
-    
+
     -- Camera Case 0/1/2 (C++ 390-409)
     if camera1 then
         local cam_offsets = {
@@ -114,12 +167,12 @@ function Update()
         }
         local off = cam_offsets[angle]
         CameraObject(target, off[1], off[2], off[3], target)
-        
+
         if GetTime() > camera_time then
             camera_time = GetTime() + 7.0
             angle = (angle + 1) % 3
         end
-        
+
         if GetDistance(foe1, target) < 200.0 then
             camera1 = false
             camera2 = true
@@ -127,11 +180,11 @@ function Update()
             angle = 0 -- Reset for camera2
         end
     end
-    
+
     -- Camera Case 2 (C++ 428)
     if camera2 then
         if IsAlive(buildings[2]) then Damage(buildings[2], 50) end
-        
+
         if angle == 0 then
             CameraPath("camera1", 1000, 0, target)
         elseif angle == 1 then
@@ -141,24 +194,27 @@ function Update()
                 CameraObject(target, -600, 400, 0, foe2)
             end
         end
-        
+
         if GetTime() > camera_time then
             camera_time = GetTime() + 7.0
             angle = (angle + 1) % 2
         end
     end
-    
+
     -- End of Cycle (C++ 458)
-    if (not IsAlive(target)) or (GetTime() > cycle_start_time + DiffUtils.ScaleTimer(55.0)) then
+    if (not IsAlive(target)) or (GetTime() > cycle_start_time + 55.0) then
         cycle_count = cycle_count + 1
-        
+
         if cycle_count >= 5 then
             if not lost then
                 -- Benchmark Reporting
                 local tottime = GetTime() - mission_start_time
                 local fps = frame_count / tottime
-                
-                local filePath = bzfile.GetWorkingDirectory() .. "addon\\bzbench.des"
+
+                -- Separator required: GetWorkingDirectory() returns no trailing
+                -- backslash, so this previously resolved outside the game folder
+                -- and the benchmark report was never written.
+                local filePath = bzfile.GetWorkingDirectory() .. "\\addon\\bzbench.des"
                 local f = bzfile.Open(filePath, "w", "trunc")
                 if f then
                     f:Writeln("Battlezone Benchmark Test")
@@ -169,7 +225,7 @@ function Update()
                     f:Writeln("This benchmark was created by George Collins.")
                     f:Close()
                 end
-                
+
                 -- Finsh
                 lost = true
                 SucceedMission(GetTime() + 1.0, "bzbench.des")

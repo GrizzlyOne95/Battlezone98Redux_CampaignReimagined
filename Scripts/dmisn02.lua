@@ -1,6 +1,4 @@
--- dmisn01.lua (Converted from evolvemission.cpp)
--- Note: Map logic typically resides in dmisn02.lua, but I'll use the user's requested path or standard convention.
--- The user request implies dmisn02.lua for this specific mission.
+-- dmisn02.lua (Converted from evolvemission.cpp)
 
 -- Compatibility and Library Setup
 local RequireFix = require("RequireFix")
@@ -11,34 +9,35 @@ local DiffUtils = require("DiffUtils")
 
 -- Data Structures
 local attackRounds = {
-    { wait = DiffUtils.ScaleTimer(5.0),  invehicleWait = false, numunits = DiffUtils.ScaleEnemy(3), spawnPrefix = "pilot_%d",  attacker = "cspilo" },
-    { wait = DiffUtils.ScaleTimer(0.0),  invehicleWait = false, numunits = DiffUtils.ScaleEnemy(3), spawnPrefix = "sold_%d",   attacker = "cssolda" },
-    { wait = DiffUtils.ScaleTimer(0.0),  invehicleWait = false, numunits = DiffUtils.ScaleEnemy(3), spawnPrefix = "sniper_%d", attacker = "cssold" },
-    { wait = DiffUtils.ScaleTimer(30.0), invehicleWait = true,  numunits = DiffUtils.ScaleEnemy(3), spawnPrefix = "spawn_%d",  attacker = "cvfigh" },
-    { wait = DiffUtils.ScaleTimer(10.0), invehicleWait = false, numunits = DiffUtils.ScaleEnemy(3), spawnPrefix = "spawn_%d",  attacker = "cvltnk" },
-    { wait = DiffUtils.ScaleTimer(10.0), invehicleWait = false, numunits = DiffUtils.ScaleEnemy(3), spawnPrefix = "spawn_%d",  attacker = "cvtnk" },
-    { wait = DiffUtils.ScaleTimer(10.0), invehicleWait = false, numunits = DiffUtils.ScaleEnemy(3), spawnPrefix = "spawn_%d",  attacker = "cvhraz" },
-    { wait = DiffUtils.ScaleTimer(10.0), invehicleWait = false, numunits = DiffUtils.ScaleEnemy(3), spawnPrefix = "spawn_%d",  attacker = "cvwalk" },
-    { wait = DiffUtils.ScaleTimer(10.0), invehicleWait = false, numunits = DiffUtils.ScaleEnemy(3), spawnPrefix = "spawn_%d",  attacker = "cvhtnk" }
+    { wait = 5.0,  invehicleWait = false, numunits = 3, spawnPrefix = "pilot_%d",  attacker = "cspilo" },
+    { wait = 0.0,  invehicleWait = false, numunits = 3, spawnPrefix = "sold_%d",   attacker = "cssolda" },
+    { wait = 0.0,  invehicleWait = false, numunits = 3, spawnPrefix = "sniper_%d", attacker = "cssold" },
+    { wait = 30.0, invehicleWait = true,  numunits = 3, spawnPrefix = "spawn_%d",  attacker = "cvfigh" },
+    { wait = 10.0, invehicleWait = false, numunits = 3, spawnPrefix = "spawn_%d",  attacker = "cvltnk" },
+    { wait = 10.0, invehicleWait = false, numunits = 3, spawnPrefix = "spawn_%d",  attacker = "cvtnk" },
+    { wait = 10.0, invehicleWait = false, numunits = 3, spawnPrefix = "spawn_%d",  attacker = "cvhraz" },
+    { wait = 10.0, invehicleWait = false, numunits = 3, spawnPrefix = "spawn_%d",  attacker = "cvwalk" },
+    { wait = 10.0, invehicleWait = false, numunits = 3, spawnPrefix = "spawn_%d",  attacker = "cvhtnk" }
 }
 
 local spawnitems = {
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "repair",   item = "aprepaa" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "ammo",     item = "apammoa" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "apmini_1", item = "apmini" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "apmini_2", item = "apmini" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "apstab_1", item = "apstab" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "apstab_2", item = "apstab" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "apsstb_1", item = "apsstb" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "apsstb_2", item = "apsstb" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "apflsh_1", item = "apflsh" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "apflsh_2", item = "apflsh" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "aptagg_1", item = "apbolt" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 1, attackplayer = false, spawnpoint = "aptagg_2", item = "apbolt" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 4, attackplayer = true,  spawnpoint = "cover_1",  item = "csuserb" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 4, attackplayer = true,  spawnpoint = "cover_2",  item = "csuserb" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 4, attackplayer = true,  spawnpoint = "cover_3",  item = "csuserb" },
-    { wait = DiffUtils.ScaleTimer(30.0), initround = 4, attackplayer = true,  spawnpoint = "cover_4",  item = "csuserb" }
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "repair",   item = "aprepaa" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "ammo",     item = "apammoa" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "apmini_1", item = "apmini" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "apmini_2", item = "apmini" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "apstab_1", item = "apstab" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "apstab_2", item = "apstab" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "apsstb_1", item = "apsstb" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "apsstb_2", item = "apsstb" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "apflsh_1", item = "apflsh" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "apflsh_2", item = "apflsh" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "aptagg_1", item = "apbolt" },
+    { wait = 30.0, initround = 1, attackplayer = false, spawnpoint = "aptagg_2", item = "apbolt" },
+    -- C++ initround 4 becomes round 5 in this one-based Lua table.
+    { wait = 30.0, initround = 5, attackplayer = true,  spawnpoint = "cover_1",  item = "csuserb" },
+    { wait = 30.0, initround = 5, attackplayer = true,  spawnpoint = "cover_2",  item = "csuserb" },
+    { wait = 30.0, initround = 5, attackplayer = true,  spawnpoint = "cover_3",  item = "csuserb" },
+    { wait = 30.0, initround = 5, attackplayer = true,  spawnpoint = "cover_4",  item = "csuserb" }
 }
 
 -- Variables
@@ -56,10 +55,15 @@ local state_timer = 0
 local item_timers = {} -- [idx] = time
 local item_handles = {} -- [idx] = handle
 local current_attackers = {} -- list of active attacker handles
+local old_user
 
 -- Helpers
 local function LoadBestScore()
-    local filePath = bzfile.GetWorkingDirectory() .. "emission.bst"
+    -- GetWorkingDirectory() has no trailing separator, so the separator has to
+    -- be supplied here. Without it the path became "...\Battlezone 98
+    -- Reduxemission.bst", which lands outside the game folder and bzfile
+    -- refuses it -- the best score never loaded or saved.
+    local filePath = bzfile.GetWorkingDirectory() .. "\\emission.bst"
     local f = bzfile.Open(filePath, "r")
     if f then
         local dump = f:Dump()
@@ -81,7 +85,11 @@ local function LoadBestScore()
 end
 
 local function SaveBestScore(newScore, newTime)
-    local filePath = bzfile.GetWorkingDirectory() .. "emission.bst"
+    -- GetWorkingDirectory() has no trailing separator, so the separator has to
+    -- be supplied here. Without it the path became "...\Battlezone 98
+    -- Reduxemission.bst", which lands outside the game folder and bzfile
+    -- refuses it -- the best score never loaded or saved.
+    local filePath = bzfile.GetWorkingDirectory() .. "\\emission.bst"
     local f = bzfile.Open(filePath, "w", "trunc")
     if f then
         if string.pack then
@@ -97,7 +105,7 @@ local function CreateAttackerRound()
     local r = attackRounds[round]
     local roundmax = r.onlyone and 1 or maxroundattackers
     local user = GetPlayerHandle()
-    
+
     for i=1, r.numunits do
         local spn = string.format(r.spawnPrefix, i)
         for j=1, roundmax do
@@ -108,7 +116,7 @@ local function CreateAttackerRound()
             end
         end
     end
-    
+
     -- "nowait" logic in C++ loop
     if r.nowait and round < #attackRounds then
         round = round + 1
@@ -116,6 +124,49 @@ local function CreateAttackerRound()
     end
 end
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        attackRounds = attackRounds,
+        spawnitems = spawnitems,
+        startup = startup,
+        lost = lost,
+        score = score,
+        round = round,
+        maxroundattackers = maxroundattackers,
+        invehicle = invehicle,
+        bestscore = bestscore,
+        orgbestscore = orgbestscore,
+        orgbesttime = orgbesttime,
+        dead_timer = dead_timer,
+        state_timer = state_timer,
+        item_timers = item_timers,
+        item_handles = item_handles,
+        current_attackers = current_attackers,
+        old_user = old_user,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    attackRounds = state.attackRounds
+    spawnitems = state.spawnitems
+    startup = state.startup
+    lost = state.lost
+    score = state.score
+    round = state.round
+    maxroundattackers = state.maxroundattackers
+    invehicle = state.invehicle
+    bestscore = state.bestscore
+    orgbestscore = state.orgbestscore
+    orgbesttime = state.orgbesttime
+    dead_timer = state.dead_timer
+    state_timer = state.state_timer
+    item_timers = state.item_timers
+    item_handles = state.item_handles
+    current_attackers = state.current_attackers
+    old_user = state.old_user
+end
 function Start()
     if exu then
         if exu.SetShotConvergence then exu.SetShotConvergence(true) end
@@ -131,7 +182,7 @@ end
 
 function Update()
     local user = GetPlayerHandle()
-    
+
     -- Death and Scoring Persistence
     if not lost and not IsAlive(user) then
         if dead_timer > 0 then
@@ -139,9 +190,9 @@ function Update()
                 local currenttime = GetCockpitTimer()
                 local bestmin, bestsec = math.floor(orgbesttime / 60), orgbesttime % 60
                 local curmin, cursec = math.floor(currenttime / 60), currenttime % 60
-                
+
                 local values = {score, curmin, cursec, orgbestscore, bestmin, bestsec}
-                
+
                 if score > orgbestscore or (score == orgbestscore and currenttime < orgbesttime) then
                     SaveBestScore(score, currenttime)
                     SucceedMission(GetTime() + 2.0, "sammywin.des", unpack(values))
@@ -159,13 +210,14 @@ function Update()
     else
         dead_timer = 0
     end
-    
+
     if startup then
-        SetScrap(1, DiffUtils.ScaleRes(0)); SetPilot(1, DiffUtils.ScaleRes(10)); SetMaxScrap(1, bestscore)
+        SetScrap(1, 0); SetPilot(1, 10); SetMaxScrap(1, bestscore)
         StartCockpitTimerUp(0)
         score = 0; startup = false; invehicle = false; round = 1
+        old_user = user
         state_timer = 0; maxroundattackers = 1
-        
+
         for i, item_def in ipairs(spawnitems) do
             item_handles[i] = nil
             item_timers[i] = (item_def.initround <= round) and 1 or 0
@@ -173,7 +225,7 @@ function Update()
         CreateAttackerRound()
         return
     end
-    
+
     -- FSM State Logic
     if state_timer > 0 then
         if state_timer == 1 then -- invehicleWait
@@ -197,7 +249,7 @@ function Update()
                 alldead = false; i = i + 1
             end
         end
-        
+
         -- Check Item Attacker score increment
         for i, item_def in ipairs(spawnitems) do
             if item_def.attackplayer and item_handles[i] and not IsAlive(item_handles[i]) then
@@ -207,21 +259,21 @@ function Update()
                 SetScrap(1, score)
             end
         end
-        
+
         if alldead then
             round = round + 1
             if round > #attackRounds then
                 round = 4 -- RESTARTROUND (index 4 in 1-based Lua)
                 if maxroundattackers < 20 then maxroundattackers = maxroundattackers + 1 end
             end
-            
+
             local r = attackRounds[round]
             if r.invehicleWait then state_timer = 1
             elseif r.wait > 0 then state_timer = GetTime() + r.wait
             else CreateAttackerRound() end
         end
     end
-    
+
     -- Timed Item Respawning
     for i, item_def in ipairs(spawnitems) do
         if item_timers[i] == 0 then
@@ -238,19 +290,26 @@ function Update()
             if item_def.attackplayer and item_handles[i] then Attack(item_handles[i], user) end
         end
     end
-    
-    -- Cleanup Scrap Debris
-    -- Optimization: The engine handles some cleanup, but original had a custom Memcmp check for 'npscr'.
-    -- Redux often doesn't need this, but for faithfulness:
-    -- In Lua, we don't have direct memory access, but we can check ODF names if needed.
-    
-    -- Vehicle detection
-    -- Original: if(user != olduser) { olduser = user; invehicle = 1; }
-    -- Simplified: if user is not a person
-    if user then
-        local odf = GetObjClass(user) -- Use a hypothetical or custom check
-        -- Minimal vehicle check for the start Wait
-        if not invehicle and user > 0 then invehicle = true end
+
+    -- Source repeatedly removes npscr debris so the arena remains uncluttered.
+    for h in AllObjects() do
+        local odf = GetOdf(h)
+        if odf and odf:sub(1, 5):lower() == "npscr" then RemoveObject(h) end
+    end
+
+    -- A player-handle change signals entering/changing craft. Retarget active
+    -- attackers and hostile cover pilots exactly as the source does.
+    if user and user ~= old_user then
+        for _, h in ipairs(current_attackers) do
+            if IsAlive(h) then Attack(h, user) end
+        end
+        for i, item_def in ipairs(spawnitems) do
+            if item_def.attackplayer and item_handles[i] and IsAlive(item_handles[i]) then
+                Attack(item_handles[i], user)
+            end
+        end
+        old_user = user
+        invehicle = true
     end
 end
 

@@ -168,6 +168,11 @@ local function NewMissionState()
         turret2 = nil,
         turret3 = nil,
         turret4 = nil,
+        openingTurret1 = nil,
+        openingTurret2 = nil,
+        openingTurret3 = nil,
+        openingTurret4 = nil,
+        restoringOpeningDefenders = false,
         aud1 = nil,
         aud2 = nil,
         aud3 = nil,
@@ -267,6 +272,9 @@ end
 -- Helper for AI
 local function SetupAI()
     DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    -- Keep compact strategic-AI status in BZLogger for mission playtests.
+    aiCore.Telemetry = true
+    aiCore.TelemetryPeriod = 5.0
 
     -- Configure Player Team (1) for Scavenger Assist
     -- Configure Player Team (1) for Scavenger Assist
@@ -297,9 +305,17 @@ local function SetupAI()
         cca.Config.allowProducerRelocation = false
         cca.Config.minScavengers = 4
         cca.Config.requireConstructorFirst = true
+        cca.Config.baseThreatResponse = true
+        cca.Config.baseThreatAlertRadius = 425.0
+        cca.Config.baseThreatResponseRadius = 700.0
+        cca.Config.baseThreatMaxResponders = 8
+        cca.Config.tacticalMinSquadUnits = 3
+        cca.Config.tacticalMaxSquadUnits = 5
+        cca.Config.flankAttackChance = 30
+        cca.Config.flankFormationRushChance = 20
 
         -- High-level Base Planning
-        cca:PlanDefensivePerimeter(2, 2) -- 2 powers, 1 tower each (Interleaved)
+        cca:PlanDefensivePerimeter(4, 1) -- four powered gun-tower sectors around the base
 
         -- ExpandBase will automatically handle Barracks, Supply, Comm, Hangar, and HQ over time.
         -- We just need to plan the optimal Silo location since it's terrain-dependent.
@@ -2209,7 +2225,7 @@ function AddObject(h)
     local nearBase = false
 
     -- Filter logic for AI
-    if team == 2 then
+    if team == 2 and not M.restoringOpeningDefenders then
         -- Only add if near base
         if M.svrec and IsAlive(M.svrec) and GetDistance(h, M.svrec) < 400.0 then
             nearBase = true
@@ -2240,7 +2256,8 @@ function AddObject(h)
 end
 
 function DeleteObject(h)
-    -- No specific logic in C++, just standard.
+    aiCore.DeleteObject(h)
+    PlayerPilotMode.DeleteObject(h)
 end
 
 local function AudioDone(msg)
@@ -2278,6 +2295,40 @@ end
 local function SpawnNear(spawn, minRadius, maxRadius)
     local center = GetPosition(spawn)
     return GetPositionNear(center, minRadius, maxRadius) or center
+end
+
+local STOCK_OPENING_DEFENDERS = {
+    pu1 = { label = "svfigh-1_wingman", odf = "svfigh", position = { x = 3883.62, y = 1.5, z = 99776.6 } },
+    pu3 = { label = "svfigh282_wingman", odf = "svfigh", position = { x = 3902.4, y = 2.08203, z = 99770.3 } },
+    pu6 = { label = "svfigh279_wingman", odf = "svfigh", position = { x = 3655.1, y = 6.03401, z = 99472.9 } },
+    pu8 = { label = "svfigh278_wingman", odf = "svfigh", position = { x = 3668.75, y = 7.2247, z = 99464.0 } },
+    openingTurret1 = { label = "svturr272_turrettank", odf = "svturr", position = { x = 3718.68, y = 0.5, z = 99830.2 } },
+    openingTurret2 = { label = "svturr273_turrettank", odf = "svturr", position = { x = 3586.0, y = 0.5, z = 99818.5 } },
+    openingTurret3 = { label = "svturr274_turrettank", odf = "svturr", position = { x = 3622.48, y = 0.5, z = 99765.0 } },
+    openingTurret4 = { label = "svturr-1_turrettank", odf = "svturr", position = { x = 3671.84, y = 0.5, z = 99900.1 } },
+}
+
+local function RestoreStockOpeningDefenders()
+    M.restoringOpeningDefenders = true
+
+    for stateKey, spec in pairs(STOCK_OPENING_DEFENDERS) do
+        local h = M[stateKey]
+        if not (h and IsValid(h)) then
+            h = GetHandle(spec.label)
+        end
+        if not (h and IsValid(h)) then
+            h = BuildObject(spec.odf, 2, spec.position)
+            if h and IsValid(h) and SetLabel then
+                SetLabel(h, spec.label)
+            end
+        end
+        if h and IsValid(h) then
+            SetIndependence(h, 1)
+        end
+        M[stateKey] = h
+    end
+
+    M.restoringOpeningDefenders = false
 end
 
 local function RetreatIfAlive(h, path)
@@ -2349,10 +2400,12 @@ function Update()
         -- pu7 commented out
         M.pu8 = GetHandle("svfigh278_wingman")
 
-        Patrol(M.pu1, "innerpatrol", 0)
-        Patrol(M.pu3, "innerpatrol", 0)
-        Patrol(M.pu6, "outerpatrol", 0)
-        Patrol(M.pu8, "outerpatrol", 0)
+        RestoreStockOpeningDefenders()
+
+        if IsAlive(M.pu1) then Patrol(M.pu1, "innerpatrol", 0) end
+        if IsAlive(M.pu3) then Patrol(M.pu3, "innerpatrol", 0) end
+        if IsAlive(M.pu6) then Patrol(M.pu6, "outerpatrol", 0) end
+        if IsAlive(M.pu8) then Patrol(M.pu8, "scouting", 0) end
 
         AddObjective("misn0401.otf", "white")
         AddObjective("misn0400.otf", "white")
@@ -2589,8 +2642,7 @@ function Update()
         M.newobjective = false
     end
 
-    if (not M.cheater) then
-        -- Wave 1
+    -- Wave 1
         if M.wavenumber == 1 and M.wave1 < GetTime() then
             M.w1u1 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
             M.w1u2 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
@@ -2784,8 +2836,6 @@ function Update()
                 M.wave5dead = true
             end
         end
-    end
-
     if not M.attackccabase and IsAlive(M.player) and IsAlive(M.svrec) and GetDistance(M.player, M.svrec) < 300.0 then
         subtit.Play("misn0423.wav")
         M.attackccabase = true

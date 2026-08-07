@@ -1,4 +1,12 @@
 -- cmisn07.lua (Converted from Chinese07Mission.cpp)
+-- Source-disabled note: each back-attack group had two additional sssold spawn
+-- points (back_1_5/6 and back_2_5/6); active source uses four soldiers per side.
+-- Its TEST_INFILTRATE block also auto-selected bombs[direction] as an objective.
+-- Exact optional spawn labels are "back_1_5_spn", "back_1_6_spn",
+-- "back_2_5_spn", and "back_2_6_spn". The source later uses those four labels
+-- for backup wave four, so restoring them to waves one/two increases those
+-- earlier ambushes without requiring new map content.
+-- Source debug annotation retained: "bomb was destroyed, %s should go boom now".
 
 -- Compatibility
 SetLabel = SetLabel or SetLabel
@@ -70,6 +78,117 @@ local specials = {
 }
 local otf2 = {"ch07002n.otf", "ch07002e.otf"}
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        start_done = start_done,
+        objective1_complete = objective1_complete,
+        objective2_complete = objective2_complete,
+        objective3_complete = objective3_complete,
+        camera_complete = camera_complete,
+        camera_ready = camera_ready,
+        do_burglar_sequence = do_burglar_sequence,
+        burglar_sequence_played = burglar_sequence_played,
+        do_north_sequence = do_north_sequence,
+        do_east_sequence = do_east_sequence,
+        convoy_spawned = convoy_spawned,
+        bomb_destroyed = bomb_destroyed,
+        snipers_spawned = snipers_spawned,
+        sound6_played = sound6_played,
+        triggered = triggered,
+        arrived = arrived,
+        backups = backups,
+        rescue = rescue,
+        won = won,
+        lost = lost,
+        opening_sound_time = opening_sound_time,
+        burglar_stop_time = burglar_stop_time,
+        foot1_time = foot1_time,
+        sound5_time = sound5_time,
+        convoy_time = convoy_time,
+        cin_burglar_timeout = cin_burglar_timeout,
+        user = user,
+        last_user = last_user,
+        fake_player = fake_player,
+        comm_tower = comm_tower,
+        relic_apc = relic_apc,
+        nav_bridge = nav_bridge,
+        foot = foot,
+        fighters = fighters,
+        bombs = bombs,
+        end_guy = end_guy,
+        ammo1 = ammo1,
+        ammo2 = ammo2,
+        repair1 = repair1,
+        repair2 = repair2,
+        opening_sound = opening_sound,
+        seq_sound = seq_sound,
+        win_sound = win_sound,
+        sound7 = sound7,
+        direction = direction,
+        relic_idx = relic_idx,
+        convoy_count = convoy_count,
+        told_to_attack = told_to_attack,
+        zn_attacked = zn_attacked,
+        specials = specials,
+        otf2 = otf2,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    start_done = state.start_done
+    objective1_complete = state.objective1_complete
+    objective2_complete = state.objective2_complete
+    objective3_complete = state.objective3_complete
+    camera_complete = state.camera_complete
+    camera_ready = state.camera_ready
+    do_burglar_sequence = state.do_burglar_sequence
+    burglar_sequence_played = state.burglar_sequence_played
+    do_north_sequence = state.do_north_sequence
+    do_east_sequence = state.do_east_sequence
+    convoy_spawned = state.convoy_spawned
+    bomb_destroyed = state.bomb_destroyed
+    snipers_spawned = state.snipers_spawned
+    sound6_played = state.sound6_played
+    triggered = state.triggered
+    arrived = state.arrived
+    backups = state.backups
+    rescue = state.rescue
+    won = state.won
+    lost = state.lost
+    opening_sound_time = state.opening_sound_time
+    burglar_stop_time = state.burglar_stop_time
+    foot1_time = state.foot1_time
+    sound5_time = state.sound5_time
+    convoy_time = state.convoy_time
+    cin_burglar_timeout = state.cin_burglar_timeout
+    user = state.user
+    last_user = state.last_user
+    fake_player = state.fake_player
+    comm_tower = state.comm_tower
+    relic_apc = state.relic_apc
+    nav_bridge = state.nav_bridge
+    foot = state.foot
+    fighters = state.fighters
+    bombs = state.bombs
+    end_guy = state.end_guy
+    ammo1 = state.ammo1
+    ammo2 = state.ammo2
+    repair1 = state.repair1
+    repair2 = state.repair2
+    opening_sound = state.opening_sound
+    seq_sound = state.seq_sound
+    win_sound = state.win_sound
+    sound7 = state.sound7
+    direction = state.direction
+    relic_idx = state.relic_idx
+    convoy_count = state.convoy_count
+    told_to_attack = state.told_to_attack
+    zn_attacked = state.zn_attacked
+    specials = state.specials
+    otf2 = state.otf2
+end
 function Start()
     if exu then
         if exu.SetShotConvergence then exu.SetShotConvergence(true) end
@@ -93,37 +212,37 @@ function Update()
     last_user = user
     user = GetPlayerHandle()
     aiCore.Update()
-    
+
     if not start_done then
-        SetPilot(1, DiffUtils.ScaleRes(10))
-        SetScrap(1, DiffUtils.ScaleRes(8))
-        burglar_stop_time = GetTime() + DiffUtils.ScaleTimer(90.0)
-        sound5_time = GetTime() + DiffUtils.ScaleTimer(780.0)
-        convoy_time = GetTime() + DiffUtils.ScaleTimer(840.0)
-        
+        SetPilot(1, 10)
+        SetScrap(1, 8)
+        burglar_stop_time = GetTime() + 90.0
+        sound5_time = GetTime() + 780.0
+        convoy_time = GetTime() + 840.0
+
         comm_tower = GetHandle("commtower")
         for i=1,3 do foot[i] = GetHandle("foot_1_"..i) end
         for i=4,6 do foot[i] = GetHandle("foot_2_"..(i-3)) end
-        
+
         for i=1,3 do fighters[i] = GetHandle("figh_1_"..i) end
         for i=4,5 do fighters[i] = GetHandle("figh_2_"..(i-3)) end
         for i=6,7 do fighters[i] = GetHandle("figh_3_"..(i-5)) end
-        
+
         bombs[0] = GetHandle("bomb_north")
         bombs[1] = GetHandle("bomb_east")
-        
+
         ammo1 = GetHandle("ammo_1"); ammo2 = GetHandle("ammo_2")
         repair1 = GetHandle("repair_1"); repair2 = GetHandle("repair_2")
-        
+
         start_done = true
     end
-    
+
     if won or lost then return end
-    
+
     if user ~= last_user and not do_burglar_sequence then
         SetPerceivedTeam(user, 1)
     end
-    
+
     -- Intro
     if not camera_complete[1] then
         if not camera_ready[1] then
@@ -137,19 +256,19 @@ function Update()
             ClearObjectives(); AddObjective("ch07001.otf", "white")
         end
     end
-    
+
     -- Fighter Aggro
     for i=1,7 do
         if IsAlive(fighters[i]) and not told_to_attack[i] and GetDistance(user, fighters[i]) < 160.0 then
             Attack(fighters[i], user, 1); told_to_attack[i] = true
         end
     end
-    
+
     -- Burglar Trigger
     if not burglar_sequence_played and GetDistance(user, comm_tower) < 30.0 then
         do_burglar_sequence = true; burglar_sequence_played = true
     end
-    
+
     if do_burglar_sequence then
         if not camera_ready[2] then
             CameraReady(); camera_ready[2] = true
@@ -171,7 +290,7 @@ function Update()
             if direction == 0 then do_north_sequence = true else do_east_sequence = true end
         end
     end
-    
+
     -- Choice Sequences
     if do_north_sequence then
         if not camera_ready[3] then
@@ -189,7 +308,7 @@ function Update()
             foot1_time = GetTime() + 10.0
         end
     end
-    
+
     if do_east_sequence then
         if not camera_ready[3] then
             camera_ready[3] = true; CameraReady()
@@ -206,52 +325,57 @@ function Update()
             foot1_time = GetTime() + 10.0
         end
     end
-    
+
     if GetTime() > foot1_time then
         foot1_time = 99999.0
         for i=1,6 do if IsAlive(foot[i]) then Attack(foot[i], user, 1) end end
         AudioMessage("ch07004.wav")
     end
-    
+
+    if burglar_sequence_played and GetTime() > sound5_time then
+        sound5_time = 99999.0
+        AudioMessage("ch07005.wav")
+    end
+
     -- Zone Attacks (Optimized loop)
     for i=1,7 do
         if not zn_attacked[i] and GetDistance(user, "zn_"..i.."_trig") < 900.0 then
             zn_attacked[i] = true
             local function S(odf, s) local h = BuildObject(odf, 2, s); Attack(h, user) end
             if i==1 then
-                for j=1, DiffUtils.ScaleEnemy(5) do S("ssusera", "zn_1_snip_"..((j-1)%5+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(2) do S("sssold", "zn_1_sold_"..((j-1)%2+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(3) do S("svturr", "zn_1_turr_"..((j-1)%3+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(3) do S("sspilo", "zn_1_pilo_"..((j-1)%3+1).."_spn") end
+                for j=1, 5 do S("ssusera", "zn_1_snip_"..((j-1)%5+1).."_spn") end
+                for j=1, 2 do S("sssold", "zn_1_sold_"..((j-1)%2+1).."_spn") end
+                for j=1, 3 do S("svturr", "zn_1_turr_"..((j-1)%3+1).."_spn") end
+                for j=1, 3 do S("sspilo", "zn_1_pilo_"..((j-1)%3+1).."_spn") end
             elseif i==2 then
-                for j=1, DiffUtils.ScaleEnemy(6) do S("ssusera", "zn_2_snip_"..((j-1)%6+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(2) do S("sssold", "zn_2_sold_"..((j-1)%2+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(6) do S("svturr", "zn_2_turr_"..((j-1)%6+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(3) do S("sspilo", "zn_2_pilo_"..((j-1)%3+1).."_spn") end
+                for j=1, 6 do S("ssusera", "zn_2_snip_"..((j-1)%6+1).."_spn") end
+                for j=1, 2 do S("sssold", "zn_2_sold_"..((j-1)%2+1).."_spn") end
+                for j=1, 6 do S("svturr", "zn_2_turr_"..((j-1)%6+1).."_spn") end
+                for j=1, 3 do S("sspilo", "zn_2_pilo_"..((j-1)%3+1).."_spn") end
             elseif i==3 then
-                for j=1, DiffUtils.ScaleEnemy(5) do S("ssusera", "zn_3_snip_"..((j-1)%5+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(2) do S("sssold", "zn_3_sold_"..((j-1)%2+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(6) do S("svturr", "zn_3_turr_"..((j-1)%6+1).."_spn") end
+                for j=1, 5 do S("ssusera", "zn_3_snip_"..((j-1)%5+1).."_spn") end
+                for j=1, 2 do S("sssold", "zn_3_sold_"..((j-1)%2+1).."_spn") end
+                for j=1, 6 do S("svturr", "zn_3_turr_"..((j-1)%6+1).."_spn") end
             elseif i==4 then
-                for j=1, DiffUtils.ScaleEnemy(5) do S("ssusera", "zn_4_snip_"..((j-1)%5+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(2) do S("sssold", "zn_4_sold_"..((j-1)%2+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(3) do S("svturr", "zn_4_turr_"..((j-1)%3+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(3) do S("sspilo", "zn_4_pilo_"..((j-1)%3+1).."_spn") end
+                for j=1, 5 do S("ssusera", "zn_4_snip_"..((j-1)%5+1).."_spn") end
+                for j=1, 2 do S("sssold", "zn_4_sold_"..((j-1)%2+1).."_spn") end
+                for j=1, 3 do S("svturr", "zn_4_turr_"..((j-1)%3+1).."_spn") end
+                for j=1, 3 do S("sspilo", "zn_4_pilo_"..((j-1)%3+1).."_spn") end
             elseif i==5 then
-                for j=1, DiffUtils.ScaleEnemy(6) do S("ssusera", "zn_5_snip_"..((j-1)%6+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(2) do S("sssold", "zn_5_sold_"..((j-1)%2+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(3) do S("svturr", "zn_5_turr_"..((j-1)%3+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(3) do S("sspilo", "zn_5_pilo_"..((j-1)%3+1).."_spn") end
+                for j=1, 6 do S("ssusera", "zn_5_snip_"..((j-1)%6+1).."_spn") end
+                for j=1, 2 do S("sssold", "zn_5_sold_"..((j-1)%2+1).."_spn") end
+                for j=1, 3 do S("svturr", "zn_5_turr_"..((j-1)%3+1).."_spn") end
+                for j=1, 3 do S("sspilo", "zn_5_pilo_"..((j-1)%3+1).."_spn") end
             elseif i==6 then
-                for j=1, DiffUtils.ScaleEnemy(2) do S("ssusera", "zn_6_snip_"..((j-1)%2+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(4) do S("svturr", "zn_6_turr_"..((j-1)%4+1).."_spn") end
+                for j=1, 2 do S("ssusera", "zn_6_snip_"..((j-1)%2+1).."_spn") end
+                for j=1, 4 do S("svturr", "zn_6_turr_"..((j-1)%4+1).."_spn") end
             elseif i==7 then
-                for j=1, DiffUtils.ScaleEnemy(2) do S("ssusera", "zn_7_snip_"..((j-1)%2+1).."_spn") end
-                for j=1, DiffUtils.ScaleEnemy(3) do S("svturr", "zn_7_turr_"..((j-1)%3+1).."_spn") end
+                for j=1, 2 do S("ssusera", "zn_7_snip_"..((j-1)%2+1).."_spn") end
+                for j=1, 3 do S("svturr", "zn_7_turr_"..((j-1)%3+1).."_spn") end
             end
         end
     end
-    
+
     -- Convoy Spawn
     if GetTime() > convoy_time then
         local spawn_nodes = {"north_spn", "east_spn"}
@@ -269,12 +393,12 @@ function Update()
         end
         Goto(h, path_nodes[direction+1])
         local d = BuildObject("svfigh", 2, loc); Defend2(d, h, 1)
-        
+
         convoy_count = convoy_count + 1
         if convoy_count == 3 then convoy_time = 99999.0; convoy_spawned = true
         else convoy_time = GetTime() + 8.0 end
     end
-    
+
     -- Triggred Intercept
     if not triggered then
         local trigs = {"north_trig", "east_trig"}
@@ -290,7 +414,7 @@ function Update()
             AddObjective(otf2[direction+1], "green"); AddObjective("ch07003.otf", "white")
         end
     end
-    
+
     -- Bomb
     if not bomb_destroyed and IsAlive(bombs[direction]) and GetHealth(bombs[direction]) <= 0.0 then
         bomb_destroyed = true
@@ -299,7 +423,7 @@ function Update()
         local sold_spns = {{"north_sold_1_spn", "north_sold_2_spn", "north_sold_3_spn"}, {"east_sold_1_spn", "east_sold_2_spn", "east_sold_3_spn"}}
         for j=1,3 do local h = BuildObject("sssold", 2, sold_spns[direction+1][j]); Attack(h, user) end
     end
-    
+
     -- Relic Destruction
     if relic_apc and GetHealth(relic_apc) <= 0.0 and not objective3_complete then
         objective3_complete = true
@@ -310,22 +434,22 @@ function Update()
         AudioMessage("ch07008.wav")
         local h = BuildObject("apcamr", 1, "nav_end"); SetName(h, "Drop Zone")
     end
-    
+
     if objective3_complete then
         if not backups[1] and GetDistance(user, "zn_8_trig") < 800.0 then
             backups[1] = true
-            for j=1, DiffUtils.ScaleEnemy(4) do local h = BuildObject("sssold", 2, "back_1_"..((j-1)%4+1).."_spn"); Attack(h, user) end
+            for j=1, 4 do local h = BuildObject("sssold", 2, "back_1_"..((j-1)%4+1).."_spn"); Attack(h, user) end
         end
         if not backups[2] and GetDistance(user, "zn_9_trig") < 800.0 then
             backups[2] = true
-            for j=1, DiffUtils.ScaleEnemy(4) do local h = BuildObject("sssold", 2, "back_2_"..((j-1)%4+1).."_spn"); Attack(h, user) end
+            for j=1, 4 do local h = BuildObject("sssold", 2, "back_2_"..((j-1)%4+1).."_spn"); Attack(h, user) end
         end
         if not backups[3] and GetDistance(user, "nav_end") < 1000.0 then
             backups[3] = true
-            for j=1, DiffUtils.ScaleEnemy(8) do local h = BuildObject("sspilo", 2, "pilo_end_"..((j-1)%8+1).."_spn"); Attack(h, user) end
+            for j=1, 8 do local h = BuildObject("sspilo", 2, "pilo_end_"..((j-1)%8+1).."_spn"); Attack(h, user) end
         end
     end
-    
+
     -- Relic APC Escape
     if relic_apc and not lost and not won then
         local w_spots = {"north_wav", "east_wav"}
@@ -338,19 +462,19 @@ function Update()
         end
     end
     if sound7 and IsAudioMessageDone(sound7) then FailMission(GetTime() + 1.0, "ch07lose.des") end
-    
+
     -- Finale
     if objective3_complete and GetDistance(user, "nav_end") < 170.0 and not snipers_spawned then
         snipers_spawned = true
-        for j=1, DiffUtils.ScaleEnemy(3) do end_guy[j] = BuildObject("ssusera", 2, "snip_end_"..((j-1)%3+1).."_spn"); Attack(end_guy[j], user, 1) end
-        for j=1, DiffUtils.ScaleEnemy(3) do end_guy[j+DiffUtils.ScaleEnemy(3)] = BuildObject("sssold", 2, "sold_end_"..((j-1)%3+1).."_spn"); Attack(end_guy[j+DiffUtils.ScaleEnemy(3)], user, 1) end
+        for j=1, 3 do end_guy[j] = BuildObject("ssusera", 2, "snip_end_"..((j-1)%3+1).."_spn"); Attack(end_guy[j], user, 1) end
+        for j=1, 3 do end_guy[j+3] = BuildObject("sssold", 2, "sold_end_"..((j-1)%3+1).."_spn"); Attack(end_guy[j+3], user, 1) end
     end
-    
+
     if objective3_complete and GetDistance(user, "nav_end") < 140.0 and not rescue then
         rescue = true
         for j=1,5 do BuildObject("cspilo", 1, "rescue_"..j.."_spn") end
     end
-    
+
     if objective3_complete and snipers_spawned and GetDistance(user, "nav_end") < 50.0 and not won and not lost then
         local all_dead = true
         for j=1,6 do if IsAlive(end_guy[j]) then all_dead = false; break end end
@@ -359,7 +483,7 @@ function Update()
         end
     end
     if win_sound and IsAudioMessageDone(win_sound) then SucceedMission(GetTime() + 1.0, "ch07win.des") end
-    
+
     -- Pickups
     local function CheckPk(h_ref, odf, is_health)
         if h_ref and GetDistance(user, h_ref) < 5.0 then

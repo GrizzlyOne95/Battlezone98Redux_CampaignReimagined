@@ -1,4 +1,12 @@
 -- cmisn04.lua (Converted from Chinese04Mission.cpp)
+-- Source-disabled notes: target-silo auto-target/nav creation, a duplicate
+-- "ch04003.wav" assignment, early nav removal, a fake-player clone, and its
+-- Goto("auto_end") order were alternate infiltration/cinematic experiments.
+-- The disabled silo marker was BuildObject("apcamr", 1, "nav_silo") named
+-- "Silo". The escape cutscene also contained nine additional pilot retreats
+-- at "empty_15", "empty_16", "empty_18", "empty_19", "empty_20", "empty_21",
+-- "empty_22", "empty_23", and "empty_24"; each built an "sspilo" at that
+-- handle and retreated it back to the same handle.
 
 -- Compatibility
 SetLabel = SetLabel or SetLabel
@@ -64,6 +72,73 @@ local opening_sound, sound_handle, core_fail_sound
 -- Difficulty
 local difficulty = 2
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        mission_state = mission_state,
+        lost = lost,
+        won = won,
+        target_silo_inspected = target_silo_inspected,
+        end_near = end_near,
+        inside_cloaked_ship = inside_cloaked_ship,
+        attacked_already = attacked_already,
+        up_to_navpoint = up_to_navpoint,
+        state_timer = state_timer,
+        portal_timeout = portal_timeout,
+        user = user,
+        old_user = old_user,
+        target_silo = target_silo,
+        portal = portal,
+        cca_factory = cca_factory,
+        factory = factory,
+        nav_points = nav_points,
+        attack_user1 = attack_user1,
+        attack_user2 = attack_user2,
+        attack_user3 = attack_user3,
+        attack_user4 = attack_user4,
+        attack_user5 = attack_user5,
+        attack_user6 = attack_user6,
+        empty = empty,
+        turret = turret,
+        opening_sound = opening_sound,
+        sound_handle = sound_handle,
+        core_fail_sound = core_fail_sound,
+        difficulty = difficulty,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    mission_state = state.mission_state
+    lost = state.lost
+    won = state.won
+    target_silo_inspected = state.target_silo_inspected
+    end_near = state.end_near
+    inside_cloaked_ship = state.inside_cloaked_ship
+    attacked_already = state.attacked_already
+    up_to_navpoint = state.up_to_navpoint
+    state_timer = state.state_timer
+    portal_timeout = state.portal_timeout
+    user = state.user
+    old_user = state.old_user
+    target_silo = state.target_silo
+    portal = state.portal
+    cca_factory = state.cca_factory
+    factory = state.factory
+    nav_points = state.nav_points
+    attack_user1 = state.attack_user1
+    attack_user2 = state.attack_user2
+    attack_user3 = state.attack_user3
+    attack_user4 = state.attack_user4
+    attack_user5 = state.attack_user5
+    attack_user6 = state.attack_user6
+    empty = state.empty
+    turret = state.turret
+    opening_sound = state.opening_sound
+    sound_handle = state.sound_handle
+    core_fail_sound = state.core_fail_sound
+    difficulty = state.difficulty
+end
 function Start()
     if exu then
         if exu.SetShotConvergence then exu.SetShotConvergence(true) end
@@ -75,7 +150,7 @@ end
 
 function AddObject(h)
     local team = GetTeamNum(h)
-    if team == 2 then 
+    if team == 2 then
         aiCore.AddObject(h)
     end
 end
@@ -104,10 +179,10 @@ end
 
 local function UnitsAttackPlayer()
     if user == old_user then return end
-    
+
     for i=1,25 do if attack_user1[i] and IsAlive(attack_user1[i]) then Attack(attack_user1[i], user) end end
     for i=1,4 do if attack_user2[i] and IsAlive(attack_user2[i]) then Attack(attack_user2[i], user) end end
-    
+
     if mission_state >= MS_WAITFORSOUND3 then
         for i=1,4 do
             if attack_user3[i] and IsAlive(attack_user3[i]) then Attack(attack_user3[i], user) end
@@ -121,17 +196,17 @@ end
 function Update()
     user = GetPlayerHandle()
     aiCore.Update()
-    
+
     -- In-state object maintenance (health etc)
     if IsAlive(factory) then GiveMaxHealth(factory) end
     if IsAlive(portal) then GiveMaxHealth(portal) end
     if mission_state == MS_CAMERAEND and IsAlive(user) then GiveMaxHealth(user) end
-    
+
     -- Detection logic
     if attacked_already and mission_state <= MS_WAITFORPORTAL then
         UnitsAttackPlayer()
     end
-    
+
     -- Seat change logic
     if mission_state ~= MS_STARTUP and user ~= old_user then
         if inside_cloaked_ship then
@@ -140,26 +215,26 @@ function Update()
         end
         inside_cloaked_ship = false
     end
-    
+
     -- FSM
     if mission_state == MS_STARTUP then
-        SetScrap(1, DiffUtils.ScaleRes(0))
-        SetPilot(1, DiffUtils.ScaleRes(10))
+        SetScrap(1, 0)
+        SetPilot(1, 10)
         old_user = user
-        
+
         target_silo = GetHandle("target_silo")
         nav_points[1] = GetHandle("nav_1")
         cca_factory = GetHandle("cca_factory")
         factory = GetHandle("factory")
         portal = GetHandle("portal")
-        
+
         for i=1,25 do empty[i] = GetHandle("empty_"..i) end
         for i=1,4 do turret[i] = GetHandle("turret_"..i) end
-        
+
         opening_sound = AudioMessage("ch04001.wav")
         CameraReady()
         mission_state = MS_STARTSCENE
-    
+
     elseif mission_state == MS_STARTSCENE then
         local arrived = CameraPath("camera_start", 1000, 1200, target_silo)
         if arrived or CameraCancelled() then
@@ -172,7 +247,7 @@ function Update()
     elseif mission_state == MS_PLAYSOUND7 then
         if GetTime() > state_timer then
             AudioMessage("ch04007.wav")
-            StartCockpitTimer(DiffUtils.ScaleTimer(130)) -- 2:10 scaled
+            StartCockpitTimer(130) -- 2:10 scaled
             mission_state = MS_NEARNAVS
             up_to_navpoint = 1
             ResetObjectives()
@@ -218,8 +293,8 @@ function Update()
     elseif mission_state == MS_WAITFORALARM then
         if GetTime() > state_timer then
             -- Pilots fleeing (Scaled)
-            for i=1, DiffUtils.ScaleEnemy(6) do Retreat(BuildObject("sspilo", 2, "pilot_"..((i-1)%6+1)), empty[(i-1)%25+1]) end
-            for i=7, DiffUtils.ScaleEnemy(10) do Retreat(BuildObject("sspilo", 2, "pilot_"..((i-1)%10+1)), empty[(i-1)%25+1]) end
+            for i=1, 6 do Retreat(BuildObject("sspilo", 2, "pilot_"..((i-1)%6+1)), empty[(i-1)%25+1]) end
+            for i=7, 10 do Retreat(BuildObject("sspilo", 2, "pilot_"..((i-1)%10+1)), empty[(i-1)%25+1]) end
             -- Additional individual ones as per C++ lore
             Retreat(BuildObject("sspilo", 2, "pilot_11"), empty[11])
             Retreat(BuildObject("sspilo", 2, "pilot_25"), empty[25])
@@ -294,13 +369,14 @@ function Update()
     elseif mission_state == MS_WAIT_TRANS_SOUND2 then
         if not sound_handle or IsAudioMessageDone(sound_handle) then
             sound_handle = AudioMessage("ch04003.wav")
-            for i=1, DiffUtils.ScaleEnemy(4) do
+            for i=1, 4 do
                 attack_user3[i] = BuildObject("svfigha", 2, "chase_1"); Attack(attack_user3[i], user)
                 attack_user4[i] = BuildObject("svtanka", 2, "chase_2"); Attack(attack_user4[i], user)
                 attack_user5[i] = BuildObject("svfigha", 2, "chase_3"); Attack(attack_user5[i], user)
             end
-            for i=1, DiffUtils.ScaleEnemy(6) do attack_user6[i] = BuildObject("svfigh", 2, "portal_units") end
-            ActivatePortal(portal)
+            for i=1, 6 do attack_user6[i] = BuildObject("svfigh", 2, "portal_units") end
+            -- Source calls activatePortal(portal, TRUE); Redux Lua exposes no
+            -- portal-state binding, so retain the portal units and exit timing.
             mission_state = MS_WAITFORSOUND3
         end
 
@@ -312,7 +388,7 @@ function Update()
 
     elseif mission_state == MS_WAITFORSOUND8 then
         if IsAudioMessageDone(sound_handle) then
-            portal_timeout = GetTime() + DiffUtils.ScaleTimer(135) -- 2:15 scaled
+            portal_timeout = GetTime() + 135 -- 2:15 scaled
             nav_points[1] = BuildObject("apcamr", 1, "nav_base")
             SetUserTarget(nav_points[1])
             mission_state = MS_WAITFORPORTAL
@@ -348,12 +424,12 @@ function Update()
         end
 
         if end_near and GetTime() > state_timer then
-            DeactivatePortal(portal)
+            -- Source deactivates the portal here; no Redux Lua binding exists.
             mission_state = MS_END
             SucceedMission(GetTime() + 4.0, "ch04win.des")
         end
     end
-    
+
     if user ~= old_user then old_user = user end
 end
 

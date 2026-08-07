@@ -1,208 +1,227 @@
--- tran03.lua
--- Ported from Tran03Mission.cpp
--- Training Mission 3: Strategy & Building
+-- Single Player Training Mission 3 Lua conversion, created by General BlackDragon.
+-- Source-disabled handle lookup retained for restoration/debugging:
+-- scav = GetHandle("avscav-1_scavenger"). The active flow already owns its
+-- scavenger handle and does not require this alternate map label.
 
--- Compatibility
-SetLabel = SetLabel or SetLabel
+-- Single Table for all our save/load variables. This SP mission has too many variables to function with them independently. ("main function has > 200 local variables", or "Load having > 197 variables in assignment")
+local M = {
 
--- Libraries
-local RequireFix = require("RequireFix")
-RequireFix.Initialize({"campaignReimagined", "3686673790"}) 
-local exu = require("exu")
-local DiffUtils = require("DiffUtils")
-local Subtitles = require("ScriptSubtitles")
-
--- Mission State
-local found = false
-local start_done = false
-local first_message = false
-local second_message = false
-local third_message = false
-local fourth_message = false
-local fifth_message = false
-local fifthb_message = false
-local sixth_message = false
-local seventh_message = false
-local eighth_message = false
-local scav_died = false
-
-local delay_message = 99999.0
-
+-- bools
+	found = false,
+	start_done = false,
+	--first_objective = false,
+	--second_objective = false,
+	--third_objecitve = false,
+	--combat_start = false,
+	--combat_start2 = false,
+	--start_path1 = false,
+	--start_path2 = false,
+	--start_path3 = false,
+	--start_path4 = false,
+	--hint1 = false,
+	--hint2 = false,
+	first_message = false,
+	second_message = false,
+	third_message = false,
+	fourth_message = false,
+	fifth_message = false,
+	fifthb_message = false,
+	sixth_message = false,
+	seventh_message = false,
+	eighth_message = false,
+	scav_died = false,
+	--jump_start = false,
+-- Floats (really doubles in Lua)
+	delay_message = 0,
 -- Handles
-local scav = nil
-local attacker = nil
-local geyser = nil
-local recycler = nil
+	scav = nil,
+	attacker = nil,
+	geyser = nil,
+	recycler = nil,
+-- Ints
+	aud = 0
+}
 
 function Save()
-    return found, start_done, first_message, second_message, third_message,
-           fourth_message, fifth_message, fifthb_message, sixth_message,
-           seventh_message, eighth_message, scav_died,
-           delay_message,
-           scav, attacker, geyser, recycler
+    return
+		M
 end
 
 function Load(...)
-    local arg = {...}
-    if #arg > 0 then
-        found, start_done, first_message, second_message, third_message,
-        fourth_message, fifth_message, fifthb_message, sixth_message,
-        seventh_message, eighth_message, scav_died,
-        delay_message,
-        scav, attacker, geyser, recycler = unpack(arg)
+    if select('#', ...) > 0 then
+		M
+		 =  ...
     end
 end
 
+
 function Start()
-    Subtitles.Initialize("durations.csv")
-    DiffUtils.SetupTeams(1, 2, 0) 
-    
-    geyser = GetHandle("eggeizr111_geyser")
-    recycler = GetHandle("avrecy-1_recycler")
-    attacker = GetHandle("svfigh-1_wingman")
-    
-    delay_message = 99999.0
-    
-    -- QOL Improvements
-    if exu then
-        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
-        if exu.SetReticleRange then exu.SetReticleRange(500) end
-    end
+
+	M.delay_message = 99999.0;
+
 end
 
 function AddObject(h)
-    -- Check for Scavenger built by player (Team 1)
-    local odf = GetOdf(h)
-    if odf then 
-        odf = string.lower(odf) 
-        -- Clean nulls
-        odf = string.gsub(odf, "%z", "")
-    end
-    
-    if GetTeamNum(h) == 1 and odf and string.find(odf, "avscav") then
-        found = true
-        scav = h
-    end
+
+	if (
+		(GetTeamNum(h) == 1) and
+		(IsOdf(h, "avscav"))
+		)
+	then
+		M.found = true;
+		M.scav = h;
+	end
+
 end
 
 function Update()
-    Subtitles.Update()
-    if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
-    
-    if not start_done then
-        Subtitles.Play("tran0301.wav")
-        Subtitles.Play("tran0302.wav")
-        
-        geyser = geyser or GetHandle("eggeizr111_geyser")
-        recycler = recycler or GetHandle("avrecy-1_recycler")
-        attacker = attacker or GetHandle("svfigh-1_wingman")
-        
-        if IsAlive(recycler) then
-            SetObjectiveOn(recycler)
-            SetObjectiveName(recycler, "Recycler")
-            SetScrap(1, 7)
-        end
-        
-        -- Difficulty Scaling for Attacker
-        if IsAlive(attacker) and DiffUtils.Get().enemyTurbo then
-             -- Turbo only on Very Hard (or Hard if tweaked in DiffUtils)
-             if exu and exu.SetUnitTurbo then exu.SetUnitTurbo(attacker, true) end
-        end
-        
-        ClearObjectives()
-        AddObjective("tran0301.otf", "white")
-        AddObjective("tran0302.otf", "white")
-        
-        start_done = true
-    end
-    
-    if start_done and not first_message and IsAlive(recycler) and IsSelected(recycler) then
-        Subtitles.Play("tran0303.wav")
-        SetObjectiveOff(recycler)
-        SetObjectiveOn(geyser)
-        SetObjectiveName(geyser, "Check Point 1")
-        first_message = true
-    end
-    
-    if first_message and not second_message and IsAlive(recycler) then
-        if not IsDeployed(recycler) then
-            Subtitles.Play("tran0304.wav")
-            second_message = true
-        end
-    end
-    
-    if second_message and not third_message and IsAlive(recycler) then
-        local dist = GetDistance(geyser, recycler)
-        if dist < 200.0 then
-            Subtitles.Play("tran0305.wav")
-            third_message = true
-        end
-    end
-    
-    if third_message and not fourth_message and IsAlive(recycler) and IsSelected(recycler) then
-        Subtitles.Play("tran0306.wav")
-        fourth_message = true
-    end
-    
-    if third_message and not fifth_message and IsAlive(recycler) then
-        -- User Corrected: Use native IsDeployed
-        if IsDeployed(recycler) then
-            SetObjectiveOff(geyser)
-            ClearObjectives()
-            AddObjective("tran0301.otf", "green")
-            AddObjective("tran0302.otf", "white")
-            
-            Subtitles.Play("tran0307.wav")
-            fifth_message = true
-        end
-    end
-    
-    if fifth_message and not fifthb_message and IsSelected(recycler) then
-         Subtitles.Play("tran0309.wav")
-         fifthb_message = true
-    end
-    
-    if IsAlive(attacker) and not sixth_message then
-         AddHealth(attacker, 50.0) 
-    end
-    
-    if fifth_message and not sixth_message then
-        local money = GetScrap(1)
-        if money < 5 and found then
-            Subtitles.Play("tran0308.wav")
-            sixth_message = true
-            delay_message = GetTime() + 5.0
-            
-            if IsAlive(attacker) and IsAlive(scav) then
-                SetCommand(attacker, "attack", scav)
-            end
-        end
-    end
-    
-    if not scav_died and ( not IsAlive(recycler) or (sixth_message and not IsAlive(scav)) ) then
-        scav_died = true
-        Subtitles.Play("tran0313.wav")
-        FailMission(GetTime() + 10.0, "tran03l1.des")
-    end
-    
-    if GetTime() > delay_message then
-        delay_message = 99999.0
-    end
-    
-    if sixth_message and not seventh_message and not IsAlive(attacker) then
-        Subtitles.Play("tran0314.wav")
-        seventh_message = true
-    end
-    
-    if seventh_message and not eighth_message then
-        local money = GetScrap(1)
-        if money > 1 then
-            Subtitles.Play("tran0310.wav")
-            Subtitles.Play("tran0315.wav")
-            eighth_message = true
-            SucceedMission(GetTime() + 20.0, "tran03w1.des")
-        end
-    end
+
+-- START OF SCRIPT
+
+	if ( not M.start_done)
+	then
+		AudioMessage("tran0301.wav");
+		M.aud = AudioMessage("tran0302.wav");
+		M.geyser = GetHandle("eggeizr111_geyser");
+		M.recycler = GetHandle("avrecy-1_recycler");
+		M.attacker = GetHandle("avfigh-1_wingman");
+		SetPilotClass(M.attacker, "");
+		SetIndependence(M.attacker, 0);
+		SetObjectiveOn(M.recycler);
+		SetObjectiveName(M.recycler,"recycler");
+		SetScrap(1,7);
+		ClearObjectives();
+		AddObjective("tran0301.otf","WHITE");
+		AddObjective("tran0302.otf","WHITE");
+
+		M.start_done = true;
+	end
+
+	if ((M.start_done)  and
+		( not M.first_message)	 and
+		IsAlive(M.recycler)  and
+	(IsSelected(M.recycler)))
+	then
+		StopAudioMessage(M.aud);
+		M.aud = AudioMessage("tran0303.wav");
+		--[[
+			Switch objective
+		--]]
+		SetObjectiveOff(M.recycler);
+		SetObjectiveOn(M.geyser);
+		SetObjectiveName(M.geyser, "Check Point 1");
+		M.first_message = true;
+	end
+
+	if ((M.first_message)  and
+		( not M.second_message) and (IsAlive(M.recycler)))
+	then
+		if ( not IsDeployed(M.recycler))
+		then
+			StopAudioMessage(M.aud);
+			M.aud = AudioMessage("tran0304.wav");
+			M.second_message = true;
+		end
+	end
+
+	if ((M.second_message)
+		 and  ( not M.third_message) and (IsAlive(M.recycler))
+		 and  (GetDistance(m.geyser, M.recycler) < 200.0)) --(Dist3D_Squared(GameObjectHandle::GetObj(M.geyser)->GetPosition(), GameObjectHandle::GetObj(M.recycler)->GetPosition()) < 200.0 * 200.0))
+	then
+	--	ClearObjectives();
+	--	AddObjective("tran0301.otf","GREEN");
+		StopAudioMessage(M.aud);
+		M.aud = AudioMessage("tran0305.wav");
+		M.third_message = true;
+	end
+	if ((M.third_message)  and
+		( not M.fourth_message) and (IsAlive(M.recycler))  and
+		(IsSelected(M.recycler)))
+	then
+		StopAudioMessage(M.aud);
+		M.aud = AudioMessage("tran0306.wav");
+		M.fourth_message = true;
+	end
+
+	if ((M.third_message)  and
+		( not M.fifth_message) and (IsAlive(M.recycler)))
+	then
+		if (IsDeployed(M.recycler))
+		then
+			SetObjectiveOff(M.geyser);
+			ClearObjectives();
+			AddObjective("tran0301.otf","GREEN");
+			AddObjective("tran0302.otf","WHITE");
+
+			StopAudioMessage(M.aud);
+			M.aud = AudioMessage("tran0307.wav");
+			M.fifth_message = true;
+		end
+	end
+	if ((M.fifth_message) and ( not M.fifthb_message)  and
+		(IsSelected(M.recycler)))
+	then
+		StopAudioMessage(M.aud);
+		M.aud = AudioMessage("tran0309.wav");
+		M.fifthb_message = true;
+	end
+	if ((IsAlive(M.attacker)) and ( not M.sixth_message))
+	then
+		AddHealth(M.attacker, 50.0);
+	end
+
+
+	if ((M.fifth_message) and ( not M.sixth_message) and (M.found))
+	then
+		StopAudioMessage(M.aud);
+		M.aud = AudioMessage("tran0310.wav");
+		M.sixth_message = true;
+		M.delay_message = GetTime()+30.0;
+	end
+	if (( not M.scav_died) and
+		(
+		( not IsAlive(M.recycler))  or
+		((M.sixth_message) and ( not IsAlive(M.scav))) )
+		)
+	then
+		M.scav_died = true;
+		StopAudioMessage(M.aud);
+		M.aud = AudioMessage("tran0313.wav");
+		FailMission(GetTime()+10.0,"tran03l1.des");
+	end
+	if (GetTime()>M.delay_message)
+	then
+		-- "protect the scavenger"
+	--	AudioMessage("tran0311.wav");
+		if (IsAlive(M.attacker))
+		then
+			AudioMessage("tran0308.wav");
+			Attack(M.attacker, M.scav, 1);
+		end
+		M.delay_message = 99999.0;
+	end
+	if ((M.sixth_message) and ( not M.seventh_message)
+		 and  ( not IsAlive(M.attacker)))
+	then
+		-- you killed him
+		AudioMessage("tran0314.wav");
+		M.seventh_message = true;
+		ClearObjectives();
+		AddObjective("tran0301.otf","GREEN");
+		AddObjective("tran0302.otf","GREEN");
+	end
+	if ((M.seventh_message) and ( not M.eighth_message))
+	then
+		--Recycler *myRecycler = (Recycler *) GameObjectHandle::GetObj(M.recycler);
+		local money = GetScrap(1); --myRecycler->GetTeamList()->GetScrap();
+		if (money >= 9)
+		then
+			AudioMessage("tran0315.wav");
+			M.eighth_message = true;
+			SucceedMission(GetTime()+10.0,"tran03w1.des");
+		end
+	end
+
+-- END OF SCRIPT
 
 end
-

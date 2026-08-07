@@ -13,8 +13,8 @@ local aiCore = require("aiCore")
 local function SetupAI()
     -- Team 1: Black Dogs (Player)
     -- Team 2: CAA (Enemy)
-    local caa = aiCore.AddTeam(2, aiCore.Factions.CCA) 
-    
+    local caa = aiCore.AddTeam(2, aiCore.Factions.CCA)
+
     local diff = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
     if diff <= 1 then
         caa:SetConfig("pilotZeal", 0.1)
@@ -51,6 +51,7 @@ local portal_off_time = 99999.0
 -- Handles
 local user
 local recycler, portal
+local intro_sound, win_sound, portal_dead_sound
 local shields = {} -- 1-4
 local power = {} -- 1-4
 local goal = {} -- 1-4
@@ -62,6 +63,73 @@ local despor_spawns = {"despor_1", "despor_2", "despor_3", "despor_4"}
 -- Difficulty
 local difficulty = 2
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        start_done = start_done,
+        objective1_complete = objective1_complete,
+        objective2_complete = objective2_complete,
+        camera1_sound_played = camera1_sound_played,
+        portal_dead_sound_played = portal_dead_sound_played,
+        delays_initialized = delays_initialized,
+        lost = lost,
+        won = won,
+        health_low = health_low,
+        despor_spawned = despor_spawned,
+        camera_ready = camera_ready,
+        camera_complete = camera_complete,
+        delays = delays,
+        camera1_sound_delay = camera1_sound_delay,
+        scrap_delay = scrap_delay,
+        portal_on_time = portal_on_time,
+        portal_off_time = portal_off_time,
+        user = user,
+        recycler = recycler,
+        portal = portal,
+        intro_sound = intro_sound,
+        win_sound = win_sound,
+        portal_dead_sound = portal_dead_sound,
+        shields = shields,
+        power = power,
+        goal = goal,
+        warnings = warnings,
+        despor_spawns = despor_spawns,
+        difficulty = difficulty,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    start_done = state.start_done
+    objective1_complete = state.objective1_complete
+    objective2_complete = state.objective2_complete
+    camera1_sound_played = state.camera1_sound_played
+    portal_dead_sound_played = state.portal_dead_sound_played
+    delays_initialized = state.delays_initialized
+    lost = state.lost
+    won = state.won
+    health_low = state.health_low
+    despor_spawned = state.despor_spawned
+    camera_ready = state.camera_ready
+    camera_complete = state.camera_complete
+    delays = state.delays
+    camera1_sound_delay = state.camera1_sound_delay
+    scrap_delay = state.scrap_delay
+    portal_on_time = state.portal_on_time
+    portal_off_time = state.portal_off_time
+    user = state.user
+    recycler = state.recycler
+    portal = state.portal
+    intro_sound = state.intro_sound
+    win_sound = state.win_sound
+    portal_dead_sound = state.portal_dead_sound
+    shields = state.shields
+    power = state.power
+    goal = state.goal
+    warnings = state.warnings
+    despor_spawns = state.despor_spawns
+    difficulty = state.difficulty
+end
 function Start()
     if exu then
         difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
@@ -74,7 +142,7 @@ end
 
 function AddObject(h)
     local team = GetTeamNum(h)
-    if team == 2 then 
+    if team == 2 then
         aiCore.AddObject(h)
     end
 end
@@ -85,20 +153,20 @@ end
 function Update()
     user = GetPlayerHandle()
     aiCore.Update()
-    
+
     if not start_done then
         SetScrap(1, 50)
         SetScrap(2, 10)
         SetPilot(1, 10)
-        
+
         portal = GetHandle("portal")
         for i=1,4 do shields[i] = GetHandle("shield_"..i) end
         for i=1,4 do power[i] = GetHandle("power_"..i) end
         for i=1,4 do goal[i] = GetHandle("goal_"..i) end
-        
+
         start_done = true
     end
-    
+
     if not delays_initialized then
         delays_initialized = true
         local t = GetTime()
@@ -112,12 +180,19 @@ function Update()
         delays[7] = t + 552.0
         portal_off_time = delays[7] + 2.0
         delays[8] = t + 555.0
-        
+
         scrap_delay = 60.0
     end
-    
-    if lost or won then return end
-    
+
+    if lost then
+        if portal_dead_sound and IsAudioMessageDone(portal_dead_sound) then
+            portal_dead_sound = nil
+            FailMission(GetTime() + 2.0, "bd12lsea.des")
+        end
+        return
+    end
+    if won then return end
+
     -- Intro
     if not camera_complete[1] then
         if not camera_ready[1] then
@@ -125,58 +200,62 @@ function Update()
             CameraReady()
             camera1_sound_delay = GetTime() + 3.0
         end
-        
-        CameraPath("camera_start", 300, 2000, portal)
-        
+
+        local arrived = CameraPath("camera_start", 300, 2000, portal)
+
         if GetTime() > camera1_sound_delay then
             camera1_sound_delay = 99999.0
             camera1_sound_played = true
-            AudioMessage("bd12001.wav")
+            intro_sound = AudioMessage("bd12001.wav")
         end
-        
+
         if CameraCancelled() then
+            arrived = true
+            if intro_sound then StopAudioMessage(intro_sound) end
+        end
+        if arrived then
             CameraFinish()
             camera_complete[1] = true
             ClearObjectives()
             AddObjective("bd12001.otf", "white")
         end
     end
-    
+
     -- Delay 1 (Index 1)
     if GetTime() > delays[1] then
         delays[1] = 99999.0
         -- 3 figh, 2 def
         local function A(odf) local h = BuildObject(odf, 2, "attack_1"); SetCloaked(h); Attack(h, power[1]) return h end
         local a1 = A("cvfigh"); local a2 = A("cvfigh"); local a3 = A("cvfigh")
-        local function D(odf, target) local h = BuildObject(odf, 2, "defend_1"); SetCloaked(h); Defend(h, target) end
+        local function D(odf, target) local h = BuildObject(odf, 2, "defend_1"); SetCloaked(h); Defend2(h, target, 1) end
         D("cvtnk", a1); D("cvtnk", a2)
     end
-    
+
     -- Delay 2
     if GetTime() > delays[2] then
         delays[2] = 99999.0
         local function A(odf) local h = BuildObject(odf, 2, "attack_2"); SetCloaked(h); Attack(h, power[2]) return h end
         local a1 = A("cvfigh"); local a2 = A("cvfigh"); local a3 = A("cvfigh"); local a4 = A("cvhtnk")
-        local function D(odf, t) local h = BuildObject(odf, 2, "defend_2"); SetCloaked(h); Defend(h, t) end
+        local function D(odf, t) local h = BuildObject(odf, 2, "defend_2"); SetCloaked(h); Defend2(h, t, 1) end
         D("cvfigh", a1); D("cvfigh", a2); D("cvfigh", a3); D("cvhtnk", a4)
     end
-    
+
     -- Delay 3
     if GetTime() > delays[3] then
         delays[3] = 99999.0
         local function A(odf) local h = BuildObject(odf, 2, "attack_3"); SetCloaked(h); Attack(h, power[3]) return h end
         local a1 = A("cvhraz"); local a2 = A("cvhraz"); local a3 = A("cvfigh"); local a4 = A("cvfigh")
-        local function D(odf, t) local h = BuildObject(odf, 2, "defend_3"); SetCloaked(h); Defend(h, t) end
+        local function D(odf, t) local h = BuildObject(odf, 2, "defend_3"); SetCloaked(h); Defend2(h, t, 1) end
         D("cvtnk", a1); D("cvtnk", a2); D("cvfigh", a3); D("cvfigh", a4)
     end
-    
+
     -- Delay 4 (Attack Shields primarily)
     if GetTime() > delays[4] then
         delays[4] = 99999.0
         local function Combo(at, sh, df, sp, tdef)
             local a = BuildObject(at, 2, sp); Attack(a, sh)
-            local d1 = BuildObject(df, 2, tdef); SetCloaked(d1); Defend(d1, a)
-            local d2 = BuildObject(df, 2, tdef); SetCloaked(d2); Defend(d2, a)
+            local d1 = BuildObject(df, 2, tdef); SetCloaked(d1); Defend2(d1, a, 1)
+            local d2 = BuildObject(df, 2, tdef); SetCloaked(d2); Defend2(d2, a, 1)
         end
         Combo("cvwalk", shields[1], "cvltnk", "attack_4", "defend_4")
         Combo("cvwalk", shields[2], "cvltnk", "attack_5", "defend_5")
@@ -184,45 +263,36 @@ function Update()
         Combo("cvwalk", shields[4], "cvtnk", "attack_7", "defend_7")
         Combo("cvwalk", portal, "cvhtnk", "attack_8", "defend_8")
     end
-    
+
     -- Portal Logic
     if GetTime() > portal_on_time then
         portal_on_time = 99999.0
-        ActivatePortal(portal)
+        -- Source calls activatePortal(portal, false). Redux Lua exposes no
+        -- portal-state binding; its timed emergence still uses the live portal.
     end
-    
+
     -- Delay 5: Recycler Arrives
     if GetTime() > delays[5] then
         delays[5] = 99999.0
-        recycler = BuildObject("bvrecyd", 1, "portal") -- "bvrecyd" (deployed recycler)
-        -- C++: BuildObjectAtPortal.
-        -- Assuming "portal" is a path point OR nav. If just Handle, BuildObjectAtPortal uses its pos.
-        -- Lua BuildObject uses path point string. 
-        -- If "portal" is an object handle name, we need its position or a nav point name.
-        -- Assuming "portal" nav exists or we use GetPosition(portal) + Offset.
-        -- But since C++ used "BuildObjectAtPortal", let's assume we have a path point named "portal" or "portal_spawn".
-        -- Let's use GetPosition(portal) if possible.
-        local pp = GetPosition(portal) -- Hopefully ODF defines where to spawn
-        -- Actually, BuildObject("...", 1, "portal") implies "portal" is a path/nav.
-        -- If portal is an object handle, this fails.
-        -- C++ `BuildObjectAtPortal` is special.
-        -- Let's spawn at "portal" assuming there is a path point there.
+        -- BuildObjectAtPortal has no Lua binding; the live portal transform is
+        -- the direct spawn-position equivalent.
+        recycler = BuildObject("bvrecyd", 1, GetTransform(portal))
         Goto(recycler, "follow")
     end
-    
+
     -- Delay 6
     if GetTime() > delays[6] then
         delays[6] = 99999.0
-        local t = BuildObject("bvtank", 1, "portal"); Goto(t, "follow")
-        t = BuildObject("bvtank", 1, "portal"); Goto(t, "follow")
+        local t = BuildObject("bvtank", 1, GetTransform(portal)); Goto(t, "follow")
+        t = BuildObject("bvtank", 1, GetTransform(portal)); Goto(t, "follow")
     end
-    
+
     -- Delay 7
     if GetTime() > delays[7] then
         delays[7] = 99999.0
-        local t = BuildObject("bvfigh", 1, "portal"); Goto(t, "follow")
+        local t = BuildObject("bvfigh", 1, GetTransform(portal)); Goto(t, "follow")
     end
-    
+
     -- Delay 8: Obj Update
     if GetTime() > delays[8] then
         delays[8] = 99999.0
@@ -231,31 +301,30 @@ function Update()
         AddObjective("bd12002.otf", "white")
         objective1_complete = true
     end
-    
+
     -- Portal Off
     if GetTime() > portal_off_time then
         portal_off_time = 99999.0
-        DeactivatePortal(portal)
+        -- Source calls deactivatePortal(portal); no Redux Lua binding exists.
     end
-    
+
     -- Obj 2 Check (Goals)
     if objective1_complete and not objective2_complete then
         local any_alive = false
         for i=1,4 do if IsAlive(goal[i]) then any_alive = true break end end
-        
+
         if not any_alive then
             objective2_complete = true
-            AudioMessage("bd12003.wav")
-            -- Succeed delay handled in win check
+            win_sound = AudioMessage("bd12003.wav")
         end
     end
-    
-    if objective2_complete and not won and not lost then
-        -- C++ waits for Audio Done.
+
+    if objective2_complete and win_sound and IsAudioMessageDone(win_sound) and not won and not lost then
+        win_sound = nil
         won = true
         SucceedMission(GetTime() + 1.0, "bd12win.des")
     end
-    
+
     -- Health Monitoring
     for i=1,4 do
         -- Power
@@ -269,7 +338,7 @@ function Update()
             AudioMessage(warnings[i]) -- Uses same warnings index 1-4
         end
     end
-    
+
     -- Despor Spawns (If defense falls)
     for i=1,4 do
         if not despor_spawned[i] then
@@ -280,17 +349,16 @@ function Update()
             end
         end
     end
-    
+
     -- Portal Death
-    if not IsAlive(portal) and not lost and not won then
+    if GetHealth(portal) <= 0.0 and not lost and not won then
         if not portal_dead_sound_played then
             portal_dead_sound_played = true
-            AudioMessage("bd12004.wav")
+            portal_dead_sound = AudioMessage("bd12004.wav")
             lost = true
-            FailMission(GetTime() + 2.0, "bd12lsea.des")
         end
     end
-    
+
     -- Scrap Spawns
     if GetTime() > scrap_delay then
         scrap_delay = GetTime() + 60.0

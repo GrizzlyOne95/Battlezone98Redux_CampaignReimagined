@@ -1,812 +1,1644 @@
--- Misn05 Mission Script (Converted from Misn05Mission.cpp)
+-- Single Player NSDF Mission 4 Lua conversion, created by General BlackDragon.
 
--- Compatibility for 1.5
-SetLabel = SetLabel or SetLabel
-
--- EXU Initialization
-local RequireFix = require("RequireFix")
-RequireFix.Initialize({ "campaignReimagined", "3686673790" })
-local exu = require("exu")
-local aiCore = require("aiCore")
-local DiffUtils = require("DiffUtils")
-local subtit = require("ScriptSubtitles")
-local PersistentConfig = require("PersistentConfig")
-local Environment = require("Environment")
-local PhysicsImpact = require("PhysicsImpact")
-
--- Helper for AI
-local function SetupAI()
-    DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
-
-    -- Configure Player Team (1) for Scavenger Assist
-    if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
-        aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
-        aiCore.ActiveTeams[1]:SetConfig("manageFactories", false)
-        aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
-    end
-
-    -- Configure CCA (Team 2)
-    if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[2] then
-        local cca = aiCore.ActiveTeams[2]
-        cca:SetMaintainList(
-            { scout = 2, scavenger = 4, constructor = 1 },                                 -- Recycler
-            { tank = 1, lighttank = 1, bomber = 1, turret = 6, howitzer = 3, armory = 1 }, -- Factory
-            true                                                                           -- Locked
-        )
-        cca.Config.resourceBoost = true
-        cca.Config.autoManage = true
-        cca.Config.autoBuild = true
-        cca.Config.manageFactories = true
-        cca.Config.manageConstructor = true
-        cca.Config.requireConstructorFirst = true
-
-        cca:PlanDefensivePerimeter(2, 4) -- 2 powers, 4 towers each
-    end
-end
-
--- Variables (Encapsulated for Save/Load)
+-- Single Table for all our save/load variables. This SP mission has too many variables to function with them independently. ("main function has > 200 local variables", or "Load having > 197 variables in assignment")
 local M = {
-    game_start = false,
-    reconfactory = false,
-    missionwon = false,
-    missionfail = false,
-    neworders = false,
-    basewave = false,
-    sent1Done = false,
-    sent2Done = false,
-    sent3Done = false,
-    sent4Done = false,
-    shuffle = false,
-    notfound = false,
-    go = false,
-    check1 = false,
-    check2 = false,
-    check3 = false,
-    check4 = false,
-    newobjective = false,
-    possiblewin = false,
-    takeoutfactory = false,
-    attacktimeset = false,
-    attackstatement = false,
-    endseq_started = false,
-    endseq_spawned = false,
-    endseq_cutscene_done = false,
-    endseq_commander_revealed = false,
 
-    -- Attack Wave sub-states
-    aw1sent = false,
-    aw2sent = false,
-    aw3sent = false,
-    aw4sent = false,
-    aw1aattack = false,
-    aw2aattack = false,
-    aw3aattack = false,
-    aw4aattack = false,
-    aw9aattack = false,
-    attackcmd = false,
-
-    -- Timers
-    randomwave = 99999999.0,
-    readtime = 99999999999.0,
-    start = 99999999999999.0,
-    platoonhere = 99999999999999.0,
-    bombtime = 0,
-    aw1t = 99999999999.0,
-    aw2t = 99999999999.0,
-    aw3t = 99999999999.0,
-    aw4t = 99999999999.0,
-
-    -- Send Times array for shuffling
-    sendTime = { 99999999.0, 99999999.0, 99999999.0, 99999999.0 },
-
-    -- Handles
-    lemnos = nil,
-    player = nil,
-    svrec = nil,
-    avrec = nil,
-    wBu1 = nil,
-    wBu2 = nil,
-    wBu3 = nil,
-    w1u1 = nil,
-    w1u2 = nil,
-    w1u3 = nil,
-    w1u4 = nil,
-    w2u1 = nil,
-    w2u2 = nil,
-    w2u3 = nil,
-    w2u4 = nil,
-    w3u1 = nil,
-    w3u2 = nil,
-    w3u3 = nil,
-    w3u4 = nil,
-    w4u1 = nil,
-    w4u2 = nil,
-    w4u3 = nil,
-    w4u4 = nil,
-    rand1 = nil,
-    rand2 = nil,
-    aw1 = nil,
-    aw2 = nil,
-    aw3 = nil,
-    aw4 = nil,
-    aw5 = nil,
-    aw1a = nil,
-    aw2a = nil,
-    aw3a = nil,
-    aw4a = nil,
-    aw5a = nil,
-    aw6a = nil,
-    aw7a = nil,
-    aw8a = nil,
-    aw9a = nil,
-    cam1 = nil,
-
-    -- Additional Logic Vars
-    needtospawn = true,
-    reconed = false,
-    lemcin1 = false,
-    lemcin2 = false,
-    lemcinstart = 99999999.0,
-    lemcinend = 99999999.0,
-    endseq_cutscene_end = 99999999.0,
-    endseq_post_wait_end = 99999999.0,
-    difficulty = 2,
-    cmdEldritch = nil,
-    endCamTank = nil,
-    endFleet = {}
+-- bools
+	game_start = false,
+	reconfactory = false,
+	lemnossecure = false,
+	missionwon = false,
+	missionfail = false,
+	neworders = false,
+	--ob1 = false,
+	--ob2 = false,
+	--ob3 = false,
+	--ob4 = false,
+	basewave = false,
+	attacktimeset = false,
+	--failmission = false,
+	sent1Done = false,
+	sent2Done = false,
+	sent3Done = false,
+	sent4Done = false,
+	go = false,
+	shuffle = false,
+	notfound = false,
+	attackstatement = false,
+	mine1built = false,
+	mine2built = false,
+	mine3built = false,
+	mine4built = false,
+	mine5built = false,
+	mine6built = false,
+	mine7built = false,
+	mine8built = false,
+	mine9built = false,
+	mine10built = false,
+	mine11built = false,
+	mine12built = false,
+	mine13built = false,
+	mine14built = false,
+	mine15built = false,
+	mine16built = false,
+	mine17built = false,
+	mine18built = false,
+	mine19built = false,
+	mine20built = false,
+	mine21built = false,
+	mine22built = false,
+	mine23built = false,
+	attackcmd = false,
+	check1 = false,
+	check2 = false,
+	check3 = false,
+	check4 = false,
+	aw1sent = false,
+	aw2sent = false,
+	aw3sent = false,
+	aw4sent = false,
+	aw1aattack = false,
+	aw2aattack = false,
+	aw3aattack = false,
+	aw4aattack = false,
+	aw5aattack = false,
+	aw6aattack = false,
+	aw7aattack = false,
+	aw8aattack = false,
+	aw9aattack = false,
+	possiblewin = false,
+	takeoutfactory = false,
+	lemcin1 = false,
+	lemcin2 = false,
+	reconed = false,
+	needtospawn = false,
+	newobjective = false,
+-- Floats (really doubles in Lua)
+	--processtime = 0,
+	sendTime = { }, --[4] = 0,
+	platoonhere = 0,
+	mine1 = 0,
+	mine2 = 0,
+	mine3 = 0,
+	mine4 = 0,
+	mine5 = 0,
+	mine6 = 0,
+	mine7 = 0,
+	mine8 = 0,
+	mine9 = 0,
+	mine10 = 0,
+	mine11 = 0,
+	mine12 = 0,
+	mine13 = 0,
+	mine14 = 0,
+	mine15 = 0,
+	mine16 = 0,
+	mine17 = 0,
+	mine18 = 0,
+	mine19 = 0,
+	mine20 = 0,
+	mine21 = 0,
+	mine22 = 0,
+	mine23 = 0,
+	bombtime = 0,
+	lemcinstart = 0,
+	lemcinend = 0,
+	aw1t = 0,
+	aw2t = 0,
+	start = 0,
+	aw3t = 0,
+	aw4t = 0,
+	readtime = 0,
+	randomwave = 0,
+-- Handles
+	lemnos = nil,
+	player = nil,
+	svrec = nil,
+	avrec = nil,
+	wBu1 = nil,
+	wBu2 = nil,
+	wBu3 = nil,
+	w1u1 = nil,
+	w1u2 = nil,
+	w1u3 = nil,
+	w1u4 = nil,
+	w2u1 = nil,
+	w2u2 = nil,
+	w2u3 = nil,
+	w2u4 = nil,
+	w3u1 = nil,
+	w3u2 = nil,
+	w3u3 = nil,
+	w3u4 = nil,
+	w4u1 = nil,
+	w4u2 = nil,
+	w4u3 = nil,
+	w4u4 = nil,
+	rand1 = nil,
+	rand2 = nil,
+	rand3 = nil,
+	MINE1 = nil,
+	MINE2 = nil,
+	MINE3 = nil,
+	MINE4 = nil,
+	MINE5 = nil,
+	MINE6 = nil,
+	MINE7 = nil,
+	MINE8 = nil,
+	MINE9 = nil,
+	MINE10 = nil,
+	MINE11 = nil,
+	MINE12 = nil,
+	MINE13 = nil,
+	MINE14 = nil,
+	MINE15 = nil,
+	MINE16 = nil,
+	MINE17 = nil,
+	MINE18 = nil,
+	MINE19 = nil,
+	MINE20 = nil,
+	MINE21 = nil,
+	MINE22 = nil,
+	MINE23 = nil,
+	aw1 = nil,
+	aw2 = nil,
+	aw3 = nil,
+	aw4 = nil,
+	aw5 = nil,
+	cam1 = nil,
+	aw1a = nil,
+	aw2a = nil,
+	aw3a = nil,
+	aw4a = nil,
+	aw5a = nil,
+	aw6a = nil,
+	aw7a = nil,
+	aw8a = nil,
+	aw9a = nil,
+-- Ints
+	attacksent = 0
 }
 
-function ApplyQOL()
-    if not exu then return end
-    if exu.SetShotConvergence then exu.SetShotConvergence(true) end
-    if exu.SetReticleRange then exu.SetReticleRange(600) end
-    if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
-    PersistentConfig.Initialize()
-    Environment.Init()
-    PhysicsImpact.Init()
+function Save()
+    return
+		M
 end
 
+function Load(...)
+    if select('#', ...) > 0 then
+		M
+		 =  ...
+    end
+end
+
+
 function Start()
-    M.TPS = 20
-    -- EXU/QOL Setup
-    if exu then
-        local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.version or "Unknown"
-        print("EXU Version: " .. tostring(ver))
-        M.difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
-        print("Difficulty: " .. tostring(M.difficulty))
 
-        if M.difficulty >= 3 then
-            AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
-        elseif M.difficulty <= 1 then
-            AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
-        end
+	M.start = 99999999999999.0;
+	M.needtospawn = true;
+	M.randomwave = 99999999.0;
+	M.readtime = 99999999999.0;
+	M.aw1t = 99999999999.0;
+	M.aw2t = 99999999999.0;
+	M.aw3t = 99999999999.0;
+	M.aw4t = 99999999999.0;
+	M.platoonhere = 99999999999999.0;
+	M.sendTime[0] = 99999999.0;
+	M.sendTime[1] = 99999999.0;
+	M.sendTime[2] = 99999999.0;
+	M.sendTime[3] = 99999999.0;
+	M.lemcinstart = 99999999.0;
+	M.lemcinend = 999999999.0;
 
-        ApplyQOL()
-    end
-
-    SetupAI()
-    aiCore.Bootstrap()
-    subtit.Initialize()
-
-    -- Spawn Mines
-    for i = 1, 23 do
-        local pathName = "path_" .. i
-        local mine = BuildObject("boltmine", 3, pathName) -- Team 3 = Alien/Hostile
-    end
 end
 
 function AddObject(h)
-    local team = GetTeamNum(h)
 
-    Environment.OnObjectCreated(h)
-    PhysicsImpact.OnObjectCreated(h)
 
-    -- EXU Turbo
-    if exu and exu.SetUnitTurbo and IsCraft(h) then
-        if team == 1 then
-            exu.SetUnitTurbo(h, true)
-        elseif team ~= 0 then
-            if M.difficulty >= 2 then
-                exu.SetUnitTurbo(h, 2.5) -- Scaled turbo for enemies
-            end
-        end
-    end
-
-    -- AI Core Hook
-    if team == 2 then
-        local nearBase = false
-        if M.svrec and IsAlive(M.svrec) and GetDistance(h, M.svrec) < 400 then
-            nearBase = true
-        elseif GetHandle("cca_base") and GetDistance(h, "cca_base") < 400 then
-            nearBase = true
-        end
-
-        if nearBase then
-            aiCore.AddObject(h)
-        end
-    elseif team == 1 then
-        aiCore.AddObject(h)
-    end
-end
-
-function DeleteObject(h)
 end
 
 function Update()
-    M.player = GetPlayerHandle()
-    if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
-    aiCore.Update()
-    Environment.Update(1.0 / M.TPS)
-    PhysicsImpact.Update(1.0 / M.TPS)
-    subtit.Update()
-    PersistentConfig.UpdateInputs()
-    PersistentConfig.UpdateHeadlights()
-
-    -- Game Start / Initial Setup
-    if not M.game_start then
-        SetScrap(1, DiffUtils.ScaleRes(40))
-        SetScrap(2, DiffUtils.ScaleRes(40))
-        SetPilot(1, DiffUtils.ScaleRes(10))
-
-        M.lemnos = GetHandle("oblema110_i76building")
-        M.svrec = GetHandle("svrecy-1_recycler")
-        M.avrec = GetHandle("avrecy-1_recycler")
-
-        SetAIP("misn05.aip")
-        subtit.Play("misn0501.wav")
-        M.game_start = true
-
-        M.randomwave = GetTime() + DiffUtils.ScaleTimer(5.0)
-
-        M.cam1 = GetHandle("cam1")
-        SetLabel(M.cam1, "Volcano")
-        M.newobjective = true
-    end
-
-    -- Objectives
-    if M.newobjective then
-        ClearObjectives()
-        if M.missionwon then
-            AddObjective("misn0502.otf", "green")
-        end
-        if M.neworders and not M.missionwon then
-            AddObjective("misn0502.otf", "white")
-        end
-        if M.neworders then
-            AddObjective("misn0503.otf", "green")
-        end
-        if M.reconfactory and not M.neworders then
-            AddObjective("misn0503.otf", "white")
-        end
-        if M.reconfactory then
-            AddObjective("misn0501.otf", "green")
-        else
-            AddObjective("misn0501.otf", "white")
-        end
-        M.newobjective = false
-    end
-
-    -- Random Spawns (Start of mission)
-    if not M.reconed then
-        if M.needtospawn then
-            if (M.randomwave < GetTime()) and IsAlive(M.svrec) then
-                local type1 = "svfigh"
-                if M.difficulty >= 3 then type1 = "svltnk" end
-
-                M.rand1 = BuildObject(type1, 2, M.svrec)
-                M.rand2 = BuildObject("svfigh", 2, M.svrec)
-                Attack(M.rand1, M.avrec)
-                Attack(M.rand2, M.avrec)
-
-                for i = 1, DiffUtils.ScaleEnemy(1) - 1 do
-                    local h = BuildObject("svfigh", 2, M.svrec); Attack(h, M.avrec); SetIndependence(h, 1)
-                end
-                SetIndependence(M.rand1, 1)
-                SetIndependence(M.rand2, 1)
-                M.needtospawn = false
-            end
-        else
-            if (not IsAlive(M.rand1)) and (not IsAlive(M.rand2)) then
-                M.needtospawn = true
-                M.randomwave = GetTime() + DiffUtils.ScaleTimer(20.0)
-            end
-        end
-    end
-
-    -- Not Found Warning (Player near factory but hasn't triggered recon yet)
-    if (not M.reconfactory) and (GetDistance(M.player, M.lemnos) < 600.0) and (not M.notfound) then
-        subtit.Play("misn0502.wav")
-        M.notfound = true
-    end
-
-    -- Recon Factory Logic
-    if (not M.reconfactory) and (GetDistance(M.player, M.lemnos) < 230.0) then
-        subtit.Play("misn0503.wav")
-        subtit.Play("misn0504.wav")
-        M.reconfactory = true
-        M.newobjective = true
-        M.start = GetTime() + DiffUtils.ScaleTimer(90.0)
-
-        -- Cut Cinematic: Recon Factory
-        M.lemcinstart = GetTime() - 0.1
-        M.lemcinend = GetTime() + 4.0
-    end
-
-    -- Cinematic Logic
-    if (not M.lemcin1) and (M.lemcinstart < GetTime()) and M.reconfactory then
-        CameraReady()
-        M.lemcin1 = true
-    end
-
-    if M.lemcin1 and (not M.lemcin2) then
-        if M.lemcinend > GetTime() then
-            CameraObject(M.player, 0, 5000, -5000, M.lemnos)
-        else
-            CameraFinish()
-            M.lemcin2 = true
-        end
-
-        if CameraCancelled() then
-            CameraFinish()
-            M.lemcin2 = true
-        end
-    end
-
-    -- Shuffle Logic (Triggered by 'notfound' aka getting close to 600m)
-    if M.notfound and (not M.shuffle) then
-        M.sendTime = {
-            GetTime() + DiffUtils.ScaleTimer(10.0),
-            GetTime() + DiffUtils.ScaleTimer(90.0),
-            GetTime() + DiffUtils.ScaleTimer(130.0),
-            GetTime() + DiffUtils.ScaleTimer(190.0)
-        }
-
-        for i = 1, 10 do
-            local j, k = math.random(1, 4), math.random(1, 4)
-            M.sendTime[j], M.sendTime[k] = M.sendTime[k], M.sendTime[j]
-        end
-        M.shuffle = true
-    end
-
-    -- Wave 1
-    if (M.sendTime[1] < GetTime()) and (not M.sent1Done) then
-        local type1 = "svfigh"
-        if M.difficulty >= 3 then type1 = "svltnk" end
-
-        M.w1u1 = BuildObject(type1, 2, M.svrec)
-        M.w1u2 = BuildObject("svfigh", 2, M.svrec)
-        M.w1u3 = BuildObject("svturr", 2, M.svrec)
-        M.w1u4 = BuildObject("svturr", 2, M.svrec)
-
-        for i = 1, DiffUtils.ScaleEnemy(1) - 1 do
-            local h = BuildObject("svfigh", 2, M.svrec); Attack(h, M.avrec); SetIndependence(h, 1)
-        end
-        M.sent1Done = true
-
-        Follow(M.w1u1, M.w1u3)
-        Follow(M.w1u2, M.w1u4)
-        SetIndependence(M.w1u1, 1)
-        SetIndependence(M.w1u2, 1)
-        Goto(M.w1u3, "defendrim2")
-        Goto(M.w1u4, "defendrim1")
-
-        M.check1 = true
-        M.check2 = true
-        M.check3 = true
-        M.check4 = true
-    end
-
-    -- Check Logic (Turrets -> Patrol if dead/arrived)
-    if IsAlive(M.w1u3) and (not M.check1) and (GetCurrentCommand(M.w1u3) == 0) then
-        Defend(M.w1u3, 1)
-    end
-    if M.check1 and (not IsAlive(M.w1u3) or GetDistance(M.w1u3, "defendrim2") < 40.0) then
-        if IsAlive(M.w1u3) then Stop(M.w1u3, 1) end
-        Patrol(M.w1u1, "attackpatrol1", 1)
-        M.check1 = false
-    end
-
-    if IsAlive(M.w1u4) and (not M.check2) and (GetCurrentCommand(M.w1u4) == 0) then
-        Defend(M.w1u4, 1)
-    end
-    if M.check2 and (not IsAlive(M.w1u4) or GetDistance(M.w1u4, "defendrim1") < 40.0) then
-        if IsAlive(M.w1u4) then Stop(M.w1u4, 1) end
-        Patrol(M.w1u2, "attackpatrol1", 1)
-        M.check2 = false
-    end
-
-    -- Wave 2 (Tanks + Turrets)
-    if (M.sendTime[2] < GetTime()) and (not M.sent2Done) then
-        local type2 = "svtank"
-        if M.difficulty <= 1 then type2 = "svltnk" end
-
-        M.w2u1 = BuildObject(type2, 2, M.svrec)
-        M.w2u2 = BuildObject(type2, 2, M.svrec)
-        M.w2u3 = BuildObject("svturr", 2, M.svrec)
-        M.w2u4 = BuildObject("svturr", 2, M.svrec)
-
-        for i = 1, DiffUtils.ScaleEnemy(1) - 1 do
-            local h = BuildObject(type2, 2, M.svrec); Attack(h, M.avrec); SetIndependence(h, 1)
-        end
-        M.sent2Done = true
-        Follow(M.w2u1, M.w2u3)
-        Follow(M.w2u2, M.w2u4)
-        SetIndependence(M.w2u1, 1)
-        SetIndependence(M.w2u2, 1)
-        Goto(M.w2u3, "defendrim3")
-        Goto(M.w2u4, "defendrim4")
-    end
-
-    if IsAlive(M.w2u3) and (not M.check3) and (GetCurrentCommand(M.w2u3) == 0) then
-        Defend(M.w2u3, 1)
-    end
-    if M.check3 and (not IsAlive(M.w2u3) or GetDistance(M.w2u3, "defendrim3") < 40.0) then
-        if IsAlive(M.w2u3) then Stop(M.w2u3, 1) end
-        Patrol(M.w2u1, "attackpatrol1", 1)
-        M.check3 = false
-    end
-
-    if IsAlive(M.w2u4) and (not M.check4) and (GetCurrentCommand(M.w2u4) == 0) then
-        Defend(M.w2u4, 1)
-    end
-    if M.check4 and (not IsAlive(M.w2u4) or GetDistance(M.w2u4, "defendrim4") < 40.0) then
-        if IsAlive(M.w2u4) then Stop(M.w2u4, 1) end
-        Patrol(M.w2u2, "attackpatrol1", 1)
-        M.check4 = false
-    end
-
-    -- Wave 3
-    if (M.sendTime[3] < GetTime()) and (not M.sent3Done) then
-        M.w3u3 = BuildObject("svfigh", 2, M.svrec)
-        M.w3u4 = BuildObject("svfigh", 2, M.svrec)
-        M.sent3Done = true
-        Patrol(M.w3u3, "attackpatrol1", 1)
-        Patrol(M.w3u4, "attackpatrol1", 1)
-
-        for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
-            local h = BuildObject("svfigh", 2, M.svrec); Patrol(h, "attackpatrol1", 1); SetIndependence(h, 1)
-        end
-    end
-
-    -- Wave 4
-    if (M.sendTime[4] < GetTime()) and (not M.sent4Done) then
-        local type4 = "svltnk"
-        if M.difficulty >= 3 then type4 = "svtank" end
-
-        M.w4u3 = BuildObject(type4, 2, M.svrec)
-        M.w4u4 = BuildObject(type4, 2, M.svrec)
-        M.sent4Done = true
-        Patrol(M.w4u3, "attackpatrol1", 1)
-        Patrol(M.w4u4, "attackpatrol1", 1)
-
-        for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
-            local h = BuildObject(type4, 2, M.svrec); Patrol(h, "attackpatrol1", 1); SetIndependence(h, 1)
-        end
-    end
-
-    -- Post-Recon Logic
-    if M.reconfactory and (not M.reconed) then
-        if IsInfo("oblema") or (M.start < GetTime()) then
-            subtit.Play("misn0515.wav")
-            SetObjectiveName(M.lemnos, "Lemnos Factory")
-            M.readtime = GetTime() + 10.0
-            M.reconed = true
-        end
-    end
-
-    if (not M.neworders) and (M.readtime < GetTime()) then
-        M.neworders = true
-        subtit.Play("misn0506.wav")
-        M.newobjective = true
-    end
-
-    -- Base Wave (Spawns after recon)
-    if IsAlive(M.svrec) and (not M.basewave) and M.reconfactory then
-        M.wBu1 = BuildObject("svtank", 2, M.svrec)
-        M.wBu2 = BuildObject("svfigh", 2, M.svrec)
-        M.wBu3 = BuildObject("svfigh", 2, M.svrec)
-        Attack(M.wBu1, M.avrec)
-        Attack(M.wBu2, M.avrec)
-        Attack(M.wBu3, M.avrec)
-        SetIndependence(M.wBu1, 1)
-        SetIndependence(M.wBu2, 1)
-        SetIndependence(M.wBu3, 1)
-        M.basewave = true
-    end
-
-    -- Check if all waves are dead to trigger Final Attack
-    if M.sent1Done and M.sent2Done and M.sent3Done and M.sent4Done and
-        (not IsAlive(M.w1u1)) and (not IsAlive(M.w1u2)) and (not IsAlive(M.w1u3)) and (not IsAlive(M.w1u4)) and
-        (not IsAlive(M.w2u1)) and (not IsAlive(M.w2u2)) and (not IsAlive(M.w2u3)) and (not IsAlive(M.w2u4)) and
-        (not IsAlive(M.w3u1)) and (not IsAlive(M.w3u2)) and (not IsAlive(M.w3u3)) and (not IsAlive(M.w3u4)) and
-        (not IsAlive(M.w4u1)) and (not IsAlive(M.w4u2)) and (not IsAlive(M.w4u3)) and (not IsAlive(M.w4u4)) and
-        (not M.attacktimeset) then
-        subtit.Play("misn0507.wav")
-        M.platoonhere = GetTime() + DiffUtils.ScaleTimer(45.0)
-        M.attacktimeset = true
-        M.go = true
-    end
-
-    -- Spawn Final Attackers
-    if (not IsAlive(M.aw1)) and (not IsAlive(M.aw2)) and (not IsAlive(M.aw3)) and (not IsAlive(M.aw4)) and (not IsAlive(M.aw5)) and
-        (M.platoonhere < GetTime()) and M.go and IsAlive(M.svrec) then
-        subtit.Play("misn0508.wav")
-        subtit.Play("misn0509.wav")
-
-        local attacksent = math.random(0, 3)
-        M.attackstatement = false
-
-        M.aw1 = BuildObject("svhraz", 2, M.svrec)
-        M.aw2 = BuildObject("svhraz", 2, M.svrec)
-        M.aw3 = BuildObject("svhraz", 2, M.svrec)
-
-        for i = 1, DiffUtils.ScaleEnemy(3) - 3 do
-            local h = BuildObject("svhraz", 2, M.svrec); SetIndependence(h, 1)
-        end
-
-        local dest = "destroy1"
-        if attacksent == 1 then
-            dest = "destroy2"
-        elseif attacksent == 2 then
-            dest = "destroy3"
-        elseif attacksent == 3 then
-            dest = "destroy4"
-        end
-
-        Goto(M.aw1, dest)
-        Goto(M.aw2, dest)
-        Goto(M.aw3, dest)
-
-        if M.difficulty >= 3 then
-            M.aw4 = BuildObject("svhraz", 2, M.svrec)
-            M.aw5 = BuildObject("svhraz", 2, M.svrec)
-            Goto(M.aw4, dest)
-            Goto(M.aw5, dest)
-        end
-
-        M.bombtime = GetTime() + DiffUtils.ScaleTimer(10.0)
-        M.attackcmd = false
-
-        M.aw1t = GetTime() + DiffUtils.ScaleTimer(15.0)
-        M.aw2t = GetTime() + DiffUtils.ScaleTimer(55.0)
-        M.aw3t = GetTime() + DiffUtils.ScaleTimer(110.0)
-        M.aw4t = GetTime() + DiffUtils.ScaleTimer(160.0)
-    end
-
-    -- Attack Command Switch (Razors switch to attack Factory)
-    if (not M.attackcmd) and (M.bombtime < GetTime()) then
-        local function CheckAndAttack(u)
-            if IsAlive(u) then
-                if (GetDistance(u, "dest1") < 60.0) or (GetDistance(u, "dest2") < 60.0) then
-                    Attack(u, M.lemnos)
-                    SetIndependence(u, 1)
-                    return true
-                end
-            end
-            return false
-        end
-
-        if CheckAndAttack(M.aw1) or CheckAndAttack(M.aw2) or CheckAndAttack(M.aw3) or CheckAndAttack(M.aw4) or CheckAndAttack(M.aw5) then
-            M.attackcmd = true
-        end
-        M.bombtime = GetTime() + 3.0
-    end
-
-    -- Platoon Closing In Warning
-    if (not M.attackstatement) then
-        local function IsThreat(u)
-            return IsAlive(u) and (GetDistance(u, M.lemnos) < 500.0)
-        end
-
-        if IsThreat(M.aw1) or IsThreat(M.aw2) or IsThreat(M.aw3) or IsThreat(M.aw4) or IsThreat(M.aw5) then
-            subtit.Play("misn0510.wav")
-            M.attackstatement = true
-        end
-    end
-
-    -- Additional Waves (aw1a...aw9a) triggered by timers
-    if (M.aw1t < GetTime()) and (not M.aw1sent) and IsAlive(M.svrec) then
-        M.aw2a = BuildObject("svfigh", 2, M.svrec)
-        Attack(M.aw2a, M.lemnos)
-        SetIndependence(M.aw2a, 1)
-        M.aw1sent = true
-    end
-
-    if (M.aw2t < GetTime()) and (not M.aw2sent) and IsAlive(M.svrec) then
-        M.aw4a = BuildObject("svtank", 2, M.svrec)
-        Attack(M.aw4a, M.lemnos)
-        SetIndependence(M.aw4a, 1)
-        M.aw2sent = true
-    end
-
-    if (M.aw3t < GetTime()) and (not M.aw3sent) and IsAlive(M.svrec) then
-        M.aw5a = BuildObject("svfigh", 2, M.svrec)
-        M.aw6a = BuildObject("svfigh", 2, M.svrec)
-        Attack(M.aw5a, M.lemnos)
-        Attack(M.aw6a, M.lemnos)
-        SetIndependence(M.aw5a, 1)
-        SetIndependence(M.aw6a, 1)
-        M.aw3sent = true
-    end
-
-    if (M.aw4t < GetTime()) and (not M.aw4sent) and IsAlive(M.svrec) then
-        M.aw8a = BuildObject("svfigh", 2, M.svrec)
-        local type9 = "svtank"
-        if M.difficulty >= 3 then type9 = "svhraz" end
-        M.aw9a = BuildObject(type9, 2, M.svrec)
-        Attack(M.aw8a, M.lemnos)
-        Attack(M.aw9a, M.lemnos)
-        SetIndependence(M.aw8a, 1)
-        SetIndependence(M.aw9a, 1)
-        M.aw4sent = true
-    end
-
-    -- Force attack factory if near
-    local function ForceAttack(u, flag)
-        if (not flag) and IsAlive(u) and (GetDistance(u, M.lemnos) < 300.0) then
-            Attack(u, M.lemnos)
-            SetIndependence(u, 1)
-            return true
-        end
-        return flag
-    end
-    M.aw1aattack = ForceAttack(M.aw1a, M.aw1aattack)
-    M.aw2aattack = ForceAttack(M.aw2a, M.aw2aattack)
-    M.aw3aattack = ForceAttack(M.aw3a, M.aw3aattack)
-    M.aw4aattack = ForceAttack(M.aw4a, M.aw4aattack)
-    M.aw9aattack = ForceAttack(M.aw9a, M.aw9aattack)
-
-    -- Possible Win (Recycler Dead) -> Send everything to factory
-    if (not IsAlive(M.svrec)) and (not M.possiblewin) then
-        M.possiblewin = true
-        subtit.Play("misn0516.wav")
-
-        M.aw1aattack = true
-        M.aw2aattack = true
-        M.aw3aattack = true
-        M.aw4aattack = true
-        M.aw9aattack = true
-
-        M.sent1Done = true
-        M.sent2Done = true
-        M.sent3Done = true
-        M.sent4Done = true
-        M.aw1sent = true
-        M.aw2sent = true
-        M.aw3sent = true
-        M.aw4sent = true
-
-        local all_units = {
-            M.w1u1, M.w1u2, M.w1u3, M.w1u4,
-            M.w2u1, M.w2u2, M.w2u3, M.w2u4,
-            M.w3u1, M.w3u2, M.w3u3, M.w3u4,
-            M.w4u1, M.w4u2, M.w4u3, M.w4u4,
-            M.aw1, M.aw2, M.aw3, M.aw4, M.aw5,
-            M.aw1a, M.aw2a, M.aw3a, M.aw4a, M.aw5a, M.aw6a, M.aw7a, M.aw8a, M.aw9a
-        }
-
-        local remaining = false
-        for _, u in ipairs(all_units) do
-            if IsAlive(u) then
-                Attack(u, M.lemnos)
-                SetIndependence(u, 1)
-                remaining = true
-            end
-        end
-
-        if remaining then
-            subtit.Play("misn0517.wav")
-        end
-
-        M.takeoutfactory = true
-    end
-
-    -- Win Condition
-    if M.sent1Done and M.sent2Done and M.sent3Done and M.sent4Done and M.aw1sent and M.aw2sent and M.aw3sent and M.aw4sent and (not M.missionwon) then
-        local all_units = {
-            M.w1u1, M.w1u2, M.w1u3, M.w1u4,
-            M.w2u1, M.w2u2, M.w2u3, M.w2u4,
-            M.w3u1, M.w3u2, M.w3u3, M.w3u4,
-            M.w4u1, M.w4u2, M.w4u3, M.w4u4,
-            M.aw1, M.aw2, M.aw3, M.aw4, M.aw5,
-            M.aw1a, M.aw2a, M.aw3a, M.aw4a, M.aw5a, M.aw6a, M.aw7a, M.aw8a, M.aw9a
-        }
-        local any_alive = false
-        for _, u in ipairs(all_units) do
-            if IsAlive(u) then
-                any_alive = true
-                break
-            end
-        end
-
-        if not any_alive then
-            M.missionwon = true
-            M.newobjective = true
-            M.endseq_started = false
-            M.endseq_spawned = false
-            M.endseq_cutscene_done = false
-            M.endseq_commander_revealed = false
-        end
-    end
-
-    -- Mission win sequence: spawn allied fleet cinematic, then reveal commander and finish.
-    if M.missionwon then
-        if not M.endseq_started then
-            M.endseq_started = true
-            M.endseq_cutscene_end = GetTime() + 10.0
-            M.endseq_post_wait_end = 99999999.0
-
-            -- Team 3 helpers allied with player (non-commandable friendly force).
-            Ally(1, 3)
-            Ally(3, 1)
-
-            -- Spawn a friendly armored fleet and move toward Lemnos.
-            local anchor = M.avrec
-            if not IsAlive(anchor) then anchor = M.player end
-            M.endFleet = {}
-            for i = 1, 7 do
-                local spawnPos = GetPositionNear(GetPosition(anchor), 40, 140)
-                local t = BuildObject("avtank", 3, spawnPos)
-                if IsAlive(t) then
-                    table.insert(M.endFleet, t)
-                    Goto(t, M.lemnos, 1)
-                end
-            end
-
-            M.endCamTank = M.endFleet[1]
-            M.cmdEldritch = M.endFleet[1]
-            M.aud11 = subtit.Play("misn0511.wav")
-            CameraReady()
-        end
-
-        if M.endseq_started and not M.endseq_cutscene_done then
-            if (GetTime() < M.endseq_cutscene_end) and (not CameraCancelled()) then
-                local camTank = M.endCamTank
-                if not IsAlive(camTank) then
-                    camTank = M.player
-                end
-                CameraObject(camTank, -25, 18, -85, M.lemnos)
-            else
-                CameraFinish()
-                CameraCancelled(false)
-                M.endseq_cutscene_done = true
-                M.endseq_post_wait_end = GetTime() + 15.0
-            end
-        end
-
-        if M.endseq_cutscene_done and (not M.endseq_commander_revealed) and GetTime() >= M.endseq_post_wait_end then
-            if IsAlive(M.cmdEldritch) then
-                SetObjectiveOn(M.cmdEldritch)
-                SetObjectiveName(M.cmdEldritch, "Commander Eldritch")
-            end
-            M.endseq_commander_revealed = true
-            subtit.Play("misn0512.wav")
-            SucceedMission(GetTime() + 1.0, "misn05w1.des")
-        end
-    end
-
-    -- Fail Conditions
-    if (not M.missionwon) and (not IsAlive(M.avrec)) and (not M.missionfail) then
-        FailMission(GetTime() + 15.0, "misn05l1.des")
-        subtit.Play("misn0513.wav")
-        M.missionfail = true
-    end
-
-    if (not M.missionwon) and (not IsAlive(M.lemnos)) and (not M.missionfail) then
-        FailMission(GetTime() + 15.0, "misn05l2.des")
-        subtit.Play("misn0514.wav")
-        M.missionfail = true
-    end
-end
-
-function Save()
-    return M, aiCore.Save()
-end
-
-function Load(missionData, aiData)
-    M = missionData
-    if aiData then aiCore.Load(aiData) end
-    aiCore.Bootstrap()
-    ApplyQOL()
-    subtit.Initialize()
+
+-- START OF SCRIPT
+
+	local i;
+
+	--[[
+		Here is where you
+		put what happens
+		every frame.
+	--]]
+	if ( not M.game_start)
+	then
+		SetScrap(1,20);
+		SetScrap(2,20);
+		M.lemnos = GetHandle("oblema110_i76building");
+		M.svrec = GetHandle("svrecy-1_recycler");
+		M.avrec = GetHandle("avrecy-1_recycler");
+		SetAIP("misn05.aip");
+		AudioMessage ("misn0501.wav");
+		M.game_start = true;
+		M.mine1 = GetTime() + 2.0;
+		M.mine2 = GetTime() + 2.0;
+		M.mine3 = GetTime() + 2.0;
+		M.mine4 = GetTime() + 2.0;
+		M.mine5 = GetTime() + 2.0;
+		M.mine6 = GetTime() + 2.0;
+		M.mine7 = GetTime() + 2.0;
+		M.mine8 = GetTime() + 2.0;
+		M.mine9 = GetTime() + 2.0;
+		M.mine10 = GetTime() + 2.0;
+		M.mine11 = GetTime() + 2.0;
+		M.mine12 = GetTime() + 2.0;
+		M.mine13 = GetTime() + 2.0;
+		M.mine14 = GetTime() + 2.0;
+		M.mine15 = GetTime() + 2.0;
+		M.mine16 = GetTime() + 2.0;
+		M.mine17 = GetTime() + 2.0;
+		M.mine18 = GetTime() + 2.0;
+		M.mine19 = GetTime() + 2.0;
+		M.mine20 = GetTime() + 2.0;
+		M.mine21 = GetTime() + 2.0;
+		M.mine22 = GetTime() + 2.0;
+		M.mine23 = GetTime() + 2.0;
+		M.randomwave = GetTime() + 1.0;
+		M.cam1 = GetHandle("cam1");
+		SetObjectiveName(M.cam1, "Volcano");
+		M.newobjective = true;
+	end
+	M.player = GetPlayerHandle();
+	--NoEscorts();
+
+	if
+		(M.newobjective == true)
+	then
+		ClearObjectives();
+		if
+			(M.missionwon == true)
+		then
+			AddObjective("misn0502.otf", "GREEN");
+		end
+		if
+			(
+			(M.neworders == true) and (M.missionwon == false)
+			)
+		then
+			AddObjective("misn0502.otf", "WHITE");
+		end
+		if
+			(M.neworders == true)
+		then
+			AddObjective("misn0503.otf", "GREEN");
+		end
+		if
+			(
+			(M.reconfactory == true) and (M.neworders == false)
+			)
+		then
+			AddObjective("misn0503.otf", "WHITE");
+		end
+
+		if
+			(M.reconfactory == true)
+		then
+			AddObjective("misn0501.otf", "GREEN");
+		end
+		if
+			(M.reconfactory == false)
+		then
+			AddObjective("misn0501.otf", "WHITE");
+		end
+		M.newobjective = false;
+	end
+
+
+	if
+		(M.reconed == false)
+	then
+	if
+		(M.needtospawn == true)
+	then
+		if
+			(
+			(M.randomwave < GetTime()) and (IsAlive(M.svrec))
+			)
+		then
+			M.rand1 = BuildObject("svfigh",2,M.svrec);
+			M.rand2 = BuildObject("svfigh",2,M.svrec);
+			--M.rand3 = BuildObject("svfigh",2,M.svrec);
+			Attack (M.rand1, M.avrec);
+			Attack (M.rand2, M.avrec);
+			--Attack (M.rand3, M.avrec);
+			SetIndependence(M.rand1, 1);
+			SetIndependence(M.rand2, 1);
+			--SetIndependence(M.rand3, 1);
+			M.needtospawn = false;
+		end
+	end
+
+	if
+		(M.needtospawn == false)
+	then
+		if
+			(
+			( not IsAlive(M.rand1))  and
+			( not IsAlive(M.rand2)) -- and
+			--( not IsAlive(M.rand3))
+			)
+		then
+			M.needtospawn = true;
+		end
+	end
+	end
+
+	if (M.mine1built)
+	then
+		local meat = GetNearestVehicle ("path_1" ,1);
+		if (GetDistance(meat, "path_1") > 400.0)
+		then
+			M.mine1 = GetTime() + 3.0;
+			M.mine1built = false;
+			RemoveObject (M.MINE1);
+		end
+	else
+		if (M.mine1 < GetTime()) then
+			local meat = GetNearestVehicle ("path_1" ,1);
+			if (GetDistance(meat, "path_1") < 400.0)
+			then
+				M.MINE1 = BuildObject ("boltmine", 3, "path_1");
+				M.mine1built = true;
+			end
+		end
+	end
+	if (M.mine2built)
+	then
+		local meat = GetNearestVehicle ("path_2" ,1);
+		if (GetDistance(meat, "path_2") > 400.0)
+		then
+			M.mine2 = GetTime() + 3.0;
+			M.mine2built = false;
+			RemoveObject (M.MINE2);
+		end
+	else
+		if (M.mine2 < GetTime()) then
+			local meat = GetNearestVehicle ("path_2" ,1);
+			if (GetDistance(meat, "path_2") < 400.0)
+			then
+				M.MINE2 = BuildObject ("boltmine", 3, "path_2");
+				M.mine2built = true;
+			end
+		end
+	end
+	if (M.mine3built)
+	then
+		local meat = GetNearestVehicle ("path_3" ,1);
+		if (GetDistance(meat, "path_3") > 400.0)
+		then
+			M.mine3 = GetTime() + 3.0;
+			M.mine3built = false;
+			RemoveObject (M.MINE3);
+		end
+	else
+		if (M.mine3 < GetTime()) then
+			local meat = GetNearestVehicle ("path_3" ,1);
+			if (GetDistance(meat, "path_3") < 400.0)
+			then
+				M.MINE3 = BuildObject ("boltmine", 3, "path_3");
+				M.mine3built = true;
+			end
+		end
+	end
+
+	if (M.mine4built)
+	then
+		local meat = GetNearestVehicle ("path_4" ,1);
+		if (GetDistance(meat, "path_4") > 400.0)
+		then
+			M.mine4 = GetTime() + 3.0;
+			M.mine4built = false;
+			RemoveObject (M.MINE4);
+		end
+	else
+		if (M.mine4 < GetTime()) then
+			local meat = GetNearestVehicle ("path_4" ,1);
+			if (GetDistance(meat, "path_4") < 400.0)
+			then
+				M.MINE4 = BuildObject ("boltmine", 3, "path_4");
+				M.mine4built = true;
+			end
+		end
+	end
+	if (M.mine5built)
+	then
+		local meat = GetNearestVehicle ("path_5" ,1);
+		if (GetDistance(meat, "path_5") > 400.0)
+		then
+			M.mine5 = GetTime() + 3.0;
+			M.mine5built = false;
+			RemoveObject (M.MINE5);
+		end
+	else
+		if (M.mine5 < GetTime()) then
+			local meat = GetNearestVehicle ("path_5" ,1);
+			if (GetDistance(meat, "path_5") < 400.0)
+			then
+				M.MINE5 = BuildObject ("boltmine", 3, "path_5");
+				M.mine5built = true;
+			end
+		end
+	end
+
+	if (M.mine6built)
+	then
+		local meat = GetNearestVehicle ("path_6" ,1);
+		if (GetDistance(meat, "path_6") > 400.0)
+		then
+			M.mine6 = GetTime() + 3.0;
+			M.mine6built = false;
+			RemoveObject (M.MINE6);
+		end
+	else
+		if (M.mine6 < GetTime()) then
+			local meat = GetNearestVehicle ("path_6" ,1);
+			if (GetDistance(meat, "path_6") < 400.0)
+			then
+				M.MINE6 = BuildObject ("boltmine", 3, "path_6");
+				M.mine6built = true;
+			end
+		end
+	end
+
+	if (M.mine7built)
+	then
+		local meat = GetNearestVehicle ("path_7" ,1);
+		if (GetDistance(meat, "path_7") > 400.0)
+		then
+			M.mine7 = GetTime() + 3.0;
+			M.mine7built = false;
+			RemoveObject (M.MINE7);
+		end
+	else
+		if (M.mine7 < GetTime()) then
+			local meat = GetNearestVehicle ("path_7" ,1);
+			if (GetDistance(meat, "path_7") < 400.0)
+			then
+				M.MINE7 = BuildObject ("boltmine", 3, "path_7");
+				M.mine7built = true;
+			end
+		end
+	end
+
+	if (M.mine8built)
+	then
+		local meat = GetNearestVehicle ("path_8" ,1);
+		if (GetDistance(meat, "path_8") > 400.0)
+		then
+			M.mine8 = GetTime() + 3.0;
+			M.mine8built = false;
+			RemoveObject (M.MINE8);
+		end
+	else
+		if (M.mine8 < GetTime()) then
+			local meat = GetNearestVehicle ("path_8" ,1);
+			if (GetDistance(meat, "path_8") < 400.0)
+			then
+				M.MINE8 = BuildObject ("boltmine", 3, "path_8");
+				M.mine8built = true;
+			end
+		end
+	end
+
+	if (M.mine9built)
+	then
+		local meat = GetNearestVehicle ("path_9" ,1);
+		if (GetDistance(meat, "path_9") > 400.0)
+		then
+			M.mine9 = GetTime() + 3.0;
+			M.mine9built = false;
+			RemoveObject (M.MINE9);
+		end
+	else
+		if (M.mine9 < GetTime()) then
+			local meat = GetNearestVehicle ("path_9" ,1);
+			if (GetDistance(meat, "path_9") < 400.0)
+			then
+				M.MINE9 = BuildObject ("boltmine", 3, "path_9");
+				M.mine9built = true;
+			end
+		end
+	end
+
+	if (M.mine10built)
+	then
+		local meat = GetNearestVehicle ("path_10" ,1);
+		if (GetDistance(meat, "path_10") > 400.0)
+		then
+			M.mine10 = GetTime() + 3.0;
+			M.mine10built = false;
+			RemoveObject (M.MINE10);
+		end
+	else
+		if (M.mine10 < GetTime()) then
+			local meat = GetNearestVehicle ("path_10" ,1);
+			if (GetDistance(meat, "path_10") < 400.0)
+			then
+				M.MINE10 = BuildObject ("boltmine", 3, "path_10");
+				M.mine10built = true;
+			end
+		end
+	end
+
+	if (M.mine11built)
+	then
+		local meat = GetNearestVehicle ("path_11" ,1);
+		if (GetDistance(meat, "path_11") > 400.0)
+		then
+			M.mine11 = GetTime() + 3.0;
+			M.mine11built = false;
+			RemoveObject (M.MINE11);
+		end
+	else
+		if (M.mine11 < GetTime()) then
+			local meat = GetNearestVehicle ("path_11" ,1);
+			if (GetDistance(meat, "path_11") < 400.0)
+			then
+				M.MINE11 = BuildObject ("boltmine", 3, "path_11");
+				M.mine11built = true;
+			end
+		end
+	end
+
+	if (M.mine12built)
+	then
+		local meat = GetNearestVehicle ("path_12" ,1);
+		if (GetDistance(meat, "path_12") > 400.0)
+		then
+			M.mine12 = GetTime() + 3.0;
+			M.mine12built = false;
+			RemoveObject (M.MINE12);
+		end
+	else
+		if (M.mine12 < GetTime()) then
+			local meat = GetNearestVehicle ("path_12" ,1);
+			if (GetDistance(meat, "path_12") < 400.0)
+			then
+				M.MINE12 = BuildObject ("boltmine", 3, "path_12");
+				M.mine12built = true;
+			end
+		end
+	end
+
+	if (M.mine13built)
+	then
+		local meat = GetNearestVehicle ("path_13" ,1);
+		if (GetDistance(meat, "path_13") > 400.0)
+		then
+			M.mine13 = GetTime() + 3.0;
+			M.mine13built = false;
+			RemoveObject (M.MINE13);
+		end
+	else
+		if (M.mine13 < GetTime()) then
+			local meat = GetNearestVehicle ("path_13" ,1);
+			if (GetDistance(meat, "path_13") < 400.0)
+			then
+				M.MINE13 = BuildObject ("boltmine", 3, "path_13");
+				M.mine13built = true;
+			end
+		end
+	end
+
+	if (M.mine14built)
+	then
+		local meat = GetNearestVehicle ("path_14" ,1);
+		if (GetDistance(meat, "path_14") > 400.0)
+		then
+			M.mine14 = GetTime() + 3.0;
+			M.mine14built = false;
+			RemoveObject (M.MINE14);
+		end
+	else
+		if (M.mine14 < GetTime()) then
+			local meat = GetNearestVehicle ("path_14" ,1);
+			if (GetDistance(meat, "path_14") < 400.0)
+			then
+				M.MINE14 = BuildObject ("boltmine", 3, "path_14");
+				M.mine14built = true;
+			end
+		end
+	end
+
+	if (M.mine15built)
+	then
+		local meat = GetNearestVehicle ("path_15" ,1);
+		if (GetDistance(meat, "path_15") > 400.0)
+		then
+			M.mine15 = GetTime() + 3.0;
+			M.mine15built = false;
+			RemoveObject (M.MINE15);
+		end
+	else
+		if (M.mine15 < GetTime()) then
+			local meat = GetNearestVehicle ("path_15" ,1);
+			if (GetDistance(meat, "path_15") < 400.0)
+			then
+				M.MINE15 = BuildObject ("boltmine", 3, "path_15");
+				M.mine15built = true;
+			end
+		end
+	end
+
+	if (M.mine16built)
+	then
+		local meat = GetNearestVehicle ("path_16" ,1);
+		if (GetDistance(meat, "path_16") > 400.0)
+		then
+			M.mine16 = GetTime() + 3.0;
+			M.mine16built = false;
+			RemoveObject (M.MINE16);
+		end
+	else
+		if (M.mine16 < GetTime()) then
+			local meat = GetNearestVehicle ("path_16" ,1);
+			if (GetDistance(meat, "path_16") < 400.0)
+			then
+				M.MINE16 = BuildObject ("boltmine", 3, "path_16");
+				M.mine16built = true;
+			end
+		end
+	end
+
+	if (M.mine17built)
+	then
+		local meat = GetNearestVehicle ("path_17" ,1);
+		if (GetDistance(meat, "path_17") > 400.0)
+		then
+			M.mine17 = GetTime() + 3.0;
+			M.mine17built = false;
+			RemoveObject (M.MINE17);
+		end
+	else
+		if (M.mine17 < GetTime()) then
+			local meat = GetNearestVehicle ("path_17" ,1);
+			if (GetDistance(meat, "path_17") < 400.0)
+			then
+				M.MINE17 = BuildObject ("boltmine", 3, "path_17");
+				M.mine17built = true;
+			end
+		end
+	end
+
+	if (M.mine18built)
+	then
+		local meat = GetNearestVehicle ("path_18" ,1);
+		if (GetDistance(meat, "path_18") > 400.0)
+		then
+			M.mine18 = GetTime() + 3.0;
+			M.mine18built = false;
+			RemoveObject (M.MINE18);
+		end
+	else
+		if (M.mine18 < GetTime()) then
+			local meat = GetNearestVehicle ("path_18" ,1);
+			if (GetDistance(meat, "path_18") < 400.0)
+			then
+				M.MINE18 = BuildObject ("boltmine", 3, "path_18");
+				M.mine18built = true;
+			end
+		end
+	end
+
+	if (M.mine19built)
+	then
+		local meat = GetNearestVehicle ("path_19" ,1);
+		if (GetDistance(meat, "path_19") > 400.0)
+		then
+			M.mine19 = GetTime() + 3.0;
+			M.mine19built = false;
+			RemoveObject (M.MINE19);
+		end
+	else
+		if (M.mine19 < GetTime()) then
+			local meat = GetNearestVehicle ("path_19" ,1);
+			if (GetDistance(meat, "path_19") < 400.0)
+			then
+				M.MINE19 = BuildObject ("boltmine", 3, "path_19");
+				M.mine19built = true;
+			end
+		end
+	end
+
+	if (M.mine20built)
+	then
+		local meat = GetNearestVehicle ("path_20" ,1);
+		if (GetDistance(meat, "path_20") > 400.0)
+		then
+			M.mine20 = GetTime() + 3.0;
+			M.mine20built = false;
+			RemoveObject (M.MINE20);
+		end
+	else
+		if (M.mine20 < GetTime()) then
+			local meat = GetNearestVehicle ("path_20" ,1);
+			if (GetDistance(meat, "path_20") < 400.0)
+			then
+				M.MINE20 = BuildObject ("boltmine", 3, "path_20");
+				M.mine20built = true;
+			end
+		end
+	end
+
+	if (M.mine21built)
+	then
+		local meat = GetNearestVehicle ("path_21" ,1);
+		if (GetDistance(meat, "path_21") > 400.0)
+		then
+			M.mine21 = GetTime() + 3.0;
+			M.mine21built = false;
+			RemoveObject (M.MINE21);
+		end
+	else
+		if (M.mine21 < GetTime()) then
+			local meat = GetNearestVehicle ("path_21" ,1);
+			if (GetDistance(meat, "path_21") < 400.0)
+			then
+				M.MINE21 = BuildObject ("boltmine", 3, "path_21");
+				M.mine21built = true;
+			end
+		end
+	end
+
+	if (M.mine22built)
+	then
+		local meat = GetNearestVehicle ("path_22" ,1);
+		if (GetDistance(meat, "path_22") > 400.0)
+		then
+			M.mine22 = GetTime() + 3.0;
+			M.mine22built = false;
+			RemoveObject (M.MINE22);
+		end
+	else
+		if (M.mine22 < GetTime()) then
+			local meat = GetNearestVehicle ("path_22" ,1);
+			if (GetDistance(meat, "path_22") < 400.0)
+			then
+				M.MINE22 = BuildObject ("boltmine", 3, "path_22");
+				M.mine22built = true;
+			end
+		end
+	end
+
+	if (M.mine23built)
+	then
+		local meat = GetNearestVehicle ("path_23" ,1);
+		if (GetDistance(meat, "path_23") > 400.0)
+		then
+			M.mine23 = GetTime() + 3.0;
+			M.mine23built = false;
+			RemoveObject (M.MINE23);
+		end
+	else
+		if (M.mine23 < GetTime()) then
+			local meat = GetNearestVehicle ("path_23" ,1);
+			if (GetDistance(meat, "path_23") < 400.0)
+			then
+				M.MINE23 = BuildObject ("boltmine", 3, "path_23");
+				M.mine23built = true;
+			end
+		end
+	end
+
+
+
+	if
+		(
+		(M.notfound == true) and (M.shuffle == false)
+		)
+	then
+		M.sendTime [1] = GetTime() + 10.0;
+		M.sendTime [2] = GetTime() + 90.0;
+		M.sendTime [3] = GetTime() + 130.0;
+		M.sendTime [4] = GetTime() + 190.0;
+		for i = 1, 11 do
+			local j = math.random(0, 3); --rand() % 4;
+			local k = math.random(0, 3); --rand() % 4;
+			local temp = M.sendTime[j];
+			M.sendTime[j] = M.sendTime[k];
+			M.sendTime[k] = temp;
+		end
+		for i = 1, 5 do
+			print("%f\n", M.sendTime[i]);
+		end
+		M.shuffle = true;
+	end
+
+	if
+		(
+		(M.sendTime[0] < GetTime()) and (M.sent1Done == false)
+		)
+	then
+		M.w1u1 = BuildObject ("svfigh",2,M.svrec);
+		M.w1u2 = BuildObject ("svfigh",2,M.svrec);
+		M.w1u3 = BuildObject ("svturr",2,M.svrec);
+		M.w1u4 = BuildObject ("svturr",2,M.svrec);
+		M.sent1Done = true;
+		Follow (M.w1u1, M.w1u3);
+		Follow (M.w1u2, M.w1u4);
+		SetIndependence(M.w1u1, 1);
+		SetIndependence(M.w1u2, 1);
+		Goto (M.w1u3, "defendrim2");
+		Goto (M.w1u4, "defendrim1");
+		M.check1 = true;
+		M.check2 = true;
+		M.check3 = true;
+		M.check4 = true;
+	end
+
+	if (
+		IsAlive(M.w1u3)  and
+		(M.check1 == false)  and
+		(GetCurrentCommand(M.w1u3) == AiCommand.NONE)
+		)
+	then
+		Defend(M.w1u3, 1000);
+	end
+
+	if (
+			(M.check1 == true)  and
+			(
+				 not IsAlive(M.w1u3)  or
+				(GetDistance(M.w1u3, "defendrim2") < 20.0)
+			)
+		)
+	then
+		if (IsAlive(M.w1u3)) then
+			Stop(M.w1u3, 1000);
+		end
+		Patrol(M.w1u1, "attackpatrol1", 2);
+		M.check1 = false;
+	end
+
+	if (
+		IsAlive(M.w1u4)  and
+		(M.check2 == false)  and
+		(GetCurrentCommand(M.w1u4) == AiCommand.NONE)
+		)
+	then
+		Defend(M.w1u4, 1000);
+	end
+
+	if (
+			(M.check2 == true)  and
+			(
+				 not IsAlive(M.w1u4)  or
+				(GetDistance(M.w1u4, "defendrim1") < 20.0)
+			)
+		)
+	then
+		if (IsAlive(M.w1u4)) then
+			Stop(M.w1u4, 1000);
+		end
+		Patrol(M.w1u2, "attackpatrol1", 2);
+		M.check2 = false;
+	end
+
+	if (
+		IsAlive(M.w2u3)  and
+		(M.check3 == false)  and
+		(GetCurrentCommand(M.w2u3) == AiCommand.NONE)
+		)
+	then
+		Defend(M.w2u3, 1000);
+	end
+
+	if (
+			(M.check3 == true)  and
+			(
+				 not IsAlive(M.w2u3)  or
+				(GetDistance(M.w2u3, "defendrim3") < 20.0)
+			)
+		)
+	then
+		if (IsAlive(M.w2u3)) then
+			Stop(M.w2u3, 1000);
+		end
+		Patrol(M.w2u1, "attackpatrol1", 2);
+		M.check3 = false;
+	end
+
+	if (
+		IsAlive(M.w2u4)  and
+		(M.check4 == false)  and
+		(GetCurrentCommand(M.w2u4) == AiCommand.NONE)
+		)
+	then
+		Defend(M.w2u4, 1000);
+	end
+
+	if (
+			(M.check4 == true)  and
+			(
+				 not IsAlive(M.w2u4)  or
+				(GetDistance(M.w2u4, "defendrim4") < 20.0)
+			)
+		)
+	then
+		if (IsAlive(M.w2u4)) then
+			Stop(M.w2u4, 1000);
+		end
+		Patrol(M.w2u2, "attackpatrol1", 2);
+		M.check4 = false;
+	end
+
+	if
+		(
+		(M.sendTime[1] < GetTime()) and (M.sent2Done == false)
+		)
+	then
+		M.w2u1 = BuildObject ("svtank",2,M.svrec);
+		M.w2u2 = BuildObject ("svtank",2,M.svrec);
+		M.w2u3 = BuildObject ("svturr",2,M.svrec);
+		M.w2u4 = BuildObject ("svturr",2,M.svrec);
+		M.sent2Done = true;
+		Follow (M.w2u1, M.w2u3);
+		Follow (M.w2u2, M.w2u4);
+		SetIndependence(M.w2u1, 1);
+		SetIndependence(M.w2u2, 1);
+		Goto (M.w2u3, "defendrim3");
+		Goto (M.w2u4, "defendrim4");
+	end
+	if
+		(
+		(M.sendTime[2] < GetTime()) and (M.sent3Done == false)
+		)
+	then
+		--M.w3u1 = BuildObject ("svfigh",2,M.svrec);
+		--M.w3u2 = BuildObject ("svfigh",2,M.svrec);
+		M.w3u3 = BuildObject ("svfigh",2,M.svrec);
+		M.w3u4 = BuildObject ("svfigh",2,M.svrec);
+		M.sent3Done = true;
+		--Patrol (M.w3u1, "attackpatrol1",1);
+		--Patrol (M.w3u2, "attackpatrol1",1);
+		Patrol (M.w3u3, "attackpatrol1",2);
+		Patrol (M.w3u4, "attackpatrol1",2);
+	end
+
+	if
+		(
+		(M.sendTime[3] < GetTime()) and (M.sent4Done == false)
+		)
+	then
+		--M.w4u1 = BuildObject ("svfigh",2,M.svrec);
+		--M.w4u2 = BuildObject ("svfigh",2,M.svrec);
+		M.w4u3 = BuildObject ("svfigh",2,M.svrec);
+		M.w4u4 = BuildObject ("svfigh",2,M.svrec);
+		M.sent4Done = true;
+		--Patrol (M.w4u1, "attackpatrol1",1);
+		--Patrol (M.w4u2, "attackpatrol1",1);
+		Patrol (M.w4u3, "attackpatrol1",2);
+		Patrol (M.w4u4, "attackpatrol1",2);
+	end
+
+	if
+		(
+		(M.reconfactory == false) and (GetDistance (M.player, M.lemnos) < 600.0)
+		 and  (M.notfound == false)
+		)
+	then
+		AudioMessage ("misn0502.wav");
+		M.notfound = true;
+	end
+
+	if
+		(
+		(M.reconfactory == false) and (GetDistance (M.player, M.lemnos) < 230.0)
+		)
+	then
+		AudioMessage ("misn0503.wav");
+		AudioMessage ("misn0504.wav");
+		M.reconfactory = true;
+		M.newobjective = true;
+		M.start = GetTime() + 90.0;
+		--M.lemcinstart = GetTime() - 1.0;
+		--M.lemcinend = GetTime() + 3.0;
+	end
+
+	--[[if
+		(
+		(M.lemcin1 == false) and (M.lemcinstart < GetTime())
+		)
+	then
+		CameraReady();
+		M.lemcin1 = true;
+	end
+
+	if
+		(
+		(M.lemcin2 == false) and (M.lemcinend > GetTime())
+		)
+	then
+		CameraObject(M.player, 0, 5000, - 5000, M.lemnos);
+	end
+
+	if
+		(
+		(M.lemcin2 == false) and (M.lemcinend < GetTime())
+		)
+	then
+		CameraFinish();
+		M.lemcin2 = true;
+	end--]]
+
+
+
+
+
+	if
+		(
+		(M.reconfactory == true)  and
+		(M.reconed == false)  and
+		(
+		(IsInfo("oblema"))  or
+		(M.start < GetTime())
+		)
+		)
+
+	then
+		--AudioMessage ("misn0515.wav");
+		M.readtime = GetTime() + 5.0;
+		M.reconed = true;
+	end
+	if
+		(
+		(M.neworders == false) and (M.readtime < GetTime())
+		)
+	then
+		M.neworders = true;
+		AudioMessage ("misn0506.wav");
+		SetObjectiveOn(M.lemnos);
+		M.newobjective = true;
+	end
+	if
+		(
+		(IsAlive(M.svrec)) and (M.basewave == false)  and
+		(M.reconfactory == true)
+		)
+	then
+		M.wBu1 = BuildObject ("svtank",2,M.svrec);
+		M.wBu2 = BuildObject ("svfigh",2,M.svrec);
+		M.wBu3 = BuildObject ("svfigh",2,M.svrec);
+		Attack (M.wBu1, M.avrec);
+		Attack (M.wBu2, M.avrec);
+		Attack (M.wBu3, M.avrec);
+		SetIndependence(M.wBu1, 1);
+		SetIndependence(M.wBu2, 1);
+		SetIndependence(M.wBu3, 1);
+		M.basewave = true;
+	end
+
+	-- make sure dead things stay
+	if (M.sent1Done)
+	then
+		IsAlive(M.w1u1);
+		IsAlive(M.w1u2);
+		IsAlive(M.w1u3);
+		IsAlive(M.w1u4);
+	end
+	if (M.sent2Done)
+	then
+		IsAlive(M.w2u1);
+		IsAlive(M.w2u2);
+		IsAlive(M.w2u3);
+		IsAlive(M.w2u4);
+	end
+	if (M.sent3Done)
+	then
+		IsAlive(M.w3u1);
+		IsAlive(M.w3u2);
+		IsAlive(M.w3u3);
+		IsAlive(M.w3u4);
+	end
+	if (M.sent4Done)
+	then
+		IsAlive(M.w4u1);
+		IsAlive(M.w4u2);
+		IsAlive(M.w4u3);
+		IsAlive(M.w4u4);
+	end
+
+	if
+		(
+		(M.sent1Done == true)  and
+		(M.sent2Done == true)  and
+		(M.sent3Done == true)  and
+		(M.sent4Done == true)  and
+		( not IsAlive (M.w1u1))  and
+		( not IsAlive (M.w1u2))  and
+		( not IsAlive (M.w1u3))  and
+		( not IsAlive (M.w1u4))  and
+		( not IsAlive (M.w2u1))  and
+		( not IsAlive (M.w2u2))  and
+		( not IsAlive (M.w2u3))  and
+		( not IsAlive (M.w2u4))  and
+		( not IsAlive (M.w3u1))  and
+		( not IsAlive (M.w3u2))  and
+		( not IsAlive (M.w3u3))  and
+		( not IsAlive (M.w3u4))  and
+		( not IsAlive (M.w4u1))  and
+		( not IsAlive (M.w4u2))  and
+		( not IsAlive (M.w4u3))  and
+		( not IsAlive (M.w4u4)) and
+		(M.attacktimeset == false)
+		)
+	then
+		AudioMessage ("misn0507.wav");
+		M.platoonhere = GetTime()+45.0;--600.0
+		M.attacktimeset = true;
+		M.go = true;
+	end
+
+	if
+		(
+		( not IsAlive(M.aw1))  and
+		( not IsAlive(M.aw2))  and
+		( not IsAlive(M.aw3))  and
+		( not IsAlive(M.aw4))  and
+		( not IsAlive(M.aw5))  and
+		(M.platoonhere > GetTime())  and
+		(M.go == true) and (IsAlive(M.svrec))
+		)
+	then
+		AudioMessage("misn0508.wav");
+		AudioMessage("misn0509.wav");
+		M.attacksent = math.random(0, 3); --rand() %4;
+		M.attackstatement = false;
+
+	--	switch (M.attacksent)
+		if M.attacksent == 0 then
+		--	case 0:
+			M.aw1 = BuildObject ("svhraz", 2, M.svrec);
+			M.aw2 = BuildObject ("svhraz", 2, M.svrec);
+			M.aw3 = BuildObject ("svhraz", 2, M.svrec);
+			--M.aw4 = BuildObject ("svhraz", 2, M.svrec);
+			--M.aw5 = BuildObject ("svhraz", 2, M.svrec);
+			Goto (M.aw1, "destroy1");
+			Goto (M.aw2, "destroy1");
+			Goto (M.aw3, "destroy1");
+			--Goto (M.aw4, "destroy1");
+			--Goto (M.aw5, "destroy1");
+		elseif M.attacksent == 1 then
+		--	break;
+		--	case 1:
+			M.aw1 = BuildObject ("svhraz", 2, M.svrec);
+			M.aw2 = BuildObject ("svhraz", 2, M.svrec);
+			M.aw3 = BuildObject ("svhraz", 2, M.svrec);
+			--M.aw4 = BuildObject ("svhraz", 2, M.svrec);
+			--M.aw5 = BuildObject ("svhraz", 2, M.svrec);
+			Goto (M.aw1, "destroy2");
+			Goto (M.aw2, "destroy2");
+			Goto (M.aw3, "destroy2");
+			--Goto (M.aw4, "destroy2");
+			--Goto (M.aw5, "destroy2");
+		elseif M.attacksent == 2 then
+		--	break;
+		--	case 2:
+			M.aw1 = BuildObject ("svhraz", 2, M.svrec);
+			M.aw2 = BuildObject ("svhraz", 2, M.svrec);
+			M.aw3 = BuildObject ("svhraz", 2, M.svrec);
+			--M.aw4 = BuildObject ("svhraz", 2, M.svrec);
+			--M.aw5 = BuildObject ("svhraz", 2, M.svrec);
+			Goto (M.aw1, "destroy3");
+			Goto (M.aw2, "destroy3");
+			Goto (M.aw3, "destroy3");
+			--Goto (M.aw4, "destroy3");
+			--Goto (M.aw5, "destroy3");
+		elseif M.attacksent == 3 then
+		--	break;
+		--	case 3:
+			M.aw1 = BuildObject ("svhraz", 2, M.svrec);
+			M.aw2 = BuildObject ("svhraz", 2, M.svrec);
+			M.aw3 = BuildObject ("svhraz", 2, M.svrec);
+			--M.aw4 = BuildObject ("svhraz", 2, M.svrec);
+			--M.aw5 = BuildObject ("svhraz", 2, M.svrec);
+			Goto (M.aw1, "destroy4");
+			Goto (M.aw2, "destroy4");
+			Goto (M.aw3, "destroy4");
+			--Goto (M.aw4, "destroy4");
+			--Goto (M.aw5, "destroy4");
+			--break;
+		end
+		M.bombtime = GetTime () + 10.0;
+		M.attackcmd = false;
+		M.aw1t = GetTime() + 10.0;
+		M.aw2t = GetTime() + 50.0;
+		M.aw3t = GetTime() + 100.0;
+		M.aw4t = GetTime() + 140.0;
+	end
+	if
+		(
+		(M.attackcmd == false) and (M.bombtime < GetTime())
+		)
+	then
+		if
+			(
+			(GetDistance(M.aw1, "dest1") < 30.0)  or
+			(GetDistance(M.aw1, "dest2") < 30.0)
+			)
+		then
+			Attack(M.aw1, M.lemnos);
+			SetIndependence(M.aw1, 1);
+			M.attackcmd = true;
+		end
+		if
+			(
+			(GetDistance(M.aw2, "dest1") < 30.0)  or
+			(GetDistance(M.aw2, "dest2") < 30.0)
+			)
+		then
+			Attack(M.aw2, M.lemnos);
+			SetIndependence(M.aw2, 1);
+			M.attackcmd = true;
+		end
+		if
+			(
+			(GetDistance(M.aw3, "dest1") < 30.0)  or
+			(GetDistance(M.aw3, "dest2") < 30.0)
+			)
+		then
+			Attack(M.aw3, M.lemnos);
+			SetIndependence(M.aw3, 1);
+			M.attackcmd = true;
+		end
+		if
+			(
+			(GetDistance(M.aw4, "dest1") < 30.0)  or
+			(GetDistance(M.aw4, "dest2") < 30.0)
+			)
+		then
+			Attack(M.aw4, M.lemnos);
+			SetIndependence(M.aw4, 1);
+			M.attackcmd = true;
+		end
+		if
+			(
+			(GetDistance(M.aw5, "dest1") < 30.0)  or
+			(GetDistance(M.aw5, "dest2") < 30.0)
+			)
+		then
+			Attack(M.aw5, M.lemnos);
+			SetIndependence(M.aw5, 1);
+			M.attackcmd = true;
+		end
+		M.bombtime = GetTime() + 3.0;
+	end
+
+
+		--[[if
+			(
+			(M.platoonhere < GetTime()) and
+			( not IsAlive(M.aw1))  and
+			( not IsAlive(M.aw2))  and
+			( not IsAlive(M.aw3))  and
+			( not IsAlive(M.aw4))  and
+			( not IsAlive(M.aw5))  and
+			(M.missionwon == false)
+			)
+		then
+			M.missionwon = true;
+			AudioMessage ("misn0511.wav");
+			AudioMessage ("misn0512.wav");
+			SucceedMission (GetTime() + 15.0);
+		end--]]
+
+		if
+			(
+			( not IsAlive(M.avrec)) and (M.missionfail == false)
+			)
+		then
+			FailMission (GetTime()+15.0, "misn05l1.des");
+			AudioMessage ("misn0513.wav");
+			M.missionfail = true;
+		end
+
+		if
+			(
+			( not IsAlive(M.lemnos)) and (M.missionfail == false)
+			)
+		then
+			FailMission (GetTime()+15.0, "misn05l2.des");
+			AudioMessage ("misn0514.wav");
+			M.missionfail = true;
+		end
+
+		if
+			(
+			(
+			(GetDistance(M.aw1, M.lemnos) < 500.0)  or
+			(GetDistance(M.aw2, M.lemnos) < 500.0)  or
+			(GetDistance(M.aw3, M.lemnos) < 500.0)  or
+			(GetDistance(M.aw4, M.lemnos) < 500.0)  or
+			(GetDistance(M.aw5, M.lemnos) < 500.0)
+			)
+			 and  (M.attackstatement == false)
+			)
+		then
+			AudioMessage ("misn0510.wav");
+			M.attackstatement = true;
+		end
+
+
+
+
+	if
+		(
+		(M.aw1t < GetTime()) and
+		(M.aw1sent == false) and
+		(IsAlive(M.svrec))
+		)
+	then
+		--M.aw1a = BuildObject ("svfigh", 2, M.svrec);
+		M.aw2a = BuildObject ("svfigh", 2, M.svrec);
+		--Goto (M.aw1a, M.lemnos);
+		Attack (M.aw2a, M.lemnos);
+		SetIndependence(M.aw2a, 1);
+		M.aw1sent = true;
+	end
+
+	if
+		(
+		(M.aw2t < GetTime()) and
+		(M.aw2sent == false) and
+		(IsAlive(M.svrec))
+		)
+	then
+		--M.aw3a = BuildObject ("svtank", 2, M.svrec);
+		M.aw4a = BuildObject ("svtank", 2, M.svrec);
+		--Goto (M.aw3a, M.lemnos);
+		Attack (M.aw4a, M.lemnos);
+		SetIndependence(M.aw4a, 1);
+		M.aw2sent = true;
+	end
+
+	if
+		(
+		(M.aw3t < GetTime()) and
+		(M.aw3sent == false)  and
+		(IsAlive(M.svrec))
+		)
+	then
+		M.aw5a = BuildObject ("svfigh", 2, M.svrec);
+		M.aw6a = BuildObject ("svfigh", 2, M.svrec);
+		--M.aw7a = BuildObject ("svfigh", 2, M.svrec);
+		Attack (M.aw5a, M.lemnos);
+		Attack (M.aw6a, M.lemnos);
+		SetIndependence(M.aw5a, 1);
+		SetIndependence(M.aw6a, 1);
+		--Goto (M.aw7a, M.lemnos);
+		M.aw3sent = true;
+	end
+
+	if
+		(
+		(M.aw4t < GetTime()) and
+		(M.aw4sent == false)  and
+		(IsAlive(M.svrec))
+		)
+	then
+		M.aw8a = BuildObject ("svfigh", 2, M.svrec);
+		M.aw9a = BuildObject ("svtank", 2, M.svrec);
+		Attack (M.aw8a, M.lemnos);
+		Attack (M.aw9a, M.lemnos);
+		SetIndependence(M.aw8a, 1);
+		SetIndependence(M.aw9a, 1);
+		M.aw4sent = true;
+	end
+
+	if
+		(
+		(M.aw1sent == true)  and
+		(IsAlive(M.aw1a)) and (M.aw1aattack == false)
+		)
+	then
+		if
+			(GetDistance(M.aw1a, M.lemnos) < 300.0)
+		then
+			Attack(M.aw1a, M.lemnos);
+			SetIndependence(M.aw1a, 1);
+			M.aw1aattack = true;
+		end
+	end
+	if
+		(
+		(M.aw1sent == true)  and
+		(IsAlive(M.aw2a)) and (M.aw2aattack == false)
+		)
+	then
+		if
+			(GetDistance(M.aw2a, M.lemnos) < 300.0)
+		then
+			Attack(M.aw2a, M.lemnos);
+			SetIndependence(M.aw2a, 1);
+			M.aw2aattack = true;
+		end
+	end
+	if
+		(
+		(M.aw1sent == true)  and
+		(IsAlive(M.aw3a)) and (M.aw3aattack == false)
+		)
+	then
+		if
+			(GetDistance(M.aw3a, M.lemnos) < 300.0)
+		then
+			Attack(M.aw3a, M.lemnos);
+			SetIndependence(M.aw3a, 1);
+			M.aw3aattack = true;
+		end
+	end
+	if
+		(
+		(M.aw1sent == true)  and
+		(IsAlive(M.aw4a)) and (M.aw4aattack == false)
+		)
+	then
+		if
+			(GetDistance(M.aw4a, M.lemnos) < 300.0)
+		then
+			Attack(M.aw4a, M.lemnos);
+			SetIndependence(M.aw4a, 1);
+			M.aw4aattack = true;
+		end
+	end
+	if
+		(
+		(M.aw1sent == true)  and
+		(IsAlive(M.aw9a)) and (M.aw9aattack == false)
+		)
+	then
+		if
+			(GetDistance(M.aw9a, M.lemnos) < 300.0)
+		then
+			Attack(M.aw9a, M.lemnos);
+			SetIndependence(M.aw9a, 1);
+			M.aw9aattack = true;
+		end
+	end
+	if
+		(
+		( not IsAlive(M.svrec)) and (M.possiblewin == false)
+		)
+	then
+		M.possiblewin = true;
+		AudioMessage("misn0516.wav");
+		M.aw1aattack = true;
+		M.aw2aattack = true;
+		M.aw3aattack = true;
+		M.aw4aattack = true;
+		M.aw5aattack = true;
+		M.aw6aattack = true;
+		M.aw7aattack = true;
+		M.aw8aattack = true;
+		M.aw9aattack = true;
+		M.sent1Done = true;
+		M.sent2Done = true;
+		M.sent3Done = true;
+		M.sent4Done = true;
+
+		if
+			(
+			(IsAlive(M.aw1))  or
+			(IsAlive(M.aw2))  or
+			(IsAlive(M.aw3))  or
+			(IsAlive(M.aw4))  or
+			(IsAlive(M.aw5))  or
+			(IsAlive(M.aw1a))  or
+			(IsAlive(M.aw2a))  or
+			(IsAlive(M.aw3a))  or
+			(IsAlive(M.aw4a))  or
+			(IsAlive(M.aw5a))  or
+			(IsAlive(M.aw6a))  or
+			(IsAlive(M.aw7a))  or
+			(IsAlive(M.aw8a))  or
+			(IsAlive(M.aw9a))
+			)
+		then
+			AudioMessage("misn0517.wav");
+		end
+	end
+
+
+--[[	CheckPriority(M.aw1);
+	CheckPriority(M.aw2);
+	CheckPriority(M.aw3);
+	CheckPriority(M.aw4);
+	CheckPriority(M.aw5);
+	CheckPriority(M.aw1a);
+	CheckPriority(M.aw2a);
+	CheckPriority(M.aw3a);
+	CheckPriority(M.aw4a);
+	CheckPriority(M.aw5a);
+	CheckPriority(M.aw6a);
+	CheckPriority(M.aw7a);
+	CheckPriority(M.aw8a);
+	CheckPriority(M.aw9a);
+	CheckPriority(M.w1u1);
+	CheckPriority(M.w1u2);
+	CheckPriority(M.w1u3);
+	CheckPriority(M.w1u4);
+	CheckPriority(M.w2u1);
+	CheckPriority(M.w2u2);
+	CheckPriority(M.w2u3);
+	CheckPriority(M.w2u4);
+	CheckPriority(M.w3u1);
+	CheckPriority(M.w3u2);
+	CheckPriority(M.w3u3);
+	CheckPriority(M.w3u4);
+	CheckPriority(M.w4u1);
+	CheckPriority(M.w4u2);
+	CheckPriority(M.w4u3);
+	CheckPriority(M.w4u4);
+--]]
+
+	if
+		(
+		(M.aw1sent == true)  and
+		(M.aw2sent == true)  and
+		(M.aw3sent == true)  and
+		(M.aw4sent == true)  and
+		(M.sent1Done == true)  and
+		(M.sent2Done == true)  and
+		(M.sent3Done == true)  and
+		(M.sent4Done == true)  and
+		(M.missionwon == false)
+		)
+	then
+		if
+			(
+			( not IsAlive(M.aw1))  and
+			( not IsAlive(M.aw2))  and
+			( not IsAlive(M.aw3))  and
+			( not IsAlive(M.aw4))  and
+			( not IsAlive(M.aw5))  and
+			( not IsAlive(M.aw1a))  and
+			( not IsAlive(M.aw2a))  and
+			( not IsAlive(M.aw3a))  and
+			( not IsAlive(M.aw4a))  and
+			( not IsAlive(M.aw5a))  and
+			( not IsAlive(M.aw6a))  and
+			( not IsAlive(M.aw7a))  and
+			( not IsAlive(M.aw8a))  and
+			( not IsAlive(M.aw9a))  and
+			( not IsAlive (M.w1u1))  and
+			( not IsAlive (M.w1u2))  and
+			( not IsAlive (M.w1u3))  and
+			( not IsAlive (M.w1u4))  and
+			( not IsAlive (M.w2u1))  and
+			( not IsAlive (M.w2u2))  and
+			( not IsAlive (M.w2u3))  and
+			( not IsAlive (M.w2u4))  and
+			( not IsAlive (M.w3u1))  and
+			( not IsAlive (M.w3u2))  and
+			( not IsAlive (M.w3u3))  and
+			( not IsAlive (M.w3u4))  and
+			( not IsAlive (M.w4u1))  and
+			( not IsAlive (M.w4u2))  and
+			( not IsAlive (M.w4u3))  and
+			( not IsAlive (M.w4u4))
+			)
+		then
+			M.missionwon = true;
+			M.newobjective = true;
+			AudioMessage ("misn0511.wav");
+			AudioMessage ("misn0512.wav");
+			SucceedMission (GetTime() + 15.0, "misn05w1.des");
+		end
+	end
+
+	if
+		(
+		( not IsAlive(M.svrec)) and (M.takeoutfactory == false)
+		)
+	then
+		Attack(M.w1u1, M.lemnos);
+		Attack(M.w1u2, M.lemnos);
+		Attack(M.w1u3, M.lemnos);
+		Attack(M.w1u4, M.lemnos);
+		Attack(M.w2u1, M.lemnos);
+		Attack(M.w2u2, M.lemnos);
+		Attack(M.w2u3, M.lemnos);
+		Attack(M.w2u4, M.lemnos);
+		Attack(M.w3u1, M.lemnos);
+		Attack(M.w3u2, M.lemnos);
+		Attack(M.w3u3, M.lemnos);
+		Attack(M.w3u4, M.lemnos);
+		Attack(M.w4u1, M.lemnos);
+		Attack(M.w4u2, M.lemnos);
+		Attack(M.w4u3, M.lemnos);
+		Attack(M.w4u4, M.lemnos);
+		M.takeoutfactory = true;
+	end
+
+
+-- END OF SCRIPT
+
 end

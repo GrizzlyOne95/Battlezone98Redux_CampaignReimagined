@@ -1,4 +1,13 @@
 -- cmisn08.lua (Converted from Chinese08Mission.cpp)
+-- Source-disabled notes: APC 5 could be auto-targeted. Three #if 0 checks sent
+-- walker_1 down "walker_path" when APC 1 came within 200 metres, and two later
+-- lines sent it to "walker_return". The walker is removed by the active intro,
+-- so those orders need a restored walker lifetime before they can be enabled.
+-- A six-unit Hunt wave was also prototyped as
+-- Hunt(BuildObject("svscav", 2, "scavs")). A disabled duplicate military-base
+-- construction block built "cvrecy", "cvmuf", and "cvslf" at "military_spawn"
+-- and sent them down "military_path"; active source performs that build later.
+-- The unused ending branch also referenced "ch08008.wav".
 
 -- Compatibility
 SetLabel = SetLabel or SetLabel
@@ -80,6 +89,99 @@ local specials = {
     "svapcj", "svapck", "svapcl", "svapcm", "svapcn", "svapco", "svapcp", "svapcs"
 }
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        mission_state = mission_state,
+        lost = lost,
+        apc_in_line = apc_in_line,
+        user_cloak_state = user_cloak_state,
+        west_power_dead = west_power_dead,
+        east_power_dead = east_power_dead,
+        west_comm_dead = west_comm_dead,
+        east_comm_dead = east_comm_dead,
+        apc3_objective_on = apc3_objective_on,
+        howitzer_objective_on = howitzer_objective_on,
+        spawns_done = spawns_done,
+        state_timer = state_timer,
+        user = user,
+        old_user = old_user,
+        sound_handle = sound_handle,
+        core_fail_sound = core_fail_sound,
+        west_1_1 = west_1_1,
+        west_1_2 = west_1_2,
+        west_1_3 = west_1_3,
+        west_1_4 = west_1_4,
+        east_1_1 = east_1_1,
+        east_1_2 = east_1_2,
+        east_1_3 = east_1_3,
+        east_1_4 = east_1_4,
+        howitzer_nw = howitzer_nw,
+        howitzer_ne = howitzer_ne,
+        west_power = west_power,
+        east_power = east_power,
+        west_comm = west_comm,
+        east_comm = east_comm,
+        west_bolt = west_bolt,
+        east_bolt = east_bolt,
+        walker_1 = walker_1,
+        recycler = recycler,
+        factory = factory,
+        nav = nav,
+        apc = apc,
+        magpull = magpull,
+        west_mag = west_mag,
+        east_mag = east_mag,
+        snipers = snipers,
+        specials = specials,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    mission_state = state.mission_state
+    lost = state.lost
+    apc_in_line = state.apc_in_line
+    user_cloak_state = state.user_cloak_state
+    west_power_dead = state.west_power_dead
+    east_power_dead = state.east_power_dead
+    west_comm_dead = state.west_comm_dead
+    east_comm_dead = state.east_comm_dead
+    apc3_objective_on = state.apc3_objective_on
+    howitzer_objective_on = state.howitzer_objective_on
+    spawns_done = state.spawns_done
+    state_timer = state.state_timer
+    user = state.user
+    old_user = state.old_user
+    sound_handle = state.sound_handle
+    core_fail_sound = state.core_fail_sound
+    west_1_1 = state.west_1_1
+    west_1_2 = state.west_1_2
+    west_1_3 = state.west_1_3
+    west_1_4 = state.west_1_4
+    east_1_1 = state.east_1_1
+    east_1_2 = state.east_1_2
+    east_1_3 = state.east_1_3
+    east_1_4 = state.east_1_4
+    howitzer_nw = state.howitzer_nw
+    howitzer_ne = state.howitzer_ne
+    west_power = state.west_power
+    east_power = state.east_power
+    west_comm = state.west_comm
+    east_comm = state.east_comm
+    west_bolt = state.west_bolt
+    east_bolt = state.east_bolt
+    walker_1 = state.walker_1
+    recycler = state.recycler
+    factory = state.factory
+    nav = state.nav
+    apc = state.apc
+    magpull = state.magpull
+    west_mag = state.west_mag
+    east_mag = state.east_mag
+    snipers = state.snipers
+    specials = state.specials
+end
 function Start()
     if exu then
         if exu.SetShotConvergence then exu.SetShotConvergence(true) end
@@ -98,6 +200,10 @@ end
 
 local function ResetObjectives()
     ClearObjectives()
+    -- chinese08mission.cpp also retains a disabled objective-3 block:
+    -- "ch08003.otf" is white from MS_DISPOBJ2 and green from MS_WRECKER10.
+    -- It stays documented rather than being inserted into the active objective
+    -- stack, matching the source's surrounding block comment.
     if mission_state >= MS_WAITFORSCAP and mission_state < MS_WAITSTARTSOUND4 then
         AddObjective("ch08001.otf", "white")
     elseif mission_state >= MS_WAITSTARTSOUND4 and mission_state < MS_TRIGGER1 then
@@ -119,9 +225,9 @@ local function CheckAPCs()
     if not IsAlive(apc[5]) and GetHealth(apc[5]) <= 0 then
         FailMission(GetTime() + 2.0, "ch08lsed.des"); mission_state = MS_END; return true
     end
-    
+
     if GetDistance(apc[4], "break_point") < 50.0 then apc_in_line = 2 end
-    
+
     if not IsAlive(apc[5]) and apc_in_line == 0 then
         apc_in_line = GetTime() + 25.0
     elseif apc_in_line > 2 and apc_in_line < GetTime() then
@@ -134,7 +240,7 @@ local function CheckAPCs()
             AudioMessage("ch08005.wav"); FailMission(GetTime() + 20.0, "ch08lsee.des"); mission_state = MS_END; return true
         end
     end
-    
+
     for i=1,4 do
         if not IsAlive(apc[i]) then
             FailMission(GetTime() + 2.0, "ch08lsed.des"); mission_state = MS_END; return true
@@ -149,11 +255,11 @@ local function CheckSpawns()
             local t = GetNearestUnitOnTeam(loc, 0, 1) -- 0 radius? C++ uses 1 for team
             if t and GetDistance(t, loc) < 100.0 then
                 spawns_done[id] = true
-                for j=1, DiffUtils.ScaleEnemy(3) do Goto(BuildObject("svfigh", 2, "wave_"..wave), "wave_"..wave) end
-                if wave ~= 1 and wave ~= 4 then 
-                    for j=1, DiffUtils.ScaleEnemy(5) do Goto(BuildObject("svtank", 2, "wave_"..wave), "wave_"..wave) end
+                for j=1, 3 do Goto(BuildObject("svfigh", 2, "wave_"..wave), "wave_"..wave) end
+                if wave ~= 1 and wave ~= 4 then
+                    for j=1, 5 do Goto(BuildObject("svtank", 2, "wave_"..wave), "wave_"..wave) end
                 elseif wave == 4 then
-                    for j=1, DiffUtils.ScaleEnemy(3) do Goto(BuildObject("svwalk", 2, "wave_4"), "wave_4") end
+                    for j=1, 3 do Goto(BuildObject("svwalk", 2, "wave_4"), "wave_4") end
                 end
             end
         end
@@ -169,22 +275,22 @@ end
 function Update()
     user = GetPlayerHandle()
     aiCore.Update()
-    
+
     if mission_state < MS_END and mission_state > MS_BANGCAMERA then
         if not IsAlive(recycler) and not IsAlive(factory) then
             FailMission(GetTime() + 2.0, "ch08lsea.des"); mission_state = MS_END
         end
     end
-    
+
     if mission_state == MS_STARTUP or old_user ~= user then
         for i=1,26 do if IsAlive(snipers[i]) then Attack(snipers[i], user) end end
     end
-    
+
     if mission_state >= MS_SPAWNAPC1 and mission_state <= MS_WAITFORSCAP and sound_handle and IsAudioMessageDone(sound_handle) then
         sound_handle = nil
         local t = BuildObject("apcamr", 1, "apc_nav"); SetName(t, "APC Convoy"); SetUserTarget(t)
     end
-    
+
     -- Detection Logic
     if user_cloak_state == 0 then
         if GetDistance(user, "east_cloak") < 200 or GetDistance(user, "west_cloak") < 200 then
@@ -195,12 +301,13 @@ function Update()
         if core_fail_sound then if IsAudioMessageDone(core_fail_sound) then core_fail_sound = nil end
         elseif IsCloaked(user) then core_fail_sound = AudioMessage("ch04002.wav"); SetDecloaked(user) end
     end
-    
+
     -- States
     if mission_state == MS_STARTUP then
         old_user = user
-        SetScrap(1, DiffUtils.ScaleRes(0)); SetPilot(1, DiffUtils.ScaleRes(10)); SetScrap(2, 0)
-        
+        SetAIP("chmisn08.aip")
+        SetScrap(1, 0); SetPilot(1, 10); SetScrap(2, 0)
+
         west_1_1 = GetHandle("west_1_1"); west_1_2 = GetHandle("west_1_2"); west_1_3 = GetHandle("west_1_3"); west_1_4 = GetHandle("west_1_4")
         east_1_1 = GetHandle("east_1_1"); east_1_2 = GetHandle("east_1_2"); east_1_3 = GetHandle("east_1_3"); east_1_4 = GetHandle("east_1_4")
         nav = GetHandle("nav"); SetName(nav, "Base")
@@ -209,18 +316,18 @@ function Update()
         east_bolt = GetHandle("east_bolt"); west_bolt = GetHandle("west_bolt")
         walker_1 = GetHandle("walker_1")
         west_comm = GetHandle("west_comm"); east_comm = GetHandle("east_comm")
-        
+
         for i=1,6 do magpull[i] = GetHandle("magpull_"..i) end
         for i=1,4 do west_mag[i] = GetHandle("west_mag_"..i); east_mag[i] = GetHandle("east_mag_"..i) end
         for i=1,26 do snipers[i] = GetHandle("sniper_"..i) end
-        
+
         AudioMessage("ch08001.wav")
         SetCloaked(west_1_1); SetCloaked(west_1_2); SetCloaked(west_1_3); SetCloaked(west_1_4)
         SetCloaked(east_1_1); SetCloaked(east_1_2); SetCloaked(east_1_3); SetCloaked(east_1_4)
-        
+
         CameraReady()
         mission_state = MS_WAITFORTRIGGER
-        
+
     elseif mission_state == MS_WAITFORTRIGGER then
         CameraPath("cut_1", 2000, 0, west_1_1)
         if GetDistance(west_1_1, "cut_trigger") < 50 or GetDistance(east_1_1, "cut_trigger") < 50 then
@@ -324,13 +431,13 @@ function Update()
         if (west_power_dead or east_power_dead or west_comm_dead or east_comm_dead) and GetCockpitTimer() < 1 then
             FailMission(GetTime() + 2.0, "ch08lsef.des"); mission_state = MS_END
         end
-        if howitzer_objective_on and (user == howitzer_nw or user == howitzer_ne) then 
-            howitzer_objective_on = false; SetObjectiveOff(howitzer_nw); SetObjectiveOff(howitzer_ne) 
+        if howitzer_objective_on and (user == howitzer_nw or user == howitzer_ne) then
+            howitzer_objective_on = false; SetObjectiveOff(howitzer_nw); SetObjectiveOff(howitzer_ne)
         end
-        
+
         local function CheckDead(h, var, start_timer)
             if not var and not IsAlive(h) then
-                if not west_power_dead and not east_power_dead and not west_comm_dead and not east_comm_dead then StartCockpitTimer(DiffUtils.ScaleTimer(270)) end
+                if not west_power_dead and not east_power_dead and not west_comm_dead and not east_comm_dead then StartCockpitTimer(270) end
                 return true
             end
             return var
@@ -341,7 +448,7 @@ function Update()
         east_power_dead = CheckDead(east_power, east_power_dead)
         if east_power_dead then for i=1,4 do RemoveObject(east_mag[i]) end; RemoveObject(east_bolt) end
         east_comm_dead = CheckDead(east_comm, east_comm_dead)
-        
+
         if west_power_dead and east_power_dead and west_comm_dead and east_comm_dead then
             HideCockpitTimer(); mission_state = MS_WRECKER10; ResetObjectives(); state_timer = GetTime() + 40.0
         end
@@ -369,7 +476,7 @@ function Update()
             end
         end
     end
-    
+
     CheckSpawns()
     old_user = user
 end

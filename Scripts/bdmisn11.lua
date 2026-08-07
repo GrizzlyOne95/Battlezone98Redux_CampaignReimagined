@@ -1,4 +1,9 @@
 -- bdmisn11.lua (Converted from BlackDog11Mission.cpp)
+-- Source-disabled notes: the recycler was once redirected to "geyser_1", and
+-- navEnd could be spawned as apcamr at "nav_end" instead of using the map nav.
+-- The TEST_EXPLOSION-only SetPerceivedTeam experiment is also intentionally
+-- inactive: it was compile-time test code, not part of the campaign flow.
+-- The source calls the APC/recycler rendezvous the "pilot transfer point".
 
 -- Compatibility
 SetLabel = SetLabel or SetLabel
@@ -67,6 +72,7 @@ local user
 local recycler, apc, pilot
 local portal
 local nav_recycler, nav_end
+local sound4, sound5, sound6
 local enemy = {} -- Up to 71
 
 -- Logic Data
@@ -97,6 +103,117 @@ local defend_units_list = {
 -- Difficulty
 local difficulty = 2
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        start_done = start_done,
+        objective1_complete = objective1_complete,
+        objective2_complete = objective2_complete,
+        objective3_complete = objective3_complete,
+        camera_ready = camera_ready,
+        camera_complete = camera_complete,
+        apc_wants_to_transfer = apc_wants_to_transfer,
+        pilot_transferring = pilot_transferring,
+        told_to_go = told_to_go,
+        attacks_sent = attacks_sent,
+        nav_distance_ok = nav_distance_ok,
+        retreat_spawned = retreat_spawned,
+        sound4_played = sound4_played,
+        sound5_played = sound5_played,
+        sound6_played = sound6_played,
+        cockpit_timer_active = cockpit_timer_active,
+        explode_portal = explode_portal,
+        arried = arried,
+        lost = lost,
+        won = won,
+        recycler_go_time = recycler_go_time,
+        drive1_time = drive1_time,
+        attack_times = attack_times,
+        go_to_portal_time = go_to_portal_time,
+        camera_destruct_time = camera_destruct_time,
+        explode_time = explode_time,
+        explode_delay = explode_delay,
+        explode_seq_times = explode_seq_times,
+        aerial1_time = aerial1_time,
+        aerial2_time = aerial2_time,
+        sound8_time = sound8_time,
+        sound9_time = sound9_time,
+        sound12_time = sound12_time,
+        user = user,
+        recycler = recycler,
+        apc = apc,
+        pilot = pilot,
+        portal = portal,
+        nav_recycler = nav_recycler,
+        nav_end = nav_end,
+        sound4 = sound4,
+        sound5 = sound5,
+        sound6 = sound6,
+        enemy = enemy,
+        attacks = attacks,
+        defends = defends,
+        attack_spawns = attack_spawns,
+        defend_spawns = defend_spawns,
+        attack_units_list = attack_units_list,
+        defend_units_list = defend_units_list,
+        difficulty = difficulty,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    start_done = state.start_done
+    objective1_complete = state.objective1_complete
+    objective2_complete = state.objective2_complete
+    objective3_complete = state.objective3_complete
+    camera_ready = state.camera_ready
+    camera_complete = state.camera_complete
+    apc_wants_to_transfer = state.apc_wants_to_transfer
+    pilot_transferring = state.pilot_transferring
+    told_to_go = state.told_to_go
+    attacks_sent = state.attacks_sent
+    nav_distance_ok = state.nav_distance_ok
+    retreat_spawned = state.retreat_spawned
+    sound4_played = state.sound4_played
+    sound5_played = state.sound5_played
+    sound6_played = state.sound6_played
+    cockpit_timer_active = state.cockpit_timer_active
+    explode_portal = state.explode_portal
+    arried = state.arried
+    lost = state.lost
+    won = state.won
+    recycler_go_time = state.recycler_go_time
+    drive1_time = state.drive1_time
+    attack_times = state.attack_times
+    go_to_portal_time = state.go_to_portal_time
+    camera_destruct_time = state.camera_destruct_time
+    explode_time = state.explode_time
+    explode_delay = state.explode_delay
+    explode_seq_times = state.explode_seq_times
+    aerial1_time = state.aerial1_time
+    aerial2_time = state.aerial2_time
+    sound8_time = state.sound8_time
+    sound9_time = state.sound9_time
+    sound12_time = state.sound12_time
+    user = state.user
+    recycler = state.recycler
+    apc = state.apc
+    pilot = state.pilot
+    portal = state.portal
+    nav_recycler = state.nav_recycler
+    nav_end = state.nav_end
+    sound4 = state.sound4
+    sound5 = state.sound5
+    sound6 = state.sound6
+    enemy = state.enemy
+    attacks = state.attacks
+    defends = state.defends
+    attack_spawns = state.attack_spawns
+    defend_spawns = state.defend_spawns
+    attack_units_list = state.attack_units_list
+    defend_units_list = state.defend_units_list
+    difficulty = state.difficulty
+end
 function Start()
     if exu then
         difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
@@ -115,6 +232,12 @@ function AddObject(h)
 end
 
 function DeleteObject(h)
+end
+
+local function IsAtPathEnd(handle, path, radius)
+    local count = GetPathPointCount(path) or 0
+    if count < 1 then return false end
+    return GetDistance(handle, GetPosition(path, count - 1)) < (radius or 50.0)
 end
 
 function Update()
@@ -163,9 +286,9 @@ function Update()
             AudioMessage("bd11001.wav")
         end
 
-        CameraPath("camera_start", 1000, 1600, recycler)
+        local arrived_camera = CameraPath("camera_start", 1000, 1600, recycler)
 
-        if CameraCancelled() then
+        if arrived_camera or CameraCancelled() then
             CameraFinish()
             camera_complete[1] = true
         end
@@ -179,13 +302,12 @@ function Update()
             Stop(apc, 1)
             pilot_transferring = true
             pilot = BuildObject("aspilo", 1, apc)
-            -- Position fix logic probably needed in Lua if BuildObject spawns at 0,0,0
-            SetPosition(pilot, GetPosition(apc))
-            Goto(pilot, recycler, 1)
+            Retreat(pilot, recycler, 1)
         end
     end
 
     if pilot_transferring then
+        if IsAlive(pilot) then GiveMaxHealth(pilot) end
         if not IsAlive(pilot) and not won and not lost then
             lost = true
             FailMission(GetTime() + 1.0, "bd11lsec.des")
@@ -197,11 +319,7 @@ function Update()
             RemoveObject(pilot)
             pilot = nil
 
-            -- Set Recycler to Player Team properly
-            -- "o->curPilot = *(PrjID*)"bspilo\0";" simulated by SetPilotClass?
-            -- Assuming just SetTeamNum(recycler, 1) and maybe SetIndependence.
-            SetTeamNum(recycler, 1)
-            -- Add Pilot? SetPilotClass(recycler, "bspilo")
+            SetPilotClass(recycler, "bspilo")
 
             recycler_go_time = GetTime() + 2.0
             AudioMessage("bd11002.wav")
@@ -211,18 +329,31 @@ function Update()
     -- Recycler Move
     if GetTime() > recycler_go_time then
         told_to_go = true
+        SetTeamNum(recycler, 1)
         recycler_go_time = 99999.0
         Goto(recycler, "recycler_path", 1)
         drive1_time = GetTime() + 20.0
     end
 
-    if told_to_go and GetDistance(recycler, "recycler_path") < 50.0 then -- At end
+    if told_to_go and IsAtPathEnd(recycler, "recycler_path", 50.0) then
         told_to_go = false                                               -- Deployed presumably?
-        -- Deploy(recycler)
-        AudioMessage("bd11003.wav")                                      -- ? Not in original but logical for reached dest
         ClearObjectives()
         AddObjective("bd11001.otf", "green")
         AddObjective("bd11002.otf", "white")
+    end
+
+    -- Independent of the six timed waves, the source sends this drive_1 force
+    -- twenty seconds after the recycler starts moving.
+    if GetTime() > drive1_time then
+        drive1_time = 99999.0
+        for _ = 1, 2 do
+            local h = BuildObject("cvwalk", 2, "drive_1")
+            Attack(h, recycler, 1)
+        end
+        for _ = 1, 2 do
+            local h = BuildObject("cvltnk", 2, "drive_1")
+            Attack(h, recycler, 1)
+        end
     end
 
     -- Wave Triggers
@@ -248,6 +379,25 @@ function Update()
         AttackRecy("cvhraz"); AttackRecy("cvhraz")
     end
 
+    -- Preserve the original escalating recycler-damage warnings. Each lower
+    -- threshold stops the earlier line so the three messages cannot overlap.
+    if objective1_complete and IsAlive(recycler) then
+        local health = GetHealth(recycler)
+        if health <= 0.5 and health > 0.25 and not sound4_played then
+            sound4_played = true
+            sound4 = AudioMessage("bd11004.wav")
+        elseif health <= 0.25 and health > 0.15 and not sound5_played then
+            if sound4 then StopAudioMessage(sound4) end
+            sound5_played = true
+            sound5 = AudioMessage("bd11005.wav")
+        elseif health <= 0.15 and health > 0.0 and not sound6_played then
+            if sound4 then StopAudioMessage(sound4) end
+            if sound5 then StopAudioMessage(sound5) end
+            sound6_played = true
+            sound6 = AudioMessage("bd11006.wav")
+        end
+    end
+
     -- Process Waves
     for i = 1, 6 do
         if GetTime() > attack_times[i] then
@@ -259,12 +409,14 @@ function Update()
             local end_idx = attacks[i + 1]
             if not end_idx then end_idx = #attack_units_list end -- Fallback
 
+            local wave_attackers = {}
             for j = start_idx, end_idx do
                 local u = attack_units_list[j]
                 if u then
                     local h = BuildObject(u, 2, attack_spawns[i])
                     SetCloaked(h)
                     Attack(h, recycler)
+                    wave_attackers[#wave_attackers + 1] = h
                 end
             end
 
@@ -276,9 +428,12 @@ function Update()
                 if u then
                     local h = BuildObject(u, 2, defend_spawns[i])
                     SetCloaked(h)
-                    -- Defend2 logic? C++ uses modulus to pick defend target from attackers.
-                    -- Simplified: Defend base or roam.
-                    Goto(h, recycler, 1) -- Aggressive defense
+                    -- BlackDog11Mission.cpp assigns each defender to an attacker
+                    -- from the same wave, wrapping with j % numAttackers.
+                    if #wave_attackers > 0 then
+                        local target = wave_attackers[((j - start_idx) % #wave_attackers) + 1]
+                        Defend2(h, target, 1)
+                    end
                 end
             end
         end
@@ -289,9 +444,10 @@ function Update()
         aerial1_time = 99999.0
         for i = 1, 8 do
             local h = BuildObject("cssold", 2, "aerial_1"); Attack(h, recycler)
-        end                                                                                  -- Soldiers? 400 height?
-        -- Lua BuildObject doesn't take height. Need SetPosition.
-        -- Skip height for simplicity or use specific spawn point elevation.
+        end
+        -- Source passes 400 as BuildObject's aerial height. The Lua binding has
+        -- no equivalent height parameter; the authored aerial_1 path supplies
+        -- the spawn location while preserving the source unit count and orders.
     end
     if GetTime() > aerial2_time then
         aerial2_time = 99999.0

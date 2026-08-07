@@ -13,8 +13,8 @@ local aiCore = require("aiCore")
 local function SetupAI()
     -- Team 1: Black Dogs (Player)
     -- Team 2: CAA (Enemy)
-    local caa = aiCore.AddTeam(2, aiCore.Factions.CCA) 
-    
+    local caa = aiCore.AddTeam(2, aiCore.Factions.CCA)
+
     local diff = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
     if diff <= 1 then
         caa:SetConfig("pilotZeal", 0.1)
@@ -65,15 +65,102 @@ local attackers = {
 local wave_count = 0
 
 -- Sounds (Flags)
-local intro_sound = false
-local intro2_sound = false
-local win_sound = false
-local lose_sound2 = false
-local lose_sound3 = false
+local intro_sound, intro2_sound, win_sound, lose_sound2, lose_sound3
 
 -- Difficulty
 local difficulty = 2
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        start_done = start_done,
+        objective1_complete = objective1_complete,
+        objective2_complete = objective2_complete,
+        objective3_complete = objective3_complete,
+        camera_ready = camera_ready,
+        camera_complete = camera_complete,
+        arrived = arrived,
+        pilot_spawned1 = pilot_spawned1,
+        pilot_spawned2 = pilot_spawned2,
+        portal_reprogrammed = portal_reprogrammed,
+        apc_heading_back = apc_heading_back,
+        schedule_lose2 = schedule_lose2,
+        schedule_lose3 = schedule_lose3,
+        apc_commandeered = apc_commandeered,
+        lost = lost,
+        won = won,
+        second_camera_time = second_camera_time,
+        activate_time = activate_time,
+        attack_wave_time = attack_wave_time,
+        apc_time = apc_time,
+        apc_pilot_time1 = apc_pilot_time1,
+        apc_pilot_time2 = apc_pilot_time2,
+        apc_go_back_time = apc_go_back_time,
+        sound3_time = sound3_time,
+        user = user,
+        recycler = recycler,
+        portal = portal,
+        command = command,
+        factory = factory,
+        nav_portal = nav_portal,
+        nav_base = nav_base,
+        apc = apc,
+        pilot = pilot,
+        attackers = attackers,
+        wave_count = wave_count,
+        intro_sound = intro_sound,
+        intro2_sound = intro2_sound,
+        win_sound = win_sound,
+        lose_sound2 = lose_sound2,
+        lose_sound3 = lose_sound3,
+        difficulty = difficulty,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    start_done = state.start_done
+    objective1_complete = state.objective1_complete
+    objective2_complete = state.objective2_complete
+    objective3_complete = state.objective3_complete
+    camera_ready = state.camera_ready
+    camera_complete = state.camera_complete
+    arrived = state.arrived
+    pilot_spawned1 = state.pilot_spawned1
+    pilot_spawned2 = state.pilot_spawned2
+    portal_reprogrammed = state.portal_reprogrammed
+    apc_heading_back = state.apc_heading_back
+    schedule_lose2 = state.schedule_lose2
+    schedule_lose3 = state.schedule_lose3
+    apc_commandeered = state.apc_commandeered
+    lost = state.lost
+    won = state.won
+    second_camera_time = state.second_camera_time
+    activate_time = state.activate_time
+    attack_wave_time = state.attack_wave_time
+    apc_time = state.apc_time
+    apc_pilot_time1 = state.apc_pilot_time1
+    apc_pilot_time2 = state.apc_pilot_time2
+    apc_go_back_time = state.apc_go_back_time
+    sound3_time = state.sound3_time
+    user = state.user
+    recycler = state.recycler
+    portal = state.portal
+    command = state.command
+    factory = state.factory
+    nav_portal = state.nav_portal
+    nav_base = state.nav_base
+    apc = state.apc
+    pilot = state.pilot
+    attackers = state.attackers
+    wave_count = state.wave_count
+    intro_sound = state.intro_sound
+    intro2_sound = state.intro2_sound
+    win_sound = state.win_sound
+    lose_sound2 = state.lose_sound2
+    lose_sound3 = state.lose_sound3
+    difficulty = state.difficulty
+end
 function Start()
     if exu then
         difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
@@ -84,17 +171,9 @@ function Start()
     start_done = false
 end
 
-local function PlaySequenceAudio(flag, file)
-    if not flag then
-        AudioMessage(file)
-        return true
-    end
-    return false -- Already played or waiting
-end
-
 function AddObject(h)
     local team = GetTeamNum(h)
-    if team == 2 then 
+    if team == 2 then
         aiCore.AddObject(h)
     end
 end
@@ -105,11 +184,11 @@ end
 function Update()
     user = GetPlayerHandle()
     aiCore.Update()
-    
+
     if not start_done then
         SetScrap(1, 100)
         SetPilot(1, 10)
-        
+
         recycler = GetHandle("recycler")
         portal = GetHandle("portal")
         command = GetHandle("command")
@@ -118,96 +197,79 @@ function Update()
         if nav_portal then SetName(nav_portal, "Portal") end
         nav_base = GetHandle("nav_base")
         if nav_base then SetName(nav_base, "Black Dog Base") end
-        
+
         start_done = true
     end
-    
+
     -- Cam 1: Intro
     if not camera_complete[1] then
         if not camera_ready[1] then
             camera_ready[1] = true
             CameraReady()
-            AudioMessage("bd08001.wav")
-            intro_sound = true
+            intro_sound = AudioMessage("bd08001.wav")
         end
-        
+
         if not arrived then
-            CameraPath("path_camera_intro", 800, 1500, user)
-            -- C++ sets arrived=TRUE; logic relies on path completion or audio.
-            -- Lua paths usually specific to engine. Assuming CameraPath is fire-once or loops.
-            -- C++ loop checks `arrived` BOOL return.
-            -- Let's assume after short time we move on if not cancelled.
+            arrived = CameraPath("path_camera_intro", 800, 1500, user)
         end
-        
-        if CameraCancelled() or (intro_sound and IsAudioMessageDone and IsAudioMessageDone(intro_sound) == 1) then
-            -- Note: Lua IsAudioMessageDone might not take handle if not returned.
-            -- Replacing with timer approximation for robustness:
-            -- Assuming 10s intro.
+
+        local sequence_done = arrived and intro_sound and IsAudioMessageDone(intro_sound)
+        if CameraCancelled() then
+            sequence_done = true
+            if intro_sound then StopAudioMessage(intro_sound) end
         end
-        
-        -- Simplified: Just wait for user to skip or path finish
-        -- Or rely on Timer
-        if not arrived then -- using arrived as 'timer_set'
-             second_camera_time = GetTime() + 10.0 -- Audio length approx
-             arrived = true
-        end
-        
-        if CameraCancelled() or GetTime() > second_camera_time then
+
+        if sequence_done then
             CameraFinish()
             camera_complete[1] = true
             second_camera_time = GetTime() + 25.0 -- Wait before Cam 2
             arrived = false -- Reset
         end
     end
-    
+
     -- Cam 2: Portal
     if GetTime() > second_camera_time and not camera_complete[2] then
         if not camera_ready[2] then
             camera_ready[2] = true
             CameraReady()
-            AudioMessage("bd08002.wav")
-            intro2_sound = true
-            
+            intro2_sound = AudioMessage("bd08002.wav")
+
             ClearObjectives()
             AddObjective("bd08001.otf", "white")
-            
+
             activate_time = GetTime() + 0.5
             apc_time = GetTime() + 90.0
         end
-        
-        CameraPath("path_portalcam", 4000, 1000, portal)
-        
-        if CameraCancelled() then
+
+        arrived = CameraPath("path_portalcam", 4000, 1000, portal)
+
+        if arrived or CameraCancelled() then
             CameraFinish()
             camera_complete[2] = true
         end
-        -- C++ finishes cam immediately if `arrived` (path done).
-        -- We'll assume path is short or user skips.
-        -- Actually `arrived` in C++ usually means path reached end point.
     end
-    
+
     -- Portal Activation
     if GetTime() > activate_time then
-        -- ActivatePortal(portal, false)
-        -- Lua: SetPortalState or ignore visual.
-        -- Trigger waves if active.
+        -- Source activates the portal and waits for isPortalActive(). Redux Lua
+        -- exposes neither binding; retain its half-second activation lead-in and
+        -- start the same wave schedule against the authored portal object.
         attack_wave_time = GetTime() + 1.0
         activate_time = 99999.0
     end
-    
+
     -- Attack Waves
     if GetTime() > attack_wave_time then
-        if GetTime() < apc_time + 45.0 and GetTime() > apc_time - 10.0 then
-            -- Pause waves for APC arrival
-            attack_wave_time = GetTime() + 5.0
+        if apc_time < GetTime() + 45.0 then
+            -- Source suspends waves for the final 45 seconds before APC arrival.
+            attack_wave_time = 99999.0
         else
             -- Spawn Wave
             local unit = attackers[math.random(1, 10)]
-            -- BuildObjectAtPortal?
-            local h = BuildObject(unit, 2, "portal_out") -- Approx
-            
+            local h = BuildObject(unit, 2, GetTransform(portal))
+
             if math.random() < 0.5 then Goto(h, "attack_path1", 1) else Goto(h, "attack_path2", 1) end
-            
+
             wave_count = wave_count + 1
             if wave_count < 4 then
                 attack_wave_time = GetTime() + 4.0
@@ -217,44 +279,39 @@ function Update()
             end
         end
     end
-    
+
     -- APC Arrival
     if GetTime() > apc_time then
         apc_time = 99999.0
-        apc = BuildObject("cvapc", 2, "portal_out") -- AtPortal
+        apc = BuildObject("cvapc", 2, GetTransform(portal))
         Goto(apc, "portal_out", 1) -- Move out a bit
         attack_wave_time = GetTime() + 30.0
         apc_pilot_time1 = GetTime() + 20.0
         sound3_time = GetTime() + 1.0
     end
-    
+
     if GetTime() > sound3_time then
         sound3_time = 99999.0
         AudioMessage("bd08003.wav")
     end
-    
+
     -- Pilot 1 (Original) Leaves
     if GetTime() > apc_pilot_time1 then
         apc_pilot_time1 = 99999.0
         Stop(apc, 1)
-        
-        -- C++: `pilot = BuildObject("cspilo", 2, apc); Retreat(pilot, portal, 1);`
-        -- Simulate pilot getting out.
-        -- Need to make APC empty (no pilot).
-        -- Lua: `SetPilotClass(apc, "")`? Or `SetTeamNum(apc, 0)`?
-        -- `SetPerceivedTeam(apc, 0)` in C++.
-        SetTeamNum(apc, 0) -- Neutral? Or just empty.
-        pilot = BuildObject("cspilo", 2, "portal_out") -- Spawn nearby
-        SetPosition(pilot, GetPosition(apc)) -- Teleport to APC
+
+        RemovePilot(apc)
+        pilot = BuildObject("cspilo", 2, apc)
+        SetPerceivedTeam(apc, 0)
         Retreat(pilot, "portal_in", 1)
         pilot_spawned1 = true
-        
+
         ClearObjectives()
         AddObjective("bd08001.otf", "white")
         AddObjective("bd08002.otf", "white")
         SetObjectiveOn(apc)
     end
-    
+
     if pilot_spawned1 then
         if IsAlive(pilot) then
             if GetDistance(pilot, portal) < 20.0 then -- Touching
@@ -262,36 +319,29 @@ function Update()
                 pilot_spawned1 = false
                 apc_pilot_time2 = GetTime() + 9 * 60.0
             end
-        else -- Dead
-            schedule_lose2 = true -- Pilot died? C++ Logic: `pilot killed before reprogramming`.
-            -- Wait, if pilot 1 (original) dies, we lose??
-            -- C++ Line 506: `scheduleLose2 = TRUE`.
-            -- Why? Maybe we needed him to open parsing?
-            -- Or maybe `apcPilotTime2` is the reprogramming one.
-            -- This logic: User shouldn't kill the fleeing pilot?
-            -- Actually, `apcPilotTime2` is set ONLY if pilot touches portal.
-            -- So if we kill him, `apcPilotTime2` never sets -> Mission stuck or fail.
-            -- Weird design. We must let him leave?
+        else -- The source treats killing this pilot before reprogramming as failure.
+            schedule_lose2 = true
             pilot_spawned1 = false
         end
     end
-    
+
     -- Enemy Pilot 2 (Hijacker) Returns
     if GetTime() > apc_pilot_time2 then
         apc_pilot_time2 = 99999.0
         pilot = BuildObject("cspilo", 2, "spawn_pilot")
+        RemovePilot(apc)
         Retreat(pilot, apc, 1) -- Going to APC
         pilot_spawned2 = true
         portal_reprogrammed = true
         AudioMessage("bd08004.wav")
-        -- deactivatePortal(portal)
-        
+        -- Source deactivates the portal here; no Redux Lua binding is exposed.
+
         ClearObjectives()
         AddObjective("bd08002.otf", "green")
         AddObjective("bd08003.otf", "white")
         attack_wave_time = 99999.0 -- Stop waves
     end
-    
+
     if pilot_spawned2 then
         if GetTeamNum(apc) == 1 then -- Player got it!
             pilot_spawned2 = false
@@ -302,28 +352,28 @@ function Update()
         elseif GetDistance(pilot, apc) < 20.0 then -- Reached APC
             pilot_spawned2 = false
             apc_go_back_time = GetTime() + 25.0
-            
-            -- Enemy takes APC
+
+            -- Enemy takes the empty APC, matching curPilot/SetPerceivedTeam in C++.
+            SetPilotClass(apc, "cspilo")
             RemoveObject(pilot)
-            SetTeamNum(apc, 2)
-            -- SetPilotClass(apc, "cspilo")
+            SetPerceivedTeam(apc, 2)
             pilot = nil
         end
     end
-    
+
     -- APC Escape Logic
     if GetTime() > apc_go_back_time then
         apc_go_back_time = 99999.0
         if IsAlive(apc) then
             apc_heading_back = true
-            -- activatePortal(portal, true)
+            -- Source reactivates the portal here; no Redux Lua binding is exposed.
             Retreat(apc, "portal_in", 1)
         end
     end
-    
+
     if apc_heading_back then
         if GetTeamNum(apc) == 1 then apc_heading_back = false end -- Player took it
-        
+
         if apc_heading_back and not lost and not won then
             if GetDistance(apc, portal) < 20.0 then
                 RemoveObject(apc)
@@ -331,7 +381,7 @@ function Update()
             end
         end
     end
-    
+
     -- Loss Conditions
     if not lost and not won then
         if (recycler and not IsAlive(recycler)) or (command and not IsAlive(command)) then
@@ -340,28 +390,46 @@ function Update()
             schedule_lose3 = true -- Destroyed APC
         end
     end
-    
+
     if schedule_lose2 and not lost then
+        schedule_lose2 = false
         lost = true
-        AudioMessage("bd08006.wav")
-        FailMission(GetTime() + 1.0, "bd08lsea.des")
+        lose_sound2 = AudioMessage("bd08006.wav")
     end
     if schedule_lose3 and not lost then
+        schedule_lose3 = false
         lost = true
-        AudioMessage("bd08006.wav")
+        lose_sound3 = AudioMessage("bd08006.wav")
+    end
+    if lose_sound2 and IsAudioMessageDone(lose_sound2) then
+        lose_sound2 = nil
+        FailMission(GetTime() + 1.0, "bd08lsea.des")
+    end
+    if lose_sound3 and IsAudioMessageDone(lose_sound3) then
+        lose_sound3 = nil
         FailMission(GetTime() + 1.0, "bd08lseb.des")
     end
-    
+
     -- Win Condition
     if apc and GetTeamNum(apc) == 1 and not apc_commandeered then
         apc_commandeered = true
     end
-    
+
     if apc_commandeered and portal_reprogrammed and not won and not lost then
         won = true
-        AudioMessage("bd08007.wav")
+        win_sound = AudioMessage("bd08007.wav")
+    end
+    if win_sound and IsAudioMessageDone(win_sound) then
+        win_sound = nil
         SucceedMission(GetTime() + 1.0, "bd08win.des")
     end
-    
+
+    -- The portal is a primary mission asset in the source. Destroying it is
+    -- a distinct loss from losing the recycler/command tower or the APC.
+    if not won and not lost and GetHealth(portal) <= 0.0 then
+        lost = true
+        FailMission(GetTime() + 1.0, "bd08lsec.des")
+    end
+
 end
 

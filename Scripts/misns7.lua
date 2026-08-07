@@ -1,550 +1,1627 @@
--- Misns7 Mission Script (Converted from Misns7Mission.cpp)
+-- Single Player CCA Mission 7 Lua conversion, created by General BlackDragon.
 
--- Compatibility for 1.5
-SetLabel = SetLabel or SetLabel
+local rescue_msg = { "misns701.wav", "misns702.wav", "misns703.wav" };
 
--- EXU Initialization
-local RequireFix = require("RequireFix")
-RequireFix.Initialize({ "campaignReimagined", "3686673790" })
-local exu = require("exu")
-local aiCore = require("aiCore")
-local DiffUtils = require("DiffUtils")
+-- Single Table for all our save/load variables. This SP mission has too many variables to function with them independently. ("main function has > 200 local variables", or "Load having > 197 variables in assignment")
+local M = {
 
-local bdog
+-- bools
+	start_done = false,
+	get_recycle = false,
+	camera_on_recycle = false,
+	camera_off_recycle = false,
+	svrecycle_unit_spawn = false,
+	svrecycle_on = false,
+	jail_unit_spawn = false,
+	jail_camera_on = false,
+	jail_camera_off = false,
+	--mission_fail = false,
+	con_pickup = false,
+	con_camera_on = false,
+	con_camera_off = false,
+	jail_dead = false,
+	con1_in_apc = false,
+	con2_in_apc = false,
+	con3_in_apc = false,
+	fully_loaded = false,
+	two_loaded = false,
+	one_loaded = false,
+	apc_empty = false,
+	--going_to_recycle = false,
+	get_muf = false,
+	camera_on_muf = false,
+	svmuf_unit_spawn = false,
+	svmuf_on = false,
+	camera_off_muf = false,
+	get_supply = false,
+	camera_on_supply = false,
+	supply_unit_spawn = false,
+	supply_on = false,
+	camera_off_supply = false,
+	supply_message = false,
+	con1_safe = false,
+	con2_safe = false,
+	con3_safe = false,
+	con1_dead = false,
+	con2_dead = false,
+	con3_dead = false,
+	first_message_done = false,
+	down_to_two = false,
+	down_to_one = false,
+	game_over = false,
+	supplies_spawned = false,
+	build_scav = false,
+	fight1_built = false,
+	fight2_built = false,
+	fight3_built = false,
+	--fight4_built = false,
+	nsdf_adjust = false,
+	avmuf_built = false,
+	pick_up = false,
+	supply_first = false,
+	jail_found = false,
+	turret_move1 = false,
+	build_turret = false,
+	closer_message = false,
+	muf_message = false,
+	in_base = false,
+	plan_a = false,
+	plan_b = false,
+	plan_c = false,
+	plan_d = false,
+	--muf_found = false,
+	gech_sent = false,
+	muf_located = false,
+	gech_adjust = false,
+	--rig_underway1 = false,
+	build_tower1 = false,
+	build_power1 = false,
+	build_tower2 = false,
+	muf_deployed = false,
+	muf_redirect = false,
+	new_rig = false,
+	rig_show = false,
+	rig_show2 = false,
+	rig_show3 = false,
+	--rig_stop1 = false,
+	--rig_stop2 = false,
+	main_off = false,
+	main_on = false,
+	main_build = false,
+	--last_tower = false,
+	turret4_defend = false,
+	maint_off = false,
+	maint_on = false,
+	maint_build = false,
+	new_muf = false,
+	silo_message = false,
+	--silo_message2 = false,
+	turret_message = false,
+	supply2_message = false,
+	blah = false,
+	apc_panic_message = false,
+	muf_message2 = false,
 
--- Helper for AI
-local function SetupAI()
-    bdog = DiffUtils.SetupTeams(aiCore.Factions.BDOG, aiCore.Factions.NSDF, 2)
-
-    -- Legacy Features
-    bdog:SetConfig("reclaimEngineers", true)
-end
-
--- Variables
-local start_done = false
-local jail_found = false
-local jail_dead = false
-local jail_unit_spawn = false
-local jail_camera_on = false
-local jail_camera_off = false
-local con_pickup = false
-local con1_in_apc = false
-local con2_in_apc = false
-local con3_in_apc = false
-local con1_dead = false
-local con2_dead = false
-local con3_dead = false
-local con1_safe = false
-local con2_safe = false
-local con3_safe = false
-local pick_up = false
-local fully_loaded = false
-local two_loaded = false
-local one_loaded = false
-local first_message_done = false
-local closer_message = false
-local apc_panic_message = false
-local build_scav = false
-local nsdf_adjust = false
-local fight1_built = false
-local fight2_built = false
-local fight3_built = false
-local build_turret = false
-local avmuf_built = false
-local plan_b = false
-local plan_c = false
-local plan_a = false -- scavenger plan?
-local get_recycle = false
-local get_muf = false
-local get_supply = false
-local camera_on_recycle = false
-local camera_off_recycle = false
-local svrecycle_unit_spawn = false
-local svrecycle_on = false
-local down_to_two = false
-local down_to_one = false
-local apc_empty = false
-local camera_on_muf = false
-local camera_off_muf = false
-local svmuf_unit_spawn = false
-local svmuf_on = false
-local supply_message = false
-local supply_first = false
-local camera_on_supply = false
-local camera_off_supply = false
-local supply_unit_spawn = false
-local supply_on = false
-local supplies_spawned = false
-local supply2_message = false
-local turret_message = false
-local muf_scan_time = 99999.0
-local muf_located = false
-local gech_sent = false
-local gech_adjust = false
-local game_over = false
-local in_base = false
-local muf_message = false
-local muf_message2 = false
-
-local muf_deployed = false
-local muf_redirect = false
-local b3 = false
-local b4 = false
-local b5_time = 99999.0
-local b6_time = 99999.0
-local b7_time = 99999.0
-local rig_show2 = false
-local rig_show3 = false
+-- Floats (really doubles in Lua)
+	unit_spawn_time1 = 0,
+	con_spawn_time = 0,
+	camera_off_time = 0,
+	con_camera_time = 0,
+	supply_spawn_time = 0,
+	con1_pickup_time = 0,
+	con2_pickup_time = 0,
+	con3_pickup_time = 0,
+	supply_message_time = 0,
+	avfigh1_time = 0,
+	avfigh2_time = 0,
+	avfigh3_time = 0,
+	--avfigh4_time = 0,
+	build_scav_time = 0,
+	adjust_timer = 0,
+	muf_message_time = 0,
+	muf_scan_time = 0,
+	--tower1_timer = 0,
+	rig_check = 0,
+	turret_check = 0,
+	bm_time = 0,
+	b1_time = 0,
+	b2_time = 0,
+	b3_time = 0,
+	b4_time = 0,
+	b5_time = 0,
+	b6_time = 0,
+	b7_time = 0,
+	check_a = 0,
+	check_b = 0,
+	check_c = 0,
+	silo_check = 0,
+	muf_build_time = 0,
+	goo_time = 0,
+	bturret_time = 0,
 
 -- Handles
-local player
-local jail, apc
-local con1, con2, con3
-local avscav1, avscav2
-local avfight1, avfight2, avfight3
-local avturr1, avturr2, avturr3
-local avmuf, avrecycle
-local svrecycle, svmuf, supply
-local engineer
-local guntower1, guntower2
-local geyser1
-local boxes, con_geyser
-local fed_up_scrap
-local avrig, avsilo, avgech
-local supply1, supply4 -- Scavs from supply hut
+	user = nil,
+	temp = nil,
+	fed_up_scrap = nil,
+	svrecycle = nil,
+	svmuf = nil,
+	apc = nil,
+	svsilo = nil,
+	guntower1 = nil,
+	guntower2 = nil,
+	avrecycle = nil,
+	avmuf = nil,
+	avscav1 = nil,
+	avscav2 = nil,
+	avsilo = nil,
+	hanger = nil,
+	avtower1 = nil,
+	avtower2 = nil,
+	--avtower3 = nil,
+	--avbarrack = nil,
+	main_tower = nil,
+	main_power = nil,
+	geyser1 = nil,
+	geyser2 = nil,
+	geyser3 = nil,
+	field_geyser1 = nil,
+	jail = nil,
+	supply = nil,
+	avpower1 = nil,
+	avpower2 = nil,
+	con1 = nil,
+	con2 = nil,
+	con3 = nil,
+	boxes = nil,
+	--svsilo2 = nil,
+	supply1 = nil,
+	supply2 = nil,
+	supply3 = nil,
+	supply4 = nil,
+	supply5 = nil,
+	supply6 = nil,
+	supply7 = nil,
+	supply8 = nil,
+	supply9 = nil,
+	avfight1 = nil,
+	avfight2 = nil,
+	avfight3 = nil,
+	--avfight4 = nil,
+	avtank1 = nil,
+	avtank2 = nil,
+	avltnk1 = nil,
+	avltnk2 = nil,
+	avgech = nil,
+	avturr1 = nil,
+	avturr2 = nil,
+	--avturr3 = nil,
+	avturr4 = nil,
+	avrig = nil,
+	b1 = nil,
+	b2 = nil,
+	b3 = nil,
+	b4 = nil,
+	--b5 = nil,
+	--b6 = nil,
+	--b7 = nil,
+	--b8 = nil,
+	--b9 = nil,
+	--b0 = nil,
+	newmuf = nil,
+	engineer = nil,
+	con_geyser = nil,
+	bturret1 = nil,
+	bturret2 = nil,
+	--bturret3 = nil,
+	--bturret4 = nil,
+	--bvrig = nil,
+	--bvrecycle = nil,
 
--- Timers
-local adjust_timer = 99999.0
-local build_scav_time = 99999.0
-local avfigh1_time = 99999.0
-local avfigh2_time = 99999.0
-local avfigh3_time = 99999.0
-local con_spawn_time = 99999.0
-local camera_off_time = 99999.0
-local muf_build_time = 99999.0
-local con1_pickup_time = 99999.0
-local con2_pickup_time = 99999.0
-local con3_pickup_time = 99999.0
-local goo_time = 99999.0
-local muf_message_time = 99999.0
-local check_a = 99999.0
-local check_b = 99999.0
-local check_c = 99999.0
-local unit_spawn_time1 = 99999.0
-local check_b = 99999.0
-local check_c = 99999.0
-local unit_spawn_time1 = 99999.0
-local supply_spawn_time = 99999.0
+-- Ints
+	stuff = 0,
+	stuff2 = 0,
+	stuff4 = 0,
+	scrap = 0
+}
 
--- Fix: Track engineers properly
-local cons_in_apc = 0
+function Save()
+    return
+		M
+end
 
--- Config
-local difficulty = 2
+function Load(...)
+    if select('#', ...) > 0 then
+		M
+		= ...
+    end
+end
+
 
 function Start()
-    if exu then
-        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
-        if exu.SetReticleRange then exu.SetReticleRange(500) end
-        if exu.SetGlobalTurbo then exu.SetGlobalTurbo(true) end
-    end
-    SetupAI()
 
-    player = GetPlayerHandle()
-    start_done = false
+	M.stuff = 10;
+	M.stuff2 = 0;
+	M.stuff4 = 10;
+	M.scrap = 0;
+
+	M.main_on = true;
+	M.maint_on = true;
+
+	M.apc = GetHandle("svapc");
+	SetCritical(apc, true);
+	M.avrecycle = GetHandle("avrecycle");
+	M.jail = GetHandle("jail");
+	M.supply = GetHandle("supply");
+	M.geyser1 = GetHandle("geyser1");
+	M.geyser2 = GetHandle("geyser2");
+	M.geyser3 = GetHandle("geyser3");
+	M.boxes = GetHandle("boxes");
+	M.fed_up_scrap = GetHandle("getum_started");
+	M.svsilo = GetHandle("svsilo");
+	M.guntower1 = GetHandle("guntower1");
+	M.guntower2 = GetHandle("guntower2");
+	M.field_geyser1 = GetHandle("field_geyser1");
+	M.avsilo = GetHandle("avsilo");
+	M.hanger = GetHandle("hanger");
+	M.avrig = GetHandle("rig");
+	M.main_power = GetHandle("wind_power1");
+	M.con_geyser = GetHandle("con_geyser");
+	M.bturret1 = GetHandle("bturret1");
+	M.bturret2 = GetHandle("bturret2");
+	M.svrecycle = GetHandle("svrecycle");
+	M.svmuf = GetHandle("svmuf");
+	M.main_tower = GetHandle("main_tower");
+
 end
 
 function AddObject(h)
-    local team = GetTeamNum(h)
-    if team == 2 then
-        aiCore.AddObject(h)
-        -- C++ Logic: Identify units?
-        -- Mostly handled by "avscav1", "avfight1" etc being assigned on BuildObject logic.
-        -- But reinforcements or random builds:
-        if IsOdf(h, "bvscav") and not avscav1 then avscav1 = h elseif IsOdf(h, "bvscav") and not avscav2 then avscav2 = h end
-        -- ...
-        if IsOdf(h, "bvwalk") then avgech = h end
-    end
-    -- Unit Turbo based on difficulty
-    if exu and exu.SetUnitTurbo and IsCraft(h) then
-        if team ~= 0 then
-            if difficulty >= 3 then exu.SetUnitTurbo(h, true) end
-        end
-    end
-end
 
-function DeleteObject(h)
+	-- AddObject code rewritten to be efficient. -GBD
+	if (IsOdf(h,"bvscav")) then
+		if (M.avscav1 == nil) then
+			M.avscav1 = h;
+		elseif (M.avscav2 == nil) then
+			M.avscav2 = h;
+		end
+	elseif (IsOdf(h,"bvraz")) then
+		if (M.avfight1 == nil) then
+			M.avfight1 = h;
+		elseif (M.avfight2 == nil) then
+			M.avfight2 = h;
+		end
+	elseif (IsOdf(h,"bvtank")) then
+		if (M.avtank1 == nil) then
+			M.avtank1 = h;
+		elseif (M.avtank2 == nil) then
+			M.avtank2 = h;
+		end
+	elseif (IsOdf(h,"bvltnk")) then
+		if (M.avltnk1 == nil) then
+			M.avltnk1 = h;
+		elseif (M.avltnk2 == nil) then
+			M.avltnk2 = h;
+		end
+	elseif (IsOdf(h,"bvwalk")) then
+		if (M.avgech == nil) then
+			M.avgech = h;
+		end
+	elseif (IsOdf(h,"bvturr")) then
+		if (M.avturr1 == nil) then
+			M.avturr1 = h;
+		elseif (M.avturr2 == nil) then
+			M.avturr2 = h;
+		end
+	elseif (IsOdf(h,"abtowe")) then
+		if (M.main_tower == nil) then
+			M.main_tower = h;
+		elseif (M.avtower1 == nil) then
+			M.avtower1 = h;
+		elseif (M.avtower2 == nil) then
+			M.avtower2 = h;
+		end
+	elseif (IsOdf(h,"abwpow")) then
+		if (M.main_power == nil) then
+			M.main_power = h;
+		elseif (M.avpower1 == nil) then
+			M.avpower1 = h;
+		elseif (M.avpower2 == nil) then
+			M.avpower2 = h;
+		end
+	elseif (IsOdf(h,"svmuf")) then
+		if (IsAlive(M.svmuf)) and (M.newmuf == nil) then
+			M.newmuf = h;
+		end
+	elseif (IsOdf(h,"bvmuf")) then
+		if not (IsAlive(M.avmuf)) then
+			M.avmuf = h;
+		end
+	end
+
 end
 
 function Update()
-    player = GetPlayerHandle()
-    aiCore.Update()
 
-    if not start_done then
-        start_done = true
-        SetPilot(1, 8)
-        SetScrap(2, DiffUtils.ScaleRes(40))
-        SetPilot(2, 40)
+-- START OF SCRIPT
 
-        jail = GetHandle("jail")
-        apc = GetHandle("svapc")
-        supply = GetHandle("supply")
-        avrecycle = GetHandle("avrecycle")
-        geyser1 = GetHandle("geyser1")
-        boxes = GetHandle("boxes")
-        fed_up_scrap = GetHandle("getum_started")
-        svmuf = GetHandle("svmuf")
-        svrecycle = GetHandle("svrecycle") -- Should exist as "wreck" or marker
-        guntower1 = GetHandle("guntower1")
-        guntower2 = GetHandle("guntower2")
-        avrig = GetHandle("rig")
-        con_geyser = GetHandle("con_geyser")
-        avsilo = GetHandle("avsilo")
+	M.user = GetPlayerHandle(); --assigns the player a handle every frame
+--	M.scrap = GetScrap(2);-- gets the american's scrap
 
-        SetObjectiveOn(jail)
-        AudioMessage("misns700.wav")
-        ClearObjectives()
-        AddObjective("misns700.otf", "white")
+--	if ((M.scrap < 19) and (IsAlive(M.avrig)))
+--	then
+--		SetScrap(2, 20);
+--	end
 
-        build_scav_time = GetTime() + DiffUtils.ScaleTimer(8.0)
+	if not (M.start_done)
+	then
+		SetPilot(1, 8);
+		SetScrap(2, 40);
+		SetPilot(2, 40);
 
-        if IsAlive(svmuf) then Defend(svmuf) end -- C++ Defend(svmuf)? Who defends? Player team? Or just sets idle/defendAI?
-        if IsAlive(avrig) then Defend(avrig) end
+		SetObjectiveOn(M.jail);
+		SetObjectiveName(M.jail, "Military Prison");
 
-        -- Team switch statics?
-        SetPerceivedTeam(guntower1, 2)
-        SetPerceivedTeam(guntower2, 2)
-        SetPerceivedTeam(svrecycle, 2)
+		AudioMessage("misns700.wav"); -- General "mission breifing"
+		ClearObjectives();
+		AddObjective("misns700.otf", "WHITE");
+		M.build_scav_time = GetTime() + 8.0;
 
-        -- C++: Build(avrig, "abtowe")
-        -- If rig is builder...
-        if IsAlive(avrig) then Build(avrig, "abtowe") end
-    end
+		Defend(M.svmuf);
+		Defend(M.avrig);
+		Defend(M.bturret1);
+		Defend(M.bturret2);
+		M.bturret_time = GetTime() + 60.0;
+		SetPerceivedTeam(M.guntower1, 2);
+		SetPerceivedTeam(M.guntower2, 2);
+		SetPerceivedTeam(M.svrecycle, 2);
+		M.muf_scan_time = GetTime() + 240.0;
+		Build(M.avrig, "abtowe");
+		M.start_done = true;
+	end
 
-    -- Jail Found
-    if (not jail_found) and (GetDistance(player, jail) < 150.0) then
-        AudioMessage("misns722.wav")
-        adjust_timer = GetTime() + DiffUtils.ScaleTimer(120.0)
-        jail_found = true
-    end
+	if (M.bturret_time < GetTime())
+	then
+		M.bturret_time = GetTime() + 180.0;
 
-    -- Build Enemy Scavs
-    if (not build_scav) and (GetTime() > build_scav_time) then
-        avscav1 = BuildObject("bvscav", 2, "muf_point"); Goto(avscav1, fed_up_scrap)
-        avscav2 = BuildObject("bvscav", 2, "muf_point"); Goto(avscav2, fed_up_scrap)
+		if (IsAlive(M.bturret1))
+		then
+			Defend(M.bturret1);
+		end
+		if (IsAlive(M.bturret2))
+		then
+			Defend(M.bturret2);
+		end
+	end
 
-        -- Note: C++ has // BuildObject("bvtank",2,"spawn3") restored? No, commented out.
-        -- But logic below (nsdf_adjust) suggests aggressive response.
-        build_scav = true
-    end
+	if ((M.start_done) and (GetDistance(M.user, M.jail) < 150.0) and not (M.jail_found))
+	then
+		AudioMessage("misns722.wav");
+		M.adjust_timer = GetTime() + 120.0;
+		M.jail_found = true;
+	end
 
-    -- NSDF Response (Player attacking too early or time elapsed)
-    if (not jail_dead) and (not nsdf_adjust) then
-        -- Health checks on enemy assets
-        local triggered = false
-        if (IsAlive(avscav1) and GetHealth(avscav1) < 0.9) then triggered = true end
-        if (IsAlive(avscav2) and GetHealth(avscav2) < 0.9) then triggered = true end
-        if (IsAlive(avrecycle) and GetHealth(avrecycle) < 0.95) then triggered = true end
-        if (jail_found and (GetTime() > adjust_timer)) then triggered = true end
+	if ((M.start_done) and (M.build_scav_time < GetTime()) and not (M.build_scav))
+	then
+		M.avscav1 = BuildObject("bvscav", 2, "muf_point");
+		M.avscav2 = BuildObject("bvscav", 2, "muf_point");
+--		M.main_tower = BuildObject("abtowe", 2, "main_tower");
+		Goto(M.avscav1, M.fed_up_scrap, 0);
+		Goto(M.avscav2, M.fed_up_scrap, 0);
+		M.silo_check = GetTime() + 10.0;
+		M.build_scav = true;
+	end
 
-        if triggered then nsdf_adjust = true end
-    end
+-- this is what happens if the player attacks the american scavengers right away
 
-    if nsdf_adjust and (not fight1_built) then
-        avfight1 = BuildObject("bvraz", 2, "muf_point")
-        Attack(avfight1, player)
-        avfigh2_time = GetTime() + DiffUtils.ScaleTimer(20.0)
-        fight1_built = true
-    end
+	if not (M.jail_dead)
+	then
+		if ((((IsAlive(M.avscav1)) and (GetHealth(M.avscav1)<0.91))
+			or
+			((IsAlive(M.avscav2)) and (GetHealth(M.avscav2)<0.91))
+			or
+			((IsAlive(M.main_power)) and (GetHealth(M.main_power)<0.95))
+			or
+			((IsAlive(M.avrecycle)) and (GetHealth(M.avrecycle)<0.95))
+			or
+			((IsAlive(M.avrig)) and (GetHealth(M.avrig)<0.95)))	and not (M.nsdf_adjust))
+		then
+			M.nsdf_adjust = true;
+		end
+	end
 
-    if nsdf_adjust and fight1_built and (not fight2_built) and (GetTime() > avfigh2_time) then
-        avfight2 = BuildObject("bvraz", 2, "muf_point")
-        Attack(avfight2, player)
-        avfigh3_time = GetTime() + DiffUtils.ScaleTimer(20.0)
-        fight2_built = true
-    end
+	if ((IsAlive(M.jail)) and not (M.in_base) and (GetHealth(M.jail) < 0.50))
+	then
+		M.in_base = true;
+	end
 
-    if nsdf_adjust and fight2_built and (not fight3_built) and (GetTime() > avfigh3_time) then
-        avfight3 = BuildObject("bvraz", 2, "muf_point")
-        if IsAlive(avfight2) then Attack(avfight3, apc) else Attack(avfight3, player) end
-        SetScrap(2, 40)
-        fight3_built = true
-    end
+	if ((M.jail_found) and (M.adjust_timer < GetTime()) and not (M.nsdf_adjust) and not (M.jail_dead))
+	then
+		M.nsdf_adjust = true;
+	end
 
-    -- Turret check
-    if nsdf_adjust and IsAlive(avfight3) and (not jail_dead) and (not build_turret) then
-        avturr1 = BuildObject("bvturr", 2, "muf_point")
-        build_turret = true
-    end
+	-- the nsdf adjusts by building fighters and sending them after the player
+	if ((M.nsdf_adjust) and not (M.fight1_built))
+	then
+		M.avfight1 = BuildObject("bvraz", 2, "muf_point");
+		Attack(M.avfight1, M.user);
+		M.avfigh2_time = GetTime() + 20.0;
+		M.fight1_built = true;
+	end
 
-    -- Jail Destroyed / Prison Break
-    if (not IsAlive(jail)) and (not jail_dead) then
-        CameraReady()
-        con_spawn_time = GetTime() + DiffUtils.ScaleTimer(1.5)
-        jail_dead = true
-    end
+	if ((M.nsdf_adjust) and (M.fight1_built) and (M.avfigh2_time < GetTime()) and not (M.fight2_built))
+	then
+		M.avfight2 = BuildObject ("bvraz", 2, "muf_point");
+		Attack(M.avfight2, M.user);
+		M.avfigh3_time = GetTime() + 20.0;
+		M.fight2_built = true;
+	end
 
-    if jail_dead and (not jail_camera_on) then
-        CameraObject(geyser1, -1500, 1000, -5000, boxes)
-        camera_off_time = GetTime() + 3.5
-        jail_camera_on = true
-    end
+	if ((M.nsdf_adjust) and (M.fight2_built) and (M.avfigh3_time < GetTime()) and not (M.fight3_built))
+	then
+		M.avfight3 = BuildObject ("bvraz", 2, "muf_point");
+			-- this is going to send the third fighter after the apc if the
+			-- second fighter is still alive and the apc is within radar range
+			if (IsAlive(M.avfight2))
+			then
+				Attack(M.avfight3, M.apc);
+			else
+				Attack(M.avfight3, M.user);
+			end
 
-    if jail_dead and (GetTime() > con_spawn_time) and (not jail_unit_spawn) then
-        con1 = BuildObject("sssold", 1, "con1_spot"); SetIndependence(con1, 0); GetIn(con1, apc)
-        con2 = BuildObject("sssold", 1, "con2_spot"); SetIndependence(con2, 0); GetIn(con2, apc)
-        con3 = BuildObject("sssold", 1, "con3_spot"); SetIndependence(con3, 0); GetIn(con3, apc)
-        jail_unit_spawn = true
-    end
+		SetScrap(2, 40);
+		M.fight3_built = true;
+	end
 
-    if jail_camera_on and (GetTime() > camera_off_time) and (not jail_camera_off) then
-        CameraFinish()
-        muf_build_time = GetTime() + DiffUtils.ScaleTimer(5.0)
-        jail_camera_off = true
-    end
+	if ((M.nsdf_adjust) and (IsAlive(M.avfight3)) and not (M.jail_dead) and not (M.build_turret))
+	then
+		M.avturr1 = BuildObject("bvturr", 2, "muf_point");
+		M.build_turret = true;
+	end
 
-    if jail_camera_off and (not closer_message) then
-        if GetDistance(apc, boxes) > 70.0 then AudioMessage("misns710.wav") end
-        closer_message = true
-    end
+-- this is when the player destroys the jail
 
-    if jail_camera_off and IsAlive(apc) and (GetTime() > avfigh2_time) and (not fully_loaded)
-        and (GetHealth(apc) < 0.8) and (not apc_panic_message) then
-        AudioMessage("misns723.wav")
-        apc_panic_message = true
-    end
+	if (not (IsAlive(M.jail)) and not (M.jail_dead))
+	then
+		CameraReady();
+		M.con_spawn_time = GetTime() + 1.5;
+		M.jail_dead = true;
+	end
 
-    -- Enemy Upgrades (Muf)
-    if jail_camera_off and (GetTime() > muf_build_time) and (not avmuf_built) then
-        avmuf = BuildObject("bvmuf", 2, "muf_point"); Defend(avmuf); Goto(avmuf, geyser1)
-        avfigh1_time = GetTime() + DiffUtils.ScaleTimer(30.0)
-        avmuf_built = true
-    end
+	if ((M.jail_dead) and not (M.jail_camera_on))
+	then
+		CameraObject(M.geyser1, -1500, 1000, -5000, M.boxes);
+		M.camera_off_time = GetTime() + 3.5;
+		M.jail_camera_on = true;
+	end
 
-    -- Enemy Muf Fleeing Logic (RESTORED from C++ lines 546-552)
-    -- If Muf takes heavy damage while deploying, it relocates to a safer geyser
-    if avmuf_built and IsAlive(avmuf) and (GetHealth(avmuf) < 0.5) and (not muf_deployed) then
-        -- We need a flag to ensure we don't spam Goto? C++ used 'muf_redirect'
-        -- Checking IsAlive(avtank1) is the C++ check for "muf_deployed" (via build queue usually)
-        -- Let's assume if it's hurt, it runs.
-        Goto(avmuf, "geyser3") -- Alternate geyser
-    end
+	if ((M.jail_dead) and (M.con_spawn_time < GetTime()) and not (M.jail_unit_spawn))
+	then
+		M.con1 = BuildObject("sssold",1, "con1_spot");
+		M.con2 = BuildObject("sssold",1, "con2_spot");
+		M.con3 = BuildObject("sssold",1, "con3_spot");
+		SetIndependence(M.con1, 0);
+		SetIndependence(M.con2, 0);
+		SetIndependence(M.con3, 0);
+		GetIn(M.con1, M.apc, 1);
+		GetIn(M.con2, M.apc, 1);
+		GetIn(M.con3, M.apc, 1);
+		M.jail_unit_spawn = true;
+	end
 
-    -- Muf Deployed Check
-    if IsAlive(avmuf) then muf_deployed = true end
+	if ((M.jail_camera_on) and (M.camera_off_time < GetTime()) and not (M.jail_camera_off))
+	then
+		CameraFinish();
+		M.muf_build_time = GetTime() + 5.0;
+		M.jail_camera_off = true;
+	end
 
-    -- Enemy Response with Muf
-    -- if avmuf_built and (not fight1_built) and (GetTime() > avfigh1_time) then
+	-- tells the player to move the apc in if it is too far away
+	if ((M.jail_camera_off) and not (M.closer_message))
+	then
+		if (GetDistance(M.apc, M.boxes) > 70.0)
+		then
+			AudioMessage("misns710.wav");
+			M.closer_message = true;
+		else
+			M.closer_message = true;
+		end
+	end
+
+-- this is the apc telling the player to get him out of there
+
+	if ((M.jail_camera_off) and (IsAlive(M.apc)) and (M.avfigh2_time < GetTime()) and not (M.fully_loaded)
+		and (GetHealth(M.apc)<0.80) and not (M.apc_panic_message))
+	then
+		AudioMessage("misns723.wav");
+		M.apc_panic_message = true;
+	end
+
+-- now that the jail is down the nsdf builds its muf
+
+	if ((M.jail_camera_off) and (M.muf_build_time < GetTime()) and not (M.avmuf_built))
+	then
+		M.avmuf = BuildObject("bvmuf", 2, "muf_point");
+		Defend(M.avmuf);
+		Goto(M.avmuf, M.geyser1);
+		M.avfigh1_time = GetTime() + 30.0;
+		M.avmuf_built = true;
+	end
+
+	-- this is just seeing if the avmuf is deployed
+	if (IsAlive(M.avtank1))
+	then
+		M.muf_deployed = true;
+	end
+
+	-- if the muf is attacked it will redirect
+--/*	if ((M.avmuf_built) and (IsAlive(M.avmuf)) and (GetHealth(M.avmuf)<0.50)
+--		and not (M.muf_redirect) and not (M.muf_deployed))
+--	then
+--		Goto(M.avmuf, M.geyser3);
+--		M.muf_redirect = true;
+--	end
+--*/
+	-- now that the nsdf has built an muf it will start building fighters
+	if ((M.avmuf_built) and (M.avfigh1_time < GetTime()) and not (M.fight1_built))
+	then
+		M.avfight1 = BuildObject("bvraz", 2, "muf_point");
+		SetPerceivedTeam(M.guntower1, 2);
+		SetPerceivedTeam(M.guntower2, 2);
+		SetPerceivedTeam(M.svrecycle, 2);
+		M.avfigh2_time = GetTime() + 30.0;
+		M.fight1_built = true;
+	end
+
+	if ((M.avmuf_built) and (M.fight1_built) and (M.avfigh2_time < GetTime()) and not (M.fight2_built))
+	then
+		M.avfight2 = BuildObject ("bvraz", 2, "muf_point");
+		-- this is going to send the second fighter after the apc if the first fighter is still alive and the apc is within radar range
+		if ((IsAlive(M.avfight1)) and (GetDistance(M.apc, M.boxes) < 200.0))
+		then
+			Attack(M.avfight2, M.apc);
+		end
+
+		SetAIP("misns7.aip");
+		SetPerceivedTeam(M.guntower1, 2);
+		SetPerceivedTeam(M.guntower2, 2);
+		SetPerceivedTeam(M.svrecycle, 2);
+		AddScrap(2, 40);
+		M.fight2_built = true;
+	end
+
+	if ((IsAlive(M.avturr1)) and not (M.turret_move1))
+	then
+		Goto(M.avturr1, "turret_spot");
+		M.turret_move1 = true;
+	end
+
+-- this what happens if the muf is destroyed
+
+	if ((M.avmuf_built) and not (IsAlive(M.avmuf)) and not (M.plan_b))
+	then
+		AddScrap(2, 20);
+		SetAIP("misns7c.aip");
+		SetPerceivedTeam(M.guntower1, 2);
+		SetPerceivedTeam(M.guntower2, 2);
+		SetPerceivedTeam(M.svrecycle, 2);
+		M.plan_c = false;
+		M.plan_b = true;
+	end
+
+	if ((M.plan_b) and (IsAlive(M.avmuf)) and not (M.plan_c))
+	then
+		if (M.plan_a)-- if the player has already gotten his muf
+		then
+			SetAIP("misns7a.aip");-- this has scavs
+			SetPerceivedTeam(M.guntower1, 2);
+			SetPerceivedTeam(M.guntower2, 2);
+			SetPerceivedTeam(M.svrecycle, 2);
+		else
+			SetAIP("misns7.aip");
+			SetPerceivedTeam(M.guntower1, 2);
+			SetPerceivedTeam(M.guntower2, 2);
+			SetPerceivedTeam(M.svrecycle, 2);
+		end
+
+--		AddScrap(2, 20);
+		Goto(M.avmuf, M.geyser1);
+		M.plan_b = false;
+		M.plan_c = true;
+	end
 
 
-    -- Cons Death
-    if jail_unit_spawn then
-        if (not IsAlive(con1)) and (not con1_in_apc) then con1_dead = true end
-        if (not IsAlive(con2)) and (not con2_in_apc) then con2_dead = true end
-        if (not IsAlive(con3)) and (not con3_in_apc) then con3_dead = true end
-    end
+-- this determines if the cons are killed BEFORE they get into the apc (since getting into an apc techincally "kills" them
 
-    -- Pickup Logic
-    -- C++ has complex GetDistance checks < 20.0f
-    local function CheckPickup(con, flag_in, time_var, flag_safe)
-        if (not flag_in) and IsAlive(con) and (GetDistance(con, apc) < 30.0) then -- Increased radius
-            cons_in_apc = cons_in_apc + 1
-            return true, GetTime() + 0.2
-        end
-        return flag_in, time_var
-    end
+	if ((M.jail_unit_spawn) and not (IsAlive(M.con1)) and not (M.con1_in_apc))
+	then
+		M.con1_dead = true;
+	end
 
-    con1_in_apc, con1_pickup_time = CheckPickup(con1, con1_in_apc, con1_pickup_time, con1_safe)
-    con2_in_apc, con2_pickup_time = CheckPickup(con2, con2_in_apc, con2_pickup_time, con2_safe)
-    con3_in_apc, con3_pickup_time = CheckPickup(con3, con3_in_apc, con3_pickup_time, con3_safe)
+	if ((M.jail_unit_spawn) and not (IsAlive(M.con2)) and not (M.con2_in_apc))
+	then
+		M.con2_dead = true;
+	end
 
-    local function ProcessSafe(flag_in, time_var, flag_safe, con_h)
-        if flag_in and (not flag_safe) and (GetTime() > time_var) then
-            RemoveObject(con_h)
-            AddPilot(1, 1)
-            AudioMessage("misns702.wav")
-            goo_time = GetTime() + 5.0
-            pick_up = true
-            return true
-        end
-        return flag_safe
-    end
+	if ((M.jail_unit_spawn) and not (IsAlive(M.con3)) and not (M.con3_in_apc))
+	then
+		M.con3_dead = true;
+	end
 
-    con1_safe = ProcessSafe(con1_in_apc, con1_pickup_time, con1_safe, con1)
-    con2_safe = ProcessSafe(con2_in_apc, con2_pickup_time, con2_safe, con2)
-    con3_safe = ProcessSafe(con3_in_apc, con3_pickup_time, con3_safe, con3)
+	-- now that the cons are free the player has to pick them up
 
-    -- Loaded Status / Messages
-    if con1_safe and con2_safe and con3_safe and (not fully_loaded) and (not first_message_done) then
-        AudioMessage("misns704.wav")
-        fully_loaded = true; first_message_done = true; muf_message_time = GetTime() + 3.0
-        check_a = GetTime() + 1.0; check_b = GetTime() + 2.0; check_c = GetTime() + 3.0
-    end
-    -- Also handle mix of dead/safe (Two loaded, one loaded)
-    local safe_count = 0
-    if con1_safe then safe_count = safe_count + 1 end
-    if con2_safe then safe_count = safe_count + 1 end
-    if con3_safe then safe_count = safe_count + 1 end
+--	if ((M.jail_unit_spawn) and not (M.con_pickup) and (GetDistance(M.apc,M.boxes) < 30.0))
+--	then
+----	Stop(M.apc, 0);
+----	CameraReady();
+--		Retreat(M.con1, M.apc);
+--		Retreat(M.con2, M.apc);
+--		Retreat(M.con3, M.apc);
+--		M.con_pickup = true;
+--	end
 
-    local dead_count = 0
-    if con1_dead then dead_count = dead_count + 1 end
-    if con2_dead then dead_count = dead_count + 1 end
-    if con3_dead then dead_count = dead_count + 1 end
+-- this is instructing the apc to stop when in close proximity to a con
+--/*
+--		if ((M.jail_unit_spawn) and (M.con1~= nil) and (GetDistance(M.con1, M.apc) < 25.0) and not (M.pick_up))
+--		then
+--			Stop(M.apc, 0);
+--			M.pick_up = true;
+--		end
+--
+--		if((M.jail_unit_spawn) and (M.con2~= nil) and (GetDistance(M.con2, M.apc) < 25.0) and not (M.pick_up))
+--		then
+--			Stop(M.apc, 0);
+--			M.pick_up = true;
+--		end
+--
+--		if((M.jail_unit_spawn) and (M.con3~= nil) and (GetDistance(M.con3, M.apc) < 25.0) and not (M.pick_up))
+--		then
+--			Stop(M.apc, 0);
+--			M.pick_up = true;
+--		end
+--
+--		if ((M.pick_up) and (M.con1~= nil) and (GetDistance(M.con1, M.apc) < 50.0))
+--		then
+--			M.pick_up = false;
+--		end
+--
+--		if ((M.pick_up) and (M.con2~= nil) and (GetDistance(M.con2, M.apc) < 50.0))
+--		then
+--			M.pick_up = false;
+--		end
+--
+--		if ((M.pick_up) and (M.con3~= nil) and (GetDistance(M.con3, M.apc) < 50.0))
+--		then
+--			M.pick_up = false;
+--		end
+--*/
+--	if ((M.con_pickup) and not (M.con_camera_on))
+--	then
+--		CameraObject(M.geyser1, -2000, 2000, -4000, M.boxes);
+--		M.con_camera_time = GetTime() + 7.0;
+--		M.con_camera_on = true;
+--	end
 
-    if (safe_count == 2) and (dead_count == 1) and (not two_loaded) and (not first_message_done) then
-        AudioMessage("misns705.wav")
-        two_loaded = true; first_message_done = true; muf_message_time = GetTime() + 3.0
-        check_a = GetTime() + 1.0; check_b = GetTime() + 2.0; check_c = GetTime() + 3.0
-    end
-    if (safe_count == 1) and (dead_count == 2) and (not one_loaded) and (not first_message_done) then
-        AudioMessage("misns706.wav")
-        one_loaded = true; first_message_done = true; muf_message_time = GetTime() + 3.0
-        check_a = GetTime() + 1.0; check_b = GetTime() + 2.0; check_c = GetTime() + 3.0
-    end
+	if ((M.jail_unit_spawn) and (GetDistance(M.con1, M.apc) < 20.0) and not (M.con1_dead) and not (M.con1_in_apc))
+	then
+		M.con1_pickup_time = GetTime() + 0.2;
+		M.con1_in_apc = true;
+	end
 
-    -- Restored Base Building Phase 2 (C++ lines 1529-1564)
-    -- Builds Power Plant 2 and Tower 3
-    if camera_off_recycle and IsAlive(avrig) and (not b3) then
-        -- Assuming !main_off/maint_off checks passed or irrelevant if we just use queue
-        Build(avrig, "abwpow") -- avpower2
-        b5_time = GetTime() + DiffUtils.ScaleTimer(5.0)
-        b3 = true
-    end
+		if ((M.con1_in_apc) and (M.con1_pickup_time < GetTime()) and not (M.con1_safe))
+		then
+			RemoveObject(M.con1);
+			AddPilot(1, 1);
+			AudioMessage(rescue_msg[M.con1_safe + M.con2_safe + M.con3_safe]); -- engineer aboard message based on safe count 726
+			M.goo_time = GetTime() + 5.0;
+			M.pick_up = true;
+			M.con1_safe = true;
+		end
 
-    if b3 and (not rig_show2) and (GetTime() > b5_time) then
-        if IsAlive(avrig) then
-            Dropoff(avrig, "power2_spot")
-            b6_time = GetTime() + DiffUtils.ScaleTimer(5.0)
-            rig_show2 = true
-        end
-    end
+	if ((M.jail_unit_spawn) and (GetDistance(M.con2, M.apc) < 20.0) and not (M.con2_dead) and not (M.con2_in_apc))
+	then
+		M.con2_pickup_time = GetTime() + 0.2;
+		M.con2_in_apc = true;
+	end
 
-    if rig_show2 and IsAlive(avrig) and (not b4) and (GetTime() > b6_time) then
-        -- Check if power2 exists? C++: IsAlive(avpower2) || power1
-        Build(avrig, "abtowe") -- tower3
-        b7_time = GetTime() + DiffUtils.ScaleTimer(5.0)
-        b4 = true
-    end
+		if ((M.con2_in_apc) and (M.con2_pickup_time < GetTime()) and not (M.con2_safe))
+		then
+			RemoveObject(M.con2);
+			AddPilot(1, 1);
+			AudioMessage(rescue_msg[M.con1_safe + M.con2_safe + M.con3_safe]); -- engineer aboard message based on safe count 726
+			M.goo_time = GetTime() + 5.0;
+			M.pick_up = true;
+			M.con2_safe = true;
+		end
 
-    if b4 and (not rig_show3) and (GetTime() > b7_time) then
-        if IsAlive(avrig) then
-            Dropoff(avrig, "tower3_spot")
-            rig_show3 = true
-        end
-    end
+	if ((M.jail_unit_spawn) and (GetDistance(M.con3, M.apc) < 20.0) and not (M.con3_dead) and not (M.con3_in_apc))
+	then
+		M.con3_pickup_time = GetTime() + 0.2;
+		M.con3_in_apc = true;
+	end
 
-    -- Muf/Recy/Supply Drops
-    -- C++ has explicit dropoff logic for engineer at `svrecycle`, `svmuf`, `supply`
+		if ((M.con3_in_apc) and (M.con3_pickup_time < GetTime()) and not (M.con3_safe))
+		then
+			RemoveObject(M.con3);
+			AddPilot(1, 1);
+			AudioMessage(rescue_msg[M.con1_safe + M.con2_safe + M.con3_safe]); -- engineer aboard message based on safe count 726
+			M.goo_time = GetTime() + 5.0;
+			M.pick_up = true;
+			M.con3_safe = true;
+		end
+
+-- here is where I set the "loaded" apc parameters (depending on how many cons get into the apc
+
+	if ((M.con1_safe) and (M.con2_safe) and (M.con3_safe) and not (M.fully_loaded)
+		and not (M.first_message_done) and not (M.get_recycle) and not (M.get_muf) and not (M.get_supply))
+	then
+		AudioMessage("misns704.wav");
+		M.fully_loaded = true;
+		M.muf_message_time = GetTime() + 3.0;
+		M.check_a = GetTime() + 1.0;
+		M.check_b = GetTime() + 2.0;
+		M.check_c = GetTime() + 3.0;
+		M.first_message_done = true;
+	end
+
+	if (((M.con1_safe) and (M.con2_safe) and (M.con3_dead) and not (M.two_loaded)) or
+		((M.con1_safe) and (M.con2_dead) and (M.con3_safe) and not (M.two_loaded)) or
+		((M.con1_dead) and (M.con2_safe) and (M.con3_safe) and not (M.two_loaded))
+		and not (M.first_message_done) and not (M.get_recycle) and not (M.get_muf) and not (M.get_supply))
+	then
+		AudioMessage("misns705.wav"); -- only two of us made it sir lets get the fuck outta here
+		M.two_loaded = true;
+		M.muf_message_time = GetTime() + 3.0;
+		M.check_a = GetTime() + 1.0;
+		M.check_b = GetTime() + 2.0;
+		M.check_c = GetTime() + 3.0;
+		M.first_message_done = true;
+	end
+
+	if (((M.con1_safe) and (M.con2_dead) and (M.con3_dead) and not (M.one_loaded)) or
+		((M.con1_dead) and (M.con2_safe) and (M.con3_dead) and not (M.one_loaded)) or
+		((M.con1_dead) and (M.con2_dead) and (M.con3_safe) and not (M.one_loaded))
+		and not (M.first_message_done) and not (M.get_recycle) and not (M.get_muf) and not (M.get_supply))
+	then
+		AudioMessage("misns706.wav"); -- only one of us made it sir lets get the fuck outta here
+		M.one_loaded = true;
+		M.muf_message_time = GetTime() + 3.0;
+		M.check_a = GetTime() + 1.0;
+		M.check_b = GetTime() + 2.0;
+		M.check_c = GetTime() + 3.0;
+		M.first_message_done = true;
+	end
+
+-- this is where the apc pilot tells the player about the muf
+
+	if ((IsAlive(M.apc)) and (M.pick_up) and (M.goo_time < GetTime()) and not (M.first_message_done))
+	then
+		M.goo_time = GetTime() + 5.0;
+		M.stuff = CountUnitsNearObject(M.apc, 200.0, 2, nil);
+		if (M.stuff == 0)
+		then
+			if (IsAlive(M.con1))
+			then
+				RemoveObject(M.con1);
+			end
+			if (IsAlive(M.con2))
+			then
+				RemoveObject(M.con2);
+			end
+			if (IsAlive(M.con3))
+			then
+				RemoveObject(M.con3);
+			end
+		end
+	end
+
+	if ((IsAlive(M.apc)) and (M.first_message_done) and (M.muf_message_time < GetTime()) and not (M.muf_message))
+	then
+		M.muf_message_time = GetTime() + 3.0;
+		M.stuff4 = CountUnitsNearObject(M.apc, 200.0, 2, nil);
+		if (M.stuff4 == 0)
+		then
+			if (M.fully_loaded)
+			then
+				AudioMessage("misns724.wav");
+				AudioMessage("misns717.wav");
+				M.muf_message_time = GetTime() + 30.0;
+			else
+				if (M.two_loaded)
+				then
+					AudioMessage("misns725.wav");
+					AudioMessage("misns718.wav");
+					M.muf_message_time = GetTime() + 30.0;
+				else
+					if (M.one_loaded)
+					then
+						AudioMessage("misns725.wav");
+						AudioMessage("misns708.wav");
+						M.muf_message_time = GetTime() + 30.0;
+					end
+				end
+			end
+
+			ClearObjectives();
+			AddObjective("misns703.otf", "GREEN");
+			AddObjective("misns701.otf", "WHITE");
+--			AddObjective("misns702.otf", "WHITE");
+			M.muf_message = true;
+		end
+	end
+
+	if (not (M.muf_message2) and (M.muf_message) and (M.muf_message_time < GetTime()))
+	then
+		ClearObjectives();
+		AddObjective("misns703.otf", "GREEN");
+		AddObjective("misns701.otf", "WHITE");
+		AddObjective("misns702.otf", "WHITE");
+		M.muf_message2 = true;
+	end
+
+--	if ((M.con_camera_on) and (cons_loaded) and not (M.con_camera_off))
+--	then
+--		CameraFinish();
+--		M.con_camera_off = true;
+--	end
 
 
-    -- Function to handle engineer drop
-    local function HandleDrop(trigger_flag, apc_dist_check, target_handle, camera_flag, cam_off_flag, spawn_flag,
-                              engineer_h, on_flag, time_spawn)
-        if (not trigger_flag) and first_message_done and (GetTime() > time_spawn) and (GetDistance(apc, target_handle) < apc_dist_check) then
-            -- Check decrement of passengers? C++: down_to_two/one flags.
-            return true, GetTime() + 3.0 -- Set trigger
-        end
-        return trigger_flag, time_spawn
-    end
-    -- This part is complex state machine in C++. Assuming player drives APC to location.
+-- this is the apc dropping off the engineer at the svrecycler
 
-    -- Recycler Drop Logic
-    if first_message_done and (not get_recycle) and (GetTime() > check_a) and (GetDistance(apc, svrecycle) < 65.0) then
-        -- Decrement passenger count logic simplified here
-        if (cons_in_apc > 0) then
-            get_recycle = true
-            CameraReady()
-            Stop(apc, 0)
-            unit_spawn_time1 = GetTime() + 2.0
-            cons_in_apc = cons_in_apc - 1 -- Use one
-        end
-    end
+if ((M.first_message_done) and not (M.get_recycle)
+	and (M.check_a < GetTime()) and (GetDistance(M.apc, M.svrecycle) < 50.0))
+then
+	M.check_a = GetTime() + 3.0;
 
-    if get_recycle and (not camera_off_recycle) then
-        if not camera_on_recycle then
-            CameraObject(svrecycle, -4000, 1000, 2000, svrecycle)
-            camera_on_recycle = true
-        end
+	if (not (M.apc_empty) and (M.fully_loaded) and not (M.get_recycle)
+		and not (M.down_to_two) --/* and (GetDistance(M.apc, M.svrecycle) < 50.0)*/
+		)
+	then
+		M.get_recycle = true;
+		CameraReady();
+		Stop(M.apc, 0);
+		M.unit_spawn_time1 = GetTime() + 2.0;
+		M.down_to_two = true;
+	end
 
-        if (GetTime() > unit_spawn_time1) and (not svrecycle_unit_spawn) then
-            engineer = BuildObject("sssold", 1, apc); Retreat(engineer, svrecycle); AddPilot(1, -1)
-            svrecycle_unit_spawn = true
-        end
+		if (not (M.apc_empty) and (M.two_loaded) and not (M.get_recycle)
+			 and not (M.down_to_one) --/* and (GetDistance(M.apc, M.svrecycle) < 50.0)*/
+			 )
+		then
+			M.get_recycle = true;
+			CameraReady();
+			Stop(M.apc, 0);
+			M.unit_spawn_time1 = GetTime() + 2.0;
+			M.down_to_one = true;
+		end
 
-        if svrecycle_unit_spawn and (not svrecycle_on) then
-            -- Use aiCore helper for reclaiming
-            if bdog:ReclaimBuilding(svrecycle, engineer) then
-                svrecycle_on = true
-            end
-        end
+		if (not (M.apc_empty) and (M.one_loaded) and not (M.get_recycle)
+			-- /* and (GetDistance(M.apc, M.svrecycle) < 50.0)*/
+			)
+		then
+			M.get_recycle = true;
+			CameraReady();
+			Stop(M.apc, 0);
+			M.unit_spawn_time1 = GetTime() + 2.0;
+			M.apc_empty = true;
+		end
 
-        if svrecycle_unit_spawn and (svrecycle_on or CameraCancelled()) then
-            CameraFinish()
-            RemoveObject(svrecycle)
-            -- C++: Build "svmine" then "svrecy"? Transition animation?
-            local tmp = BuildObject("svmine", 0, svrecycle); RemoveObject(tmp) -- Just cleanup?
-            svrecycle = BuildObject("svrecy", 1, svrecycle)                    -- Respawn as friendly?
-            -- Wait, C++ uses `temp` handle location. `svrecycle` is a wreck I assume?
+	if (not (M.apc_empty) and (M.down_to_two) and not (M.get_recycle)
+		 and not (M.down_to_one) --/* and (GetDistance(M.apc, M.svrecycle) < 50.0)*/
+		 )
+	then
+		M.get_recycle = true;
+		CameraReady();
+		Stop(M.apc, 0);
+		M.unit_spawn_time1 = GetTime() + 2.0;
+		M.down_to_one = true;
+	end
 
-            AudioMessage("misns727.wav")
-            AddScrap(1, 20)
-            camera_off_recycle = true
+	if (not (M.apc_empty) and (M.down_to_one) and not (M.get_recycle)
+		-- /* and (GetDistance(M.apc, M.svrecycle) < 50.0)*/
+		)
+	then
+		M.get_recycle = true;
+		CameraReady();
+		Stop(M.apc, 0);
+		M.unit_spawn_time1 = GetTime() + 2.0;
+		M.apc_empty = true;
+	end
+end
 
-            -- Update Objectives
-            ClearObjectives()
-            if not camera_off_muf then AddObjective("misns708.otf", "white") end
-            -- etc
-        end
-    end
+		if ((M.get_recycle) and not (M.camera_off_recycle))
+		then
+			CameraObject(M.svrecycle, -4000, 1000, 2000, M.svrecycle);
+--			M.camera_off_time = GetTime + 8.0;
+			M.camera_on_recycle = true;
+		end
 
-    -- Muf Drop Logic (Similar)
-    if first_message_done and (not get_muf) and (GetTime() > check_b) and (GetDistance(apc, svmuf) < 65.0) then
-        if (cons_in_apc > 0) then
-            get_muf = true; CameraReady(); Stop(apc, 0); unit_spawn_time1 = GetTime() + 2.0
-            cons_in_apc = cons_in_apc - 1
-        end
-    end
+		if ((M.camera_on_recycle) and (M.unit_spawn_time1 < GetTime()) and not (M.svrecycle_unit_spawn))
+		then
+			M.engineer = BuildObject("sssold",1,M.apc);
+			Retreat (M.engineer, M.svrecycle, 1);
+			AddPilot(1, -1);
+			M.svrecycle_unit_spawn = true;
+		end
 
-    if get_muf and (not camera_off_muf) then
-        if not camera_on_muf then
-            CameraObject(svmuf, -3000, 1000, 4000, svmuf); camera_on_muf = true
-        end
+		if ((M.svrecycle_unit_spawn) and not (M.svrecycle_on) and (GetDistance(M.engineer, M.svrecycle) < 25.0))
+		then
+			RemoveObject(M.engineer);
+			M.svrecycle_on = true;
+		end
 
-        if (GetTime() > unit_spawn_time1) and (not svmuf_unit_spawn) then
-            engineer = BuildObject("sssold", 1, apc); Retreat(engineer, svmuf); AddPilot(1, -1)
-            svmuf_unit_spawn = true
-        end
+		if ((M.svrecycle_unit_spawn) and not (M.camera_off_recycle) and ((M.svrecycle_on) or (CameraCancelled())))
+		then
+			CameraFinish();
+			if (IsAlive(M.engineer))
+			then
+				RemoveObject(M.engineer);
+			end
+			M.temp = BuildObject("svmine", 0, M.svrecycle);
+			Defend(M.temp);
+			RemoveObject(M.svrecycle);
+			M.svrecycle = BuildObject("svrecy", 1, M.temp);
+			RemoveObject(M.temp);
+--			if (IsAlive(M.guntower1))
+--			then
+--				SetPerceivedTeam(M.guntower1, 1);
+--			end
+--			if (IsAlive(M.guntower2))
+--			then
+--				SetPerceivedTeam(M.guntower2, 1);
+--			end
 
-        if svmuf_unit_spawn and (not svmuf_on) then
-            if bdog:ReclaimBuilding(svmuf, engineer) then
-                svmuf_on = true
-            end
-        end
+			if (not (M.camera_off_muf) and not (M.camera_off_supply))
+			then
+				ClearObjectives();
+				AddObjective("misns708.otf", "WHITE");
+			else
+				if ((M.camera_off_muf) and not (M.camera_off_supply))
+				then
+					ClearObjectives();
+					AddObjective("misns708.otf", "WHITE");
+					AddObjective("misns704.otf", "GREEN");
+					AddObjective("misns705.otf", "WHITE");
+				else
+					if ((M.camera_off_muf) and (M.camera_off_supply))
+					then
+						ClearObjectives();
+						AddObjective("misns708.otf", "WHITE");
+						AddObjective("misns704.otf", "GREEN");
+						AddObjective("misns706.otf", "GREEN");
+					end
+				end
+			end
 
-        if svmuf_unit_spawn and (svmuf_on or CameraCancelled()) then
-            CameraFinish()
-            RemoveObject(svmuf)
-            svmuf = BuildObject("svmuf", 1, svmuf)
-            AddScrap(1, 20)
-            camera_off_muf = true
-            -- Audio
-            if supply_first then AudioMessage("misns709.wav") else AudioMessage("misns714.wav") end
-        end
-    end
+			AudioMessage("misns727.wav");
+			AddScrap(1, 20);
+			SetAIP("misns7a.aip");
+			SetPerceivedTeam(M.guntower1, 2);
+			SetPerceivedTeam(M.guntower2, 2);
+			SetPerceivedTeam(M.svrecycle, 2);
+			M.camera_off_recycle = true;
+		end
 
-    -- Supply Drop Logic
-    -- Similar block for `get_supply`.
+-- this is when the player retakes his muf
+if not (M.new_muf)
+then
+	if ((M.first_message_done) and not (M.get_muf)
+		and (M.check_b < GetTime()) and (GetDistance(M.apc, M.svmuf) < 40.0))
+	then
+		M.check_b = GetTime() + 3.0;
 
-    -- Win/Lose
-    if (not game_over) and (not IsAlive(avrecycle)) then
-        AudioMessage("misns712.wav")
-        SucceedMission(GetTime() + 10.0, "misns7w1.des")
-        game_over = true
-    end
+		if (not (M.apc_empty) and (M.fully_loaded) and not (M.get_muf)
+			 and not (M.down_to_two) --/* and (GetDistance(M.apc, M.svmuf) < 50.0)*/
+			 )
+		then
+			M.get_muf = true;
+			CameraReady();
+			Stop(M.apc, 0);
+			M.unit_spawn_time1 = GetTime() + 2.0;
+			M.down_to_two = true;
+		end
 
-    if (not game_over) and (con1_dead and con2_dead and con3_dead) then
-        AudioMessage("misns711.wav")
-        FailMission(GetTime() + 10.0, "misns7f1.des")
-        game_over = true
-    end
+			if (not (M.apc_empty)  and (M.two_loaded) and not (M.get_muf)
+				 and not (M.down_to_one) --/* and (GetDistance(M.apc, M.svmuf) < 50.0)*/
+				 )
+			then
+				M.get_muf = true;
+				CameraReady();
+				Stop(M.apc, 0);
+				M.unit_spawn_time1 = GetTime() + 2.0;
+				M.down_to_one = true;
+			end
+
+			if (not (M.apc_empty) and (M.one_loaded) and not (M.get_muf)
+				-- /* and (GetDistance(M.apc, M.svmuf) < 50.0)*/
+				)
+			then
+				M.get_muf = true;
+				CameraReady();
+				Stop(M.apc, 0);
+				M.unit_spawn_time1 = GetTime() + 2.0;
+				M.apc_empty = true;
+			end
+
+		if (not (M.apc_empty) and (M.down_to_two) and not (M.get_muf)
+			 and not (M.down_to_one) --/* and (GetDistance(M.apc, M.svmuf) < 50.0)*/
+			 )
+		then
+			M.get_muf = true;
+			CameraReady();
+			Stop(M.apc, 0);
+			M.unit_spawn_time1 = GetTime() + 2.0;
+			M.down_to_one = true;
+		end
+
+		if (not (M.apc_empty) and (M.down_to_one) and not (M.get_muf)
+			-- /* and (GetDistance(M.apc, M.svmuf) < 50.0)*/
+			)
+		then
+			M.get_muf = true;
+			CameraReady();
+			Stop(M.apc, 0);
+			M.unit_spawn_time1 = GetTime() + 2.0;
+			M.apc_empty = true;
+		end
+	end
+
+			if ((M.get_muf) and not (M.camera_off_muf))
+			then
+				CameraObject(M.svmuf, -3000, 1000, 4000, M.svmuf);
+				M.camera_on_muf = true;
+			end
+
+			if ((M.camera_on_muf) and (M.unit_spawn_time1 < GetTime()) and not (M.svmuf_unit_spawn))
+			then
+				M.engineer = BuildObject("sssold",1,M.apc);
+				Retreat (M.engineer, M.svmuf, 1);
+				AddPilot(1, -1);
+				M.svmuf_unit_spawn = true;
+			end
+
+			if ((M.svmuf_unit_spawn) and not (M.svmuf_on) and (GetDistance(M.engineer, M.svmuf) < 20.0))
+			then
+				RemoveObject(M.engineer);
+				M.svmuf_on = true;
+			end
+
+			if ((M.svmuf_unit_spawn) and not (M.camera_off_muf) and ((M.svmuf_on) or (CameraCancelled())))
+			then
+				if (IsAlive(M.engineer))
+				then
+					RemoveObject(M.engineer);
+				end
+				M.temp = BuildObject("svmine", 0, M.svmuf);
+				Defend(M.temp);
+				RemoveObject(M.svmuf);
+				M.svmuf = BuildObject("svmuf", 1, M.temp);
+				RemoveObject(M.temp);
+				AddScrap(1, 20);
+				CameraFinish();
+				M.camera_off_muf = true;
+			end
+		-- this is the message from the muf
+		if ((M.camera_off_muf) and not (M.supply_message))
+		then
+			if (M.supply_first)
+			then
+				AudioMessage("misns709.wav");-- found the key to open the lock to the silo
+			end
+
+			if not (M.supply_first)
+			then
+				AudioMessage("misns714.wav");-- found a key and map to the "devil's crown in north
+			end
+
+			if not (M.camera_off_recycle)
+			then
+				ClearObjectives();
+				AddObjective("misns703.otf", "GREEN");
+				AddObjective("misns701.otf", "WHITE");
+				AddObjective("misns704.otf", "GREEN");
+				AddObjective("misns705.otf", "WHITE");
+			end
+
+			M.supply_message = true;
+		end
+end
+
+-- this is when the player reaches the supply hut
+
+if (M.camera_off_muf)
+then
+	if ((M.first_message_done) and not (M.get_supply)
+		and (M.check_c < GetTime()) and (GetDistance(M.apc, M.supply) < 70.0))
+	then
+		M.check_c = GetTime() + 3.0;
+
+		if (not (M.apc_empty) and (M.fully_loaded) and not (M.get_supply)
+			 and not (M.down_to_two) --/* and (GetDistance(M.apc, M.supply) < 50.0)*/
+			 )
+		then
+			M.get_supply = true;
+			CameraReady();
+			Stop(M.apc, 0);
+			M.unit_spawn_time1 = GetTime() + 2.0;
+			M.down_to_two = true;
+		end
+
+			if (not (M.apc_empty) and (M.two_loaded) and not (M.get_supply)
+				 and not (M.down_to_one) --/* and (GetDistance(M.apc, M.supply) < 50.0)*/
+				 )
+			then
+				M.get_supply = true;
+				CameraReady();
+				Stop(M.apc, 0);
+				M.unit_spawn_time1 = GetTime() + 2.0;
+				M.down_to_one = true;
+			end
+
+			if (not (M.apc_empty) and (M.one_loaded) and not (M.get_supply)
+				-- /* and (GetDistance(M.apc, M.supply) < 50.0)*/
+				)
+			then
+				M.get_supply = true;
+				CameraReady();
+				Stop(M.apc, 0);
+				M.unit_spawn_time1 = GetTime() + 2.0;
+				M.apc_empty = true;
+			end
+
+		if (not (M.apc_empty) and (M.down_to_two) and not (M.get_supply)
+			 and not (M.down_to_one) --/* and (GetDistance(M.apc, M.supply) < 50.0)*/
+			 )
+		then
+			M.get_supply = true;
+			CameraReady();
+			Stop(M.apc, 0);
+			M.unit_spawn_time1 = GetTime() + 2.0;
+			M.down_to_one = true;
+		end
+
+		if (not (M.apc_empty) and (M.down_to_one) and not (M.get_supply)
+			-- /* and (GetDistance(M.apc, M.supply) < 50.0)*/
+			)
+		then
+			M.get_supply = true;
+			CameraReady();
+			Stop(M.apc, 0);
+			M.unit_spawn_time1 = GetTime() + 2.0;
+			M.apc_empty = true;
+		end
+	end
+
+		if ((M.get_supply) and not (M.camera_off_supply))
+		then
+			CameraObject(M.supply, 1000, 1000, 8000, M.supply);
+			M.camera_on_supply = true;
+		end
+
+		if ((M.camera_on_supply) and (M.unit_spawn_time1 < GetTime()) and not (M.supply_unit_spawn))
+		then
+			M.engineer = BuildObject("sssold",1,M.apc);
+			Retreat (M.engineer, "con_path", 1);
+			AddPilot(1, -1);
+			M.supply_unit_spawn = true;
+		end
+
+		if ((M.supply_unit_spawn) and (IsAlive(M.engineer))
+			and not (M.supply_on) and (GetDistance(M.engineer, M.con_geyser) < 30.0))
+		then
+			RemoveObject(M.engineer);
+--			M.supply_message_time = GetTime() + 3.0;
+			M.supply_on = true;
+		end
+
+		if ((M.supply_unit_spawn) and not (M.camera_off_supply) and ((M.supply_on) or (CameraCancelled())))
+		then
+			if (IsAlive(M.engineer))
+			then
+				RemoveObject(M.engineer);
+			end
+
+			if not (M.camera_off_recycle)
+			then
+				ClearObjectives();
+				AddObjective("misns703.otf", "GREEN");
+				AddObjective("misns701.otf", "WHITE");
+				AddObjective("misns704.otf", "GREEN");
+				AddObjective("misns706.otf", "GREEN");
+			else
+				ClearObjectives();
+				AddObjective("misns708.otf", "WHITE");
+				AddObjective("misns704.otf", "GREEN");
+				AddObjective("misns706.otf", "GREEN");
+			end
+
+			M.camera_off_supply = true;
+			CameraFinish();
+		end
+
+		-- now that the player has an engineer in the supply shed he willl be given the goods
+
+		if ((M.camera_off_supply) and --/*(M.supply_message_time < GetTime()) and */
+		not (M.supply2_message))
+		then
+			AudioMessage("misns707.wav"); -- I found some supplies in here
+			M.supply_spawn_time = GetTime() + 15.0;
+			M.supply2_message = true;
+		end
+
+		if ((M.supply2_message) and (M.supply_spawn_time < GetTime()) and not (M.supplies_spawned))
+		then
+			M.supply1 = BuildObject("svscav", 1, "supply1");
+			M.supply2 = BuildObject("svturr", 1, "supply2");
+			M.supply3 = BuildObject("svturr", 1, "supply3");
+			M.supply4 = BuildObject("svscav", 1, "supply4");
+			M.supply5 = BuildObject("spammo", 1, "supply5");
+			M.supply6 = BuildObject("spammo", 1, "supply6");
+			M.supply7 = BuildObject("spammo", 1, "supply7");
+			M.supply8 = BuildObject("sprepa", 1, "supply8");
+			M.supply9 = BuildObject("sprepa", 1, "supply9");
+			Stop(M.supply1, 0);
+			Stop(M.supply4, 0);
+			M.supplies_spawned = true;
+		end
+
+		if ((M.supplies_spawned) and not (M.turret_message))
+		then
+			AudioMessage("misns721.wav");
+			Stop(M.supply1, 0);
+			Stop(M.supply4, 0);
+			M.turret_message = true;
+		end
+end
+
+	if ((IsAlive(M.supply)) and not (M.camera_off_muf)
+		and (GetDistance(M.user, M.supply) < 70.0) and not (M.supply_first))
+	then
+		AudioMessage("misns715.wav"); -- tells the player that the hut is locked
+		M.supply_first = true;
+	end
+
+-- this is sending the nsdf scavengers to their silo
+
+	if (((M.supply_first) or (M.camera_off_muf)) and not (M.plan_a))
+	then
+		if (IsAlive(M.avsilo))
+		then
+			if (IsAlive(M.avscav1))
+			then
+				Goto(M.avscav1, M.avsilo);
+			end
+			if (IsAlive(M.avscav2))
+			then
+				Goto(M.avscav2, M.avsilo);
+			end
+			if (IsAlive(M.avturr1))
+			then
+				Goto(M.avturr1, "avsilo_spot1", 1);
+			end
+			if (IsAlive(M.avturr2))
+			then
+				Goto(M.avturr2, "avsilo_spot2", 1);
+			end
+			if (IsAlive(M.avfight1))
+			then
+				Goto(M.avfight1, M.avsilo, 0);
+			end
+			if (IsAlive(M.avfight2))
+			then
+				Goto(M.avfight2, M.avsilo, 0);
+			end
+		end
+
+		SetAIP("misns7b.aip");-- this has scavs
+		SetPerceivedTeam(M.guntower1, 2);
+		SetPerceivedTeam(M.guntower2, 2);
+		SetPerceivedTeam(M.svrecycle, 2);
+
+		if (IsAlive(M.avrig))
+		then
+			Defend(M.avrig);
+		end
+
+		M.plan_a = true;
+	end
+
+--	if ((M.plan_a) and not (IsAlive(M.avrig)) and not (M.plan_d))
+--	then
+--		SetAIP("misns7a.aip");-- this has scavs
+--
+--		if (not (IsAlive(M.avscav1)) and not (IsAlive(M.avscav2)))
+--		then
+--			AddScrap(2, 20);
+--		end
+--
+--		M.plan_d = true;
+--	end
+
+-- this is checking to see if a gech is build and what to do with it
+
+	if ((M.muf_scan_time < GetTime()) and not (M.muf_located))
+	then
+		M.muf_scan_time = GetTime() + 3.0;
+		if (IsAlive(M.svmuf))
+		then
+			M.stuff2 = CountUnitsNearObject(M.svmuf, 200.0, 2, nil);
+			if (M.stuff2 > 0)
+			then
+				M.muf_located = true;
+			end
+		end
+	end
+
+	if ((IsAlive(M.avgech)) and not (M.gech_sent))
+	then
+		if (M.muf_located)
+		then
+			if (IsAlive(M.svmuf))
+			then
+				Attack(M.avgech, M.svmuf);
+			end
+		else
+			if(IsAlive(M.avsilo))
+			then
+				Goto(M.avgech, M.avsilo, 0);
+			end
+		end
+
+		M.gech_sent = true;
+	end
+
+	if ((M.gech_sent) and (M.muf_located) and not (M.gech_adjust))
+	then
+		if ((IsAlive(M.avgech)) and (IsAlive(M.svmuf)))
+		then
+			Attack(M.avgech, M.svmuf);
+			M.gech_adjust = true;
+		end
+	end
+
+-- this is the script that tells the rig to build a base
+
+	-- this sends the rig to build the first guntower
+	if ((M.in_base) and not (M.build_tower1))
+	then
+		if (IsAlive(M.avrig))
+		then
+			Dropoff(M.avrig, "tower1_spot");
+			M.build_tower1 = true;
+		end
+	end
+
+	-- this sends the rig to build the third powerplant
+	if ((M.build_tower1) and (IsAlive(M.avtower1)) and not (M.b1))
+	then
+		if (IsAlive(M.avrig))
+		then
+			Build(M.avrig, "abwpow");-- this is avpower1
+			M.b1_time = GetTime() + 5.0;
+			M.b1 = true;
+		end
+	end
+
+	if ((M.b1) and (M.b1_time < GetTime()) and not (M.build_power1))
+	then
+		if (IsAlive(M.avrig))
+		then
+			AddScrap(2, 20);
+			Dropoff(M.avrig, "power1_spot");
+			M.b2_time = GetTime() + 5.0;
+			M.build_power1 = true;
+		end
+	end
+	-- this sends the rig to build the next guntower
+	if ((M.build_power1) and not (M.main_off) and not (M.maint_off) and (IsAlive(M.avpower1)) and not (M.b2))
+	then
+		if ((M.b2_time < GetTime()) and (IsAlive(M.avrig)))
+		then
+			Build(M.avrig, "abtowe");-- this is avtower2
+			M.b3_time = GetTime() + 5.0;
+			M.b2 = true;
+		end
+	end
+
+	if ((M.b2) and (M.b3_time < GetTime()) and not (M.build_tower2))
+	then
+		if (IsAlive(M.avrig))
+		then
+			Dropoff(M.avrig, "tower2_spot");
+			M.b4_time = GetTime() + 5.0;
+			M.build_tower2 = true;
+		end
+	end
+	-- this removes the rig and builds it again at the barracks spot
+	if ((IsAlive(M.avtower2)) and (IsAlive(M.avrig)) and not (M.new_rig)
+		and (GetDistance(M.user, M.avrig) > 400.0) and (M.b4_time < GetTime()))
+	then
+		RemoveObject(M.avrig);
+--		M.avrig = BuildObject("avcnst", 2, "barrack_spot");
+--		Defend(M.avrig);
+--		Build(M.avrig, "abbarr");
+		M.rig_check = GetTime() + 10.0;
+--		M.bm_time = GetTime() + 5.0;
+		M.new_rig = true;
+	end
+	-- this waits until the player is close and then builds a barracks, a turret and moves the rig
+if (M.rig_show)
+then
+	-- this has the rig trying to maintain the main power and guntower
+	if ((IsAlive(M.avrig)) and not (IsAlive(M.main_power)) and not (M.main_off) --/* and (M.bm_time < GetTime())*/
+	)
+	then
+		Build(M.avrig, "abwpow");
+		M.bm_time = GetTime() + 10.0;
+--		M.main_on = false;
+		M.main_off = true;
+	end
+
+		if ((M.main_off) and (M.bm_time < GetTime()) and not (M.main_build))
+		then
+			if (IsAlive(M.avrig))
+			then
+				Dropoff(M.avrig, "main_power");
+--				M.bm_time = GetTime() + 5.0;
+				M.main_build = true;
+			end
+		end
+
+		if ((M.main_build) and (IsAlive(M.main_power)))
+		then
+--			M.bm_time = GetTime() + 5.0;
+			M.main_build = false;
+			M.main_off = false;
+		end
+
+	if ((IsAlive(M.avrig)) and not (IsAlive(M.main_tower)) and not (M.main_off)
+		and not (M.maint_off))
+	then
+		Build(M.avrig, "abtowe");
+		M.bm_time = GetTime() + 10.0;
+--		M.maint_on = false;
+		M.maint_off = true;
+	end
+
+		if ((M.maint_off) and not (M.maint_build) and (M.bm_time < GetTime()))
+		then
+			if (IsAlive(M.avrig))
+			then
+--				M.bm_time = GetTime() + 5.0;
+				Dropoff(M.avrig, "main_tower");
+				M.maint_build = true;
+			end
+		end
+
+		if ((M.maint_build) and (IsAlive(M.main_tower)))
+		then
+--			M.bm_time = GetTime() + 5.0;
+--			M.maint_on = true;
+			M.maint_build = false;
+			M.maint_off = false;
+		end
+end
+
+	-- this happens immediately after the player returns to the american base
+	if (not (M.rig_show) and (M.rig_check < GetTime()))
+	then
+		M.rig_check = GetTime() + 5.0;
+
+		if (GetDistance(M.user, M.avrecycle) < 400.0)
+		then
+			M.avrig = BuildObject("avcns7", 2, "barrack_spot");
+			Defend(M.avrig);
+			Build(M.avrig, "abbarr");
+			M.rig_check = GetTime() + 20.0;
+			M.rig_show = true;
+		end
+	end
+
+	if ((M.rig_show) and (IsAlive(M.avrig)) and (M.rig_check < GetTime()) and not (M.blah))
+	then
+		Dropoff(M.avrig, "barrack_spot"); -- this is avbarrack
+		M.avturr4 = BuildObject("bvturr", 2, "muf_point");
+		Goto(M.avturr4, "base_turret_spot1", 1);
+		M.turret_check = GetTime() + 60.0;
+		M.blah = true;
+	end
+
+
+	-- this stops the turret when its at its post
+	if ((IsAlive(M.avturr4)) and (M.turret_check < GetTime()) and not (M.turret4_defend))
+	then
+		Defend(M.avturr4, 1);
+
+		if (IsAlive(M.avrig))
+		then
+			Defend(M.avrig, 1);
+		end
+
+		M.turret4_defend = true;
+	end
+
+--/*	-- this tells the rig to build the power plant in the center of the base
+--	if ((M.camera_off_recycle) and (IsAlive(M.avrig)) and not (M.main_off) and not (M.maint_off) and not (M.b3))
+--	then
+--		Build(M.avrig, "abwpow");-- this is avpower2
+--		M.b5_time = GetTime() + 5.0;
+--		M.b3 = true;
+--	end
+--
+--	if ((M.b3) and not (M.rig_show2) and (M.b5_time < GetTime()))
+--	then
+--		if (IsAlive(M.avrig))
+--		then
+--			Dropoff(M.avrig, "power2_spot");
+--			M.b6_time = GetTime() + 5.0;
+--			M.rig_show2 = true;
+--		end
+--	end
+--
+--	-- this tells the rig to build the last guntower
+--	if ((M.rig_show2) and (IsAlive(M.avrig)) and ((IsAlive(M.avpower2)) or (IsAlive(M.avpower1)))
+--		and not (M.main_off) and not (M.maint_off) and not (M.b4) and (M.b6_time < GetTime()))
+--	then
+--		Build(M.avrig, "abtowe");-- this is nothing
+--		M.b7_time = GetTime() + 5.0;
+--		M.b4 = true;
+--	end
+--
+--	if ((M.b4) and not (M.rig_show3) and (M.b7_time < GetTime()))
+--	then
+--		if (IsAlive(M.avrig))
+--		then
+--			Dropoff(M.avrig, "tower3_spot");
+--			M.rig_show3 = true;
+--		end
+--	end
+--*/
+
+-- this is determining if the player has got the the recycler before the muf
+
+	if ((M.camera_off_recycle) and not (M.camera_off_muf) and (IsAlive(M.newmuf)) and not (M.new_muf))
+	then
+		M.new_muf = true;
+	end
+
+--/ this is the message when the player reaches his silo
+
+	if (not (M.silo_message) and (IsAlive(M.svsilo)) and (M.silo_check < GetTime()))
+	then
+		M.silo_check = GetTime() + 5.0;
+
+		if (GetDistance(M.user, M.svsilo) < 90.0)
+		then
+			AudioMessage("misns720.wav"); -- looks like one of ours
+			M.silo_message = true;
+		end
+	end
+
+-- win/loose conditions
+
+	if (not (IsAlive(M.avrecycle)) and not (M.game_over))
+	then
+		AudioMessage("misns712.wav"); -- congradulations
+		SucceedMission(GetTime() + 10.0, "misns7w1.des");
+		M.game_over = true;
+	end
+
+	if ((((M.con1_dead) and (M.con2_dead) and (M.con3_dead) and not (M.fully_loaded)) or
+		((M.con1_dead) and (M.con2_dead) and (M.con3_dead) and not (M.two_loaded)) or
+		((M.con1_dead) and (M.con2_dead) and (M.con3_dead) and not (M.one_loaded))) and not (M.game_over))
+	then
+		AudioMessage("misns711.wav"); -- our comrades are dead
+		FailMission(GetTime() + 10.0, "misns7f1.des");
+		M.game_over = true;
+	end
+
+	if (not (IsAlive(M.apc)) and not (M.camera_off_recycle) and not (M.camera_off_muf) and not (M.game_over))
+	then
+		AudioMessage("misns716.wav"); -- you lost the apc
+		FailMission(GetTime() + 10.0, "misns7f2.des");
+		M.game_over = true;
+	end
+
+
+-- END OF SCRIPT
+
 end

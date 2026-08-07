@@ -1,4 +1,7 @@
 -- cmisn03.lua (Converted from Chinese03Mission.cpp)
+-- Source-disabled note: four "cvscav" units at "factory" with "factory_path"
+-- orders were prototyped alongside the factory deployment sequence. A separate
+-- commented pilot-class experiment used the raw tag "cspilo\0" on howitzers.
 
 -- Compatibility
 SetLabel = SetLabel or SetLabel
@@ -60,6 +63,87 @@ local defend_spawn_spots = {"east_defend", "east_defend", "north_defend", "north
 -- Difficulty
 local difficulty = 2
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        start_done = start_done,
+        objective1_complete = objective1_complete,
+        objective2_complete = objective2_complete,
+        objective3_complete = objective3_complete,
+        in_howitzer = in_howitzer,
+        howitzer_ready = howitzer_ready,
+        turned_around = turned_around,
+        trigger1_done = trigger1_done,
+        won = won,
+        lost = lost,
+        opening_sound_time = opening_sound_time,
+        apc_spawn_time = apc_spawn_time,
+        factory_spawn_time = factory_spawn_time,
+        general_spawn_time = general_spawn_time,
+        explosion_times = explosion_times,
+        user = user,
+        last_user = last_user,
+        howitzers = howitzers,
+        apc = apc,
+        general = general,
+        factory = factory,
+        armoury = armoury,
+        opening_sound = opening_sound,
+        lose1_sound = lose1_sound,
+        lose2_sound = lose2_sound,
+        win_sound = win_sound,
+        sound9 = sound9,
+        general_apc_idx = general_apc_idx,
+        sounds = sounds,
+        back_paths = back_paths,
+        close_to = close_to,
+        explosion_spots = explosion_spots,
+        spawns = spawns,
+        apc_follow_paths = apc_follow_paths,
+        defend_spawn_spots = defend_spawn_spots,
+        difficulty = difficulty,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    start_done = state.start_done
+    objective1_complete = state.objective1_complete
+    objective2_complete = state.objective2_complete
+    objective3_complete = state.objective3_complete
+    in_howitzer = state.in_howitzer
+    howitzer_ready = state.howitzer_ready
+    turned_around = state.turned_around
+    trigger1_done = state.trigger1_done
+    won = state.won
+    lost = state.lost
+    opening_sound_time = state.opening_sound_time
+    apc_spawn_time = state.apc_spawn_time
+    factory_spawn_time = state.factory_spawn_time
+    general_spawn_time = state.general_spawn_time
+    explosion_times = state.explosion_times
+    user = state.user
+    last_user = state.last_user
+    howitzers = state.howitzers
+    apc = state.apc
+    general = state.general
+    factory = state.factory
+    armoury = state.armoury
+    opening_sound = state.opening_sound
+    lose1_sound = state.lose1_sound
+    lose2_sound = state.lose2_sound
+    win_sound = state.win_sound
+    sound9 = state.sound9
+    general_apc_idx = state.general_apc_idx
+    sounds = state.sounds
+    back_paths = state.back_paths
+    close_to = state.close_to
+    explosion_spots = state.explosion_spots
+    spawns = state.spawns
+    apc_follow_paths = state.apc_follow_paths
+    defend_spawn_spots = state.defend_spawn_spots
+    difficulty = state.difficulty
+end
 function Start()
     if exu then
         if exu.SetShotConvergence then exu.SetShotConvergence(true) end
@@ -72,7 +156,7 @@ end
 
 function AddObject(h)
     local team = GetTeamNum(h)
-    if team == 2 then 
+    if team == 2 then
         aiCore.AddObject(h)
     end
 end
@@ -84,39 +168,39 @@ function Update()
     last_user = user
     user = GetPlayerHandle()
     aiCore.Update()
-    
+
     if not start_done then
-        SetPilot(1, DiffUtils.ScaleRes(10))
-        SetScrap(1, DiffUtils.ScaleRes(0))
-        
+        SetPilot(1, 10)
+        SetScrap(1, 0)
+
         for i=1,6 do howitzers[i] = GetHandle("howitzer_1") end -- wait, C++ says 1..6
         for i=1,6 do howitzers[i] = GetHandle("howitzer_"..i) end
-        
+
         for i=1,6 do
             if howitzers[i] then
                 SetObjectiveOn(howitzers[i])
                 SetPerceivedTeam(howitzers[i], 2)
             end
         end
-        
-        StartCockpitTimer(DiffUtils.ScaleTimer(780), 30, 10)
+
+        StartCockpitTimer(780, 30, 10)
         factory_spawn_time = GetTime() + 480.0
         opening_sound_time = GetTime() + 1.0
-        
+
         ClearObjectives()
         AddObjective("ch03001.otf", "white")
-        
+
         start_done = true
     end
-    
+
     if won or lost then return end
-    
+
     -- Sound Intro
     if GetTime() > opening_sound_time then
         opening_sound_time = 99999.0
         opening_sound = AudioMessage("ch03001.wav")
     end
-    
+
     -- Phase 1 logic: Howitzer Repair
     if not objective1_complete then
         if GetCockpitTimer() <= 0 and not lost then
@@ -124,7 +208,7 @@ function Update()
             FailMission(GetTime() + 1.0, "ch03lsea.des")
             return
         end
-        
+
         objective1_complete = true
         for i=1,6 do
             local h = howitzers[i]
@@ -133,7 +217,7 @@ function Update()
                     in_howitzer[i] = true
                     AudioMessage("ch03002.wav")
                 end
-                
+
                 if not howitzer_ready[i] then
                     if GetCurHealth(h) > 400 and GetCurAmmo(h) > 400 then
                         howitzer_ready[i] = true
@@ -145,17 +229,17 @@ function Update()
                     -- Attachment logic: if player leaves a ready howitzer, give it an AI pilot
                     if user ~= h and in_howitzer[i] then
                         SetTeamNum(h, 1) -- Ensure on player team
-                        -- SetPerceivedTeam(h, 2) -- C++ does this to avoid friendly fire or similar? 
+                        -- SetPerceivedTeam(h, 2) -- C++ does this to avoid friendly fire or similar?
                         -- Actually C++ line 456 does: SetPerceivedTeam(howitzers[i], 2);
                         SetPerceivedTeam(h, 2)
-                        -- In Lua BZ98, units with no pilot don't do anything. 
+                        -- In Lua BZ98, units with no pilot don't do anything.
                         -- To simulate "attaching" an AI process, we might need to ensure it has a pilot.
                         -- SetPilotClass(h, "cspilo") -- if needed
                     end
                 end
             end
         end
-        
+
         if objective1_complete then
             StopCockpitTimer()
             HideCockpitTimer()
@@ -167,7 +251,7 @@ function Update()
             SetName(nav, "CCA Base")
         end
     end
-    
+
     -- Phase 2: Convoy Ambush
     if GetTime() > apc_spawn_time then
         apc_spawn_time = 99999.0
@@ -178,14 +262,14 @@ function Update()
             apc[i] = BuildObject(odf, 2, spawns[i])
             SetPerceivedTeam(apc[i], 1)
             Goto(apc[i], apc_follow_paths[i], 1)
-            
+
             -- Defenses
-            local function Sp(odf, n) for j=1, DiffUtils.ScaleEnemy(n) do local h = BuildObject(odf, 2, defend_spawn_spots[i]); Defend2(h, apc[i], 1) end end
+            local function Sp(odf, n) for j=1, n do local h = BuildObject(odf, 2, defend_spawn_spots[i]); Defend2(h, apc[i], 1) end end
             Sp("svtank", 2); Sp("svhraz", 1); Sp("svfigh", 1)
         end
         general = apc[general_apc_idx]
     end
-    
+
     -- Groups turn around logic
     if objective1_complete and not objective2_complete then
         for i=1,3 do
@@ -194,14 +278,14 @@ function Update()
                    GetDistance(apc[2*i], close_to[i]) < 40.0 then
                     turned_around[i] = true
                     AudioMessage(sounds[i])
-                    
+
                     Goto(apc[2*i-1], back_paths[i], 1)
                     Goto(apc[2*i], back_paths[i], 1)
-                    
+
                     -- Howitzers attack!
                     if howitzers[2*i-1] then Attack(howitzers[2*i-1], apc[2*i-1], 1) end
                     if howitzers[2*i] then Attack(howitzers[2*i], apc[2*i], 1) end
-                    
+
                     -- Start explosion sequence for this path
                     explosion_times[5*i-4] = GetTime()
                     explosion_times[5*i-3] = GetTime() + 5
@@ -212,7 +296,7 @@ function Update()
             end
         end
     end
-    
+
     -- Explosions
     for i=1,15 do
         if GetTime() > explosion_times[i] then
@@ -220,7 +304,7 @@ function Update()
             MakeExplosion("xgasxpl", explosion_spots[i])
         end
     end
-    
+
     -- Phase 3 Captured logic
     if not objective2_complete and general and GetTeamNum(general) == 1 then
         objective2_complete = true
@@ -231,19 +315,19 @@ function Update()
         AddObjective("ch03003.otf", "white")
         SetObjectiveOn(general)
     end
-    
+
     -- Escort Ambushes
     if objective2_complete and not trigger1_done and GetDistance(general, "trigger_1") < 30.0 then
         trigger1_done = true
-        for i=1, DiffUtils.ScaleEnemy(6) do local h = BuildObject("svfigh", 2, "apc_attack"); Attack(h, general, 1) end
-        for i=1, DiffUtils.ScaleEnemy(4) do local h = BuildObject("svfigh", 2, "apc_attack_2"); Attack(h, general, 1) end
-        
+        for i=1, 6 do local h = BuildObject("svfigh", 2, "apc_attack"); Attack(h, general, 1) end
+        for i=1, 4 do local h = BuildObject("svfigh", 2, "apc_attack_2"); Attack(h, general, 1) end
+
         if factory and IsAlive(factory) then
-            for i=1, DiffUtils.ScaleEnemy(3) do local h = BuildObject("svtank", 2, "factory_attack"); Attack(h, factory, 1) end
-            for i=1, DiffUtils.ScaleEnemy(2) do local h = BuildObject("svfigh", 2, "factory_attack"); Attack(h, factory, 1) end
+            for i=1, 3 do local h = BuildObject("svtank", 2, "factory_attack"); Attack(h, factory, 1) end
+            for i=1, 2 do local h = BuildObject("svfigh", 2, "factory_attack"); Attack(h, factory, 1) end
         end
     end
-    
+
     -- Factory Spawn
     if GetTime() > factory_spawn_time then
         factory_spawn_time = 99999.0
@@ -253,7 +337,7 @@ function Update()
         armoury = BuildObject("cvslfa", 1, "factory")
         Goto(armoury, "factory_path", 1)
     end
-    
+
     -- Failure: General APC Escapes
     if general and IsAlive(general) and GetTeamNum(general) == 2 then
         if (general_spawn_time + 120.0) < GetTime() and GetDistance(general, "base_fail") < 50.0 and not lost then
@@ -261,12 +345,12 @@ function Update()
             sound9 = AudioMessage("ch03009.wav")
         end
     end
-    
+
     if sound9 and IsAudioMessageDone(sound9) then
         sound9 = nil
         FailMission(GetTime() + 1.0, "ch03lsed.des")
     end
-    
+
     -- Failure: Assets Dead
     if general and not IsAlive(general) and not won and not lost then
         lost = true
@@ -276,12 +360,12 @@ function Update()
         lose1_sound = nil
         FailMission(GetTime() + 1.0, "ch03lsec.des")
     end
-    
+
     if factory and not IsAlive(factory) and not won and not lost then
         lost = true
         FailMission(GetTime() + 1.0, "ch03lsee.des")
     end
-    
+
     -- Win
     if objective2_complete and not won and not lost then
         if GetDistance(general, "won_mission") < 30.0 then

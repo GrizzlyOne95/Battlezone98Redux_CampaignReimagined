@@ -306,7 +306,12 @@ void base_fragment(
 		shadow = PCF_Filter(shadowMap3, vLightSpacePos3, invShadowMapSize3.xy);
 	}
 #endif
+#if defined(ENHANCED_MODE)
+	// deeper shadow floor gives enhanced mode more contact grounding
+	shadow = shadow * 0.78 + 0.22;
+#else
 	shadow = shadow * 0.7 + 0.3;
+#endif
 #if defined(OG_RETRO_MODE)
 	shadow = shadow * 0.5 + 0.5;
 #endif
@@ -363,7 +368,8 @@ void base_fragment(
 	// per-pixel view normal
 	float3 normalTex = tex2D(normalMap, vTexCoord).xyz * 2.0 - 1.0;
 #if defined(ENHANCED_MODE)
-	normalTex = sharpen_normal_map(normalTex);
+	// fade the sharpening out with distance so it cannot shimmer far away
+	normalTex = lerp(sharpen_normal_map(normalTex), normalTex, saturate(vDepth * 0.005));
 #endif
 	float3 viewNormal = safe_normalize(mul(normalTex.xyz, tbn));
 #else
@@ -471,16 +477,27 @@ void base_fragment(
 			float3 specularColor = lerp(float3(0.025, 0.025, 0.025), float3(0.04, 0.04, 0.04), pow(1.0 - ndotv, 5.0));
 #endif
 			float specularLobe = pow(ndoth, specularPower);
+#if defined(ENHANCED_MODE)
+			// Blinn-Phong energy normalization (unity at the stock power of
+			// 24) so tighter lobes read brighter instead of vanishing.
+			specularLobe *= min((specularPower + 8.0) * 0.03125, 3.0);
+#endif
 			specularResult.xyz += lightSpecular[i].xyz * specularAttenuation * diffuseTerm * specularLobe * specularColor;
 		}
 #endif
 
-#if defined(SHADOWRECEIVER) 
+#if defined(SHADOWRECEIVER)
 		// clear shadow attenuation
 		shadow = 1.0;
 #endif
 	}
 
+#endif
+
+#if defined(ENHANCED_MODE)
+	// subtle fresnel sky fill lifts silhouettes out of flat ambient
+	float rimTerm = pow(1.0 - max(dot(viewNormal, eyeDir), 0.0), 4.0);
+	lightResult.xyz += sceneAmbient.xyz * rimTerm * 0.35;
 #endif
 #endif
 
@@ -498,8 +515,10 @@ void base_fragment(
 	// emissive texture
 	float3 emissiveTex = tex2D(emissiveMap, vTexCoord).xyz;
 #if defined(ENHANCED_MODE)
-	float emissiveMask = max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z)) > 1e-4 ? 1.0 : 0.0;
-	oColor.xyz += emissiveTex.xyz * emissiveMask;
+	// Runtime material variants drive this continuously for optional running-light
+	// pulsing. Empty craft use a zero emissive value and remain fully dark.
+	float emissiveIntensity = saturate(max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z)));
+	oColor.xyz += emissiveTex.xyz * emissiveIntensity;
 #else
 	oColor.xyz += emissiveTex.xyz;
 #endif

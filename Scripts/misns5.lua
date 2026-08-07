@@ -1,274 +1,259 @@
--- Misns5 Mission Script (Converted from Misns5Mission.cpp)
+-- Single Player CCA Mission 5 Lua conversion, created by General BlackDragon.
+-- Source design note retained verbatim: the first walker is "the commander".
 
--- Compatibility for 1.5
-SetLabel = SetLabel or SetLabel
+-- Single Table for all our save/load variables. This SP mission has too many variables to function with them independently. ("main function has > 200 local variables", or "Load having > 197 variables in assignment")
+local M = {
 
--- EXU Initialization
-local RequireFix = require("RequireFix")
-RequireFix.Initialize({"campaignReimagined", "3686673790"})
-local exu = require("exu")
-local aiCore = require("aiCore")
-local DiffUtils = require("DiffUtils")
+-- bools
+	camera1 = false,
+	start_done = false,
+	defender = false,
+	com_dead = false,
+	last_phase = false,
+	third_attack = false,
+	fourth_attack = false,
+	won = false,
+	lost = false,
+	second_message = false,
+	third_message = false,
+	art_dead = false,
+	apc_here = false,
+-- Floats (really doubles in Lua)
+	add_defender = 0,
+	wave = 0,
+	chaff = 0,
+	camera_time = 0,
+	apc_wave = 0,
+-- Handles
+	a1 = nil,
+	a2 = nil,
+	t1 = nil,
+	t2 = nil,
+	t3 = nil,
+	t4 = nil,
+	h1 = nil,
+	h2 = nil,
+	geyser1 = nil,
+	geyser2 = nil,
+	recy = nil,
+	muf = nil,
+	commander = nil,
+	--cam1 = nil,
+	killme = nil,
+-- Ints
+	wave_count = 0,
+	wave_type = 0,
+	aud = 0
+}
 
--- Helper for AI
-local function SetupAI()
-    DiffUtils.SetupTeams(aiCore.Factions.CCA, aiCore.Factions.NSDF, 2)
+function Save()
+    return
+		M
 end
 
--- Variables
-local camera1 = false
-local start_done = false
-local defender = false
-local com_dead = false
-local last_phase = false
-local third_attack = false
-local fourth_attack = false
-local won = false
-local lost = false
-local second_message = false
-local third_message = false
-local art_dead = false
-local apc_here = false
+function Load(...)
+    if select('#', ...) > 0 then
+		M
+		 =  ...
+    end
+end
 
--- Timers
-local add_defender = 99999.0
-local wave_timer = 99999.0
-local chaff = 99999.0
-local camera_time = 99999.0
-local apc_wave = 99999.0
-
--- Handles
-local player
-local a1, a2
-local t1, t2, t3, t4
-local h1, h2
-local geyser1, geyser2
-local recy, muf
-local commander
-local cam1
-local killme
-
--- Counters
-local wave_count = 0
-
--- Config
-local difficulty = 2
 
 function Start()
-    if exu then
-        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
-        if exu.SetReticleRange then exu.SetReticleRange(500) end
-        if exu.SetGlobalTurbo then exu.SetGlobalTurbo(true) end
-    end
-    SetupAI()
-    
-    player = GetPlayerHandle()
-    start_done = false
+
+	M.camera_time = 99999.0;
+	M.add_defender = 99999.0;
+	M.apc_wave = 99999.0;
+	M.wave = 99999.0;
+	M.chaff = 99999.0;
+
 end
 
 function AddObject(h)
-    local team = GetTeamNum(h)
-    if team == 2 then
-        aiCore.AddObject(h)
-        
-        -- Identify Commander
-        if IsOdf(h, "avwalk") and (not commander) then
-            commander = h
-        end
-        
-        -- Default orders for specific units (C++ logic)
-        -- If light tank, razor, fighter -> Go to Recycler
-        if IsOdf(h, "bvltnk") or IsOdf(h, "bvhraz") or IsOdf(h, "avfigh") then
-            if IsAlive(recy) then Goto(h, recy) end -- Attack/Go Recy
-        end
-    end
-    -- Unit Turbo based on difficulty
-    if exu and exu.SetUnitTurbo and IsCraft(h) then
-        if team ~= 0 then
-             if difficulty >= 3 then exu.SetUnitTurbo(h, true) end
-        end
-    end
-end
 
-function DeleteObject(h)
+	if (GetTeamNum(h) == 2)
+	then
+		if (IsOdf(h, "avwalk"))
+		then
+			M.commander = h;
+			--[[
+				The first walker is
+					"the M.commander"
+			--]]
+		end
+		if ((IsOdf(h,"bvltnk"))  or
+			(IsOdf(h,"bvhraz"))  or
+			(IsOdf(h,"avfigh")))
+		then
+			Goto(h,M.recy);
+		end
+
+	end
+
 end
 
 function Update()
-    player = GetPlayerHandle()
-    aiCore.Update()
-    
-    if not start_done then
-        recy = GetHandle("svrecy0_recycler")
-        AddScrap(1, DiffUtils.ScaleRes(10))
-        camera1 = true
-        camera_time = GetTime() + DiffUtils.ScaleTimer(17.0)
-        apc_wave = GetTime() + DiffUtils.ScaleTimer(70.0)
-        
-        t4 = GetHandle("sbhang0_repairdepot")
-        a1 = BuildObject("avartl", 2, "spawn1")
-        a2 = BuildObject("avartl", 2, "spawn2")
-        
-        CameraReady()
-        AudioMessage("misns501.wav")
-        -- Store start time of audio if needed, or rely on IsAudioMessageDone(0) check if unique?
-        -- Lua API doesn't return handle for AudioMessage usually unless extended.
-        -- We'll rely on camera_time or standard done check if available.
-        -- Assuming IsAudioMessageDone takes checksum or filename in refined API, or we just wait.
-        
-        start_done = true
-    end
-    
-    if camera1 then
-        CameraPath("campath", 5000, 2500, t4)
-        
-        -- Audio chaining
-        -- C++ uses handle 'aud' from previous call. Lua: check if specific msg done?
-        -- We'll use timer approximation or state check.
-        if (not second_message) and (GetTime() > camera_time - 7.0) then -- Approx
-            AudioMessage("misns503.wav")
-            second_message = true
-        end
-        
-        if CameraCancelled() or (GetTime() > camera_time) then
-            chaff = GetTime() + DiffUtils.ScaleTimer(180.0)
-            
-            t1 = GetHandle("sblpow2_powerplant")
-            t2 = GetHandle("sblpow3_powerplant")
-            t3 = GetHandle("sblpow4_powerplant")
-            recy = GetHandle("svrecy0_recycler")
-            muf = GetHandle("svmuf0_factory")
-            geyser1 = GetHandle("eggeizr11_geyser")
-            geyser2 = GetHandle("eggeizr12_geyser")
-            
-            -- Move Base!
-            Goto(recy, geyser1)
-            Goto(muf, geyser2)
-            
-            Attack(a1, t1)
-            Attack(a2, t2)
-            
-            add_defender = GetTime() + DiffUtils.ScaleTimer(10.0)
-            CameraFinish()
-            ClearObjectives()
-            AddObjective("misns501.otf", "white")
-            -- StopAudioMessage?
-            camera1 = false
-        end
-    end
-    
-    -- Target switching for Artillery
-    if defender and (not third_attack) and (not IsAlive(t1)) then
-        Attack(a1, t3)
-        third_attack = true
-    end
-    if defender and (not fourth_attack) and (not IsAlive(t2)) then
-        Attack(a2, t4)
-        fourth_attack = true
-    end
-    
-    -- Spawn Defenders
-    if (GetTime() > add_defender) then
-        BuildObject("avwalk", 2, "spawn3")
-        -- Restoration: BuildObject("avtank",2,"spawn3"); (Commented out in C++)
-        BuildObject("avtank", 2, "spawn3")
-        
-        add_defender = 99999.0
-        SetPilot(2, 30)
-        defender = true
-    end
-    
-    -- Art killed msg
-    if defender and (not art_dead) and (not IsAlive(a1)) and (not IsAlive(a2)) then
-        AudioMessage("misns504.wav")
-        art_dead = true
-    end
-    
-    -- APC arrival check
-    if defender and h1 and (not apc_here) and IsAlive(h1) and (GetDistance(h1, muf) < 100.0) then
-        apc_here = true
-        AudioMessage("misns505.wav")
-    end
-    
-    -- Chaff (Fighters)
-    if (GetTime() > chaff) then
-        chaff = GetTime() + DiffUtils.ScaleTimer(50.0) + math.random(4) * 10
-        BuildObject("avfigh", 2, "spawn5")
-    end
-    
-    -- APC Wave spawn
-    if (GetTime() > apc_wave) then
-        h1 = BuildObject("avapc", 2, "spawn6")
-        h2 = BuildObject("avapc", 2, "spawn6")
-        killme = BuildObject("avrecy", 2, "spawn7") -- Fake recycler target for defense?
-        
-        local p1 = BuildObject("bvtank", 2, "spawn7"); Defend(p1, killme)
-        local p2 = BuildObject("bvtank", 2, "spawn7"); Defend(p2, killme)
-        
-        Attack(h1, muf)
-        Attack(h2, muf)
-        apc_wave = 99999.0
-    end
-    
-    -- Commander Death Trigger (Speeds up waves)
-    if defender and (not IsAlive(commander)) and (not com_dead) then
-        wave_timer = GetTime() + DiffUtils.ScaleTimer(120.0)
-        com_dead = true
-    end
-    
-    -- Waves Logic
-    if (GetTime() > wave_timer) then
-        wave_count = wave_count + 1
-        wave_timer = GetTime() + DiffUtils.ScaleTimer(180.0)
-        
-        AudioMessage("misns505.wav")
-        
-        if wave_count ~= 1 then
-            BuildObject("bvltnk", 2, "spawn5")
-            BuildObject("bvltnk", 2, "spawn5")
-            BuildObject("bvltnk", 2, "spawn5")
-        else -- Wave 1
-            BuildObject("bvhraz", 2, "spawn6")
-            BuildObject("bvhraz", 2, "spawn6")
-            BuildObject("bvhraz", 2, "spawn6")
-        end
-        
-        if wave_count == 3 then
-            last_phase = true
-            -- killme was built earlier (apc_wave), or we rely on logic?
-            -- C++ says: // key is it commented out killme = BuildObject...
-            -- And C++ AddObject sets: if (wave_count==3) ...
-            -- Actually C++ code: 
-            -- if (wave_count==3) {
-            --    // killme=BuildObject("avrecy",2,"spawn7"); <-- Commented out
-            --    BuildObject("avscav",2,"spawn7"); ...
-            --    SetObjectiveOn(killme); 
-            -- }
-            -- So `killme` MUST have been built earlier (in apc_wave block).
-            
-            BuildObject("avscav", 2, "spawn7")
-            BuildObject("avscav", 2, "spawn7")
-            local sam = BuildObject("spcamr", 1, "camera1") -- Camera marker?
-            
-            if IsAlive(killme) then SetObjectiveOn(killme) end
-            AddObjective("misns502.otf", "white")
-            AudioMessage("misns506.wav")
-            
-            SetAIP("misns5.aip")
-        end
-    end
-    
-    -- Victory
-    if last_phase and (not IsAlive(killme)) and (not won) and (not lost) then
-        won = true
-        AudioMessage("misns508.wav")
-        SucceedMission(GetTime() + 10.0, "misns5w1.des")
-    end
-    
-    -- Defeat
-    if (not IsAlive(recy)) and (not lost) and (not won) then
-        lost = true
-        AudioMessage("misns507.wav")
-        FailMission(GetTime() + 10.0, "misns5l1.des")
-    end
-end
 
+-- START OF SCRIPT
+
+	if ( not M.start_done)
+	then
+		M.recy = GetHandle("svrecy0_recycler");
+		AddScrap(1,10);
+		M.camera1 = true;
+		M.camera_time = GetTime()+17.0;
+		M.apc_wave = GetTime()+70.0;
+		M.start_done = true;
+		M.t4 = GetHandle("sbhang0_repairdepot");
+		M.a1 = BuildObject("avartl",2,"spawn1");
+		M.a2 = BuildObject("avartl",2,"spawn2");
+		CameraReady();
+		M.aud = AudioMessage("misns501.wav");
+	end
+	if (M.camera1)
+	then
+		CameraPath("campath",5000,2500,M.t4);
+		if ((IsAudioMessageDone(M.aud)) and ( not M.second_message))
+		then
+			M.aud = AudioMessage("misns503.wav");
+			M.second_message = true;
+		end
+--[[		if ((M.second_message) and (IsAudioMessageDone(M.aud))
+			 and  ( not M.third_message))
+		then
+			M.aud = AudioMessage("misns503.wav");
+			M.third_message = true;
+		end
+--]]
+		if ((CameraCancelled())  or   (IsAudioMessageDone(M.aud)))--(GetTime()>M.camera_time))
+		then
+			M.chaff = GetTime()+180.0;
+			M.t1 = GetHandle("sblpow2_powerplant");
+			M.t2 = GetHandle("sblpow3_powerplant");
+			M.t3 = GetHandle("sblpow4_powerplant");
+			M.recy = GetHandle("svrecy0_recycler");
+			M.muf = GetHandle("svmuf0_factory");
+			M.geyser1 = GetHandle("eggeizr11_geyser");
+			M.geyser2 = GetHandle("eggeizr12_geyser");
+			Goto(M.recy,M.geyser1);
+			Goto(M.muf,M.geyser2);
+			Attack(M.a1,M.t1);
+			Attack(M.a2,M.t2);
+			M.add_defender = GetTime()+10.0;
+			CameraFinish();
+			ClearObjectives();
+			AddObjective("misns501.otf","WHITE");
+			StopAudioMessage(M.aud);
+			M.camera1 = false;
+		end
+	end
+	if ((M.defender) and ( not M.third_attack) and ( not IsAlive(M.t1)))
+	then
+		Attack(M.a1,M.t3);
+		M.third_attack = true;
+	end
+	if ((M.defender) and ( not M.fourth_attack) and ( not IsAlive(M.t2)))
+	then
+		Attack(M.a2,M.t4);
+		M.fourth_attack = true;
+	end
+	if (GetTime()>M.add_defender)
+	then
+		BuildObject("avwalk",2,"spawn3");
+		-- BuildObject("avtank",2,"spawn3");
+		M.add_defender = 99999.0;
+		SetPilot(2,30);  -- in case we load AIP
+		M.defender = true;
+	end
+	if ((M.defender) and ( not M.art_dead) and ( not IsAlive(M.a1)) and ( not IsAlive(M.a2)))
+	then
+		AudioMessage("misns504.wav");
+		M.art_dead = true;
+	end
+	if ((M.defender)  and (M.h1 ~= nil) and ( not M.apc_here)  and
+		(GetDistance(M.h1,M.muf)<100.0))
+	then
+		M.apc_here = true;
+		AudioMessage("misns505.wav");
+	end
+	if (GetTime()>M.chaff)
+	then
+		M.chaff = GetTime()+50.0 + math.random(0, 3) * 10.0;
+		BuildObject("avfigh",2,"spawn5");
+	end
+	if (GetTime()>M.apc_wave)
+	then
+		M.h1 = BuildObject("avapc",2,"spawn6");
+		M.h2 = BuildObject("avapc",2,"spawn6");
+		M.killme = BuildObject("avrecy",2,"spawn7");
+		local protect = BuildObject("bvtank",2,"spawn7");
+		Defend(protect,M.killme);
+		protect = BuildObject("bvtank",2,"spawn7");
+		Defend(protect,M.killme);
+		Attack(M.h1,M.muf);
+		Attack(M.h2,M.muf);
+		M.apc_wave = 99999.0;
+	end
+	if ((M.defender) and ( not IsAlive(M.commander))
+		 and  ( not M.com_dead))
+	then
+		M.wave = GetTime()+120.0;
+		M.com_dead = true;
+	end
+	if (GetTime()>M.wave)
+	then
+		M.wave_count = M.wave_count + 1;
+		M.wave = GetTime()+180.0;
+		--M.wave_type = rand()%2
+		AudioMessage("misns505.wav");
+		if (M.wave_count ~= 1)
+		then
+			BuildObject("bvltnk",2,"spawn5");
+			BuildObject("bvltnk",2,"spawn5");
+			BuildObject("bvltnk",2,"spawn5");
+		else
+			BuildObject("bvhraz",2,"spawn6");
+			BuildObject("bvhraz",2,"spawn6");
+			BuildObject("bvhraz",2,"spawn6");
+		end
+		if (M.wave_count == 3)
+		then
+			--[[
+				Build a recycler
+				at spawn7 avrecy
+
+			--]]
+			M.last_phase = true;
+--			M.killme = BuildObject("avrecy",2,"spawn7");
+			BuildObject("avscav",2,"spawn7");
+			BuildObject("avscav",2,"spawn7");
+			local sam = BuildObject("spcamr",1,"camera1");
+			SetObjectiveOn(M.killme);  -- should be sam
+			AddObjective("misns502.otf","WHITE");
+			AudioMessage("misns506.wav");
+			--[[
+				Now LoadAIP.
+			--]]
+			SetAIP("misns5.aip");
+			--[[
+				Our intelligence.
+			--]]
+		end
+	end
+	if ((M.last_phase) and ( not IsAlive(M.killme))
+		 and  ( not M.won) and ( not M.lost))
+	then
+		M.won = true;
+		AudioMessage("misns508.wav");
+		SucceedMission(GetTime()+10.0,"misns5w1.des");
+	end
+	if (( not IsAlive(M.recy)) and ( not M.lost) and ( not M.won))
+	then
+		M.lost = true;
+		AudioMessage("misns507.wav");
+		FailMission(GetTime()+10.0,"misns5l1.des");
+	end
+
+-- END OF SCRIPT
+
+end

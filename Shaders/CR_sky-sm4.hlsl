@@ -23,6 +23,8 @@ void sky_vertex(
 void sky_fragment(
 	uniform Texture2D diffuseMap : register(t0),
 	uniform SamplerState diffuseSam : register(s0),
+	uniform float twinkleTime,
+	uniform float4 twinkleControl,
 
 	in float4 vColor : COLOR0,
 	in float2 vTexCoord : TEXCOORD0,
@@ -36,6 +38,16 @@ void sky_fragment(
 {
 	float4 diffuseTex = diffuseMap.Sample(diffuseSam, vTexCoord);
 	oColor = diffuseTex * vColor;
+
+	// STARS.MAP enables this through its otherwise-unused emissive pass color.
+	// Quantized UVs give nearby star pixels a stable phase without shimmering
+	// when the camera moves.
+	float2 starCell = floor(vTexCoord * 512.0);
+	float starSeed = frac(sin(dot(starCell, float2(12.9898, 78.233))) * 43758.5453);
+	float twinkleWave = 0.5 + 0.5 * sin(twinkleTime * (0.9 + starSeed * 1.7) + starSeed * 6.2831853);
+	float twinkleStrength = saturate(max(twinkleControl.x, max(twinkleControl.y, twinkleControl.z)));
+	float twinkle = lerp(1.0, lerp(0.72, 1.12, twinkleWave), twinkleStrength);
+	oColor.rgb *= twinkle;
 	
 #ifdef LOGDEPTH_ENABLE
 	const float C = 0.1;

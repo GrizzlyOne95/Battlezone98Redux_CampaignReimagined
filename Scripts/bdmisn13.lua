@@ -13,8 +13,8 @@ local aiCore = require("aiCore")
 local function SetupAI()
     -- Team 1: Black Dogs (Player)
     -- Team 2: CAA (Enemy)
-    local caa = aiCore.AddTeam(2, aiCore.Factions.CCA) 
-    
+    local caa = aiCore.AddTeam(2, aiCore.Factions.CCA)
+
     local diff = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
     if diff <= 1 then
         caa:SetConfig("pilotZeal", 0.1)
@@ -47,10 +47,60 @@ local time_waves = {99999.0, 99999.0, 99999.0, 99999.0}
 local user
 local recycler, chin_recycler
 local silos = {} -- 1-6
+local sound1
 
 -- Difficulty
 local difficulty = 2
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        start_done = start_done,
+        objective1_complete = objective1_complete,
+        objective2_complete = objective2_complete,
+        camera_complete = camera_complete,
+        camera_ready = camera_ready,
+        arrived = arrived,
+        defenders_spawned = defenders_spawned,
+        recycled = recycled,
+        silos_recycled = silos_recycled,
+        recycle_checked = recycle_checked,
+        sound2_played = sound2_played,
+        lost = lost,
+        won = won,
+        time_waves = time_waves,
+        user = user,
+        recycler = recycler,
+        chin_recycler = chin_recycler,
+        silos = silos,
+        sound1 = sound1,
+        difficulty = difficulty,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    start_done = state.start_done
+    objective1_complete = state.objective1_complete
+    objective2_complete = state.objective2_complete
+    camera_complete = state.camera_complete
+    camera_ready = state.camera_ready
+    arrived = state.arrived
+    defenders_spawned = state.defenders_spawned
+    recycled = state.recycled
+    silos_recycled = state.silos_recycled
+    recycle_checked = state.recycle_checked
+    sound2_played = state.sound2_played
+    lost = state.lost
+    won = state.won
+    time_waves = state.time_waves
+    user = state.user
+    recycler = state.recycler
+    chin_recycler = state.chin_recycler
+    silos = state.silos
+    sound1 = state.sound1
+    difficulty = state.difficulty
+end
 function Start()
     if exu then
         difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or 2
@@ -63,7 +113,7 @@ end
 
 function AddObject(h)
     local team = GetTeamNum(h)
-    if team == 2 then 
+    if team == 2 then
         aiCore.AddObject(h)
     end
 end
@@ -74,53 +124,57 @@ end
 function Update()
     user = GetPlayerHandle()
     aiCore.Update()
-    
+
     if not start_done then
         SetScrap(1, 30)
         SetPilot(1, 10)
-        
+
         recycler = GetHandle("recycler")
         chin_recycler = GetHandle("chin_recycler")
         for i=1,6 do silos[i] = GetHandle("chin_silo"..i) end
-        
+
         time_waves[1] = GetTime() + 180.0
         time_waves[2] = GetTime() + 600.0
         time_waves[3] = GetTime() + 900.0
         time_waves[4] = GetTime() + 1800.0
-        
+
         StartCockpitTimer(45*60, 30, 10)
-        
+
         for i=1,6 do
             local h = GetHandle("nav_chin_silo"..i)
             if h then SetName(h, "Scrap Field") end
         end
-        
+
         start_done = true
     end
-    
+
     if lost or won then return end
-    
+
     -- Intro
     if not camera_complete then
         if not camera_ready then
             camera_ready = true
             CameraReady()
-            AudioMessage("bd13001.wav")
+            sound1 = AudioMessage("bd13001.wav")
         end
-        
+
         if not arrived then
-            CameraPath("camera_intro", 500, 1500, silos[6])
-            -- Assuming camera engine handles stopping
+            arrived = CameraPath("camera_intro", 500, 1500, silos[6])
         end
-        
-        if CameraCancelled() then -- or audio done approx
+
+        local sequence_done = arrived and sound1 and IsAudioMessageDone(sound1)
+        if CameraCancelled() then
+            sequence_done = true
+            if sound1 then StopAudioMessage(sound1) end
+        end
+        if sequence_done then
             CameraFinish()
             camera_complete = true
             ClearObjectives()
             AddObjective("bd13001.otf", "white")
         end
     end
-    
+
     -- Waves
     local function SpawnWave(list)
         for _, u in pairs(list) do
@@ -128,27 +182,27 @@ function Update()
             Goto(h, recycler, 1)
         end
     end
-    
+
     if GetTime() > time_waves[1] then
         time_waves[1] = 99999.0
         SpawnWave({"cvfigh", "cvfigh", "cvfigh", "cvfigh", "cvltnk", "cvltnk", "cvtnk"})
     end
-    
+
     if GetTime() > time_waves[2] then
         time_waves[2] = 99999.0
         SpawnWave({"cvrckt", "cvrckt", "cvltnk", "cvltnk", "cvtnk", "cvtnk"})
     end
-    
+
     if GetTime() > time_waves[3] then
         time_waves[3] = 99999.0
         SpawnWave({"cvhraz", "cvhraz", "cvhraz", "cvfigh", "cvfigh", "cvfigh", "cvfigh", "cvfigh", "cvfigh"})
     end
-    
+
     if GetTime() > time_waves[4] then
         time_waves[4] = 99999.0
         SpawnWave({"cvfigh", "cvfigh", "cvfigh", "cvfigh", "cvhtnk", "cvhtnk"})
     end
-    
+
     -- Silo Defenders
     local def_units_1 = {"cvfigh", "cvfigh", "cvltnk", "cvltnk"}
     local def_units_2 = {"cvltnk", "cvltnk", "cvltnk", "cvltnk"}
@@ -158,9 +212,11 @@ function Update()
     local def_units_6 = {"cvhtnk", "cvhtnk", "cvfigh", "cvfigh"}
     local all_defs = {def_units_1, def_units_2, def_units_3, def_units_4, def_units_5, def_units_6}
     local spawns = {"spawn_defend1", "spawn_defend1", "spawn_defend6", "spawn_defend6"} -- C++ reuses spawns by index per unit group
-    
+
     for i=1,6 do
-        if not defenders_spawned[i] and GetDistance(user, silos[i]) < 400.0 then -- Distance check missing in C++, likely implicit or <400
+        -- The C++ uses GetDistance(user, silo) directly as a boolean, with no
+        -- threshold; preserve that authored behavior rather than inventing 400m.
+        if not defenders_spawned[i] and GetDistance(user, silos[i]) ~= 0 then
             defenders_spawned[i] = true
             local units = all_defs[i]
             for j=1,4 do
@@ -169,7 +225,7 @@ function Update()
             end
         end
     end
-    
+
     -- Recycle Check
     if not silos_recycled then
         for i=1,6 do
@@ -185,11 +241,11 @@ function Update()
                 end
             end
         end
-        
+
         local all = true
         for i=1,6 do if not recycled[i] then all = false break end end
-        if all then 
-            silos_recycled = true 
+        if all then
+            silos_recycled = true
             HideCockpitTimer()
             sound2_played = true
             AudioMessage("bd13002.wav")
@@ -198,7 +254,7 @@ function Update()
             AddObjective("bd13002.otf", "white")
         end
     end
-    
+
     -- Timer Fail
     if not recycle_checked and GetCockpitTimer() <= 0.0 then
         recycle_checked = true
@@ -208,14 +264,14 @@ function Update()
             FailMission(GetTime() + 1.0, "bd13lsea.des") -- Time out
         end
     end
-    
+
     -- Lose Logic
     if not IsAlive(recycler) and not won and not lost then
         lost = true
         AudioMessage("bd13004.wav")
         FailMission(GetTime() + 1.0, "bd13lseb.des")
     end
-    
+
     -- Enemy Recycler Logic
     if IsAlive(chin_recycler) then
         if GetHealth(chin_recycler) < 1.0 and not silos_recycled and not won and not lost then

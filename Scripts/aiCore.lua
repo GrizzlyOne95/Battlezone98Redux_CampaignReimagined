@@ -4149,7 +4149,7 @@ function aiCore.APCManager.new(teamNum)
     self.apcs = {}
     self.attackRange = 120 -- Distance to enemy before switching from GO to ATTACK
     self.updatePeriod = 5.0
-    self.updateTimer = 0.0
+    self.nextUpdateAt = 0.0   -- Real-time (GetTime) gate; fires on first Update.
     return self
 end
 
@@ -4164,9 +4164,12 @@ function aiCore.APCManager:AddObject(h)
 end
 
 function aiCore.APCManager:Update()
-    self.updateTimer = self.updateTimer + GetTimeStep()
-    if self.updateTimer < self.updatePeriod then return end
-    self.updateTimer = 0.0
+    -- Real-time gate: this runs on a manager phase (~1 in 4 cycles), so a
+    -- GetTimeStep() accumulator advanced at ~1/8 wall speed and stretched the 5s
+    -- period toward 40s. Gate on GetTime() so the intended cadence holds.
+    local now = GetTime()
+    if now < (self.nextUpdateAt or 0.0) then return end
+    self.nextUpdateAt = now + self.updatePeriod
 
     local attackTargets = {}
     for target in AllCraft() do
@@ -4284,9 +4287,16 @@ function aiCore.TurretManager.new(teamNum)
     self.teamNum = teamNum
     self.turrets = {}
     self.deployPositions = {} -- Calculated deployment positions
+    self.deployAssignments = {}
+    self.deployCenter = nil
     self.deployRadius = 150   -- Distance from recycler
     self.updatePeriod = 8.0
-    self.updateTimer = 0.0
+    self.nextUpdateAt = 0.0   -- Real-time (GetTime) gate; fires on first Update.
+    self.deployMotion = {}    -- Per-turret progress tracking for stuck detection.
+    self.arriveRadius = 25.0  -- Close enough to a slot to deploy.
+    self.repathSeconds = 16.0 -- No progress this long -> re-issue GO (re-path).
+    self.giveUpSeconds = 32.0 -- Still wedged near the slot -> deploy in place.
+    self.giveUpRadius = 60.0  -- "Near the slot" tolerance for the give-up deploy.
     return self
 end
 
@@ -4296,7 +4306,7 @@ function aiCore.TurretManager:AddObject(h)
     local odf = string.lower(GetOdf(h))
     -- Turret tanks: units with "turr" in name (turretanks can deploy into stationary turrets)
     if string.find(odf, "turr") then
-        table.insert(self.turrets, h)
+        UniqueInsert(self.turrets, h)
         if aiCore.Debug then print("Team " .. self.teamNum .. " added turret: " .. GetOdf(h)) end
     end
 end
@@ -4305,40 +4315,64 @@ function aiCore.TurretManager:CalculateDeployPositions()
     local recycler = GetRecyclerHandle(self.teamNum)
     if not IsValid(recycler) then return end
 
-    local recPos = GetPosition(recycler)
+    local recPos = (self.teamObj and self.teamObj.GetBaseCenter and self.teamObj:GetBaseCenter(true)) or GetPosition(recycler)
     self.deployPositions = {}
+    self.deployCenter = SetVector(recPos.x, recPos.y, recPos.z)
 
-    -- Create perimeter positions
-    local angles = { 0, 60, 120, 180, 240, 300 } -- 6 positions
-    for i, angle in ipairs(angles) do
+    -- Create a stable two-ring defensive grid.  The old six-slot ring wrapped all
+    -- additional turrets back onto occupied slots and produced the familiar blob.
+    local slotCount = math.max(8, #self.turrets)
+    for i = 1, slotCount do
+        local angle = ((i - 1) * (360.0 / slotCount)) + ((i % 2 == 0) and 10.0 or -10.0)
         local rad = math.rad(angle)
+        local radius = self.deployRadius + ((i % 2 == 0) and 35.0 or -20.0)
         local pos = SetVector(
-            recPos.x + math.cos(rad) * self.deployRadius,
-            recPos.y,
-            recPos.z + math.sin(rad) * self.deployRadius
+            recPos.x + math.cos(rad) * radius,
+            GetTerrainHeight(recPos.x + math.cos(rad) * radius, recPos.z + math.sin(rad) * radius),
+            recPos.z + math.sin(rad) * radius
         )
         table.insert(self.deployPositions, pos)
     end
 end
 
 function aiCore.TurretManager:Update()
+    -- Older saves predate the deployment bookkeeping fields. Recreate them
+    -- lazily so an in-progress mission can use the improved placement logic.
+    self.turrets = self.turrets or {}
+    self.deployPositions = self.deployPositions or {}
+    self.deployAssignments = self.deployAssignments or {}
+
     -- Skip if production management is disabled for this team
     if self.teamObj and self.teamObj.Config and not self.teamObj.Config.manageFactories then return end
 
-    if #self.deployPositions == 0 then
+    local currentCenter = self.teamObj and self.teamObj.GetBaseCenter and self.teamObj:GetBaseCenter() or nil
+    if #self.deployPositions < math.max(8, #self.turrets)
+        or (currentCenter and self.deployCenter and Length(currentCenter - self.deployCenter) > 40.0) then
+        self.deployAssignments = {}
+        self:CalculateDeployPositions()
+    elseif #self.deployPositions == 0 then
         self:CalculateDeployPositions()
     end
 
-    self.updateTimer = self.updateTimer + GetTimeStep()
-    if self.updateTimer < self.updatePeriod then return end
-    self.updateTimer = 0.0
+    -- Real-time gate. This method runs on manager "phase 3" (~1 in 4 cycles), so
+    -- accumulating GetTimeStep() here advanced the timer at roughly 1/8 wall speed
+    -- and stretched the 8s period toward a minute, letting other systems win the
+    -- tug-of-war over undeployed turret tanks. Gate on GetTime() instead.
+    local now = GetTime()
+    if now < (self.nextUpdateAt or 0.0) then return end
+    self.nextUpdateAt = now + self.updatePeriod
 
+    self.deployMotion = self.deployMotion or {}
     for i = #self.turrets, 1, -1 do
         local turret = self.turrets[i]
         if not IsValid(turret) then
+            self.deployMotion[turret] = nil
             table.remove(self.turrets, i)
-        elseif not IsDeployed(turret) and not IsBusy(turret) then
+        elseif not IsDeployed(turret) then
             self:DeployTurret(turret, i)
+        else
+            -- Settled into its slot; drop the motion bookkeeping.
+            self.deployMotion[turret] = nil
         end
     end
 end
@@ -4346,17 +4380,77 @@ end
 function aiCore.TurretManager:DeployTurret(turret, index)
     if #self.deployPositions == 0 then return end
 
-    -- Assign to position based on index
-    local posIndex = ((index - 1) % #self.deployPositions) + 1
+    -- Keep a turret on one unique slot even when other list entries are removed.
+    local posIndex = self.deployAssignments[turret]
+    if not posIndex or not self.deployPositions[posIndex] then
+        local used = {}
+        for h, assigned in pairs(self.deployAssignments) do
+            if IsValid(h) and h ~= turret then used[assigned] = true end
+        end
+        for i = 1, #self.deployPositions do
+            if not used[i] then posIndex = i; break end
+        end
+        posIndex = posIndex or (((index - 1) % #self.deployPositions) + 1)
+        self.deployAssignments[turret] = posIndex
+    end
     local targetPos = self.deployPositions[posIndex]
 
-    -- Move to position and deploy
-    if Length(GetPosition(turret) - targetPos) > 20 then
-        aiCore.TrySetCommand(turret, AiCommand.GO, GetUncommandablePriority(), nil, targetPos, nil, nil,
-            { minInterval = 1.0 })
+    local function Deploy()
+        aiCore.TrySetCommand(turret, AiCommand.DEPLOY, GetUncommandablePriority(), nil, nil, nil, nil,
+            { minInterval = 0.5, ignoreThrottle = true, overrideProtected = true })
+        if aiCore.Debug then print("Turret deploying at slot " .. posIndex) end
+    end
+
+    local dist = Length(GetPosition(turret) - targetPos)
+
+    -- Arrived: deploy. DEPLOY is idempotent -- once IsDeployed() flips the Update
+    -- loop stops calling us for this turret.
+    if dist <= self.arriveRadius then
+        Deploy()
+        self.deployMotion[turret] = nil
+        return
+    end
+
+    -- Track progress toward the slot so a blocked turret can react. This method is
+    -- gated to self.updatePeriod, so each visit represents that much wall time.
+    -- stuckTime is cumulative (reset only by real progress); sinceRepath is a
+    -- separate cadence so periodic re-pathing never masks the give-up timeout.
+    self.deployMotion = self.deployMotion or {}
+    local motion = self.deployMotion[turret]
+    if not motion then
+        motion = { lastDist = dist, stuckTime = 0.0, sinceRepath = 0.0 }
+        self.deployMotion[turret] = motion
+    elseif (motion.lastDist - dist) > 2.0 then
+        motion.stuckTime = 0.0          -- made real progress this interval
+        motion.sinceRepath = 0.0        -- don't re-path a healthy long drive
     else
-        Deploy(turret)
-        if aiCore.Debug then print("Turret deployed at position " .. posIndex) end
+        motion.stuckTime = motion.stuckTime + self.updatePeriod
+    end
+    motion.lastDist = dist
+
+    -- Wedged near the slot for too long: a static turret here still helps, and it
+    -- beats a tank idling on an unreachable path node.
+    if motion.stuckTime >= self.giveUpSeconds and dist <= self.giveUpRadius then
+        Deploy()
+        self.deployMotion[turret] = nil
+        return
+    end
+
+    -- Issue GO once and let it run. Re-issuing an in-progress GO every interval
+    -- would reset pathing and stutter the unit, so only send it when the turret
+    -- isn't already driving there, or on a slow re-path cadence when it has stalled.
+    local cmd = GetCurrentCommand(turret)
+    if cmd ~= AiCommand.GO then
+        motion.sinceRepath = 0.0
+        aiCore.TrySetCommand(turret, AiCommand.GO, GetUncommandablePriority(), nil, targetPos, nil, nil,
+            { minInterval = 1.0, overrideProtected = true })
+    else
+        motion.sinceRepath = motion.sinceRepath + self.updatePeriod
+        if motion.sinceRepath >= self.repathSeconds then
+            motion.sinceRepath = 0.0    -- force a fresh path; it looks stalled
+            aiCore.TrySetCommand(turret, AiCommand.GO, GetUncommandablePriority(), nil, targetPos, nil, nil,
+                { minInterval = 1.0, overrideProtected = true })
+        end
     end
 end
 
@@ -4375,7 +4469,7 @@ function aiCore.GuardManager.new(teamNum)
     self.constructorGuards = {}
     self.guardsPerTarget = 3
     self.updatePeriod = 10.0
-    self.updateTimer = 0.0
+    self.nextUpdateAt = 0.0   -- Real-time (GetTime) gate; fires on first Update.
     return self
 end
 
@@ -4731,9 +4825,11 @@ function aiCore.GuardManager:Update()
     if self.teamObj and self.teamObj.Config and not self.teamObj.Config.manageFactories then return end
     if self.teamObj and self.teamObj.Config and not self.teamObj.Config.autoManage then return end
 
-    self.updateTimer = self.updateTimer + GetTimeStep()
-    if self.updateTimer < self.updatePeriod then return end
-    self.updateTimer = 0.0
+    -- Real-time gate (see APCManager): phase scheduling made the GetTimeStep()
+    -- accumulator crawl at ~1/8 wall speed, stretching this 10s period to ~80s.
+    local now = GetTime()
+    if now < (self.nextUpdateAt or 0.0) then return end
+    self.nextUpdateAt = now + self.updatePeriod
 
     -- Clean up invalid guards
     for i = #self.recyclerGuards, 1, -1 do
@@ -5444,6 +5540,10 @@ function aiCore.ConstructorManager:new(team)
     cm.team = team
     -- cm.teamObj will be assigned in aiCore.Team:new
     cm.queue = {}
+    cm.activeJobStartedAt = nil
+    cm.activeJobProgressAt = nil
+    cm.activeJobLastDistance = nil
+    cm.activeJobBuildIssuedAt = nil
     return cm
 end
 
@@ -5484,6 +5584,10 @@ function aiCore.ConstructorManager:update()
             if aiCore.Debug then print("Constructor job " .. self.activeJob.odf .. " verified complete.") end
             self.activeJob = nil
             self.jobState = nil
+            self.activeJobStartedAt = nil
+            self.activeJobProgressAt = nil
+            self.activeJobLastDistance = nil
+            self.activeJobBuildIssuedAt = nil
         end
     end
 
@@ -5503,6 +5607,11 @@ function aiCore.ConstructorManager:update()
         end)
         self.activeJob = table.remove(self.queue, 1)
         self.sentToRecycler = false
+        self.jobState = "moving"
+        self.activeJobStartedAt = GetTime()
+        self.activeJobProgressAt = GetTime()
+        self.activeJobLastDistance = nil
+        self.activeJobBuildIssuedAt = nil
         if aiCore.Debug then print("Constructor starts job: " .. self.activeJob.odf) end
     end
 
@@ -5510,12 +5619,6 @@ function aiCore.ConstructorManager:update()
     if self.activeJob then
         local constructor = self.handle
 
-        -- If constructor is busy OR cannot build (e.g. deploying), do nothing and let it finish.
-        if not CanBuild(constructor) or IsBusy(constructor) then
-            return
-        end
-
-        -- If we are here, the constructor is IDLE and ABLE to take a command.
         local pos = self.activeJob.path
         local posVec = nil
         local buildPos = pos
@@ -5532,21 +5635,83 @@ function aiCore.ConstructorManager:update()
         if not posVec then -- If path is invalid, junk the job
             self.activeJob = nil
             self.jobState = nil
+            self.activeJobStartedAt = nil
+            self.activeJobProgressAt = nil
+            self.activeJobLastDistance = nil
+            self.activeJobBuildIssuedAt = nil
             return
         end
 
+        local now = GetTime()
+        local distance = GetDistance(constructor, posVec)
         local cmd = GetCurrentCommand(constructor)
-        if cmd == AiCommand.BUILD then
+
+        if self.activeJobLastDistance == nil or distance < self.activeJobLastDistance - 3.0 then
+            self.activeJobLastDistance = distance
+            self.activeJobProgressAt = now
+        end
+
+        -- A completed BuildAt can leave the constructor reporting BUILD/IsBusy even
+        -- after the previous job was linked.  That stale state used to strand the
+        -- next job forever.  Clear it immediately when the newly-selected job has
+        -- not itself issued a build.
+        if cmd == AiCommand.BUILD and self.jobState ~= "building" then
+            aiCore.TrySetCommand(constructor, AiCommand.STOP, GetUncommandablePriority(), nil, nil, nil, nil,
+                { minInterval = 0.2, ignoreThrottle = true, overrideProtected = true })
+            self.activeJobProgressAt = now
             return
         end
-        local cmdName = AiCommand[cmd] or ""
 
-        if not string.match(cmdName, "GO") and GetDistance(constructor, posVec) > 60.0 then
+        -- GO can remain busy after the constructor has physically reached the
+        -- build point.  Stop that arrival order so the normal BuildAt branch is
+        -- allowed to run on the following update.
+        local movingCommand = cmd == AiCommand.GO or cmd == AiCommand.GO_TO_GEYSER
+        if distance <= 25.0 and self.jobState == "moving" and movingCommand then
+            aiCore.TrySetCommand(constructor, AiCommand.STOP, GetUncommandablePriority(), nil, nil, nil, nil,
+                { minInterval = 0.2, ignoreThrottle = true, overrideProtected = true })
+            self.jobState = "arrived"
+            self.activeJobProgressAt = now
+            return
+        end
+
+        -- Recover a BuildAt that never materialized, or a movement order that made
+        -- no progress.  Both conditions were visible in long missions as an idle
+        -- constructor with a permanently non-empty queue.
+        if self.jobState == "building" and self.activeJobBuildIssuedAt
+            and now - self.activeJobBuildIssuedAt > 45.0 then
+            aiCore.TrySetCommand(constructor, AiCommand.STOP, GetUncommandablePriority(), nil, nil, nil, nil,
+                { minInterval = 0.2, ignoreThrottle = true, overrideProtected = true })
+            self.jobState = "moving"
+            self.activeJobBuildIssuedAt = nil
+            self.activeJobProgressAt = now
+            return
+        elseif distance > 60.0 and now - (self.activeJobProgressAt or now) > 15.0 then
+            aiCore.TrySetCommand(constructor, AiCommand.GO, GetUncommandablePriority(), nil, posVec, nil, nil,
+                { minInterval = 0.2, ignoreThrottle = true, overrideProtected = true })
+            self.jobState = "moving"
+            self.activeJobProgressAt = now
+            return
+        end
+
+        -- A genuinely active movement/build is allowed to finish between watchdog
+        -- checks.  The watchdog above is what prevents this from becoming permanent.
+        -- Redux can keep both IsBusy and CanBuild in their movement values for a
+        -- few seconds after STOP.  Once our own distance check has confirmed the
+        -- constructor arrived, BuildAt is the authoritative transition and may
+        -- safely replace that stale GO state.
+        local readyAtSite = self.jobState == "arrived" and distance <= 60.0
+        if not readyAtSite and (not CanBuild(constructor) or IsBusy(constructor)) then
+            return
+        end
+
+        if not movingCommand and distance > 60.0 then
             -- Move to site
             aiCore.TrySetCommand(constructor, AiCommand.GO, GetUncommandablePriority(), nil, posVec, nil, nil,
-                { minInterval = 1.0 })
+                { minInterval = 1.0, overrideProtected = true })
+            self.jobState = "moving"
+            self.activeJobProgressAt = now
             if aiCore.Debug then print("Constructor GOTO " .. self.activeJob.odf .. " site.") end
-        elseif GetDistance(constructor, posVec) <= 60.0 then
+        elseif distance <= 60.0 then
             -- At site, try to build
             -- Pre-build checks
             local scrapCost = GetODFInt(OpenODF(self.activeJob.odf), "GameObjectClass", "scrapCost")
@@ -5565,6 +5730,10 @@ function aiCore.ConstructorManager:update()
                     -- Associate and remove from queue is complex, just aborting job is safer for aiCore
                     self.activeJob = nil
                     self.jobState = nil
+                    self.activeJobStartedAt = nil
+                    self.activeJobProgressAt = nil
+                    self.activeJobLastDistance = nil
+                    self.activeJobBuildIssuedAt = nil
                     return
                 else
                     -- Only build if pulse timer conditions are met
@@ -5574,6 +5743,9 @@ function aiCore.ConstructorManager:update()
                         -- Issue BuildAt command
                         if aiCore.Debug then print("Constructor issuing BuildAt for " .. self.activeJob.odf) end
                         BuildAt(constructor, self.activeJob.odf, buildPos)
+                        self.jobState = "building"
+                        self.activeJobBuildIssuedAt = now
+                        self.activeJobProgressAt = now
                         self.pulseTimer = self.pulsePeriod + math.random((0 * self.pulsePeriod), self.pulsePeriod) +
                             GetTime()
                     end
@@ -5714,10 +5886,15 @@ function aiCore.Squad:IssueAttackOrders(target)
         return
     end
 
-    aiCore.TryAttack(self.leader, target, GetCommandableAttackPriority(), { minInterval = 0.7 })
+    -- Staged units arrive here carrying protected GO/FOLLOW orders.  A normal
+    -- squad attack must supersede those staging orders just as formation-rush
+    -- does, otherwise independent squads remain parked at the recycler.
+    aiCore.TryAttack(self.leader, target, GetCommandableAttackPriority(),
+        { minInterval = 0.7, overrideProtected = true })
     for _, m in ipairs(self.members) do
         if IsValid(m) then
-            aiCore.TryAttack(m, target, GetCommandableAttackPriority(), { minInterval = 0.7 })
+            aiCore.TryAttack(m, target, GetCommandableAttackPriority(),
+                { minInterval = 0.7, overrideProtected = true })
         end
     end
 end
@@ -7379,8 +7556,18 @@ function aiCore.Team:GetBaseReference(force)
     return self:GetBaseCenter(force)
 end
 
+-- True when aiCore must NOT autonomously issue movement/attack orders to this
+-- team's units. The player team (1) is hands-off unless a mission explicitly opts
+-- in with autoManage. Dedicated player-assist toggles (scavengerAssist,
+-- autoRepairWingmen, autoRescue, autoTugs, stickToPlayer) have their own gates and
+-- are intentionally unaffected by this. AI teams (>=2) are never blocked here.
+function aiCore.Team:AutoCommandBlocked()
+    return self.teamNum == 1 and not (self.Config and self.Config.autoManage)
+end
+
 function aiCore.Team:UpdateOffensiveRetaliation()
     if self.Config.offensiveRetaliation == false then return end
+    if self:AutoCommandBlocked() then return end
 
     self.offensiveRetaliationTimer = (self.offensiveRetaliationTimer or 0.0) + GetTimeStep()
     if self.offensiveRetaliationTimer < 0.5 then return end
@@ -7439,6 +7626,84 @@ function aiCore.Team:UpdateOffensiveRetaliation()
         if not IsValid(h) or not IsAlive(h) then
             self.offensiveRetaliation[h] = nil
         end
+    end
+end
+
+-- Propagate attacks on critical base assets to nearby combat craft. Individual
+-- retaliation only notices damage to the unit itself, so a scout could previously
+-- demolish a constructor while an entire defense group watched from a few hundred
+-- metres away.
+function aiCore.Team:UpdateBaseThreatResponse()
+    if self.Config.baseThreatResponse == false then return end
+    if self:AutoCommandBlocked() then return end
+    local now = GetTime()
+    if now < (self.baseThreatResponseAt or 0.0) then return end
+    self.baseThreatResponseAt = now + (self.Config.baseThreatResponsePeriod or 0.5)
+
+    -- Keep this dense: ipairs stops on the first nil, which would otherwise
+    -- skip the constructor whenever an earlier base structure is missing.
+    local assets = {}
+    local function AddAsset(h)
+        if IsValid(h) then table.insert(assets, h) end
+    end
+    AddAsset(GetRecyclerHandle(self.teamNum))
+    AddAsset(GetFactoryHandle(self.teamNum))
+    AddAsset(GetArmoryHandle(self.teamNum))
+    AddAsset(self.constructorMgr and self.constructorMgr.handle or nil)
+    local enemyTeam = self:GetPrimaryEnemyTeam()
+    if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+
+    local alertRadius = self.Config.baseThreatAlertRadius or 360.0
+    local threatenedAsset = nil
+    local attacker = nil
+    local bestDistance = 999999.0
+
+    for _, asset in ipairs(assets) do
+        if IsValid(asset) and IsAlive(asset) then
+            local who = GetWhoShotMe(asset)
+            local recentlyHit = IsValid(who) and (now - GetLastEnemyShot(asset)) < 8.0
+                and GetTeamNum(who) ~= self.teamNum and not IsAlly(asset, who)
+            if recentlyHit then
+                local d = GetDistance(asset, who)
+                if d < bestDistance then
+                    threatenedAsset, attacker, bestDistance = asset, who, d
+                end
+            end
+
+            for _, enemy in ipairs(aiCore.GetCachedTeamCraft(enemyTeam)) do
+                if IsValid(enemy) and IsAlive(enemy) and not IsCloaked(enemy) then
+                    local d = GetDistance(asset, enemy)
+                    if d <= alertRadius and d < bestDistance then
+                        threatenedAsset, attacker, bestDistance = asset, enemy, d
+                    end
+                end
+            end
+        end
+    end
+
+    if not (IsValid(threatenedAsset) and IsValid(attacker) and IsAlive(attacker)) then return end
+
+    local responseRadius = self.Config.baseThreatResponseRadius or 650.0
+    local maxResponders = self.Config.baseThreatMaxResponders or 6
+    local candidates = {}
+    for _, unit in ipairs(self.combatUnits or aiCore.EmptyList) do
+        local ucls = IsValid(unit) and string.lower(utility.CleanString(GetClassLabel(unit))) or ""
+        if IsValid(unit) and IsAlive(unit) and not IsBuilding(unit) and not IsDeployed(unit)
+            -- Undeployed turret tanks belong to TurretManager; don't send them off as mobile responders.
+            and not string.find(ucls, utility.ClassLabel.TURRET_TANK)
+            and GetDistance(unit, threatenedAsset) <= responseRadius then
+            local cmd = GetCurrentCommand(unit)
+            if cmd == AiCommand.NONE or cmd == AiCommand.GO or cmd == AiCommand.PATROL
+                or cmd == AiCommand.DEFEND or cmd == AiCommand.FOLLOW or cmd == AiCommand.STAGE then
+                table.insert(candidates, { handle = unit, distance = GetDistance(unit, attacker) })
+            end
+        end
+    end
+    table.sort(candidates, function(a, b) return a.distance < b.distance end)
+
+    for i = 1, math.min(maxResponders, #candidates) do
+        aiCore.TryAttack(candidates[i].handle, attacker, GetCommandableAttackPriority(),
+            { minInterval = 0.2, ignoreThrottle = true, overrideProtected = true })
     end
 end
 
@@ -8279,6 +8544,10 @@ function aiCore.Team:Update()
     self:UpdateScrapAwareness()
     if self.Config.autoManage then self:UpdateRaiders() end
 
+    -- Never let the unit-commanding managers run for the player team unless the
+    -- mission explicitly opted in with autoManage. AI teams (>=2) are unaffected.
+    local blockPlayer = self:AutoCommandBlocked()
+
     -- Real-time scheduler: one manager phase per interval, offset by team number.
     -- This is stable across frame rates and prevents every AI team from spiking on
     -- the same frame.
@@ -8288,13 +8557,13 @@ function aiCore.Team:Update()
         self._managerPhase = (phase + 1) % 4
 
         if phase == 0 then
-            if self.weaponMgr then self.weaponMgr:Update() end
+            if self.weaponMgr and not blockPlayer then self.weaponMgr:Update() end
         elseif phase == 1 then
-            if self.cloakMgr then self.cloakMgr:Update() end
-            if self.howitzerMgr then self.howitzerMgr:Update() end
+            if self.cloakMgr and not blockPlayer then self.cloakMgr:Update() end
+            if self.howitzerMgr and not blockPlayer then self.howitzerMgr:Update() end
         elseif phase == 2 then
-            if self.minelayerMgr then self.minelayerMgr:Update() end
-            if self.apcMgr then self.apcMgr:Update() end
+            if self.minelayerMgr and not blockPlayer then self.minelayerMgr:Update() end
+            if self.apcMgr and not blockPlayer then self.apcMgr:Update() end
         elseif phase == 3 and self.Config.autoManage then
             if self.turretMgr then self.turretMgr:Update() end
             if self.guardMgr then self.guardMgr:Update() end
@@ -8303,8 +8572,8 @@ function aiCore.Team:Update()
     end
 
     if self.wingmanMgr and self.Config.autoRepairWingmen then self.wingmanMgr:Update() end
-    if self.depotMgr then self.depotMgr:Update() end
-    if self.combatTuningMgr then self.combatTuningMgr:Update() end
+    if self.depotMgr and not blockPlayer then self.depotMgr:Update() end
+    if self.combatTuningMgr and not blockPlayer then self.combatTuningMgr:Update() end
 
     -- pilotMode Automations
     if self.Config.autoManage then self:UpdateUnitRoles() end
@@ -8315,6 +8584,7 @@ function aiCore.Team:Update()
     if self.Config.autoBuild then self:UpdateAutoBase() end
     if self.Config.autoManage then self:UpdateRetreat() end
     self:UpdateOffensiveRetaliation()
+    self:UpdateBaseThreatResponse()
 
     -- Legacy Proximity/Maintenance
     if self.Config.dynamicMinefields then self:UpdateDynamicMinefields() end
@@ -8647,6 +8917,29 @@ function aiCore.Team:UpdateTelemetry()
         buildStats.queued or 0, buildStats.issued or 0, buildStats.completed or 0,
         buildStats.recovered or 0, buildStats.dropped or 0, buildStats.failed or 0,
         counters.retreats or 0, counters.rejoins or 0, counters.losses or 0, counters.strategicChanges or 0))
+
+    local activeJob = self.constructorMgr and self.constructorMgr.activeJob or nil
+    local activeOdf = activeJob and utility.CleanString(activeJob.odf or "") or "-"
+    local activeDist = -1.0
+    if activeJob and self.constructorMgr and IsValid(self.constructorMgr.handle) then
+        local ref = activeJob.path
+        if type(ref) == "string" then
+            ref = paths.GetPosition(ref, 0)
+        elseif type(ref) == "table" and ref.posit_x ~= nil then
+            ref = MatrixToPosition(ref)
+        end
+        if ref then activeDist = GetDistance(self.constructorMgr.handle, ref) end
+    end
+    local deployedTurrets = 0
+    for _, turret in ipairs(self.turrets or aiCore.EmptyList) do
+        if IsValid(turret) and IsDeployed(turret) then deployedTurrets = deployedTurrets + 1 end
+    end
+    print(string.format(
+        "[AI tact t%d] pool=%d squads=%d goals=%d | turrets=%d/%d deployed | ctorJob=%s state=%s dist=%.1f stalled=%.1fs",
+        self.teamNum, countAlive(self.pool), #(self.squads or aiCore.EmptyList),
+        #(self.strategicGoalCache or aiCore.EmptyList), deployedTurrets, countAlive(self.turrets),
+        tostring(activeOdf), tostring((self.constructorMgr and self.constructorMgr.jobState) or "-"), activeDist,
+        GetTime() - ((self.constructorMgr and self.constructorMgr.activeJobProgressAt) or GetTime())))
 end
 
 function aiCore.Team:UpdateScavengerAssist()
@@ -8767,6 +9060,15 @@ function aiCore.Team:UpdateBaseMaintenance()
     end
 
     local queuedOdFs = {}
+    -- Remove orphaned singleton shadow entries. They are bookkeeping only; without
+    -- a live producer intent they must not suppress the ensure/rebuild pass.
+    for i = #(self.recyclerMgr.queue or aiCore.EmptyList), 1, -1 do
+        local item = self.recyclerMgr.queue[i]
+        if item and self:IsSingletonProducerOdf(item.odf)
+            and not producer.HasPendingIntent(self.teamNum, item.odf) then
+            table.remove(self.recyclerMgr.queue, i)
+        end
+    end
     local function MarkQueued(list)
         for i = 1, #(list or aiCore.EmptyList) do
             local item = list[i]
@@ -9710,7 +10012,14 @@ function aiCore.Team:RecomputeStrategicGoals(force)
     local goalRadius = self.Config.tacticalGoalRadius or 260.0
 
     for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
-        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) then
+        local cls = IsValid(obj) and string.lower(utility.CleanString(GetClassLabel(obj))) or ""
+        local strategicProducer = IsValid(obj) and IsCraft(obj)
+            and (cls == utility.ClassLabel.RECYCLER or cls == utility.ClassLabel.FACTORY
+                or cls == utility.ClassLabel.ARMORY or cls == utility.ClassLabel.CONSTRUCTOR)
+        -- Deployed recyclers/factories/armories remain craft to parts of the Redux
+        -- Lua API. Excluding them here produced no attack goal on sparse campaign
+        -- bases, leaving every manufactured squad clustered at its own recycler.
+        if IsValid(obj) and IsAlive(obj) and (IsBuilding(obj) or strategicProducer) then
             local pos = GetPosition(obj)
             local threat = 0.0
             local siegeRisk = 0.0
@@ -9901,9 +10210,11 @@ function aiCore.Team:BuildSquadFromPoolForGoal(goal)
     if #chosen < minUnits then
         return nil, nil, 0.0
     end
-    if goal and totalStrength + 0.01 < (goal.requiredMinForce or 0.0) then
-        return nil, nil, totalStrength
-    end
+    -- SelectStrategicGoal already verifies that the aggregate pool can match the
+    -- objective.  Do not require one capped squad (normally five units) to meet
+    -- that entire force requirement: doing so deadlocked a large restored pool
+    -- forever when the objective needed more strength than five craft could
+    -- provide.  Launch bounded squads over successive updates instead.
 
     for _, unit in ipairs(chosen) do
         RemoveFromList(self.pool, unit)
@@ -11369,6 +11680,9 @@ function aiCore.Team:UpdateTugs()
 end
 
 function aiCore.Team:UpdatePilots()
+    -- Sniper/technician logic issues move/attack/steal orders, so it must respect
+    -- the player-team hands-off gate just like the other command systems.
+    if self:AutoCommandBlocked() then return end
     local now = GetTime()
     if now < (self.pilotUpdateAt or 0.0) then return end
     self.pilotUpdateAt = now + 0.35
@@ -11783,6 +12097,51 @@ function aiCore.Team:UpdateSquads()
         return true
     end
 
+    -- Rehydrate the tactical pool after loading a save. AddObject only knows a
+    -- unit is newly produced when it can link it to a live producer queue; units
+    -- restored from a save therefore entered combatUnits but never the pool and
+    -- stayed clustered around the recycler indefinitely. Only recover idle/staged
+    -- enemy craft near their own base, preserving guards and active mission orders.
+    if aiCore.IsEnemyOfPlayerTeam(self.teamNum) then
+        local assigned = {}
+        for _, squad in ipairs(self.squads or aiCore.EmptyList) do
+            if squad then
+                if IsValid(squad.leader) then assigned[squad.leader] = true end
+                for _, member in ipairs(squad.members or aiCore.EmptyList) do
+                    if IsValid(member) then assigned[member] = true end
+                end
+            end
+        end
+
+        local guards = {}
+        if self.guardMgr then
+            for _, guard in ipairs(self.guardMgr.recyclerGuards or aiCore.EmptyList) do
+                if IsValid(guard) then guards[guard] = true end
+            end
+            for _, guard in ipairs(self.guardMgr.constructorGuards or aiCore.EmptyList) do
+                if IsValid(guard) then guards[guard] = true end
+            end
+        end
+
+        local baseRef = self:GetBaseReference()
+        local recoverRadius = self.Config.tacticalPoolRecoverRadius or 650.0
+        for _, unit in ipairs(self.combatUnits or aiCore.EmptyList) do
+            if IsValid(unit) and IsAlive(unit) and IsCraft(unit) and not IsBuilding(unit)
+                and not IsDeployed(unit) and not assigned[unit] and not guards[unit]
+                and not (self.retreatingUnits and self.retreatingUnits[unit]) then
+                local cls = string.lower(utility.CleanString(GetClassLabel(unit)))
+                local cmd = GetCurrentCommand(unit)
+                local staged = cmd == AiCommand.NONE or cmd == AiCommand.STOP or cmd == AiCommand.GO
+                    or cmd == AiCommand.PATROL or cmd == AiCommand.STAGE or cmd == AiCommand.FOLLOW
+                    or cmd == AiCommand.FORMATION or cmd == AiCommand.DEFEND
+                local nearBase = not IsValid(baseRef) or GetDistance(unit, baseRef) <= recoverRadius
+                if staged and nearBase and not IsSpecializedPoolClass(cls) then
+                    UniqueInsert(self.pool, unit)
+                end
+            end
+        end
+    end
+
     -- 1. Manage Pool (Form Squads)
     aiCore.RemoveDead(self.pool)
     PruneSpecializedPoolUnits(self.pool)
@@ -12001,6 +12360,22 @@ function aiCore.Team:CheckBuildList(list, mgr)
                     end
                 end
 
+                -- FactoryManager.queue is only a shadow queue. If its executable
+                -- producer intent vanished without linking this build-list slot, the
+                -- shadow entry used to suppress the unit forever (notably replacement
+                -- armories). Restore the real intent while retaining one shadow entry.
+                if inQueue and not producer.HasPendingIntent(self.teamNum, item.odf) then
+                    producer.QueueJob(item.odf, self.teamNum, nil, nil,
+                        {
+                            source = "aiCore-shadow-recovery",
+                            priority = p,
+                            type = "unit",
+                            producer = (mgr.isRecycler and "recycler" or "factory"),
+                            account = item.account,
+                            category = item.category
+                        })
+                end
+
                 if not inQueue then
                     -- DIFFICULTY CAP CHECK
                     local cap_reached = false
@@ -12188,8 +12563,13 @@ function aiCore.Team:AddObject(h)
             end
         end
 
-        if matchedIndex and matchedPriority and list[matchedPriority] then
-            list[matchedPriority].handle = h
+        if matchedIndex then
+            if matchedPriority and list[matchedPriority] then
+                list[matchedPriority].handle = h
+            end
+            -- Ad-hoc maintenance jobs (constructor/factory/armory replacements)
+            -- are not necessarily represented in a strategy build list. Their
+            -- shadow entry still has to be consumed when the object appears.
             table.remove(mgr.queue, matchedIndex)
             linked = true
         end
@@ -12275,6 +12655,10 @@ function aiCore.Team:AddObject(h)
         not string.find(cls, utility.ClassLabel.CONSTRUCTOR) and
         not string.find(cls, utility.ClassLabel.TUG) and
         not isApc and
+        -- Turret tanks are owned by TurretManager (grid deploy). Keeping them out
+        -- of combatUnits stops the mobile-combat systems (base-threat response,
+        -- retreat/fallback) from yanking undeployed tanks off their grid slot.
+        not string.find(cls, utility.ClassLabel.TURRET_TANK) and
         not string.find(cls, utility.ClassLabel.PERSON)
     if isCombatCraft then
         UniqueInsert(self.combatUnits, h)
@@ -12320,6 +12704,51 @@ function aiCore.Team:AddObject(h)
     if self.defenseMgr then self.defenseMgr:AddObject(h) end
     if self.depotMgr then self.depotMgr:AddObject(h) end
     if self.combatTuningMgr then self.combatTuningMgr:AddObject(h) end
+end
+
+-- Fully release a destroyed handle from team bookkeeping. Redux can reuse object
+-- handles; leaving trackedSet populated caused later replacements to be rejected as
+-- duplicates and also left stale build-list handles behind.
+function aiCore.Team:RemoveObject(h)
+    if self.trackedSet then self.trackedSet[h] = nil end
+    if self.offensiveRetaliation then self.offensiveRetaliation[h] = nil end
+    if self.retreatingUnits then self.retreatingUnits[h] = nil end
+
+    for _, list in ipairs({
+        self.scavengers, self.combatUnits, self.pool, self.turrets, self.doubleUsers,
+        self.howitzers, self.apcs, self.minelayers, self.cloakers, self.tugHandles,
+        self.soldiers, self.pilots, self.mortars, self.thumpers, self.fields
+    }) do
+        if list then RemoveFromList(list, h) end
+    end
+
+    for _, list in ipairs({ self.recyclerBuildList, self.factoryBuildList, self.buildingList }) do
+        for _, item in pairs(list or aiCore.EmptyList) do
+            if item and item.handle == h then item.handle = nil end
+        end
+    end
+
+    if self.recyclerMgr and self.recyclerMgr.handle == h then self.recyclerMgr.handle = nil end
+    if self.factoryMgr and self.factoryMgr.handle == h then self.factoryMgr.handle = nil end
+    if self.constructorMgr and self.constructorMgr.handle == h then
+        self.constructorMgr.handle = nil
+        self.constructorMgr.activeJob = nil
+        self.constructorMgr.jobState = nil
+        self.constructorMgr.activeJobStartedAt = nil
+        self.constructorMgr.activeJobProgressAt = nil
+        self.constructorMgr.activeJobLastDistance = nil
+        self.constructorMgr.activeJobBuildIssuedAt = nil
+    end
+
+    if self.turretMgr then
+        RemoveFromList(self.turretMgr.turrets, h)
+        if self.turretMgr.deployAssignments then self.turretMgr.deployAssignments[h] = nil end
+        if self.turretMgr.deployMotion then self.turretMgr.deployMotion[h] = nil end
+    end
+    for _, mgr in ipairs({ self.weaponMgr, self.cloakMgr, self.howitzerMgr, self.minelayerMgr,
+        self.apcMgr, self.wingmanMgr, self.defenseMgr, self.depotMgr, self.combatTuningMgr }) do
+        if mgr and mgr.RemoveObject then mgr:RemoveObject(h) end
+    end
 end
 
 ---@return any
@@ -12665,8 +13094,9 @@ end
 
 function aiCore.DeleteObject(h)
     local meta = aiCore.ObjectIndex and aiCore.ObjectIndex.handleMeta[h]
+    local team = meta and aiCore.ActiveTeams and aiCore.ActiveTeams[meta.team] or nil
+    if team and team.RemoveObject then team:RemoveObject(h) end
     if meta and meta.isCraft then
-        local team = aiCore.ActiveTeams and aiCore.ActiveTeams[meta.team]
         if team then
             team.telemetryCounters = team.telemetryCounters or { retreats = 0, rejoins = 0, losses = 0, strategicChanges = 0 }
             team.telemetryCounters.losses = (team.telemetryCounters.losses or 0) + 1

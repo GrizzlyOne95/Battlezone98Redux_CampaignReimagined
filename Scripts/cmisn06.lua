@@ -1,4 +1,6 @@
 -- cmisn06.lua (Converted from Chinese06Mission.cpp)
+-- Source-disabled note: Setup contained a debug BuildObject("cvtnk", 1, user).
+-- Source debug annotation retained: "Setting traitor's team number to 2".
 
 -- Compatibility
 SetLabel = SetLabel or SetLabel
@@ -53,6 +55,83 @@ local num_annoy_rounds = 0
 -- Difficulty
 local difficulty = 2
 
+-- Preserve native mission state across save/load.
+function Save()
+    return {
+        start_done = start_done,
+        objective1_complete = objective1_complete,
+        objective2_complete = objective2_complete,
+        objective3_complete = objective3_complete,
+        ran_done = ran_done,
+        turn_traitor = turn_traitor,
+        reinf_destroyed = reinf_destroyed,
+        won = won,
+        lost = lost,
+        opening_sound_time = opening_sound_time,
+        sound2_time = sound2_time,
+        sound3_time = sound3_time,
+        sound4_time = sound4_time,
+        ran_time = ran_time,
+        annoy_start_time = annoy_start_time,
+        annoy_time = annoy_time,
+        give_scrap_time = give_scrap_time,
+        more_ran_time = more_ran_time,
+        user = user,
+        recycler = recycler,
+        factory = factory,
+        armoury = armoury,
+        silo1 = silo1,
+        silo2 = silo2,
+        reinf = reinf,
+        psu = psu,
+        annoy = annoy,
+        opening_sound = opening_sound,
+        sound2 = sound2,
+        sound3 = sound3,
+        sound4 = sound4,
+        ran_choice = ran_choice,
+        num_annoy_rounds = num_annoy_rounds,
+        difficulty = difficulty,
+    }
+end
+
+function Load(state)
+    if not state then return end
+    start_done = state.start_done
+    objective1_complete = state.objective1_complete
+    objective2_complete = state.objective2_complete
+    objective3_complete = state.objective3_complete
+    ran_done = state.ran_done
+    turn_traitor = state.turn_traitor
+    reinf_destroyed = state.reinf_destroyed
+    won = state.won
+    lost = state.lost
+    opening_sound_time = state.opening_sound_time
+    sound2_time = state.sound2_time
+    sound3_time = state.sound3_time
+    sound4_time = state.sound4_time
+    ran_time = state.ran_time
+    annoy_start_time = state.annoy_start_time
+    annoy_time = state.annoy_time
+    give_scrap_time = state.give_scrap_time
+    more_ran_time = state.more_ran_time
+    user = state.user
+    recycler = state.recycler
+    factory = state.factory
+    armoury = state.armoury
+    silo1 = state.silo1
+    silo2 = state.silo2
+    reinf = state.reinf
+    psu = state.psu
+    annoy = state.annoy
+    opening_sound = state.opening_sound
+    sound2 = state.sound2
+    sound3 = state.sound3
+    sound4 = state.sound4
+    ran_choice = state.ran_choice
+    num_annoy_rounds = state.num_annoy_rounds
+    difficulty = state.difficulty
+end
 function Start()
     if exu then
         if exu.SetShotConvergence then exu.SetShotConvergence(true) end
@@ -65,7 +144,7 @@ end
 
 function AddObject(h)
     local team = GetTeamNum(h)
-    if team == 2 then 
+    if team == 2 then
         aiCore.AddObject(h)
     end
 end
@@ -87,37 +166,37 @@ end
 function Update()
     user = GetPlayerHandle()
     aiCore.Update()
-    
+
     if not start_done then
-        -- C++ line 345: SetAIP("chmisn06.aip");
-        SetPilot(1, DiffUtils.ScaleRes(10))
-        SetScrap(1, DiffUtils.ScaleRes(50))
+        SetAIP("chmisn06.aip")
+        SetPilot(1, 10)
+        SetScrap(1, 50)
         SetScrap(2, 0)
-        
+
         recycler = GetHandle("avrecy2_recycler")
         factory = GetHandle("avmuf2_factory")
         armoury = GetHandle("avslf2_armory")
         silo1 = GetHandle("absilo2_scrapsilo")
         silo2 = GetHandle("absilo3_scrapsilo")
-        
+
         for i=1,4 do psu[i] = GetHandle("psu_"..i) end
-        
+
         opening_sound_time = GetTime() + 2.0
         sound2_time = GetTime() + 60.0
         annoy_start_time = GetTime() + 600.0 -- 10 mins
         give_scrap_time = GetTime() + 1200.0 -- 20 mins
-        
+
         start_done = true
     end
-    
+
     if won or lost then return end
-    
+
     -- Scrap boost
     if GetTime() > give_scrap_time then
         give_scrap_time = 99999.0
         AddScrap(2, 50)
     end
-    
+
     -- Intro
     if GetTime() > opening_sound_time then
         opening_sound_time = 99999.0
@@ -125,39 +204,39 @@ function Update()
         ClearObjectives()
         AddObjective("ch06001.otf", "white")
     end
-    
+
     if GetTime() > sound2_time then
         sound2_time = 99999.0
         sound2 = AudioMessage("ch06002.wav")
     end
-    
+
     if sound2 and IsAudioMessageDone(sound2) then
         sound2 = nil
         local h = BuildObject("apcamr", 1, "nav_1")
         SetName(h, "CCA Base")
         sound3_time = GetTime() + 15.0
     end
-    
+
     if GetTime() > sound3_time then
         sound3_time = 99999.0
         sound3 = AudioMessage("ch06003.wav")
     end
-    
+
     if sound3 and IsAudioMessageDone(sound3) then
         sound3 = nil
         sound4_time = GetTime() + 1.0
     end
-    
+
     if GetTime() > sound4_time then
         sound4_time = 99999.0
         sound4 = AudioMessage("ch06004.wav")
     end
-    
+
     if sound4 and IsAudioMessageDone(sound4) then
         sound4 = nil
-        ran_time = GetTime() + DiffUtils.ScaleTimer(180.0)
+        ran_time = GetTime() + 180.0
     end
-    
+
     -- Traitor Reinforcements
     if GetTime() > ran_time then
         ran_time = 99999.0
@@ -167,9 +246,9 @@ function Update()
         local spawn = spawns[num]
         local path = paths[num]
         ran_choice = num
-        
+
         local odffs = {"cvfigh", "cvfigh", "cvfigh", "cvfigh", "cvtnk", "cvtnk", "cvtnk", "cvtnk", "cvhraz", "cvhraz", "cvhraz", "cvhraz"}
-        for i=1, DiffUtils.ScaleEnemy(12) do
+        for i=1, 12 do
             local idx = (i-1)%12 + 1
             reinf[i] = BuildObject(odffs[idx], 1, spawn)
             SetPerceivedTeam(reinf[i], 2)
@@ -177,11 +256,11 @@ function Update()
         end
         ran_done = true
     end
-    
+
     if ran_done and not turn_traitor then
         local triggers = {"ran_1_trigger", "ran_2_trigger", "ran_3_trigger"}
         local trigger_pos = triggers[ran_choice]
-        
+
         for i=1,12 do
             if reinf[i] and IsAlive(reinf[i]) then
                 if GetHealth(reinf[i]) < 0.70 or GetDistance(reinf[i], trigger_pos) < 75.0 then
@@ -190,7 +269,7 @@ function Update()
                 end
             end
         end
-        
+
         if turn_traitor then
             for i=1,12 do
                 if reinf[i] then
@@ -204,7 +283,7 @@ function Update()
             more_ran_time = GetTime() + 120.0
         end
     end
-    
+
     -- Extra traitor support
     if GetTime() > more_ran_time then
         more_ran_time = 99999.0
@@ -215,11 +294,11 @@ function Update()
         local p = others[math.random(1, #others)]
         local base = GetBase()
         if base then
-            for i=1, DiffUtils.ScaleEnemy(4) do local h = BuildObject("svfigh", 2, p); Attack(h, base, 0) end
-            for i=1, DiffUtils.ScaleEnemy(4) do local h = BuildObject("svtank", 2, p); Attack(h, base, 0) end
+            for i=1, 4 do local h = BuildObject("svfigh", 2, p); Attack(h, base, 0) end
+            for i=1, 4 do local h = BuildObject("svtank", 2, p); Attack(h, base, 0) end
         end
     end
-    
+
     if ran_done and not reinf_destroyed then
         reinf_destroyed = true
         for i=1,12 do if IsAlive(reinf[i]) then reinf_destroyed = false; break end end
@@ -227,7 +306,7 @@ function Update()
             AudioMessage("ch06006.wav")
         end
     end
-    
+
     -- Raider Logic (Linked to PSU)
     if GetTime() > annoy_start_time then
         if GetDistance(recycler, "activate_1") < 500 or GetDistance(recycler, "activate_2") < 500 or
@@ -238,18 +317,18 @@ function Update()
             annoy_start_time = GetTime() + 60.0
         end
     end
-    
+
     if GetTime() > annoy_time then
         local psu_alive = false
         for i=1,4 do if IsAlive(psu[i]) then psu_alive = true; break end end
-        
+
         if psu_alive then
             local units = {"svfigh", "svltnk", "svtank", "svhraz"}
             annoy_time = GetTime() + 300.0
             num_annoy_rounds = num_annoy_rounds + 1
             if num_annoy_rounds == 3 then max_annoy = 6 end
-            
-            for i=1, DiffUtils.ScaleEnemy(max_annoy) do
+
+            for i=1, max_annoy do
                 if not annoy[i] or not IsAlive(annoy[i]) then
                      annoy[i] = BuildObject(units[math.random(1, 4)], 2, "annoy_1")
                      Goto(annoy[i], "annoy_1_path")
@@ -259,27 +338,22 @@ function Update()
             annoy_time = 99999.0
         end
     end
-    
+
     -- Defeat
     if recycler and factory and not IsAlive(recycler) and not IsAlive(factory) and not lost then
         lost = true
         FailMission(GetTime(), "ch06lsea.des")
     end
-    
+
     -- Victory (Total Clean-up after traitors)
     if reinf_destroyed and not won and not lost then
         won = true
-        -- Check if any Team 2 units remain on map
-        -- Note: Standard BZ Lua API loop over objectList is often missing, 
-        -- but missions usually rely on specific groups or counts.
-        -- C++ uses GameObject::objectList. 
-        -- Simplified for Lua: check all reinforcements + common enemy types?
-        -- Actually, most ported missions use a direct check for remaining team 2 units via an engine call if available, 
-        -- or just assume if reinforcements are dead and time has passed.
-        -- Using C++ logic: loop over all objects is needed.
-        -- For now, checking if reinforcements were the primary trigger.
-        
-        -- Better logic: rely on aiCore if possible, but standard is checking handles.
+        for h in AllObjects() do
+            if GetTeamNum(h) == 2 and IsAlive(h) then
+                won = false
+                break
+            end
+        end
         if won then
             SucceedMission(GetTime() + 1.0, "ch06win.des")
         end

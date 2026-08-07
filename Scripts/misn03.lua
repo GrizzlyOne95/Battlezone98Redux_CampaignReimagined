@@ -371,6 +371,10 @@ function Load(...)
     M = missionData or M
     M.loading_done = false
     M.loadGracePeriod = GetTime() + 2.0
+    -- This flag rides along inside the saved M table, so without clearing it a
+    -- loaded game would skip PersistentConfig.Initialize entirely — no config
+    -- load, no settings apply: broken PDA text, subtitles, radar and lighting.
+    M.persistentConfigInitialized = false
 end
 
 function Start()
@@ -1432,6 +1436,12 @@ function Update()
         M.lost = true
         M.dead3 = true
         FailMission(GetTime() + 10.0, "misn03f4.des")
+    end
+
+    -- Preserve the stock mission failure if the evacuation launch pad is destroyed.
+    if not M.lost and not IsAlive(M.launch) then
+        FailMission(GetTime() + 1.0)
+        M.lost = true
     end
 
 end

@@ -57,7 +57,7 @@ function MissionLifecycle:InitializeDifficulty(state)
         return state.difficulty
     end
 
-    local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.version or "Unknown"
+    local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.VERSION or exu.version or "Unknown"
     print("EXU Version: " .. tostring(ver))
 
     state.difficulty = (exu.GetDifficulty and exu.GetDifficulty()) or defaultDifficulty
