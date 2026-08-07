@@ -42,7 +42,11 @@ excluded from the Workshop content payload itself.
 
 ### Local publishing
 
-Local publishing remains supported.
+Local publishing remains supported. When publishing from a Git checkout, use
+`docs/Invoke-WorkshopPublisher.ps1` as the entrypoint. The legacy manager
+recursively scans the repository, so the wrapper temporarily moves `.github/`
+outside the source tree while it runs and restores it afterward. This prevents
+GitHub workflow YAML from being flattened into the mod payload.
 
 1. Copy `workshop.config.example.json` to the ignored
    `workshop.config.json`.
@@ -50,21 +54,21 @@ Local publishing remains supported.
 3. Bootstrap SteamCMD authentication once:
 
    ```powershell
-   .\Manage-CampaignFiles.ps1 -workshop-auth
+   .\docs\Invoke-WorkshopPublisher.ps1 -workshop-auth
    ```
 
 4. Build and validate without uploading:
 
    ```powershell
-   .\Manage-CampaignFiles.ps1 -workshop-build "Release candidate"
+   .\docs\Invoke-WorkshopPublisher.ps1 -workshop-build "Release candidate"
    ```
 
    The build refreshes `Bin/winmm.dll` from
    `Documents/GIT/BZR-OpenShim/bin/Release/winmm.dll` before generating the
    OpenShim manifest. Set `BZR_OPENSHIM_REPO` to override that repository path.
 
-   For a local Steam test without uploading, deploy directly to the installed
-   Workshop item:
+   For a local Steam test without uploading, deployment still uses the manager
+   directly because it does not build Workshop staging:
 
    ```powershell
    .\Manage-CampaignFiles.ps1 -deploy
@@ -73,7 +77,7 @@ Local publishing remains supported.
 5. Upload the validated payload:
 
    ```powershell
-   .\Manage-CampaignFiles.ps1 -workshop-upload "Describe the update"
+   .\docs\Invoke-WorkshopPublisher.ps1 -workshop-upload "Describe the update"
    ```
 
 ### Description and visibility
