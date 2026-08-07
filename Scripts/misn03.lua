@@ -50,15 +50,47 @@ end
 local function SetupAI()
     local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
 
-    -- Disable all management for player (Team 1 is fully manual)
+    -- Team 1 is fully manual apart from explicit PlayerPilotMode support.
     playerTeam:SetConfig("manageFactories", false)
     playerTeam:SetConfig("autoManage", false)
     playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
+    playerTeam:SetConfig("enableParatroopers", false)
 
-    -- Disable management for enemy Initially (They are prop-based units for much of Misn03)
+    -- Mission 03's Team 2 force is entirely mission-scripted. Keep the shared
+    -- aiCore team object available, but disable strategic production/automation.
     enemyTeam:SetConfig("manageFactories", false)
     enemyTeam:SetConfig("autoManage", false)
     enemyTeam:SetConfig("autoBuild", false)
+    enemyTeam:SetConfig("enableParatroopers", false)
+end
+
+local function BootstrapPlayerSideAI()
+    local restoreIndependence = {}
+
+    -- AddObject already keeps scripted Team 2 units out of aiCore. Bootstrap
+    -- also scans the live world, so temporarily lock Team 2 craft out of that
+    -- scan and restore their original independence immediately afterward.
+    if type(GetIndependence) == "function" and type(SetIndependence) == "function" then
+        for h in AllCraft() do
+            if h and IsValid(h) and GetTeamNum(h) == 2 then
+                local ok, value = pcall(GetIndependence, h)
+                if ok then
+                    restoreIndependence[h] = value
+                    pcall(SetIndependence, h, 0)
+                end
+            end
+        end
+    end
+
+    aiCore.Bootstrap()
+
+    if type(SetIndependence) == "function" then
+        for h, value in pairs(restoreIndependence) do
+            if h and IsValid(h) then
+                pcall(SetIndependence, h, value)
+            end
+        end
+    end
 end
 
 local function PilotModeCanManageHandle(h)
@@ -71,6 +103,19 @@ local function PilotModeCanManageHandle(h)
     end
 
     return h ~= GetPlayerHandle()
+end
+
+local function InitializePilotMode()
+    PlayerPilotMode.Initialize({
+        profile = {
+            autoManage = false,
+            autoRescue = true,
+            stickToPlayer = false,
+            manageFactories = false,
+            autoBuild = false,
+        },
+        shouldManageHandle = PilotModeCanManageHandle,
+    })
 end
 
 -- Mission State
@@ -419,18 +464,9 @@ function Start()
     ApplyDifficultyObjectives()
     ApplyQOL()
     SetupAI()
-    aiCore.Bootstrap()
+    BootstrapPlayerSideAI()
     ApplyTurboToAll()
-    PlayerPilotMode.Initialize({
-        profile = {
-            autoManage = false,
-            autoRescue = true,
-            stickToPlayer = false,
-            manageFactories = false,
-            autoBuild = false,
-        },
-        shouldManageHandle = PilotModeCanManageHandle,
-    })
+    InitializePilotMode()
     M.loading_done = true
 end
 
@@ -478,7 +514,7 @@ function AddObject(h)
 
     -- Register eligible player-team spawns immediately so aiCore wingman/depot logic
     -- does not have to wait for PlayerPilotMode's periodic rescan.
-    -- Scripted Team 2 waves still stay out of aiCore to avoid hijacking mission behavior.
+    -- Scripted Team 2 waves stay out of aiCore to avoid hijacking mission behavior.
     if team == 1 then
         PlayerPilotMode.AddObject(h)
     end
@@ -492,18 +528,9 @@ function Update()
         RefreshDifficulty()
         ApplyDifficultyObjectives()
         ApplyQOL()
-        PlayerPilotMode.Initialize({
-            profile = {
-                autoManage = false,
-                autoRescue = true,
-                stickToPlayer = false,
-                manageFactories = false,
-                autoBuild = false,
-            },
-            shouldManageHandle = PilotModeCanManageHandle,
-        })
+        InitializePilotMode()
         SetupAI()
-        aiCore.Bootstrap()
+        BootstrapPlayerSideAI()
         ApplyTurboToAll()
         M.loading_done = true
     end
@@ -1266,10 +1293,6 @@ function Update()
         M.x = M.x - 15
         M.camera_on = true
     end
-
-
-
-
 
     if M.startfinishingmovie and M.clean_sweep_time < GetTime() and not M.clean_sweep then
         M.clean_sweep = true
