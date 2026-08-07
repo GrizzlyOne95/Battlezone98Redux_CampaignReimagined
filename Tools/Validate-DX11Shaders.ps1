@@ -8,6 +8,8 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $baseShader = Join-Path $repoRoot 'Shaders\CR_base-sm4.hlsl'
 $terrainShader = Join-Path $repoRoot 'Shaders\CR_terrain-sm4.hlsl'
+$uiShader = Join-Path $repoRoot 'Shaders\CR_ui-sm4.hlsl'
+$overlayShader = Join-Path $repoRoot 'Shaders\CR_overlay-sm4.hlsl'
 
 if (-not $FxcPath) {
     $fxc = Get-Command fxc.exe -ErrorAction SilentlyContinue
@@ -36,6 +38,27 @@ if (Test-Path $tempRoot) {
 New-Item $tempRoot -ItemType Directory | Out-Null
 
 $cases = @(
+    @{
+        Name = 'ui-vs-sm4'
+        File = $uiShader
+        Entry = 'ui_vertex'
+        Target = 'vs_4_0'
+        Defines = @()
+    },
+    @{
+        Name = 'ui-ps-sm4'
+        File = $uiShader
+        Entry = 'ui_fragment'
+        Target = 'ps_4_0'
+        Defines = @()
+    },
+    @{
+        Name = 'overlay-ps-tint'
+        File = $overlayShader
+        Entry = 'overlay_tint_fragment'
+        Target = 'ps_4_0'
+        Defines = @()
+    },
     @{
         Name = 'base-vs-high-cotangent'
         File = $baseShader
