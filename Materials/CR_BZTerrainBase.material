@@ -1540,7 +1540,7 @@ material CR_BZTerrainBase
 			texture_unit brdfLut
 			{
 				texture_alias EnvironmentBrdfLut
-				texture cr_ibl_brdf_lut.png 2d
+				texture cr_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
 		}
@@ -1573,7 +1573,7 @@ material CR_BZTerrainBase
 			texture_unit brdfLut
 			{
 				texture_alias EnvironmentBrdfLut
-				texture cr_ibl_brdf_lut.png 2d
+				texture cr_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
 		}
@@ -1618,7 +1618,7 @@ material CR_BZTerrainBase
 			texture_unit brdfLut
 			{
 				texture_alias EnvironmentBrdfLut
-				texture cr_ibl_brdf_lut.png 2d
+				texture cr_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
 		}
@@ -1651,7 +1651,7 @@ material CR_BZTerrainBase
 			texture_unit brdfLut
 			{
 				texture_alias EnvironmentBrdfLut
-				texture cr_ibl_brdf_lut.png 2d
+				texture cr_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
 		}
@@ -1696,7 +1696,7 @@ material CR_BZTerrainBase
 			texture_unit brdfLut
 			{
 				texture_alias EnvironmentBrdfLut
-				texture cr_ibl_brdf_lut.png 2d
+				texture cr_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
 		}
@@ -1729,7 +1729,7 @@ material CR_BZTerrainBase
 			texture_unit brdfLut
 			{
 				texture_alias EnvironmentBrdfLut
-				texture cr_ibl_brdf_lut.png 2d
+				texture cr_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
 		}
