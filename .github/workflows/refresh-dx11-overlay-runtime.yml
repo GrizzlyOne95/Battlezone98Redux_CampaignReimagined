@@ -1,6 +1,9 @@
 name: Refresh DX11 overlay runtime payload
 
 on:
+  push:
+    branches:
+      - fix/dx11-overlay-deployment-refresh
   pull_request:
     branches:
       - main
@@ -10,7 +13,7 @@ permissions:
 
 jobs:
   refresh:
-    if: github.head_ref == 'fix/dx11-overlay-deployment-refresh'
+    if: github.ref == 'refs/heads/fix/dx11-overlay-deployment-refresh' || github.head_ref == 'fix/dx11-overlay-deployment-refresh'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout refresh branch
@@ -106,4 +109,4 @@ jobs:
           git commit -m 'Refresh DX11 overlay runtime payload'
           git push origin HEAD:fix/dx11-overlay-deployment-refresh
 
-# Trigger after PR creation so the workflow is registered before execution.
+# Push trigger is temporary; remove this workflow after the refresh commit lands.
