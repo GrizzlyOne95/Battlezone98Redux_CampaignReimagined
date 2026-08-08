@@ -199,9 +199,16 @@ static const float CR_PBR_MAX_LEGACY_F0 = 0.45;
 static const float CR_PBR_DIFFUSE_COMPENSATION = 2.70;
 static const float CR_PBR_SPECULAR_COMPENSATION = 1.00;
 
-// Static IBL calibration. Keep synchronized with CR_base-sm4.hlsl.
+// Static IBL calibration. Keep synchronized with CR_base-sm4.hlsl, including the
+// CR_LINEAR_LIGHT_ACTIVE split: the intensities are transfer-function dependent
+// and are not interchangeable between the two paths.
+#if CR_LINEAR_LIGHT_ACTIVE
+static const float CR_IBL_DIFFUSE_INTENSITY = 0.20;
+static const float CR_IBL_SPECULAR_INTENSITY = 0.25;
+#else
 static const float CR_IBL_DIFFUSE_INTENSITY = 0.62;
 static const float CR_IBL_SPECULAR_INTENSITY = 0.82;
+#endif
 static const float CR_IBL_LEGACY_AMBIENT_RETAIN = 0.20;
 static const float CR_IBL_SCENE_TINT_STRENGTH = 0.18;
 static const float CR_IBL_MAX_SPECULAR_MIP = 7.0;
@@ -980,7 +987,27 @@ void terrain_fragment(
     // stay in its numerical space.
     diffuseTex.rgb = srgb_to_linear(diffuseTex.rgb);
 #endif
-    oColor.xyz = lightResult.xyz * vColor.xyz * diffuseTex.xyz;
+
+    // Per-vertex terrain tint. It multiplies the decoded albedo directly, so it
+    // is authored COLOR and needs the same transfer function - leaving it
+    // encoded would multiply a linear albedo by a gamma-space tint. BZCC applies
+    // the equivalent decode to every vertex-colour layout it ships, terrain
+    // (layout 8) included: pow(COLOR.rgb, 2.2) with alpha passed through
+    // untouched. See reverse_engineering/bzcc_bzr_dx11_probe.
+    //
+    // Stage A is scoped to the per-pixel path, so this happens here rather than
+    // in the vertex stage as BZCC does. The tint is therefore interpolated
+    // encoded and decoded afterwards; over a single triangle that is a small
+    // deviation, and it is what lets Default/Retro keep sharing these vertex
+    // programs unmodified.
+    //
+    // vColor.a is untouched: it is the terrain output alpha, not colour.
+    float3 vertexTint = vColor.xyz;
+#if CR_LINEAR_LIGHT_ACTIVE
+    vertexTint = srgb_to_linear(vertexTint);
+#endif
+
+    oColor.xyz = lightResult.xyz * vertexTint * diffuseTex.xyz;
 
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
     oColor.xyz += specularResult.xyz;

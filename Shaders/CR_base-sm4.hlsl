@@ -213,8 +213,22 @@ static const float CR_PBR_SPECULAR_COMPENSATION = 1.00;
 // -----------------------------------------------------------------------------
 // The bundled neutral environment is intentionally LDR and conservative. These
 // values are isolated so visual calibration does not require touching the BRDF.
+//
+// The intensities are transfer-function dependent and MUST track CR_LINEAR_LIGHT.
+// The 0.62/0.82 pair was calibrated against gamma-space albedo, before Stage A
+// existed. Once COLOR textures arrive decoded to linear, the same pair roughly
+// doubles lit-surface luminance and coats the scene in a flat ambient haze
+// (measured on misn02b: distant terrain +128%, shadowed slopes +142% over the
+// non-linear baseline). Applying the linear pair to the non-linear path fails
+// just as badly in the other direction (-67% on the same regions), so the two
+// cases are calibrated separately rather than sharing one constant.
+#if CR_LINEAR_LIGHT_ACTIVE
+static const float CR_IBL_DIFFUSE_INTENSITY = 0.20;
+static const float CR_IBL_SPECULAR_INTENSITY = 0.25;
+#else
 static const float CR_IBL_DIFFUSE_INTENSITY = 0.62;
 static const float CR_IBL_SPECULAR_INTENSITY = 0.82;
+#endif
 static const float CR_IBL_LEGACY_AMBIENT_RETAIN = 0.20;
 static const float CR_IBL_SCENE_TINT_STRENGTH = 0.18;
 // cr_ibl_neutral_prefilter.dds is authored at 128px with mips 0..7.
