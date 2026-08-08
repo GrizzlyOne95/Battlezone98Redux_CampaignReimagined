@@ -3,8 +3,10 @@
 
 DX11 has no fixed-function pipeline. Each generated material therefore puts an
 SM4 programmable technique first while retaining the historical fixed-function
-pass as a renderer fallback. The numeric colour/alpha formulas mirror
-PersistentConfig._GetPdaOverlayColorSet().
+pass as a renderer fallback. Ogre Panel/BorderPanel geometry exposes POSITION +
+TEXCOORD but no per-vertex diffuse colour, so the DX11 path must use the
+dedicated CR_OverlayPanel_vertexHLSL4 input signature instead of CR_UI.
+The numeric colour/alpha formulas mirror PersistentConfig._GetPdaOverlayColorSet().
 """
 
 from __future__ import annotations
@@ -61,7 +63,7 @@ def material(name: str, rgba: tuple[float, float, float, float]) -> str:
     {{
         pass
         {{
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {{
             }}
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
