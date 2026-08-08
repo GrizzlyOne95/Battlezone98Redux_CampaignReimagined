@@ -1,0 +1,46 @@
+name: Dispatch DX11 Atmosphere Phase 3 Patch
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/phase3-atmosphere-dispatch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/dx11-enhanced-atmosphere-phase3
+          fetch-depth: 0
+
+      - name: Extract and run branch patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          src = Path('.github/workflows/phase3-atmosphere-apply.yml').read_text(encoding='utf-8').splitlines()
+          start = next(i for i, line in enumerate(src) if line.strip() == "python - <<'PY'")
+          end = next(i for i in range(start + 1, len(src)) if src[i].strip() == 'PY')
+          code = []
+          for line in src[start + 1:end]:
+              code.append(line[10:] if line.startswith('          ') else line)
+          Path('/tmp/apply_phase3.py').write_text('\n'.join(code) + '\n', encoding='utf-8')
+          PY
+
+          python /tmp/apply_phase3.py
+
+      - name: Commit implementation branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Implement DX11 Enhanced atmospheric rendering"
+          git push origin HEAD:agent/dx11-enhanced-atmosphere-phase3
