@@ -1,6 +1,6 @@
 # BZR DX11 Color-Space Audit
 
-> **Status: diagnostic / experimental, Stage 1.**  This document deliberately does **not** claim that the live BZR 2.2.301 DX11 texture SRVs are linear UNORM until an actual Enhanced DX11 mission is captured with the OpenShim diagnostic described below. No rendering behavior is changed by this branch.
+> **Status: diagnostic / experimental, Stage 1.** This document deliberately does **not** claim that the live BZR 2.2.301 DX11 texture SRVs are linear UNORM until an actual Enhanced DX11 mission is captured with the OpenShim diagnostic described below. No rendering behavior is changed by this branch.
 
 ## Scope
 
@@ -40,7 +40,7 @@ The goal is to separate source facts from runtime facts. Upstream Ogre behavior 
 9. Ogre 1.10 exposes independent hardware-gamma state for textures and render targets. Texture hardware gamma performs gamma/sRGB-to-linear conversion while sampling; render-target hardware gamma performs the opposite conversion while writing.
 10. In upstream Ogre 1.10 D3D11, `D3D11Texture::_chooseD3DFormat()` converts supported ordinary formats to `_SRGB` when `Texture::isHardwareGammaEnabled()` is true. The normal 2D path then creates its SRV with the same `DXGI_FORMAT` as the resource. This is an implementation reference, not proof that the BZR binary is identical.
 11. In upstream Ogre 1.10 D3D11, the render-window `gamma` misc parameter becomes `mHwGamma`. The render-window code explicitly permits the swapchain/backbuffer resource to remain ordinary UNORM while the RTV format is `_SRGB`; therefore the RTV must be inspected independently from the swapchain/backbuffer resource.
-12. ExtraUtilities' BZR/Ogre bridge exposes scene-manager/current-viewport access and plain float RGB light/ambient structures, but it also contains version-specific BZR offsets. OpenShim already has a safer pattern for dynamically resolving Ogre exports and for optional/fail-closed instrumentation.
+12. ExtraUtilities' BZR/Ogre bridge exposes scene-manager/current-viewport access and plain float RGB light/ambient structures, but it also contains version-specific BZR offsets. OpenShim already has a safer pattern for optional/fail-closed instrumentation.
 
 ### Evidence supplied before this diagnostic branch
 
@@ -83,7 +83,7 @@ The following are deliberately **not** marked proven by source inspection:
 - the live swapchain format;
 - the live backbuffer resource format;
 - the live backbuffer RTV format;
-- the active DXGI swapchain color-space state where `IDXGISwapChain3` is available;
+- the active DXGI swapchain color-space selection. `IDXGISwapChain3` has no public current-state getter, so the diagnostic can only prove explicit `SetColorSpace1` calls if BZR/Ogre makes them;
 - whether any hidden/offscreen sRGB or floating-point render target is already used by BZR;
 - whether any renderer/plugin code performs a color conversion outside the CR shaders;
 - the exact authoring convention of representative legacy specular maps;
@@ -211,6 +211,7 @@ The diagnostic intentionally avoids hardcoded Ogre object layouts. It observes p
 
 - D3D11 device creation;
 - DXGI factory/swapchain creation;
+- swapchain resize and explicit color-space selection calls;
 - `ID3D11Device::CreateTexture2D`;
 - `CreateShaderResourceView`;
 - `CreateRenderTargetView`;
@@ -231,7 +232,7 @@ It does not change:
 - blend state;
 - render-target selection.
 
-All observation hooks preserve the original call first or transparently chain it. Vtable/install mismatches fail closed. Logging is deduplicated and hard-capped by record class so repeated frame bindings cannot grow the log without bound.
+All observation hooks preserve or transparently chain the original call. Vtable/install mismatches fail closed. Logging is deduplicated and hard-capped by record class so repeated frame bindings cannot grow the log without bound.
 
 ## What the probe records
 
@@ -244,12 +245,14 @@ The capture reports, when available:
 - active D3D11 viewport dimensions/depth range;
 - swapchain format and dimensions;
 - backbuffer resource format;
-- swapchain color-space state through `IDXGISwapChain3::GetColorSpace1()` when supported;
+- explicit `IDXGISwapChain3::SetColorSpace1` requests and their HRESULTs;
 - bound/created RTV resource format and RTV view format independently;
 - whether the resource/view is `_SRGB`, typeless, or floating-point;
 - whether a bound render target is the captured swapchain backbuffer.
 
-The probe intentionally does **not** read an Ogre `RenderWindow` object by guessed offsets merely to print `mHwGamma`. The effective D3D11 backbuffer/RTV state is the authoritative runtime result. The existing Ogre log's `gamma=false` / `sRGB Gamma Conversion = No` evidence should be saved beside the D3D capture.
+DXGI does **not** provide a public `IDXGISwapChain3` getter for the currently selected color space. The diagnostic therefore refuses to infer that state from `CheckColorSpaceSupport`, the swapchain format, or API defaults. If no `SetColorSpace1` call is observed, color-space selection remains explicitly unresolved.
+
+The probe intentionally does **not** read an Ogre `RenderWindow` object by guessed offsets merely to print `mHwGamma`. The effective D3D11 backbuffer/RTV state is the authoritative runtime result for conversion behavior. The existing Ogre log's `gamma=false` / `sRGB Gamma Conversion = No` evidence should be saved beside the D3D capture.
 
 ### Textures/SRVs
 
@@ -265,7 +268,7 @@ For each unique observed resource/view/binding combination, the log can include:
 - typeless state;
 - pixel-shader slot and a CR slot-semantic hint.
 
-Object debug names are best-effort; Ogre is not required to assign them in a retail build. The decisive evidence remains the actual D3D resource/SRV format at the shader binding point.
+Object debug names are best-effort; Ogre is not required to assign them in a retail build. The decisive evidence remains the actual D3D resource/SRV format at the shader binding point. The probe does not invent an Ogre resource name or `hwGamma` value if the retail binary does not expose one safely.
 
 ### Intermediate targets
 
@@ -277,7 +280,7 @@ The following illustrates the intended schema only. Values are placeholders unti
 
 ```text
 [DX11 ColorSpace] SwapChain ... format=DXGI_FORMAT_<captured>
-[DX11 ColorSpace] SwapChain colorSpace=DXGI_COLOR_SPACE_<captured>
+[DX11 ColorSpace] SwapChain colorSpaceState=<no public getter; SetColorSpace1 requests logged>
 [DX11 ColorSpace] Backbuffer resource=0x... format=DXGI_FORMAT_<captured> srgb=<yes/no> typeless=<yes/no>
 [DX11 ColorSpace] RTV bind ... backbuffer=yes resourceFormat=DXGI_FORMAT_<captured> rtvFormat=DXGI_FORMAT_<captured>
 
@@ -507,6 +510,8 @@ Prefer a compact calibration block shared conceptually between base and terrain 
 
 Stage-1 source guards additionally prevent an sRGB helper/define from being introduced before runtime proof is recorded. No DX9, GL, Default, Retro, or shader source is changed by this Stage-1 audit branch.
 
+A Windows GitHub Actions job runs the existing validator. The Stage-1 branch passed the representative SM4 compile matrix after the source guard was added.
+
 ## Required runtime capture
 
 Use the same mission, camera, time-of-day/light state, and graphics settings for:
@@ -547,6 +552,7 @@ Also:
 6. Save the OpenShim log and the matching `BZOgreLogfile` from the same run.
 7. Extract the `[DX11 ColorSpace]` lines and attach them to the draft PR.
 8. Classify each representative binding by resource role and record both resource and SRV format.
+9. Include any observed `SetColorSpace1` record. If none exists, leave the DXGI color-space selection unresolved rather than assuming a default.
 
 A useful evidence table to fill from the real run is:
 
