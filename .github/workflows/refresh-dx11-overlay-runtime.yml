@@ -105,3 +105,5 @@ jobs:
           fi
           git commit -m 'Refresh DX11 overlay runtime payload'
           git push origin HEAD:fix/dx11-overlay-deployment-refresh
+
+# Trigger after PR creation so the workflow is registered before execution.
