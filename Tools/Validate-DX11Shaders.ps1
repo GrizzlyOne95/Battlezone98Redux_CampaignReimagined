@@ -60,7 +60,23 @@ $forbiddenDecodeTokens = @(
 
 # The complete, intentional Stage A decode allow-list. Anything else that calls
 # srgb_to_linear() is a scope regression.
-$allowedDecodeTargets = @('diffuseTex.rgb', 'emissiveTex')
+#
+# 'vertexTint' is the terrain per-vertex COLOR0 tint. It is on the list because
+# it multiplies the decoded albedo directly (lightResult * vertexTint *
+# diffuseTex), so it is authored display colour by construction: leaving it
+# encoded would multiply a linear albedo by a gamma-space tint. BZCC applies the
+# same decode to every vertex-colour layout it ships, terrain included -
+# pow(COLOR.rgb, 2.2) in its vertex stage, alpha untouched - which is what
+# distinguishes this from vertex colour used as layer weights or another
+# numerical channel. Only the rgb float3 is ever decoded; vColor.a stays raw
+# because it is the terrain output alpha.
+$allowedDecodeTargets = @('diffuseTex.rgb', 'emissiveTex', 'vertexTint')
+
+# Targets that exist in only one shader family. They are required in their owner
+# and forbidden everywhere else, so the base shader is not failed for lacking a
+# terrain-only input and terrain cannot quietly drop it.
+$familyScopedDecodeTargets = @('vertexTint')
+$familyScopedDecodeOwners = @{ 'vertexTint' = 'CR_terrain-sm4.hlsl' }
 
 # Any swizzle or member access that includes an alpha/w component.
 $alphaComponentPattern = '\.[rgbaxyzw]*[awAW][rgbaxyzw]*\b'
@@ -162,9 +178,24 @@ foreach ($shader in $stageAShaders) {
         }
     }
 
+    # Every Stage A shader must decode the universal COLOR sources. Targets that
+    # only exist in one family (see $familyScopedDecodeTargets) are permitted but
+    # not demanded, so the base shader is not failed for lacking a terrain-only
+    # input. A family-scoped target still has to pass every other guard above.
     foreach ($required in $allowedDecodeTargets) {
+        if ($familyScopedDecodeTargets -contains $required) { continue }
         if ($observedTargets -notcontains $required) {
             Add-SourceFailure "$name is missing the required Stage A decode of '$required'."
+        }
+    }
+
+    foreach ($scoped in $familyScopedDecodeTargets) {
+        $owner = $familyScopedDecodeOwners[$scoped]
+        if ($name -eq $owner -and $observedTargets -notcontains $scoped) {
+            Add-SourceFailure "$name is missing the required Stage A decode of '$scoped'."
+        }
+        if ($name -ne $owner -and $observedTargets -contains $scoped) {
+            Add-SourceFailure "$name decodes '$scoped', which is scoped to $owner only."
         }
     }
 
@@ -312,6 +343,131 @@ if ($sourceFailures.Count -gt 0) {
 }
 
 Write-Host "Stage A DX11 color-space source guards passed ($($stageAShaders.Count) shaders, $($otherShaders.Count) unrelated shader files scanned)."
+
+# =============================================================================
+# Program-definition rendering-mode boundary
+# =============================================================================
+# The HLSL default for CR_LINEAR_LIGHT stays 0, so what actually opts a variant
+# into Stage A is its .program 'preprocessor_defines'. That makes the .program
+# files - not the shader source - the place where the DX11 Enhanced boundary can
+# drift. These guards assert the boundary directly:
+#
+#   * every DX11 Enhanced SM4 fragment program defines CR_LINEAR_LIGHT=1;
+#   * Retro SM4 programs never do;
+#   * Default/stock-compatible SM4 programs never do;
+#   * DX9, GLSL, GLSLES and unified delegate declarations never do;
+#   * vertex programs never do (Stage A is a per-pixel path);
+#   * where the define is present its value is exactly 1.
+#
+# Classification is derived from each declaration's own source/kind/defines so
+# that reordering or adding programs cannot silently defeat the check.
+
+function Get-OgreProgramRecords {
+    param([string]$Path)
+    $programLines = [System.IO.File]::ReadAllLines($Path)
+    $records = @()
+    $cur = $null
+    $depth = 0
+    for ($i = 0; $i -lt $programLines.Count; $i++) {
+        $t = $programLines[$i].Trim()
+        if ($t.StartsWith('//')) { continue }
+        if ($t -match '^(vertex_program|fragment_program)\s+(\S+)\s+(\S+)\s*$') {
+            $cur = [pscustomobject]@{
+                File = Split-Path -Leaf $Path
+                Line = $i + 1
+                Kind = $Matches[1]
+                Name = $Matches[2]
+                Lang = $Matches[3]
+                Source = ''
+                Defines = ''
+            }
+            $depth = 0
+            continue
+        }
+        if ($null -eq $cur) { continue }
+        if ($t -eq '{') { $depth++; continue }
+        if ($t -eq '}') {
+            $depth--
+            if ($depth -le 0) { $records += $cur; $cur = $null; $depth = 0 }
+            continue
+        }
+        if ($t -match '^source\s+(\S+)') { $cur.Source = $Matches[1] }
+        elseif ($t -match '^preprocessor_defines\s+(.+)$') { $cur.Defines = $Matches[1].Trim() }
+    }
+    return $records
+}
+
+$programFailures = @()
+$programRecords = @()
+foreach ($programFile in (Get-ChildItem $shaderDir -Filter '*.program' -File | Sort-Object Name)) {
+    $programRecords += Get-OgreProgramRecords -Path $programFile.FullName
+}
+
+$enhancedSm4Count = 0
+$legacySm4Count = 0
+
+foreach ($rec in $programRecords) {
+    $defines = $rec.Defines
+    $where = "$($rec.File):$($rec.Line) $($rec.Name)"
+
+    $hasLinear = $defines -match '(^|,)\s*CR_LINEAR_LIGHT\s*='
+    $hasLinearOne = $defines -match '(^|,)\s*CR_LINEAR_LIGHT\s*=\s*1\s*(,|$)'
+
+    if ($hasLinear -and -not $hasLinearOne) {
+        $programFailures += "$where declares CR_LINEAR_LIGHT with a value other than 1. Stage A is on/off only."
+    }
+
+    $isSm4 = $rec.Source -like '*-sm4.hlsl'
+    $isRetro = $defines -match '(^|,)\s*(OG_RETRO_MODE|RETRO_UNLIT_MODE)\b'
+    $isVertexLit = $defines -match '(^|,)\s*VERTEX_LIGHTING\b'
+    $isEnhanced = $defines -match '(^|,)\s*ENHANCED_MODE\b'
+
+    if (-not $isSm4) {
+        if ($hasLinear) {
+            $programFailures += "$where is not a DX11 SM4 program (source '$($rec.Source)') but defines CR_LINEAR_LIGHT. Stage A must not leak into DX9/GLSL/GLSLES/unified declarations."
+        }
+        continue
+    }
+
+    if ($rec.Kind -eq 'vertex_program') {
+        if ($hasLinear) {
+            $programFailures += "$where is a vertex program but defines CR_LINEAR_LIGHT. Stage A is scoped to the per-pixel path."
+        }
+        continue
+    }
+
+    if ($isRetro) {
+        if ($hasLinear) {
+            $programFailures += "$where is a DX11 Retro program but defines CR_LINEAR_LIGHT. Retro must remain on the legacy path."
+        }
+        $legacySm4Count++
+        continue
+    }
+
+    if ($isEnhanced -and -not $isVertexLit) {
+        if (-not $hasLinearOne) {
+            $programFailures += "$where is a DX11 Enhanced SM4 fragment program but does not define CR_LINEAR_LIGHT=1. Enhanced must opt into Stage A."
+        }
+        $enhancedSm4Count++
+        continue
+    }
+
+    if ($hasLinear) {
+        $programFailures += "$where is a DX11 Default/stock-compatible SM4 program but defines CR_LINEAR_LIGHT. Default must remain on the legacy path."
+    }
+    $legacySm4Count++
+}
+
+if ($enhancedSm4Count -eq 0) {
+    $programFailures += 'No DX11 Enhanced SM4 fragment programs were discovered. The classifier no longer matches the .program structure.'
+}
+
+if ($programFailures.Count -gt 0) {
+    $detail = ($programFailures | ForEach-Object { "  - $_" }) -join [Environment]::NewLine
+    throw "DX11 Enhanced program-definition boundary failed:$([Environment]::NewLine)$detail"
+}
+
+Write-Host "DX11 Enhanced program boundary passed ($enhancedSm4Count Enhanced SM4 fragment programs opted into Stage A, $legacySm4Count Default/Retro SM4 fragment programs held on the legacy path, $($programRecords.Count) program declarations scanned)."
 
 # =============================================================================
 # Shader compile / preprocess matrix
@@ -676,9 +832,17 @@ foreach ($case in $sweepCases) {
     $shouldActivate = ($case.LinearLight -eq 1) -and $isEnhanced -and (-not $isVertexLit) -and (-not $isRetro)
 
     # 1 definition + 1 call for the encode; 1 definition + diffuse (+ emissive)
-    # for the decode.
+    # for the decode. Terrain adds one more: the per-vertex COLOR0 tint, which
+    # multiplies the decoded albedo and is therefore authored display colour.
+    # The base shader has no vertex COLOR input, so it never gains this call.
+    $isTerrainSource = (Split-Path -Leaf $case.File) -eq 'CR_terrain-sm4.hlsl'
+
     $expectedEncode = if ($shouldActivate) { 2 } else { 0 }
-    $expectedDecode = if ($shouldActivate) { if ($hasEmissive) { 3 } else { 2 } } else { 0 }
+    $expectedDecode = 0
+    if ($shouldActivate) {
+        $expectedDecode = if ($hasEmissive) { 3 } else { 2 }
+        if ($isTerrainSource) { $expectedDecode += 1 }
+    }
 
     $encodeCount = [regex]::Matches($text, '\blinear_to_srgb\s*\(').Count
     $decodeCount = [regex]::Matches($text, '\bsrgb_to_linear\s*\(').Count
