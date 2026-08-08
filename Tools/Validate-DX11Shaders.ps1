@@ -74,6 +74,27 @@ $cases = @(
         Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'VERTEX_TANGENTS=1')
     },
     @{
+        Name = 'base-ps-lowest-emissive'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('VERTEX_LIGHTING=1', 'MAX_LIGHTS=1', 'EMISSIVEMAP_ENABLED=1')
+    },
+    @{
+        Name = 'base-ps-low-emissive'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1')
+    },
+    @{
+        Name = 'base-ps-medium-emissive'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=8', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1')
+    },
+    @{
         Name = 'base-ps-enhanced'
         File = $baseShader
         Entry = 'base_fragment'
@@ -156,6 +177,27 @@ $cases = @(
         Entry = 'terrain_vertex'
         Target = 'vs_4_0'
         Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'VERTEX_TANGENTS=1')
+    },
+    @{
+        Name = 'terrain-ps-lowest-emissive'
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = @('VERTEX_LIGHTING=1', 'MAX_LIGHTS=1', 'DETAILMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1')
+    },
+    @{
+        Name = 'terrain-ps-low-emissive'
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=1', 'DETAILMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1')
+    },
+    @{
+        Name = 'terrain-ps-medium-emissive'
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=8', 'DETAILMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1')
     },
     @{
         Name = 'terrain-ps-enhanced'

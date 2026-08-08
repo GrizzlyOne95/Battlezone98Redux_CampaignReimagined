@@ -9,7 +9,7 @@
 // TEMPORARY DIAGNOSTIC: when enabled, any pixel using the static IBL path is
 // strongly tinted magenta after normal lighting/fog. Remove after runtime proof.
 #ifndef CR_IBL_DEBUG_VISUALIZE
-#define CR_IBL_DEBUG_VISUALIZE 1
+#define CR_IBL_DEBUG_VISUALIZE 0
 #endif
 
 #if defined(OG_RETRO_MODE)
@@ -801,7 +801,11 @@ void base_fragment(
 #if defined(EMISSIVEMAP_ENABLED)
     float3 emissiveTex = emissiveMap.Sample(emissiveSam, vTexCoord).xyz;
 #if defined(ENHANCED_MODE)
-    float emissiveIntensity = saturate(max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z)));
+    // Preserve the legacy full-bright map at High LOD. The material emissive
+    // colour may boost authored emission, but must never attenuate it below
+    // the Medium/Low/Lowest behavior (which adds the map at 1.0x).
+    float materialEmissiveIntensity = max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z));
+    float emissiveIntensity = max(1.0, materialEmissiveIntensity);
     oColor.xyz += emissiveTex.xyz * emissiveIntensity;
 #else
     oColor.xyz += emissiveTex.xyz;
