@@ -47,6 +47,28 @@ The `DX11 Enhanced Atmospheric Calibration` block is intentionally kept matching
 
 No new material/program binding was required. `CR_static_ibl.program` already binds `inverseViewMatrix` for all three Enhanced High IBL DX11 variants, while the existing unified programs already supply fog, ambient, and light arrays.
 
+## Colour space (Stage A linear-light interaction)
+
+The Stage A linear-light experiment (`CR_LINEAR_LIGHT`, default `0`) wraps this atmosphere code rather than replacing it. See `Docs/DX11_COLOR_SPACE_AUDIT.md`.
+
+When `CR_LINEAR_LIGHT=1` on the DX11 Enhanced per-pixel path:
+
+- artist-authored COLOR textures (object diffuse/emissive, terrain diffuse/emissive) are decoded sRGB → linear at the sample;
+- **all of Phase 3 executes inside that linear-light region** — extinction, aerial perspective, height/horizon density, sun scattering, and emissive transmission all operate on linearized surface values;
+- the final RGB is encoded linear → sRGB exactly once, *after* atmosphere integration, immediately before the ordinary UNORM render target.
+
+The atmosphere's own engine-provided RGB inputs are deliberately **not** converted:
+
+- `fogColour`
+- `sceneAmbient`
+- `lightDiffuse` / `lightSpecular` (including the sun tint derived from `lightDiffuse`)
+
+Their authoring colour space is still unresolved — BZR's missions may have been tuned visually against the legacy nonlinear pipeline — so guessing at a conversion would contaminate the experiment.
+
+**A visible atmosphere/surface mismatch during A/B testing is therefore expected, not a bug.** Linearized surfaces sit against untreated haze colours, so fog may read too bright, too flat, or wrongly tinted relative to the terrain and vehicles it covers. That mismatch is the useful diagnostic signal: it is the measurement that tells us whether the engine RGB constants are authored as linear coefficients or as display-referred colour.
+
+Do not recalibrate any `CR_ATMOS_*` constant to compensate. Converting the engine RGB inputs is a separate, later experiment (a suitable name is `CR_LINEAR_LIGHT_DECODE_ENGINE_COLORS`), and it must not be bundled with texture decode.
+
 ## Known limitations
 
 - Height fog is camera-relative rather than tied to an absolute world sea level. This is deliberate: it avoids large-coordinate precision problems and does not require engine hooks or new mission parameters. Terrain below the camera becomes slightly denser; terrain above it becomes slightly clearer.
