@@ -1,0 +1,49 @@
+name: Regenerate DX11 overlay materials
+
+on:
+  push:
+    branches:
+      - fix/dx11-overlay-input-layout
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/dx11-overlay-input-layout
+          persist-credentials: true
+
+      - name: Regenerate PDA overlay materials
+        run: python3 Tools/Generate-PdaOverlayMaterials.py
+
+      - name: Verify panel input-layout binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'vertex_program_ref CR_OverlayPanel_vertexHLSL4' Materials/cr_pda_overlay.material
+          if grep -q 'vertex_program_ref CR_UI_vertexHLSL4' Materials/cr_pda_overlay.material; then
+            echo 'Generated Panel/BorderPanel materials still reference the colour-input CR_UI vertex shader.' >&2
+            exit 1
+          fi
+          grep -q 'vertex_program CR_OverlayPanel_vertexHLSL4 hlsl' Shaders/CR_overlay.program
+          grep -q 'entry_point overlay_panel_vertex' Shaders/CR_overlay.program
+
+      - name: Commit regenerated material
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- Materials/cr_pda_overlay.material; then
+            echo 'Generated material already matches the generator.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add Materials/cr_pda_overlay.material
+          git commit -m 'Regenerate DX11 overlay panel materials'
+          git push origin HEAD:fix/dx11-overlay-input-layout
