@@ -9,7 +9,7 @@
 // TEMPORARY DIAGNOSTIC: when enabled, any pixel using the static IBL path is
 // strongly tinted magenta after normal lighting/fog. Remove after runtime proof.
 #ifndef CR_IBL_DEBUG_VISUALIZE
-#define CR_IBL_DEBUG_VISUALIZE 1
+#define CR_IBL_DEBUG_VISUALIZE 0
 #endif
 
 #if defined(OG_RETRO_MODE)
@@ -111,8 +111,11 @@ float luminance_legacy(float3 c)
 #if defined(ENHANCED_MODE)
 float3 sharpen_normal_map(float3 normalTex)
 {
-    float2 sharpenedXY = normalTex.xy * 1.85;
-    float sharpenedZ = max(normalTex.z, 0.20);
+    // Terrain normal maps cover huge surfaces and the old 1.85x boost made
+    // broad slopes read wet/varnished under GGX + IBL. Keep relief visible
+    // without amplifying every texel into a hard specular microfacet.
+    float2 sharpenedXY = normalTex.xy * 1.45;
+    float sharpenedZ = max(normalTex.z, 0.28);
     return safe_normalize(float3(sharpenedXY, sharpenedZ));
 }
 
@@ -137,6 +140,13 @@ static const float CR_IBL_SPECULAR_INTENSITY = 0.82;
 static const float CR_IBL_LEGACY_AMBIENT_RETAIN = 0.20;
 static const float CR_IBL_SCENE_TINT_STRENGTH = 0.18;
 static const float CR_IBL_MAX_SPECULAR_MIP = 7.0;
+
+// Terrain-specific legacy calibration. Vehicle/building materials keep the
+// broader object ranges in CR_base-sm4.hlsl; terrain is predominantly dusty
+// rock/soil and should remain a rough dielectric rather than reading as wet.
+static const float CR_TERRAIN_PBR_MIN_ROUGHNESS = 0.56;
+static const float CR_TERRAIN_PBR_MAX_F0 = 0.12;
+static const float CR_TERRAIN_IBL_SPECULAR_SCALE = 0.72;
 
 float legacy_shininess_to_roughness(float shininess)
 {
@@ -564,7 +574,9 @@ void terrain_fragment(
     float3 specularTex = specularMap.Sample(specularSam, vTexCoord).xyz;
     float specularMask = saturate(luminance_legacy(specularTex));
 #if defined(ENHANCED_MODE)
-    float3 surfaceF0 = legacy_specular_to_f0(specularTex);
+    float3 surfaceF0 = min(
+        legacy_specular_to_f0(specularTex),
+        float3(CR_TERRAIN_PBR_MAX_F0, CR_TERRAIN_PBR_MAX_F0, CR_TERRAIN_PBR_MAX_F0));
 #else
     float3 specularTint = lerp(float3(0.04, 0.04, 0.04), specularTex, specularMask);
 #endif
@@ -575,10 +587,13 @@ void terrain_fragment(
 
 #if defined(ENHANCED_MODE)
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
-    float surfaceRoughness = derive_legacy_roughness(materialShininess, specularMask);
+    float surfaceRoughness = max(
+        derive_legacy_roughness(materialShininess, specularMask),
+        CR_TERRAIN_PBR_MIN_ROUGHNESS);
 #if defined(NORMALMAP_ENABLED)
     surfaceRoughness = filter_roughness_from_normal_variance(viewNormal, surfaceRoughness);
 #endif
+    surfaceRoughness = max(surfaceRoughness, CR_TERRAIN_PBR_MIN_ROUGHNESS);
 #endif
 #endif
 
@@ -744,7 +759,8 @@ void terrain_fragment(
 
     specularResult.xyz += prefilteredEnvironment
                         * (surfaceF0 * environmentBRDF.x + environmentBRDF.y)
-                        * CR_IBL_SPECULAR_INTENSITY;
+                        * CR_IBL_SPECULAR_INTENSITY
+                        * CR_TERRAIN_IBL_SPECULAR_SCALE;
 #elif defined(ENHANCED_MODE)
     float NdotVForFill = saturate(dot(viewNormal, eyeDir));
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
