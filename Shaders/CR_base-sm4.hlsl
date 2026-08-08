@@ -6,10 +6,11 @@
 // Force OG retro mode to ignore modern map contributions even if a program
 // variant accidentally leaves those feature defines enabled.
 
-// TEMPORARY DIAGNOSTIC: when enabled, any pixel using the static IBL path is
-// strongly tinted magenta after normal lighting/fog. Remove after runtime proof.
-#ifndef CR_IBL_DEBUG_VISUALIZE
-#define CR_IBL_DEBUG_VISUALIZE 0
+// Compile-time atmosphere diagnostics. Runtime builds leave this disabled.
+// 0 = normal rendering, 1 = total fog, 2 = height contribution,
+// 3 = sun scattering, 4 = resolved atmosphere colour.
+#ifndef CR_ATMOS_DEBUG_MODE
+#define CR_ATMOS_DEBUG_MODE 0
 #endif
 
 #if defined(OG_RETRO_MODE)
@@ -153,6 +154,142 @@ static const float CR_IBL_LEGACY_AMBIENT_RETAIN = 0.20;
 static const float CR_IBL_SCENE_TINT_STRENGTH = 0.18;
 // cr_ibl_neutral_prefilter.dds is authored at 128px with mips 0..7.
 static const float CR_IBL_MAX_SPECULAR_MIP = 7.0;
+
+// -----------------------------------------------------------------------------
+// DX11 Enhanced Atmospheric Calibration
+// -----------------------------------------------------------------------------
+// Ogre fog_params are consumed as density/start/end/inverse-range. Enhanced
+// atmosphere deliberately preserves start/end/range as the authored mission
+// control instead of replacing them with one global density.
+static const float CR_ATMOS_DISTANCE_DENSITY_SCALE = 1.65;
+static const float CR_ATMOS_HEIGHT_FALLOFF = 0.0035;
+static const float CR_ATMOS_HEIGHT_STRENGTH = 0.22;
+static const float CR_ATMOS_HORIZON_STRENGTH = 0.18;
+static const float CR_ATMOS_HORIZON_POWER = 3.0;
+static const float CR_ATMOS_SUN_SCATTER_POWER = 7.0;
+static const float CR_ATMOS_SUN_SCATTER_STRENGTH = 0.28;
+static const float CR_ATMOS_AMBIENT_TINT_STRENGTH = 0.16;
+static const float CR_ATMOS_SUN_TINT_STRENGTH = 0.28;
+static const float CR_ATMOS_AERIAL_DESATURATION = 0.08;
+static const float CR_ATMOS_EMISSIVE_TRANSMISSION = 0.38;
+static const float CR_ATMOS_MAX_OPTICAL_DEPTH = 12.0;
+
+float compute_distance_optical_depth(float viewDistance, float4 fogParams)
+{
+    float fogStart = max(fogParams.y, 0.0);
+    float fogEnd = max(fogParams.z, fogStart);
+    float authoredRange = max(fogEnd - fogStart, 1e-3);
+    float suppliedInvRange = abs(fogParams.w);
+    float invRange = (suppliedInvRange > 1e-8) ? suppliedInvRange : rcp(authoredRange);
+    invRange = min(invRange, 1e3);
+
+    // A zero inverse range is how the legacy path effectively disables fog.
+    // Keep that as the atmosphere master-strength signal for airless/light-fog maps.
+    float configured = (fogEnd > fogStart + 1e-3 && suppliedInvRange > 1e-8) ? 1.0 : 0.0;
+    float normalizedTravel = max(viewDistance - fogStart, 0.0) * invRange;
+    float scaledTravel = min(normalizedTravel * CR_ATMOS_DISTANCE_DENSITY_SCALE, 4.0);
+    return min(scaledTravel * scaledTravel, CR_ATMOS_MAX_OPTICAL_DEPTH) * configured;
+}
+
+float compute_height_density(float cameraRelativeWorldHeight)
+{
+    // Full Enhanced High uses a camera-relative world-space height delta. This
+    // avoids subtracting huge absolute coordinates on Battlezone's large maps.
+    float exponent = clamp(-cameraRelativeWorldHeight * CR_ATMOS_HEIGHT_FALLOFF, -1.5, 1.5);
+    return exp(exponent);
+}
+
+float compute_horizon_factor(float3 worldViewRay)
+{
+    float horizon = saturate(1.0 - abs(worldViewRay.y));
+    return pow(horizon, CR_ATMOS_HORIZON_POWER);
+}
+
+void compute_sun_scattering(
+    float3 viewRay,
+    float4 primaryLightPosition,
+    float3 primaryLightDiffuse,
+    float lightCount,
+    float horizonFactor,
+    out float sunScatter,
+    out float3 sunTint)
+{
+    sunScatter = 0.0;
+    sunTint = float3(1.0, 1.0, 1.0);
+
+    // The existing lighting convention uses lightPosition.xyz directly when
+    // w == 0, so only that established directional-light form may drive haze.
+    if (lightCount <= 0.0 || abs(primaryLightPosition.w) >= 0.5)
+        return;
+
+    float3 sunDirection = safe_normalize(primaryLightPosition.xyz);
+    if (dot(sunDirection, sunDirection) <= 1e-8)
+        return;
+
+    float forward = pow(saturate(dot(viewRay, sunDirection)), CR_ATMOS_SUN_SCATTER_POWER);
+    float peak = max(primaryLightDiffuse.r, max(primaryLightDiffuse.g, primaryLightDiffuse.b));
+    if (peak > 1e-4)
+        sunTint = saturate(primaryLightDiffuse / peak);
+
+    sunScatter = forward * (0.60 + 0.40 * horizonFactor);
+}
+
+void compute_enhanced_atmosphere(
+    float3 viewPosition,
+    float4 fogParams,
+    float3 fogColour,
+    float3 sceneAmbient,
+    float4 primaryLightPosition,
+    float3 primaryLightDiffuse,
+    float lightCount,
+    float cameraRelativeWorldHeight,
+    float horizonFactor,
+    out float fogFactor,
+    out float heightContribution,
+    out float sunScatter,
+    out float3 atmosphereColour,
+    out float surfaceTransmission,
+    out float emissiveTransmission)
+{
+    float viewDistance = max(length(viewPosition), 0.0);
+    float distanceOpticalDepth = compute_distance_optical_depth(viewDistance, fogParams);
+
+    float heightDensity = compute_height_density(cameraRelativeWorldHeight);
+    float heightScale = lerp(1.0, heightDensity, CR_ATMOS_HEIGHT_STRENGTH);
+    heightContribution = saturate(abs(heightScale - 1.0) * 2.0);
+
+    float densityScale = max(heightScale + horizonFactor * CR_ATMOS_HORIZON_STRENGTH, 0.25);
+    float opticalDepth = min(distanceOpticalDepth * densityScale, CR_ATMOS_MAX_OPTICAL_DEPTH);
+    surfaceTransmission = exp(-opticalDepth);
+    fogFactor = saturate(1.0 - surfaceTransmission);
+
+    float3 viewRay = safe_normalize(viewPosition);
+    float3 sunTint;
+    compute_sun_scattering(
+        viewRay,
+        primaryLightPosition,
+        primaryLightDiffuse,
+        lightCount,
+        horizonFactor,
+        sunScatter,
+        sunTint);
+    sunScatter *= fogFactor;
+
+    float3 authoredFog = saturate(fogColour);
+    float3 ambientTarget = saturate(authoredFog + sceneAmbient * 0.35);
+    atmosphereColour = lerp(authoredFog, ambientTarget, CR_ATMOS_AMBIENT_TINT_STRENGTH);
+    float sunBlend = saturate(sunScatter * CR_ATMOS_SUN_SCATTER_STRENGTH);
+    float3 sunwardAtmosphere = saturate(atmosphereColour + sunTint * CR_ATMOS_SUN_TINT_STRENGTH);
+    atmosphereColour = lerp(atmosphereColour, sunwardAtmosphere, sunBlend);
+
+    // Emission still extinguishes with distance, but less aggressively than
+    // reflected surface light so engines/panels remain legible through haze.
+    float softenedTransmission = sqrt(saturate(surfaceTransmission));
+    emissiveTransmission = lerp(
+        surfaceTransmission,
+        softenedTransmission,
+        CR_ATMOS_EMISSIVE_TRANSMISSION);
+}
 
 float legacy_shininess_to_roughness(float shininess)
 {
@@ -798,6 +935,7 @@ void base_fragment(
     oColor.xyz += specularResult.xyz;
 #endif
 
+    float3 emissiveContribution = float3(0.0, 0.0, 0.0);
 #if defined(EMISSIVEMAP_ENABLED)
     float3 emissiveTex = emissiveMap.Sample(emissiveSam, vTexCoord).xyz;
 #if defined(ENHANCED_MODE)
@@ -806,19 +944,74 @@ void base_fragment(
     // the Medium/Low/Lowest behavior (which adds the map at 1.0x).
     float materialEmissiveIntensity = max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z));
     float emissiveIntensity = max(1.0, materialEmissiveIntensity);
-    oColor.xyz += emissiveTex.xyz * emissiveIntensity;
+    emissiveContribution = emissiveTex.xyz * emissiveIntensity;
 #else
     oColor.xyz += emissiveTex.xyz;
 #endif
 #endif
 
+#if defined(ENHANCED_MODE) && !defined(VERTEX_LIGHTING)
+    // Enhanced atmosphere is deliberately post-BRDF/post-IBL. Non-IBL
+    // Enhanced delegates use the same exponential/aerial model; IBL High
+    // additionally supplies stable camera-relative world height and horizon.
+    float cameraRelativeWorldHeight = 0.0;
+    float horizonFactor = 0.0;
+#if defined(IBL_ENABLED)
+    float3 cameraRelativeWorldPosition = mul(inverseViewMatrix, float4(viewPos, 0.0)).xyz;
+    float3 worldViewRay = safe_normalize(mul(inverseViewMatrix, float4(safe_normalize(viewPos), 0.0)).xyz);
+    cameraRelativeWorldHeight = cameraRelativeWorldPosition.y;
+    horizonFactor = compute_horizon_factor(worldViewRay);
+#endif
+
+    float fogValue;
+    float heightContribution;
+    float sunScatter;
+    float3 atmosphereColour;
+    float surfaceTransmission;
+    float emissiveTransmission;
+    compute_enhanced_atmosphere(
+        viewPos,
+        fogParams,
+        fogColour.xyz,
+        sceneAmbient.xyz,
+        lightPosition[0],
+        lightDiffuse[0].xyz,
+        lightCount,
+        cameraRelativeWorldHeight,
+        horizonFactor,
+        fogValue,
+        heightContribution,
+        sunScatter,
+        atmosphereColour,
+        surfaceTransmission,
+        emissiveTransmission);
+
+    float surfaceLuminance = luminance_legacy(oColor.xyz);
+    float3 aerialSurface = lerp(
+        oColor.xyz,
+        float3(surfaceLuminance, surfaceLuminance, surfaceLuminance),
+        fogValue * CR_ATMOS_AERIAL_DESATURATION);
+    oColor.xyz = aerialSurface * surfaceTransmission
+               + atmosphereColour * fogValue
+               + emissiveContribution * emissiveTransmission;
+
+#if CR_ATMOS_DEBUG_MODE == 1
+    oColor.xyz = float3(fogValue, fogValue, fogValue);
+#elif CR_ATMOS_DEBUG_MODE == 2
+    oColor.xyz = float3(heightContribution, heightContribution, heightContribution);
+#elif CR_ATMOS_DEBUG_MODE == 3
+    oColor.xyz = float3(sunScatter, sunScatter, sunScatter);
+#elif CR_ATMOS_DEBUG_MODE == 4
+    oColor.xyz = atmosphereColour;
+#endif
+#else
+#if defined(ENHANCED_MODE) && defined(EMISSIVEMAP_ENABLED)
+    // Safety fallback for any unexpected Enhanced vertex-lighting delegate.
+    emissiveContribution = emissiveContribution;
+    oColor.xyz += emissiveContribution;
+#endif
     float fogValue = saturate((vDepth - fogParams.y) * fogParams.w);
     oColor.xyz = lerp(oColor.xyz, fogColour.xyz, fogValue);
-
-#if defined(IBL_ENABLED) && CR_IBL_DEBUG_VISUALIZE
-    // TEMP IBL DEBUG MARKER: unmistakable proof that the Enhanced-High IBL
-    // shader variant is actually drawing this pixel.
-    oColor.xyz = lerp(oColor.xyz, float3(1.0, 0.0, 1.0), 0.85);
 #endif
 
     oColor.a = saturate(transparency);
