@@ -109,4 +109,4 @@ jobs:
           git commit -m 'Refresh DX11 overlay runtime payload'
           git push origin HEAD:fix/dx11-overlay-deployment-refresh
 
-# Push trigger is temporary; remove this workflow after the refresh commit lands.
+# Push trigger armed; this edit intentionally starts the one-time refresh run.
