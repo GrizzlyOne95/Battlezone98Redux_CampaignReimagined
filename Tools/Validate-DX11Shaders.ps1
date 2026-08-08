@@ -11,6 +11,27 @@ $terrainShader = Join-Path $repoRoot 'Shaders\CR_terrain-sm4.hlsl'
 $uiShader = Join-Path $repoRoot 'Shaders\CR_ui-sm4.hlsl'
 $overlayShader = Join-Path $repoRoot 'Shaders\CR_overlay-sm4.hlsl'
 
+# DX11 color-space audit Stage 1 is diagnostic-only. Do not let an sRGB
+# transfer helper or experiment define silently land before an actual BZR DX11
+# capture proves the live resource/SRV/RTV state. When that runtime gate is
+# satisfied, update these guards in the same commit that adds the explicit
+# Enhanced-only experiment and its validation cases.
+$stageOneForbiddenPatterns = @(
+    '\bsrgb_to_linear\b',
+    '\blinear_to_srgb\b',
+    '\bCR_LINEAR_LIGHT\b',
+    '\bCR_LINEAR_LIGHT_DECODE_'
+)
+
+foreach ($shader in @($baseShader, $terrainShader)) {
+    $source = Get-Content -LiteralPath $shader -Raw
+    foreach ($pattern in $stageOneForbiddenPatterns) {
+        if ($source -match $pattern) {
+            throw "DX11 color-space audit Stage 1 forbids '$pattern' in $shader until runtime UNORM/SRV evidence is recorded."
+        }
+    }
+}
+
 if (-not $FxcPath) {
     $fxc = Get-Command fxc.exe -ErrorAction SilentlyContinue
     if ($fxc) {
@@ -302,4 +323,5 @@ if ($failed.Count -gt 0) {
     throw "DX11 shader validation failed: $($failed -join ', ')"
 }
 
+Write-Host "Stage-1 DX11 color-space source guards passed."
 Write-Host "All $($cases.Count) representative DX11 SM4 shader variants compiled successfully."
