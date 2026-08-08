@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - fix/dx11-ibl-assets
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -33,7 +36,6 @@ jobs:
           from pathlib import Path
           import re
 
-          # Both Enhanced-High material families must reference the Ogre-safe DDS LUT.
           for rel in ('Materials/CR_BZBase.material', 'Materials/CR_BZTerrainBase.material'):
               p = Path(rel)
               s = p.read_text(encoding='utf-8')
@@ -44,7 +46,6 @@ jobs:
               p.write_text(s, encoding='utf-8', newline='\n')
               print(f'{rel}: replaced {old_count} BRDF LUT references')
 
-          # Keep documentation aligned with the runtime payload.
           docs = Path('Docs/DX11_STATIC_IBL.md')
           if docs.exists():
               s = docs.read_text(encoding='utf-8')
@@ -74,7 +75,6 @@ jobs:
               flags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PITCH | DDSD_PIXELFORMAT
               pitch = width * 4
               reserved = [0] * 11
-              # A8R8G8B8 masks. On little-endian disk the byte order is B, G, R, A.
               pf = (32, DDPF_RGB | DDPF_ALPHAPIXELS, 0, 32,
                     0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000)
               header = struct.pack('<I', 124)
@@ -90,9 +90,9 @@ jobs:
               h, w, _ = rg.shape
               quant = np.clip(np.round(rg * 255.0), 0, 255).astype(np.uint8)
               bgra = np.zeros((h, w, 4), dtype=np.uint8)
-              bgra[..., 1] = quant[..., 1]  # G
-              bgra[..., 2] = quant[..., 0]  # R
-              bgra[..., 3] = 255            # A
+              bgra[..., 1] = quant[..., 1]
+              bgra[..., 2] = quant[..., 0]
+              bgra[..., 3] = 255
               path.write_bytes(dds_header_rgba8(w, h) + bgra.tobytes())
           '''
 
