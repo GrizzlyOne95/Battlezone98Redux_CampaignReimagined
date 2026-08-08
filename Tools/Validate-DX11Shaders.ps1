@@ -6,31 +6,316 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$baseShader = Join-Path $repoRoot 'Shaders\CR_base-sm4.hlsl'
-$terrainShader = Join-Path $repoRoot 'Shaders\CR_terrain-sm4.hlsl'
-$uiShader = Join-Path $repoRoot 'Shaders\CR_ui-sm4.hlsl'
-$overlayShader = Join-Path $repoRoot 'Shaders\CR_overlay-sm4.hlsl'
+$shaderDir = Join-Path $repoRoot 'Shaders'
+$baseShader = Join-Path $shaderDir 'CR_base-sm4.hlsl'
+$terrainShader = Join-Path $shaderDir 'CR_terrain-sm4.hlsl'
+$uiShader = Join-Path $shaderDir 'CR_ui-sm4.hlsl'
+$overlayShader = Join-Path $shaderDir 'CR_overlay-sm4.hlsl'
 
-# DX11 color-space audit Stage 1 is diagnostic-only. Do not let an sRGB
-# transfer helper or experiment define silently land before an actual BZR DX11
-# capture proves the live resource/SRV/RTV state. When that runtime gate is
-# satisfied, update these guards in the same commit that adds the explicit
-# Enhanced-only experiment and its validation cases.
-$stageOneForbiddenPatterns = @(
-    '\bsrgb_to_linear\b',
-    '\blinear_to_srgb\b',
-    '\bCR_LINEAR_LIGHT\b',
-    '\bCR_LINEAR_LIGHT_DECODE_'
+$stageAShaders = @($baseShader, $terrainShader)
+
+# =============================================================================
+# DX11 color-space Stage A source guards
+# =============================================================================
+# The previous Stage-1 guard forbade sRGB transfer functions outright because no
+# runtime capture existed yet. That capture has since been taken: the DX11
+# swapchain/backbuffer is ordinary R8G8B8A8_UNORM, the relevant RTVs are
+# non-sRGB, no _SRGB resource/SRV/RTV appeared anywhere, and Ogre reported
+# "sRGB Gamma Conversion = No".
+#
+# The prohibition is therefore replaced - not deleted - by assertions that keep
+# the Stage A experiment inside its intended boundaries:
+#
+#   * CR_LINEAR_LIGHT exists and defaults to 0;
+#   * it can only activate on the DX11 Enhanced per-pixel path;
+#   * only genuine COLOR textures are decoded;
+#   * data textures (normal/specular/detail/shadow/IBL/BRDF) are never decoded;
+#   * alpha never passes through either transfer function;
+#   * exactly one final linear->sRGB encode per applicable Enhanced path,
+#     positioned after atmosphere integration;
+#   * unrelated shader paths and the materials gain no gamma behavior.
+#
+# See Docs/DX11_COLOR_SPACE_AUDIT.md.
+
+$sourceFailures = @()
+
+function Add-SourceFailure {
+    param([string]$Message)
+    $script:sourceFailures += $Message
+}
+
+# Identifiers that must never be fed to srgb_to_linear(). These are data or
+# hybrid-data sources, not artist-authored display colour.
+$forbiddenDecodeTokens = @(
+    'normalMap', 'normalTex', 'normalSam',
+    'specularMap', 'specularTex', 'specularSam', 'specularTint', 'surfaceF0',
+    'detailMap', 'detailTex', 'detailTexNear', 'detailSam', 'detailColor', 'detailMultiplier',
+    'shadowMap', 'shadowSam', 'vLightSpacePos', 'pssmSplitPoints',
+    'irradianceMap', 'irradiance', 'irradianceSam',
+    'prefilteredEnvMap', 'prefilteredEnvironment', 'prefilteredEnvSam',
+    'brdfLut', 'brdfLutSam', 'environmentBRDF',
+    'vDepth', 'oDepth',
+    'fogColour', 'sceneAmbient', 'lightDiffuse', 'lightSpecular'
 )
 
-foreach ($shader in @($baseShader, $terrainShader)) {
-    $source = Get-Content -LiteralPath $shader -Raw
-    foreach ($pattern in $stageOneForbiddenPatterns) {
-        if ($source -match $pattern) {
-            throw "DX11 color-space audit Stage 1 forbids '$pattern' in $shader until runtime UNORM/SRV evidence is recorded."
+# The complete, intentional Stage A decode allow-list. Anything else that calls
+# srgb_to_linear() is a scope regression.
+$allowedDecodeTargets = @('diffuseTex.rgb', 'emissiveTex')
+
+# Any swizzle or member access that includes an alpha/w component.
+$alphaComponentPattern = '\.[rgbaxyzw]*[awAW][rgbaxyzw]*\b'
+
+foreach ($shader in $stageAShaders) {
+    $name = Split-Path -Leaf $shader
+    $rawSource = Get-Content -LiteralPath $shader -Raw
+
+    # Strip // comments before any pattern matching, so prose that merely
+    # *describes* a construct (for example the note explaining why pow(x, 2.2)
+    # is not used) can never be mistaken for the construct itself. The
+    # replacement preserves line breaks, so reported line numbers stay correct.
+    # These shaders use // exclusively; assert that stays true.
+    if ($rawSource -match '/\*') {
+        Add-SourceFailure "$name contains a /* */ block comment; the Stage A source guards only strip // comments."
+    }
+    $source = $rawSource -replace '(?m)//.*$', ''
+
+    # -- The experiment flag exists and is off by default ---------------------
+    if ($source -notmatch '(?m)^\s*#ifndef\s+CR_LINEAR_LIGHT\s*\r?\n\s*#define\s+CR_LINEAR_LIGHT\s+0\s*\r?\n\s*#endif') {
+        Add-SourceFailure "$name does not declare CR_LINEAR_LIGHT with a default of 0."
+    }
+
+    # -- Activation is scoped to the DX11 Enhanced per-pixel path -------------
+    $activationIndex = $source.IndexOf('#define CR_LINEAR_LIGHT_ACTIVE 1')
+    $conditionStart = if ($activationIndex -ge 0) {
+        $source.Substring(0, $activationIndex).LastIndexOf('#if')
+    } else { -1 }
+
+    if ($activationIndex -lt 0 -or $conditionStart -lt 0) {
+        Add-SourceFailure "$name does not gate CR_LINEAR_LIGHT_ACTIVE behind a preceding #if condition."
+    }
+    else {
+        # Fold line continuations so the whole logical #if is one string, then
+        # confirm nothing but that condition sits between #if and the #define.
+        $rawCondition = $source.Substring($conditionStart, $activationIndex - $conditionStart)
+        $condition = (($rawCondition -replace '\\\r?\n', ' ') -replace '\s+', ' ').Trim()
+
+        if ($rawCondition -replace '\\\r?\n', ' ' -match '\r?\n\s*\S') {
+            Add-SourceFailure "$name has unexpected content between the #if condition and '#define CR_LINEAR_LIGHT_ACTIVE 1'."
+        }
+
+        $requiredTerms = @(
+            'defined(ENHANCED_MODE)',
+            '!defined(VERTEX_LIGHTING)',
+            '!defined(OG_RETRO_MODE)',
+            '!defined(RETRO_UNLIT_MODE)',
+            'CR_LINEAR_LIGHT != 0'
+        )
+        foreach ($term in $requiredTerms) {
+            if ($condition -notlike "*$term*") {
+                Add-SourceFailure "$name CR_LINEAR_LIGHT_ACTIVE condition is missing '$term'. Stage A must not reach Default/Retro/vertex-lighting paths."
+            }
+        }
+    }
+
+    if ($source -notmatch '(?m)^\s*#define\s+CR_LINEAR_LIGHT_ACTIVE\s+0\s*$') {
+        Add-SourceFailure "$name does not define CR_LINEAR_LIGHT_ACTIVE to 0 for every non-Enhanced permutation."
+    }
+
+    # -- The transfer functions are the real piecewise curves -----------------
+    if ($source -notmatch '\b0\.04045\b' -or $source -notmatch '\b12\.92\b') {
+        Add-SourceFailure "$name is missing the piecewise sRGB->linear breakpoint/slope (0.04045 / 12.92)."
+    }
+    if ($source -notmatch '\b0\.0031308\b' -or $source -notmatch '\b1\.055\b' -or $source -notmatch '\b0\.055\b') {
+        Add-SourceFailure "$name is missing the piecewise linear->sRGB breakpoint/scale (0.0031308 / 1.055 / 0.055)."
+    }
+    if ($source -match 'pow\s*\([^)]*,\s*2\.2\s*\)' -or $source -match 'pow\s*\([^)]*,\s*1\.0\s*/\s*2\.2\s*\)') {
+        Add-SourceFailure "$name uses a pow(x, 2.2) gamma approximation. Stage A requires the piecewise sRGB transfer functions."
+    }
+
+    # -- Decode call sites: allow-list, data exclusions, alpha safety ---------
+    $decodeSites = [regex]::Matches(
+        $source,
+        '(?m)^\s*(?<target>[A-Za-z_][A-Za-z0-9_.]*)\s*=\s*srgb_to_linear\s*\(\s*(?<arg>[^;]*?)\s*\)\s*;')
+
+    if ($decodeSites.Count -eq 0) {
+        Add-SourceFailure "$name contains no srgb_to_linear() decode site. Stage A must decode diffuse and emissive COLOR."
+    }
+
+    $observedTargets = @()
+    foreach ($site in $decodeSites) {
+        $target = $site.Groups['target'].Value
+        $arg = $site.Groups['arg'].Value
+        $observedTargets += $target
+
+        if ($allowedDecodeTargets -notcontains $target) {
+            Add-SourceFailure "$name decodes '$target', which is not on the Stage A COLOR allow-list ($($allowedDecodeTargets -join ', '))."
+        }
+
+        foreach ($token in $forbiddenDecodeTokens) {
+            if ($target -match "\b$([regex]::Escape($token))\b" -or $arg -match "\b$([regex]::Escape($token))\b") {
+                Add-SourceFailure "$name applies srgb_to_linear() to data source '$token'. Data textures and engine RGB constants must stay untouched in Stage A."
+            }
+        }
+
+        if ($target -match $alphaComponentPattern -or $arg -match $alphaComponentPattern) {
+            Add-SourceFailure "$name passes an alpha/w component through srgb_to_linear() ('$target = srgb_to_linear($arg)'). Alpha is never display-encoded."
+        }
+    }
+
+    foreach ($required in $allowedDecodeTargets) {
+        if ($observedTargets -notcontains $required) {
+            Add-SourceFailure "$name is missing the required Stage A decode of '$required'."
+        }
+    }
+
+    # -- Encode call site: exactly one, RGB only, after atmosphere ------------
+    $encodeSites = [regex]::Matches(
+        $source,
+        '(?m)^\s*(?<target>[A-Za-z_][A-Za-z0-9_.]*)\s*=\s*linear_to_srgb\s*\(\s*(?<arg>[^;]*?)\s*\)\s*;')
+
+    if ($encodeSites.Count -ne 1) {
+        Add-SourceFailure "$name has $($encodeSites.Count) linear_to_srgb() call sites. Stage A requires exactly one final encode."
+    }
+    else {
+        $encode = $encodeSites[0]
+        $target = $encode.Groups['target'].Value
+        $arg = $encode.Groups['arg'].Value
+
+        if ($target -ne 'oColor.rgb' -or $arg -ne 'oColor.rgb') {
+            Add-SourceFailure "$name final encode is '$target = linear_to_srgb($arg)'; expected 'oColor.rgb = linear_to_srgb(oColor.rgb)'."
+        }
+        if ($target -match $alphaComponentPattern -or $arg -match $alphaComponentPattern) {
+            Add-SourceFailure "$name passes an alpha/w component through linear_to_srgb(). Alpha is never display-encoded."
+        }
+
+        $atmosphereCall = $source.LastIndexOf('compute_enhanced_atmosphere(')
+        if ($atmosphereCall -lt 0) {
+            Add-SourceFailure "$name no longer calls compute_enhanced_atmosphere(); the Stage A ordering guard cannot be evaluated."
+        }
+        elseif ($encode.Index -lt $atmosphereCall) {
+            Add-SourceFailure "$name applies the final linear_to_srgb() before atmosphere integration. Atmosphere belongs inside the linear-light region."
+        }
+
+        $alphaWrite = [regex]::Match($source, '(?m)^\s*oColor\.a\s*=')
+        if ($alphaWrite.Success -and $encode.Index -gt $alphaWrite.Index) {
+            Add-SourceFailure "$name writes oColor.a before the final encode; the encode must be the last colour operation."
+        }
+    }
+
+    # -- Transfer-function uses are guarded ----------------------------------
+    # Every reference outside the definitions must sit under CR_LINEAR_LIGHT_ACTIVE.
+    $lines = $source -split '\r?\n'
+    $guardDepth = 0
+    $conditionalStack = New-Object System.Collections.Generic.Stack[bool]
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i]
+        $trimmed = $line.Trim()
+
+        if ($trimmed -match '^#if') {
+            $isStageAGuard = $trimmed -match '^#if\s+CR_LINEAR_LIGHT_ACTIVE\s*$'
+            $conditionalStack.Push($isStageAGuard)
+            if ($isStageAGuard) { $guardDepth++ }
+            continue
+        }
+        if ($trimmed -match '^#endif') {
+            if ($conditionalStack.Count -gt 0) {
+                if ($conditionalStack.Pop()) { $guardDepth-- }
+            }
+            continue
+        }
+        if ($trimmed -match '^#(else|elif)') {
+            continue
+        }
+
+        if ($line -match '\b(srgb_to_linear|linear_to_srgb)\s*\(' -and $guardDepth -le 0) {
+            Add-SourceFailure "$name line $($i + 1) references an sRGB transfer function outside a '#if CR_LINEAR_LIGHT_ACTIVE' guard: $trimmed"
+        }
+    }
+
+    # -- Ordering: each decode happens at the sample, before any consumption --
+    # Assert that nothing reads the sampled variable between the Sample() call
+    # and its decode. That is a stronger statement than "the decode is early":
+    # it proves no lighting, intensity or detail maths can ever observe the
+    # undecoded value.
+    $sampleSites = @(
+        @{ Variable = 'diffuseTex'; Decode = 'diffuseTex.rgb = srgb_to_linear(' },
+        @{ Variable = 'emissiveTex'; Decode = 'emissiveTex = srgb_to_linear(' }
+    )
+
+    foreach ($site in $sampleSites) {
+        $variable = $site.Variable
+        $sampleMatch = [regex]::Match($source, "$variable\s*=\s*\w+Map\.Sample\([^;]*;")
+        $decodeIndex = $source.IndexOf($site.Decode)
+
+        if (-not $sampleMatch.Success) {
+            Add-SourceFailure "$name has no '$variable = ...Map.Sample(...)' site; the Stage A ordering guard cannot be evaluated."
+            continue
+        }
+        if ($decodeIndex -lt 0) {
+            Add-SourceFailure "$name never decodes '$variable'."
+            continue
+        }
+
+        $sampleEnd = $sampleMatch.Index + $sampleMatch.Length
+        if ($decodeIndex -lt $sampleEnd) {
+            Add-SourceFailure "$name decodes '$variable' before it is sampled."
+            continue
+        }
+
+        $between = $source.Substring($sampleEnd, $decodeIndex - $sampleEnd)
+        if ($between -match "\b$variable\b") {
+            Add-SourceFailure "$name reads '$variable' between the sample and the sRGB decode. The decode must happen at the sample."
+        }
+    }
+
+    # -- Terrain detail must never be decoded --------------------------------
+    if ($name -eq 'CR_terrain-sm4.hlsl') {
+        if ($source -match 'detail[A-Za-z]*\s*=\s*srgb_to_linear' -or $source -match 'srgb_to_linear\s*\(\s*detail') {
+            Add-SourceFailure "$name decodes the terrain detail map. Detail is 0.5-centred modulation data (x2 => 1.0 neutral); decoding it would collapse the neutral point to ~0.43."
         }
     }
 }
+
+# -- No other shader path gains sRGB transfer behavior ------------------------
+# Only shader source is scanned. The .program scripts are deliberately left out
+# so an A/B tester may flip the experiment on through preprocessor_defines
+# without tripping a guard; the shader sources themselves still enforce that
+# CR_LINEAR_LIGHT can only activate on the Enhanced per-pixel path.
+$otherShaders = Get-ChildItem -LiteralPath $shaderDir -File |
+    Where-Object { $_.Extension -in @('.hlsl', '.glsl') } |
+    Where-Object { $stageAShaders -notcontains $_.FullName }
+
+foreach ($other in $otherShaders) {
+    $otherSource = Get-Content -LiteralPath $other.FullName -Raw
+    if ($otherSource -match '\b(srgb_to_linear|linear_to_srgb|CR_LINEAR_LIGHT)\b') {
+        Add-SourceFailure "$($other.Name) references Stage A colour-space symbols. Default, Retro, DX9/GL, UI and overlay paths must not gain sRGB transfer behavior."
+    }
+}
+
+# -- Hardware gamma stays off; the experiment is shader-side only -------------
+$stageAMaterials = @(
+    (Join-Path $repoRoot 'Materials\CR_BZBase.material'),
+    (Join-Path $repoRoot 'Materials\CR_BZTerrainBase.material')
+)
+
+foreach ($material in $stageAMaterials) {
+    if (-not (Test-Path -LiteralPath $material)) { continue }
+    $materialSource = Get-Content -LiteralPath $material -Raw
+    if ($materialSource -match '(?m)^\s*gamma\b') {
+        Add-SourceFailure "$(Split-Path -Leaf $material) declares hardware 'gamma' on a texture unit. Stage A is intentionally 'hardware gamma OFF + explicit shader-side conversion'."
+    }
+}
+
+if ($sourceFailures.Count -gt 0) {
+    $detail = ($sourceFailures | ForEach-Object { "  - $_" }) -join [Environment]::NewLine
+    throw "DX11 color-space Stage A source guards failed:$([Environment]::NewLine)$detail"
+}
+
+Write-Host "Stage A DX11 color-space source guards passed ($($stageAShaders.Count) shaders, $($otherShaders.Count) unrelated shader files scanned)."
+
+# =============================================================================
+# Shader compile / preprocess matrix
+# =============================================================================
 
 if (-not $FxcPath) {
     $fxc = Get-Command fxc.exe -ErrorAction SilentlyContinue
@@ -299,23 +584,132 @@ $cases = @(
     }
 )
 
+# -----------------------------------------------------------------------------
+# CR_LINEAR_LIGHT sweep
+# -----------------------------------------------------------------------------
+# Every base/terrain case above is compiled twice: once with CR_LINEAR_LIGHT=0
+# (which must remain the untouched baseline) and once with CR_LINEAR_LIGHT=1.
+# Variants that differ only in vertex/tangent plumbing are mathematically
+# unaffected by Stage A, so the sweep is restricted to the pixel entry points
+# plus the retro/vertex-lighting representatives that prove non-activation.
+$sweepCases = @()
+foreach ($case in $cases) {
+    if ($case.File -ne $baseShader -and $case.File -ne $terrainShader) { continue }
+    if ($case.Target -ne 'ps_4_0') { continue }
+
+    foreach ($linearLight in @(0, 1)) {
+        $sweep = @{
+            Name = "$($case.Name)-ll$linearLight"
+            File = $case.File
+            Entry = $case.Entry
+            Target = $case.Target
+            Defines = @($case.Defines) + @("CR_LINEAR_LIGHT=$linearLight")
+            LinearLight = $linearLight
+        }
+        $sweepCases += $sweep
+    }
+}
+
 $failed = @()
 
 foreach ($case in $cases) {
     $output = Join-Path $tempRoot "$($case.Name).cso"
-    $args = @('/nologo', '/Ges', '/WX', '/T', $case.Target, '/E', $case.Entry, '/Fo', $output)
+    $fxcArgs = @('/nologo', '/Ges', '/WX', '/T', $case.Target, '/E', $case.Entry, '/Fo', $output)
 
     foreach ($define in $case.Defines) {
-        $args += @('/D', $define)
+        $fxcArgs += @('/D', $define)
     }
 
-    $args += $case.File
+    $fxcArgs += $case.File
 
     Write-Host "Compiling $($case.Name)..."
-    & $FxcPath @args
+    & $FxcPath @fxcArgs
 
     if ($LASTEXITCODE -ne 0) {
         $failed += $case.Name
+    }
+}
+
+# -----------------------------------------------------------------------------
+# Preprocessor-level Stage A assertions across the sweep
+# -----------------------------------------------------------------------------
+# Compiling proves the permutations are valid HLSL. Preprocessing proves the
+# transfer functions appear in exactly the permutations they are supposed to,
+# exactly the number of times they are supposed to, in the right order.
+$preprocessFailures = @()
+
+foreach ($case in $sweepCases) {
+    $output = Join-Path $tempRoot "$($case.Name).cso"
+    $fxcArgs = @('/nologo', '/Ges', '/WX', '/T', $case.Target, '/E', $case.Entry, '/Fo', $output)
+    foreach ($define in $case.Defines) {
+        $fxcArgs += @('/D', $define)
+    }
+    $fxcArgs += $case.File
+
+    Write-Host "Compiling $($case.Name)..."
+    & $FxcPath @fxcArgs
+    if ($LASTEXITCODE -ne 0) {
+        $failed += $case.Name
+        continue
+    }
+
+    $preprocessed = Join-Path $tempRoot "$($case.Name).i"
+    $ppArgs = @('/nologo', '/P', $preprocessed)
+    foreach ($define in $case.Defines) {
+        $ppArgs += @('/D', $define)
+    }
+    $ppArgs += $case.File
+
+    & $FxcPath @ppArgs
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $preprocessed)) {
+        $preprocessFailures += "$($case.Name): fxc /P preprocessing failed."
+        continue
+    }
+
+    $text = Get-Content -LiteralPath $preprocessed -Raw
+
+    $isEnhanced = $case.Defines -match '^ENHANCED_MODE'
+    $isVertexLit = $case.Defines -match '^VERTEX_LIGHTING'
+    $isRetro = ($case.Defines -match '^OG_RETRO_MODE') -or ($case.Defines -match '^RETRO_UNLIT_MODE')
+    $hasEmissive = $case.Defines -match '^EMISSIVEMAP_ENABLED'
+
+    $shouldActivate = ($case.LinearLight -eq 1) -and $isEnhanced -and (-not $isVertexLit) -and (-not $isRetro)
+
+    # 1 definition + 1 call for the encode; 1 definition + diffuse (+ emissive)
+    # for the decode.
+    $expectedEncode = if ($shouldActivate) { 2 } else { 0 }
+    $expectedDecode = if ($shouldActivate) { if ($hasEmissive) { 3 } else { 2 } } else { 0 }
+
+    $encodeCount = [regex]::Matches($text, '\blinear_to_srgb\s*\(').Count
+    $decodeCount = [regex]::Matches($text, '\bsrgb_to_linear\s*\(').Count
+
+    if ($encodeCount -ne $expectedEncode) {
+        $preprocessFailures += "$($case.Name): expected $expectedEncode linear_to_srgb occurrences after preprocessing, found $encodeCount."
+    }
+    if ($decodeCount -ne $expectedDecode) {
+        $preprocessFailures += "$($case.Name): expected $expectedDecode srgb_to_linear occurrences after preprocessing, found $decodeCount."
+    }
+
+    if ($shouldActivate) {
+        # fxc /P re-emits the token stream with spaces between tokens
+        # ("oColor . rgb"), so these positional checks must be whitespace
+        # insensitive rather than literal substring searches.
+        $encodeMatches = [regex]::Matches($text, 'linear_to_srgb\s*\(\s*oColor\s*\.\s*rgb\s*\)')
+        $atmosphereMatches = [regex]::Matches($text, 'compute_enhanced_atmosphere\s*\(')
+
+        if ($encodeMatches.Count -ne 1) {
+            $preprocessFailures += "$($case.Name): expected exactly one 'oColor.rgb = linear_to_srgb(oColor.rgb)' call after preprocessing, found $($encodeMatches.Count)."
+        }
+        elseif ($atmosphereMatches.Count -gt 0) {
+            $encodeCall = $encodeMatches[0].Index
+            $atmosphereCall = $atmosphereMatches[$atmosphereMatches.Count - 1].Index
+            if ($encodeCall -lt $atmosphereCall) {
+                $preprocessFailures += "$($case.Name): the final encode precedes atmosphere integration."
+            }
+        }
+    }
+    elseif ($case.LinearLight -eq 0 -and ($encodeCount -ne 0 -or $decodeCount -ne 0)) {
+        $preprocessFailures += "$($case.Name): CR_LINEAR_LIGHT=0 must preprocess to the untouched baseline."
     }
 }
 
@@ -323,5 +717,10 @@ if ($failed.Count -gt 0) {
     throw "DX11 shader validation failed: $($failed -join ', ')"
 }
 
-Write-Host "Stage-1 DX11 color-space source guards passed."
-Write-Host "All $($cases.Count) representative DX11 SM4 shader variants compiled successfully."
+if ($preprocessFailures.Count -gt 0) {
+    $detail = ($preprocessFailures | ForEach-Object { "  - $_" }) -join [Environment]::NewLine
+    throw "DX11 color-space Stage A preprocessor guards failed:$([Environment]::NewLine)$detail"
+}
+
+Write-Host "Stage A preprocessor guards passed across $($sweepCases.Count) CR_LINEAR_LIGHT permutations."
+Write-Host "All $($cases.Count + $sweepCases.Count) DX11 SM4 shader compilations succeeded."
