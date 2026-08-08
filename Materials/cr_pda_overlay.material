@@ -10,7 +10,7 @@ material CRPdaBackdrop_DG_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -64,7 +64,7 @@ material CRPdaHeader_DG_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -118,7 +118,7 @@ material CRPdaBorder_DG_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -172,7 +172,7 @@ material CRPdaBackdrop_DG_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -226,7 +226,7 @@ material CRPdaHeader_DG_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -280,7 +280,7 @@ material CRPdaBorder_DG_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -334,7 +334,7 @@ material CRPdaBackdrop_DG_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -388,7 +388,7 @@ material CRPdaHeader_DG_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -442,7 +442,7 @@ material CRPdaBorder_DG_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -496,7 +496,7 @@ material CRPdaBackdrop_DG_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -550,7 +550,7 @@ material CRPdaHeader_DG_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -604,7 +604,7 @@ material CRPdaBorder_DG_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -658,7 +658,7 @@ material CRPdaBackdrop_DG_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -712,7 +712,7 @@ material CRPdaHeader_DG_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -766,7 +766,7 @@ material CRPdaBorder_DG_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -820,7 +820,7 @@ material CRPdaBackdrop_DG_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -874,7 +874,7 @@ material CRPdaHeader_DG_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -928,7 +928,7 @@ material CRPdaBorder_DG_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -982,7 +982,7 @@ material CRPdaBackdrop_DG_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1036,7 +1036,7 @@ material CRPdaHeader_DG_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1090,7 +1090,7 @@ material CRPdaBorder_DG_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1144,7 +1144,7 @@ material CRPdaBackdrop_DG_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1198,7 +1198,7 @@ material CRPdaHeader_DG_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1252,7 +1252,7 @@ material CRPdaBorder_DG_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1306,7 +1306,7 @@ material CRPdaBackdrop_DG_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1360,7 +1360,7 @@ material CRPdaHeader_DG_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1414,7 +1414,7 @@ material CRPdaBorder_DG_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1468,7 +1468,7 @@ material CRPdaBackdrop_DG_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1522,7 +1522,7 @@ material CRPdaHeader_DG_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1576,7 +1576,7 @@ material CRPdaBorder_DG_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1630,7 +1630,7 @@ material CRPdaBackdrop_DG_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1684,7 +1684,7 @@ material CRPdaHeader_DG_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1738,7 +1738,7 @@ material CRPdaBorder_DG_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1792,7 +1792,7 @@ material CRPdaBackdrop_DG_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1846,7 +1846,7 @@ material CRPdaHeader_DG_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1900,7 +1900,7 @@ material CRPdaBorder_DG_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -1954,7 +1954,7 @@ material CRPdaBackdrop_DG_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2008,7 +2008,7 @@ material CRPdaHeader_DG_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2062,7 +2062,7 @@ material CRPdaBorder_DG_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2116,7 +2116,7 @@ material CRPdaBackdrop_DG_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2170,7 +2170,7 @@ material CRPdaHeader_DG_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2224,7 +2224,7 @@ material CRPdaBorder_DG_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2278,7 +2278,7 @@ material CRPdaBackdrop_DG_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2332,7 +2332,7 @@ material CRPdaHeader_DG_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2386,7 +2386,7 @@ material CRPdaBorder_DG_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2440,7 +2440,7 @@ material CRPdaBackdrop_DG_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2494,7 +2494,7 @@ material CRPdaHeader_DG_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2548,7 +2548,7 @@ material CRPdaBorder_DG_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2602,7 +2602,7 @@ material CRPdaBackdrop_DG_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2656,7 +2656,7 @@ material CRPdaHeader_DG_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2710,7 +2710,7 @@ material CRPdaBorder_DG_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2764,7 +2764,7 @@ material CRPdaBackdrop_DG_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2818,7 +2818,7 @@ material CRPdaHeader_DG_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2872,7 +2872,7 @@ material CRPdaBorder_DG_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2926,7 +2926,7 @@ material CRPdaBackdrop_DG_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -2980,7 +2980,7 @@ material CRPdaHeader_DG_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3034,7 +3034,7 @@ material CRPdaBorder_DG_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3088,7 +3088,7 @@ material CRPdaBackdrop_DG_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3142,7 +3142,7 @@ material CRPdaHeader_DG_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3196,7 +3196,7 @@ material CRPdaBorder_DG_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3250,7 +3250,7 @@ material CRPdaBackdrop_DG_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3304,7 +3304,7 @@ material CRPdaHeader_DG_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3358,7 +3358,7 @@ material CRPdaBorder_DG_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3412,7 +3412,7 @@ material CRPdaBackdrop_G_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3466,7 +3466,7 @@ material CRPdaHeader_G_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3520,7 +3520,7 @@ material CRPdaBorder_G_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3574,7 +3574,7 @@ material CRPdaBackdrop_G_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3628,7 +3628,7 @@ material CRPdaHeader_G_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3682,7 +3682,7 @@ material CRPdaBorder_G_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3736,7 +3736,7 @@ material CRPdaBackdrop_G_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3790,7 +3790,7 @@ material CRPdaHeader_G_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3844,7 +3844,7 @@ material CRPdaBorder_G_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3898,7 +3898,7 @@ material CRPdaBackdrop_G_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -3952,7 +3952,7 @@ material CRPdaHeader_G_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4006,7 +4006,7 @@ material CRPdaBorder_G_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4060,7 +4060,7 @@ material CRPdaBackdrop_G_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4114,7 +4114,7 @@ material CRPdaHeader_G_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4168,7 +4168,7 @@ material CRPdaBorder_G_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4222,7 +4222,7 @@ material CRPdaBackdrop_G_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4276,7 +4276,7 @@ material CRPdaHeader_G_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4330,7 +4330,7 @@ material CRPdaBorder_G_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4384,7 +4384,7 @@ material CRPdaBackdrop_G_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4438,7 +4438,7 @@ material CRPdaHeader_G_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4492,7 +4492,7 @@ material CRPdaBorder_G_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4546,7 +4546,7 @@ material CRPdaBackdrop_G_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4600,7 +4600,7 @@ material CRPdaHeader_G_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4654,7 +4654,7 @@ material CRPdaBorder_G_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4708,7 +4708,7 @@ material CRPdaBackdrop_G_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4762,7 +4762,7 @@ material CRPdaHeader_G_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4816,7 +4816,7 @@ material CRPdaBorder_G_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4870,7 +4870,7 @@ material CRPdaBackdrop_G_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4924,7 +4924,7 @@ material CRPdaHeader_G_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -4978,7 +4978,7 @@ material CRPdaBorder_G_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5032,7 +5032,7 @@ material CRPdaBackdrop_G_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5086,7 +5086,7 @@ material CRPdaHeader_G_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5140,7 +5140,7 @@ material CRPdaBorder_G_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5194,7 +5194,7 @@ material CRPdaBackdrop_G_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5248,7 +5248,7 @@ material CRPdaHeader_G_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5302,7 +5302,7 @@ material CRPdaBorder_G_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5356,7 +5356,7 @@ material CRPdaBackdrop_G_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5410,7 +5410,7 @@ material CRPdaHeader_G_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5464,7 +5464,7 @@ material CRPdaBorder_G_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5518,7 +5518,7 @@ material CRPdaBackdrop_G_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5572,7 +5572,7 @@ material CRPdaHeader_G_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5626,7 +5626,7 @@ material CRPdaBorder_G_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5680,7 +5680,7 @@ material CRPdaBackdrop_G_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5734,7 +5734,7 @@ material CRPdaHeader_G_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5788,7 +5788,7 @@ material CRPdaBorder_G_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5842,7 +5842,7 @@ material CRPdaBackdrop_G_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5896,7 +5896,7 @@ material CRPdaHeader_G_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -5950,7 +5950,7 @@ material CRPdaBorder_G_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6004,7 +6004,7 @@ material CRPdaBackdrop_G_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6058,7 +6058,7 @@ material CRPdaHeader_G_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6112,7 +6112,7 @@ material CRPdaBorder_G_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6166,7 +6166,7 @@ material CRPdaBackdrop_G_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6220,7 +6220,7 @@ material CRPdaHeader_G_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6274,7 +6274,7 @@ material CRPdaBorder_G_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6328,7 +6328,7 @@ material CRPdaBackdrop_G_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6382,7 +6382,7 @@ material CRPdaHeader_G_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6436,7 +6436,7 @@ material CRPdaBorder_G_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6490,7 +6490,7 @@ material CRPdaBackdrop_G_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6544,7 +6544,7 @@ material CRPdaHeader_G_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6598,7 +6598,7 @@ material CRPdaBorder_G_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6652,7 +6652,7 @@ material CRPdaBackdrop_G_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6706,7 +6706,7 @@ material CRPdaHeader_G_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6760,7 +6760,7 @@ material CRPdaBorder_G_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6814,7 +6814,7 @@ material CRPdaBackdrop_B_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6868,7 +6868,7 @@ material CRPdaHeader_B_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6922,7 +6922,7 @@ material CRPdaBorder_B_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -6976,7 +6976,7 @@ material CRPdaBackdrop_B_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7030,7 +7030,7 @@ material CRPdaHeader_B_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7084,7 +7084,7 @@ material CRPdaBorder_B_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7138,7 +7138,7 @@ material CRPdaBackdrop_B_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7192,7 +7192,7 @@ material CRPdaHeader_B_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7246,7 +7246,7 @@ material CRPdaBorder_B_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7300,7 +7300,7 @@ material CRPdaBackdrop_B_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7354,7 +7354,7 @@ material CRPdaHeader_B_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7408,7 +7408,7 @@ material CRPdaBorder_B_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7462,7 +7462,7 @@ material CRPdaBackdrop_B_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7516,7 +7516,7 @@ material CRPdaHeader_B_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7570,7 +7570,7 @@ material CRPdaBorder_B_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7624,7 +7624,7 @@ material CRPdaBackdrop_B_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7678,7 +7678,7 @@ material CRPdaHeader_B_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7732,7 +7732,7 @@ material CRPdaBorder_B_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7786,7 +7786,7 @@ material CRPdaBackdrop_B_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7840,7 +7840,7 @@ material CRPdaHeader_B_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7894,7 +7894,7 @@ material CRPdaBorder_B_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -7948,7 +7948,7 @@ material CRPdaBackdrop_B_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8002,7 +8002,7 @@ material CRPdaHeader_B_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8056,7 +8056,7 @@ material CRPdaBorder_B_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8110,7 +8110,7 @@ material CRPdaBackdrop_B_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8164,7 +8164,7 @@ material CRPdaHeader_B_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8218,7 +8218,7 @@ material CRPdaBorder_B_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8272,7 +8272,7 @@ material CRPdaBackdrop_B_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8326,7 +8326,7 @@ material CRPdaHeader_B_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8380,7 +8380,7 @@ material CRPdaBorder_B_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8434,7 +8434,7 @@ material CRPdaBackdrop_B_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8488,7 +8488,7 @@ material CRPdaHeader_B_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8542,7 +8542,7 @@ material CRPdaBorder_B_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8596,7 +8596,7 @@ material CRPdaBackdrop_B_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8650,7 +8650,7 @@ material CRPdaHeader_B_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8704,7 +8704,7 @@ material CRPdaBorder_B_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8758,7 +8758,7 @@ material CRPdaBackdrop_B_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8812,7 +8812,7 @@ material CRPdaHeader_B_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8866,7 +8866,7 @@ material CRPdaBorder_B_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8920,7 +8920,7 @@ material CRPdaBackdrop_B_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -8974,7 +8974,7 @@ material CRPdaHeader_B_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9028,7 +9028,7 @@ material CRPdaBorder_B_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9082,7 +9082,7 @@ material CRPdaBackdrop_B_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9136,7 +9136,7 @@ material CRPdaHeader_B_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9190,7 +9190,7 @@ material CRPdaBorder_B_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9244,7 +9244,7 @@ material CRPdaBackdrop_B_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9298,7 +9298,7 @@ material CRPdaHeader_B_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9352,7 +9352,7 @@ material CRPdaBorder_B_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9406,7 +9406,7 @@ material CRPdaBackdrop_B_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9460,7 +9460,7 @@ material CRPdaHeader_B_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9514,7 +9514,7 @@ material CRPdaBorder_B_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9568,7 +9568,7 @@ material CRPdaBackdrop_B_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9622,7 +9622,7 @@ material CRPdaHeader_B_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9676,7 +9676,7 @@ material CRPdaBorder_B_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9730,7 +9730,7 @@ material CRPdaBackdrop_B_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9784,7 +9784,7 @@ material CRPdaHeader_B_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9838,7 +9838,7 @@ material CRPdaBorder_B_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9892,7 +9892,7 @@ material CRPdaBackdrop_B_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -9946,7 +9946,7 @@ material CRPdaHeader_B_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10000,7 +10000,7 @@ material CRPdaBorder_B_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10054,7 +10054,7 @@ material CRPdaBackdrop_B_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10108,7 +10108,7 @@ material CRPdaHeader_B_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10162,7 +10162,7 @@ material CRPdaBorder_B_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10216,7 +10216,7 @@ material CRPdaBackdrop_W_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10270,7 +10270,7 @@ material CRPdaHeader_W_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10324,7 +10324,7 @@ material CRPdaBorder_W_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10378,7 +10378,7 @@ material CRPdaBackdrop_W_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10432,7 +10432,7 @@ material CRPdaHeader_W_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10486,7 +10486,7 @@ material CRPdaBorder_W_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10540,7 +10540,7 @@ material CRPdaBackdrop_W_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10594,7 +10594,7 @@ material CRPdaHeader_W_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10648,7 +10648,7 @@ material CRPdaBorder_W_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10702,7 +10702,7 @@ material CRPdaBackdrop_W_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10756,7 +10756,7 @@ material CRPdaHeader_W_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10810,7 +10810,7 @@ material CRPdaBorder_W_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10864,7 +10864,7 @@ material CRPdaBackdrop_W_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10918,7 +10918,7 @@ material CRPdaHeader_W_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -10972,7 +10972,7 @@ material CRPdaBorder_W_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11026,7 +11026,7 @@ material CRPdaBackdrop_W_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11080,7 +11080,7 @@ material CRPdaHeader_W_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11134,7 +11134,7 @@ material CRPdaBorder_W_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11188,7 +11188,7 @@ material CRPdaBackdrop_W_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11242,7 +11242,7 @@ material CRPdaHeader_W_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11296,7 +11296,7 @@ material CRPdaBorder_W_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11350,7 +11350,7 @@ material CRPdaBackdrop_W_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11404,7 +11404,7 @@ material CRPdaHeader_W_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11458,7 +11458,7 @@ material CRPdaBorder_W_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11512,7 +11512,7 @@ material CRPdaBackdrop_W_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11566,7 +11566,7 @@ material CRPdaHeader_W_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11620,7 +11620,7 @@ material CRPdaBorder_W_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11674,7 +11674,7 @@ material CRPdaBackdrop_W_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11728,7 +11728,7 @@ material CRPdaHeader_W_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11782,7 +11782,7 @@ material CRPdaBorder_W_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11836,7 +11836,7 @@ material CRPdaBackdrop_W_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11890,7 +11890,7 @@ material CRPdaHeader_W_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11944,7 +11944,7 @@ material CRPdaBorder_W_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -11998,7 +11998,7 @@ material CRPdaBackdrop_W_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12052,7 +12052,7 @@ material CRPdaHeader_W_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12106,7 +12106,7 @@ material CRPdaBorder_W_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12160,7 +12160,7 @@ material CRPdaBackdrop_W_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12214,7 +12214,7 @@ material CRPdaHeader_W_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12268,7 +12268,7 @@ material CRPdaBorder_W_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12322,7 +12322,7 @@ material CRPdaBackdrop_W_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12376,7 +12376,7 @@ material CRPdaHeader_W_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12430,7 +12430,7 @@ material CRPdaBorder_W_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12484,7 +12484,7 @@ material CRPdaBackdrop_W_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12538,7 +12538,7 @@ material CRPdaHeader_W_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12592,7 +12592,7 @@ material CRPdaBorder_W_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12646,7 +12646,7 @@ material CRPdaBackdrop_W_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12700,7 +12700,7 @@ material CRPdaHeader_W_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12754,7 +12754,7 @@ material CRPdaBorder_W_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12808,7 +12808,7 @@ material CRPdaBackdrop_W_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12862,7 +12862,7 @@ material CRPdaHeader_W_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12916,7 +12916,7 @@ material CRPdaBorder_W_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -12970,7 +12970,7 @@ material CRPdaBackdrop_W_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13024,7 +13024,7 @@ material CRPdaHeader_W_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13078,7 +13078,7 @@ material CRPdaBorder_W_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13132,7 +13132,7 @@ material CRPdaBackdrop_W_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13186,7 +13186,7 @@ material CRPdaHeader_W_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13240,7 +13240,7 @@ material CRPdaBorder_W_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13294,7 +13294,7 @@ material CRPdaBackdrop_W_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13348,7 +13348,7 @@ material CRPdaHeader_W_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13402,7 +13402,7 @@ material CRPdaBorder_W_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13456,7 +13456,7 @@ material CRPdaBackdrop_W_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13510,7 +13510,7 @@ material CRPdaHeader_W_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13564,7 +13564,7 @@ material CRPdaBorder_W_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13618,7 +13618,7 @@ material CRPdaBackdrop_R_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13672,7 +13672,7 @@ material CRPdaHeader_R_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13726,7 +13726,7 @@ material CRPdaBorder_R_A00
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13780,7 +13780,7 @@ material CRPdaBackdrop_R_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13834,7 +13834,7 @@ material CRPdaHeader_R_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13888,7 +13888,7 @@ material CRPdaBorder_R_A01
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13942,7 +13942,7 @@ material CRPdaBackdrop_R_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -13996,7 +13996,7 @@ material CRPdaHeader_R_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14050,7 +14050,7 @@ material CRPdaBorder_R_A02
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14104,7 +14104,7 @@ material CRPdaBackdrop_R_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14158,7 +14158,7 @@ material CRPdaHeader_R_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14212,7 +14212,7 @@ material CRPdaBorder_R_A03
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14266,7 +14266,7 @@ material CRPdaBackdrop_R_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14320,7 +14320,7 @@ material CRPdaHeader_R_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14374,7 +14374,7 @@ material CRPdaBorder_R_A04
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14428,7 +14428,7 @@ material CRPdaBackdrop_R_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14482,7 +14482,7 @@ material CRPdaHeader_R_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14536,7 +14536,7 @@ material CRPdaBorder_R_A05
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14590,7 +14590,7 @@ material CRPdaBackdrop_R_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14644,7 +14644,7 @@ material CRPdaHeader_R_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14698,7 +14698,7 @@ material CRPdaBorder_R_A06
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14752,7 +14752,7 @@ material CRPdaBackdrop_R_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14806,7 +14806,7 @@ material CRPdaHeader_R_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14860,7 +14860,7 @@ material CRPdaBorder_R_A07
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14914,7 +14914,7 @@ material CRPdaBackdrop_R_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -14968,7 +14968,7 @@ material CRPdaHeader_R_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15022,7 +15022,7 @@ material CRPdaBorder_R_A08
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15076,7 +15076,7 @@ material CRPdaBackdrop_R_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15130,7 +15130,7 @@ material CRPdaHeader_R_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15184,7 +15184,7 @@ material CRPdaBorder_R_A09
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15238,7 +15238,7 @@ material CRPdaBackdrop_R_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15292,7 +15292,7 @@ material CRPdaHeader_R_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15346,7 +15346,7 @@ material CRPdaBorder_R_A10
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15400,7 +15400,7 @@ material CRPdaBackdrop_R_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15454,7 +15454,7 @@ material CRPdaHeader_R_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15508,7 +15508,7 @@ material CRPdaBorder_R_A11
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15562,7 +15562,7 @@ material CRPdaBackdrop_R_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15616,7 +15616,7 @@ material CRPdaHeader_R_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15670,7 +15670,7 @@ material CRPdaBorder_R_A12
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15724,7 +15724,7 @@ material CRPdaBackdrop_R_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15778,7 +15778,7 @@ material CRPdaHeader_R_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15832,7 +15832,7 @@ material CRPdaBorder_R_A13
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15886,7 +15886,7 @@ material CRPdaBackdrop_R_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15940,7 +15940,7 @@ material CRPdaHeader_R_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -15994,7 +15994,7 @@ material CRPdaBorder_R_A14
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16048,7 +16048,7 @@ material CRPdaBackdrop_R_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16102,7 +16102,7 @@ material CRPdaHeader_R_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16156,7 +16156,7 @@ material CRPdaBorder_R_A15
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16210,7 +16210,7 @@ material CRPdaBackdrop_R_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16264,7 +16264,7 @@ material CRPdaHeader_R_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16318,7 +16318,7 @@ material CRPdaBorder_R_A16
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16372,7 +16372,7 @@ material CRPdaBackdrop_R_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16426,7 +16426,7 @@ material CRPdaHeader_R_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16480,7 +16480,7 @@ material CRPdaBorder_R_A17
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16534,7 +16534,7 @@ material CRPdaBackdrop_R_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16588,7 +16588,7 @@ material CRPdaHeader_R_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16642,7 +16642,7 @@ material CRPdaBorder_R_A18
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16696,7 +16696,7 @@ material CRPdaBackdrop_R_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16750,7 +16750,7 @@ material CRPdaHeader_R_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16804,7 +16804,7 @@ material CRPdaBorder_R_A19
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16858,7 +16858,7 @@ material CRPdaBackdrop_R_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16912,7 +16912,7 @@ material CRPdaHeader_R_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
@@ -16966,7 +16966,7 @@ material CRPdaBorder_R_A20
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
             {
             }
             fragment_program_ref CR_OverlayTint_fragmentHLSL4
