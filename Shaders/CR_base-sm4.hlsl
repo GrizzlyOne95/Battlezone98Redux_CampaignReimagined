@@ -13,6 +13,40 @@
 #define CR_ATMOS_DEBUG_MODE 0
 #endif
 
+// -----------------------------------------------------------------------------
+// Stage A linear-light experiment (DX11 Enhanced only)
+// -----------------------------------------------------------------------------
+// 0 = unchanged baseline. This is the default and the compatibility path.
+// 1 = experimental. Artist-authored COLOR textures are decoded sRGB -> linear at
+//     the sample, the existing Enhanced lighting/GGX/IBL/emissive/atmosphere
+//     maths run on those linear values, and the final RGB is encoded
+//     linear -> sRGB exactly once before it reaches the ordinary UNORM target.
+//
+// The runtime DX11 capture recorded an R8G8B8A8_UNORM swapchain/backbuffer, no
+// _SRGB resource/SRV/RTV anywhere in the pipeline, and Ogre reporting
+// "sRGB Gamma Conversion = No". Nothing in the hardware path performs either
+// conversion for us, so Stage A does both explicitly in the shader.
+//
+// This is deliberately NOT a globally linear renderer: fixed-function blending,
+// MSAA resolve, UI/overlays and engine-supplied RGB constants are all out of
+// scope. See Docs/DX11_COLOR_SPACE_AUDIT.md.
+#ifndef CR_LINEAR_LIGHT
+#define CR_LINEAR_LIGHT 0
+#endif
+
+// Stage A is scoped to the Enhanced per-pixel path only. The decode and the
+// single final encode must bracket exactly the same region, otherwise a variant
+// could linearize its albedo and then never re-encode it. Vertex-lighting
+// delegates, Retro, Default and the DX9/GL paths therefore never see a transfer
+// function.
+#if defined(ENHANCED_MODE) && !defined(VERTEX_LIGHTING) \
+ && !defined(OG_RETRO_MODE) && !defined(RETRO_UNLIT_MODE) \
+ && (CR_LINEAR_LIGHT != 0)
+#define CR_LINEAR_LIGHT_ACTIVE 1
+#else
+#define CR_LINEAR_LIGHT_ACTIVE 0
+#endif
+
 #if defined(OG_RETRO_MODE)
 #undef NORMALMAP_ENABLED
 #undef SPECULARMAP_ENABLED
@@ -111,6 +145,34 @@ float luminance_legacy(float3 c)
     return dot(c, float3(0.299, 0.587, 0.114));
 }
 
+#if CR_LINEAR_LIGHT_ACTIVE
+// Piecewise IEC 61966-2-1 sRGB transfer functions. These are deliberately the
+// real piecewise curves, not pow(x, 2.2) / pow(x, 1/2.2) approximations, so the
+// A/B experiment measures a correct decode rather than an approximation error.
+//
+// RGB only. Alpha is coverage/mask data, is never display-encoded, and must
+// never be passed through either function.
+//
+// Inputs are clamped to >= 0 before any fractional pow(). lerp() evaluates both
+// segments, so an unclamped negative or denormal texel would otherwise be able
+// to produce a NaN in the unselected branch and still poison the result.
+float3 srgb_to_linear(float3 c)
+{
+    c = max(c, 0.0);
+    float3 low = c / 12.92;
+    float3 high = pow((c + 0.055) / 1.055, 2.4);
+    return lerp(low, high, step(0.04045, c));
+}
+
+float3 linear_to_srgb(float3 c)
+{
+    c = max(c, 0.0);
+    float3 low = c * 12.92;
+    float3 high = 1.055 * pow(max(c, 1e-8), 1.0 / 2.4) - 0.055;
+    return lerp(low, high, step(0.0031308, c));
+}
+#endif
+
 #if defined(ENHANCED_MODE)
 float3 sharpen_normal_map(float3 normalTex)
 {
@@ -126,9 +188,12 @@ float3 sharpen_normal_map(float3 normalTex)
 // constants deliberately remap that data conservatively instead of pretending
 // that a metallic/roughness texture set exists.
 //
-// Texture samples are consumed in the space Ogre provides. Do not add a manual
-// gamma decode here until the resource creation/sRGB flags are verified; doing
-// so risks double-gamma correction.
+// With CR_LINEAR_LIGHT=0 (default) texture samples are consumed in the space
+// Ogre provides and these constants keep their original meaning. With
+// CR_LINEAR_LIGHT=1 the COLOR textures arrive decoded to linear, so none of
+// these values are physically meaningful any more - they are held fixed on
+// purpose so the first A/B capture shows the raw effect of the transfer
+// functions rather than a recalibration.
 static const float CR_PI = 3.14159265359;
 static const float CR_PBR_MIN_ROUGHNESS = 0.12;
 static const float CR_PBR_MAX_ROUGHNESS = 0.92;
@@ -929,6 +994,11 @@ void base_fragment(
 #endif
 
     float4 diffuseTex = diffuseMap.Sample(diffuseSam, vTexCoord);
+#if CR_LINEAR_LIGHT_ACTIVE
+    // Object diffuse/albedo (t0) is artist-authored COLOR. Decode RGB only;
+    // diffuseTex.a is coverage and stays in its numerical space.
+    diffuseTex.rgb = srgb_to_linear(diffuseTex.rgb);
+#endif
     oColor.xyz = lightResult.xyz * diffuseTex.xyz * diffuseColor.xyz;
 
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
@@ -938,6 +1008,12 @@ void base_fragment(
     float3 emissiveContribution = float3(0.0, 0.0, 0.0);
 #if defined(EMISSIVEMAP_ENABLED)
     float3 emissiveTex = emissiveMap.Sample(emissiveSam, vTexCoord).xyz;
+#if CR_LINEAR_LIGHT_ACTIVE
+    // Object emissive (t3) is artist-authored COLOR. Decode at the sample, ahead
+    // of the emissive intensity scaling and the atmospheric transmission below,
+    // so emission enters the pipeline as linear scene radiance.
+    emissiveTex = srgb_to_linear(emissiveTex);
+#endif
 #if defined(ENHANCED_MODE)
     // Preserve the legacy full-bright map at High LOD. The material emissive
     // colour may boost authored emission, but must never attenuate it below
@@ -1012,6 +1088,16 @@ void base_fragment(
 #endif
     float fogValue = saturate((vDepth - fogParams.y) * fogParams.w);
     oColor.xyz = lerp(oColor.xyz, fogColour.xyz, fogValue);
+#endif
+
+#if CR_LINEAR_LIGHT_ACTIVE
+    // Stage A single output encode. Everything above - direct lighting, GGX,
+    // IBL, emissive, Phase 3 atmosphere and aerial perspective - has run on
+    // linearized COLOR input, so encode exactly once here, as late as the
+    // opaque pixel pipeline allows, because the bound render target is an
+    // ordinary non-sRGB UNORM surface that will not do it for us.
+    // Alpha is not a display-encoded quantity and is written untouched below.
+    oColor.rgb = linear_to_srgb(oColor.rgb);
 #endif
 
     oColor.a = saturate(transparency);

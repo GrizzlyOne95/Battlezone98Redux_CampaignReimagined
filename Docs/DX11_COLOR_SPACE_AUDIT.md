@@ -1,6 +1,17 @@
 # BZR DX11 Color-Space Audit
 
-> **Status: diagnostic / experimental, Stage 1.** This document deliberately does **not** claim that the live BZR 2.2.301 DX11 texture SRVs are linear UNORM until an actual Enhanced DX11 mission is captured with the OpenShim diagnostic described below. No rendering behavior is changed by this branch.
+> **Status: diagnostic phase complete; Stage A experiment implemented.**
+>
+> The OpenShim DX11 runtime capture described in Part 2 has been taken. It confirmed that no hardware sRGB conversion exists anywhere in the captured BZR DX11 pipeline — no `_SRGB` resource, SRV, or RTV appeared, the swapchain/backbuffer is ordinary `R8G8B8A8_UNORM`, and Ogre reports `sRGB Gamma Conversion = No`.
+>
+> That evidence unlocked the Stage A shader-side experiment, which now exists behind the compile-time flag `CR_LINEAR_LIGHT`:
+>
+> - **`CR_LINEAR_LIGHT=0` is the default and the compatibility path.** It is verified token-for-token identical to the pre-Stage-A baseline after preprocessing.
+> - **`CR_LINEAR_LIGHT=1` is experimental** and affects the DX11 Enhanced per-pixel path only.
+>
+> Stage A does **not** create a globally linear renderer. It decodes known artist-authored COLOR textures, runs the existing Enhanced lighting/IBL/atmosphere maths on those values, and encodes the result once before the existing UNORM target. Blended passes, MSAA resolve, UI/overlays and engine-supplied RGB constants remain outside the linear region and are documented as known limitations.
+>
+> DXGI presentation colour-space selection remains **formally unresolved**: no `IDXGISwapChain3::SetColorSpace1` call was observed, and DXGI exposes no public getter for the current state.
 
 ## Scope
 
@@ -26,6 +37,24 @@ The goal is to separate source facts from runtime facts. Upstream Ogre behavior 
 # Executive diagnosis
 
 ## PROVEN
+
+### Runtime DX11 capture (the Stage-1 gate — now satisfied)
+
+The OpenShim `[DX11 ColorSpace]` capture from a live Enhanced DX11 mission established:
+
+1. The DX11 swapchain and its backbuffer resource are ordinary `R8G8B8A8_UNORM`. Neither is `_SRGB` and neither is typeless.
+2. The relevant render-target views are non-sRGB. The RTV format was logged independently of the resource format, exactly because Ogre is permitted to pair an `_SRGB` RTV with a UNORM backbuffer — that pairing did **not** occur here.
+3. No `_SRGB` resource, SRV, or RTV appeared anywhere in the capture, for any binding.
+4. Ogre reports `sRGB Gamma Conversion = No`, consistent with the observed D3D state rather than merely asserted by configuration.
+5. Materials request no hardware gamma conversion on any audited texture unit.
+6. The Enhanced shaders contained no sRGB transfer functions prior to Stage A.
+
+The consequence, which is what the audit set out to determine:
+
+- **Artist-authored COLOR textures enter the Enhanced GGX/IBL path without sRGB → linear conversion.**
+- **Shader lighting output is written to ordinary UNORM targets without linear → sRGB conversion.**
+
+Nothing in the hardware path performs either conversion. Any linear-light experiment must therefore do both explicitly, in the shader.
 
 ### Campaign Reimagined source behavior
 
@@ -62,7 +91,7 @@ These classifications are strongly supported by asset/shader semantics but are n
 | --- | --- | --- |
 | Object diffuse/albedo | COLOR / likely sRGB-authored | Artist-visible base color. |
 | Terrain diffuse | COLOR / likely sRGB-authored | Artist-visible base color. |
-| Terrain detail RGB | COLOR / likely sRGB-authored | Multiplies visible terrain color; exact authoring convention still needs representative asset review. |
+| Terrain detail RGB | MODULATION / treated as data | Multiplies visible terrain colour, but the shader consumes it as `sample * 2.0`, which makes a stored 0.5 the neutral 1.0 multiplier. That is centred numerical modulation, not literal base colour. **Excluded from Stage A decode** — see Part 5. |
 | Emissive RGB | COLOR / likely sRGB-authored | Artist-visible emitted color/intensity texture. |
 | Normal maps | DATA / linear | Vector encoding. |
 | Shadow/depth | DATA / linear | Numerical depth/comparison values. |
@@ -73,21 +102,18 @@ These classifications are strongly supported by asset/shader semantics but are n
 
 If live diffuse/emissive SRVs are ordinary `_UNORM`, the likely result is that legacy artist color values are entering the GGX equations without sRGB decode. That would make the current Enhanced BRDF physically inconsistent even though it can still be visually calibrated to look reasonable.
 
-## UNRESOLVED UNTIL AN ACTUAL BZR DX11 RUN
+## UNRESOLVED
 
-The following are deliberately **not** marked proven by source inspection:
+These remain open after the runtime capture. Stage A does not resolve them and must not be read as if it did.
 
-- the live `ID3D11Texture2D` format for representative object diffuse, terrain diffuse/detail, normal, specular, emissive, IBL, and BRDF resources;
-- the live `ID3D11ShaderResourceView` format actually bound for those resources;
-- whether BZR's renderer binary exactly matches upstream Ogre 1.10 gamma-format behavior;
-- the live swapchain format;
-- the live backbuffer resource format;
-- the live backbuffer RTV format;
-- the active DXGI swapchain color-space selection. `IDXGISwapChain3` has no public current-state getter, so the diagnostic can only prove explicit `SetColorSpace1` calls if BZR/Ogre makes them;
-- whether any hidden/offscreen sRGB or floating-point render target is already used by BZR;
-- whether any renderer/plugin code performs a color conversion outside the CR shaders;
-- the exact authoring convention of representative legacy specular maps;
-- whether engine-authored light/ambient/fog/material RGB values were intended as linear coefficients or were tuned visually around the legacy nonlinear pipeline.
+- **DXGI presentation colour space.** No `IDXGISwapChain3::SetColorSpace1` call was observed. DXGI provides no public getter for the currently selected colour space, and the diagnostic deliberately refuses to infer it from `CheckColorSpaceSupport`, the swapchain format, or API defaults. Absence of an observed call is not proof of a particular selection.
+- **Engine RGB authoring space.** Whether `lightDiffuse`, `lightSpecular`, `sceneAmbient`, `fogColour` and the material colours were intended as linear coefficients or were tuned visually against the legacy nonlinear pipeline. Stage A leaves all of them untouched.
+- **Legacy specular authoring convention.** The maps remain semantically hybrid (visible RGB tint/F0 *and* numerical strength/mask/roughness cue). Stage A leaves the specular path completely unchanged.
+- **Fixed-function blending.** The manual encode makes the opaque pass consistent; it does not make blending linear. Transparency, particles, additive effects and overlays still blend in gamma space against encoded destination values.
+- **MSAA resolve behavior.** The capture showed 8× MSAA on the main path with ordinary UNORM targets. Encoding before resolve means resolve may operate over encoded values. Not addressed in Stage A.
+- **Opaque-pass intermediate binding.** Whether any hidden/offscreen intermediate target participates in the opaque path in a way that would change where the single encode ought to sit.
+- Whether any renderer/plugin code performs a colour conversion outside the CR shaders.
+- Whether BZR's renderer binary matches upstream Ogre 1.10 gamma-format behavior in every path, as opposed to in the paths actually observed.
 
 ---
 
@@ -300,13 +326,15 @@ Do not paste this schema into the PROVEN section as if it were captured evidence
 
 ### Diffuse/albedo
 
-Treat object diffuse and terrain diffuse as artist-visible color. If the live SRV is ordinary `_UNORM`, a future Enhanced-only linear experiment should decode RGB before lighting.
+Object diffuse and terrain diffuse are artist-visible colour. The live SRVs are ordinary `_UNORM`, so Stage A decodes their RGB before lighting.
 
-Alpha is not sRGB data. Any helper must transform RGB only and preserve alpha unchanged.
+Alpha is not sRGB data. Any helper must transform RGB only and preserve alpha unchanged. In the terrain path alpha additionally carries the detail-blend weight, which makes this non-negotiable rather than merely tidy.
 
-### Terrain detail
+### Terrain detail — resolved as MODULATION, not COLOR
 
-The current terrain shader treats detail RGB as a visible multiplicative color modulation. That suggests sRGB-authored color, but representative assets should be inspected before decode is enabled because legacy detail maps are sometimes authored as centered numerical modulation around 0.5 rather than literal base color.
+The terrain shader consumes detail as `sample * 2.0`. That convention makes a stored `0.5` the neutral `1.0` multiplier, which is exactly the "centred numerical modulation around 0.5" case this audit warned about. Decoding `0.5` as sRGB gives ≈ `0.214`, so the neutral point would land at ≈ `0.43` and the terrain would lose more than half its brightness.
+
+The shader's mathematical use is decisive here regardless of how the texture was painted. **Stage A does not decode the detail map**, and the validator rejects any attempt to.
 
 ### Emissive RGB
 
@@ -374,33 +402,42 @@ If a later A/B test is warranted, isolate it behind a clearly named experimental
 
 ---
 
-# Part 5 - Why the linear-light shader experiment is intentionally not in this Stage-1 branch
+# Part 5 - The Stage A linear-light experiment (implemented)
 
-The task requires the experiment **only after** the diagnostic conclusively establishes that color textures are sampled as ordinary nonlinear UNORM data.
+The Stage-1 gate listed in earlier revisions of this document has been satisfied by the runtime capture recorded under PROVEN. The experiment now exists in the two DX11 SM4 world shaders.
 
-That runtime proof is not available in this repository branch yet. Therefore adding `srgb_to_linear()` now would violate the audit requirement and could double-decode a texture if BZR's live renderer creates an `_SRGB` SRV through behavior not visible in the material scripts.
+## The flag
 
-## Gate to unlock the experiment
+```hlsl
+#ifndef CR_LINEAR_LIGHT
+#define CR_LINEAR_LIGHT 0
+#endif
+```
 
-An actual Enhanced DX11 mission capture must establish at minimum:
+Declared identically in `Shaders/CR_base-sm4.hlsl` and `Shaders/CR_terrain-sm4.hlsl`.
 
-1. representative object diffuse is bound through a non-sRGB `_UNORM` SRV;
-2. representative terrain diffuse is bound through a non-sRGB `_UNORM` SRV;
-3. representative emissive is bound through a non-sRGB `_UNORM` SRV if emissive decode is to be enabled;
-4. normal/data SRVs are identified and remain on their unmodified numerical paths;
-5. IBL/BRDF resources are identified and remain undecoded;
-6. swapchain, backbuffer resource, and RTV formats are captured independently;
-7. no hidden conversion stage is observed that invalidates a manual final-encode test.
+Activation is narrowed to the Enhanced per-pixel path:
 
-Only after that evidence is attached to the draft PR should the shader experiment be added.
+```hlsl
+#if defined(ENHANCED_MODE) && !defined(VERTEX_LIGHTING) \
+ && !defined(OG_RETRO_MODE) && !defined(RETRO_UNLIT_MODE) \
+ && (CR_LINEAR_LIGHT != 0)
+#define CR_LINEAR_LIGHT_ACTIVE 1
+#else
+#define CR_LINEAR_LIGHT_ACTIVE 0
+#endif
+```
 
-## Planned experiment after the gate passes
+Both the decode sites and the single encode site are guarded by `CR_LINEAR_LIGHT_ACTIVE`, never by `CR_LINEAR_LIGHT` directly. That matters: decode and encode must bracket **exactly** the same region, or a variant could linearize its albedo and then never re-encode it. Default, Retro, DX9/GL, UI and overlay paths therefore cannot acquire a transfer function.
 
-Enhanced DX11 only, with the proper piecewise sRGB transfer function:
+## Transfer functions
+
+The proper piecewise IEC 61966-2-1 curves are used. `pow(x, 2.2)` / `pow(x, 1/2.2)` approximations are explicitly rejected by the validator, so the A/B test measures a correct decode rather than an approximation error.
 
 ```hlsl
 float3 srgb_to_linear(float3 c)
 {
+    c = max(c, 0.0);
     float3 low = c / 12.92;
     float3 high = pow((c + 0.055) / 1.055, 2.4);
     return lerp(low, high, step(0.04045, c));
@@ -410,30 +447,83 @@ float3 linear_to_srgb(float3 c)
 {
     c = max(c, 0.0);
     float3 low = c * 12.92;
-    float3 high = 1.055 * pow(c, 1.0 / 2.4) - 0.055;
+    float3 high = 1.055 * pow(max(c, 1e-8), 1.0 / 2.4) - 0.055;
     return lerp(low, high, step(0.0031308, c));
 }
 ```
 
-First experiment decode list:
+Both clamp their input to `>= 0` first. `lerp()` evaluates both segments, so an unclamped negative or denormal texel could otherwise produce a NaN in the unselected branch and still poison the result. RGB only; alpha is never passed through either function.
 
-- object diffuse/albedo RGB;
-- terrain diffuse RGB;
-- terrain detail RGB only if asset semantics are confirmed;
-- emissive RGB.
+## Decoded (COLOR)
 
-First experiment no-decode list:
+| Shader | Texture | Where |
+| --- | --- | --- |
+| `CR_base-sm4.hlsl` | object diffuse/albedo (`t0`) | RGB decoded immediately after `Sample()`, before the lighting multiply. Alpha untouched. |
+| `CR_base-sm4.hlsl` | object emissive (`t3`) | RGB decoded immediately after `Sample()`, **before** emissive intensity scaling and atmospheric transmission. |
+| `CR_terrain-sm4.hlsl` | terrain diffuse (`t0`) | RGB decoded immediately after `Sample()`. Alpha is the detail-blend weight and stays numerical. |
+| `CR_terrain-sm4.hlsl` | terrain emissive | RGB decoded immediately after `Sample()`, **before** the detail multiplication. |
 
-- normals;
-- BRDF LUT;
-- shadows/depth;
-- current generated irradiance/prefilter IBL assets;
-- legacy specular by default;
-- engine light/ambient/fog/material colors by default.
+## Explicitly NOT decoded
 
-The final manual `linear_to_srgb()` would be an **opaque-scene appearance test only** if the captured final target is ordinary non-sRGB 8-bit UNORM.
+**Terrain detail is deliberately excluded.** The shader consumes it as:
 
-It is not the final architecture.
+```hlsl
+detailMap.Sample(...).rgb * 2.0
+```
+
+which makes a stored `0.5` the neutral `1.0` modulation point. Decoding `0.5` as sRGB yields ≈ `0.214`, so the neutral point would become ≈ `0.43` and the terrain would darken by more than half. It is modulation data in the shader's mathematical use, whatever an artist may have believed while painting it.
+
+Also untouched in Stage A:
+
+- normal maps;
+- specular maps (the legacy hybrid F0/tint/strength/roughness source — left completely unchanged);
+- roughness-related channels;
+- shadow maps / PSSM / depth;
+- the BRDF LUT;
+- the irradiance cubemap;
+- the prefiltered environment cubemap;
+- masks and other numerical textures;
+- vertex colour (`vColor`) in the terrain path.
+
+## Engine RGB constants — untouched by design
+
+`fogColour`, `sceneAmbient`, `lightDiffuse`, `lightSpecular` and the material colours are **not** converted. Their authoring space is unresolved (see UNRESOLVED).
+
+This intentionally means the first experiment may expose a mismatch between linearized surfaces and the existing atmosphere/fog colours. **That mismatch is useful diagnostic information and must not be "fixed" during this stage.**
+
+## Output encode
+
+```hlsl
+oColor.rgb = linear_to_srgb(oColor.rgb);
+```
+
+Applied exactly once per applicable Enhanced pixel path, as late as the opaque pipeline allows — after direct lighting, GGX/PBR, IBL, emissive, Phase 3 atmosphere, aerial perspective and the atmosphere debug modes, and immediately before `oColor.a` is written. Alpha is not encoded.
+
+The conceptual order is:
+
+```text
+decode artist COLOR textures
+        ↓
+existing direct lighting / GGX
+        ↓
+IBL
+        ↓
+emissive
+        ↓
+Phase 3 atmosphere / aerial perspective
+        ↓
+final linear_to_srgb()
+        ↓
+UNORM target
+```
+
+## Calibration is deliberately frozen
+
+No calibration constant was changed: `CR_PBR_*`, `CR_IBL_*`, `CR_ATMOS_*`, terrain F0/roughness/IBL scaling, emissive intensity, shadow contrast. The raw effect of the transfer functions must be observable before any recalibration. `CR_PBR_DIFFUSE_COMPENSATION = 2.70` in particular was tuned against the nonlinear pipeline and is not physically meaningful under `CR_LINEAR_LIGHT=1`.
+
+## What this is not
+
+Stage A is an **opaque-scene appearance experiment**, not the final architecture. It does not deliver a linear renderer, HDR, FP16 scene colour, tone mapping, or linear blending. See "Known limitations" below and the FP16/HDR section at the end.
 
 ---
 
@@ -494,7 +584,7 @@ Prefer a compact calibration block shared conceptually between base and terrain 
 
 # Part 7 - Validation
 
-## Automated validation in this Stage-1 branch
+## Automated validation
 
 `Tools/Validate-DX11Shaders.ps1` retains the existing compile matrix for:
 
@@ -508,9 +598,46 @@ Prefer a compact calibration block shared conceptually between base and terrain 
 - Retro representative variants;
 - UI/overlay SM4.
 
-Stage-1 source guards additionally prevent an sRGB helper/define from being introduced before runtime proof is recorded. No DX9, GL, Default, Retro, or shader source is changed by this Stage-1 audit branch.
+The Stage-1 prohibition on sRGB helpers was **replaced, not deleted**. It is now a set of Stage A correctness assertions, because a guard that only forbids is useless once the thing it forbade is intended.
 
-A Windows GitHub Actions job runs the existing validator. The Stage-1 branch passed the representative SM4 compile matrix after the source guard was added.
+### Source guards
+
+- `CR_LINEAR_LIGHT` exists in both shaders and defaults to `0`.
+- `CR_LINEAR_LIGHT_ACTIVE` is gated on `defined(ENHANCED_MODE)`, `!defined(VERTEX_LIGHTING)`, `!defined(OG_RETRO_MODE)`, `!defined(RETRO_UNLIT_MODE)` and `CR_LINEAR_LIGHT != 0`. Dropping any term fails validation.
+- The piecewise breakpoints/scales (`0.04045`, `12.92`, `0.0031308`, `1.055`, `0.055`) are present, and `pow(x, 2.2)`-style approximations are rejected.
+- Decode call sites are checked against an explicit allow-list (`diffuseTex.rgb`, `emissiveTex`) **and** against a deny-list of data identifiers: normal/specular/detail/shadow/irradiance/prefilter/BRDF/depth sources and the engine RGB constants.
+- Terrain detail has its own dedicated rejection rule.
+- Alpha safety: no call site may pass or assign a swizzle containing an `a`/`w` component.
+- Exactly one `linear_to_srgb()` call site per shader, targeting `oColor.rgb`, positioned after `compute_enhanced_atmosphere()` and before the `oColor.a` write.
+- Every transfer-function reference must sit inside a `#if CR_LINEAR_LIGHT_ACTIVE` block (checked with a nesting-aware conditional scanner).
+- Each decode must happen *at the sample*: nothing may read `diffuseTex` / `emissiveTex` between the `Sample()` call and its decode.
+- No other `.hlsl`/`.glsl` in `Shaders/` may reference `srgb_to_linear`, `linear_to_srgb`, or `CR_LINEAR_LIGHT`. This covers Default, Retro, DX9/GL, UI and overlay paths.
+- `CR_BZBase.material` and `CR_BZTerrainBase.material` must not declare a texture-unit `gamma`. Stage A is specifically *hardware gamma OFF + explicit shader-side conversion*.
+
+Comments are stripped before pattern matching, so prose describing a construct is never mistaken for the construct.
+
+### Compile and preprocessor matrix
+
+Every base/terrain pixel case is compiled twice — `CR_LINEAR_LIGHT=0` and `CR_LINEAR_LIGHT=1` — across PSSM on/off, IBL on/off, emissive on/off, atmosphere debug on/off, plus vertex-lighting and Retro representatives that must **not** activate.
+
+Each swept permutation is then preprocessed with `fxc /P` and asserted at the token level:
+
+- inactive permutations contain **zero** transfer-function occurrences;
+- active permutations contain exactly one `linear_to_srgb` definition plus exactly one call;
+- active permutations contain exactly one `srgb_to_linear` definition plus one decode per bound COLOR texture;
+- the encode call always follows the atmosphere call.
+
+This is stronger than compiling: it proves the transfer functions appear in exactly the permutations, counts and order intended.
+
+### Results
+
+- Source guards: pass.
+- 88 SM4 compilations (`fxc /Ges /WX`): pass, no warnings.
+- 54 `CR_LINEAR_LIGHT` permutations preprocessed and asserted: pass.
+- Baseline equivalence: with `CR_LINEAR_LIGHT=0`, preprocessed output is **token-for-token identical** to the pre-Stage-A shaders across 9 representative permutations (Enhanced, Enhanced+IBL+PSSM, Retro, vertex-lit, minimal; base and terrain).
+- Guard efficacy: 16 deliberately mutated fixtures (detail decode, normal decode, specular decode, irradiance decode, double encode, alpha through the transfer, weakened activation guard, default flipped to 1, encode moved before atmosphere, unguarded transfer use, UI contamination, material gamma, `pow(2.2)`, emissive read before decode) are all rejected; the unmutated fixture is accepted.
+
+A Windows GitHub Actions job runs this validator.
 
 ## Required runtime capture
 
@@ -569,6 +696,76 @@ A useful evidence table to fill from the real run is:
 | BRDF LUT | pending | pending | pending | pending | data; no decode |
 | Backbuffer resource | pending | pending | n/a | pending | pending |
 | Backbuffer RTV | pending | n/a | pending | pending | pending |
+
+---
+
+# Part 8 - Stage A known limitations
+
+These are documented, accepted, and deliberately **not** solved in Stage A.
+
+## Fixed-function blending
+
+Manually encoding in the opaque shader does not make blending linear. Transparency, particles, additive effects, overlays and UI still blend in legacy/gamma space against already-encoded destination values. This is mathematically wrong for linear-light blending and is the primary reason Stage A can only be an opaque-scene appearance experiment. No global blending redesign is attempted.
+
+## MSAA resolve
+
+The render targets are ordinary UNORM and the capture showed 8× MSAA on the main path. Encoding before resolve means the resolve may operate over encoded values. MSAA is not redesigned in Stage A.
+
+## DXGI colour space
+
+`IDXGISwapChain3::SetColorSpace1` was not observed in the diagnostic capture, and DXGI has no public getter for the current selection. The presentation colour space is **not** formally proven.
+
+## Engine RGB authoring space
+
+Still unresolved. Stage A does not guess: fog, ambient, light and material RGB constants pass through untreated, and the resulting surface/atmosphere mismatch is expected.
+
+## Not a linear renderer
+
+Stage A linearizes *some inputs* to *one pass*. It is not FP16 scene colour, HDR output, HDR10/scRGB, tone mapping, auto exposure, bloom, SSR, GTAO, TAA, or a compositor change. None of those are in scope.
+
+## IBL assets untouched
+
+The capture also noted that the irradiance/prefiltered environment cubemaps currently use BC1 and that the BRDF LUT is 64×64 with mip levels. Those are worth investigating later. Their formats, assets and filtering are **not** changed here, so the colour-space experiment stays isolated.
+
+---
+
+# Part 9 - A/B test checklist
+
+Capture `CR_LINEAR_LIGHT=0` and `CR_LINEAR_LIGHT=1` with **identical** scene, camera position/orientation, time of day, mission, and graphics settings. Change nothing else between runs.
+
+To flip the experiment, set `#define CR_LINEAR_LIGHT 1` in **both** `Shaders/CR_base-sm4.hlsl` and `Shaders/CR_terrain-sm4.hlsl`, or supply `CR_LINEAR_LIGHT=1` through the program `preprocessor_defines`.
+
+## Scenes
+
+1. [ ] Bright open terrain at midday.
+2. [ ] Vehicle crossing direct light and deep shadow.
+3. [ ] PSSM cascade / shadow boundary.
+4. [ ] Strongly emissive object at night.
+5. [ ] Long-distance vista dominated by atmosphere/fog.
+6. [ ] High-albedo and low-albedo vehicles side by side.
+7. [ ] Terrain viewed at a grazing angle, to verify detail modulation remains stable.
+
+## Expected qualitative changes
+
+These are predictions, not defects:
+
+- darker decoded midtones;
+- stronger apparent saturation in some colours;
+- increased light/shadow separation;
+- altered direct-light versus IBL balance;
+- emissives appearing relatively stronger against darker surroundings;
+- noticeable atmosphere/surface colour mismatch (engine RGB constants are untreated by design).
+
+**Do not compensate for any of these before the screenshots are reviewed.** The purpose of the first capture is to measure the raw effect of the transfer functions.
+
+## Also verify
+
+- [ ] Terrain detail modulation is stable — no gross darkening (would indicate the detail map was decoded).
+- [ ] UI and overlays are visually unchanged between the two builds.
+- [ ] Retro mode is visually unchanged between the two builds.
+- [ ] Default / non-Enhanced tiers are visually unchanged between the two builds.
+- [ ] No black materials, NaN/INF artifacts, shader exceptions, Ogre errors, or D3D11 device removal in either run.
+- [ ] Emissives behave through every object LOD transition.
 
 ---
 
