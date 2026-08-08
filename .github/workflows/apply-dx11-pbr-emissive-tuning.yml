@@ -1,0 +1,147 @@
+name: Apply DX11 PBR emissive tuning
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.head_ref == 'tuning/dx11-pbr-emissive-pass'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Apply focused DX11 tuning
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected exactly one match, found {count}: {old[:80]!r}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8', newline='\n')
+
+          # Runtime proof is complete; leave the reusable diagnostic compiled out by default.
+          for shader in ('Shaders/CR_base-sm4.hlsl', 'Shaders/CR_terrain-sm4.hlsl'):
+              replace_once(
+                  shader,
+                  '#ifndef CR_IBL_DEBUG_VISUALIZE\n#define CR_IBL_DEBUG_VISUALIZE 1\n#endif',
+                  '#ifndef CR_IBL_DEBUG_VISUALIZE\n#define CR_IBL_DEBUG_VISUALIZE 0\n#endif')
+
+          # Enhanced High must never make legacy emissive maps dimmer than lower LODs.
+          replace_once(
+              'Shaders/CR_base-sm4.hlsl',
+              '''#if defined(EMISSIVEMAP_ENABLED)\n    float3 emissiveTex = emissiveMap.Sample(emissiveSam, vTexCoord).xyz;\n#if defined(ENHANCED_MODE)\n    float emissiveIntensity = saturate(max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z)));\n    oColor.xyz += emissiveTex.xyz * emissiveIntensity;\n#else\n    oColor.xyz += emissiveTex.xyz;\n#endif\n#endif''',
+              '''#if defined(EMISSIVEMAP_ENABLED)\n    float3 emissiveTex = emissiveMap.Sample(emissiveSam, vTexCoord).xyz;\n#if defined(ENHANCED_MODE)\n    // Preserve the legacy full-bright map at High LOD. The material emissive\n    // colour may boost authored emission, but must never attenuate it below\n    // the Medium/Low/Lowest behavior (which adds the map at 1.0x).\n    float materialEmissiveIntensity = max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z));\n    float emissiveIntensity = max(1.0, materialEmissiveIntensity);\n    oColor.xyz += emissiveTex.xyz * emissiveIntensity;\n#else\n    oColor.xyz += emissiveTex.xyz;\n#endif\n#endif''')
+
+          # Terrain-only PBR calibration: dusty legacy terrain should remain dielectric and rough.
+          replace_once(
+              'Shaders/CR_terrain-sm4.hlsl',
+              '''float3 sharpen_normal_map(float3 normalTex)\n{\n    float2 sharpenedXY = normalTex.xy * 1.85;\n    float sharpenedZ = max(normalTex.z, 0.20);\n    return safe_normalize(float3(sharpenedXY, sharpenedZ));\n}''',
+              '''float3 sharpen_normal_map(float3 normalTex)\n{\n    // Terrain normal maps cover huge surfaces and the old 1.85x boost made\n    // broad slopes read wet/varnished under GGX + IBL. Keep relief visible\n    // without amplifying every texel into a hard specular microfacet.\n    float2 sharpenedXY = normalTex.xy * 1.45;\n    float sharpenedZ = max(normalTex.z, 0.28);\n    return safe_normalize(float3(sharpenedXY, sharpenedZ));\n}''')
+
+          replace_once(
+              'Shaders/CR_terrain-sm4.hlsl',
+              '''static const float CR_IBL_SCENE_TINT_STRENGTH = 0.18;\nstatic const float CR_IBL_MAX_SPECULAR_MIP = 7.0;''',
+              '''static const float CR_IBL_SCENE_TINT_STRENGTH = 0.18;\nstatic const float CR_IBL_MAX_SPECULAR_MIP = 7.0;\n\n// Terrain-specific legacy calibration. Vehicle/building materials keep the\n// broader object ranges in CR_base-sm4.hlsl; terrain is predominantly dusty\n// rock/soil and should remain a rough dielectric rather than reading as wet.\nstatic const float CR_TERRAIN_PBR_MIN_ROUGHNESS = 0.56;\nstatic const float CR_TERRAIN_PBR_MAX_F0 = 0.12;\nstatic const float CR_TERRAIN_IBL_SPECULAR_SCALE = 0.72;''')
+
+          replace_once(
+              'Shaders/CR_terrain-sm4.hlsl',
+              '''#if defined(ENHANCED_MODE)\n    float3 surfaceF0 = legacy_specular_to_f0(specularTex);\n#else''',
+              '''#if defined(ENHANCED_MODE)\n    float3 surfaceF0 = min(\n        legacy_specular_to_f0(specularTex),\n        float3(CR_TERRAIN_PBR_MAX_F0, CR_TERRAIN_PBR_MAX_F0, CR_TERRAIN_PBR_MAX_F0));\n#else''')
+
+          replace_once(
+              'Shaders/CR_terrain-sm4.hlsl',
+              '''    float surfaceRoughness = derive_legacy_roughness(materialShininess, specularMask);\n#if defined(NORMALMAP_ENABLED)\n    surfaceRoughness = filter_roughness_from_normal_variance(viewNormal, surfaceRoughness);\n#endif''',
+              '''    float surfaceRoughness = max(\n        derive_legacy_roughness(materialShininess, specularMask),\n        CR_TERRAIN_PBR_MIN_ROUGHNESS);\n#if defined(NORMALMAP_ENABLED)\n    surfaceRoughness = filter_roughness_from_normal_variance(viewNormal, surfaceRoughness);\n#endif\n    surfaceRoughness = max(surfaceRoughness, CR_TERRAIN_PBR_MIN_ROUGHNESS);''')
+
+          replace_once(
+              'Shaders/CR_terrain-sm4.hlsl',
+              '''                        * (surfaceF0 * environmentBRDF.x + environmentBRDF.y)\n                        * CR_IBL_SPECULAR_INTENSITY;''',
+              '''                        * (surfaceF0 * environmentBRDF.x + environmentBRDF.y)\n                        * CR_IBL_SPECULAR_INTENSITY\n                        * CR_TERRAIN_IBL_SPECULAR_SCALE;''')
+
+          # Expand real-fxc validation to cover emissive-bearing SM4 LOD variants.
+          validator = Path('Tools/Validate-DX11Shaders.ps1')
+          vtext = validator.read_text(encoding='utf-8')
+          anchor = '''    @{\n        Name = 'base-ps-enhanced'\n        File = $baseShader\n        Entry = 'base_fragment'\n        Target = 'ps_4_0'\n        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1')\n    },'''
+          extra = '''    @{\n        Name = 'base-ps-lowest-emissive'\n        File = $baseShader\n        Entry = 'base_fragment'\n        Target = 'ps_4_0'\n        Defines = @('VERTEX_LIGHTING=1', 'MAX_LIGHTS=1', 'EMISSIVEMAP_ENABLED=1')\n    },\n    @{\n        Name = 'base-ps-low-emissive'\n        File = $baseShader\n        Entry = 'base_fragment'\n        Target = 'ps_4_0'\n        Defines = @('MAX_LIGHTS=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1')\n    },\n    @{\n        Name = 'base-ps-medium-emissive'\n        File = $baseShader\n        Entry = 'base_fragment'\n        Target = 'ps_4_0'\n        Defines = @('MAX_LIGHTS=8', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1')\n    },\n''' + anchor
+          if vtext.count(anchor) != 1:
+              raise SystemExit('validator: base enhanced anchor mismatch')
+          vtext = vtext.replace(anchor, extra, 1)
+
+          tanchor = '''    @{\n        Name = 'terrain-ps-enhanced'\n        File = $terrainShader\n        Entry = 'terrain_fragment'\n        Target = 'ps_4_0'\n        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1')\n    },'''
+          textra = '''    @{\n        Name = 'terrain-ps-lowest-emissive'\n        File = $terrainShader\n        Entry = 'terrain_fragment'\n        Target = 'ps_4_0'\n        Defines = @('VERTEX_LIGHTING=1', 'MAX_LIGHTS=1', 'DETAILMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1')\n    },\n    @{\n        Name = 'terrain-ps-low-emissive'\n        File = $terrainShader\n        Entry = 'terrain_fragment'\n        Target = 'ps_4_0'\n        Defines = @('MAX_LIGHTS=1', 'DETAILMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1')\n    },\n    @{\n        Name = 'terrain-ps-medium-emissive'\n        File = $terrainShader\n        Entry = 'terrain_fragment'\n        Target = 'ps_4_0'\n        Defines = @('MAX_LIGHTS=8', 'DETAILMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1')\n    },\n''' + tanchor
+          if vtext.count(tanchor) != 1:
+              raise SystemExit('validator: terrain enhanced anchor mismatch')
+          vtext = vtext.replace(tanchor, textra, 1)
+          validator.write_text(vtext, encoding='utf-8', newline='\n')
+
+          # Document the calibrated behavior so a later pass does not reintroduce the wet terrain/emissive mismatch.
+          doc = Path('Docs/DX11_STATIC_IBL.md')
+          dtext = doc.read_text(encoding='utf-8')
+          marker = '\n## Runtime validation\n'
+          note = '''\n## Current visual calibration\n\n- Terrain keeps a 0.56 minimum perceptual roughness, caps inferred terrain F0 at 0.12, and applies a 0.72 terrain-only scale to static IBL specular. These constraints intentionally target dusty rock/soil without weakening vehicle/building reflections.\n- Enhanced terrain normal-map sharpening is 1.45x rather than the object path's stronger legacy-PBR treatment, reducing broad wet-looking sparkle on large slopes.\n- Base/object emissive maps retain at least the legacy 1.0x contribution in Enhanced High. `surface_emissive_colour` may boost emission but can no longer attenuate it below Medium/Low/Lowest LOD behavior.\n- `CR_IBL_DEBUG_VISUALIZE` remains available as a diagnostic but defaults to `0` after runtime proof of the IBL path.\n\n'''
+          if marker in dtext and '## Current visual calibration' not in dtext:
+              dtext = dtext.replace(marker, note + marker, 1)
+          elif '## Current visual calibration' not in dtext:
+              dtext += note
+          doc.write_text(dtext, encoding='utf-8', newline='\n')
+
+      - name: Verify emissive LOD invariants
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          checks = [
+              ('Shaders/CR_base.program', 'CR_Base', ('Lowest', 'Low', 'Medium', 'High')),
+              ('Shaders/CR_terrain.program', 'CR_Terrain', ('Lowest', 'Low', 'Medium', 'High')),
+          ]
+          for path, prefix, lods in checks:
+              text = Path(path).read_text(encoding='utf-8')
+              for lod in lods:
+                  for suffix in ('NoShadow', 'Shadow', 'PSSM'):
+                      name = f'fragment_program {prefix}{lod}{suffix}_fragmentHLSL4 hlsl'
+                      start = text.find(name)
+                      if start < 0:
+                          raise SystemExit(f'missing SM4 program: {name}')
+                      end = text.find('\n}', start)
+                      block = text[start:end]
+                      if 'EMISSIVEMAP_ENABLED' not in block:
+                          raise SystemExit(f'emissive define missing: {name}')
+
+          for path in ('Materials/CR_BZBase.material', 'Materials/CR_BZTerrainBase.material'):
+              text = Path(path).read_text(encoding='utf-8')
+              count = text.count('texture_unit emissiveMap')
+              if count < 4:
+                  raise SystemExit(f'{path}: expected emissive texture units across LOD passes, found {count}')
+
+          base = Path('Shaders/CR_base-sm4.hlsl').read_text(encoding='utf-8')
+          if 'float emissiveIntensity = max(1.0, materialEmissiveIntensity);' not in base:
+              raise SystemExit('Enhanced High emissive floor is missing')
+
+          terrain = Path('Shaders/CR_terrain-sm4.hlsl').read_text(encoding='utf-8')
+          for token in ('CR_TERRAIN_PBR_MIN_ROUGHNESS = 0.56', 'CR_TERRAIN_PBR_MAX_F0 = 0.12', 'CR_TERRAIN_IBL_SPECULAR_SCALE = 0.72'):
+              if token not in terrain:
+                  raise SystemExit(f'terrain tuning missing: {token}')
+
+          print('DX11 PBR/emissive structural validation passed.')
+
+      - name: Commit tuning pass
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f Shaders/CR_base-sm4.hlsl Shaders/CR_terrain-sm4.hlsl Tools/Validate-DX11Shaders.ps1 Docs/DX11_STATIC_IBL.md
+          git diff --cached --check
+          git commit -m "Tune DX11 terrain PBR and preserve emissives across LODs"
+          git push origin HEAD:${{ github.head_ref }}
