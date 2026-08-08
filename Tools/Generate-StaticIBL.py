@@ -4,7 +4,7 @@
 Outputs:
   cr_ibl_neutral_irradiance.dds   32px BC1 cubemap
   cr_ibl_neutral_prefilter.dds   128px BC1 cubemap with 8 GGX-prefiltered mips
-  cr_ibl_brdf_lut.png             64x64 split-sum GGX BRDF LUT
+  cr_ibl_brdf_lut.dds             64x64 uncompressed RG split-sum GGX BRDF LUT
 
 The environment itself is procedural and deliberately neutral/LDR. It exists as
 an immediately testable fallback and as a reference for replacing the aliases
@@ -17,7 +17,6 @@ from __future__ import annotations
 import argparse
 import math
 import struct
-import zlib
 from pathlib import Path
 
 import numpy as np
@@ -281,26 +280,43 @@ def write_cube_dds(path: Path, faces_mips: list[list[np.ndarray]]) -> None:
                 f.write(bc1_compress(np.clip(faces_mips[face][mip], 0.0, 1.0)))
 
 
-def png_chunk(tag: bytes, data: bytes) -> bytes:
-    return (struct.pack('>I', len(data)) + tag + data
-            + struct.pack('>I', zlib.crc32(tag + data) & 0xFFFFFFFF))
+def dds_header_rgba8(width: int, height: int) -> bytes:
+    DDSD_CAPS = 0x1
+    DDSD_HEIGHT = 0x2
+    DDSD_WIDTH = 0x4
+    DDSD_PITCH = 0x8
+    DDSD_PIXELFORMAT = 0x1000
+    DDPF_ALPHAPIXELS = 0x1
+    DDPF_RGB = 0x40
+    DDSCAPS_TEXTURE = 0x1000
+
+    flags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PITCH | DDSD_PIXELFORMAT
+    pitch = width * 4
+    reserved = [0] * 11
+    pf = (32, DDPF_RGB | DDPF_ALPHAPIXELS, 0, 32,
+          0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000)
+    header = struct.pack('<I', 124)
+    header += struct.pack('<IIIIII', flags, height, width, pitch, 0, 0)
+    header += struct.pack('<11I', *reserved)
+    header += struct.pack('<8I', *pf)
+    header += struct.pack('<IIIII', DDSCAPS_TEXTURE, 0, 0, 0, 0)
+    assert len(header) == 124
+    return b'DDS ' + header
 
 
-def write_rg_png(path: Path, rg: np.ndarray) -> None:
+def write_rg_dds(path: Path, rg: np.ndarray) -> None:
     h, w, _ = rg.shape
-    rgb = np.zeros((h, w, 3), dtype=np.uint8)
-    rgb[..., 0:2] = np.clip(np.round(rg * 255.0), 0, 255).astype(np.uint8)
-    scan = b''.join(b'\x00' + rgb[y].tobytes() for y in range(h))
-    png = b'\x89PNG\r\n\x1a\n'
-    png += png_chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0))
-    png += png_chunk(b'IDAT', zlib.compress(scan, 9))
-    png += png_chunk(b'IEND', b'')
-    path.write_bytes(png)
+    quant = np.clip(np.round(rg * 255.0), 0, 255).astype(np.uint8)
+    bgra = np.zeros((h, w, 4), dtype=np.uint8)
+    bgra[..., 1] = quant[..., 1]
+    bgra[..., 2] = quant[..., 0]
+    bgra[..., 3] = 255
+    path.write_bytes(dds_header_rgba8(w, h) + bgra.tobytes())
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', type=Path, default=Path('Textures/IBL'))
+    parser.add_argument('--output', type=Path, default=Path('Textures'))
     parser.add_argument('--prefilter-size', type=int, default=128)
     parser.add_argument('--irradiance-size', type=int, default=32)
     parser.add_argument('--brdf-size', type=int, default=64)
@@ -318,7 +334,7 @@ def main() -> None:
                    generate_prefilter(args.prefilter_size, args.samples))
 
     print('Generating split-sum BRDF LUT...')
-    write_rg_png(args.output / 'cr_ibl_brdf_lut.png',
+    write_rg_dds(args.output / 'cr_ibl_brdf_lut.dds',
                  integrate_brdf(args.brdf_size, args.brdf_samples))
 
     for p in sorted(args.output.iterdir()):

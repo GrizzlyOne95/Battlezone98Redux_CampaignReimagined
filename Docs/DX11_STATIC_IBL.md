@@ -49,7 +49,7 @@ Checked-in runtime bootstrap resources live directly under `Textures/` so they r
 
 - `cr_ibl_neutral_irradiance.dds` - 32x32 BC1 cubemap;
 - `cr_ibl_neutral_prefilter.dds` - compact 32x32 BC1 cubemap with a full mip chain for the repository bootstrap set;
-- `cr_ibl_brdf_lut.png` - 64x64 RG split-sum BRDF LUT.
+- `cr_ibl_brdf_lut.dds` - 64x64 RG split-sum BRDF LUT.
 
 `Tools/Generate-StaticIBL.py` regenerates the reference set using real cosine-weighted irradiance integration, GGX importance-sampled prefiltering, and BRDF integration. Its default output directory is `Textures/IBL` so generation can be staged without overwriting the runtime set accidentally. Its default prefiltered cube is 128x128 with eight mips, so replacing the compact checked-in bootstrap cube with the generated 128px version requires no shader-layout change.
 
