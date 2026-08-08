@@ -1,0 +1,171 @@
+name: Fix DX11 IBL runtime assets
+
+on:
+  push:
+    branches:
+      - fix/dx11-ibl-assets
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fix branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/dx11-ibl-assets
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install generator dependency
+        run: python -m pip install --disable-pip-version-check numpy
+
+      - name: Patch runtime references and generator
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          # Both Enhanced-High material families must reference the Ogre-safe DDS LUT.
+          for rel in ('Materials/CR_BZBase.material', 'Materials/CR_BZTerrainBase.material'):
+              p = Path(rel)
+              s = p.read_text(encoding='utf-8')
+              old_count = s.count('cr_ibl_brdf_lut.png')
+              if old_count == 0:
+                  raise SystemExit(f'{rel}: expected PNG BRDF LUT reference not found')
+              s = s.replace('cr_ibl_brdf_lut.png', 'cr_ibl_brdf_lut.dds')
+              p.write_text(s, encoding='utf-8', newline='\n')
+              print(f'{rel}: replaced {old_count} BRDF LUT references')
+
+          # Keep documentation aligned with the runtime payload.
+          docs = Path('Docs/DX11_STATIC_IBL.md')
+          if docs.exists():
+              s = docs.read_text(encoding='utf-8')
+              s = s.replace('cr_ibl_brdf_lut.png', 'cr_ibl_brdf_lut.dds')
+              s = s.replace('Textures/IBL/', 'Textures/')
+              docs.write_text(s, encoding='utf-8', newline='\n')
+
+          gen = Path('Tools/Generate-StaticIBL.py')
+          s = gen.read_text(encoding='utf-8')
+          s = s.replace('cr_ibl_brdf_lut.png             64x64 split-sum GGX BRDF LUT',
+                        'cr_ibl_brdf_lut.dds             64x64 uncompressed RG split-sum GGX BRDF LUT')
+          s = s.replace('import zlib\n', '')
+          s = s.replace("default=Path('Textures/IBL')", "default=Path('Textures')")
+          s = s.replace("write_rg_png(args.output / 'cr_ibl_brdf_lut.png',",
+                        "write_rg_dds(args.output / 'cr_ibl_brdf_lut.dds',")
+
+          replacement = r'''def dds_header_rgba8(width: int, height: int) -> bytes:
+              DDSD_CAPS = 0x1
+              DDSD_HEIGHT = 0x2
+              DDSD_WIDTH = 0x4
+              DDSD_PITCH = 0x8
+              DDSD_PIXELFORMAT = 0x1000
+              DDPF_ALPHAPIXELS = 0x1
+              DDPF_RGB = 0x40
+              DDSCAPS_TEXTURE = 0x1000
+
+              flags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PITCH | DDSD_PIXELFORMAT
+              pitch = width * 4
+              reserved = [0] * 11
+              # A8R8G8B8 masks. On little-endian disk the byte order is B, G, R, A.
+              pf = (32, DDPF_RGB | DDPF_ALPHAPIXELS, 0, 32,
+                    0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000)
+              header = struct.pack('<I', 124)
+              header += struct.pack('<IIIIII', flags, height, width, pitch, 0, 0)
+              header += struct.pack('<11I', *reserved)
+              header += struct.pack('<8I', *pf)
+              header += struct.pack('<IIIII', DDSCAPS_TEXTURE, 0, 0, 0, 0)
+              assert len(header) == 124
+              return b'DDS ' + header
+
+
+          def write_rg_dds(path: Path, rg: np.ndarray) -> None:
+              h, w, _ = rg.shape
+              quant = np.clip(np.round(rg * 255.0), 0, 255).astype(np.uint8)
+              bgra = np.zeros((h, w, 4), dtype=np.uint8)
+              bgra[..., 1] = quant[..., 1]  # G
+              bgra[..., 2] = quant[..., 0]  # R
+              bgra[..., 3] = 255            # A
+              path.write_bytes(dds_header_rgba8(w, h) + bgra.tobytes())
+          '''
+
+          pattern = r'def png_chunk\(.*?\n\ndef main\(\) -> None:'
+          if not re.search(pattern, s, flags=re.S):
+              raise SystemExit('Generate-StaticIBL.py: PNG writer block not found')
+          s = re.sub(pattern, replacement + '\n\ndef main() -> None:', s, flags=re.S)
+
+          if 'write_rg_png' in s or 'cr_ibl_brdf_lut.png' in s:
+              raise SystemExit('Generate-StaticIBL.py: stale PNG LUT code remains')
+          if "default=Path('Textures')" not in s:
+              raise SystemExit('Generate-StaticIBL.py: runtime output path was not updated')
+
+          gen.write_text(s, encoding='utf-8', newline='\n')
+          PY
+
+      - name: Generate final static IBL payload
+        run: |
+          rm -rf Textures/IBL
+          rm -f Textures/cr_ibl_brdf_lut.png
+          python Tools/Generate-StaticIBL.py \
+            --output Textures \
+            --irradiance-size 32 \
+            --prefilter-size 128 \
+            --brdf-size 64 \
+            --samples 64 \
+            --brdf-samples 256
+
+      - name: Validate generated DDS payload
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import struct
+
+          def dds_meta(path: str):
+              raw = Path(path).read_bytes()
+              assert raw[:4] == b'DDS ', f'{path}: missing DDS magic'
+              height = struct.unpack_from('<I', raw, 12)[0]
+              width = struct.unpack_from('<I', raw, 16)[0]
+              mip_count = struct.unpack_from('<I', raw, 28)[0]
+              return len(raw), width, height, mip_count
+
+          expected = {
+              'Textures/cr_ibl_neutral_irradiance.dds': (32, 32, 1),
+              'Textures/cr_ibl_neutral_prefilter.dds': (128, 128, 8),
+              'Textures/cr_ibl_brdf_lut.dds': (64, 64, 0),
+          }
+          for path, (w, h, mips) in expected.items():
+              size, got_w, got_h, got_mips = dds_meta(path)
+              assert (got_w, got_h, got_mips) == (w, h, mips), (
+                  path, (got_w, got_h, got_mips), (w, h, mips))
+              print(f'{path}: {got_w}x{got_h}, mips={got_mips}, bytes={size}')
+
+          for rel in ('Materials/CR_BZBase.material', 'Materials/CR_BZTerrainBase.material'):
+              text = Path(rel).read_text(encoding='utf-8')
+              assert 'cr_ibl_brdf_lut.png' not in text
+              assert 'cr_ibl_brdf_lut.dds' in text
+
+          for rel in ('Shaders/CR_base-sm4.hlsl', 'Shaders/CR_terrain-sm4.hlsl'):
+              text = Path(rel).read_text(encoding='utf-8')
+              assert 'CR_IBL_MAX_SPECULAR_MIP = 7.0' in text
+
+          print('DX11 IBL asset validation passed.')
+          PY
+
+      - name: Commit rebuilt IBL assets
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A Materials/CR_BZBase.material Materials/CR_BZTerrainBase.material \
+            Docs/DX11_STATIC_IBL.md Tools/Generate-StaticIBL.py Textures
+          git status --short
+          git commit -m 'Fix DX11 IBL runtime asset compatibility'
+          git push origin HEAD:fix/dx11-ibl-assets
