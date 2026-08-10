@@ -23,6 +23,56 @@ Ogre supplies fog parameters as density/start/end/inverse-range. The Enhanced mo
 
 This keeps light-fog and airless missions restrained while intentionally heavy-fog missions remain heavy.
 
+## Radial smooth fog (`CR_RADIAL_FOG`, default `0`)
+
+`CR_RADIAL_FOG=1` replaces **only** step 3 above — how normalized travel becomes a fog factor. Everything else in this document still applies: the authored start, end and colour keep their meanings, and height, horizon, sun scattering, aerial desaturation and emissive transmission are untouched.
+
+### The Enhanced path was already radial
+
+Worth stating plainly, because it is easy to assume otherwise: `compute_enhanced_atmosphere` has always consumed `length(viewPosition)`, and `viewPosition` is the camera-space fragment position interpolated at `TEXCOORD3`. Enhanced fog has therefore always been a spherical shell around the eye. **No new interpolator was needed and none was added.**
+
+What *is* planar is the legacy fog in the non-Enhanced branch:
+
+```hlsl
+float fogValue = saturate((vDepth - fogParams.y) * fogParams.w);
+```
+
+`vDepth` is clip-space z, so that fog measures distance along the view axis only and shifts as the camera yaws. That is Default, Retro and the vertex-lighting delegates, and it is deliberately left exactly as it is.
+
+### What actually changes
+
+The baseline factor is `1 - exp(-opticalDepth)` where optical depth grows with the square of normalized travel. Two consequences:
+
+- at the authored fog end the factor is only ~0.934, so "end" is not where fog becomes opaque;
+- past the authored end it keeps thickening, approaching 1 asymptotically but never arriving.
+
+The Hermite (`smoothstep`) curve pins the factor to 0 at `fogStart` and exactly 1 at `fogEnd`, with zero first derivative at both ends.
+
+| normalized travel | baseline | radial smooth | delta |
+|---|---|---|---|
+| 0.1 | 0.027 | 0.028 | +0.001 |
+| 0.3 | 0.217 | 0.216 | −0.001 |
+| 0.5 | 0.494 | 0.500 | +0.006 |
+| 0.7 | 0.737 | 0.784 | +0.047 |
+| 0.9 | 0.890 | 0.972 | +0.082 |
+| **1.0 (authored end)** | **0.934** | **1.000** | **+0.066** |
+
+The near and mid field are within a few thousandths of the existing look. The change is concentrated in the far field, which now resolves to the authored fog colour at the authored distance instead of staying permanently milky. Expect the difference to be most visible on maps with a deliberately short fog end.
+
+`densityScale` (height + horizon) now scales normalized travel rather than an optical depth. The meaning is preserved: denser atmosphere reaches full fog nearer the camera, thinner atmosphere further away.
+
+### Scope
+
+Gated identically to Stage A — `defined(ENHANCED_MODE) && !defined(VERTEX_LIGHTING) && !defined(OG_RETRO_MODE) && !defined(RETRO_UNLIT_MODE) && CR_RADIAL_FOG != 0` — and enabled through `preprocessor_defines` on the same 12 Enhanced SM4 fragment programs that carry `CR_LINEAR_LIGHT=1`.
+
+`compute_radial_fog_factor` is duplicated **byte-identically** in both world shaders, the same convention the rest of the shared region uses, because nothing in `Shaders/` uses `#include` and introducing one would make the mod depend on Ogre's runtime HLSL include resolution. `Validate-DX11Shaders.ps1` asserts the two copies stay identical rather than trusting the comment.
+
+### Validation
+
+- `Tools/Compare-DX11ShaderBinaries.ps1` compiles all 113 shipped DX11 SM4 permutations from both this tree and a baseline revision and compares DXBC. With the source added but the `.program` files untouched, **all 113 were bit-identical** — the feature is a provable no-op at its default. With the 12 Enhanced programs opted in, exactly those 12 changed and the other 101 stayed bit-identical.
+- `Validate-DX11Shaders.ps1` sweeps the full `CR_LINEAR_LIGHT` × `CR_RADIAL_FOG` cross product (108 permutations) and asserts that the two fog models never both appear, that non-Enhanced permutations contain no atmosphere fog helpers at all, and that the legacy depth fog survives everywhere it should.
+- `Tools/Test-DX11ShaderValidator.ps1` proves the guards themselves work, including a fixture that feeds `vDepth` to the radial factor and one that tunes the shared helper in a single file.
+
 ## Calibration constants
 
 The `DX11 Enhanced Atmospheric Calibration` block is intentionally kept matching in `CR_base-sm4.hlsl` and `CR_terrain-sm4.hlsl` instead of introducing a larger shader-include refactor.
@@ -43,7 +93,7 @@ The `DX11 Enhanced Atmospheric Calibration` block is intentionally kept matching
 
 - **Enhanced High + IBL:** full model — exponential distance fog, height density, horizon haze, aerial perspective, sun scattering, and emissive-aware extinction.
 - **Other Enhanced SM4 per-pixel tiers:** exponential distance fog, aerial perspective, sun scattering, and emissive-aware extinction. Height and world-horizon terms stay neutral because those delegates do not currently bind `inverseViewMatrix`.
-- **Vertex-lighting fallback, OG Retro, and non-Enhanced:** unchanged legacy linear fog.
+- **Vertex-lighting fallback, OG Retro, and non-Enhanced:** unchanged legacy linear fog. This is asserted mechanically, not by inspection — see the DXBC comparison under *Radial smooth fog*.
 
 No new material/program binding was required. `CR_static_ibl.program` already binds `inverseViewMatrix` for all three Enhanced High IBL DX11 variants, while the existing unified programs already supply fog, ambient, and light arrays.
 
