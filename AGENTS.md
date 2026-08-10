@@ -1,35 +1,42 @@
-# campaignReimagined (Legacy Mirror)
+# Campaign Reimagined (Canonical Source)
 
-This repo is a legacy local mirror/reference tree for campaignReimagined and is
-part of the Battlezone workspace opened via
-`C:\Users\iestu\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace`.
+This is the canonical Campaign Reimagined source tree. Make campaign content, Lua, material, shader, packaging, and publishing changes here.
 
-## Canonical Paths
-- Workspace File: `C:\Users\iestu\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace`
-- Canonical Source Repo for edits: `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`
-- Destination/Runtime Mod Folder: `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790`
+## Authoritative Paths
 
-## Workspace Layout
-- This repo still exists for legacy sync, publishing, and historical `_Source`/`_Release` workflows, but the only active campaign paths right now are the Google Drive source repo and the packaged mod runtime folder.
-- The canonical local source path for campaign content on this machine is `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`.
-- The primary local runtime target is `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790`.
-- Prefer these canonical paths over older `Documents\Battlezone 98 Redux` or `addon\campaignReimagined` assumptions.
+- Workspace: `C:\Users\iestu\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace`
+- Canonical source: `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`
+- Working game/test copy: `C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux`
+- Working runtime mod: `C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\mods\3686673790`
+- Other Battlezone Git repos: `C:\Users\iestu\Documents\GIT`
+- Steam final-test game: `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux`
+- Steam post-upload Workshop payload: `C:\Program Files (x86)\Steam\steamapps\workshop\content\301650\3686673790`
 
-## Local Role
-- Legacy mirror/reference repo for campaign content and sync tooling.
+## Required Promotion Order
+
+1. Edit this canonical source tree.
+2. Run validators/builds here.
+3. Deploy to the GOG working runtime with `Manage-CampaignFiles.ps1 -deploy`.
+4. Validate the change in the GOG game copy.
+5. Build and upload the validated payload to Steam Workshop item `3686673790`.
+6. Allow Steam to download the subscribed item, then perform final Steam testing.
+
+Steam is not the development deploy target. Never copy source files directly into the Steam Workshop content directory, and never use that directory as a fallback when GOG is absent. Final Steam evidence is valid only after the corresponding payload has been uploaded and downloaded.
 
 ## Local Workflow
-- Prefer making campaign content changes in `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`, not in this legacy mirror, unless the task explicitly targets this tree or its sync scripts.
-- If work must happen in this repo, `_Source` is the mirrored source subtree and not the primary source of truth on this machine.
-- Use `Manage-CampaignFiles.ps1` in the repo root when you need to sync from runtime, build `_Release`, deploy runtime content, or publish.
-- Treat `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790` as the runtime target for local verification.
-- Do not treat the game install's `addon\campaignReimagined` path as a second git checkout or source workspace.
+
+- Prefer source edits here over edits in either installed runtime.
+- Use `Manage-CampaignFiles.ps1` for GOG deploy/sync, Workshop staging, and publishing.
+- `BZR_CAMPAIGN_RUNTIME_DIR` may explicitly override the working runtime when necessary. Do not point it at a Steam Workshop download cache.
+- Use `Local\Workshop` only as generated upload staging; it is not a game runtime.
+- Preserve runtime-only files that the manager intentionally excludes from source synchronization.
+- Do not commit or push unless the user explicitly requests it.
 
 ## Cross-Repo Pointers
-- Native save behavior, hooks, and reverse-engineering notes live in `C:\Users\iestu\Documents\GIT\BZR-OpenShim`.
-- Subtitle support lives in `C:\Users\iestu\Documents\GIT\BZR-Subtitles`.
-- File I/O helpers live in `C:\Users\iestu\Documents\GIT\bzfile`.
-- Script extender support lives in `C:\Users\iestu\Documents\ExtraUtilities`.
-- Shader/material work for this campaign now lives directly in `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux\packaged_mods\3686673790`; use `C:\Users\iestu\Documents\GIT\ogre-1.10.0` only when engine-side rendering behavior needs inspection.
 
-Open `C:\Users\iestu\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace` when a task may span repos.
+- Native shim, loader, save, patch, and reverse-engineering work: `C:\Users\iestu\Documents\GIT\BZR-OpenShim`
+- Lua file I/O support: `C:\Users\iestu\Documents\GIT\bzfile`
+- Ogre rendering reference: `C:\Users\iestu\Documents\GIT\ogre-1.10.0`
+- Discover any other Battlezone repo beneath `C:\Users\iestu\Documents\GIT`; verify that it exists before relying on it.
+
+Open `C:\Users\iestu\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace` when a task spans repos.

@@ -14,7 +14,8 @@ if ($requiresElevation -and
 
 # Manage-CampaignFiles.ps1
 # Script to manage source/deploy workflow for Battlezone 98 Redux: Campaign Reimagined
-# The repo root is the canonical source tree. The packaged mod install is the runtime target.
+# The repo root is canonical source. Development deploy/sync targets the GOG
+# working copy only. Steam is verified only after a Workshop upload/download.
 $ScriptDir = $PSScriptRoot
 $RepoRoot = $ScriptDir
 
@@ -22,14 +23,16 @@ Set-Location $RepoRoot
 
 $SourceDir = $RepoRoot
 $CurrentDir = $RepoRoot
-$DefaultPackagedModId = "3686673790"
+$CampaignModId = "3686673790"
 $WorkshopAppId = "301650"
 $WorkshopPublishedFileId = "3686673790"
 $WorkshopLocalRoot = Join-Path $RepoRoot "Local\Workshop"
-# Battlezone installs the flat mod payload under one of these parent folders,
-# depending on the storefront/layout. GOG Galaxy uses "mods", the classic
-# packaged-mod layout uses "packaged_mods". Order = resolution priority.
+# Explicit portability overrides may use either layout. Automatic local
+# deployment uses the exact GOG testing path below and never falls back to a
+# Steam install or Steam's subscribed Workshop download cache.
 $RuntimeModParentDirNames = @("mods", "packaged_mods")
+$DefaultTestingGameRoot = "C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux"
+$DefaultTestingRuntimeDir = Join-Path $DefaultTestingGameRoot "mods\$CampaignModId"
 $StructuredRuntimeDirs = @("flags", "OverlayFont", "chunkMeshes")
 $SourceExcludedRelativePaths = @(
     ".git",
@@ -109,34 +112,11 @@ function Get-RuntimeModDirCandidates {
     $explicitGameRoot = Resolve-PathIfRelative $env:BZR_BATTLEZONE_ROOT
     if ($explicitGameRoot) {
         foreach ($parentDir in $RuntimeModParentDirNames) {
-            [void]$candidates.Add((Join-Path $explicitGameRoot "$parentDir\$DefaultPackagedModId"))
+            [void]$candidates.Add((Join-Path $explicitGameRoot "$parentDir\$CampaignModId"))
         }
     }
 
-    # The GOG install (and other game-root mod folders) is the live runtime we
-    # play-test against, so it takes priority over the subscribed Steam
-    # Workshop payload — sync/deploy must target the files Redux actually
-    # loads on this machine, not the Workshop mirror.
-    $defaultRoots = @(
-        "C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux",
-        (Join-Path ([Environment]::GetFolderPath("MyDocuments")) "Battlezone 98 Redux"),
-        "C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux",
-        "C:\GOG Games\Battlezone 98 Redux"
-    )
-
-    foreach ($root in $defaultRoots) {
-        if ($root) {
-            foreach ($parentDir in $RuntimeModParentDirNames) {
-                [void]$candidates.Add((Join-Path $root "$parentDir\$DefaultPackagedModId"))
-            }
-        }
-    }
-
-    # Steam keeps subscribed Workshop payloads outside the game directory.
-    # Last-resort fallback only: it is a download cache, not the live install.
-    $steamWorkshopRuntime = Join-Path ${env:ProgramFiles(x86)} `
-        "Steam\steamapps\workshop\content\$WorkshopAppId\$WorkshopPublishedFileId"
-    [void]$candidates.Add($steamWorkshopRuntime)
+    [void]$candidates.Add($DefaultTestingRuntimeDir)
 
     $candidates | Where-Object { $_ } | Select-Object -Unique
 }
@@ -165,7 +145,7 @@ function Ensure-RuntimeModDir {
         }
     }
 
-    Write-Warning "No packaged mod runtime directory could be resolved. Set BZR_CAMPAIGN_RUNTIME_DIR or BZR_BATTLEZONE_ROOT if this machine uses a different layout."
+    Write-Warning "No GOG testing runtime could be resolved. Expected '$DefaultTestingRuntimeDir'. Set BZR_CAMPAIGN_RUNTIME_DIR only for an intentional non-Steam override."
     return $null
 }
 
@@ -424,12 +404,12 @@ function Update-OpenShimManifest {
 }
 
 function Sync-ToSource {
-    Write-Host "Syncing files from packaged mod runtime to $SourceDir..." -ForegroundColor Cyan
+    Write-Host "Syncing files from the GOG working runtime to $SourceDir..." -ForegroundColor Cyan
 
     $runtimeDir = Resolve-RuntimeModDir
     if (-not $runtimeDir) {
         $checked = (Get-RuntimeModDirCandidates | ForEach-Object { "  - $_" }) -join "`n"
-        Write-Warning "No packaged mod runtime directory found. Checked:`n$checked"
+        Write-Warning "No GOG working runtime found. Checked:`n$checked"
         return
     }
 
@@ -534,7 +514,7 @@ function Sync-ToSource {
 }
 
 function Deploy-PackagedMod {
-    Write-Host "Deploying files FROM $SourceDir to the packaged mod runtime..." -ForegroundColor Cyan
+    Write-Host "Deploying files FROM $SourceDir to the GOG working runtime..." -ForegroundColor Cyan
 
     if (-not (Test-Path $SourceDir)) {
         Write-Error "Source directory '$SourceDir' not found!"
@@ -696,7 +676,7 @@ function Sync-FromRuntime {
 }
 
 function Build-Release {
-    Write-Warning "Build-Release is deprecated. Deploying the packaged mod runtime instead."
+    Write-Warning "Build-Release is deprecated. Deploying the GOG working runtime instead."
     Deploy-PackagedMod
 }
 
@@ -1064,7 +1044,7 @@ function Invoke-WorkshopUpload {
     if (-not $cfg) { return }
 
     if (-not (Test-Path $cfg.ContentFolder)) {
-        Write-Error "ContentFolder not found: $($cfg.ContentFolder). Deploy the packaged mod runtime first."
+        Write-Error "ContentFolder not found: $($cfg.ContentFolder). Build the validated Workshop staging payload first."
         return
     }
 
@@ -1160,10 +1140,11 @@ function Show-Menu {
 
     Write-Host "Current Workflow:" -ForegroundColor Yellow
     Write-Host "  - Repo root = Canonical source tree (edit here)" -ForegroundColor DarkGray
-    Write-Host "  - Runtime deploy target = $runtimeDirDisplay" -ForegroundColor DarkGray
+    Write-Host "  - GOG working deploy target = $runtimeDirDisplay" -ForegroundColor DarkGray
+    Write-Host "  - Steam = final verification after Workshop upload/download" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "1. Sync To Source (Pull packaged mod runtime -> source tree)"
-    Write-Host "2. Deploy Packaged Mod (Flatten source tree -> mod install)"
+    Write-Host "1. Sync To Source (Pull GOG working runtime -> source tree)"
+    Write-Host "2. Deploy GOG Test Mod (Flatten source tree -> GOG mods install)"
     Write-Host "3. Workshop Upload (clean staging + validation + upload)"
     Write-Host "4. Sync from Runtime only (same as option 1)"
     Write-Host "5. Workshop Dry Run (clean staging + VDF only)"

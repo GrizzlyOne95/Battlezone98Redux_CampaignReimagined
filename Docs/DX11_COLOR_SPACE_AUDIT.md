@@ -605,8 +605,12 @@ The Stage-1 prohibition on sRGB helpers was **replaced, not deleted**. It is now
 - `CR_LINEAR_LIGHT` exists in both shaders and defaults to `0`.
 - `CR_LINEAR_LIGHT_ACTIVE` is gated on `defined(ENHANCED_MODE)`, `!defined(VERTEX_LIGHTING)`, `!defined(OG_RETRO_MODE)`, `!defined(RETRO_UNLIT_MODE)` and `CR_LINEAR_LIGHT != 0`. Dropping any term fails validation.
 - The piecewise breakpoints/scales (`0.04045`, `12.92`, `0.0031308`, `1.055`, `0.055`) are present, and `pow(x, 2.2)`-style approximations are rejected.
-- Decode call sites are checked against an explicit allow-list (`diffuseTex.rgb`, `emissiveTex`) **and** against a deny-list of data identifiers: normal/specular/detail/shadow/irradiance/prefilter/BRDF/depth sources and the engine RGB constants.
+- Decode call sites are checked against a **per-file** allow-list **and** against a deny-list of data identifiers: normal/specular/detail/shadow/irradiance/prefilter/BRDF/depth sources and the engine RGB constants.
+  - Universal targets — `diffuseTex.rgb`, `emissiveTex` — are required in both shaders.
+  - Family-scoped targets exist in exactly one shader family and are driven by a single owner table. `vertexTint` is owned by `CR_terrain-sm4.hlsl`: it is *required* there and simply **not on the base shader's allow-list at all**, so a copy-paste into `CR_base-sm4.hlsl` is rejected by the family-scope rule by name, rather than being generally permitted and separately policed. One table is authoritative for both halves of the constraint, so deleting it cannot leave a target silently allowed everywhere.
+- Every `srgb_to_linear()` occurrence must be accounted for as either the single definition or a plain `target = srgb_to_linear(arg);` statement. A decode written as a declaration initializer or nested inside a larger expression would otherwise bypass the allow-list, the deny-list and the alpha check simultaneously, because those checks only see what the statement pattern matched.
 - Terrain detail has its own dedicated rejection rule.
+- `vertexTint` must be derived from `vColor.xyz` (never sweeping in the terrain output alpha) and decoded at its source, with nothing reading it in between — the same ordering standard the sampled textures are held to.
 - Alpha safety: no call site may pass or assign a swizzle containing an `a`/`w` component.
 - Exactly one `linear_to_srgb()` call site per shader, targeting `oColor.rgb`, positioned after `compute_enhanced_atmosphere()` and before the `oColor.a` write.
 - Every transfer-function reference must sit inside a `#if CR_LINEAR_LIGHT_ACTIVE` block (checked with a nesting-aware conditional scanner).
@@ -628,6 +632,45 @@ Each swept permutation is then preprocessed with `fxc /P` and asserted at the to
 - the encode call always follows the atmosphere call.
 
 This is stronger than compiling: it proves the transfer functions appear in exactly the permutations, counts and order intended.
+
+### Guard fixtures
+
+`Tools/Test-DX11ShaderValidator.ps1` exists because a guard with a typo'd pattern passes exactly as loudly as a working one. It copies the shader tree, introduces one specific regression at a time, and asserts the validator rejects it **for the stated reason** — matching on the message, so a fixture that fails for an unrelated reason does not count as a pass. Each fixture also asserts its own mutation changed something, so it cannot silently become a no-op edit.
+
+Fourteen fixtures currently run, including the `vertexTint`-into-base copy-paste, a normal-data decode smuggled into a declaration initializer, unsafe packed-terrain-normal reconstruction, renewed Enhanced normal amplification, Stage A leaking onto a Retro SM4 program, and an activation condition that stops excluding Retro.
+
+### Bit-identity of the legacy renderer
+
+`Tools/Compare-DX11ShaderBinaries.ps1` answers the question the source guards cannot: not "is the source still inside its boundary" but "did the shipped output actually move". It derives the permutation matrix from the `.program` declarations — so it is exactly what ships, and an added or re-defined variant surfaces rather than escaping — compiles all 113 DX11 SM4 permutations from two revisions, and compares DXBC.
+
+Results for the Stage A activation (`CR_LINEAR_LIGHT=1` on the Enhanced programs plus the `vertexTint` decode), measured against both the pre-activation revision and the revision before Stage A existed at all:
+
+| | count |
+|---|---|
+| bit-identical | **101** |
+| changed | 12 — all Enhanced, exactly the programs that opted in |
+| added / removed | 0 |
+
+Identical bytecode cannot render differently, so **"Default and Retro are unchanged" is settled mechanically and needs no visual confirmation.** Both baselines give the same 12, which also shows the Stage A source introduction was itself a true no-op — only the `.program` opt-in moved anything.
+
+### Where Enhanced terrain darkens
+
+The `vertexTint` decode multiplies the terrain albedo by `srgb_to_linear(vColor.rgb)` instead of `vColor.rgb`. Because the sRGB decode has fixed points at 0 and 1 and lies below the identity everywhere between, terrain darkens **only where the map author tinted terrain vertices below white**, monotonically with how far below:
+
+| `vColor` | displayed before | displayed after | delta |
+|---|---|---|---|
+| 1.00 | 0.500 | 0.500 | **0.00%** |
+| 0.90 | 0.476 | 0.447 | −6.0% |
+| 0.80 | 0.451 | 0.395 | −12.4% |
+| 0.70 | 0.423 | 0.342 | −19.2% |
+| 0.50 | 0.361 | 0.237 | −34.3% |
+| 0.25 | 0.257 | 0.106 | −58.9% |
+
+(Displayed sRGB after the Stage A output encode, holding albedo at 0.50 sRGB and light at 1.0.)
+
+White-tinted terrain is a hard fixed point: unlit-by-vertex-colour regions are bit-for-bit unchanged. This is the expected shape of the change and is what "darkens only where expected" means here.
+
+**What this does not establish:** the distribution of actual `vColor` values on real campaign maps. The magnitude a player sees depends on how heavily each map tints its terrain vertices, and that still wants an in-game A/B — load a tinted-terrain mission, toggle Enhanced against Default/Retro, and confirm the darkening tracks the table above rather than appearing on untinted ground.
 
 ### Results
 
@@ -766,6 +809,112 @@ These are predictions, not defects:
 - [ ] Default / non-Enhanced tiers are visually unchanged between the two builds.
 - [ ] No black materials, NaN/INF artifacts, shader exceptions, Ogre errors, or D3D11 device removal in either run.
 - [ ] Emissives behave through every object LOD transition.
+
+---
+
+# Part 10 - DX11 Enhanced terrain-normal artifact investigation (2026-08-08)
+
+## Symptom and isolation
+
+The confirmed Moon/Mars terrain scenes showed irregular dark regions across otherwise continuous ground. A controlled shader A/B established the ownership boundary:
+
+```text
+terrain normal mapping enabled  -> dark regions present
+terrain normal mapping disabled -> dark regions absent
+```
+
+This rules the transfer functions, IBL calibration, fog, exposure, bloom and atmosphere out as independent causes. Those systems can make a malformed or over-steep normal more visible, but the sampled terrain-normal path is the input that creates the regions.
+
+## Actual BZR/CR pipeline
+
+There are two different terrain-normal representations in `CR_terrain-sm4.hlsl`; previous shorthand about "terrain normal Z reconstruction" must not conflate them.
+
+```text
+mesh normal (geometry)
+    BLENDINDICES.zw bytes
+    -> signed X/Z in [-1, 1]
+    -> Y = sqrt(saturate(1 - dot(XZ, XZ)))
+    -> worldViewMat
+    -> vViewNormal
+
+normal map (surface detail, t2/s2)
+    RGB DXT1/BC1 atlas sample
+    -> XYZ = sample.rgb * 2 - 1
+    -> TBN transform (vertex tangent or derivative cotangent frame)
+    -> safe_normalize
+    -> NdotL / GGX / normal-variance roughness / IBL reflection
+```
+
+The map path uses a single normal texture and does not blend terrain layers or a second detail normal. The normal sampler is the `normalMap` texture unit in `CR_BZTerrainBase.material`; the Moon material aliases it to `moon_atlas_n.dds`. No channel is inverted, alpha is not read, and there is no normal-strength material parameter in this active shader/material contract.
+
+The representative Moon asset is 1024x1024, legacy FourCC `DXT1`/BC1, full RGB, and has seven mip levels. Its neutral regions cluster around R/G = 0.5 and B near 1.0. This is the same full-RGB convention stock BZR consumes with `.xyz * 2 - 1`; it is not BZCC's two-channel signed BC5 representation and must not be changed to AG, RG-only, or reconstructed-Z sampling.
+
+## Previous hypothesis and runtime falsification
+
+The deployed Enhanced shader previously amplified tangent XY through `sharpen_normal_map()`. Removing that non-stock operation was still correct, but the fixed-build `misn04.bzn -renderer:dx11` A/B proved that it was **not sufficient**: the same black splotches remain with the authored full-RGB sample. The earlier claim that XY amplification was the complete root cause is therefore withdrawn.
+
+The live Mars atlas header identifies `MARS_ATLAS_N.dds` as legacy `DXT1`/BC1 at 2048x2048. It is a full-RGB normal texture, not a DXT5nm/AG texture. Runtime diagnostics then held every downstream lighting operation constant and produced this matrix:
+
+| Unpack diagnostic | Green orientation | Result in the marked terrain region |
+|---|---|---|
+| RGB -> XYZ (stock/default) | unchanged | splotches remain |
+| RG -> XY, reconstruct +Z | unchanged | splotches remain; broadly tracks RGB |
+| AG -> XY, reconstruct +Z (DXT5nm-style) | unchanged | splotches remain and terrain shading is broadly incorrect |
+| RGB -> XYZ | flipped | splotches remain |
+
+This rejects alternate RG/AG packing and a simple green-channel orientation error as the owner. AG is additionally incompatible with the BC1 asset contract because there is no useful interpolated alpha channel carrying X.
+
+The sampled-RGB debug view is continuous through the affected ground; it contains normal detail but no matching invalid/black patch. The unpacked tangent-normal view is likewise finite. The final lighting-space-normal view remains finite, and the shader applies `safe_normalize(mul(normalTex, tbn))` immediately after the transform. The first-light `NdotL` view reproduces the strong dark response, proving that the coherent sampled data becomes a back-facing/grazing lighting normal before the broader PBR, IBL, fog, exposure, bloom, and atmosphere stages.
+
+The active terrain program does not define `VERTEX_TANGENTS`, so this mission takes the derivative `cotangent_frame()` branch. That basis construction/handedness/conditioning boundary, plus atlas filtering or mip transitions feeding its derivatives, is now the next focused owner. No broader lighting retune is justified until that boundary is isolated.
+
+## Current diagnostic implementation
+
+Normal rendering still defaults to the stock full-RGB convention and safe post-TBN normalization. Compile-time diagnostics can select RGB, RG-reconstructed, or AG-reconstructed unpacking; independently flip green; select stock, per-axis-normalized, orthonormalized, geometry-only, or TBN-bypassed basis behavior; and display sampled/unpacked/final normals, T/B axes, basis quality, normal deviation, or first-light `NdotL`. All diagnostic defaults are zero, so normal production rendering is unchanged unless a runtime test copy is explicitly selected with `Tools/Set-TerrainNormalDiagnostic.ps1`. The reproducible test sequence and interpretation matrix are in `Docs/TERRAIN_NORMAL_DIAGNOSTICS.md`.
+
+## Mathematical and compatibility audit
+
+- **Stage A:** did not contribute. `normalMap`/`normalTex` are DATA and never reach `srgb_to_linear()`; the validator deny-list and mutation fixture enforce this.
+- **Map Z reconstruction:** not the production convention. BZR stores authored Z in B. RG reconstruction was nevertheless tested as a diagnostic and retained the artifact.
+- **Mesh Z reconstruction:** guarded correctly with `sqrt(saturate(1 - dot(nNormal, nNormal)))`. This protects quantized geometry normals and is unrelated to the sampled-map artifact.
+- **Normalization:** present after TBN and retained. Filtered/non-unit samples therefore enter lighting normalized. `safe_normalize` also prevents a zero vector from creating non-finite values.
+- **TBN:** the final vector is normalized, but basis correctness is not yet cleared. The active `misn04` terrain program takes the derivative cotangent-frame branch because `VERTEX_TANGENTS` is absent. Green flip alone did not remove the artifact.
+- **Layer blending:** not a contributor; the active CR terrain shader samples one RGB normal map and performs no normal-layer blend.
+- **Mip/filtering:** the material supplies no special normal-map filter override. Post-TBN normalization corrects vector length but cannot correct a direction corrupted by atlas filtering, derivatives, or a malformed basis. Camera-distance and forced-LOD diagnostics remain pending.
+- **Enhanced BRDF:** denominators and dot products are already guarded. The dedicated `NdotL` output shows the dark response before the rest of the BRDF/IBL chain, so no BRDF retune is justified.
+- **Default/Retro:** unchanged. The removed helper/call were inside `ENHANCED_MODE`; Default and Retro never compiled them. DX9 and GL files were not touched.
+
+## Stock BZR and BZCC comparison
+
+- **CONFIRMED:** stock BZR samples full RGB DXT1 as `.xyz * 2 - 1` and normalizes after TBN. The corrected CR map path now preserves that representation while keeping CR's safer normalize.
+- **CONFIRMED:** BZCC normal assets use two-channel `BC5_SNORM`, unlike BZR's RGB DXT1. Its reconstruction algorithm is therefore not mechanically portable to the BZR texture path.
+- **CONFIRMED:** CR's packed *mesh* normal already uses the defensive saturated square root recommended by the backport report/OpenShim hardening script.
+- **STRONGLY INFERRED from reviewed DXBC:** BZCC defensively reconstructs the missing normal component for its two-channel data and normalizes subsequent lighting normals.
+- **UNKNOWN:** whether BZCC applies derivative-basis conditioning that differs from this BZR terrain path. That comparison is now relevant, but must be established before porting any additional math.
+
+## Validator and remaining runtime work
+
+`Validate-DX11Shaders.ps1` now requires all of the following:
+
+1. exactly one saturated packed-mesh-normal reconstruction;
+2. RGB, RG-reconstructed, and AG-reconstructed diagnostic branches with all defaults disabled;
+3. the optional green flip, five basis behaviors, and all normal/basis visualizations;
+4. no mutation of `normalTex` between unpack and TBN;
+5. `safe_normalize(mul(normalTex, tbn))` after transformation;
+6. the existing Stage A normal-data prohibition.
+
+`Test-DX11ShaderValidator.ps1` also proves that default-enabled diagnostics, unsafe Z reconstruction, unsafe mesh `sqrt`, and reintroduced XY amplification are rejected.
+
+Static validation completed on 2026-08-08:
+
+- all **208** SM4 permutations compiled successfully;
+- all **108** Stage A linear-light x radial-atmosphere preprocess combinations passed;
+- all **66** terrain-normal unpack/orientation/basis/visualization permutations compiled successfully;
+- all **17** mutation fixtures were rejected for their intended reason.
+
+The diagnostic set was exercised from the authoritative GOG runtime with `battlezone98redux misn04.bzn -renderer:dx11`; Space was used to skip the loading sequence and the same down-looking mission area was captured for the unpack/orientation controls. The runtime copy has been restored to RGB, no green flip, and no visualization. Steam remains reserved for final verification after a GOG-validated payload is uploaded to Workshop and downloaded by Steam; the subscribed Workshop cache must not be modified directly.
+
+Runtime acceptance is not complete because the splotches remain. The next A/B should bypass or condition `cotangent_frame()`, compare geometry-only and derivative-basis normals, and force mip/filter controls while keeping the now-cleared unpack, green orientation, layer blending, post-transform normalization, and broader lighting stages unchanged.
 
 ---
 

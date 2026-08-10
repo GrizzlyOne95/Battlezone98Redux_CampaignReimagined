@@ -3,6 +3,26 @@
 Campaign Reimagined publishes Workshop item `3686673790` through the
 `Publish Steam Workshop` GitHub Actions workflow.
 
+## Promotion boundary
+
+Before publishing, deploy and validate the candidate in the GOG working copy:
+
+```text
+C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux
+C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\mods\3686673790
+```
+
+After the upload succeeds, let Steam download the subscribed item and perform
+final verification with:
+
+```text
+C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux
+C:\Program Files (x86)\Steam\steamapps\workshop\content\301650\3686673790
+```
+
+Do not copy development files directly into the Steam Workshop content folder.
+It is a downloaded final-test artifact, not a working deploy directory.
+
 The workflow deliberately splits publishing into two trust zones:
 
 1. A GitHub-hosted Windows runner checks out Campaign Reimagined, checks out and

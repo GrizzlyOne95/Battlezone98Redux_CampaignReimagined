@@ -6,7 +6,10 @@ on:
       - 'Shaders/**'
       - 'Materials/**'
       - 'Tools/Validate-DX11Shaders.ps1'
+      - 'Tools/Test-DX11ShaderValidator.ps1'
+      - 'Tools/Compare-DX11ShaderBinaries.ps1'
       - 'Docs/DX11_COLOR_SPACE_AUDIT.md'
+      - 'Docs/DX11_ENHANCED_ATMOSPHERE.md'
       - '.github/workflows/dx11-shader-validation.yml'
   workflow_dispatch:
 
@@ -18,8 +21,27 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
+        # Full history: the binary comparison below needs the PR base revision
+        # available locally to materialize a baseline tree.
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Compile representative DX11 SM4 variants
         shell: powershell
         run: .\Tools\Validate-DX11Shaders.ps1
+
+      # A guard that only ever passes proves nothing. This asserts the guards
+      # actually reject the regressions they claim to.
+      - name: Verify the validator rejects known regressions
+        shell: powershell
+        run: .\Tools\Test-DX11ShaderValidator.ps1
+
+      # Enhanced-only work must leave Default and Retro bytecode untouched.
+      # Bit-identical DXBC is a stronger statement than any visual check.
+      - name: Assert Default/Retro DXBC is unchanged
+        shell: powershell
+        run: |
+          .\Tools\Compare-DX11ShaderBinaries.ps1 `
+            -BaselineRef "origin/${{ github.base_ref }}" `
+            -RequireLegacyIdentical

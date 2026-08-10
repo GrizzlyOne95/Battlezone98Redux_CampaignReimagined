@@ -9,6 +9,12 @@ The publisher is locked to Battlezone 98 Redux app `301650` and Workshop item
 `3686673790`. It builds a clean payload under `Local/Workshop/content`; it never
 uploads the live game directory and does not commit or push Git changes.
 
+The required promotion order is canonical source -> GOG working test copy ->
+Workshop upload -> Steam final verification. Development deploys target
+`C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\mods\3686673790`.
+The subscribed Steam Workshop folder is never a direct deploy target; Steam
+testing begins only after the validated upload has been downloaded by Steam.
+
 ### GitHub Actions publishing
 
 The repository includes a manual `Publish Steam Workshop` workflow. Publishing
@@ -67,18 +73,26 @@ GitHub workflow YAML from being flattened into the mod payload.
    `Documents/GIT/BZR-OpenShim/bin/Release/winmm.dll` before generating the
    OpenShim manifest. Set `BZR_OPENSHIM_REPO` to override that repository path.
 
-   For a local Steam test without uploading, deployment still uses the manager
-   directly because it does not build Workshop staging:
+   Deploy the candidate to the GOG working test copy:
 
    ```powershell
    .\Manage-CampaignFiles.ps1 -deploy
    ```
 
-5. Upload the validated payload:
+   Validate the candidate in
+   `C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux`. The manager
+   must not fall back to a Steam install or subscribed Workshop cache.
+
+5. Upload the GOG-validated payload:
 
    ```powershell
    .\docs\Invoke-WorkshopPublisher.ps1 -workshop-upload "Describe the update"
    ```
+
+6. Let Steam download Workshop item `3686673790`, then perform final testing
+   with `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux` and
+   its subscribed payload under
+   `C:\Program Files (x86)\Steam\steamapps\workshop\content\301650\3686673790`.
 
 ### Description and visibility
 

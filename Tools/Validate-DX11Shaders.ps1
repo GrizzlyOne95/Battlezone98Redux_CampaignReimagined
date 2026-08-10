@@ -1,6 +1,12 @@
 [CmdletBinding()]
 param(
-    [string]$FxcPath
+    [string]$FxcPath,
+
+    # Run only the source-level and .program-level guards and skip the fxc
+    # compile/preprocess matrix. The guards are what the mutation fixtures in
+    # Test-DX11ShaderValidator.ps1 exercise, and running 88 compilations per
+    # fixture would make that suite unusable.
+    [switch]$SourceGuardsOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -58,28 +64,46 @@ $forbiddenDecodeTokens = @(
     'fogColour', 'sceneAmbient', 'lightDiffuse', 'lightSpecular'
 )
 
-# The complete, intentional Stage A decode allow-list. Anything else that calls
-# srgb_to_linear() is a scope regression.
+# The intentional Stage A decode allow-list, split by scope.
 #
-# 'vertexTint' is the terrain per-vertex COLOR0 tint. It is on the list because
-# it multiplies the decoded albedo directly (lightResult * vertexTint *
+# Universal targets exist in every Stage A shader and are required in all of
+# them.
+$universalDecodeTargets = @('diffuseTex.rgb', 'emissiveTex')
+
+# Family-scoped targets exist in exactly one shader family. Each is required in
+# its owning shader and rejected in every other Stage A shader. The allow-list
+# is therefore evaluated per file rather than globally: a family-scoped target
+# is never "generally allowed and separately policed", it is simply not on the
+# allow-list of any shader that does not own it. That keeps one rule - this
+# table - authoritative for both halves of the constraint, so deleting it
+# cannot leave a target silently permitted everywhere.
+#
+# 'vertexTint' is the terrain per-vertex COLOR0 tint. It is decodable because it
+# multiplies the decoded albedo directly (lightResult * vertexTint *
 # diffuseTex), so it is authored display colour by construction: leaving it
 # encoded would multiply a linear albedo by a gamma-space tint. BZCC applies the
 # same decode to every vertex-colour layout it ships, terrain included -
 # pow(COLOR.rgb, 2.2) in its vertex stage, alpha untouched - which is what
 # distinguishes this from vertex colour used as layer weights or another
 # numerical channel. Only the rgb float3 is ever decoded; vColor.a stays raw
-# because it is the terrain output alpha.
-$allowedDecodeTargets = @('diffuseTex.rgb', 'emissiveTex', 'vertexTint')
-
-# Targets that exist in only one shader family. They are required in their owner
-# and forbidden everywhere else, so the base shader is not failed for lacking a
-# terrain-only input and terrain cannot quietly drop it.
-$familyScopedDecodeTargets = @('vertexTint')
+# because it is the terrain output alpha. The base shader has no vertex COLOR
+# input at all, so a 'vertexTint' decode appearing there is by definition a
+# copy-paste of terrain code into the wrong family.
 $familyScopedDecodeOwners = @{ 'vertexTint' = 'CR_terrain-sm4.hlsl' }
 
 # Any swizzle or member access that includes an alpha/w component.
 $alphaComponentPattern = '\.[rgbaxyzw]*[awAW][rgbaxyzw]*\b'
+
+# Each family-scoped owner must actually be one of the Stage A shaders,
+# otherwise a typo would make its target mandatory nowhere and permitted
+# nowhere - a rule that silently checks nothing while appearing to.
+$stageAShaderNames = @($stageAShaders | ForEach-Object { Split-Path -Leaf $_ })
+foreach ($scoped in $familyScopedDecodeOwners.Keys) {
+    $owner = $familyScopedDecodeOwners[$scoped]
+    if ($stageAShaderNames -notcontains $owner) {
+        Add-SourceFailure "The family-scope rule assigns '$scoped' to '$owner', which is not one of the Stage A shaders ($($stageAShaderNames -join ', '))."
+    }
+}
 
 foreach ($shader in $stageAShaders) {
     $name = Split-Path -Leaf $shader
@@ -133,6 +157,69 @@ foreach ($shader in $stageAShaders) {
         }
     }
 
+    # -- Radial fog: same default, same activation scope ---------------------
+    # Enhanced-only compile-time features are held to one standard: default off
+    # in the shader, and activation gated on exactly the Enhanced per-pixel
+    # condition. Anything else and the .program files become the only thing
+    # keeping the feature off the legacy renderer.
+    if ($source -notmatch '(?m)^\s*#ifndef\s+CR_RADIAL_FOG\s*\r?\n\s*#define\s+CR_RADIAL_FOG\s+0\s*\r?\n\s*#endif') {
+        Add-SourceFailure "$name does not declare CR_RADIAL_FOG with a default of 0."
+    }
+
+    $fogActivationIndex = $source.IndexOf('#define CR_RADIAL_FOG_ACTIVE 1')
+    $fogConditionStart = if ($fogActivationIndex -ge 0) {
+        $source.Substring(0, $fogActivationIndex).LastIndexOf('#if')
+    } else { -1 }
+
+    if ($fogActivationIndex -lt 0 -or $fogConditionStart -lt 0) {
+        Add-SourceFailure "$name does not gate CR_RADIAL_FOG_ACTIVE behind a preceding #if condition."
+    }
+    else {
+        $rawFogCondition = $source.Substring($fogConditionStart, $fogActivationIndex - $fogConditionStart)
+        $fogCondition = (($rawFogCondition -replace '\\\r?\n', ' ') -replace '\s+', ' ').Trim()
+
+        if ($rawFogCondition -replace '\\\r?\n', ' ' -match '\r?\n\s*\S') {
+            Add-SourceFailure "$name has unexpected content between the #if condition and '#define CR_RADIAL_FOG_ACTIVE 1'."
+        }
+
+        $fogRequiredTerms = @(
+            'defined(ENHANCED_MODE)',
+            '!defined(VERTEX_LIGHTING)',
+            '!defined(OG_RETRO_MODE)',
+            '!defined(RETRO_UNLIT_MODE)',
+            'CR_RADIAL_FOG != 0'
+        )
+        foreach ($term in $fogRequiredTerms) {
+            if ($fogCondition -notlike "*$term*") {
+                Add-SourceFailure "$name CR_RADIAL_FOG_ACTIVE condition is missing '$term'. Radial fog must not reach Default/Retro/vertex-lighting paths."
+            }
+        }
+    }
+
+    if ($source -notmatch '(?m)^\s*#define\s+CR_RADIAL_FOG_ACTIVE\s+0\s*$') {
+        Add-SourceFailure "$name does not define CR_RADIAL_FOG_ACTIVE to 0 for every non-Enhanced permutation."
+    }
+
+    # The legacy depth-based fog must survive untouched. It is the only fog the
+    # Default, Retro and vertex-lighting delegates ever run, and it is
+    # deliberately NOT radial - it consumes clip-space vDepth.
+    if ($source -notmatch 'fogValue\s*=\s*saturate\(\(vDepth\s*-\s*fogParams\.y\)\s*\*\s*fogParams\.w\);') {
+        Add-SourceFailure "$name no longer contains the legacy depth-based fog 'saturate((vDepth - fogParams.y) * fogParams.w)'. Default/Retro fog must not become radial."
+    }
+
+    # The radial factor must be fed the view-space distance, never vDepth.
+    # Passing clip-space depth here would compile and look almost right while
+    # silently reintroducing the planar fog shell this replaces.
+    # The lookbehind skips the function's own definition, whose first parameter
+    # is 'float viewDistance' rather than an argument.
+    $fogCallSites = [regex]::Matches($source, '(?<!float\s)compute_radial_fog_factor\s*\(\s*(?<arg>[^,]+),')
+    foreach ($site in $fogCallSites) {
+        $arg = $site.Groups['arg'].Value.Trim()
+        if ($arg -ne 'viewDistance') {
+            Add-SourceFailure "$name calls compute_radial_fog_factor() with '$arg'; expected 'viewDistance' (the length of the view-space position). Radial fog must never be driven by clip-space depth."
+        }
+    }
+
     if ($source -notmatch '(?m)^\s*#define\s+CR_LINEAR_LIGHT_ACTIVE\s+0\s*$') {
         Add-SourceFailure "$name does not define CR_LINEAR_LIGHT_ACTIVE to 0 for every non-Enhanced permutation."
     }
@@ -149,12 +236,37 @@ foreach ($shader in $stageAShaders) {
     }
 
     # -- Decode call sites: allow-list, data exclusions, alpha safety ---------
+    # The effective allow-list for this file is the universal set plus only the
+    # family-scoped targets this file owns. Everything the file does not own is
+    # off its allow-list, and the rejection below names the family-scope rule as
+    # the reason.
+    $ownedScopedTargets = @(
+        $familyScopedDecodeOwners.Keys | Where-Object { $familyScopedDecodeOwners[$_] -eq $name })
+    $allowedDecodeTargets = @($universalDecodeTargets) + $ownedScopedTargets
+
     $decodeSites = [regex]::Matches(
         $source,
         '(?m)^\s*(?<target>[A-Za-z_][A-Za-z0-9_.]*)\s*=\s*srgb_to_linear\s*\(\s*(?<arg>[^;]*?)\s*\)\s*;')
 
     if ($decodeSites.Count -eq 0) {
         Add-SourceFailure "$name contains no srgb_to_linear() decode site. Stage A must decode diffuse and emissive COLOR."
+    }
+
+    # Every srgb_to_linear() use in the file must be one of the plain
+    # 'target = srgb_to_linear(arg);' statements matched above, plus the single
+    # definition. A decode written any other way - as an initializer
+    # ('float3 x = srgb_to_linear(normalTex);'), nested inside a larger
+    # expression, or as a call argument - would otherwise slip past the
+    # allow-list, the data deny-list and the alpha check simultaneously, because
+    # those checks only ever see what the statement regex matched.
+    $decodeDefinitions = [regex]::Matches($source, '(?m)^\s*float3\s+srgb_to_linear\s*\(').Count
+    if ($decodeDefinitions -ne 1) {
+        Add-SourceFailure "$name declares $decodeDefinitions srgb_to_linear() definitions; expected exactly 1."
+    }
+    $decodeCallCount = [regex]::Matches($source, '\bsrgb_to_linear\s*\(').Count
+    $accountedDecodes = $decodeSites.Count + $decodeDefinitions
+    if ($decodeCallCount -ne $accountedDecodes) {
+        Add-SourceFailure "$name has $decodeCallCount srgb_to_linear() occurrences but only $accountedDecodes are accounted for ($($decodeSites.Count) plain decode statements + $decodeDefinitions definition). A decode written as an initializer or nested in an expression bypasses the Stage A allow-list."
     }
 
     $observedTargets = @()
@@ -164,7 +276,12 @@ foreach ($shader in $stageAShaders) {
         $observedTargets += $target
 
         if ($allowedDecodeTargets -notcontains $target) {
-            Add-SourceFailure "$name decodes '$target', which is not on the Stage A COLOR allow-list ($($allowedDecodeTargets -join ', '))."
+            if ($familyScopedDecodeOwners.ContainsKey($target)) {
+                Add-SourceFailure "$name decodes '$target', which the family-scope rule reserves to $($familyScopedDecodeOwners[$target]). Stage A targets that exist in only one shader family must not be copied into another."
+            }
+            else {
+                Add-SourceFailure "$name decodes '$target', which is not on the Stage A COLOR allow-list ($($allowedDecodeTargets -join ', '))."
+            }
         }
 
         foreach ($token in $forbiddenDecodeTokens) {
@@ -178,26 +295,16 @@ foreach ($shader in $stageAShaders) {
         }
     }
 
-    # Every Stage A shader must decode the universal COLOR sources. Targets that
-    # only exist in one family (see $familyScopedDecodeTargets) are permitted but
-    # not demanded, so the base shader is not failed for lacking a terrain-only
-    # input. A family-scoped target still has to pass every other guard above.
+    # Everything on this file's effective allow-list is also mandatory for it:
+    # the universal COLOR sources in every Stage A shader, plus the family-scoped
+    # targets this file owns. The base shader is therefore not failed for lacking
+    # a terrain-only input, and terrain cannot quietly drop one.
     foreach ($required in $allowedDecodeTargets) {
-        if ($familyScopedDecodeTargets -contains $required) { continue }
         if ($observedTargets -notcontains $required) {
             Add-SourceFailure "$name is missing the required Stage A decode of '$required'."
         }
     }
 
-    foreach ($scoped in $familyScopedDecodeTargets) {
-        $owner = $familyScopedDecodeOwners[$scoped]
-        if ($name -eq $owner -and $observedTargets -notcontains $scoped) {
-            Add-SourceFailure "$name is missing the required Stage A decode of '$scoped'."
-        }
-        if ($name -ne $owner -and $observedTargets -contains $scoped) {
-            Add-SourceFailure "$name decodes '$scoped', which is scoped to $owner only."
-        }
-    }
 
     # -- Encode call site: exactly one, RGB only, after atmosphere ------------
     $encodeSites = [regex]::Matches(
@@ -304,6 +411,186 @@ foreach ($shader in $stageAShaders) {
         if ($source -match 'detail[A-Za-z]*\s*=\s*srgb_to_linear' -or $source -match 'srgb_to_linear\s*\(\s*detail') {
             Add-SourceFailure "$name decodes the terrain detail map. Detail is 0.5-centred modulation data (x2 => 1.0 neutral); decoding it would collapse the neutral point to ~0.43."
         }
+
+        # -- Terrain normals preserve their two distinct encodings -----------
+        # The mesh normal is packed as signed X/Z in BLENDINDICES.zw and must
+        # guard the reconstructed vertical component against quantization that
+        # puts XY just outside the unit circle. This is separate from the t2
+        # normal map: BZR's terrain atlas is full RGB DXT1/BC1, not BC5/DXT5nm,
+        # so the sampled B channel is authored Z and must not be reconstructed.
+        $packedNormalSites = [regex]::Matches(
+            $source,
+            'float3\s+iNormal\s*=\s*float3\(\s*nNormal\.x\s*,\s*sqrt\(\s*saturate\(\s*1\.0\s*-\s*dot\(\s*nNormal\s*,\s*nNormal\s*\)\s*\)\s*\)\s*,\s*nNormal\.y\s*\)\s*;')
+        if ($packedNormalSites.Count -ne 1) {
+            Add-SourceFailure "$name must reconstruct the packed mesh terrain normal with exactly one guarded 'sqrt(saturate(1.0 - dot(nNormal, nNormal)))' site."
+        }
+
+        # The sampled map must remain RGB-only numerical data at authored
+        # strength, followed directly by the existing safe post-TBN normalize.
+        # The production defaults must remain stock RGB/no-flip/no-overlay.
+        # Alternate packing and visualization modes are compile-time diagnostics
+        # selected explicitly for a test run, never silent production changes.
+        foreach ($diagnosticDefault in @(
+            @{ Name = 'CR_TERRAIN_NORMAL_UNPACK_MODE'; Value = '0' },
+            @{ Name = 'CR_TERRAIN_NORMAL_FLIP_GREEN'; Value = '0' },
+            @{ Name = 'CR_TERRAIN_NORMAL_BASIS_MODE'; Value = '0' },
+            @{ Name = 'CR_TERRAIN_NORMAL_DEBUG_MODE'; Value = '0' }
+        )) {
+            $defaultPattern = '(?m)^\s*#define\s+' + [regex]::Escape($diagnosticDefault.Name) +
+                '\s+' + [regex]::Escape($diagnosticDefault.Value) + '\s*$'
+            if ($source -notmatch $defaultPattern) {
+                Add-SourceFailure "$name must default $($diagnosticDefault.Name) to $($diagnosticDefault.Value); terrain-normal diagnostics must be opt-in."
+            }
+        }
+
+        # Require all three explicitly named unpack contracts. This makes RG,
+        # AG/DXT5nm and green-flip A/B runs reproducible while preserving the
+        # full-RGB stock path as mode 0.
+        $requiredNormalDiagnosticTokens = @(
+            '#if CR_TERRAIN_NORMAL_UNPACK_MODE == 1',
+            'packedNormal.rg * 2.0 - 1.0',
+            '#elif CR_TERRAIN_NORMAL_UNPACK_MODE == 2',
+            'packedNormal.ag * 2.0 - 1.0',
+            'sqrt(saturate(1.0 - dot(xy, xy)))',
+            'packedNormal.rgb * 2.0 - 1.0',
+            '#if CR_TERRAIN_NORMAL_FLIP_GREEN != 0',
+            'normal.y = -normal.y;',
+            '#if CR_TERRAIN_NORMAL_BASIS_MODE == 1',
+            '#elif CR_TERRAIN_NORMAL_BASIS_MODE == 2',
+            'T -= N * dot(T, N);',
+            'float handedness = (dot(orthogonalB, sourceB) < 0.0) ? -1.0 : 1.0;',
+            '#if CR_TERRAIN_NORMAL_BASIS_MODE == 3',
+            '#elif CR_TERRAIN_NORMAL_BASIS_MODE == 4',
+            'float3 viewNormal = geometryNormal;',
+            'float3 viewNormal = safe_normalize(normalTex);'
+        )
+        foreach ($token in $requiredNormalDiagnosticTokens) {
+            if (-not $source.Contains($token)) {
+                Add-SourceFailure "$name terrain-normal diagnostic contract is missing '$token'."
+            }
+        }
+
+        foreach ($debugToken in @(
+            'terrainNormalDebug = normalSample.rgb;',
+            'terrainNormalDebug = normalSample.aaa;',
+            'terrainNormalDebug = saturate(normalTex * 0.5 + 0.5);',
+            'terrainNormalDebug = saturate(viewNormal * 0.5 + 0.5);',
+            'saturate(dot(viewNormal, debugPixelToLight))',
+            'terrainNormalDebug = saturate(geometryNormal * 0.5 + 0.5);',
+            'terrainNormalDebug = saturate(safe_normalize(tbn[0]) * 0.5 + 0.5);',
+            'terrainNormalDebug = saturate(safe_normalize(tbn[1]) * 0.5 + 0.5);',
+            'dot(debugTangent, debugBasisNormal)',
+            'dot(debugBitangent, debugBasisNormal)',
+            'dot(debugTangent, debugBitangent)',
+            'float debugDeterminant = abs(dot(cross(debugTangent, debugBitangent), debugBasisNormal));',
+            'float normalDeviation = 1.0 - saturate(dot(mappedViewNormal, geometryNormal));'
+        )) {
+            if (-not $source.Contains($debugToken)) {
+                Add-SourceFailure "$name terrain-normal visualization contract is missing '$debugToken'."
+            }
+        }
+
+        $normalSample = [regex]::Match(
+            $source,
+            'float4\s+normalSample\s*=\s*normalMap\.Sample\(\s*normalSam\s*,\s*vTexCoord\s*\)\s*;')
+        $normalUnpackPattern = [regex]::new(
+            'float3\s+normalTex\s*=\s*unpack_terrain_normal\(\s*normalSample\s*\)\s*;')
+        $normalUnpack = $normalUnpackPattern.Match(
+            $source,
+            $(if ($normalSample.Success) { $normalSample.Index + $normalSample.Length } else { 0 }))
+        $normalTransformPattern = [regex]::new(
+            'float3\s+mappedViewNormal\s*=\s*safe_normalize\(\s*mul\(\s*normalTex\s*,\s*tbn\s*\)\s*\)\s*;')
+        $normalTransform = $normalTransformPattern.Match(
+            $source,
+            $(if ($normalUnpack.Success) { $normalUnpack.Index + $normalUnpack.Length } else { 0 }))
+
+        if (-not $normalSample.Success) {
+            Add-SourceFailure "$name must capture the complete terrain normal sample as float4 so RGB, RG, AG and alpha diagnostics all observe the same fetch."
+        }
+        elseif (-not $normalUnpack.Success) {
+            Add-SourceFailure "$name must pass normalSample through unpack_terrain_normal before the TBN transform."
+        }
+        elseif (-not $normalTransform.Success) {
+            Add-SourceFailure "$name must safe-normalize mappedViewNormal immediately after the terrain TBN transform."
+        }
+        else {
+            $unpackEnd = $normalUnpack.Index + $normalUnpack.Length
+            $between = $source.Substring($unpackEnd, $normalTransform.Index - $unpackEnd)
+            if ($between -match '\bnormalTex\b') {
+                Add-SourceFailure "$name modifies the unpacked terrain normal outside the named unpack diagnostic before the TBN transform."
+            }
+        }
+
+        # -- The terrain vertex tint is decoded at its source ----------------
+        # Same ordering standard the sampled textures are held to: prove the
+        # tint is derived from the vertex COLOR0 rgb, prove nothing reads it
+        # between that derivation and the decode, and prove the alpha channel
+        # is not swept in with it. Interpolated vertex colour has no Sample()
+        # call to anchor to, so the anchor is the declaration instead.
+        $tintDecl = [regex]::Match($source, '(?m)^\s*float3\s+vertexTint\s*=\s*(?<src>[^;]+);')
+        $tintDecodeIndex = $source.IndexOf('vertexTint = srgb_to_linear(')
+
+        if (-not $tintDecl.Success) {
+            Add-SourceFailure "$name has no 'float3 vertexTint = ...;' declaration; the terrain tint ordering guard cannot be evaluated."
+        }
+        elseif ($tintDecl.Groups['src'].Value.Trim() -ne 'vColor.xyz') {
+            Add-SourceFailure "$name derives vertexTint from '$($tintDecl.Groups['src'].Value.Trim())'; expected 'vColor.xyz'. Only the vertex COLOR0 rgb is authored display colour - the alpha channel is the terrain output alpha."
+        }
+        elseif ($tintDecodeIndex -lt 0) {
+            Add-SourceFailure "$name never decodes 'vertexTint'."
+        }
+        else {
+            $declEnd = $tintDecl.Index + $tintDecl.Length
+            if ($tintDecodeIndex -lt $declEnd) {
+                Add-SourceFailure "$name decodes 'vertexTint' before it is declared."
+            }
+            else {
+                $between = $source.Substring($declEnd, $tintDecodeIndex - $declEnd)
+                if ($between -match '\bvertexTint\b') {
+                    Add-SourceFailure "$name reads 'vertexTint' between its declaration and the sRGB decode. The decode must happen at the source, before any consumption."
+                }
+            }
+        }
+    }
+}
+
+# -- Shared helpers are genuinely shared ---------------------------------------
+# These two shaders have no #include - nothing in the Shaders tree does, and
+# introducing one would make the mod depend on Ogre's HLSL include resolution at
+# runtime. The established convention is instead that the shared region is
+# duplicated verbatim and kept in sync by hand.
+#
+# "By hand" is exactly what rots, so assert it. A helper that is supposed to be
+# one implementation must be byte-identical in both files; if someone tunes the
+# fog curve in one shader only, terrain and objects would fog differently and
+# the seam would be visible along every building base.
+$sharedHelperBlocks = @(
+    @{ Name = 'compute_radial_fog_factor'; Start = 'float compute_radial_fog_factor('; End = 'float compute_height_density(' },
+    @{ Name = 'srgb_to_linear / linear_to_srgb'; Start = 'float3 srgb_to_linear('; End = 'float3 linear_to_srgb(' }
+)
+
+foreach ($block in $sharedHelperBlocks) {
+    $extracted = @{}
+    foreach ($shader in $stageAShaders) {
+        $name = Split-Path -Leaf $shader
+        $text = Get-Content -LiteralPath $shader -Raw
+        $startIndex = $text.IndexOf($block.Start)
+        $endIndex = if ($startIndex -ge 0) { $text.IndexOf($block.End, $startIndex) } else { -1 }
+        if ($startIndex -lt 0 -or $endIndex -lt 0) {
+            Add-SourceFailure "$name does not contain the shared helper block '$($block.Name)'; the shared-helper identity guard cannot be evaluated."
+            continue
+        }
+        # Compare on normalized line endings so a CRLF/LF difference between the
+        # two files is not reported as a behavioural divergence.
+        $extracted[$name] = ($text.Substring($startIndex, $endIndex - $startIndex) -replace '\r\n', "`n")
+    }
+
+    if ($extracted.Count -eq $stageAShaders.Count) {
+        $distinct = @($extracted.Values | Sort-Object -Unique)
+        if ($distinct.Count -ne 1) {
+            $names = ($extracted.Keys | Sort-Object) -join ' and '
+            Add-SourceFailure "The shared helper '$($block.Name)' differs between $names. It is duplicated verbatim precisely because these shaders cannot #include; the two copies must stay byte-identical."
+        }
     }
 }
 
@@ -320,6 +607,9 @@ foreach ($other in $otherShaders) {
     $otherSource = Get-Content -LiteralPath $other.FullName -Raw
     if ($otherSource -match '\b(srgb_to_linear|linear_to_srgb|CR_LINEAR_LIGHT)\b') {
         Add-SourceFailure "$($other.Name) references Stage A colour-space symbols. Default, Retro, DX9/GL, UI and overlay paths must not gain sRGB transfer behavior."
+    }
+    if ($otherSource -match '\b(compute_radial_fog_factor|CR_RADIAL_FOG)\b') {
+        Add-SourceFailure "$($other.Name) references radial-fog symbols. Radial fog is confined to the two DX11 Enhanced world shaders; the DX9/GL, UI, sky and overlay paths keep their existing fog."
     }
 }
 
@@ -406,56 +696,66 @@ foreach ($programFile in (Get-ChildItem $shaderDir -Filter '*.program' -File | S
 $enhancedSm4Count = 0
 $legacySm4Count = 0
 
+# Every Enhanced-only compile-time flag obeys the same boundary, so they are
+# policed by one loop rather than by copies that can drift apart. Adding a
+# future Enhanced-only experiment means adding one entry here.
+$enhancedOnlyFlags = @(
+    @{ Name = 'CR_LINEAR_LIGHT'; Feature = 'Stage A' },
+    @{ Name = 'CR_RADIAL_FOG'; Feature = 'radial fog' }
+)
+
 foreach ($rec in $programRecords) {
     $defines = $rec.Defines
     $where = "$($rec.File):$($rec.Line) $($rec.Name)"
-
-    $hasLinear = $defines -match '(^|,)\s*CR_LINEAR_LIGHT\s*='
-    $hasLinearOne = $defines -match '(^|,)\s*CR_LINEAR_LIGHT\s*=\s*1\s*(,|$)'
-
-    if ($hasLinear -and -not $hasLinearOne) {
-        $programFailures += "$where declares CR_LINEAR_LIGHT with a value other than 1. Stage A is on/off only."
-    }
 
     $isSm4 = $rec.Source -like '*-sm4.hlsl'
     $isRetro = $defines -match '(^|,)\s*(OG_RETRO_MODE|RETRO_UNLIT_MODE)\b'
     $isVertexLit = $defines -match '(^|,)\s*VERTEX_LIGHTING\b'
     $isEnhanced = $defines -match '(^|,)\s*ENHANCED_MODE\b'
+    $isEnhancedFragment = $isSm4 -and $rec.Kind -ne 'vertex_program' -and
+                          $isEnhanced -and -not $isVertexLit -and -not $isRetro
 
-    if (-not $isSm4) {
-        if ($hasLinear) {
-            $programFailures += "$where is not a DX11 SM4 program (source '$($rec.Source)') but defines CR_LINEAR_LIGHT. Stage A must not leak into DX9/GLSL/GLSLES/unified declarations."
+    foreach ($flag in $enhancedOnlyFlags) {
+        $name = $flag.Name
+        $feature = $flag.Feature
+        $hasFlag = $defines -match "(^|,)\s*$name\s*="
+        $hasFlagOne = $defines -match "(^|,)\s*$name\s*=\s*1\s*(,|`$)"
+
+        if ($hasFlag -and -not $hasFlagOne) {
+            $programFailures += "$where declares $name with a value other than 1. $feature is on/off only."
         }
-        continue
-    }
 
-    if ($rec.Kind -eq 'vertex_program') {
-        if ($hasLinear) {
-            $programFailures += "$where is a vertex program but defines CR_LINEAR_LIGHT. Stage A is scoped to the per-pixel path."
+        if (-not $isSm4) {
+            if ($hasFlag) {
+                $programFailures += "$where is not a DX11 SM4 program (source '$($rec.Source)') but defines $name. $feature must not leak into DX9/GLSL/GLSLES/unified declarations."
+            }
+            continue
         }
-        continue
-    }
-
-    if ($isRetro) {
-        if ($hasLinear) {
-            $programFailures += "$where is a DX11 Retro program but defines CR_LINEAR_LIGHT. Retro must remain on the legacy path."
+        if ($rec.Kind -eq 'vertex_program') {
+            if ($hasFlag) {
+                $programFailures += "$where is a vertex program but defines $name. $feature is scoped to the per-pixel path."
+            }
+            continue
         }
-        $legacySm4Count++
-        continue
-    }
-
-    if ($isEnhanced -and -not $isVertexLit) {
-        if (-not $hasLinearOne) {
-            $programFailures += "$where is a DX11 Enhanced SM4 fragment program but does not define CR_LINEAR_LIGHT=1. Enhanced must opt into Stage A."
+        if ($isRetro) {
+            if ($hasFlag) {
+                $programFailures += "$where is a DX11 Retro program but defines $name. Retro must remain on the legacy path."
+            }
+            continue
         }
-        $enhancedSm4Count++
-        continue
+        if ($isEnhancedFragment) {
+            if (-not $hasFlagOne) {
+                $programFailures += "$where is a DX11 Enhanced SM4 fragment program but does not define $name=1. Enhanced must opt into $feature."
+            }
+            continue
+        }
+        if ($hasFlag) {
+            $programFailures += "$where is a DX11 Default/stock-compatible SM4 program but defines $name. Default must remain on the legacy path."
+        }
     }
 
-    if ($hasLinear) {
-        $programFailures += "$where is a DX11 Default/stock-compatible SM4 program but defines CR_LINEAR_LIGHT. Default must remain on the legacy path."
-    }
-    $legacySm4Count++
+    if (-not $isSm4 -or $rec.Kind -eq 'vertex_program') { continue }
+    if ($isEnhancedFragment) { $enhancedSm4Count++ } else { $legacySm4Count++ }
 }
 
 if ($enhancedSm4Count -eq 0) {
@@ -467,7 +767,12 @@ if ($programFailures.Count -gt 0) {
     throw "DX11 Enhanced program-definition boundary failed:$([Environment]::NewLine)$detail"
 }
 
-Write-Host "DX11 Enhanced program boundary passed ($enhancedSm4Count Enhanced SM4 fragment programs opted into Stage A, $legacySm4Count Default/Retro SM4 fragment programs held on the legacy path, $($programRecords.Count) program declarations scanned)."
+Write-Host "DX11 Enhanced program boundary passed ($enhancedSm4Count Enhanced SM4 fragment programs opted into $($enhancedOnlyFlags.Count) Enhanced-only flags, $legacySm4Count Default/Retro SM4 fragment programs held on the legacy path, $($programRecords.Count) program declarations scanned)."
+
+if ($SourceGuardsOnly) {
+    Write-Host 'Source-guard-only run requested; skipping the fxc compile/preprocess matrix.'
+    return
+}
 
 # =============================================================================
 # Shader compile / preprocess matrix
@@ -741,34 +1046,116 @@ $cases = @(
 )
 
 # -----------------------------------------------------------------------------
-# CR_LINEAR_LIGHT sweep
+# CR_LINEAR_LIGHT x CR_RADIAL_FOG sweep
 # -----------------------------------------------------------------------------
-# Every base/terrain case above is compiled twice: once with CR_LINEAR_LIGHT=0
-# (which must remain the untouched baseline) and once with CR_LINEAR_LIGHT=1.
+# Every base/terrain pixel case above is compiled across the full cross product
+# of the two Enhanced-only flags. The cross product matters rather than one
+# flag at a time: both features rewrite the same fragment tail, and the encode
+# has to remain a single call sited after atmosphere no matter which
+# combination of the two is enabled.
+#
 # Variants that differ only in vertex/tangent plumbing are mathematically
-# unaffected by Stage A, so the sweep is restricted to the pixel entry points
-# plus the retro/vertex-lighting representatives that prove non-activation.
+# unaffected by either flag, so the sweep is restricted to the pixel entry
+# points plus the retro/vertex-lighting representatives that prove
+# non-activation.
 $sweepCases = @()
 foreach ($case in $cases) {
     if ($case.File -ne $baseShader -and $case.File -ne $terrainShader) { continue }
     if ($case.Target -ne 'ps_4_0') { continue }
 
     foreach ($linearLight in @(0, 1)) {
+    foreach ($radialFog in @(0, 1)) {
         $sweep = @{
-            Name = "$($case.Name)-ll$linearLight"
+            Name = "$($case.Name)-ll$linearLight-rf$radialFog"
             File = $case.File
             Entry = $case.Entry
             Target = $case.Target
-            Defines = @($case.Defines) + @("CR_LINEAR_LIGHT=$linearLight")
+            Defines = @($case.Defines) + @("CR_LINEAR_LIGHT=$linearLight", "CR_RADIAL_FOG=$radialFog")
             LinearLight = $linearLight
+            RadialFog = $radialFog
         }
         $sweepCases += $sweep
     }
+    }
+}
+
+# -----------------------------------------------------------------------------
+# Terrain-normal diagnostic sweep
+# -----------------------------------------------------------------------------
+# Compile every RGB/RG/AG x green orientation x original visualization
+# combination, plus focused basis-mode and basis-visualization coverage, on the
+# maximal Enhanced terrain permutation. These modes are runtime diagnosis tools,
+# so a typo in an alternate branch must fail CI even though production defaults
+# remain RGB/no-flip/stock-basis/debug-off.
+$normalDiagnosticCases = @()
+$normalDiagnosticBaseDefines = @(
+    'MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1',
+    'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1',
+    'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4',
+    'CR_LINEAR_LIGHT=1', 'CR_RADIAL_FOG=1'
+)
+foreach ($unpackMode in @(0, 1, 2)) {
+foreach ($flipGreen in @(0, 1)) {
+foreach ($debugMode in @(0, 1, 2, 3, 4, 5)) {
+    $normalDiagnosticCases += @{
+        Name = "terrain-normal-diag-u$unpackMode-g$flipGreen-d$debugMode"
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = $normalDiagnosticBaseDefines + @(
+            "CR_TERRAIN_NORMAL_UNPACK_MODE=$unpackMode",
+            "CR_TERRAIN_NORMAL_FLIP_GREEN=$flipGreen",
+            'CR_TERRAIN_NORMAL_BASIS_MODE=0',
+            "CR_TERRAIN_NORMAL_DEBUG_MODE=$debugMode"
+        )
+    }
+}
+}
+}
+
+# Exercise each basis behavior through normal rendering, final-normal display,
+# and NdotL. GeometryOnly and TangentAsView are isolation controls; modes 1/2
+# are candidate derivative-basis corrections that remain diagnostic by default.
+foreach ($basisMode in @(1, 2, 3, 4)) {
+foreach ($debugMode in @(0, 4, 5)) {
+    $normalDiagnosticCases += @{
+        Name = "terrain-normal-basis-b$basisMode-d$debugMode"
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = $normalDiagnosticBaseDefines + @(
+            'CR_TERRAIN_NORMAL_UNPACK_MODE=0',
+            'CR_TERRAIN_NORMAL_FLIP_GREEN=0',
+            "CR_TERRAIN_NORMAL_BASIS_MODE=$basisMode",
+            "CR_TERRAIN_NORMAL_DEBUG_MODE=$debugMode"
+        )
+    }
+}
+}
+
+# Basis-axis/quality views need to compile against stock, per-axis-normalized,
+# and orthonormalized derivative frames. The bypass modes still construct the
+# same TBN, so repeating all six visualizations there adds no coverage.
+foreach ($basisMode in @(0, 1, 2)) {
+foreach ($debugMode in @(6, 7, 8, 9, 10, 11)) {
+    $normalDiagnosticCases += @{
+        Name = "terrain-normal-basis-view-b$basisMode-d$debugMode"
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = $normalDiagnosticBaseDefines + @(
+            'CR_TERRAIN_NORMAL_UNPACK_MODE=0',
+            'CR_TERRAIN_NORMAL_FLIP_GREEN=0',
+            "CR_TERRAIN_NORMAL_BASIS_MODE=$basisMode",
+            "CR_TERRAIN_NORMAL_DEBUG_MODE=$debugMode"
+        )
+    }
+}
 }
 
 $failed = @()
 
-foreach ($case in $cases) {
+foreach ($case in @($cases) + @($normalDiagnosticCases)) {
     $output = Join-Path $tempRoot "$($case.Name).cso"
     $fxcArgs = @('/nologo', '/Ges', '/WX', '/T', $case.Target, '/E', $case.Entry, '/Fo', $output)
 
@@ -875,6 +1262,61 @@ foreach ($case in $sweepCases) {
     elseif ($case.LinearLight -eq 0 -and ($encodeCount -ne 0 -or $decodeCount -ne 0)) {
         $preprocessFailures += "$($case.Name): CR_LINEAR_LIGHT=0 must preprocess to the untouched baseline."
     }
+
+    # -- Radial fog activates on exactly the same permutations ---------------
+    $fogShouldActivate = ($case.RadialFog -eq 1) -and $isEnhanced -and (-not $isVertexLit) -and (-not $isRetro)
+
+    # The whole atmosphere helper region sits inside '#if defined(ENHANCED_MODE)',
+    # so for Default and Retro permutations neither fog model exists at all -
+    # they run the legacy depth fog asserted below and nothing else.
+    $atmosphereHelpersPresent = [bool]$isEnhanced
+
+    $fogDefinitions = [regex]::Matches($text, 'float\s+compute_radial_fog_factor\s*\(').Count
+    $fogCalls = [regex]::Matches($text, '\bcompute_radial_fog_factor\s*\(').Count - $fogDefinitions
+    $opticalDepthCalls = [regex]::Matches($text, '\bcompute_distance_optical_depth\s*\(').Count
+
+    if (-not $atmosphereHelpersPresent) {
+        if ($fogDefinitions -ne 0 -or $fogCalls -ne 0 -or $opticalDepthCalls -ne 0) {
+            $preprocessFailures += "$($case.Name): a non-Enhanced permutation must contain no atmosphere fog helpers at all (found $fogDefinitions radial definitions, $fogCalls radial calls, $opticalDepthCalls optical-depth occurrences)."
+        }
+    }
+    else {
+        if ($fogDefinitions -ne 1) {
+            $preprocessFailures += "$($case.Name): expected exactly 1 compute_radial_fog_factor definition after preprocessing, found $fogDefinitions."
+        }
+
+        if ($fogShouldActivate) {
+            if ($fogCalls -ne 1) {
+                $preprocessFailures += "$($case.Name): expected exactly 1 compute_radial_fog_factor call, found $fogCalls."
+            }
+            # The exponential model must be compiled out, not merely bypassed:
+            # only its own definition may remain, with no call site.
+            if ($opticalDepthCalls -ne 1) {
+                $preprocessFailures += "$($case.Name): radial fog is active but compute_distance_optical_depth still appears $opticalDepthCalls times (expected 1, the definition alone). The two fog models must not both run."
+            }
+        }
+        else {
+            if ($fogCalls -ne 0) {
+                $preprocessFailures += "$($case.Name): radial fog must be inactive here but is called $fogCalls times."
+            }
+            # definition + the surviving call inside compute_enhanced_atmosphere
+            if ($opticalDepthCalls -ne 2) {
+                $preprocessFailures += "$($case.Name): radial fog is inactive, so the exponential optical-depth path must remain (expected 2 compute_distance_optical_depth occurrences, found $opticalDepthCalls)."
+            }
+        }
+    }
+
+    # The legacy depth-based fog belongs to every non-Enhanced permutation and
+    # must never be replaced by the radial factor.
+    $legacyFogSites = [regex]::Matches($text, 'saturate\s*\(\s*\(\s*vDepth\s*-\s*fogParams\s*\.\s*y\s*\)\s*\*\s*fogParams\s*\.\s*w\s*\)').Count
+    if (-not $isEnhanced -or $isVertexLit -or $isRetro) {
+        if ($legacyFogSites -ne 1) {
+            $preprocessFailures += "$($case.Name): expected the legacy depth-based fog to survive in this non-Enhanced permutation, found $legacyFogSites occurrences."
+        }
+        if ($fogCalls -ne 0) {
+            $preprocessFailures += "$($case.Name): a non-Enhanced permutation must never call compute_radial_fog_factor."
+        }
+    }
 }
 
 if ($failed.Count -gt 0) {
@@ -886,5 +1328,6 @@ if ($preprocessFailures.Count -gt 0) {
     throw "DX11 color-space Stage A preprocessor guards failed:$([Environment]::NewLine)$detail"
 }
 
-Write-Host "Stage A preprocessor guards passed across $($sweepCases.Count) CR_LINEAR_LIGHT permutations."
-Write-Host "All $($cases.Count + $sweepCases.Count) DX11 SM4 shader compilations succeeded."
+Write-Host "Stage A and radial-fog preprocessor guards passed across $($sweepCases.Count) CR_LINEAR_LIGHT x CR_RADIAL_FOG permutations."
+Write-Host "Terrain-normal diagnostics compiled across $($normalDiagnosticCases.Count) unpack, orientation, basis, and visualization permutations."
+Write-Host "All $($cases.Count + $normalDiagnosticCases.Count + $sweepCases.Count) DX11 SM4 shader compilations succeeded."

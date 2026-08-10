@@ -25,6 +25,8 @@ $expectedHash = if ($env:CR_OPENSHIM_WINMM_SHA256) {
 
 function Find-GamePath {
     $candidates = @(
+        "C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux",
+        "C:\Program Files\GOG Galaxy\Games\Battlezone 98 Redux",
         "C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux",
         "C:\Program Files\Steam\steamapps\common\Battlezone 98 Redux",
         (Join-Path $env:PROGRAMFILES "Steam\steamapps\common\Battlezone 98 Redux")
@@ -83,7 +85,7 @@ try {
         Write-Host ""
         Write-Host "Install complete." -ForegroundColor Green
         Write-Host "Campaign Reimagined OpenShim is already installed at: $destPath"
-        Write-Host "No Steam launch option changes are needed on Windows."
+        Write-Host "No launch option changes are needed on Windows."
         return
     }
 
@@ -99,7 +101,7 @@ try {
     Write-Host ""
     Write-Host "Install complete." -ForegroundColor Green
     Write-Host "Installed to: $destPath"
-    Write-Host "No Steam launch option changes are needed on Windows."
+    Write-Host "No launch option changes are needed on Windows."
 }
 finally {
     Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $tempRoot

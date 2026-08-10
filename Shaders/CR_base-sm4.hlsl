@@ -47,6 +47,43 @@
 #define CR_LINEAR_LIGHT_ACTIVE 0
 #endif
 
+// -----------------------------------------------------------------------------
+// Radial smooth fog (DX11 Enhanced only)
+// -----------------------------------------------------------------------------
+// Keep this block synchronized with CR_terrain-sm4.hlsl.
+//
+// 0 = unchanged baseline: the exponential optical-depth model.
+// 1 = the fog factor is derived from true radial view-space distance with a
+//     Hermite (smoothstep) falloff between the authored fog start and end.
+//
+// This changes only how the fog *factor* is computed. The authored fog start,
+// end and colour keep their existing meanings, the height and horizon density
+// modulation still applies, and every other part of the Phase 3 atmosphere -
+// sun scattering, aerial desaturation, emissive transmission - is untouched.
+//
+// Two things are wrong with the baseline curve. It reaches only ~0.93 at the
+// authored fog end and then keeps thickening past it, so "end" is not actually
+// where fog becomes opaque; and because opticalDepth grows quadratically the
+// approach to full fog is slow and the far field stays milky rather than
+// resolving. Smoothstep pins the curve to 0 at fogStart and exactly 1 at
+// fogEnd, with zero first derivative at both, which is the same shape BZCC
+// uses and is what removes the visible banding at the fog onset.
+#ifndef CR_RADIAL_FOG
+#define CR_RADIAL_FOG 0
+#endif
+
+// Scoped exactly like Stage A: the Enhanced per-pixel path only. The legacy
+// fog in the #else branch of the fragment shaders is depth-based and stays
+// that way, so Default, Retro, vertex-lighting delegates and the DX9/GL paths
+// cannot acquire radial fog.
+#if defined(ENHANCED_MODE) && !defined(VERTEX_LIGHTING) \
+ && !defined(OG_RETRO_MODE) && !defined(RETRO_UNLIT_MODE) \
+ && (CR_RADIAL_FOG != 0)
+#define CR_RADIAL_FOG_ACTIVE 1
+#else
+#define CR_RADIAL_FOG_ACTIVE 0
+#endif
+
 #if defined(OG_RETRO_MODE)
 #undef NORMALMAP_ENABLED
 #undef SPECULARMAP_ENABLED
@@ -270,6 +307,44 @@ float compute_distance_optical_depth(float viewDistance, float4 fogParams)
     return min(scaledTravel * scaledTravel, CR_ATMOS_MAX_OPTICAL_DEPTH) * configured;
 }
 
+// Radial view-space fog factor. Shared verbatim with CR_terrain-sm4.hlsl.
+//
+// The legacy fog in the non-Enhanced branch uses vDepth, which is clip-space z
+// and therefore measures distance along the view axis only. Fog computed that
+// way changes as the camera yaws, because a fragment at a fixed distance from
+// the eye moves closer to or further from the view plane as it swings across
+// the screen. viewPosition is the camera-space position of the fragment, so
+// its length is the true eye-to-fragment distance and the fog shell is
+// spherical rather than planar. That is the "radial" part.
+//
+// densityScale carries the height and horizon modulation the Phase 3
+// atmosphere already computed. It scales normalized travel rather than an
+// optical depth, which keeps its meaning: a denser atmosphere reaches full fog
+// nearer the camera, a thinner one further away.
+float compute_radial_fog_factor(float viewDistance, float4 fogParams, float densityScale)
+{
+    float fogStart = max(fogParams.y, 0.0);
+    float fogEnd = max(fogParams.z, fogStart);
+    float authoredRange = max(fogEnd - fogStart, 1e-3);
+    float suppliedInvRange = abs(fogParams.w);
+    float invRange = (suppliedInvRange > 1e-8) ? suppliedInvRange : rcp(authoredRange);
+    invRange = min(invRange, 1e3);
+
+    // Identical "is fog configured at all" signal to the optical-depth path: a
+    // collapsed range or a zero inverse range is how the legacy path disables
+    // fog, and airless maps depend on that staying true under Enhanced.
+    float configured = (fogEnd > fogStart + 1e-3 && suppliedInvRange > 1e-8) ? 1.0 : 0.0;
+
+    float normalizedTravel = saturate(max(viewDistance - fogStart, 0.0) * invRange);
+    float t = saturate(normalizedTravel * densityScale);
+
+    // Hermite smoothstep. Value and first derivative are both zero at fogStart
+    // and the value reaches exactly 1 at fogEnd, so the authored end distance
+    // is real full-fog opacity instead of an exponential asymptote, and the
+    // onset has no derivative discontinuity to band against.
+    return (t * t * (3.0 - 2.0 * t)) * configured;
+}
+
 float compute_height_density(float cameraRelativeWorldHeight)
 {
     // Full Enhanced High uses a camera-relative world-space height delta. This
@@ -330,17 +405,36 @@ void compute_enhanced_atmosphere(
     out float surfaceTransmission,
     out float emissiveTransmission)
 {
+    // Radial: length() of the camera-space position, not clip-space depth.
+    // This is already what the Enhanced path used, and it is what the radial
+    // fog factor consumes.
     float viewDistance = max(length(viewPosition), 0.0);
+    // Declared here, in its original position, so that the CR_RADIAL_FOG=0
+    // token stream is an exact match for the pre-radial-fog baseline. Moving it
+    // into the #else below is semantically identical but perturbs fxc's
+    // instruction scheduling on the register-heavy IBL permutations, which
+    // would cost the bit-identical A/B guarantee for no benefit.
+#if !CR_RADIAL_FOG_ACTIVE
     float distanceOpticalDepth = compute_distance_optical_depth(viewDistance, fogParams);
+#endif
 
     float heightDensity = compute_height_density(cameraRelativeWorldHeight);
     float heightScale = lerp(1.0, heightDensity, CR_ATMOS_HEIGHT_STRENGTH);
     heightContribution = saturate(abs(heightScale - 1.0) * 2.0);
 
     float densityScale = max(heightScale + horizonFactor * CR_ATMOS_HORIZON_STRENGTH, 0.25);
+#if CR_RADIAL_FOG_ACTIVE
+    fogFactor = compute_radial_fog_factor(viewDistance, fogParams, densityScale);
+    // Keep the composite below an exact lerp between surface and atmosphere.
+    // Everything downstream - aerial desaturation, emissive transmission, the
+    // debug modes - reads these two, so defining transmission as the exact
+    // complement is what keeps the rest of the model unchanged.
+    surfaceTransmission = 1.0 - fogFactor;
+#else
     float opticalDepth = min(distanceOpticalDepth * densityScale, CR_ATMOS_MAX_OPTICAL_DEPTH);
     surfaceTransmission = exp(-opticalDepth);
     fogFactor = saturate(1.0 - surfaceTransmission);
+#endif
 
     float3 viewRay = safe_normalize(viewPosition);
     float3 sunTint;

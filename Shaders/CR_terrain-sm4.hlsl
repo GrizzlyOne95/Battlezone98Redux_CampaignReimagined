@@ -48,6 +48,88 @@
 #define CR_LINEAR_LIGHT_ACTIVE 0
 #endif
 
+// -----------------------------------------------------------------------------
+// Terrain-normal diagnostics (DX11 SM4 test permutations only)
+// -----------------------------------------------------------------------------
+// Production defaults preserve BZR's full-RGB tangent normal convention.
+// Override these from a temporary .program preprocessor_defines entry while
+// diagnosing a map, then restore all four to zero for normal play.
+//
+// CR_TERRAIN_NORMAL_UNPACK_MODE:
+//   0 = RGB -> XYZ (stock BZR/CR convention)
+//   1 = RG  -> XY, reconstruct +Z (BC5-style diagnostic)
+//   2 = AG  -> XY, reconstruct +Z (DXT5nm-style diagnostic)
+// CR_TERRAIN_NORMAL_FLIP_GREEN:
+//   0 = preserve Y; 1 = negate tangent-space Y
+// CR_TERRAIN_NORMAL_BASIS_MODE:
+//   0 = stock derivative/vertex TBN
+//   1 = normalize each TBN axis independently
+//   2 = orthonormalize derivative TBN while preserving handedness
+//   3 = geometry normal only (sample still occurs; bypass map and TBN result)
+//   4 = treat tangent normal as a view-space normal (bypass TBN only)
+// CR_TERRAIN_NORMAL_DEBUG_MODE:
+//   0 = normal rendering
+//   1 = raw sampled RGB
+//   2 = raw sampled alpha (grayscale)
+//   3 = unpacked tangent-space normal, remapped to [0,1]
+//   4 = final post-TBN lighting-space normal, remapped to [0,1]
+//   5 = first-light NdotL (grayscale)
+//   6 = geometry normal, remapped to [0,1]
+//   7 = normalized TBN tangent axis, remapped to [0,1]
+//   8 = normalized TBN bitangent axis, remapped to [0,1]
+//   9 = TBN pairwise orthogonality error (RGB; black is ideal)
+//  10 = T length, B length, normalized-basis determinant (RGB; white is ideal)
+//  11 = mapped-normal deviation from geometry normal (grayscale)
+#ifndef CR_TERRAIN_NORMAL_UNPACK_MODE
+#define CR_TERRAIN_NORMAL_UNPACK_MODE 0
+#endif
+#ifndef CR_TERRAIN_NORMAL_FLIP_GREEN
+#define CR_TERRAIN_NORMAL_FLIP_GREEN 0
+#endif
+#ifndef CR_TERRAIN_NORMAL_BASIS_MODE
+#define CR_TERRAIN_NORMAL_BASIS_MODE 0
+#endif
+#ifndef CR_TERRAIN_NORMAL_DEBUG_MODE
+#define CR_TERRAIN_NORMAL_DEBUG_MODE 0
+#endif
+
+// -----------------------------------------------------------------------------
+// Radial smooth fog (DX11 Enhanced only)
+// -----------------------------------------------------------------------------
+// Keep this block synchronized with CR_base-sm4.hlsl.
+//
+// 0 = unchanged baseline: the exponential optical-depth model.
+// 1 = the fog factor is derived from true radial view-space distance with a
+//     Hermite (smoothstep) falloff between the authored fog start and end.
+//
+// This changes only how the fog *factor* is computed. The authored fog start,
+// end and colour keep their existing meanings, the height and horizon density
+// modulation still applies, and every other part of the Phase 3 atmosphere -
+// sun scattering, aerial desaturation, emissive transmission - is untouched.
+//
+// Two things are wrong with the baseline curve. It reaches only ~0.93 at the
+// authored fog end and then keeps thickening past it, so "end" is not actually
+// where fog becomes opaque; and because opticalDepth grows quadratically the
+// approach to full fog is slow and the far field stays milky rather than
+// resolving. Smoothstep pins the curve to 0 at fogStart and exactly 1 at
+// fogEnd, with zero first derivative at both, which is the same shape BZCC
+// uses and is what removes the visible banding at the fog onset.
+#ifndef CR_RADIAL_FOG
+#define CR_RADIAL_FOG 0
+#endif
+
+// Scoped exactly like Stage A: the Enhanced per-pixel path only. The legacy
+// fog in the #else branch of the fragment shaders is depth-based and stays
+// that way, so Default, Retro, vertex-lighting delegates and the DX9/GL paths
+// cannot acquire radial fog.
+#if defined(ENHANCED_MODE) && !defined(VERTEX_LIGHTING) \
+ && !defined(OG_RETRO_MODE) && !defined(RETRO_UNLIT_MODE) \
+ && (CR_RADIAL_FOG != 0)
+#define CR_RADIAL_FOG_ACTIVE 1
+#else
+#define CR_RADIAL_FOG_ACTIVE 0
+#endif
+
 #if defined(OG_RETRO_MODE)
 #undef NORMALMAP_ENABLED
 #undef SPECULARMAP_ENABLED
@@ -129,6 +211,27 @@ float3x3 cotangent_frame(float3 N, float3 p, float2 uv)
     float invmax = rsqrt(max(max(dot(T, T), dot(B, B)), 1e-20));
     T *= invmax;
     B *= invmax;
+
+#if CR_TERRAIN_NORMAL_BASIS_MODE == 1
+    // The stock cotangent frame applies one common scale. This diagnostic
+    // removes only the resulting T/B length imbalance without changing their
+    // directions or handedness.
+    T *= rsqrt(max(dot(T, T), 1e-20));
+    B *= rsqrt(max(dot(B, B), 1e-20));
+    N *= rsqrt(max(dot(N, N), 1e-20));
+#elif CR_TERRAIN_NORMAL_BASIS_MODE == 2
+    // Gram-Schmidt the derivative tangent against the geometry normal, then
+    // rebuild B while preserving the orientation of the original derivative B.
+    // This is diagnostic-only until a live A/B proves the stock frame is bad.
+    float3 sourceB = B;
+    N *= rsqrt(max(dot(N, N), 1e-20));
+    T -= N * dot(T, N);
+    T *= rsqrt(max(dot(T, T), 1e-20));
+    float3 orthogonalB = cross(T, N);
+    float handedness = (dot(orthogonalB, sourceB) < 0.0) ? -1.0 : 1.0;
+    B = orthogonalB * handedness;
+    B *= rsqrt(max(dot(B, B), 1e-20));
+#endif
     return float3x3(T, B, N);
 }
 #endif
@@ -173,17 +276,25 @@ float3 linear_to_srgb(float3 c)
 }
 #endif
 
-#if defined(ENHANCED_MODE)
-float3 sharpen_normal_map(float3 normalTex)
+float3 unpack_terrain_normal(float4 packedNormal)
 {
-    // Terrain normal maps cover huge surfaces and the old 1.85x boost made
-    // broad slopes read wet/varnished under GGX + IBL. Keep relief visible
-    // without amplifying every texel into a hard specular microfacet.
-    float2 sharpenedXY = normalTex.xy * 1.45;
-    float sharpenedZ = max(normalTex.z, 0.28);
-    return safe_normalize(float3(sharpenedXY, sharpenedZ));
+#if CR_TERRAIN_NORMAL_UNPACK_MODE == 1
+    float2 xy = packedNormal.rg * 2.0 - 1.0;
+    float3 normal = float3(xy, sqrt(saturate(1.0 - dot(xy, xy))));
+#elif CR_TERRAIN_NORMAL_UNPACK_MODE == 2
+    float2 xy = packedNormal.ag * 2.0 - 1.0;
+    float3 normal = float3(xy, sqrt(saturate(1.0 - dot(xy, xy))));
+#else
+    float3 normal = packedNormal.rgb * 2.0 - 1.0;
+#endif
+
+#if CR_TERRAIN_NORMAL_FLIP_GREEN != 0
+    normal.y = -normal.y;
+#endif
+    return normal;
 }
 
+#if defined(ENHANCED_MODE)
 // -----------------------------------------------------------------------------
 // Legacy-PBR calibration. Keep synchronized with CR_base-sm4.hlsl.
 // -----------------------------------------------------------------------------
@@ -249,6 +360,44 @@ float compute_distance_optical_depth(float viewDistance, float4 fogParams)
     return min(scaledTravel * scaledTravel, CR_ATMOS_MAX_OPTICAL_DEPTH) * configured;
 }
 
+// Radial view-space fog factor. Shared verbatim with CR_base-sm4.hlsl.
+//
+// The legacy fog in the non-Enhanced branch uses vDepth, which is clip-space z
+// and therefore measures distance along the view axis only. Fog computed that
+// way changes as the camera yaws, because a fragment at a fixed distance from
+// the eye moves closer to or further from the view plane as it swings across
+// the screen. viewPosition is the camera-space position of the fragment, so
+// its length is the true eye-to-fragment distance and the fog shell is
+// spherical rather than planar. That is the "radial" part.
+//
+// densityScale carries the height and horizon modulation the Phase 3
+// atmosphere already computed. It scales normalized travel rather than an
+// optical depth, which keeps its meaning: a denser atmosphere reaches full fog
+// nearer the camera, a thinner one further away.
+float compute_radial_fog_factor(float viewDistance, float4 fogParams, float densityScale)
+{
+    float fogStart = max(fogParams.y, 0.0);
+    float fogEnd = max(fogParams.z, fogStart);
+    float authoredRange = max(fogEnd - fogStart, 1e-3);
+    float suppliedInvRange = abs(fogParams.w);
+    float invRange = (suppliedInvRange > 1e-8) ? suppliedInvRange : rcp(authoredRange);
+    invRange = min(invRange, 1e3);
+
+    // Identical "is fog configured at all" signal to the optical-depth path: a
+    // collapsed range or a zero inverse range is how the legacy path disables
+    // fog, and airless maps depend on that staying true under Enhanced.
+    float configured = (fogEnd > fogStart + 1e-3 && suppliedInvRange > 1e-8) ? 1.0 : 0.0;
+
+    float normalizedTravel = saturate(max(viewDistance - fogStart, 0.0) * invRange);
+    float t = saturate(normalizedTravel * densityScale);
+
+    // Hermite smoothstep. Value and first derivative are both zero at fogStart
+    // and the value reaches exactly 1 at fogEnd, so the authored end distance
+    // is real full-fog opacity instead of an exponential asymptote, and the
+    // onset has no derivative discontinuity to band against.
+    return (t * t * (3.0 - 2.0 * t)) * configured;
+}
+
 float compute_height_density(float cameraRelativeWorldHeight)
 {
     // Full Enhanced High uses a camera-relative world-space height delta. This
@@ -309,17 +458,36 @@ void compute_enhanced_atmosphere(
     out float surfaceTransmission,
     out float emissiveTransmission)
 {
+    // Radial: length() of the camera-space position, not clip-space depth.
+    // This is already what the Enhanced path used, and it is what the radial
+    // fog factor consumes.
     float viewDistance = max(length(viewPosition), 0.0);
+    // Declared here, in its original position, so that the CR_RADIAL_FOG=0
+    // token stream is an exact match for the pre-radial-fog baseline. Moving it
+    // into the #else below is semantically identical but perturbs fxc's
+    // instruction scheduling on the register-heavy IBL permutations, which
+    // would cost the bit-identical A/B guarantee for no benefit.
+#if !CR_RADIAL_FOG_ACTIVE
     float distanceOpticalDepth = compute_distance_optical_depth(viewDistance, fogParams);
+#endif
 
     float heightDensity = compute_height_density(cameraRelativeWorldHeight);
     float heightScale = lerp(1.0, heightDensity, CR_ATMOS_HEIGHT_STRENGTH);
     heightContribution = saturate(abs(heightScale - 1.0) * 2.0);
 
     float densityScale = max(heightScale + horizonFactor * CR_ATMOS_HORIZON_STRENGTH, 0.25);
+#if CR_RADIAL_FOG_ACTIVE
+    fogFactor = compute_radial_fog_factor(viewDistance, fogParams, densityScale);
+    // Keep the composite below an exact lerp between surface and atmosphere.
+    // Everything downstream - aerial desaturation, emissive transmission, the
+    // debug modes - reads these two, so defining transmission as the exact
+    // complement is what keeps the rest of the model unchanged.
+    surfaceTransmission = 1.0 - fogFactor;
+#else
     float opticalDepth = min(distanceOpticalDepth * densityScale, CR_ATMOS_MAX_OPTICAL_DEPTH);
     surfaceTransmission = exp(-opticalDepth);
     fogFactor = saturate(1.0 - surfaceTransmission);
+#endif
 
     float3 viewRay = safe_normalize(viewPosition);
     float3 sunTint;
@@ -760,22 +928,82 @@ void terrain_fragment(
     float3 viewPos = vViewPosition;
 
 #if defined(NORMALMAP_ENABLED)
+    float3 geometryNormal = safe_normalize(vViewNormal);
 #if defined(VERTEX_TANGENTS)
-    float3 baseNormal = safe_normalize(vViewNormal);
+    float3 baseNormal = geometryNormal;
     float3 baseTangent = safe_normalize(vViewTangent);
     float3 binormal = safe_normalize(cross(baseTangent, baseNormal));
     float3x3 tbn = float3x3(baseTangent, binormal, baseNormal);
 #else
-    float3x3 tbn = cotangent_frame(safe_normalize(vViewNormal), vViewPosition.xyz, vTexCoord);
+    float3x3 tbn = cotangent_frame(geometryNormal, vViewPosition.xyz, vTexCoord);
 #endif
 
-    float3 normalTex = normalMap.Sample(normalSam, vTexCoord).xyz * 2.0 - 1.0;
-#if defined(ENHANCED_MODE)
-    normalTex = lerp(sharpen_normal_map(normalTex), normalTex, saturate(vDepth * 0.005));
+    // Mode 0 is BZR's full-RGB DXT1/BC1 convention. Modes 1/2 and the green
+    // flip are explicit diagnostics for proving or rejecting alternate packing
+    // conventions on the live misn04 terrain before changing production math.
+    float4 normalSample = normalMap.Sample(normalSam, vTexCoord);
+    float3 normalTex = unpack_terrain_normal(normalSample);
+    float3 mappedViewNormal = safe_normalize(mul(normalTex, tbn));
+#if CR_TERRAIN_NORMAL_BASIS_MODE == 3
+    float3 viewNormal = geometryNormal;
+#elif CR_TERRAIN_NORMAL_BASIS_MODE == 4
+    float3 viewNormal = safe_normalize(normalTex);
+#else
+    float3 viewNormal = mappedViewNormal;
 #endif
-    float3 viewNormal = safe_normalize(mul(normalTex, tbn));
 #else
     float3 viewNormal = safe_normalize(vViewNormal);
+#endif
+
+#if defined(NORMALMAP_ENABLED) && (CR_TERRAIN_NORMAL_DEBUG_MODE != 0)
+    float3 terrainNormalDebug;
+#if CR_TERRAIN_NORMAL_DEBUG_MODE == 1
+    terrainNormalDebug = normalSample.rgb;
+#elif CR_TERRAIN_NORMAL_DEBUG_MODE == 2
+    terrainNormalDebug = normalSample.aaa;
+#elif CR_TERRAIN_NORMAL_DEBUG_MODE == 3
+    terrainNormalDebug = saturate(normalTex * 0.5 + 0.5);
+#elif CR_TERRAIN_NORMAL_DEBUG_MODE == 4
+    terrainNormalDebug = saturate(viewNormal * 0.5 + 0.5);
+#elif CR_TERRAIN_NORMAL_DEBUG_MODE == 5
+    float3 debugPixelToLight = safe_normalize(lightPosition[0].xyz - (viewPos * lightPosition[0].w));
+    float debugNdotL = (lightCount > 0.0) ? saturate(dot(viewNormal, debugPixelToLight)) : 0.0;
+    terrainNormalDebug = float3(debugNdotL, debugNdotL, debugNdotL);
+#elif CR_TERRAIN_NORMAL_DEBUG_MODE == 6
+    terrainNormalDebug = saturate(geometryNormal * 0.5 + 0.5);
+#elif CR_TERRAIN_NORMAL_DEBUG_MODE == 7
+    terrainNormalDebug = saturate(safe_normalize(tbn[0]) * 0.5 + 0.5);
+#elif CR_TERRAIN_NORMAL_DEBUG_MODE == 8
+    terrainNormalDebug = saturate(safe_normalize(tbn[1]) * 0.5 + 0.5);
+#elif CR_TERRAIN_NORMAL_DEBUG_MODE == 9
+    float3 debugTangent = safe_normalize(tbn[0]);
+    float3 debugBitangent = safe_normalize(tbn[1]);
+    float3 debugBasisNormal = safe_normalize(tbn[2]);
+    terrainNormalDebug = saturate(abs(float3(
+        dot(debugTangent, debugBasisNormal),
+        dot(debugBitangent, debugBasisNormal),
+        dot(debugTangent, debugBitangent))) * 8.0);
+#elif CR_TERRAIN_NORMAL_DEBUG_MODE == 10
+    float3 debugTangent = safe_normalize(tbn[0]);
+    float3 debugBitangent = safe_normalize(tbn[1]);
+    float3 debugBasisNormal = safe_normalize(tbn[2]);
+    float debugDeterminant = abs(dot(cross(debugTangent, debugBitangent), debugBasisNormal));
+    terrainNormalDebug = saturate(float3(length(tbn[0]), length(tbn[1]), debugDeterminant));
+#elif CR_TERRAIN_NORMAL_DEBUG_MODE == 11
+    float normalDeviation = 1.0 - saturate(dot(mappedViewNormal, geometryNormal));
+    terrainNormalDebug = float3(normalDeviation, normalDeviation, normalDeviation);
+#else
+    terrainNormalDebug = float3(1.0, 0.0, 1.0);
+#endif
+    oColor = float4(terrainNormalDebug, 1.0);
+#if defined(LOGDEPTH_ENABLE)
+    const float debugLogDepthC = 0.1;
+    const float debugLogDepthFar = 1e+09;
+    const float debugLogDepthOffset = 1.0;
+    oDepth = log(debugLogDepthC * vDepth + debugLogDepthOffset)
+           / log(debugLogDepthC * debugLogDepthFar + debugLogDepthOffset);
+#endif
+    return;
 #endif
 
 #if defined(SPECULARMAP_ENABLED)
