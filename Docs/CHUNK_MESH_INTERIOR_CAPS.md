@@ -25,9 +25,11 @@ A candidate is skipped when it cannot be safely represented as a simple cap, inc
 
 ## Interior material and UVs
 
-All generated faces are written into one new Ogre submesh using `CR_ChunkInterior` by default. Override it with `--material`.
+For the first in-game validation pass, all generated faces use the existing `iechunk1_BZBase_iechunks` material from `Assets/chunkMeshes/generic/iechunk1_port.material`. That material already references the shared `iechunks.dds`, `iechunks_n.dds`, `iechunks_s.dds`, and `iechunks_e.dds` texture set, so no new interior texture/material asset is required yet.
 
-Each boundary is planar-projected for triangulation and UV generation. `--uv-mode stretch` (default) maps each opening across the full `0..1` UV square, which is appropriate for a shared noisy/burnt-metal interior texture. `--uv-mode fit` preserves projected aspect ratio and centers the island in `0..1`.
+Pass `--material iechunk1_BZBase_iechunks` when generating the capped meshes. The material remains configurable so a dedicated burnt-metal interior can replace it later without changing the topology code.
+
+Each boundary is planar-projected for triangulation and UV generation. `--uv-mode stretch` (default) maps each opening across the full `0..1` UV square, which works well for the shared IE-chunk texture. `--uv-mode fit` preserves projected aspect ratio and centers the island in `0..1`.
 
 Cap triangles use flat face normals. Tangents are not authored; the current DX11 base path can derive a cotangent frame from derivatives when normal mapping is active.
 
@@ -57,7 +59,7 @@ python Tools/Cap-ChunkMeshes.py `
   --input Assets/chunkMeshes `
   --output Assets/chunkMeshes_capped `
   --converter "C:\Tools\OgreXMLConverter.exe" `
-  --material CR_ChunkInterior `
+  --material iechunk1_BZBase_iechunks `
   --uv-mode stretch `
   --report chunk_cap_report.csv
 ```
@@ -71,10 +73,11 @@ python Tools/Cap-ChunkMeshes.py `
   --input Assets/chunkMeshes/avtank/agr11ror.mesh `
   --output .tmp/agr11ror.capped.mesh `
   --converter "C:\Tools\OgreXMLConverter.exe" `
+  --material iechunk1_BZBase_iechunks `
   --keep-xml
 ```
 
-`--keep-xml` writes the before/after XML into `_chunk_cap_xml` next to the output so the generated `CR_ChunkInterior` submesh can be inspected directly.
+`--keep-xml` writes the before/after XML into `_chunk_cap_xml` next to the output so the generated interior submesh can be inspected directly.
 
 ## Built-in regression checks
 
@@ -94,6 +97,6 @@ The self-test verifies:
 
 1. Run `--self-test`.
 2. Run `--audit-only` over `Assets/chunkMeshes` and inspect the report for non-manifold/skipped outliers.
-3. Generate `Assets/chunkMeshes_capped`.
-4. Add/verify the shared `CR_ChunkInterior` material and burnt-metal texture.
-5. Test representative vehicle and building destruction in-game before replacing the shipped chunk tree.
+3. Generate `Assets/chunkMeshes_capped` with `--material iechunk1_BZBase_iechunks`.
+4. Test representative vehicle and building destruction in-game using the existing IE-chunk appearance on the generated interior faces.
+5. Replace the IE material later with a dedicated burnt-metal interior only if the visual test shows it is worthwhile.
