@@ -35,6 +35,13 @@ Vec3 = Tuple[float, float, float]
 Vec2 = Tuple[float, float]
 Tri = Tuple[int, int, int]
 
+# Ogre .mesh files open with a version banner, e.g. "[MeshSerializer_v1.100]".
+# The capped output has to keep whatever version the input carries, so the
+# converter is chosen by round-tripping a real mesh rather than by trusting a
+# path or a version string.
+_MESH_SERIALIZER_RE = re.compile(rb"\[MeshSerializer_v[0-9.]+\]")
+_DOCUMENTED_CONVERTER = r"C:\Tools\OgreXMLConverter.exe"
+
 
 def v_sub(a: Vec3, b: Vec3) -> Vec3:
     return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
@@ -849,6 +856,133 @@ def _resolve_converter(name: str) -> str:
     )
 
 
+def _mesh_serializer_tag(path: Path) -> Optional[bytes]:
+    """Return the ``[MeshSerializer_vX.Y]`` banner a .mesh opens with, if present."""
+    try:
+        with open(path, "rb") as handle:
+            head = handle.read(64)
+    except OSError:
+        return None
+    match = _MESH_SERIALIZER_RE.search(head)
+    return match.group(0) if match else None
+
+
+def _probe_mesh(meshes: Sequence[Path]) -> Optional[Path]:
+    """First input mesh carrying a serializer banner, used as the version probe."""
+    for mesh in meshes:
+        if _mesh_serializer_tag(mesh) is not None:
+            return mesh
+    return None
+
+
+def _converter_candidates(explicit: Optional[str]) -> List[str]:
+    """Ordered converter candidates. An explicit --converter is used verbatim."""
+    if explicit:
+        return [explicit]
+
+    candidates: List[str] = []
+
+    def add(value: Optional[str]) -> None:
+        if value and value not in candidates:
+            candidates.append(value)
+
+    add(os.environ.get("OGRE_XML_CONVERTER"))
+    add(_DOCUMENTED_CONVERTER)
+    add(shutil.which("OgreXMLConverter"))
+    if os.name == "nt":
+        add(shutil.which("OgreXMLConverter.exe"))
+        # Ogre's command-line tools are most often present on an authoring box
+        # because a Blender exporter add-on vendored them.
+        appdata = os.environ.get("APPDATA")
+        if appdata:
+            pattern = "Blender Foundation/Blender/*/scripts/addons/*/*/OgreXMLConverter.exe"
+            for match in sorted(Path(appdata).glob(pattern)):
+                add(str(match))
+
+    return candidates
+
+
+def _check_converter_roundtrip(converter: str, probe: Path) -> Optional[str]:
+    """Return None if converter preserves probe's serializer version, else why not.
+
+    Version is checked by behaviour rather than by path or reported version
+    string: several OgreXMLConverter builds on a typical machine are byte
+    identical apart from the mesh format they emit, and a converter that writes a
+    newer format produces meshes Redux silently fails to load.
+    """
+    expected = _mesh_serializer_tag(probe)
+    if expected is None:
+        return None
+
+    with tempfile.TemporaryDirectory(prefix="chunkcap_probe_") as tmp:
+        tmp_root = Path(tmp)
+        xml_path = tmp_root / "probe.xml"
+        mesh_path = tmp_root / "probe.mesh"
+        try:
+            _run_converter(converter, probe, xml_path)
+            _run_converter(converter, xml_path, mesh_path)
+        except (RuntimeError, OSError) as exc:
+            return f"round-trip failed ({str(exc).splitlines()[0]})"
+        actual = _mesh_serializer_tag(mesh_path)
+
+    if actual is None:
+        return "round-trip produced a mesh with no MeshSerializer banner"
+    if actual != expected:
+        return (
+            f"writes {actual.decode('ascii', 'replace')} but the input meshes are "
+            f"{expected.decode('ascii', 'replace')}"
+        )
+    return None
+
+
+def _select_converter(
+    explicit: Optional[str],
+    probe: Optional[Path],
+    verify: bool,
+) -> str:
+    """Resolve a converter, preferring one proven to preserve the mesh format."""
+    candidates = _converter_candidates(explicit)
+    if not candidates:
+        raise SystemExit(
+            "OgreXMLConverter not found. Pass --converter, or set "
+            "OGRE_XML_CONVERTER, with the path to a converter that writes the "
+            "same MeshSerializer version as the input meshes."
+        )
+
+    failures: List[str] = []
+    for candidate in candidates:
+        try:
+            resolved = _resolve_converter(candidate)
+        except FileNotFoundError:
+            failures.append(f"  {candidate}\n      not found")
+            continue
+
+        if not verify or probe is None:
+            print(f"Converter: {resolved}")
+            print("  UNVERIFIED: mesh format preflight skipped")
+            return resolved
+
+        reason = _check_converter_roundtrip(resolved, probe)
+        if reason is None:
+            print(f"Converter: {resolved}")
+            print(
+                "  verified: preserves "
+                f"{(_mesh_serializer_tag(probe) or b'?').decode('ascii', 'replace')} "
+                f"(probe: {probe.name})"
+            )
+            return resolved
+        failures.append(f"  {resolved}\n      {reason}")
+
+    report = "\n".join(failures) if failures else "  (none)"
+    raise SystemExit(
+        "No usable OgreXMLConverter found. Checked:\n"
+        f"{report}\n\n"
+        "Install an Ogre converter matching the input mesh format and pass it "
+        "with --converter, or set OGRE_XML_CONVERTER. Use "
+        "--skip-converter-check to bypass this preflight."
+    )
+
+
 def _collect_meshes(
     input_path: Path,
     include: re.Pattern[str],
@@ -1098,8 +1232,20 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--converter",
-        default="OgreXMLConverter",
-        help="Ogre 1.10 OgreXMLConverter executable/path (default: search PATH)",
+        default=None,
+        help=(
+            "OgreXMLConverter executable/path. Default: $OGRE_XML_CONVERTER, then "
+            f"{_DOCUMENTED_CONVERTER}, then PATH, then Blender add-on copies; the "
+            "first one that preserves the input mesh format is used."
+        ),
+    )
+    parser.add_argument(
+        "--skip-converter-check",
+        action="store_true",
+        help=(
+            "Skip the converter round-trip preflight. The preflight is what stops "
+            "a newer Ogre build silently writing meshes the game cannot load."
+        ),
     )
     parser.add_argument(
         "--material",
@@ -1175,7 +1321,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if not meshes:
         raise SystemExit(f"no matching .mesh files found under {input_path}")
 
-    converter = _resolve_converter(args.converter)
+    converter = _select_converter(
+        args.converter,
+        _probe_mesh(meshes),
+        verify=not args.skip_converter_check,
+    )
     output_root = (
         Path(args.output).resolve()
         if args.output
