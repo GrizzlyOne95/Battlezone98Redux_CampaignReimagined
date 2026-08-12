@@ -917,7 +917,6 @@ function Build-WorkshopContent {
         "OpenShimManifest.lua",
         "PersistentConfig.lua",
         "RuntimeEnhancements.lua",
-        "ReactiveReticle.lua",
         "misn01.lua",
         "misn02b.lua",
         "misn03.lua",

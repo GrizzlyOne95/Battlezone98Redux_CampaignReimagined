@@ -119,11 +119,11 @@ function M.Create(deps)
             if odf then
                 local val, found = GetODFFloat(odf, nil, "buildTime", 0.0)
                 if found then
-                    buildTime = val
+                    buildTime = tonumber(val) or 0.0
+                    PersistentConfig.UnitBuildTimeCache[key] = buildTime
                 end
             end
         end
-        PersistentConfig.UnitBuildTimeCache[key] = buildTime
         return buildTime
     end
 
@@ -341,7 +341,8 @@ function M.Create(deps)
         local now = GetTime()
         local grace = ((PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.build)
             and PersistentConfig.PresetConfig.build.refundGrace) or 1.0
-        local bestIndex = nil
+        local fallbackIndex = nil
+        local fallbackCount = 0
         for index, record in ipairs(pending) do
             if record.team == team and record.unitKey == wanted then
                 if now <= ((record.expectedFinishAt or 0.0) + grace) then
@@ -351,14 +352,15 @@ function M.Create(deps)
                             return index, record
                         end
                     end
-                    if not bestIndex then
-                        bestIndex = index
-                    end
+                    fallbackIndex = index
+                    fallbackCount = fallbackCount + 1
                 end
             end
         end
-        if bestIndex then
-            return bestIndex, pending[bestIndex]
+        -- Only use a non-spatial fallback when it is unambiguous. With multiple
+        -- same-ODF builds in flight, guessing can associate the wrong preset/refund.
+        if fallbackCount == 1 and fallbackIndex then
+            return fallbackIndex, pending[fallbackIndex]
         end
         return nil
     end

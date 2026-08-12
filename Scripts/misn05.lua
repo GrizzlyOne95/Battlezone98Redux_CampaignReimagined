@@ -5,7 +5,7 @@ SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")
-RequireFix.Initialize({ "campaignReimagined", "3686673790" })
+RequireFix.Initialize()
 local exu = require("exu")
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
@@ -288,10 +288,11 @@ local function ApplyTurboToAll()
 end
 
 function ApplyQOL()
-    if not exu then return end
-    if exu.SetShotConvergence then exu.SetShotConvergence(true) end
-    if exu.SetReticleRange then exu.SetReticleRange(600) end
-    if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
+    if exu then
+        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
+        if exu.SetReticleRange then exu.SetReticleRange(600) end
+        if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
+    end
     PersistentConfig.Initialize()
     Environment.Init()
     PhysicsImpact.Init()
@@ -360,9 +361,9 @@ function Start()
             AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
         end
 
-        ApplyQOL()
     end
 
+    ApplyQOL()
     SetupAI()
     aiCore.Bootstrap()
     subtit.Initialize()

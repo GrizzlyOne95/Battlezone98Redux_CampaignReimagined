@@ -1,6 +1,8 @@
 -- PersistentConfigData.lua
 ---@diagnostic disable: lowercase-global, undefined-global
 
+local ODF_ROOT_SECTION = false
+
 local PdaPages = {
     STATS = 1,
     TARGET = 2,
@@ -13,6 +15,7 @@ local PdaPages = {
 }
 
 return {
+    ODF_ROOT_SECTION = ODF_ROOT_SECTION,
     PdaPages = PdaPages,
 
     -- Page order follows the player's normal decision flow: inspect combat
@@ -119,7 +122,7 @@ return {
     WEAPON_VALUE_SECTIONS = {
         "WeaponClass", "OrdnanceClass", "CannonClass", "ChargeGunClass", "GunClass", "RocketClass", "MissileClass",
         "MortarClass", "DispenserClass", "LauncherClass", "TargetingGunClass", "RadarLauncherClass", "PopperGunClass",
-        "ObjectLobberClass", "RemoteDetonatorClass", "LeaderRoundClass", nil,
+        "ObjectLobberClass", "RemoteDetonatorClass", "LeaderRoundClass", ODF_ROOT_SECTION,
     },
     WEAPON_REFERENCE_LABELS = { "ordName", "ordnanceName", "shotClass", "projectileClass", "objectClass" },
     WEAPON_RANGE_LABELS = { "maxRange", "engageRange", "maxDist", "engageDist", "shotRange", "range", "lockRange" },
@@ -129,7 +132,7 @@ return {
         "damage1", "damage2", "damage3", "damage4", "damage5", "damage6", "damage7", "damage8",
         "damageBallistic", "damageConcussion", "damageFlame", "damageImpact", "damageArea", "damageEM",
     },
-    DAMAGE_SECTIONS = { "WeaponClass", "OrdnanceClass", "ExplosionClass", "CannonClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil },
+    DAMAGE_SECTIONS = { "WeaponClass", "OrdnanceClass", "ExplosionClass", "CannonClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", ODF_ROOT_SECTION },
     EXPLOSION_REFERENCE_LABELS = { "xplVehicle", "xplCar", "xplBuilding", "xplGround", "xplPilot" },
     EXPLOSION_RADIUS_LABELS = { "damageRadius", "explRadius" },
 }

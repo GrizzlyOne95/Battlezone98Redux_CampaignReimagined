@@ -2,8 +2,9 @@ local MissionLifecycle = {}
 MissionLifecycle.__index = MissionLifecycle
 
 local function Call(module, fnName, ...)
-    if module and module[fnName] then
-        return module[fnName](...)
+    local fn = module and module[fnName]
+    if type(fn) == "function" then
+        return fn(...)
     end
 end
 
@@ -20,22 +21,25 @@ function MissionLifecycle:ApplyQOL()
     local cfg = self.cfg
     local exu = cfg.exu
 
-    if cfg.requireExuForQOL ~= false and not exu then
-        return
+    -- EXU-only quality-of-life patches are optional.  Do not let a missing
+    -- native EXU module suppress unrelated Lua initialization below.
+    local exuQol = exu
+    if cfg.requireExuForQOL ~= false and exu and exu.isStub then
+        exuQol = nil
     end
 
-    if exu then
-        if cfg.shotConvergence ~= false and exu.SetShotConvergence then
-            exu.SetShotConvergence(true)
+    if exuQol then
+        if cfg.shotConvergence ~= false and exuQol.SetShotConvergence then
+            exuQol.SetShotConvergence(true)
         end
-        if cfg.reticleRange and exu.SetReticleRange then
-            exu.SetReticleRange(cfg.reticleRange)
+        if cfg.reticleRange and exuQol.SetReticleRange then
+            exuQol.SetReticleRange(cfg.reticleRange)
         end
-        if cfg.ordnanceVelocityInheritance and exu.SetOrdnanceVelocInheritance then
-            exu.SetOrdnanceVelocInheritance(true)
+        if cfg.ordnanceVelocityInheritance and exuQol.SetOrdnanceVelocInheritance then
+            exuQol.SetOrdnanceVelocInheritance(true)
         end
-        if cfg.globalTurbo ~= nil and exu.SetGlobalTurbo then
-            exu.SetGlobalTurbo(cfg.globalTurbo)
+        if cfg.globalTurbo ~= nil and exuQol.SetGlobalTurbo then
+            exuQol.SetGlobalTurbo(cfg.globalTurbo)
         end
     end
 

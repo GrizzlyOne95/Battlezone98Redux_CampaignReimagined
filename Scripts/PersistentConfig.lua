@@ -4,14 +4,12 @@ local bzfile = require("bzfile")
 local exu = require("exu")
 local autosave = require("AutoSave")
 local RuntimeEnhancements = require("RuntimeEnhancements")
-local ConservativeCulling = require("ConservativeCulling")
 local CareerStats = require("CareerStats")
 local LogPaths = require("LogPaths")
 local PersistentConfigData = require("PersistentConfigData")
 
 local PersistentConfig = {}
 PersistentConfig.D = require("PersistentConfigD")
-PersistentConfig.ReactiveReticleModule = require("ReactiveReticle")
 PersistentConfig.CareerStatsModule = CareerStats
 PersistentConfig.Channels = {
     WeaponStats = 1,
@@ -118,9 +116,17 @@ PersistentConfig.DefaultSettings = {
 
 PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
 
+local ODF_ROOT_SECTION = PersistentConfigData.ODF_ROOT_SECTION
 local PdaPages = PersistentConfigData.PdaPages
 local PdaNavigationGroups = PersistentConfigData.PdaNavigationGroups
 local PresetProducerKinds = PersistentConfigData.PresetProducerKinds
+
+local function ResolveOdfSection(section)
+    if section == ODF_ROOT_SECTION then
+        return nil
+    end
+    return section
+end
 
 PersistentConfig.PresetConfig = {
     surcharge = {
@@ -3184,7 +3190,7 @@ end
 local WEAPON_VALUE_SECTIONS = {
     "WeaponClass", "OrdnanceClass", "CannonClass", "ChargeGunClass", "GunClass", "RocketClass", "MissileClass",
     "MortarClass", "DispenserClass", "LauncherClass", "TargetingGunClass", "RadarLauncherClass", "PopperGunClass",
-    "ObjectLobberClass", "RemoteDetonatorClass", "LeaderRoundClass", nil
+    "ObjectLobberClass", "RemoteDetonatorClass", "LeaderRoundClass", ODF_ROOT_SECTION
 }
 
 local WEAPON_REFERENCE_LABELS = { "ordName", "ordnanceName", "shotClass", "projectileClass", "objectClass" }
@@ -3195,7 +3201,7 @@ local DAMAGE_LABELS = {
     "damage1", "damage2", "damage3", "damage4", "damage5", "damage6", "damage7", "damage8",
     "damageBallistic", "damageConcussion", "damageFlame", "damageImpact", "damageArea", "damageEM"
 }
-local DAMAGE_SECTIONS = { "WeaponClass", "OrdnanceClass", "ExplosionClass", "CannonClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", nil }
+local DAMAGE_SECTIONS = { "WeaponClass", "OrdnanceClass", "ExplosionClass", "CannonClass", "GunClass", "RocketClass", "MissileClass", "MortarClass", ODF_ROOT_SECTION }
 local EXPLOSION_REFERENCE_LABELS = { "xplVehicle", "xplCar", "xplBuilding", "xplGround", "xplPilot" }
 local EXPLOSION_RADIUS_LABELS = { "damageRadius", "explRadius" }
 
@@ -3203,7 +3209,7 @@ local function ResolveOrdnanceName(odf)
     if not odf or not GetODFString then return nil end
     for _, section in ipairs(WEAPON_VALUE_SECTIONS) do
         for _, label in ipairs(WEAPON_REFERENCE_LABELS) do
-            local value, found = GetODFString(odf, section, label, "")
+            local value, found = GetODFString(odf, ResolveOdfSection(section), label, "")
             local cleaned = CleanString(value)
             if HasOdfString(cleaned, found) then
                 return cleaned
@@ -3218,7 +3224,7 @@ local function ProbeStringFromOdf(odf, labels, sections)
     sections = sections or WEAPON_VALUE_SECTIONS
     for _, section in ipairs(sections) do
         for _, label in ipairs(labels or {}) do
-            local value, found = GetODFString(odf, section, label, "")
+            local value, found = GetODFString(odf, ResolveOdfSection(section), label, "")
             local cleaned = CleanString(value)
             if HasOdfString(cleaned, found) then
                 return cleaned
@@ -3233,7 +3239,7 @@ local function ProbeValueFromOdf(odf, labels, sections)
     sections = sections or WEAPON_VALUE_SECTIONS
     for _, section in ipairs(sections) do
         for _, label in ipairs(labels) do
-            local value, found = GetODFFloat(odf, section, label, 0.0)
+            local value, found = GetODFFloat(odf, ResolveOdfSection(section), label, 0.0)
             if HasOdfNumber(value, found) then
                 return value
             end
@@ -3248,7 +3254,7 @@ local function ProbeMaxValueFromOdf(odf, labels, sections)
     local best = nil
     for _, section in ipairs(sections) do
         for _, label in ipairs(labels) do
-            local value, found = GetODFFloat(odf, section, label, 0.0)
+            local value, found = GetODFFloat(odf, ResolveOdfSection(section), label, 0.0)
             if HasOdfNumber(value, found) and (not best or value > best) then
                 best = value
             end
@@ -3262,7 +3268,7 @@ local function ProbeIndexedFloatFromOdf(odf, sections, prefix, index)
     sections = sections or WEAPON_VALUE_SECTIONS
     local label = tostring(prefix or "") .. tostring(index or "")
     for _, section in ipairs(sections) do
-        local value, found = GetODFFloat(odf, section, label, 0.0)
+        local value, found = GetODFFloat(odf, ResolveOdfSection(section), label, 0.0)
         if HasOdfNumber(value, found) then
             return value
         end
@@ -3276,7 +3282,7 @@ local function ProbeIndexedStringFromOdf(odf, sections, prefixes, index)
     prefixes = prefixes or WEAPON_REFERENCE_LABELS
     for _, section in ipairs(sections) do
         for _, prefix in ipairs(prefixes) do
-            local value, found = GetODFString(odf, section, tostring(prefix) .. tostring(index or ""), "")
+            local value, found = GetODFString(odf, ResolveOdfSection(section), tostring(prefix) .. tostring(index or ""), "")
             local cleaned = CleanString(value)
             if HasOdfString(cleaned, found) then
                 return cleaned
@@ -3357,7 +3363,7 @@ local function ProbeDamageFromOdf(odf, sections)
         local totalDamage = 0.0
         local foundAny = false
         for _, label in ipairs(DAMAGE_LABELS) do
-            local value, found = GetODFFloat(odf, section, label, 0.0)
+            local value, found = GetODFFloat(odf, ResolveOdfSection(section), label, 0.0)
             if HasOdfNumber(value, found) then
                 totalDamage = totalDamage + value
                 foundAny = true
@@ -3384,8 +3390,8 @@ local function ProbeExplosionProfilesFromOdf(odf)
                 seen[key] = true
                 local explosionOdf = OpenODF(explosionName)
                 if explosionOdf then
-                    local damage = ProbeDamageFromOdf(explosionOdf, { "ExplosionClass", nil })
-                    local radius = ProbeMaxValueFromOdf(explosionOdf, EXPLOSION_RADIUS_LABELS, { "ExplosionClass", nil })
+                    local damage = ProbeDamageFromOdf(explosionOdf, { "ExplosionClass", ODF_ROOT_SECTION })
+                    local radius = ProbeMaxValueFromOdf(explosionOdf, EXPLOSION_RADIUS_LABELS, { "ExplosionClass", ODF_ROOT_SECTION })
                     if damage or radius then
                         profiles[#profiles + 1] = {
                             name = explosionName,
@@ -3502,7 +3508,7 @@ local function GetWeaponReticleName(weaponOdfName, chargeIndex)
             reticle = ProbeIndexedStringFromOdf(weaponOdf, { "ChargeGunClass", "WeaponClass" }, { "wpnReticle" }, chargeIndex)
         end
         if not reticle then
-            reticle = ProbeStringFromOdf(weaponOdf, { "wpnReticle" }, { "WeaponClass", "ChargeGunClass", "TargetingGunClass", nil })
+            reticle = ProbeStringFromOdf(weaponOdf, { "wpnReticle" }, { "WeaponClass", "ChargeGunClass", "TargetingGunClass", ODF_ROOT_SECTION })
         end
     end
 
@@ -4881,7 +4887,7 @@ local function GetStockWeaponUpgradeCost(slotInfo, options)
     return 0.0
 end
 
-local function GetPresetSurchargeForEntry(entry)
+local function GetPresetSurchargeForEntry(entry, excludeSlotIndex)
     if not entry then return 0.0 end
     local team = GetPlayerTeamNum()
     local armory = GetArmoryHandle(team)
@@ -4894,6 +4900,7 @@ local function GetPresetSurchargeForEntry(entry)
     local total = 0.0
     local manualExtras = {}
     local mortarUpgrades = 0
+    local surchargeConfig = PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.surcharge
     local function IsDifferentWeapon(slotInfo, selectedOption)
         if not slotInfo or not selectedOption or not selectedOption.weaponName or selectedOption.weaponName == "" then
             return false
@@ -4907,7 +4914,10 @@ local function GetPresetSurchargeForEntry(entry)
     end
 
     for _, slotInfo in ipairs(entry.slots or {}) do
-        local selectedPowerup = preset[slotInfo.slotIndex]
+        local selectedPowerup = nil
+        if slotInfo.slotIndex ~= excludeSlotIndex then
+            selectedPowerup = preset[slotInfo.slotIndex]
+        end
         if selectedPowerup and selectedPowerup ~= "" then
             local options = armoryOptions[slotInfo.category] and armoryOptions[slotInfo.category].options or {}
             local selectedOption = options[FindWeaponOptionIndex(options, selectedPowerup)]
@@ -4930,7 +4940,6 @@ local function GetPresetSurchargeForEntry(entry)
     end
 
     if mortarUpgrades > 0 then
-        local surchargeConfig = PersistentConfig.PresetConfig and PersistentConfig.PresetConfig.surcharge
         local mortarFlat = (surchargeConfig and surchargeConfig.mortarFlat) or 1.0
         total = total + (mortarUpgrades * mortarFlat)
     end
@@ -6277,8 +6286,10 @@ function PersistentConfig._HueToRGB(h)
 end
 
 function PersistentConfig.LoadConfig()
-    -- Attempt to verify file existence via io if possible, but bzfile is safer context
-    -- Use pcall to catch "not open" error if bzfile.Open returns a zombie handle
+    -- Preserve the pre-load state so a partial read/parse failure cannot leak
+    -- half-loaded settings into the running mission.
+    local settingsBeforeLoad = DeepCopy(PersistentConfig.Settings)
+    local presetsBeforeLoad = DeepCopy(PersistentConfig.UnitPresets)
     PersistentConfig.UnitPresets = {}
     local loadedSubtitleFontScale
     local loadedPdaFontScale
@@ -6286,11 +6297,10 @@ function PersistentConfig.LoadConfig()
     local legacyPdaTextPreset
     local loadedLightingMode
     local legacyRetroLighting
-    local status, err = pcall(function()
+    local status, resultOrError = pcall(function()
         local f = bzfile.Open(PersistentConfig.ConfigPath, "r")
         if not f then
-            print("PersistentConfig: No config file found at " .. PersistentConfig.ConfigPath .. ". Using defaults.")
-            return
+            return "missing"
         end
 
         local line = f:Readln()
@@ -6413,15 +6423,32 @@ function PersistentConfig.LoadConfig()
             line = f:Readln()
         end
         f:Close()
+        return "loaded"
     end)
 
+    local loadResult
     if not status then
-        if tostring(err):find("not open") then
-            print("PersistentConfig: No config found (first run), creating new defaults.")
+        if tostring(resultOrError):find("not open") then
+            loadResult = "missing"
         else
-            print("PersistentConfig: Error loading config: " .. tostring(err))
+            loadResult = "error"
+            PersistentConfig.Settings = settingsBeforeLoad
+            PersistentConfig.UnitPresets = presetsBeforeLoad
+            loadedSubtitleFontScale = nil
+            loadedPdaFontScale = nil
+            legacySubtitlePreset = nil
+            legacyPdaTextPreset = nil
+            loadedLightingMode = nil
+            legacyRetroLighting = nil
+            print("PersistentConfig: Error loading config: " .. tostring(resultOrError))
         end
     else
+        loadResult = resultOrError or "loaded"
+    end
+
+    if loadResult == "missing" then
+        print("PersistentConfig: No config file found at " .. PersistentConfig.ConfigPath .. ". Using defaults.")
+    elseif loadResult == "loaded" then
         print("PersistentConfig: Settings loaded.")
     end
 
@@ -6471,6 +6498,7 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.RadarSizeScale = GetRadarSizeScaleSetting()
     PersistentConfig.Settings.AutoSaveInterval = PersistentConfig._GetAutoSaveIntervalOption().seconds
     PersistentConfig._SetLightingModeIndex(PersistentConfig.Settings.LightingMode)
+    return loadResult
 end
 
 function PersistentConfig.SaveConfig()
@@ -6478,13 +6506,13 @@ function PersistentConfig.SaveConfig()
     print("Config path: " .. tostring(PersistentConfig.ConfigPath))
     print("Working directory: " .. tostring(bzfile.GetWorkingDirectory()))
 
-    local status, err = pcall(function()
-        local f = bzfile.Open(PersistentConfig.ConfigPath, "w", "trunc")
-        if not f then
-            print("PersistentConfig: Failed to open config file for writing!")
-            print("Attempted path: " .. PersistentConfig.ConfigPath)
-            return
+    local fileHandle = nil
+    local status, saved, saveError = pcall(function()
+        fileHandle = bzfile.Open(PersistentConfig.ConfigPath, "w", "trunc")
+        if not fileHandle then
+            return false, "failed to open config file for writing"
         end
+        local f = fileHandle
 
         print("PersistentConfig: File opened successfully, writing settings...")
 
@@ -6540,14 +6568,28 @@ function PersistentConfig.SaveConfig()
         end
 
         f:Close()
+        fileHandle = nil
         print("PersistentConfig: File closed successfully")
+        return true
     end)
 
-    if not status then
-        print("PersistentConfig: Error saving config: " .. tostring(err))
-    else
-        print("PersistentConfig: Settings saved successfully to: " .. PersistentConfig.ConfigPath)
+    if fileHandle then
+        pcall(function() fileHandle:Close() end)
+        fileHandle = nil
     end
+
+    if not status then
+        print("PersistentConfig: Error saving config: " .. tostring(saved))
+        return false
+    end
+    if saved ~= true then
+        print("PersistentConfig: Failed to save config: " .. tostring(saveError or "unknown error"))
+        print("Attempted path: " .. PersistentConfig.ConfigPath)
+        return false
+    end
+
+    print("PersistentConfig: Settings saved successfully to: " .. PersistentConfig.ConfigPath)
+    return true
 end
 
 function PersistentConfig.ResetToDefaults()
@@ -6683,7 +6725,6 @@ function PersistentConfig.UpdateInputs()
     end
 
     RuntimeEnhancements.Update()
-    ConservativeCulling.Update()
     PersistentConfig.CareerStatsModule.Update()
 
     -- The engine may recreate or repopulate the stock scrap/pilot frame rects
@@ -6735,13 +6776,15 @@ function PersistentConfig.UpdateInputs()
     end
     local uiInteractionSuppressed = pauseMenuOpen or escapePressed
 
-    if InputState.autoSaveStartupPending then
-        if not (autosave and autosave.Config and autosave.Config.enabled and autosave.Update) then
+    if autosave and autosave.Config and type(autosave.Update) == "function" then
+        if not autosave.Config.enabled then
             InputState.autoSaveStartupPending = false
         elseif not uiInteractionSuppressed then
-            InputState.autoSaveStartupPending = false
             autosave.Update(0.0)
+            InputState.autoSaveStartupPending = false
         end
+    else
+        InputState.autoSaveStartupPending = false
     end
 
     if PersistentConfig.ExperimentalOverlayVisible then
@@ -6765,7 +6808,6 @@ function PersistentConfig.UpdateInputs()
     end
 
     PersistentConfig._UpdatePdaOverlayTimers()
-    PersistentConfig.ReactiveReticleModule.Update()
 
     if uiInteractionSuppressed then
         ClearWeaponStats()
@@ -7422,8 +7464,6 @@ function PersistentConfig.OnObjectCreated(h)
 
     PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated RuntimeEnhancements " .. handleInfo,
         RuntimeEnhancements.OnObjectCreated, h)
-    PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated ConservativeCulling " .. handleInfo,
-        ConservativeCulling.OnObjectCreated, h)
     PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated RegisterTrackedWorldHandle " .. handleInfo,
         RegisterTrackedWorldHandle, h)
     if aiCore and type(aiCore.TrackWorldObject) == "function" then
@@ -7494,8 +7534,7 @@ function PersistentConfig.Initialize()
     InputState.otherHeadlightVisibility = {}
     RuntimeEnhancements.Initialize()
     RuntimeEnhancements.RebuildVisuals()
-    ConservativeCulling.Initialize()
-    PersistentConfig.LoadConfig()
+    local configLoadResult = PersistentConfig.LoadConfig()
     WarnIfNativeFeaturesUnavailable()
     EnsureBundledOpenShimInstalled()
 
@@ -7511,7 +7550,11 @@ function PersistentConfig.Initialize()
         print("PersistentConfig: Defaulted Auto-Repair to " ..
             (PersistentConfig.Settings.AutoRepairWingmen and "ON" or "OFF") .. " based on difficulty.")
     end
-    PersistentConfig.SaveConfig()
+    if configLoadResult ~= "error" then
+        PersistentConfig.SaveConfig()
+    else
+        print("PersistentConfig: Skipping config rewrite because the existing file failed to load.")
+    end
     -- Full apply: missions that do not route through MissionLifecycle's
     -- InitializeSubtitles (which is the other applyAll site) still need the
     -- scrap/pilot HUD layout, subtitles, team colors, etc. applied at start.
@@ -7526,46 +7569,6 @@ function PersistentConfig.Initialize()
     -- Keep EXU overlay/font initialization lazy so startup does not touch the
     -- custom Ogre font path before the UI runtime is fully ready.
     PersistentConfig._InstallPlayerChargeTrackingHook()
-    PersistentConfig.ReactiveReticleModule.Reset()
-    PersistentConfig.ReactiveReticleModule.Initialize({
-        log = Log,
-        registerHitCallback = function(fn)
-            if aiCore and type(aiCore.RegisterExuCallback) == "function" then
-                return aiCore.RegisterExuCallback("BulletHit", fn)
-            end
-            return false
-        end,
-        resolveMaterial = function()
-            if not exu or exu.isStub then
-                return nil
-            end
-
-            local player = GetPlayerHandle and GetPlayerHandle() or nil
-            if not IsValid(player) then
-                return nil
-            end
-
-            local searchMask = ResolveLiveSelectedWeaponMask(player, GetCurrentWeaponMask(player))
-            if not searchMask or searchMask <= 0 then
-                return nil
-            end
-
-            for slot = 0, 4 do
-                if IsMaskBitSet(searchMask, slot) then
-                    local weapon = CleanString(GetWeaponClass(player, slot))
-                    if weapon ~= "" then
-                        local displayedStats = GetDisplayedWeaponStats(player, weapon, GetWeaponStats(weapon) or {}) or {}
-                        local reticle = CleanString(GetWeaponReticleName(weapon, displayedStats.currentChargeLevel))
-                        if reticle ~= "" then
-                            return reticle
-                        end
-                    end
-                end
-            end
-
-            return nil
-        end,
-    })
     PersistentConfig.CareerStatsModule.Initialize({
         log = Log,
         registerHitCallback = function(fn)
@@ -7645,7 +7648,6 @@ function PersistentConfig.Initialize()
         PersistentConfig._DestroyAllPdaOverlays()
         ClearWeaponStats()
         ClearPdaFeedback()
-        PersistentConfig.ReactiveReticleModule.Reset()
 
         local subtit = GetScriptSubtitles()
         if subtit then

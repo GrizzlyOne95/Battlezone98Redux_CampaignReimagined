@@ -6,6 +6,7 @@ local bzfile = require("bzfile")
 local AutoSave = {}
 local AUTOSAVE_SUBTITLE_DURATION = 5.0
 local AUTOSAVE_INITIAL_DELAY_SECONDS = 10.0
+local AUTOSAVE_RETRY_SECONDS = 5.0
 local SUBTITLE_FONT_SCALE_MIN = 0.85
 local SUBTITLE_FONT_SCALE_MAX = 2.00
 
@@ -333,8 +334,13 @@ function AutoSave.CreateSave(slot, desc)
         return false
     end
 
-    local ok, pathOrError = exu.SaveGame(filename, desc)
-    if ok then
+    local callOk, saveOk, pathOrError = pcall(exu.SaveGame, filename, desc)
+    if not callOk then
+        print("AutoSave: native save call raised an error: " .. tostring(saveOk))
+        return false
+    end
+
+    if saveOk then
         writeAutoSaveLabel(labelPath, desc)
         print("AutoSave: native save completed to " .. tostring(pathOrError or filename))
         showAutoSaveNotification()
@@ -352,11 +358,19 @@ function AutoSave.Update(dtime)
     if not AutoSave.Config.enabled then
         AutoSave._wasEnabled = false
         AutoSave._initialDelayDeadline = nil
+        AutoSave._retryAt = nil
         return
     end
 
     local now = GetTime()
     local missionTime = math.floor(now)
+
+    if AutoSave._retryAt then
+        if now < AutoSave._retryAt then
+            return
+        end
+        AutoSave._retryAt = nil
+    end
 
     if AutoSave._forceInitialSave or not AutoSave._wasEnabled or not AutoSave._lastSaveTime then
         if not AutoSave._initialDelayDeadline then
@@ -368,11 +382,15 @@ function AutoSave.Update(dtime)
         end
 
         print("AutoSave: initial save at " .. missionTime .. "s")
-        AutoSave.CreateSave(nil, buildAutoSaveDescription(now))
-        AutoSave._lastSaveTime = now
-        AutoSave._wasEnabled = true
-        AutoSave._forceInitialSave = false
-        AutoSave._initialDelayDeadline = nil
+        if AutoSave.CreateSave(nil, buildAutoSaveDescription(now)) then
+            AutoSave._lastSaveTime = now
+            AutoSave._wasEnabled = true
+            AutoSave._forceInitialSave = false
+            AutoSave._initialDelayDeadline = nil
+        else
+            AutoSave._retryAt = now + AUTOSAVE_RETRY_SECONDS
+            print(string.format("AutoSave: retrying failed initial save in %.1fs", AUTOSAVE_RETRY_SECONDS))
+        end
         return
     end
 
@@ -382,8 +400,12 @@ function AutoSave.Update(dtime)
 
     print("AutoSave: saving at " .. missionTime .. "s")
 
-    AutoSave.CreateSave(nil, buildAutoSaveDescription(now))
-    AutoSave._lastSaveTime = now
+    if AutoSave.CreateSave(nil, buildAutoSaveDescription(now)) then
+        AutoSave._lastSaveTime = now
+    else
+        AutoSave._retryAt = now + AUTOSAVE_RETRY_SECONDS
+        print(string.format("AutoSave: retrying failed save in %.1fs", AUTOSAVE_RETRY_SECONDS))
+    end
 end
 
 _G.AutoSave = AutoSave

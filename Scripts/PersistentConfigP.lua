@@ -618,14 +618,7 @@ function M.Create(deps)
             end
 
             local baseSurcharge = math.floor(GetPresetSurchargeForEntry(selectedEntry) + 0.5)
-            local original = unitPreset and unitPreset[slotInfo.slotIndex] or nil
-            if unitPreset then
-                unitPreset[slotInfo.slotIndex] = nil
-            end
-            local withoutSurcharge = math.floor(GetPresetSurchargeForEntry(selectedEntry) + 0.5)
-            if unitPreset then
-                unitPreset[slotInfo.slotIndex] = original
-            end
+            local withoutSurcharge = math.floor(GetPresetSurchargeForEntry(selectedEntry, slotInfo.slotIndex) + 0.5)
             local deltaCost = math.max(0, baseSurcharge - withoutSurcharge)
 
             local dpsDelta = (selectedStats and selectedStats.dps or nil) and

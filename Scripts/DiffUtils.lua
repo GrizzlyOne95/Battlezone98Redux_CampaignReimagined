@@ -6,10 +6,18 @@
 local exu = require("exu")
 local DiffUtils = {}
 
+local function NormalizeDifficulty(value)
+    local d = tonumber(value)
+    if not d then return 2 end
+    d = math.floor(d + 0.5)
+    if d < 0 or d > 4 then return 2 end
+    return d
+end
+
 -- Returns a table of multipliers based on current game difficulty
 -- 0: Very Easy, 1: Easy, 2: Medium, 3: Hard, 4: Very Hard
 function DiffUtils.Get()
-    local d = (exu and exu.GetDifficulty and exu.GetDifficulty()) or 2
+    local d = NormalizeDifficulty((exu and exu.GetDifficulty and exu.GetDifficulty()) or 2)
     local m = {
         index = (d >= 0 and d <= 4) and d or 2,
         res = ({ 1.5, 1.25, 1.0, 0.75, 0.5 })[d + 1] or 1.0,
@@ -248,8 +256,19 @@ function DiffUtils.ScaleTimer(val) return val * DiffUtils.Get().timer end
 
 -- Standard Player/Enemy Setup for aiCore
 function DiffUtils.SetupTeams(playerFaction, enemyFaction, enemyTeamNum)
-    local playerTeam = aiCore.AddTeam(1, playerFaction)
-    local enemyTeam = aiCore.AddTeam(enemyTeamNum or 2, enemyFaction)
+    local core = rawget(_G, "aiCore")
+    if not core or type(core.AddTeam) ~= "function" then
+        local ok, loaded = pcall(require, "aiCore")
+        if ok then
+            core = loaded
+        end
+    end
+    if not core or type(core.AddTeam) ~= "function" then
+        error("DiffUtils.SetupTeams requires aiCore.AddTeam")
+    end
+
+    local playerTeam = core.AddTeam(1, playerFaction)
+    local enemyTeam = core.AddTeam(enemyTeamNum or 2, enemyFaction)
 
     DiffUtils.ApplyAiCoreDifficulty(playerTeam, "player", 1)
     DiffUtils.ApplyAiCoreDifficulty(enemyTeam, "enemy", enemyTeamNum or 2)
