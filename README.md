@@ -1,121 +1,82 @@
-## Credits
+# Campaign Reimagined
 
-- `GrizzlyOne95` for current addon maintenance, integration, and workspace stewardship.
-- `VTrider` for EXU-side groundwork that this addon stack builds on.
+Campaign Reimagined is an experimental, unofficial overhaul and community patch for Battlezone 98 Redux. It is more than a mission pack: the Workshop payload combines rewritten campaign logic, shared Lua gameplay systems, replacement maps and assets, renderer content, and native engine extensions in one integrated distribution.
 
-## Steam Workshop publishing
+The project aims to preserve the identity and progression of the original campaign while making its missions more reliable, reactive, configurable, and maintainable. It also serves as the live integration environment for OpenShim, Extra Utilities, and bzfile features used by the campaign.
 
-The publisher is locked to Battlezone 98 Redux app `301650` and Workshop item
-`3686673790`. It builds a clean payload under `Local/Workshop/content`; it never
-uploads the live game directory and does not commit or push Git changes.
+This project is not affiliated with or supported by Rebellion.
 
-The required promotion order is canonical source -> GOG working test copy ->
-Workshop upload -> Steam final verification. Development deploys target
-`C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\mods\3686673790`.
-The subscribed Steam Workshop folder is never a direct deploy target; Steam
-testing begins only after the validated upload has been downloaded by Steam.
+## Current scope
 
-### GitHub Actions publishing
+- The main rewrite and testing focus is currently `misn02b`, `misn03`, and `misn04`.
+- Lua mission ports are present for `misn01` through `misn05`; custom map packages are included for `misn02b` through `misn05`.
+- Missions outside the active focus may be playable but should not be assumed to have the same level of testing or completion.
+- Native components currently target the 32-bit Windows build of Battlezone 98 Redux 2.2.301.
+- The project remains experimental: native hooks, broad asset overrides, and evolving mission scripts can introduce incompatibilities or regressions.
 
-The repository includes a manual `Publish Steam Workshop` workflow. Publishing
-is intentionally split between two machines:
+## What it changes
 
-1. A GitHub-hosted Windows runner checks out Campaign Reimagined, checks out and
-   builds the selected OpenShim revision, creates the Workshop payload, validates
-   required/forbidden files, and writes the SHA-256 content manifest.
-2. A dedicated self-hosted Windows runner with cached SteamCMD authentication
-   downloads only that validated artifact, verifies its manifest again, and
-   uploads it to Steam.
+- **Campaign scripting** — Lua ports and rewrites of early NSDF missions, repaired objective flow, safer save/load restoration, difficulty-aware encounters, and mission-specific stability fixes.
+- **AI and combat behavior** — shared team AI, construction and economy management, command-safe wingman behavior, howitzer range assistance, targeting controls, stuck recovery, and configurable unit tuning.
+- **PDA and mission UI** — a persistent multi-page PDA for combat, target, career, logistics, loadout, settings, and system information, with scalable Ogre overlays and mission-aware controls.
+- **Persistent player systems** — autosaves, career statistics, per-unit loadout presets, interface preferences, lighting options, audio/alert settings, and gameplay-assistance toggles.
+- **Subtitles and radio** — script-driven subtitle overlays, audio-duration data, pause-aware presentation, and improved handling of queued, repetitive, or stale unit dialogue.
+- **Rendering and atmosphere** — enhanced and retro lighting modes, custom shaders and materials, terrain and sky controls, weather support, emissive vehicle states, star effects, and high-resolution HUD adjustments.
+- **Native engine fixes** — OpenShim and Extra Utilities integrations for loader behavior, multiplayer stability, shader caching, native autosaves, HUD placement, radar scaling, reticle and weapon convergence, turbo, headlights, and restored legacy behaviors.
+- **Content restoration and replacement** — repaired or replacement meshes, ODFs, textures, materials, flags, localized text, loading screens, and physical destruction chunks used by the integrated runtime.
+- **Diagnostics and maintenance** — manifest-verified native payloads, safer patch validation, crash and replacement logs, local deployment tooling, Workshop staging checks, and reproducible publishing automation.
 
-The Steam-authenticated runner does not check out or compile repository code.
-The workflow only runs through `workflow_dispatch`, refuses to publish anything
-other than `main`, and uses a concurrency lock so two uploads cannot collide.
+## How the package fits together
 
-Setup instructions are in `docs/STEAM_WORKSHOP_RUNNER.md`. After the runner is
-configured, publishing is:
+| Layer | Role |
+|---|---|
+| `Scripts/` and `Missions/` | Mission rewrites, shared AI, PDA, autosave, subtitles, persistence, weather, and runtime orchestration |
+| `Bin/` | Bundled OpenShim (`winmm.dll`), Extra Utilities (`exu.dll`), bzfile, symbols, and replacement helper |
+| `Assets/`, `ODF/`, `Materials/`, `Shaders/`, `Textures/`, `Text/` | Models, gameplay definitions, rendering resources, UI content, and localization overrides |
+| `Config/` and `InstallerPayload/` | Mod metadata, shader settings, generated OpenShim configuration inputs, and installation payloads |
+| `Manage-CampaignFiles.ps1` | Canonical source synchronization, GOG development deployment, Workshop staging, validation, and upload control |
 
-```text
-Actions -> Publish Steam Workshop -> Run workflow
-```
+OpenShim owns low-level loading and engine patches. Extra Utilities exposes native engine and Ogre functionality to Lua. bzfile supplies file access used by persistent campaign systems. Campaign Reimagined ties those layers to its missions and content; installing only the Lua files does not reproduce the complete experience.
 
-Enter the Workshop change note, normally leave `openshim_ref` at `main`, and
-choose whether the run is a dry run. Dry runs build and validate the complete
-payload without contacting Steam and do not require the self-hosted runner.
+## Installation
 
-The canonical Workshop description is tracked at
-`docs/workshop_description.bbcode`. It is included in the upload metadata but
-excluded from the Workshop content payload itself.
+Subscribe to [Campaign Reimagined on Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790), then launch one of its missions. The package installs or updates OpenShim by placing `winmm.dll` beside `battlezone98redux.exe`; restart the game when prompted because the loaded DLL cannot be replaced in place.
 
-### Local publishing
+If automatic installation fails, check `winmm_replace.log` in the game directory. Other native DLL modifications should be removed before troubleshooting compatibility. To remove the native patch, delete the Campaign Reimagined `winmm.dll` from the Battlezone 98 Redux installation directory.
 
-Local publishing remains supported. When publishing from a Git checkout, use
-`docs/Invoke-WorkshopPublisher.ps1` as the entrypoint. The legacy manager
-recursively scans the repository, so the wrapper temporarily moves `.github/`
-outside the source tree while it runs and restores it afterward. This prevents
-GitHub workflow YAML from being flattened into the mod payload.
+## Repository workflow
 
-1. Copy `workshop.config.example.json` to the ignored
-   `workshop.config.json`.
-2. Set `SteamUser`, or define the `STEAM_USERNAME` environment variable.
-3. Bootstrap SteamCMD authentication once:
+This repository is the canonical source tree. Development follows this promotion path:
 
-   ```powershell
-   .\docs\Invoke-WorkshopPublisher.ps1 -workshop-auth
-   ```
+1. Make and validate changes here.
+2. Deploy to the GOG working runtime with `Manage-CampaignFiles.ps1 -deploy`.
+3. Test against the GOG game installation.
+4. Build and upload the validated Workshop payload.
+5. Let Steam download item `3686673790`, then perform final Steam verification.
 
-4. Build and validate without uploading:
+Do not deploy development files directly into Steam's Workshop download cache. `Local/Workshop` is generated staging, not a playable development runtime.
 
-   ```powershell
-   .\docs\Invoke-WorkshopPublisher.ps1 -workshop-build "Release candidate"
-   ```
+Useful references:
 
-   The build refreshes `Bin/winmm.dll` from
-   `Documents/GIT/BZR-OpenShim/bin/Release/winmm.dll` before generating the
-   OpenShim manifest. Set `BZR_OPENSHIM_REPO` to override that repository path.
+- [`CHANGELOG.md`](CHANGELOG.md) — recent player-facing and technical changes
+- [`docs/workshop_description.bbcode`](docs/workshop_description.bbcode) — canonical public Workshop description
+- [`docs/STEAM_WORKSHOP_RUNNER.md`](docs/STEAM_WORKSHOP_RUNNER.md) — publishing architecture and runner setup
+- [`AGENTS.md`](AGENTS.md) — authoritative local paths and promotion rules
 
-   Deploy the candidate to the GOG working test copy:
+## Publishing
 
-   ```powershell
-   .\Manage-CampaignFiles.ps1 -deploy
-   ```
+The manual **Publish Steam Workshop** GitHub Actions workflow builds OpenShim, stages the campaign, validates the content manifest, and hands the immutable payload to a dedicated Steam-authenticated runner. It is restricted to `main` and supports a dry-run mode.
 
-   Validate the candidate in
-   `C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux`. The manager
-   must not fall back to a Steam install or subscribed Workshop cache.
+Local builds and uploads use `docs/Invoke-WorkshopPublisher.ps1`, which wraps `Manage-CampaignFiles.ps1` so repository-only files are excluded from the flattened Workshop payload. Copy `workshop.config.example.json` to the ignored `workshop.config.json` before local publishing.
 
-5. Upload the GOG-validated payload:
+## Reporting problems
 
-   ```powershell
-   .\docs\Invoke-WorkshopPublisher.ps1 -workshop-upload "Describe the update"
-   ```
+Include the mission or game mode, reproduction steps, expected and observed behavior, and any relevant screenshots, logs, or save files. Also identify other installed native modifications. Reports with a reproducible sequence are substantially easier to diagnose.
 
-6. Let Steam download Workshop item `3686673790`, then perform final testing
-   with `C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux` and
-   its subscribed payload under
-   `C:\Program Files (x86)\Steam\steamapps\workshop\content\301650\3686673790`.
+## Credits and rights
 
-### Description and visibility
+- **GrizzlyOne95** — current campaign maintenance, integration, mission work, and workspace stewardship.
+- **VTrider** — Extra Utilities groundwork used throughout the addon stack.
+- OpenShim, Extra Utilities, bzfile, and earlier Battlezone community contributors whose work supports the integrated runtime.
 
-Two SteamCMD behaviours are worth knowing, because both fail silently:
-
-- `workshop_build_item` only understands an **inline** `description` key. A
-  `descriptionfile` path is not a real key; SteamCMD discards it, reports
-  `Committing update...Success.`, updates the content and leaves the published
-  description untouched. `DescriptionFile` in `workshop.config.json` is read by
-  the publisher and inlined for you from `docs/workshop_description.bbcode`.
-- SteamCMD's KeyValues parser does **not** process escape sequences. Newlines
-  are fine inside the quoted value, but a literal double quote ends it early and
-  the upload dies with `got } in key in file workshopitem`. The publisher
-  converts double quotes to apostrophes and tells you when it does.
-- An upload that does not state a `visibility` leaves the item **hidden**, and a
-  hidden item rejects the *next* upload at the commit step with nothing but
-  `Failed to update workshop item (Access Denied)`. `Visibility` therefore
-  defaults to `0` (public) so every publish reasserts it. If you ever do hit
-  that error, set the item back to Public in the Steam client once and re-run
-  the upload.
-
-Steam passwords are never read from the JSON configuration. SteamCMD may ask
-for a password and Steam Guard code during the authentication bootstrap, then
-reuse its locally cached login for subsequent uploads. Generated content,
-hash manifests, VDF files, receipts, and SteamCMD logs remain under the ignored
-`Local/Workshop` directory during local publishing.
+This is a mixed-rights addon repository. The MIT terms in [`LICENSE.md`](LICENSE.md) apply only to clearly original project work; bundled binaries, third-party files, and stock-derived game content retain their original rights as described in [`NOTICE.md`](NOTICE.md).
