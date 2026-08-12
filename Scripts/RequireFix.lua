@@ -5,7 +5,7 @@
 
 local RequireFix = {}
 do
-    local version = "1.2"
+    local version = "1.3"
     local workshopAppId = "301650"
     local originalPath = package.path or ""
     local originalCPath = package.cpath or ""
@@ -13,6 +13,7 @@ do
     local initialized = false
     local lastGameDirectory = "."
     local lastWorkshopDirectory = nil
+    local lastActiveModRoot = nil
     local moduleDirectory = nil
 
     -- Redux can load the entry mission from an enabled Steam Workshop item
@@ -139,6 +140,38 @@ do
         return lastGameDirectory
     end
 
+    local function DetectActiveModRoot()
+        local normalized = NormalizePath(moduleDirectory)
+        if not normalized then
+            return lastActiveModRoot
+        end
+
+        local lower = string.lower(normalized)
+        local markers = {
+            "\\steamapps\\workshop\\content\\" .. workshopAppId .. "\\",
+            "\\addon\\",
+            "\\mods\\",
+            "\\packaged_mods\\",
+        }
+
+        for _, marker in ipairs(markers) do
+            local markerStart = string.find(lower, marker, 1, true)
+            if markerStart then
+                local itemStart = markerStart + #marker
+                if itemStart <= #normalized then
+                    local itemEnd = string.find(normalized, "\\", itemStart, true)
+                    local root = itemEnd and normalized:sub(1, itemEnd - 1) or normalized
+                    if root and root ~= "" then
+                        lastActiveModRoot = root
+                        return root
+                    end
+                end
+            end
+        end
+
+        return lastActiveModRoot
+    end
+
     local function DetectWorkshopDirectory(gameDirectory)
         local paths = {
             moduleDirectory or "",
@@ -188,6 +221,7 @@ do
     local function BuildPathLists(workshopIDs)
         local gameDirectory = DetectGameDirectory()
         local workshopDirectory = DetectWorkshopDirectory(gameDirectory)
+        local activeModRoot = DetectActiveModRoot()
 
         local originalLuaPaths = SplitAtSemicolon(originalPath)
         local originalDllPaths = SplitAtSemicolon(originalCPath)
@@ -196,9 +230,35 @@ do
         local seenLua = {}
         local seenDll = {}
 
+        local function AddSearchRoot(root)
+            if not root or root == "" then
+                return
+            end
+
+            InsertUnique(luaPaths, seenLua, root .. "\\?.lua")
+            InsertUnique(luaPaths, seenLua, root .. "\\Scripts\\?.lua")
+            InsertUnique(luaPaths, seenLua, root .. "\\Lua\\?.lua")
+
+            InsertUnique(dllPaths, seenDll, root .. "\\?.dll")
+            InsertUnique(dllPaths, seenDll, root .. "\\Scripts\\?.dll")
+            InsertUnique(dllPaths, seenDll, root .. "\\Lua\\?.dll")
+        end
+
+        -- Resolve the active Workshop/mod item from this module's physical source
+        -- path.  The containing item root is authoritative and is always searched
+        -- before optional external dependency IDs.  This makes Initialize() agnostic
+        -- to Workshop republishing or local addon/mod/packaged_mod names.
+        AddSearchRoot(activeModRoot)
+
+        -- Keep the exact module directory as a fallback for unusual nested layouts.
+        -- For the normal <root>\Scripts layout this is already covered above.
+        AddSearchRoot(moduleDirectory)
+
         local ids = {}
         if type(workshopIDs) == "table" then
-            for _, id in pairs(workshopIDs) do
+            -- Workshop IDs are an ordered search-precedence list.  ipairs keeps
+            -- that precedence deterministic; pairs does not guarantee array order.
+            for _, id in ipairs(workshopIDs) do
                 ids[#ids + 1] = tostring(id)
             end
         elseif workshopIDs ~= nil then
@@ -206,31 +266,10 @@ do
         end
 
         for _, id in ipairs(ids) do
-            -- Keep this array dense.  Lua 5.1 ipairs stops at the first nil;
-            -- a missing debug source path must not suppress every fallback.
-            local roots = {}
-            local function AddRoot(root)
-                if root and root ~= "" then
-                    roots[#roots + 1] = root
-                end
-            end
-            AddRoot(moduleDirectory)
-            AddRoot(gameDirectory and (gameDirectory .. "\\addon\\" .. id) or nil)
-            AddRoot(gameDirectory and (gameDirectory .. "\\mods\\" .. id) or nil)
-            AddRoot(gameDirectory and (gameDirectory .. "\\packaged_mods\\" .. id) or nil)
-            AddRoot(workshopDirectory and (workshopDirectory .. "\\" .. id) or nil)
-
-            for _, root in ipairs(roots) do
-                if root then
-                    InsertUnique(luaPaths, seenLua, root .. "\\?.lua")
-                    InsertUnique(luaPaths, seenLua, root .. "\\Scripts\\?.lua")
-                    InsertUnique(luaPaths, seenLua, root .. "\\Lua\\?.lua")
-
-                    InsertUnique(dllPaths, seenDll, root .. "\\?.dll")
-                    InsertUnique(dllPaths, seenDll, root .. "\\Scripts\\?.dll")
-                    InsertUnique(dllPaths, seenDll, root .. "\\Lua\\?.dll")
-                end
-            end
+            AddSearchRoot(gameDirectory and (gameDirectory .. "\\addon\\" .. id) or nil)
+            AddSearchRoot(gameDirectory and (gameDirectory .. "\\mods\\" .. id) or nil)
+            AddSearchRoot(gameDirectory and (gameDirectory .. "\\packaged_mods\\" .. id) or nil)
+            AddSearchRoot(workshopDirectory and (workshopDirectory .. "\\" .. id) or nil)
         end
 
         -- The enabled mod should win resolution.  Keep Redux's stock paths as
@@ -243,7 +282,7 @@ do
             InsertUnique(dllPaths, seenDll, value)
         end
 
-        return table.concat(luaPaths, ";"), table.concat(dllPaths, ";"), gameDirectory, workshopDirectory
+        return table.concat(luaPaths, ";"), table.concat(dllPaths, ";"), gameDirectory, workshopDirectory, activeModRoot
     end
 
     local function CreateExuStub()
@@ -282,13 +321,24 @@ do
             return false
         end
 
-        return setmetatable(stub, {
-            __index = function()
-                return function()
-                    return nil
-                end
-            end,
-        })
+        -- Keep a small set of side-effect-only compatibility calls safe for
+        -- scripts that invoke them unconditionally.  Do not manufacture an
+        -- arbitrary function for every missing key: unsupported capabilities
+        -- must remain nil so ordinary `if exu.SomeFeature then` checks are true
+        -- capability checks rather than false positives.
+        local function NoOp()
+            return nil
+        end
+
+        stub.SetShotConvergence = NoOp
+        stub.SetReticleRange = NoOp
+        stub.SetOrdnanceVelocInheritance = NoOp
+        stub.SetGlobalTurbo = NoOp
+        stub.SetUnitTurbo = NoOp
+        stub.UpdateOrdnance = NoOp
+        stub.UpdateCommandReplacements = NoOp
+
+        return stub
     end
 
     local function CreateBzfileStub(gameDirectory, workshopDirectory)
@@ -307,7 +357,8 @@ do
         end
 
         function stub.MakeDirectory()
-            return false
+            -- Match the native bzfile contract: success/no-op returns nil.
+            return nil
         end
 
         return setmetatable(stub, {
@@ -344,11 +395,21 @@ do
     end
 
     local function Initialize(workshopID)
-        local luaPath, dllPath, gameDirectory, workshopDirectory = BuildPathLists(workshopID)
+        if not initialized then
+            -- Preserve legitimate package search-path changes made after this
+            -- module was required but before initialization.  Do this only on
+            -- the first initialization so subsequent calls do not treat our own
+            -- injected paths as the stock/fallback baseline.
+            originalPath = package.path or originalPath
+            originalCPath = package.cpath or originalCPath
+        end
+
+        local luaPath, dllPath, gameDirectory, workshopDirectory, activeModRoot = BuildPathLists(workshopID)
         package.path = luaPath
         package.cpath = dllPath
         lastGameDirectory = gameDirectory or lastGameDirectory
         lastWorkshopDirectory = workshopDirectory or lastWorkshopDirectory
+        lastActiveModRoot = activeModRoot or lastActiveModRoot
         initialized = true
 
         EnsureNativeModule(
@@ -385,6 +446,7 @@ do
     RequireFix.getSteamWorkshopDirectory = function()
         return DetectWorkshopDirectory(DetectGameDirectory())
     end
+    RequireFix.getActiveModRoot = DetectActiveModRoot
     RequireFix.Initialize = Initialize
     RequireFix.SafeRequire = SafeRequire
 end
