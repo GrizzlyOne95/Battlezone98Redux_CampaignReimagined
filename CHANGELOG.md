@@ -1,5 +1,69 @@
 # Changelog
 
+## 2026-08-15
+
+Covers everything since the 2026-08-06 Workshop upload.
+
+### Destruction Chunks
+- Buildings and vehicles now break apart into their real modelled pieces in many
+  places that previously threw generic rock debris. The number of visible pieces
+  falling back to a generic placeholder dropped from 177 to 62.
+- Fixed the Hadean relic buildings, whose models name their pieces after
+  modelling-tool nodes rather than the names the game asks for. The correct
+  mapping was recovered by matching each Redux piece against the original
+  Battlezone geometry of the same building.
+- Fixed the NSDF hangar, which shipped every piece under a duplicate bone name
+  and so exploded entirely into placeholders.
+- Added the missing Black Dog storage bay and second barracks pieces, and the
+  NSDF/Black Dog landing pad piece whose model bone carries a stray underscore.
+- Black Dog buildings now use their own textures when they shatter instead of
+  borrowing the NSDF equivalents.
+- Chunk pieces keep the shading the artists authored. A toolchain change had
+  started rebuilding normals from scratch, which shades blocky debris as though
+  it were smooth.
+- Interior caps are generated for the new pieces, so freshly broken chunks read
+  as solid rather than hollow shells.
+
+### AutoSave
+- The AutoSave button on the load screen now names the mission it will restore
+  instead of just reading "AutoSave". This works without EXU installed.
+- Career statistics no longer file every autosave-resumed session under a single
+  bogus mission.
+
+### Rendering (DX11 Enhanced)
+- Static image-based lighting across base and terrain shaders, with a neutral
+  reference asset set.
+- Legacy-PBR lighting for base and terrain, with terrain tuning that preserves
+  emissive surfaces across level-of-detail changes.
+- Atmospheric rendering pass, and an experimental linear-light colour path.
+- PDA and EXU overlays render correctly on DX11: programmable overlay and font
+  materials, a tint shader, and a corrected panel vertex input layout.
+- Added a DX11 shader validator and wired it into CI, plus a colour-space audit
+  and runtime probe.
+
+### Missions
+- Scripted enemies in missions 02B, 03, 04 and 05 are kept out of the general AI
+  pool, including across save and load.
+- Restored Mission 04's fallback defender position and fixed an overlay call left
+  behind by an ownership refactor.
+
+### Multiplayer and Engine
+- Lobby name panel: clicks register, long names truncate correctly, and renaming
+  applies at connect time.
+- Ogre runtime resolver and an animation/render overhead profiler for diagnosing
+  performance.
+- HD terrain path and semantic terrain streaming, opt-in.
+- `openshim.ini` is now an exhaustive configuration reference and runtime feature
+  gates are driven from it rather than environment variables.
+- Observational network instrumentation for diagnosing multiplayer issues; it
+  records nothing without being explicitly enabled and redacts identities.
+
+### Housekeeping
+- Retired legacy scripts, hardened the campaign runtime, and defined the
+  project's actual scope in the README.
+- Workshop publishing is automated and the capped chunk-mesh tree is routed
+  through deploy correctly.
+
 ## 2026-07-16
 
 ### PDA Navigation and Readability
