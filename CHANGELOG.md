@@ -2,8 +2,43 @@
 
 ## 2026-08-17
 
-Covers everything since the 2026-08-15 Workshop upload. This one is almost
-entirely multiplayer netcode.
+Covers everything since the 2026-08-15 Workshop upload.
+
+### AutoSave
+
+- **AutoSave now actually runs.** OpenShim's own autosave has been present and
+  fully wired for some time — settings, interval, mission detection, the lot —
+  and had never executed once. The shim asks "is this a supported build?" before
+  starting it, and the answer was hardcoded to no: the version check ran, passed,
+  and then never recorded that it had passed. Any AutoSave you have been getting
+  came from the campaign's bundled Lua script, not from the patch.
+- With that fixed, AutoSave works in **any** single-player content — the stock
+  campaign, rewritten missions, custom maps, Instant Action — with no dependency
+  on Lua or Extra Utilities. It writes a rolling recovery slot roughly ten
+  seconds into a mission and every two minutes after that, and never while you
+  are paused, in a menu, or in edit mode.
+- It also stays out of the way of the Lua autosave rather than fighting it: if
+  something else updates the save, OpenShim notices and waits its turn.
+- Turn it on or off and set the interval (1, 2, 3, 5 or 10 minutes) from the
+  OpenShim page of the Options screen. Both apply immediately, no restart.
+- AutoSave is a *recovery* slot, not a replacement for saving. It is one rolling
+  file and it overwrites itself. Keep making your own saves.
+
+### Single-player fixes
+
+These shipped in the last build's source but were left out of its notes.
+
+- **Smart reticle range no longer disturbs anything else.** The reticle's range
+  was being written into a constant the compiler shares between many unrelated
+  parts of the engine, so changing it altered that value everywhere it was used,
+  not just for the reticle. The reticle now reads its range from a private
+  location of OpenShim's own, and stands down and leaves the shared value alone
+  if the code does not look the way it expects. This also makes reticle
+  convergence aim where it should, since that range is what caps how far down
+  the sight the aim point can land.
+- **Jump-snipe crouch restored for real.** The player-object lookup it depends on
+  was only ever set up inside a diagnostic probe that is off unless a developer
+  environment variable is set, so it silently did nothing in normal play.
 
 ### Multiplayer netcode
 
