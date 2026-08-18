@@ -1,93 +1,96 @@
-[h1]Battlezone 98 Redux: Unofficial Community Patch & Campaign Rewrite[/h1]
-[i]An experimental, open-source community patch for Battlezone 98 Redux featuring rewritten campaign missions, engine fixes, restored legacy behavior, and new HUD/PDA functionality.[/i]
-
-[h2]Important Notice[/h2]
-[b]This project is 100% unofficial and is not affiliated with or supported by Rebellion.[/b]
-
-This patch modifies native game behavior and remains highly experimental. You may encounter bugs, crashes, compatibility problems, unintended gameplay changes, or issues not present in the unmodified game.
-
-Please report problems with as much detail as possible, including:
-[list]
-[*] What you were doing when the issue occurred
-[*] The mission, map, or game mode
-[*] Whether the issue can be reproduced
-[*] Screenshots, error messages, logs, or save files when available
-[*] Any other mods or custom files installed
-[/list]
-
-[h2]Current Campaign Support[/h2]
-Rewritten campaign content currently focuses on:
-[list]
-[*] [b]misn02b[/b]
-[*] [b]misn03[/b]
-[*] [b]misn04[/b]
-[/list]
-
-Other missions should generally remain playable, but may not yet receive the same level of testing or rewritten scripting.
-
-[h2]Major Player-Facing Improvements[/h2]
-[list]
-[*] [b]Campaign Stability:[/b] Fixed scripting defects that could cause missions to hang, units to behave incorrectly, or construction objectives to break when a constructor was destroyed.
-[*] [b]Combat Behavior:[/b] Corrected issues affecting unit aggro, hidden or sniped units, and destroyed objects that could continue attacking indefinitely.
-[*] [b]Multiplayer Browser:[/b] Fixed the server list jumping back to the top during refreshes, and a crash when creating a game.
-[*] [b]Multiplayer Leave-Game Freeze:[/b] Removed the roughly 30-second hang when exiting a multiplayer game by caching compiled shaders instead of rebuilding them every time.
-[*] [b]Multiplayer Team Flags:[/b] Team flags drawn above player vehicles so teammates and enemies can be told apart at a glance. Toggling the option updates the display immediately.
-[*] [b]Audio Reliability:[/b] Increased the sound-channel pool to reduce audio dropouts during large battles and dialogue-heavy missions.
-[*] [b]Native AutoSave Support:[/b] Added a dedicated AutoSave entry to the load interface without replacing normal save slots.
-[*] [b]Radio Improvements:[/b] Added better handling of queued or outdated unit dialogue to reduce repetitive and stale radio messages.
-[*] [b]4K HUD Support:[/b] Added radar scaling and improved support for custom HUD placement on high-resolution displays.
-[*] [b]New PDA and HUD Systems:[/b] Added Lua-driven support for custom text, overlays, materials, positioning, and mission-specific interface elements.
-[/list]
-
-[h2]In-Game Options and Controls[/h2]
-[list]
-[*] [b]OpenShim Options Page:[/b] A new page on the stock Options screen for settings the original interface has no room for. Most apply instantly; those needing a restart are marked, and hovering a row explains what it does. Includes attack alerts, target popups, the scrap/pilot HUD style, jet flames, unit voices, weapon and reticle convergence, smarter scavengers, anti-air turret pitch, jump-snipe crouch, global turbo, and player/AI headlights with colour and beam controls.
-[*] [b]Rewritten Key Binding Screen:[/b] A rebuilt input configuration page. Rebind controls in-game across both control families, with paging, live key capture, and cancel, written safely back to your key map.
-[*] [b]Options Back Button:[/b] Fixed the top-left Back button on the Options screen being unresponsive.
-[/list]
-
-[h2]Restored Legacy Battlezone Behavior[/h2]
-[list]
-[*] [b]Destruction Debris:[/b] Restored the classic Battlezone 1.5 behavior where destroyed vehicles and buildings break into visible physical geometry chunks.
-[*] [b]Classic HUD Layout Option:[/b] Restored legacy-style scrap and pilot meter placement aligned with the command interface and native HUD panels.
-[*] [b]Jump-Snipe Crouch:[/b] Restored the classic crouch while sniping mid-jump. Single-player only.
-[*] [b]Global Turbo:[/b] Optional turbo on all drivable units, as in the original game. Single-player only.
-[/list]
-
-[h2]Additional Modding and Engine Features[/h2]
-The patch also expands tools available to mission and mod creators, including:
-[list]
-[*] Runtime texture and material swapping
-[*] Dynamic map-border updates
-[*] Team-specific engine flame colors
-[*] Expanded tactical unit team filters
-[*] Additional AI engagement and stuck-recovery settings
-[*] Alternate dialogue and radio-management controls
-[*] Crash logging and diagnostics to make bug reports actionable
-[/list]
-
-These systems primarily support rewritten campaign content and future community-created missions.
-
-[h2]Installation[/h2]
-Installation is automatic. Subscribe, then start any of the mod's missions: the patch installs itself by copying [b]winmm.dll[/b] next to the game executable and tells you when it is done.
-
-[list=1]
-[*] Subscribe to this item.
-[*] Launch Battlezone 98 Redux and start one of the mod's missions.
-[*] When it reports that OpenShim was installed, [b]restart the game[/b]. The patch cannot be swapped in while the game is using it.
-[*] Play normally. Updates install the same way.
-[/list]
-
-If the automatic copy does not happen, copy [b]winmm.dll[/b] from the mod folder (for example [i]workshop\campaignReimagined\winmm.dll[/i]) next to [b]battlezone98redux.exe[/b] yourself. If an update fails, check [i]winmm_replace.log[/i] in the Battlezone folder.
-
-It is recommended that you remove other native DLL-based modifications before troubleshooting problems.
-
-[h2]Uninstallation[/h2]
-Delete [b]winmm.dll[/b] from the Battlezone 98 Redux installation folder.
-
-After removing that file, the game will return to its normal, unpatched startup behavior. Any separate campaign, addon, or configuration files included with a release may also be removed manually if desired.
-
-[h2]Reporting Issues[/h2]
-Please avoid reports such as "it does not work." Detailed reproduction steps make it much more likely that a problem can be identified and fixed.
-
+[h1]Battlezone 98 Redux: Unofficial Community Patch & Campaign Rewrite[/h1]
+[i]An experimental, open-source community patch for Battlezone 98 Redux featuring rewritten campaign missions, engine fixes, restored legacy behavior, and new HUD/PDA functionality.[/i]
+
+[h2]Important Notice[/h2]
+[b]This project is 100% unofficial and is not affiliated with or supported by Rebellion. Its functional and "mostly stable", and I'm hoping to get it moreso.[/b]
+
+This patch modifies native game behavior and remains highly experimental. You may encounter bugs, crashes, compatibility problems, unintended gameplay changes, or issues not present in the unmodified game.
+
+Please report problems with as much detail as possible, including:
+[list]
+[*] What you were doing when the issue occurred
+[*] The mission, map, or game mode
+[*] Whether the issue can be reproduced
+[*] Screenshots, error messages, logs, or save files when available
+[*] Any other mods or custom files installed
+[/list]
+
+[h2]Current Campaign Support[/h2]
+Rewritten campaign content currently focuses on:
+[list]
+[*] [b]misn02b[/b] NSDF Mission 1
+[*] [b]misn03[/b] NSDF Mission 2
+[*] [b]misn04[/b] NSDF Mission 3
+[/list]
+
+Other missions should remain playable but won't be modded/overhauled yet. 
+
+[h2]Major Player-Facing Improvements[/h2]
+[list]
+[*] [b]Destruction Debris:[/b] Restored the classic Battlezone 1.5 behavior where destroyed vehicles and buildings break into visible physical geometry chunks. These aren't mods or estimations, they are chunks tracking along exactly with the legacy hidden GEOs. In other words: they're the real deal. 
+[*] [b]Campaign Stability:[/b] Fixed scripting defects that could cause missions to hang, units to behave incorrectly, or construction objectives to break when a constructor was destroyed.
+[*] [b]Combat Behavior:[/b] Corrected issues affecting unit aggro, hidden or sniped units, and destroyed objects that could continue attacking indefinitely.
+[*] [b]Multiplayer Browser:[/b] Fixed the server list jumping back to the top during refreshes, and a crash when creating a game.
+[*] [b]Multiplayer Leave-Game Freeze:[/b] Removed the roughly 30-second hang when exiting a multiplayer game by caching compiled shaders instead of rebuilding them every time.
+[*] [b]Multiplayer Team Flags:[/b] Team flags drawn above player vehicles so teammates and enemies can be told apart at a glance. Toggling the option updates the display immediately.
+[*] [b]Audio Reliability:[/b] Increased the sound-channel pool to reduce audio dropouts during large battles and dialogue-heavy missions.
+[*] [b]Native AutoSave Support:[/b] Added a dedicated AutoSave entry to the load interface without replacing normal save slots.
+[*] [b]Radio Improvements:[/b] Added better handling of queued or outdated unit dialogue to reduce repetitive and stale radio messages.
+[*] [b]4K HUD Support:[/b] Added radar scaling and improved support for custom HUD placement on high-resolution displays.
+[*] [b]New PDA and HUD Systems:[/b] Added Lua-driven support for custom text, overlays, materials, positioning, and mission-specific interface elements.
+[/list]
+
+[h2]In-Game Options and Controls[/h2]
+[list]
+[*] [b]OpenShim Options Page:[/b] A new page on the stock Options screen for settings the original interface has no room for. Most apply instantly; those needing a restart are marked, and hovering a row explains what it does. Includes attack alerts, target popups, the scrap/pilot HUD style, jet flames, unit voices, weapon and reticle convergence, smarter scavengers, anti-air turret pitch, jump-snipe crouch, global turbo, and player/AI headlights with colour and beam controls.
+[*] [b]Rewritten Key Binding Screen:[/b] A rebuilt input configuration page. Rebind controls in-game across both control families, with paging, live key capture, and cancel, written safely back to your key map.
+[*] [b]Options Back Button:[/b] Fixed the top-left Back button on the Options screen being unresponsive.
+[/list]
+
+[h2]Restored Legacy Battlezone Behavior[/h2]
+[list]
+[*] [b]Destruction Debris:[/b] Restored the classic Battlezone 1.5 behavior where destroyed vehicles and buildings break into visible physical geometry chunks.
+[*] [b]Classic HUD Layout Option:[/b] Restored legacy-style scrap and pilot meter placement aligned with the command interface and native HUD panels.
+[*] [b]Jump-Snipe Crouch:[/b] Restored the classic crouch while sniping mid-jump. Single-player only.
+[*] [b]Global Turbo:[/b] Optional turbo on all drivable units. Single-player only.
+[/list]
+
+[h2]Additional Modding and Engine Features[/h2]
+The patch also expands tools available to mission and mod creators, including:
+[list]
+[*] Runtime texture and material swapping
+[*] Dynamic map-border updates
+[*] Team-specific engine flame colors
+[*] Expanded tactical unit team filters
+[*] Additional AI engagement and stuck-recovery settings
+[*] Alternate dialogue and radio-management controls
+[*] Crash logging and diagnostics to make bug reports actionable
+[/list]
+
+These systems primarily support rewritten campaign content and future community-created missions.
+
+[h2]Installation[/h2]
+Installation is mostly automatic. I tried to make it as painless as possible. 
+
+Subscribe, then mark the mod Campaign Reimagined active. Then start any of the mod's missions: the patch installs itself by copying [b]winmm.dll[/b] next to the game executable and tells you when it is done.
+
+[list=1]
+[*] Subscribe to this item.
+[*] Launch Battlezone 98 Redux, mark mod active and start one of the mod's missions.
+[*] When it reports that OpenShim was installed, [b]restart the game[/b]. The patch cannot be swapped in while the game is using it.
+[*] Play normally. Updates install the same way.
+[/list]
+
+If the automatic copy does not happen, copy [b]winmm.dll[/b] from the mod folder (for example [i]workshop\campaignReimagined\winmm.dll[/i]) next to [b]battlezone98redux.exe[/b] yourself. If an update fails, check [i]winmm_replace.log[/i] in the Battlezone folder.
+
+It is recommended that you remove other native DLL-based modifications before troubleshooting problems.
+
+[h2]Uninstallation[/h2]
+Delete [b]winmm.dll[/b] from the Battlezone 98 Redux installation folder.
+
+After removing that file, the game will return to its normal, unpatched startup behavior. Any separate campaign, addon, or configuration files included with a release may also be removed manually if desired. You can attempt playing the modded campaign but will get errors. Unsub for full removal. 
+
+[h2]Reporting Issues[/h2]
+Please avoid reports such as 'it does not work.' Detailed reproduction steps make it much more likely that a problem can be identified and fixed.
+
 [b]Expect unfinished behavior, test carefully, and report anything unusual.[/b]

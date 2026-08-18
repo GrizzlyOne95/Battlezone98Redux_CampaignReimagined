@@ -1,5 +1,93 @@
 # Changelog
 
+## 2026-08-17
+
+Covers everything since the 2026-08-15 Workshop upload.
+
+### AutoSave
+
+- **AutoSave now actually runs.** OpenShim's own autosave has been present and
+  fully wired for some time — settings, interval, mission detection, the lot —
+  and had never executed once. The shim asks "is this a supported build?" before
+  starting it, and the answer was hardcoded to no: the version check ran, passed,
+  and then never recorded that it had passed. Any AutoSave you have been getting
+  came from the campaign's bundled Lua script, not from the patch.
+- With that fixed, AutoSave works in **any** single-player content — the stock
+  campaign, rewritten missions, custom maps, Instant Action — with no dependency
+  on Lua or Extra Utilities. It writes a rolling recovery slot roughly ten
+  seconds into a mission and every two minutes after that, and never while you
+  are paused, in a menu, or in edit mode.
+- It also stays out of the way of the Lua autosave rather than fighting it: if
+  something else updates the save, OpenShim notices and waits its turn.
+- Turn it on or off and set the interval (1, 2, 3, 5 or 10 minutes) from the
+  OpenShim page of the Options screen. Both apply immediately, no restart.
+- AutoSave is a *recovery* slot, not a replacement for saving. It is one rolling
+  file and it overwrites itself. Keep making your own saves.
+
+### Single-player fixes
+
+These shipped in the last build's source but were left out of its notes.
+
+- **Smart reticle range no longer disturbs anything else.** The reticle's range
+  was being written into a constant the compiler shares between many unrelated
+  parts of the engine, so changing it altered that value everywhere it was used,
+  not just for the reticle. The reticle now reads its range from a private
+  location of OpenShim's own, and stands down and leaves the shared value alone
+  if the code does not look the way it expects. This also makes reticle
+  convergence aim where it should, since that range is what caps how far down
+  the sight the aim point can land.
+- **Jump-snipe crouch restored for real.** The player-object lookup it depends on
+  was only ever set up inside a diagnostic probe that is off unless a developer
+  environment variable is set, so it silently did nothing in normal play.
+
+### Multiplayer netcode
+
+- The shim now applies the full network tuning block itself. It previously set
+  only the four auto-kick values and left the send-rate governor and the
+  bandwidth floor/ceiling to `net.ini` — and `net.ini` does not reliably reach
+  the game, because Battlezone only parses that file for the session's active
+  mod. A match on 2026-08-12 was measured collapsing to 4,000 bytes/sec, the
+  stock floor, while `net.ini` asked for 16,000. All ten values are now written
+  directly, so the tuning actually takes effect.
+- The practical effect: the send rate no longer collapses to a trickle after a
+  bad stretch and then take minutes to recover. The floor is four times higher,
+  the ceiling no longer throttles a healthy connection, and recovery now runs
+  twice as fast as back-off instead of five times slower.
+- Fixed a bug that could jump your send rate tenfold in the middle of a match.
+  The shim watches for the value the game writes at match start and raises it;
+  it was also matching that same value when the rate simply fell that far during
+  a bad patch, and treating it as a new match. Those two cases are now told
+  apart, and both are logged so the difference is visible.
+- Every network address the shim writes is now checked before it is written. If
+  a game update moves one, that value is skipped and reported rather than
+  written blind.
+- The shim now measures its own outbound traffic — peak packets per second and
+  how long it spends bursting. This is what separates a normal session from one
+  where a connection is flooding, and until now nothing recorded it.
+
+Thanks to the PiercingXX Battlezone netcode-patch project, whose field testing
+established most of the above.
+
+### Diagnostics
+
+- Relay and lobby-server logging is now a single switch: `RelayLogging` in the
+  `[Diagnostics]` section of `openshim.ini`. It captures the lobby connection,
+  the peer-routing negotiation, and the underlying traffic together, and now
+  says in the log whether it started — previously "logging was off" and "logging
+  was on but caught nothing" looked identical in a report.
+- Two further switches for deeper work: `RelayLogAllControl` records the whole
+  lobby conversation rather than just the routing messages, and
+  `RelayLogDatagrams` records every packet on the relay ports unsampled.
+- Map-list and jump-snipe tracing are now normal INI settings instead of
+  environment variables only.
+- `net.ini` is rewritten to document every setting it accepts, what each one
+  does, and the evidence behind the chosen value. `openshim.ini` documents the
+  new diagnostics.
+
+Privacy note: relay logs record public addresses, account identity and lobby
+metadata for everyone in the session, not just you. They are off by default.
+Read one before sharing it.
+
 ## 2026-08-15
 
 Covers everything since the 2026-08-06 Workshop upload.
