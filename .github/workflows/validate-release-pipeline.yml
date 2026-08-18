@@ -1,0 +1,95 @@
+name: Validate Campaign Release Pipeline
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/publish-campaign-release.yml
+      - .github/workflows/validate-release-pipeline.yml
+      - .github/scripts/Build-Level1Release.ps1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Level 1 packager
+    runs-on: windows-2022
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+
+      - name: Parse PowerShell helper
+        shell: pwsh
+        run: |
+          $path = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\Build-Level1Release.ps1"
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors)
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            throw "Build-Level1Release.ps1 contains PowerShell parse errors."
+          }
+
+      - name: Exercise synthetic release packaging
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP "level1-release-test"
+          $bundle = Join-Path $root "bundle"
+          $content = Join-Path $bundle "content"
+          $output = Join-Path $root "output"
+          New-Item -ItemType Directory -Path (Join-Path $content "Scripts") -Force | Out-Null
+
+          Set-Content -LiteralPath (Join-Path $content "test.txt") -Value "campaign-release-test" -Encoding ASCII
+          Set-Content -LiteralPath (Join-Path $content "Scripts\test.lua") -Value "return true" -Encoding ASCII
+          Set-Content -LiteralPath (Join-Path $bundle "CHANGELOG.md") -Value "# Test changelog" -Encoding UTF8
+
+          $manifestLines = foreach ($file in Get-ChildItem -LiteralPath $content -Recurse -File | Sort-Object FullName) {
+            $relative = $file.FullName.Substring($content.Length).TrimStart('\')
+            $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($file.Length)  $relative"
+          }
+          Set-Content -LiteralPath (Join-Path $bundle "content_manifest.sha256") -Value $manifestLines -Encoding ASCII
+
+          & ".\.github\scripts\Build-Level1Release.ps1" `
+            -BundleDir $bundle `
+            -OutputDir $output `
+            -Version "0.0.0-ci" `
+            -ChangeNote "Synthetic validation" `
+            -ModDbReleaseType "Patch" `
+            -CampaignCommit "campaign-ci" `
+            -OpenShimCommit "openshim-ci"
+
+          $zip = Join-Path $output "CampaignReimagined-0.0.0-ci-ModDB.zip"
+          $metadataPath = Join-Path $output "moddb_submission.json"
+          $checksumPath = "$zip.sha256"
+          foreach ($required in @($zip, $metadataPath, $checksumPath, (Join-Path $output "release_receipt.json"))) {
+            if (-not (Test-Path -LiteralPath $required)) {
+              throw "Expected release output is missing: $required"
+            }
+          }
+
+          $expanded = Join-Path $root "expanded"
+          Expand-Archive -LiteralPath $zip -DestinationPath $expanded -Force
+          if (-not (Test-Path -LiteralPath (Join-Path $expanded "mods\3686673790\test.txt"))) {
+            throw "ModDB ZIP does not contain the expected mods\\3686673790 layout."
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $expanded "mods\3686673790\Scripts\test.lua"))) {
+            throw "ModDB ZIP did not preserve nested payload structure."
+          }
+
+          $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
+          if ($metadata.Version -ne "0.0.0-ci" -or $metadata.ModDbReleaseType -ne "Patch") {
+            throw "ModDB metadata did not preserve release inputs."
+          }
+
+          $expectedHash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          $checksumText = (Get-Content -LiteralPath $checksumPath -Raw).Trim()
+          if (-not $checksumText.StartsWith($expectedHash)) {
+            throw "Generated ZIP checksum does not match the release archive."
+          }
