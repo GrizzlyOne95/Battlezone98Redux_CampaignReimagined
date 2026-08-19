@@ -3,7 +3,6 @@
 This is the authoritative Campaign Reimagined source tree for campaign content, Lua, materials/shaders, assets, packaging, and publishing.
 
 ## Authoritative Paths and Promotion
-- Workspace: `%USERPROFILE%\Documents\GIT\BZR-Workspace\Battlezone98.code-workspace`.
 - Canonical source: `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`.
 - GOG test game: `C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux`; runtime mod: `...\mods\3686673790`.
 - Steam subscribed payload: `C:\Program Files (x86)\Steam\steamapps\workshop\content\301650\3686673790`.
