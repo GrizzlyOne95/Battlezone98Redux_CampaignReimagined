@@ -1,73 +1,253 @@
 # Battlezone 98 Redux Lua — Agent Reference
 
-This document is a compact, agent-oriented reference for the **stock Battlezone 98 Redux LuaMission API**. It translates the repository's HTML API mirror into a form that coding/review agents can search and reason from without losing the stock bugs, version differences, lifecycle constraints, or multiplayer locality quirks that matter in real missions.
+This is the agent-oriented reference for the **stock Battlezone 98 Redux LuaMission API** used by Campaign Reimagined.
 
-It is intentionally not a replacement for the original HTML corpus. Use this document for fast decisions and implementation; follow the linked source page when a behavior is unusual, version-sensitive, or safety-critical.
+Its purpose is not to reproduce the HTML site page-for-page. It is to give coding and review agents the information they actually need to produce correct BZR Lua: signatures, overloads, lifecycle rules, multiplayer locality, stock engine bugs, version differences, and project-validated quirks.
 
-## Source authority
-
-Use the following evidence order when sources disagree:
-
-1. **`References/StockLuaAPI-Functions/` and `References/StockLuaAPI-Expressions/`** — primary behavioral reference, including version tags and `Known Issues` sections.
-2. **`Scripts/scriptutils.lua`** — canonical searchable signature/type inventory. It is excellent for LuaLS annotations, but a clean signature does **not** imply the function is bug-free.
-3. **`Text/ScriptingGuide.txt`** — Campaign Reimagined operational notes and multiplayer experiments. Treat these as valuable observed behavior, but version-qualify them and prefer the HTML corpus when they conflict.
-
-This ordering matters. For example, the project notes say `ObjectiveObjects()` is broken, while the HTML reference explains that the engine bug affected Battlezone 1.5.2.x and was **fixed in Battlezone 98 Redux**. Agents targeting Redux must use the Redux result.
-
-## Scope
-
-- Runtime: **Lua 5.1**.
-- Target: stock Battlezone 98 Redux (`GameVersion` begins with `"2"`).
-- No external Lua libraries should be assumed. In normal stock missions, do not assume `io`, `os`, or `debug` are available.
-- Do not use Lua 5.2+ syntax/features such as `goto` / `::label::`.
-- Project DLL APIs (EXU, BZFILE, OpenShim bridges, etc.) are **out of scope** here unless explicitly named by the task.
-- Campaign Reimagined-only helpers present in `Scripts/scriptutils.lua` (for example `SetTeamColor`, `ClearTeamColor`, and `ResetTeamColors`) are **not stock BZR Lua functions**.
-
-## Agent rules — read before generating Lua
-
-1. **Check hazards before trusting a signature.** `GetPlayerHandle(team)` is syntactically valid but its team argument is broken in Redux.
-2. **Prefer capability tests to version parsing** for optional functions:
-
-   ```lua
-   if IsTouching ~= nil then
-       -- BZR 2.1+ path
-   end
-   ```
-
-3. **Keep Lua 5.1 compatibility.** Avoid `goto`, bit libraries, newer standard-library assumptions, and external modules unless the mission explicitly supplies them.
-4. **Reason about multiplayer ownership before mutating an object.** `IsLocal`, `IsRemote`, `SetLocal`, host/client authority, and `Send`/`Receive` are part of the design, not cleanup work to add later.
-5. **Do not call `SetAIControl` after strategic AI setup.** It is a startup configuration function with a crash hazard if used later.
-6. **Do not exceed ten simultaneous objective messages.** The documented implementation can overflow its fixed buffer and eventually crash.
-7. **Distinguish immediate object creation from producer commands.** `BuildObject(...)` spawns an object; `Build(...)` / `BuildAt(...)` command a producer.
-8. **Use `TeamSlot`, `AiCommand`, `PathType`, and `ClassId` names instead of magic integers** when the supplied table exists.
-9. **Do not assume UI/chat/network effects replicate.** Many script effects are local unless explicitly networked.
-10. **When project observations conflict with an HTML `Known Issues` section, use the HTML behavior and preserve the conflict in comments/documentation rather than silently choosing the older note.**
+The original HTML reference remains valuable and should be consulted for examples and individual function pages. This file is the compact operational reference.
 
 ---
 
-# Runtime types and globals
+# Evidence hierarchy
 
-## Core userdata
+When sources disagree, use this order:
 
-| Type | Meaning | Notes |
-|---|---|---|
-| `handle` | game-object identifier | custom light userdata; may be `nil` where no object exists |
-| `message` | audio message handle | returned by `AudioMessage` |
-| `odfhandle` | parsed ODF/INI/TRN file | returned by `OpenODF` |
-| `vector` | `x`, `y`, `z` | custom userdata; supports arithmetic operators |
-| `matrix` | orientation + position | custom userdata with right/up/front/posit components |
-| `teamnum` | integer 0–15 | team 0 is normally neutral/environment |
-| `weaponslot` | integer 0–4 | five weapon hardpoint slots |
-| `weaponmask` | integer 0–31 | bit mask for AI weapon hardpoints |
-| `priority` | `0` or `1` | `0` commandable; default `1` uncommandable |
+1. **Current BZR runtime-validated project findings** in `Text/ScriptingGuide.txt`, dedicated tests, or reproducible mission behavior.
+2. **`References/StockLuaAPI-Functions/` and `References/StockLuaAPI-Expressions/`** for definitions, intended behavior, version tags, examples, and known issues.
+3. **`Scripts/scriptutils.lua`** for canonical searchable signatures, overloads, LuaLS types, enums, and availability markers.
+4. Historical Battlezone 1.5 notes only when the target behavior has not been validated in Redux.
 
-## Important globals
+This order is deliberate. The HTML corpus is extremely useful, but it contains at least one incorrect Redux claim: its `ObjectiveObjects()` page says the 1.5 iterator bug was solved in Redux, while current Redux project testing confirms that the stock iterator is **still broken**.
+
+When a runtime finding contradicts the HTML reference, document both rather than silently erasing the discrepancy.
+
+---
+
+# Scope
+
+- Runtime: **Lua 5.1**.
+- Target: **Battlezone 98 Redux** (`GameVersion` begins with `"2"`).
+- Do not assume external standard libraries such as `io`, `os`, or `debug` are available.
+- Do not use Lua 5.2+ syntax such as `goto` / `::label::`.
+- EXU, OpenShim, BZFILE, and Campaign Reimagined helper functions are **not stock Lua API** unless explicitly identified as such.
+- `Scripts/scriptutils.lua` can contain project-only additions. Entries tagged `[campaignReimagined]`, such as `SetTeamColor`, are not retail BZR functions.
+
+---
+
+# Agent rules
+
+1. **A valid signature does not prove valid engine behavior.** Always check the hazard section for functions involved in multiplayer, iterators, objectives, AI setup, ownership, or producer commands.
+2. **Stock BZR `ObjectiveObjects()` is broken. Do not use it unless a known OpenShim/EXU compatibility patch is confirmed active.**
+3. **`GetPlayerHandle(team)` is broken for remote-player lookup.** Calling `GetPlayerHandle()` for the local player is valid; passing a team number can return `nil` instead of the remote player's handle.
+4. **Prefer capability tests over parsing exact version strings** for optional Redux functions.
+5. **Treat network ownership as part of the design.** A local mutation is not proof that the same state exists on peers.
+6. **`SetAIControl` is startup configuration.** Calling it after strategic-AI initialization can crash the game.
+7. **Never exceed ten simultaneous objective messages.** The stock objective panel uses a fixed buffer and can overflow.
+8. **Do not rely on the `duration` argument of `AddObjective` or `UpdateObjective`.** It is ignored; the effective duration is fixed to eight seconds.
+9. **Differentiate `BuildObject` from `Build`/`BuildAt`.** `BuildObject` creates immediately; `Build` and `BuildAt` command producers.
+10. **Use `TeamSlot`, `AiCommand`, `PathType`, and `ClassId` instead of magic numeric constants.**
+11. **Exact capitalization is part of the API.** Do not “correct” names such as `UpdateEarthQuake` or `isPortalActive`.
+12. **Project/runtime findings outrank an HTML statement when the conflict is explicit and reproducible.**
+
+---
+
+# High-priority stock bugs and quirks
+
+## `ObjectiveObjects()` — BROKEN IN STOCK REDUX
+
+```text
+iterator ObjectiveObjects()
+```
+
+Current Redux project testing records that the stock iterator is broken and returns only the first objective object rather than enumerating the full set.
+
+**Agent rule:** do not generate stock Lua that depends on `ObjectiveObjects()`.
+
+```lua
+-- Do not assume this enumerates every objective in stock Redux.
+for h in ObjectiveObjects() do
+    -- unsafe assumption
+end
+```
+
+If OpenShim or EXU provides a compatibility patch for this iterator, the patched behavior may be usable, but that must be treated as an **environment capability**, not as stock Redux behavior. Do not assume the patch exists merely because EXU/OpenShim is commonly used by this project.
+
+The HTML reference currently claims the old 1.5 bug was fixed in Redux. That statement conflicts with current Redux testing and is therefore treated as inaccurate for this project.
+
+Primary project note: `Text/ScriptingGuide.txt`.
+
+## `GetPlayerHandle(team)` — remote team lookup is broken
+
+```text
+handle GetPlayerHandle([teamnum team])
+```
+
+- `GetPlayerHandle()` with no argument: normal local-player lookup.
+- `GetPlayerHandle(team)` for another player's team: current project testing says it always returns `nil` instead of the remote player's handle.
+
+Do not write:
+
+```lua
+local remotePlayer = GetPlayerHandle(2)
+```
+
+For multiplayer, track player identity through `CreatePlayer` / `AddPlayer` / `DeletePlayer` and exchange current player-object handles through `Send` / `Receive` when required.
+
+## `LockAllies()` called from `Start()`
+
+The HTML reference documents that in Redux, calling `LockAllies(...)` from `Start()` has no effect.
+
+If the mission requires locked alliances, issue the one-shot lock after startup has advanced sufficiently and validate the result in-game.
+
+## Objective panel: fixed duration and fixed capacity
+
+```text
+AddObjective(name, color?, duration?, text?)
+UpdateObjective(name, color?, duration?, text?)
+```
+
+Documented hazards:
+
+- `duration` is ignored; effective duration is fixed to **8 seconds**.
+- only **10 simultaneous objectives** are safe;
+- adding more can overflow the stock buffer and eventually crash the game.
+
+Prefer named reusable slots and `UpdateObjective` instead of endlessly appending entries.
+
+## Multiplayer cockpit timer override
+
+In `MultSTMission` and `MultDMMission`, the stock multiplayer mission logic calls `StartCockpitTimerUp()` every frame.
+
+Consequences:
+
+- a normal `StartCockpitTimer()` countdown cannot be maintained;
+- warn/alert thresholds cannot be reliably repurposed;
+- show/hide behavior remains possible.
+
+Do not design a multiplayer countdown mechanic around the stock cockpit timer without replacing or bypassing that stock mission-mode behavior.
+
+## `Attack()` against same-team targets
+
+```text
+Attack(handle me, handle him, priority? priority)
+```
+
+The target is only attacked when it is on the attacker's own team if command priority is `1` (uncommandable).
+
+## Armory `Build` / `BuildAt` cross-team targeting
+
+The HTML reference documents a targeting bug when an Armory belongs to a team other than the local player's team: launched powerups may not properly reach the requested target.
+
+The source page documents Lua/ODF workarounds involving `aiName2`.
+
+Do not assume a cross-team Armory behaves identically to the local player's Armory.
+
+## `Build()` then `Dropoff()` needs a simulation update
+
+For Armories and Construction Rigs, the producer must first process the `Build(...)` command. At least one simulation update is needed before the location supplied through `Dropoff(...)` is reliably accepted.
+
+Unsafe assumption:
+
+```lua
+Build(rig, "abtowe")
+Dropoff(rig, where) -- same synchronous frame/path
+```
+
+Safer pattern:
+
+```lua
+Build(rig, "abtowe")
+-- issue Dropoff on a later Update
+```
+
+## `SetAIControl()` timing
+
+```text
+SetAIControl(teamnum team, boolean? enabled)
+```
+
+Only configure strategic AI during mission startup/root initialization. The engine sets strategic AI up shortly afterward; later calls can crash the game.
+
+`GetAIControl(team)` can be queried later.
+
+## Exact stock capitalization
+
+```lua
+UpdateEarthQuake(magnitude)
+isPortalActive(portal)
+```
+
+Both spellings are intentional.
+
+## Legacy string-padding/null-byte warning
+
+Project notes also record hidden trailing/null characters from string-returning functions such as:
+
+```text
+GetOdf
+GetPilotClass
+GetWeaponClass
+GetClassSig
+GetBase
+```
+
+The HTML corpus describes the null-character defect as a Battlezone 1.5.2.x issue, while project notes list it as an engine caveat without the same qualification.
+
+**Agent rule:** do not silently normalize strings unless the mission/build actually reproduces the problem. If comparison failures occur despite identical printed text, inspect for `\0` padding before assuming the script logic is wrong.
+
+## `DeleteObject()` properties
+
+Project notes record that once an object is flagged as destroyed, most properties are no longer safe/useful from `DeleteObject()`, with the handle/objective name being the important remaining identifiers.
+
+If destruction logic needs ammo, ODF, team, health, class, or similar properties, cache those while the object is alive instead of querying them only after destruction.
+
+---
+
+# Legacy Battlezone 1.5 compatibility notes
+
+These are historical compatibility issues. Do not automatically apply them to Redux unless current testing reproduces them.
+
+| Function/behavior | Historical issue |
+|---|---|
+| `SetLabel` | named `SettLabel` in 1.5.2.x |
+| `GiveWeapon` | removing currently active weapon could crash 1.5 |
+| `GetAIControl` | missing/broken on some 1.5 builds and implemented through a Lua workaround |
+| string-returning getters | 1.5 documentation reports unexpected null characters |
+| `ObjectiveObjects` | old docs describe a 1.5 loop-counter bug; stock Redux is also broken, but current Redux behavior is documented separately above |
+
+Cross-version compatibility code may use:
+
+```lua
+SetLabel = SetLabel or SettLabel
+```
+
+---
+
+# Core runtime types
+
+| Type | Meaning |
+|---|---|
+| `handle` | game-object identifier/light userdata |
+| `message` | audio-message userdata |
+| `odfhandle` | parsed ODF/INI/TRN handle |
+| `vector` | `x`, `y`, `z` position/direction userdata |
+| `matrix` | right/up/front/posit transform userdata |
+| `teamnum` | integer team 0–15 |
+| `weaponslot` | weapon slot 0–4 |
+| `weaponmask` | hardpoint bit mask 0–31 |
+| `priority` | 0 commandable, 1 uncommandable |
+
+Object handles are safe identifiers, but a non-nil handle does not imply the underlying object still exists. Use `IsValid` / `IsAlive` as appropriate.
+
+---
+
+# Important globals and enums
 
 ```text
 string GameVersion
-number Language              -- BZR 2.0+
-string LanguageName          -- BZR 2.0+
-string LanguageSuffix        -- BZR 2.0+
+number Language              -- Redux 2.0+
+string LanguageName          -- Redux 2.0+
+string LanguageSuffix        -- Redux 2.0+
 string LastGameKey
 matrix IdentityMatrix
 ClassId ClassId
@@ -76,27 +256,83 @@ PathType PathType
 AiCommand AiCommand
 ```
 
-`GameVersion` is the most direct coarse distinction: Battlezone 1.5 builds begin with `"1"`; Redux builds begin with `"2"`. Prefer feature tests when testing for one API function.
+`GameVersion` starts with `"1"` for Battlezone 1.5 and `"2"` for Redux.
 
-### Common enum values
+Prefer capability tests when a particular function matters:
 
-`TeamSlot` includes `PLAYER`, `RECYCLER`, `FACTORY`, `ARMORY`, `CONSTRUCT`, offense/defense/utility ranges, beacon, power, comm, repair, supply, silo, barracks, and gun-tower slots.
-
-`PathType`:
-
-```text
-ONE_WAY = 0
-ROUND_TRIP = 1
-LOOP = 2
+```lua
+if IsTouching ~= nil then
+    -- Redux version that provides IsTouching
+end
 ```
 
-Common `AiCommand` values include `NONE`, `STOP`, `GO`, `ATTACK`, `FOLLOW`, `FORMATION`, `PICKUP`, `DROPOFF`, `GET_REPAIR`, `GET_RELOAD`, `GET_WEAPON`, `DEFEND`, `RECYCLE`, `SCAVENGE`, `HUNT`, `BUILD`, `PATROL`, `STAGE`, `GET_IN`, `LAY_MINES`, and `CLOAK`.
+## `PathType`
+
+```text
+PathType.ONE_WAY    = 0
+PathType.ROUND_TRIP = 1
+PathType.LOOP       = 2
+```
+
+## Important `TeamSlot` names
+
+```text
+PLAYER
+RECYCLER
+FACTORY
+ARMORY
+CONSTRUCT
+MIN_OFFENSE / MAX_OFFENSE
+MIN_DEFENSE / MAX_DEFENSE
+MIN_UTILITY / MAX_UTILITY
+MIN_BEACON / MAX_BEACON
+MIN_POWER / MAX_POWER
+MIN_COMM / MAX_COMM
+MIN_REPAIR / MAX_REPAIR
+MIN_SUPPLY / MAX_SUPPLY
+MIN_SILO / MAX_SILO
+MIN_BARRACKS / MAX_BARRACKS
+MIN_GUNTOWER / MAX_GUNTOWER
+```
+
+## Important `AiCommand` names
+
+```text
+NONE
+SELECT
+STOP
+GO
+ATTACK
+FOLLOW
+FORMATION
+PICKUP
+DROPOFF
+NO_DROPOFF
+GET_REPAIR
+GET_RELOAD
+GET_WEAPON
+GET_CAMERA
+GET_BOMB
+DEFEND
+GO_TO_GEYSER
+RESCUE
+RECYCLE
+SCAVENGE
+HUNT
+BUILD
+PATROL
+STAGE
+SEND
+GET_IN
+LAY_MINES
+CLOAK
+```
 
 ---
 
-# LuaMission lifecycle and event handlers
+# LuaMission callbacks
 
-These functions are implemented by the mission script and called by LuaMission.
+Mission scripts implement these handlers; LuaMission calls them.
 
 ```text
 Load(...)
@@ -114,140 +350,19 @@ boolean Receive(integer from, string type, ...)
 boolean Command(string command, string arguments)
 ```
 
-### Lifecycle guidance
+Guidance:
 
-- `Start()` is one-time mission initialization.
-- `Update(timestep)` runs every simulation frame after network update and before game-object simulation. Keep hot-path work bounded.
-- `CreateObject` can receive heavy traffic; avoid broad scans or expensive parsing there.
-- `AddObject` generally covers important mission objects and excludes some incidental objects such as scrap.
-- `Save`/`Load` support serializable scalar/game types; do not try to persist functions, threads, or arbitrary userdata.
-- Multiplayer-only missions generally should not build important logic around save/load.
-- `Receive` is the stock mechanism for explicit script-level network synchronization.
-
-### Legacy `DeleteObject` warning
-
-In **Battlezone 1.5.2.x**, destroyed units can reach `DeleteObject` too late for normal object properties to remain valid; the HTML reference recommends caching needed properties while the unit is alive. This is a **legacy 1.5 issue**, not a reason to automatically cripple Redux code. See `References/StockLuaAPI-Functions/Script Event Handlers/DeleteObject/`.
+- `Start()` is one-time initialization.
+- `Update()` is the main per-frame simulation callback.
+- `CreateObject()` receives heavy traffic; keep it cheap.
+- `AddObject()` generally covers more important mission objects.
+- `Save` / `Load` support serializable primitive/game types, not arbitrary Lua state.
+- multiplayer-only missions normally do not rely on save/load.
+- `Receive()` is the standard explicit script-level network synchronization hook.
 
 ---
 
-# Critical bugs, quirks, and do-not-assume behavior
-
-This section is intentionally redundant with the function index. Agents should search here first when a function behaves strangely.
-
-## Redux-relevant hazards
-
-### `GetPlayerHandle(team)` — team argument is broken
-
-```text
-handle GetPlayerHandle([teamnum team])
-```
-
-Calling `GetPlayerHandle()` without an argument is the normal local-player lookup. In Battlezone 98 Redux, passing a team number does **not** correctly retrieve that team's player and returns `nil`.
-
-Do not generate multiplayer code like:
-
-```lua
-local remote = GetPlayerHandle(2) -- do not assume this works
-```
-
-For remote-player tracking, maintain the handles explicitly and synchronize them using `CreatePlayer`/`AddPlayer` plus `Send`/`Receive` or another validated identity mechanism.
-
-Source: `References/StockLuaAPI-Functions/Team Slots/GetPlayerHandle/`.
-
-### `LockAllies` in `Start()` has no effect in Redux
-
-The HTML reference documents that calling `LockAllies(...)` from `Start()` has no effect in Battlezone 98 Redux. Do not assume that a startup call successfully locks the alliance UI/state. If the mission requires locked alliances, perform the one-shot call after startup has advanced and validate the resulting behavior.
-
-Source: `References/StockLuaAPI-Functions/Alliances/LockAllies/`.
-
-### Objective-message duration is not honored
-
-For both `AddObjective` and `UpdateObjective`, the documented `duration` argument is ignored and objective messages use a fixed eight-second duration.
-
-Do not implement timing logic that assumes this argument controls display lifetime.
-
-### Maximum ten simultaneous objective messages
-
-`AddObjective` uses a fixed-size internal buffer. The HTML reference warns that adding more than **10 simultaneous objective messages** causes a buffer overflow and can eventually crash the game.
-
-Maintain at most ten entries. Prefer updating/removing existing objective slots rather than appending indefinitely.
-
-Source: `References/StockLuaAPI-Functions/Objective Messages/AddObjective/`.
-
-### Cockpit timers conflict with stock multiplayer mission modes
-
-In `MultSTMission` and `MultDMMission`, the stock multiplayer mode code calls `StartCockpitTimerUp()` every frame. Consequences documented by the HTML reference:
-
-- a true countdown via `StartCockpitTimer` cannot be maintained in those modes;
-- warning/alert thresholds cannot be reliably adjusted through the count-up function;
-- showing/hiding the timer remains possible.
-
-Do not build a multiplayer countdown mechanic around the stock cockpit timer without first changing/overriding the mission-mode behavior.
-
-Source: `References/StockLuaAPI-Functions/Cockpit Timer/StartCockpitTimer/` and related timer pages.
-
-### `Attack` and same-team targets
-
-`Attack(me, him, priority)` only attacks a target on the attacker's **own team** when `priority` is `1` (uncommandable). If intentionally commanding friendly-fire/same-team attack behavior, use and test priority `1`.
-
-Source: `References/StockLuaAPI-Functions/Unit Commands/Attack/`.
-
-### Cross-team Armory `Build` / `BuildAt` behavior
-
-The HTML reference documents an Armory targeting bug when the Armory belongs to a team other than the player's own: launched powerups may not correctly reach the requested target when using `Build` or `BuildAt`. The source page includes Lua and ODF workarounds involving the powerup/Armory `aiName2` configuration.
-
-Do not assume cross-team Armory delivery is equivalent to the local player's Armory.
-
-Source: `References/StockLuaAPI-Functions/Unit Commands/Build/` and the four `BuildAt (...)` pages.
-
-### `SetAIControl` is startup-only configuration
-
-```text
-SetAIControl(teamnum team, [boolean control])
-```
-
-The strategic AI is initialized shortly after the mission script starts. Calling `SetAIControl` later can crash the game. Configure it from the script root/startup phase only. `GetAIControl` can be queried later.
-
-### Exact capitalization matters
-
-Two names are especially easy for agents to “correct” incorrectly:
-
-```lua
-UpdateEarthQuake(magnitude) -- capital Q in Quake
-isPortalActive(portal)      -- lower-case initial i
-```
-
-Use the stock spelling exactly.
-
-### Timer numeric limits
-
-- `StartCockpitTimer` supports at most `35999` seconds (`9:59:59` on screen).
-- `StartCockpitTimerUp` has a display malfunction after ten hours.
-
-### `Build` then `Dropoff` requires a simulation update
-
-Armories and Construction Rigs commanded with `Build(...)` need at least one simulation update to process the build selection before a location is supplied with `Dropoff(...)`.
-
-Do not issue both back-to-back in one synchronous code path and assume the location command is accepted.
-
-## Legacy Battlezone 1.5 issues that agents must NOT blindly apply to Redux
-
-These are preserved because the HTML corpus documents both games, but the version qualifier is critical.
-
-| Issue | Affected version | Redux guidance |
-|---|---|---|
-| `ObjectiveObjects()` loop counter fails and can hang the game | 1.5.2.x | **Fixed in Redux.** The iterator is usable in BZR. |
-| unexpected `\0` bytes from `GetOdf`, `GetBase`, `GetPilotClass`, `GetWeaponClass` | 1.5.2.x | Treat the cleanup wrapper as a 1.5 compatibility workaround unless Redux testing proves otherwise. |
-| `SetLabel` is named `SettLabel` | 1.5.2.x | Redux uses `SetLabel`; compatibility code may use `SetLabel = SetLabel or SettLabel`. |
-| removing the currently active weapon with `GiveWeapon` can crash | Battlezone 1.5 | Do not automatically attribute this legacy crash to Redux. |
-| destroyed objects can reach `DeleteObject` after useful properties are gone | 1.5.2.x | Preserve cached-state patterns when useful, but do not label this a confirmed Redux engine bug. |
-| `GetAIControl` needs a Lua compatibility implementation | specific 1.5 build(s) | BZR supplies the function. |
-
-This version separation supersedes older project notes that list some of these as unqualified engine bugs.
-
----
-
-# Multiplayer ownership and synchronization
+# Multiplayer ownership and locality
 
 ## Canonical network API
 
@@ -258,44 +373,41 @@ SetLocal(handle h)
 boolean IsLocal(handle h)
 boolean IsRemote(handle h)
 DisplayMessage(string message)
-Send([integer to], string type, ...)
+Send(integer? to, string type, ...)
 ```
 
-`Send` broadcasts when `to` is `nil`, omitted, or `0`. The type is an arbitrary one-character message identifier. The packet payload limit is approximately **244 bytes** after network headers, so keep messages compact.
+`Send(nil, type, ...)` and `Send(0, type, ...)` broadcast.
 
-Supported serialized values include nil/boolean/handle/numbers/strings/vector/matrix and supported aggregate encodings documented by the runtime. Never assume arbitrary userdata/functions/threads can cross the wire.
+The stock packet payload is approximately **244 bytes** after network headers, so keep custom messages compact.
 
-### `SetLocal` safety rule
+`SetLocal` must not be used as a casual synchronization primitive. Only one machine should attempt to claim a specific object at a time.
 
-Only one machine should attempt to claim a particular object with `SetLocal` at a time. Ownership races are not a synchronization mechanism.
+## Project-validated multiplayer behavior
 
-## Campaign Reimagined observed multiplayer behavior
+These observations come from Campaign Reimagined runtime testing and should be treated as practical BZR behavior unless later testing supersedes them.
 
-The following items come from `Text/ScriptingGuide.txt`. They are valuable BZR field observations, but they are operational evidence rather than a replacement for the stock HTML contract. Re-test when changing engine build or ownership strategy.
-
-| Operation | Observed behavior / design rule |
+| Operation | Observed behavior |
 |---|---|
-| `MakeExplosion` | local visual/gameplay effect; remote peers do not automatically receive the explosion/damage |
-| `SetVelocity` | observed to synchronize correctly |
-| `BuildObject` | globally useful creation is safest from the host/authoritative machine; client creation can have visibility/AI problems |
-| `RemoveObject` on non-local object | can be corrected by remote ownership/state and appear to “respawn”; explicit per-peer synchronization is safer |
-| `SetPosition` on non-local object | similar locality problems to removal |
-| `SetLocal` on remote AI | can break AI ownership/control; avoid casual ownership theft |
-| `SetName` / visible name changes | observed local-only in project testing |
-| objective-marker changes | observed not to synchronize automatically |
-| `Hide` / `UnHide` | peers may need the hidden state applied consistently; vehicles/buildings can diverge in visibility/AI/radar behavior |
-| team-changing mutations | project notes require local ownership for reliable changes to another player's units |
-| `GiveWeapon` | project notes recommend broadcasting the change with `Send`/`Receive` so every peer applies it consistently |
-| `DisplayMessage` | local chat-window output; stringify non-string values explicitly |
+| `MakeExplosion` | local-only; remote peers do not automatically receive explosion/damage |
+| `SetVelocity` | synchronizes correctly in project testing |
+| `BuildObject` | globally usable vehicle creation is safest from the machine that should own/control it |
+| non-host/client-built vehicles | can be invisible/nonfunctional to others unless ownership is corrected |
+| `RemoveObject` on remote/non-local object | remote state can restore it; synchronized removal should be explicitly messaged |
+| `SetPosition` on remote/non-local object | same class of locality problem as removal |
+| `SetLocal` on remote AI | can break that AI's control/behavior |
+| `SetName` | observed local-only |
+| objective markers | not synchronized automatically |
+| `Hide` / `UnHide` | peers can diverge unless state is applied consistently |
+| team mutations on another player's units | require correct locality/ownership |
+| `GiveWeapon` | use `Send`/`Receive` when weapon state must match on all peers |
+| `DisplayMessage` | local chat-window output; stringify non-string values |
 
-### Recommended authoritative pattern
-
-For replicated script actions, prefer a small explicit protocol:
+### Recommended synchronization shape
 
 ```lua
 local MSG_REMOVE = "R"
 
-function RequestRemove(h)
+function RemoveSynced(h)
     if IsNetGame() then
         Send(0, MSG_REMOVE, h)
     else
@@ -311,22 +423,23 @@ function Receive(from, kind, ...)
         end
         return true
     end
+
     return false
 end
 ```
 
-The exact ownership policy is mission-specific; the important rule is that a local mutation is not proof of replicated state.
+Mission-specific authority still matters; this only illustrates the principle that every peer should receive an explicit state transition when stock replication does not provide it.
 
 ---
 
-# Function index
+# Function reference
 
-Notation in this section:
+Notation:
 
-- `T?` = optional / may be omitted.
-- `A|B` = overload/union.
-- `pos` means `handle | path[, point] | vector | matrix` where the function provides those overloads.
-- `[2.0+]` / `[2.1+]` are Redux-era availability markers inherited from the stock reference.
+- `T?` means optional.
+- `A|B` means overload/union.
+- `pos` means the function supports the documented `handle`, `path[, point]`, `vector`, or `matrix` location forms.
+- `[2.0+]` / `[2.1+]` are Redux availability markers.
 
 ## Audio messages
 
@@ -338,16 +451,17 @@ StopAudioMessage(message msg)
 boolean IsAudioMessagePlaying()
 ```
 
-Audio messages are 2D voice/narration playback and use the Voice Volume setting.
+Audio messages are 2D voice/narration playback and use the Voice Volume option.
 
 ## Sound effects
 
 ```text
-StartSound(string filename, handle? h, integer? priority, boolean? loop, integer? volume, integer? rate)
+StartSound(string filename, handle? h, integer? priority,
+           boolean? loop, integer? volume, integer? rate)
 StopSound(string filename, handle? h)
 ```
 
-With a handle, sound is positional and follows that object. Without a handle it is global 2D sound. Priority is 0–100; volume is 0–100; rate overrides playback sample rate.
+With a handle, sound is positional and follows the object. Without a handle it is global 2D sound.
 
 ## Game objects
 
@@ -377,9 +491,7 @@ boolean IsDamaged(handle h, number? threshold)
 [2.1+] boolean IsRecycledByTeam(handle h, teamnum team)
 ```
 
-`ClassId` is a bidirectional table of stock numeric class identifiers and names. Prefer `ClassId.SCRAP`, etc. over raw numbers.
-
-## Team number / perceived team
+## Team / perceived team
 
 ```text
 teamnum GetTeamNum(handle h)
@@ -388,7 +500,7 @@ teamnum GetPerceivedTeam(handle h)
 SetPerceivedTeam(handle h, teamnum team)
 ```
 
-Perceived team can differ from real team during disguise/empty-enemy-vehicle behavior.
+The perceived team can differ from the real team during disguise/empty-enemy-vehicle behavior.
 
 ## Target
 
@@ -399,7 +511,7 @@ SetTarget(handle h, handle target)
 handle GetTarget(handle h)
 ```
 
-`SetUserTarget` / `GetUserTarget` apply to the local player UI target.
+The user-target functions operate on the local player's UI target.
 
 ## Owner
 
@@ -415,9 +527,9 @@ SetPilotClass(handle h, string? odfname)
 string GetPilotClass(handle h)
 ```
 
-A nil pilot class resets to the default nation-based assignment.
+Nil resets the pilot class to the normal nation/default assignment.
 
-## Position and orientation
+## Position / transform
 
 ```text
 SetPosition(handle h, string path, integer? point)
@@ -430,9 +542,9 @@ SetTransform(handle h, matrix transform)
 matrix GetTransform(handle h)
 ```
 
-`SetPosition` moves position only for the matrix overload; use `SetTransform` when orientation must also be applied.
+Use `SetTransform` when orientation matters. The matrix overload of `SetPosition` is still position-oriented rather than a general transform replacement.
 
-## Linear / angular velocity
+## Velocity
 
 ```text
 vector GetVelocity(handle h)
@@ -448,7 +560,7 @@ vector GetCircularPos(vector center, number? radius, number? angle)
 vector GetPositionNear(vector center, number? minradius, number? maxradius)
 ```
 
-Angles are radians. `GetPositionNear` is useful for scattering spawns without stacking them at exactly one location.
+`GetPositionNear` is useful when spawning multiple units around one reference point so they do not overlap.
 
 ## Shot information
 
@@ -469,7 +581,7 @@ boolean IsTeamAllied(teamnum team1, teamnum team2)
 boolean IsAlly(handle me, handle him)
 ```
 
-`Ally`/`UnAlly` update both directions. Player-driven alliance actions can create half-allied states, so `IsTeamAllied(a,b)` need not equal `IsTeamAllied(b,a)`.
+Player actions can create half-allied states, so `IsTeamAllied(a,b)` need not equal `IsTeamAllied(b,a)`.
 
 ## Objective markers / visible names
 
@@ -483,19 +595,24 @@ SetObjectiveName(handle h, string name)
 
 `SetName` is effectively an alias of `SetObjectiveName` in the stock API.
 
+Project multiplayer testing says visible-name and objective-marker changes are not automatically synchronized.
+
 ## Distance
 
 ```text
-number GetDistance(handle h, handle|string|vector|matrix target [, integer point])
+number GetDistance(handle h, handle target)
+number GetDistance(handle h, string path, integer? point)
+number GetDistance(handle h, vector position)
+number GetDistance(handle h, matrix transform)
 boolean IsWithin(handle h1, handle h2, number distance)
 [2.1+] boolean IsTouching(handle h1, handle h2, number? tolerance)
 ```
 
-Default `IsTouching` tolerance is about 1.3 m.
+Default `IsTouching` tolerance is approximately 1.3 m.
 
-## Nearest-object queries
+## Nearest queries
 
-Each family supports the applicable `handle`, `path[,point]`, `vector`, and `matrix` reference overloads:
+Applicable overload families accept handle, path/point, vector, or matrix reference positions:
 
 ```text
 handle GetNearestObject(pos)
@@ -504,7 +621,7 @@ handle GetNearestBuilding(pos)
 handle GetNearestEnemy(pos)
 [2.0+] handle GetNearestFriend(pos)
 [2.1+] handle GetNearestUnitOnTeam(pos, teamnum team)
-integer CountUnitsNearObject(handle h, number distance, teamnum team, string? odfname)
+integer CountUnitsNearObject(handle h, number distance, teamnum team, string odfname)
 ```
 
 ## Iterators
@@ -514,10 +631,10 @@ iterator ObjectsInRange(number distance, pos)
 iterator AllObjects()
 iterator AllCraft()
 iterator SelectedObjects()
-iterator ObjectiveObjects()
+iterator ObjectiveObjects()   -- BROKEN IN STOCK REDUX
 ```
 
-Typical use:
+Use:
 
 ```lua
 for h in AllCraft() do
@@ -525,12 +642,14 @@ for h in AllCraft() do
 end
 ```
 
-Use `AllObjects()` sparingly; it includes incidental objects such as scrap. **Redux note:** `ObjectiveObjects()` is usable in BZR; the hang bug documented in the reference is a 1.5.2.x bug fixed in Redux.
+Prefer `AllCraft()` over `AllObjects()` when only craft are needed; `AllObjects()` includes incidental objects such as scrap.
+
+Do **not** use stock `ObjectiveObjects()` to enumerate all objective objects. Current Redux project testing says it returns only the first result.
 
 ## Scrap management
 
 ```text
-GetRidOfSomeScrap(integer? limit) -- default limit 300
+GetRidOfSomeScrap(integer? limit) -- default 300
 ClearScrapAround(number distance, pos)
 ```
 
@@ -538,14 +657,14 @@ ClearScrapAround(number distance, pos)
 
 ```text
 handle GetTeamSlot(TeamSlot slot, teamnum? team)
-handle GetPlayerHandle(teamnum? team)       -- WARNING: team argument broken in Redux
+handle GetPlayerHandle(teamnum? team)       -- remote-team overload broken
 handle GetRecyclerHandle(teamnum? team)
 handle GetFactoryHandle(teamnum? team)
 handle GetArmoryHandle(teamnum? team)
 handle GetConstructorHandle(teamnum? team)
 ```
 
-When no team is supplied, the local player's team is used.
+No team argument means the local player's team.
 
 ## Team pilots
 
@@ -569,7 +688,7 @@ integer SetMaxScrap(teamnum team, integer count)
 integer GetMaxScrap(teamnum team)
 ```
 
-## Deploy / selection / mission-critical
+## Deploy / selection / critical
 
 ```text
 boolean IsDeployed(handle h)
@@ -579,7 +698,7 @@ boolean IsSelected(handle h)
 [2.0+] SetCritical(handle h, boolean? critical)
 ```
 
-Mission-critical objects disable player commands that could remove/recycle them.
+Mission-critical status disables player actions that would remove/recycle the object.
 
 ## Weapons and damage
 
@@ -591,9 +710,9 @@ FireAt(handle me, handle him)
 Damage(handle h, number amount)
 ```
 
-Weapon mask bits correspond to hardpoints 1/2/4/8/16. Giving a blank/nil weapon with an explicit slot removes the weapon in that slot.
+Weapon-mask bits correspond to hardpoints 1, 2, 4, 8, and 16.
 
-Multiplayer project note: apply weapon changes through an explicit replicated action when peers need identical equipment state.
+A nil/blank weapon name with an explicit slot removes that slot's weapon.
 
 ## Time
 
@@ -603,12 +722,12 @@ number GetTimeStep()
 number GetTimeNow()
 ```
 
-`GetTimeNow()` is system milliseconds and is useful for profiling; mission logic should normally use simulation time/timestep.
+`GetTimeNow()` is system milliseconds and is mainly useful for profiling. Mission logic should normally use simulation time/timestep.
 
 ## Mission / strategic AI
 
 ```text
-SetAIControl(teamnum team, boolean? control) -- startup-only; see hazard
+SetAIControl(teamnum team, boolean? enabled) -- startup-only
 boolean GetAIControl(teamnum team)
 string GetAIP(teamnum? team)                 -- default team 2
 SetAIP(string aipname, teamnum? team)        -- default team 2
@@ -625,7 +744,12 @@ UpdateObjective(string name, string? color, number? duration, string? text)
 RemoveObjective(string name)
 ```
 
-Supported color names include black/grey/white/blue/green/yellow/red plus dark variants. See hazards: duration is fixed to eight seconds and more than ten simultaneous messages is unsafe.
+Supported colors include white/black/grey/blue/green/yellow/red plus dark variants.
+
+Remember:
+
+- duration is effectively fixed to eight seconds;
+- keep simultaneous entries <= 10.
 
 ## Cockpit timer
 
@@ -637,7 +761,11 @@ HideCockpitTimer()
 integer GetCockpitTimer()
 ```
 
-See the multiplayer-mode caveat above.
+`StartCockpitTimer` tops out at `35999` seconds (`9:59:59`).
+
+`StartCockpitTimerUp` has a display malfunction after ten hours.
+
+See the stock multiplayer-mode override warning earlier.
 
 ## Earthquake
 
@@ -647,9 +775,7 @@ UpdateEarthQuake(number magnitude)
 StopEarthquake()
 ```
 
-The unusual capital `Q` in `UpdateEarthQuake` is intentional.
-
-## Path type / path area
+## Path type / area
 
 ```text
 [2.0+] SetPathType(string path, PathType type)
@@ -662,9 +788,9 @@ SetPathLoop(string path)
 [2.0+] boolean IsInsideArea(string path, handle|vector|matrix target)
 ```
 
-A non-zero winding number means the point is inside the path-defined polygonal area.
+A non-zero winding number means the target point is inside the path-defined polygonal area.
 
-## Unit commands
+## Unit command inspection
 
 ```text
 boolean CanCommand(handle me)
@@ -674,8 +800,27 @@ AiCommand GetCurrentCommand(handle me)
 handle GetCurrentWho(handle me)
 integer GetIndependence(handle me)
 SetIndependence(handle me, integer independence)
-SetCommand(handle me, AiCommand command, priority? priority, handle? who,
-           matrix|vector|string? where, number? when, string? param)
+```
+
+Independence `1` lets a unit take initiative; `0` suppresses autonomous initiative.
+
+## Generic command
+
+```text
+SetCommand(handle me,
+           AiCommand command,
+           priority? priority,
+           handle? who,
+           matrix|vector|string? where,
+           number? when,
+           string? param)
+```
+
+Not every command is valid for every unit. Use the named wrapper functions when possible.
+
+## Unit command wrappers
+
+```text
 Attack(handle me, handle him, priority? priority)
 Goto(handle me, string|handle|vector|matrix destination, priority? priority)
 Mine(handle me, string|vector|matrix destination, priority? priority)
@@ -695,7 +840,15 @@ BuildAt(handle me, string odfname, handle|string|vector|matrix destination, prio
 [2.1+] Hunt(handle me, priority? priority)
 ```
 
-Priority `0` leaves the unit player-commandable; default priority `1` makes it uncommandable. `SetCommand` is low-level and not every command is valid for every unit.
+Priority `0` leaves a unit player-commandable. Default priority `1` makes the issued command uncommandable by the player.
+
+### Project behavior notes
+
+- `Defend2`: defensive follow behavior; can chase enemies and may fail to re-follow if the defended object moves too far away.
+- `Follow`: looser follow behavior; tends to re-follow after exceeding distance thresholds.
+- `Formation`: tightest follow pattern; units cluster near the target and frequently retarget nearby threats.
+
+Treat these descriptions as observed AI behavior rather than a stable formal contract.
 
 ## Tug cargo
 
@@ -718,7 +871,7 @@ handle HoppedOutOf(handle h)
 ## Health
 
 ```text
-number GetHealth(handle h)        -- 0..1 ratio
+number GetHealth(handle h)       -- fractional 0..1
 number GetCurHealth(handle h)
 number GetMaxHealth(handle h)
 SetCurHealth(handle h, number health)
@@ -730,7 +883,7 @@ AddHealth(handle h, number health)
 ## Ammo
 
 ```text
-number GetAmmo(handle h)          -- 0..1 ratio
+number GetAmmo(handle h)         -- fractional 0..1
 number GetCurAmmo(handle h)
 number GetMaxAmmo(handle h)
 SetCurAmmo(handle h, number ammo)
@@ -751,7 +904,7 @@ boolean CameraFinish()
 boolean CameraCancelled()
 ```
 
-`CameraObject` offsets are centimeters.
+`CameraObject` offsets are in centimeters.
 
 ## Info display
 
@@ -763,26 +916,32 @@ boolean IsInfo(string odfname)
 
 ```text
 odfhandle OpenODF(string filename)
-boolean value, boolean found = GetODFBool(odfhandle odf, string? section, string label, boolean? default)
-integer value, boolean found = GetODFInt(odfhandle odf, string? section, string label, integer? default)
-number value, boolean found = GetODFFloat(odfhandle odf, string? section, string label, number? default)
-string value, boolean found = GetODFString(odfhandle odf, string? section, string label, string? default)
+boolean value, boolean found = GetODFBool(odfhandle odf, string? section,
+                                          string label, boolean? default)
+integer value, boolean found = GetODFInt(odfhandle odf, string? section,
+                                         string label, integer? default)
+number value, boolean found = GetODFFloat(odfhandle odf, string? section,
+                                          string label, number? default)
+string value, boolean found = GetODFString(odfhandle odf, string? section,
+                                           string label, string? default)
 ```
 
-If `OpenODF` receives a filename without an extension it appends `.odf`. Retain frequently used ODF handles rather than reparsing repeatedly.
+If no extension is supplied, `OpenODF` appends `.odf`.
+
+Cache frequently reused `odfhandle` values rather than repeatedly reopening the same file.
 
 ## Terrain / floor
 
-All overloads accept a handle, path/point, vector, or matrix where applicable:
+Applicable overloads accept handle, path/point, vector, or matrix positions:
 
 ```text
 number height, vector normal = GetTerrainHeightAndNormal(pos)
 number height, vector normal = GetFloorHeightAndNormal(pos)
 ```
 
-Floor queries include upward-facing polygons of entities marked as floor owners; terrain queries use the terrain height field.
+Floor queries include upward-facing polygons on floor-owner entities; terrain queries use the terrain height field.
 
-## Map / files / screen effects
+## Map / files / effects
 
 ```text
 [2.0+] string GetMissionFilename()
@@ -791,7 +950,7 @@ string GetMapTRNFilename()
 [2.0+] ColorFade(number ratio, number rate, integer r, integer g, integer b)
 ```
 
-## Vector math
+## Vector construction and math
 
 ```text
 vector SetVector(number? x, number? y, number? z)
@@ -806,24 +965,25 @@ number Distance3D(vector a, vector b)
 number Distance3DSquared(vector a, vector b)
 ```
 
-Vector userdata supports negation, addition, subtraction, multiplication and division. Vector×vector multiplication/division is component-wise, not dot/cross product.
+Vector userdata also supports arithmetic operators. Vector-by-vector multiplication/division is component-wise, not a dot/cross product.
 
-## Matrix math
+## Matrix construction
 
 ```text
-matrix SetMatrix(...12 components...)
+matrix SetMatrix(...12 numeric components...)
 matrix BuildAxisRotationMatrix(number? angle, number? x, number? y, number? z)
 matrix BuildAxisRotationMatrix(number? angle, vector axis)
 matrix BuildPositionRotationMatrix(number? pitch, number? yaw, number? roll,
                                    number? x, number? y, number? z)
-matrix BuildPositionRotationMatrix(number? pitch, number? yaw, number? roll, vector position)
+matrix BuildPositionRotationMatrix(number? pitch, number? yaw, number? roll,
+                                   vector position)
 matrix BuildOrthogonalMatrix(vector? up, vector? heading)
 matrix BuildDirectionalMatrix(vector? position, vector? direction)
 ```
 
-Angles are radians. Axis-rotation axes must be unit length. Avoid constructing non-orthonormal transforms unless the engine behavior is explicitly understood.
+Angles are radians. Axis-rotation axes must be normalized. Bad/non-orthonormal transforms can violate engine assumptions.
 
-## Portal — BZR 2.1+
+## Portal — Redux 2.1+
 
 ```text
 PortalOut(handle portal)
@@ -835,9 +995,9 @@ boolean isPortalActive(handle portal)
 handle BuildObjectAtPortal(string odfname, teamnum team, handle portal)
 ```
 
-`BuildObjectAtPortal` creates the object at the portal effect and gives it an initial 50 m/s velocity.
+`BuildObjectAtPortal` creates the object at the portal effect with an initial 50 m/s velocity.
 
-## Cloak — BZR 2.1+
+## Cloak — Redux 2.1+
 
 ```text
 Cloak(handle h)
@@ -849,54 +1009,53 @@ EnableCloaking(handle h, boolean enable)
 EnableAllCloaking(boolean enable)
 ```
 
-Direct `Cloak`/`Decloak` calls do not replace the unit's current AI command, unlike issuing a cloak command through `SetCommand`.
+Direct cloak calls do not replace the unit's current AI command.
 
-## Hide — BZR 2.1+
+## Hide — Redux 2.1+
 
 ```text
 Hide(handle h)
 UnHide(handle h)
 ```
 
-Hidden objects are invisible and radar-hidden, but AI generally does not treat “hidden” as equivalent to “does not exist.” See multiplayer locality notes before using this as synchronized gameplay state.
+Hidden state affects rendering and radar but does not mean AI universally treats the object as nonexistent.
 
-## Explosion — BZR 2.1+
+Multiplayer state can diverge between peers; see locality notes.
+
+## Explosion — Redux 2.1+
 
 ```text
 MakeExplosion(string odfname, handle|string|vector|matrix location)
 ```
 
-Explosions are not script-visible game objects and do not return handles.
+Explosions are not game objects and do not return handles.
+
+Project multiplayer testing says `MakeExplosion` is local-only.
 
 ---
 
-# Common implementation patterns
+# Common safe patterns
 
-## Feature-gated BZR code
+## Feature gating
 
 ```lua
-if IsTouching ~= nil then
-    if IsTouching(a, b) then
-        -- Redux 2.1+ behavior
-    end
-else
-    if GetDistance(a, b) < 1.3 then
-        -- fallback
-    end
+if GetCargo ~= nil then
+    local cargo = GetCargo(tug)
 end
 ```
 
-## Safe player-handle model for multiplayer
+## Remote-player tracking
 
-Do not derive remote player handles with `GetPlayerHandle(team)`. Track them from session events and explicitly exchange current handles when required.
-
-Conceptually:
+Do not use the broken remote `GetPlayerHandle(team)` overload as the source of truth.
 
 ```lua
 local players = {}
 
 function CreatePlayer(id, name, team)
-    players[id] = { name = name, team = team }
+    players[id] = {
+        name = name,
+        team = team,
+    }
 end
 
 function DeletePlayer(id, name, team)
@@ -904,102 +1063,133 @@ function DeletePlayer(id, name, team)
 end
 ```
 
-The exact handle update protocol depends on the mission because respawn/vehicle transitions can replace the player-controlled object.
+The current controlled object must still be synchronized separately because respawns, ejects, vehicle changes, and hop-outs can replace it.
 
-## Producer build sequencing
+## Delayed producer dropoff
 
 ```lua
-local pendingDropoff = nil
+local pending = nil
 
-function QueueRigBuild(rig, odf, where)
+function QueueBuild(rig, odf, where)
     Build(rig, odf)
-    pendingDropoff = { rig = rig, where = where, frames = 1 }
+    pending = {
+        rig = rig,
+        where = where,
+        frames = 1,
+    }
 end
 
 function Update(dt)
-    if pendingDropoff then
-        if pendingDropoff.frames > 0 then
-            pendingDropoff.frames = pendingDropoff.frames - 1
+    if pending then
+        if pending.frames > 0 then
+            pending.frames = pending.frames - 1
         else
-            Dropoff(pendingDropoff.rig, pendingDropoff.where)
-            pendingDropoff = nil
+            Dropoff(pending.rig, pending.where)
+            pending = nil
         end
     end
 end
 ```
 
-This models the documented requirement that the producer process `Build` for at least one simulation update before `Dropoff`.
-
-## Bounded objective panel
+## Bounded objective slots
 
 ```lua
-local objectiveSlots = {}
+local objectives = {}
 
 local function SetObjectiveSlot(key, text, color)
-    if objectiveSlots[key] then
+    if objectives[key] then
         UpdateObjective(key, color or "white", 8, text)
         return
     end
 
     local count = 0
-    for _ in pairs(objectiveSlots) do
+    for _ in pairs(objectives) do
         count = count + 1
     end
 
     if count >= 10 then
-        error("objective panel limit reached")
+        error("stock objective-message limit reached")
     end
 
     AddObjective(key, color or "white", 8, text)
-    objectiveSlots[key] = true
+    objectives[key] = true
 end
 ```
 
-The `8` is documentary only; the engine's duration is fixed regardless of the supplied value.
+The `8` does not actually configure duration; it documents the stock effective duration.
+
+## Objective-object enumeration without stock `ObjectiveObjects()`
+
+If the mission needs its own objective set, maintain it explicitly when calling `SetObjectiveOn` / `SetObjectiveOff` instead of attempting to rediscover every objective through the broken stock iterator.
+
+```lua
+local objectiveHandles = {}
+
+local function MarkObjective(h)
+    if IsValid(h) then
+        SetObjectiveOn(h)
+        objectiveHandles[h] = true
+    end
+end
+
+local function UnmarkObjective(h)
+    SetObjectiveOff(h)
+    objectiveHandles[h] = nil
+end
+```
+
+If a shim/EXU compatibility patch later provides a proven full iterator, code that intentionally depends on that patched environment should document the dependency explicitly.
 
 ---
 
-# File-name and content constraints used by this project
+# Project content constraints relevant to Lua
 
-Campaign Reimagined's scripting guide records an important content constraint: ODFs and files directly referenced from mission Lua should stay within the game's legacy **8-character basename** convention where applicable. Preserve existing short-name conventions when adding mission assets.
+Campaign Reimagined uses the game's legacy short-name conventions. ODF basenames and files directly referenced from Lua should remain **8 characters or fewer where applicable**.
 
-This is a project integration rule rather than a Lua language rule, but agents editing mission scripts should account for it.
-
----
-
-# Source reconciliation notes
-
-## `ObjectiveObjects()` conflict resolved
-
-`Text/ScriptingGuide.txt` contains an older blanket warning not to use `ObjectiveObjects()`. The HTML function page gives the more precise behavior: the iterator's C++ loop counter was broken in Battlezone 1.5.2.x and could hang the game, but **the issue was solved in Battlezone 98 Redux**. For BZR work, use the HTML result.
-
-## Null-padded strings conflict resolved
-
-The project guide warns about hidden null bytes in several string-returning functions. The HTML pages qualify that bug to **Battlezone 1.5.2.x** and provide a compatibility wrapper for `GetOdf`, `GetBase`, `GetPilotClass`, and `GetWeaponClass`. Do not automatically wrap/alter BZR values unless a BZR runtime test reproduces the fault.
-
-## Stock versus project APIs
-
-`Scripts/scriptutils.lua` may contain Campaign Reimagined additions alongside the stock declarations. Treat explicit tags such as `[campaignReimagined]` as project APIs, not evidence that the retail BZR Lua runtime provides them.
+This is a content/integration constraint rather than a Lua language rule, but agents editing mission scripts must preserve it.
 
 ---
 
-# Maintenance rules for future agents
+# Known source conflicts
+
+## `ObjectiveObjects()`
+
+**HTML claim:** the old Battlezone 1.5 iterator bug was solved in Redux.
+
+**Current BZR project finding:** stock Redux `ObjectiveObjects()` is still broken as an iterator and only returns the first result.
+
+**Decision:** treat it as broken in stock Redux. A shim/EXU patch may make it usable, but that is an optional runtime capability and must be verified separately.
+
+## Null-padded string getters
+
+**HTML claim:** the null-character defect is a 1.5.2.x issue.
+
+**Project note:** several getters are listed as susceptible to hidden characters.
+
+**Decision:** do not add compatibility stripping everywhere by default, but keep the issue in mind when equality/composition behaves differently from printed output.
+
+---
+
+# Maintenance rules
 
 When updating this reference:
 
-1. Inspect the relevant HTML leaf page, including `Known Issues`, not just `Scripts/scriptutils.lua`.
-2. Preserve the exact affected game/version when documenting a bug.
-3. If project runtime testing contradicts the HTML reference, record both with build/test provenance rather than overwriting history.
-4. Add new stock functions to the function index under the correct category and availability marker.
-5. Keep EXU/OpenShim/BZFILE/project helpers out of the stock index; document them in their own references.
-6. Never “fix” odd stock capitalization in documentation or generated Lua.
-7. For multiplayer findings, state whether behavior is canonical, observed, local-only, host-only, ownership-sensitive, or explicitly synchronized.
+1. Check the relevant HTML leaf page, including `Known Issues`.
+2. Check `Scripts/scriptutils.lua` for the canonical signature/availability marker.
+3. Check current BZR runtime notes/tests before declaring a historical bug fixed.
+4. Runtime-validated Redux behavior overrides an inaccurate historical/reference statement, but preserve the disagreement in `Known source conflicts`.
+5. Separate **stock BZR**, **Battlezone 1.5 compatibility**, **Campaign Reimagined helpers**, and **OpenShim/EXU-patched behavior**.
+6. Never describe a shim/EXU fix as stock behavior.
+7. For multiplayer findings, identify whether behavior is local-only, host-sensitive, ownership-sensitive, replicated, or explicitly synchronized.
+8. Preserve odd stock capitalization exactly.
+9. Keep project-only functions out of the stock function index.
+10. If a stock bug is fixed by OpenShim or EXU, document the required component/version/feature gate once confirmed.
 
 ## Primary repository sources
 
+- `Text/ScriptingGuide.txt`
 - `References/StockLuaAPI-Functions/`
 - `References/StockLuaAPI-Expressions/`
 - `Scripts/scriptutils.lua`
-- `Text/ScriptingGuide.txt`
 
-These should be consulted in that order for stock API behavior and quirks.
+For runtime conflicts, current validated BZR findings take precedence over the static HTML statement.
