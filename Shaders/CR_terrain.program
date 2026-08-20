@@ -339,6 +339,14 @@ vertex_program CR_TerrainHighPSSM_vertexHLSL4 hlsl
 	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED
 }
 
+vertex_program CR_TerrainENHighPSSMV2_vertexHLSL4 hlsl
+{
+	source CR_terrain-sm4.hlsl
+	target vs_4_0
+	entry_point terrain_vertex
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,ENHANCED_MODE=1,CR_ENHANCED_PSSM_V2=1
+}
+
 //GLOW
 
 vertex_program CR_TerrainGlow_vertexHLSL4 hlsl
@@ -1879,6 +1887,19 @@ vertex_program CR_TerrainHighPSSM_vertex unified
 	}
 }
 
+vertex_program CR_TerrainENHighPSSMV2_vertex unified
+{
+	delegate CR_TerrainENHighPSSMV2_vertexHLSL4
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto worldViewMat worldview_matrix
+		param_named_auto texWorldViewProj1 texture_worldviewproj_matrix 0
+		param_named_auto texWorldViewProj2 texture_worldviewproj_matrix 1
+		param_named_auto texWorldViewProj3 texture_worldviewproj_matrix 2
+	}
+}
+
 //GLOW
 
 vertex_program CR_TerrainGlow_vertex unified
@@ -2533,7 +2554,7 @@ fragment_program CR_TerrainENHighPSSM_fragmentHLSL4 hlsl
 	source CR_terrain-sm4.hlsl
 	target ps_4_0
 	entry_point terrain_fragment
-	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=4,PSSM_ENABLED,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=4,PSSM_ENABLED,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_ENHANCED_PSSM_V2=1
 }
 
 fragment_program CR_TerrainENHighNoShadow_fragmentHLSL hlsl

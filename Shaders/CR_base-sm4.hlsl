@@ -72,6 +72,37 @@
 #define CR_RADIAL_FOG 0
 #endif
 
+// DX11 Enhanced PSSM v2. The program/material pair enables this only for the
+// en-high-pssm scheme; Classic, DX9 and non-PSSM variants retain the original
+// receiver path. Values are named here so visual tuning cannot become a set of
+// unrelated literals spread through the shader.
+#ifndef CR_ENHANCED_PSSM_V2
+#define CR_ENHANCED_PSSM_V2 0
+#endif
+
+#if defined(ENHANCED_MODE) && defined(SHADOWRECEIVER) \
+ && defined(PSSM_ENABLED) && (CR_ENHANCED_PSSM_V2 != 0)
+#define CR_ENHANCED_PSSM_V2_ACTIVE 1
+#else
+#define CR_ENHANCED_PSSM_V2_ACTIVE 0
+#endif
+
+// Ogre PSSM expands adjacent split cameras by one world unit on each side.
+// Blend across exactly that overlap, so two cascades are sampled only where
+// both projections are valid.
+#define CR_PSSM_CASCADE_BLEND_HALF_WIDTH 1.0
+
+// Fade only the last 24 units of the 256-unit PSSM range. The fade is applied
+// to shadow contribution, and geometry beyond the range performs no lookup.
+#define CR_PSSM_FAR_FADE_WIDTH 24.0
+
+// Conservative BZR-scale adaptation of BZCC's distance-growing normal offset.
+// BZCC ships 0.2 + 0.001 * depth; these smaller, bounded values reduce acne
+// without importing its scene-scale assumptions or a large contact offset.
+#define CR_PSSM_NORMAL_OFFSET_BASE 0.04
+#define CR_PSSM_NORMAL_OFFSET_PER_DEPTH 0.0002
+#define CR_PSSM_NORMAL_OFFSET_MAX 0.10
+
 // Scoped exactly like Stage A: the Enhanced per-pixel path only. The legacy
 // fog in the #else branch of the fragment shaders is depth-based and stays
 // that way, so Default, Retro, vertex-lighting delegates and the DX9/GL paths
@@ -98,6 +129,32 @@
 #endif
 
 #if defined(SHADOWRECEIVER)
+#if CR_ENHANCED_PSSM_V2_ACTIVE
+float PCF_Filter(
+    in Texture2D map,
+    in SamplerComparisonState sam,
+    in float4 uv,
+    in float2 invMapSize)
+{
+    if (abs(uv.w) <= 1e-6)
+        return 1.0;
+
+    uv.xyz *= rcp(uv.w);
+    uv.z = min(uv.z, 1.0);
+    invMapSize = max(invMapSize, float2(1e-8, 1e-8));
+
+    // Four bilinear comparison taps provide a compact 3x3-equivalent tent
+    // footprint. BZCC uses the same four-tap hardware-PCF strategy; symmetric
+    // half-texel offsets fit Ogre's projected-coordinate convention.
+    float2 halfTexel = invMapSize * 0.5;
+    float result = 0.0;
+    result += map.SampleCmpLevelZero(sam, uv.xy + float2(-halfTexel.x, -halfTexel.y), uv.z);
+    result += map.SampleCmpLevelZero(sam, uv.xy + float2( halfTexel.x, -halfTexel.y), uv.z);
+    result += map.SampleCmpLevelZero(sam, uv.xy + float2(-halfTexel.x,  halfTexel.y), uv.z);
+    result += map.SampleCmpLevelZero(sam, uv.xy + float2( halfTexel.x,  halfTexel.y), uv.z);
+    return result * 0.25;
+}
+#else
 float PCF_Filter(
     in Texture2D map,
     in SamplerState sam,
@@ -148,6 +205,7 @@ float PCF_Filter(
     return step(uv.z, map.Sample(sam, uv.xy).x);
 #endif
 }
+#endif
 #endif
 
 #if defined(NORMALMAP_ENABLED) && !defined(VERTEX_TANGENTS)
@@ -677,10 +735,22 @@ void base_vertex(
     vDepth = oPosition.z;
 
 #if defined(SHADOWRECEIVER)
-    vLightSpacePos1 = mul(texWorldViewProj1, iPosition);
+    float4 shadowPosition = iPosition;
+#if CR_ENHANCED_PSSM_V2_ACTIVE
+    float normalLengthSq = dot(iNormal, iNormal);
+    if (normalLengthSq > 1e-8)
+    {
+        float receiverOffset = min(
+            CR_PSSM_NORMAL_OFFSET_BASE
+                + CR_PSSM_NORMAL_OFFSET_PER_DEPTH * max(vDepth, 0.0),
+            CR_PSSM_NORMAL_OFFSET_MAX);
+        shadowPosition.xyz += iNormal * rsqrt(normalLengthSq) * receiverOffset;
+    }
+#endif
+    vLightSpacePos1 = mul(texWorldViewProj1, shadowPosition);
 #if defined(PSSM_ENABLED)
-    vLightSpacePos2 = mul(texWorldViewProj2, iPosition);
-    vLightSpacePos3 = mul(texWorldViewProj3, iPosition);
+    vLightSpacePos2 = mul(texWorldViewProj2, shadowPosition);
+    vLightSpacePos3 = mul(texWorldViewProj3, shadowPosition);
 #endif
 #endif
 
@@ -724,12 +794,24 @@ void base_fragment(
 #endif
 #if defined(SHADOWRECEIVER)
     uniform Texture2D shadowMap1 : register(t4),
+#if CR_ENHANCED_PSSM_V2_ACTIVE
+    uniform SamplerComparisonState shadowSam1 : register(s4),
+#else
     uniform SamplerState shadowSam1 : register(s4),
+#endif
 #if defined(PSSM_ENABLED)
     uniform Texture2D shadowMap2 : register(t5),
+#if CR_ENHANCED_PSSM_V2_ACTIVE
+    uniform SamplerComparisonState shadowSam2 : register(s5),
+#else
     uniform SamplerState shadowSam2 : register(s5),
+#endif
     uniform Texture2D shadowMap3 : register(t6),
+#if CR_ENHANCED_PSSM_V2_ACTIVE
+    uniform SamplerComparisonState shadowSam3 : register(s6),
+#else
     uniform SamplerState shadowSam3 : register(s6),
+#endif
 #endif
 
     uniform float4 invShadowMapSize1,
@@ -818,11 +900,49 @@ void base_fragment(
 #if defined(SHADOWRECEIVER)
     float shadow;
 #if defined(PSSM_ENABLED)
+#if CR_ENHANCED_PSSM_V2_ACTIVE
+    float split1 = pssmSplitPoints.y;
+    float split2 = pssmSplitPoints.z;
+    float splitEnd = pssmSplitPoints.w;
+    float blendWidth = CR_PSSM_CASCADE_BLEND_HALF_WIDTH;
+
+    [branch] if (vDepth < split1 - blendWidth)
+    {
+        shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy);
+    }
+    else if (vDepth <= split1 + blendWidth)
+    {
+        float shadow1 = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy);
+        float shadow2 = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy);
+        float blend = smoothstep(split1 - blendWidth, split1 + blendWidth, vDepth);
+        shadow = lerp(shadow1, shadow2, blend);
+    }
+    else if (vDepth < split2 - blendWidth)
+    {
+        shadow = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy);
+    }
+    else if (vDepth <= split2 + blendWidth)
+    {
+        float shadow2 = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy);
+        float shadow3 = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy);
+        float blend = smoothstep(split2 - blendWidth, split2 + blendWidth, vDepth);
+        shadow = lerp(shadow2, shadow3, blend);
+    }
+    else if (vDepth <= splitEnd)
+    {
+        shadow = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy);
+        float fadeStart = max(split2 + blendWidth, splitEnd - CR_PSSM_FAR_FADE_WIDTH);
+        float farFade = smoothstep(fadeStart, splitEnd, vDepth);
+        shadow = lerp(shadow, 1.0, farFade);
+    }
+    else
+    {
+        shadow = 1.0;
+    }
+#else
     if (vDepth <= pssmSplitPoints.y)
     {
-#endif
         shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy);
-#if defined(PSSM_ENABLED)
     }
     else if (vDepth <= pssmSplitPoints.z)
     {
@@ -832,6 +952,9 @@ void base_fragment(
     {
         shadow = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy);
     }
+#endif
+#else
+    shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy);
 #endif
 #if defined(ENHANCED_MODE)
     shadow = shadow * 0.78 + 0.22;
