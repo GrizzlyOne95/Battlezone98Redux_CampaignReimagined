@@ -13,6 +13,22 @@
 #define CR_ATMOS_DEBUG_MODE 0
 #endif
 
+// Material V2 is an explicit DX11 Enhanced object permutation. Its t2 texture
+// is DATA: RGB stores linear F0/specular reflectance and A stores perceptual
+// roughness. Legacy specular maps never enter this branch.
+#ifndef CR_MATERIAL_V2
+#define CR_MATERIAL_V2 0
+#endif
+
+#ifndef CR_MATERIAL_DEBUG_MODE
+#define CR_MATERIAL_DEBUG_MODE 0
+#endif
+
+#if (CR_MATERIAL_V2 != 0) && (!defined(ENHANCED_MODE) || !defined(SPECULARMAP_ENABLED) || \
+                                defined(VERTEX_LIGHTING) || defined(OG_RETRO_MODE) || defined(RETRO_UNLIT_MODE))
+#error CR_MATERIAL_V2 requires the Enhanced per-pixel path and an explicit material map
+#endif
+
 // -----------------------------------------------------------------------------
 // Stage A linear-light experiment (DX11 Enhanced only)
 // -----------------------------------------------------------------------------
@@ -897,12 +913,23 @@ void base_fragment(
 #endif
 
 #if defined(SPECULARMAP_ENABLED)
+#if CR_MATERIAL_V2
+    float4 materialTex = specularMap.Sample(specularSam, vTexCoord);
+    // Explicit Material V2 data. Do not sRGB-decode either field: F0 is stored
+    // as linear reflectance and roughness is a numerical control channel.
+    float3 surfaceF0 = saturate(materialTex.rgb);
+    float surfaceRoughness = clamp(
+        materialTex.a,
+        CR_PBR_MIN_ROUGHNESS,
+        CR_PBR_MAX_ROUGHNESS);
+#else
     float3 specularTex = specularMap.Sample(specularSam, vTexCoord).xyz;
     float specularMask = saturate(luminance_legacy(specularTex));
 #if defined(ENHANCED_MODE)
     float3 surfaceF0 = legacy_specular_to_f0(specularTex);
 #else
     float3 specularTint = lerp(float3(0.04, 0.04, 0.04), specularTex, specularMask);
+#endif
 #endif
 #elif defined(ENHANCED_MODE)
     float specularMask = 0.5;
@@ -911,7 +938,9 @@ void base_fragment(
 
 #if defined(ENHANCED_MODE)
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
+#if !CR_MATERIAL_V2
     float surfaceRoughness = derive_legacy_roughness(materialShininess, specularMask);
+#endif
 #if defined(NORMALMAP_ENABLED)
     surfaceRoughness = filter_roughness_from_normal_variance(viewNormal, surfaceRoughness);
 #endif
@@ -931,6 +960,10 @@ void base_fragment(
 #endif
 #if defined(SPECULAR_ENABLED) || defined(SPECULARMAP_ENABLED)
     float3 specularResult = float3(0.0, 0.0, 0.0);
+#if CR_MATERIAL_V2
+    float3 directSpecularResult = float3(0.0, 0.0, 0.0);
+    float3 iblSpecularResult = float3(0.0, 0.0, 0.0);
+#endif
 #endif
 
 #if defined(RETRO_UNLIT_MODE)
@@ -1004,11 +1037,21 @@ void base_fragment(
             NdotL);
 
         lightResult.xyz += lightDiffuse[i].xyz * attenuation * NdotL * diffuseWeight;
+#if CR_MATERIAL_V2
+        float3 directSpecularContribution = lightSpecular[i].xyz
+                                          * specularAttenuation
+                                          * NdotL
+                                          * specularBRDF
+                                          * CR_PBR_SPECULAR_COMPENSATION;
+        specularResult.xyz += directSpecularContribution;
+        directSpecularResult.xyz += directSpecularContribution;
+#else
         specularResult.xyz += lightSpecular[i].xyz
                             * specularAttenuation
                             * NdotL
                             * specularBRDF
                             * CR_PBR_SPECULAR_COMPENSATION;
+#endif
 #elif defined(ENHANCED_MODE)
         // Materials compiled without any specular feature still receive the same
         // normalized diffuse response so Enhanced does not diverge by variant.
@@ -1085,9 +1128,17 @@ void base_fragment(
         brdfLutSam,
         float2(NdotVForIBL, saturate(surfaceRoughness))).rg;
 
+#if CR_MATERIAL_V2
+    float3 iblSpecularContribution = prefilteredEnvironment
+                                   * (surfaceF0 * environmentBRDF.x + environmentBRDF.y)
+                                   * CR_IBL_SPECULAR_INTENSITY;
+    specularResult.xyz += iblSpecularContribution;
+    iblSpecularResult.xyz += iblSpecularContribution;
+#else
     specularResult.xyz += prefilteredEnvironment
                         * (surfaceF0 * environmentBRDF.x + environmentBRDF.y)
                         * CR_IBL_SPECULAR_INTENSITY;
+#endif
 #elif defined(ENHANCED_MODE)
     // Phase-1 fallback when the IBL resources are not bound (or a compatibility
     // Enhanced delegate is selected). This preserves the previous visual floor.
@@ -1206,6 +1257,22 @@ void base_fragment(
     // ordinary non-sRGB UNORM surface that will not do it for us.
     // Alpha is not a display-encoded quantity and is written untouched below.
     oColor.rgb = linear_to_srgb(oColor.rgb);
+#endif
+
+// Compile-time material diagnostics are deliberately confined to explicit V2
+// permutations. They replace the final display-encoded RGB after atmosphere
+// and Stage A output conversion, so numerical F0/roughness can be read directly
+// from a screenshot without a second transfer function obscuring the value.
+#if CR_MATERIAL_V2 && (CR_MATERIAL_DEBUG_MODE == 1)
+    oColor.rgb = surfaceF0;
+#elif CR_MATERIAL_V2 && (CR_MATERIAL_DEBUG_MODE == 2)
+    oColor.rgb = surfaceRoughness.xxx;
+#elif CR_MATERIAL_V2 && (CR_MATERIAL_DEBUG_MODE == 3)
+    oColor.rgb = saturate(directSpecularResult);
+#elif CR_MATERIAL_V2 && (CR_MATERIAL_DEBUG_MODE == 4)
+    oColor.rgb = saturate(iblSpecularResult);
+#elif CR_MATERIAL_V2 && (CR_MATERIAL_DEBUG_MODE == 5)
+    oColor.rgb = saturate(emissiveContribution);
 #endif
 
     oColor.a = saturate(transparency);

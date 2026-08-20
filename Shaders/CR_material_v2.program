@@ -1,0 +1,342 @@
+// Campaign Reimagined - DX11 Enhanced Material V2 object permutations.
+//
+// CR_MATERIAL_V2 reinterprets the existing t2/specular sample as explicit
+// material DATA: RGB = linear F0, A = perceptual roughness. Separate programs
+// keep the legacy path branch-free and sample-identical. Non-DX11 delegates
+// intentionally fall back to the established Enhanced/compatibility programs.
+
+fragment_program CR_BaseMaterialV2HighNoShadow_fragmentHLSL4 hlsl
+{
+    source CR_base-sm4.hlsl
+    target ps_4_0
+    entry_point base_fragment
+    preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1,IBL_ENABLED=1,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_MATERIAL_V2=1
+
+    default_params
+    {
+        param_named_auto inverseViewMatrix inverse_view_matrix
+    }
+}
+
+fragment_program CR_BaseMaterialV2HighShadow_fragmentHLSL4 hlsl
+{
+    source CR_base-sm4.hlsl
+    target ps_4_0
+    entry_point base_fragment
+    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PCF_SIZE=4,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1,IBL_ENABLED=1,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_MATERIAL_V2=1
+
+    default_params
+    {
+        param_named_auto inverseViewMatrix inverse_view_matrix
+    }
+}
+
+fragment_program CR_BaseMaterialV2HighPSSM_fragmentHLSL4 hlsl
+{
+    source CR_base-sm4.hlsl
+    target ps_4_0
+    entry_point base_fragment
+    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=4,NORMALMAP_ENABLED=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1,IBL_ENABLED=1,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_MATERIAL_V2=1
+
+    default_params
+    {
+        param_named_auto inverseViewMatrix inverse_view_matrix
+    }
+}
+
+fragment_program CR_BaseMaterialV2MediumNoShadow_fragmentHLSL4 hlsl
+{
+    source CR_base-sm4.hlsl
+    target ps_4_0
+    entry_point base_fragment
+    preprocessor_defines MAX_LIGHTS=8,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_MATERIAL_V2=1
+}
+
+fragment_program CR_BaseMaterialV2MediumShadow_fragmentHLSL4 hlsl
+{
+    source CR_base-sm4.hlsl
+    target ps_4_0
+    entry_point base_fragment
+    preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PCF_SIZE=3,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_MATERIAL_V2=1
+}
+
+fragment_program CR_BaseMaterialV2MediumPSSM_fragmentHLSL4 hlsl
+{
+    source CR_base-sm4.hlsl
+    target ps_4_0
+    entry_point base_fragment
+    preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=3,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_MATERIAL_V2=1
+}
+
+fragment_program CR_BaseMaterialV2LowNoShadow_fragmentHLSL4 hlsl
+{
+    source CR_base-sm4.hlsl
+    target ps_4_0
+    entry_point base_fragment
+    preprocessor_defines MAX_LIGHTS=1,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_MATERIAL_V2=1
+}
+
+fragment_program CR_BaseMaterialV2LowShadow_fragmentHLSL4 hlsl
+{
+    source CR_base-sm4.hlsl
+    target ps_4_0
+    entry_point base_fragment
+    preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER=1,PCF_SIZE=2,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_MATERIAL_V2=1
+}
+
+fragment_program CR_BaseMaterialV2LowPSSM_fragmentHLSL4 hlsl
+{
+    source CR_base-sm4.hlsl
+    target ps_4_0
+    entry_point base_fragment
+    preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER=1,PSSM_ENABLED=1,PCF_SIZE=2,SPECULARMAP_ENABLED=1,EMISSIVEMAP_ENABLED=1,ENHANCED_MODE=1,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_MATERIAL_V2=1
+}
+
+fragment_program CR_BaseMaterialV2HighNoShadow_fragment unified
+{
+    delegate CR_BaseMaterialV2HighNoShadow_fragmentHLSL4
+    delegate CR_BaseENHighNoShadow_fragmentGLSLES
+    delegate CR_BaseENHighNoShadow_fragmentGLSL
+    delegate CR_BaseENHighNoShadow_fragmentHLSL
+
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto diffuseColor surface_diffuse_colour
+        param_named_auto materialShininess surface_shininess
+        param_named_auto materialEmissive surface_emissive_colour
+        param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
+        param_named_auto lightSpecular derived_light_specular_colour_array 24
+        param_named_auto lightAttenuation light_attenuation_array 24
+        param_named_auto spotLightParams spotlight_params_array 24
+        param_named_auto lightPosition light_position_view_space_array 24
+        param_named_auto lightDirection light_direction_view_space_array 24
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto lightCount light_count
+        param_named transparency float 0.0
+    }
+}
+
+fragment_program CR_BaseMaterialV2HighShadow_fragment unified
+{
+    delegate CR_BaseMaterialV2HighShadow_fragmentHLSL4
+    delegate CR_BaseENHighShadow_fragmentGLSLES
+    delegate CR_BaseENHighShadow_fragmentGLSL
+    delegate CR_BaseENHighShadow_fragmentHLSL
+
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto diffuseColor surface_diffuse_colour
+        param_named_auto materialShininess surface_shininess
+        param_named_auto materialEmissive surface_emissive_colour
+        param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
+        param_named_auto lightSpecular derived_light_specular_colour_array 24
+        param_named_auto lightAttenuation light_attenuation_array 24
+        param_named_auto spotLightParams spotlight_params_array 24
+        param_named_auto lightPosition light_position_view_space_array 24
+        param_named_auto lightDirection light_direction_view_space_array 24
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto invShadowMapSize1 inverse_texture_size 4
+        param_named_auto lightCount light_count
+        param_named transparency float 0.0
+    }
+}
+
+fragment_program CR_BaseMaterialV2HighPSSM_fragment unified
+{
+    delegate CR_BaseMaterialV2HighPSSM_fragmentHLSL4
+    delegate CR_BaseENHighPSSM_fragmentGLSLES
+    delegate CR_BaseENHighPSSM_fragmentGLSL
+    delegate CR_BaseENHighPSSM_fragmentHLSL
+
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto diffuseColor surface_diffuse_colour
+        param_named_auto materialShininess surface_shininess
+        param_named_auto materialEmissive surface_emissive_colour
+        param_named_auto lightDiffuse derived_light_diffuse_colour_array 24
+        param_named_auto lightSpecular derived_light_specular_colour_array 24
+        param_named_auto lightAttenuation light_attenuation_array 24
+        param_named_auto spotLightParams spotlight_params_array 24
+        param_named_auto lightPosition light_position_view_space_array 24
+        param_named_auto lightDirection light_direction_view_space_array 24
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto invShadowMapSize1 inverse_texture_size 4
+        param_named_auto invShadowMapSize2 inverse_texture_size 5
+        param_named_auto invShadowMapSize3 inverse_texture_size 6
+        param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
+        param_named_auto lightCount light_count
+        param_named transparency float 0.0
+    }
+}
+
+fragment_program CR_BaseMaterialV2MediumNoShadow_fragment unified
+{
+    delegate CR_BaseMaterialV2MediumNoShadow_fragmentHLSL4
+    delegate CR_BaseMediumNoShadow_fragmentGLSLES
+    delegate CR_BaseMediumNoShadow_fragmentGLSL
+    delegate CR_BaseMediumNoShadow_fragmentHLSL
+
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto diffuseColor surface_diffuse_colour
+        param_named_auto materialShininess surface_shininess
+        param_named_auto materialEmissive surface_emissive_colour
+        param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
+        param_named_auto lightSpecular derived_light_specular_colour_array 8
+        param_named_auto lightAttenuation light_attenuation_array 8
+        param_named_auto spotLightParams spotlight_params_array 8
+        param_named_auto lightPosition light_position_view_space_array 8
+        param_named_auto lightDirection light_direction_view_space_array 8
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto lightCount light_count
+        param_named transparency float 0.0
+    }
+}
+
+fragment_program CR_BaseMaterialV2MediumShadow_fragment unified
+{
+    delegate CR_BaseMaterialV2MediumShadow_fragmentHLSL4
+    delegate CR_BaseMediumShadow_fragmentGLSLES
+    delegate CR_BaseMediumShadow_fragmentGLSL
+    delegate CR_BaseMediumShadow_fragmentHLSL
+
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto diffuseColor surface_diffuse_colour
+        param_named_auto materialShininess surface_shininess
+        param_named_auto materialEmissive surface_emissive_colour
+        param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
+        param_named_auto lightSpecular derived_light_specular_colour_array 8
+        param_named_auto lightAttenuation light_attenuation_array 8
+        param_named_auto spotLightParams spotlight_params_array 8
+        param_named_auto lightPosition light_position_view_space_array 8
+        param_named_auto lightDirection light_direction_view_space_array 8
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto invShadowMapSize1 inverse_texture_size 4
+        param_named_auto lightCount light_count
+        param_named transparency float 0.0
+    }
+}
+
+fragment_program CR_BaseMaterialV2MediumPSSM_fragment unified
+{
+    delegate CR_BaseMaterialV2MediumPSSM_fragmentHLSL4
+    delegate CR_BaseMediumPSSM_fragmentGLSLES
+    delegate CR_BaseMediumPSSM_fragmentGLSL
+    delegate CR_BaseMediumPSSM_fragmentHLSL
+
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto diffuseColor surface_diffuse_colour
+        param_named_auto materialShininess surface_shininess
+        param_named_auto materialEmissive surface_emissive_colour
+        param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
+        param_named_auto lightSpecular derived_light_specular_colour_array 8
+        param_named_auto lightAttenuation light_attenuation_array 8
+        param_named_auto spotLightParams spotlight_params_array 8
+        param_named_auto lightPosition light_position_view_space_array 8
+        param_named_auto lightDirection light_direction_view_space_array 8
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto invShadowMapSize1 inverse_texture_size 4
+        param_named_auto invShadowMapSize2 inverse_texture_size 5
+        param_named_auto invShadowMapSize3 inverse_texture_size 6
+        param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
+        param_named_auto lightCount light_count
+        param_named transparency float 0.0
+    }
+}
+
+fragment_program CR_BaseMaterialV2LowNoShadow_fragment unified
+{
+    delegate CR_BaseMaterialV2LowNoShadow_fragmentHLSL4
+    delegate CR_BaseLowNoShadow_fragmentGLSLES
+    delegate CR_BaseLowNoShadow_fragmentGLSL
+    delegate CR_BaseLowNoShadow_fragmentHLSL
+
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto diffuseColor surface_diffuse_colour
+        param_named_auto materialShininess surface_shininess
+        param_named_auto materialEmissive surface_emissive_colour
+        param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
+        param_named_auto lightSpecular derived_light_specular_colour_array 1
+        param_named_auto lightAttenuation light_attenuation_array 1
+        param_named_auto spotLightParams spotlight_params_array 1
+        param_named_auto lightPosition light_position_view_space_array 1
+        param_named_auto lightDirection light_direction_view_space_array 1
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto lightCount light_count
+        param_named transparency float 0.0
+    }
+}
+
+fragment_program CR_BaseMaterialV2LowShadow_fragment unified
+{
+    delegate CR_BaseMaterialV2LowShadow_fragmentHLSL4
+    delegate CR_BaseLowShadow_fragmentGLSLES
+    delegate CR_BaseLowShadow_fragmentGLSL
+    delegate CR_BaseLowShadow_fragmentHLSL
+
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto diffuseColor surface_diffuse_colour
+        param_named_auto materialShininess surface_shininess
+        param_named_auto materialEmissive surface_emissive_colour
+        param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
+        param_named_auto lightSpecular derived_light_specular_colour_array 1
+        param_named_auto lightAttenuation light_attenuation_array 1
+        param_named_auto spotLightParams spotlight_params_array 1
+        param_named_auto lightPosition light_position_view_space_array 1
+        param_named_auto lightDirection light_direction_view_space_array 1
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto invShadowMapSize1 inverse_texture_size 4
+        param_named_auto lightCount light_count
+        param_named transparency float 0.0
+    }
+}
+
+fragment_program CR_BaseMaterialV2LowPSSM_fragment unified
+{
+    delegate CR_BaseMaterialV2LowPSSM_fragmentHLSL4
+    delegate CR_BaseLowPSSM_fragmentGLSLES
+    delegate CR_BaseLowPSSM_fragmentGLSL
+    delegate CR_BaseLowPSSM_fragmentHLSL
+
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto diffuseColor surface_diffuse_colour
+        param_named_auto materialShininess surface_shininess
+        param_named_auto materialEmissive surface_emissive_colour
+        param_named_auto lightDiffuse derived_light_diffuse_colour_array 1
+        param_named_auto lightSpecular derived_light_specular_colour_array 1
+        param_named_auto lightAttenuation light_attenuation_array 1
+        param_named_auto spotLightParams spotlight_params_array 1
+        param_named_auto lightPosition light_position_view_space_array 1
+        param_named_auto lightDirection light_direction_view_space_array 1
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto invShadowMapSize1 inverse_texture_size 4
+        param_named_auto invShadowMapSize2 inverse_texture_size 5
+        param_named_auto invShadowMapSize3 inverse_texture_size 6
+        param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
+        param_named_auto lightCount light_count
+        param_named transparency float 0.0
+    }
+}

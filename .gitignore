@@ -29,6 +29,9 @@
 !/Text/
 !/Tools/
 /Tools/*
+!/Tools/Build-EnhancedMaterialMap.py
+!/Tools/Compare-DX11ShaderBinaries.ps1
+!/Tools/Test-EnhancedMaterialV2.py
 !/Tools/Test-DX11ShaderValidator.ps1
 !/Tools/Set-TerrainNormalDiagnostic.ps1
 

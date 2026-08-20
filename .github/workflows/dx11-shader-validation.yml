@@ -8,8 +8,11 @@ on:
       - 'Tools/Validate-DX11Shaders.ps1'
       - 'Tools/Test-DX11ShaderValidator.ps1'
       - 'Tools/Compare-DX11ShaderBinaries.ps1'
+      - 'Tools/Build-EnhancedMaterialMap.py'
+      - 'Tools/Test-EnhancedMaterialV2.py'
       - 'Docs/DX11_COLOR_SPACE_AUDIT.md'
       - 'Docs/DX11_ENHANCED_ATMOSPHERE.md'
+      - 'Docs/DX11_ENHANCED_MATERIAL_V2.md'
       - '.github/workflows/dx11-shader-validation.yml'
   workflow_dispatch:
 
@@ -26,6 +29,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Set up Python material-tool tests
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install material-tool dependency
+        shell: powershell
+        run: python -m pip install Pillow==11.3.0
+
+      - name: Validate Enhanced Material V2 math and packing
+        shell: powershell
+        run: python .\Tools\Test-EnhancedMaterialV2.py
 
       - name: Compile representative DX11 SM4 variants
         shell: powershell

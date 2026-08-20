@@ -54,7 +54,8 @@ function Add-SourceFailure {
 # hybrid-data sources, not artist-authored display colour.
 $forbiddenDecodeTokens = @(
     'normalMap', 'normalTex', 'normalSam',
-    'specularMap', 'specularTex', 'specularSam', 'specularTint', 'surfaceF0',
+    'specularMap', 'specularTex', 'specularSam', 'specularTint', 'materialTex',
+    'surfaceF0', 'surfaceRoughness',
     'detailMap', 'detailTex', 'detailTexNear', 'detailSam', 'detailColor', 'detailMultiplier',
     'shadowMap', 'shadowSam', 'vLightSpacePos', 'pssmSplitPoints',
     'irradianceMap', 'irradiance', 'irradianceSam',
@@ -613,6 +614,133 @@ foreach ($other in $otherShaders) {
     }
 }
 
+# =============================================================================
+# Explicit Enhanced Material V2 source boundary
+# =============================================================================
+# Material V2 is deliberately an object-only, explicit permutation. Its packed
+# texture is numerical DATA (linear F0 RGB + perceptual roughness A), and the
+# legacy object path must remain available as the default preprocessor result.
+$baseRaw = Get-Content -LiteralPath $baseShader -Raw
+$terrainRaw = Get-Content -LiteralPath $terrainShader -Raw
+
+if ($baseRaw -notmatch '(?m)^\s*#ifndef\s+CR_MATERIAL_V2\s*\r?\n\s*#define\s+CR_MATERIAL_V2\s+0\s*\r?\n\s*#endif') {
+    Add-SourceFailure 'CR_base-sm4.hlsl does not declare CR_MATERIAL_V2 with a default of 0.'
+}
+if ($baseRaw -notmatch '(?m)^\s*#ifndef\s+CR_MATERIAL_DEBUG_MODE\s*\r?\n\s*#define\s+CR_MATERIAL_DEBUG_MODE\s+0\s*\r?\n\s*#endif') {
+    Add-SourceFailure 'CR_base-sm4.hlsl does not declare CR_MATERIAL_DEBUG_MODE with a default of 0.'
+}
+if ($baseRaw -notmatch '(?s)#if\s+CR_MATERIAL_V2.*?float4\s+materialTex\s*=\s*specularMap\.Sample\s*\(\s*specularSam\s*,\s*vTexCoord\s*\)\s*;.*?surfaceF0\s*=\s*saturate\s*\(\s*materialTex\.rgb\s*\)\s*;.*?surfaceRoughness\s*=\s*clamp\s*\(\s*materialTex\.a\s*,\s*CR_PBR_MIN_ROUGHNESS\s*,\s*CR_PBR_MAX_ROUGHNESS\s*\)\s*;') {
+    Add-SourceFailure 'CR_base-sm4.hlsl no longer maps Material V2 exactly as RGB=bounded linear F0 and A=bounded perceptual roughness from the existing specular sample.'
+}
+foreach ($requiredDebug in @(
+    'oColor.rgb = surfaceF0;',
+    'oColor.rgb = surfaceRoughness.xxx;',
+    'oColor.rgb = saturate(directSpecularResult);',
+    'oColor.rgb = saturate(iblSpecularResult);',
+    'oColor.rgb = saturate(emissiveContribution);'
+)) {
+    if (-not $baseRaw.Contains($requiredDebug)) {
+        Add-SourceFailure "CR_base-sm4.hlsl Material V2 debug contract is missing '$requiredDebug'."
+    }
+}
+if ($terrainRaw -match '\b(CR_MATERIAL_V2|CR_MATERIAL_DEBUG_MODE|materialTex)\b') {
+    Add-SourceFailure 'CR_terrain-sm4.hlsl references Material V2 symbols. Terrain V2 is explicitly deferred.'
+}
+
+$materialV2Material = Join-Path $repoRoot 'Materials\CR_EnhancedMaterialV2.material'
+if (-not (Test-Path -LiteralPath $materialV2Material)) {
+    Add-SourceFailure 'Materials/CR_EnhancedMaterialV2.material is missing; Material V2 must have an explicit authoring opt-in.'
+}
+else {
+    $materialV2Source = Get-Content -LiteralPath $materialV2Material -Raw
+    foreach ($requiredToken in @('CR_BZBaseMaterialV2', 'CR_BZBaseCockpitMaterialV2', 'texture_alias MaterialMap')) {
+        if ($materialV2Source -notmatch "\b$requiredToken\b") {
+            Add-SourceFailure "CR_EnhancedMaterialV2.material is missing '$requiredToken'."
+        }
+    }
+    if ($materialV2Source -match '(?m)^\s*gamma\b') {
+        Add-SourceFailure 'CR_EnhancedMaterialV2.material declares hardware gamma for numerical Material V2 data.'
+    }
+    foreach ($techniqueIndex in (36..62 + 12..20)) {
+        if ($materialV2Source -notmatch "\btechnique\s+$techniqueIndex\s*\{") {
+            Add-SourceFailure "CR_EnhancedMaterialV2.material is missing inherited technique override $techniqueIndex."
+        }
+    }
+}
+
+$legacyBaseMaterial = Join-Path $repoRoot 'Materials\CR_BZBase.material'
+if ((Get-Content -LiteralPath $legacyBaseMaterial -Raw) -match '\b(CR_MATERIAL_V2|MaterialMap|MaterialV2)\b') {
+    Add-SourceFailure 'CR_BZBase.material references Material V2. Existing CR assets must remain on the legacy material base.'
+}
+
+# The V2 bases override inherited techniques by Ogre's numeric inheritance
+# index. Assert the parent's exact scheme order so a future insertion cannot
+# silently redirect V2 programs into Default, Retro, or Lowest techniques.
+function Get-MaterialTechniqueSchemes {
+    param([string]$Path, [string]$MaterialName)
+    $schemes = [Collections.Generic.List[string]]::new()
+    $pending = $false
+    $inside = $false
+    $depth = 0
+    foreach ($rawLine in [IO.File]::ReadAllLines($Path)) {
+        $line = ($rawLine -replace '//.*$', '').Trim()
+        if (-not $inside) {
+            if ($line -match "^material\s+$([regex]::Escape($MaterialName))(\s|`$)") { $pending = $true }
+            if (-not $pending) { continue }
+            $opens = ([regex]::Matches($line, '\{')).Count
+            $closes = ([regex]::Matches($line, '\}')).Count
+            if ($opens -gt 0) {
+                $inside = $true
+                $depth += $opens - $closes
+            }
+            continue
+        }
+
+        if ($depth -eq 1 -and $line -match '^technique(\s|$)') {
+            $schemes.Add('')
+        }
+        elseif ($depth -ge 2 -and $schemes.Count -gt 0 -and $line -match '^scheme\s+(\S+)') {
+            $schemes[$schemes.Count - 1] = $Matches[1]
+        }
+
+        $depth += ([regex]::Matches($line, '\{')).Count
+        $depth -= ([regex]::Matches($line, '\}')).Count
+        if ($depth -le 0) { break }
+    }
+    return $schemes.ToArray()
+}
+
+$objectV2ParentSchemes = @(
+    'en-high-pssm', 'en-high-pssm', 'en-high-pssm',
+    'en-high', 'en-high', 'en-high',
+    'en-high-noshadow', 'en-high-noshadow', 'en-high-noshadow',
+    'en-medium-pssm', 'en-medium-pssm', 'en-medium-pssm',
+    'en-medium', 'en-medium', 'en-medium',
+    'en-medium-noshadow', 'en-medium-noshadow', 'en-medium-noshadow',
+    'en-low-pssm', 'en-low-pssm', 'en-low-pssm',
+    'en-low', 'en-low', 'en-low',
+    'en-low-noshadow', 'en-low-noshadow', 'en-low-noshadow'
+)
+$cockpitV2ParentSchemes = @(
+    'en-high-pssm', 'en-high', 'en-high-noshadow',
+    'en-medium-pssm', 'en-medium', 'en-medium-noshadow',
+    'en-low-pssm', 'en-low', 'en-low-noshadow'
+)
+foreach ($parentContract in @(
+    @{ Material = 'CR_BZBase'; Start = 36; Expected = $objectV2ParentSchemes },
+    @{ Material = 'CR_BZBaseCockpit'; Start = 12; Expected = $cockpitV2ParentSchemes }
+)) {
+    $actualSchemes = @(Get-MaterialTechniqueSchemes -Path $legacyBaseMaterial -MaterialName $parentContract.Material)
+    for ($offset = 0; $offset -lt $parentContract.Expected.Count; $offset++) {
+        $index = $parentContract.Start + $offset
+        $expectedScheme = $parentContract.Expected[$offset]
+        $actualScheme = if ($index -lt $actualSchemes.Count) { $actualSchemes[$index] } else { '<missing>' }
+        if ($actualScheme -ne $expectedScheme) {
+            Add-SourceFailure "$($parentContract.Material) technique $index is '$actualScheme', expected '$expectedScheme'. Material V2 numeric inheritance is no longer safe."
+        }
+    }
+}
+
 # -- Hardware gamma stays off; the experiment is shader-side only -------------
 $stageAMaterials = @(
     (Join-Path $repoRoot 'Materials\CR_BZBase.material'),
@@ -758,6 +886,66 @@ foreach ($rec in $programRecords) {
     if ($isEnhancedFragment) { $enhancedSm4Count++ } else { $legacySm4Count++ }
 }
 
+# Material V2 is unlike the two universal Enhanced experiments above: only the
+# dedicated opt-in programs may define it, and every such declaration must be
+# one of the nine measured quality/shadow object permutations.
+$expectedMaterialV2Programs = @(
+    'CR_BaseMaterialV2HighNoShadow_fragmentHLSL4',
+    'CR_BaseMaterialV2HighShadow_fragmentHLSL4',
+    'CR_BaseMaterialV2HighPSSM_fragmentHLSL4',
+    'CR_BaseMaterialV2MediumNoShadow_fragmentHLSL4',
+    'CR_BaseMaterialV2MediumShadow_fragmentHLSL4',
+    'CR_BaseMaterialV2MediumPSSM_fragmentHLSL4',
+    'CR_BaseMaterialV2LowNoShadow_fragmentHLSL4',
+    'CR_BaseMaterialV2LowShadow_fragmentHLSL4',
+    'CR_BaseMaterialV2LowPSSM_fragmentHLSL4'
+)
+$actualMaterialV2Programs = @()
+foreach ($rec in $programRecords) {
+    $where = "$($rec.File):$($rec.Line) $($rec.Name)"
+    $hasV2 = $rec.Defines -match '(^|,)\s*CR_MATERIAL_V2\s*='
+    if (-not $hasV2) { continue }
+
+    $actualMaterialV2Programs += $rec.Name
+    if ($rec.Defines -notmatch '(^|,)\s*CR_MATERIAL_V2\s*=\s*1\s*(,|$)') {
+        $programFailures += "$where declares CR_MATERIAL_V2 with a value other than 1."
+    }
+    if ($rec.File -ne 'CR_material_v2.program' -or $rec.Kind -ne 'fragment_program' -or
+        $rec.Source -ne 'CR_base-sm4.hlsl') {
+        $programFailures += "$where leaks Material V2 outside its dedicated DX11 object program file."
+    }
+    foreach ($requiredDefine in @('ENHANCED_MODE=1', 'SPECULARMAP_ENABLED=1', 'CR_LINEAR_LIGHT=1', 'CR_RADIAL_FOG=1')) {
+        $escaped = [regex]::Escape($requiredDefine)
+        if ($rec.Defines -notmatch "(^|,)\s*$escaped\s*(,|$)") {
+            $programFailures += "$where is missing required Material V2 define '$requiredDefine'."
+        }
+    }
+    if ($rec.Defines -match '(^|,)\s*(VERTEX_LIGHTING|OG_RETRO_MODE|RETRO_UNLIT_MODE)\b') {
+        $programFailures += "$where mixes Material V2 with a legacy or vertex-lighting path."
+    }
+}
+
+$materialV2ProgramPath = Join-Path $shaderDir 'CR_material_v2.program'
+$materialV2ProgramSource = Get-Content -LiteralPath $materialV2ProgramPath -Raw
+foreach ($binding in @(
+    @{ Token = 'param_named_auto materialEmissive surface_emissive_colour'; Name = 'material emissive' },
+    @{ Token = 'param_named_auto lightCount light_count'; Name = 'light count' }
+)) {
+    $count = [regex]::Matches($materialV2ProgramSource, [regex]::Escape($binding.Token)).Count
+    if ($count -ne 9) {
+        $programFailures += "CR_material_v2.program binds $($binding.Name) in $count unified programs; all 9 V2 programs require the binding."
+    }
+}
+
+$missingMaterialV2 = @($expectedMaterialV2Programs | Where-Object { $actualMaterialV2Programs -notcontains $_ })
+$extraMaterialV2 = @($actualMaterialV2Programs | Where-Object { $expectedMaterialV2Programs -notcontains $_ })
+if ($missingMaterialV2.Count -gt 0) {
+    $programFailures += "Material V2 is missing required programs: $($missingMaterialV2 -join ', ')."
+}
+if ($extraMaterialV2.Count -gt 0) {
+    $programFailures += "Unexpected programs opt into Material V2: $($extraMaterialV2 -join ', ')."
+}
+
 if ($enhancedSm4Count -eq 0) {
     $programFailures += 'No DX11 Enhanced SM4 fragment programs were discovered. The classifier no longer matches the .program structure.'
 }
@@ -768,6 +956,7 @@ if ($programFailures.Count -gt 0) {
 }
 
 Write-Host "DX11 Enhanced program boundary passed ($enhancedSm4Count Enhanced SM4 fragment programs opted into $($enhancedOnlyFlags.Count) Enhanced-only flags, $legacySm4Count Default/Retro SM4 fragment programs held on the legacy path, $($programRecords.Count) program declarations scanned)."
+Write-Host "Material V2 program boundary passed ($($actualMaterialV2Programs.Count) explicit DX11 object permutations; terrain and compatibility programs excluded)."
 
 if ($SourceGuardsOnly) {
     Write-Host 'Source-guard-only run requested; skipping the fxc compile/preprocess matrix.'
@@ -1046,6 +1235,59 @@ $cases = @(
 )
 
 # -----------------------------------------------------------------------------
+# Explicit Enhanced Material V2 permutations
+# -----------------------------------------------------------------------------
+# These mirror CR_material_v2.program exactly: High carries normals + static
+# IBL, Medium and Low keep the same explicit F0/roughness interpretation while
+# scaling only light count/shadow filtering. Five maximal diagnostic variants
+# ensure every debug output remains compilable.
+$materialV2Cases = @()
+$materialV2Qualities = @(
+    @{ Name = 'high'; Lights = 24; Pcf = 4; Extra = @('NORMALMAP_ENABLED=1', 'IBL_ENABLED=1') },
+    @{ Name = 'medium'; Lights = 8; Pcf = 3; Extra = @() },
+    @{ Name = 'low'; Lights = 1; Pcf = 2; Extra = @() }
+)
+$materialV2ShadowModes = @(
+    @{ Name = 'noshadow'; Extra = @() },
+    @{ Name = 'shadow'; Extra = @('SHADOWRECEIVER=1') },
+    @{ Name = 'pssm'; Extra = @('SHADOWRECEIVER=1', 'PSSM_ENABLED=1') }
+)
+foreach ($quality in $materialV2Qualities) {
+foreach ($shadow in $materialV2ShadowModes) {
+    $defines = @(
+        "MAX_LIGHTS=$($quality.Lights)",
+        'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1',
+        'CR_LINEAR_LIGHT=1', 'CR_RADIAL_FOG=1', 'CR_MATERIAL_V2=1'
+    ) + @($quality.Extra) + @($shadow.Extra)
+    if ($shadow.Name -ne 'noshadow') { $defines += "PCF_SIZE=$($quality.Pcf)" }
+
+    $materialV2Cases += @{
+        Name = "material-v2-$($quality.Name)-$($shadow.Name)"
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = $defines
+    }
+}
+}
+
+$materialV2DebugBase = @(
+    'MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1',
+    'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1',
+    'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4',
+    'CR_LINEAR_LIGHT=1', 'CR_RADIAL_FOG=1', 'CR_MATERIAL_V2=1'
+)
+foreach ($debugMode in 1..5) {
+    $materialV2Cases += @{
+        Name = "material-v2-debug-$debugMode"
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = $materialV2DebugBase + @("CR_MATERIAL_DEBUG_MODE=$debugMode")
+    }
+}
+
+# -----------------------------------------------------------------------------
 # CR_LINEAR_LIGHT x CR_RADIAL_FOG sweep
 # -----------------------------------------------------------------------------
 # Every base/terrain pixel case above is compiled across the full cross product
@@ -1155,7 +1397,7 @@ foreach ($debugMode in @(6, 7, 8, 9, 10, 11)) {
 
 $failed = @()
 
-foreach ($case in @($cases) + @($normalDiagnosticCases)) {
+foreach ($case in @($cases) + @($normalDiagnosticCases) + @($materialV2Cases)) {
     $output = Join-Path $tempRoot "$($case.Name).cso"
     $fxcArgs = @('/nologo', '/Ges', '/WX', '/T', $case.Target, '/E', $case.Entry, '/Fo', $output)
 
@@ -1330,4 +1572,5 @@ if ($preprocessFailures.Count -gt 0) {
 
 Write-Host "Stage A and radial-fog preprocessor guards passed across $($sweepCases.Count) CR_LINEAR_LIGHT x CR_RADIAL_FOG permutations."
 Write-Host "Terrain-normal diagnostics compiled across $($normalDiagnosticCases.Count) unpack, orientation, basis, and visualization permutations."
-Write-Host "All $($cases.Count + $normalDiagnosticCases.Count + $sweepCases.Count) DX11 SM4 shader compilations succeeded."
+Write-Host "Material V2 compiled across 9 quality/shadow permutations plus 5 debug modes."
+Write-Host "All $($cases.Count + $normalDiagnosticCases.Count + $materialV2Cases.Count + $sweepCases.Count) DX11 SM4 shader compilations succeeded."

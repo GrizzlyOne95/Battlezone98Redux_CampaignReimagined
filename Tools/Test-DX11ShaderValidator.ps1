@@ -295,6 +295,43 @@ Add-Fixture -Name 'radial fog leaks onto a Retro program' `
     }
 
 # -----------------------------------------------------------------------------
+# Explicit Material V2 boundary
+# -----------------------------------------------------------------------------
+
+Add-Fixture -Name 'Material V2 accidentally becomes the default object path' `
+    -ExpectedMessage 'does not declare CR_MATERIAL_V2 with a default of 0' `
+    -Mutate {
+        param($dir)
+        $path = Join-Path $dir 'CR_base-sm4.hlsl'
+        $text = [IO.File]::ReadAllText($path)
+        [IO.File]::WriteAllText($path, $text.Replace(
+            '#define CR_MATERIAL_V2 0',
+            '#define CR_MATERIAL_V2 1'))
+    }
+
+Add-Fixture -Name 'Material V2 leaks into a terrain program' `
+    -ExpectedMessage 'leaks Material V2 outside its dedicated DX11 object program file' `
+    -Mutate {
+        param($dir)
+        $path = Join-Path $dir 'CR_terrain.program'
+        $text = [IO.File]::ReadAllText($path)
+        $rx = [regex]::new(
+            '(?s)(fragment_program\s+CR_TerrainENHighNoShadow_fragmentHLSL4\s+hlsl.*?preprocessor_defines\s+[^\r\n]*)(?=\r?\n)')
+        [IO.File]::WriteAllText($path, $rx.Replace($text, '$1,CR_MATERIAL_V2=1', 1))
+    }
+
+Add-Fixture -Name 'a required Material V2 permutation opts out' `
+    -ExpectedMessage 'Material V2 is missing required programs' `
+    -Mutate {
+        param($dir)
+        $path = Join-Path $dir 'CR_material_v2.program'
+        $text = [IO.File]::ReadAllText($path)
+        $anchor = 'CR_RADIAL_FOG=1,CR_MATERIAL_V2=1'
+        $rx = [regex]::new([regex]::Escape($anchor))
+        [IO.File]::WriteAllText($path, $rx.Replace($text, 'CR_RADIAL_FOG=1', 1))
+    }
+
+# -----------------------------------------------------------------------------
 # Shared-helper identity
 # -----------------------------------------------------------------------------
 

@@ -1,0 +1,65 @@
+import * from "CR_BZBase.material"
+
+// Explicit DX11 Enhanced object material response.
+//
+// These bases inherit every compatibility technique from CR_BZBase and replace
+// only Enhanced High/Medium/Low fragment programs. The inherited texture unit
+// remains in slot t2 but is explicitly renamed MaterialMap in those techniques:
+//
+//     RGB = linear F0 / specular reflectance (DATA)
+//     A   = perceptual roughness (DATA; lower is sharper)
+//
+// An authored child should set both MaterialMap and SpecularMap to the same
+// *_m2.dds asset. MaterialMap selects the V2 interpretation on DX11 Enhanced;
+// SpecularMap supplies a conservative RGB fallback to inherited DX9/GL,
+// Default, Retro, and Enhanced Lowest techniques.
+
+material CR_BZBaseMaterialV2 : CR_BZBase
+{
+    // Parent technique indices 36..62 are Enhanced High/Medium/Low including
+    // object LOD fallbacks. Enhanced Lowest (63..71) remains compatibility-only.
+    technique 36 { pass 0 { fragment_program_ref CR_BaseMaterialV2HighPSSM_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 37 { pass 0 { fragment_program_ref CR_BaseMaterialV2MediumNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 38 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 39 { pass 0 { fragment_program_ref CR_BaseMaterialV2HighShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 40 { pass 0 { fragment_program_ref CR_BaseMaterialV2MediumNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 41 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 42 { pass 0 { fragment_program_ref CR_BaseMaterialV2HighNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 43 { pass 0 { fragment_program_ref CR_BaseMaterialV2MediumNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 44 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+
+    technique 45 { pass 0 { fragment_program_ref CR_BaseMaterialV2MediumPSSM_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 46 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 47 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 48 { pass 0 { fragment_program_ref CR_BaseMaterialV2MediumShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 49 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 50 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 51 { pass 0 { fragment_program_ref CR_BaseMaterialV2MediumNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 52 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 53 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+
+    technique 54 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowPSSM_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 55 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 56 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 57 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 58 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 59 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 60 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 61 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 62 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+}
+
+material CR_BZBaseCockpitMaterialV2 : CR_BZBaseCockpit
+{
+    // Cockpit techniques never receive shadows. Parent indices 12..20 are the
+    // Enhanced High/Medium/Low selections; Enhanced Lowest remains compatible.
+    technique 12 { pass 0 { fragment_program_ref CR_BaseMaterialV2HighNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 13 { pass 0 { fragment_program_ref CR_BaseMaterialV2HighNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 14 { pass 0 { fragment_program_ref CR_BaseMaterialV2HighNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 15 { pass 0 { fragment_program_ref CR_BaseMaterialV2MediumNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 16 { pass 0 { fragment_program_ref CR_BaseMaterialV2MediumNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 17 { pass 0 { fragment_program_ref CR_BaseMaterialV2MediumNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 18 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 19 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+    technique 20 { pass 0 { fragment_program_ref CR_BaseMaterialV2LowNoShadow_fragment {} texture_unit specularMap { texture_alias MaterialMap } } }
+}

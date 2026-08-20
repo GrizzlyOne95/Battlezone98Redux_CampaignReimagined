@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### DX11 Enhanced materials
+
+- Added an explicit opt-in object material path with linear F0 RGB and
+  perceptual roughness, shared consistently by direct GGX and static IBL.
+  Existing materials remain byte-identical at the shader level.
+- Added deterministic Material V2 DDS packing, five material diagnostics,
+  CPU BRDF/packing tests, complete SM4 permutation coverage, and a Git-baseline
+  DXBC parity gate.
+- Terrain retains its existing material semantics and is separately deferred.
+
 ## 2026-08-17
 
 Covers everything since the 2026-08-15 Workshop upload.

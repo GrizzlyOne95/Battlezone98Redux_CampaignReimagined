@@ -1,5 +1,9 @@
 # DX11 Legacy-PBR Lighting
 
+> The compatibility interpretation documented here remains authoritative for
+> existing assets. New explicitly authored objects may instead use the isolated
+> F0/roughness path in [DX11_ENHANCED_MATERIAL_V2.md](DX11_ENHANCED_MATERIAL_V2.md).
+
 This document describes the first experimental physically based direct-lighting pass for the Battlezone 98 Redux Campaign Reimagined shader stack.
 
 ## Scope and renderer selection
