@@ -6,7 +6,8 @@ This is the authoritative Campaign Reimagined source tree for campaign content, 
 - Canonical source: `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`.
 - GOG test game: `C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux`; runtime mod: `...\mods\3686673790`.
 - Steam subscribed payload: `C:\Program Files (x86)\Steam\steamapps\workshop\content\301650\3686673790`.
-- Required promotion: **edit canonical source -> validate/build -> `Manage-CampaignFiles.ps1 -deploy` to GOG -> test GOG -> build/upload Workshop item `3686673790` -> let Steam download it -> final Steam test**.
+- Required promotion: **edit canonical source -> validate/build -> `Manage-CampaignFiles.ps1 -deploy` to GOG -> test GOG -> build/upload Workshop item `3686673790` -> synchronize the Steam Roadmap discussion -> let Steam download it -> final Steam test**.
+- A real Workshop publication is not complete until the Roadmap discussion at `https://steamcommunity.com/workshop/filedetails/discussion/3686673790/216888303627073611/` has been synchronized from OpenShim's canonical `Docs/STEAM_ROADMAP_BBCODE.txt`. Follow `docs/STEAM_PUBLISH_CHECKLIST.md`. Dry runs are exempt from public Steam edits.
 - Steam/Workshop is never the development deploy target. Never copy source directly into Steam's Workshop cache or use it as a GOG fallback; final Steam evidence is valid only after upload/download.
 - Use `Manage-CampaignFiles.ps1` for deploy/sync, Workshop staging, and publishing. `Local\Workshop` is generated staging, not a runtime. `BZR_CAMPAIGN_RUNTIME_DIR` may override the GOG runtime intentionally but must not point at a Steam Workshop cache.
 - Preserve runtime-only files intentionally excluded by the manager; installed/deployed copies are not source and must not be committed.
