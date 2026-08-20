@@ -841,6 +841,13 @@ $cases = @(
         Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'VERTEX_TANGENTS=1')
     },
     @{
+        Name = 'base-vs-enhanced-pssm-v2'
+        File = $baseShader
+        Entry = 'base_vertex'
+        Target = 'vs_4_0'
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'CR_ENHANCED_PSSM_V2=1')
+    },
+    @{
         Name = 'base-ps-lowest-emissive'
         File = $baseShader
         Entry = 'base_fragment'
@@ -904,6 +911,13 @@ $cases = @(
         Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4')
     },
     @{
+        Name = 'base-ps-enhanced-pssm-v2'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'CR_ENHANCED_PSSM_V2=1')
+    },
+    @{
         Name = 'base-ps-ibl-noshadow'
         File = $baseShader
         Entry = 'base_fragment'
@@ -923,6 +937,13 @@ $cases = @(
         Entry = 'base_fragment'
         Target = 'ps_4_0'
         Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4')
+    },
+    @{
+        Name = 'base-ps-ibl-pssm-v2'
+        File = $baseShader
+        Entry = 'base_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'CR_ENHANCED_PSSM_V2=1')
     },
     @{
         Name = 'base-ps-atmos-debug-colour'
@@ -951,6 +972,13 @@ $cases = @(
         Entry = 'terrain_vertex'
         Target = 'vs_4_0'
         Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'VERTEX_TANGENTS=1')
+    },
+    @{
+        Name = 'terrain-vs-enhanced-pssm-v2'
+        File = $terrainShader
+        Entry = 'terrain_vertex'
+        Target = 'vs_4_0'
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'CR_ENHANCED_PSSM_V2=1')
     },
     @{
         Name = 'terrain-ps-lowest-emissive'
@@ -1009,6 +1037,13 @@ $cases = @(
         Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4')
     },
     @{
+        Name = 'terrain-ps-enhanced-pssm-v2'
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'CR_ENHANCED_PSSM_V2=1')
+    },
+    @{
         Name = 'terrain-ps-ibl-noshadow'
         File = $terrainShader
         Entry = 'terrain_fragment'
@@ -1028,6 +1063,13 @@ $cases = @(
         Entry = 'terrain_fragment'
         Target = 'ps_4_0'
         Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4')
+    },
+    @{
+        Name = 'terrain-ps-ibl-pssm-v2'
+        File = $terrainShader
+        Entry = 'terrain_fragment'
+        Target = 'ps_4_0'
+        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'CR_ENHANCED_PSSM_V2=1')
     },
     @{
         Name = 'terrain-ps-atmos-debug-height'
