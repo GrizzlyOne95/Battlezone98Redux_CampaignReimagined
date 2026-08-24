@@ -4224,7 +4224,19 @@ function PersistentConfig._SyncLightingMode(force)
 
     local applied = false
     local verifiedMode = activeMode
-    if type(exu.SetLightingMode) == "function" then
+    -- Canonical path first: when OpenShim's render-profile bridge is exposed
+    -- through EXU, CR is a consumer of the canonical Enhanced/Retro renderer
+    -- rather than its owner. "default" maps onto the Redux baseline; artistic
+    -- and environmental values stay entirely content-side.
+    if type(exu.RequestRenderProfile) == "function" then
+        local profileRequest = targetMode == "default" and "redux" or targetMode
+        local ok, result = pcall(exu.RequestRenderProfile, profileRequest)
+        if ok and result ~= false then
+            applied = true
+            verifiedMode = GetActiveLightingMode()
+        end
+    end
+    if not applied and type(exu.SetLightingMode) == "function" then
         local ok, result = pcall(exu.SetLightingMode, targetMode)
         verifiedMode = GetActiveLightingMode()
         applied = (verifiedMode == targetMode)
