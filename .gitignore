@@ -30,6 +30,7 @@
 !/Tools/
 /Tools/*
 !/Tools/Test-DX11ShaderValidator.ps1
+!/Tools/Test-EnhancedLightBudget.ps1
 !/Tools/Set-TerrainNormalDiagnostic.ps1
 
 # Intentional root files

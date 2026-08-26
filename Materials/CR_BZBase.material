@@ -144,6 +144,25 @@ abstract pass BZPassSchemeHighNoShadow
 	}
 }
 
+// DX11 Enhanced High is compiled for 24 simultaneous lights. Ogre's Pass
+// default is only 8, so keep the larger producer budget explicitly isolated
+// behind Enhanced-only pass wrappers. Classic techniques continue to inherit
+// the stock pass definitions above and therefore retain Ogre's 8-light cap.
+abstract pass CR_BZPassSchemeEnhancedHighPSSM : BZPassSchemeHighPSSM
+{
+	max_lights 24
+}
+
+abstract pass CR_BZPassSchemeEnhancedHigh : BZPassSchemeHigh
+{
+	max_lights 24
+}
+
+abstract pass CR_BZPassSchemeEnhancedHighNoShadow : BZPassSchemeHighNoShadow
+{
+	max_lights 24
+}
+
 abstract pass BZPassSchemeMediumPSSM
 {
 	vertex_program_ref CR_BaseMediumPSSM_vertex
@@ -1316,7 +1335,7 @@ material CR_BZBase
 	{
         scheme en-high-pssm
         lod_index 0
-		pass : BZPassSchemeHighPSSM
+		pass : CR_BZPassSchemeEnhancedHighPSSM
  		{
 			fragment_program_ref CR_BaseIBLHighPSSM_fragment
 			{
@@ -1373,7 +1392,7 @@ material CR_BZBase
 	{
         scheme en-high
         lod_index 0
-		pass : BZPassSchemeHigh
+		pass : CR_BZPassSchemeEnhancedHigh
  		{
 			fragment_program_ref CR_BaseIBLHighShadow_fragment
 			{
@@ -1430,7 +1449,7 @@ material CR_BZBase
 	{
         scheme en-high-noshadow
         lod_index 0
-		pass : BZPassSchemeHighNoShadow
+		pass : CR_BZPassSchemeEnhancedHighNoShadow
  		{
 			fragment_program_ref CR_BaseIBLHighNoShadow_fragment
 			{
@@ -2268,7 +2287,7 @@ material CR_BZBaseCockpit
 	technique
 	{
         scheme en-high-pssm
-		pass : BZPassSchemeHighNoShadow
+		pass : CR_BZPassSchemeEnhancedHighNoShadow
  		{
 			fragment_program_ref CR_BaseIBLHighNoShadow_fragment
 			{
@@ -2300,7 +2319,7 @@ material CR_BZBaseCockpit
 	technique
 	{
         scheme en-high
-		pass : BZPassSchemeHighNoShadow
+		pass : CR_BZPassSchemeEnhancedHighNoShadow
  		{
 			fragment_program_ref CR_BaseIBLHighNoShadow_fragment
 			{
@@ -2332,7 +2351,7 @@ material CR_BZBaseCockpit
 	technique
 	{
         scheme en-high-noshadow
-		pass : BZPassSchemeHighNoShadow
+		pass : CR_BZPassSchemeEnhancedHighNoShadow
  		{
 			fragment_program_ref CR_BaseIBLHighNoShadow_fragment
 			{
