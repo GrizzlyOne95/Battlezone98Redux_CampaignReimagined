@@ -7,9 +7,12 @@ on:
       - 'Materials/**'
       - 'Tools/Validate-DX11Shaders.ps1'
       - 'Tools/Test-DX11ShaderValidator.ps1'
+      - 'Tools/Test-EnhancedPssmV2.ps1'
+      - 'Tools/Set-EnhancedPssmVersion.ps1'
       - 'Tools/Compare-DX11ShaderBinaries.ps1'
       - 'Docs/DX11_COLOR_SPACE_AUDIT.md'
       - 'Docs/DX11_ENHANCED_ATMOSPHERE.md'
+      - 'Docs/DX11_ENHANCED_PSSM_V2.md'
       - '.github/workflows/dx11-shader-validation.yml'
   workflow_dispatch:
 
@@ -36,6 +39,10 @@ jobs:
       - name: Verify the validator rejects known regressions
         shell: powershell
         run: .\Tools\Test-DX11ShaderValidator.ps1
+
+      - name: Validate Enhanced PSSM v2 math, isolation, and cost
+        shell: powershell
+        run: .\Tools\Test-EnhancedPssmV2.ps1
 
       # Enhanced-only work must leave Default and Retro bytecode untouched.
       # Bit-identical DXBC is a stronger statement than any visual check.

@@ -359,6 +359,16 @@ vertex_program CR_BaseHighPSSM_vertexHLSL4 hlsl
 	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PSSM_ENABLED=1,NORMALMAP_ENABLED=1
 }
 
+// Enhanced-only PSSM v2 vertex path. The classic program remains unchanged.
+vertex_program CR_BaseENHighPSSMV2_vertexHLSL4 hlsl
+{
+	source CR_base-sm4.hlsl
+	target vs_4_0
+	entry_point base_vertex
+
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER=1,PSSM_ENABLED=1,NORMALMAP_ENABLED=1,ENHANCED_MODE=1,CR_ENHANCED_PSSM_V2=1
+}
+
 
 //HLSL SHADER MODEL 3 VERSIONS
 
@@ -1923,6 +1933,19 @@ vertex_program CR_BaseHighPSSM_vertex unified
 	}
 }
 
+vertex_program CR_BaseENHighPSSMV2_vertex unified
+{
+	delegate CR_BaseENHighPSSMV2_vertexHLSL4
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto worldViewMat worldview_matrix
+		param_named_auto texWorldViewProj1 texture_worldviewproj_matrix 0
+		param_named_auto texWorldViewProj2 texture_worldviewproj_matrix 1
+		param_named_auto texWorldViewProj3 texture_worldviewproj_matrix 2
+	}
+}
+
 //FRAGMENT
 
 //LOWEST
@@ -2557,7 +2580,7 @@ fragment_program CR_BaseENHighPSSM_fragmentHLSL4 hlsl
 	source CR_base-sm4.hlsl
 	target ps_4_0
 	entry_point base_fragment
-	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=4,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1
+	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=4,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_ENHANCED_PSSM_V2=1
 }
 
 fragment_program CR_BaseENHighNoShadow_fragmentHLSL hlsl
