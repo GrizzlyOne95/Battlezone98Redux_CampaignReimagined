@@ -46,6 +46,19 @@ team colours, auto-repair, pilot mode, scavenger assist and the Lua autosave.
 Those depend on Extra Utilities and are campaign behaviour, not engine
 behaviour.
 
+## 2026-08-20 (experimental, visual validation pending)
+
+### DX11 Enhanced dynamic-light audit
+
+- Confirmed that Enhanced High already accepts up to 24 lights per renderable;
+  Ogre's default value of eight acts as a sentinel and does not truncate this
+  ordinary non-iterated pass path. No CR material or shader change was needed.
+- The paired OpenShim experiment contribution-ranks the existing candidate list
+  with deterministic tie-breaking and small cutoff hysteresis. Classic and DX9
+  behavior remain unchanged.
+- Native tests, all 208 DX11 SM4 shader permutations, and an unattended runtime
+  probe pass. Interactive visual/frame-time acceptance is still required.
+
 ## 2026-08-17
 
 Covers everything since the 2026-08-15 Workshop upload.
