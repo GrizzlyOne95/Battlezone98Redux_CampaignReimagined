@@ -101,17 +101,9 @@ PersistentConfig.DefaultSettings = {
     PdaFontScale = 1.30,            -- PDA font/window scale (0.85-1.30)
     PdaColorPreset = 2,             -- 1=Dark Green 2=Green 3=Blue 4=White
     TeamColorPreset = 1,            -- 1=Default 2+=runtime team 1 tint presets
-    UnderAttackAlertMode = 3,       -- 1=None 2=Spaced Out 3=Default
-    TargetReticlePopupMode = 1,     -- 1=Default 2=Neutral Only 3=Explicit Only
     ScrapPilotHudLayout = 1,        -- 1=Stock 2=Legacy
     RadarSizeScale = 1.00,          -- Independent radar size scale
     DynamicFactionFlameColors = true, -- Team flame colors from faction nation codes
-    BomberAiRangeEnabled = true,    -- Campaign enables EXU-gated bomber AI range behavior
-    HowitzerVolleyEnabled = false,  -- Full ArtilleryProcess replay is disabled pending a safe narrow hook
-    WeaponMaskCarrierBiasEnabled = true, -- Campaign enables EXU-gated weapon-mask carrier bias
-    AiOdfGameplayTuningEnabled = true, -- Campaign enables EXU-gated AI ODF gameplay tuning
-    TurretAimPitchEnabled = true,   -- Campaign enables EXU-gated turret aim pitch override
-    AttackRevealEnabled = true,     -- Campaign enables EXU-gated attack reveal where supported
 }
 
 PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
@@ -213,18 +205,6 @@ PersistentConfig.UnitVerbosityPresets = {
     [1] = { name = "NORMAL", useBaseline = true },
     [2] = { name = "DECREASED", throttleMs = 750, queueDepthLimit = 1, queueStaleMs = 1200 },
     [3] = { name = "NONE", muted = true, throttleMs = 60000, queueDepthLimit = 1, queueStaleMs = 0 },
-}
-
-PersistentConfig.TargetReticlePopupPresets = {
-    [1] = { name = "DEFAULT", mode = 1 },
-    [2] = { name = "NEUTRAL ONLY", mode = 2 },
-    [3] = { name = "EXPLICIT ONLY", mode = 3 },
-}
-
-PersistentConfig.UnderAttackAlertPresets = {
-    [1] = { name = "DEFAULT", mode = 3 },
-    [2] = { name = "SPACED OUT", mode = 2 },
-    [3] = { name = "NONE", mode = 1 },
 }
 
 local PdaPanelMaterialFamilies = {
@@ -937,31 +917,6 @@ local function GetPdaColorPreset()
     return PdaColorPresets[ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)]
 end
 
-function PersistentConfig._ApplyMissionGameplayHookSettings()
-    if not exu then
-        return
-    end
-
-    if exu.SetBomberAiRangeEnabled then
-        exu.SetBomberAiRangeEnabled(not not PersistentConfig.Settings.BomberAiRangeEnabled)
-    end
-    if exu.SetHowitzerVolleyEnabled then
-        exu.SetHowitzerVolleyEnabled(not not PersistentConfig.Settings.HowitzerVolleyEnabled)
-    end
-    if exu.SetWeaponMaskCarrierBiasEnabled then
-        exu.SetWeaponMaskCarrierBiasEnabled(not not PersistentConfig.Settings.WeaponMaskCarrierBiasEnabled)
-    end
-    if exu.SetAiOdfGameplayTuningEnabled then
-        exu.SetAiOdfGameplayTuningEnabled(not not PersistentConfig.Settings.AiOdfGameplayTuningEnabled)
-    end
-    if exu.SetTurretAimPitchEnabled then
-        exu.SetTurretAimPitchEnabled(not not PersistentConfig.Settings.TurretAimPitchEnabled)
-    end
-    if exu.SetAttackRevealEnabled then
-        exu.SetAttackRevealEnabled(not not PersistentConfig.Settings.AttackRevealEnabled)
-    end
-end
-
 function PersistentConfig._GetTeamColorPreset()
     return TeamColorPresets[ClampIndex(
         PersistentConfig.Settings.TeamColorPreset,
@@ -969,49 +924,6 @@ function PersistentConfig._GetTeamColorPreset()
         #TeamColorPresets,
         PersistentConfig.DefaultSettings.TeamColorPreset or 1
     )]
-end
-
-function PersistentConfig._GetTargetReticlePopupPresetIndex()
-    if PersistentConfig.Settings.TargetReticlePopupMode == 2 then
-        return 2
-    elseif PersistentConfig.Settings.TargetReticlePopupMode == 3 then
-        return 3
-    end
-    return 1
-end
-
-function PersistentConfig._GetTargetReticlePopupPreset()
-    return PersistentConfig.TargetReticlePopupPresets[PersistentConfig._GetTargetReticlePopupPresetIndex()]
-end
-
-function PersistentConfig._GetUnderAttackAlertPresetIndex()
-    if PersistentConfig.Settings.UnderAttackAlertMode == 2 then
-        return 2
-    elseif PersistentConfig.Settings.UnderAttackAlertMode == 1 then
-        return 3
-    end
-    return 1
-end
-
-function PersistentConfig._GetUnderAttackAlertPreset()
-    return PersistentConfig.UnderAttackAlertPresets[PersistentConfig._GetUnderAttackAlertPresetIndex()]
-end
-
-local function ParseUnderAttackAlertModeValue(value)
-    local numericValue = tonumber(value)
-    if numericValue then
-        return math.max(1, math.min(3, math.floor(numericValue + 0.5)))
-    end
-
-    local lowered = string.lower(CleanString(value or ""))
-    if lowered == "none" or lowered == "off" then
-        return 1
-    elseif lowered == "minimal" or lowered == "low" or lowered == "spaced" or lowered == "spacedout" or
-        lowered == "spaced-out" or lowered == "spaced_out" then
-        return 2
-    end
-
-    return 3
 end
 
 local function GetPdaPanelMaterialTargetColor(r, g, b)
@@ -5582,8 +5494,6 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
         options.applyEmissivePulse or
         options.applyStarTwinkle or
         options.applyTeamColors or
-        options.applyUnderAttackAlert or
-        options.applyTargetReticle or
         options.applyFactionFlames or
         options.applyUnitVo or
         options.applyScrapPilotHud or
@@ -5752,32 +5662,6 @@ function PersistentConfig._CycleUnitVerbosity(delta)
     PersistentConfig.Settings.UnitVerbosity = nextIndex
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyUnitVo = true })
     ShowSettingsFeedback("Unit Verbosity: " .. PersistentConfig._GetUnitVerbosityPreset().name, 0.8, 1.0, 0.8)
-    return true
-end
-
-function PersistentConfig._CycleTargetReticlePopupMode(delta)
-    local currentIndex = PersistentConfig._GetTargetReticlePopupPresetIndex()
-    local nextIndex = CycleIndex(currentIndex, #PersistentConfig.TargetReticlePopupPresets, delta, 1)
-    if currentIndex == nextIndex then
-        return false
-    end
-
-    PersistentConfig.Settings.TargetReticlePopupMode = PersistentConfig.TargetReticlePopupPresets[nextIndex].mode
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyTargetReticle = true })
-    ShowSettingsFeedback("Hit Reticle: " .. PersistentConfig._GetTargetReticlePopupPreset().name, 0.8, 1.0, 0.8)
-    return true
-end
-
-function PersistentConfig._CycleUnderAttackAlertMode(delta)
-    local currentIndex = PersistentConfig._GetUnderAttackAlertPresetIndex()
-    local nextIndex = CycleIndex(currentIndex, #PersistentConfig.UnderAttackAlertPresets, delta, 1)
-    if currentIndex == nextIndex then
-        return false
-    end
-
-    PersistentConfig.Settings.UnderAttackAlertMode = PersistentConfig.UnderAttackAlertPresets[nextIndex].mode
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyUnderAttackAlert = true })
-    ShowSettingsFeedback("Attack Beep: " .. PersistentConfig._GetUnderAttackAlertPreset().name, 0.8, 1.0, 0.8)
     return true
 end
 
@@ -6114,20 +5998,6 @@ GetSettingsPageEntries = function()
         },
         Section("Audio & Alerts"),
         {
-            label = "Attack Beep",
-            value = PersistentConfig._GetUnderAttackAlertPreset().name,
-            adjust = function(delta)
-                return PersistentConfig._CycleUnderAttackAlertMode(delta)
-            end,
-        },
-        {
-            label = "Hit Reticle",
-            value = PersistentConfig._GetTargetReticlePopupPreset().name,
-            adjust = function(delta)
-                return PersistentConfig._CycleTargetReticlePopupMode(delta)
-            end,
-        },
-        {
             label = "Subtitles",
             value = PersistentConfig.Settings.SubtitlesEnabled and "On" or "Off",
             adjust = function(delta)
@@ -6399,28 +6269,12 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.PdaColorPreset = tonumber(val) or 2
                 elseif key == "TeamColorPreset" then
                     PersistentConfig.Settings.TeamColorPreset = tonumber(val) or 1
-                elseif key == "UnderAttackAlertMode" then
-                    PersistentConfig.Settings.UnderAttackAlertMode = ParseUnderAttackAlertModeValue(val)
-                elseif key == "TargetReticlePopupMode" then
-                    PersistentConfig.Settings.TargetReticlePopupMode = tonumber(val) or 1
                 elseif key == "ScrapPilotHudLayout" then
                     PersistentConfig.Settings.ScrapPilotHudLayout = tonumber(val) or 2
                 elseif key == "RadarSizeScale" then
                     PersistentConfig.Settings.RadarSizeScale = tonumber(val) or 1.0
                 elseif key == "DynamicFactionFlameColors" then
                     PersistentConfig.Settings.DynamicFactionFlameColors = (val == "true")
-                elseif key == "BomberAiRangeEnabled" then
-                    PersistentConfig.Settings.BomberAiRangeEnabled = (val == "true")
-                elseif key == "HowitzerVolleyEnabled" then
-                    PersistentConfig.Settings.HowitzerVolleyEnabled = (val == "true")
-                elseif key == "WeaponMaskCarrierBiasEnabled" then
-                    PersistentConfig.Settings.WeaponMaskCarrierBiasEnabled = (val == "true")
-                elseif key == "AiOdfGameplayTuningEnabled" then
-                    PersistentConfig.Settings.AiOdfGameplayTuningEnabled = (val == "true")
-                elseif key == "TurretAimPitchEnabled" then
-                    PersistentConfig.Settings.TurretAimPitchEnabled = (val == "true")
-                elseif key == "AttackRevealEnabled" then
-                    PersistentConfig.Settings.AttackRevealEnabled = (val == "true")
                 elseif key == "UnitPreset" then
                     local unitOdf, slotIndex, powerupOdf = string.match(val, "([^|]+)|([^|]+)|(.+)")
                     local unitKey = string.lower(CleanString(unitOdf or ""))
@@ -6503,8 +6357,6 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.PdaColorPreset = ClampIndex(PersistentConfig.Settings.PdaColorPreset, 1, #PdaColorPresets, 2)
     PersistentConfig.Settings.TeamColorPreset = ClampIndex(PersistentConfig.Settings.TeamColorPreset, 1, #TeamColorPresets,
         PersistentConfig.DefaultSettings.TeamColorPreset or 1)
-    PersistentConfig.Settings.UnderAttackAlertMode = PersistentConfig._GetUnderAttackAlertPreset().mode
-    PersistentConfig.Settings.TargetReticlePopupMode = PersistentConfig._GetTargetReticlePopupPreset().mode
     PersistentConfig.Settings.ScrapPilotHudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1,
         #ScrapPilotHudLayouts, 2)
     PersistentConfig.Settings.RadarSizeScale = GetRadarSizeScaleSetting()
@@ -6559,17 +6411,9 @@ function PersistentConfig.SaveConfig()
         f:Writeln("PdaFontScale=" .. tostring(PersistentConfig.Settings.PdaFontScale))
         f:Writeln("PdaColorPreset=" .. tostring(PersistentConfig.Settings.PdaColorPreset))
         f:Writeln("TeamColorPreset=" .. tostring(PersistentConfig.Settings.TeamColorPreset))
-        f:Writeln("UnderAttackAlertMode=" .. tostring(PersistentConfig.Settings.UnderAttackAlertMode))
-        f:Writeln("TargetReticlePopupMode=" .. tostring(PersistentConfig.Settings.TargetReticlePopupMode))
         f:Writeln("ScrapPilotHudLayout=" .. tostring(PersistentConfig.Settings.ScrapPilotHudLayout))
         f:Writeln("RadarSizeScale=" .. tostring(PersistentConfig.Settings.RadarSizeScale))
         f:Writeln("DynamicFactionFlameColors=" .. tostring(PersistentConfig.Settings.DynamicFactionFlameColors))
-        f:Writeln("BomberAiRangeEnabled=" .. tostring(PersistentConfig.Settings.BomberAiRangeEnabled))
-        f:Writeln("HowitzerVolleyEnabled=" .. tostring(PersistentConfig.Settings.HowitzerVolleyEnabled))
-        f:Writeln("WeaponMaskCarrierBiasEnabled=" .. tostring(PersistentConfig.Settings.WeaponMaskCarrierBiasEnabled))
-        f:Writeln("AiOdfGameplayTuningEnabled=" .. tostring(PersistentConfig.Settings.AiOdfGameplayTuningEnabled))
-        f:Writeln("TurretAimPitchEnabled=" .. tostring(PersistentConfig.Settings.TurretAimPitchEnabled))
-        f:Writeln("AttackRevealEnabled=" .. tostring(PersistentConfig.Settings.AttackRevealEnabled))
         for unitKey, preset in pairs(PersistentConfig.UnitPresets) do
             for slotIndex = 1, 5 do
                 local powerupOdf = preset[slotIndex]
@@ -6671,12 +6515,6 @@ function PersistentConfig.ApplySettings(options)
                 PersistentConfig.UpdateHeadlights()
             end
         end
-        if (applyAll or (options and options.applyUnderAttackAlert)) and exu.SetUnderAttackAlertMode then
-            exu.SetUnderAttackAlertMode(PersistentConfig.Settings.UnderAttackAlertMode)
-        end
-        if (applyAll or (options and options.applyTargetReticle)) and exu.SetTargetReticlePopupMode then
-            exu.SetTargetReticlePopupMode(PersistentConfig.Settings.TargetReticlePopupMode)
-        end
 
         if applyAll or (options and options.syncRadarSize) then
             PersistentConfig._RequestRadarScaleResync()
@@ -6688,9 +6526,6 @@ function PersistentConfig.ApplySettings(options)
         end
         if applyAll or (options and options.applyFactionFlames) then
             PersistentConfig._ApplyDynamicFactionFlameColors()
-        end
-        if applyAll or (options and options.applyMissionGameplayHooks) then
-            PersistentConfig._ApplyMissionGameplayHookSettings()
         end
         if applyAll or (options and options.applyUnitVo) then
             PersistentConfig._ApplyUnitVoSettings()
