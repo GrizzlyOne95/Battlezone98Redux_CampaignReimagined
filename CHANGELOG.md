@@ -1,5 +1,51 @@
 # Changelog
 
+## 2026-08-23
+
+### Settings split: engine options moved to openshim.ini
+
+The campaign's settings file is now strictly campaign settings. Options that
+are implemented by the OpenShim patch itself -- and therefore work with or
+without Extra Utilities, in the stock campaign, Instant Action and custom maps
+alike -- have moved to `openshim.ini`, where they are documented in full.
+
+Moved out of `campaignReimagined_settings.cfg`:
+
+| Was (campaign setting) | Now (openshim.ini) |
+| --- | --- |
+| `UnderAttackAlertMode` | `[Display] UnderAttackAlert` |
+| `TargetReticlePopupMode` | `[Display] TargetPolicy` |
+| `TurretAimPitchEnabled` | `[SinglePlayer] TurretAimPitch` |
+| `AttackRevealEnabled` | `[SinglePlayer] AttackRevealPerceivedTeam` |
+| `BomberAiRangeEnabled` | `[SinglePlayer] BomberAiRange` |
+| `AiOdfGameplayTuningEnabled` | `[SinglePlayer] AiOdfGameplayTuning` |
+
+The first four already existed in `openshim.ini`; the campaign was setting them
+a second time through Extra Utilities and winning, so the setting you chose in
+the OpenShim Options page was silently overridden while the campaign was
+loaded. That no longer happens. `BomberAiRange` and `AiOdfGameplayTuning` are
+new `openshim.ini` keys -- the features were always native, but until now the
+only way to switch them on was the campaign.
+
+The **Attack Beep** and **Hit Reticle** rows are gone from the campaign's PDA
+settings page. Both live on the OpenShim page of the Options screen and in
+`openshim.ini`.
+
+Two settings were removed outright: `HowitzerVolleyEnabled` and
+`WeaponMaskCarrierBiasEnabled`. Neither has done anything for some time -- the
+patch reads neither value -- so they were dead switches on the menu.
+
+Existing settings files need no migration: the removed keys are ignored on load
+and dropped the next time settings are saved.
+
+### Unchanged
+
+Everything the campaign actually implements stays where it was -- lighting
+modes, headlights, subtitles, the PDA overlay and its colours, radar scale,
+team colours, auto-repair, pilot mode, scavenger assist and the Lua autosave.
+Those depend on Extra Utilities and are campaign behaviour, not engine
+behaviour.
+
 ## 2026-08-20 (experimental, visual validation pending)
 
 ### DX11 Enhanced dynamic-light audit
