@@ -918,6 +918,46 @@ Runtime acceptance is not complete because the splotches remain. The next A/B sh
 
 ---
 
+# 2026-08-30 fog and terrain-ambient qualification
+
+The supplied Mars Enhanced/Redux comparison promoted `fogColour` from an
+unresolved engine constant to a qualified display-referred colour. A live GOG
+probe reported Mars fog `(0.65, 0.45, 0.25)`. Passing it untreated through the
+one final linear-to-sRGB transfer yields `(0.826657, 0.701411, 0.537099)`, which
+matches the pale cream/tan drift in the Enhanced capture. Decoding the
+explicitly classified `authoredFog` copy yields shader-linear
+`(0.380056, 0.170645, 0.050876)` and restores the authored rust family after the
+final encode.
+
+The source contract now treats `authoredFog` as a mandatory universal COLOR
+decode target. Raw `fogColour` stays on the deny-list, so a future edit cannot
+silently convert arbitrary engine constants or bypass the classification copy.
+Default, Retro, vertex-lit, DX9, GL, data textures, and alpha remain outside the
+transfer path.
+
+The lunar comparison identified a separate near-field issue. Mission ambient
+data did not explain the broad neutral lift; the terrain shader's fixed diffuse
+IBL intensity did. Terrain diffuse IBL is now multiplied by continuous
+atmosphere support derived from `abs(fogParams.w)`:
+
+```text
+support = saturate(abs(fogParams.w) * 160)
+scale = lerp(0.15, 1.0, support)
+```
+
+This keeps a short Mars fog range at full support and lowers neutral fill on
+long-range/airless terrain without mission-name, palette, or planet branches.
+It intentionally leaves base/object IBL, all specular IBL, direct lights,
+emissives, and mission data unchanged.
+
+Validation on 2026-08-30 passed all 208 SM4 compiles, the 108 Stage A/radial
+fog combinations, and the 66 terrain-normal diagnostic permutations. GOG
+windowed runs of `misn04` and `misn02b` compiled the changed sources and emitted
+effective-state diagnostics. A locked-camera paired art-direction recapture is
+still required before release.
+
+---
+
 # Future FP16/HDR architecture
 
 The correct long-term architecture is not “manual gamma everywhere.” It is:
