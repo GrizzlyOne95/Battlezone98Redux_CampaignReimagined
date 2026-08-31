@@ -1,0 +1,48 @@
+name: Campaign Validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate campaign content
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Lua 5.1 compiler
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1
+          command -v luac5.1 || command -v luac
+
+      - name: Validate repository invariants
+        run: python Tools/Validate-CampaignRepository.py
+
+      - name: Validate Lua 5.1 syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUAC="$(command -v luac5.1 || command -v luac)"
+          while IFS= read -r -d '' file; do
+            "$LUAC" -p "$file"
+          done < <(find Scripts Missions -type f -iname '*.lua' -print0 2>/dev/null || true)
