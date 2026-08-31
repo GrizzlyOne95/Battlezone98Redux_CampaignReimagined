@@ -102,7 +102,7 @@ jobs:
             throw "OpenShim dependency must be an immutable stable version tag such as v1.0.0.11; got '$tag'."
           }
 
-          $dependencyRoot = Join-Path $env:GITHUB_WORKSPACE "_deps\OpenShimRelease"
+          $dependencyRoot = Join-Path $env:RUNNER_TEMP "OpenShimRelease"
           $zipPath = Join-Path $env:RUNNER_TEMP "OpenShim-Suite.zip"
           $checksumPath = Join-Path $env:RUNNER_TEMP "OpenShim-Suite.zip.sha256"
           New-Item -ItemType Directory -Path $dependencyRoot -Force | Out-Null
@@ -170,7 +170,7 @@ jobs:
       - name: Build and validate canonical payload
         shell: pwsh
         env:
-          BZR_OPENSHIM_REPO: ${{ github.workspace }}\_deps\OpenShimRelease
+          BZR_OPENSHIM_REPO: ${{ runner.temp }}\OpenShimRelease
           WORKSHOP_CHANGE_NOTE: ${{ inputs.change_note }}
         run: |
           & .\Manage-CampaignFiles.ps1 -workshop-build $env:WORKSHOP_CHANGE_NOTE
