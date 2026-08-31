@@ -1,0 +1,63 @@
+name: Campaign Validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate campaign content
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Lua 5.1 compiler
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1
+          command -v luac5.1 || command -v luac
+
+      - name: Validate repository invariants
+        run: python Tools/Validate-CampaignRepository.py
+
+      - name: Validate Lua 5.1 syntax
+        shell: bash
+        run: |
+          set -uo pipefail
+          LUAC="$(command -v luac5.1 || command -v luac)"
+          failed=0
+          while IFS= read -r -d '' file; do
+            output=""
+            if ! output="$($LUAC -p "$file" 2>&1)"; then
+              # The stock Lua 5.1 compiler has a fixed 60-upvalue limit. Some
+              # existing BZR campaign scripts exceed that compiler-only limit
+              # while remaining valid Lua syntax for the game's runtime. Keep
+              # this exact diagnostic visible, but do not misclassify it as a
+              # syntax regression. Every other luac error remains blocking.
+              if grep -Fq "has more than 60 upvalues" <<<"$output"; then
+                echo "::warning file=$file::$output"
+              else
+                echo "$output" >&2
+                failed=1
+              fi
+            fi
+          done < <(find Scripts Missions -type f -iname '*.lua' -print0 2>/dev/null || true)
+          exit "$failed"
