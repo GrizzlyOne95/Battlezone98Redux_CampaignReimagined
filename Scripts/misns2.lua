@@ -105,10 +105,15 @@ end
 function DeleteObject(h)
 end
 
-function Update()
-    player = GetPlayerHandle()
-    aiCore.Update()
-    
+
+-- BZR/Lua 5.1 enforces a 60-upvalue limit per function. The original monolithic
+-- Update() captured >60 distinct locals and failed stock luac5.1 compilation.
+-- Helpers below split Update() into cohesive phases so each function stays
+-- below the limit while preserving exact per-frame execution order.
+
+local function UpdateMissionStartAndIntro()
+    -- WHAT: Initialize mission handles/APCs and drive the extended opening cinematic.
+    -- WHY: Isolates start-up state (missionstart, wave1start, camera timers, intro flags) so Update() does not exceed the 60-upvalue limit.
     if not missionstart then
         AudioMessage("misns200.wav")
         launchpad = GetHandle("sblpad59_i76building")
@@ -181,7 +186,11 @@ function Update()
             end
         end
     end
-    
+end
+
+local function UpdateObjectivesAndOpeningWave()
+    -- WHAT: Drive objective UI refresh and the first hostile wave.
+    -- WHY: Groups newobjective/t1arrive and wave1 logic that share t1-t3 handles.
     -- Objectives Update
     if newobjective then
         ClearObjectives()
@@ -213,7 +222,11 @@ function Update()
         cintime = GetTime() + 3.0
         cintimeset = true
     end
-    
+end
+
+local function UpdateSurrenderSequence()
+    -- WHAT: Handle surrender audio, platoon spawn, and surrender cinematic.
+    -- WHY: Isolates the large platoon handle set (bd100-bd110) and camera timers.
     -- Surrender Cinematic / Big Wave
     if wave1gone and (not IsAlive(bd1)) and (not IsAlive(bd2)) and (cintime < GetTime()) and (not surrender) then
         AudioMessage("misns204.wav")
@@ -257,7 +270,11 @@ function Update()
             bdcindone = true
         end
     end
-    
+end
+
+local function UpdateFlankAndArtilleryWaves()
+    -- WHAT: Process flank (Wave 2) and artillery/mine phases (Waves 3-4).
+    -- WHY: Groups close-proximity triggers that share bd5-bd14, t1-t3 and art warning state.
     -- Wave 2 (Flank)
     if not wave2gone then
         local enemy3 = GetNearestVehicle("bdsp2", 1) -- Player nearby?
@@ -341,7 +358,11 @@ function Update()
            wave4gone = true
         end
     end
-    
+end
+
+local function UpdateMainPlatoonAndEndgameWave()
+    -- WHAT: Spawn the main platoon when artillery is cleared and handle endgame rush.
+    -- WHY: Centralizes bd15-bd24 lifecycle and launchpad proximity checks.
     -- Main Platoon Attack (If arties dead)
     if wave4gone and wave3gone and (not bdplatoonspawned) and 
        (not IsAlive(bd9)) and (not IsAlive(bd10)) and (not IsAlive(bd12)) and (not IsAlive(bd13)) then
@@ -383,7 +404,11 @@ function Update()
         Attack(bd24, t3)
         wave5gone = true
     end
-    
+end
+
+local function UpdateCameraNetworksAndPatrol()
+    -- WHAT: Handle hidden camera networks, cutoff ambush, and sneak patrol.
+    -- WHY: Bundles camnet/cutoff/patrol globals that are only used in these triggers.
     -- Hidden Cutoff / Camera Network Logic (RESTORED logic found in C++)
     -- C++ lines 776+: If near "bdnet4" and not camnet1found
     if (GetDistance(player, "bdnet4") < 550.0) and (not camnet1found) then
@@ -481,7 +506,11 @@ function Update()
             end
         end
     end
-    
+end
+
+local function UpdateMissionOutcome()
+    -- WHAT: Check fail/win/arrival conditions and update objectives.
+    -- WHY: Groups terminal state flags so Update() stays small and under the limit.
     -- Failure
     if (not missionfail) and ((not IsAlive(t1)) or (not IsAlive(t2)) or (not IsAlive(t3))) then
         AudioMessage("misns212.wav")
@@ -507,3 +536,16 @@ function Update()
     end
 end
 
+function Update()
+    -- WHAT: Lightweight dispatcher that preserves original per-frame order.
+    -- WHY: Keeps this public entry point under 60 upvalues by delegating to helpers.
+    player = GetPlayerHandle()
+    aiCore.Update()
+    UpdateMissionStartAndIntro()
+    UpdateObjectivesAndOpeningWave()
+    UpdateSurrenderSequence()
+    UpdateFlankAndArtilleryWaves()
+    UpdateMainPlatoonAndEndgameWave()
+    UpdateCameraNetworksAndPatrol()
+    UpdateMissionOutcome()
+end
