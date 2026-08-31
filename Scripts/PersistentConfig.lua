@@ -621,14 +621,17 @@ local function GetOpenShimManifest()
     local winmm = payloads and NormalizePayload(payloads.winmm) or nil
     local network = payloads and NormalizePayload(payloads.network) or nil
     local patches = payloads and NormalizePayload(payloads.patches) or nil
+    local playerConfig = payloads and NormalizePayload(payloads.playerConfig) or nil
     if manifest.formatVersion ~= 2 or
         not manifest.sha256 or not manifest.sha256:match("^[0-9a-f]+$") or #manifest.sha256 ~= 64 or
         type(manifest.version) ~= "string" or manifest.version == "" or
         manifest.architecture ~= "x86" or
-        not winmm or not network or not patches or
+        not winmm or not network or not patches or not playerConfig or
         winmm.source ~= "winmm.dll" or winmm.destination ~= "winmm.dll" or
         network.source ~= "openshim_net.ini.payload" or network.destination ~= "net.ini" or
         patches.source ~= "openshim_patches.json.payload" or patches.destination ~= "scripts\\patches.json" or
+        playerConfig.source ~= "openshim.ini.payload" or playerConfig.destination ~= "openshim.ini" or
+        playerConfig.overwrite ~= true or
         winmm.sha256 ~= manifest.sha256 or winmm.version ~= manifest.version or
         winmm.architecture ~= "x86" then
         print("PersistentConfig: OpenShim manifest is malformed or unsupported.")
@@ -694,6 +697,7 @@ local function EnsureBundledOpenShimInstalled()
         manifest.payloads.winmm,
         manifest.payloads.network,
         manifest.payloads.patches,
+        manifest.payloads.playerConfig,
     }
     local sourcePaths = {}
     for index, payload in ipairs(orderedPayloads) do
@@ -718,6 +722,7 @@ local function EnsureBundledOpenShimInstalled()
         workingDirectory .. "\\winmm.dll",
         workingDirectory .. "\\net.ini",
         workingDirectory .. "\\scripts\\patches.json",
+        workingDirectory .. "\\openshim.ini",
     }
     local allCurrent = true
     for index, payload in ipairs(orderedPayloads) do
@@ -749,8 +754,35 @@ local function EnsureBundledOpenShimInstalled()
         sourcePaths[2], orderedPayloads[2].sha256,
         sourcePaths[3], orderedPayloads[3].sha256)
     if ok and staged then
+        local configDestination = destinationPaths[4]
+        if BzFileExists(configDestination) then
+            local backupOk, backupCopied, backupError = pcall(
+                bzfile.CopyFile,
+                configDestination,
+                configDestination .. ".pre-workshop.bak",
+                true)
+            if not backupOk or not backupCopied then
+                print("PersistentConfig: Could not back up the existing OpenShim player INI: " ..
+                    tostring(backupOk and backupError or backupCopied))
+            end
+        end
+
+        local copyOk, configCopied, configError = pcall(
+            bzfile.CopyFile,
+            sourcePaths[4],
+            configDestination,
+            true)
+        local installedConfigHash = copyOk and configCopied and GetBzFileHash(configDestination) or nil
+        if not copyOk or not configCopied or installedConfigHash ~= orderedPayloads[4].sha256 then
+            local configFailure = not copyOk and tostring(configCopied) or
+                tostring(configError or "installed hash mismatch")
+            print("PersistentConfig: Forced OpenShim player INI replacement failed: " .. configFailure)
+            ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
+            return
+        end
+
         print("PersistentConfig: OpenShim suite " .. tostring(manifest.version) ..
-            " staged for verified replacement on exit." ..
+            " staged for verified replacement on exit; player openshim.ini was overwritten." ..
             (helperLogPath and (" Helper log: " .. tostring(helperLogPath)) or ""))
         ShowOpenShimInstallMissionOutcome(stageState == "staged" and "staged" or "updated")
         return
