@@ -11,10 +11,9 @@ on:
         description: Steam Workshop change note
         required: true
         type: string
-      openshim_ref:
-        description: OpenShim branch, tag, or SHA to bundle
+      openshim_tag:
+        description: Qualified OpenShim release tag to bundle, for example v1.0.0.11
         required: true
-        default: main
         type: string
       dry_run:
         description: Build and validate only; do not upload to Steam
@@ -62,44 +61,76 @@ jobs:
             Remove-Item -LiteralPath ".github" -Recurse -Force
           }
 
-      - name: Check out OpenShim
-        uses: actions/checkout@v4
-        with:
-          repository: GrizzlyOne95/Battlezone98Redux_Shim
-          ref: ${{ inputs.openshim_ref }}
-          path: _deps/Battlezone98Redux_Shim
-          clean: true
-          persist-credentials: false
-
-      - name: Build OpenShim Release
+      # Campaign publishing must consume the exact artifact that passed the
+      # OpenShim tag release gates. Rebuilding a branch or SHA here would create
+      # a second binary with separate provenance and could silently diverge from
+      # the standalone OpenShim release players are told to use.
+      - name: Download and verify qualified OpenShim suite
         shell: pwsh
         run: |
-          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          if (-not (Test-Path -LiteralPath $vswhere)) {
-            throw "vswhere.exe was not found on the GitHub-hosted Windows runner."
+          $tag = "${{ inputs.openshim_tag }}"
+          if ($tag -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
+            throw "OpenShim dependency must be an immutable stable version tag such as v1.0.0.11; got '$tag'."
           }
 
-          $msbuild = & $vswhere -latest -products * `
-            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
-            -find "MSBuild\**\Bin\MSBuild.exe" |
-            Select-Object -First 1
+          $dependencyRoot = Join-Path $env:GITHUB_WORKSPACE "_deps\OpenShimRelease"
+          $zipPath = Join-Path $env:RUNNER_TEMP "OpenShim-Suite.zip"
+          $checksumPath = Join-Path $env:RUNNER_TEMP "OpenShim-Suite.zip.sha256"
+          New-Item -ItemType Directory -Path $dependencyRoot -Force | Out-Null
 
-          if (-not $msbuild) {
-            throw "MSBuild with the Visual C++ toolchain was not found."
+          $releaseBase = "https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases/download/$tag"
+          try {
+            Invoke-WebRequest -Uri "$releaseBase/OpenShim-Suite.zip" -OutFile $zipPath -UseBasicParsing
+            Invoke-WebRequest -Uri "$releaseBase/OpenShim-Suite.zip.sha256" -OutFile $checksumPath -UseBasicParsing
+          }
+          catch {
+            throw "Could not download the immutable OpenShim suite for '$tag'. Ensure the tag was released by the hardened OpenShim release workflow. $($_.Exception.Message)"
           }
 
-          $shimRepo = Join-Path $env:GITHUB_WORKSPACE "_deps\Battlezone98Redux_Shim"
-          $solution = Join-Path $shimRepo "BZROpenShim.sln"
-
-          & $msbuild $solution /m /p:Configuration=Release /p:Platform=Win32
-          if ($LASTEXITCODE -ne 0) {
-            throw "OpenShim Release build failed with exit code $LASTEXITCODE."
+          $checksumLine = (Get-Content -LiteralPath $checksumPath -Raw).Trim()
+          if ($checksumLine -notmatch '^([0-9a-fA-F]{64})\s+OpenShim-Suite\.zip$') {
+            throw "Malformed OpenShim suite checksum file for '$tag': $checksumLine"
+          }
+          $expectedHash = $matches[1].ToLowerInvariant()
+          $actualHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actualHash -ne $expectedHash) {
+            throw "OpenShim suite SHA-256 mismatch for '$tag'. Expected $expectedHash, got $actualHash."
           }
 
-          $shimDll = Join-Path $shimRepo "bin\Release\winmm.dll"
-          if (-not (Test-Path -LiteralPath $shimDll)) {
-            throw "OpenShim build completed without producing '$shimDll'."
+          Expand-Archive -LiteralPath $zipPath -DestinationPath $dependencyRoot -Force
+          $metadataPath = Join-Path $dependencyRoot "release_metadata.json"
+          if (-not (Test-Path -LiteralPath $metadataPath -PathType Leaf)) {
+            throw "OpenShim suite is missing release_metadata.json."
           }
+          $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
+          if ($metadata.Tag -ne $tag) {
+            throw "OpenShim suite tag metadata '$($metadata.Tag)' does not match requested tag '$tag'."
+          }
+          if ([string]::IsNullOrWhiteSpace([string]$metadata.Commit) -or ([string]$metadata.Commit) -notmatch '^[0-9a-fA-F]{40}$') {
+            throw "OpenShim suite contains an invalid source commit identity."
+          }
+
+          $requiredPaths = @(
+            "bin\Release\winmm.dll",
+            "openshim.ini",
+            "net.ini",
+            "scripts\patches.json",
+            "resources\renderer\enhanced\resources.version",
+            "resources\ui\custom_widgets\uiline.png",
+            "resources\ui\custom_widgets\uiplate.png",
+            "resources\ui\custom_widgets\uibtn.png",
+            "resources\ui\custom_widgets\uibtnhv.png"
+          )
+          foreach ($relativePath in $requiredPaths) {
+            $requiredPath = Join-Path $dependencyRoot $relativePath
+            if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+              throw "OpenShim suite '$tag' is incomplete: missing '$relativePath'."
+            }
+          }
+
+          "OPENSHIM_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "OPENSHIM_COMMIT=$($metadata.Commit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "OPENSHIM_SUITE_SHA256=$actualHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Prepare Workshop configuration
         shell: pwsh
@@ -110,7 +141,7 @@ jobs:
       - name: Build and validate Workshop payload
         shell: pwsh
         env:
-          BZR_OPENSHIM_REPO: ${{ github.workspace }}\_deps\Battlezone98Redux_Shim
+          BZR_OPENSHIM_REPO: ${{ github.workspace }}\_deps\OpenShimRelease
           WORKSHOP_CHANGE_NOTE: ${{ inputs.change_note }}
         run: |
           & .\Manage-CampaignFiles.ps1 -workshop-build $env:WORKSHOP_CHANGE_NOTE
@@ -121,7 +152,6 @@ jobs:
       - name: Assemble immutable publish bundle
         shell: pwsh
         env:
-          OPENSHIM_REF: ${{ inputs.openshim_ref }}
           WORKSHOP_CHANGE_NOTE: ${{ inputs.change_note }}
         run: |
           $bundle = Join-Path $env:GITHUB_WORKSPACE "Local\Workshop\publish_bundle"
@@ -137,18 +167,13 @@ jobs:
           Copy-Item -LiteralPath "docs\workshop_description.bbcode" `
             -Destination (Join-Path $bundle "workshop_description.bbcode") -Force
 
-          $shimRepo = Join-Path $env:GITHUB_WORKSPACE "_deps\Battlezone98Redux_Shim"
-          $shimSha = (git -C $shimRepo rev-parse HEAD).Trim()
-          if (-not $shimSha) {
-            throw "Could not resolve the OpenShim commit SHA."
-          }
-
           [ordered]@{
             AppId = "301650"
             PublishedFileId = "3686673790"
             CampaignCommit = "${{ github.sha }}"
-            OpenShimRef = $env:OPENSHIM_REF
-            OpenShimCommit = $shimSha
+            OpenShimTag = $env:OPENSHIM_TAG
+            OpenShimCommit = $env:OPENSHIM_COMMIT
+            OpenShimSuiteSha256 = $env:OPENSHIM_SUITE_SHA256
             ChangeNote = $env:WORKSHOP_CHANGE_NOTE
             BuiltAtUtc = [DateTime]::UtcNow.ToString("o")
           } | ConvertTo-Json -Depth 4 |
@@ -328,7 +353,9 @@ jobs:
             AppId = "301650"
             PublishedFileId = "3686673790"
             CampaignCommit = $metadata.CampaignCommit
+            OpenShimTag = $metadata.OpenShimTag
             OpenShimCommit = $metadata.OpenShimCommit
+            OpenShimSuiteSha256 = $metadata.OpenShimSuiteSha256
             ChangeNote = $env:WORKSHOP_CHANGE_NOTE
             UploadedAtUtc = [DateTime]::UtcNow.ToString("o")
             WorkflowRunId = "${{ github.run_id }}"
