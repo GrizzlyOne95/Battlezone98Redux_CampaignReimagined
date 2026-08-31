@@ -4,7 +4,17 @@
   },
   "patches": [
     {
+      "name": "GameObject Handle Stale Slot Guard",
+      "platforms": ["gog"],
+      "pattern": "55 8B EC 51 8B 45 08 50 E8 ?? ?? ?? ?? 83 C4 04 89 45 FC 83 7D FC 00 75 04 33 C0 EB 16 8B 4D FC E8 ?? ?? ?? ?? 25 00 02 00 00 74 04 33 C0 EB 03 8B 45 FC 8B E5 5D C3",
+      "offset": 0,
+      "expected_size": 5,
+      "fallback": "0x00462630",
+      "require_unique": true
+    },
+    {
       "name": "Map List Rewrite for Hop-Fix 1/3",
+      "platforms": ["steam"],
       "pattern": "8B 45 FC 8B 88 38 01 00 00 E8 F3 89 E3 FF",
       "offset": 0,
       "expected_size": 5,
@@ -12,6 +22,7 @@
     },
     {
       "name": "Map List Rewrite for Hop-Fix 2/3",
+      "platforms": ["steam"],
       "pattern": "6A 00 8B 85 5C FF FF FF 8B 88 7C 01 00 00 E8",
       "offset": 0,
       "expected_size": 5,
@@ -19,6 +30,7 @@
     },
     {
       "name": "Map List Rewrite for Hop-Fix 3/3",
+      "platforms": ["steam"],
       "pattern": "FF D2 68 30 09 00 00",
       "offset": 0,
       "expected_size": 5,
@@ -32,18 +44,117 @@
       "fallback": "0x004EAD78"
     },
     {
-      "name": "WeaponMine Hop-Out Friendly-Fire Fix",
-      "pattern": "89 8D 54 FE FF FF 8B 95 54 FE FF FF 52 8B 8D 58 FE FF FF E8 ?? ?? ?? ?? 0F B6 C0 85 C0 74 02 EB 9A",
-      "offset": 20,
-      "expected_size": 4,
-      "fallback": "0x00612A52"
-    },
-    {
       "name": "HoverCraft Engine Flame Emit Hook 2/2",
       "pattern": "8D 95 ?? ?? ?? ?? 52 B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 83 BD ?? ?? ?? ?? 00 0F 8E",
       "offset": 13,
       "expected_size": 4,
       "fallback": "0x004EAFDF"
+    },
+    {
+      "name": "Redux Numeric Locale Compatibility Call",
+      "pattern": "E8 7F 80 20 00 E8 BA 50 20 00 E8 95 22 07 00 68 18 3C 87 00",
+      "offset": 5,
+      "expected_size": 5,
+      "fallback": "0x00618E41",
+      "require_unique": true
+    },
+    {
+      "name": "Redux TRN Binary Writer Mode",
+      "pattern": "68 5C 67 87 00 8D 85 7C EF FF FF 50 FF 15 E0 94 86 00",
+      "offset": 0,
+      "expected_size": 5,
+      "fallback": "0x00786E5F",
+      "require_unique": true
+    },
+    {
+      "name": "Redux TRN Canonical Fwrite Hook",
+      "pattern": "51 8B 95 3C DF FF FF 52 6A 01 8B 85 44 DF FF FF 50 FF 15 84 94 86 00 83 C4 10",
+      "offset": 17,
+      "expected_size": 6,
+      "fallback": "0x00786E9A",
+      "require_unique": true
+    }
+  ],
+  "resolves": [
+    {
+      "name": "EngineFlame::AddFlame",
+      "pattern": "0F 11 04 24 8D 85 ?? ?? ?? ?? 50 B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? 83 3D ?? ?? ?? ?? 00 0F 84",
+      "offset": 16,
+      "mode": "rel32_target",
+      "prefer": "fallback",
+      "fallback": "0x004C8800",
+      "identity": "First HoverCraft::Simulate (0x004EA300) exhaust emit site; the CALL at 0x004EAD77 targets EngineFlame::AddFlame 0x004C8800, cross-checked against the EngineFlame vtable at 0x0087918C in reverse_engineering/engine_flame_color_notes.md. The anchor is the E8 opcode, not its rel32 operand."
+    },
+    {
+      "name": "GetTeamNum",
+      "pattern": "8B 45 08 50 E8 ?? ?? ?? ?? 83 C4 04 89 45 FC 83 7D FC 00 75 04 33 C0 EB 11 8B 4D FC 83 C1 18 8B 55 FC 8B 42 18 8B 50 04 FF D2",
+      "offset": -4,
+      "mode": "address",
+      "prefer": "fallback",
+      "fallback": "0x005C8800",
+      "identity": "Live GetTeamNum helper 0x005C8800, named in reverse_engineering/engine_flame_color_notes.md as the team source for exhaust routing. The pattern starts at the body (mov eax,[ebp+8]); the negative offset steps back over the 55 8B EC 51 prologue, which is too generic to carry inside the signature."
+    },
+    {
+      "name": "EngineFlame::ResolveTexture",
+      "pattern": "55 8B EC 51 83 7D 08 00 75 04 33 C0 EB 44 A1 ?? ?? ?? ?? 83 E8 01 89 45 FC EB 09 8B 4D FC 83 E9 01 89 4D FC 83 7D FC 00 7E 26 6A 20 8B 55 08 52 8B 45 FC C1 E0 05 05 ?? ?? ?? ?? 50 FF 15 ?? ?? ?? ?? 83 C4 0C 85 C0 75 05",
+      "offset": 0,
+      "mode": "address",
+      "prefer": "fallback",
+      "fallback": "0x0068BED0",
+      "identity": "Shared sprite/texture-name lookup 0x0068BED0, used both as EngineFlame::ResolveTexture and as the HUD sprite lookup. The body walks a descending table index and calls through an import at FF 15; the match is the function entry itself."
+    },
+    {
+      "name": "UnitVo::SayQueueCallSite",
+      "pattern": "6A 00 8B 4D FC 83 C1 18 8B 55 FC 8B 42 18 8B 50 30 FF D2 50 8B 45 F8 50 E8 ?? ?? ?? ?? 83 C4 0C 8B 4D 0C 89 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? D9 1D ?? ?? ?? ??",
+      "offset": 24,
+      "mode": "address",
+      "identity": "Say -> QueueCB call site, priority argument 6A 00. Identity is settled at runtime rather than by the signature alone: its rel32 target must equal the target of UnitVo::RecycleQueueCallSite, and that shared target must pass the queue-list layout probe before any hook is written."
+    },
+    {
+      "name": "UnitVo::RecycleQueueCallSite",
+      "pattern": "6A 03 8B 4D FC 83 C1 18 8B 45 FC 8B 50 18 8B 42 30 FF D0 50 8B 4D 08 51 E8 ?? ?? ?? ?? 83 C4 0C 5E 8B E5",
+      "offset": 24,
+      "mode": "address",
+      "identity": "Recycle -> QueueCB call site, priority argument 6A 03. Same runtime identity proof as UnitVo::SayQueueCallSite: the two call sites must resolve to one QueueCB, which must then pass the queue-list layout probe."
+    },
+    {
+      "name": "CalcRange(Craft)",
+      "pattern": "55 8B EC 83 EC 1C 8B 45 0C F3 0F 10 05 ?? ?? ?? ?? F3 0F 11 00 8B 4D 10 F3 0F 10 05 ?? ?? ?? ?? F3 0F 11 01 8B 55 14",
+      "offset": 0,
+      "mode": "address",
+      "fallback": "0x00466BE0",
+      "require_unique": true,
+      "identity": "CalcRange(Craft*, &close, &range, &time, &weapon) at 0x00466BE0 on the exact GOG 2.2.301 baseline. UnitTask::Execute 0x006002A0 supplies its craft and five output addresses; the decompile initializes close/range/time/weapon, scans the craft's selected weapon slots through CalcRange(Weapon) 0x00466890, selects the largest usable weapon range, and subtracts 1.0. Cross-checked in reverse_engineering/backlog_address_audit_20260708.md; the signature is the function entry and matched once in SHA-256 8d71f56c1314e69a8ad38f4eeaf20a8ff825965a84cf196e5f77ea4cc3377413."
+    },
+    {
+      "name": "Workshop::GetManager",
+      "pattern": "55 8B EC 51 89 4D FC E8 ?? ?? ?? ?? 8B C8 E8 ?? ?? ?? ?? 8B E5 5D C3",
+      "offset": 7,
+      "mode": "rel32_target",
+      "fallback": "0x00764790",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "The unique anchor is cUI_Mods::RefreshWorkshop at 0x00795B80, called by the New Game Mods RefreshButton path 0x00794710 -> 0x00795BA0. Ghidra decompilation shows its first CALL at 0x00795B87 targets 0x00764790, which returns DAT_00945478, the active cWorkshopSteam/cWorkshopGoG singleton; mov ecx,eax then passes that same object to the Workshop resource refresh at 0x0076C0F0. The Steam vtable at 0x0089D054 independently identifies slot 1 as 0x00773D80 (GetItemState/DownloadItem) and slot 3 as 0x00773C40 (not ready while NeedsUpdate/Downloading/DownloadPending). Settled native runtime capture on Steam SHA-256 D298782FC9A13EDB0665DB934110440C45461031DB5F7FE1A76C8784B61CC90D, PID 10928 on 2026-08-28, read identical bytes at 0x00764790 and the full anchor at 0x00795B80; the pattern matched once in the GOG static image SHA-256 8D71F56C1314E69A8AD38F4EEAF20A8FF825965A84CF196E5F77EA4CC3377413."
+    },
+    {
+      "name": "Terrain::GetManager",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 0C A1 ?? ?? ?? ?? 33 C5 50 8D 45 F4 64 A3 00 00 00 00 83 3D ?? ?? ?? ?? 00 75 ?? 68 88 00 00 00",
+      "offset": 0,
+      "mode": "address",
+      "fallback": "0x0077C670",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "Released cRenderableTileClusterManager singleton getter at 0x0077C670. The body tests DAT_0094549C, allocates exactly 0x88 bytes when absent, calls the independently decompiled manager constructor FUN_0077A650, stores the result back to DAT_0094549C, and returns that singleton. Terrain mesh creation/population functions FUN_007778B0, FUN_007789A0, and FUN_00779C20 all call it; the pattern anchors the function entry through the singleton-null test and distinctive 0x88 allocation."
+    },
+    {
+      "name": "Terrain::GetFloat",
+      "pattern": "55 8B EC 83 EC 18 A1 ?? ?? ?? ?? 33 C5 89 45 FC F3 0F 10 45 10 F3 0F 11 45 E8 B8 01 00 00 00 6B C8 00 8B 55 14 0F BE 04 0A 85 C0",
+      "offset": 0,
+      "mode": "address",
+      "fallback": "0x00787B60",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "Released TRN/INI float getter at 0x00787B60. FUN_00780160 and the terrain lighting/height readers pass section, key, float fallback, and current TRN filename; the body copies the fallback, rejects empty strings, normalizes/loads the named file through FUN_00787370, retrieves a 16-byte value through FUN_00787660, parses it with the unique percent-f sscanf path, and returns the float in ST0. The signature anchors the entry and its four-argument validation prelude."
     }
   ],
   "globals": [
@@ -115,9 +226,29 @@
       "expected_original": "65 FC FF FF"
     },
     {
-      "name": "WeaponMine Hop-Out Friendly-Fire Fix",
-      "fallback": "0x00612A52",
-      "expected_original": "BA 8A EC FF"
+      "name": "Sun Screen Flash Contribution Hook",
+      "fallback": "0x004F9FD4",
+      "expected_original": "E8 14 FA FF"
+    },
+    {
+      "name": "Damage Reveal Probe 1/4",
+      "fallback": "0x0047EFA0",
+      "expected_original": "8C D1 05 00"
+    },
+    {
+      "name": "Damage Reveal Probe 2/4",
+      "fallback": "0x004AA678",
+      "expected_original": "B4 1A 03 00"
+    },
+    {
+      "name": "Damage Reveal Probe 3/4",
+      "fallback": "0x005A0CE2",
+      "expected_original": "4A B4 F3 FF"
+    },
+    {
+      "name": "Damage Reveal Probe 4/4",
+      "fallback": "0x005AA372",
+      "expected_original": "BA 1D F3 FF"
     },
     {
       "name": "Engine Flame Control VTable Hook",
@@ -253,6 +384,26 @@
       "name": "Map Filters 8/8",
       "fallback": "0x007997A9",
       "expected_original": "8B 45 F8 8B 88"
+    },
+    {
+      "name": "Music Buffer Global Focus",
+      "fallback": "0x0043F20C",
+      "expected_original": "68 88 01 01 00"
+    },
+    {
+      "name": "Artillery Weapon Mask Select Hook",
+      "fallback": "0x00475DDC",
+      "expected_original": "80 21 FA FF"
+    },
+    {
+      "name": "LayMines Weapon Mask Select Hook",
+      "fallback": "0x005128F7",
+      "expected_original": "65 56 F0 FF"
+    },
+    {
+      "name": "LayMines Weapon Mask Trigger Hook",
+      "fallback": "0x00512922",
+      "expected_original": "5A 6F FC FF"
     }
   ],
   "static_pointers": [
