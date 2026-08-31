@@ -10,6 +10,6 @@ return {
         winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "b690c1790eaedec371a341c6bb39e9da430788b5706b5bb40326183fab7b3bce", size = 2610176, version = "1.0.0.11", architecture = "x86" },
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "81b0749adca0e317f62bd16530791b2dbfcf538c6be7a5ab388e3500befe6c68", size = 13047 },
         patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "1d0b2c3aa0d8736152120f34b79f3e52d4cf12543bbf52d57bda86d71cc39018", size = 19020 },
-        playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "b5bf72ac19619f172da775e8c2281f012cc6d518a6511258ed6538dcc12b11bb", size = 8628, overwrite = true },
+        playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "3a225bb542d2ce855eb180e4acf3c131466519bf8c6efcadba15dd48dfbe12b1", size = 8625, overwrite = true },
     },
 }
