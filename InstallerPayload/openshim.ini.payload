@@ -1,0 +1,196 @@
+; ============================================================================
+; OpenShim Player Configuration
+; ============================================================================
+; Conservative opt-in defaults. Every first-class openshim.ini setting is
+; present here so users can enable only the OpenShim behavior they want without
+; starting from the developer reference. Feature and diagnostic switches are
+; OFF; stock-preserving controls use their stock value even where that value is
+; numerically 1 (AllowStartupAutoLoad and SunFlashbang). See
+; openshim.ini.example for accepted values, aliases, ranges, restart
+; requirements, implementation notes, and raw compatibility variables.
+;
+; Policy used here:
+;   - OpenShim fixes, enhancements, UI replacements, autosave, and diagnostics
+;     are disabled until explicitly enabled;
+;   - renderer selection remains automatic and the visual profile remains the
+;     stock-compatible Redux profile;
+;   - values that only tune a disabled master switch remain present so users
+;     can enable that feature without reconstructing its configuration.
+;
+; Preset revision:
+;   This player preset was first introduced in commit e81d8b0a (2026-08-27) but
+;   that revision was never merged to main, never tagged as a release, and
+;   never shipped via Workshop or the verified static-patches.json release
+;   workflow. Repository history (git log --all -- openshim.ini, tag v2.2.301
+;   assets, CampaignReimagined InstallerPayload/manifest) contains no
+;   openshim.ini payload prior to this branch, so no public preset with a bad
+;   default has been proven to have shipped. Nonetheless the migration
+;   framework below treats e81d8b0a's content as revision 1 (bad) and this
+;   corrected file as revision 2, so the mechanism is qualified before any
+;   future problematic preset can reach users. SHA-256 of the R1 payload is
+;   documented in include/openshim_preset_migration.h for tooling/tests but
+;   not treated as a publicly-shipped hash.
+; ============================================================================
+; OpenShimPresetRevision = 2
+
+[General]
+SoundChannels = 0
+CustomBindsUi = 0
+SettingsUi = 0
+ChunkMeshes = 0
+MapRefreshFixes = 0
+MusicGlobalFocus = 0
+; Set to 1 to bypass the legacy smoothed/accelerated mouse-message path and
+; use Redux's native raw-input path. Restart the game after changing it.
+RawMouseInput = 0
+OgreMaterialCollisionGuard = 0
+EditorOverheadPlacementOrder = 0
+SuppressHopOutAttackAlert = 0
+
+[Fixes]
+; Confirmed Redux engine defects OpenShim corrects. Unlike everything else in
+; this file these default to ON, because they are bug fixes rather than
+; enhancements -- leave them on for normal play.
+;
+; They are listed here because they apply in single-player and multiplayer
+; alike and several of them touch the simulation, so in a lobby mixing OpenShim
+; and stock clients a host may want to switch one off for parity, and anyone
+; bisecting a suspected regression needs to be able to isolate one fix.
+; Set a key to 0 to restore stock Redux behavior for that defect.
+ApcAlliedTargetDeploy = 1
+SplinterUndead = 1
+HowitzerUndeployedRetaliation = 1
+TugCargoPostLoad = 1
+ConstructorRemoteBuild = 1
+MagnetZeroRangeGuard = 1
+ProducerScriptPredicates = 1
+VehicleListModScoping = 1
+
+[Startup]
+D3DStartupHooks = 0
+; Stock behavior is to allow the startup shell/autoload path.
+AllowStartupAutoLoad = 1
+BackendTransport = 0
+
+[Graphics]
+Renderer = Auto
+RenderProfile = Redux
+
+[Terrain]
+; Terrain replacement/proxy development is disabled for normal play. The four
+; coordinate selectors use the runtime's INT_MIN sentinel explicitly so every
+; supported key can remain present without constraining cluster selection.
+TerrainProxyEnabled = 0
+TerrainProxyZone = -1
+TerrainProxyCluster = -1
+TerrainProxyZoneX = -2147483648
+TerrainProxyZoneZ = -2147483648
+TerrainProxyClusterX = -2147483648
+TerrainProxyClusterZ = -2147483648
+TerrainProxyFollowCamera = 0
+TerrainProxyFollowCameraAimDistance = 35.0
+TerrainProxyFollowCameraReselectFrames = 300
+TerrainProxyOffsetX = 0.0
+TerrainProxyOffsetY = 0.0
+TerrainProxyOffsetZ = 0.0
+TerrainProxyVisible = 0
+TerrainSemanticCapture = 0
+TerrainSemanticDumpJson = 0
+TerrainSemanticRenderer = 0
+TerrainSemanticValidateUV = 0
+TerrainSemanticLegacyUVQuantization = 0
+TerrainSemanticDumpMismatches = 0
+TerrainSemanticLifecycleLog = 0
+TerrainSemanticDebug = 0
+TerrainSemanticFrameCapture = 0
+TerrainSemanticFrameCaptureStride = 300
+TerrainSemanticFrameCaptureRequireOnScreen = 0
+TerrainSemanticFrameCaptureMinCoverage = 0.005
+TerrainHdEnabled = 0
+TerrainHdManifest = terrain_hd_tiles.json
+
+[DX11Enhanced]
+FXAA = 0
+EnhancedLightSelectionV2 = 0
+
+[Display]
+UnderAttackAlert = Normal
+TargetPolicy = Default
+MultiplayerFlagShowOwnCraft = 0
+ScrapPilotHud = Stock
+JetFlames = 0
+; Keep the sun, flare sprites, lighting, and shadows while suppressing only the
+; pathological full-screen white ScreenFlash contribution.
+; Stock behavior is ON; set this to 0 to enable OpenShim's suppression.
+SunFlashbang = 1
+UnitVoFeedback = Normal
+
+[AutoSave]
+Enabled = 0
+IntervalSeconds = 120
+InitialDelaySeconds = 10
+RetrySeconds = 15
+BackupExisting = 0
+RespectExternalAutoSave = 0
+
+[Diagnostics]
+; Diagnostics and forensic capture remain dormant for normal gameplay.
+EnhancedLightSelectionTrace = 0
+TraceHookHits = 0
+TraceArtilleryMask = 0
+TraceSunFlash = 0
+TraceDX11ColorSpace = 0
+TraceDX11EnhancedLighting = 0
+TraceMapRefresh = 0
+TraceJumpSniping = 0
+TraceSatelliteVisibility = 0
+ProfileOgreAnimation = 0
+TerrainRenderProbe = 0
+TerrainRenderProbeMaxClusters = 1
+TerrainRenderProbeCluster = -1
+TerrainRenderProbeDumpJson = 0
+RelayLogging = 0
+RelayLogAllControl = 0
+RelayLogDatagrams = 0
+RelayLoggingPrivateForensic = 0
+RelayLoggingAllUdp = 0
+RelayLoggingQueueRecords = 4096
+UiPerformanceLogging = 0
+UiPerformanceVerbose = 0
+TraceDamageReveal = 0
+
+[Network]
+RoutePreference = Stock
+UdpPort = 0
+; Blank = use the Steam/GOG account name.
+Nickname =
+LiveNicknameKeys = 0
+ReauthOnNicknameChange = 0
+LobbyReadouts = 0
+LobbyBzrnetIntegration = 0
+
+[SinglePlayer]
+; This section is hard-disabled by OpenShim in network games.
+WeaponConvergence = 0
+PlayerReticleConvergence = 0
+SmartReticleRange = 500
+SmartScavengerPathing = 0
+TurretAimPitch = 0
+TurretAimPitchMultiplier = 0.95
+JumpSnipeCrouch = 0
+AiWeaponMaskSelection = 0
+AiOdfGameplayTuning = 0
+BomberAiRange = 0
+Turbo = 0
+TurboTolerance = 0.9
+Headlights = 0
+OtherHeadlights = 0
+HeadlightColor = Stock
+HeadlightBeam = Stock
+AttackRevealPerceivedTeam = 0
+SatelliteVisibilityFix = 0
+
+[Environment]
+; Raw OPENSHIM_* / BZR_* compatibility variables may be supplied here when a
+; legacy launch script or one-off developer probe requires them. Normal players
+; should leave this section empty and use the first-class settings above.
