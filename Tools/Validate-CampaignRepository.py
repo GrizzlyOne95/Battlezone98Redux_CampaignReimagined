@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED_PARTS = {".git", "Local", "References", "_deps"}
 STRICT_ENGINE_EXTENSIONS = {".odf", ".wav", ".trn", ".bzn"}
 EXTERNAL_LUA_MODULES = {"bzfile", "exu"}
+STOCK_API_DEFINITION_FILES = {"scripts/scriptutils.lua"}
 
 
 def project_files():
@@ -88,8 +89,12 @@ def check_lua(files) -> tuple[list[str], list[str]]:
     for path, relative in lua_files:
         text = path.read_text(encoding="utf-8", errors="replace")
         code = strip_lua_comments(text)
+        relative_key = relative.as_posix().casefold()
 
-        if re.search(r"\bObjectiveObjects\s*\(", code):
+        # scriptutils.lua is the stock/editor API declaration file. It must
+        # document ObjectiveObjects() even though project gameplay code must not
+        # call the engine-broken iterator.
+        if relative_key not in STOCK_API_DEFINITION_FILES and re.search(r"\bObjectiveObjects\s*\(", code):
             errors.append(f"broken ObjectiveObjects() iterator used in {relative}")
         if re.search(r"\bgoto\b", code):
             errors.append(f"Lua 5.1-incompatible goto used in {relative}")
