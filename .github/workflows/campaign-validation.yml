@@ -38,26 +38,14 @@ jobs:
       - name: Validate repository invariants
         run: python Tools/Validate-CampaignRepository.py
 
-      - name: Validate Lua 5.1 syntax
+      - name: Validate Lua 5.1 compatibility
         shell: bash
         run: |
-          set -uo pipefail
+          set -euo pipefail
           LUAC="$(command -v luac5.1 || command -v luac)"
-          failed=0
+          # BZR inherits the stock Lua 5.1 compiler/runtime limits, including the
+          # 60-upvalue ceiling. Treat every luac failure as a compatibility bug
+          # instead of warning past scripts that the game may reject at runtime.
           while IFS= read -r -d '' file; do
-            output=""
-            if ! output="$($LUAC -p "$file" 2>&1)"; then
-              # The stock Lua 5.1 compiler has a fixed 60-upvalue limit. Some
-              # existing BZR campaign scripts exceed that compiler-only limit
-              # while remaining valid Lua syntax for the game's runtime. Keep
-              # this exact diagnostic visible, but do not misclassify it as a
-              # syntax regression. Every other luac error remains blocking.
-              if grep -Fq "has more than 60 upvalues" <<<"$output"; then
-                echo "::warning file=$file::$output"
-              else
-                echo "$output" >&2
-                failed=1
-              fi
-            fi
+            "$LUAC" -p "$file"
           done < <(find Scripts Missions -type f -iname '*.lua' -print0 2>/dev/null || true)
-          exit "$failed"
