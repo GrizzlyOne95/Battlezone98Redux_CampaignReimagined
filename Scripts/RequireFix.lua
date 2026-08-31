@@ -5,8 +5,17 @@
 
 local RequireFix = {}
 do
-    local version = "1.3"
+    local version = "1.4"
     local workshopAppId = "301650"
+    -- Redux can run a mission chunk straight out of an enabled Workshop item
+    -- without putting that item on package.path/package.cpath.  A chunk loaded
+    -- that way has no file source, so debug.getinfo leaves moduleDirectory nil
+    -- and DetectActiveModRoot finds nothing.  With no IDs from the call site
+    -- only Redux's stock paths remained, and those cannot load a module whose
+    -- name exceeds the asset system's 11-character limit (ScriptSubtitles,
+    -- PersistentConfig, ...) nor the item's own exu.dll/bzfile.dll.  Default to
+    -- this mod's install names so a call site that omits them still resolves.
+    local defaultSearchIDs = { "campaignReimagined", "3686673790" }
     local originalPath = package.path or ""
     local originalCPath = package.cpath or ""
     local warnedMessages = {}
@@ -404,7 +413,7 @@ do
             originalCPath = package.cpath or originalCPath
         end
 
-        local luaPath, dllPath, gameDirectory, workshopDirectory, activeModRoot = BuildPathLists(workshopID)
+        local luaPath, dllPath, gameDirectory, workshopDirectory, activeModRoot = BuildPathLists(workshopID or defaultSearchIDs)
         package.path = luaPath
         package.cpath = dllPath
         lastGameDirectory = gameDirectory or lastGameDirectory
