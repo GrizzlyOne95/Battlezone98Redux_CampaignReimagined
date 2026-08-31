@@ -98,7 +98,7 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ inputs.openshim_tag }}"
-          if ($tag -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
+          if ($tag -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$') {
             throw "OpenShim dependency must be an immutable stable version tag such as v1.0.0.11; got '$tag'."
           }
 
