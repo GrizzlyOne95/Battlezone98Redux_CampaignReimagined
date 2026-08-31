@@ -174,7 +174,7 @@ jobs:
           WORKSHOP_CHANGE_NOTE: ${{ inputs.change_note }}
         run: |
           & .\Manage-CampaignFiles.ps1 -workshop-build $env:WORKSHOP_CHANGE_NOTE
-          if ($LASTEXITCODE -ne 0) {
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
             throw "Campaign payload validation failed with exit code $LASTEXITCODE."
           }
 
@@ -473,5 +473,6 @@ jobs:
           Copy-Item -LiteralPath $receipt -Destination (Join-Path $destination "steam_workshop_receipt.json") -Force
 
           Write-Host "Archived Campaign Reimagined $env:RELEASE_VERSION to '$destination'."
+
 
 
