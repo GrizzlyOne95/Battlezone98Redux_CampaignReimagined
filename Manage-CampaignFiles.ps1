@@ -33,7 +33,13 @@ $WorkshopLocalRoot = Join-Path $RepoRoot "Local\Workshop"
 $RuntimeModParentDirNames = @("mods", "packaged_mods")
 $DefaultTestingGameRoot = "C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux"
 $DefaultTestingRuntimeDir = Join-Path $DefaultTestingGameRoot "mods\$CampaignModId"
-$StructuredRuntimeDirs = @("flags", "OverlayFont", "chunkMeshes")
+$StructuredRuntimeDirs = @(
+    "flags",
+    "OverlayFont",
+    "chunkMeshes",
+    "openshim",
+    "BZ_ASSETS_CORE"
+)
 # Chunk meshes have two source trees: the authored originals and the generated
 # interior-capped output from Tools/Cap-ChunkMeshes.py. Exactly one of them is
 # deployed, chosen by Get-ChunkMeshesSourceRelativeRoot.
@@ -409,14 +415,29 @@ function Update-OpenShimManifest {
         Join-Path ([Environment]::GetFolderPath("MyDocuments")) "GIT\BZR-OpenShim"
     }
     $shimBuildPath = Join-Path $openShimRepo "bin\Release\winmm.dll"
+    $playerConfigSourcePath = Join-Path $openShimRepo "openshim.ini"
     $networkSourcePath = Join-Path $openShimRepo "net.ini"
     $patchesSourcePath = Join-Path $openShimRepo "scripts\patches.json"
+    $rendererSourceDir = Join-Path $openShimRepo "resources\renderer\enhanced"
+    $uiSourceDir = Join-Path $openShimRepo "resources\ui\custom_widgets"
     $payloadDir = Join-Path $SourceDir "InstallerPayload"
+    $playerConfigPayloadPath = Join-Path $payloadDir "openshim.ini.payload"
     $networkPayloadPath = Join-Path $payloadDir "openshim_net.ini.payload"
     $patchesPayloadPath = Join-Path $payloadDir "openshim_patches.json.payload"
+    $rendererPayloadDir = Join-Path $SourceDir "openshim\renderer\enhanced"
+    $uiPayloadDir = Join-Path $SourceDir "BZ_ASSETS_CORE\common\ui\CustomWidgets"
     $manifestPath = Join-Path $SourceDir "Scripts\OpenShimManifest.lua"
+    $uiFileNames = @("uiline.png", "uiplate.png", "uibtn.png", "uibtnhv.png")
 
-    foreach ($requiredPath in @($shimBuildPath, $networkSourcePath, $patchesSourcePath)) {
+    $requiredPaths = @(
+        $shimBuildPath,
+        $playerConfigSourcePath,
+        $networkSourcePath,
+        $patchesSourcePath,
+        (Join-Path $rendererSourceDir "resources.version")
+    )
+    $requiredPaths += $uiFileNames | ForEach-Object { Join-Path $uiSourceDir $_ }
+    foreach ($requiredPath in $requiredPaths) {
         if (-not (Test-Path -LiteralPath $requiredPath)) {
             throw "Cannot generate OpenShim suite manifest because '$requiredPath' does not exist."
         }
@@ -435,13 +456,32 @@ function Update-OpenShimManifest {
     }
 
     [System.IO.Directory]::CreateDirectory($payloadDir) | Out-Null
+    [System.IO.File]::Copy($playerConfigSourcePath, $playerConfigPayloadPath, $true)
     [System.IO.File]::Copy($networkSourcePath, $networkPayloadPath, $true)
     [System.IO.File]::Copy($patchesSourcePath, $patchesPayloadPath, $true)
 
+    [System.IO.Directory]::CreateDirectory($rendererPayloadDir) | Out-Null
+    foreach ($rendererFile in Get-ChildItem -LiteralPath $rendererSourceDir -File) {
+        [System.IO.File]::Copy(
+            $rendererFile.FullName,
+            (Join-Path $rendererPayloadDir $rendererFile.Name),
+            $true)
+    }
+
+    [System.IO.Directory]::CreateDirectory($uiPayloadDir) | Out-Null
+    foreach ($uiFileName in $uiFileNames) {
+        [System.IO.File]::Copy(
+            (Join-Path $uiSourceDir $uiFileName),
+            (Join-Path $uiPayloadDir $uiFileName),
+            $true)
+    }
+
     $shimItem = Get-Item -LiteralPath $shimPath
+    $playerConfigItem = Get-Item -LiteralPath $playerConfigPayloadPath
     $networkItem = Get-Item -LiteralPath $networkPayloadPath
     $patchesItem = Get-Item -LiteralPath $patchesPayloadPath
     $shimHash = (Get-FileHash -LiteralPath $shimPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $playerConfigHash = (Get-FileHash -LiteralPath $playerConfigPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $networkHash = (Get-FileHash -LiteralPath $networkPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $patchesHash = (Get-FileHash -LiteralPath $patchesPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $shimVersion = $shimItem.VersionInfo.FileVersion
@@ -462,13 +502,14 @@ function Update-OpenShimManifest {
         "        winmm = { source = `"winmm.dll`", destination = `"winmm.dll`", sha256 = `"$shimHash`", size = $($shimItem.Length), version = `"$shimVersion`", architecture = `"x86`" },"
         "        network = { source = `"openshim_net.ini.payload`", destination = `"net.ini`", sha256 = `"$networkHash`", size = $($networkItem.Length) },"
         "        patches = { source = `"openshim_patches.json.payload`", destination = `"scripts\\patches.json`", sha256 = `"$patchesHash`", size = $($patchesItem.Length) },"
+        "        playerConfig = { source = `"openshim.ini.payload`", destination = `"openshim.ini`", sha256 = `"$playerConfigHash`", size = $($playerConfigItem.Length), overwrite = true },"
         "    },"
         "}"
         ""
     ) -join "`r`n"
 
     [System.IO.File]::WriteAllText($manifestPath, $manifest, [System.Text.UTF8Encoding]::new($false))
-    Write-Host "OpenShim suite manifest: version=$shimVersion winmm=$shimHash net=$networkHash patches=$patchesHash" -ForegroundColor DarkGray
+    Write-Host "OpenShim suite manifest: version=$shimVersion winmm=$shimHash ini=$playerConfigHash net=$networkHash patches=$patchesHash" -ForegroundColor DarkGray
 }
 
 function Sync-ToSource {
@@ -982,6 +1023,12 @@ function Build-WorkshopContent {
         "exu.dll",
         "openshim_net.ini.payload",
         "openshim_patches.json.payload",
+        "openshim.ini.payload",
+        "openshim\renderer\enhanced\resources.version",
+        "BZ_ASSETS_CORE\common\ui\CustomWidgets\uiline.png",
+        "BZ_ASSETS_CORE\common\ui\CustomWidgets\uiplate.png",
+        "BZ_ASSETS_CORE\common\ui\CustomWidgets\uibtn.png",
+        "BZ_ASSETS_CORE\common\ui\CustomWidgets\uibtnhv.png",
         "RequireFix.lua",
         "ScriptSubtitles.lua",
         "OpenShimManifest.lua",

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-30
+
+### OpenShim 1.0.0.9 and conservative player defaults
+
+- Updated the bundled OpenShim DLL to 1.0.0.9. The native OpenShim Options and
+  keybinding pages now render distinct value buttons and reliably receive row
+  clicks. Raw Mouse Input is available directly on the Options page and remains
+  off by default.
+- Workshop installation now deliberately replaces `openshim.ini` with the
+  complete conservative player preset, where OpenShim features and diagnostics
+  are opt-in. The previous file is retained as `openshim.ini.pre-workshop.bak`.
+- Added the OpenShim Enhanced renderer resources and the four native Options UI
+  tiles to the Workshop package so the DLL cannot be paired with missing data.
+
 ## 2026-08-23
 
 ### Settings split: engine options moved to openshim.ini
