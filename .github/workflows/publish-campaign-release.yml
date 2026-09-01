@@ -48,6 +48,7 @@ concurrency:
 
 env:
   DRIVE_ARCHIVE_FOLDER_URL: https://drive.google.com/drive/folders/1vORbih4z8QKXTdwwzHfS_-81-izYW0uv
+  MODDB_UPLOAD_URL: https://www.moddb.com/members/grizzlyone95/downloads
 
 jobs:
   build:
@@ -70,14 +71,21 @@ jobs:
           clean: true
           persist-credentials: false
 
-      - name: Preserve release helper outside mod source
+      - name: Preserve release helpers outside mod source
         shell: pwsh
         run: |
-          $helper = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\Build-Level1Release.ps1"
-          if (-not (Test-Path -LiteralPath $helper)) {
-            throw "Level 1 release helper was not found at '$helper'."
+          $helperNames = @(
+            "Build-Level1Release.ps1",
+            "Invoke-ModDbHandoff.ps1",
+            "Open-ModDbHandoff.cmd"
+          )
+          foreach ($helperName in $helperNames) {
+            $helper = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\$helperName"
+            if (-not (Test-Path -LiteralPath $helper)) {
+              throw "Release helper was not found at '$helper'."
+            }
+            Copy-Item -LiteralPath $helper -Destination (Join-Path $env:RUNNER_TEMP $helperName) -Force
           }
-          Copy-Item -LiteralPath $helper -Destination (Join-Path $env:RUNNER_TEMP "Build-Level1Release.ps1") -Force
 
       # The campaign publisher recursively scans repository content. .github is
       # workflow infrastructure, not mod content, so remove it after preserving
@@ -199,7 +207,8 @@ jobs:
             -ModDbReleaseType $env:MODDB_RELEASE_TYPE `
             -CampaignCommit $metadata.CampaignCommit `
             -OpenShimCommit $metadata.OpenShimCommit `
-            -DriveFolderUrl $env:DRIVE_ARCHIVE_FOLDER_URL
+            -DriveFolderUrl $env:DRIVE_ARCHIVE_FOLDER_URL `
+            -ModDbUploadUrl $env:MODDB_UPLOAD_URL
 
       - name: Upload validated unified release bundle
         uses: actions/upload-artifact@v4

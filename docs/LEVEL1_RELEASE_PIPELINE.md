@@ -28,6 +28,7 @@ It contains the immutable Steam payload plus `level1_release/` with:
 - `moddb_description.txt` — ready-to-paste ModDB description/change notes.
 - `moddb_submission.json` — release type, suggested title, version, file hash/size, source commits, Steam IDs, and Drive target.
 - `release_receipt.json` — machine-readable cross-channel release identity.
+- `Open-ModDbHandoff.cmd` — validates the ZIP, copies the submission text, selects the archive in Explorer, and opens the trusted Mod DB page in Opera.
 
 The ModDB ZIP is laid out so it can be extracted directly into the Battlezone 98 Redux installation directory. Its payload lands under `mods\3686673790`.
 
@@ -66,12 +67,18 @@ If the variable is not configured, Steam publishing still succeeds and the compl
 After the workflow succeeds:
 
 1. Open the `level1_release` folder from the GitHub artifact or Drive archive.
-2. Upload `CampaignReimagined-<version>-ModDB.zip` to the Battlezone 98 Redux downloads area on ModDB.
-3. Use `moddb_submission.json` for the title, version, release classification, checksum, and source identity.
-4. Paste/adapt `moddb_description.txt` into the ModDB description/change-log fields.
-5. Complete the final ModDB submission manually.
+2. Double-click `Open-ModDbHandoff.cmd`. It verifies the ZIP against `moddb_submission.json`, copies the ready-to-paste submission text to the clipboard, selects the ZIP in Explorer, and opens `https://www.moddb.com/members/grizzlyone95/downloads` in Opera. If Opera is unavailable, it uses the default browser.
+3. On Mod DB, choose **Add file** and upload the already selected `CampaignReimagined-<version>-ModDB.zip`.
+4. Paste/adapt the clipboard text into the title, version, classification, description, and change-log fields. The original field-by-field sources remain in `moddb_submission.json` and `moddb_description.txt`.
+5. Review every field and complete the final ModDB submission manually.
 
-No ModDB credentials, cookies, CSRF values, or undocumented endpoints are stored in the repository or GitHub Actions.
+For a command-line integrity check that does not open windows or change the clipboard:
+
+```powershell
+.\Invoke-ModDbHandoff.ps1 -ValidateOnly
+```
+
+The helper does not log in, upload, fill a web form, or click the final submit button. No ModDB credentials, cookies, CSRF values, or undocumented endpoints are stored in the repository or GitHub Actions.
 
 ## Release integrity
 
