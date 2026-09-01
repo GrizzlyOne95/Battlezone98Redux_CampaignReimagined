@@ -34,6 +34,7 @@
 !/Tools/Set-TerrainNormalDiagnostic.ps1
 
 # Intentional root files
+!/.gitattributes
 !/.gitignore
 !/AGENTS.md
 !/CHANGELOG.md
