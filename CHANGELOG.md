@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-09-01
+
+### Legacy terrain restored from the original Battlezone 1.5 heightmaps
+
+- Added unsmoothed `.hg2` terrain for 36 stock campaign maps, converted directly
+  from the Battlezone 1.5 `.hgt` originals. Redux normally cooks legacy `.hgt`
+  at load time and finishes with a 3x3 box blur, which rounds off authored
+  stair-steps, mesa rims and ridge lines. These files perform the same 2x
+  piecewise-planar upsample the engine does and skip that blur, so every
+  original 1.5 height sample is reproduced exactly and the geometry between
+  samples is the surface the 1998 engine actually rendered.
+- Redux loads `.hg2` in preference to `.hgt`, so no `.trn` or mission change is
+  needed; the terrain is simply no longer smoothed.
+- `misn02b` is a deliberate exception to "matches stock": Rebellion shipped
+  hand-modified terrain there rather than a conversion of the 1.5 map, so this
+  reverts that mission to the authentic 1.5 geometry.
+
+
 ## 2026-08-30
 
 ### OpenShim 1.0.0.9 and conservative player defaults
