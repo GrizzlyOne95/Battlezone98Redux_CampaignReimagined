@@ -1,0 +1,6 @@
+# Installer payloads are verified byte-for-byte against the sha256 recorded in
+# Scripts/OpenShimManifest.lua. With core.autocrlf=true a fresh checkout would
+# hand back CRLF where the manifest hashed LF, so the install would fail
+# verification on every machine except the one that generated the payload.
+# Keep them out of EOL conversion.
+*.payload -text
