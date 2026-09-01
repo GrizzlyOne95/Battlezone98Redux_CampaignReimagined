@@ -400,13 +400,49 @@ function Get-DeployRelativePathsFromSourcePath($sourceFileFullName) {
     return @(Get-DeployRelativePathFromSourcePath $sourceFileFullName)
 }
 
+# The Workshop payload takes its DLL, inis and renderer/UI resources from an
+# OpenShim checkout. With several worktrees side by side the fixed path
+# silently resolved to whichever one happens to be named BZR-OpenShim, which is
+# not necessarily the one that was just built -- a stale shim then ships under a
+# freshly regenerated manifest that vouches for it. Prefer the worktree whose
+# Release build is newest, and say out loud which one was picked.
+# BZR_OPENSHIM_REPO still wins whenever it is set.
+function Resolve-NewestOpenShimRepo {
+    $gitRoot = Join-Path ([Environment]::GetFolderPath("MyDocuments")) "GIT"
+    $fallback = Join-Path $gitRoot "BZR-OpenShim"
+    if (-not (Test-Path -LiteralPath $gitRoot)) {
+        return $fallback
+    }
+
+    $newest =
+        Get-ChildItem -LiteralPath $gitRoot -Directory -Filter "BZR-OpenShim*" |
+        ForEach-Object {
+            $build = Join-Path $_.FullName "bin\Release\winmm.dll"
+            if (Test-Path -LiteralPath $build) {
+                [pscustomobject]@{
+                    Repo  = $_.FullName
+                    Built = (Get-Item -LiteralPath $build).LastWriteTimeUtc
+                }
+            }
+        } |
+        Sort-Object Built -Descending |
+        Select-Object -First 1
+
+    if (-not $newest) {
+        return $fallback
+    }
+
+    Write-Host ("Using newest OpenShim build: {0} ({1:yyyy-MM-dd HH:mm} UTC)" -f $newest.Repo, $newest.Built) -ForegroundColor Yellow
+    return $newest.Repo
+}
+
 function Update-OpenShimManifest {
     $shimPath = Join-Path $SourceDir "Bin\winmm.dll"
     $openShimRepo = if ($env:BZR_OPENSHIM_REPO) {
         Resolve-PathIfRelative $env:BZR_OPENSHIM_REPO
     }
     else {
-        Join-Path ([Environment]::GetFolderPath("MyDocuments")) "GIT\BZR-OpenShim"
+        Resolve-NewestOpenShimRepo
     }
     $shimBuildPath = Join-Path $openShimRepo "bin\Release\winmm.dll"
     $networkSourcePath = Join-Path $openShimRepo "net.ini"
