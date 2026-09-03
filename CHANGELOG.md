@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-09-02
+
+### OpenShim 1.0.0.13
+
+Updated the bundled OpenShim DLL to 1.0.0.13.
+
+**The Options page is reachable again on affected installs.** A previous release switched every OpenShim setting off by default, including the two keys that are not features but the way you reach every other feature. On an install that received those defaults the OpenShim Options page did not appear at all, so there was no way to turn anything back on without editing `openshim.ini` by hand. The shipped defaults were corrected the next day, but the config-migration version was never advanced, so existing installs kept the broken values and no later update could repair them. This release advances it and reopens both pages. A setting you deliberately changed yourself is left alone.
+
+**Career statistics now work everywhere, with no scripting.** Kills, deaths and missions played are recorded across single player and multiplayer without any mission needing to implement tracking, written to a local `career_stats.cfg`. Nothing is uploaded anywhere. It is on by default and can be switched off, and there is a two-click Reset Career Stats row beside it that keeps a backup of the previous record. Previously only multiplayer was tracked natively and single player relied on campaign scripts.
+
+**Stock Factions host rule.** New `[Network] StockFactionsOnly` (off by default) restores the restricted multiplayer starting-vehicle pool that Battlezone 1.5 offered when Any Nation was turned off. Redux merged the two 1.5 pools into one and removed the choice. This only ever removes factions from the list; it can never add a craft, and a map that supplies its own vehicle list still wins.
+
+**Fixed a crash when quitting a mission.** The first-person pilot tracer could follow a scene manager that had already been destroyed and take the process down with it.
+
+**The main menu now shows the OpenShim build version** next to the game version, so you can confirm which DLL is actually loaded.
+
+Also included: a native event layer that these features are built on, and an opt-in walker cockpit diagnostic that is off unless you enable it.
+
 ## 2026-09-01
 
 ### Legacy terrain restored from the original Battlezone 1.5 heightmaps
