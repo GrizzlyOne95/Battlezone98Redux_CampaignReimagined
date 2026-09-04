@@ -13,11 +13,14 @@
 ;
 ; Policy used here:
 ;   - confirmed Redux engine defects under [Fixes] are enabled by default and
-;     individually switchable for strict parity or regression isolation;
+;     individually switchable for regression isolation; the five that touch
+;     the simulation also stand down automatically in a network game;
 ;   - enhancements, UI replacements, autosave, diagnostics, and single-player
 ;     behavior changes are disabled until explicitly enabled;
 ;   - renderer selection remains automatic and the visual profile remains the
-;     stock-compatible Redux profile;
+;     stock-compatible Redux profile, so the [DX11Enhanced] keys below are
+;     pre-armed but unreachable until a player opts into RenderProfile =
+;     Enhanced on DX11;
 ;   - GovernorTuning remains OpenShim to preserve the measured networking
 ;     behavior OpenShim already shipped; set it to Stock for strict mixed-client
 ;     parity, while net.ini remains the granular authority;
@@ -38,7 +41,7 @@
 ;   documented in include/openshim_preset_migration.h for tooling/tests but
 ;   not treated as a publicly-shipped hash.
 ; ============================================================================
-; OpenShimPresetRevision = 2
+; OpenShimPresetRevision = 3
 
 [General]
 SoundChannels = 0
@@ -54,7 +57,12 @@ MusicGlobalFocus = 1
 ; use Redux's native raw-input path. Restart the game after changing it.
 RawMouseInput = 0
 OgreMaterialCollisionGuard = 1
-EditorOverheadPlacementOrder = 0
+; Restores the BZ 1.5 overhead-view / control-panel display order, which is
+; what makes editor object placement work in the running Shift+F10 overhead
+; view. Inert unless the game was launched with /edit. Restart required.
+EditorOverheadPlacementOrder = 1
+; 0 keeps the stock behavior: hopping out replays one stale under-attack growl
+; for the craft you just left. Set to 1 to suppress that single alert.
 SuppressHopOutAttackAlert = 0
 
 [Fixes]
@@ -62,11 +70,18 @@ SuppressHopOutAttackAlert = 0
 ; this file these default to ON, because they are bug fixes rather than
 ; enhancements -- leave them on for normal play.
 ;
-; They are listed here because they apply in single-player and multiplayer
-; alike and several of them touch the simulation, so in a lobby mixing OpenShim
-; and stock clients a host may want to switch one off for parity, and anyone
-; bisecting a suspected regression needs to be able to isolate one fix.
-; Set a key to 0 to restore stock Redux behavior for that defect.
+; The first five touch the simulation, so they are gated on the net id the way
+; [SinglePlayer] features are: they stand down for the duration of a network
+; game, which keeps a lobby mixing OpenShim and stock clients behaviourally
+; identical. The last three only change behavior for content that is already
+; broken or for script-facing queries, so they are not gated.
+;
+; They are listed here because anyone bisecting a suspected regression needs to
+; be able to isolate one fix. Set a key to 0 to restore stock Redux behavior
+; for that defect in single-player too.
+; Keep the shipped preset in sync with openshim.ini.example: the mixed
+; stock/custom AIP producer-registration repair is a confirmed engine fix.
+AiMultiProducerMakers = 1
 ApcAlliedTargetDeploy = 1
 SplinterUndead = 1
 HowitzerUndeployedRetaliation = 1
@@ -75,6 +90,7 @@ ConstructorRemoteBuild = 1
 MagnetZeroRangeGuard = 1
 ProducerScriptPredicates = 1
 VehicleListModScoping = 1
+CliMultiParameterOptions = 1
 
 [Startup]
 D3DStartupHooks = 0
@@ -120,12 +136,20 @@ TerrainHdEnabled = 0
 TerrainHdManifest = terrain_hd_tiles.json
 
 [DX11Enhanced]
-FXAA = 0
-EnhancedLightSelectionV2 = 0
+; Both of these apply only while the experimental DX11 Enhanced pipeline is
+; actually running -- that needs [Graphics] RenderProfile = Enhanced on a DX11
+; render system -- so with the stock Redux profile above they change nothing.
+; They are on so that opting into Enhanced gets the whole Enhanced feature set
+; rather than a half-configured one. Restart required after changing either.
+FXAA = 1
+EnhancedLightSelectionV2 = 1
 
 [Display]
 UnderAttackAlert = Normal
 TargetPolicy = Default
+; Master switch for multiplayer vehicle flags: the selection screen, the
+; payload upload and the in-match renderer. Restart required.
+MultiplayerFlags = 1
 MultiplayerFlagShowOwnCraft = 0
 ScrapPilotHud = Stock
 JetFlames = 0
@@ -147,6 +171,14 @@ RespectExternalAutoSave = 0
 ; Diagnostics and forensic capture remain dormant for normal gameplay.
 EnhancedLightSelectionTrace = 0
 TraceHookHits = 0
+
+; Identify the first-person pilot Entity by walking the Ogre scene graph every
+; 1.5 s, and log its AnimationState traffic. Capture tool for pilot animation
+; investigation; see reverse_engineering/PILOT_FP_ANIMATION_TRACE.md.
+; Accepted: boolean. Default: OFF. Development-only, noisy, and it polls the
+; scene graph on a worker thread -- leave it off for normal play.
+; Legacy env alias: OPENSHIM_TRACE_PILOT_FP_ANIMATIONS
+TracePilotFPAnimations = 0
 TraceArtilleryMask = 0
 TraceSunFlash = 0
 TraceDX11ColorSpace = 0
@@ -156,6 +188,7 @@ TraceJumpSniping = 0
 TraceSatelliteVisibility = 0
 ProfileOgreAnimation = 0
 TerrainRenderProbe = 0
+WalkerCockpitTrace = 0
 TerrainRenderProbeMaxClusters = 1
 TerrainRenderProbeCluster = -1
 TerrainRenderProbeDumpJson = 0
@@ -195,6 +228,19 @@ ReauthOnNicknameChange = 0
 LobbyReadouts = 1
 LobbyBzrnetIntegration = 0
 
+; Restrict the multiplayer starting-vehicle list to the stock balanced
+; factions. Local only; it never adds craft the map withheld.
+StockFactionsOnly = 0
+StockFactionSet = as
+
+[Gameplay]
+AllowNeutralAttackOrders = 0
+
+[Career]
+; Kills, deaths and missions played, recorded to career_stats.cfg in single
+; player and multiplayer. Local file only; no mission script required.
+StatsTracking = 1
+
 [SinglePlayer]
 ; This section is hard-disabled by OpenShim in network games.
 WeaponConvergence = 0
@@ -204,7 +250,14 @@ SmartScavengerPathing = 0
 TurretAimPitch = 0
 TurretAimPitchMultiplier = 0.95
 JumpSnipeCrouch = 0
-AiWeaponMaskSelection = 0
+; weaponMask-aware AI weapon selection, off by default and forced off in
+; network games. When on, the AI fires every fitted hardpoint the craft's
+; weaponMask names, as one synchronized volley, instead of only the first.
+; Not a no-op for stock content: the default mask 11111 means every fitted
+; hardpoint, so a stock howitzer with four mortar hardpoints fires four
+; rounds per cycle and consumes four times the ammo.
+AiWeaponMaskArtillery = 0
+AiWeaponMaskMinelayer = 0
 AiOdfGameplayTuning = 0
 BomberAiRange = 0
 Turbo = 0
