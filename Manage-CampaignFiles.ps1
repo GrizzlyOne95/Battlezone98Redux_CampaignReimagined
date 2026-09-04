@@ -341,8 +341,28 @@ function Is-ExcludedSourceRelativePath($relativePath) {
     return $false
 }
 
+# Every shipping binary is refreshed from its sibling repository's build output,
+# so the bundled copy under Bin\ is always the authoritative one. A runtime copy
+# must never sync back over it, and a deploy must always push it out.
+$SourceAuthoritativeFlatFileNames = @(
+    "winmm.dll",
+    "exu.dll",
+    "bzfile.dll",
+    "bzfile_replace_helper.exe"
+)
+
 function Is-SourceAuthoritativeFlatFile($fileName) {
-    return $fileName -and $fileName.Equals("winmm.dll", [System.StringComparison]::OrdinalIgnoreCase)
+    if (-not $fileName) {
+        return $false
+    }
+
+    foreach ($authoritativeName in $SourceAuthoritativeFlatFileNames) {
+        if ($fileName.Equals($authoritativeName, [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    return $false
 }
 
 function Get-Sha256Hex($path) {
@@ -406,15 +426,128 @@ function Get-DeployRelativePathsFromSourcePath($sourceFileFullName) {
     return @(Get-DeployRelativePathFromSourcePath $sourceFileFullName)
 }
 
+# A build output older than this is probably not the build being shipped. This
+# only warns: bzfile in particular can legitimately go months without a rebuild.
+$ShippingBinaryStaleWarningDays = 120
+
+function Resolve-SiblingRepoRoot($environmentVariableName, $defaultRelativePath) {
+    $configuredPath = [Environment]::GetEnvironmentVariable($environmentVariableName)
+    if ($configuredPath) {
+        return Resolve-PathIfRelative $configuredPath
+    }
+
+    return Join-Path ([Environment]::GetFolderPath("MyDocuments")) $defaultRelativePath
+}
+
+# The four binaries Campaign Reimagined ships, and the sibling build output each
+# one comes from. Bin\ is a cache of these outputs, never an independent source.
+function Get-ShippingBinaryPlan {
+    $definitions = @(
+        @{ Project = "OpenShim"; Variable = "BZR_OPENSHIM_REPO"; Default = "GIT\BZR-OpenShim"; BuildRelativePath = "bin\Release\winmm.dll" },
+        @{ Project = "EXU"; Variable = "BZR_EXU_REPO"; Default = "GIT\ExtraUtilities"; BuildRelativePath = "Release\exu.dll" },
+        @{ Project = "bzfile"; Variable = "BZR_BZFILE_REPO"; Default = "GIT\bzfile"; BuildRelativePath = "Release\bzfile.dll" },
+        @{ Project = "bzfile"; Variable = "BZR_BZFILE_REPO"; Default = "GIT\bzfile"; BuildRelativePath = "Release\bzfile_replace_helper.exe" }
+    )
+
+    return @($definitions | ForEach-Object {
+        $repoRoot = Resolve-SiblingRepoRoot $_.Variable $_.Default
+        $buildPath = Join-Path $repoRoot $_.BuildRelativePath
+        $fileName = [System.IO.Path]::GetFileName($buildPath)
+        $bundledPath = Join-Path $SourceDir (Join-Path "Bin" $fileName)
+
+        [pscustomobject]@{
+            Project = $_.Project
+            EnvironmentVariable = $_.Variable
+            RepoRoot = $repoRoot
+            FileName = $fileName
+            BuildPath = $buildPath
+            BundledPath = $bundledPath
+            SymbolBuildPath = [System.IO.Path]::ChangeExtension($buildPath, ".pdb")
+            SymbolBundledPath = [System.IO.Path]::ChangeExtension($bundledPath, ".pdb")
+        }
+    })
+}
+
+function Copy-BundledFileIfDifferent($sourcePath, $destinationPath, $description) {
+    $needsCopy = -not (Test-Path -LiteralPath $destinationPath)
+    if (-not $needsCopy) {
+        $needsCopy = (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash -ne
+            (Get-FileHash -LiteralPath $destinationPath -Algorithm SHA256).Hash
+    }
+    if (-not $needsCopy) {
+        return $false
+    }
+
+    [System.IO.Directory]::CreateDirectory((Split-Path $destinationPath -Parent)) | Out-Null
+    [System.IO.File]::Copy($sourcePath, $destinationPath, $true)
+    Write-Host "Refreshed bundled $description from $sourcePath" -ForegroundColor Yellow
+    return $true
+}
+
+function Sync-ShippingBinaries {
+    $plan = Get-ShippingBinaryPlan
+
+    # Fail before copying anything, so a half-refreshed Bin\ is never left behind.
+    foreach ($binary in $plan) {
+        if (-not (Test-Path -LiteralPath $binary.BuildPath)) {
+            throw ("Cannot refresh bundled '$($binary.FileName)' because the $($binary.Project) build " +
+                "output '$($binary.BuildPath)' does not exist. Build $($binary.Project), or point " +
+                "`$env:$($binary.EnvironmentVariable) at the repository that produces it.")
+        }
+    }
+
+    foreach ($binary in $plan) {
+        [void](Copy-BundledFileIfDifferent `
+            $binary.BuildPath $binary.BundledPath "$($binary.Project) $($binary.FileName)")
+
+        # Bin\*.pdb never reaches the Workshop payload, but a .pdb that does not
+        # describe the .dll beside it misleads every later crash symbolization.
+        if (Test-Path -LiteralPath $binary.SymbolBundledPath) {
+            if (-not (Test-Path -LiteralPath $binary.SymbolBuildPath)) {
+                throw ("Bundled symbols '$($binary.SymbolBundledPath)' cannot be matched to the current " +
+                    "$($binary.Project) build because '$($binary.SymbolBuildPath)' does not exist.")
+            }
+
+            [void](Copy-BundledFileIfDifferent `
+                $binary.SymbolBuildPath $binary.SymbolBundledPath `
+                "$($binary.Project) symbols for $($binary.FileName)")
+        }
+
+        $buildAgeDays = ([DateTime]::Now - (Get-Item -LiteralPath $binary.BuildPath).LastWriteTime).TotalDays
+        if ($buildAgeDays -gt $ShippingBinaryStaleWarningDays) {
+            Write-Warning ("$($binary.Project) build output '$($binary.BuildPath)' is " +
+                "$([int]$buildAgeDays) days old; confirm it is the build you intend to ship.")
+        }
+    }
+
+    return $plan
+}
+
+# Proves the staged payload carries the current build of every shipping binary,
+# so a stale ship is impossible rather than merely unlikely.
+function Assert-StagedShippingBinaries($contentFolder) {
+    foreach ($binary in (Get-ShippingBinaryPlan)) {
+        $stagedPath = Join-Path $contentFolder $binary.FileName
+        if (-not (Test-Path -LiteralPath $stagedPath)) {
+            throw "Workshop staging is missing shipping binary '$($binary.FileName)'."
+        }
+
+        $buildHash = Get-Sha256Hex $binary.BuildPath
+        $stagedHash = Get-Sha256Hex $stagedPath
+        if (-not $buildHash -or $buildHash -ne $stagedHash) {
+            throw ("Workshop staging would ship a stale '$($binary.FileName)': staged $stagedHash does " +
+                "not match the $($binary.Project) build output $buildHash at '$($binary.BuildPath)'.")
+        }
+
+        Write-Host "  $($binary.FileName): $stagedHash ($($binary.Project))" -ForegroundColor DarkGray
+    }
+}
+
 function Update-OpenShimManifest {
+    Sync-ShippingBinaries | Out-Null
+
     $shimPath = Join-Path $SourceDir "Bin\winmm.dll"
-    $openShimRepo = if ($env:BZR_OPENSHIM_REPO) {
-        Resolve-PathIfRelative $env:BZR_OPENSHIM_REPO
-    }
-    else {
-        Join-Path ([Environment]::GetFolderPath("MyDocuments")) "GIT\BZR-OpenShim"
-    }
-    $shimBuildPath = Join-Path $openShimRepo "bin\Release\winmm.dll"
+    $openShimRepo = Resolve-SiblingRepoRoot "BZR_OPENSHIM_REPO" "GIT\BZR-OpenShim"
     $playerConfigSourcePath = Join-Path $openShimRepo "openshim.ini"
     $networkSourcePath = Join-Path $openShimRepo "net.ini"
     $patchesSourcePath = Join-Path $openShimRepo "scripts\patches.json"
@@ -430,7 +563,6 @@ function Update-OpenShimManifest {
     $uiFileNames = @("uiline.png", "uiplate.png", "uibtn.png", "uibtnhv.png")
 
     $requiredPaths = @(
-        $shimBuildPath,
         $playerConfigSourcePath,
         $networkSourcePath,
         $patchesSourcePath,
@@ -441,18 +573,6 @@ function Update-OpenShimManifest {
         if (-not (Test-Path -LiteralPath $requiredPath)) {
             throw "Cannot generate OpenShim suite manifest because '$requiredPath' does not exist."
         }
-    }
-
-    $refreshShim = -not (Test-Path -LiteralPath $shimPath)
-    if (-not $refreshShim) {
-        $buildHash = (Get-FileHash -LiteralPath $shimBuildPath -Algorithm SHA256).Hash
-        $bundledHash = (Get-FileHash -LiteralPath $shimPath -Algorithm SHA256).Hash
-        $refreshShim = $buildHash -ne $bundledHash
-    }
-    if ($refreshShim) {
-        [System.IO.Directory]::CreateDirectory((Split-Path $shimPath -Parent)) | Out-Null
-        [System.IO.File]::Copy($shimBuildPath, $shimPath, $true)
-        Write-Host "Refreshed bundled OpenShim from $shimBuildPath" -ForegroundColor Yellow
     }
 
     [System.IO.Directory]::CreateDirectory($payloadDir) | Out-Null
@@ -1044,6 +1164,9 @@ function Build-WorkshopContent {
             throw "Workshop staging is missing required file '$relativePath'."
         }
     }
+
+    Write-Host "Verifying staged shipping binaries against their sibling builds..." -ForegroundColor Cyan
+    Assert-StagedShippingBinaries $contentFolder
 
     $stagedFiles = @(Get-ChildItem -LiteralPath $contentFolder -File -Recurse)
     $forbiddenFiles = @($stagedFiles | Where-Object {
