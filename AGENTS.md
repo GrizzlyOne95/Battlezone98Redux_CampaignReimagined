@@ -11,6 +11,7 @@ This is the authoritative Campaign Reimagined source tree for campaign content, 
 - Steam/Workshop is never the development deploy target. Never copy source directly into Steam's Workshop cache or use it as a GOG fallback; final Steam evidence is valid only after upload/download.
 - Use `Manage-CampaignFiles.ps1` for deploy/sync, Workshop staging, and publishing. `Local\Workshop` is generated staging, not a runtime. `BZR_CAMPAIGN_RUNTIME_DIR` may override the GOG runtime intentionally but must not point at a Steam Workshop cache.
 - Preserve runtime-only files intentionally excluded by the manager; installed/deployed copies are not source and must not be committed.
+- `Bin\` is a cache of sibling build outputs, not an independent source. Every deploy and Workshop staging refreshes all four shipping binaries (`winmm.dll`, `exu.dll`, `bzfile.dll`, `bzfile_replace_helper.exe`) and their `.pdb` pairs from the repositories that build them, then fails the staging if a staged binary does not hash-match its build output. Override the source repositories with `BZR_OPENSHIM_REPO`, `BZR_EXU_REPO`, and `BZR_BZFILE_REPO`; they default to `%USERPROFILE%\Documents\GIT\{BZR-OpenShim,ExtraUtilities,bzfile}`.
 
 ## BZR Bundle
 Local sibling/reference checkouts normally live under `%USERPROFILE%\Documents\GIT`; verify `origin` before editing because local folder names may be historical. The CR Git checkout there is useful for cross-reference, but the canonical edit/promotion paths above remain authoritative.
