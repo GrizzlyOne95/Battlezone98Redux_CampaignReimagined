@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-03
+
+### OpenShim 1.0.0.14
+
+- Fixed Enhanced renderer resources being reported as unavailable when they
+  were supplied by the active Campaign Reimagined Steam Workshop mod rather
+  than copied beside the game executable. OpenShim now validates the same
+  addon, mod, packaged-mod, and Workshop content roots that Redux loads.
+
 ## 2026-09-02
 
 ### OpenShim 1.0.0.13
