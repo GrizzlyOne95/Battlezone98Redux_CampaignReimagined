@@ -6,6 +6,10 @@ The project aims to preserve the identity and progression of the original campai
 
 This project is not affiliated with or supported by Rebellion.
 
+Windows/GOG, Windows/Steam, Linux/Steam via Proton, and Linux/GOG through a
+compatible Wine/Proton prefix are maintained together. See the shared
+[`BZR platform and distribution compatibility policy`](Docs/BZR_PLATFORM_COMPATIBILITY.md).
+
 ## Current scope
 
 - The main rewrite and testing focus is currently `misn02b`, `misn03`, and `misn04`.
