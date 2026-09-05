@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-09-05 (second update)
+
+### OpenShim 1.0.0.16
+
+**Fixes a crash that could end your game mid-match.** Typing `/nickname` (or
+its `/name` alias) during a multiplayer match could terminate Battlezone
+outright. The lobby screen and its widgets are destroyed when a match starts,
+but the display refresh that runs after every accepted rename was still
+handing one of those destroyed widgets to the engine. It only checked that it
+had a pointer, not that the pointer still pointed at anything.
+
+This is worth spelling out because the obvious workaround did not work: the
+refresh ran outside the live-nickname setting, so turning that setting off did
+not protect you. If you have had an unexplained multiplayer crash shortly after
+someone changed their name, this is a likely cause.
+
+**Renaming now tells you the truth.** Changing your multiplayer name mid-session
+used to report "applied live". It was not applied live -- no other player ever
+saw the new name. The name is read only when a connection is authorised, so
+changing it afterwards did nothing until you reconnected. It now says it has
+been saved for the next connection, which is what actually happened.
+
+**Optional, off by default: renaming without restarting.** Setting `[Network]
+ReauthOnNicknameChange = 1` lets a rename made in a lounge or lobby re-authorise
+your existing connection, so the new name appears to other players without
+restarting the game. It is experimental and deliberately off. It does nothing
+during a match, and it never reconnects you on its own. Leave it off unless you
+are helping test it.
+
 ## 2026-09-05
 
 ### OpenShim 1.0.0.15
