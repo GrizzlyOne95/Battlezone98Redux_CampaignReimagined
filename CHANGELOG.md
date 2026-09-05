@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-30 (experimental, paired visual validation pending)
+
+### DX11 Enhanced fog and lunar terrain lighting
+
+- Fixed mission fog colours being encoded twice by the Enhanced linear-light
+  path. Mars' authored rust fog now remains in the authored colour family rather
+  than drifting toward pale cream/tan.
+- Reduced the fixed neutral diffuse-IBL fill on long-range/airless terrain using
+  the authored fog transition as continuous atmosphere support. This affects
+  terrain diffuse environment light only; objects, specular response, direct
+  lights, emissives, Default, and Retro are unchanged.
+- All 208 DX11 SM4 shader compilations and GOG Mars/Moon runtime probes pass. A
+  locked-camera human comparison remains required before release.
+
 ## 2026-08-20 (experimental, visual validation pending)
 
 ### DX11 Enhanced dynamic-light audit

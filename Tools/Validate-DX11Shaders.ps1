@@ -50,8 +50,9 @@ function Add-SourceFailure {
     $script:sourceFailures += $Message
 }
 
-# Identifiers that must never be fed to srgb_to_linear(). These are data or
-# hybrid-data sources, not artist-authored display colour.
+# Identifiers that must never be fed directly to srgb_to_linear(). These are
+# data/hybrid sources or raw engine constants. Fog is first copied into the
+# explicitly classified authoredFog colour target below.
 $forbiddenDecodeTokens = @(
     'normalMap', 'normalTex', 'normalSam',
     'specularMap', 'specularTex', 'specularSam', 'specularTint', 'surfaceF0',
@@ -68,7 +69,7 @@ $forbiddenDecodeTokens = @(
 #
 # Universal targets exist in every Stage A shader and are required in all of
 # them.
-$universalDecodeTargets = @('diffuseTex.rgb', 'emissiveTex')
+$universalDecodeTargets = @('diffuseTex.rgb', 'emissiveTex', 'authoredFog')
 
 # Family-scoped targets exist in exactly one shader family. Each is required in
 # its owning shader and rejected in every other Stage A shader. The allow-list
@@ -222,6 +223,26 @@ foreach ($shader in $stageAShaders) {
 
     if ($source -notmatch '(?m)^\s*#define\s+CR_LINEAR_LIGHT_ACTIVE\s+0\s*$') {
         Add-SourceFailure "$name does not define CR_LINEAR_LIGHT_ACTIVE to 0 for every non-Enhanced permutation."
+    }
+
+    # -- Environment-sensitive terrain diffuse IBL --------------------------
+    # This correction belongs only to terrain diffuse irradiance. Copying it to
+    # the base shader would alter objects/buildings, while applying it to the
+    # shared IBL intensity would also alter specular response.
+    if ($name -eq 'CR_terrain-sm4.hlsl') {
+        if ($source -notmatch 'CR_TERRAIN_IBL_REFERENCE_FOG_RANGE\s*=\s*160\.0\s*;' -or
+            $source -notmatch 'CR_TERRAIN_IBL_AIRLESS_FLOOR\s*=\s*0\.15\s*;') {
+            Add-SourceFailure "$name is missing the qualified terrain diffuse-IBL atmosphere calibration (160.0 reference range / 0.15 airless floor)."
+        }
+        if ($source -notmatch 'atmosphereSupport\s*=\s*saturate\(abs\(fogParams\.w\)\s*\*\s*CR_TERRAIN_IBL_REFERENCE_FOG_RANGE\)\s*\*\s*validFogRange\s*;') {
+            Add-SourceFailure "$name no longer derives terrain diffuse-IBL support continuously from the authored fog inverse range."
+        }
+        if ($source -notmatch 'irradiance\s*\*\s*diffuseEnergy\s*\*\s*CR_IBL_DIFFUSE_INTENSITY\s*\*\s*terrainDiffuseIblStrength') {
+            Add-SourceFailure "$name no longer applies atmosphere support specifically to terrain diffuse irradiance."
+        }
+    }
+    elseif ($source -match 'terrain_ibl_diffuse_strength|CR_TERRAIN_IBL_') {
+        Add-SourceFailure "$name contains terrain-only diffuse-IBL atmosphere scaling. Base/object IBL must remain unchanged."
     }
 
     # -- The transfer functions are the real piecewise curves -----------------
@@ -1218,16 +1239,17 @@ foreach ($case in $sweepCases) {
 
     $shouldActivate = ($case.LinearLight -eq 1) -and $isEnhanced -and (-not $isVertexLit) -and (-not $isRetro)
 
-    # 1 definition + 1 call for the encode; 1 definition + diffuse (+ emissive)
-    # for the decode. Terrain adds one more: the per-vertex COLOR0 tint, which
-    # multiplies the decoded albedo and is therefore authored display colour.
-    # The base shader has no vertex COLOR input, so it never gains this call.
+    # 1 definition + 1 call for the encode; 1 definition + diffuse + authored
+    # fog (+ emissive) for the decode. Terrain adds one more: the per-vertex
+    # COLOR0 tint, which multiplies the decoded albedo and is therefore authored
+    # display colour. The base shader has no vertex COLOR input, so it never
+    # gains this call.
     $isTerrainSource = (Split-Path -Leaf $case.File) -eq 'CR_terrain-sm4.hlsl'
 
     $expectedEncode = if ($shouldActivate) { 2 } else { 0 }
     $expectedDecode = 0
     if ($shouldActivate) {
-        $expectedDecode = if ($hasEmissive) { 3 } else { 2 }
+        $expectedDecode = if ($hasEmissive) { 4 } else { 3 }
         if ($isTerrainSource) { $expectedDecode += 1 }
     }
 

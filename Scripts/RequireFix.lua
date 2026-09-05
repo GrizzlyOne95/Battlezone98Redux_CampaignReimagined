@@ -265,6 +265,10 @@ do
             ids[#ids + 1] = tostring(workshopIDs)
         end
 
+        if #ids == 0 then
+            ids = { "campaignReimagined", "3686673790" }
+        end
+
         for _, id in ipairs(ids) do
             AddSearchRoot(gameDirectory and (gameDirectory .. "\\addon\\" .. id) or nil)
             AddSearchRoot(gameDirectory and (gameDirectory .. "\\mods\\" .. id) or nil)
