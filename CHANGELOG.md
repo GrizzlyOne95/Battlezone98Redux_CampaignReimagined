@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-09-05 (third update)
+
+### OpenShim 1.0.0.17
+
+**Several settings were quietly doing nothing.** On a default install, two
+internal timers that most of OpenShim's per-frame and per-tick work hangs off
+were switched off along with an unrelated chunk-rendering option. The headlight
+controls were the most visible casualty: turning player or AI headlights on,
+picking a colour, or choosing a beam shape had no effect at all, because the
+code that applies them never ran. The radar layout fix, the multiplayer flag
+fallback, the satellite fog-of-war sync and the periodic multiplayer safety
+check were in the same boat. All of them work now. If you tried the headlight
+settings before and concluded they were broken, they were -- try them again.
+
+**New, off by default: a flashlight on your pilot.** When you are on foot your
+pilot can now carry a spotlight that points where you look. Battlezone only
+ever gave lights to vehicles, so this is a new one, built the same way the game
+builds a vehicle headlight.
+
+Turn it on with `[SinglePlayer] PilotFlashlight = 1`, or from the OpenShim
+Settings page, which also has colour and beam-shape rows. The ini additionally
+exposes `PilotFlashlightOffset`, `PilotFlashlightPitch` and
+`PilotFlashlightBone` if you want to move the light off your eye line -- for
+example to sit it low and to the right like a torch held in one hand.
+
+It is single-player only and stands down for the duration of a network game.
+
 ## 2026-09-05 (second update)
 
 ### OpenShim 1.0.0.16
