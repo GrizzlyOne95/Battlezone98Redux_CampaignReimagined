@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-09-05
+
+### OpenShim 1.0.0.15
+
+No change to how the game plays. This release adds an opt-in diagnostic and
+refreshes the public roadmap; if you are not chasing a specific multiplayer
+bug, there is nothing here you need to turn on.
+
+**Multiplayer player-kill research trace.** Redux records a multiplayer death
+against a *team* rather than against the object that fired, so killing another
+player and killing that player's AI wingman look identical to the scoreboard.
+A new `[Diagnostics] TracePlayerKills` setting writes one compact record per
+authoritative death with the candidate ownership fields for both victim and
+killer, plus how confidently the death can be tied back to the last damage
+event. It is off by default and none of its hooks are installed unless it is
+switched on. It changes no scoring and no career statistics, and what it
+prints is a hypothesis being tested, not a verdict -- an object is never
+called player-controlled merely because its team has a network player, since
+wingmen share their owner's team.
+
+**Roadmap corrections.** The Splinter multiplayer payload-duplication entry
+carried a root cause that turns out to be contradicted: the deployed producer
+clears its payload's send flag immediately after building it, and the send
+path only handles a nonzero flag, so that payload is never transmitted and the
+other peer is not receiving a duplicate of it. The bug report stays open, but
+the explanation was wrong and the fix people kept proposing would not have
+helped. The two Daywrecker entries are now marked as blocked on a two-peer
+capture rather than on further static analysis.
+
+**Platform support is now stated on the Workshop page.** Windows and Linux are
+both supported, on Steam and on GOG; Linux and Steam Deck run the same 32-bit
+Windows files through Proton rather than a separate build.
+
 ## 2026-09-03
 
 ### OpenShim 1.0.0.14

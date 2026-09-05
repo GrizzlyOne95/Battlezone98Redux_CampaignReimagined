@@ -69,6 +69,19 @@ The patch also expands tools available to mission and mod creators, including:
 
 These systems primarily support rewritten campaign content and future community-created missions.
 
+[h2]Platform Support[/h2]
+Windows and Linux are both supported, on Steam and on GOG.
+
+On Linux, including Steam Deck, the patch runs through Proton or a compatible Wine prefix. There is no separate Linux build and there does not need to be: Proton loads exactly the same 32-bit Windows files that Windows players get, so both platforms run identical code and receive updates at the same time.
+
+[list]
+[*] [b]Windows / Steam[/b] and [b]Windows / GOG[/b] - native
+[*] [b]Linux / Steam[/b] - the same files under Proton (Steam Deck included)
+[*] [b]Linux / GOG[/b] - the same files in a compatible Wine or Proton prefix
+[/list]
+
+Operating system and store are treated as independent: a fix is not considered done until it holds on both stores and under Proton. If something works on one and not another, that is a bug worth reporting, not expected behavior.
+
 [h2]Installation[/h2]
 Installation is mostly automatic. I tried to make it as painless as possible. 
 
@@ -92,5 +105,7 @@ After removing that file, the game will return to its normal, unpatched startup 
 
 [h2]Reporting Issues[/h2]
 Please avoid reports such as 'it does not work.' Detailed reproduction steps make it much more likely that a problem can be identified and fixed.
+
+If you are testing regularly and want to help more directly, the project has an opt-in session log uploader that bundles the logs and any crash dumps after each session so they do not have to be collected by hand. It is off unless you deliberately set it up, it is not part of this Workshop item, and it is aimed at the test crew rather than at general players - ask on the project's GitHub or Discord if you want to be included.
 
 [b]Expect unfinished behavior, test carefully, and report anything unusual.[/b]
