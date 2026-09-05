@@ -106,6 +106,15 @@ After removing that file, the game will return to its normal, unpatched startup 
 [h2]Reporting Issues[/h2]
 Please avoid reports such as 'it does not work.' Detailed reproduction steps make it much more likely that a problem can be identified and fixed.
 
-If you are testing regularly and want to help more directly, the project has an opt-in session log uploader that bundles the logs and any crash dumps after each session so they do not have to be collected by hand. It is off unless you deliberately set it up, it is not part of this Workshop item, and it is aimed at the test crew rather than at general players - ask on the project's GitHub or Discord if you want to be included.
+[h2]Opt-In Session Log Upload (Testers)[/h2]
+If you are testing regularly and want to help more directly, there is an opt-in uploader that bundles the logs and any crash dumps after each session so you do not have to collect them by hand. It runs outside the game process, so it still works after a crash - which is exactly when the logs matter most.
+
+It now ships inside the mod, so there is nothing extra to download. Look in [i]openshim\support\[/i] in the mod folder and read the [b]README.txt[/b] there.
+
+[b]Subscribing does not switch anything on.[/b] Two separate things both have to be true before a single byte is sent: you have saved a webhook URL on your own machine, and you have added the wrapper to your Steam launch options. No webhook ships with the mod, and the game starts the wrapper rather than the wrapper starting itself - so empty launch options means nothing ever uploads. Undo either one and it stops.
+
+When it is on it sends the OpenShim and Battlezone logs, any crash minidumps, [i]multi.ini[/i], and a short header containing your hostname and in-game name. If you would rather not share those, do not set it up - an ordinary written bug report is still genuinely useful.
+
+The webhook is pinned in the project's private Discord channel; ask there if you want to be included.
 
 [b]Expect unfinished behavior, test carefully, and report anything unusual.[/b]

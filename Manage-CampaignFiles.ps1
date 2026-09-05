@@ -543,8 +543,65 @@ function Assert-StagedShippingBinaries($contentFolder) {
     }
 }
 
+# The opt-in session log uploader. Campaign Reimagined ships a copy so a
+# Workshop subscriber on the test crew does not have to fetch it from GitHub
+# separately, but openshim\support\ is a cache of the OpenShim repository's
+# upload\ directory, never an independent source -- same rule as Bin\.
+#
+# Shipping these files activates nothing. The wrapper only ever runs if it is
+# in the Steam launch options, and it only ever uploads if a webhook has been
+# configured locally. Neither is done by installing the mod, and no webhook is
+# in this repository or in the payload.
+function Sync-SupportWrapper {
+    $openShimRepo = Resolve-SiblingRepoRoot "BZR_OPENSHIM_REPO" "GIT\BZR-OpenShim"
+    $sourceDirUpload = Join-Path $openShimRepo "upload"
+    $destDir = Join-Path $SourceDir "openshim\support"
+    $wrapperFiles = @("openshim_wrap.ps1", "openshim_wrap.bat", "openshim_wrap.sh")
+
+    # Fail before copying anything, so a half-refreshed support folder is never
+    # left behind for the payload to pick up.
+    foreach ($name in $wrapperFiles) {
+        $src = Join-Path $sourceDirUpload $name
+        if (-not (Test-Path -LiteralPath $src)) {
+            throw ("Cannot refresh the bundled support wrapper because '$src' does not exist. " +
+                "Point `$env:BZR_OPENSHIM_REPO at the OpenShim repository that provides upload\.")
+        }
+    }
+
+    foreach ($name in $wrapperFiles) {
+        [void](Copy-BundledFileIfDifferent `
+            (Join-Path $sourceDirUpload $name) (Join-Path $destDir $name) "OpenShim support wrapper $name")
+    }
+
+    # openshim\ is generated and untracked, so the reader-facing README cannot
+    # live there. Its source of truth is Docs\, which is tracked but excluded
+    # from the payload; this copy is what subscribers actually get.
+    $readmeSource = Join-Path $SourceDir "Docs\openshim_support_README.txt"
+    if (-not (Test-Path -LiteralPath $readmeSource)) {
+        throw "Cannot stage the support wrapper without its README: '$readmeSource' is missing."
+    }
+    [void](Copy-BundledFileIfDifferent $readmeSource (Join-Path $destDir "README.txt") "OpenShim support README")
+
+    # A webhook must never reach the payload. upload.conf is where the wrapper
+    # stores one locally, so refuse to ship anything by that name.
+    $leaked = Get-ChildItem -Path $destDir -Recurse -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -eq "upload.conf" }
+    if ($leaked) {
+        throw "Refusing to stage '$($leaked[0].FullName)': a saved webhook must never ship."
+    }
+
+    # Match a real webhook (numeric id + token), not the bare /api/webhooks/
+    # prefix: the wrapper legitimately contains that prefix in its own URL
+    # validation regex and in a help string.
+    foreach ($f in (Get-ChildItem -Path $destDir -Recurse -File -ErrorAction SilentlyContinue)) {
+        if (Select-String -LiteralPath $f.FullName -Pattern 'discord(app)?\.com/api/webhooks/[0-9]{5,}/[A-Za-z0-9_-]{20,}' -Quiet) {
+            throw "Refusing to stage '$($f.FullName)': it contains a Discord webhook URL."
+        }
+    }
+}
 function Update-OpenShimManifest {
     Sync-ShippingBinaries | Out-Null
+    Sync-SupportWrapper
 
     $shimPath = Join-Path $SourceDir "Bin\winmm.dll"
     $openShimRepo = Resolve-SiblingRepoRoot "BZR_OPENSHIM_REPO" "GIT\BZR-OpenShim"
@@ -1145,6 +1202,10 @@ function Build-WorkshopContent {
         "openshim_patches.json.payload",
         "openshim.ini.payload",
         "openshim\renderer\enhanced\resources.version",
+        "openshim\support\openshim_wrap.ps1",
+        "openshim\support\openshim_wrap.bat",
+        "openshim\support\openshim_wrap.sh",
+        "openshim\support\README.txt",
         "BZ_ASSETS_CORE\common\ui\CustomWidgets\uiline.png",
         "BZ_ASSETS_CORE\common\ui\CustomWidgets\uiplate.png",
         "BZ_ASSETS_CORE\common\ui\CustomWidgets\uibtn.png",
