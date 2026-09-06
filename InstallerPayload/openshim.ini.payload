@@ -3,26 +3,37 @@
 ; ============================================================================
 ; Conservative player defaults. Every first-class openshim.ini setting is
 ; present here so users can enable supported OpenShim behavior without starting
-; from the developer reference. Confirmed Redux engine fixes under [Fixes]
-; default ON; optional features, UI replacements, autosave, diagnostics, and
-; single-player behavior changes default OFF. Stock-preserving controls use
-; their stock value even where that value is numerically 1
-; (AllowStartupAutoLoad and SunFlashbang). See openshim.ini.example for
-; accepted values, aliases, ranges, restart requirements, implementation notes,
-; and raw compatibility variables.
+; from the developer reference.
 ;
-; Policy used here:
-;   - confirmed Redux engine defects under [Fixes] are enabled by default and
-;     individually switchable for strict parity or regression isolation;
-;   - enhancements, UI replacements, autosave, diagnostics, and single-player
-;     behavior changes are disabled until explicitly enabled;
+; Shipping-default policy:
+;   - crash prevention, stability fixes, and qualified Redux bug fixes default
+;     ON unless they can substantially alter multiplayer behavior or create a
+;     mixed-client difference against players who are not running OpenShim;
+;   - qualified netcode fixes default ON;
+;   - the native keybind UI and OpenShim Settings UI default ON because they are
+;     the supported way to reach all other settings;
+;   - every other enhancement, presentation change, gameplay change, autosave,
+;     diagnostic, experimental feature, and convenience feature defaults OFF;
+;   - stock-preserving controls keep their stock value even when that value is
+;     numerically 1 (for example AllowStartupAutoLoad and SunFlashbang).
+;
+; See openshim.ini.example for accepted values, aliases, ranges, restart
+; requirements, implementation notes, and raw compatibility variables.
+;
+; Policy details:
+;   - [Fixes] is not blanket-enabled: each default-ON fix must be individually
+;     safe under the rule above. Fixes with unresolved or material mixed-client
+;     multiplayer impact remain OFF until they are gated or qualified;
+;   - [SinglePlayer] normally defaults OFF, but a proven Redux regression may
+;     default ON when OpenShim hard-disables it for network games;
 ;   - renderer selection remains automatic and the visual profile remains the
-;     stock-compatible Redux profile;
-;   - GovernorTuning remains OpenShim to preserve the measured networking
-;     behavior OpenShim already shipped; set it to Stock for strict mixed-client
-;     parity, while net.ini remains the granular authority;
-;   - values that only tune a disabled master switch remain present so users
-;     can enable that feature without reconstructing its configuration.
+;     stock-compatible Redux profile. DX11 Enhanced subfeatures remain OFF until
+;     explicitly enabled with that profile;
+;   - GovernorTuning remains OpenShim as part of the qualified netcode baseline;
+;     set it to Stock for strict stock governor/auto-kick behavior, while net.ini
+;     remains the granular authority;
+;   - values that only tune a disabled master switch remain present so users can
+;     enable that feature without reconstructing its configuration.
 ;
 ; Preset revision:
 ;   This player preset was first introduced in commit e81d8b0a (2026-08-27) but
@@ -32,13 +43,12 @@
 ;   assets, CampaignReimagined InstallerPayload/manifest) contains no
 ;   openshim.ini payload prior to this branch, so no public preset with a bad
 ;   default has been proven to have shipped. Nonetheless the migration
-;   framework below treats e81d8b0a's content as revision 1 (bad) and this
-;   corrected file as revision 2, so the mechanism is qualified before any
-;   future problematic preset can reach users. SHA-256 of the R1 payload is
-;   documented in include/openshim_preset_migration.h for tooling/tests but
-;   not treated as a publicly-shipped hash.
+;   framework below treats e81d8b0a's content as revision 1 (bad) and the
+;   corrected preset lineage as revision 2/3 so the mechanism is qualified
+;   before any future problematic preset can reach users. This policy adjustment
+;   does not forcibly rewrite existing customized user INIs.
 ; ============================================================================
-; OpenShimPresetRevision = 2
+; OpenShimPresetRevision = 3
 
 [General]
 SoundChannels = 0
@@ -48,33 +58,49 @@ CustomBindsUi = 1
 ; by hand; the settings it exposes remain OFF until turned on there.
 SettingsUi = 1
 ChunkMeshes = 0
+; Multiplayer map-list refresh/jump and selection-preservation bug fixes.
 MapRefreshFixes = 1
 MusicGlobalFocus = 1
 ; Set to 1 to bypass the legacy smoothed/accelerated mouse-message path and
 ; use Redux's native raw-input path. Restart the game after changing it.
 RawMouseInput = 0
 OgreMaterialCollisionGuard = 1
-EditorOverheadPlacementOrder = 0
+; Restores the BZ 1.5 overhead-view / control-panel display order, which is
+; what makes editor object placement work in the running Shift+F10 overhead
+; view. Inert unless the game was launched with /edit. Restart required.
+EditorOverheadPlacementOrder = 1
+; 0 keeps the stock behavior: hopping out replays one stale under-attack growl
+; for the craft you just left. Set to 1 to suppress that single alert.
 SuppressHopOutAttackAlert = 0
 
 [Fixes]
-; Confirmed Redux engine defects OpenShim corrects. Unlike everything else in
-; this file these default to ON, because they are bug fixes rather than
-; enhancements -- leave them on for normal play.
+; Confirmed Redux engine defects. Default ON only when the fix is safe under the
+; shipping policy above. Simulation-affecting fixes that are explicitly gated
+; out of network games may ship ON; fixes that can materially change mixed-client
+; multiplayer behavior remain OFF until gated or qualified.
 ;
-; They are listed here because they apply in single-player and multiplayer
-; alike and several of them touch the simulation, so in a lobby mixing OpenShim
-; and stock clients a host may want to switch one off for parity, and anyone
-; bisecting a suspected regression needs to be able to isolate one fix.
-; Set a key to 0 to restore stock Redux behavior for that defect.
+; They remain individually switchable so a suspected regression can be bisected
+; without removing OpenShim.
+;
+; Mixed/custom producer registration changes AI production and is not currently
+; network-gated, so it remains opt-in despite being a real engine defect.
+AiMultiProducerMakers = 0
+; The following five touch simulation but stand down automatically in network
+; games, preserving stock/OpenShim mixed-client behavior.
 ApcAlliedTargetDeploy = 1
 SplinterUndead = 1
 HowitzerUndeployedRetaliation = 1
 TugCargoPostLoad = 1
 ConstructorRemoteBuild = 1
+; Defensive crash/stability guard for invalid/non-positive magnet ranges.
 MagnetZeroRangeGuard = 1
-ProducerScriptPredicates = 1
+; Script-visible producer predicates can change mission branching in MP.
+ProducerScriptPredicates = 0
+; Multiplayer vehicle-list mod scoping is an asset-resolution bug fix. It does
+; not alter simulation/gameplay and therefore ships enabled.
 VehicleListModScoping = 1
+; Command-line parser repair; no gameplay or mixed-client divergence.
+CliMultiParameterOptions = 1
 
 [Startup]
 D3DStartupHooks = 0
@@ -120,14 +146,23 @@ TerrainHdEnabled = 0
 TerrainHdManifest = terrain_hd_tiles.json
 
 [DX11Enhanced]
+; Enhanced presentation remains opt-in. These are inert under RenderProfile =
+; Redux, but they still default OFF so choosing Enhanced is a deliberate feature
+; selection rather than a pre-armed bundle.
 FXAA = 0
 EnhancedLightSelectionV2 = 0
 
 [Display]
 UnderAttackAlert = Normal
 TargetPolicy = Default
+; OpenShim multiplayer vehicle flags are a feature, not a fix.
+MultiplayerFlags = 0
 MultiplayerFlagShowOwnCraft = 0
 ScrapPilotHud = Stock
+; Cockpit radar size, as a multiple of stock (0.25 - 4.0). The projection is
+; re-anchored to the backdrop at any scale so the radar mesh and its underlay
+; stay concentric. Local HUD geometry, so this applies in network games too.
+RadarSizeScale = 1.0
 JetFlames = 0
 ; Keep the sun, flare sprites, lighting, and shadows while suppressing only the
 ; pathological full-screen white ScreenFlash contribution.
@@ -147,6 +182,14 @@ RespectExternalAutoSave = 0
 ; Diagnostics and forensic capture remain dormant for normal gameplay.
 EnhancedLightSelectionTrace = 0
 TraceHookHits = 0
+
+; Identify the first-person pilot Entity by walking the Ogre scene graph every
+; 1.5 s, and log its AnimationState traffic. Capture tool for pilot animation
+; investigation; see reverse_engineering/PILOT_FP_ANIMATION_TRACE.md.
+; Accepted: boolean. Default: OFF. Development-only, noisy, and it polls the
+; scene graph on a worker thread -- leave it off for normal play.
+; Legacy env alias: OPENSHIM_TRACE_PILOT_FP_ANIMATIONS
+TracePilotFPAnimations = 0
 TraceArtilleryMask = 0
 TraceSunFlash = 0
 TraceDX11ColorSpace = 0
@@ -156,6 +199,7 @@ TraceJumpSniping = 0
 TraceSatelliteVisibility = 0
 ProfileOgreAnimation = 0
 TerrainRenderProbe = 0
+WalkerCockpitTrace = 0
 TerrainRenderProbeMaxClusters = 1
 TerrainRenderProbeCluster = -1
 TerrainRenderProbeDumpJson = 0
@@ -168,9 +212,10 @@ RelayLoggingQueueRecords = 4096
 UiPerformanceLogging = 0
 UiPerformanceVerbose = 0
 TraceDamageReveal = 0
+TracePlayerKills = 0
 
 [Network]
-; OpenShim's socket layer as a whole: winsock hooks, the bandwidth governor,
+; OpenShim's qualified socket layer: winsock hooks, bandwidth governor,
 ; auto-kick relaxation, packet reorder/duplicate mitigation and DSCP marking.
 ; Set to 0 for stock networking -- nothing below in this file's socket layer
 ; installs, and net.ini is not consulted for it. This is the switch to try
@@ -178,33 +223,68 @@ TraceDamageReveal = 0
 NetImprovements = 1
 
 ; Which tuning the bandwidth governor and host auto-kick run.
-;   OpenShim = OpenShim's measured tuning (this is, and has always been, the
-;              shipped behavior -- the key only makes it visible)
+;   OpenShim = OpenShim's measured tuning
 ;   Stock    = leave every governor and auto-kick value at the game's own
 ;
-; Use Stock for strict parity with players who are not running OpenShim: a
-; tuned client sends more than a stock peer on the same link, and a tuned host
-; almost never auto-kicks. net.ini still overrides this for granular tuning.
+; Use Stock for strict stock governor/auto-kick parity. net.ini still overrides
+; this for granular tuning.
 GovernorTuning = OpenShim
 RoutePreference = Stock
 UdpPort = 0
 ; Blank = use the Steam/GOG account name.
 Nickname =
-LiveNicknameKeys = 1
+; Experimental live lounge re-auth is not part of the default netcode baseline.
 ReauthOnNicknameChange = 0
-LobbyReadouts = 1
+; Lobby presentation/integration features remain opt-in.
+LobbyReadouts = 0
 LobbyBzrnetIntegration = 0
 
+; Restrict the multiplayer starting-vehicle list to the stock balanced
+; factions. Local only; it never adds craft the map withheld.
+StockFactionsOnly = 0
+StockFactionSet = as
+
+[Gameplay]
+AllowNeutralAttackOrders = 0
+
+[Career]
+; Career persistence is a feature rather than a crash/bug/netcode fix.
+StatsTracking = 0
+
 [SinglePlayer]
-; This section is hard-disabled by OpenShim in network games.
+; This section is hard-disabled by OpenShim in network games. Most behavior
+; changes remain opt-in; narrowly proven Redux regressions may ship ON because
+; the MP gate preserves mixed-client parity.
 WeaponConvergence = 0
 PlayerReticleConvergence = 0
 SmartReticleRange = 500
 SmartScavengerPathing = 0
 TurretAimPitch = 0
 TurretAimPitchMultiplier = 0.95
-JumpSnipeCrouch = 0
-AiWeaponMaskSelection = 0
+; Proven Redux regression; hard-disabled in network games.
+JumpSnipeCrouch = 1
+; Projectiles inherit the velocity of whatever fired them, and the cannon lead
+; solver subtracts the shooter's own velocity so a moving shooter still leads
+; correctly. Changes projectile physics for every shot in the world, so it is
+; an enhancement rather than a fix and ships OFF; hard-disabled in network
+; games. If the cannon owner chain fails its runtime validation on a given
+; build, the lead compensation stands itself down and only the spawn-velocity
+; half stays active.
+OrdnanceVelocityInheritance = 0
+; Satellite view limits, as multiples of the stock values (0.25 - 8.0).
+; ZoomOut raises only the maximum zoom, so the closest zoom stays stock.
+; Hard-disabled in network games: pulling further out than a stock peer would
+; show more of the map than that peer can see.
+SatelliteZoomOut = 1.0
+SatellitePanSpeed = 1.0
+; weaponMask-aware AI weapon selection, off by default and forced off in
+; network games. When on, the AI fires every fitted hardpoint the craft's
+; weaponMask names, as one synchronized volley, instead of only the first.
+; Not a no-op for stock content: the default mask 11111 means every fitted
+; hardpoint, so a stock howitzer with four mortar hardpoints fires four
+; rounds per cycle and consumes four times the ammo.
+AiWeaponMaskArtillery = 0
+AiWeaponMaskMinelayer = 0
 AiOdfGameplayTuning = 0
 BomberAiRange = 0
 Turbo = 0
@@ -213,8 +293,29 @@ Headlights = 0
 OtherHeadlights = 0
 HeadlightColor = Stock
 HeadlightBeam = Stock
+; Flashlight on the player's pilot while on foot. No stock pilot skeleton
+; carries an hlgt bone, so the engine never builds one; OpenShim creates the
+; same kind of spotlight on the pilot's own scene node and destroys it when
+; the player boards a craft or the mission ends. The beam follows the aim
+; because the pilot's node carries look yaw and pitch.
+PilotFlashlight = 0
+; Stock, White, Red, Green, Blue, Yellow, Cyan, Magenta, Orange, Purple,
+; Teal, Rainbow, or an r,g,b triple. Stock is the brightness the engine
+; writes for a craft headlight.
+PilotFlashlightColor = Stock
+; Stock, Focused (narrow) or Wide.
+PilotFlashlightBeam = Stock
+; Extra node-local offset in metres, x,y,z, added to the source bone.
+; Positive x is the pilot's right, positive y up, negative z forward.
+PilotFlashlightOffset = 0,0,0
+; Degrees above (+) or below (-) the aim line.
+PilotFlashlightPitch = 0
+; Case-insensitive bone-name suffix the light's offset is taken from.
+; 11POV is the stock pilots' eye bone (asp11POV / bsp11POV / ssp11POV).
+PilotFlashlightBone = 11POV
 AttackRevealPerceivedTeam = 0
-SatelliteVisibilityFix = 0
+; Proven satellite fog-of-war regression; hard-disabled in network games.
+SatelliteVisibilityFix = 1
 
 [Environment]
 ; Raw OPENSHIM_* / BZR_* compatibility variables may be supplied here when a
