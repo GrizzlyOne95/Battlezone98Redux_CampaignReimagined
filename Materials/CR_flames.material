@@ -1,0 +1,23 @@
+// Campaign Reimagined faction engine flames.
+//
+// Stock ships exactly three exhaust flame sprites -- rflame/gflame/bflame --
+// which covers NSDF, CRA and the global default but leaves CCA and Black Dog
+// sharing a colour. These two materials add the missing pair. They are
+// referenced by the "exhaust_o.*" and "exhaust_bd.*" rows appended to
+// spritea.st; the sprite table is what the engine's flame lookup searches, so
+// both files must ship together or the rows resolve to nothing.
+//
+// Parent is BZSprite/AdditiveFirstMip, matching stock rflame/gflame/bflame:
+// engine flames blend additively and force the top mip.
+
+// Burnt Orange Exhaust Flame (CCA)
+material oflame : BZSprite/AdditiveFirstMip
+{
+	set_texture_alias DiffuseMap cr_exhaust_cca.png
+}
+
+// Blood Red Exhaust Flame (Black Dog)
+material bdflame : BZSprite/AdditiveFirstMip
+{
+	set_texture_alias DiffuseMap cr_exhaust_blackdog.png
+}

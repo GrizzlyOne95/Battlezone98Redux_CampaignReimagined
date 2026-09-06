@@ -651,7 +651,7 @@ local function GetOpenShimManifest()
         network.source ~= "openshim_net.ini.payload" or network.destination ~= "net.ini" or
         patches.source ~= "openshim_patches.json.payload" or patches.destination ~= "scripts\\patches.json" or
         playerConfig.source ~= "openshim.ini.payload" or playerConfig.destination ~= "openshim.ini" or
-        playerConfig.overwrite ~= true or
+        type(playerConfig.overwrite) ~= "boolean" or
         winmm.sha256 ~= manifest.sha256 or winmm.version ~= manifest.version or
         winmm.architecture ~= "x86" then
         print("PersistentConfig: OpenShim manifest is malformed or unsupported.")
@@ -744,12 +744,24 @@ local function EnsureBundledOpenShimInstalled()
         workingDirectory .. "\\scripts\\patches.json",
         workingDirectory .. "\\openshim.ini",
     }
+    -- openshim.ini is the player's file. Only its ABSENCE means the suite is out
+    -- of date; a differing hash just means a setting was changed, and letting
+    -- that count here dragged the whole suite into a staged replacement every
+    -- launch -- which then overwrote the edit that triggered it.
+    local playerConfigIndex = 4
     local allCurrent = true
     for index, payload in ipairs(orderedPayloads) do
-        local destinationHash = BzFileExists(destinationPaths[index]) and
-            GetBzFileHash(destinationPaths[index]) or nil
-        if destinationHash ~= payload.sha256 then
-            allCurrent = false
+        local destinationExists = BzFileExists(destinationPaths[index])
+        if index == playerConfigIndex then
+            if not destinationExists then
+                allCurrent = false
+            end
+        else
+            local destinationHash = destinationExists and
+                GetBzFileHash(destinationPaths[index]) or nil
+            if destinationHash ~= payload.sha256 then
+                allCurrent = false
+            end
         end
     end
     if allCurrent then
@@ -774,35 +786,47 @@ local function EnsureBundledOpenShimInstalled()
         sourcePaths[2], orderedPayloads[2].sha256,
         sourcePaths[3], orderedPayloads[3].sha256)
     if ok and staged then
-        local configDestination = destinationPaths[4]
-        if BzFileExists(configDestination) then
-            local backupOk, backupCopied, backupError = pcall(
-                bzfile.CopyFile,
-                configDestination,
-                configDestination .. ".pre-workshop.bak",
-                true)
-            if not backupOk or not backupCopied then
-                print("PersistentConfig: Could not back up the existing OpenShim player INI: " ..
-                    tostring(backupOk and backupError or backupCopied))
-            end
-        end
+        local configDestination = destinationPaths[playerConfigIndex]
+        local configExists = BzFileExists(configDestination)
+        -- Install the shipped INI only when the player has none. Absent keys
+        -- already fall back to OpenShim's in-code defaults, so a new release
+        -- reaches an existing player without touching what they set. Honour an
+        -- explicit overwrite = true if a manifest ever asks for one.
+        local overwritePlayerConfig = orderedPayloads[playerConfigIndex].overwrite == true
+        local configAction = "left alone"
 
-        local copyOk, configCopied, configError = pcall(
-            bzfile.CopyFile,
-            sourcePaths[4],
-            configDestination,
-            true)
-        local installedConfigHash = copyOk and configCopied and GetBzFileHash(configDestination) or nil
-        if not copyOk or not configCopied or installedConfigHash ~= orderedPayloads[4].sha256 then
-            local configFailure = not copyOk and tostring(configCopied) or
-                tostring(configError or "installed hash mismatch")
-            print("PersistentConfig: Forced OpenShim player INI replacement failed: " .. configFailure)
-            ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
-            return
+        if (not configExists) or overwritePlayerConfig then
+            if configExists then
+                local backupOk, backupCopied, backupError = pcall(
+                    bzfile.CopyFile,
+                    configDestination,
+                    configDestination .. ".pre-workshop.bak",
+                    true)
+                if not backupOk or not backupCopied then
+                    print("PersistentConfig: Could not back up the existing OpenShim player INI: " ..
+                        tostring(backupOk and backupError or backupCopied))
+                end
+            end
+
+            local copyOk, configCopied, configError = pcall(
+                bzfile.CopyFile,
+                sourcePaths[playerConfigIndex],
+                configDestination,
+                true)
+            local installedConfigHash = copyOk and configCopied and GetBzFileHash(configDestination) or nil
+            if not copyOk or not configCopied or
+                installedConfigHash ~= orderedPayloads[playerConfigIndex].sha256 then
+                local configFailure = not copyOk and tostring(configCopied) or
+                    tostring(configError or "installed hash mismatch")
+                print("PersistentConfig: OpenShim player INI install failed: " .. configFailure)
+                ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
+                return
+            end
+            configAction = configExists and "overwritten" or "installed"
         end
 
         print("PersistentConfig: OpenShim suite " .. tostring(manifest.version) ..
-            " staged for verified replacement on exit; player openshim.ini was overwritten." ..
+            " staged for verified replacement on exit; player openshim.ini " .. configAction .. "." ..
             (helperLogPath and (" Helper log: " .. tostring(helperLogPath)) or ""))
         ShowOpenShimInstallMissionOutcome(stageState == "staged" and "staged" or "updated")
         return
