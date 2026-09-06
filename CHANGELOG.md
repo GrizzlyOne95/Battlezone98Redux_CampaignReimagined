@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-05
+
+### Linux/Proton stability and crash reporting
+
+- Updated OpenShim to 1.0.0.18. Costly Ogre vehicle/chunk research probes are
+  opt-in again, avoiding repeated caught exceptions during ordinary play.
+- Stopped multiplayer packet routing diagnostics from writing hundreds of
+  thousands of repetitive log lines during longer matches.
+- Crash reports now start fresh for each launch and clearly distinguish caught
+  first-chance exceptions from fatal crashes.
+
 ## 2026-08-30 (experimental, paired visual validation pending)
 
 ### DX11 Enhanced fog and lunar terrain lighting
