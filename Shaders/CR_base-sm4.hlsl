@@ -1130,11 +1130,11 @@ void base_fragment(
     emissiveTex = srgb_to_linear(emissiveTex);
 #endif
 #if defined(ENHANCED_MODE)
-    // Preserve the legacy full-bright map at High LOD. The material emissive
-    // colour may boost authored emission, but must never attenuate it below
-    // the Medium/Low/Lowest behavior (which adds the map at 1.0x).
+    // Runtime material variants use the pass emissive colour as an intensity
+    // control. Zero disables running lights on an empty craft; intermediate
+    // values drive the optional occupied-craft pulse.
     float materialEmissiveIntensity = max(materialEmissive.x, max(materialEmissive.y, materialEmissive.z));
-    float emissiveIntensity = max(1.0, materialEmissiveIntensity);
+    float emissiveIntensity = saturate(materialEmissiveIntensity);
     emissiveContribution = emissiveTex.xyz * emissiveIntensity;
 #else
     oColor.xyz += emissiveTex.xyz;

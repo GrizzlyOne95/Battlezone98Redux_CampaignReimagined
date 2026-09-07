@@ -22,7 +22,7 @@ void main()
 	float starSeed = fract(sin(dot(starCell, vec2(12.9898, 78.233))) * 43758.5453);
 	float twinkleWave = 0.5 + 0.5 * sin(twinkleTime * (0.9 + starSeed * 1.7) + starSeed * 6.2831853);
 	float twinkleStrength = clamp(max(max(twinkleControl.x, twinkleControl.y), twinkleControl.z), 0.0, 1.0);
-	float twinkle = mix(1.0, mix(0.72, 1.12, twinkleWave), twinkleStrength);
+	float twinkle = mix(1.0, mix(0.35, 1.35, twinkleWave), twinkleStrength);
 	oColor.rgb *= twinkle;
 
 	gl_FragData[0] = oColor;

@@ -1166,6 +1166,13 @@ aiCore.DefaultNativeConfig = aiCore.DefaultNativeConfig or {
             kitePreserveLos = true,
         },
         howitzer = { standoffFraction = 0.9 },
+        -- A deployed defense cannot retreat out of the generic close-range
+        -- standoff band. Giving it one makes the native attack task hold fire
+        -- while repeatedly trying to create distance, which presents as an
+        -- occasional single shot. Let both defense classes use their stock
+        -- continuous-fire behavior.
+        turret = { standoff = false },
+        turrettank = { standoff = false },
     },
 }
 
@@ -3314,9 +3321,6 @@ function aiCore.WeaponManager.new(teamNum)
     -- Mortar users
     self.mortarUsers = {}
     self.mortarActive = {}
-    self.mortarPeriod = 15.0
-    self.mortarDuration = 5.0
-    self.mortarRate = 50
     self.mortarWeapons = { "gmortar", "gmdmgun", "gsplint" }
 
     -- Mine layers (weapon-based, not vehicle minelayers)
@@ -3348,7 +3352,6 @@ function aiCore.WeaponManager.new(teamNum)
     -- Timers
     self.thumperTimer = 0.0
     self.fieldTimer = 0.0
-    self.mortarTimer = 0.0
     self.mineTimer = 0.0
 
     return self
@@ -3378,7 +3381,7 @@ function aiCore.WeaponManager:AddObject(h)
     for _, weapon in ipairs(self.mortarWeapons) do
         local mask = aiCore.GetWeaponMask(h, weapon)
         if mask > 0 then
-            table.insert(self.mortarUsers, { handle = h, mask = mask, timer = 0.0 })
+            table.insert(self.mortarUsers, { handle = h, mask = mask, usingMortar = false })
             if aiCore.Debug then print("Team " .. self.teamNum .. " added mortar user: " .. GetOdf(h)) end
             break
         end
@@ -3620,18 +3623,38 @@ function aiCore.WeaponManager:UpdateMortars(dt)
         local user = self.mortarUsers[i]
         if not IsValid(user.handle) then
             table.remove(self.mortarUsers, i)
-        else
-            user.timer = user.timer + dt
-
-            -- Mortar firing: fire for duration, wait for period
-            local cycleTime = user.timer % self.mortarPeriod
-            if cycleTime < self.mortarDuration then
-                if user.handle ~= GetPlayerHandle() and math.random(100) < self.mortarRate then
-                    FireWeaponMask(user.handle, user.mask)
-                end
-            else
-                -- Reset mask when outside firing window
+        elseif user.handle == GetPlayerHandle() then
+            -- The player picks their own weapon. If the AI had this craft
+            -- on the mortar when they boarded it, hand the ODF/default
+            -- selection back instead of leaving them stuck on the mortar
+            -- for the rest of the mission.
+            if user.usingMortar then
+                user.usingMortar = false
                 if self.teamObj then
+                    self.teamObj:ResetWeaponMask(user.handle)
+                end
+            end
+        else
+            -- Mortars are a contextual tool, not a timed/random default. Use
+            -- them against infantry and fixed targets at a safe distance;
+            -- mobile craft and close threats stay on the ODF/default weapon.
+            local target = GetCurrentWho(user.handle)
+            local useMortar = false
+            if IsValid(target) and IsAlive(target) and not IsAlly(user.handle, target) then
+                local cls = string.lower(utility.CleanString(GetClassLabel(target)))
+                local fixedTarget = IsBuilding(target)
+                    or string.find(cls, utility.ClassLabel.TURRET, 1, true) ~= nil
+                    or string.find(cls, "tower", 1, true) ~= nil
+                local infantryTarget = IsPerson(target)
+                useMortar = GetDistance(user.handle, target) >= 45.0
+                    and (fixedTarget or infantryTarget)
+            end
+
+            if useMortar ~= user.usingMortar then
+                user.usingMortar = useMortar
+                if useMortar then
+                    SetWeaponMask(user.handle, user.mask)
+                elseif self.teamObj then
                     self.teamObj:ResetWeaponMask(user.handle)
                 end
             end
@@ -6595,6 +6618,8 @@ function aiCore.Team:new(teamNum, faction)
                 retargetPeriod = 10.0,
             },
             howitzer = { standoffFraction = 0.9 },
+            turret = { standoff = false },
+            turrettank = { standoff = false },
         },
         -- Candidate scoring inside the native ChooseAttackTarget search. Focus
         -- fire is a score bonus rather than a forced ATTACK replacement.
@@ -10754,6 +10779,10 @@ function aiCore.Team:UpdateAPCs()
 end
 
 function aiCore.Team:UpdateWrecker()
+    -- Armory orders are producer automation too. Player teams normally keep
+    -- manageFactories disabled, so difficulty-derived wrecker settings must
+    -- not make their armory launch an autonomous pod at an enemy target.
+    if not self.Config.manageFactories then return end
     if not self.Config.enableWreckers then return end
 
     if not self.wreckerTimer then self.wreckerTimer = GetTime() + (self.Config.wreckerInterval or 600) end
@@ -11771,6 +11800,11 @@ end
 
 function aiCore.Team:UpdateUpgrades()
     -- Logic from aiSpecial: Upgrade turrets and launch powerups
+    -- Keep this behind the same ownership switch as recycler/factory orders.
+    -- Without the guard, every registered player team launches an unsolicited
+    -- repair or ammo pod when the 240-second upgrade timer expires even when a
+    -- mission explicitly set manageFactories=false.
+    if not self.Config.manageFactories then return end
     if not self.upgradeTimer then self.upgradeTimer = GetTime() + (self.Config.upgradeInterval or 240) end
 
     if GetTime() > self.upgradeTimer then
