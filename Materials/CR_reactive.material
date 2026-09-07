@@ -1,0 +1,209 @@
+// CR_reactive.material
+//
+// Materials for the Campaign Reimagined reactive presentation and weather
+// layers: particle billboards, transient hit states, persistent damage states,
+// and the optional weather skydomes.
+//
+// PLACEHOLDER ART. Every texture reference below points at an asset Campaign
+// Reimagined already ships so the systems render and can be profiled today. The
+// comment above each block names the texture the art pass should supply.
+// Docs/CR_REACTIVE_PRESENTATION.md carries the same list in one place.
+//
+// Particle billboards inherit BZSprite/AlphaBlend and BZSprite/Additive, which
+// is the pipeline Redux and CR already use for in-world sprite quads. The
+// CR_Effect shader those parents use multiplies the texture by the incoming
+// vertex colour, so Ogre emitter colour_range values and exu.SetParticleEmitterColor
+// tint these correctly.
+
+import * from "sprites.material"
+
+// =============================================================================
+// Weather billboards
+// =============================================================================
+
+// WANTED: cr_rain.png -- a soft vertical rain streak, alpha only, ~16x64.
+material CR_FX/Rain : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap white.png
+}
+
+// WANTED: cr_splash.png -- a small expanding ground splash ring, ~32x32.
+material CR_FX/RainSplash : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap wpuff_0.png
+}
+
+// WANTED: cr_snow.png -- soft crystalline flake with a bright core, ~32x32.
+material CR_FX/Snow : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap wpuff_0.png
+}
+
+// WANTED: cr_dust.png -- soft irregular dust mote, heavy falloff, ~64x64.
+material CR_FX/Dust : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap smoke.png
+}
+
+// WANTED: cr_grit.png -- small hard sand fleck, near-opaque centre, ~16x16.
+material CR_FX/Grit : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap bpuff.png
+}
+
+// WANTED: cr_ash.png -- ragged dark ash flake, ~32x32.
+material CR_FX/Ash : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap smoke.png
+}
+
+// WANTED: cr_ember.png -- hot ember point with a bloom halo, ~32x32.
+material CR_FX/Ember : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap flare.png
+}
+
+// WANTED: cr_spore.png -- luminous alien spore, soft ring structure, ~64x64.
+material CR_FX/Spore : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap flare.png
+}
+
+// =============================================================================
+// Impact billboards
+// =============================================================================
+
+// WANTED: cr_spark.png -- short bright metal spark streak, ~32x8.
+material CR_FX/Spark : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap bulhit.png
+}
+
+// WANTED: cr_bloom.png -- hot impact bloom, white core to orange edge, ~64x64.
+material CR_FX/Bloom : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap blast.png
+}
+
+// WANTED: cr_debris.png -- dark debris fleck sheet, ~32x32.
+material CR_FX/Debris : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap smoke.png
+}
+
+// WANTED: cr_ion.png -- ionised discharge, cyan filaments, ~64x64.
+material CR_FX/Ion : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap shock.png
+}
+
+// WANTED: cr_bioburst.png -- biological rupture, cyan-violet, ~64x64.
+material CR_FX/BioBurst : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap shock.png
+}
+
+// =============================================================================
+// Damage-state billboards
+// =============================================================================
+
+// WANTED: cr_smoke_thin.png -- wispy grey smoke puff, ~64x64.
+material CR_FX/SmokeThin : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap smoke.png
+}
+
+// WANTED: cr_smoke_heavy.png -- dense dark smoke puff, ~128x128.
+material CR_FX/SmokeHeavy : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap smoke.png
+}
+
+// WANTED: cr_arc.png -- electrical arc filament, ~64x32.
+material CR_FX/Arc : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap shock.png
+}
+
+// WANTED: cr_bioleak.png -- luminous plasma leakage, ~64x64.
+material CR_FX/BioLeak : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap flare.png
+}
+
+// =============================================================================
+// Transient hit states and persistent damage states
+//
+// DELIBERATELY NOT DEFINED YET.
+//
+// CRReactive.lua checks exu.MaterialExists before assigning any of these names,
+// so an undefined state is skipped rather than applied. That is the correct
+// placeholder behaviour here: defining CR_Hit/Ionized as an empty child of
+// CR_BZBase would give it no textures and repaint the struck hull blank, which
+// is worse than showing nothing. Impact particles, damage particles, emissive
+// failure and the cockpit reaction all work without these.
+//
+// The names CRReactiveProfiles.lua asks for, and what each one should be:
+//
+//   CR_Hit/Ionized      brief blue-white emissive flash over the hull
+//   CR_Hit/Scorch       soot and heat discoloration at the impact area
+//   CR_Hit/BioSurge     cyan luminescence propagating through a Fury hull
+//
+//   CR_Dmg/Scarred      light battle damage: scoring, scuffed paint
+//   CR_Dmg/Failing      heavy damage: panel loss, exposed structure, soot
+//   CR_Dmg/Critical     blackened, buckled, glowing stress fractures
+//   CR_Dmg/BioScarred   Fury equivalent: luminescence instability
+//   CR_Dmg/BioFailing   Fury equivalent: dimmed channels, dark intervals
+//   CR_Dmg/BioCritical  Fury equivalent: severe pulsing, bright surges
+//
+// Each is authored the same way as any other CR craft material -- one child of
+// CR_BZBase per state, with its own damaged texture set:
+//
+//   material CR_Dmg/Failing : CR_BZBase
+//   {
+//       set_texture_alias DiffuseMap  cr_dmg_failing_D.dds
+//       set_texture_alias NormalMap   cr_dmg_failing_N.dds
+//       set_texture_alias SpecularMap cr_dmg_failing_S.dds
+//       set_texture_alias EmissiveMap cr_dmg_failing_E.dds
+//   }
+//
+// A per-craft variant can be added later by giving that craft's profile in
+// CRReactiveProfiles.lua its own damageProfile with craft-specific names; the
+// controller does not care how many exist, only that the ones it is told about
+// resolve.
+
+// =============================================================================
+// Weather skydomes
+//
+// Only used when a mission tells CRWeather what its base sky is, because Ogre
+// exposes the skydome's generation parameters but not its material name, so the
+// controller cannot otherwise discover what to restore.
+//
+// WANTED: 2048x2048 dome textures per storm type. Until they exist these are
+// left pointing at a flat placeholder, which reads as a featureless overcast.
+// =============================================================================
+
+material CR_Sky/MarsStorm : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap white.png
+}
+
+material CR_Sky/Blizzard : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap white.png
+}
+
+material CR_Sky/AshFall : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap white.png
+}
+
+material CR_Sky/Spore : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap white.png
+}
+
+material CR_Sky/Storm : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap white.png
+}

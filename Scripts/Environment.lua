@@ -700,6 +700,71 @@ local function GetFogPreset(stateName)
 end
 
 -- =============================================================================
+-- Environment modifiers
+--
+-- Fog, ambient, sun diffuse/specular and sun power are written from exactly one
+-- place: the block at the end of Environment.Update. Anything else that wants a
+-- say -- weather, a mission set piece, a scripted power failure -- registers a
+-- modifier here and mutates the frame targets in place instead of issuing its
+-- own exu.SetFog/SetSunDiffuse on the same frame. Two writers on the same
+-- renderer state produce flicker that looks like a renderer bug.
+--
+-- A modifier receives a table with ambient, diffuse, specular, fog,
+-- sunPowerScale, nightBlend, phase and timestep, and edits it in place.
+-- Modifiers run in registration order and are pcall guarded: one bad modifier
+-- must not take the whole environment down.
+-- =============================================================================
+
+Environment.Modifiers = Environment.Modifiers or {}
+Environment.ModifierOrder = Environment.ModifierOrder or {}
+
+function Environment.RegisterEnvironmentModifier(name, fn)
+    if type(name) ~= "string" or type(fn) ~= "function" then
+        return false
+    end
+
+    if Environment.Modifiers[name] == nil then
+        Environment.ModifierOrder[#Environment.ModifierOrder + 1] = name
+    end
+    Environment.Modifiers[name] = fn
+    return true
+end
+
+function Environment.UnregisterEnvironmentModifier(name)
+    if type(name) ~= "string" or Environment.Modifiers[name] == nil then
+        return false
+    end
+
+    Environment.Modifiers[name] = nil
+    for index = #Environment.ModifierOrder, 1, -1 do
+        if Environment.ModifierOrder[index] == name then
+            table.remove(Environment.ModifierOrder, index)
+        end
+    end
+    return true
+end
+
+function Environment.ClearEnvironmentModifiers()
+    Environment.Modifiers = {}
+    Environment.ModifierOrder = {}
+end
+
+local function RunEnvironmentModifiers(frame)
+    for index = 1, #Environment.ModifierOrder do
+        local name = Environment.ModifierOrder[index]
+        local fn = Environment.Modifiers[name]
+        if fn ~= nil then
+            local ok, err = pcall(fn, frame)
+            if not ok then
+                print("Environment: modifier '" .. name .. "' failed: " .. tostring(err))
+                Environment.UnregisterEnvironmentModifier(name)
+            end
+        end
+    end
+    return frame
+end
+
+-- =============================================================================
 -- Initialization
 -- =============================================================================
 
@@ -848,6 +913,29 @@ function Environment.Update(timestep)
             exu.SetGravity(0, -9.8, 0)
         end
         Environment.LastGravity = nil
+    end
+
+    -- -------------------------------------------------------------------------
+    -- Registered modifiers get the last word on the frame targets. Weather
+    -- contributes here rather than writing fog and lighting itself.
+    -- -------------------------------------------------------------------------
+    if #Environment.ModifierOrder > 0 then
+        local frame = RunEnvironmentModifiers({
+            ambient = targetAmbient,
+            diffuse = targetDiffuse,
+            specular = targetSpecular,
+            fog = targetFog,
+            sunPowerScale = sunState.powerScale,
+            nightBlend = state.nightBlend,
+            phase = state.phase,
+            timestep = timestep,
+        })
+
+        targetAmbient = ClampColor(frame.ambient or targetAmbient)
+        targetDiffuse = ClampColor(frame.diffuse or targetDiffuse)
+        targetSpecular = ClampColor(frame.specular or targetSpecular)
+        targetFog = ClampFog(frame.fog or targetFog)
+        sunState.powerScale = math.max(0.0, tonumber(frame.sunPowerScale) or sunState.powerScale)
     end
 
     -- -------------------------------------------------------------------------

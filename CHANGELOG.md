@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-09-07
+
+### Reactive presentation and dynamic weather (first pass)
+
+- Added `CRWeather`, a proper atmospheric weather controller. Weather is now
+  camera-centred Ogre particle systems plus fog, sky and lighting state, not
+  scripted explosion effects. Six data-driven presets ship: MarsDustStorm,
+  LunaLightSnow, EuropaBlizzard, VolcanicAsh, FurySporeStorm and
+  AcidRainVisual, with crossfaded transitions, gust phases, a shared wind
+  vector, and lightning as an illumination event rather than an object.
+- Added `CRReactive`, a shared reactive-presentation layer. Impacts now produce
+  weapon-specific particles at the contact point and a directional first-person
+  reaction on the player's craft; craft progress through persistent damage
+  bands with their own smoke, sparks and arcing; status lighting dims and
+  flickers as damage rises; and weapon heat accumulates and decays per shot.
+  None of it changes damage, balance or AI.
+- `Environment` gained a modifier hook so fog and sun state keep exactly one
+  writer. Weather contributes into Environment's own per-frame targets instead
+  of issuing competing renderer writes, which is what would otherwise show up
+  as flicker during a storm.
+- Both systems are bounded by design: precipitation is a camera-local volume,
+  off-screen storms stop simulating, impact effects reuse a fixed pool, damage
+  VFX are capped and distance-gated, and health polling walks a rotating slice
+  so a large battle costs the same per frame as a small one.
+- Both systems release everything on mission teardown -- particle systems,
+  material overrides, emissive clones, the sky swap, and the ordnance callback
+  chain -- so nothing carries into the next mission.
+- Damage-state materials and cockpit animations are named but not yet authored.
+  The systems check for them and skip what is missing, so everything else runs.
+  `Docs/CR_REACTIVE_PRESENTATION.md` carries the wiring guide and asset list.
+
 ## 2026-09-06
 
 ### OpenShim-owned visual settings
