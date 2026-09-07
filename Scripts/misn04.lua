@@ -12,6 +12,7 @@ local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local Environment = require("Environment")
+local CRMarsWeather = require("CRMarsWeather")
 local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 
@@ -216,6 +217,8 @@ local function NewMissionState()
         tugobjective = false,
         ccatugretry = false,
         loading_done = false,
+        weatherSetPiece = false,
+        weatherState = nil,
         loadGracePeriod = 0,
         overlayBootTestAt = nil,
         overlayBootTestDone = false,
@@ -517,6 +520,77 @@ local function ApplyQOL()
     if Environment and Environment.Init then
         Environment.Init()
     end
+
+    -- Mars weather. Init is idempotent, so the reload path in Update can call
+    -- ApplyQOL again without restarting the storm.
+    --
+    -- No baseSky is supplied: misn04.trn declares no SkyTexture, so there is no
+    -- dome to restore and the sky layer correctly stays off. The storm reads
+    -- through fog, light and particles, which is where nearly all of it lives
+    -- anyway.
+    if CRMarsWeather and CRMarsWeather.Init then
+        CRMarsWeather.Init({
+            startLevel  = 1,
+            targetLevel = 2,
+        })
+
+        if M and M.weatherState ~= nil and CRMarsWeather.Load then
+            CRMarsWeather.Load(M.weatherState)
+            M.weatherState = nil
+        end
+    end
+end
+
+-- Weather beats.
+--
+-- Recomputed from mission state every frame rather than latched on transitions,
+-- so a save taken mid-mission lands on the right weather without having to
+-- persist which beats had already fired. The one exception is the set piece,
+-- which is a one-shot and carries its own flag in M.
+--
+-- These only move the *target*: the director still walks the ladder there over
+-- a few minutes. Nothing here cuts the weather.
+local function UpdateWeatherBeats()
+    if not (CRMarsWeather and CRMarsWeather.SetTargetLevel) then
+        return
+    end
+
+    -- Breezy baseline. Mars is never actually still.
+    local target = 2
+
+    -- The CCA push builds, and so does the dust.
+    if (M.wavenumber or 1) >= 3 then
+        target = 3
+    end
+
+    -- Hunting the relic in open ground is the mission's most exposed stretch,
+    -- so it gets weather that makes navigation cost something.
+    if M.discoverrelic and not M.relicsecure and target < 3 then
+        target = 3
+    end
+
+    if (M.wavenumber or 1) >= 5 then
+        target = 4
+    end
+
+    -- Once the relic is aboard the tug the storm starts letting up, so the run
+    -- home is readable.
+    if M.relicsecure or M.missionwon then
+        target = 2
+    end
+
+    if CRMarsWeather.GetTargetLevel() ~= target then
+        CRMarsWeather.SetTargetLevel(target)
+    end
+
+    -- Set piece: the last CCA wave arrives inside a severe storm. Forced rather
+    -- than targeted because this one has to land on cue.
+    if M.fifthwave and not M.weatherSetPiece and not M.missionwon then
+        M.weatherSetPiece = true
+        if CRMarsWeather.ForceLevel then
+            CRMarsWeather.ForceLevel(5, 110.0, 16.0)
+        end
+    end
 end
 
 local function TurboValue(team)
@@ -557,6 +631,12 @@ local function UpdateModules(dt)
         TraceUpdateCall("misn04.UpdateModules exu.UpdateCommandReplacements", exu.UpdateCommandReplacements)
     end
     if Environment and Environment.Update then
+        -- Weather updates before Environment on purpose: CRWeather contributes
+        -- fog and sun through Environment's modifier hook, so this frame's blend
+        -- has to be settled before Environment resolves and writes them.
+        if CRMarsWeather and CRMarsWeather.Update then
+            TraceUpdateCall("misn04.UpdateModules CRMarsWeather.Update", CRMarsWeather.Update, dt)
+        end
         TraceUpdateCall("misn04.UpdateModules Environment.Update", Environment.Update, dt)
     end
     if subtit and subtit.Update then
@@ -2300,6 +2380,15 @@ function Start()
     SetPilot(1, 10)
     RefreshDifficulty()
     ApplyDifficultyObjectives()
+
+    -- Restarting the mission in the same process re-enters Start with the
+    -- weather module still initialised and still holding particle handles from
+    -- the previous run's scene. Stand it down first so ApplyQOL brings up a
+    -- clean one; Shutdown is a no-op when it was never initialised.
+    if CRMarsWeather and CRMarsWeather.Shutdown then
+        CRMarsWeather.Shutdown()
+    end
+
     ApplyQOL()
     SetupAI()
     BootstrapPreservingScriptedTeam2()
@@ -2351,6 +2440,9 @@ function AddObject(h)
     end
     if Environment and Environment.OnObjectCreated then
         Environment.OnObjectCreated(h)
+    end
+    if CRMarsWeather and CRMarsWeather.OnObjectCreated then
+        CRMarsWeather.OnObjectCreated(h)
     end
     ApplyTurbo(h)
 
@@ -2489,6 +2581,7 @@ function Update()
         TraceUpdateCall("misn04.Update autosave.Update", autosave.Update, 1.0 / M.TPS)
     end
     TraceUpdateCall("misn04.Update UpdateModules", UpdateModules, 1.0 / M.TPS)
+    TraceUpdateCall("misn04.Update UpdateWeatherBeats", UpdateWeatherBeats)
     TraceUpdateCall("misn04.Update RunOverlayBootTest", RunOverlayBootTest)
     TraceUpdateCall("misn04.Update UpdateFeatureValidation", UpdateFeatureValidation)
 
@@ -3103,6 +3196,12 @@ function Update()
 end
 
 function Save()
+    -- The director's scalars ride along in the mission table. Ogre state does
+    -- not survive a save, so nothing visual is stored: it is rebuilt from these
+    -- when ApplyQOL brings the weather back up.
+    if CRMarsWeather and CRMarsWeather.Save then
+        M.weatherState = CRMarsWeather.Save()
+    end
     return M
 end
 
@@ -3111,6 +3210,9 @@ function Load(...)
     local missionData = ...
     M = missionData or M
     M.scriptedTeam2Handles = M.scriptedTeam2Handles or {}
+    M.weatherSetPiece = M.weatherSetPiece or false
+    -- M.weatherState is left in place: ApplyQOL consumes it on the next Update,
+    -- once CRMarsWeather has been brought back up.
     M.loading_done = false
     M.overlayDemoReady = false
     M.overlayDemoVisible = false
