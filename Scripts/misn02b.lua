@@ -49,9 +49,6 @@ local function ApplyQOL()
         if exu.SetReticleRange then
             exu.SetReticleRange(600)
         end
-        if exu.SetOrdnanceVelocInheritance then
-            exu.SetOrdnanceVelocInheritance(true)
-        end
     end
 
     if PersistentConfig and PersistentConfig.Initialize then

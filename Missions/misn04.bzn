@@ -14811,7 +14811,7 @@ pos [1] =
 101046
 team [1] =
 0
-label = sfield2_scrapfield
+label = sfield1_scrapfield
 isUser [1] =
 0
 obj_addr = 00000075
@@ -15069,7 +15069,7 @@ pos [1] =
 101071
 team [1] =
 0
-label = sfield2_scrapfield
+label = sfield3_scrapfield
 isUser [1] =
 0
 obj_addr = 00000077
@@ -15478,7 +15478,7 @@ size [1] =
 0
 [AiPaths]
 count [1] =
-64
+65
 [AiPath]
 old_ptr = 0000007B
 size [1] =
@@ -17051,4 +17051,17 @@ points [2] =
 3683.47
   z [1] =
 99855.4
+pathType = 00000000
+[AiPath]
+old_ptr = 000000B9
+size [1] =
+8
+label = cca_base
+pointCount [1] =
+1
+points [1] =
+  x [1] =
+3529.92
+  z [1] =
+99964.2
 pathType = 00000000

@@ -5182,7 +5182,7 @@ size [1] =
 0
 [AiPaths]
 count [1] =
-37
+38
 [AiPath]
 old_ptr = 00000029
 size [1] =
@@ -6223,4 +6223,17 @@ points [2] =
 3719.88
   z [1] =
 98775.2
+pathType = 00000000
+[AiPath]
+old_ptr = 0000004E
+size [1] =
+8
+label = cca_base
+pointCount [1] =
+1
+points [1] =
+  x [1] =
+1794.27
+  z [1] =
+102057
 pathType = 00000000
