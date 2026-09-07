@@ -44,6 +44,9 @@ local RuntimeEnhancements = {
     StarTwinkleEnabled = false,
     StarTwinkleApplied = nil,
     StarTwinkleRetryAt = 0.0,
+    OpenShimSettingsLoaded = false,
+    OpenShimSettingsCheckAt = 0.0,
+    OpenShimSettingsCheckInterval = 0.25,
     ResourceGroup = "General",
     DebugVisualLogging = true,
     DebugLogPath = nil,
@@ -520,10 +523,6 @@ local function SupportsPilotVehicleVisuals(h)
         return false
     end
 
-    if CanBuild and CanBuild(h) then
-        return false
-    end
-
     return true
 end
 
@@ -539,7 +538,18 @@ local function RegisterPulseMaterial(materialName, baseMaterialName, profile)
 
     RuntimeEnhancements.PulseMaterials[materialName] = {
         colors = BuildPassColors(baseColors, profile, true),
+        phase = nil,
+        speed = nil,
     }
+end
+
+local function StablePulseSeed(text)
+    local hash = 2166136261
+    local value = tostring(text or "")
+    for index = 1, #value do
+        hash = (hash * 16777619 + string.byte(value, index)) % 2147483647
+    end
+    return hash / 2147483647
 end
 
 local function GetPilotVehicleOccupancy(h)
@@ -721,17 +731,23 @@ local function ApplyEmissivePulse(now, force)
     end
     RuntimeEnhancements.PulseUpdateAt = now + (RuntimeEnhancements.PulseUpdateInterval or 0.08)
 
-    local factor = 1.0
-    if RuntimeEnhancements.EmissivePulseEnabled then
-        local period = math.max(tonumber(RuntimeEnhancements.PulsePeriod) or 2.4, 0.1)
-        local phase = 0.5 + (0.5 * math.sin((now / period) * math.pi * 2.0))
-        factor = 0.72 + (0.28 * phase)
-    end
-
     for materialName, record in pairs(RuntimeEnhancements.PulseMaterials) do
         local base = record and record.colors
         local baseEmissive = base and base.emissive
         if type(baseEmissive) == "table" then
+            local factor = 1.0
+            if RuntimeEnhancements.EmissivePulseEnabled then
+                local seed = StablePulseSeed(materialName)
+                record.phase = record.phase or (seed * math.pi * 2.0)
+                record.speed = record.speed or (0.62 + seed * 0.76)
+                -- Two incommensurate waves create a smooth, irregular pulse;
+                -- the material-name seed prevents every craft material from
+                -- breathing in lockstep. The wider 0.30..1.00 range makes the
+                -- effect legible without ever clipping above authored output.
+                local waveA = 0.5 + 0.5 * math.sin(now * record.speed + record.phase)
+                local waveB = 0.5 + 0.5 * math.sin(now * record.speed * 0.371 + record.phase * 1.913)
+                factor = 0.30 + 0.70 * (waveA * 0.72 + waveB * 0.28)
+            end
             local emissive = DeepCopy(baseEmissive)
             emissive.r = Clamp01((tonumber(baseEmissive.r) or 0.0) * factor)
             emissive.g = Clamp01((tonumber(baseEmissive.g) or 0.0) * factor)
@@ -746,6 +762,64 @@ local function ApplyEmissivePulse(now, force)
             end
         end
     end
+end
+
+
+local function ParseOpenShimBool(value, fallback)
+    local lowered = tostring(value or ""):lower():match("^%s*(.-)%s*$")
+    if lowered == "1" or lowered == "true" or lowered == "yes" or lowered == "on" then return true end
+    if lowered == "0" or lowered == "false" or lowered == "no" or lowered == "off" then return false end
+    return fallback
+end
+
+local function ReadOpenShimDisplaySettings()
+    local path = ((bzfile.GetWorkingDirectory and bzfile.GetWorkingDirectory()) or ".") .. "\\openshim.ini"
+    local file = bzfile.Open(path, "r")
+    if not file then return nil end
+
+    local values = {
+        EmptyCraftLights = false,
+        EmissivePulse = false,
+        StarTwinkle = false,
+    }
+    local inDisplay = false
+    local line = file:Readln()
+    while line do
+        local section = line:match("^%s*%[([^%]]+)%]")
+        if section then
+            inDisplay = section:lower() == "display"
+        elseif inDisplay then
+            local key, value = line:match("^%s*([%w_]+)%s*=%s*([^;#]*)")
+            if key and values[key] ~= nil then
+                values[key] = ParseOpenShimBool(value, values[key])
+            end
+        end
+        line = file:Readln()
+    end
+    file:Close()
+    return values
+end
+
+function RuntimeEnhancements.SyncOpenShimSettings(force)
+    local now = type(GetTime) == "function" and tonumber(GetTime() or 0.0) or 0.0
+    if not force and now < (RuntimeEnhancements.OpenShimSettingsCheckAt or 0.0) then
+        return false
+    end
+    RuntimeEnhancements.OpenShimSettingsCheckAt = now + RuntimeEnhancements.OpenShimSettingsCheckInterval
+
+    local ok, values = pcall(ReadOpenShimDisplaySettings)
+    if not ok or type(values) ~= "table" then return false end
+
+    local changed = false
+    changed = RuntimeEnhancements.SetPilotVisualsEnabled(not values.EmptyCraftLights) or changed
+    changed = RuntimeEnhancements.SetEmissivePulseEnabled(values.EmissivePulse) or changed
+    if RuntimeEnhancements.StarTwinkleEnabled ~= values.StarTwinkle
+        or RuntimeEnhancements.StarTwinkleApplied ~= values.StarTwinkle then
+        RuntimeEnhancements.SetStarTwinkleEnabled(values.StarTwinkle)
+        changed = true
+    end
+    RuntimeEnhancements.OpenShimSettingsLoaded = true
+    return changed
 end
 
 local function RefreshVisualHandleList()
@@ -1120,6 +1194,7 @@ function RuntimeEnhancements.Update()
         return
     end
     RuntimeEnhancements.LastUpdateAt = now
+    RuntimeEnhancements.SyncOpenShimSettings(false)
 
     if RuntimeEnhancements.SupportsDynamicMaterials then
         UpdateVisualStates(now)

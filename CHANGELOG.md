@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-09-06
+
+### OpenShim-owned visual settings
+
+- Moved Empty Craft Lights, Emissive Pulse, Star Twinkle, render profile, and
+  the other native controls out of the campaign PDA. OpenShim's native Settings
+  page and `openshim.ini` are now the only persistent owners; the Y key remains
+  the direct PDA/weapon-HUD toggle.
+- Stopped `campaignReimagined_settings.cfg` from loading or rewriting native
+  OpenShim preferences, including headlights, AutoSave, radar/HUD layout,
+  target/alert policy, faction flames, and native gameplay hooks.
+- Hardened campaign config writes so booleans are canonical, numeric values and
+  preset indices are clamped, and malformed unit-preset records are omitted.
+- Fixed DX11 Enhanced empty-craft emissives ignoring a zero material intensity,
+  expanded pilot-state handling to all valid non-building craft, made occupied
+  emissive pulses visibly asynchronous, and increased star-twinkle contrast.
+- Stopped full settings/material rebuilds when the player changes craft, which
+  could flash terrain and world lighting even though no render setting changed.
+- Restored aggressive deployed-turret fire by excluding stationary defenses
+  from the generic retreat/standoff band. Mortar-equipped AI now selects the
+  mortar only for infantry or fixed targets at useful range instead of on a
+  repeating random timer, and a craft the AI had switched to the mortar
+  gets its ODF/default selection back the moment the player boards it.
+- Coordinated EXU with OpenShim's HUD/radar ownership so the legacy blue/green
+  scrap and pilot colors are preserved and radar geometry is corrected once.
+
 ## 2026-09-05
 
 ### Linux/Proton stability and crash reporting
@@ -10,6 +36,15 @@
   thousands of repetitive log lines during longer matches.
 - Crash reports now start fresh for each launch and clearly distinguish caught
   first-chance exceptions from fatal crashes.
+
+### Safe OpenShim defaults restored for every Workshop install
+
+- This Workshop update deliberately replaces each installed `openshim.ini`
+  with OpenShim's complete conservative player preset. The previous file is
+  retained as `openshim.ini.pre-workshop.bak` so advanced custom settings can
+  be recovered selectively after the safe baseline has been established.
+- Standalone OpenShim updates continue to preserve an existing player INI;
+  their explicit reset option performs the same backup-and-replace operation.
 
 ## 2026-08-30 (experimental, paired visual validation pending)
 

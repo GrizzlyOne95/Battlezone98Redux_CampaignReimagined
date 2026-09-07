@@ -105,7 +105,13 @@ PersistentConfig.DefaultSettings = {
     TargetReticlePopupMode = 1,     -- 1=Default 2=Neutral Only 3=Explicit Only
     ScrapPilotHudLayout = 1,        -- 1=Stock 2=Legacy
     RadarSizeScale = 1.00,          -- Independent radar size scale
-    DynamicFactionFlameColors = true, -- Team flame colors from faction nation codes
+    -- Superseded by OpenShim's per-craft faction flames ([Display] JetFlames).
+    -- This layer colours a whole TEAM from its nation code and has no Black Dog
+    -- or orange at all -- it maps 'b' to blue -- and because OpenShim yields to
+    -- an explicit EXU team colour, leaving it on silently suppressed the newer
+    -- per-craft routing entirely. Off means EXU holds no opinion and OpenShim
+    -- decides; missions can still set a team colour deliberately via exu.
+    DynamicFactionFlameColors = false, -- Legacy per-team flame colours (EXU)
     BomberAiRangeEnabled = true,    -- Campaign enables EXU-gated bomber AI range behavior
     HowitzerVolleyEnabled = false,  -- Full ArtilleryProcess replay is disabled pending a safe narrow hook
     WeaponMaskCarrierBiasEnabled = true, -- Campaign enables EXU-gated weapon-mask carrier bias
@@ -257,6 +263,24 @@ local HeadlightColorPresets = {
     [9] = { name = "PURPLE", r = 2.5, g = 1.0, b = 5.0 },
     [10] = { name = "TEAL", r = 1.0, g = 5.0, b = 2.5 },
     [11] = { name = "RAINBOW", rainbow = true, feedbackR = 1.0, feedbackG = 0.5, feedbackB = 1.0 },
+}
+
+-- OpenShim's settings page is the single owner of these engine/runtime
+-- features. CR used to drive them through EXU, so whatever a player chose in
+-- OpenShim's UI was overwritten again on the next settings apply. The
+-- implementations stay defined but inert; flip one back to true only if
+-- OpenShim stops covering it. Weapon-mask carrier bias is intentionally the
+-- exception: OpenShim exposes the native hook but no user setting for it, so
+-- CR keeps selecting that campaign-specific behavior internally.
+PersistentConfig.CROwns = {
+    headlights = false,
+    radarScale = false,
+    scrapPilotHud = false,
+    autosave = false,
+    lightingMode = false,
+    factionFlames = false,
+    missionGameplayHooks = false,
+    weaponMaskCarrierBias = true,
 }
 
 local function getWorkingDirectory()
@@ -950,7 +974,7 @@ end
 
 local function ClampIndex(value, minimum, maximum, fallback)
     local n = tonumber(value)
-    if not n then return fallback end
+    if type(n) ~= "number" or n ~= n or n == math.huge or n == -math.huge then return fallback end
     n = math.floor(n + 0.5)
     if n < minimum then return minimum end
     if n > maximum then return maximum end
@@ -959,7 +983,7 @@ end
 
 local function ClampRange(value, minimum, maximum, fallback)
     local n = tonumber(value)
-    if not n then return fallback end
+    if type(n) ~= "number" or n ~= n or n == math.huge or n == -math.huge then return fallback end
     if n < minimum then return minimum end
     if n > maximum then return maximum end
     return n
@@ -1277,7 +1301,7 @@ end
 
 function ClampUnitInterval(value, fallback)
     local n = tonumber(value)
-    if not n then return fallback end
+    if type(n) ~= "number" or n ~= n or n == math.huge or n == -math.huge then return fallback end
     if n < 0.0 then return 0.0 end
     if n > 1.0 then return 1.0 end
     return n
@@ -4369,6 +4393,9 @@ function PersistentConfig._CancelRadarScaleResync()
 end
 
 function PersistentConfig._SyncRadarSizeScale(force)
+    -- Returning true (not false) clears the caller's pending-resync latch,
+    -- so a stood-down sync does not retry every frame forever.
+    if not PersistentConfig.CROwns.radarScale then return true end
     if not exu or type(exu.SetRadarSizeScale) ~= "function" then
         return false
     end
@@ -4675,7 +4702,11 @@ function PersistentConfig._SyncTeamColorSettings(force, reason)
         PersistentConfig._AppliedTeamColorSignature = nil
     end
 
-    local needsRebuild = force or applied or (actualProfileAfter ~= actualProfileBefore)
+    -- A forced verification is not itself a visual change. Rebuilding cloned
+    -- materials every time ApplySettings() runs caused visible world-lighting
+    -- flashes on player craft transitions even when the profile was already
+    -- correct.
+    local needsRebuild = applied or (actualProfileAfter ~= actualProfileBefore)
     if needsRebuild
         and RuntimeEnhancements
         and type(RuntimeEnhancements.RebuildVisuals) == "function"
@@ -4685,8 +4716,6 @@ function PersistentConfig._SyncTeamColorSettings(force, reason)
             rebuildReason = tostring(rebuildReason) .. "+apply"
         elseif actualProfileAfter ~= actualProfileBefore then
             rebuildReason = tostring(rebuildReason) .. "+runtime"
-        elseif force then
-            rebuildReason = tostring(rebuildReason) .. "+force"
         end
         PersistentConfig._LogTeamColorSync(string.format(
             "rebuild reason=%s requested=%s actual=%s verified=%s",
@@ -5571,6 +5600,7 @@ local function RebuildPdaOverlay()
 end
 
 function PersistentConfig.ApplyScrapPilotHudLayout()
+    if not PersistentConfig.CROwns.scrapPilotHud then return end
     if not exu then
         return
     end
@@ -5647,7 +5677,7 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     if options and options.syncScavengerAssist and aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
         aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
     end
-    if options and options.syncAutoSave and autosave and autosave.Config then
+    if PersistentConfig.CROwns.autosave and options and options.syncAutoSave and autosave and autosave.Config then
         autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
         autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
         autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
@@ -6048,141 +6078,12 @@ GetSettingsPageEntries = function()
                 return PersistentConfig._SettingsActions.CycleTeamColor(delta)
             end,
         },
-        {
-            label = "Scrap/Pilot HUD",
-            value = GetScrapPilotHudLayout().name,
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.CycleScrapPilotHudLayout(delta)
-            end,
-        },
-        {
-            label = "Radar Size",
-            value = FormatScale(PersistentConfig.Settings.RadarSizeScale, PersistentConfig.RadarUi.min,
-                PersistentConfig.RadarUi.max),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.AdjustRadarSizeScale(delta)
-            end,
-        },
-        {
-            label = "PDA / Weapon HUD",
-            value = FormatHotkeyValue(PersistentConfig.Settings.WeaponStatsHud and "On" or "Off", "Y"),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(DirectionEnabled(delta))
-            end,
-        },
-        Section("Lighting"),
-        {
-            label = "Lighting Mode",
-            value = PersistentConfig._GetLightingModePreset().name,
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.CycleLightingMode(delta)
-            end,
-        },
-        {
-            label = "Player Light",
-            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightVisible and "On" or "Off", "V"),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetPlayerHeadlightVisible(DirectionEnabled(delta))
-            end,
-        },
-        {
-            label = "Light Color",
-            value = FormatHotkeyValue(
-                HeadlightColorPresets[PersistentConfig._SettingsActions.GetHeadlightColorPresetIndex()].name, "Z"),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.CycleHeadlightColor(delta)
-            end,
-        },
-        {
-            label = "AI Lights",
-            value = FormatHotkeyValue(PersistentConfig.Settings.OtherHeadlightsDisabled and "Off" or "On", "J"),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetOtherHeadlightsEnabled(DirectionEnabled(delta))
-            end,
-        },
-        {
-            label = "Empty Craft Lights",
-            value = PersistentConfig.Settings.EmptyCraftLightsEnabled and "On" or "Off",
-            adjust = function(delta)
-                local value = DirectionEnabled(delta)
-                if PersistentConfig.Settings.EmptyCraftLightsEnabled == value then
-                    return false
-                end
-                PersistentConfig.Settings.EmptyCraftLightsEnabled = value
-                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyPilotVisuals = true })
-                ShowSettingsFeedback("Empty Craft Lights: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
-                return true
-            end,
-        },
-        {
-            label = "Light Pulse",
-            value = PersistentConfig.Settings.EmissivePulseEnabled and "On" or "Off",
-            adjust = function(delta)
-                local value = DirectionEnabled(delta)
-                if PersistentConfig.Settings.EmissivePulseEnabled == value then
-                    return false
-                end
-                PersistentConfig.Settings.EmissivePulseEnabled = value
-                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyEmissivePulse = true })
-                ShowSettingsFeedback("Light Pulse: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
-                return true
-            end,
-        },
-        {
-            label = "Star Twinkle",
-            value = PersistentConfig.Settings.StarTwinkleEnabled and "On" or "Off",
-            adjust = function(delta)
-                local value = DirectionEnabled(delta)
-                if PersistentConfig.Settings.StarTwinkleEnabled == value then
-                    return false
-                end
-                PersistentConfig.Settings.StarTwinkleEnabled = value
-                PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyStarTwinkle = true })
-                ShowSettingsFeedback("Star Twinkle: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
-                return true
-            end,
-        },
-        {
-            label = "Beam",
-            value = FormatHotkeyValue(PersistentConfig.Settings.HeadlightBeamMode == 1 and "Focused" or "Wide", "B"),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.CycleHeadlightBeamMode(delta)
-            end,
-        },
-        {
-            label = "Faction Flames",
-            value = PersistentConfig.Settings.DynamicFactionFlameColors and "On" or "Off",
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(DirectionEnabled(delta))
-            end,
-        },
         Section("Audio & Alerts"),
-        {
-            label = "Attack Beep",
-            value = PersistentConfig._GetUnderAttackAlertPreset().name,
-            adjust = function(delta)
-                return PersistentConfig._CycleUnderAttackAlertMode(delta)
-            end,
-        },
-        {
-            label = "Hit Reticle",
-            value = PersistentConfig._GetTargetReticlePopupPreset().name,
-            adjust = function(delta)
-                return PersistentConfig._CycleTargetReticlePopupMode(delta)
-            end,
-        },
         {
             label = "Subtitles",
             value = PersistentConfig.Settings.SubtitlesEnabled and "On" or "Off",
             adjust = function(delta)
                 return PersistentConfig._SettingsActions.SetSubtitlesEnabled(DirectionEnabled(delta))
-            end,
-        },
-        {
-            label = "Unit Voices",
-            value = PersistentConfig._GetUnitVerbosityPreset().name,
-            adjust = function(delta)
-                return PersistentConfig._CycleUnitVerbosity(delta)
             end,
         },
         {
@@ -6233,27 +6134,6 @@ GetSettingsPageEntries = function()
             value = PersistentConfig.Settings.PilotModeEnabled and "On" or "Off",
             adjust = function(delta)
                 return PersistentConfig._SetPilotModeEnabled(DirectionEnabled(delta))
-            end,
-        },
-        Section("Saves"),
-        {
-            key = "autosave_interval",
-            label = "Auto Interval",
-            value = PersistentConfig._GetAutoSaveIntervalOption().label,
-            adjust = function(delta)
-                return PersistentConfig._AdjustAutoSaveInterval(delta)
-            end,
-        },
-        {
-            key = "autosave",
-            label = "Autosave",
-            value = PersistentConfig._GetAutoSaveStatusValue(),
-            actionHint = PersistentConfig._GetAutoSaveEnterHint(),
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetAutoSaveEnabled((delta or 0) > 0)
-            end,
-            action = function()
-                return PersistentConfig._HandleAutoSaveEnableAction()
             end,
         },
         Section("System"),
@@ -6363,68 +6243,16 @@ function PersistentConfig.LoadConfig()
         while line do
             local key, val = ParseLine(line)
             if key then
-                if key == "HeadlightDiffuseR" then
-                    PersistentConfig.Settings.HeadlightDiffuse.R = tonumber(val) or 5.0
-                elseif key == "HeadlightDiffuseG" then
-                    PersistentConfig.Settings.HeadlightDiffuse.G = tonumber(val) or 5.0
-                elseif key == "HeadlightDiffuseB" then
-                    PersistentConfig.Settings.HeadlightDiffuse.B = tonumber(val) or 5.0
-                elseif key == "HeadlightSpecularR" then
-                    PersistentConfig.Settings.HeadlightSpecular.R = tonumber(val) or 5.0
-                elseif key == "HeadlightSpecularG" then
-                    PersistentConfig.Settings.HeadlightSpecular.G = tonumber(val) or 5.0
-                elseif key == "HeadlightSpecularB" then
-                    PersistentConfig.Settings.HeadlightSpecular.B = tonumber(val) or 5.0
-                elseif key == "HeadlightBeamMode" then
-                    PersistentConfig.Settings.HeadlightBeamMode = tonumber(val) or 2
-                elseif key == "HeadlightFalloff" then
-                    PersistentConfig.Settings.HeadlightRange.Falloff = tonumber(val) or 0.35
-                elseif key == "HeadlightVisible" then
-                    PersistentConfig.Settings.HeadlightVisible = (val == "true")
-                elseif key == "SubtitlesEnabled" then
+                if key == "SubtitlesEnabled" then
                     PersistentConfig.Settings.SubtitlesEnabled = (val == "true")
-                elseif key == "UnitVerbosity" then
-                    PersistentConfig.Settings.UnitVerbosity = tonumber(val) or 1
-                elseif key == "OtherHeadlightsDisabled" then
-                    PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
-                elseif key == "EmptyCraftLightsEnabled" then
-                    PersistentConfig.Settings.EmptyCraftLightsEnabled = (val == "true")
-                elseif key == "EmissivePulseEnabled" then
-                    PersistentConfig.Settings.EmissivePulseEnabled = (val == "true")
-                elseif key == "StarTwinkleEnabled" then
-                    PersistentConfig.Settings.StarTwinkleEnabled = (val == "true")
                 elseif key == "AutoRepairWingmen" then
                     PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
-                elseif key == "RainbowMode" then
-                    PersistentConfig.Settings.RainbowMode = (val == "true")
                 elseif key == "ScavengerAssistEnabled" then
                     PersistentConfig.Settings.ScavengerAssistEnabled = (val == "true")
                 elseif key == "AutoSaveSlot" then
                     -- Legacy key from the pre-OpenShim autosave slot workflow. Ignore it.
-                elseif key == "AutoSaveEnabled" then
-                    PersistentConfig.Settings.AutoSaveEnabled = (val == "true")
-                elseif key == "AutoSaveInterval" then
-                    PersistentConfig.Settings.AutoSaveInterval = tonumber(val) or 300
                 elseif key == "AutoRepairBuildings" then
                     PersistentConfig.Settings.AutoRepairBuildings = (val == "true")
-                elseif key == "LightingMode" then
-                    local numericValue = tonumber(val)
-                    if numericValue then
-                        loadedLightingMode = numericValue
-                    else
-                        local lowered = string.lower(CleanString(val))
-                        if lowered == "default" then
-                            loadedLightingMode = 1
-                        elseif lowered == "enhanced" then
-                            loadedLightingMode = 2
-                        elseif lowered == "retro" then
-                            loadedLightingMode = 3
-                        end
-                    end
-                elseif key == "RetroLighting" then
-                    legacyRetroLighting = (val == "true")
-                elseif key == "WeaponStatsHud" then
-                    PersistentConfig.Settings.WeaponStatsHud = (val == "true")
                 elseif key == "PilotModeEnabled" then
                     PersistentConfig.Settings.PilotModeEnabled = (val == "true")
                 elseif key == "SubtitleOpacity" then
@@ -6443,28 +6271,6 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.PdaColorPreset = tonumber(val) or 2
                 elseif key == "TeamColorPreset" then
                     PersistentConfig.Settings.TeamColorPreset = tonumber(val) or 1
-                elseif key == "UnderAttackAlertMode" then
-                    PersistentConfig.Settings.UnderAttackAlertMode = ParseUnderAttackAlertModeValue(val)
-                elseif key == "TargetReticlePopupMode" then
-                    PersistentConfig.Settings.TargetReticlePopupMode = tonumber(val) or 1
-                elseif key == "ScrapPilotHudLayout" then
-                    PersistentConfig.Settings.ScrapPilotHudLayout = tonumber(val) or 2
-                elseif key == "RadarSizeScale" then
-                    PersistentConfig.Settings.RadarSizeScale = tonumber(val) or 1.0
-                elseif key == "DynamicFactionFlameColors" then
-                    PersistentConfig.Settings.DynamicFactionFlameColors = (val == "true")
-                elseif key == "BomberAiRangeEnabled" then
-                    PersistentConfig.Settings.BomberAiRangeEnabled = (val == "true")
-                elseif key == "HowitzerVolleyEnabled" then
-                    PersistentConfig.Settings.HowitzerVolleyEnabled = (val == "true")
-                elseif key == "WeaponMaskCarrierBiasEnabled" then
-                    PersistentConfig.Settings.WeaponMaskCarrierBiasEnabled = (val == "true")
-                elseif key == "AiOdfGameplayTuningEnabled" then
-                    PersistentConfig.Settings.AiOdfGameplayTuningEnabled = (val == "true")
-                elseif key == "TurretAimPitchEnabled" then
-                    PersistentConfig.Settings.TurretAimPitchEnabled = (val == "true")
-                elseif key == "AttackRevealEnabled" then
-                    PersistentConfig.Settings.AttackRevealEnabled = (val == "true")
                 elseif key == "UnitPreset" then
                     local unitOdf, slotIndex, powerupOdf = string.match(val, "([^|]+)|([^|]+)|(.+)")
                     local unitKey = string.lower(CleanString(unitOdf or ""))
@@ -6557,6 +6363,75 @@ function PersistentConfig.LoadConfig()
     return loadResult
 end
 
+function PersistentConfig._NormalizeConfigBoolean(value, fallback)
+    if type(value) == "boolean" then return value end
+    local lowered = tostring(value or ""):lower():match("^%s*(.-)%s*$")
+    if lowered == "true" or lowered == "1" or lowered == "yes" or lowered == "on" then return true end
+    if lowered == "false" or lowered == "0" or lowered == "no" or lowered == "off" then return false end
+    return not not fallback
+end
+
+function PersistentConfig._NormalizeCampaignOwnedSettingsForSave()
+    local settings = PersistentConfig.Settings
+    local defaults = PersistentConfig.DefaultSettings
+
+    settings.SubtitlesEnabled = PersistentConfig._NormalizeConfigBoolean(settings.SubtitlesEnabled, defaults.SubtitlesEnabled)
+    settings.AutoRepairWingmen = PersistentConfig._NormalizeConfigBoolean(settings.AutoRepairWingmen, defaults.AutoRepairWingmen)
+    settings.ScavengerAssistEnabled = PersistentConfig._NormalizeConfigBoolean(settings.ScavengerAssistEnabled, defaults.ScavengerAssistEnabled)
+    settings.AutoRepairBuildings = PersistentConfig._NormalizeConfigBoolean(settings.AutoRepairBuildings, defaults.AutoRepairBuildings)
+    settings.PilotModeEnabled = PersistentConfig._NormalizeConfigBoolean(settings.PilotModeEnabled, defaults.PilotModeEnabled)
+    settings.SubtitleOpacity = ClampUnitInterval(settings.SubtitleOpacity, defaults.SubtitleOpacity)
+    settings.SubtitleFontScale = ClampRange(settings.SubtitleFontScale,
+        PersistentConfig.FontScale.subtitle.min, PersistentConfig.FontScale.subtitle.max,
+        defaults.SubtitleFontScale)
+    settings.PdaOpacity = ClampUnitInterval(settings.PdaOpacity, defaults.PdaOpacity)
+    settings.PdaFontScale = ClampRange(settings.PdaFontScale,
+        PersistentConfig.FontScale.pda.min, PersistentConfig.FontScale.pda.max,
+        defaults.PdaFontScale)
+    settings.PdaColorPreset = ClampIndex(settings.PdaColorPreset, 1, #PdaColorPresets,
+        defaults.PdaColorPreset)
+    settings.TeamColorPreset = ClampIndex(settings.TeamColorPreset, 1, #TeamColorPresets,
+        defaults.TeamColorPreset)
+end
+
+function PersistentConfig._NormalizeConfigOdfName(value)
+    local cleaned = CleanString(value):match("^%s*(.-)%s*$")
+    if cleaned == "" or not cleaned:match("^[%w_][%w_.%-]*$") then
+        return nil
+    end
+    return string.lower(cleaned)
+end
+
+function PersistentConfig._GetValidUnitPresetRows()
+    local rowsByKey = {}
+    for unitKey, preset in pairs(PersistentConfig.UnitPresets) do
+        local normalizedUnitKey = PersistentConfig._NormalizeConfigOdfName(unitKey)
+        if normalizedUnitKey and type(preset) == "table" then
+            for slotIndex = 1, 5 do
+                local powerupOdf = PersistentConfig._NormalizeConfigOdfName(preset[slotIndex])
+                if powerupOdf then
+                    local rowKey = normalizedUnitKey .. "|" .. tostring(slotIndex)
+                    rowsByKey[rowKey] = {
+                        unitKey = normalizedUnitKey,
+                        slotIndex = slotIndex,
+                        powerupOdf = powerupOdf,
+                    }
+                end
+            end
+        end
+    end
+
+    local rows = {}
+    for _, row in pairs(rowsByKey) do
+        rows[#rows + 1] = row
+    end
+    table.sort(rows, function(a, b)
+        if a.unitKey == b.unitKey then return a.slotIndex < b.slotIndex end
+        return a.unitKey < b.unitKey
+    end)
+    return rows
+end
+
 function PersistentConfig.SaveConfig()
     print("=== PersistentConfig: Attempting to save config ===")
     print("Config path: " .. tostring(PersistentConfig.ConfigPath))
@@ -6569,33 +6444,14 @@ function PersistentConfig.SaveConfig()
             return false, "failed to open config file for writing"
         end
         local f = fileHandle
+        PersistentConfig._NormalizeCampaignOwnedSettingsForSave()
 
         print("PersistentConfig: File opened successfully, writing settings...")
 
-        f:Writeln("HeadlightDiffuseR=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.R))
-        f:Writeln("HeadlightDiffuseG=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.G))
-        f:Writeln("HeadlightDiffuseB=" .. tostring(PersistentConfig.Settings.HeadlightDiffuse.B))
-        f:Writeln("HeadlightSpecularR=" .. tostring(PersistentConfig.Settings.HeadlightSpecular.R))
-        f:Writeln("HeadlightSpecularG=" .. tostring(PersistentConfig.Settings.HeadlightSpecular.G))
-        f:Writeln("HeadlightSpecularB=" .. tostring(PersistentConfig.Settings.HeadlightSpecular.B))
-        f:Writeln("HeadlightBeamMode=" .. tostring(PersistentConfig.Settings.HeadlightBeamMode))
-        f:Writeln("HeadlightFalloff=" .. tostring(PersistentConfig.Settings.HeadlightRange.Falloff))
-        f:Writeln("HeadlightVisible=" .. tostring(PersistentConfig.Settings.HeadlightVisible))
         f:Writeln("SubtitlesEnabled=" .. tostring(PersistentConfig.Settings.SubtitlesEnabled))
-        f:Writeln("UnitVerbosity=" .. tostring(PersistentConfig.Settings.UnitVerbosity))
-        f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
-        f:Writeln("EmptyCraftLightsEnabled=" .. tostring(PersistentConfig.Settings.EmptyCraftLightsEnabled))
-        f:Writeln("EmissivePulseEnabled=" .. tostring(PersistentConfig.Settings.EmissivePulseEnabled))
-        f:Writeln("StarTwinkleEnabled=" .. tostring(PersistentConfig.Settings.StarTwinkleEnabled))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
-        f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
-        f:Writeln("AutoSaveEnabled=" .. tostring(PersistentConfig.Settings.AutoSaveEnabled))
-        f:Writeln("AutoSaveInterval=" .. tostring(PersistentConfig.Settings.AutoSaveInterval))
         f:Writeln("ScavengerAssistEnabled=" .. tostring(PersistentConfig.Settings.ScavengerAssistEnabled))
         f:Writeln("AutoRepairBuildings=" .. tostring(PersistentConfig.Settings.AutoRepairBuildings))
-        f:Writeln("LightingMode=" .. tostring(PersistentConfig.Settings.LightingMode))
-        f:Writeln("RetroLighting=" .. tostring(PersistentConfig.Settings.RetroLighting))
-        f:Writeln("WeaponStatsHud=" .. tostring(PersistentConfig.Settings.WeaponStatsHud))
         f:Writeln("PilotModeEnabled=" .. tostring(PersistentConfig.Settings.PilotModeEnabled))
         f:Writeln("SubtitleOpacity=" .. tostring(PersistentConfig.Settings.SubtitleOpacity))
         f:Writeln("SubtitleFontScale=" .. tostring(PersistentConfig.Settings.SubtitleFontScale))
@@ -6603,24 +6459,8 @@ function PersistentConfig.SaveConfig()
         f:Writeln("PdaFontScale=" .. tostring(PersistentConfig.Settings.PdaFontScale))
         f:Writeln("PdaColorPreset=" .. tostring(PersistentConfig.Settings.PdaColorPreset))
         f:Writeln("TeamColorPreset=" .. tostring(PersistentConfig.Settings.TeamColorPreset))
-        f:Writeln("UnderAttackAlertMode=" .. tostring(PersistentConfig.Settings.UnderAttackAlertMode))
-        f:Writeln("TargetReticlePopupMode=" .. tostring(PersistentConfig.Settings.TargetReticlePopupMode))
-        f:Writeln("ScrapPilotHudLayout=" .. tostring(PersistentConfig.Settings.ScrapPilotHudLayout))
-        f:Writeln("RadarSizeScale=" .. tostring(PersistentConfig.Settings.RadarSizeScale))
-        f:Writeln("DynamicFactionFlameColors=" .. tostring(PersistentConfig.Settings.DynamicFactionFlameColors))
-        f:Writeln("BomberAiRangeEnabled=" .. tostring(PersistentConfig.Settings.BomberAiRangeEnabled))
-        f:Writeln("HowitzerVolleyEnabled=" .. tostring(PersistentConfig.Settings.HowitzerVolleyEnabled))
-        f:Writeln("WeaponMaskCarrierBiasEnabled=" .. tostring(PersistentConfig.Settings.WeaponMaskCarrierBiasEnabled))
-        f:Writeln("AiOdfGameplayTuningEnabled=" .. tostring(PersistentConfig.Settings.AiOdfGameplayTuningEnabled))
-        f:Writeln("TurretAimPitchEnabled=" .. tostring(PersistentConfig.Settings.TurretAimPitchEnabled))
-        f:Writeln("AttackRevealEnabled=" .. tostring(PersistentConfig.Settings.AttackRevealEnabled))
-        for unitKey, preset in pairs(PersistentConfig.UnitPresets) do
-            for slotIndex = 1, 5 do
-                local powerupOdf = preset[slotIndex]
-                if powerupOdf and powerupOdf ~= "" then
-                    f:Writeln("UnitPreset=" .. tostring(unitKey) .. "|" .. tostring(slotIndex) .. "|" .. tostring(powerupOdf))
-                end
-            end
+        for _, row in ipairs(PersistentConfig._GetValidUnitPresetRows()) do
+            f:Writeln("UnitPreset=" .. row.unitKey .. "|" .. tostring(row.slotIndex) .. "|" .. row.powerupOdf)
         end
 
         f:Close()
@@ -6655,11 +6495,7 @@ function PersistentConfig.ResetToDefaults()
     PersistentConfig.ApplySettings()
     MarkOtherHeadlightsDirty()
 
-    if autosave and autosave.Config then
-        autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
-        autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
-        autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
-    end
+    if autosave and autosave.Config then autosave.Config.enabled = false end
 
     ShowSettingsFeedback("Settings reset to defaults.", 0.7, 1.0, 0.7, 4.0)
 end
@@ -6667,19 +6503,21 @@ end
 function PersistentConfig.ApplySettings(options)
     local applyAll = not options
 
-    if applyAll or (options and options.applyPilotVisuals) then
-        RuntimeEnhancements.SetPilotVisualsEnabled(not PersistentConfig.Settings.EmptyCraftLightsEnabled)
+    -- CR's AutoSave module defaults to enabled, so hold it off on every apply
+    -- rather than only when a sync option asks. Otherwise it keeps writing its
+    -- own rolling Save\\auto.sav alongside OpenShim's recovery slot.
+    if not PersistentConfig.CROwns.autosave and autosave and autosave.Config then
+        autosave.Config.enabled = false
     end
-    if applyAll or (options and options.applyEmissivePulse) then
-        RuntimeEnhancements.SetEmissivePulseEnabled(PersistentConfig.Settings.EmissivePulseEnabled)
-    end
-    if applyAll or (options and options.applyStarTwinkle) then
-        RuntimeEnhancements.SetStarTwinkleEnabled(PersistentConfig.Settings.StarTwinkleEnabled)
-    end
+
+    -- OpenShim owns the three shader-effect preferences. RuntimeEnhancements
+    -- reads them directly from openshim.ini, so the PDA never persists or
+    -- reapplies a competing value.
+    RuntimeEnhancements.SyncOpenShimSettings(applyAll)
 
     if exu then
         local h = GetPlayerHandle()
-        if (applyAll or (options and options.applyHeadlights)) and IsValid(h) then
+        if PersistentConfig.CROwns.headlights and (applyAll or (options and options.applyHeadlights)) and IsValid(h) then
         -- Sync ranges based on mode before applying
             local mode = PersistentConfig.Settings.HeadlightBeamMode
             if PersistentConfig.HeadlightBeamModes[mode] then
@@ -6707,19 +6545,13 @@ function PersistentConfig.ApplySettings(options)
             end
         end
 
-        if applyAll or (options and options.syncLightingMode) then
+        if PersistentConfig.CROwns.lightingMode and (applyAll or (options and options.syncLightingMode)) then
             PersistentConfig._RequestLightingModeResync()
             PersistentConfig._SyncLightingMode(true)
             if type(PersistentConfig.UpdateHeadlights) == "function" then
                 MarkOtherHeadlightsDirty()
                 PersistentConfig.UpdateHeadlights()
             end
-        end
-        if (applyAll or (options and options.applyUnderAttackAlert)) and exu.SetUnderAttackAlertMode then
-            exu.SetUnderAttackAlertMode(PersistentConfig.Settings.UnderAttackAlertMode)
-        end
-        if (applyAll or (options and options.applyTargetReticle)) and exu.SetTargetReticlePopupMode then
-            exu.SetTargetReticlePopupMode(PersistentConfig.Settings.TargetReticlePopupMode)
         end
 
         if applyAll or (options and options.syncRadarSize) then
@@ -6730,14 +6562,15 @@ function PersistentConfig.ApplySettings(options)
             PersistentConfig._RequestTeamColorResync()
             PersistentConfig._SyncTeamColorSettings(applyAll, applyAll and "apply-settings-all" or "apply-settings")
         end
-        if applyAll or (options and options.applyFactionFlames) then
+        if PersistentConfig.CROwns.factionFlames and (applyAll or (options and options.applyFactionFlames)) then
             PersistentConfig._ApplyDynamicFactionFlameColors()
         end
         if applyAll or (options and options.applyMissionGameplayHooks) then
-            PersistentConfig._ApplyMissionGameplayHookSettings()
-        end
-        if applyAll or (options and options.applyUnitVo) then
-            PersistentConfig._ApplyUnitVoSettings()
+            if PersistentConfig.CROwns.missionGameplayHooks then
+                PersistentConfig._ApplyMissionGameplayHookSettings()
+            elseif PersistentConfig.CROwns.weaponMaskCarrierBias and exu.SetWeaponMaskCarrierBiasEnabled then
+                exu.SetWeaponMaskCarrierBiasEnabled(not not PersistentConfig.Settings.WeaponMaskCarrierBiasEnabled)
+            end
         end
     end
 
@@ -6787,7 +6620,7 @@ function PersistentConfig.UpdateInputs()
     -- after mission HUD initialization. Reassert the selected layout while the
     -- legacy placement is active so the stock top frame cannot reappear after
     -- the one-shot settings application.
-    if exu and PersistentConfig.Settings and not InputState.stockScrapPilotHudUnsupported then
+    if PersistentConfig.CROwns.scrapPilotHud and exu and PersistentConfig.Settings and not InputState.stockScrapPilotHudUnsupported then
         local hudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2)
         local nowForScrapPilotHud = GetTime()
         local nextRefreshAt = InputState.nextScrapPilotHudRefresh or 0.0
@@ -6801,7 +6634,10 @@ function PersistentConfig.UpdateInputs()
         end
     end
 
-    -- Detect player craft change and reapply headlight settings
+    -- Detect player craft changes. Only the legacy CR-owned headlight path
+    -- needs a settings reapply here; OpenShim-owned renderer/HUD settings are
+    -- process-global and reapplying all CR settings churns materials and HUD
+    -- geometry during boarding/ejection.
     local currentPlayerHandle = GetPlayerHandle()
     if currentPlayerHandle ~= InputState.lastPlayerHandle then
         if InputState.lastPlayerHandle then
@@ -6811,8 +6647,10 @@ function PersistentConfig.UpdateInputs()
             InputState.otherHeadlightVisibility[currentPlayerHandle] = nil
         end
         if IsValid(currentPlayerHandle) then
-            print("PersistentConfig: Player entered new craft, reapplying headlight settings.")
-            PersistentConfig.ApplySettings()
+            if PersistentConfig.CROwns.headlights then
+                print("PersistentConfig: Player entered new craft, reapplying CR headlight settings.")
+                PersistentConfig.ApplySettings({ applyHeadlights = true })
+            end
         end
         MarkOtherHeadlightsDirty()
         InputState.lastPlayerHandle = currentPlayerHandle
@@ -6909,10 +6747,6 @@ function PersistentConfig.UpdateInputs()
     end
 
     local team = GetPlayerTeamNum()
-    if InputState.lastUnitVoTeam ~= team then
-        PersistentConfig._ApplyUnitVoSettings()
-        InputState.lastUnitVoTeam = team
-    end
     local now = GetTime()
     if InputState.radarScaleSyncPending and now >= (InputState.nextRadarScaleCheck or 0.0) then
         InputState.nextRadarScaleCheck = now + 0.5
@@ -6934,7 +6768,7 @@ function PersistentConfig.UpdateInputs()
             InputState.nextTeamColorStabilizeUntil = 0.0
         end
     end
-    if InputState.lightingModeSyncPending and now >= (InputState.nextRetroLightingCheck or 0.0) then
+    if PersistentConfig.CROwns.lightingMode and InputState.lightingModeSyncPending and now >= (InputState.nextRetroLightingCheck or 0.0) then
         local stabilizeUntil = tonumber(InputState.nextRetroLightingStabilizeUntil) or 0.0
         local interval = PersistentConfig.RetroLightingIntervals.heartbeat
         if now < stabilizeUntil then
@@ -6953,7 +6787,7 @@ function PersistentConfig.UpdateInputs()
             InputState.nextRetroLightingStabilizeUntil = 0.0
         end
     end
-    if now >= (InputState.nextFactionFlameRefresh or 0.0) then
+    if PersistentConfig.CROwns.factionFlames and now >= (InputState.nextFactionFlameRefresh or 0.0) then
         InputState.nextFactionFlameRefresh = now + 1.0
         PersistentConfig._ApplyDynamicFactionFlameColors()
         -- Cheap native drift repair: no-ops unless a rebuilt viewport (satellite
@@ -6971,36 +6805,8 @@ function PersistentConfig.UpdateInputs()
 
     if not exu or not exu.GetGameKey then return end
 
-    -- Toggle Player Headlight (V)
-    local v_key = exu.GetGameKey("V")
-    if v_key and not InputState.last_v_state then
-        PersistentConfig._SettingsActions.SetPlayerHeadlightVisible(not PersistentConfig.Settings.HeadlightVisible)
-    end
-    InputState.last_v_state = v_key
-
-    -- Cycle Headlight Color (Z) - Moved from Alt+C to Z
-    local z_key = exu.GetGameKey("Z")
-    if z_key and not InputState.last_z_state then
-        PersistentConfig._SettingsActions.CycleHeadlightColor(1)
-    end
-    InputState.last_z_state = z_key
-
-    -- Toggle AI/NPC Headlights (J) - Moved from Alt+U to J
-    local j_key = exu.GetGameKey("J")
-    if j_key and not InputState.last_j_state then
-        PersistentConfig._SettingsActions.SetOtherHeadlightsEnabled(PersistentConfig.Settings.OtherHeadlightsDisabled)
-    end
-    InputState.last_j_state = j_key
-
-    -- Toggle Headlight Beam Mode (B) - Removed Alt requirement, but check for Bail (Ctrl+B)
-    local b_key = exu.GetGameKey("B")
     local ctrl_down = exu.GetGameKey("CTRL")
     local y_key = exu.GetGameKey("Y")
-
-    if b_key and not ctrl_down and not InputState.last_b_state then
-        PersistentConfig._SettingsActions.CycleHeadlightBeamMode(1)
-    end
-    InputState.last_b_state = b_key
 
     if y_key and not ctrl_down and not InputState.last_y_state then
         PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(not PersistentConfig.Settings.WeaponStatsHud)
@@ -7197,7 +7003,7 @@ function PersistentConfig.UpdateInputs()
     end
 
     -- Update Rainbow Color if active
-    if PersistentConfig.Settings.RainbowMode and PersistentConfig.Settings.HeadlightVisible then
+    if PersistentConfig.CROwns.headlights and PersistentConfig.Settings.RainbowMode and PersistentConfig.Settings.HeadlightVisible then
         local hue = (GetTime() * 0.2) % 1.0 -- Cycle every 5 seconds
         local r, g, b = PersistentConfig._HueToRGB(hue)
         local mode = PersistentConfig.Settings.HeadlightBeamMode
@@ -7340,6 +7146,7 @@ function PersistentConfig.UpdateBuildingRepair()
 end
 
 function PersistentConfig.UpdateHeadlights()
+    if not PersistentConfig.CROwns.headlights then return end
     if not exu or not exu.SetHeadlightVisible then return end
     InitializeTrackedWorldHandles()
 
@@ -7527,7 +7334,7 @@ function PersistentConfig.OnObjectCreated(h)
             aiCore.TrackWorldObject, h)
     end
 
-    if exu and exu.SetHeadlightVisible and ShouldDisableOtherHeadlights() then
+    if PersistentConfig.CROwns.headlights and exu and exu.SetHeadlightVisible and ShouldDisableOtherHeadlights() then
         local player = GetPlayerHandle()
         PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated ApplyOtherHeadlightVisibility " .. handleInfo,
             ApplyOtherHeadlightVisibility, h, false, player)
@@ -7652,14 +7459,9 @@ function PersistentConfig.Initialize()
 
     -- Sync AutoSave config from settings
     if autosave and autosave.Config then
-        autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
-        autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
-        autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
-        autosave._forceInitialSave = autosave.Config.enabled and true or false
-        InputState.autoSaveStartupPending = autosave.Config.enabled and true or false
-        print("PersistentConfig: AutoSave synced - enabled=" .. tostring(autosave.Config.enabled) ..
-            " interval=" .. tostring(autosave.Config.autoSaveInterval) ..
-            " path=" .. tostring(autosave.Config.currentPath))
+        autosave.Config.enabled = false
+        autosave._forceInitialSave = false
+        InputState.autoSaveStartupPending = false
     end
 
     -- Show help reminder on every mission start

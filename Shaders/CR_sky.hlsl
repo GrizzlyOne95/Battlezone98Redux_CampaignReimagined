@@ -45,7 +45,7 @@ void sky_fragment(
 	float starSeed = frac(sin(dot(starCell, float2(12.9898, 78.233))) * 43758.5453);
 	float twinkleWave = 0.5 + 0.5 * sin(twinkleTime * (0.9 + starSeed * 1.7) + starSeed * 6.2831853);
 	float twinkleStrength = saturate(max(twinkleControl.x, max(twinkleControl.y, twinkleControl.z)));
-	float twinkle = lerp(1.0, lerp(0.72, 1.12, twinkleWave), twinkleStrength);
+	float twinkle = lerp(1.0, lerp(0.35, 1.35, twinkleWave), twinkleStrength);
 	oColor.rgb *= twinkle;
 	
 #ifdef LOGDEPTH_ENABLE
