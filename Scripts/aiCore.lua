@@ -3298,6 +3298,9 @@ aiCore.Strategies = {
 aiCore.WeaponManager = {}
 aiCore.WeaponManager.__index = aiCore.WeaponManager
 
+-- Closest range at which an arcing mortar shot is worth taking.
+local kMortarMinRange = 20.0
+
 function aiCore.WeaponManager.new(teamNum)
     local self = setmetatable({}, aiCore.WeaponManager)
     self.teamNum = teamNum
@@ -3321,7 +3324,12 @@ function aiCore.WeaponManager.new(teamNum)
     -- Mortar users
     self.mortarUsers = {}
     self.mortarActive = {}
-    self.mortarWeapons = { "gmortar", "gmdmgun", "gsplint" }
+    -- gmdmgun (MDM Mortar) is deliberately absent. It is the only stock
+    -- weapon with classLabel "detonator": it lays an armed bouncing bomb
+    -- and waits for a second trigger that nothing in the AI ever pulls, so
+    -- selecting it means firing inert ordnance. It also sits in avtank
+    -- slot 4, which registered every standard tank as a mortar user.
+    self.mortarWeapons = { "gmortar", "gsplint" }
 
     -- Mine layers (weapon-based, not vehicle minelayers)
     self.mineUsers = {}
@@ -3635,19 +3643,21 @@ function aiCore.WeaponManager:UpdateMortars(dt)
                 end
             end
         else
-            -- Mortars are a contextual tool, not a timed/random default. Use
-            -- them against infantry and fixed targets at a safe distance;
-            -- mobile craft and close threats stay on the ODF/default weapon.
+            -- Mortars are a contextual tool, not a timed/random default.
+            -- Everything that is not infantry stays on the ODF/default
+            -- weapon.
             local target = GetCurrentWho(user.handle)
             local useMortar = false
             if IsValid(target) and IsAlive(target) and not IsAlly(user.handle, target) then
-                local cls = string.lower(utility.CleanString(GetClassLabel(target)))
-                local fixedTarget = IsBuilding(target)
-                    or string.find(cls, utility.ClassLabel.TURRET, 1, true) ~= nil
-                    or string.find(cls, "tower", 1, true) ~= nil
-                local infantryTarget = IsPerson(target)
-                useMortar = GetDistance(user.handle, target) >= 45.0
-                    and (fixedTarget or infantryTarget)
+                -- Infantry only. Every mortar ordnance is pure concussion
+                -- damage with zero ballistic or impact, which is the
+                -- anti-personnel type; against armour or a 7000-health
+                -- building a 500-damage arcing lob on a 2-3s delay is
+                -- strictly worse than closing with the default weapon.
+                -- The floor keeps the arc from lobbing over a target that
+                -- is already in the shooter's face; tune it here.
+                useMortar = IsPerson(target)
+                    and GetDistance(user.handle, target) >= kMortarMinRange
             end
 
             if useMortar ~= user.usingMortar then

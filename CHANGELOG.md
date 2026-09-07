@@ -19,10 +19,19 @@
 - Stopped full settings/material rebuilds when the player changes craft, which
   could flash terrain and world lighting even though no render setting changed.
 - Restored aggressive deployed-turret fire by excluding stationary defenses
-  from the generic retreat/standoff band. Mortar-equipped AI now selects the
-  mortar only for infantry or fixed targets at useful range instead of on a
-  repeating random timer, and a craft the AI had switched to the mortar
-  gets its ODF/default selection back the moment the player boards it.
+  from the generic retreat/standoff band.
+- Dropped the MDM Mortar from the AI's mortar weapon list. It is the only
+  stock weapon with class `detonator`: it lays an armed bouncing bomb and
+  waits for a second trigger that nothing in the AI ever pulls, so every
+  selection fired inert ordnance. Because it also occupies slot 4 of
+  `avtank`, it registered every standard tank as a mortar user, which is
+  why player tanks appeared to default to the mortar.
+- Mortar-equipped AI now selects the mortar for infantry only, past a
+  20m floor, instead of on a repeating random timer. All mortar ordnance
+  is pure concussion damage, so it is the anti-personnel tool; against
+  armour or buildings the default weapon is strictly better. A craft the
+  AI had switched to the mortar also gets its ODF/default selection back
+  the moment the player boards it.
 - Coordinated EXU with OpenShim's HUD/radar ownership so the legacy blue/green
   scrap and pilot colors are preserved and radar geometry is corrected once.
 
