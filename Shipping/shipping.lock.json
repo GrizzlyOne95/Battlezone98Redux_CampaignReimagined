@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-09-06T15:56:20-05:00",
-  "count": 3309,
+  "count": 3316,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -7060,6 +7060,14 @@
       "runtime": "cr_pda_overlay.material"
     },
     {
+      "source": "Materials\\cr_reactive.material",
+      "runtime": "cr_reactive.material"
+    },
+    {
+      "source": "Materials\\cr_reactive.particle",
+      "runtime": "cr_reactive.particle"
+    },
+    {
       "source": "Materials\\CR_scope.material",
       "runtime": "CR_scope.material"
     },
@@ -7070,6 +7078,10 @@
     {
       "source": "Materials\\CR_uitexmat.material",
       "runtime": "CR_uitexmat.material"
+    },
+    {
+      "source": "Materials\\cr_weather.particle",
+      "runtime": "cr_weather.particle"
     },
     {
       "source": "Materials\\cspilo.material",
@@ -9626,6 +9638,22 @@
     {
       "source": "Scripts\\CareerStats.lua",
       "runtime": "CareerStats.lua"
+    },
+    {
+      "source": "Scripts\\CRReactive.lua",
+      "runtime": "CRReactive.lua"
+    },
+    {
+      "source": "Scripts\\CRReactiveProfiles.lua",
+      "runtime": "CRReactiveProfiles.lua"
+    },
+    {
+      "source": "Scripts\\CRWeather.lua",
+      "runtime": "CRWeather.lua"
+    },
+    {
+      "source": "Scripts\\CRWeatherPresets.lua",
+      "runtime": "CRWeatherPresets.lua"
     },
     {
       "source": "Scripts\\DiffUtils.lua",
