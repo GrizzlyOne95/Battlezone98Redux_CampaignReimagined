@@ -1,7 +1,7 @@
 -- Misn05 Mission Script (Converted from Misn05Mission.cpp)
 
 -- Compatibility for 1.5
-SetLabel = SetLabel or SetLabel
+SetLabel = SetLabel or SettLabel -- 1.5.2.x exports this as SettLabel
 
 -- EXU Initialization
 local RequireFix = require("RequireFix")
@@ -13,14 +13,29 @@ local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local Environment = require("Environment")
 local PhysicsImpact = require("PhysicsImpact")
+local autosave = require("AutoSave")
+local PlayerPilotMode = require("PlayerPilotMode")
 
 -- BuildObject invokes AddObject synchronously. This guard lets explicit mission
 -- spawns bypass aiCore while leaving aiCore-produced CCA units managed normally.
 local spawningScriptedEnemy = false
 
+-- Set when Load() hands aiCore its saved teams. DiffUtils.SetupTeams goes through
+-- aiCore.AddTeam, which replaces ActiveTeams outright, so re-running it after a
+-- restore would throw the loaded AI state away.
+local aiStateRestored = false
+
 -- Helper for AI
 local function SetupAI()
-    DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    local preserve = aiStateRestored and aiCore.ActiveTeams
+        and aiCore.ActiveTeams[1] and aiCore.ActiveTeams[2]
+
+    if preserve then
+        DiffUtils.ApplyAiCoreDifficulty(aiCore.ActiveTeams[1], "player", 1)
+        DiffUtils.ApplyAiCoreDifficulty(aiCore.ActiveTeams[2], "enemy", 2)
+    else
+        DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    end
 
     -- Configure Player Team (1) for Scavenger Assist
     if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
@@ -44,8 +59,33 @@ local function SetupAI()
         cca.Config.manageConstructor = true
         cca.Config.requireConstructorFirst = true
 
-        cca:PlanDefensivePerimeter(2, 4) -- 2 powers, 4 towers each
+        -- The saved team already carries its build plan; re-planning would queue
+        -- duplicates for anything it had not finished building yet.
+        if not preserve then
+            cca:PlanDefensivePerimeter(2, 4) -- 2 powers, 4 towers each
+        end
     end
+end
+
+-- PlayerPilotMode may drive every player-team craft except the one the player
+-- is currently piloting; the module already protects that handle itself.
+local function PilotModeCanManageHandle(h)
+    if not h or not IsValid(h) then return false end
+    return h ~= GetPlayerHandle()
+end
+
+local function InitializePilotMode()
+    PlayerPilotMode.Initialize({
+        profile = {
+            autoManage = true,
+            autoRescue = true,
+            stickToPlayer = true,
+            manageFactories = false,
+            autoBuild = false,
+            autoTugs = false,
+        },
+        shouldManageHandle = PilotModeCanManageHandle,
+    })
 end
 
 -- Variables (Encapsulated for Save/Load)
@@ -240,7 +280,7 @@ local function RefreshMissionHandles()
     h = GetHandle("cam1")
     if h and IsValid(h) then
         M.cam1 = h
-        if SetLabel then SetLabel(M.cam1, "Volcano") end
+        SetObjectiveName(M.cam1, "Volcano")
     end
 end
 
@@ -291,7 +331,6 @@ function ApplyQOL()
     if exu then
         if exu.SetShotConvergence then exu.SetShotConvergence(true) end
         if exu.SetReticleRange then exu.SetReticleRange(600) end
-        if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
     end
     PersistentConfig.Initialize()
     Environment.Init()
@@ -327,14 +366,29 @@ local function BootstrapWithoutScriptedEnemies()
     end
 end
 
+local function CloseCinematicsAfterLoad()
+    if M.lemcin1 and (not M.lemcin2) then
+        pcall(CameraFinish)
+        M.lemcin2 = true
+    end
+
+    if M.endseq_started and (not M.endseq_cutscene_done) then
+        pcall(CameraFinish)
+        M.endseq_cutscene_done = true
+        M.endseq_post_wait_end = GetTime() + 5.0
+    end
+end
+
 local function RehydrateMissionRuntime()
     M.TPS = M.TPS or 20
     RefreshMissionHandles()
     RefreshDifficulty()
     ApplyQOL()
     RebuildScriptedEnemyRegistry()
+    CloseCinematicsAfterLoad()
     SetupAI()
     BootstrapWithoutScriptedEnemies()
+    InitializePilotMode()
     SetAIP("misn05.aip")
     subtit.Initialize()
     ApplyTurboToAll()
@@ -364,14 +418,18 @@ function Start()
     end
 
     ApplyQOL()
+    RefreshMissionHandles()
     SetupAI()
     aiCore.Bootstrap()
+    InitializePilotMode()
     subtit.Initialize()
     M.loading_done = true
 
     -- Persistent, clearable minefield: intentionally differs from the stock
     -- proximity-respawn system. Mines can engage either side and stay destroyed.
-    for i = 1, 23 do
+    -- path_24 is in the map and is mined by shipping BZ98R (MINE24); the older
+    -- BZ2-DLL source stopped at 23 and never armed path_16 at all.
+    for i = 1, 24 do
         local pathName = "path_" .. i
         BuildObject("boltmine", 3, pathName) -- Team 3 = Alien/Hostile
     end
@@ -406,7 +464,7 @@ function AddObject(h)
             local nearBase = false
             if M.svrec and IsAlive(M.svrec) and GetDistance(h, M.svrec) < 400 then
                 nearBase = true
-            elseif GetHandle("cca_base") and GetDistance(h, "cca_base") < 400 then
+            elseif GetDistance(h, "cca_base") < 400 then
                 nearBase = true
             end
 
@@ -415,11 +473,12 @@ function AddObject(h)
             end
         end
     elseif team == 1 then
-        aiCore.AddObject(h)
+        PlayerPilotMode.AddObject(h)
     end
 end
 
 function DeleteObject(h)
+    PlayerPilotMode.DeleteObject(h)
 end
 
 function Update()
@@ -432,7 +491,9 @@ function Update()
 
     M.player = GetPlayerHandle()
     if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
+    PlayerPilotMode.Update()
     aiCore.Update()
+    if autosave and autosave.Update then autosave.Update(1.0 / M.TPS) end
     Environment.Update(1.0 / M.TPS)
     PhysicsImpact.Update(1.0 / M.TPS)
     subtit.Update()
@@ -453,7 +514,6 @@ function Update()
 
         M.randomwave = GetTime() + DiffUtils.ScaleTimer(5.0)
 
-        if M.cam1 and IsValid(M.cam1) and SetLabel then SetLabel(M.cam1, "Volcano") end
         M.newobjective = true
     end
 
@@ -580,6 +640,10 @@ function Update()
             SetIndependence(h, 1)
         end
         M.sent1Done = true
+        -- misn0505.wav ships with the game but no stock variant of this mission
+        -- ever played it. The first CCA deployment is where it belongs. Queue it
+        -- so it cannot stomp the recon dialogue, which can still be running.
+        subtit.Queue("misn0505.wav")
 
         Follow(M.w1u1, M.w1u3)
         Follow(M.w1u2, M.w1u4)
@@ -590,8 +654,6 @@ function Update()
 
         M.check1 = true
         M.check2 = true
-        M.check3 = true
-        M.check4 = true
     end
 
     -- Check Logic (Turrets -> Patrol if dead/arrived)
@@ -635,6 +697,8 @@ function Update()
         SetIndependence(M.w2u2, 1)
         Goto(M.w2u3, "defendrim3")
         Goto(M.w2u4, "defendrim4")
+        M.check3 = true
+        M.check4 = true
     end
 
     if IsAlive(M.w2u3) and (not M.check3) and (GetCurrentCommand(M.w2u3) == 0) then
@@ -660,12 +724,14 @@ function Update()
         M.w3u3 = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
         M.w3u4 = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
         M.sent3Done = true
+        -- attackpatrol2 is authored in misn05.bzn (32 points, western gullies)
+        -- but no stock variant ever used it. Split the sweep across both routes.
         Patrol(M.w3u3, "attackpatrol1", 1)
-        Patrol(M.w3u4, "attackpatrol1", 1)
+        Patrol(M.w3u4, "attackpatrol2", 1)
 
         for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
             local h = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
-            Patrol(h, "attackpatrol1", 1)
+            Patrol(h, (i % 2 == 0) and "attackpatrol1" or "attackpatrol2", 1)
             SetIndependence(h, 1)
         end
     end
@@ -678,12 +744,12 @@ function Update()
         M.w4u3 = SpawnScriptedEnemy(type4, M.svrec, true, true)
         M.w4u4 = SpawnScriptedEnemy(type4, M.svrec, true, true)
         M.sent4Done = true
-        Patrol(M.w4u3, "attackpatrol1", 1)
+        Patrol(M.w4u3, "attackpatrol2", 1)
         Patrol(M.w4u4, "attackpatrol1", 1)
 
         for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
             local h = SpawnScriptedEnemy(type4, M.svrec, true, true)
-            Patrol(h, "attackpatrol1", 1)
+            Patrol(h, (i % 2 == 0) and "attackpatrol2" or "attackpatrol1", 1)
             SetIndependence(h, 1)
         end
     end
@@ -701,6 +767,7 @@ function Update()
     if (not M.neworders) and (M.readtime < GetTime()) then
         M.neworders = true
         subtit.Play("misn0506.wav")
+        SetObjectiveOn(M.lemnos)
         M.newobjective = true
     end
 
@@ -728,9 +795,10 @@ function Update()
         M.go = true
     end
 
-    -- Spawn Final Attackers
+    -- Spawn Final Attackers. M.platoonhere is the moment the 6th Platoon lands;
+    -- the CCA only mounts (and re-forms) the razor strike before that deadline.
     if (not IsAlive(M.aw1)) and (not IsAlive(M.aw2)) and (not IsAlive(M.aw3)) and (not IsAlive(M.aw4)) and (not IsAlive(M.aw5)) and
-        (M.platoonhere < GetTime()) and M.go and IsAlive(M.svrec) then
+        (M.platoonhere > GetTime()) and M.go and IsAlive(M.svrec) then
         subtit.Play("misn0508.wav")
         subtit.Play("misn0509.wav")
 
@@ -788,7 +856,11 @@ function Update()
             return false
         end
 
-        if CheckAndAttack(M.aw1) or CheckAndAttack(M.aw2) or CheckAndAttack(M.aw3) or CheckAndAttack(M.aw4) or CheckAndAttack(M.aw5) then
+        local arrived = false
+        for _, u in pairs({ M.aw1, M.aw2, M.aw3, M.aw4, M.aw5 }) do
+            if CheckAndAttack(u) then arrived = true end
+        end
+        if arrived then
             M.attackcmd = true
         end
         M.bombtime = GetTime() + 3.0
@@ -915,9 +987,10 @@ function Update()
             M.endseq_cutscene_end = GetTime() + 10.0
             M.endseq_post_wait_end = 99999999.0
 
-            -- Team 3 helpers allied with player (non-commandable friendly force).
-            Ally(1, 3)
-            Ally(3, 1)
+            -- Team 5 is the project's friendly-NPC slot. Team 3 is the minefield,
+            -- so allying it here would defuse every mine still on the map.
+            Ally(1, 5)
+            Ally(5, 1)
 
             -- Spawn a friendly armored fleet and move toward Lemnos.
             local anchor = M.avrec
@@ -925,7 +998,7 @@ function Update()
             M.endFleet = {}
             for i = 1, 7 do
                 local spawnPos = GetPositionNear(GetPosition(anchor), 40, 140)
-                local t = BuildObject("avtank", 3, spawnPos)
+                local t = BuildObject("avtank", 5, spawnPos)
                 if IsAlive(t) then
                     table.insert(M.endFleet, t)
                     Goto(t, M.lemnos, 1)
@@ -944,10 +1017,9 @@ function Update()
                 if not IsAlive(camTank) then
                     camTank = M.player
                 end
-                CameraObject(camTank, -25, 18, -85, M.lemnos)
+                CameraObject(camTank, 0, 1200, -4000, M.lemnos)
             else
                 CameraFinish()
-                CameraCancelled(false)
                 M.endseq_cutscene_done = true
                 M.endseq_post_wait_end = GetTime() + 15.0
             end
@@ -982,8 +1054,13 @@ function Save()
     return M, aiCore.Save()
 end
 
-function Load(missionData, _)
+function Load(missionData, aiData)
     M = missionData or M
+    aiStateRestored = false
+    if aiData then
+        aiCore.Load(aiData)
+        aiStateRestored = true
+    end
 
     M.TPS = M.TPS or 20
     M.scriptedEnemies = M.scriptedEnemies or {}

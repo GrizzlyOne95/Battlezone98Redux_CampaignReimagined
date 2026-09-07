@@ -164,6 +164,12 @@ ScrapPilotHud = Stock
 ; stay concentric. Local HUD geometry, so this applies in network games too.
 RadarSizeScale = 1.0
 JetFlames = 0
+; Campaign shader controls. These are owned by OpenShim's settings page; when
+; Campaign Reimagined is active its RuntimeEnhancements layer consumes the
+; values from this file and applies them live.
+EmptyCraftLights = 0
+EmissivePulse = 0
+StarTwinkle = 0
 ; Keep the sun, flare sprites, lighting, and shadows while suppressing only the
 ; pathological full-screen white ScreenFlash contribution.
 ; Stock behavior is ON; set this to 0 to enable OpenShim's suppression.
@@ -171,7 +177,7 @@ SunFlashbang = 1
 UnitVoFeedback = Normal
 
 [AutoSave]
-Enabled = 0
+Enabled = 1
 IntervalSeconds = 120
 InitialDelaySeconds = 10
 RetrySeconds = 15
@@ -190,6 +196,12 @@ TraceHookHits = 0
 ; scene graph on a worker thread -- leave it off for normal play.
 ; Legacy env alias: OPENSHIM_TRACE_PILOT_FP_ANIMATIONS
 TracePilotFPAnimations = 0
+; Log how each craft's exhaust routes: ODF name -> faction -> color ->
+; texture handle, plus the reason when routing bails out and the craft
+; stays on the stock flame. Budgeted to a couple dozen lines per run.
+; Accepted: boolean. Default: OFF.
+; Legacy env alias: OPENSHIM_TRACE_JET_FLAMES
+TraceJetFlames = 0
 TraceArtilleryMask = 0
 TraceSunFlash = 0
 TraceDX11ColorSpace = 0

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-09-06T15:56:20-05:00",
-  "count": 3309,
+  "generated": "2026-09-06T16:54:31-05:00",
+  "count": 3331,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6400,12 +6400,100 @@
       "runtime": "bbhqcp_d.dds"
     },
     {
+      "source": "Assets\\Textures\\beam_b0.png",
+      "runtime": "beam_b0.png"
+    },
+    {
+      "source": "Assets\\Textures\\beam_b1.png",
+      "runtime": "beam_b1.png"
+    },
+    {
+      "source": "Assets\\Textures\\beam_g0.png",
+      "runtime": "beam_g0.png"
+    },
+    {
+      "source": "Assets\\Textures\\beam_g1.png",
+      "runtime": "beam_g1.png"
+    },
+    {
+      "source": "Assets\\Textures\\beam_r0.png",
+      "runtime": "beam_r0.png"
+    },
+    {
+      "source": "Assets\\Textures\\beam_r1.png",
+      "runtime": "beam_r1.png"
+    },
+    {
+      "source": "Assets\\Textures\\bflame.png",
+      "runtime": "bflame.png"
+    },
+    {
+      "source": "Assets\\Textures\\blast.png",
+      "runtime": "blast.png"
+    },
+    {
+      "source": "Assets\\Textures\\bpuff.png",
+      "runtime": "bpuff.png"
+    },
+    {
+      "source": "Assets\\Textures\\bulhit.png",
+      "runtime": "bulhit.png"
+    },
+    {
+      "source": "Assets\\Textures\\bullthit.png",
+      "runtime": "bullthit.png"
+    },
+    {
       "source": "Assets\\Textures\\bvrdev_d.dds",
       "runtime": "bvrdev_d.dds"
     },
     {
+      "source": "Assets\\Textures\\fire.png",
+      "runtime": "fire.png"
+    },
+    {
+      "source": "Assets\\Textures\\flame.png",
+      "runtime": "flame.png"
+    },
+    {
+      "source": "Assets\\Textures\\flame2.png",
+      "runtime": "flame2.png"
+    },
+    {
+      "source": "Assets\\Textures\\flamealpha.png",
+      "runtime": "flamealpha.png"
+    },
+    {
+      "source": "Assets\\Textures\\flare.png",
+      "runtime": "flare.png"
+    },
+    {
+      "source": "Assets\\Textures\\gpuff.png",
+      "runtime": "gpuff.png"
+    },
+    {
+      "source": "Assets\\Textures\\lightflare.png",
+      "runtime": "lightflare.png"
+    },
+    {
+      "source": "Assets\\Textures\\lighthalo.png",
+      "runtime": "lighthalo.png"
+    },
+    {
       "source": "Assets\\Textures\\LoadingScreenBlank.png",
       "runtime": "LoadingScreenBlank.png"
+    },
+    {
+      "source": "Assets\\Textures\\rflame.png",
+      "runtime": "rflame.png"
+    },
+    {
+      "source": "Assets\\Textures\\shock.png",
+      "runtime": "shock.png"
+    },
+    {
+      "source": "Assets\\Textures\\smoke.png",
+      "runtime": "smoke.png"
     },
     {
       "source": "Assets\\Textures\\svheadlight00_d.dds",
@@ -6418,6 +6506,10 @@
     {
       "source": "Assets\\Textures\\white.png",
       "runtime": "white.png"
+    },
+    {
+      "source": "Assets\\Textures\\wpuff_0.png",
+      "runtime": "wpuff_0.png"
     },
     {
       "source": "Bin\\bzfile_replace_helper.exe",
@@ -7042,10 +7134,6 @@
     {
       "source": "Materials\\CR_DepthShadowmap.material",
       "runtime": "CR_DepthShadowmap.material"
-    },
-    {
-      "source": "Materials\\CR_flames.material",
-      "runtime": "CR_flames.material"
     },
     {
       "source": "Materials\\CR_glow.material",

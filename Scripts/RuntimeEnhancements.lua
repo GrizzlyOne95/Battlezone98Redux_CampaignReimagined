@@ -58,6 +58,7 @@ local RuntimeEnhancements = {
     MaterialBaseColors = {},
     PulseMaterials = {},
     PulseUpdateAt = 0.0,
+    PulseHeartbeatAt = 0.0,
     PulseUpdateInterval = 0.08,
     PulsePeriod = 2.4,
     MaterialFailureCount = 0,
@@ -82,6 +83,15 @@ local RuntimeEnhancements = {
 }
 
 local VARIANT_PREFIX = "campaignReimagined_rt_"
+
+-- Sky materials that carry the CR twinkle shader. The animation itself lives in
+-- CR_Sky_fragment; the pass emissive colour is only its on/off control
+-- (twinkleControl). STARS.MAP alone was not enough -- most skies draw their star
+-- field with MILKYWAY.MAP, so on those maps the option looked completely inert.
+local STAR_TWINKLE_MATERIALS = {
+    "STARS.MAP",
+    "MILKYWAY.MAP",
+}
 
 local function Clamp01(value)
     if value < 0.0 then return 0.0 end
@@ -431,11 +441,48 @@ local function NoteMaterialFailure(stage, materialName)
     end
 end
 
+-- Reads and caches a base material's authored pass colours.
+--
+-- This must run before the variant cache and the MaterialExists probe in
+-- EnsureMaterialVariant, not after them. Ogre materials outlive the Lua state:
+-- on the second and later missions of one process the clone from the previous
+-- mission is still registered, MaterialExists short-circuits, and the fresh
+-- MaterialBaseColors table never learns the base emissive. RegisterPulseMaterial
+-- then had nothing to register, PulseMaterials stayed empty, and the occupied
+-- emissive pulse silently did nothing for the whole mission while the
+-- empty/occupied swap kept working off the surviving clones.
+local function GetBaseMaterialColors(baseMaterialName)
+    if type(baseMaterialName) ~= "string" or baseMaterialName == "" then
+        return nil
+    end
+
+    local cached = RuntimeEnhancements.MaterialBaseColors[baseMaterialName]
+    if type(cached) == "table" then
+        return cached
+    end
+
+    if not exu.GetMaterialPassColors then
+        return nil
+    end
+
+    local okColors, value = pcall(exu.GetMaterialPassColors, baseMaterialName, 0, 0,
+        RuntimeEnhancements.ResourceGroup)
+    if okColors and type(value) == "table" then
+        RuntimeEnhancements.MaterialBaseColors[baseMaterialName] = value
+        return value
+    end
+
+    NoteMaterialFailure("GetMaterialPassColors", baseMaterialName)
+    return nil
+end
+
 local function EnsureMaterialVariant(materialName, profile, occupied)
     local baseMaterialName = NormalizeBaseMaterialName(materialName)
     if not baseMaterialName or baseMaterialName == "" then
         return nil
     end
+
+    local baseColors = GetBaseMaterialColors(baseMaterialName)
 
     local variantKey = GetMaterialVariantKey(baseMaterialName, profile, occupied)
     local cached = RuntimeEnhancements.MaterialVariants[variantKey]
@@ -451,17 +498,6 @@ local function EnsureMaterialVariant(materialName, profile, occupied)
         if okExists and exists then
             RuntimeEnhancements.MaterialVariants[variantKey] = cloneName
             return cloneName
-        end
-    end
-
-    local baseColors = RuntimeEnhancements.MaterialBaseColors[baseMaterialName]
-    if not baseColors and exu.GetMaterialPassColors then
-        local okColors, value = pcall(exu.GetMaterialPassColors, baseMaterialName, 0, 0, group)
-        baseColors = okColors and value or nil
-        if type(baseColors) == "table" then
-            RuntimeEnhancements.MaterialBaseColors[baseMaterialName] = baseColors
-        else
-            NoteMaterialFailure("GetMaterialPassColors", baseMaterialName)
         end
     end
 
@@ -531,8 +567,11 @@ local function RegisterPulseMaterial(materialName, baseMaterialName, profile)
         return
     end
 
-    local baseColors = RuntimeEnhancements.MaterialBaseColors[baseMaterialName]
+    local baseColors = GetBaseMaterialColors(baseMaterialName)
     if type(baseColors) ~= "table" then
+        DebugVisualLog(string.format(
+            "pulse-register-skipped material=%s base=%s reason=no-base-colors",
+            tostring(materialName), tostring(baseMaterialName)))
         return
     end
 
@@ -552,6 +591,57 @@ local function StablePulseSeed(text)
     return hash / 2147483647
 end
 
+-- Producers never carry a pilot, so the pilot test alone condemned a working
+-- recycler, factory, armory or construction rig to dark running lights for the
+-- whole mission. Deployment is their equivalent of being crewed: deployed means
+-- powered and lit, packed means an inert hull that goes dark like any other
+-- empty craft.
+local PRODUCER_CLASS_LABELS = {
+    "recycler",
+    "factory",
+    "armory",
+    "constructionrig",
+}
+
+local function IsProducerCraft(h)
+    if type(GetClassLabel) ~= "function" then
+        return false
+    end
+
+    local ok, label = pcall(GetClassLabel, h)
+    if not ok then
+        return false
+    end
+
+    label = string.lower(CleanScriptString(label))
+    if label == "" then
+        return false
+    end
+
+    for _, producerLabel in ipairs(PRODUCER_CLASS_LABELS) do
+        if string.find(label, producerLabel, 1, true) then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function IsProducerDeployed(h)
+    if type(IsDeployed) ~= "function" then
+        -- Without the predicate a producer would be permanently dark, which is
+        -- the very state this rule exists to avoid. Treat it as deployed.
+        return true
+    end
+
+    local ok, deployed = pcall(IsDeployed, h)
+    if not ok then
+        return true
+    end
+
+    return deployed and true or false
+end
+
 local function GetPilotVehicleOccupancy(h)
     local valid = h and IsValid(h) or false
     if not valid then
@@ -564,6 +654,10 @@ local function GetPilotVehicleOccupancy(h)
 
     if not IsAliveAndPilot and IsAlive then
         occupied = alive
+    end
+
+    if IsProducerCraft(h) then
+        occupied = alive and IsProducerDeployed(h)
     end
 
     return occupied, alive, aliveAndPilot
@@ -731,7 +825,15 @@ local function ApplyEmissivePulse(now, force)
     end
     RuntimeEnhancements.PulseUpdateAt = now + (RuntimeEnhancements.PulseUpdateInterval or 0.08)
 
+    -- Heartbeat. "enabled=true" on its own has proved to mean nothing: the pulse
+    -- can be on, the writes can report success, and the loop can still be
+    -- iterating an empty table. Report the population and one real written value
+    -- so a single run distinguishes "never ran" from "ran and was not visible".
+    local pulseCount = 0
+    local sampleName, sampleFactor = nil, nil
+
     for materialName, record in pairs(RuntimeEnhancements.PulseMaterials) do
+        pulseCount = pulseCount + 1
         local base = record and record.colors
         local baseEmissive = base and base.emissive
         if type(baseEmissive) == "table" then
@@ -748,6 +850,9 @@ local function ApplyEmissivePulse(now, force)
                 local waveB = 0.5 + 0.5 * math.sin(now * record.speed * 0.371 + record.phase * 1.913)
                 factor = 0.30 + 0.70 * (waveA * 0.72 + waveB * 0.28)
             end
+            if sampleName == nil then
+                sampleName, sampleFactor = materialName, factor
+            end
             local emissive = DeepCopy(baseEmissive)
             emissive.r = Clamp01((tonumber(baseEmissive.r) or 0.0) * factor)
             emissive.g = Clamp01((tonumber(baseEmissive.g) or 0.0) * factor)
@@ -761,6 +866,14 @@ local function ApplyEmissivePulse(now, force)
                     RuntimeEnhancements.ResourceGroup)
             end
         end
+    end
+
+    if now >= (RuntimeEnhancements.PulseHeartbeatAt or 0.0) then
+        RuntimeEnhancements.PulseHeartbeatAt = now + 5.0
+        DebugVisualLog(string.format(
+            "pulse-heartbeat enabled=%s materials=%d sample=%s factor=%s",
+            tostring(RuntimeEnhancements.EmissivePulseEnabled), pulseCount,
+            tostring(sampleName), sampleFactor and string.format("%.3f", sampleFactor) or "nil"))
     end
 end
 
@@ -1148,14 +1261,20 @@ function RuntimeEnhancements.SetStarTwinkleEnabled(enabled)
 
     local level = value and 1.0 or 0.0
     local colors = { emissive = { r = level, g = level, b = level, a = 1.0 } }
-    local ok, result = pcall(exu.SetMaterialPassColors, "STARS.MAP", colors, -1, -1,
-        RuntimeEnhancements.ResourceGroup)
-    if not ok or result == false then
-        ok, result = pcall(exu.SetMaterialPassColors, "STARS.MAP", colors, 0, 0,
+    local applied = false
+    for _, materialName in ipairs(STAR_TWINKLE_MATERIALS) do
+        local ok, result = pcall(exu.SetMaterialPassColors, materialName, colors, -1, -1,
             RuntimeEnhancements.ResourceGroup)
+        if not ok or result == false then
+            ok, result = pcall(exu.SetMaterialPassColors, materialName, colors, 0, 0,
+                RuntimeEnhancements.ResourceGroup)
+        end
+        local materialApplied = ok and result ~= false
+        applied = applied or materialApplied
+        DebugVisualLog(string.format("star-twinkle material=%s enabled=%s applied=%s",
+            materialName, tostring(value), tostring(materialApplied)))
     end
 
-    local applied = ok and result ~= false
     if applied then
         RuntimeEnhancements.StarTwinkleApplied = value
     else
