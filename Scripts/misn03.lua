@@ -118,6 +118,92 @@ local function InitializePilotMode()
     })
 end
 
+local function IssuePatrolSoldierOrder(index, soldier)
+    if not IsAlive(soldier) then return end
+
+    if index == 1 then
+        SetPathLoop("footpatrol")
+        Patrol(soldier, "footpatrol", 1)
+        return
+    end
+
+    local anchor = index == 2 and M.solar1 or M.solar2
+    if IsAlive(anchor) then
+        Defend2(soldier, anchor, 1)
+    end
+end
+
+local function UpdatePatrolSoldierOrder(index, soldier)
+    if not IsAlive(soldier) then return end
+
+    M.patrol_next_order_times = M.patrol_next_order_times or { 0, 0, 0 }
+    if GetTime() < (M.patrol_next_order_times[index] or 0) then return end
+    M.patrol_next_order_times[index] = GetTime() + 1.0
+
+    local command = GetCurrentCommand(soldier)
+    local commandTarget = GetCurrentWho(soldier)
+    local fightingLiveEnemy = command == AiCommand.ATTACK and IsAlive(commandTarget)
+
+    if index == 1 then
+        if not fightingLiveEnemy and command ~= AiCommand.PATROL then
+            IssuePatrolSoldierOrder(index, soldier)
+        end
+        return
+    end
+
+    local anchor = index == 2 and M.solar1 or M.solar2
+    if IsAlive(anchor) and not fightingLiveEnemy and
+        (command ~= AiCommand.DEFEND or commandTarget ~= anchor) then
+        IssuePatrolSoldierOrder(index, soldier)
+    end
+end
+
+local function UpdateRecyclerEvacuation()
+    local target = nil
+    if M.recycler_follow_launch then
+        target = M.launch
+    elseif M.recycler_follow_transport and not M.third_objective then
+        target = M.rescue2
+    end
+
+    if not IsAlive(M.avrecycler) or not IsAlive(target) then return end
+
+    local now = GetTime()
+    if now < (M.recycler_next_order_time or 0) then return end
+    M.recycler_next_order_time = now + 1.0
+
+    local command = GetCurrentCommand(M.avrecycler)
+    if IsDeployed(M.avrecycler) then
+        if command ~= AiCommand.UNDEPLOY then
+            SetCommand(M.avrecycler, AiCommand.UNDEPLOY, 1)
+        end
+        if (M.recycler_pack_wait_until or 0) <= now then
+            M.recycler_pack_wait_until = now + 4.0
+        end
+
+        if M.recycler_follow_launch then
+            M.recycler_pack_launch_issued = true
+        else
+            M.recycler_pack_transport_issued = true
+        end
+        return
+    end
+
+    -- IsDeployed can clear before the pack animation/command has finished.
+    -- Give it time to complete so Follow does not cancel the transition.
+    if now < (M.recycler_pack_wait_until or 0) then return end
+
+    if command ~= AiCommand.FOLLOW or GetCurrentWho(M.avrecycler) ~= target then
+        Follow(M.avrecycler, target, 1)
+    end
+
+    if M.recycler_follow_launch then
+        M.recycler_follow_launch_issued = true
+    else
+        M.recycler_follow_transport_issued = true
+    end
+end
+
 -- Mission State
 M = {
     -- Bools
@@ -189,6 +275,7 @@ M = {
     recycler_follow_launch_issued = false,
     patrol_soldiers = { nil, nil, nil },
     patrol_respawn_timers = { 0, 0, 0 },
+    patrol_next_order_times = { 0, 0, 0 },
 
     -- Floats
     next_second = 0.0,
@@ -216,6 +303,8 @@ M = {
     unit_check = 99999.0,
     clean_sweep_time = 99999.0,
     final_check = 99999.0,
+    recycler_next_order_time = 0.0,
+    recycler_pack_wait_until = 0.0,
 
     -- Handles
     user = nil,
@@ -345,9 +434,6 @@ local function ApplyQOL()
     if exu then
         if exu.SetReticleRange then
             exu.SetReticleRange(600)
-        end
-        if exu.SetOrdnanceVelocInheritance then
-            exu.SetOrdnanceVelocInheritance(true)
         end
         if exu.SetGlobalTurbo then
             exu.SetGlobalTurbo(true)
@@ -736,20 +822,13 @@ function Update()
                         vel.y = vel.y + 15.0
                         SetVelocity(new_soldier, vel)
 
-                        -- Orders
-                        if i == 1 then
-                            SetPathLoop("footpatrol")
-                            Patrol(new_soldier, "footpatrol", 1)
-                        elseif i == 2 then
-                            Defend2(new_soldier, M.solar1)
-                        elseif i == 3 then
-                            Defend2(new_soldier, M.solar2)
-                        end
-
                         M.patrol_soldiers[i] = new_soldier
                         M.patrol_respawn_timers[i] = 0
+                        IssuePatrolSoldierOrder(i, new_soldier)
                     end
                 end
+            else
+                UpdatePatrolSoldierOrder(i, soldier)
             end
         end
         M.patrols_spawned = true
@@ -1021,16 +1100,10 @@ function Update()
         M.recycler_follow_transport_issued = false
         M.recycler_pack_launch_issued = false
         M.recycler_follow_launch_issued = false
+        M.recycler_next_order_time = 0.0
+        M.recycler_pack_wait_until = 0.0
 
-        if IsAlive(M.avrecycler) and IsAlive(M.rescue2) then
-            if IsDeployed(M.avrecycler) then
-                SetCommand(M.avrecycler, AiCommand.UNDEPLOY, 1)
-                M.recycler_pack_transport_issued = true
-            else
-                Follow(M.avrecycler, M.rescue2, 1)
-                M.recycler_follow_transport_issued = true
-            end
-        end
+        UpdateRecyclerEvacuation()
 
         M.movie_over = true
     end
@@ -1052,17 +1125,7 @@ function Update()
         M.remove_props = true
     end
 
-    if M.recycler_follow_transport and not M.third_objective and
-        M.recycler_pack_transport_issued and not M.recycler_follow_transport_issued and
-        IsAlive(M.avrecycler) and IsAlive(M.rescue2) and not IsDeployed(M.avrecycler) then
-        Follow(M.avrecycler, M.rescue2, 1)
-        M.recycler_follow_transport_issued = true
-    elseif M.recycler_follow_launch and
-        M.recycler_pack_launch_issued and not M.recycler_follow_launch_issued and
-        IsAlive(M.avrecycler) and IsAlive(M.launch) and not IsDeployed(M.avrecycler) then
-        Follow(M.avrecycler, M.launch, 1)
-        M.recycler_follow_launch_issued = true
-    end
+    UpdateRecyclerEvacuation()
 
     if M.startfinishingmovie and not M.tanks_go then
         if M.new_unit_time < GetTime() then
@@ -1197,16 +1260,10 @@ function Update()
         M.recycler_follow_launch = true
         M.recycler_pack_launch_issued = false
         M.recycler_follow_launch_issued = false
+        M.recycler_next_order_time = 0.0
+        M.recycler_pack_wait_until = 0.0
 
-        if IsAlive(M.avrecycler) and IsAlive(M.launch) then
-            if IsDeployed(M.avrecycler) then
-                SetCommand(M.avrecycler, AiCommand.UNDEPLOY, 1)
-                M.recycler_pack_launch_issued = true
-            else
-                Follow(M.avrecycler, M.launch, 1)
-                M.recycler_follow_launch_issued = true
-            end
-        end
+        UpdateRecyclerEvacuation()
 
         ClearObjectives()
         AddObjective("misn0313.otf", "green")
