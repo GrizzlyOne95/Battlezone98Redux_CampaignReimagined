@@ -35,7 +35,9 @@ jobs:
           git diff --binary $parent $oldCommit -- `
             .gitignore `
             Manage-CampaignFiles.ps1 `
-            Scripts/PersistentConfig.lua > shipping-safety.patch
+            Scripts/PersistentConfig.lua `
+            Assets/Graphics/xbio.material `
+            Config/ScriptingGuide.txt > shipping-safety.patch
           if ($LASTEXITCODE -ne 0) { throw 'Could not build focused shipping-safety patch.' }
 
           git apply --3way --index shipping-safety.patch
@@ -111,6 +113,7 @@ jobs:
 
           git rm -- '.github/workflows/reconstruct-shipping-safety.yml'
           git add -- '.gitignore' 'Manage-CampaignFiles.ps1' 'Scripts/PersistentConfig.lua' 'Shipping/shipping.lock.json'
+          git add -u -- 'Assets/Graphics/xbio.material' 'Config/ScriptingGuide.txt'
 
           $changed = git status --short
           $changed | ForEach-Object { Write-Host $_ }
