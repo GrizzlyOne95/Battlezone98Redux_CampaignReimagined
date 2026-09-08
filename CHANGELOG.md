@@ -1,5 +1,51 @@
 # Changelog
 
+## 2026-09-08
+
+### OpenShim 1.0.0.20
+
+**Steam installs were quietly missing several fixes.** Steam's copy-protection
+layer rewrites part of the game a fraction of a second after launch. The
+patcher looked for its patch sites too early, found nothing, and gave up for
+the rest of the session -- so a number of fixes never applied at all on Steam
+while the same build worked correctly on GOG. It now waits for the image to
+settle and retries. On Steam that restores the pilot carrier crash guard, the
+AI build-prerequisite fixes, and correct multi-producer build behaviour.
+
+The log was also misreporting this: a patch whose signature failed to match was
+announced as a missing config file, which pointed at redeploying something that
+was already correct. Signature failures and missing entries now report
+separately.
+
+**Two crash fixes.** Moving between pilot and vehicle could crash -- the pilot
+flashlight was destroyed while Ogre still held it in the current frame's light
+list. And a mission whose pilot ODF declares its hardpoints under the wrong
+section never allocates a weapon carrier, which the game then walked without
+checking; that crashed on the first simulation frame. Found loading Hell Gate
+II, and it affects any mission authored the same way.
+
+**Less disk churn.** The shader microcode cache was rewritten every ten seconds
+for the whole session even when nothing had changed -- an identical 164 KB
+file, roughly 75 MB of pointless writes in a 90-minute session, and more
+expensive on Linux where it crosses the Proton file layer. Ogre never clears
+its own cache-dirty flag after a save, so the shim now clears it and writes
+only on a real change.
+
+Also in this build: turret tanks converge fixed weapons through the same path
+as wingmen and walkers; radar size scaling with the projection re-anchored to
+the backdrop; faction jet flames in blue, CCA orange and Black Dog red;
+satellite zoom/pan limits and optional ordnance velocity inheritance as
+single-player keys; and launching the bare executable no longer resumes the
+rolling AutoSave recovery slot.
+
+For mission authors: `.bzn` loads can be traced object by object with
+structural checks on the file, off by default. World Builder source-folder
+saving is present as a developer prototype, off by default and not yet
+qualified.
+
+Interactive ground fog wakes are in the build but not enabled and have no
+in-game effect yet.
+
 ## 2026-09-05 (third update)
 
 ### OpenShim 1.0.0.17
