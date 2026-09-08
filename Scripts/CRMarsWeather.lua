@@ -205,6 +205,14 @@ CRMarsWeather.Devils            = {}    -- systemName -> devil record
 CRMarsWeather.DevilSerial       = 0
 CRMarsWeather.NextDevilAt       = 0.0
 
+-- A create that fails is not a create to retry next tick. When the particle
+-- system cannot be made at all -- a missing template, an engine that will not
+-- build it -- every attempt costs an SEH-guarded access violation inside Ogre
+-- and produces nothing. Give up after a few and say so once.
+CRMarsWeather.DevilFailures     = 0
+CRMarsWeather.MaxDevilFailures  = 3
+CRMarsWeather.DevilsDisabled    = false
+
 CRMarsWeather.GameplayRegistered = false
 CRMarsWeather.LastSyncSeverity   = -1.0
 CRMarsWeather.GravityOwned       = false
@@ -534,9 +542,20 @@ local function SpawnDevil(player)
     local systemName = "cr_wx_devil_" .. tostring(CRMarsWeather.DevilSerial)
 
     if Call("CreateParticleSystem", systemName, "CR/Weather/DustDevil", SetVector(x, y, z)) ~= true then
-        Log("could not create " .. systemName)
+        CRMarsWeather.DevilFailures = CRMarsWeather.DevilFailures + 1
+        if CRMarsWeather.DevilFailures >= CRMarsWeather.MaxDevilFailures then
+            CRMarsWeather.DevilsDisabled = true
+            print("CRMarsWeather: dust devils disabled after " ..
+                tostring(CRMarsWeather.DevilFailures) ..
+                " failed particle creates (template CR/Weather/DustDevil unavailable)")
+        else
+            Log("could not create " .. systemName)
+        end
         return false
     end
+
+    -- Only a success clears the tally; a run of failures should still stop.
+    CRMarsWeather.DevilFailures = 0
 
     Call("SetParticleSystemKeepLocalSpace", systemName, true)
     Call("SetParticleSystemNonVisibleUpdateTimeout", systemName, 3.0)
@@ -555,7 +574,7 @@ local function SpawnDevil(player)
 end
 
 local function UpdateDevils(dt, player)
-    if not CRMarsWeather.AllowDustDevils then
+    if not CRMarsWeather.AllowDustDevils or CRMarsWeather.DevilsDisabled then
         if next(CRMarsWeather.Devils) ~= nil then
             CRMarsWeather.DestroyAllDevils()
         end
@@ -637,9 +656,12 @@ local function GameplayContribution(frame)
         return
     end
 
-    frame.radarRange  = frame.radarRange * LadderValue("radarRange")
-    frame.radarPeriod = frame.radarPeriod * LadderValue("radarPeriod")
-    frame.velocJam    = frame.velocJam * LadderValue("velocJam")
+    -- Range and jamming only. Radar PERIOD is the sweep animation, and
+    -- Environment rewrites radar state on every sync, so scaling it made the
+    -- sweep restart each time the storm severity moved -- which reads as the
+    -- radar pulsing every few seconds rather than as degraded sensors.
+    frame.radarRange = frame.radarRange * LadderValue("radarRange")
+    frame.velocJam   = frame.velocJam * LadderValue("velocJam")
 end
 
 local function UpdateSensors()
@@ -650,8 +672,11 @@ local function UpdateSensors()
 
     -- Only ask for a resync when the contribution actually moved. A sync pass
     -- walks every craft in the mission.
+    -- Coarse on purpose: a sync pass rewrites radar state on every craft, and
+    -- severity moves about 0.014 per second, so a 0.02 threshold resynced
+    -- roughly every 1.5 seconds for a change no player could perceive.
     local severity = CRMarsWeather.GetSeverity()
-    if math.abs(severity - CRMarsWeather.LastSyncSeverity) > 0.02 then
+    if math.abs(severity - CRMarsWeather.LastSyncSeverity) > 0.10 then
         CRMarsWeather.LastSyncSeverity = severity
         if type(environment.RequestGameplaySync) == "function" then
             environment.RequestGameplaySync()
@@ -741,6 +766,8 @@ function CRMarsWeather.Init(options)
     CRMarsWeather.ForcedUntil = nil
     CRMarsWeather.Devils = {}
     CRMarsWeather.DevilSerial = 0
+    CRMarsWeather.DevilFailures = 0
+    CRMarsWeather.DevilsDisabled = false
     CRMarsWeather.NextDevilAt = 12.0
     CRMarsWeather.Gust = nil
     CRMarsWeather.GustValue = 0.0
