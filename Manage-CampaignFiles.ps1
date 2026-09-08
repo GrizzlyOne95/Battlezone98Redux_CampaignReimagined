@@ -1013,8 +1013,19 @@ $script:WorkshopDescriptionMaxLength = 8000
 # DescriptionFile or an inline Description. Returns $null when neither is set.
 # Throws when a configured file is missing or unusable, because silently
 # uploading without the description is exactly the failure this replaced.
+#
+# Publishing a description is opt-in. The live Workshop description is edited
+# by hand on Steam between releases, and an upload that always sent this file
+# would silently revert those edits -- a content push and a description
+# rewrite are different intentions and should not travel together. Set
+# PublishDescription to true in workshop.config.json only when you actually
+# mean to replace what is live.
 function Get-WorkshopDescriptionText {
     param($Config)
+
+    if (-not $Config.PublishDescription) {
+        return $null
+    }
 
     if ($Config.DescriptionFile) {
         if (-not (Test-Path -LiteralPath $Config.DescriptionFile)) {
@@ -1099,6 +1110,10 @@ function Get-PublishConfig {
     $cfg.ContentFolder = Resolve-PathIfRelative $cfg.ContentFolder
     $cfg.PreviewFile = Resolve-PathIfRelative $cfg.PreviewFile
     $cfg.DescriptionFile = Resolve-PathIfRelative $cfg.DescriptionFile
+    if ($null -eq $cfg.PublishDescription) {
+        $cfg | Add-Member -NotePropertyName PublishDescription -NotePropertyValue $false
+    }
+    $cfg.PublishDescription = [bool]$cfg.PublishDescription
     $cfg.SteamCmdPath = Resolve-PathIfRelative $cfg.SteamCmdPath
 
     if ([string]$cfg.AppId -ne $WorkshopAppId -or
@@ -1318,6 +1333,12 @@ function Write-WorkshopVdf {
         $lines += "  `"description`" `"$([string](Escape-VdfText $descriptionText))`""
         Write-Host ("Description: including $($descriptionText.Length) characters" +
             $(if ($Config.DescriptionFile) { " from $($Config.DescriptionFile)" } else { "" })) -ForegroundColor DarkGray
+    }
+    elseif ($Config.DescriptionFile -or $Config.Description) {
+        Write-Host ("Description: NOT published; the live Steam description is left exactly as it is. " +
+            "A description is configured but PublishDescription is false, which is the default so a " +
+            "content push never reverts hand edits made on Steam. Set PublishDescription to true when " +
+            "you intend to replace it.") -ForegroundColor DarkGray
     }
     else {
         Write-Host "Description: none configured; leaving the published description unchanged." -ForegroundColor DarkGray
