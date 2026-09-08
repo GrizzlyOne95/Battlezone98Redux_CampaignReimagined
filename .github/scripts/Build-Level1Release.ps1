@@ -16,7 +16,8 @@ param(
 
     [string]$CampaignCommit = "",
     [string]$OpenShimCommit = "",
-    [string]$DriveFolderUrl = "https://drive.google.com/drive/folders/1vORbih4z8QKXTdwwzHfS_-81-izYW0uv"
+    [string]$DriveFolderUrl = "https://drive.google.com/drive/folders/1vORbih4z8QKXTdwwzHfS_-81-izYW0uv",
+    [string]$ModDbUploadUrl = "https://www.moddb.com/members/grizzlyone95/downloads"
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,6 +25,13 @@ Set-StrictMode -Version Latest
 
 if ($Version -notmatch '^[0-9A-Za-z][0-9A-Za-z._-]{0,63}$') {
     throw "Version '$Version' contains unsupported characters. Use letters, numbers, dot, underscore, or hyphen."
+}
+
+$modDbUploadUri = $null
+if (-not [Uri]::TryCreate($ModDbUploadUrl, [UriKind]::Absolute, [ref]$modDbUploadUri) -or
+    $modDbUploadUri.Scheme -ne "https" -or
+    $modDbUploadUri.Host -ne "www.moddb.com") {
+    throw "ModDbUploadUrl must be an HTTPS URL on www.moddb.com."
 }
 
 $bundle = [System.IO.Path]::GetFullPath($BundleDir)
@@ -130,8 +138,18 @@ This ModDB-ready archive is generated from the same manifest-validated content u
 "@
 Set-Content -LiteralPath (Join-Path $output "moddb_description.txt") -Value $description -Encoding UTF8
 
+$handoffScript = Join-Path $PSScriptRoot "Invoke-ModDbHandoff.ps1"
+$handoffLauncher = Join-Path $PSScriptRoot "Open-ModDbHandoff.cmd"
+foreach ($requiredHandoffFile in @($handoffScript, $handoffLauncher)) {
+    if (-not (Test-Path -LiteralPath $requiredHandoffFile -PathType Leaf)) {
+        throw "Mod DB handoff helper is missing: '$requiredHandoffFile'."
+    }
+}
+Copy-Item -LiteralPath $handoffScript -Destination (Join-Path $output "Invoke-ModDbHandoff.ps1") -Force
+Copy-Item -LiteralPath $handoffLauncher -Destination (Join-Path $output "Open-ModDbHandoff.cmd") -Force
+
 $metadata = [ordered]@{
-    SchemaVersion = 1
+    SchemaVersion = 2
     Product = "Campaign Reimagined"
     Game = "Battlezone 98 Redux"
     Version = $Version
@@ -146,6 +164,7 @@ $metadata = [ordered]@{
     CampaignCommit = $CampaignCommit
     OpenShimCommit = $OpenShimCommit
     DriveArchiveFolderUrl = $DriveFolderUrl
+    ModDbUploadUrl = $modDbUploadUri.AbsoluteUri
     PreparedAtUtc = [DateTime]::UtcNow.ToString("o")
     FinalModDbSubmissionRequired = $true
 }
@@ -163,6 +182,7 @@ $receipt = [ordered]@{
         Status = "prepared"
         FinalSubmissionRequired = $true
         ReleaseType = $ModDbReleaseType
+        UploadUrl = $modDbUploadUri.AbsoluteUri
     }
     Drive = [ordered]@{
         Status = "prepared-for-archive"
