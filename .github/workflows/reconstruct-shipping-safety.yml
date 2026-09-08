@@ -1,0 +1,122 @@
+name: Reconstruct shipping safety
+
+on:
+  push:
+    branches:
+      - agent/shipping-lock-player-config-safety-v2
+
+permissions:
+  contents: write
+
+jobs:
+  reconstruct:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: windows-2022
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out current-main reconstruction branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Apply only the shipping-safety portion of the retired commit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $oldCommit = 'c97a227a193574a99417835578885c5c286878e5'
+          git fetch origin agent/shipping-lock-and-faction-flames --no-tags
+          if ($LASTEXITCODE -ne 0) { throw 'Could not fetch retired source branch.' }
+
+          $parent = (git rev-parse "$oldCommit^").Trim()
+          if (-not $parent) { throw 'Could not resolve retired commit parent.' }
+
+          git diff --binary $parent $oldCommit -- `
+            .gitignore `
+            Manage-CampaignFiles.ps1 `
+            Scripts/PersistentConfig.lua > shipping-safety.patch
+          if ($LASTEXITCODE -ne 0) { throw 'Could not build focused shipping-safety patch.' }
+
+          git apply --3way --index shipping-safety.patch
+          if ($LASTEXITCODE -ne 0) {
+            git status --short
+            throw 'Three-way reconstruction conflicted with current main; refusing to carry stale files forward.'
+          }
+
+          # The retired commit also opened a root Textures authoring path for the
+          # obsolete flame experiment. That is not part of shipping safety.
+          $ignore = Get-Content -LiteralPath '.gitignore' -Raw
+          $ignore = $ignore -replace '(?m)^!/Textures/\r?\n', ''
+          $ignore = $ignore -replace '(?m)^!/Textures/\*\*\r?\n', ''
+          [System.IO.File]::WriteAllText(
+            (Resolve-Path '.gitignore'), $ignore, [System.Text.UTF8Encoding]::new($false))
+
+          Remove-Item -LiteralPath shipping-safety.patch -Force
+
+      - name: Generate lock from this exact current-main tree
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & .\Manage-CampaignFiles.ps1 -bless
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
+            throw "Shipping lock generation failed with exit code $LASTEXITCODE."
+          }
+          if (-not (Test-Path -LiteralPath 'Shipping\shipping.lock.json')) {
+            throw 'Shipping lock was not generated.'
+          }
+          $lock = Get-Content -LiteralPath 'Shipping\shipping.lock.json' -Raw | ConvertFrom-Json
+          if (-not $lock.files -or [int]$lock.count -ne @($lock.files).Count) {
+            throw 'Generated shipping lock count is invalid.'
+          }
+          if ([int]$lock.count -lt 1000) {
+            throw "Generated shipping lock is implausibly small: $($lock.count) files."
+          }
+          Write-Host "Generated current-tree shipping lock with $($lock.count) files."
+
+      - name: Parse reconstructed PowerShell
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Join-Path $env:GITHUB_WORKSPACE 'Manage-CampaignFiles.ps1'),
+            [ref]$tokens,
+            [ref]$errors)
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            throw 'Manage-CampaignFiles.ps1 contains parse errors after reconstruction.'
+          }
+
+          $manager = Get-Content -LiteralPath 'Manage-CampaignFiles.ps1' -Raw
+          foreach ($required in @(
+            'function Get-ShippingLock',
+            'function Resolve-ShippingSet',
+            'function Invoke-BlessShipping',
+            'function Invoke-VerifyInstall',
+            'overwrite = false',
+            'Compare by content, never by timestamp'
+          )) {
+            if (-not $manager.Contains($required)) {
+              throw "Reconstruction is missing required shipping-safety marker: $required"
+            }
+          }
+
+      - name: Commit reconstructed work and remove bootstrap workflow
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git rm -- '.github/workflows/reconstruct-shipping-safety.yml'
+          git add -- '.gitignore' 'Manage-CampaignFiles.ps1' 'Scripts/PersistentConfig.lua' 'Shipping/shipping.lock.json'
+
+          $changed = git status --short
+          $changed | ForEach-Object { Write-Host $_ }
+          if (-not $changed) { throw 'Reconstruction produced no changes.' }
+
+          git commit -m 'shipping: reconstruct deploy lock and player-config safety'
+          if ($LASTEXITCODE -ne 0) { throw 'Could not commit reconstructed shipping safety.' }
+          git push origin HEAD:agent/shipping-lock-player-config-safety-v2
+          if ($LASTEXITCODE -ne 0) { throw 'Could not push reconstructed shipping-safety branch.' }
