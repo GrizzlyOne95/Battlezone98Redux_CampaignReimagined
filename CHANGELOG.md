@@ -2,6 +2,28 @@
 
 ## 2026-09-07
 
+### Mars weather: continuous transitions and a real-time clock
+
+- Fog, ambient, sun diffuse and sun power no longer snap when the weather
+  changes rung. The atmosphere contribution read only the *incoming* preset at
+  weight `Blend`, and `SetPreset` restarts `Blend` at 0, so every change dropped
+  the whole atmosphere back to the bare mission baseline for a frame and then
+  ramped the new preset in over 18-30 seconds. `CRWeather` now keeps a weight per
+  live preset and only ever moves ramp targets, which makes a change continuous
+  by construction — including a change that interrupts a transition still in
+  flight, which a single incoming/outgoing pair cannot express.
+- The weather clock now comes from `GetTime()` instead of the caller's fixed
+  `1.0 / M.TPS`. `Update` runs once per rendered frame, so that delta was a frame
+  count: at 120 fps the weather ran six times real speed, rungs whose dwell is
+  35-160 s re-rolled every 6-25 s, and gusts fired several times a second. This
+  is what made the atmosphere snap repeatedly rather than occasionally.
+- A preset displaced part way through a transition no longer strands its particle
+  systems in the scene. The sweep only ever matched a single `Previous`, so those
+  systems stayed for the rest of the mission at zero weight.
+- `Tools/Test-CRMarsWeather.lua` asserts atmosphere continuity across a preset
+  change and across an interrupted transition, and that no particle system
+  outlives the preset that owns it.
+
 ### Mars weather for misn04
 
 - Added `CRMarsWeather`, a Mars weather director layered on `CRWeather`. Weather
