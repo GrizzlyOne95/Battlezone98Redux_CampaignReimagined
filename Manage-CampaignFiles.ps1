@@ -1201,7 +1201,10 @@ function Get-PublishConfig {
 
     $configPath = Join-Path $RepoRoot "workshop.config.json"
     if (-not (Test-Path $configPath)) {
-        Write-Error "Missing publish config: $configPath (copy workshop.config.example.json to workshop.config.json and fill it in)."
+        Write-Error ("Missing publish config: $configPath`n" +
+            "  Run:  .\Manage-CampaignFiles.ps1 -workshop-init`n" +
+            "  then set SteamUser in workshop.config.json (or define STEAM_USERNAME).`n" +
+            "  The file is per-machine and gitignored, so a fresh clone never has one.")
         return $null
     }
 
@@ -1791,6 +1794,32 @@ elseif ($args[0] -eq "-workshop-build") {
 }
 elseif ($args[0] -eq "-workshop-auth") {
     Initialize-WorkshopAuth
+}
+elseif ($args[0] -eq "-workshop-init") {
+    # workshop.config.json is per-machine and gitignored, so every fresh clone
+    # hits the same wall: the publish actions abort on a missing file with no
+    # obvious next step. Scaffold it from the tracked example and say exactly
+    # what still has to be filled in.
+    $target = Join-Path $RepoRoot "workshop.config.json"
+    $example = Join-Path $RepoRoot "workshop.config.example.json"
+    if (Test-Path -LiteralPath $target) {
+        Write-Host "workshop.config.json already exists; leaving it alone." -ForegroundColor Yellow
+    }
+    elseif (-not (Test-Path -LiteralPath $example)) {
+        Write-Error "workshop.config.example.json is missing; cannot scaffold."
+        exit 1
+    }
+    else {
+        Copy-Item -LiteralPath $example -Destination $target
+        Write-Host "Created workshop.config.json from the example." -ForegroundColor Green
+    }
+    $cfg = Get-Content -LiteralPath $target -Raw | ConvertFrom-Json
+    if (-not $cfg.SteamUser -and -not $env:STEAM_USERNAME) {
+        Write-Host ("Still required: SteamUser (the Steam account that can update item " +
+            "$WorkshopPublishedFileId), either in workshop.config.json or as STEAM_USERNAME.") -ForegroundColor Yellow
+    }
+    Write-Host "PublishDescription is $([bool]$cfg.PublishDescription); leave it false unless this run is meant to replace the live Steam description." -ForegroundColor DarkGray
+    Write-Host "Then: -workshop-auth (once per machine), -workshop-build (dry run), -publish `"<change note>`"." -ForegroundColor DarkGray
 }
 elseif ($args[0] -eq "-workshop-upload") {
     $message = $null
