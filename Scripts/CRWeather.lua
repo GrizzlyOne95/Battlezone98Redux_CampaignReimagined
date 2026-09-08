@@ -58,8 +58,8 @@ CRWeather.Debug              = false
 
 CRWeather.Initialized        = false
 CRWeather.Active             = nil   -- preset table currently blending in
-CRWeather.Previous           = nil   -- preset table currently blending out
-CRWeather.Blend              = 0.0   -- 0 = no weather, 1 = Active fully applied
+CRWeather.Layers             = {}    -- ordered oldest -> newest: { preset, weight }
+CRWeather.Blend              = 0.0   -- Active's own weight; 1 = fully applied
 CRWeather.BlendTarget        = 0.0
 CRWeather.BlendRate          = 0.0
 CRWeather.SkyApplied         = false
@@ -300,12 +300,62 @@ local function SyncWindDirection()
     CRWeather.LastWindApplied = direction
 end
 
+-- Every preset that still has any presence on screen, oldest first, each with
+-- its own weight. One Active/Previous pair could not express the state that a
+-- change part way through a transition actually produces -- the displaced
+-- preset was still fading itself -- and losing that residue is what made a
+-- change visible as a step.
+local function LayerFor(preset)
+    for i = 1, #CRWeather.Layers do
+        if CRWeather.Layers[i].preset == preset then
+            return CRWeather.Layers[i]
+        end
+    end
+    return nil
+end
+
+local function LayerWeight(preset)
+    local layer = LayerFor(preset)
+    return layer and Clamp01(layer.weight) or 0.0
+end
+
+-- Moves every layer one step toward its target: the Active preset climbs, all
+-- the others fall. Returns the presets that reached zero, whose particle
+-- systems are now pure cost. Nothing here ever assigns a weight outright, which
+-- is what keeps a preset change continuous.
+local function StepLayers(dt)
+    local step = CRWeather.BlendRate * dt
+    if step <= 0.0 or #CRWeather.Layers == 0 then
+        return nil
+    end
+
+    local surviving = {}
+    local retired = nil
+    for i = 1, #CRWeather.Layers do
+        local layer = CRWeather.Layers[i]
+        if layer.preset == CRWeather.Active then
+            layer.weight = Clamp01(layer.weight + step)
+        else
+            layer.weight = Clamp01(layer.weight - step)
+        end
+
+        if layer.weight > 0.0 or layer.preset == CRWeather.Active then
+            surviving[#surviving + 1] = layer
+        else
+            retired = retired or {}
+            retired[#retired + 1] = layer.preset
+        end
+    end
+
+    CRWeather.Layers = surviving
+    return retired
+end
+
 local function SyncSystems(dt)
     SyncWindDirection()
 
     for systemName, live in pairs(CRWeather.LiveSystems) do
-        local isIncoming = (live.preset == CRWeather.Active)
-        local presetWeight = isIncoming and CRWeather.Blend or (1.0 - CRWeather.Blend)
+        local presetWeight = LayerWeight(live.preset)
         local weight = Clamp01(presetWeight) * Clamp01(CRWeather.Intensity) * math.max(0.0, CRWeather.Quality)
 
         -- Gusts modulate rate only, so one authored template covers calm and gale.
@@ -371,36 +421,47 @@ local function CurrentWeight()
     return Clamp01(CRWeather.Blend) * Clamp01(CRWeather.Intensity)
 end
 
+local function ApplyPresetToFrame(frame, preset, weight)
+    if preset == nil or weight <= 0.0 then
+        return
+    end
+
+    if preset.fog and frame.fog then
+        frame.fog.r = Lerp(frame.fog.r, preset.fog.r, weight)
+        frame.fog.g = Lerp(frame.fog.g, preset.fog.g, weight)
+        frame.fog.b = Lerp(frame.fog.b, preset.fog.b, weight)
+        frame.fog.fogStart = Lerp(frame.fog.fogStart, preset.fog.fogStart, weight)
+        frame.fog.fogEnd = Lerp(frame.fog.fogEnd, preset.fog.fogEnd, weight)
+    end
+
+    if preset.ambient and frame.ambient then
+        frame.ambient.r = Lerp(frame.ambient.r, preset.ambient.r, weight)
+        frame.ambient.g = Lerp(frame.ambient.g, preset.ambient.g, weight)
+        frame.ambient.b = Lerp(frame.ambient.b, preset.ambient.b, weight)
+    end
+
+    if preset.diffuse and frame.diffuse then
+        frame.diffuse.r = Lerp(frame.diffuse.r, preset.diffuse.r, weight)
+        frame.diffuse.g = Lerp(frame.diffuse.g, preset.diffuse.g, weight)
+        frame.diffuse.b = Lerp(frame.diffuse.b, preset.diffuse.b, weight)
+    end
+
+    if preset.sunPowerScale and frame.sunPowerScale then
+        frame.sunPowerScale = Lerp(frame.sunPowerScale, preset.sunPowerScale, weight)
+    end
+end
+
 -- Mutates an Environment frame in place. Also used by the standalone path,
 -- where the "frame" is a baseline snapshot instead of Environment's live target.
 function CRWeather.ApplyEnvironmentContribution(frame)
-    local preset = CRWeather.Active
-    local weight = CurrentWeight()
-
-    if preset ~= nil and weight > 0.0 then
-        if preset.fog and frame.fog then
-            frame.fog.r = Lerp(frame.fog.r, preset.fog.r, weight)
-            frame.fog.g = Lerp(frame.fog.g, preset.fog.g, weight)
-            frame.fog.b = Lerp(frame.fog.b, preset.fog.b, weight)
-            frame.fog.fogStart = Lerp(frame.fog.fogStart, preset.fog.fogStart, weight)
-            frame.fog.fogEnd = Lerp(frame.fog.fogEnd, preset.fog.fogEnd, weight)
-        end
-
-        if preset.ambient and frame.ambient then
-            frame.ambient.r = Lerp(frame.ambient.r, preset.ambient.r, weight)
-            frame.ambient.g = Lerp(frame.ambient.g, preset.ambient.g, weight)
-            frame.ambient.b = Lerp(frame.ambient.b, preset.ambient.b, weight)
-        end
-
-        if preset.diffuse and frame.diffuse then
-            frame.diffuse.r = Lerp(frame.diffuse.r, preset.diffuse.r, weight)
-            frame.diffuse.g = Lerp(frame.diffuse.g, preset.diffuse.g, weight)
-            frame.diffuse.b = Lerp(frame.diffuse.b, preset.diffuse.b, weight)
-        end
-
-        if preset.sunPowerScale and frame.sunPowerScale then
-            frame.sunPowerScale = Lerp(frame.sunPowerScale, preset.sunPowerScale, weight)
-        end
+    -- Oldest layer first, so the newest preset has the last word. A preset
+    -- change adds a layer at weight zero and moves no existing weight, so this
+    -- produces exactly the previous frame's atmosphere on the frame of the
+    -- change -- which is the whole point: weather must not cut.
+    local intensity = Clamp01(CRWeather.Intensity)
+    for i = 1, #CRWeather.Layers do
+        local layer = CRWeather.Layers[i]
+        ApplyPresetToFrame(frame, layer.preset, Clamp01(layer.weight) * intensity)
     end
 
     -- Lightning is an illumination event, not an explosion: a brief additive
@@ -564,7 +625,7 @@ function CRWeather.Init(options)
     CRWeather.BlendTarget = 0.0
     CRWeather.BlendRate = 0.0
     CRWeather.Active = nil
-    CRWeather.Previous = nil
+    CRWeather.Layers = {}
     CRWeather.LiveSystems = {}
     CRWeather.SkyApplied = false
 
@@ -609,24 +670,29 @@ function CRWeather.SetPreset(name, transitionSeconds)
         return true
     end
 
-    -- The outgoing preset keeps its systems alive so its particles fade rather
-    -- than vanish; SyncSystems drives them off the inverse blend.
-    CRWeather.Previous = CRWeather.Active
+    -- The outgoing presets keep their systems alive so their particles fade
+    -- rather than vanish; SyncSystems drives each off its own layer weight.
+    -- Swapping back to a preset that is still fading reuses its layer, so it
+    -- climbs from where it is instead of restarting.
     CRWeather.Active = preset
+    if preset ~= nil and LayerFor(preset) == nil then
+        CRWeather.Layers[#CRWeather.Layers + 1] = { preset = preset, weight = 0.0 }
+    end
 
     local duration
     if preset ~= nil then
         duration = tonumber(transitionSeconds) or preset.transitionIn or 20.0
         CRWeather.BlendTarget = 1.0
     else
-        local outgoing = CRWeather.Previous
+        local outgoing = CRWeather.Layers[#CRWeather.Layers]
+        outgoing = outgoing and outgoing.preset or nil
         duration = tonumber(transitionSeconds) or (outgoing and outgoing.transitionOut) or 20.0
         CRWeather.BlendTarget = 0.0
     end
 
     duration = math.max(0.05, duration)
     CRWeather.BlendRate = 1.0 / duration
-    CRWeather.Blend = 0.0
+    CRWeather.Blend = LayerWeight(preset)
 
     if preset ~= nil then
         for i = 1, #preset.precipitation do
@@ -741,24 +807,25 @@ function CRWeather.Update(dt)
     dt = tonumber(dt) or 0.0
     CRWeather.Clock = CRWeather.Clock + dt
 
-    if CRWeather.Blend < 1.0 and CRWeather.BlendRate > 0.0 then
-        CRWeather.Blend = Clamp01(CRWeather.Blend + (CRWeather.BlendRate * dt))
-    end
-
-    -- The outgoing preset's systems are only worth keeping while they still
-    -- contribute; once the crossfade is done they are pure cost.
-    if CRWeather.Previous ~= nil and CRWeather.Blend >= 1.0 then
+    -- A faded-out preset's systems are only worth keeping while they still
+    -- contribute; past zero they are pure cost.
+    local retired = StepLayers(dt)
+    if retired ~= nil then
         local stale = {}
         for systemName, live in pairs(CRWeather.LiveSystems) do
-            if live.preset == CRWeather.Previous then
-                stale[#stale + 1] = systemName
+            for i = 1, #retired do
+                if live.preset == retired[i] then
+                    stale[#stale + 1] = systemName
+                    break
+                end
             end
         end
         for i = 1, #stale do
             DestroySystem(stale[i])
         end
-        CRWeather.Previous = nil
     end
+
+    CRWeather.Blend = LayerWeight(CRWeather.Active)
 
     SyncSystems(dt)
     SyncSky()
@@ -778,7 +845,7 @@ end
 function CRWeather.ResetSystems()
     DestroyAllSystems()
     CRWeather.Active = nil
-    CRWeather.Previous = nil
+    CRWeather.Layers = {}
     CRWeather.Blend = 0.0
     CRWeather.BlendTarget = 0.0
     CRWeather.BlendRate = 0.0
@@ -810,14 +877,14 @@ function CRWeather.Shutdown()
 
     if CRWeather.OwnsEnvironment and CRWeather.BaselineFog ~= nil then
         CRWeather.Active = nil
-        CRWeather.Previous = nil
+        CRWeather.Layers = {}
         CRWeather.Blend = 0.0
         CRWeather.FlashUntil = nil
         WriteEnvironmentDirect()
     end
 
     CRWeather.Active = nil
-    CRWeather.Previous = nil
+    CRWeather.Layers = {}
     CRWeather.Blend = 0.0
     CRWeather.BlendTarget = 0.0
     CRWeather.BlendRate = 0.0
@@ -858,6 +925,13 @@ function CRWeather.Load(state)
         -- to load back into it, not into a 25 second fade-in.
         CRWeather.SetPreset(state.preset, 0.05)
         CRWeather.Blend = Clamp01(tonumber(state.blend) or 1.0)
+
+        -- SetPreset appends the layer at zero and lets Update ramp it. A load is
+        -- the one place that legitimately assigns a weight outright.
+        local layer = LayerFor(CRWeather.Active)
+        if layer ~= nil then
+            layer.weight = CRWeather.Blend
+        end
     end
 end
 

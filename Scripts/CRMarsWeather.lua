@@ -183,6 +183,7 @@ CRMarsWeather.Automatic        = true
 CRMarsWeather.Level            = 1      -- integer rung currently selected
 CRMarsWeather.TargetLevel      = 2      -- the rung the director trends toward
 CRMarsWeather.LevelValue       = 1.0    -- smoothed fractional position
+CRMarsWeather.LastRealTime     = nil    -- previous GetTime() sample; see RealDelta
 CRMarsWeather.NextLevelAt      = 0.0
 CRMarsWeather.ForcedUntil      = nil
 CRMarsWeather.ForcedLevel      = nil
@@ -815,6 +816,40 @@ function CRMarsWeather.Init(options)
     Log("initialised at level " .. Level(CRMarsWeather.Level).name)
 end
 
+-- misn04 hands every module a fixed 1.0 / M.TPS as its delta, but Update runs
+-- once per rendered frame rather than TPS times a second, so that number is a
+-- frame count wearing seconds' clothing: at 120 fps the weather clock advanced
+-- six seconds per real second. Rungs whose dwell is 35-160 s re-rolled every
+-- 6-25 s, gusts fired several times a second, and the whole ladder read as
+-- flapping rather than as weather. Mission logic elsewhere uses GetTime(), so
+-- take the delta from the same clock and be framerate-independent.
+--
+-- Returns the caller's dt unchanged when GetTime is unavailable (the offline
+-- test harness), and 0 across a discontinuity -- a load, a pause or a restart
+-- hands back a jump or a negative, and neither is an elapsed second.
+local function RealDelta(fallbackDt)
+    if type(GetTime) ~= "function" then
+        return fallbackDt
+    end
+
+    local now = GetTime()
+    if type(now) ~= "number" then
+        return fallbackDt
+    end
+
+    local last = CRMarsWeather.LastRealTime
+    CRMarsWeather.LastRealTime = now
+    if last == nil then
+        return 0.0
+    end
+
+    local delta = now - last
+    if delta <= 0.0 or delta > 1.0 then
+        return 0.0
+    end
+    return delta
+end
+
 function CRMarsWeather.Update(dt)
     if not CRMarsWeather.Initialized then
         CRMarsWeather.Init()
@@ -823,7 +858,13 @@ function CRMarsWeather.Update(dt)
         return
     end
 
+    -- A caller passing 0 still means "settle the scene, do not advance time",
+    -- so honour that before consulting the real clock.
     dt = tonumber(dt) or 0.0
+    if dt > 0.0 then
+        dt = RealDelta(dt)
+    end
+
     if dt <= 0.0 then
         -- A zero-length frame still has to drive the renderer, because missions
         -- call Update(0) once during load to settle the scene before the first
