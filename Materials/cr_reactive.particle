@@ -1,0 +1,514 @@
+// cr_reactive.particle
+//
+// Ogre particle templates for the Campaign Reimagined reactive presentation
+// layer: weapon-specific impact bursts and persistent damage-state VFX.
+//
+// Two very different lifetimes live in this file.
+//
+// Impact systems are pooled. CRReactive keeps a small fixed set alive, moves one
+// to the hit position, lets it emit for a fraction of a second, then parks it.
+// They must therefore reach full visual effect almost immediately and die
+// quickly: emission_rate is high and time_to_live is short.
+//
+// Damage systems are attached to a craft's own scene node and run continuously
+// while that craft sits in a damage band. They must be cheap, because several
+// can be alive at once, and they must read at a distance without becoming the
+// loudest thing on screen.
+//
+// Emitter ORDER MATTERS where a preset or profile addresses emitters by index.
+// Index 0 is the emitter declared first in each block.
+
+// =============================================================================
+// Impact -- conventional armour
+// =============================================================================
+
+// Machine guns: sharp, small, over instantly. No smoke -- a rifle round on
+// armour is a spark, and adding smoke here is what makes a firefight read as
+// mud rather than as gunfire.
+particle_system CR/Impact/SparkSmall
+{
+    material            CR_FX/Spark
+    particle_width      0.18
+    particle_height     0.55
+    quota               160
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Point
+    {
+        angle               75
+        emission_rate       420
+        time_to_live_min    0.10
+        time_to_live_max    0.28
+        direction           0 1 0
+        velocity_min        7
+        velocity_max        18
+        colour_range_start  1.00 0.88 0.55 1.00
+        colour_range_end    1.00 0.52 0.12 0.85
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -22 0
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        red     -1.6
+        green   -2.6
+        blue    -3.2
+        alpha   -3.0
+    }
+}
+
+// Cannons: a broader hot bloom plus heavier sparks. Two emitters, bloom first.
+particle_system CR/Impact/BloomHot
+{
+    material            CR_FX/Bloom
+    particle_width      1.8
+    particle_height     1.8
+    quota               120
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               25
+        emission_rate       90
+        time_to_live_min    0.14
+        time_to_live_max    0.30
+        direction           0 1 0
+        velocity_min        1
+        velocity_max        4
+        colour_range_start  1.00 0.92 0.72 1.00
+        colour_range_end    1.00 0.46 0.10 0.85
+    }
+
+    emitter Point
+    {
+        angle               85
+        emission_rate       260
+        time_to_live_min    0.16
+        time_to_live_max    0.40
+        direction           0 1 0
+        velocity_min        10
+        velocity_max        26
+        colour_range_start  1.00 0.80 0.42 1.00
+        colour_range_end    1.00 0.40 0.08 0.70
+    }
+
+    affector Scaler
+    {
+        rate 6
+    }
+
+    affector ColourFader
+    {
+        alpha -3.2
+    }
+}
+
+// Rockets, missiles and mortars: flash, then a debris and smoke burst that
+// lingers just long enough to be read as an explosion rather than a flash.
+particle_system CR/Impact/BlastSmoke
+{
+    material            CR_FX/SmokeHeavy
+    particle_width      2.4
+    particle_height     2.4
+    quota               260
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               70
+        emission_rate       200
+        time_to_live_min    0.7
+        time_to_live_max    1.6
+        direction           0 1 0
+        velocity_min        4
+        velocity_max        13
+        colour_range_start  0.42 0.38 0.35 0.85
+        colour_range_end    0.20 0.19 0.18 0.55
+    }
+
+    emitter Point
+    {
+        angle               90
+        emission_rate       160
+        time_to_live_min    0.20
+        time_to_live_max    0.50
+        direction           0 1 0
+        velocity_min        12
+        velocity_max        30
+        colour_range_start  1.00 0.72 0.30 1.00
+        colour_range_end    0.70 0.24 0.05 0.60
+    }
+
+    affector Scaler
+    {
+        rate 3.5
+    }
+
+    affector ColourFader
+    {
+        alpha -0.85
+    }
+}
+
+// Energy and charge weapons: an ionised discharge that spreads across the
+// surface rather than throwing metal off it.
+particle_system CR/Impact/EnergyDischarge
+{
+    material            CR_FX/Ion
+    particle_width      1.4
+    particle_height     1.4
+    quota               180
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               90
+        emission_rate       260
+        time_to_live_min    0.16
+        time_to_live_max    0.45
+        direction           0 1 0
+        velocity_min        5
+        velocity_max        16
+        colour_range_start  0.62 0.94 1.00 1.00
+        colour_range_end    0.20 0.48 0.95 0.65
+    }
+
+    affector Scaler
+    {
+        rate 4
+    }
+
+    affector ColourFader
+    {
+        red     -1.2
+        green   -1.6
+        blue    -0.8
+        alpha   -2.6
+    }
+}
+
+// =============================================================================
+// Impact -- biological
+// =============================================================================
+
+particle_system CR/Impact/BioFleck
+{
+    material            CR_FX/BioBurst
+    particle_width      0.4
+    particle_height     0.4
+    quota               140
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               80
+        emission_rate       320
+        time_to_live_min    0.12
+        time_to_live_max    0.32
+        direction           0 1 0
+        velocity_min        6
+        velocity_max        15
+        colour_range_start  0.45 1.00 0.92 1.00
+        colour_range_end    0.30 0.70 0.95 0.70
+    }
+
+    affector ColourFader
+    {
+        alpha -3.0
+    }
+}
+
+particle_system CR/Impact/BioRupture
+{
+    material            CR_FX/BioBurst
+    particle_width      1.9
+    particle_height     1.9
+    quota               220
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               85
+        emission_rate       220
+        time_to_live_min    0.35
+        time_to_live_max    0.95
+        direction           0 1 0
+        velocity_min        4
+        velocity_max        14
+        colour_range_start  0.55 1.00 0.95 1.00
+        colour_range_end    0.55 0.28 0.92 0.55
+    }
+
+    affector Scaler
+    {
+        rate 3
+    }
+
+    affector ColourFader
+    {
+        alpha -1.2
+    }
+}
+
+// =============================================================================
+// Damage states -- conventional
+// =============================================================================
+
+// Moderate damage: occasional sparks, no smoke. A craft at 60% health should be
+// legibly worse off without becoming a smoke marker on the battlefield.
+particle_system CR/Damage/SparkIntermittent
+{
+    material            CR_FX/Spark
+    particle_width      0.14
+    particle_height     0.45
+    quota               60
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Point
+    {
+        angle               60
+        emission_rate       7
+        time_to_live_min    0.15
+        time_to_live_max    0.40
+        direction           0 -1 0
+        velocity_min        3
+        velocity_max        9
+        colour_range_start  1.00 0.85 0.50 1.00
+        colour_range_end    1.00 0.45 0.10 0.70
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -18 0
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha -2.4
+    }
+}
+
+particle_system CR/Damage/SmokeThin
+{
+    material            CR_FX/SmokeThin
+    particle_width      1.6
+    particle_height     1.6
+    quota               110
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               18
+        emission_rate       11
+        time_to_live_min    1.6
+        time_to_live_max    3.0
+        direction           0 1 0
+        velocity_min        2.5
+        velocity_max        5.0
+        colour_range_start  0.52 0.50 0.48 0.42
+        colour_range_end    0.34 0.33 0.32 0.26
+    }
+
+    affector Scaler
+    {
+        rate 1.6
+    }
+
+    affector ColourFader
+    {
+        alpha -0.16
+    }
+}
+
+particle_system CR/Damage/SmokeHeavy
+{
+    material            CR_FX/SmokeHeavy
+    particle_width      2.4
+    particle_height     2.4
+    quota               220
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               24
+        emission_rate       28
+        time_to_live_min    2.4
+        time_to_live_max    4.4
+        direction           0 1 0
+        velocity_min        3.0
+        velocity_max        6.5
+        colour_range_start  0.30 0.28 0.27 0.80
+        colour_range_end    0.14 0.13 0.13 0.50
+    }
+
+    affector Scaler
+    {
+        rate 2.4
+    }
+
+    affector ColourFader
+    {
+        alpha -0.20
+    }
+}
+
+particle_system CR/Damage/ArcElectrical
+{
+    material            CR_FX/Arc
+    particle_width      0.9
+    particle_height     0.35
+    quota               50
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Point
+    {
+        angle               90
+        emission_rate       9
+        time_to_live_min    0.06
+        time_to_live_max    0.16
+        direction           0 1 0
+        velocity_min        1
+        velocity_max        5
+        colour_range_start  0.75 0.90 1.00 1.00
+        colour_range_end    0.35 0.60 1.00 0.80
+    }
+
+    affector ColourFader
+    {
+        alpha -6.0
+    }
+}
+
+// =============================================================================
+// Damage states -- biological
+// =============================================================================
+
+particle_system CR/Damage/BioFlicker
+{
+    material            CR_FX/BioLeak
+    particle_width      0.8
+    particle_height     0.8
+    quota               60
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               90
+        emission_rate       8
+        time_to_live_min    0.3
+        time_to_live_max    0.9
+        direction           0 1 0
+        velocity_min        0.5
+        velocity_max        2.5
+        colour_range_start  0.40 0.95 0.95 0.85
+        colour_range_end    0.30 0.60 0.95 0.40
+    }
+
+    affector ColourFader
+    {
+        alpha -1.1
+    }
+}
+
+particle_system CR/Damage/BioLeak
+{
+    material            CR_FX/BioLeak
+    particle_width      1.5
+    particle_height     1.5
+    quota               160
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               30
+        emission_rate       22
+        time_to_live_min    1.4
+        time_to_live_max    2.8
+        direction           0 1 0
+        velocity_min        1.5
+        velocity_max        4.0
+        colour_range_start  0.45 1.00 0.92 0.75
+        colour_range_end    0.50 0.30 0.92 0.35
+    }
+
+    affector Scaler
+    {
+        rate 1.8
+    }
+
+    affector ColourFader
+    {
+        alpha -0.30
+    }
+}
+
+particle_system CR/Damage/BioArc
+{
+    material            CR_FX/Arc
+    particle_width      0.9
+    particle_height     0.35
+    quota               50
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Point
+    {
+        angle               90
+        emission_rate       11
+        time_to_live_min    0.06
+        time_to_live_max    0.18
+        direction           0 1 0
+        velocity_min        1
+        velocity_max        5
+        colour_range_start  0.55 1.00 0.95 1.00
+        colour_range_end    0.45 0.35 1.00 0.80
+    }
+
+    affector ColourFader
+    {
+        alpha -5.5
+    }
+}
