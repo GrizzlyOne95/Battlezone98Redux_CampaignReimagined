@@ -1,0 +1,535 @@
+// cr_weather.particle
+//
+// Ogre particle templates for the Campaign Reimagined weather controller.
+//
+// Every one of these is a camera-centred volume, not a map-wide simulation:
+// CRWeather attaches the system to the camera's scene node, so the emitter box
+// travels with the player while the particles it has already produced stay in
+// world space. Sizing the box for the visible near field is what keeps a full
+// storm affordable.
+//
+// Emitter ORDER MATTERS. CRWeatherPresets.lua addresses emitters by index, and
+// index 0 is the emitter declared first in each block. Adding an emitter above
+// an existing one silently retargets the preset's tuning.
+//
+// The values here are the authored baseline. Rate, velocity, lifetime, spread,
+// direction and colour are all overridden live by the preset, so treat these as
+// the shape of the effect rather than its final numbers.
+//
+// Materials live in CR_reactive.material and currently use placeholder
+// textures. See Docs/CR_REACTIVE_PRESENTATION.md for the art request list.
+
+// =============================================================================
+// Dust
+// =============================================================================
+
+particle_system CR/Weather/DustNear
+{
+    material            CR_FX/Dust
+    particle_width      3.5
+    particle_height     3.5
+    quota               2600
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               22
+        emission_rate       240
+        time_to_live_min    2.2
+        time_to_live_max    3.6
+        direction           -1 -0.3 0
+        velocity_min        30
+        velocity_max        52
+        colour_range_start  0.72 0.47 0.26 0.55
+        colour_range_end    0.58 0.36 0.20 0.35
+        width               260
+        height              90
+        depth               260
+    }
+
+    affector ColourFader
+    {
+        alpha -0.18
+    }
+
+    // Dust drifts rather than falls; the randomiser stops the volume reading as
+    // a flat sheet of identically-moving quads.
+    affector DirectionRandomiser
+    {
+        randomness      6
+        scope           0.35
+        keep_velocity   true
+    }
+}
+
+// Heavier grit that reads as debris being carried past the player. Sparse on
+// purpose: it is punctuation for the dust, not a second dust layer.
+particle_system CR/Weather/DustGrit
+{
+    material            CR_FX/Grit
+    particle_width      0.9
+    particle_height     0.9
+    quota               400
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Box
+    {
+        angle               10
+        emission_rate       26
+        time_to_live_min    1.2
+        time_to_live_max    2.0
+        direction           -1 -0.2 0
+        velocity_min        44
+        velocity_max        68
+        colour_range_start  0.78 0.56 0.34 0.85
+        colour_range_end    0.62 0.42 0.24 0.60
+        width               160
+        height              26
+        depth               160
+    }
+}
+
+// Mars haze. The always-there layer: thin suspended fines that never fully
+// settle out of the Martian atmosphere. Read as depth rather than as motes, so
+// the particles are large, slow, nearly transparent and few. This is what makes
+// the clear-weather baseline look like Mars instead of like fog.
+particle_system CR/Weather/MarsHaze
+{
+    material            CR_FX/Haze
+    particle_width      18.0
+    particle_height     18.0
+    quota               420
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               60
+        emission_rate       22
+        time_to_live_min    7.0
+        time_to_live_max    11.0
+        direction           -1 -0.05 0
+        velocity_min        3
+        velocity_max        7
+        colour_range_start  0.70 0.50 0.33 0.16
+        colour_range_end    0.62 0.43 0.28 0.06
+        width               420
+        height              150
+        depth               420
+    }
+
+    affector ColourFader
+    {
+        alpha -0.014
+    }
+}
+
+// Sheet dust: the fast, ground-hugging layer. This is the one that actually
+// communicates wind direction, because it is the only dust moving quickly
+// enough near a fixed reference (the ground) to read as a vector rather than as
+// ambient haze. Deliberately shallow -- above roughly a tank's height it stops
+// helping and starts costing.
+particle_system CR/Weather/DustSheet
+{
+    material            CR_FX/DustSheet
+    particle_width      9.0
+    particle_height     2.2
+    quota               900
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Box
+    {
+        angle               6
+        emission_rate       70
+        time_to_live_min    1.6
+        time_to_live_max    2.6
+        direction           -1 -0.04 0
+        velocity_min        58
+        velocity_max        88
+        colour_range_start  0.76 0.53 0.31 0.42
+        colour_range_end    0.60 0.39 0.22 0.00
+        width               300
+        height              14
+        depth               300
+    }
+
+    affector ColourFader
+    {
+        alpha -0.20
+    }
+
+    // Widen along the travel axis as it goes, so a streak stretches out rather
+    // than staying a fixed-size quad sliding across the screen.
+    affector Scaler
+    {
+        rate 2.2
+    }
+}
+
+// Dust devil. Unlike every other template here this one is NOT camera-attached:
+// CRMarsWeather places it in the world at a ground position and drifts it
+// downwind, so local_space is true and the whole column travels intact, which
+// is how a real devil behaves.
+//
+// Emitter 0 is the ground skirt, emitter 1 is the column. The director scales
+// both by devil age so a devil spins up and dies out instead of popping.
+particle_system CR/Weather/DustDevil
+{
+    material            CR_FX/DustDevil
+    particle_width      7.0
+    particle_height     14.0
+    quota               700
+    cull_each           true
+    sorted              false
+    local_space         true
+    billboard_type      oriented_common
+    common_direction    0 1 0
+
+    emitter Ring
+    {
+        angle               18
+        emission_rate       55
+        time_to_live_min    1.4
+        time_to_live_max    2.4
+        direction           0 1 0
+        velocity_min        6
+        velocity_max        13
+        colour_range_start  0.74 0.51 0.30 0.50
+        colour_range_end    0.60 0.40 0.24 0.22
+        width               26
+        height              4
+        depth               26
+        inner_width         0.62
+        inner_height        0.62
+    }
+
+    emitter Cylinder
+    {
+        angle               10
+        emission_rate       40
+        time_to_live_min    2.6
+        time_to_live_max    4.4
+        direction           0 1 0
+        velocity_min        14
+        velocity_max        26
+        colour_range_start  0.70 0.47 0.28 0.38
+        colour_range_end    0.56 0.36 0.21 0.00
+        width               14
+        height              60
+        depth               14
+    }
+
+    affector ColourFader
+    {
+        alpha -0.13
+    }
+
+    // The vortex is faked: Ogre has no rotational affector, so the spin comes
+    // from billboard rotation plus a widening column, which reads correctly at
+    // the distances a devil is ever seen from.
+    affector Rotator
+    {
+        rotation_speed_range_start  -70
+        rotation_speed_range_end     70
+        rotation_range_start           0
+        rotation_range_end           360
+    }
+
+    affector Scaler
+    {
+        rate 3.5
+    }
+}
+
+// =============================================================================
+// Snow
+// =============================================================================
+
+particle_system CR/Weather/SnowLight
+{
+    material            CR_FX/Snow
+    particle_width      0.7
+    particle_height     0.7
+    quota               1400
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               32
+        emission_rate       55
+        time_to_live_min    7
+        time_to_live_max    11
+        direction           0 -1 0
+        velocity_min        3
+        velocity_max        7
+        colour_range_start  0.88 0.92 1.00 0.70
+        colour_range_end    0.80 0.86 1.00 0.45
+        width               200
+        height              30
+        depth               200
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      3
+        scope           0.6
+        keep_velocity   true
+    }
+}
+
+particle_system CR/Weather/SnowHeavy
+{
+    material            CR_FX/Snow
+    particle_width      0.9
+    particle_height     0.9
+    quota               3200
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               26
+        emission_rate       320
+        time_to_live_min    2.6
+        time_to_live_max    4.2
+        direction           0.7 -0.62 -0.35
+        velocity_min        18
+        velocity_max        30
+        colour_range_start  0.86 0.90 0.98 0.85
+        colour_range_end    0.74 0.80 0.92 0.50
+        width               220
+        height              70
+        depth               220
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      9
+        scope           0.4
+        keep_velocity   true
+    }
+}
+
+// =============================================================================
+// Ash
+// =============================================================================
+
+particle_system CR/Weather/AshFall
+{
+    material            CR_FX/Ash
+    particle_width      1.1
+    particle_height     1.1
+    quota               2000
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               28
+        emission_rate       130
+        time_to_live_min    6
+        time_to_live_max    9
+        direction           -0.35 -0.9 0.26
+        velocity_min        5
+        velocity_max        11
+        colour_range_start  0.24 0.22 0.21 0.80
+        colour_range_end    0.16 0.15 0.15 0.45
+        width               240
+        height              80
+        depth               240
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end    40
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+}
+
+// Embers are near-field only and deliberately few: they exist so a hot zone
+// reads as hot, not to light the scene.
+particle_system CR/Weather/AshEmber
+{
+    material            CR_FX/Ember
+    particle_width      0.5
+    particle_height     0.5
+    quota               220
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               55
+        emission_rate       9
+        time_to_live_min    2.5
+        time_to_live_max    5.0
+        direction           0 -1 0
+        velocity_min        2
+        velocity_max        6
+        colour_range_start  1.00 0.55 0.18 0.95
+        colour_range_end    0.65 0.16 0.04 0.60
+        width               70
+        height              22
+        depth               70
+    }
+
+    affector ColourFader
+    {
+        red     -0.20
+        green   -0.28
+        blue    -0.10
+        alpha   -0.30
+    }
+}
+
+// =============================================================================
+// Alien
+// =============================================================================
+
+// Fury weather is not rain with a different palette: the motes hang, drift in
+// no consistent direction, and glow on their own.
+particle_system CR/Weather/Spore
+{
+    material            CR_FX/Spore
+    particle_width      1.3
+    particle_height     1.3
+    quota               1200
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               75
+        emission_rate       70
+        time_to_live_min    8
+        time_to_live_max    14
+        direction           0 -0.3 0
+        velocity_min        2
+        velocity_max        6
+        colour_range_start  0.32 0.90 0.95 0.90
+        colour_range_end    0.52 0.30 0.90 0.55
+        width               200
+        height              90
+        depth               200
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.32 0.90 0.95 0.00
+        time1   0.25
+        colour1 0.32 0.90 0.95 0.90
+        time2   0.75
+        colour2 0.52 0.40 0.95 0.70
+        time3   1
+        colour3 0.52 0.30 0.90 0.00
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      4
+        scope           0.8
+        keep_velocity   false
+    }
+}
+
+// =============================================================================
+// Rain
+// =============================================================================
+
+particle_system CR/Weather/Rain
+{
+    material            CR_FX/Rain
+    particle_width      0.25
+    particle_height     3.2
+    quota               4000
+    cull_each           true
+    sorted              false
+    local_space         false
+    // Oriented along the fall direction so streaks read as streaks rather than
+    // as a cloud of vertical sticks when the player looks up.
+    billboard_type      oriented_common
+    common_direction    0 -1 0
+
+    emitter Box
+    {
+        angle               8
+        emission_rate       420
+        time_to_live_min    1.4
+        time_to_live_max    2.2
+        direction           0.32 -0.93 -0.18
+        velocity_min        46
+        velocity_max        62
+        colour_range_start  0.66 0.78 0.38 0.55
+        colour_range_end    0.52 0.64 0.28 0.30
+        width               170
+        height              70
+        depth               170
+    }
+}
+
+// A small bounded splash pool close to the camera. The design note is explicit:
+// we do not try to generate a splash per raindrop.
+particle_system CR/Weather/RainSplash
+{
+    material            CR_FX/RainSplash
+    particle_width      0.5
+    particle_height     0.5
+    quota               300
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      perpendicular_common
+    common_direction    0 1 0
+    common_up_vector    0 0 1
+
+    emitter Box
+    {
+        angle               180
+        emission_rate       55
+        time_to_live_min    0.25
+        time_to_live_max    0.45
+        direction           0 1 0
+        velocity_min        1
+        velocity_max        3
+        colour_range_start  0.70 0.82 0.45 0.55
+        colour_range_end    0.70 0.82 0.45 0.00
+        width               42
+        height              0.5
+        depth               42
+    }
+
+    affector Scaler
+    {
+        rate 5
+    }
+
+    affector ColourFader
+    {
+        alpha -2.0
+    }
+}
