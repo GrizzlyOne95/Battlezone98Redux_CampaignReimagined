@@ -6,6 +6,8 @@ on:
       - .github/workflows/publish-campaign-release.yml
       - .github/workflows/validate-release-pipeline.yml
       - .github/scripts/Build-Level1Release.ps1
+      - .github/scripts/Invoke-ModDbHandoff.ps1
+      - .github/scripts/Open-ModDbHandoff.cmd
   workflow_dispatch:
 
 permissions:
@@ -24,16 +26,18 @@ jobs:
           lfs: false
           persist-credentials: false
 
-      - name: Parse PowerShell helper
+      - name: Parse PowerShell helpers
         shell: pwsh
         run: |
-          $path = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\Build-Level1Release.ps1"
-          $tokens = $null
-          $errors = $null
-          [void][System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors)
-          if ($errors.Count -gt 0) {
-            $errors | ForEach-Object { Write-Error $_.Message }
-            throw "Build-Level1Release.ps1 contains PowerShell parse errors."
+          foreach ($name in @("Build-Level1Release.ps1", "Invoke-ModDbHandoff.ps1")) {
+            $path = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\$name"
+            $tokens = $null
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors)
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error $_.Message }
+              throw "$name contains PowerShell parse errors."
+            }
           }
 
       - name: Exercise synthetic release packaging
@@ -68,7 +72,14 @@ jobs:
           $zip = Join-Path $output "CampaignReimagined-0.0.0-ci-ModDB.zip"
           $metadataPath = Join-Path $output "moddb_submission.json"
           $checksumPath = "$zip.sha256"
-          foreach ($required in @($zip, $metadataPath, $checksumPath, (Join-Path $output "release_receipt.json"))) {
+          foreach ($required in @(
+            $zip,
+            $metadataPath,
+            $checksumPath,
+            (Join-Path $output "release_receipt.json"),
+            (Join-Path $output "Invoke-ModDbHandoff.ps1"),
+            (Join-Path $output "Open-ModDbHandoff.cmd")
+          )) {
             if (-not (Test-Path -LiteralPath $required)) {
               throw "Expected release output is missing: $required"
             }
@@ -87,9 +98,30 @@ jobs:
           if ($metadata.Version -ne "0.0.0-ci" -or $metadata.ModDbReleaseType -ne "Patch") {
             throw "ModDB metadata did not preserve release inputs."
           }
+          if ($metadata.ModDbUploadUrl -ne "https://www.moddb.com/members/grizzlyone95/downloads") {
+            throw "ModDB metadata did not preserve the trusted upload URL."
+          }
 
           $expectedHash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
           $checksumText = (Get-Content -LiteralPath $checksumPath -Raw).Trim()
           if (-not $checksumText.StartsWith($expectedHash)) {
             throw "Generated ZIP checksum does not match the release archive."
+          }
+
+          & (Join-Path $output "Invoke-ModDbHandoff.ps1") -ReleaseDir $output -ValidateOnly
+
+          $untrustedUrlRejected = $false
+          try {
+            & ".\.github\scripts\Build-Level1Release.ps1" `
+              -BundleDir $bundle `
+              -OutputDir (Join-Path $root "untrusted-output") `
+              -Version "0.0.0-ci" `
+              -ChangeNote "Synthetic validation" `
+              -ModDbUploadUrl "https://example.com/upload"
+          }
+          catch {
+            $untrustedUrlRejected = $true
+          }
+          if (-not $untrustedUrlRejected) {
+            throw "Release packaging accepted an untrusted Mod DB upload URL."
           }
