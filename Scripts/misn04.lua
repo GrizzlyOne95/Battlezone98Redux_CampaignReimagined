@@ -1541,6 +1541,153 @@ local function UpdateFeatureValidation()
     M.featureTestTriggerLatch = triggerDown
 end
 
+-- BEGIN INTERACTIVE FOG WAKE TEST SYSTEM
+-- Native render/simulation resources are deliberately excluded from saved M.
+local FogWakeTest = { handles = {}, nextToken = 1 }
+
+function FogWakeTest.Note(message)
+    FeatureLog("fog wakes: " .. message, true, 5.0)
+end
+
+function FogWakeTest.Call(name, ...)
+    if not exu or type(exu[name]) ~= "function" then return false end
+    local ok, value = pcall(exu[name], ...)
+    return ok and value ~= false and value ~= nil, value
+end
+
+function FogWakeTest.Reset()
+    FogWakeTest.Call("ResetFogWake")
+    FogWakeTest.handles = {}
+    FogWakeTest.nextToken = 1
+    FogWakeTest.configured = false
+    FogWakeTest.lastTime = nil
+    FogWakeTest.statusAt = 0
+    FogWakeTest.renderReady = nil
+end
+
+function FogWakeTest.Initialize()
+    FogWakeTest.Reset()
+    FogWakeTest.readyAt = GetTime() + 4.0
+    FogWakeTest.f8 = false
+    FogWakeTest.f9 = false
+    FogWakeTest.failed = false
+    -- Only this user preference belongs in the save file.
+    if M.fogWakeTestEnabled == nil then M.fogWakeTestEnabled = true end
+end
+
+function FogWakeTest.Fail(message)
+    FogWakeTest.Reset()
+    if not FogWakeTest.failed then FogWakeTest.Note(message) end
+    FogWakeTest.failed = true
+end
+
+function FogWakeTest.Configure()
+    local required = { "ConfigureFogWake", "UpdateFogWake", "ObserveFogWake",
+        "RemoveFogWakeEmitter", "ResetFogWake", "GetFogWakeStatus" }
+    for _, name in ipairs(required) do
+        if not exu or type(exu[name]) ~= "function" then
+            FogWakeTest.Fail("unavailable; updated EXU/OpenShim required (" .. name .. ")")
+            return false
+        end
+    end
+    local player = GetPlayerHandle()
+    if not player or not IsValid(player) then return false end
+    local pos = GetPosition(player)
+    local ground = GetTerrainHeightAndNormal(pos)
+    FogWakeTest.Reset()
+    local ok = FogWakeTest.Call("ConfigureFogWake", {
+        centerX = pos.x, centerZ = pos.z, baseY = ground,
+        width = 384, cellSize = 4, height = 10,
+        wakeRadius = 9, recoverySeconds = 12, windX = 1.0, windZ = 0.3,
+        density = 0.35, colorR = 0.70, colorG = 0.75, colorB = 0.80,
+    })
+    if not ok then
+        FogWakeTest.Fail("configuration rejected; check native fog log")
+        return false
+    end
+    FogWakeTest.centerX, FogWakeTest.centerZ = pos.x, pos.z
+    FogWakeTest.configured = true
+    FogWakeTest.failed = false
+    FogWakeTest.Note("bank placed here; F8 toggle, F9 move/reset bank at your position")
+    return true
+end
+
+function FogWakeTest.Remove(h)
+    local token = FogWakeTest.handles[h]
+    if token then
+        FogWakeTest.Call("RemoveFogWakeEmitter", token)
+        FogWakeTest.handles[h] = nil
+    end
+end
+
+function FogWakeTest.Update()
+    local now = GetTime()
+    if exu and type(exu.GetGameKey) == "function" then
+        local f8 = exu.GetGameKey("F8") and true or false
+        local f9 = exu.GetGameKey("F9") and true or false
+        if f8 and not FogWakeTest.f8 then
+            M.fogWakeTestEnabled = not M.fogWakeTestEnabled
+            FogWakeTest.Reset()
+            FogWakeTest.failed = false
+            FogWakeTest.Note(M.fogWakeTestEnabled and "enabled" or "disabled")
+        end
+        if f9 and not FogWakeTest.f9 then
+            M.fogWakeTestEnabled = true
+            FogWakeTest.Reset()
+            FogWakeTest.failed = false
+        end
+        FogWakeTest.f8, FogWakeTest.f9 = f8, f9
+    end
+    if not M.fogWakeTestEnabled or FogWakeTest.failed or now < FogWakeTest.readyAt then return end
+    if FogWakeTest.lastTime and now < FogWakeTest.lastTime then FogWakeTest.Reset() end
+    if not FogWakeTest.configured and not FogWakeTest.Configure() then return end
+    -- Simulation time freezes with pause. Never catch up with a burst of scans.
+    if FogWakeTest.lastTime and now - FogWakeTest.lastTime < 0.05 then return end
+    FogWakeTest.lastTime = now
+    if now >= FogWakeTest.statusAt then
+        FogWakeTest.statusAt = now + 2.0
+        local ok, status = FogWakeTest.Call("GetFogWakeStatus")
+        if ok and type(status) == "table" then
+            local ready = status.renderReady == true
+            if ready ~= FogWakeTest.renderReady then
+                FogWakeTest.Note(ready and "renderer ready" or "configured; renderer not ready yet (check OpenShim log)")
+                FogWakeTest.renderReady = ready
+            end
+        end
+    end
+    if not FogWakeTest.Call("UpdateFogWake", now) then
+        FogWakeTest.Fail("native update failed; F9 retries")
+        return
+    end
+    local seen, count = {}, 0
+    local function observe(h)
+        if not h or seen[h] or not IsValid(h) then return end
+        local p = GetPosition(h)
+        if math.abs(p.x - FogWakeTest.centerX) > 208 or math.abs(p.z - FogWakeTest.centerZ) > 208 then return end
+        if count >= 128 then return end
+        local token = FogWakeTest.handles[h]
+        if not token then
+            token = FogWakeTest.nextToken
+            FogWakeTest.nextToken = token + 1
+            FogWakeTest.handles[h] = token
+        end
+        seen[h] = true
+        count = count + 1
+        if not FogWakeTest.Call("ObserveFogWake", token, p.x, p.y, p.z) then
+            FogWakeTest.Fail("native observation failed; F9 retries")
+        end
+    end
+    observe(GetPlayerHandle()) -- Reserve a slot for the local player.
+    for h in AllCraft() do
+        if FogWakeTest.failed then break end
+        observe(h)
+    end
+    for h in pairs(FogWakeTest.handles) do
+        if not seen[h] then FogWakeTest.Remove(h) end
+    end
+end
+-- END INTERACTIVE FOG WAKE TEST SYSTEM
+
 -- Helper for Difficulty-Scaled Tug Arrival
 local function GetTugDelay()
     local baseDelay = 180.0 -- Medium (Default)
@@ -1573,6 +1720,7 @@ end
 
 function Start()
     M = NewMissionState()
+    FogWakeTest.Initialize()
     M.TPS = M.TPS or DEFAULT_TPS
 
     -- One-time initialization logic
@@ -1643,7 +1791,7 @@ function AddObject(h)
 end
 
 function DeleteObject(h)
-    -- No specific logic in C++, just standard.
+    FogWakeTest.Remove(h)
 end
 
 local function AudioDone(msg)
@@ -1771,6 +1919,7 @@ function Update()
     end
     TraceUpdateCall("misn04.Update UpdateModules", UpdateModules, 1.0 / M.TPS)
     TraceUpdateCall("misn04.Update UpdateFeatureValidation", UpdateFeatureValidation)
+    TraceUpdateCall("misn04.Update FogWakeTest", FogWakeTest.Update)
 
     if (not M.missionstart) then
         M.wave1 = GetTime() + DiffUtils.ScaleTimer(30.0) + math.random(-5, 10)
@@ -2388,6 +2537,7 @@ end
 
 function Load(missionData, aiData)
     M = missionData or M
+    FogWakeTest.Initialize()
     aiStateRestored = false
     if aiData then
         aiCore.Load(aiData)
