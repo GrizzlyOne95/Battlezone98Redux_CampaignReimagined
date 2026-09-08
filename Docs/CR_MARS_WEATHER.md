@@ -95,6 +95,48 @@ system routes around all of them rather than competing:
 | Radar range, radar period, velocity jamming | `Environment.ProcessObjectNightEffects` | `CRMarsWeather` registers a **gameplay modifier** |
 | Gravity | nobody | `CRMarsWeather` takes it, and restores it on shutdown |
 
+### Why the atmosphere is a stack of weighted layers
+
+`CRWeather` keeps one weight per preset that still has any presence on screen —
+`CRWeather.Layers`, oldest first — rather than a single incoming/outgoing pair.
+`ApplyEnvironmentContribution` walks them in order, so the newest preset has the
+last word and everything still fading contributes its remainder.
+
+This is not bookkeeping for its own sake. A preset change only ever moves ramp
+*targets*: the incoming layer climbs, the others fall, and no layer's current
+weight is ever reassigned. The composite on the frame of a change is therefore
+identical to the frame before it, by construction, for any number of changes.
+
+The obvious alternative — read the incoming preset at `Blend`, and restart
+`Blend` at 0 on a change — cuts the entire atmosphere back to the bare mission
+baseline for a frame and then ramps the new preset in over the next 18-30
+seconds. Adding a single "previous" slot does not rescue it either: a change part
+way through a transition displaces a preset that was itself still fading, and
+that residue is lost. `Tools/Test-CRMarsWeather.lua` asserts both cases directly,
+measuring the largest single-channel move across a preset change; on the
+single-slot model they step by 0.38 and 0.17 respectively.
+
+A displaced preset keeps its particle systems while its layer is above zero, so
+its dust fades rather than vanishing. Layers that reach zero are dropped and
+their systems destroyed in the same pass, which is also what stops a preset
+displaced mid-transition from stranding its systems in the scene.
+
+### Why the clock is `GetTime()` and not the caller's `dt`
+
+misn04 hands every module a fixed `1.0 / M.TPS` as its delta, but `Update` runs
+once per rendered frame rather than TPS times a second. That number is a frame
+count wearing seconds' clothing: at 120 fps the weather advanced six seconds per
+real second, so rungs whose dwell is 35-160 s re-rolled every 6-25 s and gusts
+fired several times a second. The ladder read as flapping rather than as weather,
+and every one of those changes dragged the atmosphere through a transition.
+
+`CRMarsWeather.Update` therefore takes its own delta from `GetTime()`, the same
+clock the rest of the mission schedules against, and is framerate-independent. A
+caller passing `0` still means "settle the scene, do not advance time". A
+discontinuity — a load, a pause, a restart — yields `0` rather than a jump. When
+`GetTime` is unavailable, as in the offline test harness, the caller's `dt` is
+used unchanged.
+
 The gameplay-modifier hook was added for this system and is new in
 `Environment.lua`. It had to be a hook rather than a second writer for two
 reasons, both of which are silent failures:
