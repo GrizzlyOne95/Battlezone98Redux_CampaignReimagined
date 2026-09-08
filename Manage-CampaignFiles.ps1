@@ -45,11 +45,16 @@ $StructuredRuntimeDirs = @(
 # deployed, chosen by Get-ChunkMeshesSourceRelativeRoot.
 $ChunkMeshesAuthoredRoot = "Assets\chunkMeshes"
 $ChunkMeshesCappedRoot = "Assets\chunkMeshes_capped"
+# Authoring-only trees. These are development inputs -- CI definitions, the
+# scripts that generate assets, and the shipping lock itself -- not mod content.
 $SourceExcludedRelativePaths = @(
     ".git",
+    ".github",
     "docs",
     "Local",
-    "References"
+    "References",
+    "Shipping",
+    "Tools"
 )
 $SourceExcludedRootFiles = @(
     ".gitignore",
@@ -390,7 +395,11 @@ function Test-FilesMatchByHash($leftPath, $rightPath) {
     return $null
 }
 
-function Get-ManagedSourceFiles {
+# Every file in the repo that deploy *could* ship. This is a candidate set, not
+# the shipping set: what actually ships is the intersection with the shipping
+# lock (see Get-ShippingLock). Committing a file no longer puts it in players'
+# installs by itself.
+function Get-ManagedSourceFilesUnfiltered {
     if (-not (Test-Path $SourceDir)) {
         return @()
     }
@@ -400,6 +409,119 @@ function Get-ManagedSourceFiles {
         -not (Is-ExcludedSourceRelativePath $relativePath) -and
         $_.Extension -ne ".pdb"
     }
+}
+
+$ShippingLockRelativePath = "Shipping\shipping.lock.json"
+
+function Get-ShippingLockPath {
+    return (Join-Path $SourceDir $ShippingLockRelativePath)
+}
+
+# The shipping lock is the explicit list of what this mod installs. It records
+# membership only -- source path and the runtime path it lands on -- never
+# content hashes, so editing a texture or a mission script needs no ceremony.
+# Adding or removing a *file* does, and shows up as a reviewable diff. That is
+# the whole point: an unrelated commit cannot quietly grow the install.
+function Get-ShippingLock {
+    $lockPath = Get-ShippingLockPath
+    if (-not (Test-Path -LiteralPath $lockPath)) {
+        return $null
+    }
+
+    try {
+        $raw = Get-Content -LiteralPath $lockPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    }
+    catch {
+        throw "Shipping lock '$lockPath' is unreadable: $_"
+    }
+
+    $bySource = @{}
+    foreach ($entry in @($raw.files)) {
+        $bySource[$entry.source] = $entry.runtime
+    }
+
+    return [pscustomobject]@{
+        Path     = $lockPath
+        BySource = $bySource
+        Count    = $bySource.Count
+    }
+}
+
+# Resolve the candidate set against the lock and report the ways they disagree.
+# Unblessed files are skipped rather than shipped, and files the lock names but
+# the repo no longer has are called out instead of silently vanishing.
+function Resolve-ShippingSet {
+    $candidates = @(Get-ManagedSourceFilesUnfiltered)
+    $lock = Get-ShippingLock
+
+    if (-not $lock) {
+        return [pscustomobject]@{
+            Files = $candidates; Unblessed = @(); Missing = @(); HasLock = $false
+        }
+    }
+
+    $shipped = New-Object System.Collections.Generic.List[object]
+    $unblessed = New-Object System.Collections.Generic.List[string]
+    $seen = @{}
+
+    foreach ($file in $candidates) {
+        $relativePath = Get-RelativePathFromBase $SourceDir $file.FullName
+        if ($lock.BySource.ContainsKey($relativePath)) {
+            $shipped.Add($file)
+            $seen[$relativePath] = $true
+        }
+        else {
+            $unblessed.Add($relativePath)
+        }
+    }
+
+    $missing = New-Object System.Collections.Generic.List[string]
+    foreach ($relativePath in $lock.BySource.Keys) {
+        if (-not $seen.ContainsKey($relativePath)) {
+            $missing.Add($relativePath)
+        }
+    }
+
+    return [pscustomobject]@{
+        Files     = $shipped.ToArray()
+        Unblessed = ($unblessed | Sort-Object)
+        Missing   = ($missing | Sort-Object)
+        HasLock   = $true
+    }
+}
+
+function Write-ShippingSetReport($resolved) {
+    if (-not $resolved.HasLock) {
+        Write-Host ("No shipping lock at $ShippingLockRelativePath - shipping every candidate file. " +
+            "Run -bless to create one.") -ForegroundColor Yellow
+        return
+    }
+
+    if ($resolved.Unblessed.Count -gt 0) {
+        Write-Host ""
+        Write-Host ("NOT SHIPPED - $($resolved.Unblessed.Count) file(s) are in the repo but not in " +
+            "the shipping lock:") -ForegroundColor Yellow
+        foreach ($relativePath in $resolved.Unblessed) {
+            Write-Host "    $relativePath" -ForegroundColor DarkYellow
+        }
+        Write-Host "  Review them, then run -bless to add them to the lock." -ForegroundColor Yellow
+    }
+
+    if ($resolved.Missing.Count -gt 0) {
+        Write-Host ""
+        Write-Host ("LOCKED BUT ABSENT - $($resolved.Missing.Count) file(s) are in the shipping lock " +
+            "but not in the repo:") -ForegroundColor Red
+        foreach ($relativePath in $resolved.Missing) {
+            Write-Host "    $relativePath" -ForegroundColor Red
+        }
+        Write-Host "  Restore them, or run -bless to drop them from the lock." -ForegroundColor Red
+    }
+}
+
+function Get-ManagedSourceFiles {
+    $resolved = Resolve-ShippingSet
+    Write-ShippingSetReport $resolved
+    return $resolved.Files
 }
 
 function Get-DeployRelativePathFromSourcePath($sourceFileFullName) {
@@ -679,7 +801,7 @@ function Update-OpenShimManifest {
         "        winmm = { source = `"winmm.dll`", destination = `"winmm.dll`", sha256 = `"$shimHash`", size = $($shimItem.Length), version = `"$shimVersion`", architecture = `"x86`" },"
         "        network = { source = `"openshim_net.ini.payload`", destination = `"net.ini`", sha256 = `"$networkHash`", size = $($networkItem.Length) },"
         "        patches = { source = `"openshim_patches.json.payload`", destination = `"scripts\\patches.json`", sha256 = `"$patchesHash`", size = $($patchesItem.Length) },"
-        "        playerConfig = { source = `"openshim.ini.payload`", destination = `"openshim.ini`", sha256 = `"$playerConfigHash`", size = $($playerConfigItem.Length), overwrite = true },"
+        "        playerConfig = { source = `"openshim.ini.payload`", destination = `"openshim.ini`", sha256 = `"$playerConfigHash`", size = $($playerConfigItem.Length), overwrite = false },"
         "    },"
         "}"
         ""
@@ -856,23 +978,15 @@ function Deploy-PackagedMod {
             $displayPath = if ($deployRelativePath -eq $file.Name) { $file.Name } else { $deployRelativePath }
 
             if (Test-Path $runtimePath) {
-                $runtimeItem = Get-Item $runtimePath
+                # Compare by content, never by timestamp. A modification time
+                # records when a file was written locally -- a fresh checkout, a
+                # Drive sync, a deploy from the wrong tree -- not which copy is
+                # correct. The old "source is newer" rule silently refused to
+                # repair an install that had been written from a stale clone,
+                # because those wrong files carried the newer timestamps.
+                $hashMatch = Test-FilesMatchByHash $file.FullName $runtimePath
 
-                $hashMatch = $null
-                if (Is-SourceAuthoritativeFlatFile $file.Name) {
-                    $hashMatch = Test-FilesMatchByHash $file.FullName $runtimePath
-                }
-
-                # winmm.dll is source-authoritative: if the bytes differ, push the
-                # shipped copy even when the deployed runtime file has a newer
-                # timestamp from a manual shim swap.
-                if ((Is-SourceAuthoritativeFlatFile $file.Name) -and ($hashMatch -ne $true)) {
-                    Copy-Item -Path $file.FullName -Destination $runtimePath -Force
-                    Write-Host "Updated: $displayPath (authoritative source sync)" -ForegroundColor Yellow
-                    $updated++
-                }
-                # If source version is newer, copy to the deployed runtime
-                elseif ($file.LastWriteTime -gt $runtimeItem.LastWriteTime) {
+                if ($hashMatch -ne $true) {
                     Copy-Item -Path $file.FullName -Destination $runtimePath -Force
                     Write-Host "Updated: $displayPath" -ForegroundColor Yellow
                     $updated++
@@ -1467,6 +1581,164 @@ function Show-Menu {
     }
 }
 
+# Regenerate the shipping lock from what is in the repo right now, and show what
+# that changes about the install. This is the deliberate, reviewable step that
+# admits a new file into players' installs -- or drops one.
+function Invoke-BlessShipping {
+    Write-Host "Rebuilding the shipping lock from $SourceDir ..." -ForegroundColor Cyan
+
+    $previous = Get-ShippingLock
+    $entries = @{}
+    $collisions = @{}
+
+    foreach ($file in @(Get-ManagedSourceFilesUnfiltered)) {
+        $sourceRelative = Get-RelativePathFromBase $SourceDir $file.FullName
+        foreach ($runtimeRelative in Get-DeployRelativePathsFromSourcePath $file.FullName) {
+            if (-not $collisions.ContainsKey($runtimeRelative)) {
+                $collisions[$runtimeRelative] = New-Object System.Collections.Generic.List[string]
+            }
+            $collisions[$runtimeRelative].Add($sourceRelative)
+            $entries[$sourceRelative] = $runtimeRelative
+        }
+    }
+
+    # Deploy flattens most of the tree to a bare filename, so two source files
+    # sharing a basename land on one runtime path and whichever is copied last
+    # silently wins. Refuse to bless that rather than encode it.
+    $clashes = @($collisions.Keys | Where-Object { $collisions[$_].Count -gt 1 } | Sort-Object)
+    if ($clashes.Count -gt 0) {
+        Write-Host ""
+        Write-Host "Refusing to bless: $($clashes.Count) runtime path(s) claimed by more than one source file." -ForegroundColor Red
+        foreach ($runtimeRelative in $clashes) {
+            Write-Host "    $runtimeRelative" -ForegroundColor Red
+            foreach ($sourceRelative in $collisions[$runtimeRelative]) {
+                Write-Host "        <- $sourceRelative" -ForegroundColor DarkYellow
+            }
+        }
+        Write-Host "  Rename or remove one side of each pair, then bless again." -ForegroundColor Red
+        return $false
+    }
+
+    $ordered = @($entries.Keys | Sort-Object | ForEach-Object {
+        [pscustomobject]@{ source = $_; runtime = $entries[$_] }
+    })
+
+    $lockPath = Get-ShippingLockPath
+    $lockDir = Split-Path $lockPath -Parent
+    if (-not (Test-Path -LiteralPath $lockDir)) {
+        New-Item -ItemType Directory -Force -Path $lockDir | Out-Null
+    }
+
+    $payload = [ordered]@{
+        comment   = "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless."
+        generated = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ssK")
+        count     = $ordered.Count
+        files     = $ordered
+    }
+    ($payload | ConvertTo-Json -Depth 4) | Set-Content -LiteralPath $lockPath -Encoding UTF8
+
+    if ($previous) {
+        $before = [System.Collections.Generic.HashSet[string]]::new([string[]]@($previous.BySource.Keys))
+        $after = [System.Collections.Generic.HashSet[string]]::new([string[]]@($entries.Keys))
+        $added = @($entries.Keys | Where-Object { -not $before.Contains($_) } | Sort-Object)
+        $removed = @($previous.BySource.Keys | Where-Object { -not $after.Contains($_) } | Sort-Object)
+
+        Write-Host ""
+        Write-Host "Shipping lock: $($previous.Count) -> $($ordered.Count) files" -ForegroundColor Cyan
+        foreach ($relativePath in $added) {
+            Write-Host "    + $relativePath" -ForegroundColor Green
+        }
+        foreach ($relativePath in $removed) {
+            Write-Host "    - $relativePath" -ForegroundColor DarkYellow
+        }
+        if ($added.Count -eq 0 -and $removed.Count -eq 0) {
+            Write-Host "    (no membership change)" -ForegroundColor DarkGray
+        }
+    }
+    else {
+        Write-Host ""
+        Write-Host "Created $ShippingLockRelativePath with $($ordered.Count) files." -ForegroundColor Green
+    }
+
+    Write-Host ""
+    Write-Host "Review the diff of $ShippingLockRelativePath before committing." -ForegroundColor Cyan
+    return $true
+}
+
+# Read-only comparison of the installed runtime against the lock. Answers "is my
+# install clean?" without writing anything, which -deploy cannot do.
+function Invoke-VerifyInstall {
+    $runtimeDir = Resolve-RuntimeModDir
+    if (-not $runtimeDir) {
+        Write-Host "No runtime mod directory found. Expected '$DefaultTestingRuntimeDir'." -ForegroundColor Red
+        return $false
+    }
+
+    Write-Host "Verifying $runtimeDir against the shipping lock..." -ForegroundColor Cyan
+    $resolved = Resolve-ShippingSet
+    Write-ShippingSetReport $resolved
+
+    $expected = @{}
+    $absent = New-Object System.Collections.Generic.List[string]
+    $changed = New-Object System.Collections.Generic.List[string]
+
+    foreach ($file in $resolved.Files) {
+        foreach ($runtimeRelative in Get-DeployRelativePathsFromSourcePath $file.FullName) {
+            $expected[$runtimeRelative] = $true
+            $runtimePath = Join-Path $runtimeDir $runtimeRelative
+            if (-not (Test-Path -LiteralPath $runtimePath)) {
+                $absent.Add($runtimeRelative)
+                continue
+            }
+            if ((Test-FilesMatchByHash $file.FullName $runtimePath) -eq $false) {
+                $changed.Add($runtimeRelative)
+            }
+        }
+    }
+
+    $extra = New-Object System.Collections.Generic.List[string]
+    foreach ($runtimeFile in @(Get-ManagedFlatFiles $runtimeDir; Get-StructuredRuntimeFiles $runtimeDir)) {
+        $runtimeRelative = Get-RelativePathFromBase $runtimeDir $runtimeFile.FullName
+        if (-not $runtimeRelative) { continue }
+        if ($expected.ContainsKey($runtimeRelative)) { continue }
+        if (Is-PreservedRuntimeRelativePath $runtimeRelative) { continue }
+        $extra.Add($runtimeRelative)
+    }
+
+    Write-Host ""
+    Write-Host "  shipped files expected : $($expected.Count)" -ForegroundColor Cyan
+    Write-Host "  missing from install   : $($absent.Count)"   -ForegroundColor $(if ($absent.Count) { "Red" } else { "Green" })
+    Write-Host "  content differs        : $($changed.Count)"  -ForegroundColor $(if ($changed.Count) { "Yellow" } else { "Green" })
+    Write-Host "  unexpected in install  : $($extra.Count)"    -ForegroundColor $(if ($extra.Count) { "Yellow" } else { "Green" })
+
+    if ($absent.Count) {
+        Write-Host ""
+        Write-Host "MISSING:" -ForegroundColor Red
+        foreach ($p in ($absent | Sort-Object)) { Write-Host "    $p" -ForegroundColor Red }
+    }
+    if ($changed.Count) {
+        Write-Host ""
+        Write-Host "DIFFERENT (install does not match repo):" -ForegroundColor Yellow
+        foreach ($p in ($changed | Sort-Object)) { Write-Host "    $p" -ForegroundColor DarkYellow }
+    }
+    if ($extra.Count) {
+        Write-Host ""
+        Write-Host "UNEXPECTED (in install, not shipped by this repo):" -ForegroundColor Yellow
+        foreach ($p in ($extra | Sort-Object)) { Write-Host "    $p" -ForegroundColor DarkYellow }
+    }
+
+    $clean = ($absent.Count -eq 0 -and $changed.Count -eq 0 -and $extra.Count -eq 0 -and
+              $resolved.Unblessed.Count -eq 0 -and $resolved.Missing.Count -eq 0)
+    Write-Host ""
+    if ($clean) {
+        Write-Host "Install matches the shipping lock." -ForegroundColor Green
+    }
+    else {
+        Write-Host "Install does NOT match the shipping lock." -ForegroundColor Yellow
+    }
+    return $clean
+}
+
 # Check for args to run non-interactively
 if ($args[0] -eq "-sync") {
     Sync-ToSource
@@ -1479,6 +1751,12 @@ elseif ($args[0] -eq "-deploy") {
 }
 elseif ($args[0] -eq "-release") {
     Deploy-PackagedMod
+}
+elseif ($args[0] -eq "-bless") {
+    if (-not (Invoke-BlessShipping)) { exit 1 }
+}
+elseif ($args[0] -eq "-verify") {
+    if (-not (Invoke-VerifyInstall)) { exit 1 }
 }
 elseif ($args[0] -eq "-addon") {
     Sync-FromRuntime
