@@ -45,6 +45,100 @@ qualified.
 
 Interactive ground fog wakes are in the build but not enabled and have no
 in-game effect yet.
+## 2026-09-07
+
+### Mars weather: continuous transitions and a real-time clock
+
+- Fog, ambient, sun diffuse and sun power no longer snap when the weather
+  changes rung. The atmosphere contribution read only the *incoming* preset at
+  weight `Blend`, and `SetPreset` restarts `Blend` at 0, so every change dropped
+  the whole atmosphere back to the bare mission baseline for a frame and then
+  ramped the new preset in over 18-30 seconds. `CRWeather` now keeps a weight per
+  live preset and only ever moves ramp targets, which makes a change continuous
+  by construction — including a change that interrupts a transition still in
+  flight, which a single incoming/outgoing pair cannot express.
+- The weather clock now comes from `GetTime()` instead of the caller's fixed
+  `1.0 / M.TPS`. `Update` runs once per rendered frame, so that delta was a frame
+  count: at 120 fps the weather ran six times real speed, rungs whose dwell is
+  35-160 s re-rolled every 6-25 s, and gusts fired several times a second. This
+  is what made the atmosphere snap repeatedly rather than occasionally.
+- A preset displaced part way through a transition no longer strands its particle
+  systems in the scene. The sweep only ever matched a single `Previous`, so those
+  systems stayed for the rest of the mission at zero weight.
+- `Tools/Test-CRMarsWeather.lua` asserts atmosphere continuity across a preset
+  change and across an interrupted transition, and that no particle system
+  outlives the preset that owns it.
+
+### Mars weather for misn04
+
+- Added `CRMarsWeather`, a Mars weather director layered on `CRWeather`. Weather
+  now walks a five-rung ladder (calm, breezy, rising, storm, severe) one rung at
+  a time, biased toward a target the mission sets. Integer crossings swap the
+  preset; the fractional ladder position drives wind, sensors and visibility, so
+  those slide through a transition instead of stepping when the preset changes.
+- Wind is live rather than a preset constant: a prevailing bearing that wanders
+  under a turn-rate cap, a base speed from the ladder, and discrete gusts with a
+  rise/hold/fall envelope that also veer the bearing as they pass. `CRWeather`
+  gained a wind override so the dust follows it -- steering emitter direction and
+  scaling emitter velocity, because a gust that only changes particle *count*
+  reads as a density flicker rather than as wind.
+- Added dust devils: world-placed, spawned upwind of the player, drifting
+  downwind and re-sampling terrain height, spinning up and down through their
+  emission rate. They only form on the calmer half of the ladder, which is
+  physical rather than a budget dodge.
+- Added three Mars presets (`MarsHaze`, `MarsDustRising`, `MarsDustStormSevere`)
+  and extended `MarsDustStorm` with a ground-hugging sheet-dust layer, a haze
+  layer and a gust envelope. New particle templates: `CR/Weather/MarsHaze`,
+  `DustSheet` and `DustDevil`.
+- Weather now degrades sensors. Radar range, radar refresh and velocity jamming
+  scale with storm severity through a **new gameplay-modifier hook** in
+  `Environment`, so `ProcessObjectNightEffects` stays the single writer. A direct
+  write would have been clobbered within the second, and worse, would have been
+  captured as the craft's stock baseline and made the degradation permanent.
+- Wind adds a small lateral component to gravity, so a gale is felt through the
+  controls and unguided ordnance drifts downwind. Capped, opt-out, and restored
+  on shutdown.
+- Wired into misn04. Weather beats are recomputed from mission state each frame
+  rather than latched, so a mid-mission save lands on the right weather; the one
+  exception is the set piece, where the final CCA wave arrives inside a forced
+  severe storm.
+- Fixed a latent save-load bug in `CRWeather`: loading a save rebuilds the Ogre
+  scene and destroys every particle system, but `LiveSystems` still named them,
+  so the next preset application "retargeted" systems that no longer existed and
+  the weather silently never rendered again. Added `CRWeather.ResetSystems()`,
+  which the load path now calls.
+- Fixed both `Environment` modifier loops iterating a list they mutate: a
+  throwing modifier is unregistered from inside the loop, and `table.remove` on
+  the live list shifted the next entry past the cursor and skipped it.
+
+### Reactive presentation and dynamic weather (first pass)
+
+- Added `CRWeather`, a proper atmospheric weather controller. Weather is now
+  camera-centred Ogre particle systems plus fog, sky and lighting state, not
+  scripted explosion effects. Six data-driven presets ship: MarsDustStorm,
+  LunaLightSnow, EuropaBlizzard, VolcanicAsh, FurySporeStorm and
+  AcidRainVisual, with crossfaded transitions, gust phases, a shared wind
+  vector, and lightning as an illumination event rather than an object.
+- Added `CRReactive`, a shared reactive-presentation layer. Impacts now produce
+  weapon-specific particles at the contact point and a directional first-person
+  reaction on the player's craft; craft progress through persistent damage
+  bands with their own smoke, sparks and arcing; status lighting dims and
+  flickers as damage rises; and weapon heat accumulates and decays per shot.
+  None of it changes damage, balance or AI.
+- `Environment` gained a modifier hook so fog and sun state keep exactly one
+  writer. Weather contributes into Environment's own per-frame targets instead
+  of issuing competing renderer writes, which is what would otherwise show up
+  as flicker during a storm.
+- Both systems are bounded by design: precipitation is a camera-local volume,
+  off-screen storms stop simulating, impact effects reuse a fixed pool, damage
+  VFX are capped and distance-gated, and health polling walks a rotating slice
+  so a large battle costs the same per frame as a small one.
+- Both systems release everything on mission teardown -- particle systems,
+  material overrides, emissive clones, the sky swap, and the ordnance callback
+  chain -- so nothing carries into the next mission.
+- Damage-state materials and cockpit animations are named but not yet authored.
+  The systems check for them and skip what is missing, so everything else runs.
+  `Docs/CR_REACTIVE_PRESENTATION.md` carries the wiring guide and asset list.
 
 ## 2026-09-05 (third update)
 

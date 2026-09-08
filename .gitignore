@@ -26,9 +26,15 @@
 !/References/
 !/Scripts/
 !/Shaders/
+# The shipping lock must be committed: its diff is how a change to what players
+# receive gets reviewed. Regenerate with Manage-CampaignFiles.ps1 -bless.
+!/Shipping/
+!/Shipping/**
 !/Text/
 !/Tools/
 /Tools/*
+!/Tools/Test-CRMarsWeather.lua
+!/Tools/Compare-DX11ShaderBinaries.ps1
 !/Tools/Test-DX11ShaderValidator.ps1
 !/Tools/Set-TerrainNormalDiagnostic.ps1
 !/Tools/Test-EnhancedPssmV2.ps1
