@@ -700,6 +700,190 @@ local function GetFogPreset(stateName)
 end
 
 -- =============================================================================
+-- Environment modifiers
+--
+-- Fog, ambient, sun diffuse/specular and sun power are written from exactly one
+-- place: the block at the end of Environment.Update. Anything else that wants a
+-- say -- weather, a mission set piece, a scripted power failure -- registers a
+-- modifier here and mutates the frame targets in place instead of issuing its
+-- own exu.SetFog/SetSunDiffuse on the same frame. Two writers on the same
+-- renderer state produce flicker that looks like a renderer bug.
+--
+-- A modifier receives a table with ambient, diffuse, specular, fog,
+-- sunPowerScale, nightBlend, phase and timestep, and edits it in place.
+-- Modifiers run in registration order and are pcall guarded: one bad modifier
+-- must not take the whole environment down.
+-- =============================================================================
+
+Environment.Modifiers = Environment.Modifiers or {}
+Environment.ModifierOrder = Environment.ModifierOrder or {}
+
+function Environment.RegisterEnvironmentModifier(name, fn)
+    if type(name) ~= "string" or type(fn) ~= "function" then
+        return false
+    end
+
+    if Environment.Modifiers[name] == nil then
+        Environment.ModifierOrder[#Environment.ModifierOrder + 1] = name
+    end
+    Environment.Modifiers[name] = fn
+    return true
+end
+
+function Environment.UnregisterEnvironmentModifier(name)
+    if type(name) ~= "string" or Environment.Modifiers[name] == nil then
+        return false
+    end
+
+    Environment.Modifiers[name] = nil
+    for index = #Environment.ModifierOrder, 1, -1 do
+        if Environment.ModifierOrder[index] == name then
+            table.remove(Environment.ModifierOrder, index)
+        end
+    end
+    return true
+end
+
+function Environment.ClearEnvironmentModifiers()
+    Environment.Modifiers = {}
+    Environment.ModifierOrder = {}
+end
+
+local function RunEnvironmentModifiers(frame)
+    -- Snapshot the order: a throwing modifier is unregistered from inside this
+    -- loop, and table.remove on the live list would shift the next entry past
+    -- the cursor and silently skip it.
+    local order = {}
+    for index = 1, #Environment.ModifierOrder do
+        order[index] = Environment.ModifierOrder[index]
+    end
+
+    for index = 1, #order do
+        local name = order[index]
+        local fn = Environment.Modifiers[name]
+        if fn ~= nil then
+            local ok, err = pcall(fn, frame)
+            if not ok then
+                print("Environment: modifier '" .. name .. "' failed: " .. tostring(err))
+                Environment.UnregisterEnvironmentModifier(name)
+            end
+        end
+    end
+    return frame
+end
+
+-- =============================================================================
+-- Gameplay modifiers
+--
+-- Radar range, radar period and velocity jamming are written from exactly one
+-- place: ProcessObjectNightEffects. The night cycle nerfs them by NightBlend;
+-- anything else that wants a say -- a dust storm degrading sensors, a scripted
+-- jamming field -- registers here and returns multiplicative scales layered on
+-- top of the night lerp.
+--
+-- This has to be a hook rather than a second writer. ProcessObjectNightEffects
+-- recomputes every value from the captured original on each sync pass, so an
+-- outside writer is clobbered within the second. Worse, it captures that
+-- original lazily: a storm that called SetRadarRange first would have its own
+-- degraded value recorded as the craft's baseline and never recover it.
+--
+-- A modifier receives a table with radarRange, radarPeriod and velocJam (all
+-- 1.0 on entry), plus nightBlend and phase, and edits the scales in place.
+-- Modifiers run in registration order and are pcall guarded.
+-- =============================================================================
+
+Environment.GameplayModifiers = Environment.GameplayModifiers or {}
+Environment.GameplayModifierOrder = Environment.GameplayModifierOrder or {}
+
+-- Identity until a modifier says otherwise. ProcessObjectNightEffects can run
+-- from OnObjectCreated before any sync pass has happened, so this always has to
+-- be a complete table.
+local IDENTITY_GAMEPLAY_SCALES = { radarRange = 1.0, radarPeriod = 1.0, velocJam = 1.0 }
+
+Environment.GameplayScales = Environment.GameplayScales or {
+    radarRange  = 1.0,
+    radarPeriod = 1.0,
+    velocJam    = 1.0,
+}
+
+function Environment.RegisterGameplayModifier(name, fn)
+    if type(name) ~= "string" or type(fn) ~= "function" then
+        return false
+    end
+
+    if Environment.GameplayModifiers[name] == nil then
+        Environment.GameplayModifierOrder[#Environment.GameplayModifierOrder + 1] = name
+    end
+    Environment.GameplayModifiers[name] = fn
+    Environment.PendingGameplaySync = true
+    return true
+end
+
+function Environment.UnregisterGameplayModifier(name)
+    if type(name) ~= "string" or Environment.GameplayModifiers[name] == nil then
+        return false
+    end
+
+    Environment.GameplayModifiers[name] = nil
+    for index = #Environment.GameplayModifierOrder, 1, -1 do
+        if Environment.GameplayModifierOrder[index] == name then
+            table.remove(Environment.GameplayModifierOrder, index)
+        end
+    end
+
+    -- Whatever this modifier was contributing is gone as of now, so the next
+    -- pass has to rewrite every craft rather than wait for a night-blend move.
+    Environment.PendingGameplaySync = true
+    return true
+end
+
+function Environment.ClearGameplayModifiers()
+    Environment.GameplayModifiers = {}
+    Environment.GameplayModifierOrder = {}
+    Environment.GameplayScales = { radarRange = 1.0, radarPeriod = 1.0, velocJam = 1.0 }
+    Environment.PendingGameplaySync = true
+end
+
+-- A modifier whose contribution has changed calls this so the next Update
+-- pushes the new scales out instead of waiting for the night blend to move.
+function Environment.RequestGameplaySync()
+    Environment.PendingGameplaySync = true
+end
+
+function Environment.RefreshGameplayScales()
+    local frame = {
+        radarRange  = 1.0,
+        radarPeriod = 1.0,
+        velocJam    = 1.0,
+        nightBlend  = Environment.NightBlend or 0.0,
+        phase       = Environment.LastPhase,
+    }
+
+    local order = {}
+    for index = 1, #Environment.GameplayModifierOrder do
+        order[index] = Environment.GameplayModifierOrder[index]
+    end
+
+    for index = 1, #order do
+        local name = order[index]
+        local fn = Environment.GameplayModifiers[name]
+        if fn ~= nil then
+            local ok, err = pcall(fn, frame)
+            if not ok then
+                print("Environment: gameplay modifier '" .. name .. "' failed: " .. tostring(err))
+                Environment.UnregisterGameplayModifier(name)
+            end
+        end
+    end
+
+    local scales = Environment.GameplayScales
+    scales.radarRange  = math.max(0.0, tonumber(frame.radarRange) or 1.0)
+    scales.radarPeriod = math.max(0.0, tonumber(frame.radarPeriod) or 1.0)
+    scales.velocJam    = math.max(0.0, tonumber(frame.velocJam) or 1.0)
+    return scales
+end
+
+-- =============================================================================
 -- Initialization
 -- =============================================================================
 
@@ -851,6 +1035,29 @@ function Environment.Update(timestep)
     end
 
     -- -------------------------------------------------------------------------
+    -- Registered modifiers get the last word on the frame targets. Weather
+    -- contributes here rather than writing fog and lighting itself.
+    -- -------------------------------------------------------------------------
+    if #Environment.ModifierOrder > 0 then
+        local frame = RunEnvironmentModifiers({
+            ambient = targetAmbient,
+            diffuse = targetDiffuse,
+            specular = targetSpecular,
+            fog = targetFog,
+            sunPowerScale = sunState.powerScale,
+            nightBlend = state.nightBlend,
+            phase = state.phase,
+            timestep = timestep,
+        })
+
+        targetAmbient = ClampColor(frame.ambient or targetAmbient)
+        targetDiffuse = ClampColor(frame.diffuse or targetDiffuse)
+        targetSpecular = ClampColor(frame.specular or targetSpecular)
+        targetFog = ClampFog(frame.fog or targetFog)
+        sunState.powerScale = math.max(0.0, tonumber(frame.sunPowerScale) or sunState.powerScale)
+    end
+
+    -- -------------------------------------------------------------------------
     -- Lighting / fog writes
     -- Small epsilons avoid redundant renderer writes without reducing visible
     -- smoothness to coarse stepping.
@@ -959,6 +1166,13 @@ function Environment.SyncGameplayImpacts()
     local count = 0
     local cursor = Environment.CraftCursor or 1
 
+    -- Resolve the modifier contribution once per pass, not once per craft: it
+    -- is the same value for every object, and a pass is deliberately spread
+    -- over several frames.
+    if cursor <= 1 then
+        Environment.RefreshGameplayScales()
+    end
+
     while cursor <= #craftHandles and count < (Environment.GameplayBatchSize or 32) do
         Environment.ProcessObjectNightEffects(craftHandles[cursor])
         cursor = cursor + 1
@@ -982,8 +1196,20 @@ function Environment.ProcessObjectNightEffects(h)
     end
 
     local blend = Clamp01(Environment.NightBlend or 0.0)
+    local scales = Environment.GameplayScales or IDENTITY_GAMEPLAY_SCALES
+    local rangeScale  = scales.radarRange or 1.0
+    local periodScale = scales.radarPeriod or 1.0
+    local jamScale    = scales.velocJam or 1.0
 
-    if blend > 0.001 then
+    -- Either source can be the reason a craft is off its stock values, so the
+    -- capture and the release both have to consider both. Capturing on night
+    -- alone would mean a daytime storm never records a baseline and therefore
+    -- never applies; releasing on night alone would strand the storm's
+    -- degradation on every craft after the storm passed.
+    local modified = (rangeScale ~= 1.0) or (periodScale ~= 1.0) or (jamScale ~= 1.0)
+    local active = (blend > 0.001) or modified
+
+    if active then
         local rng = exu.GetRadarRange(h)
         if rng and rng > 0 and not Environment.OriginalRadarRanges[h] then
             Environment.OriginalRadarRanges[h] = rng
@@ -1001,16 +1227,16 @@ function Environment.ProcessObjectNightEffects(h)
     end
 
     if Environment.OriginalRadarRanges[h] then
-        exu.SetRadarRange(h, Environment.OriginalRadarRanges[h] * Lerp(1.0, Environment.RadarRangeNerf, blend))
+        exu.SetRadarRange(h, Environment.OriginalRadarRanges[h] * Lerp(1.0, Environment.RadarRangeNerf, blend) * rangeScale)
     end
     if Environment.OriginalRadarPeriods[h] then
-        exu.SetRadarPeriod(h, Environment.OriginalRadarPeriods[h] * Lerp(1.0, Environment.RadarPeriodNerf, blend))
+        exu.SetRadarPeriod(h, Environment.OriginalRadarPeriods[h] * Lerp(1.0, Environment.RadarPeriodNerf, blend) * periodScale)
     end
     if Environment.OriginalVelocJams[h] then
-        exu.SetVelocJam(h, Environment.OriginalVelocJams[h] * Lerp(1.0, Environment.VelocJamBuff, blend))
+        exu.SetVelocJam(h, Environment.OriginalVelocJams[h] * Lerp(1.0, Environment.VelocJamBuff, blend) * jamScale)
     end
 
-    if blend <= 0.001 then
+    if not active then
         Environment.OriginalRadarRanges[h] = nil
         Environment.OriginalRadarPeriods[h] = nil
         Environment.OriginalVelocJams[h] = nil
