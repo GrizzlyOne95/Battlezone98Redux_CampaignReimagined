@@ -1,5 +1,15 @@
 # Steam Workshop publishing runner
 
+> **This document describes a pipeline that is not in use.** The
+> `Publish Steam Workshop` workflow has never run, and no self-hosted
+> `steam-workshop` runner is registered on either repository, so the upload job
+> would queue forever waiting for a runner that does not exist. Real publishes
+> are done locally from the maintainer's PC -- see
+> `STEAM_PUBLISH_CHECKLIST.md` for the process that actually works.
+>
+> Keep this document as the design for moving publishing off the workstation.
+> Do not follow it as if it were the current process.
+
 Campaign Reimagined publishes Workshop item `3686673790` through the
 `Publish Steam Workshop` GitHub Actions workflow.
 
