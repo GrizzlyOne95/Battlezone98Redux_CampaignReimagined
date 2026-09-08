@@ -30,6 +30,7 @@
 !/Tools/
 /Tools/*
 !/Tools/Test-CRMarsWeather.lua
+!/Tools/Compare-DX11ShaderBinaries.ps1
 !/Tools/Test-DX11ShaderValidator.ps1
 !/Tools/Set-TerrainNormalDiagnostic.ps1
 !/Tools/Test-EnhancedPssmV2.ps1
