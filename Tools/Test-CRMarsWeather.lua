@@ -398,6 +398,91 @@ check(countSystems() > 0, "a restarted weather system should be rendering again"
 check(Environment.GameplayModifiers["CRMarsWeather"] ~= nil,
     "a restart should re-register the gameplay modifier")
 
+-- --- atmosphere continuity across a preset change ----------------------------
+-- The contribution used to read only the incoming preset at weight Blend, and
+-- SetPreset restarts Blend at 0, so every rung change dropped fog, ambient,
+-- diffuse and sun straight back to the bare mission baseline for a frame and
+-- then ramped the new preset in over the next 20-odd seconds. In game that read
+-- as the weather snapping. Weather has to hand over without a step -- including
+-- when the change interrupts a transition that is still running.
+
+local function BaselineFrame()
+    return {
+        fog = { r = 0.50, g = 0.42, b = 0.34, fogStart = 100.0, fogEnd = 900.0 },
+        ambient = { r = 0.30, g = 0.28, b = 0.26 },
+        diffuse = { r = 0.80, g = 0.76, b = 0.70 },
+        sunPowerScale = 1.0,
+    }
+end
+
+local function SampleAtmosphere()
+    return CRWeather.ApplyEnvironmentContribution(BaselineFrame())
+end
+
+-- Largest single-channel move between two samples, with fog distance put on the
+-- same 0..1 footing as the colours so one threshold covers all of them.
+local function AtmosphereStep(a, b)
+    local step = math.abs(a.fog.fogEnd - b.fog.fogEnd) / 1000.0
+    step = math.max(step, math.abs(a.fog.fogStart - b.fog.fogStart) / 1000.0)
+    step = math.max(step, math.abs(a.fog.r - b.fog.r))
+    step = math.max(step, math.abs(a.ambient.r - b.ambient.r))
+    step = math.max(step, math.abs(a.diffuse.r - b.diffuse.r))
+    step = math.max(step, math.abs((a.sunPowerScale or 1.0) - (b.sunPowerScale or 1.0)))
+    return step
+end
+
+-- A change out of a fully settled preset.
+CRWeather.SetPreset("MarsHaze", 4.0)
+for _ = 1, 30 * 8 do CRWeather.Update(dt) end
+local settledBefore = SampleAtmosphere()
+CRWeather.SetPreset("MarsDustStorm", 20.0)
+local settledAfter = SampleAtmosphere()
+check(AtmosphereStep(settledBefore, settledAfter) < 0.005,
+    string.format("a preset change must not step the atmosphere, moved %.3f",
+        AtmosphereStep(settledBefore, settledAfter)))
+
+-- ... and a change that interrupts a transition still in flight, which is the
+-- case the ladder actually produces.
+for _ = 1, 30 * 6 do CRWeather.Update(dt) end
+check(CRWeather.Blend < 1.0, "the interruption case needs a transition still running")
+local midBefore = SampleAtmosphere()
+CRWeather.SetPreset("MarsDustRising", 18.0)
+local midAfter = SampleAtmosphere()
+check(AtmosphereStep(midBefore, midAfter) < 0.005,
+    string.format("interrupting a transition must not step the atmosphere, moved %.3f",
+        AtmosphereStep(midBefore, midAfter)))
+
+-- A displaced preset keeps its systems while it is still fading -- that is what
+-- stops its particles vanishing -- so the invariant is that no live system ever
+-- outlives the layer that owns it.
+local function HasLayer(preset)
+    for i = 1, #CRWeather.Layers do
+        if CRWeather.Layers[i].preset == preset then return true end
+    end
+    return false
+end
+
+local unowned = 0
+for _, live in pairs(CRWeather.LiveSystems) do
+    if not HasLayer(live.preset) then unowned = unowned + 1 end
+end
+check(unowned == 0,
+    string.format("no particle system may outlive its preset's layer, found %d", unowned))
+
+-- Run the interrupted transition out. Displaced presets must actually be
+-- retired, not merely sitting at zero weight: the old sweep only ever looked at
+-- a single Previous, so a preset displaced mid-transition leaked its systems for
+-- the rest of the mission.
+for _ = 1, 30 * 40 do CRWeather.Update(dt) end
+check(#CRWeather.Layers == 1 and CRWeather.Layers[1].preset == CRWeather.Active,
+    string.format("a completed transition should leave exactly one layer, found %d", #CRWeather.Layers))
+local foreign = 0
+for _, live in pairs(CRWeather.LiveSystems) do
+    if live.preset ~= CRWeather.Active then foreign = foreign + 1 end
+end
+check(foreign == 0,
+    string.format("a completed transition must retire every displaced preset's systems, found %d", foreign))
+
 CRMarsWeather.Shutdown()
 check(countSystems() == 0, "the second shutdown must clean up too")
 
