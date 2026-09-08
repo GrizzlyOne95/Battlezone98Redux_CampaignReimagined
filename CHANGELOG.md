@@ -2,6 +2,15 @@
 
 ## 2026-09-08
 
+### OpenShim 1.0.0.21
+
+- The disabled Multiplayer entry now explains whether platform sign-in,
+  service transport, or authorization is blocking it instead of showing only
+  the same bare `Not Ready` caption for every cause.
+- A low-volume `[MPREADY]` log records readiness state changes without logging
+  the player's name, giving support reports useful evidence immediately.
+- GOG no longer runs the Steam-only multiplayer map-sort frame probe.
+
 ### OpenShim 1.0.0.20
 
 **Steam installs were quietly missing several fixes.** Steam's copy-protection
