@@ -22,6 +22,55 @@ Roadmap discussion:
 The OpenShim BBCode file is the canonical editable source for that discussion.
 Do not maintain a second independent copy in Campaign Reimagined.
 
+## How a publish actually runs
+
+Publishing is a **local** run of `Manage-CampaignFiles.ps1` on the maintainer's
+PC. It is not the GitHub Actions workflow: `Publish Steam Workshop` has never
+run and no self-hosted `steam-workshop` runner exists, so that job would queue
+forever. `Docs/STEAM_WORKSHOP_RUNNER.md` is a design document, not the process.
+
+Run the actions non-interactively -- the bare script drops into a `Read-Host`
+menu that cannot be driven headlessly:
+
+```powershell
+# once per machine: workshop.config.json is per-machine and gitignored,
+# so a fresh clone never has one
+.\Manage-CampaignFiles.ps1 -workshop-init
+# then set SteamUser in workshop.config.json, or define STEAM_USERNAME
+
+.\Manage-CampaignFiles.ps1 -workshop-auth              # once per machine, interactive
+.\Manage-CampaignFiles.ps1 -workshop-build "<note>"    # dry run: stage + validate + VDF, no Steam
+.\Manage-CampaignFiles.ps1 -publish "<change note>"    # real upload
+```
+
+`-workshop-build` is a genuine dry run: it stages, validates, writes the
+manifest and generates the VDF without contacting Steam. Always run it first.
+
+### The shipping lock will stop you
+
+Staging only ships files listed in `Shipping/shipping.lock.json`. A file added
+to the repo since the last bless is silently excluded -- and because the
+staging validator separately *requires* certain files, the run then fails with
+`Workshop staging is missing required file '...'` rather than naming the lock
+as the cause. The fix is `-bless`, which rebuilds the lock and prints every
+file it admits:
+
+```powershell
+.\Manage-CampaignFiles.ps1 -bless
+```
+
+`-bless` decides what lands in players' installs, so read the list before
+committing `Shipping/shipping.lock.json`. Treat a required file appearing in
+the unlocked list as a stale lock rather than a reason to hand-edit either one.
+
+### Prerequisite: a qualified OpenShim release
+
+The bundled OpenShim comes from a published release of
+`Battlezone98Redux_Shim`, verified by SHA-256 against
+`OpenShim-Suite.zip.sha256`. Tag and release OpenShim first (pushing a `v*`
+tag runs its `Build and Release` workflow); a branch or an untagged build
+cannot be published.
+
 ## Before a real Workshop upload
 
 1. Confirm the candidate has completed the normal GOG deploy/test path.
