@@ -1,120 +1,97 @@
-[h1]Battlezone 98 Redux: Unofficial Community Patch & Campaign Rewrite[/h1]
-[i]An experimental, open-source community patch for Battlezone 98 Redux featuring rewritten campaign missions, engine fixes, restored legacy behavior, and new HUD/PDA functionality.[/i]
-
-[h2]Important Notice[/h2]
-[b]This project is 100% unofficial and is not affiliated with or supported by Rebellion. Its functional and "mostly stable", and I'm hoping to get it moreso.[/b]
-
-This patch modifies native game behavior and remains highly experimental. You may encounter bugs, crashes, compatibility problems, unintended gameplay changes, or issues not present in the unmodified game.
-
-Please report problems with as much detail as possible, including:
-[list]
-[*] What you were doing when the issue occurred
-[*] The mission, map, or game mode
-[*] Whether the issue can be reproduced
-[*] Screenshots, error messages, logs, or save files when available
-[*] Any other mods or custom files installed
-[/list]
-
-[h2]Current Campaign Support[/h2]
-Rewritten campaign content currently focuses on:
-[list]
-[*] [b]misn02b[/b] NSDF Mission 1
-[*] [b]misn03[/b] NSDF Mission 2
-[*] [b]misn04[/b] NSDF Mission 3
-[/list]
-
-Other missions should remain playable but won't be modded/overhauled yet. 
-
-[h2]Major Player-Facing Improvements[/h2]
-[list]
-[*] [b]Destruction Debris:[/b] Restored the classic Battlezone 1.5 behavior where destroyed vehicles and buildings break into visible physical geometry chunks. These aren't mods or estimations, they are chunks tracking along exactly with the legacy hidden GEOs. In other words: they're the real deal. 
-[*] [b]Campaign Stability:[/b] Fixed scripting defects that could cause missions to hang, units to behave incorrectly, or construction objectives to break when a constructor was destroyed.
-[*] [b]Combat Behavior:[/b] Corrected issues affecting unit aggro, hidden or sniped units, and destroyed objects that could continue attacking indefinitely.
-[*] [b]Multiplayer Browser:[/b] Fixed the server list jumping back to the top during refreshes, and a crash when creating a game.
-[*] [b]Multiplayer Leave-Game Freeze:[/b] Removed the roughly 30-second hang when exiting a multiplayer game by caching compiled shaders instead of rebuilding them every time.
-[*] [b]Multiplayer Team Flags:[/b] Team flags drawn above player vehicles so teammates and enemies can be told apart at a glance. Toggling the option updates the display immediately.
-[*] [b]Audio Reliability:[/b] Increased the sound-channel pool to reduce audio dropouts during large battles and dialogue-heavy missions.
-[*] [b]Native AutoSave Support:[/b] Added a dedicated AutoSave entry to the load interface without replacing normal save slots.
-[*] [b]Radio Improvements:[/b] Added better handling of queued or outdated unit dialogue to reduce repetitive and stale radio messages.
-[*] [b]4K HUD Support:[/b] Added radar scaling and improved support for custom HUD placement on high-resolution displays.
-[*] [b]New PDA and HUD Systems:[/b] Added Lua-driven support for custom text, overlays, materials, positioning, and mission-specific interface elements.
-[/list]
-
-[h2]In-Game Options and Controls[/h2]
-[list]
-[*] [b]OpenShim Options Page:[/b] A new page on the stock Options screen for settings the original interface has no room for. Most apply instantly; those needing a restart are marked, and hovering a row explains what it does. Includes Raw Mouse Input (to bypass legacy mouse smoothing/acceleration), custom keybindings, attack alerts, target popups, the scrap/pilot HUD style, jet flames, unit voices, weapon and reticle convergence, smarter scavengers, anti-air turret pitch, jump-snipe crouch, global turbo, and player/AI headlights with colour and beam controls.
-[*] [b]Rewritten Key Binding Screen:[/b] A rebuilt input configuration page. Rebind controls in-game across both control families, with paging, live key capture, and cancel, written safely back to your key map.
-[*] [b]Options Back Button:[/b] Fixed the top-left Back button on the Options screen being unresponsive.
-[/list]
-
-[h2]Restored Legacy Battlezone Behavior[/h2]
-[list]
-[*] [b]Destruction Debris:[/b] Restored the classic Battlezone 1.5 behavior where destroyed vehicles and buildings break into visible physical geometry chunks.
-[*] [b]Classic HUD Layout Option:[/b] Restored legacy-style scrap and pilot meter placement aligned with the command interface and native HUD panels.
-[*] [b]Jump-Snipe Crouch:[/b] Restored the classic crouch while sniping mid-jump. Single-player only.
-[*] [b]Global Turbo:[/b] Optional turbo on all drivable units. Single-player only.
-[/list]
-
-[h2]Additional Modding and Engine Features[/h2]
-The patch also expands tools available to mission and mod creators, including:
-[list]
-[*] Runtime texture and material swapping
-[*] Dynamic map-border updates
-[*] Team-specific engine flame colors
-[*] Expanded tactical unit team filters
-[*] Additional AI engagement and stuck-recovery settings
-[*] Alternate dialogue and radio-management controls
-[*] Crash logging and diagnostics to make bug reports actionable
-[/list]
-
-These systems primarily support rewritten campaign content and future community-created missions.
-
-[h2]Platform Support[/h2]
-Windows and Linux are both supported, on Steam and on GOG.
-
-On Linux, including Steam Deck, the patch runs through Proton or a compatible Wine prefix. There is no separate Linux build and there does not need to be: Proton loads exactly the same 32-bit Windows files that Windows players get, so both platforms run identical code and receive updates at the same time.
-
-[list]
-[*] [b]Windows / Steam[/b] and [b]Windows / GOG[/b] - native
-[*] [b]Linux / Steam[/b] - the same files under Proton (Steam Deck included)
-[*] [b]Linux / GOG[/b] - the same files in a compatible Wine or Proton prefix
-[/list]
-
-Operating system and store are treated as independent: a fix is not considered done until it holds on both stores and under Proton. If something works on one and not another, that is a bug worth reporting, not expected behavior.
-
-[h2]Installation[/h2]
-Installation is mostly automatic. I tried to make it as painless as possible. 
-
-Subscribe, then mark the mod Campaign Reimagined active. Then start any of the mod's missions: the patch installs itself by copying [b]winmm.dll[/b] next to the game executable and tells you when it is done.
-
-[list=1]
-[*] Subscribe to this item.
-[*] Launch Battlezone 98 Redux, mark mod active and start one of the mod's missions.
-[*] When it reports that OpenShim was installed, [b]restart the game[/b]. The patch cannot be swapped in while the game is using it.
-[*] Play normally. Updates install the same way.
-[/list]
-
-If the automatic copy does not happen, copy [b]winmm.dll[/b] from the mod folder (for example [i]workshop\campaignReimagined\winmm.dll[/i]) next to [b]battlezone98redux.exe[/b] yourself. If an update fails, check [i]winmm_replace.log[/i] in the Battlezone folder.
-
-It is recommended that you remove other native DLL-based modifications before troubleshooting problems.
-
-[h2]Uninstallation[/h2]
-Delete [b]winmm.dll[/b] from the Battlezone 98 Redux installation folder.
-
-After removing that file, the game will return to its normal, unpatched startup behavior. Any separate campaign, addon, or configuration files included with a release may also be removed manually if desired. You can attempt playing the modded campaign but will get errors. Unsub for full removal. 
-
-[h2]Reporting Issues[/h2]
-Please avoid reports such as 'it does not work.' Detailed reproduction steps make it much more likely that a problem can be identified and fixed.
-
-[h2]Opt-In Session Log Upload (Testers)[/h2]
-If you are testing regularly and want to help more directly, there is an opt-in uploader that bundles the logs and any crash dumps after each session so you do not have to collect them by hand. It runs outside the game process, so it still works after a crash - which is exactly when the logs matter most.
-
-It now ships inside the mod, so there is nothing extra to download. Look in [i]openshim\support\[/i] in the mod folder and read the [b]README.txt[/b] there.
-
-[b]Subscribing does not switch anything on.[/b] Two separate things both have to be true before a single byte is sent: you have saved a webhook URL on your own machine, and you have added the wrapper to your Steam launch options. No webhook ships with the mod, and the game starts the wrapper rather than the wrapper starting itself - so empty launch options means nothing ever uploads. Undo either one and it stops.
-
-When it is on it sends the OpenShim and Battlezone logs, any crash minidumps, [i]multi.ini[/i], and a short header containing your hostname and in-game name. If you would rather not share those, do not set it up - an ordinary written bug report is still genuinely useful.
-
-The webhook is pinned in the project's private Discord channel; ask there if you want to be included.
-
+[h1]Battlezone 98 Redux: Unofficial Community Patch & Campaign Rewrite[/h1]
+[i]An experimental, open-source community patch for Battlezone 98 Redux featuring rewritten campaign missions, engine fixes, restored legacy behavior, and new HUD/PDA functionality.[/i]
+
+[h2]Important Notice[/h2]
+[b]This project is 100% unofficial and is not affiliated with or supported by Rebellion. Its functional and "mostly stable", and I'm hoping to get it moreso.[/b]
+
+This patch modifies native game behavior and remains highly experimental. Expect bugs, crashes, compatibility problems, or changes not present in the unmodified game.
+
+[h2]Latest Update (OpenShim 1.0.0.20)[/h2]
+[b]Steam installs were quietly missing several fixes.[/b] Steam's copy-protection layer rewrites part of the game just after launch; the patcher checked too early and gave up for the rest of the session. It now waits and retries, restoring the pilot crash guard and the AI build fixes on Steam.
+
+[list]
+[*] Two crash fixes: pilot/vehicle transitions, and addon missions whose pilot file declares weapons in the wrong section (found on Hell Gate II).
+[*] Turret tanks converge fixed weapons; radar scaling; faction jet flames in blue, CCA orange and Black Dog red.
+[*] Satellite zoom/pan limits and optional projectile velocity inheritance - single-player, inheritance off by default.
+[*] The shader cache no longer rewrites itself every ten seconds when nothing changed.
+[/list]
+
+Full details are in the Change Notes tab.
+
+[h2]Current Campaign Support[/h2]
+Rewritten campaign content currently focuses on:
+[list]
+[*] [b]misn02b[/b] NSDF Mission 1
+[*] [b]misn03[/b] NSDF Mission 2
+[*] [b]misn04[/b] NSDF Mission 3
+[/list]
+
+Other missions should remain playable but won't be modded/overhauled yet.
+
+[h2]Major Player-Facing Improvements[/h2]
+[list]
+[*] [b]Destruction Debris:[/b] Restored the classic Battlezone 1.5 behavior where destroyed vehicles and buildings break into visible physical geometry chunks. These aren't estimations - they track exactly with the legacy hidden GEOs. They're the real deal.
+[*] [b]Campaign Stability:[/b] Fixed scripting defects that could hang missions, break unit behavior, or stall construction objectives when a constructor was destroyed.
+[*] [b]Combat Behavior:[/b] Corrected unit aggro, hidden or sniped units, and destroyed objects that could keep attacking indefinitely.
+[*] [b]Multiplayer:[/b] Fixed the server list jumping to the top on refresh and a crash when creating a game; removed the ~30-second hang on leaving a match by caching compiled shaders; team flags above player vehicles, toggleable live.
+[*] [b]Audio Reliability:[/b] Larger sound-channel pool, so fewer dropouts in big battles and dialogue-heavy missions.
+[*] [b]Native AutoSave:[/b] A dedicated AutoSave entry that doesn't consume normal save slots.
+[*] [b]Radio Improvements:[/b] Better handling of queued or outdated dialogue, so fewer stale radio messages.
+[*] [b]4K HUD Support:[/b] Radar scaling and better custom HUD placement on high-resolution displays.
+[*] [b]New PDA and HUD Systems:[/b] Lua-driven custom text, overlays, materials, positioning, and mission-specific interface elements.
+[/list]
+
+[h2]In-Game Options and Controls[/h2]
+[list]
+[*] [b]OpenShim Options Page:[/b] A new page on the stock Options screen for settings the original interface has no room for. Most apply instantly; those needing a restart are marked, and hovering a row explains what it does. Includes Raw Mouse Input (bypassing legacy mouse smoothing/acceleration), custom keybindings, attack alerts, target popups, scrap/pilot HUD style, jet flames, unit voices, weapon and reticle convergence, smarter scavengers, anti-air turret pitch, jump-snipe crouch, global turbo, and player/AI headlights with colour and beam controls.
+[*] [b]Rewritten Key Binding Screen:[/b] Rebind controls in-game across both control families, with paging, live key capture, and cancel, written safely back to your key map.
+[*] [b]Options Back Button:[/b] Fixed the top-left Back button on the Options screen being unresponsive.
+[/list]
+
+[h2]Restored Legacy Battlezone Behavior[/h2]
+[list]
+[*] [b]Classic HUD Layout Option:[/b] Restored legacy-style scrap and pilot meter placement aligned with the command interface and native HUD panels.
+[*] [b]Jump-Snipe Crouch:[/b] Restored the classic crouch while sniping mid-jump. Single-player only.
+[*] [b]Global Turbo:[/b] Optional turbo on all drivable units. Single-player only.
+[/list]
+
+[h2]Additional Modding and Engine Features[/h2]
+Also for mission and mod creators: runtime texture and material swapping, dynamic map borders, team-specific engine flame colors, expanded tactical team filters, extra AI engagement and stuck-recovery settings, alternate dialogue and radio controls, and crash logging that makes bug reports actionable.
+
+[h2]Platform Support[/h2]
+Windows and Linux are both supported, on Steam and on GOG. On Linux, including Steam Deck, the patch runs through Proton or a compatible Wine prefix. There is no separate Linux build and there needn't be: Proton loads exactly the same 32-bit Windows files, so both platforms run identical code and update together.
+
+A fix isn't considered done until it holds on both stores and under Proton. If something works on one and not another, that's a bug worth reporting, not expected behavior.
+
+[h2]Installation[/h2]
+Installation is mostly automatic - the patch installs itself by copying [b]winmm.dll[/b] next to the game executable and tells you when it's done.
+
+[list=1]
+[*] Subscribe to this item.
+[*] Launch Battlezone 98 Redux, mark Campaign Reimagined active, and start one of its missions.
+[*] When it reports OpenShim was installed, [b]restart the game[/b]. The patch can't be swapped in while the game is using it.
+[*] Play normally. Updates install the same way.
+[/list]
+
+If the automatic copy doesn't happen, copy [b]winmm.dll[/b] from the mod folder (for example [i]workshop\campaignReimagined\winmm.dll[/i]) next to [b]battlezone98redux.exe[/b] yourself. If an update fails, check [i]winmm_replace.log[/i] in the Battlezone folder. Remove other native DLL-based modifications before troubleshooting.
+
+[h2]Uninstallation[/h2]
+Delete [b]winmm.dll[/b] from the Battlezone 98 Redux installation folder and the game returns to normal, unpatched startup. Campaign, addon, or config files can be removed manually too. The modded campaign will error without the patch; unsubscribe for full removal.
+
+[h2]Reporting Issues[/h2]
+Please avoid reports such as 'it does not work.' Detailed reproduction steps make it much more likely a problem gets fixed. Useful detail includes:
+[list]
+[*] What you were doing, and the mission, map, or game mode
+[*] Whether it reproduces
+[*] Screenshots, error messages, logs, or save files
+[*] Any other mods or custom files installed
+[/list]
+
+[h2]Opt-In Session Log Upload (Testers)[/h2]
+If you test regularly, there is an opt-in uploader that bundles the logs and any crash dumps after each session. It runs outside the game process, so it still works after a crash - exactly when the logs matter most. It ships inside the mod: see [i]openshim\support\[/i] and its [b]README.txt[/b].
+
+[b]Subscribing does not switch anything on.[/b] Two things must both be true before a single byte is sent: you have saved a webhook URL on your own machine, and you have added the wrapper to your Steam launch options. No webhook ships with the mod. Undo either and it stops.
+
+When on, it sends the OpenShim and Battlezone logs, crash minidumps, [i]multi.ini[/i], and a short header with your hostname and in-game name. If you'd rather not share those, don't set it up - a written bug report is still genuinely useful. The webhook is pinned in the project's private Discord.
+
 [b]Expect unfinished behavior, test carefully, and report anything unusual.[/b]

@@ -27,7 +27,15 @@ Do not maintain a second independent copy in Campaign Reimagined.
 1. Confirm the candidate has completed the normal GOG deploy/test path.
 2. Update `CHANGELOG.md` for player-facing changes included in the candidate.
 3. Review `docs/workshop_description.bbcode` and update it if the public item
-   description needs to change.
+   description needs to change. **Publishing it is opt-in.** `PublishDescription`
+   defaults to false, so an ordinary content push leaves the live Steam
+   description exactly as it is -- that description is edited by hand between
+   releases and a content push must not revert those edits. Set
+   `PublishDescription: true` only for a run that deliberately replaces it, and
+   re-snapshot the live text first (see `docs/workshop_description.published-*.bbcode`)
+   so any hand edits made on Steam are folded in before they are overwritten.
+   Steam rejects a description over 8000 characters and the publisher throws
+   before uploading, so check the length after editing.
 4. Review all OpenShim, EXU, bzfile, and CR changes entering the upload against
    `Battlezone98Redux_Shim/Docs/STEAM_ROADMAP_BBCODE.txt`.
 5. Update the roadmap BBCode so completed work, changed implementation status,

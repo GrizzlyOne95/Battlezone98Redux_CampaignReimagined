@@ -1,0 +1,43 @@
+[h3]OpenShim 1.0.0.20[/h3]
+
+[b]Steam installs were quietly missing several fixes.[/b] Steam's copy-protection layer rewrites part of the game a fraction of a second after launch. The patcher was looking for its patch sites too early, finding nothing, and giving up for the rest of the session - so a number of fixes never applied at all on Steam, while the same build worked correctly on GOG. It now waits for the image to settle and retries.
+
+That alone brings back, on Steam: the pilot carrier crash guard, the AI build-prerequisite fixes, and correct multi-producer build behavior. If you play on Steam and thought one of those was still broken, it was - try again.
+
+The log was also misreporting this. A patch whose signature failed to match was announced as a missing config file, which pointed at redeploying something that was already correct. Signature failures and missing entries are now reported separately.
+
+[h3]Crash fixes[/h3]
+
+[list]
+[*] Moving between pilot and vehicle could crash. The pilot's flashlight was being destroyed while the renderer still held it in the current frame's light list. It is now hidden and retired, leaving the scene's own teardown as the sole owner.
+[*] Some addon missions crashed instantly on the first simulation frame. If a mission's pilot file declares its weapons under the wrong section, the pilot never gets a weapon carrier, and the game walked that empty carrier without checking. Found on Hell Gate II; it affects any mission authored the same way.
+[/list]
+
+[h3]Gameplay and visuals[/h3]
+
+[list]
+[*] Turret tanks now converge their fixed weapons through the same path as wingmen and walkers, so they lead a target like every other hovercraft-derived craft.
+[*] Radar size scaling, with the projection re-anchored to the backdrop so the radar stays concentric with its underlay at any scale.
+[*] Faction jet flames: a real blue flame, plus CCA orange and Black Dog red.
+[*] Satellite view zoom and pan limits, and optional projectile velocity inheritance from the firing unit, with the cannon lead solver compensating so a moving shooter still leads correctly. Both are single-player only and stand down in network games; velocity inheritance ships off.
+[*] Launching the bare executable no longer resumes the rolling AutoSave recovery slot.
+[/list]
+
+[h3]Performance[/h3]
+
+[list]
+[*] The shader cache was being rewritten every ten seconds for the whole session even when nothing had changed - an identical 164 KB file, roughly 75 MB of pointless writes in a 90-minute session, and more costly on Linux where it crosses the Proton file layer. It now saves only when the cache has actually changed.
+[/list]
+
+[h3]For mission authors[/h3]
+
+[list]
+[*] Mission .bzn loads can now be traced: every object with its index, file, label and team, plus structural checks for mixed line endings, count fields that disagree with their blocks, duplicate labels and dangling references. Off by default; see TraceBznLoad.
+[*] World Builder can save maps back to their source folder, with a confirmation naming the real destination before anything is written. This is a developer prototype, off by default, and still awaiting editor qualification.
+[/list]
+
+[h3]Notes[/h3]
+
+Windows and Linux, Steam and GOG, all run the same files - Proton loads the identical 32-bit build. Please report anything that works on one and not another.
+
+Interactive ground fog wakes are in the build but not enabled and have no in-game effect yet.
