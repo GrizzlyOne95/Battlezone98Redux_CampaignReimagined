@@ -1,5 +1,5 @@
 --- @meta exu
---- This file provides the lua definitions for Extra Utilities version 1.0.0
+--- This file provides the lua definitions for Extra Utilities version 1.2.0
 --- These definitions also require the stock definitions found in `scriptutils.lua`
 --- for basic types like Handle and Vector
 
@@ -53,8 +53,71 @@ error("This is a definition file, use require(\"exu\")")
 --- @field xsegments integer
 --- @field ysegments integer
 
+--- @class TerrainTextureSet
+--- @field material string? Optional explicit terrain material name. When omitted, EXU resolves the current map's TRN `[Atlases] MaterialName`.
+--- @field materialName string? Alias for `material`.
+--- @field trn string? Optional TRN filename or relative path to resolve instead of the current map's TRN.
+--- @field trnFilename string? Alias for `trn`.
+--- @field resourceGroup string? Optional Ogre resource group. Defaults to `"General"`.
+--- @field techniqueIndex integer? Optional material technique index. Defaults to `0`.
+--- @field technique integer? Alias for `techniqueIndex`.
+--- @field passIndex integer? Optional material pass index. Defaults to `0`.
+--- @field pass integer? Alias for `passIndex`.
+--- @field diffuse string? Terrain diffuse/base texture.
+--- @field diffuseMap string? Alias for `diffuse`.
+--- @field detail string? Terrain detail texture.
+--- @field detailMap string? Alias for `detail`.
+--- @field normal string? Terrain normal map.
+--- @field normalMap string? Alias for `normal`.
+--- @field specular string? Terrain specular map.
+--- @field specularMap string? Alias for `specular`.
+--- @field emissive string? Terrain emissive map.
+--- @field emissiveMap string? Alias for `emissive`.
+
+--- @class AnimationTarget
+--- @field kind "gameObject"|"localFirstPerson"
+--- @field handle Handle? Present only for a game-object target.
+
+--- @class AnimationPlayOptions
+--- @field restart boolean? Reset to time zero before enabling. Defaults to true.
+--- @field loop boolean? Defaults to false.
+--- @field weight number? Blend weight in [0, 1]. Defaults to 1.
+
+--- @class AnimationInfo
+--- @field name string
+--- @field targetKind "gameObject"|"localFirstPerson"
+--- @field enabled boolean
+--- @field loop boolean
+--- @field weight number
+--- @field timePosition number
+--- @field length number
+--- @field normalizedTime number
+--- @field atEnd boolean
+
+--- @class AnimationCapabilities
+--- @field gameObjectTarget boolean
+--- @field localFirstPersonTarget boolean
+--- @field managedClock boolean
+--- @field nativeAdvancement string
+--- @field firstPersonStatus string
+
+--- @class AnimationApi
+--- @field Target fun(handle: Handle): AnimationTarget
+--- @field TargetLocalFirstPerson fun(): AnimationTarget
+--- @field GetCapabilities fun(): AnimationCapabilities
+--- @field Has fun(target: Handle|AnimationTarget, animationName: string): boolean
+--- @field GetInfo fun(target: Handle|AnimationTarget, animationName: string): AnimationInfo?
+--- @field Play fun(target: Handle|AnimationTarget, animationName: string, options?: AnimationPlayOptions): boolean
+--- @field Stop fun(target: Handle|AnimationTarget, animationName: string, reset?: boolean): boolean
+--- @field Restart fun(target: Handle|AnimationTarget, animationName: string): boolean
+--- @field SetEnabled fun(target: Handle|AnimationTarget, animationName: string, enabled: boolean): boolean
+--- @field SetLoop fun(target: Handle|AnimationTarget, animationName: string, loop: boolean): boolean
+--- @field SetWeight fun(target: Handle|AnimationTarget, animationName: string, weight: number): boolean
+--- @field Seek fun(target: Handle|AnimationTarget, animationName: string, timePosition: number): boolean
+
 --- @class exu
 --- @field Origins CameraOrigins
+--- @field animation AnimationApi
 local exu = {}
 
 --- Enums
@@ -252,6 +315,89 @@ function exu.SetCameraZoom(camera, zoom) end
 ---
 --- These functions control the selection that is handled through the control panel.
 
+--- Gets the live pixel offset applied to the stock scrap/pilot HUD text.
+--- This moves the stock text draw positions without editing the HUD textures.
+--- @nodiscard
+--- @return integer x
+--- @return integer y
+function exu.GetScrapPilotHudOffset() end
+
+--- Sets the live pixel offset applied to the stock scrap/pilot HUD text.
+--- Negative X moves it left and negative Y moves it upward.
+--- @param x integer
+--- @param y integer
+function exu.SetScrapPilotHudOffset(x, y) end
+
+--- Restores the stock scrap/pilot HUD text positions captured before any EXU layout overrides.
+--- @return boolean
+function exu.RestoreScrapPilotHudDefault() end
+
+--- Gets the current top-left anchor of the stock scrap/pilot HUD text cluster.
+--- This is useful when positioning it absolutely instead of as a relative offset.
+--- @nodiscard
+--- @return integer | nil x
+--- @return integer | nil y
+function exu.GetScrapPilotHudTopLeft() end
+
+--- Sets the top-left anchor of the stock scrap/pilot HUD text cluster.
+--- This keeps the stock relative spacing between the scrap/pilot text entries.
+--- @param x integer
+--- @param y integer
+function exu.SetScrapPilotHudTopLeft(x, y) end
+
+--- Gets the current top-left anchor of the stock Scrap HUD text.
+--- @nodiscard
+--- @return integer | nil x
+--- @return integer | nil y
+function exu.GetScrapHudTopLeft() end
+
+--- Sets the top-left anchor of the stock Scrap HUD text.
+--- @param x integer
+--- @param y integer
+function exu.SetScrapHudTopLeft(x, y) end
+
+--- Gets the current top-left anchor of the stock Pilot HUD text.
+--- @nodiscard
+--- @return integer | nil x
+--- @return integer | nil y
+function exu.GetPilotHudTopLeft() end
+
+--- Sets the top-left anchor of the stock Pilot HUD text.
+--- @param x integer
+--- @param y integer
+function exu.SetPilotHudTopLeft(x, y) end
+
+--- Gets the ARGB color used for the stock Scrap HUD text.
+--- The integer format is 0xAARRGGBB.
+--- @nodiscard
+--- @return integer color
+function exu.GetScrapHudColor() end
+
+--- Sets the ARGB color used for the stock Scrap HUD text.
+--- The integer format is 0xAARRGGBB.
+--- @param color integer
+function exu.SetScrapHudColor(color) end
+
+--- Gets the ARGB color used for the stock Pilot HUD text.
+--- The integer format is 0xAARRGGBB.
+--- @nodiscard
+--- @return integer color
+function exu.GetPilotHudColor() end
+
+--- Sets the ARGB color used for the stock Pilot HUD text.
+--- The integer format is 0xAARRGGBB.
+--- @param color integer
+function exu.SetPilotHudColor(color) end
+
+--- Gets the live command-menu button footprint in screen pixels.
+--- Returns the current left, top, right, and bottom bounds of the stock top-left command menu.
+--- @nodiscard
+--- @return integer | nil left
+--- @return integer | nil top
+--- @return integer | nil right
+--- @return integer | nil bottom
+function exu.GetCommandMenuRect() end
+
 --- Adds the given unit to the local player's selection.
 --- @param h Handle
 function exu.SelectAdd(h) end
@@ -262,6 +408,46 @@ function exu.SelectNone() end
 --- Sets the local player's selection to the given handle and de-selects everything else.
 --- @param h Handle
 function exu.SelectOne(h) end
+
+--- Command Replacement
+---
+--- These functions replace a stock command slot on a specific unit with Lua-driven behavior.
+
+--- Registers a stock command replacement on a specific handle.
+--- Current automatic interception is limited to selected-unit `Hunt` through a native `Wingman::SetActiveMode` hook.
+--- @param h Handle
+--- @param stockCommandName string
+--- @param replacementLabel string
+--- @param callback fun(unit: Handle, stockCommand: string, replacementLabel: string, origin: string): boolean|nil
+function exu.ReplaceStockCmd(h, stockCommandName, replacementLabel, callback) end
+
+--- Removes a previously registered stock command replacement.
+--- @param h Handle
+--- @param stockCommandName string
+--- @return boolean
+function exu.RemoveStockCmdReplacement(h, stockCommandName) end
+
+--- Returns whether a replacement exists for the given unit and stock command.
+--- @param h Handle
+--- @param stockCommandName string
+--- @return boolean
+function exu.HasStockCmdReplacement(h, stockCommandName) end
+
+--- Returns replacement metadata for the given unit and stock command.
+--- @param h Handle
+--- @param stockCommandName string
+--- @return {stockCommand: string, replacementLabel: string}|nil
+function exu.GetStockCmdReplacement(h, stockCommandName) end
+
+--- Manually dispatches a registered replacement callback.
+--- @param h Handle
+--- @param stockCommandName string
+--- @return boolean
+function exu.TriggerStockCmdReplacement(h, stockCommandName) end
+
+--- Maintains command replacement state such as contextual label overrides.
+--- If the native hook is unavailable, this also falls back to polling-based Hunt interception.
+function exu.UpdateCommandReplacements() end
 
 --- Environment
 ---
@@ -434,6 +620,280 @@ function exu.GetSkyDomeParams() end
 --- @return SkyPlaneParams | nil
 function exu.GetSkyPlaneParams() end
 
+--- Returns whether Ogre currently has an enabled skybox.
+--- @nodiscard
+--- @return boolean
+function exu.GetSkyBoxEnabled() end
+
+--- Enables or disables the current skybox node.
+--- @param enabled boolean
+function exu.SetSkyBoxEnabled(enabled) end
+
+--- Rebuilds the current skybox using the given material.
+--- The distance defaults to 5000, drawFirst defaults to true, and the resource group defaults to "General".
+--- @param materialName string
+--- @param distance number? optional
+--- @param drawFirst boolean? optional
+--- @param resourceGroup string? optional
+--- @return boolean
+function exu.SetSkyBox(materialName, distance, drawFirst, resourceGroup) end
+
+--- Returns whether Ogre currently has an enabled skydome.
+--- @nodiscard
+--- @return boolean
+function exu.GetSkyDomeEnabled() end
+
+--- Enables or disables the current skydome node.
+--- @param enabled boolean
+function exu.SetSkyDomeEnabled(enabled) end
+
+--- Rebuilds the current skydome using the given material.
+--- Defaults: curvature 10, tiling 8, distance 4000, drawFirst true, xsegments 16, ysegments 16, ysegmentsKeep -1.
+--- The resource group defaults to "General".
+--- @param materialName string
+--- @param curvature number? optional
+--- @param tiling number? optional
+--- @param distance number? optional
+--- @param drawFirst boolean? optional
+--- @param xsegments integer? optional
+--- @param ysegments integer? optional
+--- @param ysegmentsKeep integer? optional
+--- @param resourceGroup string? optional
+--- @return boolean
+function exu.SetSkyDome(materialName, curvature, tiling, distance, drawFirst, xsegments, ysegments, ysegmentsKeep, resourceGroup) end
+
+--- Returns whether Ogre currently has an enabled skyplane.
+--- @nodiscard
+--- @return boolean
+function exu.GetSkyPlaneEnabled() end
+
+--- Enables or disables the current skyplane node.
+--- @param enabled boolean
+function exu.SetSkyPlaneEnabled(enabled) end
+
+--- Rebuilds the current skyplane using the given material and plane definition.
+--- The plane table requires `d` or `distance`, and may optionally include `normal = Vector(...)`.
+--- Defaults: scale 1000, tiling 10, drawFirst true, bow 0, xsegments 1, ysegments 1.
+--- The resource group defaults to "General".
+--- @param materialName string
+--- @param plane table
+--- @param scale number? optional
+--- @param tiling number? optional
+--- @param drawFirst boolean? optional
+--- @param bow number? optional
+--- @param xsegments integer? optional
+--- @param ysegments integer? optional
+--- @param resourceGroup string? optional
+--- @return boolean
+function exu.SetSkyPlane(materialName, plane, scale, tiling, drawFirst, bow, xsegments, ysegments, resourceGroup) end
+
+--- Returns whether a named Ogre particle system currently exists.
+--- @nodiscard
+--- @param name string
+--- @return boolean
+function exu.HasParticleSystem(name) end
+
+--- Creates a named Ogre particle system from a stock particle template and attaches it to an EXU-owned scene node.
+--- The optional position defaults to `SetVector(0, 0, 0)`.
+--- Returns false if the particle system already exists or if its reserved EXU node name is already in use.
+--- @param name string
+--- @param templateName string
+--- @param position Vector? optional
+--- @return boolean
+function exu.CreateParticleSystem(name, templateName, position) end
+
+--- Destroys a named Ogre particle system and its EXU-owned scene node if present.
+--- @param name string
+--- @return boolean
+function exu.DestroyParticleSystem(name) end
+
+--- Moves the EXU-owned scene node for a named particle system.
+--- @param name string
+--- @param position Vector
+--- @return boolean
+function exu.SetParticleSystemPosition(name, position) end
+
+--- Rotates the EXU-owned scene node for a named particle system to face the given direction.
+--- @param name string
+--- @param direction Vector
+--- @return boolean
+function exu.SetParticleSystemDirection(name, direction) end
+
+--- Enables or disables emission on a named particle system.
+--- @param name string
+--- @param enabled boolean
+--- @return boolean
+function exu.SetParticleSystemEmitting(name, enabled) end
+
+--- Enables or disables visibility on a named particle system.
+--- @param name string
+--- @param enabled boolean
+--- @return boolean
+function exu.SetParticleSystemVisible(name, enabled) end
+
+--- Sets the playback speed multiplier on a named particle system.
+--- @param name string
+--- @param speed number
+--- @return boolean
+function exu.SetParticleSystemSpeedFactor(name, speed) end
+
+--- Controls whether particles remain in local space on a named particle system.
+--- @param name string
+--- @param enabled boolean
+--- @return boolean
+function exu.SetParticleSystemKeepLocalSpace(name, enabled) end
+
+--- Overrides the material on a named particle system.
+--- The resource group defaults to "General".
+--- @param name string
+--- @param materialName string
+--- @param resourceGroup string? optional
+--- @return boolean
+function exu.SetParticleSystemMaterial(name, materialName, resourceGroup) end
+
+--- Sets the render queue group on a named particle system.
+--- @param name string
+--- @param queueGroup integer
+--- @return boolean
+function exu.SetParticleSystemRenderQueueGroup(name, queueGroup) end
+
+--- Raises the particle quota on a named particle system.
+--- @param name string
+--- @param quota integer
+--- @return boolean
+function exu.SetParticleSystemParticleQuota(name, quota) end
+
+--- Sets the default billboard dimensions on a named particle system.
+--- @param name string
+--- @param width number
+--- @param height number
+--- @return boolean
+function exu.SetParticleSystemDefaultDimensions(name, width, height) end
+
+--- Sets how long a named particle system keeps simulating after it leaves view.
+--- Weather volumes should set a small timeout so an off-screen storm stops costing CPU.
+--- @param name string
+--- @param seconds number
+--- @return boolean
+function exu.SetParticleSystemNonVisibleUpdateTimeout(name, seconds) end
+
+--- Parents a named particle system's EXU-owned scene node to the active camera so the
+--- emitter travels with the view without any per-frame Lua positioning.
+--- The node does not inherit the camera's orientation, so a precipitation volume stays
+--- world-aligned while the player looks around.
+--- If the engine drives its Ogre camera without a scene node, the system is registered as a
+--- native follower instead and `exu.UpdateParticleFollowers` must be called once per frame.
+--- The offset is in camera-local units and defaults to `SetVector(0, 0, 0)`.
+--- @param name string
+--- @param offset Vector? optional
+--- @return boolean
+function exu.AttachParticleSystemToCamera(name, offset) end
+
+--- Parents a named particle system's EXU-owned scene node to a game object's scene node.
+--- The node inherits the object's orientation, so the offset is body-relative.
+--- @param name string
+--- @param h Handle
+--- @param offset Vector? optional
+--- @return boolean
+function exu.AttachParticleSystemToObject(name, h, offset) end
+
+--- Attaches a named particle system to a bone on a game object's skeleton.
+--- Returns false when the object's mesh has no skeleton or no bone by that name.
+--- @param name string
+--- @param h Handle
+--- @param boneName string
+--- @param offset Vector? optional
+--- @return boolean
+function exu.AttachParticleSystemToBone(name, h, boneName, offset) end
+
+--- Undoes any camera, object, or bone attachment and returns the particle system to its
+--- own EXU-owned scene node under the scene root.
+--- @param name string
+--- @return boolean
+function exu.DetachParticleSystem(name) end
+
+--- Moves every camera-following particle system to the current camera position.
+--- Call once per frame. Returns the number of systems moved, which is zero when every
+--- camera attachment resolved to a real scene-graph parent and nothing needs chasing.
+--- @return integer
+function exu.UpdateParticleFollowers() end
+
+--- Returns the number of emitters on a named particle system, or nil if it does not exist.
+--- @nodiscard
+--- @param name string
+--- @return integer?
+function exu.GetParticleSystemEmitterCount(name) end
+
+--- Returns the current emission rate of one emitter, or nil if it does not exist.
+--- Emitter indices are zero based.
+--- @nodiscard
+--- @param name string
+--- @param emitterIndex integer
+--- @return number?
+function exu.GetParticleEmitterEmissionRate(name, emitterIndex) end
+
+--- Enables or disables one emitter on a named particle system.
+--- @param name string
+--- @param emitterIndex integer
+--- @param enabled boolean
+--- @return boolean
+function exu.SetParticleEmitterEnabled(name, emitterIndex, enabled) end
+
+--- Sets the emission rate of one emitter, in particles per second.
+--- This is how a single authored system varies storm intensity smoothly instead of
+--- swapping between several near-identical templates.
+--- @param name string
+--- @param emitterIndex integer
+--- @param rate number
+--- @return boolean
+function exu.SetParticleEmitterEmissionRate(name, emitterIndex, rate) end
+
+--- Sets the emission direction of one emitter. Used to drive precipitation from a wind vector.
+--- @param name string
+--- @param emitterIndex integer
+--- @param direction Vector
+--- @return boolean
+function exu.SetParticleEmitterDirection(name, emitterIndex, direction) end
+
+--- Sets the emitter's position relative to the particle system's node.
+--- @param name string
+--- @param emitterIndex integer
+--- @param position Vector
+--- @return boolean
+function exu.SetParticleEmitterPosition(name, emitterIndex, position) end
+
+--- Sets the emitter's particle velocity range. Omit the maximum for a fixed velocity.
+--- @param name string
+--- @param emitterIndex integer
+--- @param minVelocity number
+--- @param maxVelocity number? optional
+--- @return boolean
+function exu.SetParticleEmitterVelocity(name, emitterIndex, minVelocity, maxVelocity) end
+
+--- Sets the emitter's spread angle, in degrees, matching .particle script units.
+--- @param name string
+--- @param emitterIndex integer
+--- @param degrees number
+--- @return boolean
+function exu.SetParticleEmitterAngle(name, emitterIndex, degrees) end
+
+--- Sets the emitter's particle lifetime range in seconds. Omit the maximum for a fixed lifetime.
+--- @param name string
+--- @param emitterIndex integer
+--- @param minTimeToLive number
+--- @param maxTimeToLive number? optional
+--- @return boolean
+function exu.SetParticleEmitterTimeToLive(name, emitterIndex, minTimeToLive, maxTimeToLive) end
+
+--- Sets the emitter's particle colour range. Pass one colour table for a flat colour, or two
+--- for a random range. Also accepts r, g, b[, a] numbers for a flat colour.
+--- @param name string
+--- @param emitterIndex integer
+--- @param startColor Color
+--- @param endColor Color? optional
+--- @return boolean
+function exu.SetParticleEmitterColor(name, emitterIndex, startColor, endColor) end
+
 --- Returns whether scene bounding boxes are currently shown.
 --- @nodiscard
 --- @return boolean
@@ -460,6 +920,83 @@ function exu.GetViewportShadowsEnabled() end
 --- Enables or disables shadow rendering on the current active viewport.
 --- @param enabled boolean
 function exu.SetViewportShadowsEnabled(enabled) end
+
+--- Returns the active viewport lighting mode: `default`, `enhanced`, or `retro`.
+--- @nodiscard
+--- @return string
+function exu.GetLightingMode() end
+
+--- Sets the active viewport lighting mode.
+--- Accepts `default`, `enhanced`, `retro`, or numeric aliases `1`, `2`, `3`.
+--- @param mode string|integer
+function exu.SetLightingMode(mode) end
+
+--- Returns whether the current active viewport is using the OG retro lighting material scheme.
+--- @nodiscard
+--- @return boolean
+function exu.GetRetroLightingMode() end
+
+--- Switches the current active viewport between the normal material scheme and the `og-*` retro lighting scheme.
+--- @param enabled boolean
+function exu.SetRetroLightingMode(enabled) end
+
+--- Re-asserts the lighting mode last set via SetLightingMode/SetRetroLightingMode
+--- on any active viewport whose material scheme has drifted (e.g. after satellite
+--- view, sniper scope, or a resolution/scene reload rebuilds the viewport).
+--- Idempotent and cheap — a no-op unless a viewport actually reverted — so it is
+--- safe to call every frame from the mod's Update loop to keep retro/enhanced
+--- lighting from flashing back to the default scheme.
+function exu.EnforceLightingMode() end
+
+--- Requests a render profile for this mission/session through OpenShim's
+--- canonical renderer ownership. Accepts `inherit` (follow the player's
+--- openshim.ini preference), `retro`, `redux`, or `enhanced`.
+--- Overrides are cleared automatically when the mission ends; they never leak
+--- into unrelated content. Requires OpenShim with the render-profile bridge;
+--- without it the request maps onto the legacy local lighting-mode path.
+--- @param profile string|integer  `inherit`|`retro`|`redux`|`enhanced` (or 0..3)
+--- @return boolean applied
+function exu.RequestRenderProfile(profile) end
+
+--- Returns the content render profile currently requested for this session:
+--- `inherit` when no content override is active, otherwise the override.
+--- Returns `unknown` when OpenShim lacks the render-profile bridge.
+--- @nodiscard
+--- @return string
+function exu.GetRequestedRenderProfile() end
+
+--- Returns OpenShim's effective render profile: `retro`, `redux`, or
+--- `enhanced`. This is what the renderer is actually honoring after resolving
+--- user preference, content overrides, and compatibility constraints.
+--- Returns `unknown` when OpenShim lacks the render-profile bridge.
+--- @nodiscard
+--- @return string
+function exu.GetEffectiveRenderProfile() end
+
+--- Returns the player's own render-profile preference from openshim.ini:
+--- `retro`, `redux`, or `enhanced`; `unknown` without the bridge.
+--- @nodiscard
+--- @return string
+function exu.GetUserRenderProfile() end
+
+--- Returns whether OpenShim reports the requested profile as supported on the
+--- active renderer backend. Enhanced and Retro are capability-gated; Redux is
+--- always available. Without the bridge this returns false.
+--- @nodiscard
+--- @param profile string|integer
+--- @return boolean
+function exu.SupportsRenderProfile(profile) end
+
+--- Returns a table of OpenShim Enhanced renderer capabilities, e.g.
+--- `{ schemeRewrite=true, normalSharpening=true, linearLighting=false,
+---    terrainEnhanced=false, objectEnhanced=false, modernPssm=false,
+---    lightSelection=false, iblResources=false, mask=3 }`.
+--- DX9 Enhanced intentionally reports its frozen legacy subset; absence of a
+--- DX11-only bit is expected, not an error. All false + mask=0 means the shim
+--- predates the render-profile bridge.
+--- @nodiscard
+--- @return table
+function exu.GetRenderCapabilities() end
 
 --- Returns the current scene visibility mask.
 --- @nodiscard
@@ -505,12 +1042,6 @@ function exu.ShowOverlay(name) end
 --- Hides an existing named overlay.
 --- @param name string
 function exu.HideOverlay(name) end
-
---- Resets EXU's tracked Ogre overlay state and forces a fresh lazy rebuild later.
---- Useful after mission loads where the underlying scene manager and overlay objects may have been replaced.
---- @param reason string? optional log reason
---- @return boolean success
-function exu.ResetOverlaySupport(reason) end
 
 --- Sets the z-order of an overlay.
 --- Valid range is 0 to 650.
@@ -593,6 +1124,20 @@ function exu.SetOverlayDimensions(name, width, height) end
 --- @param name string
 --- @param materialName string
 function exu.SetOverlayMaterial(name, materialName) end
+
+--- Sets a raw Ogre overlay parameter by name.
+--- This is the escape hatch for element-specific options not wrapped by dedicated helpers.
+--- Value may be a string, finite number, or boolean and is converted to Ogre's string parameter form.
+--- Useful examples include:
+--- `Panel`: `uv_coords`, `tiling`, `transparent`
+--- `BorderPanel`: `border_size`, `border_material`, `border_*_uv`
+--- `TextArea`: `alignment`, `space_width`, `colour_top`, `colour_bottom`
+--- Base element params: `horz_align`, `vert_align`, `visible`, `caption`
+--- @param name string
+--- @param parameterName string
+--- @param value string | number | boolean
+--- @return boolean success True when Ogre accepted the parameter.
+function exu.SetOverlayParameter(name, parameterName, value) end
 
 --- Sets the color of an overlay element.
 --- Can take either four number parameters or a color table.
@@ -814,6 +1359,73 @@ function exu.CloneMaterial(sourceMaterialName, cloneMaterialName, resourceGroup)
 --- @return boolean
 function exu.SetMaterialTexture(materialName, textureName, techniqueIndex, passIndex, textureUnitIndex, resourceGroup) end
 
+--- Sets the current UV scroll offset on a material pass texture unit.
+--- The technique index defaults to 0, the pass index defaults to 0, the texture unit index defaults to 0,
+--- and the resource group defaults to "General".
+--- @param materialName string
+--- @param u number
+--- @param v number
+--- @param techniqueIndex integer? optional
+--- @param passIndex integer? optional
+--- @param textureUnitIndex integer? optional
+--- @param resourceGroup string? optional
+--- @return boolean
+function exu.SetMaterialTextureScroll(materialName, u, v, techniqueIndex, passIndex, textureUnitIndex, resourceGroup) end
+
+--- Sets the current UV rotation on a material pass texture unit in radians.
+--- The technique index defaults to 0, the pass index defaults to 0, the texture unit index defaults to 0,
+--- and the resource group defaults to "General".
+--- @param materialName string
+--- @param radians number
+--- @param techniqueIndex integer? optional
+--- @param passIndex integer? optional
+--- @param textureUnitIndex integer? optional
+--- @param resourceGroup string? optional
+--- @return boolean
+function exu.SetMaterialTextureRotate(materialName, radians, techniqueIndex, passIndex, textureUnitIndex, resourceGroup) end
+
+--- Sets scrolling UV animation speeds on a material pass texture unit.
+--- The technique index defaults to 0, the pass index defaults to 0, the texture unit index defaults to 0,
+--- and the resource group defaults to "General".
+--- @param materialName string
+--- @param uSpeed number
+--- @param vSpeed number
+--- @param techniqueIndex integer? optional
+--- @param passIndex integer? optional
+--- @param textureUnitIndex integer? optional
+--- @param resourceGroup string? optional
+--- @return boolean
+function exu.SetMaterialTextureScrollAnimation(materialName, uSpeed, vSpeed, techniqueIndex, passIndex, textureUnitIndex, resourceGroup) end
+
+--- Sets rotational UV animation speed on a material pass texture unit in radians per second.
+--- The technique index defaults to 0, the pass index defaults to 0, the texture unit index defaults to 0,
+--- and the resource group defaults to "General".
+--- @param materialName string
+--- @param speed number
+--- @param techniqueIndex integer? optional
+--- @param passIndex integer? optional
+--- @param textureUnitIndex integer? optional
+--- @param resourceGroup string? optional
+--- @return boolean
+function exu.SetMaterialTextureRotateAnimation(materialName, speed, techniqueIndex, passIndex, textureUnitIndex, resourceGroup) end
+
+--- Resolves a terrain atlas material name from a TRN file.
+--- When no argument is provided, EXU asks stock Lua for the current map's TRN and reads `[Atlases] MaterialName`.
+--- @nodiscard
+--- @param trnFilename string? optional
+--- @return string | nil
+function exu.GetTerrainMaterialName(trnFilename) end
+
+--- Applies one or more terrain texture-unit swaps to the active terrain material.
+--- This keeps HG2/TRN tile painting intact and only retargets the terrain material's live texture inputs.
+--- Supported texture fields are `diffuse`, `detail`, `normal`, `specular`, and `emissive`.
+--- EXU also accepts the `*Map` aliases shown in `TerrainTextureSet`.
+--- If `material` is omitted, EXU resolves the current map's terrain material from the TRN.
+--- @param textureSet TerrainTextureSet
+--- @return boolean success
+--- @return string | nil materialName
+function exu.SetTerrainTextureSet(textureSet) end
+
 --- Gets the ambient, diffuse, specular, and emissive colors from a material pass.
 --- The technique index defaults to 0, the pass index defaults to 0, and the resource group defaults to "General".
 --- @nodiscard
@@ -976,6 +1588,32 @@ function exu.SetMass(h) end
 --- @return GameObject*
 function exu.GetObj(h) end
 
+--- Gets live construction-menu selection state for a construction rig.
+--- Returns nil if the handle is not a live construction rig or the state could not be read.
+--- `activeMode` is the raw stock mode value.
+--- When `hasBuildSelection` is true, `selectedClass` is the raw GameObjectClass*
+--- for the selected build item and `buildItemIndex` is the 1-based
+--- `ProducerClass.buildItemN` slot currently selected in the mode list.
+--- @nodiscard
+--- @param h Handle
+--- @return table | nil
+function exu.GetConstructionRigSelectionInfo(h) end
+
+--- Gets the live selected weapon mask from the object's carrier, filtered to mounted weapons.
+--- This is different from stock `GetWeaponMask`, which reflects the object's stored weapon-mask field.
+--- @nodiscard
+--- @param h Handle
+--- @return integer | nil
+function exu.GetSelectedWeaponMask(h) end
+
+--- Gets low-level weapon-selection state for the object.
+--- The returned table may include stored weapon-mask fields, carrier masks, and mode-list fields.
+--- Use this when you need to distinguish configured mask state from live carrier selection.
+--- @nodiscard
+--- @param h Handle
+--- @return table | nil
+function exu.GetWeaponSelectionInfo(h) end
+
 --- Gets the object's live AiProcess* pointer, if any.
 --- @nodiscard
 --- @param h Handle
@@ -996,6 +1634,13 @@ function exu.GetAiProcessTypeName(h) end
 --- @return table | nil
 function exu.GetAiProcessInfo(h) end
 
+--- Gets a typed snapshot of the object's current AI process state when EXU recognizes the process layout.
+--- Currently specializes scavenger process fields and still includes common RTTI metadata.
+--- @nodiscard
+--- @param h Handle
+--- @return table | nil
+function exu.GetAiProcessState(h) end
+
 --- Gets the first likely task/attack child object discovered inside the AI process.
 --- This is heuristic and intended for reverse-engineering and diagnostics.
 --- The returned table may include `candidates`, `children`, and aligned `fields`.
@@ -1012,6 +1657,30 @@ function exu.GetAiTaskInfo(h) end
 --- @param scanBytes? integer Defaults to 256. Max 512.
 --- @return table | nil
 function exu.GetAiTaskFieldScan(h) end
+
+--- Gets a typed snapshot of the primary live AI task for the object.
+--- Fields include task type/RTTI, state values, target handles, steering factors,
+--- pitch, goto force/direction, and EXU's current per-unit turbo flag.
+--- @nodiscard
+--- @param h Handle
+--- @param scanBytes? integer Defaults to 256. Max 512.
+--- @return table | nil
+function exu.GetAiTaskState(h) end
+
+--- Updates selected fields on the primary live AI task for the object.
+--- Supported fields currently include `braccel`, `strafe`, `steer`, `omega`,
+--- `omegaScale`, `pitch`, `gotoForce`, `gotoDir`, and `turbo`.
+--- @param h Handle
+--- @param state table
+function exu.SetAiTaskState(h, state) end
+
+--- Gets a typed snapshot of the active recycle subtask when the object's AI task is a recycle task.
+--- Useful for scavenger/recycler debugging and scripting around scrap collection flow.
+--- @nodiscard
+--- @param h Handle
+--- @param scanBytes? integer Defaults to 256. Max 512.
+--- @return table | nil
+function exu.GetAiRecycleTaskState(h) end
 
 --- Gets the radar scan period for the given object (if it has a radar).
 --- @nodiscard
@@ -1073,11 +1742,29 @@ function exu.GetUIScaling() end
 --- @return boolean
 function exu.GetGameKey(key) end
 
+--- Returns whether any stock game or shell UI is currently covering gameplay.
+--- This includes the Escape/pause hierarchy, save/load/options pages, and
+--- mission-success or mission-failure screens. Use it to suppress custom HUD.
+--- @nodiscard
+--- @return boolean
+function exu.IsGameUiOpen() end
+
 --- Returns whether the in-game pause or Escape menu is currently open.
 --- This is intended for suppressing custom HUD/UI during paused gameplay.
 --- @nodiscard
 --- @return boolean
 function exu.IsPauseMenuOpen() end
+
+--- Returns a debug snapshot of the native game-side pause/UI state probe.
+--- Useful for reverse-engineering stock UI ownership without relying on Ogre or Lua timing.
+--- Fields include:
+--- `ok`, `gameUiOpen`, `pauseOpen`, `singleplayerPauseOpen`, `multiplayerPauseOpen`,
+--- `cursorVisible`, `currentScreenMatchesPauseRoot`, `singleplayerPauseRoot`,
+--- `multiplayerPauseRoot`, `uiCurrentScreen`, `escapeUiWrapperActive`, `uiWrapperActive`,
+--- `uiCurrentScreenType`, `uiCurrentScreenTypeName`, `multiplayerPauseFlag`.
+--- @nodiscard
+--- @return table
+function exu.GetPauseMenuDebugState() end
 
 --- Multiplayer
 ---
@@ -1129,6 +1816,13 @@ function exu.SetShowScoreboard(state) end
 
 --- Prevents the starting recycler from spawning in strategy and MPI missions. CALL LOOSE IN THE SCRIPT PRE-START!
 function exu.DisableStartingRecycler() end
+
+--- Sets the OpenShim target-reticle popup mode.
+--- 1 = Default, 3 = Explicit Only
+--- 2 remains reserved for the experimental neutral-only path and downgrades to Default in normal builds.
+--- @param mode integer
+--- @return boolean
+function exu.SetTargetReticlePopupMode(mode) end
 
 --- Ordnance
 ---
@@ -1208,6 +1902,25 @@ function exu.SaveGame(slotOrPath, saveType, description) end
 --- @return number newScrapCount
 function exu.AddScrapSilent(team, amount) end
 
+--- Gets the configured engine flame color override for a team.
+--- This currently stores EXU-side configuration for the native engine flame patch path.
+--- @nodiscard
+--- @param team integer
+--- @return '"default"' | '"blue"' | '"red"' | '"green"'
+function exu.GetTeamEngineFlameColor(team) end
+
+--- Sets the engine flame color override for a team.
+--- Valid colors are "default", "blue", "red", and "green".
+--- This currently stores EXU-side configuration for the native engine flame patch path.
+--- @param team integer
+--- @param color '"default"' | '"blue"' | '"red"' | '"green"'
+function exu.SetTeamEngineFlameColor(team, color) end
+
+--- Clears the engine flame color override for a team.
+--- Equivalent to setting the color to "default".
+--- @param team integer
+function exu.ClearTeamEngineFlameColor(team) end
+
 --- Gets whether or not the global turbo mode patch is enabled (default false).
 --- @nodiscard
 --- @return boolean
@@ -1245,6 +1958,74 @@ function exu.GetShotConvergence() end
 --- Sets the hovercraft shot convergence patch true or false (default false).
 --- @param enabled boolean
 function exu.SetShotConvergence(enabled) end
+
+--- Returns whether or not the local player's smart-reticle shot convergence patch is enabled.
+--- This adjusts the local user's hovercraft weapon-aim transform toward the current reticle world position,
+--- without requiring an explicit target lock.
+--- @nodiscard
+--- @return boolean
+function exu.GetPlayerReticleShotConvergence() end
+
+--- Sets the local player's smart-reticle shot convergence patch true or false (default false).
+--- @param enabled boolean
+function exu.SetPlayerReticleShotConvergence(enabled) end
+
+--- Gets the global unit VO throttle window in milliseconds.
+--- Unit barks attempted inside this window are dropped before enqueue.
+--- @nodiscard
+--- @return integer
+function exu.GetUnitVoThrottle() end
+
+--- Sets the global unit VO throttle window in milliseconds.
+--- `0` disables throttling.
+--- @param milliseconds integer
+function exu.SetUnitVoThrottle(milliseconds) end
+
+--- Returns the maximum number of queued unit barks EXU allows before it compacts the queue.
+--- `0` disables queue depth compaction.
+--- @nodiscard
+--- @return integer
+function exu.GetUnitVoQueueDepthLimit() end
+
+--- Sets the maximum number of queued unit barks EXU allows before it compacts the queue.
+--- `0` disables queue depth compaction.
+--- @param depth integer
+function exu.SetUnitVoQueueDepthLimit(depth) end
+
+--- Returns the queue age threshold in milliseconds used to flush stale unit bark backlogs.
+--- `0` disables stale-queue compaction.
+--- @nodiscard
+--- @return integer
+function exu.GetUnitVoQueueStaleMs() end
+
+--- Sets the queue age threshold in milliseconds used to flush stale unit bark backlogs.
+--- `0` disables stale-queue compaction.
+--- @param milliseconds integer
+function exu.SetUnitVoQueueStaleMs(milliseconds) end
+
+--- Returns whether EXU is currently suppressing likely unit VO bark enqueue requests.
+--- This does not affect unrelated mission audio such as `AudioMessage("misn*.wav")`.
+--- @nodiscard
+--- @return boolean
+function exu.GetUnitVoMuted() end
+
+--- Sets whether EXU suppresses likely unit VO bark enqueue requests before they enter the stock queue.
+--- This only affects filenames that pass EXU's stock unit-bark heuristic.
+--- @param muted boolean
+function exu.SetUnitVoMuted(muted) end
+
+--- Returns the alternate bark list for the given unit VO filename.
+--- This only affects filenames that pass EXU's stock unit-bark heuristic.
+--- @nodiscard
+--- @param filename string
+--- @return string[] | nil
+function exu.GetUnitVoAlternates(filename) end
+
+--- Replaces the bark rotation for the given unit VO filename.
+--- Pass `nil` as the second argument to clear the mapping.
+--- @param filename string
+--- @param alternates string[] | nil
+function exu.SetUnitVoAlternates(filename, alternates) end
 
 --- Play Option
 ---
@@ -1314,64 +2095,15 @@ function exu.GetRadarSizeScale() end
 --- @param scale number
 function exu.SetRadarSizeScale(scale) end
 
---- Sets the OpenShim under-attack alert mode.
---- 1 = None, 2 = Minimal, 3 = Normal
---- @param mode integer
---- @return boolean
-function exu.SetUnderAttackAlertMode(mode) end
+--- Rebuilds the live map bounds and minimap extents from the current edge_path.
+--- This uses the game's native refresh path and can be called after native edge_path edits.
+function exu.RefreshEdgePathBounds() end
 
---- Sets the OpenShim target-reticle popup mode.
---- 1 = Default, 3 = Explicit Only
---- 2 remains reserved for the experimental neutral-only path and downgrades to Default in normal builds.
---- @param mode integer
---- @return boolean
-function exu.SetTargetReticlePopupMode(mode) end
-
---- Gets the live command-menu button footprint in screen pixels.
---- Returns the current left, top, right, and bottom bounds of the stock top-left command menu.
---- @nodiscard
---- @return integer | nil left
---- @return integer | nil top
---- @return integer | nil right
---- @return integer | nil bottom
-function exu.GetCommandMenuRect() end
-
---- Sets the live rect for a named HUD sprite entry from `spritea.st`.
---- Requires an OpenShim build that exposes the HUD sprite bridge.
---- @param spriteName string
---- @return integer? x
---- @return integer? y
---- @return integer? w
---- @return integer? h
-function exu.GetHudSpriteRect(spriteName) end
-
---- Sets a named HUD sprite entry rect at runtime.
---- Requires an OpenShim build that exposes the HUD sprite bridge.
---- @param spriteName string
---- @param x integer
---- @param y integer
---- @param w integer
---- @param h integer
---- @return boolean
-function exu.SetHudSpriteRect(spriteName, x, y, w, h) end
-
---- Shows or hides a named HUD sprite entry at runtime.
---- Requires an OpenShim build that exposes the HUD sprite bridge.
---- @param spriteName string
---- @param visible boolean
---- @return boolean
-function exu.SetHudSpriteVisible(spriteName, visible) end
-
---- Restores a named HUD sprite entry to its original runtime rect.
---- Requires an OpenShim build that exposes the HUD sprite bridge.
---- @param spriteName string
---- @return boolean
-function exu.RestoreHudSprite(spriteName) end
-
---- Restores all HUD sprite entries previously mutated through the bridge.
---- Requires an OpenShim build that exposes the HUD sprite bridge.
---- @return boolean
-function exu.RestoreAllHudSprites() end
+--- Replaces the existing edge_path point coordinates in place and refreshes the live map bounds.
+--- The number of points must match the map's existing edge_path exactly.
+--- Each entry may be a vector-like userdata/table with x/z fields, or a two-number array {x, z}.
+--- @param points table
+function exu.SetEdgePathCoords(points) end
 
 --- Reticle
 ---
@@ -1541,5 +2273,173 @@ function exu.ScreenToWorld(screenX, screenY) end
 --- @param perspectiveMat Matrix
 --- @return Vector
 function exu.VectorUnrotate(v, perspectiveMat) end
+
+--- Runtime exports that predated their LuaLS declarations.
+--- These conservative declarations keep editor/runtime API parity exact.
+--- @param ... any
+function exu.ClearAiUnitTuning(...) end
+
+--- @param ... any
+function exu.ClearAllAiUnitTuning(...) end
+
+--- @param ... any
+function exu.ClearVisuals(...) end
+
+--- @param ... any
+function exu.DrawBox(...) end
+
+--- @param ... any
+function exu.DrawLine(...) end
+
+--- @param ... any
+function exu.GetAiTargetScoringEnabled(...) end
+
+--- @param ... any
+function exu.GetAiTargetSelectEnabled(...) end
+
+--- @param ... any
+function exu.GetAiUnitTuning(...) end
+
+--- @param ... any
+function exu.GetCullDistance(...) end
+
+--- @param ... any
+function exu.GetCullingEnabled(...) end
+
+--- Sets the live rect for a named HUD sprite entry from `spritea.st`.
+--- Requires an OpenShim build that exposes the HUD sprite bridge.
+--- @param spriteName string
+--- @return integer? x
+--- @return integer? y
+--- @return integer? w
+--- @return integer? h
+function exu.GetHudSpriteRect(spriteName) end
+
+--- @param ... any
+function exu.GetInfiniteAmmo(...) end
+
+--- @param ... any
+function exu.GetInfiniteScrap(...) end
+
+--- @param ... any
+function exu.GetMusicTrack(...) end
+
+--- @param ... any
+function exu.GetOrdnanceVelocMode(...) end
+
+--- @param ... any
+function exu.GetViewportOverlaysEnabled(...) end
+
+--- @param ... any
+function exu.GetWeaponMask(...) end
+
+--- @param ... any
+function exu.GetWireframe(...) end
+
+--- @param ... any
+function exu.PauseMusic(...) end
+
+--- @param ... any
+function exu.ResetMissionHookOverrides(...) end
+
+--- Resets EXU's tracked Ogre overlay state and forces a fresh lazy rebuild later.
+--- Useful after mission loads where the underlying scene manager and overlay objects may have been replaced.
+--- @param reason string? optional log reason
+--- @return boolean success
+function exu.ResetOverlaySupport(reason) end
+
+--- Restores all HUD sprite entries previously mutated through the bridge.
+--- Requires an OpenShim build that exposes the HUD sprite bridge.
+--- @return boolean
+function exu.RestoreAllHudSprites() end
+
+--- Restores a named HUD sprite entry to its original runtime rect.
+--- Requires an OpenShim build that exposes the HUD sprite bridge.
+--- @param spriteName string
+--- @return boolean
+function exu.RestoreHudSprite(spriteName) end
+
+--- @param ... any
+function exu.ResumeMusic(...) end
+
+--- @param ... any
+function exu.SetAiOdfGameplayTuningEnabled(...) end
+
+--- @param ... any
+function exu.SetAiTargetScoringEnabled(...) end
+
+--- @param ... any
+function exu.SetAiTargetSelectEnabled(...) end
+
+--- @param ... any
+function exu.SetAiUnitTuning(...) end
+
+--- @param ... any
+function exu.SetAttackRevealEnabled(...) end
+
+--- @param ... any
+function exu.SetBomberAiRangeEnabled(...) end
+
+--- @param ... any
+function exu.SetCullDistance(...) end
+
+--- @param ... any
+function exu.SetCullingEnabled(...) end
+
+--- @param ... any
+function exu.SetHowitzerVolleyEnabled(...) end
+
+--- Sets a named HUD sprite entry rect at runtime.
+--- Requires an OpenShim build that exposes the HUD sprite bridge.
+--- @param spriteName string
+--- @param x integer
+--- @param y integer
+--- @param w integer
+--- @param h integer
+--- @return boolean
+function exu.SetHudSpriteRect(spriteName, x, y, w, h) end
+
+--- Shows or hides a named HUD sprite entry at runtime.
+--- Requires an OpenShim build that exposes the HUD sprite bridge.
+--- @param spriteName string
+--- @param visible boolean
+--- @return boolean
+function exu.SetHudSpriteVisible(spriteName, visible) end
+
+--- @param ... any
+function exu.SetInfiniteAmmo(...) end
+
+--- @param ... any
+function exu.SetInfiniteScrap(...) end
+
+--- @param ... any
+function exu.SetJumpSnipeCrouch(...) end
+
+--- @param ... any
+function exu.SetMusicTrack(...) end
+
+--- @param ... any
+function exu.SetOrdnanceVelocMode(...) end
+
+--- @param ... any
+function exu.SetTurretAimPitchEnabled(...) end
+
+--- Sets the OpenShim under-attack alert mode.
+--- 1 = None, 2 = Minimal, 3 = Normal
+--- @param mode integer
+--- @return boolean
+function exu.SetUnderAttackAlertMode(mode) end
+
+--- @param ... any
+function exu.SetViewportOverlaysEnabled(...) end
+
+--- @param ... any
+function exu.SetWeaponMaskCarrierBiasEnabled(...) end
+
+--- @param ... any
+function exu.SetWireframe(...) end
+
+--- @param ... any
+function exu.StopMusic(...) end
 
 return exu
