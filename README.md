@@ -70,7 +70,7 @@ Useful references:
 
 ## Publishing
 
-Steam Workshop publication is currently a **local maintainer operation** through `Manage-CampaignFiles.ps1`, not a GitHub Actions publishing workflow. The manager natively excludes repository-only material from Workshop staging, so no wrapper script or temporary movement of `.github/` is required.
+Steam Workshop publication is currently a **local maintainer operation** through `Manage-CampaignFiles.ps1`, not the retired **Publish Steam Workshop** GitHub Actions workflow. The manager natively excludes repository-only material from Workshop staging, so no wrapper script or temporary movement of `.github/` is required.
 
 Start from a clean canonical worktree, copy `workshop.config.example.json` to the ignored `workshop.config.json`, initialize/authenticate the local publisher as needed, and use the manager's `-workshop-build` / `-publish` paths. The complete qualified sequence, including OpenShim release requirements, staging validation, Roadmap synchronization, Steam download, and final Steam verification, is documented in [`docs/STEAM_PUBLISH_CHECKLIST.md`](docs/STEAM_PUBLISH_CHECKLIST.md).
 
