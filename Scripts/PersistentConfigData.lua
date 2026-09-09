@@ -4,14 +4,15 @@
 local ODF_ROOT_SECTION = false
 
 local PdaPages = {
-    STATS = 1,
-    TARGET = 2,
-    CAREER = 3,
+    VEHICLE = 1,
+    WEAPONS = 2,
+    TARGET = 3,
     COMMAND = 4,
     QUEUE = 5,
     PRESETS = 6,
-    SETTINGS = 7,
-    COUNT = 7,
+    CAREER = 7,
+    SETTINGS = 8,
+    COUNT = 8,
 }
 
 return {
@@ -24,7 +25,8 @@ return {
         {
             label = "COMBAT",
             pages = {
-                { page = PdaPages.STATS, label = "UNIT" },
+                { page = PdaPages.VEHICLE, label = "VEHICLE" },
+                { page = PdaPages.WEAPONS, label = "WEAPONS" },
                 { page = PdaPages.TARGET, label = "TARGET" },
             },
         },
@@ -63,10 +65,10 @@ return {
     },
 
     PdaColorPresets = {
-        [1] = { name = "DARK GREEN", r = 0.10, g = 0.42, b = 0.10 },
-        [2] = { name = "GREEN", r = 0.18, g = 0.92, b = 0.18 },
-        [3] = { name = "BLUE", r = 0.35, g = 0.65, b = 1.00 },
-        [4] = { name = "WHITE", r = 1.00, g = 1.00, b = 1.00 },
+        [1] = { name = "DARK BZ", r = 0.10, g = 0.42, b = 0.10 },
+        [2] = { name = "CLASSIC BZ", r = 0.18, g = 0.92, b = 0.18 },
+        [3] = { name = "BZ2", r = 0.35, g = 0.65, b = 1.00 },
+        [4] = { name = "CYBERZONE", r = 1.00, g = 0.35, b = 0.12 },
     },
 
     PdaPanelMaterialFamilies = {
