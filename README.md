@@ -63,6 +63,7 @@ Do not deploy development files directly into Steam's Workshop download cache. `
 Useful references:
 
 - [`CHANGELOG.md`](CHANGELOG.md) — recent player-facing and technical changes
+- [`Docs/INSTANT_ACTION_PORTING_BACKLOG.md`](Docs/INSTANT_ACTION_PORTING_BACKLOG.md) — classic Instant Action preservation/Redux porting backlog
 - [`docs/workshop_description.bbcode`](docs/workshop_description.bbcode) — canonical public Workshop description
 - [`docs/STEAM_PUBLISH_CHECKLIST.md`](docs/STEAM_PUBLISH_CHECKLIST.md) — qualified local Workshop publication sequence
 - [`docs/STEAM_WORKSHOP_RUNNER.md`](docs/STEAM_WORKSHOP_RUNNER.md) — future dedicated-runner design, not the current publishing path
