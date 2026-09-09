@@ -7,10 +7,10 @@ Workshop cache paths.
 
 ## Launch pattern
 
-Close Battlezone before changing a mode. From PowerShell:
+Close Battlezone before changing a mode. From PowerShell at the repository root:
 
 ```powershell
-$tool = 'C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined\Tools\Set-TerrainNormalDiagnostic.ps1'
+$tool = Join-Path $PWD 'Tools\Set-TerrainNormalDiagnostic.ps1'
 $game = 'C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux'
 
 & $tool -Unpack RGB -Basis Stock -View None
