@@ -40,11 +40,44 @@ menu that cannot be driven headlessly:
 
 .\Manage-CampaignFiles.ps1 -workshop-auth              # once per machine, interactive
 .\Manage-CampaignFiles.ps1 -workshop-build "<note>"    # dry run: stage + validate + VDF, no Steam
-.\Manage-CampaignFiles.ps1 -publish "<change note>"    # real upload
+.\Manage-CampaignFiles.ps1 -workshop-upload "<note>"   # real upload
 ```
 
 `-workshop-build` is a genuine dry run: it stages, validates, writes the
 manifest and generates the VDF without contacting Steam. Always run it first.
+
+### Call the manager directly, and prefer `-workshop-upload`
+
+`-publish` and `-workshop-upload` dispatch to the same `Publish-All`, but
+`-workshop-upload` is the safer thing to type. `publish` is an unambiguous
+*prefix* of a PowerShell parameter name, so any wrapper or helper that declares
+a parameter beginning with `Publish` binds `-publish "<change note>"` to that
+parameter instead of forwarding it. `Docs\Invoke-WorkshopPublisher.ps1` did
+exactly that: the manager received only the change note, matched no action, fell
+through to the interactive menu, and exited 0. Nothing was staged and nothing
+was uploaded, but the call looked like a success.
+
+That wrapper is no longer part of the repository -- the manager excludes
+repository-only material from staging by itself. If a copy is still sitting in
+your working tree from an older checkout, delete it rather than running it, and
+invoke `Manage-CampaignFiles.ps1` directly.
+
+The manager no longer covers for a mistake like this: an action it does not
+recognize prints every argument it received, lists the supported actions, and
+exits 2. Only a genuinely argument-less run opens the menu.
+
+### Confirming that an upload actually happened
+
+Do not judge a publish by its exit code alone. Check what the run printed:
+
+| Output | Meaning |
+|---|---|
+| `Uploading app 301650 item 3686673790 to Steam Workshop...` | The real upload path ran. |
+| `Campaign Reimagined - Mod Manager` banner | The run fell into the interactive menu. **Nothing was staged and nothing was uploaded.** |
+| `Unrecognized action: ...` | The action never reached the manager. Nothing ran. |
+
+A publish that never printed the `Uploading app 301650 item 3686673790` line is
+not a publish. Re-run it before reporting the publication as complete.
 
 ### The shipping lock will stop you
 
@@ -120,7 +153,8 @@ the canonical `STEAM_ROADMAP_BBCODE.txt` source.
 When reporting that a Workshop publish is complete, include all of the
 following:
 
-- Workshop upload succeeded;
+- Workshop upload succeeded (the run printed `Uploading app 301650 item
+  3686673790 to Steam Workshop...`);
 - Workshop change note used;
 - Roadmap BBCode reviewed/updated;
 - Steam Roadmap discussion synchronized;
