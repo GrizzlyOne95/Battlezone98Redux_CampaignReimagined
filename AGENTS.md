@@ -3,7 +3,7 @@
 This is the authoritative Campaign Reimagined source tree for campaign content, Lua, materials/shaders, assets, packaging, and publishing.
 
 ## Authoritative Paths and Promotion
-- Canonical source: `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`.
+- Canonical Git working tree: `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`. **This Google Drive directory is the canonical Git checkout and edit source.** Do not create or use a second Campaign Reimagined checkout elsewhere (including under `docs/`, `Docs/`, or `%USERPROFILE%\Documents\GIT`) as an alternate edit source. If a duplicate/nested CR checkout is discovered, treat it as scratch/stale until its provenance is verified against this worktree and `origin`.
 - GOG test game: `C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux`; runtime mod: `...\mods\3686673790`.
 - Steam subscribed payload: `C:\Program Files (x86)\Steam\steamapps\workshop\content\301650\3686673790`.
 - Required promotion: **edit canonical source -> validate/build -> `Manage-CampaignFiles.ps1 -deploy` to GOG -> test GOG -> build/upload Workshop item `3686673790` -> synchronize the Steam Roadmap discussion -> let Steam download it -> final Steam test**.
@@ -14,7 +14,7 @@ This is the authoritative Campaign Reimagined source tree for campaign content, 
 - `Bin\` is a cache of sibling build outputs, not an independent source. Every deploy and Workshop staging refreshes all four shipping binaries (`winmm.dll`, `exu.dll`, `bzfile.dll`, `bzfile_replace_helper.exe`) and their `.pdb` pairs from the repositories that build them, then fails the staging if a staged binary does not hash-match its build output. Override the source repositories with `BZR_OPENSHIM_REPO`, `BZR_EXU_REPO`, and `BZR_BZFILE_REPO`; they default to `%USERPROFILE%\Documents\GIT\{BZR-OpenShim,ExtraUtilities,bzfile}`.
 
 ## BZR Bundle
-Local sibling/reference checkouts normally live under `%USERPROFILE%\Documents\GIT`; verify `origin` before editing because local folder names may be historical. The CR Git checkout there is useful for cross-reference, but the canonical edit/promotion paths above remain authoritative.
+Sibling/reference repositories normally live under `%USERPROFILE%\Documents\GIT`; verify `origin` before editing because local folder names may be historical. **Campaign Reimagined is the exception:** its canonical Git worktree is the Google Drive path above. Do not maintain or consult a second CR checkout under `%USERPROFILE%\Documents\GIT` as a competing source tree.
 
 - **Campaign Reimagined / CR** — `GrizzlyOne95/Battlezone98Redux_CampaignReimagined` (this repo): addon content, Lua consumers, assets, packaging, integration/validation.
 - **OpenShim** — `GrizzlyOne95/Battlezone98Redux_Shim`: low-level hooks, patches, RE, SDK/native engine integration.
