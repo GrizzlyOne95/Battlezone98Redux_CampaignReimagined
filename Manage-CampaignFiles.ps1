@@ -1763,6 +1763,24 @@ function Invoke-VerifyInstall {
     return $clean
 }
 
+# Every action this script dispatches on below. Kept beside the dispatch
+# chain so a newly added action also appears in the unrecognized-action
+# message instead of going missing from it.
+$KnownActions = @(
+    "-sync",
+    "-fromsource",
+    "-deploy",
+    "-release",
+    "-bless",
+    "-verify",
+    "-addon",
+    "-workshop-build",
+    "-workshop-auth",
+    "-workshop-init",
+    "-workshop-upload",
+    "-publish"
+)
+
 # Check for args to run non-interactively
 if ($args[0] -eq "-sync") {
     Sync-ToSource
@@ -1819,7 +1837,7 @@ elseif ($args[0] -eq "-workshop-init") {
             "$WorkshopPublishedFileId), either in workshop.config.json or as STEAM_USERNAME.") -ForegroundColor Yellow
     }
     Write-Host "PublishDescription is $([bool]$cfg.PublishDescription); leave it false unless this run is meant to replace the live Steam description." -ForegroundColor DarkGray
-    Write-Host "Then: -workshop-auth (once per machine), -workshop-build (dry run), -publish `"<change note>`"." -ForegroundColor DarkGray
+    Write-Host "Then: -workshop-auth (once per machine), -workshop-build (dry run), -workshop-upload `"<change note>`"." -ForegroundColor DarkGray
 }
 elseif ($args[0] -eq "-workshop-upload") {
     $message = $null
@@ -1835,6 +1853,30 @@ elseif ($args[0] -eq "-publish") {
     }
     Publish-All -Message $message
 }
-else {
+elseif ($args.Count -eq 0) {
+    # The genuine interactive case: no action was asked for at all.
     Show-Menu
+}
+else {
+    # An unrecognized action used to fall through to the interactive menu,
+    # which made a broken invocation indistinguishable from a successful
+    # one: the menu banner scrolled past, the script exited 0, and nothing
+    # was staged or uploaded. A wrapper that swallows the action reaches
+    # here too. Say exactly what arrived and fail loudly.
+    Write-Host ""
+    Write-Host "Unrecognized action: '$($args[0])'" -ForegroundColor Red
+    Write-Host "Received $($args.Count) argument(s):" -ForegroundColor Red
+    for ($i = 0; $i -lt $args.Count; $i++) {
+        Write-Host "  [$i] <$($args[$i])>" -ForegroundColor DarkYellow
+    }
+    Write-Host ""
+    Write-Host "Supported actions:" -ForegroundColor Yellow
+    foreach ($known in $KnownActions) {
+        Write-Host "  $known" -ForegroundColor DarkGray
+    }
+    Write-Host ""
+    Write-Host "Run this script with no arguments for the interactive menu." -ForegroundColor DarkGray
+    Write-Host ("If you invoked it through a wrapper, the wrapper may have consumed the " +
+        "action itself; the action must reach this script as `$args[0].") -ForegroundColor DarkGray
+    exit 2
 }
