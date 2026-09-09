@@ -64,14 +64,17 @@ Useful references:
 
 - [`CHANGELOG.md`](CHANGELOG.md) — recent player-facing and technical changes
 - [`docs/workshop_description.bbcode`](docs/workshop_description.bbcode) — canonical public Workshop description
-- [`docs/STEAM_WORKSHOP_RUNNER.md`](docs/STEAM_WORKSHOP_RUNNER.md) — publishing architecture and runner setup
+- [`docs/STEAM_PUBLISH_CHECKLIST.md`](docs/STEAM_PUBLISH_CHECKLIST.md) — qualified local Workshop publication sequence
+- [`docs/STEAM_WORKSHOP_RUNNER.md`](docs/STEAM_WORKSHOP_RUNNER.md) — future dedicated-runner design, not the current publishing path
 - [`AGENTS.md`](AGENTS.md) — authoritative local paths and promotion rules
 
 ## Publishing
 
-The manual **Publish Steam Workshop** GitHub Actions workflow builds OpenShim, stages the campaign, validates the content manifest, and hands the immutable payload to a dedicated Steam-authenticated runner. It is restricted to `main` and supports a dry-run mode.
+Steam Workshop publication is currently a **local maintainer operation** through `Manage-CampaignFiles.ps1`, not the retired **Publish Steam Workshop** GitHub Actions workflow. The manager natively excludes repository-only material from Workshop staging, so no wrapper script or temporary movement of `.github/` is required.
 
-Local builds and uploads use `docs/Invoke-WorkshopPublisher.ps1`, which wraps `Manage-CampaignFiles.ps1` so repository-only files are excluded from the flattened Workshop payload. Copy `workshop.config.example.json` to the ignored `workshop.config.json` before local publishing.
+Start from a clean canonical worktree, copy `workshop.config.example.json` to the ignored `workshop.config.json`, initialize/authenticate the local publisher as needed, and use the manager's `-workshop-build` / `-publish` paths. The complete qualified sequence, including OpenShim release requirements, staging validation, Roadmap synchronization, Steam download, and final Steam verification, is documented in [`docs/STEAM_PUBLISH_CHECKLIST.md`](docs/STEAM_PUBLISH_CHECKLIST.md).
+
+The separate **Publish Campaign Release** workflow may build and validate unified release artifacts, but it does not replace the qualified local Workshop publication path unless a dedicated Steam runner is intentionally provisioned and qualified.
 
 ## Reporting problems
 
