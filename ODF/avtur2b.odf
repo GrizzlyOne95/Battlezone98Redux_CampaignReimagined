@@ -1,0 +1,7 @@
+[GameObjectClass]
+baseName = "avturr"
+classLabel = "turrettank"
+retargetPeriodAI = 0.20
+
+[CraftClass]
+periodScan = 0.0

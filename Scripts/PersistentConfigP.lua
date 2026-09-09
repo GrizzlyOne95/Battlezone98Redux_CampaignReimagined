@@ -351,10 +351,24 @@ function M.Create(deps)
         return tostring(lhs or 0) .. "/" .. tostring(rhs or 0)
     end
 
-    local function BuildStatsPageText(player, mask)
-        local lines = { BuildPdaHeader(PdaPages.STATS) }
+    local function GetHeadingDegrees(handle)
+        if type(GetFront) ~= "function" then return nil end
+        local front = GetFront(handle)
+        if not front then return nil end
+        local x, z = front.x or 0.0, front.z or 0.0
+        if math.abs(x) + math.abs(z) < 0.0001 then return nil end
+        local radians
+        if type(math.atan2) == "function" then
+            radians = math.atan2(x, z)
+        else
+            radians = math.atan(x, z)
+        end
+        return math.floor(((math.deg(radians) % 360.0) + 0.5)) % 360
+    end
+
+    local function BuildVehiclePageText(player)
+        local lines = { BuildPdaHeader(PdaPages.VEHICLE) }
         local speed = math.floor(GetPlayerSpeedMeters(player) + 0.5)
-        local _, targetDistance = GetHudTargetInfo(player)
         local unitName = GetVehicleDisplayName(player) or "Unknown"
         local playerHealth = (type(GetHealth) == "function") and (GetHealth(player) or 0.0) or 0.0
         local playerAmmo = (type(GetAmmo) == "function") and (GetAmmo(player) or 0.0) or 0.0
@@ -362,16 +376,22 @@ function M.Create(deps)
         local maxHealth = type(GetMaxHealth) == "function" and GetMaxHealth(player) or nil
         local curAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(player) or nil
         local maxAmmo = type(GetMaxAmmo) == "function" and GetMaxAmmo(player) or nil
-        local installedMask = GetInstalledWeaponMask(player)
-        local distanceText = targetDistance and (tostring(math.floor(targetDistance + 0.5)) .. "m") or "--"
+        local heading = GetHeadingDegrees(player)
 
-        table.insert(lines, "UNIT  " .. unitName)
-        table.insert(lines, "Speed " .. tostring(speed) .. "m/s  Target " .. distanceText)
+        table.insert(lines, "CRAFT  " .. unitName)
+        table.insert(lines, "Speed " .. tostring(speed) .. "m/s  Heading " ..
+            (heading and (tostring(heading) .. " deg") or "--"))
         table.insert(lines, BuildMeterBar("HULL", playerHealth, curHealth, maxHealth))
         table.insert(lines, BuildMeterBar("AMMO", playerAmmo, curAmmo, maxAmmo))
-        table.insert(lines, "")
-        table.insert(lines, "WEAPONS  (* firing group)")
+        AppendPdaNavHints(lines)
+        return table.concat(lines, "\n")
+    end
 
+    local function BuildWeaponsPageText(player, mask)
+        local lines = { BuildPdaHeader(PdaPages.WEAPONS) }
+        local installedMask = GetInstalledWeaponMask(player)
+
+        table.insert(lines, "HARDPOINTS  (* firing group)")
         local hardpointCount = AppendWeaponStatsLines(lines, player, installedMask, mask)
         if hardpointCount > 0 then
             table.insert(lines, "Total " .. tostring(hardpointCount))
@@ -454,7 +474,6 @@ function M.Create(deps)
         local maxHealth = type(GetMaxHealth) == "function" and GetMaxHealth(target) or nil
         local curAmmo = type(GetCurAmmo) == "function" and GetCurAmmo(target) or nil
         local maxAmmo = type(GetMaxAmmo) == "function" and GetMaxAmmo(target) or nil
-        local selectedWeaponMask = ResolveLiveSelectedWeaponMask(player, selectedMask)
         local _, eta = GetTargetClosureInfo(player, target, targetDistance)
 
         table.insert(lines, "UNIT  " .. unitName)
@@ -464,22 +483,6 @@ function M.Create(deps)
         table.insert(lines, BuildMeterBar("HULL", targetHealth, curHealth, maxHealth))
         table.insert(lines, BuildMeterBar("AMMO", targetAmmo, curAmmo, maxAmmo))
 
-        local selectedWeaponLines = {}
-        local selectedWeaponCount = 0
-        if selectedWeaponMask > 0 then
-            selectedWeaponCount = AppendTargetWeaponStatusLines(selectedWeaponLines, player, selectedWeaponMask, target, nil,
-                targetDistance)
-        end
-        if selectedWeaponCount > 0 then
-            table.insert(lines, "")
-            table.insert(lines, "SELECTED WEAPONS")
-            for _, line in ipairs(selectedWeaponLines) do
-                table.insert(lines, line)
-            end
-        else
-            table.insert(lines, "")
-            table.insert(lines, "SELECTED WEAPONS  None")
-        end
         AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
@@ -701,12 +704,15 @@ function M.Create(deps)
     end
 
     local function BuildWeaponStatsText(player, mask)
-        local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.STATS)
+        local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.VEHICLE)
         if page == PdaPages.CAREER then
             return BuildCareerPageText(player)
         end
         if page == PdaPages.TARGET then
             return BuildTargetPageText(player, mask)
+        end
+        if page == PdaPages.WEAPONS then
+            return BuildWeaponsPageText(player, mask)
         end
         if page == PdaPages.SETTINGS then
             return BuildSettingsPageText()
@@ -720,7 +726,7 @@ function M.Create(deps)
         if page == PdaPages.COMMAND then
             return BuildCommandPageText()
         end
-        return BuildStatsPageText(player, mask)
+        return BuildVehiclePageText(player)
     end
 
     return {
