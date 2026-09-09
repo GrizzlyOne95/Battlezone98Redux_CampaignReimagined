@@ -146,9 +146,57 @@ local function NewMissionState()
         loading_done = false,
         loadGracePeriod = 0,
         overlayResetPending = false,
+        stagedFighters = {},
     }
 end
 local M = NewMissionState()
+
+local function OrderActivatedFighter(h)
+    if not h or not IsAlive(h) then return end
+    if not M.found2 then
+        M.found2 = true
+        M.bscout = h
+        if SetLabel then SetLabel(M.bscout, LABEL_BSCOUT) end
+        Goto(M.bscout, "patrol1")
+        SetObjectiveOn(M.bscout)
+    elseif IsAlive(M.bscav) and IsAlive(M.bgoal) and GetDistance(M.bscav, M.bgoal) < 200.0 then
+        Attack(h, M.bscav)
+    else
+        Goto(h, "patrol2")
+    end
+end
+
+local function StageInitialFighters()
+    M.stagedFighters = M.stagedFighters or {}
+    if #M.stagedFighters > 0 or M.patrol1 then return end
+
+    -- spawn2 is roughly 900 metres from the player start and outside the
+    -- configured 600-metre reticle range. Team 0 plus zero independence keeps
+    -- this approach group neutral, inert, and out of mission state until the
+    -- scavenger reaches the first field.
+    for _ = 1, DiffUtils.ScaleEnemy(1) do
+        local fighter = BuildObject("svfigh", 0, "spawn2")
+        if fighter and IsValid(fighter) then
+            if type(SetIndependence) == "function" then SetIndependence(fighter, 0) end
+            SetObjectiveOff(fighter)
+            M.stagedFighters[#M.stagedFighters + 1] = fighter
+        end
+    end
+end
+
+local function ActivateStagedFighters()
+    local activated = 0
+    for _, fighter in ipairs(M.stagedFighters or {}) do
+        if fighter and IsAlive(fighter) then
+            SetTeamNum(fighter, 2)
+            if type(SetIndependence) == "function" then SetIndependence(fighter, 1) end
+            OrderActivatedFighter(fighter)
+            activated = activated + 1
+        end
+    end
+    M.stagedFighters = {}
+    return activated
+end
 
 function Save()
     return M
@@ -341,6 +389,7 @@ function Start()
         PersistentConfig.EnableOverlayRendererForSession()
     end
     InitializeMissionRuntime()
+    StageInitialFighters()
 
     for h in AllCraft() do
         SetObjectiveOff(h)
@@ -377,19 +426,7 @@ function AddObject(h)
     end
 
     if team == 2 and odf == "svfigh" then
-        if not M.found2 then
-            M.found2 = true
-            M.bscout = h
-            if SetLabel then SetLabel(M.bscout, LABEL_BSCOUT) end
-            Goto(M.bscout, "patrol1")
-            SetObjectiveOn(M.bscout)
-        else
-            if IsAlive(M.bscav) and IsAlive(M.bgoal) and GetDistance(M.bscav, M.bgoal) < 200.0 then
-                Attack(h, M.bscav)
-            else
-                Goto(h, "patrol2")
-            end
-        end
+        OrderActivatedFighter(h)
     end
 
     -- Team 2 is entirely script-owned in this mission; never register those
@@ -410,6 +447,7 @@ function Update()
         end
         RefreshHandlesAfterLoad()
         InitializeMissionRuntime()
+        StageInitialFighters()
         ApplyPostLoadInit()
         M.loading_done = true
     end
@@ -614,7 +652,11 @@ function Update()
 
     -- Patrol 1 Logic
     if not M.patrol1 and M.found and IsAlive(M.bhandle) and IsAlive(M.bscav) and GetDistance(M.bhandle, M.bscav) < 75.0 then
-        for i = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn1") end
+        if ActivateStagedFighters() == 0 then
+            -- Compatibility fallback for old saves made before staged fighters
+            -- were persisted.
+            for _ = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn1") end
+        end
 
         subtit.Play("misn0233.wav")
         M.message1 = true
