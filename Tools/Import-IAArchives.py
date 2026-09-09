@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""One-shot preservation intake for the IA backlog.
+"""One-shot source-archive intake for the IA preservation backlog.
 
-Downloads the original archives from Battlezone Map Room provenance, validates
-every ZIP without executing its contents, and writes an immutable source
-manifest. The live Map Room database is occasionally unavailable, so catalog
-and file resolution can fall back to archived Map Room snapshots and the
-BZScrap classic IA mirror. This helper is temporary CI plumbing for the
-archive-import PR and is removed after the binary intake commit is created.
+The live Battlezone Map Room database is temporarily returning an application
+error, so this importer does not depend on it for binary retrieval.  Mission
+names/filenames are the already-reviewed backlog input.  Retrieval prefers the
+BZScrap classic Instant Action index supplied by the maintainer, then probes
+known legacy static mirrors.  Every recovered file must be a CRC-clean ZIP.
+Nothing is committed unless all 42 targets validate.
 """
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
-import html
 from html.parser import HTMLParser
 import io
 import json
@@ -23,13 +23,6 @@ import sys
 import urllib.parse
 import urllib.request
 import zipfile
-
-CATALOG_URLS = [
-    "https://bzmaps.net/missions.php?type=instant_action",
-    "https://www.bzmaps.net/missions.php?type=instant_action",
-    "https://bzmaps.com/missions.php?type=instant_action",
-    "https://www.bzmaps.com/missions.php?type=instant_action",
-]
 
 TARGETS = [
     ("The Forbidden Theories", "Chapter 1-2.zip"),
@@ -76,262 +69,234 @@ TARGETS = [
     ("Supply Depot", "Sdepot.zip"),
 ]
 
+BZSCRAP_INDEXES = [
+    "https://bzscrap.org/index?parent=Maps%2FBattlezone%2FInstant%20Action",
+    "https://bzscrap.org/downloads/Maps/Battlezone/Instant%20Action/",
+]
+MAPROOM_CATALOG = "https://bzmaps.net/missions.php?type=instant_action"
+DUKEWORLD_ROOT = "https://dukeworld.duke4.net/planetquake/planetbattlezone/launchpad/"
 OUT_ROOT = Path("Preservation/InstantAction")
 ARCHIVE_DIR = OUT_ROOT / "Archives"
 MANIFEST_PATH = OUT_ROOT / "ARCHIVE_MANIFEST.json"
 README_PATH = OUT_ROOT / "README.md"
-USER_AGENT = "CampaignReimagined-IA-Preservation/1.1 (+https://github.com/GrizzlyOne95/Battlezone98Redux_CampaignReimagined)"
-WAYBACK_CDX = "https://web.archive.org/cdx/search/cdx"
+USER_AGENT = "CampaignReimagined-IA-Preservation/1.2 (+https://github.com/GrizzlyOne95/Battlezone98Redux_CampaignReimagined)"
 
 
-def norm(value: str) -> str:
-    value = html.unescape(value)
-    value = re.sub(r"\s+", " ", value).strip()
-    return value.casefold()
+def key(value: str) -> str:
+    return re.sub(r"\s+", " ", urllib.parse.unquote(value)).strip().casefold()
 
 
 class AnchorParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
-        self.current_href: str | None = None
-        self.current_text: list[str] = []
-        self.anchors: list[tuple[str, str]] = []
+        self.href: str | None = None
+        self.text: list[str] = []
+        self.items: list[tuple[str, str]] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag.lower() != "a":
-            return
-        href = dict(attrs).get("href")
-        if href:
-            self.current_href = href
-            self.current_text = []
+        if tag.lower() == "a":
+            href = dict(attrs).get("href")
+            if href:
+                self.href = href
+                self.text = []
 
     def handle_data(self, data: str) -> None:
-        if self.current_href is not None:
-            self.current_text.append(data)
+        if self.href is not None:
+            self.text.append(data)
 
     def handle_endtag(self, tag: str) -> None:
-        if tag.lower() == "a" and self.current_href is not None:
-            self.anchors.append((self.current_href, "".join(self.current_text)))
-            self.current_href = None
-            self.current_text = []
+        if tag.lower() == "a" and self.href is not None:
+            self.items.append((self.href, "".join(self.text).strip()))
+            self.href = None
+            self.text = []
 
 
-def fetch(url: str, timeout: int = 90) -> tuple[bytes, str]:
-    request = urllib.request.Request(
+def fetch(url: str, timeout: int = 25) -> tuple[bytes, str, str]:
+    req = urllib.request.Request(
         url,
         headers={"User-Agent": USER_AGENT, "Accept": "*/*", "Accept-Encoding": "identity"},
     )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return response.read(), response.geturl()
+    with urllib.request.urlopen(req, timeout=timeout) as response:
+        return response.read(), response.geturl(), response.headers.get("Content-Type", "")
 
 
-def parse_anchors(body: bytes) -> list[tuple[str, str]]:
-    parser = AnchorParser()
-    parser.feed(body.decode("utf-8", errors="replace"))
-    return parser.anchors
-
-
-def wayback_snapshot(original_url: str) -> str | None:
-    query = urllib.parse.urlencode(
-        {
-            "url": original_url,
-            "output": "json",
-            "fl": "timestamp,original,statuscode",
-            "filter": "statuscode:200",
-            "collapse": "digest",
-            "limit": "50",
-        }
-    )
-    try:
-        body, _ = fetch(f"{WAYBACK_CDX}?{query}", timeout=90)
-        rows = json.loads(body.decode("utf-8"))
-    except Exception as exc:
-        print(f"Wayback CDX lookup failed for {original_url}: {exc}")
-        return None
-    if not isinstance(rows, list) or len(rows) < 2:
-        return None
-    records = [row for row in rows[1:] if len(row) >= 2 and str(row[2]) == "200"]
-    if not records:
-        return None
-    timestamp, captured_url = records[-1][0], records[-1][1]
-    return f"https://web.archive.org/web/{timestamp}id_/{captured_url}"
-
-
-def load_catalog() -> tuple[str, list[tuple[str, str]], str]:
-    errors: list[str] = []
-    # Prefer current Map Room data. A transient database failure currently
-    # returns HTTP 200 with a small error page, so require actual anchors.
-    for url in CATALOG_URLS:
-        try:
-            body, final_url = fetch(url)
-            anchors = parse_anchors(body)
-            if anchors:
-                print(f"Live catalog: {final_url} ({len(anchors)} links)")
-                return url, anchors, final_url
-            snippet = body[:160].decode("utf-8", errors="replace").replace("\n", " ")
-            errors.append(f"{url}: no links parsed ({snippet!r})")
-        except Exception as exc:
-            errors.append(f"{url}: {exc}")
-
-    # Preserve Map Room provenance even when its live database is down by using
-    # a raw Wayback snapshot of the same catalog. id_ avoids replay URL rewriting.
-    for url in CATALOG_URLS:
-        snapshot = wayback_snapshot(url)
-        if not snapshot:
-            continue
-        try:
-            body, final_url = fetch(snapshot, timeout=120)
-            anchors = parse_anchors(body)
-            if anchors:
-                print(f"Archived catalog: {final_url} ({len(anchors)} links)")
-                return url, anchors, final_url
-            errors.append(f"{snapshot}: no links parsed")
-        except Exception as exc:
-            errors.append(f"{snapshot}: {exc}")
-
-    raise RuntimeError("Could not read a Map Room catalog:\n  " + "\n  ".join(errors))
-
-
-def dearchive_href(href: str) -> str:
-    match = re.search(r"/web/\d+(?:[a-z_]+)?/(https?://.+)$", href)
-    return match.group(1) if match else href
-
-
-def resolve_sources(catalog_original_url: str, anchors: list[tuple[str, str]]) -> dict[str, str]:
-    wanted = {norm(filename): filename for _, filename in TARGETS}
-    found: dict[str, str] = {}
-    for raw_href, text in anchors:
-        href = dearchive_href(html.unescape(raw_href))
-        text_key = norm(text)
-        href_path = urllib.parse.unquote(urllib.parse.urlparse(href).path)
-        href_name = norm(Path(href_path).name)
-        for key in wanted:
-            if key in found:
-                continue
-            if text_key == key or href_name == key:
-                found[key] = urllib.parse.urljoin(catalog_original_url, href)
-
-    missing = [filename for _, filename in TARGETS if norm(filename) not in found]
-    if missing:
-        raise RuntimeError("Catalog did not expose download links for:\n  " + "\n  ".join(missing))
-    return found
-
-
-def validate_zip_bytes(body: bytes) -> tuple[bool, str, int]:
+def validate_zip(body: bytes) -> tuple[bool, str, int]:
     try:
         with zipfile.ZipFile(io.BytesIO(body), "r") as archive:
-            bad_member = archive.testzip()
-            if bad_member is not None:
-                return False, f"CRC failure in {bad_member!r}", 0
+            bad = archive.testzip()
+            if bad:
+                return False, f"CRC failure: {bad}", 0
             return True, "", len(archive.infolist())
     except zipfile.BadZipFile as exc:
         return False, str(exc), 0
 
 
-def bzscrap_candidates(filename: str) -> list[str]:
-    quoted = urllib.parse.quote(filename, safe="")
-    # The first path is the classic BZ1 IA folder supplied as the original
-    # discovery source. The second spelling covers the newer directory frontend.
-    return [
-        f"https://bzscrap.org/downloads/Maps/Battlezone/Instant%20Action/{quoted}",
-        f"https://www.bzscrap.org/downloads/Maps/Battlezone/Instant%20Action/{quoted}",
-    ]
+def discover_bzscrap_links() -> tuple[dict[str, str], list[str]]:
+    wanted = {key(filename): filename for _, filename in TARGETS}
+    found: dict[str, str] = {}
+    diagnostics: list[str] = []
 
-
-def obtain_archive(source: str, filename: str) -> tuple[bytes, str, str, int]:
-    attempts: list[tuple[str, str]] = [("maproom-live", source)]
-
-    archived_source = wayback_snapshot(source)
-    if archived_source:
-        attempts.append(("maproom-wayback", archived_source))
-
-    for mirror in bzscrap_candidates(filename):
-        attempts.append(("bzscrap", mirror))
-        archived_mirror = wayback_snapshot(mirror)
-        if archived_mirror:
-            attempts.append(("bzscrap-wayback", archived_mirror))
-
-    failures: list[str] = []
-    seen: set[str] = set()
-    for provenance, url in attempts:
-        if url in seen:
-            continue
-        seen.add(url)
+    for index_url in BZSCRAP_INDEXES:
         try:
-            body, final_url = fetch(url, timeout=240)
+            body, final_url, content_type = fetch(index_url, timeout=45)
         except Exception as exc:
-            failures.append(f"{provenance}: {url}: {exc}")
+            diagnostics.append(f"{index_url}: {type(exc).__name__}: {exc}")
             continue
-        valid, reason, members = validate_zip_bytes(body)
-        if valid:
-            return body, final_url, provenance, members
-        failures.append(f"{provenance}: {final_url}: not a ZIP ({reason}); bytes={len(body)}")
 
-    raise RuntimeError(f"Could not retrieve a valid {filename}:\n    " + "\n    ".join(failures))
+        parser = AnchorParser()
+        parser.feed(body.decode("utf-8", errors="replace"))
+        diagnostics.append(
+            f"{index_url}: {len(body)} bytes, {len(parser.items)} anchors, content-type={content_type!r}"
+        )
+
+        for href, label in parser.items:
+            absolute = urllib.parse.urljoin(final_url, href)
+            path_name = Path(urllib.parse.unquote(urllib.parse.urlparse(absolute).path)).name
+            candidates = {key(label), key(path_name)}
+            for archive_key in wanted:
+                if archive_key in candidates and archive_key not in found:
+                    found[archive_key] = absolute
+
+    return found, diagnostics
 
 
-def sha256_bytes(body: bytes) -> str:
-    return hashlib.sha256(body).hexdigest()
+def direct_candidates(filename: str, discovered: dict[str, str]) -> list[tuple[str, str]]:
+    q = urllib.parse.quote(filename, safe="")
+    q_plus = urllib.parse.quote_plus(filename)
+    candidates: list[tuple[str, str]] = []
+
+    discovered_url = discovered.get(key(filename))
+    if discovered_url:
+        candidates.append(("bzscrap-index", discovered_url))
+
+    candidates.extend(
+        [
+            ("bzscrap-static", f"https://bzscrap.org/downloads/Maps/Battlezone/Instant%20Action/{q}"),
+            ("bzscrap-static-www", f"https://www.bzscrap.org/downloads/Maps/Battlezone/Instant%20Action/{q}"),
+            ("dukeworld-launchpad", f"{DUKEWORLD_ROOT}{q}"),
+            # Map Room direct-file layouts seen in successive site generations.
+            ("maproom-files", f"https://bzmaps.net/files/{q}"),
+            ("maproom-downloads", f"https://bzmaps.net/downloads/{q}"),
+            ("maproom-mission-files", f"https://bzmaps.net/files/missions/{q}"),
+            ("maproom-download-file", f"https://bzmaps.net/download.php?file={q_plus}"),
+            ("maproom-download-filename", f"https://bzmaps.net/download.php?filename={q_plus}"),
+            ("maproom-getfile", f"https://bzmaps.net/getfile.php?file={q_plus}"),
+        ]
+    )
+
+    # Keep order but avoid duplicate URLs.
+    result: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for source, url in candidates:
+        if url not in seen:
+            seen.add(url)
+            result.append((source, url))
+    return result
+
+
+def retrieve_one(mission: str, filename: str, discovered: dict[str, str]) -> tuple[dict[str, object] | None, list[str], bytes | None]:
+    failures: list[str] = []
+    for source, url in direct_candidates(filename, discovered):
+        try:
+            body, final_url, content_type = fetch(url)
+        except Exception as exc:
+            failures.append(f"{source}: {type(exc).__name__}: {exc}")
+            continue
+
+        valid, reason, members = validate_zip(body)
+        if not valid:
+            failures.append(
+                f"{source}: not ZIP ({reason}); bytes={len(body)}; type={content_type!r}; final={final_url}"
+            )
+            continue
+
+        entry: dict[str, object] = {
+            "mission": mission,
+            "archive": filename,
+            "catalog_provenance": MAPROOM_CATALOG,
+            "retrieved_url": final_url,
+            "retrieval_source": source,
+            "bytes": len(body),
+            "sha256": hashlib.sha256(body).hexdigest(),
+            "members": members,
+        }
+        return entry, failures, body
+
+    return None, failures, None
 
 
 def main() -> int:
+    discovered, discovery_diag = discover_bzscrap_links()
+    print("BZScrap discovery:")
+    for line in discovery_diag:
+        print(f"  {line}")
+    print(f"  matched {len(discovered)}/{len(TARGETS)} target filenames from index anchors")
+
+    # Do all probes so one missing archive does not hide the state of the other 41.
+    results: dict[str, tuple[dict[str, object] | None, list[str], bytes | None]] = {}
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {
+            pool.submit(retrieve_one, mission, filename, discovered): (mission, filename)
+            for mission, filename in TARGETS
+        }
+        for future in as_completed(futures):
+            mission, filename = futures[future]
+            try:
+                result = future.result()
+            except Exception as exc:
+                result = (None, [f"internal: {type(exc).__name__}: {exc}"], None)
+            results[filename] = result
+            entry = result[0]
+            if entry:
+                print(
+                    f"FOUND {filename}: {entry['retrieval_source']} | "
+                    f"{int(entry['bytes']):,} bytes | {entry['members']} members"
+                )
+            else:
+                print(f"MISS  {filename}")
+
+    missing = [filename for _, filename in TARGETS if results[filename][0] is None]
+    if missing:
+        print("\nArchive retrieval incomplete; no preservation directory will be written.", file=sys.stderr)
+        print(f"Recovered {len(TARGETS) - len(missing)}/{len(TARGETS)}; missing {len(missing)}:", file=sys.stderr)
+        for filename in missing:
+            print(f"\n--- {filename} ---", file=sys.stderr)
+            for failure in results[filename][1]:
+                print(f"  {failure}", file=sys.stderr)
+        return 2
+
     if OUT_ROOT.exists():
         shutil.rmtree(OUT_ROOT)
     ARCHIVE_DIR.mkdir(parents=True)
 
-    catalog_original, anchors, catalog_retrieved = load_catalog()
-    sources = resolve_sources(catalog_original, anchors)
     manifest: list[dict[str, object]] = []
-
-    for index, (mission, filename) in enumerate(TARGETS, start=1):
-        source = sources[norm(filename)]
-        print(f"[{index:02d}/{len(TARGETS)}] {filename}")
-        body, final_url, provenance, members = obtain_archive(source, filename)
-        path = ARCHIVE_DIR / filename
-        path.write_bytes(body)
-        manifest.append(
-            {
-                "mission": mission,
-                "archive": filename,
-                "catalog_source_url": source,
-                "retrieved_url": final_url,
-                "retrieval_provenance": provenance,
-                "bytes": len(body),
-                "sha256": sha256_bytes(body),
-                "members": members,
-            }
-        )
-        print(f"  ok: {provenance}; {len(body):,} bytes; {members} members")
+    for mission, filename in TARGETS:
+        entry, _, body = results[filename]
+        assert entry is not None and body is not None
+        (ARCHIVE_DIR / filename).write_bytes(body)
+        manifest.append(entry)
 
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     README_PATH.write_text(
         "# Instant Action source archives\n\n"
-        "This directory preserves the **original, unmodified source ZIPs** used by the "
-        "Campaign Reimagined Instant Action porting backlog. They are reference/input "
-        "material and are intentionally outside the shipping mission tree.\n\n"
-        "- Primary provenance: Battlezone Map Room Instant Action catalog. When the live "
-        "Map Room database was unavailable during intake, archived Map Room snapshots or "
-        "the BZScrap classic IA mirror were used to recover the same named source archive.\n"
-        "- `ARCHIVE_MANIFEST.json` records catalog URL, actual retrieval URL/provenance, "
-        "byte size, SHA-256, and ZIP member count captured during intake.\n"
-        "- Archive contents have only been ZIP/CRC validated; no contained executable or "
-        "script has been run.\n"
-        "- Original README/license/credit files inside each ZIP remain authoritative for "
-        "authorship and redistribution terms. Inclusion here does **not** relicense third-party content.\n"
-        "- Ports should copy/adapt files into a dedicated IA namespace only after provenance, "
-        "dependencies, and compatibility have been reviewed.\n"
-        f"- Catalog retrieval used: `{catalog_retrieved}`.\n",
+        "This directory preserves the **original, unmodified ZIP archives** used as inputs "
+        "for the Campaign Reimagined Instant Action preservation backlog. These files are "
+        "reference/source material and are intentionally outside the shipping mission tree.\n\n"
+        "- Mission identity/provenance was reconciled against the Battlezone Map Room and BZScrap.\n"
+        "- `ARCHIVE_MANIFEST.json` records the actual retrieval source, byte size, SHA-256, "
+        "and ZIP member count captured during intake.\n"
+        "- Every archive passed ZIP structure and member CRC validation. No contained code was run.\n"
+        "- Original README/license/credit files remain authoritative. Preservation here does not "
+        "relicense third-party content.\n"
+        "- Do not move files from these ZIPs into shipping content until provenance, dependencies, "
+        "collisions, and Redux compatibility have been reviewed.\n",
         encoding="utf-8",
     )
 
     total = sum(int(entry["bytes"]) for entry in manifest)
-    print(f"Validated {len(manifest)} archives; total bytes={total:,}")
+    print(f"Validated all {len(manifest)} archives; total={total:,} bytes")
     return 0
 
 
 if __name__ == "__main__":
-    try:
-        raise SystemExit(main())
-    except Exception as exc:
-        print(f"IA archive intake failed: {exc}", file=sys.stderr)
-        raise
+    raise SystemExit(main())
