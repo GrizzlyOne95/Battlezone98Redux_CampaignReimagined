@@ -103,6 +103,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # pull_request checkout is a synthetic merge commit; switch back to the
+          # actual PR branch before creating the binary preservation commit.
+          git switch -C "${{ github.head_ref }}" "origin/${{ github.head_ref }}"
           python Tools/Import-IAArchives.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
