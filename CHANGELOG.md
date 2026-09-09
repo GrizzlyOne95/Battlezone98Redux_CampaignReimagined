@@ -2,6 +2,34 @@
 
 ## 2026-09-08
 
+### OpenShim 1.0.0.22
+
+**Fixed a crash when leaving Multiplayer for the main menu.** OpenShim adds a
+Career page to the title screen, and kept re-applying that page's hidden state
+to widgets the title screen had already destroyed. Going into Multiplayer and
+coming back could then fault inside the stock shell. Repeated Multiplayer
+visits in a single session are safe again.
+
+**Battlezone Pro compatibility in the multiplayer waiting room.** Several
+OpenShim additions were drawing over BZP/BZP-T's own lobby, or replacing its
+data:
+
+- The mod-scoped starting-vehicle reload now ships off. BZP's map vehicle list
+  is faction-only, and the reload replaced it with stock ships. The map-list
+  scroll wheel is unaffected and still works. Turn `VehicleListModScoping` back
+  on for Workshop maps that need the vehicle list to follow the selected mod.
+- The nickname field and route readout stay on -- they sit in the empty left
+  column and do not cover BZP's faction picker. The Ban User button and the
+  flag selector ship off, because those do sit on the faction/vehicle cluster.
+  `/ban` still works.
+- OpenShim no longer forces the reticle range back down in network games, so
+  BZP's longer reticle is honored.
+
+The crash fix is in the shim itself and reaches every install. The waiting-room
+defaults above are settings, and an existing `openshim.ini` is never
+overwritten, so an install created before this update keeps its current values
+until they are changed by hand.
+
 ### OpenShim 1.0.0.21
 
 - The disabled Multiplayer entry now explains whether platform sign-in,
