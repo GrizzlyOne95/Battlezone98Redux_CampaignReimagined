@@ -31,14 +31,9 @@
 !/Shipping/
 !/Shipping/**
 !/Text/
+# Tools are source. Do not use a deny-all/whitelist here: new validators and
+# maintenance scripts must appear in git status instead of being silently hidden.
 !/Tools/
-/Tools/*
-!/Tools/Test-CRMarsWeather.lua
-!/Tools/Compare-DX11ShaderBinaries.ps1
-!/Tools/Test-DX11ShaderValidator.ps1
-!/Tools/Set-TerrainNormalDiagnostic.ps1
-!/Tools/Test-EnhancedPssmV2.ps1
-!/Tools/Set-EnhancedPssmVersion.ps1
 
 # Intentional root files
 !/.gitignore
@@ -67,6 +62,6 @@ desktop.ini
 /Text/OgreMain.dumpbin.exports.txt
 
 # Generated interior-capped chunk meshes. Reproducible from Assets/chunkMeshes
-# via Tools/Cap-ChunkMeshes.py; see docs/CHUNK_MESH_INTERIOR_CAPS.md. When absent,
+# via Tools/Cap-ChunkMeshes.py; see Docs/CHUNK_MESH_INTERIOR_CAPS.md. When absent,
 # Manage-CampaignFiles.ps1 deploys the authored meshes instead.
 /Assets/chunkMeshes_capped/
