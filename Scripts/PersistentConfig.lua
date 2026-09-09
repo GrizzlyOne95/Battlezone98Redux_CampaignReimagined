@@ -1262,7 +1262,9 @@ local function BuildPdaHeader(activePage)
             end
         end
     end
-    return string.format("**BATTLEZONE PDA**  %d/%d\n%s", activePage, PdaPages.COUNT, pageLabel)
+    -- The trailing newline preserves the overlay renderer's three-line header
+    -- contract: title, page name, blank separator, then body content.
+    return string.format("**BATTLEZONE PDA  %d/%d**\n%s\n", activePage, PdaPages.COUNT, pageLabel)
 end
 
 local function AppendPdaFooter(lines, line1, line2, line3)
