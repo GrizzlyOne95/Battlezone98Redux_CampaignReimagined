@@ -146,6 +146,7 @@ local function NewMissionState()
         loading_done = false,
         loadGracePeriod = 0,
         overlayResetPending = false,
+        initialObjectiveCompleted = false,
         stagedFighters = {},
     }
 end
@@ -648,6 +649,15 @@ function Update()
             M.wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
             AddObjective("misn02b1.otf", "white")
         end
+    end
+
+    -- The stock objective starts white and completes when the player enters a
+    -- vehicle. Keep the later ClearObjectives transition unchanged.
+    if M.start_done and not M.camera1 and not M.camera2 and not M.camera3
+        and not M.message2 and not M.initialObjectiveCompleted
+        and IsAlive(player) and not IsPerson(player) then
+        UpdateObjective("misn02b1.otf", "green")
+        M.initialObjectiveCompleted = true
     end
 
     -- Patrol 1 Logic
