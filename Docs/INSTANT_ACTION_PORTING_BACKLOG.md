@@ -1,138 +1,150 @@
-# Instant Action Preservation Porting Backlog
+# Legacy Map Preservation / Porting Backlog
 
-This document tracks classic Battlezone Instant Action missions that are still useful candidates for preservation/porting into Battlezone 98 Redux through Campaign Reimagined.
+This document is the working plan for recovering classic Battlezone maps and making them playable in **Battlezone 98 Redux**.
 
-The initial list was reconciled on **2026-09-09** against:
+> **Release policy:** ports are **standalone Workshop maps by default**. Campaign Reimagined is being used as a preservation/research workspace and compatibility reference; a map does **not** need to ship inside CR. Historically coherent multi-mission packs may remain packs where that preserves the original release structure better.
 
-- Battlezone Map Room Instant Action catalog: https://bzmaps.net/missions.php?maxplayer=1&minplayer=1&type=instant_action
-- BZScrap classic Instant Action archive: https://bzscrap.org/index?parent=Maps%2FBattlezone%2FInstant%20Action
-- Steam Workshop for Battlezone 98 Redux: https://steamcommunity.com/app/301650/workshop/
-- Ssuser's historical IA map listing for filename/title/author reconciliation: https://bzmaps.net/misc/ssuser/Ssuser%27s%20Instant%20Action%20Maps%20Listing.htm
+The old 42-map backlog was intentionally conservative and is now superseded by the full census in [`LEGACY_MAP_PRESERVATION_CENSUS.md`](LEGACY_MAP_PRESERVATION_CENSUS.md).
 
-The table below is intentionally conservative: every entry is a **high-confidence Map Room download candidate** for which no current Redux Workshop counterpart was identified after accounting for renamed/remade ports.
+## Source universe
+
+The census reconciles these sources:
+
+- Ssuser's historical Instant Action listing: https://bzmaps.net/misc/ssuser/Ssuser%27s%20Instant%20Action%20Maps%20Listing.htm
+- Current Battlezone Map Room IA catalog: https://bzmaps.net/missions.php?type=instant_action
+- BZScrap Instant Action archive: https://bzscrap.org/index?parent=Maps%2FBattlezone%2FInstant%20Action
+- BZScrap Strategy archive: https://bzscrap.org/index?parent=Maps%2FBattlezone%2FStrategy
+- Battlezone 98 Redux Steam Workshop: https://steamcommunity.com/app/301650/workshop/
+- Preserved archives/readmes in the project owner's Google Drive collections.
+
+The historical listing's header says **262 Battlezone maps**, but its current normal-Battlezone table contains **281 enumerated IA entries** when counted row by row. The census therefore tracks the actual entries rather than trusting the stale header total. It separately tracks **9 Red Odyssey IA releases**, **21 Battlezone 1.5 IA releases**, and historical multi-map packs.
+
+## Preservation policy
+
+The goal is **port by default, exclude by exception**. A low-rated or primitive map can still be historically valuable because it may preserve an old terrain, ODF trick, custom world, unusual scripting method, author history, or other piece of Battlezone modding culture.
+
+Do not create a new standalone Redux item when the historical release is already represented faithfully on Workshop. Keep the old entry in the census and point it at the existing Redux counterpart instead.
+
+For alternate versions, bug-fix releases, conversions, and near-duplicates, preserve the source history but choose the best release form for Redux. Prefer a single corrected standalone item with provenance for all versions when multiple releases are effectively the same mission.
 
 ## Status legend
 
-- **Not started** — source archive identified; no CR port work has begun.
-- **Intake** — source archive copied into a preservation work area and inventoried.
-- **Porting** — BZN/TRN/ODF/script/assets are being adapted for Redux.
-- **Playable** — mission boots and can be completed, but qualification is incomplete.
-- **Qualified** — tested from clean Redux install, attribution/source recorded, and ready for publication/inclusion.
-- **Blocked** — missing source, rights/provenance concern, dependency, or unresolved engine incompatibility.
+- **Verified missing** — no Redux counterpart was identified in the latest reconciliation; active port candidate.
+- **Needs Workshop check** — historical release catalogued, but exact/renamed Workshop reconciliation is still pending.
+- **Workshop represented** — a Redux counterpart is already known; do not duplicate it without a specific reason.
+- **Repair candidate** — historically documented defect or compatibility problem should be repaired during the port.
+- **Duplicate / variant** — preserve provenance, but it may not warrant a separate Workshop item.
+- **Missing source** — historical release known, but a usable source archive has not yet been located.
+- **Porting** — Redux conversion is in progress.
+- **Playable** — boots and can be completed, but qualification remains.
+- **Qualified** — clean-install Redux qualification completed and ready for publication.
+- **Blocked** — unresolved dependency, provenance, asset, or engine issue prevents completion.
 
-## Suggested first batch — GrizzlyOne95 originals
+## Release model
 
-These are useful first ports because authorship/provenance is especially clear and they provide a small representative mix of scripted and combat-focused IA content.
+For a normal IA port, the preferred final shape is:
 
-| Mission | Original archive | Status |
-|---|---|---|
-| CCA Fun | `CCA Fun.zip` | Not started |
-| Sweet Venegence | `Sweet Vengence.zip` | Not started |
-| The Return of Eagle's Nest 1 | `The Return of Eagle's Nest 1.zip` | Not started |
-| Rabbit Hole | `Rabthole 1.1.zip` | Not started |
-| A Call To Arms | `Call2arm.zip` | Not started |
+```text
+Original archive (preserved unchanged)
+        |
+        +-- provenance / hashes / original readme
+        |
+        `-- Redux conversion workspace
+                  |
+                  `-- standalone Workshop item
+```
 
-The Battlezone Map Room currently attributes these missions to **GrizzlyOne95**. The historical Ssuser list records at least Rabbit Hole under the older author name **Ian S.**, which is useful provenance when preserving original readmes/credits.
+A standalone map should not require Campaign Reimagined merely because CR was used during recovery. Use OpenShim/EXU/CR helpers only where they solve a real Redux incompatibility; document such a dependency explicitly. Avoid gratuitously redesigning the original mission.
 
-## High-confidence Map Room backlog
+For historical campaigns or tightly coupled packs, preserve the authored grouping when individual publication would damage progression, shared assets, or narrative continuity.
 
-| # | Mission | Original archive | Status | Port notes |
+## Highest-priority lane — The Red Odyssey IA preservation
+
+All nine historical TRO IA releases are priority preservation targets. These should receive an explicit Workshop re-check immediately before publication, but the intent is to recover and port all of them rather than wait for selective demand.
+
+| # | Mission | Historical archive(s) | Status | Notes |
 |---:|---|---|---|---|
-| 1 | The Forbidden Theories | `Chapter 1-2.zip` | Not started | Preserve multi-chapter structure and bundled dependencies. |
-| 2 | Mars Peak | `Cyborggeffien - Mars Peak.zip` | Not started | Inventory custom assets/scripts before conversion. |
-| 3 | Escaped by Scavenger | `Cyborggeffien - Escaped by Scavenger.zip` | Not started | Inventory custom assets/scripts before conversion. |
-| 4 | Varia Fields - C Sector | `Cyborggeffien - Varia Fields - C Sector.zip` | Not started | Inventory custom assets/scripts before conversion. |
-| 5 | Varia Fields - D Sector | `Cyborggeffien - Varia Fields - D Sector.zip` | Not started | Inventory custom assets/scripts before conversion. |
-| 6 | Cold Winter | `cldwntr.zip` | Not started | Verify terrain/sky compatibility in Redux. |
-| 7 | I Want To Break Free | `i want to break free.zip` | Not started | Check Lua/API assumptions against Redux Lua. |
-| 8 | Specimen 1001 | `spec1001.zip` | Not started | Check Lua/API assumptions against Redux Lua. |
-| 9 | CCA Scrap Operation | `cysilorc.zip` | Not started | Check Lua/API assumptions against Redux Lua. |
-| 10 | Death Blow v2 | `dethblow_1_5.zip` | Not started | Prefer the later 1.5 source over older archive variants. |
-| 11 | Heat Sink v2 | `heatsink_1_5.zip` | Not started | Prefer the later 1.5 source over older archive variants. |
-| 12 | Final Destination | `final destination.zip` | Not started | Inventory custom terrain/assets. |
-| 13 | Chasing the Devil | `chasing the devils.zip` | Not started | Inventory custom terrain/assets. |
-| 14 | Downfall | `downfall.zip` | Not started | Verify script and objective flow. |
-| 15 | Solo Run | `solorun.zip` | Not started | Do not confuse with the already-ported Flying Solo/Flyn' Solo. |
-| 16 | High Command | `highcomm.zip` | Not started | Verify script and objective flow. |
-| 17 | Sector 86C | `sect86c.zip` | Not started | BzFrac terrain; verify painter/terrain data under Redux. |
-| 18 | The Last Strike | `tlaststr.zip` | Not started | Verify script and objective flow. |
-| 19 | Europa Snipe | `Europa Snipe.zip` | Not started | Verify sniper/pilot scripting under Redux. |
-| 20 | Rabbit Hole | `Rabthole 1.1.zip` | Not started | GrizzlyOne95 original; suggested first batch. |
-| 21 | A Call To Arms | `Call2arm.zip` | Not started | GrizzlyOne95 original; suggested first batch. |
-| 22 | Sector 16A | `sect16a.zip` | Not started | BzFrac terrain; verify terrain data under Redux. |
-| 23 | Takeover | `takeover.zip` | Not started | Verify custom world/terrain dependencies. |
-| 24 | Alien Alliance | `alinally.zip` | Not started | Verify Fury/custom-unit dependencies. |
-| 25 | MAG King | `magking.zip` | Not started | Likely a good small smoke-test port. |
-| 26 | Venus Badlands Skirmish | `Venus Badlands Skirmish.zip` | Not started | Verify Redux texture-atlas/TRN compatibility. |
-| 27 | Ace Of Spades | `acespade.zip` | Not started | Likely a comparatively small skirmish port. |
-| 28 | CCA Fun | `CCA Fun.zip` | Not started | GrizzlyOne95 original; suggested first batch. |
-| 29 | The Io Incident | `The Io Incident.zip` | Not started | Verify Fury/custom-unit dependencies. |
-| 30 | Blood and Iron | `bloodiro.zip` | Not started | Likely a comparatively small skirmish port. |
-| 31 | Infiltration and Destruction | `Infiltration and Destruction.zip` | Not started | Verify pilot/sniping/objective script behavior. |
-| 32 | Canyon Of Blood | `Canyon of Blood.zip` | Not started | Verify custom terrain/assets. |
-| 33 | The Return of Eagle's Nest 1 | `The Return of Eagle's Nest 1.zip` | Not started | GrizzlyOne95 original; suggested first batch. |
-| 34 | Operation Mest | `opmest.zip` | Not started | Verify Black Dog/custom checkpoint dependencies. |
-| 35 | Sweet Venegence | `Sweet Vengence.zip` | Not started | GrizzlyOne95 original; suggested first batch. |
-| 36 | Capt. Chaos strikes again! - NSDF | `pacmania.zip` | Not started | Pair with CCA variant; preserve shared assets. |
-| 37 | Capt. Chaos strikes again! - CCA | `pacmani2.zip` | Not started | Pair with NSDF variant; preserve shared assets. |
-| 38 | Failed Plans | `failplan.zip` | Not started | Verify Fury/Black Dog modified-unit dependencies. |
-| 39 | Fury Recycler | `usrmsnfr.zip` | Not started | Verify Fury unit/ODF dependencies. |
-| 40 | Battle for the Alien Anomaly | `abcfrac.zip` | Not started | Verify custom terrain/asset dependencies. |
-| 41 | Absolute Zero | `AbsoZero.ZIP` | Not started | Verify terrain/sky compatibility in Redux. |
-| 42 | Supply Depot | `Sdepot.zip` | Not started | Verify objective/script flow. |
+| 1 | ABC Chinese Mission 2 | `abc_chin2.zip` | Needs Workshop check | TRO Chinese Mission 2 variant/modification; preserve as a variant rather than misrepresenting it as wholly original. |
+| 2 | ABC Fortress of Fear | `abc_fort.zip` | Needs Workshop check | High-priority TRO IA. |
+| 3 | ABC Quantum Leap | `abc_leap.zip` | Needs Workshop check | High-priority TRO IA. |
+| 4 | Fresh Meat | `chmisn09.zip`, `RO_IA_chmisn09.zip` | Needs Workshop check | Preserve alternate archive provenance. |
+| 5 | Operation Flush Out | `chmisn10.zip`, `RO_IA_chmisn10.zip` | Needs Workshop check | Preserve alternate archive provenance. |
+| 6 | Phantoms | `phantoms.zip`, `RO_IA_phantoms.zip` | Needs Workshop check | Known for stealth-turret attack design. |
+| 7 | Recovery | `recovery.zip` | Needs Workshop check | Prefer original TRO release over the later TRO-to-BZ conversion when preserving TRO behavior. |
+| 8 | Red Tide | `red_tide.zip` | Needs Workshop check | Chinese-vs-CCA TRO IA. |
+| 9 | Warlords | `warlords.zip` | Needs Workshop check | TRO IA. |
 
-## Port intake checklist
+## Verified-missing seed
 
-For each mission, preserve the original archive unchanged outside the shipping tree and record its provenance before editing anything.
+The previous 2026-09-09 reconciliation identified 42 high-confidence Map Room/1.5 candidates with no current Redux counterpart after accounting for known renamed/remade ports. Those records are retained in the full census as **Verified missing** rather than being thrown away when the census expanded.
 
-1. **Archive intake**
-   - Record original ZIP filename, source URL, author, release/version, and archive hash.
-   - Preserve original README/license/credits verbatim.
-   - Inventory BZN, TRN, ODF, script, texture, audio, model, and custom DLL dependencies.
-2. **Redux conversion**
-   - Establish the actual mission BZN entry point.
-   - Repair/convert TRN texture-atlas and locale-sensitive data as required by Redux.
-   - Port legacy DLL/script logic to Lua where practical instead of bundling incompatible native code.
-   - Keep original mission behavior and story authoritative unless a compatibility fix requires a documented change.
-   - Namespace custom assets where collisions with stock/CR/other IA content are possible.
-3. **Campaign Reimagined integration**
-   - Put mission content under a dedicated IA-preservation namespace rather than mixing it into rewritten stock-campaign mission directories.
-   - Reuse CR/OpenShim/EXU compatibility helpers only where they solve an actual Redux incompatibility; do not gratuitously redesign the mission.
-   - Preserve original author credit prominently in mission metadata and any Workshop/publication text.
-4. **Qualification**
-   - Boot from a clean supported Redux installation.
-   - Verify objectives, fail/success paths, save/load where applicable, AI production, custom assets, terrain, sky, audio, and mission completion.
-   - Test with CR/OpenShim installed as shipped, then check for avoidable coupling to unrelated CR campaign state.
-   - Record any intentional behavior differences from the original release.
-5. **Publication decision**
-   - Re-check Steam Workshop immediately before publication to avoid duplicating a newly uploaded community port.
-   - If a separate author-maintained Redux port appears, prefer linking/crediting that version instead of publishing a conflicting duplicate.
+Important examples include **Alien Alliance, Absolute Zero, Ace of Spades, Canyon of Blood, CCA Fun, Europa Snipe, Failed Plans, Fury Recycler, High Command, Infiltration and Destruction, MAG King, Operation Mest, Rabbit Hole, Sector 16A, Sector 86C, Solo Run, Supply Depot, Sweet Vengeance, Takeover, The Io Incident, The Last Strike, The Return of Eagle's Nest One, Venus Badlands Skirmish**, and the newer Map Room-only candidates recorded in the census.
 
-## Known exclusions / already represented on Workshop
+**Alien Yard (`alyard13.zip`) is now explicitly included** in the master census. Its omission from the old 42-entry list was one of the reasons this broader census was necessary.
 
-Do not add a mission to this backlog solely because its Workshop title differs from the old ZIP name. Renamed/remade counterparts already identified include examples such as:
+## Historical packs
 
-- `wreckers.zip` -> **Wreckers**
-- `Blockade.zip` -> **Blockade Redux Redux**
-- `scrapfun.zip` -> **Scrap Fun**
-- `battauri.zip` -> **Battle of Taurids**
-- `Flynsolo.zip` -> **Flyn' Solo**
-- Downhill CCA variant -> **Downhils (Faction Switch)**
-- **Don't Tread On Me**
-- **Though I Walk**
-- **The Red Wolf Missions**
-- **The Battle Zone**
-- **The Relic**
+Historical pack contents are tracked separately from ordinary one-map releases so that we do not accidentally duplicate missions already represented through a Redux campaign/pack.
 
-Workshop status is time-sensitive. Re-run the comparison before starting and again before publishing a port.
+| Pack | Historical scope | Current disposition |
+|---|---:|---|
+| Great Pyramid Pack | 3 maps | Reconcile individual maps / pack representation. |
+| Get Arkin Sixpack | 6 maps | Preservation candidate; source/release check required. |
+| Hard Soviets Map Pack | 5 maps | Preservation candidate; source/release check required. |
+| Last of the Galilean | 11 SP missions plus MP content | Workshop represented; preserve provenance, do not duplicate blindly. |
+| Unofficial Battlezone 2 Demo | 4 missions | Repair candidate; historical `scs2man.odf` dependency defect documented. |
+| Red Wolf Missions | 8 plus secret mission | Workshop represented. |
+| Shrieking Eagles Level Pack | 8 maps | Workshop represented. |
+| Battlezone: Elite Corps | 10 CCA missions | Incomplete/dev-era content; source and dependency archaeology required. |
+| Omega Squadron Mission Pack | 18 NSDF/BD + 8 Chinese + 6 bonus IA | Workshop represented; preserve original package provenance. |
 
-## Follow-up catalog work
+## Selective Strategy preservation
 
-The high-confidence table above is not the entire surviving classic IA ecosystem. A second pass should merge the remaining **BZScrap-only/historical candidates** from Ssuser's larger catalog, deduplicate alternate ZIP versions, and separate:
+Strategy is intentionally **curated rather than exhaustive**. The BZScrap Strategy archive is a source pool, and maps should be selected for historical importance, unusual world/terrain work, distinctive gameplay, or community interest.
 
-- confirmed currently downloadable archives;
-- archives recoverable from mirrors/community collections;
-- historical entries with no surviving source currently identified;
-- missions already represented by renamed Workshop ports.
+### Selected: Earth
 
-Only the first two groups should become active CR port tasks.
+`Earth` is the first explicit Strategy preservation candidate. The preserved 1999 readme identifies **Cmdr Wayne** and gives the classic `netmis` registration as:
+
+```text
+earth.bzn    earth.des    5 5    netveh.txt S Earth
+```
+
+The `S` registration confirms it was distributed as a classic multiplayer Strategy map. Treat Earth as a standalone Redux Strategy Workshop item unless source inspection reveals a reason to bundle shared assets.
+
+## Compatibility / repair notes already known
+
+These should be carried into the port rather than rediscovered or silently reproduced:
+
+- **Canyon of Blood** — historical notes identify a missing `baseName` in `bvkrtu.odf`; repair during conversion and keep project filename limits in mind.
+- **Battlezone Mech Commander II** — internal BZN terrain-name mismatch; a repaired historical archive exists.
+- **Defence 1** — original AIP was broken; a corrected historical version exists.
+- **IAKIv2** — historical package lacks a working AIP and has a documented force-matching syntax problem.
+- **Eye of the Needle**, **Oh Shit!!**, **Stolen LT** — historical notes identify incorrect internal multiplayer/strategy mission typing that prevents normal IA behavior.
+- **Mars Canyons** — some copies contain a corrupt TRN; use a corrected source when possible.
+- **Part 1: The Rescue** — historical release had missing-TRN/type problems; a repaired archive exists.
+- **Phase Two - The Take** — custom recycler/AIP mismatch and missing custom recycler ODF are documented; a repaired archive exists.
+- **Princess Part 2: The Big Climb** — historical internal `EmptyMission` typing prevents normal IA AI/end behavior.
+- **Punishing the Red Cows** — AIP repair required.
+- **The Crater** — historical package is missing MAT data; a reconstructed historical copy exists.
+- **Flak1 / Flak2** — historical BZN naming problems; Flak2 also has a missing asset dependency.
+- **Zen's MCanyons Fix** — effectively a Mars Canyons variant/fix and itself historically broken; preserve provenance, do not automatically publish separately.
+- **Recovery (TRO to BZ Conversion)** — keep as a conversion/variant; the original TRO `Recovery` is the preservation priority.
+
+## Per-map intake / port checklist
+
+1. **Preserve source** — keep the original archive unchanged and record source URL/location, original archive name, author, version/date when known, byte size, and SHA-256.
+2. **Inventory dependencies** — BZN, TRN/HGT/HG2/MAT/LGT, ODF/AIP, Lua/DLL, textures, models, sounds, custom worlds, readmes, and stock-file overrides.
+3. **Establish authored behavior** — identify mission entry point, victory/failure semantics, AI production, scripted units, objectives, and intended faction/world.
+4. **Convert for Redux** — fix only what is required for compatibility or a clearly documented historical defect. Prefer Lua 5.1 for legacy script reconstruction where practical.
+5. **Respect legacy filename limits** — ODF names and other engine/script-facing legacy asset names must remain eight characters or fewer where required by this project.
+6. **Qualify** — clean supported Redux install; mission start; objectives; AI production; success/failure; save/load where applicable; terrain/sky; audio; assets; completion.
+7. **Publish standalone by default** — original author credited prominently; explain compatibility repairs; list any OpenShim/EXU dependency only if genuinely required.
+8. **Re-check Workshop before upload** — avoid publishing a duplicate if another faithful Redux port appeared during conversion.
+
+## Working documents
+
+- [`LEGACY_MAP_PRESERVATION_CENSUS.md`](LEGACY_MAP_PRESERVATION_CENSUS.md) — complete enumerated IA/TRO/1.5 inventory and initial Redux disposition.
+- This file — policy, priorities, repair notes, and release workflow.
+
+The census is deliberately a living preservation record. A `Needs Workshop check` row is not a claim that a port is missing; it is a work item to reconcile before conversion. Conversely, a historical map should not disappear from the record merely because its source is currently missing.
