@@ -114,8 +114,8 @@ ProducerScriptPredicates = 0
 ; Reload the multiplayer starting-vehicle list from mod-scoped assets
 ; (patches 1/4, 2/4, 4/4). Off by default: that reload replaces BZP/BZP-T's
 ; faction-only waiting-room .vxt (NSDF/CCA/BDOG/CRA/Observer) with stock
-; ships. The map-list wheel still uses the separate "always update control"
-; byte (3/4), which stays applied. Turn this on for workshop maps that need
+; ships. Patch 3/4 (always-update the vehicle select control) stays applied
+; and is not the map-list wheel. Turn this on for workshop maps that need
 ; the vehicle list to follow the selected mod.
 VehicleListModScoping = 0
 ; Command-line parser repair; no gameplay or mixed-client divergence.
@@ -280,7 +280,9 @@ RoutePreference = Stock
 UdpPort = 0
 ; Blank = use the Steam/GOG account name.
 Nickname =
-; Experimental live lounge re-auth is not part of the default netcode baseline.
+; Experimental: recycle the BZRNet control connection after a nickname edit in
+; lounge/lobby. Stock reconnects and sends a fresh Authorization; expect a brief
+; lounge drop / possible Not Ready flicker. In-match stays persist-only.
 ReauthOnNicknameChange = 0
 ; Nickname field and route readout sit in the empty left column of the
 ; waiting room. That does not cover BZP's faction picker; leave this on.
@@ -346,6 +348,7 @@ Headlights = 0
 OtherHeadlights = 0
 HeadlightColor = Stock
 HeadlightBeam = Stock
+HeadlightBrightness = 1.00
 ; Flashlight on the player's pilot while on foot. No stock pilot skeleton
 ; carries an hlgt bone, so the engine never builds one; OpenShim creates the
 ; same kind of spotlight on the pilot's own scene node and destroys it when
