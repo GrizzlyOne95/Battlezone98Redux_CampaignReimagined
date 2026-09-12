@@ -499,13 +499,6 @@ end
 
 local function ApplyQOL()
     if exu then
-        if PersistentConfig and PersistentConfig.ApplyScrapPilotHudLayout then
-            PersistentConfig.ApplyScrapPilotHudLayout()
-        elseif exu.SetScrapPilotHudTopLeft then
-            exu.SetScrapPilotHudTopLeft(500, 22)
-        elseif exu.SetScrapPilotHudOffset then
-            exu.SetScrapPilotHudOffset(-400, -220)
-        end
         if exu.SetReticleRange then
             exu.SetReticleRange(600)
         end
