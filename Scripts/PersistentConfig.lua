@@ -5403,13 +5403,12 @@ local function UpdateWeaponStatsDisplay(player)
 
     local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.VEHICLE)
     local mask = GetCurrentWeaponMask(player)
-    if page == PdaPages.TARGET and exu and type(exu.GetSelectedWeaponMask) == "function" then
-        local ok, selectedMask = pcall(exu.GetSelectedWeaponMask, player)
-        if ok and type(selectedMask) == "number" then
-            selectedMask = math.max(0, math.floor(selectedMask + 0.5))
-            if selectedMask > 0 then
-                mask = selectedMask
-            end
+    if page == PdaPages.TARGET or page == PdaPages.WEAPONS then
+        -- These pages report the weapon the player is actually firing, so they
+        -- need the live selection rather than the installed hardpoint mask.
+        local selectedMask = ResolveLiveSelectedWeaponMask(player, mask)
+        if selectedMask > 0 then
+            mask = selectedMask
         end
     end
     local target = nil
