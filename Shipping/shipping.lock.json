@@ -1,7 +1,7 @@
 ﻿{
     "comment":  "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
     "generated":  "2026-09-08T11:46:24-05:00",
-    "count":  3463,
+    "count":  3460,
     "files":  [
                   {
                       "source":  "Assets\\ACT\\mars.act",
@@ -13838,18 +13838,6 @@
                   {
                       "source":  "Text\\tran0425.txt",
                       "runtime":  "tran0425.txt"
-                  },
-                  {
-                      "source":  "Textures\\cr_ibl_brdf_lut.dds",
-                      "runtime":  "cr_ibl_brdf_lut.dds"
-                  },
-                  {
-                      "source":  "Textures\\cr_ibl_neutral_irradiance.dds",
-                      "runtime":  "cr_ibl_neutral_irradiance.dds"
-                  },
-                  {
-                      "source":  "Textures\\cr_ibl_neutral_prefilter.dds",
-                      "runtime":  "cr_ibl_neutral_prefilter.dds"
                   },
                   {
                       "source":  "update.des",
