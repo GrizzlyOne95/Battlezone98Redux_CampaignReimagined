@@ -2,9 +2,15 @@
 """Generate the neutral static IBL reference set for Campaign Reimagined.
 
 Outputs:
-  cr_ibl_neutral_irradiance.dds   32px BC1 cubemap
-  cr_ibl_neutral_prefilter.dds   128px BC1 cubemap with 8 GGX-prefiltered mips
-  cr_ibl_brdf_lut.dds             64x64 uncompressed RG split-sum GGX BRDF LUT
+  openshim_ibl_neutral_irradiance.dds   32px BC1 cubemap
+  openshim_ibl_neutral_prefilter.dds   128px BC1 cubemap with 8 GGX-prefiltered mips
+  openshim_ibl_brdf_lut.dds             64x64 uncompressed RG split-sum GGX BRDF LUT
+
+The runtime set is owned by OpenShim and ships in its Enhanced renderer payload
+(BZR-OpenShim resources/renderer/enhanced/), which CR staging mirrors into
+openshim/renderer/enhanced/. CR materials bind it by that path and ship no copy
+of their own. Generation therefore stages into Local/IBL by default; promoting a
+new set means copying it into the OpenShim repo and bumping resources.version.
 
 The environment itself is procedural and deliberately neutral/LDR. It exists as
 an immediately testable fallback and as a reference for replacing the aliases
@@ -316,7 +322,7 @@ def write_rg_dds(path: Path, rg: np.ndarray) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', type=Path, default=Path('Textures'))
+    parser.add_argument('--output', type=Path, default=Path('Local/IBL'))
     parser.add_argument('--prefilter-size', type=int, default=128)
     parser.add_argument('--irradiance-size', type=int, default=32)
     parser.add_argument('--brdf-size', type=int, default=64)
@@ -327,14 +333,14 @@ def main() -> None:
 
     print('Generating irradiance cubemap...')
     irradiance = generate_irradiance(args.irradiance_size, args.samples)
-    write_cube_dds(args.output / 'cr_ibl_neutral_irradiance.dds', [[face] for face in irradiance])
+    write_cube_dds(args.output / 'openshim_ibl_neutral_irradiance.dds', [[face] for face in irradiance])
 
     print('Generating GGX-prefiltered cubemap...')
-    write_cube_dds(args.output / 'cr_ibl_neutral_prefilter.dds',
+    write_cube_dds(args.output / 'openshim_ibl_neutral_prefilter.dds',
                    generate_prefilter(args.prefilter_size, args.samples))
 
     print('Generating split-sum BRDF LUT...')
-    write_rg_dds(args.output / 'cr_ibl_brdf_lut.dds',
+    write_rg_dds(args.output / 'openshim_ibl_brdf_lut.dds',
                  integrate_brdf(args.brdf_size, args.brdf_samples))
 
     for p in sorted(args.output.iterdir()):
