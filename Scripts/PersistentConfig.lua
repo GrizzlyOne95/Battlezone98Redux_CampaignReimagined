@@ -5403,13 +5403,12 @@ local function UpdateWeaponStatsDisplay(player)
 
     local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.VEHICLE)
     local mask = GetCurrentWeaponMask(player)
-    if page == PdaPages.TARGET and exu and type(exu.GetSelectedWeaponMask) == "function" then
-        local ok, selectedMask = pcall(exu.GetSelectedWeaponMask, player)
-        if ok and type(selectedMask) == "number" then
-            selectedMask = math.max(0, math.floor(selectedMask + 0.5))
-            if selectedMask > 0 then
-                mask = selectedMask
-            end
+    if page == PdaPages.TARGET or page == PdaPages.WEAPONS then
+        -- These pages report the weapon the player is actually firing, so they
+        -- need the live selection rather than the installed hardpoint mask.
+        local selectedMask = ResolveLiveSelectedWeaponMask(player, mask)
+        if selectedMask > 0 then
+            mask = selectedMask
         end
     end
     local target = nil
@@ -6432,10 +6431,10 @@ function PersistentConfig.ApplySettings(options)
             end
         end
 
-        if applyAll or (options and options.syncRadarSize) then
-            PersistentConfig._RequestRadarScaleResync()
-            PersistentConfig._SyncRadarSizeScale(true)
-        end
+        -- Radar size is process-wide OpenShim policy. The legacy CR key and
+        -- helper remain readable for migration and explicit diagnostics, but
+        -- ordinary campaign settings application must not overwrite the
+        -- player's openshim.ini value.
         if applyAll or (options and options.applyTeamColors) then
             PersistentConfig._RequestTeamColorResync()
             PersistentConfig._SyncTeamColorSettings(applyAll, applyAll and "apply-settings-all" or "apply-settings")
@@ -6448,9 +6447,9 @@ function PersistentConfig.ApplySettings(options)
         end
     end
 
-    if applyAll or (options and options.applyScrapPilotHud) then
-        PersistentConfig.ApplyScrapPilotHudLayout()
-    end
+    -- OpenShim likewise owns the persistent scrap/pilot HUD layout. Keep
+    -- ApplyScrapPilotHudLayout available only for explicit legacy/diagnostic
+    -- callers; mission initialization and craft changes must inherit OpenShim.
 
     if applyAll or (options and options.applySubtitles) then
         local subtit = GetScriptSubtitles()
@@ -6489,24 +6488,6 @@ function PersistentConfig.UpdateInputs()
 
     RuntimeEnhancements.Update()
     PersistentConfig.CareerStatsModule.Update()
-
-    -- The engine may recreate or repopulate the stock scrap/pilot frame rects
-    -- after mission HUD initialization. Reassert the selected layout while the
-    -- legacy placement is active so the stock top frame cannot reappear after
-    -- the one-shot settings application.
-    if exu and PersistentConfig.Settings and not InputState.stockScrapPilotHudUnsupported then
-        local hudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1, #ScrapPilotHudLayouts, 2)
-        local nowForScrapPilotHud = GetTime()
-        local nextRefreshAt = InputState.nextScrapPilotHudRefresh or 0.0
-        if nextRefreshAt <= nowForScrapPilotHud or nextRefreshAt > nowForScrapPilotHud + 1.5 then
-            InputState.nextScrapPilotHudRefresh = nowForScrapPilotHud + 1.0
-            if hudLayout == 2 then
-                SetStockScrapPilotHudSpritesVisible(false)
-            else
-                SetStockScrapPilotHudSpritesVisible(true)
-            end
-        end
-    end
 
     -- Detect player craft change and reapply headlight settings
     local currentPlayerHandle = GetPlayerHandle()
