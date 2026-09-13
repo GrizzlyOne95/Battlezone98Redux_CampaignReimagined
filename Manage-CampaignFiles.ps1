@@ -50,6 +50,8 @@ $ChunkMeshesCappedRoot = "Assets\chunkMeshes_capped"
 $SourceExcludedRelativePaths = @(
     ".git",
     ".github",
+    # Legacy byte-identical copies; BZ_ASSETS_CORE is the runtime source.
+    "Assets\CustomWidgets",
     "docs",
     "Local",
     "References",
@@ -64,7 +66,13 @@ $SourceExcludedRootFiles = @(
     "LICENSE.md",
     "Manage-CampaignFiles.ps1",
     "NOTICE.md",
+    # Runtime copies can be left at the repository root by older deploy flows.
+    # InstallerPayload/Bin are authoritative; ignoring these avoids collisions
+    # when rebuilding the shipping lock from a working tree with legacy files.
+    "openshim_net.ini.payload",
+    "openshim_patches.json.payload",
     "README.md",
+    "winmm.dll",
     "workshop_build.vdf",
     "workshop.config.json",
     "workshop.config.example.json"
