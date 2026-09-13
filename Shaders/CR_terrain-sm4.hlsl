@@ -328,6 +328,57 @@ float luminance_legacy(float3 c)
     return dot(c, float3(0.299, 0.587, 0.114));
 }
 
+// -----------------------------------------------------------------------------
+// Detail normals
+// -----------------------------------------------------------------------------
+// The terrain normal atlas is sampled at 1x UV across an entire map. A few
+// metres from the ground it is magnified enormously and contributes no relief at
+// all, which is why the near field reads smeared and flat while the mid-range --
+// where the atlas still has texel density -- reads well. The detail map is
+// already tiled at 8x and 32x for brightness, so deriving a normal from its
+// luminance gradient puts high-frequency relief exactly where the atlas has
+// none. Every shipped *_detail.dds is 2048x2048 DXT1, so one texel constant
+// covers all of them and no new asset or material edit is needed.
+//
+// Luminance is a height PROXY, not a height map: on a photographic regolith scan
+// that holds up at this scale, but a dark patch is not necessarily a pit, so the
+// strengths are deliberately conservative. A negative strength inverts the
+// relief (bumps become pits) if the interpretation reads backwards.
+//
+// No distance fade. Mip-mapping already collapses the gradient toward zero as
+// the sampling footprint grows, which is the correct LOD behaviour and needs no
+// help. A hand-rolled depth fade here would be a camera term on a surface
+// normal, which is exactly what made the shading swim over static ground before.
+static const float CR_TERRAIN_DETAIL_TEXEL = 1.0 / 2048.0;
+static const float CR_TERRAIN_DETAIL_NORMAL_STRENGTH = 2.2;
+// The 32x layer resolves finer features, so the same luminance delta implies a
+// steeper slope; it is scaled back so the near field gains texture without the
+// ground turning to gravel.
+static const float CR_TERRAIN_DETAIL_NORMAL_NEAR_SCALE = 0.55;
+
+float3 detail_normal_from_luminance(Texture2D tex, SamplerState sam,
+                                    float2 uv, float strength)
+{
+    float2 e = float2(CR_TERRAIN_DETAIL_TEXEL, 0.0);
+    float hl = luminance_legacy(tex.Sample(sam, uv - e.xy).xyz);
+    float hr = luminance_legacy(tex.Sample(sam, uv + e.xy).xyz);
+    float hd = luminance_legacy(tex.Sample(sam, uv - e.yx).xyz);
+    float hu = luminance_legacy(tex.Sample(sam, uv + e.yx).xyz);
+    // Central differences give the surface gradient. Scaling xy rather than the
+    // whole vector scales the SLOPE and keeps the result a unit normal, the same
+    // reason sharpen_terrain_normal divides z instead of multiplying xy.
+    return safe_normalize(float3((hl - hr) * strength, (hd - hu) * strength, 1.0));
+}
+
+// Whiteout blend: sums surface gradients rather than the vectors themselves, so
+// the base shape survives instead of being averaged toward flat. Adding and
+// renormalising two normals destroys exactly the relief this is meant to add.
+float3 blend_detail_normal(float3 base, float3 detail)
+{
+    return safe_normalize(float3(base.xy * detail.z + detail.xy * base.z,
+                                 base.z * detail.z));
+}
+
 #if CR_LINEAR_LIGHT_ACTIVE
 // Piecewise IEC 61966-2-1 sRGB transfer functions. Keep identical to
 // CR_base-sm4.hlsl. These are deliberately the real piecewise curves, not
@@ -1247,6 +1298,22 @@ void terrain_fragment(
     float3 shapedNormalTex = normalTex;
 #if defined(ENHANCED_MODE)
     shapedNormalTex = sharpen_terrain_normal(normalTex);
+#if defined(DETAILMAP_ENABLED)
+    // Detail relief is blended in AFTER sharpening, deliberately. The sharpen
+    // gain is calibrated against the atlas's own slope distribution; applying it
+    // to the detail gradient as well would steepen normals the calibration never
+    // accounted for and re-manufacture the terminator shadow it was tuned to
+    // avoid.
+    shapedNormalTex = blend_detail_normal(
+        shapedNormalTex,
+        detail_normal_from_luminance(detailMap, detailSam, vTexCoord * 8.0,
+                                     CR_TERRAIN_DETAIL_NORMAL_STRENGTH));
+    shapedNormalTex = blend_detail_normal(
+        shapedNormalTex,
+        detail_normal_from_luminance(detailMap, detailSam, vTexCoord * 32.0,
+                                     CR_TERRAIN_DETAIL_NORMAL_STRENGTH
+                                         * CR_TERRAIN_DETAIL_NORMAL_NEAR_SCALE));
+#endif
 #endif
 
     float3 mappedViewNormal = safe_normalize(mul(shapedNormalTex, tbn));
