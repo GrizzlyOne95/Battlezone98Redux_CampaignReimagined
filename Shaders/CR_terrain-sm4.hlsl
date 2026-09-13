@@ -162,18 +162,56 @@
 #endif
 
 #if defined(SHADOWRECEIVER)
+// -----------------------------------------------------------------------------
+// Shadow depth bias
+// -----------------------------------------------------------------------------
+// The caster writes raw post-projection depth and this receiver compared it raw,
+// with no constant bias, no slope-scaled term and no normal offset. A surface
+// then shadows itself wherever its own interpolated depth quantises to just
+// behind the depth stored in the map.
+//
+// The error scales with how far the receiver's depth travels across one shadow
+// texel, which is proportional to tan(angle between the surface normal and the
+// light). Hence a constant floor plus a slope-scaled term. tan grows without
+// bound at grazing incidence, so the slope is clamped -- unclamped it produces
+// the opposite artefact, shadows visibly detaching from their casters.
+//
+// These are in post-projection depth units, where the whole cascade spans
+// 0..1, so they are deliberately small. NOT VALIDATED IN GAME: this profile
+// runs the 'high-noshadow' viewport scheme, so PCF_Filter never executes and
+// there was no acne to photograph. Treat the defaults as a starting point --
+// raise CR_SHADOW_CONSTANT_BIAS if acne survives, lower it if shadows detach
+// from their casters near contact points.
+static const float CR_SHADOW_CONSTANT_BIAS = 0.0015;
+static const float CR_SHADOW_SLOPE_BIAS    = 0.0035;
+static const float CR_SHADOW_MAX_SLOPE     = 4.0;
+
+// NdotL is the geometric surface-to-light cosine, not the normal-mapped one:
+// biasing by a perturbed normal would make the bias vary with texture detail
+// and reintroduce acne along normal-map edges.
+float shadow_depth_bias(float NdotL)
+{
+    float cosine = max(NdotL, 0.05);
+    float slope  = sqrt(saturate(1.0 - cosine * cosine)) / cosine;
+    return CR_SHADOW_CONSTANT_BIAS
+         + CR_SHADOW_SLOPE_BIAS * min(slope, CR_SHADOW_MAX_SLOPE);
+}
+
 #if CR_ENHANCED_PSSM_V2_ACTIVE
 float PCF_Filter(
     in Texture2D map,
     in SamplerComparisonState sam,
     in float4 uv,
-    in float2 invMapSize)
+    in float2 invMapSize,
+    in float depthBias)
 {
     if (abs(uv.w) <= 1e-6)
         return 1.0;
 
     uv.xyz *= rcp(uv.w);
-    uv.z = min(uv.z, 1.0);
+    // Bias after the perspective divide, so it is applied in the same
+    // normalised depth space the shadow map stores.
+    uv.z = min(uv.z - depthBias, 1.0);
     invMapSize = max(invMapSize, float2(1e-8, 1e-8));
 
     float2 halfTexel = invMapSize * 0.5;
@@ -189,14 +227,15 @@ float PCF_Filter(
     in Texture2D map,
     in SamplerState sam,
     in float4 uv,
-    in float2 invMapSize)
+    in float2 invMapSize,
+    in float depthBias)
 {
     if (abs(uv.w) <= 1e-6)
         return 1.0;
 
     uv.xyz *= rcp(uv.w);
     uv.w = 1.0;
-    uv.z = min(uv.z, 1.0);
+    uv.z = min(uv.z - depthBias, 1.0);
     invMapSize = max(invMapSize, float2(1e-8, 1e-8));
 
 #if PCF_SIZE > 1
@@ -1067,6 +1106,20 @@ void terrain_fragment(
 )
 {
 #if defined(SHADOWRECEIVER)
+    // Geometric cosine for the slope term. VERTEX_LIGHTING permutations carry
+    // no interpolated normal, so they fall back to the constant floor.
+    float shadowNdotL = 1.0;
+#if !defined(VERTEX_LIGHTING)
+    if (lightCount > 0.0)
+    {
+        float3 shadowToLight = lightPosition[0].xyz
+                             - (vViewPosition.xyz * lightPosition[0].w);
+        shadowNdotL = saturate(dot(safe_normalize(vViewNormal),
+                                   safe_normalize(shadowToLight)));
+    }
+#endif
+    float shadowBias = shadow_depth_bias(shadowNdotL);
+
     float shadow;
 #if defined(PSSM_ENABLED)
 #if CR_ENHANCED_PSSM_V2_ACTIVE
@@ -1077,29 +1130,29 @@ void terrain_fragment(
 
     [branch] if (vDepth < split1 - blendWidth)
     {
-        shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy);
+        shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy, shadowBias);
     }
     else if (vDepth <= split1 + blendWidth)
     {
-        float shadow1 = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy);
-        float shadow2 = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy);
+        float shadow1 = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy, shadowBias);
+        float shadow2 = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy, shadowBias);
         float blend = smoothstep(split1 - blendWidth, split1 + blendWidth, vDepth);
         shadow = lerp(shadow1, shadow2, blend);
     }
     else if (vDepth < split2 - blendWidth)
     {
-        shadow = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy);
+        shadow = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy, shadowBias);
     }
     else if (vDepth <= split2 + blendWidth)
     {
-        float shadow2 = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy);
-        float shadow3 = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy);
+        float shadow2 = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy, shadowBias);
+        float shadow3 = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy, shadowBias);
         float blend = smoothstep(split2 - blendWidth, split2 + blendWidth, vDepth);
         shadow = lerp(shadow2, shadow3, blend);
     }
     else if (vDepth <= splitEnd)
     {
-        shadow = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy);
+        shadow = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy, shadowBias);
         float fadeStart = max(split2 + blendWidth, splitEnd - CR_PSSM_FAR_FADE_WIDTH);
         float farFade = smoothstep(fadeStart, splitEnd, vDepth);
         shadow = lerp(shadow, 1.0, farFade);
@@ -1111,19 +1164,19 @@ void terrain_fragment(
 #else
     if (vDepth <= pssmSplitPoints.y)
     {
-        shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy);
+        shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy, shadowBias);
     }
     else if (vDepth <= pssmSplitPoints.z)
     {
-        shadow = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy);
+        shadow = PCF_Filter(shadowMap2, shadowSam2, vLightSpacePos2, invShadowMapSize2.xy, shadowBias);
     }
     else
     {
-        shadow = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy);
+        shadow = PCF_Filter(shadowMap3, shadowSam3, vLightSpacePos3, invShadowMapSize3.xy, shadowBias);
     }
 #endif
 #else
-    shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy);
+    shadow = PCF_Filter(shadowMap1, shadowSam1, vLightSpacePos1, invShadowMapSize1.xy, shadowBias);
 #endif
 #if defined(ENHANCED_MODE)
     shadow = shadow * 0.78 + 0.22;
