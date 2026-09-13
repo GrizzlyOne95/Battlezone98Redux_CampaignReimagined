@@ -1,6 +1,14 @@
 # Chunk Mesh Interior Caps
 
-`Tools/Cap-ChunkMeshes.py` closes exposed geometric boundary loops in the standalone Ogre chunk meshes under `Assets/chunkMeshes`.
+`Tools/Cap-ChunkMeshes.py` closes exposed geometric boundary loops in the standalone Ogre chunk meshes exported by BZR-OpenShim.
+
+> **The uncapped tree is no longer kept in this repository.** `Assets/chunkMeshes` held a verbatim
+> copy of the exporter output and was deleted on 2026-09-13. The shipping lock referenced only
+> `Assets/chunkMeshes_capped` (1532 entries; zero for the uncapped tree), so the second copy
+> shipped nothing and only invited edits to the tree that never reaches the game. The capped
+> meshes are validated and fix the missing interior faces. Re-capping now reads the exporter
+> output directly from `$env:BZR_OPENSHIM_REPO/reverse_engineering/generated_chunk_payload_meshes_stock`,
+> which was byte-identical to the copy that was removed.
 
 ## Why
 
@@ -25,7 +33,7 @@ A candidate is skipped when it cannot be safely represented as a simple cap, inc
 
 ## Interior material and UVs
 
-For the first in-game validation pass, all generated faces use the existing `iechunk1_BZBase_iechunks` material from `Assets/chunkMeshes/generic/iechunk1_port.material`. That material already references the shared `iechunks.dds`, `iechunks_n.dds`, `iechunks_s.dds`, and `iechunks_e.dds` texture set, so no new interior texture/material asset is required yet.
+For the first in-game validation pass, all generated faces use the existing `iechunk1_BZBase_iechunks` material from `Assets/chunkMeshes_capped/generic/iechunk1_port.material`. That material already references the shared `iechunks.dds`, `iechunks_n.dds`, `iechunks_s.dds`, and `iechunks_e.dds` texture set, so no new interior texture/material asset is required yet.
 
 Pass `--material iechunk1_BZBase_iechunks` when generating the capped meshes. The material remains configurable so a dedicated burnt-metal interior can replace it later without changing the topology code.
 
@@ -74,7 +82,7 @@ error message go away.
 
 ```powershell
 python Tools/Cap-ChunkMeshes.py `
-  --input Assets/chunkMeshes `
+  --input $env:BZR_OPENSHIM_REPO/reverse_engineering/generated_chunk_payload_meshes_stock `
   --audit-only `
   --report chunk_cap_report.csv
 ```
@@ -85,7 +93,7 @@ The CSV records triangle counts, welded topology, boundary components, closed/ca
 
 ```powershell
 python Tools/Cap-ChunkMeshes.py `
-  --input Assets/chunkMeshes `
+  --input $env:BZR_OPENSHIM_REPO/reverse_engineering/generated_chunk_payload_meshes_stock `
   --output Assets/chunkMeshes_capped `
   --material iechunk1_BZBase_iechunks `
   --uv-mode stretch `
@@ -120,12 +128,12 @@ alternate root `Chunks`: do not create one alongside `chunkMeshes`.
 | Present | `-deploy` ships | `-sync` writes runtime meshes back to |
 | --- | --- | --- |
 | `Assets/chunkMeshes_capped` | the capped meshes | `Assets/chunkMeshes_capped` |
-| authored tree only | the authored meshes | `Assets/chunkMeshes` |
+| authored tree only | the authored meshes | `Assets/chunkMeshes` (removed 2026-09-13) |
 
 Both trees map onto the same runtime `chunkMeshes` folder, so only one supplies
 `.mesh` files; the other is skipped. Either way the companion
 `.material`, `.skeleton`, `.geo` and `.dds` assets keep deploying from
-`Assets/chunkMeshes`, because the capped tree contains meshes only.
+the exporter output, because the capped tree contains meshes only.
 
 Two consequences worth knowing:
 
@@ -145,7 +153,7 @@ Chunk meshes: Assets\chunkMeshes_capped (generated caps; regenerate with Tools/C
 
 ```powershell
 python Tools/Cap-ChunkMeshes.py `
-  --input Assets/chunkMeshes/avtank/agr11ror.mesh `
+  --input $env:BZR_OPENSHIM_REPO/reverse_engineering/generated_chunk_payload_meshes_stock/avtank/agr11ror.mesh `
   --output .tmp/agr11ror.capped.mesh `
   --material iechunk1_BZBase_iechunks `
   --keep-xml
@@ -170,7 +178,7 @@ The self-test verifies:
 ## Suggested validation order
 
 1. Run `--self-test`.
-2. Run `--audit-only` over `Assets/chunkMeshes` and inspect the report for non-manifold/skipped outliers. Confirm the converter line reports `verified:`.
+2. Run `--audit-only` over the exporter output and inspect the report for non-manifold/skipped outliers. Confirm the converter line reports `verified:`.
 3. Generate `Assets/chunkMeshes_capped` with `--material iechunk1_BZBase_iechunks`.
 4. Test representative vehicle and building destruction in-game using the existing IE-chunk appearance on the generated interior faces.
 5. Replace the IE material later with a dedicated burnt-metal interior only if the visual test shows it is worthwhile.
