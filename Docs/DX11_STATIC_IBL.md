@@ -45,19 +45,19 @@ This is shader/program-only and does not require an engine hook.
 
 ## Resources
 
-Checked-in runtime bootstrap resources live directly under `Textures/` so they resolve through the same resource location as existing shared textures without depending on recursive subdirectory scanning:
+The runtime set is owned by OpenShim, not by CR. It ships inside the shim's Enhanced renderer payload (`BZR-OpenShim resources/renderer/enhanced/`), which CR staging mirrors into `openshim/renderer/enhanced/`:
 
-- `cr_ibl_neutral_irradiance.dds` - 32x32 BC1 cubemap;
-- `cr_ibl_neutral_prefilter.dds` - compact 32x32 BC1 cubemap with a full mip chain for the repository bootstrap set;
-- `cr_ibl_brdf_lut.dds` - 64x64 RG split-sum BRDF LUT.
+- `openshim_ibl_neutral_irradiance.dds` - 32x32 BC1 cubemap;
+- `openshim_ibl_neutral_prefilter.dds` - compact 32x32 BC1 cubemap with a full mip chain for the repository bootstrap set;
+- `openshim_ibl_brdf_lut.dds` - 64x64 RG split-sum BRDF LUT.
 
-`Tools/Generate-StaticIBL.py` regenerates the reference set using real cosine-weighted irradiance integration, GGX importance-sampled prefiltering, and BRDF integration. Its default output directory is `Textures/IBL` so generation can be staged without overwriting the runtime set accidentally. Its default prefiltered cube is 128x128 with eight mips, so replacing the compact checked-in bootstrap cube with the generated 128px version requires no shader-layout change.
+CR ships no copy of its own. The materials bind these by their path inside the payload (`openshim/renderer/enhanced/openshim_ibl_*.dds`) rather than by bare filename, because the payload is a structured subdirectory rather than part of the flat texture pool. One set of files, one name, one owner: a bare-name binding would require either a duplicate in the flat pool or Ogre resource-location injection by the shim.
 
-To intentionally regenerate the runtime copies in place:
+The shim's `ValidateDeployedResourceSetAt` requires all three to be present and non-empty in that directory, so deleting them there disables the Enhanced profile outright, not just IBL.
 
-```powershell
-python .\Tools\Generate-StaticIBL.py --output .\Textures
-```
+`Tools/Generate-StaticIBL.py` regenerates the reference set using real cosine-weighted irradiance integration, GGX importance-sampled prefiltering, and BRDF integration. Its default output directory is `Local/IBL` so generation is staged rather than promoted. Its default prefiltered cube is 128x128 with eight mips, so replacing the compact bootstrap cube with the generated 128px version requires no shader-layout change.
+
+Promoting a generated set means copying it into the OpenShim repo's `resources/renderer/enhanced/` and bumping `resources.version` there, so a stale DLL can never pair with new resources.
 
 NumPy is required only by the offline generator, not by the game.
 
