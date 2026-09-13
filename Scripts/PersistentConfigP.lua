@@ -235,6 +235,24 @@ function M.Create(deps)
             return 0
         end
 
+        local liveSlot = nil
+        for _, entry in ipairs(installedSlots) do
+            if IsMaskBitSet(activeMask, entry.slot) then
+                liveSlot = entry.slot
+                break
+            end
+        end
+
+        -- Follow the player's live weapon selection. A manual Up/Down inspection
+        -- holds only until the selection itself changes, so switching weapons in
+        -- the cockpit moves the detail pane with it.
+        if liveSlot ~= InputState.pdaStatsLiveSlot then
+            InputState.pdaStatsLiveSlot = liveSlot
+            if liveSlot then
+                InputState.pdaStatsSlot = liveSlot
+            end
+        end
+
         local selectedSlot = tonumber(InputState.pdaStatsSlot)
         local selectedEntry = nil
         for _, entry in ipairs(installedSlots) do
