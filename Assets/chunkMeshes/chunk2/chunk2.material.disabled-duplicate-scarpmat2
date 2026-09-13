@@ -1,0 +1,15 @@
+import * from "BZBase.material"
+
+material scarpmat2 : BZBaseCockpit
+{
+	set_texture_alias DiffuseMap scarpmat2_d.dds
+	set_texture_alias NormalMap scarpmat2_n.dds
+	set_texture_alias SpecularMap scarpmat2_S.dds
+	set_texture_alias EmissiveMap scarpmat2_e.dds
+
+	set $diffuse "0.8 0.8 0.8"
+	set $ambient "0.8 0.8 0.8"
+	set $specular "0.8 0.8 0.8"
+	set $shininess "127"
+}
+
