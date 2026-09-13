@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-09-12
+
+### OpenShim 1.0.0.29
+
+**Muting a player now sticks.** A mute applied from the multiplayer player list
+used to last only as long as that session: the same person rejoining, or you
+restarting the game, brought their voice back. Mutes are now remembered against
+the same stable Steam/GOG identity that bans already use, so a muted player
+stays muted across rejoins and restarts, even if they change their display
+name. Nothing about how muting behaves in a match has changed -- OpenShim adds
+no filtering of its own, it simply re-applies the game's own mute.
+
+**The Create Game vehicle preview is no longer black on DX11.** Picking a
+starting vehicle when hosting showed a solid black panel instead of the craft.
+The preview window has shadows turned off but was still being drawn with the
+shadowed version of the material, so it read uninitialised shadow data and
+rendered nothing. It now uses the matching no-shadow path and shows the craft.
+
+**Title screen stability.** The Career page added to the title screen could
+still touch menu widgets that had just been destroyed when returning from a
+game. That was already being caught and recovered from, so it was not visible
+in play, but the underlying access is now prevented rather than absorbed.
+
+**For bug reports: a full network capture switch.** `RelayLogging` under
+`[Diagnostics]` records a detailed two-client BZRNet trace. It ships off and
+should stay off for normal play; it exists so a reproducible multiplayer
+problem can be captured in full and attached to a report.
+
+**Smaller download.** Campaign Reimagined was shipping its own copies of three
+static lighting maps that OpenShim already bundles byte-for-byte. It now uses
+OpenShim's copies. There is no visual change.
+
+
 ## 2026-09-08
 
 ### OpenShim 1.0.0.22
