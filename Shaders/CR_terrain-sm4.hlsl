@@ -336,6 +336,34 @@ float3 unpack_terrain_normal(float4 packedNormal)
     return normal;
 }
 
+// -----------------------------------------------------------------------------
+// Detail-map modulation range
+// -----------------------------------------------------------------------------
+// The detail map is modulation, not colour: the "* 2.0" makes a stored 0.5 the
+// neutral 1.0 multiplier. But mn_detail.dds is a photographic regolith scan
+// whose dark tail runs all the way to 0.0, and 0.0 * 2.0 is a multiplier of
+// EXACTLY ZERO -- the terrain colour is annihilated, not darkened. Measured on
+// the shipped 2048x2048 map: 3.83% of texels darken by more than half, 0.40% by
+// more than three quarters, and 0.007% force pure black.
+//
+// Tiled at 8x it is magnified hard in the near field, so that tail stops being
+// per-texel grain and becomes contiguous black pools several hundred pixels
+// across -- the "black water" on the ground in front of the cockpit. It is
+// backend-independent (DX9 shows it identically) and predates the sharpening
+// work; sharpening only raised surrounding contrast so it read louder.
+//
+// Compressing the modulation toward neutral keeps the grain and removes the
+// annihilation: at 0.55 the worst texel darkens to 0.45x instead of 0.0x, and
+// the bright tail is pulled in from 2.0x to 1.55x by the same amount. Raise
+// toward 1.0 to restore the original (broken) range.
+static const float CR_TERRAIN_DETAIL_CONTRAST = 0.55;
+
+// Takes the raw sampled detail texel; returns the brightness multiplier.
+float3 detail_modulation(float3 rawDetail)
+{
+    return 1.0 + (rawDetail * 2.0 - 1.0) * CR_TERRAIN_DETAIL_CONTRAST;
+}
+
 #if defined(ENHANCED_MODE)
 // -----------------------------------------------------------------------------
 // Legacy-PBR calibration. Keep synchronized with CR_base-sm4.hlsl.
@@ -576,6 +604,68 @@ static const float CR_TERRAIN_PBR_MIN_ROUGHNESS = 0.56;
 static const float CR_TERRAIN_PBR_MAX_F0 = 0.12;
 static const float CR_TERRAIN_IBL_SPECULAR_SCALE = 0.72;
 
+// -----------------------------------------------------------------------------
+// Terrain normal sharpening
+// -----------------------------------------------------------------------------
+// The gain divides Z instead of multiplying XY. Multiplying XY needs a slope
+// ceiling to stay on the unit sphere, and that ceiling plateaus: every input
+// past ~30 degrees lands on one output angle, flattening the crater rims that
+// carry the relief into a single tone. Dividing Z gives exactly
+// tan(out) = gain * tan(in) - monotonic over the whole range, asymptotic at 90
+// degrees, no clamp needed, and scale-invariant, so the non-unit RGB that BC1
+// quantization produces sharpens identically to a unit normal.
+//
+// The gain is a CONSTANT, deliberately. An earlier version faded it by view
+// distance, by N.V and by texel footprint. Every one of those is a function of
+// the camera, so the gain on a patch of ground changed as the camera
+// approached it and the shading crawled over static ground. A surface normal
+// must depend on the surface, not on where it is viewed from. Minification is
+// handled where it belongs: the normal atlas is mip-mapped, so distant samples
+// are already averaged toward flat, and filter_roughness_from_normal_variance()
+// widens roughness where the shaded normal varies fast in screen space.
+// Measured two ways, and the second overruled the first.
+//
+// OFFLINE, against the shipped MOON_ATLAS_N.dds (median texel tilt 2.2 deg, p90
+// 19.3 deg) swept over sun elevations 10-30 deg on flat ground, the gain looked
+// expensive: 2.10 manufactured shadow -- texels pushed past N.L <= 0 that were
+// lit at gain 1.0 -- across 4.14% of the ground, against 2.51% at 1.60, for 11%
+// more relief. On that basis this constant was dropped to 1.60.
+//
+// IN GAME, on play01 with the camera at rest and the same frame captured under
+// each variant (8 frames per run, cross-run camera agreement tighter than the
+// frame-to-frame noise floor), the drop from 2.10 to 1.60 turned out to be
+// close to a wash:
+//
+//     dark speckle (% of ground below half its local mean)   -2%
+//     relative contrast on the lit surface                   -1.3%
+//     high-frequency surface detail (RMS vs a 9px blur)      -4.1%
+//
+// Against that, repairing the N.V gate in evaluate_legacy_pbr removed 28% of
+// the speckle on its own. The gate was doing essentially all the damage; the
+// gain was never the problem, so it is back at 2.10 where the mid- and
+// long-range relief reads best.
+//
+// Caveat on scope: that capture is a third-person view of open ground at one
+// sun angle. The offline sweep says the gain matters considerably more when the
+// sun is low, where 2.10 manufactures shadow over 4.9% of flat ground against
+// 2.8% at 1.60. If a low-sun map shows hard dark patches on flat ground again,
+// lower this first -- the table above is the map, and nothing else depends on
+// the value.
+//
+// A tilt-dependent roll-off was also tested as an alternative shaping function
+// and beat a flat gain by only 3-6% at matched cost, which does not justify a
+// second tunable.
+static const float CR_TERRAIN_NORMAL_SHARPEN_GAIN = 2.10;
+
+// Scale-invariant and view-independent: depends only on the sampled texel.
+float3 sharpen_terrain_normal(float3 normalTex)
+{
+    return safe_normalize(float3(normalTex.xy,
+                                 normalTex.z / CR_TERRAIN_NORMAL_SHARPEN_GAIN));
+}
+
+
+
 float legacy_shininess_to_roughness(float shininess)
 {
     float scaledShininess = max(shininess * CR_PBR_SHININESS_SCALE, 0.0);
@@ -679,19 +769,47 @@ void evaluate_legacy_pbr(
     diffuseWeight = float3(0.0, 0.0, 0.0);
     specularBRDF = float3(0.0, 0.0, 0.0);
 
-    if (NdotL <= 0.0 || NdotV <= 0.0)
+    // Lambertian diffuse has no view term: it is albedo/PI * N.L, and nothing
+    // in it depends on where the surface is being looked at from. The N.V test
+    // below belongs to the SPECULAR branch only -- the microfacet denominator
+    // divides by N.V, so that term genuinely has to bail. Testing both outputs
+    // against it meant any texel whose normal tipped even slightly away from
+    // the camera lost ALL of its direct light in one step and dropped to the
+    // ambient floor.
+    //
+    // On terrain that is severe. Ground seen from a cockpit is viewed at a
+    // grazing angle, so N.V hovers near zero across the whole near field, and
+    // normal-map detail -- especially once sharpened -- pushes large patches of
+    // it past the threshold. The result was hard-edged pools of near-black with
+    // flat interiors (the interior is the ambient floor, which is spatially
+    // constant) that slid across static ground as the camera moved, because
+    // N.V is a function of the camera. Two earlier diagnoses missed this: a
+    // Lambert terminator cannot explain motion, and removing the view-dependent
+    // weighting from the normal sharpening did not help because the view
+    // dependence was never in the sharpening -- it was here.
+    //
+    // It bites hardest on airless maps, where terrain_ibl_diffuse_strength()
+    // floors the IBL contribution at CR_TERRAIN_IBL_AIRLESS_FLOOR and only
+    // CR_IBL_LEGACY_AMBIENT_RETAIN of the scene ambient survives, so "no direct
+    // light" is a much deeper hole than it is under an atmosphere.
+    if (NdotL <= 0.0)
         return;
 
     float3 H = safe_normalize(V + L);
     float NdotH = saturate(dot(N, H));
     float VdotH = saturate(dot(V, H));
 
+    // VdotH is well defined whatever N.V does, so the diffuse/specular energy
+    // split stays valid here.
+    float3 F = fresnel_schlick(VdotH, F0);
+    diffuseWeight = (1.0 - F) * (CR_PBR_DIFFUSE_COMPENSATION / CR_PI);
+
+    if (NdotV <= 0.0)
+        return;
+
     float D = distribution_ggx(NdotH, roughness);
     float G = geometry_smith(NdotV, NdotL, roughness);
-    float3 F = fresnel_schlick(VdotH, F0);
-
     specularBRDF = (D * G * F) / max(4.0 * NdotV * NdotL, 1e-5);
-    diffuseWeight = (1.0 - F) * (CR_PBR_DIFFUSE_COMPENSATION / CR_PI);
 }
 #endif
 
@@ -1067,7 +1185,18 @@ void terrain_fragment(
     // conventions on the live misn04 terrain before changing production math.
     float4 normalSample = normalMap.Sample(normalSam, vTexCoord);
     float3 normalTex = unpack_terrain_normal(normalSample);
-    float3 mappedViewNormal = safe_normalize(mul(normalTex, tbn));
+
+    // normalTex stays the raw unpack so DEBUG_MODE 3 remains a packing
+    // diagnostic; the sharpened copy is what the lighting consumes. This runs
+    // upstream of the TBN transform, so the extra variance it introduces is
+    // picked up by ddx/ddy in filter_roughness_from_normal_variance() below
+    // and fed back into roughness rather than aliasing the specular lobe.
+    float3 shapedNormalTex = normalTex;
+#if defined(ENHANCED_MODE)
+    shapedNormalTex = sharpen_terrain_normal(normalTex);
+#endif
+
+    float3 mappedViewNormal = safe_normalize(mul(shapedNormalTex, tbn));
 #if CR_TERRAIN_NORMAL_BASIS_MODE == 3
     float3 viewNormal = geometryNormal;
 #elif CR_TERRAIN_NORMAL_BASIS_MODE == 4
@@ -1388,12 +1517,12 @@ void terrain_fragment(
     // decode would turn 0.5 into ~0.214, so the neutral point would become
     // ~0.43 and the whole terrain would darken by more than half. Treat the
     // detail texture as numerical modulation and leave it alone.
-    float3 detailTex = detailMap.Sample(detailSam, frac(vTexCoord * 8.0)).xyz * 2.0;
+    float3 detailTex = detail_modulation(detailMap.Sample(detailSam, vTexCoord * 8.0).xyz);
     float3 fullbrightDetail = float3(1.0, 1.0, 1.0);
 #if defined(ENHANCED_MODE)
     float detailDistance = saturate(vDepth * 0.015);
     float3 detailColor = lerp(detailTex, fullbrightDetail, detailDistance);
-    float3 detailTexNear = detailMap.Sample(detailSam, frac(vTexCoord * 32.0)).xyz * 2.0;
+    float3 detailTexNear = detail_modulation(detailMap.Sample(detailSam, vTexCoord * 32.0).xyz);
     float detailNearFade = saturate(vDepth * 0.08);
     detailColor *= lerp(lerp(detailTexNear, fullbrightDetail, 0.5), fullbrightDetail, detailNearFade);
 #else

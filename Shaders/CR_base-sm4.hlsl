@@ -636,21 +636,39 @@ void evaluate_legacy_pbr(
     diffuseWeight = float3(0.0, 0.0, 0.0);
     specularBRDF = float3(0.0, 0.0, 0.0);
 
-    if (NdotL <= 0.0 || NdotV <= 0.0)
+    // Lambertian diffuse has no view term: it is albedo/PI * N.L, and nothing in
+    // it depends on where the surface is being looked at from. The N.V test
+    // below belongs to the SPECULAR branch only -- the microfacet denominator
+    // divides by N.V, so that term genuinely has to bail. Testing both outputs
+    // against it meant any texel whose normal tipped even slightly away from the
+    // camera lost ALL of its direct light in one step and dropped to the ambient
+    // floor, producing hard-edged near-black patches with flat interiors that
+    // slid across the surface as the camera moved.
+    //
+    // This is the same defect that produced the terrain "black water"; see the
+    // longer note in CR_terrain-sm4.hlsl. It shows on models wherever a
+    // normal-mapped surface is seen near edge-on -- hull flanks, tracks, and the
+    // curved shoulders of buildings.
+    if (NdotL <= 0.0)
         return;
 
     float3 H = safe_normalize(V + L);
     float NdotH = saturate(dot(N, H));
     float VdotH = saturate(dot(V, H));
 
-    float D = distribution_ggx(NdotH, roughness);
-    float G = geometry_smith(NdotV, NdotL, roughness);
+    // VdotH is well defined whatever N.V does, so the diffuse/specular energy
+    // split stays valid here.
     float3 F = fresnel_schlick(VdotH, F0);
-
-    specularBRDF = (D * G * F) / max(4.0 * NdotV * NdotL, 1e-5);
     // No aggressive metallic inference in this milestone: diffuse remains present
     // and is reduced only by Fresnel energy sharing.
     diffuseWeight = (1.0 - F) * (CR_PBR_DIFFUSE_COMPENSATION / CR_PI);
+
+    if (NdotV <= 0.0)
+        return;
+
+    float D = distribution_ggx(NdotH, roughness);
+    float G = geometry_smith(NdotV, NdotL, roughness);
+    specularBRDF = (D * G * F) / max(4.0 * NdotV * NdotL, 1e-5);
 }
 #endif
 
