@@ -1,5 +1,12 @@
 # BZR DX11 Color-Space Audit
 
+> **These shaders live in OpenShim now.** Campaign Reimagined retired its
+> duplicate copy of the Enhanced base/terrain implementation; the files this
+> document describes are `resources/renderer/enhanced/openshim_enhanced_*` in
+> the BZR-OpenShim repository, and the identifiers it names as `CR_*` are
+> spelled `OSE_*` there. CR keeps the materials, the art direction and the
+> static-IBL wrappers. The decisions recorded below are unchanged.
+
 > **Status: diagnostic phase complete; Stage A experiment implemented.**
 >
 > The OpenShim DX11 runtime capture described in Part 2 has been taken. It confirmed that no hardware sRGB conversion exists anywhere in the captured BZR DX11 pipeline — no `_SRGB` resource, SRV, or RTV appeared, the swapchain/backbuffer is ordinary `R8G8B8A8_UNORM`, and Ogre reports `sRGB Gamma Conversion = No`.
@@ -60,7 +67,7 @@ Nothing in the hardware path performs either conversion. Any linear-light experi
 
 1. `Materials/CR_BZBase.material` does not request Ogre hardware gamma on the diffuse, normal, specular, or emissive texture units.
 2. `Materials/CR_BZTerrainBase.material` does not request Ogre hardware gamma on the diffuse, detail, normal, specular, or emissive texture units.
-3. `Shaders/CR_base-sm4.hlsl` and `Shaders/CR_terrain-sm4.hlsl` perform no manual sRGB-to-linear decode and no final linear-to-sRGB encode. They explicitly state that samples are consumed in the space Ogre supplies until resource creation is verified.
+3. `openshim/renderer/enhanced/openshim_enhanced_base-sm4.hlsl` and `openshim/renderer/enhanced/openshim_enhanced_terrain-sm4.hlsl` perform no manual sRGB-to-linear decode and no final linear-to-sRGB encode. They explicitly state that samples are consumed in the space Ogre supplies until resource creation is verified.
 4. Normal maps are data. They are sampled and numerically remapped from `[0,1]` to `[-1,1]`; applying an sRGB transfer function to them would corrupt the normal vectors.
 5. Shadow maps/depth are data and are used as numerical comparison/depth inputs.
 6. The BRDF LUT is numerical split-sum data and must remain linear.
@@ -414,7 +421,7 @@ The Stage-1 gate listed in earlier revisions of this document has been satisfied
 #endif
 ```
 
-Declared identically in `Shaders/CR_base-sm4.hlsl` and `Shaders/CR_terrain-sm4.hlsl`.
+Declared identically in `openshim/renderer/enhanced/openshim_enhanced_base-sm4.hlsl` and `openshim/renderer/enhanced/openshim_enhanced_terrain-sm4.hlsl`.
 
 Activation is narrowed to the Enhanced per-pixel path:
 
@@ -458,10 +465,10 @@ Both clamp their input to `>= 0` first. `lerp()` evaluates both segments, so an 
 
 | Shader | Texture | Where |
 | --- | --- | --- |
-| `CR_base-sm4.hlsl` | object diffuse/albedo (`t0`) | RGB decoded immediately after `Sample()`, before the lighting multiply. Alpha untouched. |
-| `CR_base-sm4.hlsl` | object emissive (`t3`) | RGB decoded immediately after `Sample()`, **before** emissive intensity scaling and atmospheric transmission. |
-| `CR_terrain-sm4.hlsl` | terrain diffuse (`t0`) | RGB decoded immediately after `Sample()`. Alpha is the detail-blend weight and stays numerical. |
-| `CR_terrain-sm4.hlsl` | terrain emissive | RGB decoded immediately after `Sample()`, **before** the detail multiplication. |
+| `openshim_enhanced_base-sm4.hlsl` | object diffuse/albedo (`t0`) | RGB decoded immediately after `Sample()`, before the lighting multiply. Alpha untouched. |
+| `openshim_enhanced_base-sm4.hlsl` | object emissive (`t3`) | RGB decoded immediately after `Sample()`, **before** emissive intensity scaling and atmospheric transmission. |
+| `openshim_enhanced_terrain-sm4.hlsl` | terrain diffuse (`t0`) | RGB decoded immediately after `Sample()`. Alpha is the detail-blend weight and stays numerical. |
+| `openshim_enhanced_terrain-sm4.hlsl` | terrain emissive | RGB decoded immediately after `Sample()`, **before** the detail multiplication. |
 
 ## Explicitly NOT decoded
 
@@ -607,7 +614,7 @@ The Stage-1 prohibition on sRGB helpers was **replaced, not deleted**. It is now
 - The piecewise breakpoints/scales (`0.04045`, `12.92`, `0.0031308`, `1.055`, `0.055`) are present, and `pow(x, 2.2)`-style approximations are rejected.
 - Decode call sites are checked against a **per-file** allow-list **and** against a deny-list of data identifiers: normal/specular/detail/shadow/irradiance/prefilter/BRDF/depth sources and the engine RGB constants.
   - Universal targets — `diffuseTex.rgb`, `emissiveTex` — are required in both shaders.
-  - Family-scoped targets exist in exactly one shader family and are driven by a single owner table. `vertexTint` is owned by `CR_terrain-sm4.hlsl`: it is *required* there and simply **not on the base shader's allow-list at all**, so a copy-paste into `CR_base-sm4.hlsl` is rejected by the family-scope rule by name, rather than being generally permitted and separately policed. One table is authoritative for both halves of the constraint, so deleting it cannot leave a target silently allowed everywhere.
+  - Family-scoped targets exist in exactly one shader family and are driven by a single owner table. `vertexTint` is owned by `openshim_enhanced_terrain-sm4.hlsl`: it is *required* there and simply **not on the base shader's allow-list at all**, so a copy-paste into `openshim_enhanced_base-sm4.hlsl` is rejected by the family-scope rule by name, rather than being generally permitted and separately policed. One table is authoritative for both halves of the constraint, so deleting it cannot leave a target silently allowed everywhere.
 - Every `srgb_to_linear()` occurrence must be accounted for as either the single definition or a plain `target = srgb_to_linear(arg);` statement. A decode written as a declaration initializer or nested inside a larger expression would otherwise bypass the allow-list, the deny-list and the alpha check simultaneously, because those checks only see what the statement pattern matched.
 - Terrain detail has its own dedicated rejection rule.
 - `vertexTint` must be derived from `vColor.xyz` (never sweeping in the terrain output alpha) and decoded at its source, with nothing reading it in between — the same ordering standard the sampled textures are held to.
@@ -776,7 +783,7 @@ The capture also noted that the irradiance/prefiltered environment cubemaps curr
 
 Capture `CR_LINEAR_LIGHT=0` and `CR_LINEAR_LIGHT=1` with **identical** scene, camera position/orientation, time of day, mission, and graphics settings. Change nothing else between runs.
 
-To flip the experiment, set `#define CR_LINEAR_LIGHT 1` in **both** `Shaders/CR_base-sm4.hlsl` and `Shaders/CR_terrain-sm4.hlsl`, or supply `CR_LINEAR_LIGHT=1` through the program `preprocessor_defines`.
+To flip the experiment, set `#define CR_LINEAR_LIGHT 1` in **both** `openshim/renderer/enhanced/openshim_enhanced_base-sm4.hlsl` and `openshim/renderer/enhanced/openshim_enhanced_terrain-sm4.hlsl`, or supply `CR_LINEAR_LIGHT=1` through the program `preprocessor_defines`.
 
 ## Scenes
 
@@ -827,7 +834,7 @@ This rules the transfer functions, IBL calibration, fog, exposure, bloom and atm
 
 ## Actual BZR/CR pipeline
 
-There are two different terrain-normal representations in `CR_terrain-sm4.hlsl`; previous shorthand about "terrain normal Z reconstruction" must not conflate them.
+There are two different terrain-normal representations in `openshim_enhanced_terrain-sm4.hlsl`; previous shorthand about "terrain normal Z reconstruction" must not conflate them.
 
 ```text
 mesh normal (geometry)
@@ -941,9 +948,9 @@ Repository-local:
 
 - `Materials/CR_BZBase.material`
 - `Materials/CR_BZTerrainBase.material`
-- `Shaders/CR_base-sm4.hlsl`
-- `Shaders/CR_terrain-sm4.hlsl`
-- `Shaders/CR_base.hlsl`
+- `openshim/renderer/enhanced/openshim_enhanced_base-sm4.hlsl`
+- `openshim/renderer/enhanced/openshim_enhanced_terrain-sm4.hlsl`
+- `openshim/renderer/enhanced/openshim_enhanced_base-sm3.hlsl`
 - `Docs/DX11_STATIC_IBL.md`
 - `Tools/Generate-StaticIBL.py`
 - `Tools/Validate-DX11Shaders.ps1`

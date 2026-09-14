@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-09-12T22:51:44-05:00",
-  "count": 3314,
+  "count": 3300,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -9780,26 +9780,6 @@
       "runtime": "Weather.lua"
     },
     {
-      "source": "Shaders\\CR_base-fragment.glsl",
-      "runtime": "CR_base-fragment.glsl"
-    },
-    {
-      "source": "Shaders\\CR_base-sm4.hlsl",
-      "runtime": "CR_base-sm4.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_base-vertex.glsl",
-      "runtime": "CR_base-vertex.glsl"
-    },
-    {
-      "source": "Shaders\\CR_base.hlsl",
-      "runtime": "CR_base.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_base.program",
-      "runtime": "CR_base.program"
-    },
-    {
       "source": "Shaders\\CR_DepthShadowmap-sm4.hlsl",
       "runtime": "CR_DepthShadowmap-sm4.hlsl"
     },
@@ -9986,42 +9966,6 @@
     {
       "source": "Shaders\\CR_stdQuad.program",
       "runtime": "CR_stdQuad.program"
-    },
-    {
-      "source": "Shaders\\CR_terrain_glow-fragment.glsl",
-      "runtime": "CR_terrain_glow-fragment.glsl"
-    },
-    {
-      "source": "Shaders\\CR_terrain_glow-sm4.hlsl",
-      "runtime": "CR_terrain_glow-sm4.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_terrain_glow-vertex.glsl",
-      "runtime": "CR_terrain_glow-vertex.glsl"
-    },
-    {
-      "source": "Shaders\\CR_terrain_glow.hlsl",
-      "runtime": "CR_terrain_glow.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_terrain-fragment.glsl",
-      "runtime": "CR_terrain-fragment.glsl"
-    },
-    {
-      "source": "Shaders\\CR_terrain-sm4.hlsl",
-      "runtime": "CR_terrain-sm4.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_terrain-vertex.glsl",
-      "runtime": "CR_terrain-vertex.glsl"
-    },
-    {
-      "source": "Shaders\\CR_terrain.hlsl",
-      "runtime": "CR_terrain.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_terrain.program",
-      "runtime": "CR_terrain.program"
     },
     {
       "source": "Shaders\\CR_textured-fragment.glsl",

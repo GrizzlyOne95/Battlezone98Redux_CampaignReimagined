@@ -2,6 +2,8 @@
 
 This is the authoritative Campaign Reimagined source tree for campaign content, Lua, materials/shaders, assets, packaging, and publishing.
 
+**One exception: the DX11 Enhanced base and terrain shaders are not here.** CR retired its duplicate copy of them; they live in the BZR-OpenShim repository as `resources/renderer/enhanced/openshim_enhanced_*`, and the identifiers CR's docs call `CR_*` are spelled `OSE_*` there. CR still owns the materials, the techniques and passes they select, the texture aliases, the static-IBL wrappers, and every other shader in `Shaders/`. See `Docs/ENHANCED_SHADER_OWNERSHIP.md` before editing anything under `Materials/CR_BZBase.material`, `Materials/CR_BZTerrainBase.material` or `Shaders/CR_static_ibl.program`, and run `Tools/Test-ProgramReferences.ps1` afterwards.
+
 ## Authoritative Paths and Promotion
 - Canonical Git working tree: `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`. **This Google Drive directory is the canonical Git checkout and edit source.** Do not create or use a second Campaign Reimagined checkout elsewhere (including under `docs/`, `Docs/`, or `%USERPROFILE%\Documents\GIT`) as an alternate edit source. If a duplicate/nested CR checkout is discovered, treat it as scratch/stale until its provenance is verified against this worktree and `origin`.
 - GOG test game: `C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux`; runtime mod: `...\mods\3686673790`.
