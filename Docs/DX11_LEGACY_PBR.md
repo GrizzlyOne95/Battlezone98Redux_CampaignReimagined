@@ -1,12 +1,19 @@
 # DX11 Legacy-PBR Lighting
 
+> **These shaders live in OpenShim now.** Campaign Reimagined retired its
+> duplicate copy of the Enhanced base/terrain implementation; the files this
+> document describes are `resources/renderer/enhanced/openshim_enhanced_*` in
+> the BZR-OpenShim repository, and the identifiers it names as `CR_*` are
+> spelled `OSE_*` there. CR keeps the materials, the art direction and the
+> static-IBL wrappers. The decisions recorded below are unchanged.
+
 This document describes the first experimental physically based direct-lighting pass for the Battlezone 98 Redux Campaign Reimagined shader stack.
 
 ## Scope and renderer selection
 
-- **DX9 remains the compatibility/stability renderer.** `CR_base.hlsl` and `CR_terrain.hlsl` are intentionally not part of this milestone.
+- **DX9 remains the compatibility/stability renderer.** `openshim_enhanced_base-sm3.hlsl` and `openshim_enhanced_terrain-sm3.hlsl` are intentionally not part of this milestone.
 - **Retro / OG rendering remains unchanged.** `OG_RETRO_MODE` continues to strip normal/specular/emissive map features from the SM4 shaders.
-- **DX11 Enhanced High uses the Legacy-PBR path.** The existing `ENHANCED_MODE` high-tier SM4 variants in `CR_base.program` and `CR_terrain.program` already provide the required isolation, so this milestone does not add new UI/config/runtime switching.
+- **DX11 Enhanced High uses the Legacy-PBR path.** The existing `ENHANCED_MODE` high-tier SM4 variants in `openshim_enhanced_base.program` and `openshim_enhanced_terrain.program` already provide the required isolation, so this milestone does not add new UI/config/runtime switching.
 - Lower quality / vertex-lighting variants remain on their compatibility lighting path.
 
 The implementation is shader-side only. It does not add renderer hooks, new render targets, environment probes, temporal resources, reflection passes, or new texture requirements.
@@ -84,7 +91,7 @@ No cascade blending, PCSS, new bias model, or shadow-system redesign is included
 
 ## Calibration constants
 
-The duplicated Legacy-PBR helper block in `CR_base-sm4.hlsl` and `CR_terrain-sm4.hlsl` is intentional for this milestone. Introducing a new shared include would add shader-resource/loading risk to an already less-stable renderer path. Keep the two blocks synchronized until a shared include is proven safe.
+The duplicated Legacy-PBR helper block in `openshim_enhanced_base-sm4.hlsl` and `openshim_enhanced_terrain-sm4.hlsl` is intentional for this milestone. Introducing a new shared include would add shader-resource/loading risk to an already less-stable renderer path. Keep the two blocks synchronized until a shared include is proven safe.
 
 Current tunables:
 

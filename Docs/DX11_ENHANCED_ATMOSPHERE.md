@@ -1,5 +1,12 @@
 # DX11 Enhanced Phase 3 — Atmospheric Rendering
 
+> **These shaders live in OpenShim now.** Campaign Reimagined retired its
+> duplicate copy of the Enhanced base/terrain implementation; the files this
+> document describes are `resources/renderer/enhanced/openshim_enhanced_*` in
+> the BZR-OpenShim repository, and the identifiers it names as `CR_*` are
+> spelled `OSE_*` there. CR keeps the materials, the art direction and the
+> static-IBL wrappers. The decisions recorded below are unchanged.
+
 Phase 3 replaces the simple linear fog presentation in the DX11 Enhanced per-pixel shader path with a restrained analytic atmospheric model. DX9, OpenGL, OG Retro, non-Enhanced, and vertex-lighting compatibility behavior remains on the legacy fog path.
 
 ## What changed
@@ -75,7 +82,7 @@ Gated identically to Stage A — `defined(ENHANCED_MODE) && !defined(VERTEX_LIGH
 
 ## Calibration constants
 
-The `DX11 Enhanced Atmospheric Calibration` block is intentionally kept matching in `CR_base-sm4.hlsl` and `CR_terrain-sm4.hlsl` instead of introducing a larger shader-include refactor.
+The `DX11 Enhanced Atmospheric Calibration` block is intentionally kept matching in `openshim_enhanced_base-sm4.hlsl` and `openshim_enhanced_terrain-sm4.hlsl` instead of introducing a larger shader-include refactor.
 
 - `CR_ATMOS_DISTANCE_DENSITY_SCALE = 1.65` — maps the authored fog range into exponential-squared optical depth.
 - `CR_ATMOS_HEIGHT_FALLOFF = 0.0035` — sensitivity to camera-relative vertical displacement.
