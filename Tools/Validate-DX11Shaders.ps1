@@ -13,8 +13,23 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $shaderDir = Join-Path $repoRoot 'Shaders'
-$baseShader = Join-Path $shaderDir 'CR_base-sm4.hlsl'
-$terrainShader = Join-Path $shaderDir 'CR_terrain-sm4.hlsl'
+# The two Enhanced world shaders are OpenShim's now; CR keeps the art
+# direction and these guards. They are resolved the same way
+# Manage-CampaignFiles.ps1 resolves the shim repo for staging, and a missing
+# payload is a hard failure: a validator that quietly skips its main subject
+# passes exactly as loudly as one that checked it.
+$openShimRepo = $env:BZR_OPENSHIM_REPO
+if (-not $openShimRepo) {
+    $openShimRepo = Join-Path (Split-Path -Parent (Split-Path -Parent $repoRoot)) 'BZR-OpenShim'
+}
+$openShimPayload = Join-Path $openShimRepo 'resources\renderer\enhanced'
+if (-not (Test-Path -LiteralPath $openShimPayload)) {
+    throw ("Cannot find OpenShim's Enhanced payload at '$openShimPayload'. " +
+           "The Stage A shaders live there since CR retired its duplicate copy. " +
+           "Set BZR_OPENSHIM_REPO to an OpenShim checkout.")
+}
+$baseShader = Join-Path $openShimPayload 'openshim_enhanced_base-sm4.hlsl'
+$terrainShader = Join-Path $openShimPayload 'openshim_enhanced_terrain-sm4.hlsl'
 $uiShader = Join-Path $shaderDir 'CR_ui-sm4.hlsl'
 $overlayShader = Join-Path $shaderDir 'CR_overlay-sm4.hlsl'
 
@@ -32,7 +47,7 @@ $stageAShaders = @($baseShader, $terrainShader)
 # The prohibition is therefore replaced - not deleted - by assertions that keep
 # the Stage A experiment inside its intended boundaries:
 #
-#   * CR_LINEAR_LIGHT exists and defaults to 0;
+#   * OSE_LINEAR_LIGHT exists and defaults to 0;
 #   * it can only activate on the DX11 Enhanced per-pixel path;
 #   * only genuine COLOR textures are decoded;
 #   * data textures (normal/specular/detail/shadow/IBL/BRDF) are never decoded;
@@ -90,7 +105,7 @@ $universalDecodeTargets = @('diffuseTex.rgb', 'emissiveTex', 'authoredFog')
 # because it is the terrain output alpha. The base shader has no vertex COLOR
 # input at all, so a 'vertexTint' decode appearing there is by definition a
 # copy-paste of terrain code into the wrong family.
-$familyScopedDecodeOwners = @{ 'vertexTint' = 'CR_terrain-sm4.hlsl' }
+$familyScopedDecodeOwners = @{ 'vertexTint' = 'openshim_enhanced_terrain-sm4.hlsl' }
 
 # Any swizzle or member access that includes an alpha/w component.
 $alphaComponentPattern = '\.[rgbaxyzw]*[awAW][rgbaxyzw]*\b'
@@ -121,18 +136,18 @@ foreach ($shader in $stageAShaders) {
     $source = $rawSource -replace '(?m)//.*$', ''
 
     # -- The experiment flag exists and is off by default ---------------------
-    if ($source -notmatch '(?m)^\s*#ifndef\s+CR_LINEAR_LIGHT\s*\r?\n\s*#define\s+CR_LINEAR_LIGHT\s+0\s*\r?\n\s*#endif') {
-        Add-SourceFailure "$name does not declare CR_LINEAR_LIGHT with a default of 0."
+    if ($source -notmatch '(?m)^\s*#ifndef\s+OSE_LINEAR_LIGHT\s*\r?\n\s*#define\s+OSE_LINEAR_LIGHT\s+0\s*\r?\n\s*#endif') {
+        Add-SourceFailure "$name does not declare OSE_LINEAR_LIGHT with a default of 0."
     }
 
     # -- Activation is scoped to the DX11 Enhanced per-pixel path -------------
-    $activationIndex = $source.IndexOf('#define CR_LINEAR_LIGHT_ACTIVE 1')
+    $activationIndex = $source.IndexOf('#define OSE_LINEAR_LIGHT_ACTIVE 1')
     $conditionStart = if ($activationIndex -ge 0) {
         $source.Substring(0, $activationIndex).LastIndexOf('#if')
     } else { -1 }
 
     if ($activationIndex -lt 0 -or $conditionStart -lt 0) {
-        Add-SourceFailure "$name does not gate CR_LINEAR_LIGHT_ACTIVE behind a preceding #if condition."
+        Add-SourceFailure "$name does not gate OSE_LINEAR_LIGHT_ACTIVE behind a preceding #if condition."
     }
     else {
         # Fold line continuations so the whole logical #if is one string, then
@@ -141,7 +156,7 @@ foreach ($shader in $stageAShaders) {
         $condition = (($rawCondition -replace '\\\r?\n', ' ') -replace '\s+', ' ').Trim()
 
         if ($rawCondition -replace '\\\r?\n', ' ' -match '\r?\n\s*\S') {
-            Add-SourceFailure "$name has unexpected content between the #if condition and '#define CR_LINEAR_LIGHT_ACTIVE 1'."
+            Add-SourceFailure "$name has unexpected content between the #if condition and '#define OSE_LINEAR_LIGHT_ACTIVE 1'."
         }
 
         $requiredTerms = @(
@@ -149,11 +164,11 @@ foreach ($shader in $stageAShaders) {
             '!defined(VERTEX_LIGHTING)',
             '!defined(OG_RETRO_MODE)',
             '!defined(RETRO_UNLIT_MODE)',
-            'CR_LINEAR_LIGHT != 0'
+            'OSE_LINEAR_LIGHT != 0'
         )
         foreach ($term in $requiredTerms) {
             if ($condition -notlike "*$term*") {
-                Add-SourceFailure "$name CR_LINEAR_LIGHT_ACTIVE condition is missing '$term'. Stage A must not reach Default/Retro/vertex-lighting paths."
+                Add-SourceFailure "$name OSE_LINEAR_LIGHT_ACTIVE condition is missing '$term'. Stage A must not reach Default/Retro/vertex-lighting paths."
             }
         }
     }
@@ -163,24 +178,24 @@ foreach ($shader in $stageAShaders) {
     # in the shader, and activation gated on exactly the Enhanced per-pixel
     # condition. Anything else and the .program files become the only thing
     # keeping the feature off the legacy renderer.
-    if ($source -notmatch '(?m)^\s*#ifndef\s+CR_RADIAL_FOG\s*\r?\n\s*#define\s+CR_RADIAL_FOG\s+0\s*\r?\n\s*#endif') {
-        Add-SourceFailure "$name does not declare CR_RADIAL_FOG with a default of 0."
+    if ($source -notmatch '(?m)^\s*#ifndef\s+OSE_RADIAL_FOG\s*\r?\n\s*#define\s+OSE_RADIAL_FOG\s+0\s*\r?\n\s*#endif') {
+        Add-SourceFailure "$name does not declare OSE_RADIAL_FOG with a default of 0."
     }
 
-    $fogActivationIndex = $source.IndexOf('#define CR_RADIAL_FOG_ACTIVE 1')
+    $fogActivationIndex = $source.IndexOf('#define OSE_RADIAL_FOG_ACTIVE 1')
     $fogConditionStart = if ($fogActivationIndex -ge 0) {
         $source.Substring(0, $fogActivationIndex).LastIndexOf('#if')
     } else { -1 }
 
     if ($fogActivationIndex -lt 0 -or $fogConditionStart -lt 0) {
-        Add-SourceFailure "$name does not gate CR_RADIAL_FOG_ACTIVE behind a preceding #if condition."
+        Add-SourceFailure "$name does not gate OSE_RADIAL_FOG_ACTIVE behind a preceding #if condition."
     }
     else {
         $rawFogCondition = $source.Substring($fogConditionStart, $fogActivationIndex - $fogConditionStart)
         $fogCondition = (($rawFogCondition -replace '\\\r?\n', ' ') -replace '\s+', ' ').Trim()
 
         if ($rawFogCondition -replace '\\\r?\n', ' ' -match '\r?\n\s*\S') {
-            Add-SourceFailure "$name has unexpected content between the #if condition and '#define CR_RADIAL_FOG_ACTIVE 1'."
+            Add-SourceFailure "$name has unexpected content between the #if condition and '#define OSE_RADIAL_FOG_ACTIVE 1'."
         }
 
         $fogRequiredTerms = @(
@@ -188,17 +203,17 @@ foreach ($shader in $stageAShaders) {
             '!defined(VERTEX_LIGHTING)',
             '!defined(OG_RETRO_MODE)',
             '!defined(RETRO_UNLIT_MODE)',
-            'CR_RADIAL_FOG != 0'
+            'OSE_RADIAL_FOG != 0'
         )
         foreach ($term in $fogRequiredTerms) {
             if ($fogCondition -notlike "*$term*") {
-                Add-SourceFailure "$name CR_RADIAL_FOG_ACTIVE condition is missing '$term'. Radial fog must not reach Default/Retro/vertex-lighting paths."
+                Add-SourceFailure "$name OSE_RADIAL_FOG_ACTIVE condition is missing '$term'. Radial fog must not reach Default/Retro/vertex-lighting paths."
             }
         }
     }
 
-    if ($source -notmatch '(?m)^\s*#define\s+CR_RADIAL_FOG_ACTIVE\s+0\s*$') {
-        Add-SourceFailure "$name does not define CR_RADIAL_FOG_ACTIVE to 0 for every non-Enhanced permutation."
+    if ($source -notmatch '(?m)^\s*#define\s+OSE_RADIAL_FOG_ACTIVE\s+0\s*$') {
+        Add-SourceFailure "$name does not define OSE_RADIAL_FOG_ACTIVE to 0 for every non-Enhanced permutation."
     }
 
     # The legacy depth-based fog must survive untouched. It is the only fog the
@@ -221,27 +236,27 @@ foreach ($shader in $stageAShaders) {
         }
     }
 
-    if ($source -notmatch '(?m)^\s*#define\s+CR_LINEAR_LIGHT_ACTIVE\s+0\s*$') {
-        Add-SourceFailure "$name does not define CR_LINEAR_LIGHT_ACTIVE to 0 for every non-Enhanced permutation."
+    if ($source -notmatch '(?m)^\s*#define\s+OSE_LINEAR_LIGHT_ACTIVE\s+0\s*$') {
+        Add-SourceFailure "$name does not define OSE_LINEAR_LIGHT_ACTIVE to 0 for every non-Enhanced permutation."
     }
 
     # -- Environment-sensitive terrain diffuse IBL --------------------------
     # This correction belongs only to terrain diffuse irradiance. Copying it to
     # the base shader would alter objects/buildings, while applying it to the
     # shared IBL intensity would also alter specular response.
-    if ($name -eq 'CR_terrain-sm4.hlsl') {
-        if ($source -notmatch 'CR_TERRAIN_IBL_REFERENCE_FOG_RANGE\s*=\s*160\.0\s*;' -or
-            $source -notmatch 'CR_TERRAIN_IBL_AIRLESS_FLOOR\s*=\s*0\.15\s*;') {
+    if ($name -eq 'openshim_enhanced_terrain-sm4.hlsl') {
+        if ($source -notmatch 'OSE_TERRAIN_IBL_REFERENCE_FOG_RANGE\s*=\s*160\.0\s*;' -or
+            $source -notmatch 'OSE_TERRAIN_IBL_AIRLESS_FLOOR\s*=\s*0\.15\s*;') {
             Add-SourceFailure "$name is missing the qualified terrain diffuse-IBL atmosphere calibration (160.0 reference range / 0.15 airless floor)."
         }
-        if ($source -notmatch 'atmosphereSupport\s*=\s*saturate\(abs\(fogParams\.w\)\s*\*\s*CR_TERRAIN_IBL_REFERENCE_FOG_RANGE\)\s*\*\s*validFogRange\s*;') {
+        if ($source -notmatch 'atmosphereSupport\s*=\s*saturate\(abs\(fogParams\.w\)\s*\*\s*OSE_TERRAIN_IBL_REFERENCE_FOG_RANGE\)\s*\*\s*validFogRange\s*;') {
             Add-SourceFailure "$name no longer derives terrain diffuse-IBL support continuously from the authored fog inverse range."
         }
-        if ($source -notmatch 'irradiance\s*\*\s*diffuseEnergy\s*\*\s*CR_IBL_DIFFUSE_INTENSITY\s*\*\s*terrainDiffuseIblStrength') {
+        if ($source -notmatch 'irradiance\s*\*\s*diffuseEnergy\s*\*\s*OSE_IBL_DIFFUSE_INTENSITY\s*\*\s*terrainDiffuseIblStrength') {
             Add-SourceFailure "$name no longer applies atmosphere support specifically to terrain diffuse irradiance."
         }
     }
-    elseif ($source -match 'terrain_ibl_diffuse_strength|CR_TERRAIN_IBL_') {
+    elseif ($source -match 'terrain_ibl_diffuse_strength|OSE_TERRAIN_IBL_') {
         Add-SourceFailure "$name contains terrain-only diffuse-IBL atmosphere scaling. Base/object IBL must remain unchanged."
     }
 
@@ -362,7 +377,7 @@ foreach ($shader in $stageAShaders) {
     }
 
     # -- Transfer-function uses are guarded ----------------------------------
-    # Every reference outside the definitions must sit under CR_LINEAR_LIGHT_ACTIVE.
+    # Every reference outside the definitions must sit under OSE_LINEAR_LIGHT_ACTIVE.
     $lines = $source -split '\r?\n'
     $guardDepth = 0
     $conditionalStack = New-Object System.Collections.Generic.Stack[bool]
@@ -371,7 +386,7 @@ foreach ($shader in $stageAShaders) {
         $trimmed = $line.Trim()
 
         if ($trimmed -match '^#if') {
-            $isStageAGuard = $trimmed -match '^#if\s+CR_LINEAR_LIGHT_ACTIVE\s*$'
+            $isStageAGuard = $trimmed -match '^#if\s+OSE_LINEAR_LIGHT_ACTIVE\s*$'
             $conditionalStack.Push($isStageAGuard)
             if ($isStageAGuard) { $guardDepth++ }
             continue
@@ -387,7 +402,7 @@ foreach ($shader in $stageAShaders) {
         }
 
         if ($line -match '\b(srgb_to_linear|linear_to_srgb)\s*\(' -and $guardDepth -le 0) {
-            Add-SourceFailure "$name line $($i + 1) references an sRGB transfer function outside a '#if CR_LINEAR_LIGHT_ACTIVE' guard: $trimmed"
+            Add-SourceFailure "$name line $($i + 1) references an sRGB transfer function outside a '#if OSE_LINEAR_LIGHT_ACTIVE' guard: $trimmed"
         }
     }
 
@@ -428,7 +443,7 @@ foreach ($shader in $stageAShaders) {
     }
 
     # -- Terrain detail must never be decoded --------------------------------
-    if ($name -eq 'CR_terrain-sm4.hlsl') {
+    if ($name -eq 'openshim_enhanced_terrain-sm4.hlsl') {
         if ($source -match 'detail[A-Za-z]*\s*=\s*srgb_to_linear' -or $source -match 'srgb_to_linear\s*\(\s*detail') {
             Add-SourceFailure "$name decodes the terrain detail map. Detail is 0.5-centred modulation data (x2 => 1.0 neutral); decoding it would collapse the neutral point to ~0.43."
         }
@@ -452,10 +467,10 @@ foreach ($shader in $stageAShaders) {
         # Alternate packing and visualization modes are compile-time diagnostics
         # selected explicitly for a test run, never silent production changes.
         foreach ($diagnosticDefault in @(
-            @{ Name = 'CR_TERRAIN_NORMAL_UNPACK_MODE'; Value = '0' },
-            @{ Name = 'CR_TERRAIN_NORMAL_FLIP_GREEN'; Value = '0' },
-            @{ Name = 'CR_TERRAIN_NORMAL_BASIS_MODE'; Value = '0' },
-            @{ Name = 'CR_TERRAIN_NORMAL_DEBUG_MODE'; Value = '0' }
+            @{ Name = 'OSE_TERRAIN_NORMAL_UNPACK_MODE'; Value = '0' },
+            @{ Name = 'OSE_TERRAIN_NORMAL_FLIP_GREEN'; Value = '0' },
+            @{ Name = 'OSE_TERRAIN_NORMAL_BASIS_MODE'; Value = '0' },
+            @{ Name = 'OSE_TERRAIN_NORMAL_DEBUG_MODE'; Value = '0' }
         )) {
             $defaultPattern = '(?m)^\s*#define\s+' + [regex]::Escape($diagnosticDefault.Name) +
                 '\s+' + [regex]::Escape($diagnosticDefault.Value) + '\s*$'
@@ -468,20 +483,20 @@ foreach ($shader in $stageAShaders) {
         # AG/DXT5nm and green-flip A/B runs reproducible while preserving the
         # full-RGB stock path as mode 0.
         $requiredNormalDiagnosticTokens = @(
-            '#if CR_TERRAIN_NORMAL_UNPACK_MODE == 1',
+            '#if OSE_TERRAIN_NORMAL_UNPACK_MODE == 1',
             'packedNormal.rg * 2.0 - 1.0',
-            '#elif CR_TERRAIN_NORMAL_UNPACK_MODE == 2',
+            '#elif OSE_TERRAIN_NORMAL_UNPACK_MODE == 2',
             'packedNormal.ag * 2.0 - 1.0',
             'sqrt(saturate(1.0 - dot(xy, xy)))',
             'packedNormal.rgb * 2.0 - 1.0',
-            '#if CR_TERRAIN_NORMAL_FLIP_GREEN != 0',
+            '#if OSE_TERRAIN_NORMAL_FLIP_GREEN != 0',
             'normal.y = -normal.y;',
-            '#if CR_TERRAIN_NORMAL_BASIS_MODE == 1',
-            '#elif CR_TERRAIN_NORMAL_BASIS_MODE == 2',
+            '#if OSE_TERRAIN_NORMAL_BASIS_MODE == 1',
+            '#elif OSE_TERRAIN_NORMAL_BASIS_MODE == 2',
             'T -= N * dot(T, N);',
             'float handedness = (dot(orthogonalB, sourceB) < 0.0) ? -1.0 : 1.0;',
-            '#if CR_TERRAIN_NORMAL_BASIS_MODE == 3',
-            '#elif CR_TERRAIN_NORMAL_BASIS_MODE == 4',
+            '#if OSE_TERRAIN_NORMAL_BASIS_MODE == 3',
+            '#elif OSE_TERRAIN_NORMAL_BASIS_MODE == 4',
             'float3 viewNormal = geometryNormal;',
             'float3 viewNormal = safe_normalize(normalTex);'
         )
@@ -519,8 +534,16 @@ foreach ($shader in $stageAShaders) {
         $normalUnpack = $normalUnpackPattern.Match(
             $source,
             $(if ($normalSample.Success) { $normalSample.Index + $normalSample.Length } else { 0 }))
+        # The unpacked normal is no longer transformed directly: it is shaped
+        # first -- sharpened, then blended with the detail-derived relief --
+        # into shapedNormalTex, and that is what enters the TBN transform.
+        $normalShapePattern = [regex]::new(
+            'float3\s+shapedNormalTex\s*=\s*normalTex\s*;')
+        $normalShape = $normalShapePattern.Match(
+            $source,
+            $(if ($normalUnpack.Success) { $normalUnpack.Index + $normalUnpack.Length } else { 0 }))
         $normalTransformPattern = [regex]::new(
-            'float3\s+mappedViewNormal\s*=\s*safe_normalize\(\s*mul\(\s*normalTex\s*,\s*tbn\s*\)\s*\)\s*;')
+            'float3\s+mappedViewNormal\s*=\s*safe_normalize\(\s*mul\(\s*shapedNormalTex\s*,\s*tbn\s*\)\s*\)\s*;')
         $normalTransform = $normalTransformPattern.Match(
             $source,
             $(if ($normalUnpack.Success) { $normalUnpack.Index + $normalUnpack.Length } else { 0 }))
@@ -531,14 +554,25 @@ foreach ($shader in $stageAShaders) {
         elseif (-not $normalUnpack.Success) {
             Add-SourceFailure "$name must pass normalSample through unpack_terrain_normal before the TBN transform."
         }
+        elseif (-not $normalShape.Success) {
+            Add-SourceFailure "$name must seed shapedNormalTex from the unpacked normalTex before shaping it."
+        }
         elseif (-not $normalTransform.Success) {
-            Add-SourceFailure "$name must safe-normalize mappedViewNormal immediately after the terrain TBN transform."
+            Add-SourceFailure "$name must safe-normalize mappedViewNormal from shapedNormalTex immediately after the terrain TBN transform."
         }
         else {
             $unpackEnd = $normalUnpack.Index + $normalUnpack.Length
             $between = $source.Substring($unpackEnd, $normalTransform.Index - $unpackEnd)
+            # The named shaping steps are the only sanctioned readers of
+            # normalTex between the unpack and the transform. Removing them
+            # leaves any other mention behind, which is what to fail on.
+            foreach ($sanctioned in @(
+                'float3 shapedNormalTex = normalTex;',
+                'sharpen_terrain_normal(normalTex)')) {
+                $between = $between.Replace($sanctioned, '')
+            }
             if ($between -match '\bnormalTex\b') {
-                Add-SourceFailure "$name modifies the unpacked terrain normal outside the named unpack diagnostic before the TBN transform."
+                Add-SourceFailure "$name modifies the unpacked terrain normal outside the named shaping steps before the TBN transform."
             }
         }
 
@@ -619,17 +653,17 @@ foreach ($block in $sharedHelperBlocks) {
 # Only shader source is scanned. The .program scripts are deliberately left out
 # so an A/B tester may flip the experiment on through preprocessor_defines
 # without tripping a guard; the shader sources themselves still enforce that
-# CR_LINEAR_LIGHT can only activate on the Enhanced per-pixel path.
+# OSE_LINEAR_LIGHT can only activate on the Enhanced per-pixel path.
 $otherShaders = Get-ChildItem -LiteralPath $shaderDir -File |
     Where-Object { $_.Extension -in @('.hlsl', '.glsl') } |
     Where-Object { $stageAShaders -notcontains $_.FullName }
 
 foreach ($other in $otherShaders) {
     $otherSource = Get-Content -LiteralPath $other.FullName -Raw
-    if ($otherSource -match '\b(srgb_to_linear|linear_to_srgb|CR_LINEAR_LIGHT)\b') {
+    if ($otherSource -match '\b(srgb_to_linear|linear_to_srgb|(?:CR|OSE)_LINEAR_LIGHT)\b') {
         Add-SourceFailure "$($other.Name) references Stage A colour-space symbols. Default, Retro, DX9/GL, UI and overlay paths must not gain sRGB transfer behavior."
     }
-    if ($otherSource -match '\b(compute_radial_fog_factor|CR_RADIAL_FOG)\b') {
+    if ($otherSource -match '\b(compute_radial_fog_factor|(?:CR|OSE)_RADIAL_FOG)\b') {
         Add-SourceFailure "$($other.Name) references radial-fog symbols. Radial fog is confined to the two DX11 Enhanced world shaders; the DX9/GL, UI, sky and overlay paths keep their existing fog."
     }
 }
@@ -658,12 +692,12 @@ Write-Host "Stage A DX11 color-space source guards passed ($($stageAShaders.Coun
 # =============================================================================
 # Program-definition rendering-mode boundary
 # =============================================================================
-# The HLSL default for CR_LINEAR_LIGHT stays 0, so what actually opts a variant
+# The HLSL default for OSE_LINEAR_LIGHT stays 0, so what actually opts a variant
 # into Stage A is its .program 'preprocessor_defines'. That makes the .program
 # files - not the shader source - the place where the DX11 Enhanced boundary can
 # drift. These guards assert the boundary directly:
 #
-#   * every DX11 Enhanced SM4 fragment program defines CR_LINEAR_LIGHT=1;
+#   * every DX11 Enhanced SM4 fragment program defines OSE_LINEAR_LIGHT=1;
 #   * Retro SM4 programs never do;
 #   * Default/stock-compatible SM4 programs never do;
 #   * DX9, GLSL, GLSLES and unified delegate declarations never do;
@@ -710,7 +744,10 @@ function Get-OgreProgramRecords {
 
 $programFailures = @()
 $programRecords = @()
-foreach ($programFile in (Get-ChildItem $shaderDir -Filter '*.program' -File | Sort-Object Name)) {
+$programScriptDirs = @($shaderDir, $openShimPayload)
+foreach ($programFile in ($programScriptDirs |
+        ForEach-Object { Get-ChildItem $_ -Filter '*.program' -File } |
+        Sort-Object Name)) {
     $programRecords += Get-OgreProgramRecords -Path $programFile.FullName
 }
 
@@ -721,8 +758,8 @@ $legacySm4Count = 0
 # policed by one loop rather than by copies that can drift apart. Adding a
 # future Enhanced-only experiment means adding one entry here.
 $enhancedOnlyFlags = @(
-    @{ Name = 'CR_LINEAR_LIGHT'; Feature = 'Stage A' },
-    @{ Name = 'CR_RADIAL_FOG'; Feature = 'radial fog' }
+    @{ Name = 'OSE_LINEAR_LIGHT'; Feature = 'Stage A' },
+    @{ Name = 'OSE_RADIAL_FOG'; Feature = 'radial fog' }
 )
 
 foreach ($rec in $programRecords) {
@@ -866,7 +903,7 @@ $cases = @(
         File = $baseShader
         Entry = 'base_vertex'
         Target = 'vs_4_0'
-        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'CR_ENHANCED_PSSM_V2=1')
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'OSE_ENHANCED_PSSM_V2=1')
     },
     @{
         Name = 'base-ps-lowest-emissive'
@@ -936,7 +973,7 @@ $cases = @(
         File = $baseShader
         Entry = 'base_fragment'
         Target = 'ps_4_0'
-        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'CR_ENHANCED_PSSM_V2=1')
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'OSE_ENHANCED_PSSM_V2=1')
     },
     @{
         Name = 'base-ps-ibl-noshadow'
@@ -964,14 +1001,14 @@ $cases = @(
         File = $baseShader
         Entry = 'base_fragment'
         Target = 'ps_4_0'
-        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'CR_ENHANCED_PSSM_V2=1')
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'OSE_ENHANCED_PSSM_V2=1')
     },
     @{
         Name = 'base-ps-atmos-debug-colour'
         File = $baseShader
         Entry = 'base_fragment'
         Target = 'ps_4_0'
-        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'CR_ATMOS_DEBUG_MODE=4')
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'OSE_ATMOS_DEBUG_MODE=4')
     },
     @{
         Name = 'base-ps-retro'
@@ -999,7 +1036,7 @@ $cases = @(
         File = $terrainShader
         Entry = 'terrain_vertex'
         Target = 'vs_4_0'
-        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'CR_ENHANCED_PSSM_V2=1')
+        Defines = @('MAX_LIGHTS=24', 'NORMALMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'OSE_ENHANCED_PSSM_V2=1')
     },
     @{
         Name = 'terrain-ps-lowest-emissive'
@@ -1062,7 +1099,7 @@ $cases = @(
         File = $terrainShader
         Entry = 'terrain_fragment'
         Target = 'ps_4_0'
-        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'CR_ENHANCED_PSSM_V2=1')
+        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'OSE_ENHANCED_PSSM_V2=1')
     },
     @{
         Name = 'terrain-ps-ibl-noshadow'
@@ -1090,14 +1127,14 @@ $cases = @(
         File = $terrainShader
         Entry = 'terrain_fragment'
         Target = 'ps_4_0'
-        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'CR_ENHANCED_PSSM_V2=1')
+        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4', 'OSE_ENHANCED_PSSM_V2=1')
     },
     @{
         Name = 'terrain-ps-atmos-debug-height'
         File = $terrainShader
         Entry = 'terrain_fragment'
         Target = 'ps_4_0'
-        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'CR_ATMOS_DEBUG_MODE=2')
+        Defines = @('MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1', 'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1', 'IBL_ENABLED=1', 'OSE_ATMOS_DEBUG_MODE=2')
     },
     @{
         Name = 'terrain-ps-retro'
@@ -1109,7 +1146,7 @@ $cases = @(
 )
 
 # -----------------------------------------------------------------------------
-# CR_LINEAR_LIGHT x CR_RADIAL_FOG sweep
+# OSE_LINEAR_LIGHT x OSE_RADIAL_FOG sweep
 # -----------------------------------------------------------------------------
 # Every base/terrain pixel case above is compiled across the full cross product
 # of the two Enhanced-only flags. The cross product matters rather than one
@@ -1133,7 +1170,7 @@ foreach ($case in $cases) {
             File = $case.File
             Entry = $case.Entry
             Target = $case.Target
-            Defines = @($case.Defines) + @("CR_LINEAR_LIGHT=$linearLight", "CR_RADIAL_FOG=$radialFog")
+            Defines = @($case.Defines) + @("OSE_LINEAR_LIGHT=$linearLight", "OSE_RADIAL_FOG=$radialFog")
             LinearLight = $linearLight
             RadialFog = $radialFog
         }
@@ -1155,7 +1192,7 @@ $normalDiagnosticBaseDefines = @(
     'MAX_LIGHTS=24', 'DETAILMAP_ENABLED=1', 'NORMALMAP_ENABLED=1',
     'SPECULARMAP_ENABLED=1', 'EMISSIVEMAP_ENABLED=1', 'ENHANCED_MODE=1',
     'IBL_ENABLED=1', 'SHADOWRECEIVER=1', 'PSSM_ENABLED=1', 'PCF_SIZE=4',
-    'CR_LINEAR_LIGHT=1', 'CR_RADIAL_FOG=1'
+    'OSE_LINEAR_LIGHT=1', 'OSE_RADIAL_FOG=1'
 )
 foreach ($unpackMode in @(0, 1, 2)) {
 foreach ($flipGreen in @(0, 1)) {
@@ -1166,10 +1203,10 @@ foreach ($debugMode in @(0, 1, 2, 3, 4, 5)) {
         Entry = 'terrain_fragment'
         Target = 'ps_4_0'
         Defines = $normalDiagnosticBaseDefines + @(
-            "CR_TERRAIN_NORMAL_UNPACK_MODE=$unpackMode",
-            "CR_TERRAIN_NORMAL_FLIP_GREEN=$flipGreen",
-            'CR_TERRAIN_NORMAL_BASIS_MODE=0',
-            "CR_TERRAIN_NORMAL_DEBUG_MODE=$debugMode"
+            "OSE_TERRAIN_NORMAL_UNPACK_MODE=$unpackMode",
+            "OSE_TERRAIN_NORMAL_FLIP_GREEN=$flipGreen",
+            'OSE_TERRAIN_NORMAL_BASIS_MODE=0',
+            "OSE_TERRAIN_NORMAL_DEBUG_MODE=$debugMode"
         )
     }
 }
@@ -1187,10 +1224,10 @@ foreach ($debugMode in @(0, 4, 5)) {
         Entry = 'terrain_fragment'
         Target = 'ps_4_0'
         Defines = $normalDiagnosticBaseDefines + @(
-            'CR_TERRAIN_NORMAL_UNPACK_MODE=0',
-            'CR_TERRAIN_NORMAL_FLIP_GREEN=0',
-            "CR_TERRAIN_NORMAL_BASIS_MODE=$basisMode",
-            "CR_TERRAIN_NORMAL_DEBUG_MODE=$debugMode"
+            'OSE_TERRAIN_NORMAL_UNPACK_MODE=0',
+            'OSE_TERRAIN_NORMAL_FLIP_GREEN=0',
+            "OSE_TERRAIN_NORMAL_BASIS_MODE=$basisMode",
+            "OSE_TERRAIN_NORMAL_DEBUG_MODE=$debugMode"
         )
     }
 }
@@ -1207,10 +1244,10 @@ foreach ($debugMode in @(6, 7, 8, 9, 10, 11)) {
         Entry = 'terrain_fragment'
         Target = 'ps_4_0'
         Defines = $normalDiagnosticBaseDefines + @(
-            'CR_TERRAIN_NORMAL_UNPACK_MODE=0',
-            'CR_TERRAIN_NORMAL_FLIP_GREEN=0',
-            "CR_TERRAIN_NORMAL_BASIS_MODE=$basisMode",
-            "CR_TERRAIN_NORMAL_DEBUG_MODE=$debugMode"
+            'OSE_TERRAIN_NORMAL_UNPACK_MODE=0',
+            'OSE_TERRAIN_NORMAL_FLIP_GREEN=0',
+            "OSE_TERRAIN_NORMAL_BASIS_MODE=$basisMode",
+            "OSE_TERRAIN_NORMAL_DEBUG_MODE=$debugMode"
         )
     }
 }
@@ -1286,7 +1323,7 @@ foreach ($case in $sweepCases) {
     # COLOR0 tint, which multiplies the decoded albedo and is therefore authored
     # display colour. The base shader has no vertex COLOR input, so it never
     # gains this call.
-    $isTerrainSource = (Split-Path -Leaf $case.File) -eq 'CR_terrain-sm4.hlsl'
+    $isTerrainSource = (Split-Path -Leaf $case.File) -eq 'openshim_enhanced_terrain-sm4.hlsl'
 
     $expectedEncode = if ($shouldActivate) { 2 } else { 0 }
     $expectedDecode = 0
@@ -1324,7 +1361,7 @@ foreach ($case in $sweepCases) {
         }
     }
     elseif ($case.LinearLight -eq 0 -and ($encodeCount -ne 0 -or $decodeCount -ne 0)) {
-        $preprocessFailures += "$($case.Name): CR_LINEAR_LIGHT=0 must preprocess to the untouched baseline."
+        $preprocessFailures += "$($case.Name): OSE_LINEAR_LIGHT=0 must preprocess to the untouched baseline."
     }
 
     # -- Radial fog activates on exactly the same permutations ---------------
@@ -1392,6 +1429,6 @@ if ($preprocessFailures.Count -gt 0) {
     throw "DX11 color-space Stage A preprocessor guards failed:$([Environment]::NewLine)$detail"
 }
 
-Write-Host "Stage A and radial-fog preprocessor guards passed across $($sweepCases.Count) CR_LINEAR_LIGHT x CR_RADIAL_FOG permutations."
+Write-Host "Stage A and radial-fog preprocessor guards passed across $($sweepCases.Count) OSE_LINEAR_LIGHT x OSE_RADIAL_FOG permutations."
 Write-Host "Terrain-normal diagnostics compiled across $($normalDiagnosticCases.Count) unpack, orientation, basis, and visualization permutations."
 Write-Host "All $($cases.Count + $normalDiagnosticCases.Count + $sweepCases.Count) DX11 SM4 shader compilations succeeded."

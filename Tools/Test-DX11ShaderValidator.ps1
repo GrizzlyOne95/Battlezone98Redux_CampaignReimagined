@@ -26,6 +26,16 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $validator = Join-Path $PSScriptRoot 'Validate-DX11Shaders.ps1'
 
+$openShimRepo = $env:BZR_OPENSHIM_REPO
+if (-not $openShimRepo) {
+    $openShimRepo = Join-Path (Split-Path -Parent (Split-Path -Parent $repoRoot)) 'BZR-OpenShim'
+}
+$sourcePayload = Join-Path $openShimRepo 'resources\renderer\enhanced'
+if (-not (Test-Path -LiteralPath $sourcePayload)) {
+    throw ("Cannot find OpenShim's Enhanced payload at '$sourcePayload'. " +
+           "Set BZR_OPENSHIM_REPO to an OpenShim checkout.")
+}
+
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) 'bzr-dx11-validator-fixtures'
 if (Test-Path $tempRoot) { Remove-Item $tempRoot -Recurse -Force }
 New-Item $tempRoot -ItemType Directory | Out-Null
@@ -38,6 +48,13 @@ function Invoke-ValidatorOnTree {
     $treeTools = Join-Path $TreePath 'Tools'
     New-Item $treeTools -ItemType Directory -Force | Out-Null
     Copy-Item $validator -Destination $treeTools -Force
+
+    # The Stage A shaders resolve out of OpenShim's payload. Point that at this
+    # throwaway tree's copy so a fixture mutates the copy and never the real
+    # checkout.
+    $priorShimRepo = $env:BZR_OPENSHIM_REPO
+    $env:BZR_OPENSHIM_REPO = $TreePath
+    try {
 
     # The validator signals rejection by throwing, so it must be caught here
     # rather than allowed to terminate this suite.
@@ -56,6 +73,8 @@ function Invoke-ValidatorOnTree {
         Passed = (-not $threw) -and -not ($output -match 'guards failed|boundary failed')
         Output = ($output -join [Environment]::NewLine)
     }
+    }
+    finally { $env:BZR_OPENSHIM_REPO = $priorShimRepo }
 }
 
 function New-TreeCopy {
@@ -67,6 +86,9 @@ function New-TreeCopy {
     if (Test-Path $materials) {
         Copy-Item $materials -Destination $dest -Recurse -Force
     }
+    $destPayload = Join-Path $dest 'resources\renderer\enhanced'
+    New-Item $destPayload -ItemType Directory -Force | Out-Null
+    Copy-Item (Join-Path $sourcePayload '*') -Destination $destPayload -Force
     return $dest
 }
 
@@ -82,11 +104,13 @@ function Add-Fixture {
 
     $label = ($Name -replace '[^A-Za-z0-9]', '-')
     $tree = New-TreeCopy -Label $label
-    $shaderDir = Join-Path $tree 'Shaders'
+    # Every fixture mutates a Stage A shader or the terrain program script, and
+    # all of those are in the payload rather than in CR's Shaders directory.
+    $mutationDir = Join-Path $tree 'resources\renderer\enhanced'
 
-    $before = (Get-ChildItem $shaderDir -File | Get-FileHash -Algorithm SHA256 | ForEach-Object Hash) -join ''
-    & $Mutate $shaderDir
-    $after = (Get-ChildItem $shaderDir -File | Get-FileHash -Algorithm SHA256 | ForEach-Object Hash) -join ''
+    $before = (Get-ChildItem $mutationDir -File | Get-FileHash -Algorithm SHA256 | ForEach-Object Hash) -join ''
+    & $Mutate $mutationDir
+    $after = (Get-ChildItem $mutationDir -File | Get-FileHash -Algorithm SHA256 | ForEach-Object Hash) -join ''
 
     if ($before -eq $after) {
         $script:failures += "$Name : the mutation changed nothing. The fixture is not testing anything."
@@ -126,10 +150,10 @@ Write-Host 'Baseline: unmutated tree passes the source guards.'
 # rejected by the family-scope rule specifically, naming the owning shader -
 # not by the generic allow-list message, and not merely by some later guard.
 Add-Fixture -Name 'vertexTint decode copied into base shader' `
-    -ExpectedMessage "decodes 'vertexTint', which the family-scope rule reserves to CR_terrain-sm4.hlsl" `
+    -ExpectedMessage "decodes 'vertexTint', which the family-scope rule reserves to openshim_enhanced_terrain-sm4.hlsl" `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_base-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_base-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         $anchor = "    emissiveTex = srgb_to_linear(emissiveTex);"
         $inject = $anchor + "`r`n    vertexTint = srgb_to_linear(vertexTint);"
@@ -138,10 +162,10 @@ Add-Fixture -Name 'vertexTint decode copied into base shader' `
 
 # The other half of the same rule: terrain must not quietly stop decoding it.
 Add-Fixture -Name 'terrain drops its required vertexTint decode' `
-    -ExpectedMessage "CR_terrain-sm4.hlsl is missing the required Stage A decode of 'vertexTint'" `
+    -ExpectedMessage "openshim_enhanced_terrain-sm4.hlsl is missing the required Stage A decode of 'vertexTint'" `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_terrain-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
             "    vertexTint = srgb_to_linear(vertexTint);",
@@ -154,7 +178,7 @@ Add-Fixture -Name 'vertexTint derived from something other than vColor.xyz' `
     -ExpectedMessage 'expected ''vColor.xyz''' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_terrain-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
             "    float3 vertexTint = vColor.xyz;",
@@ -173,7 +197,7 @@ Add-Fixture -Name 'data-source decode hidden in a declaration initializer' `
     -ExpectedMessage 'bypasses the Stage A allow-list' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_terrain-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         $anchor = "    diffuseTex.rgb = srgb_to_linear(diffuseTex.rgb);"
         $inject = $anchor + "`r`n    float3 smuggled = srgb_to_linear(normalTex);"
@@ -188,7 +212,7 @@ Add-Fixture -Name 'packed mesh terrain normal drops the saturated sqrt guard' `
     -ExpectedMessage 'must reconstruct the packed mesh terrain normal' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_terrain-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
             'sqrt(saturate(1.0 - dot(nNormal, nNormal)))',
@@ -196,10 +220,10 @@ Add-Fixture -Name 'packed mesh terrain normal drops the saturated sqrt guard' `
     }
 
 Add-Fixture -Name 'Enhanced terrain normal XY amplification returns' `
-    -ExpectedMessage 'modifies the unpacked terrain normal outside the named unpack diagnostic before the TBN transform' `
+    -ExpectedMessage 'modifies the unpacked terrain normal outside the named shaping steps before the TBN transform' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_terrain-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         $anchor = '    float3 normalTex = unpack_terrain_normal(normalSample);'
         $inject = $anchor + "`r`n    normalTex.xy *= 1.45;"
@@ -207,32 +231,32 @@ Add-Fixture -Name 'Enhanced terrain normal XY amplification returns' `
     }
 
 Add-Fixture -Name 'terrain normal diagnostic accidentally enabled by default' `
-    -ExpectedMessage 'must default CR_TERRAIN_NORMAL_DEBUG_MODE to 0' `
+    -ExpectedMessage 'must default OSE_TERRAIN_NORMAL_DEBUG_MODE to 0' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_terrain-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
-            '#define CR_TERRAIN_NORMAL_DEBUG_MODE 0',
-            '#define CR_TERRAIN_NORMAL_DEBUG_MODE 5'))
+            '#define OSE_TERRAIN_NORMAL_DEBUG_MODE 0',
+            '#define OSE_TERRAIN_NORMAL_DEBUG_MODE 5'))
     }
 
 Add-Fixture -Name 'terrain TBN correction accidentally enabled by default' `
-    -ExpectedMessage 'must default CR_TERRAIN_NORMAL_BASIS_MODE to 0' `
+    -ExpectedMessage 'must default OSE_TERRAIN_NORMAL_BASIS_MODE to 0' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_terrain-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
-            '#define CR_TERRAIN_NORMAL_BASIS_MODE 0',
-            '#define CR_TERRAIN_NORMAL_BASIS_MODE 2'))
+            '#define OSE_TERRAIN_NORMAL_BASIS_MODE 0',
+            '#define OSE_TERRAIN_NORMAL_BASIS_MODE 2'))
     }
 
 Add-Fixture -Name 'terrain AG unpack loses saturated Z reconstruction' `
     -ExpectedMessage "terrain-normal diagnostic contract is missing 'sqrt(saturate(1.0 - dot(xy, xy)))'" `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_terrain-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
             'sqrt(saturate(1.0 - dot(xy, xy)))',
@@ -244,10 +268,10 @@ Add-Fixture -Name 'terrain AG unpack loses saturated Z reconstruction' `
 # -----------------------------------------------------------------------------
 
 Add-Fixture -Name 'Stage A leaks onto a Retro program' `
-    -ExpectedMessage 'is a DX11 Retro program but defines CR_LINEAR_LIGHT' `
+    -ExpectedMessage 'is a DX11 Retro program but defines OSE_LINEAR_LIGHT' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain.program'
+        $path = Join-Path $dir 'openshim_enhanced_terrain.program'
         $text = [IO.File]::ReadAllText($path)
         # Target an SM4 Retro program specifically. The first Retro declaration
         # in the file is a GLSLES one, and mutating that would be caught by the
@@ -257,41 +281,41 @@ Add-Fixture -Name 'Stage A leaks onto a Retro program' `
         # These files are CRLF, and .NET's multiline '$' anchors before '\n'
         # only - never before the '\r'. Use an explicit lookahead instead.
         $rx = [regex]::new(
-            '(?s)(fragment_program\s+CR_TerrainOGHighNoShadow_fragmentHLSL4\s+hlsl.*?preprocessor_defines\s+[^\r\n]*)(?=\r?\n)')
-        [IO.File]::WriteAllText($path, $rx.Replace($text, '$1,CR_LINEAR_LIGHT=1', 1))
+            '(?s)(fragment_program\s+OSE_TerrainOGHighNoShadow_fragmentHLSL4\s+hlsl.*?preprocessor_defines\s+[^\r\n]*)(?=\r?\n)')
+        [IO.File]::WriteAllText($path, $rx.Replace($text, '$1,OSE_LINEAR_LIGHT=1', 1))
     }
 
 Add-Fixture -Name 'an Enhanced program opts out of Stage A' `
-    -ExpectedMessage 'does not define CR_LINEAR_LIGHT=1' `
+    -ExpectedMessage 'does not define OSE_LINEAR_LIGHT=1' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain.program'
+        $path = Join-Path $dir 'openshim_enhanced_terrain.program'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
-            ',CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1',
-            ',CR_RADIAL_FOG=1'))
+            ',OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1',
+            ',OSE_RADIAL_FOG=1'))
     }
 
 Add-Fixture -Name 'an Enhanced program opts out of radial fog' `
-    -ExpectedMessage 'does not define CR_RADIAL_FOG=1' `
+    -ExpectedMessage 'does not define OSE_RADIAL_FOG=1' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain.program'
+        $path = Join-Path $dir 'openshim_enhanced_terrain.program'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
-            ',CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1',
-            ',CR_LINEAR_LIGHT=1'))
+            ',OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1',
+            ',OSE_LINEAR_LIGHT=1'))
     }
 
 Add-Fixture -Name 'radial fog leaks onto a Retro program' `
-    -ExpectedMessage 'is a DX11 Retro program but defines CR_RADIAL_FOG' `
+    -ExpectedMessage 'is a DX11 Retro program but defines OSE_RADIAL_FOG' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain.program'
+        $path = Join-Path $dir 'openshim_enhanced_terrain.program'
         $text = [IO.File]::ReadAllText($path)
         $rx = [regex]::new(
-            '(?s)(fragment_program\s+CR_TerrainOGHighNoShadow_fragmentHLSL4\s+hlsl.*?preprocessor_defines\s+[^\r\n]*)(?=\r?\n)')
-        [IO.File]::WriteAllText($path, $rx.Replace($text, '$1,CR_RADIAL_FOG=1', 1))
+            '(?s)(fragment_program\s+OSE_TerrainOGHighNoShadow_fragmentHLSL4\s+hlsl.*?preprocessor_defines\s+[^\r\n]*)(?=\r?\n)')
+        [IO.File]::WriteAllText($path, $rx.Replace($text, '$1,OSE_RADIAL_FOG=1', 1))
     }
 
 # -----------------------------------------------------------------------------
@@ -305,7 +329,7 @@ Add-Fixture -Name 'shared fog helper tuned in one shader only' `
     -ExpectedMessage "The shared helper 'compute_radial_fog_factor' differs between" `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_terrain-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
             'return (t * t * (3.0 - 2.0 * t)) * configured;',
@@ -320,7 +344,7 @@ Add-Fixture -Name 'radial fog fed clip-space depth instead of view distance' `
     -ExpectedMessage 'Radial fog must never be driven by clip-space depth' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_base-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_base-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
             'compute_radial_fog_factor(viewDistance, fogParams, densityScale)',
@@ -335,7 +359,7 @@ Add-Fixture -Name 'legacy depth-based fog replaced by the radial factor' `
     -ExpectedMessage 'Default/Retro fog must not become radial' `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_terrain-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_terrain-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
             'float fogValue = saturate((vDepth - fogParams.y) * fogParams.w);',
@@ -350,7 +374,7 @@ Add-Fixture -Name 'activation condition stops excluding Retro' `
     -ExpectedMessage "is missing '!defined(OG_RETRO_MODE)'" `
     -Mutate {
         param($dir)
-        $path = Join-Path $dir 'CR_base-sm4.hlsl'
+        $path = Join-Path $dir 'openshim_enhanced_base-sm4.hlsl'
         $text = [IO.File]::ReadAllText($path)
         [IO.File]::WriteAllText($path, $text.Replace(
             ' && !defined(OG_RETRO_MODE)', ''))

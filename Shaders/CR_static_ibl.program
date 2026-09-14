@@ -10,10 +10,10 @@
 
 fragment_program CR_BaseIBLHighNoShadow_fragmentHLSL4 hlsl
 {
-    source CR_base-sm4.hlsl
+    source openshim_enhanced_base-sm4.hlsl
     target ps_4_0
     entry_point base_fragment
-    preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1
+    preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
 
     default_params
     {
@@ -23,10 +23,10 @@ fragment_program CR_BaseIBLHighNoShadow_fragmentHLSL4 hlsl
 
 fragment_program CR_BaseIBLHighShadow_fragmentHLSL4 hlsl
 {
-    source CR_base-sm4.hlsl
+    source openshim_enhanced_base-sm4.hlsl
     target ps_4_0
     entry_point base_fragment
-    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=4,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1
+    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=4,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
 
     default_params
     {
@@ -36,10 +36,10 @@ fragment_program CR_BaseIBLHighShadow_fragmentHLSL4 hlsl
 
 fragment_program CR_BaseIBLHighPSSM_fragmentHLSL4 hlsl
 {
-    source CR_base-sm4.hlsl
+    source openshim_enhanced_base-sm4.hlsl
     target ps_4_0
     entry_point base_fragment
-    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=4,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_ENHANCED_PSSM_V2=1
+    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=4,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_PSSM_V2=1
 
     default_params
     {
@@ -50,9 +50,9 @@ fragment_program CR_BaseIBLHighPSSM_fragmentHLSL4 hlsl
 fragment_program CR_BaseIBLHighNoShadow_fragment unified
 {
     delegate CR_BaseIBLHighNoShadow_fragmentHLSL4
-    delegate CR_BaseENHighNoShadow_fragmentGLSLES
-    delegate CR_BaseENHighNoShadow_fragmentGLSL
-    delegate CR_BaseENHighNoShadow_fragmentHLSL
+    delegate OSE_BaseENHighNoShadow_fragmentGLSLES
+    delegate OSE_BaseENHighNoShadow_fragmentGLSL
+    delegate OSE_BaseENHighNoShadow_fragmentHLSL
 
     default_params
     {
@@ -76,9 +76,9 @@ fragment_program CR_BaseIBLHighNoShadow_fragment unified
 fragment_program CR_BaseIBLHighShadow_fragment unified
 {
     delegate CR_BaseIBLHighShadow_fragmentHLSL4
-    delegate CR_BaseENHighShadow_fragmentGLSLES
-    delegate CR_BaseENHighShadow_fragmentGLSL
-    delegate CR_BaseENHighShadow_fragmentHLSL
+    delegate OSE_BaseENHighShadow_fragmentGLSLES
+    delegate OSE_BaseENHighShadow_fragmentGLSL
+    delegate OSE_BaseENHighShadow_fragmentHLSL
 
     default_params
     {
@@ -103,9 +103,9 @@ fragment_program CR_BaseIBLHighShadow_fragment unified
 fragment_program CR_BaseIBLHighPSSM_fragment unified
 {
     delegate CR_BaseIBLHighPSSM_fragmentHLSL4
-    delegate CR_BaseENHighPSSM_fragmentGLSLES
-    delegate CR_BaseENHighPSSM_fragmentGLSL
-    delegate CR_BaseENHighPSSM_fragmentHLSL
+    delegate OSE_BaseENHighPSSM_fragmentGLSLES
+    delegate OSE_BaseENHighPSSM_fragmentGLSL
+    delegate OSE_BaseENHighPSSM_fragmentHLSL
 
     default_params
     {
@@ -136,10 +136,10 @@ fragment_program CR_BaseIBLHighPSSM_fragment unified
 
 fragment_program CR_TerrainIBLHighNoShadow_fragmentHLSL4 hlsl
 {
-    source CR_terrain-sm4.hlsl
+    source openshim_enhanced_terrain-sm4.hlsl
     target ps_4_0
     entry_point terrain_fragment
-    preprocessor_defines MAX_LIGHTS=24,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1
+    preprocessor_defines MAX_LIGHTS=24,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
 
     default_params
     {
@@ -149,10 +149,10 @@ fragment_program CR_TerrainIBLHighNoShadow_fragmentHLSL4 hlsl
 
 fragment_program CR_TerrainIBLHighShadow_fragmentHLSL4 hlsl
 {
-    source CR_terrain-sm4.hlsl
+    source openshim_enhanced_terrain-sm4.hlsl
     target ps_4_0
     entry_point terrain_fragment
-    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=4,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1
+    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=4,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
 
     default_params
     {
@@ -162,10 +162,10 @@ fragment_program CR_TerrainIBLHighShadow_fragmentHLSL4 hlsl
 
 fragment_program CR_TerrainIBLHighPSSM_fragmentHLSL4 hlsl
 {
-    source CR_terrain-sm4.hlsl
+    source openshim_enhanced_terrain-sm4.hlsl
     target ps_4_0
     entry_point terrain_fragment
-    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=4,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,CR_LINEAR_LIGHT=1,CR_RADIAL_FOG=1,CR_ENHANCED_PSSM_V2=1
+    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=4,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_PSSM_V2=1
 
     default_params
     {
@@ -176,9 +176,9 @@ fragment_program CR_TerrainIBLHighPSSM_fragmentHLSL4 hlsl
 fragment_program CR_TerrainIBLHighNoShadow_fragment unified
 {
     delegate CR_TerrainIBLHighNoShadow_fragmentHLSL4
-    delegate CR_TerrainENHighNoShadow_fragmentGLSLES
-    delegate CR_TerrainENHighNoShadow_fragmentGLSL
-    delegate CR_TerrainENHighNoShadow_fragmentHLSL
+    delegate OSE_TerrainENHighNoShadow_fragmentGLSLES
+    delegate OSE_TerrainENHighNoShadow_fragmentGLSL
+    delegate OSE_TerrainENHighNoShadow_fragmentHLSL
 
     default_params
     {
@@ -199,9 +199,9 @@ fragment_program CR_TerrainIBLHighNoShadow_fragment unified
 fragment_program CR_TerrainIBLHighShadow_fragment unified
 {
     delegate CR_TerrainIBLHighShadow_fragmentHLSL4
-    delegate CR_TerrainENHighShadow_fragmentGLSLES
-    delegate CR_TerrainENHighShadow_fragmentGLSL
-    delegate CR_TerrainENHighShadow_fragmentHLSL
+    delegate OSE_TerrainENHighShadow_fragmentGLSLES
+    delegate OSE_TerrainENHighShadow_fragmentGLSL
+    delegate OSE_TerrainENHighShadow_fragmentHLSL
 
     default_params
     {
@@ -223,9 +223,9 @@ fragment_program CR_TerrainIBLHighShadow_fragment unified
 fragment_program CR_TerrainIBLHighPSSM_fragment unified
 {
     delegate CR_TerrainIBLHighPSSM_fragmentHLSL4
-    delegate CR_TerrainENHighPSSM_fragmentGLSLES
-    delegate CR_TerrainENHighPSSM_fragmentGLSL
-    delegate CR_TerrainENHighPSSM_fragmentHLSL
+    delegate OSE_TerrainENHighPSSM_fragmentGLSLES
+    delegate OSE_TerrainENHighPSSM_fragmentGLSL
+    delegate OSE_TerrainENHighPSSM_fragmentHLSL
 
     default_params
     {
