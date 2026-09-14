@@ -1,9 +1,9 @@
 abstract pass BZTerrainPassSchemeHighPSSM
 {
-	vertex_program_ref CR_TerrainHighPSSM_vertex
+	vertex_program_ref OSE_TerrainHighPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainHighPSSM_fragment
+	fragment_program_ref OSE_TerrainHighPSSM_fragment
 	{
 	} 
 
@@ -69,10 +69,10 @@ abstract pass BZTerrainPassSchemeHighPSSM
 
 abstract pass BZTerrainPassSchemeENHighPSSMV2
 {
-	vertex_program_ref CR_TerrainENHighPSSMV2_vertex
+	vertex_program_ref OSE_TerrainENHighPSSMV2_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainENHighPSSM_fragment
+	fragment_program_ref OSE_TerrainENHighPSSM_fragment
 	{
 	}
 
@@ -148,10 +148,10 @@ abstract pass BZTerrainPassSchemeENHighPSSMV2
 
 abstract pass BZTerrainPassSchemeHigh
 {
-	vertex_program_ref CR_TerrainHighShadow_vertex
+	vertex_program_ref OSE_TerrainHighShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainHighShadow_fragment
+	fragment_program_ref OSE_TerrainHighShadow_fragment
 	{
 	} 
 
@@ -203,10 +203,10 @@ abstract pass BZTerrainPassSchemeHigh
 
 abstract pass BZTerrainPassSchemeHighNoShadow
 {
-	vertex_program_ref CR_TerrainHighNoShadow_vertex
+	vertex_program_ref OSE_TerrainHighNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainHighNoShadow_fragment
+	fragment_program_ref OSE_TerrainHighNoShadow_fragment
 	{
 	} 
 
@@ -252,10 +252,10 @@ abstract pass BZTerrainPassSchemeHighNoShadow
 
 abstract pass BZTerrainPassSchemeMediumPSSM
 {
-	vertex_program_ref CR_TerrainMediumPSSM_vertex
+	vertex_program_ref OSE_TerrainMediumPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainMediumPSSM_fragment
+	fragment_program_ref OSE_TerrainMediumPSSM_fragment
 	{
 	} 
 
@@ -321,10 +321,10 @@ abstract pass BZTerrainPassSchemeMediumPSSM
 
 abstract pass BZTerrainPassSchemeMedium
 {
-	vertex_program_ref CR_TerrainMediumShadow_vertex
+	vertex_program_ref OSE_TerrainMediumShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainMediumShadow_fragment
+	fragment_program_ref OSE_TerrainMediumShadow_fragment
 	{
 	} 
 
@@ -376,10 +376,10 @@ abstract pass BZTerrainPassSchemeMedium
 
 abstract pass BZTerrainPassSchemeMediumNoShadow
 {
-	vertex_program_ref CR_TerrainMediumNoShadow_vertex
+	vertex_program_ref OSE_TerrainMediumNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainMediumNoShadow_fragment
+	fragment_program_ref OSE_TerrainMediumNoShadow_fragment
 	{
 	} 
 
@@ -426,10 +426,10 @@ abstract pass BZTerrainPassSchemeMediumNoShadow
 
 abstract pass BZTerrainPassSchemeLowPSSM
 {
-	vertex_program_ref CR_TerrainLowPSSM_vertex
+	vertex_program_ref OSE_TerrainLowPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainLowPSSM_fragment
+	fragment_program_ref OSE_TerrainLowPSSM_fragment
 	{
 	} 
 	
@@ -495,10 +495,10 @@ abstract pass BZTerrainPassSchemeLowPSSM
 
 abstract pass BZTerrainPassSchemeLow
 {
-	vertex_program_ref CR_TerrainLowShadow_vertex
+	vertex_program_ref OSE_TerrainLowShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainLowShadow_fragment
+	fragment_program_ref OSE_TerrainLowShadow_fragment
 	{
 	} 
 	
@@ -550,10 +550,10 @@ abstract pass BZTerrainPassSchemeLow
 
 abstract pass BZTerrainPassSchemeLowNoShadow
 {
-	vertex_program_ref CR_TerrainLowNoShadow_vertex
+	vertex_program_ref OSE_TerrainLowNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainLowNoShadow_fragment
+	fragment_program_ref OSE_TerrainLowNoShadow_fragment
 	{
 	} 
 	
@@ -599,10 +599,10 @@ abstract pass BZTerrainPassSchemeLowNoShadow
 
 abstract pass BZTerrainPassSchemeLowestPSSM
 {
-	vertex_program_ref CR_TerrainLowestPSSM_vertex
+	vertex_program_ref OSE_TerrainLowestPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainLowestPSSM_fragment
+	fragment_program_ref OSE_TerrainLowestPSSM_fragment
 	{
 	} 
 	
@@ -668,10 +668,10 @@ abstract pass BZTerrainPassSchemeLowestPSSM
 
 abstract pass BZTerrainPassSchemeLowest
 {
-	vertex_program_ref CR_TerrainLowestShadow_vertex
+	vertex_program_ref OSE_TerrainLowestShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainLowestShadow_fragment
+	fragment_program_ref OSE_TerrainLowestShadow_fragment
 	{
 	} 
 	
@@ -723,10 +723,10 @@ abstract pass BZTerrainPassSchemeLowest
 
 abstract pass BZTerrainPassSchemeLowestNoShadow
 {
-	vertex_program_ref CR_TerrainLowestNoShadow_vertex
+	vertex_program_ref OSE_TerrainLowestNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainLowestNoShadow_fragment
+	fragment_program_ref OSE_TerrainLowestNoShadow_fragment
 	{
 	} 
 	
@@ -771,10 +771,10 @@ abstract pass BZTerrainPassSchemeLowestNoShadow
 
 abstract pass BZTerrainPassSchemeOGHighPSSM
 {
-	vertex_program_ref CR_TerrainMediumPSSM_vertex
+	vertex_program_ref OSE_TerrainMediumPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGHighPSSM_fragment
+	fragment_program_ref OSE_TerrainOGHighPSSM_fragment
 	{
 	}
 
@@ -820,10 +820,10 @@ abstract pass BZTerrainPassSchemeOGHighPSSM
 
 abstract pass BZTerrainPassSchemeOGHigh
 {
-	vertex_program_ref CR_TerrainMediumShadow_vertex
+	vertex_program_ref OSE_TerrainMediumShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGHighShadow_fragment
+	fragment_program_ref OSE_TerrainOGHighShadow_fragment
 	{
 	}
 
@@ -855,10 +855,10 @@ abstract pass BZTerrainPassSchemeOGHigh
 
 abstract pass BZTerrainPassSchemeOGHighNoShadow
 {
-	vertex_program_ref CR_TerrainMediumNoShadow_vertex
+	vertex_program_ref OSE_TerrainMediumNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGHighNoShadow_fragment
+	fragment_program_ref OSE_TerrainOGHighNoShadow_fragment
 	{
 	}
 
@@ -883,10 +883,10 @@ abstract pass BZTerrainPassSchemeOGHighNoShadow
 
 abstract pass BZTerrainPassSchemeOGMediumPSSM
 {
-	vertex_program_ref CR_TerrainMediumPSSM_vertex
+	vertex_program_ref OSE_TerrainMediumPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGMediumPSSM_fragment
+	fragment_program_ref OSE_TerrainOGMediumPSSM_fragment
 	{
 	}
 
@@ -932,10 +932,10 @@ abstract pass BZTerrainPassSchemeOGMediumPSSM
 
 abstract pass BZTerrainPassSchemeOGMedium
 {
-	vertex_program_ref CR_TerrainMediumShadow_vertex
+	vertex_program_ref OSE_TerrainMediumShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGMediumShadow_fragment
+	fragment_program_ref OSE_TerrainOGMediumShadow_fragment
 	{
 	}
 
@@ -967,10 +967,10 @@ abstract pass BZTerrainPassSchemeOGMedium
 
 abstract pass BZTerrainPassSchemeOGMediumNoShadow
 {
-	vertex_program_ref CR_TerrainMediumNoShadow_vertex
+	vertex_program_ref OSE_TerrainMediumNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGMediumNoShadow_fragment
+	fragment_program_ref OSE_TerrainOGMediumNoShadow_fragment
 	{
 	}
 
@@ -995,10 +995,10 @@ abstract pass BZTerrainPassSchemeOGMediumNoShadow
 
 abstract pass BZTerrainPassSchemeOGLowPSSM
 {
-	vertex_program_ref CR_TerrainLowPSSM_vertex
+	vertex_program_ref OSE_TerrainLowPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGLowPSSM_fragment
+	fragment_program_ref OSE_TerrainOGLowPSSM_fragment
 	{
 	}
 
@@ -1044,10 +1044,10 @@ abstract pass BZTerrainPassSchemeOGLowPSSM
 
 abstract pass BZTerrainPassSchemeOGLow
 {
-	vertex_program_ref CR_TerrainLowShadow_vertex
+	vertex_program_ref OSE_TerrainLowShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGLowShadow_fragment
+	fragment_program_ref OSE_TerrainOGLowShadow_fragment
 	{
 	}
 
@@ -1079,10 +1079,10 @@ abstract pass BZTerrainPassSchemeOGLow
 
 abstract pass BZTerrainPassSchemeOGLowNoShadow
 {
-	vertex_program_ref CR_TerrainLowNoShadow_vertex
+	vertex_program_ref OSE_TerrainLowNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGLowNoShadow_fragment
+	fragment_program_ref OSE_TerrainOGLowNoShadow_fragment
 	{
 	}
 
@@ -1107,10 +1107,10 @@ abstract pass BZTerrainPassSchemeOGLowNoShadow
 
 abstract pass BZTerrainPassSchemeOGLowestPSSM
 {
-	vertex_program_ref CR_TerrainLowestPSSM_vertex
+	vertex_program_ref OSE_TerrainLowestPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGLowestPSSM_fragment
+	fragment_program_ref OSE_TerrainOGLowestPSSM_fragment
 	{
 	}
 
@@ -1156,10 +1156,10 @@ abstract pass BZTerrainPassSchemeOGLowestPSSM
 
 abstract pass BZTerrainPassSchemeOGLowest
 {
-	vertex_program_ref CR_TerrainLowestShadow_vertex
+	vertex_program_ref OSE_TerrainLowestShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGLowestShadow_fragment
+	fragment_program_ref OSE_TerrainOGLowestShadow_fragment
 	{
 	}
 
@@ -1191,10 +1191,10 @@ abstract pass BZTerrainPassSchemeOGLowest
 
 abstract pass BZTerrainPassSchemeOGLowestNoShadow
 {
-	vertex_program_ref CR_TerrainLowestNoShadow_vertex
+	vertex_program_ref OSE_TerrainLowestNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_TerrainOGLowestNoShadow_fragment
+	fragment_program_ref OSE_TerrainOGLowestNoShadow_fragment
 	{
 	}
 
@@ -1699,7 +1699,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_TerrainENMediumNoShadow_fragment
+			fragment_program_ref OSE_TerrainENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1777,7 +1777,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_TerrainENMediumNoShadow_fragment
+			fragment_program_ref OSE_TerrainENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1855,7 +1855,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_TerrainENMediumNoShadow_fragment
+			fragment_program_ref OSE_TerrainENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1867,7 +1867,7 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeMediumPSSM
  		{
-			fragment_program_ref CR_TerrainENMediumPSSM_fragment
+			fragment_program_ref OSE_TerrainENMediumPSSM_fragment
 			{
 			}
 		}
@@ -1879,7 +1879,7 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_TerrainENMediumNoShadow_fragment
+			fragment_program_ref OSE_TerrainENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1891,7 +1891,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1903,7 +1903,7 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeMedium
  		{
-			fragment_program_ref CR_TerrainENMediumShadow_fragment
+			fragment_program_ref OSE_TerrainENMediumShadow_fragment
 			{
 			}
 		}
@@ -1915,7 +1915,7 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_TerrainENMediumNoShadow_fragment
+			fragment_program_ref OSE_TerrainENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1927,7 +1927,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1939,7 +1939,7 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_TerrainENMediumNoShadow_fragment
+			fragment_program_ref OSE_TerrainENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1951,7 +1951,7 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_TerrainENMediumNoShadow_fragment
+			fragment_program_ref OSE_TerrainENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1963,7 +1963,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1975,7 +1975,7 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeLowPSSM
  		{
-			fragment_program_ref CR_TerrainENLowPSSM_fragment
+			fragment_program_ref OSE_TerrainENLowPSSM_fragment
 			{
 			}
 		}
@@ -1987,7 +1987,7 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1999,7 +1999,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowNoShadow_fragment
 			{
 			}
 		}
@@ -2011,7 +2011,7 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeLow
  		{
-			fragment_program_ref CR_TerrainENLowShadow_fragment
+			fragment_program_ref OSE_TerrainENLowShadow_fragment
 			{
 			}
 		}
@@ -2023,7 +2023,7 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowNoShadow_fragment
 			{
 			}
 		}
@@ -2035,7 +2035,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowNoShadow_fragment
 			{
 			}
 		}
@@ -2047,7 +2047,7 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowNoShadow_fragment
 			{
 			}
 		}
@@ -2059,7 +2059,7 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowNoShadow_fragment
 			{
 			}
 		}
@@ -2071,7 +2071,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowNoShadow_fragment
 			{
 			}
 		}
@@ -2083,7 +2083,7 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeLowestPSSM
  		{
-			fragment_program_ref CR_TerrainENLowestPSSM_fragment
+			fragment_program_ref OSE_TerrainENLowestPSSM_fragment
 			{
 			}
 		}
@@ -2095,7 +2095,7 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowestNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -2107,7 +2107,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowestNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -2119,7 +2119,7 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeLowest
  		{
-			fragment_program_ref CR_TerrainENLowestShadow_fragment
+			fragment_program_ref OSE_TerrainENLowestShadow_fragment
 			{
 			}
 		}
@@ -2131,7 +2131,7 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowestNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -2143,7 +2143,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowestNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -2155,7 +2155,7 @@ material CR_BZTerrainBase
         lod_index 0
 		pass : BZTerrainPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowestNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -2167,7 +2167,7 @@ material CR_BZTerrainBase
         lod_index 1
 		pass : BZTerrainPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowestNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -2179,7 +2179,7 @@ material CR_BZTerrainBase
         lod_index 2
 		pass : BZTerrainPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_TerrainENLowestNoShadow_fragment
+			fragment_program_ref OSE_TerrainENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -2515,10 +2515,10 @@ material CR_BZTerrainBase
 
 		pass
  		{
-			vertex_program_ref CR_TerrainGlow_vertex
+			vertex_program_ref OSE_TerrainGlow_vertex
 			{
 			}
-			fragment_program_ref CR_TerrainGlow_fragment
+			fragment_program_ref OSE_TerrainGlow_fragment
 			{
 				param_named fogColour float3 0 0 0
 			}

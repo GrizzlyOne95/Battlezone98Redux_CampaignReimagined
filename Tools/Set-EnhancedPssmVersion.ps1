@@ -7,17 +7,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+# CR_base.program and CR_terrain.program went to OpenShim's payload with the
+# shaders they declare, so the Enhanced base/terrain PSSM version is set there
+# now. What is still CR's to switch is its own static-IBL wrapper and which
+# pass the materials select, and those are what this script covers.
 $programFiles = @(
-    'Shaders\CR_base.program',
-    'Shaders\CR_terrain.program',
     'Shaders\CR_static_ibl.program'
 )
 
 $programNames = @(
-    'CR_BaseENHighPSSMV2_vertexHLSL4',
-    'CR_BaseENHighPSSM_fragmentHLSL4',
-    'CR_TerrainENHighPSSMV2_vertexHLSL4',
-    'CR_TerrainENHighPSSM_fragmentHLSL4',
     'CR_BaseIBLHighPSSM_fragmentHLSL4',
     'CR_TerrainIBLHighPSSM_fragmentHLSL4'
 )
@@ -41,8 +39,8 @@ foreach ($relative in $programFiles) {
         }
         if ($currentProgram -and $programNames -contains $currentProgram -and
             $lines[$index] -match '^(?<prefix>\s*preprocessor_defines\s+)(?<defines>.*)$') {
-            $defines = $Matches['defines'] -replace ',CR_ENHANCED_PSSM_V2=1', ''
-            if ($Version -eq 'V2') { $defines += ',CR_ENHANCED_PSSM_V2=1' }
+            $defines = $Matches['defines'] -replace ',OSE_ENHANCED_PSSM_V2=1', ''
+            if ($Version -eq 'V2') { $defines += ',OSE_ENHANCED_PSSM_V2=1' }
             $lines[$index] = $Matches['prefix'] + $defines
             ++$updated
             $currentProgram = $null

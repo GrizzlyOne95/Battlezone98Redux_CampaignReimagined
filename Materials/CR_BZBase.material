@@ -1,9 +1,9 @@
 abstract pass BZPassSchemeHighPSSM
 {
-	vertex_program_ref CR_BaseHighPSSM_vertex
+	vertex_program_ref OSE_BaseHighPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_BaseHighPSSM_fragment
+	fragment_program_ref OSE_BaseHighPSSM_fragment
 	{
 	}
 
@@ -63,10 +63,10 @@ abstract pass BZPassSchemeHighPSSM
 // Classic's manual-depth-compare shader.
 abstract pass BZPassSchemeENHighPSSMV2
 {
-	vertex_program_ref CR_BaseENHighPSSMV2_vertex
+	vertex_program_ref OSE_BaseENHighPSSMV2_vertex
 	{
 	}
-	fragment_program_ref CR_BaseENHighPSSM_fragment
+	fragment_program_ref OSE_BaseENHighPSSM_fragment
 	{
 	}
 
@@ -133,10 +133,10 @@ abstract pass BZPassSchemeENHighPSSMV2
 
 abstract pass BZPassSchemeHigh
 {
-	vertex_program_ref CR_BaseHighShadow_vertex
+	vertex_program_ref OSE_BaseHighShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseHighShadow_fragment
+	fragment_program_ref OSE_BaseHighShadow_fragment
 	{
 	}
 
@@ -179,10 +179,10 @@ abstract pass BZPassSchemeHigh
 
 abstract pass BZPassSchemeHighNoShadow
 {
-	vertex_program_ref CR_BaseHighNoShadow_vertex
+	vertex_program_ref OSE_BaseHighNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseHighNoShadow_fragment
+	fragment_program_ref OSE_BaseHighNoShadow_fragment
 	{
 	}
 
@@ -218,10 +218,10 @@ abstract pass BZPassSchemeHighNoShadow
 
 abstract pass BZPassSchemeMediumPSSM
 {
-	vertex_program_ref CR_BaseMediumPSSM_vertex
+	vertex_program_ref OSE_BaseMediumPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_BaseMediumPSSM_fragment
+	fragment_program_ref OSE_BaseMediumPSSM_fragment
 	{
 	}
 
@@ -278,10 +278,10 @@ abstract pass BZPassSchemeMediumPSSM
 
 abstract pass BZPassSchemeMedium
 {
-	vertex_program_ref CR_BaseMediumShadow_vertex
+	vertex_program_ref OSE_BaseMediumShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseMediumShadow_fragment
+	fragment_program_ref OSE_BaseMediumShadow_fragment
 	{
 	}
 
@@ -324,10 +324,10 @@ abstract pass BZPassSchemeMedium
 
 abstract pass BZPassSchemeMediumNoShadow
 {
-	vertex_program_ref CR_BaseMediumNoShadow_vertex
+	vertex_program_ref OSE_BaseMediumNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseMediumNoShadow_fragment
+	fragment_program_ref OSE_BaseMediumNoShadow_fragment
 	{
 	}
 
@@ -363,10 +363,10 @@ abstract pass BZPassSchemeMediumNoShadow
 
 abstract pass BZPassSchemeLowPSSM
 {
-	vertex_program_ref CR_BaseLowPSSM_vertex
+	vertex_program_ref OSE_BaseLowPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_BaseLowPSSM_fragment
+	fragment_program_ref OSE_BaseLowPSSM_fragment
 	{
 	}
 
@@ -423,10 +423,10 @@ abstract pass BZPassSchemeLowPSSM
 
 abstract pass BZPassSchemeLow
 {
-	vertex_program_ref CR_BaseLowShadow_vertex
+	vertex_program_ref OSE_BaseLowShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseLowShadow_fragment
+	fragment_program_ref OSE_BaseLowShadow_fragment
 	{
 	}
 
@@ -469,10 +469,10 @@ abstract pass BZPassSchemeLow
 
 abstract pass BZPassSchemeLowNoShadow
 {
-	vertex_program_ref CR_BaseLowNoShadow_vertex
+	vertex_program_ref OSE_BaseLowNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseLowNoShadow_fragment
+	fragment_program_ref OSE_BaseLowNoShadow_fragment
 	{
 	}
 
@@ -508,10 +508,10 @@ abstract pass BZPassSchemeLowNoShadow
 
 abstract pass BZPassSchemeLowestPSSM
 {
-	vertex_program_ref CR_BaseLowestPSSM_vertex
+	vertex_program_ref OSE_BaseLowestPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_BaseLowestPSSM_fragment
+	fragment_program_ref OSE_BaseLowestPSSM_fragment
 	{
 	}
 
@@ -568,10 +568,10 @@ abstract pass BZPassSchemeLowestPSSM
 
 abstract pass BZPassSchemeLowest
 {
-	vertex_program_ref CR_BaseLowestShadow_vertex
+	vertex_program_ref OSE_BaseLowestShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseLowestShadow_fragment
+	fragment_program_ref OSE_BaseLowestShadow_fragment
 	{
 	}
 
@@ -614,10 +614,10 @@ abstract pass BZPassSchemeLowest
 
 abstract pass BZPassSchemeLowestNoShadow
 {
-	vertex_program_ref CR_BaseLowestNoShadow_vertex
+	vertex_program_ref OSE_BaseLowestNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseLowestNoShadow_fragment
+	fragment_program_ref OSE_BaseLowestNoShadow_fragment
 	{
 	}
 
@@ -653,10 +653,10 @@ abstract pass BZPassSchemeLowestNoShadow
 
 abstract pass BZPassSchemeOGHighPSSM
 {
-	vertex_program_ref CR_BaseMediumPSSM_vertex
+	vertex_program_ref OSE_BaseMediumPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGHighPSSM_fragment
+	fragment_program_ref OSE_BaseOGHighPSSM_fragment
 	{
 	}
 
@@ -698,10 +698,10 @@ abstract pass BZPassSchemeOGHighPSSM
 
 abstract pass BZPassSchemeOGHigh
 {
-	vertex_program_ref CR_BaseMediumShadow_vertex
+	vertex_program_ref OSE_BaseMediumShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGHighShadow_fragment
+	fragment_program_ref OSE_BaseOGHighShadow_fragment
 	{
 	}
 
@@ -729,10 +729,10 @@ abstract pass BZPassSchemeOGHigh
 
 abstract pass BZPassSchemeOGHighNoShadow
 {
-	vertex_program_ref CR_BaseMediumNoShadow_vertex
+	vertex_program_ref OSE_BaseMediumNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGHighNoShadow_fragment
+	fragment_program_ref OSE_BaseOGHighNoShadow_fragment
 	{
 	}
 
@@ -753,10 +753,10 @@ abstract pass BZPassSchemeOGHighNoShadow
 
 abstract pass BZPassSchemeOGMediumPSSM
 {
-	vertex_program_ref CR_BaseMediumPSSM_vertex
+	vertex_program_ref OSE_BaseMediumPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGMediumPSSM_fragment
+	fragment_program_ref OSE_BaseOGMediumPSSM_fragment
 	{
 	}
 
@@ -798,10 +798,10 @@ abstract pass BZPassSchemeOGMediumPSSM
 
 abstract pass BZPassSchemeOGMedium
 {
-	vertex_program_ref CR_BaseMediumShadow_vertex
+	vertex_program_ref OSE_BaseMediumShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGMediumShadow_fragment
+	fragment_program_ref OSE_BaseOGMediumShadow_fragment
 	{
 	}
 
@@ -829,10 +829,10 @@ abstract pass BZPassSchemeOGMedium
 
 abstract pass BZPassSchemeOGMediumNoShadow
 {
-	vertex_program_ref CR_BaseMediumNoShadow_vertex
+	vertex_program_ref OSE_BaseMediumNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGMediumNoShadow_fragment
+	fragment_program_ref OSE_BaseOGMediumNoShadow_fragment
 	{
 	}
 
@@ -853,10 +853,10 @@ abstract pass BZPassSchemeOGMediumNoShadow
 
 abstract pass BZPassSchemeOGLowPSSM
 {
-	vertex_program_ref CR_BaseLowPSSM_vertex
+	vertex_program_ref OSE_BaseLowPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGLowPSSM_fragment
+	fragment_program_ref OSE_BaseOGLowPSSM_fragment
 	{
 	}
 
@@ -898,10 +898,10 @@ abstract pass BZPassSchemeOGLowPSSM
 
 abstract pass BZPassSchemeOGLow
 {
-	vertex_program_ref CR_BaseLowShadow_vertex
+	vertex_program_ref OSE_BaseLowShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGLowShadow_fragment
+	fragment_program_ref OSE_BaseOGLowShadow_fragment
 	{
 	}
 
@@ -929,10 +929,10 @@ abstract pass BZPassSchemeOGLow
 
 abstract pass BZPassSchemeOGLowNoShadow
 {
-	vertex_program_ref CR_BaseLowNoShadow_vertex
+	vertex_program_ref OSE_BaseLowNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGLowNoShadow_fragment
+	fragment_program_ref OSE_BaseOGLowNoShadow_fragment
 	{
 	}
 
@@ -953,10 +953,10 @@ abstract pass BZPassSchemeOGLowNoShadow
 
 abstract pass BZPassSchemeOGLowestPSSM
 {
-	vertex_program_ref CR_BaseLowestPSSM_vertex
+	vertex_program_ref OSE_BaseLowestPSSM_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGLowestPSSM_fragment
+	fragment_program_ref OSE_BaseOGLowestPSSM_fragment
 	{
 	}
 
@@ -998,10 +998,10 @@ abstract pass BZPassSchemeOGLowestPSSM
 
 abstract pass BZPassSchemeOGLowest
 {
-	vertex_program_ref CR_BaseLowestShadow_vertex
+	vertex_program_ref OSE_BaseLowestShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGLowestShadow_fragment
+	fragment_program_ref OSE_BaseOGLowestShadow_fragment
 	{
 	}
 
@@ -1029,10 +1029,10 @@ abstract pass BZPassSchemeOGLowest
 
 abstract pass BZPassSchemeOGLowestNoShadow
 {
-	vertex_program_ref CR_BaseLowestNoShadow_vertex
+	vertex_program_ref OSE_BaseLowestNoShadow_vertex
 	{
 	}
-	fragment_program_ref CR_BaseOGLowestNoShadow_fragment
+	fragment_program_ref OSE_BaseOGLowestNoShadow_fragment
 	{
 	}
 
@@ -1459,7 +1459,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			fragment_program_ref OSE_BaseENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1471,7 +1471,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1516,7 +1516,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			fragment_program_ref OSE_BaseENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1528,7 +1528,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1573,7 +1573,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			fragment_program_ref OSE_BaseENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1585,7 +1585,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1597,7 +1597,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeMediumPSSM
  		{
-			fragment_program_ref CR_BaseENMediumPSSM_fragment
+			fragment_program_ref OSE_BaseENMediumPSSM_fragment
 			{
 			}
 		}
@@ -1609,7 +1609,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1621,7 +1621,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1633,7 +1633,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeMedium
  		{
-			fragment_program_ref CR_BaseENMediumShadow_fragment
+			fragment_program_ref OSE_BaseENMediumShadow_fragment
 			{
 			}
 		}
@@ -1645,7 +1645,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1657,7 +1657,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1669,7 +1669,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			fragment_program_ref OSE_BaseENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -1681,7 +1681,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1693,7 +1693,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1705,7 +1705,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLowPSSM
  		{
-			fragment_program_ref CR_BaseENLowPSSM_fragment
+			fragment_program_ref OSE_BaseENLowPSSM_fragment
 			{
 			}
 		}
@@ -1717,7 +1717,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1729,7 +1729,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1741,7 +1741,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLow
  		{
-			fragment_program_ref CR_BaseENLowShadow_fragment
+			fragment_program_ref OSE_BaseENLowShadow_fragment
 			{
 			}
 		}
@@ -1753,7 +1753,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1765,7 +1765,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1777,7 +1777,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1789,7 +1789,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1801,7 +1801,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -1813,7 +1813,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLowestPSSM
  		{
-			fragment_program_ref CR_BaseENLowestPSSM_fragment
+			fragment_program_ref OSE_BaseENLowestPSSM_fragment
 			{
 			}
 		}
@@ -1825,7 +1825,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -1837,7 +1837,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -1849,7 +1849,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLowest
  		{
-			fragment_program_ref CR_BaseENLowestShadow_fragment
+			fragment_program_ref OSE_BaseENLowestShadow_fragment
 			{
 			}
 		}
@@ -1861,7 +1861,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -1873,7 +1873,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -1885,7 +1885,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -1897,7 +1897,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -1909,7 +1909,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -2474,7 +2474,7 @@ material CR_BZBaseCockpit
         scheme en-medium-pssm
 		pass : BZPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			fragment_program_ref OSE_BaseENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -2485,7 +2485,7 @@ material CR_BZBaseCockpit
         scheme en-medium
 		pass : BZPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			fragment_program_ref OSE_BaseENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -2496,7 +2496,7 @@ material CR_BZBaseCockpit
         scheme en-medium-noshadow
 		pass : BZPassSchemeMediumNoShadow
  		{
-			fragment_program_ref CR_BaseENMediumNoShadow_fragment
+			fragment_program_ref OSE_BaseENMediumNoShadow_fragment
 			{
 			}
 		}
@@ -2507,7 +2507,7 @@ material CR_BZBaseCockpit
         scheme en-low-pssm
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -2518,7 +2518,7 @@ material CR_BZBaseCockpit
         scheme en-low
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -2529,7 +2529,7 @@ material CR_BZBaseCockpit
         scheme en-low-noshadow
 		pass : BZPassSchemeLowNoShadow
  		{
-			fragment_program_ref CR_BaseENLowNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowNoShadow_fragment
 			{
 			}
 		}
@@ -2540,7 +2540,7 @@ material CR_BZBaseCockpit
         scheme en-lowest-pssm
 		pass : BZPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -2551,7 +2551,7 @@ material CR_BZBaseCockpit
         scheme en-lowest
 		pass : BZPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowestNoShadow_fragment
 			{
 			}
 		}
@@ -2562,7 +2562,7 @@ material CR_BZBaseCockpit
         scheme en-lowest-noshadow
 		pass : BZPassSchemeLowestNoShadow
  		{
-			fragment_program_ref CR_BaseENLowestNoShadow_fragment
+			fragment_program_ref OSE_BaseENLowestNoShadow_fragment
 			{
 			}
 		}
