@@ -113,7 +113,7 @@ false
 isSelected [1] =
 false
 isVisible [1] =
-ffffffff
+2
 seen [1] =
 2
 healthRatio [1] =
@@ -137,13 +137,13 @@ where = 00000000
 param [1] =
 
 aiProcess [1] =
-false
+true
 isCargo [1] =
 false
 independence [1] =
-0
+1
 curPilot [1] =
-
+asuser
 perceivedTeam [1] =
 1
 name = LuaMission
