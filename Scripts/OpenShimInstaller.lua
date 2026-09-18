@@ -765,6 +765,7 @@ end
 local function SafeDiagnosticPath(report, path)
     local value = ReplacePathPrefix(path, report.workingDirectory, "<GAME>")
     value = ReplacePathPrefix(value, report.sourceRoot, "<MOD>")
+    value = ReplacePathPrefix(value, report.workshopDirectory, "<WORKSHOP>")
     return value
 end
 
