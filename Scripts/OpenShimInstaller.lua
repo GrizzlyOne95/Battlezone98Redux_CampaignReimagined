@@ -429,23 +429,386 @@ local function GetOpenShimManifest()
     return manifest
 end
 
-local function ReadOpenShimInstallerStatus(path)
-    if not path or path == "" or not io or type(io.open) ~= "function" then
+local function ReadTextFile(path)
+    if not path or path == "" then
         return nil
     end
 
-    local handle = io.open(path, "r")
-    if not handle then
+    if bzfile and type(bzfile.Open) == "function" then
+        local ok, contents = pcall(function()
+            local handle = bzfile.Open(path, "r")
+            local chunks = {}
+            while true do
+                local chunk = handle:Read(65536)
+                if not chunk or chunk == "" then break end
+                chunks[#chunks + 1] = chunk
+            end
+            handle:Close()
+            return table.concat(chunks)
+        end)
+        if ok and type(contents) == "string" then
+            return contents
+        end
+    end
+
+    if io and type(io.open) == "function" then
+        local handle = io.open(path, "rb")
+        if handle then
+            local contents = handle:read("*a")
+            handle:close()
+            return contents
+        end
+    end
+
+    return nil
+end
+
+local function WriteTextFile(path, text)
+    if not path or path == "" or type(text) ~= "string" then
+        return false, "invalid path or text"
+    end
+
+    if bzfile and type(bzfile.Open) == "function" then
+        local ok, err = pcall(function()
+            local handle = bzfile.Open(path, "w", "trunc")
+            handle:Write(text)
+            handle:Close()
+        end)
+        if ok then
+            return true
+        end
+        if err then
+            print("OpenShimInstaller: bzfile write failed for " .. tostring(path) .. ": " .. tostring(err))
+        end
+    end
+
+    if io and type(io.open) == "function" then
+        local handle, err = io.open(path, "wb")
+        if handle then
+            handle:write(text)
+            handle:close()
+            return true
+        end
+        return false, tostring(err or "io.open failed")
+    end
+
+    return false, "no writable file API is available"
+end
+
+local function ReadOpenShimInstallerStatus(path)
+    local contents = ReadTextFile(path)
+    if not contents then
         return nil
     end
 
     local values = {}
-    for line in handle:lines() do
+    for line in (contents .. "\n"):gmatch("(.-)\r?\n") do
         local key, value = line:match("^([^=]+)=(.*)$")
         if key then values[key] = value end
     end
-    handle:close()
     return values
+end
+
+OpenShimInstaller.States = {
+    CURRENT = "CURRENT",
+    INSTALL_REQUIRED = "INSTALL_REQUIRED",
+    UPDATE_REQUIRED = "UPDATE_REQUIRED",
+    RESTART_REQUIRED = "RESTART_REQUIRED",
+    UPDATE_FAILED = "UPDATE_FAILED",
+    NEWER_THAN_BUNDLED = "NEWER_THAN_BUNDLED",
+    MANIFEST_INVALID = "MANIFEST_INVALID",
+    PAYLOAD_MISSING = "PAYLOAD_MISSING",
+    PAYLOAD_HASH_MISMATCH = "PAYLOAD_HASH_MISMATCH",
+    STAGING_UNAVAILABLE = "STAGING_UNAVAILABLE",
+}
+
+local function GetPathDirectory(path)
+    if not path or path == "" then
+        return nil
+    end
+    return path:match("^(.*)[\\/][^\\/]+$")
+end
+
+local function NewPayloadDiagnostic(name, payload, sourcePath)
+    local actualHash = sourcePath and GetBzFileHash(sourcePath) or nil
+    local state = "CURRENT"
+    if not sourcePath then
+        state = "MISSING"
+    elseif actualHash ~= payload.sha256 then
+        state = "HASH_MISMATCH"
+    end
+
+    return {
+        name = name,
+        source = sourcePath,
+        expectedSha256 = payload.sha256,
+        actualSha256 = actualHash,
+        state = state,
+    }
+end
+
+local function NewInstalledDiagnostic(name, path, payload, compareVersion)
+    local exists = BzFileExists(path)
+    local actualHash = exists and GetBzFileHash(path) or nil
+    local version = compareVersion and exists and GetBzFileVersion(path) or nil
+    local state
+
+    if not exists then
+        state = "MISSING"
+    elseif name == "playerConfig" then
+        state = actualHash == payload.sha256 and "DEFAULT" or "CUSTOMIZED"
+    elseif actualHash == payload.sha256 then
+        state = "CURRENT"
+    else
+        local comparison = compareVersion and CompareInstallerVersions(version, payload.version) or nil
+        state = comparison and comparison > 0 and "NEWER" or "OUTDATED"
+    end
+
+    return {
+        name = name,
+        path = path,
+        exists = exists,
+        expectedSha256 = payload.sha256,
+        actualSha256 = actualHash,
+        version = version,
+        expectedVersion = payload.version,
+        state = state,
+    }
+end
+
+--- Inspect the bundled and installed OpenShim suite without changing anything
+--- on disk. This intentionally performs no staging, copying, deletion, or
+--- update-status acknowledgement so the setup mission can display the report
+--- before the user chooses/observes an action.
+function OpenShimInstaller.Inspect()
+    local workingDirectory = NormalizeInstallerPath(getWorkingDirectory()) or "."
+    local report = {
+        schemaVersion = 1,
+        state = "UNKNOWN",
+        workingDirectory = workingDirectory,
+        diagnosticLogPath = LogPaths.Path("openpatch_setup.log"),
+        stagingAvailable = bzfile and type(bzfile.StageOpenShimSuiteUpdate) == "function" or false,
+        manifest = { valid = false },
+        payloads = {},
+        installed = {},
+        updateStatus = {
+            path = workingDirectory .. "\\openshim_update.status",
+            exists = false,
+        },
+    }
+
+    local manifest = GetOpenShimManifest()
+    if not manifest then
+        report.state = OpenShimInstaller.States.MANIFEST_INVALID
+        return report
+    end
+
+    report.manifest = {
+        valid = true,
+        formatVersion = manifest.formatVersion,
+        version = manifest.version,
+        architecture = manifest.architecture,
+        sha256 = manifest.sha256,
+    }
+
+    local definitions = {
+        { name = "winmm", payload = manifest.payloads.winmm, versioned = true },
+        { name = "network", payload = manifest.payloads.network },
+        { name = "patches", payload = manifest.payloads.patches },
+        { name = "playerConfig", payload = manifest.payloads.playerConfig },
+    }
+
+    local destinationPaths = {
+        winmm = workingDirectory .. "\\winmm.dll",
+        network = workingDirectory .. "\\net.ini",
+        patches = workingDirectory .. "\\scripts\\patches.json",
+        playerConfig = workingDirectory .. "\\openshim.ini",
+    }
+
+    local sourceFailure = nil
+    local sourceRoot = nil
+    for _, definition in ipairs(definitions) do
+        local sourcePath = GetBundledOpenShimPayloadPath(definition.payload.source)
+        local sourceDiagnostic = NewPayloadDiagnostic(
+            definition.name,
+            definition.payload,
+            sourcePath)
+        report.payloads[definition.name] = sourceDiagnostic
+        sourceRoot = sourceRoot or GetPathDirectory(sourcePath)
+
+        if sourceDiagnostic.state == "MISSING" and not sourceFailure then
+            sourceFailure = OpenShimInstaller.States.PAYLOAD_MISSING
+        elseif sourceDiagnostic.state == "HASH_MISMATCH" and
+            sourceFailure ~= OpenShimInstaller.States.PAYLOAD_MISSING then
+            sourceFailure = OpenShimInstaller.States.PAYLOAD_HASH_MISMATCH
+        end
+
+        report.installed[definition.name] = NewInstalledDiagnostic(
+            definition.name,
+            destinationPaths[definition.name],
+            definition.payload,
+            definition.versioned)
+    end
+    report.sourceRoot = sourceRoot
+
+    local status = ReadOpenShimInstallerStatus(report.updateStatus.path)
+    if status then
+        report.updateStatus.exists = true
+        report.updateStatus.state = status.state
+        report.updateStatus.expectedSha256 = status.expected_sha256
+        report.updateStatus.detail = status.detail
+        report.updateStatus.updated = status.updated
+        report.updateStatus.payloadCount = status.payload_count
+        report.updateStatus.matchesBundled =
+            status.expected_sha256 == manifest.sha256
+    end
+
+    if sourceFailure then
+        report.state = sourceFailure
+        return report
+    end
+
+    local winmm = report.installed.winmm
+    local network = report.installed.network
+    local patches = report.installed.patches
+    local playerConfig = report.installed.playerConfig
+    local allCurrent =
+        winmm.state == "CURRENT" and
+        network.state == "CURRENT" and
+        patches.state == "CURRENT" and
+        playerConfig.state ~= "MISSING"
+
+    local pendingState = report.updateStatus.matchesBundled and
+        (report.updateStatus.state == "staged" or
+         report.updateStatus.state == "waiting_for_exit" or
+         report.updateStatus.state == "already_staged")
+    if pendingState then
+        report.state = OpenShimInstaller.States.RESTART_REQUIRED
+        return report
+    end
+
+    if report.updateStatus.matchesBundled and
+        report.updateStatus.state == "failed" and
+        not allCurrent then
+        report.state = OpenShimInstaller.States.UPDATE_FAILED
+        return report
+    end
+
+    if winmm.state == "MISSING" then
+        report.state = OpenShimInstaller.States.INSTALL_REQUIRED
+        return report
+    end
+
+    if winmm.state == "NEWER" then
+        report.state = OpenShimInstaller.States.NEWER_THAN_BUNDLED
+        return report
+    end
+
+    if allCurrent then
+        report.state = OpenShimInstaller.States.CURRENT
+        return report
+    end
+
+    if not report.stagingAvailable then
+        report.state = OpenShimInstaller.States.STAGING_UNAVAILABLE
+        return report
+    end
+
+    report.state = OpenShimInstaller.States.UPDATE_REQUIRED
+    return report
+end
+
+local function ReplacePathPrefix(path, prefix, token)
+    if type(path) ~= "string" or path == "" or
+        type(prefix) ~= "string" or prefix == "" then
+        return path
+    end
+
+    local normalizedPath = NormalizeInstallerPath(path) or path
+    local normalizedPrefix = NormalizeInstallerPath(prefix) or prefix
+    local pathLower = string.lower(normalizedPath)
+    local prefixLower = string.lower(normalizedPrefix)
+    if pathLower:sub(1, #prefixLower) ~= prefixLower then
+        return normalizedPath
+    end
+
+    return token .. normalizedPath:sub(#normalizedPrefix + 1)
+end
+
+local function SafeDiagnosticPath(report, path)
+    local value = ReplacePathPrefix(path, report.workingDirectory, "<GAME>")
+    value = ReplacePathPrefix(value, report.sourceRoot, "<MOD>")
+    return value
+end
+
+local function BoolText(value)
+    return value and "YES" or "NO"
+end
+
+local function AddDiagnosticPayloadLine(lines, prefix, entry, report)
+    if not entry then return end
+    lines[#lines + 1] = prefix .. "_STATE=" .. tostring(entry.state or "UNKNOWN")
+    lines[#lines + 1] = prefix .. "_EXPECTED_SHA256=" .. tostring(entry.expectedSha256 or "")
+    lines[#lines + 1] = prefix .. "_ACTUAL_SHA256=" .. tostring(entry.actualSha256 or "")
+    if entry.source then
+        lines[#lines + 1] = prefix .. "_SOURCE=" .. tostring(SafeDiagnosticPath(report, entry.source))
+    end
+    if entry.path then
+        lines[#lines + 1] = prefix .. "_PATH=" .. tostring(SafeDiagnosticPath(report, entry.path))
+    end
+    if entry.version then
+        lines[#lines + 1] = prefix .. "_VERSION=" .. tostring(entry.version)
+    end
+end
+
+--- Build a deterministic, support-friendly diagnostic report. Paths under the
+--- game and mod roots are tokenized so a shared log does not expose a user's
+--- profile/install prefix.
+function OpenShimInstaller.FormatDiagnosticReport(report)
+    report = report or OpenShimInstaller.Inspect()
+    local lines = {
+        "OPEN COMMUNITY PATCH SETUP DIAGNOSTICS",
+        "SCHEMA=" .. tostring(report.schemaVersion or 1),
+        "RESULT=" .. tostring(report.state or "UNKNOWN"),
+        "STAGING_AVAILABLE=" .. BoolText(report.stagingAvailable),
+        "GAME_ROOT=<GAME>",
+        "MOD_ROOT=" .. tostring(report.sourceRoot and "<MOD>" or "UNKNOWN"),
+        "BUNDLED_OPENSHIM=" .. tostring(report.manifest and report.manifest.version or "UNKNOWN"),
+        "BUNDLED_SHA256=" .. tostring(report.manifest and report.manifest.sha256 or ""),
+    }
+
+    AddDiagnosticPayloadLine(lines, "PAYLOAD_WINMM", report.payloads and report.payloads.winmm, report)
+    AddDiagnosticPayloadLine(lines, "PAYLOAD_NETWORK", report.payloads and report.payloads.network, report)
+    AddDiagnosticPayloadLine(lines, "PAYLOAD_PATCHES", report.payloads and report.payloads.patches, report)
+    AddDiagnosticPayloadLine(lines, "PAYLOAD_PLAYER_CONFIG", report.payloads and report.payloads.playerConfig, report)
+    AddDiagnosticPayloadLine(lines, "INSTALLED_WINMM", report.installed and report.installed.winmm, report)
+    AddDiagnosticPayloadLine(lines, "INSTALLED_NETWORK", report.installed and report.installed.network, report)
+    AddDiagnosticPayloadLine(lines, "INSTALLED_PATCHES", report.installed and report.installed.patches, report)
+    AddDiagnosticPayloadLine(lines, "INSTALLED_PLAYER_CONFIG", report.installed and report.installed.playerConfig, report)
+
+    local status = report.updateStatus or {}
+    lines[#lines + 1] = "UPDATE_STATUS_PRESENT=" .. BoolText(status.exists)
+    lines[#lines + 1] = "UPDATE_STATUS_STATE=" .. tostring(status.state or "")
+    lines[#lines + 1] = "UPDATE_STATUS_EXPECTED_SHA256=" .. tostring(status.expectedSha256 or "")
+    lines[#lines + 1] = "UPDATE_STATUS_MATCHES_BUNDLED=" .. BoolText(status.matchesBundled)
+    lines[#lines + 1] = "UPDATE_STATUS_DETAIL=" .. tostring(status.detail or "")
+    lines[#lines + 1] = "UPDATE_STATUS_UPDATED=" .. tostring(status.updated or "")
+    lines[#lines + 1] = "UPDATE_STATUS_PAYLOAD_COUNT=" .. tostring(status.payloadCount or "")
+    lines[#lines + 1] = "UPDATE_STATUS_PATH=" .. tostring(SafeDiagnosticPath(report, status.path or ""))
+
+    return table.concat(lines, "\r\n") .. "\r\n"
+end
+
+--- Write the diagnostic report on explicit request. Inspect() itself remains
+--- side-effect free.
+function OpenShimInstaller.WriteDiagnosticLog(report)
+    report = report or OpenShimInstaller.Inspect()
+    local path = report.diagnosticLogPath or LogPaths.Path("openpatch_setup.log")
+    local ok, err = WriteTextFile(path, OpenShimInstaller.FormatDiagnosticReport(report))
+    if ok then
+        return path
+    end
+    return nil, err
 end
 
 local function AcknowledgeCompletedOpenShimUpdate(statusPath, expectedHash)
