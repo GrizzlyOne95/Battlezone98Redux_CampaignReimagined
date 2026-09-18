@@ -1352,6 +1352,7 @@ function Build-WorkshopContent {
         "BZ_ASSETS_CORE\common\ui\CustomWidgets\uibtnhv.png",
         "RequireFix.lua",
         "ScriptSubtitles.lua",
+        "OpenShimInstaller.lua",
         "OpenShimManifest.lua",
         "PersistentConfig.lua",
         "RuntimeEnhancements.lua",
