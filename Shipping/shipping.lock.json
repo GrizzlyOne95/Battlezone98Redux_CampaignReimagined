@@ -9728,6 +9728,10 @@
       "runtime": "MissionLifecycle.lua"
     },
     {
+      "source": "Scripts\\OpenShimInstaller.lua",
+      "runtime": "OpenShimInstaller.lua"
+    },
+    {
       "source": "Scripts\\OpenShimManifest.lua",
       "runtime": "OpenShimManifest.lua"
     },
