@@ -48,6 +48,7 @@ local manifest = {
 local exists = {}
 local fileHashes = {}
 local versions = {}
+local statusContent = nil
 
 local function Put(path, hash, version)
     exists[path] = true
@@ -81,6 +82,17 @@ package.preload["bzfile"] = function()
             return nil, "missing"
         end,
         Open = function(path)
+            if path == working .. "\\openshim_update.status" and statusContent then
+                local consumed = false
+                return {
+                    Read = function()
+                        if consumed then return "" end
+                        consumed = true
+                        return statusContent
+                    end,
+                    Close = function() end,
+                }
+            end
             error("test file unavailable: " .. tostring(path))
         end,
         StageOpenShimSuiteUpdate = function() return true, "staged" end,
@@ -126,5 +138,11 @@ versions[working .. "\\winmm.dll"] = manifest.version
 fileHashes[modRoot .. "\\winmm.dll"] = string.rep("f", 64)
 report = Installer.Inspect()
 assert(report.state == Installer.States.PAYLOAD_HASH_MISMATCH, report.state)
+
+fileHashes[modRoot .. "\\winmm.dll"] = hashes.winmm
+statusContent = "state=staged\nexpected_sha256=" .. hashes.winmm .. "\npayload_count=3\n"
+report = Installer.Inspect()
+assert(report.state == Installer.States.RESTART_REQUIRED, report.state)
+assert(report.updateStatus.payloadCount == "3")
 
 print("OpenShimInstaller diagnostics tests passed")
