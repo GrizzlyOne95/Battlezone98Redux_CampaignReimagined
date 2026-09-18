@@ -4,7 +4,8 @@
 -- EXU, aiCore, HUD/overlay systems, and campaign gameplay initialization.
 ---@diagnostic disable: lowercase-global, undefined-global
 
-local bzfile = require("bzfile")
+local bzfileOk, bzfile = pcall(require, "bzfile")
+if not bzfileOk then bzfile = nil end
 local LogPaths = require("LogPaths")
 
 local OpenShimInstaller = {}
@@ -520,6 +521,8 @@ OpenShimInstaller.States = {
     PAYLOAD_MISSING = "PAYLOAD_MISSING",
     PAYLOAD_HASH_MISMATCH = "PAYLOAD_HASH_MISMATCH",
     STAGING_UNAVAILABLE = "STAGING_UNAVAILABLE",
+    BZFILE_UNAVAILABLE = "BZFILE_UNAVAILABLE",
+    HELPER_MISSING = "HELPER_MISSING",
 }
 
 local function GetPathDirectory(path)
@@ -586,8 +589,10 @@ function OpenShimInstaller.Inspect()
         schemaVersion = 1,
         state = "UNKNOWN",
         workingDirectory = workingDirectory,
-        diagnosticLogPath = LogPaths.Path("openpatch_setup.log"),
+        diagnosticLogPath = workingDirectory .. "\\logs\\openpatch_setup.log",
+        bzfileAvailable = bzfile ~= nil,
         stagingAvailable = bzfile and type(bzfile.StageOpenShimSuiteUpdate) == "function" or false,
+        workshopDirectory = GetWorkshopContentDirectory(),
         manifest = { valid = false },
         payloads = {},
         installed = {},
@@ -596,6 +601,21 @@ function OpenShimInstaller.Inspect()
             exists = false,
         },
     }
+
+    local status = ReadOpenShimInstallerStatus(report.updateStatus.path)
+    if status then
+        report.updateStatus.exists = true
+        report.updateStatus.state = status.state
+        report.updateStatus.expectedSha256 = status.expected_sha256
+        report.updateStatus.detail = status.detail
+        report.updateStatus.updated = status.updated
+        report.updateStatus.payloadCount = status.payload_count
+    end
+
+    if not report.bzfileAvailable then
+        report.state = OpenShimInstaller.States.BZFILE_UNAVAILABLE
+        return report
+    end
 
     local manifest = GetOpenShimManifest()
     if not manifest then
@@ -650,21 +670,23 @@ function OpenShimInstaller.Inspect()
             definition.versioned)
     end
     report.sourceRoot = sourceRoot
+    report.helper = {
+        path = sourceRoot and (sourceRoot .. "\\bzfile_replace_helper.exe") or nil,
+        exists = sourceRoot and BzFileExists(sourceRoot .. "\\bzfile_replace_helper.exe") or false,
+    }
 
-    local status = ReadOpenShimInstallerStatus(report.updateStatus.path)
-    if status then
-        report.updateStatus.exists = true
-        report.updateStatus.state = status.state
-        report.updateStatus.expectedSha256 = status.expected_sha256
-        report.updateStatus.detail = status.detail
-        report.updateStatus.updated = status.updated
-        report.updateStatus.payloadCount = status.payload_count
+    if report.updateStatus.exists then
         report.updateStatus.matchesBundled =
-            status.expected_sha256 == manifest.sha256
+            report.updateStatus.expectedSha256 == manifest.sha256
     end
 
     if sourceFailure then
         report.state = sourceFailure
+        return report
+    end
+
+    if not report.helper.exists then
+        report.state = OpenShimInstaller.States.HELPER_MISSING
         return report
     end
 
@@ -732,6 +754,11 @@ local function ReplacePathPrefix(path, prefix, token)
         return normalizedPath
     end
 
+    local boundary = normalizedPath:sub(#normalizedPrefix + 1, #normalizedPrefix + 1)
+    if boundary ~= "" and boundary ~= "\\" then
+        return normalizedPath
+    end
+
     return token .. normalizedPath:sub(#normalizedPrefix + 1)
 end
 
@@ -770,9 +797,13 @@ function OpenShimInstaller.FormatDiagnosticReport(report)
         "OPEN COMMUNITY PATCH SETUP DIAGNOSTICS",
         "SCHEMA=" .. tostring(report.schemaVersion or 1),
         "RESULT=" .. tostring(report.state or "UNKNOWN"),
+        "BZFILE_AVAILABLE=" .. BoolText(report.bzfileAvailable),
         "STAGING_AVAILABLE=" .. BoolText(report.stagingAvailable),
         "GAME_ROOT=<GAME>",
         "MOD_ROOT=" .. tostring(report.sourceRoot and "<MOD>" or "UNKNOWN"),
+        "WORKSHOP_DIRECTORY=" .. tostring(SafeDiagnosticPath(report, report.workshopDirectory or "")),
+        "HELPER_PRESENT=" .. BoolText(report.helper and report.helper.exists),
+        "HELPER_PATH=" .. tostring(SafeDiagnosticPath(report, report.helper and report.helper.path or "")),
         "BUNDLED_OPENSHIM=" .. tostring(report.manifest and report.manifest.version or "UNKNOWN"),
         "BUNDLED_SHA256=" .. tostring(report.manifest and report.manifest.sha256 or ""),
     }
@@ -803,7 +834,8 @@ end
 --- side-effect free.
 function OpenShimInstaller.WriteDiagnosticLog(report)
     report = report or OpenShimInstaller.Inspect()
-    local path = report.diagnosticLogPath or LogPaths.Path("openpatch_setup.log")
+    local path = LogPaths.Path("openpatch_setup.log")
+    report.diagnosticLogPath = path
     local ok, err = WriteTextFile(path, OpenShimInstaller.FormatDiagnosticReport(report))
     if ok then
         return path
