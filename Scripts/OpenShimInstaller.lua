@@ -807,6 +807,12 @@ function OpenShimInstaller.FormatDiagnosticReport(report)
         "HELPER_PATH=" .. tostring(SafeDiagnosticPath(report, report.helper and report.helper.path or "")),
         "BUNDLED_OPENSHIM=" .. tostring(report.manifest and report.manifest.version or "UNKNOWN"),
         "BUNDLED_SHA256=" .. tostring(report.manifest and report.manifest.sha256 or ""),
+        "ACTION=" .. tostring(report.action or ""),
+        "ACTION_SUCCESS=" .. tostring(report.actionSuccess == true),
+        "ACTION_RESTART_REQUIRED=" .. tostring(report.actionRestartRequired == true),
+        "ACTION_DETAIL=" .. tostring(report.actionDetail or ""),
+        "ACTION_PLAYER_CONFIG=" .. tostring(report.actionPlayerConfig or ""),
+        "ACTION_STAGE_STATE=" .. tostring(report.actionStageState or ""),
     }
 
     AddDiagnosticPayloadLine(lines, "PAYLOAD_WINMM", report.payloads and report.payloads.winmm, report)
@@ -857,151 +863,263 @@ local function AcknowledgeCompletedOpenShimUpdate(statusPath, expectedHash)
     end
 end
 
+local ACTIONABLE_STATES = {
+    [OpenShimInstaller.States.INSTALL_REQUIRED] = true,
+    [OpenShimInstaller.States.UPDATE_REQUIRED] = true,
+    [OpenShimInstaller.States.UPDATE_FAILED] = true,
+}
+
+local function CopyPlayerConfigIfNeeded(report, manifest)
+    local entry = report.installed and report.installed.playerConfig
+    local payload = manifest and manifest.payloads and manifest.payloads.playerConfig
+    if not entry or not payload then
+        return false, "player config diagnostics are unavailable"
+    end
+
+    local configExists = entry.exists == true
+    local overwritePlayerConfig = payload.overwrite == true
+    if configExists and not overwritePlayerConfig then
+        return true, "preserved"
+    end
+
+    local sourcePath = report.payloads and report.payloads.playerConfig and
+        report.payloads.playerConfig.source or nil
+    if not sourcePath then
+        return false, "bundled openshim.ini payload is unavailable"
+    end
+    if not (bzfile and type(bzfile.CopyFile) == "function") then
+        return false, "bzfile.CopyFile is unavailable"
+    end
+
+    local destinationPath = entry.path
+    if configExists and overwritePlayerConfig then
+        local backupOk, backupCopied, backupError = pcall(
+            bzfile.CopyFile,
+            destinationPath,
+            destinationPath .. ".pre-workshop.bak",
+            true)
+        if not backupOk or not backupCopied then
+            return false, "could not back up existing openshim.ini: " ..
+                tostring(backupOk and backupError or backupCopied)
+        end
+    end
+
+    local copyOk, configCopied, configError = pcall(
+        bzfile.CopyFile,
+        sourcePath,
+        destinationPath,
+        true)
+    local installedConfigHash = copyOk and configCopied and
+        GetBzFileHash(destinationPath) or nil
+    if not copyOk or not configCopied or installedConfigHash ~= payload.sha256 then
+        local detail = not copyOk and tostring(configCopied) or
+            tostring(configError or "installed hash mismatch")
+        return false, "openshim.ini install failed: " .. detail
+    end
+
+    return true, configExists and "overwritten" or "installed"
+end
+
+local function NewApplyResult(report)
+    return {
+        before = report,
+        after = report,
+        state = report and report.state or "UNKNOWN",
+        action = "none",
+        success = false,
+        changed = false,
+        restartRequired = false,
+        detail = nil,
+        helperLogPath = nil,
+        stageState = nil,
+        playerConfigAction = "preserved",
+    }
+end
+
+--- Apply the safe setup action for the current diagnostic state.
+---
+--- This function never calls mission success/failure APIs. It only mutates the
+--- installation for states that Inspect() has already classified as requiring
+--- installation/repair. Healthy installs and newer manual installs are no-ops.
+function OpenShimInstaller.Apply(report)
+    report = report or OpenShimInstaller.Inspect()
+    local result = NewApplyResult(report)
+
+    if report.state == OpenShimInstaller.States.CURRENT then
+        result.success = true
+        result.detail = "installation already current"
+        return result
+    end
+
+    if report.state == OpenShimInstaller.States.NEWER_THAN_BUNDLED then
+        result.success = true
+        result.detail = "installed OpenShim is newer than the bundled release; no downgrade performed"
+        return result
+    end
+
+    if report.state == OpenShimInstaller.States.RESTART_REQUIRED then
+        result.success = true
+        result.action = "already_staged"
+        result.restartRequired = true
+        result.detail = "an OpenShim update is already staged or waiting for game exit"
+        return result
+    end
+
+    if not ACTIONABLE_STATES[report.state] then
+        result.action = "blocked"
+        result.detail = "setup cannot safely repair diagnostic state " .. tostring(report.state)
+        return result
+    end
+
+    if not (bzfile and type(bzfile.StageOpenShimSuiteUpdate) == "function") then
+        result.action = "blocked"
+        result.state = OpenShimInstaller.States.STAGING_UNAVAILABLE
+        result.detail = "hardened OpenShim suite staging is unavailable"
+        return result
+    end
+
+    local manifest = GetOpenShimManifest()
+    if not manifest then
+        result.action = "blocked"
+        result.state = OpenShimInstaller.States.MANIFEST_INVALID
+        result.detail = "OpenShim manifest is unavailable or invalid"
+        return result
+    end
+
+    -- Revalidate every bundled payload immediately before any write/staging
+    -- action. Inspect() may have happened several frames earlier.
+    local payloadOrder = {
+        { name = "winmm", payload = manifest.payloads.winmm },
+        { name = "network", payload = manifest.payloads.network },
+        { name = "patches", payload = manifest.payloads.patches },
+        { name = "playerConfig", payload = manifest.payloads.playerConfig },
+    }
+    for _, definition in ipairs(payloadOrder) do
+        local sourceEntry = report.payloads and report.payloads[definition.name]
+        local sourcePath = sourceEntry and sourceEntry.source or nil
+        local sourceHash = sourcePath and GetBzFileHash(sourcePath) or nil
+        if not sourcePath then
+            result.action = "blocked"
+            result.state = OpenShimInstaller.States.PAYLOAD_MISSING
+            result.detail = "bundled payload missing: " .. tostring(definition.payload.source)
+            return result
+        end
+        if sourceHash ~= definition.payload.sha256 then
+            result.action = "blocked"
+            result.state = OpenShimInstaller.States.PAYLOAD_HASH_MISMATCH
+            result.detail = "bundled payload hash mismatch: " .. tostring(definition.payload.source)
+            return result
+        end
+    end
+
+    local coreCurrent =
+        report.installed and report.installed.winmm and report.installed.winmm.state == "CURRENT" and
+        report.installed.network and report.installed.network.state == "CURRENT" and
+        report.installed.patches and report.installed.patches.state == "CURRENT"
+
+    -- If the only missing component is the user config, install it directly.
+    -- Re-staging a byte-identical DLL/net/patch suite would force a pointless
+    -- restart just to create openshim.ini.
+    if coreCurrent and report.installed.playerConfig and
+        report.installed.playerConfig.state == "MISSING" then
+        local configOk, configAction = CopyPlayerConfigIfNeeded(report, manifest)
+        result.playerConfigAction = configAction
+        result.action = configOk and "config_installed" or "config_failed"
+        result.success = configOk
+        result.changed = configOk
+        result.detail = configOk and
+            "default openshim.ini installed; core OpenShim files were already current" or
+            configAction
+        result.after = OpenShimInstaller.Inspect()
+        result.state = result.after.state
+        return result
+    end
+
+    local sourcePaths = {
+        report.payloads.winmm.source,
+        report.payloads.network.source,
+        report.payloads.patches.source,
+    }
+
+    local ok, staged, stageState, helperLogPath = pcall(
+        bzfile.StageOpenShimSuiteUpdate,
+        sourcePaths[1], manifest.payloads.winmm.sha256,
+        sourcePaths[2], manifest.payloads.network.sha256,
+        sourcePaths[3], manifest.payloads.patches.sha256)
+
+    if not ok or not staged then
+        result.action = "stage_failed"
+        result.detail = ok and tostring(stageState or "staging failed") or tostring(staged)
+        result.helperLogPath = LogPaths.Path("openshim_update.log")
+        result.after = OpenShimInstaller.Inspect()
+        result.state = result.after.state
+        return result
+    end
+
+    result.action = report.state == OpenShimInstaller.States.INSTALL_REQUIRED and
+        "install_staged" or "update_staged"
+    result.success = true
+    result.changed = true
+    result.restartRequired = true
+    result.stageState = stageState
+    result.helperLogPath = helperLogPath
+
+    local configOk, configAction = CopyPlayerConfigIfNeeded(report, manifest)
+    result.playerConfigAction = configAction
+    if not configOk then
+        -- The core suite is already staged and will still install on exit.
+        -- OpenShim has in-code defaults, so a missing player INI is a warning,
+        -- not a reason to claim the staged core update failed.
+        result.detail = "core suite staged; " .. tostring(configAction)
+    else
+        result.detail = "OpenShim suite staged for verified replacement on game exit; openshim.ini " ..
+            tostring(configAction)
+    end
+
+    result.after = OpenShimInstaller.Inspect()
+    result.state = result.after.state
+    if result.after.state == OpenShimInstaller.States.UPDATE_FAILED then
+        result.success = false
+        result.restartRequired = false
+        result.action = "stage_failed_after_launch"
+        result.detail = "OpenShim update helper reported failure: " ..
+            tostring(result.after.updateStatus and result.after.updateStatus.detail or "unknown error")
+    end
+    return result
+end
+
 local function EnsureBundledOpenShimInstalled()
     if OpenShimInstaller.InstallChecked then
         return
     end
     OpenShimInstaller.InstallChecked = true
 
-    if not (bzfile and type(bzfile.StageOpenShimSuiteUpdate) == "function") then
-        print("PersistentConfig: hardened OpenShim suite staging is unavailable; leaving the active mission running.")
-        return
+    local report = OpenShimInstaller.Inspect()
+    if report.state == OpenShimInstaller.States.CURRENT and
+        report.updateStatus and report.updateStatus.state == "complete" and
+        report.manifest and report.manifest.sha256 then
+        AcknowledgeCompletedOpenShimUpdate(
+            report.updateStatus.path,
+            report.manifest.sha256)
     end
 
-    local workingDirectory = getWorkingDirectory()
-    local manifest = GetOpenShimManifest()
-    local statusPath = workingDirectory .. "\\openshim_update.status"
-    local replaceLogPath = LogPaths.Path("openshim_update.log")
-    if not manifest then
-        ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
-        return
+    local result = OpenShimInstaller.Apply(report)
+
+    if result.restartRequired then
+        ShowOpenShimInstallMissionOutcome("staged")
+    elseif not result.success then
+        print("PersistentConfig: OpenShim setup failed: " .. tostring(result.detail))
+        ShowOpenShimInstallMissionOutcome(
+            "failed",
+            result.helperLogPath or LogPaths.Path("openshim_update.log"))
+    elseif result.action == "config_installed" then
+        EmitFeedback("OpenShim configuration installed.", 0.35, 1.0, 0.35, 8.0, true)
+    elseif report.state == OpenShimInstaller.States.NEWER_THAN_BUNDLED then
+        print("PersistentConfig: Installed OpenShim is newer than the bundled suite; no downgrade performed.")
     end
 
-    local orderedPayloads = {
-        manifest.payloads.winmm,
-        manifest.payloads.network,
-        manifest.payloads.patches,
-        manifest.payloads.playerConfig,
-    }
-    local sourcePaths = {}
-    for index, payload in ipairs(orderedPayloads) do
-        local sourcePath = GetBundledOpenShimPayloadPath(payload.source)
-        if not sourcePath then
-            print("PersistentConfig: Bundled OpenShim suite payload is missing: " .. tostring(payload.source))
-            ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
-            return
-        end
-
-        local sourceHash = GetBzFileHash(sourcePath)
-        if not sourceHash or sourceHash ~= payload.sha256 then
-            print("PersistentConfig: Bundled OpenShim suite payload does not match the manifest: " ..
-                tostring(payload.source))
-            ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
-            return
-        end
-        sourcePaths[index] = sourcePath
-    end
-
-    local destinationPaths = {
-        workingDirectory .. "\\winmm.dll",
-        workingDirectory .. "\\net.ini",
-        workingDirectory .. "\\scripts\\patches.json",
-        workingDirectory .. "\\openshim.ini",
-    }
-    -- openshim.ini is the player's file. Only its ABSENCE means the suite is out
-    -- of date; a differing hash just means a setting was changed, and letting
-    -- that count here dragged the whole suite into a staged replacement every
-    -- launch -- which then overwrote the edit that triggered it.
-    local playerConfigIndex = 4
-    local allCurrent = true
-    for index, payload in ipairs(orderedPayloads) do
-        local destinationExists = BzFileExists(destinationPaths[index])
-        if index == playerConfigIndex then
-            if not destinationExists then
-                allCurrent = false
-            end
-        else
-            local destinationHash = destinationExists and
-                GetBzFileHash(destinationPaths[index]) or nil
-            if destinationHash ~= payload.sha256 then
-                allCurrent = false
-            end
-        end
-    end
-    if allCurrent then
-        AcknowledgeCompletedOpenShimUpdate(statusPath, manifest.sha256)
-        return
-    end
-
-    if BzFileExists(destinationPaths[1]) then
-        local destinationHash = GetBzFileHash(destinationPaths[1])
-        local destinationVersion = GetBzFileVersion(destinationPaths[1])
-        local versionComparison = CompareInstallerVersions(destinationVersion, manifest.version)
-        if destinationHash ~= manifest.sha256 and versionComparison and versionComparison > 0 then
-            print("PersistentConfig: Installed OpenShim " .. tostring(destinationVersion) ..
-                " is newer than bundled suite version " .. tostring(manifest.version) .. "; skipping downgrade.")
-            return
-        end
-    end
-
-    local ok, staged, stageState, helperLogPath = pcall(
-        bzfile.StageOpenShimSuiteUpdate,
-        sourcePaths[1], orderedPayloads[1].sha256,
-        sourcePaths[2], orderedPayloads[2].sha256,
-        sourcePaths[3], orderedPayloads[3].sha256)
-    if ok and staged then
-        local configDestination = destinationPaths[playerConfigIndex]
-        local configExists = BzFileExists(configDestination)
-        -- Install the shipped INI only when the player has none. Absent keys
-        -- already fall back to OpenShim's in-code defaults, so a new release
-        -- reaches an existing player without touching what they set. Honour an
-        -- explicit overwrite = true if a manifest ever asks for one.
-        local overwritePlayerConfig = orderedPayloads[playerConfigIndex].overwrite == true
-        local configAction = "left alone"
-
-        if (not configExists) or overwritePlayerConfig then
-            if configExists then
-                local backupOk, backupCopied, backupError = pcall(
-                    bzfile.CopyFile,
-                    configDestination,
-                    configDestination .. ".pre-workshop.bak",
-                    true)
-                if not backupOk or not backupCopied then
-                    print("PersistentConfig: Could not back up the existing OpenShim player INI: " ..
-                        tostring(backupOk and backupError or backupCopied))
-                end
-            end
-
-            local copyOk, configCopied, configError = pcall(
-                bzfile.CopyFile,
-                sourcePaths[playerConfigIndex],
-                configDestination,
-                true)
-            local installedConfigHash = copyOk and configCopied and GetBzFileHash(configDestination) or nil
-            if not copyOk or not configCopied or
-                installedConfigHash ~= orderedPayloads[playerConfigIndex].sha256 then
-                local configFailure = not copyOk and tostring(configCopied) or
-                    tostring(configError or "installed hash mismatch")
-                print("PersistentConfig: OpenShim player INI install failed: " .. configFailure)
-                ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
-                return
-            end
-            configAction = configExists and "overwritten" or "installed"
-        end
-
-        print("PersistentConfig: OpenShim suite " .. tostring(manifest.version) ..
-            " staged for verified replacement on exit; player openshim.ini " .. configAction .. "." ..
-            (helperLogPath and (" Helper log: " .. tostring(helperLogPath)) or ""))
-        ShowOpenShimInstallMissionOutcome(stageState == "staged" and "staged" or "updated")
-        return
-    end
-
-    local errorText = ok and tostring(stageState or "staging failed") or tostring(staged)
-    print("PersistentConfig: Hardened OpenShim suite staging failed: " .. errorText ..
-        (replaceLogPath and ("; check " .. replaceLogPath) or ""))
-    ShowOpenShimInstallMissionOutcome("failed", replaceLogPath)
+    return result
 end
-
 
 function OpenShimInstaller.EnsureOnce(showFeedback)
     local previousFeedback = FeedbackCallback
