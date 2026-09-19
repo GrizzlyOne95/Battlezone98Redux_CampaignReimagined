@@ -70,6 +70,9 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-OpenShimInstallerDiagnostics.lua
 
+      - name: Test setup mission shell
+        run: python Tools/Test-SetupMissionShell.py
+
       - name: Strictly validate changed Lua 5.1 files
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
         shell: bash
