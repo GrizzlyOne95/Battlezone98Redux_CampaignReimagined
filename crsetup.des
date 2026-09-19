@@ -1,0 +1,7 @@
+OPEN COMMUNITY PATCH - SETUP / REPAIR
+
+Launch this utility after subscribing to Campaign Reimagined, or any time you want to verify the Open Community Patch installation.
+
+This mission checks the bundled OpenShim payload, the files installed beside Battlezone, the replacement helper, and any pending or failed update status. It also writes a support-friendly diagnostic report to logs\openpatch_setup.log.
+
+This setup build is diagnostic-only: it does not install, replace, or remove game files.

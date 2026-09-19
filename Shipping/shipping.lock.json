@@ -6456,8 +6456,16 @@
       "runtime": "campaignReimagined.ini"
     },
     {
+      "source": "Config\\crsetup.ini",
+      "runtime": "crsetup.ini"
+    },
+    {
       "source": "Config\\durations.csv",
       "runtime": "durations.csv"
+    },
+    {
+      "source": "crsetup.des",
+      "runtime": "crsetup.des"
     },
     {
       "source": "flags\\flag0010.bmp",
@@ -7606,6 +7614,10 @@
     {
       "source": "Materials\\xbio.material",
       "runtime": "xbio.material"
+    },
+    {
+      "source": "Missions\\crsetup.bzn",
+      "runtime": "crsetup.bzn"
     },
     {
       "source": "Missions\\demo01.hg2",
@@ -9662,6 +9674,10 @@
     {
       "source": "Scripts\\CRReactiveProfiles.lua",
       "runtime": "CRReactiveProfiles.lua"
+    },
+    {
+      "source": "Scripts\\crsetup.lua",
+      "runtime": "crsetup.lua"
     },
     {
       "source": "Scripts\\CRWeather.lua",
