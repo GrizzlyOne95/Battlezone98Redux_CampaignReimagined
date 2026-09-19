@@ -1,7 +1,5 @@
 -- crsetup.lua
 -- Open Community Patch setup/repair utility mission.
--- Phase 3 is intentionally diagnostic-only: it may write a diagnostic log,
--- but it does not stage, copy, replace, delete, or repair game files.
 ---@diagnostic disable: lowercase-global, undefined-global
 
 local RequireFix = require("RequireFix")
@@ -11,20 +9,33 @@ local Installer = require("OpenShimInstaller")
 
 local DISPLAY_SECONDS = 3600.0
 local report = nil
+local actionResult = nil
 
 local stateMessages = {
-    CURRENT = { "green", "READY: Installed OpenShim files match this Workshop release." },
-    INSTALL_REQUIRED = { "yellow", "ACTION NEEDED: OpenShim is not installed beside Battlezone." },
-    UPDATE_REQUIRED = { "yellow", "ACTION NEEDED: One or more OpenShim files need an update." },
-    RESTART_REQUIRED = { "yellow", "RESTART REQUIRED: An OpenShim update is staged or waiting for game exit." },
-    UPDATE_FAILED = { "red", "UPDATE FAILED: A previous OpenShim update did not complete." },
-    NEWER_THAN_BUNDLED = { "green", "NO DOWNGRADE: Installed OpenShim is newer than this Workshop bundle." },
+    CURRENT = { "green", "READY: Open Community Patch files are current." },
+    INSTALL_REQUIRED = { "yellow", "INSTALL REQUIRED: OpenShim is not installed beside Battlezone." },
+    UPDATE_REQUIRED = { "yellow", "UPDATE REQUIRED: One or more OpenShim files are out of date." },
+    RESTART_REQUIRED = { "yellow", "RESTART REQUIRED: OpenShim is staged and waiting for Battlezone to exit." },
+    UPDATE_FAILED = { "red", "UPDATE FAILED: The replacement helper reported a failure." },
+    NEWER_THAN_BUNDLED = { "green", "NO DOWNGRADE: Your installed OpenShim is newer than this Workshop bundle." },
     MANIFEST_INVALID = { "red", "BUNDLE ERROR: OpenShimManifest.lua is missing, malformed, or unsupported." },
     PAYLOAD_MISSING = { "red", "BUNDLE ERROR: A required OpenShim payload file is missing." },
     PAYLOAD_HASH_MISMATCH = { "red", "BUNDLE ERROR: A bundled OpenShim payload failed SHA-256 validation." },
     STAGING_UNAVAILABLE = { "red", "INSTALLER ERROR: Hardened OpenShim staging is unavailable." },
     BZFILE_UNAVAILABLE = { "red", "INSTALLER ERROR: bzfile.dll could not be loaded." },
     HELPER_MISSING = { "red", "INSTALLER ERROR: bzfile_replace_helper.exe is missing from the active mod." },
+}
+
+local actionMessages = {
+    none = "No changes were needed.",
+    already_staged = "An existing staged update was detected; no duplicate staging was attempted.",
+    install_staged = "OpenShim installation was staged for verified replacement when Battlezone exits.",
+    update_staged = "OpenShim update was staged for verified replacement when Battlezone exits.",
+    config_installed = "The default openshim.ini was installed; the core OpenShim files were already current.",
+    config_failed = "Could not install the default openshim.ini.",
+    stage_failed = "OpenShim staging failed before the replacement helper could complete setup.",
+    stage_failed_after_launch = "The replacement helper launched but reported an immediate failure.",
+    blocked = "Setup refused to change files because the current diagnostic state is unsafe to repair automatically.",
 }
 
 local function Value(value, fallback)
@@ -47,14 +58,17 @@ local function ComponentText(label, entry)
     return label .. ": " .. Value(entry.state)
 end
 
-local function RenderReport()
-    report = Installer.Inspect()
+local function AttachActionToReport(currentReport, result)
+    if not currentReport or not result then return end
+    currentReport.action = result.action
+    currentReport.actionSuccess = result.success
+    currentReport.actionRestartRequired = result.restartRequired
+    currentReport.actionDetail = result.detail
+    currentReport.actionPlayerConfig = result.playerConfigAction
+    currentReport.actionStageState = result.stageState
+end
 
-    local logPath, logError = Installer.WriteDiagnosticLog(report)
-    if not logPath then
-        print("crsetup: failed to write diagnostic log: " .. tostring(logError))
-    end
-
+local function RenderReport(logPath, logError)
     if ClearObjectives then
         ClearObjectives()
     end
@@ -64,6 +78,12 @@ local function RenderReport()
     local stateInfo = stateMessages[report.state] or
         { "yellow", "STATUS: " .. Value(report.state) }
     AddLine("crsetup_state", stateInfo[1], stateInfo[2])
+
+    local actionText = actionMessages[actionResult and actionResult.action or "none"] or
+        Value(actionResult and actionResult.detail, "Setup completed.")
+    local actionColor = actionResult and actionResult.success and "green" or "yellow"
+    if actionResult and not actionResult.success then actionColor = "red" end
+    AddLine("crsetup_action", actionColor, "Action: " .. actionText)
 
     local bundledVersion = report.manifest and report.manifest.version or nil
     local installedVersion = report.installed and report.installed.winmm and
@@ -94,29 +114,50 @@ local function RenderReport()
         "Replacement helper: " .. helperState .. "    Update status: " .. Value(updaterState, "NONE"))
 
     AddLine(
-        "crsetup_bundle",
-        "white",
-        "Bundle payloads: winmm=" ..
-        Value(report.payloads and report.payloads.winmm and report.payloads.winmm.state) ..
-        " net=" .. Value(report.payloads and report.payloads.network and report.payloads.network.state) ..
-        " patches=" .. Value(report.payloads and report.payloads.patches and report.payloads.patches.state) ..
-        " config=" .. Value(report.payloads and report.payloads.playerConfig and report.payloads.playerConfig.state))
-
-    AddLine(
         "crsetup_log",
         logPath and "green" or "yellow",
         logPath and
             "Diagnostic report written: logs\\openpatch_setup.log" or
-            "Diagnostic report could not be written; see BZLogger output.")
+            ("Diagnostic report could not be written: " .. Value(logError, "unknown error")))
 
-    AddLine(
-        "crsetup_phase",
-        "yellow",
-        "Diagnostic-only setup shell: no game files are changed here. Exit this mission when finished.")
+    if actionResult and actionResult.restartRequired then
+        AddLine(
+            "crsetup_next",
+            "yellow",
+            "NEXT STEP: Completely exit Battlezone. Do not only return to the menu. Relaunch after it closes.")
+    elseif actionResult and actionResult.success then
+        AddLine(
+            "crsetup_next",
+            "green",
+            "Setup is complete. You may return to the menu and play normally.")
+    else
+        AddLine(
+            "crsetup_next",
+            "red",
+            "Setup could not complete. Review this screen and logs\\openpatch_setup.log.")
+    end
+end
 
-    print("crsetup: inspection result=" .. tostring(report.state) ..
-        " bundled=" .. Value(bundledVersion) ..
-        " installed=" .. Value(installedVersion, "none"))
+local function FinishMission()
+    local missionTime = (GetTime and GetTime() or 0.0) + 1.0
+
+    if actionResult and actionResult.restartRequired then
+        if SucceedMission then
+            SucceedMission(missionTime, "crsetrr.des")
+        end
+        return
+    end
+
+    if actionResult and actionResult.success then
+        if SucceedMission then
+            SucceedMission(missionTime, "crsetok.des")
+        end
+        return
+    end
+
+    if FailMission then
+        FailMission(missionTime, "crsetfl.des")
+    end
 end
 
 function Start()
@@ -125,5 +166,25 @@ function Start()
         SetIndependence(player, 0)
     end
 
-    RenderReport()
+    local before = Installer.Inspect()
+    actionResult = Installer.Apply(before)
+    report = actionResult.after or before
+
+    AttachActionToReport(report, actionResult)
+    local logPath, logError = Installer.WriteDiagnosticLog(report)
+
+    RenderReport(logPath, logError)
+
+    local bundledVersion = report.manifest and report.manifest.version or nil
+    local installedVersion = report.installed and report.installed.winmm and
+        report.installed.winmm.version or nil
+    print("crsetup: result=" .. tostring(report.state) ..
+        " action=" .. tostring(actionResult.action) ..
+        " success=" .. tostring(actionResult.success) ..
+        " restartRequired=" .. tostring(actionResult.restartRequired) ..
+        " bundled=" .. Value(bundledVersion) ..
+        " installed=" .. Value(installedVersion, "none") ..
+        " detail=" .. Value(actionResult.detail, ""))
+
+    FinishMission()
 end
