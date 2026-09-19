@@ -1,0 +1,13 @@
+OPEN COMMUNITY PATCH + CAMPAIGN REIMAGINED
+
+After activating this mod, go to INSTANT ACTION and launch:
+
+! SETUP / REPAIR - Open Community Patch
+
+The setup mission verifies the bundled patch files, installs or updates OpenShim when needed, preserves your existing openshim.ini settings, and tells you if a full Battlezone restart is required.
+
+If it says RESTART REQUIRED, completely exit Battlezone before relaunching; returning only to the main menu is not enough because winmm.dll remains loaded until the game process closes.
+
+After setup reports complete, return to the menu and play normally. You can run the setup mission again at any time to verify or repair the installation.
+
+Diagnostics: logs\openpatch_setup.log

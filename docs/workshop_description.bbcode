@@ -64,16 +64,17 @@ Windows and Linux are both supported, on Steam and on GOG. On Linux, including S
 A fix isn't considered done until it holds on both stores and under Proton. If something works on one and not another, that's a bug worth reporting, not expected behavior.
 
 [h2]Installation[/h2]
-Installation is mostly automatic - the patch installs itself by copying [b]winmm.dll[/b] next to the game executable and tells you when it's done.
+Installation is handled by the in-game setup utility.
 
 [list=1]
 [*] Subscribe to this item.
-[*] Launch Battlezone 98 Redux, mark Campaign Reimagined active, and start one of its missions.
-[*] When it reports OpenShim was installed, [b]restart the game[/b]. The patch can't be swapped in while the game is using it.
-[*] Play normally. Updates install the same way.
+[*] Launch Battlezone 98 Redux and mark [b]Open Community Patch + Campaign Reimagined[/b] active in Mods.
+[*] Open [b]Instant Action[/b] and launch [b]! SETUP / REPAIR - Open Community Patch[/b]. It is prefixed with [b]![/b] so it sorts at the top of the list.
+[*] Follow the result shown by the setup mission. If it says [b]RESTART REQUIRED[/b], completely exit Battlezone before relaunching; returning only to the main menu is not enough.
+[*] After setup reports complete, play normally. You can run the setup mission again at any time to verify or repair the installation.
 [/list]
 
-If the automatic copy doesn't happen, copy [b]winmm.dll[/b] from the mod folder (for example [i]workshop\campaignReimagined\winmm.dll[/i]) next to [b]battlezone98redux.exe[/b] yourself. If an update fails, check [i]winmm_replace.log[/i] in the Battlezone folder. Remove other native DLL-based modifications before troubleshooting.
+The setup utility validates the bundled OpenShim suite, preserves an existing customized [i]openshim.ini[/i], and never downgrades a newer OpenShim installation. If setup cannot complete, check [i]logs\openpatch_setup.log[/i] for the exact diagnostic result.
 
 [h2]Uninstallation[/h2]
 Delete [b]winmm.dll[/b] from the Battlezone 98 Redux installation folder and the game returns to normal, unpatched startup. Campaign, addon, or config files can be removed manually too. The modded campaign will error without the patch; unsubscribe for full removal.
