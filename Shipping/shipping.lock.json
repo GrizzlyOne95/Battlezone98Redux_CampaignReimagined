@@ -6452,12 +6452,36 @@
       "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png"
     },
     {
+      "source": "campaignReimagined.des",
+      "runtime": "campaignReimagined.des"
+    },
+    {
       "source": "Config\\campaignReimagined.ini",
       "runtime": "campaignReimagined.ini"
     },
     {
+      "source": "Config\\crsetup.ini",
+      "runtime": "crsetup.ini"
+    },
+    {
       "source": "Config\\durations.csv",
       "runtime": "durations.csv"
+    },
+    {
+      "source": "crsetfl.des",
+      "runtime": "crsetfl.des"
+    },
+    {
+      "source": "crsetok.des",
+      "runtime": "crsetok.des"
+    },
+    {
+      "source": "crsetrr.des",
+      "runtime": "crsetrr.des"
+    },
+    {
+      "source": "crsetup.des",
+      "runtime": "crsetup.des"
     },
     {
       "source": "flags\\flag0010.bmp",
@@ -7606,6 +7630,10 @@
     {
       "source": "Materials\\xbio.material",
       "runtime": "xbio.material"
+    },
+    {
+      "source": "Missions\\crsetup.bzn",
+      "runtime": "crsetup.bzn"
     },
     {
       "source": "Missions\\demo01.hg2",
@@ -9664,6 +9692,10 @@
       "runtime": "CRReactiveProfiles.lua"
     },
     {
+      "source": "Scripts\\crsetup.lua",
+      "runtime": "crsetup.lua"
+    },
+    {
       "source": "Scripts\\CRWeather.lua",
       "runtime": "CRWeather.lua"
     },
@@ -9726,6 +9758,10 @@
     {
       "source": "Scripts\\MissionLifecycle.lua",
       "runtime": "MissionLifecycle.lua"
+    },
+    {
+      "source": "Scripts\\OpenShimInstaller.lua",
+      "runtime": "OpenShimInstaller.lua"
     },
     {
       "source": "Scripts\\OpenShimManifest.lua",

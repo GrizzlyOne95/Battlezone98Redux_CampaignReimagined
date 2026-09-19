@@ -1,0 +1,7 @@
+OPEN COMMUNITY PATCH - SETUP COULD NOT COMPLETE
+
+The setup utility refused or failed to change the installation safely.
+
+Review logs\openpatch_setup.log for the exact diagnostic state and action result. Verify that the Workshop item downloaded completely, then run [SETUP] Open Community Patch again.
+
+No downgrade is performed when a newer OpenShim installation is detected.
