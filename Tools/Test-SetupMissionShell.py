@@ -10,6 +10,8 @@ ini_path = ROOT / "Config" / "crsetup.ini"
 des_path = ROOT / "crsetup.des"
 bzn_path = ROOT / "Missions" / "crsetup.bzn"
 lua_path = ROOT / "Scripts" / "crsetup.lua"
+mod_ini_path = ROOT / "Config" / "campaignReimagined.ini"
+mod_des_path = ROOT / "campaignReimagined.des"
 lock_path = ROOT / "Shipping" / "shipping.lock.json"
 manager_path = ROOT / "Manage-CampaignFiles.ps1"
 
@@ -19,14 +21,26 @@ result_des_paths = [
     ROOT / "crsetfl.des",
 ]
 
-for path in (ini_path, des_path, bzn_path, lua_path, lock_path, manager_path, *result_des_paths):
+for path in (ini_path, des_path, bzn_path, lua_path, mod_ini_path, mod_des_path, lock_path, manager_path, *result_des_paths):
     assert path.is_file(), f"missing setup artifact: {path.relative_to(ROOT)}"
 
 parser = configparser.ConfigParser()
 parser.optionxform = str
 parser.read(ini_path, encoding="utf-8")
-assert parser["DESCRIPTION"]["missionName"] == '"[SETUP] Open Community Patch"'
+assert parser["DESCRIPTION"]["missionName"] == '"! SETUP / REPAIR - Open Community Patch"'
 assert parser["WORKSHOP"]["mapType"] == '"instant_action"'
+
+mod_parser = configparser.ConfigParser()
+mod_parser.optionxform = str
+mod_parser.read(mod_ini_path, encoding="utf-8")
+assert mod_parser["DESCRIPTION"]["missionName"] == '"Open Community Patch + Campaign Reimagined"'
+assert mod_parser["WORKSHOP"]["mapType"] == '"mod"'
+
+mod_description = mod_des_path.read_text(encoding="utf-8")
+assert "! SETUP / REPAIR - Open Community Patch" in mod_description
+assert "go to INSTANT ACTION" in mod_description
+assert "completely exit Battlezone" in mod_description
+assert "logs\\openpatch_setup.log" in mod_description
 
 bzn = bzn_path.read_text(encoding="utf-8")
 for required in (
@@ -60,6 +74,8 @@ assert "never downgrades" in description
 lock = json.loads(lock_path.read_text(encoding="utf-8"))
 entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 expected = {
+    r"Config\campaignReimagined.ini": "campaignReimagined.ini",
+    "campaignReimagined.des": "campaignReimagined.des",
     r"Config\crsetup.ini": "crsetup.ini",
     "crsetup.des": "crsetup.des",
     "crsetok.des": "crsetok.des",
