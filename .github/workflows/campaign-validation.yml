@@ -70,6 +70,13 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-OpenShimInstallerDiagnostics.lua
 
+      - name: Test aiCore singleton producer recovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-AiCoreSingletonProducer.lua
+
       - name: Test aiCore state management
         shell: bash
         run: |

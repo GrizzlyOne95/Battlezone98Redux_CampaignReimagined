@@ -2560,7 +2560,19 @@ function producer.ProcessQueues(teamObj)
             producer.Orders[proc] = nil
         elseif IsValid(proc) and orderTeam == team and job
             and (GetTime() - issuedAt) > 20.0 and not IsBusy(proc) then
-            producer.RequeueJob(team, job, teamObj, "stuck_order")
+            if teamObj:IsSingletonProducerOdf(job.odf) and teamObj:HasLiveObjectOfOdf(job.odf) then
+                local manager = job.data and job.data.producer == "factory"
+                    and teamObj.factoryMgr or teamObj.recyclerMgr
+                local priority = job.data and job.data.priority
+                for i, item in ipairs((manager and manager.queue) or aiCore.EmptyList) do
+                    if item.odf == job.odf and item.priority == priority then
+                        table.remove(manager.queue, i)
+                        break
+                    end
+                end
+            else
+                producer.RequeueJob(team, job, teamObj, "stuck_order")
+            end
             producer.Orders[proc] = nil
         end
     end
@@ -8704,6 +8716,34 @@ function aiCore.Team:RegisterScavenger(h)
     self.scavengerResetState[h] = 1
 end
 
+function aiCore.Team:IsSingletonProducerOdf(odf)
+    local units = aiCore.Units[self.faction] or aiCore.EmptyList
+    local target = string.lower(utility.CleanString(odf or ""))
+    if target == "" then return false end
+
+    for _, key in ipairs({ "recycler", "factory", "armory", "constructor" }) do
+        if target == string.lower(utility.CleanString(units[key] or "")) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Core producer accessors can omit a live mobile/undeployed producer. Check the
+-- world directly so recovery decisions do not mistake that state for destruction.
+function aiCore.Team:HasLiveObjectOfOdf(odf)
+    local target = string.lower(utility.CleanString(odf or ""))
+    if target == "" then return false end
+
+    for h in AllObjects() do
+        if IsValid(h) and IsAlive(h) and GetTeamNum(h) == self.teamNum
+            and string.lower(utility.CleanString(GetOdf(h) or "")) == target then
+            return true
+        end
+    end
+    return false
+end
+
 function aiCore.Team:UpdateBaseMaintenance()
     local now = GetTime()
     if now < (self.baseMaintenanceAt or 0.0) then return end
@@ -8745,6 +8785,9 @@ function aiCore.Team:UpdateBaseMaintenance()
     local function QueueProducerIfMissing(handle, odf, priority)
         local odfKey = NormalizeOdfKey(odf)
         if IsValid(handle) or odfKey == "" or queuedOdFs[odfKey] then
+            return false
+        end
+        if self:HasLiveObjectOfOdf(odf) then
             return false
         end
         self.recyclerMgr:addUnit(odf, priority)
