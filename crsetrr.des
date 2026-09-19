@@ -1,0 +1,7 @@
+OPEN COMMUNITY PATCH - RESTART REQUIRED
+
+OpenShim was installed or updated successfully and is queued for verified replacement when Battlezone exits.
+
+Completely exit Battlezone now. Returning only to the main menu is not enough because winmm.dll is still loaded by the running game process. After Battlezone closes, relaunch it normally.
+
+You may run [SETUP] Open Community Patch again after relaunch to verify the installed files.
