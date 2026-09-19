@@ -63,6 +63,16 @@ jobs:
           done < <(find Scripts Missions -type f -iname '*.lua' -print0 2>/dev/null || true)
           exit "$failed"
 
+      - name: Test OpenShim installer diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-OpenShimInstallerDiagnostics.lua
+
+      - name: Test setup mission shell
+        run: python Tools/Test-SetupMissionShell.py
+
       - name: Strictly validate changed Lua 5.1 files
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
         shell: bash
