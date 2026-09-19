@@ -2489,7 +2489,10 @@ function producer.ProcessQueues(teamObj)
     if teamObj.Config and not teamObj.Config.manageFactories then return end
     local team = teamObj.teamNum
     local queue = producer.Queue[team]
-    if not queue or #queue == 0 then return end
+    if not queue then
+        queue = {}
+        producer.Queue[team] = queue
+    end
     if teamObj.UpdateBuildAccountState then
         teamObj:UpdateBuildAccountState()
     end
@@ -2506,20 +2509,35 @@ function producer.ProcessQueues(teamObj)
         if not IsValid(proc) then
             producer.Orders[proc] = nil
         elseif job and GetTeamNum(proc) == team and (GetTime() - issuedAt) > 20.0 and not IsBusy(proc) then
-            local exists = false
-            for _, q in ipairs(queue) do
-                if q.odf == job.odf and q.data and job.data and q.data.priority == job.data.priority then
-                    exists = true
-                    break
+            if teamObj:IsSingletonProducerOdf(job.odf) and teamObj:HasLiveObjectOfOdf(job.odf) then
+                local manager = job.data and job.data.producer == "factory"
+                    and teamObj.factoryMgr or teamObj.recyclerMgr
+                local priority = job.data and job.data.priority
+                for i, item in ipairs((manager and manager.queue) or aiCore.EmptyList) do
+                    if item.odf == job.odf and item.priority == priority then
+                        table.remove(manager.queue, i)
+                        break
+                    end
                 end
+                producer.Orders[proc] = nil
+            else
+                local exists = false
+                for _, q in ipairs(queue) do
+                    if q.odf == job.odf and q.data and job.data and q.data.priority == job.data.priority then
+                        exists = true
+                        break
+                    end
+                end
+                if not exists then
+                    table.insert(queue, 1, job)
+                    producer.SortQueue(team, teamObj)
+                end
+                producer.Orders[proc] = nil
             end
-            if not exists then
-                table.insert(queue, 1, job)
-                producer.SortQueue(team, teamObj)
-            end
-            producer.Orders[proc] = nil
         end
     end
+
+    if #queue == 0 then return end
 
     producer.SortQueue(team, teamObj)
 
@@ -8595,6 +8613,34 @@ function aiCore.Team:RegisterScavenger(h)
     self.scavengerResetState[h] = 1
 end
 
+function aiCore.Team:IsSingletonProducerOdf(odf)
+    local units = aiCore.Units[self.faction] or aiCore.EmptyList
+    local target = string.lower(utility.CleanString(odf or ""))
+    if target == "" then return false end
+
+    for _, key in ipairs({ "recycler", "factory", "armory", "constructor" }) do
+        if target == string.lower(utility.CleanString(units[key] or "")) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Core producer accessors can omit a live mobile/undeployed producer. Check the
+-- world directly so recovery decisions do not mistake that state for destruction.
+function aiCore.Team:HasLiveObjectOfOdf(odf)
+    local target = string.lower(utility.CleanString(odf or ""))
+    if target == "" then return false end
+
+    for h in AllObjects() do
+        if IsValid(h) and IsAlive(h) and GetTeamNum(h) == self.teamNum
+            and string.lower(utility.CleanString(GetOdf(h) or "")) == target then
+            return true
+        end
+    end
+    return false
+end
+
 function aiCore.Team:UpdateBaseMaintenance()
     local now = GetTime()
     if now < (self.baseMaintenanceAt or 0.0) then return end
@@ -8636,6 +8682,9 @@ function aiCore.Team:UpdateBaseMaintenance()
     local function QueueProducerIfMissing(handle, odf, priority)
         local odfKey = NormalizeOdfKey(odf)
         if IsValid(handle) or odfKey == "" or queuedOdFs[odfKey] then
+            return false
+        end
+        if self:HasLiveObjectOfOdf(odf) then
             return false
         end
         self.recyclerMgr:addUnit(odf, priority)
