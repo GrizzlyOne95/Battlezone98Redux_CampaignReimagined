@@ -27,7 +27,9 @@ for path in (ini_path, des_path, bzn_path, lua_path, mod_ini_path, mod_des_path,
 parser = configparser.ConfigParser()
 parser.optionxform = str
 parser.read(ini_path, encoding="utf-8")
-assert parser["DESCRIPTION"]["missionName"] == '"! SETUP / REPAIR - Open Community Patch"'
+setup_name = parser["DESCRIPTION"]["missionName"]
+assert setup_name == '"! SETUP / REPAIR - Open Community Patch"'
+assert setup_name.startswith('"!'), "setup entry must retain the first-sort ! prefix"
 assert parser["WORKSHOP"]["mapType"] == '"instant_action"'
 
 mod_parser = configparser.ConfigParser()
