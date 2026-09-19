@@ -2442,6 +2442,52 @@ producer = {
     Orders = {} -- table<Handle, Job>
 }
 
+function producer.IsSameJob(a, b)
+    if a == b then return true end
+    if not a or not b then return false end
+    local aData = a.data or aiCore.EmptyList
+    local bData = b.data or aiCore.EmptyList
+    return string.lower(utility.CleanString(a.odf or "")) == string.lower(utility.CleanString(b.odf or ""))
+        and aData.priority == bData.priority
+        and aData.producer == bData.producer
+        and aData.type == bData.type
+end
+
+function producer.HasQueuedJob(team, job)
+    for _, queued in ipairs(producer.Queue[team] or aiCore.EmptyList) do
+        if producer.IsSameJob(queued, job) then return true end
+    end
+    return false
+end
+
+function producer.RequeueJob(team, job, teamObj, reason)
+    if team == nil or not job then return false end
+    producer.Queue[team] = producer.Queue[team] or {}
+    if producer.HasQueuedJob(team, job) then return false end
+    table.insert(producer.Queue[team], job)
+    producer.SortQueue(team, teamObj)
+    if aiCore.Debug then
+        print("aiCore: Team " .. tostring(team) .. " recovered production job "
+            .. tostring(job.odf) .. " (" .. tostring(reason or "retry") .. ")")
+    end
+    return true
+end
+
+function producer.GetOrderTeam(builder, active)
+    if type(active) == "table" and active.team ~= nil then return active.team end
+    if IsValid(builder) then return GetTeamNum(builder) end
+    return nil
+end
+
+function producer.ClearTeam(team)
+    producer.Queue[team] = {}
+    for builder, active in pairs(producer.Orders or aiCore.EmptyList) do
+        if producer.GetOrderTeam(builder, active) == team then
+            producer.Orders[builder] = nil
+        end
+    end
+end
+
 function producer.GetQueueOwner(teamNum, teamObj)
     if teamObj and teamObj.teamNum == teamNum then return teamObj end
     if aiCore and aiCore.ActiveTeams then
@@ -2489,7 +2535,10 @@ function producer.ProcessQueues(teamObj)
     if teamObj.Config and not teamObj.Config.manageFactories then return end
     local team = teamObj.teamNum
     local queue = producer.Queue[team]
-    if not queue or #queue == 0 then return end
+    if not queue then
+        queue = {}
+        producer.Queue[team] = queue
+    end
     if teamObj.UpdateBuildAccountState then
         teamObj:UpdateBuildAccountState()
     end
@@ -2503,23 +2552,20 @@ function producer.ProcessQueues(teamObj)
             issuedAt = active.issuedAt or 0
         end
 
-        if not IsValid(proc) then
+        local orderTeam = producer.GetOrderTeam(proc, active)
+        local builderChangedTeam = IsValid(proc) and orderTeam ~= nil and GetTeamNum(proc) ~= orderTeam
+
+        if (not IsValid(proc) or builderChangedTeam) and orderTeam == team then
+            producer.RequeueJob(team, job, teamObj, builderChangedTeam and "builder_changed_team" or "builder_lost")
             producer.Orders[proc] = nil
-        elseif job and GetTeamNum(proc) == team and (GetTime() - issuedAt) > 20.0 and not IsBusy(proc) then
-            local exists = false
-            for _, q in ipairs(queue) do
-                if q.odf == job.odf and q.data and job.data and q.data.priority == job.data.priority then
-                    exists = true
-                    break
-                end
-            end
-            if not exists then
-                table.insert(queue, 1, job)
-                producer.SortQueue(team, teamObj)
-            end
+        elseif IsValid(proc) and orderTeam == team and job
+            and (GetTime() - issuedAt) > 20.0 and not IsBusy(proc) then
+            producer.RequeueJob(team, job, teamObj, "stuck_order")
             producer.Orders[proc] = nil
         end
     end
+
+    if #queue == 0 then return end
 
     producer.SortQueue(team, teamObj)
 
@@ -2580,7 +2626,8 @@ function producer.ProcessQueues(teamObj)
         local shouldDeferForScavengers = minScavengers > 0 and requiredProducer == "recycler" and scavengerOdf and
             scavengerCount < minScavengers and recyclerOnlyUnit and job.odf ~= scavengerOdf
         local shouldDeferForConstructor = teamObj.Config and teamObj.Config.requireConstructorFirst and
-            not constructorReady and requiredProducer == "recycler" and constructorOdf and job.odf ~= constructorOdf
+            not constructorReady and requiredProducer == "recycler" and constructorOdf and
+            job.odf ~= constructorOdf and job.odf ~= scavengerOdf
 
         if ruleAllowed and not shouldDeferForConstructor and not shouldDeferForScavengers
             and cost <= maxScrap and pilotCost <= pilotCharge then
@@ -2618,7 +2665,7 @@ function producer.ProcessQueues(teamObj)
                     if teamObj.RecordBuildAccountSpend then
                         teamObj:RecordBuildAccountSpend((job.data and job.data.account) or nil, cost + (pilotCost * 4))
                     end
-                    producer.Orders[foundProducer] = { job = job, issuedAt = GetTime() }
+                    producer.Orders[foundProducer] = { job = job, issuedAt = GetTime(), team = team }
                     table.insert(removals, i)
                     for idx, h in ipairs(producers) do
                         if h == foundProducer then
@@ -2639,6 +2686,7 @@ function producer.ProcessQueues(teamObj)
 end
 
 function producer.ProcessCreated(h)
+    if not IsValid(h) then return false end
     local odf = string.lower(utility.CleanString(GetOdf(h)))
     for proc, active in pairs(producer.Orders) do
         local job = active
@@ -2646,7 +2694,8 @@ function producer.ProcessCreated(h)
             job = active.job
         end
 
-        if IsValid(proc) and GetTeamNum(h) == GetTeamNum(proc)
+        local orderTeam = producer.GetOrderTeam(proc, active)
+        if IsValid(proc) and orderTeam ~= nil and GetTeamNum(h) == orderTeam
             and job and string.lower(utility.CleanString(job.odf)) == odf then
             local dist = GetDistance(h, proc)
             if dist < 150 then
@@ -2747,6 +2796,55 @@ end
 -- aiCore Logic
 aiCore.Debug = false
 
+function producer.ExportState()
+    local orders = {}
+    for builder, active in pairs(producer.Orders or aiCore.EmptyList) do
+        local job = (type(active) == "table" and active.job) or active
+        local team = producer.GetOrderTeam(builder, active)
+        if job and team ~= nil then
+            table.insert(orders, {
+                builder = builder,
+                team = team,
+                job = DeepCopyValue(job),
+                issuedAt = (type(active) == "table" and active.issuedAt) or 0
+            })
+        end
+    end
+    return {
+        version = 1,
+        queue = DeepCopyValue(producer.Queue),
+        orders = orders
+    }
+end
+
+function producer.ImportState(state)
+    producer.Queue = {}
+    producer.Orders = {}
+    if not state then return end
+
+    if not state.version then
+        -- Saves made before issued orders were serialized contain only the queue.
+        producer.Queue = state
+        return
+    end
+
+    producer.Queue = state.queue or {}
+    for _, saved in ipairs(state.orders or aiCore.EmptyList) do
+        local builder = saved.builder
+        local team = saved.team
+        local job = saved.job
+        if job and team ~= nil and IsValid(builder) and GetTeamNum(builder) == team then
+            producer.Orders[builder] = {
+                job = job,
+                issuedAt = saved.issuedAt or GetTime(),
+                team = team
+            }
+        elseif job and team ~= nil then
+            producer.RequeueJob(team, job, aiCore.ActiveTeams and aiCore.ActiveTeams[team], "load_recovery")
+        end
+    end
+end
+
 -- Helper to strip circular references before serializing
 function aiCore.StripCircular(data, seen)
     if type(data) ~= "table" then return data end
@@ -2771,7 +2869,7 @@ function aiCore.Save()
         globalDefense = aiCore.GlobalDefenseManagers,
         globalDepot = aiCore.GlobalDepotManagers,
         globalOffense = aiCore.GlobalOffenseManagers,
-        producer = (producer and producer.Queue) or {} -- Save producer queue state
+        producer = producer and producer.ExportState() or {}
     }
     return aiCore.StripCircular(data)
 end
@@ -2884,14 +2982,13 @@ function aiCore.Load(data)
         aiCore.GlobalDefenseManagers = data.globalDefense or {}
         aiCore.GlobalDepotManagers = data.globalDepot or {}
         aiCore.GlobalOffenseManagers = data.globalOffense or {}
-        if data.producer and producer then
-            producer.Queue = data.producer
-        end
+        if producer then producer.ImportState(data.producer) end
     else
         aiCore.ActiveTeams = data
         aiCore.GlobalDefenseManagers = {}
         aiCore.GlobalDepotManagers = {}
         aiCore.GlobalOffenseManagers = {}
+        if producer then producer.ImportState(nil) end
     end
 
     -- Restore Metatables
@@ -4413,7 +4510,7 @@ function aiCore.TurretManager:Update()
 
     for i = #self.turrets, 1, -1 do
         local turret = self.turrets[i]
-        if not IsValid(turret) then
+        if not IsValid(turret) or not IsAlive(turret) or GetTeamNum(turret) ~= self.teamNum then
             table.remove(self.turrets, i)
         elseif not IsDeployed(turret) and not IsBusy(turret) then
             self:DeployTurret(turret, i)
@@ -4493,7 +4590,7 @@ end
 
 function aiCore.DefenseManager:AddObject(h)
     if not self.enabled then return end
-    if not IsValid(h) then return end
+    if not IsValid(h) or not IsAlive(h) or GetTeamNum(h) ~= self.teamNum then return end
     if self.defenses[h] then return end
 
     local odf = string.lower(utility.CleanString(GetOdf(h)))
@@ -4566,7 +4663,7 @@ function aiCore.DefenseManager:Update()
     end
 
     for h, data in pairs(self.defenses) do
-        if not IsValid(h) then
+        if not IsValid(h) or not IsAlive(h) or GetTeamNum(h) ~= self.teamNum then
             self.defenses[h] = nil
         elseif IsAlive(h) and IsLocal(h) then
             local curAmmo = GetCurAmmo(h)
@@ -4736,7 +4833,7 @@ function aiCore.DepotManager.new(teamNum)
 end
 
 function aiCore.DepotManager:AddObject(h)
-    if not IsValid(h) then return end
+    if not IsValid(h) or not IsAlive(h) or GetTeamNum(h) ~= self.teamNum then return end
     if self.depots[h] then return end
 
     local odfName = string.lower(utility.CleanString(GetOdf(h)))
@@ -4778,7 +4875,7 @@ function aiCore.DepotManager:Update()
     self.updateTimer = 0.0
 
     for h, data in pairs(self.depots) do
-        if not IsValid(h) then
+        if not IsValid(h) or not IsAlive(h) or GetTeamNum(h) ~= self.teamNum then
             self.depots[h] = nil
         else
             -- Find all objects in range
@@ -4816,26 +4913,30 @@ function aiCore.GuardManager:Update()
 
     -- Clean up invalid guards
     for i = #self.recyclerGuards, 1, -1 do
-        if not IsValid(self.recyclerGuards[i]) then
+        if not IsValid(self.recyclerGuards[i]) or not IsAlive(self.recyclerGuards[i])
+            or GetTeamNum(self.recyclerGuards[i]) ~= self.teamNum then
             table.remove(self.recyclerGuards, i)
         end
     end
 
     for i = #self.constructorGuards, 1, -1 do
-        if not IsValid(self.constructorGuards[i]) then
+        if not IsValid(self.constructorGuards[i]) or not IsAlive(self.constructorGuards[i])
+            or GetTeamNum(self.constructorGuards[i]) ~= self.teamNum then
             table.remove(self.constructorGuards, i)
         end
     end
 
     -- Assign guards to recycler if needed
     local recycler = GetRecyclerHandle(self.teamNum)
-    if IsValid(recycler) and #self.recyclerGuards < self.guardsPerTarget then
+    if IsValid(recycler) and IsAlive(recycler) and GetTeamNum(recycler) == self.teamNum
+        and #self.recyclerGuards < self.guardsPerTarget then
         self:FindAndAssignGuards(recycler, self.recyclerGuards, self.guardsPerTarget - #self.recyclerGuards)
     end
 
     -- Assign guards to constructor if needed (simplified - just one constructor)
     local constructor = GetConstructorHandle(self.teamNum)
-    if IsValid(constructor) and #self.constructorGuards < self.guardsPerTarget then
+    if IsValid(constructor) and IsAlive(constructor) and GetTeamNum(constructor) == self.teamNum
+        and #self.constructorGuards < self.guardsPerTarget then
         self:FindAndAssignGuards(constructor, self.constructorGuards, self.guardsPerTarget - #self.constructorGuards)
     end
 end
@@ -5532,7 +5633,16 @@ function aiCore.ConstructorManager:RequeueActiveJob(reason)
     local delay = (self.teamObj and self.teamObj.Config.buildingPlacementRetryDelay) or 4.0
     job.retryAt = GetTime() + math.max(1.0, delay)
     job.blockedReason = reason
-    table.insert(self.queue, job)
+    local alreadyQueued = false
+    for _, queued in ipairs(self.queue) do
+        if queued == job or (queued.priority == job.priority and queued.odf == job.odf) then
+            alreadyQueued = true
+            queued.retryAt = math.max(queued.retryAt or 0, job.retryAt)
+            queued.blockedReason = reason
+            break
+        end
+    end
+    if not alreadyQueued then table.insert(self.queue, job) end
     self.activeJob = nil
     self.jobState = nil
     self.sentToRecycler = false
@@ -5543,12 +5653,12 @@ end
 
 function aiCore.ConstructorManager:update()
     if not IsValid(self.handle) then
+        if self.activeJob then self:RequeueActiveJob("constructor_unavailable") end
         self.handle = GetConstructorHandle(self.team)
         if IsValid(self.handle) then
             -- self.pulseTimer = self.pulsePeriod + math.random((0*self.pulsePeriod), self.pulsePeriod) + GetTime()
         end
         self.sentToRecycler = false
-        self.activeJob = nil
         return
     end
 
@@ -5630,9 +5740,8 @@ function aiCore.ConstructorManager:update()
             buildPos = pos
         end
 
-        if not posVec then -- If path is invalid, junk the job
-            self.activeJob = nil
-            self.jobState = nil
+        if not posVec then
+            self:RequeueActiveJob("invalid_path")
             return
         end
 
@@ -8216,7 +8325,7 @@ function aiCore.Team:UpdateRetreat()
     local depot = nil
     if self.depotMgr then
         for h, data in pairs(self.depotMgr.depots) do
-            if IsValid(h) and data.type == "repair" then
+            if IsValid(h) and IsAlive(h) and GetTeamNum(h) == self.teamNum and data.type == "repair" then
                 depot = h
                 break
             end
@@ -9013,7 +9122,8 @@ function aiCore.Team:GetRuleUnitRoleCount(bucket, excludeJob)
 
     for proc, active in pairs(producer.Orders or aiCore.EmptyList) do
         local job = (type(active) == "table" and active.job) or active
-        if IsValid(proc) and GetTeamNum(proc) == self.teamNum and job and not reservedJobs[job] and job ~= excludeJob
+        if producer.GetOrderTeam(proc, active) == self.teamNum and job
+            and not reservedJobs[job] and job ~= excludeJob
             and (not job.data or job.data.type ~= "building")
             and self:GetRuleUnitRoleBucket(job.data and job.data.category, job.odf) == bucket then
             count = count + 1
@@ -11875,7 +11985,7 @@ function aiCore.Team:GetUnitCountByCategory(category)
     end
     for proc, active in pairs(producer.Orders or aiCore.EmptyList) do
         local job = (type(active) == "table" and active.job) or active
-        if IsValid(proc) and GetTeamNum(proc) == self.teamNum and job
+        if producer.GetOrderTeam(proc, active) == self.teamNum and job
             and string.lower(utility.CleanString(job.odf)) == string.lower(utility.CleanString(odfToMatch or "")) then
             count = count + 1
         end
@@ -12008,7 +12118,8 @@ function aiCore.Team:CheckConstruction()
             if found then
                 item.handle = found
             else
-                local inQueue = false
+                local activeJob = self.constructorMgr.activeJob
+                local inQueue = activeJob ~= nil and activeJob.priority == p
                 for _, qItem in ipairs(self.constructorMgr.queue) do
                     if qItem.priority == p then
                         inQueue = true
@@ -12384,9 +12495,7 @@ function aiCore.ResetTeam(teamNum, faction, configTemplate)
         t.strategyLocked = previous.strategyLocked
     end
 
-    if producer and producer.Queue then
-        producer.Queue[teamNum] = {}
-    end
+    if producer then producer.ClearTeam(teamNum) end
 
     aiCore.ActiveTeams[teamNum] = t
     return t
