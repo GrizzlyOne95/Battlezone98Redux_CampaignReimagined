@@ -1,4 +1,4 @@
--- Pure Lua 5.1 smoke tests for OpenShimInstaller diagnostics.
+-- Pure Lua 5.1 smoke tests for OpenShimInstaller diagnostics and setup actions.
 package.path = "Scripts/?.lua;" .. package.path
 
 local working = "C:\\Users\\Alice\\Games\\Battlezone 98 Redux"
@@ -49,6 +49,8 @@ local exists = {}
 local fileHashes = {}
 local versions = {}
 local statusContent = nil
+local stageCalls = 0
+local copyCalls = 0
 
 local function Put(path, hash, version)
     exists[path] = true
@@ -56,15 +58,26 @@ local function Put(path, hash, version)
     if version then versions[path] = version end
 end
 
+local function Remove(path)
+    exists[path] = false
+    fileHashes[path] = nil
+    versions[path] = nil
+end
+
+local function ResetInstalledCurrent()
+    Put(working .. "\\winmm.dll", hashes.winmm, manifest.version)
+    Put(working .. "\\net.ini", hashes.network)
+    Put(working .. "\\scripts\\patches.json", hashes.patches)
+    Put(working .. "\\openshim.ini", hashes.customConfig)
+    statusContent = nil
+end
+
 Put(modRoot .. "\\winmm.dll", hashes.winmm, manifest.version)
 Put(modRoot .. "\\openshim_net.ini.payload", hashes.network)
 Put(modRoot .. "\\openshim_patches.json.payload", hashes.patches)
 Put(modRoot .. "\\openshim.ini.payload", hashes.playerConfig)
 Put(modRoot .. "\\bzfile_replace_helper.exe", "helper")
-Put(working .. "\\winmm.dll", hashes.winmm, manifest.version)
-Put(working .. "\\net.ini", hashes.network)
-Put(working .. "\\scripts\\patches.json", hashes.patches)
-Put(working .. "\\openshim.ini", hashes.customConfig)
+ResetInstalledCurrent()
 
 package.preload["bzfile"] = function()
     return {
@@ -95,7 +108,21 @@ package.preload["bzfile"] = function()
             end
             error("test file unavailable: " .. tostring(path))
         end,
-        StageOpenShimSuiteUpdate = function() return true, "staged" end,
+        CopyFile = function(source, destination)
+            copyCalls = copyCalls + 1
+            if not exists[source] then return false, "source missing" end
+            exists[destination] = true
+            fileHashes[destination] = fileHashes[source]
+            versions[destination] = versions[source]
+            return true
+        end,
+        StageOpenShimSuiteUpdate = function()
+            stageCalls = stageCalls + 1
+            statusContent =
+                "state=staged\nexpected_sha256=" .. hashes.winmm ..
+                "\npayload_count=3\n"
+            return true, "staged", working .. "\\logs\\openshim_update.log"
+        end,
     }
 end
 
@@ -113,11 +140,17 @@ end
 
 local Installer = require("OpenShimInstaller")
 
+-- Healthy custom config: inspect current, no-op apply, no config overwrite.
 local report = Installer.Inspect()
 assert(report.state == Installer.States.CURRENT, report.state)
 assert(report.installed.playerConfig.state == "CUSTOMIZED", report.installed.playerConfig.state)
 assert(report.helper.exists == true)
 assert(report.stagingAvailable == true)
+local result = Installer.Apply(report)
+assert(result.success == true)
+assert(result.action == "none")
+assert(stageCalls == 0)
+assert(copyCalls == 0)
 
 local formatted = Installer.FormatDiagnosticReport(report)
 assert(not formatted:find("Alice", 1, true), formatted)
@@ -126,23 +159,78 @@ assert(formatted:find("PAYLOAD_WINMM_SOURCE=<MOD>\\winmm.dll", 1, true), formatt
 assert(formatted:find("WORKSHOP_DIRECTORY=<WORKSHOP>", 1, true), formatted)
 assert(formatted:find("INSTALLED_PLAYER_CONFIG_STATE=CUSTOMIZED", 1, true), formatted)
 
-exists[working .. "\\winmm.dll"] = false
-fileHashes[working .. "\\winmm.dll"] = nil
-versions[working .. "\\winmm.dll"] = nil
+-- Missing player config only: install it directly without staging/restart.
+Remove(working .. "\\openshim.ini")
+report = Installer.Inspect()
+assert(report.state == Installer.States.UPDATE_REQUIRED, report.state)
+result = Installer.Apply(report)
+assert(result.success == true)
+assert(result.action == "config_installed", result.action)
+assert(result.restartRequired == false)
+assert(result.after.state == Installer.States.CURRENT, result.after.state)
+assert(stageCalls == 0)
+assert(copyCalls == 1)
+
+-- Missing OpenShim: stage the core suite and preserve an existing custom config.
+ResetInstalledCurrent()
+Remove(working .. "\\winmm.dll")
 report = Installer.Inspect()
 assert(report.state == Installer.States.INSTALL_REQUIRED, report.state)
+local copiesBeforeInstall = copyCalls
+result = Installer.Apply(report)
+assert(result.success == true)
+assert(result.action == "install_staged", result.action)
+assert(result.restartRequired == true)
+assert(result.after.state == Installer.States.RESTART_REQUIRED, result.after.state)
+assert(stageCalls == 1)
+assert(copyCalls == copiesBeforeInstall)
 
-exists[working .. "\\winmm.dll"] = true
-fileHashes[working .. "\\winmm.dll"] = hashes.winmm
-versions[working .. "\\winmm.dll"] = manifest.version
+-- Existing staged update: do not launch a duplicate helper.
+local stagesBeforePending = stageCalls
+report = Installer.Inspect()
+assert(report.state == Installer.States.RESTART_REQUIRED, report.state)
+result = Installer.Apply(report)
+assert(result.success == true)
+assert(result.action == "already_staged")
+assert(result.restartRequired == true)
+assert(stageCalls == stagesBeforePending)
+
+-- Newer manual install: preserve it and do not stage older support files.
+ResetInstalledCurrent()
+Put(working .. "\\winmm.dll", string.rep("9", 64), "2.0.0.0")
+report = Installer.Inspect()
+assert(report.state == Installer.States.NEWER_THAN_BUNDLED, report.state)
+local stagesBeforeNewer = stageCalls
+result = Installer.Apply(report)
+assert(result.success == true)
+assert(result.action == "none")
+assert(stageCalls == stagesBeforeNewer)
+
+-- Corrupt bundled payload: fail closed without touching the install.
+ResetInstalledCurrent()
 fileHashes[modRoot .. "\\winmm.dll"] = string.rep("f", 64)
 report = Installer.Inspect()
 assert(report.state == Installer.States.PAYLOAD_HASH_MISMATCH, report.state)
-
+local stagesBeforeCorrupt = stageCalls
+result = Installer.Apply(report)
+assert(result.success == false)
+assert(result.action == "blocked")
+assert(stageCalls == stagesBeforeCorrupt)
 fileHashes[modRoot .. "\\winmm.dll"] = hashes.winmm
-statusContent = "state=staged\nexpected_sha256=" .. hashes.winmm .. "\npayload_count=3\n"
-report = Installer.Inspect()
-assert(report.state == Installer.States.RESTART_REQUIRED, report.state)
-assert(report.updateStatus.payloadCount == "3")
 
-print("OpenShimInstaller diagnostics tests passed")
+-- Previous failed update plus an outdated support file: retry by staging once.
+ResetInstalledCurrent()
+Put(working .. "\\net.ini", string.rep("7", 64))
+statusContent =
+    "state=failed\nexpected_sha256=" .. hashes.winmm ..
+    "\ndetail=previous replacement failed\n"
+report = Installer.Inspect()
+assert(report.state == Installer.States.UPDATE_FAILED, report.state)
+local stagesBeforeRetry = stageCalls
+result = Installer.Apply(report)
+assert(result.success == true)
+assert(result.action == "update_staged", result.action)
+assert(result.restartRequired == true)
+assert(stageCalls == stagesBeforeRetry + 1)
+
+print("OpenShimInstaller diagnostics/action tests passed")
