@@ -13,7 +13,13 @@ lua_path = ROOT / "Scripts" / "crsetup.lua"
 lock_path = ROOT / "Shipping" / "shipping.lock.json"
 manager_path = ROOT / "Manage-CampaignFiles.ps1"
 
-for path in (ini_path, des_path, bzn_path, lua_path, lock_path, manager_path):
+result_des_paths = [
+    ROOT / "crsetok.des",
+    ROOT / "crsetrr.des",
+    ROOT / "crsetfl.des",
+]
+
+for path in (ini_path, des_path, bzn_path, lua_path, lock_path, manager_path, *result_des_paths):
     assert path.is_file(), f"missing setup artifact: {path.relative_to(ROOT)}"
 
 parser = configparser.ConfigParser()
@@ -36,21 +42,29 @@ assert bzn.count("[GameObject]") == 1, "setup BZN must stay a one-object shell"
 
 lua = lua_path.read_text(encoding="utf-8")
 assert 'Installer.Inspect()' in lua
+assert 'Installer.Apply(before)' in lua
 assert 'Installer.WriteDiagnosticLog(report)' in lua
 assert 'Installer.EnsureOnce' not in lua
 assert 'StageOpenShimSuiteUpdate' not in lua
-assert 'SucceedMission' not in lua
-assert 'FailMission' not in lua
+assert 'SucceedMission' in lua
+assert 'FailMission' in lua
+assert '"crsetok.des"' in lua
+assert '"crsetrr.des"' in lua
+assert '"crsetfl.des"' in lua
 
 description = des_path.read_text(encoding="utf-8")
 assert "logs\\openpatch_setup.log" in description
-assert "diagnostic-only" in description.lower()
+assert "automatically installs or updates OpenShim" in description
+assert "never downgrades" in description
 
 lock = json.loads(lock_path.read_text(encoding="utf-8"))
 entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 expected = {
     r"Config\crsetup.ini": "crsetup.ini",
     "crsetup.des": "crsetup.des",
+    "crsetok.des": "crsetok.des",
+    "crsetrr.des": "crsetrr.des",
+    "crsetfl.des": "crsetfl.des",
     r"Missions\crsetup.bzn": "crsetup.bzn",
     r"Scripts\crsetup.lua": "crsetup.lua",
 }
