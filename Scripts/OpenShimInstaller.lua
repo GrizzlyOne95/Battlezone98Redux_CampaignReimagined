@@ -1078,6 +1078,13 @@ function OpenShimInstaller.Apply(report)
 
     result.after = OpenShimInstaller.Inspect()
     result.state = result.after.state
+    if result.after.state == OpenShimInstaller.States.UPDATE_FAILED then
+        result.success = false
+        result.restartRequired = false
+        result.action = "stage_failed_after_launch"
+        result.detail = "OpenShim update helper reported failure: " ..
+            tostring(result.after.updateStatus and result.after.updateStatus.detail or "unknown error")
+    end
     return result
 end
 
