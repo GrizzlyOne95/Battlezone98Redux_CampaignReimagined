@@ -349,6 +349,120 @@ particle_system CR/Weather/HaboobWall
 }
 
 // =============================================================================
+// Volcano flank
+//
+// The misn05 family. A dormant Martian volcano is not a different amount of
+// weather from the plains, it is a different KIND, and these two templates are
+// what carry that difference:
+//
+//   the ground layer is sheltered. Ridges break up the fast, flat sheet dust
+//   that sells wind direction out on the plain, and what is left runs along the
+//   slope and pools in the gullies instead of streaming past at eye level.
+//
+//   the sky layer is not. Mars really does build orographic water-ice cloud
+//   over its big Tharsis volcanoes, and that thin bright veil is the single
+//   most recognisable thing about the setting -- it is the one weather feature
+//   in this file that is not brown.
+// =============================================================================
+
+// Slope dust. DustSheet's cousin: same idea, but climbing the flank rather than
+// racing across a plain, so it is slower, taller, and far more turbulent. The
+// randomiser is doing the work here -- it stands in for the gullies and spurs
+// breaking the flow up, which is why this reads as terrain and DustSheet reads
+// as open ground.
+particle_system CR/Weather/SlopeDust
+{
+    material            CR_FX/DustSheet
+    particle_width      6.5
+    particle_height     3.0
+    quota               800
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Box
+    {
+        angle               16
+        emission_rate       58
+        time_to_live_min    2.4
+        time_to_live_max    4.0
+        // Slightly UPWARD by default: on a flank the daytime flow climbs. The
+        // preset and the director override this with the live slope wind.
+        direction           -1 0.10 0
+        velocity_min        26
+        velocity_max        44
+        colour_range_start  0.74 0.51 0.30 0.38
+        colour_range_end    0.60 0.39 0.23 0.00
+        width               260
+        height              46
+        depth               260
+    }
+
+    affector ColourFader
+    {
+        alpha -0.16
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      11
+        scope           0.55
+        keep_velocity   true
+    }
+
+    affector Scaler
+    {
+        rate 1.6
+    }
+}
+
+// Orographic ice veil. Thin water-ice cloud standing over the volcano.
+//
+// Everything about this is restraint. The cards are enormous, the alpha is the
+// lowest in the file, the motion is almost nil, and the lifetime is long enough
+// that the layer looks stationary against a moving sky rather than like weather
+// blowing past. It sits far above the player, so it is only ever seen against
+// the sky and never intersects terrain -- which is also why it can afford to be
+// this large without the soft-particle problem the dust layers have.
+//
+// It is the FIRST thing to go as the storm builds: rising dust chokes it off
+// from below, so the preset fades it out as the ladder climbs rather than
+// stacking it under the dust.
+particle_system CR/Weather/OrographicVeil
+{
+    material            CR_FX/IceVeil
+    particle_width      170.0
+    particle_height     110.0
+    quota               260
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       9
+        time_to_live_min    26.0
+        time_to_live_max    40.0
+        direction           -1 0 0
+        velocity_min        2
+        velocity_max        6
+        colour_range_start  0.84 0.89 0.97 0.10
+        colour_range_end    0.78 0.85 0.95 0.00
+        width               900
+        height              90
+        depth               900
+    }
+
+    affector ColourFader
+    {
+        alpha -0.0025
+    }
+}
+
+// =============================================================================
 // Snow
 // =============================================================================
 

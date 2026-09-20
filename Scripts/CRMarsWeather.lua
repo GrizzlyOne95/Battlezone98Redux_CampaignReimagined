@@ -194,6 +194,137 @@ CRMarsWeather.Levels = {
     },
 }
 
+-- =============================================================================
+-- Profiles
+--
+-- The ladder above describes weather on open Martian ground. A different place
+-- is not a different amount of that weather, it is a different kind, so a
+-- profile swaps the whole ladder rather than scaling it -- along with the few
+-- director behaviours that are genuinely a property of the terrain.
+--
+-- Plains stays the default and is byte-for-byte the ladder misn04 has always
+-- run, so selecting a profile is opt-in and nothing changes for a mission that
+-- does not ask.
+-- =============================================================================
+
+CRMarsWeather.Profiles = {
+    Plains = {
+        name          = "Plains",
+        levels        = CRMarsWeather.Levels,
+        allowHaboob   = true,
+        bearingWander = 0.9,
+        bearingRate   = 0.055,
+        slopeWind     = nil,
+    },
+
+    -- A dormant volcano flank. Three terrain facts drive every difference:
+    --
+    --   Ridges shelter the ground layer, so the fast flat sheet dust is
+    --   replaced by slower, more turbulent slope dust and visibility contracts
+    --   less hard at every rung -- on a flank you look across open air, and
+    --   fogging that in flattens the terrain the mission is built around.
+    --
+    --   The wind is a slope wind, not a prevailing one. It runs upslope as the
+    --   ground heats and drains back down as it cools, so the bearing swings on
+    --   a long cycle instead of wandering randomly, and it wanders far less
+    --   around wherever that cycle currently points.
+    --
+    --   Tharsis flanks are dust-devil country. More of them, closer in, and
+    --   they persist further up the ladder than they do on the plain.
+    --
+    -- No haboob. A wall front is a flat-terrain phenomenon that needs a long
+    -- unobstructed fetch to organise; a ridge system breaks one up before it
+    -- ever becomes a wall.
+    Volcano = {
+        name          = "Volcano",
+        allowHaboob   = false,
+        bearingWander = 0.35,
+        bearingRate   = 0.030,
+        slopeWind     = { period = 260.0, swing = 0.62 },
+        devilRange    = { 120.0, 360.0 },
+        maxDevils     = 3,
+        levels = {
+            {
+                name        = "Flank Calm",
+                preset      = "MarsVolcanoClear",
+                windSpeed   = 7.0,
+                gustPeak    = { 5.0, 11.0 },
+                gustGap     = { 10.0, 24.0 },
+                duration    = { 80.0, 170.0 },
+                devilChance = 0.70,
+                maxDevils   = 2,
+                visibility  = 620.0,
+                radarRange  = 1.00,
+                radarPeriod = 1.00,
+                velocJam    = 1.00,
+            },
+            {
+                name        = "Slope Breeze",
+                preset      = "MarsVolcanoBreeze",
+                windSpeed   = 16.0,
+                gustPeak    = { 9.0, 19.0 },
+                gustGap     = { 8.0, 18.0 },
+                duration    = { 70.0, 150.0 },
+                devilChance = 0.85,
+                maxDevils   = 3,
+                visibility  = 560.0,
+                radarRange  = 0.97,
+                radarPeriod = 1.02,
+                velocJam    = 1.02,
+            },
+            {
+                name        = "Upslope Dust",
+                preset      = "MarsVolcanoRising",
+                windSpeed   = 27.0,
+                gustPeak    = { 13.0, 27.0 },
+                gustGap     = { 7.0, 14.0 },
+                duration    = { 60.0, 130.0 },
+                devilChance = 0.45,
+                maxDevils   = 1,
+                visibility  = 450.0,
+                radarRange  = 0.85,
+                radarPeriod = 1.15,
+                velocJam    = 1.08,
+            },
+            {
+                name        = "Flank Storm",
+                preset      = "MarsVolcanoStorm",
+                windSpeed   = 40.0,
+                gustPeak    = { 17.0, 35.0 },
+                gustGap     = { 6.0, 12.0 },
+                duration    = { 50.0, 110.0 },
+                devilChance = 0.0,
+                maxDevils   = 0,
+                visibility  = 340.0,
+                radarRange  = 0.66,
+                radarPeriod = 1.40,
+                velocJam    = 1.20,
+            },
+            {
+                -- Deliberately the shortest rung in either profile. The mission
+                -- is fought on ridges above mined gullies, and weather that
+                -- makes the ridgeline unreadable for long stops being drama and
+                -- starts being an unfair death.
+                name        = "Summit Blackout",
+                preset      = "MarsVolcanoSevere",
+                windSpeed   = 56.0,
+                gustPeak    = { 22.0, 44.0 },
+                gustGap     = { 5.0, 10.0 },
+                duration    = { 30.0, 60.0 },
+                devilChance = 0.0,
+                maxDevils   = 0,
+                visibility  = 210.0,
+                radarRange  = 0.48,
+                radarPeriod = 1.75,
+                velocJam    = 1.34,
+            },
+        },
+    },
+}
+
+CRMarsWeather.Profile = "Plains"
+
+-- Not a constant any more: a profile swaps the ladder, so this follows it.
 local LEVEL_COUNT = #CRMarsWeather.Levels
 
 -- =============================================================================
@@ -216,6 +347,7 @@ CRMarsWeather.Bearing           = 0.0
 CRMarsWeather.BearingTarget     = 0.0
 CRMarsWeather.BearingWander     = 0.9   -- radians of excursion either side
 CRMarsWeather.BearingRate       = 0.055 -- radians/second cap
+CRMarsWeather.SlopeWind         = nil   -- { period, swing }; see the Volcano profile
 CRMarsWeather.NextBearingAt     = 0.0
 
 CRMarsWeather.WindSpeed         = 0.0
@@ -294,6 +426,43 @@ local function Call(name, ...)
     return result
 end
 
+-- Selects a profile's ladder and the director behaviour that goes with it.
+-- Returns the profile actually applied, which is Plains for an unknown name:
+-- a mission that asks for weather and silently gets none is worse than one that
+-- gets the default.
+local function ApplyProfile(name)
+    local profile = name and CRMarsWeather.Profiles[name] or nil
+    if profile == nil then
+        if name ~= nil then
+            print("CRMarsWeather: unknown profile '" .. tostring(name) .. "'; using Plains")
+        end
+        profile = CRMarsWeather.Profiles.Plains
+    end
+
+    CRMarsWeather.Profile = profile.name
+    CRMarsWeather.Levels = profile.levels
+    LEVEL_COUNT = #profile.levels
+
+    CRMarsWeather.AllowHaboob = profile.allowHaboob ~= false
+    CRMarsWeather.BearingWander = profile.bearingWander or CRMarsWeather.BearingWander
+    CRMarsWeather.BearingRate = profile.bearingRate or CRMarsWeather.BearingRate
+    CRMarsWeather.SlopeWind = profile.slopeWind
+
+    if profile.devilRange ~= nil then
+        CRMarsWeather.DevilMinRange = profile.devilRange[1]
+        CRMarsWeather.DevilMaxRange = profile.devilRange[2]
+    end
+    if profile.maxDevils ~= nil then
+        CRMarsWeather.MaxDevils = profile.maxDevils
+    end
+
+    return profile
+end
+
+function CRMarsWeather.GetProfile()
+    return CRMarsWeather.Profile
+end
+
 local function Level(index)
     return CRMarsWeather.Levels[Clamp(index, 1, LEVEL_COUNT)]
 end
@@ -335,6 +504,23 @@ end
 -- Direction the wind blows toward, as a unit vector. The downward component
 -- grows with speed: harder wind drives dust down onto the deck rather than
 -- letting it hang, which is what makes a severe storm feel like it has weight.
+-- Where the wind is blowing FROM this moment, before the random wander is added.
+--
+-- On open ground that is simply the prevailing bearing. On a slope it is not
+-- fixed at all: the flow runs uphill as the ground heats and drains back down
+-- as it cools, so the bearing swings across a long cycle and the ordinary
+-- bounded wander rides on top of that instead of around a constant.
+local function PrevailingBearingNow()
+    local slope = CRMarsWeather.SlopeWind
+    if slope == nil then
+        return CRMarsWeather.PrevailingBearing
+    end
+
+    local period = math.max(1.0, slope.period or 260.0)
+    local phase = (CRMarsWeather.Clock / period) * 2.0 * math.pi
+    return CRMarsWeather.PrevailingBearing + (math.sin(phase) * (slope.swing or 0.5))
+end
+
 local function WindDirection()
     local bearing = CRMarsWeather.Bearing
     local fall = -0.08 - (0.24 * Clamp01(CRMarsWeather.WindSpeed / 60.0))
@@ -401,7 +587,7 @@ local function UpdateWind(dt)
     -- limited so the dust never visibly snaps to a new heading.
     if CRMarsWeather.Clock >= (CRMarsWeather.NextBearingAt or 0.0) then
         local wander = CRMarsWeather.BearingWander
-        CRMarsWeather.BearingTarget = CRMarsWeather.PrevailingBearing + RandomRange(-wander, wander)
+        CRMarsWeather.BearingTarget = PrevailingBearingNow() + RandomRange(-wander, wander)
         CRMarsWeather.NextBearingAt = CRMarsWeather.Clock + RandomRange(14.0, 40.0)
     end
 
@@ -994,9 +1180,15 @@ function CRMarsWeather.Init(options)
     end
 
     options = options or {}
+
+    -- The profile goes first so an explicit option below still wins: a profile
+    -- states what the terrain implies, and the mission gets the last word.
+    ApplyProfile(options.profile)
+
     if options.enabled ~= nil then CRMarsWeather.Enabled = options.enabled and true or false end
     if options.debug ~= nil then CRMarsWeather.Debug = options.debug and true or false end
     if options.dustDevils ~= nil then CRMarsWeather.AllowDustDevils = options.dustDevils and true or false end
+    if options.haboob ~= nil then CRMarsWeather.AllowHaboob = options.haboob and true or false end
     if options.sensorDegrade ~= nil then CRMarsWeather.AllowSensorDegrade = options.sensorDegrade and true or false end
     if options.windPush ~= nil then CRMarsWeather.AllowWindPush = options.windPush and true or false end
 
@@ -1249,7 +1441,8 @@ end
 
 function CRMarsWeather.Describe()
     return string.format(
-        "%s (%.2f) wind %.1f bearing %.0f deg gust %.1f vis %.0f devils %d",
+        "[%s] %s (%.2f) wind %.1f bearing %.0f deg gust %.1f vis %.0f devils %d",
+        CRMarsWeather.Profile,
         Level(CRMarsWeather.Level).name,
         CRMarsWeather.LevelValue,
         CRMarsWeather.WindSpeed,
@@ -1268,6 +1461,7 @@ end
 
 function CRMarsWeather.Save()
     return {
+        profile      = CRMarsWeather.Profile,
         level        = CRMarsWeather.Level,
         targetLevel  = CRMarsWeather.TargetLevel,
         levelValue   = CRMarsWeather.LevelValue,
@@ -1289,6 +1483,13 @@ function CRMarsWeather.Load(state)
 
     if not CRMarsWeather.Initialized then
         CRMarsWeather.Init()
+    end
+
+    -- Before anything reads the ladder: a save taken under one profile must not
+    -- be restored against another profile's rungs, which would put the mission
+    -- on a preset from the wrong family.
+    if state.profile ~= nil and state.profile ~= CRMarsWeather.Profile then
+        ApplyProfile(state.profile)
     end
 
     CRMarsWeather.Level = Clamp(tonumber(state.level) or 1, 1, LEVEL_COUNT)
