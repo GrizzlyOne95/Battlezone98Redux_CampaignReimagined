@@ -30,6 +30,30 @@ local CRWeatherPresets = {}
 --   ttl       { min, max } seconds
 --   angle     emission cone half-angle in degrees
 --   color     { r, g, b, a } or { start = {...}, finish = {...} }
+--   params    type-specific Ogre emitter parameters, under their exact Ogre
+--             spelling: a Box's width/height/depth, a Ring's inner_width, a
+--             Cylinder's extent. These reach the concrete emitter's own
+--             parameter dictionary through EXU's StringInterface bridge.
+--   enabledAbove
+--             live weight above which the emitter runs at all. Below it Ogre
+--             skips the emitter outright instead of emitting zero particles,
+--             which is how a preset says "this layer does not exist yet"
+--             without paying for it every update.
+--
+-- A precipitation entry may also carry an `affectors` table, keyed by zero-based
+-- affector index in .particle declaration order, each entry a table of that
+-- affector's own Ogre parameters -- ColourFader `alpha`, DirectionRandomiser
+-- `randomness`/`scope`, Scaler `rate`, Rotator speeds.
+--
+-- Any params or affectors value may be stated two ways:
+--
+--   alpha = -0.18              constant: sent once, then left alone
+--   alpha = { -0.30, -0.12 }   { calm, full }: interpolated by live weight
+--
+-- The pair form is what makes a storm change character as it builds rather than
+-- only getting denser. Use CRWeather.DescribeSystem(name) in-game to read the
+-- exact parameter spellings a template really exposes: an index or a name that
+-- is wrong is ignored by Ogre in silence.
 
 CRWeatherPresets.Presets = {
 
@@ -76,7 +100,27 @@ CRWeatherPresets.Presets = {
                             start  = { r = 0.72, g = 0.47, b = 0.26, a = 0.55 },
                             finish = { r = 0.58, g = 0.36, b = 0.20, a = 0.35 },
                         },
+                        -- The dust volume grows with the storm. Held at the
+                        -- authored size instead, a building storm reads as the
+                        -- same small cloud around the player slowly filling in,
+                        -- which is the clearest tell that weather is a particle
+                        -- effect rather than an atmosphere.
+                        params   = {
+                            width  = { 160.0, 300.0 },
+                            height = {  50.0, 110.0 },
+                            depth  = { 160.0, 300.0 },
+                        },
                     },
+                },
+                affectors = {
+                    -- ColourFader: alpha lost per second, so a more negative
+                    -- number fades faster. Thin dust burns off almost at once;
+                    -- storm dust hangs, and that hanging is most of why a storm
+                    -- feels heavy.
+                    [0] = { alpha = { -0.30, -0.12 } },
+                    -- DirectionRandomiser: the turbulence. At calm the dust
+                    -- drifts nearly straight; at full it churns.
+                    [1] = { randomness = { 2.0, 10.0 }, scope = { 0.20, 0.50 } },
                 },
             },
             {
@@ -90,6 +134,16 @@ CRWeatherPresets.Presets = {
                         velocity = { 44.0, 68.0 },
                         ttl      = { 1.2, 2.0 },
                         angle    = 10.0,
+                        -- Debris is a threshold effect, not a gradient: wind
+                        -- either lifts grit or it does not. Below a quarter
+                        -- strength the layer is switched off rather than run at
+                        -- a trickle, which also reads more honestly than three
+                        -- lonely flecks drifting past.
+                        enabledAbove = 0.25,
+                        params   = {
+                            width = { 120.0, 190.0 },
+                            depth = { 120.0, 190.0 },
+                        },
                     },
                 },
             },
@@ -104,7 +158,19 @@ CRWeatherPresets.Presets = {
                         velocity = { 58.0, 88.0 },
                         ttl      = { 1.6, 2.6 },
                         angle    = 6.0,
+                        params   = {
+                            width  = { 220.0, 340.0 },
+                            height = {  10.0,  18.0 },
+                            depth  = { 220.0, 340.0 },
+                        },
                     },
+                },
+                affectors = {
+                    [0] = { alpha = { -0.34, -0.14 } },
+                    -- Scaler: how hard a streak stretches along its travel. This
+                    -- is the layer that communicates wind speed, so it is the
+                    -- one worth driving hardest.
+                    [1] = { rate = { 1.2, 3.0 } },
                 },
             },
             {
@@ -122,7 +188,16 @@ CRWeatherPresets.Presets = {
                             start  = { r = 0.66, g = 0.44, b = 0.26, a = 0.30 },
                             finish = { r = 0.58, g = 0.38, b = 0.22, a = 0.10 },
                         },
+                        params   = {
+                            width = { 360.0, 470.0 },
+                            depth = { 360.0, 470.0 },
+                        },
                     },
+                },
+                affectors = {
+                    -- Barely any fade at all: the haze reads as depth in the air
+                    -- rather than as particles with a lifetime.
+                    [0] = { alpha = { -0.030, -0.010 } },
                 },
             },
         },
