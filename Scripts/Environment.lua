@@ -121,6 +121,9 @@ Environment = {
     GameplayRefreshAt      = 0.0,
     GameplayBatchAt        = 0.0,
 
+    -- Terrain draw distance from the map's .trn, or nil when unknown.
+    -- Read it through Environment.GetFogHorizon() rather than directly.
+    FogHorizon             = nil,
     DustStormTimer         = 0.0,
     IsDustStorm            = false,
     LastGravity            = nil,
@@ -911,6 +914,20 @@ function Environment.Init()
                 local ambient = GetODFInt(trn, "NormalView", "Ambient", 96) / 255
                 local fogStart = GetODFFloat(trn, "NormalView", "FogStart", 200)
                 local fogEnd = GetODFFloat(trn, "NormalView", "FogEnd", 700)
+
+                -- The distance past which the terrain renderer stops drawing.
+                -- Stock maps set VisibilityRange, FlatRange and FogEnd to the
+                -- same number (misn04: all 250) precisely so fog finishes
+                -- exactly where geometry does. Anything that pushes fog past
+                -- this leaves the cut-off visible as a bright band along the
+                -- horizon, so the value is captured once, here, before either
+                -- atmosphere system has touched fog -- see GetFogHorizon.
+                local visibility = GetODFFloat(trn, "NormalView", "VisibilityRange", 0)
+                if visibility ~= nil and visibility > 0 then
+                    Environment.FogHorizon = visibility
+                elseif fogEnd ~= nil and fogEnd > 0 then
+                    Environment.FogHorizon = fogEnd
+                end
                 Environment.MapTimeOfDay = GetODFInt(trn, "NormalView", "Time", Environment.MapTimeOfDay)
 
                 local fr = GetODFFloat(trn, "NormalView", "FogColorR", 0.65)
@@ -1261,6 +1278,22 @@ end
 -- =============================================================================
 -- External triggers / compatibility API
 -- =============================================================================
+
+-- The terrain draw distance this map authored, or nil if the .trn did not say.
+--
+-- This is shared metadata, not an atmosphere setting: it describes where
+-- geometry stops, which is a property of the terrain. Environment does not
+-- clamp its own time-of-day fog to it -- that is long-standing behaviour on
+-- every map and changing it is a separate question -- but weather fog, which
+-- is applied on top and can be authored for far more open ground than a given
+-- map has, is clamped to it by CRWeather.
+function Environment.GetFogHorizon()
+    local horizon = tonumber(Environment.FogHorizon)
+    if horizon == nil or horizon <= 0.0 then
+        return nil
+    end
+    return horizon
+end
 
 function Environment.TriggerDustStorm(duration)
     Environment.DustStormTimer = math.max(0.0, tonumber(duration) or 30.0)
