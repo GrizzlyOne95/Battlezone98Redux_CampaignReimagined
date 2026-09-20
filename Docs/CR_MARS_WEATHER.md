@@ -1,6 +1,7 @@
 # Mars weather (CRMarsWeather)
 
-Mars weather director for Campaign Reimagined, wired into **misn04**.
+Mars weather director for Campaign Reimagined, wired into **misn04** (plains)
+and **misn05** (volcano flank).
 
 `CRWeather` is a renderer: hand it a preset and it draws that weather. It has no
 opinion about *when* weather should happen, and its wind is one frozen vector per
@@ -194,6 +195,77 @@ be settled for the frame before Environment resolves and writes them.
 Prefer `SetTargetLevel` over `ForceLevel`. Setting a target lets the weather walk
 there over a few minutes, which is the whole point of the ladder; forcing is for
 set pieces that have to land on cue.
+
+---
+
+## Profiles
+
+A profile swaps the **whole ladder**, not a scale factor on one. A different
+place is not a different amount of the same weather; the plains ladder run at
+low intensity on a volcano flank would still be plains weather, just less of it.
+
+`Plains` is the default and is the ladder misn04 has always run, so a mission
+that does not ask for a profile is unaffected. `CRMarsWeather.Init{ profile = }`
+selects one; an unknown name falls back to Plains and says so, because a mission
+that asks for weather and silently gets none is worse than one that gets the
+default.
+
+Beyond the ladder, a profile carries the director behaviours that are genuinely
+properties of the terrain:
+
+| | Plains | Volcano |
+|---|---|---|
+| Ground layer | `DustSheet` — fast, flat, sells wind direction | `SlopeDust` — slower, taller, far more turbulent |
+| Sky layer | none | `OrographicVeil` — standing water-ice cloud |
+| Wind | prevailing bearing, wide random wander (0.9 rad) | slope wind: reverses on a 260 s cycle, narrow wander (0.35 rad) |
+| Haboob fronts | yes | **no** — a wall front needs a long unobstructed fetch to organise |
+| Dust devils | 2, 140–430 m | 3, 120–360 m — Tharsis flanks are devil country |
+| Visibility | contracts hard | longer-ranged at every rung |
+
+The profile is persisted in `Save()` and restored by `Load()`, so a save taken
+under one profile is never restored against another profile's rungs.
+
+### Volcano rungs
+
+| # | Name | Preset | Wind | Visibility |
+|---|------|--------|-----:|-----------:|
+| 1 | Flank Calm | `MarsVolcanoClear` | 7 | 620 |
+| 2 | Slope Breeze | `MarsVolcanoBreeze` | 16 | 560 |
+| 3 | Upslope Dust | `MarsVolcanoRising` | 27 | 450 |
+| 4 | Flank Storm | `MarsVolcanoStorm` | 40 | 340 |
+| 5 | Summit Blackout | `MarsVolcanoSevere` | 56 | 210 |
+
+The ice veil is the signature of the setting and the first thing the storm takes
+away: rising dust chokes it off from below, so its emission rate falls as the
+ladder climbs rather than stacking underneath the dust. Rung 5 is the shortest
+in either ladder on purpose — misn05 is fought on ridges above mined gullies,
+and weather that makes the ridgeline unreadable for long stops being drama and
+starts being an unfair death.
+
+---
+
+## misn05 wiring
+
+Volcano profile, no base sky. The curve is the inverse shape of misn04's: it
+opens **calm**, because the mission opens with the player hunting a structure
+across ridges above mined gullies, which is a navigation problem. The storm
+arrives with the CCA and peaks while the factory is being held, which is a
+fixed-position fight where poor visibility cuts both ways.
+
+| Mission state | Target |
+|---|---|
+| searching the ridges | 1 — clear enough to read the terrain |
+| `reconfactory` / `reconed` | 2 |
+| `go` — final assault ordered | 3 |
+| `aw1sent` — last waves on the factory | 4 |
+| `missionwon` / `missionfail` | 1 — clear air for the closing cutscene |
+
+Set piece: `ForceLevel(5, 60, 14)` when the final attackers arrive. Sixty
+seconds, not the 110 misn04 uses, for the ridgeline reason above.
+
+The win sequence is deliberately given clear air. The fleet flyby and the
+commander reveal are the mission's payoff, and dust across the camera is the one
+thing that can spoil them.
 
 ---
 

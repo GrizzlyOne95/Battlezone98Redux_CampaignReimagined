@@ -30,6 +30,30 @@ local CRWeatherPresets = {}
 --   ttl       { min, max } seconds
 --   angle     emission cone half-angle in degrees
 --   color     { r, g, b, a } or { start = {...}, finish = {...} }
+--   params    type-specific Ogre emitter parameters, under their exact Ogre
+--             spelling: a Box's width/height/depth, a Ring's inner_width, a
+--             Cylinder's extent. These reach the concrete emitter's own
+--             parameter dictionary through EXU's StringInterface bridge.
+--   enabledAbove
+--             live weight above which the emitter runs at all. Below it Ogre
+--             skips the emitter outright instead of emitting zero particles,
+--             which is how a preset says "this layer does not exist yet"
+--             without paying for it every update.
+--
+-- A precipitation entry may also carry an `affectors` table, keyed by zero-based
+-- affector index in .particle declaration order, each entry a table of that
+-- affector's own Ogre parameters -- ColourFader `alpha`, DirectionRandomiser
+-- `randomness`/`scope`, Scaler `rate`, Rotator speeds.
+--
+-- Any params or affectors value may be stated two ways:
+--
+--   alpha = -0.18              constant: sent once, then left alone
+--   alpha = { -0.30, -0.12 }   { calm, full }: interpolated by live weight
+--
+-- The pair form is what makes a storm change character as it builds rather than
+-- only getting denser. Use CRWeather.DescribeSystem(name) in-game to read the
+-- exact parameter spellings a template really exposes: an index or a name that
+-- is wrong is ignored by Ogre in silence.
 
 CRWeatherPresets.Presets = {
 
@@ -76,7 +100,27 @@ CRWeatherPresets.Presets = {
                             start  = { r = 0.72, g = 0.47, b = 0.26, a = 0.55 },
                             finish = { r = 0.58, g = 0.36, b = 0.20, a = 0.35 },
                         },
+                        -- The dust volume grows with the storm. Held at the
+                        -- authored size instead, a building storm reads as the
+                        -- same small cloud around the player slowly filling in,
+                        -- which is the clearest tell that weather is a particle
+                        -- effect rather than an atmosphere.
+                        params   = {
+                            width  = { 160.0, 300.0 },
+                            height = {  50.0, 110.0 },
+                            depth  = { 160.0, 300.0 },
+                        },
                     },
+                },
+                affectors = {
+                    -- ColourFader: alpha lost per second, so a more negative
+                    -- number fades faster. Thin dust burns off almost at once;
+                    -- storm dust hangs, and that hanging is most of why a storm
+                    -- feels heavy.
+                    [0] = { alpha = { -0.30, -0.12 } },
+                    -- DirectionRandomiser: the turbulence. At calm the dust
+                    -- drifts nearly straight; at full it churns.
+                    [1] = { randomness = { 2.0, 10.0 }, scope = { 0.20, 0.50 } },
                 },
             },
             {
@@ -90,6 +134,16 @@ CRWeatherPresets.Presets = {
                         velocity = { 44.0, 68.0 },
                         ttl      = { 1.2, 2.0 },
                         angle    = 10.0,
+                        -- Debris is a threshold effect, not a gradient: wind
+                        -- either lifts grit or it does not. Below a quarter
+                        -- strength the layer is switched off rather than run at
+                        -- a trickle, which also reads more honestly than three
+                        -- lonely flecks drifting past.
+                        enabledAbove = 0.25,
+                        params   = {
+                            width = { 120.0, 190.0 },
+                            depth = { 120.0, 190.0 },
+                        },
                     },
                 },
             },
@@ -104,7 +158,19 @@ CRWeatherPresets.Presets = {
                         velocity = { 58.0, 88.0 },
                         ttl      = { 1.6, 2.6 },
                         angle    = 6.0,
+                        params   = {
+                            width  = { 220.0, 340.0 },
+                            height = {  10.0,  18.0 },
+                            depth  = { 220.0, 340.0 },
+                        },
                     },
+                },
+                affectors = {
+                    [0] = { alpha = { -0.34, -0.14 } },
+                    -- Scaler: how hard a streak stretches along its travel. This
+                    -- is the layer that communicates wind speed, so it is the
+                    -- one worth driving hardest.
+                    [1] = { rate = { 1.2, 3.0 } },
                 },
             },
             {
@@ -122,7 +188,16 @@ CRWeatherPresets.Presets = {
                             start  = { r = 0.66, g = 0.44, b = 0.26, a = 0.30 },
                             finish = { r = 0.58, g = 0.38, b = 0.22, a = 0.10 },
                         },
+                        params   = {
+                            width = { 360.0, 470.0 },
+                            depth = { 360.0, 470.0 },
+                        },
                     },
+                },
+                affectors = {
+                    -- Barely any fade at all: the haze reads as depth in the air
+                    -- rather than as particles with a lifetime.
+                    [0] = { alpha = { -0.030, -0.010 } },
                 },
             },
         },
@@ -366,6 +441,453 @@ CRWeatherPresets.Presets = {
         lightning     = nil,
         transitionIn  = 18.0,
         transitionOut = 45.0,
+    },
+
+    -- =========================================================================
+    -- Volcano flank (misn05)
+    --
+    -- A dormant Martian volcano is not a stormier plain, it is a different kind
+    -- of place, and this family exists because reusing the plains ladder would
+    -- have said otherwise. Three things separate it:
+    --
+    --   the ground layer is sheltered. Ridges break up the fast flat sheet dust
+    --   that sells wind direction out on the plain, so SlopeDust replaces
+    --   DustSheet: slower, taller, far more turbulent, climbing the flank
+    --   rather than racing across it.
+    --
+    --   the suspended layer dominates. Less is being dragged along the ground,
+    --   so what the player sees is mostly held in the air, and haze carries
+    --   more of the storm here than it does on the plain.
+    --
+    --   the sky has its own weather. Mars builds orographic water-ice cloud
+    --   over its Tharsis volcanoes, and that thin bright veil is the most
+    --   recognisable thing about the setting. It is also the first thing the
+    --   storm takes away: rising dust chokes it off from below, so it fades out
+    --   as the ladder climbs instead of stacking underneath.
+    --
+    -- Fog stays longer-ranged than the plains equivalents at every rung. On a
+    -- flank you are usually looking across open air rather than along the
+    -- ground, and contracting visibility as hard as MarsDustStorm does would
+    -- flatten the terrain the mission is built around.
+    -- =========================================================================
+
+    -- Rung 1. Clear for a volcano: thin haze and a standing ice veil.
+    MarsVolcanoClear = {
+        name = "MarsVolcanoClear",
+        precipitation = {
+            {
+                system   = "cr_wx_v_veil",
+                template = "CR/Weather/OrographicVeil",
+                offset   = { x = 0.0, y = 210.0, z = 0.0 },
+                quota    = 260,
+                emitters = {
+                    [0] = {
+                        rate     = 9.0,
+                        velocity = { 2.0, 6.0 },
+                        ttl      = { 26.0, 40.0 },
+                        angle    = 18.0,
+                        params   = { width = 900.0, depth = 900.0 },
+                    },
+                },
+                affectors = { [0] = { alpha = -0.0025 } },
+            },
+            {
+                system   = "cr_wx_v_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 60.0, z = 0.0 },
+                quota    = 420,
+                emitters = {
+                    [0] = {
+                        rate     = 20.0,
+                        velocity = { 3.0, 7.0 },
+                        ttl      = { 8.0, 12.0 },
+                        angle    = 60.0,
+                        color    = {
+                            start  = { r = 0.71, g = 0.52, b = 0.36, a = 0.14 },
+                            finish = { r = 0.63, g = 0.45, b = 0.30, a = 0.05 },
+                        },
+                        params   = { width = 420.0, depth = 420.0 },
+                    },
+                },
+                affectors = { [0] = { alpha = -0.012 } },
+            },
+        },
+        fog           = { r = 0.62, g = 0.47, b = 0.33, fogStart = 110.0, fogEnd = 620.0 },
+        ambient       = { r = 0.49, g = 0.44, b = 0.39 },
+        diffuse       = { r = 0.54, g = 0.47, b = 0.38 },
+        sunPowerScale = 0.96,
+        wind          = { x = -0.90, y = -0.10, z = 0.42 },
+        windSpeed     = 7.0,
+        gusts         = { period = 21.0, depth = 0.30 },
+        lightning     = nil,
+        transitionIn  = 24.0,
+        transitionOut = 24.0,
+    },
+
+    -- Rung 2. The flank starts to breathe: slope dust appears, veil intact.
+    MarsVolcanoBreeze = {
+        name = "MarsVolcanoBreeze",
+        precipitation = {
+            {
+                system   = "cr_wx_v_veil",
+                template = "CR/Weather/OrographicVeil",
+                offset   = { x = 0.0, y = 210.0, z = 0.0 },
+                quota    = 260,
+                emitters = {
+                    [0] = {
+                        rate     = 8.0,
+                        velocity = { 3.0, 8.0 },
+                        ttl      = { 22.0, 34.0 },
+                        angle    = 20.0,
+                        params   = { width = 900.0, depth = 900.0 },
+                    },
+                },
+                affectors = { [0] = { alpha = -0.0030 } },
+            },
+            {
+                system   = "cr_wx_v_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 60.0, z = 0.0 },
+                quota    = 420,
+                emitters = {
+                    [0] = {
+                        rate     = 26.0,
+                        velocity = { 4.0, 9.0 },
+                        ttl      = { 7.5, 11.0 },
+                        angle    = 60.0,
+                        params   = { width = { 420.0, 460.0 }, depth = { 420.0, 460.0 } },
+                    },
+                },
+                affectors = { [0] = { alpha = { -0.020, -0.012 } } },
+            },
+            {
+                system   = "cr_wx_v_slope",
+                template = "CR/Weather/SlopeDust",
+                offset   = { x = 0.0, y = 14.0, z = 0.0 },
+                quota    = 800,
+                emitters = {
+                    [0] = {
+                        rate     = 30.0,
+                        velocity = { 20.0, 34.0 },
+                        ttl      = { 2.4, 4.0 },
+                        angle    = 16.0,
+                        params   = {
+                            width  = { 190.0, 250.0 },
+                            height = {  34.0,  50.0 },
+                            depth  = { 190.0, 250.0 },
+                        },
+                    },
+                },
+                affectors = {
+                    [0] = { alpha = { -0.24, -0.16 } },
+                    [1] = { randomness = { 6.0, 11.0 }, scope = { 0.40, 0.55 } },
+                    [2] = { rate = { 1.1, 1.6 } },
+                },
+            },
+        },
+        fog           = { r = 0.60, g = 0.45, b = 0.31, fogStart = 95.0, fogEnd = 560.0 },
+        ambient       = { r = 0.48, g = 0.42, b = 0.36 },
+        diffuse       = { r = 0.53, g = 0.45, b = 0.36 },
+        sunPowerScale = 0.90,
+        wind          = { x = -0.92, y = -0.06, z = 0.39 },
+        windSpeed     = 16.0,
+        gusts         = { period = 15.0, depth = 0.34 },
+        lightning     = nil,
+        transitionIn  = 22.0,
+        transitionOut = 28.0,
+    },
+
+    -- Rung 3. Dust is being lifted up the flank. The veil starts to go.
+    MarsVolcanoRising = {
+        name = "MarsVolcanoRising",
+        precipitation = {
+            {
+                system   = "cr_wx_v_veil",
+                template = "CR/Weather/OrographicVeil",
+                offset   = { x = 0.0, y = 210.0, z = 0.0 },
+                quota    = 200,
+                emitters = {
+                    [0] = {
+                        -- Choked off from below rather than blown away: the rate
+                        -- falls as the layer beneath it thickens.
+                        rate     = 3.0,
+                        velocity = { 4.0, 10.0 },
+                        ttl      = { 16.0, 26.0 },
+                        angle    = 24.0,
+                        params   = { width = 900.0, depth = 900.0 },
+                    },
+                },
+                affectors = { [0] = { alpha = -0.0060 } },
+            },
+            {
+                system   = "cr_wx_v_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 58.0, z = 0.0 },
+                quota    = 520,
+                emitters = {
+                    [0] = {
+                        rate     = 40.0,
+                        velocity = { 5.0, 11.0 },
+                        ttl      = { 7.0, 10.5 },
+                        angle    = 60.0,
+                        color    = {
+                            start  = { r = 0.68, g = 0.47, b = 0.30, a = 0.24 },
+                            finish = { r = 0.60, g = 0.40, b = 0.25, a = 0.08 },
+                        },
+                        params   = { width = { 420.0, 480.0 }, depth = { 420.0, 480.0 } },
+                    },
+                },
+                affectors = { [0] = { alpha = { -0.026, -0.014 } } },
+            },
+            {
+                system   = "cr_wx_v_slope",
+                template = "CR/Weather/SlopeDust",
+                offset   = { x = 0.0, y = 16.0, z = 0.0 },
+                quota    = 900,
+                emitters = {
+                    [0] = {
+                        rate     = 64.0,
+                        velocity = { 26.0, 44.0 },
+                        ttl      = { 2.4, 4.0 },
+                        angle    = 18.0,
+                        params   = {
+                            width  = { 210.0, 290.0 },
+                            height = {  40.0,  66.0 },
+                            depth  = { 210.0, 290.0 },
+                        },
+                    },
+                },
+                affectors = {
+                    [0] = { alpha = { -0.26, -0.15 } },
+                    [1] = { randomness = { 8.0, 14.0 }, scope = { 0.45, 0.62 } },
+                    [2] = { rate = { 1.3, 2.0 } },
+                },
+            },
+        },
+        fog           = { r = 0.58, g = 0.41, b = 0.27, fogStart = 70.0, fogEnd = 450.0 },
+        ambient       = { r = 0.46, g = 0.37, b = 0.28 },
+        diffuse       = { r = 0.53, g = 0.41, b = 0.30 },
+        sunPowerScale = 0.76,
+        wind          = { x = -0.94, y = -0.02, z = 0.34 },
+        windSpeed     = 27.0,
+        gusts         = { period = 12.0, depth = 0.36 },
+        lightning     = nil,
+        transitionIn  = 24.0,
+        transitionOut = 36.0,
+    },
+
+    -- Rung 4. A storm on the flank. No veil left; the sky is dust.
+    MarsVolcanoStorm = {
+        name = "MarsVolcanoStorm",
+        precipitation = {
+            {
+                system   = "cr_wx_v_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 56.0, z = 0.0 },
+                quota    = 560,
+                emitters = {
+                    [0] = {
+                        rate     = 54.0,
+                        velocity = { 7.0, 14.0 },
+                        ttl      = { 6.0, 9.5 },
+                        angle    = 62.0,
+                        color    = {
+                            start  = { r = 0.64, g = 0.42, b = 0.25, a = 0.33 },
+                            finish = { r = 0.56, g = 0.36, b = 0.21, a = 0.11 },
+                        },
+                        params   = { width = { 440.0, 500.0 }, depth = { 440.0, 500.0 } },
+                    },
+                },
+                affectors = { [0] = { alpha = { -0.028, -0.013 } } },
+            },
+            {
+                system   = "cr_wx_v_near",
+                template = "CR/Weather/DustNear",
+                offset   = { x = 0.0, y = 34.0, z = 0.0 },
+                quota    = 2200,
+                emitters = {
+                    [0] = {
+                        rate     = 190.0,
+                        velocity = { 26.0, 46.0 },
+                        ttl      = { 2.4, 3.8 },
+                        angle    = 26.0,
+                        color    = {
+                            start  = { r = 0.71, g = 0.46, b = 0.26, a = 0.50 },
+                            finish = { r = 0.57, g = 0.35, b = 0.20, a = 0.30 },
+                        },
+                        params   = {
+                            width  = { 170.0, 280.0 },
+                            height = {  60.0, 120.0 },
+                            depth  = { 170.0, 280.0 },
+                        },
+                    },
+                },
+                affectors = {
+                    [0] = { alpha = { -0.30, -0.13 } },
+                    [1] = { randomness = { 4.0, 12.0 }, scope = { 0.28, 0.58 } },
+                },
+            },
+            {
+                system   = "cr_wx_v_slope",
+                template = "CR/Weather/SlopeDust",
+                offset   = { x = 0.0, y = 18.0, z = 0.0 },
+                quota    = 1000,
+                emitters = {
+                    [0] = {
+                        rate     = 96.0,
+                        velocity = { 34.0, 56.0 },
+                        ttl      = { 2.2, 3.6 },
+                        angle    = 20.0,
+                        params   = {
+                            width  = { 230.0, 320.0 },
+                            height = {  46.0,  78.0 },
+                            depth  = { 230.0, 320.0 },
+                        },
+                    },
+                },
+                affectors = {
+                    [0] = { alpha = { -0.28, -0.15 } },
+                    [1] = { randomness = { 10.0, 17.0 }, scope = { 0.50, 0.68 } },
+                    [2] = { rate = { 1.5, 2.4 } },
+                },
+            },
+            {
+                system   = "cr_wx_v_grit",
+                template = "CR/Weather/DustGrit",
+                offset   = { x = 0.0, y = 12.0, z = 0.0 },
+                quota    = 400,
+                emitters = {
+                    [0] = {
+                        rate         = 22.0,
+                        velocity     = { 40.0, 62.0 },
+                        ttl          = { 1.2, 2.0 },
+                        angle        = 12.0,
+                        -- Grit needs a flow fast enough to carry it, and on a
+                        -- sheltered flank that only happens near the top of the
+                        -- ladder.
+                        enabledAbove = 0.40,
+                        params       = { width = { 120.0, 180.0 }, depth = { 120.0, 180.0 } },
+                    },
+                },
+            },
+        },
+        fog           = { r = 0.54, g = 0.35, b = 0.21, fogStart = 45.0, fogEnd = 340.0 },
+        ambient       = { r = 0.42, g = 0.31, b = 0.22 },
+        diffuse       = { r = 0.51, g = 0.36, b = 0.23 },
+        sunPowerScale = 0.58,
+        wind          = { x = -0.95, y = 0.02, z = 0.30 },
+        windSpeed     = 40.0,
+        gusts         = { period = 10.0, depth = 0.32 },
+        lightning     = nil,
+        transitionIn  = 26.0,
+        transitionOut = 42.0,
+    },
+
+    -- Rung 5. Summit blackout. Kept shorter-lived than the plains equivalent:
+    -- the mission is fought on ridges above mined gullies, and weather that
+    -- makes the ridgeline unreadable for long stops being drama and starts
+    -- being an unfair death.
+    MarsVolcanoSevere = {
+        name = "MarsVolcanoSevere",
+        precipitation = {
+            {
+                system   = "cr_wx_v_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 54.0, z = 0.0 },
+                quota    = 620,
+                emitters = {
+                    [0] = {
+                        rate     = 72.0,
+                        velocity = { 9.0, 18.0 },
+                        ttl      = { 5.5, 9.0 },
+                        angle    = 64.0,
+                        color    = {
+                            start  = { r = 0.58, g = 0.36, b = 0.20, a = 0.42 },
+                            finish = { r = 0.50, g = 0.30, b = 0.17, a = 0.15 },
+                        },
+                        params   = { width = { 460.0, 520.0 }, depth = { 460.0, 520.0 } },
+                    },
+                },
+                affectors = { [0] = { alpha = { -0.030, -0.012 } } },
+            },
+            {
+                system   = "cr_wx_v_near",
+                template = "CR/Weather/DustNear",
+                offset   = { x = 0.0, y = 32.0, z = 0.0 },
+                quota    = 2600,
+                emitters = {
+                    [0] = {
+                        rate     = 280.0,
+                        velocity = { 34.0, 58.0 },
+                        ttl      = { 2.2, 3.6 },
+                        angle    = 28.0,
+                        color    = {
+                            start  = { r = 0.68, g = 0.43, b = 0.24, a = 0.62 },
+                            finish = { r = 0.54, g = 0.33, b = 0.18, a = 0.38 },
+                        },
+                        params   = {
+                            width  = { 190.0, 300.0 },
+                            height = {  70.0, 130.0 },
+                            depth  = { 190.0, 300.0 },
+                        },
+                    },
+                },
+                affectors = {
+                    [0] = { alpha = { -0.28, -0.11 } },
+                    [1] = { randomness = { 6.0, 15.0 }, scope = { 0.34, 0.66 } },
+                },
+            },
+            {
+                system   = "cr_wx_v_slope",
+                template = "CR/Weather/SlopeDust",
+                offset   = { x = 0.0, y = 18.0, z = 0.0 },
+                quota    = 1100,
+                emitters = {
+                    [0] = {
+                        rate     = 130.0,
+                        velocity = { 44.0, 70.0 },
+                        ttl      = { 2.0, 3.4 },
+                        angle    = 22.0,
+                        params   = {
+                            width  = { 250.0, 340.0 },
+                            height = {  52.0,  88.0 },
+                            depth  = { 250.0, 340.0 },
+                        },
+                    },
+                },
+                affectors = {
+                    [0] = { alpha = { -0.26, -0.14 } },
+                    [1] = { randomness = { 12.0, 20.0 }, scope = { 0.54, 0.72 } },
+                    [2] = { rate = { 1.7, 2.8 } },
+                },
+            },
+            {
+                system   = "cr_wx_v_grit",
+                template = "CR/Weather/DustGrit",
+                offset   = { x = 0.0, y = 12.0, z = 0.0 },
+                quota    = 460,
+                emitters = {
+                    [0] = {
+                        rate         = 40.0,
+                        velocity     = { 52.0, 78.0 },
+                        ttl          = { 1.1, 1.9 },
+                        angle        = 14.0,
+                        enabledAbove = 0.25,
+                        params       = { width = { 130.0, 200.0 }, depth = { 130.0, 200.0 } },
+                    },
+                },
+            },
+        },
+        fog           = { r = 0.49, g = 0.30, b = 0.17, fogStart = 24.0, fogEnd = 210.0 },
+        ambient       = { r = 0.37, g = 0.26, b = 0.18 },
+        diffuse       = { r = 0.46, g = 0.30, b = 0.19 },
+        sunPowerScale = 0.42,
+        wind          = { x = -0.96, y = 0.05, z = 0.26 },
+        windSpeed     = 56.0,
+        gusts         = { period = 8.0, depth = 0.30 },
+        lightning     = nil,
+        transitionIn  = 20.0,
+        transitionOut = 46.0,
     },
 
     -- -------------------------------------------------------------------------

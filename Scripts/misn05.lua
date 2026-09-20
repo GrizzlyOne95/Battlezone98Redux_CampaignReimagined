@@ -12,6 +12,7 @@ local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local Environment = require("Environment")
+local CRMarsWeather = require("CRMarsWeather")
 local PhysicsImpact = require("PhysicsImpact")
 
 -- BuildObject invokes AddObject synchronously. This guard lets explicit mission
@@ -295,6 +296,31 @@ function ApplyQOL()
     end
     PersistentConfig.Initialize()
     Environment.Init()
+
+    -- Volcano-flank Mars weather. Init is idempotent, so the reload path can
+    -- call ApplyQOL again without restarting the storm.
+    --
+    -- The Volcano profile is not the plains ladder turned down: ridges shelter
+    -- the ground layer, the wind is a slope wind that reverses rather than a
+    -- prevailing one, and the sky carries an orographic ice veil. It also
+    -- disables haboob fronts, which need a long unobstructed fetch to organise
+    -- and would not form on a ridge system.
+    --
+    -- No baseSky is supplied, so the sky layer stays off and the weather reads
+    -- through fog, light and particles.
+    if CRMarsWeather and CRMarsWeather.Init then
+        CRMarsWeather.Init({
+            profile     = "Volcano",
+            startLevel  = 1,
+            targetLevel = 2,
+        })
+
+        if M and M.weatherState ~= nil and CRMarsWeather.Load then
+            CRMarsWeather.Load(M.weatherState)
+            M.weatherState = nil
+        end
+    end
+
     PhysicsImpact.Init()
 end
 
@@ -363,6 +389,14 @@ function Start()
 
     end
 
+    -- Restarting the mission in the same process re-enters Start with the
+    -- weather module still initialised and still holding particle handles from
+    -- the previous run's scene. Stand it down first so ApplyQOL brings up a
+    -- clean one; Shutdown is a no-op when it was never initialised.
+    if CRMarsWeather and CRMarsWeather.Shutdown then
+        CRMarsWeather.Shutdown()
+    end
+
     ApplyQOL()
     SetupAI()
     aiCore.Bootstrap()
@@ -384,6 +418,9 @@ function AddObject(h)
         PersistentConfig.OnObjectCreated(h)
     end
     Environment.OnObjectCreated(h)
+    if CRMarsWeather and CRMarsWeather.OnObjectCreated then
+        CRMarsWeather.OnObjectCreated(h)
+    end
     PhysicsImpact.OnObjectCreated(h)
 
     -- EXU Turbo
@@ -422,6 +459,73 @@ end
 function DeleteObject(h)
 end
 
+-- Weather beats.
+--
+-- Recomputed from mission state every frame rather than latched on transitions,
+-- so a save taken mid-mission lands on the right weather without persisting
+-- which beats had already fired. The set piece is the one exception and carries
+-- its own flag.
+--
+-- These only move the *target*: the director still walks the ladder there over
+-- a few minutes, so nothing here cuts the weather.
+--
+-- The shape of the curve is the mission's own. misn05 opens with the player
+-- hunting a structure across ridges above mined gullies, which is a navigation
+-- problem, so it opens CALM -- weather that hides the ridgeline while the
+-- objective is "find something" is not tension, it is an unfair death. The
+-- storm arrives with the CCA and peaks while the factory is being held, which
+-- is a fixed-position fight where poor visibility cuts both ways.
+local function UpdateWeatherBeats()
+    if not (CRMarsWeather and CRMarsWeather.SetTargetLevel) then
+        return
+    end
+
+    -- Searching the ridges. Clear enough to read the terrain.
+    local target = 1
+
+    -- Structure found; the recon is under way and the map is known.
+    if M.reconfactory then
+        target = 2
+    end
+
+    -- The CCA deployment is in the field.
+    if M.reconed then
+        target = 2
+    end
+
+    -- Final assault ordered: hold the factory until the Sixth arrives.
+    if M.go then
+        target = 3
+    end
+
+    -- The last waves are on top of the factory. This is the peak.
+    if M.aw1sent then
+        target = 4
+    end
+
+    -- Won: stand the weather down so the closing cutscene plays in clear air.
+    -- The fleet flyby and the commander reveal are the payoff, and dust across
+    -- the camera is the one thing that can spoil them.
+    if M.missionwon or M.missionfail then
+        target = 1
+    end
+
+    if CRMarsWeather.GetTargetLevel() ~= target then
+        CRMarsWeather.SetTargetLevel(target)
+    end
+
+    -- Set piece: the final attackers arrive inside a summit blackout. Forced
+    -- rather than targeted because it has to land on cue, and deliberately
+    -- short -- the Volcano profile's severe rung is the briefest in either
+    -- ladder for exactly this reason.
+    if M.aw1sent and not M.weatherSetPiece and not M.missionwon then
+        M.weatherSetPiece = true
+        if CRMarsWeather.ForceLevel then
+            CRMarsWeather.ForceLevel(5, 60.0, 14.0)
+        end
+    end
+end
+
 function Update()
     if GetTime() < (M.loadGracePeriod or 0) then
         return
@@ -433,6 +537,13 @@ function Update()
     M.player = GetPlayerHandle()
     if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
     aiCore.Update()
+    -- Weather updates before Environment on purpose: CRWeather contributes fog
+    -- and light into Environment's frame through its modifier hook, so it has
+    -- to have run for this frame before Environment resolves that frame.
+    if CRMarsWeather and CRMarsWeather.Update then
+        UpdateWeatherBeats()
+        CRMarsWeather.Update(1.0 / M.TPS)
+    end
     Environment.Update(1.0 / M.TPS)
     PhysicsImpact.Update(1.0 / M.TPS)
     subtit.Update()
@@ -979,6 +1090,11 @@ function Update()
 end
 
 function Save()
+    -- Only the scalar storm state: the particle systems are rebuilt from the
+    -- preset on load, because Ogre objects do not survive a save.
+    if CRMarsWeather and CRMarsWeather.Save then
+        M.weatherState = CRMarsWeather.Save()
+    end
     return M, aiCore.Save()
 end
 
