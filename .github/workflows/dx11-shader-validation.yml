@@ -22,6 +22,14 @@ permissions:
 jobs:
   validate-sm4:
     runs-on: windows-latest
+    # The two Enhanced world shaders are OpenShim's since CR retired its
+    # duplicate copy, so the validator resolves them out of a shim checkout.
+    # Without this the job fails before it compiles anything, which is how it
+    # sat broken: it only triggers on Shaders/ or Materials/ changes, and there
+    # had not been one since the shaders moved.
+    env:
+      BZR_OPENSHIM_REPO: ${{ github.workspace }}\_openshim
+
     steps:
       - name: Checkout
         # Full history: the binary comparison below needs the PR base revision
@@ -29,6 +37,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Check out OpenShim for the Enhanced shader payload
+        uses: actions/checkout@v4
+        with:
+          repository: GrizzlyOne95/Battlezone98Redux_Shim
+          path: _openshim
 
       - name: Compile representative DX11 SM4 variants
         shell: powershell
