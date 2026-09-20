@@ -252,6 +252,216 @@ particle_system CR/Weather/DustDevil
     }
 }
 
+// Haboob wall. The one weather event in this file that arrives rather than
+// simply existing: a dust front the player can see coming, crossing the map on
+// the wind until it passes over them.
+//
+// Like the dust devil and unlike everything else here it is world-placed, so
+// local_space is true and the whole front translates intact. CRMarsWeather owns
+// the approach; this file only describes the shape of the wall.
+//
+// The scale is the point. A haboob reads as weather rather than as a big smoke
+// effect only when its face is wider than the player can see across and taller
+// than anything on the map, so the emitter volume is enormous and the particle
+// cards are enormous with it. What keeps that affordable is that the quota is
+// small for the volume it covers and the alpha is very low: this is a few
+// hundred huge, nearly transparent cards, not a dense field of small ones.
+//
+// Emitter 0 is the wall face, emitter 1 is the rolling crest that tumbles over
+// the top of it. CRMarsWeather scales both by the front's approach envelope.
+particle_system CR/Weather/HaboobWall
+{
+    material            CR_FX/Haboob
+    particle_width      95.0
+    particle_height     95.0
+    quota               900
+    cull_each           true
+    sorted              true
+    local_space         true
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               35
+        emission_rate       70
+        time_to_live_min    9.0
+        time_to_live_max    16.0
+        direction           0 0.35 0
+        velocity_min        6
+        velocity_max        18
+        colour_range_start  0.70 0.46 0.26 0.30
+        colour_range_end    0.52 0.32 0.18 0.10
+        // Wide and tall across the face, shallow through it: a front, not a box
+        // of dust. CRMarsWeather widens this as the wall closes so the face
+        // keeps spanning the view instead of shrinking into a column.
+        width               900
+        height              340
+        depth               120
+    }
+
+    // The crest. A haboob's most recognisable feature is the rolling lip along
+    // its top edge, where the leading air is forced upward and tumbles back.
+    // The Ring gives that lip its curve; the Rotator below gives it the tumble.
+    emitter Ring
+    {
+        angle               55
+        emission_rate       34
+        time_to_live_min    7.0
+        time_to_live_max    12.0
+        direction           0 1 0
+        velocity_min        14
+        velocity_max        30
+        colour_range_start  0.76 0.52 0.30 0.34
+        colour_range_end    0.58 0.36 0.20 0.00
+        width               880
+        height              120
+        depth               240
+        inner_width         0.80
+        inner_height        0.55
+    }
+
+    affector ColourFader
+    {
+        alpha -0.022
+    }
+
+    // Slow tumble. Fast rotation on a card this large reads as a spinning
+    // texture rather than as churning air, so the range is deliberately narrow.
+    affector Rotator
+    {
+        rotation_speed_range_start  -9
+        rotation_speed_range_end     9
+        rotation_range_start          0
+        rotation_range_end          360
+    }
+
+    affector Scaler
+    {
+        rate 5.0
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      7
+        scope           0.5
+        keep_velocity   true
+    }
+}
+
+// =============================================================================
+// Volcano flank
+//
+// The misn05 family. A dormant Martian volcano is not a different amount of
+// weather from the plains, it is a different KIND, and these two templates are
+// what carry that difference:
+//
+//   the ground layer is sheltered. Ridges break up the fast, flat sheet dust
+//   that sells wind direction out on the plain, and what is left runs along the
+//   slope and pools in the gullies instead of streaming past at eye level.
+//
+//   the sky layer is not. Mars really does build orographic water-ice cloud
+//   over its big Tharsis volcanoes, and that thin bright veil is the single
+//   most recognisable thing about the setting -- it is the one weather feature
+//   in this file that is not brown.
+// =============================================================================
+
+// Slope dust. DustSheet's cousin: same idea, but climbing the flank rather than
+// racing across a plain, so it is slower, taller, and far more turbulent. The
+// randomiser is doing the work here -- it stands in for the gullies and spurs
+// breaking the flow up, which is why this reads as terrain and DustSheet reads
+// as open ground.
+particle_system CR/Weather/SlopeDust
+{
+    material            CR_FX/DustSheet
+    particle_width      6.5
+    particle_height     3.0
+    quota               800
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Box
+    {
+        angle               16
+        emission_rate       58
+        time_to_live_min    2.4
+        time_to_live_max    4.0
+        // Slightly UPWARD by default: on a flank the daytime flow climbs. The
+        // preset and the director override this with the live slope wind.
+        direction           -1 0.10 0
+        velocity_min        26
+        velocity_max        44
+        colour_range_start  0.74 0.51 0.30 0.38
+        colour_range_end    0.60 0.39 0.23 0.00
+        width               260
+        height              46
+        depth               260
+    }
+
+    affector ColourFader
+    {
+        alpha -0.16
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      11
+        scope           0.55
+        keep_velocity   true
+    }
+
+    affector Scaler
+    {
+        rate 1.6
+    }
+}
+
+// Orographic ice veil. Thin water-ice cloud standing over the volcano.
+//
+// Everything about this is restraint. The cards are enormous, the alpha is the
+// lowest in the file, the motion is almost nil, and the lifetime is long enough
+// that the layer looks stationary against a moving sky rather than like weather
+// blowing past. It sits far above the player, so it is only ever seen against
+// the sky and never intersects terrain -- which is also why it can afford to be
+// this large without the soft-particle problem the dust layers have.
+//
+// It is the FIRST thing to go as the storm builds: rising dust chokes it off
+// from below, so the preset fades it out as the ladder climbs rather than
+// stacking it under the dust.
+particle_system CR/Weather/OrographicVeil
+{
+    material            CR_FX/IceVeil
+    particle_width      170.0
+    particle_height     110.0
+    quota               260
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       9
+        time_to_live_min    26.0
+        time_to_live_max    40.0
+        direction           -1 0 0
+        velocity_min        2
+        velocity_max        6
+        colour_range_start  0.84 0.89 0.97 0.10
+        colour_range_end    0.78 0.85 0.95 0.00
+        width               900
+        height              90
+        depth               900
+    }
+
+    affector ColourFader
+    {
+        alpha -0.0025
+    }
+}
+
 // =============================================================================
 // Snow
 // =============================================================================
