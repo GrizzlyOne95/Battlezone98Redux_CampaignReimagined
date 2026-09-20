@@ -1,0 +1,62 @@
+// Phase A foliage prototype. Deliberately has no en-* technique: DX11
+// Enhanced must use OpenShim's global EnhancedSchemeFallback and select this
+// valid base technique rather than rendering the material black.
+material CR/GrassPrototype
+{
+    receive_shadows off
+
+    technique
+    {
+        pass
+        {
+            vertex_program_ref CR_Textured_vertex
+            {
+            }
+            fragment_program_ref CR_Textured_fragment
+            {
+            }
+
+            lighting off
+            cull_hardware none
+            cull_software none
+            scene_blend alpha_blend
+            alpha_rejection greater_equal 96
+            depth_write on
+            diffuse 0.82 0.92 0.68 1
+            emissive 1 1 1
+
+            texture_unit diffuseMap
+            {
+                texture crgrass.png
+                tex_address_mode clamp
+                filtering linear linear point
+            }
+        }
+    }
+
+    technique glow
+    {
+        scheme glow
+        pass
+        {
+            vertex_program_ref CR_Textured_vertex
+            {
+            }
+            fragment_program_ref CR_Textured_fragment
+            {
+            }
+
+            lighting off
+            cull_hardware none
+            cull_software none
+            depth_write off
+            diffuse 0 0 0 0
+            emissive 0 0 0
+            texture_unit diffuseMap
+            {
+                texture crgrass.png
+                tex_address_mode clamp
+            }
+        }
+    }
+}
