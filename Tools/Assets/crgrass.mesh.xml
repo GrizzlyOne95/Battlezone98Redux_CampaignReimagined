@@ -1,0 +1,27 @@
+<mesh>
+    <submeshes>
+        <submesh material="CR/GrassPrototype" usesharedvertices="false" use32bitindexes="false" operationtype="triangle_list">
+            <faces count="4">
+                <face v1="0" v2="1" v3="2" />
+                <face v1="2" v2="3" v3="0" />
+                <face v1="4" v2="5" v3="6" />
+                <face v1="6" v2="7" v3="4" />
+            </faces>
+            <geometry vertexcount="8">
+                <vertexbuffer positions="true" normals="true" texture_coord_dimensions_0="float2" texture_coords="1">
+                    <vertex><position x="-0.45" y="0" z="0" /><normal x="0" y="0" z="1" /><texcoord u="0" v="1" /></vertex>
+                    <vertex><position x="0.45" y="0" z="0" /><normal x="0" y="0" z="1" /><texcoord u="1" v="1" /></vertex>
+                    <vertex><position x="0.45" y="1.2" z="0" /><normal x="0" y="0" z="1" /><texcoord u="1" v="0" /></vertex>
+                    <vertex><position x="-0.45" y="1.2" z="0" /><normal x="0" y="0" z="1" /><texcoord u="0" v="0" /></vertex>
+                    <vertex><position x="0" y="0" z="-0.45" /><normal x="1" y="0" z="0" /><texcoord u="0" v="1" /></vertex>
+                    <vertex><position x="0" y="0" z="0.45" /><normal x="1" y="0" z="0" /><texcoord u="1" v="1" /></vertex>
+                    <vertex><position x="0" y="1.2" z="0.45" /><normal x="1" y="0" z="0" /><texcoord u="1" v="0" /></vertex>
+                    <vertex><position x="0" y="1.2" z="-0.45" /><normal x="1" y="0" z="0" /><texcoord u="0" v="0" /></vertex>
+                </vertexbuffer>
+            </geometry>
+        </submesh>
+    </submeshes>
+    <submeshnames>
+        <submeshname name="grass_cross" index="0" />
+    </submeshnames>
+</mesh>
