@@ -878,6 +878,20 @@ $cases = @(
         Defines = @()
     },
     @{
+        Name = 'overlay-vs-text'
+        File = $overlayShader
+        Entry = 'overlay_text_vertex'
+        Target = 'vs_4_0'
+        Defines = @()
+    },
+    @{
+        Name = 'overlay-vs-panel'
+        File = $overlayShader
+        Entry = 'overlay_panel_vertex'
+        Target = 'vs_4_0'
+        Defines = @()
+    },
+    @{
         Name = 'overlay-ps-tint'
         File = $overlayShader
         Entry = 'overlay_tint_fragment'
