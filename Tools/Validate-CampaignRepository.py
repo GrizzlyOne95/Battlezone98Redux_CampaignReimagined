@@ -19,6 +19,10 @@ EXCLUDED_PARTS = {".git", "Local", "References", "_deps"}
 STRICT_ENGINE_EXTENSIONS = {".odf", ".wav", ".trn", ".bzn"}
 EXTERNAL_LUA_MODULES = {"bzfile", "exu"}
 STOCK_API_DEFINITION_FILES = {"scripts/scriptutils.lua"}
+# Top-level roots the campaign ships but does not author: the sibling
+# OpenShim deploy writes them into this tree, so a clean checkout has none
+# of them and their absence here is not a defect.
+SIBLING_SUPPLIED_ROOTS = {"openshim", "BZ_ASSETS_CORE"}
 
 
 def project_files():
@@ -162,7 +166,14 @@ def check_shipping_lock_resolves() -> list[str]:
         if not source:
             errors.append("shipping lock has a row with no 'source'")
             continue
-        if not (ROOT / source.replace("\\", os.sep).replace("/", os.sep)).exists():
+        normalized = source.replace(chr(92), "/")
+        if normalized.split("/", 1)[0] in SIBLING_SUPPLIED_ROOTS:
+            # Written into this tree by the sibling repository's deploy, not
+            # authored here, so a clean checkout legitimately lacks them. Their
+            # integrity is that repository's job -- OpenShim validates its own
+            # renderer payload before deploying it.
+            continue
+        if not (ROOT / normalized.replace("/", os.sep)).exists():
             missing.append(source)
 
     if missing:
@@ -192,8 +203,7 @@ def check_shipped_materials_ship_their_textures(files) -> list[str]:
     if errors:
         return []  # check_shipping_lock_resolves reports lock problems.
 
-    shipped = {e.get("source", "").replace("\\", os.sep).replace("/", os.sep)
-               for e in entries}
+    shipped = {e.get("source", "").replace(chr(92), "/") for e in entries}
     by_name: dict[str, str] = {}
     for _path, relative in files:
         by_name.setdefault(relative.name.lower(), str(relative))
@@ -205,7 +215,7 @@ def check_shipped_materials_ship_their_textures(files) -> list[str]:
     for path, relative in files:
         if path.suffix.lower() != ".material":
             continue
-        if str(relative).replace("/", os.sep) not in shipped:
+        if str(relative).replace(os.sep, "/") not in shipped:
             continue  # not a shipped material
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
@@ -215,7 +225,7 @@ def check_shipped_materials_ship_their_textures(files) -> list[str]:
             located = by_name.get(texture.lower())
             if located is None:
                 continue  # stock engine texture, not ours
-            if located.replace("/", os.sep) not in shipped:
+            if located.replace(os.sep, "/") not in shipped:
                 problems.append(
                     f"{relative} references {texture}, which exists at "
                     f"{located} but is not in the shipping lock")
