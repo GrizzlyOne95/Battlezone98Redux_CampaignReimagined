@@ -76,6 +76,36 @@ if (Test-Path $tempRoot) { Remove-Item $tempRoot -Recurse -Force }
 New-Item $tempRoot -ItemType Directory | Out-Null
 
 # -----------------------------------------------------------------------------
+# CR_static_ibl.program compiles OpenShim's Enhanced sources with IBL_ENABLED.
+# 400a7a6 kept that program deliberately -- it is CR's own extension of a
+# payload CR no longer copies -- so a source named by a .program in this tree
+# may well live in OpenShim instead of beside it.
+#
+# The payload is resolved once, from the current checkout, and used for BOTH
+# trees. That is deliberate, not sloppy: this comparison asks whether a change
+# in THIS repository altered Default/Retro bytecode, so an input this repository
+# does not own must be held identical on both sides. Varying it would turn a CR
+# regression check into a measurement of OpenShim.
+$openShimRepo = $env:BZR_OPENSHIM_REPO
+if (-not $openShimRepo) {
+    $openShimRepo = Join-Path (Split-Path -Parent (Split-Path -Parent $repoRoot)) 'BZR-OpenShim'
+}
+$script:OpenShimPayload = Join-Path $openShimRepo 'resources\renderer\enhanced'
+
+function Resolve-ShaderSource {
+    param([string]$ShaderDir, [string]$Source)
+
+    $local = Join-Path $ShaderDir $Source
+    if (Test-Path -LiteralPath $local) { return $local }
+
+    $external = Join-Path $script:OpenShimPayload $Source
+    if (Test-Path -LiteralPath $external) { return $external }
+
+    throw ("Shader source '$Source' is in neither '$ShaderDir' nor the OpenShim " +
+           "payload at '$script:OpenShimPayload'. Set BZR_OPENSHIM_REPO to an " +
+           "OpenShim checkout.")
+}
+
 # Materialize the baseline tree
 # -----------------------------------------------------------------------------
 if (-not $BaselinePath) {
@@ -197,7 +227,7 @@ function Get-PermutationHashes {
                 if ($trimmed) { $fxcArgs += @('/D', $trimmed) }
             }
         }
-        $fxcArgs += (Join-Path $shaderDir $p.Source)
+        $fxcArgs += (Resolve-ShaderSource -ShaderDir $shaderDir -Source $p.Source)
 
         & $FxcPath @fxcArgs 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0 -or -not (Test-Path $outFile)) {
