@@ -73,6 +73,16 @@ material CR_FX/DustDevil : BZSprite/AlphaBlend
 	set_texture_alias DiffuseMap smoke.png
 }
 
+// WANTED: cr_haboob.png -- an enormous, almost structureless dust veil,
+// ~128x128. Haboob cards are huge and heavily overlapped, so this wants the
+// lowest peak alpha in the set: the wall gets its density from stacking many
+// cards, and any card the eye can pick out individually destroys the illusion
+// that it is a solid front of air rather than a pile of quads.
+material CR_FX/Haboob : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap smoke.png
+}
+
 // WANTED: cr_ash.png -- ragged dark ash flake, ~32x32.
 material CR_FX/Ash : BZSprite/AlphaBlend
 {
