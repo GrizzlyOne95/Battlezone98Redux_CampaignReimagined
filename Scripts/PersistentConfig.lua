@@ -4972,8 +4972,23 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
         options.syncLightingMode or
         options.syncRadarSize
     )
+    -- `applyScrapPilotHud` and `syncRadarSize` open this gate but are
+    -- deliberately NOT honoured inside ApplySettings: OpenShim owns the
+    -- scrap/pilot HUD layout and the process-wide radar size, and the comments
+    -- at those sites explain why campaign settings must not overwrite them.
+    -- They remain here so an explicit caller still triggers the save and the
+    -- overlay refresh. Do not "fix" them by adding branches to ApplySettings.
     if needsApplySettings then
-        PersistentConfig.ApplySettings(options)
+        -- ApplySettings decides "apply everything" from `options` being absent,
+        -- not from a key, and no branch inside it reads `applySettings`. Passing
+        -- the table straight through therefore sets applyAll = false and applies
+        -- nothing at all: the flag opens this gate and then silently does no
+        -- work. Drop the table when it is set so the name means what it says.
+        if options.applySettings then
+            PersistentConfig.ApplySettings()
+        else
+            PersistentConfig.ApplySettings(options)
+        end
     end
     if options and options.markOtherHeadlightsDirty then
         MarkOtherHeadlightsDirty()
