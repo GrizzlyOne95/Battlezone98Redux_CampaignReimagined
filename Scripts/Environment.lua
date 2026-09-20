@@ -98,7 +98,13 @@ Environment = {
     SunsetFog              = { r = 0.78, g = 0.58, b = 0.38, fogStart = 120, fogEnd = 460 },
     NightFog               = { r = 0.10, g = 0.12, b = 0.20, fogStart = 40, fogEnd = 220 },
     SunriseFog             = { r = 0.82, g = 0.66, b = 0.72, fogStart = 90, fogEnd = 400 },
-    DustStormFog           = { r = 0.50, g = 0.30, b = 0.12, fogStart = 5, fogEnd = 45 },
+    -- DEPRECATED. A dust storm is weather, not a time of day, so CRWeather
+    -- owns it: see CRWeatherPresets.MarsDustStorm and the severity ladder in
+    -- CRMarsWeather. This entry is kept only so "dust" stays a recognised fog
+    -- state for missions that already ask for it, and it now resolves to the
+    -- ordinary day fog -- CRWeather supplies the actual storm atmosphere on
+    -- top. Do not re-tune it; tune the preset.
+    DustStormFog           = nil,
 
     -- Public compatibility field. When non-nil this is the fixed target preset.
     FogManualOverride      = nil,
@@ -697,7 +703,9 @@ local function GetFogPreset(stateName)
         night = Environment.NightFog,
         sunrise = Environment.SunriseFog,
         dawn = Environment.SunriseFog,
-        dust = Environment.DustStormFog,
+        -- Deprecated alias: the storm itself comes from CRWeather now, so the
+        -- base state underneath it is just day fog.
+        dust = Environment.DayFog,
     }
     return presets[normalized]
 end
@@ -1024,32 +1032,17 @@ function Environment.Update(timestep)
     local sunState = ComputeSunState(state)
 
     -- -------------------------------------------------------------------------
-    -- Dust storm override
-    -- Dust remains intentionally authoritative over a manual fog request while
-    -- active, matching the old behavior. Gravity is restored once on exit.
+    -- Dust storms are CRWeather's, not Environment's
+    --
+    -- This used to override targetFog with its own DustStormFog and wobble
+    -- gravity on a timer, which meant two independent definitions of what a
+    -- dust storm looks like and two writers competing for gravity every frame
+    -- (CRMarsWeather still carries a guard against exactly that). Environment
+    -- now contributes nothing here: TriggerDustStorm delegates to CRWeather,
+    -- which owns the atmosphere through the modifier hook and the wind push
+    -- through CRMarsWeather.
     -- -------------------------------------------------------------------------
-    local wasDustStorm = Environment.IsDustStorm
-    local isDustStorm = (Environment.DustStormTimer or 0.0) > 0.0
-    Environment.IsDustStorm = isDustStorm
-
-    if isDustStorm then
-        Environment.DustStormTimer = math.max(0.0, Environment.DustStormTimer - timestep)
-        targetFog = CopyFog(Environment.DustStormFog)
-
-        if not Environment.LastGravity or (scaledTime - Environment.LastGravity) > 0.5 then
-            local wobX = math.sin(gameTime * 5.0) * 0.5
-            local wobZ = math.cos(gameTime * 4.3) * 0.5
-            if exu.SetGravity then
-                exu.SetGravity(wobX, -9.8, wobZ)
-            end
-            Environment.LastGravity = scaledTime
-        end
-    elseif wasDustStorm then
-        if exu.SetGravity then
-            exu.SetGravity(0, -9.8, 0)
-        end
-        Environment.LastGravity = nil
-    end
+    Environment.IsDustStorm = false
 
     -- -------------------------------------------------------------------------
     -- Registered modifiers get the last word on the frame targets. Weather
@@ -1295,9 +1288,29 @@ function Environment.GetFogHorizon()
     return horizon
 end
 
+-- DEPRECATED. Kept so missions that already call it keep working; new code
+-- should call CRWeather.SetPreset directly, or drive the severity ladder in
+-- CRMarsWeather, which is what this now does on the mission's behalf.
+--
+-- `duration` is accepted and ignored: CRWeather presets run until something
+-- stands them down, and a storm that expires on a wall-clock timer was never
+-- reconcilable with a ladder that raises and lowers severity over a mission.
+-- Stand it down with CRWeather.SetPreset("Clear").
 function Environment.TriggerDustStorm(duration)
-    Environment.DustStormTimer = math.max(0.0, tonumber(duration) or 30.0)
-    print("Environment: Dust storm triggered for " .. tostring(Environment.DustStormTimer) .. "s")
+    Environment.DustStormTimer = 0.0
+    Environment.IsDustStorm = false
+
+    local weather = rawget(_G, "CRWeather")
+    if weather == nil or type(weather.SetPreset) ~= "function" then
+        print("Environment: TriggerDustStorm ignored -- CRWeather is not loaded, " ..
+              "and Environment no longer carries its own dust storm")
+        return false
+    end
+
+    print("Environment: TriggerDustStorm is deprecated; delegating to " ..
+          "CRWeather.SetPreset(\"MarsDustStorm\")")
+    weather.SetPreset("MarsDustStorm")
+    return true
 end
 
 -- Force a fog preset override ("day", "sunset", "night", "sunrise", "dust").
