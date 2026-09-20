@@ -3100,16 +3100,27 @@ function Update()
         if not M.cin_started then
             CameraReady()
             M.cin_started = true
+            M.endcinfinish = true
             M.startendcin = GetTime() + 20.0
         end
 
-        if CameraReady() and not M.endcinfinish then
+        -- Two deviations from the idiom every other cutscene in this campaign
+        -- uses (misn02b:590, misn03:947, misn03:1287, and misn04's own relic
+        -- and failure cinematics), both of which showed up in play:
+        --
+        --   CameraReady() was called a second time here, inside the condition,
+        --   so it ran again on every frame of the cinematic while CameraFinish
+        --   below ran once. That imbalance is what surfaced as the engine's
+        --   "Fsm error: Camera Stack Underfow" on mission end.
+        --
+        --   CameraPath() was latched to fire once. It is what advances the
+        --   path, so it has to run every frame the camera is up; every other
+        --   site calls it from a latched branch rather than latching the call.
+        if M.endcinfinish then
             CameraPath("endcin", 100, 200, M.player or M.avrec)
-            M.endcinfinish = true
         end
 
-        if (M.endcinfinish and (GetTime() > M.startendcin or CameraCancelled())) or
-            (not M.endcinfinish and GetTime() > M.startendcin) then
+        if GetTime() > M.startendcin or CameraCancelled() then
             CameraFinish()
             M.endmission = true
             SucceedMission(GetTime(), "misn04w1.des")

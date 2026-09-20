@@ -84,6 +84,19 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-AiCoreStateManagement.lua
 
+      - name: Test weather
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          # These suites existed but were never wired in, so a weather
+          # regression could reach a release with CI green.
+          "$LUA" Tools/Test-CRWeatherFogHorizon.lua
+          "$LUA" Tools/Test-CRWeatherParameters.lua
+          "$LUA" Tools/Test-CRMarsWeather.lua
+          "$LUA" Tools/Test-CRMarsHaboob.lua
+          "$LUA" Tools/Test-CRMarsVolcano.lua
+
       - name: Test setup mission shell
         run: python Tools/Test-SetupMissionShell.py
 

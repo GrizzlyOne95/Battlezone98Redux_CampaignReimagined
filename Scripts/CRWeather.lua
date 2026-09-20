@@ -75,6 +75,11 @@ CRWeather.LiveSystems        = {}    -- systemName -> { spec = ..., preset = ...
 CRWeather.ModifierRegistered = false
 CRWeather.OwnsEnvironment    = false -- true when Environment.lua is not present
 CRWeather.BaselineFog        = nil
+
+-- Terrain draw distance, from Environment.GetFogHorizon() when Environment.lua
+-- is present and from the map's own fogEnd otherwise. Weather fog is clamped to
+-- it; nothing else is. Init{ fogHorizon = false } opts out, a number overrides.
+CRWeather.FogHorizon         = nil
 CRWeather.BaselineAmbient    = nil
 CRWeather.BaselineDiffuse    = nil
 CRWeather.BaselineSunPower   = nil
@@ -614,6 +619,41 @@ local function CurrentWeight()
     return Clamp01(CRWeather.Blend) * Clamp01(CRWeather.Intensity)
 end
 
+-- The horizon belongs to the terrain, so Environment -- which already parses the
+-- .trn -- is asked for it first. The captured baseline is only a fallback for
+-- the standalone path, where there is no Environment.lua to ask.
+--
+-- Returns nil when clamping is disabled or the horizon is unknown, in which
+-- case weather fog is applied exactly as authored.
+local function ResolveFogHorizon()
+    if CRWeather.FogHorizon == false then
+        return nil
+    end
+
+    local override = tonumber(CRWeather.FogHorizon)
+    if override ~= nil and override > 0.0 then
+        return override
+    end
+
+    local environment = rawget(_G, "Environment")
+    if environment ~= nil and type(environment.GetFogHorizon) == "function" then
+        local ok, horizon = pcall(environment.GetFogHorizon)
+        if ok then
+            horizon = tonumber(horizon)
+            if horizon ~= nil and horizon > 0.0 then
+                return horizon
+            end
+        end
+    end
+
+    local baseline = CRWeather.BaselineFog
+    local fallback = baseline and tonumber(baseline.fogEnd)
+    if fallback ~= nil and fallback > 0.0 then
+        return fallback
+    end
+    return nil
+end
+
 local function ApplyPresetToFrame(frame, preset, weight)
     if preset == nil or weight <= 0.0 then
         return
@@ -623,8 +663,31 @@ local function ApplyPresetToFrame(frame, preset, weight)
         frame.fog.r = Lerp(frame.fog.r, preset.fog.r, weight)
         frame.fog.g = Lerp(frame.fog.g, preset.fog.g, weight)
         frame.fog.b = Lerp(frame.fog.b, preset.fog.b, weight)
-        frame.fog.fogStart = Lerp(frame.fog.fogStart, preset.fog.fogStart, weight)
-        frame.fog.fogEnd = Lerp(frame.fog.fogEnd, preset.fog.fogEnd, weight)
+
+        -- weatherFogEnd = min(requested, authored terrain horizon).
+        --
+        -- The clamp is applied to the PRESET's requested value before the
+        -- blend, not to the composed frame afterwards. That is deliberate: at
+        -- weight zero this contributes nothing, so a mission with weather
+        -- disabled -- or standing clear -- keeps whatever base fog Environment
+        -- asked for, untouched. Only the weather share is limited.
+        --
+        -- Presets are authored for open ground: MarsHaze finishes at 520,
+        -- MarsDustRising 380, MarsDustStorm 320. On a map whose terrain stops
+        -- at 250 those never reach full density before the geometry is gone,
+        -- and the unfogged remainder reads as a bright band along the horizon.
+        -- Measured on misn04, MarsHaze was only 37% opaque at the cut-off.
+        local presetStart, presetEnd = preset.fog.fogStart, preset.fog.fogEnd
+        local horizon = ResolveFogHorizon()
+        if horizon ~= nil and presetEnd > horizon then
+            presetEnd = horizon
+            if presetStart >= horizon then
+                presetStart = horizon * 0.5
+            end
+        end
+
+        frame.fog.fogStart = Lerp(frame.fog.fogStart, presetStart, weight)
+        frame.fog.fogEnd = Lerp(frame.fog.fogEnd, presetEnd, weight)
     end
 
     if preset.ambient and frame.ambient then
@@ -739,6 +802,20 @@ end
 -- Lightning
 -- =============================================================================
 
+-- Sounds are not CR's to ship: every clip a preset names belongs to the game or
+-- to an addon that happens to be mounted. Warn once per name so a missing clip
+-- is visible in the log without repeating on every strike.
+local WarnedSounds = {}
+
+local function WarnSoundOnce(sound, reason)
+    local key = tostring(sound)
+    if WarnedSounds[key] then
+        return
+    end
+    WarnedSounds[key] = true
+    print("CRWeather: thunder sound '" .. key .. "' did not play (" .. tostring(reason) .. ")")
+end
+
 local function ScheduleNextStrike(policy)
     local minInterval = policy.minInterval or 8.0
     local maxInterval = math.max(minInterval, policy.maxInterval or (minInterval + 10.0))
@@ -786,8 +863,18 @@ local function UpdateLightning()
     local thunder = CRWeather.PendingThunder
     if thunder ~= nil and CRWeather.Clock >= thunder.at then
         CRWeather.PendingThunder = nil
-        if StartSound then
-            pcall(StartSound, thunder.sound)
+        if StartSound == nil then
+            WarnSoundOnce(thunder.sound, "StartSound is not available")
+        else
+            -- pcall is still needed -- StartSound raises on a name the engine
+            -- cannot resolve -- but swallowing the result made a missing sound
+            -- indistinguishable from a working one. A thunder clip that never
+            -- plays is exactly the kind of failure nobody notices for a year,
+            -- so say so once per sound name rather than once per strike.
+            local ok, err = pcall(StartSound, thunder.sound)
+            if not ok then
+                WarnSoundOnce(thunder.sound, tostring(err))
+            end
         end
     end
 end
@@ -812,6 +899,11 @@ function CRWeather.Init(options)
     if options.quality ~= nil then CRWeather.Quality = math.max(0.0, tonumber(options.quality) or 1.0) end
     if options.debug ~= nil then CRWeather.Debug = options.debug and true or false end
     if options.baseSky ~= nil then CRWeather.BaseSky = options.baseSky end
+    -- false disables the weather-fog horizon clamp entirely; a number
+    -- overrides whatever Environment or the map baseline would report.
+    if options.fogHorizon ~= nil then
+        CRWeather.FogHorizon = tonumber(options.fogHorizon) or false
+    end
 
     CRWeather.Clock = 0.0
     CRWeather.Blend = 0.0
