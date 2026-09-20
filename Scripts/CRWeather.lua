@@ -802,6 +802,20 @@ end
 -- Lightning
 -- =============================================================================
 
+-- Sounds are not CR's to ship: every clip a preset names belongs to the game or
+-- to an addon that happens to be mounted. Warn once per name so a missing clip
+-- is visible in the log without repeating on every strike.
+local WarnedSounds = {}
+
+local function WarnSoundOnce(sound, reason)
+    local key = tostring(sound)
+    if WarnedSounds[key] then
+        return
+    end
+    WarnedSounds[key] = true
+    print("CRWeather: thunder sound '" .. key .. "' did not play (" .. tostring(reason) .. ")")
+end
+
 local function ScheduleNextStrike(policy)
     local minInterval = policy.minInterval or 8.0
     local maxInterval = math.max(minInterval, policy.maxInterval or (minInterval + 10.0))
@@ -849,8 +863,18 @@ local function UpdateLightning()
     local thunder = CRWeather.PendingThunder
     if thunder ~= nil and CRWeather.Clock >= thunder.at then
         CRWeather.PendingThunder = nil
-        if StartSound then
-            pcall(StartSound, thunder.sound)
+        if StartSound == nil then
+            WarnSoundOnce(thunder.sound, "StartSound is not available")
+        else
+            -- pcall is still needed -- StartSound raises on a name the engine
+            -- cannot resolve -- but swallowing the result made a missing sound
+            -- indistinguishable from a working one. A thunder clip that never
+            -- plays is exactly the kind of failure nobody notices for a year,
+            -- so say so once per sound name rather than once per strike.
+            local ok, err = pcall(StartSound, thunder.sound)
+            if not ok then
+                WarnSoundOnce(thunder.sound, tostring(err))
+            end
         end
     end
 end
