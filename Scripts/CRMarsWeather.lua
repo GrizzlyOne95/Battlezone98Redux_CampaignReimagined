@@ -1125,9 +1125,11 @@ local function UpdateWindPush()
         return
     end
 
-    -- Environment's legacy dust-storm path also writes gravity. Nothing in CR
-    -- calls TriggerDustStorm today, but if something does, it wins for as long
-    -- as it runs rather than the two of us alternating writes every frame.
+    -- Kept as a belt-and-braces guard only. Environment's legacy dust-storm
+    -- path used to write gravity too; it no longer does -- TriggerDustStorm
+    -- delegates here instead and DustStormTimer stays at zero -- so this should
+    -- never fire. It costs one comparison and it would catch a mission or mod
+    -- that still drives the old field directly.
     local environment = rawget(_G, "Environment")
     if environment ~= nil and (environment.DustStormTimer or 0.0) > 0.0 then
         return
