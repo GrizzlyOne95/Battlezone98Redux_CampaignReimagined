@@ -1149,10 +1149,106 @@ CRWeatherPresets.Presets = {
             flash       = { r = 0.55, g = 0.60, b = 0.72 },
             flashTime   = 0.22,
             -- Thunder is delayed by distance so the flash reads as far away.
-            thunder     = { sound = "xthunder.wav", minDelay = 1.5, maxDelay = 6.0 },
+            -- "xthunder.wav" was named here and exists nowhere on a Redux
+            -- install; StartSound failed and pcall ate it, so the flash was
+            -- always silent. thunder.wav is the real clip. CR ships no audio of
+            -- its own, so this resolves only where an addon providing it is
+            -- mounted -- CRWeather logs once if it cannot be played.
+            thunder     = { sound = "thunder.wav", minDelay = 1.5, maxDelay = 6.0 },
         },
         transitionIn  = 20.0,
         transitionOut = 28.0,
+    },
+
+    -- -------------------------------------------------------------------------
+    -- Venus. The one world in the set where lightning is the point rather than
+    -- a garnish, so it is the reason CRWeather's lightning policy exists at all.
+    --
+    -- Three things shape this preset, and none of them is "rain with a filter":
+    --
+    --   nothing falls. Venus has sulphuric acid cloud, but it evaporates
+    --   kilometres above the ground -- virga, never precipitation. So there is
+    --   no rain layer here at all. What the player sees is suspended.
+    --
+    --   the air is thick, not fast. Surface wind is slow, but the atmosphere is
+    --   ~90x Earth's density, so slow air still drags heavy material. windSpeed
+    --   stays low while the grit layer carries unusually large particles.
+    --
+    --   no direct sun reaches the surface. Everything is scattered. diffuse is
+    --   warm and flat and sunPowerScale is the lowest in the file, because a
+    --   hard sun angle would read as a different planet.
+    --
+    -- The MarsHaze template is named for where it debuted, not for what it is:
+    -- it is the generic suspended-haze layer and it draws CR_FX/Haze.
+    -- -------------------------------------------------------------------------
+    VenusSulphurStorm = {
+        name = "VenusSulphurStorm",
+        precipitation = {
+            {
+                system   = "cr_wx_venus_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 30.0, z = 0.0 },
+                quota    = 900,
+                emitters = {
+                    [0] = {
+                        rate     = 38.0,
+                        velocity = { 1.5, 4.0 },
+                        ttl      = { 14.0, 22.0 },
+                        angle    = 80.0,
+                        color    = {
+                            start  = { r = 0.78, g = 0.60, b = 0.26, a = 0.42 },
+                            finish = { r = 0.52, g = 0.38, b = 0.16, a = 0.00 },
+                        },
+                    },
+                },
+            },
+            {
+                system   = "cr_wx_venus_grit",
+                template = "CR/Weather/DustGrit",
+                offset   = { x = 0.0, y = 3.0, z = 0.0 },
+                quota    = 420,
+                emitters = {
+                    [0] = {
+                        rate     = 26.0,
+                        velocity = { 2.0, 5.0 },
+                        ttl      = { 3.5, 6.5 },
+                        angle    = 40.0,
+                        color    = {
+                            start  = { r = 0.62, g = 0.47, b = 0.22, a = 0.70 },
+                            finish = { r = 0.40, g = 0.29, b = 0.12, a = 0.15 },
+                        },
+                    },
+                },
+            },
+        },
+        -- No sky block. The CR_Sky domes are still placeholders and the layer
+        -- only engages when a mission supplies a baseSky, which none do yet.
+        -- Naming an eighth orphan sky material here would add a placeholder
+        -- rather than remove one. Add it with the art, not before.
+        sky           = nil,
+        fog           = { r = 0.42, g = 0.30, b = 0.13, fogStart = 22.0, fogEnd = 260.0 },
+        ambient       = { r = 0.38, g = 0.29, b = 0.16 },
+        diffuse       = { r = 0.52, g = 0.40, b = 0.20 },
+        sunPowerScale = 0.34,
+        wind          = { x = 0.46, y = -0.12, z = -0.88 },
+        windSpeed     = 5.0,
+        gusts         = { period = 19.0, depth = 0.22 },
+        -- Frequent, and the flash is warm because it is being scattered through
+        -- a great deal of sulphur before it reaches the player. Thunder lags
+        -- hard: the strike belongs to the cloud deck, which is a long way up.
+        lightning = {
+            minInterval = 4.0,
+            maxInterval = 13.0,
+            -- Held to 0.44 deliberately: ambient is already 0.38 here and the
+            -- flash is added, not blended, so 0.62 put the red channel at
+            -- exactly 1.00 -- saturated before Intensity or a second layer got
+            -- a say. 0.82 peak matches AcidRainVisual and leaves headroom.
+            flash       = { r = 0.44, g = 0.36, b = 0.22 },
+            flashTime   = 0.30,
+            thunder     = { sound = "thunder.wav", minDelay = 2.5, maxDelay = 8.0 },
+        },
+        transitionIn  = 24.0,
+        transitionOut = 30.0,
     },
 }
 
