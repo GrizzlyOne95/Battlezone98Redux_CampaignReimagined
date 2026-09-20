@@ -767,6 +767,32 @@ function exu.GetMaterialName(h, subEntityIndex) end
 --- @param resourceGroup string? optional
 function exu.SetEntityMaterial(h, materialName, resourceGroup) end
 
+--- Builds one mission-scoped Ogre StaticGeometry object from a bulk transform list.
+--- @param name string
+--- @param mesh string
+--- @param material string|nil
+--- @param instances table[]
+--- @param options? table
+--- @return table|nil info
+--- @return string? error
+function exu.CreateStaticGeometry(name, mesh, material, instances, options) end
+
+--- @param name string
+--- @return boolean destroyed
+function exu.DestroyStaticGeometry(name) end
+
+--- @return integer trackedCount
+function exu.DestroyAllStaticGeometry() end
+
+--- @param name string
+--- @return table|nil info
+function exu.GetStaticGeometryInfo(name) end
+
+--- @param name string
+--- @param visible boolean
+--- @return boolean changed
+function exu.SetStaticGeometryVisible(name, visible) end
+
 --- Sets the material name used by a specific sub-entity.
 --- The resource group defaults to "General".
 --- @param h Handle

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-09-12T22:51:44-05:00",
-  "count": 3326,
+  "generated": "2026-09-20T16:36:15-05:00",
+  "count": 3330,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6336,6 +6336,10 @@
       "runtime": "bvwalk.vdf"
     },
     {
+      "source": "Assets\\ModelFixes\\crgrass.mesh",
+      "runtime": "crgrass.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvwalk_c.mesh",
       "runtime": "cvwalk_c.mesh"
     },
@@ -6470,6 +6474,10 @@
     {
       "source": "Assets\\Textures\\bvrdev_d.dds",
       "runtime": "bvrdev_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crgrass.png",
+      "runtime": "crgrass.png"
     },
     {
       "source": "Assets\\Textures\\LoadingScreenBlank.png",
@@ -7142,6 +7150,10 @@
     {
       "source": "Materials\\cr_weather.particle",
       "runtime": "cr_weather.particle"
+    },
+    {
+      "source": "Materials\\crgrass.material",
+      "runtime": "crgrass.material"
     },
     {
       "source": "Materials\\cspilo.material",
@@ -9878,6 +9890,10 @@
     {
       "source": "Scripts\\ScriptSubtitles.lua",
       "runtime": "ScriptSubtitles.lua"
+    },
+    {
+      "source": "Scripts\\TerrainClutter.lua",
+      "runtime": "TerrainClutter.lua"
     },
     {
       "source": "Scripts\\Weather.lua",

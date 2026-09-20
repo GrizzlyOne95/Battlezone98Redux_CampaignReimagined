@@ -97,6 +97,13 @@ jobs:
           "$LUA" Tools/Test-CRMarsHaboob.lua
           "$LUA" Tools/Test-CRMarsVolcano.lua
 
+      - name: Test deterministic terrain clutter
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-TerrainClutter.lua Scripts
+
       - name: Test setup mission shell
         run: python Tools/Test-SetupMissionShell.py
 
