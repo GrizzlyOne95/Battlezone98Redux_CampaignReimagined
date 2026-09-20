@@ -252,6 +252,102 @@ particle_system CR/Weather/DustDevil
     }
 }
 
+// Haboob wall. The one weather event in this file that arrives rather than
+// simply existing: a dust front the player can see coming, crossing the map on
+// the wind until it passes over them.
+//
+// Like the dust devil and unlike everything else here it is world-placed, so
+// local_space is true and the whole front translates intact. CRMarsWeather owns
+// the approach; this file only describes the shape of the wall.
+//
+// The scale is the point. A haboob reads as weather rather than as a big smoke
+// effect only when its face is wider than the player can see across and taller
+// than anything on the map, so the emitter volume is enormous and the particle
+// cards are enormous with it. What keeps that affordable is that the quota is
+// small for the volume it covers and the alpha is very low: this is a few
+// hundred huge, nearly transparent cards, not a dense field of small ones.
+//
+// Emitter 0 is the wall face, emitter 1 is the rolling crest that tumbles over
+// the top of it. CRMarsWeather scales both by the front's approach envelope.
+particle_system CR/Weather/HaboobWall
+{
+    material            CR_FX/Haboob
+    particle_width      95.0
+    particle_height     95.0
+    quota               900
+    cull_each           true
+    sorted              true
+    local_space         true
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               35
+        emission_rate       70
+        time_to_live_min    9.0
+        time_to_live_max    16.0
+        direction           0 0.35 0
+        velocity_min        6
+        velocity_max        18
+        colour_range_start  0.70 0.46 0.26 0.30
+        colour_range_end    0.52 0.32 0.18 0.10
+        // Wide and tall across the face, shallow through it: a front, not a box
+        // of dust. CRMarsWeather widens this as the wall closes so the face
+        // keeps spanning the view instead of shrinking into a column.
+        width               900
+        height              340
+        depth               120
+    }
+
+    // The crest. A haboob's most recognisable feature is the rolling lip along
+    // its top edge, where the leading air is forced upward and tumbles back.
+    // The Ring gives that lip its curve; the Rotator below gives it the tumble.
+    emitter Ring
+    {
+        angle               55
+        emission_rate       34
+        time_to_live_min    7.0
+        time_to_live_max    12.0
+        direction           0 1 0
+        velocity_min        14
+        velocity_max        30
+        colour_range_start  0.76 0.52 0.30 0.34
+        colour_range_end    0.58 0.36 0.20 0.00
+        width               880
+        height              120
+        depth               240
+        inner_width         0.80
+        inner_height        0.55
+    }
+
+    affector ColourFader
+    {
+        alpha -0.022
+    }
+
+    // Slow tumble. Fast rotation on a card this large reads as a spinning
+    // texture rather than as churning air, so the range is deliberately narrow.
+    affector Rotator
+    {
+        rotation_speed_range_start  -9
+        rotation_speed_range_end     9
+        rotation_range_start          0
+        rotation_range_end          360
+    }
+
+    affector Scaler
+    {
+        rate 5.0
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      7
+        scope           0.5
+        keep_velocity   true
+    }
+}
+
 // =============================================================================
 // Snow
 // =============================================================================

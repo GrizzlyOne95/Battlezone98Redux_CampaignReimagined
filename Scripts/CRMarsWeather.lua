@@ -7,7 +7,7 @@
 -- decides what the sky is doing minute to minute and keeps the air moving while
 -- it does.
 --
--- Four parts:
+-- Five parts:
 --
 --   severity   a continuous 1..5 ladder (calm -> breezy -> rising -> storm ->
 --              severe). Integer crossings swap the CRWeather preset; the
@@ -22,6 +22,10 @@
 --              downwind. Convective, so they only occur in the calmer half of
 --              the ladder -- inside a real storm there is no boundary layer to
 --              form one and you could not see it anyway.
+--   fronts     haboob walls: a dust front crossing the map on the wind, visible
+--              for a minute before it arrives and then passing over the player.
+--              Only while the ladder is climbing, because a front is the
+--              leading edge of a storm and one followed by calm is a lie.
 --   coupling   what the weather does to the mission: sensor degradation through
 --              Environment's gameplay-modifier hook, and a lateral gravity
 --              component so a gale is something you feel through the controls.
@@ -83,6 +87,24 @@ CRMarsWeather.DevilLife            = { 26.0, 58.0 }
 CRMarsWeather.DevilSpinUp          = 6.0
 CRMarsWeather.DevilSpinDown        = 9.0
 CRMarsWeather.DevilDriftFraction   = 0.30    -- of wind speed
+
+-- Haboob fronts. One at a time, always: two fronts on the same wind is not a
+-- thing, and two overlapping thousand-unit walls is not a thing to ask the
+-- renderer for either.
+CRMarsWeather.AllowHaboob          = true
+CRMarsWeather.HaboobMinLevel       = 2.4     -- ladder position before one can form
+CRMarsWeather.HaboobSpawnRange     = { 900.0, 1300.0 }
+CRMarsWeather.HaboobApproachRange  = 900.0   -- distance over which it builds to full
+CRMarsWeather.HaboobArrivalRange   = 120.0   -- distance at which it counts as landed
+CRMarsWeather.HaboobCullRange      = 650.0   -- downwind distance before it is retired
+CRMarsWeather.HaboobSpeedFactor    = 0.85    -- of wind speed
+CRMarsWeather.HaboobGap            = { 240.0, 520.0 }
+CRMarsWeather.HaboobChance         = 0.55
+-- How wide the emitter face is held, from first sighting to arrival. A wall
+-- pinned at one width reads as a finite object receding in perspective; a
+-- widening one keeps spanning the horizon the way an approaching front does.
+CRMarsWeather.HaboobFaceWidth      = { 620.0, 1150.0 }
+CRMarsWeather.HaboobTurbulence     = { 3.0, 12.0 }
 
 -- Optional gust one-shot. Left nil because guessing a stock filename fails
 -- silently: a wrong name plays nothing and looks exactly like working code.
@@ -213,6 +235,13 @@ CRMarsWeather.NextDevilAt       = 0.0
 CRMarsWeather.DevilFailures     = 0
 CRMarsWeather.MaxDevilFailures  = 3
 CRMarsWeather.DevilsDisabled    = false
+
+CRMarsWeather.Haboob            = nil   -- the single live front, or nil
+CRMarsWeather.HaboobSerial      = 0
+CRMarsWeather.NextHaboobAt      = 0.0
+CRMarsWeather.HaboobFailures    = 0
+CRMarsWeather.MaxHaboobFailures = 3
+CRMarsWeather.HaboobDisabled    = false
 
 CRMarsWeather.GameplayRegistered = false
 CRMarsWeather.LastSyncSeverity   = -1.0
@@ -627,11 +656,41 @@ local function UpdateDevils(dt, player)
         DestroyDevil(expired[i])
     end
 
+    -- The cap is a cap, not merely a spawn gate. The ladder steps between rungs
+    -- rather than sliding up to them, and a devil lives far longer than a rung
+    -- change takes, so one born in the calm half is routinely still turning when
+    -- the storm rung arrives. That contradicts the reason this module spawns
+    -- them at all: inside a storm there is no boundary layer to hold a devil
+    -- together, and nobody could see it through the dust if there were.
+    --
+    -- The cap has to come from the rung the director has actually SELECTED, not
+    -- from the smoothed ladder position. LevelValue lags the rung by design --
+    -- that lag is what keeps wind and sensors from stepping when the preset
+    -- changes -- so reading the cap from it means the director has already
+    -- declared a storm while the interpolated cap still says devils are fine.
+    -- Taking the minimum of both keeps the smooth taper on the way up and the
+    -- hard stop the moment a storm rung is chosen.
+    --
+    -- Oldest first, so the survivors are the ones with the most life left.
+    local rung = Level(CRMarsWeather.Level)
+    local maxDevils = math.min(CRMarsWeather.MaxDevils,
+        math.floor(LadderValue("maxDevils") + 0.5),
+        rung.maxDevils or 0)
+    local live = {}
+    for systemName, devil in pairs(CRMarsWeather.Devils) do
+        live[#live + 1] = { name = systemName, born = devil.born }
+    end
+    if #live > maxDevils then
+        table.sort(live, function(a, b) return a.born < b.born end)
+        for i = 1, #live - maxDevils do
+            DestroyDevil(live[i].name)
+        end
+    end
+
     if player == nil or playerPos == nil then
         return
     end
 
-    local maxDevils = math.min(CRMarsWeather.MaxDevils, math.floor(LadderValue("maxDevils") + 0.5))
     if CountDevils() >= maxDevils then
         return
     end
@@ -643,6 +702,196 @@ local function UpdateDevils(dt, player)
 
     if math.random() <= LadderValue("devilChance") then
         SpawnDevil(player)
+    end
+end
+
+-- =============================================================================
+-- Haboob fronts
+-- =============================================================================
+--
+-- A dust devil is something happening nearby. A haboob is something happening to
+-- you: a wall of dust tall enough to hide the sky, crossing the map on the wind,
+-- in view for a minute before it arrives and then swallowing everything. It is
+-- the one Mars weather event with a before and an after, which is what earns it
+-- the bookkeeping an ambient layer does not need.
+--
+-- The front is world-placed and local_space, so the whole wall translates
+-- intact, and the node is turned to face along the wind so the template's
+-- `width` spans the front while its `depth` is the thickness through it.
+
+local function DestroyHaboob()
+    local front = CRMarsWeather.Haboob
+    if front == nil then
+        return
+    end
+    Call("DestroyParticleSystem", front.system)
+    CRMarsWeather.Haboob = nil
+end
+
+function CRMarsWeather.DestroyHaboobFront()
+    DestroyHaboob()
+end
+
+local function SpawnHaboob(player)
+    local origin = player and GetPosition(player) or nil
+    if origin == nil then
+        return false
+    end
+
+    -- Directly upwind, on the wind axis rather than scattered around it like a
+    -- devil. A front that spawns off-axis drifts past instead of over, which
+    -- wastes the entire event.
+    local bearing = CRMarsWeather.Bearing + math.pi
+    local range = RandomRange(CRMarsWeather.HaboobSpawnRange[1], CRMarsWeather.HaboobSpawnRange[2])
+    local x = origin.x + (math.sin(bearing) * range)
+    local z = origin.z + (math.cos(bearing) * range)
+    local y = TerrainHeightAt(x, z)
+    if y == nil then
+        return false
+    end
+
+    CRMarsWeather.HaboobSerial = CRMarsWeather.HaboobSerial + 1
+    local systemName = "cr_wx_haboob_" .. tostring(CRMarsWeather.HaboobSerial)
+
+    if Call("CreateParticleSystem", systemName, "CR/Weather/HaboobWall", SetVector(x, y, z)) ~= true then
+        CRMarsWeather.HaboobFailures = CRMarsWeather.HaboobFailures + 1
+        if CRMarsWeather.HaboobFailures >= CRMarsWeather.MaxHaboobFailures then
+            CRMarsWeather.HaboobDisabled = true
+            print("CRMarsWeather: haboob fronts disabled after " ..
+                tostring(CRMarsWeather.HaboobFailures) ..
+                " failed particle creates (template CR/Weather/HaboobWall unavailable)")
+        else
+            Log("could not create " .. systemName)
+        end
+        return false
+    end
+    CRMarsWeather.HaboobFailures = 0
+
+    Call("SetParticleSystemKeepLocalSpace", systemName, true)
+    Call("SetParticleSystemNonVisibleUpdateTimeout", systemName, 4.0)
+
+    CRMarsWeather.Haboob = {
+        system  = systemName,
+        x       = x,
+        z       = z,
+        born    = CRMarsWeather.Clock,
+        arrived = false,
+        skirt   = 70.0,   -- authored emitter 0 rate
+        crest   = 34.0,   -- authored emitter 1 rate
+    }
+
+    Log("haboob front " .. systemName .. " at " .. string.format("%.0f, %.0f", x, z))
+    return true
+end
+
+local function UpdateHaboob(dt, player)
+    if not CRMarsWeather.AllowHaboob or CRMarsWeather.HaboobDisabled then
+        DestroyHaboob()
+        return
+    end
+
+    local playerPos = player and GetPosition(player) or nil
+    local direction = WindDirection()
+    local front = CRMarsWeather.Haboob
+
+    if front ~= nil then
+        -- The front rides the wind, slightly slower than the air inside it.
+        local speed = CRMarsWeather.WindSpeed * CRMarsWeather.HaboobSpeedFactor
+        front.x = front.x + (direction.x * speed * dt)
+        front.z = front.z + (direction.z * speed * dt)
+
+        -- Distance measured ALONG the wind axis, signed: positive while the
+        -- front is still upwind and closing, negative once it has passed over.
+        -- Plain range would make an arriving front and a departing one look
+        -- identical, and the whole point of the event is that they are not.
+        local along = CRMarsWeather.HaboobApproachRange
+        if playerPos ~= nil then
+            along = ((playerPos.x - front.x) * direction.x)
+                  + ((playerPos.z - front.z) * direction.z)
+        end
+
+        if along < -CRMarsWeather.HaboobCullRange then
+            Log("haboob front " .. front.system .. " passed downwind")
+            DestroyHaboob()
+            return
+        end
+
+        local approach = Clamp01(1.0 - (math.max(0.0, along) / CRMarsWeather.HaboobApproachRange))
+        local depart = Clamp01(1.0 + (math.min(0.0, along) / CRMarsWeather.HaboobCullRange))
+        local envelope = approach * depart
+
+        local y = TerrainHeightAt(front.x, front.z)
+        if y ~= nil then
+            Call("SetParticleSystemPosition", front.system, SetVector(front.x, y, front.z))
+        end
+
+        -- Re-aim only when the bearing has actually moved. The wind wanders
+        -- slowly, and a node rotation every frame is work for nothing.
+        if front.dirX == nil
+            or ((front.dirX * direction.x) + (front.dirZ * direction.z)) < 0.9995
+        then
+            front.dirX = direction.x
+            front.dirZ = direction.z
+            Call("SetParticleSystemDirection", front.system, SetVector(direction.x, 0.0, direction.z))
+        end
+
+        Call("SetParticleEmitterEmissionRate", front.system, 0, front.skirt * envelope)
+        Call("SetParticleEmitterEmissionRate", front.system, 1, front.crest * envelope)
+
+        -- The face widens and the air inside it churns harder as the front
+        -- closes. Both go through EXU's StringInterface bridge, and both are
+        -- written only when they have moved enough to see: Ogre parses every
+        -- one of these out of a string, so a per-frame write is a per-frame
+        -- parse for a change nobody could notice.
+        local width = Lerp(CRMarsWeather.HaboobFaceWidth[1], CRMarsWeather.HaboobFaceWidth[2], envelope)
+        if front.width == nil or math.abs(width - front.width) > 5.0 then
+            front.width = width
+            Call("SetParticleEmitterParameter", front.system, 0, "width", width)
+            Call("SetParticleEmitterParameter", front.system, 1, "width", width * 0.98)
+        end
+
+        local turbulence = Lerp(CRMarsWeather.HaboobTurbulence[1], CRMarsWeather.HaboobTurbulence[2], envelope)
+        if front.turbulence == nil or math.abs(turbulence - front.turbulence) > 0.4 then
+            front.turbulence = turbulence
+            -- Affector 3 is the DirectionRandomiser; see CR/Weather/HaboobWall.
+            Call("SetParticleAffectorParameter", front.system, 3, "randomness", turbulence)
+        end
+
+        if not front.arrived and along <= CRMarsWeather.HaboobArrivalRange then
+            front.arrived = true
+            Log("haboob front " .. front.system .. " arrived")
+            -- The front is the visible cause of the storm behind it, so the
+            -- ladder steps up as it lands rather than on its own timer. Only
+            -- when the director is actually driving: a mission that has forced
+            -- a level has already said what it wants the sky to do.
+            if CRMarsWeather.Automatic and CRMarsWeather.ForcedLevel == nil then
+                CRMarsWeather.SetTargetLevel(CRMarsWeather.TargetLevel + 1)
+            end
+        end
+
+        return
+    end
+
+    if playerPos == nil then
+        return
+    end
+
+    if CRMarsWeather.LevelValue < CRMarsWeather.HaboobMinLevel then
+        -- Hold the timer off while the ladder is low, so a storm that builds an
+        -- hour into a mission does not immediately produce a front from a
+        -- countdown that has been running through all the calm weather.
+        CRMarsWeather.NextHaboobAt = math.max(CRMarsWeather.NextHaboobAt, CRMarsWeather.Clock + 30.0)
+        return
+    end
+
+    if CRMarsWeather.Clock < CRMarsWeather.NextHaboobAt then
+        return
+    end
+    CRMarsWeather.NextHaboobAt = CRMarsWeather.Clock +
+        RandomRange(CRMarsWeather.HaboobGap[1], CRMarsWeather.HaboobGap[2])
+
+    if math.random() <= CRMarsWeather.HaboobChance then
+        SpawnHaboob(player)
     end
 end
 
@@ -889,6 +1138,7 @@ function CRMarsWeather.Update(dt)
         end
     end
     UpdateDevils(dt, player)
+    UpdateHaboob(dt, player)
 
     CRWeather.Update(dt)
 end
@@ -899,6 +1149,7 @@ function CRMarsWeather.Shutdown()
     end
 
     CRMarsWeather.DestroyAllDevils()
+    DestroyHaboob()
 
     local environment = rawget(_G, "Environment")
     if CRMarsWeather.GameplayRegistered and environment ~= nil
@@ -1052,9 +1303,12 @@ function CRMarsWeather.Load(state)
     CRMarsWeather.NextBearingAt = CRMarsWeather.Clock
     CRMarsWeather.WindSpeed = tonumber(state.windSpeed) or CRMarsWeather.WindSpeed
 
-    -- Devils are not persisted: they are short-lived set dressing, and
-    -- restoring half-aged ones is more code than it is worth.
+    -- Devils and fronts are not persisted: they are short-lived set dressing,
+    -- and restoring half-aged ones is more code than it is worth. A front in
+    -- particular would have to restore its approach state to mean anything, and
+    -- a save taken mid-arrival is not worth that.
     CRMarsWeather.DestroyAllDevils()
+    DestroyHaboob()
 
     -- Loading a save rebuilds the Ogre scene, so every particle system we were
     -- tracking is already gone. Clear the bookkeeping before reapplying the
