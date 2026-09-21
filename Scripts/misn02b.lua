@@ -26,15 +26,25 @@ local CLUTTER_PROFILE = {
     material = "CR/GrassPrototype",
     center = STOCK_PLAYER_START,
     radius = 45.0,
-    density = 0.018,
-    minScale = 0.65,
-    maxScale = 1.1,
+    -- Density is instances per square unit, so the count follows the area:
+    -- pi * 45^2 = 6362 sq units. The prototype originally shipped 0.018 with
+    -- maxInstances = 128, which is 115 blades at 7.4 units apart -- roughly a
+    -- blade per tank length, which reads as bare ground rather than as grass,
+    -- and no amount of raising the density could change that while the cap sat
+    -- at 128. 0.35 gives 2227 blades at 1.69 units apart, which is ground
+    -- cover. That is 8908 triangles batched by Ogre StaticGeometry into the
+    -- four 64-unit regions below, so the frame cost is a rounding error; the
+    -- one-off cost is the terrain sampling at mission load, which the
+    -- build log reports as startupMs.
+    density = 0.35,
+    minScale = 0.80,
+    maxScale = 1.40,
     slopeMin = 0.0,
     slopeMax = 22.0,
     heightMin = -500.0,
     heightMax = 5000.0,
     seed = 1001,
-    maxInstances = 128,
+    maxInstances = 4096,
     exclusionCircles = {
         { center = STOCK_PLAYER_START, radius = 12.0 },
     },
