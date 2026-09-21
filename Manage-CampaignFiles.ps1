@@ -41,6 +41,7 @@ $DefaultTestingRuntimeDir = Join-Path $DefaultTestingGameRoot "mods\$CampaignMod
 # So probe, and elevate only when the probe fails. The probe fails safe: any
 # error at all, including a path this script resolved wrongly, means elevate.
 $requestedAction = if ($args.Count -gt 0) { [string]$args[0] } else { "" }
+$ShowShippingDetails = $args -contains "-verbose"
 $elevatedActions = @("", "-deploy", "-fromsource", "-release")
 $requiresElevation = $elevatedActions -contains $requestedAction.ToLowerInvariant()
 
@@ -579,8 +580,13 @@ function Write-ShippingSetReport($resolved) {
         Write-Host ""
         Write-Host ("NOT SHIPPED - $($resolved.Unblessed.Count) file(s) are in the repo but not in " +
             "the shipping lock:") -ForegroundColor Yellow
-        foreach ($relativePath in $resolved.Unblessed) {
-            Write-Host "    $relativePath" -ForegroundColor DarkYellow
+        if ($ShowShippingDetails) {
+            foreach ($relativePath in $resolved.Unblessed) {
+                Write-Host "    $relativePath" -ForegroundColor DarkYellow
+            }
+        }
+        else {
+            Write-Host "  File list hidden; add -verbose to show it." -ForegroundColor DarkGray
         }
         Write-Host "  Review them, then run -bless to add them to the lock." -ForegroundColor Yellow
     }
