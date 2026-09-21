@@ -572,15 +572,6 @@ function Update()
 
         subtit.Initialize("durations.csv")
 
-        -- Steam Integration: Personalized Greeting
-        if exu and exu.GetSteam64 then
-            local steamID = exu.GetSteam64()
-            if steamID and steamID ~= "" then
-                print("Welcome back, Commander. SteamID: " .. steamID)
-                -- We could also use this for specific rewards or greetings if we had a mapping
-            end
-        end
-
         SetObjectiveOn(M.solar1)
         SetObjectiveName(M.solar1, "Command Tower")
         SetCritical(M.solar1, true)
