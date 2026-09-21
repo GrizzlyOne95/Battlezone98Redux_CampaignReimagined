@@ -11,11 +11,9 @@
 -- a negative y. Wind is a *direction*; speed lives in windSpeed.
 --
 -- CR template names refer to particle_system blocks in
--- Materials/cr_weather.particle; a preset may also reuse a mounted EXU weather
--- template explicitly, as VenusDenseAtmosphere does with EXU/WeatherMist. Sky
--- material names refer to Materials/CR_weather.material. CR's templates still
--- point at placeholder textures -- see docs/CR_REACTIVE_PRESENTATION.md for the
--- art request list.
+-- Materials/cr_weather.particle. Sky material names refer to CR's weather
+-- materials. The templates still point at placeholder textures -- see
+-- docs/CR_REACTIVE_PRESENTATION.md for the art request list.
 
 local CRWeatherPresets = {}
 
@@ -83,12 +81,12 @@ CRWeatherPresets.Presets = {
     -- -------------------------------------------------------------------------
     -- Venus dense atmosphere development preset.
     --
-    -- Native linear fog supplies almost all of the opacity. EXU/WeatherMist is
-    -- deliberately only a sparse, camera-local veil: at full intensity and
-    -- quality 1 it emits 6 cards/s into a quota of 72 (about 45 live cards at
-    -- the authored mean lifetime). The mist's ColourInterpolator and Scaler
-    -- are driven by the same live weight as emission, fog, ambient, diffuse and
-    -- sun power, so Intensity is the single 0..1 control for the whole look.
+    -- The map's native fog is deliberately left alone. CR/VenusGroundHaze is a
+    -- sparse, camera-local blanket whose emitter follows sampled ground height
+    -- and whose live weight favours flat terrain below its surrounding ring.
+    -- At quality 1 its hard ceiling is 7 cards/s and quota 96; ordinary flat
+    -- ground receives only baseWeight (55%) while a ten-unit basin reaches the
+    -- ceiling. Intensity remains the single 0..1 control for haze and lighting.
     --
     -- This is intentionally a development preset rather than a mission
     -- schedule. Tune it with Tools/lcbench-venus.lua before assigning it to a
@@ -99,42 +97,59 @@ CRWeatherPresets.Presets = {
         precipitation = {
             {
                 system   = "cr_wx_venus_dense_mist",
-                template = "EXU/WeatherMist",
-                -- EXU/WeatherMist's Box emitter is already positioned +12 Y.
-                -- A small negative camera offset keeps the cards low in frame
-                -- without laying their hard intersections directly on terrain.
-                offset   = { x = 0.0, y = -5.0, z = 0.0 },
-                quota    = 72,
+                template = "CR/VenusGroundHaze",
+                offset   = { x = 0.0, y = 0.0, z = 0.0 },
+                quota    = 96,
+                terrainPool = {
+                    emitterIndex  = 0,
+                    sampleRadius  = 65.0,
+                    sampleInterval = 0.25,
+                    layerHeight   = 2.5,
+                    baseWeight    = 0.55,
+                    depthForFull  = 10.0,
+                    slopeStart    = 2.0,
+                    slopeEnd      = 12.0,
+                    response      = 0.60,
+                },
+                -- Affector 2 is the template's LinearForce. CRWeather updates
+                -- its force vector from the same live wind as the emitter.
+                windAffector    = 2,
+                windForceScale  = 0.08,
                 emitters = {
                     [0] = {
-                        rate     = 6.0,
-                        velocity = { 0.8, 2.2 },
-                        ttl      = { 5.0, 10.0 },
-                        angle    = 38.0,
+                        rate     = 7.0,
+                        velocity = { 0.7, 2.0 },
+                        ttl      = { 10.0, 18.0 },
+                        angle    = 28.0,
                         params   = {
-                            width  = 360.0,
-                            height = 30.0,
-                            depth  = 360.0,
+                            width  = 240.0,
+                            height = 3.0,
+                            depth  = 240.0,
                         },
                     },
                 },
                 affectors = {
-                    -- EXU/WeatherMist affector 0: ColourInterpolator. Keeping
+                    -- CR/VenusGroundHaze affector 0: ColourInterpolator. Keeping
                     -- every calm alpha at zero means particle opacity follows
-                    -- the same intensity that drives native fog and lighting.
+                    -- the combined intensity and terrain-pool weight.
                     [0] = {
                         colour0 = "0.66 0.72 0.26 0.00",
-                        colour1 = { "0.66 0.72 0.26 0.00", "0.66 0.72 0.26 0.11" },
-                        colour2 = { "0.58 0.64 0.22 0.00", "0.58 0.64 0.22 0.07" },
+                        colour1 = { "0.66 0.72 0.26 0.00", "0.66 0.72 0.26 0.14" },
+                        colour2 = { "0.58 0.64 0.22 0.00", "0.58 0.64 0.22 0.09" },
                         colour3 = "0.54 0.58 0.18 0.00",
                     },
-                    -- EXU/WeatherMist affector 1: Scaler.
-                    [1] = { rate = { 0.0, 1.5 } },
+                    [1] = { rate = { 0.0, 1.25 } },
+                    [2] = { force_application = "add" },
+                    [3] = {
+                        randomness = { 0.05, 0.35 },
+                        scope = { 0.10, 0.40 },
+                        keep_velocity = true,
+                    },
                 },
             },
         },
         sky           = nil,
-        fog           = { r = 0.46, g = 0.50, b = 0.20, fogStart = 8.0, fogEnd = 155.0 },
+        fog           = nil,
         ambient       = { r = 0.45, g = 0.47, b = 0.29 },
         diffuse       = { r = 0.95, g = 0.98, b = 0.68 },
         sunPowerScale = 1.25,

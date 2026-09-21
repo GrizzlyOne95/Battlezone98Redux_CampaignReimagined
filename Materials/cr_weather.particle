@@ -132,6 +132,75 @@ particle_system CR/Weather/MarsHaze
     }
 }
 
+// Venus ground haze. Unlike native fog this layer can pool: CRWeather keeps
+// the Box emitter just above the sampled terrain and scales the system from a
+// flatness/lowland weight. The cards are broad and few; they add a shallow
+// moving blanket without trying to replace distance extinction with particles.
+//
+//   emitter 0   Box
+//   affector 0  ColourInterpolator
+//   affector 1  Scaler
+//   affector 2  LinearForce          (live wind from CRWeather)
+//   affector 3  DirectionRandomiser
+particle_system CR/VenusGroundHaze
+{
+    material            CR_FX/Haze
+    particle_width      42.0
+    particle_height     12.0
+    quota               96
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               28
+        emission_rate       7
+        time_to_live_min    10.0
+        time_to_live_max    18.0
+        direction           1 0 -0.7
+        velocity_min        0.7
+        velocity_max        2.0
+        colour_range_start  0.66 0.72 0.26 0.00
+        colour_range_end    0.58 0.64 0.22 0.00
+        width               240
+        height              3.0
+        depth               240
+        position            0 2.5 0
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.66 0.72 0.26 0.00
+        time1   0.28
+        colour1 0.66 0.72 0.26 0.11
+        time2   0.76
+        colour2 0.58 0.64 0.22 0.07
+        time3   1
+        colour3 0.54 0.58 0.18 0.00
+    }
+
+    affector Scaler
+    {
+        rate 1.25
+    }
+
+    affector LinearForce
+    {
+        force_vector      0.20 0 -0.14
+        force_application add
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      0.35
+        scope           0.40
+        keep_velocity   true
+    }
+}
+
 // Sheet dust: the fast, ground-hugging layer. This is the one that actually
 // communicates wind direction, because it is the only dust moving quickly
 // enough near a fixed reference (the ground) to read as a vector rather than as
