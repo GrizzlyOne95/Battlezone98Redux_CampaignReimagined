@@ -57,6 +57,24 @@ local CRWeatherPresets = {}
 -- exact parameter spellings a template really exposes: an index or a name that
 -- is wrong is ignored by Ogre in silence.
 
+local function VenusPatchEmitters()
+    local emitters = {}
+    for index = 0, 8 do
+        emitters[index] = {
+            rate     = 1.25,
+            velocity = { 0.45, 1.20 },
+            ttl      = { 12.0, 20.0 },
+            angle    = 18.0,
+            params   = {
+                width  = 58.0,
+                height = 1.5,
+                depth  = 58.0,
+            },
+        }
+    end
+    return emitters
+end
+
 CRWeatherPresets.Presets = {
 
     -- -------------------------------------------------------------------------
@@ -82,11 +100,12 @@ CRWeatherPresets.Presets = {
     -- Venus dense atmosphere development preset.
     --
     -- The map's native fog is deliberately left alone. CR/VenusGroundHaze is a
-    -- sparse, camera-local blanket whose emitter follows sampled ground height
-    -- and whose live weight favours flat terrain below its surrounding ring.
-    -- At quality 1 its hard ceiling is 7 cards/s and quota 96; ordinary flat
-    -- ground receives only baseWeight (55%) while a ten-unit basin reaches the
-    -- ceiling. Intensity remains the single 0..1 control for haze and lighting.
+    -- sparse set of nine camera-local patches. Each emitter follows one sampled
+    -- terrain cell, so low cells stay visible from a neighbouring high point.
+    -- At quality 1 the absolute ceiling is 11.25 cards/s and quota 112; ordinary
+    -- flat ground runs at 55% of that. Pooling scales emission per patch, not
+    -- opacity, so a valid patch remains readable without becoming a particle
+    -- wall. The preset does not change global fog, ambient, diffuse, or sun.
     --
     -- This is intentionally a development preset rather than a mission
     -- schedule. Tune it with Tools/lcbench-venus.lua before assigning it to a
@@ -99,43 +118,30 @@ CRWeatherPresets.Presets = {
                 system   = "cr_wx_venus_dense_mist",
                 template = "CR/VenusGroundHaze",
                 offset   = { x = 0.0, y = 0.0, z = 0.0 },
-                quota    = 96,
+                quota    = 112,
                 terrainPool = {
-                    emitterIndex  = 0,
+                    emitterIndices = { 0, 1, 2, 3, 4, 5, 6, 7, 8 },
                     sampleRadius  = 65.0,
                     sampleInterval = 0.25,
-                    layerHeight   = 2.5,
+                    layerHeight   = 1.5,
                     baseWeight    = 0.55,
-                    depthForFull  = 10.0,
-                    slopeStart    = 2.0,
-                    slopeEnd      = 12.0,
-                    response      = 0.60,
+                    depthForFull  = 8.0,
+                    slopeStart    = 8.0,
+                    slopeEnd      = 28.0,
+                    response      = 0.75,
                 },
                 -- Affector 2 is the template's LinearForce. CRWeather updates
                 -- its force vector from the same live wind as the emitter.
                 windAffector    = 2,
                 windForceScale  = 0.08,
-                emitters = {
-                    [0] = {
-                        rate     = 7.0,
-                        velocity = { 0.7, 2.0 },
-                        ttl      = { 10.0, 18.0 },
-                        angle    = 28.0,
-                        params   = {
-                            width  = 240.0,
-                            height = 3.0,
-                            depth  = 240.0,
-                        },
-                    },
-                },
+                emitters = VenusPatchEmitters(),
                 affectors = {
-                    -- CR/VenusGroundHaze affector 0: ColourInterpolator. Keeping
-                    -- every calm alpha at zero means particle opacity follows
-                    -- the combined intensity and terrain-pool weight.
+                    -- Pooling changes per-patch emission. Colour alpha follows
+                    -- only weather intensity, keeping sparse patches legible.
                     [0] = {
                         colour0 = "0.66 0.72 0.26 0.00",
-                        colour1 = { "0.66 0.72 0.26 0.00", "0.66 0.72 0.26 0.14" },
-                        colour2 = { "0.58 0.64 0.22 0.00", "0.58 0.64 0.22 0.09" },
+                        colour1 = { "0.66 0.72 0.26 0.00", "0.66 0.72 0.26 0.30" },
+                        colour2 = { "0.58 0.64 0.22 0.00", "0.58 0.64 0.22 0.20" },
                         colour3 = "0.54 0.58 0.18 0.00",
                     },
                     [1] = { rate = { 0.0, 1.25 } },
@@ -150,9 +156,9 @@ CRWeatherPresets.Presets = {
         },
         sky           = nil,
         fog           = nil,
-        ambient       = { r = 0.45, g = 0.47, b = 0.29 },
-        diffuse       = { r = 0.95, g = 0.98, b = 0.68 },
-        sunPowerScale = 1.25,
+        ambient       = nil,
+        diffuse       = nil,
+        sunPowerScale = nil,
         wind          = { x = 0.82, y = -0.06, z = -0.57 },
         windSpeed     = 3.0,
         lightning     = nil,

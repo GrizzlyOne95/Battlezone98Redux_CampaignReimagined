@@ -132,12 +132,12 @@ particle_system CR/Weather/MarsHaze
     }
 }
 
-// Venus ground haze. Unlike native fog this layer can pool: CRWeather keeps
-// the Box emitter just above the sampled terrain and scales the system from a
-// flatness/lowland weight. The cards are broad and few; they add a shallow
-// moving blanket without trying to replace distance extinction with particles.
+// Venus ground haze. Nine small Box emitters cover the camera cell and an
+// eight-point ring. CRWeather positions and rates each one independently from
+// its terrain sample. Horizontal cards read as local fog pools from above;
+// they do not try to replace distance extinction with particle volume.
 //
-//   emitter 0   Box
+//   emitters 0-8  Box terrain patches
 //   affector 0  ColourInterpolator
 //   affector 1  Scaler
 //   affector 2  LinearForce          (live wind from CRWeather)
@@ -145,29 +145,158 @@ particle_system CR/Weather/MarsHaze
 particle_system CR/VenusGroundHaze
 {
     material            CR_FX/Haze
-    particle_width      42.0
-    particle_height     12.0
-    quota               96
+    particle_width      36.0
+    particle_height     36.0
+    quota               112
     cull_each           true
     sorted              true
     local_space         false
-    billboard_type      point
+    billboard_type      perpendicular_common
+    common_direction    0 1 0
+    common_up_vector    0 0 1
 
     emitter Box
     {
-        angle               28
-        emission_rate       7
-        time_to_live_min    10.0
-        time_to_live_max    18.0
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
         direction           1 0 -0.7
-        velocity_min        0.7
-        velocity_max        2.0
+        velocity_min        0.45
+        velocity_max        1.20
         colour_range_start  0.66 0.72 0.26 0.00
         colour_range_end    0.58 0.64 0.22 0.00
-        width               240
-        height              3.0
-        depth               240
-        position            0 2.5 0
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
     }
 
     affector ColourInterpolator
@@ -175,9 +304,9 @@ particle_system CR/VenusGroundHaze
         time0   0
         colour0 0.66 0.72 0.26 0.00
         time1   0.28
-        colour1 0.66 0.72 0.26 0.11
+        colour1 0.66 0.72 0.26 0.30
         time2   0.76
-        colour2 0.58 0.64 0.22 0.07
+        colour2 0.58 0.64 0.22 0.20
         time3   1
         colour3 0.54 0.58 0.18 0.00
     }
