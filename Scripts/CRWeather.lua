@@ -425,6 +425,172 @@ local function ApplyWindToSystem(systemName, spec, preset)
     end
 end
 
+-- Optional terrain pooling for a ground-haze system. Native fog is global, so
+-- it cannot be lower in a basin than on a ridge. A terrainPool specification
+-- instead samples a small ring around the camera, keeps the emitter close to
+-- the local ground, and returns a multiplier that favours flat ground below
+-- its surroundings. Nine terrain queries four times per second are enough to
+-- follow a vehicle without turning weather into a per-frame terrain scan.
+local TERRAIN_RING = {
+    {  1.0000,  0.0000 }, {  0.7071,  0.7071 },
+    {  0.0000,  1.0000 }, { -0.7071,  0.7071 },
+    { -1.0000,  0.0000 }, { -0.7071, -0.7071 },
+    {  0.0000, -1.0000 }, {  0.7071, -0.7071 },
+}
+
+local function SmoothStep01(value)
+    value = Clamp01(value)
+    return value * value * (3.0 - (2.0 * value))
+end
+
+local function CameraWorldPosition()
+    local matrix = Call("GetCameraTransformMatrix")
+    if matrix ~= nil then
+        local ok, position = pcall(function()
+            if matrix.posit_x ~= nil and matrix.posit_y ~= nil and matrix.posit_z ~= nil then
+                return { x = matrix.posit_x, y = matrix.posit_y, z = matrix.posit_z }
+            end
+            return matrix.posit or matrix.position
+        end)
+        if ok and position and position.x ~= nil and position.y ~= nil and position.z ~= nil then
+            return position
+        end
+    end
+
+    if type(GetPlayerHandle) == "function" and type(GetPosition) == "function" then
+        local okPlayer, player = pcall(GetPlayerHandle)
+        if okPlayer and player ~= nil then
+            local okPosition, position = pcall(GetPosition, player)
+            if okPosition and position ~= nil then
+                return position
+            end
+        end
+    end
+    return nil
+end
+
+local function TerrainSample(x, z)
+    if type(GetTerrainHeightAndNormal) ~= "function" then
+        return nil, nil
+    end
+    local ok, height, normal = pcall(GetTerrainHeightAndNormal, SetVector(x, 0.0, z))
+    if not ok or type(height) ~= "number" then
+        return nil, nil
+    end
+    return height, normal
+end
+
+local function SampleTerrainPool(systemName, spec, state)
+    local pool = spec.terrainPool
+    local camera = CameraWorldPosition()
+    if camera == nil then
+        state.target = 1.0
+        state.available = false
+        return
+    end
+
+    local centerHeight, centerNormal = TerrainSample(camera.x, camera.z)
+    if centerHeight == nil then
+        state.target = 1.0
+        state.available = false
+        return
+    end
+
+    local radius = math.max(1.0, tonumber(pool.sampleRadius) or 70.0)
+    local sum, samples = 0.0, 0
+    for i = 1, #TERRAIN_RING do
+        local direction = TERRAIN_RING[i]
+        local height = TerrainSample(camera.x + (direction[1] * radius),
+            camera.z + (direction[2] * radius))
+        if height ~= nil then
+            sum = sum + height
+            samples = samples + 1
+        end
+    end
+
+    if samples == 0 then
+        state.target = 1.0
+        state.available = false
+        return
+    end
+
+    local averageRing = sum / samples
+    local basinDepth = averageRing - centerHeight
+    local normalY = centerNormal and tonumber(centerNormal.y) or 1.0
+    normalY = math.max(-1.0, math.min(1.0, normalY))
+    local slopeDegrees = math.deg(math.acos(normalY))
+    local slopeStart = math.max(0.0, tonumber(pool.slopeStart) or 3.0)
+    local slopeEnd = math.max(slopeStart + 0.01, tonumber(pool.slopeEnd) or 14.0)
+    local flatness = 1.0 - SmoothStep01((slopeDegrees - slopeStart) / (slopeEnd - slopeStart))
+    local depthForFull = math.max(0.01, tonumber(pool.depthForFull) or 12.0)
+    local baseWeight = Clamp01(tonumber(pool.baseWeight) or 0.35)
+    local lowland = Clamp01(baseWeight + (basinDepth / depthForFull))
+
+    state.target = flatness * lowland
+    state.available = true
+    state.groundHeight = centerHeight
+    state.averageRingHeight = averageRing
+    state.basinDepth = basinDepth
+    state.slopeDegrees = slopeDegrees
+
+    -- The system node follows the camera laterally, but the emitter itself is
+    -- moved vertically so new cards are born just above terrain, regardless of
+    -- cockpit height, third-person zoom, hills, or depressions.
+    local emitterIndex = tonumber(pool.emitterIndex) or 0
+    local layerHeight = tonumber(pool.layerHeight) or 2.5
+    Call("SetParticleEmitterPosition", systemName, emitterIndex,
+        SetVector(0.0, centerHeight + layerHeight - camera.y, 0.0))
+end
+
+local function TerrainPoolWeight(systemName, live, dt)
+    local pool = live.spec.terrainPool
+    if pool == nil then
+        return 1.0
+    end
+
+    local state = live.terrainPool
+    if state == nil then
+        state = { weight = 0.0, target = 0.0, nextSample = 0.0, sampled = false }
+        live.terrainPool = state
+    end
+
+    if CRWeather.Clock >= state.nextSample then
+        SampleTerrainPool(systemName, live.spec, state)
+        state.nextSample = CRWeather.Clock + math.max(0.05, tonumber(pool.sampleInterval) or 0.25)
+        if not state.sampled then
+            state.weight = state.target
+            state.sampled = true
+        end
+    end
+
+    local response = math.max(0.0, tonumber(pool.response) or 0.60)
+    if response <= 0.0 then
+        state.weight = state.target
+    elseif dt > 0.0 then
+        local amount = 1.0 - math.exp(-dt / response)
+        state.weight = Lerp(state.weight, state.target, amount)
+    end
+    return Clamp01(state.weight)
+end
+
+local function ApplyWindForce(systemName, live)
+    local spec = live.spec
+    local affectorIndex = spec.windAffector
+    if affectorIndex == nil then
+        return
+    end
+
+    local direction = ResolveWindDirection(live.preset)
+    local speed = CRWeather.WindOverrideSpeed
+        or (live.preset and live.preset.windSpeed)
+        or 0.0
+    local force = speed * (tonumber(spec.windForceScale) or 0.08)
+    local y = tonumber(spec.windVerticalForce) or 0.0
+    local value = string.format("%.4g %.4g %.4g", direction.x * force, y, direction.z * force)
+    WriteParam("SetParticleAffectorParameter", systemName, "affector", affectorIndex,
+        "force_vector", value)
+end
+
 -- A preset addresses emitters and affectors by index, and Ogre ignores an index
 -- that is out of range without complaint: the storm simply renders with that
 -- layer's tuning missing, which looks like art that needs work rather than a
@@ -588,6 +754,7 @@ local function SyncSystems(dt)
     for systemName, live in pairs(CRWeather.LiveSystems) do
         local presetWeight = LayerWeight(live.preset)
         local weight = Clamp01(presetWeight) * Clamp01(CRWeather.Intensity) * math.max(0.0, CRWeather.Quality)
+        weight = weight * TerrainPoolWeight(systemName, live, dt)
 
         -- Gusts modulate rate only, so one authored template covers calm and gale.
         local gusts = live.preset.gusts
@@ -607,6 +774,7 @@ local function SyncSystems(dt)
         for affectorIndex, params in pairs(affectors) do
             ApplyAffectorSpec(systemName, affectorIndex, params, weight)
         end
+        ApplyWindForce(systemName, live)
 
         local visible = weight > 0.001
         Call("SetParticleSystemEmitting", systemName, visible)
@@ -1046,6 +1214,26 @@ end
 
 function CRWeather.GetIntensity()
     return CRWeather.Intensity
+end
+
+-- Development/diagnostic snapshot for terrain-pooled systems. The returned
+-- table is detached from live state so a tuning UI cannot mutate the renderer
+-- accidentally. Nil means the system is absent or is not terrain-pooled.
+function CRWeather.GetTerrainPoolState(systemName)
+    local live = CRWeather.LiveSystems[systemName]
+    local state = live and live.terrainPool
+    if state == nil then
+        return nil
+    end
+    return {
+        weight = state.weight,
+        target = state.target,
+        available = state.available,
+        groundHeight = state.groundHeight,
+        averageRingHeight = state.averageRingHeight,
+        basinDepth = state.basinDepth,
+        slopeDegrees = state.slopeDegrees,
+    }
 end
 
 -- The map's own sky, so the sky layer knows what to restore. Without this the

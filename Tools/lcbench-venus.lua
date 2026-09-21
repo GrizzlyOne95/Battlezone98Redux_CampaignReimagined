@@ -1,8 +1,8 @@
 -- lcbench-venus.lua
 --
 -- Live VenusDenseAtmosphere tuning overlay for the existing lcbench world.
--- Copy this file over addon/lcbench/lcbench.lua, with Campaign Reimagined and
--- EXU's weather resources mounted, then launch battlezone98redux.exe lcbench.bzn.
+-- Copy this file over addon/lcbench/lcbench.lua with Campaign Reimagined
+-- enabled, then launch battlezone98redux.exe lcbench.bzn.
 
 -- lcbench runs outside CR's normal mission entry points, so it must perform the
 -- same native-module bootstrap they do before requiring Environment/CRWeather.
@@ -22,24 +22,30 @@ local mist = assert(preset.precipitation[1], PRESET_NAME .. " mist specification
 
 local defaults = {
     intensity = 1.00,
-    fogR = 0.46,
-    fogG = 0.50,
-    fogB = 0.20,
-    fogStart = 8.0,
-    fogEnd = 155.0,
-    emission = 6.0,
-    alpha = 0.11,
-    scale = 1.50,
+    hazeR = 0.66,
+    hazeG = 0.72,
+    hazeB = 0.26,
+    emission = 7.0,
+    alpha = 0.14,
+    scale = 1.25,
     windBearing = -35.0,
     windSpeed = 3.0,
+    poolBase = 0.55,
+    poolDepth = 10.0,
+    poolRadius = 65.0,
+    poolSlope = 12.0,
 }
 
 local state = {
     selected = 1,
     enabled = true,
     alpha = defaults.alpha,
+    hazeR = defaults.hazeR,
+    hazeG = defaults.hazeG,
+    hazeB = defaults.hazeB,
     windBearing = defaults.windBearing,
     keys = {},
+    nextHudAt = 0.0,
 }
 
 local function Clamp(value, minimum, maximum)
@@ -50,10 +56,22 @@ local function ColourText(r, g, b, a)
     return string.format("%.3f %.3f %.3f %.3f", r, g, b, a)
 end
 
+local function SetHazeColour(r, g, b)
+    state.hazeR = Clamp(r, 0.0, 1.0)
+    state.hazeG = Clamp(g, 0.0, 1.0)
+    state.hazeB = Clamp(b, 0.0, 1.0)
+    local dimR, dimG, dimB = state.hazeR * 0.88, state.hazeG * 0.89, state.hazeB * 0.85
+    mist.affectors[0].colour0 = ColourText(state.hazeR, state.hazeG, state.hazeB, 0.0)
+    mist.affectors[0].colour1[1] = ColourText(state.hazeR, state.hazeG, state.hazeB, 0.0)
+    mist.affectors[0].colour1[2] = ColourText(state.hazeR, state.hazeG, state.hazeB, state.alpha)
+    mist.affectors[0].colour2[1] = ColourText(dimR, dimG, dimB, 0.0)
+    mist.affectors[0].colour2[2] = ColourText(dimR, dimG, dimB, state.alpha * (0.09 / 0.14))
+    mist.affectors[0].colour3 = ColourText(dimR * 0.93, dimG * 0.91, dimB * 0.82, 0.0)
+end
+
 local function SetMistAlpha(value)
     state.alpha = Clamp(value, 0.0, 0.40)
-    mist.affectors[0].colour1[2] = ColourText(0.66, 0.72, 0.26, state.alpha)
-    mist.affectors[0].colour2[2] = ColourText(0.58, 0.64, 0.22, state.alpha * (0.07 / 0.11))
+    SetHazeColour(state.hazeR, state.hazeG, state.hazeB)
 end
 
 local function ApplyWind()
@@ -70,28 +88,22 @@ local controls = {
     { label = "Intensity", step = 0.05,
       get = function() return CRWeather.GetIntensity() end,
       set = function(v) CRWeather.SetIntensity(Clamp(v, 0.0, 1.0)) end },
-    { label = "Fog red", step = 0.01,
-      get = function() return preset.fog.r end,
-      set = function(v) preset.fog.r = Clamp(v, 0.0, 1.0) end },
-    { label = "Fog green", step = 0.01,
-      get = function() return preset.fog.g end,
-      set = function(v) preset.fog.g = Clamp(v, 0.0, 1.0) end },
-    { label = "Fog blue", step = 0.01,
-      get = function() return preset.fog.b end,
-      set = function(v) preset.fog.b = Clamp(v, 0.0, 1.0) end },
-    { label = "Fog start", step = 2.0,
-      get = function() return preset.fog.fogStart end,
-      set = function(v) preset.fog.fogStart = Clamp(v, 0.0, preset.fog.fogEnd - 1.0) end },
-    { label = "Fog end", step = 5.0,
-      get = function() return preset.fog.fogEnd end,
-      set = function(v) preset.fog.fogEnd = Clamp(v, preset.fog.fogStart + 1.0, 1000.0) end },
-    { label = "Mist emission/s", step = 1.0,
+    { label = "Haze red", step = 0.01,
+      get = function() return state.hazeR end,
+      set = function(v) SetHazeColour(v, state.hazeG, state.hazeB) end },
+    { label = "Haze green", step = 0.01,
+      get = function() return state.hazeG end,
+      set = function(v) SetHazeColour(state.hazeR, v, state.hazeB) end },
+    { label = "Haze blue", step = 0.01,
+      get = function() return state.hazeB end,
+      set = function(v) SetHazeColour(state.hazeR, state.hazeG, v) end },
+    { label = "Haze emission/s", step = 1.0,
       get = function() return mist.emitters[0].rate end,
       set = function(v) mist.emitters[0].rate = Clamp(v, 0.0, 30.0) end },
-    { label = "Mist alpha", step = 0.01,
+    { label = "Haze alpha", step = 0.01,
       get = function() return state.alpha end,
       set = SetMistAlpha },
-    { label = "Mist scale/s", step = 0.25,
+    { label = "Haze scale/s", step = 0.25,
       get = function() return mist.affectors[1].rate[2] end,
       set = function(v) mist.affectors[1].rate[2] = Clamp(v, 0.0, 8.0) end },
     { label = "Wind bearing deg", step = 5.0,
@@ -106,44 +118,61 @@ local controls = {
           preset.windSpeed = Clamp(v, 0.0, 20.0)
           ApplyWind()
       end },
+    { label = "Pool base", step = 0.05,
+      get = function() return mist.terrainPool.baseWeight end,
+      set = function(v) mist.terrainPool.baseWeight = Clamp(v, 0.0, 1.0) end },
+    { label = "Basin depth full", step = 1.0,
+      get = function() return mist.terrainPool.depthForFull end,
+      set = function(v) mist.terrainPool.depthForFull = Clamp(v, 1.0, 50.0) end },
+    { label = "Pool sample radius", step = 5.0,
+      get = function() return mist.terrainPool.sampleRadius end,
+      set = function(v) mist.terrainPool.sampleRadius = Clamp(v, 10.0, 250.0) end },
+    { label = "Pool max slope", step = 1.0,
+      get = function() return mist.terrainPool.slopeEnd end,
+      set = function(v) mist.terrainPool.slopeEnd = Clamp(v, mist.terrainPool.slopeStart + 0.1, 45.0) end },
 }
 
 local function SelectedText()
     local control = controls[state.selected]
+    local pool = CRWeather.GetTerrainPoolState(SYSTEM_NAME) or {}
     return string.format(
-        "VENUS DEV [%d/%d] %s = %.3f\nF1/F2 select  Left/Right change  Shift=coarse x5\nF3 weather/clear  Home defaults  F4 print all",
-        state.selected, #controls, control.label, control.get())
+        "VENUS GROUND HAZE [%d/%d] %s = %.3f\nPool %.2f  basin %.1f  slope %.1f\nF1/F2 select  Left/Right change  Shift=coarse x5\nF3 weather/clear  Home defaults  F4 print all",
+        state.selected, #controls, control.label, control.get(),
+        pool.weight or 0.0, pool.basinDepth or 0.0, pool.slopeDegrees or 0.0)
 end
 
-local function ShowSelected()
+local function ShowSelected(writeLog)
     local text = SelectedText()
     if UpdateObjective then
         pcall(UpdateObjective, "venusdev", state.enabled and "yellow" or "white", 3600.0, text)
     end
-    print("[VENUSDEV] " .. string.gsub(text, "\n", " | "))
+    if writeLog ~= false then
+        print("[VENUSDEV] " .. string.gsub(text, "\n", " | "))
+    end
 end
 
 local function PrintAll()
     print(string.format(
-        "[VENUSDEV] intensity=%.2f fog=(%.3f %.3f %.3f %.1f %.1f) mist=(quota=%d rate=%.2f alpha=%.3f scale=%.2f) wind=(bearing=%.1f speed=%.2f) system=%s",
-        CRWeather.GetIntensity(), preset.fog.r, preset.fog.g, preset.fog.b,
-        preset.fog.fogStart, preset.fog.fogEnd, mist.quota, mist.emitters[0].rate,
-        state.alpha, mist.affectors[1].rate[2], state.windBearing, preset.windSpeed,
-        SYSTEM_NAME))
+        "[VENUSDEV] intensity=%.2f haze=(%.3f %.3f %.3f quota=%d rate=%.2f alpha=%.3f scale=%.2f) wind=(bearing=%.1f speed=%.2f) pool=(base=%.2f depth=%.1f radius=%.1f slope=%.1f) system=%s",
+        CRWeather.GetIntensity(), state.hazeR, state.hazeG, state.hazeB,
+        mist.quota, mist.emitters[0].rate, state.alpha, mist.affectors[1].rate[2],
+        state.windBearing, preset.windSpeed, mist.terrainPool.baseWeight,
+        mist.terrainPool.depthForFull, mist.terrainPool.sampleRadius,
+        mist.terrainPool.slopeEnd, SYSTEM_NAME))
 end
 
 local function ResetDefaults()
     CRWeather.SetIntensity(defaults.intensity)
-    preset.fog.r = defaults.fogR
-    preset.fog.g = defaults.fogG
-    preset.fog.b = defaults.fogB
-    preset.fog.fogStart = defaults.fogStart
-    preset.fog.fogEnd = defaults.fogEnd
     mist.emitters[0].rate = defaults.emission
+    SetHazeColour(defaults.hazeR, defaults.hazeG, defaults.hazeB)
     SetMistAlpha(defaults.alpha)
     mist.affectors[1].rate[2] = defaults.scale
     state.windBearing = defaults.windBearing
     preset.windSpeed = defaults.windSpeed
+    mist.terrainPool.baseWeight = defaults.poolBase
+    mist.terrainPool.depthForFull = defaults.poolDepth
+    mist.terrainPool.sampleRadius = defaults.poolRadius
+    mist.terrainPool.slopeEnd = defaults.poolSlope
     ApplyWind()
 end
 
@@ -226,5 +255,9 @@ function Update(dt)
     -- Weather advances first; Environment then composes that live contribution
     -- into its frame and remains the only writer of fog, ambient and sun state.
     CRWeather.Update(dt)
+    if CRWeather.Clock >= state.nextHudAt then
+        state.nextHudAt = CRWeather.Clock + 0.5
+        ShowSelected(false)
+    end
     Environment.Update(dt)
 end
