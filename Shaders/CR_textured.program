@@ -95,6 +95,11 @@ fragment_program CR_Textured_fragment unified
 		param_named_auto materialEmissive surface_emissive_colour
 		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
+
+		// Off unless a material asks for it, so every existing consumer of
+		// this program keeps its current behaviour. A cutout material sets it
+		// to its `alpha_rejection` threshold over 255.
+		param_named alphaRejection float 0
     }
 } 
 
