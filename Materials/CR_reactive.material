@@ -21,74 +21,104 @@ import * from "sprites.material"
 // Weather billboards
 // =============================================================================
 
-// WANTED: cr_rain.png -- a soft vertical rain streak, alpha only, ~16x64.
-material CR_FX/Rain : BZSprite/AlphaBlend
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// Additive, not alpha_blend: the source streak is opaque with a black
+// field, which is how it was authored to composite.
+material CR_FX/Rain : BZSprite/Additive
 {
-	set_texture_alias DiffuseMap white.png
+	set_texture_alias DiffuseMap cr_rain.dds
 }
 
-// WANTED: cr_splash.png -- a small expanding ground splash ring, ~32x32.
-material CR_FX/RainSplash : BZSprite/AlphaBlend
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// Additive for the same reason as CR_FX/Rain.
+material CR_FX/RainSplash : BZSprite/Additive
 {
-	set_texture_alias DiffuseMap wpuff_0.png
+	set_texture_alias DiffuseMap cr_rainsplash.dds
 }
 
-// WANTED: cr_snow.png -- soft crystalline flake with a bright core, ~32x32.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// A flake silhouette. The particle colour is what makes it white, so the
+// source being an ash flake does not show.
 material CR_FX/Snow : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap wpuff_0.png
+	set_texture_alias DiffuseMap cr_snow.dds
 }
 
-// WANTED: cr_dust.png -- soft irregular dust mote, heavy falloff, ~64x64.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
 material CR_FX/Dust : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap smoke.png
+	set_texture_alias DiffuseMap cr_dust.dds
 }
 
-// WANTED: cr_grit.png -- small hard sand fleck, near-opaque centre, ~16x16.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
 material CR_FX/Grit : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap bpuff.png
+	set_texture_alias DiffuseMap cr_grit.dds
 }
 
-// WANTED: cr_haze.png -- very soft wide dust veil, almost pure falloff, ~128x128.
-// The Mars haze layer is read as depth rather than as individual motes, so this
-// wants to be the softest texture in the set.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// Peak alpha 182: thin enough to layer without stacking into a wall.
 material CR_FX/Haze : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap smoke.png
+	set_texture_alias DiffuseMap cr_haze.dds
 }
 
-// WANTED: cr_dustsheet.png -- elongated horizontal dust streak, ~64x16.
-// Ground-hugging sheet dust: the layer that sells wind direction, because it is
-// the only one moving fast enough near the ground to read as a vector.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// Peak alpha 68. Deliberately the faintest in the set -- the sheet is
+// meant to read only once many cards overlap.
 material CR_FX/DustSheet : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap smoke.png
+	set_texture_alias DiffuseMap cr_dustsheet.dds
 }
 
-// WANTED: cr_devil.png -- ragged vertical dust wisp with a torn top, ~64x128.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// The volcano flank's ground layer, not the plains one. Peak alpha 74 like
+// DustSheet, but the card snakes vertically instead of streaming flat, which
+// is what CRWeatherPresets describes SlopeDust as doing.
+material CR_FX/SlopeWisp : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_slopewisp.dds
+}
+
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
 material CR_FX/DustDevil : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap smoke.png
+	set_texture_alias DiffuseMap cr_dustdevil.dds
 }
 
-// WANTED: cr_ash.png -- ragged dark ash flake, ~32x32.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// Peak alpha 199 over a 1265x619 card. This is the one the old note asked
+// for: a large, near-structureless dust veil that gets its density from
+// stacking rather than from any single card.
+material CR_FX/Haboob : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_haboob.dds
+}
+
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+material CR_FX/IceVeil : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_iceveil.dds
+}
+
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
 material CR_FX/Ash : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap smoke.png
+	set_texture_alias DiffuseMap cr_ash.dds
 }
 
-// WANTED: cr_ember.png -- hot ember point with a bloom halo, ~32x32.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
 material CR_FX/Ember : BZSprite/Additive
 {
-	set_texture_alias DiffuseMap flare.png
+	set_texture_alias DiffuseMap cr_ember.dds
 }
 
-// WANTED: cr_spore.png -- luminous alien spore, soft ring structure, ~64x64.
-material CR_FX/Spore : BZSprite/Additive
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// Moved off Additive: this source carries real alpha, and additive made a
+// drifting mote glow like an ember.
+material CR_FX/Spore : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap flare.png
+	set_texture_alias DiffuseMap cr_spore.dds
 }
 
 // =============================================================================
@@ -129,22 +159,27 @@ material CR_FX/BioBurst : BZSprite/Additive
 // Damage-state billboards
 // =============================================================================
 
-// WANTED: cr_smoke_thin.png -- wispy grey smoke puff, ~64x64.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
 material CR_FX/SmokeThin : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap smoke.png
+	set_texture_alias DiffuseMap cr_smokethin.dds
 }
 
-// WANTED: cr_smoke_heavy.png -- dense dark smoke puff, ~128x128.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// The dense counterpart to SmokeThin. Same family, more opaque core, so the
+// two damage stages read as one material getting worse rather than as two
+// unrelated effects.
 material CR_FX/SmokeHeavy : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap smoke.png
+	set_texture_alias DiffuseMap cr_smokeheavy.dds
 }
 
-// WANTED: cr_arc.png -- electrical arc filament, ~64x32.
+// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// Additive: the source bolt is opaque on a black field, which is how SCARaw's
+// own material composites it.
 material CR_FX/Arc : BZSprite/Additive
 {
-	set_texture_alias DiffuseMap shock.png
+	set_texture_alias DiffuseMap cr_arc.dds
 }
 
 // WANTED: cr_bioleak.png -- luminous plasma leakage, ~64x64.
@@ -202,7 +237,33 @@ material CR_FX/BioLeak : BZSprite/Additive
 // controller cannot otherwise discover what to restore.
 //
 // WANTED: 2048x2048 dome textures per storm type. Until they exist these are
-// left pointing at a flat placeholder, which reads as a featureless overcast.
+// left pointing at a flat placeholder.
+//
+// Note that placeholder is not currently visible: SyncSky only applies a dome
+// when CRWeather.BaseSky is set, a mission only sets it when its .trn declares
+// a SkyTexture, and no CR mission does -- misn04.lua and misn05.lua both say so
+// outright. The whole sky layer is dormant, so new art here changes nothing
+// until a mission brings its own sky. Fix that first, then the textures.
+//
+// The requirement is a SEAMLESS SQUARE texture, not a panorama: the presets call
+// SetSkyDome(material, curvature, tiling, distance) with tiling = 5..8, so the
+// card is repeated across the dome. Evaluated and rejected 2026-09-20:
+//
+//   BZ2 Planet_Preview_txtr/*_cloud_1024  planet GLOBE textures for the shell
+//                                         UI, not skies. Wrong asset class.
+//   BZCC Worlds/*/Sky/*dome.tga           4:1 panoramas UV'd to BZ2's own dome
+//                                         meshes (marsdome.fbx sits beside
+//                                         them). Beautiful, not drop-in.
+//   UE HDRI skyboxes                      full equirectangular spheres, so the
+//                                         lower half is ground. Also stock-photo
+//                                         licensed, which forbids redistributing
+//                                         them inside a mod.
+//
+// The two that DO fit the shape are BZCC's Dune/Sky/White_Clouds.tga (2048^2,
+// real alpha, neutral and tintable) and Toxic/Sky/toxic_clouds.tga (2048^2,
+// yellow-green, a match for CR_Sky/Spore). Both are Rebellion's, released for
+// BZ2 modding -- which is not a grant covering a BZ98 Redux Workshop item, so
+// they are deliberately NOT used here pending that decision.
 // =============================================================================
 
 material CR_Sky/MarsStorm : BZSprite/AlphaBlend

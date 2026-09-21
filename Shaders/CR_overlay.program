@@ -3,7 +3,20 @@
 // Ogre Panel/BorderPanel geometry uses POSITION + TEXCOORD and therefore needs
 // a different SM4 vertex input signature than TextArea/UI geometry, which also
 // carries per-vertex colour. Keep the panel vertex program dedicated to those
-// fill/border materials; CR_OverlayFont continues to use CR_UI for TextArea.
+// fill/border materials and the TextArea program dedicated to Ogre's already-
+// converted RGBA vertex colours.
+
+vertex_program CR_OverlayText_vertexHLSL4 hlsl
+{
+    source CR_overlay-sm4.hlsl
+    target vs_4_0
+    entry_point overlay_text_vertex
+
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+    }
+}
 
 vertex_program CR_OverlayPanel_vertexHLSL4 hlsl
 {

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-09-12T22:51:44-05:00",
-  "count": 3300,
+  "generated": "2026-09-20T16:36:15-05:00",
+  "count": 3330,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6336,6 +6336,10 @@
       "runtime": "bvwalk.vdf"
     },
     {
+      "source": "Assets\\ModelFixes\\crgrass.mesh",
+      "runtime": "crgrass.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvwalk_c.mesh",
       "runtime": "cvwalk_c.mesh"
     },
@@ -6366,6 +6370,74 @@
     {
       "source": "Assets\\ModelFixes\\svwalk_c.skeleton",
       "runtime": "svwalk_c.skeleton"
+    },
+    {
+      "source": "Assets\\Textures\\cr_arc.dds",
+      "runtime": "cr_arc.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_ash.dds",
+      "runtime": "cr_ash.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_dust.dds",
+      "runtime": "cr_dust.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_dustdevil.dds",
+      "runtime": "cr_dustdevil.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_dustsheet.dds",
+      "runtime": "cr_dustsheet.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_ember.dds",
+      "runtime": "cr_ember.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_grit.dds",
+      "runtime": "cr_grit.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_haboob.dds",
+      "runtime": "cr_haboob.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_haze.dds",
+      "runtime": "cr_haze.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_iceveil.dds",
+      "runtime": "cr_iceveil.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_rain.dds",
+      "runtime": "cr_rain.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_rainsplash.dds",
+      "runtime": "cr_rainsplash.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_slopewisp.dds",
+      "runtime": "cr_slopewisp.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_smokeheavy.dds",
+      "runtime": "cr_smokeheavy.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_smokethin.dds",
+      "runtime": "cr_smokethin.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_snow.dds",
+      "runtime": "cr_snow.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_spore.dds",
+      "runtime": "cr_spore.dds"
     },
     {
       "source": "Assets\\Textures\\abstor_d.dds",
@@ -6402,6 +6474,10 @@
     {
       "source": "Assets\\Textures\\bvrdev_d.dds",
       "runtime": "bvrdev_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crgrass.png",
+      "runtime": "crgrass.png"
     },
     {
       "source": "Assets\\Textures\\LoadingScreenBlank.png",
@@ -7074,6 +7150,10 @@
     {
       "source": "Materials\\cr_weather.particle",
       "runtime": "cr_weather.particle"
+    },
+    {
+      "source": "Materials\\crgrass.material",
+      "runtime": "crgrass.material"
     },
     {
       "source": "Materials\\cspilo.material",
@@ -9810,6 +9890,10 @@
     {
       "source": "Scripts\\ScriptSubtitles.lua",
       "runtime": "ScriptSubtitles.lua"
+    },
+    {
+      "source": "Scripts\\TerrainClutter.lua",
+      "runtime": "TerrainClutter.lua"
     },
     {
       "source": "Scripts\\Weather.lua",

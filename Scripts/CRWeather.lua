@@ -19,6 +19,14 @@
 -- Environment is absent, CRWeather writes fog and lighting itself and restores
 -- the captured baseline on shutdown.
 --
+-- How far a preset can reach into a template: the typed emitter setters cover
+-- rate, velocity, lifetime, spread, direction and colour. Beyond those, an
+-- emitter's `params` and a system's `affectors` block reach the concrete Ogre
+-- type's own dictionary through EXU's StringInterface bridge -- Box extents,
+-- Ring inner_width, ColourFader alpha, DirectionRandomiser randomness, Scaler
+-- rate. Those are what let a storm grow and churn rather than only thicken.
+-- Both are optional, and both fail soft on an EXU that predates the bridge.
+--
 -- Nothing in this module creates a game-world object, applies damage, or
 -- changes gameplay state. A mission that wants hazardous weather implements
 -- that damage rule itself.
@@ -67,6 +75,11 @@ CRWeather.LiveSystems        = {}    -- systemName -> { spec = ..., preset = ...
 CRWeather.ModifierRegistered = false
 CRWeather.OwnsEnvironment    = false -- true when Environment.lua is not present
 CRWeather.BaselineFog        = nil
+
+-- Terrain draw distance, from Environment.GetFogHorizon() when Environment.lua
+-- is present and from the map's own fogEnd otherwise. Weather fog is clamped to
+-- it; nothing else is. Init{ fogHorizon = false } opts out, a number overrides.
+CRWeather.FogHorizon         = nil
 CRWeather.BaselineAmbient    = nil
 CRWeather.BaselineDiffuse    = nil
 CRWeather.BaselineSunPower   = nil
@@ -87,6 +100,13 @@ CRWeather.WindOverride       = nil   -- { x, y, z } unit direction
 CRWeather.WindOverrideSpeed  = nil   -- world units/second
 CRWeather.WindVelocityScale  = 1.0   -- live speed / preset speed, clamped
 CRWeather.LastWindApplied    = nil
+
+-- Last value written to each Ogre StringInterface parameter, keyed
+-- "system|kind|index|parameter". Ogre parses every one of these back out of a
+-- string, so re-sending an unchanged value costs a parse and an allocation, per
+-- emitter and per affector, per frame. A storm has enough of both for that to
+-- matter, and none of these values change on most frames.
+CRWeather.ParamCache         = {}
 
 -- =============================================================================
 -- Small helpers
@@ -146,6 +166,101 @@ local function Normalized(v)
 end
 
 -- =============================================================================
+-- Ogre StringInterface parameters
+-- =============================================================================
+--
+-- The typed emitter setters reach the properties every emitter shares. What an
+-- authored template declares beyond those -- a Box's width/height/depth, a
+-- Ring's inner_width, a ColourFader's alpha rate, a DirectionRandomiser's
+-- randomness, a Scaler's rate -- lives only in the concrete emitter's or
+-- affector's own parameter dictionary. Before EXU exposed StringInterface those
+-- were fixed for the life of the mission, so a storm could only ever get
+-- denser: never larger, never more turbulent, never slower to settle.
+--
+-- A preset states a parameter either as a plain value, which is sent once and
+-- then left alone, or as { calm, full }, which is interpolated by the layer's
+-- live weight the same way rate already is.
+
+local function ResolveParam(value, weight)
+    if type(value) == "table" then
+        local calm = tonumber(value[1])
+        local full = tonumber(value[2])
+        if calm == nil or full == nil then
+            return nil
+        end
+        return Lerp(calm, full, Clamp01(weight))
+    end
+    return value
+end
+
+local function ParamKey(systemName, kind, index, parameter)
+    return systemName .. "|" .. kind .. "|" .. tostring(index) .. "|" .. parameter
+end
+
+-- Ogre stores every parameter as text, so two values that differ below the
+-- precision it will parse back are the same value. Comparing the formatted form
+-- is therefore both cheaper and more honest than an epsilon on the number.
+local function FormatParam(value)
+    local kind = type(value)
+    if kind == "number" then
+        return string.format("%.4g", value)
+    elseif kind == "boolean" then
+        return value and "true" or "false"
+    elseif kind == "string" then
+        return value
+    end
+    return nil
+end
+
+local function WriteParam(setter, systemName, kind, index, parameter, value)
+    local formatted = FormatParam(value)
+    if formatted == nil then
+        return
+    end
+
+    local key = ParamKey(systemName, kind, index, parameter)
+    if CRWeather.ParamCache[key] == formatted then
+        return
+    end
+
+    -- Send the value itself, not our formatted copy: EXU does its own
+    -- conversion, and a round trip through %.4g would quietly truncate what
+    -- Ogre ends up parsing. The formatted string is only ever the cache key.
+    --
+    -- Cache only on a confirmed true, so an EXU too old to have the entry point
+    -- and a system Ogre has already torn down both keep retrying instead of
+    -- going permanently quiet behind a cache hit.
+    if Call(setter, systemName, index, parameter, value) == true then
+        CRWeather.ParamCache[key] = formatted
+    end
+end
+
+local function ApplyParamBlock(setter, systemName, kind, index, params, weight)
+    if params == nil then
+        return
+    end
+    for parameter, authored in pairs(params) do
+        local value = ResolveParam(authored, weight)
+        if value ~= nil then
+            WriteParam(setter, systemName, kind, index, parameter, value)
+        end
+    end
+end
+
+local function ForgetParams(systemName)
+    local prefix = systemName .. "|"
+    local doomed = {}
+    for key in pairs(CRWeather.ParamCache) do
+        if string.sub(key, 1, #prefix) == prefix then
+            doomed[#doomed + 1] = key
+        end
+    end
+    for i = 1, #doomed do
+        CRWeather.ParamCache[doomed[i]] = nil
+    end
+end
+
+-- =============================================================================
 -- Particle layer
 -- =============================================================================
 
@@ -153,6 +268,9 @@ local function DestroySystem(systemName)
     Call("DetachParticleSystem", systemName)
     Call("DestroyParticleSystem", systemName)
     CRWeather.LiveSystems[systemName] = nil
+    -- The next system to take this name is a different Ogre object carrying its
+    -- own authored defaults, so nothing we sent to the old one is still true.
+    ForgetParams(systemName)
 end
 
 local function DestroyAllSystems()
@@ -169,7 +287,34 @@ end
 -- only field that scales: velocity, lifetime, spread and colour are what the
 -- weather *is*, and fading those instead of the rate makes a storm look like a
 -- broken storm rather than a light one.
+-- Disabling an emitter is not the same as asking it for zero particles. Ogre
+-- still visits a rate-zero emitter every update; a disabled one it skips
+-- outright. That is what a preset means when it says its grit layer does not
+-- exist below half strength, and on the templates that carry four emitters it
+-- is the difference between a calm preset costing nothing and costing most of
+-- what the storm costs.
+local function SetEmitterEnabled(systemName, emitterIndex, wanted)
+    local key = ParamKey(systemName, "emitter", emitterIndex, "@enabled")
+    local formatted = wanted and "true" or "false"
+    if CRWeather.ParamCache[key] == formatted then
+        return
+    end
+    if Call("SetParticleEmitterEnabled", systemName, emitterIndex, wanted) == true then
+        CRWeather.ParamCache[key] = formatted
+    end
+end
+
 local function ApplyEmitterSpec(systemName, emitterIndex, emitter, weight)
+    if emitter.enabledAbove ~= nil then
+        local wanted = weight > emitter.enabledAbove
+        SetEmitterEnabled(systemName, emitterIndex, wanted)
+        if not wanted then
+            -- Nothing below is observable on an emitter Ogre is not visiting,
+            -- and the writes would be undone by the enable when it returns.
+            return
+        end
+    end
+
     if emitter.rate ~= nil then
         Call("SetParticleEmitterEmissionRate", systemName, emitterIndex, math.max(0.0, emitter.rate * weight))
     end
@@ -199,6 +344,27 @@ local function ApplyEmitterSpec(systemName, emitterIndex, emitter, weight)
         local endColor = emitter.color.finish or startColor
         Call("SetParticleEmitterColor", systemName, emitterIndex, startColor, endColor)
     end
+
+    -- Type-specific geometry last: a Box's width/height/depth, a Ring's
+    -- inner_width, a Cylinder's extent. Growing the emission volume with the
+    -- storm is what stops a rising preset reading as the same small cloud of
+    -- dust getting thicker around the player.
+    ApplyParamBlock("SetParticleEmitterParameter", systemName, "emitter", emitterIndex,
+        emitter.params, weight)
+end
+
+-- Affector entries are plain parameter tables addressed by index, in the order
+-- the .particle template declares them. Ogre exposes no affector names, so index
+-- is all there is -- and inserting an affector above an existing one in the
+-- template silently retargets whatever a preset had tuned, exactly as the
+-- emitter ordering warning in cr_weather.particle describes.
+local function ApplyAffectorSpec(systemName, affectorIndex, params, weight)
+    if weight <= 0.0 then
+        -- Same reasoning as the emitter path: nothing is on screen to affect.
+        return
+    end
+    ApplyParamBlock("SetParticleAffectorParameter", systemName, "affector", affectorIndex,
+        params, weight)
 end
 
 -- The direction the weather is actually blowing this frame: the director's
@@ -219,6 +385,32 @@ local function ApplyWindToSystem(systemName, spec, preset)
     for emitterIndex in pairs(emitters) do
         Call("SetParticleEmitterDirection", systemName, emitterIndex, Vec(direction))
     end
+end
+
+-- A preset addresses emitters and affectors by index, and Ogre ignores an index
+-- that is out of range without complaint: the storm simply renders with that
+-- layer's tuning missing, which looks like art that needs work rather than a
+-- preset that has drifted out of step with its template. Checking once, at
+-- creation, is what makes that drift visible.
+--
+-- A nil count means this EXU predates the introspection API, which is an
+-- unknown rather than a fault, so it says nothing.
+local function ValidateSpecIndices(spec)
+    local function check(kind, count, indexed)
+        if type(count) ~= "number" then
+            return
+        end
+        for index in pairs(indexed or {}) do
+            if type(index) ~= "number" or index < 0 or index >= count then
+                print("CRWeather: " .. tostring(spec.system) .. " preset addresses " .. kind ..
+                    " " .. tostring(index) .. ", but template '" .. tostring(spec.template) ..
+                    "' declares " .. tostring(count))
+            end
+        end
+    end
+
+    check("emitter", Call("GetParticleSystemEmitterCount", spec.system), spec.emitters)
+    check("affector", Call("GetParticleSystemAffectorCount", spec.system), spec.affectors)
 end
 
 local function CreateSystem(spec, preset)
@@ -262,6 +454,7 @@ local function CreateSystem(spec, preset)
 
     CRWeather.LiveSystems[spec.system] = { spec = spec, preset = preset }
     ApplyWindToSystem(spec.system, spec, preset)
+    ValidateSpecIndices(spec)
 
     local emitters = spec.emitters or {}
     for emitterIndex, emitter in pairs(emitters) do
@@ -372,6 +565,11 @@ local function SyncSystems(dt)
             ApplyEmitterSpec(systemName, emitterIndex, emitter, weight)
         end
 
+        local affectors = live.spec.affectors or {}
+        for affectorIndex, params in pairs(affectors) do
+            ApplyAffectorSpec(systemName, affectorIndex, params, weight)
+        end
+
         Call("SetParticleSystemEmitting", systemName, weight > 0.001)
     end
 
@@ -421,6 +619,41 @@ local function CurrentWeight()
     return Clamp01(CRWeather.Blend) * Clamp01(CRWeather.Intensity)
 end
 
+-- The horizon belongs to the terrain, so Environment -- which already parses the
+-- .trn -- is asked for it first. The captured baseline is only a fallback for
+-- the standalone path, where there is no Environment.lua to ask.
+--
+-- Returns nil when clamping is disabled or the horizon is unknown, in which
+-- case weather fog is applied exactly as authored.
+local function ResolveFogHorizon()
+    if CRWeather.FogHorizon == false then
+        return nil
+    end
+
+    local override = tonumber(CRWeather.FogHorizon)
+    if override ~= nil and override > 0.0 then
+        return override
+    end
+
+    local environment = rawget(_G, "Environment")
+    if environment ~= nil and type(environment.GetFogHorizon) == "function" then
+        local ok, horizon = pcall(environment.GetFogHorizon)
+        if ok then
+            horizon = tonumber(horizon)
+            if horizon ~= nil and horizon > 0.0 then
+                return horizon
+            end
+        end
+    end
+
+    local baseline = CRWeather.BaselineFog
+    local fallback = baseline and tonumber(baseline.fogEnd)
+    if fallback ~= nil and fallback > 0.0 then
+        return fallback
+    end
+    return nil
+end
+
 local function ApplyPresetToFrame(frame, preset, weight)
     if preset == nil or weight <= 0.0 then
         return
@@ -430,8 +663,31 @@ local function ApplyPresetToFrame(frame, preset, weight)
         frame.fog.r = Lerp(frame.fog.r, preset.fog.r, weight)
         frame.fog.g = Lerp(frame.fog.g, preset.fog.g, weight)
         frame.fog.b = Lerp(frame.fog.b, preset.fog.b, weight)
-        frame.fog.fogStart = Lerp(frame.fog.fogStart, preset.fog.fogStart, weight)
-        frame.fog.fogEnd = Lerp(frame.fog.fogEnd, preset.fog.fogEnd, weight)
+
+        -- weatherFogEnd = min(requested, authored terrain horizon).
+        --
+        -- The clamp is applied to the PRESET's requested value before the
+        -- blend, not to the composed frame afterwards. That is deliberate: at
+        -- weight zero this contributes nothing, so a mission with weather
+        -- disabled -- or standing clear -- keeps whatever base fog Environment
+        -- asked for, untouched. Only the weather share is limited.
+        --
+        -- Presets are authored for open ground: MarsHaze finishes at 520,
+        -- MarsDustRising 380, MarsDustStorm 320. On a map whose terrain stops
+        -- at 250 those never reach full density before the geometry is gone,
+        -- and the unfogged remainder reads as a bright band along the horizon.
+        -- Measured on misn04, MarsHaze was only 37% opaque at the cut-off.
+        local presetStart, presetEnd = preset.fog.fogStart, preset.fog.fogEnd
+        local horizon = ResolveFogHorizon()
+        if horizon ~= nil and presetEnd > horizon then
+            presetEnd = horizon
+            if presetStart >= horizon then
+                presetStart = horizon * 0.5
+            end
+        end
+
+        frame.fog.fogStart = Lerp(frame.fog.fogStart, presetStart, weight)
+        frame.fog.fogEnd = Lerp(frame.fog.fogEnd, presetEnd, weight)
     end
 
     if preset.ambient and frame.ambient then
@@ -546,6 +802,20 @@ end
 -- Lightning
 -- =============================================================================
 
+-- Sounds are not CR's to ship: every clip a preset names belongs to the game or
+-- to an addon that happens to be mounted. Warn once per name so a missing clip
+-- is visible in the log without repeating on every strike.
+local WarnedSounds = {}
+
+local function WarnSoundOnce(sound, reason)
+    local key = tostring(sound)
+    if WarnedSounds[key] then
+        return
+    end
+    WarnedSounds[key] = true
+    print("CRWeather: thunder sound '" .. key .. "' did not play (" .. tostring(reason) .. ")")
+end
+
 local function ScheduleNextStrike(policy)
     local minInterval = policy.minInterval or 8.0
     local maxInterval = math.max(minInterval, policy.maxInterval or (minInterval + 10.0))
@@ -593,8 +863,18 @@ local function UpdateLightning()
     local thunder = CRWeather.PendingThunder
     if thunder ~= nil and CRWeather.Clock >= thunder.at then
         CRWeather.PendingThunder = nil
-        if StartSound then
-            pcall(StartSound, thunder.sound)
+        if StartSound == nil then
+            WarnSoundOnce(thunder.sound, "StartSound is not available")
+        else
+            -- pcall is still needed -- StartSound raises on a name the engine
+            -- cannot resolve -- but swallowing the result made a missing sound
+            -- indistinguishable from a working one. A thunder clip that never
+            -- plays is exactly the kind of failure nobody notices for a year,
+            -- so say so once per sound name rather than once per strike.
+            local ok, err = pcall(StartSound, thunder.sound)
+            if not ok then
+                WarnSoundOnce(thunder.sound, tostring(err))
+            end
         end
     end
 end
@@ -619,6 +899,11 @@ function CRWeather.Init(options)
     if options.quality ~= nil then CRWeather.Quality = math.max(0.0, tonumber(options.quality) or 1.0) end
     if options.debug ~= nil then CRWeather.Debug = options.debug and true or false end
     if options.baseSky ~= nil then CRWeather.BaseSky = options.baseSky end
+    -- false disables the weather-fog horizon clamp entirely; a number
+    -- overrides whatever Environment or the map baseline would report.
+    if options.fogHorizon ~= nil then
+        CRWeather.FogHorizon = tonumber(options.fogHorizon) or false
+    end
 
     CRWeather.Clock = 0.0
     CRWeather.Blend = 0.0
@@ -722,6 +1007,61 @@ end
 -- sky layer stays off and weather runs as particles + fog + light.
 function CRWeather.SetBaseSky(description)
     CRWeather.BaseSky = description
+end
+
+-- Authoring aid: prints what a live system actually exposes -- every emitter and
+-- affector, its Ogre type, and the exact parameter spellings that build
+-- registers. Preset tuning is addressed by index and spelled by name, and both
+-- fail silently when wrong, so reading the truth off the running system beats
+-- inferring it from the .particle file. Call it from a mission console after
+-- the weather is up.
+function CRWeather.DescribeSystem(systemName)
+    if not HasExu("GetParticleSystemEmitterCount") then
+        print("CRWeather: this EXU predates the particle introspection API")
+        return false
+    end
+
+    if Call("HasParticleSystem", systemName) ~= true then
+        print("CRWeather: no live particle system named '" .. tostring(systemName) .. "'")
+        return false
+    end
+
+    local function describe(kind, count, typeGetter, namesGetter)
+        if type(count) ~= "number" then
+            print(string.format("CRWeather:   %s count unavailable", kind))
+            return
+        end
+        for index = 0, count - 1 do
+            local typeName = Call(typeGetter, systemName, index) or "?"
+            local names = Call(namesGetter, systemName, index)
+            local joined = "(none reported)"
+            if type(names) == "table" and #names > 0 then
+                table.sort(names)
+                joined = table.concat(names, " ")
+            end
+            print(string.format("CRWeather:   %s[%d] %s: %s", kind, index, tostring(typeName), joined))
+        end
+    end
+
+    print("CRWeather: " .. tostring(systemName))
+    describe("emitter", Call("GetParticleSystemEmitterCount", systemName),
+        "GetParticleEmitterType", "GetParticleEmitterParameterNames")
+    describe("affector", Call("GetParticleSystemAffectorCount", systemName),
+        "GetParticleAffectorType", "GetParticleAffectorParameterNames")
+    return true
+end
+
+-- Every system the active weather currently has on screen.
+function CRWeather.DescribeLiveSystems()
+    local names = {}
+    for systemName in pairs(CRWeather.LiveSystems) do
+        names[#names + 1] = systemName
+    end
+    table.sort(names)
+    for i = 1, #names do
+        CRWeather.DescribeSystem(names[i])
+    end
+    return #names
 end
 
 -- Hands live wind to CRWeather. Pass a direction (need not be normalised) and

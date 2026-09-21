@@ -1,18 +1,4 @@
-
-# Only live-install operations require elevation. Workshop builds/uploads use
-# an isolated staging directory and should not trigger a UAC prompt.
-$requestedAction = if ($args.Count -gt 0) { [string]$args[0] } else { "" }
-$elevatedActions = @("", "-deploy", "-fromsource", "-release")
-$requiresElevation = $elevatedActions -contains $requestedAction.ToLowerInvariant()
-if ($requiresElevation -and
-    -not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-    if ($args) { $arguments += " $args" }
-    Start-Process powershell -Verb RunAs -ArgumentList $arguments
-    Exit
-}
-
-# Manage-CampaignFiles.ps1
+﻿# Manage-CampaignFiles.ps1
 # Script to manage source/deploy workflow for Battlezone 98 Redux: Campaign Reimagined
 # The repo root is canonical source. Development deploy/sync targets the GOG
 # working copy only. Steam is verified only after a Workshop upload/download.
@@ -33,6 +19,88 @@ $WorkshopLocalRoot = Join-Path $RepoRoot "Local\Workshop"
 $RuntimeModParentDirNames = @("mods", "packaged_mods")
 $DefaultTestingGameRoot = "C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux"
 $DefaultTestingRuntimeDir = Join-Path $DefaultTestingGameRoot "mods\$CampaignModId"
+
+# ---------------------------------------------------------------- elevation --
+#
+# Only live-install operations touch the game folder at all; Workshop builds and
+# uploads use an isolated staging directory and must never raise a UAC prompt.
+#
+# Those that do touch it still only need elevation when the destination is
+# actually write-protected, which it usually is not. Both storefronts open their
+# game folders to ordinary users on purpose -- GOG Galaxy stamps
+# Everyone:(OI)(CI)(F) on the install and Steam grants BUILTIN\Users:(F) --
+# because games have always written configs and saves beside themselves. Being
+# under Program Files is not the same as needing an administrator; only the
+# DEFAULT ACL is, and neither of these has it.
+#
+# Elevating anyway is not free. Start-Process -Verb RunAs opens a NEW console,
+# so the deploy's output, its exit code and its post-deploy verify verdict all
+# land somewhere the caller cannot see -- which is why a cancelled prompt and a
+# clean run have always looked identical from the shell that started them.
+#
+# So probe, and elevate only when the probe fails. The probe fails safe: any
+# error at all, including a path this script resolved wrongly, means elevate.
+$requestedAction = if ($args.Count -gt 0) { [string]$args[0] } else { "" }
+$elevatedActions = @("", "-deploy", "-fromsource", "-release")
+$requiresElevation = $elevatedActions -contains $requestedAction.ToLowerInvariant()
+
+function Test-DeployTargetWritable([string]$targetPath) {
+    if (-not $targetPath) { return $true }
+
+    # Walk up to the nearest directory that exists. A destination that is not
+    # there yet gets created by the deploy, so what matters is whether we can
+    # write to the closest ancestor that does exist.
+    $probeDir = $targetPath
+    while ($probeDir -and -not (Test-Path -LiteralPath $probeDir -PathType Container)) {
+        $parent = Split-Path $probeDir -Parent
+        if (-not $parent -or $parent -eq $probeDir) { return $false }
+        $probeDir = $parent
+    }
+    if (-not $probeDir) { return $false }
+
+    # An actual write. Effective access through group membership, inherited
+    # ACEs, deny entries and read-only attributes is not something an ACL
+    # reading can be trusted to reproduce.
+    $probeFile = Join-Path $probeDir (".bzr-write-probe-" + [Guid]::NewGuid().ToString("N"))
+    try {
+        [System.IO.File]::WriteAllText($probeFile, "")
+        Remove-Item -LiteralPath $probeFile -Force -ErrorAction SilentlyContinue
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+if ($requiresElevation) {
+    $probeGameRoot = if ($env:BZR_BATTLEZONE_ROOT) { $env:BZR_BATTLEZONE_ROOT } else { $DefaultTestingGameRoot }
+    $probeTargets = [System.Collections.Generic.List[string]]::new()
+    [void]$probeTargets.Add($probeGameRoot)
+    foreach ($parentDir in $RuntimeModParentDirNames) {
+        [void]$probeTargets.Add((Join-Path $probeGameRoot $parentDir))
+    }
+    if ($env:BZR_CAMPAIGN_RUNTIME_DIR) { [void]$probeTargets.Add($env:BZR_CAMPAIGN_RUNTIME_DIR) }
+    if ($env:BZR_CAMPAIGN_ADDON_DIR) { [void]$probeTargets.Add($env:BZR_CAMPAIGN_ADDON_DIR) }
+
+    # Every target, not the first one that answers. A deploy able to write the
+    # mod folder but not the game root would install half of itself and then
+    # report success, which is the exact failure -deploy now verifies against.
+    $requiresElevation = $false
+    foreach ($probeTarget in $probeTargets) {
+        if (-not (Test-DeployTargetWritable $probeTarget)) {
+            $requiresElevation = $true
+            Write-Host "Elevating: '$probeTarget' is not writable by this account." -ForegroundColor DarkGray
+            break
+        }
+    }
+}
+
+if ($requiresElevation -and
+    -not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    if ($args) { $arguments += " $args" }
+    Start-Process powershell -Verb RunAs -ArgumentList $arguments
+    Exit
+}
 $StructuredRuntimeDirs = @(
     "flags",
     "OverlayFont",
@@ -1630,6 +1698,8 @@ function Show-Menu {
 # that changes about the install. This is the deliberate, reviewable step that
 # admits a new file into players' installs -- or drops one.
 function Invoke-BlessShipping {
+    param([switch]$AllowRemovals)
+
     Write-Host "Rebuilding the shipping lock from $SourceDir ..." -ForegroundColor Cyan
 
     $previous = Get-ShippingLock
@@ -1668,6 +1738,44 @@ function Invoke-BlessShipping {
         [pscustomobject]@{ source = $_; runtime = $entries[$_] }
     })
 
+    # Membership is compared before anything is written. -bless rebuilds the
+    # lock by scanning disk, so a generated or not-yet-populated tree that this
+    # machine happens to lack is silently dropped from the shipping set -- and
+    # the only evidence is a removal line in a diff that can run to tens of
+    # thousands of lines. That is how 1532 capped chunk meshes were deleted
+    # from the lock in one run: they were gitignored, absent from a fresh
+    # worktree, and nothing stopped the rebuild.
+    #
+    # Adding files is safe and stays silent. Removing them requires saying so.
+    $removedEarly = @()
+    if ($previous) {
+        $afterEarly = [System.Collections.Generic.HashSet[string]]::new([string[]]@($entries.Keys))
+        $removedEarly = @($previous.BySource.Keys | Where-Object { -not $afterEarly.Contains($_) } | Sort-Object)
+    }
+
+    if ($removedEarly.Count -gt 0 -and -not $AllowRemovals) {
+        Write-Host ""
+        Write-Host "Refusing to bless: $($removedEarly.Count) file(s) would be REMOVED from the shipping set." -ForegroundColor Red
+        $preview = $removedEarly | Select-Object -First 15
+        foreach ($relativePath in $preview) {
+            Write-Host "    - $relativePath" -ForegroundColor DarkYellow
+        }
+        if ($removedEarly.Count -gt $preview.Count) {
+            Write-Host "    ... and $($removedEarly.Count - $preview.Count) more" -ForegroundColor DarkYellow
+        }
+        Write-Host ""
+        Write-Host "  These are in the lock but were not found on disk. Usually that means" -ForegroundColor Red
+        Write-Host "  this working tree is missing them, not that they should stop shipping:" -ForegroundColor Red
+        Write-Host "  a generated tree that has not been built here, or a checkout that never" -ForegroundColor Red
+        Write-Host "  had them. Restore them and bless again." -ForegroundColor Red
+        Write-Host ""
+        Write-Host "  If they really should stop shipping, say so:" -ForegroundColor Cyan
+        Write-Host "      Manage-CampaignFiles.ps1 -bless -allow-removals" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "  The lock was NOT modified." -ForegroundColor Green
+        return $false
+    }
+
     $lockPath = Get-ShippingLockPath
     $lockDir = Split-Path $lockPath -Parent
     if (-not (Test-Path -LiteralPath $lockDir)) {
@@ -1696,6 +1804,9 @@ function Invoke-BlessShipping {
         foreach ($relativePath in $removed) {
             Write-Host "    - $relativePath" -ForegroundColor DarkYellow
         }
+        if ($removed.Count -gt 0) {
+            Write-Host "  $($removed.Count) file(s) removed because -allow-removals was passed." -ForegroundColor Yellow
+        }
         if ($added.Count -eq 0 -and $removed.Count -eq 0) {
             Write-Host "    (no membership change)" -ForegroundColor DarkGray
         }
@@ -1713,6 +1824,14 @@ function Invoke-BlessShipping {
 # Read-only comparison of the installed runtime against the lock. Answers "is my
 # install clean?" without writing anything, which -deploy cannot do.
 function Invoke-VerifyInstall {
+    # -InstallOnly judges the runtime alone: is what got installed what the lock
+    # says should be installed? Standalone -verify also demands the repository's
+    # own bookkeeping be tidy, which is a stricter and different question --
+    # unblessed source files are normal on any machine that has run the sibling
+    # OpenShim deploy, and failing a deploy over them only teaches people to
+    # pass -no-verify.
+    param([switch]$InstallOnly)
+
     $runtimeDir = Resolve-RuntimeModDir
     if (-not $runtimeDir) {
         Write-Host "No runtime mod directory found. Expected '$DefaultTestingRuntimeDir'." -ForegroundColor Red
@@ -1772,9 +1891,27 @@ function Invoke-VerifyInstall {
         foreach ($p in ($extra | Sort-Object)) { Write-Host "    $p" -ForegroundColor DarkYellow }
     }
 
-    $clean = ($absent.Count -eq 0 -and $changed.Count -eq 0 -and $extra.Count -eq 0 -and
-              $resolved.Unblessed.Count -eq 0 -and $resolved.Missing.Count -eq 0)
+    # Missing counts against the install: a lock row with no source file is a
+    # shipped file the deploy silently skipped, which is precisely the failure
+    # where a material ends up referencing a texture that never shipped.
+    $installClean = ($absent.Count -eq 0 -and $changed.Count -eq 0 -and
+                     $extra.Count -eq 0 -and $resolved.Missing.Count -eq 0)
+    $clean = ($installClean -and $resolved.Unblessed.Count -eq 0)
+
     Write-Host ""
+    if ($InstallOnly) {
+        if ($installClean) {
+            Write-Host "Install matches the shipping lock." -ForegroundColor Green
+            if ($resolved.Unblessed.Count -gt 0) {
+                Write-Host "  ($($resolved.Unblessed.Count) unblessed source file(s) -- not shipped, not fatal.)" -ForegroundColor DarkGray
+            }
+        }
+        else {
+            Write-Host "Install does NOT match the shipping lock." -ForegroundColor Yellow
+        }
+        return $installClean
+    }
+
     if ($clean) {
         Write-Host "Install matches the shipping lock." -ForegroundColor Green
     }
@@ -1811,12 +1948,27 @@ elseif ($args[0] -eq "-fromsource") {
 }
 elseif ($args[0] -eq "-deploy") {
     Deploy-PackagedMod
+
+    # A deploy reports what it copied, not whether the result is correct. The
+    # two are different: a file the lock does not name is skipped silently, so
+    # a material can be updated to reference a texture that never ships and the
+    # deploy still says it succeeded -- "0 added" while the install now points
+    # at something absent. Verifying immediately makes that loud instead.
+    if (-not ($args -contains "-no-verify")) {
+        Write-Host ""
+        if (-not (Invoke-VerifyInstall -InstallOnly)) {
+            Write-Host ""
+            Write-Host "Deploy finished but the install does not match the shipping lock." -ForegroundColor Red
+            Write-Host "Re-run with -no-verify to skip this check." -ForegroundColor DarkGray
+            exit 1
+        }
+    }
 }
 elseif ($args[0] -eq "-release") {
     Deploy-PackagedMod
 }
 elseif ($args[0] -eq "-bless") {
-    if (-not (Invoke-BlessShipping)) { exit 1 }
+    if (-not (Invoke-BlessShipping -AllowRemovals:($args -contains "-allow-removals"))) { exit 1 }
 }
 elseif ($args[0] -eq "-verify") {
     if (-not (Invoke-VerifyInstall)) { exit 1 }
