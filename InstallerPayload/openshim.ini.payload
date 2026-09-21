@@ -100,13 +100,19 @@ ExplainMultiplayerNotReady = 1
 ; Mixed/custom producer registration changes AI production and is not currently
 ; network-gated, so it remains opt-in despite being a real engine defect.
 AiMultiProducerMakers = 0
-; The following five touch simulation but stand down automatically in network
+; The following seven touch simulation but stand down automatically in network
 ; games, preserving stock/OpenShim mixed-client behavior.
 ApcAlliedTargetDeploy = 1
 SplinterUndead = 1
+OwnedObjectReveal = 1
 HowitzerUndeployedRetaliation = 1
 TugCargoPostLoad = 1
 ConstructorRemoteBuild = 1
+; Two constructors ordered to recycle the same building each run their own
+; unbuild countdown. The first to finish deletes the building; stock never
+; clears the loser's unbuild handle, so it stays deployed for the rest of the
+; mission, accepting orders it can never act on. Releases that stale handle.
+ConstructorRecycleStaleTarget = 1
 ; Defensive crash/stability guard for invalid/non-positive magnet ranges.
 MagnetZeroRangeGuard = 1
 ; Script-visible producer predicates can change mission branching in MP.
@@ -120,12 +126,38 @@ ProducerScriptPredicates = 0
 VehicleListModScoping = 0
 ; Command-line parser repair; no gameplay or mixed-client divergence.
 CliMultiParameterOptions = 1
+; el_detail_atlas.csv and ga_detail_atlas.csv place four tile rectangles at
+; 0.825 instead of 0.875, so those tiles straddle an atlas cell boundary and
+; show half of the neighbouring texture. Hands Redux a corrected copy at open
+; time; the shipped file is never written. Off until the redirect is confirmed
+; on a live run -- the correction itself is verified against all 11 atlases.
+TerrainAtlasRectRepair = 0
 ; The multiplayer Create Game vehicle preview inherits a PSSM material scheme
 ; on a viewport that has shadows disabled, so its shader reads NaN shadow
 ; matrices and the craft renders as NaN - black - with every submission,
 ; face and draw-call counter looking healthy. Pins that viewport to the
 ; matching -noshadow scheme. Verified from a RenderDoc capture.
 MpVehiclePreviewShadowScheme = 1
+; The Enhanced/Retro profiles rewrite a viewport's material scheme to the
+; en-/og- technique family. Only materials that declare those techniques can
+; satisfy it, so a Workshop or converted legacy map whose terrain inherits
+; stock BZTerrainBase has no match, and Ogre falls back to the material's
+; FIRST technique - which is `scheme high-pssm`. Its pass reads shadow
+; matrices that were never set up on that viewport, so the sm4 shader writes
+; NaN and the terrain renders black on DX11 while DX9 looks correct. This
+; answers the scheme miss with the material's own base-scheme technique
+; instead, via Ogre's handleSchemeNotFound hook.
+EnhancedSchemeFallback = 1
+; Automatic DX11 legacy material compatibility for old mods. Off until the
+; live DX11 mod corpus qualifies cached technique instantiation; the probe
+; fails closed to bounded diagnostics until then. See openshim.ini.example.
+DX11LegacyMaterialCompat = 0
+; DX11 shaderless-draw safety guard. Bounds per-draw exception spam into
+; once-only [DX11COMPAT] diagnostics; changes no pixels by itself.
+DX11ShaderlessDrawGuard = 1
+; Aggressive generic fallback for unknown custom shaders. Opt-in only: it
+; intentionally replaces unknown semantics with a generic approximation.
+DX11LegacyMaterialAggressive = 0
 
 [Startup]
 D3DStartupHooks = 0
@@ -176,6 +208,13 @@ TerrainHdManifest = terrain_hd_tiles.json
 ; selection rather than a pre-armed bundle.
 FXAA = 0
 EnhancedLightSelectionV2 = 0
+; Phase A scene-depth qualification. A diagnostic, not a feature: it
+; records which D3D11 depth resources exist, what views are built over
+; them and which render targets are bound alongside, so the main
+; gameplay depth surface can be identified from evidence. Observation
+; only - no resource description is modified - but it hooks three device
+; entry points and the context, so leave it off outside a capture run.
+SceneDepthDiagnostic = 0
 
 [Display]
 UnderAttackAlert = Normal
@@ -298,6 +337,11 @@ LobbyReadouts = 1
 ; Ban User button and flag selector do sit on the faction/vehicle cluster.
 ; Leave them off for BZP/BZP-T. /ban still works.
 LobbyBanButton = 0
+; Muted players stay muted after a restart, keyed by stable identity so a
+; rename or reconnect does not undo it. Set to 0 for stock behaviour, where a
+; mute lasts the session; /mute itself works either way, and an existing
+; mutes.cfg is kept, not deleted.
+PersistentPlayerMute = 1
 LobbyBzrnetIntegration = 0
 
 ; Restrict the multiplayer starting-vehicle list to the stock balanced
@@ -377,6 +421,23 @@ PilotFlashlightPitch = 0
 ; Case-insensitive bone-name suffix the light's offset is taken from.
 ; 11POV is the stock pilots' eye bone (asp11POV / bsp11POV / ssp11POV).
 PilotFlashlightBone = 11POV
+; Keep your pilot on your own team while boarding a craft. Boarding restores
+; the pilot's team from a 4-bit field packed in the low-level object's flags
+; rather than leaving its live team alone, and Team::FriendP rejects team 0
+; outright, so a pilot whose packed team reads 0 is briefly hostile to your
+; own weapon mines -- which is what fires an allied Arc Mine at the spot you
+; just boarded from. This repairs the packed field while you are on foot and
+; never touches the boarding call.
+; CONFIRMED LIVE 2026-09-13. On foot the pilot reads team 1; on the very first
+; frame after boarding it reads -1. GameObject::FriendP(int) guards on
+; `-1 < team`, so a pilot reading -1 is nobody's friend and a weapon mine on
+; your own team accepts it as a target -- which is the allied Arc Mine firing at
+; the spot you just boarded from, doing no damage to the craft because what it
+; is shooting is the dying pilot. This restores the pilot's team for the few
+; frames it is still reachable. Confirmed on the scripted test route, not yet on
+; a hand-driven boarding, so it still ships OFF.
+; Hard-disabled in network games. See openshim.ini.example for the full note.
+PilotTeamRestore = 0
 AttackRevealPerceivedTeam = 0
 ; Proven satellite fog-of-war regression; hard-disabled in network games.
 SatelliteVisibilityFix = 1
@@ -394,3 +455,18 @@ InteractiveFogWakes = 0
 ; Raw OPENSHIM_* / BZR_* compatibility variables may be supplied here when a
 ; legacy launch script or one-off developer probe requires them. Normal players
 ; should leave this section empty and use the first-class settings above.
+[ODF]
+; Battlezone 98 Redux reads ODF keys only under exact section names, while
+; 1.5 tolerated legacy spellings ([MagnetClass], [FlareBuildingClass],
+; [ScavengerCraftClass], [SprayBuildngClass], bare [GameObject]/[SprayBomb]).
+; LegacySectionRemap renames those headers to canonical form as ODFs load so
+; legacy mods resolve again. Off by default: stock behavior is Redux-strict.
+LegacySectionRemap = 0
+; LogUnknownOdfSections reports section headers seen in neither the loader
+; set nor the retail corpus (once per file+section). Diagnostic only.
+LogUnknownOdfSections = 0
+; CrashValueGuards clamps ODF values verified to crash engine code
+; (MagnetMine fieldRadius 0, negative ChargeGun ordnanceCount / Launcher
+; targetCount) and reports FlareMine/SprayBuilding sections missing
+; payloadName. Off by default.
+CrashValueGuards = 0

@@ -14,11 +14,34 @@ local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
+local TerrainClutter = require("TerrainClutter")
 
 local LABEL_BSCAV = "misn02b_bscav"
 local LABEL_BSCOUT = "misn02b_bscout"
 local LABEL_SCAV2 = "misn02b_scav2"
 local STOCK_PLAYER_START = { x = 3898.14, y = 108.9, z = 99443.6 }
+local CLUTTER_PROFILE = {
+    name = "CR_Misn02b_GrassPrototype",
+    mesh = "crgrass.mesh",
+    material = "CR/GrassPrototype",
+    center = STOCK_PLAYER_START,
+    radius = 45.0,
+    density = 0.018,
+    minScale = 0.65,
+    maxScale = 1.1,
+    slopeMin = 0.0,
+    slopeMax = 22.0,
+    heightMin = -500.0,
+    heightMax = 5000.0,
+    seed = 1001,
+    maxInstances = 128,
+    exclusionCircles = {
+        { center = STOCK_PLAYER_START, radius = 12.0 },
+    },
+    regionDimensions = { x = 64.0, y = 128.0, z = 64.0 },
+    renderingDistance = 260.0,
+    castShadows = false,
+}
 local RefreshHandlesAfterLoad
 local PilotModeCanManageHandle
 
@@ -287,6 +310,10 @@ RefreshHandlesAfterLoad = function()
     end
 end
 
+local function BuildTerrainClutter()
+    TerrainClutter.BuildLayer(CLUTTER_PROFILE)
+end
+
 local function SetupAI()
     local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
     playerTeam:SetConfig("manageFactories", false)
@@ -391,6 +418,7 @@ function Start()
     end
     InitializeMissionRuntime()
     StageInitialFighters()
+    BuildTerrainClutter()
 
     for h in AllCraft() do
         SetObjectiveOff(h)
@@ -450,6 +478,7 @@ function Update()
         InitializeMissionRuntime()
         StageInitialFighters()
         ApplyPostLoadInit()
+        BuildTerrainClutter()
         M.loading_done = true
     end
     local player = GetPlayerHandle()

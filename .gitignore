@@ -61,7 +61,9 @@ desktop.ini
 /Text/need_defs.txt
 /Text/OgreMain.dumpbin.exports.txt
 
-# Generated interior-capped chunk meshes. Reproducible from Assets/chunkMeshes
-# via Tools/Cap-ChunkMeshes.py; see Docs/CHUNK_MESH_INTERIOR_CAPS.md. When absent,
-# Manage-CampaignFiles.ps1 deploys the authored meshes instead.
-/Assets/chunkMeshes_capped/
+# Assets/chunkMeshes_capped is NOT ignored any more. It used to be, on the
+# grounds that Tools/Cap-ChunkMeshes.py could regenerate it from the authored
+# meshes in Assets/chunkMeshes -- but those were removed, so there is nothing
+# left to regenerate it from. The capped meshes are what ships (1532 rows in
+# Shipping/shipping.lock.json, deployed as chunkMeshes/...), so they are
+# tracked. See Docs/CHUNK_MESH_INTERIOR_CAPS.md.

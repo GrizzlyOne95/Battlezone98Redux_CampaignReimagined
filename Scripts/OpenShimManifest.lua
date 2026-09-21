@@ -2,14 +2,14 @@
 -- Do not edit payload metadata by hand.
 return {
     formatVersion = 2,
-    version = "1.0.0.29",
-    sha256 = "55c4d20ff0d597602bfa988d0840c0cfa39e48ded90a05e59763eb55b9fa9bab",
-    size = 2860032,
+    version = "1.0.0.32",
+    sha256 = "eeeaca37a5fa13689132dd6f6705810e2e3101959ca3e55979aaa974b131527a",
+    size = 212992,
     architecture = "x86",
     payloads = {
-        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "55c4d20ff0d597602bfa988d0840c0cfa39e48ded90a05e59763eb55b9fa9bab", size = 2860032, version = "1.0.0.29", architecture = "x86" },
+        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "eeeaca37a5fa13689132dd6f6705810e2e3101959ca3e55979aaa974b131527a", size = 212992, version = "1.0.0.32", architecture = "x86" },
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "25853671cceaf7273ba6b43bf0fec1bf34ed0298e8c238cb6ec68a4303e99056", size = 13245 },
-        patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "f24a9593fdabd28ff396a6724afa15b5f43abc7aafb1e7791583f13883518c7c", size = 33599 },
-        playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "79f2e6d97b2beef8ab07a9f6bc42f3094194ee1557e3516b7e3835843906dee6", size = 18441, overwrite = false },
+        patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "a74bc59015abc2bc17a8ee38fead5aac355cd3d5f2228fca5251aaa7c74c4ee0", size = 42446 },
+        playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "48f116c3ff831e23263faa2d497bb56df0b9696060d9f8768a2c9cd4062bf591", size = 23320, overwrite = false },
     },
 }
