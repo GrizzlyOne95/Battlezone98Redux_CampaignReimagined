@@ -548,6 +548,10 @@ function PersistentConfig._ResolveUnitVoProfileForCurrentTeam()
 end
 
 function PersistentConfig._ApplyUnitVoSettings()
+    if PersistentConfig._OpenShimOwnsPersistentSettings and
+        PersistentConfig._OpenShimOwnsPersistentSettings() then
+        return false
+    end
     if not exu then
         return false
     end
@@ -2112,8 +2116,11 @@ local function InitializeTrackedWorldHandles()
     end
 end
 
--- Helper to parse BZLogger.txt for Steam ID/Username
-local function ParseBzLogger()
+-- Resolve the local authenticated BZRNet identity. EXU is authoritative for
+-- the stable Steam64 ID; BZLogger supplies the display name that was actually
+-- accepted by BZRNet. A Steam64 can authenticate under a custom BZRNet
+-- nickname, so do not describe this value as the raw Steam persona name.
+local function ParseBzLogger(preferredSteamID)
     if not bzfile or not bzfile.Open then return nil, nil end
     local logPath = LogPaths.Path("BZLogger.txt")
     local f = bzfile.Open(logPath, "r")
@@ -2125,26 +2132,69 @@ local function ParseBzLogger()
     end
 
     if not f then
-        print("PersistentConfig: Could not find bzlogger.txt for parsing.")
+        print("PersistentConfig: Could not find BZLogger.txt for identity parsing.")
         return nil, nil
     end
 
-    print("PersistentConfig: Scanning " .. logPath .. " for Steam credentials...")
-    local steamID, username
+    local preferred = tostring(preferredSteamID or ""):match("^%s*(.-)%s*$")
+    local latestID, latestName
+    local matchedID, matchedName
 
     local line = f:Readln()
     while line do
         local id, name = line:match("Authenticated to BZRNet As S(%d+):(.+)")
         if id and name then
-            steamID = id
-            username = name
-            break -- Found it, stop scanning
+            name = tostring(name):match("^%s*(.-)%s*$")
+            latestID, latestName = id, name
+            -- Keep scanning: reconnect/reauth can append a newer display name
+            -- for the same stable Steam identity later in the same log.
+            if preferred ~= "" and id == preferred then
+                matchedID, matchedName = id, name
+            end
         end
         line = f:Readln()
     end
 
     f:Close()
-    return steamID, username
+    if preferred ~= "" then
+        return matchedID, matchedName
+    end
+    return latestID, latestName
+end
+
+-- Optional aliases live in a normal BZR resource so mission Lua does not own
+-- personal data. UseItem resolves the asset through the active mod/resource
+-- search path; ordinary users need no entry because their BZRNet name is
+-- resolved automatically above.
+local CommanderAliases = nil
+local COMMANDER_ALIAS_ITEM = "campaignReimagined.ini"
+
+local function LoadCommanderAliases()
+    if CommanderAliases then
+        return CommanderAliases
+    end
+
+    local aliases = {}
+    if type(UseItem) == "function" then
+        local ok, content = pcall(UseItem, COMMANDER_ALIAS_ITEM)
+        if ok and type(content) == "string" and content ~= "" then
+            local inCommanderAliases = false
+            for line in string.gmatch(content, "[^\r\n]+") do
+                local section = line:match("^%s*%[([^%]]+)%]%s*$")
+                if section then
+                    inCommanderAliases = string.lower(section) == "commanderaliases"
+                elseif inCommanderAliases and not line:match("^%s*[#;]") then
+                    local steamID, alias = line:match("^%s*[Ss]?(%d+)%s*=%s*(.-)%s*$")
+                    if steamID and alias and alias ~= "" then
+                        aliases[steamID] = alias
+                    end
+                end
+            end
+        end
+    end
+
+    CommanderAliases = aliases
+    return CommanderAliases
 end
 
 -- Storage for User Info
@@ -2155,24 +2205,26 @@ PersistentConfig.User = {
 
 -- Shared Greeting Logic
 function PersistentConfig.TriggerGreeting(steamID, username)
-    PersistentConfig.User.SteamID = steamID
-    PersistentConfig.User.Username = username
-    local CustomNames = {
-        ["76561198241259700"] = "GlizzyJuan",   -- GrizzlyOne95
-        ["76561198104781489"] = "British Twat", --JJ
-        ["76561199014392897"] = "Car Nerd",     --DriveLine
-        ["76561198095046296"] = "HF Imperium",  --HyperFighter
-        ["76561198884003346"] = "Linux Nerd",        --Piercing
-    }
+    local id = tostring(steamID or "")
+    local resolvedName = tostring(username or ""):match("^%s*(.-)%s*$")
+    if resolvedName == "" then resolvedName = nil end
 
-    local displayName = CustomNames[tostring(steamID)] or username
+    PersistentConfig.User.SteamID = id
+    PersistentConfig.User.Username = resolvedName
+
+    local alias = LoadCommanderAliases()[id]
+    local displayName = alias or resolvedName
 
     if displayName then
         ShowFeedback("Welcome back, Commander " .. displayName .. ".", 0.5, 0.8, 1.0, 5.0, false)
-        print("Steam User: " .. displayName .. " (" .. tostring(steamID) .. ")")
+        if alias and resolvedName and alias ~= resolvedName then
+            print("BZRNet User: " .. resolvedName .. " (Steam64 " .. id .. "), commander alias: " .. alias)
+        else
+            print("BZRNet User: " .. displayName .. " (Steam64 " .. id .. ")")
+        end
     else
         ShowFeedback("Welcome back, Commander.", 0.5, 0.8, 1.0, 5.0, false)
-        print("Steam User ID: " .. tostring(steamID))
+        print("Steam64 User ID: " .. id)
     end
 end
 
@@ -2288,6 +2340,167 @@ end
 CleanString = function(s)
     if not s then return "" end
     return string.gsub(tostring(s), "%z", "")
+end
+
+local function NormalizeOpenShimProfile(value)
+    local profile = string.lower(CleanString(value or "")):match("^%s*(.-)%s*$")
+    if profile == "redux" or profile == "enhanced" or profile == "retro" then
+        return profile
+    end
+    return nil
+end
+
+local function GetOpenShimProfile(getterName)
+    if not exu or type(exu[getterName]) ~= "function" then
+        return nil
+    end
+    local ok, value = pcall(exu[getterName])
+    if not ok then
+        return nil
+    end
+    return NormalizeOpenShimProfile(value)
+end
+
+function PersistentConfig._GetOpenShimUserRenderProfile()
+    return GetOpenShimProfile("GetUserRenderProfile")
+end
+
+function PersistentConfig._GetOpenShimEffectiveRenderProfile()
+    return GetOpenShimProfile("GetEffectiveRenderProfile")
+end
+
+function PersistentConfig._OpenShimOwnsPersistentSettings()
+    -- The render-profile ABI is a reliable generation boundary: legacy/no
+    -- OpenShim returns no canonical profile, while modern OpenShim exposes the
+    -- user's persistent preference and owns the native Options page.
+    return PersistentConfig._GetOpenShimUserRenderProfile() ~= nil
+        or PersistentConfig._GetOpenShimEffectiveRenderProfile() ~= nil
+end
+
+local function ParseOpenShimBool(value, fallback)
+    local normalized = string.lower(tostring(value or "")):match("^%s*(.-)%s*$")
+    if normalized == "1" or normalized == "true" or normalized == "on" or normalized == "yes" then
+        return true
+    end
+    if normalized == "0" or normalized == "false" or normalized == "off" or normalized == "no" then
+        return false
+    end
+    return not not fallback
+end
+
+local function ReadOpenShimCampaignVisualSettings()
+    local settings = {
+        EmptyCraftLights = false,
+        EmissivePulse = false,
+        StarTwinkle = false,
+    }
+
+    local candidates = {}
+    local seen = {}
+    local function AddCandidate(path)
+        if path and path ~= "" and not seen[path] then
+            seen[path] = true
+            candidates[#candidates + 1] = path
+        end
+    end
+
+    if bzfile and type(bzfile.GetWorkingDirectory) == "function" then
+        local ok, workingDirectory = pcall(bzfile.GetWorkingDirectory)
+        if ok and type(workingDirectory) == "string" and workingDirectory ~= "" then
+            workingDirectory = workingDirectory:gsub("[\\/]+$", "")
+            AddCandidate(workingDirectory .. "\\openshim.ini")
+            AddCandidate(workingDirectory .. "/openshim.ini")
+        end
+    end
+    AddCandidate("openshim.ini")
+
+    local f, sourcePath
+    for _, path in ipairs(candidates) do
+        local ok, opened = pcall(bzfile.Open, path, "r")
+        if ok and opened then
+            f = opened
+            sourcePath = path
+            break
+        end
+    end
+
+    if not f then
+        return settings, false, nil
+    end
+
+    local inDisplay = false
+    local line = f:Readln()
+    while line do
+        local raw = tostring(line)
+        local section = raw:match("^%s*%[([^%]]+)%]%s*$")
+        if section then
+            inDisplay = string.lower(section) == "display"
+        elseif inDisplay then
+            local uncommented = raw:gsub("%s*[;#].*$", "")
+            local key, value = uncommented:match("^%s*([%w_]+)%s*=%s*(.-)%s*$")
+            if key == "EmptyCraftLights" then
+                settings.EmptyCraftLights = ParseOpenShimBool(value, false)
+            elseif key == "EmissivePulse" then
+                settings.EmissivePulse = ParseOpenShimBool(value, false)
+            elseif key == "StarTwinkle" then
+                settings.StarTwinkle = ParseOpenShimBool(value, false)
+            end
+        end
+        line = f:Readln()
+    end
+    f:Close()
+
+    return settings, true, sourcePath
+end
+
+function PersistentConfig._SyncOpenShimCampaignVisualSettings(force)
+    if not PersistentConfig._OpenShimOwnsPersistentSettings() then
+        return false
+    end
+
+    local settings, found, sourcePath = ReadOpenShimCampaignVisualSettings()
+    local signature = table.concat({
+        settings.EmptyCraftLights and "1" or "0",
+        settings.EmissivePulse and "1" or "0",
+        settings.StarTwinkle and "1" or "0",
+    }, ":")
+
+    if not force and PersistentConfig._OpenShimCampaignVisualSignature == signature then
+        return false
+    end
+
+    -- RuntimeEnhancements' historical flag means "switch empty craft to the
+    -- dark/empty material", hence the intentional inversion here.
+    RuntimeEnhancements.SetPilotVisualsEnabled(not settings.EmptyCraftLights)
+    RuntimeEnhancements.SetEmissivePulseEnabled(settings.EmissivePulse)
+    RuntimeEnhancements.SetStarTwinkleEnabled(settings.StarTwinkle)
+
+    PersistentConfig._OpenShimCampaignVisualSignature = signature
+    if force or PersistentConfig.Debug then
+        print("PersistentConfig: inherited OpenShim campaign visuals " .. signature ..
+            " from " .. tostring(found and sourcePath or "OpenShim defaults"))
+    end
+    return true
+end
+
+function PersistentConfig._SyncLegacyAutoSaveFallback()
+    if not autosave or not autosave.Config then
+        return false
+    end
+
+    local useLegacyLuaAutoSave = not PersistentConfig._OpenShimOwnsPersistentSettings()
+    autosave.Config.enabled = useLegacyLuaAutoSave and not not PersistentConfig.Settings.AutoSaveEnabled or false
+    autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
+    autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
+
+    if not autosave.Config.enabled then
+        autosave._forceInitialSave = false
+        if InputState then
+            InputState.autoSaveStartupPending = false
+        end
+    end
+
+    return useLegacyLuaAutoSave
 end
 
 local function HasOdfNumber(value, found)
@@ -3577,6 +3790,13 @@ local function GetActiveLightingMode()
 end
 
 local function GetRequestedLightingMode()
+    if PersistentConfig._GetOpenShimEffectiveRenderProfile then
+        local profile = PersistentConfig._GetOpenShimEffectiveRenderProfile()
+        if profile then
+            return profile == "redux" and "default" or profile
+        end
+    end
+
     local preset = PersistentConfig._GetLightingModePreset()
     return NormalizeLightingModeValue(preset and preset.mode) or "default"
 end
@@ -3596,6 +3816,36 @@ end
 function PersistentConfig._SyncLightingMode(force)
     if not exu then
         return false
+    end
+
+    local userProfile = PersistentConfig._GetOpenShimUserRenderProfile and
+        PersistentConfig._GetOpenShimUserRenderProfile() or nil
+    if userProfile then
+        -- Persistent renderer policy belongs to OpenShim. Clear any stale CR
+        -- content override left by older campaign builds, then observe the
+        -- effective profile instead of submitting another competing request.
+        local requestedProfile = nil
+        if type(exu.GetRequestedRenderProfile) == "function" then
+            local ok, value = pcall(exu.GetRequestedRenderProfile)
+            if ok then
+                requestedProfile = string.lower(CleanString(value or "")):match("^%s*(.-)%s*$")
+            end
+        end
+        if type(exu.RequestRenderProfile) == "function" and
+            (force or (requestedProfile and requestedProfile ~= "" and requestedProfile ~= "inherit")) then
+            pcall(exu.RequestRenderProfile, "inherit")
+        end
+
+        local effectiveProfile = PersistentConfig._GetOpenShimEffectiveRenderProfile() or userProfile
+        local resolvedMode = effectiveProfile == "redux" and "default" or effectiveProfile
+        local previousMode = PersistentConfig._AppliedLightingMode
+        PersistentConfig._AppliedLightingMode = resolvedMode
+        PersistentConfig.Settings.RetroLighting = (resolvedMode == "retro")
+        if previousMode and previousMode ~= resolvedMode and RuntimeEnhancements and
+            type(RuntimeEnhancements.ResetVisualState) == "function" then
+            pcall(RuntimeEnhancements.ResetVisualState)
+        end
+        return true
     end
 
     local preset = PersistentConfig._GetLightingModePreset()
@@ -4999,10 +5249,8 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     if options and options.syncScavengerAssist and aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
         aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
     end
-    if options and options.syncAutoSave and autosave and autosave.Config then
-        autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
-        autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
-        autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
+    if options and options.syncAutoSave then
+        PersistentConfig._SyncLegacyAutoSaveFallback()
     end
 
     if options and options.rebuildOverlay then
@@ -5805,31 +6053,36 @@ function PersistentConfig.ResetToDefaults()
     PersistentConfig.ApplySettings()
     MarkOtherHeadlightsDirty()
 
-    if autosave and autosave.Config then
-        autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
-        autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
-        autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
-    end
+    PersistentConfig._SyncLegacyAutoSaveFallback()
 
     ShowSettingsFeedback("Settings reset to defaults.", 0.7, 1.0, 0.7, 4.0)
 end
 
 function PersistentConfig.ApplySettings(options)
     local applyAll = not options
+    local openShimOwnsPersistentSettings = PersistentConfig._OpenShimOwnsPersistentSettings()
 
-    if applyAll or (options and options.applyPilotVisuals) then
-        RuntimeEnhancements.SetPilotVisualsEnabled(not PersistentConfig.Settings.EmptyCraftLightsEnabled)
-    end
-    if applyAll or (options and options.applyEmissivePulse) then
-        RuntimeEnhancements.SetEmissivePulseEnabled(PersistentConfig.Settings.EmissivePulseEnabled)
-    end
-    if applyAll or (options and options.applyStarTwinkle) then
-        RuntimeEnhancements.SetStarTwinkleEnabled(PersistentConfig.Settings.StarTwinkleEnabled)
+    if openShimOwnsPersistentSettings then
+        if applyAll or (options and
+            (options.applyPilotVisuals or options.applyEmissivePulse or options.applyStarTwinkle)) then
+            PersistentConfig._SyncOpenShimCampaignVisualSettings(true)
+        end
+    else
+        if applyAll or (options and options.applyPilotVisuals) then
+            RuntimeEnhancements.SetPilotVisualsEnabled(not PersistentConfig.Settings.EmptyCraftLightsEnabled)
+        end
+        if applyAll or (options and options.applyEmissivePulse) then
+            RuntimeEnhancements.SetEmissivePulseEnabled(PersistentConfig.Settings.EmissivePulseEnabled)
+        end
+        if applyAll or (options and options.applyStarTwinkle) then
+            RuntimeEnhancements.SetStarTwinkleEnabled(PersistentConfig.Settings.StarTwinkleEnabled)
+        end
     end
 
     if exu then
         local h = GetPlayerHandle()
-        if (applyAll or (options and options.applyHeadlights)) and IsValid(h) then
+        if not openShimOwnsPersistentSettings and
+            (applyAll or (options and options.applyHeadlights)) and IsValid(h) then
         -- Sync ranges based on mode before applying
             local mode = PersistentConfig.Settings.HeadlightBeamMode
             if PersistentConfig.HeadlightBeamModes[mode] then
@@ -5860,7 +6113,8 @@ function PersistentConfig.ApplySettings(options)
         if applyAll or (options and options.syncLightingMode) then
             PersistentConfig._RequestLightingModeResync()
             PersistentConfig._SyncLightingMode(true)
-            if type(PersistentConfig.UpdateHeadlights) == "function" then
+            if not openShimOwnsPersistentSettings and
+                type(PersistentConfig.UpdateHeadlights) == "function" then
                 MarkOtherHeadlightsDirty()
                 PersistentConfig.UpdateHeadlights()
             end
@@ -5933,11 +6187,11 @@ function PersistentConfig.UpdateInputs()
         if currentPlayerHandle then
             InputState.otherHeadlightVisibility[currentPlayerHandle] = nil
         end
-        if IsValid(currentPlayerHandle) then
-            print("PersistentConfig: Player entered new craft, reapplying headlight settings.")
-            PersistentConfig.ApplySettings()
+        if IsValid(currentPlayerHandle) and not PersistentConfig._OpenShimOwnsPersistentSettings() then
+            print("PersistentConfig: Player entered new craft, reapplying legacy CR headlight fallback.")
+            PersistentConfig.ApplySettings({ applyHeadlights = true })
+            MarkOtherHeadlightsDirty()
         end
-        MarkOtherHeadlightsDirty()
         InputState.lastPlayerHandle = currentPlayerHandle
         InputState.lastWeaponMask = nil
         InputState.lastWeaponPlayer = nil
@@ -6037,6 +6291,11 @@ function PersistentConfig.UpdateInputs()
         InputState.lastUnitVoTeam = team
     end
     local now = GetTime()
+    if PersistentConfig._OpenShimOwnsPersistentSettings() and
+        now >= (PersistentConfig._NextOpenShimVisualSettingsCheck or 0.0) then
+        PersistentConfig._NextOpenShimVisualSettingsCheck = now + 1.0
+        PersistentConfig._SyncOpenShimCampaignVisualSettings(false)
+    end
     if InputState.radarScaleSyncPending and now >= (InputState.nextRadarScaleCheck or 0.0) then
         InputState.nextRadarScaleCheck = now + 0.5
         if PersistentConfig._SyncRadarSizeScale(false) ~= false then
@@ -6276,7 +6535,8 @@ function PersistentConfig.UpdateInputs()
     end
 
     -- Update Rainbow Color if active
-    if PersistentConfig.Settings.RainbowMode and PersistentConfig.Settings.HeadlightVisible then
+    if not PersistentConfig._OpenShimOwnsPersistentSettings() and
+        PersistentConfig.Settings.RainbowMode and PersistentConfig.Settings.HeadlightVisible then
         local hue = (GetTime() * 0.2) % 1.0 -- Cycle every 5 seconds
         local r, g, b = PersistentConfig._HueToRGB(hue)
         local mode = PersistentConfig.Settings.HeadlightBeamMode
@@ -6307,8 +6567,9 @@ function PersistentConfig.UpdateInputs()
                     if logID then steamID = logID end
                     if logName then username = logName end
                 elseif not username then
-                    -- Have ID but no name, check log for name
-                    local _, logName = ParseBzLogger()
+                    -- Have a stable EXU Steam64; only accept a BZRNet name
+                    -- from a matching authentication record.
+                    local _, logName = ParseBzLogger(steamID)
                     if logName then username = logName end
                 end
 
@@ -6419,6 +6680,9 @@ function PersistentConfig.UpdateBuildingRepair()
 end
 
 function PersistentConfig.UpdateHeadlights()
+    if PersistentConfig._OpenShimOwnsPersistentSettings() then
+        return
+    end
     if not exu or not exu.SetHeadlightVisible then return end
     InitializeTrackedWorldHandles()
 
@@ -6606,7 +6870,8 @@ function PersistentConfig.OnObjectCreated(h)
             aiCore.TrackWorldObject, h)
     end
 
-    if exu and exu.SetHeadlightVisible and ShouldDisableOtherHeadlights() then
+    if not PersistentConfig._OpenShimOwnsPersistentSettings() and
+        exu and exu.SetHeadlightVisible and ShouldDisableOtherHeadlights() then
         local player = GetPlayerHandle()
         PersistentConfig._InvokeWithTrace("PersistentConfig.OnObjectCreated ApplyOtherHeadlightVisibility " .. handleInfo,
             ApplyOtherHeadlightVisibility, h, false, player)
@@ -6667,6 +6932,9 @@ function PersistentConfig.Initialize()
     PersistentConfig.R.ResetCommanderOverview()
     InputState.processedCreationHandles = {}
     InputState.otherHeadlightVisibility = {}
+    PersistentConfig._OpenShimCampaignVisualSignature = nil
+    PersistentConfig._NextOpenShimVisualSettingsCheck = 0.0
+    CommanderAliases = nil
     RuntimeEnhancements.Initialize()
     RuntimeEnhancements.RebuildVisuals()
     local configLoadResult = PersistentConfig.LoadConfig()
@@ -6729,14 +6997,15 @@ function PersistentConfig.Initialize()
     })
     MarkOtherHeadlightsDirty()
 
-    -- Sync AutoSave config from settings
+    -- OpenShim owns the visible persistent AutoSave controls on modern builds.
+    -- The Lua implementation remains only as a compatibility fallback when the
+    -- canonical native settings owner is unavailable.
+    local usingLegacyLuaAutoSave = PersistentConfig._SyncLegacyAutoSaveFallback()
     if autosave and autosave.Config then
-        autosave.Config.enabled = PersistentConfig.Settings.AutoSaveEnabled
-        autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
-        autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
         autosave._forceInitialSave = autosave.Config.enabled and true or false
         InputState.autoSaveStartupPending = autosave.Config.enabled and true or false
-        print("PersistentConfig: AutoSave synced - enabled=" .. tostring(autosave.Config.enabled) ..
+        print("PersistentConfig: Lua AutoSave fallback=" .. tostring(usingLegacyLuaAutoSave) ..
+            " enabled=" .. tostring(autosave.Config.enabled) ..
             " interval=" .. tostring(autosave.Config.autoSaveInterval) ..
             " path=" .. tostring(autosave.Config.currentPath))
     end
@@ -6755,8 +7024,9 @@ function PersistentConfig.Initialize()
         steamID = exu.GetSteam64()
     end
 
-    -- 2. Try to get name from log if missing (or ID if EXU failed)
-    local logID, logName = ParseBzLogger()
+    -- 2. Resolve the latest BZRNet display name for the same stable identity.
+    -- If EXU could not supply Steam64, fall back to the latest auth record.
+    local logID, logName = ParseBzLogger(steamID)
     if logName then username = logName end
     if (not steamID or steamID == "" or steamID == "0") and logID then
         steamID = logID
