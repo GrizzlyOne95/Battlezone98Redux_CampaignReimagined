@@ -10,10 +10,12 @@
 -- Coordinate note: Battlezone world space is Y-up, so a falling wind vector has
 -- a negative y. Wind is a *direction*; speed lives in windSpeed.
 --
--- Particle template names refer to particle_system blocks in
--- Materials/cr_weather.particle. Sky material names refer to
--- Materials/CR_weather.material. Both currently point at placeholder textures --
--- see docs/CR_REACTIVE_PRESENTATION.md for the art request list.
+-- CR template names refer to particle_system blocks in
+-- Materials/cr_weather.particle; a preset may also reuse a mounted EXU weather
+-- template explicitly, as VenusDenseAtmosphere does with EXU/WeatherMist. Sky
+-- material names refer to Materials/CR_weather.material. CR's templates still
+-- point at placeholder textures -- see docs/CR_REACTIVE_PRESENTATION.md for the
+-- art request list.
 
 local CRWeatherPresets = {}
 
@@ -49,6 +51,8 @@ local CRWeatherPresets = {}
 --
 --   alpha = -0.18              constant: sent once, then left alone
 --   alpha = { -0.30, -0.12 }   { calm, full }: interpolated by live weight
+--   colour1 = { "1 1 1 0", "1 1 1 0.12" }
+--                              numeric text vectors interpolate component-wise
 --
 -- The pair form is what makes a storm change character as it builds rather than
 -- only getting denser. Use CRWeather.DescribeSystem(name) in-game to read the
@@ -74,6 +78,71 @@ CRWeatherPresets.Presets = {
         lightning = nil,
         transitionIn = 8.0,
         transitionOut = 8.0,
+    },
+
+    -- -------------------------------------------------------------------------
+    -- Venus dense atmosphere development preset.
+    --
+    -- Native linear fog supplies almost all of the opacity. EXU/WeatherMist is
+    -- deliberately only a sparse, camera-local veil: at full intensity and
+    -- quality 1 it emits 6 cards/s into a quota of 72 (about 45 live cards at
+    -- the authored mean lifetime). The mist's ColourInterpolator and Scaler
+    -- are driven by the same live weight as emission, fog, ambient, diffuse and
+    -- sun power, so Intensity is the single 0..1 control for the whole look.
+    --
+    -- This is intentionally a development preset rather than a mission
+    -- schedule. Tune it with Tools/lcbench-venus.lua before assigning it to a
+    -- campaign beat.
+    -- -------------------------------------------------------------------------
+    VenusDenseAtmosphere = {
+        name = "VenusDenseAtmosphere",
+        precipitation = {
+            {
+                system   = "cr_wx_venus_dense_mist",
+                template = "EXU/WeatherMist",
+                -- EXU/WeatherMist's Box emitter is already positioned +12 Y.
+                -- A small negative camera offset keeps the cards low in frame
+                -- without laying their hard intersections directly on terrain.
+                offset   = { x = 0.0, y = -5.0, z = 0.0 },
+                quota    = 72,
+                emitters = {
+                    [0] = {
+                        rate     = 6.0,
+                        velocity = { 0.8, 2.2 },
+                        ttl      = { 5.0, 10.0 },
+                        angle    = 38.0,
+                        params   = {
+                            width  = 360.0,
+                            height = 30.0,
+                            depth  = 360.0,
+                        },
+                    },
+                },
+                affectors = {
+                    -- EXU/WeatherMist affector 0: ColourInterpolator. Keeping
+                    -- every calm alpha at zero means particle opacity follows
+                    -- the same intensity that drives native fog and lighting.
+                    [0] = {
+                        colour0 = "0.66 0.72 0.26 0.00",
+                        colour1 = { "0.66 0.72 0.26 0.00", "0.66 0.72 0.26 0.11" },
+                        colour2 = { "0.58 0.64 0.22 0.00", "0.58 0.64 0.22 0.07" },
+                        colour3 = "0.54 0.58 0.18 0.00",
+                    },
+                    -- EXU/WeatherMist affector 1: Scaler.
+                    [1] = { rate = { 0.0, 1.5 } },
+                },
+            },
+        },
+        sky           = nil,
+        fog           = { r = 0.46, g = 0.50, b = 0.20, fogStart = 8.0, fogEnd = 155.0 },
+        ambient       = { r = 0.45, g = 0.47, b = 0.29 },
+        diffuse       = { r = 0.95, g = 0.98, b = 0.68 },
+        sunPowerScale = 1.25,
+        wind          = { x = 0.82, y = -0.06, z = -0.57 },
+        windSpeed     = 3.0,
+        lightning     = nil,
+        transitionIn  = 8.0,
+        transitionOut = 10.0,
     },
 
     -- -------------------------------------------------------------------------

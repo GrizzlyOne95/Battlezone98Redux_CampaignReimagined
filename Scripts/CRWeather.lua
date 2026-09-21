@@ -179,16 +179,54 @@ end
 --
 -- A preset states a parameter either as a plain value, which is sent once and
 -- then left alone, or as { calm, full }, which is interpolated by the layer's
--- live weight the same way rate already is.
+-- live weight the same way rate already is. Numeric strings with the same
+-- number of components interpolate component-by-component; this is how a
+-- ColourInterpolator can fade RGBA stops with weather intensity without a
+-- weather-specific particle API.
+
+local function ParseNumberSequence(value)
+    if type(value) ~= "string" then
+        return nil
+    end
+
+    local numbers = {}
+    for token in string.gmatch(value, "%S+") do
+        local number = tonumber(token)
+        if number == nil then
+            return nil
+        end
+        numbers[#numbers + 1] = number
+    end
+
+    if #numbers == 0 then
+        return nil
+    end
+    return numbers
+end
+
+local function LerpNumberSequence(calm, full, weight)
+    local calmNumbers = ParseNumberSequence(calm)
+    local fullNumbers = ParseNumberSequence(full)
+    if calmNumbers == nil or fullNumbers == nil or #calmNumbers ~= #fullNumbers then
+        return nil
+    end
+
+    local values = {}
+    for i = 1, #calmNumbers do
+        values[i] = string.format("%.4g", Lerp(calmNumbers[i], fullNumbers[i], weight))
+    end
+    return table.concat(values, " ")
+end
 
 local function ResolveParam(value, weight)
     if type(value) == "table" then
         local calm = tonumber(value[1])
         local full = tonumber(value[2])
-        if calm == nil or full == nil then
-            return nil
+        if calm ~= nil and full ~= nil then
+            return Lerp(calm, full, Clamp01(weight))
         end
-        return Lerp(calm, full, Clamp01(weight))
+
+        return LerpNumberSequence(value[1], value[2], Clamp01(weight))
     end
     return value
 end
@@ -570,7 +608,14 @@ local function SyncSystems(dt)
             ApplyAffectorSpec(systemName, affectorIndex, params, weight)
         end
 
-        Call("SetParticleSystemEmitting", systemName, weight > 0.001)
+        local visible = weight > 0.001
+        Call("SetParticleSystemEmitting", systemName, visible)
+        -- Stopping an emitter does not remove particles it already produced.
+        -- Hide the retained system at zero intensity so SetIntensity(0) is a
+        -- real visual clear even before those particles reach their TTL. The
+        -- layer stays allocated so raising intensity can resume without an
+        -- Ogre destroy/create cycle.
+        Call("SetParticleSystemVisible", systemName, visible)
     end
 
     -- One call per frame moves every camera follower. It returns 0 when the

@@ -93,6 +93,7 @@ jobs:
           # regression could reach a release with CI green.
           "$LUA" Tools/Test-CRWeatherFogHorizon.lua
           "$LUA" Tools/Test-CRWeatherParameters.lua
+          "$LUA" Tools/Test-CRVenusDenseAtmosphere.lua Scripts
           "$LUA" Tools/Test-CRMarsWeather.lua
           "$LUA" Tools/Test-CRMarsHaboob.lua
           "$LUA" Tools/Test-CRMarsVolcano.lua
