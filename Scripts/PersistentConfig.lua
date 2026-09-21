@@ -2167,7 +2167,7 @@ end
 -- search path; ordinary users need no entry because their BZRNet name is
 -- resolved automatically above.
 local CommanderAliases = nil
-local COMMANDER_ALIAS_ITEM = "cmdrname.cfg"
+local COMMANDER_ALIAS_ITEM = "campaignReimagined.ini"
 
 local function LoadCommanderAliases()
     if CommanderAliases then
@@ -2178,8 +2178,12 @@ local function LoadCommanderAliases()
     if type(UseItem) == "function" then
         local ok, content = pcall(UseItem, COMMANDER_ALIAS_ITEM)
         if ok and type(content) == "string" and content ~= "" then
+            local inCommanderAliases = false
             for line in string.gmatch(content, "[^\r\n]+") do
-                if not line:match("^%s*[#;]") then
+                local section = line:match("^%s*%[([^%]]+)%]%s*$")
+                if section then
+                    inCommanderAliases = string.lower(section) == "commanderaliases"
+                elseif inCommanderAliases and not line:match("^%s*[#;]") then
                     local steamID, alias = line:match("^%s*[Ss]?(%d+)%s*=%s*(.-)%s*$")
                     if steamID and alias and alias ~= "" then
                         aliases[steamID] = alias
