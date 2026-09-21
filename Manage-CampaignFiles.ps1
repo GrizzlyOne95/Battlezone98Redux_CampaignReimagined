@@ -120,6 +120,8 @@ $SourceExcludedRelativePaths = @(
     ".github",
     # Legacy byte-identical copies; BZ_ASSETS_CORE is the runtime source.
     "Assets\CustomWidgets",
+    # Repository branding (the GitHub repo icon), not runtime mod content.
+    "branding",
     "docs",
     "Local",
     "References",
