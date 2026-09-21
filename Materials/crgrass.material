@@ -14,12 +14,21 @@ material CR/GrassPrototype
             }
             fragment_program_ref CR_Textured_fragment
             {
+                // 96/255. The fixed-function `alpha_rejection` below covers
+                // Direct3D 9; DX11 has no alpha-test state, so the shader has
+                // to cut at the same place or nothing is cut at all.
+                param_named alphaRejection float 0.376
             }
 
             lighting off
             cull_hardware none
             cull_software none
-            scene_blend alpha_blend
+            // Cutout, NOT alpha blend. A blended card writes depth for its
+            // empty pixels too, so one near blade punches a rectangular hole
+            // through every card behind it -- and StaticGeometry batches all
+            // instances into one renderable, so there is no per-card sorting
+            // to fall back on. Clipping instead makes the pass opaque and
+            // order-independent.
             alpha_rejection greater_equal 96
             depth_write on
             diffuse 0.82 0.92 0.68 1
