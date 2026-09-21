@@ -35,6 +35,9 @@ PersistentConfig.PdaOverlay = {
     statsVisible = false,
     feedbackVisible = false,
     feedbackExpireAt = 0.0,
+    -- Last signature successfully pushed to EXU, per kind. See
+    -- _BuildPdaOverlaySignature.
+    appliedSignature = {},
     ids = {
         stats = {
             overlay = "cr_pda_stats_overlay",
@@ -1463,6 +1466,14 @@ function PersistentConfig._HidePdaOverlay(kind)
         state.feedbackExpireAt = 0.0
     end
 
+    -- Every teardown and rebuild path funnels through here
+    -- (_DestroyPdaOverlay calls this, and _TryCreatePdaOverlay calls
+    -- _DestroyPdaOverlay), so clearing the signature in this one place is
+    -- what stops a recreated element from inheriting the state of the one it
+    -- replaced and being skipped as "already applied".
+    state.appliedSignature = state.appliedSignature or {}
+    state.appliedSignature[kind] = nil
+
     pcall(exu.HideOverlay, ids.overlay)
 end
 
@@ -1729,6 +1740,54 @@ function PersistentConfig._TryCreatePdaOverlay(kind)
     return true
 end
 
+-- Deterministic serialisation of everything _ShowPdaOverlay would push to EXU.
+--
+-- Keys are sorted, because pairs() order is not stable and two identical
+-- states must not serialise differently. Numbers go through %.4f rather than
+-- tostring so that formatting cannot vary between equal values.
+local function AppendPdaOverlaySignature(out, value, depth)
+    local valueType = type(value)
+    if valueType == "table" then
+        if depth <= 0 then
+            out[#out + 1] = "?"
+            return
+        end
+        local keys = {}
+        for key in pairs(value) do
+            keys[#keys + 1] = key
+        end
+        table.sort(keys, function(a, b) return tostring(a) < tostring(b) end)
+        for index = 1, #keys do
+            local key = keys[index]
+            out[#out + 1] = tostring(key)
+            out[#out + 1] = "="
+            AppendPdaOverlaySignature(out, value[key], depth - 1)
+            out[#out + 1] = ";"
+        end
+        return
+    end
+    if valueType == "number" then
+        out[#out + 1] = string.format("%.4f", value)
+        return
+    end
+    out[#out + 1] = tostring(value)
+end
+
+function PersistentConfig._BuildPdaOverlaySignature(kind, layout, colors,
+    backdropMaterial, headerMaterial, borderMaterial)
+    local out = { tostring(kind), "|" }
+    AppendPdaOverlaySignature(out, layout, 3)
+    out[#out + 1] = "|"
+    AppendPdaOverlaySignature(out, colors, 3)
+    out[#out + 1] = "|"
+    out[#out + 1] = tostring(backdropMaterial)
+    out[#out + 1] = "|"
+    out[#out + 1] = tostring(headerMaterial)
+    out[#out + 1] = "|"
+    out[#out + 1] = tostring(borderMaterial)
+    return table.concat(out)
+end
+
 function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page)
     if not rawText or rawText == "" then
         return false
@@ -1749,6 +1808,37 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
     local backdropMaterial = PersistentConfig._GetPdaOverlayPanelMaterial("Backdrop", panelR, panelG, panelB)
     local headerMaterial = PersistentConfig._GetPdaOverlayPanelMaterial("Header", panelR, panelG, panelB)
     local borderMaterial = PersistentConfig._GetPdaOverlayPanelMaterial("Border", panelR, panelG, panelB)
+
+    -- The stats page re-shows itself about ten times a second for as long as
+    -- it is open, and while the player is not taking damage almost every one
+    -- of those passes pushes byte-identical values: same captions, same
+    -- geometry, same materials. Each still cost roughly thirty EXU/Ogre calls
+    -- -- material lookups and string-parsed setParameter among them -- plus
+    -- thirty lines of debug logging flushed to disk. One 70-second session
+    -- wrote 1.4 MB of exu.log doing nothing.
+    --
+    -- The signature covers the COMPUTED layout, colours and material names
+    -- rather than the arguments, so it is not possible to change font scale,
+    -- opacity, colour preset or page and have the guard hold a stale frame:
+    -- those all move the computed values. Skipping is therefore only ever a
+    -- no-op, since the same calls with the same arguments leave the same
+    -- element state.
+    local signature = PersistentConfig._BuildPdaOverlaySignature(
+        kind, layout, colors, backdropMaterial, headerMaterial, borderMaterial)
+    local state = PersistentConfig.PdaOverlay
+    state.appliedSignature = state.appliedSignature or {}
+    local alreadyVisible = (kind == "stats" and state.statsVisible)
+        or (kind == "feedback" and state.feedbackVisible)
+    if alreadyVisible and state.appliedSignature[kind] == signature then
+        if kind == "feedback" then
+            -- Lifetime is the one piece of state deliberately left out of the
+            -- signature: re-showing the same message has to extend it, or an
+            -- identical message would never refresh its own timeout.
+            state.feedbackExpireAt = GetTime() + math.max(tonumber(duration) or 2.5, 0.10)
+        end
+        return true
+    end
+
     local ok = true
 
     local function SafeCall(fn, ...)
@@ -1889,6 +1979,8 @@ function PersistentConfig._ShowPdaOverlay(kind, rawText, duration, r, g, b, page
         PersistentConfig._DestroyPdaOverlay(kind)
         return false
     end
+
+    state.appliedSignature[kind] = signature
 
     if kind == "stats" then
         PersistentConfig.PdaOverlay.statsVisible = true
