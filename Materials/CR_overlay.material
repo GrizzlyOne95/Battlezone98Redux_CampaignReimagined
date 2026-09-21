@@ -11,7 +11,7 @@ material CR_OverlayFont
     {
         pass
         {
-            vertex_program_ref CR_UI_vertexHLSL4
+            vertex_program_ref CR_OverlayText_vertexHLSL4
             {
             }
             fragment_program_ref CR_UI_fragmentHLSL4
