@@ -112,6 +112,34 @@ PersistentConfig.DefaultSettings = {
 
 PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
 
+-- OpenShim owns a set of process-wide player preferences. They live in the
+-- player's openshim.ini, they are set from OpenShim's own Options page, and
+-- they outlive any campaign -- so Campaign Reimagined must never write them.
+--
+-- ApplySettings has deferred on the scrap/pilot HUD and the radar size for a
+-- while, but it deferred at the CALL SITE only, which turned out not to be
+-- enough: the periodic settling loop in UpdateInputs calls _SyncRadarSizeScale
+-- and _SyncLightingMode directly and reached the native pushes with no
+-- ownership check at all. Guarding the push functions themselves makes the
+-- invariant hold however they are reached.
+--
+-- Deliberately guarded rather than deleted. These settings are still the only
+-- way to set any of this when OpenShim is absent or too old to own them, which
+-- is exactly what _OpenShimOwnsPersistentSettings distinguishes.
+local openShimDeferralLogged = {}
+local function DeferToOpenShim(what)
+    if not PersistentConfig._OpenShimOwnsPersistentSettings or
+        not PersistentConfig._OpenShimOwnsPersistentSettings() then
+        return false
+    end
+    if not openShimDeferralLogged[what] then
+        openShimDeferralLogged[what] = true
+        print("PersistentConfig: " .. what ..
+            " is owned by OpenShim; not writing it from the campaign")
+    end
+    return true
+end
+
 local ODF_ROOT_SECTION = PersistentConfigData.ODF_ROOT_SECTION
 local PdaPages = PersistentConfigData.PdaPages
 local PdaNavigationGroups = PersistentConfigData.PdaNavigationGroups
@@ -2116,6 +2144,8 @@ local function IsRepairTargetHandle(h)
 end
 
 local function ApplyOtherHeadlightVisibility(h, visible, player)
+    -- OpenShim: "AI Headlights".
+    if DeferToOpenShim("AI headlight visibility") then return false end
     if not exu or not exu.SetHeadlightVisible or not IsValid(h) then return false end
     if h == player then
         InputState.otherHeadlightVisibility[h] = nil
@@ -3676,6 +3706,8 @@ end
 local CachedLegacyScrapPilotCommandMenuRect = nil
 
 local function ApplyLegacyScrapPilotHudTopLeft()
+    -- OpenShim: "Scrap/Pilot HUD".
+    if DeferToOpenShim("the scrap/pilot HUD layout") then return end
     if not exu then
         return false
     end
@@ -3763,6 +3795,8 @@ local StockScrapPilotHudSpriteNames = {
 }
 
 local function TrySetStockScrapPilotHudSpritesVisibleNative(visible)
+    -- OpenShim: "Scrap/Pilot HUD".
+    if DeferToOpenShim("the scrap/pilot HUD sprites") then return true end
     if not exu then
         return false
     end
@@ -3796,6 +3830,8 @@ local function TrySetStockScrapPilotHudSpritesVisibleNative(visible)
 end
 
 local function SetStockScrapPilotHudSpritesVisible(visible)
+    -- OpenShim: "Scrap/Pilot HUD".
+    if DeferToOpenShim("the scrap/pilot HUD sprites") then return end
     if not exu or InputState.stockScrapPilotHudUnsupported then
         return false
     end
@@ -3906,6 +3942,17 @@ local function ShouldDisableOtherHeadlights()
 end
 
 function PersistentConfig._SyncLightingMode(force)
+    -- OpenShim: "Render Profile" / "DX11 Enhanced". Clearing the pending
+    -- flag matters as much as the early return: the settling loop retries
+    -- until the renderer reports the requested mode, and a mode this
+    -- function is no longer allowed to set would never arrive.
+    if DeferToOpenShim("the lighting/render mode") then
+        if InputState then
+            InputState.lightingModeSyncPending = false
+            InputState.nextRetroLightingStabilizeUntil = 0.0
+        end
+        return false
+    end
     if not exu then
         return false
     end
@@ -4051,6 +4098,16 @@ function PersistentConfig._CancelRadarScaleResync()
 end
 
 function PersistentConfig._SyncRadarSizeScale(force)
+    -- OpenShim: "Radar Size Scale". Same settling-loop consideration as
+    -- _SyncLightingMode; returning nil rather than false is what lets the
+    -- caller in UpdateInputs stop asking.
+    if DeferToOpenShim("the radar size scale") then
+        if InputState then
+            InputState.radarScaleSyncPending = false
+            InputState.nextRadarScaleCheck = 0.0
+        end
+        return
+    end
     if not exu or type(exu.SetRadarSizeScale) ~= "function" then
         return false
     end
@@ -5252,6 +5309,9 @@ local function RebuildPdaOverlay()
 end
 
 function PersistentConfig.ApplyScrapPilotHudLayout()
+    -- OpenShim: "Scrap/Pilot HUD". ApplySettings already declines to call
+    -- this; the guard covers every other entry point.
+    if DeferToOpenShim("the scrap/pilot HUD layout") then return false end
     if not exu then
         return
     end
