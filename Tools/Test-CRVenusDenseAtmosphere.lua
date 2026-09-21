@@ -1,7 +1,7 @@
 -- Test-CRVenusDenseAtmosphere.lua
 --
 -- Deterministic host checks for the VenusDenseAtmosphere development preset.
--- It verifies that one intensity drives atmosphere and particles, that
+-- It verifies that one intensity drives local particles, that
 -- CRWeather uses Environment's modifier path instead of writing renderer state
 -- directly, and that a weather -> clear transition restores the fresh
 -- Environment frame exactly.
@@ -119,7 +119,7 @@ exu.SetParticleAffectorParameter = function(name, index, parameter, value)
     bucket(rec.affectors, name, index)[parameter] = value
     return true
 end
-exu.GetParticleSystemEmitterCount = function() return 1 end
+exu.GetParticleSystemEmitterCount = function() return 9 end
 exu.GetParticleSystemAffectorCount = function() return 4 end
 exu.GetParticleEmitterType = function() return "Box" end
 exu.GetParticleAffectorType = function(_, index)
@@ -181,6 +181,9 @@ check(preset and preset.precipitation[1].template == "CR/VenusGroundHaze",
     "the terrain-pooled veil must use CR/VenusGroundHaze")
 check(preset and preset.fog == nil,
     "the ground-haze preset must leave the map's native fog untouched")
+check(preset and preset.ambient == nil and preset.diffuse == nil
+        and preset.sunPowerScale == nil,
+    "the local patches must not change global lighting")
 
 CRWeather.Init({ quality = 1.0 })
 check(modifier ~= nil, "CRWeather must register an Environment modifier")
@@ -191,16 +194,20 @@ CRWeather.SetPreset("VenusDenseAtmosphere", 0.1)
 CRWeather.Update(0.1)
 
 check(rec.systems[systemName] == "CR/VenusGroundHaze", "the CR ground haze must be created")
-check(rec.quotas[systemName] == 96, "the active quota must remain 96")
+check(rec.quotas[systemName] == 112, "the active quota must remain 112")
 local pool = CRWeather.GetTerrainPoolState(systemName)
-check(pool and near(pool.weight, 1.0) and near(pool.basinDepth, 10.0),
-    "a ten-unit basin must reach full pool weight")
+check(pool and pool.patches and near(pool.patches[0].weight, 1.0)
+        and pool.maxWeight == 1.0 and pool.basinDepth > 8.0,
+    "the low center patch must reach full pool weight")
 local emitterPosition = (rec.emitterPositions[systemName] or {})[0]
-check(emitterPosition and near(emitterPosition.y, -7.5),
-    "the emitter must sit 2.5 units above ground relative to the camera")
+check(emitterPosition and near(emitterPosition.y, -8.5),
+    "the center emitter must sit 1.5 units above ground relative to the camera")
+local ringPosition = (rec.emitterPositions[systemName] or {})[1]
+check(ringPosition and near(ringPosition.x, 65.0) and near(ringPosition.y, 1.5),
+    "the first ring emitter must follow its own terrain sample")
 
--- Half intensity: every authored atmosphere target is exactly halfway from the
--- fresh Environment frame, while emission, alpha and scale are halfway too.
+-- Half intensity leaves the complete Environment frame alone while emission,
+-- alpha and scale move to half strength.
 CRWeather.SetIntensity(0.5)
 CRWeather.Update(0.0)
 
@@ -212,19 +219,19 @@ check(near(half.fog.r, BASE.fog.r) and near(half.fog.g, BASE.fog.g)
 check(near(half.fog.fogStart, BASE.fog.fogStart)
         and near(half.fog.fogEnd, BASE.fog.fogEnd),
     "ground haze must not change native fog distances")
-check(near(half.ambient.g, (BASE.ambient.g + preset.ambient.g) * 0.5),
-    "ambient must interpolate with intensity")
-check(near(half.diffuse.b, (BASE.diffuse.b + preset.diffuse.b) * 0.5),
-    "sun diffuse must interpolate with intensity")
-check(near(half.sunPowerScale, (BASE.sunPowerScale + preset.sunPowerScale) * 0.5),
-    "sun power must interpolate with intensity")
-check(near((rec.rates[systemName] or {})[0], 3.5),
-    "basin haze emission must be 3.5/s at half intensity")
+check(near(half.ambient.g, BASE.ambient.g)
+        and near(half.diffuse.b, BASE.diffuse.b)
+        and near(half.sunPowerScale, BASE.sunPowerScale),
+    "local haze must not modify ambient or sun lighting")
+check(near((rec.rates[systemName] or {})[0], 0.625),
+    "the full basin patch must emit 0.625/s at half intensity")
+check((rec.rates[systemName] or {})[1] > 0.20,
+    "a neighbouring patch must retain its independent terrain weight")
 
 local colour = ((rec.affectors[systemName] or {})[0] or {}).colour1
 local scale = ((rec.affectors[systemName] or {})[1] or {}).rate
-check(near(alphaFrom(colour), 0.07, 0.0001),
-    "ground-haze alpha must be half of 0.14, got " .. tostring(colour))
+check(near(alphaFrom(colour), 0.15, 0.0001),
+    "ground-haze alpha must be half of 0.30, got " .. tostring(colour))
 check(near(scale, 0.625, 0.0001),
     "ground-haze scaler rate must be half of 1.25, got " .. tostring(scale))
 local windForce = ((rec.affectors[systemName] or {})[2] or {}).force_vector
@@ -243,16 +250,20 @@ check(near(zero.fog.fogStart, BASE.fog.fogStart)
 check(near((rec.rates[systemName] or {})[0], 0.0) and rec.visible[systemName] == false,
     "zero intensity must stop emission and hide retained particles")
 
--- Move the same flat camera point from a basin to a local high spot. Pooling
--- must fade away even though intensity is restored to one.
+-- Move the center from a basin to a local high spot. The center patch must
+-- drain, while the eight lower surrounding patches remain visible from above.
 CRWeather.SetIntensity(1.0)
 terrainMode = "hill"
 for _ = 1, 12 do CRWeather.Update(0.3) end
 pool = CRWeather.GetTerrainPoolState(systemName)
-check(pool and pool.target == 0.0 and pool.weight < 0.01,
-    "a point ten units above its surrounding ring must drain the haze")
+check(pool and pool.patches[0].target == 0.0 and pool.patches[0].weight < 0.01,
+    "the high center patch must drain")
+check(pool and pool.maxWeight > 0.60 and pool.patches[1].weight > 0.60,
+    "lower surrounding patches must remain visible from the high center")
 check((rec.rates[systemName] or {})[0] < 0.1,
-    "a drained high point must have negligible emission")
+    "a drained high patch must have negligible emission")
+check((rec.rates[systemName] or {})[1] > 0.70,
+    "a low ring patch must keep emitting while viewed from above")
 
 -- Weather -> clear. At the midpoint both atmosphere and particles must be
 -- halfway home; at completion the modifier must leave a fresh frame untouched
@@ -267,7 +278,7 @@ local clearing = copyFrame()
 modifier(clearing)
 check(near(clearing.fog.g, BASE.fog.g),
     "clear transition must leave Environment fog untouched")
-check(near((rec.rates[systemName] or {})[0], 3.5),
+check(near((rec.rates[systemName] or {})[0], 0.625),
     "clear transition must fade particle emission with the same weight")
 
 CRWeather.Update(0.1)
@@ -294,7 +305,7 @@ check(unregistered, "shutdown must unregister the Environment modifier")
 
 if #failures == 0 then
     print("VENUS DENSE ATMOSPHERE OK")
-    print("  native fog preserved  basin=1.0  hill<0.01  quota=96  clear restored")
+    print("  world state preserved  center/ring patches independent  quota=112  clear restored")
 else
     for i = 1, #failures do print("FAIL: " .. failures[i]) end
     os.exit(1)

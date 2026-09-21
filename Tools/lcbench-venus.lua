@@ -25,15 +25,15 @@ local defaults = {
     hazeR = 0.66,
     hazeG = 0.72,
     hazeB = 0.26,
-    emission = 7.0,
-    alpha = 0.14,
+    emission = 1.25,
+    alpha = 0.30,
     scale = 1.25,
     windBearing = -35.0,
     windSpeed = 3.0,
     poolBase = 0.55,
-    poolDepth = 10.0,
+    poolDepth = 8.0,
     poolRadius = 65.0,
-    poolSlope = 12.0,
+    poolSlope = 28.0,
 }
 
 local state = {
@@ -65,8 +65,15 @@ local function SetHazeColour(r, g, b)
     mist.affectors[0].colour1[1] = ColourText(state.hazeR, state.hazeG, state.hazeB, 0.0)
     mist.affectors[0].colour1[2] = ColourText(state.hazeR, state.hazeG, state.hazeB, state.alpha)
     mist.affectors[0].colour2[1] = ColourText(dimR, dimG, dimB, 0.0)
-    mist.affectors[0].colour2[2] = ColourText(dimR, dimG, dimB, state.alpha * (0.09 / 0.14))
+    mist.affectors[0].colour2[2] = ColourText(dimR, dimG, dimB, state.alpha * (0.20 / 0.30))
     mist.affectors[0].colour3 = ColourText(dimR * 0.93, dimG * 0.91, dimB * 0.82, 0.0)
+end
+
+local function SetPatchEmission(value)
+    value = Clamp(value, 0.0, 5.0)
+    for index = 0, 8 do
+        mist.emitters[index].rate = value
+    end
 end
 
 local function SetMistAlpha(value)
@@ -97,9 +104,9 @@ local controls = {
     { label = "Haze blue", step = 0.01,
       get = function() return state.hazeB end,
       set = function(v) SetHazeColour(state.hazeR, state.hazeG, v) end },
-    { label = "Haze emission/s", step = 1.0,
+    { label = "Emission/patch/s", step = 0.25,
       get = function() return mist.emitters[0].rate end,
-      set = function(v) mist.emitters[0].rate = Clamp(v, 0.0, 30.0) end },
+      set = SetPatchEmission },
     { label = "Haze alpha", step = 0.01,
       get = function() return state.alpha end,
       set = SetMistAlpha },
@@ -136,9 +143,10 @@ local function SelectedText()
     local control = controls[state.selected]
     local pool = CRWeather.GetTerrainPoolState(SYSTEM_NAME) or {}
     return string.format(
-        "VENUS GROUND HAZE [%d/%d] %s = %.3f\nPool %.2f  basin %.1f  slope %.1f\nF1/F2 select  Left/Right change  Shift=coarse x5\nF3 weather/clear  Home defaults  F4 print all",
+        "VENUS GROUND HAZE [%d/%d] %s = %.3f\nPool avg %.2f max %.2f  center depth %.1f slope %.1f\nF1/F2 select  Left/Right change  Shift=coarse x5\nF3 weather/clear  Home defaults  F4 print all",
         state.selected, #controls, control.label, control.get(),
-        pool.weight or 0.0, pool.basinDepth or 0.0, pool.slopeDegrees or 0.0)
+        pool.weight or 0.0, pool.maxWeight or 0.0,
+        pool.basinDepth or 0.0, pool.slopeDegrees or 0.0)
 end
 
 local function ShowSelected(writeLog)
@@ -153,7 +161,7 @@ end
 
 local function PrintAll()
     print(string.format(
-        "[VENUSDEV] intensity=%.2f haze=(%.3f %.3f %.3f quota=%d rate=%.2f alpha=%.3f scale=%.2f) wind=(bearing=%.1f speed=%.2f) pool=(base=%.2f depth=%.1f radius=%.1f slope=%.1f) system=%s",
+        "[VENUSDEV] intensity=%.2f haze=(%.3f %.3f %.3f quota=%d emitters=9 rate/patch=%.2f alpha=%.3f scale=%.2f) wind=(bearing=%.1f speed=%.2f) pool=(base=%.2f depth=%.1f radius=%.1f slope=%.1f) system=%s",
         CRWeather.GetIntensity(), state.hazeR, state.hazeG, state.hazeB,
         mist.quota, mist.emitters[0].rate, state.alpha, mist.affectors[1].rate[2],
         state.windBearing, preset.windSpeed, mist.terrainPool.baseWeight,
@@ -163,7 +171,7 @@ end
 
 local function ResetDefaults()
     CRWeather.SetIntensity(defaults.intensity)
-    mist.emitters[0].rate = defaults.emission
+    SetPatchEmission(defaults.emission)
     SetHazeColour(defaults.hazeR, defaults.hazeG, defaults.hazeB)
     SetMistAlpha(defaults.alpha)
     mist.affectors[1].rate[2] = defaults.scale
