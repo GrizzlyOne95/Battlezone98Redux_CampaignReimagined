@@ -1,18 +1,4 @@
-﻿
-# Only live-install operations require elevation. Workshop builds/uploads use
-# an isolated staging directory and should not trigger a UAC prompt.
-$requestedAction = if ($args.Count -gt 0) { [string]$args[0] } else { "" }
-$elevatedActions = @("", "-deploy", "-fromsource", "-release")
-$requiresElevation = $elevatedActions -contains $requestedAction.ToLowerInvariant()
-if ($requiresElevation -and
-    -not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-    if ($args) { $arguments += " $args" }
-    Start-Process powershell -Verb RunAs -ArgumentList $arguments
-    Exit
-}
-
-# Manage-CampaignFiles.ps1
+﻿# Manage-CampaignFiles.ps1
 # Script to manage source/deploy workflow for Battlezone 98 Redux: Campaign Reimagined
 # The repo root is canonical source. Development deploy/sync targets the GOG
 # working copy only. Steam is verified only after a Workshop upload/download.
@@ -33,6 +19,88 @@ $WorkshopLocalRoot = Join-Path $RepoRoot "Local\Workshop"
 $RuntimeModParentDirNames = @("mods", "packaged_mods")
 $DefaultTestingGameRoot = "C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux"
 $DefaultTestingRuntimeDir = Join-Path $DefaultTestingGameRoot "mods\$CampaignModId"
+
+# ---------------------------------------------------------------- elevation --
+#
+# Only live-install operations touch the game folder at all; Workshop builds and
+# uploads use an isolated staging directory and must never raise a UAC prompt.
+#
+# Those that do touch it still only need elevation when the destination is
+# actually write-protected, which it usually is not. Both storefronts open their
+# game folders to ordinary users on purpose -- GOG Galaxy stamps
+# Everyone:(OI)(CI)(F) on the install and Steam grants BUILTIN\Users:(F) --
+# because games have always written configs and saves beside themselves. Being
+# under Program Files is not the same as needing an administrator; only the
+# DEFAULT ACL is, and neither of these has it.
+#
+# Elevating anyway is not free. Start-Process -Verb RunAs opens a NEW console,
+# so the deploy's output, its exit code and its post-deploy verify verdict all
+# land somewhere the caller cannot see -- which is why a cancelled prompt and a
+# clean run have always looked identical from the shell that started them.
+#
+# So probe, and elevate only when the probe fails. The probe fails safe: any
+# error at all, including a path this script resolved wrongly, means elevate.
+$requestedAction = if ($args.Count -gt 0) { [string]$args[0] } else { "" }
+$elevatedActions = @("", "-deploy", "-fromsource", "-release")
+$requiresElevation = $elevatedActions -contains $requestedAction.ToLowerInvariant()
+
+function Test-DeployTargetWritable([string]$targetPath) {
+    if (-not $targetPath) { return $true }
+
+    # Walk up to the nearest directory that exists. A destination that is not
+    # there yet gets created by the deploy, so what matters is whether we can
+    # write to the closest ancestor that does exist.
+    $probeDir = $targetPath
+    while ($probeDir -and -not (Test-Path -LiteralPath $probeDir -PathType Container)) {
+        $parent = Split-Path $probeDir -Parent
+        if (-not $parent -or $parent -eq $probeDir) { return $false }
+        $probeDir = $parent
+    }
+    if (-not $probeDir) { return $false }
+
+    # An actual write. Effective access through group membership, inherited
+    # ACEs, deny entries and read-only attributes is not something an ACL
+    # reading can be trusted to reproduce.
+    $probeFile = Join-Path $probeDir (".bzr-write-probe-" + [Guid]::NewGuid().ToString("N"))
+    try {
+        [System.IO.File]::WriteAllText($probeFile, "")
+        Remove-Item -LiteralPath $probeFile -Force -ErrorAction SilentlyContinue
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+if ($requiresElevation) {
+    $probeGameRoot = if ($env:BZR_BATTLEZONE_ROOT) { $env:BZR_BATTLEZONE_ROOT } else { $DefaultTestingGameRoot }
+    $probeTargets = [System.Collections.Generic.List[string]]::new()
+    [void]$probeTargets.Add($probeGameRoot)
+    foreach ($parentDir in $RuntimeModParentDirNames) {
+        [void]$probeTargets.Add((Join-Path $probeGameRoot $parentDir))
+    }
+    if ($env:BZR_CAMPAIGN_RUNTIME_DIR) { [void]$probeTargets.Add($env:BZR_CAMPAIGN_RUNTIME_DIR) }
+    if ($env:BZR_CAMPAIGN_ADDON_DIR) { [void]$probeTargets.Add($env:BZR_CAMPAIGN_ADDON_DIR) }
+
+    # Every target, not the first one that answers. A deploy able to write the
+    # mod folder but not the game root would install half of itself and then
+    # report success, which is the exact failure -deploy now verifies against.
+    $requiresElevation = $false
+    foreach ($probeTarget in $probeTargets) {
+        if (-not (Test-DeployTargetWritable $probeTarget)) {
+            $requiresElevation = $true
+            Write-Host "Elevating: '$probeTarget' is not writable by this account." -ForegroundColor DarkGray
+            break
+        }
+    }
+}
+
+if ($requiresElevation -and
+    -not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    if ($args) { $arguments += " $args" }
+    Start-Process powershell -Verb RunAs -ArgumentList $arguments
+    Exit
+}
 $StructuredRuntimeDirs = @(
     "flags",
     "OverlayFont",
