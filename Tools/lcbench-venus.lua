@@ -4,6 +4,12 @@
 -- Copy this file over addon/lcbench/lcbench.lua, with Campaign Reimagined and
 -- EXU's weather resources mounted, then launch battlezone98redux.exe lcbench.bzn.
 
+-- lcbench runs outside CR's normal mission entry points, so it must perform the
+-- same native-module bootstrap they do before requiring Environment/CRWeather.
+-- RequireFix adds the enabled CR mod to package.path/package.cpath and exposes
+-- the shipped EXU DLL as the `exu` Lua module.
+local RequireFix = require("RequireFix")
+RequireFix.Initialize({ "campaignReimagined", "3686673790" })
 local exu = require("exu")
 local Environment = require("Environment")
 local CRWeatherPresets = require("CRWeatherPresets")
