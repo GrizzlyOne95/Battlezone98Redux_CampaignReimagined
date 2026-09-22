@@ -1,0 +1,45 @@
+// Small shrapnel impact splash.
+[ExplosionClass]
+classLabel = "explosion"
+explSound = "xbul2.wav"
+damageRadius = 4.0
+damageBallistic = 0
+damageConcussion = 15
+damageFlame = 0
+damageImpact = 0
+particleTypes = 2
+
+particleClass1 = "betfhit.flash"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+
+particleClass2 = "betfhit.spark"
+particleCount2 = 4
+particleVeloc2 = "6.0 5.0 6.0"
+particleBias2 = "0.0 2.0 0.0"
+
+[Flash]
+simulateBase = "sim_smoke"
+lifeTime = 0.12
+renderBase = "draw_twirl"
+textureName = "flash.tga"
+textureBlend = "one one modulate"
+startColor = "255 220 100 220"
+finishColor = "255 90 10 0"
+startRadius = 0.35
+finishRadius = 1.1
+animateTime = 0.12
+rotationRate = 8.0
+
+[Spark]
+simulateBase = "sim_ember"
+lifeTime = 0.45
+renderBase = "draw_twirl"
+textureName = "spark.tga"
+textureBlend = "one one modulate"
+startColor = "255 210 90 255"
+finishColor = "255 70 10 0"
+startRadius = 0.10
+finishRadius = 0.03
+animateTime = 0.45
+rotationRate = 16.0
