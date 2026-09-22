@@ -1,0 +1,45 @@
+// Tactical Smoke shell. Deploys one finite smoke dispenser instead of a multi-stage emitter tree.
+[OrdnanceClass]
+classLabel = "spraybomb"
+
+shotGeometry = "ghartl00.geo"
+shotSound = "Ordin_c.wav"
+
+xplGround = NULL
+xplVehicle = NULL
+xplBuilding = NULL
+xplExpire = NULL
+
+renderName = "tsmkshl.render"
+
+ammoCost = 50
+lifeSpan = 1e30
+shotSpeed = 45.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[SprayBombClass]
+bounceRatio = 0.10
+deployName = "tsmkdep"
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 1
+renderName1 = "tsmkshl.smoke"
+
+[Smoke]
+renderBase = "draw_twirl_trail"
+textureName = "smoke2.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "105 105 105 125"
+finishColor = "75 75 75 0"
+startRadius = 0.35
+finishRadius = 0.85
+rotationRate = 1.5
+animateTime = 0.8
+emitDelay = 0.06
+emitVelocity = "0.0 0.0 -2.0"
+emitVariance = "1.2 1.2 0.6"
+emitLife = 0.8
