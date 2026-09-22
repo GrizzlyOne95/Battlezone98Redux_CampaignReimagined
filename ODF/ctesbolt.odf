@@ -1,7 +1,7 @@
 // CRA Tesla Field lightning strike.
 // 20 direct + 20 small impact blast = 40 nominal damage per pulse.
 [OrdnanceClass]
-classLabel = "rocket"
+classLabel = "anchor"
 
 shotGeometry = NULL
 shotSound = NULL
@@ -19,6 +19,11 @@ damageBallistic = 0
 damageConcussion = 5
 damageFlame = 15
 damageImpact = 0
+
+[AnchorRocketClass]
+accelDrag = 3.5
+alphaDrag = 0.12
+anchorTime = 0.45
 
 [Render]
 renderBase = "draw_bolt"
