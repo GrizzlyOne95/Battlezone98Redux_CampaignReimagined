@@ -1,0 +1,23 @@
+// Tactical Smoke dispenser canister.
+// Four are emitted from the shell impact and spread before deploying.
+[OrdnanceClass]
+classLabel = "spraybomb"
+
+shotGeometry = NULL
+shotSound = NULL
+
+xplGround = NULL
+xplVehicle = NULL
+xplBuilding = NULL
+
+ammoCost = 0
+lifeSpan = 2.0
+shotSpeed = 18.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[SprayBombClass]
+bounceRatio = 0.30
+deployName = "tsmkdep"
