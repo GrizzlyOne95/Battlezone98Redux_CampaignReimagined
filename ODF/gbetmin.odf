@@ -1,0 +1,13 @@
+// CCA replacement for the stock Prox Mine.
+// Same dispenser cadence and ammo footprint, but triggers a pop-up shrapnel burst.
+[WeaponClass]
+classLabel = "dispenser"
+wpnName = "CCA Bouncing Betty"
+fireSound = "gprox00.wav"
+wpnReticle = "gproxmin"
+wpnPriority = 2
+wpnCategory = "SPEC"
+
+[DispenserClass]
+shotDelay = 4.0
+objectClass = "sbetty"
