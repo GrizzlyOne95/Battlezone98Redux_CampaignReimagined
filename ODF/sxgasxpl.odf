@@ -1,0 +1,88 @@
+// Reduced CCA saturation-rocket blast.
+// Four of these equal the stock Rocket's 200-point secondary blast.
+[ExplosionClass]
+classLabel = "explosion"
+explSound = "xmv1.wav"
+damageRadius = 20.0
+damageBallistic = 0
+damageConcussion = 50
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 4
+
+particleClass1 = "sxgasxpl.light"
+particleCount1 = 1
+particleVeloc1 = "0.0 1.0 0.0"
+particleBias1 = "0.0 2.0 0.0"
+
+particleClass2 = "sxgasxpl.smoke"
+particleCount2 = 1
+particleVeloc2 = "0.0 3.0 0.0"
+particleBias2 = "0.0 4.0 0.0"
+
+particleClass3 = "sxgasxpl.flame"
+particleCount3 = 1
+particleVeloc3 = "0.0 1.5 0.0"
+particleBias3 = "0.0 2.0 0.0"
+
+particleClass4 = "sxgasxpl.sphere"
+particleCount4 = 1
+particleVeloc4 = "0.0 0.0 0.0"
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 0.35
+renderBase = "draw_light"
+startColor = "255 220 90 255"
+finishColor = "255 145 25 0"
+startRadius = 28.0
+finishRadius = 18.0
+animateTime = 0.35
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0
+
+[Smoke]
+simulateBase = "sim_smoke"
+lifeTime = 1.2
+renderBase = "draw_twirl"
+textureName = "smoke2.tga"
+startColor = "110 100 90 110"
+finishColor = "85 80 75 0"
+startRadius = 3.5
+finishRadius = 7.0
+animateTime = 1.2
+rotationRate = 7.0
+
+[Flame]
+simulateBase = "sim_smoke"
+lifeTime = 0.55
+renderBase = "draw_twirl"
+textureName = "flame.tga"
+textureBlend = "one one modulate"
+startColor = "255 225 120 255"
+finishColor = "255 135 20 0"
+startRadius = 2.5
+finishRadius = 5.0
+animateTime = 0.55
+rotationRate = 9.0
+
+[Sphere]
+simulateBase = "sim_null"
+lifeTime = 0.18
+renderBase = "draw_sphere"
+textureName = "vsmoke.tga"
+startColor = "255 210 120 48"
+finishColor = "80 70 60 0"
+startRadius = 1.0
+finishRadius = 5.0
+animateTime = 0.18
+latitudeBands = 12
+longitudeSegments = 24
+InitialPitch = 0.0
+InitialYaw = 0.0
+InitialRoll = 0.0
+AddPitch = 8.0
+AddYaw = 8.0
+AddRoll = 8.0

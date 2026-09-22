@@ -15,9 +15,9 @@ radarSignature = 0.1
 weaponHard1 = "GC1"
 weaponName1 = ""
 weaponHard2 = "GR1"
-weaponName2 = "grktbomb"
+weaponName2 = "gsrkbomb"
 weaponHard3 = "GR2"
-weaponName3 = "grktbomb"
+weaponName3 = "gsrkbomb"
 
 [CraftClass]
 rangeScan = 400.0f
