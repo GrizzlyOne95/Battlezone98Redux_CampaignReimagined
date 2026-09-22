@@ -1,1 +1,1 @@
-One of the transports has been destroyed!
+One of the transports has been destroyed.
