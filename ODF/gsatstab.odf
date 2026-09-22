@@ -1,0 +1,17 @@
+// CCA AT-Stabber variant.
+// Two-shot amber pulse burst with stock-equivalent sustained damage.
+[WeaponClass]
+classLabel = "cannon"
+ordName = "satbolt"
+wpnName = "CCA Pulse Stabber"
+fireSound = "gatst00.wav"
+wpnReticle = "gatstab"
+wpnPriority = 3
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.30
+shotVariance = 0.006
+salvoCount = 2
+salvoDelay = 0.06
+shotPitch = 0.0
