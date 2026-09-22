@@ -1,0 +1,64 @@
+// CCA Siege Mortar shell.
+// Stock Mortar: 500 direct + 200 blast every 2.0 s.
+// CCA: 650 direct + 250 blast every 2.6 s.
+[OrdnanceClass]
+classLabel = "grenade"
+
+shotGeometry = "ghartl00.geo"
+shotSound = "Ordin_c.wav"
+
+xplGround = "sgasxpl"
+xplVehicle = "sgasxpl"
+xplBuilding = "sgasxpl"
+xplExpire = "sgasxpl"
+
+renderName = "sgrenade.render"
+
+ammoCost = 65
+lifeSpan = 1e30
+shotSpeed = 42.0
+damageBallistic = 0
+damageConcussion = 650
+damageFlame = 0
+damageImpact = 0
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 3
+renderName1 = "sgrenade.ember"
+renderName2 = "sgrenade.smoke"
+renderName3 = "sgrenade.light"
+
+[Ember]
+renderBase = "draw_trail"
+textureName = "trail2.tga"
+textureBlend = "one one modulate"
+startColor = "255 220 95 220"
+finishColor = "255 115 20 0"
+startRadius = 0.22
+finishRadius = 0.06
+segmentTime = 0.10
+textureRate = 0.28
+textureSpeed = -3.0
+
+[Smoke]
+renderBase = "draw_twirl_trail"
+textureName = "smoke2.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "95 85 75 150"
+finishColor = "70 65 60 0"
+startRadius = 0.45
+finishRadius = 1.15
+rotationRate = 2.0
+animateTime = 1.1
+emitDelay = 0.025
+emitVelocity = "0.0 0.0 -3.0"
+emitVariance = "2.0 2.0 1.0"
+emitLife = 1.1
+
+[Light]
+renderBase = "draw_light"
+startColor = "255 205 80 220"
+finishColor = "255 145 25 0"
+startRadius = 10.0
+finishRadius = 5.0
