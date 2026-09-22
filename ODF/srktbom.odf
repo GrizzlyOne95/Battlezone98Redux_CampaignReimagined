@@ -1,0 +1,61 @@
+// CCA bomber micro-rocket.
+// 125 direct + 50 blast = 175 total nominal damage.
+// Four rockets = 700, matching one stock Rocket (500 + 200 blast).
+[OrdnanceClass]
+classLabel = "rocket"
+
+shotGeometry = "grckt00.geo"
+shotSound = "Ordin_e.wav"
+
+xplGround = "sxgasxpl"
+xplVehicle = "sxgasxpl"
+xplBuilding = "sxgasxpl"
+xplExpire = "sxgasxpl"
+
+renderName = "srktbom.render"
+
+ammoCost = 13
+lifeSpan = 4.0
+shotSpeed = 75.0
+damageBallistic = 0
+damageConcussion = 125
+damageFlame = 0
+damageImpact = 0
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 3
+renderName1 = "srktbom.flare"
+renderName2 = "srktbom.smoke"
+renderName3 = "srktbom.light"
+
+[Flare]
+renderBase = "draw_twirl"
+textureName = "flare_bz2.tga"
+textureBlend = "one one modulate"
+startColor = "255 220 100 255"
+finishColor = "255 145 25 180"
+startRadius = 0.70
+finishRadius = 0.45
+rotationRate = 9.0
+
+[Smoke]
+renderBase = "draw_twirl_trail"
+textureName = "smoke2.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "105 95 80 150"
+finishColor = "80 75 70 0"
+startRadius = 0.35
+finishRadius = 0.90
+animateTime = 0.55
+emitDelay = 0.035
+emitVelocity = "0.0 0.0 -6.0"
+emitVariance = "0.6 0.6 0.3"
+emitLife = 0.55
+
+[Light]
+renderBase = "draw_light"
+startColor = "255 205 70 255"
+finishColor = "255 150 30 0"
+startRadius = 14.0
+finishRadius = 8.0
