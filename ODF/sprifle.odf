@@ -1,0 +1,15 @@
+[WeaponClass]
+classLabel = "cannon"
+ordName = "splasma"
+wpnName = "CCA Plasma Assault Rifle"
+fireSound = "ghand00.wav"
+wpnReticle = "gminigun"
+wpnPriority = 0
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.22
+shotVariance = 0.025
+salvoCount = 1
+salvoDelay = 0.0
+shotPitch = 0.0
