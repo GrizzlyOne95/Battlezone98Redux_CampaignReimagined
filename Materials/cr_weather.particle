@@ -132,6 +132,204 @@ particle_system CR/Weather/MarsHaze
     }
 }
 
+// Venus ground haze. Nine small Box emitters cover the camera cell and an
+// eight-point ring. CRWeather positions and rates each one independently from
+// its terrain sample. Horizontal cards read as local fog pools from above;
+// they do not try to replace distance extinction with particle volume.
+//
+//   emitters 0-8  Box terrain patches
+//   affector 0  ColourInterpolator
+//   affector 1  Scaler
+//   affector 2  LinearForce          (live wind from CRWeather)
+//   affector 3  DirectionRandomiser
+particle_system CR/VenusGroundHaze
+{
+    material            CR_FX/Haze
+    particle_width      36.0
+    particle_height     36.0
+    quota               112
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      perpendicular_common
+    common_direction    0 1 0
+    common_up_vector    0 0 1
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start  0.66 0.72 0.26 0.00
+        colour_range_end    0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       1.25
+        time_to_live_min    12.0
+        time_to_live_max    20.0
+        direction           1 0 -0.7
+        velocity_min        0.45
+        velocity_max        1.20
+        colour_range_start 0.66 0.72 0.26 0.00
+        colour_range_end 0.58 0.64 0.22 0.00
+        width               58
+        height              1.5
+        depth               58
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.66 0.72 0.26 0.00
+        time1   0.28
+        colour1 0.66 0.72 0.26 0.30
+        time2   0.76
+        colour2 0.58 0.64 0.22 0.20
+        time3   1
+        colour3 0.54 0.58 0.18 0.00
+    }
+
+    affector Scaler
+    {
+        rate 1.25
+    }
+
+    affector LinearForce
+    {
+        force_vector      0.20 0 -0.14
+        force_application add
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      0.35
+        scope           0.40
+        keep_velocity   true
+    }
+}
+
 // Sheet dust: the fast, ground-hugging layer. This is the one that actually
 // communicates wind direction, because it is the only dust moving quickly
 // enough near a fixed reference (the ground) to read as a vector rather than as
