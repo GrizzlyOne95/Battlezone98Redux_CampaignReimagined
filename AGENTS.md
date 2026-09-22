@@ -16,6 +16,7 @@ The DX11 Enhanced base and terrain shaders are the exception to CR ownership: th
 - Lua behavior or Lua-facing native APIs: read `Docs/BZR_LUA_AGENT_REFERENCE.md` first.
 - Loading, paths, filesystem/process behavior, discovery, installers, deployment, packaging, or updates: read `Docs/BZR_PLATFORM_COMPATIBILITY.md` first and account for Windows/GOG, Windows/Steam, Linux/Steam via Proton, and Linux/GOG via Wine/Proton.
 - GOG deployment, Workshop staging, or publication: read `docs/STEAM_PUBLISH_CHECKLIST.md` before acting.
+- Terrain data formats (`.trn`/`.hg2`/`.mat`/`.lgt`) are documented, with working codecs, in the sibling `Battlezone98Redux_WorldBuilder` repo at `docs/MAT_FORMAT_VALIDATION.md` and `mat_codec.py`/`hg2_codec.py`. Read it before reasoning about terrain byte layout from a hex dump.
 - The two shared BZR documents above must remain byte-identical across CR, OpenShim, EXU, and bzfile; update all four in one workstream if either changes.
 
 ## Working style

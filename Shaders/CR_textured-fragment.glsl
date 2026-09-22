@@ -7,6 +7,9 @@ uniform vec4 materialEmissive;
 uniform vec3 fogColour;
 uniform vec4 fogParams;
 
+// Cutout threshold in 0..1, to match the HLSL paths. 0 discards nothing.
+uniform float alphaRejection;
+
 varying vec4 vColor;
 varying vec2 vTexCoord;
 varying float vDepth;
@@ -16,6 +19,11 @@ void main()
 	vec4 diffuseTex = texture2D(diffuseMap, vTexCoord);
 	vec4 oColor = diffuseTex * diffuseColor;
 	oColor.rgb *= materialEmissive.rgb;
+
+	if (oColor.a < alphaRejection)
+	{
+		discard;
+	}
 
 	float fogValue = clamp((vDepth - fogParams.y) * fogParams.w, 0.0, 1.0);
 	oColor.xyz = mix(oColor.xyz, fogColour, vec3(fogValue));
