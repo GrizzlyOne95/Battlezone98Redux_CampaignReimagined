@@ -47,11 +47,18 @@ local function TraceUpdateCall(label, fn, ...)
 end
 
 -- Helper for AI
-local function SetupAI()
-    local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+local function SetupAI(preserveExisting)
+    local playerTeam, enemyTeam
+    if preserveExisting and aiCore.ActiveTeams and aiCore.ActiveTeams[1] and aiCore.ActiveTeams[2] then
+        playerTeam, enemyTeam = aiCore.ActiveTeams[1], aiCore.ActiveTeams[2]
+    else
+        playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    end
 
     -- Team 1 is fully manual apart from explicit PlayerPilotMode support.
     playerTeam:SetConfig("manageFactories", false)
+    playerTeam:SetConfig("manageBase", false)
+    playerTeam:SetConfig("manageTacticalOrders", false)
     playerTeam:SetConfig("autoManage", false)
     playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     playerTeam:SetConfig("enableParatroopers", false)
@@ -59,6 +66,8 @@ local function SetupAI()
     -- Mission 03's Team 2 force is entirely mission-scripted. Keep the shared
     -- aiCore team object available, but disable strategic production/automation.
     enemyTeam:SetConfig("manageFactories", false)
+    enemyTeam:SetConfig("manageBase", false)
+    enemyTeam:SetConfig("manageTacticalOrders", false)
     enemyTeam:SetConfig("autoManage", false)
     enemyTeam:SetConfig("autoBuild", false)
     enemyTeam:SetConfig("enableParatroopers", false)
@@ -91,6 +100,14 @@ local function BootstrapPlayerSideAI()
             end
         end
     end
+
+    -- Add only aiSpecial combat behavior to pre-placed scripted units. This
+    -- does not put them into production, squad, or base-management lists.
+    for h in AllObjects() do
+        if h and IsValid(h) and GetTeamNum(h) == 2 then
+            aiCore.AddSpecialObject(h)
+        end
+    end
 end
 
 local function PilotModeCanManageHandle(h)
@@ -105,6 +122,41 @@ local function PilotModeCanManageHandle(h)
     return h ~= GetPlayerHandle()
 end
 
+local function GetPilotModeObjectiveContext()
+    if M.lost or M.final_objective or M.end_game then
+        return { key = "terminal", objectiveIds = {}, actions = {} }
+    end
+
+    -- The mission keeps scripted transports and the recycler under its own
+    -- handles. Pilot Mode may support the objective with ordinary combat
+    -- craft, but never retasks those mission-owned objects.
+    if not M.movie_over then
+        local actions = {}
+        if IsAlive(M.solar1) then
+            actions[#actions + 1] = { id = "defend-command-tower", command = "defend", target = M.solar1 }
+        elseif IsAlive(M.solar2) then
+            actions[#actions + 1] = { id = "defend-solar-array", command = "defend", target = M.solar2 }
+        end
+        return { key = "array-defense", objectiveIds = { "misn0301.otf" }, actions = actions }
+    end
+
+    if not M.third_objective then
+        local target = IsAlive(M.rescue1) and M.rescue1 or M.rescue2
+        return {
+            key = "evacuation",
+            objectiveIds = { "misn0311.otf", "misn0312.otf", "misn0303.otf" },
+            actions = target and { { id = "escort-transport", command = "follow", target = target } } or {},
+        }
+    end
+
+    return {
+        key = "launch",
+        objectiveIds = { "misn0313.otf", "misn0304.otf" },
+        actions = IsAlive(M.launch)
+            and { { id = "hold-launch-pad", command = "defend", target = M.launch } } or {},
+    }
+end
+
 local function InitializePilotMode()
     PlayerPilotMode.Initialize({
         profile = {
@@ -115,7 +167,8 @@ local function InitializePilotMode()
             autoBuild = false,
         },
         shouldManageHandle = PilotModeCanManageHandle,
-    })
+        getObjectiveContext = GetPilotModeObjectiveContext,
+    }, M.playerPilotModeState)
 end
 
 -- Mission State
@@ -408,12 +461,16 @@ local function UpdateModules(dt)
 end
 
 function Save()
-    return M
+    M.playerPilotModeState = PlayerPilotMode.Save()
+    return M, aiCore.Save(), M.playerPilotModeState
 end
 
-function Load(...)
-    local missionData = ...
+function Load(missionData, aiData, pilotModeData)
     M = missionData or M
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
+    if aiData then
+        aiCore.Load(aiData)
+    end
     M.loading_done = false
     M.loadGracePeriod = GetTime() + 2.0
     -- This flag rides along inside the saved M table, so without clearing it a
@@ -512,11 +569,13 @@ function AddObject(h)
         end
     end
 
-    -- Register eligible player-team spawns immediately so aiCore wingman/depot logic
-    -- does not have to wait for PlayerPilotMode's periodic rescan.
-    -- Scripted Team 2 waves stay out of aiCore to avoid hijacking mission behavior.
+    -- Register player-team spawns immediately for PlayerPilotMode. Team 2
+    -- waves remain outside full aiCore ownership, but receive the reusable
+    -- aiSpecial combat layer.
     if team == 1 then
         PlayerPilotMode.AddObject(h)
+    elseif team == 2 then
+        aiCore.AddSpecialObject(h)
     end
 end
 
@@ -529,7 +588,7 @@ function Update()
         ApplyDifficultyObjectives()
         ApplyQOL()
         InitializePilotMode()
-        SetupAI()
+        SetupAI(true)
         BootstrapPlayerSideAI()
         ApplyTurboToAll()
         M.loading_done = true

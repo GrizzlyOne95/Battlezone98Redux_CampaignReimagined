@@ -233,12 +233,16 @@ local function ActivateStagedFighters()
 end
 
 function Save()
-    return M
+    M.playerPilotModeState = PlayerPilotMode.Save()
+    return M, aiCore.Save(), M.playerPilotModeState
 end
 
-function Load(...)
-    local missionData = ...
+function Load(missionData, aiData, pilotModeData)
     M = missionData or M
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
+    if aiData then
+        aiCore.Load(aiData)
+    end
     M.loading_done = false
     M.loadGracePeriod = GetTime() + 2.0
     M.overlayResetPending = true
@@ -324,9 +328,16 @@ local function BuildTerrainClutter()
     TerrainClutter.BuildLayer(CLUTTER_PROFILE)
 end
 
-local function SetupAI()
-    local playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+local function SetupAI(preserveExisting)
+    local playerTeam, enemyTeam
+    if preserveExisting and aiCore.ActiveTeams and aiCore.ActiveTeams[1] and aiCore.ActiveTeams[2] then
+        playerTeam, enemyTeam = aiCore.ActiveTeams[1], aiCore.ActiveTeams[2]
+    else
+        playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    end
     playerTeam:SetConfig("manageFactories", false)
+    playerTeam:SetConfig("manageBase", false)
+    playerTeam:SetConfig("manageTacticalOrders", false)
     playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     playerTeam:SetConfig("enableParatroopers", false)
 
@@ -334,6 +345,8 @@ local function SetupAI()
     -- available for shared systems, but do not let its strategic managers issue
     -- competing orders to the Soviet patrols/waves.
     enemyTeam:SetConfig("manageFactories", false)
+    enemyTeam:SetConfig("manageBase", false)
+    enemyTeam:SetConfig("manageTacticalOrders", false)
     enemyTeam:SetConfig("autoManage", false)
     enemyTeam:SetConfig("autoBuild", false)
     enemyTeam:SetConfig("enableParatroopers", false)
@@ -366,6 +379,14 @@ local function BootstrapPlayerSideAI()
             end
         end
     end
+
+    -- Add only aiSpecial combat behavior to pre-placed scripted units. This
+    -- does not put them into production, squad, or base-management lists.
+    for h in AllObjects() do
+        if h and IsValid(h) and GetTeamNum(h) == 2 then
+            aiCore.AddSpecialObject(h)
+        end
+    end
 end
 
 PilotModeCanManageHandle = function(h)
@@ -380,6 +401,38 @@ PilotModeCanManageHandle = function(h)
     return h ~= GetPlayerHandle()
 end
 
+local function GetPilotModeObjectiveContext()
+    if M.mission_lost or M.mission_won then
+        return { key = "terminal", objectiveIds = {}, actions = {} }
+    end
+
+    if M.message3 and IsAlive(M.scav2) and IsAlive(M.bhome) then
+        return {
+            key = "scavenger-return",
+            objectiveIds = { "misn02b3.otf" },
+            actions = { { id = "escort-rescued-scavenger", command = "follow", target = M.scav2 } },
+        }
+    end
+
+    if M.message2 and IsAlive(M.bhome) then
+        return {
+            key = "retreat-to-base",
+            objectiveIds = { "misn02b2.otf" },
+            actions = { { id = "defend-home-base", command = "defend", target = M.bhome } },
+        }
+    end
+
+    if M.message1 and IsAlive(M.bscav) then
+        return {
+            key = "scrap-field-defense",
+            objectiveIds = { "misn02b1.otf" },
+            actions = { { id = "support-primary-scavenger", command = "follow", target = M.bscav } },
+        }
+    end
+
+    return { key = "staging", objectiveIds = { "misn02b1.otf" }, actions = {} }
+end
+
 local function InitializePilotMode()
     PlayerPilotMode.Initialize({
         profile = {
@@ -390,15 +443,16 @@ local function InitializePilotMode()
             autoBuild = false,
         },
         shouldManageHandle = PilotModeCanManageHandle,
-    })
+        getObjectiveContext = GetPilotModeObjectiveContext,
+    }, M.playerPilotModeState)
 end
 
-local function InitializeMissionRuntime()
+local function InitializeMissionRuntime(preserveExisting)
     RefreshDifficulty()
     ApplyDifficultyObjectives()
     ApplyQOL()
     InitializePilotMode()
-    SetupAI()
+    SetupAI(preserveExisting)
     BootstrapPlayerSideAI()
     ApplyTurboToAll()
 end
@@ -468,8 +522,12 @@ function AddObject(h)
         OrderActivatedFighter(h)
     end
 
-    -- Team 2 is entirely script-owned in this mission; never register those
-    -- units with aiCore. Player scavengers can still use PlayerPilotMode.
+    -- Team 2 remains script-owned for production and tactical orders, but gets
+    -- the reusable aiSpecial combat layer (weapon switching, cloak, sniping,
+    -- and craft stealing). Player scavengers still use PlayerPilotMode.
+    if team == 2 then
+        aiCore.AddSpecialObject(h)
+    end
     if team == 1 and IsOdf(h, "avscav") then
         PlayerPilotMode.AddObject(h)
     end
@@ -485,7 +543,7 @@ function Update()
             ResetOverlayRuntimeAfterLoad()
         end
         RefreshHandlesAfterLoad()
-        InitializeMissionRuntime()
+        InitializeMissionRuntime(true)
         StageInitialFighters()
         ApplyPostLoadInit()
         BuildTerrainClutter()
