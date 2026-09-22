@@ -1,0 +1,13 @@
+// NSDF APC infantry plasma rifle: 100 DPS per soldier.
+[WeaponClass]
+classLabel = "machinegun"
+ordName = "asplblt"
+wpnName = "NSDF Infantry Plasma Rifle"
+fireSound = "gmini00.wav"
+wpnReticle = "gminigun"
+wpnPriority = 1
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.20
+shotVariance = 0.018

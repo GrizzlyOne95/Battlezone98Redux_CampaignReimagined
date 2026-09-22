@@ -1,0 +1,15 @@
+[WeaponClass]
+classLabel = "cannon"
+ordName = "bplasma"
+wpnName = "Black Dog Plasma AT Rifle"
+fireSound = "ghand00.wav"
+wpnReticle = "gminigun"
+wpnPriority = 0
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.60
+shotVariance = 0.005
+salvoCount = 1
+salvoDelay = 0.0
+shotPitch = 0.0

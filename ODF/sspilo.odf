@@ -13,7 +13,7 @@ heatSignature = 0.2
 imageSignature = 0.2
 radarSignature = 0.1
 weaponHard1 = "GC1"
-weaponName1 = "handgun"
+weaponName1 = "sprifle"
 
 [PersonClass]
 painSound1 = ""pain1.wav";"
