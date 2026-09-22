@@ -1,0 +1,59 @@
+// CCA Pulse Stabber projectile.
+// 58 ballistic + 20 concussion impact damage = 78 per pulse.
+// Two-pulse / 0.36 s cycle matches stock AT-Stabber's full impact DPS.
+[OrdnanceClass]
+classLabel = "bullet"
+
+shotGeometry = "gatst00.geo"
+shotSound = "Ordin_a.wav"
+
+xplGround = "satxpl"
+xplVehicle = "satxpl"
+xplBuilding = "satxpl"
+
+renderName = "satbolt.render"
+
+ammoCost = 6
+lifeSpan = 0.90
+shotSpeed = 165.0
+damageBallistic = 58
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 3
+renderName1 = "satbolt.smoke"
+renderName2 = "satbolt.flame"
+renderName3 = "satbolt.light"
+
+[Smoke]
+renderBase = "draw_twirl_trail"
+textureName = "smokeflame2.tga"
+startColor = "120 100 70 90"
+finishColor = "80 60 40 0"
+startRadius = 0.30
+finishRadius = 0.15
+animateTime = 0.12
+emitDelay = 0.004
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitLife = 0.12
+
+[Flame]
+renderBase = "draw_twirl"
+textureName = "plasma_bz2.tga"
+textureBlend = "one one modulate"
+startColor = "255 225 90 255"
+finishColor = "255 165 30 220"
+startRadius = 0.42
+finishRadius = 0.34
+rotationRate = 12.0
+
+[Light]
+renderBase = "draw_light"
+startColor = "255 210 80 255"
+finishColor = "255 175 40 0"
+startRadius = 18.0
+finishRadius = 10.0
