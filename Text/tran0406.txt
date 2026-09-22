@@ -1,1 +1,1 @@
-Press the one key to have your recycler build a scout.
+Press the <kbd>1</kbd> key to have your Recycler build a Scout.

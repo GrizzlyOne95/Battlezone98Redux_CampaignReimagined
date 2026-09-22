@@ -1,1 +1,1 @@
-I've put a nav beacon in the combat area. Nav beacon serve as spy cameras in the world, and you can also use them as staging points for gathering units. Hit the 4 key to access the list of active cameras, then hit the 1 key to select the first camera.
+I've put a Nav Beacon in the combat area. Nav Beacons serve as spy cameras in the world, and you can also use them as staging points for gathering units. Hit the <kbd>4</kbd> key to access the list of active cameras. Then hit the <kbd>1</kbd> key to select the first camera.

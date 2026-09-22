@@ -1,1 +1,1 @@
-Press 2 to select your defensive units.
+Press <kbd>2</kbd> to select your defensive units.
