@@ -1,0 +1,14 @@
+// CCA Hunter Rocket.
+// Cannon-fired thermal ordnance: no launcher lock cycle, but only weak heat correction.
+[WeaponClass]
+classLabel = "cannon"
+ordName = "shunter"
+wpnName = "CCA Hunter Rocket"
+fireSound = "gmasg00.wav"
+wpnReticle = "ghornet.0"
+wpnPriority = 0
+wpnCategory = "ROCK"
+
+[CannonClass]
+shotDelay = 1.50
+shotVariance = 0.008
