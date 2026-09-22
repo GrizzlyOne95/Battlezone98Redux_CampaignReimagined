@@ -1,0 +1,52 @@
+// Vanilla-scale Steering Lock based on the Resurgence cannon->anchor pattern.
+[OrdnanceClass]
+classLabel = "anchor"
+
+shotGeometry = NULL
+shotSound = NULL
+
+xplGround = "xbulgnd"
+xplVehicle = "xbulcar"
+xplBuilding = "xbulbld"
+
+renderName = "stlock.render"
+
+ammoCost = 100
+lifeSpan = 0.80
+shotSpeed = 180.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[AnchorRocketClass]
+accelDrag = 0.0
+alphaDrag = 35.0
+anchorTime = 0.65
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "stlock.core"
+renderName2 = "stlock.trail"
+
+[Core]
+renderBase = "draw_tracer"
+textureBlend = "one one modulate"
+textureName = "bullet_r0.tga"
+startColor = "255 230 105 255"
+finishColor = "255 175 35 255"
+startRadius = 0.09
+finishRadius = 0.07
+tracerLength = 2.0
+
+[Trail]
+renderBase = "draw_trail"
+textureName = "trail2.tga"
+textureBlend = "one one modulate"
+startColor = "255 185 45 150"
+finishColor = "255 90 10 0"
+startRadius = 0.08
+finishRadius = 0.01
+segmentTime = 0.12
+textureRate = 0.30
