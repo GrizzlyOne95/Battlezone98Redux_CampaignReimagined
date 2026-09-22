@@ -1,0 +1,12 @@
+// CRA Tesla Field: finite autonomous area denial.
+[WeaponClass]
+classLabel = "dispenser"
+wpnName = "CRA Tesla Field"
+fireSound = "apspec.wav"
+wpnReticle = "gproxmin"
+wpnPriority = 1
+wpnCategory = "SPEC"
+
+[DispenserClass]
+shotDelay = 4.0
+objectClass = "ctesmin"
