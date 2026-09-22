@@ -1,0 +1,13 @@
+// CCA APC infantry plasma assault rifle: ~93.3 DPS per soldier.
+[WeaponClass]
+classLabel = "machinegun"
+ordName = "ssplblt"
+wpnName = "CCA Infantry Plasma Assault Rifle"
+fireSound = "gmsov00.wav"
+wpnReticle = "gminigun"
+wpnPriority = 1
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.30
+shotVariance = 0.025
