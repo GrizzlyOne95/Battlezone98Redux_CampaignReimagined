@@ -1,0 +1,14 @@
+// CCA Siege Mortar.
+// Heavier, shorter-ranged mortar with approximately stock sustained damage.
+[WeaponClass]
+classLabel = "mortar"
+ordName = "sgrenade"
+wpnName = "CCA Siege Mortar"
+fireSound = "ghart00.wav"
+wpnReticle = "gmortar"
+wpnLadder = "gmortar.L0"
+wpnPriority = 2
+wpnCategory = "MORT"
+
+[CannonClass]
+shotDelay = 2.60
