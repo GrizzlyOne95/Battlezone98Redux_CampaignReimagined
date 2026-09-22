@@ -1,0 +1,61 @@
+// Compact amber impact for the CCA Pulse Stabber.
+// Lower splash than the stock AT-Stabber impact; ballistic damage carries more of the hit.
+[ExplosionClass]
+classLabel = "explosion"
+explSound = "xsv2.wav"
+damageRadius = 3.0
+damageBallistic = 0
+damageConcussion = 20
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 3
+
+particleClass1 = "satxpl.core"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+
+particleClass2 = "satxpl.spark"
+particleCount2 = 5
+particleVeloc2 = "4.0 7.0 4.0"
+particleBias2 = "0.0 3.0 0.0"
+
+particleClass3 = "satxpl.light"
+particleCount3 = 1
+particleVeloc3 = "0.0 0.0 0.0"
+
+[Core]
+simulateBase = "sim_null"
+lifeTime = 0.20
+renderBase = "draw_twirl"
+textureName = "flame2.tga"
+textureBlend = "one one modulate"
+startColor = "255 235 120 255"
+finishColor = "255 150 20 0"
+startRadius = 0.8
+finishRadius = 2.0
+animateTime = 0.20
+rotationRate = 8.0
+
+[Spark]
+simulateBase = "sim_ember"
+lifeTime = 0.65
+renderBase = "draw_twirl"
+textureName = "spark.tga"
+textureBlend = "srcalpha one modulatealpha"
+startColor = "255 220 80 255"
+finishColor = "255 120 20 0"
+startRadius = 0.16
+finishRadius = 0.06
+animateTime = 0.65
+rotationRate = 18.0
+
+[Light]
+simulateBase = "sim_null"
+lifeTime = 0.25
+renderBase = "draw_light"
+startColor = "255 210 80 255"
+finishColor = "255 165 30 0"
+startRadius = 18.0
+finishRadius = 8.0
+animateTime = 0.25
