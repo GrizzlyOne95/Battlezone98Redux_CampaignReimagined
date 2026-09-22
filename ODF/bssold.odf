@@ -13,7 +13,7 @@ heatSignature = 0.13999999999999999
 imageSignature = 0.21
 radarSignature = 0.13999999999999999
 weaponHard1 = "GC1"
-weaponName1 = "gtminig"
+weaponName1 = "bsplsmg"
 
 [PersonClass]
 painSound1 = ""pain1.wav";"
