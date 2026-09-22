@@ -1,0 +1,24 @@
+// Lightweight NSDF smoke dispenser.
+// Four are spawned per shell. Their high heat/image signatures deliberately act as missile decoys.
+[GameObjectClass]
+baseName = "proxmine"
+classLabel = "spraybomb"
+scrapCost = 0
+scrapValue = 0
+explosionName = NULL
+maxHealth = 100
+maxAmmo = 10
+unitName = "Smoke Dispenser"
+heatSignature = 8.0
+imageSignature = 8.0
+radarSignature = 0.2
+
+[SprayBuildingClass]
+payloadName = "tsmkpuf"
+jumpSound = NULL
+fireSound = NULL
+triggerDelay = 0.15
+shotDelay = 0.45
+setAltitude = 1.0
+omegaSpin = 7.0
+anglePitch = 0.10
