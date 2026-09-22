@@ -1,0 +1,86 @@
+// CCA Hunter Rocket.
+// Resurgence-proven pattern: cannon weapon spawning thermalmissile ordnance.
+// Fast initial launch, narrow heat cone, deliberately weak turn authority.
+[OrdnanceClass]
+classLabel = "thermalmissile"
+
+shotGeometry = "ghorn00.geo"
+shotSound = "Ordin_e.wav"
+
+xplGround = "xmslgnd"
+xplVehicle = "xmslcar"
+xplBuilding = "xmslbld"
+
+renderName = "shunter.render"
+
+ammoCost = 125
+lifeSpan = 2.2
+shotSpeed = 90.0
+damageBallistic = 900
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[MissileClass]
+omegaTurn = 0.8
+shotAccel = 60.0
+
+[ThermalMissileClass]
+coneAngle = 0.15
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 4
+renderName1 = "shunter.core"
+renderName2 = "shunter.flame"
+renderName3 = "shunter.smoke"
+renderName4 = "shunter.light"
+
+[Core]
+renderBase = "draw_trail"
+textureName = "trail2.tga"
+textureBlend = "one one modulate"
+startColor = "255 245 185 255"
+finishColor = "255 170 45 0"
+startRadius = 0.30
+finishRadius = 0.06
+segmentTime = 0.07
+textureRate = 0.22
+textureSpeed = -5.0
+
+[Flame]
+renderBase = "draw_twirl_trail"
+textureName = "flamealpha.tga"
+textureBlend = "one one modulate"
+startColor = "255 210 85 220"
+finishColor = "255 105 20 0"
+startRadius = 0.50
+finishRadius = 0.18
+rotationRate = 8.0
+animateTime = 0.35
+emitDelay = 0.012
+emitVelocity = "0.0 0.0 -4.0"
+emitVariance = "1.0 1.0 0.5"
+emitLife = 0.35
+
+[Smoke]
+renderBase = "draw_twirl_trail"
+textureName = "smoke2.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "85 80 75 125"
+finishColor = "65 60 55 0"
+startRadius = 0.38
+finishRadius = 0.90
+rotationRate = 2.0
+animateTime = 0.9
+emitDelay = 0.03
+emitVelocity = "0.0 0.0 -3.0"
+emitVariance = "1.5 1.5 0.5"
+emitLife = 0.9
+
+[Light]
+renderBase = "draw_light"
+startColor = "255 210 85 240"
+finishColor = "255 135 25 0"
+startRadius = 12.0
+finishRadius = 7.0
