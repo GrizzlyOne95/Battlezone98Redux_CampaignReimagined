@@ -1,0 +1,13 @@
+// CRA APC infantry plasma repeater: 100 DPS per soldier.
+[WeaponClass]
+classLabel = "machinegun"
+ordName = "csplblt"
+wpnName = "CRA Infantry Plasma Repeater"
+fireSound = "gmini00.wav"
+wpnReticle = "gminigun"
+wpnPriority = 1
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.10
+shotVariance = 0.030
