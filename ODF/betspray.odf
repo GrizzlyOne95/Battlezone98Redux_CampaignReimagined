@@ -1,0 +1,21 @@
+// Pop-up radial shrapnel emitter.
+// 32 fragments give a dense but still avoidable burst instead of a guaranteed 600-damage blast.
+[GameObjectClass]
+baseName = "proxmine"
+classLabel = "spraybomb"
+scrapCost = 0
+scrapValue = 0
+explosionName = NULL
+maxHealth = 0
+maxAmmo = 32
+unitName = "Betty Burst"
+
+[SprayBuildingClass]
+payloadName = "betfrag"
+jumpSound = NULL
+fireSound = "flakxpl.wav"
+triggerDelay = 0.10
+shotDelay = 0.010
+setAltitude = 4.0
+omegaSpin = 24.0
+anglePitch = 0.10
