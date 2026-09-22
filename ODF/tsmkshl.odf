@@ -1,14 +1,15 @@
-// Tactical Smoke shell. Deploys one finite smoke dispenser instead of a multi-stage emitter tree.
+// NSDF Tactical Smoke shell.
+// Impact fans out four lightweight smoke-dispenser canisters.
 [OrdnanceClass]
-classLabel = "spraybomb"
+classLabel = "grenade"
 
 shotGeometry = "ghartl00.geo"
 shotSound = "Ordin_c.wav"
 
-xplGround = NULL
-xplVehicle = NULL
-xplBuilding = NULL
-xplExpire = NULL
+xplGround = "tsmkxpl"
+xplVehicle = "tsmkxpl"
+xplBuilding = "tsmkxpl"
+xplExpire = "tsmkxpl"
 
 renderName = "tsmkshl.render"
 
@@ -20,10 +21,6 @@ damageConcussion = 0
 damageFlame = 0
 damageImpact = 0
 
-[SprayBombClass]
-bounceRatio = 0.10
-deployName = "tsmkdep"
-
 [Render]
 renderBase = "draw_multi"
 renderCount = 1
@@ -33,13 +30,13 @@ renderName1 = "tsmkshl.smoke"
 renderBase = "draw_twirl_trail"
 textureName = "smoke2.tga"
 textureBlend = "srcalpha invsrcalpha modulatealpha"
-startColor = "105 105 105 125"
+startColor = "105 105 105 110"
 finishColor = "75 75 75 0"
-startRadius = 0.35
-finishRadius = 0.85
-rotationRate = 1.5
-animateTime = 0.8
-emitDelay = 0.06
-emitVelocity = "0.0 0.0 -2.0"
-emitVariance = "1.2 1.2 0.6"
-emitLife = 0.8
+startRadius = 0.30
+finishRadius = 0.70
+rotationRate = 1.0
+animateTime = 0.65
+emitDelay = 0.09
+emitVelocity = "0.0 0.0 -1.5"
+emitVariance = "0.8 0.8 0.4"
+emitLife = 0.65
