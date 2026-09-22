@@ -1,7 +1,7 @@
 // Small CRA Tesla impact; 20 damage over a tight radius.
 [ExplosionClass]
 classLabel = "explosion"
-explSound = "xelec.wav"
+explSound = NULL
 damageRadius = 3.0
 damageBallistic = 20
 damageConcussion = 0
