@@ -1,0 +1,73 @@
+// NSDF Laser-Guided Missile.
+// Targeting-gun pattern proven by Resurgence; requires the player to keep the designator on target.
+[WeaponClass]
+classLabel = "targeting"
+ordName = "lgmissl"
+wpnName = "Laser-Guided Missile"
+fireSound = "gtagg00.wav"
+wpnReticle = "gtaggun.0"
+wpnCategory = "ROCK"
+wpnPriority = 3
+
+[TargetingGunClass]
+leaderSound = "gtagg03.wav"
+shotDelay = 1.50
+firstDelay = 0.0
+salvoDelay = 0.0
+shotVariance = 0.0
+salvoCount = 1
+lockingReticle = "gtaggun.1"
+lockedReticle = "gtaggun.2"
+
+[OrdnanceClass]
+classLabel = "targeting"
+shotSound = NULL
+shotGeometry = NULL
+xplGround = NULL
+xplVehicle = NULL
+xplBuilding = NULL
+
+ammoCost = 0
+lifeSpan = 0.05
+shotSpeed = 5000.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+renderName = "glgmsl.render"
+
+[LeaderRoundClass]
+homingTime = 0.0001
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "glgmsl.beam"
+renderName2 = "glgmsl.fringe"
+
+[Beam]
+renderBase = "draw_bolt"
+textureName = "beam_r1.tga"
+textureBlend = "one one modulate"
+startColor = "255 40 40 220"
+finishColor = "255 40 40 0"
+startRadius = 0.035
+finishRadius = 0.0
+segmentLength = 5.0
+segmentVariance = "0.0 0.0 0.0"
+animateTime = 0.08
+textureRate = 0.5
+
+[Fringe]
+renderBase = "draw_bolt"
+textureName = "trail2.tga"
+textureBlend = "one one modulate"
+startColor = "255 170 170 120"
+finishColor = "255 40 40 0"
+startRadius = 0.06
+finishRadius = 0.0
+segmentLength = 3.0
+segmentVariance = "0.2 0.2 0.2"
+animateTime = 0.08
+textureRate = 0.25
