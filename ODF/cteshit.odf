@@ -1,0 +1,44 @@
+// Small CRA Tesla impact; 20 damage over a tight radius.
+[ExplosionClass]
+classLabel = "explosion"
+explSound = NULL
+damageRadius = 3.0
+damageBallistic = 20
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+particleTypes = 2
+
+particleClass1 = "cteshit.spark"
+particleCount1 = 4
+particleVeloc1 = "6.0 6.0 6.0"
+
+particleClass2 = "cteshit.flash"
+particleCount2 = 1
+particleVeloc2 = "0.0 0.0 0.0"
+
+[Spark]
+simulateBase = "sim_ember"
+lifeTime = 0.35
+renderBase = "draw_twirl"
+textureName = "spark.tga"
+textureBlend = "one one modulate"
+startColor = "100 255 130 255"
+finishColor = "15 170 60 0"
+startRadius = 0.14
+finishRadius = 0.04
+animateTime = 0.35
+rotationRate = 18.0
+
+[Flash]
+simulateBase = "sim_smoke"
+lifeTime = 0.16
+renderBase = "draw_twirl"
+textureName = "flash.tga"
+textureBlend = "one one modulate"
+startColor = "140 255 155 220"
+finishColor = "20 180 70 0"
+startRadius = 0.45
+finishRadius = 1.6
+animateTime = 0.16
+rotationRate = 8.0

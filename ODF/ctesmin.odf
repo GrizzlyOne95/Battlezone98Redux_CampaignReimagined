@@ -1,0 +1,23 @@
+// Vanilla-scale CRA Tesla emitter.
+// Twelve pulses maximum over a 12-second field lifetime.
+[GameObjectClass]
+baseName = "proxmine"
+classLabel = "flare"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 250
+maxAmmo = 12
+unitName = "Tesla Field"
+heatSignature = 3.0
+imageSignature = 4.0
+radarSignature = 0.4
+
+[MineClass]
+lifeSpan = 12.0
+
+[FlareMineClass]
+payloadName = "ctespop"
+fireSound = NULL
+triggerDelay = 0.50
+shotDelay = 1.0
+shotVariance = 150
