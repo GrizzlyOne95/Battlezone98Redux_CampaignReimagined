@@ -1,0 +1,59 @@
+// Slowing smoke puff.
+// Uses AnchorRocketClass like Sandbag, but with a brief mild drag rather than a long hard debuff.
+[OrdnanceClass]
+classLabel = "anchor"
+
+shotGeometry = NULL
+shotSound = NULL
+xplGround = NULL
+xplVehicle = NULL
+xplBuilding = NULL
+
+renderName = "tsmkpuf.render"
+
+ammoCost = 1
+lifeSpan = 3.5
+shotSpeed = 9.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[AnchorRocketClass]
+accelDrag = 6.0
+alphaDrag = 0.15
+anchorTime = 1.2
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "tsmkpuf.cloud"
+renderName2 = "tsmkpuf.drift"
+
+[Cloud]
+renderBase = "draw_twirl"
+textureName = "smoke2.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "95 95 95 155"
+finishColor = "65 65 65 0"
+startRadius = 1.2
+finishRadius = 5.0
+animateTime = 3.5
+rotationRate = 0.6
+maxCount = 64
+
+[Drift]
+renderBase = "draw_twirl_trail"
+textureName = "smoke2.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "85 85 85 105"
+finishColor = "60 60 60 0"
+startRadius = 0.6
+finishRadius = 2.5
+rotationRate = 0.4
+animateTime = 2.0
+emitDelay = 0.16
+emitVelocity = "0.0 0.25 0.0"
+emitVariance = "1.5 0.5 1.5"
+emitLife = 2.0
+maxCount = 48
