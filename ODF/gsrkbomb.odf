@@ -1,0 +1,17 @@
+// CCA bomber saturation rocket.
+// Four-round ripple per launcher preserves the stock Rocket's full volley damage.
+[WeaponClass]
+classLabel = "cannon"
+ordName = "srktbom"
+wpnName = "CCA Saturation Rocket"
+fireSound = "gpopp00.wav"
+wpnReticle = "grktbomb"
+wpnPriority = 3
+wpnCategory = "ROCK"
+
+[CannonClass]
+shotDelay = 2.70
+shotVariance = 0.035
+salvoCount = 4
+salvoDelay = 0.10
+shotPitch = 0.0
