@@ -9,15 +9,21 @@ local PlayerPilotMode = {
 local state = {
     initialized = false,
     enabled = false,
+    lastAppliedEnabled = nil,
     mission = nil,
     profile = nil,
     teamNum = 1,
     lastPlayerHandle = nil,
     lastTeamRef = nil,
+    baselineConfig = nil,
+    transitionSerial = 0,
     cargoJobs = {},
     protectedHandles = {},
     rescanAt = 0.0,
     tugBuildAttempts = {},
+    objectiveContext = nil,
+    objectiveActionAt = {},
+    modeCommandState = {},
 }
 
 local function Log(msg)
@@ -68,6 +74,10 @@ local function GetPlayerTeam()
     return aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[state.teamNum] or nil
 end
 
+local function Now()
+    return (type(GetTime) == "function" and GetTime()) or 0.0
+end
+
 local function GetPersistentSetting(key, fallback)
     if PersistentConfig and PersistentConfig.Settings and PersistentConfig.Settings[key] ~= nil then
         return PersistentConfig.Settings[key]
@@ -90,6 +100,30 @@ local function GetProfile()
     }
 
     return MergeTables(defaults, state.profile or {})
+end
+
+local function CaptureBaselineConfig(team)
+    if state.baselineConfig or not team or not team.Config then
+        return
+    end
+    state.baselineConfig = DeepCopyValue(team.Config)
+end
+
+local function RestoreBaselineConfig(team)
+    if not team or not team.Config or not state.baselineConfig then
+        return
+    end
+
+    -- Keep the existing Config table so managers that retain the reference see
+    -- the same object after a rapid mode transition.
+    for key, _ in pairs(team.Config) do
+        if state.baselineConfig[key] == nil then
+            team.Config[key] = nil
+        end
+    end
+    for key, value in pairs(state.baselineConfig) do
+        team.Config[key] = DeepCopyValue(value)
+    end
 end
 
 local function IsProtectedHandle(h)
@@ -117,12 +151,17 @@ local function IsProtectedHandle(h)
 end
 
 local function ClearManagedCommands()
-    for h in AllObjects() do
-        if GetTeamNum(h) == state.teamNum and not IsProtectedHandle(h) and (IsCraft(h) or IsPerson(h)) and IsAlive(h) then
-            SetCommand(h, AiCommand.NONE, 0)
-            Stop(h, 0)
+    for h, issued in pairs(state.modeCommandState) do
+        if IsLiveHandle(h) and not IsProtectedHandle(h) and issued then
+            local currentCommand = GetCurrentCommand(h)
+            local currentTarget = GetCurrentWho and GetCurrentWho(h) or nil
+            if currentCommand == issued.command and (issued.target == nil or currentTarget == issued.target) then
+                SetCommand(h, AiCommand.NONE, 0)
+                Stop(h, 0)
+            end
         end
     end
+    state.modeCommandState = {}
 end
 
 local function ApplyTeamConfig(team, enabled)
@@ -141,22 +180,17 @@ local function ApplyTeamConfig(team, enabled)
             end
         end
     else
-        team:SetConfig("autoManage", false)
-        team:SetConfig("autoRescue", false)
-        team:SetConfig("autoTugs", false)
-        team:SetConfig("stickToPlayer", false)
-        team:SetConfig("manageFactories", false)
-        team:SetConfig("autoBuild", false)
-        team:SetConfig("dynamicMinefields", false)
-        team:SetConfig("passiveRegen", false)
+        RestoreBaselineConfig(team)
     end
 end
 
-local function RebuildPlayerTeam(enabled)
-    local previous = GetPlayerTeam()
-    local faction = previous and previous.faction or state.teamNum
-    local configTemplate = previous and previous.Config or nil
-    local team = aiCore.ResetTeam(state.teamNum, faction, configTemplate)
+local function RecalculateCoreValues(enabled)
+    local team = GetPlayerTeam()
+    if not team then
+        return false
+    end
+
+    CaptureBaselineConfig(team)
 
     ApplyTeamConfig(team, enabled)
 
@@ -169,11 +203,15 @@ local function RebuildPlayerTeam(enabled)
     if aiCore.RefreshObjectCache then
         aiCore.RefreshObjectCache(true)
     end
+    if aiCore.ReapplyNativeTactics then
+        aiCore.ReapplyNativeTactics()
+    end
 
     state.lastTeamRef = team
     state.lastPlayerHandle = GetPlayerHandle()
-    state.rescanAt = GetTime() + 5.0
-    return team
+    state.rescanAt = Now() + 5.0
+    state.lastAppliedEnabled = enabled and true or false
+    return true
 end
 
 local function FindAvailableTug(preferredHandle)
@@ -205,6 +243,8 @@ local function FindAvailableTug(preferredHandle)
     return bestHandle
 end
 
+local RememberModeCommand
+
 local function UpdateCargoJob(job)
     if not state.enabled or not job or not job.enabled then
         return
@@ -218,7 +258,7 @@ local function UpdateCargoJob(job)
     if not IsLiveHandle(tug) then
         if job.autoProduceTug then
             local buildKey = job.name or tostring(job.target)
-            local now = GetTime()
+            local now = Now()
             local retryDelay = job.tugBuildRetryDelay or 10.0
             local nextAttempt = state.tugBuildAttempts[buildKey] or 0.0
 
@@ -247,19 +287,138 @@ local function UpdateCargoJob(job)
     if HasCargo(tug) then
         if GetDistance(tug, job.dropoff) > (job.dropoffRadius or 70.0) then
             if aiCore and aiCore.TrySetCommand then
-                aiCore.TrySetCommand(tug, AiCommand.GO, 0, job.dropoff, nil, nil, nil,
+                local issued = aiCore.TrySetCommand(tug, AiCommand.GO, 0, job.dropoff, nil, nil, nil,
                     { minInterval = job.reissueInterval or 0.75 })
+                if issued then RememberModeCommand(tug, AiCommand.GO, job.dropoff) end
             else
                 Goto(tug, job.dropoff, 0)
+                RememberModeCommand(tug, AiCommand.GO, job.dropoff)
             end
         end
         return
     end
 
     if aiCore and aiCore.TryPickup then
-        aiCore.TryPickup(tug, job.target, 0, { minInterval = job.reissueInterval or 0.75 })
+        local issued = aiCore.TryPickup(tug, job.target, 0, { minInterval = job.reissueInterval or 0.75 })
+        if issued then RememberModeCommand(tug, AiCommand.PICKUP or GetCurrentCommand(tug), job.target) end
     else
         Pickup(tug, job.target, 0)
+        RememberModeCommand(tug, AiCommand.PICKUP or GetCurrentCommand(tug), job.target)
+    end
+end
+
+RememberModeCommand = function(h, command, target)
+    if h then
+        state.modeCommandState[h] = { command = command, target = target }
+    end
+end
+
+local function IsObjectiveUnit(h)
+    if not IsLiveHandle(h) or GetTeamNum(h) ~= state.teamNum or not IsCraft(h) then
+        return false
+    end
+    if IsProtectedHandle(h) or h == GetPlayerHandle() then
+        return false
+    end
+
+    local cls = string.lower(tostring(GetClassLabel(h) or ""))
+    return not string.find(cls, "recycler", 1, true)
+        and not string.find(cls, "factory", 1, true)
+        and not string.find(cls, "armory", 1, true)
+        and not string.find(cls, "constructor", 1, true)
+        and not string.find(cls, "scavenger", 1, true)
+        and not string.find(cls, "tug", 1, true)
+end
+
+local function GetObjectiveUnits(action)
+    if action and action.units then
+        local result = {}
+        for _, h in ipairs(action.units) do
+            if IsObjectiveUnit(h) then
+                result[#result + 1] = h
+            end
+        end
+        return result
+    end
+
+    local result = {}
+    for h in AllObjects() do
+        if IsObjectiveUnit(h) then
+            result[#result + 1] = h
+        end
+    end
+    return result
+end
+
+local function IssueObjectiveAction(action, h)
+    if not action or not IsObjectiveUnit(h) then
+        return
+    end
+
+    local target = action.target
+    if target and not IsLiveHandle(target) then
+        return
+    end
+
+    local commandName = string.lower(tostring(action.command or ""))
+    local command = AiCommand and AiCommand[string.upper(commandName)] or nil
+    if not command then
+        return
+    end
+
+    local now = Now()
+    local throttleKey = tostring(action.id or commandName) .. ":" .. tostring(h)
+    if now < (state.objectiveActionAt[throttleKey] or 0.0) then
+        return
+    end
+
+    local currentCommand = GetCurrentCommand(h)
+    local currentTarget = GetCurrentWho and GetCurrentWho(h) or nil
+    if not action.force and IsBusy(h)
+        and not (currentCommand == command and currentTarget == target) then
+        return
+    end
+    if currentCommand == command and currentTarget == target then
+        return
+    end
+
+    local priority = action.priority or GetCommandableAttackPriority()
+    local interval = action.reissueInterval or 1.25
+    local ok = false
+    if command == AiCommand.ATTACK and aiCore.TryAttack then
+        ok = aiCore.TryAttack(h, target, priority, { minInterval = interval })
+    elseif aiCore.TrySetCommand then
+        ok = aiCore.TrySetCommand(h, command, priority, target, action.position, nil, nil,
+            { minInterval = interval })
+    elseif SetCommand then
+        SetCommand(h, command, priority, target, action.position, nil, nil)
+        ok = true
+    end
+
+    if ok ~= false then
+        state.objectiveActionAt[throttleKey] = now + interval
+        RememberModeCommand(h, command, target)
+    end
+end
+
+local function UpdateObjectiveContext()
+    local mission = state.mission
+    if not mission or type(mission.getObjectiveContext) ~= "function" then
+        state.objectiveContext = nil
+        return
+    end
+
+    local ok, context = pcall(mission.getObjectiveContext, PlayerPilotMode)
+    if not ok or type(context) ~= "table" then
+        state.objectiveContext = nil
+        return
+    end
+    state.objectiveContext = context
+
+    for _, action in ipairs(context.actions or {}) do
+        for _, h in ipairs(GetObjectiveUnits(action)) do
+            IssueObjectiveAction(action, h)
+        end
     end
 end
 
@@ -268,16 +427,21 @@ local function ReconcileTeamState()
     local playerHandle = GetPlayerHandle()
     local team = GetPlayerTeam()
 
-    if team ~= state.lastTeamRef or playerHandle ~= state.lastPlayerHandle then
-        RebuildPlayerTeam(desired)
+    if team ~= state.lastTeamRef or playerHandle ~= state.lastPlayerHandle
+        or state.lastAppliedEnabled ~= desired then
+        RecalculateCoreValues(desired)
         state.enabled = desired
         return
     end
 
-    ApplyTeamConfig(team, desired)
+    if desired then
+        ApplyTeamConfig(team, true)
+    else
+        RestoreBaselineConfig(team)
+    end
 
-    if GetTime() >= (state.rescanAt or 0.0) then
-        state.rescanAt = GetTime() + 5.0
+    if Now() >= (state.rescanAt or 0.0) then
+        state.rescanAt = Now() + 5.0
         for h in AllObjects() do
             if GetTeamNum(h) == state.teamNum and not IsProtectedHandle(h) then
                 aiCore.AddObject(h)
@@ -286,21 +450,65 @@ local function ReconcileTeamState()
     end
 end
 
-function PlayerPilotMode.Initialize(adapter)
+function PlayerPilotMode.Initialize(adapter, persistedState)
     state.initialized = true
     state.enabled = false
+    state.lastAppliedEnabled = nil
     state.lastPlayerHandle = nil
     state.lastTeamRef = nil
+    state.baselineConfig = persistedState and DeepCopyValue(persistedState.baselineConfig) or nil
+    state.transitionSerial = persistedState and (persistedState.transitionSerial or 0) or 0
     state.cargoJobs = {}
     state.protectedHandles = {}
     state.tugBuildAttempts = {}
+    state.objectiveContext = nil
+    state.objectiveActionAt = {}
+    state.modeCommandState = {}
     state.mission = adapter or nil
     state.profile = adapter and adapter.profile or nil
+
+    PlayerPilotMode.Load(persistedState)
+
+    -- PersistentConfig is an external settings file, while the native Lua
+    -- save stream is the authority for a loaded mission. Restore the saved
+    -- mode selection in memory after the mission has re-initialized its UI
+    -- settings; do not write it back to the user's global config file.
 end
 
 function PlayerPilotMode.SetMissionAdapter(adapter)
     state.mission = adapter or nil
     state.profile = adapter and adapter.profile or nil
+end
+
+function PlayerPilotMode.Save()
+    local tugBuildCooldowns = {}
+    local now = Now()
+    for key, expiry in pairs(state.tugBuildAttempts or {}) do
+        tugBuildCooldowns[key] = math.max(0.0, (expiry or 0.0) - now)
+    end
+    return {
+        version = 2,
+        enabled = state.enabled and true or false,
+        baselineConfig = DeepCopyValue(state.baselineConfig),
+        transitionSerial = state.transitionSerial or 0,
+        tugBuildCooldowns = tugBuildCooldowns,
+    }
+end
+
+function PlayerPilotMode.Load(persistedState)
+    if type(persistedState) ~= "table" then
+        return
+    end
+    state.baselineConfig = DeepCopyValue(persistedState.baselineConfig)
+    state.transitionSerial = persistedState.transitionSerial or 0
+    state.tugBuildAttempts = {}
+    local now = Now()
+    for key, remaining in pairs(persistedState.tugBuildCooldowns or {}) do
+        state.tugBuildAttempts[key] = now + math.max(0.0, remaining or 0.0)
+    end
+    if persistedState.enabled ~= nil and PersistentConfig and PersistentConfig.Settings then
+        PersistentConfig.Settings.PilotModeEnabled = not not persistedState.enabled
+    end
 end
 
 function PlayerPilotMode.SetProtectedHandle(h, protected)
@@ -334,12 +542,11 @@ function PlayerPilotMode.ClearCargoJob(name)
 end
 
 function PlayerPilotMode.Enable()
-    if state.enabled then
-        return true
+    if not RecalculateCoreValues(true) then
+        return false
     end
-
-    RebuildPlayerTeam(true)
     state.enabled = true
+    state.transitionSerial = (state.transitionSerial or 0) + 1
     Log("enabled")
     return true
 end
@@ -349,8 +556,11 @@ function PlayerPilotMode.Disable()
         ClearManagedCommands()
     end
 
-    RebuildPlayerTeam(false)
+    if not RecalculateCoreValues(false) then
+        return false
+    end
     state.enabled = false
+    state.transitionSerial = (state.transitionSerial or 0) + 1
     Log("disabled")
     return true
 end
@@ -407,6 +617,8 @@ function PlayerPilotMode.Update()
     if mission and mission.update then
         pcall(mission.update, PlayerPilotMode)
     end
+
+    UpdateObjectiveContext()
 
     for _, job in pairs(state.cargoJobs) do
         UpdateCargoJob(job)
