@@ -1,0 +1,42 @@
+// NSDF Tactical Smoke shell.
+// Impact fans out four lightweight smoke-dispenser canisters.
+[OrdnanceClass]
+classLabel = "grenade"
+
+shotGeometry = "ghartl00.geo"
+shotSound = "Ordin_c.wav"
+
+xplGround = "tsmkxpl"
+xplVehicle = "tsmkxpl"
+xplBuilding = "tsmkxpl"
+xplExpire = "tsmkxpl"
+
+renderName = "tsmkshl.render"
+
+ammoCost = 50
+lifeSpan = 1e30
+shotSpeed = 45.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 1
+renderName1 = "tsmkshl.smoke"
+
+[Smoke]
+renderBase = "draw_twirl_trail"
+textureName = "smoke2.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "105 105 105 110"
+finishColor = "75 75 75 0"
+startRadius = 0.30
+finishRadius = 0.70
+rotationRate = 1.0
+animateTime = 0.65
+emitDelay = 0.09
+emitVelocity = "0.0 0.0 -1.5"
+emitVariance = "0.8 0.8 0.4"
+emitLife = 0.65
