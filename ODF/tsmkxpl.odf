@@ -1,0 +1,17 @@
+// Cheap fan-out bridge for Tactical Smoke.
+// Spawns four lightweight dispenser canisters; no particle-heavy impact effect.
+[ExplosionClass]
+classLabel = "quakeblast"
+explSound = NULL
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+particleTypes = 0
+
+[QuakeBlastClass]
+quakeCount = 4
+quakeClass = "tsmksplt"
+quakeMagnitude = 0
+quakeTime = 0
