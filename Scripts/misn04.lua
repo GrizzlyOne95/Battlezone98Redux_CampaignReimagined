@@ -283,7 +283,14 @@ local function RefreshMissionHandles()
 end
 
 -- Helper for AI
-local function SetupAI()
+local function SetupAI(preserveExisting)
+    if preserveExisting and aiCore.ActiveTeams and aiCore.ActiveTeams[1] and aiCore.ActiveTeams[2] then
+        -- aiCore.Load already restored the live managers, queues, strategy, and
+        -- producer ledger. Reapplying the initial setup here would erase that
+        -- state before PlayerPilotMode gets a chance to reconcile it.
+        return
+    end
+
     DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
 
     -- Configure Player Team (1) for Scavenger Assist
@@ -333,6 +340,29 @@ local function PilotModeCanManageHandle(h)
     end
 
     return h ~= GetPlayerHandle()
+end
+
+local function GetPilotModeObjectiveContext()
+    if M.missionfail or M.final_objective then
+        return { key = "terminal", objectiveIds = {}, actions = {} }
+    end
+
+    if M.discoverrelic and not M.relicsecure then
+        return {
+            key = "recover-relic",
+            objectiveIds = { "misn0401.otf", "misn0403.otf" },
+            -- The cargo job below owns the tug/relic transaction. Combat craft
+            -- remain free to react through aiSpecial instead of being pulled
+            -- away from the scripted CCA set pieces.
+            actions = {},
+        }
+    end
+
+    return {
+        key = "secure-base",
+        objectiveIds = { "misn0401.otf" },
+        actions = {},
+    }
 end
 
 -- Variables
@@ -2396,7 +2426,8 @@ function Start()
             autoTugs = false,
         },
         shouldManageHandle = PilotModeCanManageHandle,
-    })
+        getObjectiveContext = GetPilotModeObjectiveContext,
+    }, M.playerPilotModeState)
     if Environment and Environment.Update then
         Environment.Update(0.0)
     end
@@ -2547,8 +2578,9 @@ function Update()
                 autoTugs = false,
             },
             shouldManageHandle = PilotModeCanManageHandle,
-        })
-        SetupAI()
+            getObjectiveContext = GetPilotModeObjectiveContext,
+        }, M.playerPilotModeState)
+        SetupAI(true)
         BootstrapPreservingScriptedTeam2()
         ApplyTurboToAll()
         if Environment and Environment.Update then
@@ -3206,13 +3238,17 @@ function Save()
     if CRMarsWeather and CRMarsWeather.Save then
         M.weatherState = CRMarsWeather.Save()
     end
-    return M
+    M.playerPilotModeState = PlayerPilotMode.Save()
+    return M, aiCore.Save(), M.playerPilotModeState
 end
 
-function Load(...)
+function Load(missionData, aiData, pilotModeData)
     DestroyOverlayDemo()
-    local missionData = ...
     M = missionData or M
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
+    if aiData then
+        aiCore.Load(aiData)
+    end
     M.scriptedTeam2Handles = M.scriptedTeam2Handles or {}
     M.weatherSetPiece = M.weatherSetPiece or false
     -- M.weatherState is left in place: ApplyQOL consumes it on the next Update,
