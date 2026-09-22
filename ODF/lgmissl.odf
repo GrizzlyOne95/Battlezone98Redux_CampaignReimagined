@@ -1,0 +1,62 @@
+// Laser-guided missile: lower alpha than Hornet, but no conventional lock requirement.
+[OrdnanceClass]
+classLabel = "missile"
+
+shotGeometry = "ghorn00.geo"
+shotSound = "Ordin_e.wav"
+
+xplGround = "xmslgnd"
+xplVehicle = "xmslcar"
+xplBuilding = "xmslbld"
+
+renderName = "lgmissl.render"
+
+ammoCost = 100
+lifeSpan = 4.0
+shotSpeed = 70.0
+damageBallistic = 600
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[MissileClass]
+omegaTurn = 4.0
+shotAccel = 90.0
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 3
+renderName1 = "lgmissl.flare"
+renderName2 = "lgmissl.smoke"
+renderName3 = "lgmissl.light"
+
+[Flare]
+renderBase = "draw_twirl"
+textureName = "flare_bz2.tga"
+textureBlend = "one one modulate"
+startColor = "220 235 255 255"
+finishColor = "120 170 255 160"
+startRadius = 0.45
+finishRadius = 0.28
+rotationRate = 8.0
+
+[Smoke]
+renderBase = "draw_twirl_trail"
+textureName = "smoke2.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "105 105 115 120"
+finishColor = "70 70 80 0"
+startRadius = 0.28
+finishRadius = 0.65
+animateTime = 0.65
+emitDelay = 0.04
+emitVelocity = "0.0 0.0 -4.0"
+emitVariance = "0.7 0.7 0.3"
+emitLife = 0.65
+
+[Light]
+renderBase = "draw_light"
+startColor = "170 205 255 220"
+finishColor = "100 150 255 0"
+startRadius = 10.0
+finishRadius = 5.0
