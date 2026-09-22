@@ -1,0 +1,44 @@
+// Consumes the Betty's internal ammo and starts the pop-up burst chain.
+[OrdnanceClass]
+classLabel = "rocket"
+
+shotGeometry = NULL
+shotSound = NULL
+
+xplGround = "betqake"
+xplVehicle = "betqake"
+xplBuilding = "betqake"
+xplExpire = "betqake"
+
+renderName = "betjump.render"
+
+ammoCost = 200
+lifeSpan = 0.03
+shotSpeed = 1.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "betjump.flare"
+renderName2 = "betjump.light"
+
+[Flare]
+renderBase = "draw_twirl"
+textureName = "flame.tga"
+textureBlend = "one one modulate"
+startColor = "255 225 110 255"
+finishColor = "255 120 20 0"
+startRadius = 0.45
+finishRadius = 0.15
+rotationRate = 10.0
+
+[Light]
+renderBase = "draw_light"
+startColor = "255 200 75 220"
+finishColor = "255 120 20 0"
+startRadius = 8.0
+finishRadius = 3.0
