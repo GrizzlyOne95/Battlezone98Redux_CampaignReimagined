@@ -1,0 +1,13 @@
+// CCA Steering Lock: brief control projectile, not a damage weapon.
+[WeaponClass]
+classLabel = "cannon"
+ordName = "stlock"
+wpnName = "CCA Steering Lock"
+fireSound = "gmasg00.wav"
+wpnReticle = "gsteerlk"
+wpnPriority = 0
+wpnCategory = "SPEC"
+
+[CannonClass]
+shotDelay = 1.50
+shotVariance = 0.010
