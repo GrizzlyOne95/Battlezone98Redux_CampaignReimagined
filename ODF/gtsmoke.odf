@@ -1,0 +1,13 @@
+// NSDF Tactical Smoke: utility mortar with optimized visual load.
+[WeaponClass]
+classLabel = "mortar"
+ordName = "tsmkshl"
+wpnName = "Tactical Smoke"
+fireSound = "ghart00.wav"
+wpnReticle = "gmortar"
+wpnLadder = "gmortar.L0"
+wpnPriority = 4
+wpnCategory = "MORT"
+
+[CannonClass]
+shotDelay = 4.0
