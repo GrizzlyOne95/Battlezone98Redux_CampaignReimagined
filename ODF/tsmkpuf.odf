@@ -1,0 +1,42 @@
+// Lightweight slowing smoke puff.
+// One render layer only: 4 dispensers x 10 puffs = 40 total smoke projectiles.
+[OrdnanceClass]
+classLabel = "anchor"
+
+shotGeometry = NULL
+shotSound = NULL
+xplGround = NULL
+xplVehicle = NULL
+xplBuilding = NULL
+
+renderName = "tsmkpuf.render"
+
+ammoCost = 1
+lifeSpan = 5.0
+shotSpeed = 8.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[AnchorRocketClass]
+accelDrag = 6.0
+alphaDrag = 0.15
+anchorTime = 1.2
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 1
+renderName1 = "tsmkpuf.cloud"
+
+[Cloud]
+renderBase = "draw_twirl"
+textureName = "smoke2.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "92 92 92 145"
+finishColor = "68 68 68 0"
+startRadius = 1.5
+finishRadius = 6.5
+animateTime = 5.0
+rotationRate = 0.45
+maxCount = 48
