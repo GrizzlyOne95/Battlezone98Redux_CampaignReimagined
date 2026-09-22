@@ -1,0 +1,21 @@
+// Vanilla-scale CCA Bouncing Betty.
+// maxAmmo=200 preserves the stock Prox Mine deployment ammo cost.
+[GameObjectClass]
+baseName = "proxmine"
+classLabel = "weaponmine"
+scrapCost = 0
+scrapValue = 0
+explosionName = "betblow"
+maxHealth = 150
+maxAmmo = 200
+unitName = "Bouncing Betty"
+heatSignature = 0.10
+
+[MineClass]
+lifeSpan = 240.0
+
+[WeaponMineClass]
+searchRadius = 40.0
+heightScale = 1.0
+weaponName = "gbetpop"
+checkSight = 0
