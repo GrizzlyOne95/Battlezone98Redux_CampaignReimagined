@@ -41,6 +41,9 @@ jobs:
       - name: Validate repository invariants
         run: python Tools/Validate-CampaignRepository.py
 
+      - name: Check generated GoombaBZ transcripts
+        run: python Tools/Import-GoombaTranscripts.py --check
+
       - name: Report legacy Lua 5.1 compatibility debt
         shell: bash
         run: |

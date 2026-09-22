@@ -1,1 +1,1 @@
-What are your wingman to the active nav beacon by hitting the alt key?
+Order your wingman to the active Nav Beacon by hitting the <kbd>Alt</kbd> key.

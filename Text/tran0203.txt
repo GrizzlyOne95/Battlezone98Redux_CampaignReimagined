@@ -1,1 +1,1 @@
-Good, press SHIP to close the COM channel. I want to show you another way to open a COM channel when you don't have a visual on a unit.
+Good. Press <kbd>Shift</kbd> to close the comms channel. I want to show you another way to open a comms channel when you don't have a visual on a unit.
