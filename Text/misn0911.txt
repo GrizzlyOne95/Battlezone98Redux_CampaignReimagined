@@ -1,1 +1,1 @@
-Unit factory has been destroyed commander your mission is a failure
+The Unit Factory has been destroyed, Commander. Your mission is a failure.

@@ -1,1 +1,1 @@
-There are two checkpoint towers that will help you locate these structures. Identify them using the I-key and they will activate nav cameras that will show you the way.
+There are two Check-Point Towers that will help you locate these structures. Identify them using the <kbd>I</kbd> key and they will activate Nav Cameras that will show you the way.

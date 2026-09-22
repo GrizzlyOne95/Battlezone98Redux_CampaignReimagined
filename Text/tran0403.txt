@@ -1,1 +1,1 @@
-Order the recycler to build a factory.
+Order the Recycler to build a Factory.

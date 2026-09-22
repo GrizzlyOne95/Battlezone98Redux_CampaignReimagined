@@ -1,1 +1,1 @@
-Get the T-key to target the drone.
+Hit the <kbd>T</kbd> key to target the drone.

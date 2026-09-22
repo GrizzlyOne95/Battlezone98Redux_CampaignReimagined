@@ -1,1 +1,1 @@
-Now, press 1 to select the turret.
+Now press <kbd>1</kbd> to select the Turret.
