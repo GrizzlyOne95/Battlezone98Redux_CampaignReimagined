@@ -635,6 +635,7 @@ function Update()
     -- Get difficulty for dynamic adjustments (0=Very Easy, 1=Easy, 2=Medium, 3=Hard, 4=Very Hard)
     local diff = 2
     if exu and exu.GetDifficulty then diff = exu.GetDifficulty() end
+    local isAuthority = CRCoop.IsAuthority()
 
     TraceUpdateCall("misn03.Update PlayerPilotMode.Update", PlayerPilotMode.Update)
     TraceUpdateCall("misn03.Update aiCore.Update", aiCore.Update)
@@ -661,10 +662,13 @@ function Update()
     if not M.start_done then
         ApplyQOL()
 
-        -- Dynamic Starting Resources
-        SetScrap(1, math.max(4, DiffUtils.ScaleRes(10)))
-        SetPilot(1, DiffUtils.ScaleRes(10))
-        SetScrap(2, 40) -- Give AI Team 2 starting scrap
+        -- Team resources are simulation state. In a network game the host owns
+        -- these mutations; every peer still initializes its local presentation.
+        if isAuthority then
+            SetScrap(1, math.max(4, DiffUtils.ScaleRes(10)))
+            SetPilot(1, DiffUtils.ScaleRes(10))
+            SetScrap(2, 40) -- Give AI Team 2 starting scrap
+        end
 
         subtit.Initialize("durations.csv")
 
@@ -705,27 +709,33 @@ function Update()
         local health_mod = m.res -- reuse resource mult for simplicity or inverse?
         -- User didn't specify health but keep it scaled.
 
-        if IsAlive(M.solar1) then
-            SetMaxHealth(M.solar1, GetMaxHealth(M.solar1) * health_mod)
-            SetCurHealth(M.solar1, GetMaxHealth(M.solar1))
-        end
-        if IsAlive(M.solar2) then
-            SetMaxHealth(M.solar2, GetMaxHealth(M.solar2) * health_mod)
-            SetCurHealth(M.solar2, GetMaxHealth(M.solar2))
+        if isAuthority then
+            if IsAlive(M.solar1) then
+                SetMaxHealth(M.solar1, GetMaxHealth(M.solar1) * health_mod)
+                SetCurHealth(M.solar1, GetMaxHealth(M.solar1))
+            end
+            if IsAlive(M.solar2) then
+                SetMaxHealth(M.solar2, GetMaxHealth(M.solar2) * health_mod)
+                SetCurHealth(M.solar2, GetMaxHealth(M.solar2))
+            end
+
+            Goto(M.avrecycler, "recycle_point")
+
+            -- Randomized mission schedule is authoritative. Clients will
+            -- eventually consume synchronized phase changes rather than
+            -- independently rolling these timers.
+            M.second_wave_time = GetTime() + DiffUtils.ScaleTimer(200.0) + math.random(-10, 20)
+            M.third_wave_time = GetTime() + DiffUtils.ScaleTimer(310.0) + math.random(-15, 30)
+            M.fourth_wave_time = GetTime() + DiffUtils.ScaleTimer(430.0) + math.random(-20, 40)
+
+            M.apc_spawn_time = GetTime() + 530.0
+            M.support_time = GetTime() + 430.0
+            M.next_second = GetTime() + 1.0
+            M.unit_check = GetTime() + 60.0
         end
 
-        Goto(M.avrecycler, "recycle_point")
         ClearObjectives()
         AddObjective("misn0301.otf", "white")
-
-        M.second_wave_time = GetTime() + DiffUtils.ScaleTimer(200.0) + math.random(-10, 20)
-        M.third_wave_time = GetTime() + DiffUtils.ScaleTimer(310.0) + math.random(-15, 30)
-        M.fourth_wave_time = GetTime() + DiffUtils.ScaleTimer(430.0) + math.random(-20, 40)
-
-        M.apc_spawn_time = GetTime() + 530.0
-        M.support_time = GetTime() + 430.0
-        M.next_second = GetTime() + 1.0
-        M.unit_check = GetTime() + 60.0
         M.start_done = true
     end
 
@@ -862,7 +872,7 @@ function Update()
         M.recycle_stop = true
     end
 
-    if not M.first_wave_done then
+    if isAuthority and not M.first_wave_done then
         Attack(M.wave1_1, M.solar1, 1)
         Attack(M.wave1_2, M.solar1, 1)
         M.first_wave_done = true
