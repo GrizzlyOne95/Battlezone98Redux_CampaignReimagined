@@ -12,7 +12,8 @@ local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local autosave = require("AutoSave")
-local PlayerPilotMode = require("PlayerPilotMode")\nlocal CRCoop = require("CRCoop")
+local PlayerPilotMode = require("PlayerPilotMode")
+local CRCoop = require("CRCoop")
 
 local difficulty = 2
 local M
