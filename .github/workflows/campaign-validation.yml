@@ -80,6 +80,9 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-CRCoop.lua
 
+      - name: Test misn03 co-op team contract
+        run: python Tools/Test-Misn03CoopContract.py
+
       - name: Test aiCore singleton producer recovery
         shell: bash
         run: |
