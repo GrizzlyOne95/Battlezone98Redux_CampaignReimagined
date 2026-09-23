@@ -110,10 +110,12 @@ local clientCoop = assert(loadfile(source))()
 sent = {}
 localId = 50
 localHandle = { id = "client-local", valid = true, team = 2 }
+local hostHandle = { id = "host-remote", valid = true, team = 1 }
 hosting = false
 clientCoop.Initialize({ getLocalPlayerId = function() return localId end })
 clientCoop.CreatePlayer(60, "Host", 1)
 clientCoop.CreatePlayer(50, "Client", 2)
+assert(clientCoop.Receive(60, "H", hostHandle), "client did not consume leader handle")
 clientCoop.Update()
 local sawRequest = false
 for _, msg in ipairs(sent) do
