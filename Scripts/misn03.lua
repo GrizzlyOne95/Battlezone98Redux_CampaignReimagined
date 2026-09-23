@@ -553,7 +553,9 @@ function Start()
     })
     CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
     SetupAI()
-    BootstrapPlayerSideAI()
+    if CRCoop.IsAuthority() then
+        BootstrapPlayerSideAI()
+    end
     ApplyTurboToAll()
     InitializePilotMode()
     M.loading_done = true
@@ -642,7 +644,9 @@ function Update()
         ApplyQOL()
         InitializePilotMode()
         SetupAI(true)
-        BootstrapPlayerSideAI()
+        if CRCoop.IsAuthority() then
+            BootstrapPlayerSideAI()
+        end
         ApplyTurboToAll()
         M.loading_done = true
     end
