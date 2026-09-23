@@ -810,7 +810,7 @@ function Update()
     end
 
     -- Foot Soldier Patrols
-    if M.start_done and IsAlive(M.build5) then
+    if isAuthority and M.start_done and IsAlive(M.build5) then
         M.patrol_soldiers = M.patrol_soldiers or { nil, nil, nil }
         M.patrol_respawn_timers = M.patrol_respawn_timers or { 0, 0, 0 }
 
@@ -852,7 +852,7 @@ function Update()
         M.patrols_spawned = true
     end
 
-    if IsAlive(M.solar1) and not M.show_tank_attack then
+    if isAuthority and IsAlive(M.solar1) and not M.show_tank_attack then
         if GetTime() > M.next_second then
             AddHealth(M.solar1, 50)
             if IsAlive(M.solar2) then AddHealth(M.solar2, 50) end
@@ -867,7 +867,7 @@ function Update()
         M.message1 = true
     end
 
-    if M.start_done and GetDistance(M.avrecycler, "recycle_point") < 50.0 and not M.recycle_stop then
+    if isAuthority and M.start_done and GetDistance(M.avrecycler, "recycle_point") < 50.0 and not M.recycle_stop then
         SetCommand(M.avrecycler, 16, 1, M.geyser)
         M.recycle_stop = true
     end
