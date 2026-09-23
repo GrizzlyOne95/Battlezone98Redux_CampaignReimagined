@@ -662,7 +662,29 @@ function Update()
     -- Lifecycle Send/Receive traffic is not reliable during join transitions.
     -- Pause campaign simulation until every current human has a usable handle
     -- and the retrying leader/client handshake has completed.
+    if CRCoop.IsNetworkGame() and CRCoop.HasUnsupportedPlayerTeam() then
+        if not M.coopUnsupportedTeamWarned then
+            M.coopUnsupportedTeamWarned = true
+            if type(DisplayMessage) == "function" then
+                DisplayMessage("Campaign co-op supports human teams 1-4 only.")
+            end
+            print("[CRCoop] Unsupported human team detected; campaign simulation paused.")
+        end
+        return
+    end
+
     if CRCoop.IsNetworkGame() and not CRCoop.IsSessionReady() then
+        return
+    end
+
+    if CRCoop.IsNetworkGame() and CRCoop.HasLateJoiners() then
+        if not M.coopLateJoinWarned then
+            M.coopLateJoinWarned = true
+            if type(DisplayMessage) == "function" then
+                DisplayMessage("Late join/rejoin detected. Restart the mission to avoid world-state desync.")
+            end
+            print("[CRCoop] Late join/rejoin detected; world reconciliation is not yet proven safe.")
+        end
         return
     end
 
