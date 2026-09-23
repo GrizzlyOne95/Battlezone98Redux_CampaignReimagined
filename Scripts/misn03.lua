@@ -12,7 +12,7 @@ local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local autosave = require("AutoSave")
-local PlayerPilotMode = require("PlayerPilotMode")
+local PlayerPilotMode = require("PlayerPilotMode")\nlocal CRCoop = require("CRCoop")
 
 local difficulty = 2
 local M
@@ -119,7 +119,15 @@ local function PilotModeCanManageHandle(h)
         return false
     end
 
-    return h ~= GetPlayerHandle()
+    -- In co-op, never let Pilot Mode claim a human player's craft. Stock
+    -- GetPlayerHandle(team) is not usable for remote players, so CRCoop tracks
+    -- current player handles through CreatePlayer/AddPlayer plus Send/Receive.
+    -- Until that registry is complete, fail closed and manage no handles.
+    if CRCoop.IsNetworkGame() and not CRCoop.HasAllPlayerHandles() then
+        return false
+    end
+
+    return not CRCoop.IsHumanCraft(h)
 end
 
 local function GetPilotModeObjectiveContext()
@@ -520,11 +528,38 @@ function Start()
     RefreshDifficulty()
     ApplyDifficultyObjectives()
     ApplyQOL()
+    CRCoop.Initialize({
+        getLocalPlayerId = function()
+            if exu and exu.GetMyNetID then
+                return exu.GetMyNetID()
+            end
+            return nil
+        end,
+    })
     SetupAI()
     BootstrapPlayerSideAI()
     ApplyTurboToAll()
     InitializePilotMode()
     M.loading_done = true
+end
+
+function CreatePlayer(id, name, team)
+    CRCoop.CreatePlayer(id, name, team)
+end
+
+function AddPlayer(id, name, team)
+    CRCoop.AddPlayer(id, name, team)
+end
+
+function DeletePlayer(id, name, team)
+    CRCoop.DeletePlayer(id)
+end
+
+function Receive(from, kind, ...)
+    if CRCoop.Receive(from, kind, ...) then
+        return true
+    end
+    return false
 end
 
 function AddObject(h)
@@ -594,6 +629,7 @@ function Update()
         M.loading_done = true
     end
     M.user = GetPlayerHandle()
+    CRCoop.Update()
 
     -- Get difficulty for dynamic adjustments (0=Very Easy, 1=Easy, 2=Medium, 3=Hard, 4=Very Hard)
     local diff = 2
@@ -984,10 +1020,17 @@ function Update()
 
     if not M.second_objective and M.apc_spawn_time < GetTime() then
         M.apc_spawn_time = GetTime() + 1.0
-        M.z = CountUnitsNearObject(M.user, 500.0, 2, "svtank")
-        M.y = CountUnitsNearObject(M.user, 500.0, 2, "svfigh")
 
-        if M.z == 0 and M.y == 0 then
+        -- SP keeps the original local-player test. In co-op, every active
+        -- human player must be clear of nearby tanks/fighters before the
+        -- evacuation phase advances. Missing remote handles fail closed.
+        local combatClear = CRCoop.AllPlayersSatisfy(function(playerHandle)
+            local tanks = CountUnitsNearObject(playerHandle, 500.0, 2, "svtank")
+            local fighters = CountUnitsNearObject(playerHandle, 500.0, 2, "svfigh")
+            return tanks == 0 and fighters == 0
+        end)
+
+        if combatClear then
             M.audmsg = subtit.Play("misn0305.wav")
             M.second_objective = true
         end
@@ -1301,7 +1344,7 @@ function Update()
         Goto(M.wave7_5, "base", 1)
     end
 
-    if M.third_objective and GetDistance(M.user, M.launch) < 100.0 and not M.lost and not M.final_objective then
+    if M.third_objective and CRCoop.AllPlayersNear(M.launch, 100.0) and not M.lost and not M.final_objective then
         M.final_objective = true
     end
 
