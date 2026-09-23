@@ -18,6 +18,9 @@ local CRCoop = require("CRCoop")
 local LEADER_TEAM = 1
 local ENEMY_TEAM = 5
 
+local PHASE_DEFENSE = 1
+local PHASE_FORTIFY = 2
+
 local difficulty = 2
 local M
 local TRACE_UPDATE_CALLS = false
@@ -463,6 +466,38 @@ local function CountHumanUnitsNearObject(object, distance, odf)
     return count
 end
 
+local function PresentMissionPhase()
+    local phase = CRCoop.GetMissionPhase()
+    local presented = M.coopPresentedPhase or 0
+
+    if phase <= presented then
+        return
+    end
+
+    local handled = false
+
+    if phase == PHASE_DEFENSE then
+        ClearObjectives()
+        AddObjective("misn0301.otf", "white")
+        if not M.message1 then
+            M.audmsg = subtit.Play("misn0311.wav")
+            M.message1 = true
+        end
+        handled = true
+    elseif phase == PHASE_FORTIFY then
+        subtit.Play("misn0312.wav")
+        ClearObjectives()
+        AddObjective("misn0302.otf", "white")
+        AddObjective("misn0301.otf", "white")
+        M.done_retreat = true
+        handled = true
+    end
+
+    if handled then
+        M.coopPresentedPhase = phase
+    end
+end
+
 local function UpdateModules(dt)
     if exu and exu.UpdateOrdnance then
         TraceUpdateCall("misn03.UpdateModules exu.UpdateOrdnance", exu.UpdateOrdnance)
@@ -805,10 +840,13 @@ function Update()
             M.unit_check = GetTime() + 60.0
         end
 
-        ClearObjectives()
-        AddObjective("misn0301.otf", "white")
         M.start_done = true
+        if isAuthority then
+            CRCoop.SetMissionPhase(PHASE_DEFENSE)
+        end
     end
+
+    PresentMissionPhase()
 
     -- Alarm for Command Tower
     if IsAlive(M.solar1) and GetHealth(M.solar1) < 1.0 then
@@ -933,11 +971,6 @@ function Update()
         end
     end
 
-    if not M.message1 and M.start_done then
-        M.audmsg = subtit.Play("misn0311.wav")
-        M.message1 = true
-    end
-
     if isAuthority and M.start_done and GetDistance(M.avrecycler, "recycle_point") < 50.0 and not M.recycle_stop then
         SetCommand(M.avrecycler, 16, 1, M.geyser)
         M.recycle_stop = true
@@ -949,7 +982,7 @@ function Update()
         M.first_wave_done = true
     end
 
-    if M.first_wave_done and not M.start_retreat then
+    if isAuthority and M.first_wave_done and not M.start_retreat then
         if diff < 3 then
             if not IsAlive(M.wave1_1) then
                 Retreat(M.wave1_2, "retreat_path", 1)
@@ -964,19 +997,16 @@ function Update()
     end
 
     -- If all enemies are dead (regardless of difficulty), advance the plot
-    if not IsAlive(M.wave1_1) and not IsAlive(M.wave1_2) then
+    if isAuthority and not IsAlive(M.wave1_1) and not IsAlive(M.wave1_2) then
         -- Only set if not already retreating (to avoid overriding timer if one died earlier)
         if not M.start_retreat then
             M.new_message_time = GetTime() + 2.0
             M.start_retreat = true
         end
     end
-    if M.start_retreat and M.new_message_time < GetTime() and not M.done_retreat then
-        subtit.Play("misn0312.wav")
-        ClearObjectives()
-        AddObjective("misn0302.otf", "white")
-        AddObjective("misn0301.otf", "white")
+    if isAuthority and M.start_retreat and M.new_message_time < GetTime() and not M.done_retreat then
         M.done_retreat = true
+        CRCoop.SetMissionPhase(PHASE_FORTIFY)
     end
 
     if not M.turrets_set and IsAlive(M.solar1) and M.unit_check < GetTime() then
