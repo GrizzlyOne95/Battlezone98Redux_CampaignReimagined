@@ -73,6 +73,13 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-OpenShimInstallerDiagnostics.lua
 
+      - name: Test CR co-op helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-CRCoop.lua
+
       - name: Test aiCore singleton producer recovery
         shell: bash
         run: |
