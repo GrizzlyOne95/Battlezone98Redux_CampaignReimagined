@@ -28,7 +28,7 @@ $validator = Join-Path $PSScriptRoot 'Validate-DX11Shaders.ps1'
 
 $openShimRepo = $env:BZR_OPENSHIM_REPO
 if (-not $openShimRepo) {
-    $openShimRepo = Join-Path (Split-Path -Parent (Split-Path -Parent $repoRoot)) 'BZR-OpenShim'
+    $openShimRepo = Join-Path (Split-Path -Parent $repoRoot) 'BZR-OpenShim'
 }
 $sourcePayload = Join-Path $openShimRepo 'resources\renderer\enhanced'
 if (-not (Test-Path -LiteralPath $sourcePayload)) {

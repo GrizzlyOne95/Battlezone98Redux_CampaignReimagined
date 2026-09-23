@@ -32,7 +32,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 
 if (-not $OpenShimRepo) { $OpenShimRepo = $env:BZR_OPENSHIM_REPO }
 if (-not $OpenShimRepo) {
-    $OpenShimRepo = Join-Path (Split-Path -Parent (Split-Path -Parent $repoRoot)) 'BZR-OpenShim'
+    $OpenShimRepo = Join-Path (Split-Path -Parent $repoRoot) 'BZR-OpenShim'
 }
 $openShimPayload = Join-Path $OpenShimRepo 'resources\renderer\enhanced'
 if (-not (Test-Path -LiteralPath $openShimPayload)) {

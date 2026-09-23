@@ -88,7 +88,7 @@ New-Item $tempRoot -ItemType Directory | Out-Null
 # regression check into a measurement of OpenShim.
 $openShimRepo = $env:BZR_OPENSHIM_REPO
 if (-not $openShimRepo) {
-    $openShimRepo = Join-Path (Split-Path -Parent (Split-Path -Parent $repoRoot)) 'BZR-OpenShim'
+    $openShimRepo = Join-Path (Split-Path -Parent $repoRoot) 'BZR-OpenShim'
 }
 $script:OpenShimPayload = Join-Path $openShimRepo 'resources\renderer\enhanced'
 

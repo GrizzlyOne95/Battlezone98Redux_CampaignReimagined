@@ -20,7 +20,7 @@ $shaderDir = Join-Path $repoRoot 'Shaders'
 # passes exactly as loudly as one that checked it.
 $openShimRepo = $env:BZR_OPENSHIM_REPO
 if (-not $openShimRepo) {
-    $openShimRepo = Join-Path (Split-Path -Parent (Split-Path -Parent $repoRoot)) 'BZR-OpenShim'
+    $openShimRepo = Join-Path (Split-Path -Parent $repoRoot) 'BZR-OpenShim'
 }
 $openShimPayload = Join-Path $openShimRepo 'resources\renderer\enhanced'
 if (-not (Test-Path -LiteralPath $openShimPayload)) {

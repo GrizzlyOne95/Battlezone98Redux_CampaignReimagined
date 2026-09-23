@@ -4,7 +4,7 @@ This is the authoritative Campaign Reimagined source tree for campaign content, 
 
 ## Authority and ownership
 
-- The only editable CR checkout is `C:\Users\iestu\Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`. Treat duplicate or nested CR trees as stale until their provenance is verified. Do not create a second CR checkout or worktree.
+- The only editable CR checkout is `%USERPROFILE%\Documents\GIT\Campaign-Reimagined`. The former Google Drive tree is a retained legacy rollback, not an active source or deployment target. Do not create another CR checkout or worktree.
 - Because CR has one canonical checkout, serialize tasks that write to it. Read-only cross-repository inspection can run concurrently.
 - Campaign content, Lua consumers, assets, materials, packaging, and integration belong here. Route low-level hooks to **OpenShim**, reusable Lua/native runtime APIs to **EXU**, and file/update primitives to **bzfile**.
 - Sibling repositories normally live under `%USERPROFILE%\Documents\GIT`. Verify `origin` and branch before treating a sibling as evidence, and read its `AGENTS.md` before editing it.
