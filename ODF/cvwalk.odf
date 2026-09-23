@@ -57,8 +57,8 @@ omegaSpin = 2.5
 omegaTurn = 1.25
 alphaSteer = 6.25
 velocJump = 10.0
-jumpSound = ""svwalke2.wav";"
-landSound = ""svwalke3.wav";"
+jumpSound = "svwalke2.wav";
+landSound = "svwalke3.wav";
 stepSound = "svwalke0.wav"
 animRate = 1.0
 
