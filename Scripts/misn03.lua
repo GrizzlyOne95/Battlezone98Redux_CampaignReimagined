@@ -13,6 +13,13 @@ local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
+local CRCoop = require("CRCoop")
+
+local LEADER_TEAM = 1
+local ENEMY_TEAM = 5
+
+local PHASE_DEFENSE = 1
+local PHASE_FORTIFY = 2
 
 local difficulty = 2
 local M
@@ -49,10 +56,10 @@ end
 -- Helper for AI
 local function SetupAI(preserveExisting)
     local playerTeam, enemyTeam
-    if preserveExisting and aiCore.ActiveTeams and aiCore.ActiveTeams[1] and aiCore.ActiveTeams[2] then
-        playerTeam, enemyTeam = aiCore.ActiveTeams[1], aiCore.ActiveTeams[2]
+    if preserveExisting and aiCore.ActiveTeams and aiCore.ActiveTeams[LEADER_TEAM] and aiCore.ActiveTeams[ENEMY_TEAM] then
+        playerTeam, enemyTeam = aiCore.ActiveTeams[LEADER_TEAM], aiCore.ActiveTeams[ENEMY_TEAM]
     else
-        playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+        playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, ENEMY_TEAM)
     end
 
     -- Team 1 is fully manual apart from explicit PlayerPilotMode support.
@@ -63,7 +70,7 @@ local function SetupAI(preserveExisting)
     playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     playerTeam:SetConfig("enableParatroopers", false)
 
-    -- Mission 03's Team 2 force is entirely mission-scripted. Keep the shared
+    -- Mission 03's Team 5 force is entirely mission-scripted. Keep the shared
     -- aiCore team object available, but disable strategic production/automation.
     enemyTeam:SetConfig("manageFactories", false)
     enemyTeam:SetConfig("manageBase", false)
@@ -76,12 +83,12 @@ end
 local function BootstrapPlayerSideAI()
     local restoreIndependence = {}
 
-    -- AddObject already keeps scripted Team 2 units out of aiCore. Bootstrap
-    -- also scans the live world, so temporarily lock Team 2 craft out of that
+    -- AddObject already keeps scripted Team 5 units out of aiCore. Bootstrap
+    -- also scans the live world, so temporarily lock Team 5 craft out of that
     -- scan and restore their original independence immediately afterward.
     if type(GetIndependence) == "function" and type(SetIndependence) == "function" then
         for h in AllCraft() do
-            if h and IsValid(h) and GetTeamNum(h) == 2 then
+            if h and IsValid(h) and GetTeamNum(h) == ENEMY_TEAM then
                 local ok, value = pcall(GetIndependence, h)
                 if ok then
                     restoreIndependence[h] = value
@@ -104,7 +111,7 @@ local function BootstrapPlayerSideAI()
     -- Add only aiSpecial combat behavior to pre-placed scripted units. This
     -- does not put them into production, squad, or base-management lists.
     for h in AllObjects() do
-        if h and IsValid(h) and GetTeamNum(h) == 2 then
+        if h and IsValid(h) and GetTeamNum(h) == ENEMY_TEAM then
             aiCore.AddSpecialObject(h)
         end
     end
@@ -119,7 +126,15 @@ local function PilotModeCanManageHandle(h)
         return false
     end
 
-    return h ~= GetPlayerHandle()
+    -- In co-op, never let Pilot Mode claim a human player's craft. Stock
+    -- GetPlayerHandle(team) is not usable for remote players, so CRCoop tracks
+    -- current player handles through CreatePlayer/AddPlayer plus Send/Receive.
+    -- Until that registry is complete, fail closed and manage no handles.
+    if CRCoop.IsNetworkGame() and not CRCoop.HasAllPlayerHandles() then
+        return false
+    end
+
+    return not CRCoop.IsHumanCraft(h)
 end
 
 local function GetPilotModeObjectiveContext()
@@ -414,7 +429,7 @@ local function ApplyQOL()
 end
 
 local function TurboValue(team)
-    if team == 1 then
+    if CRCoop.IsHumanTeam(team) then
         return true
     end
     if team ~= 0 and difficulty and difficulty > 3 then
@@ -440,6 +455,46 @@ local function ApplyTurboToAll()
     end
     for h in AllCraft() do
         ApplyTurbo(h)
+    end
+end
+
+local function CountHumanUnitsNearObject(object, distance, odf)
+    local count = 0
+    for team = 1, 4 do
+        count = count + CountUnitsNearObject(object, distance, team, odf)
+    end
+    return count
+end
+
+local function PresentMissionPhase()
+    local phase = CRCoop.GetMissionPhase()
+    local presented = M.coopPresentedPhase or 0
+
+    if phase <= presented then
+        return
+    end
+
+    local handled = false
+
+    if phase == PHASE_DEFENSE then
+        ClearObjectives()
+        AddObjective("misn0301.otf", "white")
+        if not M.message1 then
+            M.audmsg = subtit.Play("misn0311.wav")
+            M.message1 = true
+        end
+        handled = true
+    elseif phase == PHASE_FORTIFY then
+        subtit.Play("misn0312.wav")
+        ClearObjectives()
+        AddObjective("misn0302.otf", "white")
+        AddObjective("misn0301.otf", "white")
+        M.done_retreat = true
+        handled = true
+    end
+
+    if handled then
+        M.coopPresentedPhase = phase
     end
 end
 
@@ -520,11 +575,46 @@ function Start()
     RefreshDifficulty()
     ApplyDifficultyObjectives()
     ApplyQOL()
+    CRCoop.Initialize({
+        getLocalPlayerId = function()
+            if exu and exu.GetMyNetID then
+                return exu.GetMyNetID()
+            end
+            return nil
+        end,
+        leaderTeam = LEADER_TEAM,
+        humanTeamMin = 1,
+        humanTeamMax = 4,
+    })
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
     SetupAI()
-    BootstrapPlayerSideAI()
+    if CRCoop.IsAuthority() then
+        BootstrapPlayerSideAI()
+    end
     ApplyTurboToAll()
     InitializePilotMode()
     M.loading_done = true
+end
+
+function CreatePlayer(id, name, team)
+    CRCoop.CreatePlayer(id, name, team)
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+end
+
+function AddPlayer(id, name, team)
+    CRCoop.AddPlayer(id, name, team)
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+end
+
+function DeletePlayer(id, name, team)
+    CRCoop.DeletePlayer(id)
+end
+
+function Receive(from, kind, ...)
+    if CRCoop.Receive(from, kind, ...) then
+        return true
+    end
+    return false
 end
 
 function AddObject(h)
@@ -569,12 +659,12 @@ function AddObject(h)
         end
     end
 
-    -- Register player-team spawns immediately for PlayerPilotMode. Team 2
+    -- Register player-team spawns immediately for PlayerPilotMode. Team 5
     -- waves remain outside full aiCore ownership, but receive the reusable
     -- aiSpecial combat layer.
     if team == 1 then
         PlayerPilotMode.AddObject(h)
-    elseif team == 2 then
+    elseif team == ENEMY_TEAM then
         aiCore.AddSpecialObject(h)
     end
 end
@@ -589,19 +679,69 @@ function Update()
         ApplyQOL()
         InitializePilotMode()
         SetupAI(true)
-        BootstrapPlayerSideAI()
+        if CRCoop.IsAuthority() then
+            BootstrapPlayerSideAI()
+        end
         ApplyTurboToAll()
         M.loading_done = true
     end
     M.user = GetPlayerHandle()
+    CRCoop.Update()
+
+    -- Player 1 is the campaign leader. If that player leaves, do not allow a
+    -- Redux network-host migration to inherit campaign simulation authority.
+    if CRCoop.IsNetworkGame() and CRCoop.HasLeaderDeparted() then
+        if not M.coopLeaderDepartureHandled then
+            M.coopLeaderDepartureHandled = true
+            FailMission(0.1)
+        end
+        return
+    end
+
+    -- Lifecycle Send/Receive traffic is not reliable during join transitions.
+    -- Pause campaign simulation until every current human has a usable handle
+    -- and the retrying leader/client handshake has completed.
+    if CRCoop.IsNetworkGame() and CRCoop.HasUnsupportedPlayerTeam() then
+        if not M.coopUnsupportedTeamWarned then
+            M.coopUnsupportedTeamWarned = true
+            if type(DisplayMessage) == "function" then
+                DisplayMessage("Campaign co-op supports human teams 1-4 only.")
+            end
+            print("[CRCoop] Unsupported human team detected; campaign simulation paused.")
+        end
+        return
+    end
+
+    if CRCoop.IsNetworkGame() and not CRCoop.IsSessionReady() then
+        return
+    end
+
+    if CRCoop.IsNetworkGame() and CRCoop.HasLateJoiners() then
+        if not M.coopLateJoinWarned then
+            M.coopLateJoinWarned = true
+            if type(DisplayMessage) == "function" then
+                DisplayMessage("Late join/rejoin detected. Restart the mission to avoid world-state desync.")
+            end
+            print("[CRCoop] Late join/rejoin detected; world reconciliation is not yet proven safe.")
+        end
+        return
+    end
+
+    if not M.coopMissionStarted then
+        CRCoop.MarkMissionStarted()
+        M.coopMissionStarted = true
+    end
 
     -- Get difficulty for dynamic adjustments (0=Very Easy, 1=Easy, 2=Medium, 3=Hard, 4=Very Hard)
     local diff = 2
     if exu and exu.GetDifficulty then diff = exu.GetDifficulty() end
+    local isAuthority = CRCoop.IsAuthority()
 
-    TraceUpdateCall("misn03.Update PlayerPilotMode.Update", PlayerPilotMode.Update)
-    TraceUpdateCall("misn03.Update aiCore.Update", aiCore.Update)
-    if autosave and autosave.Update then
+    if isAuthority then
+        TraceUpdateCall("misn03.Update PlayerPilotMode.Update", PlayerPilotMode.Update)
+        TraceUpdateCall("misn03.Update aiCore.Update", aiCore.Update)
+    end
+    if not CRCoop.IsNetworkGame() and autosave and autosave.Update then
         TraceUpdateCall("misn03.Update autosave.Update", autosave.Update, 1.0 / (M.TPS or 20))
     end
     TraceUpdateCall("misn03.Update UpdateModules", UpdateModules, 1.0 / (M.TPS or 20))
@@ -624,10 +764,17 @@ function Update()
     if not M.start_done then
         ApplyQOL()
 
-        -- Dynamic Starting Resources
-        SetScrap(1, math.max(4, DiffUtils.ScaleRes(10)))
-        SetPilot(1, DiffUtils.ScaleRes(10))
-        SetScrap(2, 40) -- Give AI Team 2 starting scrap
+        -- Team resources are simulation state. In a network game the host owns
+        -- these mutations; every peer still initializes its local presentation.
+        if isAuthority then
+            local startingScrap = math.max(4, DiffUtils.ScaleRes(10))
+            local startingPilots = DiffUtils.ScaleRes(10)
+            CRCoop.ForEachHumanTeam(function(team)
+                SetScrap(team, startingScrap)
+                SetPilot(team, startingPilots)
+            end)
+            SetScrap(ENEMY_TEAM, 40) -- Give enemy AI starting scrap
+        end
 
         subtit.Initialize("durations.csv")
 
@@ -668,29 +815,38 @@ function Update()
         local health_mod = m.res -- reuse resource mult for simplicity or inverse?
         -- User didn't specify health but keep it scaled.
 
-        if IsAlive(M.solar1) then
-            SetMaxHealth(M.solar1, GetMaxHealth(M.solar1) * health_mod)
-            SetCurHealth(M.solar1, GetMaxHealth(M.solar1))
+        if isAuthority then
+            if IsAlive(M.solar1) then
+                SetMaxHealth(M.solar1, GetMaxHealth(M.solar1) * health_mod)
+                SetCurHealth(M.solar1, GetMaxHealth(M.solar1))
+            end
+            if IsAlive(M.solar2) then
+                SetMaxHealth(M.solar2, GetMaxHealth(M.solar2) * health_mod)
+                SetCurHealth(M.solar2, GetMaxHealth(M.solar2))
+            end
+
+            Goto(M.avrecycler, "recycle_point")
+
+            -- Randomized mission schedule is authoritative. Clients will
+            -- eventually consume synchronized phase changes rather than
+            -- independently rolling these timers.
+            M.second_wave_time = GetTime() + DiffUtils.ScaleTimer(200.0) + math.random(-10, 20)
+            M.third_wave_time = GetTime() + DiffUtils.ScaleTimer(310.0) + math.random(-15, 30)
+            M.fourth_wave_time = GetTime() + DiffUtils.ScaleTimer(430.0) + math.random(-20, 40)
+
+            M.apc_spawn_time = GetTime() + 530.0
+            M.support_time = GetTime() + 430.0
+            M.next_second = GetTime() + 1.0
+            M.unit_check = GetTime() + 60.0
         end
-        if IsAlive(M.solar2) then
-            SetMaxHealth(M.solar2, GetMaxHealth(M.solar2) * health_mod)
-            SetCurHealth(M.solar2, GetMaxHealth(M.solar2))
-        end
 
-        Goto(M.avrecycler, "recycle_point")
-        ClearObjectives()
-        AddObjective("misn0301.otf", "white")
-
-        M.second_wave_time = GetTime() + DiffUtils.ScaleTimer(200.0) + math.random(-10, 20)
-        M.third_wave_time = GetTime() + DiffUtils.ScaleTimer(310.0) + math.random(-15, 30)
-        M.fourth_wave_time = GetTime() + DiffUtils.ScaleTimer(430.0) + math.random(-20, 40)
-
-        M.apc_spawn_time = GetTime() + 530.0
-        M.support_time = GetTime() + 430.0
-        M.next_second = GetTime() + 1.0
-        M.unit_check = GetTime() + 60.0
         M.start_done = true
+        if isAuthority then
+            CRCoop.SetMissionPhase(PHASE_DEFENSE)
+        end
     end
+
+    PresentMissionPhase()
 
     -- Alarm for Command Tower
     if IsAlive(M.solar1) and GetHealth(M.solar1) < 1.0 then
@@ -763,7 +919,7 @@ function Update()
     end
 
     -- Foot Soldier Patrols
-    if M.start_done and IsAlive(M.build5) then
+    if isAuthority and M.start_done and IsAlive(M.build5) then
         M.patrol_soldiers = M.patrol_soldiers or { nil, nil, nil }
         M.patrol_respawn_timers = M.patrol_respawn_timers or { 0, 0, 0 }
 
@@ -805,7 +961,7 @@ function Update()
         M.patrols_spawned = true
     end
 
-    if IsAlive(M.solar1) and not M.show_tank_attack then
+    if isAuthority and IsAlive(M.solar1) and not M.show_tank_attack then
         if GetTime() > M.next_second then
             AddHealth(M.solar1, 50)
             if IsAlive(M.solar2) then AddHealth(M.solar2, 50) end
@@ -815,23 +971,18 @@ function Update()
         end
     end
 
-    if not M.message1 and M.start_done then
-        M.audmsg = subtit.Play("misn0311.wav")
-        M.message1 = true
-    end
-
-    if M.start_done and GetDistance(M.avrecycler, "recycle_point") < 50.0 and not M.recycle_stop then
+    if isAuthority and M.start_done and GetDistance(M.avrecycler, "recycle_point") < 50.0 and not M.recycle_stop then
         SetCommand(M.avrecycler, 16, 1, M.geyser)
         M.recycle_stop = true
     end
 
-    if not M.first_wave_done then
+    if isAuthority and not M.first_wave_done then
         Attack(M.wave1_1, M.solar1, 1)
         Attack(M.wave1_2, M.solar1, 1)
         M.first_wave_done = true
     end
 
-    if M.first_wave_done and not M.start_retreat then
+    if isAuthority and M.first_wave_done and not M.start_retreat then
         if diff < 3 then
             if not IsAlive(M.wave1_1) then
                 Retreat(M.wave1_2, "retreat_path", 1)
@@ -846,24 +997,21 @@ function Update()
     end
 
     -- If all enemies are dead (regardless of difficulty), advance the plot
-    if not IsAlive(M.wave1_1) and not IsAlive(M.wave1_2) then
+    if isAuthority and not IsAlive(M.wave1_1) and not IsAlive(M.wave1_2) then
         -- Only set if not already retreating (to avoid overriding timer if one died earlier)
         if not M.start_retreat then
             M.new_message_time = GetTime() + 2.0
             M.start_retreat = true
         end
     end
-    if M.start_retreat and M.new_message_time < GetTime() and not M.done_retreat then
-        subtit.Play("misn0312.wav")
-        ClearObjectives()
-        AddObjective("misn0302.otf", "white")
-        AddObjective("misn0301.otf", "white")
+    if isAuthority and M.start_retreat and M.new_message_time < GetTime() and not M.done_retreat then
         M.done_retreat = true
+        CRCoop.SetMissionPhase(PHASE_FORTIFY)
     end
 
     if not M.turrets_set and IsAlive(M.solar1) and M.unit_check < GetTime() then
         M.unit_check = GetTime() + 5.0
-        M.z = CountUnitsNearObject(M.solar1, 200.0, 1, "avturr")
+        M.z = CountHumanUnitsNearObject(M.solar1, 200.0, "avturr")
 
         if M.z > 3 then
             ClearObjectives()
@@ -890,14 +1038,14 @@ function Update()
             type2 = "svtank"
             -- Extra unit for hard difficulty
             local pos = GetPositionNear(GetPosition(spawns[math.random(1, 3)]), 0, 40)
-            local extra = BuildObject("svfigh", 2, pos)
+            local extra = BuildObject("svfigh", ENEMY_TEAM, pos)
             Attack(extra, M.solar1)
         end
 
         local p1 = spawns[math.random(1, 3)]
         local p2 = spawns[math.random(1, 3)]
-        M.wave2_1 = BuildObject(type1, 2, GetPositionNear(GetPosition(p1), 0, 40))
-        M.wave2_2 = BuildObject(type2, 2, GetPositionNear(GetPosition(p2), 0, 40))
+        M.wave2_1 = BuildObject(type1, ENEMY_TEAM, GetPositionNear(GetPosition(p1), 0, 40))
+        M.wave2_2 = BuildObject(type2, ENEMY_TEAM, GetPositionNear(GetPosition(p2), 0, 40))
 
         Attack(M.wave2_1, M.solar1)
         Goto(M.wave2_2, M.solar1)
@@ -911,8 +1059,8 @@ function Update()
 
         local p1 = spawns[math.random(1, 3)]
         local p2 = spawns[math.random(1, 3)]
-        M.wave3_1 = BuildObject(type3, 2, GetPositionNear(GetPosition(p1), 0, 40))
-        M.wave3_2 = BuildObject("svfigh", 2, GetPositionNear(GetPosition(p2), 0, 40))
+        M.wave3_1 = BuildObject(type3, ENEMY_TEAM, GetPositionNear(GetPosition(p1), 0, 40))
+        M.wave3_2 = BuildObject("svfigh", ENEMY_TEAM, GetPositionNear(GetPosition(p2), 0, 40))
 
         Attack(M.wave3_1, M.solar1, 1)
         Attack(M.wave3_2, M.solar1, 1)
@@ -934,13 +1082,13 @@ function Update()
         local p1 = spawns[math.random(1, 3)]
         local p2 = spawns[math.random(1, 3)]
         local p3 = spawns[math.random(1, 3)]
-        M.wave4_1 = BuildObject("svapc", 2, GetPositionNear(GetPosition(p1), 0, 40))
-        M.wave4_2 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p2), 0, 40))
-        M.wave5_1 = BuildObject("svfigh", 2, GetPositionNear(GetPosition(p3), 0, 40))
+        M.wave4_1 = BuildObject("svapc", ENEMY_TEAM, GetPositionNear(GetPosition(p1), 0, 40))
+        M.wave4_2 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition(p2), 0, 40))
+        M.wave5_1 = BuildObject("svfigh", ENEMY_TEAM, GetPositionNear(GetPosition(p3), 0, 40))
 
         if diff >= 3 then
             local p_extra = spawns[math.random(1, 3)]
-            local extra_tank = BuildObject("svtank", 2, GetPositionNear(GetPosition(p_extra), 0, 40))
+            local extra_tank = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition(p_extra), 0, 40))
             Attack(extra_tank, M.solar2, 1)
         end
 
@@ -984,10 +1132,17 @@ function Update()
 
     if not M.second_objective and M.apc_spawn_time < GetTime() then
         M.apc_spawn_time = GetTime() + 1.0
-        M.z = CountUnitsNearObject(M.user, 500.0, 2, "svtank")
-        M.y = CountUnitsNearObject(M.user, 500.0, 2, "svfigh")
 
-        if M.z == 0 and M.y == 0 then
+        -- SP keeps the original local-player test. In co-op, every active
+        -- human player must be clear of nearby tanks/fighters before the
+        -- evacuation phase advances. Missing remote handles fail closed.
+        local combatClear = CRCoop.AllPlayersSatisfy(function(playerHandle)
+            local tanks = CountUnitsNearObject(playerHandle, 500.0, ENEMY_TEAM, "svtank")
+            local fighters = CountUnitsNearObject(playerHandle, 500.0, ENEMY_TEAM, "svfigh")
+            return tanks == 0 and fighters == 0
+        end)
+
+        if combatClear then
             M.audmsg = subtit.Play("misn0305.wav")
             M.second_objective = true
         end
@@ -997,15 +1152,15 @@ function Update()
         CameraReady()
         M.movie_time = GetTime() + 14.5
         M.new_unit_time = GetTime() + 7.5
-        M.prop1 = BuildObject("svrecy", 2, "recy_spawn")
-        M.prop2 = BuildObject("svmuf", 2, "muf_spawn")
-        M.prop3 = BuildObject("svtank", 2, "tank1_spawn")
-        M.prop4 = BuildObject("svtank", 2, "tank2_spawn")
-        M.prop5 = BuildObject("svfigh", 2, "fighter1_spawn")
-        M.guy1 = BuildObject("sssold", 2, GetPositionNear(GetPosition("guy1_spawn"), 0, 10))
-        M.guy2 = BuildObject("sssold", 2, GetPositionNear(GetPosition("guy2_spawn"), 0, 10))
-        M.guy3 = BuildObject("sssold", 2, GetPositionNear(GetPosition("guy1_spawn"), 0, 10))
-        M.guy4 = BuildObject("sssold", 2, GetPositionNear(GetPosition("guy2_spawn"), 0, 10))
+        M.prop1 = BuildObject("svrecy", ENEMY_TEAM, "recy_spawn")
+        M.prop2 = BuildObject("svmuf", ENEMY_TEAM, "muf_spawn")
+        M.prop3 = BuildObject("svtank", ENEMY_TEAM, "tank1_spawn")
+        M.prop4 = BuildObject("svtank", ENEMY_TEAM, "tank2_spawn")
+        M.prop5 = BuildObject("svfigh", ENEMY_TEAM, "fighter1_spawn")
+        M.guy1 = BuildObject("sssold", ENEMY_TEAM, GetPositionNear(GetPosition("guy1_spawn"), 0, 10))
+        M.guy2 = BuildObject("sssold", ENEMY_TEAM, GetPositionNear(GetPosition("guy2_spawn"), 0, 10))
+        M.guy3 = BuildObject("sssold", ENEMY_TEAM, GetPositionNear(GetPosition("guy1_spawn"), 0, 10))
+        M.guy4 = BuildObject("sssold", ENEMY_TEAM, GetPositionNear(GetPosition("guy2_spawn"), 0, 10))
 
         Defend(M.prop1, 1)
         Goto(M.prop2, "tank1_spawn", 1)
@@ -1028,8 +1183,8 @@ function Update()
     if M.camera_ready and not M.more_show and not M.movie_over then
         if M.new_unit_time < GetTime() then
             local mpos = GetPosition("muf_spawn")
-            M.prop8 = BuildObject("svfigh", 2, GetPositionNear(mpos, 0, 20))
-            M.prop9 = BuildObject("svfigh", 2, GetPositionNear(mpos, 0, 20))
+            M.prop8 = BuildObject("svfigh", ENEMY_TEAM, GetPositionNear(mpos, 0, 20))
+            M.prop9 = BuildObject("svfigh", ENEMY_TEAM, GetPositionNear(mpos, 0, 20))
             Goto(M.prop8, "tank2_spawn", 1)
             Goto(M.prop9, "fighter1_spawn", 1)
             M.more_show = true
@@ -1135,7 +1290,7 @@ function Update()
             -- Spawn Massive Swarm
             for i = 1, 10 do
                 local sp = spawns[math.random(1, 3)]
-                local s = BuildObject("svtank", 2, GetPositionNear(GetPosition(sp), 0, 50))
+                local s = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition(sp), 0, 50))
                 PrepOutroUnit(s)
                 Goto(s, "line" .. math.random(1, 3), 1)
             end
@@ -1196,8 +1351,8 @@ function Update()
             -- Spawn fighters to help turrets on Hard/Very Hard
             if exu and exu.GetDifficulty and exu.GetDifficulty() >= 2 then -- Hard+
                 -- MODIFIED: Enemy forces follow the blocking turrets
-                local b1 = BuildObject("svtank", 2, "turret_path1")
-                local b2 = BuildObject("svfigh", 2, "turret_path2")
+                local b1 = BuildObject("svtank", ENEMY_TEAM, "turret_path1")
+                local b2 = BuildObject("svfigh", ENEMY_TEAM, "turret_path2")
                 Follow(b1, M.turret1)
                 Follow(b2, M.turret2)
             end
@@ -1218,11 +1373,11 @@ function Update()
 
         local wsp = GetPosition("wspawn")
         local ssp = GetPosition(spawns[2])
-        M.wave6_1 = BuildObject("svtank", 2, GetPositionNear(wsp, 0, 40)) -- West
-        M.wave6_2 = BuildObject("svtank", 2, GetPositionNear(ssp, 0, 40)) -- South
-        M.wave6_3 = BuildObject("svtank", 2, GetPositionNear(wsp, 0, 40))
-        local w4 = BuildObject("svtank", 2, GetPositionNear(ssp, 0, 40))
-        local w5 = BuildObject("svtank", 2, GetPositionNear(wsp, 0, 40))
+        M.wave6_1 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(wsp, 0, 40)) -- West
+        M.wave6_2 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(ssp, 0, 40)) -- South
+        M.wave6_3 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(wsp, 0, 40))
+        local w4 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(ssp, 0, 40))
+        local w5 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(wsp, 0, 40))
 
         if IsAlive(M.avrecycler) then
             Attack(M.wave6_1, M.avrecycler)
@@ -1264,9 +1419,9 @@ function Update()
         local p1 = spawns[math.random(1, 3)]
         local p2 = spawns[math.random(1, 3)]
         local p3 = spawns[math.random(1, 3)]
-        M.wave7_1 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p1), 0, 40))
-        M.wave7_2 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p2), 0, 40))
-        M.wave7_3 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p3), 0, 40))
+        M.wave7_1 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition(p1), 0, 40))
+        M.wave7_2 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition(p2), 0, 40))
+        M.wave7_3 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition(p3), 0, 40))
         Goto(M.wave7_1, "base", 1)
         Goto(M.wave7_2, "base", 1)
         Goto(M.wave7_3, "base", 1)
@@ -1292,16 +1447,16 @@ function Update()
         M.last_warning = true
     end
 
-    if not M.final_objective and M.third_objective and CountUnitsNearObject(M.geyser, 5000.0, 2, "svtank") < 5 then
+    if not M.final_objective and M.third_objective and CountUnitsNearObject(M.geyser, 5000.0, ENEMY_TEAM, "svtank") < 5 then
         local p4 = spawns[math.random(1, 3)]
         local p5 = spawns[math.random(1, 3)]
-        M.wave7_4 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p4), 0, 40))
-        M.wave7_5 = BuildObject("svtank", 2, GetPositionNear(GetPosition(p5), 0, 40))
+        M.wave7_4 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition(p4), 0, 40))
+        M.wave7_5 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition(p5), 0, 40))
         Goto(M.wave7_4, "base", 1)
         Goto(M.wave7_5, "base", 1)
     end
 
-    if M.third_objective and GetDistance(M.user, M.launch) < 100.0 and not M.lost and not M.final_objective then
+    if M.third_objective and CRCoop.AllPlayersNear(M.launch, 100.0) and not M.lost and not M.final_objective then
         M.final_objective = true
     end
 
@@ -1331,9 +1486,9 @@ function Update()
         M.next_shot = GetTime() + 18.5
         M.new_unit_time = GetTime() + 2.0
         M.audmsg = subtit.Play("misn0316.wav")
-        M.prop1 = BuildObject("svtank", 2, GetPositionNear(GetPosition("spawna"), 0, 40))
-        M.prop2 = BuildObject("svtank", 2, GetPositionNear(GetPosition("spawnb"), 0, 40))
-        M.prop3 = BuildObject("svtank", 2, GetPositionNear(GetPosition("spawnc"), 0, 40))
+        M.prop1 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition("spawna"), 0, 40))
+        M.prop2 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition("spawnb"), 0, 40))
+        M.prop3 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition("spawnc"), 0, 40))
         CameraReady()
         M.startfinishingmovie = true
     end
@@ -1397,7 +1552,7 @@ function Update()
 
     if M.climax1 and not M.clear_debis and M.clear_debis_time < GetTime() then
         if IsAlive(M.build3) then Damage(M.build3, 20000) end
-        M.prop8 = BuildObject("svtank", 2, GetPositionNear(GetPosition(M.cam_geyser), 0, 20))
+        M.prop8 = BuildObject("svtank", ENEMY_TEAM, GetPositionNear(GetPosition(M.cam_geyser), 0, 20))
         Retreat(M.prop8, "climax_path2", 1)
         M.clear_debis = true
     end
@@ -1406,8 +1561,8 @@ function Update()
         if GetDistance(M.prop1, M.cam_geyser) < 100.0 then
             Retreat(M.prop1, "climax_path2", 1)
             local s_pos = GetPosition("solar_spot")
-            M.prop9 = BuildObject("svfigh", 2, GetPositionNear(s_pos, 0, 20))
-            M.prop0 = BuildObject("svfigh", 2, GetPositionNear(s_pos, 0, 20))
+            M.prop9 = BuildObject("svfigh", ENEMY_TEAM, GetPositionNear(s_pos, 0, 20))
+            M.prop0 = BuildObject("svfigh", ENEMY_TEAM, GetPositionNear(s_pos, 0, 20))
             Retreat(M.prop9, "camera_pass", 1)
             Retreat(M.prop0, "camera_pass", 1)
             if IsAlive(M.hanger) then Damage(M.hanger, 20000) end
