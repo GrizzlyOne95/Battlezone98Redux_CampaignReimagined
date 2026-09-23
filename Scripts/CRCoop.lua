@@ -16,6 +16,7 @@ local PROTOCOL_VERSION = 1
 local HANDLE_MESSAGE = "H"
 local SYNC_REQUEST_MESSAGE = "Q"
 local SYNC_ACK_MESSAGE = "K"
+local PHASE_MESSAGE = "P"
 
 local DEFAULT_LEADER_TEAM = 1
 local DEFAULT_HUMAN_TEAM_MIN = 1
@@ -29,11 +30,14 @@ local humanTeamMin = DEFAULT_HUMAN_TEAM_MIN
 local humanTeamMax = DEFAULT_HUMAN_TEAM_MAX
 local handleBroadcastInterval = 0.5
 local handshakeRetryInterval = 1.0
+local phaseBroadcastInterval = 1.0
 local nextHandleBroadcast = 0.0
 local nextHandshakeRequest = 0.0
+local nextPhaseBroadcast = 0.0
 local syncAcknowledged = false
 local missionStarted = false
 local leaderDeparted = false
+local missionPhase = 0
 
 local function IsNetworkGame()
     return type(IsNetGame) == "function" and IsNetGame()
@@ -145,11 +149,16 @@ function CRCoop.Initialize(options)
     if type(options.handshakeRetryInterval) == "number" and options.handshakeRetryInterval > 0 then
         handshakeRetryInterval = options.handshakeRetryInterval
     end
+    if type(options.phaseBroadcastInterval) == "number" and options.phaseBroadcastInterval > 0 then
+        phaseBroadcastInterval = options.phaseBroadcastInterval
+    end
 
     nextHandleBroadcast = 0.0
     nextHandshakeRequest = 0.0
+    nextPhaseBroadcast = 0.0
     syncAcknowledged = false
     leaderDeparted = false
+    missionPhase = 0
     RefreshLocalHandle()
 end
 
@@ -218,6 +227,34 @@ end
 
 function CRCoop.HasLeaderDeparted()
     return leaderDeparted
+end
+
+function CRCoop.GetMissionPhase()
+    return missionPhase
+end
+
+function CRCoop.SetMissionPhase(phase)
+    if type(phase) ~= "number" then
+        return false
+    end
+
+    phase = math.floor(phase)
+    if phase < missionPhase then
+        return false
+    end
+    if IsNetworkGame() and not CRCoop.IsCampaignLeader() then
+        return false
+    end
+
+    local changed = phase > missionPhase
+    missionPhase = phase
+
+    if changed and IsNetworkGame() and type(Send) == "function" then
+        Send(0, PHASE_MESSAGE, missionPhase)
+        nextPhaseBroadcast = (type(GetTime) == "function" and GetTime() or 0.0) + phaseBroadcastInterval
+    end
+
+    return changed
 end
 
 function CRCoop.MarkMissionStarted()
@@ -298,7 +335,14 @@ function CRCoop.Update()
         end
     end
 
-    if not CRCoop.IsCampaignLeader() and not syncAcknowledged and now >= nextHandshakeRequest then
+    if CRCoop.IsCampaignLeader() and missionPhase > 0 and now >= nextPhaseBroadcast then
+        nextPhaseBroadcast = now + phaseBroadcastInterval
+        if type(Send) == "function" then
+            -- Phase messages are intentionally periodic. Script-level Send()
+            -- must not be treated as reliable across lifecycle transitions.
+            Send(0, PHASE_MESSAGE, missionPhase)
+        end
+    elseif not CRCoop.IsCampaignLeader() and not syncAcknowledged and now >= nextHandshakeRequest then
         nextHandshakeRequest = now + handshakeRetryInterval
         if type(Send) == "function" then
             -- Broadcast the request because a joining client may not yet know
@@ -325,19 +369,36 @@ function CRCoop.Receive(from, kind, ...)
         if CRCoop.IsCampaignLeader() and IsHumanTeam(player.team) and version == PROTOCOL_VERSION then
             player.ready = true
             if type(Send) == "function" then
-                Send(from, SYNC_ACK_MESSAGE, PROTOCOL_VERSION)
+                -- Include the current phase so a client can recover even if the
+                -- most recent phase broadcast was lost before its handshake.
+                Send(from, SYNC_ACK_MESSAGE, PROTOCOL_VERSION, missionPhase)
             end
         end
         return true
     end
 
     if kind == SYNC_ACK_MESSAGE then
-        local version = ...
+        local version, phase = ...
         local leaderId = FindLeaderId()
         local leader = players[from]
         if version == PROTOCOL_VERSION and
             ((leaderId ~= nil and from == leaderId) or (leader and leader.team == leaderTeam)) then
             syncAcknowledged = true
+            if type(phase) == "number" and phase > missionPhase then
+                missionPhase = math.floor(phase)
+            end
+        end
+        return true
+    end
+
+    if kind == PHASE_MESSAGE then
+        local phase = ...
+        local leader = players[from]
+        if leader and leader.team == leaderTeam and type(phase) == "number" then
+            phase = math.floor(phase)
+            if phase > missionPhase then
+                missionPhase = phase
+            end
         end
         return true
     end
