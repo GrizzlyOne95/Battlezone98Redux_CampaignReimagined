@@ -79,7 +79,14 @@ assert(Coop.Receive(20, "Q", remoteHandle, 2, 1), "sync request was not consumed
 assert(Coop.IsSessionReady(), "host did not mark client ready")
 local ack = sent[#sent]
 assert(ack.to == 20 and ack.kind == "K" and ack.args[1] == 1, "host sync acknowledgement changed")
+assert(ack.args[2] == 0, "initial sync acknowledgement must include current phase")
 assert(Coop.AllPlayersNear(target, 100), "all-player proximity check failed")
+
+assert(Coop.SetMissionPhase(1), "leader could not advance mission phase")
+assert(Coop.GetMissionPhase() == 1, "leader phase did not advance")
+local phaseMsg = sent[#sent]
+assert(phaseMsg.kind == "P" and phaseMsg.args[1] == 1, "phase broadcast format changed")
+assert(not Coop.SetMissionPhase(0), "mission phase must not rewind")
 
 -- A reconnect is a new participant ID and must handshake again.
 Coop.DeletePlayer(20)
@@ -123,7 +130,17 @@ for _, msg in ipairs(sent) do
 end
 assert(sawRequest, "client did not request leader sync")
 assert(not clientCoop.IsSessionReady(), "client became ready without leader ack")
-assert(clientCoop.Receive(60, "K", 1), "client did not consume leader ack")
+assert(clientCoop.Receive(60, "K", 1, 2), "client did not consume leader ack")
 assert(clientCoop.IsSessionReady(), "client did not become ready after leader ack")
+assert(clientCoop.GetMissionPhase() == 2, "client did not recover phase from leader ack")
+
+assert(clientCoop.Receive(60, "P", 3), "client did not consume leader phase")
+assert(clientCoop.GetMissionPhase() == 3, "client did not advance from leader phase")
+assert(clientCoop.Receive(60, "P", 2), "client did not consume stale leader phase")
+assert(clientCoop.GetMissionPhase() == 3, "stale phase rewound client state")
+
+clientCoop.CreatePlayer(70, "NotLeader", 3)
+assert(clientCoop.Receive(70, "P", 4), "non-leader phase packet was not consumed")
+assert(clientCoop.GetMissionPhase() == 3, "non-leader was allowed to change mission phase")
 
 io.write("CRCoop checks passed\n")
