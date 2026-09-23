@@ -33,3 +33,11 @@ for pattern, message in [
     assert not re.search(pattern, lua), message
 
 print(f"misn03 co-op team contract passed ({len(enemy_blocks)} preplaced Team-5 enemies)")
+
+
+# Early presentation phases must remain explicit leader-published transitions.
+assert "local PHASE_DEFENSE = 1" in lua, "misn03 defense phase contract changed"
+assert "local PHASE_FORTIFY = 2" in lua, "misn03 fortify phase contract changed"
+assert "CRCoop.SetMissionPhase(PHASE_DEFENSE)" in lua, "initial defense phase is not published"
+assert "CRCoop.SetMissionPhase(PHASE_FORTIFY)" in lua, "fortify phase is not published"
+assert "local function PresentMissionPhase()" in lua, "client phase presentation handler missing"
