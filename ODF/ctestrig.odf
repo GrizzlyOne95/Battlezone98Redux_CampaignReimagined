@@ -1,0 +1,27 @@
+// Lightweight CRA Tesla acquisition flash.
+[ExplosionClass]
+classLabel = "explosion"
+explSound = NULL
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+particleTypes = 1
+
+particleClass1 = "ctestrig.spark"
+particleCount1 = 3
+particleVeloc1 = "3.0 3.0 3.0"
+
+[Spark]
+simulateBase = "sim_ember"
+lifeTime = 0.20
+renderBase = "draw_twirl"
+textureName = "spark.tga"
+textureBlend = "one one modulate"
+startColor = "90 255 125 220"
+finishColor = "20 180 70 0"
+startRadius = 0.10
+finishRadius = 0.03
+animateTime = 0.20
+rotationRate = 15.0

@@ -12,7 +12,7 @@ heatSignature = 1.0
 imageSignature = 2.0
 radarSignature = 0.1
 weaponHard1 = "GS1"
-weaponName1 = "gproxmin"
+weaponName1 = "gctesla"
 
 [CraftClass]
 rangeScan = 180.0

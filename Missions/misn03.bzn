@@ -417,7 +417,7 @@ pos [1] =
   z [1] =
 101173
 team [1] =
-2
+5
 label = enemyturret_2
 isUser [1] =
 0
@@ -552,7 +552,7 @@ independence [1] =
 curPilot [1] =
 sspilo
 perceivedTeam [1] =
-2
+5
 [GameObject]
 PrjID [1] =
 svturr
@@ -566,7 +566,7 @@ pos [1] =
   z [1] =
 101136
 team [1] =
-2
+5
 label = enemyturret_4
 isUser [1] =
 0
@@ -701,7 +701,7 @@ independence [1] =
 curPilot [1] =
 sspilo
 perceivedTeam [1] =
-2
+5
 [GameObject]
 PrjID [1] =
 svturr
@@ -715,7 +715,7 @@ pos [1] =
   z [1] =
 101214
 team [1] =
-2
+5
 label = enemyturret_1
 isUser [1] =
 0
@@ -850,7 +850,7 @@ independence [1] =
 curPilot [1] =
 sspilo
 perceivedTeam [1] =
-2
+5
 [GameObject]
 PrjID [1] =
 svturr
@@ -864,7 +864,7 @@ pos [1] =
   z [1] =
 101090
 team [1] =
-2
+5
 label = enemyturret_3
 isUser [1] =
 0
@@ -999,7 +999,7 @@ independence [1] =
 curPilot [1] =
 sspilo
 perceivedTeam [1] =
-2
+5
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -5163,7 +5163,7 @@ pos [1] =
   z [1] =
 100862
 team [1] =
-2
+5
 label = svfigh1
 isUser [1] =
 0
@@ -5285,7 +5285,7 @@ independence [1] =
 curPilot [1] =
 sspilo
 perceivedTeam [1] =
-2
+5
 [GameObject]
 PrjID [1] =
 svfigh
@@ -5299,7 +5299,7 @@ pos [1] =
   z [1] =
 100736
 team [1] =
-2
+5
 label = svfigh2
 isUser [1] =
 0
@@ -5421,7 +5421,7 @@ independence [1] =
 curPilot [1] =
 sspilo
 perceivedTeam [1] =
-2
+5
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -6356,7 +6356,7 @@ pos [1] =
   z [1] =
 99936.5
 team [1] =
-2
+5
 label = sbbarr0_barracks
 isUser [1] =
 0
@@ -6471,7 +6471,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
-2
+5
 [GameObject]
 PrjID [1] =
 absupp
@@ -6610,7 +6610,7 @@ size [1] =
 [AOI]
 undefptr = 00000035
 team [1] =
-2
+5
 interesting [1] =
 false
 inside [1] =
@@ -6621,7 +6621,7 @@ force [1] =
 0
 [AiPaths]
 count [1] =
-320
+321
 [AiPath]
 old_ptr = 00000036
 size [1] =
@@ -17960,4 +17960,37 @@ points [1] =
 1702.83
   z [1] =
 101710
+pathType = 00000000
+[AiPath]
+old_ptr = 00000174
+size [1] =
+10
+label = footpatrol
+pointCount [1] =
+6
+points [6] =
+  x [1] =
+1027.64
+  z [1] =
+101364
+  x [1] =
+972
+  z [1] =
+101315
+  x [1] =
+1015
+  z [1] =
+101245
+  x [1] =
+1115
+  z [1] =
+101250
+  x [1] =
+1160
+  z [1] =
+101335
+  x [1] =
+1027.64
+  z [1] =
+101364
 pathType = 00000000

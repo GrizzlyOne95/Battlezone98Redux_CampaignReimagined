@@ -1,0 +1,23 @@
+// Autonomous CRA field pulse.
+// Searches locally and launches one short-range lightning bolt when a target is found.
+[OrdnanceClass]
+classLabel = "popper"
+
+shotGeometry = NULL
+shotSound = NULL
+xplGround = NULL
+xplVehicle = NULL
+xplBuilding = NULL
+
+ammoCost = 1
+lifeSpan = 1.0
+shotSpeed = 12.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[PopperClass]
+scanRange = 35.0
+launchXpl = "ctestrig"
+launchOrd = "ctesbolt"

@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-09-21
+
+### AI pilot behavior
+
+- Restored the missing `footpatrol` route in misn03's BZN so respawned foot
+  patrol soldiers receive a valid loop instead of idling at the recycler.
+- Added a special-combat registration path so scripted mission units can use
+  aiSpecial weapon switching, cloaking, sniping, and craft stealing without
+  entering aiCore production, base-planning, or squad-order ownership.
+- Misn02b and misn03 now use that path for Team 2 forces while disabling the
+  normal base/economy/tactical-order loops that could reorder scripted units.
+- Stock and faction pilot variants now register from the stock pilot ODF family
+  and `handgun` sidearm definition, restoring sniper/steal chances for both
+  managed teams.
+- Snipers can now find the nearest eligible occupied enemy craft from the
+  one-second AI object cache when the nearest enemy is infantry or another
+  non-snippable object.
+- Fixed independence-locked objects being marked tracked before they could be
+  registered after unlocking, and made the configured advanced-weapon chances
+  effective for thumpers, field projectors, double weapons, and AI howitzers.
+
+### AI weapon selection
+
+- Fixed standard `avtank` AI from treating the inert MDM Mortar (`gmdmgun`)
+  as its mortar weapon, which could leave tanks using the mortar instead of
+  their primary weapon.
+- Mortar selection is now target-driven: it is reserved for infantry at a
+  useful range, while armour, buildings, and close targets use the ODF/default
+  weapon.
+
+### Player Pilot Mode
+
+- Pilot Mode now toggles against the existing player AI team instead of
+  resetting it, preserving managers, queues, strategy, and tracked units.
+- Enabling recalculates team registration and native combat tuning every time;
+  disabling restores the pre-mode configuration and only clears commands that
+  Pilot Mode itself issued.
+- Added save/load state for the mode baseline and cargo-production cooldowns,
+  using relative cooldowns so loading a save cannot duplicate a tug or create
+  free units/scrap.
+- Uses the engine's supported multi-return Lua save contract: normal game
+  saves/autosaves persist mission state, aiCore state, and Pilot Mode state as
+  separate values; the native mission-save path intentionally skips Lua
+  Save/Load and remains subject to that engine limitation.
+- Added objective-context adapters for misn02b, misn03, and misn04. Pilot Mode
+  can support the current mission phase with eligible combat craft while
+  mission-owned transports, recyclers, and scripted set pieces remain protected.
+- Load-time setup in those missions now reuses restored aiCore teams instead of
+  rebuilding them and discarding saved AI state.
+
 ## 2026-09-12
 
 ### OpenShim 1.0.0.29

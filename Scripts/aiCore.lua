@@ -159,18 +159,43 @@ end
 function utility.CanSnipe(h)
     if not IsValid(h) then return false end
     local cls = string.lower(utility.CleanString(GetClassLabel(h)))
+    local isTurret = string.find(cls, "turret", 1, true) ~= nil
+    local isTurretTank = string.find(cls, "turrettank", 1, true) ~= nil
+    local isStationaryTurret = isTurret and not isTurretTank
+    local isDeployedTurretTank = isTurretTank and IsDeployed(h)
     if IsCraft(h) and
         not string.find(cls, "walker") and
         not string.find(cls, "recycler") and
         not string.find(cls, "factory") and
         not string.find(cls, "armory") and
         not string.find(cls, "constructionrig") and
-        not string.find(cls, "turret") and
-        not (string.find(cls, "turrettank") and IsDeployed(h)) and
+        not isStationaryTurret and
+        not isDeployedTurretTank and
         not string.find(string.lower(GetOdf(h)), "hvsat") and
         not string.find(cls, "sav") then
         return true
     end
+    return false
+end
+
+-- Stock pilot identity is based on the stock pilot ODF family and its
+-- weaponName1 = "handgun" definition. Soldiers use gtminig/gtminis instead.
+function utility.IsPilotPerson(h)
+    if not IsValid(h) or not IsPerson(h) then return false end
+
+    local odf = string.lower(utility.CleanString(GetOdf(h)))
+    if string.find(odf, "spilo", 1, true) then
+        return true
+    end
+
+    for slot = 0, 1 do
+        local weapon = string.lower(utility.CleanString(GetWeaponClass(h, slot)))
+        if string.find(weapon, "handgun", 1, true)
+            or string.find(weapon, "gsnipe", 1, true) then
+            return true
+        end
+    end
+
     return false
 end
 
@@ -2435,6 +2460,52 @@ function aiCore.GetCachedTeamTargets(teamNum)
     return aiCore.EmptyList
 end
 
+-- Find an occupied, snipable enemy craft without calling ObjectsInRange.
+-- The object cache is refreshed at most once per second, so this remains a
+-- bounded list walk even when several pilot teams are active.
+function aiCore.FindNearestSniperTarget(shooter, maxRange, preferredTeam)
+    if not IsValid(shooter) or not IsAlive(shooter) or not IsPerson(shooter) then
+        return nil
+    end
+
+    local shooterTeam = GetTeamNum(shooter)
+    local range = maxRange or 200.0
+    local best = nil
+    local bestDistance = range
+    local checkedTeam = {}
+
+    local function CheckTeam(teamNum)
+        if teamNum == nil or checkedTeam[teamNum] or teamNum == shooterTeam then return end
+        checkedTeam[teamNum] = true
+
+        for _, candidate in ipairs(aiCore.GetCachedTeamCraft(teamNum)) do
+            if IsValid(candidate) and IsAlive(candidate) and candidate ~= shooter
+                and not IsAlly(shooter, candidate)
+                and utility.CanSnipe(candidate)
+                and IsAliveAndPilot(candidate)
+                and not IsCloaked(candidate) then
+                local distance = GetDistance(shooter, candidate)
+                if distance < bestDistance then
+                    best = candidate
+                    bestDistance = distance
+                end
+            end
+        end
+    end
+
+    CheckTeam(preferredTeam)
+    if best then return best end
+
+    -- A mission can have more than one hostile team. The preferred team is
+    -- normally enough; this fallback preserves the old nearest-enemy behavior
+    -- when the primary team has no eligible craft.
+    for teamNum = 0, 15 do
+        CheckTeam(teamNum)
+    end
+
+    return best
+end
+
 
 -- Integrated Producer Logic
 producer = {
@@ -3423,10 +3494,12 @@ function aiCore.WeaponManager.new(teamNum)
     -- Mortar users
     self.mortarUsers = {}
     self.mortarActive = {}
-    self.mortarPeriod = 15.0
-    self.mortarDuration = 5.0
-    self.mortarRate = 50
-    self.mortarWeapons = { "gmortar", "gmdmgun", "gsplint" }
+    -- gmdmgun (MDM Mortar) is deliberately absent. It is the only stock
+    -- weapon with classLabel "detonator": it lays an armed bouncing bomb
+    -- and waits for a second trigger that nothing in the AI ever pulls, so
+    -- selecting it means firing inert ordnance. It also sits in avtank
+    -- slot 4, which registered every standard tank as a mortar user.
+    self.mortarWeapons = { "gmortar", "gsplint" }
 
     -- Mine layers (weapon-based, not vehicle minelayers)
     self.mineUsers = {}
@@ -3457,7 +3530,6 @@ function aiCore.WeaponManager.new(teamNum)
     -- Timers
     self.thumperTimer = 0.0
     self.fieldTimer = 0.0
-    self.mortarTimer = 0.0
     self.mineTimer = 0.0
 
     return self
@@ -3487,7 +3559,7 @@ function aiCore.WeaponManager:AddObject(h)
     for _, weapon in ipairs(self.mortarWeapons) do
         local mask = aiCore.GetWeaponMask(h, weapon)
         if mask > 0 then
-            table.insert(self.mortarUsers, { handle = h, mask = mask, timer = 0.0 })
+            table.insert(self.mortarUsers, { handle = h, mask = mask, usingMortar = false })
             if aiCore.Debug then print("Team " .. self.teamNum .. " added mortar user: " .. GetOdf(h)) end
             break
         end
@@ -3659,6 +3731,10 @@ function aiCore.WeaponManager:UpdateRetaliation(dt)
 end
 
 function aiCore.WeaponManager:UpdateThumpers(dt)
+    local thumperRate = self.thumperRate
+    if self.teamObj and self.teamObj.Config and self.teamObj.Config.thumperChance ~= nil then
+        thumperRate = self.teamObj.Config.thumperChance
+    end
     for i = #self.thumperUsers, 1, -1 do
         local user = self.thumperUsers[i]
         if not IsValid(user.handle) then
@@ -3678,7 +3754,7 @@ function aiCore.WeaponManager:UpdateThumpers(dt)
                 local nearest = GetNearestEnemy(user.handle)
                 if IsValid(nearest) and GetDistance(user.handle, nearest) <= 200.0 then
                     local nearestCls = string.lower(utility.CleanString(GetClassLabel(nearest)))
-                    shouldPulse = string.find(nearestCls, utility.ClassLabel.WALKER) ~= nil or math.random(100) < self.thumperRate
+                    shouldPulse = string.find(nearestCls, utility.ClassLabel.WALKER) ~= nil or math.random(100) < thumperRate
                 end
             end
 
@@ -3701,6 +3777,10 @@ function aiCore.WeaponManager:UpdateThumpers(dt)
 end
 
 function aiCore.WeaponManager:UpdateFields(dt)
+    local fieldRate = self.fieldRate
+    if self.teamObj and self.teamObj.Config and self.teamObj.Config.fieldChance ~= nil then
+        fieldRate = self.teamObj.Config.fieldChance
+    end
     for i = #self.fieldUsers, 1, -1 do
         local user = self.fieldUsers[i]
         if not IsValid(user.handle) then
@@ -3711,7 +3791,7 @@ function aiCore.WeaponManager:UpdateFields(dt)
             -- Field deployment: deploy for duration, wait for period
             local cycleTime = user.timer % self.fieldPeriod
             if cycleTime < self.fieldDuration then
-                if user.handle ~= GetPlayerHandle() and math.random(100) < self.fieldRate then
+                if user.handle ~= GetPlayerHandle() and math.random(100) < fieldRate then
                     FireWeaponMask(user.handle, user.mask)
                 end
             else
@@ -3724,23 +3804,48 @@ function aiCore.WeaponManager:UpdateFields(dt)
     end
 end
 
+-- Closest range at which an arcing mortar shot is worth taking.
+local kMortarMinRange = 20.0
+
 function aiCore.WeaponManager:UpdateMortars(dt)
     for i = #self.mortarUsers, 1, -1 do
         local user = self.mortarUsers[i]
         if not IsValid(user.handle) then
             table.remove(self.mortarUsers, i)
-        else
-            user.timer = user.timer + dt
-
-            -- Mortar firing: fire for duration, wait for period
-            local cycleTime = user.timer % self.mortarPeriod
-            if cycleTime < self.mortarDuration then
-                if user.handle ~= GetPlayerHandle() and math.random(100) < self.mortarRate then
-                    FireWeaponMask(user.handle, user.mask)
-                end
-            else
-                -- Reset mask when outside firing window
+        elseif user.handle == GetPlayerHandle() then
+            -- The player picks their own weapon. If the AI had this craft
+            -- on the mortar when they boarded it, hand the ODF/default
+            -- selection back instead of leaving them stuck on the mortar
+            -- for the rest of the mission.
+            if user.usingMortar then
+                user.usingMortar = false
                 if self.teamObj then
+                    self.teamObj:ResetWeaponMask(user.handle)
+                end
+            end
+        else
+            -- Mortars are a contextual tool, not a timed/random default.
+            -- Everything that is not infantry stays on the ODF/default
+            -- weapon.
+            local target = GetCurrentWho(user.handle)
+            local useMortar = false
+            if IsValid(target) and IsAlive(target) and not IsAlly(user.handle, target) then
+                -- Infantry only. Every mortar ordnance is pure concussion
+                -- damage with zero ballistic or impact, which is the
+                -- anti-personnel type; against armour or a 7000-health
+                -- building a 500-damage arcing lob on a 2-3s delay is
+                -- strictly worse than closing with the default weapon.
+                -- The floor keeps the arc from lobbing over a target that
+                -- is already in the shooter's face; tune it here.
+                useMortar = IsPerson(target)
+                    and GetDistance(user.handle, target) >= kMortarMinRange
+            end
+
+            if useMortar ~= user.usingMortar then
+                user.usingMortar = useMortar
+                if useMortar then
+                    SetWeaponMask(user.handle, user.mask)
+                elseif self.teamObj then
                     self.teamObj:ResetWeaponMask(user.handle)
                 end
             end
@@ -3775,6 +3880,10 @@ end
 function aiCore.WeaponManager:UpdateDoubleWeapons(dt)
     -- Cycle through double weapon users and apply masks
     local now = GetTime()
+    local doubleRate = self.doubleRate
+    if self.teamObj and self.teamObj.Config and self.teamObj.Config.doubleWeaponChance ~= nil then
+        doubleRate = self.teamObj.Config.doubleWeaponChance
+    end
     for i = #self.doubleUsers, 1, -1 do
         local h = self.doubleUsers[i]
         if not IsValid(h) then
@@ -3783,7 +3892,7 @@ function aiCore.WeaponManager:UpdateDoubleWeapons(dt)
         else
             if self.teamObj and now >= (self.doubleMaskCheckAt[h] or 0.0) then
                 self.doubleMaskCheckAt[h] = now + (self.doubleMaskInterval or 0.9) + math.random() * 0.35
-                self.teamObj:SetDoubleWeaponMask(h, self.doubleRate)
+                self.teamObj:SetDoubleWeaponMask(h, doubleRate)
             end
         end
     end
@@ -4024,6 +4133,14 @@ end
 
 function aiCore.HowitzerManager:UpdateSquadOrders()
     local Cmd = utility.AiCommand
+
+    -- Difficulty profiles expose howitzerChance as the chance that an AI
+    -- squad re-evaluates a fire mission. Keep player howitzers fully manual.
+    if self.teamNum ~= 1 and self.teamObj and self.teamObj.Config
+        and self.teamObj.Config.howitzerChance ~= nil
+        and math.random(100) > self.teamObj.Config.howitzerChance then
+        return
+    end
 
     -- Prioritize support infrastructure and constructors before core production.
     local targets = {}
@@ -6743,6 +6860,10 @@ function aiCore.Team:new(teamNum, faction)
         -- Toggles
         passiveRegen = false,
         autoManage = false,
+        manageBase = true,
+        manageTacticalOrders = true,
+        manageSpecialCombat = true,
+        managePilotSpecials = true,
         autoRepairWingmen = false,
         offensiveRetaliation = true,
         autoRescue = false,
@@ -6949,6 +7070,9 @@ function aiCore.Team:new(teamNum, faction)
     t.rescueAttemptExpiry = 0.0
     t.paratrooperTimer = 0
     t.trackedSet = {}
+    -- Explicitly mission-scripted units can opt into aiSpecial combat behavior
+    -- without becoming part of the normal production/tactical ownership lists.
+    t.specialTrackedSet = {}
 
     t.stealthState = {
         discovered = false,
@@ -8362,10 +8486,16 @@ end
 -- Main update loop for an AI Team.
 function aiCore.Team:Update()
     local now = GetTime()
-    self:UpdateBaseCenter()
-    self:UpdateStrategicFSM()
+    local manageBase = self.Config.manageBase ~= false
+    local manageTacticalOrders = self.Config.manageTacticalOrders ~= false
+    local manageSpecialCombat = self.Config.manageSpecialCombat ~= false
 
-    if now >= (self.buildMaintenanceAt or 0.0) then
+    if manageBase then
+        self:UpdateBaseCenter()
+        self:UpdateStrategicFSM()
+    end
+
+    if manageBase and now >= (self.buildMaintenanceAt or 0.0) then
         self.buildMaintenanceAt = now + 0.35
 
         -- Replenish Queues from Build Lists
@@ -8375,20 +8505,24 @@ function aiCore.Team:Update()
     end
 
     -- Manager Updates
-    self.recyclerMgr:update()
-    self.factoryMgr:update()
-    self.constructorMgr:update()
+    if manageBase then
+        self.recyclerMgr:update()
+        self.factoryMgr:update()
+        self.constructorMgr:update()
+    end
 
-    if now >= (self.producerProcessAt or 0.0) then
+    if manageBase and now >= (self.producerProcessAt or 0.0) then
         self.producerProcessAt = now + 0.25
         -- MODIFIED: Process Integrated Production Queues
         producer.ProcessQueues(self)
     end
 
     -- Strategy rotation
-    self:UpdateStrategyRotation()
-    self:UpdateScrapAwareness()
-    if self.Config.autoManage then self:UpdateRaiders() end
+    if manageBase then
+        self:UpdateStrategyRotation()
+        self:UpdateScrapAwareness()
+        if self.Config.autoManage then self:UpdateRaiders() end
+    end
 
     -- Time-Slicing Optimization:
     -- Instead of running every manager every frame, we stagger them across 4 frames.
@@ -8398,15 +8532,15 @@ function aiCore.Team:Update()
 
     if phase == 0 then
         -- Weapon targeting and usage (High Priority)
-        if self.weaponMgr then self.weaponMgr:Update() end
+        if manageSpecialCombat and self.weaponMgr then self.weaponMgr:Update() end
     elseif phase == 1 then
         -- CRA Stealth and artillery coordination
-        if self.cloakMgr then self.cloakMgr:Update() end
-        if self.howitzerMgr then self.howitzerMgr:Update() end
+        if manageSpecialCombat and self.cloakMgr then self.cloakMgr:Update() end
+        if manageTacticalOrders and self.howitzerMgr then self.howitzerMgr:Update() end
     elseif phase == 2 then
         -- Area denial and transport logic
-        if self.minelayerMgr then self.minelayerMgr:Update() end
-        if self.apcMgr then self.apcMgr:Update() end
+        if manageTacticalOrders and self.minelayerMgr then self.minelayerMgr:Update() end
+        if manageTacticalOrders and self.apcMgr then self.apcMgr:Update() end
     elseif phase == 3 then
         -- Defensive posture management
         if self.Config.autoManage then
@@ -8417,34 +8551,34 @@ function aiCore.Team:Update()
     end
 
     if self.wingmanMgr and self.Config.autoRepairWingmen then self.wingmanMgr:Update() end
-    if self.depotMgr then self.depotMgr:Update() end
+    if manageTacticalOrders and self.depotMgr then self.depotMgr:Update() end
 
     -- pilotMode Automations
     if self.Config.autoManage then self:UpdateUnitRoles() end
     if self.Config.autoManage then self:UpdateSquads() end
     if self.Config.autoRescue then self:UpdateRescue() end
     if self.Config.autoTugs then self:UpdateTugs() end
-    if self.teamNum == 1 then self:UpdateStickToPlayer() end
-    if self.Config.autoBuild then self:UpdateAutoBase() end
+    if manageTacticalOrders and self.teamNum == 1 then self:UpdateStickToPlayer() end
+    if manageBase and self.Config.autoBuild then self:UpdateAutoBase() end
     if self.Config.autoManage then self:UpdateRetreat() end
-    self:UpdateOffensiveRetaliation()
+    if manageTacticalOrders then self:UpdateOffensiveRetaliation() end
 
     -- Legacy Proximity/Maintenance
-    if self.Config.dynamicMinefields then self:UpdateDynamicMinefields() end
+    if manageTacticalOrders and self.Config.dynamicMinefields then self:UpdateDynamicMinefields() end
     if self.Config.passiveRegen then self:UpdateRegen() end
 
-    self:UpdateBaseMaintenance()
+    if manageBase then self:UpdateBaseMaintenance() end
     self:UpdatePilotResources()
     self:UpdatePilots()
-    self:UpdateResourceBoosting()
-    self:UpdateUpgrades()
-    self:UpdateWrecker()
-    self:UpdateArmorySuicide()
-    self:UpdateParatroopers()
-    self:UpdateSoldiers()
+    if manageBase then self:UpdateResourceBoosting() end
+    if manageBase then self:UpdateUpgrades() end
+    if manageTacticalOrders then self:UpdateWrecker() end
+    if manageTacticalOrders then self:UpdateArmorySuicide() end
+    if manageBase then self:UpdateParatroopers() end
+    if manageTacticalOrders then self:UpdateSoldiers() end
 
     -- Scavenger Assist (Player QOL)
-    if self.Config.scavengerAssist then self:UpdateScavengerAssist() end
+    if manageBase and self.Config.scavengerAssist then self:UpdateScavengerAssist() end
 
     -- Tracked Set Cleanup (O(1) lookup maintenance)
     if now >= (self.trackedCleanupAt or 0.0) then
@@ -8459,7 +8593,7 @@ function aiCore.Team:Update()
     -- Periodically update scavenger micro
     if now >= (self.scavMicroAt or 0.0) then
         self.scavMicroAt = now + 0.5
-        self:UpdateScavengerFieldMicro()
+        if manageBase then self:UpdateScavengerFieldMicro() end
     end
 end
 
@@ -11157,6 +11291,9 @@ function aiCore.Team:UpdateAutoBase()
 end
 
 function aiCore.Team:UpdatePilotResources()
+    -- Do not accumulate pilot producer jobs for player/script-owned teams when
+    -- factory management is disabled.
+    if not self.Config.autoBuild or not self.Config.manageFactories then return end
     if GetTime() > (self.pilotResTimer or 0) then
         self.pilotResTimer = GetTime() + aiCore.Constants.PILOT_RESOURCE_INTERVAL
         aiCore.RemoveDead(self.pilots)
@@ -11454,11 +11591,13 @@ function aiCore.Team:UpdatePilots()
     if not self.sniperEquipTime then self.sniperEquipTime = {} end
     if not self.sniperState then self.sniperState = {} end
     if not self.sniperAttackTarget then self.sniperAttackTarget = {} end
+    if not self.sniperRetryAt then self.sniperRetryAt = {} end
     if not self.pilotStealScanAt then self.pilotStealScanAt = {} end
     if not self.pilotPatrolTimer then self.pilotPatrolTimer = {} end
     local sniperRoleChance = aiCore.GetSniperRoleChancePercent(self)
     local sniperAttackChance = aiCore.GetSniperAttackChancePercent(self)
     local sniperRange = self.Config.sniperRange or 200
+    local sniperEnemyTeam = self:GetPrimaryEnemyTeam()
     local player = GetPlayerHandle()
 
     -- Clean stale pilot action cooldown entries.
@@ -11482,6 +11621,11 @@ function aiCore.Team:UpdatePilots()
             self.sniperAttackTarget[h] = nil
         end
     end
+    for h, _ in pairs(self.sniperRetryAt) do
+        if not IsValid(h) then
+            self.sniperRetryAt[h] = nil
+        end
+    end
     for h, _ in pairs(self.pilotStealScanAt) do
         if not IsValid(h) then
             self.pilotStealScanAt[h] = nil
@@ -11493,9 +11637,12 @@ function aiCore.Team:UpdatePilots()
         end
     end
 
-    -- 1. Technician Spawning (from Barracks)
+    -- 1. Technician spawning/orbital support is normal base management. Keep
+    -- it out of manual/scripted missions while retaining individual pilot
+    -- combat behavior below.
+    local allowPilotSupport = self.Config.autoManage and self.Config.manageBase ~= false
     local barracks = {}
-    if now >= (self.barracksRefreshAt or 0.0) then
+    if allowPilotSupport and now >= (self.barracksRefreshAt or 0.0) then
         self.barracksRefreshAt = now + 3.0
         local recycler = self.recyclerMgr.handle
         if IsValid(recycler) then
@@ -11509,7 +11656,7 @@ function aiCore.Team:UpdatePilots()
             end
         end
         self.cachedBarracks = barracks
-    else
+    elseif allowPilotSupport then
         local cachedBarracks = self.cachedBarracks or aiCore.EmptyList
         for i = 1, #cachedBarracks do
             local barracksHandle = cachedBarracks[i]
@@ -11520,7 +11667,7 @@ function aiCore.Team:UpdatePilots()
         self.cachedBarracks = barracks
     end
 
-    if #barracks > 0 then
+    if allowPilotSupport and #barracks > 0 then
         local dispensingBarracks = barracks[math.random(#barracks)]
 
         -- A. Technician Spawning (from Barracks)
@@ -11587,6 +11734,7 @@ function aiCore.Team:UpdatePilots()
     end
 
     -- 2. Individual Pilot Logic
+    if self.Config.managePilotSpecials ~= false then
     for _, p in ipairs(self.pilots) do
         if IsAlive(p) and IsPerson(p) then
             if p ~= player and not IsOdf(p, "aspiloh") then
@@ -11633,12 +11781,19 @@ function aiCore.Team:UpdatePilots()
                 elseif IsOccupiedSniperTarget(enemy) and dist < sniperRange then
                     sniperCandidate = enemy
                 end
+                if not sniperCandidate and isSniper then
+                    sniperCandidate = aiCore.FindNearestSniperTarget(p, sniperRange, sniperEnemyTeam)
+                end
                 local sniperTarget = self.sniperAttackTarget[p]
                 if not IsOccupiedSniperTarget(sniperTarget) then
+                    if IsValid(sniperTarget) then
+                        self.sniperRetryAt[p] = now + (self.Config.sniperTimeout or 8.0)
+                    end
                     self.sniperAttackTarget[p] = nil
                     sniperTarget = nil
                 end
                 if not IsValid(sniperTarget) and isSniper and actionReady and grounded and ammo >= 0.3 and
+                    now >= (self.sniperRetryAt[p] or 0.0) and
                     IsValid(sniperCandidate) and GetDistance(p, sniperCandidate) < sniperRange and not IsCloaked(sniperCandidate) and
                     math.random(100) <= sniperAttackChance then
                     self.sniperAttackTarget[p] = sniperCandidate
@@ -11651,7 +11806,10 @@ function aiCore.Team:UpdatePilots()
                 local canMaintainSniperCombat = canStartSniperAttack
 
                 -- Sniper behavior: first commit to a specific snipe target, then arm the rifle once attacking it.
-                if weapon0 ~= "" and string.find(weapon0, "handgun") then
+                local isPilotSidearm = weapon0 ~= "" and (
+                    string.find(weapon0, "handgun", 1, true))
+                local isPilotSniper = weapon0 ~= "" and string.find(weapon0, "gsnipe", 1, true)
+                if isPilotSidearm then
                     self.sniperEquipTime[p] = nil
                     if canStartSniperAttack then
                         if currentTarget ~= sniperTarget then
@@ -11667,7 +11825,7 @@ function aiCore.Team:UpdatePilots()
                             if aiCore.Debug then print("Pilot " .. tostring(p) .. " equipping sniper rifle.") end
                         end
                     end
-                elseif weapon0 ~= "" and string.find(weapon0, "gsnipe") then
+                elseif isPilotSniper then
                     local target = GetTarget(p)
                     local stealthRoll = self.Config.sniperStealth or 50
                     if stealthRoll <= 1.0 then stealthRoll = stealthRoll * 100 end
@@ -11693,6 +11851,7 @@ function aiCore.Team:UpdatePilots()
                         end
                     elseif not canMaintainSniperCombat then
                         self.sniperAttackTarget[p] = nil
+                        self.sniperRetryAt[p] = now + (self.Config.sniperTimeout or 8.0)
                         GiveWeapon(p, "handgun", 0)
                         weapon0 = "handgun"
                         self.sniperEquipTime[p] = nil
@@ -11748,7 +11907,7 @@ function aiCore.Team:UpdatePilots()
                 end
 
                 -- Idle Patrol / Wander (Refined: Stay near base)
-                if not IsBusy(p) then
+                if self.Config.autoManage and not IsBusy(p) then
                     if now > (self.pilotPatrolTimer[p] or 0) then
                         self.pilotPatrolTimer[p] = now + 15.0 + math.random(10)
 
@@ -11763,6 +11922,7 @@ function aiCore.Team:UpdatePilots()
                 end
             end
         end
+    end
     end
 end
 
@@ -12202,11 +12362,25 @@ function aiCore.Team:CheckConstruction()
 end
 
 function aiCore.Team:AddObject(h)
-    -- Duplicate check
-    if aiCore.IsTracked(h, self.teamNum) then return end
-    self.trackedSet[h] = true
+    -- A script may intentionally opt this handle into only aiSpecial behavior.
+    if self.specialTrackedSet and self.specialTrackedSet[h] then return end
 
+    -- Duplicate check
+    if aiCore.IsTracked(h, self.teamNum) then
+        -- Save/load or an older runtime may have tracked a pilot as a soldier
+        -- before the resolved weapon identity was known. Repair that list
+        -- membership without re-running every manager registration path.
+        if IsPerson(h) and utility.IsPilotPerson(h) then
+            if self.soldiers then RemoveFromList(self.soldiers, h) end
+            if self.pilots then UniqueInsert(self.pilots, h) end
+        end
+        return
+    end
+
+    -- Independence-locked objects can become manageable later. Do not mark one
+    -- tracked before this guard or the unlock transition will be lost forever.
     if (IsCraft(h) or IsPerson(h)) and IsIndependenceLocked(h) then return end
+    self.trackedSet[h] = true
 
     local odf = string.lower(utility.CleanString(GetOdf(h)))
     local cls = string.lower(utility.CleanString(GetClassLabel(h)))
@@ -12340,9 +12514,7 @@ function aiCore.Team:AddObject(h)
 
     -- Soldier Tracking (Person class, excluding pilots/snipers)
     if string.find(cls, utility.ClassLabel.PERSON) then
-        local w0 = GetWeaponClass(h, 0)
-        local isSniper = w0 and (string.find(string.lower(w0), "snipe") or string.find(string.lower(w0), "handgun"))
-        if not isSniper then
+        if not utility.IsPilotPerson(h) then
             UniqueInsert(self.soldiers, h)
         else
             UniqueInsert(self.pilots, h)
@@ -12550,15 +12722,9 @@ function aiCore.SyncPilotPersonTracking()
         if IsValid(h) and IsAlive(h) and IsPerson(h) and h ~= player and not IsOdf(h, "aspiloh") then
             local teamNum = GetTeamNum(h)
             local team = aiCore.ActiveTeams[teamNum]
-            if team and not aiCore.IsTracked(h, teamNum) then
-                local w0 = string.lower(utility.CleanString(GetWeaponClass(h, 0)))
-                local odf = string.lower(utility.CleanString(GetOdf(h)))
-                local isPilotLike = string.find(w0, "handgun")
-                    or string.find(w0, "gsnipe")
-                    or string.find(odf, "spilo")
-                    or string.find(odf, "pilot")
-
-                if isPilotLike then
+            if team and not aiCore.IsTracked(h, teamNum) and
+                not (team.specialTrackedSet and team.specialTrackedSet[h]) then
+                if utility.IsPilotPerson(h) then
                     team:AddObject(h)
                     if aiCore.Debug then
                         print("aiCore: late-registered pilot/person " .. tostring(GetOdf(h)) .. " for team " .. tostring(teamNum))
@@ -12682,6 +12848,39 @@ function aiCore.AddObject(h)
         if depMgr and depMgr.AddObject then depMgr:AddObject(h) end
         if offMgr and offMgr.AddObject then offMgr:AddObject(h) end
     end
+end
+
+-- Register only the reusable aiSpecial layer for a mission-scripted unit.
+-- This deliberately avoids Team:AddObject so production, base planning,
+-- squad assignment, and other ownership-sensitive systems cannot retask it.
+function aiCore.AddSpecialObject(h)
+    if not IsValid(h) or not (IsCraft(h) or IsPerson(h)) then return false end
+
+    local teamNum = GetTeamNum(h)
+    local team = aiCore.ActiveTeams[teamNum]
+    if not team then return false end
+
+    team.specialTrackedSet = team.specialTrackedSet or {}
+    if team.specialTrackedSet[h] then return false end
+    team.specialTrackedSet[h] = true
+
+    aiCore.TrackWorldObject(h)
+    if IsCraft(h) then
+        aiCore.ApplyDynamicMass(h)
+    end
+    aiCore.ApplyNativeTactics(h, team)
+
+    if team.weaponMgr and team.Config.manageSpecialCombat ~= false then
+        team.weaponMgr:AddObject(h)
+    end
+    if team.cloakMgr and team.Config.manageSpecialCombat ~= false then
+        team.cloakMgr:AddObject(h)
+    end
+    if IsPerson(h) and utility.IsPilotPerson(h) and h ~= GetPlayerHandle() then
+        UniqueInsert(team.pilots, h)
+    end
+
+    return true
 end
 
 function aiCore.DeleteObject(h)

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-09-20T16:36:15-05:00",
-  "count": 3330,
+  "generated": "2026-09-23T19:47:07-05:00",
+  "count": 3673,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6372,6 +6372,42 @@
       "runtime": "svwalk_c.skeleton"
     },
     {
+      "source": "Assets\\Textures\\abstor_d.dds",
+      "runtime": "abstor_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avapc_cockpit_D.dds",
+      "runtime": "avapc_cockpit_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_D.dds",
+      "runtime": "avfigh_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avheadlight00_d.dds",
+      "runtime": "avheadlight00_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avsav_d.dds",
+      "runtime": "avsav_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avsav2_d.dds",
+      "runtime": "avsav2_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbcom2_n.dds",
+      "runtime": "bbcom2_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbhqcp_d.dds",
+      "runtime": "bbhqcp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_d.dds",
+      "runtime": "bvrdev_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_arc.dds",
       "runtime": "cr_arc.dds"
     },
@@ -6438,42 +6474,6 @@
     {
       "source": "Assets\\Textures\\cr_spore.dds",
       "runtime": "cr_spore.dds"
-    },
-    {
-      "source": "Assets\\Textures\\abstor_d.dds",
-      "runtime": "abstor_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\avapc_cockpit_D.dds",
-      "runtime": "avapc_cockpit_D.dds"
-    },
-    {
-      "source": "Assets\\Textures\\avfigh_D.dds",
-      "runtime": "avfigh_D.dds"
-    },
-    {
-      "source": "Assets\\Textures\\avheadlight00_d.dds",
-      "runtime": "avheadlight00_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\avsav_d.dds",
-      "runtime": "avsav_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\avsav2_d.dds",
-      "runtime": "avsav2_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\bbcom2_n.dds",
-      "runtime": "bbcom2_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\bbhqcp_d.dds",
-      "runtime": "bbhqcp_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\bvrdev_d.dds",
-      "runtime": "bvrdev_d.dds"
     },
     {
       "source": "Assets\\Textures\\crgrass.png",
@@ -6654,6 +6654,1130 @@
     {
       "source": "flags\\flag0035.bmp",
       "runtime": "flags\\flag0035.bmp"
+    },
+    {
+      "source": "flags\\flag0039.bmp",
+      "runtime": "flags\\flag0039.bmp"
+    },
+    {
+      "source": "flags\\flag0040.bmp",
+      "runtime": "flags\\flag0040.bmp"
+    },
+    {
+      "source": "flags\\flag0041.bmp",
+      "runtime": "flags\\flag0041.bmp"
+    },
+    {
+      "source": "flags\\flag0042.bmp",
+      "runtime": "flags\\flag0042.bmp"
+    },
+    {
+      "source": "flags\\flag0043.bmp",
+      "runtime": "flags\\flag0043.bmp"
+    },
+    {
+      "source": "flags\\flag0044.bmp",
+      "runtime": "flags\\flag0044.bmp"
+    },
+    {
+      "source": "flags\\flag0045.bmp",
+      "runtime": "flags\\flag0045.bmp"
+    },
+    {
+      "source": "flags\\flag0046.bmp",
+      "runtime": "flags\\flag0046.bmp"
+    },
+    {
+      "source": "flags\\flag0047.bmp",
+      "runtime": "flags\\flag0047.bmp"
+    },
+    {
+      "source": "flags\\flag0048.bmp",
+      "runtime": "flags\\flag0048.bmp"
+    },
+    {
+      "source": "flags\\flag0049.bmp",
+      "runtime": "flags\\flag0049.bmp"
+    },
+    {
+      "source": "flags\\flag0050.bmp",
+      "runtime": "flags\\flag0050.bmp"
+    },
+    {
+      "source": "flags\\flag0051.bmp",
+      "runtime": "flags\\flag0051.bmp"
+    },
+    {
+      "source": "flags\\flag0052.bmp",
+      "runtime": "flags\\flag0052.bmp"
+    },
+    {
+      "source": "flags\\flag0053.bmp",
+      "runtime": "flags\\flag0053.bmp"
+    },
+    {
+      "source": "flags\\flag0054.bmp",
+      "runtime": "flags\\flag0054.bmp"
+    },
+    {
+      "source": "flags\\flag0055.bmp",
+      "runtime": "flags\\flag0055.bmp"
+    },
+    {
+      "source": "flags\\flag0056.bmp",
+      "runtime": "flags\\flag0056.bmp"
+    },
+    {
+      "source": "flags\\flag0057.bmp",
+      "runtime": "flags\\flag0057.bmp"
+    },
+    {
+      "source": "flags\\flag0058.bmp",
+      "runtime": "flags\\flag0058.bmp"
+    },
+    {
+      "source": "flags\\flag0059.bmp",
+      "runtime": "flags\\flag0059.bmp"
+    },
+    {
+      "source": "flags\\flag0060.bmp",
+      "runtime": "flags\\flag0060.bmp"
+    },
+    {
+      "source": "flags\\flag0061.bmp",
+      "runtime": "flags\\flag0061.bmp"
+    },
+    {
+      "source": "flags\\flag0062.bmp",
+      "runtime": "flags\\flag0062.bmp"
+    },
+    {
+      "source": "flags\\flag0063.bmp",
+      "runtime": "flags\\flag0063.bmp"
+    },
+    {
+      "source": "flags\\flag0064.bmp",
+      "runtime": "flags\\flag0064.bmp"
+    },
+    {
+      "source": "flags\\flag0065.bmp",
+      "runtime": "flags\\flag0065.bmp"
+    },
+    {
+      "source": "flags\\flag0066.bmp",
+      "runtime": "flags\\flag0066.bmp"
+    },
+    {
+      "source": "flags\\flag0067.bmp",
+      "runtime": "flags\\flag0067.bmp"
+    },
+    {
+      "source": "flags\\flag0068.bmp",
+      "runtime": "flags\\flag0068.bmp"
+    },
+    {
+      "source": "flags\\flag0069.bmp",
+      "runtime": "flags\\flag0069.bmp"
+    },
+    {
+      "source": "flags\\flag0070.bmp",
+      "runtime": "flags\\flag0070.bmp"
+    },
+    {
+      "source": "flags\\flag0071.bmp",
+      "runtime": "flags\\flag0071.bmp"
+    },
+    {
+      "source": "flags\\flag0072.bmp",
+      "runtime": "flags\\flag0072.bmp"
+    },
+    {
+      "source": "flags\\flag0073.bmp",
+      "runtime": "flags\\flag0073.bmp"
+    },
+    {
+      "source": "flags\\flag0074.bmp",
+      "runtime": "flags\\flag0074.bmp"
+    },
+    {
+      "source": "flags\\flag0075.bmp",
+      "runtime": "flags\\flag0075.bmp"
+    },
+    {
+      "source": "flags\\flag0076.bmp",
+      "runtime": "flags\\flag0076.bmp"
+    },
+    {
+      "source": "flags\\flag0077.bmp",
+      "runtime": "flags\\flag0077.bmp"
+    },
+    {
+      "source": "flags\\flag0078.bmp",
+      "runtime": "flags\\flag0078.bmp"
+    },
+    {
+      "source": "flags\\flag0079.bmp",
+      "runtime": "flags\\flag0079.bmp"
+    },
+    {
+      "source": "flags\\flag0080.bmp",
+      "runtime": "flags\\flag0080.bmp"
+    },
+    {
+      "source": "flags\\flag0081.bmp",
+      "runtime": "flags\\flag0081.bmp"
+    },
+    {
+      "source": "flags\\flag0082.bmp",
+      "runtime": "flags\\flag0082.bmp"
+    },
+    {
+      "source": "flags\\flag0083.bmp",
+      "runtime": "flags\\flag0083.bmp"
+    },
+    {
+      "source": "flags\\flag0084.bmp",
+      "runtime": "flags\\flag0084.bmp"
+    },
+    {
+      "source": "flags\\flag0085.bmp",
+      "runtime": "flags\\flag0085.bmp"
+    },
+    {
+      "source": "flags\\flag0086.bmp",
+      "runtime": "flags\\flag0086.bmp"
+    },
+    {
+      "source": "flags\\flag0087.bmp",
+      "runtime": "flags\\flag0087.bmp"
+    },
+    {
+      "source": "flags\\flag0088.bmp",
+      "runtime": "flags\\flag0088.bmp"
+    },
+    {
+      "source": "flags\\flag0089.bmp",
+      "runtime": "flags\\flag0089.bmp"
+    },
+    {
+      "source": "flags\\flag0090.bmp",
+      "runtime": "flags\\flag0090.bmp"
+    },
+    {
+      "source": "flags\\flag0091.bmp",
+      "runtime": "flags\\flag0091.bmp"
+    },
+    {
+      "source": "flags\\flag0092.bmp",
+      "runtime": "flags\\flag0092.bmp"
+    },
+    {
+      "source": "flags\\flag0093.bmp",
+      "runtime": "flags\\flag0093.bmp"
+    },
+    {
+      "source": "flags\\flag0094.bmp",
+      "runtime": "flags\\flag0094.bmp"
+    },
+    {
+      "source": "flags\\flag0095.bmp",
+      "runtime": "flags\\flag0095.bmp"
+    },
+    {
+      "source": "flags\\flag0096.bmp",
+      "runtime": "flags\\flag0096.bmp"
+    },
+    {
+      "source": "flags\\flag0097.bmp",
+      "runtime": "flags\\flag0097.bmp"
+    },
+    {
+      "source": "flags\\flag0098.bmp",
+      "runtime": "flags\\flag0098.bmp"
+    },
+    {
+      "source": "flags\\flag0099.bmp",
+      "runtime": "flags\\flag0099.bmp"
+    },
+    {
+      "source": "flags\\flag0100.bmp",
+      "runtime": "flags\\flag0100.bmp"
+    },
+    {
+      "source": "flags\\flag0101.bmp",
+      "runtime": "flags\\flag0101.bmp"
+    },
+    {
+      "source": "flags\\flag0102.bmp",
+      "runtime": "flags\\flag0102.bmp"
+    },
+    {
+      "source": "flags\\flag0103.bmp",
+      "runtime": "flags\\flag0103.bmp"
+    },
+    {
+      "source": "flags\\flag0104.bmp",
+      "runtime": "flags\\flag0104.bmp"
+    },
+    {
+      "source": "flags\\flag0105.bmp",
+      "runtime": "flags\\flag0105.bmp"
+    },
+    {
+      "source": "flags\\flag0106.bmp",
+      "runtime": "flags\\flag0106.bmp"
+    },
+    {
+      "source": "flags\\flag0107.bmp",
+      "runtime": "flags\\flag0107.bmp"
+    },
+    {
+      "source": "flags\\flag0108.bmp",
+      "runtime": "flags\\flag0108.bmp"
+    },
+    {
+      "source": "flags\\flag0109.bmp",
+      "runtime": "flags\\flag0109.bmp"
+    },
+    {
+      "source": "flags\\flag0110.bmp",
+      "runtime": "flags\\flag0110.bmp"
+    },
+    {
+      "source": "flags\\flag0111.bmp",
+      "runtime": "flags\\flag0111.bmp"
+    },
+    {
+      "source": "flags\\flag0112.bmp",
+      "runtime": "flags\\flag0112.bmp"
+    },
+    {
+      "source": "flags\\flag0113.bmp",
+      "runtime": "flags\\flag0113.bmp"
+    },
+    {
+      "source": "flags\\flag0114.bmp",
+      "runtime": "flags\\flag0114.bmp"
+    },
+    {
+      "source": "flags\\flag0115.bmp",
+      "runtime": "flags\\flag0115.bmp"
+    },
+    {
+      "source": "flags\\flag0116.bmp",
+      "runtime": "flags\\flag0116.bmp"
+    },
+    {
+      "source": "flags\\flag0117.bmp",
+      "runtime": "flags\\flag0117.bmp"
+    },
+    {
+      "source": "flags\\flag0118.bmp",
+      "runtime": "flags\\flag0118.bmp"
+    },
+    {
+      "source": "flags\\flag0119.bmp",
+      "runtime": "flags\\flag0119.bmp"
+    },
+    {
+      "source": "flags\\flag0120.bmp",
+      "runtime": "flags\\flag0120.bmp"
+    },
+    {
+      "source": "flags\\flag0121.bmp",
+      "runtime": "flags\\flag0121.bmp"
+    },
+    {
+      "source": "flags\\flag0122.bmp",
+      "runtime": "flags\\flag0122.bmp"
+    },
+    {
+      "source": "flags\\flag0123.bmp",
+      "runtime": "flags\\flag0123.bmp"
+    },
+    {
+      "source": "flags\\flag0124.bmp",
+      "runtime": "flags\\flag0124.bmp"
+    },
+    {
+      "source": "flags\\flag0125.bmp",
+      "runtime": "flags\\flag0125.bmp"
+    },
+    {
+      "source": "flags\\flag0126.bmp",
+      "runtime": "flags\\flag0126.bmp"
+    },
+    {
+      "source": "flags\\flag0127.bmp",
+      "runtime": "flags\\flag0127.bmp"
+    },
+    {
+      "source": "flags\\flag0128.bmp",
+      "runtime": "flags\\flag0128.bmp"
+    },
+    {
+      "source": "flags\\flag0129.bmp",
+      "runtime": "flags\\flag0129.bmp"
+    },
+    {
+      "source": "flags\\flag0130.bmp",
+      "runtime": "flags\\flag0130.bmp"
+    },
+    {
+      "source": "flags\\flag0131.bmp",
+      "runtime": "flags\\flag0131.bmp"
+    },
+    {
+      "source": "flags\\flag0132.bmp",
+      "runtime": "flags\\flag0132.bmp"
+    },
+    {
+      "source": "flags\\flag0133.bmp",
+      "runtime": "flags\\flag0133.bmp"
+    },
+    {
+      "source": "flags\\flag0134.bmp",
+      "runtime": "flags\\flag0134.bmp"
+    },
+    {
+      "source": "flags\\flag0135.bmp",
+      "runtime": "flags\\flag0135.bmp"
+    },
+    {
+      "source": "flags\\flag0136.bmp",
+      "runtime": "flags\\flag0136.bmp"
+    },
+    {
+      "source": "flags\\flag0137.bmp",
+      "runtime": "flags\\flag0137.bmp"
+    },
+    {
+      "source": "flags\\flag0138.bmp",
+      "runtime": "flags\\flag0138.bmp"
+    },
+    {
+      "source": "flags\\flag0139.bmp",
+      "runtime": "flags\\flag0139.bmp"
+    },
+    {
+      "source": "flags\\flag0140.bmp",
+      "runtime": "flags\\flag0140.bmp"
+    },
+    {
+      "source": "flags\\flag0141.bmp",
+      "runtime": "flags\\flag0141.bmp"
+    },
+    {
+      "source": "flags\\flag0142.bmp",
+      "runtime": "flags\\flag0142.bmp"
+    },
+    {
+      "source": "flags\\flag0143.bmp",
+      "runtime": "flags\\flag0143.bmp"
+    },
+    {
+      "source": "flags\\flag0144.bmp",
+      "runtime": "flags\\flag0144.bmp"
+    },
+    {
+      "source": "flags\\flag0145.bmp",
+      "runtime": "flags\\flag0145.bmp"
+    },
+    {
+      "source": "flags\\flag0146.bmp",
+      "runtime": "flags\\flag0146.bmp"
+    },
+    {
+      "source": "flags\\flag0147.bmp",
+      "runtime": "flags\\flag0147.bmp"
+    },
+    {
+      "source": "flags\\flag0148.bmp",
+      "runtime": "flags\\flag0148.bmp"
+    },
+    {
+      "source": "flags\\flag0149.bmp",
+      "runtime": "flags\\flag0149.bmp"
+    },
+    {
+      "source": "flags\\flag0150.bmp",
+      "runtime": "flags\\flag0150.bmp"
+    },
+    {
+      "source": "flags\\flag0151.bmp",
+      "runtime": "flags\\flag0151.bmp"
+    },
+    {
+      "source": "flags\\flag0152.bmp",
+      "runtime": "flags\\flag0152.bmp"
+    },
+    {
+      "source": "flags\\flag0153.bmp",
+      "runtime": "flags\\flag0153.bmp"
+    },
+    {
+      "source": "flags\\flag0154.bmp",
+      "runtime": "flags\\flag0154.bmp"
+    },
+    {
+      "source": "flags\\flag0155.bmp",
+      "runtime": "flags\\flag0155.bmp"
+    },
+    {
+      "source": "flags\\flag0156.bmp",
+      "runtime": "flags\\flag0156.bmp"
+    },
+    {
+      "source": "flags\\flag0157.bmp",
+      "runtime": "flags\\flag0157.bmp"
+    },
+    {
+      "source": "flags\\flag0158.bmp",
+      "runtime": "flags\\flag0158.bmp"
+    },
+    {
+      "source": "flags\\flag0159.bmp",
+      "runtime": "flags\\flag0159.bmp"
+    },
+    {
+      "source": "flags\\flag0160.bmp",
+      "runtime": "flags\\flag0160.bmp"
+    },
+    {
+      "source": "flags\\flag0161.bmp",
+      "runtime": "flags\\flag0161.bmp"
+    },
+    {
+      "source": "flags\\flag0162.bmp",
+      "runtime": "flags\\flag0162.bmp"
+    },
+    {
+      "source": "flags\\flag0163.bmp",
+      "runtime": "flags\\flag0163.bmp"
+    },
+    {
+      "source": "flags\\flag0164.bmp",
+      "runtime": "flags\\flag0164.bmp"
+    },
+    {
+      "source": "flags\\flag0165.bmp",
+      "runtime": "flags\\flag0165.bmp"
+    },
+    {
+      "source": "flags\\flag0166.bmp",
+      "runtime": "flags\\flag0166.bmp"
+    },
+    {
+      "source": "flags\\flag0167.bmp",
+      "runtime": "flags\\flag0167.bmp"
+    },
+    {
+      "source": "flags\\flag0168.bmp",
+      "runtime": "flags\\flag0168.bmp"
+    },
+    {
+      "source": "flags\\flag0169.bmp",
+      "runtime": "flags\\flag0169.bmp"
+    },
+    {
+      "source": "flags\\flag0170.bmp",
+      "runtime": "flags\\flag0170.bmp"
+    },
+    {
+      "source": "flags\\flag0171.bmp",
+      "runtime": "flags\\flag0171.bmp"
+    },
+    {
+      "source": "flags\\flag0172.bmp",
+      "runtime": "flags\\flag0172.bmp"
+    },
+    {
+      "source": "flags\\flag0173.bmp",
+      "runtime": "flags\\flag0173.bmp"
+    },
+    {
+      "source": "flags\\flag0174.bmp",
+      "runtime": "flags\\flag0174.bmp"
+    },
+    {
+      "source": "flags\\flag0175.bmp",
+      "runtime": "flags\\flag0175.bmp"
+    },
+    {
+      "source": "flags\\flag0176.bmp",
+      "runtime": "flags\\flag0176.bmp"
+    },
+    {
+      "source": "flags\\flag0177.bmp",
+      "runtime": "flags\\flag0177.bmp"
+    },
+    {
+      "source": "flags\\flag0178.bmp",
+      "runtime": "flags\\flag0178.bmp"
+    },
+    {
+      "source": "flags\\flag0179.bmp",
+      "runtime": "flags\\flag0179.bmp"
+    },
+    {
+      "source": "flags\\flag0180.bmp",
+      "runtime": "flags\\flag0180.bmp"
+    },
+    {
+      "source": "flags\\flag0181.bmp",
+      "runtime": "flags\\flag0181.bmp"
+    },
+    {
+      "source": "flags\\flag0182.bmp",
+      "runtime": "flags\\flag0182.bmp"
+    },
+    {
+      "source": "flags\\flag0183.bmp",
+      "runtime": "flags\\flag0183.bmp"
+    },
+    {
+      "source": "flags\\flag0184.bmp",
+      "runtime": "flags\\flag0184.bmp"
+    },
+    {
+      "source": "flags\\flag0185.bmp",
+      "runtime": "flags\\flag0185.bmp"
+    },
+    {
+      "source": "flags\\flag0186.bmp",
+      "runtime": "flags\\flag0186.bmp"
+    },
+    {
+      "source": "flags\\flag0187.bmp",
+      "runtime": "flags\\flag0187.bmp"
+    },
+    {
+      "source": "flags\\flag0188.bmp",
+      "runtime": "flags\\flag0188.bmp"
+    },
+    {
+      "source": "flags\\flag0189.bmp",
+      "runtime": "flags\\flag0189.bmp"
+    },
+    {
+      "source": "flags\\flag0190.bmp",
+      "runtime": "flags\\flag0190.bmp"
+    },
+    {
+      "source": "flags\\flag0191.bmp",
+      "runtime": "flags\\flag0191.bmp"
+    },
+    {
+      "source": "flags\\flag0192.bmp",
+      "runtime": "flags\\flag0192.bmp"
+    },
+    {
+      "source": "flags\\flag0193.bmp",
+      "runtime": "flags\\flag0193.bmp"
+    },
+    {
+      "source": "flags\\flag0194.bmp",
+      "runtime": "flags\\flag0194.bmp"
+    },
+    {
+      "source": "flags\\flag0195.bmp",
+      "runtime": "flags\\flag0195.bmp"
+    },
+    {
+      "source": "flags\\flag0196.bmp",
+      "runtime": "flags\\flag0196.bmp"
+    },
+    {
+      "source": "flags\\flag0197.bmp",
+      "runtime": "flags\\flag0197.bmp"
+    },
+    {
+      "source": "flags\\flag0198.bmp",
+      "runtime": "flags\\flag0198.bmp"
+    },
+    {
+      "source": "flags\\flag0199.bmp",
+      "runtime": "flags\\flag0199.bmp"
+    },
+    {
+      "source": "flags\\flag0200.bmp",
+      "runtime": "flags\\flag0200.bmp"
+    },
+    {
+      "source": "flags\\flag0201.bmp",
+      "runtime": "flags\\flag0201.bmp"
+    },
+    {
+      "source": "flags\\flag0202.bmp",
+      "runtime": "flags\\flag0202.bmp"
+    },
+    {
+      "source": "flags\\flag0203.bmp",
+      "runtime": "flags\\flag0203.bmp"
+    },
+    {
+      "source": "flags\\flag0204.bmp",
+      "runtime": "flags\\flag0204.bmp"
+    },
+    {
+      "source": "flags\\flag0205.bmp",
+      "runtime": "flags\\flag0205.bmp"
+    },
+    {
+      "source": "flags\\flag0206.bmp",
+      "runtime": "flags\\flag0206.bmp"
+    },
+    {
+      "source": "flags\\flag0207.bmp",
+      "runtime": "flags\\flag0207.bmp"
+    },
+    {
+      "source": "flags\\flag0208.bmp",
+      "runtime": "flags\\flag0208.bmp"
+    },
+    {
+      "source": "flags\\flag0209.bmp",
+      "runtime": "flags\\flag0209.bmp"
+    },
+    {
+      "source": "flags\\flag0210.bmp",
+      "runtime": "flags\\flag0210.bmp"
+    },
+    {
+      "source": "flags\\flag0211.bmp",
+      "runtime": "flags\\flag0211.bmp"
+    },
+    {
+      "source": "flags\\flag0212.bmp",
+      "runtime": "flags\\flag0212.bmp"
+    },
+    {
+      "source": "flags\\flag0213.bmp",
+      "runtime": "flags\\flag0213.bmp"
+    },
+    {
+      "source": "flags\\flag0214.bmp",
+      "runtime": "flags\\flag0214.bmp"
+    },
+    {
+      "source": "flags\\flag0215.bmp",
+      "runtime": "flags\\flag0215.bmp"
+    },
+    {
+      "source": "flags\\flag0216.bmp",
+      "runtime": "flags\\flag0216.bmp"
+    },
+    {
+      "source": "flags\\flag0217.bmp",
+      "runtime": "flags\\flag0217.bmp"
+    },
+    {
+      "source": "flags\\flag0218.bmp",
+      "runtime": "flags\\flag0218.bmp"
+    },
+    {
+      "source": "flags\\flag0219.bmp",
+      "runtime": "flags\\flag0219.bmp"
+    },
+    {
+      "source": "flags\\flag0220.bmp",
+      "runtime": "flags\\flag0220.bmp"
+    },
+    {
+      "source": "flags\\flag0221.bmp",
+      "runtime": "flags\\flag0221.bmp"
+    },
+    {
+      "source": "flags\\flag0222.bmp",
+      "runtime": "flags\\flag0222.bmp"
+    },
+    {
+      "source": "flags\\flag0223.bmp",
+      "runtime": "flags\\flag0223.bmp"
+    },
+    {
+      "source": "flags\\flag0224.bmp",
+      "runtime": "flags\\flag0224.bmp"
+    },
+    {
+      "source": "flags\\flag0225.bmp",
+      "runtime": "flags\\flag0225.bmp"
+    },
+    {
+      "source": "flags\\flag0226.bmp",
+      "runtime": "flags\\flag0226.bmp"
+    },
+    {
+      "source": "flags\\flag0227.bmp",
+      "runtime": "flags\\flag0227.bmp"
+    },
+    {
+      "source": "flags\\flag0228.bmp",
+      "runtime": "flags\\flag0228.bmp"
+    },
+    {
+      "source": "flags\\flag0229.bmp",
+      "runtime": "flags\\flag0229.bmp"
+    },
+    {
+      "source": "flags\\flag0230.bmp",
+      "runtime": "flags\\flag0230.bmp"
+    },
+    {
+      "source": "flags\\flag0231.bmp",
+      "runtime": "flags\\flag0231.bmp"
+    },
+    {
+      "source": "flags\\flag0232.bmp",
+      "runtime": "flags\\flag0232.bmp"
+    },
+    {
+      "source": "flags\\flag0233.bmp",
+      "runtime": "flags\\flag0233.bmp"
+    },
+    {
+      "source": "flags\\flag0234.bmp",
+      "runtime": "flags\\flag0234.bmp"
+    },
+    {
+      "source": "flags\\flag0235.bmp",
+      "runtime": "flags\\flag0235.bmp"
+    },
+    {
+      "source": "flags\\flag0236.bmp",
+      "runtime": "flags\\flag0236.bmp"
+    },
+    {
+      "source": "flags\\flag0237.bmp",
+      "runtime": "flags\\flag0237.bmp"
+    },
+    {
+      "source": "flags\\flag0238.bmp",
+      "runtime": "flags\\flag0238.bmp"
+    },
+    {
+      "source": "flags\\flag0239.bmp",
+      "runtime": "flags\\flag0239.bmp"
+    },
+    {
+      "source": "flags\\flag0240.bmp",
+      "runtime": "flags\\flag0240.bmp"
+    },
+    {
+      "source": "flags\\flag0241.bmp",
+      "runtime": "flags\\flag0241.bmp"
+    },
+    {
+      "source": "flags\\flag0242.bmp",
+      "runtime": "flags\\flag0242.bmp"
+    },
+    {
+      "source": "flags\\flag0243.bmp",
+      "runtime": "flags\\flag0243.bmp"
+    },
+    {
+      "source": "flags\\flag0244.bmp",
+      "runtime": "flags\\flag0244.bmp"
+    },
+    {
+      "source": "flags\\flag0245.bmp",
+      "runtime": "flags\\flag0245.bmp"
+    },
+    {
+      "source": "flags\\flag0246.bmp",
+      "runtime": "flags\\flag0246.bmp"
+    },
+    {
+      "source": "flags\\flag0247.bmp",
+      "runtime": "flags\\flag0247.bmp"
+    },
+    {
+      "source": "flags\\flag0248.bmp",
+      "runtime": "flags\\flag0248.bmp"
+    },
+    {
+      "source": "flags\\flag0249.bmp",
+      "runtime": "flags\\flag0249.bmp"
+    },
+    {
+      "source": "flags\\flag0250.bmp",
+      "runtime": "flags\\flag0250.bmp"
+    },
+    {
+      "source": "flags\\flag0251.bmp",
+      "runtime": "flags\\flag0251.bmp"
+    },
+    {
+      "source": "flags\\flag0252.bmp",
+      "runtime": "flags\\flag0252.bmp"
+    },
+    {
+      "source": "flags\\flag0253.bmp",
+      "runtime": "flags\\flag0253.bmp"
+    },
+    {
+      "source": "flags\\flag0254.bmp",
+      "runtime": "flags\\flag0254.bmp"
+    },
+    {
+      "source": "flags\\flag0255.bmp",
+      "runtime": "flags\\flag0255.bmp"
+    },
+    {
+      "source": "flags\\flag0256.bmp",
+      "runtime": "flags\\flag0256.bmp"
+    },
+    {
+      "source": "flags\\flag0257.bmp",
+      "runtime": "flags\\flag0257.bmp"
+    },
+    {
+      "source": "flags\\flag0258.bmp",
+      "runtime": "flags\\flag0258.bmp"
+    },
+    {
+      "source": "flags\\flag0259.bmp",
+      "runtime": "flags\\flag0259.bmp"
+    },
+    {
+      "source": "flags\\flag0260.bmp",
+      "runtime": "flags\\flag0260.bmp"
+    },
+    {
+      "source": "flags\\flag0261.bmp",
+      "runtime": "flags\\flag0261.bmp"
+    },
+    {
+      "source": "flags\\flag0262.bmp",
+      "runtime": "flags\\flag0262.bmp"
+    },
+    {
+      "source": "flags\\flag0263.bmp",
+      "runtime": "flags\\flag0263.bmp"
+    },
+    {
+      "source": "flags\\flag0264.bmp",
+      "runtime": "flags\\flag0264.bmp"
+    },
+    {
+      "source": "flags\\flag0265.bmp",
+      "runtime": "flags\\flag0265.bmp"
+    },
+    {
+      "source": "flags\\flag0266.bmp",
+      "runtime": "flags\\flag0266.bmp"
+    },
+    {
+      "source": "flags\\flag0267.bmp",
+      "runtime": "flags\\flag0267.bmp"
+    },
+    {
+      "source": "flags\\flag0268.bmp",
+      "runtime": "flags\\flag0268.bmp"
+    },
+    {
+      "source": "flags\\flag0269.bmp",
+      "runtime": "flags\\flag0269.bmp"
+    },
+    {
+      "source": "flags\\flag0270.bmp",
+      "runtime": "flags\\flag0270.bmp"
+    },
+    {
+      "source": "flags\\flag0271.bmp",
+      "runtime": "flags\\flag0271.bmp"
+    },
+    {
+      "source": "flags\\flag0272.bmp",
+      "runtime": "flags\\flag0272.bmp"
+    },
+    {
+      "source": "flags\\flag0273.bmp",
+      "runtime": "flags\\flag0273.bmp"
+    },
+    {
+      "source": "flags\\flag0274.bmp",
+      "runtime": "flags\\flag0274.bmp"
+    },
+    {
+      "source": "flags\\flag0275.bmp",
+      "runtime": "flags\\flag0275.bmp"
+    },
+    {
+      "source": "flags\\flag0276.bmp",
+      "runtime": "flags\\flag0276.bmp"
+    },
+    {
+      "source": "flags\\flag0277.bmp",
+      "runtime": "flags\\flag0277.bmp"
+    },
+    {
+      "source": "flags\\flag0278.bmp",
+      "runtime": "flags\\flag0278.bmp"
+    },
+    {
+      "source": "flags\\flag0279.bmp",
+      "runtime": "flags\\flag0279.bmp"
+    },
+    {
+      "source": "flags\\flag0280.bmp",
+      "runtime": "flags\\flag0280.bmp"
+    },
+    {
+      "source": "flags\\flag0281.bmp",
+      "runtime": "flags\\flag0281.bmp"
+    },
+    {
+      "source": "flags\\flag0282.bmp",
+      "runtime": "flags\\flag0282.bmp"
+    },
+    {
+      "source": "flags\\flag0283.bmp",
+      "runtime": "flags\\flag0283.bmp"
+    },
+    {
+      "source": "flags\\flag0284.bmp",
+      "runtime": "flags\\flag0284.bmp"
+    },
+    {
+      "source": "flags\\flag0285.bmp",
+      "runtime": "flags\\flag0285.bmp"
+    },
+    {
+      "source": "flags\\flag0286.bmp",
+      "runtime": "flags\\flag0286.bmp"
+    },
+    {
+      "source": "flags\\flag0287.bmp",
+      "runtime": "flags\\flag0287.bmp"
+    },
+    {
+      "source": "flags\\flag0288.bmp",
+      "runtime": "flags\\flag0288.bmp"
+    },
+    {
+      "source": "flags\\flag0289.bmp",
+      "runtime": "flags\\flag0289.bmp"
+    },
+    {
+      "source": "flags\\flag0290.bmp",
+      "runtime": "flags\\flag0290.bmp"
+    },
+    {
+      "source": "flags\\flag0291.bmp",
+      "runtime": "flags\\flag0291.bmp"
+    },
+    {
+      "source": "flags\\flag0292.bmp",
+      "runtime": "flags\\flag0292.bmp"
+    },
+    {
+      "source": "flags\\flag0293.bmp",
+      "runtime": "flags\\flag0293.bmp"
+    },
+    {
+      "source": "flags\\flag0294.bmp",
+      "runtime": "flags\\flag0294.bmp"
+    },
+    {
+      "source": "flags\\flag0295.bmp",
+      "runtime": "flags\\flag0295.bmp"
+    },
+    {
+      "source": "flags\\flag0296.bmp",
+      "runtime": "flags\\flag0296.bmp"
+    },
+    {
+      "source": "flags\\flag0297.bmp",
+      "runtime": "flags\\flag0297.bmp"
+    },
+    {
+      "source": "flags\\flag0298.bmp",
+      "runtime": "flags\\flag0298.bmp"
+    },
+    {
+      "source": "flags\\flag0299.bmp",
+      "runtime": "flags\\flag0299.bmp"
+    },
+    {
+      "source": "flags\\flag0300.bmp",
+      "runtime": "flags\\flag0300.bmp"
+    },
+    {
+      "source": "flags\\flag0301.bmp",
+      "runtime": "flags\\flag0301.bmp"
+    },
+    {
+      "source": "flags\\flag0302.bmp",
+      "runtime": "flags\\flag0302.bmp"
+    },
+    {
+      "source": "flags\\flag0303.bmp",
+      "runtime": "flags\\flag0303.bmp"
+    },
+    {
+      "source": "flags\\flag0304.bmp",
+      "runtime": "flags\\flag0304.bmp"
+    },
+    {
+      "source": "flags\\flag0305.bmp",
+      "runtime": "flags\\flag0305.bmp"
+    },
+    {
+      "source": "flags\\flag0306.bmp",
+      "runtime": "flags\\flag0306.bmp"
+    },
+    {
+      "source": "flags\\flag0307.bmp",
+      "runtime": "flags\\flag0307.bmp"
+    },
+    {
+      "source": "flags\\flag0308.bmp",
+      "runtime": "flags\\flag0308.bmp"
+    },
+    {
+      "source": "flags\\flag0309.bmp",
+      "runtime": "flags\\flag0309.bmp"
+    },
+    {
+      "source": "flags\\flag0310.bmp",
+      "runtime": "flags\\flag0310.bmp"
+    },
+    {
+      "source": "flags\\flag0311.bmp",
+      "runtime": "flags\\flag0311.bmp"
+    },
+    {
+      "source": "flags\\flag0312.bmp",
+      "runtime": "flags\\flag0312.bmp"
+    },
+    {
+      "source": "flags\\flag0313.bmp",
+      "runtime": "flags\\flag0313.bmp"
+    },
+    {
+      "source": "flags\\flag0314.bmp",
+      "runtime": "flags\\flag0314.bmp"
+    },
+    {
+      "source": "flags\\flag0315.bmp",
+      "runtime": "flags\\flag0315.bmp"
+    },
+    {
+      "source": "flags\\flag0316.bmp",
+      "runtime": "flags\\flag0316.bmp"
+    },
+    {
+      "source": "flags\\flag0317.bmp",
+      "runtime": "flags\\flag0317.bmp"
+    },
+    {
+      "source": "flags\\flag0318.bmp",
+      "runtime": "flags\\flag0318.bmp"
+    },
+    {
+      "source": "flags\\flag0319.bmp",
+      "runtime": "flags\\flag0319.bmp"
     },
     {
       "source": "install.des",
@@ -7972,6 +9096,14 @@
       "runtime": "aphorn.odf"
     },
     {
+      "source": "ODF\\aplasma.odf",
+      "runtime": "aplasma.odf"
+    },
+    {
+      "source": "ODF\\aplgmsl.odf",
+      "runtime": "aplgmsl.odf"
+    },
+    {
       "source": "ODF\\apmagg.odf",
       "runtime": "apmagg.odf"
     },
@@ -8026,6 +9158,10 @@
     {
       "source": "ODF\\aprepab.odf",
       "runtime": "aprepab.odf"
+    },
+    {
+      "source": "ODF\\aprifle.odf",
+      "runtime": "aprifle.odf"
     },
     {
       "source": "ODF\\aprktb.odf",
@@ -8084,6 +9220,10 @@
       "runtime": "apthmp.odf"
     },
     {
+      "source": "ODF\\aptsmok.odf",
+      "runtime": "aptsmok.odf"
+    },
+    {
       "source": "ODF\\apwrck.odf",
       "runtime": "apwrck.odf"
     },
@@ -8102,6 +9242,14 @@
     {
       "source": "ODF\\aspilop.odf",
       "runtime": "aspilop.odf"
+    },
+    {
+      "source": "ODF\\asplblt.odf",
+      "runtime": "asplblt.odf"
+    },
+    {
+      "source": "ODF\\asplsmg.odf",
+      "runtime": "asplsmg.odf"
     },
     {
       "source": "ODF\\assold.odf",
@@ -8404,8 +9552,44 @@
       "runtime": "bbwpow.odf"
     },
     {
+      "source": "ODF\\betblow.odf",
+      "runtime": "betblow.odf"
+    },
+    {
+      "source": "ODF\\betfhit.odf",
+      "runtime": "betfhit.odf"
+    },
+    {
+      "source": "ODF\\betfrag.odf",
+      "runtime": "betfrag.odf"
+    },
+    {
+      "source": "ODF\\betjump.odf",
+      "runtime": "betjump.odf"
+    },
+    {
+      "source": "ODF\\betqake.odf",
+      "runtime": "betqake.odf"
+    },
+    {
+      "source": "ODF\\betsplt.odf",
+      "runtime": "betsplt.odf"
+    },
+    {
+      "source": "ODF\\betspray.odf",
+      "runtime": "betspray.odf"
+    },
+    {
       "source": "ODF\\blasth.odf",
       "runtime": "blasth.odf"
+    },
+    {
+      "source": "ODF\\bplasma.odf",
+      "runtime": "bplasma.odf"
+    },
+    {
+      "source": "ODF\\bprifle.odf",
+      "runtime": "bprifle.odf"
     },
     {
       "source": "ODF\\bsheav.odf",
@@ -8414,6 +9598,14 @@
     {
       "source": "ODF\\bspilo.odf",
       "runtime": "bspilo.odf"
+    },
+    {
+      "source": "ODF\\bsplblt.odf",
+      "runtime": "bsplblt.odf"
+    },
+    {
+      "source": "ODF\\bsplsmg.odf",
+      "runtime": "bsplsmg.odf"
     },
     {
       "source": "ODF\\bssold.odf",
@@ -8740,6 +9932,14 @@
       "runtime": "cpcamr.odf"
     },
     {
+      "source": "ODF\\cplasma.odf",
+      "runtime": "cplasma.odf"
+    },
+    {
+      "source": "ODF\\cprifle.odf",
+      "runtime": "cprifle.odf"
+    },
+    {
       "source": "ODF\\cpsstb.odf",
       "runtime": "cpsstb.odf"
     },
@@ -8748,12 +9948,24 @@
       "runtime": "cpsstba.odf"
     },
     {
+      "source": "ODF\\cptesla.odf",
+      "runtime": "cptesla.odf"
+    },
+    {
       "source": "ODF\\cspilo.odf",
       "runtime": "cspilo.odf"
     },
     {
       "source": "ODF\\cspiloa.odf",
       "runtime": "cspiloa.odf"
+    },
+    {
+      "source": "ODF\\csplblt.odf",
+      "runtime": "csplblt.odf"
+    },
+    {
+      "source": "ODF\\csplsmg.odf",
+      "runtime": "csplsmg.odf"
     },
     {
       "source": "ODF\\cssold.odf",
@@ -8774,6 +9986,26 @@
     {
       "source": "ODF\\csuserb.odf",
       "runtime": "csuserb.odf"
+    },
+    {
+      "source": "ODF\\ctesbolt.odf",
+      "runtime": "ctesbolt.odf"
+    },
+    {
+      "source": "ODF\\cteshit.odf",
+      "runtime": "cteshit.odf"
+    },
+    {
+      "source": "ODF\\ctesmin.odf",
+      "runtime": "ctesmin.odf"
+    },
+    {
+      "source": "ODF\\ctespop.odf",
+      "runtime": "ctespop.odf"
+    },
+    {
+      "source": "ODF\\ctestrig.odf",
+      "runtime": "ctestrig.odf"
     },
     {
       "source": "ODF\\cvapc.odf",
@@ -9032,16 +10264,60 @@
       "runtime": "gatstabh.odf"
     },
     {
+      "source": "ODF\\gbetmin.odf",
+      "runtime": "gbetmin.odf"
+    },
+    {
+      "source": "ODF\\gbetpop.odf",
+      "runtime": "gbetpop.odf"
+    },
+    {
       "source": "ODF\\gblasth.odf",
       "runtime": "gblasth.odf"
+    },
+    {
+      "source": "ODF\\gctesla.odf",
+      "runtime": "gctesla.odf"
+    },
+    {
+      "source": "ODF\\glgmsl.odf",
+      "runtime": "glgmsl.odf"
+    },
+    {
+      "source": "ODF\\gsatstab.odf",
+      "runtime": "gsatstab.odf"
+    },
+    {
+      "source": "ODF\\gshunt.odf",
+      "runtime": "gshunt.odf"
+    },
+    {
+      "source": "ODF\\gsmort.odf",
+      "runtime": "gsmort.odf"
     },
     {
       "source": "ODF\\gspstabn.odf",
       "runtime": "gspstabn.odf"
     },
     {
+      "source": "ODF\\gsrkbomb.odf",
+      "runtime": "gsrkbomb.odf"
+    },
+    {
+      "source": "ODF\\gstlock.odf",
+      "runtime": "gstlock.odf"
+    },
+    {
       "source": "ODF\\gtminis2.odf",
       "runtime": "gtminis2.odf"
+    },
+    {
+      "source": "ODF\\gtsmoke.odf",
+      "runtime": "gtsmoke.odf"
+    },
+    {
+      "source": "ODF\\lgmissl.odf",
+      "runtime": "lgmissl.odf"
     },
     {
       "source": "ODF\\repamina.odf",
@@ -9062,6 +10338,14 @@
     {
       "source": "ODF\\rocketh.odf",
       "runtime": "rocketh.odf"
+    },
+    {
+      "source": "ODF\\satbolt.odf",
+      "runtime": "satbolt.odf"
+    },
+    {
+      "source": "ODF\\satxpl.odf",
+      "runtime": "satxpl.odf"
     },
     {
       "source": "ODF\\sb0002.odf",
@@ -9086,6 +10370,10 @@
     {
       "source": "ODF\\sbcomm.odf",
       "runtime": "sbcomm.odf"
+    },
+    {
+      "source": "ODF\\sbetty.odf",
+      "runtime": "sbetty.odf"
     },
     {
       "source": "ODF\\sbhang.odf",
@@ -9196,8 +10484,20 @@
       "runtime": "sbwpowa.odf"
     },
     {
+      "source": "ODF\\sgasxpl.odf",
+      "runtime": "sgasxpl.odf"
+    },
+    {
+      "source": "ODF\\sgrenade.odf",
+      "runtime": "sgrenade.odf"
+    },
+    {
       "source": "ODF\\shell.odf",
       "runtime": "shell.odf"
+    },
+    {
+      "source": "ODF\\shunter.odf",
+      "runtime": "shunter.odf"
     },
     {
       "source": "ODF\\spammo.odf",
@@ -9206,6 +10506,10 @@
     {
       "source": "ODF\\spartl.odf",
       "runtime": "spartl.odf"
+    },
+    {
+      "source": "ODF\\spbett.odf",
+      "runtime": "spbett.odf"
     },
     {
       "source": "ODF\\spblst.odf",
@@ -9234,6 +10538,14 @@
     {
       "source": "ODF\\sphorn.odf",
       "runtime": "sphorn.odf"
+    },
+    {
+      "source": "ODF\\sphunt.odf",
+      "runtime": "sphunt.odf"
+    },
+    {
+      "source": "ODF\\splasma.odf",
+      "runtime": "splasma.odf"
     },
     {
       "source": "ODF\\spmagg.odf",
@@ -9284,6 +10596,10 @@
       "runtime": "sprepa.odf"
     },
     {
+      "source": "ODF\\sprifle.odf",
+      "runtime": "sprifle.odf"
+    },
+    {
       "source": "ODF\\sprktb.odf",
       "runtime": "sprktb.odf"
     },
@@ -9300,6 +10616,10 @@
       "runtime": "spsite.odf"
     },
     {
+      "source": "ODF\\spsmort.odf",
+      "runtime": "spsmort.odf"
+    },
+    {
       "source": "ODF\\spspln.odf",
       "runtime": "spspln.odf"
     },
@@ -9310,6 +10630,10 @@
     {
       "source": "ODF\\spstab.odf",
       "runtime": "spstab.odf"
+    },
+    {
+      "source": "ODF\\spstlk.odf",
+      "runtime": "spstlk.odf"
     },
     {
       "source": "ODF\\sptagg.odf",
@@ -9324,12 +10648,24 @@
       "runtime": "spthmp.odf"
     },
     {
+      "source": "ODF\\srktbom.odf",
+      "runtime": "srktbom.odf"
+    },
+    {
       "source": "ODF\\sscr_1.odf",
       "runtime": "sscr_1.odf"
     },
     {
       "source": "ODF\\sspilo.odf",
       "runtime": "sspilo.odf"
+    },
+    {
+      "source": "ODF\\ssplblt.odf",
+      "runtime": "ssplblt.odf"
+    },
+    {
+      "source": "ODF\\ssplsmg.odf",
+      "runtime": "ssplsmg.odf"
     },
     {
       "source": "ODF\\sssold.odf",
@@ -9350,6 +10686,10 @@
     {
       "source": "ODF\\ssuserc.odf",
       "runtime": "ssuserc.odf"
+    },
+    {
+      "source": "ODF\\stlock.odf",
+      "runtime": "stlock.odf"
     },
     {
       "source": "ODF\\svap2.odf",
@@ -9620,6 +10960,30 @@
       "runtime": "svwatm.odf"
     },
     {
+      "source": "ODF\\sxgasxpl.odf",
+      "runtime": "sxgasxpl.odf"
+    },
+    {
+      "source": "ODF\\tsmkdep.odf",
+      "runtime": "tsmkdep.odf"
+    },
+    {
+      "source": "ODF\\tsmkpuf.odf",
+      "runtime": "tsmkpuf.odf"
+    },
+    {
+      "source": "ODF\\tsmkshl.odf",
+      "runtime": "tsmkshl.odf"
+    },
+    {
+      "source": "ODF\\tsmksplt.odf",
+      "runtime": "tsmksplt.odf"
+    },
+    {
+      "source": "ODF\\tsmkxpl.odf",
+      "runtime": "tsmkxpl.odf"
+    },
+    {
       "source": "ODF\\xbio.odf",
       "runtime": "xbio.odf"
     },
@@ -9630,6 +10994,14 @@
     {
       "source": "ODF\\xgasxpl.odf",
       "runtime": "xgasxpl.odf"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program"
     },
     {
       "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl",
@@ -9760,6 +11132,10 @@
       "runtime": "ConservativeCulling.lua"
     },
     {
+      "source": "Scripts\\CRCoop.lua",
+      "runtime": "CRCoop.lua"
+    },
+    {
       "source": "Scripts\\CRMarsWeather.lua",
       "runtime": "CRMarsWeather.lua"
     },
@@ -9794,10 +11170,6 @@
     {
       "source": "Scripts\\Environment.lua",
       "runtime": "Environment.lua"
-    },
-    {
-      "source": "Scripts\\ExtraUtils.lua",
-      "runtime": "ExtraUtils.lua"
     },
     {
       "source": "Scripts\\LavaEffects.lua",
