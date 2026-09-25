@@ -18,7 +18,7 @@ weaponName2 = "gsandbag"
 weaponHard3 = "GM1"
 weaponName3 = "gmdmgun"
 weaponHard4 = "GS1"
-weaponName4 = "gproxmin"
+weaponName4 = "gbetmin"
 weaponMask = 00011
 
 [CraftClass]

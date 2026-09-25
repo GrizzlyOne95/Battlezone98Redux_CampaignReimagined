@@ -1,0 +1,12 @@
+// Internal trigger weapon for the CCA Bouncing Betty.
+[WeaponClass]
+classLabel = "cannon"
+ordName = "betjump"
+wpnName = "Bouncing Betty Trigger"
+fireSound = "gprox00.wav"
+wpnReticle = "gproxmin"
+wpnPriority = 0
+wpnCategory = "SPEC"
+
+[CannonClass]
+shotDelay = 0.10

@@ -1,5 +1,5 @@
 [GameObjectClass]
-baseName = ""bbbarr2" // Non-Tent model."
+baseName = "bbbarr2" // Non-Tent model.
 classLabel = "barracks"
 scrapCost = 8
 scrapValue = 3

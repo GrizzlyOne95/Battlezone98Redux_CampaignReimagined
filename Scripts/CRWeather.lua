@@ -179,16 +179,54 @@ end
 --
 -- A preset states a parameter either as a plain value, which is sent once and
 -- then left alone, or as { calm, full }, which is interpolated by the layer's
--- live weight the same way rate already is.
+-- live weight the same way rate already is. Numeric strings with the same
+-- number of components interpolate component-by-component; this is how a
+-- ColourInterpolator can fade RGBA stops with weather intensity without a
+-- weather-specific particle API.
+
+local function ParseNumberSequence(value)
+    if type(value) ~= "string" then
+        return nil
+    end
+
+    local numbers = {}
+    for token in string.gmatch(value, "%S+") do
+        local number = tonumber(token)
+        if number == nil then
+            return nil
+        end
+        numbers[#numbers + 1] = number
+    end
+
+    if #numbers == 0 then
+        return nil
+    end
+    return numbers
+end
+
+local function LerpNumberSequence(calm, full, weight)
+    local calmNumbers = ParseNumberSequence(calm)
+    local fullNumbers = ParseNumberSequence(full)
+    if calmNumbers == nil or fullNumbers == nil or #calmNumbers ~= #fullNumbers then
+        return nil
+    end
+
+    local values = {}
+    for i = 1, #calmNumbers do
+        values[i] = string.format("%.4g", Lerp(calmNumbers[i], fullNumbers[i], weight))
+    end
+    return table.concat(values, " ")
+end
 
 local function ResolveParam(value, weight)
     if type(value) == "table" then
         local calm = tonumber(value[1])
         local full = tonumber(value[2])
-        if calm == nil or full == nil then
-            return nil
+        if calm ~= nil and full ~= nil then
+            return Lerp(calm, full, Clamp01(weight))
         end
-        return Lerp(calm, full, Clamp01(weight))
+
+        return LerpNumberSequence(value[1], value[2], Clamp01(weight))
     end
     return value
 end
@@ -387,6 +425,228 @@ local function ApplyWindToSystem(systemName, spec, preset)
     end
 end
 
+-- Optional terrain pooling for a ground-haze system. Native fog is global, so
+-- it cannot be lower in a basin than on a ridge. A terrainPool specification
+-- instead samples a small ring around the camera, keeps each patch emitter
+-- close to its local ground, and gives every patch a weight that favours flat
+-- ground below the sample average. Nine terrain queries four times per second
+-- are enough to follow a vehicle without becoming a per-frame terrain scan.
+local TERRAIN_RING = {
+    {  1.0000,  0.0000 }, {  0.7071,  0.7071 },
+    {  0.0000,  1.0000 }, { -0.7071,  0.7071 },
+    { -1.0000,  0.0000 }, { -0.7071, -0.7071 },
+    {  0.0000, -1.0000 }, {  0.7071, -0.7071 },
+}
+
+local function SmoothStep01(value)
+    value = Clamp01(value)
+    return value * value * (3.0 - (2.0 * value))
+end
+
+local function CameraWorldPosition()
+    local matrix = Call("GetCameraTransformMatrix")
+    if matrix ~= nil then
+        local ok, position = pcall(function()
+            if matrix.posit_x ~= nil and matrix.posit_y ~= nil and matrix.posit_z ~= nil then
+                return { x = matrix.posit_x, y = matrix.posit_y, z = matrix.posit_z }
+            end
+            return matrix.posit or matrix.position
+        end)
+        if ok and position and position.x ~= nil and position.y ~= nil and position.z ~= nil then
+            return position
+        end
+    end
+
+    if type(GetPlayerHandle) == "function" and type(GetPosition) == "function" then
+        local okPlayer, player = pcall(GetPlayerHandle)
+        if okPlayer and player ~= nil then
+            local okPosition, position = pcall(GetPosition, player)
+            if okPosition and position ~= nil then
+                return position
+            end
+        end
+    end
+    return nil
+end
+
+local function TerrainSample(x, z)
+    if type(GetTerrainHeightAndNormal) ~= "function" then
+        return nil, nil
+    end
+    local ok, height, normal = pcall(GetTerrainHeightAndNormal, SetVector(x, 0.0, z))
+    if not ok or type(height) ~= "number" then
+        return nil, nil
+    end
+    return height, normal
+end
+
+local function PatchSlopeDegrees(normal)
+    local normalY = normal and tonumber(normal.y) or 1.0
+    normalY = math.max(-1.0, math.min(1.0, normalY))
+    return math.deg(math.acos(normalY))
+end
+
+local function SetUnavailableTerrainPool(state, emitterIndices)
+    state.available = false
+    state.target = 1.0
+    state.maxTarget = 1.0
+    state.patches = state.patches or {}
+    for i = 1, #emitterIndices do
+        local index = emitterIndices[i]
+        local patch = state.patches[index] or {}
+        patch.target = 1.0
+        state.patches[index] = patch
+    end
+end
+
+local function SampleTerrainPool(systemName, spec, state)
+    local pool = spec.terrainPool
+    local emitterIndices = pool.emitterIndices or { tonumber(pool.emitterIndex) or 0 }
+    local camera = CameraWorldPosition()
+    if camera == nil then
+        SetUnavailableTerrainPool(state, emitterIndices)
+        return
+    end
+
+    local radius = math.max(1.0, tonumber(pool.sampleRadius) or 70.0)
+    local samples = {}
+    local heightSum, heightCount = 0.0, 0
+    for i = 1, #emitterIndices do
+        local direction = i == 1 and { 0.0, 0.0 } or TERRAIN_RING[i - 1]
+        if direction == nil then
+            break
+        end
+        local offsetX, offsetZ = direction[1] * radius, direction[2] * radius
+        local height, normal = TerrainSample(camera.x + offsetX, camera.z + offsetZ)
+        samples[#samples + 1] = {
+            emitterIndex = emitterIndices[i],
+            offsetX = offsetX,
+            offsetZ = offsetZ,
+            height = height,
+            normal = normal,
+        }
+        if height ~= nil then
+            heightSum = heightSum + height
+            heightCount = heightCount + 1
+        end
+    end
+
+    if heightCount == 0 then
+        SetUnavailableTerrainPool(state, emitterIndices)
+        return
+    end
+
+    local averageHeight = heightSum / heightCount
+    local slopeStart = math.max(0.0, tonumber(pool.slopeStart) or 6.0)
+    local slopeEnd = math.max(slopeStart + 0.01, tonumber(pool.slopeEnd) or 24.0)
+    local depthForFull = math.max(0.01, tonumber(pool.depthForFull) or 10.0)
+    local baseWeight = Clamp01(tonumber(pool.baseWeight) or 0.45)
+    local layerHeight = tonumber(pool.layerHeight) or 1.5
+    local targetSum, targetCount, maxTarget = 0.0, 0, 0.0
+
+    state.patches = state.patches or {}
+    for i = 1, #samples do
+        local sample = samples[i]
+        local patch = state.patches[sample.emitterIndex] or {}
+        if sample.height ~= nil then
+            local basinDepth = averageHeight - sample.height
+            local slopeDegrees = PatchSlopeDegrees(sample.normal)
+            local flatness = 1.0 - SmoothStep01((slopeDegrees - slopeStart) / (slopeEnd - slopeStart))
+            patch.target = flatness * Clamp01(baseWeight + (basinDepth / depthForFull))
+            patch.groundHeight = sample.height
+            patch.basinDepth = basinDepth
+            patch.slopeDegrees = slopeDegrees
+            targetSum = targetSum + patch.target
+            targetCount = targetCount + 1
+            maxTarget = math.max(maxTarget, patch.target)
+
+            -- The system follows the camera laterally. Each small emitter gets
+            -- its own sampled X/Z patch and terrain-relative Y, so fog remains
+            -- visible in a low cell even when the camera climbs above it.
+            Call("SetParticleEmitterPosition", systemName, sample.emitterIndex,
+                SetVector(sample.offsetX, sample.height + layerHeight - camera.y, sample.offsetZ))
+        else
+            -- Never emit an unsampled patch at the template's fallback origin.
+            patch.target = 0.0
+        end
+        state.patches[sample.emitterIndex] = patch
+    end
+
+    local center = state.patches[emitterIndices[1]] or {}
+    state.available = true
+    state.target = targetCount > 0 and (targetSum / targetCount) or 0.0
+    state.maxTarget = maxTarget
+    state.averageRingHeight = averageHeight
+    state.groundHeight = center.groundHeight
+    state.basinDepth = center.basinDepth
+    state.slopeDegrees = center.slopeDegrees
+end
+
+local function UpdateTerrainPool(systemName, live, dt)
+    local pool = live.spec.terrainPool
+    if pool == nil then
+        return nil
+    end
+
+    local state = live.terrainPool
+    if state == nil then
+        state = { weight = 0.0, target = 0.0, maxWeight = 0.0,
+            maxTarget = 0.0, nextSample = 0.0, sampled = false, patches = {} }
+        live.terrainPool = state
+    end
+
+    if CRWeather.Clock >= state.nextSample then
+        SampleTerrainPool(systemName, live.spec, state)
+        state.nextSample = CRWeather.Clock + math.max(0.05, tonumber(pool.sampleInterval) or 0.25)
+    end
+
+    local response = math.max(0.0, tonumber(pool.response) or 0.60)
+    local amount = response <= 0.0 and 1.0
+        or (dt > 0.0 and (1.0 - math.exp(-dt / response)) or 0.0)
+    local weightSum, weightCount, maxWeight = 0.0, 0, 0.0
+    for _, patch in pairs(state.patches) do
+        if not state.sampled then
+            patch.weight = patch.target
+        elseif amount > 0.0 then
+            patch.weight = Lerp(patch.weight or 0.0, patch.target or 0.0, amount)
+        end
+        patch.weight = Clamp01(patch.weight or 0.0)
+        weightSum = weightSum + patch.weight
+        weightCount = weightCount + 1
+        maxWeight = math.max(maxWeight, patch.weight)
+    end
+    state.sampled = true
+    state.weight = weightCount > 0 and (weightSum / weightCount) or 0.0
+    state.maxWeight = maxWeight
+    return state
+end
+
+local function TerrainPatchWeight(state, emitterIndex)
+    if state == nil then
+        return 1.0
+    end
+    local patch = state.patches and state.patches[emitterIndex]
+    return patch and Clamp01(patch.weight) or 1.0
+end
+
+local function ApplyWindForce(systemName, live)
+    local spec = live.spec
+    local affectorIndex = spec.windAffector
+    if affectorIndex == nil then
+        return
+    end
+
+    local direction = ResolveWindDirection(live.preset)
+    local speed = CRWeather.WindOverrideSpeed
+        or (live.preset and live.preset.windSpeed)
+        or 0.0
+    local force = speed * (tonumber(spec.windForceScale) or 0.08)
+    local y = tonumber(spec.windVerticalForce) or 0.0
+    local value = string.format("%.4g %.4g %.4g", direction.x * force, y, direction.z * force)
+    WriteParam("SetParticleAffectorParameter", systemName, "affector", affectorIndex,
+        "force_vector", value)
+end
+
 -- A preset addresses emitters and affectors by index, and Ogre ignores an index
 -- that is out of range without complaint: the storm simply renders with that
 -- layer's tuning missing, which looks like art that needs work rather than a
@@ -550,6 +810,7 @@ local function SyncSystems(dt)
     for systemName, live in pairs(CRWeather.LiveSystems) do
         local presetWeight = LayerWeight(live.preset)
         local weight = Clamp01(presetWeight) * Clamp01(CRWeather.Intensity) * math.max(0.0, CRWeather.Quality)
+        local terrainPool = UpdateTerrainPool(systemName, live, dt)
 
         -- Gusts modulate rate only, so one authored template covers calm and gale.
         local gusts = live.preset.gusts
@@ -562,15 +823,25 @@ local function SyncSystems(dt)
 
         local emitters = live.spec.emitters or {}
         for emitterIndex, emitter in pairs(emitters) do
-            ApplyEmitterSpec(systemName, emitterIndex, emitter, weight)
+            ApplyEmitterSpec(systemName, emitterIndex, emitter,
+                weight * TerrainPatchWeight(terrainPool, emitterIndex))
         end
 
         local affectors = live.spec.affectors or {}
         for affectorIndex, params in pairs(affectors) do
             ApplyAffectorSpec(systemName, affectorIndex, params, weight)
         end
+        ApplyWindForce(systemName, live)
 
-        Call("SetParticleSystemEmitting", systemName, weight > 0.001)
+        local visible = weight > 0.001
+            and (terrainPool == nil or terrainPool.maxWeight > 0.001)
+        Call("SetParticleSystemEmitting", systemName, visible)
+        -- Stopping an emitter does not remove particles it already produced.
+        -- Hide the retained system at zero intensity so SetIntensity(0) is a
+        -- real visual clear even before those particles reach their TTL. The
+        -- layer stays allocated so raising intensity can resume without an
+        -- Ogre destroy/create cycle.
+        Call("SetParticleSystemVisible", systemName, visible)
     end
 
     -- One call per frame moves every camera follower. It returns 0 when the
@@ -1001,6 +1272,39 @@ end
 
 function CRWeather.GetIntensity()
     return CRWeather.Intensity
+end
+
+-- Development/diagnostic snapshot for terrain-pooled systems. The returned
+-- table is detached from live state so a tuning UI cannot mutate the renderer
+-- accidentally. Nil means the system is absent or is not terrain-pooled.
+function CRWeather.GetTerrainPoolState(systemName)
+    local live = CRWeather.LiveSystems[systemName]
+    local state = live and live.terrainPool
+    if state == nil then
+        return nil
+    end
+    local snapshot = {
+        weight = state.weight,
+        target = state.target,
+        maxWeight = state.maxWeight,
+        maxTarget = state.maxTarget,
+        available = state.available,
+        groundHeight = state.groundHeight,
+        averageRingHeight = state.averageRingHeight,
+        basinDepth = state.basinDepth,
+        slopeDegrees = state.slopeDegrees,
+        patches = {},
+    }
+    for index, patch in pairs(state.patches or {}) do
+        snapshot.patches[index] = {
+            weight = patch.weight,
+            target = patch.target,
+            groundHeight = patch.groundHeight,
+            basinDepth = patch.basinDepth,
+            slopeDegrees = patch.slopeDegrees,
+        }
+    end
+    return snapshot
 end
 
 -- The map's own sky, so the sky layer knows what to restore. Without this the

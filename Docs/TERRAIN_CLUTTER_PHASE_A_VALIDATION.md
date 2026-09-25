@@ -37,12 +37,39 @@ It is updated as each lane is run.
   region/origin/distance/visibility/shadow configuration, build/reset/destroy,
   and SceneManager ownership cleanup.
 
-## Runtime qualification
+## Resolution (2026-09-21)
+
+**Visibility is no longer unverified.** The table below is the historical
+record of what this validation pass could and could not establish on
+2026-09-20; do not re-open the investigation it describes.
+
+The cause was not in this repository: `exu.CreateStaticGeometry` built every
+instance in BZR simulation coordinates instead of Redux's render space
+(origin-recentred, Z-mirrored). Every renderable Redux draws goes through
+that conversion — EXU's particles already made it — and StaticGeometry was
+the one path that skipped it. It built correctly, reported success, and was
+placed several thousand units outside the render world, identically on every
+backend, which is exactly what "unverified" below was hiding.
+
+Fixed in `ExtraUtilities`
+[PR #29](https://github.com/GrizzlyOne95/ExtraUtilities/pull/29)
+(`OgreRenderSpace::SimPositionToRender`/`SimOrientationToRender` applied to
+every instance and to the region-bucketing origin). Confirmed live
+2026-09-20 on Achilles via
+`BZR-OpenShim/reverse_engineering/test_missions/lcbveg`, DX11 Enhanced: three
+patches of 739 instances each rendered, at the exact lift heights (0.02 / 3 /
+10 units) the bench placed them at.
+
+The desktop-capture gap noted below is a separate, still-open limitation of
+this validation harness; the resolution came from a live GOG launch with a
+human observer, not from solving that gap.
+
+## Runtime qualification (historical, 2026-09-20, pre-fix)
 
 Direct GOG launches proved the native resource and lifecycle path. The desktop
 provider could not expose the native game window, so the viewport could not be
-captured or inspected. Visibility remains unverified and is not inferred from
-successful resource loading.
+captured or inspected. Visibility was recorded unverified below and was not
+inferred from successful resource loading.
 
 | Backend/profile | Map | Instances | Visible | Reload cleanup | Evidence |
 | --- | --- | ---: | --- | --- | --- |
