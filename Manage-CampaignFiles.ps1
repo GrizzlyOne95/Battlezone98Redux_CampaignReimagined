@@ -810,6 +810,7 @@ function Update-OpenShimManifest {
     Sync-SupportWrapper
 
     $shimPath = Join-Path $SourceDir "Bin\winmm.dll"
+    $helperPath = Join-Path $SourceDir "Bin\bzfile_replace_helper.exe"
     $openShimRepo = Resolve-SiblingRepoRoot "BZR_OPENSHIM_REPO" "GIT\BZR-OpenShim"
     $playerConfigSourcePath = Join-Path $openShimRepo "openshim.ini"
     $networkSourcePath = Join-Path $openShimRepo "net.ini"
@@ -860,10 +861,15 @@ function Update-OpenShimManifest {
     }
 
     $shimItem = Get-Item -LiteralPath $shimPath
+    $helperItem = Get-Item -LiteralPath $helperPath
     $playerConfigItem = Get-Item -LiteralPath $playerConfigPayloadPath
     $networkItem = Get-Item -LiteralPath $networkPayloadPath
     $patchesItem = Get-Item -LiteralPath $patchesPayloadPath
     $shimHash = (Get-FileHash -LiteralPath $shimPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    # OpenShim's Workshop updater launches the replacement helper from the
+    # item, so the helper is attested like a payload; a manifest without this
+    # entry is refused by OpenShim builds after 1.0.0.33.
+    $helperHash = (Get-FileHash -LiteralPath $helperPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $playerConfigHash = (Get-FileHash -LiteralPath $playerConfigPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $networkHash = (Get-FileHash -LiteralPath $networkPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $patchesHash = (Get-FileHash -LiteralPath $patchesPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -886,13 +892,14 @@ function Update-OpenShimManifest {
         "        network = { source = `"openshim_net.ini.payload`", destination = `"net.ini`", sha256 = `"$networkHash`", size = $($networkItem.Length) },"
         "        patches = { source = `"openshim_patches.json.payload`", destination = `"scripts\\patches.json`", sha256 = `"$patchesHash`", size = $($patchesItem.Length) },"
         "        playerConfig = { source = `"openshim.ini.payload`", destination = `"openshim.ini`", sha256 = `"$playerConfigHash`", size = $($playerConfigItem.Length), overwrite = false },"
+        "        helper = { source = `"bzfile_replace_helper.exe`", sha256 = `"$helperHash`", size = $($helperItem.Length) },"
         "    },"
         "}"
         ""
     ) -join "`r`n"
 
     [System.IO.File]::WriteAllText($manifestPath, $manifest, [System.Text.UTF8Encoding]::new($false))
-    Write-Host "OpenShim suite manifest: version=$shimVersion winmm=$shimHash ini=$playerConfigHash net=$networkHash patches=$patchesHash" -ForegroundColor DarkGray
+    Write-Host "OpenShim suite manifest: version=$shimVersion winmm=$shimHash ini=$playerConfigHash net=$networkHash patches=$patchesHash helper=$helperHash" -ForegroundColor DarkGray
 }
 
 function Sync-ToSource {
