@@ -104,6 +104,12 @@ The bundled OpenShim comes from a published release of
 tag runs its `Build and Release` workflow); a branch or an untagged build
 cannot be published.
 
+The first OpenShim release that contains the updater trust chain
+(Battlezone98Redux_Shim #254) must ship in a publish whose manifest carries
+the `helper` entry for `bzfile_replace_helper.exe` (this repository's #106).
+A #254 shim refuses any package without that entry, so never publish one
+without the other.
+
 ## Before a real Workshop upload
 
 1. Confirm the candidate has completed the normal GOG deploy/test path.
