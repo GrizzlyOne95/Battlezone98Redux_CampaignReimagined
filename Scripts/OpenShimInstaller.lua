@@ -215,17 +215,6 @@ local function GetPathLeaf(path)
     return path:match("([^\\/]+)$") or path
 end
 
-local function GetOpenShimReplaceLogPath(destinationPath)
-    local normalized = NormalizeInstallerPath(destinationPath)
-    if not normalized or normalized == "" then
-        return nil
-    end
-
-    local fileName = GetPathLeaf(normalized) or "winmm.dll"
-    local stem = fileName:gsub("%.[^.]+$", "")
-    local logFile = stem .. "_replace.log"
-    return LogPaths.Path(logFile)
-end
 
 local function WriteOpenShimInstallerDescriptionFile(relativePath, text)
     if not relativePath or relativePath == "" or type(text) ~= "string" or text == "" then
@@ -704,6 +693,20 @@ function OpenShimInstaller.Inspect()
         (report.updateStatus.state == "staged" or
          report.updateStatus.state == "waiting_for_exit" or
          report.updateStatus.state == "already_staged")
+
+    -- A pending status with no update helper running was left by a helper
+    -- that never finished (crash, kill, power loss). Without this check it
+    -- reads as "restart required" forever and the update is never staged
+    -- again. Older bzfile builds lack IsOpenShimUpdateActive; keep trusting
+    -- the status there.
+    if pendingState and bzfile and type(bzfile.IsOpenShimUpdateActive) == "function" then
+        local ok, active = pcall(bzfile.IsOpenShimUpdateActive)
+        if ok and active == false then
+            pendingState = false
+            report.updateStatus.stale = true
+        end
+    end
+
     if pendingState then
         report.state = OpenShimInstaller.States.RESTART_REQUIRED
         return report
