@@ -8,6 +8,7 @@ GOG/Steam qualification before publishing.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -23,6 +24,14 @@ STOCK_API_DEFINITION_FILES = {"scripts/scriptutils.lua"}
 # OpenShim deploy writes them into this tree, so a clean checkout has none
 # of them and their absence here is not a defect.
 SIBLING_SUPPLIED_ROOTS = {"openshim", "BZ_ASSETS_CORE"}
+# Shared with ExtraUtilities, BZR-OpenShim and bzfile. SHA-256 of the file
+# bytes with CRLF normalised to LF; every repository pins the same values.
+SHARED_BZR_DOCS = {
+    "Docs/BZR_LUA_AGENT_REFERENCE.md":
+        "95a146ae81c94a84c2b4c0767f7e2a6ab4aa1ee40148e2414a72733b13ac2fd1",
+    "Docs/BZR_PLATFORM_COMPATIBILITY.md":
+        "b9af9f6452996080a046949f3164e102ec8aa4eefaa9d0c4b8d194e52b516fb3",
+}
 
 
 def project_files():
@@ -233,9 +242,36 @@ def check_shipped_materials_ship_their_textures(files) -> list[str]:
     return sorted(set(problems))
 
 
+def check_shared_bzr_docs() -> list[str]:
+    """The shared BZR documents must match the copies pinned in every sibling.
+
+    ExtraUtilities, BZR-OpenShim, Campaign Reimagined and bzfile keep these
+    two documents byte-identical. Each repository pins the same hashes, so an
+    edit made in only one of them fails that repository's CI. Hashes are taken
+    after normalising CRLF to LF so Windows and Linux checkouts agree.
+    """
+    errors: list[str] = []
+    for relative, expected in SHARED_BZR_DOCS.items():
+        path = ROOT / relative
+        try:
+            body = path.read_bytes().replace(b"\r\n", b"\n")
+        except OSError as exc:
+            errors.append(f"{relative} is unreadable: {exc}")
+            continue
+        actual = hashlib.sha256(body).hexdigest()
+        if actual != expected:
+            errors.append(
+                f"{relative} no longer matches the shared copy (sha256 {actual}). "
+                "Make the same change in ExtraUtilities, BZR-OpenShim, Campaign "
+                "Reimagined and bzfile, then update the pinned hashes in each "
+                "repository's check.")
+    return errors
+
+
 def main() -> int:
     files = list(project_files())
     errors: list[str] = []
+    errors.extend(check_shared_bzr_docs())
     errors.extend(check_case_collisions(files))
     errors.extend(check_engine_filenames(files))
     lua_errors, warnings = check_lua(files)
