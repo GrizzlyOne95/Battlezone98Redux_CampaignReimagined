@@ -42,7 +42,14 @@ local function readAllText(path)
     end)
     file:Close()
 
-    if not ok or type(data) ~= "string" or data == "" then
+    if not ok or type(data) ~= "string" then
+        return nil
+    end
+
+    -- bzfile builds before the 2026-09-27 fix padded text-mode Dump output
+    -- with one NUL per CRLF line. Harmless once Bin\bzfile.dll is refreshed.
+    data = data:gsub("%z+$", "")
+    if data == "" then
         return nil
     end
 
@@ -297,7 +304,8 @@ local function backupOriginalSaveIfNeeded(filename, backupname, backupDir)
         return true
     end
 
-    local existingSave = bzfile.Open(filename, "r")
+    -- Binary mode: a save is copied byte for byte (and may be a binary save).
+    local existingSave = bzfile.Open(filename, "rb")
     if not existingSave then
         return true
     end
@@ -309,7 +317,7 @@ local function backupOriginalSaveIfNeeded(filename, backupname, backupDir)
     end
 
     ensureBackupDirectory(backupDir)
-    local backupFile = bzfile.Open(backupname, "w", "trunc")
+    local backupFile = bzfile.Open(backupname, "wb", "trunc")
     if not backupFile then
         print("AutoSave: WARNING - could not open backup file for writing: " .. backupname)
         return false

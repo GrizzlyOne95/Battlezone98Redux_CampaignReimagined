@@ -79,8 +79,12 @@ Put(modRoot .. "\\openshim.ini.payload", hashes.playerConfig)
 Put(modRoot .. "\\bzfile_replace_helper.exe", "helper")
 ResetInstalledCurrent()
 
+-- Whether an update helper currently owns the update mutex.
+local helperActive = true
+
 package.preload["bzfile"] = function()
     return {
+        IsOpenShimUpdateActive = function() return helperActive end,
         GetWorkingDirectory = function() return working end,
         GetWorkshopDirectory = function() return workshop end,
         Exists = function(path) return exists[path] == true end,
@@ -194,6 +198,18 @@ assert(result.success == true)
 assert(result.action == "already_staged")
 assert(result.restartRequired == true)
 assert(stageCalls == stagesBeforePending)
+
+-- The same pending status with no helper running was left by a helper that
+-- never finished: it must not block a fresh staging forever.
+helperActive = false
+report = Installer.Inspect()
+assert(report.updateStatus.stale == true)
+assert(report.state == Installer.States.INSTALL_REQUIRED, report.state)
+result = Installer.Apply(report)
+assert(result.success == true)
+assert(result.action == "install_staged", result.action)
+assert(stageCalls == stagesBeforePending + 1)
+helperActive = true
 
 -- Newer manual install: preserve it and do not stage older support files.
 ResetInstalledCurrent()

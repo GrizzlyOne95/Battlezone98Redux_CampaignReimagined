@@ -366,8 +366,9 @@ do
         end
 
         function stub.MakeDirectory()
-            -- Match the native bzfile contract: success/no-op returns nil.
-            return nil
+            -- Match the native bzfile contract: true on success, or
+            -- false and a message. The stub cannot create anything.
+            return false, "bzfile is unavailable"
         end
 
         return setmetatable(stub, {
