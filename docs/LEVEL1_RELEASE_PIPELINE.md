@@ -2,13 +2,29 @@
 
 This pipeline prepares one immutable Campaign Reimagined payload and uses it for both Steam Workshop publishing and a ModDB-ready manual release. Level 1 intentionally does **not** submit the final ModDB web form.
 
+## Current local process
+
+Publication currently runs locally through `Manage-CampaignFiles.ps1`, as
+documented in `Docs/STEAM_PUBLISH_CHECKLIST.md`. No Steam-authenticated
+self-hosted runner is available. The workflow below is retained as a design
+and build path; its publishing job must not be treated as the current uploader.
+
+For a candidate, run the manager's `-workshop-build "<change note>"` action,
+freeze `Local/Workshop/content` and `content_manifest.sha256`, and call
+`.github/scripts/Build-Level1Release.ps1` with that frozen folder as `BundleDir`,
+a new `OutputDir`, the candidate `Version` and `ChangeNote`, and the exact
+`CampaignCommit` and `OpenShimCommit`. This generates the manual ZIP and handoff
+without publishing. Workshop and manual packages must use this same frozen
+payload. A branch build remains a candidate until its OpenShim tag is qualified
+and published; see the checklist before a real Workshop upload.
+
 ## Workflow
 
 Run **Publish Campaign Release** from GitHub Actions on `main` and provide:
 
 - `version` — release identifier such as `1.4.0`.
 - `change_note` — player-facing release notes used by Steam and the ModDB package.
-- `openshim_ref` — OpenShim branch, tag, or SHA to build.
+- `openshim_tag` — qualified published OpenShim tag whose attested suite to consume.
 - `moddb_release_type` — `Full Version` or `Patch` for the ModDB submission metadata.
 - `archive_drive` — when enabled, copy the prepared release into the configured synchronized Drive directory after Steam succeeds.
 - `dry_run` — build and validate everything without publishing Steam or writing to the external archive.

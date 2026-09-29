@@ -80,7 +80,7 @@ foreach ($line in Get-Content -LiteralPath $manifest) {
 }
 
 if (Test-Path -LiteralPath $output) {
-    Remove-Item -LiteralPath $output -Recurse -Force
+    throw "Output directory already exists. Choose a new directory to preserve the existing release: '$output'."
 }
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 
@@ -98,6 +98,12 @@ INSTALLATION
 2. Extract this ZIP directly into the Battlezone 98 Redux installation directory.
 3. Confirm the resulting path is: mods\3686673790\
 4. Start Battlezone 98 Redux and launch Campaign Reimagined.
+
+LINUX / PROTON / WINE
+These are the same Win32 binaries used on Windows. For Steam/Proton, add
+WINEDLLOVERRIDES="winmm=n,b;dsound=n,b" %command%
+to the game's launch options. For GOG/Wine, set WINEDLLOVERRIDES="winmm=n,b;dsound=n,b" in
+the game's Wine environment. Restart after setup stages the native suite.
 
 This archive contains the same manifest-validated campaign payload used by the Steam Workshop release workflow. Campaign Reimagined includes native OpenShim integration; restart the game when prompted if the native DLL is installed or updated.
 

@@ -37,6 +37,7 @@
 
 # Intentional root files
 !/.gitignore
+!/.gitattributes
 !/AGENTS.md
 !/CHANGELOG.md
 !/Manage-CampaignFiles.ps1

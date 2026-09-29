@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-09-23T19:47:07-05:00",
-  "count": 3673,
+  "generated": "2026-09-29T15:08:36-05:00",
+  "count": 3679,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6504,8 +6504,16 @@
       "runtime": "bzfile.dll"
     },
     {
+      "source": "Bin\\bzloader.dll",
+      "runtime": "bzloader.dll"
+    },
+    {
       "source": "Bin\\exu.dll",
       "runtime": "exu.dll"
+    },
+    {
+      "source": "Bin\\openshim.dll",
+      "runtime": "openshim.dll"
     },
     {
       "source": "Bin\\winmm.dll",
@@ -8838,6 +8846,22 @@
     {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
+    },
+    {
+      "source": "Missions\\crsetup.hg2",
+      "runtime": "crsetup.hg2"
+    },
+    {
+      "source": "Missions\\crsetup.lgt",
+      "runtime": "crsetup.lgt"
+    },
+    {
+      "source": "Missions\\crsetup.mat",
+      "runtime": "crsetup.mat"
+    },
+    {
+      "source": "Missions\\crsetup.trn",
+      "runtime": "crsetup.trn"
     },
     {
       "source": "Missions\\demo01.hg2",
