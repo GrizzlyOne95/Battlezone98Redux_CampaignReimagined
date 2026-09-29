@@ -17,6 +17,8 @@ try {
         [Environment]::SetEnvironmentVariable($pair.Env,$repo)
     }
     $fixtureConfig=[ordered]@{OpenShimRepo=$env:BZR_OPENSHIM_REPO;BzfileRepo=$env:BZR_BZFILE_REPO;ExuRepo=$env:BZR_EXU_REPO}
+    & git -C $fixtureConfig.BzfileRepo checkout --detach -q
+    if($LASTEXITCODE -ne 0){throw 'Cannot create detached source fixture.'}
     $env:BZR_RELEASE_CONFIG=Join-Path $scratch 'release.config.json'
     $fixtureConfig | ConvertTo-Json | Set-Content -LiteralPath $env:BZR_RELEASE_CONFIG -Encoding utf8
     # A permanent/prototype environment override cannot displace explicit release sources.
@@ -28,6 +30,7 @@ try {
     if($LASTEXITCODE -ne 0){throw ($json|Out-String)}
     $plan=($json|Out-String)|ConvertFrom-Json
     if($plan.Sources.OpenShim.Repo -ne $fixtureConfig.OpenShimRepo){throw 'Inherited environment displaced the configured release source.'}
+    if($plan.Sources.Bzfile.Branch -ne 'detached'){throw 'Detached source identity was lost.'}
     if($plan.Version -ne 'fixture-rc1' -or $plan.OutputDir -ne $output -or $plan.NativeBuild -notmatch '^reuse' -or $plan.Smoke.Count -ne 0 -or $plan.Publishes -ne $false){throw 'Preparation CLI lost an option or selected publication.'}
     if(Test-Path -LiteralPath $output){throw 'A plan-only command wrote its output directory.'}
     foreach($case in @(@('-prepare-update'),@('-prepare-update','note','-version'),@('-prepare-update','note','-bogus'),@('-prepare-update','note','-version','../bad','-plan'))){
