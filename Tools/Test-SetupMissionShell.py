@@ -45,16 +45,23 @@ assert "completely exit Battlezone" in mod_description
 assert "logs\\openpatch_setup.log" in mod_description
 
 bzn = bzn_path.read_text(encoding="utf-8")
+raw_bzn = bzn_path.read_bytes()
+assert b"\n" not in raw_bzn.replace(b"\r\n", b""), "native BZN must use CRLF on every line"
 for required in (
     "msn_filename = crsetup.bzn",
-    "missionSave [1] =\nfalse",
-    "TerrainName = misn02b",
-    "size [1] =\n1",
+    "missionSave [1] =\ntrue",
+    "TerrainName = crsetup",
+    "size [1] =\n39",
     "name = LuaMission",
 ):
     assert required in bzn, f"setup BZN invariant missing: {required!r}"
 
-assert bzn.count("[GameObject]") == 1, "setup BZN must stay a one-object shell"
+# The former one-object hand-written file did not load in-game. Reuse the complete, tested mission map
+# serialization while selecting the independent setup script.
+template = (ROOT / "Missions" / "misn02b.bzn").read_text(encoding="utf-8")
+assert bzn == template.replace("msn_filename = misn02b.bzn", "msn_filename = crsetup.bzn", 1).replace("TerrainName = misn02b", "TerrainName = crsetup", 1)
+for extension in ("trn", "hg2", "mat", "lgt"):
+    assert (ROOT / "Missions" / ("crsetup." + extension)).is_file(), "setup terrain must be self-contained"
 
 lua = lua_path.read_text(encoding="utf-8")
 assert 'Installer.Inspect()' in lua
@@ -84,6 +91,10 @@ expected = {
     "crsetrr.des": "crsetrr.des",
     "crsetfl.des": "crsetfl.des",
     r"Missions\crsetup.bzn": "crsetup.bzn",
+    r"Missions\crsetup.trn": "crsetup.trn",
+    r"Missions\crsetup.hg2": "crsetup.hg2",
+    r"Missions\crsetup.mat": "crsetup.mat",
+    r"Missions\crsetup.lgt": "crsetup.lgt",
     r"Scripts\crsetup.lua": "crsetup.lua",
 }
 for source, runtime in expected.items():

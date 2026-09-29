@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-29 release candidate
+
+- Bundle OpenShim 1.0.0.34's complete bootstrap, loader and runtime plugin.
+  Campaign setup and updates now install all three DLLs, network defaults and
+  patch definitions together after the game exits, with verified backups and
+  rollback if replacement fails.
+- Verify the replacement helper and each bundled component before staging.
+  Setup diagnostics report missing or outdated loader/plugin files and refuse
+  incomplete packages or incompatible older staging APIs.
+- Repair the setup mission's map serialization so the setup/repair entry
+  actually loads in the game and runs its installer diagnostics.
+- Include the completed OpenShim/EXU audit fixes and current EXU 1.3.0 runtime,
+  plus the recent DX11 effect and shader compatibility fixes. Preserve player
+  OpenShim settings when updating.
+- Native producer-menu routing remains disabled while its real hook sites are
+  being qualified. The unsafe former target is removed.
+
+These are candidate package notes. Public Workshop publication and final
+Steam subscription verification are recorded separately in the release handoff.
+
 ## 2026-09-21
 
 ### AI pilot behavior
