@@ -16,7 +16,8 @@ Review the companion source changes before merging:
 
 - [OpenShim #382](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/pull/382)
 - [bzfile #25](https://github.com/GrizzlyOne95/bzfile/pull/25)
-- Campaign branch: `agent/cr-suite-release-20260929`.
+- [Campaign #111](https://github.com/GrizzlyOne95/Battlezone98Redux_CampaignReimagined/pull/111),
+  branch `agent/cr-suite-release-20260929`.
 
 The Setup map now uses the complete existing misn02b serialization with its
 own terrain companions and script. The former minimal file failed to load.
