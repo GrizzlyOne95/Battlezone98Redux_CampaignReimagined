@@ -49,12 +49,19 @@ if ($NoDeploy) { $NoSmoke = $true }
 $repos = [ordered]@{Campaign=$campaign; OpenShim=$shim; Bzfile=$bzfile; EXU=$exu}
 $origins = @{Campaign='Battlezone98Redux_CampaignReimagined'; OpenShim='Battlezone98Redux_Shim'; Bzfile='bzfile'; EXU='ExtraUtilities'}
 $source = [ordered]@{}
+function Read-GitText([string]$Repository, [string[]]$GitArguments) {
+    $result = & git -C $Repository @GitArguments
+    if ($LASTEXITCODE -ne 0) { throw "Cannot read Git source identity in $Repository" }
+    return ($result | Out-String).Trim()
+}
 foreach ($name in @($repos.Keys)) {
     $repo = (Resolve-Path -LiteralPath $repos[$name]).Path
     $repos[$name] = $repo
-    $origin = (& git -C $repo remote get-url origin).Trim()
+    $origin = Read-GitText $repo @('remote','get-url','origin')
     if ($LASTEXITCODE -ne 0 -or $origin -notmatch ('(?i)github\.com[:/]GrizzlyOne95/' + [regex]::Escape($origins[$name]) + '(?:\.git)?$')) { throw "Unexpected $name origin: $origin" }
-    $source[$name] = [ordered]@{Repo=$repo; Origin=$origin; Branch=(& git -C $repo branch --show-current).Trim(); Commit=(& git -C $repo rev-parse HEAD).Trim()}
+    $branch = Read-GitText $repo @('branch','--show-current')
+    if (-not $branch) { $branch = 'detached' }
+    $source[$name] = [ordered]@{Repo=$repo; Origin=$origin; Branch=$branch; Commit=(Read-GitText $repo @('rev-parse','HEAD'))}
 }
 $shim = $repos.OpenShim; $bzfile = $repos.Bzfile; $exu = $repos.EXU
 if ($game -match '(?i)[\\/]steamapps[\\/]') { throw 'This preparation action deploys to GOG. Keep Steam download testing separate.' }
