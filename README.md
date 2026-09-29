@@ -60,6 +60,13 @@ This repository is the canonical source tree. Development follows this promotion
 
 Do not deploy development files directly into Steam's Workshop download cache. `Local/Workshop` is generated staging, not a playable development runtime.
 
+To prepare a native or campaign bug fix locally, run
+`pwsh -File .\Manage-CampaignFiles.ps1 -prepare-update "<change note>"`.
+This builds, checks, deploys/tests GOG and freezes all update packages. Add
+`-reuse-native` for a Lua/content-only fix. See
+[`Docs/UPDATE_PREPARATION.md`](Docs/UPDATE_PREPARATION.md) for configuration,
+output receipts and the separate publication steps.
+
 Useful references:
 
 - [`CHANGELOG.md`](CHANGELOG.md) — recent player-facing and technical changes
