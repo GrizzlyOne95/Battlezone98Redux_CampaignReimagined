@@ -7,7 +7,8 @@ param(
     [Parameter(Mandatory)][string]$OpenShimRepo,
     [Parameter(Mandatory)][string]$BzfileRepo,
     [Parameter(Mandatory)][string]$ExuRepo,
-    [string]$BundleDir = 'Local\Workshop'
+    [string]$BundleDir = 'Local\Workshop',
+    [switch]$AllowDirty
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -53,11 +54,15 @@ $campaign = Split-Path -Parent $PSScriptRoot
 $output = [IO.Path]::GetFullPath($OutputDir)
 $bundle = (Resolve-Path -LiteralPath $BundleDir).Path
 if (Test-Path -LiteralPath $output) { throw 'Choose a new output directory; frozen candidates are never overwritten.' }
-foreach ($repo in @($campaign, $OpenShimRepo, $BzfileRepo, $ExuRepo)) {
+$sourceStates = [ordered]@{}
+foreach ($pair in @(@{Name='Campaign';Path=$campaign},@{Name='OpenShim';Path=$OpenShimRepo},@{Name='Bzfile';Path=$BzfileRepo},@{Name='EXU';Path=$ExuRepo})) {
+    $repo = $pair.Path
     & git -C $repo diff --quiet
-    if ($LASTEXITCODE -ne 0) { throw "Commit tracked source changes before freezing: $repo" }
+    $dirty = $LASTEXITCODE -ne 0
     & git -C $repo diff --cached --quiet
-    if ($LASTEXITCODE -ne 0) { throw "Commit staged source changes before freezing: $repo" }
+    $dirty = $dirty -or $LASTEXITCODE -ne 0
+    if ($dirty -and -not $AllowDirty) { throw "Commit tracked source changes before freezing, or use -AllowDirty for an explicitly marked working candidate: $repo" }
+    $sourceStates[$pair.Name] = [ordered]@{TrackedDirty=$dirty; Files=@(& git -C $repo status --porcelain=v1 --untracked-files=normal)}
 }
 foreach ($required in @('content', 'content_manifest.sha256', 'workshop_build.vdf')) {
     if (-not (Test-Path -LiteralPath (Join-Path $bundle $required))) { throw "Missing staged input: $required" }
@@ -144,7 +149,7 @@ $archives = @(foreach ($file in Get-ChildItem -LiteralPath $output -Filter '*.zi
     [ordered]@{File=[IO.Path]::GetRelativePath($output,$file.FullName); Bytes=$file.Length; Sha256=$hash}
 })
 [ordered]@{
-    SchemaVersion=1; Version=$Version; Status='prepared-candidate'; Commits=$identities;
+    SchemaVersion=2; Version=$Version; Status='prepared-candidate'; Commits=$identities; SourceStates=$sourceStates;
     Runtime=$runtime; Archives=$archives; FileCount=@(Get-ChildItem -LiteralPath (Join-Path $workshop 'content') -File -Recurse).Count;
     ManifestSha256=(Get-FileHash -LiteralPath (Join-Path $workshop 'content_manifest.sha256')).Hash.ToLowerInvariant();
     CampaignArchivesVerified=$true; PubliclyPublished=$false; PreparedAtUtc=[DateTime]::UtcNow.ToString('o')

@@ -8,6 +8,10 @@ on:
       - .github/scripts/Build-Level1Release.ps1
       - .github/scripts/Invoke-ModDbHandoff.ps1
       - .github/scripts/Open-ModDbHandoff.cmd
+      - Manage-CampaignFiles.ps1
+      - Tools/Prepare-CampaignUpdate.ps1
+      - Tools/Prepare-ReleaseCandidate.ps1
+      - Tools/Test-UpdatePreparation.ps1
   workflow_dispatch:
 
 permissions:
@@ -39,6 +43,10 @@ jobs:
               throw "$name contains PowerShell parse errors."
             }
           }
+
+      - name: Validate local preparation command contracts
+        shell: pwsh
+        run: ./Tools/Test-UpdatePreparation.ps1
 
       - name: Exercise synthetic release packaging
         shell: pwsh
