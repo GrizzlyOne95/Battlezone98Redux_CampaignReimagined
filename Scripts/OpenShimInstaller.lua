@@ -387,6 +387,7 @@ local function GetOpenShimManifest()
         if type(payload) ~= "table" then return nil end
         payload.sha256 = type(payload.sha256) == "string" and string.lower(payload.sha256) or nil
         if not payload.sha256 or not payload.sha256:match("^[0-9a-f]+$") or #payload.sha256 ~= 64 or
+            type(payload.size) ~= "number" or payload.size <= 0 or
             type(payload.source) ~= "string" or payload.source == "" or
             type(payload.destination) ~= "string" or payload.destination == "" then
             return nil
@@ -397,25 +398,37 @@ local function GetOpenShimManifest()
     manifest.sha256 = type(manifest.sha256) == "string" and string.lower(manifest.sha256) or nil
     local payloads = manifest.payloads
     local winmm = payloads and NormalizePayload(payloads.winmm) or nil
+    local loader = payloads and NormalizePayload(payloads.loader) or nil
+    local plugin = payloads and NormalizePayload(payloads.plugin) or nil
+    local helper = payloads and payloads.helper
     local network = payloads and NormalizePayload(payloads.network) or nil
     local patches = payloads and NormalizePayload(payloads.patches) or nil
     local playerConfig = payloads and NormalizePayload(payloads.playerConfig) or nil
-    if manifest.formatVersion ~= 2 or
+    if manifest.formatVersion ~= 3 or
         not manifest.sha256 or not manifest.sha256:match("^[0-9a-f]+$") or #manifest.sha256 ~= 64 or
         type(manifest.version) ~= "string" or manifest.version == "" or
         manifest.architecture ~= "x86" or
-        not winmm or not network or not patches or not playerConfig or
+        not winmm or not loader or not plugin or not network or not patches or not playerConfig or
         winmm.source ~= "winmm.dll" or winmm.destination ~= "winmm.dll" or
+        loader.source ~= "bzloader.dll" or loader.destination ~= "bzloader.dll" or
+        plugin.source ~= "openshim.dll" or plugin.destination ~= "plugins\\openshim.dll" or
+        loader.version ~= manifest.version or plugin.version ~= manifest.version or
+        loader.architecture ~= "x86" or plugin.architecture ~= "x86" or
+        type(helper) ~= "table" or helper.source ~= "bzfile_replace_helper.exe" or
+        type(helper.sha256) ~= "string" or #helper.sha256 ~= 64 or
+        not helper.sha256:match("^[0-9a-fA-F]+$") or
+        type(helper.size) ~= "number" or helper.size <= 0 or
         network.source ~= "openshim_net.ini.payload" or network.destination ~= "net.ini" or
         patches.source ~= "openshim_patches.json.payload" or patches.destination ~= "scripts\\patches.json" or
         playerConfig.source ~= "openshim.ini.payload" or playerConfig.destination ~= "openshim.ini" or
         type(playerConfig.overwrite) ~= "boolean" or
-        winmm.sha256 ~= manifest.sha256 or winmm.version ~= manifest.version or
+        winmm.sha256 ~= manifest.sha256 or winmm.version ~= manifest.version or winmm.size ~= manifest.size or
         winmm.architecture ~= "x86" then
         print("PersistentConfig: OpenShim manifest is malformed or unsupported.")
         return nil
     end
 
+    helper.sha256 = string.lower(helper.sha256)
     return manifest
 end
 
@@ -580,7 +593,7 @@ function OpenShimInstaller.Inspect()
         workingDirectory = workingDirectory,
         diagnosticLogPath = workingDirectory .. "\\logs\\openpatch_setup.log",
         bzfileAvailable = bzfile ~= nil,
-        stagingAvailable = bzfile and type(bzfile.StageOpenShimSuiteUpdate) == "function" or false,
+        stagingAvailable = bzfile and type(bzfile.StageOpenShimSuiteUpdateV3) == "function" or false,
         workshopDirectory = GetWorkshopContentDirectory(),
         manifest = { valid = false },
         payloads = {},
@@ -622,6 +635,8 @@ function OpenShimInstaller.Inspect()
 
     local definitions = {
         { name = "winmm", payload = manifest.payloads.winmm, versioned = true },
+        { name = "loader", payload = manifest.payloads.loader, versioned = true },
+        { name = "plugin", payload = manifest.payloads.plugin, versioned = true },
         { name = "network", payload = manifest.payloads.network },
         { name = "patches", payload = manifest.payloads.patches },
         { name = "playerConfig", payload = manifest.payloads.playerConfig },
@@ -629,6 +644,8 @@ function OpenShimInstaller.Inspect()
 
     local destinationPaths = {
         winmm = workingDirectory .. "\\winmm.dll",
+        loader = workingDirectory .. "\\bzloader.dll",
+        plugin = workingDirectory .. "\\plugins\\openshim.dll",
         network = workingDirectory .. "\\net.ini",
         patches = workingDirectory .. "\\scripts\\patches.json",
         playerConfig = workingDirectory .. "\\openshim.ini",
@@ -663,6 +680,7 @@ function OpenShimInstaller.Inspect()
         path = sourceRoot and (sourceRoot .. "\\bzfile_replace_helper.exe") or nil,
         exists = sourceRoot and BzFileExists(sourceRoot .. "\\bzfile_replace_helper.exe") or false,
     }
+    report.payloads.helper = NewPayloadDiagnostic("helper", manifest.payloads.helper, report.helper.path)
 
     if report.updateStatus.exists then
         report.updateStatus.matchesBundled =
@@ -678,6 +696,10 @@ function OpenShimInstaller.Inspect()
         report.state = OpenShimInstaller.States.HELPER_MISSING
         return report
     end
+    if report.payloads.helper.state ~= "CURRENT" then
+        report.state = OpenShimInstaller.States.PAYLOAD_HASH_MISMATCH
+        return report
+    end
 
     local winmm = report.installed.winmm
     local network = report.installed.network
@@ -685,6 +707,8 @@ function OpenShimInstaller.Inspect()
     local playerConfig = report.installed.playerConfig
     local allCurrent =
         winmm.state == "CURRENT" and
+        report.installed.loader.state == "CURRENT" and
+        report.installed.plugin.state == "CURRENT" and
         network.state == "CURRENT" and
         patches.state == "CURRENT" and
         playerConfig.state ~= "MISSING"
@@ -724,7 +748,8 @@ function OpenShimInstaller.Inspect()
         return report
     end
 
-    if winmm.state == "NEWER" then
+    if winmm.state == "NEWER" or report.installed.loader.state == "NEWER" or
+        report.installed.plugin.state == "NEWER" then
         report.state = OpenShimInstaller.States.NEWER_THAN_BUNDLED
         return report
     end
@@ -819,10 +844,15 @@ function OpenShimInstaller.FormatDiagnosticReport(report)
     }
 
     AddDiagnosticPayloadLine(lines, "PAYLOAD_WINMM", report.payloads and report.payloads.winmm, report)
+    AddDiagnosticPayloadLine(lines, "PAYLOAD_LOADER", report.payloads and report.payloads.loader, report)
+    AddDiagnosticPayloadLine(lines, "PAYLOAD_PLUGIN", report.payloads and report.payloads.plugin, report)
+    AddDiagnosticPayloadLine(lines, "PAYLOAD_HELPER", report.payloads and report.payloads.helper, report)
     AddDiagnosticPayloadLine(lines, "PAYLOAD_NETWORK", report.payloads and report.payloads.network, report)
     AddDiagnosticPayloadLine(lines, "PAYLOAD_PATCHES", report.payloads and report.payloads.patches, report)
     AddDiagnosticPayloadLine(lines, "PAYLOAD_PLAYER_CONFIG", report.payloads and report.payloads.playerConfig, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_WINMM", report.installed and report.installed.winmm, report)
+    AddDiagnosticPayloadLine(lines, "INSTALLED_LOADER", report.installed and report.installed.loader, report)
+    AddDiagnosticPayloadLine(lines, "INSTALLED_PLUGIN", report.installed and report.installed.plugin, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_NETWORK", report.installed and report.installed.network, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_PATCHES", report.installed and report.installed.patches, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_PLAYER_CONFIG", report.installed and report.installed.playerConfig, report)
@@ -974,7 +1004,7 @@ function OpenShimInstaller.Apply(report)
         return result
     end
 
-    if not (bzfile and type(bzfile.StageOpenShimSuiteUpdate) == "function") then
+    if not (bzfile and type(bzfile.StageOpenShimSuiteUpdateV3) == "function") then
         result.action = "blocked"
         result.state = OpenShimInstaller.States.STAGING_UNAVAILABLE
         result.detail = "hardened OpenShim suite staging is unavailable"
@@ -993,6 +1023,9 @@ function OpenShimInstaller.Apply(report)
     -- action. Inspect() may have happened several frames earlier.
     local payloadOrder = {
         { name = "winmm", payload = manifest.payloads.winmm },
+        { name = "loader", payload = manifest.payloads.loader },
+        { name = "plugin", payload = manifest.payloads.plugin },
+        { name = "helper", payload = manifest.payloads.helper },
         { name = "network", payload = manifest.payloads.network },
         { name = "patches", payload = manifest.payloads.patches },
         { name = "playerConfig", payload = manifest.payloads.playerConfig },
@@ -1017,6 +1050,8 @@ function OpenShimInstaller.Apply(report)
 
     local coreCurrent =
         report.installed and report.installed.winmm and report.installed.winmm.state == "CURRENT" and
+        report.installed.loader and report.installed.loader.state == "CURRENT" and
+        report.installed.plugin and report.installed.plugin.state == "CURRENT" and
         report.installed.network and report.installed.network.state == "CURRENT" and
         report.installed.patches and report.installed.patches.state == "CURRENT"
 
@@ -1045,10 +1080,13 @@ function OpenShimInstaller.Apply(report)
     }
 
     local ok, staged, stageState, helperLogPath = pcall(
-        bzfile.StageOpenShimSuiteUpdate,
+        bzfile.StageOpenShimSuiteUpdateV3,
         sourcePaths[1], manifest.payloads.winmm.sha256,
         sourcePaths[2], manifest.payloads.network.sha256,
-        sourcePaths[3], manifest.payloads.patches.sha256)
+        sourcePaths[3], manifest.payloads.patches.sha256,
+        report.payloads.loader.source, manifest.payloads.loader.sha256,
+        report.payloads.plugin.source, manifest.payloads.plugin.sha256,
+        manifest.payloads.helper.sha256)
 
     if not ok or not staged then
         result.action = "stage_failed"

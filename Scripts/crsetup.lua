@@ -101,6 +101,12 @@ local function RenderReport(logPath, logError)
         "    " .. ComponentText("net.ini", report.installed and report.installed.network))
 
     AddLine(
+        "crsetup_chain",
+        "white",
+        ComponentText("Loader", report.installed and report.installed.loader) ..
+        "    " .. ComponentText("Runtime", report.installed and report.installed.plugin))
+
+    AddLine(
         "crsetup_support",
         "white",
         ComponentText("patches.json", report.installed and report.installed.patches) ..
