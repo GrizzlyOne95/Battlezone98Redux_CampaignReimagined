@@ -69,6 +69,8 @@ $plan = [ordered]@{
     Publishes=$false
 }
 if ($PlanOnly) { $plan | ConvertTo-Json -Depth 8; exit 0 }
+Write-Host "Preparing $Version. Selected sources (BZR_* environment overrides take precedence over local config):"
+foreach ($name in $repos.Keys) { Write-Host ("  {0}: {1} [{2} {3}]" -f $name,$repos[$name],$source[$name].Branch,$source[$name].Commit.Substring(0,8)) }
 if (-not $NoDeploy -and (Get-Process battlezone98redux -ErrorAction SilentlyContinue)) { throw 'Close Battlezone normally before preparation; no running game is stopped by this command.' }
 if (-not $NoDeploy -and -not (Test-Path -LiteralPath (Join-Path $game 'battlezone98redux.exe') -PathType Leaf)) { throw "Configured GOG test executable does not exist: $game" }
 $pwsh = (Get-Command pwsh -ErrorAction Stop).Source
@@ -124,8 +126,9 @@ function Invoke-PsCheck([string]$Name, [string]$Path, [string[]]$Arguments=@(), 
     Invoke-Check $Name $pwsh (@('-NoProfile','-File',$Path)+$Arguments) $Directory
 }
 function Invoke-LuaCheck([string]$Name, [string]$RelativePath) {
-    if ($useWsl) { Invoke-Check $Name $wsl @('--cd',$linuxCampaign,'--exec','lua5.1',$RelativePath,'Scripts') }
-    else { Invoke-Check $Name $lua @($RelativePath,'Scripts') }
+    # Each test owns its default source argument; some expect a file, others a directory.
+    if ($useWsl) { Invoke-Check $Name $wsl @('--cd',$linuxCampaign,'--exec','lua5.1',$RelativePath) }
+    else { Invoke-Check $Name $lua @($RelativePath) }
 }
 try {
     Invoke-PsCheck 'OpenShim network baseline' (Join-Path $shim 'tools\validate-network-baseline.ps1') @() $shim
@@ -135,6 +138,13 @@ try {
     Invoke-Check 'OpenShim configure host tests' $cmake @('-S','tests','-B','build/tests','-A','Win32') $shim
     Invoke-Check 'OpenShim build host tests' $cmake @('--build','build/tests','--config','Release') $shim
     Invoke-Check 'OpenShim CTest' $ctest @('--test-dir','build/tests','-C','Release','--output-on-failure') $shim
+    $kitsBin = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
+    $fxc = Get-ChildItem -LiteralPath $kitsBin -Filter fxc.exe -File -Recurse |
+        Where-Object {$_.FullName -match '\\x86\\fxc\.exe$'} | Sort-Object FullName -Descending | Select-Object -First 1
+    if (-not $fxc) { throw 'Windows SDK x86 fxc.exe was not found.' }
+    foreach ($variant in @(@{Entry='VSMain';Profile='vs_5_0'},@{Entry='PSMain';Profile='ps_5_0'})) {
+        Invoke-Check ('OpenShim FXAA '+$variant.Entry) $fxc.FullName @('/nologo','/Ges','/O3','/I',(Join-Path $shim 'reverse_engineering\prerelease_2016\removed_files'),'/T',$variant.Profile,'/E',$variant.Entry,'/Fo',(Join-Path $output ('Logs\fxaa-'+$variant.Entry+'.cso')),(Join-Path $shim 'shaders\dx11_enhanced_fxaa.hlsl')) $shim
+    }
     Invoke-PsCheck 'OpenShim Enhanced shaders' (Join-Path $shim 'scripts\Test-EnhancedShaderCompile.ps1') @() $shim
     Invoke-PsCheck 'OpenShim Enhanced PSSM' (Join-Path $shim 'scripts\Test-EnhancedPssmV2.ps1') @() $shim
     foreach ($item in @('validate_hardening.py','generate_bzr_build_profile.py','generate_engine_addresses.py','test_bzr_qualification.py')) {
