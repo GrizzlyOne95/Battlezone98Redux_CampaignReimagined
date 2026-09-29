@@ -49,3 +49,6 @@ try {
     foreach($name in $saved.Keys){[Environment]::SetEnvironmentVariable($name,$saved[$name])}
     # Scratch remains available for a failed-fixture investigation; no real checkout is removed.
 }
+# The negative fixtures intentionally leave native exit codes nonzero. Report
+# the successful test result explicitly to callers such as GitHub's pwsh wrapper.
+exit 0
