@@ -78,7 +78,9 @@ command line for an unattended preparation run.
 
 Preparation accepts an explicitly marked working-tree candidate so a small
 uncommitted fix can be built/tested. It records dirty source/cache files and
-exact payload hashes. Review, commit and push coherent changes afterward;
+exact payload hashes. All five ZIPs are checked against their file manifests,
+and the extracted OpenShim archive passes the native chain/ABI identity gate.
+Review, commit and push coherent changes afterward;
 the receipt's commit IDs alone do not reproduce dirty working changes.
 
 This action does not commit, merge, tag, create a release or upload to Steam.
