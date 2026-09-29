@@ -1,0 +1,5 @@
+# Redux's native text BZN reader requires CRLF, including edited header lines.
+# Empty native fields deliberately retain a space after '='.
+*.bzn text eol=crlf whitespace=-blank-at-eol
+# Keep the tested stock terrain description byte format.
+Missions/crsetup.trn whitespace=-blank-at-eol,-blank-at-eof

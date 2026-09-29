@@ -7,6 +7,9 @@ local modRoot = workshop .. "\\3686673790"
 
 local hashes = {
     winmm = string.rep("a", 64),
+    loader = string.rep("1", 64),
+    plugin = string.rep("2", 64),
+    helper = string.rep("3", 64),
     network = string.rep("b", 64),
     patches = string.rep("c", 64),
     playerConfig = string.rep("d", 64),
@@ -14,29 +17,43 @@ local hashes = {
 }
 
 local manifest = {
-    formatVersion = 2,
+    formatVersion = 3,
+    size = 1234,
     version = "1.0.0.99",
     architecture = "x86",
     sha256 = hashes.winmm,
     payloads = {
         winmm = {
+            size = 1234,
             source = "winmm.dll",
             destination = "winmm.dll",
             sha256 = hashes.winmm,
             version = "1.0.0.99",
             architecture = "x86",
         },
+        loader = {
+            source = "bzloader.dll", destination = "bzloader.dll",
+            sha256 = hashes.loader, size = 2345, version = "1.0.0.99", architecture = "x86",
+        },
+        plugin = {
+            source = "openshim.dll", destination = "plugins\\openshim.dll",
+            sha256 = hashes.plugin, size = 3456, version = "1.0.0.99", architecture = "x86",
+        },
+        helper = { source = "bzfile_replace_helper.exe", sha256 = hashes.helper, size = 4567 },
         network = {
+            size = 100,
             source = "openshim_net.ini.payload",
             destination = "net.ini",
             sha256 = hashes.network,
         },
         patches = {
+            size = 100,
             source = "openshim_patches.json.payload",
             destination = "scripts\\patches.json",
             sha256 = hashes.patches,
         },
         playerConfig = {
+            size = 100,
             source = "openshim.ini.payload",
             destination = "openshim.ini",
             sha256 = hashes.playerConfig,
@@ -66,6 +83,8 @@ end
 
 local function ResetInstalledCurrent()
     Put(working .. "\\winmm.dll", hashes.winmm, manifest.version)
+    Put(working .. "\\bzloader.dll", hashes.loader, manifest.version)
+    Put(working .. "\\plugins\\openshim.dll", hashes.plugin, manifest.version)
     Put(working .. "\\net.ini", hashes.network)
     Put(working .. "\\scripts\\patches.json", hashes.patches)
     Put(working .. "\\openshim.ini", hashes.customConfig)
@@ -73,10 +92,12 @@ local function ResetInstalledCurrent()
 end
 
 Put(modRoot .. "\\winmm.dll", hashes.winmm, manifest.version)
+Put(modRoot .. "\\bzloader.dll", hashes.loader, manifest.version)
+Put(modRoot .. "\\openshim.dll", hashes.plugin, manifest.version)
 Put(modRoot .. "\\openshim_net.ini.payload", hashes.network)
 Put(modRoot .. "\\openshim_patches.json.payload", hashes.patches)
 Put(modRoot .. "\\openshim.ini.payload", hashes.playerConfig)
-Put(modRoot .. "\\bzfile_replace_helper.exe", "helper")
+Put(modRoot .. "\\bzfile_replace_helper.exe", hashes.helper)
 ResetInstalledCurrent()
 
 -- Whether an update helper currently owns the update mutex.
@@ -120,11 +141,16 @@ package.preload["bzfile"] = function()
             versions[destination] = versions[source]
             return true
         end,
-        StageOpenShimSuiteUpdate = function()
+        StageOpenShimSuiteUpdateV3 = function(...)
+            local args = {...}
+            assert(#args == 11)
+            assert(args[7] == modRoot .. "\\bzloader.dll" and args[8] == hashes.loader)
+            assert(args[9] == modRoot .. "\\openshim.dll" and args[10] == hashes.plugin)
+            assert(args[11] == hashes.helper)
             stageCalls = stageCalls + 1
             statusContent =
                 "state=staged\nexpected_sha256=" .. hashes.winmm ..
-                "\npayload_count=3\n"
+                "\npayload_count=5\n"
             return true, "staged", working .. "\\logs\\openshim_update.log"
         end,
     }
@@ -248,5 +274,45 @@ assert(result.success == true)
 assert(result.action == "update_staged", result.action)
 assert(result.restartRequired == true)
 assert(stageCalls == stagesBeforeRetry + 1)
+
+-- A current bootstrap alone is not a current installation: repair either missing link.
+for _, path in ipairs({working .. "\\bzloader.dll", working .. "\\plugins\\openshim.dll"}) do
+    ResetInstalledCurrent()
+    Remove(path)
+    report = Installer.Inspect()
+    assert(report.state == Installer.States.UPDATE_REQUIRED, report.state)
+    result = Installer.Apply(report)
+    assert(result.success and result.restartRequired, result.detail)
+end
+
+-- Old protocols and incomplete or mismatched component identities fail closed.
+ResetInstalledCurrent()
+manifest.formatVersion = 2
+assert(Installer.Inspect().state == Installer.States.MANIFEST_INVALID)
+manifest.formatVersion = 3
+local plugin = manifest.payloads.plugin
+manifest.payloads.plugin = nil
+assert(Installer.Inspect().state == Installer.States.MANIFEST_INVALID)
+manifest.payloads.plugin = plugin
+plugin.destination = "openshim.dll"
+assert(Installer.Inspect().state == Installer.States.MANIFEST_INVALID)
+plugin.destination = "plugins\\openshim.dll"
+
+-- Do not execute a helper changed since packaging or since the inspection.
+Put(modRoot .. "\\bzfile_replace_helper.exe", string.rep("f", 64))
+assert(Installer.Inspect().state == Installer.States.PAYLOAD_HASH_MISMATCH)
+Put(modRoot .. "\\bzfile_replace_helper.exe", hashes.helper)
+Remove(working .. "\\bzloader.dll")
+report = Installer.Inspect()
+Put(modRoot .. "\\bzfile_replace_helper.exe", string.rep("f", 64))
+local before = stageCalls
+result = Installer.Apply(report)
+assert(not result.success and stageCalls == before)
+Put(modRoot .. "\\bzfile_replace_helper.exe", hashes.helper)
+local bzfile = require("bzfile")
+local stageV3 = bzfile.StageOpenShimSuiteUpdateV3
+bzfile.StageOpenShimSuiteUpdateV3 = nil
+assert(Installer.Inspect().state == Installer.States.STAGING_UNAVAILABLE)
+bzfile.StageOpenShimSuiteUpdateV3 = stageV3
 
 print("OpenShimInstaller diagnostics/action tests passed")
