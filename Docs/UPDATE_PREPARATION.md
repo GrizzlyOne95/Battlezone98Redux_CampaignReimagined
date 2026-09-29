@@ -74,6 +74,8 @@ Example:
 The interactive manager has the same action as menu option **7**. Use the
 command line for an unattended preparation run.
 
+Keep the selected checkouts unchanged while a preparation run is in progress.
+
 ## Before publication
 
 Preparation accepts an explicitly marked working-tree candidate so a small
