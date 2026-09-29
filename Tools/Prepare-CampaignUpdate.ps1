@@ -25,11 +25,14 @@ $failure = $null
 $nativeRebuilt = $false
 $gogDeployed = $false
 $gogRuntimePassed = $false
-$configPath = Join-Path $campaign 'Local\release.config.json'
+$configPath = if ($env:BZR_RELEASE_CONFIG) { $env:BZR_RELEASE_CONFIG } else { Join-Path $campaign 'Local\release.config.json' }
+if ($env:BZR_RELEASE_CONFIG -and -not (Test-Path -LiteralPath $configPath -PathType Leaf)) { throw "Explicit release config does not exist: $configPath" }
 $config = if (Test-Path -LiteralPath $configPath) { Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json } else { [pscustomobject]@{} }
 function Get-Setting([string]$Name, [string]$EnvironmentName, [string]$Fallback) {
-    if ($EnvironmentName -and [Environment]::GetEnvironmentVariable($EnvironmentName)) { return [Environment]::GetEnvironmentVariable($EnvironmentName) }
+    # An explicit preparation config must not be displaced by permanent prototype
+    # environment settings. Blank fields retain the ordinary BZR_* overrides.
     if ($config.PSObject.Properties[$Name] -and $config.$Name) { return [string]$config.$Name }
+    if ($EnvironmentName -and [Environment]::GetEnvironmentVariable($EnvironmentName)) { return [Environment]::GetEnvironmentVariable($EnvironmentName) }
     return $Fallback
 }
 $siblings = Split-Path -Parent $campaign
@@ -69,8 +72,9 @@ $plan = [ordered]@{
     Publishes=$false
 }
 if ($PlanOnly) { $plan | ConvertTo-Json -Depth 8; exit 0 }
-Write-Host "Preparing $Version. Selected sources (BZR_* environment overrides take precedence over local config):"
+Write-Host "Preparing $Version. Selected sources (explicit release config fields take precedence over inherited environment settings):"
 foreach ($name in $repos.Keys) { Write-Host ("  {0}: {1} [{2} {3}]" -f $name,$repos[$name],$source[$name].Branch,$source[$name].Commit.Substring(0,8)) }
+if (-not $NoDeploy -and $env:BZR_LAUNCH_LOCK_HELD) { throw 'Run preparation from a standalone shell outside an existing BZR harness session.' }
 if (-not $NoDeploy -and (Get-Process battlezone98redux -ErrorAction SilentlyContinue)) { throw 'Close Battlezone normally before preparation; no running game is stopped by this command.' }
 if (-not $NoDeploy -and -not (Test-Path -LiteralPath (Join-Path $game 'battlezone98redux.exe') -PathType Leaf)) { throw "Configured GOG test executable does not exist: $game" }
 $pwsh = (Get-Command pwsh -ErrorAction Stop).Source
@@ -184,14 +188,19 @@ try {
     foreach ($item in @('Test-ProgramReferences.ps1','Validate-DX11Shaders.ps1','Test-DX11ShaderValidator.ps1','Test-EnhancedPssmV2.ps1')) { Invoke-PsCheck ('CR '+$item) (Join-Path $PSScriptRoot $item) }
     if (-not $NoDeploy) {
         # Serialize native and campaign deployment against other harness launches.
-        $GameRoot=$game
+        # Import lock helpers without changing ogre.cfg during a deployment-only run.
+        $GameRoot=$null
         . (Join-Path $shim 'reverse_engineering\BZRHarness.ps1')
         try {
             if (Get-Process battlezone98redux -ErrorAction SilentlyContinue) { throw 'A game started during preparation. Close it normally before deploying.' }
             Invoke-PsCheck 'Deploy complete native chain to GOG' (Join-Path $shim 'scripts\Deploy-OpenShim.ps1') @('-GameDir',$game) $shim
             Invoke-PsCheck 'Deploy and verify GOG campaign' $manager @('-deploy')
             $gogDeployed = $true
-        } finally { Exit-BZRLaunchLock -Mutex $global:BZRAutoLock }
+        } finally {
+            Exit-BZRLaunchLock -Mutex $global:BZRAutoLock
+            # Child smoke processes must acquire their own lock after deployment.
+            [Environment]::SetEnvironmentVariable('BZR_LAUNCH_LOCK_HELD',$null)
+        }
     }
     if (-not $NoSmoke) {
         foreach ($renderer in @('dx9','dx11')) {

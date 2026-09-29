@@ -1978,7 +1978,7 @@ function Initialize-ReleaseConfig {
     }
     [IO.Directory]::CreateDirectory((Split-Path -Parent $target)) | Out-Null
     Copy-Item -LiteralPath (Join-Path $RepoRoot 'Tools\release.config.example.json') -Destination $target
-    Write-Host "Created $target. Empty repository paths use the usual sibling checkouts; BZR_*_REPO environment overrides take precedence."
+    Write-Host "Created $target. Explicit paths select preparation sources; blank paths use BZR_*_REPO overrides or the usual sibling checkouts."
 }
 
 function Invoke-PrepareUpdateAction {

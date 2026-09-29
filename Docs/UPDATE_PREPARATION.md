@@ -32,8 +32,13 @@ Existing runs are never overwritten. Failed runs remain available for diagnosis.
 
 Edit the generated, gitignored `Local/release.config.json` to select native
 checkouts. Blank paths use sibling `BZR-OpenShim`, `bzfile` and
-`ExtraUtilities`; `BZR_OPENSHIM_REPO`, `BZR_BZFILE_REPO` and `BZR_EXU_REPO`
-override the file. Origins and branches are printed in the plan and receipt.
+`ExtraUtilities`. Explicit config fields take precedence for this preparation
+command; blank fields use `BZR_OPENSHIM_REPO`, `BZR_BZFILE_REPO` and
+`BZR_EXU_REPO` before the sibling defaults. This prevents an inherited
+prototype path from displacing your release configuration. Other manager
+actions keep their existing environment override behavior. `BZR_RELEASE_CONFIG`
+can select a different config file. Origins and branches are printed in the
+plan and receipt.
 For the September 29 suite work, use `BZR-OpenShim-cr-suite-release` and
 `bzfile-cr-suite-release` rather than the unrelated primary OpenShim prototype.
 
