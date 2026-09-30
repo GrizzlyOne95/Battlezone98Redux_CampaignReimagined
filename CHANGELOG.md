@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-30
+
+- Fix a crash on the second visit to Instant Action (or when launching Setup /
+  Repair) before OpenShim is installed: Ogre rejected CR's particle templates
+  ("CR/Impact/SparkSmall already exists") when the menu rebuilt resources.
+  CR's particle definitions now ship as payloads and load once when a CR
+  mission starts, so Setup / Repair runs on an unmodified game.
+- Bundle EXU 1.3.1 (in-memory script parsing and a particle template query).
+
 ## 2026-09-29 release candidate
 
 - Move Reimagined content from the global Mods toggle into its own Custom
