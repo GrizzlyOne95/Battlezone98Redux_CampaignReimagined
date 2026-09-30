@@ -1,0 +1,83 @@
+[img]https://i.imgur.com/tnBsUBR.png[/img]
+
+[h1]Battlezone 98 Redux: Unofficial Community Patch & Campaign Rewrite[/h1]
+[i]An open-source native community patch and campaign overhaul for Battlezone 98 Redux, featuring engine-level bug fixes, major performance improvements, restored Battlezone 1.5 behavior, multiplayer/netcode improvements, modern input and rendering options, expanded HUD/PDA systems, and extensively rewritten campaign missions.[/i]
+
+[h2]Important Notice[/h2]
+[b]This project is 100% unofficial and is not affiliated with or supported by Rebellion. It's functional and reasonably stable, but still under active development.[/b]
+
+This patch modifies native game behavior and remains highly experimental. Expect bugs, crashes, compatibility problems, or changes not present in the unmodified game.
+
+This item operates under the philosophy that game improvement methods should be open and shared. Other "community" patches tend to operate under closed/hidden source with no way to verify if the code is safe, and no way to contribute or review it. Here, all source code is available publicly on Github and you can compile it from source yourself if desired. 
+
+[h2]Current Campaign Support[/h2]
+Rewritten campaign content currently focuses on:
+[list]
+[*] [b]misn02b[/b] NSDF Mission 1
+[*] [b]misn03[/b] NSDF Mission 2
+[*] [b]misn04[/b] NSDF Mission 3
+[*] [b]misn05[/b] NSDF Mission 4
+[/list]
+
+Other missions should remain playable but won't be modded/overhauled yet.
+
+[h2]Major Player-Facing Improvements[/h2]
+[list]
+[*] [b]Game-Wide Native Patch:[/b] OpenShim isn't limited to Campaign Reimagined. Engine fixes, input improvements, multiplayer fixes, HUD options, networking changes, crash protection, and many other features work across the stock campaigns, Instant Action, multiplayer, and compatible mods.
+[*] [b]Destruction Debris:[/b] Restored the classic Battlezone 1.5 behavior where destroyed vehicles and buildings break into visible physical geometry chunks. These aren't estimations - they track exactly with the legacy hidden GEOs. They're the real deal.
+[*] [b] Massive FPS and optimization boosts: [/b] Identified and eliminated several major rendering bottlenecks, including redundant Ogre geometry rebuilds, excessive destruction-object submissions, broken craft culling, and unnecessary DX11 CPU/GPU synchronization. Benchmarks show 5–15% gains in representative CPU-heavy scenarios, with improvements exceeding 70% in destruction-heavy stress tests.
+[*] [b]Multiplayer:[/b] Fixed the server list jumping to the top on refresh and a crash when creating a game; removed the ~30-second hang on leaving a match by caching compiled shaders; team flags above player vehicles, toggleable live. Massive netcode improvements to help stability in longer matches.
+[*] [b]Audio Reliability:[/b] Larger sound-channel pool, so fewer dropouts in big battles and dialogue-heavy missions.
+[*] [b]Native AutoSave:[/b] A dedicated AutoSave entry that doesn't consume normal save slots. Works in ALL single player content including Instant Action missions. 
+[*] [b]Real Crash Diagnostics:[/b] Native crash logging and minidump capture turn mysterious Redux crashes into actionable module/address reports, making engine-level bugs substantially easier to reproduce and fix.
+[/list]
+
+[h2]In-Game Options and Controls[/h2]
+[list]
+[*] [b]OpenShim Options Page:[/b] A new page on the stock Options screen for settings the original interface has no room for. Most apply instantly; those needing a restart are marked, and hovering a row explains what it does. Includes Raw Mouse Input (bypassing legacy mouse smoothing/acceleration), custom keybindings, attack alerts, target popups, scrap/pilot HUD style, jet flames, unit voices, weapon and reticle convergence, smarter scavengers, anti-air turret pitch, jump-snipe crouch, global turbo, and player/AI headlights with colour and beam controls.
+[*] [b]Renderer Profiles:[/b] Switch between stock-compatible Redux presentation, enhanced rendering, and retro-oriented presentation through OpenShim's native renderer-profile system, with optional DX11-specific visual features.
+[*] [b]Rewritten Key Binding Screen:[/b] Rebind controls in-game across both control families, with paging, live key capture, and cancel, written safely back to your key map.
+[*] [b]Career tracking:[/b] Added a dedicated main menu button for Career stats, if you have that turned on in OpenShim settings. Kills, deaths, etc. 
+[*] [b]Better Multiplayer Hosting:[/b] Native host controls, persistent player bans, improved network tuning, vehicle flags, nickname/network settings, clearer multiplayer failure diagnostics, and fixes for several stock lobby/UI problems.
+[/list]
+
+[h2]Restored Legacy Battlezone Behavior[/h2]
+[list]
+[*] [b]Classic HUD Layout Option:[/b] Restored legacy-style scrap and pilot meter placement aligned with the command interface and native HUD panels.
+[*] [b]Jump-Snipe Crouch:[/b] Restored the classic crouch while sniping mid-jump. Single-player only.
+[*] [b]Satellite fog of war:[/b] Redux broke the fog of war, so you can see everything on the map even if its not in radar range. This is now fixed.
+[/list]
+
+[h2]Platform Support[/h2]
+Windows and Linux are both supported, on Steam and on GOG. On Linux, including Steam Deck, the patch runs through Proton or a compatible Wine prefix. There is no separate Linux build and there needn't be: Proton loads exactly the same 32-bit Windows files, so both platforms run identical code and update together.
+
+A fix isn't considered done until it holds on both stores and under Proton. If something works on one and not another, that's a bug worth reporting, not expected behavior.
+
+[h2]Installation[/h2]
+Installation is mostly automatic - the patch installs itself by copying [b]winmm.dll[/b] next to the game executable and tells you when it's done.
+
+[b]Guarded and Reversible:[/b] OpenShim validates the game build and native patch sites before touching them, fails closed when something doesn't match, never modifies battlezone98redux.exe on disk, and can be removed simply by deleting the proxy DLL.
+
+[list=1]
+[*] Subscribe to this item.
+[*] Launch Battlezone 98 Redux, mark Campaign Reimagined active, and start one of its missions.
+[*] When it reports OpenShim was installed, [b]restart the game[/b]. The patch can't be swapped in while the game is using it.
+[*] Play normally. Updates install the same way or can be triggered in the OpenShim settings by clicking "Check for Updates". This invokes Steam workshop check. The UI also checks if you're missing any required assets. 
+[/list]
+
+If the automatic copy doesn't happen, copy [b]winmm.dll[/b] from the mod folder (for example [i]workshop\campaignReimagined\winmm.dll[/i]) next to [b]battlezone98redux.exe[/b] yourself. If an update fails, check [i]winmm_replace.log[/i] in the Battlezone folder. Remove other native DLL-based modifications before troubleshooting.
+
+[h2]Uninstallation[/h2]
+Delete [b]winmm.dll[/b] from the Battlezone 98 Redux installation folder and the game returns to normal, unpatched startup. Campaign, addon, or config files can be removed manually too. The modded campaign will error without the patch; unsubscribe for full removal.
+
+[h2]Reporting Issues[/h2]
+Please avoid reports such as 'it does not work.' Detailed reproduction steps make it much more likely a problem gets fixed. Useful detail includes:
+[list]
+[*] What you were doing, and the mission, map, or game mode
+[*] Whether it reproduces
+[*] Screenshots, error messages, logs, or save files
+[*] Any other mods or custom files installed
+[*] Zipped /logs folder would be best
+[/list]
+
+[b]Expect unfinished behavior, test carefully, and report anything unusual.[/b]
