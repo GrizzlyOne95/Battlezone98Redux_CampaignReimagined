@@ -44,7 +44,9 @@ OpenShim owns low-level loading and engine patches. Extra Utilities exposes nati
 
 ## Installation
 
-Subscribe to [Campaign Reimagined on Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790), activate the mod, then launch one of its missions or Open Community Patch Setup. Setup installs or updates the complete native chain: game-root `winmm.dll` and `bzloader.dll`, plus `plugins/openshim.dll` and matching patch/network data. Restart when prompted so the verified replacement can complete after exit. Player `openshim.ini` is preserved.
+Subscribe to [Campaign Reimagined on Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790), then open **Single Player > Instant Action** and launch **! SETUP / REPAIR - Open Community Patch**. Setup installs or updates the complete native chain: game-root `winmm.dll` and `bzloader.dll`, plus `plugins/openshim.dll` and matching patch/network data. Restart when prompted so the verified replacement can complete after exit. Player `openshim.ini` is preserved.
+
+Play through **Single Player > Custom Campaign > Campaign Reimagined**. This entry contains the four current playable map rewrites, from **Red Arrival** (`misn02b`) through **An Unexpected Connection** (`misn05`); training and the later stock missions are outside this campaign. CR content loads with its campaign or setup mission rather than requiring global activation in Mods. Installed OpenShim engine fixes continue to apply throughout the game. Setup remains available in Instant Action for future verification or repair.
 
 If automatic installation fails, check `openpatch_setup.log`, `openshim_update.log` and `openshim_update.status` in the game directory. Copying `winmm.dll` alone does not install the split native suite. Use OpenShim's uninstall instructions when removing it.
 

@@ -4,4 +4,4 @@ OpenShim was installed or updated successfully and is queued for verified replac
 
 Completely exit Battlezone now. Returning only to the main menu is not enough because winmm.dll is still loaded by the running game process. After Battlezone closes, relaunch it normally.
 
-You may run [SETUP] Open Community Patch again after relaunch to verify the installed files.
+After relaunch, play through SINGLE PLAYER > CUSTOM CAMPAIGN > Campaign Reimagined. You may also run ! SETUP / REPAIR - Open Community Patch again from Instant Action to verify the installed files.

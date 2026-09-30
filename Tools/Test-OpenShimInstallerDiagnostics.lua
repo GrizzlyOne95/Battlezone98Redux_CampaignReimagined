@@ -68,6 +68,12 @@ local versions = {}
 local statusContent = nil
 local stageCalls = 0
 local copyCalls = 0
+local writeCalls = 0
+local deleteCalls = 0
+
+-- Installer checks during playable mission startup must never alter progression.
+SucceedMission = function() error("installer check completed a playable mission") end
+FailMission = function() error("installer check ended a playable mission") end
 
 local function Put(path, hash, version)
     exists[path] = true
@@ -119,7 +125,8 @@ package.preload["bzfile"] = function()
             if value then return value end
             return nil, "missing"
         end,
-        Open = function(path)
+        Open = function(path, mode)
+            if mode == "w" then writeCalls = writeCalls + 1 end
             if path == working .. "\\openshim_update.status" and statusContent then
                 local consumed = false
                 return {
@@ -141,6 +148,7 @@ package.preload["bzfile"] = function()
             versions[destination] = versions[source]
             return true
         end,
+        Delete = function() deleteCalls = deleteCalls + 1 end,
         StageOpenShimSuiteUpdateV3 = function(...)
             local args = {...}
             assert(#args == 11)
@@ -315,4 +323,43 @@ bzfile.StageOpenShimSuiteUpdateV3 = nil
 assert(Installer.Inspect().state == Installer.States.STAGING_UNAVAILABLE)
 bzfile.StageOpenShimSuiteUpdateV3 = stageV3
 
-print("OpenShimInstaller diagnostics/action tests passed")
+-- Gameplay checks are read-only for current, missing, pending and mismatched
+-- installs. In particular, a net.ini difference must not stage a suite update
+-- or display the old mission-success installation screen.
+local function CheckGameplay(expectedState)
+    local stages, copies, writes, deletes = stageCalls, copyCalls, writeCalls, deleteCalls
+    Installer.InstallChecked = false
+    local messages = {}
+    local checked = Installer.CheckOnce(function(message) messages[#messages + 1] = message end)
+    assert(checked.state == expectedState, checked.state)
+    assert(stageCalls == stages and copyCalls == copies)
+    assert(writeCalls == writes and deleteCalls == deletes)
+    if expectedState ~= Installer.States.CURRENT then
+        assert(#messages == 1 and messages[1]:lower():find("setup", 1, true))
+    else
+        assert(#messages == 0)
+    end
+    assert(Installer.CheckOnce() == nil, "check should run once per mission Lua state")
+end
+
+ResetInstalledCurrent()
+CheckGameplay(Installer.States.CURRENT)
+Put(working .. "\\net.ini", string.rep("7", 64))
+CheckGameplay(Installer.States.UPDATE_REQUIRED)
+Installer.InstallChecked = false
+assert(Installer.EnsureOnce().state == Installer.States.UPDATE_REQUIRED)
+ResetInstalledCurrent()
+Remove(working .. "\\winmm.dll")
+CheckGameplay(Installer.States.INSTALL_REQUIRED)
+ResetInstalledCurrent()
+Remove(working .. "\\openshim.ini")
+CheckGameplay(Installer.States.UPDATE_REQUIRED)
+ResetInstalledCurrent()
+statusContent = "state=staged\nexpected_sha256=" .. hashes.winmm .. "\n"
+CheckGameplay(Installer.States.RESTART_REQUIRED)
+ResetInstalledCurrent()
+statusContent = "state=complete\nexpected_sha256=" .. hashes.winmm .. "\n"
+CheckGameplay(Installer.States.CURRENT)
+assert(statusContent ~= nil, "campaign check must preserve setup status")
+
+print("OpenShimInstaller diagnostics/action/gameplay-check tests passed")

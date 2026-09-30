@@ -1,6 +1,6 @@
 -- OpenShimInstaller.lua
--- Lightweight Campaign Reimagined bootstrap/update path shared by normal
--- missions and the dedicated setup mission. Keep this module independent of
+-- Campaign Reimagined installation diagnostics and explicit setup actions.
+-- Normal missions inspect only; the dedicated setup mission applies updates. Keep this module independent of
 -- EXU, aiCore, HUD/overlay systems, and campaign gameplay initialization.
 ---@diagnostic disable: lowercase-global, undefined-global
 
@@ -216,42 +216,6 @@ local function GetPathLeaf(path)
 end
 
 
-local function WriteOpenShimInstallerDescriptionFile(relativePath, text)
-    if not relativePath or relativePath == "" or type(text) ~= "string" or text == "" then
-        return nil
-    end
-
-    local workingDirectory = NormalizeInstallerPath(getWorkingDirectory())
-    if not workingDirectory or workingDirectory == "" then
-        return nil
-    end
-
-    local fullPath = workingDirectory .. "\\" .. relativePath
-    if bzfile and type(bzfile.Open) == "function" then
-        local ok, err = pcall(function()
-            local handle = bzfile.Open(fullPath, "w", "trunc")
-            handle:Write(text)
-            handle:Close()
-        end)
-        if ok then
-            return relativePath
-        end
-
-        print("PersistentConfig: Failed to write OpenShim installer description via bzfile: " .. tostring(err))
-    end
-
-    if io and type(io.open) == "function" then
-        local handle = io.open(fullPath, "w")
-        if handle then
-            handle:write(text)
-            handle:close()
-            return relativePath
-        end
-    end
-
-    return nil
-end
-
 local function GetBundledOpenShimPayloadPath(payloadName)
     if type(payloadName) ~= "string" or payloadName == "" or
         payloadName:find("[\\/]") then
@@ -290,46 +254,6 @@ local function GetBundledOpenShimPayloadPath(payloadName)
     end
 
     return nil
-end
-
-local function ShowOpenShimInstallMissionOutcome(state, failureLogPath)
-    local missionTime = (GetTime and GetTime()) or 0.0
-    if state == "installed" or state == "updated" or state == "staged" then
-        local descriptionFile = OpenShimInstaller.Config.installedDescriptionFile
-        local fallbackMessage = "OpenShim installed. Restart Battlezone before continuing."
-
-        if state == "updated" then
-            descriptionFile = OpenShimInstaller.Config.updatedDescriptionFile
-            fallbackMessage = "OpenShim updated. Restart Battlezone before continuing."
-        elseif state == "staged" then
-            descriptionFile = OpenShimInstaller.Config.stagedDescriptionFile
-            fallbackMessage = "OpenShim update is queued for game exit. Close Battlezone, then relaunch before continuing."
-        end
-
-        if SucceedMission then
-            SucceedMission(missionTime, descriptionFile)
-            return
-        end
-        EmitFeedback(fallbackMessage, 1.0, 0.85, 0.2, 12.0, true)
-        return
-    end
-
-    local failureMessage = "OpenShim self-install failed. Restart Battlezone and verify the mod files."
-    if failureLogPath and failureLogPath ~= "" then
-        local logFileName = GetPathLeaf(failureLogPath) or "winmm_replace.log"
-        failureMessage = "OpenShim self-install failed. Check logs\\" .. logFileName .. "."
-
-        WriteOpenShimInstallerDescriptionFile(
-            "shimfail.des",
-            "Campaign Reimagined could not install or update OpenShim. Check " ..
-            failureLogPath ..
-            " for details, then restart Battlezone and verify the mod files before continuing.")
-    end
-
-    -- A self-update failure must not abort the active campaign mission. The
-    -- installed shim may already be newer than the bundled copy, and installs
-    -- under Program Files can legitimately reject an in-process replacement.
-    EmitFeedback(failureMessage, 1.0, 0.35, 0.35, 12.0, true)
 end
 
 local function GetBzFileVersion(path)
@@ -883,19 +807,6 @@ function OpenShimInstaller.WriteDiagnosticLog(report)
     return nil, err
 end
 
-local function AcknowledgeCompletedOpenShimUpdate(statusPath, expectedHash)
-    local status = ReadOpenShimInstallerStatus(statusPath)
-    if not status or status.state ~= "complete" or status.expected_sha256 ~= expectedHash then
-        return
-    end
-
-    print("PersistentConfig: Verified the staged OpenShim update after restart.")
-    EmitFeedback("OpenShim update verified.", 0.35, 1.0, 0.35, 8.0, true)
-    if bzfile and type(bzfile.Delete) == "function" then
-        pcall(bzfile.Delete, statusPath)
-    end
-end
-
 local ACTIONABLE_STATES = {
     [OpenShimInstaller.States.INSTALL_REQUIRED] = true,
     [OpenShimInstaller.States.UPDATE_REQUIRED] = true,
@@ -1129,50 +1040,44 @@ function OpenShimInstaller.Apply(report)
     return result
 end
 
-local function EnsureBundledOpenShimInstalled()
+-- Normal campaign startup only inspects the installation. Applying updates is
+-- an explicit setup-mission action; never complete a playable mission for it.
+local function CheckBundledOpenShimOnce()
     if OpenShimInstaller.InstallChecked then
         return
     end
     OpenShimInstaller.InstallChecked = true
 
     local report = OpenShimInstaller.Inspect()
-    if report.state == OpenShimInstaller.States.CURRENT and
-        report.updateStatus and report.updateStatus.state == "complete" and
-        report.manifest and report.manifest.sha256 then
-        AcknowledgeCompletedOpenShimUpdate(
-            report.updateStatus.path,
-            report.manifest.sha256)
+    local ready = report.state == OpenShimInstaller.States.CURRENT or
+        report.state == OpenShimInstaller.States.NEWER_THAN_BUNDLED
+    if not ready then
+        local message = "Open Community Patch: run ! SETUP / REPAIR from Single Player > Instant Action."
+        if report.state == OpenShimInstaller.States.RESTART_REQUIRED then
+            message = "Open Community Patch update is pending. Exit Battlezone, restart, then verify with Setup / Repair."
+        end
+        print("OpenShimInstaller: campaign check=" .. tostring(report.state) .. "; " .. message)
+        EmitFeedback(message, 1.0, 0.85, 0.2, 12.0, true)
     end
-
-    local result = OpenShimInstaller.Apply(report)
-
-    if result.restartRequired then
-        ShowOpenShimInstallMissionOutcome("staged")
-    elseif not result.success then
-        print("PersistentConfig: OpenShim setup failed: " .. tostring(result.detail))
-        ShowOpenShimInstallMissionOutcome(
-            "failed",
-            result.helperLogPath or LogPaths.Path("openshim_update.log"))
-    elseif result.action == "config_installed" then
-        EmitFeedback("OpenShim configuration installed.", 0.35, 1.0, 0.35, 8.0, true)
-    elseif report.state == OpenShimInstaller.States.NEWER_THAN_BUNDLED then
-        print("PersistentConfig: Installed OpenShim is newer than the bundled suite; no downgrade performed.")
-    end
-
-    return result
+    return report
 end
 
-function OpenShimInstaller.EnsureOnce(showFeedback)
+function OpenShimInstaller.CheckOnce(showFeedback)
     local previousFeedback = FeedbackCallback
     FeedbackCallback = showFeedback
 
-    local ok, result = pcall(EnsureBundledOpenShimInstalled)
+    local ok, report = pcall(CheckBundledOpenShimOnce)
 
     FeedbackCallback = previousFeedback
     if not ok then
-        error(result, 0)
+        error(report, 0)
     end
-    return result
+    return report
+end
+
+-- Retain the old entry point for consumers, with the same read-only policy.
+function OpenShimInstaller.EnsureOnce(showFeedback)
+    return OpenShimInstaller.CheckOnce(showFeedback)
 end
 
 return OpenShimInstaller
