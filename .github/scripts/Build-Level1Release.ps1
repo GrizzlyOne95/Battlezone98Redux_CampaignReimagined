@@ -99,11 +99,16 @@ INSTALLATION
 3. On GOG, confirm the resulting path is: mods\3686673790\
    For a local Steam install, move the extracted 3686673790 folder from mods
    to packaged_mods\3686673790\. Do not copy it into Steam's Workshop cache.
-4. Start Battlezone 98 Redux, activate Campaign Reimagined in the mod menu,
-   and launch its mission or Open Community Patch Setup. Restart when prompted.
+4. Start Battlezone 98 Redux, open Single Player > Instant Action, and launch
+   ! SETUP / REPAIR - Open Community Patch. Restart when prompted.
    Setup installs winmm.dll and bzloader.dll at the game root and
    plugins\openshim.dll together, plus the matching patch table/network profile;
    it preserves player openshim.ini. Copying winmm.dll alone is insufficient.
+5. Play via Single Player > Custom Campaign > Campaign Reimagined. The campaign
+   contains the current early NSDF rewrites (Red Arrival through An Unexpected
+   Connection). No global Mods activation is needed. CR content is scoped to
+   its selected campaign/setup mission; installed OpenShim engine fixes remain
+   active throughout the game.
 
 LINUX / PROTON / WINE
 These are the same Win32 binaries used on Windows. For Steam/Proton, add

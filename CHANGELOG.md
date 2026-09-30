@@ -2,6 +2,13 @@
 
 ## 2026-09-29 release candidate
 
+- Move Reimagined content from the global Mods toggle into its own Custom
+  Campaign entry, containing the four current early NSDF map rewrites (Red
+  Arrival through An Unexpected Connection). Keep Setup / Repair separately
+  available in Instant Action. Installed OpenShim engine fixes remain global.
+- Keep campaign startup's OpenShim check read-only. Installation and repair
+  happen in Setup / Repair; support-file differences no longer stage updates
+  or incorrectly complete a playable campaign mission.
 - Bundle OpenShim 1.0.0.34's complete bootstrap, loader and runtime plugin.
   Campaign setup and updates now install all three DLLs, network defaults and
   patch definitions together after the game exits, with verified backups and

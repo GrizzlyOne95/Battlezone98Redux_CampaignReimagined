@@ -35,12 +35,33 @@ assert parser["WORKSHOP"]["mapType"] == '"instant_action"'
 mod_parser = configparser.ConfigParser()
 mod_parser.optionxform = str
 mod_parser.read(mod_ini_path, encoding="utf-8")
-assert mod_parser["DESCRIPTION"]["missionName"] == '"Open Community Patch + Campaign Reimagined"'
-assert mod_parser["WORKSHOP"]["mapType"] == '"mod"'
+assert mod_parser["DESCRIPTION"]["missionName"] == '"Campaign Reimagined"'
+assert mod_parser["WORKSHOP"]["mapType"] == '"campaign"'
+
+# Campaign progression must use the shipped LuaMission rewrites, with setup
+# remaining independently discoverable in Instant Action. Stock training has
+# a Lua port but no CR BZN yet, so it must not masquerade as a playable rewrite.
+mission_sections = [section for section in mod_parser.sections() if section.startswith("MISSION")]
+assert mission_sections == [f"MISSION{i}" for i in range(1, 5)]
+campaign_maps = [mod_parser[section]["missionBZN"].strip('"') for section in mission_sections]
+assert campaign_maps == ["misn02b.bzn", "misn03.bzn", "misn04.bzn", "misn05.bzn"]
+for section, filename in zip(mission_sections, campaign_maps):
+    assert mod_parser[section]["missionName"].strip('"')
+    assert mod_parser[section]["planet"].strip('"') in {"moon", "mars"}
+    path = ROOT / "Missions" / filename
+    assert path.is_file(), f"campaign must use a CR map: {filename}"
+    assert "name = LuaMission" in path.read_text(encoding="utf-8")
+    assert (ROOT / "Scripts" / Path(filename).with_suffix(".lua")).is_file()
+
+# Redux's custom-campaign menu uses a BMP preview; retain the JPG for Workshop.
+thumbnail = ROOT / "Assets" / "Graphics" / "campaignReimagined.bmp"
+assert thumbnail.read_bytes()[:2] == b"BM"
 
 mod_description = mod_des_path.read_text(encoding="utf-8")
 assert "! SETUP / REPAIR - Open Community Patch" in mod_description
-assert "go to INSTANT ACTION" in mod_description
+assert "SINGLE PLAYER > INSTANT ACTION" in mod_description
+assert "SINGLE PLAYER > CUSTOM CAMPAIGN > Campaign Reimagined" in mod_description
+assert "does not need to be activated in Mods" in mod_description
 assert "completely exit Battlezone" in mod_description
 assert "logs\\openpatch_setup.log" in mod_description
 
@@ -75,6 +96,11 @@ assert '"crsetok.des"' in lua
 assert '"crsetrr.des"' in lua
 assert '"crsetfl.des"' in lua
 
+gameplay_config = (ROOT / "Scripts" / "PersistentConfig.lua").read_text(encoding="utf-8")
+assert "OpenShimInstaller.CheckOnce(ShowFeedback)" in gameplay_config
+assert "OpenShimInstaller.Apply(" not in gameplay_config
+assert "OpenShimInstaller.EnsureOnce(" not in gameplay_config
+
 description = des_path.read_text(encoding="utf-8")
 assert "logs\\openpatch_setup.log" in description
 assert "automatically installs or updates OpenShim" in description
@@ -85,6 +111,7 @@ entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 expected = {
     r"Config\campaignReimagined.ini": "campaignReimagined.ini",
     "campaignReimagined.des": "campaignReimagined.des",
+    r"Assets\Graphics\campaignReimagined.bmp": "campaignReimagined.bmp",
     r"Config\crsetup.ini": "crsetup.ini",
     "crsetup.des": "crsetup.des",
     "crsetok.des": "crsetok.des",
@@ -101,6 +128,11 @@ for source, runtime in expected.items():
     assert entries.get(source) == runtime, (
         f"shipping lock missing setup mapping {source!r} -> {runtime!r}"
     )
+
+for filename in campaign_maps:
+    assert entries.get("Missions\\" + filename) == filename
+    lua_name = str(Path(filename).with_suffix(".lua"))
+    assert entries.get("Scripts\\" + lua_name) == lua_name
 
 manager = manager_path.read_text(encoding="utf-8")
 for runtime in expected.values():

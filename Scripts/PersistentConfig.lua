@@ -7091,7 +7091,7 @@ function PersistentConfig.Initialize()
     RuntimeEnhancements.RebuildVisuals()
     local configLoadResult = PersistentConfig.LoadConfig()
     WarnIfNativeFeaturesUnavailable()
-    OpenShimInstaller.EnsureOnce(ShowFeedback)
+    OpenShimInstaller.CheckOnce(ShowFeedback)
 
     -- Reset Passive Tracking in AutoSave
     if autosave then
