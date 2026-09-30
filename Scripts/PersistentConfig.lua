@@ -7,6 +7,7 @@ local RuntimeEnhancements = require("RuntimeEnhancements")
 local CareerStats = require("CareerStats")
 local LogPaths = require("LogPaths")
 local OpenShimInstaller = require("OpenShimInstaller")
+local CRParticleTemplates = require("CRParticleTemplates")
 local PersistentConfigData = require("PersistentConfigData")
 
 local PersistentConfig = {}
@@ -7087,6 +7088,7 @@ function PersistentConfig.Initialize()
     PersistentConfig._OpenShimCampaignVisualSignature = nil
     PersistentConfig._NextOpenShimVisualSettingsCheck = 0.0
     CommanderAliases = nil
+    CRParticleTemplates.Ensure()
     RuntimeEnhancements.Initialize()
     RuntimeEnhancements.RebuildVisuals()
     local configLoadResult = PersistentConfig.LoadConfig()

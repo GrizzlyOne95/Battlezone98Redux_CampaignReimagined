@@ -841,6 +841,7 @@ function CRReactive.Init(options)
     if CRReactive.Initialized then
         return
     end
+    require("CRParticleTemplates").Ensure()
 
     options = options or {}
     if options.enabled ~= nil then CRReactive.Enabled = options.enabled and true or false end

@@ -39,8 +39,8 @@ returns the number of systems it actually had to move, so it is self-reporting:
 | `Scripts/CRWeatherPresets.lua` | Preset data. Six storms plus `Clear`. |
 | `Scripts/CRReactive.lua` | Reactive presentation: impact response, damage bands, emissive failure, damage VFX, weapon heat, cockpit reaction. |
 | `Scripts/CRReactiveProfiles.lua` | Profile data: ordnance families, hit profiles, damage profiles, heat profiles, vehicle profiles, cockpit profiles. |
-| `Materials/cr_weather.particle` | Weather particle templates. |
-| `Materials/cr_reactive.particle` | Impact and damage-state particle templates. |
+| `Materials/cr_weather.particle.payload` | Weather particle templates, loaded by CR missions. |
+| `Materials/cr_reactive.particle.payload` | Impact and damage-state particle templates, loaded by CR missions. |
 | `Materials/CR_reactive.material` | Particle billboard materials and weather skydomes. |
 | `Scripts/Environment.lua` | Gains an environment-modifier hook (see below). |
 
