@@ -1161,6 +1161,7 @@ end
 --   baseSky  { type = "dome"|"box", material = "...", curvature, tiling, distance }
 --            The map's own sky, so the sky layer knows what to restore.
 function CRWeather.Init(options)
+    require("CRParticleTemplates").Ensure()
     if CRWeather.Initialized then
         return
     end
