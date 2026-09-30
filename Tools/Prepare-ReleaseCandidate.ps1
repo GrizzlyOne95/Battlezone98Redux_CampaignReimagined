@@ -7,7 +7,8 @@ param(
     [Parameter(Mandatory)][string]$OpenShimRepo,
     [Parameter(Mandatory)][string]$BzfileRepo,
     [Parameter(Mandatory)][string]$ExuRepo,
-    [string]$BundleDir = 'Local\Workshop'
+    [string]$BundleDir = 'Local\Workshop',
+    [switch]$AllowDirty
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -44,8 +45,8 @@ function Assert-CampaignArchive {
             [void]$files.Remove($name)
             $count++
         }
-        if ($files.Count) { throw "Archive contains $($files.Count) unmanifested campaign files." }
-        Write-Host "Verified $count campaign files in $(Split-Path $ArchivePath -Leaf)"
+        if ($files.Count) { throw "Archive contains $($files.Count) unmanifested files." }
+        Write-Host "Verified $count files in $(Split-Path $ArchivePath -Leaf)"
     }
     finally { $zip.Dispose() }
 }
@@ -53,11 +54,15 @@ $campaign = Split-Path -Parent $PSScriptRoot
 $output = [IO.Path]::GetFullPath($OutputDir)
 $bundle = (Resolve-Path -LiteralPath $BundleDir).Path
 if (Test-Path -LiteralPath $output) { throw 'Choose a new output directory; frozen candidates are never overwritten.' }
-foreach ($repo in @($campaign, $OpenShimRepo, $BzfileRepo, $ExuRepo)) {
+$sourceStates = [ordered]@{}
+foreach ($pair in @(@{Name='Campaign';Path=$campaign},@{Name='OpenShim';Path=$OpenShimRepo},@{Name='Bzfile';Path=$BzfileRepo},@{Name='EXU';Path=$ExuRepo})) {
+    $repo = $pair.Path
     & git -C $repo diff --quiet
-    if ($LASTEXITCODE -ne 0) { throw "Commit tracked source changes before freezing: $repo" }
+    $dirty = $LASTEXITCODE -ne 0
     & git -C $repo diff --cached --quiet
-    if ($LASTEXITCODE -ne 0) { throw "Commit staged source changes before freezing: $repo" }
+    $dirty = $dirty -or $LASTEXITCODE -ne 0
+    if ($dirty -and -not $AllowDirty) { throw "Commit tracked source changes before freezing, or use -AllowDirty for an explicitly marked working candidate: $repo" }
+    $sourceStates[$pair.Name] = [ordered]@{TrackedDirty=$dirty; Files=@(& git -C $repo status --porcelain=v1 --untracked-files=normal)}
 }
 foreach ($required in @('content', 'content_manifest.sha256', 'workshop_build.vdf')) {
     if (-not (Test-Path -LiteralPath (Join-Path $bundle $required))) { throw "Missing staged input: $required" }
@@ -135,6 +140,18 @@ foreach ($dependency in @(@{Name='bzfile'; Repo=$BzfileRepo; Files=@('bzfile.dll
     Copy-Item -LiteralPath (Join-Path $dependency.Repo 'README.md') -Destination $stage
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath (Join-Path $native ($dependency.Name + '-native.zip')) -CompressionLevel Optimal
 }
+foreach ($package in @(@{Name='OpenShim-Suite';Stage=$suite;Archive='OpenShim-Suite.zip'},@{Name='bzfile';Stage=(Join-Path $native 'bzfile');Archive='bzfile-native.zip'},@{Name='EXU';Stage=(Join-Path $native 'EXU');Archive='EXU-native.zip'})) {
+    $manifestPath = Join-Path $native ($package.Name + '.files.sha256')
+    $lines = @(foreach ($file in Get-ChildItem -LiteralPath $package.Stage -File -Recurse | Sort-Object FullName) {
+        (Get-FileHash -LiteralPath $file.FullName).Hash.ToLowerInvariant() + '  ' + $file.Length + '  ' + [IO.Path]::GetRelativePath($package.Stage,$file.FullName).Replace('\','/')
+    })
+    [IO.File]::WriteAllText($manifestPath,($lines -join "`n") + "`n",[Text.UTF8Encoding]::new($false))
+    Assert-CampaignArchive -ArchivePath (Join-Path $native $package.Archive) -ManifestPath $manifestPath
+}
+# Validate the actual archived chain and metadata, not only the pre-ZIP tree.
+$extractedSuite = Join-Path $output 'Verification\OpenShim-Suite'
+Expand-Archive -LiteralPath (Join-Path $native 'OpenShim-Suite.zip') -DestinationPath $extractedSuite
+& (Join-Path $OpenShimRepo 'scripts\Test-PackageShape.ps1') -Root $extractedSuite -Layout Suite -ExpectedVersion $runtime[0].Version -ExpectedCommit $identities.OpenShim
 Compress-Archive -Path (Join-Path $workshop 'content\*') -DestinationPath (Join-Path $output ('CampaignReimagined-' + $Version + '-Workshop.zip')) -CompressionLevel Optimal
 Assert-CampaignArchive -ArchivePath (Join-Path $output ('CampaignReimagined-' + $Version + '-Workshop.zip')) -ManifestPath (Join-Path $workshop 'content_manifest.sha256')
 Assert-CampaignArchive -ArchivePath (Join-Path $manual ('CampaignReimagined-' + $Version + '-ModDB.zip')) -ManifestPath (Join-Path $workshop 'content_manifest.sha256') -Prefix 'mods/3686673790/'
@@ -144,9 +161,9 @@ $archives = @(foreach ($file in Get-ChildItem -LiteralPath $output -Filter '*.zi
     [ordered]@{File=[IO.Path]::GetRelativePath($output,$file.FullName); Bytes=$file.Length; Sha256=$hash}
 })
 [ordered]@{
-    SchemaVersion=1; Version=$Version; Status='prepared-candidate'; Commits=$identities;
+    SchemaVersion=2; Version=$Version; Status='prepared-candidate'; Commits=$identities; SourceStates=$sourceStates;
     Runtime=$runtime; Archives=$archives; FileCount=@(Get-ChildItem -LiteralPath (Join-Path $workshop 'content') -File -Recurse).Count;
     ManifestSha256=(Get-FileHash -LiteralPath (Join-Path $workshop 'content_manifest.sha256')).Hash.ToLowerInvariant();
-    CampaignArchivesVerified=$true; PubliclyPublished=$false; PreparedAtUtc=[DateTime]::UtcNow.ToString('o')
+    CampaignArchivesVerified=$true; NativeArchivesVerified=$true; PubliclyPublished=$false; PreparedAtUtc=[DateTime]::UtcNow.ToString('o')
 } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $output 'candidate_receipt.json') -Encoding UTF8
 Write-Host "Frozen candidate packages: $output"
