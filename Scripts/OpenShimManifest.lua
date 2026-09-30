@@ -13,6 +13,7 @@ return {
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "b999993bfe500a4def4444ecde065147444099a1af46d17e74f006ed2620516f", size = 13554 },
         patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "84ed3d2f4337482f703ccaf3b4df27ae3fd0b8d4b69e327922cd27936b5e9f25", size = 103697 },
         playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "ada7072cba1b1ec0e3fce96c47b00766f5708f3357205b0090e598de5f22d977", size = 23548, overwrite = false },
+        assetManifest = { source = "OpenShimAssets.ini.payload", destination = "openshim\\OpenShimAssets.ini", sha256 = "e66eb40594e3226a316ff20f1d6002d9407bc4fdd820ab0183256b87c0dee22b", size = 1051 },
         helper = { source = "bzfile_replace_helper.exe", sha256 = "9eafbb5c3e159a5a5232873b937899df4ac22cb3a72f80795e54aa5268c0578b", size = 271360 },
     },
 }
