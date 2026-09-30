@@ -1,9 +1,1 @@
-OPEN COMMUNITY PATCH - SETUP / REPAIR
-
-Launch this utility once after subscribing to Campaign Reimagined, or any time you want to verify or repair the Open Community Patch installation.
-
-The setup mission validates the bundled OpenShim payload, checks the files installed beside Battlezone, preserves an existing customized openshim.ini, and automatically installs or updates OpenShim when it is safe to do so. It never downgrades a newer OpenShim installation.
-
-If an OpenShim replacement is staged, the mission will tell you to completely exit Battlezone so the replacement helper can update the loaded DLL after the game process closes.
-
-A support-friendly report is always written to logs\openpatch_setup.log when possible.
+Run once after subscribing, or any time to verify or repair. Installs or updates OpenShim automatically and never downgrades a newer copy. If it says RESTART REQUIRED, completely exit Battlezone, then relaunch. Report: logs\openpatch_setup.log
