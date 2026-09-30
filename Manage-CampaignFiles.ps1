@@ -1464,6 +1464,7 @@ function Build-WorkshopContent {
         "campaignReimagined.ini",
         "campaignReimagined.des",
         "campaignReimagined.jpg",
+        "campaignReimagined.bmp",
         "crsetup.ini",
         "crsetup.bzn",
         "crsetup.trn",

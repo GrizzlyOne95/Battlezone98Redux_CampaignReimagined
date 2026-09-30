@@ -3,13 +3,13 @@
 return {
     formatVersion = 3,
     version = "1.0.0.34",
-    sha256 = "6063190ba8c8dc4f98be079f7b9131ad4d159e49ccd74d86c189d8595adc4f8d",
-    size = 124928,
+    sha256 = "835b6aaee430327508dc5638f8fe74fa5621dd1f51cafb4aace2866106897bcd",
+    size = 139264,
     architecture = "x86",
     payloads = {
-        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "6063190ba8c8dc4f98be079f7b9131ad4d159e49ccd74d86c189d8595adc4f8d", size = 124928, version = "1.0.0.34", architecture = "x86" },
-        loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "15c76087f951285f8dbeec31f6c33c862a8c7c575677bb3d43de9c54a289e409", size = 44032, version = "1.0.0.34", architecture = "x86" },
-        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "36b4ce5089b7f08ccdeaf60d0f34dcb3205c41857c92f0acbe8dd02f26df4abc", size = 3179008, version = "1.0.0.34", architecture = "x86" },
+        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "835b6aaee430327508dc5638f8fe74fa5621dd1f51cafb4aace2866106897bcd", size = 139264, version = "1.0.0.34", architecture = "x86" },
+        loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "14ee78342b40c34b1d0c90ad449c79916804428810fa6719e6059bfa7076b7a6", size = 59392, version = "1.0.0.34", architecture = "x86" },
+        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "10f26bad531a79c4083f7e6ad936fdc1ee868ced4dbe75a44d7377eea792256e", size = 3068416, version = "1.0.0.34", architecture = "x86" },
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "b999993bfe500a4def4444ecde065147444099a1af46d17e74f006ed2620516f", size = 13554 },
         patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "84ed3d2f4337482f703ccaf3b4df27ae3fd0b8d4b69e327922cd27936b5e9f25", size = 103697 },
         playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "ada7072cba1b1ec0e3fce96c47b00766f5708f3357205b0090e598de5f22d977", size = 23548, overwrite = false },

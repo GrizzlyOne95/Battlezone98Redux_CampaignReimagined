@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-09-29T15:08:36-05:00",
-  "count": 3679,
+  "generated": "2026-09-29T23:31:49-05:00",
+  "count": 3681,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6228,6 +6228,10 @@
       "runtime": "bio.png"
     },
     {
+      "source": "Assets\\Graphics\\campaignReimagined.bmp",
+      "runtime": "campaignReimagined.bmp"
+    },
+    {
       "source": "Assets\\Graphics\\campaignReimagined.jpg",
       "runtime": "campaignReimagined.jpg"
     },
@@ -8264,8 +8268,8 @@
       "runtime": "CR_reactive.material"
     },
     {
-      "source": "Materials\\cr_reactive.particle",
-      "runtime": "cr_reactive.particle"
+      "source": "Materials\\cr_reactive.particle.payload",
+      "runtime": "cr_reactive.particle.payload"
     },
     {
       "source": "Materials\\CR_scope.material",
@@ -8280,8 +8284,8 @@
       "runtime": "CR_uitexmat.material"
     },
     {
-      "source": "Materials\\cr_weather.particle",
-      "runtime": "cr_weather.particle"
+      "source": "Materials\\cr_weather.particle.payload",
+      "runtime": "cr_weather.particle.payload"
     },
     {
       "source": "Materials\\crgrass.material",
@@ -8836,8 +8840,8 @@
       "runtime": "venus.material"
     },
     {
-      "source": "Materials\\weather_particles.particle",
-      "runtime": "weather_particles.particle"
+      "source": "Materials\\weather_particles.particle.payload",
+      "runtime": "weather_particles.particle.payload"
     },
     {
       "source": "Materials\\xbio.material",
@@ -11162,6 +11166,10 @@
     {
       "source": "Scripts\\CRMarsWeather.lua",
       "runtime": "CRMarsWeather.lua"
+    },
+    {
+      "source": "Scripts\\CRParticleTemplates.lua",
+      "runtime": "CRParticleTemplates.lua"
     },
     {
       "source": "Scripts\\CRReactive.lua",
