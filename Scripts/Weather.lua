@@ -371,6 +371,7 @@ Weather.PresetBuilders = {
 }
 
 function Weather.New(config)
+    require("CRParticleTemplates").Ensure()
     local self = setmetatable({}, Weather)
     self.config = MergeTables(Weather.DefaultConfig, config or {})
     self.state = {

@@ -135,7 +135,7 @@ local function RenderReport(logPath, logError)
         AddLine(
             "crsetup_next",
             "green",
-            "Setup is complete. You may return to the menu and play normally.")
+            "Setup complete. Play via Single Player > Custom Campaign > Campaign Reimagined.")
     else
         AddLine(
             "crsetup_next",
