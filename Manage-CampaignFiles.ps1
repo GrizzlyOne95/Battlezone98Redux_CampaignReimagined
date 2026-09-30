@@ -830,12 +830,16 @@ function Update-OpenShimManifest {
     $playerConfigSourcePath = Join-Path $openShimRepo "openshim.ini"
     $networkSourcePath = Join-Path $openShimRepo "net.ini"
     $patchesSourcePath = Join-Path $openShimRepo "scripts\patches.json"
+    $assetManifestSourcePath = Join-Path $openShimRepo "resources\openshim\OpenShimAssets.ini"
     $rendererSourceDir = Join-Path $openShimRepo "resources\renderer\enhanced"
     $uiSourceDir = Join-Path $openShimRepo "resources\ui\custom_widgets"
     $payloadDir = Join-Path $SourceDir "InstallerPayload"
     $playerConfigPayloadPath = Join-Path $payloadDir "openshim.ini.payload"
     $networkPayloadPath = Join-Path $payloadDir "openshim_net.ini.payload"
     $patchesPayloadPath = Join-Path $payloadDir "openshim_patches.json.payload"
+    # OpenShim only reports its asset pack when <game>\openshim\OpenShimAssets.ini
+    # exists; setup copies this sentinel there because the bundle ships every asset.
+    $assetManifestPayloadPath = Join-Path $payloadDir "OpenShimAssets.ini.payload"
     $rendererPayloadDir = Join-Path $SourceDir "openshim\renderer\enhanced"
     $uiPayloadDir = Join-Path $SourceDir "BZ_ASSETS_CORE\common\ui\CustomWidgets"
     $manifestPath = Join-Path $SourceDir "Scripts\OpenShimManifest.lua"
@@ -845,6 +849,7 @@ function Update-OpenShimManifest {
         $playerConfigSourcePath,
         $networkSourcePath,
         $patchesSourcePath,
+        $assetManifestSourcePath,
         (Join-Path $rendererSourceDir "resources.version")
     )
     $requiredPaths += $uiFileNames | ForEach-Object { Join-Path $uiSourceDir $_ }
@@ -858,6 +863,7 @@ function Update-OpenShimManifest {
     [System.IO.File]::Copy($playerConfigSourcePath, $playerConfigPayloadPath, $true)
     [System.IO.File]::Copy($networkSourcePath, $networkPayloadPath, $true)
     [System.IO.File]::Copy($patchesSourcePath, $patchesPayloadPath, $true)
+    [System.IO.File]::Copy($assetManifestSourcePath, $assetManifestPayloadPath, $true)
 
     [System.IO.Directory]::CreateDirectory($rendererPayloadDir) | Out-Null
     foreach ($rendererFile in Get-ChildItem -LiteralPath $rendererSourceDir -File) {
@@ -882,6 +888,7 @@ function Update-OpenShimManifest {
     $playerConfigItem = Get-Item -LiteralPath $playerConfigPayloadPath
     $networkItem = Get-Item -LiteralPath $networkPayloadPath
     $patchesItem = Get-Item -LiteralPath $patchesPayloadPath
+    $assetManifestItem = Get-Item -LiteralPath $assetManifestPayloadPath
     $shimHash = (Get-FileHash -LiteralPath $shimPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $loaderHash = (Get-FileHash -LiteralPath $loaderPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $pluginHash = (Get-FileHash -LiteralPath $pluginPath -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -892,6 +899,7 @@ function Update-OpenShimManifest {
     $playerConfigHash = (Get-FileHash -LiteralPath $playerConfigPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $networkHash = (Get-FileHash -LiteralPath $networkPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $patchesHash = (Get-FileHash -LiteralPath $patchesPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $assetManifestHash = (Get-FileHash -LiteralPath $assetManifestPayloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $shimVersion = $shimItem.VersionInfo.FileVersion
     if (-not $shimVersion) {
         throw "Cannot generate OpenShim manifest because winmm.dll has no file version."
@@ -918,6 +926,7 @@ function Update-OpenShimManifest {
         "        network = { source = `"openshim_net.ini.payload`", destination = `"net.ini`", sha256 = `"$networkHash`", size = $($networkItem.Length) },"
         "        patches = { source = `"openshim_patches.json.payload`", destination = `"scripts\\patches.json`", sha256 = `"$patchesHash`", size = $($patchesItem.Length) },"
         "        playerConfig = { source = `"openshim.ini.payload`", destination = `"openshim.ini`", sha256 = `"$playerConfigHash`", size = $($playerConfigItem.Length), overwrite = false },"
+        "        assetManifest = { source = `"OpenShimAssets.ini.payload`", destination = `"openshim\\OpenShimAssets.ini`", sha256 = `"$assetManifestHash`", size = $($assetManifestItem.Length) },"
         "        helper = { source = `"bzfile_replace_helper.exe`", sha256 = `"$helperHash`", size = $($helperItem.Length) },"
         "    },"
         "}"
@@ -1452,6 +1461,7 @@ function Build-WorkshopContent {
         "openshim_net.ini.payload",
         "openshim_patches.json.payload",
         "openshim.ini.payload",
+        "OpenShimAssets.ini.payload",
         "openshim\renderer\enhanced\resources.version",
         "openshim\support\openshim_wrap.ps1",
         "openshim\support\openshim_wrap.bat",
@@ -1461,11 +1471,12 @@ function Build-WorkshopContent {
         "BZ_ASSETS_CORE\common\ui\CustomWidgets\uiplate.png",
         "BZ_ASSETS_CORE\common\ui\CustomWidgets\uibtn.png",
         "BZ_ASSETS_CORE\common\ui\CustomWidgets\uibtnhv.png",
-        "campaignReimagined.ini",
-        "campaignReimagined.des",
+        "crcampgn.ini",
+        "crcampgn.des",
         "campaignReimagined.jpg",
-        "campaignReimagined.bmp",
+        "crcampgn.bmp",
         "crsetup.ini",
+        "crsetup.bmp",
         "crsetup.bzn",
         "crsetup.trn",
         "crsetup.hg2",

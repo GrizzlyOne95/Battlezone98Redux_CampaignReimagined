@@ -8,6 +8,14 @@
   CR's particle definitions now ship as payloads and load once when a CR
   mission starts, so Setup / Repair runs on an unmodified game.
 - Bundle EXU 1.3.1 (in-memory script parsing and a particle template query).
+- Setup / Repair now installs `openshim\OpenShimAssets.ini`, so OpenShim
+  Settings reports the bundled asset pack instead of "Not Detected". Existing
+  installs pick it up by running Setup / Repair once; no restart needed.
+- Rename the campaign entry to `crcampgn` so its description and preview load.
+  Redux cuts menu resource names to 16 characters, so it looked for
+  `campaignreimagin` and found nothing.
+- Give Setup / Repair a preview image and shorten both menu descriptions to
+  fit their boxes.
 
 ## 2026-09-29 release candidate
 
