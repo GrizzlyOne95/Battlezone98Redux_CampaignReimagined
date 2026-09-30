@@ -96,8 +96,14 @@ Battlezone 98 Redux
 INSTALLATION
 1. Close Battlezone 98 Redux.
 2. Extract this ZIP directly into the Battlezone 98 Redux installation directory.
-3. Confirm the resulting path is: mods\3686673790\
-4. Start Battlezone 98 Redux and launch Campaign Reimagined.
+3. On GOG, confirm the resulting path is: mods\3686673790\
+   For a local Steam install, move the extracted 3686673790 folder from mods
+   to packaged_mods\3686673790\. Do not copy it into Steam's Workshop cache.
+4. Start Battlezone 98 Redux, activate Campaign Reimagined in the mod menu,
+   and launch its mission or Open Community Patch Setup. Restart when prompted.
+   Setup installs winmm.dll and bzloader.dll at the game root and
+   plugins\openshim.dll together, plus the matching patch table/network profile;
+   it preserves player openshim.ini. Copying winmm.dll alone is insufficient.
 
 LINUX / PROTON / WINE
 These are the same Win32 binaries used on Windows. For Steam/Proton, add
@@ -138,7 +144,7 @@ CHANGE NOTES
 $ChangeNote
 
 INSTALLATION
-Extract the archive into the Battlezone 98 Redux installation directory so the campaign is installed under mods\3686673790. Close the game before updating. Restart the game when prompted if Campaign Reimagined updates the native OpenShim DLL.
+Extract the archive into the Battlezone 98 Redux installation directory. GOG uses mods\3686673790; local Steam installs use packaged_mods\3686673790 (move the extracted folder there). Close the game before updating, activate the mod in the game menu, and restart when Setup updates the complete native OpenShim chain. Follow INSTALL.txt in the archive; copying only winmm.dll does not install the split loader/plugin suite.
 
 This ModDB-ready archive is generated from the same manifest-validated content used for the Steam Workshop publication. It is prepared automatically, but Level 1 publishing intentionally leaves the final ModDB web-form submission to a human uploader.
 "@

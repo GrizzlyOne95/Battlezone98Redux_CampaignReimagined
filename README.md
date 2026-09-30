@@ -44,9 +44,9 @@ OpenShim owns low-level loading and engine patches. Extra Utilities exposes nati
 
 ## Installation
 
-Subscribe to [Campaign Reimagined on Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790), then launch one of its missions. The package installs or updates OpenShim by placing `winmm.dll` beside `battlezone98redux.exe`; restart the game when prompted because the loaded DLL cannot be replaced in place.
+Subscribe to [Campaign Reimagined on Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790), activate the mod, then launch one of its missions or Open Community Patch Setup. Setup installs or updates the complete native chain: game-root `winmm.dll` and `bzloader.dll`, plus `plugins/openshim.dll` and matching patch/network data. Restart when prompted so the verified replacement can complete after exit. Player `openshim.ini` is preserved.
 
-If automatic installation fails, check `winmm_replace.log` in the game directory. Other native DLL modifications should be removed before troubleshooting compatibility. To remove the native patch, delete the Campaign Reimagined `winmm.dll` from the Battlezone 98 Redux installation directory.
+If automatic installation fails, check `openpatch_setup.log`, `openshim_update.log` and `openshim_update.status` in the game directory. Copying `winmm.dll` alone does not install the split native suite. Use OpenShim's uninstall instructions when removing it.
 
 ## Repository workflow
 
@@ -59,6 +59,13 @@ This repository is the canonical source tree. Development follows this promotion
 5. Let Steam download item `3686673790`, then perform final Steam verification.
 
 Do not deploy development files directly into Steam's Workshop download cache. `Local/Workshop` is generated staging, not a playable development runtime.
+
+To prepare a native or campaign bug fix locally, run
+`pwsh -File .\Manage-CampaignFiles.ps1 -prepare-update "<change note>"`.
+This builds, checks, deploys/tests GOG and freezes all update packages. Add
+`-reuse-native` for a Lua/content-only fix. See
+[`Docs/UPDATE_PREPARATION.md`](Docs/UPDATE_PREPARATION.md) for configuration,
+output receipts and the separate publication steps.
 
 Useful references:
 

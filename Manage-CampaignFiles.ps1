@@ -1721,6 +1721,8 @@ function Show-Menu {
     Write-Host "4. Sync from Runtime only (same as option 1)"
     Write-Host "5. Workshop Dry Run (clean staging + VDF only)"
     Write-Host "6. SteamCMD Authentication Bootstrap"
+    Write-Host "7. Prepare Update (build DLLs, check, deploy/test GOG, make all bundles)"
+    Write-Host "8. Initialize local release/build configuration"
     Write-Host "Q. Quit"
     Write-Host ""
     
@@ -1733,6 +1735,8 @@ function Show-Menu {
         "4" { Sync-FromRuntime; Pause; Show-Menu }
         "5" { Build-WorkshopPackage; Pause; Show-Menu }
         "6" { Initialize-WorkshopAuth; Pause; Show-Menu }
+        "7" { $note = Read-Host "Update change note"; Invoke-PrepareUpdateAction -ActionArguments @($note); Pause; Show-Menu }
+        "8" { Initialize-ReleaseConfig; Pause; Show-Menu }
         "Q" { exit }
         "q" { exit }
         default { Write-Host "Invalid option." -ForegroundColor Red; Pause; Show-Menu }
@@ -1966,6 +1970,48 @@ function Invoke-VerifyInstall {
     return $clean
 }
 
+function Initialize-ReleaseConfig {
+    $target = Join-Path $RepoRoot 'Local\release.config.json'
+    if (Test-Path -LiteralPath $target) {
+        Write-Host "Leaving existing release config unchanged: $target"
+        return
+    }
+    [IO.Directory]::CreateDirectory((Split-Path -Parent $target)) | Out-Null
+    Copy-Item -LiteralPath (Join-Path $RepoRoot 'Tools\release.config.example.json') -Destination $target
+    Write-Host "Created $target. Explicit paths select preparation sources; blank paths use BZR_*_REPO overrides or the usual sibling checkouts."
+}
+
+function Invoke-PrepareUpdateAction {
+    param([string[]]$ActionArguments)
+    $noteParts = [Collections.Generic.List[string]]::new()
+    $forward = [Collections.Generic.List[string]]::new()
+    for ($i=0; $i -lt $ActionArguments.Count; $i++) {
+        $argument = $ActionArguments[$i]
+        switch ($argument.ToLowerInvariant()) {
+            '-reuse-native' { $forward.Add('-ReuseNative') }
+            '-no-deploy' { $forward.Add('-NoDeploy') }
+            '-no-smoke' { $forward.Add('-NoSmoke') }
+            '-plan' { $forward.Add('-PlanOnly') }
+            { $_ -in @('-version','-output') } {
+                if ($i+1 -ge $ActionArguments.Count -or $ActionArguments[$i+1].StartsWith('-')) { throw "$argument requires a value." }
+                $forward.Add($(if ($argument -eq '-version') {'-Version'} else {'-OutputDir'}))
+                $i++; $forward.Add($ActionArguments[$i])
+            }
+            default {
+                if ($argument.StartsWith('-')) { throw "Unknown preparation option '$argument'. Use -version, -output, -reuse-native, -no-deploy, -no-smoke or -plan." }
+                $noteParts.Add($argument)
+            }
+        }
+    }
+    $note = ($noteParts -join ' ').Trim()
+    if (-not $note) { throw 'Use -prepare-update "<change note>". Add -reuse-native for a Lua/content-only fix.' }
+    $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
+    if (-not $pwsh) { throw 'Update preparation requires PowerShell 7 (pwsh).' }
+    $helperArguments = @('-NoProfile','-File',(Join-Path $RepoRoot 'Tools\Prepare-CampaignUpdate.ps1'),'-ChangeNote',$note) + $forward.ToArray()
+    & $pwsh.Source @helperArguments
+    if ($LASTEXITCODE -ne 0) { throw "Update preparation failed (exit $LASTEXITCODE). See the preparation receipt/logs if a run directory was created." }
+}
+
 # Every action this script dispatches on below. Kept beside the dispatch
 # chain so a newly added action also appears in the unrecognized-action
 # message instead of going missing from it.
@@ -1976,6 +2022,8 @@ $KnownActions = @(
     "-release",
     "-bless",
     "-verify",
+    "-release-init",
+    "-prepare-update",
     "-addon",
     "-workshop-build",
     "-workshop-auth",
@@ -2027,6 +2075,13 @@ elseif ($args[0] -eq "-workshop-build") {
         $message = ($args[1..($args.Count - 1)] -join " ")
     }
     Build-WorkshopPackage -Message $message
+}
+elseif ($args[0] -eq '-release-init') {
+    Initialize-ReleaseConfig
+}
+elseif ($args[0] -eq '-prepare-update') {
+    $prepareArguments = if ($args.Count -gt 1) { @($args[1..($args.Count-1)]) } else { @() }
+    Invoke-PrepareUpdateAction -ActionArguments $prepareArguments
 }
 elseif ($args[0] -eq "-workshop-auth") {
     Initialize-WorkshopAuth
