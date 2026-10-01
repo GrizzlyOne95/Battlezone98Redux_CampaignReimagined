@@ -2290,7 +2290,7 @@ end
 -- search path; ordinary users need no entry because their BZRNet name is
 -- resolved automatically above.
 local CommanderAliases = nil
-local COMMANDER_ALIAS_ITEM = "campaignReimagined.ini"
+local COMMANDER_ALIAS_ITEM = "crcampgn.ini"
 
 local function LoadCommanderAliases()
     if CommanderAliases then

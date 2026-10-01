@@ -10,8 +10,10 @@ ini_path = ROOT / "Config" / "crsetup.ini"
 des_path = ROOT / "crsetup.des"
 bzn_path = ROOT / "Missions" / "crsetup.bzn"
 lua_path = ROOT / "Scripts" / "crsetup.lua"
-mod_ini_path = ROOT / "Config" / "campaignReimagined.ini"
-mod_des_path = ROOT / "campaignReimagined.des"
+# Redux truncates menu resource names to 16 characters ("campaignReimagined.des"
+# was looked up as "campaignreimagin"), so the campaign ini stem stays short.
+mod_ini_path = ROOT / "Config" / "crcampgn.ini"
+mod_des_path = ROOT / "crcampgn.des"
 lock_path = ROOT / "Shipping" / "shipping.lock.json"
 manager_path = ROOT / "Manage-CampaignFiles.ps1"
 
@@ -54,16 +56,23 @@ for section, filename in zip(mission_sections, campaign_maps):
     assert (ROOT / "Scripts" / Path(filename).with_suffix(".lua")).is_file()
 
 # Redux's custom-campaign menu uses a BMP preview; retain the JPG for Workshop.
-thumbnail = ROOT / "Assets" / "Graphics" / "campaignReimagined.bmp"
-assert thumbnail.read_bytes()[:2] == b"BM"
+for stem in ("crcampgn", "crsetup"):
+    thumbnail = ROOT / "Assets" / "Graphics" / (stem + ".bmp")
+    assert len(thumbnail.name) <= 16, thumbnail.name
+    assert thumbnail.read_bytes()[:2] == b"BM", thumbnail.name
 
-mod_description = mod_des_path.read_text(encoding="utf-8")
+# The menu description boxes show about six wrapped lines; longer text is cut.
+def assert_fits_menu_box(path):
+    text = path.read_text(encoding="utf-8").strip()
+    assert len(text) <= 300 and "\n" not in text, (
+        f"{path.name} is {len(text)} chars; the menu box fits about 300")
+    return text
+
+mod_description = assert_fits_menu_box(mod_des_path)
 assert "! SETUP / REPAIR - Open Community Patch" in mod_description
 assert "SINGLE PLAYER > INSTANT ACTION" in mod_description
-assert "SINGLE PLAYER > CUSTOM CAMPAIGN > Campaign Reimagined" in mod_description
-assert "does not need to be activated in Mods" in mod_description
+assert "not need to be activated in Mods" in mod_description
 assert "completely exit Battlezone" in mod_description
-assert "logs\\openpatch_setup.log" in mod_description
 
 bzn = bzn_path.read_text(encoding="utf-8")
 raw_bzn = bzn_path.read_bytes()
@@ -101,17 +110,19 @@ assert "OpenShimInstaller.CheckOnce(ShowFeedback)" in gameplay_config
 assert "OpenShimInstaller.Apply(" not in gameplay_config
 assert "OpenShimInstaller.EnsureOnce(" not in gameplay_config
 
-description = des_path.read_text(encoding="utf-8")
+description = assert_fits_menu_box(des_path)
 assert "logs\\openpatch_setup.log" in description
-assert "automatically installs or updates OpenShim" in description
+assert "updates OpenShim automatically" in description
 assert "never downgrades" in description
 
 lock = json.loads(lock_path.read_text(encoding="utf-8"))
 entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 expected = {
-    r"Config\campaignReimagined.ini": "campaignReimagined.ini",
-    "campaignReimagined.des": "campaignReimagined.des",
-    r"Assets\Graphics\campaignReimagined.bmp": "campaignReimagined.bmp",
+    r"Config\crcampgn.ini": "crcampgn.ini",
+    "crcampgn.des": "crcampgn.des",
+    r"Assets\Graphics\crcampgn.bmp": "crcampgn.bmp",
+    r"Assets\Graphics\crsetup.bmp": "crsetup.bmp",
+    r"InstallerPayload\OpenShimAssets.ini.payload": "OpenShimAssets.ini.payload",
     r"Config\crsetup.ini": "crsetup.ini",
     "crsetup.des": "crsetup.des",
     "crsetok.des": "crsetok.des",
