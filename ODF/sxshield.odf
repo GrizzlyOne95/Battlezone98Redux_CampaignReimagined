@@ -1,0 +1,16 @@
+[GameObjectClass]
+classLabel = "shieldtower"
+baseName = "abshld"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 30000
+maxAmmo = 0
+unitName = "Enemy-Only Shield"
+
+[BuildingClass]
+soundAmbient = "abshlde0.wav"
+
+[ShieldTowerClass]
+teamFilter = "enemies"
+affectAllies = false
+affectEnemies = true
