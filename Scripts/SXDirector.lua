@@ -23,8 +23,8 @@ function SXDirector:Finish(reason)
     if self.mode ~= "tour" then return end
     local scene = self.scenes[self.index]
     self.mode = "freeplay" -- Reentrant callbacks cannot fire more cues.
-    self:_Call("leave", scene, reason)
-    self:_Call("finish", reason)
+    local left = self:_Call("leave", scene, reason)
+    self:_Call("finish", left and reason or "cleanup-error")
 end
 
 function SXDirector:Start(id)

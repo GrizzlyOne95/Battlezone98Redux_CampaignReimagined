@@ -95,9 +95,10 @@ local function Restore()
     return a and b
 end
 local function Finish(reason)
-    Restore()
+    local restored = Restore()
     title = "OPERATION LIVEWIRE - free play"
-    Record("tour", reason == "complete" and "PASS" or "PENDING", reason)
+    local failed = not restored or tostring(reason):match("error$") ~= nil
+    Record("tour", failed and "FAIL" or (reason == "complete" and "PASS" or "PENDING"), reason)
     Objectives()
 end
 local function CurrentScene()
@@ -138,7 +139,7 @@ local function Initialize()
             if not Valid(SceneTarget(scene)) then Record("camera", "BLOCKED", "camera target unavailable"); return false end
             CameraReady(); cameraActive = true
         end,
-        leave = function(scene) CameraEnd(); exhibits:Leave(scene) end,
+        leave = function(scene) CameraEnd(); return exhibits:Leave(scene) end,
         finish = Finish,
         tick = function(scene)
             if scene.camera == "gameplay" then return true end
@@ -263,7 +264,7 @@ function Command(command, arguments)
     if network then return true end
     local action = string.lower(tostring(arguments or "")):match("^%s*(.-)%s*$")
     local chapter = Scenes.Find(action)
-    if action == "skip" then director:Finish("operator-skip"); Restore()
+    if action == "skip" then autoStart = false; director:Finish("operator-skip"); Restore()
     elseif action == "tour" or chapter then autoStart = false; StartTour(chapter and chapter.id or nil)
     elseif action == "service" then
         autoStart = false; director:Finish("operator-service")

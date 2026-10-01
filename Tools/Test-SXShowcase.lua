@@ -40,6 +40,19 @@ d:Finish("cancelled"); d:Update(99)
 Check(#events == 3 and #finishes == 2, "cancel does not execute remaining cues")
 d:Start("a"); d:Update(7)
 Check(#events == 5 and d.mode == "freeplay", "selected chapter ends before later chapters/cues")
+local entered, cleanupReason = 0, nil
+local cleanup = Director.New({
+    { id = "first", duration = 1, cues = {} },
+    { id = "second", duration = 1, cues = {} },
+}, { enter = function() entered = entered + 1 end,
+    leave = function() return false end,
+    finish = function(reason) cleanupReason = reason end })
+cleanup:Start(); cleanup:Update(2)
+Check(entered == 1 and cleanup.mode == "freeplay" and cleanupReason == "cleanup-error",
+    "failed chapter cleanup stops before the next chapter")
+cleanup:Start("second"); cleanup:Update(1)
+Check(cleanupReason == "cleanup-error", "final chapter cleanup cannot report successful completion")
+
 local broken = Director.New({ { id = "bad", duration = 2, cues = { { at = 1 } } } },
     { cue = function() error("fixture failure") end })
 broken:Start(); broken:Update(1)
@@ -441,6 +454,31 @@ Command("sx", "arrival"); Update(4); Command("sx", "skip")
 Check(Snapshot().results.music.status == "BLOCKED" and x.music.track == -1 and not x.music.playing,
     "unrestorable native no-selection baseline is left intact")
 x.music = Copy(musicBaseline)
+Command("sx", "ai"); Update(13)
+x.rejectRemove = GetHandle("sx_ai_stock")
+Update(60)
+Check(Snapshot().scene.mode == "freeplay" and Snapshot().results.tour.status == "FAIL"
+    and IsValid(x.rejectRemove), "chapter cleanup failure aborts the tour and retains retry state")
+Command("sx", "tour")
+Check(Snapshot().results.tour.status == "BLOCKED", "replay remains blocked until cleanup succeeds")
+x.rejectRemove = nil; Command("sx", "baseline")
+Check(OwnedCount() == 8, "baseline command retries failed actor cleanup")
+Mission(); Command("sx", "skip")
+local startupReady = readyCalls
+Update(1)
+Check(Snapshot().scene.mode ~= "tour" and readyCalls == startupReady,
+    "skip before the first update cancels pending automatic startup")
+Command("sx", "tour"); Update(120)
+x.rejectRemove = GetHandle("sx_ai_stock")
+Update(61)
+Check(Snapshot().scene.mode == "freeplay" and Snapshot().scene.scene == "ai"
+    and GetHandle("sx_break_craft") == nil, "full film stops at failed AI cleanup before spawning destruction actors")
+x.rejectRemove = nil; Command("sx", "baseline")
+local nativePath = CameraPath
+CameraPath = function() error("camera failure") end
+Command("sx", "arrival"); Update(1)
+Check(Snapshot().results.tour.status == "FAIL", "camera callback failure is reported as failure, not pending observation")
+CameraPath = nativePath
 local beforeNet, beforeSave = nextHandle, x.saveCount
 net = true; Mission(); Update(10); Command("sx", "save"); Command("sx", "ai")
 Check(nextHandle == beforeNet and x.saveCount == beforeSave, "network mode permits only a local overlay, no world/save/tuning mutation")
