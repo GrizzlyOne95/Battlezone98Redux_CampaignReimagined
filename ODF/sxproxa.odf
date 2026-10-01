@@ -1,0 +1,18 @@
+[GameObjectClass]
+classLabel = "proximity"
+baseName = "proxmine"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 150
+maxAmmo = 200
+unitName = "Ally-Only Proximity"
+
+[MineClass]
+lifeSpan = 90.0
+
+[ProximityMineClass]
+xplBlast = "xminxpl"
+searchRadius = 30.0
+teamFilter = "allies"
+affectAllies = true
+affectEnemies = false
