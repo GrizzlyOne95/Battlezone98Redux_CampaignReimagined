@@ -31,8 +31,8 @@ local actionMessages = {
     already_staged = "An existing staged update was detected; no duplicate staging was attempted.",
     install_staged = "OpenShim installation was staged for verified replacement when Battlezone exits.",
     update_staged = "OpenShim update was staged for verified replacement when Battlezone exits.",
-    config_installed = "The default openshim.ini was installed; the core OpenShim files were already current.",
-    config_failed = "Could not install the default openshim.ini.",
+    config_installed = "Missing support files (openshim.ini / asset pack manifest) were installed; the core OpenShim files were already current.",
+    config_failed = "Could not install the default openshim.ini or the asset pack manifest.",
     stage_failed = "OpenShim staging failed before the replacement helper could complete setup.",
     stage_failed_after_launch = "The replacement helper launched but reported an immediate failure.",
     blocked = "Setup refused to change files because the current diagnostic state is unsafe to repair automatically.",
@@ -65,6 +65,7 @@ local function AttachActionToReport(currentReport, result)
     currentReport.actionRestartRequired = result.restartRequired
     currentReport.actionDetail = result.detail
     currentReport.actionPlayerConfig = result.playerConfigAction
+    currentReport.actionAssetManifest = result.assetManifestAction
     currentReport.actionStageState = result.stageState
 end
 
@@ -110,7 +111,8 @@ local function RenderReport(logPath, logError)
         "crsetup_support",
         "white",
         ComponentText("patches.json", report.installed and report.installed.patches) ..
-        "    " .. ComponentText("openshim.ini", report.installed and report.installed.playerConfig))
+        "    " .. ComponentText("openshim.ini", report.installed and report.installed.playerConfig) ..
+        "    " .. ComponentText("Asset pack", report.installed and report.installed.assetManifest))
 
     local helperState = report.helper and report.helper.exists and "PRESENT" or "MISSING"
     local updaterState = report.updateStatus and report.updateStatus.state or "NONE"

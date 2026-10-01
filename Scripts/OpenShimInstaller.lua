@@ -328,11 +328,13 @@ local function GetOpenShimManifest()
     local network = payloads and NormalizePayload(payloads.network) or nil
     local patches = payloads and NormalizePayload(payloads.patches) or nil
     local playerConfig = payloads and NormalizePayload(payloads.playerConfig) or nil
+    local assetManifest = payloads and NormalizePayload(payloads.assetManifest) or nil
     if manifest.formatVersion ~= 3 or
         not manifest.sha256 or not manifest.sha256:match("^[0-9a-f]+$") or #manifest.sha256 ~= 64 or
         type(manifest.version) ~= "string" or manifest.version == "" or
         manifest.architecture ~= "x86" or
         not winmm or not loader or not plugin or not network or not patches or not playerConfig or
+        not assetManifest or
         winmm.source ~= "winmm.dll" or winmm.destination ~= "winmm.dll" or
         loader.source ~= "bzloader.dll" or loader.destination ~= "bzloader.dll" or
         plugin.source ~= "openshim.dll" or plugin.destination ~= "plugins\\openshim.dll" or
@@ -346,6 +348,8 @@ local function GetOpenShimManifest()
         patches.source ~= "openshim_patches.json.payload" or patches.destination ~= "scripts\\patches.json" or
         playerConfig.source ~= "openshim.ini.payload" or playerConfig.destination ~= "openshim.ini" or
         type(playerConfig.overwrite) ~= "boolean" or
+        assetManifest.source ~= "OpenShimAssets.ini.payload" or
+        assetManifest.destination ~= "openshim\\OpenShimAssets.ini" or
         winmm.sha256 ~= manifest.sha256 or winmm.version ~= manifest.version or winmm.size ~= manifest.size or
         winmm.architecture ~= "x86" then
         print("PersistentConfig: OpenShim manifest is malformed or unsupported.")
@@ -564,6 +568,7 @@ function OpenShimInstaller.Inspect()
         { name = "network", payload = manifest.payloads.network },
         { name = "patches", payload = manifest.payloads.patches },
         { name = "playerConfig", payload = manifest.payloads.playerConfig },
+        { name = "assetManifest", payload = manifest.payloads.assetManifest },
     }
 
     local destinationPaths = {
@@ -573,6 +578,7 @@ function OpenShimInstaller.Inspect()
         network = workingDirectory .. "\\net.ini",
         patches = workingDirectory .. "\\scripts\\patches.json",
         playerConfig = workingDirectory .. "\\openshim.ini",
+        assetManifest = workingDirectory .. "\\openshim\\OpenShimAssets.ini",
     }
 
     local sourceFailure = nil
@@ -635,7 +641,8 @@ function OpenShimInstaller.Inspect()
         report.installed.plugin.state == "CURRENT" and
         network.state == "CURRENT" and
         patches.state == "CURRENT" and
-        playerConfig.state ~= "MISSING"
+        playerConfig.state ~= "MISSING" and
+        report.installed.assetManifest.state == "CURRENT"
 
     local pendingState = report.updateStatus.matchesBundled and
         (report.updateStatus.state == "staged" or
@@ -764,6 +771,7 @@ function OpenShimInstaller.FormatDiagnosticReport(report)
         "ACTION_RESTART_REQUIRED=" .. tostring(report.actionRestartRequired == true),
         "ACTION_DETAIL=" .. tostring(report.actionDetail or ""),
         "ACTION_PLAYER_CONFIG=" .. tostring(report.actionPlayerConfig or ""),
+        "ACTION_ASSET_MANIFEST=" .. tostring(report.actionAssetManifest or ""),
         "ACTION_STAGE_STATE=" .. tostring(report.actionStageState or ""),
     }
 
@@ -774,12 +782,14 @@ function OpenShimInstaller.FormatDiagnosticReport(report)
     AddDiagnosticPayloadLine(lines, "PAYLOAD_NETWORK", report.payloads and report.payloads.network, report)
     AddDiagnosticPayloadLine(lines, "PAYLOAD_PATCHES", report.payloads and report.payloads.patches, report)
     AddDiagnosticPayloadLine(lines, "PAYLOAD_PLAYER_CONFIG", report.payloads and report.payloads.playerConfig, report)
+    AddDiagnosticPayloadLine(lines, "PAYLOAD_ASSET_MANIFEST", report.payloads and report.payloads.assetManifest, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_WINMM", report.installed and report.installed.winmm, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_LOADER", report.installed and report.installed.loader, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_PLUGIN", report.installed and report.installed.plugin, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_NETWORK", report.installed and report.installed.network, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_PATCHES", report.installed and report.installed.patches, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_PLAYER_CONFIG", report.installed and report.installed.playerConfig, report)
+    AddDiagnosticPayloadLine(lines, "INSTALLED_ASSET_MANIFEST", report.installed and report.installed.assetManifest, report)
 
     local status = report.updateStatus or {}
     lines[#lines + 1] = "UPDATE_STATUS_PRESENT=" .. BoolText(status.exists)
@@ -864,6 +874,50 @@ local function CopyPlayerConfigIfNeeded(report, manifest)
     return true, configExists and "overwritten" or "installed"
 end
 
+-- OpenShim reports its asset pack only when <game>\openshim\OpenShimAssets.ini
+-- exists. The Workshop bundle carries every asset, so the sentinel is always
+-- replaced with the bundled copy. It is plain text read at startup, so it is
+-- copied directly instead of joining the staged (locked-file) suite.
+local function CopyAssetManifestIfNeeded(report, manifest)
+    local entry = report.installed and report.installed.assetManifest
+    local payload = manifest and manifest.payloads and manifest.payloads.assetManifest
+    if not entry or not payload then
+        return false, "asset manifest diagnostics are unavailable"
+    end
+    if entry.state == "CURRENT" then
+        return true, "current"
+    end
+
+    local sourcePath = report.payloads and report.payloads.assetManifest and
+        report.payloads.assetManifest.source or nil
+    if not sourcePath then
+        return false, "bundled OpenShimAssets.ini payload is unavailable"
+    end
+    if not (bzfile and type(bzfile.CopyFile) == "function") then
+        return false, "bzfile.CopyFile is unavailable"
+    end
+
+    local destinationPath = entry.path
+    local directory = GetPathDirectory(destinationPath)
+    if directory and type(bzfile.MakeDirectory) == "function" then
+        local dirOk, dirCreated, dirError = pcall(bzfile.MakeDirectory, directory)
+        if not dirOk or not dirCreated then
+            return false, "could not create openshim folder: " ..
+                tostring(dirOk and dirError or dirCreated)
+        end
+    end
+
+    local copyOk, copied, copyError = pcall(bzfile.CopyFile, sourcePath, destinationPath, true)
+    local installedHash = copyOk and copied and GetBzFileHash(destinationPath) or nil
+    if not copyOk or not copied or installedHash ~= payload.sha256 then
+        local detail = not copyOk and tostring(copied) or
+            tostring(copyError or "installed hash mismatch")
+        return false, "OpenShimAssets.ini install failed: " .. detail
+    end
+
+    return true, entry.exists and "updated" or "installed"
+end
+
 local function NewApplyResult(report)
     return {
         before = report,
@@ -877,6 +931,7 @@ local function NewApplyResult(report)
         helperLogPath = nil,
         stageState = nil,
         playerConfigAction = "preserved",
+        assetManifestAction = "current",
     }
 end
 
@@ -940,6 +995,7 @@ function OpenShimInstaller.Apply(report)
         { name = "network", payload = manifest.payloads.network },
         { name = "patches", payload = manifest.payloads.patches },
         { name = "playerConfig", payload = manifest.payloads.playerConfig },
+        { name = "assetManifest", payload = manifest.payloads.assetManifest },
     }
     for _, definition in ipairs(payloadOrder) do
         local sourceEntry = report.payloads and report.payloads[definition.name]
@@ -966,19 +1022,26 @@ function OpenShimInstaller.Apply(report)
         report.installed.network and report.installed.network.state == "CURRENT" and
         report.installed.patches and report.installed.patches.state == "CURRENT"
 
-    -- If the only missing component is the user config, install it directly.
-    -- Re-staging a byte-identical DLL/net/patch suite would force a pointless
-    -- restart just to create openshim.ini.
-    if coreCurrent and report.installed.playerConfig and
-        report.installed.playerConfig.state == "MISSING" then
+    -- If only the user config and/or the asset-pack sentinel need installing,
+    -- copy them directly. Re-staging a byte-identical DLL/net/patch suite
+    -- would force a pointless restart just to create two text files.
+    if coreCurrent then
         local configOk, configAction = CopyPlayerConfigIfNeeded(report, manifest)
+        local assetsOk, assetsAction = CopyAssetManifestIfNeeded(report, manifest)
         result.playerConfigAction = configAction
-        result.action = configOk and "config_installed" or "config_failed"
-        result.success = configOk
-        result.changed = configOk
-        result.detail = configOk and
-            "default openshim.ini installed; core OpenShim files were already current" or
-            configAction
+        result.assetManifestAction = assetsAction
+        result.action = configOk and assetsOk and "config_installed" or "config_failed"
+        result.success = configOk and assetsOk
+        result.changed = configAction ~= "preserved" or assetsAction ~= "current"
+        if not configOk then
+            result.detail = configAction
+        elseif not assetsOk then
+            result.detail = assetsAction
+        else
+            result.detail = "support files installed (openshim.ini " .. tostring(configAction) ..
+                ", OpenShimAssets.ini " .. tostring(assetsAction) ..
+                "); core OpenShim files were already current"
+        end
         result.after = OpenShimInstaller.Inspect()
         result.state = result.after.state
         return result
@@ -1018,6 +1081,14 @@ function OpenShimInstaller.Apply(report)
 
     local configOk, configAction = CopyPlayerConfigIfNeeded(report, manifest)
     result.playerConfigAction = configAction
+    local assetsOk, assetsAction = CopyAssetManifestIfNeeded(report, manifest)
+    result.assetManifestAction = assetsAction
+    if not assetsOk then
+        -- Not fatal: OpenShim still loads every bundled resource; only its
+        -- Settings page reports the asset pack missing until setup reruns.
+        configOk = false
+        configAction = tostring(configAction) .. "; " .. tostring(assetsAction)
+    end
     if not configOk then
         -- The core suite is already staged and will still install on exit.
         -- OpenShim has in-code defaults, so a missing player INI is a warning,

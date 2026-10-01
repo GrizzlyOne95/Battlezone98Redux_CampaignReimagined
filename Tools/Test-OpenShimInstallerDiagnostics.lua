@@ -14,6 +14,7 @@ local hashes = {
     patches = string.rep("c", 64),
     playerConfig = string.rep("d", 64),
     customConfig = string.rep("e", 64),
+    assetManifest = string.rep("4", 64),
 }
 
 local manifest = {
@@ -59,6 +60,12 @@ local manifest = {
             sha256 = hashes.playerConfig,
             overwrite = false,
         },
+        assetManifest = {
+            size = 100,
+            source = "OpenShimAssets.ini.payload",
+            destination = "openshim\\OpenShimAssets.ini",
+            sha256 = hashes.assetManifest,
+        },
     },
 }
 
@@ -94,6 +101,7 @@ local function ResetInstalledCurrent()
     Put(working .. "\\net.ini", hashes.network)
     Put(working .. "\\scripts\\patches.json", hashes.patches)
     Put(working .. "\\openshim.ini", hashes.customConfig)
+    Put(working .. "\\openshim\\OpenShimAssets.ini", hashes.assetManifest)
     statusContent = nil
 end
 
@@ -104,6 +112,7 @@ Put(modRoot .. "\\openshim_net.ini.payload", hashes.network)
 Put(modRoot .. "\\openshim_patches.json.payload", hashes.patches)
 Put(modRoot .. "\\openshim.ini.payload", hashes.playerConfig)
 Put(modRoot .. "\\bzfile_replace_helper.exe", hashes.helper)
+Put(modRoot .. "\\OpenShimAssets.ini.payload", hashes.assetManifest)
 ResetInstalledCurrent()
 
 -- Whether an update helper currently owns the update mutex.
@@ -209,6 +218,32 @@ assert(result.after.state == Installer.States.CURRENT, result.after.state)
 assert(stageCalls == 0)
 assert(copyCalls == 1)
 
+-- Missing asset-pack sentinel (a Workshop install from before this payload
+-- existed): copy it into <game>\openshim without staging or a restart, and
+-- leave a customized openshim.ini alone.
+ResetInstalledCurrent()
+Remove(working .. "\\openshim\\OpenShimAssets.ini")
+report = Installer.Inspect()
+assert(report.state == Installer.States.UPDATE_REQUIRED, report.state)
+assert(report.installed.assetManifest.state == "MISSING")
+local copiesBeforeAssets = copyCalls
+result = Installer.Apply(report)
+assert(result.success == true, result.detail)
+assert(result.action == "config_installed", result.action)
+assert(result.assetManifestAction == "installed", result.assetManifestAction)
+assert(result.playerConfigAction == "preserved", result.playerConfigAction)
+assert(result.restartRequired == false)
+assert(result.after.state == Installer.States.CURRENT, result.after.state)
+assert(stageCalls == 0)
+assert(copyCalls == copiesBeforeAssets + 1)
+assert(fileHashes[working .. "\\openshim.ini"] == hashes.customConfig)
+
+-- A stale sentinel from an older pack is replaced, not preserved.
+Put(working .. "\\openshim\\OpenShimAssets.ini", string.rep("5", 64))
+result = Installer.Apply(Installer.Inspect())
+assert(result.success == true and result.assetManifestAction == "updated", result.detail)
+assert(fileHashes[working .. "\\openshim\\OpenShimAssets.ini"] == hashes.assetManifest)
+
 -- Missing OpenShim: stage the core suite and preserve an existing custom config.
 ResetInstalledCurrent()
 Remove(working .. "\\winmm.dll")
@@ -244,6 +279,17 @@ assert(result.success == true)
 assert(result.action == "install_staged", result.action)
 assert(stageCalls == stagesBeforePending + 1)
 helperActive = true
+
+-- Fresh install: the core suite is staged and the sentinel is copied at once.
+ResetInstalledCurrent()
+Remove(working .. "\\winmm.dll")
+Remove(working .. "\\openshim\\OpenShimAssets.ini")
+local stagesBeforeFresh = stageCalls
+result = Installer.Apply(Installer.Inspect())
+assert(result.action == "install_staged", result.action)
+assert(result.assetManifestAction == "installed", result.assetManifestAction)
+assert(exists[working .. "\\openshim\\OpenShimAssets.ini"] == true)
+assert(stageCalls == stagesBeforeFresh + 1)
 
 -- Newer manual install: preserve it and do not stage older support files.
 ResetInstalledCurrent()
@@ -305,6 +351,10 @@ manifest.payloads.plugin = plugin
 plugin.destination = "openshim.dll"
 assert(Installer.Inspect().state == Installer.States.MANIFEST_INVALID)
 plugin.destination = "plugins\\openshim.dll"
+local assetPayload = manifest.payloads.assetManifest
+manifest.payloads.assetManifest = nil
+assert(Installer.Inspect().state == Installer.States.MANIFEST_INVALID)
+manifest.payloads.assetManifest = assetPayload
 
 -- Do not execute a helper changed since packaging or since the inspection.
 Put(modRoot .. "\\bzfile_replace_helper.exe", string.rep("f", 64))
