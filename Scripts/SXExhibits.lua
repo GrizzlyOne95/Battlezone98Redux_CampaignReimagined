@@ -510,8 +510,8 @@ function SXExhibits:Leave(scene)
     local removed = self.api.removeGroup(scene.id)
     all = removed and all
     if not all then self:Record("restore/" .. scene.id, "FAIL", "temporary override restoration incomplete") end
-    -- Cleanup failures remain visible and can be retried; other bays still run.
-    return true
+    -- Stop at this boundary: later bays must not inherit failed overrides.
+    return all
 end
 
 function SXExhibits:Restore()

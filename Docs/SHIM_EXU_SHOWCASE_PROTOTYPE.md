@@ -99,7 +99,9 @@ Enter these in the stock game console:
 A report `PASS` means the stated API readback or witness matched, not that the
 whole effect looked correct. `visual/<feature>` remains `PENDING` until an operator
 confirms it. A replay or load invalidates observations. Blocked features cannot
-be confirmed as passing. Tour `PASS` means the authored sequence completed;
+be confirmed as passing. Cleanup failures stop the film before the next chapter, and camera/cue/setup
+errors report tour `FAIL`. `sx baseline` retries restoration before replay.
+Tour `PASS` means the authored sequence completed with successful cleanup;
 individual features may still be blocked, fail, or need observation.
 
 The proximity witness checks protected craft reaching their lane exits unharmed
@@ -174,10 +176,11 @@ Source contracts inspected for this checkpoint:
 - EXU main: `75863c5005b96d09855b140bb4b32907e87fba75`
 - OpenShim main: `4d610647556a22d58273694c2a9ce6c68b246ed1`
 
-The host regression passes **88 checks** for cue/hitch/cancel handling, independent
+The host regression passes **96 checks** for cue/hitch/cancel handling, independent
 chapter replay, material rollback/UV cleanup, native readbacks, external settings,
 weather/music/radio/HUD/AI cleanup, save-job gating, safe load handover, repeated
-whole tours, failed-reset protection and the network guard. These use fakes,
+whole tours, failed-reset protection, chapter-boundary cleanup failures, early
+startup cancellation, callback error reporting and the network guard. These use fakes,
 including idealized proximity motion, and do not qualify native physics.
 The asset validator passes **295 checks** for map counts/IDs, preserved source
 objects/paths, exact generator output, terrain bounds, Lua bindings, ODF classes
