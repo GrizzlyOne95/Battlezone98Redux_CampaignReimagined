@@ -1,0 +1,15 @@
+[GameObjectClass]
+classLabel = "camerapod"
+baseName = "apcamr"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 100000
+maxAmmo = 0
+unitName = "Livewire Station"
+aiName = "PowerUpProcess"
+aiName2 = "PowerUpProcess"
+
+[CameraPodClass]
+omegaSpin = 0.0
+rangeScan = 200.0
+periodScan = 5.0
