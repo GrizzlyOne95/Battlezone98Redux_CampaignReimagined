@@ -1,4 +1,4 @@
--- Nonblocking, scene-local clock for the Operation Livewire prototype.
+-- Nonblocking, scene-local clock for Operation Livewire.
 -- Lua 5.1; no engine or EXU dependency. The mission owns callbacks/resources.
 local SXDirector = {}
 SXDirector.__index = SXDirector
@@ -38,6 +38,7 @@ function SXDirector:Start(id)
     end
     self:Finish("replay")
     self.mode, self.index, self.elapsed, self.nextCue = "tour", index, 0, 1
+    self.singleScene = id ~= nil
     self.error = nil
     if not self:_Call("enter", self.scenes[index]) then
         self:Finish("setup-error")
@@ -68,7 +69,7 @@ function SXDirector:Update(dt)
             return
         end
         if self.elapsed < scene.duration then return end
-        if self.index == #self.scenes then self:Finish("complete"); return end
+        if self.singleScene or self.index == #self.scenes then self:Finish("complete"); return end
         if not self:_Call("leave", scene, "complete") then
             self:Finish("cleanup-error")
             return
@@ -85,7 +86,7 @@ end
 function SXDirector:Snapshot()
     return { mode = self.mode, scene = self.scenes[self.index] and
         self.scenes[self.index].id or "", elapsed = self.elapsed,
-        nextCue = self.nextCue, error = self.error }
+        nextCue = self.nextCue, singleScene = self.singleScene, error = self.error }
 end
 
 return SXDirector

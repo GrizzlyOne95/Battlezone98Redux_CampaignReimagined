@@ -8,6 +8,7 @@ Native loading, terrain clearance, and camera framing still need the game.
 
 import argparse
 import configparser
+import importlib.util
 import json
 import math
 import re
@@ -54,13 +55,25 @@ def main():
     head, objs, tail = objects(bzn)
     source_head, source_objs, source_tail = objects(source)
     check("msn_filename = sxshow.bzn\n" in head, "mission filename must bind sxshow.lua")
-    check("TerrainName = crsetup\n" in head, "prototype must reuse the setup terrain")
+    check("TerrainName = crsetup\n" in head, "showcase must reuse the setup terrain")
     check(int(field(head, "size")) == len(objs) == 32, "BZN object count must be 32")
     removed = [obj for obj in source_objs if field(obj, "team") == "5"]
     check(len(removed) == 7 and all(field(obj, "PrjID") == "avtur2b" for obj in removed),
           "source hostile fixture set changed; review map derivation")
-    check(objs == [obj for obj in source_objs if field(obj, "team") != "5"],
-          "prototype must preserve every non-hostile setup object")
+    expected = []
+    for obj in source_objs:
+        if field(obj, "team") == "5":
+            continue
+        if "label = asuser0_person\n" in obj:
+            obj = obj.replace("isUser [1] =\n1\n", "isUser [1] =\n0\n", 1)
+        elif "label = fake_player\n" in obj:
+            obj = obj.replace("isUser [1] =\n0\n", "isUser [1] =\n1\n", 1)
+            obj = obj.replace("label = fake_player\n", "label = sx_player\n", 1)
+        expected.append(obj)
+    check(objs == expected, "non-hostile setup objects changed beyond the authored player handover")
+    users = [obj for obj in objs if field(obj, "isUser") == "1"]
+    check(len(users) == 1 and field(users[0], "PrjID") == "avtank" and "label = sx_player\n" in users[0],
+          "showcase needs exactly one authored player tank for live cockpit meters")
     check(all(field(obj, "team") in {"0", "1"} for obj in objs), "unexpected hostile team")
     addresses = [re.search(r"(?m)^obj_addr = ([0-9A-Fa-f]+)$", obj).group(1) for obj in objs]
     check(len(set(addresses)) == len(addresses), "duplicate object serialization address")
@@ -70,7 +83,7 @@ def main():
 
     blocks, source_blocks = paths(bzn), paths(source)
     check(blocks[:len(source_blocks)] == source_blocks, "original setup paths changed")
-    check(len(blocks) == len(source_blocks) + 6 == 20, "prototype must append six paths")
+    check(len(blocks) == len(source_blocks) + 45 == 59, "showcase must append 45 paths")
     terrain = configparser.ConfigParser()
     terrain.read_string(read(reference, "Missions/crsetup.trn"))
     size = terrain["Size"]
@@ -98,12 +111,17 @@ def main():
     check(len(set(ids)) == len(ids), "duplicate path serialization address")
     check(not set(ids).intersection(addresses), "path/object serialization address collision")
 
-    mission = read(root, "Scripts/sxshow.lua")
-    bindings = set(re.findall(r'\bpath = "([^"]+)"', mission))
-    bindings.update(re.findall(r'Build\("[^"]+", "[^"]+", "([^"]+)"\)', mission))
-    bindings.update(re.findall(r'Goto\(convoy, "([^"]+)"', mission))
+    scene_source = read(root, "Scripts/SXScenes.lua")
+    exhibit_source = read(root, "Scripts/SXExhibits.lua")
+    bindings = set(re.findall(r'"(sx_[a-z_]+)"', scene_source + exhibit_source))
     check(bindings == {label for label in labels if label.startswith("sx_")},
           "Lua path bindings differ from authored showcase paths")
+    durations = [int(value) for value in re.findall(r'\bduration = (\d+)', scene_source)]
+    check(len(durations) == 9 and sum(durations) == 390, "expected nine chapters / 390 seconds")
+    spec = importlib.util.spec_from_file_location("sx_map", root / "Tools/Build-SXShowcaseMap.py")
+    builder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(builder)
+    check(builder.build(source) == bzn, "BZN differs from its reproducible source generator")
     config = configparser.ConfigParser()
     config.read_string(read(root, "Config/sxshow.ini"))
     check(config["WORKSHOP"]["mapType"].strip('"') == "instant_action", "incorrect mission listing type")
@@ -112,16 +130,47 @@ def main():
     norm = lambda name: name.replace("\\", "/").casefold()
     sources = {norm(entry["source"]) for entry in entries}
     for dependency in ("Missions/crsetup.trn", "Missions/crsetup.hg2", "Missions/crsetup.mat",
-                       "Missions/crsetup.lgt", "ODF/avfigh.odf", "Scripts/RequireFix.lua"):
+                       "Missions/crsetup.lgt", "ODF/avfigh.odf", "ODF/avtank.odf", "ODF/abbarr.odf",
+                       "ODF/abspow.odf", "ODF/apcamr.odf", "Scripts/RequireFix.lua",
+                       "Scripts/CRWeather.lua", "Scripts/CRWeatherPresets.lua", "Scripts/CRParticleTemplates.lua",
+                       "Materials/cr_weather.particle.payload", "OverlayFont/CRBZoneOverlay.fontdef", "OverlayFont/BZONE.ttf"):
         check(norm(dependency) in sources, "dependency absent from existing shipping lock: " + dependency)
     runtime = {norm(entry["runtime"]): norm(entry["source"]) for entry in entries}
     additions = ["Config/sxshow.ini", "Missions/sxshow.bzn", "Scripts/sxshow.lua",
-                 "Scripts/SXDirector.lua", "Scripts/SXMaterials.lua", "Scripts/SXOverlay.lua"]
+                 "Scripts/SXDirector.lua", "Scripts/SXMaterials.lua", "Scripts/SXOverlay.lua",
+                 "Scripts/SXState.lua", "Scripts/SXScenes.lua", "Scripts/SXExhibits.lua",
+                 "ODF/sxanchor.odf", "ODF/sxshield.odf", "ODF/sxmag.odf", "ODF/sxproxe.odf", "ODF/sxproxa.odf"]
     for name in additions:
         check((root / name).is_file(), "missing runtime source: " + name)
         existing = runtime.get(norm(Path(name).name))
         check(existing is None or existing == norm(name), "flattened runtime-name collision: " + name)
     check(len({norm(Path(name).name) for name in additions}) == len(additions), "new runtime names collide")
+    odfs = {
+        "sxanchor": ("camerapod", "apcamr", None, None),
+        "sxshield": ("shieldtower", "abshld", "ShieldTowerClass", "enemies"),
+        "sxmag": ("magnet", "proxmine", "MagnetClass", "enemies"),
+        "sxproxe": ("proximity", "proxmine", "ProximityMineClass", "enemies"),
+        "sxproxa": ("proximity", "proxmine", "ProximityMineClass", "allies"),
+    }
+    for name, (label, base, section, team_filter) in odfs.items():
+        odf = configparser.ConfigParser()
+        odf.read_string(read(root, f"ODF/{name}.odf"))
+        check(len(name) <= 8 and odf["GameObjectClass"]["classLabel"].strip('"') == label,
+              "wrong native class or engine filename: " + name)
+        check(odf["GameObjectClass"]["baseName"].strip('"') == base, "wrong visual base: " + name)
+        check('odf = "' + name + '"' in scene_source, "unbound showcase ODF: " + name)
+        if section:
+            data = odf[section]
+            check(data["teamFilter"].strip('"') == team_filter and
+                  data.getboolean("affectAllies") == (team_filter == "allies") and
+                  data.getboolean("affectEnemies") == (team_filter == "enemies"),
+                  "inconsistent authored team filter: " + name)
+        if name in {"sxmag", "sxproxe", "sxproxa"}:
+            check(odf["MineClass"].getfloat("lifeSpan") > 55, "mine expires during filter chapter: " + name)
+        if name == "sxmag":
+            check(odf["MagnetClass"].getfloat("fieldRadius") > 0, "magnet needs a live field radius")
+    check('SetAsUser(' not in read(root, "Scripts/sxshow.lua") + exhibit_source,
+          "player handover must be authored in the map, not scripted")
     print(f"SXShowcase assets: {checks} checks passed (text/schema/dependencies; native loading unverified)")
 
 

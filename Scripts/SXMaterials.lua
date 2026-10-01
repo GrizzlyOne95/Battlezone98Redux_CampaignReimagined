@@ -148,13 +148,37 @@ function SXMaterials:Pulse(elapsed)
     end
 end
 
+function SXMaterials:Animate(enabled)
+    local all, count = true, 0
+    if enabled and not self.active then return false end
+    self.animatedNames = self.animatedNames or {}
+    local names = {}
+    if enabled then for _, variant in pairs(self.variants) do names[#names + 1] = variant.name end
+    else for name in pairs(self.animatedNames) do names[#names + 1] = name end end
+    for _, name in ipairs(names) do
+        local ok, result = Call(self.exu, "SetMaterialTextureScrollAnimation", name,
+            enabled and 0.03 or 0, enabled and 0.01 or 0, 0, 0, 0, GROUP)
+        all = ok and result == true and all
+        if ok and result == true then
+            count = count + 1
+            self.animatedNames[name] = enabled and true or nil
+        end
+    end
+    self.animated = next(self.animatedNames) ~= nil
+    -- Glass/untextured passes can refuse a texture-unit request. One real,
+    -- accepted clone texture is enough; only accepted units are later stopped.
+    if enabled then return count > 0 end
+    return all
+end
+
 function SXMaterials:Restore()
+    local animation = not self.animated or self:Animate(false)
     self.active = false
     if not self.changedBase then return true end
     -- Deleted fixtures have no assignments to restore. Still restore survivors.
     local a = not self.valid(self.changed) or self:_Assign(self.changed, self.changedBase)
     local b = not self.valid(self.control) or self:_Assign(self.control, self.controlBase)
-    self.restored = a and b
+    self.restored = a and b and animation
     if not self.restored then self.status, self.detail = "FAIL", "baseline restoration incomplete" end
     return self.restored
 end
