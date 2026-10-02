@@ -76,10 +76,11 @@ end
 function AudioMessage(name)
     record("AudioMessage", name)
     -- A nonnumeric token catches ports accidentally treating messages as ints.
-    return "message:" .. name
+    return {filename = name}
 end
 function IsAudioMessageDone(message)
-    assert(message == "message:misns609.wav"); return audio_done
+    assert(type(message) == "table" and message.filename == "misns609.wav")
+    return audio_done
 end
 function Defend(h, priority) assert(IsValid(h)); record("Defend", h, priority) end
 function SetObjectiveOn(h) assert(IsValid(h)); record("SetObjectiveOn", h) end
