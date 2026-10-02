@@ -3,3 +3,8 @@
 *.bzn text eol=crlf whitespace=-blank-at-eol
 # Keep the tested stock terrain description byte format.
 Missions/crsetup.trn whitespace=-blank-at-eol,-blank-at-eof
+# Original DLL snapshots are pinned by Git blob ID. Preserve their CRLF and
+# inherited whitespace even on checkouts that enable automatic text conversion.
+References/Misn13Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
+# Verbatim disabled C++ comments include whitespace-only lines.
+Scripts/misn13.lua whitespace=-blank-at-eol
