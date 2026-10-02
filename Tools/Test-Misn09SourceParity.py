@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check the DLL provenance, retained comments/state, and authored call order."""
 import hashlib
+import importlib.util
 import re
 from pathlib import Path
 
@@ -76,4 +77,15 @@ lua_slots = re.findall(r'\{"(\w+)",\s*"(\w+)"\}', lua.split("local trackedObject
 check(native_slots == lua_slots and len(lua_slots) == 16, "AddObject first-empty slot order differs")
 check("SetAIControl" not in active_lua and "ObjectiveObjects" not in active_lua, "unsafe/unsupported API introduced")
 check(len(re.findall(r"-- PORT FIX:", lua)) == 3, "expected three documented source fixes")
+
+# The campaign validator must ignore preserved C++ in every Lua long-comment
+# delimiter while still rejecting actual Lua 5.2 control flow after the comment.
+spec = importlib.util.spec_from_file_location("campaign_validator", ROOT / "Tools/Validate-CampaignRepository.py")
+validator = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(validator)
+for equals in ["", "=", "=="]:
+    text = "--[" + equals + "[\ngoto cut_content;\n]" + equals + "]\nGoto(unit, path)\ngoto live_label"
+    code = validator.strip_lua_comments(text)
+    check("cut_content" not in code and "Goto(unit, path)" in code and "goto live_label" in code,
+          "validator misclassifies inactive C++ or loses live Lua syntax")
 print(f"misn09: {checks} source preservation/parity checks passed")

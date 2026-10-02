@@ -93,10 +93,12 @@ lua5.1 Tools/Test-Misn09.lua
 python Tools/Test-Misn09SourceParity.py
 ```
 
-Validated with Lua 5.1.5: 110 mock-host behavior checks and 199 source-preservation
+Validated with Lua 5.1.5: 110 mock-host behavior checks and 202 source-preservation
 checks. The latter pin exact source/header bytes, preserve every gameplay comment
 and state member, and compare Setup/Execute API call order and all 16 AddObject
-slot mappings. Both suites run in campaign CI. Mock tests do not prove native AI,
+slot mappings. The campaign validator also recognizes every Lua long-comment
+delimiter, avoiding false syntax errors inside retained C++. Both suites run in
+campaign CI. Mock tests do not prove native AI,
 camera rendering, audio timing, or engine save/load handle restoration.
 
 This is a script checkpoint, not an in-game-qualified mission. At inspected main
