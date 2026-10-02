@@ -3,3 +3,7 @@
 *.bzn text eol=crlf whitespace=-blank-at-eol
 # Keep the tested stock terrain description byte format.
 Missions/crsetup.trn whitespace=-blank-at-eol,-blank-at-eof
+# Verbatim misn10 source and in-place cut-code comments retain original spacing.
+# Disable newline conversion for the archive so its pinned Git blobs survive.
+References/Misn10Source/* -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+Scripts/misn10.lua whitespace=-blank-at-eol
