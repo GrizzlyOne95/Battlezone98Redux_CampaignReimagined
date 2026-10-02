@@ -12,3 +12,7 @@ Scripts/misn10.lua whitespace=-blank-at-eol
 References/Misn13Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
 # Verbatim disabled C++ comments include whitespace-only lines.
 Scripts/misn13.lua whitespace=-blank-at-eol
+# Preserve the byte-pinned misn18 DLL archive and original cut-code whitespace.
+References/Misn18Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
+Scripts/misn18.lua whitespace=-blank-at-eol
+
