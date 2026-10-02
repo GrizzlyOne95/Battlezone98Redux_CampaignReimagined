@@ -197,7 +197,8 @@ function Update(dt)
         if arrived then
             CameraFinish()
             M.cameraComplete[0], M.cameraReady = true, false
-            M.sound8Time = GetTime() + 90.0
+            -- A deployment completed during the shot must not re-arm warnings.
+            if not M.scavengersCreated then M.sound8Time = GetTime() + 90.0 end
         end
     end
 
