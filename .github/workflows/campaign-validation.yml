@@ -156,6 +156,11 @@ jobs:
       - name: Test misn13 mission transitions
         run: lua5.1 Tools/Test-Misn13.lua
 
+      - name: Test misns7 source port
+        run: |
+          lua5.1 Tools/Test-Misns7.lua
+          python Tools/Test-Misns7SourceParity.py
+
       - name: Strictly validate changed Lua 5.1 files
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
         shell: bash
