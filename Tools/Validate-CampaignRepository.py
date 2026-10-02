@@ -50,7 +50,10 @@ def project_files():
 def strip_lua_comments(text: str) -> str:
     # Remove long comments first, then line comments. This is deliberately
     # conservative: it is only used to detect forbidden language constructs.
-    text = re.sub(r"--\[\[.*?\]\]", "", text, flags=re.DOTALL)
+    # Source-faithful ports retain C++ in --[=[...]=] / --[==[...]==].
+    # Match the same delimiter on both ends so disabled cut code is not checked
+    # as executable Lua (misn07's commented C++ contains the word "goto").
+    text = re.sub(r"--\[(=*)\[.*?\]\1\]", "", text, flags=re.DOTALL)
     return re.sub(r"--[^\r\n]*", "", text)
 
 
