@@ -188,3 +188,8 @@ jobs:
             fi
           done < <(git diff --name-only -z "$BASE_SHA" "$HEAD_SHA" -- 'Scripts/**/*.lua' 'Scripts/*.lua' 'Missions/**/*.lua' 'Missions/*.lua')
 
+
+      - name: Test misns1 DLL-source port
+        run: |
+          lua5.1 Tools/Test-Misns1.lua
+          python Tools/Test-Misns1SourceParity.py
