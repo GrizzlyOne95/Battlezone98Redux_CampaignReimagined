@@ -809,8 +809,15 @@ function Update()
     end
 
     -- Loss Condition
-    if M.bscav ~= nil and not M.mission_lost then
-        if not IsAlive(player) or not IsAlive(M.bscav) or (M.message3 and not IsAlive(M.scav2)) or not IsAlive(M.bhome) or not IsAlive(M.recycler) then
+    -- PORT FIX: Tran05's outer OR keeps base/recycler loss independent of the
+    -- first scavenger handle. The old Lua nesting accidentally ignored those
+    -- losses before AddObject found bscav. Restore the source grouping; the
+    -- convoy checks, failure audio and completion timing stay the same.
+    -- Keep the first terminal result: rescue/win must not replace failure's
+    -- shared audmsg in this frame, and a settled win must not become a loss.
+    if not M.mission_lost and not M.mission_won then
+        if (M.bscav ~= nil and (not IsAlive(player) or not IsAlive(M.bscav) or (M.message3 and not IsAlive(M.scav2))))
+            or not IsAlive(M.bhome) or not IsAlive(M.recycler) then
             ClearObjectives()
             AddObjective("misn02b4.otf", "red")
             M.audmsg = subtit.Play("misn0227.wav")
@@ -823,7 +830,7 @@ function Update()
     end
 
     -- Rescue Logic
-    if IsAlive(player) and M.message1 and M.message4 and IsAlive(M.bhome) and IsAlive(M.bscav) and GetDistance(M.bhome, M.bscav) < 300.0 and not M.message3 then
+    if not M.mission_lost and not M.mission_won and IsAlive(player) and M.message1 and M.message4 and IsAlive(M.bhome) and IsAlive(M.bscav) and GetDistance(M.bhome, M.bscav) < 300.0 and not M.message3 then
         Follow(M.bscav, M.bhome)
         M.wave_timer = GetTime() + 45.0
         M.scav2 = BuildObject("avscav", 1, "spawn3")
@@ -866,7 +873,7 @@ function Update()
     end
 
     -- Win Condition
-    if M.message3 and not M.mission_won and IsAlive(M.bhome) and IsAlive(M.scav2) and GetDistance(M.bhome, M.scav2) < 200.0 then
+    if M.message3 and not M.mission_lost and not M.mission_won and IsAlive(M.bhome) and IsAlive(M.scav2) and GetDistance(M.bhome, M.scav2) < 200.0 then
         ClearObjectives()
         SetObjectiveOff(M.scav2)
         if IsAlive(M.bscav) then SetObjectiveOff(M.bscav) end
@@ -882,3 +889,156 @@ function Update()
     end
 end
 
+-- Original DLL comments and cut-content ledger. These are historical C++
+-- fragments, kept inactive for reconstruction alongside the complete, verbatim
+-- References/EarlyMissionSources/Tran05Mission.cpp. QOL behavior above is retained.
+--[==[
+
+Tran05Mission.cpp:17
+/*
+	Tran05Mission
+*/
+
+Tran05Mission.cpp:21
+// used by (misn02b.bzn) as first american mission
+
+Tran05Mission.cpp:42
+// bools
+
+Tran05Mission.cpp:76
+// floats
+
+Tran05Mission.cpp:92
+// handles
+
+Tran05Mission.cpp:111
+// the base
+
+Tran05Mission.cpp:118
+// path pointers
+
+Tran05Mission.cpp:131
+// integers
+
+Tran05Mission.cpp:181
+// this is the handle thing brad made for me
+
+Tran05Mission.cpp:212
+// attack scrap field
+
+Tran05Mission.cpp:225
+// hard wired, hope this doesn't change
+
+Tran05Mission.cpp:227
+/*
+			misn0224
+			Commander, we've discovered a deposit of bio metal..
+			stay close to the scavenger.  
+		*/
+
+Tran05Mission.cpp:237
+//	bplayer=GetHandle("player-1_hover");
+
+Tran05Mission.cpp:252
+//(GetTime()>cam_time)))
+
+Tran05Mission.cpp:265
+// Final actor audio has both tracks in one place
+
+Tran05Mission.cpp:266
+//	StopAudioMessage(audmsg);
+
+Tran05Mission.cpp:267
+//		audmsg = AudioMessage("misn0232.wav");
+
+Tran05Mission.cpp:301
+//bscout=GetHandle("svfigh-1_wingman");
+
+Tran05Mission.cpp:307
+// this is in case the AddObject is called in 
+
+Tran05Mission.cpp:308
+// a different frame then the BuildObject() above
+
+Tran05Mission.cpp:311
+// was bgoal
+
+Tran05Mission.cpp:314
+//		if (bscout!=NULL) Attack(bscout,bscav,1);
+
+Tran05Mission.cpp:329
+// send the scav home
+
+Tran05Mission.cpp:330
+// bscav to bbase
+
+Tran05Mission.cpp:339
+/*
+			misn0225
+			Commander our insturments show that you are heavily
+			ounumbered..
+		*/
+
+Tran05Mission.cpp:349
+// was message2, so we know a scav was built
+
+Tran05Mission.cpp:359
+/*
+			You or the scav is dead
+			*/
+
+Tran05Mission.cpp:364
+/*
+			misn0227
+			Eagle's Nest 1 is being overrun.  
+			Our forces are surrendering..
+		*/
+
+Tran05Mission.cpp:381
+/*
+			Now rescue the second
+			scavenger
+		*/
+
+Tran05Mission.cpp:414
+/*
+			misn0226
+			Good work.  I know you wanted to engage..
+		*/
+
+Tran05Mission.cpp:418
+//	AudioMessage("misn0226.wav");
+
+Tran05Mission.cpp:457
+// bools
+
+Tran05Mission.cpp:462
+// floats
+
+Tran05Mission.cpp:467
+// Handles
+
+Tran05Mission.cpp:472
+// path pointers
+
+Tran05Mission.cpp:478
+// ints
+
+Tran05Mission.cpp:489
+// hack path to go around buildings
+
+Tran05Mission.cpp:517
+// bools
+
+Tran05Mission.cpp:522
+// floats
+
+Tran05Mission.cpp:527
+// Handles
+
+Tran05Mission.cpp:532
+// path pointers
+
+Tran05Mission.cpp:538
+// ints
+]==]

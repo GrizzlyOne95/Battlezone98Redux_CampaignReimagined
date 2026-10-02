@@ -4,6 +4,11 @@ import re
 root = Path(__file__).resolve().parents[1]
 bzn = (root / "Missions" / "misn03.bzn").read_text(encoding="utf-8")
 lua = (root / "Scripts" / "misn03.lua").read_text(encoding="utf-8")
+# The source audit retains inactive C++ with original Team-2 orders. Check
+# active Lua only, including equals-delimited long comments, so reconstruction
+# evidence cannot be mistaken for a live co-op team-contract regression.
+lua = re.sub(r"--\[(=*)\[.*?\]\1\]", "", lua, flags=re.DOTALL)
+lua = re.sub(r"--[^\r\n]*", "", lua)
 
 # Teams 1-4 are reserved for human players in the co-op contract. Mission 03
 # must not ship preplaced Team-2 enemies that can collide with Player 2.

@@ -142,6 +142,14 @@ jobs:
           "$LUA" Tools/Test-Misn09.lua
           python Tools/Test-Misn09SourceParity.py
 
+      - name: Test early mission source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-EarlyMissionFlow.lua
+          python Tools/Test-EarlyMissionSourceAudit.py
+
       - name: Strictly validate changed Lua 5.1 files
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
         shell: bash
