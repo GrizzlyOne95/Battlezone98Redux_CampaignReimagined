@@ -50,7 +50,10 @@ def project_files():
 def strip_lua_comments(text: str) -> str:
     # Remove long comments first, then line comments. This is deliberately
     # conservative: it is only used to detect forbidden language constructs.
-    text = re.sub(r"--\[\[.*?\]\]", "", text, flags=re.DOTALL)
+    # Source ports retain C++ in Lua long comments, including [=[ and [==[.
+    # Match the closing delimiter's equals count so inactive C++ is not
+    # diagnosed as Lua syntax (for example the misn07 source's "goto").
+    text = re.sub(r"--\[(=*)\[.*?\]\1\]", "", text, flags=re.DOTALL)
     return re.sub(r"--[^\r\n]*", "", text)
 
 
@@ -297,3 +300,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

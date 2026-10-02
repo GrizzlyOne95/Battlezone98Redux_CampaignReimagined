@@ -3124,7 +3124,12 @@ function Update()
         M.newobjective = true
     end
 
-    if M.relicsecure and M.basesecure then
+    -- PORT FIX: secure latches survive destruction and pending failure audio.
+    -- Do not start a win on the same frame as recycler/relic loss, or override
+    -- an already-triggered warning/theft failure. Healthy success follows the
+    -- same secure gates, audio completion and twenty-second cinematic.
+    if M.relicsecure and M.basesecure and not M.missionfail and not M.missionfail2
+        and IsAlive(M.avrec) and IsAlive(M.relic) then
         M.missionwon = true
     end
 
@@ -3288,3 +3293,344 @@ function Load(missionData, aiData, pilotModeData)
     M.featureTestNotes = {}
     M.loadGracePeriod = GetTime() + 2.0
 end
+
+-- Original DLL comments and cut-content ledger. These are historical C++
+-- fragments, kept inactive for reconstruction alongside the complete, verbatim
+-- References/EarlyMissionSources/Misn04Mission.cpp. QOL behavior above is retained.
+--[==[
+
+Misn04Mission.cpp:24
+// bools
+
+Misn04Mission.cpp:47
+// floats
+
+Misn04Mission.cpp:55
+// handles
+
+Misn04Mission.cpp:72
+// integers
+
+Misn04Mission.cpp:92
+/*
+	Here's where you
+	set the values
+	at the start.  
+	*/
+
+Misn04Mission.cpp:275
+/*
+Here is where you 
+put what happens 
+every frame.  
+	*/
+
+Misn04Mission.cpp:281
+// get this every frame in case the user changes vehicles
+
+Misn04Mission.cpp:287
+//
+
+Misn04Mission.cpp:292
+//
+
+Misn04Mission.cpp:294
+//change to 350.0f
+
+Misn04Mission.cpp:304
+//pu2 = GetHandle ("svfigh281_wingman");
+
+Misn04Mission.cpp:306
+//pu4 = GetHandle ("svfigh280_wingman");
+
+Misn04Mission.cpp:307
+//pu5 = GetHandle ("svfigh276_wingman");
+
+Misn04Mission.cpp:309
+//pu7 = GetHandle ("svfigh277_wingman");
+
+Misn04Mission.cpp:316
+//Patrol (pu2, "innerpatrol");
+
+Misn04Mission.cpp:318
+//Patrol (pu4, "innerpatrol");
+
+Misn04Mission.cpp:319
+//Patrol (pu5, "outerpatrol");
+
+Misn04Mission.cpp:321
+//Patrol (pu7, "scouting");
+
+Misn04Mission.cpp:438
+//cheat7 = BuildObject ("svfigh",2,relic);
+
+Misn04Mission.cpp:439
+//cheat8 = BuildObject ("svfigh",2,relic);
+
+Misn04Mission.cpp:440
+//cheat9 = BuildObject ("svfigh",2,relic);
+
+Misn04Mission.cpp:441
+//cheat10 = BuildObject ("svfigh",2,relic);
+
+Misn04Mission.cpp:448
+/*if 
+		
+		(discoverrelic == false)
+	{	
+		calipso = GetNearestVehicle (relic);
+		GetTeamNum (calipso);
+			if
+				(
+					(GetTeamNum (calipso) == 1) && 
+					(GetDistance (relic, calipso) <= 500.0f) &&
+					(calipso != player)
+				)
+					{
+						AudioMessage ("misn0407.wav");
+						discoverrelic = true;
+						newobjective = true;
+						reconsent = false;
+						SetObjectiveOn (relic);
+						SetObjectiveName (relic, "OBJECT");
+					}
+	}*/
+
+Misn04Mission.cpp:477
+//surv3 = BuildObject ("svfigh",2,relic);
+
+Misn04Mission.cpp:478
+//surv4 = BuildObject ("svfigh",2,relic);
+
+Misn04Mission.cpp:511
+//Goto(surv3, relic);
+
+Misn04Mission.cpp:512
+//Goto(surv4, relic);
+
+Misn04Mission.cpp:514
+//newobjective = true;
+
+Misn04Mission.cpp:768
+//change to 240.0f
+
+Misn04Mission.cpp:796
+/*if
+		(
+		(cintime1 < GetTime()) && (cin1done == false)
+		)
+
+	{
+		CameraFinish();
+		cin1done = true;
+	}*/
+
+Misn04Mission.cpp:876
+/*if
+			(
+			(discoverrelic == true) && (relicseen == false)
+			)
+		{
+			AddObjective ("misn0402.otf", WHITE);
+		}
+		if
+			(relicseen == true)
+		{
+			AddObjective ("misn0402.otf", GREEN);
+		}*/
+
+Misn04Mission.cpp:943
+//w2u3 = BuildObject ("svtank",2,"spawn2new");
+
+Misn04Mission.cpp:946
+//Goto(w2u3, avrec,1);
+
+Misn04Mission.cpp:949
+//SetIndependence (w2u3, 1);
+
+Misn04Mission.cpp:966
+//(!IsAlive (w2u3)) &&
+
+Misn04Mission.cpp:983
+//w3u4 = BuildObject ("svfigh",2,svrec);
+
+Misn04Mission.cpp:987
+//Goto(w3u4, avrec,1);
+
+Misn04Mission.cpp:991
+//SetIndependence (w3u4, 1);
+
+Misn04Mission.cpp:1011
+//(!IsAlive (w3u4)) &&
+
+Misn04Mission.cpp:1028
+//w4u4 = BuildObject ("svfigh",2,"spawnotherside");
+
+Misn04Mission.cpp:1029
+//w4u5 = BuildObject ("svtank",2,"spawnotherside");
+
+Misn04Mission.cpp:1033
+//Goto(w4u4, avrec,1);
+
+Misn04Mission.cpp:1034
+//Goto(w4u5, avrec,1);
+
+Misn04Mission.cpp:1038
+//SetIndependence (w4u4, 1);
+
+Misn04Mission.cpp:1039
+//SetIndependence (w4u5, 1);
+
+Misn04Mission.cpp:1060
+//(!IsAlive (w4u4)) &&
+
+Misn04Mission.cpp:1061
+//(!IsAlive (w4u5)) &&
+
+Misn04Mission.cpp:1080
+//w5u5 = BuildObject ("svtank",2,svrec);
+
+Misn04Mission.cpp:1081
+//w5u6 = BuildObject ("svfigh",2,svrec);
+
+Misn04Mission.cpp:1086
+//Goto(w5u5, avrec,1);
+
+Misn04Mission.cpp:1087
+//Goto(w5u6, avrec,1);
+
+Misn04Mission.cpp:1092
+//SetIndependence (w5u5, 1);
+
+Misn04Mission.cpp:1093
+//SetIndependence (w5u6, 1);
+
+Misn04Mission.cpp:1133
+//			|| (GetDistance (avrec, w2u3) < 300.0f)
+
+Misn04Mission.cpp:1153
+//			|| (GetDistance (avrec, w3u4)< 300.0f)
+
+Misn04Mission.cpp:1172
+//||
+
+Misn04Mission.cpp:1173
+//(GetDistance (avrec, w4u4)< 300.0f) 
+
+Misn04Mission.cpp:1174
+//			|| (GetDistance (avrec, w4u5)< 300.0f)
+
+Misn04Mission.cpp:1194
+//||
+
+Misn04Mission.cpp:1195
+//(GetDistance (avrec, w5u5)< 300.0f) ||
+
+Misn04Mission.cpp:1196
+//(GetDistance (avrec, w5u6)< 300.0f)
+
+Misn04Mission.cpp:1266
+//		(IsAlive (w2u3)) ||
+
+Misn04Mission.cpp:1270
+//		(IsAlive (w3u4)) ||
+
+Misn04Mission.cpp:1274
+//(IsAlive (w4u4)) ||
+
+Misn04Mission.cpp:1275
+//		(IsAlive (w4u5)) ||
+
+Misn04Mission.cpp:1279
+//||
+
+Misn04Mission.cpp:1280
+//(IsAlive (w5u5)) ||
+
+Misn04Mission.cpp:1281
+//(IsAlive (w5u6))
+
+Misn04Mission.cpp:1286
+//	possiblewin = false;
+
+Misn04Mission.cpp:1298
+//		(!IsAlive (w2u3)) &&
+
+Misn04Mission.cpp:1302
+//		(!IsAlive (w3u4)) &&
+
+Misn04Mission.cpp:1306
+//(!IsAlive (w4u4)) &&
+
+Misn04Mission.cpp:1307
+//		(!IsAlive (w4u5)) &&
+
+Misn04Mission.cpp:1311
+//&&
+
+Misn04Mission.cpp:1312
+//(!IsAlive (w5u5)) &&
+
+Misn04Mission.cpp:1313
+//(!IsAlive (w5u6))
+
+Misn04Mission.cpp:1338
+/*(doneaud20 == true) && 
+			(doneaud21 == true) &&
+			(doneaud22 == true) &&
+			(doneaud23 == true)*/
+
+Misn04Mission.cpp:1352
+/*if
+		(
+		(doneaud20 == false) && (IsAudioMessageDone(aud20))
+		)
+	{
+		doneaud20 = true;
+	}
+
+	if
+		(
+		(doneaud21 == false) && (IsAudioMessageDone(aud21))
+		)
+	{
+		doneaud21 = true;
+	}
+
+	if
+		(
+		(doneaud22 == false) && (IsAudioMessageDone(aud22))
+		)
+	{
+		doneaud22 = true;
+	}
+
+	if
+		(
+		(doneaud23 == false) && (IsAudioMessageDone(aud23))
+		)
+	{
+		doneaud23 = true;
+	}*/
+
+Misn04Mission.cpp:1405
+//&& (!IsAlive (w5u5))
+
+Misn04Mission.cpp:1406
+//&& (!IsAlive (w5u6))
+
+Misn04Mission.cpp:1557
+/*safety = GetNearestEnemy(player);
+		if
+			(GetDistance(safety, player) > 400.0f)
+		{*/
+
+Misn04Mission.cpp:1566
+//}
+
+Misn04Mission.cpp:1600
+//&& (!IsAlive (w5u5))
+
+Misn04Mission.cpp:1601
+//&& (!IsAlive (w5u6))
+]==]
