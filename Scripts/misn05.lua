@@ -241,7 +241,10 @@ local function RefreshMissionHandles()
     h = GetHandle("cam1")
     if h and IsValid(h) then
         M.cam1 = h
-        if SetLabel then SetLabel(M.cam1, "Volcano") end
+        -- PORT FIX: native SetName changes the displayed name, not the map
+        -- lookup label. SetLabel broke later GetHandle("cam1") rehydration and
+        -- did not set the objective caption. Keep the same camera and flow.
+        if SetObjectiveName then SetObjectiveName(M.cam1, "Volcano") end
     end
 end
 
@@ -564,7 +567,7 @@ function Update()
 
         M.randomwave = GetTime() + DiffUtils.ScaleTimer(5.0)
 
-        if M.cam1 and IsValid(M.cam1) and SetLabel then SetLabel(M.cam1, "Volcano") end
+        if M.cam1 and IsValid(M.cam1) and SetObjectiveName then SetObjectiveName(M.cam1, "Volcano") end
         M.newobjective = true
     end
 
@@ -701,8 +704,6 @@ function Update()
 
         M.check1 = true
         M.check2 = true
-        M.check3 = true
-        M.check4 = true
     end
 
     -- Check Logic (Turrets -> Patrol if dead/arrived)
@@ -746,6 +747,12 @@ function Update()
         SetIndependence(M.w2u2, 1)
         Goto(M.w2u3, "defendrim3")
         Goto(M.w2u4, "defendrim4")
+        -- PORT FIX: the DLL armed these wave-2 checks in wave 1. Shuffling can
+        -- make wave 1 run first and consume them on absent wave-2 handles, so
+        -- the tanks never transition from escort to patrol. Arm each check
+        -- when its own turret exists; wave times, units and patrol path stay.
+        M.check3 = true
+        M.check4 = true
     end
 
     if IsAlive(M.w2u3) and (not M.check3) and (GetCurrentCommand(M.w2u3) == 0) then
@@ -842,6 +849,12 @@ function Update()
     -- Spawn Final Attackers
     if (not IsAlive(M.aw1)) and (not IsAlive(M.aw2)) and (not IsAlive(M.aw3)) and (not IsAlive(M.aw4)) and (not IsAlive(M.aw5)) and
         (M.platoonhere < GetTime()) and M.go and IsAlive(M.svrec) then
+        -- PORT FIX: the port correctly waits until platoonhere (the DLL used
+        -- > instead of <), but must consume this one-shot latch too. Otherwise
+        -- killing the main razors respawns them forever and resets all four
+        -- reinforcement timers before victory can be checked. This preserves
+        -- the scheduled assault and its 15/55/110/160-second reinforcements.
+        M.go = false
         subtit.Play("misn0508.wav")
         subtit.Play("misn0509.wav")
 
@@ -863,11 +876,14 @@ function Update()
         Goto(M.aw1, dest)
         Goto(M.aw2, dest)
         Goto(M.aw3, dest)
+        M.razorAttackers = { M.aw1, M.aw2, M.aw3 }
+        M.razorAttackIssued = {}
 
         for i = 1, DiffUtils.ScaleEnemy(3) - 3 do
             local h = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
             Goto(h, dest)
             SetIndependence(h, 1)
+            table.insert(M.razorAttackers, h)
         end
 
         if M.difficulty >= 3 then
@@ -875,6 +891,8 @@ function Update()
             M.aw5 = SpawnScriptedEnemy("svhraz", M.svrec, false, true)
             Goto(M.aw4, dest)
             Goto(M.aw5, dest)
+            table.insert(M.razorAttackers, M.aw4)
+            table.insert(M.razorAttackers, M.aw5)
         end
 
         M.bombtime = GetTime() + DiffUtils.ScaleTimer(10.0)
@@ -888,20 +906,32 @@ function Update()
 
     -- Attack Command Switch (Razors switch to attack Factory)
     if (not M.attackcmd) and (M.bombtime < GetTime()) then
-        local function CheckAndAttack(u)
-            if IsAlive(u) then
-                if (GetDistance(u, "dest1") < 60.0) or (GetDistance(u, "dest2") < 60.0) then
+        -- PORT FIX: Lua's old `a() or b() ...` stopped after the first razor,
+        -- unlike the DLL's five independent checks. The DLL's shared latch
+        -- also stranded late arrivals. Track each order, including difficulty
+        -- extras, until every survivor reaches either existing QOL 60m trigger.
+        -- Keep the original three-second polling and all phase/spawn gates.
+        if not M.razorAttackers then
+            -- Old saves retain named handles but predate this registry.
+            M.razorAttackers = {}
+            for _, name in ipairs({ "aw1", "aw2", "aw3", "aw4", "aw5" }) do
+                if M[name] then table.insert(M.razorAttackers, M[name]) end
+            end
+        end
+        M.razorAttackIssued = M.razorAttackIssued or {}
+        local allOrdered = true
+        for i, u in ipairs(M.razorAttackers) do
+            if IsAlive(u) and not M.razorAttackIssued[i] then
+                if GetDistance(u, "dest1") < 60.0 or GetDistance(u, "dest2") < 60.0 then
                     Attack(u, M.lemnos)
                     SetIndependence(u, 1)
-                    return true
+                    M.razorAttackIssued[i] = true
+                else
+                    allOrdered = false
                 end
             end
-            return false
         end
-
-        if CheckAndAttack(M.aw1) or CheckAndAttack(M.aw2) or CheckAndAttack(M.aw3) or CheckAndAttack(M.aw4) or CheckAndAttack(M.aw5) then
-            M.attackcmd = true
-        end
+        M.attackcmd = allOrdered
         M.bombtime = GetTime() + 3.0
     end
 
@@ -1008,7 +1038,12 @@ function Update()
 
     -- Win Condition. The registry includes all difficulty-added attackers so
     -- mission completion cannot race ahead while an anonymous extra survives.
-    if M.sent1Done and M.sent2Done and M.sent3Done and M.sent4Done and M.aw1sent and M.aw2sent and M.aw3sent and M.aw4sent and (not M.missionwon) then
+    -- PORT FIX: the DLL checked recycler/factory losses before this win test.
+    -- The port moved losses below it, allowing an enemy-clear frame to win
+    -- despite a destroyed objective (or an already pending failure). Retain
+    -- failure precedence without changing the QOL fleet/commander sequence.
+    if M.sent1Done and M.sent2Done and M.sent3Done and M.sent4Done and M.aw1sent and M.aw2sent and M.aw3sent and M.aw4sent and (not M.missionwon)
+        and not M.missionfail and IsAlive(M.avrec) and IsAlive(M.lemnos) then
         if not AnyAlive(M.victoryEnemies) then
             M.missionwon = true
             M.newobjective = true
@@ -1105,7 +1140,260 @@ function Load(missionData, _)
     M.scriptedEnemies = M.scriptedEnemies or {}
     M.preAttackEnemies = M.preAttackEnemies or {}
     M.victoryEnemies = M.victoryEnemies or {}
+    -- Old saves can retain the pre-fix shared latch after only one razor was
+    -- ordered. Recheck their named survivors once; new saves retain per-unit
+    -- progress. A main handle or armed reinforcement timer proves the spawn
+    -- was used, even if dead handles have disappeared from an old save.
+    if not M.razorAttackers then M.attackcmd = false end
+    if M.attacktimeset and (M.aw1 ~= nil or (M.aw1t or 99999999999.0) < 99999999999.0) then M.go = false end
     M.loading_done = false
     M.loadGracePeriod = GetTime() + 2.0
     spawningScriptedEnemy = false
 end
+
+-- Original DLL comments and cut-content ledger. These are historical C++
+-- fragments, kept inactive for reconstruction alongside the complete, verbatim
+-- References/EarlyMissionSources/Misn05Mission.cpp. QOL behavior above is retained.
+--[==[
+
+Misn05Mission.cpp:7
+/*
+	Misn05Mission Event
+*/
+
+Misn05Mission.cpp:27
+// bools
+
+Misn05Mission.cpp:48
+// floats
+
+Misn05Mission.cpp:62
+// handles
+
+Misn05Mission.cpp:82
+// integers
+
+Misn05Mission.cpp:246
+/*
+	Here's where you
+	set the values
+	at the start.  
+	*/
+
+Misn05Mission.cpp:276
+/*
+		Here is where you 
+		put what happens 
+		every frame.  
+	*/
+
+Misn05Mission.cpp:377
+//rand3 = BuildObject("svfigh",2,svrec);
+
+Misn05Mission.cpp:380
+//Attack (rand3, avrec);
+
+Misn05Mission.cpp:383
+//SetIndependence(rand3, 1);
+
+Misn05Mission.cpp:394
+//&&
+
+Misn05Mission.cpp:395
+//(!IsAlive(rand3)) 
+
+Misn05Mission.cpp:1068
+//w3u1 = BuildObject ("svfigh",2,svrec);
+
+Misn05Mission.cpp:1069
+//w3u2 = BuildObject ("svfigh",2,svrec);
+
+Misn05Mission.cpp:1073
+//Patrol (w3u1, "attackpatrol1",1);
+
+Misn05Mission.cpp:1074
+//Patrol (w3u2, "attackpatrol1",1);
+
+Misn05Mission.cpp:1084
+//w4u1 = BuildObject ("svfigh",2,svrec);
+
+Misn05Mission.cpp:1085
+//w4u2 = BuildObject ("svfigh",2,svrec);
+
+Misn05Mission.cpp:1089
+//Patrol (w4u1, "attackpatrol1",1);
+
+Misn05Mission.cpp:1090
+//Patrol (w4u2, "attackpatrol1",1);
+
+Misn05Mission.cpp:1115
+//lemcinstart = GetTime() - 1.0f;
+
+Misn05Mission.cpp:1116
+//lemcinend = GetTime() + 3.0f;
+
+Misn05Mission.cpp:1119
+/*if
+		(
+		(lemcin1 == false) && (lemcinstart < GetTime())
+		)
+	{
+		CameraReady();
+		lemcin1 = true;
+	}
+
+	if
+		(
+		(lemcin2 == false) && (lemcinend > GetTime())
+		)
+	{
+		CameraObject(player, 0, 5000, - 5000, lemnos);
+	}
+
+	if
+		(
+		(lemcin2 == false) && (lemcinend < GetTime())
+		)
+	{
+		CameraFinish();
+		lemcin2 = true;
+	}*/
+
+Misn05Mission.cpp:1160
+//AudioMessage ("misn0515.wav");
+
+Misn05Mission.cpp:1191
+// make sure dead things stay 
+
+Misn05Mission.cpp:1247
+//600.0f
+
+Misn05Mission.cpp:1273
+//aw4 = BuildObject ("svhraz", 2, svrec);
+
+Misn05Mission.cpp:1274
+//aw5 = BuildObject ("svhraz", 2, svrec);
+
+Misn05Mission.cpp:1278
+//Goto (aw4, "destroy1");
+
+Misn05Mission.cpp:1279
+//Goto (aw5, "destroy1");
+
+Misn05Mission.cpp:1285
+//aw4 = BuildObject ("svhraz", 2, svrec);
+
+Misn05Mission.cpp:1286
+//aw5 = BuildObject ("svhraz", 2, svrec);
+
+Misn05Mission.cpp:1290
+//Goto (aw4, "destroy2");
+
+Misn05Mission.cpp:1291
+//Goto (aw5, "destroy2");
+
+Misn05Mission.cpp:1297
+//aw4 = BuildObject ("svhraz", 2, svrec);
+
+Misn05Mission.cpp:1298
+//aw5 = BuildObject ("svhraz", 2, svrec);
+
+Misn05Mission.cpp:1302
+//Goto (aw4, "destroy3");
+
+Misn05Mission.cpp:1303
+//Goto (aw5, "destroy3");
+
+Misn05Mission.cpp:1309
+//aw4 = BuildObject ("svhraz", 2, svrec);
+
+Misn05Mission.cpp:1310
+//aw5 = BuildObject ("svhraz", 2, svrec);
+
+Misn05Mission.cpp:1314
+//Goto (aw4, "destroy4");
+
+Misn05Mission.cpp:1315
+//Goto (aw5, "destroy4");
+
+Misn05Mission.cpp:1384
+/*if
+			(
+			(platoonhere < GetTime()) && 
+			(!IsAlive(aw1)) &&
+			(!IsAlive(aw2)) &&
+			(!IsAlive(aw3)) &&
+			(!IsAlive(aw4)) &&
+			(!IsAlive(aw5)) &&
+			(missionwon == false)
+			)
+		{
+			missionwon = true;
+			AudioMessage ("misn0511.wav");
+			AudioMessage ("misn0512.wav");
+			SucceedMission (GetTime() + 15.0f);
+		}*/
+
+Misn05Mission.cpp:1447
+//aw1a = BuildObject ("svfigh", 2, svrec);
+
+Misn05Mission.cpp:1449
+//Goto (aw1a, lemnos);
+
+Misn05Mission.cpp:1462
+//aw3a = BuildObject ("svtank", 2, svrec);
+
+Misn05Mission.cpp:1464
+//Goto (aw3a, lemnos);
+
+Misn05Mission.cpp:1479
+//aw7a = BuildObject ("svfigh", 2, svrec);
+
+Misn05Mission.cpp:1484
+//Goto (aw7a, lemnos);
+
+Misn05Mission.cpp:1618
+//
+
+Misn05Mission.cpp:1649
+//
+
+Misn05Mission.cpp:1754
+// init bools
+
+Misn05Mission.cpp:1760
+// init floats
+
+Misn05Mission.cpp:1766
+// init handles
+
+Misn05Mission.cpp:1772
+// init ints
+
+Misn05Mission.cpp:1784
+// bools
+
+Misn05Mission.cpp:1789
+// floats
+
+Misn05Mission.cpp:1794
+// Handles
+
+Misn05Mission.cpp:1799
+// ints
+
+Misn05Mission.cpp:1831
+// bools
+
+Misn05Mission.cpp:1836
+// floats
+
+Misn05Mission.cpp:1841
+// Handles
+
+Misn05Mission.cpp:1846
+// ints
+
+Misn05Mission.cpp:1862
+// this is broken right now
+]==]

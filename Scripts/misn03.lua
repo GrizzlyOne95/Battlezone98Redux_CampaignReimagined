@@ -1107,7 +1107,10 @@ function Update()
     if not M.scavhunt2 and M.fourth_wave_done and IsAlive(M.wave5_1) then
         if IsAlive(M.scav1) then
             Attack(M.wave5_1, M.scav1, 1)
-        elseif not IsAlive(M.scav2) then
+        -- PORT FIX: the DLL's fallback had !IsAlive(scav2), ordering an attack
+        -- on a dead target and ignoring the surviving second scavenger. Use
+        -- the living fallback; the wave, hunt latch and phase timing are unchanged.
+        elseif IsAlive(M.scav2) then
             Attack(M.wave5_1, M.scav2, 1)
         end
         M.scavhunt2 = true
@@ -1129,6 +1132,54 @@ function Update()
         subtit.Play("misn0314.wav")
         M.help_spawn = true
     end
+
+    -- ORIGINAL DLL BEHAVIOR (inactive QOL alternative): the native escorts
+    -- Goto solar2, stop within 75m, and re-task near the player. This port gives
+    -- them Follow(rescue1/rescue2) orders above and spawns the transports early.
+    -- Retain those current escort orders; reactivating the native hooks would
+    -- interrupt them. Keep the entire replaced block for reconstruction.
+    --[==[
+if ((!help_spawn) && (support_time < Get_Time()))
+	{
+		help1 = BuildObject("avfigh",1,"spawn_scrap2");
+		help2 = BuildObject("avtank",1,"spawn_scrap2");
+		AudioMessage("misn0314.wav");
+		Goto(help1, solar2, 0);
+		Goto(help2, solar2, 0);
+		help_spawn = true;
+	}
+
+		if ((help_spawn) && (IsAlive(help1)) && (IsAlive(solar2)) && (!help_stop1))
+		{
+			if (GetDistance(help1, solar2) < 75.0f)
+			{
+				Stop(help1, 0);
+				help_stop1 = true;
+			}
+		}
+
+		if ((help_spawn) && (IsAlive(help2)) && (IsAlive(solar2)) && (!help_stop2))
+		{
+			if (GetDistance(help2, solar2) < 75.0f)
+			{
+				Stop(help2, 0);
+				help_stop2 = true;
+			}
+		}
+
+	if ((help_spawn) && (!help_arrive) && (GetDistance(help1,user) < 50.0f))
+	{
+//		AudioMessage("misn0313.wav");
+		Goto(help1, solar2, 0);
+		help_arrive = true;
+	}
+	if ((help_spawn) && (!help_arrive) && (GetDistance(help2,user) < 50.0f))
+	{
+//		AudioMessage("misn0313.wav");
+		Goto(help2, solar2, 0);
+		help_arrive = true;
+	}
+    ]==]
 
     if not M.second_objective and M.apc_spawn_time < GetTime() then
         M.apc_spawn_time = GetTime() + 1.0
@@ -1528,17 +1579,21 @@ function Update()
                 if IsAlive(M.solar2) then Damage(M.solar2, 20000) end
                 if IsAlive(M.solar3) then Damage(M.solar3, 20000) end
                 if IsAlive(M.solar4) then Damage(M.solar4, 20000) end
-                M.kill_tower = GetTime() + 7.0
-                M.show_tank_attack = true
             end
+            -- PORT FIX: solar1 may already be destroyed after evacuation
+            -- begins, when its defense failure gate is inactive. Advance the
+            -- visual sequence even then, retaining the authored seven-second
+            -- destruction delay rather than leaving the outro waiting forever.
+            M.kill_tower = GetTime() + 7.0
+            M.show_tank_attack = true
         end
     end
 
     if M.show_tank_attack and not M.tower_dead and M.kill_tower < GetTime() then
         if IsAlive(M.solar1) then
             Damage(M.solar1, 25000)
-            M.tower_dead = true
         end
+        M.tower_dead = true
     end
 
     if M.tower_dead and not M.climax1 then
@@ -1558,7 +1613,10 @@ function Update()
     end
 
     if M.climax1 and not M.climax2 then
-        if GetDistance(M.prop1, M.cam_geyser) < 100.0 then
+        -- PORT FIX: the existing dead-prop fallback must also cover later
+        -- distance gates. A dead prop cannot reach these marks; continue the
+        -- same debris shots and delays without changing the evacuation gate.
+        if not IsAlive(M.prop1) or GetDistance(M.prop1, M.cam_geyser) < 100.0 then
             Retreat(M.prop1, "climax_path2", 1)
             local s_pos = GetPosition("solar_spot")
             M.prop9 = BuildObject("svfigh", ENEMY_TEAM, GetPositionNear(s_pos, 0, 20))
@@ -1584,8 +1642,8 @@ function Update()
         M.last_blown = true
     end
 
-    if M.last_blown and not M.end_shot and GetDistance(M.prop1, M.sucker) < 65.0 then
-        Attack(M.prop1, M.sucker, 1)
+    if M.last_blown and not M.end_shot and (not IsAlive(M.prop1) or GetDistance(M.prop1, M.sucker) < 65.0) then
+        if IsAlive(M.prop1) then Attack(M.prop1, M.sucker, 1) end
         M.camera_off_time = GetTime() + 6.0 -- MODIFIED: Increased from 1.5s to 6.0s
         M.end_shot = true
     end
@@ -1620,7 +1678,11 @@ function Update()
         end
     end
 
-    if not M.dead2 and not M.tanks_go and not IsAlive(M.solar2) and not M.second_objective then
+    -- PORT FIX: the QOL defense rule above accepts any required number of
+    -- living arrays. This stock solar2-only branch contradicted that rule and
+    -- failed the mission even with sufficient survivors. Keep the original
+    -- loss message/debrief when the required count is actually unavailable.
+    if not M.dead2 and not M.tanks_go and not IsAlive(M.solar2) and solarCount < required and not M.second_objective then
         subtit.Play("misn0303.wav")
         ClearObjectives()
         AddObjective("misn0311.otf", "red")
@@ -1673,3 +1735,278 @@ function Update()
     end
 
 end
+
+-- Original DLL comments and cut-content ledger. These are historical C++
+-- fragments, kept inactive for reconstruction alongside the complete, verbatim
+-- References/EarlyMissionSources/Misn03Mission.cpp. QOL behavior above is retained.
+--[==[
+
+Misn03Mission.cpp:5
+/*
+	Misn03Mission
+*/
+
+Misn03Mission.cpp:27
+// bools
+
+Misn03Mission.cpp:60
+// since there are many ways you can loose we will make loosing a boolean
+
+Misn03Mission.cpp:70
+// floats
+
+Misn03Mission.cpp:103
+// handles
+
+Misn03Mission.cpp:132
+// integers
+
+Misn03Mission.cpp:149
+/*
+Here's where you set the values at the start.  
+*/
+
+Misn03Mission.cpp:237
+//	wave1_3 = GetHandle ("svfigh3");	
+
+Misn03Mission.cpp:250
+//	build2 = GetHandle ("build2");
+
+Misn03Mission.cpp:424
+//assigns the player a handle every frame
+
+Misn03Mission.cpp:476
+//		Attack(wave1_3, solar1);
+
+Misn03Mission.cpp:481
+// this sends the first wave retreating after one of them is destroyed
+
+Misn03Mission.cpp:487
+//			Retreat(wave1_3, "retreat_path2", 1);
+
+Misn03Mission.cpp:496
+//				Retreat(wave1_3, "retreat_path2", 1);
+
+Misn03Mission.cpp:500
+//			else
+
+Misn03Mission.cpp:501
+//			{
+
+Misn03Mission.cpp:502
+//				if (!IsAlive(wave1_3))
+
+Misn03Mission.cpp:503
+//				{
+
+Misn03Mission.cpp:504
+//					Retreat(wave1_1,"retreat_path", 1);
+
+Misn03Mission.cpp:505
+//					Retreat(wave1_2, "retreat_path2", 1);
+
+Misn03Mission.cpp:506
+//					new_message_time = Get_Time() + 10.0f;
+
+Misn03Mission.cpp:507
+//					start_retreat = true;
+
+Misn03Mission.cpp:508
+//				}
+
+Misn03Mission.cpp:509
+//			}
+
+Misn03Mission.cpp:540
+//		wave2_3 = BuildObject("svfigh",2,"spawn_scrap1");	
+
+Misn03Mission.cpp:544
+//		Goto(wave2_3, solar1);
+
+Misn03Mission.cpp:553
+//		wave3_3 = BuildObject("svfigh",2,"spawn_scrap1");
+
+Misn03Mission.cpp:557
+//		Goto(wave3_3, solar1, 1);
+
+Misn03Mission.cpp:574
+//		if (IsAlive(wave1_3))
+
+Misn03Mission.cpp:575
+//		{
+
+Misn03Mission.cpp:576
+//			Attack(wave1_3, scav1, 1);
+
+Misn03Mission.cpp:577
+//		}
+
+Misn03Mission.cpp:586
+//		wave4_3 = BuildObject("svtank",2,"spawn_scrap1");
+
+Misn03Mission.cpp:610
+//		Goto(wave4_3, solar2, 1);
+
+Misn03Mission.cpp:661
+//		AudioMessage("misn0313.wav");
+
+Misn03Mission.cpp:667
+//		AudioMessage("misn0313.wav");
+
+Misn03Mission.cpp:672
+//  Time to evacuate the base
+
+Misn03Mission.cpp:675
+// soviet movie
+
+Misn03Mission.cpp:700
+//		prop6 = BuildObject("svtank", 2, "fighter2_spawn");
+
+Misn03Mission.cpp:701
+//		prop7 = BuildObject("svtank", 2, "fighter3_spawn");
+
+Misn03Mission.cpp:708
+//		Defend(prop6, 1);
+
+Misn03Mission.cpp:709
+//		Defend(prop7, 1);
+
+Misn03Mission.cpp:734
+//			Goto(prop6, "cool_path2", 1);
+
+Misn03Mission.cpp:735
+//			Goto(prop7, "cool_path2", 1);
+
+Misn03Mission.cpp:742
+//			Defend(prop6);
+
+Misn03Mission.cpp:743
+//			Defend(prop7);
+
+Misn03Mission.cpp:784
+//		RemoveObject(prop6);
+
+Misn03Mission.cpp:785
+//		RemoveObject(prop7);
+
+Misn03Mission.cpp:843
+//		if (IsAlive (wave1_3))
+
+Misn03Mission.cpp:844
+//		{
+
+Misn03Mission.cpp:845
+//			Attack(wave1_3, rescue2, 1);
+
+Misn03Mission.cpp:846
+//		}
+
+Misn03Mission.cpp:873
+// I removed this for andrew:(GetDistance(rescue3,launch) < 100.0f)
+
+Misn03Mission.cpp:926
+// win/loose conditions	taken out for movie testing
+
+Misn03Mission.cpp:1088
+/*
+		  Camera canceled
+		  could be called and this would
+		  still play
+		*/
+
+Misn03Mission.cpp:1180
+//		if (IsAlive(build2))
+
+Misn03Mission.cpp:1181
+//		{
+
+Misn03Mission.cpp:1182
+//			Damage(build2, 20000);
+
+Misn03Mission.cpp:1183
+//		}
+
+Misn03Mission.cpp:1188
+//		if (IsAlive(build2))
+
+Misn03Mission.cpp:1189
+//		{
+
+Misn03Mission.cpp:1190
+//			RemoveObject(build2);
+
+Misn03Mission.cpp:1191
+//		}
+
+Misn03Mission.cpp:1241
+//		clear_debis_time = Get_Time() + 6.0f;
+
+Misn03Mission.cpp:1262
+// win/loose conditions
+
+Misn03Mission.cpp:1266
+// you didn't reach the launch pad in time
+
+Misn03Mission.cpp:1270
+//new
+
+Misn03Mission.cpp:1280
+// com tower dead - you didn't build enough turrets
+
+Misn03Mission.cpp:1284
+// com tower dead
+
+Misn03Mission.cpp:1288
+//new
+
+Misn03Mission.cpp:1298
+/// solar arrays dead - you didn't build enough turrets
+
+Misn03Mission.cpp:1302
+/// solar arrays dead
+
+Misn03Mission.cpp:1315
+// transport dead
+
+Misn03Mission.cpp:1326
+// transport dead
+
+Misn03Mission.cpp:1331
+// lost your launch pad no des
+
+Misn03Mission.cpp:1349
+// init bools
+
+Misn03Mission.cpp:1355
+// init floats
+
+Misn03Mission.cpp:1361
+// init handles
+
+Misn03Mission.cpp:1367
+// init ints
+
+Misn03Mission.cpp:1379
+// bools
+
+Misn03Mission.cpp:1384
+// floats
+
+Misn03Mission.cpp:1389
+// Handles
+
+Misn03Mission.cpp:1394
+// ints
+
+Misn03Mission.cpp:1423
+// bools
+
+Misn03Mission.cpp:1428
+// floats
+
+Misn03Mission.cpp:1433
+// Handles
+
+Misn03Mission.cpp:1438
+// ints
+]==]
