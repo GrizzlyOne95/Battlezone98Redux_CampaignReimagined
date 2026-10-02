@@ -50,7 +50,9 @@ def project_files():
 def strip_lua_comments(text: str) -> str:
     # Remove long comments first, then line comments. This is deliberately
     # conservative: it is only used to detect forbidden language constructs.
-    text = re.sub(r"--\[\[.*?\]\]", "", text, flags=re.DOTALL)
+    # Source-faithful ports retain native code in --[=[...]=] comments. Honor
+    # every Lua long-comment delimiter so inactive C++ is not checked as Lua.
+    text = re.sub(r"--\[(=*)\[.*?\]\1\]", "", text, flags=re.DOTALL)
     return re.sub(r"--[^\r\n]*", "", text)
 
 
