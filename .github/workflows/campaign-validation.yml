@@ -41,6 +41,11 @@ jobs:
       - name: Validate repository invariants
         run: python Tools/Validate-CampaignRepository.py
 
+      - name: Test misn12 source port and Lua comment scanning
+        run: |
+          lua5.1 Tools/Test-Misn12.lua
+          python Tools/Test-LuaCommentScan.py
+
       - name: Check generated GoombaBZ transcripts
         run: python Tools/Import-GoombaTranscripts.py --check
 
