@@ -143,6 +143,12 @@ tick(126.1); finish("bd01009.wav"); tick(127)
 check(last("FailMission")[2] == 128 and last("FailMission")[3] == "bd01lseb.des", "no deployment failure")
 tick(128); check(count("FailMission") == 1, "failure issued once")
 
+-- Deployment during the opening shot cannot be undone by camera completion.
+m = reset(); objects[m.recycler].deployed = true; tick(1)
+cameraArrived = true; tick(2); objects[m.recycler].deployed = false; tick(93)
+check(m.sound8Time == 999999.9 and count("AudioMessage", "bd01008.wav") == 0,
+    "camera completion does not re-arm completed deployment reminders")
+
 -- Deployment during the final reminder succeeds even on audio completion frame.
 m = reset(); cameraArrived = true; tick(1); tick(91.1)
 finish("bd01008.wav"); tick(92); tick(122.1); finish("bd01009.wav")
