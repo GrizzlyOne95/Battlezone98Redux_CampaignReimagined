@@ -121,6 +121,14 @@ jobs:
       - name: Test setup mission shell
         run: python Tools/Test-SetupMissionShell.py
 
+      - name: Test misn09 source port
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn09.lua
+          python Tools/Test-Misn09SourceParity.py
+
       - name: Strictly validate changed Lua 5.1 files
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
         shell: bash
@@ -152,3 +160,4 @@ jobs:
               "$LUAC" -p "$file"
             fi
           done < <(git diff --name-only -z "$BASE_SHA" "$HEAD_SHA" -- 'Scripts/**/*.lua' 'Scripts/*.lua' 'Missions/**/*.lua' 'Missions/*.lua')
+
