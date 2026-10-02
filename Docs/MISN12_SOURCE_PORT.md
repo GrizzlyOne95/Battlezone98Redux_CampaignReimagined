@@ -73,6 +73,7 @@ Run from the repository root:
 
 ```sh
 lua5.1 Tools/Test-Misn12.lua
+python Tools/Test-LuaCommentScan.py
 ```
 
 105 scenario checks pass under an actual Lua 5.1 runtime. They cover strict
@@ -85,6 +86,13 @@ loaded script. Objective-panel checks enforce the stock ten-entry limit.
 A source audit confirms all 175 original comments are preserved: gameplay
 comments inline, and header/serialization comments in the full source copy.
 Both archived files match their original Git blob hashes.
+
+CI runs the mission scenarios and six comment-scanner regression tests. The
+repository validator now recognizes Lua 5.1 long comments with matching `=`
+delimiters, so preserved C++ is excluded from executable-Lua checks. This also
+corrects the pre-existing false `goto` report inside misn07's disabled source;
+the mission itself is unchanged. Real `goto`/label syntax after a comment still
+remains visible to validation.
 
 ## In-game work remaining
 
