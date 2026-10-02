@@ -12,3 +12,5 @@ Scripts/misn10.lua whitespace=-blank-at-eol
 References/Misn13Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
 # Verbatim disabled C++ comments include whitespace-only lines.
 Scripts/misn13.lua whitespace=-blank-at-eol
+# BlackDog07's full original source is pinned to its upstream Git blob.
+References/BlackDog07Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
