@@ -41,6 +41,11 @@ jobs:
       - name: Validate repository invariants
         run: python Tools/Validate-CampaignRepository.py
 
+      - name: Test BlackDog09 source port
+        run: |
+          lua5.1 Tools/Test-BlackDog09.lua
+          python Tools/Test-BlackDog09SourceParity.py
+
       - name: Test misn12 source port and Lua comment scanning
         run: |
           lua5.1 Tools/Test-Misn12.lua
@@ -187,4 +192,3 @@ jobs:
               "$LUAC" -p "$file"
             fi
           done < <(git diff --name-only -z "$BASE_SHA" "$HEAD_SHA" -- 'Scripts/**/*.lua' 'Scripts/*.lua' 'Missions/**/*.lua' 'Missions/*.lua')
-
