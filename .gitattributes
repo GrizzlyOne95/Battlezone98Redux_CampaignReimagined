@@ -15,4 +15,6 @@ Scripts/misn13.lua whitespace=-blank-at-eol
 # Preserve the byte-pinned misn18 DLL archive and original cut-code whitespace.
 References/Misn18Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
 Scripts/misn18.lua whitespace=-blank-at-eol
-
+# Verbatim misn17 DLL source preserves its pinned bytes and cut-code spacing.
+References/Misn17Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+Scripts/misn17.lua whitespace=-blank-at-eol,-space-before-tab
