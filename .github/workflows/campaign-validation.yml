@@ -156,6 +156,10 @@ jobs:
       - name: Test misn13 mission transitions
         run: lua5.1 Tools/Test-Misn13.lua
 
+      - name: Test misns7 source port
+        run: |
+          lua5.1 Tools/Test-Misns7.lua
+          python Tools/Test-Misns7SourceParity.py
       - name: Test misns5 DLL source port
         run: |
           lua5.1 Tools/Test-Misns5.lua
