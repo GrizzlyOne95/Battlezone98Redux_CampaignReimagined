@@ -156,6 +156,11 @@ jobs:
       - name: Test misn13 mission transitions
         run: lua5.1 Tools/Test-Misn13.lua
 
+      - name: Test BlackDog08 source port
+        run: |
+          lua5.1 Tools/Test-BlackDog08.lua
+          python Tools/Test-BlackDog08SourceParity.py
+
       - name: Strictly validate changed Lua 5.1 files
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
         shell: bash
@@ -187,4 +192,5 @@ jobs:
               "$LUAC" -p "$file"
             fi
           done < <(git diff --name-only -z "$BASE_SHA" "$HEAD_SHA" -- 'Scripts/**/*.lua' 'Scripts/*.lua' 'Missions/**/*.lua' 'Missions/*.lua')
+
 
