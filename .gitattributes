@@ -12,7 +12,18 @@ Scripts/misn10.lua whitespace=-blank-at-eol
 References/Misn13Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
 # Verbatim disabled C++ comments include whitespace-only lines.
 Scripts/misn13.lua whitespace=-blank-at-eol
-
 # Exact misns8 DLL archive and verbatim disabled code.
 References/Misns8Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 Scripts/misns8.lua whitespace=-blank-at-eol,-space-before-tab
+# Pin the misns7 DLL snapshot and preserve verbatim disabled-code whitespace.
+References/Misns7Source/* -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol,-space-before-tab
+Scripts/misns7.lua whitespace=-blank-at-eol,-space-before-tab
+# misns1's exact DLL snapshots and disabled source comments preserve whitespace.
+References/Misns1Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
+Scripts/misns1.lua whitespace=-blank-at-eol
+# Preserve the byte-pinned misn18 DLL archive and original cut-code whitespace.
+References/Misn18Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
+Scripts/misn18.lua whitespace=-blank-at-eol
+# Verbatim misn17 DLL source preserves its pinned bytes and cut-code spacing.
+References/Misn17Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+Scripts/misn17.lua whitespace=-blank-at-eol,-space-before-tab
