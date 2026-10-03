@@ -51,7 +51,7 @@ end
 function Goto(me, where, priority)
     requireHandle(me)
     if type(where) == "number" then requireHandle(where) end
-    event("goto", me, where, priority)
+    event("go_to", me, where, priority)
 end
 function Defend(h, priority) requireHandle(h); event("defend", h, priority) end
 function SetObjectiveName(h, name) requireHandle(h); event("name", h, name) end
@@ -189,7 +189,7 @@ for _, odf in ipairs({"svtank", "svturr", "svfigh", "svwalk", "svscav", "svhaul"
         local h = object(odf, 1)
         W.random = {choice}
         AddObject(h)
-        local kind = (odf == "svscav" or odf == "svhaul") and "goto" or "attack"
+        local kind = (odf == "svscav" or odf == "svhaul") and "go_to" or "attack"
         eq(#events(kind), 1, odf .. " callback order")
         eq(events(kind)[1][3], choice == 0 and m.base1 or m.base2, odf .. " chosen base")
         eq(events(kind)[1][4], 0, odf .. " player-commandable priority")
@@ -317,14 +317,14 @@ eq(events("build")[1][4], m.base2, "valid hangar uses source handle overload")
 eq(m.alien_wave, 210.1, "schedule uses old 150-second gap")
 eq(m.wave_gap, 145, "decrement only after scheduling")
 step(90)
-eq(#events("goto"), 0, "SAT strict boundary")
+eq(#events("go_to"), 0, "SAT strict boundary")
 step(90.1)
 eq(events("build")[2][2], "hvsat", "first SAT ODF")
 eq(events("build")[2][4], "sat1", "first SAT location")
 eq(events("build")[3][4], "sat2", "second SAT location")
-eq(events("goto")[1][3], "strike1", "first SAT route")
-eq(events("goto")[2][3], "strike2", "second SAT route")
-eq(events("goto")[1][4], nil, "SAT source default priority")
+eq(events("go_to")[1][3], "strike1", "first SAT route")
+eq(events("go_to")[2][3], "strike2", "second SAT route")
+eq(events("go_to")[1][4], nil, "SAT source default priority")
 eq(m.alien_wave1, 300.1, "SAT deadline coupled to next SAV")
 for i = 1, 20 do step(m.alien_wave + 0.1) end
 eq(m.wave_gap, 60, "SAV gap floors at 60")
@@ -439,7 +439,7 @@ m = quiet(); m.alien_wave1 = 1
 local build = BuildObject
 BuildObject = function() return nil end
 step(2)
-eq(#events("goto"), 0, "failed SAT builds do not issue null orders")
+eq(#events("go_to"), 0, "failed SAT builds do not issue null orders")
 BuildObject = build
 
 print("misn16: " .. checks .. " Lua 5.1 host checks passed")
