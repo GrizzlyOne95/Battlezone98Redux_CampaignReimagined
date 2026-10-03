@@ -156,6 +156,10 @@ jobs:
       - name: Test misn13 mission transitions
         run: lua5.1 Tools/Test-Misn13.lua
 
+      - name: Test BlackDog01 DLL source port
+        run: |
+          lua5.1 Tools/Test-BlackDog01.lua
+          python Tools/Test-BlackDog01SourceParity.py
       - name: Test misns8 DLL source port
         run: |
           python Tools/Test-Misns8SourceParity.py
