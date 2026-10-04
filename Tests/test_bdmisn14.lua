@@ -36,7 +36,7 @@ function BuildObject(odf, team, path)
     return h
 end
 function SetCloaked(h) ValidObject(h).cloaked = true; Record('cloak', h) end
-function Goto(h, path) ValidObject(h).route = path; Record('goto', h, path) end
+function Goto(h, path) ValidObject(h).route = path; Record('route', h, path) end
 function Defend2(h, target) ValidObject(h).defend = target; Record('defend', h, target) end
 function Follow(h, target) ValidObject(h).follow = target; Record('follow', h, target) end
 function SetObjectiveOn(h) ValidObject(h).marked = true; Record('mark', h) end
