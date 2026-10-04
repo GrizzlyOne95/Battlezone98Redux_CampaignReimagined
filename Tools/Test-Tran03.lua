@@ -19,7 +19,8 @@ function GetTeamNum(h) Existing(h); return objects[h].team end
 function IsOdf(h, odf) Existing(h); return objects[h].odf == odf end
 function IsSelected(h) Existing(h); return selected end
 function IsDeployed(h) Existing(h); return deployed end
-function GetDistance(a, b) Existing(a); Existing(b); return distance end
+function GetPosition(h) Existing(h); return h end
+function Distance3DSquared(a, b) Existing(a); Existing(b); return distance * distance end
 function GetHandle(label)
     return ({eggeizr111_geyser = "geyser", ["avrecy-1_recycler"] = "recycler",
         ["svfigh-1_wingman"] = "attacker"})[label]
