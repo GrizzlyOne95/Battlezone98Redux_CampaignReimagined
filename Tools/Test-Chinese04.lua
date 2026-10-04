@@ -38,7 +38,7 @@ function BuildObject(odf, team, path)
 end
 function Attack(h, target) assert(IsValid(h) and IsValid(target)); event("attack", h, target) end
 function Retreat(h, target) assert(IsValid(h) and IsValid(target)); event("retreat", h, target) end
-function Goto(h, path) assert(IsValid(h)); event("goto", h, path) end
+function Goto(h, path) assert(IsValid(h)); event("move_order", h, path) end
 function RemoveObject(h) assert(IsValid(h)); objects[h] = nil; event("remove", h) end
 function SetUserTarget(h) assert(IsValid(h)); event("target", h) end
 function SetPerceivedTeam(h, team) assert(IsValid(h)); event("perceived", team, h) end
@@ -113,7 +113,7 @@ local function route()
     cameraCancel = true; tick(); cameraCancel = false
     assert(count("build", "sspilo") == 16 and count("retreat") == (IsValid(labels.empty_1) and 16 or 15))
     distances[labels.target_silo] = 200; tick()
-    assert(count("goto") == 2)
+    assert(count("move_order") == 2)
     info.target_silo_odf = true; tick()
 end
 for _, cloaked in ipairs({true, false}) do
