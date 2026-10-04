@@ -82,7 +82,7 @@ function Update(dt)
     end
 
     if M.second_message and not M.third_message and Alive(M.recycler) and Valid(M.geyser)
-        and GetDistance(M.recycler, M.geyser) < 200.0 then
+        and Distance3DSquared(GetPosition(M.geyser), GetPosition(M.recycler)) < 200.0 * 200.0 then
         -- ClearObjectives();
         -- AddObjective("tran0301.otf",GREEN);
         AudioMessage("tran0305.wav")
