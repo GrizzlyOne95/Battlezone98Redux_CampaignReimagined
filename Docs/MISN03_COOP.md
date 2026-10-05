@@ -7,8 +7,15 @@ they register human teams 1–4 before native multiplayer initialization.
 
 ## Session setup
 
-- Use the bundled CR/EXU version on every machine and load `misn03` as a strategy
-  map. This change does not add a separate map or change campaign progression.
+- Use the bundled CR/EXU version on every machine. For offline play, select
+  Eagle's Nest in the CR custom campaign (`crcampgn.ini`, `MISSION2`). For online
+  play, select **CR: Eagle's Nest 1 Coop** in multiplayer strategy (`misn03.ini`).
+  Both modes load the same `misn03.bzn` and `misn03.lua`.
+- The MP INI permits 2–4 players. `misn03.vxt` offers only the NSDF tank
+  (`avtank`) and multiplayer scout (`avfimp`), following the stock strategy VXT
+  format. `misn03.des` supplies the lobby description; `misn03.bmp` reuses the
+  existing CR campaign preview artwork. All four files deploy under their bare
+  `misn03` names alongside the shared map/script.
 - Host on team 1. Guests select distinct teams 2, 3, or 4. All four teams are
   allied; authored enemies stay on team 5. Start with all participants present.
 - Team 1 commands Montana and owns its production. Guests support the shared
@@ -37,7 +44,9 @@ health changes, transport orders, failure checks and victory progression.
 Pilot Mode excludes registered human craft and non-local objects. Clients keep
 their subtitle, input/lighting and other local presentation updates running.
 Starting resources are applied by each team owner; the leader's difficulty is
-distributed before defense presentation. Offline autosave and Save/Load remain.
+distributed before defense presentation. Native multiplayer locks difficulty to
+Very Hard; EXU's `SetDifficulty` does not override that lock. Offline autosave
+and Save/Load remain.
 
 Mission HUD objectives, dynamic markers/names, target cues, dialogue, queued
 warnings, custom maximum-health values, prop removal and results use `E` events with monotonically increasing
@@ -66,6 +75,17 @@ The current Redux project findings in
 remote-player lookup and local-only HUD/name behavior. Bundled EXU signatures
 are documented in [ExtraUtils.lua](lua-definitions/ExtraUtils.lua).
 
+Menu INI/DES conventions are documented in the official
+[Redux Map Editor manual](https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/301650/manuals/BZ98Redux_MapEditorManual.pdf?t=1579791137).
+The two vehicle entries use the format and identifiers in the source repository's
+[stock strategy VXT](https://github.com/GrizzlyOne95/Battlezone_Source/blob/e7c410573ffedc9e118dd90f402af6d5585955cc/BZ1/1.5/Battlezone_Install/stock/multst12.vxt).
+The BMP is an unchanged copy of `crcampgn.bmp`, pending an in-game mission preview.
+
+PowerShell is unavailable in this environment, so the four new shipping entries
+were added directly rather than running `Manage-CampaignFiles.ps1 -bless`. The
+lock diff preserves every prior member and adds only the INI, BMP, DES and VXT;
+native blessing/deployment remains a maintainer check.
+
 The following historical 1.5 disassembly informed the native lifecycle choices;
 it is supporting evidence, **not a live Redux multiplayer test**. Links pin
 Battlezone_Source commit `e7c410573ffedc9e118dd90f402af6d5585955cc`:
@@ -84,6 +104,7 @@ lua5.1 Tools/Test-Misn03Coop.lua
 lua5.1 Tools/Test-CRCoop.lua
 lua5.1 Tools/Test-EarlyMissionFlow.lua
 python Tools/Test-Misn03CoopContract.py
+python Tools/Test-SetupMissionShell.py
 python Tools/Test-EarlyMissionSourceAudit.py
 python Tools/Validate-CampaignRepository.py
 ```

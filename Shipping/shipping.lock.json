@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-09-29T23:31:49-05:00",
-  "count": 3681,
+  "generated": "2026-10-05T14:23:04+00:00",
+  "count": 3687,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6240,6 +6240,10 @@
       "runtime": "campaignReimagined.jpg"
     },
     {
+      "source": "Assets\\Graphics\\misn03.bmp",
+      "runtime": "misn03.bmp"
+    },
+    {
       "source": "Assets\\LoadingScreens\\aload.png",
       "runtime": "aload.png"
     },
@@ -6542,6 +6546,10 @@
     {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png",
       "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png"
+    },
+    {
+      "source": "Config\\misn03.ini",
+      "runtime": "misn03.ini"
     },
     {
       "source": "crcampgn.des",
@@ -8856,6 +8864,10 @@
       "runtime": "xbio.material"
     },
     {
+      "source": "misn03.des",
+      "runtime": "misn03.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -8902,6 +8914,10 @@
     {
       "source": "Missions\\misn03.hg2",
       "runtime": "misn03.hg2"
+    },
+    {
+      "source": "Missions\\misn03.vxt",
+      "runtime": "misn03.vxt"
     },
     {
       "source": "Missions\\misn04.bzn",

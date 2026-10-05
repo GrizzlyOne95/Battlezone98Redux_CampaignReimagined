@@ -1,5 +1,8 @@
 from pathlib import Path
+import configparser
+import json
 import re
+import struct
 
 root = Path(__file__).resolve().parents[1]
 bzn = (root / "Missions" / "misn03.bzn").read_text(encoding="utf-8")
@@ -57,3 +60,45 @@ assert "local PHASE_FORTIFY = 2" in lua, "misn03 fortify phase contract changed"
 assert "CRCoop.SetMissionPhase(PHASE_DEFENSE)" in lua, "initial defense phase is not published"
 assert "CRCoop.SetMissionPhase(PHASE_FORTIFY)" in lua, "fortify phase is not published"
 assert "local function PresentMissionPhase()" in lua, "phase presentation handler missing"
+
+# Separate native mode INIs must resolve the one shared BZN/script by stem.
+mp = configparser.ConfigParser()
+mp.read(root / "Config" / "misn03.ini", encoding="utf-8")
+assert mp["DESCRIPTION"]["missionName"] == '"CR: Eagle\'s Nest 1 Coop"'
+assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
+assert dict(mp["MULTIPLAYER"]) == {
+    "minplayers": '"2"', "maxplayers": '"4"', "gametype": '"S"',
+}
+campaign = configparser.ConfigParser()
+campaign.read(root / "Config" / "crcampgn.ini", encoding="utf-8")
+assert campaign["MISSION2"]["missionBZN"] == '"misn03.bzn"'
+assert campaign["WORKSHOP"]["mapType"] == '"campaign"'
+
+vehicles = [line.split(",")[0].strip() for line in
+            (root / "Missions" / "misn03.vxt").read_text().splitlines() if line.strip()]
+assert vehicles == ["avtank", "avfimp"], "MP selection must be tank or scout only"
+for odf in vehicles:
+    assert (root / "ODF" / (odf + ".odf")).is_file()
+
+description = (root / "misn03.des").read_text().strip()
+assert len(description) <= 300 and "\n" not in description
+assert "team 1" in description and "teams 2-4" in description
+bitmap = (root / "Assets" / "Graphics" / "misn03.bmp").read_bytes()
+assert bitmap[:2] == b"BM" and struct.unpack_from("<I", bitmap, 14)[0] == 40
+width, height, planes, depth, compression = struct.unpack_from("<iiHHI", bitmap, 18)
+assert width > 0 and height > 0 and planes == 1 and depth == 24 and compression == 0
+assert struct.unpack_from("<I", bitmap, 2)[0] == len(bitmap)
+
+lock = json.loads((root / "Shipping" / "shipping.lock.json").read_text())
+entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
+assert lock["count"] == len(lock["files"])
+manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")
+for source in (r"Config\misn03.ini", r"Assets\Graphics\misn03.bmp",
+               "misn03.des", r"Missions\misn03.vxt",
+               r"Missions\misn03.bzn", r"Scripts\misn03.lua"):
+    runtime = source.split("\\")[-1]
+    assert entries.get(source) == runtime, f"missing shipping entry: {source}"
+    assert f'"{runtime}"' in manager, f"missing staging requirement: {runtime}"
+    assert len(runtime) <= 16
+
+print("misn03 campaign/MP scaffold and shipping checks passed")
