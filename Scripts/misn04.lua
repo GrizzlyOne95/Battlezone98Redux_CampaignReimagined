@@ -7,6 +7,12 @@ SetLabel = SetLabel or SetLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
+-- MultST native Init runs before Start. Keep Montana as the only recycler.
+if type(IsNetGame) == "function" and IsNetGame() then
+    assert(exu.DisableStartingRecycler and exu.GetMyNetID,
+        "misn04 co-op requires the bundled EXU multiplayer hooks")
+    exu.DisableStartingRecycler()
+end
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
@@ -15,9 +21,246 @@ local Environment = require("Environment")
 local CRMarsWeather = require("CRMarsWeather")
 local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
+local CRCoop = require("CRCoop")
+local LEADER_TEAM = 1
+local ENEMY_TEAM = 5
+local stockWeatherWindPush = CRMarsWeather.AllowWindPush
 
 
 local M
+local ApplyDifficultyObjectives
+
+-- Mission presentation transport. Only the campaign leader runs the mission
+-- below; HUD/audio/removal/end calls are explicitly delivered to every peer.
+-- E/A are an ordered, acknowledged event stream (eight small packets in flight,
+-- retried every 0.2s). C is a replaceable camera snapshot. No tables go on wire.
+-- These types do not collide with CRCoop's H/Q/K/P protocol. Join-in-progress
+-- still requires a restart: native world reconstruction is not available here.
+local unpackArgs = unpack or table.unpack
+local native = {
+    ClearObjectives = ClearObjectives, AddObjective = AddObjective,
+    UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
+    SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
+    SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
+    SucceedMission = SucceedMission, FailMission = FailMission,
+    CameraReady = CameraReady, CameraPath = CameraPath,
+    CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
+    Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
+}
+local events, acknowledgements = {}, {}
+local receivedEvent = 0
+local nextEventSend, nextCameraSend = 0, 0
+local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+local remoteCameraSerial, localCameraGeneration = 0, 0
+local cameraSkipped, localCameraActive = false, false
+local remoteCamera
+
+local function FromLeader(from)
+    local player = CRCoop.GetPlayers()[from]
+    return player and player.team == LEADER_TEAM
+end
+
+local function ApplyPresentation(op, ...)
+    if op == "Resources" then
+        local team, scrap, pilots = ...
+        -- Each human owns their team resources. Do not mutate a remote team.
+        if CRCoop.GetLocalTeam() == team then
+            SetScrap(team, scrap)
+            SetPilot(team, pilots)
+        end
+    elseif op == "Difficulty" then
+        M.difficulty = ...
+        ApplyDifficultyObjectives()
+        if exu.SetDifficulty then exu.SetDifficulty(M.difficulty) end
+    elseif op == "WeatherTarget" then
+        if CRMarsWeather.SetTargetLevel then CRMarsWeather.SetTargetLevel(...) end
+    elseif op == "WeatherForce" then
+        if CRMarsWeather.ForceLevel then CRMarsWeather.ForceLevel(...) end
+    elseif op == "WeatherLevel" then
+        -- Guests follow the host's actual rung; their random ladder is disabled.
+        if not CRCoop.IsAuthority() and CRMarsWeather.ForceLevel then
+            CRMarsWeather.ForceLevel((...), 86400)
+        end
+    elseif op == "SucceedMission" or op == "FailMission" then
+        local when, description = ...
+        native.CameraFinish()
+        cameraFrame = nil
+        localCameraActive = false
+        M.coopResult = true
+        native[op](math.max(GetTime() + 0.5, when), description)
+    else
+        return native[op](...)
+    end
+end
+
+local function Present(op, ...)
+    if CRCoop.IsNetworkGame() then
+        if not CRCoop.IsAuthority() then return end
+        events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), expires = GetTime() + 5 }
+    end
+    return ApplyPresentation(op, ...)
+end
+
+-- Lexical wrappers affect this mission only; shared modules retain stock APIs.
+local function ClearObjectives(...) return Present("ClearObjectives", ...) end
+local function AddObjective(...) return Present("AddObjective", ...) end
+local function UpdateObjective(...) return Present("UpdateObjective", ...) end
+local function SetObjectiveOn(...) return Present("SetObjectiveOn", ...) end
+local function SetObjectiveOff(...) return Present("SetObjectiveOff", ...) end
+local function SetObjectiveName(...) return Present("SetObjectiveName", ...) end
+local function SetUserTarget(...) return Present("SetUserTarget", ...) end
+local function RemoveObject(...) return Present("RemoveObject", ...) end
+-- Preserve the real subtitle module for Update/Initialize and return values.
+subtit = setmetatable({
+    Play = function(...) return Present("Play", ...) end,
+    Queue = function(...) return Present("Queue", ...) end,
+    Stop = function(...) return Present("Stop", ...) end,
+}, { __index = subtit })
+
+local function EndMission(op, when, description)
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        -- Flush preceding narrative/cleanup before publishing the result. Keep
+        -- five seconds for result retries before native AiMission shuts down.
+        M.coopPendingResult = { op, when, description }
+    else
+        M.coopResult = true
+        native[op](when, description)
+    end
+end
+local function SucceedMission(...) return EndMission("SucceedMission", ...) end
+local function FailMission(...) return EndMission("FailMission", ...) end
+
+local function CameraReady()
+    cameraGeneration = cameraGeneration + 1
+    cameraSkipped = false
+    return native.CameraReady()
+end
+local function CameraPath(path, height, speed, target)
+    cameraFrame = { path, height, speed, target }
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        native.CameraFinish()
+    end
+    if not cameraSkipped then
+        local done = native.CameraPath(path, height, speed, target)
+        if not CRCoop.IsNetworkGame() then return done end
+    end
+    return false
+end
+local function CameraCancelled()
+    -- A player's skip releases only their own camera; never skips shared
+    -- destruction, transport orders, or the success gate for everyone else.
+    if CRCoop.IsNetworkGame() then return false end
+    return native.CameraCancelled()
+end
+local function CameraFinish()
+    cameraFrame = nil
+    cameraSkipped = false
+    return native.CameraFinish()
+end
+
+local function UpdateRemoteCamera()
+    if not remoteCamera then return end
+    local generation, path, height, speed, target = unpackArgs(remoteCamera)
+    if path == "" or M.coopResult then
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+        return
+    end
+    if generation ~= localCameraGeneration then
+        localCameraGeneration = generation
+        cameraSkipped = false
+    end
+    if cameraSkipped or not IsValid(target) then return end
+    if not localCameraActive then
+        native.CameraReady()
+        localCameraActive = true
+    elseif native.CameraCancelled() then
+        cameraSkipped = true
+        localCameraActive = false
+        native.CameraFinish()
+        return
+    end
+    native.CameraPath(path, height, speed, target)
+end
+
+local function UpdatePresentationTransport()
+    if not CRCoop.IsNetworkGame() then return end
+    if not CRCoop.IsAuthority() then
+        UpdateRemoteCamera()
+        return
+    end
+    local now, allDelivered = GetTime(), true
+    for id, player in pairs(CRCoop.GetPlayers()) do
+        if CRCoop.IsHumanTeam(player.team) and id ~= CRCoop.GetLocalPlayerId() then
+            local ack = acknowledgements[id] or 0
+            if ack < #events then allDelivered = false end
+            if now >= nextEventSend then
+                for seq = ack + 1, math.min(ack + 8, #events) do
+                    local event = events[seq]
+                    Send(id, "E", seq, event.op, event.expires, unpackArgs(event.args, 1, event.n))
+                end
+            end
+        end
+    end
+    if now >= nextEventSend then nextEventSend = now + 0.2 end
+    if M.coopPendingResult and allDelivered then
+        local result = M.coopPendingResult
+        M.coopPendingResult = nil
+        Present(result[1], math.max(now + 5, result[2] or 0), result[3])
+    end
+    if now >= nextCameraSend then
+        nextCameraSend = now + 0.2
+        cameraSerial = cameraSerial + 1
+        if cameraFrame then
+            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(cameraFrame))
+        else
+            Send(0, "C", cameraSerial, cameraGeneration, "", 0, 0)
+        end
+    end
+end
+
+local function ReceivePresentation(from, kind, ...)
+    if not CRCoop.IsNetworkGame() then return false end
+    if kind == "A" then
+        local seq = ...
+        if CRCoop.IsAuthority() and CRCoop.GetPlayers()[from] and
+            type(seq) == "number" and seq >= 0 and seq <= #events and seq == math.floor(seq) then
+            acknowledgements[from] = math.max(acknowledgements[from] or 0, seq)
+        end
+        return true
+    end
+    if kind ~= "E" and kind ~= "C" then return false end
+    if CRCoop.IsAuthority() or not FromLeader(from) then return true end
+    if kind == "C" then
+        local seq, generation, path, height, speed, target = ...
+        if type(seq) == "number" and seq > remoteCameraSerial and type(generation) == "number" and
+            type(path) == "string" and type(height) == "number" and type(speed) == "number" then
+            remoteCameraSerial = seq
+            remoteCamera = { generation, path, height, speed, target }
+        end
+        return true
+    end
+    local seq, op, expires = ...
+    if type(seq) ~= "number" or type(op) ~= "string" or type(expires) ~= "number" then return true end
+    if seq == receivedEvent + 1 and (native[op] or op == "Resources" or op == "Difficulty" or
+        op == "WeatherTarget" or op == "WeatherForce" or op == "WeatherLevel") then
+        local args = { select(4, ...) }
+        -- Dynamic handles can arrive after the Lua packet. Withhold the ACK
+        -- until the next retransmission resolves it, rather than losing markers.
+        local missing = (op == "SetObjectiveOn" or op == "SetObjectiveName" or op == "SetUserTarget") and
+            not IsValid(args[1])
+        if missing and GetTime() < expires then return true end
+        -- A target destroyed before its packet arrived must not block the
+        -- stream (and the mission result) forever. Only that stale marker drops.
+        if not missing then ApplyPresentation(op, unpackArgs(args, 1, select("#", ...) - 3)) end
+        receivedEvent = seq
+    end
+    Send(from, "A", receivedEvent)
+    return true
+end
+
 
 local function TraceUpdateCall(label, fn, ...)
     if type(fn) ~= "function" then
@@ -284,14 +527,14 @@ end
 
 -- Helper for AI
 local function SetupAI(preserveExisting)
-    if preserveExisting and aiCore.ActiveTeams and aiCore.ActiveTeams[1] and aiCore.ActiveTeams[2] then
+    if preserveExisting and aiCore.ActiveTeams and aiCore.ActiveTeams[1] and aiCore.ActiveTeams[ENEMY_TEAM] then
         -- aiCore.Load already restored the live managers, queues, strategy, and
         -- producer ledger. Reapplying the initial setup here would erase that
         -- state before PlayerPilotMode gets a chance to reconcile it.
         return
     end
 
-    DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, ENEMY_TEAM)
 
     -- Configure Player Team (1) for Scavenger Assist
     if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
@@ -300,9 +543,9 @@ local function SetupAI(preserveExisting)
         aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     end
 
-    -- Configure CCA (Team 2)
-    if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[2] then
-        local cca = aiCore.ActiveTeams[2]
+    -- Configure CCA (Team 5)
+    if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[ENEMY_TEAM] then
+        local cca = aiCore.ActiveTeams[ENEMY_TEAM]
         cca:SetCustomStrategy({
             Recycler = {
                 "scavenger", "scavenger", "scavenger", "scavenger",
@@ -339,7 +582,10 @@ local function PilotModeCanManageHandle(h)
         return false
     end
 
-    return h ~= GetPlayerHandle()
+    if CRCoop.IsNetworkGame() and (not IsLocal(h) or not CRCoop.HasAllPlayerHandles()) then
+        return false
+    end
+    return not CRCoop.IsHumanCraft(h)
 end
 
 local function GetPilotModeObjectiveContext()
@@ -401,7 +647,7 @@ local SCRIPTED_TEAM2_STATE_KEYS = {
 }
 
 local function AddUniqueScriptedTeam2Handle(h)
-    if not h or not IsValid(h) or GetTeamNum(h) ~= 2 then return end
+    if not h or not IsValid(h) or GetTeamNum(h) ~= ENEMY_TEAM then return end
     M.scriptedTeam2Handles = M.scriptedTeam2Handles or {}
     for _, existing in ipairs(M.scriptedTeam2Handles) do
         if existing == h then return end
@@ -412,7 +658,7 @@ end
 local function RebuildScriptedTeam2Registry()
     local pruned = {}
     for _, h in ipairs(M.scriptedTeam2Handles or {}) do
-        if h and IsValid(h) and GetTeamNum(h) == 2 then
+        if h and IsValid(h) and GetTeamNum(h) == ENEMY_TEAM then
             pruned[#pruned + 1] = h
         end
     end
@@ -430,6 +676,19 @@ end
 
 local function BootstrapPreservingScriptedTeam2()
     RebuildScriptedTeam2Registry()
+    if CRCoop.IsNetworkGame() then
+        local scripted = {}
+        for _, h in ipairs(M.scriptedTeam2Handles) do scripted[h] = true end
+        aiCore.ResetObjectCacheTracking()
+        for h in AllObjects() do
+            aiCore.TrackWorldObject(h)
+            if IsValid(h) and IsLocal(h) and not CRCoop.IsHumanCraft(h) and not scripted[h] then
+                aiCore.AddObject(h)
+            end
+        end
+        aiCore.RefreshObjectCache(true)
+        return
+    end
     local restoreIndependence = {}
 
     -- aiCore.Bootstrap scans every craft in the world. Temporarily independence-
@@ -459,7 +718,7 @@ local function BootstrapPreservingScriptedTeam2()
 end
 
 local function MissionBuildObject(odf, team, spawn)
-    if team ~= 2 then
+    if team ~= ENEMY_TEAM then
         return EngineBuildObject(odf, team, spawn)
     end
 
@@ -519,7 +778,7 @@ local function RefreshDifficulty()
     return M.difficulty
 end
 
-local function ApplyDifficultyObjectives()
+ApplyDifficultyObjectives = function()
     if M.difficulty >= 3 then
         AddObjective(hardDifficultyObjective[1], hardDifficultyObjective[2], hardDifficultyObjective[3], hardDifficultyObjective[4])
     elseif M.difficulty <= 1 then
@@ -552,10 +811,14 @@ local function ApplyQOL()
     -- through fog, light and particles, which is where nearly all of it lives
     -- anyway.
     if CRMarsWeather and CRMarsWeather.Init then
-        CRMarsWeather.Init({
-            startLevel  = 1,
-            targetLevel = 2,
-        })
+        local weatherOptions = { startLevel = 1, targetLevel = 2, windPush = stockWeatherWindPush }
+        -- Independent random gusts must not write different global gravity on
+        -- each peer. Online storms retain visuals and owner-local sensors.
+        if CRCoop.IsNetworkGame() then weatherOptions.windPush = false end
+        CRMarsWeather.Init(weatherOptions)
+        if CRMarsWeather.SetAutomatic then
+            CRMarsWeather.SetAutomatic(not CRCoop.IsNetworkGame() or CRCoop.IsAuthority())
+        end
 
         if M and M.weatherState ~= nil and CRMarsWeather.Load then
             CRMarsWeather.Load(M.weatherState)
@@ -574,6 +837,7 @@ end
 -- These only move the *target*: the director still walks the ladder there over
 -- a few minutes. Nothing here cuts the weather.
 local function UpdateWeatherBeats()
+    if not CRCoop.IsAuthority() then return end
     if not (CRMarsWeather and CRMarsWeather.SetTargetLevel) then
         return
     end
@@ -603,7 +867,7 @@ local function UpdateWeatherBeats()
     end
 
     if CRMarsWeather.GetTargetLevel() ~= target then
-        CRMarsWeather.SetTargetLevel(target)
+        Present("WeatherTarget", target)
     end
 
     -- Set piece: the last CCA wave arrives inside a severe storm. Forced rather
@@ -611,13 +875,20 @@ local function UpdateWeatherBeats()
     if M.fifthwave and not M.weatherSetPiece and not M.missionwon then
         M.weatherSetPiece = true
         if CRMarsWeather.ForceLevel then
-            CRMarsWeather.ForceLevel(5, 110.0, 16.0)
+            Present("WeatherForce", 5, 110.0, 16.0)
+        end
+    end
+    if CRCoop.IsNetworkGame() and CRMarsWeather.GetLevel then
+        local level = CRMarsWeather.GetLevel()
+        if level ~= M.coopWeatherLevel then
+            M.coopWeatherLevel = level
+            Present("WeatherLevel", level)
         end
     end
 end
 
 local function TurboValue(team)
-    if team == 1 then
+    if CRCoop.IsHumanTeam(team) then
         return true
     end
     if team ~= 0 and M.difficulty >= 3 then
@@ -626,6 +897,7 @@ local function TurboValue(team)
 end
 
 local function ApplyTurbo(h)
+    if CRCoop.IsNetworkGame() and not IsLocal(h) then return end
     if not (exu and exu.SetUnitTurbo and IsCraft(h)) then
         return
     end
@@ -2331,6 +2603,9 @@ local function RunFeatureValidation(force)
 end
 
 local function UpdateFeatureValidation()
+    -- These development probes can retask AI and alter global physics. They
+    -- remain available offline; ordinary network gameplay never runs them.
+    if CRCoop.IsNetworkGame() then return end
     UpdateFeatureRestores()
 
     if not exu or type(exu.GetGameKey) ~= "function" then
@@ -2395,14 +2670,26 @@ function Start()
     DestroyOverlayDemo()
     M = NewMissionState()
     M.TPS = M.TPS or DEFAULT_TPS
-
-    -- One-time initialization logic
-    M.relicstartpos = math.random(0, 3)
-
-    SetScrap(1, DiffUtils.ScaleRes(40))
-    SetPilot(1, 10)
+    CRCoop.Initialize({
+        getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
+        leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
+    })
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+    events, acknowledgements, receivedEvent = {}, {}, 0
+    nextEventSend, nextCameraSend = 0, 0
+    cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+    remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
+    cameraSkipped, localCameraActive = false, false
+    if CRCoop.IsNetworkGame() and exu.SetLives then exu.SetLives(999) end
     RefreshDifficulty()
-    ApplyDifficultyObjectives()
+    if CRCoop.IsAuthority() then
+        M.relicstartpos = math.random(0, 3)
+        if not CRCoop.IsNetworkGame() then
+            SetScrap(1, DiffUtils.ScaleRes(40))
+            SetPilot(1, 10)
+            ApplyDifficultyObjectives()
+        end
+    end
 
     -- Restarting the mission in the same process re-enters Start with the
     -- weather module still initialised and still holding particle handles from
@@ -2413,21 +2700,23 @@ function Start()
     end
 
     ApplyQOL()
-    SetupAI()
-    BootstrapPreservingScriptedTeam2()
+    if CRCoop.IsAuthority() then
+        SetupAI()
+        if not CRCoop.IsNetworkGame() then BootstrapPreservingScriptedTeam2() end
+        PlayerPilotMode.Initialize({
+            profile = {
+                autoManage = true,
+                autoRescue = true,
+                stickToPlayer = true,
+                manageFactories = true,
+                autoBuild = true,
+                autoTugs = false,
+            },
+            shouldManageHandle = PilotModeCanManageHandle,
+            getObjectiveContext = GetPilotModeObjectiveContext,
+        }, M.playerPilotModeState)
+    end
     ApplyTurboToAll()
-    PlayerPilotMode.Initialize({
-        profile = {
-            autoManage = true,
-            autoRescue = true,
-            stickToPlayer = true,
-            manageFactories = true,
-            autoBuild = true,
-            autoTugs = false,
-        },
-        shouldManageHandle = PilotModeCanManageHandle,
-        getObjectiveContext = GetPilotModeObjectiveContext,
-    }, M.playerPilotModeState)
     if Environment and Environment.Update then
         Environment.Update(0.0)
     end
@@ -2438,26 +2727,23 @@ end
 
 -- Save/Load removed from here, moving logic to bottom functions
 
+function CreatePlayer(id, name, team)
+    CRCoop.CreatePlayer(id, name, team)
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+end
+function AddPlayer(id, name, team)
+    CRCoop.AddPlayer(id, name, team)
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+end
+function DeletePlayer(id, name, team) CRCoop.DeletePlayer(id) end
+function Receive(from, kind, ...)
+    if ReceivePresentation(from, kind, ...) then return true end
+    return CRCoop.Receive(from, kind, ...)
+end
+
 function AddObject(h)
     local team = GetTeamNum(h)
     local nearBase = false
-
-    -- aiCore manages the autonomous CCA base/economy, but explicit Team 2
-    -- BuildObject calls from this mission remain under script control.
-    if team == 2 and not M.restoringOpeningDefenders and not scriptedTeam2BuildInProgress then
-        -- Only add if near base
-        if M.svrec and IsAlive(M.svrec) and GetDistance(h, M.svrec) < 400.0 then
-            nearBase = true
-        elseif GetDistance(h, "cca_base") < 400.0 then
-            nearBase = true
-        end
-
-        if nearBase then
-            aiCore.AddObject(h)
-        end
-    elseif team == 1 then
-        PlayerPilotMode.AddObject(h)
-    end
 
     if PersistentConfig and PersistentConfig.OnObjectCreated then
         PersistentConfig.OnObjectCreated(h)
@@ -2469,6 +2755,25 @@ function AddObject(h)
         CRMarsWeather.OnObjectCreated(h)
     end
     ApplyTurbo(h)
+
+    if not CRCoop.IsAuthority() or (CRCoop.IsNetworkGame() and not IsLocal(h)) then return end
+
+    -- aiCore manages the autonomous CCA base/economy, but explicit Team 5
+    -- BuildObject calls from this mission remain under script control.
+    if team == ENEMY_TEAM and not M.restoringOpeningDefenders and not scriptedTeam2BuildInProgress then
+        -- Only add if near base
+        if M.svrec and IsAlive(M.svrec) and GetDistance(h, M.svrec) < 400.0 then
+            nearBase = true
+        elseif GetDistance(h, "cca_base") < 400.0 then
+            nearBase = true
+        end
+
+        if nearBase then
+            aiCore.AddObject(h)
+        end
+    elseif team == 1 and not CRCoop.IsHumanCraft(h) then
+        PlayerPilotMode.AddObject(h)
+    end
 
     -- Capture Player Tug for Audio (Corrected to avhaul per C++)
     if team == 1 and IsOdf(h, "avhaul") then
@@ -2486,7 +2791,8 @@ local function AudioDone(msg)
 end
 
 local function StopAudio(msg)
-    if msg then StopAudioMessage(msg) end
+    if not msg then return end
+    if CRCoop.IsNetworkGame() then subtit.Stop() else StopAudioMessage(msg) end
 end
 
 local function GetRelicVariantIndex()
@@ -2538,7 +2844,7 @@ local function RestoreStockOpeningDefenders()
             h = GetHandle(spec.label)
         end
         if not (h and IsValid(h)) then
-            h = BuildObject(spec.odf, 2, spec.position)
+            h = BuildObject(spec.odf, ENEMY_TEAM, spec.position)
             if h and IsValid(h) and SetLabel then
                 SetLabel(h, spec.label)
             end
@@ -2551,6 +2857,23 @@ local function RestoreStockOpeningDefenders()
     end
 
     M.restoringOpeningDefenders = false
+end
+
+-- Read the replicated cargo relationship without commanding a guest's tug.
+-- Keep M.tug as the leader's preferred automated carrier for old saves.
+local function GetFriendlyRelicCarrier()
+    if not (M.relic and IsAlive(M.relic)) then return nil end
+    if type(GetTug) == "function" then
+        local h = GetTug(M.relic)
+        if h and IsAlive(h) and CRCoop.IsHumanTeam(GetTeamNum(h)) then return h end
+    end
+    if CRCoop.IsNetworkGame() and type(GetCargo) == "function" then
+        for h in AllCraft() do
+            if IsAlive(h) and CRCoop.IsHumanTeam(GetTeamNum(h)) and IsOdf(h, "avhaul")
+                and GetCargo(h) == M.relic then return h end
+        end
+    end
+    if M.tug and IsAlive(M.tug) and HasCargo(M.tug) then return M.tug end
 end
 
 local function RetreatIfAlive(h, path)
@@ -2568,20 +2891,22 @@ function Update()
         RefreshDifficulty()
         ApplyDifficultyObjectives()
         ApplyQOL()
-        PlayerPilotMode.Initialize({
-            profile = {
-                autoManage = true,
-                autoRescue = true,
-                stickToPlayer = true,
-                manageFactories = true,
-                autoBuild = true,
-                autoTugs = false,
-            },
-            shouldManageHandle = PilotModeCanManageHandle,
-            getObjectiveContext = GetPilotModeObjectiveContext,
-        }, M.playerPilotModeState)
-        SetupAI(true)
-        BootstrapPreservingScriptedTeam2()
+        if CRCoop.IsAuthority() then
+            PlayerPilotMode.Initialize({
+                profile = {
+                    autoManage = true,
+                    autoRescue = true,
+                    stickToPlayer = true,
+                    manageFactories = true,
+                    autoBuild = true,
+                    autoTugs = false,
+                },
+                shouldManageHandle = PilotModeCanManageHandle,
+                getObjectiveContext = GetPilotModeObjectiveContext,
+            }, M.playerPilotModeState)
+            SetupAI(true)
+            BootstrapPreservingScriptedTeam2()
+        end
         ApplyTurboToAll()
         if Environment and Environment.Update then
             Environment.Update(0.0)
@@ -2589,6 +2914,37 @@ function Update()
         M.loading_done = true
     end
     M.player = GetPlayerHandle()
+    CRCoop.Update()
+    UpdatePresentationTransport()
+    TraceUpdateCall("misn04.Update UpdateModules", UpdateModules, 1.0 / M.TPS)
+    TraceUpdateCall("misn04.Update RunOverlayBootTest", RunOverlayBootTest)
+    TraceUpdateCall("misn04.Update UpdateFeatureValidation", UpdateFeatureValidation)
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        if CRCoop.HasLeaderDeparted() then
+            M.coopResult = true
+            native.CameraFinish()
+            native.FailMission(GetTime() + 1.0)
+            return
+        end
+        if CRCoop.HasUnsupportedPlayerTeam() or CRCoop.HasLateJoiners() then
+            if not M.coopRestartWarned then
+                DisplayMessage("Use distinct teams 1-4 and start together. Late join/rejoin requires a mission restart.")
+                M.coopRestartWarned = true
+            end
+            return
+        end
+        if not CRCoop.IsSessionReady() then return end
+    end
+    if not M.coopMissionStarted then
+        CRCoop.MarkMissionStarted()
+        M.coopMissionStarted = true
+    end
+    if not CRCoop.IsAuthority() then return end
+    if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
+        BootstrapPreservingScriptedTeam2()
+        M.coopBootstrapped = true
+    end
     PlayerPilotMode.SetCargoJob("misn04_relic", {
         enabled = M.discoverrelic and not M.relicsecure,
         target = M.relic,
@@ -2602,15 +2958,20 @@ function Update()
     })
     TraceUpdateCall("misn04.Update PlayerPilotMode.Update", PlayerPilotMode.Update)
     TraceUpdateCall("misn04.Update aiCore.Update", aiCore.Update)
-    if autosave and autosave.Update then
+    if not CRCoop.IsNetworkGame() and autosave and autosave.Update then
         TraceUpdateCall("misn04.Update autosave.Update", autosave.Update, 1.0 / M.TPS)
     end
-    TraceUpdateCall("misn04.Update UpdateModules", UpdateModules, 1.0 / M.TPS)
     TraceUpdateCall("misn04.Update UpdateWeatherBeats", UpdateWeatherBeats)
-    TraceUpdateCall("misn04.Update RunOverlayBootTest", RunOverlayBootTest)
-    TraceUpdateCall("misn04.Update UpdateFeatureValidation", UpdateFeatureValidation)
 
     if (not M.missionstart) then
+        if CRCoop.IsNetworkGame() then
+            Present("Difficulty", RefreshDifficulty())
+            CRCoop.ForEachHumanTeam(function(team)
+                Present("Resources", team, DiffUtils.ScaleRes(40), 10)
+            end)
+            local offlinePlayer = GetHandle("player-1_hover")
+            if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
+        end
         M.wave1 = GetTime() + DiffUtils.ScaleTimer(30.0) + math.random(-5, 10)
         M.fetch = GetTime() + DiffUtils.ScaleTimer(240.0)
         subtit.Play("misn0401.wav")
@@ -2652,14 +3013,14 @@ function Update()
         M.relicmoved = true
     end
 
-    if not M.reconsent and not M.cheater and IsAlive(M.player) and IsAlive(M.relic) and GetDistance(M.player, M.relic) < 600.0 then
+    if not M.reconsent and not M.cheater and IsAlive(M.relic) and CRCoop.AnyPlayerSatisfies(function(h) return IsAlive(h) and GetDistance(h, M.relic) < 600.0 end) then
         local pathA, pathB = GetRelicPatrolPaths()
-        M.cheat1 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
-        M.cheat2 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
-        M.cheat3 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
-        M.cheat4 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
-        M.cheat5 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
-        M.cheat6 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
+        M.cheat1 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.relic, 5, 40))
+        M.cheat2 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.relic, 5, 40))
+        M.cheat3 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.relic, 5, 40))
+        M.cheat4 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.relic, 5, 40))
+        M.cheat5 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.relic, 5, 40))
+        M.cheat6 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.relic, 5, 40))
 
         Patrol(M.cheat1, pathA); SetIndependence(M.cheat1, 1)
         Patrol(M.cheat2, pathA); SetIndependence(M.cheat2, 1)
@@ -2675,8 +3036,8 @@ function Update()
 
     if M.fetch < GetTime() and not M.surveysent and IsAlive(M.relic) then
         local pathA, pathB = GetRelicPatrolPaths()
-        M.surv1 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
-        M.surv2 = BuildObject("svfigh", 2, SpawnNear(M.relic, 5, 40))
+        M.surv1 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.relic, 5, 40))
+        M.surv2 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.relic, 5, 40))
         Patrol(M.surv1, pathA); SetIndependence(M.surv1, 1)
         Patrol(M.surv2, pathB); SetIndependence(M.surv2, 1)
         M.surveysent = true
@@ -2684,22 +3045,22 @@ function Update()
     end
 
     if not M.tur1sent and M.tur1 < GetTime() and IsAlive(M.svrec) then
-        M.turret1 = BuildObject("svturr", 2, SpawnNear(M.svrec, 5, 25))
+        M.turret1 = BuildObject("svturr", ENEMY_TEAM, SpawnNear(M.svrec, 5, 25))
         Goto(M.turret1, "turret1")
         M.tur1sent = true
     end
     if not M.tur2sent and M.tur2 < GetTime() and IsAlive(M.svrec) then
-        M.turret2 = BuildObject("svturr", 2, SpawnNear(M.svrec, 5, 25))
+        M.turret2 = BuildObject("svturr", ENEMY_TEAM, SpawnNear(M.svrec, 5, 25))
         Goto(M.turret2, "turret2")
         M.tur2sent = true
     end
     if not M.tur3sent and M.tur3 < GetTime() and IsAlive(M.svrec) then
-        M.turret3 = BuildObject("svturr", 2, SpawnNear(M.svrec, 5, 25))
+        M.turret3 = BuildObject("svturr", ENEMY_TEAM, SpawnNear(M.svrec, 5, 25))
         Goto(M.turret3, "turret3")
         M.tur3sent = true
     end
     if not M.tur4sent and M.tur4 < GetTime() and IsAlive(M.svrec) then
-        M.turret4 = BuildObject("svturr", 2, SpawnNear(M.svrec, 5, 25))
+        M.turret4 = BuildObject("svturr", ENEMY_TEAM, SpawnNear(M.svrec, 5, 25))
         Goto(M.turret4, "turret4")
         M.tur4sent = true
     end
@@ -2719,24 +3080,26 @@ function Update()
         M.obset = false
     end
 
-    if M.found and not M.halfway and M.tug and IsAlive(M.tug) and HasCargo(M.tug) then
+    local relicCarrier = GetFriendlyRelicCarrier()
+    if relicCarrier and not M.halfway then
         subtit.Play("misn0419.wav")
         M.halfway = true
         if M.relic and IsAlive(M.relic) then
             SetObjectiveOff(M.relic)
         end
-        SetObjectiveOn(M.tug)
+        M.relicCarrier = relicCarrier
+        SetObjectiveOn(relicCarrier)
         M.tugobjective = true
-        if M.tuge1 and IsAlive(M.tuge1) then Attack(M.tuge1, M.tug) end
-        if M.tuge2 and IsAlive(M.tuge2) then Attack(M.tuge2, M.tug) end
+        if M.tuge1 and IsAlive(M.tuge1) then Attack(M.tuge1, relicCarrier) end
+        if M.tuge2 and IsAlive(M.tuge2) then Attack(M.tuge2, relicCarrier) end
     end
 
-    if M.tugobjective and not M.relicsecure and (not (M.tug and IsAlive(M.tug))) then
+    if M.tugobjective and not M.relicsecure and (not (M.relicCarrier and IsAlive(M.relicCarrier))) then
         if M.relic and IsAlive(M.relic) then
             SetObjectiveOn(M.relic)
         end
-        if M.tug then
-            SetObjectiveOff(M.tug)
+        if M.relicCarrier then
+            SetObjectiveOff(M.relicCarrier)
         end
         M.tugobjective = false
     end
@@ -2748,9 +3111,9 @@ function Update()
     end
 
     if M.ccatug < GetTime() and not M.ccatugsent and IsAlive(M.svrec) and IsAlive(M.relic) and not M.relicsecure then
-        M.svtug = BuildObject("svhaul", 2, SpawnNear(M.svrec, 5, 40))
-        M.tuge1 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-        M.tuge2 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+        M.svtug = BuildObject("svhaul", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
+        M.tuge1 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
+        M.tuge2 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
         Pickup(M.svtug, M.relic)
         Follow(M.tuge1, M.svtug)
         Follow(M.tuge2, M.svtug)
@@ -2759,7 +3122,7 @@ function Update()
     end
 
     if M.ccatugsent and not M.ccahasrelic and IsAlive(M.svtug) then
-        local playerHasRelic = M.tug and IsAlive(M.tug) and HasCargo(M.tug)
+        local playerHasRelic = relicCarrier ~= nil
         if HasCargo(M.svtug) and not playerHasRelic then
             M.ccahasrelic = true
             Goto(M.svtug, "dropoff")
@@ -2783,12 +3146,14 @@ function Update()
         M.aud12 = subtit.Queue("misn0433.wav")
         M.aud13 = subtit.Queue("misn0434.wav")
         M.missionfail2 = true
+        M.coopTheftUntil = GetTime() + 120.0
         CameraReady()
     end
 
     if M.missionfail2 and not M.done then
         CameraPath("ccareliccam", 3000, 1000, M.svtug)
-        if (AudioDone(M.aud10) and AudioDone(M.aud11) and AudioDone(M.aud12) and AudioDone(M.aud13)) or CameraCancelled() then
+        if (AudioDone(M.aud10) and AudioDone(M.aud11) and AudioDone(M.aud12) and AudioDone(M.aud13)) or CameraCancelled()
+            or (CRCoop.IsNetworkGame() and GetTime() > M.coopTheftUntil) then
             CameraFinish()
             StopAudio(M.aud10)
             StopAudio(M.aud11)
@@ -2815,7 +3180,10 @@ function Update()
     end
 
     if not M.discoverrelic and M.investigate < GetTime() and IsAlive(M.relic) then
-        M.investigator = CountUnitsNearObject(M.relic, 400.0, 1, nil)
+        M.investigator = 0
+        CRCoop.ForEachHumanTeam(function(team)
+            M.investigator = M.investigator + CountUnitsNearObject(M.relic, 400.0, team, nil)
+        end)
         if M.reliccam and IsAlive(M.reliccam) then
             M.investigator = M.investigator - 1
         end
@@ -2839,7 +3207,8 @@ function Update()
     end
 
     if M.discoverrelic and not M.cin1done then
-        if (AudioDone(M.aud2) and AudioDone(M.aud3)) or CameraCancelled() then
+        if (AudioDone(M.aud2) and AudioDone(M.aud3)) or CameraCancelled()
+            or (CRCoop.IsNetworkGame() and GetTime() > M.cintime1) then
             CameraFinish()
             StopAudio(M.aud2)
             StopAudio(M.aud3)
@@ -2868,16 +3237,16 @@ function Update()
 
     -- Wave 1
     if M.wavenumber == 1 and M.wave1 < GetTime() then
-        M.w1u1 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
-        M.w1u2 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
+        M.w1u1 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear("wave1", 5, 40))
+        M.w1u2 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear("wave1", 5, 40))
         Attack(M.w1u1, M.avrec, 1); SetIndependence(M.w1u1, 1)
         Attack(M.w1u2, M.avrec, 1); SetIndependence(M.w1u2, 1)
         if M.difficulty >= 3 then
-            M.w1u3 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
+            M.w1u3 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear("wave1", 5, 40))
             Attack(M.w1u3, M.avrec, 1); SetIndependence(M.w1u3, 1)
         end
         if M.difficulty >= 4 then
-            M.w1u4 = BuildObject("svfigh", 2, SpawnNear("wave1", 5, 40))
+            M.w1u4 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear("wave1", 5, 40))
             Attack(M.w1u4, M.avrec, 1); SetIndependence(M.w1u4, 1)
         end
         M.wavenumber = 2
@@ -2905,12 +3274,12 @@ function Update()
 
     -- Wave 2
     if M.wave2 < GetTime() and IsAlive(M.svrec) and not M.secondwave then
-        M.w2u1 = BuildObject("svtank", 2, SpawnNear("spawn2new", 5, 40))
-        M.w2u2 = BuildObject("svfigh", 2, SpawnNear("spawn2new", 5, 40))
+        M.w2u1 = BuildObject("svtank", ENEMY_TEAM, SpawnNear("spawn2new", 5, 40))
+        M.w2u2 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear("spawn2new", 5, 40))
         Goto(M.w2u1, M.avrec, 1); SetIndependence(M.w2u1, 1)
         Goto(M.w2u2, M.avrec, 1); SetIndependence(M.w2u2, 1)
         if M.difficulty >= 3 then -- Hard+: extra fighter
-            M.w2u3 = BuildObject("svfigh", 2, SpawnNear("spawn2new", 5, 40))
+            M.w2u3 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear("spawn2new", 5, 40))
             Goto(M.w2u3, M.avrec, 1); SetIndependence(M.w2u3, 1)
         end
         M.wavenumber = 3
@@ -2938,14 +3307,14 @@ function Update()
 
     -- Wave 3
     if M.wave3 < GetTime() and IsAlive(M.svrec) and not M.thirdwave then
-        M.w3u1 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-        M.w3u2 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-        M.w3u3 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+        M.w3u1 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
+        M.w3u2 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
+        M.w3u3 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
         Goto(M.w3u1, M.avrec, 1); SetIndependence(M.w3u1, 1)
         Goto(M.w3u2, M.avrec, 1); SetIndependence(M.w3u2, 1)
         Goto(M.w3u3, M.avrec, 1); SetIndependence(M.w3u3, 1)
         if M.difficulty >= 3 then -- Hard+: extra tank
-            M.w3u4 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
+            M.w3u4 = BuildObject("svtank", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
             Goto(M.w3u4, M.avrec, 1); SetIndependence(M.w3u4, 1)
         end
         M.wavenumber = 4
@@ -2975,18 +3344,18 @@ function Update()
 
     -- Wave 4
     if M.wave4 < GetTime() and IsAlive(M.svrec) and not M.fourthwave then
-        M.w4u1 = BuildObject("svtank", 2, SpawnNear("spawnotherside", 5, 40))
-        M.w4u2 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
-        M.w4u3 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
+        M.w4u1 = BuildObject("svtank", ENEMY_TEAM, SpawnNear("spawnotherside", 5, 40))
+        M.w4u2 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear("spawnotherside", 5, 40))
+        M.w4u3 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear("spawnotherside", 5, 40))
         Goto(M.w4u1, M.avrec, 1); SetIndependence(M.w4u1, 1)
         Goto(M.w4u2, M.avrec, 1); SetIndependence(M.w4u2, 1)
         Goto(M.w4u3, M.avrec, 1); SetIndependence(M.w4u3, 1)
         if M.difficulty >= 3 then -- Hard+: extra tank
-            M.w4u4 = BuildObject("svtank", 2, SpawnNear("spawnotherside", 5, 40))
+            M.w4u4 = BuildObject("svtank", ENEMY_TEAM, SpawnNear("spawnotherside", 5, 40))
             Goto(M.w4u4, M.avrec, 1); SetIndependence(M.w4u4, 1)
         end
         if M.difficulty >= 4 then -- Very Hard: extra fighter
-            M.w4u5 = BuildObject("svfigh", 2, SpawnNear("spawnotherside", 5, 40))
+            M.w4u5 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear("spawnotherside", 5, 40))
             Goto(M.w4u5, M.avrec, 1); SetIndependence(M.w4u5, 1)
         end
         M.wavenumber = 5
@@ -3018,20 +3387,20 @@ function Update()
 
     -- Wave 5
     if M.wave5 < GetTime() and IsAlive(M.svrec) and not M.fifthwave then
-        M.w5u1 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
-        M.w5u2 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-        M.w5u3 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
-        M.w5u4 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+        M.w5u1 = BuildObject("svtank", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
+        M.w5u2 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
+        M.w5u3 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
+        M.w5u4 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
         Goto(M.w5u1, M.avrec, 1); SetIndependence(M.w5u1, 1)
         Goto(M.w5u2, M.avrec, 1); SetIndependence(M.w5u2, 1)
         Goto(M.w5u3, M.avrec, 1); SetIndependence(M.w5u3, 1)
         Goto(M.w5u4, M.avrec, 1); SetIndependence(M.w5u4, 1)
         if M.difficulty >= 3 then -- Hard+: extra tank
-            M.w5u5 = BuildObject("svtank", 2, SpawnNear(M.svrec, 5, 40))
+            M.w5u5 = BuildObject("svtank", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
             Goto(M.w5u5, M.avrec, 1); SetIndependence(M.w5u5, 1)
         end
         if M.difficulty >= 4 then -- Very Hard: extra fighter
-            M.w5u6 = BuildObject("svfigh", 2, SpawnNear(M.svrec, 5, 40))
+            M.w5u6 = BuildObject("svfigh", ENEMY_TEAM, SpawnNear(M.svrec, 5, 40))
             Goto(M.w5u6, M.avrec, 1); SetIndependence(M.w5u6, 1)
         end
         M.wavenumber = 6
@@ -3060,7 +3429,7 @@ function Update()
             M.wave5dead = true
         end
     end
-    if not M.attackccabase and IsAlive(M.player) and IsAlive(M.svrec) and GetDistance(M.player, M.svrec) < 300.0 then
+    if not M.attackccabase and IsAlive(M.svrec) and CRCoop.AnyPlayerSatisfies(function(h) return IsAlive(h) and GetDistance(h, M.svrec) < 300.0 end) then
         subtit.Play("misn0423.wav")
         M.attackccabase = true
     end

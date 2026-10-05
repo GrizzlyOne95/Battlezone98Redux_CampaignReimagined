@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-05T14:23:04+00:00",
-  "count": 3691,
+  "count": 3695,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6248,6 +6248,10 @@
       "runtime": "misn03.bmp"
     },
     {
+      "source": "Assets\\Graphics\\misn04.bmp",
+      "runtime": "misn04.bmp"
+    },
+    {
       "source": "Assets\\LoadingScreens\\aload.png",
       "runtime": "aload.png"
     },
@@ -6558,6 +6562,10 @@
     {
       "source": "Config\\misn03.ini",
       "runtime": "misn03.ini"
+    },
+    {
+      "source": "Config\\misn04.ini",
+      "runtime": "misn04.ini"
     },
     {
       "source": "crcampgn.des",
@@ -8880,6 +8888,10 @@
       "runtime": "misn03.des"
     },
     {
+      "source": "misn04.des",
+      "runtime": "misn04.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -8934,6 +8946,10 @@
     {
       "source": "Missions\\misn03.vxt",
       "runtime": "misn03.vxt"
+    },
+    {
+      "source": "Missions\\misn04.vxt",
+      "runtime": "misn04.vxt"
     },
     {
       "source": "Missions\\misn04.bzn",

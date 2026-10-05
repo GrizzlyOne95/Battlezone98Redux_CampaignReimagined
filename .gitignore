@@ -50,6 +50,7 @@
 !/staged.des
 !/nocopy.des
 !/misn03.des
+!/misn04.des
 !/misn02b.des
 
 # Local machine/generated artifacts live under Local and stay ignored

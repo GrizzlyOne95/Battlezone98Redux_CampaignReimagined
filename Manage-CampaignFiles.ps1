@@ -1506,7 +1506,12 @@ function Build-WorkshopContent {
         "misn03.bmp",
         "misn03.des",
         "misn03.vxt",
-        "misn04.lua"
+        "misn04.lua",
+        "misn04.bzn",
+        "misn04.ini",
+        "misn04.bmp",
+        "misn04.des",
+        "misn04.vxt"
     )
     foreach ($relativePath in $requiredFiles) {
         if (-not (Test-Path -LiteralPath (Join-Path $contentFolder $relativePath))) {
