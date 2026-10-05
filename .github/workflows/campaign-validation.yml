@@ -90,6 +90,14 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-CRCoop.lua
 
+      - name: Test misn02b co-op map and shipping contract
+        run: python Tools/Test-Misn02bCoopContract.py
+
+      - name: Test misn02b co-op execution and peer transport model
+        run: |
+          lua5.1 Tools/Test-BZRPeerTransport.lua
+          lua5.1 Tools/Test-Misn02bCoop.lua
+
       - name: Test misn03 co-op team contract
         run: python Tools/Test-Misn03CoopContract.py
 
