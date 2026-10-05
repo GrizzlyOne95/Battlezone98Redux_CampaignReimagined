@@ -1,5 +1,8 @@
 from pathlib import Path
+import configparser
+import json
 import re
+import struct
 
 root = Path(__file__).resolve().parents[1]
 bzn = (root / "Missions" / "misn03.bzn").read_text(encoding="utf-8")
@@ -12,19 +15,30 @@ lua = re.sub(r"--[^\r\n]*", "", lua)
 
 # Teams 1-4 are reserved for human players in the co-op contract. Mission 03
 # must not ship preplaced Team-2 enemies that can collide with Player 2.
-assert "team [1] =\n2" not in bzn, "misn03.bzn still contains Team-2 mission state"
-assert "perceivedTeam [1] =\n2" not in bzn, "misn03.bzn still contains perceived Team-2 enemies"
+assert "name = MultSTMission\n" in bzn, "offline/online map must use MultSTMission"
+assert b"\r\n" in (root / "Missions" / "misn03.bzn").read_bytes(), "native BZN needs CRLF"
 
 blocks = bzn.split("[GameObject]")[1:]
 enemy_blocks = []
+spawn_teams = []
 for block in blocks:
     team = re.search(r"team \[1\] =\s*\n(\d+)", block)
+    odf = re.search(r"PrjID \[1\] =\s*\n([^\n]+)", block).group(1)
+    if odf == "pspwn_1":
+        spawn_teams.append(int(team.group(1)))
+    elif team:
+        assert team.group(1) not in ("2", "3", "4"), "mission object occupies a guest team"
     if team and team.group(1) == "5":
         enemy_blocks.append(block)
         perceived = re.search(r"perceivedTeam \[1\] =\s*\n(\d+)", block)
         assert perceived and perceived.group(1) == "5", "Team-5 object has mismatched perceivedTeam"
 
 assert len(enemy_blocks) >= 7, "expected preplaced mission enemies on Team 5"
+assert sorted(spawn_teams) == [1, 2, 3, 4], "native Init requires one spawn per human team"
+header_size = int(re.search(r"size \[1\] =\n(\d+)\n\[GameObject\]", bzn).group(1))
+assert header_size == len(blocks), "native object count does not match serialized objects"
+seq_count = int(re.search(r"seq_count \[1\] =\n(\d+)", bzn).group(1))
+assert seq_count > max(int(re.search(r"seqno \[1\] =\n(\d+)", b).group(1)) for b in blocks)
 
 assert "local ENEMY_TEAM = 5" in lua, "misn03.lua enemy-team contract changed"
 assert "local LEADER_TEAM = 1" in lua, "misn03.lua leader-team contract changed"
@@ -45,4 +59,46 @@ assert "local PHASE_DEFENSE = 1" in lua, "misn03 defense phase contract changed"
 assert "local PHASE_FORTIFY = 2" in lua, "misn03 fortify phase contract changed"
 assert "CRCoop.SetMissionPhase(PHASE_DEFENSE)" in lua, "initial defense phase is not published"
 assert "CRCoop.SetMissionPhase(PHASE_FORTIFY)" in lua, "fortify phase is not published"
-assert "local function PresentMissionPhase()" in lua, "client phase presentation handler missing"
+assert "local function PresentMissionPhase()" in lua, "phase presentation handler missing"
+
+# Separate native mode INIs must resolve the one shared BZN/script by stem.
+mp = configparser.ConfigParser()
+mp.read(root / "Config" / "misn03.ini", encoding="utf-8")
+assert mp["DESCRIPTION"]["missionName"] == '"CR: Eagle\'s Nest 1 Coop"'
+assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
+assert dict(mp["MULTIPLAYER"]) == {
+    "minplayers": '"2"', "maxplayers": '"4"', "gametype": '"S"',
+}
+campaign = configparser.ConfigParser()
+campaign.read(root / "Config" / "crcampgn.ini", encoding="utf-8")
+assert campaign["MISSION2"]["missionBZN"] == '"misn03.bzn"'
+assert campaign["WORKSHOP"]["mapType"] == '"campaign"'
+
+vehicles = [line.split(",")[0].strip() for line in
+            (root / "Missions" / "misn03.vxt").read_text().splitlines() if line.strip()]
+assert vehicles == ["avtank", "avfimp"], "MP selection must be tank or scout only"
+for odf in vehicles:
+    assert (root / "ODF" / (odf + ".odf")).is_file()
+
+description = (root / "misn03.des").read_text().strip()
+assert len(description) <= 300 and "\n" not in description
+assert "team 1" in description and "teams 2-4" in description
+bitmap = (root / "Assets" / "Graphics" / "misn03.bmp").read_bytes()
+assert bitmap[:2] == b"BM" and struct.unpack_from("<I", bitmap, 14)[0] == 40
+width, height, planes, depth, compression = struct.unpack_from("<iiHHI", bitmap, 18)
+assert width > 0 and height > 0 and planes == 1 and depth == 24 and compression == 0
+assert struct.unpack_from("<I", bitmap, 2)[0] == len(bitmap)
+
+lock = json.loads((root / "Shipping" / "shipping.lock.json").read_text())
+entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
+assert lock["count"] == len(lock["files"])
+manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")
+for source in (r"Config\misn03.ini", r"Assets\Graphics\misn03.bmp",
+               "misn03.des", r"Missions\misn03.vxt",
+               r"Missions\misn03.bzn", r"Scripts\misn03.lua"):
+    runtime = source.split("\\")[-1]
+    assert entries.get(source) == runtime, f"missing shipping entry: {source}"
+    assert f'"{runtime}"' in manager, f"missing staging requirement: {runtime}"
+    assert len(runtime) <= 16
+
+print("misn03 campaign/MP scaffold and shipping checks passed")

@@ -8,6 +8,12 @@ SetLabel = SetLabel or SetLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
+-- MultST native Init runs before Start; preserve the authored recycler only.
+if type(IsNetGame) == "function" and IsNetGame() then
+    assert(exu.DisableStartingRecycler and exu.GetMyNetID,
+        "misn02b co-op requires the bundled EXU multiplayer hooks")
+    exu.DisableStartingRecycler()
+end
 aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
@@ -15,6 +21,12 @@ local PersistentConfig = require("PersistentConfig")
 local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 local TerrainClutter = require("TerrainClutter")
+local CRCoop = require("CRCoop")
+local LEADER_TEAM = 1
+local ENEMY_TEAM = 6
+local FRIENDLY_TEAM = 7
+local M
+local ApplyDifficultyObjectives
 
 local LABEL_BSCAV = "misn02b_bscav"
 local LABEL_BSCOUT = "misn02b_bscout"
@@ -59,6 +71,229 @@ local difficulty = 2
 local hardDifficultyObjective = { "hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified." }
 local easyDifficultyObjective = { "easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced." }
 
+-- Mission presentation transport. Only the campaign leader runs the mission
+-- below; HUD/audio/removal/end calls are explicitly delivered to every peer.
+-- E/A are an ordered, acknowledged event stream (eight small packets in flight,
+-- retried every 0.2s). C is a replaceable camera snapshot. No tables go on wire.
+-- These types do not collide with CRCoop's H/Q/K/P protocol. Join-in-progress
+-- still requires a restart: native world reconstruction is not available here.
+local unpackArgs = unpack or table.unpack
+local native = {
+    ClearObjectives = ClearObjectives, AddObjective = AddObjective,
+    UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
+    SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
+    SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
+    SucceedMission = SucceedMission, FailMission = FailMission,
+    CameraReady = CameraReady, CameraPath = CameraPath,
+    CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
+    Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
+}
+local events, acknowledgements = {}, {}
+local receivedEvent = 0
+local nextEventSend, nextCameraSend = 0, 0
+local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+local remoteCameraSerial, localCameraGeneration = 0, 0
+local cameraSkipped, localCameraActive = false, false
+local remoteCamera
+
+local function FromLeader(from)
+    local player = CRCoop.GetPlayers()[from]
+    return player and player.team == LEADER_TEAM
+end
+
+local function ApplyPresentation(op, ...)
+    if op == "Resources" then
+        local team, scrap, pilots = ...
+        -- Each human owns their team resources. Do not mutate a remote team.
+        if CRCoop.GetLocalTeam() == team then
+            SetScrap(team, scrap)
+            SetPilot(team, pilots)
+        end
+    elseif op == "Difficulty" then
+        difficulty = ...
+        M.coopDifficulty = difficulty
+        ApplyDifficultyObjectives()
+        if exu.SetDifficulty then exu.SetDifficulty(difficulty) end
+    elseif op == "SucceedMission" or op == "FailMission" then
+        local when, description = ...
+        native.CameraFinish()
+        cameraFrame = nil
+        localCameraActive = false
+        M.coopResult = true
+        native[op](math.max(GetTime() + 0.5, when), description)
+    else
+        return native[op](...)
+    end
+end
+
+local function Present(op, ...)
+    if CRCoop.IsNetworkGame() then
+        if not CRCoop.IsAuthority() then return end
+        events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), expires = GetTime() + 5 }
+    end
+    return ApplyPresentation(op, ...)
+end
+
+-- Lexical wrappers affect this mission only; shared modules retain stock APIs.
+local function ClearObjectives(...) return Present("ClearObjectives", ...) end
+local function AddObjective(...) return Present("AddObjective", ...) end
+local function UpdateObjective(...) return Present("UpdateObjective", ...) end
+local function SetObjectiveOn(...) return Present("SetObjectiveOn", ...) end
+local function SetObjectiveOff(...) return Present("SetObjectiveOff", ...) end
+local function SetObjectiveName(...) return Present("SetObjectiveName", ...) end
+local function SetUserTarget(...) return Present("SetUserTarget", ...) end
+local function RemoveObject(...) return Present("RemoveObject", ...) end
+-- Preserve the real subtitle module for Update/Initialize and return values.
+subtit = setmetatable({
+    Play = function(...) return Present("Play", ...) end,
+    Queue = function(...) return Present("Queue", ...) end,
+    Stop = function(...) return Present("Stop", ...) end,
+}, { __index = subtit })
+
+local function EndMission(op, when, description)
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        -- Flush preceding narrative/cleanup before publishing the result. Keep
+        -- five seconds for result retries before native AiMission shuts down.
+        M.coopPendingResult = { op, when, description }
+    else
+        M.coopResult = true
+        native[op](when, description)
+    end
+end
+local function SucceedMission(...) return EndMission("SucceedMission", ...) end
+local function FailMission(...) return EndMission("FailMission", ...) end
+
+local function CameraReady()
+    cameraGeneration = cameraGeneration + 1
+    cameraSkipped = false
+    return native.CameraReady()
+end
+local function CameraPath(path, height, speed, target)
+    cameraFrame = { path, height, speed, target }
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        native.CameraFinish()
+    end
+    if not cameraSkipped then
+        local done = native.CameraPath(path, height, speed, target)
+        if not CRCoop.IsNetworkGame() then return done end
+    end
+    return false
+end
+local function CameraCancelled()
+    -- A player's skip releases only their own camera; never skips shared
+    -- destruction, transport orders, or the success gate for everyone else.
+    if CRCoop.IsNetworkGame() then return false end
+    return native.CameraCancelled()
+end
+local function CameraFinish()
+    cameraFrame = nil
+    cameraSkipped = false
+    return native.CameraFinish()
+end
+
+local function UpdateRemoteCamera()
+    if not remoteCamera then return end
+    local generation, path, height, speed, target = unpackArgs(remoteCamera)
+    if path == "" or M.coopResult then
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+        return
+    end
+    if generation ~= localCameraGeneration then
+        localCameraGeneration = generation
+        cameraSkipped = false
+    end
+    if cameraSkipped or not IsValid(target) then return end
+    if not localCameraActive then
+        native.CameraReady()
+        localCameraActive = true
+    elseif native.CameraCancelled() then
+        cameraSkipped = true
+        localCameraActive = false
+        native.CameraFinish()
+        return
+    end
+    native.CameraPath(path, height, speed, target)
+end
+
+local function UpdatePresentationTransport()
+    if not CRCoop.IsNetworkGame() then return end
+    if not CRCoop.IsAuthority() then
+        UpdateRemoteCamera()
+        return
+    end
+    local now, allDelivered = GetTime(), true
+    for id, player in pairs(CRCoop.GetPlayers()) do
+        if CRCoop.IsHumanTeam(player.team) and id ~= CRCoop.GetLocalPlayerId() then
+            local ack = acknowledgements[id] or 0
+            if ack < #events then allDelivered = false end
+            if now >= nextEventSend then
+                for seq = ack + 1, math.min(ack + 8, #events) do
+                    local event = events[seq]
+                    Send(id, "E", seq, event.op, event.expires, unpackArgs(event.args, 1, event.n))
+                end
+            end
+        end
+    end
+    if now >= nextEventSend then nextEventSend = now + 0.2 end
+    if M.coopPendingResult and allDelivered then
+        local result = M.coopPendingResult
+        M.coopPendingResult = nil
+        Present(result[1], math.max(now + 5, result[2] or 0), result[3])
+    end
+    if now >= nextCameraSend then
+        nextCameraSend = now + 0.2
+        cameraSerial = cameraSerial + 1
+        if cameraFrame then
+            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(cameraFrame))
+        else
+            Send(0, "C", cameraSerial, cameraGeneration, "", 0, 0)
+        end
+    end
+end
+
+local function ReceivePresentation(from, kind, ...)
+    if not CRCoop.IsNetworkGame() then return false end
+    if kind == "A" then
+        local seq = ...
+        if CRCoop.IsAuthority() and CRCoop.GetPlayers()[from] and
+            type(seq) == "number" and seq >= 0 and seq <= #events and seq == math.floor(seq) then
+            acknowledgements[from] = math.max(acknowledgements[from] or 0, seq)
+        end
+        return true
+    end
+    if kind ~= "E" and kind ~= "C" then return false end
+    if CRCoop.IsAuthority() or not FromLeader(from) then return true end
+    if kind == "C" then
+        local seq, generation, path, height, speed, target = ...
+        if type(seq) == "number" and seq > remoteCameraSerial and type(generation) == "number" and
+            type(path) == "string" and type(height) == "number" and type(speed) == "number" then
+            remoteCameraSerial = seq
+            remoteCamera = { generation, path, height, speed, target }
+        end
+        return true
+    end
+    local seq, op, expires = ...
+    if type(seq) ~= "number" or type(op) ~= "string" or type(expires) ~= "number" then return true end
+    if seq == receivedEvent + 1 and (native[op] or op == "Resources" or op == "Difficulty") then
+        local args = { select(4, ...) }
+        -- Dynamic handles can arrive after the Lua packet. Withhold the ACK
+        -- until the next retransmission resolves it, rather than losing markers.
+        local missing = (op == "SetObjectiveOn" or op == "SetObjectiveName" or op == "SetUserTarget") and
+            not IsValid(args[1])
+        if missing and GetTime() < expires then return true end
+        -- A target destroyed before its packet arrived must not block the
+        -- stream (and the mission result) forever. Only that stale marker drops.
+        if not missing then ApplyPresentation(op, unpackArgs(args, 1, select("#", ...) - 3)) end
+        receivedEvent = seq
+    end
+    Send(from, "A", receivedEvent)
+    return true
+end
+
+
 local function RefreshDifficulty()
     if exu and exu.GetDifficulty then
         local d = exu.GetDifficulty()
@@ -69,7 +304,7 @@ local function RefreshDifficulty()
     return difficulty
 end
 
-local function ApplyDifficultyObjectives()
+ApplyDifficultyObjectives = function()
     if difficulty >= 3 then
         AddObjective(hardDifficultyObjective[1], hardDifficultyObjective[2], hardDifficultyObjective[3], hardDifficultyObjective[4])
     elseif difficulty <= 1 then
@@ -100,7 +335,7 @@ local function InitializeMissionSubtitles()
 end
 
 local function TurboValue(team)
-    if team == 1 then
+    if CRCoop.IsHumanTeam(team) or team == FRIENDLY_TEAM then
         return true
     end
     if team ~= 0 and difficulty and difficulty > 3 then
@@ -109,6 +344,7 @@ local function TurboValue(team)
 end
 
 local function ApplyTurbo(h)
+    if CRCoop.IsNetworkGame() and not IsLocal(h) then return end
     if not (exu and exu.SetUnitTurbo and IsCraft(h)) then
         return
     end
@@ -183,7 +419,7 @@ local function NewMissionState()
         stagedFighters = {},
     }
 end
-local M = NewMissionState()
+M = NewMissionState()
 
 local function OrderActivatedFighter(h)
     if not h or not IsAlive(h) then return end
@@ -222,7 +458,7 @@ local function ActivateStagedFighters()
     local activated = 0
     for _, fighter in ipairs(M.stagedFighters or {}) do
         if fighter and IsAlive(fighter) then
-            SetTeamNum(fighter, 2)
+            SetTeamNum(fighter, ENEMY_TEAM)
             if type(SetIndependence) == "function" then SetIndependence(fighter, 1) end
             OrderActivatedFighter(fighter)
             activated = activated + 1
@@ -313,7 +549,7 @@ RefreshHandlesAfterLoad = function()
         end
 
         if not foundScout then
-            if IsOdf(h, "svfigh") and GetTeamNum(h) == 2 then
+            if IsOdf(h, "svfigh") and GetTeamNum(h) == ENEMY_TEAM then
                 M.bscout = h
                 if SetLabel then SetLabel(M.bscout, LABEL_BSCOUT) end
                 foundScout = true
@@ -330,10 +566,10 @@ end
 
 local function SetupAI(preserveExisting)
     local playerTeam, enemyTeam
-    if preserveExisting and aiCore.ActiveTeams and aiCore.ActiveTeams[1] and aiCore.ActiveTeams[2] then
-        playerTeam, enemyTeam = aiCore.ActiveTeams[1], aiCore.ActiveTeams[2]
+    if preserveExisting and aiCore.ActiveTeams and aiCore.ActiveTeams[1] and aiCore.ActiveTeams[ENEMY_TEAM] then
+        playerTeam, enemyTeam = aiCore.ActiveTeams[1], aiCore.ActiveTeams[ENEMY_TEAM]
     else
-        playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+        playerTeam, enemyTeam = DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, ENEMY_TEAM)
     end
     playerTeam:SetConfig("manageFactories", false)
     playerTeam:SetConfig("manageBase", false)
@@ -341,7 +577,7 @@ local function SetupAI(preserveExisting)
     playerTeam:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     playerTeam:SetConfig("enableParatroopers", false)
 
-    -- Every Team 2 combat unit in Mission 02B is mission-scripted. Keep aiCore
+    -- Every Team 6 combat unit in Mission 02B is mission-scripted. Keep aiCore
     -- available for shared systems, but do not let its strategic managers issue
     -- competing orders to the Soviet patrols/waves.
     enemyTeam:SetConfig("manageFactories", false)
@@ -353,14 +589,32 @@ local function SetupAI(preserveExisting)
 end
 
 local function BootstrapPlayerSideAI()
+    if CRCoop.IsNetworkGame() then
+        -- Bootstrap's world-wide registration can create strategic managers
+        -- for guest teams and tune remote human craft. Keep world observation,
+        -- but register behavior only for locally owned non-human objects.
+        aiCore.ResetObjectCacheTracking()
+        for h in AllObjects() do
+            aiCore.TrackWorldObject(h)
+            if h and IsValid(h) and IsLocal(h) and not CRCoop.IsHumanCraft(h) then
+                if GetTeamNum(h) == ENEMY_TEAM then
+                    aiCore.AddSpecialObject(h)
+                else
+                    aiCore.AddObject(h)
+                end
+            end
+        end
+        aiCore.RefreshObjectCache(true)
+        return
+    end
     local restoreIndependence = {}
 
-    -- aiCore.Bootstrap scans the whole world, so temporarily lock Team 2 craft
+    -- aiCore.Bootstrap scans the whole world, so temporarily lock Team 6 craft
     -- out of that scan. Their original independence values are restored before
     -- mission logic resumes.
     if type(GetIndependence) == "function" and type(SetIndependence) == "function" then
         for h in AllCraft() do
-            if h and IsValid(h) and GetTeamNum(h) == 2 then
+            if h and IsValid(h) and GetTeamNum(h) == ENEMY_TEAM then
                 local ok, value = pcall(GetIndependence, h)
                 if ok then
                     restoreIndependence[h] = value
@@ -383,7 +637,7 @@ local function BootstrapPlayerSideAI()
     -- Add only aiSpecial combat behavior to pre-placed scripted units. This
     -- does not put them into production, squad, or base-management lists.
     for h in AllObjects() do
-        if h and IsValid(h) and GetTeamNum(h) == 2 then
+        if h and IsValid(h) and GetTeamNum(h) == ENEMY_TEAM then
             aiCore.AddSpecialObject(h)
         end
     end
@@ -398,7 +652,10 @@ PilotModeCanManageHandle = function(h)
         return false
     end
 
-    return h ~= GetPlayerHandle()
+    if CRCoop.IsNetworkGame() and (not IsLocal(h) or not CRCoop.HasAllPlayerHandles()) then
+        return false
+    end
+    return not CRCoop.IsHumanCraft(h)
 end
 
 local function GetPilotModeObjectiveContext()
@@ -449,18 +706,20 @@ end
 
 local function InitializeMissionRuntime(preserveExisting)
     RefreshDifficulty()
-    ApplyDifficultyObjectives()
+    if not CRCoop.IsNetworkGame() then ApplyDifficultyObjectives() end
     ApplyQOL()
-    InitializePilotMode()
-    SetupAI(preserveExisting)
-    BootstrapPlayerSideAI()
+    if CRCoop.IsAuthority() then
+        InitializePilotMode()
+        SetupAI(preserveExisting)
+        BootstrapPlayerSideAI()
+    end
     ApplyTurboToAll()
 end
 
 local function ApplyPostLoadInit()
-    Ally(1, 5)
-    Ally(5, 1)
-    SetAIP("misn02.aip")
+    Ally(LEADER_TEAM, FRIENDLY_TEAM)
+    Ally(FRIENDLY_TEAM, LEADER_TEAM)
+    SetAIP("misn02.aip", ENEMY_TEAM)
     InitializeMissionSubtitles()
 
     if M.bgoal and IsAlive(M.bgoal) then
@@ -475,13 +734,24 @@ end
 
 function Start()
     M = NewMissionState()
-    Ally(1, 5)
-    Ally(5, 1)
+    CRCoop.Initialize({
+        getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
+        leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
+    })
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+    for team = 1, 4 do
+        Ally(team, FRIENDLY_TEAM)
+        Ally(FRIENDLY_TEAM, team)
+    end
+    if CRCoop.IsNetworkGame() and exu.SetLives then exu.SetLives(999) end
+    InitializeMissionSubtitles()
+    Ally(LEADER_TEAM, FRIENDLY_TEAM)
+    Ally(FRIENDLY_TEAM, LEADER_TEAM)
     if PersistentConfig and PersistentConfig.EnableOverlayRendererForSession then
         PersistentConfig.EnableOverlayRendererForSession()
     end
     InitializeMissionRuntime()
-    StageInitialFighters()
+    if not CRCoop.IsNetworkGame() then StageInitialFighters() end
     BuildTerrainClutter()
 
     for h in AllCraft() do
@@ -491,6 +761,20 @@ function Start()
     M.loading_done = true
 
     --TestEXU()
+end
+
+function CreatePlayer(id, name, team)
+    CRCoop.CreatePlayer(id, name, team)
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+end
+function AddPlayer(id, name, team)
+    CRCoop.AddPlayer(id, name, team)
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+end
+function DeletePlayer(id, name, team) CRCoop.DeletePlayer(id) end
+function Receive(from, kind, ...)
+    if ReceivePresentation(from, kind, ...) then return true end
+    return CRCoop.Receive(from, kind, ...)
 end
 
 -- AddObject function: Called when a game object is added
@@ -503,6 +787,7 @@ function AddObject(h)
         PersistentConfig.OnObjectCreated(h)
     end
     ApplyTurbo(h)
+    if not CRCoop.IsAuthority() then return end
 
     if team == 1 and odf == "avscav" and M.bscav == nil then
         M.found = true
@@ -518,14 +803,14 @@ function AddObject(h)
         end
     end
 
-    if team == 2 and odf == "svfigh" then
+    if team == ENEMY_TEAM and odf == "svfigh" then
         OrderActivatedFighter(h)
     end
 
-    -- Team 2 remains script-owned for production and tactical orders, but gets
+    -- Team 6 remains script-owned for production and tactical orders, but gets
     -- the reusable aiSpecial combat layer (weapon switching, cloak, sniping,
     -- and craft stealing). Player scavengers still use PlayerPilotMode.
-    if team == 2 then
+    if team == ENEMY_TEAM then
         aiCore.AddSpecialObject(h)
     end
     if team == 1 and IsOdf(h, "avscav") then
@@ -544,18 +829,42 @@ function Update()
         end
         RefreshHandlesAfterLoad()
         InitializeMissionRuntime(true)
-        StageInitialFighters()
+        if not CRCoop.IsNetworkGame() then StageInitialFighters() end
         ApplyPostLoadInit()
         BuildTerrainClutter()
         M.loading_done = true
     end
     local player = GetPlayerHandle()
+    CRCoop.Update()
+    UpdatePresentationTransport()
+    UpdateModules(1.0 / 20.0)
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        if CRCoop.HasLeaderDeparted() then
+            M.coopResult = true
+            native.CameraFinish()
+            native.FailMission(GetTime() + 1.0)
+            return
+        end
+        if CRCoop.HasUnsupportedPlayerTeam() or CRCoop.HasLateJoiners() then
+            if not M.coopRestartWarned then
+                DisplayMessage("Use distinct teams 1-4 and start together. Late join/rejoin requires a mission restart.")
+                M.coopRestartWarned = true
+            end
+            return
+        end
+        if not CRCoop.IsSessionReady() then return end
+    end
+    if not M.coopMissionStarted then
+        CRCoop.MarkMissionStarted()
+        M.coopMissionStarted = true
+    end
+    if not CRCoop.IsAuthority() then return end
     PlayerPilotMode.Update()
     aiCore.Update()
-    if autosave and autosave.Update then
+    if not CRCoop.IsNetworkGame() and autosave and autosave.Update then
         autosave.Update(1.0 / 20.0)
     end
-    UpdateModules(1.0 / 20.0)
 
     -- Holographic Bio Logic
     if (M.camera1 or M.camera2 or M.camera3) and GetTime() >= M.bio_timer then
@@ -569,8 +878,18 @@ function Update()
     end
 
     if not M.start_done then
-        if IsAlive(player) then
+        if not CRCoop.IsNetworkGame() and IsAlive(player) then
             SetPosition(player, STOCK_PLAYER_START)
+        end
+        if CRCoop.IsNetworkGame() then
+            -- Native MP creates each human's craft. Discard only the offline
+            -- actor; keep the authored empty tank available as in the campaign.
+            local offlinePlayer = GetHandle("asuser0_person")
+            if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then
+                RemoveObject(offlinePlayer)
+            end
+            StageInitialFighters()
+            Present("Difficulty", RefreshDifficulty())
         end
 
         --[[
@@ -646,9 +965,12 @@ function Update()
         -- playerTeam:SetConfig("siloMinDistance", 250.0)
         -- playerTeam:SetConfig("siloMaxDistance", 450.0)
         --]]
-        SetPilot(1, math.max(1, DiffUtils.ScaleRes(2)))
-        SetScrap(1, math.max(4, DiffUtils.ScaleRes(5)))
-        SetAIP("misn02.aip")
+        local pilots = math.max(1, DiffUtils.ScaleRes(2))
+        local scrap = math.max(4, DiffUtils.ScaleRes(5))
+        CRCoop.ForEachHumanTeam(function(team)
+            Present("Resources", team, scrap, pilots)
+        end)
+        SetAIP("misn02.aip", ENEMY_TEAM)
 
         M.dummy = GetHandle("fake_player")
         M.lander = GetHandle("avland0_wingman")
@@ -664,8 +986,8 @@ function Update()
         M.start_done = true
         InitializeMissionSubtitles()
 
-        -- Establish alliance between player (team 1) and M.dummy tank (team 5)
-        Ally(1, 5)
+        -- Establish alliance between player (team 1) and M.dummy tank (team 7)
+        Ally(LEADER_TEAM, FRIENDLY_TEAM)
 
         -- Spawn pilots at Recycler based on difficulty
         local d = DiffUtils.Get().index
@@ -691,7 +1013,8 @@ function Update()
 
     -- Camera Logic
     if M.camera1 then
-        if CameraPath("fixcam", 1200, 250, M.lander) or CameraCancelled() or AudioDone(M.audmsg) then
+        if CameraPath("fixcam", 1200, 250, M.lander) or CameraCancelled() or AudioDone(M.audmsg)
+            or (CRCoop.IsNetworkGame() and GetTime() > M.cam_time) then
             -- Stop audio and subtitles if skipped
             if CameraCancelled() then
                 subtit.Stop()
@@ -714,15 +1037,16 @@ function Update()
     end
 
     if M.camera3 then
-        if CameraPath("zoomcam", 1200, 800, M.dummy) or AudioDone(M.audmsg) or CameraCancelled() then
+        if CameraPath("zoomcam", 1200, 800, M.dummy) or AudioDone(M.audmsg) or CameraCancelled()
+            or (CRCoop.IsNetworkGame() and GetTime() > M.cam_time) then
             M.camera3 = false
             M.cam_time = 99999.0
             CameraFinish()
 
             -- Reassign M.dummy tank instead of removing it
             if IsAlive(M.dummy) then
-                SetTeamNum(M.dummy, 5) -- Set to team 5
-                Ally(1, 5)           -- Make teams 1 and 5 allies
+                SetTeamNum(M.dummy, FRIENDLY_TEAM) -- Set to team 7
+                Ally(LEADER_TEAM, FRIENDLY_TEAM)           -- Make teams 1 and 7 allies
 
                 local d = DiffUtils.Get().index
                 if d < 2 and IsAlive(M.bscav) then
@@ -752,7 +1076,7 @@ function Update()
     -- vehicle. Keep the later ClearObjectives transition unchanged.
     if M.start_done and not M.camera1 and not M.camera2 and not M.camera3
         and not M.message2 and not M.initialObjectiveCompleted
-        and IsAlive(player) and not IsPerson(player) then
+        and CRCoop.AllPlayersSatisfy(function(h) return IsAlive(h) and not IsPerson(h) end) then
         UpdateObjective("misn02b1.otf", "green")
         M.initialObjectiveCompleted = true
     end
@@ -762,7 +1086,7 @@ function Update()
         if ActivateStagedFighters() == 0 then
             -- Compatibility fallback for old saves made before staged fighters
             -- were persisted.
-            for _ = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn1") end
+            for _ = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", ENEMY_TEAM, "spawn1") end
         end
 
         subtit.Play("misn0233.wav")
@@ -779,7 +1103,7 @@ function Update()
     end
 
     -- Capture pre-placed player-side units after mission initialization without
-    -- allowing aiCore to claim the scripted Team 2 force.
+    -- allowing aiCore to claim the scripted Team 6 force.
     if M.start_done and not M.bootstrap_done then
         BootstrapPlayerSideAI()
         M.bootstrap_done = true
@@ -787,13 +1111,13 @@ function Update()
 
     -- Wave Logic
     if M.message4 and not M.message5 and IsAlive(M.bscav) and IsAlive(M.bhandle2) and GetDistance(M.bscav, M.bhandle2) < 200.0 then
-        BuildObject("svfigh", 2, "spawn2")
+        BuildObject("svfigh", ENEMY_TEAM, "spawn2")
         M.message5 = true
         M.wave_timer = GetTime() + 30.0
     end
 
     if M.message5 and GetTime() > M.wave_timer then
-        for i = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", 2, "spawn2") end
+        for i = 1, DiffUtils.ScaleEnemy(1) do BuildObject("svfigh", ENEMY_TEAM, "spawn2") end
         M.wave_timer = GetTime() + DiffUtils.ScaleTimer(45.0)
     end
 
@@ -816,7 +1140,7 @@ function Update()
     -- Keep the first terminal result: rescue/win must not replace failure's
     -- shared audmsg in this frame, and a settled win must not become a loss.
     if not M.mission_lost and not M.mission_won then
-        if (M.bscav ~= nil and (not IsAlive(player) or not IsAlive(M.bscav) or (M.message3 and not IsAlive(M.scav2))))
+        if (M.bscav ~= nil and ((not CRCoop.IsNetworkGame() and not IsAlive(player)) or not IsAlive(M.bscav) or (M.message3 and not IsAlive(M.scav2))))
             or not IsAlive(M.bhome) or not IsAlive(M.recycler) then
             ClearObjectives()
             AddObjective("misn02b4.otf", "red")
@@ -830,7 +1154,7 @@ function Update()
     end
 
     -- Rescue Logic
-    if not M.mission_lost and not M.mission_won and IsAlive(player) and M.message1 and M.message4 and IsAlive(M.bhome) and IsAlive(M.bscav) and GetDistance(M.bhome, M.bscav) < 300.0 and not M.message3 then
+    if not M.mission_lost and not M.mission_won and (CRCoop.IsNetworkGame() or IsAlive(player)) and M.message1 and M.message4 and IsAlive(M.bhome) and IsAlive(M.bscav) and GetDistance(M.bhome, M.bscav) < 300.0 and not M.message3 then
         Follow(M.bscav, M.bhome)
         M.wave_timer = GetTime() + 45.0
         M.scav2 = BuildObject("avscav", 1, "spawn3")
@@ -852,7 +1176,7 @@ function Update()
 
         -- Flanking Ambush: Spawn enemies behind the player at spawn1
         for i = 1, DiffUtils.ScaleEnemy(1) do
-            local h = BuildObject("svfigh", 2, "spawn1")
+            local h = BuildObject("svfigh", ENEMY_TEAM, "spawn1")
             Attack(h, M.scav2)
         end
     end
@@ -866,7 +1190,7 @@ function Update()
     -- Final Wave
     if M.last_wave_time < GetTime() then
         for i = 1, DiffUtils.ScaleEnemy(1) do
-            local sid = BuildObject("svfigh", 2, "spawn4")
+            local sid = BuildObject("svfigh", ENEMY_TEAM, "spawn4")
             if IsAlive(M.scav2) then Attack(sid, M.scav2) end
         end
         M.last_wave_time = 99999.0

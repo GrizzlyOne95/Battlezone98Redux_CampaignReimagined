@@ -1201,6 +1201,9 @@ function Environment.ProcessObjectNightEffects(h)
     if not h or not IsValid(h) then
         return
     end
+    -- Replicas must not write the sensor state owned by another peer.
+    if type(IsNetGame) == "function" and IsNetGame()
+        and (type(IsLocal) ~= "function" or not IsLocal(h)) then return end
     if not exu.SetRadarRange or not exu.SetRadarPeriod or not exu.SetVelocJam then
         return
     end

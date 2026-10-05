@@ -1495,8 +1495,23 @@ function Build-WorkshopContent {
         "RuntimeEnhancements.lua",
         "misn01.lua",
         "misn02b.lua",
+        "misn02b.bzn",
+        "misn02b.ini",
+        "misn02b.bmp",
+        "misn02b.des",
+        "misn02b.vxt",
         "misn03.lua",
-        "misn04.lua"
+        "misn03.bzn",
+        "misn03.ini",
+        "misn03.bmp",
+        "misn03.des",
+        "misn03.vxt",
+        "misn04.lua",
+        "misn04.bzn",
+        "misn04.ini",
+        "misn04.bmp",
+        "misn04.des",
+        "misn04.vxt"
     )
     foreach ($relativePath in $requiredFiles) {
         if (-not (Test-Path -LiteralPath (Join-Path $contentFolder $relativePath))) {

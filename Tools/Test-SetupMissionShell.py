@@ -40,7 +40,7 @@ mod_parser.read(mod_ini_path, encoding="utf-8")
 assert mod_parser["DESCRIPTION"]["missionName"] == '"Campaign Reimagined"'
 assert mod_parser["WORKSHOP"]["mapType"] == '"campaign"'
 
-# Campaign progression must use the shipped LuaMission rewrites, with setup
+# Campaign progression must use the shipped Lua-backed rewrites, with setup
 # remaining independently discoverable in Instant Action. Stock training has
 # a Lua port but no CR BZN yet, so it must not masquerade as a playable rewrite.
 mission_sections = [section for section in mod_parser.sections() if section.startswith("MISSION")]
@@ -52,7 +52,8 @@ for section, filename in zip(mission_sections, campaign_maps):
     assert mod_parser[section]["planet"].strip('"') in {"moon", "mars"}
     path = ROOT / "Missions" / filename
     assert path.is_file(), f"campaign must use a CR map: {filename}"
-    assert "name = LuaMission" in path.read_text(encoding="utf-8")
+    mission_class = "MultSTMission" if filename in {"misn02b.bzn", "misn03.bzn", "misn04.bzn"} else "LuaMission"
+    assert f"name = {mission_class}\n" in path.read_text(encoding="utf-8")
     assert (ROOT / "Scripts" / Path(filename).with_suffix(".lua")).is_file()
 
 # Redux's custom-campaign menu uses a BMP preview; retain the JPG for Workshop.
@@ -89,7 +90,27 @@ for required in (
 # The former one-object hand-written file did not load in-game. Reuse the complete, tested mission map
 # serialization while selecting the independent setup script.
 template = (ROOT / "Missions" / "misn02b.bzn").read_text(encoding="utf-8")
-assert bzn == template.replace("msn_filename = misn02b.bzn", "msn_filename = crsetup.bzn", 1).replace("TerrainName = misn02b", "TerrainName = crsetup", 1)
+# misn02b now carries MP spawn buoys/team reservations. Setup retains its
+# original offline serialization; compare the authored objects after undoing
+# only those mission-specific co-op changes.
+import re
+parts = template.split("[GameObject]")
+kept = []
+for block in parts[1:]:
+    if "label = coop_spawn" in block:
+        # The last buoy also contains the mission footer and path tables.
+        if "name = MultSTMission\n" in block:
+            kept[-1] += block[block.index("name = MultSTMission\n"):]
+        continue
+    block = re.sub(r"((?:team|perceivedTeam) \[1\] =\n)7\n", r"\g<1>5\n", block)
+    if "label = fake_player\n" in block:
+        block = re.sub(r"((?:team|perceivedTeam) \[1\] =\n)5\n", r"\g<1>1\n", block)
+    kept.append(block)
+base = parts[0].replace("seq_count [1] =\n532", "seq_count [1] =\n528", 1).replace("size [1] =\n43", "size [1] =\n39", 1)
+base += "".join("[GameObject]" + block for block in kept)
+base = base.replace("name = MultSTMission", "name = LuaMission", 1)
+base = re.sub(r"(\[AOI\].*?team \[1\] =\n)6\n", r"\g<1>2\n", base, flags=re.S)
+assert bzn == base.replace("msn_filename = misn02b.bzn", "msn_filename = crsetup.bzn", 1).replace("TerrainName = misn02b", "TerrainName = crsetup", 1)
 for extension in ("trn", "hg2", "mat", "lgt"):
     assert (ROOT / "Missions" / ("crsetup." + extension)).is_file(), "setup terrain must be self-contained"
 

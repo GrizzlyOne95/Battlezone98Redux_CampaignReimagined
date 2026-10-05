@@ -118,6 +118,29 @@ do
         return path
     end
 
+    -- Redux builds its stock search paths from the executable's directory
+    -- (Lua 5.1 defaults: "<game>\lua\?.lua" on package.path, "<game>\?.dll" on
+    -- package.cpath).  They name the game directory whatever the install folder
+    -- is called, whereas trimming "<game>\?.dll" like the other entries yields
+    -- its parent.  Only the stock lists are read, so paths this module injects
+    -- cannot mislead it.
+    local function StockGameDirectory()
+        for _, pathList in ipairs({ originalPath, originalCPath }) do
+            for _, entry in ipairs(SplitAtSemicolon(pathList)) do
+                local normalized = NormalizePath(entry)
+                if normalized and (normalized:match("^%a:\\") or normalized:match("^\\\\")) then
+                    local lowerEntry = string.lower((entry:gsub("/", "\\")))
+                    if lowerEntry:match("\\lua\\%?%.lua$") then
+                        return normalized:sub(1, #normalized - 4)
+                    elseif lowerEntry:match("\\%?%.dll$") then
+                        return normalized
+                    end
+                end
+            end
+        end
+        return nil
+    end
+
     local function DetectGameDirectory()
         local searchLists = { package.cpath or "", package.path or "", originalCPath, originalPath }
         local relativeFallback = nil
@@ -145,7 +168,10 @@ do
             end
         end
 
-        lastGameDirectory = absoluteFallback or relativeFallback or lastGameDirectory
+        -- No "Battlezone 98 Redux" folder on the search paths (renamed, copied
+        -- or side-by-side installs): prefer the stock executable directory
+        -- over the first trimmed entry, which is that directory's parent.
+        lastGameDirectory = StockGameDirectory() or absoluteFallback or relativeFallback or lastGameDirectory
         return lastGameDirectory
     end
 
