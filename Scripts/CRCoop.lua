@@ -153,6 +153,13 @@ function CRCoop.Initialize(options)
         phaseBroadcastInterval = options.phaseBroadcastInterval
     end
 
+    -- Start may re-enter in the same process. Preserve native player callbacks
+    -- that preceded Start, but never carry the prior mission admission state.
+    missionStarted = false
+    for _, player in pairs(players) do
+        player.ready, player.lateJoin = false, false
+        player.handle = nil
+    end
     nextHandleBroadcast = 0.0
     nextHandshakeRequest = 0.0
     nextPhaseBroadcast = 0.0

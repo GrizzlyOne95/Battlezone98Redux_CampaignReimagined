@@ -108,6 +108,11 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-Misn03Coop.lua
 
+      - name: Test misn04 co-op scaffold and complete mission
+        run: |
+          python Tools/Test-Misn04CoopContract.py
+          lua5.1 Tools/Test-Misn04Coop.lua
+
       - name: Test misn10 source-faithful port
         shell: bash
         run: |
