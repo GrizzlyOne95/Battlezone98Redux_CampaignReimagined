@@ -7,6 +7,14 @@ SetLabel = SetLabel or SetLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
+-- MultSTMission creates a player craft and (normally) a free recycler during
+-- native Init, before Start. Keep the authored Montana as the only recycler.
+-- EXU documents this as a loose/pre-start call; never move it into Start.
+if type(IsNetGame) == "function" and IsNetGame() then
+    assert(exu.DisableStartingRecycler and exu.GetMyNetID,
+        "misn03 co-op requires the bundled EXU multiplayer hooks")
+    exu.DisableStartingRecycler()
+end
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
@@ -24,6 +32,233 @@ local PHASE_FORTIFY = 2
 local difficulty = 2
 local M
 local TRACE_UPDATE_CALLS = false
+
+-- Mission presentation transport. Only the campaign leader runs the mission
+-- below; HUD/audio/removal/end calls are explicitly delivered to every peer.
+-- E/A are an ordered, acknowledged event stream (eight small packets in flight,
+-- retried every 0.2s). C is a replaceable camera snapshot. No tables go on wire.
+-- These types do not collide with CRCoop's H/Q/K/P protocol. Join-in-progress
+-- still requires a restart: native world reconstruction is not available here.
+local unpackArgs = unpack or table.unpack
+local native = {
+    ClearObjectives = ClearObjectives, AddObjective = AddObjective,
+    UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
+    SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
+    SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
+    SetMaxHealth = SetMaxHealth, SetCurHealth = SetCurHealth,
+    SucceedMission = SucceedMission, FailMission = FailMission,
+    CameraReady = CameraReady, CameraPath = CameraPath,
+    CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
+    Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
+}
+local events, acknowledgements = {}, {}
+local receivedEvent = 0
+local nextEventSend, nextCameraSend = 0, 0
+local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+local remoteCameraSerial, localCameraGeneration = 0, 0
+local cameraSkipped, localCameraActive = false, false
+local remoteCamera
+
+local function FromLeader(from)
+    local player = CRCoop.GetPlayers()[from]
+    return player and player.team == LEADER_TEAM
+end
+
+local function ApplyPresentation(op, ...)
+    if op == "Resources" then
+        local team, scrap, pilots = ...
+        -- Each human owns their team resources. Do not mutate a remote team.
+        if CRCoop.GetLocalTeam() == team then
+            SetScrap(team, scrap)
+            SetPilot(team, pilots)
+        end
+    elseif op == "Difficulty" then
+        difficulty = ...
+        M.coopDifficulty = difficulty
+        if exu.SetDifficulty then exu.SetDifficulty(difficulty) end
+    elseif op == "SetMaxHealth" then
+        local h, value = ...
+        -- Native SetMaxHealth only assigns a local field; stock state packets
+        -- carry health/fractions, not this mission's custom maximum. Preserve
+        -- the replica's latest health fraction until the next owner update.
+        local fraction = GetHealth(h)
+        native.SetMaxHealth(h, value)
+        native.SetCurHealth(h, fraction * value)
+    elseif op == "SucceedMission" or op == "FailMission" then
+        local when, description = ...
+        native.CameraFinish()
+        cameraFrame = nil
+        localCameraActive = false
+        M.coopResult = true
+        native[op](math.max(GetTime() + 0.5, when), description)
+    else
+        return native[op](...)
+    end
+end
+
+local function Present(op, ...)
+    if CRCoop.IsNetworkGame() then
+        if not CRCoop.IsAuthority() then return end
+        events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), expires = GetTime() + 5 }
+    end
+    return ApplyPresentation(op, ...)
+end
+
+-- Lexical wrappers affect this mission only; shared modules retain stock APIs.
+local function ClearObjectives(...) return Present("ClearObjectives", ...) end
+local function AddObjective(...) return Present("AddObjective", ...) end
+local function UpdateObjective(...) return Present("UpdateObjective", ...) end
+local function SetObjectiveOn(...) return Present("SetObjectiveOn", ...) end
+local function SetObjectiveOff(...) return Present("SetObjectiveOff", ...) end
+local function SetObjectiveName(...) return Present("SetObjectiveName", ...) end
+local function SetUserTarget(...) return Present("SetUserTarget", ...) end
+local function RemoveObject(...) return Present("RemoveObject", ...) end
+local function SetMaxHealth(...) return Present("SetMaxHealth", ...) end
+-- Preserve the real subtitle module for Update/Initialize and return values.
+subtit = setmetatable({
+    Play = function(...) return Present("Play", ...) end,
+    Queue = function(...) return Present("Queue", ...) end,
+    Stop = function(...) return Present("Stop", ...) end,
+}, { __index = subtit })
+
+local function EndMission(op, when, description)
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        -- Flush preceding narrative/cleanup before publishing the result. Keep
+        -- five seconds for result retries before native AiMission shuts down.
+        M.coopPendingResult = { op, when, description }
+    else
+        native[op](when, description)
+    end
+end
+local function SucceedMission(...) return EndMission("SucceedMission", ...) end
+local function FailMission(...) return EndMission("FailMission", ...) end
+
+local function CameraReady()
+    cameraGeneration = cameraGeneration + 1
+    cameraSkipped = false
+    return native.CameraReady()
+end
+local function CameraPath(path, height, speed, target)
+    cameraFrame = { path, height, speed, target }
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        native.CameraFinish()
+    end
+    if not cameraSkipped then return native.CameraPath(path, height, speed, target) end
+end
+local function CameraCancelled()
+    -- A player's skip releases only their own camera; never skips shared
+    -- destruction, transport orders, or the success gate for everyone else.
+    if CRCoop.IsNetworkGame() then return false end
+    return native.CameraCancelled()
+end
+local function CameraFinish()
+    cameraFrame = nil
+    cameraSkipped = false
+    return native.CameraFinish()
+end
+
+local function UpdateRemoteCamera()
+    if not remoteCamera then return end
+    local generation, path, height, speed, target = unpackArgs(remoteCamera)
+    if path == "" or M.coopResult then
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+        return
+    end
+    if generation ~= localCameraGeneration then
+        localCameraGeneration = generation
+        cameraSkipped = false
+    end
+    if cameraSkipped or not IsValid(target) then return end
+    if not localCameraActive then
+        native.CameraReady()
+        localCameraActive = true
+    elseif native.CameraCancelled() then
+        cameraSkipped = true
+        localCameraActive = false
+        native.CameraFinish()
+        return
+    end
+    native.CameraPath(path, height, speed, target)
+end
+
+local function UpdatePresentationTransport()
+    if not CRCoop.IsNetworkGame() then return end
+    if not CRCoop.IsAuthority() then
+        UpdateRemoteCamera()
+        return
+    end
+    local now, allDelivered = GetTime(), true
+    for id, player in pairs(CRCoop.GetPlayers()) do
+        if CRCoop.IsHumanTeam(player.team) and id ~= CRCoop.GetLocalPlayerId() then
+            local ack = acknowledgements[id] or 0
+            if ack < #events then allDelivered = false end
+            if now >= nextEventSend then
+                for seq = ack + 1, math.min(ack + 8, #events) do
+                    local event = events[seq]
+                    Send(id, "E", seq, event.op, event.expires, unpackArgs(event.args, 1, event.n))
+                end
+            end
+        end
+    end
+    if now >= nextEventSend then nextEventSend = now + 0.2 end
+    if M.coopPendingResult and allDelivered then
+        local result = M.coopPendingResult
+        M.coopPendingResult = nil
+        Present(result[1], math.max(now + 5, result[2] or 0), result[3])
+    end
+    if now >= nextCameraSend then
+        nextCameraSend = now + 0.2
+        cameraSerial = cameraSerial + 1
+        if cameraFrame then
+            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(cameraFrame))
+        else
+            Send(0, "C", cameraSerial, cameraGeneration, "", 0, 0)
+        end
+    end
+end
+
+local function ReceivePresentation(from, kind, ...)
+    if not CRCoop.IsNetworkGame() then return false end
+    if kind == "A" then
+        local seq = ...
+        if CRCoop.IsAuthority() and CRCoop.GetPlayers()[from] and
+            type(seq) == "number" and seq >= 0 and seq <= #events and seq == math.floor(seq) then
+            acknowledgements[from] = math.max(acknowledgements[from] or 0, seq)
+        end
+        return true
+    end
+    if kind ~= "E" and kind ~= "C" then return false end
+    if CRCoop.IsAuthority() or not FromLeader(from) then return true end
+    if kind == "C" then
+        local seq, generation, path, height, speed, target = ...
+        if type(seq) == "number" and seq > remoteCameraSerial and type(generation) == "number" and
+            type(path) == "string" and type(height) == "number" and type(speed) == "number" then
+            remoteCameraSerial = seq
+            remoteCamera = { generation, path, height, speed, target }
+        end
+        return true
+    end
+    local seq, op, expires = ...
+    if type(seq) ~= "number" or type(op) ~= "string" or type(expires) ~= "number" then return true end
+    if seq == receivedEvent + 1 and (native[op] or op == "Resources" or op == "Difficulty") then
+        local args = { select(4, ...) }
+        -- Dynamic handles can arrive after the Lua packet. Withhold the ACK
+        -- until the next retransmission resolves it, rather than losing markers.
+        local missing = (op == "SetObjectiveOn" or op == "SetObjectiveName" or op == "SetUserTarget" or
+            op == "SetMaxHealth") and
+            not IsValid(args[1])
+        if missing and GetTime() < expires then return true end
+        -- A target destroyed before its packet arrived must not block the
+        -- stream (and the mission result) forever. Only that stale marker drops.
+        if not missing then ApplyPresentation(op, unpackArgs(args, 1, select("#", ...) - 3)) end
+        receivedEvent = seq
+    end
+    Send(from, "A", receivedEvent)
+    return true
+end
 
 local function TraceUpdateCall(label, fn, ...)
     if type(fn) ~= "function" then
@@ -121,6 +356,7 @@ local function PilotModeCanManageHandle(h)
     if not h or not IsValid(h) then
         return false
     end
+    if CRCoop.IsNetworkGame() and not IsLocal(h) then return false end
 
     if h == M.rescue1 or h == M.rescue2 or h == M.help1 or h == M.help2 then
         return false
@@ -441,6 +677,7 @@ local function ApplyTurbo(h)
     if not (exu and exu.SetUnitTurbo and IsCraft(h)) then
         return
     end
+    if CRCoop.IsNetworkGame() and not IsLocal(h) then return end
     local value = TurboValue(GetTeamNum(h))
     if value ~= nil and value ~= false then
         exu.SetUnitTurbo(h, value)
@@ -540,7 +777,7 @@ function Start()
     M.y = 1
 
     M.avrecycler = GetHandle("avrec3-1_recycler")
-    SetObjectiveName(M.avrecycler, "Recycler Montana")
+    native.SetObjectiveName(M.avrecycler, "Recycler Montana")
     M.scav1 = GetHandle("scav1")
     M.scav2 = GetHandle("scav2")
     M.wave1_1 = GetHandle("svfigh1")
@@ -587,12 +824,14 @@ function Start()
         humanTeamMax = 4,
     })
     CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
-    SetupAI()
     if CRCoop.IsAuthority() then
+        SetupAI()
         BootstrapPlayerSideAI()
+        InitializePilotMode()
     end
     ApplyTurboToAll()
-    InitializePilotMode()
+    subtit.Initialize("durations.csv")
+    if CRCoop.IsNetworkGame() and exu.SetLives then exu.SetLives(999) end
     M.loading_done = true
 end
 
@@ -611,6 +850,7 @@ function DeletePlayer(id, name, team)
 end
 
 function Receive(from, kind, ...)
+    if ReceivePresentation(from, kind, ...) then return true end
     if CRCoop.Receive(from, kind, ...) then
         return true
     end
@@ -624,6 +864,10 @@ function AddObject(h)
         PersistentConfig.OnObjectCreated(h)
     end
     ApplyTurbo(h)
+
+    -- Native MultST owns local player craft/respawns. Only the host registers
+    -- mission AI, and PilotMode's predicate excludes every tracked human.
+    if not CRCoop.IsAuthority() then return end
 
     if IsOdf(h, "avturr") then
         if M.avturret1 == nil then
@@ -677,9 +921,9 @@ function Update()
         RefreshDifficulty()
         ApplyDifficultyObjectives()
         ApplyQOL()
-        InitializePilotMode()
-        SetupAI(true)
         if CRCoop.IsAuthority() then
+            InitializePilotMode()
+            SetupAI(true)
             BootstrapPlayerSideAI()
         end
         ApplyTurboToAll()
@@ -687,13 +931,17 @@ function Update()
     end
     M.user = GetPlayerHandle()
     CRCoop.Update()
+    UpdatePresentationTransport()
+    TraceUpdateCall("misn03.Update UpdateModules", UpdateModules, 1.0 / (M.TPS or 20))
+    if M.coopResult or M.coopPendingResult then return end
 
     -- Player 1 is the campaign leader. If that player leaves, do not allow a
     -- Redux network-host migration to inherit campaign simulation authority.
     if CRCoop.IsNetworkGame() and CRCoop.HasLeaderDeparted() then
         if not M.coopLeaderDepartureHandled then
             M.coopLeaderDepartureHandled = true
-            FailMission(0.1)
+            native.CameraFinish()
+            native.FailMission(GetTime() + 1.0)
         end
         return
     end
@@ -744,34 +992,54 @@ function Update()
     if not CRCoop.IsNetworkGame() and autosave and autosave.Update then
         TraceUpdateCall("misn03.Update autosave.Update", autosave.Update, 1.0 / (M.TPS or 20))
     end
-    TraceUpdateCall("misn03.Update UpdateModules", UpdateModules, 1.0 / (M.TPS or 20))
 
 
     -- Update Objective Health Status
     if IsAlive(M.solar1) then
-        SetObjectiveName(M.solar1, "Command Tower: " .. math.floor(GetHealth(M.solar1) * 100) .. "%")
+        native.SetObjectiveName(M.solar1, "Command Tower: " .. math.floor(GetHealth(M.solar1) * 100) .. "%")
     end
     if IsAlive(M.solar2) then
-        SetObjectiveName(M.solar2, "Solar Array: " .. math.floor(GetHealth(M.solar2) * 100) .. "%")
+        native.SetObjectiveName(M.solar2, "Solar Array: " .. math.floor(GetHealth(M.solar2) * 100) .. "%")
     end
     if IsAlive(M.solar3) then
-        SetObjectiveName(M.solar3, "Solar Array: " .. math.floor(GetHealth(M.solar3) * 100) .. "%")
+        native.SetObjectiveName(M.solar3, "Solar Array: " .. math.floor(GetHealth(M.solar3) * 100) .. "%")
     end
     if IsAlive(M.solar4) then
-        SetObjectiveName(M.solar4, "Solar Array: " .. math.floor(GetHealth(M.solar4) * 100) .. "%")
+        native.SetObjectiveName(M.solar4, "Solar Array: " .. math.floor(GetHealth(M.solar4) * 100) .. "%")
     end
+
+    -- Every branch below can mutate the world or mission progression. Clients
+    -- consume the reliable presentation stream above and never run these gates.
+    if not isAuthority then return end
+    if M.lost then return end
 
     if not M.start_done then
         ApplyQOL()
+
+        if CRCoop.IsNetworkGame() then
+            -- MultST creates its own local player craft. Some map-loading
+            -- paths retain the BZN's offline user craft as an extra Team-1
+            -- vehicle. Remove it only after the human registry is complete,
+            -- and never if the engine reused it as a current human handle.
+            local offlineCraft = GetHandle("myCar_hover")
+            if IsValid(offlineCraft) and not CRCoop.IsHumanCraft(offlineCraft) then
+                RemoveObject(offlineCraft)
+            end
+        end
 
         -- Team resources are simulation state. In a network game the host owns
         -- these mutations; every peer still initializes its local presentation.
         if isAuthority then
             local startingScrap = math.max(4, DiffUtils.ScaleRes(10))
             local startingPilots = DiffUtils.ScaleRes(10)
+            Present("Difficulty", RefreshDifficulty())
             CRCoop.ForEachHumanTeam(function(team)
-                SetScrap(team, startingScrap)
-                SetPilot(team, startingPilots)
+                if CRCoop.IsNetworkGame() then
+                    Present("Resources", team, startingScrap, startingPilots)
+                else
+                    SetScrap(team, startingScrap)
+                    SetPilot(team, startingPilots)
+                end
             end)
             SetScrap(ENEMY_TEAM, 40) -- Give enemy AI starting scrap
         end
@@ -912,7 +1180,9 @@ function Update()
         end
     end
 
-    if solarCount < required and not M.lost and not M.final_objective then
+    -- Defense ends at evacuation; the outro deliberately destroys all arrays.
+    -- Running this gate during that film incorrectly failed a completed defense.
+    if solarCount < required and not M.second_objective and not M.lost and not M.final_objective then
         -- Trigger Failure
         FailMission(GetTime() + 5.0)
         M.lost = true
@@ -1534,6 +1804,9 @@ if ((!help_spawn) && (support_time < Get_Time()))
         if IsAlive(M.wave7_5) then RemoveObject(M.wave7_5) end
 
         M.clean_sweep_time = GetTime() + 14.0
+        -- With local-only skipping in co-op, a pathfinding-stalled film prop
+        -- must not hold the entire session forever. Offline keeps its skip gate.
+        M.coopOutroDeadline = GetTime() + 90.0
         M.next_shot = GetTime() + 18.5
         M.new_unit_time = GetTime() + 2.0
         M.audmsg = subtit.Play("misn0316.wav")
@@ -1648,7 +1921,8 @@ if ((!help_spawn) && (support_time < Get_Time()))
         M.end_shot = true
     end
 
-    if M.camera_on and not M.camera_off and (CameraCancelled() or M.camera_off_time < GetTime()) then
+    if M.camera_on and not M.camera_off and (CameraCancelled() or M.camera_off_time < GetTime() or
+        (CRCoop.IsNetworkGame() and GetTime() > (M.coopOutroDeadline or math.huge))) then
         M.startfinishingmovie = false
         CameraFinish()
         -- Only stop subtitles if the user skipped the cinematic
