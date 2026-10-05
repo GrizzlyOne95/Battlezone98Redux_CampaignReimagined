@@ -82,6 +82,7 @@ return function(M, ctx)
     local missionData = ctx.missionData
     local subtit, DiffUtils = ctx.subtitles, ctx.diff
     local LABEL_SCAV2 = "misn02b_scav2"
+    local CRCoop = { IsNetworkGame = function() return false end }
     local ENEMY_TEAM = 2
     local SpawnScriptedEnemy = ctx.spawn
 ]]

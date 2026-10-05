@@ -4,12 +4,12 @@ binarySave [1] =
 false
 msn_filename = misn02b.bzn
 seq_count [1] =
-528
+532
 missionSave [1] =
 true
 TerrainName = misn02b
 size [1] =
-39
+43
 [GameObject]
 PrjID [1] =
 asuser
@@ -3980,7 +3980,7 @@ pos [1] =
   z [1] =
 98961.3
 team [1] =
-1
+7
 label = fake_player
 isUser [1] =
 0
@@ -4102,7 +4102,7 @@ independence [1] =
 curPilot [1] =
 aspilo
 perceivedTeam [1] =
-1
+7
 [GameObject]
 PrjID [1] =
 apstab
@@ -4245,7 +4245,7 @@ pos [1] =
   z [1] =
 99063.4
 team [1] =
-5
+7
 label = avturr0_turrettank
 isUser [1] =
 0
@@ -4380,7 +4380,7 @@ independence [1] =
 curPilot [1] =
 aspilo
 perceivedTeam [1] =
-5
+7
 [GameObject]
 PrjID [1] =
 avtur2b
@@ -4394,7 +4394,7 @@ pos [1] =
   z [1] =
 99062.9
 team [1] =
-5
+7
 label = avturr1_turrettank
 isUser [1] =
 0
@@ -4529,7 +4529,7 @@ independence [1] =
 curPilot [1] =
 aspilo
 perceivedTeam [1] =
-5
+7
 [GameObject]
 PrjID [1] =
 avtur2b
@@ -4543,7 +4543,7 @@ pos [1] =
   z [1] =
 99267.1
 team [1] =
-5
+7
 label = avturr2_turrettank
 isUser [1] =
 0
@@ -4678,7 +4678,7 @@ independence [1] =
 curPilot [1] =
 aspilo
 perceivedTeam [1] =
-5
+7
 [GameObject]
 PrjID [1] =
 avtur2b
@@ -4692,7 +4692,7 @@ pos [1] =
   z [1] =
 99242.3
 team [1] =
-5
+7
 label = avturr3_turrettank
 isUser [1] =
 0
@@ -4827,7 +4827,7 @@ independence [1] =
 curPilot [1] =
 aspilo
 perceivedTeam [1] =
-5
+7
 [GameObject]
 PrjID [1] =
 avtur2b
@@ -4841,7 +4841,7 @@ pos [1] =
   z [1] =
 99180.1
 team [1] =
-5
+7
 label = avturr4_turrettank
 isUser [1] =
 0
@@ -4976,7 +4976,7 @@ independence [1] =
 curPilot [1] =
 aspilo
 perceivedTeam [1] =
-5
+7
 [GameObject]
 PrjID [1] =
 avtur2b
@@ -4990,7 +4990,7 @@ pos [1] =
   z [1] =
 99098.8
 team [1] =
-5
+7
 label = avturr5_turrettank
 isUser [1] =
 0
@@ -5125,7 +5125,7 @@ independence [1] =
 curPilot [1] =
 aspilo
 perceivedTeam [1] =
-5
+7
 [GameObject]
 PrjID [1] =
 avtur2b
@@ -5139,7 +5139,7 @@ pos [1] =
   z [1] =
 99168.8
 team [1] =
-5
+7
 label = avturr6_turrettank
 isUser [1] =
 0
@@ -5274,8 +5274,524 @@ independence [1] =
 curPilot [1] =
 aspilo
 perceivedTeam [1] =
-5
-name = LuaMission
+7
+[GameObject]
+PrjID [1] =
+pspwn_1
+seqno [1] =
+528
+pos [1] =
+  x [1] =
+3898.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+team [1] =
+1
+label = coop_spawn1
+isUser [1] =
+0
+obj_addr = 00001001
+transform [1] =
+  right_x [1] =
+-0.99777
+  right_y [1] =
+-0.00171386
+  right_z [1] =
+-0.0667239
+  up_x [1] =
+-0.00171039
+  up_y [1] =
+0.999999
+  up_z [1] =
+-0.000109164
+  front_x [1] =
+0.066724
+  front_y [1] =
+5.20339e-006
+  front_z [1] =
+-0.997771
+  posit_x [1] =
+3898.14
+  posit_y [1] =
+108.9
+  posit_z [1] =
+99443.6
+illumination [1] =
+1
+pos [1] =
+  x [1] =
+3898.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+euler =
+ mass [1] =
+0
+ mass_inv [1] =
+1e+030
+ v_mag [1] =
+0
+ v_mag_inv [1] =
+1e+030
+ I [1] =
+1
+ k_i [1] =
+0
+ v [1] =
+  x [1] =
+3898.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+ omega [1] =
+  x [1] =
+3898.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+ Accel [1] =
+  x [1] =
+3898.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+seqNo [1] =
+528
+name = 
+isCritical [1] =
+false
+isObjective [1] =
+false
+isSelected [1] =
+false
+isVisible [1] =
+ffffffff
+seen [1] =
+2
+healthRatio [1] =
+0
+curHealth [1] =
+0
+maxHealth [1] =
+0
+ammoRatio [1] =
+0
+curAmmo [1] =
+0
+maxAmmo [1] =
+0
+priority [1] =
+0
+what = 00000000
+who [1] =
+0
+where = 00000000
+param [1] =
+
+aiProcess [1] =
+false
+isCargo [1] =
+false
+independence [1] =
+1
+curPilot [1] =
+
+perceivedTeam [1] =
+1
+[GameObject]
+PrjID [1] =
+pspwn_1
+seqno [1] =
+529
+pos [1] =
+  x [1] =
+3923.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+team [1] =
+2
+label = coop_spawn2
+isUser [1] =
+0
+obj_addr = 00001002
+transform [1] =
+  right_x [1] =
+-0.99777
+  right_y [1] =
+-0.00171386
+  right_z [1] =
+-0.0667239
+  up_x [1] =
+-0.00171039
+  up_y [1] =
+0.999999
+  up_z [1] =
+-0.000109164
+  front_x [1] =
+0.066724
+  front_y [1] =
+5.20339e-006
+  front_z [1] =
+-0.997771
+  posit_x [1] =
+3923.14
+  posit_y [1] =
+108.9
+  posit_z [1] =
+99443.6
+illumination [1] =
+1
+pos [1] =
+  x [1] =
+3923.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+euler =
+ mass [1] =
+0
+ mass_inv [1] =
+1e+030
+ v_mag [1] =
+0
+ v_mag_inv [1] =
+1e+030
+ I [1] =
+1
+ k_i [1] =
+0
+ v [1] =
+  x [1] =
+3923.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+ omega [1] =
+  x [1] =
+3923.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+ Accel [1] =
+  x [1] =
+3923.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+seqNo [1] =
+529
+name = 
+isCritical [1] =
+false
+isObjective [1] =
+false
+isSelected [1] =
+false
+isVisible [1] =
+ffffffff
+seen [1] =
+2
+healthRatio [1] =
+0
+curHealth [1] =
+0
+maxHealth [1] =
+0
+ammoRatio [1] =
+0
+curAmmo [1] =
+0
+maxAmmo [1] =
+0
+priority [1] =
+0
+what = 00000000
+who [1] =
+0
+where = 00000000
+param [1] =
+
+aiProcess [1] =
+false
+isCargo [1] =
+false
+independence [1] =
+1
+curPilot [1] =
+
+perceivedTeam [1] =
+2
+[GameObject]
+PrjID [1] =
+pspwn_1
+seqno [1] =
+530
+pos [1] =
+  x [1] =
+3948.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+team [1] =
+3
+label = coop_spawn3
+isUser [1] =
+0
+obj_addr = 00001003
+transform [1] =
+  right_x [1] =
+-0.99777
+  right_y [1] =
+-0.00171386
+  right_z [1] =
+-0.0667239
+  up_x [1] =
+-0.00171039
+  up_y [1] =
+0.999999
+  up_z [1] =
+-0.000109164
+  front_x [1] =
+0.066724
+  front_y [1] =
+5.20339e-006
+  front_z [1] =
+-0.997771
+  posit_x [1] =
+3948.14
+  posit_y [1] =
+108.9
+  posit_z [1] =
+99443.6
+illumination [1] =
+1
+pos [1] =
+  x [1] =
+3948.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+euler =
+ mass [1] =
+0
+ mass_inv [1] =
+1e+030
+ v_mag [1] =
+0
+ v_mag_inv [1] =
+1e+030
+ I [1] =
+1
+ k_i [1] =
+0
+ v [1] =
+  x [1] =
+3948.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+ omega [1] =
+  x [1] =
+3948.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+ Accel [1] =
+  x [1] =
+3948.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+seqNo [1] =
+530
+name = 
+isCritical [1] =
+false
+isObjective [1] =
+false
+isSelected [1] =
+false
+isVisible [1] =
+ffffffff
+seen [1] =
+2
+healthRatio [1] =
+0
+curHealth [1] =
+0
+maxHealth [1] =
+0
+ammoRatio [1] =
+0
+curAmmo [1] =
+0
+maxAmmo [1] =
+0
+priority [1] =
+0
+what = 00000000
+who [1] =
+0
+where = 00000000
+param [1] =
+
+aiProcess [1] =
+false
+isCargo [1] =
+false
+independence [1] =
+1
+curPilot [1] =
+
+perceivedTeam [1] =
+3
+[GameObject]
+PrjID [1] =
+pspwn_1
+seqno [1] =
+531
+pos [1] =
+  x [1] =
+3973.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+team [1] =
+4
+label = coop_spawn4
+isUser [1] =
+0
+obj_addr = 00001004
+transform [1] =
+  right_x [1] =
+-0.99777
+  right_y [1] =
+-0.00171386
+  right_z [1] =
+-0.0667239
+  up_x [1] =
+-0.00171039
+  up_y [1] =
+0.999999
+  up_z [1] =
+-0.000109164
+  front_x [1] =
+0.066724
+  front_y [1] =
+5.20339e-006
+  front_z [1] =
+-0.997771
+  posit_x [1] =
+3973.14
+  posit_y [1] =
+108.9
+  posit_z [1] =
+99443.6
+illumination [1] =
+1
+pos [1] =
+  x [1] =
+3973.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+euler =
+ mass [1] =
+0
+ mass_inv [1] =
+1e+030
+ v_mag [1] =
+0
+ v_mag_inv [1] =
+1e+030
+ I [1] =
+1
+ k_i [1] =
+0
+ v [1] =
+  x [1] =
+3973.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+ omega [1] =
+  x [1] =
+3973.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+ Accel [1] =
+  x [1] =
+3973.14
+  y [1] =
+108.9
+  z [1] =
+99443.6
+seqNo [1] =
+531
+name = 
+isCritical [1] =
+false
+isObjective [1] =
+false
+isSelected [1] =
+false
+isVisible [1] =
+ffffffff
+seen [1] =
+2
+healthRatio [1] =
+0
+curHealth [1] =
+0
+maxHealth [1] =
+0
+ammoRatio [1] =
+0
+curAmmo [1] =
+0
+maxAmmo [1] =
+0
+priority [1] =
+0
+what = 00000000
+who [1] =
+0
+where = 00000000
+param [1] =
+
+aiProcess [1] =
+false
+isCargo [1] =
+false
+independence [1] =
+1
+curPilot [1] =
+
+perceivedTeam [1] =
+4
+name = MultSTMission
 sObject = 00000028
 [AiMission]
 [AOIs]
@@ -5284,7 +5800,7 @@ size [1] =
 [AOI]
 undefptr = 00000029
 team [1] =
-2
+6
 interesting [1] =
 false
 inside [1] =

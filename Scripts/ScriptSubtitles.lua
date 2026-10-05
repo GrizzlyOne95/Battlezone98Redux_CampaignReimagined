@@ -35,7 +35,13 @@ local overlayState = {
     customFontDisabled = false,
     retryPending = false,
     retryUntil = 0.0,
+    created = false,
+    nextCreateAt = 0.0,
 }
+
+-- A failed renderer bring-up must not tear down and rebuild the same Ogre
+-- overlay every frame: wait this long before another attempt.
+local OVERLAY_CREATE_RETRY_SECONDS = 1.0
 local legacyState = {
     active = false,
     objectiveName = "cr_runtime_subtitle",
@@ -424,9 +430,12 @@ local function DestroySubtitleOverlay()
     ClearOverlayQueueState()
     overlayState.ready = false
 
-    if not exu then
+    -- Only tear down elements this module created; never Destroy/Remove calls
+    -- against ids that do not exist yet.
+    if not exu or not overlayState.created then
         return
     end
+    overlayState.created = false
 
     if exu.RemoveOverlayElementChild then
         pcall(exu.RemoveOverlayElementChild, ids.root, ids.frame)
@@ -536,8 +545,18 @@ local function TryCreateSubtitleOverlay()
         return false
     end
 
+    local now = (type(GetTime) == "function") and GetTime() or 0.0
+    if now < overlayState.nextCreateAt - OVERLAY_CREATE_RETRY_SECONDS then
+        overlayState.nextCreateAt = 0.0 -- mission clock restarted
+    end
+    if now < overlayState.nextCreateAt then
+        return false
+    end
+    overlayState.nextCreateAt = now + OVERLAY_CREATE_RETRY_SECONDS
+
     DestroySubtitleOverlay()
     SubtitleLog("creating overlay renderer resources")
+    overlayState.created = true
 
     local ok = true
     local ids = OVERLAY_IDS

@@ -486,6 +486,17 @@ check(foreign == 0,
 CRMarsWeather.Shutdown()
 check(countSystems() == 0, "the second shutdown must clean up too")
 
+-- Online sensor writers are local to the owning peer, including restoration.
+IsNetGame = function() return true end
+IsLocal = function(h) return h == PLAYER end
+Environment.NightBlend = 1.0
+rec.radarRange[PLAYER], rec.radarRange["remote"] = STOCK_RADAR_RANGE, STOCK_RADAR_RANGE
+Environment.ProcessObjectNightEffects("remote")
+check(rec.radarRange["remote"] == STOCK_RADAR_RANGE, "remote sensor state must remain owner-local")
+Environment.ProcessObjectNightEffects(PLAYER)
+check(rec.radarRange[PLAYER] < STOCK_RADAR_RANGE, "local sensor degradation must still run online")
+IsNetGame, IsLocal = nil, nil
+
 -- =============================================================================
 
 if #failures == 0 then
