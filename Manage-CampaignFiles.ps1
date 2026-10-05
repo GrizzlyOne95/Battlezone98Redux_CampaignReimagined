@@ -1496,6 +1496,11 @@ function Build-WorkshopContent {
         "misn01.lua",
         "misn02b.lua",
         "misn03.lua",
+        "misn03.bzn",
+        "misn03.ini",
+        "misn03.bmp",
+        "misn03.des",
+        "misn03.vxt",
         "misn04.lua"
     )
     foreach ($relativePath in $requiredFiles) {

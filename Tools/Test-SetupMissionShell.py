@@ -40,7 +40,7 @@ mod_parser.read(mod_ini_path, encoding="utf-8")
 assert mod_parser["DESCRIPTION"]["missionName"] == '"Campaign Reimagined"'
 assert mod_parser["WORKSHOP"]["mapType"] == '"campaign"'
 
-# Campaign progression must use the shipped LuaMission rewrites, with setup
+# Campaign progression must use the shipped Lua-backed rewrites, with setup
 # remaining independently discoverable in Instant Action. Stock training has
 # a Lua port but no CR BZN yet, so it must not masquerade as a playable rewrite.
 mission_sections = [section for section in mod_parser.sections() if section.startswith("MISSION")]
@@ -52,7 +52,8 @@ for section, filename in zip(mission_sections, campaign_maps):
     assert mod_parser[section]["planet"].strip('"') in {"moon", "mars"}
     path = ROOT / "Missions" / filename
     assert path.is_file(), f"campaign must use a CR map: {filename}"
-    assert "name = LuaMission" in path.read_text(encoding="utf-8")
+    mission_class = "MultSTMission" if filename == "misn03.bzn" else "LuaMission"
+    assert f"name = {mission_class}\n" in path.read_text(encoding="utf-8")
     assert (ROOT / "Scripts" / Path(filename).with_suffix(".lua")).is_file()
 
 # Redux's custom-campaign menu uses a BMP preview; retain the JPG for Workshop.
