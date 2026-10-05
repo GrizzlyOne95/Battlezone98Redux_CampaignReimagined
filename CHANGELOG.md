@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-10-05
+
+- Add 2-4 player co-op versions of Red Arrival, Eagle's Nest and The Relic
+  Discovered.
+  Pick them from the multiplayer map list ("CR: ... Coop"). The host plays
+  team 1 and each guest gets their own team. Everyone must start together;
+  a player who joins late means restarting the mission. Solo play is
+  unchanged in the CR custom campaign.
+- Eagle's Nest co-op: fix camera-stack overflows on guests during cutscenes,
+  and remove the offline player craft that the host's ship spawned on top of.
+- Locate the game folder more reliably when the install path is unusual, so
+  bundled DLLs load in multiplayer.
+- Bundle OpenShim 1.0.0.47.
+- Compress CR model textures and add missing mip chains for faster loading.
+
 ## 2026-09-30
 
 - Fix a crash on the second visit to Instant Action (or when launching Setup /
