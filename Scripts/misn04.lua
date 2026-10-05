@@ -83,7 +83,7 @@ local function ApplyPresentation(op, ...)
         end
     elseif op == "SucceedMission" or op == "FailMission" then
         local when, description = ...
-        native.CameraFinish()
+        if localCameraActive then native.CameraFinish() end
         cameraFrame = nil
         localCameraActive = false
         M.coopResult = true
@@ -134,13 +134,16 @@ local function FailMission(...) return EndMission("FailMission", ...) end
 local function CameraReady()
     cameraGeneration = cameraGeneration + 1
     cameraSkipped = false
+    if CRCoop.IsNetworkGame() and localCameraActive then native.CameraFinish() end
+    localCameraActive = true
     return native.CameraReady()
 end
 local function CameraPath(path, height, speed, target)
     cameraFrame = { path, height, speed, target }
     if CRCoop.IsNetworkGame() and native.CameraCancelled() then
         cameraSkipped = true
-        native.CameraFinish()
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
     end
     if not cameraSkipped then
         local done = native.CameraPath(path, height, speed, target)
@@ -157,7 +160,9 @@ end
 local function CameraFinish()
     cameraFrame = nil
     cameraSkipped = false
-    return native.CameraFinish()
+    local wasActive = localCameraActive
+    localCameraActive = false
+    if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
 end
 
 local function UpdateRemoteCamera()
@@ -2923,7 +2928,8 @@ function Update()
     if CRCoop.IsNetworkGame() then
         if CRCoop.HasLeaderDeparted() then
             M.coopResult = true
-            native.CameraFinish()
+            if localCameraActive then native.CameraFinish() end
+            localCameraActive = false
             native.FailMission(GetTime() + 1.0)
             return
         end

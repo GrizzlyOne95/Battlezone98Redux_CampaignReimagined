@@ -124,8 +124,8 @@ local function makePeer(id, team, network)
     end
     e.RemoveObject = function(h) record("RemoveObject", h); if view[h] then view[h].alive = false end end
     e.CameraCancelled = function() return p.skip == true end
-    e.CameraReady = function() record("CameraReady"); p.skip = false end
-    e.CameraFinish = function() record("CameraFinish") end
+    e.CameraReady = function() check(not p.cameraUp, "camera opened twice"); p.cameraUp = true; record("CameraReady"); p.skip = false end
+    e.CameraFinish = function() check(p.cameraUp, "camera finished without an active camera"); p.cameraUp = false; record("CameraFinish") end
     e.Send = function(to, kind, ...)
         local args = { ... }
         -- Conservative payload estimate: doubles plus per-field type tags;
@@ -149,6 +149,7 @@ local function makePeer(id, team, network)
             if n == "SetObjectiveOn" or n == "SetObjectiveName" or n == "SetUserTarget" then
                 check(e.IsValid((...)), "presentation used a not-yet-replicated handle")
             end
+            if n == "CameraPath" then check(p.cameraUp, "camera path without ready") end
             record(n, ...)
         end
     end
