@@ -51,12 +51,27 @@ local native = {
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
 }
+local cameraSkipped, localCameraActive = false, false
+
+-- Co-op trace of every native CameraReady/CameraFinish (role, time, whether a
+-- camera was already active) so an unbalanced pair is visible in BZLogger next
+-- to the engine's "Camera Stack 0verfow". Cinematic-rate, network games only.
+do
+    local ready, finish = native.CameraReady, native.CameraFinish
+    local function Trace(call)
+        if not CRCoop.IsNetworkGame() then return end
+        print(string.format("[misn03 camera] %s %s t=%.2f active=%s",
+            CRCoop.IsAuthority() and "host" or "guest", call, GetTime(), tostring(localCameraActive)))
+    end
+    native.CameraReady = function(...) Trace("Ready"); return ready(...) end
+    native.CameraFinish = function(...) Trace("Finish"); return finish(...) end
+end
+
 local events, acknowledgements = {}, {}
 local receivedEvent = 0
 local nextEventSend, nextCameraSend = 0, 0
 local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
 local remoteCameraSerial, localCameraGeneration = 0, 0
-local cameraSkipped, localCameraActive = false, false
 local remoteCamera
 
 local function FromLeader(from)
@@ -86,7 +101,7 @@ local function ApplyPresentation(op, ...)
         native.SetCurHealth(h, fraction * value)
     elseif op == "SucceedMission" or op == "FailMission" then
         local when, description = ...
-        native.CameraFinish()
+        if localCameraActive then native.CameraFinish() end
         cameraFrame = nil
         localCameraActive = false
         M.coopResult = true
@@ -137,13 +152,16 @@ local function FailMission(...) return EndMission("FailMission", ...) end
 local function CameraReady()
     cameraGeneration = cameraGeneration + 1
     cameraSkipped = false
+    if CRCoop.IsNetworkGame() and localCameraActive then native.CameraFinish() end
+    localCameraActive = true
     return native.CameraReady()
 end
 local function CameraPath(path, height, speed, target)
     cameraFrame = { path, height, speed, target }
     if CRCoop.IsNetworkGame() and native.CameraCancelled() then
         cameraSkipped = true
-        native.CameraFinish()
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
     end
     if not cameraSkipped then return native.CameraPath(path, height, speed, target) end
 end
@@ -156,7 +174,9 @@ end
 local function CameraFinish()
     cameraFrame = nil
     cameraSkipped = false
-    return native.CameraFinish()
+    local wasActive = localCameraActive
+    localCameraActive = false
+    if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
 end
 
 local function UpdateRemoteCamera()
@@ -940,10 +960,30 @@ function Update()
     if CRCoop.IsNetworkGame() and CRCoop.HasLeaderDeparted() then
         if not M.coopLeaderDepartureHandled then
             M.coopLeaderDepartureHandled = true
-            native.CameraFinish()
+            if localCameraActive then native.CameraFinish() end
+            localCameraActive = false
             native.FailMission(GetTime() + 1.0)
         end
         return
+    end
+
+    -- coop_spawn1 sits exactly on the BZN's offline user craft, so MultST drops
+    -- the leader's craft on top of it. Waiting for the start gate (registry +
+    -- load grace) left them overlapping for seconds; remove it on the first
+    -- authority frame instead. It is a Team-1 craft, so only the leader (the
+    -- local player on the authority) could have been placed in it.
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and not M.coopOfflineCraftCleared then
+        M.coopOfflineCraftCleared = true
+        local offlineCraft = GetHandle("myCar_hover")
+        local leaderCraft = GetPlayerHandle()
+        local inUse = not IsValid(offlineCraft) or offlineCraft == leaderCraft
+            or CRCoop.IsHumanCraft(offlineCraft)
+        if IsValid(leaderCraft) then
+            local p = GetPosition(leaderCraft)
+            print(string.format("[misn03 spawn] leader craft at %.1f,%.1f,%.1f", p.x, p.y, p.z))
+        end
+        print("[misn03 spawn] offline craft " .. (IsValid(offlineCraft) and (inUse and "kept (human)" or "removed") or "absent"))
+        if not inUse then RemoveObject(offlineCraft) end
     end
 
     -- Lifecycle Send/Receive traffic is not reliable during join transitions.
