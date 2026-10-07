@@ -8,7 +8,8 @@ local registry = {[1]={team=1}, [2]={team=2}, [3]={team=3}, [4]={team=4}}
 local checks = 0
 local function check(value, why) assert(value, why); checks = checks + 1 end
 local function peer(id)
-    local p = {calls={}, valid={subject=true, target=true}, cancelled=false}
+    local p = {calls={}, valid={subject=true, target=true}, cancelled=false,
+        resources={scrap=0, pilots=0, maxScrap=id == 1 and 35 or 0, maxPilots=id == 1 and 15 or 0}}
     local env = setmetatable({}, {__index=_G})
     local function record(op, ...)
         p.calls[#p.calls+1] = {op, ...}
@@ -23,6 +24,12 @@ local function peer(id)
         end
     end
     env.CameraCancelled = function() return p.cancelled end
+    env.GetMaxScrap = function(team) assert(team == id); return p.resources.maxScrap end
+    env.GetMaxPilot = function(team) assert(team == id); return p.resources.maxPilots end
+    env.SetMaxScrap = function(team, n) assert(team == id); p.resources.maxScrap = n end
+    env.SetMaxPilot = function(team, n) assert(team == id); p.resources.maxPilots = n end
+    env.SetScrap = function(team, n) assert(team == id); p.resources.scrap = math.min(n, p.resources.maxScrap) end
+    env.SetPilot = function(team, n) assert(team == id); p.resources.pilots = math.min(n, p.resources.maxPilots) end
     env.GetTime = function() return now end
     env.IsValid = function(h) return p.valid[h] == true end
     env.Send = function(to, kind, ...)
@@ -72,6 +79,21 @@ local function tick(reverse)
 end
 local host, guest = peer(1), peer(2)
 local third, fourth = peer(3), peer(4)
+-- Native capacities clamp resource writes. Every owner must reserve room,
+-- including the three guests whose starting recyclers are suppressed.
+for team=1,4 do host.api.present("Resources", team, 40, 10) end
+for _=1,4 do tick() end
+for _, p in pairs(peers) do
+    check(p.resources.scrap == 40 and p.resources.pilots == 10,
+        "every owner receives starting resources despite native capacity clamps")
+end
+check(host.resources.maxPilots == 15, "starting resources must preserve larger authored capacity")
+host.api.present("Resources", 4, 20, 5)
+for _=1,4 do tick() end
+check(fourth.resources.maxScrap == 40 and fourth.resources.maxPilots == 10,
+    "resource changes must not reduce the owner's existing capacity")
+check(host.resources.scrap == 40 and guest.resources.scrap == 40 and third.resources.scrap == 40,
+    "a team's resource presentation must not write another owner's resources")
 host.api.ready(); host.api.object("subject", 0, 5000, -5000, "target")
 guest.valid.target = false
 tick(); tick()

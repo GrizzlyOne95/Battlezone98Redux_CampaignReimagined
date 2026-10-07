@@ -62,6 +62,10 @@ local function ApplyPresentation(op, ...)
         local team, scrap, pilots = ...
         -- Each human owns their team resources. Do not mutate a remote team.
         if CRCoop.GetLocalTeam() == team then
+            -- Guests have no starting recycler, hence zero native capacity.
+            -- Reserve room before setting their mission starting resources.
+            SetMaxScrap(team, math.max(GetMaxScrap(team), scrap))
+            SetMaxPilot(team, math.max(GetMaxPilot(team), pilots))
             SetScrap(team, scrap)
             SetPilot(team, pilots)
         end
