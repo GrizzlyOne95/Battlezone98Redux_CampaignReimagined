@@ -219,7 +219,15 @@ function CRCoop.Initialize(options)
             valid = IsUsableHandle,
             alive = function(h) return type(IsAlive) ~= "function" or IsAlive(h) end,
             team = function(h) return GetTeamNum(h) end,
-            position = function(h) return GetPosition(h) end,
+            position = function(h)
+                -- GetPosition(string) reads a path, not an object label. A
+                -- missing path silently returns the origin in Redux.
+                if type(h) == "string" and type(GetHandle) == "function" then
+                    local object = GetHandle(h)
+                    if IsUsableHandle(object) then h = object end
+                end
+                return GetPosition(h)
+            end,
             allCraft = function() return AllCraft() end,
             phase = function() return missionPhase end,
             near = function(pos, a, b) return GetPositionNear(pos, a, b) end,
