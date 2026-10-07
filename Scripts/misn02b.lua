@@ -116,7 +116,10 @@ local function ApplyPresentation(op, ...)
         if exu.SetDifficulty then exu.SetDifficulty(difficulty) end
     elseif op == "SucceedMission" or op == "FailMission" then
         local when, description = ...
-        native.CameraFinish()
+        -- Only pop a camera this peer pushed: an empty stack raises the
+        -- engine's "Camera Stack 0verfow" alert. The leader's film is live while
+        -- cameraFrame is set; a guest's while localCameraActive.
+        if localCameraActive or cameraFrame then native.CameraFinish() end
         cameraFrame = nil
         localCameraActive = false
         M.coopResult = true
@@ -842,7 +845,8 @@ function Update()
     if CRCoop.IsNetworkGame() then
         if CRCoop.HasLeaderDeparted() then
             M.coopResult = true
-            native.CameraFinish()
+            if localCameraActive or cameraFrame then native.CameraFinish() end
+            localCameraActive = false
             native.FailMission(GetTime() + 1.0)
             return
         end
