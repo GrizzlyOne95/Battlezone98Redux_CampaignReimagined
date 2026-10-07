@@ -2678,6 +2678,8 @@ function Start()
     CRCoop.Initialize({
         getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
         leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
+        -- Host only: a player died with no co-op lives left.
+        onOutOfLives = function() FailMission(GetTime() + 3.0) end,
     })
     CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
     events, acknowledgements, receivedEvent = {}, {}, 0
@@ -2685,7 +2687,6 @@ function Start()
     cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
     remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
     cameraSkipped, localCameraActive = false, false
-    if CRCoop.IsNetworkGame() and exu.SetLives then exu.SetLives(999) end
     RefreshDifficulty()
     if CRCoop.IsAuthority() then
         M.relicstartpos = math.random(0, 3)

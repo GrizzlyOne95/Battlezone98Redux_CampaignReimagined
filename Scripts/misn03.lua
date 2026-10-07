@@ -842,6 +842,13 @@ function Start()
         leaderTeam = LEADER_TEAM,
         humanTeamMin = 1,
         humanTeamMax = 4,
+        -- Host only: a player died with no co-op lives left.
+        onOutOfLives = function()
+            if not M.lost then
+                M.lost = true
+                FailMission(GetTime() + 3.0)
+            end
+        end,
     })
     CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
     if CRCoop.IsAuthority() then
@@ -851,7 +858,6 @@ function Start()
     end
     ApplyTurboToAll()
     subtit.Initialize("durations.csv")
-    if CRCoop.IsNetworkGame() and exu.SetLives then exu.SetLives(999) end
     M.loading_done = true
 end
 
