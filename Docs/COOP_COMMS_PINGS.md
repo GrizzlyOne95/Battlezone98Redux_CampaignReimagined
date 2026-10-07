@@ -6,15 +6,19 @@ game; this page uses the existing keyboard navigation.
 
 | Key | Action |
 | --- | --- |
-| Y | Open/close the PDA; opening during co-op selects Co-op |
+| X | Open/close the PDA; opening during co-op selects Co-op (Y is the stock "ally with team" key online) |
 | [ / ] | Previous/next visible PDA page |
 | Up / Down | Select a Co-op row |
 | Left / Right | Change the selected ping, rescue request, or host reply |
 | J | Activate the selected Co-op row |
 | J with PDA closed | Ping the current object or terrain hit |
 
-Enter retains native chat. Co-op J actions use mission `GameKey` events rather
-than polling a held key. Pause, cinematic, dead-player and mission-end contexts
+Enter retains native chat. In network games Redux calls the mission `GameKey`
+callback for J, [ ], the arrows and Enter only sometimes, so CR polls those keys
+there through `exu.GetGameKey` (EXU needs the `LBRACKET`/`RBRACKET` names) and
+ignores their `GameKey` copies. Polling cannot tell chat typing apart, so
+typing J in chat can send a ping (rate-limited); [ ] and the arrows act only
+while the PDA is open. Pause, cinematic, dead-player and mission-end contexts
 suppress actions. The migrated missions pass their local cinematic state into
 `PersistentConfig.UpdateInputs`; future migrations should do the same.
 

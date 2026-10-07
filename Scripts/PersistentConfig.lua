@@ -729,11 +729,11 @@ local function AppendPdaFooter(lines, line1, line2, line3)
     table.insert(lines, "")
     table.insert(lines, line1 or "--------------------------------")
     table.insert(lines, line2 or "[ / ] SWITCH PAGE")
-    table.insert(lines, line3 or "Y Toggle PDA")
+    table.insert(lines, line3 or "X Toggle PDA")
 end
 
 local function AppendPdaNavHints(lines)
-    AppendPdaFooter(lines, "--------------------------------", "[ / ] Switch Page", "Y Toggle PDA")
+    AppendPdaFooter(lines, "--------------------------------", "[ / ] Switch Page", "X Toggle PDA")
 end
 
 function PersistentConfig._GetUiResolutionMetrics()
@@ -2357,7 +2357,7 @@ end
 InputState = {
     last_help_state = false, --/ or ? on keyboard
     last_l_state = false,    -- Reserved
-    last_y_state = false,    -- PDA toggle (Y)
+    last_toggle_state = false,    -- PDA toggle (X)
     last_left_bracket_state = false,
     last_right_bracket_state = false,
     last_pda_up_state = false,
@@ -6328,9 +6328,64 @@ end
 -- Show help overlay
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
-    local helpMsg = "Use Y to toggle PDA. Reset in Settings."
+    local helpMsg = "Use X to toggle PDA. Reset in Settings."
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
+end
+
+-- Raw key name (exu.GetGameKey) -> the name GameKey would have queued.
+local NetworkPolledGameKeys = {
+    { raw = "J", key = "J" }, { raw = "LBRACKET", key = "[" }, { raw = "RBRACKET", key = "]" },
+    { raw = "UARROW", key = "UP" }, { raw = "DARROW", key = "DOWN" },
+    { raw = "LARROW", key = "LEFT" }, { raw = "RARROW", key = "RIGHT" },
+}
+-- Every GameKey name the consumers below accept for those keys.
+local NetworkPolledKeyNames = {}
+for _, name in ipairs({ "J", "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET",
+    "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET", "UP", "UPARROW", "DOWN", "DOWNARROW",
+    "LEFT", "LEFTARROW", "RIGHT", "RIGHTARROW" }) do
+    NetworkPolledKeyNames[name] = true
+end
+
+local function IsNetworkGame()
+    local coop = package.loaded.CRCoop
+    return coop and coop.IsNetworkGame and coop.IsNetworkGame() == true or false
+end
+
+local function RawKeyDown(name)
+    -- Older EXU builds reject unknown key names.
+    local ok, down = pcall(exu.GetGameKey, name)
+    return ok and down == true
+end
+
+-- In network games Redux calls the mission GameKey callback for J, [ ], the
+-- arrows or Enter only sometimes (Y and digits arrive reliably), which left
+-- the co-op PDA without controls. There these keys are polled instead and
+-- queued on their down edge, and GameKey's copies are dropped (see the
+-- GameKey hook) so one press acts once. Known gap: chat input cannot be told
+-- apart here, so typing J in chat can send a ping (rate-limited).
+function PersistentConfig._PollNetworkGameKeys()
+    if not IsNetworkGame() then
+        InputState.netKeysDown = nil
+        return
+    end
+    local down = InputState.netKeysDown or {}
+    InputState.netKeysDown = down
+    for _, entry in ipairs(NetworkPolledGameKeys) do
+        local now = RawKeyDown(entry.raw)
+        local edge = now and not down[entry.raw]
+        down[entry.raw] = now
+        -- The queue is only drained while the PDA is open (J: every frame), so
+        -- navigation presses while flying would replay when it next opens.
+        if edge and (entry.key == "J" or PersistentConfig.Settings.WeaponStatsHud) then
+            PersistentConfig.R.QueueGameKey(entry.key)
+        end
+    end
+end
+
+-- True for a GameKey the network poller owns (dropped from the callback).
+function PersistentConfig._IsNetworkPolledGameKey(key)
+    return type(key) == "string" and NetworkPolledKeyNames[string.upper(key)] == true and IsNetworkGame()
 end
 
 -- Reusable update logic for all missions
@@ -6524,6 +6579,8 @@ function PersistentConfig.UpdateInputs(cinematicActive)
 
     -- GameKey events respect the engine's text-entry routing; raw key polling
     -- would send pings while someone types J in chat. Enter remains stock chat.
+    -- In network games these keys are polled instead (_PollNetworkGameKeys).
+    PersistentConfig._PollNetworkGameKeys()
     local coopAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "J" })
     if uiInteractionSuppressed then return end
     if coopAction and not PersistentConfig.Settings.WeaponStatsHud and IsValid(currentPlayerHandle) then
@@ -6532,12 +6589,14 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     end
 
     local ctrl_down = exu.GetGameKey("CTRL")
-    local y_key = exu.GetGameKey("Y")
+    -- X, not Y: Y is the stock "ally with team" key in network games. X is
+    -- unbound in stock (ISDFC's reload, but CR never runs alongside ISDFC).
+    local toggle_key = exu.GetGameKey("X")
 
-    if y_key and not ctrl_down and not InputState.last_y_state then
+    if toggle_key and not ctrl_down and not InputState.last_toggle_state then
         PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(not PersistentConfig.Settings.WeaponStatsHud)
     end
-    InputState.last_y_state = y_key
+    InputState.last_toggle_state = toggle_key
 
     if not PersistentConfig.Settings.WeaponStatsHud then
         return
@@ -7255,7 +7314,9 @@ function PersistentConfig.Initialize()
     if not PersistentConfig.HooksInstalled then
         local oldGameKey = GameKey
         GameKey = function(key)
-            PersistentConfig.R.QueueGameKey(key)
+            if not PersistentConfig._IsNetworkPolledGameKey(key) then
+                PersistentConfig.R.QueueGameKey(key)
+            end
             if oldGameKey then
                 return oldGameKey(key)
             end

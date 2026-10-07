@@ -107,7 +107,7 @@ function M.Create(d)
             end
         end
         footer(lines, "--------------------------------", "J Action  |  Arrows Select / Change",
-            "[ / ] Page  |  Y Close  |  J Quick ping")
+            "[ / ] Page  |  X Close  |  J Quick ping")
         return table.concat(lines, "\n")
     end
     ui.Reset()
