@@ -376,7 +376,7 @@ local function UpdateModules(dt)
         subtit.Update()
     end
     if PersistentConfig then
-        if PersistentConfig.UpdateInputs then PersistentConfig.UpdateInputs() end
+        if PersistentConfig.UpdateInputs then PersistentConfig.UpdateInputs(localCameraActive) end
         if PersistentConfig.UpdateHeadlights then PersistentConfig.UpdateHeadlights() end
     end
 end

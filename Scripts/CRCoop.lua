@@ -11,6 +11,7 @@
 -- compact: stock Lua Send() only uses the first character of the type string
 -- and has a small payload budget.
 local CRCoop = {}
+local comms
 
 local PROTOCOL_VERSION = 1
 local HANDLE_MESSAGE = "H"
@@ -167,7 +168,30 @@ function CRCoop.Initialize(options)
     leaderDeparted = false
     missionPhase = 0
     RefreshLocalHandle()
+    if not comms then
+        comms = require("CRCoopComms").Create({
+            time = function() return type(GetTime) == "function" and GetTime() or 0 end,
+            players = function() return players end,
+            humanTeam = IsHumanTeam,
+            localId = ResolveLocalPlayerId,
+            localHandle = function() return type(GetPlayerHandle) == "function" and GetPlayerHandle() end,
+            valid = IsUsableHandle,
+            person = function(h) return type(IsPerson) == "function" and IsPerson(h) and
+                (type(IsAlive) ~= "function" or IsAlive(h)) end,
+            position = function(h) return GetPosition(h) end,
+            target = function(h) SetUserTarget(h) end,
+            network = IsNetworkGame,
+            ready = function() return CRCoop.IsSessionReady() end,
+            authority = function() return CRCoop.IsAuthority() end,
+            leaderTeam = function() return leaderTeam end,
+            send = function(...) if type(Send) == "function" then return Send(...) end end,
+            message = function(text) if type(DisplayMessage) == "function" then DisplayMessage(text) end end,
+        })
+    end
+    comms.Reset(IsNetworkGame())
 end
+
+function CRCoop.GetComms() return comms end
 
 function CRCoop.IsNetworkGame()
     return IsNetworkGame()
@@ -328,6 +352,7 @@ end
 
 function CRCoop.Update()
     local localHandle = RefreshLocalHandle()
+    if comms then comms.Update() end
 
     if not IsNetworkGame() or not IsUsableHandle(localHandle) then
         return
@@ -360,6 +385,7 @@ function CRCoop.Update()
 end
 
 function CRCoop.Receive(from, kind, ...)
+    if comms and comms.Receive(from, kind, ...) then return true end
     if kind == HANDLE_MESSAGE then
         local h = ...
         local player = RegisterPlayer(from)

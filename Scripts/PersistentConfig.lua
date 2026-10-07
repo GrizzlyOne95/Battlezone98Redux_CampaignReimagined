@@ -720,7 +720,9 @@ local function BuildPdaHeader(activePage)
     end
     -- The trailing newline preserves the overlay renderer's three-line header
     -- contract: title, page name, blank separator, then body content.
-    return string.format("**BATTLEZONE PDA  %d/%d**\n%s\n", activePage, PdaPages.COUNT, pageLabel)
+    local pageNumber, pageCount = activePage, PdaPages.COUNT
+    if PersistentConfig.CoopPda then pageNumber, pageCount = PersistentConfig.CoopPda.PageNumber(activePage) end
+    return string.format("**BATTLEZONE PDA  %d/%d**\n%s\n", pageNumber, pageCount, pageLabel)
 end
 
 local function AppendPdaFooter(lines, line1, line2, line3)
@@ -738,13 +740,13 @@ function PersistentConfig._GetUiResolutionMetrics()
     local width, height = 1920, 1080
     local uiScale = 2
 
-    if exu and exu.GetScreenResolution then
-        local ok, screenW, screenH = pcall(exu.GetScreenResolution)
+    if exu and exu.GetGameResolution then
+        local ok, screenW, screenH = pcall(exu.GetGameResolution)
         if ok and type(screenW) == "number" and screenW > 0 and type(screenH) == "number" and screenH > 0 then
             width, height = screenW, screenH
         end
-    elseif exu and exu.GetGameResolution then
-        local ok, gameW, gameH = pcall(exu.GetGameResolution)
+    elseif exu and exu.GetScreenResolution then
+        local ok, gameW, gameH = pcall(exu.GetScreenResolution)
         if ok and type(gameW) == "number" and gameW > 0 and type(gameH) == "number" and gameH > 0 then
             width, height = gameW, gameH
         end
@@ -5153,6 +5155,17 @@ IsCommanderTrackedHandle = PersistentConfig.R.IsCommanderTrackedHandle
 RegisterCommanderHandle = PersistentConfig.R.RegisterCommanderHandle
 RemoveCommanderHandle = PersistentConfig.R.RemoveCommanderHandle
 
+PersistentConfig.CoopPda = require("CRCoopPda").Create({
+    coop = require("CRCoop"), exu = exu, pages = PdaPages,
+    feedback = function(text) DisplayMessage("[CO-OP] " .. text) end,
+})
+PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
+    exu = exu, comms = function() return require("CRCoop").GetComms() end,
+    time = function() return GetTime() end,
+    resolution = PersistentConfig._GetUiResolutionMetrics,
+    font = function() return PersistentConfig.PdaOverlay.font end,
+})
+
 PersistentConfig.P = require("PersistentConfigP").Create({
     PersistentConfig = PersistentConfig,
     InputState = InputState,
@@ -5497,6 +5510,7 @@ function PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(enabled)
     end
 
     PersistentConfig.Settings.WeaponStatsHud = visible
+    if visible and PersistentConfig.CoopPda.IsActive() then InputState.pdaPage = PdaPages.COOP end
     PersistentConfig._SettingsActions.CommitPdaSettingChange()
     if visible then
         RequestPdaOverlayRefresh("weapon-stats-toggle-on", 0.05)
@@ -6320,7 +6334,7 @@ function PersistentConfig.ShowHelp()
 end
 
 -- Reusable update logic for all missions
-function PersistentConfig.UpdateInputs()
+function PersistentConfig.UpdateInputs(cinematicActive)
     -- SucceedMission/FailMission can return to the end screen while the
     -- mission script continues to tick for a few frames.  Do not let those
     -- ticks recreate PDA overlays or resubmit subtitle state.
@@ -6360,7 +6374,9 @@ function PersistentConfig.UpdateInputs()
     if exu and exu.GetGameKey and exu.GetGameKey("ESCAPE") then
         escapePressed = true
     end
-    local uiInteractionSuppressed = pauseMenuOpen or escapePressed
+    local uiInteractionSuppressed = pauseMenuOpen or escapePressed or cinematicActive == true
+    PersistentConfig.CoopPda.UpdatePage(InputState)
+    PersistentConfig.CoopPingHud.Update(uiInteractionSuppressed or not IsValid(currentPlayerHandle))
 
     if autosave and autosave.Config and type(autosave.Update) == "function" then
         if not autosave.Config.enabled then
@@ -6506,6 +6522,15 @@ function PersistentConfig.UpdateInputs()
 
     if not exu or not exu.GetGameKey then return end
 
+    -- GameKey events respect the engine's text-entry routing; raw key polling
+    -- would send pings while someone types J in chat. Enter remains stock chat.
+    local coopAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "J" })
+    if uiInteractionSuppressed then return end
+    if coopAction and not PersistentConfig.Settings.WeaponStatsHud and IsValid(currentPlayerHandle) then
+        local ok, reason = PersistentConfig.CoopPda.PingAim()
+        if ok == false and reason then DisplayMessage("[CO-OP] " .. reason) end
+    end
+
     local ctrl_down = exu.GetGameKey("CTRL")
     local y_key = exu.GetGameKey("Y")
 
@@ -6523,14 +6548,14 @@ function PersistentConfig.UpdateInputs()
 
     if left_bracket_pressed then
         PersistentConfig._ClearAutoSaveEnablePrompt()
-        InputState.pdaPage = CycleIndex(InputState.pdaPage, PdaPages.COUNT, -1, PdaPages.VEHICLE)
+        InputState.pdaPage = PersistentConfig.CoopPda.CyclePage(InputState.pdaPage, -1)
         PlayPdaSound("mnu_back.wav")
         ClearPdaFeedback()
         RefreshPdaOverlay()
     end
     if right_bracket_pressed then
         PersistentConfig._ClearAutoSaveEnablePrompt()
-        InputState.pdaPage = CycleIndex(InputState.pdaPage, PdaPages.COUNT, 1, PdaPages.VEHICLE)
+        InputState.pdaPage = PersistentConfig.CoopPda.CyclePage(InputState.pdaPage, 1)
         PlayPdaSound("mnu_next.wav")
         ClearPdaFeedback()
         RefreshPdaOverlay()
@@ -6541,7 +6566,11 @@ function PersistentConfig.UpdateInputs()
     local pda_right_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
     local enterPressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
 
-    if InputState.pdaPage == PdaPages.WEAPONS then
+    if InputState.pdaPage == PdaPages.COOP then
+        PersistentConfig.CoopPda.HandleInput(pda_up_key, pda_down_key, pda_left_key, pda_right_key,
+            coopAction and IsValid(currentPlayerHandle))
+        if pda_up_key or pda_down_key or pda_left_key or pda_right_key or coopAction then RefreshPdaOverlay() end
+    elseif InputState.pdaPage == PdaPages.WEAPONS then
         local installedSlots = {}
         if IsValid(currentPlayerHandle) then
             local installedMask = GetInstalledWeaponMask(currentPlayerHandle)
@@ -7074,6 +7103,8 @@ function PersistentConfig._InstallPlayerChargeTrackingHook()
 end
 
 function PersistentConfig.Initialize()
+    PersistentConfig.CoopPda.Reset()
+    PersistentConfig.CoopPingHud.Destroy()
     InputState.missionEnded = false
     InputState.missionEndCleanupDone = false
     PersistentConfig._DestroyExperimentalOverlay()
@@ -7202,6 +7233,7 @@ function PersistentConfig.Initialize()
         end
 
         InputState.missionEndCleanupDone = true
+        PersistentConfig.CoopPingHud.Destroy()
         InputState.pdaOverlayRefreshPending = false
         InputState.nextPdaOverlayRefresh = 0.0
         PersistentConfig._DestroyAllPdaOverlays()
