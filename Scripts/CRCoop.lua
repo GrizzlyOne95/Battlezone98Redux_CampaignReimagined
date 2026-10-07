@@ -51,6 +51,9 @@ local onOutOfLives = nil
 local outOfLivesLocal = false     -- this player has no lives left
 local outOfLivesHandled = false   -- host: the mission failure was requested
 local nextOutOfLivesSend = 0.0
+-- LockAllies sets a per-client engine gate; Redux ignores it from Start().
+local ALLY_LOCK_INTERVAL = 5.0
+local nextAllyLock = 0.0
 
 local function IsNetworkGame()
     return type(IsNetGame) == "function" and IsNetGame()
@@ -168,6 +171,7 @@ function CRCoop.Initialize(options)
 
     onOutOfLives = type(options.onOutOfLives) == "function" and options.onOutOfLives or nil
     outOfLivesLocal, outOfLivesHandled, nextOutOfLivesSend = false, false, 0.0
+    nextAllyLock = 0.0
 
     -- Start may re-enter in the same process. Preserve native player callbacks
     -- that preceded Start, but never carry the prior mission admission state.
@@ -438,6 +442,13 @@ function CRCoop.Update()
     end
 
     local now = type(GetTime) == "function" and GetTime() or 0.0
+
+    -- Co-op alliances are fixed: lock them so the stock Y/U ally prompt never
+    -- opens. Re-asserted periodically in case the engine resets the gate.
+    if now >= nextAllyLock and type(LockAllies) == "function" then
+        nextAllyLock = now + ALLY_LOCK_INTERVAL
+        pcall(LockAllies, true)
+    end
 
     if now >= nextHandleBroadcast then
         nextHandleBroadcast = now + handleBroadcastInterval

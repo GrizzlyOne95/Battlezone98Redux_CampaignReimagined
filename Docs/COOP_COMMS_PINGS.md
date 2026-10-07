@@ -16,9 +16,12 @@ game; this page uses the existing keyboard navigation.
 Enter retains native chat. In network games Redux calls the mission `GameKey`
 callback for J, [ ], the arrows and Enter only sometimes, so CR polls those keys
 there through `exu.GetGameKey` (EXU needs the `LBRACKET`/`RBRACKET` names) and
-ignores their `GameKey` copies. Polling cannot tell chat typing apart, so
-typing J in chat can send a ping (rate-limited); [ ] and the arrows act only
-while the PDA is open. Pause, cinematic, dead-player and mission-end contexts
+ignores their `GameKey` copies. [ ] and the arrows act only while the PDA is
+open. While the chat line or the ally/unally box has keyboard focus
+(`exu.IsTextEntryActive()`), polled keys and X are ignored, so typing in chat
+does not ping; older EXU builds without the probe still can. Co-op calls
+`LockAllies(true)` from `CRCoop.Update` (Redux ignores it from `Start`), so Y/U
+do not open the ally box. Pause, cinematic, dead-player and mission-end contexts
 suppress actions. The migrated missions pass their local cinematic state into
 `PersistentConfig.UpdateInputs`; future migrations should do the same.
 
