@@ -1,7 +1,7 @@
 # Co-op PDA communications and pings
 
 The existing PDA opens on **Co-op** in the migrated co-op missions (`misn02b`,
-`misn03`, `misn04`). Solo play keeps its eight pages. Mouse input stays with the
+`misn03`, `misn04`, `misn05`). Solo play keeps its eight pages. Mouse input stays with the
 game; this page uses the existing keyboard navigation.
 
 | Key | Action |

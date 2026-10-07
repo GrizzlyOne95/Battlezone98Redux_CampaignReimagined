@@ -1,6 +1,6 @@
 # Co-op respawns and lives
 
-Applies to the co-op missions that use `CRCoop` (`misn02b`, `misn03`, `misn04`).
+Applies to the co-op missions that use `CRCoop` (`misn02b`, `misn03`, `misn04`, `misn05`).
 Single player is unchanged: death ends the mission.
 
 ## Lives
@@ -26,8 +26,11 @@ Native MultST respawns the player as a pilot near the team start location
    not follow each other there.
 2. The mission's rally point for the current phase, if it declared any:
    `CRCoop.Initialize({ rallyPoints = { [phase] = "path_or_label" } })`. The
-   highest phase not above `CRCoop.GetMissionPhase()` is used. No mission
-   declares rally points yet.
+   highest phase not above `CRCoop.GetMissionPhase()` is used. Mission 05
+   declares Montana for phase 1 and Lemnos for phase 2; native MultST consumes
+   the team-start buoys during initialization.
+   Object labels resolve through `GetHandle`; `GetPosition(string)` alone reads
+   a path and can silently return the map origin for a label.
 3. The player's last safe position: sampled every 2 s while alive, settled and
    with no enemy craft within 200 m, and at least 15 s older than the death.
 4. Otherwise the native drop point.

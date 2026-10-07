@@ -18,6 +18,9 @@ GetTime = function() return now end
 GetPlayerHandle = function() return localHandle end
 GetTeamNum = function(h) return h and h.team or -1 end
 IsValid = function(h) return h ~= nil and h.valid ~= false end
+-- CRCoop also updates its respawn service; this registry fixture has no combat.
+GetPosition = function() return { x = 0, y = 0, z = 0 } end
+AllCraft = function() return function() return nil end end
 GetDistance = function(a, b)
     if b ~= target then return 9999 end
     if a == localHandle then return 50 end

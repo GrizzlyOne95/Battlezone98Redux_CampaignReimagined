@@ -7,6 +7,12 @@ SetLabel = SetLabel or SetLabel
 local RequireFix = require("RequireFix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
+-- Native MultST Init precedes Start; retain the authored Montana only.
+if type(IsNetGame) == "function" and IsNetGame() then
+    assert(exu.DisableStartingRecycler and exu.GetMyNetID,
+        "misn05 co-op requires the bundled EXU multiplayer hooks")
+    exu.DisableStartingRecycler()
+end
 local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
@@ -14,6 +20,250 @@ local PersistentConfig = require("PersistentConfig")
 local Environment = require("Environment")
 local CRMarsWeather = require("CRMarsWeather")
 local PhysicsImpact = require("PhysicsImpact")
+local CRCoop = require("CRCoop")
+local LEADER_TEAM, ENEMY_TEAM, MINE_TEAM, SUPPORT_TEAM = 1, 5, 6, 7
+local stockWeatherWindPush = CRMarsWeather.AllowWindPush
+local M
+local ApplyDifficultyObjectives
+
+
+-- Object-camera presentation uses the established misn04 E/A and C transport. Only the campaign leader runs the mission
+-- below; HUD/audio/removal/end calls are explicitly delivered to every peer.
+-- E/A are an ordered, acknowledged event stream (eight small packets in flight,
+-- retried every 0.2s). C is a replaceable camera snapshot. No tables go on wire.
+-- These types do not collide with CRCoop's H/Q/K/P protocol. Join-in-progress
+-- still requires a restart: native world reconstruction is not available here.
+local unpackArgs = unpack or table.unpack
+local native = {
+    ClearObjectives = ClearObjectives, AddObjective = AddObjective,
+    UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
+    SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
+    SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
+    SucceedMission = SucceedMission, FailMission = FailMission,
+    CameraReady = CameraReady, CameraObject = CameraObject,
+    CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
+    Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
+}
+local events, acknowledgements = {}, {}
+local receivedEvent = 0
+local nextEventSend, nextCameraSend = 0, 0
+local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+local remoteCameraSerial, localCameraGeneration = 0, 0
+local cameraSkipped, localCameraActive = false, false
+local remoteCamera
+
+local function FromLeader(from)
+    local player = CRCoop.GetPlayers()[from]
+    return player and player.team == LEADER_TEAM
+end
+
+local function ApplyPresentation(op, ...)
+    if op == "Resources" then
+        local team, scrap, pilots = ...
+        -- Each human owns their team resources. Do not mutate a remote team.
+        if CRCoop.GetLocalTeam() == team then
+            SetScrap(team, scrap)
+            SetPilot(team, pilots)
+        end
+    elseif op == "Difficulty" then
+        M.difficulty = ...
+        ApplyDifficultyObjectives()
+        if exu.SetDifficulty then exu.SetDifficulty(M.difficulty) end
+    elseif op == "WeatherTarget" then
+        if CRMarsWeather.SetTargetLevel then CRMarsWeather.SetTargetLevel(...) end
+    elseif op == "WeatherForce" then
+        if CRMarsWeather.ForceLevel then CRMarsWeather.ForceLevel(...) end
+    elseif op == "WeatherLevel" then
+        -- Guests follow the host's actual rung; their random ladder is disabled.
+        if not CRCoop.IsAuthority() and CRMarsWeather.ForceLevel then
+            CRMarsWeather.ForceLevel((...), 86400)
+        end
+    elseif op == "SucceedMission" or op == "FailMission" then
+        local when, description = ...
+        if localCameraActive then native.CameraFinish() end
+        cameraFrame = nil
+        localCameraActive = false
+        M.coopResult = true
+        native[op](math.max(GetTime() + 0.5, when), description)
+    else
+        return native[op](...)
+    end
+end
+
+local function Present(op, ...)
+    if CRCoop.IsNetworkGame() then
+        if not CRCoop.IsAuthority() then return end
+        events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), expires = GetTime() + 5 }
+    end
+    return ApplyPresentation(op, ...)
+end
+
+-- Lexical wrappers affect this mission only; shared modules retain stock APIs.
+local function ClearObjectives(...) return Present("ClearObjectives", ...) end
+local function AddObjective(...) return Present("AddObjective", ...) end
+local function UpdateObjective(...) return Present("UpdateObjective", ...) end
+local function SetObjectiveOn(...) return Present("SetObjectiveOn", ...) end
+local function SetObjectiveOff(...) return Present("SetObjectiveOff", ...) end
+local function SetObjectiveName(...) return Present("SetObjectiveName", ...) end
+local function SetUserTarget(...) return Present("SetUserTarget", ...) end
+local function RemoveObject(...) return Present("RemoveObject", ...) end
+-- Preserve the real subtitle module for Update/Initialize and return values.
+subtit = setmetatable({
+    Play = function(...) return Present("Play", ...) end,
+    Queue = function(...) return Present("Queue", ...) end,
+    Stop = function(...) return Present("Stop", ...) end,
+}, { __index = subtit })
+
+local function EndMission(op, when, description)
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        -- Flush preceding narrative/cleanup before publishing the result. Keep
+        -- five seconds for result retries before native AiMission shuts down.
+        M.coopPendingResult = { op, when, description }
+    else
+        M.coopResult = true
+        native[op](when, description)
+    end
+end
+local function SucceedMission(...) return EndMission("SucceedMission", ...) end
+local function FailMission(...) return EndMission("FailMission", ...) end
+
+local function CameraReady()
+    cameraGeneration = cameraGeneration + 1
+    cameraSkipped = false
+    if CRCoop.IsNetworkGame() and localCameraActive then native.CameraFinish() end
+    localCameraActive = true
+    return native.CameraReady()
+end
+local function CameraObject(subject, x, y, z, target)
+    cameraFrame = { subject, x, y, z, target }
+    if cameraSkipped then return end
+    local done = native.CameraObject(subject, x, y, z, target)
+    -- Match the authored CameraObject -> CameraCancelled order: the object
+    -- camera can process the skip during this call, before the next frame.
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        local wasActive = localCameraActive
+        localCameraActive = false
+        if wasActive then native.CameraFinish() end
+    end
+    return done
+end
+local function CameraCancelled(clear)
+    -- A player's skip releases only their own camera; never skips shared
+    -- destruction, transport orders, or the success gate for everyone else.
+    if CRCoop.IsNetworkGame() then return false end
+    return native.CameraCancelled(clear)
+end
+local function CameraFinish()
+    cameraFrame = nil
+    cameraSkipped = false
+    local wasActive = localCameraActive
+    localCameraActive = false
+    if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
+end
+
+local function UpdateRemoteCamera()
+    if not remoteCamera then return end
+    local generation, subject, x, y, z, target = unpackArgs(remoteCamera)
+    if subject == "" or M.coopResult then
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+        return
+    end
+    if generation ~= localCameraGeneration then
+        localCameraGeneration = generation
+        cameraSkipped = false
+    end
+    if cameraSkipped or not IsValid(subject) or not IsValid(target) then return end
+    if not localCameraActive then
+        native.CameraReady()
+        localCameraActive = true
+    end
+    native.CameraObject(subject, x, y, z, target)
+    if native.CameraCancelled() then
+        cameraSkipped = true
+        localCameraActive = false
+        native.CameraFinish()
+    end
+end
+
+local function UpdatePresentationTransport()
+    if not CRCoop.IsNetworkGame() then return end
+    if not CRCoop.IsAuthority() then
+        UpdateRemoteCamera()
+        return
+    end
+    local now, allDelivered = GetTime(), true
+    for id, player in pairs(CRCoop.GetPlayers()) do
+        if CRCoop.IsHumanTeam(player.team) and id ~= CRCoop.GetLocalPlayerId() then
+            local ack = acknowledgements[id] or 0
+            if ack < #events then allDelivered = false end
+            if now >= nextEventSend then
+                for seq = ack + 1, math.min(ack + 8, #events) do
+                    local event = events[seq]
+                    Send(id, "E", seq, event.op, event.expires, unpackArgs(event.args, 1, event.n))
+                end
+            end
+        end
+    end
+    if now >= nextEventSend then nextEventSend = now + 0.2 end
+    if M.coopPendingResult and allDelivered then
+        local result = M.coopPendingResult
+        M.coopPendingResult = nil
+        Present(result[1], math.max(now + 5, result[2] or 0), result[3])
+    end
+    if now >= nextCameraSend then
+        nextCameraSend = now + 0.2
+        cameraSerial = cameraSerial + 1
+        if cameraFrame then
+            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(cameraFrame))
+        else
+            Send(0, "C", cameraSerial, cameraGeneration, "", 0, 0, 0)
+        end
+    end
+end
+
+local function ReceivePresentation(from, kind, ...)
+    if not CRCoop.IsNetworkGame() then return false end
+    if kind == "A" then
+        local seq = ...
+        if CRCoop.IsAuthority() and CRCoop.GetPlayers()[from] and
+            type(seq) == "number" and seq >= 0 and seq <= #events and seq == math.floor(seq) then
+            acknowledgements[from] = math.max(acknowledgements[from] or 0, seq)
+        end
+        return true
+    end
+    if kind ~= "E" and kind ~= "C" then return false end
+    if CRCoop.IsAuthority() or not FromLeader(from) then return true end
+    if kind == "C" then
+        local seq, generation, subject, x, y, z, target = ...
+        if type(seq) == "number" and seq > remoteCameraSerial and type(generation) == "number" and
+            type(x) == "number" and type(y) == "number" and type(z) == "number" then
+            remoteCameraSerial = seq
+            remoteCamera = { generation, subject, x, y, z, target }
+        end
+        return true
+    end
+    local seq, op, expires = ...
+    if type(seq) ~= "number" or type(op) ~= "string" or type(expires) ~= "number" then return true end
+    if seq == receivedEvent + 1 and (native[op] or op == "Resources" or op == "Difficulty" or
+        op == "WeatherTarget" or op == "WeatherForce" or op == "WeatherLevel") then
+        local args = { select(4, ...) }
+        -- Dynamic handles can arrive after the Lua packet. Withhold the ACK
+        -- until the next retransmission resolves it, rather than losing markers.
+        local missing = (op == "SetObjectiveOn" or op == "SetObjectiveName" or op == "SetUserTarget") and
+            not IsValid(args[1])
+        if missing and GetTime() < expires then return true end
+        -- A target destroyed before its packet arrived must not block the
+        -- stream (and the mission result) forever. Only that stale marker drops.
+        if not missing then ApplyPresentation(op, unpackArgs(args, 1, select("#", ...) - 3)) end
+        receivedEvent = seq
+    end
+    Send(from, "A", receivedEvent)
+    return true
+end
+
 
 -- BuildObject invokes AddObject synchronously. This guard lets explicit mission
 -- spawns bypass aiCore while leaving aiCore-produced CCA units managed normally.
@@ -21,7 +271,7 @@ local spawningScriptedEnemy = false
 
 -- Helper for AI
 local function SetupAI()
-    DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, 2)
+    DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, ENEMY_TEAM)
 
     -- Configure Player Team (1) for Scavenger Assist
     if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
@@ -30,9 +280,9 @@ local function SetupAI()
         aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     end
 
-    -- Configure CCA (Team 2)
-    if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[2] then
-        local cca = aiCore.ActiveTeams[2]
+    -- Configure CCA (Team 5)
+    if aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[ENEMY_TEAM] then
+        local cca = aiCore.ActiveTeams[ENEMY_TEAM]
         cca:SetMaintainList(
             { scout = 2, scavenger = 4, constructor = 1 },                                 -- Recycler
             { tank = 1, lighttank = 1, bomber = 1, turret = 6, howitzer = 3, armory = 1 }, -- Factory
@@ -50,7 +300,8 @@ local function SetupAI()
 end
 
 -- Variables (Encapsulated for Save/Load)
-local M = {
+local function NewMissionState()
+    return {
     game_start = false,
     reconfactory = false,
     missionwon = false,
@@ -170,6 +421,8 @@ local M = {
     loading_done = false,
     loadGracePeriod = 0,
 }
+end
+M = NewMissionState()
 
 local function AddUniqueHandle(list, h)
     if not h or not IsValid(h) then return end
@@ -204,7 +457,7 @@ end
 
 local function SpawnScriptedEnemy(odf, spawn, countsForPreAttack, countsForVictory)
     spawningScriptedEnemy = true
-    local ok, h = pcall(BuildObject, odf, 2, spawn)
+    local ok, h = pcall(BuildObject, odf, ENEMY_TEAM, spawn)
     spawningScriptedEnemy = false
     if not ok then
         error(h, 0)
@@ -220,12 +473,31 @@ local function AnyAlive(list)
 end
 
 local function RefreshDifficulty()
+    if CRCoop.IsNetworkGame() and not CRCoop.IsAuthority() then return M.difficulty end
     if exu and exu.GetDifficulty then
         local d = exu.GetDifficulty()
         if d ~= nil then M.difficulty = d end
     end
     if M.difficulty == nil then M.difficulty = 2 end
     return M.difficulty
+end
+
+ApplyDifficultyObjectives = function()
+    if M.difficulty >= 3 then
+        AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
+    elseif M.difficulty <= 1 then
+        AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
+    end
+end
+
+local function ConfigureAlliances()
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+    for team = 1, 4 do
+        Ally(team, SUPPORT_TEAM); Ally(SUPPORT_TEAM, team)
+        UnAlly(team, MINE_TEAM); UnAlly(MINE_TEAM, team)
+    end
+    UnAlly(ENEMY_TEAM, MINE_TEAM); UnAlly(MINE_TEAM, ENEMY_TEAM)
+    UnAlly(ENEMY_TEAM, SUPPORT_TEAM); UnAlly(SUPPORT_TEAM, ENEMY_TEAM)
 end
 
 local function RefreshMissionHandles()
@@ -283,7 +555,9 @@ local function ApplyTurboToAll()
     if not (exu and exu.SetUnitTurbo) then return end
     for h in AllCraft() do
         local team = GetTeamNum(h)
-        if team == 1 then
+        if CRCoop.IsNetworkGame() and not IsLocal(h) then
+            -- The owning peer applies its own craft settings.
+        elseif CRCoop.IsHumanTeam(team) then
             exu.SetUnitTurbo(h, true)
         elseif team ~= 0 then
             exu.SetUnitTurbo(h, M.difficulty >= 2)
@@ -312,11 +586,17 @@ function ApplyQOL()
     -- No baseSky is supplied, so the sky layer stays off and the weather reads
     -- through fog, light and particles.
     if CRMarsWeather and CRMarsWeather.Init then
-        CRMarsWeather.Init({
+        local weatherOptions = {
             profile     = "Volcano",
             startLevel  = 1,
             targetLevel = 2,
-        })
+            windPush = stockWeatherWindPush,
+        }
+        if CRCoop.IsNetworkGame() then weatherOptions.windPush = false end
+        CRMarsWeather.Init(weatherOptions)
+        if CRMarsWeather.SetAutomatic then
+            CRMarsWeather.SetAutomatic(not CRCoop.IsNetworkGame() or CRCoop.IsAuthority())
+        end
 
         if M and M.weatherState ~= nil and CRMarsWeather.Load then
             CRMarsWeather.Load(M.weatherState)
@@ -328,6 +608,19 @@ function ApplyQOL()
 end
 
 local function BootstrapWithoutScriptedEnemies()
+    if CRCoop.IsNetworkGame() then
+        local scripted = {}
+        for _, h in ipairs(M.scriptedEnemies or {}) do scripted[h] = true end
+        aiCore.ResetObjectCacheTracking()
+        for h in AllObjects() do
+            aiCore.TrackWorldObject(h)
+            if IsValid(h) and IsLocal(h) and not CRCoop.IsHumanCraft(h) and not scripted[h] then
+                aiCore.AddObject(h)
+            end
+        end
+        aiCore.RefreshObjectCache(true)
+        return
+    end
     local restoreIndependence = {}
 
     -- aiCore.Bootstrap scans the whole world. Temporarily mark explicit mission
@@ -362,56 +655,64 @@ local function RehydrateMissionRuntime()
     RefreshDifficulty()
     ApplyQOL()
     RebuildScriptedEnemyRegistry()
-    SetupAI()
-    BootstrapWithoutScriptedEnemies()
-    SetAIP("misn05.aip")
+    if CRCoop.IsAuthority() then
+        SetupAI()
+        BootstrapWithoutScriptedEnemies()
+        SetAIP("misn05.aip", ENEMY_TEAM)
+    end
     subtit.Initialize()
     ApplyTurboToAll()
     M.loading_done = true
 end
 
 function Start()
+    M = NewMissionState()
     M.TPS = 20
-    M.scriptedEnemies = M.scriptedEnemies or {}
-    M.preAttackEnemies = M.preAttackEnemies or {}
-    M.victoryEnemies = M.victoryEnemies or {}
-    M.loadGracePeriod = 0
-
-    -- EXU/QOL Setup
-    if exu then
-        local ver = (type(exu.GetVersion) == "function" and exu.GetVersion()) or exu.VERSION or exu.version or "Unknown"
-        print("EXU Version: " .. tostring(ver))
-        RefreshDifficulty()
-        print("Difficulty: " .. tostring(M.difficulty))
-
-        if M.difficulty >= 3 then
-            AddObjective("hard_diff", "yellow", 8.0, "High Difficulty: Enemy presence intensified.")
-        elseif M.difficulty <= 1 then
-            AddObjective("easy_diff", "blue", 8.0, "Low Difficulty: Enemy presence reduced.")
-        end
-
-    end
-
-    -- Restarting the mission in the same process re-enters Start with the
-    -- weather module still initialised and still holding particle handles from
-    -- the previous run's scene. Stand it down first so ApplyQOL brings up a
-    -- clean one; Shutdown is a no-op when it was never initialised.
-    if CRMarsWeather and CRMarsWeather.Shutdown then
-        CRMarsWeather.Shutdown()
-    end
-
+    CRCoop.Initialize({
+        getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
+        leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
+        onOutOfLives = function() FailMission(GetTime() + 3.0) end,
+        -- MultST consumes its spawn buoys during initialization. Rally at the
+        -- persistent Montana instead of the removed team-start marker.
+        rallyPoints = { [1] = "avrecy-1_recycler", [2] = "oblema110_i76building" },
+    })
+    ConfigureAlliances()
+    events, acknowledgements, receivedEvent = {}, {}, 0
+    nextEventSend, nextCameraSend = 0, 0
+    cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+    remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
+    cameraSkipped, localCameraActive = false, false
+    RefreshMissionHandles()
+    RefreshDifficulty()
+    if not CRCoop.IsNetworkGame() then ApplyDifficultyObjectives() end
+    if CRMarsWeather.Shutdown then CRMarsWeather.Shutdown() end
     ApplyQOL()
-    SetupAI()
-    aiCore.Bootstrap()
-    subtit.Initialize()
-    M.loading_done = true
-
-    -- Persistent, clearable minefield: intentionally differs from the stock
-    -- proximity-respawn system. Mines can engage either side and stay destroyed.
-    for i = 1, 23 do
-        local pathName = "path_" .. i
-        BuildObject("boltmine", 3, pathName) -- Team 3 = Alien/Hostile
+    if CRCoop.IsAuthority() then
+        SetupAI()
+        if not CRCoop.IsNetworkGame() then aiCore.Bootstrap() end
+        -- Preserve the clearable field; reserve separate hostile and support teams.
+        for i = 1, 23 do
+            local pathName = "path_" .. i
+            BuildObject("boltmine", MINE_TEAM, pathName)
+        end
     end
+    subtit.Initialize()
+    ApplyTurboToAll()
+    M.loading_done = true
+end
+
+function CreatePlayer(id, name, team)
+    CRCoop.CreatePlayer(id, name, team)
+    ConfigureAlliances()
+end
+function AddPlayer(id, name, team)
+    CRCoop.AddPlayer(id, name, team)
+    ConfigureAlliances()
+end
+function DeletePlayer(id, name, team) CRCoop.DeletePlayer(id) end
+function Receive(from, kind, ...)
+    if ReceivePresentation(from, kind, ...) then return true end
+    return CRCoop.Receive(from, kind, ...)
 end
 
 function AddObject(h)
@@ -427,8 +728,9 @@ function AddObject(h)
     PhysicsImpact.OnObjectCreated(h)
 
     -- EXU Turbo
-    if exu and exu.SetUnitTurbo and IsCraft(h) then
-        if team == 1 then
+    if exu and exu.SetUnitTurbo and IsCraft(h) and
+        (not CRCoop.IsNetworkGame() or IsLocal(h)) then
+        if CRCoop.IsHumanTeam(team) then
             exu.SetUnitTurbo(h, true)
         elseif team ~= 0 then
             if M.difficulty >= 2 then
@@ -439,9 +741,13 @@ function AddObject(h)
         end
     end
 
-    -- AI Core Hook. Explicit mission-scripted Team 2 units are kept out of
+    -- AI Core Hook. Explicit mission-scripted CCA units are kept out of
     -- aiCore so their Follow/Goto/Patrol/Attack orders remain authoritative.
-    if team == 2 then
+    if CRCoop.IsNetworkGame() and
+        (not CRCoop.IsAuthority() or not IsLocal(h) or not CRCoop.HasAllPlayerHandles() or CRCoop.IsHumanCraft(h)) then
+        return
+    end
+    if team == ENEMY_TEAM then
         if not spawningScriptedEnemy then
             local nearBase = false
             if M.svrec and IsAlive(M.svrec) and GetDistance(h, M.svrec) < 400 then
@@ -479,6 +785,7 @@ end
 -- storm arrives with the CCA and peaks while the factory is being held, which
 -- is a fixed-position fight where poor visibility cuts both ways.
 local function UpdateWeatherBeats()
+    if not CRCoop.IsAuthority() then return end
     if not (CRMarsWeather and CRMarsWeather.SetTargetLevel) then
         return
     end
@@ -514,7 +821,7 @@ local function UpdateWeatherBeats()
     end
 
     if CRMarsWeather.GetTargetLevel() ~= target then
-        CRMarsWeather.SetTargetLevel(target)
+        Present("WeatherTarget", target)
     end
 
     -- Set piece: the final attackers arrive inside a summit blackout. Forced
@@ -524,7 +831,14 @@ local function UpdateWeatherBeats()
     if M.aw1sent and not M.weatherSetPiece and not M.missionwon then
         M.weatherSetPiece = true
         if CRMarsWeather.ForceLevel then
-            CRMarsWeather.ForceLevel(5, 60.0, 14.0)
+            Present("WeatherForce", 5, 60.0, 14.0)
+        end
+    end
+    if CRCoop.IsNetworkGame() and CRMarsWeather.GetLevel then
+        local level = CRMarsWeather.GetLevel()
+        if level ~= M.coopWeatherLevel then
+            M.coopWeatherLevel = level
+            Present("WeatherLevel", level)
         end
     end
 end
@@ -539,7 +853,6 @@ function Update()
 
     M.player = GetPlayerHandle()
     if exu and exu.UpdateOrdnance then exu.UpdateOrdnance() end
-    aiCore.Update()
     -- Weather updates before Environment on purpose: CRWeather contributes fog
     -- and light into Environment's frame through its modifier hook, so it has
     -- to have run for this frame before Environment resolves that frame.
@@ -550,20 +863,61 @@ function Update()
     Environment.Update(1.0 / M.TPS)
     PhysicsImpact.Update(1.0 / M.TPS)
     subtit.Update()
-    PersistentConfig.UpdateInputs()
+    PersistentConfig.UpdateInputs(localCameraActive)
     PersistentConfig.UpdateHeadlights()
+
+    CRCoop.Update()
+    UpdatePresentationTransport()
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        if CRCoop.HasLeaderDeparted() then
+            M.coopResult = true
+            if localCameraActive then native.CameraFinish() end
+            localCameraActive = false
+            native.FailMission(GetTime() + 1.0)
+            return
+        end
+        if CRCoop.HasUnsupportedPlayerTeam() or CRCoop.HasLateJoiners() then
+            if not M.coopRestartWarned then
+                DisplayMessage("Use distinct teams 1-4 and start together. Late join/rejoin requires a mission restart.")
+                M.coopRestartWarned = true
+            end
+            return
+        end
+        if not CRCoop.IsSessionReady() then return end
+    end
+    if not M.coopMissionStarted then
+        CRCoop.MarkMissionStarted()
+        M.coopMissionStarted = true
+    end
+    if not CRCoop.IsAuthority() then return end
+    if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
+        BootstrapWithoutScriptedEnemies()
+        M.coopBootstrapped = true
+    end
+    aiCore.Update()
 
     -- Game Start / Initial Setup
     if not M.game_start then
-        SetScrap(1, DiffUtils.ScaleRes(40))
-        SetScrap(2, DiffUtils.ScaleRes(40))
-        SetPilot(1, DiffUtils.ScaleRes(10))
+        if CRCoop.IsNetworkGame() then
+            Present("Difficulty", RefreshDifficulty())
+            CRCoop.ForEachHumanTeam(function(team)
+                Present("Resources", team, DiffUtils.ScaleRes(40), DiffUtils.ScaleRes(10))
+            end)
+            local offlinePlayer = GetHandle("player-1_hover")
+            if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
+        else
+            SetScrap(1, DiffUtils.ScaleRes(40))
+            SetPilot(1, DiffUtils.ScaleRes(10))
+        end
+        SetScrap(ENEMY_TEAM, DiffUtils.ScaleRes(40))
 
         RefreshMissionHandles()
 
-        SetAIP("misn05.aip")
+        SetAIP("misn05.aip", ENEMY_TEAM)
         subtit.Play("misn0501.wav")
         M.game_start = true
+        CRCoop.SetMissionPhase(1)
 
         M.randomwave = GetTime() + DiffUtils.ScaleTimer(5.0)
 
@@ -624,16 +978,17 @@ function Update()
     end
 
     -- Not Found Warning (Player near factory but hasn't triggered recon yet)
-    if (not M.reconfactory) and (GetDistance(M.player, M.lemnos) < 600.0) and (not M.notfound) then
+    if (not M.reconfactory) and (CRCoop.AnyPlayerSatisfies(function(h) return GetDistance(h, M.lemnos) < 600.0 end)) and (not M.notfound) then
         subtit.Play("misn0502.wav")
         M.notfound = true
     end
 
     -- Recon Factory Logic
-    if (not M.reconfactory) and (GetDistance(M.player, M.lemnos) < 230.0) then
+    if (not M.reconfactory) and (CRCoop.AnyPlayerSatisfies(function(h) return GetDistance(h, M.lemnos) < 230.0 end)) then
         subtit.Play("misn0503.wav")
         subtit.Play("misn0504.wav")
         M.reconfactory = true
+        CRCoop.SetMissionPhase(2)
         M.newobjective = true
         M.start = GetTime() + DiffUtils.ScaleTimer(90.0)
 
@@ -1061,9 +1416,7 @@ function Update()
             M.endseq_cutscene_end = GetTime() + 10.0
             M.endseq_post_wait_end = 99999999.0
 
-            -- Team 3 helpers allied with player (non-commandable friendly force).
-            Ally(1, 3)
-            Ally(3, 1)
+            -- Support team stays separate from the hostile minefield.
 
             -- Spawn a friendly armored fleet and move toward Lemnos.
             local anchor = M.avrec
@@ -1071,7 +1424,7 @@ function Update()
             M.endFleet = {}
             for i = 1, 7 do
                 local spawnPos = GetPositionNear(GetPosition(anchor), 40, 140)
-                local t = BuildObject("avtank", 3, spawnPos)
+                local t = BuildObject("avtank", SUPPORT_TEAM, spawnPos)
                 if IsAlive(t) then
                     table.insert(M.endFleet, t)
                     Goto(t, M.lemnos, 1)
@@ -1090,7 +1443,9 @@ function Update()
                 if not IsAlive(camTank) then
                     camTank = M.player
                 end
-                CameraObject(camTank, -25, 18, -85, M.lemnos)
+                -- CameraObject offsets are centimeters: frame the fleet from
+                -- 25 m to the side, 18 m above and 85 m behind its lead tank.
+                CameraObject(camTank, -2500, 1800, -8500, M.lemnos)
             else
                 CameraFinish()
                 CameraCancelled(false)
