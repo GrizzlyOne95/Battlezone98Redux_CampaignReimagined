@@ -6358,13 +6358,23 @@ local function RawKeyDown(name)
     return ok and down == true
 end
 
+-- True while a stock in-mission text editor (multiplayer chat, the ally/unally
+-- team-number prompt) has keyboard focus. The engine routes keys to the editor
+-- then, so GameKey stays quiet, but raw exu.GetGameKey polling still sees
+-- them. Older EXU builds lack the probe and report false.
+function PersistentConfig._IsTextEntryActive()
+    if not exu or type(exu.IsTextEntryActive) ~= "function" then return false end
+    local ok, active = pcall(exu.IsTextEntryActive)
+    return ok and active == true
+end
+
 -- In network games Redux calls the mission GameKey callback for J, [ ], the
 -- arrows or Enter only sometimes (Y and digits arrive reliably), which left
 -- the co-op PDA without controls. There these keys are polled instead and
 -- queued on their down edge, and GameKey's copies are dropped (see the
--- GameKey hook) so one press acts once. Known gap: chat input cannot be told
--- apart here, so typing J in chat can send a ping (rate-limited).
-function PersistentConfig._PollNetworkGameKeys()
+-- GameKey hook) so one press acts once. Presses while typing in chat or the
+-- ally prompt are tracked but not queued.
+function PersistentConfig._PollNetworkGameKeys(typing)
     if not IsNetworkGame() then
         InputState.netKeysDown = nil
         return
@@ -6373,7 +6383,7 @@ function PersistentConfig._PollNetworkGameKeys()
     InputState.netKeysDown = down
     for _, entry in ipairs(NetworkPolledGameKeys) do
         local now = RawKeyDown(entry.raw)
-        local edge = now and not down[entry.raw]
+        local edge = now and not down[entry.raw] and not typing
         down[entry.raw] = now
         -- The queue is only drained while the PDA is open (J: every frame), so
         -- navigation presses while flying would replay when it next opens.
@@ -6580,9 +6590,15 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     -- GameKey events respect the engine's text-entry routing; raw key polling
     -- would send pings while someone types J in chat. Enter remains stock chat.
     -- In network games these keys are polled instead (_PollNetworkGameKeys).
-    PersistentConfig._PollNetworkGameKeys()
+    local typing = PersistentConfig._IsTextEntryActive()
+    PersistentConfig._PollNetworkGameKeys(typing)
     local coopAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "J" })
     if uiInteractionSuppressed then return end
+    if typing then
+        -- Keep the X edge current so an X typed in chat does not toggle later.
+        InputState.last_toggle_state = exu.GetGameKey("X")
+        return
+    end
     if coopAction and not PersistentConfig.Settings.WeaponStatsHud and IsValid(currentPlayerHandle) then
         local ok, reason = PersistentConfig.CoopPda.PingAim()
         if ok == false and reason then DisplayMessage("[CO-OP] " .. reason) end
