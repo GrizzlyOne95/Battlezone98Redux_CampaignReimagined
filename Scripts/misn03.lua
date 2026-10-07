@@ -764,7 +764,7 @@ local function UpdateModules(dt)
     end
     if PersistentConfig then
         if PersistentConfig.UpdateInputs then
-            TraceUpdateCall("misn03.UpdateModules PersistentConfig.UpdateInputs", PersistentConfig.UpdateInputs)
+            TraceUpdateCall("misn03.UpdateModules PersistentConfig.UpdateInputs", PersistentConfig.UpdateInputs, localCameraActive)
         end
         if PersistentConfig.UpdateHeadlights then
             TraceUpdateCall("misn03.UpdateModules PersistentConfig.UpdateHeadlights", PersistentConfig.UpdateHeadlights)

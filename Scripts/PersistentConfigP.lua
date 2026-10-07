@@ -723,6 +723,9 @@ function M.Create(deps)
 
     local function BuildWeaponStatsText(player, mask)
         local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.VEHICLE)
+        if page == PdaPages.COOP then
+            return PersistentConfig.CoopPda.BuildText(BuildPdaHeader, AppendPdaFooter)
+        end
         if page == PdaPages.CAREER then
             return BuildCareerPageText(player)
         end
