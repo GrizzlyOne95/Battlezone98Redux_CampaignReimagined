@@ -14,7 +14,8 @@ player start, and the bundled EXU hooks to suppress extra starting recyclers.
 - Team 1 owns Montana, production, the automated relic cargo job and mission AI.
   Any human can discover the relic, and any friendly tug can bring it home.
   Guest tugs remain under their owner's control.
-- Online human death uses native respawning, with 999 lives per peer. Offline
+- Online human death uses native respawning near a living teammate, with 5
+  co-op lives per player (COOP_RESPAWN.md); running out fails the mission. Offline
   campaign saving/loading, local camera skips and original debriefs remain.
   Native multiplayer difficulty remains locked to Very Hard; mission difficulty
   and starting resources are delivered from the leader to each owning peer.

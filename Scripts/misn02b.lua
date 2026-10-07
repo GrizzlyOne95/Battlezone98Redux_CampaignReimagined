@@ -749,13 +749,14 @@ function Start()
     CRCoop.Initialize({
         getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
         leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
+        -- Host only: a player died with no co-op lives left.
+        onOutOfLives = function() FailMission(GetTime() + 3.0) end,
     })
     CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
     for team = 1, 4 do
         Ally(team, FRIENDLY_TEAM)
         Ally(FRIENDLY_TEAM, team)
     end
-    if CRCoop.IsNetworkGame() and exu.SetLives then exu.SetLives(999) end
     InitializeMissionSubtitles()
     Ally(LEADER_TEAM, FRIENDLY_TEAM)
     Ally(FRIENDLY_TEAM, LEADER_TEAM)

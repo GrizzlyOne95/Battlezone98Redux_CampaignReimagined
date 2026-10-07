@@ -10,8 +10,9 @@ form (a short `asuser ,` line never readies).
 Host on team 1; guests select distinct teams 2–4. Start with everyone present.
 Enemies use team 6, and authored friendly defenses use team 7. Team 1 retains
 production and scavenger control. Every connected human must enter a vehicle
-to complete the opening objective. Native strategy respawns use 999 lives;
-online human death does not fail the convoy. Offline retains player-death loss.
+to complete the opening objective. Native strategy respawns, placed near a
+living teammate, with 5 co-op lives per player (COOP_RESPAWN.md); a death with no
+lives left fails the mission for everyone. Offline retains player-death loss.
 The authored scavenger, base and recycler failure checks and rescue/debrief
 remain. A camera skip releases only that player's camera online.
 

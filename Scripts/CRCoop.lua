@@ -11,13 +11,21 @@
 -- compact: stock Lua Send() only uses the first character of the type string
 -- and has a small payload budget.
 local CRCoop = {}
-local comms
+local comms, respawn
+
+-- Lives per player online, counted by CRCoopRespawn. When any player runs out
+-- the mission fails for everyone (options.onOutOfLives on the host). Native
+-- lives stay high: at zero MultST drops the player out of the match, and a
+-- dropped player cannot rejoin it.
+CRCoop.COOP_LIVES = 5
+local NATIVE_LIVES = 999
 
 local PROTOCOL_VERSION = 1
 local HANDLE_MESSAGE = "H"
 local SYNC_REQUEST_MESSAGE = "Q"
 local SYNC_ACK_MESSAGE = "K"
 local PHASE_MESSAGE = "P"
+local OUT_OF_LIVES_MESSAGE = "L"
 
 local DEFAULT_LEADER_TEAM = 1
 local DEFAULT_HUMAN_TEAM_MIN = 1
@@ -39,6 +47,10 @@ local syncAcknowledged = false
 local missionStarted = false
 local leaderDeparted = false
 local missionPhase = 0
+local onOutOfLives = nil
+local outOfLivesLocal = false     -- this player has no lives left
+local outOfLivesHandled = false   -- host: the mission failure was requested
+local nextOutOfLivesSend = 0.0
 
 local function IsNetworkGame()
     return type(IsNetGame) == "function" and IsNetGame()
@@ -154,6 +166,9 @@ function CRCoop.Initialize(options)
         phaseBroadcastInterval = options.phaseBroadcastInterval
     end
 
+    onOutOfLives = type(options.onOutOfLives) == "function" and options.onOutOfLives or nil
+    outOfLivesLocal, outOfLivesHandled, nextOutOfLivesSend = false, false, 0.0
+
     -- Start may re-enter in the same process. Preserve native player callbacks
     -- that preceded Start, but never carry the prior mission admission state.
     missionStarted = false
@@ -189,9 +204,65 @@ function CRCoop.Initialize(options)
         })
     end
     comms.Reset(IsNetworkGame())
+    if not respawn then
+        respawn = require("CRCoopRespawn").Create({
+            time = function() return type(GetTime) == "function" and GetTime() or 0 end,
+            network = IsNetworkGame,
+            players = function() return players end,
+            humanTeam = IsHumanTeam,
+            localId = ResolveLocalPlayerId,
+            localHandle = function() return type(GetPlayerHandle) == "function" and GetPlayerHandle() end,
+            valid = IsUsableHandle,
+            alive = function(h) return type(IsAlive) ~= "function" or IsAlive(h) end,
+            team = function(h) return GetTeamNum(h) end,
+            position = function(h) return GetPosition(h) end,
+            allCraft = function() return AllCraft() end,
+            phase = function() return missionPhase end,
+            near = function(pos, a, b) return GetPositionNear(pos, a, b) end,
+            ground = function(pos) return (GetTerrainHeightAndNormal(pos)) end,
+            move = function(h, pos)
+                SetPosition(h, pos)
+                if type(SetVelocity) == "function" then SetVelocity(h, SetVector(0, 0, 0)) end
+            end,
+            lives = function() return CRCoop.COOP_LIVES end,
+            nativeLives = function() local x = package.loaded.exu; return x and x.GetLives and x.GetLives() or nil end,
+            outOfLives = function() CRCoop.ReportOutOfLives() end,
+            message = function(text) if type(DisplayMessage) == "function" then DisplayMessage(text) end end,
+        })
+    end
+    respawn.Reset()
+    respawn.SetRallyPoints(options.rallyPoints)
+    local x = package.loaded.exu
+    if IsNetworkGame() and x and x.SetLives then x.SetLives(NATIVE_LIVES) end
 end
 
+local function HandleOutOfLives(name)
+    if outOfLivesHandled or not CRCoop.IsCampaignLeader() then return end
+    outOfLivesHandled = true
+    if type(DisplayMessage) == "function" then
+        DisplayMessage("[CO-OP] " .. tostring(name or "A player") .. " is out of lives. Mission failed.")
+    end
+    if onOutOfLives then onOutOfLives(name) end
+end
+
+-- This player died with no lives left. The host fails the mission; a guest
+-- keeps telling the host (Send is not reliable) until the mission ends.
+function CRCoop.ReportOutOfLives()
+    if outOfLivesLocal then return end
+    outOfLivesLocal = true
+    local me = GetLocalPlayerRecord()
+    local name = me and me.name or nil
+    if CRCoop.IsCampaignLeader() then
+        HandleOutOfLives(name)
+    elseif type(DisplayMessage) == "function" then
+        DisplayMessage("[CO-OP] You are out of lives. Mission failed.")
+    end
+end
+
+function CRCoop.IsOutOfLives() return outOfLivesLocal end
+
 function CRCoop.GetComms() return comms end
+function CRCoop.GetRespawn() return respawn end
 
 function CRCoop.IsNetworkGame()
     return IsNetworkGame()
@@ -353,6 +424,14 @@ end
 function CRCoop.Update()
     local localHandle = RefreshLocalHandle()
     if comms then comms.Update() end
+    if respawn then respawn.Update() end
+    if outOfLivesLocal and not CRCoop.IsCampaignLeader() and IsNetworkGame() and type(Send) == "function" then
+        local t = type(GetTime) == "function" and GetTime() or 0.0
+        if t >= nextOutOfLivesSend then
+            nextOutOfLivesSend = t + 1.0
+            Send(0, OUT_OF_LIVES_MESSAGE)
+        end
+    end
 
     if not IsNetworkGame() or not IsUsableHandle(localHandle) then
         return
@@ -386,6 +465,12 @@ end
 
 function CRCoop.Receive(from, kind, ...)
     if comms and comms.Receive(from, kind, ...) then return true end
+    if kind == OUT_OF_LIVES_MESSAGE then
+        local player = players[from]
+        if player and IsHumanTeam(player.team) then HandleOutOfLives(player.name) end
+        return true
+    end
+
     if kind == HANDLE_MESSAGE then
         local h = ...
         local player = RegisterPlayer(from)
