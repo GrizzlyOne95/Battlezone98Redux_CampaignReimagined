@@ -1,0 +1,303 @@
+<div id="bz-coop-pda-preview">
+  <div class="viz-controls">
+    <label class="form-label">View as
+      <select class="form-select" data-view aria-label="Preview player">
+        <option value="1">Host · team 1</option>
+        <option value="2">Ada · team 2</option>
+        <option value="3">Bryn · team 3</option>
+      </select>
+    </label>
+    <label class="form-label">Selected unit
+      <select class="form-select" data-unit aria-label="Preview stock selection"></select>
+    </label>
+    <label class="form-check"><input class="form-check-input" type="checkbox" data-coop checked><span class="form-check-label">Campaign co-op active</span></label>
+  </div>
+  <div class="viz-dotted-background bz-stage">
+    <section class="bz-pda" data-pda aria-label="Battlezone PDA, keyboard operated">
+      <header class="bz-heading"><span data-title>BATTLEZONE PDA 1/9</span><span class="bz-small">Y</span></header>
+      <div class="bz-page-name" data-page-name>CO-OP</div>
+      <div data-coop-page>
+        <div class="bz-section">
+          <div class="bz-small" data-player></div>
+          <div class="bz-roster" data-roster></div>
+          <div class="bz-small bz-selection" data-selection></div>
+        </div>
+        <div class="bz-actions" data-rows aria-label="Keyboard action rows"></div>
+        <div class="bz-review" data-review hidden></div>
+        <div class="bz-section bz-small" data-rescue-detail></div>
+      </div>
+      <div class="bz-section" data-other-page hidden></div>
+      <div class="bz-status" aria-live="polite" data-status></div>
+      <footer class="bz-footer"><div>↑ / ↓ Select · ← / → Change · Enter Act</div><div>[ / ] Switch Page · Y Toggle PDA</div></footer>
+    </section>
+    <div class="bz-closed" data-closed hidden>PDA CLOSED · Y</div>
+  </div>
+  <div class="viz-row" aria-label="Preview keypress controls">
+    <span class="text-small">Preview keys</span>
+    <button class="btn" type="button" data-key="y">Y</button>
+    <button class="btn" type="button" data-key="[">[</button>
+    <button class="btn" type="button" data-key="]">]</button>
+    <button class="btn" type="button" data-key="ArrowUp" aria-label="Up arrow">↑</button>
+    <button class="btn" type="button" data-key="ArrowDown" aria-label="Down arrow">↓</button>
+    <button class="btn" type="button" data-key="ArrowLeft" aria-label="Left arrow">←</button>
+    <button class="btn" type="button" data-key="ArrowRight" aria-label="Right arrow">→</button>
+    <button class="btn" type="button" data-key="Enter">Enter</button>
+  </div>
+  <div class="viz-row" data-boarding-preview hidden>
+    <button class="btn" type="button" data-board>Preview Ada boarding the assigned craft</button>
+  </div>
+</div>
+<style>
+#bz-coop-pda-preview [hidden] { display: none !important; }
+#bz-coop-pda-preview .bz-stage { padding: 18px 0; }
+#bz-coop-pda-preview .bz-pda {
+  --pda-paper: light-dark(#eaf3e6, #030d03);
+  --pda-header: light-dark(#d7e7d0, #051f05);
+  --pda-ink: light-dark(#1f5520, #33d133);
+  --pda-title: light-dark(#214d15, #73ff73);
+  --pda-dim: light-dark(#416439, #80b875);
+  --pda-edge: light-dark(#8ca781, #2eb82e);
+  --pda-selected: light-dark(#d2e4bc, #173211);
+  --pda-review: light-dark(#624711, #ffca2e);
+  background: var(--pda-paper); color: var(--pda-ink);
+  font: 14px/1.55 Consolas, "Courier New", monospace;
+  width: min(100%, 570px); margin: 0 auto;
+  border: 1px solid var(--pda-edge); box-sizing: border-box;
+  pointer-events: none;
+}
+#bz-coop-pda-preview .bz-heading { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; padding: 12px 16px; background: var(--pda-header); color: var(--pda-title); font-weight: 500; }
+#bz-coop-pda-preview .bz-page-name { padding: 8px 16px; border-bottom: 1px solid var(--pda-edge); color: var(--pda-title); font-weight: 500; }
+#bz-coop-pda-preview .bz-small { font-size: 12px; color: var(--pda-dim); }
+#bz-coop-pda-preview .bz-section { padding: 12px 16px; }
+#bz-coop-pda-preview .bz-roster { margin: 8px 0; }
+#bz-coop-pda-preview .bz-selection { margin-top: 10px; }
+#bz-coop-pda-preview .bz-actions { padding: 4px 0; }
+#bz-coop-pda-preview .bz-action { padding: 7px 16px; display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 4px; }
+#bz-coop-pda-preview .bz-action.is-selected { background: var(--pda-selected); color: var(--pda-title); }
+#bz-coop-pda-preview .bz-action-value { color: var(--pda-title); }
+#bz-coop-pda-preview .bz-review { padding: 12px 16px; border-top: 1px solid var(--pda-edge); color: var(--pda-review); }
+#bz-coop-pda-preview .bz-status { padding: 12px 16px; border-top: 1px solid var(--pda-edge); min-height: 44px; }
+#bz-coop-pda-preview .bz-footer { padding: 10px 16px; border-top: 1px solid var(--pda-edge); color: var(--pda-dim); font-size: 12px; }
+#bz-coop-pda-preview .bz-closed { padding: 30px 0; text-align: center; font: 14px/1.5 Consolas, monospace; }
+@media (max-width: 430px) {
+  #bz-coop-pda-preview .bz-heading, #bz-coop-pda-preview .bz-page-name, #bz-coop-pda-preview .bz-section, #bz-coop-pda-preview .bz-review, #bz-coop-pda-preview .bz-status, #bz-coop-pda-preview .bz-footer { padding-left: 12px; padding-right: 12px; }
+  #bz-coop-pda-preview .bz-action { padding-left: 10px; padding-right: 10px; }
+}
+</style>
+<script>
+(() => {
+  const root = document.getElementById('bz-coop-pda-preview');
+  const el = key => root.querySelector('[data-' + key + ']');
+  const names = { 1: 'Host', 2: 'Ada', 3: 'Bryn' };
+  const otherPages = ['vehicle', 'weapons', 'target', 'base', 'queue', 'loadout', 'career', 'options'];
+  const initial = () => ({
+    view: 1, selected: 'g1', target: 2, coop: true, open: true, page: 'coop', row: 0,
+    auto: false, rescueChoice: 'nearest', request: null, pilot: true,
+    status: 'Select a craft and recipient. Enter reviews the gift before confirming.',
+    units: [
+      { id: 'g1', name: 'Grizzly 01', owner: 1, health: 74, ammo: 62, reserve: false, distance: 140 },
+      { id: 'g2', name: 'Grizzly 02', owner: 1, health: 91, ammo: 88, reserve: true, distance: 90 },
+      { id: 's3', name: 'Scout 03', owner: 3, health: 85, ammo: 71, reserve: false, distance: 240 }
+    ]
+  });
+  let state = initial();
+  let busy = false;
+  let draft = null;
+  const selected = () => state.units.find(u => u.id === state.selected) || state.units[0];
+  const pending = () => state.request?.stage === 'requested';
+  const pages = () => state.coop ? ['coop', ...otherPages] : otherPages;
+  const recipients = () => [1, 2, 3].filter(team => team !== state.view);
+  function restore(saved) {
+    const candidate = saved?.privateContent;
+    if (candidate?.version === 2 && candidate.state?.units?.length === 3 && [1, 2, 3].includes(candidate.state.view)) {
+      if (JSON.stringify(candidate.state) === JSON.stringify(state)) return;
+      state = candidate.state;
+      if (!pages().includes(state.page)) state.page = pages()[0];
+      draft = null;
+    }
+  }
+  restore(window.openai?.widgetState);
+  function remember() {
+    window.openai?.setWidgetState?.({
+      modelContent: {
+        design: 'Keyboard-operated Co-op PDA page', viewAs: names[state.view],
+        coopActive: state.coop, page: state.page, open: state.open,
+        unitTeams: state.units.map(u => ({ name: u.name, team: u.owner })),
+        rescue: state.request?.stage || null, autoRescue: state.auto
+      },
+      privateContent: { version: 2, state }
+    }).catch(() => {});
+  }
+  window.addEventListener('openai:set_globals', event => {
+    if (!busy && event.detail?.globals?.widgetState) { restore(event.detail.globals.widgetState); render(); }
+  });
+  function rows() {
+    const result = [{ key: 'give', label: 'Give unit', value: names[state.target] + ' · team ' + state.target }];
+    if (state.view === 1) {
+      result.push({ key: 'rescue', label: 'Respond to rescue', value: state.rescueChoice === 'nearest' ? 'Nearest suitable craft' : 'Selected craft' });
+      result.push({ key: 'auto', label: 'Auto rescue', value: state.auto ? 'Reserve only' : 'Off' });
+      result.push({ key: 'reserve', label: 'Selected craft', value: selected().reserve ? 'Rescue reserve' : 'Normal duty' });
+    } else if (state.view === 2 && state.pilot) {
+      result.push({ key: 'request', label: pending() ? 'Cancel pending rescue' : 'Rescue me', value: state.request && !pending() ? 'Craft assigned' : pending() ? 'Request sent' : 'Send request to teammates' });
+    }
+    return result;
+  }
+  function rescueText() {
+    if (!state.request) return state.pilot ? 'Ada is on foot · No rescue requested' : 'All teammates are in vehicles';
+    const craft = state.units.find(u => u.id === state.request.unit)?.name || 'Craft';
+    return ({ requested: 'Ada needs a craft · Request sent to host and teammates', assigned: 'Ada · ' + craft + ' assigned · En route', ready: 'Ada · ' + craft + ' ready to board', rescued: 'Ada rescued · Back in a vehicle' })[state.request.stage];
+  }
+  function render() {
+    if (!recipients().includes(state.target)) state.target = recipients()[0];
+    const u = selected();
+    el('view').value = String(state.view);
+    el('unit').replaceChildren(...state.units.map(unit => new Option(unit.name + ' · ' + names[unit.owner], unit.id)));
+    el('unit').value = u.id;
+    el('coop').checked = state.coop;
+    el('pda').hidden = !state.open;
+    el('closed').hidden = state.open;
+    el('title').textContent = 'BATTLEZONE PDA ' + (pages().indexOf(state.page) + 1) + '/' + pages().length;
+    el('page-name').textContent = state.page === 'coop' ? 'CO-OP' : state.page.toUpperCase();
+    el('coop-page').hidden = state.page !== 'coop';
+    el('other-page').hidden = state.page === 'coop';
+    el('other-page').textContent = state.page === 'vehicle' ? 'Vehicle inspection · Existing PDA page' : state.page.toUpperCase() + ' · Existing PDA page';
+    el('player').textContent = names[state.view] + ' · TEAM ' + state.view;
+    el('roster').replaceChildren(...[1, 2, 3].map(team => {
+      const line = document.createElement('div');
+      line.textContent = names[team] + ' · ' + (team === 2 && state.pilot ? 'ON FOOT' : 'IN VEHICLE');
+      return line;
+    }));
+    el('selection').textContent = 'SELECTED ' + u.name + ' · ' + names[u.owner] + ' · Hull ' + u.health + '% · Ammo ' + u.ammo + '%';
+    const choices = rows();
+    state.row = Math.max(0, Math.min(state.row, choices.length - 1));
+    el('rows').replaceChildren(...choices.map((choice, index) => {
+      const row = document.createElement('div');
+      row.className = 'bz-action' + (index === state.row ? ' is-selected' : '');
+      row.dataset.action = choice.key;
+      const marker = document.createElement('span'); marker.textContent = index === state.row ? '>' : '';
+      const content = document.createElement('span'); content.textContent = choice.label + '  ';
+      const value = document.createElement('span'); value.className = 'bz-action-value'; value.textContent = choice.value;
+      content.append(value); row.append(marker, content);
+      return row;
+    }));
+    el('review').hidden = !draft;
+    if (draft) {
+      const captured = state.units.find(unit => unit.id === draft.unit);
+      el('review').textContent = (draft.kind === 'rescue' ? 'Send ' : 'Give ') + captured.name + ' to ' + names[draft.recipient] + '? Enter to confirm.';
+    }
+    el('rescue-detail').textContent = rescueText();
+    el('status').textContent = state.status;
+    el('boarding-preview').hidden = busy || state.request?.stage !== 'ready';
+  }
+  function transfer(unit, recipient, rescue) {
+    if (busy || !unit || unit.owner === recipient) return;
+    busy = true; draft = null;
+    state.status = 'Transferring ' + unit.name + ' to ' + names[recipient] + '…';
+    render();
+    setTimeout(() => {
+      unit.owner = recipient; unit.reserve = false;
+      state.status = names[recipient] + ' now commands ' + unit.name + '.';
+      if (rescue) { state.request = { stage: 'assigned', unit: unit.id }; state.status += ' Craft en route to Ada.'; }
+      busy = false; render(); remember();
+      if (rescue) setTimeout(() => {
+        if (state.request?.unit === unit.id && state.request.stage === 'assigned') {
+          state.request.stage = 'ready'; state.status = unit.name + ' is ready for Ada to board.';
+          render(); remember();
+        }
+      }, 900);
+    }, 500);
+  }
+  function nearest(reserveOnly) {
+    return state.units.filter(u => u.owner === 1 && (!reserveOnly || u.reserve)).sort((a, b) => a.distance - b.distance)[0];
+  }
+  function autoDispatch() {
+    if (!state.auto || !pending() || busy || !state.coop) return;
+    const u = nearest(true);
+    if (u) transfer(u, 2, true);
+    else state.status = 'No rescue reserve available. Ada’s request remains queued.';
+  }
+  function activate() {
+    const action = rows()[state.row];
+    if (draft) {
+      const u = state.units.find(unit => unit.id === draft.unit);
+      if (!u || u.owner !== state.view || (draft.kind === 'rescue' && !pending())) {
+        draft = null; state.status = 'The reviewed craft is unavailable. Review the action again.'; return;
+      }
+      transfer(u, draft.recipient, draft.kind === 'rescue'); return;
+    }
+    const u = selected();
+    if (action.key === 'give') {
+      if (u.owner !== state.view || state.request?.unit === u.id) { state.status = 'Select an available craft on your team.'; return; }
+      draft = { kind: 'give', unit: u.id, recipient: state.target };
+      state.status = 'Review the named craft and recipient. A second Enter confirms.';
+    } else if (action.key === 'request') {
+      if (state.request && !pending()) { state.status = 'Your assigned rescue craft is already on its way.'; return; }
+      if (pending()) { state.request = null; state.status = 'Rescue request cancelled.'; }
+      else { state.request = { stage: 'requested' }; state.status = 'Rescue request sent to the host and teammates.'; autoDispatch(); }
+    } else if (action.key === 'rescue') {
+      if (!pending()) { state.status = 'No pending pilot rescue requests.'; return; }
+      const craft = state.rescueChoice === 'nearest' ? nearest(false) : u;
+      if (!craft || craft.owner !== 1) { state.status = 'No suitable host craft selected or available.'; return; }
+      draft = { kind: 'rescue', unit: craft.id, recipient: 2 };
+      state.status = 'Review the rescue craft. A second Enter sends it to Ada.';
+    } else if (action.key === 'auto') { state.auto = !state.auto; state.status = 'Auto rescue: ' + (state.auto ? 'reserve only.' : 'off.'); autoDispatch(); }
+    else if (action.key === 'reserve') {
+      if (u.owner !== 1 || state.request?.unit === u.id) { state.status = 'Only available host craft can join the rescue reserve.'; return; }
+      u.reserve = !u.reserve; state.status = u.name + (u.reserve ? ' is a rescue reserve.' : ' returned to normal duty.'); autoDispatch();
+    }
+  }
+  function press(key) {
+    if (key.toLowerCase() === 'y') {
+      draft = null; state.open = !state.open;
+      if (state.open) { if (state.coop) state.page = 'coop'; state.row = state.view === 2 && state.pilot ? 1 : 0; }
+      render(); remember(); return true;
+    }
+    if (!state.open) return false;
+    if (key === '[' || key === ']') {
+      draft = null;
+      const list = pages(); state.page = list[(list.indexOf(state.page) + (key === '[' ? -1 : 1) + list.length) % list.length];
+      state.row = 0; render(); remember(); return true;
+    }
+    if (!state.coop || state.page !== 'coop') return false;
+    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(key)) return false;
+    if (busy) return true;
+    const choice = rows()[state.row];
+    if (key === 'ArrowUp' || key === 'ArrowDown') {
+      draft = null; state.row = (state.row + (key === 'ArrowUp' ? -1 : 1) + rows().length) % rows().length;
+    } else if (key === 'ArrowLeft' || key === 'ArrowRight') {
+      draft = null;
+      if (choice.key === 'give') {
+        const list = recipients(); state.target = list[(list.indexOf(state.target) + 1) % list.length];
+      } else if (choice.key === 'rescue') state.rescueChoice = state.rescueChoice === 'nearest' ? 'selected' : 'nearest';
+      else if (choice.key === 'auto' || choice.key === 'reserve') activate();
+    } else activate();
+    render(); remember(); return true;
+  }
+  root.querySelectorAll('[data-key]').forEach(button => button.addEventListener('click', () => press(button.dataset.key)));
+  document.addEventListener('keydown', event => {
+    if (!root.contains(event.target) || event.target.closest('select,input,textarea') || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+    const recognized = event.key.toLowerCase() === 'y' || (state.open && ['[', ']'].includes(event.key)) || (state.open && state.coop && state.page === 'coop' && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(event.key));
+    if (!recognized) return;
+    event.preventDefault(); event.stopPropagation();
+    if (!event.repeat) press(event.key);
+  });
+  window.addEventListener('blur', () => { if (draft) { draft = null; render(); } });
+  el('view').addEventListener('change', event => {
+    draft = null; state.view = Number(event.target.value); state.row = state.view === 2 && state.pilot ? 1 : 0;
+    state.status = names[state.view] + ' co-op PDA.'; render(); remember();
+  });
+  el('unit').addEventListener('change', event => { state.selected = event.target.value; render(); remember(); });
+  el('coop').addEventListener('change', event => {
+    draft = null; state.coop = event.target.checked; state.page = state.coop ? 'coop' : 'vehicle'; state.row = 0;
+    state.status = state.coop ? 'Campaign co-op active.' : 'Solo campaign · Existing PDA navigation.';
+    render(); remember();
+  });
+  el('board').addEventListener('click', () => {
+    if (state.request?.stage !== 'ready') return;
+    state.pilot = false; state.request.stage = 'rescued';
+    state.status = 'Ada is back in ' + state.units.find(u => u.id === state.request.unit).name + '.';
+    render(); remember();
+  });
+  render();
+})();
+</script>
