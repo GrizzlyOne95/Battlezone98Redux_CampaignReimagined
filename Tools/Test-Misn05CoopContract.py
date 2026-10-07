@@ -18,6 +18,14 @@ for block in blocks:
     seqs.append(int(re.search(r'seqno \[1\] =\n(\d+)', block)[1]))
     if odf == 'pspwn_1':
         teams.append(team)
+        positions = re.findall(r'pos \[1\] =\n  x \[1\] =\n([^\n]+)\n  y \[1\] =\n([^\n]+)\n  z \[1\] =\n([^\n]+)', block)
+        expected = (1538.26 + (team - 1) * 25, 26.358, 99778.9)
+        assert len(positions) == 2 and all(tuple(map(float, pos)) == expected for pos in positions), 'Human starts must share the authored start area'
+        for axis, value in zip('xyz', expected):
+            assert float(re.search(r'  posit_' + axis + r' \[1\] =\n([^\n]+)', block)[1]) == value
+        for field in ('v', 'omega', 'Accel'):
+            motion = re.search(r' ' + field + r' \[1\] =\n  x \[1\] =\n([^\n]+)\n  y \[1\] =\n([^\n]+)\n  z \[1\] =\n([^\n]+)', block)
+            assert tuple(map(float, motion.groups())) == (0, 0, 0), 'Spawn buoys must not carry copied motion'
     else:
         assert team not in (2, 3, 4), 'Authored object occupies a guest team'
     if team == 5:
