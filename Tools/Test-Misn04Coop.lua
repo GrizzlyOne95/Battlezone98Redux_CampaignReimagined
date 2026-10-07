@@ -113,6 +113,8 @@ local function makePeer(id, team, network)
         end
     end
     e.AllCraft, e.AllObjects = iterator, iterator
+    e.SetVector = e.SetVector or function(x, y, z) return { x = x or 0, y = y or 0, z = z or 0 } end
+    e.GetTerrainHeightAndNormal = function() return 149, { x = 0, y = 1, z = 0 } end
     e.BuildObject = function(odf, objectTeam, pos)
         nextObject = nextObject + 1
         local h = "built" .. nextObject
