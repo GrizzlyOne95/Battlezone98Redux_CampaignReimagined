@@ -414,7 +414,7 @@ function M.Create(deps)
         if hardpointCount > 0 then
             table.insert(lines, "Total " .. tostring(hardpointCount))
         end
-        AppendPdaFooter(lines, "--------------------------------", "[ / ] Page  Y Close", "Up/Down Inspect Weapon")
+        AppendPdaFooter(lines, "--------------------------------", "[ / ] Page  X Close", "Up/Down Inspect Weapon")
         return table.concat(lines, "\n")
     end
 
