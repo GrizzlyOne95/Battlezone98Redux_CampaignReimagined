@@ -48,6 +48,10 @@ function SXOverlay:Create()
             and self:_Call("SetOverlayTextFont", PREFIX .. name, "CRBZoneOverlayFont")
             and self:_Call("SetOverlayTextColor", PREFIX .. name, 0.85, 0.95, 1.0, 1.0)
             and self:_Call("ShowOverlayElement", PREFIX .. name)
+        -- Ogre image fonts build a fixed-function material, which D3D11 cannot
+        -- draw (every frame then throws). Use the shader-backed atlas material,
+        -- as ScriptSubtitles does; harmless on renderers with a fixed pipeline.
+        self:_Call("SetOverlayMaterial", PREFIX .. name, "CR_OverlayFont")
     end
     if not ok then self:Destroy(); self.status = "BLOCKED"; return false end
     self.ready, self.status = true, "PENDING"

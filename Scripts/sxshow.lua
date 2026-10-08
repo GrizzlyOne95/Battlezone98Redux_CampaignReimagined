@@ -35,7 +35,9 @@ local function Resolution()
     return 1280, 720
 end
 local function CameraEnd()
-    if type(CameraFinish) == "function" then pcall(CameraFinish) end
+    -- Native CameraFinish pops the engine camera stack; popping with no camera
+    -- up unbalances it ("Fsm error: Camera Stack 0verfow"), as in misn03/misn04.
+    if cameraActive and type(CameraFinish) == "function" then pcall(CameraFinish) end
     cameraActive = false
 end
 local function Objectives()
@@ -137,7 +139,7 @@ local function Initialize()
                 Record("camera", "BLOCKED", "native cinematic API unavailable"); return false
             end
             if not Valid(SceneTarget(scene)) then Record("camera", "BLOCKED", "camera target unavailable"); return false end
-            CameraReady(); cameraActive = true
+            CameraEnd(); CameraReady(); cameraActive = true
         end,
         leave = function(scene) CameraEnd(); return exhibits:Leave(scene) end,
         finish = Finish,

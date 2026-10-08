@@ -294,6 +294,9 @@ package.preload.CRWeatherPresets = function() return presets end
 package.preload.RequireFix = function() return { Initialize = function() end } end
 
 local nextHandle, cameraCalls, readyCalls, finishCalls = 0, 0, 0, 0
+-- Engine camera stack: a push while up or a pop while empty is the native
+-- "Fsm error: Camera Stack 0verfow" alert seen in game.
+local cameraDepth, cameraFaults = 0, {}
 local cancelled, net = false, false
 local classes = { sxanchor = "camerapod", sxshield = "shieldtower", sxmag = "magnet", sxproxe = "proximity", sxproxa = "proximity",
     avtank = "wingman", avfigh = "wingman", abspow = "powerplant", abbarr = "barracks" }
@@ -359,12 +362,20 @@ end
 function ClearObjectives() end
 function AddObjective() end
 function DisplayMessage() end
-function CameraReady() readyCalls = readyCalls + 1 end
+function CameraReady()
+    readyCalls = readyCalls + 1
+    if cameraDepth > 0 then cameraFaults[#cameraFaults + 1] = "ready while a camera is up" end
+    cameraDepth = cameraDepth + 1
+end
 function CameraPath(path, _, _, target) assert(paths[path] and IsValid(target)); cameraCalls = cameraCalls + 1 end
 function CameraObject(base, _, _, _, target) assert(IsValid(base) and IsValid(target)); cameraCalls = cameraCalls + 1 end
-function CameraFinish() finishCalls = finishCalls + 1 end
+function CameraFinish()
+    finishCalls = finishCalls + 1
+    if cameraDepth == 0 then cameraFaults[#cameraFaults + 1] = "finish with no camera up"
+    else cameraDepth = cameraDepth - 1 end
+end
 function CameraCancelled() return cancelled end
-local function Mission() package.loaded.exu = nil; dofile(scriptRoot .. "/sxshow.lua"); Start() end
+local function Mission() package.loaded.exu = nil; cameraDepth = 0; dofile(scriptRoot .. "/sxshow.lua"); Start() end
 local function Snapshot() return Copy({ Save() })[2] end
 local function OwnedCount()
     local n = 0; for _, obj in pairs(world) do if obj.label and obj.label:match("^sx_") then n = n + 1 end end; return n
@@ -489,4 +500,6 @@ Check(Snapshot().scene.mode == "freeplay" and Snapshot().results.environment.sta
     and Snapshot().results.music.status == "BLOCKED", "stub EXU completes stock scenes while reporting blocked native exhibits")
 x = nativeX
 Check(cameraCalls > 0 and finishCalls > 0, "both native path and object-camera callbacks exercised")
+Check(#cameraFaults == 0, string.format("native camera stack stays balanced (%d faults, first: %s)",
+    #cameraFaults, tostring(cameraFaults[1])))
 print(string.format("SXShowcase: %d checks passed (%s host; native visuals/audio/physics unverified)", total, _VERSION))
