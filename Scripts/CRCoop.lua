@@ -186,6 +186,15 @@ function CRCoop.Initialize(options)
     syncAcknowledged = false
     leaderDeparted = false
     missionPhase = 0
+    -- The co-op BZNs carry four MultST team-start buoys (coop_spawn1-4).
+    -- MultST consumes them in a network game; solo play would keep them as
+    -- stray team 1-4 objects, so remove them.
+    if not IsNetworkGame() and type(GetHandle) == "function" and type(RemoveObject) == "function" then
+        for i = 1, 4 do
+            local buoy = GetHandle("coop_spawn" .. i)
+            if IsUsableHandle(buoy) then RemoveObject(buoy) end
+        end
+    end
     RefreshLocalHandle()
     if not comms then
         comms = require("CRCoopComms").Create({
