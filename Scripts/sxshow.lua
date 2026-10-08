@@ -69,9 +69,11 @@ local function Ensure(key)
         SetCurAmmo(h, spec.ammo or 0)
         if spec.ammo then SetWeaponMask(h, 1) end
     end
-    if spec.group == "chunks" and h ~= GetPlayerHandle() then
-        -- Destruction victims hold their marks until their cue.
-        pcall(SetIndependence, h, 0); pcall(Stop, h, 1)
+    if spec.holdPosition and h ~= GetPlayerHandle() then
+        -- Only craft have UnitProcess independence. The destruction camera's
+        -- sxanchor uses PowerUpProcess; SetIndependence writes beyond that
+        -- smaller allocation and corrupts the native heap, even inside pcall.
+        SetIndependence(h, 0); Stop(h, 1)
     end
     if spec.name then SetObjectiveName(h, spec.name); SetObjectiveOn(h) end
     return h
@@ -171,7 +173,7 @@ local function Initialize()
             if scene.camera == "path" then
                 CameraPath(shot.path or scene.path, shot.height or scene.height, shot.speed or scene.speed, target)
             else
-                CameraObject(target, exhibits.aiSide and 4500 or scene.right, scene.up, scene.forward, target)
+                CameraObject(target, shot.right or scene.right, shot.up or scene.up, shot.forward or scene.forward, target)
             end
         end,
         cue = function(scene, cue)
