@@ -192,7 +192,7 @@ for block in map:gmatch("%[AiPath%](.-)pathType = %x+") do
 end
 local duration = 0
 for _, scene in ipairs(Scenes.List) do duration = duration + scene.duration end
-Check(duration == 390 and #Scenes.List == 9, "full authored tour is nine chapters / 390 simulation seconds")
+Check(duration == 400 and #Scenes.List == 9, "full authored tour is nine chapters / 400 simulation seconds")
 
 world = {}
 x = FakeExu(world)
@@ -403,16 +403,33 @@ Check(Command("unrelated", "") == false, "unrelated console commands remain unha
 Command("sx", "service"); x.rejectColors = true; Update(0.25); x.rejectColors = false
 Check(Snapshot().results.materials.status == "FAIL" and world[changedHandle].names[1] == "body", "pulse failure reports rollback")
 Command("sx", "tour")
-for _ = 1, 780 do Update(0.5) end
+for _ = 1, 800 do Update(0.5) end
 local finished = Snapshot()
 Check(finished.scene.mode == "freeplay" and finished.results.tour.status == "PASS", "full nine-chapter tour completes")
 for _, feature in ipairs(Scenes.Features) do Check(finished.results[feature] ~= nil, "full tour exercises " .. feature) end
+local killed = 0
+for _, key in ipairs(Scenes.Breaks) do
+    if finished.results["chunks/" .. key] and finished.results["chunks/" .. key].status == "PENDING" then killed = killed + 1 end
+end
+Check(killed == 13 and #Scenes.Breaks == 13, "destruction yard issues all thirteen kills in order")
 Check(State.Equal(x.props, baseline) and State.Equal(x.music, musicBaseline), "full tour restores captured global settings and music policy")
 Check(world[99999].health == 3000 and world[99999].ammo == 1200 and world[99999].radarRange == 400,
     "live player meters and radar ranges restore")
 Check(OwnedCount() == 8 and next(x.tuning) == nil and next(x.callbacks) == nil and next(wx.LiveSystems) == nil,
     "full tour removes range actors, tuning, callbacks and weather systems")
 Check(#selected == 1 and selected[1] == 99998, "original selected unit is restored")
+
+-- Presentation: shot lists cut cleanly, captions replace telemetry unless `sx debug`.
+Command("sx", "ai"); Update(0.5)
+local readyBeforeCut = readyCalls
+Update(21)
+Check(readyCalls == readyBeforeCut + 1 and Snapshot().scene.scene == "ai", "AI shot list cuts to its second camera at 21 s")
+Update(0.5)
+Check(x.captions["SX/Livewire/Status"] == Scenes.List[4].cues[2].caption
+    and x.captions["SX/Livewire/Telemetry"] == "", "film shows the trailer caption, not raw telemetry")
+Command("sx", "debug"); Update(0.5)
+Check(x.captions["SX/Livewire/Telemetry"] ~= "", "sx debug restores raw telemetry")
+Command("sx", "debug"); Command("sx", "skip"); Update(0.5)
 Check(x.saveCount == 0 and finished.results.autosave.detail:match("preview"), "automatic film notification never writes a save")
 for _, scroll in pairs(x.scrolls) do Check(scroll[1] == 0 and scroll[2] == 0, "accepted clone UV animations are stopped") end
 Check(finished.results["filters/proximity"].status == "PASS", "proximity witness requires protected crossing and actual target damage")
@@ -483,7 +500,7 @@ Command("sx", "tour"); Update(120)
 x.rejectRemove = GetHandle("sx_ai_stock")
 Update(61)
 Check(Snapshot().scene.mode == "freeplay" and Snapshot().scene.scene == "ai"
-    and GetHandle("sx_break_craft") == nil, "full film stops at failed AI cleanup before spawning destruction actors")
+    and GetHandle("sx_break_1") == nil, "full film stops at failed AI cleanup before spawning destruction actors")
 x.rejectRemove = nil; Command("sx", "baseline")
 local nativePath = CameraPath
 CameraPath = function() error("camera failure") end
