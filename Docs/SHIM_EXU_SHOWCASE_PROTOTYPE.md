@@ -7,6 +7,10 @@ One native GOG/DX11 run (2026-10-07, test client) played the whole tour to `tour
 with no render or camera-stack errors; framing, audio and physics are not yet judged.
 The filename of these build notes is retained from the first prototype.
 
+The [8 October native follow-up](LIVEWIRE_VALIDATION_20261008.md) records the
+destruction heap-crash fix, the current 6:40 tour, successful Enhanced runs and
+remaining trailer acceptance checks.
+
 ## Film and feature coverage
 
 The runtime tracks **14 feature groups**. The design's earlier count of 13 grouped

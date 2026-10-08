@@ -134,6 +134,24 @@ Check(o:Create() and x.showing, "overlay created")
 x.width, x.height = 1920, 1080
 o:Update("title", "status", "help")
 Check(o.width == 1920 and o.height == 1080, "resolution change relayout")
+-- A caption longer than one row must stay in the safe frame without losing words.
+local captions, positions, dimensions = {}, {}, {}
+function x.SetOverlayCaption(name, value) captions[name] = value end
+function x.SetOverlayPosition(name, left, top) positions[name] = { left, top } end
+function x.SetOverlayDimensions(name, width, height) dimensions[name] = { width, height } end
+local longCaption = "OpenShim + EXU: a living proving ground inside Battlezone 98 Redux"
+for _, resolution in ipairs({ {560, 315}, {1280, 720}, {1920, 1080}, {3840, 2160} }) do
+    x.width, x.height = resolution[1], resolution[2]
+    o:Update("OPERATION LIVEWIRE", longCaption, "Replay a chapter", 0, "Telemetry")
+    local wrapped = captions["SX/Livewire/Status"]
+    local fits = true
+    for line in wrapped:gmatch("[^\n]+") do fits = fits and #line * o.charHeight * 1.12 <= o.textWidth end
+    Check(fits and wrapped:gsub("\n", " ") == longCaption, "caption fits and keeps words at " .. x.width)
+    Check(positions["SX/Livewire/Telemetry"][2] >= positions["SX/Livewire/Status"][2]
+        + dimensions["SX/Livewire/Status"][2], "wrapped caption cannot overlap next row")
+end
+
+x.width, x.height = 1920, 1080
 x.uiOpen = true; o:Update("title", "status", "help")
 Check(not x.showing, "native menu suppresses custom overlay")
 x.uiOpen = false; o:Update("title", "status", "help")
@@ -317,7 +335,14 @@ function SetLabel(h, label) world[h].label = label end
 function GetHandle(label) for h, obj in pairs(world) do if obj.label == label then return h end end end
 function GetPlayerHandle() return 99999 end
 function GetClassLabel(h) return world[h].class end
-function SetIndependence() end
+local unsafeIndependenceCalls, heldCraft = 0, {}
+function SetIndependence(h, value)
+    if world[h].class ~= "wingman" then
+        unsafeIndependenceCalls = unsafeIndependenceCalls + 1
+        error("SetIndependence requires a UnitProcess, not " .. world[h].odf)
+    end
+    if world[h].label and world[h].label:match("^sx_break_%d+$") then heldCraft[world[h].label] = value end
+end
 function SetWeaponMask() end
 function SetCurAmmo(h, v) world[h].ammo = v end
 function GetCurAmmo(h) return world[h].ammo end
@@ -412,6 +437,10 @@ for _, key in ipairs(Scenes.Breaks) do
     if finished.results["chunks/" .. key] and finished.results["chunks/" .. key].status == "PENDING" then killed = killed + 1 end
 end
 Check(killed == 13 and #Scenes.Breaks == 13, "destruction yard issues all thirteen kills in order")
+Check(unsafeIndependenceCalls == 0, "tour never writes UnitProcess independence on camera markers or buildings, even through pcall")
+local heldCount = 0
+for _, independence in pairs(heldCraft) do if independence == 0 then heldCount = heldCount + 1 end end
+Check(heldCount == 10, "all ten destruction craft hold position without commanding the static fixtures")
 Check(State.Equal(x.props, baseline) and State.Equal(x.music, musicBaseline), "full tour restores captured global settings and music policy")
 Check(world[99999].health == 3000 and world[99999].ammo == 1200 and world[99999].radarRange == 400,
     "live player meters and radar ranges restore")
@@ -425,7 +454,7 @@ local readyBeforeCut = readyCalls
 Update(21)
 Check(readyCalls == readyBeforeCut + 1 and Snapshot().scene.scene == "ai", "AI shot list cuts to its second camera at 21 s")
 Update(0.5)
-Check(x.captions["SX/Livewire/Status"] == Scenes.List[4].cues[2].caption
+Check(x.captions["SX/Livewire/Status"]:gsub("\n", " ") == Scenes.List[4].cues[2].caption
     and x.captions["SX/Livewire/Telemetry"] == "", "film shows the trailer caption, not raw telemetry")
 Command("sx", "debug"); Update(0.5)
 Check(x.captions["SX/Livewire/Telemetry"] ~= "", "sx debug restores raw telemetry")

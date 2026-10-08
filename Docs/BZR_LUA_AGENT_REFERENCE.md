@@ -54,9 +54,55 @@ When a runtime finding contradicts the HTML reference, document both rather than
 13. **Do not mass-build in `Start()`.** The load frame shares one 1024-entry GEO table. Models first loaded after it fills get no geometry, so they have no bounds or collision for the whole mission. Queue large builds across later updates.
 14. **Keep the camera stack balanced and the camera target steady.** Call `CameraFinish()` only while your own `CameraReady()` camera is up. Swapping a `CameraPath`/`CameraObject` target mid-shot snaps the view; cut instead (see [Cinematic camera](#cinematic-camera)).
 
+15. **Never call `SetIndependence` on a camera pod, pickup, or other non-unit fixture.** It assumes unit AI layout; on `PowerUpProcess` it writes past the native allocation. A valid handle and Lua `pcall` do not make it safe. Use an explicit known-craft allowlist (see [SetIndependence heap corruption](#setindependence--native-heap-corruption-on-non-unit-ai)).
+
 ---
 
 # High-priority stock bugs and quirks
+
+## `SetIndependence` — native heap corruption on non-unit AI
+
+Confirmed in GOG Redux 2.2.301 on 2026-10-08 during Operation Livewire validation.
+The destruction setup called `SetIndependence(handle, 0)` on every object in a
+presentation group. That included `sxanchor`, a `camerapod` whose `aiName` and
+`aiName2` select `PowerUpProcess`.
+
+`PowerUpProcess` is allocated **24 bytes**. The stock independence setter writes
+an integer at **byte offset 24**, just beyond that allocation. A native hardware
+watchpoint caught the setter changing the heap tail guard to zero at mission
+setup. The resulting crash was detected later in Ogre skeleton destruction when
+the first tank died. That later stack does not identify the original writer.
+
+**Agent rule:** issue unit AI commands only to explicitly classified, known craft
+with suitable unit AI. Do not classify an entire display group by its scene name,
+team, non-player status, `IsValid`, or the presence of an AI process. Camera pods,
+pickups, static markers, and buildings must not inherit craft commands from a
+blanket fixture loop. Validate any exceptional ODF's AI separately.
+
+```lua
+-- Unsafe: a display group can contain camera pods and static buildings.
+if spec.group == "chunks" then pcall(SetIndependence, h, 0) end
+
+-- Safe fixture policy: opt in only the known craft in the authored manifest.
+if spec.holdPosition then
+    SetIndependence(h, 0)
+    Stop(h, 1)
+end
+```
+
+`pcall` catches Lua errors; it cannot prevent a native write to an accessible but
+out-of-bounds address. A run that happens to complete under another render
+profile is not proof of safety: heap layout changes can delay detection. Require
+both the intended destruction sequence and normal shutdown when qualifying a
+heap-corruption fix. Host tests should reject AI commands on non-craft fixtures
+even when wrapped in `pcall`.
+
+The fix was limited to the mission's craft allowlist. Thirteen destruction cues
+and the full 400-second tour completed with clean shutdown using the original
+installed DX11 Enhanced OpenShim DLL. An experimental renderer input-probe change
+was discarded. See CR `Docs/LIVEWIRE_VALIDATION_20261008.md` for evidence boundaries
+and unresolved trailer checks. This finding does not qualify other non-unit AI
+commands or other game builds.
 
 ## `ObjectiveObjects()` — BROKEN IN STOCK REDUX
 
