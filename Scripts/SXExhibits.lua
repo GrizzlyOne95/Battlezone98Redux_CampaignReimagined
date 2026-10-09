@@ -377,8 +377,14 @@ function SXExhibits:Begin(scene)
     self.message, self.telemetry, self.aiSide = "Baseline first; watch the live change", "", false
     if scene.target and Scenes.Fixtures[scene.target] then self:Fixture(scene.target) end
     if scene.id == "ai" then self:SetupAI()
-    elseif scene.id == "chunks" then self:Fixture("break_craft"); self:Fixture("break_building")
-        self:Record("chunks", "PENDING", "requires enabled OpenShim chunks and compatible assets; inspect both deaths")
+    elseif scene.id == "chunks" then
+        local built = 0
+        for _, key in ipairs(Scenes.Breaks) do
+            if self.api.valid(self:Fixture(key)) then built = built + 1 end
+        end
+        self.kills = 0
+        self:Record("chunks", built == #Scenes.Breaks and "PENDING" or "BLOCKED",
+            string.format("%d/%d victims; requires enabled OpenShim chunks and compatible assets", built, #Scenes.Breaks))
     elseif scene.id == "filters" then self:SetupFilters()
     elseif scene.id == "control" then self:SetupControl() end
 end
@@ -397,14 +403,15 @@ function SXExhibits:Cue(scene, cue)
     elseif id == "weather-clear" and self.weather then
         self.weather.SetPreset(nil, 8); self.message = "Atmosphere - clearing to the captured baseline"
     elseif id:match("^ai%-") then self:AIAction(id)
-    elseif id == "break-craft" or id == "break-building" then
-        local key = id == "break-craft" and "break_craft" or "break_building"
+    elseif id == "break" then
+        local key = cue.key
         local h = self:Handle(key)
         if self.api.alive(h) then
             Damage(h, GetCurHealth(h) + GetMaxHealth(h) + 1000)
+            self.kills = (self.kills or 0) + 1
             self:Record("chunks/" .. key, "PENDING", "native damage/death issued; no chunk-count query")
         else self:Record("chunks/" .. key, "BLOCKED", "destruction fixture unavailable") end
-        self.message = id == "break-craft" and "Destruction - watch real vehicle fragments" or "Destruction - watch real building fragments"
+        self.message = string.format("Destruction - %s down (%d/%d)", key, self.kills or 0, #Scenes.Breaks)
     elseif id:match("^shield%-") or id:match("^magnet%-") or id:match("^prox%-") then self:FilterAction(id)
     elseif id:match("^radio%-") then self:RadioPolicy(id)
     elseif id == "command-film" then

@@ -83,7 +83,7 @@ def main():
 
     blocks, source_blocks = paths(bzn), paths(source)
     check(blocks[:len(source_blocks)] == source_blocks, "original setup paths changed")
-    check(len(blocks) == len(source_blocks) + 45 == 59, "showcase must append 45 paths")
+    check(len(blocks) == len(source_blocks) + 63 == 77, "showcase must append 63 paths")
     terrain = configparser.ConfigParser()
     terrain.read_string(read(reference, "Missions/crsetup.trn"))
     size = terrain["Size"]
@@ -113,11 +113,11 @@ def main():
 
     scene_source = read(root, "Scripts/SXScenes.lua")
     exhibit_source = read(root, "Scripts/SXExhibits.lua")
-    bindings = set(re.findall(r'"(sx_[a-z_]+)"', scene_source + exhibit_source))
+    bindings = set(re.findall(r'"(sx_[a-z0-9_]+)"', scene_source + exhibit_source))
     check(bindings == {label for label in labels if label.startswith("sx_")},
           "Lua path bindings differ from authored showcase paths")
     durations = [int(value) for value in re.findall(r'\bduration = (\d+)', scene_source)]
-    check(len(durations) == 9 and sum(durations) == 390, "expected nine chapters / 390 seconds")
+    check(len(durations) == 9 and sum(durations) == 400, "expected nine chapters / 400 seconds")
     spec = importlib.util.spec_from_file_location("sx_map", root / "Tools/Build-SXShowcaseMap.py")
     builder = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(builder)
@@ -131,6 +131,7 @@ def main():
     sources = {norm(entry["source"]) for entry in entries}
     for dependency in ("Missions/crsetup.trn", "Missions/crsetup.hg2", "Missions/crsetup.mat",
                        "Missions/crsetup.lgt", "ODF/avfigh.odf", "ODF/avtank.odf", "ODF/abbarr.odf",
+                       *(f"ODF/{name}.odf" for name in re.findall(r'break_b?\d+ = \{ odf = "(\w+)"', scene_source)),
                        "ODF/abspow.odf", "ODF/apcamr.odf", "Scripts/RequireFix.lua",
                        "Scripts/CRWeather.lua", "Scripts/CRWeatherPresets.lua", "Scripts/CRParticleTemplates.lua",
                        "Materials/cr_weather.particle.payload", "OverlayFont/CRBZoneOverlay.fontdef", "OverlayFont/BZONE.ttf"):
@@ -148,7 +149,7 @@ def main():
     odfs = {
         "sxanchor": ("camerapod", "apcamr", None, None),
         "sxshield": ("shieldtower", "abshld", "ShieldTowerClass", "enemies"),
-        "sxmag": ("magnet", "proxmine", "MagnetClass", "enemies"),
+        "sxmag": ("magnet", "magpull", "MagnetMineClass", "enemies"),
         "sxproxe": ("proximity", "proxmine", "ProximityMineClass", "enemies"),
         "sxproxa": ("proximity", "proxmine", "ProximityMineClass", "allies"),
     }
@@ -168,7 +169,14 @@ def main():
         if name in {"sxmag", "sxproxe", "sxproxa"}:
             check(odf["MineClass"].getfloat("lifeSpan") > 55, "mine expires during filter chapter: " + name)
         if name == "sxmag":
-            check(odf["MagnetClass"].getfloat("fieldRadius") > 0, "magnet needs a live field radius")
+            mag = odf["MagnetMineClass"]
+            check(mag.getfloat("fieldRadius") > 0 and mag.getfloat("objPushCenter") < 0,
+                  "magnet needs a live field radius and an inward pull")
+        if name == "sxshield":
+            # ShieldTower force only acts inside its local box; an unset box is empty.
+            box = odf["ShieldTowerClass"]
+            check(all(box.getfloat("shieldMin" + a) < box.getfloat("shieldMax" + a) for a in "XYZ")
+                  and box.getfloat("objPush") != 0, "shield needs a non-empty field box and a push")
     check('SetAsUser(' not in read(root, "Scripts/sxshow.lua") + exhibit_source,
           "player handover must be authored in the map, not scripted")
     print(f"SXShowcase assets: {checks} checks passed (text/schema/dependencies; native loading unverified)")
