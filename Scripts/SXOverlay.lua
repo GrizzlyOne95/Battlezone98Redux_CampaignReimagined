@@ -48,6 +48,10 @@ function SXOverlay:Create()
             and self:_Call("SetOverlayTextFont", PREFIX .. name, "CRBZoneOverlayFont")
             and self:_Call("SetOverlayTextColor", PREFIX .. name, 0.85, 0.95, 1.0, 1.0)
             and self:_Call("ShowOverlayElement", PREFIX .. name)
+        -- Ogre image fonts build a fixed-function material, which D3D11 cannot
+        -- draw (every frame then throws). Use the shader-backed atlas material,
+        -- as ScriptSubtitles does; harmless on renderers with a fixed pipeline.
+        self:_Call("SetOverlayMaterial", PREFIX .. name, "CR_OverlayFont")
     end
     if not ok then self:Destroy(); self.status = "BLOCKED"; return false end
     self.ready, self.status = true, "PENDING"
@@ -69,8 +73,9 @@ function SXOverlay:Layout()
     end
     if width == self.width and height == self.height then return end
     self.width, self.height = width, height
-    local size = math.max(16, math.min(48, height * 0.026))
+    local size = math.max(12, math.min(64, height * 0.034))
     local x, y, w = width * 0.08, height * 0.04, width * 0.84
+    self.charHeight, self.textWidth = size, w
     self:_Call("SetOverlayPosition", PREFIX .. "Root", x, y)
     self:_Call("SetOverlayDimensions", PREFIX .. "Root", w, height * 0.70)
     for i, name in ipairs({ "Title", "Status", "Telemetry", "Controls" }) do
@@ -88,6 +93,27 @@ function SXOverlay:Layout()
     end
 end
 
+-- Ogre TextArea dimensions do not wrap captions. Keep readable text inside the
+-- safe frame at every resolution; the image font's widest glyph is about 1.12 em.
+local function Wrap(text, width, size)
+    local limit = math.max(1, math.floor(width / (size * 1.12)))
+    local lines = {}
+    for paragraph in (tostring(text or "") .. "\n"):gmatch("(.-)\n") do
+        local line = ""
+        for word in paragraph:gmatch("%S+") do
+            if #line > 0 and #line + 1 + #word > limit then
+                lines[#lines + 1], line = line, ""
+            end
+            while #word > limit do
+                lines[#lines + 1], word = word:sub(1, limit), word:sub(limit + 1)
+            end
+            if #word > 0 then line = line == "" and word or line .. " " .. word end
+        end
+        lines[#lines + 1] = line
+    end
+    return table.concat(lines, "\n")
+end
+
 function SXOverlay:Notify(message, duration, clock, preview)
     self.notice, self.noticeUntil, self.noticePreview = message, clock + duration, preview == true
 end
@@ -101,17 +127,24 @@ end
 function SXOverlay:Update(title, status, controls, clock, telemetry)
     if not self.ready then return end
     self:Layout()
-    self:_Call("SetOverlayCaption", PREFIX .. "Title", title)
-    self:_Call("SetOverlayCaption", PREFIX .. "Status", status)
-    self:_Call("SetOverlayCaption", PREFIX .. "Telemetry", telemetry or "")
-    self:_Call("SetOverlayCaption", PREFIX .. "Controls", controls)
+    local y = 0
+    for _, row in ipairs({ { "Title", title }, { "Status", status },
+        { "Telemetry", telemetry or "" }, { "Controls", controls } }) do
+        local text = Wrap(row[2], self.textWidth, self.charHeight)
+        local _, breaks = text:gsub("\n", "")
+        local height = (breaks + 1) * self.charHeight * 1.25
+        self:_Call("SetOverlayPosition", PREFIX .. row[1], 0, y)
+        self:_Call("SetOverlayDimensions", PREFIX .. row[1], self.textWidth, height)
+        self:_Call("SetOverlayCaption", PREFIX .. row[1], text)
+        if text ~= "" then y = y + height + self.charHeight * 0.20 end
+    end
     clock = clock or 0
     local notice = ""
     if self.notice and clock < self.noticeUntil then
         local spinner = ({ "|", "/", "-", "\\" })[math.floor(clock * 4) % 4 + 1]
         notice = "[ " .. spinner .. " ] " .. self.notice .. (self.noticePreview and "\nNotification preview" or "")
     end
-    self:_Call("SetOverlayCaption", PREFIX .. "Notification", notice)
+    self:_Call("SetOverlayCaption", PREFIX .. "Notification", Wrap(notice, self.width * 0.30, self.charHeight))
     local hidden = false
     for _, name in ipairs({ "IsGameUiOpen", "IsPauseMenuOpen" }) do
         if type(self.exu[name]) == "function" then

@@ -134,6 +134,24 @@ Check(o:Create() and x.showing, "overlay created")
 x.width, x.height = 1920, 1080
 o:Update("title", "status", "help")
 Check(o.width == 1920 and o.height == 1080, "resolution change relayout")
+-- A caption longer than one row must stay in the safe frame without losing words.
+local captions, positions, dimensions = {}, {}, {}
+function x.SetOverlayCaption(name, value) captions[name] = value end
+function x.SetOverlayPosition(name, left, top) positions[name] = { left, top } end
+function x.SetOverlayDimensions(name, width, height) dimensions[name] = { width, height } end
+local longCaption = "OpenShim + EXU: a living proving ground inside Battlezone 98 Redux"
+for _, resolution in ipairs({ {560, 315}, {1280, 720}, {1920, 1080}, {3840, 2160} }) do
+    x.width, x.height = resolution[1], resolution[2]
+    o:Update("OPERATION LIVEWIRE", longCaption, "Replay a chapter", 0, "Telemetry")
+    local wrapped = captions["SX/Livewire/Status"]
+    local fits = true
+    for line in wrapped:gmatch("[^\n]+") do fits = fits and #line * o.charHeight * 1.12 <= o.textWidth end
+    Check(fits and wrapped:gsub("\n", " ") == longCaption, "caption fits and keeps words at " .. x.width)
+    Check(positions["SX/Livewire/Telemetry"][2] >= positions["SX/Livewire/Status"][2]
+        + dimensions["SX/Livewire/Status"][2], "wrapped caption cannot overlap next row")
+end
+
+x.width, x.height = 1920, 1080
 x.uiOpen = true; o:Update("title", "status", "help")
 Check(not x.showing, "native menu suppresses custom overlay")
 x.uiOpen = false; o:Update("title", "status", "help")
@@ -192,7 +210,7 @@ for block in map:gmatch("%[AiPath%](.-)pathType = %x+") do
 end
 local duration = 0
 for _, scene in ipairs(Scenes.List) do duration = duration + scene.duration end
-Check(duration == 390 and #Scenes.List == 9, "full authored tour is nine chapters / 390 simulation seconds")
+Check(duration == 400 and #Scenes.List == 9, "full authored tour is nine chapters / 400 simulation seconds")
 
 world = {}
 x = FakeExu(world)
@@ -294,6 +312,9 @@ package.preload.CRWeatherPresets = function() return presets end
 package.preload.RequireFix = function() return { Initialize = function() end } end
 
 local nextHandle, cameraCalls, readyCalls, finishCalls = 0, 0, 0, 0
+-- Engine camera stack: a push while up or a pop while empty is the native
+-- "Fsm error: Camera Stack 0verfow" alert seen in game.
+local cameraDepth, cameraFaults = 0, {}
 local cancelled, net = false, false
 local classes = { sxanchor = "camerapod", sxshield = "shieldtower", sxmag = "magnet", sxproxe = "proximity", sxproxa = "proximity",
     avtank = "wingman", avfigh = "wingman", abspow = "powerplant", abbarr = "barracks" }
@@ -314,7 +335,14 @@ function SetLabel(h, label) world[h].label = label end
 function GetHandle(label) for h, obj in pairs(world) do if obj.label == label then return h end end end
 function GetPlayerHandle() return 99999 end
 function GetClassLabel(h) return world[h].class end
-function SetIndependence() end
+local unsafeIndependenceCalls, heldCraft = 0, {}
+function SetIndependence(h, value)
+    if world[h].class ~= "wingman" then
+        unsafeIndependenceCalls = unsafeIndependenceCalls + 1
+        error("SetIndependence requires a UnitProcess, not " .. world[h].odf)
+    end
+    if world[h].label and world[h].label:match("^sx_break_%d+$") then heldCraft[world[h].label] = value end
+end
 function SetWeaponMask() end
 function SetCurAmmo(h, v) world[h].ammo = v end
 function GetCurAmmo(h) return world[h].ammo end
@@ -359,12 +387,20 @@ end
 function ClearObjectives() end
 function AddObjective() end
 function DisplayMessage() end
-function CameraReady() readyCalls = readyCalls + 1 end
+function CameraReady()
+    readyCalls = readyCalls + 1
+    if cameraDepth > 0 then cameraFaults[#cameraFaults + 1] = "ready while a camera is up" end
+    cameraDepth = cameraDepth + 1
+end
 function CameraPath(path, _, _, target) assert(paths[path] and IsValid(target)); cameraCalls = cameraCalls + 1 end
 function CameraObject(base, _, _, _, target) assert(IsValid(base) and IsValid(target)); cameraCalls = cameraCalls + 1 end
-function CameraFinish() finishCalls = finishCalls + 1 end
+function CameraFinish()
+    finishCalls = finishCalls + 1
+    if cameraDepth == 0 then cameraFaults[#cameraFaults + 1] = "finish with no camera up"
+    else cameraDepth = cameraDepth - 1 end
+end
 function CameraCancelled() return cancelled end
-local function Mission() package.loaded.exu = nil; dofile(scriptRoot .. "/sxshow.lua"); Start() end
+local function Mission() package.loaded.exu = nil; cameraDepth = 0; dofile(scriptRoot .. "/sxshow.lua"); Start() end
 local function Snapshot() return Copy({ Save() })[2] end
 local function OwnedCount()
     local n = 0; for _, obj in pairs(world) do if obj.label and obj.label:match("^sx_") then n = n + 1 end end; return n
@@ -392,16 +428,37 @@ Check(Command("unrelated", "") == false, "unrelated console commands remain unha
 Command("sx", "service"); x.rejectColors = true; Update(0.25); x.rejectColors = false
 Check(Snapshot().results.materials.status == "FAIL" and world[changedHandle].names[1] == "body", "pulse failure reports rollback")
 Command("sx", "tour")
-for _ = 1, 780 do Update(0.5) end
+for _ = 1, 800 do Update(0.5) end
 local finished = Snapshot()
 Check(finished.scene.mode == "freeplay" and finished.results.tour.status == "PASS", "full nine-chapter tour completes")
 for _, feature in ipairs(Scenes.Features) do Check(finished.results[feature] ~= nil, "full tour exercises " .. feature) end
+local killed = 0
+for _, key in ipairs(Scenes.Breaks) do
+    if finished.results["chunks/" .. key] and finished.results["chunks/" .. key].status == "PENDING" then killed = killed + 1 end
+end
+Check(killed == 13 and #Scenes.Breaks == 13, "destruction yard issues all thirteen kills in order")
+Check(unsafeIndependenceCalls == 0, "tour never writes UnitProcess independence on camera markers or buildings, even through pcall")
+local heldCount = 0
+for _, independence in pairs(heldCraft) do if independence == 0 then heldCount = heldCount + 1 end end
+Check(heldCount == 10, "all ten destruction craft hold position without commanding the static fixtures")
 Check(State.Equal(x.props, baseline) and State.Equal(x.music, musicBaseline), "full tour restores captured global settings and music policy")
 Check(world[99999].health == 3000 and world[99999].ammo == 1200 and world[99999].radarRange == 400,
     "live player meters and radar ranges restore")
 Check(OwnedCount() == 8 and next(x.tuning) == nil and next(x.callbacks) == nil and next(wx.LiveSystems) == nil,
     "full tour removes range actors, tuning, callbacks and weather systems")
 Check(#selected == 1 and selected[1] == 99998, "original selected unit is restored")
+
+-- Presentation: shot lists cut cleanly, captions replace telemetry unless `sx debug`.
+Command("sx", "ai"); Update(0.5)
+local readyBeforeCut = readyCalls
+Update(21)
+Check(readyCalls == readyBeforeCut + 1 and Snapshot().scene.scene == "ai", "AI shot list cuts to its second camera at 21 s")
+Update(0.5)
+Check(x.captions["SX/Livewire/Status"]:gsub("\n", " ") == Scenes.List[4].cues[2].caption
+    and x.captions["SX/Livewire/Telemetry"] == "", "film shows the trailer caption, not raw telemetry")
+Command("sx", "debug"); Update(0.5)
+Check(x.captions["SX/Livewire/Telemetry"] ~= "", "sx debug restores raw telemetry")
+Command("sx", "debug"); Command("sx", "skip"); Update(0.5)
 Check(x.saveCount == 0 and finished.results.autosave.detail:match("preview"), "automatic film notification never writes a save")
 for _, scroll in pairs(x.scrolls) do Check(scroll[1] == 0 and scroll[2] == 0, "accepted clone UV animations are stopped") end
 Check(finished.results["filters/proximity"].status == "PASS", "proximity witness requires protected crossing and actual target damage")
@@ -472,7 +529,7 @@ Command("sx", "tour"); Update(120)
 x.rejectRemove = GetHandle("sx_ai_stock")
 Update(61)
 Check(Snapshot().scene.mode == "freeplay" and Snapshot().scene.scene == "ai"
-    and GetHandle("sx_break_craft") == nil, "full film stops at failed AI cleanup before spawning destruction actors")
+    and GetHandle("sx_break_1") == nil, "full film stops at failed AI cleanup before spawning destruction actors")
 x.rejectRemove = nil; Command("sx", "baseline")
 local nativePath = CameraPath
 CameraPath = function() error("camera failure") end
@@ -489,4 +546,6 @@ Check(Snapshot().scene.mode == "freeplay" and Snapshot().results.environment.sta
     and Snapshot().results.music.status == "BLOCKED", "stub EXU completes stock scenes while reporting blocked native exhibits")
 x = nativeX
 Check(cameraCalls > 0 and finishCalls > 0, "both native path and object-camera callbacks exercised")
+Check(#cameraFaults == 0, string.format("native camera stack stays balanced (%d faults, first: %s)",
+    #cameraFaults, tostring(cameraFaults[1])))
 print(string.format("SXShowcase: %d checks passed (%s host; native visuals/audio/physics unverified)", total, _VERSION))

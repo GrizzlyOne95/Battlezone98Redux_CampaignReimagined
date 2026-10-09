@@ -11,6 +11,16 @@ unitName = "Enemy-Only Shield"
 soundAmbient = "abshlde0.wav"
 
 [ShieldTowerClass]
+shieldMinX = 2.0
+shieldMaxX = 24.0
+shieldMinY = -4.0
+shieldMaxY = 30.0
+shieldMinZ = -4.0
+shieldMaxZ = 4.0
+objPush = -160.0
+objDrag = 1.5
+ordPush = -300.0
+ordDrag = 3.0
 teamFilter = "enemies"
 affectAllies = false
 affectEnemies = true
