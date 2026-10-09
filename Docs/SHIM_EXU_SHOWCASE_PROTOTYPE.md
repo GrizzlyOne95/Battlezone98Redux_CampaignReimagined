@@ -2,9 +2,14 @@
 
 This expands the [showcase design](SHIM_EXU_SHOWCASE_DESIGN.md) into a nine-chapter,
 6:30 single-player film and a repeatable regression range. Launch `sxshow.bzn`
-after blessing and deploying the sources. This checkpoint passes host checks;
-native game loading, framing, rendering, audio and physics have not been observed.
+after blessing and deploying the sources. This checkpoint passes host checks.
+One native GOG/DX11 run (2026-10-07, test client) played the whole tour to `tour PASS`
+with no render or camera-stack errors; framing, audio and physics are not yet judged.
 The filename of these build notes is retained from the first prototype.
+
+The [8 October native follow-up](LIVEWIRE_VALIDATION_20261008.md) records the
+destruction heap-crash fix, the current 6:40 tour, successful Enhanced runs and
+remaining trailer acceptance checks.
 
 ## Film and feature coverage
 
@@ -176,16 +181,23 @@ Source contracts inspected for this checkpoint:
 - EXU main: `75863c5005b96d09855b140bb4b32907e87fba75`
 - OpenShim main: `4d610647556a22d58273694c2a9ce6c68b246ed1`
 
-The host regression passes **96 checks** for cue/hitch/cancel handling, independent
+The host regression passes **97 checks** for cue/hitch/cancel handling, independent
 chapter replay, material rollback/UV cleanup, native readbacks, external settings,
 weather/music/radio/HUD/AI cleanup, save-job gating, safe load handover, repeated
 whole tours, failed-reset protection, chapter-boundary cleanup failures, early
-startup cancellation, callback error reporting and the network guard. These use fakes,
+startup cancellation, callback error reporting, a balanced native camera stack and
+the network guard. These use fakes,
 including idealized proximity motion, and do not qualify native physics.
 The asset validator passes **295 checks** for map counts/IDs, preserved source
 objects/paths, exact generator output, terrain bounds, Lua bindings, ODF classes
 and filters, existing shipped dependencies and runtime-name collisions.
-The host interpreter was Lua 5.3 (`texlua`); actual Lua 5.1 execution is unverified.
+Both host checks pass under Lua 5.1.5.
+
+The first native run found two defects, now fixed. Closing a camera that was never
+opened (`CameraFinish` before the tour's first `CameraReady`) raised the engine's
+"Fsm error: Camera Stack 0verfow". Overlay text kept the image font's internal
+fixed-function material, so D3D11 threw on every frame and never presented the
+scene; text areas now use the shader-backed `CR_OverlayFont`, as subtitles do.
 
 The next acceptance pass is an in-game recording: watch the full film, replay and
 cancel individual chapters, inspect each transition, use the real Hunt slot and
