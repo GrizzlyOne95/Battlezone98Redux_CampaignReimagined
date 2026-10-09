@@ -1059,6 +1059,14 @@ local function ClearActiveSequence()
     HideLegacySubtitle()
 end
 
+local function StopCurrentSequence()
+    if currentAudioHandle then
+        StopAudioMessage(currentAudioHandle)
+        currentAudioHandle = nil
+    end
+    ClearActiveSequence()
+end
+
 function Subtitles.RefreshActive()
     ResubmitActiveSequence()
 end
@@ -1219,8 +1227,9 @@ end
 --- @param b number|nil Blue (0-1)
 --- @return userdata The audio message handle
 function Subtitles.Play(wavFilename, r, g, b)
-    -- Clear any existing audio and subtitles
-    Subtitles.Stop()
+    -- Replacing dialogue keeps the renderer alive. Destroying it here makes
+    -- a second Play in the same frame hit the overlay creation retry delay.
+    StopCurrentSequence()
     Subtitles.SetOpacity(Subtitles.Config.opacity)
 
     -- Default to white if not provided
@@ -1390,11 +1399,7 @@ end
 
 --- Stop the currently playing audio and clear subtitles
 function Subtitles.Stop()
-    if currentAudioHandle then
-        StopAudioMessage(currentAudioHandle)
-        currentAudioHandle = nil
-    end
-    ClearActiveSequence()
+    StopCurrentSequence()
     -- Mission-end cleanup must remove the renderer too.  Hiding the overlay
     -- alone leaves stale elements alive if the engine changes UI state on the
     -- same frame as SucceedMission/FailMission.
