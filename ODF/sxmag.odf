@@ -1,6 +1,6 @@
 [GameObjectClass]
 classLabel = "magnet"
-baseName = "proxmine"
+baseName = "magpull"
 scrapCost = 0
 scrapValue = 0
 maxHealth = 150
@@ -10,12 +10,12 @@ unitName = "Enemy-Only Magnet"
 [MineClass]
 lifeSpan = 90.0
 
-[MagnetClass]
-triggerDelay = 2.0
-fieldRadius = 35.0
-objPushCenter = -30.0
-objPushEdge = -3.0
-objDrag = 2.0
+[MagnetMineClass]
+triggerDelay = 1.0
+fieldRadius = 30.0
+objPushCenter = -60.0
+objPushEdge = -8.0
+objDrag = 2.5
 ordPushCenter = -50.0
 ordPushEdge = -5.0
 ordDrag = 5.0
