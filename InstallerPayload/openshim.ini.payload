@@ -64,6 +64,13 @@ SkinnedGibs = 0
 SkinnedGibsMax = 160
 SkinnedGibsLinger = 8
 SkinnedGibsForce = 1.0
+; Brass casings ejected by cannon-like weapons (visual only). An
+; enhancement, so OFF in this preset; the feature defaults ON when absent.
+ShellCasings = 0
+ShellCasingsMax = 48
+ShellCasingsLinger = 6
+ShellCasingsClasses = cannon,mortar,machinegun,snipergun,-gquake,-gsandbag
+
 ; AI path grid follows collision faces for ODFs with pathBlock = "faces"
 ; (tunnels, arcades, walk-in rooms). Opt-in per ODF, so ON.
 PathBlockFaces = 1
@@ -182,6 +189,9 @@ BackendTransport = 0
 [Graphics]
 Renderer = Auto
 RenderProfile = Redux
+; DX11 only: after a GPU reset, recreate the device once the hardware adapter
+; has settled instead of mid-reset or on the software rasterizer.
+D3D11DeviceLossRecovery = 1
 
 [Terrain]
 ; Terrain replacement/proxy development is disabled for normal play. The four
@@ -268,6 +278,8 @@ RespectExternalAutoSave = 0
 EnhancedLightSelectionTrace = 0
 TraceHookHits = 0
 TraceSkinnedGibs = 0
+TraceShellCasings = 0
+
 TracePathBlock = 0
 
 ; Explain a "Not Ready" multiplayer entry on the main menu. The stock shell has
@@ -337,6 +349,19 @@ NetImprovements = 1
 ; Use Stock for strict stock governor/auto-kick parity. net.ini still overrides
 ; this for granular tuning.
 GovernorTuning = OpenShim
+
+; Sends each new reliable P2P message immediately even while older ones are
+; being retransmitted. Stock holds it for the next 2.5 s retry pass, and every
+; position update queued behind it is dropped meanwhile: the 100% loss / huge
+; ping seen in 3+ player games. Sender-side only, same wire format.
+ReliableSendBacklogFix = 1
+
+; Reliable resend timers in ms (stock 1000 / 2500). Lower values shorten the
+; update blackout after a lost packet on a lossy connection.
+; Independent of ReliableSendBacklogFix. Decimal 50-10000 only; invalid values
+; keep stock. Lower timers need loss/bandwidth testing before normal use.
+ReliableFirstRetryMs = 1000
+ReliableRetryIntervalMs = 2500
 RoutePreference = Stock
 UdpPort = 0
 ; Blank = use the Steam/GOG account name.

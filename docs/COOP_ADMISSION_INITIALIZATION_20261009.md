@@ -80,3 +80,48 @@ Graceful client exit and independent restoration audit passed: 128 targets,
 zero mismatch/zero games at 19:36:59 CDT. Original incomplete attempts remain
 retained. Exact timer/capture evidence lives in OpenShim netfix's
 `reverse_engineering/p2p_retry_timing_validation_20261009.md`; raw data is private.
+
+## Consolidated source and GOG installation — 2026-10-09
+
+`agent/network-coop-integration` combines current main (`b3450f8`), the
+admission guard (`938ed92`) and four-player mission work (`2452730`, PR #171).
+Initialize marks the module ready only after the comms, respawn, rally and
+lives services finish setup. Early Q/K/P are consumed before service handlers.
+The fresh-module qualification limit described above still applies.
+
+The merged admission fixture loads the real comms/respawn services. Lua 5.1
+admission, registry, comms (510 checks), PDA/HUD (14), rally, misn02b (14,975),
+misn03 (7,842), misn04 (34,483), misn05 presentation (22), owner-local/offline
+PhysicsImpact and subtitle replacement (9) checks pass. Python co-op contracts
+for misn02b/03/04/05 also pass. The earlier smaller fixture counts refer to the
+admission-only checkpoint, not this combined source.
+
+The campaign manager now copies all 17 OpenShim native UI images, including
+the 13 painted hub/category/keybind assets that were missing from the old
+four-image packaging list. Repository test fixtures are excluded from shipping.
+The reviewed lock adds 77 runtime entries to the previous 3,712: 13 native UI
+images and 64 already-authored current-main mission/content files. There are
+no removals or remaps relative to the committed baseline. The manager refreshes
+tracked binary caches and payload metadata from the explicitly selected
+OpenShim integration build; these caches are generated, not independent source.
+
+Local GOG deployment verifies 3,789 expected files, zero missing, differing or
+unexpected managed files. The installed campaign CRCoop and suite payloads
+match canonical source/cache; the root game load chain matches those payloads.
+OpenShim plugin SHA256 is
+`A1A3966EF25205634BF521485D700F75533076A5CEB8443FC4ADFA52763D6D4F`.
+The plugin retains development version 1.0.0.47; its hash identifies this build.
+The user's existing INI preferences are preserved, with redesigned Settings
+and Keybind pages enabled and stock retry defaults 1000/2500 unchanged.
+
+GOG menu checks cover the actual native category hub, Video category, Back
+navigation and painted keybind editor. This is UI/deployment evidence, not
+new multiplayer gameplay or Steam/Proton/Wine qualification. The full merged
+campaign still needs mission gameplay requalification before release.
+
+The cross-repository integration map is
+[OpenShim NETWORK_UI_INTEGRATION_20261009.md](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/blob/agent/gog-ui-network-catchup/Docs/NETWORK_UI_INTEGRATION_20261009.md).
+Server observability and ticket redaction are consolidated in
+[dedicated server PR #9](https://github.com/GrizzlyOne95/Battlezone98Redux_DedicatedServer/pull/9).
+Raw captures, identities, backups and screenshots remain private under
+`C:\BZRCoop\runs`; neither Workshop publication nor a PR merge occurred.
