@@ -1,5 +1,6 @@
 -- Replay the observed Receive(Q) -> Initialize -> guest stops retrying race.
 local source = arg[1] or "Scripts/CRCoop.lua"
+package.path = "Scripts/?.lua;" .. package.path
 local now, net, hosting, id = 0, true, true, 1
 local host = {team=1, valid=true}
 local guest = {team=2, valid=true}
@@ -11,6 +12,10 @@ GetTime = function() return now end
 GetPlayerHandle = function() return handle end
 GetTeamNum = function(h) return h.team end
 IsValid = function(h) return h and h.valid end
+-- Exercise admission with the real comms/respawn services and no combat.
+GetPosition = function() return {x=0,y=0,z=0} end
+AllCraft = function() return function() return nil end end
+GetDistance = function() return 0 end
 Send = function(to,kind,...) sent[#sent+1]={to=to,kind=kind,args={...}} end
 
 local leader = assert(loadfile(source))()

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-07T15:28:17-05:00",
-  "count": 3712,
+  "generated": "2026-10-09T19:56:25-05:00",
+  "count": 3789,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -14850,6 +14850,314 @@
     {
       "source": "update.des",
       "runtime": "update.des"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_career_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_career_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_category_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_category_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_hub_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_hub_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_ck.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_ck.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_hv.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_hv.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_keys_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_keys_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_ck.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_ck.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_hv.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_hv.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_ck.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_ck.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_hv.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_hv.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_ck.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_ck.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_hv.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_hv.png"
+    },
+    {
+      "source": "Config\\sxshow.ini",
+      "runtime": "sxshow.ini"
+    },
+    {
+      "source": "Missions\\sxshow.bzn",
+      "runtime": "sxshow.bzn"
+    },
+    {
+      "source": "ODF\\sxanchor.odf",
+      "runtime": "sxanchor.odf"
+    },
+    {
+      "source": "ODF\\sxmag.odf",
+      "runtime": "sxmag.odf"
+    },
+    {
+      "source": "ODF\\sxproxa.odf",
+      "runtime": "sxproxa.odf"
+    },
+    {
+      "source": "ODF\\sxproxe.odf",
+      "runtime": "sxproxe.odf"
+    },
+    {
+      "source": "ODF\\sxshield.odf",
+      "runtime": "sxshield.odf"
+    },
+    {
+      "source": "Scripts\\bd01.lua",
+      "runtime": "bd01.lua"
+    },
+    {
+      "source": "Scripts\\bd02.lua",
+      "runtime": "bd02.lua"
+    },
+    {
+      "source": "Scripts\\bd03.lua",
+      "runtime": "bd03.lua"
+    },
+    {
+      "source": "Scripts\\bd04.lua",
+      "runtime": "bd04.lua"
+    },
+    {
+      "source": "Scripts\\bd05.lua",
+      "runtime": "bd05.lua"
+    },
+    {
+      "source": "Scripts\\bd06.lua",
+      "runtime": "bd06.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn07.lua",
+      "runtime": "bdmisn07.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn08.lua",
+      "runtime": "bdmisn08.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn09.lua",
+      "runtime": "bdmisn09.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn10.lua",
+      "runtime": "bdmisn10.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn11.lua",
+      "runtime": "bdmisn11.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn12.lua",
+      "runtime": "bdmisn12.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn13.lua",
+      "runtime": "bdmisn13.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn14.lua",
+      "runtime": "bdmisn14.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn15.lua",
+      "runtime": "bdmisn15.lua"
+    },
+    {
+      "source": "Scripts\\ch01.lua",
+      "runtime": "ch01.lua"
+    },
+    {
+      "source": "Scripts\\ch02.lua",
+      "runtime": "ch02.lua"
+    },
+    {
+      "source": "Scripts\\ch03.lua",
+      "runtime": "ch03.lua"
+    },
+    {
+      "source": "Scripts\\ch04.lua",
+      "runtime": "ch04.lua"
+    },
+    {
+      "source": "Scripts\\ch05.lua",
+      "runtime": "ch05.lua"
+    },
+    {
+      "source": "Scripts\\ch06.lua",
+      "runtime": "ch06.lua"
+    },
+    {
+      "source": "Scripts\\ch07.lua",
+      "runtime": "ch07.lua"
+    },
+    {
+      "source": "Scripts\\demo01.lua",
+      "runtime": "demo01.lua"
+    },
+    {
+      "source": "Scripts\\evolve.lua",
+      "runtime": "evolve.lua"
+    },
+    {
+      "source": "Scripts\\misn06.lua",
+      "runtime": "misn06.lua"
+    },
+    {
+      "source": "Scripts\\misn07.lua",
+      "runtime": "misn07.lua"
+    },
+    {
+      "source": "Scripts\\misn08.lua",
+      "runtime": "misn08.lua"
+    },
+    {
+      "source": "Scripts\\misn09.lua",
+      "runtime": "misn09.lua"
+    },
+    {
+      "source": "Scripts\\misn10.lua",
+      "runtime": "misn10.lua"
+    },
+    {
+      "source": "Scripts\\misn11.lua",
+      "runtime": "misn11.lua"
+    },
+    {
+      "source": "Scripts\\misn12.lua",
+      "runtime": "misn12.lua"
+    },
+    {
+      "source": "Scripts\\misn13.lua",
+      "runtime": "misn13.lua"
+    },
+    {
+      "source": "Scripts\\misn14.lua",
+      "runtime": "misn14.lua"
+    },
+    {
+      "source": "Scripts\\misn15.lua",
+      "runtime": "misn15.lua"
+    },
+    {
+      "source": "Scripts\\misn16.lua",
+      "runtime": "misn16.lua"
+    },
+    {
+      "source": "Scripts\\misn17.lua",
+      "runtime": "misn17.lua"
+    },
+    {
+      "source": "Scripts\\misn18.lua",
+      "runtime": "misn18.lua"
+    },
+    {
+      "source": "Scripts\\misns1.lua",
+      "runtime": "misns1.lua"
+    },
+    {
+      "source": "Scripts\\misns2.lua",
+      "runtime": "misns2.lua"
+    },
+    {
+      "source": "Scripts\\misns3.lua",
+      "runtime": "misns3.lua"
+    },
+    {
+      "source": "Scripts\\misns4.lua",
+      "runtime": "misns4.lua"
+    },
+    {
+      "source": "Scripts\\misns5.lua",
+      "runtime": "misns5.lua"
+    },
+    {
+      "source": "Scripts\\misns6.lua",
+      "runtime": "misns6.lua"
+    },
+    {
+      "source": "Scripts\\misns7.lua",
+      "runtime": "misns7.lua"
+    },
+    {
+      "source": "Scripts\\misns8.lua",
+      "runtime": "misns8.lua"
+    },
+    {
+      "source": "Scripts\\SXDirector.lua",
+      "runtime": "SXDirector.lua"
+    },
+    {
+      "source": "Scripts\\SXExhibits.lua",
+      "runtime": "SXExhibits.lua"
+    },
+    {
+      "source": "Scripts\\SXMaterials.lua",
+      "runtime": "SXMaterials.lua"
+    },
+    {
+      "source": "Scripts\\SXOverlay.lua",
+      "runtime": "SXOverlay.lua"
+    },
+    {
+      "source": "Scripts\\SXScenes.lua",
+      "runtime": "SXScenes.lua"
+    },
+    {
+      "source": "Scripts\\sxshow.lua",
+      "runtime": "sxshow.lua"
+    },
+    {
+      "source": "Scripts\\SXState.lua",
+      "runtime": "SXState.lua"
+    },
+    {
+      "source": "Scripts\\tran01.lua",
+      "runtime": "tran01.lua"
+    },
+    {
+      "source": "Scripts\\Tran02Mission.lua",
+      "runtime": "Tran02Mission.lua"
+    },
+    {
+      "source": "Scripts\\tran03.lua",
+      "runtime": "tran03.lua"
+    },
+    {
+      "source": "Scripts\\tran04.lua",
+      "runtime": "tran04.lua"
+    },
+    {
+      "source": "Scripts\\tran05.lua",
+      "runtime": "tran05.lua"
     }
   ]
 }

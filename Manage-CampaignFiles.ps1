@@ -127,6 +127,8 @@ $SourceExcludedRelativePaths = @(
     "Local",
     "References",
     "Shipping",
+    # Engine-mock fixtures are repository validation, not runtime missions.
+    "Tests",
     "Tools"
 )
 $SourceExcludedRootFiles = @(
@@ -843,7 +845,13 @@ function Update-OpenShimManifest {
     $rendererPayloadDir = Join-Path $SourceDir "openshim\renderer\enhanced"
     $uiPayloadDir = Join-Path $SourceDir "BZ_ASSETS_CORE\common\ui\CustomWidgets"
     $manifestPath = Join-Path $SourceDir "Scripts\OpenShimManifest.lua"
-    $uiFileNames = @("uiline.png", "uiplate.png", "uibtn.png", "uibtnhv.png")
+    $uiFileNames = @(
+        "uiline.png", "uiplate.png", "uibtn.png", "uibtnhv.png",
+        "osh_career_center.png", "osh_options_center.png", "osh_hub_center.png",
+        "osh_category_center.png", "osh_keys_center.png", "osh_tile_hv.png",
+        "osh_tile_ck.png", "osh_value_hv.png", "osh_value_ck.png",
+        "osh_key_hv.png", "osh_key_ck.png", "osh_tool_hv.png", "osh_tool_ck.png"
+    )
 
     $requiredPaths = @(
         $playerConfigSourcePath,
