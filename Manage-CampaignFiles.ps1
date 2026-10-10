@@ -121,6 +121,11 @@ $SourceExcludedRelativePaths = @(
     ".github",
     # Legacy byte-identical copies; BZ_ASSETS_CORE is the runtime source.
     "Assets\CustomWidgets",
+    # Chunk meshes are generated at runtime by OpenShim from the stock models;
+    # the pack ships none. "chunkMeshes" stays in $StructuredRuntimeDirs so
+    # deploy still sweeps the folder older releases installed.
+    "Assets\chunkMeshes",
+    "Assets\chunkMeshes_capped",
     # Repository branding (the GitHub repo icon), not runtime mod content.
     "branding",
     "docs",
@@ -989,6 +994,13 @@ function Sync-ToSource {
             continue
         }
 
+        # Chunk meshes are generated at runtime by OpenShim and are no longer
+        # part of the pack; never pull them back into the source tree.
+        if ($runtimeRelativePath -match '(?i)^chunkMeshes(\\|$)') {
+            $skipped++
+            continue
+        }
+
         if ($runtimeRelativePath -and (Is-StructuredRuntimeRelativePath $runtimeRelativePath)) {
             $sourceRelativePath = TryMapRuntimeRelativePathToSourceRelativePath $runtimeRelativePath
             $targetPath = if ($sourceRelativePath) {
@@ -1097,6 +1109,22 @@ function Deploy-PackagedMod {
         }
     }
     
+    # Deleting the files leaves their directories behind; an upgrade from a
+    # release that shipped chunkMeshes would keep an empty folder forever.
+    # Only managed structured dirs are touched, and only when empty.
+    foreach ($dirName in $StructuredRuntimeDirs) {
+        $dirPath = Join-Path $runtimeDir $dirName
+        if (-not (Test-Path -LiteralPath $dirPath)) { continue }
+        $subDirs = @(Get-ChildItem -LiteralPath $dirPath -Recurse -Directory -Force -ErrorAction SilentlyContinue |
+            Sort-Object { $_.FullName.Length } -Descending)
+        foreach ($subDir in @($subDirs) + @(Get-Item -LiteralPath $dirPath)) {
+            if (-not (Get-ChildItem -LiteralPath $subDir.FullName -Force -ErrorAction SilentlyContinue)) {
+                Remove-Item -LiteralPath $subDir.FullName -Force
+                Write-Host "Removed empty runtime folder: $(Get-RelativePathFromBase $runtimeDir $subDir.FullName)" -ForegroundColor DarkYellow
+            }
+        }
+    }
+
     $updated = 0
     $added = 0
     $skipped = 0
