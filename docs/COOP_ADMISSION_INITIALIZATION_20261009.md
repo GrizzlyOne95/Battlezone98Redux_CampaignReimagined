@@ -35,6 +35,10 @@ to finish. Existing guest retries request a fresh handshake after initialization
 Initialize still clears prior mission readiness, phase and remote handles;
 post-initialization messages, protocol version checks and leader authority keep
 their existing behavior. No new wire message or timer setting is introduced.
+The observed race occurs in a fresh Lua module before its first Initialize.
+A reused module remains initialized between missions until its next Initialize
+begins; arbitrary messages in that interval require separate lifecycle/epoch
+evidence and are not qualified by this fix.
 
 `Tools/Test-CRCoopAdmission.lua` reproduces the early acknowledgement failure on
 the original source and passes on the fix. It also checks early K/P, guest retry
