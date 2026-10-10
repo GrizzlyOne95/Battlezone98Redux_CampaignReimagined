@@ -109,11 +109,6 @@ $StructuredRuntimeDirs = @(
     "openshim",
     "BZ_ASSETS_CORE"
 )
-# Chunk meshes have two source trees: the authored originals and the generated
-# interior-capped output from Tools/Cap-ChunkMeshes.py. Exactly one of them is
-# deployed, chosen by Get-ChunkMeshesSourceRelativeRoot.
-$ChunkMeshesAuthoredRoot = "Assets\chunkMeshes"
-$ChunkMeshesCappedRoot = "Assets\chunkMeshes_capped"
 # Authoring-only trees. These are development inputs -- CI definitions, the
 # scripts that generate assets, and the shipping lock itself -- not mod content.
 $SourceExcludedRelativePaths = @(
@@ -121,6 +116,11 @@ $SourceExcludedRelativePaths = @(
     ".github",
     # Legacy byte-identical copies; BZ_ASSETS_CORE is the runtime source.
     "Assets\CustomWidgets",
+    # Chunk meshes are generated at runtime by OpenShim from the stock models;
+    # the pack ships none. "chunkMeshes" stays in $StructuredRuntimeDirs so
+    # deploy still sweeps the folder older releases installed.
+    "Assets\chunkMeshes",
+    "Assets\chunkMeshes_capped",
     # Repository branding (the GitHub repo icon), not runtime mod content.
     "branding",
     "docs",
@@ -296,57 +296,12 @@ function Is-StructuredRuntimeRelativePath($relativePath) {
     return $false
 }
 
-function Get-ChunkMeshesSourceRelativeRoot() {
-    # The capped tree is generated output, so it is authoritative for deployment
-    # whenever it exists: it is what the runtime is meant to run, and mapping the
-    # runtime back to it keeps the authored originals pristine as the cap tool's
-    # input. Delete Assets\chunkMeshes_capped to fall back to the originals.
-    if (Test-Path (Join-Path $SourceDir $ChunkMeshesCappedRoot)) {
-        return $ChunkMeshesCappedRoot
-    }
-
-    return $ChunkMeshesAuthoredRoot
-}
-
-function Get-InactiveChunkMeshesSourceRelativeRoots() {
-    $activeRoot = Get-ChunkMeshesSourceRelativeRoot
-    return @($ChunkMeshesAuthoredRoot, $ChunkMeshesCappedRoot) | Where-Object {
-        -not $_.Equals($activeRoot, [System.StringComparison]::OrdinalIgnoreCase)
-    }
-}
-
-function Write-ActiveChunkMeshesRoot() {
-    $activeRoot = Get-ChunkMeshesSourceRelativeRoot
-    if ($activeRoot.Equals($ChunkMeshesCappedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
-        Write-Host "Chunk meshes: $activeRoot (generated caps; regenerate with Tools/Cap-ChunkMeshes.py)" -ForegroundColor DarkGray
-    }
-    else {
-        Write-Host "Chunk meshes: $activeRoot (authored originals; no capped tree present)" -ForegroundColor DarkGray
-    }
-}
-
 function TryMapSourceRelativePathToRuntimeRelativePath($sourceRelativePath) {
     if (-not $sourceRelativePath) {
         return $null
     }
 
     $normalized = $sourceRelativePath -replace '/', '\'
-
-    # Both chunk trees land in the same runtime folder. Which .mesh files actually
-    # get here is decided by Is-ExcludedSourceRelativePath; the companion
-    # material/skeleton/geo/texture assets live only in the authored tree and must
-    # keep deploying from it even when the capped tree supplies the meshes.
-    foreach ($chunkMeshesSourceRoot in @($ChunkMeshesAuthoredRoot, $ChunkMeshesCappedRoot)) {
-        if ($normalized.Equals($chunkMeshesSourceRoot, [System.StringComparison]::OrdinalIgnoreCase) -or
-            $normalized.StartsWith($chunkMeshesSourceRoot + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
-            $suffix = $normalized.Substring($chunkMeshesSourceRoot.Length).TrimStart('\')
-            if ($suffix) {
-                return "chunkMeshes\$suffix"
-            }
-
-            return "chunkMeshes"
-        }
-    }
 
     if (Is-StructuredRuntimeRelativePath $normalized) {
         return $normalized
@@ -361,27 +316,6 @@ function TryMapRuntimeRelativePathToSourceRelativePath($runtimeRelativePath) {
     }
 
     $normalized = $runtimeRelativePath -replace '/', '\'
-    if ($normalized.Equals("chunkMeshes", [System.StringComparison]::OrdinalIgnoreCase) -or
-        $normalized.StartsWith("chunkMeshes\", [System.StringComparison]::OrdinalIgnoreCase)) {
-        $suffix = $normalized.Substring("chunkMeshes".Length).TrimStart('\')
-
-        # Meshes round-trip to whichever tree is deployed; companion assets only
-        # ever exist in the authored tree, so send them home rather than seeding
-        # a partial copy inside the generated capped tree.
-        $chunkMeshesSourceRoot = if ($suffix -and $suffix.EndsWith(".mesh", [System.StringComparison]::OrdinalIgnoreCase)) {
-            Get-ChunkMeshesSourceRelativeRoot
-        }
-        else {
-            $ChunkMeshesAuthoredRoot
-        }
-
-        if ($suffix) {
-            return "$chunkMeshesSourceRoot\$suffix"
-        }
-
-        return $chunkMeshesSourceRoot
-    }
-
     if (Is-StructuredRuntimeRelativePath $normalized) {
         return $normalized
     }
@@ -397,19 +331,6 @@ function Is-ExcludedSourceRelativePath($relativePath) {
     $leafName = [System.IO.Path]::GetFileName($relativePath)
     if ($leafName -match '(?i)\.bak(?:[._-]|$)|\.pending(?:\.|$)|\.previous$') {
         return $true
-    }
-
-    # Only one chunk tree supplies meshes; the other is authoring input. Both map
-    # onto the same runtime folder, so without this the two trees would fight over
-    # every chunkMeshes\*.mesh path. Meshes only: the companion material, skeleton,
-    # geo and texture assets live solely in the authored tree and must keep
-    # deploying from it regardless of which tree is active.
-    if ($leafName -match '(?i)\.mesh$') {
-        foreach ($inactiveChunkRoot in Get-InactiveChunkMeshesSourceRelativeRoots) {
-            if ($relativePath.StartsWith($inactiveChunkRoot + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
-                return $true
-            }
-        }
     }
 
     foreach ($dirName in $SourceExcludedRelativePaths) {
@@ -615,16 +536,6 @@ function Get-DeployRelativePathFromSourcePath($sourceFileFullName) {
     $sourceRelativePath = Get-RelativePathFromBase $SourceDir $sourceFileFullName
     $mappedRuntimeRelativePath = TryMapSourceRelativePathToRuntimeRelativePath $sourceRelativePath
     if ($mappedRuntimeRelativePath) {
-        # The shim registers <mod>\chunkMeshes as an Ogre resource root and scans it
-        # recursively, and Ogre indexes meshes by bare filename. A sibling copy of
-        # the tree inside the mod would therefore register 1500+ duplicate resource
-        # names. Capped meshes must land on the stock paths, never beside them.
-        if ($mappedRuntimeRelativePath -match '(?i)(^|\\)chunkMeshes_') {
-            throw ("Refusing to deploy '$sourceRelativePath' to '$mappedRuntimeRelativePath': " +
-                "chunk meshes must replace the stock chunkMeshes tree in place, not sit " +
-                "beside it, or Ogre will see duplicate mesh resource names.")
-        }
-
         return $mappedRuntimeRelativePath
     }
 
@@ -947,7 +858,6 @@ function Update-OpenShimManifest {
 
 function Sync-ToSource {
     Write-Host "Syncing files from the GOG working runtime to $SourceDir..." -ForegroundColor Cyan
-    Write-ActiveChunkMeshesRoot
 
     $runtimeDir = Resolve-RuntimeModDir
     if (-not $runtimeDir) {
@@ -985,6 +895,13 @@ function Sync-ToSource {
         # Runtime-only artifacts (deploy backups, pending swaps) never belong
         # in the source tree.
         if ($file.Name -match '(?i)\.bak(?:[._-]|$)|\.pending(?:\.|$)|\.previous$') {
+            $skipped++
+            continue
+        }
+
+        # Chunk meshes are generated at runtime by OpenShim and are no longer
+        # part of the pack; never pull them back into the source tree.
+        if ($runtimeRelativePath -match '(?i)^chunkMeshes(\\|$)') {
             $skipped++
             continue
         }
@@ -1058,7 +975,6 @@ function Sync-ToSource {
 
 function Deploy-PackagedMod {
     Write-Host "Deploying files FROM $SourceDir to the GOG working runtime..." -ForegroundColor Cyan
-    Write-ActiveChunkMeshesRoot
 
     if (-not (Test-Path $SourceDir)) {
         Write-Error "Source directory '$SourceDir' not found!"
@@ -1097,6 +1013,22 @@ function Deploy-PackagedMod {
         }
     }
     
+    # Deleting the files leaves their directories behind; an upgrade from a
+    # release that shipped chunkMeshes would keep an empty folder forever.
+    # Only managed structured dirs are touched, and only when empty.
+    foreach ($dirName in $StructuredRuntimeDirs) {
+        $dirPath = Join-Path $runtimeDir $dirName
+        if (-not (Test-Path -LiteralPath $dirPath)) { continue }
+        $subDirs = @(Get-ChildItem -LiteralPath $dirPath -Recurse -Directory -Force -ErrorAction SilentlyContinue |
+            Sort-Object { $_.FullName.Length } -Descending)
+        foreach ($subDir in @($subDirs) + @(Get-Item -LiteralPath $dirPath)) {
+            if (-not (Get-ChildItem -LiteralPath $subDir.FullName -Force -ErrorAction SilentlyContinue)) {
+                Remove-Item -LiteralPath $subDir.FullName -Force
+                Write-Host "Removed empty runtime folder: $(Get-RelativePathFromBase $runtimeDir $subDir.FullName)" -ForegroundColor DarkYellow
+            }
+        }
+    }
+
     $updated = 0
     $added = 0
     $skipped = 0
