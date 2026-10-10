@@ -121,6 +121,8 @@ campaign still needs mission gameplay requalification before release.
 
 The cross-repository integration map is
 [OpenShim NETWORK_UI_INTEGRATION_20261009.md](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/blob/agent/gog-ui-network-catchup/Docs/NETWORK_UI_INTEGRATION_20261009.md).
+Combined reviews are [campaign draft #173](https://github.com/GrizzlyOne95/Battlezone98Redux_CampaignReimagined/pull/173)
+and [OpenShim draft #419](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/pull/419).
 Server observability and ticket redaction are consolidated in
 [dedicated server PR #9](https://github.com/GrizzlyOne95/Battlezone98Redux_DedicatedServer/pull/9).
 Raw captures, identities, backups and screenshots remain private under
