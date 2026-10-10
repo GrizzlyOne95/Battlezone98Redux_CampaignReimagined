@@ -12,7 +12,8 @@ local PdaPages = {
     PRESETS = 6,
     CAREER = 7,
     SETTINGS = 8,
-    COUNT = 8,
+    COOP = 9,
+    COUNT = 9,
 }
 
 return {
@@ -22,6 +23,7 @@ return {
     -- Page order follows the player's normal decision flow: inspect combat
     -- state, review records, manage production, then adjust the system.
     PdaNavigationGroups = {
+        { label = "TEAM", pages = { { page = PdaPages.COOP, label = "CO-OP" } } },
         {
             label = "COMBAT",
             pages = {

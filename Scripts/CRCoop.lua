@@ -11,12 +11,21 @@
 -- compact: stock Lua Send() only uses the first character of the type string
 -- and has a small payload budget.
 local CRCoop = {}
+local comms, respawn
+
+-- Lives per player online, counted by CRCoopRespawn. When any player runs out
+-- the mission fails for everyone (options.onOutOfLives on the host). Native
+-- lives stay high: at zero MultST drops the player out of the match, and a
+-- dropped player cannot rejoin it.
+CRCoop.COOP_LIVES = 5
+local NATIVE_LIVES = 999
 
 local PROTOCOL_VERSION = 1
 local HANDLE_MESSAGE = "H"
 local SYNC_REQUEST_MESSAGE = "Q"
 local SYNC_ACK_MESSAGE = "K"
 local PHASE_MESSAGE = "P"
+local OUT_OF_LIVES_MESSAGE = "L"
 
 local DEFAULT_LEADER_TEAM = 1
 local DEFAULT_HUMAN_TEAM_MIN = 1
@@ -38,6 +47,14 @@ local syncAcknowledged = false
 local missionStarted = false
 local leaderDeparted = false
 local missionPhase = 0
+local initialized = false
+local onOutOfLives = nil
+local outOfLivesLocal = false     -- this player has no lives left
+local outOfLivesHandled = false   -- host: the mission failure was requested
+local nextOutOfLivesSend = 0.0
+-- LockAllies sets a per-client engine gate; Redux ignores it from Start().
+local ALLY_LOCK_INTERVAL = 5.0
+local nextAllyLock = 0.0
 
 local function IsNetworkGame()
     return type(IsNetGame) == "function" and IsNetGame()
@@ -126,6 +143,7 @@ local function FindLeaderId()
 end
 
 function CRCoop.Initialize(options)
+    initialized = false
     options = options or {}
 
     if type(options.getLocalPlayerId) == "function" then
@@ -153,6 +171,10 @@ function CRCoop.Initialize(options)
         phaseBroadcastInterval = options.phaseBroadcastInterval
     end
 
+    onOutOfLives = type(options.onOutOfLives) == "function" and options.onOutOfLives or nil
+    outOfLivesLocal, outOfLivesHandled, nextOutOfLivesSend = false, false, 0.0
+    nextAllyLock = 0.0
+
     -- Start may re-enter in the same process. Preserve native player callbacks
     -- that preceded Start, but never carry the prior mission admission state.
     missionStarted = false
@@ -166,8 +188,105 @@ function CRCoop.Initialize(options)
     syncAcknowledged = false
     leaderDeparted = false
     missionPhase = 0
+    -- The co-op BZNs carry four MultST team-start buoys (coop_spawn1-4).
+    -- MultST consumes them in a network game; solo play would keep them as
+    -- stray team 1-4 objects, so remove them.
+    if not IsNetworkGame() and type(GetHandle) == "function" and type(RemoveObject) == "function" then
+        for i = 1, 4 do
+            local buoy = GetHandle("coop_spawn" .. i)
+            if IsUsableHandle(buoy) then RemoveObject(buoy) end
+        end
+    end
     RefreshLocalHandle()
+    if not comms then
+        comms = require("CRCoopComms").Create({
+            time = function() return type(GetTime) == "function" and GetTime() or 0 end,
+            players = function() return players end,
+            humanTeam = IsHumanTeam,
+            localId = ResolveLocalPlayerId,
+            localHandle = function() return type(GetPlayerHandle) == "function" and GetPlayerHandle() end,
+            valid = IsUsableHandle,
+            person = function(h) return type(IsPerson) == "function" and IsPerson(h) and
+                (type(IsAlive) ~= "function" or IsAlive(h)) end,
+            position = function(h) return GetPosition(h) end,
+            target = function(h) SetUserTarget(h) end,
+            network = IsNetworkGame,
+            ready = function() return CRCoop.IsSessionReady() end,
+            authority = function() return CRCoop.IsAuthority() end,
+            leaderTeam = function() return leaderTeam end,
+            send = function(...) if type(Send) == "function" then return Send(...) end end,
+            message = function(text) if type(DisplayMessage) == "function" then DisplayMessage(text) end end,
+        })
+    end
+    comms.Reset(IsNetworkGame())
+    if not respawn then
+        respawn = require("CRCoopRespawn").Create({
+            time = function() return type(GetTime) == "function" and GetTime() or 0 end,
+            network = IsNetworkGame,
+            players = function() return players end,
+            humanTeam = IsHumanTeam,
+            localId = ResolveLocalPlayerId,
+            localHandle = function() return type(GetPlayerHandle) == "function" and GetPlayerHandle() end,
+            valid = IsUsableHandle,
+            alive = function(h) return type(IsAlive) ~= "function" or IsAlive(h) end,
+            team = function(h) return GetTeamNum(h) end,
+            position = function(h)
+                -- GetPosition(string) reads a path, not an object label. A
+                -- missing path silently returns the origin in Redux.
+                if type(h) == "string" and type(GetHandle) == "function" then
+                    local object = GetHandle(h)
+                    if IsUsableHandle(object) then h = object end
+                end
+                return GetPosition(h)
+            end,
+            allCraft = function() return AllCraft() end,
+            phase = function() return missionPhase end,
+            near = function(pos, a, b) return GetPositionNear(pos, a, b) end,
+            ground = function(pos) return (GetTerrainHeightAndNormal(pos)) end,
+            move = function(h, pos)
+                SetPosition(h, pos)
+                if type(SetVelocity) == "function" then SetVelocity(h, SetVector(0, 0, 0)) end
+            end,
+            lives = function() return CRCoop.COOP_LIVES end,
+            nativeLives = function() local x = package.loaded.exu; return x and x.GetLives and x.GetLives() or nil end,
+            outOfLives = function() CRCoop.ReportOutOfLives() end,
+            message = function(text) if type(DisplayMessage) == "function" then DisplayMessage(text) end end,
+        })
+    end
+    respawn.Reset()
+    respawn.SetRallyPoints(options.rallyPoints)
+    local x = package.loaded.exu
+    if IsNetworkGame() and x and x.SetLives then x.SetLives(NATIVE_LIVES) end
+    initialized = true
 end
+
+local function HandleOutOfLives(name)
+    if outOfLivesHandled or not CRCoop.IsCampaignLeader() then return end
+    outOfLivesHandled = true
+    if type(DisplayMessage) == "function" then
+        DisplayMessage("[CO-OP] " .. tostring(name or "A player") .. " is out of lives. Mission failed.")
+    end
+    if onOutOfLives then onOutOfLives(name) end
+end
+
+-- This player died with no lives left. The host fails the mission; a guest
+-- keeps telling the host (Send is not reliable) until the mission ends.
+function CRCoop.ReportOutOfLives()
+    if outOfLivesLocal then return end
+    outOfLivesLocal = true
+    local me = GetLocalPlayerRecord()
+    local name = me and me.name or nil
+    if CRCoop.IsCampaignLeader() then
+        HandleOutOfLives(name)
+    elseif type(DisplayMessage) == "function" then
+        DisplayMessage("[CO-OP] You are out of lives. Mission failed.")
+    end
+end
+
+function CRCoop.IsOutOfLives() return outOfLivesLocal end
+
+function CRCoop.GetComms() return comms end
+function CRCoop.GetRespawn() return respawn end
 
 function CRCoop.IsNetworkGame()
     return IsNetworkGame()
@@ -327,13 +446,30 @@ function CRCoop.ApplyCoopAlliances(enemyTeam)
 end
 
 function CRCoop.Update()
+    if not initialized then return end
     local localHandle = RefreshLocalHandle()
+    if comms then comms.Update() end
+    if respawn then respawn.Update() end
+    if outOfLivesLocal and not CRCoop.IsCampaignLeader() and IsNetworkGame() and type(Send) == "function" then
+        local t = type(GetTime) == "function" and GetTime() or 0.0
+        if t >= nextOutOfLivesSend then
+            nextOutOfLivesSend = t + 1.0
+            Send(0, OUT_OF_LIVES_MESSAGE)
+        end
+    end
 
     if not IsNetworkGame() or not IsUsableHandle(localHandle) then
         return
     end
 
     local now = type(GetTime) == "function" and GetTime() or 0.0
+
+    -- Co-op alliances are fixed: lock them so the stock Y/U ally prompt never
+    -- opens. Re-asserted periodically in case the engine resets the gate.
+    if now >= nextAllyLock and type(LockAllies) == "function" then
+        nextAllyLock = now + ALLY_LOCK_INTERVAL
+        pcall(LockAllies, true)
+    end
 
     if now >= nextHandleBroadcast then
         nextHandleBroadcast = now + handleBroadcastInterval
@@ -360,6 +496,21 @@ function CRCoop.Update()
 end
 
 function CRCoop.Receive(from, kind, ...)
+    -- Native Receive can precede Start/Initialize. Do not acknowledge a
+    -- handshake that Initialize is about to erase: the guest would stop Q
+    -- retries while the host waits forever for readiness. No early phase/ack
+    -- state is admitted; guests retry through the existing interval after Start.
+    if not initialized and (kind == SYNC_REQUEST_MESSAGE or
+        kind == SYNC_ACK_MESSAGE or kind == PHASE_MESSAGE) then
+        return true
+    end
+    if comms and comms.Receive(from, kind, ...) then return true end
+    if kind == OUT_OF_LIVES_MESSAGE then
+        local player = players[from]
+        if player and IsHumanTeam(player.team) then HandleOutOfLives(player.name) end
+        return true
+    end
+
     if kind == HANDLE_MESSAGE then
         local h = ...
         local player = RegisterPlayer(from)
@@ -457,6 +608,8 @@ function CRCoop.IsSessionReady()
     if not IsNetworkGame() then
         return true
     end
+
+    if not initialized then return false end
 
     if not CRCoop.HasAllPlayerHandles() then
         return false

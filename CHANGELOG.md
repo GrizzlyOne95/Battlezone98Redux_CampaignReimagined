@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Stop shipping prebuilt chunk meshes (about 1,500 files, 43 MB). OpenShim
+  generates them at runtime from the stock models. Setup / Repair removes the
+  old `chunkMeshes` folder left by earlier releases.
+
 ## 2026-10-05
 
 - Add 2-4 player co-op versions of Red Arrival, Eagle's Nest and The Relic

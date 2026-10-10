@@ -720,31 +720,33 @@ local function BuildPdaHeader(activePage)
     end
     -- The trailing newline preserves the overlay renderer's three-line header
     -- contract: title, page name, blank separator, then body content.
-    return string.format("**BATTLEZONE PDA  %d/%d**\n%s\n", activePage, PdaPages.COUNT, pageLabel)
+    local pageNumber, pageCount = activePage, PdaPages.COUNT
+    if PersistentConfig.CoopPda then pageNumber, pageCount = PersistentConfig.CoopPda.PageNumber(activePage) end
+    return string.format("**BATTLEZONE PDA  %d/%d**\n%s\n", pageNumber, pageCount, pageLabel)
 end
 
 local function AppendPdaFooter(lines, line1, line2, line3)
     table.insert(lines, "")
     table.insert(lines, line1 or "--------------------------------")
     table.insert(lines, line2 or "[ / ] SWITCH PAGE")
-    table.insert(lines, line3 or "Y Toggle PDA")
+    table.insert(lines, line3 or "X Toggle PDA")
 end
 
 local function AppendPdaNavHints(lines)
-    AppendPdaFooter(lines, "--------------------------------", "[ / ] Switch Page", "Y Toggle PDA")
+    AppendPdaFooter(lines, "--------------------------------", "[ / ] Switch Page", "X Toggle PDA")
 end
 
 function PersistentConfig._GetUiResolutionMetrics()
     local width, height = 1920, 1080
     local uiScale = 2
 
-    if exu and exu.GetScreenResolution then
-        local ok, screenW, screenH = pcall(exu.GetScreenResolution)
+    if exu and exu.GetGameResolution then
+        local ok, screenW, screenH = pcall(exu.GetGameResolution)
         if ok and type(screenW) == "number" and screenW > 0 and type(screenH) == "number" and screenH > 0 then
             width, height = screenW, screenH
         end
-    elseif exu and exu.GetGameResolution then
-        local ok, gameW, gameH = pcall(exu.GetGameResolution)
+    elseif exu and exu.GetScreenResolution then
+        local ok, gameW, gameH = pcall(exu.GetScreenResolution)
         if ok and type(gameW) == "number" and gameW > 0 and type(gameH) == "number" and gameH > 0 then
             width, height = gameW, gameH
         end
@@ -2355,7 +2357,7 @@ end
 InputState = {
     last_help_state = false, --/ or ? on keyboard
     last_l_state = false,    -- Reserved
-    last_y_state = false,    -- PDA toggle (Y)
+    last_toggle_state = false,    -- PDA toggle (X)
     last_left_bracket_state = false,
     last_right_bracket_state = false,
     last_pda_up_state = false,
@@ -5153,6 +5155,17 @@ IsCommanderTrackedHandle = PersistentConfig.R.IsCommanderTrackedHandle
 RegisterCommanderHandle = PersistentConfig.R.RegisterCommanderHandle
 RemoveCommanderHandle = PersistentConfig.R.RemoveCommanderHandle
 
+PersistentConfig.CoopPda = require("CRCoopPda").Create({
+    coop = require("CRCoop"), exu = exu, pages = PdaPages,
+    feedback = function(text) DisplayMessage("[CO-OP] " .. text) end,
+})
+PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
+    exu = exu, comms = function() return require("CRCoop").GetComms() end,
+    time = function() return GetTime() end,
+    resolution = PersistentConfig._GetUiResolutionMetrics,
+    font = function() return PersistentConfig.PdaOverlay.font end,
+})
+
 PersistentConfig.P = require("PersistentConfigP").Create({
     PersistentConfig = PersistentConfig,
     InputState = InputState,
@@ -5497,6 +5510,7 @@ function PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(enabled)
     end
 
     PersistentConfig.Settings.WeaponStatsHud = visible
+    if visible and PersistentConfig.CoopPda.IsActive() then InputState.pdaPage = PdaPages.COOP end
     PersistentConfig._SettingsActions.CommitPdaSettingChange()
     if visible then
         RequestPdaOverlayRefresh("weapon-stats-toggle-on", 0.05)
@@ -6314,13 +6328,78 @@ end
 -- Show help overlay
 function PersistentConfig.ShowHelp()
     -- Condensed Help Text
-    local helpMsg = "Use Y to toggle PDA. Reset in Settings."
+    local helpMsg = "Use X to toggle PDA. Reset in Settings."
 
     ShowFeedback(helpMsg, 1.0, 1.0, 1.0, 8.0, false)
 end
 
+-- Raw key name (exu.GetGameKey) -> the name GameKey would have queued.
+local NetworkPolledGameKeys = {
+    { raw = "J", key = "J" }, { raw = "LBRACKET", key = "[" }, { raw = "RBRACKET", key = "]" },
+    { raw = "UARROW", key = "UP" }, { raw = "DARROW", key = "DOWN" },
+    { raw = "LARROW", key = "LEFT" }, { raw = "RARROW", key = "RIGHT" },
+}
+-- Every GameKey name the consumers below accept for those keys.
+local NetworkPolledKeyNames = {}
+for _, name in ipairs({ "J", "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET",
+    "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET", "UP", "UPARROW", "DOWN", "DOWNARROW",
+    "LEFT", "LEFTARROW", "RIGHT", "RIGHTARROW" }) do
+    NetworkPolledKeyNames[name] = true
+end
+
+local function IsNetworkGame()
+    local coop = package.loaded.CRCoop
+    return coop and coop.IsNetworkGame and coop.IsNetworkGame() == true or false
+end
+
+local function RawKeyDown(name)
+    -- Older EXU builds reject unknown key names.
+    local ok, down = pcall(exu.GetGameKey, name)
+    return ok and down == true
+end
+
+-- True while a stock in-mission text editor (multiplayer chat, the ally/unally
+-- team-number prompt) has keyboard focus. The engine routes keys to the editor
+-- then, so GameKey stays quiet, but raw exu.GetGameKey polling still sees
+-- them. Older EXU builds lack the probe and report false.
+function PersistentConfig._IsTextEntryActive()
+    if not exu or type(exu.IsTextEntryActive) ~= "function" then return false end
+    local ok, active = pcall(exu.IsTextEntryActive)
+    return ok and active == true
+end
+
+-- In network games Redux calls the mission GameKey callback for J, [ ], the
+-- arrows or Enter only sometimes (Y and digits arrive reliably), which left
+-- the co-op PDA without controls. There these keys are polled instead and
+-- queued on their down edge, and GameKey's copies are dropped (see the
+-- GameKey hook) so one press acts once. Presses while typing in chat or the
+-- ally prompt are tracked but not queued.
+function PersistentConfig._PollNetworkGameKeys(typing)
+    if not IsNetworkGame() then
+        InputState.netKeysDown = nil
+        return
+    end
+    local down = InputState.netKeysDown or {}
+    InputState.netKeysDown = down
+    for _, entry in ipairs(NetworkPolledGameKeys) do
+        local now = RawKeyDown(entry.raw)
+        local edge = now and not down[entry.raw] and not typing
+        down[entry.raw] = now
+        -- The queue is only drained while the PDA is open (J: every frame), so
+        -- navigation presses while flying would replay when it next opens.
+        if edge and (entry.key == "J" or PersistentConfig.Settings.WeaponStatsHud) then
+            PersistentConfig.R.QueueGameKey(entry.key)
+        end
+    end
+end
+
+-- True for a GameKey the network poller owns (dropped from the callback).
+function PersistentConfig._IsNetworkPolledGameKey(key)
+    return type(key) == "string" and NetworkPolledKeyNames[string.upper(key)] == true and IsNetworkGame()
+end
+
 -- Reusable update logic for all missions
-function PersistentConfig.UpdateInputs()
+function PersistentConfig.UpdateInputs(cinematicActive)
     -- SucceedMission/FailMission can return to the end screen while the
     -- mission script continues to tick for a few frames.  Do not let those
     -- ticks recreate PDA overlays or resubmit subtitle state.
@@ -6360,7 +6439,9 @@ function PersistentConfig.UpdateInputs()
     if exu and exu.GetGameKey and exu.GetGameKey("ESCAPE") then
         escapePressed = true
     end
-    local uiInteractionSuppressed = pauseMenuOpen or escapePressed
+    local uiInteractionSuppressed = pauseMenuOpen or escapePressed or cinematicActive == true
+    PersistentConfig.CoopPda.UpdatePage(InputState)
+    PersistentConfig.CoopPingHud.Update(uiInteractionSuppressed or not IsValid(currentPlayerHandle))
 
     if autosave and autosave.Config and type(autosave.Update) == "function" then
         if not autosave.Config.enabled then
@@ -6506,13 +6587,32 @@ function PersistentConfig.UpdateInputs()
 
     if not exu or not exu.GetGameKey then return end
 
-    local ctrl_down = exu.GetGameKey("CTRL")
-    local y_key = exu.GetGameKey("Y")
+    -- GameKey events respect the engine's text-entry routing; raw key polling
+    -- would send pings while someone types J in chat. Enter remains stock chat.
+    -- In network games these keys are polled instead (_PollNetworkGameKeys).
+    local typing = PersistentConfig._IsTextEntryActive()
+    PersistentConfig._PollNetworkGameKeys(typing)
+    local coopAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "J" })
+    if uiInteractionSuppressed then return end
+    if typing then
+        -- Keep the X edge current so an X typed in chat does not toggle later.
+        InputState.last_toggle_state = exu.GetGameKey("X")
+        return
+    end
+    if coopAction and not PersistentConfig.Settings.WeaponStatsHud and IsValid(currentPlayerHandle) then
+        local ok, reason = PersistentConfig.CoopPda.PingAim()
+        if ok == false and reason then DisplayMessage("[CO-OP] " .. reason) end
+    end
 
-    if y_key and not ctrl_down and not InputState.last_y_state then
+    local ctrl_down = exu.GetGameKey("CTRL")
+    -- X, not Y: Y is the stock "ally with team" key in network games. X is
+    -- unbound in stock (ISDFC's reload, but CR never runs alongside ISDFC).
+    local toggle_key = exu.GetGameKey("X")
+
+    if toggle_key and not ctrl_down and not InputState.last_toggle_state then
         PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(not PersistentConfig.Settings.WeaponStatsHud)
     end
-    InputState.last_y_state = y_key
+    InputState.last_toggle_state = toggle_key
 
     if not PersistentConfig.Settings.WeaponStatsHud then
         return
@@ -6523,14 +6623,14 @@ function PersistentConfig.UpdateInputs()
 
     if left_bracket_pressed then
         PersistentConfig._ClearAutoSaveEnablePrompt()
-        InputState.pdaPage = CycleIndex(InputState.pdaPage, PdaPages.COUNT, -1, PdaPages.VEHICLE)
+        InputState.pdaPage = PersistentConfig.CoopPda.CyclePage(InputState.pdaPage, -1)
         PlayPdaSound("mnu_back.wav")
         ClearPdaFeedback()
         RefreshPdaOverlay()
     end
     if right_bracket_pressed then
         PersistentConfig._ClearAutoSaveEnablePrompt()
-        InputState.pdaPage = CycleIndex(InputState.pdaPage, PdaPages.COUNT, 1, PdaPages.VEHICLE)
+        InputState.pdaPage = PersistentConfig.CoopPda.CyclePage(InputState.pdaPage, 1)
         PlayPdaSound("mnu_next.wav")
         ClearPdaFeedback()
         RefreshPdaOverlay()
@@ -6541,7 +6641,11 @@ function PersistentConfig.UpdateInputs()
     local pda_right_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
     local enterPressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
 
-    if InputState.pdaPage == PdaPages.WEAPONS then
+    if InputState.pdaPage == PdaPages.COOP then
+        PersistentConfig.CoopPda.HandleInput(pda_up_key, pda_down_key, pda_left_key, pda_right_key,
+            coopAction and IsValid(currentPlayerHandle))
+        if pda_up_key or pda_down_key or pda_left_key or pda_right_key or coopAction then RefreshPdaOverlay() end
+    elseif InputState.pdaPage == PdaPages.WEAPONS then
         local installedSlots = {}
         if IsValid(currentPlayerHandle) then
             local installedMask = GetInstalledWeaponMask(currentPlayerHandle)
@@ -7074,6 +7178,8 @@ function PersistentConfig._InstallPlayerChargeTrackingHook()
 end
 
 function PersistentConfig.Initialize()
+    PersistentConfig.CoopPda.Reset()
+    PersistentConfig.CoopPingHud.Destroy()
     InputState.missionEnded = false
     InputState.missionEndCleanupDone = false
     PersistentConfig._DestroyExperimentalOverlay()
@@ -7202,6 +7308,7 @@ function PersistentConfig.Initialize()
         end
 
         InputState.missionEndCleanupDone = true
+        PersistentConfig.CoopPingHud.Destroy()
         InputState.pdaOverlayRefreshPending = false
         InputState.nextPdaOverlayRefresh = 0.0
         PersistentConfig._DestroyAllPdaOverlays()
@@ -7223,7 +7330,9 @@ function PersistentConfig.Initialize()
     if not PersistentConfig.HooksInstalled then
         local oldGameKey = GameKey
         GameKey = function(key)
-            PersistentConfig.R.QueueGameKey(key)
+            if not PersistentConfig._IsNetworkPolledGameKey(key) then
+                PersistentConfig.R.QueueGameKey(key)
+            end
             if oldGameKey then
                 return oldGameKey(key)
             end
