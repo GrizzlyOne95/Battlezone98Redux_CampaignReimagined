@@ -2,14 +2,17 @@
 
 Red Arrival uses the same `misn02b.bzn` / `misn02b.lua` in the campaign
 (`MISSION1`) and multiplayer strategy (**CR: Red Arrival Coop**). The map uses
-`MultSTMission` with four native spawn buoys at the original player start.
-Use matching CR/EXU builds on all peers; select tank or scout in the lobby.
+`MultSTMission` with four native spawn buoys beside the four empty vehicles.
+Use matching CR/EXU builds on all peers. As offline, everyone starts on foot:
+the `.vxt` offers only the pilot, in the stock `asuser aspilo.des<TAB>anims\aspil.avi NSDF Pilot`
+form (a short `asuser ,` line never readies).
 
 Host on team 1; guests select distinct teams 2–4. Start with everyone present.
 Enemies use team 6, and authored friendly defenses use team 7. Team 1 retains
 production and scavenger control. Every connected human must enter a vehicle
-to complete the opening objective. Native strategy respawns use 999 lives;
-online human death does not fail the convoy. Offline retains player-death loss.
+to complete the opening objective. Native strategy respawns, placed near a
+living teammate, with 5 co-op lives per player (COOP_RESPAWN.md); a death with no
+lives left fails the mission for everyone. Offline retains player-death loss.
 The authored scavenger, base and recycler failure checks and rescue/debrief
 remain. A camera skip releases only that player's camera online.
 
@@ -22,6 +25,14 @@ serials and cinematic generations. Missing dynamic handles wait up to five
 seconds before a stale marker drops. Terminal events wait for prior event ACKs.
 EXU disables the native extra recycler before Init. Offline autosave/save/load
 and original cinematic skip behavior remain.
+
+Online the native mission builds an AI-piloted team-0 `player` ship on the
+first frame at any path labelled `player_path` (seen live on Redux 2.2.301;
+renaming the path removes it). That stray killed the intro's dummy tank and
+froze the second film shot, so the dummy's route is `dummy__path` here. Keep
+`player_path` out of every co-op map. The second shot also ends early if the
+dummy is gone, and the leader's finished camera path advances the film as it
+does offline.
 
 Guest departure releases readiness. Host departure ends the mission;
 host migration does not transfer campaign authority. Late join/rejoin pauses
