@@ -113,6 +113,8 @@ local function makePeer(id, team, network)
         end
     end
     e.AllCraft, e.AllObjects = iterator, iterator
+    e.SetVector = e.SetVector or function(x, y, z) return { x = x or 0, y = y or 0, z = z or 0 } end
+    e.GetTerrainHeightAndNormal = function() return 149, { x = 0, y = 1, z = 0 } end
     e.BuildObject = function(odf, objectTeam, pos)
         nextObject = nextObject + 1
         local h = "built" .. nextObject
@@ -195,6 +197,9 @@ local function makePeer(id, team, network)
         PersistentConfig = { Settings = {}, Initialize = noop, UpdateInputs = noop,
             UpdateHeadlights = noop }, AutoSave = { Update = function() record("autosave") end },
     }
+    modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
+    e.package = setmetatable({loaded={exu=modules.exu}}, {__index=package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
     e.require = function(name) return assert(modules[name], name) end
     setfenv(assert(loadfile("Scripts/misn04.lua")), e)()

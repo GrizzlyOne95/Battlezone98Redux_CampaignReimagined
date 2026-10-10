@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-05T14:23:04+00:00",
-  "count": 3704,
+  "generated": "2026-10-07T15:28:17-05:00",
+  "count": 3712,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6252,6 +6252,10 @@
       "runtime": "misn04.bmp"
     },
     {
+      "source": "Assets\\Graphics\\misn05.bmp",
+      "runtime": "misn05.bmp"
+    },
+    {
       "source": "Assets\\LoadingScreens\\aload.png",
       "runtime": "aload.png"
     },
@@ -6566,6 +6570,10 @@
     {
       "source": "Config\\misn04.ini",
       "runtime": "misn04.ini"
+    },
+    {
+      "source": "Config\\misn05.ini",
+      "runtime": "misn05.ini"
     },
     {
       "source": "crcampgn.des",
@@ -8892,6 +8900,10 @@
       "runtime": "misn04.des"
     },
     {
+      "source": "misn05.des",
+      "runtime": "misn05.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -9002,6 +9014,10 @@
     {
       "source": "Missions\\misn05.hg2",
       "runtime": "misn05.hg2"
+    },
+    {
+      "source": "Missions\\misn05.vxt",
+      "runtime": "misn05.vxt"
     },
     {
       "source": "nocopy.des",
@@ -11254,6 +11270,22 @@
     {
       "source": "Scripts\\CRCoop.lua",
       "runtime": "CRCoop.lua"
+    },
+    {
+      "source": "Scripts\\CRCoopComms.lua",
+      "runtime": "CRCoopComms.lua"
+    },
+    {
+      "source": "Scripts\\CRCoopPda.lua",
+      "runtime": "CRCoopPda.lua"
+    },
+    {
+      "source": "Scripts\\CRCoopPingHud.lua",
+      "runtime": "CRCoopPingHud.lua"
+    },
+    {
+      "source": "Scripts\\CRCoopRespawn.lua",
+      "runtime": "CRCoopRespawn.lua"
     },
     {
       "source": "Scripts\\CRMarsWeather.lua",

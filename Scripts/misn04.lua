@@ -944,7 +944,7 @@ local function UpdateModules(dt)
     end
     if PersistentConfig then
         if PersistentConfig.UpdateInputs then
-            TraceUpdateCall("misn04.UpdateModules PersistentConfig.UpdateInputs", PersistentConfig.UpdateInputs)
+            TraceUpdateCall("misn04.UpdateModules PersistentConfig.UpdateInputs", PersistentConfig.UpdateInputs, localCameraActive)
         end
         if PersistentConfig.UpdateHeadlights then
             TraceUpdateCall("misn04.UpdateModules PersistentConfig.UpdateHeadlights", PersistentConfig.UpdateHeadlights)
@@ -2678,6 +2678,8 @@ function Start()
     CRCoop.Initialize({
         getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
         leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
+        -- Host only: a player died with no co-op lives left.
+        onOutOfLives = function() FailMission(GetTime() + 3.0) end,
     })
     CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
     events, acknowledgements, receivedEvent = {}, {}, 0
@@ -2685,7 +2687,6 @@ function Start()
     cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
     remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
     cameraSkipped, localCameraActive = false, false
-    if CRCoop.IsNetworkGame() and exu.SetLives then exu.SetLives(999) end
     RefreshDifficulty()
     if CRCoop.IsAuthority() then
         M.relicstartpos = math.random(0, 3)
@@ -3510,6 +3511,13 @@ function Update()
 
     if M.missionwon and not M.endmission and AudioDone(M.aud20) and AudioDone(M.aud21) and AudioDone(M.aud22) and AudioDone(M.aud23) then
         if not M.cin_started then
+            -- endcin spirals ~1.8 km around the mesa (the Face) centred at
+            -- (3225, 101199), ground ~149 m. Look at a camera pod on its
+            -- summit from 80 m above the path at 90 m/s, so the 20 s shot
+            -- covers the whole orbit. Height/speed are cm and cm/s: the old
+            -- 100/200 sat 1 m off the slope and barely moved.
+            local summit = GetTerrainHeightAndNormal(SetVector(3225, 0, 101199))
+            M.endcamTarget = BuildObject("apcamr", 0, SetVector(3225, summit, 101199))
             CameraReady()
             M.cin_started = true
             M.endcinfinish = true
@@ -3529,11 +3537,13 @@ function Update()
         --   path, so it has to run every frame the camera is up; every other
         --   site calls it from a latched branch rather than latching the call.
         if M.endcinfinish then
-            CameraPath("endcin", 100, 200, M.player or M.avrec)
+            CameraPath("endcin", 8000, 9000, M.endcamTarget or M.avrec)
         end
 
         if GetTime() > M.startendcin or CameraCancelled() then
             CameraFinish()
+            -- Host-built, so its removal replicates; no presentation event needed.
+            if IsValid(M.endcamTarget) then native.RemoveObject(M.endcamTarget) end
             M.endmission = true
             SucceedMission(GetTime(), "misn04w1.des")
         end

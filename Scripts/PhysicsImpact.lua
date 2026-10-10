@@ -113,6 +113,7 @@ end
 
 function exu.BulletInit(odf, shooter, transform)
     if not IsValid(shooter) then return end
+    if type(IsNetGame) == "function" and IsNetGame() and not IsLocal(shooter) then return end
 
     local stats = GetStats(odf)
     if stats.recoil <= 0 and stats.shake <= 0 then return end
@@ -149,7 +150,8 @@ function exu.BulletHit(odf, shooter, hitObject, transform, ordnanceHandle)
     local stats = GetStats(odf)
 
     -- 1. KNOCKBACK (Physics)
-    if IsValid(hitObject) and stats.knockback > 0 then
+    if IsValid(hitObject) and stats.knockback > 0 and
+        (type(IsNetGame) ~= "function" or not IsNetGame() or IsLocal(hitObject)) then
         local front = SetVector(transform.front_x, transform.front_y, transform.front_z)
         local dir = Normalize(front)
         local vel = GetVelocity(hitObject)

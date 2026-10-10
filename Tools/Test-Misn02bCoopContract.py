@@ -77,11 +77,12 @@ campaign.read(root / "Config" / "crcampgn.ini", encoding="utf-8")
 assert campaign["MISSION1"]["missionBZN"] == '"misn02b.bzn"'
 assert campaign["WORKSHOP"]["mapType"] == '"campaign"'
 
-vehicles = [line.split(",")[0].strip() for line in
-            (root / "Missions" / "misn02b.vxt").read_text().splitlines() if line.strip()]
-assert vehicles == ["avtank", "avfimp"], "MP selection must be tank or scout only"
-for odf in vehicles:
-    assert (root / "ODF" / (odf + ".odf")).is_file()
+# Matches the offline start: everyone begins on foot beside the empty craft.
+# Stock vxt form "odf des<TAB>movie name"; the short "asuser ," form leaves
+# staging at "Vehicle not selected".
+vxt = [line for line in (root / "Missions" / "misn02b.vxt").read_text().splitlines() if line.strip()]
+assert len(vxt) == 1 and vxt[0].split()[0] == "asuser", "MP start must be the pilot only"
+assert vxt[0].split()[1] == "aspilo.des" and "\t" in vxt[0], "pilot line must use the stock vxt form"
 
 description = (root / "misn02b.des").read_text().strip()
 assert len(description) <= 300 and "\n" not in description
