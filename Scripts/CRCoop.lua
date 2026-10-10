@@ -38,6 +38,7 @@ local syncAcknowledged = false
 local missionStarted = false
 local leaderDeparted = false
 local missionPhase = 0
+local initialized = false
 
 local function IsNetworkGame()
     return type(IsNetGame) == "function" and IsNetGame()
@@ -126,6 +127,7 @@ local function FindLeaderId()
 end
 
 function CRCoop.Initialize(options)
+    initialized = false
     options = options or {}
 
     if type(options.getLocalPlayerId) == "function" then
@@ -167,6 +169,7 @@ function CRCoop.Initialize(options)
     leaderDeparted = false
     missionPhase = 0
     RefreshLocalHandle()
+    initialized = true
 end
 
 function CRCoop.IsNetworkGame()
@@ -327,6 +330,7 @@ function CRCoop.ApplyCoopAlliances(enemyTeam)
 end
 
 function CRCoop.Update()
+    if not initialized then return end
     local localHandle = RefreshLocalHandle()
 
     if not IsNetworkGame() or not IsUsableHandle(localHandle) then
@@ -360,6 +364,14 @@ function CRCoop.Update()
 end
 
 function CRCoop.Receive(from, kind, ...)
+    -- Native Receive can precede Start/Initialize. Do not acknowledge a
+    -- handshake that Initialize is about to erase: the guest would stop Q
+    -- retries while the host waits forever for readiness. No early phase/ack
+    -- state is admitted; guests retry through the existing interval after Start.
+    if not initialized and (kind == SYNC_REQUEST_MESSAGE or
+        kind == SYNC_ACK_MESSAGE or kind == PHASE_MESSAGE) then
+        return true
+    end
     if kind == HANDLE_MESSAGE then
         local h = ...
         local player = RegisterPlayer(from)
@@ -457,6 +469,8 @@ function CRCoop.IsSessionReady()
     if not IsNetworkGame() then
         return true
     end
+
+    if not initialized then return false end
 
     if not CRCoop.HasAllPlayerHandles() then
         return false
