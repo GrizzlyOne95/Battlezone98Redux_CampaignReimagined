@@ -4,9 +4,14 @@
 
 - Remove the co-op spawn buoys from single-player play in Red Arrival,
   Eagle's Nest and The Relic Discovered.
-- Eagle's Nest: the end film now orbits the Face from a safe height instead of
-  hugging the slope.
-- TODO: Native runtime refreshed to OpenShim 1.0.0.48 (pending the bundle refresh).
+- The Relic Discovered: the end film now orbits the Face from a safe height
+  instead of hugging the slope.
+- Bundle OpenShim 1.0.0.48: DX11 no longer faults on a particle system's
+  first frame or floods the log when a mod adds glow-only materials, and the
+  starfield no longer turns black with DX11 legacy-material compatibility on.
+- Bundle the updated ExtraUtilities: an out-of-range material lookup by a
+  mission script now returns nothing instead of corrupting memory (a DX9
+  freeze seen with ISDF Chronicles).
 
 ## 2026-10-05
 
