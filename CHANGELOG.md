@@ -11,7 +11,8 @@
   starfield no longer turns black with DX11 legacy-material compatibility on.
 - Bundle the updated ExtraUtilities: an out-of-range material lookup by a
   mission script now returns nothing instead of corrupting memory (a DX9
-  freeze seen with ISDF Chronicles).
+  freeze seen with ISDF Chronicles), and the overlay font now uses a mod's own
+  `bzfont.dds` when the mod ships one.
 
 ## 2026-10-05
 
