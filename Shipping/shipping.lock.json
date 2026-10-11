@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-09T19:56:25-05:00",
-  "count": 2236,
+  "generated": "2026-10-11T12:02:28-05:00",
+  "count": 2237,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -4994,6 +4994,10 @@
     {
       "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds",
       "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl"
     },
     {
       "source": "openshim\\renderer\\enhanced\\resources.version",
