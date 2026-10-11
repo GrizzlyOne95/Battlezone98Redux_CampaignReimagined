@@ -51,6 +51,7 @@
 !/nocopy.des
 !/misn03.des
 !/misn04.des
+!/misn05.des
 !/misn02b.des
 
 # Local machine/generated artifacts live under Local and stay ignored
@@ -65,9 +66,6 @@ desktop.ini
 /Text/need_defs.txt
 /Text/OgreMain.dumpbin.exports.txt
 
-# Assets/chunkMeshes_capped is NOT ignored any more. It used to be, on the
-# grounds that Tools/Cap-ChunkMeshes.py could regenerate it from the authored
-# meshes in Assets/chunkMeshes -- but those were removed, so there is nothing
-# left to regenerate it from. The capped meshes are what ships (1532 rows in
-# Shipping/shipping.lock.json, deployed as chunkMeshes/...), so they are
-# tracked. See Docs/CHUNK_MESH_INTERIOR_CAPS.md.
+# Chunk meshes are no longer part of this repository or the pack: OpenShim
+# generates them at runtime from the stock models. Assets/chunkMeshes*
+# is excluded from the shipping set in Manage-CampaignFiles.ps1.

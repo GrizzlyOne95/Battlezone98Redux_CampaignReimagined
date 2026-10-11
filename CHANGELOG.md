@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Stop shipping prebuilt chunk meshes (about 1,500 files, 43 MB). OpenShim
+  generates them at runtime from the stock models. Setup / Repair removes the
+  old `chunkMeshes` folder left by earlier releases.
 - Remove the co-op spawn buoys from single-player play in Red Arrival,
   Eagle's Nest and The Relic Discovered.
 - The Relic Discovered: the end film now orbits the Face from a safe height
@@ -9,6 +12,10 @@
 - Bundle OpenShim 1.0.0.48: DX11 no longer faults on a particle system's
   first frame or floods the log when a mod adds glow-only materials, and the
   starfield no longer turns black with DX11 legacy-material compatibility on.
+- Bundle OpenShim 1.0.0.49: the shim rebuilds every light list when the game
+  replaces the sun (as it does on a pilot class swap), aimed at the world
+  going dark except for the pilot flashlight, and AutoSave no longer crashes
+  when it fires before the mission object exists.
 - Bundle the updated ExtraUtilities: an out-of-range material lookup by a
   mission script now returns nothing instead of corrupting memory (a DX9
   freeze seen with ISDF Chronicles), and the overlay font now uses a mod's own

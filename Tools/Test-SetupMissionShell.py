@@ -52,7 +52,7 @@ for section, filename in zip(mission_sections, campaign_maps):
     assert mod_parser[section]["planet"].strip('"') in {"moon", "mars"}
     path = ROOT / "Missions" / filename
     assert path.is_file(), f"campaign must use a CR map: {filename}"
-    mission_class = "MultSTMission" if filename in {"misn02b.bzn", "misn03.bzn", "misn04.bzn"} else "LuaMission"
+    mission_class = "MultSTMission"
     assert f"name = {mission_class}\n" in path.read_text(encoding="utf-8")
     assert (ROOT / "Scripts" / Path(filename).with_suffix(".lua")).is_file()
 
