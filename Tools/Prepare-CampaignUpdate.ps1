@@ -74,7 +74,7 @@ $plan = [ordered]@{
     Version=$Version; OutputDir=$output; Sources=$source;
     NativeBuild=$(if($ReuseNative){'reuse existing Release binaries'}else{'incremental Win32 Release builds: OpenShim, bzfile, EXU'});
     Checks=@('OpenShim config/network/CTest/shaders/loader', 'bzfile Lua API and five-file install/rollback', 'EXU hardening/generated headers/host tests', 'CR Lua 5.1/contracts/programs/DX11 shaders');
-    DeployTo=$(if($NoDeploy){$null}else{$game}); Smoke=$(if($NoSmoke){@()}else{@('misn02b DX9','misn02b DX11','crsetup DX9')});
+    DeployTo=$(if($NoDeploy){$null}else{$game}); Smoke=$(if($NoSmoke){@()}else{@('crsetup DX9','crsetup DX11','crsetup DX9 setup transaction')});
     Packages=@('Workshop content and VDF','Workshop ZIP','Manual/ModDB ZIP','OpenShim Suite ZIP','bzfile ZIP','EXU ZIP','checksums and receipts');
     Publishes=$false
 }
@@ -211,7 +211,9 @@ try {
     }
     if (-not $NoSmoke) {
         foreach ($renderer in @('dx9','dx11')) {
-            Invoke-PsCheck ('GOG campaign '+$renderer) (Join-Path $shim 'reverse_engineering\test_campaign_reimagined.ps1') @('-Label',('campaign-'+$renderer),'-EvidenceDirectory',(Join-Path $output 'Runtime'),'-GameRoot',$game,'-Renderer',$renderer)
+            # crcampgn.ini is mapType=campaign (2026-09-29), so a command-line campaign
+            # mission no longer activates CR; the instant-action Setup mission does.
+            Invoke-PsCheck ('GOG campaign '+$renderer) (Join-Path $shim 'reverse_engineering\test_campaign_reimagined.ps1') @('-Label',('campaign-'+$renderer),'-EvidenceDirectory',(Join-Path $output 'Runtime'),'-GameRoot',$game,'-Renderer',$renderer,'-Mission','crsetup.bzn')
         }
         Invoke-PsCheck 'GOG Setup transaction' (Join-Path $shim 'reverse_engineering\test_campaign_reimagined.ps1') @('-Label','setup-dx9','-EvidenceDirectory',(Join-Path $output 'Runtime'),'-GameRoot',$game,'-Renderer','dx9','-Mission','crsetup.bzn','-SetupOnly')
         $setupLog = Get-Content -LiteralPath (Join-Path $output 'Runtime\setup-dx9\openpatch_setup.log') -Raw
