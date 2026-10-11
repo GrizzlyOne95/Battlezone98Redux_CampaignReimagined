@@ -21,7 +21,8 @@ they register human teams 1–4 before native multiplayer initialization.
 - Team 1 commands Montana and owns its production. Guests support the shared
   defense/convoy in their player craft; this does not add shared factory control
   or give each guest another recycler.
-- Native strategy respawning remains enabled. EXU sets 999 lives on each peer.
+- Native strategy respawning remains enabled, placed near a living teammate,
+  with 5 co-op lives per player (COOP_RESPAWN.md); running out fails the mission.
   The local handle exchange follows pilot ejection, vehicle changes and respawns.
 - All connected humans must be clear of nearby enemy tanks/fighters before the
   evacuation film, and all must reach within 100m of the launch pad to finish.
