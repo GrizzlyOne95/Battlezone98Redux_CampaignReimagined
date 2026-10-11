@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Remove the co-op spawn buoys from single-player play in Red Arrival,
+  Eagle's Nest and The Relic Discovered.
+- Eagle's Nest: the end film now orbits the Face from a safe height instead of
+  hugging the slope.
+- TODO: Native runtime refreshed to OpenShim 1.0.0.48 (pending the bundle refresh).
+
 ## 2026-10-05
 
 - Add 2-4 player co-op versions of Red Arrival, Eagle's Nest and The Relic
