@@ -1,5 +1,8 @@
 -- Regression coverage for the CRCoop player registry, leader authority,
 -- human-team range, reconnect handshake, and host-migration guard.
+-- Resolve Scripts/ relative to this file so require("CRCoopComms") works without LUA_PATH.
+local toolsDir = (arg and arg[0] or ""):match([=[^(.*)[/\][^/\]*$]=]) or "."
+package.path = toolsDir .. "/../Scripts/?.lua;" .. package.path
 local source = arg[1] or "Scripts/CRCoop.lua"
 
 local now = 0.0

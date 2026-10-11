@@ -10,7 +10,8 @@ local function read(path)
     local f = assert(io.open(path, "rb"))
     local s = f:read("*a")
     f:close()
-    return s
+    -- A Windows checkout (core.autocrlf) has CRLF; the anchors below use "\n".
+    return (s:gsub("\r\n", "\n"))
 end
 local sources = {}
 for _, name in ipairs({ "02b", "03", "04", "05" }) do
