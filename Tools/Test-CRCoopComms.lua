@@ -1,5 +1,8 @@
 -- Lua 5.1: independent peers and controllable loss/reordering, using the real
 -- communication service. Native Redux replication is qualified separately.
+-- Resolve Scripts/ relative to this file so require() works without LUA_PATH.
+local toolsDir = (arg and arg[0] or ""):match([=[^(.*)[/\][^/\]*$]=]) or "."
+package.path = toolsDir .. "/../Scripts/?.lua;" .. package.path
 local Comms = require("CRCoopComms")
 local now, peers, messages, queue, checks = 0, {}, {}, {}, 0
 local objects = { [1] = { valid = true, pilot = false }, [2] = { valid = true, pilot = true },
