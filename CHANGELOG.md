@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- OpenShim updates now install automatically: starting a single-player
+  campaign mission stages a newer bundled OpenShim and installs it when you
+  quit. Turn it off with `AutoStage=0` under `[Updater]` in openshim.ini.
+- First-time install is now OpenShimSetup.exe (linked on the Workshop page);
+  the Setup / Repair mission remains as the in-game alternative.
+
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
 - Co-op: a player who dies respawns near a teammate. Each player has 5
