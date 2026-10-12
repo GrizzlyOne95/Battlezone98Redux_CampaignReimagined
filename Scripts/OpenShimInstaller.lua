@@ -1111,8 +1111,65 @@ function OpenShimInstaller.Apply(report)
     return result
 end
 
--- Normal campaign startup only inspects the installation. Applying updates is
--- an explicit setup-mission action; never complete a playable mission for it.
+-- Returns false only when the player's openshim.ini has [Updater] AutoStage set
+-- to 0/false/no/off. A missing file, section, or key means the default (true).
+local function IsAutoStageEnabled()
+    local text = ReadTextFile(getWorkingDirectory() .. "\\openshim.ini")
+    if type(text) ~= "string" then
+        return true
+    end
+    local inUpdater = false
+    for line in (text .. "\n"):gmatch("([^\r\n]*)\r?\n") do
+        local section = line:match("^%s*%[([^%]]*)%]")
+        if section then
+            inUpdater = section:lower() == "updater"
+        elseif inUpdater then
+            local key, value = line:match("^%s*([%w_]+)%s*=%s*([^;#%s]*)")
+            if key and key:lower() == "autostage" then
+                value = value:lower()
+                return not (value == "0" or value == "false" or value == "no" or value == "off")
+            end
+        end
+    end
+    return true
+end
+
+local function IsNetworkSession()
+    return type(IsNetGame) == "function" and IsNetGame() and true or false
+end
+
+-- Stage the bundled suite for an existing install that is older than the
+-- bundled release. The staged files are swapped in when the game exits.
+local function TryAutoStageUpdate(report)
+    if IsNetworkSession() then
+        return false
+    end
+    if not IsAutoStageEnabled() then
+        print("OpenShimInstaller: campaign auto-stage disabled by openshim.ini [Updater] AutoStage")
+        return false
+    end
+
+    local ok, result = pcall(OpenShimInstaller.Apply, report)
+    if not ok then
+        print("OpenShimInstaller: campaign auto-stage error: " .. tostring(result))
+        return false
+    end
+    if result.action ~= "update_staged" or not result.success then
+        print("OpenShimInstaller: campaign auto-stage skipped action=" .. tostring(result.action) ..
+            " state=" .. tostring(result.state) .. " detail=" .. tostring(result.detail))
+        return false
+    end
+
+    local version = report.manifest and report.manifest.version or "update"
+    local message = "OpenShim " .. tostring(version) .. " is ready and will install when you quit the game."
+    print("OpenShimInstaller: campaign auto-stage " .. message)
+    EmitFeedback(message, 0.4, 1.0, 0.4, 12.0, true)
+    return true
+end
+
+-- Normal campaign startup inspects the installation. An existing install that
+-- is older than the bundled suite is staged automatically; a first install
+-- still needs the standalone installer or the setup mission.
 local function CheckBundledOpenShimOnce()
     if OpenShimInstaller.InstallChecked then
         return
@@ -1123,9 +1180,13 @@ local function CheckBundledOpenShimOnce()
     local ready = report.state == OpenShimInstaller.States.CURRENT or
         report.state == OpenShimInstaller.States.NEWER_THAN_BUNDLED
     if not ready then
-        local message = "Open Community Patch: run ! SETUP / REPAIR from Single Player > Instant Action."
+        -- RESTART_REQUIRED means an update is already staged: stay quiet about staging.
+        if report.state == OpenShimInstaller.States.UPDATE_REQUIRED and TryAutoStageUpdate(report) then
+            return report
+        end
+        local message = "Open Community Patch: run OpenShimSetup.exe (link on the Workshop page) or ! SETUP / REPAIR from Single Player > Instant Action."
         if report.state == OpenShimInstaller.States.RESTART_REQUIRED then
-            message = "Open Community Patch update is pending. Exit Battlezone, restart, then verify with Setup / Repair."
+            message = "Open Community Patch update is pending. Exit Battlezone to finish the OpenShim setup."
         end
         print("OpenShimInstaller: campaign check=" .. tostring(report.state) .. "; " .. message)
         EmitFeedback(message, 1.0, 0.85, 0.2, 12.0, true)
