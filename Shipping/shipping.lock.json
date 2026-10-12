@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-12T08:58:33-05:00",
-  "count": 2374,
+  "generated": "2026-10-12T18:08:07-05:00",
+  "count": 2380,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -140,16 +140,16 @@
       "runtime": "avturr_C.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\avwalk_c.mesh",
+      "runtime": "avwalk_c.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\avwalk.mesh",
       "runtime": "avwalk.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\avwalk.skeleton",
       "runtime": "avwalk.skeleton"
-    },
-    {
-      "source": "Assets\\ModelFixes\\avwalk_c.mesh",
-      "runtime": "avwalk_c.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bbhang.sdf",
@@ -600,6 +600,22 @@
       "runtime": "svheadlight00_d.dds"
     },
     {
+      "source": "Assets\\Textures\\sxsky_dust.png",
+      "runtime": "sxsky_dust.png"
+    },
+    {
+      "source": "Assets\\Textures\\sxsky_rain.png",
+      "runtime": "sxsky_rain.png"
+    },
+    {
+      "source": "Assets\\Textures\\sxsky_snow.png",
+      "runtime": "sxsky_snow.png"
+    },
+    {
+      "source": "Assets\\Textures\\sxsky_storm.png",
+      "runtime": "sxsky_storm.png"
+    },
+    {
       "source": "Assets\\Textures\\sxtint_blue.png",
       "runtime": "sxtint_blue.png"
     },
@@ -698,6 +714,10 @@
     {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png",
       "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_prelobby_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_prelobby_center.png"
     },
     {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_ck.png",
@@ -3082,6 +3102,10 @@
     {
       "source": "Materials\\svwalk.material",
       "runtime": "svwalk.material"
+    },
+    {
+      "source": "Materials\\sxsky.material",
+      "runtime": "sxsky.material"
     },
     {
       "source": "Materials\\sxtint.material",

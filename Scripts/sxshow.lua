@@ -123,12 +123,14 @@ local function CurrentShot(scene)
     return shot
 end
 -- Object-relative camera offsets; a shot's optional `to` offsets ease in over the
--- shot (until the next shot or the scene end) for a slow push or drift.
+-- shot (until the next shot or the scene end) for a slow push or drift, or over
+-- its first `move` seconds for a fast one.
 local function ShotOffsets(scene, shot)
     local right, up, forward = shot.right or scene.right, shot.up or scene.up, shot.forward or scene.forward
     if type(shot.to) ~= "table" then return right, up, forward end
     local start, finish = shot.at or 0, scene.duration
     for _, s in ipairs(scene.shots or {}) do if s.at > start and s.at < finish then finish = s.at end end
+    if shot.move then finish = math.min(finish, start + shot.move) end
     local t = math.max(0, math.min(1, ((director and director.elapsed or 0) - start) / math.max(0.1, finish - start)))
     t = t * t * (3 - 2 * t)
     local function lerp(a, b) return b and a and a + (b - a) * t or a end

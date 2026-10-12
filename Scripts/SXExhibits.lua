@@ -65,7 +65,8 @@ end
 -- Weather bay: the CRStormFX particle weather (ported from ISDF Chronicles) is the
 -- single fog/light writer while the bay runs. The Moon's own fog is black, so each
 -- phase eases toward its own fog/ambient colour, and an overcast dome hides open
--- space while weather is up; the dome takes the fog colour at its distance.
+-- space while weather is up. Sprite materials are not fogged, so the dome is a
+-- solid sky in each phase's fog colour (Materials/sxsky.material).
 SXExhibits.WeatherPhases = {
     rain = { fog = { r = 0.30, g = 0.33, b = 0.38 }, amb = { r = 0.30, g = 0.31, b = 0.35 } },
     storm = { fog = { r = 0.22, g = 0.24, b = 0.29 }, amb = { r = 0.24, g = 0.25, b = 0.29 } },
@@ -75,7 +76,8 @@ SXExhibits.WeatherPhases = {
         precip = "dust", level = 1.0, wind = { 1.0, 0.15, 26 }, fogScale = 0.42, light = 0.80 },
 }
 -- Inside the map's 250 m view range: a dome beyond the far clip is mostly culled.
-SXExhibits.StormSky = { material = "CR_Sky/MarsStorm", curvature = 10, tiling = 8, distance = 200 }
+SXExhibits.StormSky = { curvature = 10, tiling = 1, distance = 200,
+    materials = { rain = "SX_Sky/Rain", storm = "SX_Sky/Storm", snow = "SX_Sky/Snow", dust = "SX_Sky/Dust" } }
 -- CRPrecip's ISDF Chronicles tuning suits a pilot at ground level; the film camera
 -- sits metres up and looks 20-80 m out, so pack the particles closer and larger.
 SXExhibits.PrecipLook = { box = 0.4, size = 1.8, rate = 2.2 }
@@ -112,14 +114,15 @@ function SXExhibits:WeatherStart()
         or "particle templates unavailable; fog/light only")
 end
 
-function SXExhibits:WeatherSky(on)
-    if on and not self.skyOn and self:Has("SetSkyDome") then
-        local sky = SXExhibits.StormSky
-        local ok, result = self:Call("SetSkyDome", sky.material, sky.curvature, sky.tiling, sky.distance, true)
-        self.skyOn = ok and result ~= false
-    elseif not on and self.skyOn then
+function SXExhibits:WeatherSky(phase)
+    local sky = SXExhibits.StormSky
+    local material = phase and sky.materials[phase]
+    if material and self.skyOn ~= material and self:Has("SetSkyDome") then
+        local ok, result = self:Call("SetSkyDome", material, sky.curvature, sky.tiling, sky.distance, true)
+        self.skyOn = ok and result ~= false and material or nil
+    elseif not material and self.skyOn then
         if self.skyWasOn ~= true then self:Call("SetSkyDomeEnabled", false) end
-        self.skyOn = false
+        self.skyOn = nil
     end
 end
 
@@ -127,14 +130,14 @@ function SXExhibits:WeatherPhase(phase)
     local storm = self.storm
     if not storm then return end
     if phase == "rain" or phase == "storm" then
-        self:WeatherSky(true)
+        self:WeatherSky(phase)
         if not storm.GetWeather() then storm.StartDynamicWeather(nil, { start = { drizzle = 1 }, hold = { 900, 900 } }) end
         storm.SetWeather(phase, phase == "rain" and 6 or 5)
         self.message = phase == "rain" and "Weather: rain" or "Weather: storm"
     elseif phase == "snow" or phase == "dust" then
         -- Leave the rain director; its Shutdown also ends the rain sound and splashes.
         if storm.GetWeather() then pcall(storm.Shutdown) end
-        self:WeatherSky(true)
+        self:WeatherSky(phase)
         local w = SXExhibits.WeatherPhases[phase].wind
         storm.Wind(w[1], w[2], w[3])
         self.message = "Weather: " .. phase
@@ -181,7 +184,7 @@ function SXExhibits:WeatherTick(dt)
             local fade = math.max(0, 1 - self.weatherClock / 4)
             storm.Atmosphere(1 - 0.45 * fade, 1 - 0.15 * fade)
         end
-        if self.weatherClock > 2 then self:WeatherSky(false) end
+        if self.weatherClock > 2 then self:WeatherSky(nil) end
     end
     storm.Update()
 end
@@ -192,7 +195,7 @@ function SXExhibits:WeatherEnd()
         all = pcall(self.storm.Shutdown)
         if all then self.storm = nil end
     end
-    self:WeatherSky(false)
+    self:WeatherSky(nil)
     if self.precipLook then pcall(self.precipLook.SetLook, nil) end
     self.weatherPhase, self.weatherTint, self.clearing, self.fadePrecip, self.precipLook = nil, nil, nil, nil, nil
     local restored = self.state:Restore("weather")
