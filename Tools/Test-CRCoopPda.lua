@@ -1,3 +1,6 @@
+-- Resolve Scripts/ relative to this file so require() works without LUA_PATH.
+local toolsDir = (arg and arg[0] or ""):match([=[^(.*)[/\][^/\]*$]=]) or "."
+package.path = toolsDir .. "/../Scripts/?.lua;" .. package.path
 local Pda, Hud = require("CRCoopPda"), require("CRCoopPingHud")
 local Data = require("PersistentConfigData")
 local active, calls, checks = false, {}, 0
