@@ -14,7 +14,7 @@ from pathlib import Path
 # both lanes and their targets share level ground; the destruction yard is the flat
 # 131 m plateau. Camera routes ride 2.5-4 m above terrain and stay off cliff lips.
 POINTS = {
-    "control": (4146, 99160), "changed": (4136, 99160), "mat_look": (4141, 99130), "storm_look": (4075, 99150), "convoy": (4225, 99230),
+    "control": (4146, 99160), "changed": (4136, 99160), "mat_look": (4141, 99130), "storm_look": (4030, 99175), "convoy": (4225, 99230),
     "weather_anchor": (4145, 98820), "ai_anchor": (4700, 98720),
     "break_anchor": (4510, 98600), "filter_anchor": (4200, 98295),
     "ai_stock": (4630, 98760), "ai_tuned": (4675, 98760),

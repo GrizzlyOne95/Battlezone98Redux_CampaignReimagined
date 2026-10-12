@@ -35,8 +35,8 @@ local precip = optional("CRPrecip")
 local splashfx = optional("CRSplash")
 -- Lightning channel and strike sparks (EXU particles); optional.
 local lavafx = optional("CRGroundFX")
--- Windshield drops (EXU overlays) are out of scope for CR: kept as a guarded nil.
-local wetglass = nil
+-- Windshield drops on the screen or on the cockpit glass submesh (EXU); optional.
+local wetglass = optional("CRWetGlass")
 
 local dotProductTolerance = 0.999
 local acidRainEmissionTimer = 0 -- time-based so high frame rates cannot multiply weather effects
@@ -795,6 +795,7 @@ local function Shutdown()
 	if precip then pcall(precip.Stop) end
 	if splashfx then pcall(splashfx.Stop) end
 	if lavafx then pcall(lavafx.Stop) end
+	if wetglass and wetglass.Stop then pcall(wetglass.Stop) end
 
 	local base, e = env.base, env.lib
 	if base ~= nil and e ~= nil then

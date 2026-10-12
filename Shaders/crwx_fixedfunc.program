@@ -1,5 +1,5 @@
 // Campaign Reimagined: DX11 stand-ins for the fixed-function passes of the CRWX rain sheets
-// (xrain, acidrain). Ported from the ISDF Chronicles isdfc_fixedfunc.program (two programs only).
+// (xrain, acidrain) and the CRWX cockpit glass. Ported from the ISDF Chronicles isdfc_fixedfunc.program (five programs).
 // SM4 only: DX9 skips the technique and keeps the fixed-function one.
 
 vertex_program CRWX_FF_LitFlat2_vertex hlsl
@@ -27,4 +27,46 @@ fragment_program CRWX_FF_ModAlphaBlend_NoFog_fragment hlsl
 	target ps_4_0
 	entry_point ff_fragment
 	preprocessor_defines STAGE0_MODULATE=1,TWO_STAGE=1,STAGE1_ALPHABLEND=1,NO_FOG=1
+}
+
+// Cockpit glass (CRWetGlass / Tools/cockpitglass.py --materials): lit layer passes and the no-op default.
+vertex_program CRWX_FF_Lit1_vertex hlsl
+{
+	source crwx_fixedfunc-sm4.hlsl
+	target vs_4_0
+	entry_point ff_vertex
+	preprocessor_defines LIT=1
+
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto texMatrix0 texture_matrix 0
+		param_named_auto surfaceDiffuse surface_diffuse_colour
+		param_named_auto surfaceEmissive surface_emissive_colour
+		param_named_auto derivedAmbient derived_ambient_light_colour
+		param_named_auto lightDiffuse light_diffuse_colour 0
+		param_named_auto lightPosition light_position_object_space 0
+		param_named_auto lightAttenuation light_attenuation 0
+	}
+}
+
+vertex_program CRWX_FF_Unlit1_vertex hlsl
+{
+	source crwx_fixedfunc-sm4.hlsl
+	target vs_4_0
+	entry_point ff_vertex
+
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto texMatrix0 texture_matrix 0
+	}
+}
+
+fragment_program CRWX_FF_Mod_NoFog_fragment hlsl
+{
+	source crwx_fixedfunc-sm4.hlsl
+	target ps_4_0
+	entry_point ff_fragment
+	preprocessor_defines STAGE0_MODULATE=1,NO_FOG=1
 }

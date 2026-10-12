@@ -4674,9 +4674,9 @@ pointCount [1] =
 1
 points [1] =
   x [1] =
-4075
+4030
   z [1] =
-99150
+99175
 pathType = 00000000
 [AiPath]
 old_ptr = 00000104

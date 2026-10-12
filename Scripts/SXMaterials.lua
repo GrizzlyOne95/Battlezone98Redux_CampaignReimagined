@@ -10,6 +10,7 @@ local REQUIRED = { "GetSubEntityCount", "GetSubEntityMaterial", "MaterialExists"
 local GROUP = "General"
 SXMaterials.HULL = "avfigh00"
 SXMaterials.Colors = { "red", "gold", "green", "cyan", "blue", "magenta" }
+SXMaterials.FLASH_GLOW = 1.8
 local function TintName(color) return "SX_tint_" .. color end
 
 local function Call(exu, name, ...)
@@ -123,6 +124,9 @@ function SXMaterials:Flash(color)
         return false
     end
     if self.tint and self.tint ~= tint then self:_Glow(self.tint, 1) end
+    -- A held livery glows at 1.8x so the colour carries at film distance; the pulse
+    -- takes over when glow is on.
+    if not self.glow then self:_Glow(tint, SXMaterials.FLASH_GLOW) end
     self.tint, self.active = tint, true
     self.status, self.detail = "PASS", "API: hull livery " .. color .. " assigned; control unchanged"
     return true
