@@ -7,6 +7,12 @@
   quit. Turn it off with `AutoStage=0` under `[Updater]` in openshim.ini.
 - First-time install is now OpenShimSetup.exe (linked on the Workshop page);
   the Setup / Repair mission remains as the in-game alternative.
+- The OpenShim manifest now lists the renderer shader files and custom UI
+  images by hash, so OpenShim can refresh them from the Workshop item at
+  game start.
+- Ship the multiplayer pre-lobby panel image (osh_prelobby_center.png),
+  missing from the package since OpenShim 1.0.0.48; the UI image list now
+  comes from the OpenShim release instead of a hand-kept copy.
 
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
