@@ -271,10 +271,93 @@ def check_shared_bzr_docs() -> list[str]:
     return errors
 
 
+def check_openshim_manifest_assets() -> list[str]:
+    """Validate the assetSets/assetFiles sections of Scripts/OpenShimManifest.lua.
+
+    The shape is always checked. When the sibling-supplied asset directories
+    exist locally, the per-file hashes and the set hash (files sorted ordinally
+    by lowercased path, one "<path>|<sha256>|<size>" LF-terminated line each)
+    are recomputed too.
+    """
+    path = ROOT / "Scripts" / "OpenShimManifest.lua"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        return [f"Scripts/OpenShimManifest.lua is unreadable: {exc}"]
+
+    set_re = re.compile(
+        r'^\s+(\w+) = \{ source = "([^"]+)", destination = "([^"]+)", '
+        r'sha256 = "([0-9a-f]{64})", files = (\d+) \},\r?$', re.M)
+    file_re = re.compile(
+        r'^\s+\{ set = "(\w+)", path = "([^"]+)", sha256 = "([0-9a-f]{64})", '
+        r'size = (\d+) \},\r?$', re.M)
+    path_re = re.compile(r"[A-Za-z0-9_.-]+(?:\\[A-Za-z0-9_.-]+)*")
+    sets_block = re.search(r"^    assetSets = \{\r?\n(.*?)^    \},", text, re.M | re.S)
+    files_block = re.search(r"^    assetFiles = \{\r?\n(.*?)^    \},", text, re.M | re.S)
+    if not sets_block or not files_block:
+        return ["Scripts/OpenShimManifest.lua lacks assetSets/assetFiles; regenerate it "
+                "with Manage-CampaignFiles.ps1."]
+
+    errors: list[str] = []
+    sets: dict[str, dict] = {}
+    for name, source, destination, digest, count in set_re.findall(sets_block.group(1)):
+        sets[name] = {"source": source.replace("\\\\", "\\"),
+                      "destination": destination.replace("\\\\", "\\"),
+                      "sha256": digest, "files": int(count), "entries": []}
+    for name in ("renderer", "customWidgets"):
+        if name not in sets:
+            errors.append(f"OpenShimManifest.lua assetSets is missing '{name}'.")
+    for set_name, rel, digest, size in file_re.findall(files_block.group(1)):
+        if set_name not in sets:
+            errors.append(f"OpenShimManifest.lua asset file references unknown set '{set_name}'.")
+            continue
+        raw = rel.replace("\\\\", "\\")
+        if not path_re.fullmatch(raw) or ".." in raw:
+            errors.append(f"OpenShimManifest.lua asset path '{raw}' has disallowed characters.")
+            continue
+        sets[set_name]["entries"].append((raw, digest, int(size)))
+
+    for name, info in sets.items():
+        entries = info["entries"]
+        keys = [entry[0].lower() for entry in entries]
+        if keys != sorted(keys):
+            errors.append(f"OpenShimManifest.lua '{name}' files are not sorted by lowercased path.")
+        if len(set(keys)) != len(keys):
+            errors.append(f"OpenShimManifest.lua '{name}' has duplicate paths.")
+        if info["files"] != len(entries):
+            errors.append(f"OpenShimManifest.lua '{name}' declares {info['files']} files "
+                          f"but lists {len(entries)}.")
+        if info["source"] != info["destination"]:
+            errors.append(f"OpenShimManifest.lua '{name}' source and destination differ.")
+
+        root = ROOT / info["source"].replace("\\", "/")
+        if not root.is_dir():
+            continue  # sibling-supplied tree is absent from this checkout
+        verified = True
+        for raw, digest, size in entries:
+            try:
+                data = (root / raw.replace("\\", "/")).read_bytes()
+            except OSError:
+                verified = False
+                errors.append(f"OpenShimManifest.lua '{name}' file '{raw}' is missing locally.")
+                continue
+            if hashlib.sha256(data).hexdigest() != digest or len(data) != size:
+                verified = False
+                errors.append(f"OpenShimManifest.lua '{name}' file '{raw}' no longer matches "
+                              "its manifest hash or size; regenerate the manifest.")
+        if verified:
+            listing = "".join(f"{raw.lower()}|{digest}|{size}\n"
+                              for raw, digest, size in entries)
+            if hashlib.sha256(listing.encode("ascii")).hexdigest() != info["sha256"]:
+                errors.append(f"OpenShimManifest.lua '{name}' set hash does not match its files.")
+    return errors
+
+
 def main() -> int:
     files = list(project_files())
     errors: list[str] = []
     errors.extend(check_shared_bzr_docs())
+    errors.extend(check_openshim_manifest_assets())
     errors.extend(check_case_collisions(files))
     errors.extend(check_engine_filenames(files))
     lua_errors, warnings = check_lua(files)
