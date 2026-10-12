@@ -220,7 +220,7 @@ for block in map:gmatch("%[AiPath%](.-)pathType = %x+") do
 end
 local duration = 0
 for _, scene in ipairs(Scenes.List) do duration = duration + scene.duration end
-Check(duration == 405 and #Scenes.List == 9, "full authored tour is nine chapters / 405 simulation seconds")
+Check(duration == 453 and #Scenes.List == 11, "full authored tour is eleven chapters / 453 simulation seconds")
 
 world = {}
 x = FakeExu(world)
@@ -228,7 +228,8 @@ x.props = { camera = 2, radar = 1, radarScale = 1, voMuted = false, voThrottle =
     voDepth = 4, voStale = 2500, scrapColor = 0xffffffff, pilotColor = 0xffffffff,
     scrapPos = { 90, 620 }, pilotPos = { 90, 646 }, uiScale = 1, musicVolume = 6,
     fog = { r = 0.1, g = 0.2, b = 0.3, start = 175, ending = 250 },
-    ambient = { r = 0.2, g = 0.2, b = 0.2, a = 1 }, diffuse = { r = 0.5, g = 0.5, b = 0.5 }, power = 1 }
+    ambient = { r = 0.2, g = 0.2, b = 0.2, a = 1 }, diffuse = { r = 0.5, g = 0.5, b = 0.5 }, power = 1,
+    specular = { r = 0.3, g = 0.3, b = 0.3 }, sunDir = { x = 0.2, y = -0.9, z = 0.4 } }
 x.music = { track = 3, playing = true, paused = false, gain = 1, fading = false, userVolume = 6 }
 x.callbacks, x.scrolls, x.tuning, x.captions = {}, {}, {}, {}
 x.saveCount, x.uiOpen = 0, false
@@ -243,7 +244,11 @@ for _, row in ipairs({ { "GetCameraView", "SetCameraView", "camera" }, { "GetRad
     { "GetUnitVoQueueStaleMs", "SetUnitVoQueueStaleMs", "voStale" }, { "GetScrapHudColor", "SetScrapHudColor", "scrapColor" },
     { "GetPilotHudColor", "SetPilotHudColor", "pilotColor" }, { "GetFog", "SetFog", "fog" },
     { "GetAmbientLight", "SetAmbientLight", "ambient" }, { "GetSunDiffuse", "SetSunDiffuse", "diffuse" },
-    { "GetSunPowerScale", "SetSunPowerScale", "power" } }) do NativePair(row[1], row[2], row[3]) end
+    { "GetSunPowerScale", "SetSunPowerScale", "power" }, { "GetSunSpecular", "SetSunSpecular", "specular" } }) do
+    NativePair(row[1], row[2], row[3])
+end
+function x.GetSunDirection() return Copy(x.props.sunDir) end
+function x.SetSunDirection(a, b, c) x.props.sunDir = { x = a, y = b, z = c } end
 function x.GetScrapHudTopLeft() return x.props.scrapPos[1], x.props.scrapPos[2] end
 function x.SetScrapHudTopLeft(a, b) x.props.scrapPos = { a, b } end
 function x.GetPilotHudTopLeft() return x.props.pilotPos[1], x.props.pilotPos[2] end
@@ -288,6 +293,10 @@ function x.SelectOne(h) selected = { h } end
 function x.SelectNone() selected = {} end
 function x.SelectAdd(h) selected[#selected + 1] = h end
 function x.GetRenderEffectStatus() return false, false, false, "not-implemented" end
+x.renderRequests = {}
+function x.SupportsRenderProfile(profile) return profile ~= x.unsupportedProfile end
+function x.RequestRenderProfile(profile) x.renderRequests[#x.renderRequests + 1] = profile; x.renderProfile = profile; return true end
+function x.GetEffectiveRenderProfile() return (x.renderProfile == nil or x.renderProfile == "inherit") and "enhanced" or x.renderProfile end
 function x.SaveGame(path)
     x.saveCount = x.saveCount + 1; x.lastSave = Copy({ Save() }); return true, path
 end
@@ -323,7 +332,10 @@ local nextHandle, cameraCalls, readyCalls, finishCalls = 0, 0, 0, 0
 local cameraDepth, cameraFaults = 0, {}
 local cancelled, net = false, false
 local classes = { sxanchor = "camerapod", sxshield = "shieldtower", sxmag = "magnet", sxproxe = "proximity", sxproxa = "proximity",
-    avtank = "wingman", avfigh = "wingman", abspow = "powerplant", abbarr = "barracks" }
+    avtank = "wingman", avfigh = "wingman", abspow = "powerplant", abbarr = "barracks",
+    abcomm = "commtower", sbcomm = "commtower", cbcomm = "commtower", abtowe = "turret", sbtowe = "turret",
+    cbtowe = "turret", abhqcp = "commbunker", svturr = "turrettank", aspilo = "person", bspilo = "person", cspilo = "person",
+    sspilo = "person", assold = "person", sssold = "person", cssold = "person" }
 local function Unit(odf, team, point)
     return { odf = odf, team = team, names = odf == "avfigh" and { "avfigh00", "avfigh01" } or { "body", "glass" }, health = 3000, maxHealth = 3000,
         ammo = 1200, radarRange = 400, radarPeriod = 5, pos = Copy(point), class = classes[odf] or "wingman" }
@@ -347,7 +359,7 @@ function SetIndependence(h, value)
         unsafeIndependenceCalls = unsafeIndependenceCalls + 1
         error("SetIndependence requires a UnitProcess, not " .. world[h].odf)
     end
-    if world[h].label and world[h].label:match("^sx_break_%d+$") then heldCraft[world[h].label] = value end
+    if world[h].label and world[h].label:match("^sx_brk_") then heldCraft[world[h].label] = value end
 end
 function SetWeaponMask() end
 function SetCurAmmo(h, v) world[h].ammo = v end
@@ -435,19 +447,32 @@ Check(Command("unrelated", "") == false, "unrelated console commands remain unha
 Command("sx", "service"); x.rejectColors = true; Update(0.25); x.rejectColors = false
 Check(Snapshot().results.materials.status == "FAIL" and world[changedHandle].names[1] == "avfigh00", "pulse failure reports rollback")
 Command("sx", "tour")
-for _ = 1, 830 do Update(0.5) end
+for _ = 1, 940 do Update(0.5) end
 local finished = Snapshot()
-Check(finished.scene.mode == "freeplay" and finished.results.tour.status == "PASS", "full nine-chapter tour completes")
+Check(finished.scene.mode == "freeplay" and finished.results.tour.status == "PASS", "full eleven-chapter tour completes")
 for _, feature in ipairs(Scenes.Features) do Check(finished.results[feature] ~= nil, "full tour exercises " .. feature) end
 local killed = 0
 for _, key in ipairs(Scenes.Breaks) do
     if finished.results["chunks/" .. key] and finished.results["chunks/" .. key].status == "PENDING" then killed = killed + 1 end
 end
-Check(killed == 13 and #Scenes.Breaks == 13, "destruction yard issues all thirteen kills in order")
+Check(killed == 19 and #Scenes.Breaks == 19, "destruction yard issues all nineteen kills")
+for _, cue in ipairs(Scenes.Find("chunks").cues) do
+    local shot
+    for _, s in ipairs(Scenes.Find("chunks").shots) do if s.at <= cue.at then shot = s end end
+    Check(Scenes.Fixtures[cue.key].path:match("^sx_brk_") and shot and cue.at - shot.at >= 1.5,
+        "kill " .. cue.key .. " lands after its cluster's cut")
+end
+local people = 0
+for _, key in ipairs({ "gib_aspilo", "gib_bspilo", "gib_cspilo", "gib_sspilo", "gib_assold", "gib_sssold", "gib_cssold" }) do
+    if finished.results["gibs/" .. key] and finished.results["gibs/" .. key].status == "PENDING" then people = people + 1 end
+end
+Check(people == 7, "pilot chapter kills all seven people, runners included")
+Check(finished.results["lighting/retro"].status == "PASS" and finished.results["lighting/enhanced"].status == "PASS"
+    and x.renderProfile == "inherit", "lighting cycles render profiles and hands the user's own profile back")
 Check(unsafeIndependenceCalls == 0, "tour never writes UnitProcess independence on camera markers or buildings, even through pcall")
 local heldCount = 0
 for _, independence in pairs(heldCraft) do if independence == 0 then heldCount = heldCount + 1 end end
-Check(heldCount == 10, "all ten destruction craft hold position without commanding the static fixtures")
+Check(heldCount == 11, "all eleven destruction craft hold position without commanding buildings or people")
 Check(State.Equal(x.props, baseline) and State.Equal(x.music, musicBaseline), "full tour restores captured global settings and music policy")
 Check(world[99999].health == 3000 and world[99999].ammo == 1200 and world[99999].radarRange == 400,
     "live player meters and radar ranges restore")
@@ -463,11 +488,19 @@ local readyBeforeCut = readyCalls
 Update(21)
 Check(readyCalls == readyBeforeCut + 1 and Snapshot().scene.scene == "ai", "AI shot list cuts to its second camera at 21 s")
 Update(0.5)
-Check(x.captions["SX/Livewire/Status"]:gsub("\n", " ") == Scenes.List[4].cues[2].caption
-    and x.captions["SX/Livewire/Telemetry"] == "", "film shows the trailer caption, not raw telemetry")
+Check(x.captions["SX/Livewire/Status"]:gsub("\n", " ") == Scenes.Find("ai").cues[2].caption
+    and x.captions["SX/Livewire/Telemetry"]:match("^Range: stock"), "AI film shows the caption plus the live range readout")
 Command("sx", "debug"); Update(0.5)
 Check(x.captions["SX/Livewire/Telemetry"] ~= "", "sx debug restores raw telemetry")
 Command("sx", "debug"); Command("sx", "skip"); Update(0.5)
+Command("sx", "chunks"); Update(0.5)
+local anchored = true
+for _, shot in ipairs(Scenes.Find("chunks").shots) do anchored = anchored and GetHandle("sx_" .. shot.target) ~= nil end
+Check(anchored, "every destruction shot has its own anchor before the first cut")
+Command("sx", "skip"); Update(0.5)
+Command("sx", "filters"); Update(5)
+Check(x.captions["SX/Livewire/Telemetry"] == "", "other chapters show the trailer caption, not raw telemetry")
+Command("sx", "skip"); Update(0.5)
 Check(x.saveCount == 0 and finished.results.autosave.detail:match("preview"), "automatic film notification never writes a save")
 Check(world[GetHandle("sx_changed")].names[1] == "avfigh00", "film livery is restored after the tour")
 Check(finished.results["filters/proximity"].status == "PASS", "proximity witness requires protected crossing and actual target damage")
@@ -514,11 +547,11 @@ Command("sx", "ai"); Update(13); x.rejectRemove = GetHandle("sx_ai_stock")
 Command("sx", "reset")
 Check(Snapshot().results.reset.status == "FAIL" and IsValid(x.rejectRemove), "refused actor cleanup blocks reset and retains the actor for retry")
 x.rejectRemove = nil; Command("sx", "reset"); Update(0); Command("sx", "skip")
-x.music.track, x.music.playing = -1, false
-Command("sx", "arrival"); Update(4); Command("sx", "skip")
-Check(Snapshot().results.music.status == "BLOCKED" and x.music.track == -1 and not x.music.playing,
-    "unrestorable native no-selection baseline is left intact")
-x.music = Copy(musicBaseline)
+Command("sx", "lighting"); Update(12); Command("sx", "skip")
+Check(x.renderProfile == "inherit" and State.Equal(x.props, baseline),
+    "skipping mid-comparison returns the render profile, sun and ambient to the user")
+x.unsupportedProfile = "retro"; Command("sx", "lighting"); Update(1); Command("sx", "skip"); x.unsupportedProfile = nil
+Check(Snapshot().results["lighting/retro"].status == "BLOCKED", "an unsupported profile is reported, not requested")
 Command("sx", "ai"); Update(13)
 x.rejectRemove = GetHandle("sx_ai_stock")
 Update(60)
@@ -533,11 +566,12 @@ local startupReady = readyCalls
 Update(1)
 Check(Snapshot().scene.mode ~= "tour" and readyCalls == startupReady,
     "skip before the first update cancels pending automatic startup")
-Command("sx", "tour"); Update(125)
+Command("sx", "tour"); Update(170)
+Check(Snapshot().scene.scene == "ai", "AI chapter follows lighting and weather")
 x.rejectRemove = GetHandle("sx_ai_stock")
 Update(61)
 Check(Snapshot().scene.mode == "freeplay" and Snapshot().scene.scene == "ai"
-    and GetHandle("sx_break_1") == nil, "full film stops at failed AI cleanup before spawning destruction actors")
+    and GetHandle("sx_brk_avtank") == nil, "full film stops at failed AI cleanup before spawning destruction actors")
 x.rejectRemove = nil; Command("sx", "baseline")
 local nativePath = CameraPath
 CameraPath = function() error("camera failure") end
@@ -549,9 +583,9 @@ net = true; Mission(); Update(10); Command("sx", "save"); Command("sx", "ai")
 Check(nextHandle == beforeNet and x.saveCount == beforeSave, "network mode permits only a local overlay, no world/save/tuning mutation")
 net = false
 local nativeX = x
-x = { isStub = true }; Mission(); Update(0); Update(405)
+x = { isStub = true }; Mission(); Update(0); Update(460)
 Check(Snapshot().scene.mode == "freeplay" and Snapshot().results.environment.status == "BLOCKED"
-    and Snapshot().results.music.status == "BLOCKED", "stub EXU completes stock scenes while reporting blocked native exhibits")
+    and Snapshot().results.lighting.status == "BLOCKED", "stub EXU completes stock scenes while reporting blocked native exhibits")
 x = nativeX
 Check(cameraCalls > 0 and finishCalls > 0, "both native path and object-camera callbacks exercised")
 Check(#cameraFaults == 0, string.format("native camera stack stays balanced (%d faults, first: %s)",

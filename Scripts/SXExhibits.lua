@@ -34,71 +34,64 @@ function SXExhibits:Go(key, route)
     return true
 end
 
-function SXExhibits:MusicStart()
-    if not self.musicBase then
-        local original = self:Read("GetMusicState")
-        if type(original) ~= "table" or type(original.track) ~= "number"
-            or original.track < 0 or original.track > 255 or original.track ~= math.floor(original.track)
-            or not self:Has("SetMusicTrack", "StopMusic", "ResetMusic", "GetMusicState")
-            or (original.paused and not self:Has("PauseMusic")) then
-            self:Record("music", "BLOCKED", "native soundtrack selection/restore unavailable")
-            return false
-        end
-        self.musicBase = State.Copy(original)
+-- Renderer comparison: a mission-scoped OpenShim content override. "inherit" hands
+-- control back to the user's own profile; mission reset clears it as well.
+function SXExhibits:Lighting(profile)
+    if not self:Has("RequestRenderProfile") then
+        self:Record("lighting", "BLOCKED", "EXU render profile API unavailable"); return
     end
-    local ok, result = self:Call("SetMusicTrack", 7)
-    local current = self:Read("GetMusicState")
-    local accepted = ok and result == true and type(current) == "table" and current.track == 7 and current.playing
-    self:Record("music", accepted and "PASS" or "BLOCKED", "native track 7; audibility needs operator observation")
-    return accepted
+    if profile ~= "inherit" and self:Has("SupportsRenderProfile") and self:Read("SupportsRenderProfile", profile) == false then
+        self:Record("lighting/" .. profile, "BLOCKED", "profile unsupported on this renderer")
+        return
+    end
+    local ok, accepted = self:Call("RequestRenderProfile", profile)
+    accepted = ok and accepted == true
+    if accepted then self.lightingOverride = profile ~= "inherit" end
+    local effective = self:Read("GetEffectiveRenderProfile")
+    self:Record("lighting/" .. profile, accepted and "PASS" or "BLOCKED", "requested " .. profile .. "; effective " .. tostring(effective))
+    self:Record("lighting", accepted and "PENDING" or "BLOCKED", "live retro/redux/enhanced cycle; compare the frames")
+    self.message = "Render profile: " .. tostring(effective)
 end
 
-function SXExhibits:MusicAction(action)
-    if not self.musicBase and not self:MusicStart() then return end
-    local method, args, expected
-    if action == "music-pause" then method, args, expected = "PauseMusic", {}, "paused"
-    elseif action == "music-resume" then method, args, expected = "ResumeMusic", {}, "playing"
-    elseif action == "music-change" then method, args = "ChangeMusicTrack", { 12, 2, 2 }
-    elseif action == "music-stop" then method, args = "StopMusic", {}
-    else self:MusicStart(); return end
-    local ok, result = self:Call(method, unpackValues(args))
-    local current = self:Read("GetMusicState")
-    local accepted = ok and result == true and type(current) == "table"
-    if expected then accepted = accepted and current[expected] == true end
-    if action == "music-stop" then accepted = accepted and not current.playing and not current.paused end
-    if action == "music-change" then accepted = accepted and current.fading == true end
-    self.message = ({ ["music-pause"] = "Native soundtrack paused", ["music-resume"] = "Native soundtrack resumed",
-        ["music-change"] = "Native soundtrack - fade to track 12", ["music-stop"] = "Native soundtrack stopped" })[action]
-    self:Record("music/" .. action, accepted and "PASS" or "BLOCKED", "native state readback; sound needs observation")
+-- The map's dim night light hides most of what separates the profiles, so the
+-- comparison runs under a low, warm raking sun: long shadows, specular and normal
+-- detail are where retro, redux and enhanced actually part ways.
+SXExhibits.LightingSun = { dir = { 0.62, -0.30, -0.72 }, diffuse = { r = 1.30, g = 1.12, b = 0.88 },
+    ambient = { r = 0.07, g = 0.075, b = 0.095 }, specular = { r = 1, g = 1, b = 1 }, power = 1.35 }
+
+function SXExhibits:LightingStage()
+    local sun = SXExhibits.LightingSun
+    local function Tint(id, getter, setter, color)
+        local base = self:Read(getter)
+        if type(base) ~= "table" then return false end
+        local value = State.Copy(base)
+        value.r, value.g, value.b = color.r, color.g, color.b
+        return self.state:Write("lighting/" .. id, "lighting", getter, setter, { value })
+    end
+    local lit = Tint("diffuse", "GetSunDiffuse", "SetSunDiffuse", sun.diffuse)
+    lit = Tint("ambient", "GetAmbientLight", "SetAmbientLight", sun.ambient) and lit
+    lit = Tint("specular", "GetSunSpecular", "SetSunSpecular", sun.specular) and lit
+    lit = self.state:Write("lighting/power", "lighting", "GetSunPowerScale", "SetSunPowerScale", { sun.power }) and lit
+    -- Sun direction reads back as a native vector, so it is kept as plain numbers.
+    local dir = self:Read("GetSunDirection")
+    if not self.sunBase and dir and self:Has("SetSunDirection") then
+        self.sunBase = { x = dir.x, y = dir.y, z = dir.z }
+        local ok = self:Call("SetSunDirection", sun.dir[1], sun.dir[2], sun.dir[3])
+        lit = ok and lit
+    end
+    self:Record("lighting/sun", lit and "PASS" or "BLOCKED", "low raking key light for the comparison; restored after")
 end
 
-function SXExhibits:RestoreMusic()
-    if not self.musicBase then return true end
-    local base, all = self.musicBase, true
-    local ok, result = self:Call("ResetMusic")
-    all = ok and result ~= false
-    if base.playing or base.paused then
-        ok, result = self:Call("SetMusicTrack", base.track)
-        all = all and ok and result == true
-        if base.paused then
-            ok, result = self:Call("PauseMusic")
-            all = all and ok and result == true
-        end
-    else
-        -- Stop retains the selected track. Restore that selection before stopping.
-        if base.track >= 0 then
-            ok, result = self:Call("SetMusicTrack", base.track)
-            all = all and ok and result == true
-        end
-        ok, result = self:Call("StopMusic")
-        all = all and ok and result == true
+function SXExhibits:LightingEnd()
+    local all = self.state:Restore("lighting")
+    if self.sunBase then
+        local b = self.sunBase
+        if self:Call("SetSunDirection", b.x, b.y, b.z) then self.sunBase = nil else all = false end
     end
-    local current = self:Read("GetMusicState")
-    all = all and type(current) == "table" and current.track == base.track
-        and current.playing == base.playing and current.paused == base.paused
-    if all then self.musicBase = nil end
-    self:Record("restore/music", all and "PASS" or "FAIL", "playback policy restored; exact stream position unavailable")
-    return all
+    if not self.lightingOverride then return all end
+    local ok, accepted = self:Call("RequestRenderProfile", "inherit")
+    if ok and accepted == true then self.lightingOverride = false end
+    return all and not self.lightingOverride
 end
 
 -- Weather bay: the CRStormFX particle weather (ported from ISDF Chronicles) is the
@@ -169,18 +162,18 @@ function SXExhibits:WeatherPhase(phase)
         self:WeatherSky(true)
         if not storm.GetWeather() then storm.StartDynamicWeather(nil, { start = { drizzle = 1 }, hold = { 900, 900 } }) end
         storm.SetWeather(phase, phase == "rain" and 6 or 5)
-        self.message = phase == "rain" and "Weather - particle rain, splashes, wet light" or "Weather - storm with lightning strikes"
+        self.message = phase == "rain" and "Weather: rain" or "Weather: storm"
     elseif phase == "snow" or phase == "dust" then
         -- Leave the rain director; its Shutdown also ends the rain sound and splashes.
         if storm.GetWeather() then pcall(storm.Shutdown) end
         self:WeatherSky(true)
         local w = SXExhibits.WeatherPhases[phase].wind
         storm.Wind(w[1], w[2], w[3])
-        self.message = "Weather - " .. phase .. " driven live"
+        self.message = "Weather: " .. phase
     elseif phase == "clear" then
         local prior = SXExhibits.WeatherPhases[self.weatherPhase]
         self.fadePrecip = prior and prior.precip
-        self.message = "Weather - clearing to the captured baseline"
+        self.message = "Weather: clearing"
     else return end
     self.weatherPhase, self.weatherClock = phase, 0
 end
@@ -238,42 +231,85 @@ function SXExhibits:WeatherEnd()
     return all and restored
 end
 
+-- OpenShim kiting acts inside the native AttackTask, which fighters run and tanks do
+-- not, so the duel is fighter against a fixed turret, which also keeps the gap readable. The ranges sit just inside the avfigh's
+-- ~119 m guns: back off inside 85 m, settle at 105, give up the kite past 117. Stock
+-- fighters close to 50-70 m, so the gap reads on screen.
+SXExhibits.AiTuning = { engageRange = 118, weaponRangeMin = 110, retargetPeriod = 0.75,
+    kiteDesiredRange = 105, kiteEnterRange = 85, kiteExitRange = 117,
+    kitePreserveLos = true, kiteStrafe = 1.0, kiteSwitchPeriod = 1.6 }
+
 function SXExhibits:SetupAI()
-    for _, key in ipairs({ "ai_stock", "ai_tuned", "ai_target_a", "ai_target_b" }) do self:Fixture(key) end
+    for _, key in ipairs({ "ai_look", "ai_stock", "ai_tuned", "ai_target_a", "ai_target_b" }) do self:Fixture(key) end
     self:Record("ai", "PENDING", "native attacks; compare actual ranges and movement")
 end
+function SXExhibits:TuneAI(h)
+    if not self:Has("SetAiUnitTuning", "GetAiUnitTuning", "ClearAiUnitTuning") then
+        self:Record("ai/api", "BLOCKED", "tuning or cleanup API unavailable"); return
+    end
+    local tuning, tier = State.Copy(SXExhibits.AiTuning), "V3 standoff / kiting / strafe"
+    local ok, accepted = self:Call("SetAiUnitTuning", h, tuning)
+    if not ok or accepted ~= true then
+        tuning.kiteStrafe, tuning.kiteSwitchPeriod = nil, nil
+        ok, accepted = self:Call("SetAiUnitTuning", h, tuning); tier = "V2 standoff / kiting"
+    end
+    if not ok or accepted ~= true then
+        tuning = { engageRange = tuning.engageRange, weaponRangeMin = tuning.weaponRangeMin, retargetPeriod = tuning.retargetPeriod }
+        ok, accepted = self:Call("SetAiUnitTuning", h, tuning); tier = "V1 range floors"
+    end
+    local read = self:Read("GetAiUnitTuning", h)
+    local matches = ok and accepted == true and type(read) == "table" and read.engageRange == tuning.engageRange
+    self:Record("ai/api", matches and "PASS" or "BLOCKED", tier .. "; mirror is not behavioral proof")
+    self.message = "AI tuning: " .. (matches and tier or "unavailable")
+end
 function SXExhibits:AIAction(action)
+    if action ~= "ai-attack" then return end
     local a, b = self:Handle("ai_stock"), self:Handle("ai_tuned")
     local ta, tb = self:Handle("ai_target_a"), self:Handle("ai_target_b")
     if not self.api.alive(a) or not self.api.alive(b) or not self.api.alive(ta) or not self.api.alive(tb) then
         self:Record("ai", "BLOCKED", "AI fixtures unavailable"); return
     end
-    if action == "ai-attack" then
-        -- Both enemies press in on their own opponent: kiting only engages inside
-        -- kiteEnterRange, so a parked target never shows the difference.
-        Attack(a, ta, 1); Attack(b, tb, 1); Attack(ta, a, 1); Attack(tb, b, 1)
-    elseif action == "ai-tune" then
-        if not self:Has("SetAiUnitTuning", "GetAiUnitTuning", "ClearAiUnitTuning") then
-            self:Record("ai/api", "BLOCKED", "tuning or cleanup API unavailable"); return
+    -- Tune before the first order so the comparison runs side by side from frame one.
+    -- The turrets need no order: they fire at whatever comes into range.
+    self:TuneAI(b)
+    Attack(a, ta, 1); Attack(b, tb, 1)
+end
+
+-- Pilot deaths: SkinnedGibs (OpenShim) cuts each person's own skinned mesh into posed
+-- limb gibs. Damage() takes the native person-death path the hook watches.
+function SXExhibits:SetupPilots()
+    -- Runners are built when their run starts: standing idle, some wander off.
+    local runner = {}
+    for _, key in ipairs(Scenes.GibRunners) do runner[key] = true end
+    local built, expected = 0, 0
+    for key, spec in pairs(Scenes.Fixtures) do
+        if spec.group == "pilots" and not runner[key] then
+            expected = expected + 1
+            if self.api.valid(self:Fixture(key)) then built = built + 1 end
         end
-        local tuning = { engageRange = 200, weaponRangeMin = 150, retargetPeriod = 0.75,
-            kiteDesiredRange = 160, kiteEnterRange = 110, kiteExitRange = 190,
-            kitePreserveLos = true, kiteStrafe = 1.0, kiteSwitchPeriod = 1.6 }
-        local ok, accepted = self:Call("SetAiUnitTuning", b, tuning)
-        local tier = "V3 standoff / kiting / strafe"
-        if not ok or accepted ~= true then
-            tuning.kiteStrafe, tuning.kiteSwitchPeriod = nil, nil
-            ok, accepted = self:Call("SetAiUnitTuning", b, tuning); tier = "V2 standoff / kiting"
-        end
-        if not ok or accepted ~= true then
-            tuning = { engageRange = 200, weaponRangeMin = 150, retargetPeriod = 0.75 }
-            ok, accepted = self:Call("SetAiUnitTuning", b, tuning); tier = "V1 range floors"
-        end
-        local read = self:Read("GetAiUnitTuning", b)
-        local matches = ok and accepted == true and type(read) == "table" and read.engageRange == 200
-        self:Record("ai/api", matches and "PASS" or "BLOCKED", tier .. "; mirror is not behavioral proof")
-        self.message = "AI comparison - " .. (matches and tier or "tuning unavailable; stock control")
-    elseif action == "ai-cut" then self.aiSide = true end
+    end
+    self.gibKills = 0
+    self:Record("gibs", built == expected and "PENDING" or "BLOCKED",
+        string.format("%d/%d people; needs OpenShim [General] SkinnedGibs = 1", built, expected))
+end
+function SXExhibits:KillPerson(key)
+    local h = self:Handle(key)
+    if not self.api.alive(h) then
+        if not (self.gibDone and self.gibDone[key]) then self:Record("gibs/" .. key, "BLOCKED", "person fixture unavailable") end
+        return
+    end
+    Damage(h, GetCurHealth(h) + GetMaxHealth(h) + 1000)
+    self.gibDone = self.gibDone or {}
+    self.gibDone[key] = true
+    self.gibKills = (self.gibKills or 0) + 1
+    self:Record("gibs/" .. key, "PENDING", "native person death issued; gib count is in the OpenShim log")
+    self.message = string.format("Pilots down: %d", self.gibKills)
+end
+function SXExhibits:PilotTick()
+    for key, mark in pairs(Scenes.GibMarks) do
+        local h = self:Handle(key)
+        if self.gibRunning and self.api.alive(h) and GetDistance(h, mark) < 6 then self:KillPerson(key) end
+    end
 end
 
 function SXExhibits:SetupFilters()
@@ -306,7 +342,7 @@ function SXExhibits:FilterAction(action)
         end
         self.protected = { pe = GetCurHealth(self:Handle("pe_ally")), pa = GetCurHealth(self:Handle("pa_enemy")) }
         self:Go("pe_ally"); self:Go("pa_enemy")
-        self.message = "Proximity lanes - protected teams cross first"
+        self.message = "Mines: allies cross"
     elseif action == "prox-check" then
         local pe, pa = self:Handle("pe_ally"), self:Handle("pa_enemy")
         local safe = self.protected and self.api.alive(pe) and self.api.alive(pa)
@@ -322,7 +358,7 @@ function SXExhibits:FilterAction(action)
             self.targetHealth = { pe = GetCurHealth(pe), pa = GetCurHealth(pa) }
             self:Go("pe_enemy"); self:Go("pa_ally")
         end
-        self.message = "Proximity lanes - configured teams trigger the mines"
+        self.message = "Mines: enemies cross"
     end
 end
 
@@ -381,7 +417,7 @@ function SXExhibits:RadioPolicy(mode)
     end
     self:Record("radio/api", all and "PASS" or "BLOCKED", mode .. "; queue/mute readback")
     self:Record("radio", all and "PENDING" or "BLOCKED", "listen to actual unit acknowledgements; narration is separate")
-    self.message = muted and "Radio - unit responses muted" or (normal and "Radio - normal responses" or "Radio - throttled response queue")
+    self.message = muted and "Radio muted" or (normal and "Radio normal" or "Radio throttled")
     if self.api.alive(self:Handle("radio")) then
         Goto(self:Handle("radio"), normal and Scenes.Routes.radio or Scenes.Routes.radio_return, 0)
     end
@@ -408,7 +444,7 @@ function SXExhibits:Radar(mode)
         all = range and period and all
     else all = false end
     self:Record("radar", all and "PASS" or "BLOCKED", "native map/scan, size, range and period readback; SP only")
-    self.message = mode == 0 and "Radar - compact native map" or "Radar - larger live scan"
+    self.message = mode == 0 and "Radar: map" or "Radar: scan"
 end
 
 function SXExhibits:MoveHUD()
@@ -424,7 +460,7 @@ function SXExhibits:MoveHUD()
     self.hudMoved = all
     self.api.overlay:Slots(all)
     self:Record("hud", all and "PASS" or "BLOCKED", "live stock scrap/pilot text moved and recolored; meters stay native")
-    self.message = "Cockpit - live stock numbers in new instrument slots"
+    self.message = "HUD readouts moved"
 end
 
 function SXExhibits:HUDValues()
@@ -436,7 +472,7 @@ function SXExhibits:HUDValues()
     local b = self.state:Write("player/ammo", "cockpit", "GetCurAmmo", "SetCurAmmo",
         { math.max(0, math.floor(ammo * 0.50)) }, { scope = "stock", args = { h }, handle = true })
     self:Record("hud/values", a and b and "PASS" or "BLOCKED", "controlled live health/ammo change, restored after the shot")
-    self.message = "Cockpit - native hull and ammo bars respond to live values"
+    self.message = "Hull and ammo set live"
 end
 
 function SXExhibits:CockpitEnd()
@@ -457,13 +493,17 @@ function SXExhibits:CockpitEnd()
 end
 
 function SXExhibits:Options()
-    self.message = "Options - press Esc and open the real settings pages"
+    self.message = "Press Esc for settings"
     self:Record("options", "PENDING", "native options exercise is interactive; saved preferences are not overwritten")
 end
 
 function SXExhibits:Begin(scene)
-    self.message, self.telemetry, self.aiSide = "Baseline first; watch the live change", "", false
+    self.message, self.telemetry = "", ""
     if scene.target and Scenes.Fixtures[scene.target] then self:Fixture(scene.target) end
+    -- Later shots cut to their own anchors; build them now so no cut falls back.
+    for _, shot in ipairs(scene.shots or {}) do
+        if shot.target and Scenes.Fixtures[shot.target] then self:Fixture(shot.target) end
+    end
     if scene.id == "ai" then self:SetupAI()
     elseif scene.id == "chunks" then
         local built = 0
@@ -473,14 +513,15 @@ function SXExhibits:Begin(scene)
         self.kills = 0
         self:Record("chunks", built == #Scenes.Breaks and "PENDING" or "BLOCKED",
             string.format("%d/%d victims; requires enabled OpenShim chunks and compatible assets", built, #Scenes.Breaks))
+    elseif scene.id == "lighting" then self:LightingStage()
+    elseif scene.id == "pilots" then self.gibDone, self.gibRunning = {}, false; self:SetupPilots()
     elseif scene.id == "filters" then self:SetupFilters()
     elseif scene.id == "control" then self:SetupControl() end
 end
 
 function SXExhibits:Cue(scene, cue)
     local id = cue.id
-    if id == "music-start" or id == "music-restart" then self:MusicStart()
-    elseif id:match("^music%-") then self:MusicAction(id)
+    if id:match("^light%-") then self:Lighting(id:sub(7))
     elseif id == "weather-start" then self:WeatherStart()
     elseif id == "weather-strike" and self.storm then self.storm.StrikeNow(cue.cloud == true)
     elseif id:match("^weather%-") and self.storm then self:WeatherPhase(id:sub(9))
@@ -493,13 +534,19 @@ function SXExhibits:Cue(scene, cue)
             self.kills = (self.kills or 0) + 1
             self:Record("chunks/" .. key, "PENDING", "native damage/death issued; no chunk-count query")
         else self:Record("chunks/" .. key, "BLOCKED", "destruction fixture unavailable") end
-        self.message = string.format("Destruction - %s down (%d/%d)", key, self.kills or 0, #Scenes.Breaks)
+        self.message = string.format("Destroyed: %d/%d", self.kills or 0, #Scenes.Breaks)
+    elseif id == "gib-kill" then self:KillPerson(cue.key)
+    elseif id == "gib-run" then
+        for _, key in ipairs(Scenes.GibRunners) do self:Fixture(key); self:Go(key) end
+        self.gibRunning = true
+    elseif id == "gib-flush" then
+        for _, key in ipairs(Scenes.GibRunners) do self:KillPerson(key) end
     elseif id:match("^shield%-") or id:match("^magnet%-") or id:match("^prox%-") then self:FilterAction(id)
     elseif id:match("^radio%-") then self:RadioPolicy(id)
     elseif id == "command-film" then
         local ok, accepted = self:Call("TriggerStockCmdReplacement", self:Handle("radio"), "Hunt")
         if not ok or accepted ~= true then self:Record("command", "BLOCKED", "film dispatch refused") end
-        self.message = "Command hook - Hunt slot runs the trial route"
+        self.message = "Custom Hunt order"
     elseif id == "cockpit-start" then self:CockpitStart()
     elseif id == "radar-map" then self:Radar(0)
     elseif id == "radar-scan" then self:Radar(1)
@@ -507,14 +554,14 @@ function SXExhibits:Cue(scene, cue)
     elseif id == "hud-values" then self:HUDValues()
     elseif id == "cockpit-baseline" then
         self:Record("restore/cockpit", self:CockpitEnd() and "PASS" or "FAIL", "live meters, radar and text baselines")
-        self.message = "Cockpit - original layout and values restored"
+        self.message = "HUD restored"
     elseif id == "autosave-preview" then
         self.api.overlay:Notify("Autosaving...", 4, self.api.clock(), true)
-        self.message = "Autosave overlay demonstration - notification preview"
+        self.message = "Autosave notice preview"
         self:Record("autosave", self.api.overlay.ready and "PENDING" or "BLOCKED",
             "notification preview; sx save requests a real dedicated checkpoint")
     elseif id == "options" then self:Options()
-    elseif id == "freeplay" then self.message = "Your proving ground - replay any bay with sx <chapter>" end
+    elseif id == "freeplay" then self.message = "Free play. sx <chapter> replays a chapter." end
 end
 
 function SXExhibits:Update(dt, scene)
@@ -522,7 +569,6 @@ function SXExhibits:Update(dt, scene)
         local ok, err = pcall(self.WeatherTick, self, dt)
         if not ok then self:Record("environment", "FAIL", err); self:WeatherEnd() end
     end
-    if self.musicBase then self:Call("UpdateMusic", dt) end
     if self.commandRegistered then self:Call("UpdateCommandReplacements") end
     if not scene then self.telemetry = self:PlayerTelemetry(); return end
     if scene.id == "environment" and self.storm then
@@ -530,19 +576,22 @@ function SXExhibits:Update(dt, scene)
         self.telemetry = string.format("Weather %s | rain %.2f | fog end %.0fm | dome %s", tostring(self.weatherPhase),
             self.storm.GetRainIntensity() or 0, type(fog) == "table" and (fog.ending or fog.fogEnd or 0) or 0,
             self.skyOn and "on" or "off")
+    elseif scene.id == "lighting" then
+        self.telemetry = "Effective render profile: " .. tostring(self:Read("GetEffectiveRenderProfile"))
     elseif scene.id == "ai" then
         local function Range(a, b)
             return self.api.alive(self:Handle(a)) and self.api.alive(self:Handle(b)) and GetDistance(self:Handle(a), self:Handle(b)) or 0
         end
-        self.telemetry = string.format("Actual target ranges: stock %.1fm | tuned %.1fm", Range("ai_stock", "ai_target_a"), Range("ai_tuned", "ai_target_b"))
+        self.telemetry = string.format("Range: stock %.0f m | tuned %.0f m", Range("ai_stock", "ai_target_a"), Range("ai_tuned", "ai_target_b"))
+    elseif scene.id == "pilots" then
+        self:PilotTick()
+        self.telemetry = string.format("People down %d / %d", self.gibKills or 0, #Scenes.GibStanders + #Scenes.GibRunners)
     elseif scene.id == "filters" then
         local a, b = self:Handle("magnet_ally"), self:Handle("magnet_enemy")
         self.telemetry = string.format("Magnet distances: ally %.1fm | enemy %.1fm", self.api.alive(a) and GetDistance(a, "sx_magnet") or 0,
             self.api.alive(b) and GetDistance(b, "sx_magnet") or 0)
     elseif scene.id == "control" then
-        local music = self:Read("GetMusicState")
-        self.telemetry = string.format("Command callbacks %d | radio muted %s | native music %s", self.commandHits,
-            tostring(self:Read("GetUnitVoMuted")), type(music) == "table" and (tostring(music.track) .. (music.paused and " paused" or (music.playing and " playing" or " stopped"))) or "unavailable")
+        self.telemetry = string.format("Command callbacks %d | radio muted %s", self.commandHits, tostring(self:Read("GetUnitVoMuted")))
     elseif scene.id == "cockpit" or scene.id == "handover" then self.telemetry = self:PlayerTelemetry() end
 end
 
@@ -584,6 +633,8 @@ end
 function SXExhibits:Leave(scene)
     local all = true
     if scene.id == "environment" then all = self:WeatherEnd()
+    elseif scene.id == "lighting" then all = self:LightingEnd()
+    elseif scene.id == "pilots" then self.gibRunning = false
     elseif scene.id == "ai" then
         local h = self:Handle("ai_tuned")
         if self.api.valid(h) then self:Call("ClearAiUnitTuning", h) end
@@ -607,24 +658,26 @@ function SXExhibits:Restore()
     local command = self:RemoveCommand()
     local selection = self:RestoreSelection()
     local state = self.state:Restore()
-    local music = self:RestoreMusic()
+    local lighting = self:LightingEnd()
+    self.gibRunning = false
     if self.api.valid(self:Handle("ai_tuned")) then self:Call("ClearAiUnitTuning", self:Handle("ai_tuned")) end
-    for _, group in ipairs({ "ai", "chunks", "filters" }) do
+    for _, group in ipairs({ "ai", "chunks", "pilots", "filters" }) do
         local removed = self.api.removeGroup(group)
         all = removed and all
     end
-    return all and cockpit and command and selection and state and music
+    return all and cockpit and command and selection and state and lighting
 end
 
 function SXExhibits:Snapshot()
-    return { state = self.state:Snapshot(), musicBase = State.Copy(self.musicBase), selection = self.selection,
+    return { state = self.state:Snapshot(), lightingOverride = self.lightingOverride, sunBase = self.sunBase, selection = self.selection,
         player = self.player, hudMoved = self.hudMoved, hudWidth = self.hudWidth, hudHeight = self.hudHeight,
         commandRegistered = self.commandRegistered }
 end
 function SXExhibits:Load(snapshot)
     if not snapshot then return end
     self.state:Load(snapshot.state)
-    self.musicBase, self.selection, self.player = snapshot.musicBase, snapshot.selection, snapshot.player
+    self.lightingOverride, self.selection, self.player = snapshot.lightingOverride, snapshot.selection, snapshot.player
+    self.sunBase = snapshot.sunBase
     self.hudMoved, self.hudWidth, self.hudHeight = snapshot.hudMoved, snapshot.hudWidth, snapshot.hudHeight
     self.commandRegistered = snapshot.commandRegistered
 end
