@@ -18,9 +18,9 @@ The button boxes are fixed 2560x1440 coordinates in `STEPS` inside that script.
 [b]1. First-time install[/b]
 [list=1]
 [*] Subscribe and let Steam finish downloading. Do [b]not[/b] enable anything in the Mods menu.
-[*] Launch the game and open [b]Single Player[/b].
+[*] Download and run [url=https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases/latest/download/OpenShimSetup.exe]OpenShimSetup.exe[/url]. It installs the complete OpenShim suite. Then start the game.
+[*] No installer? Launch the game, open [b]Single Player[/b] and [b]Instant Action[/b] (bottom right).
 [img]URL_STEP1[/img]
-[*] Open [b]Instant Action[/b] (bottom right).
 [img]URL_STEP2[/img]
 [*] Select [b]! SETUP / REPAIR - Open Community Patch[/b] and press [b]Launch[/b]. It installs the complete OpenShim suite and shows the result.
 [img]URL_STEP3[/img]
