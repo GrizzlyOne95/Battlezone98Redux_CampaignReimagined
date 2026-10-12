@@ -73,6 +73,7 @@ local exists = {}
 local fileHashes = {}
 local versions = {}
 local statusContent = nil
+local iniContent = nil
 local stageCalls = 0
 local copyCalls = 0
 local writeCalls = 0
@@ -143,6 +144,17 @@ package.preload["bzfile"] = function()
                         if consumed then return "" end
                         consumed = true
                         return statusContent
+                    end,
+                    Close = function() end,
+                }
+            end
+            if path == working .. "\\openshim.ini" and iniContent then
+                local consumed = false
+                return {
+                    Read = function()
+                        if consumed then return "" end
+                        consumed = true
+                        return iniContent
                     end,
                     Close = function() end,
                 }
@@ -380,6 +392,8 @@ local function CheckGameplay(expectedState)
     local stages, copies, writes, deletes = stageCalls, copyCalls, writeCalls, deleteCalls
     Installer.InstallChecked = false
     local messages = {}
+    -- Plain campaign checks are read-only; auto-staging is covered separately below.
+    IsNetGame = function() return true end
     local checked = Installer.CheckOnce(function(message) messages[#messages + 1] = message end)
     assert(checked.state == expectedState, checked.state)
     assert(stageCalls == stages and copyCalls == copies)
@@ -390,6 +404,7 @@ local function CheckGameplay(expectedState)
         assert(#messages == 0)
     end
     assert(Installer.CheckOnce() == nil, "check should run once per mission Lua state")
+    IsNetGame = nil
 end
 
 ResetInstalledCurrent()
@@ -411,5 +426,65 @@ ResetInstalledCurrent()
 statusContent = "state=complete\nexpected_sha256=" .. hashes.winmm .. "\n"
 CheckGameplay(Installer.States.CURRENT)
 assert(statusContent ~= nil, "campaign check must preserve setup status")
+
+-- Campaign-start auto-staging of an older existing install.
+local function AutoStage(prepare, expectStage, netGame)
+    ResetInstalledCurrent()
+    iniContent = nil
+    IsNetGame = netGame and function() return true end or nil
+    prepare()
+    local before = stageCalls
+    local messages = {}
+    Installer.InstallChecked = false
+    local ok, err = pcall(Installer.CheckOnce, function(m) messages[#messages + 1] = m end)
+    assert(ok, tostring(err))
+    IsNetGame = nil
+    if expectStage then
+        assert(stageCalls == before + 1, "expected one stage call")
+        assert(#messages == 1 and messages[1] ==
+            "OpenShim 1.0.0.99 is ready and will install when you quit the game.", messages[1])
+        -- Mission startup after a stage is a pending update: no second stage.
+        Installer.InstallChecked = false
+        Installer.CheckOnce(function() end)
+        assert(stageCalls == before + 1, "must not stage twice")
+    else
+        assert(stageCalls == before, "unexpected stage call")
+    end
+    iniContent = nil
+    return messages
+end
+
+local function Older()
+    Put(working .. "\\winmm.dll", hashes.loader, "1.0.0.50")
+end
+
+AutoStage(Older, true)                                              -- older -> stages once
+AutoStage(function() end, false)                                    -- current -> nothing
+AutoStage(Older, false, true)                                       -- network game
+AutoStage(function() Older(); iniContent = "[Updater]\r\nAutoStage=0\r\n" end, false)
+AutoStage(function() Older(); iniContent = "[Other]\nAutoStage=0\n[Updater]\nAutoStage = true\n" end, true)
+AutoStage(function() Older(); iniContent = "[Updater]\nAutoStage=false ; off\n" end, false)
+local pendingMessages = AutoStage(function()
+    Older()
+    statusContent = "state=staged\nexpected_sha256=" .. hashes.winmm .. "\n"
+end, false)
+assert(#pendingMessages == 1 and not pendingMessages[1]:find("ready", 1, true))
+local freshMessages = AutoStage(function() Remove(working .. "\\winmm.dll") end, false)
+assert(#freshMessages == 1 and freshMessages[1]:find("OpenShimSetup.exe", 1, true))
+
+-- Apply raising an error must not break mission start.
+do
+    ResetInstalledCurrent()
+    Older()
+    local savedApply = Installer.Apply
+    Installer.Apply = function() error("boom") end
+    Installer.InstallChecked = false
+    local messages = {}
+    local ok, err = pcall(Installer.CheckOnce, function(m) messages[#messages + 1] = m end)
+    Installer.Apply = savedApply
+    assert(ok, tostring(err))
+    assert(#messages == 1 and messages[1]:find("SETUP / REPAIR", 1, true))
+end
+ResetInstalledCurrent()
 
 print("OpenShimInstaller diagnostics/action/gameplay-check tests passed")
