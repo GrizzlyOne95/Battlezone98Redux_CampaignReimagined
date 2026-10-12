@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-12T08:49:19-05:00",
-  "count": 2318,
+  "generated": "2026-10-12T08:58:33-05:00",
+  "count": 2374,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -92,6 +92,46 @@
       "runtime": "abhang.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\avapc.mesh",
+      "runtime": "avapc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avartl_c.mesh",
+      "runtime": "avartl_c.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avfigh.mesh",
+      "runtime": "avfigh.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avhaul.mesh",
+      "runtime": "avhaul.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avhraz.mesh",
+      "runtime": "avhraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avltnk.mesh",
+      "runtime": "avltnk.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avmine.mesh",
+      "runtime": "avmine.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avrckt.mesh",
+      "runtime": "avrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avscav.mesh",
+      "runtime": "avscav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avtank.mesh",
+      "runtime": "avtank.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\avturr_C.mesh",
       "runtime": "avturr_C.mesh"
     },
@@ -108,6 +148,10 @@
       "runtime": "avwalk.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\avwalk_c.mesh",
+      "runtime": "avwalk_c.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bbhang.sdf",
       "runtime": "bbhang.sdf"
     },
@@ -116,8 +160,56 @@
       "runtime": "bbhang.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\bvapc.mesh",
+      "runtime": "bvapc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvartl_c.mesh",
+      "runtime": "bvartl_c.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvhaul.mesh",
+      "runtime": "bvhaul.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvhraz.mesh",
+      "runtime": "bvhraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvltnk.mesh",
+      "runtime": "bvltnk.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvmine.mesh",
+      "runtime": "bvmine.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvmru.mesh",
+      "runtime": "bvmru.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvraz.mesh",
+      "runtime": "bvraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvrckt.mesh",
+      "runtime": "bvrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvrdev.mesh",
+      "runtime": "bvrdev.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvscav.mesh",
+      "runtime": "bvscav.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvslf.skeleton",
       "runtime": "bvslf.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvtank.mesh",
+      "runtime": "bvtank.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr_c.mesh",
@@ -152,6 +244,54 @@
       "runtime": "crgrass.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvapc.mesh",
+      "runtime": "cvapc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvartl.mesh",
+      "runtime": "cvartl.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvfigh.mesh",
+      "runtime": "cvfigh.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvhaul.mesh",
+      "runtime": "cvhaul.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvhraz.mesh",
+      "runtime": "cvhraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvhtnk.mesh",
+      "runtime": "cvhtnk.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvltnk.mesh",
+      "runtime": "cvltnk.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvmine.mesh",
+      "runtime": "cvmine.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvrckt.mesh",
+      "runtime": "cvrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvscav.mesh",
+      "runtime": "cvscav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvtnk.mesh",
+      "runtime": "cvtnk.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvturr.mesh",
+      "runtime": "cvturr.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvwalk_c.mesh",
       "runtime": "cvwalk_c.mesh"
     },
@@ -166,6 +306,46 @@
     {
       "source": "Assets\\ModelFixes\\sbsilo.mesh",
       "runtime": "sbsilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svapc.mesh",
+      "runtime": "svapc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svartl_c.mesh",
+      "runtime": "svartl_c.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svfigh.mesh",
+      "runtime": "svfigh.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svhaul.mesh",
+      "runtime": "svhaul.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svhraz.mesh",
+      "runtime": "svhraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svltnk.mesh",
+      "runtime": "svltnk.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svmine.mesh",
+      "runtime": "svmine.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svrckt.mesh",
+      "runtime": "svrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svscav.mesh",
+      "runtime": "svscav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svtank.mesh",
+      "runtime": "svtank.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svturr_c.mesh",
@@ -350,6 +530,30 @@
     {
       "source": "Assets\\Textures\\crwx_splash_ripple.png",
       "runtime": "crwx_splash_ripple.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_wetbeads.png",
+      "runtime": "crwx_wetbeads.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_wetmask_open.png",
+      "runtime": "crwx_wetmask_open.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_wetrivulet.png",
+      "runtime": "crwx_wetrivulet.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_wetstreak.png",
+      "runtime": "crwx_wetstreak.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_windcrack.png",
+      "runtime": "crwx_windcrack.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_winddirt.png",
+      "runtime": "crwx_winddirt.png"
     },
     {
       "source": "Assets\\Textures\\crwx_wsplat.dds",
@@ -2316,12 +2520,20 @@
       "runtime": "crgrass.material"
     },
     {
+      "source": "Materials\\crwx_cockpitglass.material",
+      "runtime": "crwx_cockpitglass.material"
+    },
+    {
       "source": "Materials\\crwx_precip.material",
       "runtime": "crwx_precip.material"
     },
     {
       "source": "Materials\\crwx_precip.particle.payload",
       "runtime": "crwx_precip.particle.payload"
+    },
+    {
+      "source": "Materials\\crwx_wetglass.material",
+      "runtime": "crwx_wetglass.material"
     },
     {
       "source": "Materials\\cspilo.material",
@@ -5580,6 +5792,10 @@
       "runtime": "CRWeatherPresets.lua"
     },
     {
+      "source": "Scripts\\CRWetGlass.lua",
+      "runtime": "CRWetGlass.lua"
+    },
+    {
       "source": "Scripts\\Culling.lua",
       "runtime": "Culling.lua"
     },
@@ -6118,6 +6334,14 @@
     {
       "source": "Shaders\\crwx_precip.program",
       "runtime": "crwx_precip.program"
+    },
+    {
+      "source": "Shaders\\crwx_wetglass.hlsl",
+      "runtime": "crwx_wetglass.hlsl"
+    },
+    {
+      "source": "Shaders\\crwx_wetglass.program",
+      "runtime": "crwx_wetglass.program"
     },
     {
       "source": "staged.des",

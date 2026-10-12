@@ -17,7 +17,7 @@ BZ API is called at require time.
 | `isdfc_precip.material` (`ISDFC_FX/*`) | `Materials/crwx_precip.material` (`CRWX_FX/*`) |
 | `isdfc_precip.program` | `Shaders/crwx_precip.program` (`CRWX_OgreParticle_*`; SM3 delegate `CR_Effect_vertexHLSL`) |
 | `isdfc_ogre_particle-sm4.hlsl`, `-vertex.glsl` | `Shaders/crwx_ogre_particle-sm4.hlsl`, `crwx_ogre_particle-vertex.glsl` |
-| `isdfc_fixedfunc.program` (2 of its programs) | `Shaders/crwx_fixedfunc.program` (`CRWX_FF_LitFlat2_vertex`, `CRWX_FF_ModAlphaBlend_NoFog_fragment`) |
+| `isdfc_fixedfunc.program` (5 of its programs) | `Shaders/crwx_fixedfunc.program` (`CRWX_FF_LitFlat2_vertex`, `CRWX_FF_ModAlphaBlend_NoFog_fragment`, and for cockpit glass `CRWX_FF_Lit1_vertex`, `CRWX_FF_Unlit1_vertex`, `CRWX_FF_Mod_NoFog_fragment`) |
 | `isdfc_fixedfunc-sm4.hlsl` | `Shaders/crwx_fixedfunc-sm4.hlsl` |
 | `isdfc_precip_{flake,mist,mote,streak}.png` | `Assets/Textures/crwx_precip_*.png` |
 | `isdfc_splash_ripple.png`, `isdfc_fx_glow.png`, `isdfc_bootprint.png` | `Assets/Textures/crwx_splash_ripple.png`, `crwx_fx_glow.png`, `crwx_bootprint.png` |
@@ -54,7 +54,7 @@ Added: `Stop()` (destroy all systems).
 
 - Footprints/bootprints, `bootprint`, soil table: pilot gameplay cosmetics, not weather. (CRGroundFX still offers `Print`/`stepdust`/`stepwet`; the textures and templates ship.)
 - Radiation, RandomEarthquakes, RandomAmbientTones, BubblingLava, BubblingAcid: separate hazards/ambience, not weather.
-- Wetglass: out of scope; `wetglass` is a nil upvalue and the guarded calls remain.
+- Wetglass: first dropped, then ported as `CRWetGlass` (see "Windshield rain and cockpit glass"); CRStormFX requires it optionally.
 - The load-time globals (`filename`, `odf`, `texture_type0_solidA0`, `world_variable`) and bare global functions; replaced by a lazy local TRN lookup and module fields.
 
 ## Asset decisions
@@ -79,3 +79,79 @@ Stock sprite materials `grndchar.tga` and `lightflare.tga` (BZ2Render.material) 
 
 Open point: the copied ODF and material names are the same as ISDFC's (identical content except `wsplat.material`,
 `xrain.material`, `acidrain.material`). Loading both mods defines those materials twice.
+
+## Windshield rain and cockpit glass
+
+Ported from ISDFC `wetglass.lua` and `tools/cockpitglass.py` / `tools/ogrebin.py` (same ISDFC commit as above).
+Rain drives it: `CRStormFX.Rain` / the director call `CRWetGlass.Update(intensity)` every frame (largest request of
+the frame wins), `CRStormFX.Shutdown` calls `CRWetGlass.Stop()`.
+
+### Mapping
+
+| ISDFC | CR |
+| --- | --- |
+| `wetglass.lua` (module `wetglass`) | `Scripts/CRWetGlass.lua` (module `CRWetGlass`, overlay `crwx_wetglass`, EXU found as `package.loaded["exu"]` / `require("exu")`, `isStub` rejected) |
+| `isdfc_wetglass.material` (`ISDFC_Wet*_A1..16`, `ISDFC_Wind*_A1..16`) | `Materials/crwx_wetglass.material` (`CRWX_WetBeads/WetStreak/WetRivulet/WindCrack/WindDirt_A<n>`) |
+| `isdfc_wetglass.program`, `isdfc_wetglass.hlsl` | `Shaders/crwx_wetglass.program` (`CRWX_WetGlass_{vertex,fragment}_{SM3,SM4}`), `Shaders/crwx_wetglass.hlsl` |
+| `isdfc_cockpitglass.material` | `Materials/crwx_cockpitglass.material` (`CRWX_CockpitGlass`, `CRWX_CockpitGlass_W<a>C<b>`), written by `Tools/cockpitglass.py --materials` |
+| `ISDFC_FF_{Lit1,Unlit1}_vertex`, `ISDFC_FF_Mod_NoFog_fragment` | added to `Shaders/crwx_fixedfunc.program` as `CRWX_FF_*` (the existing `-sm4.hlsl` already had every variant) |
+| `isdfc_wet{beads,rivulet,streak}.png`, `isdfc_wind{crack,dirt}.png`, `isdfc_wetmask_open.png` | `Assets/Textures/crwx_*.png` |
+| `isdfc_wetmask_ivmsl2.png` (ISDFC unit only) | not shipped; `MASKS` in CRWetGlass.lua is empty, so every craft uses the open mask |
+| `tools/cockpitglass.py`, `tools/ogrebin.py` | `Tools/cockpitglass.py`, `Tools/ogrebin.py` (authoring only, `Tools/` is not shipped) |
+| `tools/wetglassgen.py`, `wetmaskgen.py`, `windshieldgen.py` | not ported: the generated textures and the generated material were copied. `wetmaskgen.py` needs OgreXMLConverter and a submesh named "Cockpit" per craft, so no stock-craft masks were made |
+
+### API (CRWetGlass)
+
+`Update(intensity 0..1)`, `Stop()` (hide overlays, put the glass back on the no-op material, forget state; the next
+`Update` rebuilds), `Mode()` (`"shell"` = cockpit glass submesh, `"overlay"` = screen), `SetCrack(level, x, y)`,
+`Splat(amount, x, y, flip)`, `Busy()`, `ClearSplats()`, `ScreenToShell(x, y)`. The crack/splat layers are kept but
+nothing in CR calls them yet. Without EXU, with a stub EXU, or without overlay support it does nothing.
+
+Two modes:
+- Screen overlay (any craft, F1/F2/F3 views): bead, rivulet, streak, crack and dirt panels with the open mask.
+- Cockpit glass (F1 only): needs EXU with `exu.animation.TargetCockpit`, `exu.animation.GetCapabilities().glass`,
+  `SetSubEntityRenderQueueGroup`, `SetSubEntityMaterial`, `SetMaterialTextureWindow`, `SetMaterialTexture`,
+  `SetMaterialPassColors` (all present in CR `Bin/exu.dll`). The `CRWX_CockpitGlass` sub-entity of the cockpit
+  entity is moved to render queue group 90 and given `CRWX_CockpitGlass_W<a>C<b>` (one pass per visible layer).
+  A craft whose cockpit mesh has no glass submesh falls back to the overlay.
+
+### Regenerating the cockpit glass
+
+    python Tools/cockpitglass.py                       # every craft ODF -> Assets/ModelFixes, writes Tools/cockpitglass_report.txt
+    python Tools/cockpitglass.py avtank svfigh --dry-run --render <dir>   # fit + preview PNGs, no files written
+    python Tools/cockpitglass.py --materials           # rewrite Materials/crwx_cockpitglass.material
+    .\Manage-CampaignFiles.ps1 -bless                # then add the new meshes to the shipping lock
+
+Inputs: meshes and skeletons from `Assets/**` (so the `Assets/ModelFixes` copies win) over
+`<game>/BZ_ASSETS/common/models/**` (including `TRO/`); ODFs from `ODF/` over `<game>/StockODFFiles`; material scripts
+from `Materials/` over `BZ_ASSETS/pc/materials/**` (only used to recognise modelled canopy glass). `--game` or
+`BZR_GAME_DIR` overrides the install path. Needs numpy (and Pillow for `--render`). The first-person mesh is chosen as the
+engine does (0x0067F480): the table `avwalk -> avwalk_c`, `avturr -> _c`, `avartl -> _c`, `bv/sv/cv` likewise;
+else `<base>_cockpit.mesh`; else the craft's own mesh if its skeleton has a `2` bone. So the walker/turret/artillery
+glass lives in the `_c` meshes, not in `avwalk.mesh`. Output keeps the source's leaf name and is written to
+`Assets/ModelFixes/`; re-running replaces an existing glass submesh (the ModelFixes copy becomes the source), so
+the result is stable. Edge lists are dropped from rebuilt meshes (Ogre rebuilds them); every other chunk is
+byte-identical (verified on all 51 outputs).
+
+### Result
+
+51 meshes carry glass (45 new files, 6 existing CR fixes rebuilt in place: `avturr_C`, `bvturr_c`, `bvwalk_c`,
+`cvwalk_c`, `svturr_c`, `svwalk_c`), 0 failed, 28 units skipped (no file shipped):
+
+- Generated: avapc avartl(_c) avfigh avhaul avhraz avltnk avmine avrckt avscav avtank avturr(_C) avwalk(_c);
+  bvapc bvartl(_c) bvhaul bvhraz bvltnk bvmine bvmru bvraz bvrckt bvrdev bvscav bvtank bvturr(_c) bvwalk(_c);
+  cvapc cvartl cvfigh cvhaul cvhraz cvhtnk cvltnk cvmine cvrckt cvscav cvtnk cvturr cvwalk(_c);
+  svapc svartl(_c) svfigh svhaul svhraz svltnk svmine svrckt svscav svtank svturr(_c) svwalk(_c).
+- Skipped, no cockpit (no `2` bone, no `_c`/`_cockpit` mesh): the towers (abtowe*, bbtowe, cbtowe, cblasr, sbtowe),
+  constructors (avcnst bvcnst cvcnst svcnst), factories and recyclers (avmuf avrecy bvmuf bvrecy cvmuf cvrecy svmuf
+  svrecy), avland, avtest, hvsat, hvsav, svsav.
+- Skipped, no mesh in CR or stock: avsav, nvghst, svltnka.
+- Failed: none.
+
+Payload added: 45 new meshes 21.6 MB; the 6 rebuilt CR meshes shrink by 1.85 MB net (their edge lists were dropped);
+textures 0.54 MB; materials, shaders and script 0.37 MB; about 20.7 MB net. The glass submesh itself is about 30 to 50 KB per mesh.
+`Shipping/shipping.lock.json` gains the 56 new paths (nothing removed).
+
+Open points: the `CRWX_CockpitGlass` no-op material is also on the world meshes (avtank etc. carry the submesh);
+it draws nothing (`colour_write off`, no depth), as in ISDFC. Overriding stock meshes at their leaf names means a
+mod that ships its own `avtank.mesh` wins and loses the glass (the overlay then takes over).

@@ -113,7 +113,11 @@ SXExhibits.WeatherPhases = {
     dust = { fog = { r = 0.62, g = 0.40, b = 0.22 }, amb = { r = 0.46, g = 0.32, b = 0.20 },
         precip = "dust", level = 1.0, wind = { 1.0, 0.15, 26 }, fogScale = 0.42, light = 0.80 },
 }
-SXExhibits.StormSky = { material = "CR_Sky/MarsStorm", curvature = 10, tiling = 8, distance = 4000 }
+-- Inside the map's 250 m view range: a dome beyond the far clip is mostly culled.
+SXExhibits.StormSky = { material = "CR_Sky/MarsStorm", curvature = 10, tiling = 8, distance = 200 }
+-- CRPrecip's ISDF Chronicles tuning suits a pilot at ground level; the film camera
+-- sits metres up and looks 20-80 m out, so pack the particles closer and larger.
+SXExhibits.PrecipLook = { box = 0.4, size = 1.8, rate = 2.2 }
 
 function SXExhibits:WeatherStart()
     if not self:Has("GetFog", "SetFog", "GetAmbientLight", "SetAmbientLight", "GetSunDiffuse", "SetSunDiffuse") then
@@ -185,6 +189,11 @@ function SXExhibits:WeatherTick(dt)
     local storm = self.storm
     local phase = SXExhibits.WeatherPhases[self.weatherPhase]
     self.weatherClock = (self.weatherClock or 0) + dt
+    if self.precipLook == nil then
+        local ok, precip = pcall(require, "CRPrecip")
+        self.precipLook = ok and type(precip) == "table" and type(precip.SetLook) == "function" and precip or false
+    end
+    if self.precipLook then self.precipLook.SetLook(SXExhibits.PrecipLook) end
     -- Ease the colour toward the phase, or back to the captured base when clearing.
     local base = storm.BaseEnvironment()
     local goal = phase or (base and { fog = base.fog, amb = base.amb })
@@ -223,7 +232,8 @@ function SXExhibits:WeatherEnd()
         if all then self.storm = nil end
     end
     self:WeatherSky(false)
-    self.weatherPhase, self.weatherTint, self.clearing, self.fadePrecip = nil, nil, nil, nil
+    if self.precipLook then pcall(self.precipLook.SetLook, nil) end
+    self.weatherPhase, self.weatherTint, self.clearing, self.fadePrecip, self.precipLook = nil, nil, nil, nil, nil
     local restored = self.state:Restore("weather")
     return all and restored
 end
@@ -238,14 +248,17 @@ function SXExhibits:AIAction(action)
     if not self.api.alive(a) or not self.api.alive(b) or not self.api.alive(ta) or not self.api.alive(tb) then
         self:Record("ai", "BLOCKED", "AI fixtures unavailable"); return
     end
-    if action == "ai-attack" then Attack(a, ta, 1); Attack(b, tb, 1)
+    if action == "ai-attack" then
+        -- Both enemies press in on their own opponent: kiting only engages inside
+        -- kiteEnterRange, so a parked target never shows the difference.
+        Attack(a, ta, 1); Attack(b, tb, 1); Attack(ta, a, 1); Attack(tb, b, 1)
     elseif action == "ai-tune" then
         if not self:Has("SetAiUnitTuning", "GetAiUnitTuning", "ClearAiUnitTuning") then
             self:Record("ai/api", "BLOCKED", "tuning or cleanup API unavailable"); return
         end
-        local tuning = { engageRange = 180, weaponRangeMin = 120, retargetPeriod = 0.75,
-            kiteDesiredRange = 120, kiteEnterRange = 70, kiteExitRange = 160,
-            kitePreserveLos = true, kiteStrafe = 0.35, kiteSwitchPeriod = 1.2 }
+        local tuning = { engageRange = 200, weaponRangeMin = 150, retargetPeriod = 0.75,
+            kiteDesiredRange = 160, kiteEnterRange = 110, kiteExitRange = 190,
+            kitePreserveLos = true, kiteStrafe = 1.0, kiteSwitchPeriod = 1.6 }
         local ok, accepted = self:Call("SetAiUnitTuning", b, tuning)
         local tier = "V3 standoff / kiting / strafe"
         if not ok or accepted ~= true then
@@ -253,11 +266,11 @@ function SXExhibits:AIAction(action)
             ok, accepted = self:Call("SetAiUnitTuning", b, tuning); tier = "V2 standoff / kiting"
         end
         if not ok or accepted ~= true then
-            tuning = { engageRange = 180, weaponRangeMin = 120, retargetPeriod = 0.75 }
+            tuning = { engageRange = 200, weaponRangeMin = 150, retargetPeriod = 0.75 }
             ok, accepted = self:Call("SetAiUnitTuning", b, tuning); tier = "V1 range floors"
         end
         local read = self:Read("GetAiUnitTuning", b)
-        local matches = ok and accepted == true and type(read) == "table" and read.engageRange == 180
+        local matches = ok and accepted == true and type(read) == "table" and read.engageRange == 200
         self:Record("ai/api", matches and "PASS" or "BLOCKED", tier .. "; mirror is not behavioral proof")
         self.message = "AI comparison - " .. (matches and tier or "tuning unavailable; stock control")
     elseif action == "ai-cut" then self.aiSide = true end

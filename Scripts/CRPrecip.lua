@@ -30,10 +30,12 @@ local PREFIX = "crwx_precip_"
 -- about one particle lifetime of fall above the eye, so the rain reaches the
 -- ground in view instead of dying overhead (see EXU's exu_weather notes).
 local SYSTEMS = {
-	rain  = { { key = "rain", template = "CRWX/Rain", rate = 1650, offset = { 0, 24, 0 }, wind = 0.9 },
+	rain  = { { key = "rain", template = "CRWX/Rain", rate = 1650, offset = { 0, 24, 0 }, wind = 0.9,
+	            size = { 0.22, 3.2 }, quota = 5200 },
 	          { key = "mist", template = "CRWX/RainMist", rate = 20, offset = { 0, 8, 0 }, wind = 0.3, from = 0.45 } },
 	acid  = { { key = "acid", template = "CRWX/AcidRain", rate = 630, offset = { 0, 26, 0 }, wind = 0.6 } },
-	snow  = { { key = "snow", template = "CRWX/Snow", rate = 760, offset = { 0, 22, 0 }, wind = 0.35 } },
+	snow  = { { key = "snow", template = "CRWX/Snow", rate = 760, offset = { 0, 22, 0 }, wind = 0.35,
+	            size = { 0.34, 0.34 }, quota = 6500 } },
 	-- Dust is carried by the wind, so its volume sits upwind: motes and grit
 	-- are born before the camera and blow across the view instead of away.
 	dust  = { { key = "dust", template = "CRWX/DustMotes", rate = 60, offset = { 0, 16, 0 }, wind = 0.25, upwind = 70 },
@@ -45,6 +47,9 @@ local ready = nil          -- nil = not tried, true = working, false = unavailab
 local live = {}            -- key -> { name, spec, rate, visible }
 local frame, requests, applied = nil, {}, {}
 local wind = { x = 1, z = 0, speed = 0 }
+-- Presentation override (SetLook): box shrinks the emitter footprint around the
+-- camera, size scales billboards, rate scales emission. 1/1/1 = ISDF Chronicles tuning.
+local look = { box = 1, size = 1, rate = 1 }
 
 -- EXU is a module in CR. A stub (isStub) means no native runtime: degrade silently.
 local function findExu()
@@ -101,7 +106,27 @@ local function create(spec)
 	call("SetParticleEmitterEmissionRate", name, 0, 0)
 	call("SetParticleSystemEmitting", name, false)
 	call("SetParticleSystemVisible", name, false)
-	return { name = name, spec = spec, rate = 0, visible = false, upwind = nil }
+	local sys = { name = name, spec = spec, rate = 0, visible = false, upwind = nil }
+	-- The template's own box, read once, so SetLook can scale it and scale back.
+	sys.box = {}
+	for _, key in ipairs({ "width", "depth" }) do
+		sys.box[key] = tonumber(call("GetParticleEmitterParameter", name, 0, key))
+	end
+	return sys
+end
+
+local function applyLook(sys)
+	local spec = sys.spec
+	for key, base in pairs(sys.box) do
+		call("SetParticleEmitterParameter", sys.name, 0, key, string.format("%.2f", base * look.box))
+	end
+	if spec.size then
+		call("SetParticleSystemDefaultDimensions", sys.name, spec.size[1] * look.size, spec.size[2] * look.size)
+	end
+	if spec.quota then
+		call("SetParticleSystemParticleQuota", sys.name, math.floor(spec.quota * math.max(1, look.rate) + 0.5))
+	end
+	sys.look = look
 end
 
 local function init()
@@ -126,7 +151,8 @@ local function apply(levels)
 				live[spec.key] = sys or false
 			end
 			if sys then
-				local rate = spec.rate * w
+				if sys.look ~= look then applyLook(sys) end
+				local rate = spec.rate * w * look.rate
 				if math.abs(rate - sys.rate) > spec.rate * 0.02 or (rate == 0) ~= (sys.rate == 0) then
 					call("SetParticleEmitterEmissionRate", sys.name, 0, rate)
 					call("SetParticleSystemEmitting", sys.name, rate > 0)
@@ -200,6 +226,19 @@ function precip.Set(kind, level)
 	return live[SYSTEMS[kind][1].key] ~= false
 end
 
+--- Presentation override for cinematic cameras: { box = footprint scale,
+--- size = billboard scale, rate = emission scale } (each defaults to 1). The
+--- ISDF Chronicles tuning suits a pilot at ground level; a film camera
+--- several metres up wants the particles packed closer and drawn larger.
+--- Call with nil to return to the template look.
+function precip.SetLook(t)
+	t = type(t) == "table" and t or {}
+	local box, size, rate = tonumber(t.box) or 1, tonumber(t.size) or 1, tonumber(t.rate) or 1
+	if box ~= look.box or size ~= look.size or rate ~= look.rate then
+		look = { box = box, size = size, rate = rate } -- live systems re-apply on their next frame
+	end
+end
+
 --- Sets the wind: a sim-space ground direction (x, z) and a speed in m/s.
 function precip.SetWind(x, z, speed)
 	local len = math.sqrt(x * x + z * z)
@@ -217,6 +256,7 @@ end
 --- next Set recreates them.
 function precip.Stop()
 	requests, applied, frame = {}, {}, nil
+	look = { box = 1, size = 1, rate = 1 }
 	if not exu then return end
 	for key, sys in pairs(live) do
 		if sys then

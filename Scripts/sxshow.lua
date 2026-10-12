@@ -64,7 +64,7 @@ local function Ensure(key)
     if spec.health or spec.odf == "sxanchor" then
         SetMaxHealth(h, spec.health or 100000); SetCurHealth(h, spec.health or 100000)
     end
-    if spec.odf == "avfigh" or spec.odf == "avtank" then
+    if spec.odf == "avfigh" or spec.odf == "avtank" or spec.odf == "svfigh" then
         if h ~= GetPlayerHandle() then SetIndependence(h, 0); Stop(h, 1) end
         SetCurAmmo(h, spec.ammo or 0)
         if spec.ammo then SetWeaponMask(h, 1) end
