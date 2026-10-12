@@ -15,31 +15,40 @@ from pathlib import Path
 # 131 m plateau. Camera routes ride 2.5-4 m above terrain and stay off cliff lips.
 POINTS = {
     "control": (4146, 99160), "changed": (4136, 99160), "mat_look": (4141, 99130), "storm_look": (4030, 99175), "convoy": (4225, 99230),
-    "weather_anchor": (4145, 98820), "ai_anchor": (4700, 98720),
+    "weather_anchor": (4145, 98820), "ai_anchor": (4620, 98900),
     "break_anchor": (4510, 98600), "filter_anchor": (4200, 98295),
-    "ai_stock": (4630, 98760), "ai_tuned": (4675, 98760),
-    "ai_target_a": (4630, 98960), "ai_target_b": (4675, 98960),
-    # Ten craft from all three factions, then three barracks, in kill order.
-    **{f"break_{i + 1}": (4470, 98470 + 20 * i) for i in range(10)},
-    "break_b1": (4482, 98690), "break_b2": (4482, 98725), "break_b3": (4482, 98760),
-    "break_look": (4475, 98880),  # fixed aim point past the line; the pan stays smooth
+    # Fighter duels 80 m apart on the wide north end of the AI bench (stock west,
+    # tuned east); each fixed target turret stands 120 m north of its fighter.
+    "ai_look": (4620, 98990), "ai_stock": (4580, 98900), "ai_tuned": (4660, 98900),
+    "ai_target_a": (4580, 99020), "ai_target_b": (4660, 99020),
+    # Destruction plateau (x 4380-4620, z 98450-98800 is level to 0.6 m): four
+    # clusters, each with a camera anchor at its centre.
+    "brk_armor": (4440, 98520), "brk_avtank": (4430, 98522), "brk_svtank": (4446, 98516),
+    "brk_cvtank": (4458, 98526), "brk_avrckt": (4424, 98536), "brk_svltnk": (4440, 98538), "brk_cvfigh": (4455, 98542),
+    "brk_walk": (4540, 98540), "brk_avapc": (4533, 98528), "brk_avwalk": (4524, 98548),
+    "brk_svapc": (4550, 98530), "brk_svwalk": (4541, 98556), "brk_cvwalk": (4558, 98548),
+    "brk_comm": (4470, 98700), "brk_abcomm": (4425, 98706), "brk_sbcomm": (4470, 98714), "brk_cbcomm": (4515, 98706),
+    "brk_base": (4560, 98640), "brk_abtowe": (4542, 98618), "brk_sbtowe": (4560, 98612), "brk_cbtowe": (4578, 98618),
+    "brk_abspow": (4548, 98648), "brk_abhqcp": (4578, 98656),
+    # Pilot deaths on the plateau's north end: four standing pilots, three soldiers
+    # who run east across the frame and fall at their marks.
+    "gib_look": (4420, 98900), "gib_aspilo": (4415, 98903), "gib_bspilo": (4418, 98904),
+    "gib_cspilo": (4422, 98904), "gib_sspilo": (4425, 98903),
+    "gib_assold": (4400, 98898), "gib_sssold": (4396, 98901), "gib_cssold": (4392, 98904),
+    "gib_mark_1": (4414, 98898), "gib_mark_2": (4421, 98901), "gib_mark_3": (4428, 98904),
     "shield": (4115, 98235), "shield_power": (4080, 98235),
     "shield_ally": (4127, 98165), "shield_enemy": (4127, 98135),
     "magnet": (4290, 98235), "magnet_ally": (4298, 98165), "magnet_enemy": (4298, 98135),
-    "prox_enemy": (4155, 98375), "pe_ally": (4142, 98325), "pe_enemy": (4168, 98325),
+    "prox_enemy": (4155, 98375), "prox_look": (4155, 98370), "pe_ally": (4142, 98325), "pe_enemy": (4168, 98325),
     "prox_ally": (4245, 98375), "pa_ally": (4258, 98325), "pa_enemy": (4232, 98325),
     "radio": (4195, 98920), "pe_ally_exit": (4142, 98425), "pa_enemy_exit": (4232, 98425),
 }
 ROUTES = {
     "arrive": [(4160, 99258), (4140, 99250), (4115, 99232), (4105, 99205), (4112, 99180)],
     "convoy_route": [(4225, 99230), (4190, 99205), (4158, 99195)],
-    "break": [(4445, 98400), (4445, 98600), (4445, 98790)],
-    "ai_chase": [(4652, 98712), (4652, 98790)],
-    "ai_front": [(4685, 98915), (4615, 98915)],
-    "ai_side": [(4606, 98800), (4606, 98900)],
-    "fil_shield": [(4150, 98205), (4152, 98245)],
-    "fil_magnet": [(4268, 98200), (4266, 98240)],
-    "fil_prox": [(4200, 98300), (4200, 98345)],
+    "gib_run_1": [(4400, 98898), (4446, 98898)],
+    "gib_run_2": [(4396, 98901), (4446, 98901)],
+    "gib_run_3": [(4392, 98904), (4446, 98904)],
     "radio_cam": [(4165, 98945), (4195, 98950), (4214, 98925), (4214, 98895)],
     "radio_route": [(4195, 98920), (4225, 98900), (4240, 98885)],
     "radio_return": [(4240, 98885), (4225, 98900), (4195, 98920)],
