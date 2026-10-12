@@ -117,7 +117,7 @@ def main():
     check(bindings == {label for label in labels if label.startswith("sx_")},
           "Lua path bindings differ from authored showcase paths")
     durations = [int(value) for value in re.findall(r'\bduration = (\d+)', scene_source)]
-    check(len(durations) == 9 and sum(durations) == 400, "expected nine chapters / 400 seconds")
+    check(len(durations) == 9 and sum(durations) == 405, "expected nine chapters / 405 seconds")
     spec = importlib.util.spec_from_file_location("sx_map", root / "Tools/Build-SXShowcaseMap.py")
     builder = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(builder)

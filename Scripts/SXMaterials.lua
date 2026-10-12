@@ -1,25 +1,25 @@
--- Mission-owned, reversible per-subentity material comparison.
+-- Mission-owned, reversible per-subentity livery swap for the material lab.
+-- The hull subentity of the "changed" scout cycles through authored SX_tint_<color>
+-- materials (Materials/sxtint.material). Their tint lives in the emissive map, so it
+-- reads at night and in every material scheme; pass colors or UV transforms alone do
+-- not reach the Enhanced/CR object shaders. The control twin is never touched.
 local SXMaterials = {}
 SXMaterials.__index = SXMaterials
 local REQUIRED = { "GetSubEntityCount", "GetSubEntityMaterial", "MaterialExists",
-    "CloneMaterial", "GetMaterialPassColors", "SetMaterialPassColors",
-    "SetSubEntityMaterial" }
+    "SetSubEntityMaterial", "SetMaterialPassColors" }
 local GROUP = "General"
+SXMaterials.HULL = "avfigh00"
+SXMaterials.Colors = { "red", "gold", "green", "cyan", "blue", "magenta" }
+local function TintName(color) return "SX_tint_" .. color end
 
 local function Call(exu, name, ...)
     if not exu or type(exu[name]) ~= "function" then return false, "missing " .. name end
     return pcall(exu[name], ...)
 end
 
-local function CloneName(base)
-    local hash = 0
-    for i = 1, #base do hash = (hash * 131 + string.byte(base, i)) % 4294967296 end
-    return "SX/Livewire/" .. string.format("%08x", hash)
-end
-
 function SXMaterials.New(exu, valid)
     return setmetatable({ exu = exu, valid = valid, status = "PENDING",
-        detail = "waiting for render entities", active = false, variants = {} }, SXMaterials)
+        detail = "waiting for render entities", active = false }, SXMaterials)
 end
 
 function SXMaterials:Available()
@@ -60,35 +60,34 @@ function SXMaterials:Prepare(control, changed, controlBase, changedBase)
         self.status, self.detail = "FAIL", "saved material inventory differs"
         return false
     end
-    for _, base in ipairs(self.changedBase) do
+    self.hull = {}
+    for i, base in ipairs(self.changedBase) do
         if type(base) ~= "string" or base == "" then
             self.status, self.detail = "FAIL", "invalid material baseline"
             return false
         end
-        local name = CloneName(base)
-        local colorsOk, colors = Call(self.exu, "GetMaterialPassColors", base, 0, 0, GROUP)
-        if not colorsOk or type(colors) ~= "table" then
-            self.status, self.detail = "BLOCKED", "source pass colors unavailable"
+        if base == SXMaterials.HULL then self.hull[#self.hull + 1] = i end
+    end
+    if #self.hull == 0 then
+        self.status, self.detail = "BLOCKED", "scout hull material " .. SXMaterials.HULL .. " not found"
+        return false
+    end
+    for _, color in ipairs(SXMaterials.Colors) do
+        local ok, exists = Call(self.exu, "MaterialExists", TintName(color), GROUP)
+        if not ok or not exists then
+            self.status, self.detail = "BLOCKED", TintName(color) .. " not loaded (sxtint.material)"
             return false
         end
-        local existsOk, exists = Call(self.exu, "MaterialExists", name, GROUP)
-        if not existsOk or not exists then
-            local cloned, result = Call(self.exu, "CloneMaterial", base, name, GROUP)
-            if not cloned or result ~= true then
-                self.status, self.detail = "BLOCKED", "clone creation refused"
-                return false
-            end
-        end
-        self.variants[base] = { name = name, colors = colors }
     end
     self.ready, self.status, self.detail = true, "PENDING", "baseline captured; awaiting comparison"
     return true
 end
 
-function SXMaterials:_SetColors(name, colors, glow)
-    local ok, result = Call(self.exu, "SetMaterialPassColors", name, colors, -1, -1, GROUP, glow)
+function SXMaterials:_Glow(name, strength)
+    local colors = { emissive = { r = strength, g = strength, b = strength, a = 1 } }
+    local ok, result = Call(self.exu, "SetMaterialPassColors", name, colors, -1, -1, GROUP, true)
     if not ok or result == false then
-        ok, result = Call(self.exu, "SetMaterialPassColors", name, colors, 0, 0, GROUP, glow)
+        ok, result = Call(self.exu, "SetMaterialPassColors", name, colors, 0, 0, GROUP, true)
     end
     return ok and result ~= false
 end
@@ -111,74 +110,52 @@ function SXMaterials:_Matches(h, names)
     return true
 end
 
-function SXMaterials:Apply()
+-- Repaint the changed scout's hull. `color` is one of SXMaterials.Colors.
+function SXMaterials:Flash(color)
     if not self.ready then return false end
+    local tint = TintName(color or "cyan")
     local names = {}
-    for _, base in ipairs(self.changedBase) do
-        local variant = self.variants[base]
-        local colors = { ambient = { r = 0.10, g = 0.45, b = 0.70, a = 1 },
-            diffuse = { r = 0.12, g = 0.65, b = 1.0, a = 1 },
-            emissive = { r = 0.02, g = 0.20, b = 0.30, a = 1 } }
-        if not self:_SetColors(variant.name, colors, false) then
-            self:Restore()
-            self.status, self.detail = "FAIL", "service pass colors refused"
-            return false
-        end
-        names[#names + 1] = variant.name
-    end
+    for i, base in ipairs(self.changedBase) do names[i] = base end
+    for _, i in ipairs(self.hull) do names[i] = tint end
     if not self:_Assign(self.changed, names) or not self:_Matches(self.control, self.controlBase) then
         self:Restore()
         self.status, self.detail = "FAIL", "assignment mismatch or control twin changed"
         return false
     end
-    self.active, self.status, self.detail = true, "PASS", "API: service assignments match; control unchanged"
+    if self.tint and self.tint ~= tint then self:_Glow(self.tint, 1) end
+    self.tint, self.active = tint, true
+    self.status, self.detail = "PASS", "API: hull livery " .. color .. " assigned; control unchanged"
+    return true
+end
+-- Operator `sx service`: the cyan livery with its glow running.
+function SXMaterials:Apply() return self:Flash("cyan") and self:SetGlow(true) end
+
+-- Pulsing glow on the current livery: emissive intensity 1x..3x, mission-driven.
+function SXMaterials:SetGlow(enabled)
+    if enabled and not self.active then return false end
+    self.glow = enabled and true or false
+    if not enabled and self.tint then return self:_Glow(self.tint, 1) end
     return true
 end
 
 function SXMaterials:Pulse(elapsed)
-    if not self.active then return end
-    local strength = 0.10 + 0.10 * (0.5 + 0.5 * math.sin(elapsed * math.pi))
-    for _, variant in pairs(self.variants) do
-        local colors = { emissive = { r = 0.02, g = strength, b = strength * 1.5, a = 1 } }
-        if not self:_SetColors(variant.name, colors, true) then
-            self.active, self.status, self.detail = false, "FAIL", "emissive update refused"
-            self:Restore()
-            return
-        end
+    if not self.active or not self.glow then return end
+    local strength = 1 + 2 * (0.5 + 0.5 * math.sin(elapsed * math.pi * 1.5))
+    if not self:_Glow(self.tint, strength) then
+        self.active, self.status, self.detail = false, "FAIL", "emissive update refused"
+        self:Restore()
     end
-end
-
-function SXMaterials:Animate(enabled)
-    local all, count = true, 0
-    if enabled and not self.active then return false end
-    self.animatedNames = self.animatedNames or {}
-    local names = {}
-    if enabled then for _, variant in pairs(self.variants) do names[#names + 1] = variant.name end
-    else for name in pairs(self.animatedNames) do names[#names + 1] = name end end
-    for _, name in ipairs(names) do
-        local ok, result = Call(self.exu, "SetMaterialTextureScrollAnimation", name,
-            enabled and 0.03 or 0, enabled and 0.01 or 0, 0, 0, 0, GROUP)
-        all = ok and result == true and all
-        if ok and result == true then
-            count = count + 1
-            self.animatedNames[name] = enabled and true or nil
-        end
-    end
-    self.animated = next(self.animatedNames) ~= nil
-    -- Glass/untextured passes can refuse a texture-unit request. One real,
-    -- accepted clone texture is enough; only accepted units are later stopped.
-    if enabled then return count > 0 end
-    return all
 end
 
 function SXMaterials:Restore()
-    local animation = not self.animated or self:Animate(false)
-    self.active = false
+    local glow = true
+    if self.tint then glow = self:_Glow(self.tint, 1) end
+    self.active, self.glow, self.tint = false, false, nil
     if not self.changedBase then return true end
     -- Deleted fixtures have no assignments to restore. Still restore survivors.
     local a = not self.valid(self.changed) or self:_Assign(self.changed, self.changedBase)
     local b = not self.valid(self.control) or self:_Assign(self.control, self.controlBase)
-    self.restored = a and b and animation
+    self.restored = a and b and glow
     if not self.restored then self.status, self.detail = "FAIL", "baseline restoration incomplete" end
     return self.restored
 end

@@ -122,6 +122,18 @@ local function CurrentShot(scene)
     end
     return shot
 end
+-- Object-relative camera offsets; a shot's optional `to` offsets ease in over the
+-- shot (until the next shot or the scene end) for a slow push or drift.
+local function ShotOffsets(scene, shot)
+    local right, up, forward = shot.right or scene.right, shot.up or scene.up, shot.forward or scene.forward
+    if type(shot.to) ~= "table" then return right, up, forward end
+    local start, finish = shot.at or 0, scene.duration
+    for _, s in ipairs(scene.shots or {}) do if s.at > start and s.at < finish then finish = s.at end end
+    local t = math.max(0, math.min(1, ((director and director.elapsed or 0) - start) / math.max(0.1, finish - start)))
+    t = t * t * (3 - 2 * t)
+    local function lerp(a, b) return b and a and a + (b - a) * t or a end
+    return lerp(right, shot.to.right), lerp(up, shot.to.up), lerp(forward, shot.to.forward)
+end
 local function SceneTarget(scene)
     local h = handles[CurrentShot(scene).target or scene.target]
     return Alive(h) and h or (Alive(handles.changed) and handles.changed or GetPlayerHandle())
@@ -148,6 +160,7 @@ local function Initialize()
     director = Director.New(Scenes.List, {
         enter = function(scene)
             title, caption, activeShot = scene.title, scene.caption or "", nil
+            print("[SXSHOW] scene " .. scene.id .. " enter") -- Edit marker for recordings.
             exhibits:Begin(scene)
             if scene.camera == "gameplay" then CameraEnd(); return true end
             if type(CameraReady) ~= "function" or type(CameraPath) ~= "function"
@@ -173,19 +186,20 @@ local function Initialize()
             if scene.camera == "path" then
                 CameraPath(shot.path or scene.path, shot.height or scene.height, shot.speed or scene.speed, target)
             else
-                CameraObject(target, shot.right or scene.right, shot.up or scene.up, shot.forward or scene.forward, target)
+                local right, up, forward = ShotOffsets(scene, shot)
+                CameraObject(target, right, up, forward, target)
             end
         end,
         cue = function(scene, cue)
             if cue.caption then caption = cue.caption end
-            if cue.id == "service" then
-                if materials.ready then materials:Apply(); Record("materials", materials.status, materials.detail)
+            if cue.id == "flash" then
+                if materials.ready then materials:Flash(cue.color); Record("materials", materials.status, materials.detail)
                 else Record("materials", "BLOCKED", materials.detail) end
-                exhibits.message = "Material lab - cyan service variant; control twin unchanged"
-            elseif cue.id == "animate" then
-                local ok = materials:Animate(true)
-                Record("animation", ok and "PENDING" or "BLOCKED", "clone-owned UV scroll plus emissive pulse; observe shader output")
-                exhibits.message = "Material lab - scrolling texture and pulsing emissive color"
+                exhibits.message = "Material lab - hull livery " .. tostring(cue.color) .. "; control twin unchanged"
+            elseif cue.id == "glow" then
+                local ok = materials:SetGlow(true)
+                Record("animation", ok and "PENDING" or "BLOCKED", "script-driven emissive pulse on the live livery; observe")
+                exhibits.message = "Material lab - pulsing emissive glow"
             elseif cue.id == "baseline" then
                 local ok = materials:Restore()
                 Record("restore/materials", materials.ready and (ok and "PASS" or "FAIL") or "BLOCKED", "original subentity names")
@@ -268,7 +282,7 @@ function Update(dt)
     exhibits:Update(dt, CurrentScene())
     if clock >= pulseAt then
         local prior = materials.status
-        materials:Pulse(clock); pulseAt = clock + 0.10
+        materials:Pulse(clock); pulseAt = clock + 0.05
         if prior ~= materials.status then Record("materials", materials.status, materials.detail) end
     end
     if saveJob and clock >= saveJob.at then

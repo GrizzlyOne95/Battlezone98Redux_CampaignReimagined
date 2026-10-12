@@ -4461,7 +4461,7 @@ pathType = 00000000
 old_ptr = 00000032
 size [1] =
 11
-label = player_path
+label = dummy__path
 pointCount [1] =
 19
 points [19] =
@@ -4635,9 +4635,9 @@ pointCount [1] =
 1
 points [1] =
   x [1] =
-4138
+4146
   z [1] =
-99142
+99160
 pathType = 00000000
 [AiPath]
 old_ptr = 00000101
@@ -4648,12 +4648,38 @@ pointCount [1] =
 1
 points [1] =
   x [1] =
-4138
+4136
   z [1] =
-99166
+99160
 pathType = 00000000
 [AiPath]
 old_ptr = 00000102
+size [1] =
+11
+label = sx_mat_look
+pointCount [1] =
+1
+points [1] =
+  x [1] =
+4141
+  z [1] =
+99130
+pathType = 00000000
+[AiPath]
+old_ptr = 00000103
+size [1] =
+13
+label = sx_storm_look
+pointCount [1] =
+1
+points [1] =
+  x [1] =
+4075
+  z [1] =
+99150
+pathType = 00000000
+[AiPath]
+old_ptr = 00000104
 size [1] =
 9
 label = sx_convoy
@@ -4666,7 +4692,7 @@ points [1] =
 99230
 pathType = 00000000
 [AiPath]
-old_ptr = 00000103
+old_ptr = 00000105
 size [1] =
 17
 label = sx_weather_anchor
@@ -4679,7 +4705,7 @@ points [1] =
 98820
 pathType = 00000000
 [AiPath]
-old_ptr = 00000104
+old_ptr = 00000106
 size [1] =
 12
 label = sx_ai_anchor
@@ -4692,7 +4718,7 @@ points [1] =
 98720
 pathType = 00000000
 [AiPath]
-old_ptr = 00000105
+old_ptr = 00000107
 size [1] =
 15
 label = sx_break_anchor
@@ -4705,7 +4731,7 @@ points [1] =
 98600
 pathType = 00000000
 [AiPath]
-old_ptr = 00000106
+old_ptr = 00000108
 size [1] =
 16
 label = sx_filter_anchor
@@ -4718,7 +4744,7 @@ points [1] =
 98295
 pathType = 00000000
 [AiPath]
-old_ptr = 00000107
+old_ptr = 00000109
 size [1] =
 11
 label = sx_ai_stock
@@ -4731,7 +4757,7 @@ points [1] =
 98760
 pathType = 00000000
 [AiPath]
-old_ptr = 00000108
+old_ptr = 0000010A
 size [1] =
 11
 label = sx_ai_tuned
@@ -4744,7 +4770,7 @@ points [1] =
 98760
 pathType = 00000000
 [AiPath]
-old_ptr = 00000109
+old_ptr = 0000010B
 size [1] =
 14
 label = sx_ai_target_a
@@ -4757,7 +4783,7 @@ points [1] =
 98960
 pathType = 00000000
 [AiPath]
-old_ptr = 0000010A
+old_ptr = 0000010C
 size [1] =
 14
 label = sx_ai_target_b
@@ -4770,7 +4796,7 @@ points [1] =
 98960
 pathType = 00000000
 [AiPath]
-old_ptr = 0000010B
+old_ptr = 0000010D
 size [1] =
 10
 label = sx_break_1
@@ -4783,7 +4809,7 @@ points [1] =
 98470
 pathType = 00000000
 [AiPath]
-old_ptr = 0000010C
+old_ptr = 0000010E
 size [1] =
 10
 label = sx_break_2
@@ -4796,7 +4822,7 @@ points [1] =
 98490
 pathType = 00000000
 [AiPath]
-old_ptr = 0000010D
+old_ptr = 0000010F
 size [1] =
 10
 label = sx_break_3
@@ -4809,7 +4835,7 @@ points [1] =
 98510
 pathType = 00000000
 [AiPath]
-old_ptr = 0000010E
+old_ptr = 00000110
 size [1] =
 10
 label = sx_break_4
@@ -4822,7 +4848,7 @@ points [1] =
 98530
 pathType = 00000000
 [AiPath]
-old_ptr = 0000010F
+old_ptr = 00000111
 size [1] =
 10
 label = sx_break_5
@@ -4835,7 +4861,7 @@ points [1] =
 98550
 pathType = 00000000
 [AiPath]
-old_ptr = 00000110
+old_ptr = 00000112
 size [1] =
 10
 label = sx_break_6
@@ -4848,7 +4874,7 @@ points [1] =
 98570
 pathType = 00000000
 [AiPath]
-old_ptr = 00000111
+old_ptr = 00000113
 size [1] =
 10
 label = sx_break_7
@@ -4861,7 +4887,7 @@ points [1] =
 98590
 pathType = 00000000
 [AiPath]
-old_ptr = 00000112
+old_ptr = 00000114
 size [1] =
 10
 label = sx_break_8
@@ -4874,7 +4900,7 @@ points [1] =
 98610
 pathType = 00000000
 [AiPath]
-old_ptr = 00000113
+old_ptr = 00000115
 size [1] =
 10
 label = sx_break_9
@@ -4887,7 +4913,7 @@ points [1] =
 98630
 pathType = 00000000
 [AiPath]
-old_ptr = 00000114
+old_ptr = 00000116
 size [1] =
 11
 label = sx_break_10
@@ -4900,7 +4926,7 @@ points [1] =
 98650
 pathType = 00000000
 [AiPath]
-old_ptr = 00000115
+old_ptr = 00000117
 size [1] =
 11
 label = sx_break_b1
@@ -4913,7 +4939,7 @@ points [1] =
 98690
 pathType = 00000000
 [AiPath]
-old_ptr = 00000116
+old_ptr = 00000118
 size [1] =
 11
 label = sx_break_b2
@@ -4926,7 +4952,7 @@ points [1] =
 98725
 pathType = 00000000
 [AiPath]
-old_ptr = 00000117
+old_ptr = 00000119
 size [1] =
 11
 label = sx_break_b3
@@ -4939,7 +4965,7 @@ points [1] =
 98760
 pathType = 00000000
 [AiPath]
-old_ptr = 00000118
+old_ptr = 0000011A
 size [1] =
 13
 label = sx_break_look
@@ -4952,7 +4978,7 @@ points [1] =
 98880
 pathType = 00000000
 [AiPath]
-old_ptr = 00000119
+old_ptr = 0000011B
 size [1] =
 9
 label = sx_shield
@@ -4965,7 +4991,7 @@ points [1] =
 98235
 pathType = 00000000
 [AiPath]
-old_ptr = 0000011A
+old_ptr = 0000011C
 size [1] =
 15
 label = sx_shield_power
@@ -4978,7 +5004,7 @@ points [1] =
 98235
 pathType = 00000000
 [AiPath]
-old_ptr = 0000011B
+old_ptr = 0000011D
 size [1] =
 14
 label = sx_shield_ally
@@ -4991,7 +5017,7 @@ points [1] =
 98165
 pathType = 00000000
 [AiPath]
-old_ptr = 0000011C
+old_ptr = 0000011E
 size [1] =
 15
 label = sx_shield_enemy
@@ -5004,7 +5030,7 @@ points [1] =
 98135
 pathType = 00000000
 [AiPath]
-old_ptr = 0000011D
+old_ptr = 0000011F
 size [1] =
 9
 label = sx_magnet
@@ -5017,7 +5043,7 @@ points [1] =
 98235
 pathType = 00000000
 [AiPath]
-old_ptr = 0000011E
+old_ptr = 00000120
 size [1] =
 14
 label = sx_magnet_ally
@@ -5030,7 +5056,7 @@ points [1] =
 98165
 pathType = 00000000
 [AiPath]
-old_ptr = 0000011F
+old_ptr = 00000121
 size [1] =
 15
 label = sx_magnet_enemy
@@ -5043,7 +5069,7 @@ points [1] =
 98135
 pathType = 00000000
 [AiPath]
-old_ptr = 00000120
+old_ptr = 00000122
 size [1] =
 13
 label = sx_prox_enemy
@@ -5056,7 +5082,7 @@ points [1] =
 98375
 pathType = 00000000
 [AiPath]
-old_ptr = 00000121
+old_ptr = 00000123
 size [1] =
 10
 label = sx_pe_ally
@@ -5069,7 +5095,7 @@ points [1] =
 98325
 pathType = 00000000
 [AiPath]
-old_ptr = 00000122
+old_ptr = 00000124
 size [1] =
 11
 label = sx_pe_enemy
@@ -5082,7 +5108,7 @@ points [1] =
 98325
 pathType = 00000000
 [AiPath]
-old_ptr = 00000123
+old_ptr = 00000125
 size [1] =
 12
 label = sx_prox_ally
@@ -5095,7 +5121,7 @@ points [1] =
 98375
 pathType = 00000000
 [AiPath]
-old_ptr = 00000124
+old_ptr = 00000126
 size [1] =
 10
 label = sx_pa_ally
@@ -5108,7 +5134,7 @@ points [1] =
 98325
 pathType = 00000000
 [AiPath]
-old_ptr = 00000125
+old_ptr = 00000127
 size [1] =
 11
 label = sx_pa_enemy
@@ -5121,7 +5147,7 @@ points [1] =
 98325
 pathType = 00000000
 [AiPath]
-old_ptr = 00000126
+old_ptr = 00000128
 size [1] =
 8
 label = sx_radio
@@ -5134,7 +5160,7 @@ points [1] =
 98920
 pathType = 00000000
 [AiPath]
-old_ptr = 00000127
+old_ptr = 00000129
 size [1] =
 15
 label = sx_pe_ally_exit
@@ -5147,7 +5173,7 @@ points [1] =
 98425
 pathType = 00000000
 [AiPath]
-old_ptr = 00000128
+old_ptr = 0000012A
 size [1] =
 16
 label = sx_pa_enemy_exit
@@ -5160,7 +5186,7 @@ points [1] =
 98425
 pathType = 00000000
 [AiPath]
-old_ptr = 00000129
+old_ptr = 0000012B
 size [1] =
 9
 label = sx_arrive
@@ -5189,32 +5215,7 @@ points [5] =
 99180
 pathType = 00000000
 [AiPath]
-old_ptr = 0000012A
-size [1] =
-8
-label = sx_mat_a
-pointCount [1] =
-4
-points [4] =
-  x [1] =
-4156
-  z [1] =
-99134
-  x [1] =
-4152
-  z [1] =
-99146
-  x [1] =
-4152
-  z [1] =
-99162
-  x [1] =
-4156
-  z [1] =
-99178
-pathType = 00000000
-[AiPath]
-old_ptr = 0000012B
+old_ptr = 0000012C
 size [1] =
 15
 label = sx_convoy_route
@@ -5233,35 +5234,6 @@ points [3] =
 4158
   z [1] =
 99195
-pathType = 00000000
-[AiPath]
-old_ptr = 0000012C
-size [1] =
-10
-label = sx_weather
-pointCount [1] =
-5
-points [5] =
-  x [1] =
-4210
-  z [1] =
-98890
-  x [1] =
-4190
-  z [1] =
-98850
-  x [1] =
-4170
-  z [1] =
-98820
-  x [1] =
-4120
-  z [1] =
-98790
-  x [1] =
-4090
-  z [1] =
-98820
 pathType = 00000000
 [AiPath]
 old_ptr = 0000012D
