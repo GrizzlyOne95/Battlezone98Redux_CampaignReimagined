@@ -11,6 +11,17 @@ The [8 October native follow-up](LIVEWIRE_VALIDATION_20261008.md) records the
 destruction heap-crash fix, the current 6:40 tour, successful Enhanced runs and
 remaining trailer acceptance checks.
 
+**12 October trailer pass.** The tour is now 405 s (6:45). The material lab parks
+the scouts side by side under a close object camera and cuts the near hull through
+six authored liveries (`Materials/sxtint.material`: the tint lives in the emissive
+map, which is the only channel the Enhanced/CR object shaders show at lunar night;
+pass colors and texture-unit UV transforms never reached the screen), then pulses its
+glow. The weather bay runs the CRStormFX particle weather ported from ISDF Chronicles
+([port notes](CR_STORMFX_PORT.md)): rain with splashes, a storm with four ground
+strikes, snow, a dust storm and clearing, framed on the outpost, under an overcast
+dome that takes the fog colour so open space no longer shows above coloured fog.
+Host regression 119 checks, asset validator 358 checks.
+
 ## Film and feature coverage
 
 The runtime tracks **14 feature groups**. The design's earlier count of 13 grouped
@@ -19,8 +30,8 @@ autosave and options together; the implementation records them separately.
 | Film time | Chapter | Visible or audible showcase |
 | --- | --- | --- |
 | 0:00–0:25 | Arrival | Moving scout convoy, native camera path, custom title/status/telemetry overlay, native soundtrack |
-| 0:25–1:05 | Materials | Identical scouts: original control beside a cyan material clone, emissive pulse, texture UV scroll, then original assignments |
-| 1:05–2:00 | Environment | Clear baseline, warm light/haze, moving dust front and wind, clearing transition; live fog/particle/wind telemetry |
+| 0:25–1:05 | Materials | Identical scouts side by side: the near hull cuts through six authored liveries, holds with a script-driven glow pulse, then returns to its original assignment; the control twin never changes |
+| 1:05–2:05 | Environment | CRStormFX particle weather over the outpost: rain and splashes, storm with lightning strikes, snow, dust storm on live wind, clearing; overcast dome while weather is up |
 | 2:00–3:00 | AI arena | Two tanks attack separate durable targets; stock control beside V3 standoff/kiting/strafe, with V2/V1 fallback and actual range telemetry |
 | 3:00–3:35 | Destruction | Native damage kills a scout and a barracks; watch vehicle and building chunks with OpenShim chunks enabled |
 | 3:35–4:30 | Team filters | Allied/enemy crossings of an enemy-only shield and magnet, then protected/triggering waves through enemy-only and ally-only proximity mines |

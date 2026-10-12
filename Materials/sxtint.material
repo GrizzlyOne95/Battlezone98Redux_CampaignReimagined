@@ -1,0 +1,40 @@
+// Operation Livewire material lab: full-hull livery flashes for the avfigh scout.
+// The tint lives in the emissive map so it reads at night and in every scheme;
+// mission script swaps the hull subentity (avfigh00) between these at runtime.
+import * from "avfigh.material"
+
+material SX_tint_red : avfigh00
+{
+	set_texture_alias EmissiveMap sxtint_red.png
+	set $diffuse "1 0.35 0.3"
+}
+
+material SX_tint_gold : avfigh00
+{
+	set_texture_alias EmissiveMap sxtint_gold.png
+	set $diffuse "1 0.85 0.3"
+}
+
+material SX_tint_green : avfigh00
+{
+	set_texture_alias EmissiveMap sxtint_green.png
+	set $diffuse "0.4 1 0.45"
+}
+
+material SX_tint_cyan : avfigh00
+{
+	set_texture_alias EmissiveMap sxtint_cyan.png
+	set $diffuse "0.3 0.9 1"
+}
+
+material SX_tint_blue : avfigh00
+{
+	set_texture_alias EmissiveMap sxtint_blue.png
+	set $diffuse "0.4 0.5 1"
+}
+
+material SX_tint_magenta : avfigh00
+{
+	set_texture_alias EmissiveMap sxtint_magenta.png
+	set $diffuse "1 0.35 0.9"
+}

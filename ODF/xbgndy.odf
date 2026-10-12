@@ -1,0 +1,97 @@
+[ExplosionClass]
+classLabel = "explosion"
+explSound = ""
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 5
+
+particleClass1 = "xbgndy.flash"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+particleBias1 = "0.0 0.0 0.0"
+
+particleClass2 = "xbgndy.scorch"
+particleCount2 = 1
+particleVeloc2 = "0.0 0.0 0.0"
+particleBias2 = "0.0 0.0 0.0"
+
+particleClass3 = "xbgndy.sparks"
+particleCount3 = 8
+particleVeloc3 = "18.0 30.0 18.0"
+particleBias3 = "0.0 12.0 0.0"
+
+particleClass4 = "xbgndy.steam"
+particleCount4 = 3
+particleVeloc4 = "2.0 2.0 2.0"
+particleBias4 = "0.0 3.0 0.0"
+
+particleClass5 = "xbgndy.light"
+particleCount5 = 1
+particleVeloc5 = "0.0 0.0 0.0"
+particleBias5 = "0.0 0.0 0.0"
+
+[Flash]
+simulateBase = "sim_null"
+lifeTime = 0.25
+renderBase = "draw_sprite"
+textureName = "lightflare.tga"
+startColor = "700 620 420 600"
+finishColor = "255 255 255 0"
+startRadius = 8
+finishRadius = 40
+animateTime = 0.25
+rotationRate = 0.0
+
+[Scorch]
+simulateBase = "sim_null"
+lifeTime = 8.0
+renderBase = "draw_planar"
+textureName = "grndchar.tga"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 0"
+startRadius = 7
+finishRadius = 9
+animateTime = 8.0
+
+[Sparks]
+simulateBase = "sim_ember"
+lifeTime = 1.2
+renderBase = "draw_trail"
+textureName = "spark2.tga"
+startColor = "700 620 420 600"
+finishColor = "255 255 255 0"
+startRadius = 0.15
+finishRadius = 0.0
+animateTime = 1.2
+segmentTime = 0.08
+textureRate = 0.3
+
+[Steam]
+simulateBase = "sim_smoke"
+lifeTime = 3.0
+renderBase = "draw_sprite"
+textureName = "smokeb2.tga"
+startColor = "200 200 210 90"
+finishColor = "160 160 170 0"
+startRadius = 3
+finishRadius = 12
+animateTime = 3.0
+rotationRate = 0.4
+
+[Light]
+simulateBase = "sim_null"
+lifeTime = 0.6
+renderBase = "draw_light"
+startColor = "255 225 160 900"
+finishColor = "0 0 0 0"
+startRadius = 250
+finishRadius = 80
+animateTime = 0.6
+attenuateConstant = 1.0
+attenuateLinear = 0.0
+attenuateQuadratic = 0.0
+

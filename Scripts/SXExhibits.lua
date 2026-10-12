@@ -101,6 +101,20 @@ function SXExhibits:RestoreMusic()
     return all
 end
 
+-- Weather bay: the CRStormFX particle weather (ported from ISDF Chronicles) is the
+-- single fog/light writer while the bay runs. The Moon's own fog is black, so each
+-- phase eases toward its own fog/ambient colour, and an overcast dome hides open
+-- space while weather is up; the dome takes the fog colour at its distance.
+SXExhibits.WeatherPhases = {
+    rain = { fog = { r = 0.30, g = 0.33, b = 0.38 }, amb = { r = 0.30, g = 0.31, b = 0.35 } },
+    storm = { fog = { r = 0.22, g = 0.24, b = 0.29 }, amb = { r = 0.24, g = 0.25, b = 0.29 } },
+    snow = { fog = { r = 0.66, g = 0.69, b = 0.74 }, amb = { r = 0.52, g = 0.54, b = 0.58 },
+        precip = "snow", level = 1.0, wind = { 0.6, 0.3, 4 }, fogScale = 0.55, light = 0.95 },
+    dust = { fog = { r = 0.62, g = 0.40, b = 0.22 }, amb = { r = 0.46, g = 0.32, b = 0.20 },
+        precip = "dust", level = 1.0, wind = { 1.0, 0.15, 26 }, fogScale = 0.42, light = 0.80 },
+}
+SXExhibits.StormSky = { material = "CR_Sky/MarsStorm", curvature = 10, tiling = 8, distance = 4000 }
+
 function SXExhibits:WeatherStart()
     if not self:Has("GetFog", "SetFog", "GetAmbientLight", "SetAmbientLight", "GetSunDiffuse", "SetSunDiffuse") then
         self:Record("environment", "BLOCKED", "native fog/light APIs unavailable")
@@ -119,36 +133,97 @@ function SXExhibits:WeatherStart()
         self.state:Discard("weather") -- The controller has not written anything.
         self:Record("environment", "BLOCKED", "scene light baseline not ready"); return
     end
-    local ok, weather = pcall(require, "CRWeather")
-    if not ok or type(weather) ~= "table" then
+    local ok, storm = pcall(require, "CRStormFX")
+    if not ok or type(storm) ~= "table" then
         self.state:Discard("weather")
-        self:Record("environment", "BLOCKED", "campaign weather controller unavailable"); return
+        self:Record("environment", "BLOCKED", "CRStormFX weather unavailable"); return
     end
-    self.weather = weather
-    local started, errorText = pcall(function()
-        weather.Init({ enabled = true, quality = 0.45, fogHorizon = 250 })
-        local presets = require("CRWeatherPresets")
-        local warm = State.Copy(presets.Presets.Clear)
-        warm.name, warm.sky = "SXLivewireWarm", nil
-        warm.fog = { r = 0.45, g = 0.28, b = 0.18, fogStart = 130, fogEnd = 250 }
-        warm.ambient = { r = 0.28, g = 0.15, b = 0.08 }
-        warm.diffuse = { r = 0.90, g = 0.47, b = 0.20 }
-        warm.sunPowerScale = 0.85
-        presets.Presets.SXLivewireWarm = warm
-        weather.SetPreset(nil, 0)
-    end)
-    if not started then
-        self:Record("environment", "BLOCKED", tostring(errorText)); self:WeatherEnd(); return
+    local loaded, templates = pcall(function() return require("CRParticleTemplates").Ensure() end)
+    templates = loaded and templates == true
+    self.storm, self.weatherPhase, self.weatherTint, self.weatherClock = storm, "clear", nil, 0
+    self.skyWasOn = self:Read("GetSkyDomeEnabled")
+    self:Record("environment", templates and "PENDING" or "BLOCKED",
+        templates and "particle rain/snow/dust, splashes, lightning; single weather writer"
+        or "particle templates unavailable; fog/light only")
+end
+
+function SXExhibits:WeatherSky(on)
+    if on and not self.skyOn and self:Has("SetSkyDome") then
+        local sky = SXExhibits.StormSky
+        local ok, result = self:Call("SetSkyDome", sky.material, sky.curvature, sky.tiling, sky.distance, true)
+        self.skyOn = ok and result ~= false
+    elseif not on and self.skyOn then
+        if self.skyWasOn ~= true then self:Call("SetSkyDomeEnabled", false) end
+        self.skyOn = false
     end
-    self:Record("environment", "PENDING", "single weather writer; warm light, dust, and baseline return")
+end
+
+function SXExhibits:WeatherPhase(phase)
+    local storm = self.storm
+    if not storm then return end
+    if phase == "rain" or phase == "storm" then
+        self:WeatherSky(true)
+        if not storm.GetWeather() then storm.StartDynamicWeather(nil, { start = { drizzle = 1 }, hold = { 900, 900 } }) end
+        storm.SetWeather(phase, phase == "rain" and 6 or 5)
+        self.message = phase == "rain" and "Weather - particle rain, splashes, wet light" or "Weather - storm with lightning strikes"
+    elseif phase == "snow" or phase == "dust" then
+        -- Leave the rain director; its Shutdown also ends the rain sound and splashes.
+        if storm.GetWeather() then pcall(storm.Shutdown) end
+        self:WeatherSky(true)
+        local w = SXExhibits.WeatherPhases[phase].wind
+        storm.Wind(w[1], w[2], w[3])
+        self.message = "Weather - " .. phase .. " driven live"
+    elseif phase == "clear" then
+        local prior = SXExhibits.WeatherPhases[self.weatherPhase]
+        self.fadePrecip = prior and prior.precip
+        self.message = "Weather - clearing to the captured baseline"
+    else return end
+    self.weatherPhase, self.weatherClock = phase, 0
+end
+
+function SXExhibits:WeatherTick(dt)
+    local storm = self.storm
+    local phase = SXExhibits.WeatherPhases[self.weatherPhase]
+    self.weatherClock = (self.weatherClock or 0) + dt
+    -- Ease the colour toward the phase, or back to the captured base when clearing.
+    local base = storm.BaseEnvironment()
+    local goal = phase or (base and { fog = base.fog, amb = base.amb })
+    if goal and goal.fog and (phase or self.weatherTint) then
+        local tint = self.weatherTint or { fog = base and base.fog or goal.fog, amb = base and base.amb or goal.amb }
+        local k = math.min(1, dt / 3.5)
+        local function ease(a, b)
+            if not b then return a end
+            a = a or b
+            return { r = a.r + (b.r - a.r) * k, g = a.g + (b.g - a.g) * k, b = a.b + (b.b - a.b) * k }
+        end
+        self.weatherTint = { fog = ease(tint.fog, goal.fog), amb = ease(tint.amb, goal.amb) }
+        storm.SetTint(self.weatherTint.fog, self.weatherTint.amb)
+    end
+    if phase and phase.precip then
+        local ramp = math.min(1, self.weatherClock / 4)
+        storm.Precip(phase.precip, phase.level * ramp)
+        storm.Atmosphere(1 + (phase.fogScale - 1) * ramp, 1 + (phase.light - 1) * ramp)
+    elseif self.weatherPhase == "clear" then
+        if self.fadePrecip then storm.Precip(self.fadePrecip, math.max(0, 1 - self.weatherClock / 3)) end
+        if storm.GetWeather() then
+            if not self.clearing then storm.SetWeather("clear", 4); self.clearing = true end
+        else
+            local fade = math.max(0, 1 - self.weatherClock / 4)
+            storm.Atmosphere(1 - 0.45 * fade, 1 - 0.15 * fade)
+        end
+        if self.weatherClock > 2 then self:WeatherSky(false) end
+    end
+    storm.Update()
 end
 
 function SXExhibits:WeatherEnd()
     local all = true
-    if self.weather then
-        all = pcall(self.weather.Shutdown)
-        if all then self.weather = nil end
+    if self.storm then
+        all = pcall(self.storm.Shutdown)
+        if all then self.storm = nil end
     end
+    self:WeatherSky(false)
+    self.weatherPhase, self.weatherTint, self.clearing, self.fadePrecip = nil, nil, nil, nil
     local restored = self.state:Restore("weather")
     return all and restored
 end
@@ -394,14 +469,8 @@ function SXExhibits:Cue(scene, cue)
     if id == "music-start" or id == "music-restart" then self:MusicStart()
     elseif id:match("^music%-") then self:MusicAction(id)
     elseif id == "weather-start" then self:WeatherStart()
-    elseif id == "weather-warm" and self.weather then
-        self.weather.SetPreset("SXLivewireWarm", 6); self.message = "Atmosphere - warm light and haze"
-    elseif id == "weather-storm" and self.weather then
-        self.weather.SetPreset("MarsDustStorm", 8)
-        self.weather.SetIntensity(0.75); self.weather.SetWindOverride({ x = 0.85, y = -0.05, z = 0.30 }, 8)
-        self.message = "Atmosphere - camera-following dust front"
-    elseif id == "weather-clear" and self.weather then
-        self.weather.SetPreset(nil, 8); self.message = "Atmosphere - clearing to the captured baseline"
+    elseif id == "weather-strike" and self.storm then self.storm.StrikeNow(cue.cloud == true)
+    elseif id:match("^weather%-") and self.storm then self:WeatherPhase(id:sub(9))
     elseif id:match("^ai%-") then self:AIAction(id)
     elseif id == "break" then
         local key = cue.key
@@ -436,20 +505,18 @@ function SXExhibits:Cue(scene, cue)
 end
 
 function SXExhibits:Update(dt, scene)
-    if self.weather then
-        local ok, err = pcall(self.weather.Update, dt)
+    if self.storm then
+        local ok, err = pcall(self.WeatherTick, self, dt)
         if not ok then self:Record("environment", "FAIL", err); self:WeatherEnd() end
     end
     if self.musicBase then self:Call("UpdateMusic", dt) end
     if self.commandRegistered then self:Call("UpdateCommandReplacements") end
     if not scene then self.telemetry = self:PlayerTelemetry(); return end
-    if scene.id == "environment" and self.weather then
+    if scene.id == "environment" and self.storm then
         local fog = self:Read("GetFog")
-        local systems = 0
-        for _ in pairs(self.weather.LiveSystems or {}) do systems = systems + 1 end
-        self.telemetry = string.format("Weather %s | particle systems %d | fog end %.0fm | wind %.1f",
-            self.weather.GetPreset(), systems, type(fog) == "table" and (fog.ending or fog.fogEnd or 0) or 0,
-            self.weather.GetWindSpeed())
+        self.telemetry = string.format("Weather %s | rain %.2f | fog end %.0fm | dome %s", tostring(self.weatherPhase),
+            self.storm.GetRainIntensity() or 0, type(fog) == "table" and (fog.ending or fog.fogEnd or 0) or 0,
+            self.skyOn and "on" or "off")
     elseif scene.id == "ai" then
         local function Range(a, b)
             return self.api.alive(self:Handle(a)) and self.api.alive(self:Handle(b)) and GetDistance(self:Handle(a), self:Handle(b)) or 0

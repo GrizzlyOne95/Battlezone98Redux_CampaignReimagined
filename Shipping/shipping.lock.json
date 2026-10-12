@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-11T12:02:28-05:00",
-  "count": 2237,
+  "generated": "2026-10-12T08:49:19-05:00",
+  "count": 2318,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -16,16 +16,16 @@
       "runtime": "bio.png"
     },
     {
+      "source": "Assets\\Graphics\\campaignReimagined.jpg",
+      "runtime": "campaignReimagined.jpg"
+    },
+    {
       "source": "Assets\\Graphics\\crcampgn.bmp",
       "runtime": "crcampgn.bmp"
     },
     {
       "source": "Assets\\Graphics\\crsetup.bmp",
       "runtime": "crsetup.bmp"
-    },
-    {
-      "source": "Assets\\Graphics\\campaignReimagined.jpg",
-      "runtime": "campaignReimagined.jpg"
     },
     {
       "source": "Assets\\Graphics\\misn02b.bmp",
@@ -184,6 +184,38 @@
       "runtime": "svwalk_c.skeleton"
     },
     {
+      "source": "Assets\\Sounds\\atlas.wav",
+      "runtime": "atlas.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\erain01.wav",
+      "runtime": "erain01.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\erain02.wav",
+      "runtime": "erain02.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\thund02.wav",
+      "runtime": "thund02.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\thunder.wav",
+      "runtime": "thunder.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\xlitblt1.wav",
+      "runtime": "xlitblt1.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\xlitblt2.wav",
+      "runtime": "xlitblt2.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\xlitblt3.wav",
+      "runtime": "xlitblt3.wav"
+    },
+    {
       "source": "Assets\\Textures\\abstor_d.dds",
       "runtime": "abstor_d.dds"
     },
@@ -292,12 +324,100 @@
       "runtime": "crgrass.png"
     },
     {
+      "source": "Assets\\Textures\\crwx_bootprint.png",
+      "runtime": "crwx_bootprint.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_fx_glow.png",
+      "runtime": "crwx_fx_glow.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_precip_flake.png",
+      "runtime": "crwx_precip_flake.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_precip_mist.png",
+      "runtime": "crwx_precip_mist.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_precip_mote.png",
+      "runtime": "crwx_precip_mote.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_precip_streak.png",
+      "runtime": "crwx_precip_streak.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_splash_ripple.png",
+      "runtime": "crwx_splash_ripple.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_wsplat.dds",
+      "runtime": "crwx_wsplat.dds"
+    },
+    {
+      "source": "Assets\\Textures\\lbolt.dds",
+      "runtime": "lbolt.dds"
+    },
+    {
+      "source": "Assets\\Textures\\lbolt2.dds",
+      "runtime": "lbolt2.dds"
+    },
+    {
+      "source": "Assets\\Textures\\lbolt3.dds",
+      "runtime": "lbolt3.dds"
+    },
+    {
+      "source": "Assets\\Textures\\lbolt4.dds",
+      "runtime": "lbolt4.dds"
+    },
+    {
       "source": "Assets\\Textures\\LoadingScreenBlank.png",
       "runtime": "LoadingScreenBlank.png"
     },
     {
+      "source": "Assets\\Textures\\raintoxc_mask.dds",
+      "runtime": "raintoxc_mask.dds"
+    },
+    {
+      "source": "Assets\\Textures\\raintoxc.dds",
+      "runtime": "raintoxc.dds"
+    },
+    {
+      "source": "Assets\\Textures\\smoke2.dds",
+      "runtime": "smoke2.dds"
+    },
+    {
+      "source": "Assets\\Textures\\spark2.dds",
+      "runtime": "spark2.dds"
+    },
+    {
       "source": "Assets\\Textures\\svheadlight00_d.dds",
       "runtime": "svheadlight00_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sxtint_blue.png",
+      "runtime": "sxtint_blue.png"
+    },
+    {
+      "source": "Assets\\Textures\\sxtint_cyan.png",
+      "runtime": "sxtint_cyan.png"
+    },
+    {
+      "source": "Assets\\Textures\\sxtint_gold.png",
+      "runtime": "sxtint_gold.png"
+    },
+    {
+      "source": "Assets\\Textures\\sxtint_green.png",
+      "runtime": "sxtint_green.png"
+    },
+    {
+      "source": "Assets\\Textures\\sxtint_magenta.png",
+      "runtime": "sxtint_magenta.png"
+    },
+    {
+      "source": "Assets\\Textures\\sxtint_red.png",
+      "runtime": "sxtint_red.png"
     },
     {
       "source": "Assets\\Textures\\ubtart00.dds",
@@ -306,6 +426,22 @@
     {
       "source": "Assets\\Textures\\white.png",
       "runtime": "white.png"
+    },
+    {
+      "source": "Assets\\Textures\\xrain.dds",
+      "runtime": "xrain.dds"
+    },
+    {
+      "source": "Assets\\Textures\\xraindr.png",
+      "runtime": "xraindr.png"
+    },
+    {
+      "source": "Assets\\Textures\\xrainmask.dds",
+      "runtime": "xrainmask.dds"
+    },
+    {
+      "source": "Assets\\Textures\\xrainsp.png",
+      "runtime": "xrainsp.png"
     },
     {
       "source": "Bin\\bzfile_replace_helper.exe",
@@ -332,6 +468,58 @@
       "runtime": "winmm.dll"
     },
     {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_career_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_career_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_category_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_category_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_hub_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_hub_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_ck.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_ck.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_hv.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_hv.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_keys_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_keys_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_ck.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_ck.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_hv.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_hv.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_ck.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_ck.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_hv.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_hv.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_ck.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_ck.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_hv.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_hv.png"
+    },
+    {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uibtn.png",
       "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uibtn.png"
     },
@@ -346,6 +534,18 @@
     {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png",
       "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png"
+    },
+    {
+      "source": "Config\\crcampgn.ini",
+      "runtime": "crcampgn.ini"
+    },
+    {
+      "source": "Config\\crsetup.ini",
+      "runtime": "crsetup.ini"
+    },
+    {
+      "source": "Config\\durations.csv",
+      "runtime": "durations.csv"
     },
     {
       "source": "Config\\misn02b.ini",
@@ -364,20 +564,12 @@
       "runtime": "misn05.ini"
     },
     {
+      "source": "Config\\sxshow.ini",
+      "runtime": "sxshow.ini"
+    },
+    {
       "source": "crcampgn.des",
       "runtime": "crcampgn.des"
-    },
-    {
-      "source": "Config\\crcampgn.ini",
-      "runtime": "crcampgn.ini"
-    },
-    {
-      "source": "Config\\crsetup.ini",
-      "runtime": "crsetup.ini"
-    },
-    {
-      "source": "Config\\durations.csv",
-      "runtime": "durations.csv"
     },
     {
       "source": "crsetfl.des",
@@ -1720,6 +1912,10 @@
       "runtime": "achilles.material"
     },
     {
+      "source": "Materials\\acidrain.material",
+      "runtime": "acidrain.material"
+    },
+    {
       "source": "Materials\\acloud.material",
       "runtime": "acloud.material"
     },
@@ -2120,6 +2316,14 @@
       "runtime": "crgrass.material"
     },
     {
+      "source": "Materials\\crwx_precip.material",
+      "runtime": "crwx_precip.material"
+    },
+    {
+      "source": "Materials\\crwx_precip.particle.payload",
+      "runtime": "crwx_precip.particle.payload"
+    },
+    {
       "source": "Materials\\cspilo.material",
       "runtime": "cspilo.material"
     },
@@ -2348,6 +2552,22 @@
       "runtime": "jupiter.material"
     },
     {
+      "source": "Materials\\lbolt.material",
+      "runtime": "lbolt.material"
+    },
+    {
+      "source": "Materials\\lbolt2.material",
+      "runtime": "lbolt2.material"
+    },
+    {
+      "source": "Materials\\lbolt3.material",
+      "runtime": "lbolt3.material"
+    },
+    {
+      "source": "Materials\\lbolt4.material",
+      "runtime": "lbolt4.material"
+    },
+    {
       "source": "Materials\\ma_detail_atlas.material",
       "runtime": "ma_detail_atlas.material"
     },
@@ -2552,8 +2772,16 @@
       "runtime": "smoke.material"
     },
     {
+      "source": "Materials\\smokeb2.material",
+      "runtime": "smokeb2.material"
+    },
+    {
       "source": "Materials\\solidblack.material",
       "runtime": "solidblack.material"
+    },
+    {
+      "source": "Materials\\spark2.material",
+      "runtime": "spark2.material"
     },
     {
       "source": "Materials\\sprites.material",
@@ -2644,6 +2872,10 @@
       "runtime": "svwalk.material"
     },
     {
+      "source": "Materials\\sxtint.material",
+      "runtime": "sxtint.material"
+    },
+    {
       "source": "Materials\\TestGround.material",
       "runtime": "TestGround.material"
     },
@@ -2672,8 +2904,24 @@
       "runtime": "weather_particles.particle.payload"
     },
     {
+      "source": "Materials\\wsplat.material",
+      "runtime": "wsplat.material"
+    },
+    {
       "source": "Materials\\xbio.material",
       "runtime": "xbio.material"
+    },
+    {
+      "source": "Materials\\xrain.material",
+      "runtime": "xrain.material"
+    },
+    {
+      "source": "Materials\\xraindr.material",
+      "runtime": "xraindr.material"
+    },
+    {
+      "source": "Materials\\xrainsp.material",
+      "runtime": "xrainsp.material"
     },
     {
       "source": "misn02b.des",
@@ -2744,6 +2992,10 @@
       "runtime": "misn02b.trn"
     },
     {
+      "source": "Missions\\misn02b.vxt",
+      "runtime": "misn02b.vxt"
+    },
+    {
       "source": "Missions\\misn03.bzn",
       "runtime": "misn03.bzn"
     },
@@ -2764,16 +3016,8 @@
       "runtime": "misn03.trn"
     },
     {
-      "source": "Missions\\misn02b.vxt",
-      "runtime": "misn02b.vxt"
-    },
-    {
       "source": "Missions\\misn03.vxt",
       "runtime": "misn03.vxt"
-    },
-    {
-      "source": "Missions\\misn04.vxt",
-      "runtime": "misn04.vxt"
     },
     {
       "source": "Missions\\misn04.bzn",
@@ -2796,6 +3040,10 @@
       "runtime": "misn04.trn"
     },
     {
+      "source": "Missions\\misn04.vxt",
+      "runtime": "misn04.vxt"
+    },
+    {
       "source": "Missions\\misn05.bzn",
       "runtime": "misn05.bzn"
     },
@@ -2806,6 +3054,10 @@
     {
       "source": "Missions\\misn05.vxt",
       "runtime": "misn05.vxt"
+    },
+    {
+      "source": "Missions\\sxshow.bzn",
+      "runtime": "sxshow.bzn"
     },
     {
       "source": "nocopy.des",
@@ -4884,8 +5136,28 @@
       "runtime": "svwatm.odf"
     },
     {
+      "source": "ODF\\sxanchor.odf",
+      "runtime": "sxanchor.odf"
+    },
+    {
       "source": "ODF\\sxgasxpl.odf",
       "runtime": "sxgasxpl.odf"
+    },
+    {
+      "source": "ODF\\sxmag.odf",
+      "runtime": "sxmag.odf"
+    },
+    {
+      "source": "ODF\\sxproxa.odf",
+      "runtime": "sxproxa.odf"
+    },
+    {
+      "source": "ODF\\sxproxe.odf",
+      "runtime": "sxproxe.odf"
+    },
+    {
+      "source": "ODF\\sxshield.odf",
+      "runtime": "sxshield.odf"
     },
     {
       "source": "ODF\\tsmkdep.odf",
@@ -4908,8 +5180,64 @@
       "runtime": "tsmkxpl.odf"
     },
     {
+      "source": "ODF\\xbgndw.odf",
+      "runtime": "xbgndw.odf"
+    },
+    {
+      "source": "ODF\\xbgndwl.odf",
+      "runtime": "xbgndwl.odf"
+    },
+    {
+      "source": "ODF\\xbgndy.odf",
+      "runtime": "xbgndy.odf"
+    },
+    {
+      "source": "ODF\\xbgndyl.odf",
+      "runtime": "xbgndyl.odf"
+    },
+    {
       "source": "ODF\\xbio.odf",
       "runtime": "xbio.odf"
+    },
+    {
+      "source": "ODF\\xboltw1.odf",
+      "runtime": "xboltw1.odf"
+    },
+    {
+      "source": "ODF\\xboltw2.odf",
+      "runtime": "xboltw2.odf"
+    },
+    {
+      "source": "ODF\\xboltw3.odf",
+      "runtime": "xboltw3.odf"
+    },
+    {
+      "source": "ODF\\xboltw4.odf",
+      "runtime": "xboltw4.odf"
+    },
+    {
+      "source": "ODF\\xbolty1.odf",
+      "runtime": "xbolty1.odf"
+    },
+    {
+      "source": "ODF\\xbolty2.odf",
+      "runtime": "xbolty2.odf"
+    },
+    {
+      "source": "ODF\\xbolty3.odf",
+      "runtime": "xbolty3.odf"
+    },
+    {
+      "source": "ODF\\xbolty4.odf",
+      "runtime": "xbolty4.odf"
+    },
+    {
+      "source": "ODF\\xbskyw.odf",
+      "runtime": "xbskyw.odf"
+    },
+    {
+      "source": "ODF\\xbskyy.odf",
+      "runtime": "xbskyy.odf"
     },
     {
       "source": "ODF\\xgasgnd.odf",
@@ -4918,6 +5246,46 @@
     {
       "source": "ODF\\xgasxpl.odf",
       "runtime": "xgasxpl.odf"
+    },
+    {
+      "source": "ODF\\xlitbl1h.odf",
+      "runtime": "xlitbl1h.odf"
+    },
+    {
+      "source": "ODF\\xlitbl2h.odf",
+      "runtime": "xlitbl2h.odf"
+    },
+    {
+      "source": "ODF\\xlitbl4h.odf",
+      "runtime": "xlitbl4h.odf"
+    },
+    {
+      "source": "ODF\\xpuddle.odf",
+      "runtime": "xpuddle.odf"
+    },
+    {
+      "source": "ODF\\xrain.odf",
+      "runtime": "xrain.odf"
+    },
+    {
+      "source": "ODF\\xraina.odf",
+      "runtime": "xraina.odf"
+    },
+    {
+      "source": "ODF\\xraindr.odf",
+      "runtime": "xraindr.odf"
+    },
+    {
+      "source": "ODF\\xraindra.odf",
+      "runtime": "xraindra.odf"
+    },
+    {
+      "source": "ODF\\xrainsp.odf",
+      "runtime": "xrainsp.odf"
+    },
+    {
+      "source": "ODF\\xrainspa.odf",
+      "runtime": "xrainspa.odf"
     },
     {
       "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl",
@@ -5052,8 +5420,96 @@
       "runtime": "AutoSave.lua"
     },
     {
+      "source": "Scripts\\bd01.lua",
+      "runtime": "bd01.lua"
+    },
+    {
+      "source": "Scripts\\bd02.lua",
+      "runtime": "bd02.lua"
+    },
+    {
+      "source": "Scripts\\bd03.lua",
+      "runtime": "bd03.lua"
+    },
+    {
+      "source": "Scripts\\bd04.lua",
+      "runtime": "bd04.lua"
+    },
+    {
+      "source": "Scripts\\bd05.lua",
+      "runtime": "bd05.lua"
+    },
+    {
+      "source": "Scripts\\bd06.lua",
+      "runtime": "bd06.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn07.lua",
+      "runtime": "bdmisn07.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn08.lua",
+      "runtime": "bdmisn08.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn09.lua",
+      "runtime": "bdmisn09.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn10.lua",
+      "runtime": "bdmisn10.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn11.lua",
+      "runtime": "bdmisn11.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn12.lua",
+      "runtime": "bdmisn12.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn13.lua",
+      "runtime": "bdmisn13.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn14.lua",
+      "runtime": "bdmisn14.lua"
+    },
+    {
+      "source": "Scripts\\bdmisn15.lua",
+      "runtime": "bdmisn15.lua"
+    },
+    {
       "source": "Scripts\\CareerStats.lua",
       "runtime": "CareerStats.lua"
+    },
+    {
+      "source": "Scripts\\ch01.lua",
+      "runtime": "ch01.lua"
+    },
+    {
+      "source": "Scripts\\ch02.lua",
+      "runtime": "ch02.lua"
+    },
+    {
+      "source": "Scripts\\ch03.lua",
+      "runtime": "ch03.lua"
+    },
+    {
+      "source": "Scripts\\ch04.lua",
+      "runtime": "ch04.lua"
+    },
+    {
+      "source": "Scripts\\ch05.lua",
+      "runtime": "ch05.lua"
+    },
+    {
+      "source": "Scripts\\ch06.lua",
+      "runtime": "ch06.lua"
+    },
+    {
+      "source": "Scripts\\ch07.lua",
+      "runtime": "ch07.lua"
     },
     {
       "source": "Scripts\\ConservativeCulling.lua",
@@ -5080,12 +5536,20 @@
       "runtime": "CRCoopRespawn.lua"
     },
     {
+      "source": "Scripts\\CRGroundFX.lua",
+      "runtime": "CRGroundFX.lua"
+    },
+    {
       "source": "Scripts\\CRMarsWeather.lua",
       "runtime": "CRMarsWeather.lua"
     },
     {
       "source": "Scripts\\CRParticleTemplates.lua",
       "runtime": "CRParticleTemplates.lua"
+    },
+    {
+      "source": "Scripts\\CRPrecip.lua",
+      "runtime": "CRPrecip.lua"
     },
     {
       "source": "Scripts\\CRReactive.lua",
@@ -5100,6 +5564,14 @@
       "runtime": "crsetup.lua"
     },
     {
+      "source": "Scripts\\CRSplash.lua",
+      "runtime": "CRSplash.lua"
+    },
+    {
+      "source": "Scripts\\CRStormFX.lua",
+      "runtime": "CRStormFX.lua"
+    },
+    {
       "source": "Scripts\\CRWeather.lua",
       "runtime": "CRWeather.lua"
     },
@@ -5112,12 +5584,20 @@
       "runtime": "Culling.lua"
     },
     {
+      "source": "Scripts\\demo01.lua",
+      "runtime": "demo01.lua"
+    },
+    {
       "source": "Scripts\\DiffUtils.lua",
       "runtime": "DiffUtils.lua"
     },
     {
       "source": "Scripts\\Environment.lua",
       "runtime": "Environment.lua"
+    },
+    {
+      "source": "Scripts\\evolve.lua",
+      "runtime": "evolve.lua"
     },
     {
       "source": "Scripts\\LavaEffects.lua",
@@ -5154,6 +5634,90 @@
     {
       "source": "Scripts\\misn05.lua",
       "runtime": "misn05.lua"
+    },
+    {
+      "source": "Scripts\\misn06.lua",
+      "runtime": "misn06.lua"
+    },
+    {
+      "source": "Scripts\\misn07.lua",
+      "runtime": "misn07.lua"
+    },
+    {
+      "source": "Scripts\\misn08.lua",
+      "runtime": "misn08.lua"
+    },
+    {
+      "source": "Scripts\\misn09.lua",
+      "runtime": "misn09.lua"
+    },
+    {
+      "source": "Scripts\\misn10.lua",
+      "runtime": "misn10.lua"
+    },
+    {
+      "source": "Scripts\\misn11.lua",
+      "runtime": "misn11.lua"
+    },
+    {
+      "source": "Scripts\\misn12.lua",
+      "runtime": "misn12.lua"
+    },
+    {
+      "source": "Scripts\\misn13.lua",
+      "runtime": "misn13.lua"
+    },
+    {
+      "source": "Scripts\\misn14.lua",
+      "runtime": "misn14.lua"
+    },
+    {
+      "source": "Scripts\\misn15.lua",
+      "runtime": "misn15.lua"
+    },
+    {
+      "source": "Scripts\\misn16.lua",
+      "runtime": "misn16.lua"
+    },
+    {
+      "source": "Scripts\\misn17.lua",
+      "runtime": "misn17.lua"
+    },
+    {
+      "source": "Scripts\\misn18.lua",
+      "runtime": "misn18.lua"
+    },
+    {
+      "source": "Scripts\\misns1.lua",
+      "runtime": "misns1.lua"
+    },
+    {
+      "source": "Scripts\\misns2.lua",
+      "runtime": "misns2.lua"
+    },
+    {
+      "source": "Scripts\\misns3.lua",
+      "runtime": "misns3.lua"
+    },
+    {
+      "source": "Scripts\\misns4.lua",
+      "runtime": "misns4.lua"
+    },
+    {
+      "source": "Scripts\\misns5.lua",
+      "runtime": "misns5.lua"
+    },
+    {
+      "source": "Scripts\\misns6.lua",
+      "runtime": "misns6.lua"
+    },
+    {
+      "source": "Scripts\\misns7.lua",
+      "runtime": "misns7.lua"
+    },
+    {
+      "source": "Scripts\\misns8.lua",
+      "runtime": "misns8.lua"
     },
     {
       "source": "Scripts\\MissionLifecycle.lua",
@@ -5212,8 +5776,56 @@
       "runtime": "ScriptSubtitles.lua"
     },
     {
+      "source": "Scripts\\SXDirector.lua",
+      "runtime": "SXDirector.lua"
+    },
+    {
+      "source": "Scripts\\SXExhibits.lua",
+      "runtime": "SXExhibits.lua"
+    },
+    {
+      "source": "Scripts\\SXMaterials.lua",
+      "runtime": "SXMaterials.lua"
+    },
+    {
+      "source": "Scripts\\SXOverlay.lua",
+      "runtime": "SXOverlay.lua"
+    },
+    {
+      "source": "Scripts\\SXScenes.lua",
+      "runtime": "SXScenes.lua"
+    },
+    {
+      "source": "Scripts\\sxshow.lua",
+      "runtime": "sxshow.lua"
+    },
+    {
+      "source": "Scripts\\SXState.lua",
+      "runtime": "SXState.lua"
+    },
+    {
       "source": "Scripts\\TerrainClutter.lua",
       "runtime": "TerrainClutter.lua"
+    },
+    {
+      "source": "Scripts\\tran01.lua",
+      "runtime": "tran01.lua"
+    },
+    {
+      "source": "Scripts\\Tran02Mission.lua",
+      "runtime": "Tran02Mission.lua"
+    },
+    {
+      "source": "Scripts\\tran03.lua",
+      "runtime": "tran03.lua"
+    },
+    {
+      "source": "Scripts\\tran04.lua",
+      "runtime": "tran04.lua"
+    },
+    {
+      "source": "Scripts\\tran05.lua",
+      "runtime": "tran05.lua"
     },
     {
       "source": "Scripts\\Weather.lua",
@@ -5486,6 +6098,26 @@
     {
       "source": "Shaders\\CR_untextured.program",
       "runtime": "CR_untextured.program"
+    },
+    {
+      "source": "Shaders\\crwx_fixedfunc-sm4.hlsl",
+      "runtime": "crwx_fixedfunc-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\crwx_fixedfunc.program",
+      "runtime": "crwx_fixedfunc.program"
+    },
+    {
+      "source": "Shaders\\crwx_ogre_particle-sm4.hlsl",
+      "runtime": "crwx_ogre_particle-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\crwx_ogre_particle-vertex.glsl",
+      "runtime": "crwx_ogre_particle-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\crwx_precip.program",
+      "runtime": "crwx_precip.program"
     },
     {
       "source": "staged.des",
@@ -8642,314 +9274,6 @@
     {
       "source": "update.des",
       "runtime": "update.des"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_career_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_career_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_category_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_category_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_hub_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_hub_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_ck.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_ck.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_hv.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_hv.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_keys_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_keys_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_ck.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_ck.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_hv.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_hv.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_ck.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_ck.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_hv.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_hv.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_ck.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_ck.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_hv.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_hv.png"
-    },
-    {
-      "source": "Config\\sxshow.ini",
-      "runtime": "sxshow.ini"
-    },
-    {
-      "source": "Missions\\sxshow.bzn",
-      "runtime": "sxshow.bzn"
-    },
-    {
-      "source": "ODF\\sxanchor.odf",
-      "runtime": "sxanchor.odf"
-    },
-    {
-      "source": "ODF\\sxmag.odf",
-      "runtime": "sxmag.odf"
-    },
-    {
-      "source": "ODF\\sxproxa.odf",
-      "runtime": "sxproxa.odf"
-    },
-    {
-      "source": "ODF\\sxproxe.odf",
-      "runtime": "sxproxe.odf"
-    },
-    {
-      "source": "ODF\\sxshield.odf",
-      "runtime": "sxshield.odf"
-    },
-    {
-      "source": "Scripts\\bd01.lua",
-      "runtime": "bd01.lua"
-    },
-    {
-      "source": "Scripts\\bd02.lua",
-      "runtime": "bd02.lua"
-    },
-    {
-      "source": "Scripts\\bd03.lua",
-      "runtime": "bd03.lua"
-    },
-    {
-      "source": "Scripts\\bd04.lua",
-      "runtime": "bd04.lua"
-    },
-    {
-      "source": "Scripts\\bd05.lua",
-      "runtime": "bd05.lua"
-    },
-    {
-      "source": "Scripts\\bd06.lua",
-      "runtime": "bd06.lua"
-    },
-    {
-      "source": "Scripts\\bdmisn07.lua",
-      "runtime": "bdmisn07.lua"
-    },
-    {
-      "source": "Scripts\\bdmisn08.lua",
-      "runtime": "bdmisn08.lua"
-    },
-    {
-      "source": "Scripts\\bdmisn09.lua",
-      "runtime": "bdmisn09.lua"
-    },
-    {
-      "source": "Scripts\\bdmisn10.lua",
-      "runtime": "bdmisn10.lua"
-    },
-    {
-      "source": "Scripts\\bdmisn11.lua",
-      "runtime": "bdmisn11.lua"
-    },
-    {
-      "source": "Scripts\\bdmisn12.lua",
-      "runtime": "bdmisn12.lua"
-    },
-    {
-      "source": "Scripts\\bdmisn13.lua",
-      "runtime": "bdmisn13.lua"
-    },
-    {
-      "source": "Scripts\\bdmisn14.lua",
-      "runtime": "bdmisn14.lua"
-    },
-    {
-      "source": "Scripts\\bdmisn15.lua",
-      "runtime": "bdmisn15.lua"
-    },
-    {
-      "source": "Scripts\\ch01.lua",
-      "runtime": "ch01.lua"
-    },
-    {
-      "source": "Scripts\\ch02.lua",
-      "runtime": "ch02.lua"
-    },
-    {
-      "source": "Scripts\\ch03.lua",
-      "runtime": "ch03.lua"
-    },
-    {
-      "source": "Scripts\\ch04.lua",
-      "runtime": "ch04.lua"
-    },
-    {
-      "source": "Scripts\\ch05.lua",
-      "runtime": "ch05.lua"
-    },
-    {
-      "source": "Scripts\\ch06.lua",
-      "runtime": "ch06.lua"
-    },
-    {
-      "source": "Scripts\\ch07.lua",
-      "runtime": "ch07.lua"
-    },
-    {
-      "source": "Scripts\\demo01.lua",
-      "runtime": "demo01.lua"
-    },
-    {
-      "source": "Scripts\\evolve.lua",
-      "runtime": "evolve.lua"
-    },
-    {
-      "source": "Scripts\\misn06.lua",
-      "runtime": "misn06.lua"
-    },
-    {
-      "source": "Scripts\\misn07.lua",
-      "runtime": "misn07.lua"
-    },
-    {
-      "source": "Scripts\\misn08.lua",
-      "runtime": "misn08.lua"
-    },
-    {
-      "source": "Scripts\\misn09.lua",
-      "runtime": "misn09.lua"
-    },
-    {
-      "source": "Scripts\\misn10.lua",
-      "runtime": "misn10.lua"
-    },
-    {
-      "source": "Scripts\\misn11.lua",
-      "runtime": "misn11.lua"
-    },
-    {
-      "source": "Scripts\\misn12.lua",
-      "runtime": "misn12.lua"
-    },
-    {
-      "source": "Scripts\\misn13.lua",
-      "runtime": "misn13.lua"
-    },
-    {
-      "source": "Scripts\\misn14.lua",
-      "runtime": "misn14.lua"
-    },
-    {
-      "source": "Scripts\\misn15.lua",
-      "runtime": "misn15.lua"
-    },
-    {
-      "source": "Scripts\\misn16.lua",
-      "runtime": "misn16.lua"
-    },
-    {
-      "source": "Scripts\\misn17.lua",
-      "runtime": "misn17.lua"
-    },
-    {
-      "source": "Scripts\\misn18.lua",
-      "runtime": "misn18.lua"
-    },
-    {
-      "source": "Scripts\\misns1.lua",
-      "runtime": "misns1.lua"
-    },
-    {
-      "source": "Scripts\\misns2.lua",
-      "runtime": "misns2.lua"
-    },
-    {
-      "source": "Scripts\\misns3.lua",
-      "runtime": "misns3.lua"
-    },
-    {
-      "source": "Scripts\\misns4.lua",
-      "runtime": "misns4.lua"
-    },
-    {
-      "source": "Scripts\\misns5.lua",
-      "runtime": "misns5.lua"
-    },
-    {
-      "source": "Scripts\\misns6.lua",
-      "runtime": "misns6.lua"
-    },
-    {
-      "source": "Scripts\\misns7.lua",
-      "runtime": "misns7.lua"
-    },
-    {
-      "source": "Scripts\\misns8.lua",
-      "runtime": "misns8.lua"
-    },
-    {
-      "source": "Scripts\\SXDirector.lua",
-      "runtime": "SXDirector.lua"
-    },
-    {
-      "source": "Scripts\\SXExhibits.lua",
-      "runtime": "SXExhibits.lua"
-    },
-    {
-      "source": "Scripts\\SXMaterials.lua",
-      "runtime": "SXMaterials.lua"
-    },
-    {
-      "source": "Scripts\\SXOverlay.lua",
-      "runtime": "SXOverlay.lua"
-    },
-    {
-      "source": "Scripts\\SXScenes.lua",
-      "runtime": "SXScenes.lua"
-    },
-    {
-      "source": "Scripts\\sxshow.lua",
-      "runtime": "sxshow.lua"
-    },
-    {
-      "source": "Scripts\\SXState.lua",
-      "runtime": "SXState.lua"
-    },
-    {
-      "source": "Scripts\\tran01.lua",
-      "runtime": "tran01.lua"
-    },
-    {
-      "source": "Scripts\\Tran02Mission.lua",
-      "runtime": "Tran02Mission.lua"
-    },
-    {
-      "source": "Scripts\\tran03.lua",
-      "runtime": "tran03.lua"
-    },
-    {
-      "source": "Scripts\\tran04.lua",
-      "runtime": "tran04.lua"
-    },
-    {
-      "source": "Scripts\\tran05.lua",
-      "runtime": "tran05.lua"
     }
   ]
 }

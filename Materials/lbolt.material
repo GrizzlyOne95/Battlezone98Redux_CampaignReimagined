@@ -1,0 +1,6 @@
+import * from "sprites.material"
+material lbolt.dds : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap lbolt.dds
+
+}

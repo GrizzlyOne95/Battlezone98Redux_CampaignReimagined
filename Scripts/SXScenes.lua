@@ -22,24 +22,56 @@ breakCues[5].caption = "American, Soviet and Chinese armor - each shatters its o
 breakCues[8].caption = "Even the walkers come apart limb by limb"
 breakCues[11].caption = "And the buildings fall piece by piece"
 
+-- Material lab: hard livery cuts, quickening, then a held color with a pulsing glow.
+local materialCues = { { at = 5, id = "flash", color = "red", caption = "Full repaints, swapped live - no restart, no new model" } }
+do
+    local colors, t, step = { "gold", "green", "cyan", "blue", "magenta", "red", "gold", "green", "blue", "magenta" }, 5, 1.6
+    for _, color in ipairs(colors) do
+        t, step = t + step, math.max(0.6, step * 0.86)
+        materialCues[#materialCues + 1] = { at = math.floor(t * 10 + 0.5) / 10, id = "flash", color = color }
+    end
+    materialCues[#materialCues + 1] = { at = 18, id = "flash", color = "cyan" }
+    materialCues[#materialCues + 1] = { at = 19, id = "glow", caption = "Glow driven frame by frame from mission script" }
+    materialCues[#materialCues + 1] = { at = 30, id = "flash", color = "magenta" }
+    materialCues[#materialCues + 1] = { at = 34, id = "baseline", caption = "...and back to stock in an instant" }
+end
+
 SXScenes.List = {
     { id = "arrival", duration = 25, camera = "path", path = "sx_arrive", target = "changed",
         height = 600, speed = 400, title = "OPERATION LIVEWIRE",
         caption = "OpenShim + EXU: a living proving ground inside Battlezone 98 Redux",
         cues = { { at = 3, id = "music-start" } } },
-    { id = "materials", duration = 40, camera = "path", path = "sx_mat_a", target = "changed",
-        height = 250, speed = 120, title = "LIVE MATERIALS",
-        caption = "Two identical scouts. Watch the near one change while the game runs.",
-        cues = { { at = 6, id = "service", caption = "A new paint job swapped in live - no restart, no new model" },
-            { at = 14, id = "animate", caption = "Scrolling textures and a pulsing glow, driven from mission script" },
-            { at = 30, id = "baseline", caption = "...and back to stock in an instant" } } },
-    { id = "environment", duration = 55, camera = "path", path = "sx_weather", target = "weather_anchor",
-        height = 800, speed = 180, title = "LIVE WEATHER",
-        caption = "Light, fog and wind - all scriptable mid-mission",
+    -- Two scouts parked side by side 10 m apart, noses north. The look anchor is 30 m
+    -- south of them, centered, so the camera sits just north of the pair and looks past
+    -- them; the pod itself is a speck behind. Offsets are centimeters in the anchor's
+    -- frame (it faces +z like the scouts): forward 4500 = 15 m in front of the scouts.
+    { id = "materials", duration = 40, camera = "object", target = "mat_look", title = "LIVE MATERIALS",
+        caption = "Two identical scouts. Watch the near one.",
+        shots = { { at = 0, target = "mat_look", right = -700, up = 400, forward = 4800,
+                to = { right = -450, up = 320, forward = 4300 } },
+            { at = 18, target = "mat_look", right = -300, up = 220, forward = 4100,
+                to = { right = -200, up = 200, forward = 3950 } } },
+        cues = materialCues },
+    -- The outpost from its east side: parked vehicles 20-30 m out, buildings behind
+    -- them fade into the weather. storm_look sits among the buildings and faces +z, so
+    -- `right` is east. Precipitation is camera-attached; a near subject shows it best.
+    { id = "environment", duration = 60, camera = "object", target = "storm_look", title = "LIVE WEATHER",
+        caption = "Real particle weather, scripted mid-mission",
+        shots = { { at = 0, target = "storm_look", right = 5600, up = 520, forward = -700,
+                to = { right = 5000, up = 450, forward = 500 } },
+            { at = 29, target = "storm_look", right = 3900, up = 260, forward = 1700,
+                to = { right = 3600, up = 240, forward = 2200 } },
+            { at = 41, target = "storm_look", right = 6800, up = 1100, forward = -2600,
+                to = { right = 6200, up = 900, forward = -1600 } } },
         cues = { { at = 0, id = "weather-start" },
-            { at = 6, id = "weather-warm", caption = "The sky warms and a haze rolls in" },
-            { at = 18, id = "weather-storm", caption = "A dust front sweeps across the range" },
-            { at = 40, id = "weather-clear", caption = "...then clears back to a still lunar night" } } },
+            { at = 3, id = "weather-rain", caption = "Rain rolls in - particles, splashes and wet light" },
+            { at = 14, id = "weather-storm", caption = "...building to a storm" },
+            { at = 17, id = "weather-strike", caption = "Lightning that hits the ground" },
+            { at = 20.5, id = "weather-strike", cloud = true }, { at = 23, id = "weather-strike" },
+            { at = 26, id = "weather-strike" },
+            { at = 29, id = "weather-snow", caption = "Snow on the same range, no reload" },
+            { at = 41, id = "weather-dust", caption = "A dust storm driven by live wind" },
+            { at = 53, id = "weather-clear", caption = "...then back to a still lunar night" } } },
     { id = "ai", duration = 60, camera = "object", target = "ai_tuned", title = "SMARTER AI",
         caption = "Two identical tanks. One fights stock - one has been retuned.",
         shots = { { at = 0, path = "sx_ai_chase", target = "ai_tuned", right = 1600, up = 600, forward = -2400 },
@@ -91,8 +123,10 @@ SXScenes.List = {
 SXScenes.Fixtures = {
     control = { odf = "avfigh", path = "sx_control", keep = true },
     changed = { odf = "avfigh", path = "sx_changed", keep = true },
+    mat_look = { odf = "sxanchor", path = "sx_mat_look", keep = true },
     convoy = { odf = "avfigh", path = "sx_convoy", keep = true },
     weather_anchor = { odf = "sxanchor", path = "sx_weather_anchor", keep = true, name = "Atmosphere overlook" },
+    storm_look = { odf = "sxanchor", path = "sx_storm_look", keep = true },
     ai_anchor = { odf = "sxanchor", path = "sx_ai_anchor", keep = true, name = "AI arena" },
     break_anchor = { odf = "sxanchor", path = "sx_break_anchor", keep = true, name = "Destruction yard" },
     filter_anchor = { odf = "sxanchor", path = "sx_filter_anchor", keep = true, name = "Team filter range" },

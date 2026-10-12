@@ -14,7 +14,7 @@ from pathlib import Path
 # both lanes and their targets share level ground; the destruction yard is the flat
 # 131 m plateau. Camera routes ride 2.5-4 m above terrain and stay off cliff lips.
 POINTS = {
-    "control": (4138, 99142), "changed": (4138, 99166), "convoy": (4225, 99230),
+    "control": (4146, 99160), "changed": (4136, 99160), "mat_look": (4141, 99130), "storm_look": (4075, 99150), "convoy": (4225, 99230),
     "weather_anchor": (4145, 98820), "ai_anchor": (4700, 98720),
     "break_anchor": (4510, 98600), "filter_anchor": (4200, 98295),
     "ai_stock": (4630, 98760), "ai_tuned": (4675, 98760),
@@ -32,9 +32,7 @@ POINTS = {
 }
 ROUTES = {
     "arrive": [(4160, 99258), (4140, 99250), (4115, 99232), (4105, 99205), (4112, 99180)],
-    "mat_a": [(4156, 99134), (4152, 99146), (4152, 99162), (4156, 99178)],
     "convoy_route": [(4225, 99230), (4190, 99205), (4158, 99195)],
-    "weather": [(4210, 98890), (4190, 98850), (4170, 98820), (4120, 98790), (4090, 98820)],
     "break": [(4445, 98400), (4445, 98600), (4445, 98790)],
     "ai_chase": [(4652, 98712), (4652, 98790)],
     "ai_front": [(4685, 98915), (4615, 98915)],

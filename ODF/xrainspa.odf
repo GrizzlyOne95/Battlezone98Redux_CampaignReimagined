@@ -1,0 +1,29 @@
+// Acid rain splash: green copy of xrainsp (effects.AcidRain)
+[ExplosionClass]
+classLabel = "explosion"
+
+explSound = ""
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 1
+
+particleClass1 = "xrainspa.core"
+particleCount1 = 1
+particleVeloc1 = "0.0 10.0 0.0"
+
+[Core]
+simulateBase = "sim_smoke"
+lifeTime = 0.6
+renderBase = "draw_twirl"
+textureName = "xrainsp.png"
+startColor = "110 255 80 200"
+finishColor = "0 0 0 0"
+startRadius = 0.1
+finishRadius = 2.5
+animateTime = 0.25
+rotationRate = 9.0
+maxCount = 300

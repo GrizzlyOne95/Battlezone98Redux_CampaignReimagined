@@ -1,0 +1,7 @@
+import * from "sprites.material"
+
+// Neutral destruction smoke; matches the ODFs' srcalpha/invsrcalpha blend.
+material smokeb2.tga : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap smoke2.dds
+}
