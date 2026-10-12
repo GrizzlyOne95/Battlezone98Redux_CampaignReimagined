@@ -45,13 +45,13 @@ This is shader/program-only and does not require an engine hook.
 
 ## Resources
 
-The runtime set is owned by OpenShim, not by CR. It ships inside the shim's Enhanced renderer payload (`BZR-OpenShim resources/renderer/enhanced/`), which CR staging mirrors into `openshim/renderer/enhanced/`:
+The runtime set is owned by OpenShim, not by CR. It ships inside the shim's Enhanced renderer payload (`BZR-OpenShim resources/renderer/enhanced/`), which OpenShim installs into `<game>\openshim\renderer\enhanced\` and registers as its own Ogre resource group, `OpenShimEnhanced`:
 
 - `openshim_ibl_neutral_irradiance.dds` - 32x32 BC1 cubemap;
 - `openshim_ibl_neutral_prefilter.dds` - compact 32x32 BC1 cubemap with a full mip chain for the repository bootstrap set;
 - `openshim_ibl_brdf_lut.dds` - 64x64 RG split-sum BRDF LUT.
 
-CR ships no copy of its own. The materials bind these by their path inside the payload (`openshim/renderer/enhanced/openshim_ibl_*.dds`) rather than by bare filename, because the payload is a structured subdirectory rather than part of the flat texture pool. One set of files, one name, one owner: a bare-name binding would require either a duplicate in the flat pool or Ogre resource-location injection by the shim.
+CR ships no loadable copy of its own. The materials bind these by bare filename (`openshim_ibl_*.dds`), which Ogre resolves from the `OpenShimEnhanced` group, the same group that defines the `OSE_*` programs CR's passes reference. CR's Workshop item carries the payload only as the source for OpenShim's asset sync, staged as `<name>.payload` so the game's scan of the mod never loads a second copy. One set of files, one name, one owner.
 
 The shim's `ValidateDeployedResourceSetAt` requires all three to be present and non-empty in that directory, so deleting them there disables the Enhanced profile outright, not just IBL.
 
