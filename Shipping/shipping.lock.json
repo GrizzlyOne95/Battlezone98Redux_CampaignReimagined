@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-11T12:02:28-05:00",
-  "count": 2237,
+  "count": 2238,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -8670,6 +8670,10 @@
     {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png",
       "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_prelobby_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_prelobby_center.png"
     },
     {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_ck.png",
