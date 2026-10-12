@@ -299,6 +299,73 @@ local function CompareInstallerVersions(left, right)
     return 0
 end
 
+local OPENSHIM_ASSET_SET_MARKERS = {
+    renderer = "openshim_set.sha256",
+    customWidgets = "openshim_widgets.sha256",
+}
+
+local function IsAssetHash(value)
+    return type(value) == "string" and #value == 64 and value:match("^[0-9a-f]+$") ~= nil
+end
+
+local function IsAssetPath(value)
+    return type(value) == "string" and value ~= "" and
+        value:match("^[A-Za-z0-9_.%-\\]+$") ~= nil and
+        value:sub(1, 1) ~= "\\" and
+        not value:find("..", 1, true)
+end
+
+--- Validate the optional assetSets/assetFiles sections of the manifest.
+--- Returns the normalized sections, or nil when either section is absent or
+--- malformed. Older manifests lack them and stay valid; a malformed pair is
+--- dropped rather than failing the payload suite, because OpenShim owns asset
+--- syncing and re-validates the sections itself.
+local function NormalizeAssetSections(manifest)
+    local sets = manifest.assetSets
+    local files = manifest.assetFiles
+    if sets == nil and files == nil then
+        return nil
+    end
+    if type(sets) ~= "table" or type(files) ~= "table" then
+        return nil
+    end
+
+    local counts = {}
+    for name, set in pairs(sets) do
+        if type(name) ~= "string" or type(set) ~= "table" or
+            not IsAssetPath(set.source) or not IsAssetPath(set.destination) or
+            type(set.sha256) ~= "string" or
+            type(set.files) ~= "number" or set.files < 1 or set.files % 1 ~= 0 then
+            return nil
+        end
+        set.sha256 = string.lower(set.sha256)
+        if not IsAssetHash(set.sha256) then
+            return nil
+        end
+        counts[name] = 0
+    end
+
+    for _, entry in ipairs(files) do
+        if type(entry) ~= "table" or counts[entry.set] == nil or
+            not IsAssetPath(entry.path) or type(entry.sha256) ~= "string" or
+            type(entry.size) ~= "number" or entry.size < 0 or entry.size % 1 ~= 0 then
+            return nil
+        end
+        entry.sha256 = string.lower(entry.sha256)
+        if not IsAssetHash(entry.sha256) then
+            return nil
+        end
+        counts[entry.set] = counts[entry.set] + 1
+    end
+
+    for name, set in pairs(sets) do
+        if counts[name] ~= set.files then
+            return nil
+        end
+    end
+    return sets, files
+end
+
 local function GetOpenShimManifest()
     local ok, manifestOrError = pcall(require, "OpenShimManifest")
     if not ok or type(manifestOrError) ~= "table" then
@@ -357,6 +424,13 @@ local function GetOpenShimManifest()
     end
 
     helper.sha256 = string.lower(helper.sha256)
+
+    local assetSets, assetFiles = NormalizeAssetSections(manifest)
+    if (manifest.assetSets ~= nil or manifest.assetFiles ~= nil) and not assetSets then
+        print("PersistentConfig: OpenShim manifest asset sections are malformed; ignoring them.")
+    end
+    manifest.assetSets = assetSets
+    manifest.assetFiles = assetFiles
     return manifest
 end
 
@@ -560,6 +634,30 @@ function OpenShimInstaller.Inspect()
         architecture = manifest.architecture,
         sha256 = manifest.sha256,
     }
+
+    -- Informational only: OpenShim copies renderer/UI assets from the Workshop
+    -- item at game start, so a stale marker simply means the next start refreshes.
+    report.assets = {}
+    if manifest.assetSets then
+        for name, set in pairs(manifest.assetSets) do
+            local markerName = OPENSHIM_ASSET_SET_MARKERS[name]
+            if markerName then
+                local markerPath = workingDirectory .. "\\" .. set.destination .. "\\" .. markerName
+                local marker = ReadTextFile(markerPath)
+                local markerHash = marker and marker:match("^%s*([0-9A-Fa-f]+)%s*$")
+                local state = "MISSING"
+                if marker then
+                    state = (markerHash and string.lower(markerHash) == set.sha256) and "CURRENT" or "REFRESH_PENDING"
+                end
+                report.assets[name] = {
+                    state = state,
+                    expectedSha256 = set.sha256,
+                    files = set.files,
+                    markerPath = markerPath,
+                }
+            end
+        end
+    end
 
     local definitions = {
         { name = "winmm", payload = manifest.payloads.winmm, versioned = true },
@@ -790,6 +888,17 @@ function OpenShimInstaller.FormatDiagnosticReport(report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_PATCHES", report.installed and report.installed.patches, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_PLAYER_CONFIG", report.installed and report.installed.playerConfig, report)
     AddDiagnosticPayloadLine(lines, "INSTALLED_ASSET_MANIFEST", report.installed and report.installed.assetManifest, report)
+
+    -- OpenShim refreshes these from the Workshop item at the next game start.
+    for _, assetName in ipairs({ "renderer", "customWidgets" }) do
+        local asset = report.assets and report.assets[assetName]
+        if asset then
+            local prefix = "ASSET_" .. string.upper(assetName)
+            lines[#lines + 1] = prefix .. "_STATE=" .. tostring(asset.state or "UNKNOWN")
+            lines[#lines + 1] = prefix .. "_EXPECTED_SHA256=" .. tostring(asset.expectedSha256 or "")
+            lines[#lines + 1] = prefix .. "_FILES=" .. tostring(asset.files or "")
+        end
+    end
 
     local status = report.updateStatus or {}
     lines[#lines + 1] = "UPDATE_STATUS_PRESENT=" .. BoolText(status.exists)
