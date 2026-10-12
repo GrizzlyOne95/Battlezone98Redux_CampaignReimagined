@@ -24,7 +24,7 @@ Host regression 119 checks, asset validator 358 checks.
 
 **12 October second pass.** The tour is now 453 s (7:33) in eleven chapters, with
 short trailer captions. New: a render-profile chapter that flips Retro, Redux and
-Enhanced on held shots under a low raking sun (needs the OpenShim live-apply fix;
+Enhanced on held shots under the map's own lighting (needs the OpenShim live-apply fix;
 before it, requests reported effective but the frame never changed), and a pilot
 chapter for OpenShim skinned gibs (people spawn neutral, since the stock pilot AI
 runs off on a player team). Destruction is four clusters on the flat plateau, each
@@ -44,7 +44,7 @@ was dropped from the film; lighting and gibs were added.
 | --- | --- | --- |
 | 0:00–0:25 | Arrival | Moving scout convoy, native camera path, custom title/caption overlay |
 | 0:25–1:05 | Materials | Identical scouts side by side: the near hull cuts through six authored liveries, holds with a script-driven glow pulse, then returns to its original assignment; the control twin never changes |
-| 1:05–1:41 | Lighting | Outpost and parked scout on held shots under a low raking sun; `exu.RequestRenderProfile` flips Retro, Redux and Enhanced, then hands back the user's profile |
+| 1:05–1:41 | Lighting | Outpost and parked scout on held shots under the map's own lighting; `exu.RequestRenderProfile` flips Retro, Redux and Enhanced, then hands back the user's profile |
 | 1:41–2:41 | Environment | CRStormFX particle weather over the outpost: rain and splashes, storm with lightning strikes, snow, dust storm on live wind, clearing; overcast dome while weather is up |
 | 2:41–3:41 | AI arena | Two avfigh against fixed svturr turrets; stock beside V3 standoff/kiting/strafe, with V2/V1 fallback; live range readout on screen |
 | 3:41–4:29 | Destruction | Four framed clusters: vehicles, walkers/APCs, comm towers, a base; 19 kills, all in shot |
@@ -58,7 +58,7 @@ was dropped from the film; lighting and gibs were added.
 | --- | --- |
 | `overlay` | Resolution-aware titles, status, telemetry, instrument labels and animated notification using `CRBZoneOverlayFont` |
 | `materials` | Clone-owned per-subentity material swap; shared sources and control twin remain original |
-| `lighting` | OpenShim render profile requested per shot with effective-profile readback; sun/ambient captured and restored |
+| `lighting` | OpenShim render profile requested per shot with effective-profile readback; scene lighting untouched |
 | `animation` | Clone texture-unit scrolling plus emissive pulse; untextured passes may refuse scrolling |
 | `environment` | Campaign `CRWeather`: fog, ambient/sun light, dust particles and wind; one environment writer |
 | `ai` | Real stock attacks and gated EXU tuning; a tuning mirror alone does not prove movement behavior |
@@ -148,8 +148,7 @@ Menus hide the custom overlay and freeze the scene clock. Resolution changes
 reflow the overlay. Temporary camera/radar/HUD/radio overrides are captured and
 restored; later external setting changes take precedence where supported.
 Weather shuts down its particles and restores captured fog/light. The lighting
-chapter restores the captured sun, ambient and sun direction and requests
-`inherit`, so the user's own render profile returns. Saved volume/options are not
+chapter requests `inherit` on exit, so the user's own render profile returns. Saved volume/options are not
 overwritten.
 Failed cleanup is reported, retains retry state, and blocks destructive reset or
 replay until restoration succeeds. Material clone names are bounded and reused.

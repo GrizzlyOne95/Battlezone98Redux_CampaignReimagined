@@ -53,45 +53,13 @@ function SXExhibits:Lighting(profile)
     self.message = "Render profile: " .. tostring(effective)
 end
 
--- The map's dim night light hides most of what separates the profiles, so the
--- comparison runs under a low, warm raking sun: long shadows, specular and normal
--- detail are where retro, redux and enhanced actually part ways.
-SXExhibits.LightingSun = { dir = { 0.62, -0.30, -0.72 }, diffuse = { r = 1.30, g = 1.12, b = 0.88 },
-    ambient = { r = 0.07, g = 0.075, b = 0.095 }, specular = { r = 1, g = 1, b = 1 }, power = 1.35 }
-
-function SXExhibits:LightingStage()
-    local sun = SXExhibits.LightingSun
-    local function Tint(id, getter, setter, color)
-        local base = self:Read(getter)
-        if type(base) ~= "table" then return false end
-        local value = State.Copy(base)
-        value.r, value.g, value.b = color.r, color.g, color.b
-        return self.state:Write("lighting/" .. id, "lighting", getter, setter, { value })
-    end
-    local lit = Tint("diffuse", "GetSunDiffuse", "SetSunDiffuse", sun.diffuse)
-    lit = Tint("ambient", "GetAmbientLight", "SetAmbientLight", sun.ambient) and lit
-    lit = Tint("specular", "GetSunSpecular", "SetSunSpecular", sun.specular) and lit
-    lit = self.state:Write("lighting/power", "lighting", "GetSunPowerScale", "SetSunPowerScale", { sun.power }) and lit
-    -- Sun direction reads back as a native vector, so it is kept as plain numbers.
-    local dir = self:Read("GetSunDirection")
-    if not self.sunBase and dir and self:Has("SetSunDirection") then
-        self.sunBase = { x = dir.x, y = dir.y, z = dir.z }
-        local ok = self:Call("SetSunDirection", sun.dir[1], sun.dir[2], sun.dir[3])
-        lit = ok and lit
-    end
-    self:Record("lighting/sun", lit and "PASS" or "BLOCKED", "low raking key light for the comparison; restored after")
-end
-
+-- The comparison runs under the map's own lighting: each profile must be judged as
+-- shipped (Retro diffuse-only, Redux stock, Enhanced with the terrain/lighting work).
 function SXExhibits:LightingEnd()
-    local all = self.state:Restore("lighting")
-    if self.sunBase then
-        local b = self.sunBase
-        if self:Call("SetSunDirection", b.x, b.y, b.z) then self.sunBase = nil else all = false end
-    end
-    if not self.lightingOverride then return all end
+    if not self.lightingOverride then return true end
     local ok, accepted = self:Call("RequestRenderProfile", "inherit")
     if ok and accepted == true then self.lightingOverride = false end
-    return all and not self.lightingOverride
+    return not self.lightingOverride
 end
 
 -- Weather bay: the CRStormFX particle weather (ported from ISDF Chronicles) is the
@@ -513,7 +481,6 @@ function SXExhibits:Begin(scene)
         self.kills = 0
         self:Record("chunks", built == #Scenes.Breaks and "PENDING" or "BLOCKED",
             string.format("%d/%d victims; requires enabled OpenShim chunks and compatible assets", built, #Scenes.Breaks))
-    elseif scene.id == "lighting" then self:LightingStage()
     elseif scene.id == "pilots" then self.gibDone, self.gibRunning = {}, false; self:SetupPilots()
     elseif scene.id == "filters" then self:SetupFilters()
     elseif scene.id == "control" then self:SetupControl() end
@@ -669,7 +636,7 @@ function SXExhibits:Restore()
 end
 
 function SXExhibits:Snapshot()
-    return { state = self.state:Snapshot(), lightingOverride = self.lightingOverride, sunBase = self.sunBase, selection = self.selection,
+    return { state = self.state:Snapshot(), lightingOverride = self.lightingOverride, selection = self.selection,
         player = self.player, hudMoved = self.hudMoved, hudWidth = self.hudWidth, hudHeight = self.hudHeight,
         commandRegistered = self.commandRegistered }
 end
@@ -677,7 +644,6 @@ function SXExhibits:Load(snapshot)
     if not snapshot then return end
     self.state:Load(snapshot.state)
     self.lightingOverride, self.selection, self.player = snapshot.lightingOverride, snapshot.selection, snapshot.player
-    self.sunBase = snapshot.sunBase
     self.hudMoved, self.hudWidth, self.hudHeight = snapshot.hudMoved, snapshot.hudWidth, snapshot.hudHeight
     self.commandRegistered = snapshot.commandRegistered
 end

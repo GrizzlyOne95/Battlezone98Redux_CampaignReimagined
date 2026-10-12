@@ -549,7 +549,7 @@ Check(Snapshot().results.reset.status == "FAIL" and IsValid(x.rejectRemove), "re
 x.rejectRemove = nil; Command("sx", "reset"); Update(0); Command("sx", "skip")
 Command("sx", "lighting"); Update(12); Command("sx", "skip")
 Check(x.renderProfile == "inherit" and State.Equal(x.props, baseline),
-    "skipping mid-comparison returns the render profile, sun and ambient to the user")
+    "skipping mid-comparison returns the render profile and leaves lighting untouched")
 x.unsupportedProfile = "retro"; Command("sx", "lighting"); Update(1); Command("sx", "skip"); x.unsupportedProfile = nil
 Check(Snapshot().results["lighting/retro"].status == "BLOCKED", "an unsupported profile is reported, not requested")
 Command("sx", "ai"); Update(13)
