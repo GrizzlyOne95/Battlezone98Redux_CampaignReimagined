@@ -190,6 +190,22 @@ local function flatFront(player)
 	return 0, 1
 end
 
+-- Where the viewer is: the camera when EXU reports it (a cinematic or chase
+-- camera can be far from the craft), else the player's craft.
+local function viewpoint(player)
+	local m = call("GetCameraTransformMatrix")
+	-- A BZ Matrix (userdata): read its fields under pcall.
+	local ok, px, py, pz, fx, fz = pcall(function() return m.posit_x, m.posit_y, m.posit_z, m.front_x, m.front_z end)
+	if m and ok and px ~= nil and fx ~= nil then
+		local len = math.sqrt(fx * fx + fz * fz)
+		if len > 0.001 then return SetVector(px, py, pz), fx / len, fz / len end
+		return SetVector(px, py, pz), flatFront(player)
+	end
+	local pos = GetPosition(player)
+	if pos == nil then return nil end
+	return pos, flatFront(player)
+end
+
 -- A random spot around the camera: in the arc ahead (area-weighted, so spots
 -- spread evenly instead of bunching near) or in a ring all round.
 local function spot(area)
@@ -213,7 +229,9 @@ local function ground(pos, fx, fz, a, d)
 	if h == nil then return nil end
 	local nx, ny, nz = 0, 1, 0
 	if n ~= nil and n.y > 0.2 then nx, ny, nz = n.x, n.y, -n.z end
-	return SetVector(dx, h + 0.05 - pos.y, -dz), nx, ny, nz
+	-- 0.2 m up: OpenShim's terrain micro relief (Terrain Micro Detail) moves the
+	-- drawn ground up to 0.25 m off the floor and would bury flat rings.
+	return SetVector(dx, h + 0.2 - pos.y, -dz), nx, ny, nz
 end
 
 local function place(s, e, at, nx, ny, nz)
@@ -308,9 +326,8 @@ local function apply(now, kind, level)
 	if kind ~= nil and level > 0 and IsValid(player) and systemsFor(kind) then
 		local k = KINDS[kind]
 		if kind ~= kindNow then setColour(kind); kindNow = kind end
-		local pos = GetPosition(player)
+		local pos, fx, fz = viewpoint(player)
 		if pos ~= nil then
-			local fx, fz = flatFront(player)
 			if now >= nextTick then
 				nextTick = now + TICK
 				relocate(kind, pos, fx, fz)

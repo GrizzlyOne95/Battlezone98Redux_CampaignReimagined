@@ -100,6 +100,9 @@ SXScenes.List = {
         caption = "Particle weather",
         shots = { { at = 0, target = "storm_look", right = 8000, up = 500, forward = 0,
                 to = { right = 7200, up = 450, forward = 600 } },
+            -- Mid-storm the camera rushes in, so the rain streams past as from a cockpit.
+            { at = 22, target = "storm_look", right = 9000, up = 600, forward = 400, move = 3.5,
+                to = { right = 5000, up = 450, forward = 200 } },
             { at = 29, target = "storm_look", right = 6000, up = 250, forward = -1200,
                 to = { right = 5600, up = 240, forward = -800 } },
             { at = 41, target = "storm_look", right = 9500, up = 1200, forward = 2500,
