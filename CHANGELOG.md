@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
+  films and outcomes.
+- Co-op: a player who dies respawns near a teammate. Each player has 5
+  lives, and running out fails the mission. Ejecting or hopping out costs
+  no life.
+- Co-op PDA: X opens it in network games. It adds pings, rescue requests and
+  a Co-op page. CR keys are ignored while you type in chat, and alliances
+  are locked.
+- Red Arrival co-op: everyone starts on foot beside the vehicles, and the
+  intro plays as it does offline.
+- Co-op guests joining at mission start are no longer admitted before the
+  mission finishes setting up.
+- Subtitles stay on screen when one line of dialogue replaces another.
 - Stop shipping prebuilt chunk meshes (about 1,500 files, 43 MB). OpenShim
   generates them at runtime from the stock models. Setup / Repair removes the
   old `chunkMeshes` folder left by earlier releases.
@@ -15,7 +28,10 @@
 - Bundle OpenShim 1.0.0.49: the shim rebuilds every light list when the game
   replaces the sun (as it does on a pilot class swap), aimed at the world
   going dark except for the pilot flashlight, and AutoSave no longer crashes
-  when it fires before the mission object exists.
+  when it fires before the mission object exists. It also adds the redesigned
+  native Options screen with a nine-category Settings hub and a new
+  key-binding editor. DX11 now recovers from a lost device, and network play
+  resends reliable messages more dependably.
 - Bundle the updated ExtraUtilities: an out-of-range material lookup by a
   mission script now returns nothing instead of corrupting memory (a DX9
   freeze seen with ISDF Chronicles), and the overlay font now uses a mod's own
