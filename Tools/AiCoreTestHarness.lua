@@ -141,7 +141,11 @@ ObjectsInRange = function(range, ref)
     end
     return iterate(out)
 end
-AllObjects = function() return iterate(H.objects) end
+H.allObjectsCalls = 0
+AllObjects = function()
+    H.allObjectsCalls = H.allObjectsCalls + 1
+    return iterate(H.objects)
+end
 AllCraft = function()
     local out = {}
     for _, o in ipairs(H.objects) do
