@@ -42,6 +42,11 @@
   the original or the alternate take (misn0717).
 - Mission 07 co-op: objective markers on authored map objects (the rendezvous nav, the
   radar array) now reach guests promptly instead of being dropped.
+- Mission 07 now has Venus weather: sulphurous overcast, fog pooling in the lowlands,
+  lightning storms that favour the Lightning Power generators (knockback and radar
+  scramble, never damage), sulfur pools, volcano plumes and acid rain. The storm builds
+  with the mission and peaks during the CCA evacuation; in co-op every player sees the
+  same sky.
 - Ship the restored voice lines misn0717 and misn0719 (Mission 07), which the German,
   Spanish, French and Italian game archives lack, so every language hears them.
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-13T14:11:47-05:00",
-  "count": 2258,
+  "generated": "2026-10-13T14:20:53-05:00",
+  "count": 2262,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -2194,6 +2194,10 @@
     {
       "source": "Materials\\CR_uitexmat.material",
       "runtime": "CR_uitexmat.material"
+    },
+    {
+      "source": "Materials\\cr_venus.particle.payload",
+      "runtime": "cr_venus.particle.payload"
     },
     {
       "source": "Materials\\cr_weather.particle.payload",
@@ -5350,6 +5354,18 @@
     {
       "source": "Scripts\\crsetup.lua",
       "runtime": "crsetup.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusMap.lua",
+      "runtime": "CRVenusMap.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusSites07.lua",
+      "runtime": "CRVenusSites07.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusWeather.lua",
+      "runtime": "CRVenusWeather.lua"
     },
     {
       "source": "Scripts\\CRWeather.lua",

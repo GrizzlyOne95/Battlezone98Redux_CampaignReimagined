@@ -40,6 +40,9 @@ function IsAudioMessageDone() return true end
 local function noop() end
 local modules = {
     RequireFix = {Initialize = noop}, exu = {},
+    CRVenusWeather = {Init = noop, Update = noop, Shutdown = noop, OnObjectCreated = noop, Save = function() return {} end,
+        Load = noop, SetTargetLevel = noop, ForceLevel = noop, AnnounceState = noop, ApplyNetEvent = noop, Seed = 1},
+    CRVenusSites07 = {}, Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
     ScriptSubtitles = {Play = function(file) return AudioMessage(file) end,
         Queue = function(file) return AudioMessage(file) end, Stop = noop, Update = noop, Initialize = noop},
 }

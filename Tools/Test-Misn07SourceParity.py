@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify DLL provenance, inactive-code retention, and ordered asset references for misn07.
 
-The co-op layer, the restored test-range arc, the rendezvous convoy and Razor One's
+The co-op layer, the restored test-range arc, the rendezvous convoy, the Venus weather and Razor One's
 infiltration live between exact marker lines. They are stripped (inclusive) so every
 check below still proves the active DLL port is unchanged; each co-op substitution
 outside the markers is an explicit API-count delta.
@@ -20,7 +20,7 @@ assert sha256(raw.replace(b"\r\n", b"\n")).hexdigest() == "2179500357224761cd558
 source = raw.decode("utf-8").replace("\r\n", "\n")
 lua = lua_path.read_text(encoding="utf-8").replace("\r\n", "\n")
 
-REGIONS = ("CR restored VO", "CR Razor One infiltration", "CR rendezvous convoy")
+REGIONS = ("CR restored VO", "CR Razor One infiltration", "CR rendezvous convoy", "CR Venus weather")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}
 lua_lines = lua.split("\n")
@@ -44,7 +44,7 @@ assert inside is None, "unterminated region"
 lua = "\n".join(stripped_lines)
 for token in ("RESTORED_VO", "CUT_VO", "RENDEZVOUS_CONVOY", "RAZOR_ONE", "SpawnConvoy", "UpdateConvoy",
               "UpdateRazorOne", "RazorOne", "RestoredTestRange", "RestoredMineField", "RestoredMagCannon",
-              "utah_nag", "mine_ok", "cine_player", "M.rk", "M.convoy", "PROTO_", "Prototype", "M.proto", "TestRangeOpen", "BeginTestRangeTrip", "razor_unit", "RK_HEAL", "UpdateRazorHeal", "M.rh"):
+              "utah_nag", "mine_ok", "cine_player", "M.rk", "M.convoy", "PROTO_", "Prototype", "M.proto", "TestRangeOpen", "BeginTestRangeTrip", "razor_unit", "RK_HEAL", "UpdateRazorHeal", "M.rh", "CRVenusWeather", "UpdateVenusBeats", "VenusSites", "venusSeed"):
     assert token not in lua, "region code outside marker regions: " + token
 
 # Restored voice lines need their shipped subtitle text (never invent text); 0711 stays cut; 0717 is the alternate take of 0702.
