@@ -123,6 +123,14 @@ for source in ['Config/misn09.ini', 'Missions/misn09.vxt', 'Assets/Graphics/misn
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source
 # Files this mission adds that still need a shipping-lock bless (the lock owner empties this list). A file listed
 # here that the lock already admits must be removed, so the list cannot go stale.
+# The two restored lines are stock-format PCM like Test-ShippedCutVo.py demands of every shipped cut line (that
+# test's WAVS list gains misn0910 and misn0917 when the lock admits them).
+for name in ('misn0910', 'misn0917'):
+    data = (root / 'Assets/Audio' / (name + '.wav')).read_bytes()
+    assert data[:4] == b'RIFF' and data[8:16] == b'WAVEfmt ', name + ' is not a RIFF/WAVE file'
+    assert int.from_bytes(data[20:22], 'little') == 1 and int.from_bytes(data[22:24], 'little') == 1
+    assert int.from_bytes(data[24:28], 'little') == 11025 and int.from_bytes(data[34:36], 'little') == 8
+    assert (root / 'Text' / (name + '.txt')).is_file()
 PENDING_LOCK = ['Scripts/CRVenusSites09.lua', 'Assets/Audio/misn0910.wav', 'Assets/Audio/misn0917.wav']
 for source in PENDING_LOCK:
     assert (root / source).is_file(), 'pending file missing: ' + source
