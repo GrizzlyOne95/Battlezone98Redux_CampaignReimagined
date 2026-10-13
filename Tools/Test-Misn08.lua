@@ -228,7 +228,7 @@ step(14); check(count("BuildObject", "avscav") == 0, "builds follow their schedu
 step(16); check(count("BuildObject", "avscav") == 1, "the scavenger")
 step(41); check(count("BuildObject", "avmuf") == 1 and m.cbase.factory, "the factory")
 step(43); check(called("Deploy", m.cbase.factory), "the factory deploys")
-step(71); step(101); check(count("BuildObject", "abtowe") == 2, "two defenses")
+step(71); step(101); check(count("BuildObject", "avturr") == 2, "two defenses")
 step(91); check(count("BuildObject", "avapc") == 1, "APC production starts once the factory stands")
 check(m.cbase.step == 5, "the build list is exhausted")
 step(125); check(count("BuildObject", "avapc") == 1, "APCs come at the interval")
