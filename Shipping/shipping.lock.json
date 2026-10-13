@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-13T15:41:05-05:00",
-  "count": 2307,
+  "generated": "2026-10-13T18:10:22-05:00",
+  "count": 2316,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -154,6 +154,10 @@
     {
       "source": "Assets\\Graphics\\misn09.bmp",
       "runtime": "misn09.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn10.bmp",
+      "runtime": "misn10.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -558,6 +562,10 @@
     {
       "source": "Config\\misn09.ini",
       "runtime": "misn09.ini"
+    },
+    {
+      "source": "Config\\misn10.ini",
+      "runtime": "misn10.ini"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -2904,6 +2912,10 @@
       "runtime": "misn09.des"
     },
     {
+      "source": "misn10.des",
+      "runtime": "misn10.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -3114,6 +3126,30 @@
     {
       "source": "Missions\\misn09.vxt",
       "runtime": "misn09.vxt"
+    },
+    {
+      "source": "Missions\\misn10.bzn",
+      "runtime": "misn10.bzn"
+    },
+    {
+      "source": "Missions\\misn10.hg2",
+      "runtime": "misn10.hg2"
+    },
+    {
+      "source": "Missions\\misn10.lgt",
+      "runtime": "misn10.lgt"
+    },
+    {
+      "source": "Missions\\misn10.mat",
+      "runtime": "misn10.mat"
+    },
+    {
+      "source": "Missions\\misn10.trn",
+      "runtime": "misn10.trn"
+    },
+    {
+      "source": "Missions\\misn10.vxt",
+      "runtime": "misn10.vxt"
     },
     {
       "source": "Missions\\sxshow.bzn",
