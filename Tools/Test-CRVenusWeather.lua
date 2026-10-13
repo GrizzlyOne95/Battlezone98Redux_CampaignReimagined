@@ -481,6 +481,56 @@ do
 end
 
 -- =============================================================================
+-- 3b. The real misn07 heightfield (skipped when the HG2 is not in the checkout)
+-- =============================================================================
+
+do
+    local path = scriptDir .. "/../Missions/misn07.hg2"
+    local file = io.open(path, "rb")
+    if file == nil then
+        print("note: " .. path .. " not found; skipping the real-terrain basin check")
+    else
+        local data = file:read("*a")
+        file:close()
+        -- HG2: 12-byte header, then 4x4 zones of 256x256 uint16 samples, zones
+        -- row-major, each zone row-major, low z first, 5 world units per sample.
+        -- Metres = 0.09838 * raw + 0.465 (fitted against BZN object elevations).
+        local function Height(x, z)
+            local col = math.floor(x / 5.0)
+            local row = math.floor((z - 97280.0) / 5.0)
+            if col < 0 or row < 0 or col > 1023 or row > 1023 then return nil end
+            local zoneIndex = (math.floor(row / 256) * 4) + math.floor(col / 256)
+            local within = ((row % 256) * 256) + (col % 256)
+            local offset = 12 + (((zoneIndex * 65536) + within) * 2)
+            local lo, hi = data:byte(offset + 1, offset + 2)
+            return (((hi * 256) + lo) * 0.09838) + 0.465
+        end
+
+        local world = NewWorld()
+        local peer = NewPeer("misn07terrain", world)
+        local Map = peer.Map
+        local scan = Map.NewHeightScan(sites.bounds, 64, 56, Height, 60.0)
+        scan:Step(1e9)
+        local result = Map.AnalyseBasins(scan, { maxAnchors = 24 })
+        check(result ~= nil and #result.clusters >= 8, "misn07 should have many enclosed lowland basins")
+        check(result.poolLevel > 15.0 and result.poolLevel < 26.0,
+            string.format("misn07 pool level should be ~20 m, got %.1f", result.poolLevel))
+        check(result.median > 25.0 and result.median < 36.0, "misn07 median ground should be ~30 m")
+        check(result.ridgeLevel > 60.0, "misn07 ridges should stand well over the pools")
+        check(#result.anchors > 0 and #result.anchors <= 24, "misn07 should yield a bounded anchor list")
+        local central = 0
+        for _, a in ipairs(result.anchors) do
+            check(a.x >= sites.bounds.minX and a.x <= sites.bounds.maxX and a.z >= sites.bounds.minZ and a.z <= sites.bounds.maxZ,
+                "an anchor must be inside the playable box")
+            if a.x > 1500 and a.x < 3700 and a.z > 98500 and a.z < 100500 then central = central + 1 end
+        end
+        check(central >= 5, "the central play area should carry fog pools, found " .. central)
+        print(string.format("  misn07 basins: %d clusters, %d anchors, pool %.1f m, median %.1f m, ridge %.1f m (%d central)",
+            #result.clusters, #result.anchors, result.poolLevel, result.median, result.ridgeLevel, central))
+    end
+end
+
+-- =============================================================================
 -- 4. Sulfur clustering on a synthetic mat grid
 -- =============================================================================
 
