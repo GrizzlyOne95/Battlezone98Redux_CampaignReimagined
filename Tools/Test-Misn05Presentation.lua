@@ -199,4 +199,12 @@ host.valid[DYN] = true
 for _, p in ipairs({guest, third, fourth}) do p.valid[DYN] = true end
 host.api.present("SetUserTarget", DYN); for _=1,4 do tick() end
 check(count(guest, "SetUserTarget", DYN) == 1, "unlabelled objects keep the plain handle path")
+-- A label only the leader knows (SetLabel on a spawned, replicated object): guests that cannot
+-- resolve the label use the replicated handle sent beside it.
+local SPAWNED = 9003
+host.labels[SPAWNED], host.byLabel.leader_only, host.valid[SPAWNED] = "leader_only", SPAWNED, true
+for _, p in ipairs({guest, third, fourth}) do p.valid[SPAWNED] = true end
+host.api.present("SetObjectiveOn", SPAWNED); for _=1,4 do tick() end
+check(count(guest, "SetObjectiveOn", SPAWNED) == 1 and count(fourth, "SetObjectiveOn", SPAWNED) == 1,
+    "a leader-only label falls back to the replicated handle")
 print("misn05 object-camera, replica wait, local skip and ordered result checks passed: " .. checks)

@@ -356,4 +356,36 @@ settle(); check(count(host, "BuildObject") == builds and count(host, "DisplayMes
 for _, p in pairs(peers) do p.env.Start(); p.state = p.env.Save() end
 registerAll(); settle(); settle()
 check(host.state.missionstart and not host.coop.HasLateJoiners(), "restart retained old admission state")
+-- A map object the engine cannot carry as a handle goes by "@label" and resolves via the
+-- guest's GetHandle. The wait is relative to the guest's own clock (no leader-clock
+-- comparison), a late-resolving label still lands in order, and one that never resolves
+-- drops after the guest's own ttl without blocking the stream.
+reset(); host = makePeer(10, 1, true); client = makePeer(20, 2, true)
+registerAll()
+local labelSeq = 1 -- fresh guest, nothing ticked: the stream starts at 1
+local markers, clears = count(client, "SetObjectiveOn"), count(client, "ClearObjectives")
+now = now + 1000 -- guest clock nowhere near any leader deadline
+client.env.Receive(10, "E", labelSeq, "SetObjectiveOn", 5, "@900@late_geyser")
+client.env.Receive(10, "E", labelSeq + 1, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers and count(client, "ClearObjectives") == clears,
+    "an unresolved label must hold the ordered stream")
+now = now + 3
+client.view.late_geyser = { alive = true, team = 0, odf = "eggeizr1", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", labelSeq, "SetObjectiveOn", 5, "@900@late_geyser")
+client.env.Receive(10, "E", labelSeq + 1, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers + 1 and last(client, "SetObjectiveOn")[2] == "late_geyser" and
+    count(client, "ClearObjectives") == clears + 1, "a late-resolving label marker must land, then the next event")
+client.env.Receive(10, "E", labelSeq + 2, "SetObjectiveOn", 5, "@901@never_exists")
+client.env.Receive(10, "E", labelSeq + 3, "ClearObjectives", 5)
+now = now + 5.5
+client.env.Receive(10, "E", labelSeq + 2, "SetObjectiveOn", 5, "@901@never_exists")
+client.env.Receive(10, "E", labelSeq + 3, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers + 1 and count(client, "ClearObjectives") == clears + 2,
+    "a label that never resolves must drop after the guest's own wait without blocking")
+-- A label only the leader knows (SetLabel on a spawned, replicated object) falls back to
+-- the replicated handle carried in the same argument.
+client.view[902] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", labelSeq + 4, "SetObjectiveOn", 5, "@902@leader_only_label")
+check(count(client, "SetObjectiveOn") == markers + 2 and last(client, "SetObjectiveOn")[2] == 902,
+    "a leader-only label must fall back to the replicated handle")
 print("misn04 co-op: " .. checks .. " complete-script Lua 5.1 checks passed")

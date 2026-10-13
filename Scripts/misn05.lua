@@ -98,7 +98,8 @@ end
 -- Ops whose first argument is a game object. The engine maps a handle across
 -- Send only for replicated objects: a map-authored non-replicated one (misn06's
 -- rendezvous geyser) arrives as nil on every guest, however long we wait. Those
--- go on the wire as their map LABEL and each guest resolves it with GetHandle.
+-- go on the wire as "@handle@label" (handles are numbers, so a leading @ is
+-- unambiguous) and each guest resolves the label with GetHandle.
 local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
     SetUserTarget = true, RemoveObject = true }
 local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true }
@@ -108,9 +109,15 @@ local EVENT_TTL = 5
 
 local function WireHandle(handle)
     local ok, label = pcall(GetLabel, handle)
-    if ok and type(label) == "string" and label ~= "" and #label <= 127 then
+    if ok and type(label) == "string" and label ~= "" and #label <= 126 then
         local found, resolved = pcall(GetHandle, label)
-        if found and resolved == handle then return label end
+        if found and resolved == handle then
+            -- "@handle@label": the label wins on a guest, but a label that only
+            -- the leader knows (SetLabel on a spawned, replicated object) still
+            -- falls back to the replicated handle.
+            return "@" .. (type(handle) == "number" and string.format("%d", handle) or tostring(handle)) ..
+                "@" .. label
+        end
     end
     return handle
 end
@@ -280,9 +287,14 @@ local function ReceivePresentation(from, kind, ...)
         local count = select("#", ...) - 3
         local apply = true
         if HANDLE_OPS[op] then
-            if type(args[1]) == "string" then
-                -- Sent by label: resolve against this client's own map objects.
-                args[1] = GetHandle(args[1])
+            if type(args[1]) == "string" and args[1]:sub(1, 1) == "@" then
+                local sentHandle, sentLabel = args[1]:match("^@([^@]*)@(.*)$")
+                local resolved = sentLabel and GetHandle(sentLabel)
+                if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+                    local candidate = tonumber(sentHandle) or sentHandle
+                    if IsValid(candidate) then resolved = candidate end
+                end
+                args[1] = resolved
                 -- A label with no object here (destroyed, or not loaded yet).
                 if not IsValid(args[1]) then apply = false end
             end
