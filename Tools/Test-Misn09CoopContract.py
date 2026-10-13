@@ -74,7 +74,7 @@ assert not re.search(r'BuildObject\([^\n]*,\s*[234]\s*,', lua), 'Hostile spawns 
 assert len(re.findall(r'BuildObject\("\w+",\s*ENEMY_TEAM,', lua)) == 11 + 2 + 1
 assert 'BuildObject("svhaul", ENEMY_TEAM, M.ccamuf)' in lua
 # Prescott's platoon is the support team (allied with every human, hostile to the CCA), perceived as NSDF.
-assert 'BuildObject("avtank", SUPPORT_TEAM, path)' in lua and 'SetPerceivedTeam(unit, LEADER_TEAM)' in lua
+assert 'BuildObject("avtank", SUPPORT_TEAM, SetVector(px, py, pz))' in lua and 'SetPerceivedTeam(unit, LEADER_TEAM)' in lua
 assert not re.search(r'SetAIP\([^)]*SUPPORT_TEAM', lua) and not re.search(r'SetAIControl\(SUPPORT_TEAM', lua)
 # The relic is neutral: team 3 is a guest slot.
 assert 'local RELIC_TEAM = 0' in lua and 'BuildObject("obdata", RELIC_TEAM, M.convoy_geyser)' in lua
@@ -121,7 +121,7 @@ for source in ['Config/misn09.ini', 'Missions/misn09.vxt', 'Assets/Graphics/misn
                'Missions/misn09.bzn', 'Missions/misn09.hg2', 'Missions/misn09.trn', 'Missions/misn09.mat',
                'Missions/misn09.lgt', 'Scripts/misn09.lua', 'Text/misn0910.txt', 'Text/misn0917.txt']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source
-# Files this mission adds that still need a shipping-lock bless (the lock owner empties this list). A file listed
+# Files this mission adds that still need a shipping-lock bless (empty now: the lock admits all of them). A file listed
 # here that the lock already admits must be removed, so the list cannot go stale.
 # The two restored lines are stock-format PCM like Test-ShippedCutVo.py demands of every shipped cut line (that
 # test's WAVS list gains misn0910 and misn0917 when the lock admits them).
@@ -131,7 +131,7 @@ for name in ('misn0910', 'misn0917'):
     assert int.from_bytes(data[20:22], 'little') == 1 and int.from_bytes(data[22:24], 'little') == 1
     assert int.from_bytes(data[24:28], 'little') == 11025 and int.from_bytes(data[34:36], 'little') == 8
     assert (root / 'Text' / (name + '.txt')).is_file()
-PENDING_LOCK = ['Scripts/CRVenusSites09.lua', 'Assets/Audio/misn0910.wav', 'Assets/Audio/misn0917.wav']
+PENDING_LOCK = []
 for source in PENDING_LOCK:
     assert (root / source).is_file(), 'pending file missing: ' + source
     assert source not in members, 'already blessed; drop it from PENDING_LOCK: ' + source
