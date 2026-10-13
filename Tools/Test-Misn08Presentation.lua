@@ -56,7 +56,10 @@ local function peer(id)
     p.printed = {}
     env.print = function(...) p.printed[#p.printed + 1] = table.concat({ ... }, " ") end
     env.SetLabel = function(h, l) record("SetLabel", h, l); p.labels[h] = l; p.byLabel[l] = h end
-    local chunk = assert(loadstring("local CRCoop, M, subtit, LEADER_TEAM = CRCoop, M, subtit, 1\n" .. adapter .. [[
+    p.venus = {}
+    env.VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true }
+    env.CRVenusWeather = { ApplyNetEvent = function(op, ...) p.venus[#p.venus + 1] = { op, ... }; return true end }
+    local chunk = assert(loadstring("local CRCoop, M, subtit, LEADER_TEAM, VENUS_OPS, CRVenusWeather = CRCoop, M, subtit, 1, VENUS_OPS, CRVenusWeather\n" .. adapter .. [[
         return { ready=CameraReady, object=CameraObject, path=CameraPath, finish=CameraFinish,
             cancelled=CameraCancelled, present=Present, ending=EndMission, receive=ReceivePresentation,
             update=UpdatePresentationTransport, isInfo=IsInfo, relay=UpdateInfoRelay,
@@ -233,6 +236,28 @@ check(guest.api.state() and last(guest, "CameraObject")[2] == "os@2" and last(gu
     "a late-resolving subject starts the object camera on the real objects")
 host.api.finish(); tick(); tick()
 
+-- Venus weather events (seed/state, strikes, eruptions) carry only numbers: they ride the same
+-- ordered stream, reach every guest exactly once and never wait on a handle replica.
+guest.valid[9100] = false
+host.valid[9100] = true
+host.api.present("VenusState", 77, 0.0, 2, 0, 2, 0, 0)
+host.api.present("SetObjectiveOn", 9100)
+host.api.present("VenusStrike", 1, 10.5, 20, 30.5, 1, 1.5, 0.8)
+host.api.present("VenusErupt", 2, 3, 20, 0.9)
+host.api.present("AddObjective", "misn0805.otf", "white")
+for _=1,4 do tick() end
+check(#guest.venus == 1 and guest.venus[1][1] == "VenusState" and guest.venus[1][2] == 77,
+    "a state event arrives even while a later marker is waiting for its replica")
+check(count(guest, "AddObjective", "misn0805.otf") == 0, "the stream stays ordered behind the waiting marker")
+for _, p in ipairs({guest, third, fourth}) do p.valid[9100] = true end
+host.valid[9100] = true
+for _=1,4 do tick() end
+for _, p in ipairs({guest, third, fourth}) do
+    check(#p.venus == 3 and p.venus[2][1] == "VenusStrike" and p.venus[2][7] == 1.5 and p.venus[3][1] == "VenusErupt",
+        "every guest receives the state, strike and eruption exactly once, in order")
+end
+check(count(guest, "AddObjective", "misn0805.otf") == 1, "the stream resumes after the marker resolves")
+
 -- The failure line: the mission body plays the DLL's misn0421; the adapter plays misn0823.
 host.api.play("misn0421.wav")
 for _=1,4 do tick() end
@@ -278,7 +303,7 @@ check(count(guest, "SetObjectiveName") == 0 and count(guest, "SucceedMission") =
     "missing replica and out-of-order events must hold the result")
 guest.valid[MARKER] = true
 for _=1,8 do tick(true) end
-check(count(guest, "SetObjectiveName") == 1 and count(guest, "AddObjective") == 1,
+check(count(guest, "SetObjectiveName") == 1 and count(guest, "AddObjective", "misn0801.otf") == 1,
     "retries apply ordered events exactly once")
 for _, p in pairs(peers) do
     check(count(p, "SucceedMission") == 1, "all four peers must receive exactly one result")
