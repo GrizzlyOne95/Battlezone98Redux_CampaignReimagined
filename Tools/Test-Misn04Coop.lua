@@ -53,7 +53,8 @@ local function makePeer(id, team, network)
     end
     local e = setmetatable({}, { __index = _G })
     e._G = e
-    e.print = function() end
+    p.printed = {}
+    e.print = function(...) p.printed[#p.printed + 1] = table.concat({ ... }, " ") end
     e.IsNetGame = function() return p.net end
     e.IsHosting = function() return p.hosting end
     e.GetTime = function() return now end
@@ -61,6 +62,7 @@ local function makePeer(id, team, network)
         check(remote == nil, "remote GetPlayerHandle(team) must never be used")
         return p.player
     end
+    e.SetLabel = function(h, l) record("SetLabel", h, l) end
     e.GetHandle = function(label) return view[label] and label end
     e.IsValid = function(h) return view[h] ~= nil and view[h].alive end
     e.IsAlive = e.IsValid
@@ -356,4 +358,119 @@ settle(); check(count(host, "BuildObject") == builds and count(host, "DisplayMes
 for _, p in pairs(peers) do p.env.Start(); p.state = p.env.Save() end
 registerAll(); settle(); settle()
 check(host.state.missionstart and not host.coop.HasLateJoiners(), "restart retained old admission state")
+-- A map object the engine cannot carry as a handle goes by "@label" and resolves via the
+-- guest's GetHandle. The wait is relative to the guest's own clock (no leader-clock
+-- comparison), a late-resolving label still lands in order, and one that never resolves
+-- drops after the guest's own ttl without blocking the stream.
+reset(); host = makePeer(10, 1, true); client = makePeer(20, 2, true)
+registerAll()
+local labelSeq = 1 -- fresh guest, nothing ticked: the stream starts at 1
+local markers, clears = count(client, "SetObjectiveOn"), count(client, "ClearObjectives")
+now = now + 1000 -- guest clock nowhere near any leader deadline
+client.env.Receive(10, "E", labelSeq, "SetObjectiveOn", 5, "@900@late_geyser")
+client.env.Receive(10, "E", labelSeq + 1, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers and count(client, "ClearObjectives") == clears,
+    "an unresolved label must hold the ordered stream")
+now = now + 3
+client.view.late_geyser = { alive = true, team = 0, odf = "eggeizr1", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", labelSeq, "SetObjectiveOn", 5, "@900@late_geyser")
+client.env.Receive(10, "E", labelSeq + 1, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers + 1 and last(client, "SetObjectiveOn")[2] == "late_geyser" and
+    count(client, "ClearObjectives") == clears + 1, "a late-resolving label marker must land, then the next event")
+client.env.Receive(10, "E", labelSeq + 2, "SetObjectiveOn", 5, "@901@never_exists")
+client.env.Receive(10, "E", labelSeq + 3, "ClearObjectives", 5)
+now = now + 5.5
+client.env.Receive(10, "E", labelSeq + 2, "SetObjectiveOn", 5, "@901@never_exists")
+client.env.Receive(10, "E", labelSeq + 3, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers + 1 and count(client, "ClearObjectives") == clears + 2,
+    "a label that never resolves must drop after the guest's own wait without blocking")
+-- A label only the leader knows (SetLabel on a spawned, replicated object) falls back to
+-- the replicated handle carried in the same argument.
+client.view[902] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", labelSeq + 4, "SetObjectiveOn", 5, "@902@leader_only_label")
+check(count(client, "SetObjectiveOn") == markers + 2 and last(client, "SetObjectiveOn")[2] == 902,
+    "a leader-only label must fall back to the replicated handle")
+-- Label events replicate a leader-side SetLabel; a gone flag skips cleanly; only the long
+-- never-hang guard ends a wait, loudly (log + counter for the harness probe).
+local baseSeq = labelSeq + 5
+local labelsSet, setClears = count(client, "SetLabel"), count(client, "ClearObjectives")
+client.env.Receive(10, "E", baseSeq, "Label", 15, "@907@spawned_label", "spawned_label")
+client.env.Receive(10, "E", baseSeq + 1, "SetObjectiveOn", 15, "@907@spawned_label")
+check(count(client, "SetLabel") == labelsSet, "a Label for a spawn that has not replicated holds the stream")
+client.view[907] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", baseSeq, "Label", 15, "@907@spawned_label", "spawned_label")
+client.env.Receive(10, "E", baseSeq + 1, "SetObjectiveOn", 15, "@907@spawned_label")
+check(count(client, "SetLabel") == labelsSet + 1 and last(client, "SetLabel")[2] == 907 and
+    last(client, "SetLabel")[3] == "spawned_label", "the guest labels its replicated handle")
+check(last(client, "SetObjectiveOn")[2] == 907, "the following marker resolves the real object")
+local ons = count(client, "SetObjectiveOn")
+client.env.Receive(10, "E", baseSeq + 2, "SetObjectiveOn", 15, "!")
+client.env.Receive(10, "E", baseSeq + 3, "ClearObjectives", 15)
+check(count(client, "SetObjectiveOn") == ons and count(client, "ClearObjectives") == setClears + 1,
+    "a marker the leader reports gone is skipped without holding the stream")
+local unresolvedBefore = client.env.Save().coopUnresolved or 0
+client.env.Receive(10, "E", baseSeq + 4, "SetObjectiveOn", 15, "@908@never_label")
+client.env.Receive(10, "E", baseSeq + 5, "ClearObjectives", 15)
+now = now + 14
+client.env.Receive(10, "E", baseSeq + 4, "SetObjectiveOn", 15, "@908@never_label")
+check(count(client, "ClearObjectives") == setClears + 1, "a marker waits through the old 5 s window")
+now = now + 2
+client.env.Receive(10, "E", baseSeq + 4, "SetObjectiveOn", 15, "@908@never_label")
+client.env.Receive(10, "E", baseSeq + 5, "ClearObjectives", 15)
+check(count(client, "ClearObjectives") == setClears + 2 and count(client, "SetObjectiveOn") == ons,
+    "the never-hang guard drops only the stale marker")
+check((client.env.Save().coopUnresolved or 0) == unresolvedBefore + 1, "the timeout is counted for the probe")
+local loud = false
+for _, line in ipairs(client.printed) do loud = loud or line:find("%[coop%] unresolved never_label") ~= nil end
+check(loud, "the timeout logs a loud [coop] unresolved line")
+
+-- Camera snapshots are label-aware and WAIT for the real object; there is no fallback aim.
+local camSerial = 5000
+local function camFrame(generation, target)
+    client.env.Receive(10, "C", camSerial, generation, "camera_path", 175, 850, target)
+    camSerial = camSerial + 1
+    client.env.Update()
+end
+local function endFilm()
+    client.env.Receive(10, "C", camSerial, 1, "", 0, 0); camSerial = camSerial + 1; client.env.Update()
+end
+local casts = count(client, "CameraPath")
+camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts, "an unresolved camera target waits for the replica")
+now = now + 10; camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts, "the camera keeps waiting for the real object, however long")
+client.view.late_cam_target = { alive = true, team = 0, odf = "eggeizr1", health = 1, maxHealth = 1 }
+camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == "late_cam_target",
+    "a late-resolving label target is the one the film aims at")
+endFilm()
+-- A spawned object the leader labelled: its label is replicated by a Label event, and the
+-- camera resolves through the replicated handle while the label is not yet known.
+casts = count(client, "CameraPath")
+camFrame(2, "@905@leader_spawn_label")
+check(count(client, "CameraPath") == casts, "a spawned target that has not replicated yet holds the film")
+client.view[905] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+camFrame(2, "@905@leader_spawn_label")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == 905,
+    "the film aims at the real replicated spawn, not a stand-in")
+endFilm()
+-- The leader reports the target gone: play with what remains valid, without waiting.
+casts = count(client, "CameraPath")
+camFrame(3, "!")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == nil,
+    "a target the leader reports gone must not hold the film")
+endFilm()
+-- Never-hang guard: logged loudly, counted for the harness, then the film plays.
+casts = count(client, "CameraPath")
+local unresolved = client.env.Save().coopUnresolved or 0
+camFrame(4, "@906@never_exists_cam")
+check(count(client, "CameraPath") == casts, "an unresolvable target waits")
+now = now + 14; camFrame(4, "@906@never_exists_cam")
+check(count(client, "CameraPath") == casts, "still waiting inside the safety window")
+now = now + 2; camFrame(4, "@906@never_exists_cam")
+check(count(client, "CameraPath") == casts + 1, "the never-hang guard lets the film play")
+check((client.env.Save().coopUnresolved or 0) == unresolved + 1, "the timeout is counted for the probe")
+local logged = false
+for _, line in ipairs(client.printed) do logged = logged or line:find("%[coop%] unresolved") ~= nil end
+check(logged, "the timeout logs a loud [coop] unresolved line")
 print("misn04 co-op: " .. checks .. " complete-script Lua 5.1 checks passed")

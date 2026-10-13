@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-13T14:20:53-05:00",
-  "count": 2262,
+  "generated": "2026-10-13T14:15:18-05:00",
+  "count": 2282,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -18,6 +18,86 @@
     {
       "source": "Assets\\Audio\\misn0719.wav",
       "runtime": "misn0719.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0232.wav",
+      "runtime": "misn0232.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0407.wav",
+      "runtime": "misn0407.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0426.wav",
+      "runtime": "misn0426.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0428.wav",
+      "runtime": "misn0428.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0615.wav",
+      "runtime": "misn0615.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0616.wav",
+      "runtime": "misn0616.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0617.wav",
+      "runtime": "misn0617.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0618.wav",
+      "runtime": "misn0618.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0619.wav",
+      "runtime": "misn0619.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0620.wav",
+      "runtime": "misn0620.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0621.wav",
+      "runtime": "misn0621.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0622.wav",
+      "runtime": "misn0622.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0623.wav",
+      "runtime": "misn0623.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0624.wav",
+      "runtime": "misn0624.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0625.wav",
+      "runtime": "misn0625.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0626.wav",
+      "runtime": "misn0626.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0627.wav",
+      "runtime": "misn0627.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0639.wav",
+      "runtime": "misn0639.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0641.wav",
+      "runtime": "misn0641.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0652.wav",
+      "runtime": "misn0652.wav"
     },
     {
       "source": "Assets\\Graphics\\bio.png",
