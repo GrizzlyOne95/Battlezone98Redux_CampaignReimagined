@@ -333,10 +333,14 @@ def check_openshim_manifest_assets() -> list[str]:
         root = ROOT / info["source"].replace("\\", "/")
         if not root.is_dir():
             continue  # sibling-supplied tree is absent from this checkout
+        # The manager stages the renderer set as "<name>.payload" (so the game's
+        # resource indexer never sees a second copy); the manifest lists, and
+        # OpenShim installs, the plain name.
+        stored_suffix = ".payload" if name == "renderer" else ""
         verified = True
         for raw, digest, size in entries:
             try:
-                data = (root / raw.replace("\\", "/")).read_bytes()
+                data = (root / (raw.replace("\\", "/") + stored_suffix)).read_bytes()
             except OSError:
                 verified = False
                 errors.append(f"OpenShimManifest.lua '{name}' file '{raw}' is missing locally.")

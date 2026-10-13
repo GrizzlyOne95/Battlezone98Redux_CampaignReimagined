@@ -44,7 +44,7 @@ serialization wrapper for comparison and reconstruction.
 | Object `SetName`, `GetHealth`, `AddHealth`, factory `IsDeployed` | Stock Lua wrappers |
 | `WHITE` / `GREEN` | `"white"` / `"green"` |
 | Native save arrays and `ConvertHandle` | `Save`/`Load` table of primitive and game values; LuaMission serialization |
-| `AiMission` strategic AI | `SetAIControl(2, true)` in `Start`, source AIP calls retained |
+| `AiMission` strategic AI | `SetAIControl(2, true)` at chunk load (team 5 in the port; never in `Start`), source AIP calls retained |
 | Setup before native map-object loading | Setup in `Start`, then one `AllObjects` scan through `AddObject` to recover startup object notifications |
 | APC branch assigns `nsdfmuf = h` | Corrected to `ccaapc = h`, annotated in place |
 | Second tower branch assigns `guntower1 = h` | Corrected to `guntower2 = h`, annotated in place |

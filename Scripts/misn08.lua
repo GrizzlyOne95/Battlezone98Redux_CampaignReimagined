@@ -1269,10 +1269,15 @@ local function InitializeCoop()
 -- CR Venus weather <<
 end
 
+-- The native AiMission supplies the CCA strategic AI. LuaMission must enable it at chunk load,
+-- before the engine runs DR_AI_Init: a later SetAIControl (Start runs after it) leaves the team
+-- flagged but without an AI team record, and the first team-5 unit removal in AI_UnitRemove then
+-- dereferences null and kills the host (misn08 co-op live run). Same rule as misn10/misn14.
+SetAIControl(ENEMY_TEAM, true)
+
 function Start()
     ResetState()
     InitializeCoop()
-    SetAIControl(ENEMY_TEAM, true)
     Setup()
     -- C++ Setup precedes AiMission::Load and its AddObject notifications.
     -- Redux may create map objects before Start; recover the four tracked slots

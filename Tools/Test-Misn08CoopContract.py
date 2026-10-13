@@ -69,6 +69,10 @@ assert 'BuildObject(odf, SUPPORT_TEAM, where)' in lua and 'AddScrap(SUPPORT_TEAM
 assert not re.search(r'SetAIP\([^)]*SUPPORT_TEAM', lua) and not re.search(r'SetAIControl\(SUPPORT_TEAM', lua)
 assert 'BuildObject("svwalk", ENEMY_TEAM, M.ccamuf)' in lua and 'AddScrap(ENEMY_TEAM, -WALKER_SCRAP_COST)' in lua
 assert 'SetAIControl(ENEMY_TEAM, true)' in lua
+# Chunk-root only: Start runs after the engine's DR_AI_Init, and a late SetAIControl flags team 5 without an
+# AI team record, so the first team-5 AI_UnitRemove dereferences null (host crash at load, live 4-client run).
+assert len(re.findall(r'SetAIControl\(', lua)) == 1 and re.search(r'^SetAIControl\(ENEMY_TEAM, true\)$', raw_lua, flags=re.M), \
+    'SetAIControl must be a single chunk-root call, never inside Start/Update'
 assert len(re.findall(r'SetAIP\("misn08\w?\.aip",\s*ENEMY_TEAM\)', lua)) == 3
 assert 'SetScrap(ENEMY_TEAM, 40)' in lua and 'SetPilot(ENEMY_TEAM, 40)' in lua
 assert 'CRCoop.ApplyCoopAlliances(ENEMY_TEAM)' in lua
