@@ -1081,6 +1081,9 @@ function Update()
 
             if not M.intro_skipped then
                 M.audmsg = subtit.Play("misn0201.wav")
+            else
+                -- CR restored VO: misn0232.wav (alt take of 0201 so skippers still get the gather order)
+                M.audmsg = subtit.Play("misn0232.wav")
             end
             --subtit.Play("misn0224.wav")
             M.wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
@@ -1218,9 +1221,16 @@ function Update()
         SetObjectiveOff(M.scav2)
         if IsAlive(M.bscav) then SetObjectiveOff(M.bscav) end
         AddObjective("misn02b3.otf", "green")
+        -- CR restored VO: misn0226.wav (nearly undamaged scavenger; must be sampled before the heal below)
+        local scav2_clean = IsAlive(M.scav2) and GetHealth(M.scav2) >= 0.9
         if IsAlive(M.bscav) then AddHealth(M.bscav, 1000.0) end
         if IsAlive(M.scav2) then AddHealth(M.scav2, 1000.0) end
-        M.audmsg = subtit.Play("misn0234.wav")
+        if scav2_clean then
+            subtit.Play("misn0226.wav")
+            M.audmsg = subtit.Queue("misn0234.wav")
+        else
+            M.audmsg = subtit.Play("misn0234.wav")
+        end
         M.mission_won = true
     end
 

@@ -347,6 +347,7 @@ local function NewMissionState()
 
     -- Timers
     randomwave = 99999999.0,
+    next505 = 0,
     readtime = 99999999999.0,
     start = 99999999999999.0,
     platoonhere = 99999999999999.0,
@@ -964,6 +965,14 @@ function Update()
                 Attack(M.rand1, M.avrec)
                 Attack(M.rand2, M.avrec)
 
+                -- CR restored VO: misn0505.wav (Buzz's incoming-forces alert, throttled; skipped during cutscenes)
+                local cutsceneActive = (M.lemcin1 and not M.lemcin2)
+                    or (M.endseq_started and not M.endseq_cutscene_done)
+                if M.next505 < GetTime() and not cutsceneActive then
+                    subtit.Play("misn0505.wav")
+                    M.next505 = GetTime() + 150.0
+                end
+
                 for i = 1, DiffUtils.ScaleEnemy(1) - 1 do
                     local h = SpawnScriptedEnemy("svfigh", M.svrec, false, false)
                     Attack(h, M.avrec)
@@ -990,7 +999,7 @@ function Update()
     -- Recon Factory Logic
     if (not M.reconfactory) and (CRCoop.AnyPlayerSatisfies(function(h) return GetDistance(h, M.lemnos) < 230.0 end)) then
         subtit.Play("misn0503.wav")
-        subtit.Play("misn0504.wav")
+        subtit.Queue("misn0504.wav")
         M.reconfactory = true
         CRCoop.SetMissionPhase(2)
         M.newobjective = true
@@ -1215,7 +1224,7 @@ function Update()
         -- the scheduled assault and its 15/55/110/160-second reinforcements.
         M.go = false
         subtit.Play("misn0508.wav")
-        subtit.Play("misn0509.wav")
+        subtit.Queue("misn0509.wav")
 
         local attacksent = math.random(0, 3)
         M.attackstatement = false

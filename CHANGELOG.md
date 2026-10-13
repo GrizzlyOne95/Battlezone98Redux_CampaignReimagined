@@ -6,6 +6,12 @@
   suite at the main menu and offers Restart now, refreshes its renderer
   and menu UI files from the Workshop item at startup, and can be turned
   off with Auto-Install Updates in OpenShim Options.
+- Restored unused original voice lines in Missions 02b-05: the scavenger
+  order after a skipped intro, a clean-escort win line, a transport escort
+  reminder, a wingman relic sighting, Collins's relic-loss and recon rebukes,
+  a mission-complete line, and an incoming-CCA alert. The Relic Discovered
+  now opens with its longer retrospective, and back-to-back dialogue no longer
+  drops earlier subtitles in Missions 04 and 05.
 - OpenShim updates now install automatically: starting a single-player
   campaign mission stages a newer bundled OpenShim and installs it when you
   quit. Turn it off with `AutoStage=0` under `[Updater]` in openshim.ini.
