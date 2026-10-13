@@ -187,11 +187,14 @@ local CONVOY_EXTRA_MAX = 3
 -- CR Prescott platoon >>
 -- misn0901/misn0903 have Commander Prescott flushing the convoy out and sealing its retreat.
 -- When the convoy's lead is this close to the cutoff geyser the players get PRESCOTT_DELAY_S of
--- first crack, then an allied avtank platoon (team 7) spawns on the convoy's spawn paths, behind
--- it, and hunts its combat units. Solo it is PRESCOTT_BASE tanks, +1 per extra human, max PRESCOTT_MAX.
+-- first crack, then an allied avtank platoon (team 7) spawns PRESCOTT_BEHIND_M behind the convoy's
+-- rearmost living unit, along its route, and hunts its combat units. Solo it is PRESCOTT_BASE tanks,
+-- +1 per extra human, max PRESCOTT_MAX. The tanks are spread PRESCOTT_SPREAD_M apart sideways.
 local PRESCOTT_TRIGGER_M, PRESCOTT_DELAY_S, PRESCOTT_RETARGET_S = 350.0, 45.0, 4.0
 local PRESCOTT_BASE, PRESCOTT_MAX = 3, 5
-local PRESCOTT_SPAWN_PATHS = { "spawn1", "spawn2", "spawn3", "spawn4" }
+local PRESCOTT_BEHIND_M = 250
+local PRESCOTT_SPREAD_M = 20.0
+local CONVOY_ROUTE = "soviet_path"
 -- CR Prescott platoon <<
 -- CR cut VO >>
 -- Restored cut radio: misn0917 when a human combat unit leaves the Unit Factory before the
@@ -870,11 +873,100 @@ local function OrderPrescott(platoon)
     end
 end
 
+-- Every living unit of the convoy: tug, escort, APCs and the scaling extras.
+local function LivingConvoyUnits()
+    local list = ConvoyCombatUnits()
+    for _, unit in ipairs({ M.ccatug, M.convoy9, M.convoy0 }) do
+        if unit ~= nil and IsAlive(unit) then list[#list + 1] = unit end
+    end
+    return list
+end
+
+local function PlanarDistance(a, b)
+    local dx, dz = a.x - b.x, a.z - b.z
+    return math.sqrt(dx * dx + dz * dz)
+end
+
+-- The rearmost living convoy unit is the one farthest from the cutoff geyser.
+local function RearConvoyUnit()
+    local geyser = GetPosition(M.cut_off_geyser)
+    local rear, rearDistance = nil, -1
+    for _, unit in ipairs(LivingConvoyUnits()) do
+        local distance = PlanarDistance(GetPosition(unit), geyser)
+        if distance > rearDistance then rear, rearDistance = unit, distance end
+    end
+    return rear
+end
+
+-- Returns x, z and a unit travel direction (x, z) for the point PRESCOTT_BEHIND_M back along the
+-- convoy's route from the path point nearest the rear unit, or nil when the path is unusable.
+local function PointBehindOnRoute(rearPos)
+    if type(GetPathPointCount) ~= "function" then return nil end
+    local ok, count = pcall(GetPathPointCount, CONVOY_ROUTE)
+    if not ok or type(count) ~= "number" or count < 2 then return nil end
+    local points = {}
+    for i = 0, count - 1 do
+        local okPoint, p = pcall(GetPosition, CONVOY_ROUTE, i)
+        if not okPoint or type(p) ~= "table" or type(p.x) ~= "number" then return nil end
+        points[i] = p
+    end
+    local nearest, nearestDistance = 0, math.huge
+    for i = 0, count - 1 do
+        local distance = PlanarDistance(points[i], rearPos)
+        if distance < nearestDistance then nearest, nearestDistance = i, distance end
+    end
+    local remaining, j = PRESCOTT_BEHIND_M, nearest
+    while j > 0 do
+        local from, back = points[j], points[j - 1]
+        local segment = PlanarDistance(from, back)
+        if segment >= remaining and segment > 0 then
+            local t = remaining / segment
+            return from.x + (back.x - from.x) * t, from.z + (back.z - from.z) * t,
+                (from.x - back.x) / segment, (from.z - back.z) / segment
+        end
+        remaining = remaining - segment
+        j = j - 1
+    end
+    -- Ran off the start of the route: extend backwards along its first leg.
+    local first, second = points[0], points[1]
+    local segment = PlanarDistance(first, second)
+    if segment <= 0 then return nil end
+    local dx, dz = (second.x - first.x) / segment, (second.z - first.z) / segment
+    return first.x - dx * remaining, first.z - dz * remaining, dx, dz
+end
+
+local function PrescottSpawnPoint(rear)
+    local rearPos = GetPosition(rear)
+    local x, z, dx, dz = PointBehindOnRoute(rearPos)
+    if x == nil then
+        local okFront, front = pcall(GetFront, rear)
+        if not okFront or type(front) ~= "table" then return nil end
+        local length = math.sqrt(front.x * front.x + front.z * front.z)
+        if length <= 0 then return nil end
+        dx, dz = front.x / length, front.z / length
+        x, z = rearPos.x - dx * PRESCOTT_BEHIND_M, rearPos.z - dz * PRESCOTT_BEHIND_M
+    end
+    return x, z, dx, dz
+end
+
 local function SpawnPrescott(platoon)
+    local rear = RearConvoyUnit()
+    if rear == nil then
+        platoon.cancelled = true
+        return
+    end
+    local x, z, dx, dz = PrescottSpawnPoint(rear)
+    if x == nil then
+        platoon.cancelled = true
+        return
+    end
     platoon.spawned = true
-    for index = 1, PrescottCount() do
-        local path = PRESCOTT_SPAWN_PATHS[(index - 1) % #PRESCOTT_SPAWN_PATHS + 1]
-        local unit = BuildObject("avtank", SUPPORT_TEAM, path)
+    local count = PrescottCount()
+    for index = 1, count do
+        local offset = (index - (count + 1) / 2) * PRESCOTT_SPREAD_M
+        local px, pz = x - dz * offset, z + dx * offset
+        local py = GetTerrainHeightAndNormal(SetVector(px, 0.0, pz))
+        local unit = BuildObject("avtank", SUPPORT_TEAM, SetVector(px, py, pz))
         SetPerceivedTeam(unit, LEADER_TEAM)
         if SetIndependence ~= nil then SetIndependence(unit, 0) end
         platoon.units[#platoon.units + 1] = unit
@@ -894,7 +986,7 @@ local function UpdatePrescott()
         end
         return
     end
-    if (not platoon.spawned) and platoon.due < now then SpawnPrescott(platoon) end
+    if (not platoon.spawned) and (not platoon.cancelled) and platoon.due < now then SpawnPrescott(platoon) end
     if platoon.spawned and platoon.next < now then OrderPrescott(platoon) end
 end
 

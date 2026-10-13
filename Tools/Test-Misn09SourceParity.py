@@ -157,7 +157,9 @@ check('AudioMessage("misn0912.wav")' in lua, "the cut 0912 block stays in its co
 geyser = "\n".join("\n".join(region) for region in region_text["CR geyser-clear win"])
 check('SucceedMission(GetTime() + 15.0, "misn09w1.des")' in geyser, "geyser-clear win re-enabled in its region")
 check('SucceedMission(Get_Time() + 15.0f, "misn09w1.des");' in lua, "the cut SucceedMission stays in its comment")
-check('BuildObject("avtank", SUPPORT_TEAM, path)' in region_all, "Prescott's platoon spawns on the support team")
+check('BuildObject("avtank", SUPPORT_TEAM, SetVector(px, py, pz))' in region_all, "Prescott's platoon spawns on the support team")
+check("PRESCOTT_BEHIND_M = 250" in region_all and "PRESCOTT_SPAWN_PATHS" not in lua,
+      "Prescott's platoon spawns 250 m behind the convoy's rear unit, not on spawn1-4")
 check('BuildObject("svhaul", ENEMY_TEAM, M.ccamuf)' in region_all, "the replacement tug is built at the CCA factory")
 
 # The campaign validator must ignore preserved C++ in every Lua long-comment
