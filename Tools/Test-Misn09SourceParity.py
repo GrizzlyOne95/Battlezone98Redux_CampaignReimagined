@@ -127,9 +127,10 @@ native_slots = re.findall(r'if\s*\(\((\w+)\s*==\s*NULL\)\s*&&\s*\(IsOdf\(h,"(\w+
 lua_slots = re.findall(r'\{"(\w+)",\s*"(\w+)"\}', lua.split("local trackedObjects =", 1)[1].split("function AddObject", 1)[0])
 check(native_slots == lua_slots and len(lua_slots) == 16, "AddObject first-empty slot order differs")
 check("ObjectiveObjects" not in active_lua, "unsupported API introduced")
-# Native AiMission enabled the CCA's strategic AI; Start does the same on the remapped team, outside Setup/Update.
-check(active_lua.count("SetAIControl(ENEMY_TEAM, true)") == 1 and "SetAIControl" not in lua_setup + lua_update,
-      "SetAIControl belongs in Start only, on the CCA team")
+# Native AiMission enabled the CCA's strategic AI; the chunk root does the same on the remapped team (Start is too late).
+check(active_lua.count("SetAIControl(ENEMY_TEAM, true)") == 1 and "SetAIControl" not in lua_setup + lua_update
+      and re.search(r"^SetAIControl\(ENEMY_TEAM, true\)$", active_lua, flags=re.M) is not None,
+      "SetAIControl belongs at chunk load only, on the CCA team")
 check("local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7" in active_lua, "team constants")
 check(re.search(r'BuildObject\s*\(\s*"\w+",\s*[234]\s*,', lua_setup + lua_update) is None
       and re.search(r"\b(SetScrap|SetPilot)\s*\(\s*[234]\s*,", lua_setup + lua_update) is None,
