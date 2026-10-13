@@ -1566,11 +1566,14 @@ function Build-WorkshopContent {
         renderer = "openshim\renderer\enhanced"
         customWidgets = "BZ_ASSETS_CORE\common\ui\CustomWidgets"
     }
+    # Renderer files are staged as "<name>.payload" (see Update-OpenShimManifest)
+    # but listed in the manifest, and installed by OpenShim, under their plain name.
+    $assetSetStoredSuffix = @{ renderer = ".payload"; customWidgets = "" }
     foreach ($assetMatch in [regex]::Matches($stagedManifest, '\{ set = "(\w+)", path = "([^"]+)"')) {
         $assetRoot = $assetSetRoots[$assetMatch.Groups[1].Value]
         $assetRelative = $assetMatch.Groups[2].Value.Replace('\\', '\')
         if (-not $assetRoot -or
-            -not (Test-Path -LiteralPath (Join-Path $contentFolder (Join-Path $assetRoot $assetRelative)))) {
+            -not (Test-Path -LiteralPath (Join-Path $contentFolder (Join-Path $assetRoot ($assetRelative + $assetSetStoredSuffix[$assetMatch.Groups[1].Value]))))) {
             throw "Workshop staging is missing manifest asset '$($assetMatch.Groups[1].Value)\$assetRelative'."
         }
     }
