@@ -168,6 +168,71 @@ check(not guest.api.state() and third.api.state(), "a path camera waits for its 
 guest.valid.target = true
 host.api.finish(); tick(); tick()
 
+-- Camera snapshots are label-aware and WAIT for the real object; there is no fallback aim.
+host.valid.camgeyser, host.labels.camgeyser, host.byLabel.cam_geyser = true, "cam_geyser", "camgeyser"
+guest.byLabel.cam_geyser, fourth.byLabel.cam_geyser = nil, nil
+third.byLabel.cam_geyser, third.valid["cg@3"] = "cg@3", true
+host.api.finish(); tick(); tick()
+host.api.ready(); host.api.path("cam1path", 800, 1000, "camgeyser")
+tick(); tick(); tick()
+check(third.api.state() and last(third, "CameraPath")[5] == "cg@3", "a resolvable label target aims the film at the guest's replica")
+check(not guest.api.state() and not fourth.api.state(), "an unresolved target holds the film's start")
+for _=1,40 do tick() end -- ten seconds: still the real object or nothing
+check(not guest.api.state() and not fourth.api.state(), "the film keeps waiting for the real object")
+guest.byLabel.cam_geyser = "cg@2"; guest.valid["cg@2"] = true
+tick()
+check(guest.api.state() and last(guest, "CameraPath")[5] == "cg@2", "a late-resolving label starts the film aimed at the real object")
+fourth.byLabel.cam_geyser, fourth.valid["cg@4"] = "cg@4", true
+tick(); check(fourth.api.state() and last(fourth, "CameraPath")[5] == "cg@4", "every guest ends up aimed at its own real replica")
+host.api.finish(); tick(); tick()
+-- A spawned target that replicates late: waits, then the real handle.
+local LATE = 9010
+host.valid[LATE] = true
+third.valid[LATE], fourth.valid[LATE] = true, true
+host.api.ready(); host.api.path("cam1path", 800, 1000, LATE)
+tick(); tick()
+check(not guest.api.state(), "a spawned target that has not replicated yet holds the film")
+guest.valid[LATE] = true; tick()
+check(guest.api.state() and last(guest, "CameraPath")[5] == LATE, "the film aims at the real replicated spawn")
+host.api.finish(); tick(); tick()
+-- The leader reports the target gone: no waiting, plays with what remains valid.
+local DOOMED = 9011
+host.valid[DOOMED] = true
+host.api.ready(); host.api.path("cam1path", 800, 1000, DOOMED)
+host.valid[DOOMED] = false
+tick(); tick()
+check(guest.api.state() and third.api.state(), "a target the leader reports gone must not hold the film")
+host.api.finish(); tick(); tick()
+-- Never-hang guard: loud log + counter, then the film plays.
+local NEVER = 9012
+host.valid[NEVER], host.labels[NEVER], host.byLabel.never_cam = true, "never_cam", NEVER
+local before = guest.M.coopUnresolved or 0
+host.api.ready(); host.api.path("cam1path", 800, 1000, NEVER)
+for _=1,40 do tick() end
+check(not guest.api.state(), "an unresolvable target still waits inside the safety window")
+for _=1,30 do tick() end
+-- One timeout, logged once: whichever of the Label event / the film gives up first covers both.
+check(guest.api.state() and (guest.M.coopUnresolved or 0) == before + 1, "the never-hang guard lets the film play and counts it")
+local loud = false
+for _, line in ipairs(guest.printed) do loud = loud or line:find("%[coop%] unresolved camera") ~= nil end
+check(loud, "the camera timeout logs a loud [coop] unresolved line")
+host.api.finish(); tick(); tick()
+
+-- Object camera (O kind): subject and target resolve by label and the film waits for both.
+host.valid.osub, host.labels.osub, host.byLabel.o_sub = true, "o_sub", "osub"
+third.byLabel.o_sub, third.valid["os@3"] = "os@3", true
+fourth.byLabel.o_sub, fourth.valid["os@4"] = "os@4", true
+host.api.ready(); host.api.object("osub", 0, 500, -500, "camgeyser")
+tick(); tick(); tick()
+check(third.api.state() and last(third, "CameraObject")[2] == "os@3" and last(third, "CameraObject")[6] == "cg@3",
+    "an object camera aims at the real subject and target")
+check(not guest.api.state(), "an object camera waits for an unresolved subject")
+guest.byLabel.o_sub, guest.valid["os@2"] = "os@2", true
+tick()
+check(guest.api.state() and last(guest, "CameraObject")[2] == "os@2" and last(guest, "CameraObject")[6] == "cg@2",
+    "a late-resolving subject starts the object camera on the real objects")
+host.api.finish(); tick(); tick()
+
 -- The failure line: the mission body plays the DLL's misn0421; the adapter plays misn0823.
 host.api.play("misn0421.wav")
 for _=1,4 do tick() end
