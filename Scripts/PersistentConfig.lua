@@ -5724,7 +5724,21 @@ function PersistentConfig._HandleAutoSaveEnableAction()
     return PersistentConfig._SettingsActions.SetAutoSaveEnabled(not PersistentConfig.Settings.AutoSaveEnabled)
 end
 
+-- Pilot Mode is single-player only; the toggle is locked in any network game.
+function PersistentConfig._IsPilotModeLocked()
+    local coop = package.loaded["CRCoop"]
+    if type(coop) == "table" and type(coop.IsNetworkGame) == "function" and coop.IsNetworkGame() then
+        return true
+    end
+    if type(IsNetworkOn) == "function" and IsNetworkOn() then return true end
+    if type(IsNetGame) == "function" and IsNetGame() then return true end
+    return false
+end
+
 function PersistentConfig._SetPilotModeEnabled(enabled)
+    if PersistentConfig._IsPilotModeLocked() then
+        return false
+    end
     local value = not not enabled
     if PersistentConfig.Settings.PilotModeEnabled == value then
         return false
@@ -5842,7 +5856,8 @@ GetSettingsPageEntries = function()
         },
         {
             label = "Pilot Mode",
-            value = PersistentConfig.Settings.PilotModeEnabled and "On" or "Off",
+            value = PersistentConfig._IsPilotModeLocked() and "Off (multiplayer)"
+                or (PersistentConfig.Settings.PilotModeEnabled and "On" or "Off"),
             adjust = function(delta)
                 return PersistentConfig._SetPilotModeEnabled(DirectionEnabled(delta))
             end,

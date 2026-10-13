@@ -512,9 +512,16 @@ local function BootstrapPlayerSideAI()
     -- AddObject already keeps scripted Team 5 units out of aiCore. Bootstrap
     -- also scans the live world, so temporarily lock Team 5 craft out of that
     -- scan and restore their original independence immediately afterward.
+    -- Other humans' craft (co-op guests on teams 2-4, or any known player handle) are
+    -- locked out the same way so they are never registered as AI-managed.
+    local function IsOtherHumansCraft(h)
+        local team = GetTeamNum(h)
+        if CRCoop.IsNetworkGame() and team ~= 1 and CRCoop.IsHumanTeam(team) then return true end
+        return CRCoop.IsHumanCraft(h) and true or false
+    end
     if type(GetIndependence) == "function" and type(SetIndependence) == "function" then
         for h in AllCraft() do
-            if h and IsValid(h) and GetTeamNum(h) == ENEMY_TEAM then
+            if h and IsValid(h) and (GetTeamNum(h) == ENEMY_TEAM or IsOtherHumansCraft(h)) then
                 local ok, value = pcall(GetIndependence, h)
                 if ok then
                     restoreIndependence[h] = value

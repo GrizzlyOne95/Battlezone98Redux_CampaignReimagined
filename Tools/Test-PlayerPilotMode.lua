@@ -128,4 +128,32 @@ PilotMode.Update()
 assert(team.Config.customValue == 17, "save/load lost the baseline config")
 assert(resetCalls == 0, "save/load reset a team")
 
+-- Multiplayer: Pilot Mode is forced off even when the setting is true, never applies
+-- the team-1 profile, and Load must not re-enable it from a save.
+do
+    local netOn = true
+    IsNetGame = function() return netOn end
+    team.Config.autoManage, team.Config.manageBase = false, false
+    PersistentConfig.Settings.PilotModeEnabled = true
+    PilotMode.Initialize(adapter, { enabled = true, baselineConfig = { autoManage = true }, transitionSerial = 3 })
+    PilotMode.Update()
+    assert(PilotMode.IsEnabled() == false, "pilot mode enabled in a network game")
+    assert(team.Config.autoManage == false and team.Config.manageBase == false, "MP applied the team-1 pilot profile")
+    assert(PilotMode.Enable() == false and PilotMode.IsEnabled() == false, "Enable() succeeded in MP")
+    assert(PilotMode.AddObject(wingman) == false, "AddObject was not a no-op in MP")
+    PersistentConfig.Settings.PilotModeEnabled = false
+    PilotMode.Load({ enabled = true })
+    assert(PersistentConfig.Settings.PilotModeEnabled == false, "Load re-enabled pilot mode from a save in MP")
+    assert(PilotMode.Save().enabled == false, "Save recorded enabled in MP")
+    -- Back offline the same setting works again.
+    netOn = false
+    PersistentConfig.Settings.PilotModeEnabled = true
+    PilotMode.Initialize(adapter)
+    PilotMode.Update()
+    assert(PilotMode.IsEnabled() == true and team.Config.autoManage == true, "pilot mode did not enable offline")
+    PersistentConfig.Settings.PilotModeEnabled = false
+    PilotMode.Update()
+    IsNetGame = nil
+end
+
 io.write("PlayerPilotMode checks passed\n")

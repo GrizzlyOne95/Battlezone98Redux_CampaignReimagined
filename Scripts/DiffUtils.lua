@@ -28,7 +28,6 @@ function DiffUtils.Get()
 
         -- aiCore Specifics
         thumperChance = ({ 0, 5, 10, 20, 40 })[d + 1] or 10,
-        mortarChance = ({ 0, 10, 20, 35, 50 })[d + 1] or 20,
         fieldChance = ({ 0, 5, 10, 15, 30 })[d + 1] or 10,
         doubleWeaponChance = ({ 0, 10, 20, 40, 80 })[d + 1] or 20,
         howitzerChance = ({ 10, 30, 50, 75, 100 })[d + 1] or 50,
@@ -37,7 +36,6 @@ function DiffUtils.Get()
         wreckerInterval = ({ 1200, 900, 600, 450, 300 })[d + 1] or 600,
         pilotTopoff = ({ 2, 3, 4, 6, 8 })[d + 1] or 4,
         sniperTimeout = ({ 10.0, 9.0, 8.0, 7.0, 6.0 })[d + 1] or 8.0,
-        soldierRange = ({ 40, 45, 50, 60, 70 })[d + 1] or 50,
         flankFormationRushChance = ({ 10, 20, 40, 55, 70 })[d + 1] or 40,
         resourceBoost = (d >= 2), -- Medium and above get boosts
 
@@ -183,7 +181,6 @@ function DiffUtils.ApplyAiCoreDifficulty(team, role, teamNum)
 
     SetTeamConfig(team, "pilotZeal", m.zeal)
     SetTeamConfig(team, "thumperChance", m.thumperChance)
-    SetTeamConfig(team, "mortarChance", m.mortarChance)
     SetTeamConfig(team, "fieldChance", m.fieldChance)
     SetTeamConfig(team, "doubleWeaponChance", m.doubleWeaponChance)
     SetTeamConfig(team, "howitzerChance", m.howitzerChance)
@@ -191,7 +188,6 @@ function DiffUtils.ApplyAiCoreDifficulty(team, role, teamNum)
     SetTeamConfig(team, "wreckerInterval", m.wreckerInterval)
     SetTeamConfig(team, "pilotTopoff", m.pilotTopoff)
     SetTeamConfig(team, "sniperTimeout", m.sniperTimeout)
-    SetTeamConfig(team, "soldierRange", m.soldierRange)
     SetTeamConfig(team, "flankFormationRushChance", m.flankFormationRushChance)
     SetTeamConfig(team, "resourceBoost", m.resourceBoost)
     SetTeamConfig(team, "scavengerCount", m.scavengerCount)
@@ -272,6 +268,16 @@ function DiffUtils.SetupTeams(playerFaction, enemyFaction, enemyTeamNum)
 
     DiffUtils.ApplyAiCoreDifficulty(playerTeam, "player", 1)
     DiffUtils.ApplyAiCoreDifficulty(enemyTeam, "enemy", enemyTeamNum or 2)
+
+    -- aiCore must not manage human teams: team 1 (and any other team aiCore knows is human)
+    -- starts with base/factory/constructor/tactical/special-combat management off. A mission
+    -- that wants one back sets it explicitly with SetConfig afterwards.
+    if core.ApplyHumanTeamDefaults then
+        if core.IsHumanTeam(1) then core.ApplyHumanTeamDefaults(playerTeam) end
+        if core.IsHumanTeam(enemyTeamNum or 2) then core.ApplyHumanTeamDefaults(enemyTeam) end
+    end
+    -- Co-op guests (teams 2-4) get wingman/rescue/depot support too.
+    if core.EnsureHumanTeams then core.EnsureHumanTeams() end
 
     -- Global Environment
     if exu then
