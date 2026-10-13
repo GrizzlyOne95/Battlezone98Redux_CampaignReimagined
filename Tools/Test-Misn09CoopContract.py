@@ -113,7 +113,7 @@ assert 'misn0917.wav' in lua and 'misn0910.wav' in lua
 assert 'misn0912' not in lua and 'misn0912' in raw_lua
 assert 'FACTORY_COMBAT_ODFS' in lua and 'WALKER_FAR_M' in lua and 'TUG_REBUILD_DELAY_S' in lua
 assert 'PRESCOTT_TRIGGER_M, PRESCOTT_DELAY_S, PRESCOTT_RETARGET_S = 350.0, 45.0, 4.0' in lua
-assert 'CONVOY_EXTRA_MAX = 3' in lua and 'PRESCOTT_BASE, PRESCOTT_MAX = 3, 5' in lua
+assert 'CONVOY_EXTRA_MAX = 3' in lua and 'local PRESCOTT_COUNT = 5' in lua and 'PRESCOTT_BASE' not in lua and 'PRESCOTT_MAX' not in lua
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
