@@ -26,6 +26,12 @@ end
 local subtit = require("ScriptSubtitles")
 local CRCoop = require("CRCoop")
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+-- CR Venus weather >>
+local CRVenusWeather = require("CRVenusWeather")
+local VenusSites = require("CRVenusSites08")
+local Environment = require("Environment")
+local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true }
+-- CR Venus weather <<
 -- CR Colorado massacre >>
 -- The Colorado (map label "colorado", team 7 perceived NSDF) is destroyed on screen:
 -- walker 3 (spawned beside it) and the CCA strike units attack it once the DLL's
@@ -131,6 +137,11 @@ local function ApplyPresentation(op, ...)
             SetScrap(team, scrap)
             SetPilot(team, pilots)
         end
+-- CR Venus weather >>
+    elseif VENUS_OPS[op] then
+        -- Weather events carry no handles: never labelled, never waited on.
+        return CRVenusWeather.ApplyNetEvent(op, ...)
+-- CR Venus weather <<
     elseif op == "Label" then
         local handle, label = ...
         if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
@@ -516,7 +527,7 @@ local function ReceivePresentation(from, kind, ...)
     end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources") then
+    if seq == receivedEvent + 1 and (native[op] or VENUS_OPS[op] or op == "Label" or op == "Resources") then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
         local apply, unresolved = true, false
@@ -867,6 +878,81 @@ local function RestoredCloseWarning()
 end
 -- CR restored walker content <<
 
+-- CR Venus weather >>
+-- Venus atmosphere (Docs/VENUS_WEATHER.md). The leader (or offline play) runs the director's
+-- automatic weather and the beats below; guests render the same sky from the seeded timeline
+-- plus the host's state and strike/eruption events, which ride the ordered presentation
+-- stream like any other event. The events carry no handles, so they bypass the marker
+-- label/TTL logic. The director never damages anything (knockback and radar scramble only).
+local venusStarted, venusAnnounced = false, false
+
+local function InitVenusWeather()
+    venusStarted = true
+    local net = CRCoop.IsNetworkGame()
+    local authority = (not net) or CRCoop.IsAuthority()
+    Environment.Init()
+    CRVenusWeather.Init({
+        authority = authority,
+        seed = M.venusSeed, -- nil: the leader/offline picks one, guests wait for the host's state
+        sites = VenusSites,
+        startLevel = 1,
+        targetLevel = 2,
+        -- The host queues straight onto the stream: its own Present() would apply the event again.
+        send = net and function(op, ...)
+            events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), ttl = RESOLVE_TIMEOUT }
+        end or nil,
+        players = net and function()
+            local list = {}
+            CRCoop.ForEachPlayerHandle(function(h) list[#list + 1] = h end)
+            return list
+        end or nil,
+    })
+    if M.weatherState ~= nil and authority then
+        CRVenusWeather.Load(M.weatherState)
+        M.weatherState = nil
+    end
+    if authority then M.venusSeed = CRVenusWeather.Seed end -- survives a save
+end
+
+-- Every peer, every frame after the session is ready.
+local function UpdateVenusWeather(dt)
+    if not venusStarted then InitVenusWeather() end
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and not venusAnnounced and CRCoop.IsSessionReady() then
+        venusAnnounced = true
+        CRVenusWeather.AnnounceState()
+    end
+    CRVenusWeather.Update(dt)
+    Environment.Update(dt)
+end
+
+local function ShutdownVenusWeather()
+    if venusStarted then CRVenusWeather.Shutdown() end
+    venusStarted, venusAnnounced = false, false
+end
+
+-- Host/offline only: the mission's arc drives the severity ladder, each beat once.
+--   2 calm while the Colorado is still talking -> 3 when the scripted walkers begin their
+--   attacks (walker 3 hits the Colorado, or the base walkers set off) -> a 60 s level-5
+--   spike when the Colorado's heal stops and the massacre begins -> a steady 3 once the
+--   CCA has its recycler and svwalk production runs.
+local function UpdateVenusBeats()
+    local beats = M.venusBeats
+    if beats == nil then beats = {}; M.venusBeats = beats end
+    if (not beats.rising) and (M.colorado_under_attack or M.gech_started) then
+        beats.rising = true
+        CRVenusWeather.SetTargetLevel(3)
+    end
+    if (not beats.massacre) and M.kill_colorado then
+        beats.massacre = true
+        CRVenusWeather.ForceLevel(5, 60.0, 10.0)
+    end
+    if (not beats.production) and M.ccarecycle_spawned then
+        beats.production = true
+        CRVenusWeather.SetTargetLevel(3)
+    end
+end
+-- CR Venus weather <<
+
 local function ResetState()
     M = {
         -- Original bool save fields, including dormant cut-content state.
@@ -1141,6 +1227,10 @@ Here's where you set the values at the start.
 end
 
 function AddObject(h)
+-- CR Venus weather >>
+    Environment.OnObjectCreated(h)
+    CRVenusWeather.OnObjectCreated(h)
+-- CR Venus weather <<
 -- CR team filter >>
     if not AddObjectTeamAllowed(h) then return end
 -- CR team filter <<
@@ -1174,6 +1264,9 @@ local function InitializeCoop()
     })
     ConfigureAlliances()
     ResetPresentation()
+-- CR Venus weather >>
+    ShutdownVenusWeather()
+-- CR Venus weather <<
 end
 
 function Start()
@@ -1238,6 +1331,9 @@ function Update(dt)
         M.coopMissionStarted = true
     end
     UpdateInfoRelay()
+-- CR Venus weather >>
+    UpdateVenusWeather(dt)
+-- CR Venus weather <<
     if not CRCoop.IsAuthority() then return end
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
         M.coopBootstrapped = true
@@ -1254,6 +1350,9 @@ Here is where you put what happens every frame.
 ]=]
 
     M.user = GetPlayerHandle() --assigns the player a handle every frame
+-- CR Venus weather >>
+    UpdateVenusBeats()
+-- CR Venus weather <<
 -- CR Colorado base >>
     UpdateColoradoBase()
 -- CR Colorado base <<
@@ -1885,6 +1984,11 @@ end
 -- Redux serializes this table's primitive/game values, including handles.
 -- Load must not rerun Setup or replay opening events. LuaMission handles remapping.
 function Save()
+-- CR Venus weather >>
+    if venusStarted and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
+        M.weatherState = CRVenusWeather.Save()
+    end
+-- CR Venus weather <<
     return M
 end
 

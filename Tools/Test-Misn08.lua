@@ -49,6 +49,11 @@ function GetPilot() return 10 end
 local function noop() end
 local modules = {
     RequireFix = {Initialize = noop}, exu = {},
+    CRVenusWeather = {Init = noop, Update = noop, Shutdown = noop, OnObjectCreated = noop, Save = function() return {} end,
+        Load = noop, AnnounceState = noop, ApplyNetEvent = noop, Seed = 1,
+        SetTargetLevel = function(level) record("VenusTarget", level) end,
+        ForceLevel = function(level, seconds, transition) record("VenusForce", level, seconds, transition) end},
+    CRVenusSites08 = {}, Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
     ScriptSubtitles = {Play = function(file) record("Play", file); return 1 end,
         Queue = function(file) record("Queue", file) end, Stop = noop, Update = noop, Initialize = noop},
 }
@@ -149,6 +154,9 @@ check(m.colorado_under_attack and count("BuildObject", "svwalk") == 1, "Colorado
 check(count("BuildObject", "svfigh") == 4 and count("BuildObject", "svltnk") == 1, "source duplicate slot still spawns both units")
 local walker3 = m.ccagech3
 check(called("Attack", walker3, m.colorado), "Colorado targeted by walker 3")
+check(count("VenusTarget") == 0 and count("VenusForce") == 0, "weather stays calm until the walkers attack")
+step(290.3)
+check(count("VenusTarget") == 1 and called("VenusTarget", 3), "the walker attacks lift the storm to level 3, once")
 check(m.strike and m.strike.figh and m.strike.ltnk and m.strike.figh ~= m.strike.ltnk, "strike fighter and light tank tracked")
 check(called("Attack", m.strike.figh, m.colorado) and called("Attack", m.strike.ltnk, m.colorado), "CCA strike ordered onto the Colorado")
 step(300.3)
@@ -167,6 +175,7 @@ check(called("BuildObject", "svtank", 5, "gech_spawn") and called("BuildObject",
     "the extra strike spawns on the walker approach, on team 5")
 local heals = count("AddHealth", m.colorado)
 step(318.6)
+check(count("VenusForce") == 1 and called("VenusForce", 5, 60.0, 10.0), "the Colorado massacre spikes the storm to level 5, once")
 check(count("AddHealth", m.colorado) == heals, "no further Colorado heal after the fall begins")
 near(m.gech_trigger2, m.ccagech2, 50)
 kill(m.colorado) -- destroyed by the walker and the strike
@@ -193,6 +202,13 @@ check(called("Goto", walker3, "gech_path2") and m.gech3_move, "walker 3 continue
 check(m.gech3_there_time > 339.2 + 96 and m.gech3_there_time < 339.2 + 98, "walker 3 base arrival armed")
 step(369.3)
 check(called("Play", "misn0810.wav"), "general radio")
+check(count("VenusTarget") == 2 and count("VenusForce") == 1,
+    "CCA walker production settles the storm to a steady level 3, once")
+do
+    local targets = {}
+    for _, call in ipairs(calls) do if call[1] == "VenusTarget" then targets[#targets + 1] = call[2] end end
+    check(targets[1] == 3 and targets[2] == 3, "both target beats ask for level 3")
+end
 near(walker3, m.stop_geyser3, 50)
 step(437)
 check(m.gech3_at_base and called("Attack", walker3, m.nsdfrecycle), "walker 3 attacks the player base")

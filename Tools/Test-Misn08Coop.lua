@@ -140,6 +140,7 @@ end
 local function makePeer(id, team, network)
     local p = {id = id, team = team, net = network, hosting = team == 1, calls = {}, player = "player" .. id,
         rally = nil}
+    p.venus = {updates = 0, announces = 0, shutdowns = 0, targets = {}, forces = {}, events = {}}
     peers[id] = p
     newObject(p.player, "avtank", team, {100 + id, 20, 100})
     local function record(name, ...) p.calls[#p.calls + 1] = {name, ...} end
@@ -334,6 +335,18 @@ local function makePeer(id, team, network)
     local function noop() end
     local modules = {
         RequireFix = {Initialize = noop},
+        -- The real director has its own suite (Test-CRVenusWeather.lua); this records the
+        -- mission's wiring: what it was initialised with, the beats, and the events it received.
+        CRVenusWeather = {
+            Init = function(options) p.venus.init = options end, Update = function() p.venus.updates = p.venus.updates + 1 end,
+            Shutdown = function() p.venus.shutdowns = p.venus.shutdowns + 1 end, OnObjectCreated = noop,
+            Save = function() return { saved = true } end, Load = function(state) p.venus.loaded = state end,
+            AnnounceState = function() p.venus.announces = p.venus.announces + 1 end,
+            ApplyNetEvent = function(op, ...) p.venus.events[#p.venus.events + 1] = { op, ... }; return true end,
+            SetTargetLevel = function(level) p.venus.targets[#p.venus.targets + 1] = level end,
+            ForceLevel = function(level, seconds, transition) p.venus.forces[#p.venus.forces + 1] = { level, seconds, transition } end,
+            Seed = 4242},
+        CRVenusSites08 = { mission = "misn08" }, Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
         ScriptSubtitles = {
@@ -819,6 +832,59 @@ do
     check(#s.cw.list == 1 and built(host, "svwalk") == 2, "a single human caps production at one walker")
 end
 
+-- ============================================================ 12e. Venus weather
+do
+    local host, guests = session(true)
+    local s = host.state
+    check(host.venus.init and host.venus.init.authority and host.venus.init.sites.mission == "misn08"
+        and host.venus.init.targetLevel == 2 and host.venus.init.startLevel == 1, "the leader runs the director as authority, calm at level 2")
+    for _, g in ipairs(guests) do
+        check(g.venus.init and g.venus.init.authority == false and g.venus.init.seed == nil,
+            "guests render the host's weather: no authority and no seed of their own")
+    end
+    check(host.venus.announces == 1 and onAll(function(p) return p.venus.announces == 0 end) == 3,
+        "only the leader announces the state, once, when the session is ready")
+    check(host.venus.updates > 0 and onAll(function(p) return p.venus.updates > 0 end) == 4, "every peer updates the director")
+    check(s.venusSeed == 4242, "the leader keeps the seed for a save")
+    check(#host.venus.targets == 0 and #host.venus.forces == 0, "no beat before the walkers attack")
+    -- Venus ops ride the ordered stream with no handles, so they are never labelled or waited on,
+    -- and they stay ordered against ordinary events.
+    host.venus.init.send("VenusState", 4242, 12.5, 2, 0, 2, 0, 0)
+    host.env.AddObjective("misn0800.otf", "white")
+    host.venus.init.send("VenusStrike", 1, 100.5, 20, 200.5, 1, 1.5, 1.0)
+    host.venus.init.send("VenusErupt", 2, 3, 20, 0.9)
+    run(3)
+    for _, g in ipairs(guests) do
+        check(#g.venus.events == 3 and g.venus.events[1][1] == "VenusState" and g.venus.events[1][2] == 4242
+            and g.venus.events[2][1] == "VenusStrike" and g.venus.events[2][5] == 200.5 and g.venus.events[3][1] == "VenusErupt",
+            "guests apply every Venus event in order")
+        check(count(g, "AddObjective", "misn0800.otf") == 1, "ordinary events keep flowing between Venus events")
+        check((g.state.coopUnresolved or 0) == 0, "Venus events never register as unresolved")
+    end
+    check(#host.venus.events == 0, "the leader does not re-apply its own events")
+    -- Beats: level 3 when the walkers attack, a level-5 spike when the heal stops, a steady 3 after.
+    runTo(285)
+    check(s.colorado_under_attack, "the attack began")
+    run(1)
+    check(#host.venus.targets == 1 and host.venus.targets[1] == 3 and #host.venus.forces == 0, "the walker attacks lift the storm to level 3")
+    for _ = 1, 1600 do tick(); if s.kill_colorado then break end end
+    run(1)
+    check(#host.venus.forces == 1 and host.venus.forces[1][1] == 5 and host.venus.forces[1][2] == 60.0, "the massacre spikes the storm to level 5")
+    for _ = 1, 4000 do tick(); if s.ccarecycle_spawned then break end end
+    run(1)
+    check(#host.venus.targets == 2 and host.venus.targets[2] == 3 and #host.venus.forces == 1, "CCA walker production settles the storm to level 3")
+    eachPeer(function(p)
+        if p ~= host then check(#p.venus.targets == 0 and #p.venus.forces == 0, "guests never drive the weather") end
+    end)
+    run(30)
+    check(#host.venus.targets == 2 and #host.venus.forces == 1, "each beat fires once")
+    -- A save keeps the seed and the director's state on the leader only.
+    host.env.Save()
+    check(s.weatherState and s.weatherState.saved, "the leader saves the weather state")
+    local g1 = guests[1]; g1.env.Save()
+    check(g1.state.weatherState == nil, "a guest saves no weather")
+end
+
 -- ============================================================ 13. offline smoke
 do
     local host = session(false, 1)
@@ -826,6 +892,9 @@ do
     runTo(300)
     check(s.colorado_under_attack and count(host, "Send") == 0, "offline play reaches the Colorado attack with no network traffic")
     check(count(host, "Play", "misn0801.wav") == 1 and host.rally[0] == "avrecycle", "offline dialogue and rally")
+    check(host.venus.init.authority and host.venus.init.send == nil and host.venus.init.players == nil and host.venus.announces == 0,
+        "offline weather is the host path with nothing sent")
+    check(#host.venus.targets == 1 and host.venus.targets[1] == 3, "offline play follows the same beats")
 end
 
 print("misn08 co-op: " .. checks .. " multi-peer Lua 5.1 mock-engine checks passed")
