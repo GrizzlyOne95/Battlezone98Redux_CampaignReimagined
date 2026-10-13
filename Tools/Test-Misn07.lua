@@ -1,4 +1,7 @@
 -- Run from the repository root with Lua 5.1.
+-- Offline (single-player) behavior of the co-op-capable misn07: the real CRCoop
+-- runs with single-player semantics, so every check below is the DLL's own test.
+-- Multi-player behavior is covered by Tools/Test-Misn07Coop.lua.
 local now, objects, labels, calls, distances, serial, deployed
 local checks = 0
 local function check(value, message)
@@ -22,6 +25,24 @@ function GetHandle(label)
     end
     return labels[label]
 end
+function SetVector(x, y, z) return {x = x or 0, y = y or 0, z = z or 0} end
+function GetTerrainHeightAndNormal() return 20, SetVector(0, 1, 0) end
+function GetPosition(h) return SetVector(0, 0, 0) end
+function GetPathPointCount() return 0 end
+function DisplayMessage() end
+function Ally() end
+function UnAlly() end
+function GetPilot() return 10 end
+function IsPerson() return false end
+function GetTeamNum() return 1 end
+function ObjectsInRange() return function() return nil end end
+local function noop() end
+local modules = {
+    RequireFix = {Initialize = noop}, exu = {},
+    ScriptSubtitles = {Play = function(file) return AudioMessage(file) end,
+        Queue = function(file) return AudioMessage(file) end, Stop = noop, Update = noop, Initialize = noop},
+}
+function require(name) return assert(modules[name], name) end
 function GetPlayerHandle() return GetHandle("player") end
 function GetTime() return now end
 function IsValid(h) return objects[h] ~= nil end
@@ -54,6 +75,9 @@ end
 local function reset()
     now, serial, deployed = 0, 0, false
     objects, labels, calls, distances = {}, {}, {}, {}
+    modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
+    modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
     dofile("Scripts/misn07.lua")
     Start()
     Update(0.05)
@@ -109,7 +133,7 @@ Update(0.05); now = 21; Update(0.05)
 check(m.unit_spawn and objects[m.pilot3].odf == "sssold", "special alarm soldiers")
 
 m = reset()
-m.out_of_car = true; objects[m.user].odf = "svtank.odf"
+m.out_of_car = true; m.infiltrated[0] = true; objects[m.user].odf = "svtank.odf"
 objects[m.barrack1].health = 0.94; Update(0.05)
 check(m.vehicle_stolen and m.alarm_on and not m.alarm_special, "stolen vehicle alarm")
 
