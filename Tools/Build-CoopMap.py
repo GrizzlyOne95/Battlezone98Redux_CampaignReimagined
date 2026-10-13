@@ -1,6 +1,6 @@
 """Build Missions/<mission>.bzn (co-op) from the Battlezone 1.5 original.
 
-Shared by misn06, misn07 and misn08 (Build-Misn06CoopMap.py is a thin wrapper); the
+Shared by misn06 through misn09 (Build-Misn06CoopMap.py is a thin wrapper); the
 notes below use misn06 as the example.
 
 The 1.5 map is a binary version-1032 BZN whose mission class is the C++
@@ -17,7 +17,7 @@ offline/co-op Lua under MultSTMission:
     pushed misn05's team 3/4 starts far away).
 
 Usage:
-  python Tools/Build-CoopMap.py --mission misn06|misn07|misn08 [--source FILE] [--toolbox DIR]
+  python Tools/Build-CoopMap.py --mission misn06|misn07|misn08|misn09 [--source FILE] [--toolbox DIR]
 """
 
 from __future__ import annotations
@@ -292,7 +292,7 @@ def build(text: str, mission: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--mission", default="misn06", help="mission stem: misn06, misn07 or misn08")
+    parser.add_argument("--mission", default="misn06", help="mission stem: misn06, misn07, misn08 or misn09")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     parser.add_argument("--output", type=Path)
