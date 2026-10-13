@@ -1,6 +1,6 @@
 """Build Missions/<mission>.bzn (co-op) from the Battlezone 1.5 original.
 
-Shared by misn06 and misn07 (Build-Misn06CoopMap.py is a thin wrapper); the
+Shared by misn06, misn07 and misn08 (Build-Misn06CoopMap.py is a thin wrapper); the
 notes below use misn06 as the example.
 
 The 1.5 map is a binary version-1032 BZN whose mission class is the C++
@@ -17,7 +17,7 @@ offline/co-op Lua under MultSTMission:
     pushed misn05's team 3/4 starts far away).
 
 Usage:
-  python Tools/Build-CoopMap.py --mission misn06|misn07 [--source FILE] [--toolbox DIR]
+  python Tools/Build-CoopMap.py --mission misn06|misn07|misn08 [--source FILE] [--toolbox DIR]
 """
 
 from __future__ import annotations
@@ -41,6 +41,11 @@ AUTHORED_ENEMY_TEAM = 2
 # west edge and drives them to these authored positions (CONVOY_DEST in the Lua):
 #   avtank2 (1426.3, 22.9489, 99546.5)   avtank3 (1442.5, 21.613, 99570.4)
 REMOVE_LABELS = {"misn07": ("avtank2", "avtank3")}
+# Authored objects that move to another team: label -> (team, perceivedTeam).
+# misn08: the Colorado (avrecy, authored team 3) is a map object the script kills by
+# Damage; team 3 is a guest team in co-op, so it goes to the support team (7) but
+# stays perceived as team 1 (the host's side).
+RETEAM_LABELS = {"misn08": {"colorado": (7, 1)}}
 BUOY_SPACING = 25.0
 BUOY_ADDR_BASE = 0x3001
 
@@ -223,6 +228,18 @@ def build(text: str, mission: str) -> str:
         removed += 1
     count = len(objects)
 
+    for label, (new_team, new_perceived) in RETEAM_LABELS.get(mission, {}).items():
+        hits = [i for i, b in enumerate(objects) if re.search(rf"^label = {re.escape(label)}$", b, re.M)]
+        if len(hits) != 1:
+            raise SystemExit(f"object {label} not found exactly once")
+        b = objects[hits[0]]
+        b, n1 = re.subn(r"^team \[1\] =\n\d+$", f"team [1] =\n{new_team}", b, count=1, flags=re.M)
+        b, n2 = re.subn(r"^perceivedTeam \[1\] =\n\d+$", f"perceivedTeam [1] =\n{new_perceived}", b, count=1, flags=re.M)
+        if n1 != 1 or n2 != 1:
+            raise SystemExit(f"object {label} team fields not rewritten")
+        objects[hits[0]] = b
+        print(f"reteamed {label}: team {new_team}, perceivedTeam {new_perceived}")
+
     moved = 0
     for i, block in enumerate(objects):
         team = re.search(r"^team \[1\] =\n(\d+)$", block, re.M)
@@ -275,7 +292,7 @@ def build(text: str, mission: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 or misn07")
+    parser.add_argument("--mission", default="misn06", help="mission stem: misn06, misn07 or misn08")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     parser.add_argument("--output", type=Path)
