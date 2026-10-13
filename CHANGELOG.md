@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Bundle OpenShim 1.0.0.50. OpenShim now also stages a newer Workshop
+  suite at the main menu and offers Restart now, refreshes its renderer
+  and menu UI files from the Workshop item at startup, and can be turned
+  off with Auto-Install Updates in OpenShim Options.
 - Restored unused original voice lines in Missions 02b-05: the scavenger
   order after a skipped intro, a clean-escort win line, a transport escort
   reminder, a wingman relic sighting, Collins's relic-loss and recon rebukes,
@@ -20,6 +24,10 @@
   missing from the package since OpenShim 1.0.0.48; the UI image list now
   comes from the OpenShim release instead of a hand-kept copy.
 
+- Add Mission 06, Escape from Mars, to the campaign, plus a 2-4 player co-op
+  version with shared films and outcomes. It uses the original Battlezone 1.5
+  map and unsmoothed terrain. In co-op every player must reach dust off with
+  Wyoming.
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
 - Co-op: a player who dies respawns near a teammate. Each player has 5
