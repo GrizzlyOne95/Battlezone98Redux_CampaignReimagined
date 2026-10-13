@@ -47,17 +47,17 @@ for token in ("RESTORED_VO", "CUT_VO", "RENDEZVOUS_CONVOY", "RAZOR_ONE", "SpawnC
               "utah_nag", "mine_ok", "cine_player", "M.rk", "M.convoy", "PROTO_", "Prototype", "M.proto", "TestRangeOpen", "BeginTestRangeTrip", "razor_unit", "RK_HEAL", "UpdateRazorHeal", "M.rh"):
     assert token not in lua, "region code outside marker regions: " + token
 
-# Restored voice lines need their shipped subtitle text (never invent text); 0711 and 0717 stay cut.
+# Restored voice lines need their shipped subtitle text (never invent text); 0711 stays cut; 0717 is the alternate take of 0702.
 restored = "\n".join(l for region in region_text["CR restored VO"] for l in region)
 cut_table = re.search(r"local CUT_VO = \{(.*?)\n\}", restored, flags=re.S)
 assert cut_table, "CUT_VO table missing from restored region"
 cut_wavs = sorted(set(re.findall(r'"(misn07\d\d)\.wav"', cut_table[1])))
-assert cut_wavs == ["misn0703", "misn0704", "misn0719"], cut_wavs
+assert cut_wavs == ["misn0703", "misn0704", "misn0717", "misn0719"], cut_wavs
 missing_text = [w for w in cut_wavs if not (ROOT / "Text" / (w + ".txt")).is_file()]
 assert not missing_text, "restored VO without Text subtitle: " + ", ".join(missing_text)
 for wav in re.findall(r'"(misn07\d\d)\.wav"', restored):
-    assert wav in cut_wavs, "restored wav missing from CUT_VO: " + wav
-assert "misn0711" not in restored and "misn0717" not in restored, "dev joke / duplicate line restored"
+    assert wav in cut_wavs or wav == "misn0702", "restored wav missing from CUT_VO: " + wav
+assert "misn0711" not in restored, "dev joke line restored"
 
 # Disabled C++ blocks stay in Lua comments; // comments are kept as -- comments.
 cpp_comment = r"//[^\n]*|/\*.*?\*/"

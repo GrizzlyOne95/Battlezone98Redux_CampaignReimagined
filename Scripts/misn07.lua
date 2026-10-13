@@ -557,6 +557,7 @@ local function NewState()
 -- CR rendezvous convoy <<
 -- CR restored VO >>
     state.mine_ok = nil
+    state.take0702 = nil
     state.cine_player = nil
     state.test_range_started = false
     state.test_range_after = 99999.0
@@ -916,6 +917,7 @@ end
 local RESTORED_VO = true
 local CUT_VO = {
     testRange = "misn0703.wav", underAttack = "misn0704.wav", utahReminder = "misn0719.wav",
+    rookieTake = "misn0717.wav", -- the alternate take of 0702 (same subtitle intent, different read)
 }
 -- The MAG-cannon test objects no longer exist in the map. test_tank is an svtnk7
 -- (the DLL's MAG tank) at test_tank_spawn. test_turret is a CCA-model turret (svturr)
@@ -929,6 +931,15 @@ local UTAH_NAG_DELAY_S = 120.0
 local TEST_RANGE_HOLD_S = 150.0   -- after 0714, if the Utah is still not deployed
 local TEST_RANGE_TIMEOUT_S = 90.0 -- Razor One's drive to cam_spawn6
 local RAZOR_ARRIVE_M, RAZOR_RELEASE_M, RAZOR_REORDER_S = 60.0, 100.0, 10.0
+
+-- The overlook call: the leader picks the original 0702 or the cut alternate 0717 once (50/50);
+-- Play carries the chosen file to every peer's audio and subtitles.
+local function PickRookieTake()
+    if M.take0702 == nil then
+        M.take0702 = (math.random(0, 1) == 0) and "misn0702.wav" or CUT_VO.rookieTake
+    end
+    return M.take0702
+end
 
 local function VoDone(handle)
     return handle == nil or handle == 0 or IsAudioMessageDone(handle)
@@ -1729,7 +1740,13 @@ if ((!first_objective) && (!alarm_on) && (!out_of_car))
                 M.units=M.units+CountUnitsNearObject(h,200.0,ENEMY_TEAM,"svfigh")
             end)
             if (NoPlayerWithin(M.jump_geyz,400.0)) and (M.units==0) then
+-- CR restored VO >>
+                if RESTORED_VO then subtit.Play(PickRookieTake()) else
+-- CR restored VO <<
                 subtit.Play("misn0702.wav")
+-- CR restored VO >>
+                end
+-- CR restored VO <<
                 -- Rookie trasmits a broken message saying player should look at camera
                 M.jump_cam=BuildObject("apcamr",1,"jump_cam_spawn")
                 M.rookie=BuildObject("avfigh",1,M.jump_geyz)

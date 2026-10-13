@@ -194,8 +194,8 @@ wav has its shipped `Text/misn07NN.txt`). Only shipped assets are used.
   total), an object shot of the turret (10 s), then `CameraFinish`; the turret
   is pre-damaged 950 and the tank is released to fight. It plays once and
   replicates through the `O`/`P` snapshots; each player can skip their own view,
-  an offline skip ends it and resolves the swap. **0711 (a developer joke) and
-  0717 (a near-duplicate of 0702) are not played.**
+  an offline skip ends it and resolves the swap. **0711 (a developer joke) is
+  not played.**
 * Prototype svtnk7 production. When the film finishes (or the leader skips it), or
   the test tank is hurt or destroyed without a film, the CCA begins fielding the
   prototype `svtnk7` (weapon `ga7stab`: `charge6`, 1450 ballistic damage, 75 m/s,
@@ -216,6 +216,14 @@ wav has its shipped `Text/misn07NN.txt`). Only shipped assets are used.
   `svtnk7` uses as its base, and `plasma_3.png` for the shot). Nothing is 1.5-only.
   CR already ships its own `ODF/svtnk7.odf` (3750 health, rocket-tank AI) and
   `gatstaba.odf`, both in the lock; no file was added.
+* The overlook call (where the DLL plays 0702) is 0702 or its cut alternate take
+  0717, picked once at random (50/50) by the leader through `math.random`, then
+  played through the normal event stream so every peer hears and subtitles the same
+  take (offline picks the same way). `Text/misn0717.txt` ships with the mod; the
+  wav is in Redux's English, Portuguese and Russian archives (`bzone_en/pt/ru.zfs`) but
+  not in the German, Spanish, French and Italian ones, where the alternate take has
+  subtitles but no voice. The default path is the original 0702 line
+  (`RESTORED_VO=false` restores it exactly).
 * 0719 (Collins: rendezvous with the Utah) once, 120 s after 0714, if the Utah is
   still not deployed; the test range waits for it to finish.
 
@@ -232,7 +240,7 @@ python Tools/Validate-CampaignRepository.py
 ```
 
 The offline suite keeps its 31 single-player checks. The host flow suite
-(`Test-Misn07Coop.lua`, 575 checks) runs the whole script in four peers over the
+(`Test-Misn07Coop.lua`, 593 checks) runs the whole script in four peers over the
 real CRCoop and the E/A/C transport, plus an offline peer: startup and teams,
 the convoy, per-player alarm, special alarm and nearest-player soldiers,
 any-player triggers, rally and the Utah, win/loss, the restored arc, the
