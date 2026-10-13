@@ -255,7 +255,7 @@ local function makePeer(id, team, network)
         local pos = posOf(where) or {x = 100000, y = 20, z = 100000}
         local o = newObject(h, odf, objectTeam, {pos.x, pos.y, pos.z})
         if objectTeam == 7 then
-            o.hp = ({avtank = 2000, avfigh = 1000, avscav = 1000, avmuf = 4000, abtowe = 2000, avapc = 2000})[odf] or 1000
+            o.hp = ({avtank = 2000, avfigh = 1000, avscav = 1000, avmuf = 4000, avturr = 2000, avapc = 2000})[odf] or 1000
             o.maxhp = o.hp
         end
         record("BuildObject", h, odf, objectTeam, where)
@@ -461,7 +461,7 @@ do
     check(#force0 == 10, "the Colorado entered the massacre with its full base: " .. #force0)
     local kinds = {}
     for _, h in ipairs(force0) do kinds[objects[h].odf] = (kinds[objects[h].odf] or 0) + 1; check(objects[h].team == 7, "base objects are team 7") end
-    check(kinds.avtank == 2 and kinds.avfigh == 1 and kinds.avscav == 1 and kinds.avmuf == 1 and kinds.abtowe == 2 and kinds.avapc == 3,
+    check(kinds.avtank == 2 and kinds.avfigh == 1 and kinds.avscav == 1 and kinds.avmuf == 1 and kinds.avturr == 2 and kinds.avapc == 3,
         "escort, scavenger, factory, two towers and three APCs")
     check(objects[s.cbase.factory].deployed, "the Colorado factory deployed")
     local healStopped
@@ -720,7 +720,7 @@ do
     run(70)
     check(built(host, "avmuf") == 1 and count(host, "Deploy") == 1, "factory built and deployed")
     run(150)
-    check(built(host, "abtowe") == 2 and built(host, "avapc") == 3, "two defenses and the APC cap")
+    check(built(host, "avturr") == 2 and built(host, "avapc") == 3, "two defenses and the APC cap")
     check(world.scrap[7] == 60 - 4 - 10 - 12 - 15, "the base is paid for from team-7 scrap: " .. tostring(world.scrap[7]))
     local before = count(host, "BuildObject")
     for _, apcCall in ipairs(callsOf(host, "BuildObject", nil)) do end

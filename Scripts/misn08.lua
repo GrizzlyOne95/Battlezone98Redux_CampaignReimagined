@@ -42,17 +42,17 @@ local GECH3_FALLBACK_S = 150.0
 -- CR restored walker content <<
 -- CR Colorado base >>
 -- The Colorado starts allied (team 7) with a small escort and a modest base that the leader
--- builds in Lua (see the helper block): recycler-style scavenger, a factory, two gun towers
+-- builds in Lua (see the helper block): recycler-style scavenger, a factory, two turrets (hilly ground)
 -- and a capped stream of APCs, charged against team-7 scrap. Costs are the ODFs' scrapCost.
 local COLORADO_SCRAP = 60
 local COLORADO_ESCORT = { { "avtank", -45.0, 35.0 }, { "avtank", 45.0, 40.0 }, { "avfigh", 0.0, -50.0 } }
 local COLORADO_BUILDS = {
     { at = 15.0, odf = "avscav", dx = -30.0, dz = 40.0 },
     { at = 40.0, odf = "avmuf", dx = 50.0, dz = -40.0 },
-    { at = 70.0, odf = "abtowe", dx = 70.0, dz = 30.0 },
-    { at = 100.0, odf = "abtowe", dx = -60.0, dz = -20.0 },
+    { at = 70.0, odf = "avturr", dx = 70.0, dz = 30.0 },
+    { at = 100.0, odf = "avturr", dx = -60.0, dz = -20.0 },
 }
-local COLORADO_COST = { avscav = 4, avmuf = 10, abtowe = 6, avapc = 5 }
+local COLORADO_COST = { avscav = 4, avmuf = 10, avturr = 6, avapc = 5 }
 local COLORADO_APC_CAP, COLORADO_APC_FIRST_S, COLORADO_APC_INTERVAL_S = 3, 90.0, 40.0
 -- CR Colorado base <<
 -- CR CCA walkers >>
@@ -580,7 +580,7 @@ local function AtGround(x, z)
     return SetVector(x, (GetTerrainHeightAndNormal(SetVector(x, 0, z))), z)
 end
 
--- Colorado-team objects the script built (escort, scavenger, factory, towers, APCs).
+-- Colorado-team objects the script built (escort, scavenger, factory, turrets, APCs).
 local function ColoradoForce()
     local live = {}
     if M.cbase then

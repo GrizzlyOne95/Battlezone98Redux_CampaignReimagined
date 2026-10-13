@@ -60,7 +60,7 @@ strips them and proves the DLL body is otherwise unchanged.
   (team 7, allied with every human, perceived NSDF) and the leader gives it a small
   escort (two `avtank`, one `avfigh`, spawned within 60 m) and a modest base of
   Lua-built objects: after 15 s an `avscav`, after 40 s an `avmuf` that is
-  `Deploy`ed, after 70 s and 100 s an `abtowe` each, and from 90 s the factory
+  `Deploy`ed, after 70 s and 100 s an `avturr` turret each (turrets suit the hilly ground better than gun towers), and from 90 s the factory
   produces `avapc` every 40 s up to three alive (the mission VO has the Colorado's
   APCs leading the assault on the gun tower, so APCs are its only production). Every
   build is charged to team-7 scrap (60 at the start; the ODFs' `scrapCost`) and the
