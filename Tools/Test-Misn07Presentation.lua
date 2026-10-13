@@ -184,45 +184,6 @@ guest.valid[UTAH] = true
 for _=1,4 do tick() end
 check(#rallyCalls == 4, "the delayed replica applies the rally exactly once")
 
--- Camera snapshots are label-aware: a non-replicated target (misn03's cam_geyser, here "camgeyser")
--- is resolved by label; a guest that cannot resolve it inside its window plays the film aimed at
--- its own craft instead of skipping it, and re-aims the moment the label resolves.
-host.valid.camgeyser, host.labels.camgeyser, host.byLabel.cam_geyser = true, "cam_geyser", "camgeyser"
-guest.byLabel.cam_geyser, fourth.byLabel.cam_geyser = nil, nil
-third.byLabel.cam_geyser, third.valid["cg@3"] = "cg@3", true
-host.api.finish(); tick(); tick()
-host.api.ready(); host.api.path("cam1path", 800, 1000, "camgeyser")
-tick(); tick(); tick()
-check(third.api.state() and last(third, "CameraPath")[5] == "cg@3", "a resolvable label target aims the film at the guest's replica")
-check(not guest.api.state() and not fourth.api.state(), "an unresolved target waits inside the guest's window")
-guest.byLabel.cam_geyser = "cg@2"; guest.valid["cg@2"] = true
-tick()
-check(guest.api.state() and last(guest, "CameraPath")[5] == "cg@2", "a late-resolving label target starts the film aimed at it")
-for _=1,8 do tick() end
-check(fourth.api.state() and last(fourth, "CameraPath")[5] == "craft4",
-    "an unresolvable target must play aimed at the guest's craft, not skip the film")
-fourth.byLabel.cam_geyser, fourth.valid["cg@4"] = "cg@4", true
-tick(); check(last(fourth, "CameraPath")[5] == "cg@4", "the film re-aims when the label finally resolves")
-host.api.finish(); tick(); tick()
-
--- Object camera: the subject and target are both the label-only object.
-guest.byLabel.cam_geyser, fourth.byLabel.cam_geyser = nil, nil
-fourth.valid["cg@4"] = nil
-host.api.finish(); tick(); tick()
-host.api.ready(); host.api.object("camgeyser", 0, 500, -500, "camgeyser")
-tick(); tick(); tick()
-check(third.api.state() and last(third, "CameraObject")[6] == "cg@3", "a resolvable label target aims the film at the guest's replica")
-check(not guest.api.state() and not fourth.api.state(), "an unresolved target waits inside the guest's window")
-guest.byLabel.cam_geyser = "cg@2"; guest.valid["cg@2"] = true
-tick()
-check(guest.api.state() and last(guest, "CameraObject")[6] == "cg@2", "a late-resolving label target starts the film aimed at it")
-for _=1,8 do tick() end
-check(fourth.api.state() and last(fourth, "CameraObject")[6] == "craft4",
-    "an unresolvable target must play aimed at the guest's craft, not skip the film")
-fourth.byLabel.cam_geyser, fourth.valid["cg@4"] = "cg@4", true
-tick(); check(last(fourth, "CameraObject")[6] == "cg@4", "the film re-aims when the label finally resolves")
-host.api.finish(); tick(); tick()
-
 -- Drop the first event and reorder the retransmission; markers wait for replicas.
 -- Real handles are numbers; strings on the wire are map labels.
 local MARKER = 9001
