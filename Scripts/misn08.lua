@@ -1,14 +1,568 @@
--- misn08: faithful BZ1 DLL mission port for stock Battlezone 98 Redux / Lua 5.1.
+-- misn08: faithful BZ1 DLL mission port for stock Battlezone 98 Redux / Lua 5.1,
+-- with the shared offline + 2-4 player co-op layer of the misn06/07 ports
+-- (Docs/MISN08_COOP.md).
 -- Authority: Battlezone_Source/BZ1/from_bz2_dll_src/Misn08Mission.cpp
 -- Source blob: d1581e4d62251a9a452e26c30fee162a90cf9571
+-- Full source, including native serialization, is in References/Misn08Source/.
 -- No community/Lua mission used as behavioral evidence.
--- Disabled code is translated in place; the full original is archived below.
--- Intentional source quirks (timers, duplicate spawn assignment, outcome ordering)
--- remain unchanged. Two AddObject copy/paste typos are explicitly repaired.
+-- Disabled code is translated in place. Intentional source quirks (timers,
+-- duplicate spawn assignment, outcome ordering) remain unchanged; two AddObject
+-- copy/paste typos are explicitly repaired. Everything the campaign adds lives
+-- between "-- CR ... >>" / "-- CR ... <<" marker lines (Tools/Test-Misn08SourceParity.py).
+-- Offline play reproduces the DLL; only the leader runs the mission body.
 -- Requires stock misn08 map labels, paths, AIPs, OTF/audio/debrief assets.
--- Native team-2 strategic AI is enabled at startup; no aiCore replacement is used.
-
 local M = {}
+
+-- EXU Initialization
+local RequireFix = require("RequireFix")
+RequireFix.Initialize({"campaignReimagined", "3686673790"})
+local exu = require("exu")
+-- Native MultST Init precedes Start; retain the authored Utah (avrecycle) only.
+if type(IsNetGame) == "function" and IsNetGame() then
+    assert(exu.DisableStartingRecycler and exu.GetMyNetID,
+        "misn08 co-op requires the bundled EXU multiplayer hooks")
+    exu.DisableStartingRecycler()
+end
+local subtit = require("ScriptSubtitles")
+local CRCoop = require("CRCoop")
+local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+-- CR Colorado massacre >>
+-- The Colorado (map label "colorado", team 7 perceived NSDF) is destroyed on screen:
+-- walker 3 (spawned beside it) and the CCA strike units attack it once the DLL's
+-- scripted heal stops. The DLL's Damage(colorado, 20000) survives only as a fallback
+-- if it is still alive COLORADO_FALLBACK_S after the heal stopped.
+local COLORADO_FALLBACK_S = 120.0
+local COLORADO_ORDER_S = 10.0
+local COLORADO_WARN_M = 400.0
+-- CR Colorado massacre <<
+-- CR restored walker content >>
+-- If walker 3 never passes within 30 m of stop_geyser2, the restored base advance
+-- (disabled in the DLL) starts anyway this long after the Colorado fell.
+local GECH3_FALLBACK_S = 150.0
+-- CR restored walker content <<
+
+-- Co-op presentation uses the established misn03/misn05 E/A and C transport.
+-- Only the campaign leader runs the mission body below; HUD/audio/removal/timer/
+-- end calls are explicitly delivered to every peer.
+-- E/A are an ordered, acknowledged event stream (eight small packets in flight,
+-- retried every 0.2s). C is a replaceable camera snapshot carrying a kind: "P"
+-- (CameraPath), "O" (CameraObject) or "" (no camera). I relays a guest's native
+-- IsInfo selection state to the leader. No tables go on wire.
+-- These types do not collide with CRCoop's H/Q/K/P/L protocol. Join-in-progress
+-- still requires a restart: native world reconstruction is not available here.
+local unpackArgs = unpack or table.unpack
+local native = {
+    ClearObjectives = ClearObjectives, AddObjective = AddObjective,
+    UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
+    SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
+    SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
+    StartCockpitTimer = StartCockpitTimer, StopCockpitTimer = StopCockpitTimer,
+    HideCockpitTimer = HideCockpitTimer,
+    SucceedMission = SucceedMission, FailMission = FailMission,
+    CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
+    CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
+    Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
+}
+local nativeIsInfo = IsInfo
+local events, acknowledgements = {}, {}
+local receivedEvent = 0
+local pendingSeq, pendingSince
+local nextEventSend, nextCameraSend = 0, 0
+local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+local remoteCameraSerial, localCameraGeneration = 0, 0
+local cameraSkipped, localCameraActive = false, false
+local remoteCamera
+-- IsInfo is local UI state (the selected object's info panel). Guests relay
+-- the two prefixes this mission reads; the leader honours a report for 1 s.
+local INFO_PREFIXES = { "hbblde", "hbbldf" }
+local isInfoPrefix = {}
+for _, prefix in ipairs(INFO_PREFIXES) do isInfoPrefix[prefix] = true end
+local remoteInfo, nextInfoSend = {}, 0
+
+local function ResetPresentation()
+    events, acknowledgements, receivedEvent = {}, {}, 0
+    pendingSeq, pendingSince = nil, nil
+    nextEventSend, nextCameraSend = 0, 0
+    cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+    remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
+    cameraSkipped, localCameraActive = false, false
+    remoteInfo, nextInfoSend = {}, 0
+end
+
+local function FromLeader(from)
+    local player = CRCoop.GetPlayers()[from]
+    return player and player.team == LEADER_TEAM
+end
+
+local function ApplyPresentation(op, ...)
+    if op == "Resources" then
+        local team, scrap, pilots = ...
+        -- Each human owns their team resources. Do not mutate a remote team.
+        if CRCoop.GetLocalTeam() == team then
+            -- Guests have no starting recycler, hence zero native capacity.
+            -- Reserve room before setting their mission starting resources.
+            SetMaxScrap(team, math.max(GetMaxScrap(team), scrap))
+            SetMaxPilot(team, math.max(GetMaxPilot(team), pilots))
+            SetScrap(team, scrap)
+            SetPilot(team, pilots)
+        end
+    elseif op == "SucceedMission" or op == "FailMission" then
+        local when, description = ...
+        if localCameraActive then native.CameraFinish() end
+        cameraFrame = nil
+        localCameraActive = false
+        M.coopResult = true
+        native[op](math.max(GetTime() + 0.5, when), description)
+    else
+        return native[op](...)
+    end
+end
+
+-- Ops whose first argument is a game object. The engine maps a handle across
+-- Send only for replicated objects: a map-authored non-replicated one (misn06's
+-- rendezvous geyser) arrives as nil on every guest, however long we wait. Those
+-- go on the wire as "@handle@label" (handles are numbers, so a leading @ is
+-- unambiguous) and each guest resolves the label with GetHandle.
+local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
+    SetUserTarget = true, RemoveObject = true }
+local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true }
+-- A replica gets this many seconds, measured on the RECEIVER's own clock from
+-- the first time its event is next in line, before the stale marker is dropped.
+local EVENT_TTL = 5
+
+local function WireHandle(handle)
+    if handle == nil then return nil end
+    local ok, label = pcall(GetLabel, handle)
+    if ok and type(label) == "string" and label ~= "" and #label <= 126 then
+        local found, resolved = pcall(GetHandle, label)
+        if found and resolved == handle then
+            -- "@handle@label": the label wins on a guest, but a label that only
+            -- the leader knows (SetLabel on a spawned, replicated object) still
+            -- falls back to the replicated handle.
+            return "@" .. (type(handle) == "number" and string.format("%d", handle) or tostring(handle)) ..
+                "@" .. label
+        end
+    end
+    return handle
+end
+
+local function Present(op, ...)
+    if CRCoop.IsNetworkGame() then
+        if not CRCoop.IsAuthority() then return end
+        local wire = { ... }
+        if HANDLE_OPS[op] and wire[1] ~= nil then wire[1] = WireHandle(wire[1]) end
+        events[#events + 1] = { op = op, args = wire, n = select("#", ...), ttl = EVENT_TTL }
+    end
+    return ApplyPresentation(op, ...)
+end
+
+-- Lexical wrappers affect this mission only; shared modules retain stock APIs.
+local function ClearObjectives(...) return Present("ClearObjectives", ...) end
+local function AddObjective(...) return Present("AddObjective", ...) end
+local function UpdateObjective(...) return Present("UpdateObjective", ...) end
+local function SetObjectiveOn(...) return Present("SetObjectiveOn", ...) end
+local function SetObjectiveOff(...) return Present("SetObjectiveOff", ...) end
+local function SetObjectiveName(...) return Present("SetObjectiveName", ...) end
+local function SetUserTarget(...) return Present("SetUserTarget", ...) end
+local function RemoveObject(...) return Present("RemoveObject", ...) end
+local function StartCockpitTimer(...) return Present("StartCockpitTimer", ...) end
+local function StopCockpitTimer(...) return Present("StopCockpitTimer", ...) end
+local function HideCockpitTimer(...) return Present("HideCockpitTimer", ...) end
+-- Preserve the real subtitle module for Update/Initialize and return values.
+-- Play returns the native audio handle on the leader (offline: AudioMessage's).
+subtit = setmetatable({
+    Play = function(...) return Present("Play", ...) end,
+    Queue = function(...) return Present("Queue", ...) end,
+    Stop = function(...) return Present("Stop", ...) end,
+}, { __index = subtit })
+-- CR failure VO >>
+-- The DLL plays misn0421 ("We've lost the Recycler!") when the Utah is lost; the
+-- campaign has the dedicated abort line misn0823 for that moment. The mission body
+-- still plays the DLL's file; this adapter substitutes it for every peer.
+local VO_SUBSTITUTE = { ["misn0421.wav"] = "misn0823.wav" }
+local presentPlay = subtit.Play
+subtit.Play = function(wav, ...) return presentPlay(VO_SUBSTITUTE[wav] or wav, ...) end
+-- CR failure VO <<
+
+local function EndMission(op, when, description)
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        -- Flush preceding narrative/cleanup before publishing the result. Keep
+        -- five seconds for result retries before native AiMission shuts down.
+        M.coopPendingResult = { op, when, description }
+    else
+        -- Offline the DLL re-issues these every frame it holds; stay a pass-through.
+        native[op](when, description)
+    end
+end
+local function SucceedMission(...) return EndMission("SucceedMission", ...) end
+local function FailMission(...) return EndMission("FailMission", ...) end
+
+local function CameraReady()
+    cameraGeneration = cameraGeneration + 1
+    cameraSkipped = false
+    if CRCoop.IsNetworkGame() and localCameraActive then native.CameraFinish() end
+    localCameraActive = true
+    return native.CameraReady()
+end
+local function CameraPath(path, height, speed, target)
+    cameraFrame = { "P", path, height, speed, target }
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+    end
+    if not cameraSkipped then return native.CameraPath(path, height, speed, target) end
+end
+local function CameraObject(subject, x, y, z, target)
+    cameraFrame = { "O", subject, x, y, z, target }
+    if cameraSkipped then return end
+    local done = native.CameraObject(subject, x, y, z, target)
+    -- Match the authored CameraObject -> CameraCancelled order: the object
+    -- camera can process the skip during this call, before the next frame.
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        local wasActive = localCameraActive
+        localCameraActive = false
+        if wasActive then native.CameraFinish() end
+    end
+    return done
+end
+local function CameraCancelled(clear)
+    -- A player's skip releases only their own camera; never skips shared
+    -- destruction, transport orders, or the success gate for everyone else.
+    if CRCoop.IsNetworkGame() then return false end
+    return native.CameraCancelled(clear)
+end
+local function CameraFinish()
+    cameraFrame = nil
+    cameraSkipped = false
+    local wasActive = localCameraActive
+    localCameraActive = false
+    if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
+end
+
+local function UpdateRemoteCamera()
+    if not remoteCamera then return end
+    local cam = remoteCamera
+    if cam.kind == "" or M.coopResult then
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+        return
+    end
+    if cam.generation ~= localCameraGeneration then
+        localCameraGeneration = cam.generation
+        cameraSkipped = false
+    end
+    if cameraSkipped or not IsValid(cam.target) then return end
+    if cam.kind == "O" then
+        if not IsValid(cam.subject) then return end
+        if not localCameraActive then
+            native.CameraReady()
+            localCameraActive = true
+        end
+        native.CameraObject(cam.subject, cam.x, cam.y, cam.z, cam.target)
+        if native.CameraCancelled() then
+            cameraSkipped = true
+            localCameraActive = false
+            native.CameraFinish()
+        end
+    else
+        if not localCameraActive then
+            native.CameraReady()
+            localCameraActive = true
+        elseif native.CameraCancelled() then
+            cameraSkipped = true
+            localCameraActive = false
+            native.CameraFinish()
+            return
+        end
+        native.CameraPath(cam.path, cam.height, cam.speed, cam.target)
+    end
+end
+
+-- Guests report which of the two IsInfo prefixes their own UI currently shows.
+local function UpdateInfoRelay()
+    if not CRCoop.IsNetworkGame() or CRCoop.IsAuthority() then return end
+    local now = GetTime()
+    if now < nextInfoSend then return end
+    local leaderId = 0
+    for id, player in pairs(CRCoop.GetPlayers()) do
+        if player.team == LEADER_TEAM then leaderId = id; break end
+    end
+    for _, prefix in ipairs(INFO_PREFIXES) do
+        if nativeIsInfo(prefix) then
+            Send(leaderId, "I", prefix)
+            nextInfoSend = now + 0.25
+        end
+    end
+end
+
+local function UpdatePresentationTransport()
+    if not CRCoop.IsNetworkGame() then return end
+    if not CRCoop.IsAuthority() then
+        UpdateRemoteCamera()
+        return
+    end
+    local now, allDelivered = GetTime(), true
+    for id, player in pairs(CRCoop.GetPlayers()) do
+        if CRCoop.IsHumanTeam(player.team) and id ~= CRCoop.GetLocalPlayerId() then
+            local ack = acknowledgements[id] or 0
+            if ack < #events then allDelivered = false end
+            if now >= nextEventSend then
+                for seq = ack + 1, math.min(ack + 8, #events) do
+                    local event = events[seq]
+                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(event.args, 1, event.n))
+                end
+            end
+        end
+    end
+    if now >= nextEventSend then nextEventSend = now + 0.2 end
+    if M.coopPendingResult and allDelivered then
+        local result = M.coopPendingResult
+        M.coopPendingResult = nil
+        Present(result[1], math.max(now + 5, result[2] or 0), result[3])
+    end
+    if now >= nextCameraSend then
+        nextCameraSend = now + 0.2
+        cameraSerial = cameraSerial + 1
+        if cameraFrame then
+            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(cameraFrame))
+        else
+            Send(0, "C", cameraSerial, cameraGeneration, "")
+        end
+    end
+end
+
+local function ReceivePresentation(from, kind, ...)
+    if not CRCoop.IsNetworkGame() then return false end
+    if kind == "I" then
+        -- Leader only: a human's report that their UI shows one of our prefixes.
+        local prefix = ...
+        local player = CRCoop.GetPlayers()[from]
+        if CRCoop.IsAuthority() and player and CRCoop.IsHumanTeam(player.team) and
+            type(prefix) == "string" and isInfoPrefix[prefix] then
+            remoteInfo[prefix] = GetTime()
+        end
+        return true
+    end
+    if kind == "A" then
+        local seq = ...
+        if CRCoop.IsAuthority() and CRCoop.GetPlayers()[from] and
+            type(seq) == "number" and seq >= 0 and seq <= #events and seq == math.floor(seq) then
+            acknowledgements[from] = math.max(acknowledgements[from] or 0, seq)
+        end
+        return true
+    end
+    if kind ~= "E" and kind ~= "C" then return false end
+    if CRCoop.IsAuthority() or not FromLeader(from) then return true end
+    if kind == "C" then
+        local seq, generation, camKind, a, b, c, d, e = ...
+        if type(seq) == "number" and seq > remoteCameraSerial and type(generation) == "number" then
+            local cam
+            if camKind == "" then
+                cam = { generation = generation, kind = "" }
+            elseif camKind == "P" and type(a) == "string" and type(b) == "number" and type(c) == "number" then
+                cam = { generation = generation, kind = "P", path = a, height = b, speed = c, target = d }
+            elseif camKind == "O" and type(b) == "number" and type(c) == "number" and type(d) == "number" then
+                cam = { generation = generation, kind = "O", subject = a, x = b, y = c, z = d, target = e }
+            end
+            if cam then
+                remoteCameraSerial = seq
+                remoteCamera = cam
+            end
+        end
+        return true
+    end
+    local seq, op, ttl = ...
+    if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
+    if seq == receivedEvent + 1 and (native[op] or op == "Resources") then
+        local args = { select(4, ...) }
+        local count = select("#", ...) - 3
+        local apply = true
+        if HANDLE_OPS[op] then
+            if type(args[1]) == "string" and args[1]:sub(1, 1) == "@" then
+                local sentHandle, sentLabel = args[1]:match("^@([^@]*)@(.*)$")
+                local resolved = sentLabel and GetHandle(sentLabel)
+                if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+                    local candidate = tonumber(sentHandle) or sentHandle
+                    if IsValid(candidate) then resolved = candidate end
+                end
+                args[1] = resolved
+                -- A label with no object here (destroyed, or not loaded yet).
+                if not IsValid(args[1]) then apply = false end
+            end
+            if WAIT_OPS[op] and not IsValid(args[1]) then
+                -- Dynamic handles and map labels can resolve after the Lua packet.
+                -- Withhold the ACK so the retransmission retries, but bound the
+                -- wait on OUR clock: the leader's GetTime() is not comparable.
+                local now = GetTime()
+                if pendingSeq ~= seq or now < pendingSince then pendingSeq, pendingSince = seq, now end
+                if now - pendingSince < ttl then return true end
+                -- A target destroyed before its packet arrived must not block the
+                -- stream (and the mission result) forever. Only that marker drops.
+                apply = false
+            end
+        end
+        pendingSeq = nil
+        if apply then ApplyPresentation(op, unpackArgs(args, 1, count)) end
+        receivedEvent = seq
+    end
+    Send(from, "A", receivedEvent)
+    return true
+end
+
+-- Leader: native IsInfo OR a guest report within the last second.
+local function IsInfo(prefix)
+    if nativeIsInfo(prefix) then return true end
+    local reported = remoteInfo[prefix]
+    return reported ~= nil and GetTime() - reported <= 1.0
+end
+
+-- Presentation adapter ends. BuildObject invokes AddObject synchronously.
+
+-- Lexical SetScrap: the DLL's SetScrap(1, 30) means every human's starting scrap
+-- in co-op (each owner applies their own team). Offline it is the stock call.
+local nativeSetScrap = SetScrap
+local function SetScrap(team, amount)
+    if CRCoop.IsNetworkGame() and team == LEADER_TEAM then
+        CRCoop.ForEachHumanTeam(function(humanTeam)
+            Present("Resources", humanTeam, amount, GetPilot(LEADER_TEAM))
+        end)
+        return
+    end
+    return nativeSetScrap(team, amount)
+end
+
+local function ConfigureAlliances()
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+    for team = 1, 4 do
+        Ally(team, SUPPORT_TEAM); Ally(SUPPORT_TEAM, team)
+    end
+    UnAlly(ENEMY_TEAM, SUPPORT_TEAM); UnAlly(SUPPORT_TEAM, ENEMY_TEAM)
+end
+
+-- Missing native handles returned an effectively infinite distance. Preserve
+-- that behavior rather than interpreting nil as a path/position overload.
+local function Distance(from, to)
+    if from == nil or from == 0 or not IsValid(from) then return math.huge end
+    if to == nil or to == 0 then return math.huge end
+    if type(to) ~= "string" and not IsValid(to) then return math.huge end
+    return GetDistance(from, to)
+end
+
+-- Co-op trigger helpers. Offline CRCoop iterates just the local player, so each
+-- reproduces the DLL's single-player test exactly. Every distance goes through
+-- the mission's Distance guard (never raw GetDistance).
+local function AnyPlayerWithin(target, distance)
+    return CRCoop.AnyPlayerSatisfies(function(h) return Distance(h, target) < distance end)
+end
+
+-- True when every present player is farther than `distance` from `target`.
+local function NoPlayerWithin(target, distance)
+    local clear = true
+    CRCoop.ForEachPlayerHandle(function(h)
+        if not (Distance(h, target) > distance) then clear = false end
+    end)
+    return clear
+end
+
+-- The human craft nearest `from`; the leader's own craft when none is present.
+local function NearestPlayer(from)
+    local best, bestDistance = nil, math.huge
+    CRCoop.ForEachPlayerHandle(function(h)
+        local distance = Distance(from, h)
+        if best == nil or distance < bestDistance then best, bestDistance = h, distance end
+    end)
+    return best or M.user
+end
+
+-- The DLL counted team-1 units only; in co-op every human team's units count.
+local function CountHumanUnits(target, range, odf)
+    local total = 0
+    CRCoop.ForEachHumanTeam(function(team)
+        total = total + CountUnitsNearObject(target, range, team, odf)
+    end)
+    return total
+end
+
+-- CR team filter >>
+-- The DLL's AddObject had no team filter. It tracks the player's factory and gun
+-- towers (any human team) and the CCA APC (team 5) only.
+local function AddObjectTeamAllowed(h)
+    local team = GetTeamNum(h)
+    if IsOdf(h, "svapc") then return team == ENEMY_TEAM end
+    if IsOdf(h, "avmu8") or IsOdf(h, "abtowe") then return CRCoop.IsHumanTeam(team) end
+    return true
+end
+-- CR team filter <<
+
+-- CR Colorado massacre >>
+local function ColoradoStrikeUnits()
+    local strike = M.strike or {}
+    return { M.ccagech3, strike.figh, strike.ltnk }
+end
+
+-- Runs every frame after the Colorado radio timeline: keeps the walker and the
+-- CCA strike units on the Colorado, warns players who walk into it (0824, once),
+-- and sends the strike units on to the Drop Zone (the DLL's own order) once it fell.
+local function UpdateColoradoMassacre()
+    local strike = M.strike
+    if strike == nil or M.colorado_message4 then return end
+    local now = GetTime()
+    if IsAlive(M.colorado) then
+        if not M.colorado_warned and AnyPlayerWithin(M.colorado, COLORADO_WARN_M) then
+            M.colorado_warned = true
+            subtit.Play("misn0824.wav")
+        end
+        if now >= strike.next_order then
+            strike.next_order = now + COLORADO_ORDER_S
+            for _, unit in ipairs(ColoradoStrikeUnits()) do
+                if IsAlive(unit) then Attack(unit, M.colorado, 1) end
+            end
+        end
+    elseif not strike.released then
+        strike.released = true
+        for _, unit in ipairs({ strike.figh, strike.ltnk }) do
+            if IsAlive(unit) then Goto(unit, M.nav1) end
+        end
+    end
+end
+
+-- The DLL's Damage(colorado, 20000) block runs once the Colorado is gone or the
+-- fallback deadline passed (then it still destroys it).
+local function ColoradoMassacreDone()
+    if not IsAlive(M.colorado) then return true end
+    return M.colorado_deadline ~= nil and GetTime() >= M.colorado_deadline
+end
+-- CR Colorado massacre <<
+
+-- CR restored walker content >>
+-- The DLL's disabled third-walker block (translated in place in Update): after the
+-- Colorado, walker 3 follows gech_path2 on to the player base and then attacks it
+-- like walkers 1 and 2 (the base-arrival block reads gech3_there_time).
+local function RestoredWalkerAdvance()
+    if not M.ccarecycle_spawned or M.gech3_move or not (M.gech_check_time < GetTime()) then return end
+    if M.gech3_fallback == nil then M.gech3_fallback = GetTime() + GECH3_FALLBACK_S end
+    if IsAlive(M.ccagech3) and (Distance(M.ccagech3, M.stop_geyser2) < 30.0 or GetTime() >= M.gech3_fallback) then
+        Goto(M.ccagech3, "gech_path2")
+        M.gech3_there_time = GetTime() + 97.0
+        M.gech3_move = true
+    end
+end
+
+-- The DLL's disabled close-range block: any player within 75 m of a walker.
+local function RestoredCloseWarning()
+    if not (M.gech_found or M.gech_at_nav) or M.too_close_message then return end
+    for _, walker in ipairs({ M.ccagech1, M.ccagech2, M.ccagech3 }) do
+        if IsAlive(walker) and AnyPlayerWithin(walker, 75.0) then
+            subtit.Play("misn0816.wav") -- pull out!! what the hell is that!
+            M.too_close_message = true
+            return
+        end
+    end
+end
+-- CR restored walker content <<
 
 local function ResetState()
     M = {
@@ -136,8 +690,17 @@ local function ResetState()
         -- Original int save fields, including dormant cut-content state.
         units1 = 0,
         units2 = 0,
+-- CR Colorado massacre >>
+        strike = nil,
+        colorado_warned = false,
+        colorado_deadline = nil,
+-- CR Colorado massacre <<
+-- CR restored walker content >>
+        gech3_fallback = nil,
+-- CR restored walker content <<
     }
 end
+
 
 ResetState()
 
@@ -269,7 +832,9 @@ Here's where you set the values at the start.
 end
 
 function AddObject(h)
-
+-- CR team filter >>
+    if not AddObjectTeamAllowed(h) then return end
+-- CR team filter <<
     if ((M.nsdfmuf == nil) and (IsOdf(h,"avmu8"))) then
         M.nsdfmuf = h
     else
@@ -289,8 +854,23 @@ function AddObject(h)
     end
 end
 
+local function InitializeCoop()
+    CRCoop.Initialize({
+        getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
+        leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
+        onOutOfLives = function() FailMission(GetTime() + 3.0) end,
+        -- MultST consumes its spawn buoys during initialization. Rally at the
+        -- persistent Utah (avrecycle) instead of the removed team-start marker.
+        rallyPoints = { [0] = "avrecycle" },
+    })
+    ConfigureAlliances()
+    ResetPresentation()
+end
+
 function Start()
-    SetAIControl(2, true)
+    ResetState()
+    InitializeCoop()
+    SetAIControl(ENEMY_TEAM, true)
     Setup()
     -- C++ Setup precedes AiMission::Load and its AddObject notifications.
     -- Redux may create map objects before Start; recover the four tracked slots
@@ -298,10 +878,65 @@ function Start()
     for h in AllObjects() do
         AddObject(h)
     end
+-- CR relic heal fix >>
+    -- next_second / next_second2 start at the 99999 "never" sentinel in the DLL, so
+    -- the 500 hp/s heals that guard the Colorado (until its scripted fall) and the
+    -- Cerberus relic never ran. Arm both: the first pass heals at once, then each second.
+    M.next_second = 0.0
+    M.next_second2 = 0.0
+-- CR relic heal fix <<
+    subtit.Initialize()
+end
+
+function CreatePlayer(id, name, team)
+    CRCoop.CreatePlayer(id, name, team)
+    ConfigureAlliances()
+end
+function AddPlayer(id, name, team)
+    CRCoop.AddPlayer(id, name, team)
+    ConfigureAlliances()
+end
+function DeletePlayer(id, name, team) CRCoop.DeletePlayer(id) end
+function Receive(from, kind, ...)
+    if ReceivePresentation(from, kind, ...) then return true end
+    return CRCoop.Receive(from, kind, ...)
 end
 
 function Update(dt)
-
+    subtit.Update()
+    CRCoop.Update()
+    UpdatePresentationTransport()
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        if CRCoop.HasLeaderDeparted() then
+            M.coopResult = true
+            if localCameraActive then native.CameraFinish() end
+            localCameraActive = false
+            native.FailMission(GetTime() + 1.0)
+            return
+        end
+        if CRCoop.HasUnsupportedPlayerTeam() or CRCoop.HasLateJoiners() then
+            if not M.coopRestartWarned then
+                DisplayMessage("Use distinct teams 1-4 and start together. Late join/rejoin requires a mission restart.")
+                M.coopRestartWarned = true
+            end
+            return
+        end
+        if not CRCoop.IsSessionReady() then return end
+    end
+    if not M.coopMissionStarted then
+        CRCoop.MarkMissionStarted()
+        M.coopMissionStarted = true
+    end
+    UpdateInfoRelay()
+    if not CRCoop.IsAuthority() then return end
+    if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
+        M.coopBootstrapped = true
+        -- The authored offline placeholder must not remain beside the humans.
+        local offlinePlayer = GetHandle("player0_hover")
+        if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
+    end
+    -- Misn08Mission::Execute body (DLL order preserved below).
 
     --[=[
 
@@ -312,7 +947,7 @@ Here is where you put what happens every frame.
     M.user = GetPlayerHandle() --assigns the player a handle every frame
 
     if (not M.start_done) then
-        AudioMessage("misn0800.wav") --starts opeing V.O.
+        subtit.Play("misn0800.wav") --starts opeing V.O.
         ClearObjectives()
         AddObjective("misn0800.otf", "white")
         AddObjective("misn0801.otf", "white")
@@ -348,9 +983,9 @@ Here is where you put what happens every frame.
     end
 
     if ((M.fresh_meat_time < GetTime()) and (not M.colorado_under_attack) and (not M.fresh_meat)) then
-        M.cannon_fodder1 = BuildObject("svfigh", 2, M.ccarecycle)
-        M.cannon_fodder2 = BuildObject("svfigh", 2, M.ccarecycle)
-        M.cannon_fodder3 = BuildObject("svfigh", 2, M.ccarecycle)
+        M.cannon_fodder1 = BuildObject("svfigh", ENEMY_TEAM, M.ccarecycle)
+        M.cannon_fodder2 = BuildObject("svfigh", ENEMY_TEAM, M.ccarecycle)
+        M.cannon_fodder3 = BuildObject("svfigh", ENEMY_TEAM, M.ccarecycle)
         Goto(M.cannon_fodder1, "gech_path2")
         Goto(M.cannon_fodder2, "gech_path2")
         Goto(M.cannon_fodder3, "gech_path2")
@@ -358,7 +993,7 @@ Here is where you put what happens every frame.
     end
 
     if ((M.fighter_message_time < GetTime()) and (not M.colorado_under_attack) and (not M.fighter_message)) then
-        AudioMessage("misn0817.wav") -- colorado: we're experiencing a lot of fighters - they know we're here - wonder what the main forces is waiting for
+        subtit.Play("misn0817.wav") -- colorado: we're experiencing a lot of fighters - they know we're here - wonder what the main forces is waiting for
         M.fighter_message = true
     end
 
@@ -368,13 +1003,17 @@ Here is where you put what happens every frame.
     if ((M.gech_spawn_time < GetTime()) and (not M.colorado_under_attack)) then --gech attacks colorado
         M.gech_spawn_time = GetTime() + 10.0
 
-        if (GetDistance(M.user, M.nav5) > 400.0) then
-            M.svpatrol2_2 = BuildObject("svfigh", 2, M.ccarecycle)
-            M.svpatrol2_2 = BuildObject("svltnk", 2, M.ccarecycle)
-            M.ccagech3 = BuildObject("svwalk", 2, "gech_spawn")
+        if (NoPlayerWithin(M.nav5, 400.0)) then
+            M.svpatrol2_2 = BuildObject("svfigh", ENEMY_TEAM, M.ccarecycle)
+-- CR Colorado massacre >>
+            -- The next line overwrites this slot (retained DLL quirk); keep the fighter for the strike.
+            M.strike = { figh = M.svpatrol2_2, next_order = 0, released = false }
+-- CR Colorado massacre <<
+            M.svpatrol2_2 = BuildObject("svltnk", ENEMY_TEAM, M.ccarecycle)
+            M.ccagech3 = BuildObject("svwalk", ENEMY_TEAM, "gech_spawn")
             SetWeaponMask(M.ccagech3, 1)
             Attack(M.ccagech3, M.colorado, 1)
-            AudioMessage("misn0801.wav") -- player gets message that colorado is encountering hostiles "standby"
+            subtit.Play("misn0801.wav") -- player gets message that colorado is encountering hostiles "standby"
             M.colorado_message2_time = GetTime() + 10.0
 
             if (IsAlive(M.svpatrol2_1)) then
@@ -387,6 +1026,12 @@ Here is where you put what happens every frame.
                 Goto(M.svpatrol2_3, M.nav1)
             end
 
+-- CR Colorado massacre >>
+            M.strike.ltnk = M.svpatrol2_2
+            for _, unit in ipairs(ColoradoStrikeUnits()) do
+                if IsAlive(unit) then Attack(unit, M.colorado, 1) end
+            end
+-- CR Colorado massacre <<
             M.colorado_under_attack = true
         end
     end
@@ -395,17 +1040,23 @@ Here is where you put what happens every frame.
     if ((M.player_nosey_time < GetTime()) and (not M.colorado_under_attack)) then
         M.player_nosey_time = GetTime() + 32.0
 
-        if (GetDistance(M.user, M.nav5) < 700.0) then
+        if (AnyPlayerWithin(M.nav5, 700.0)) then
             M.gech_spawn_time = GetTime() + 10.0
+-- CR Colorado massacre >>
+            if not M.colorado_warned then
+                M.colorado_warned = true
+                subtit.Play("misn0824.wav") -- Collins: stay clear of the Colorado
+            end
+-- CR Colorado massacre <<
 
             if (IsAlive(M.svpatrol1_1)) then
-                Attack(M.svpatrol1_1, M.user)
+                Attack(M.svpatrol1_1, NearestPlayer(M.svpatrol1_1))
             end
             if (IsAlive(M.svpatrol1_2)) then
-                Attack(M.svpatrol1_2, M.user)
+                Attack(M.svpatrol1_2, NearestPlayer(M.svpatrol1_2))
             end
             if (IsAlive(M.svpatrol1_3)) then
-                Attack(M.svpatrol1_3, M.user)
+                Attack(M.svpatrol1_3, NearestPlayer(M.svpatrol1_3))
             end
             if (IsAlive(M.svpatrol2_1)) then
                 Attack(M.svpatrol2_1, M.nsdfrecycle)
@@ -421,15 +1072,15 @@ Here is where you put what happens every frame.
 
     if ((M.colorado_under_attack) and (M.colorado_message2_time < GetTime()) and (not M.colorado_message2)) then
 
-        AudioMessage("misn0803.wav") --second message from colorado
+        subtit.Play("misn0803.wav") --second message from colorado
         M.colorado_message3_time = GetTime() + 7.0
         M.colorado_message2 = true
     end
 
     if ((M.colorado_message2) and (M.colorado_message3_time < GetTime()) and (not M.colorado_message3)) then
 
-        AudioMessage("misn0802.wav") --third message from colorado
-        AudioMessage("misn0804.wav") --final message from colorado
+        subtit.Play("misn0802.wav") --third message from colorado
+        subtit.Queue("misn0804.wav") --final message from colorado
         M.colorado_message4_time = GetTime() + 10.0
         M.colorado_message3 = true
     end
@@ -445,6 +1096,13 @@ Here is where you put what happens every frame.
         end
     end
 
+-- CR Colorado massacre >>
+    if M.kill_colorado and M.colorado_deadline == nil then
+        M.colorado_deadline = GetTime() + COLORADO_FALLBACK_S
+    end
+    UpdateColoradoMassacre()
+    if ColoradoMassacreDone() then
+-- CR Colorado massacre <<
     if ((M.colorado_message3) and (M.kill_colorado) and (not M.colorado_message4)) then
         if (IsAlive(M.colorado)) then
             Damage(M.colorado, 20000)
@@ -452,6 +1110,9 @@ Here is where you put what happens every frame.
         M.remove_nav5_time = GetTime() + 15.0
         M.colorado_message4 = true
     end
+-- CR Colorado massacre >>
+    end
+-- CR Colorado massacre <<
 
     if ((M.colorado_message4) and (M.remove_nav5_time < GetTime()) and (not M.colorado_destroyed)) then
         -- RemoveObject (M.colorado)
@@ -462,13 +1123,13 @@ Here is where you put what happens every frame.
     end
 
     if ((M.colorado_destroyed) and (not M.bad_news) and (M.bad_news_time < GetTime())) then
-        AudioMessage("misn0805.wav") --Corbett give player news of colorado fate
+        subtit.Play("misn0805.wav") --Corbett give player news of colorado fate
         M.bad_news_time = GetTime() + 30.0
         M.bad_news = true
     end
 
     if ((M.bad_news) and (M.bad_news_time < GetTime()) and (not M.gen_message)) then
-        AudioMessage("misn0810.wav") --Gen Collins give player news of colorado fate
+        subtit.Play("misn0810.wav") --Gen Collins give player news of colorado fate
         M.gen_message = true
     end
 
@@ -478,9 +1139,9 @@ Here is where you put what happens every frame.
     -- this is going to give the soviets a recycler and start them attacking
 
     if ((M.bad_news) and (not M.ccarecycle_spawned)) then
-        SetAIP("misn08.aip")
-        SetScrap(2, 40)
-        SetPilot(2, 40)
+        SetAIP("misn08.aip", ENEMY_TEAM)
+        SetScrap(ENEMY_TEAM, 40)
+        SetPilot(ENEMY_TEAM, 40)
         M.new_aip_time = GetTime() + 420.0
         if (IsAlive(M.ccagech3)) then
             Goto(M.ccagech3, "gech_path2")
@@ -511,6 +1172,9 @@ Here is where you put what happens every frame.
     end
 
 ]=]
+-- CR restored walker content >>
+    RestoredWalkerAdvance()
+-- CR restored walker content <<
 
 
     -- this is what happens when the player encounters the gech before it reaches the nav point ////////////////////
@@ -518,8 +1182,8 @@ Here is where you put what happens every frame.
     if ((M.gech_check < GetTime()) and (not M.gech_found) and (not M.gech_at_nav)) then
         M.gech_check = GetTime() + 6.0
 
-        if ((GetDistance(M.user,M.ccagech1) < 400.0) and (not M.gech_found1) and (not M.gech_found) and (not M.gech_at_nav)) then --if player reaches gech before gech reaches nav
-            AudioMessage("misn0806.wav") -- "we're picking up something big on your radar, you may want to check it out"
+        if ((AnyPlayerWithin(M.ccagech1, 400.0)) and (not M.gech_found1) and (not M.gech_found) and (not M.gech_at_nav)) then --if player reaches gech before gech reaches nav
+            subtit.Play("misn0806.wav") -- "we're picking up something big on your radar, you may want to check it out"
             M.followup_message_time = GetTime() + 20.0 -- setting up follow up message about cca gech
             M.stumble2_check = GetTime() + 10.0
             M.no_stumble_check = GetTime() + 13.0
@@ -529,8 +1193,8 @@ Here is where you put what happens every frame.
             M.gech_found = true
         end
 
-        if ((GetDistance(M.user,M.ccagech2) < 400.0) and (not M.gech_found) and (not M.gech_found2) and (not M.gech_at_nav)) then --if player reaches gech before gech reaches nav
-            AudioMessage("misn0806.wav") -- "we're picking up something big on your radar, you may want to check it out"
+        if ((AnyPlayerWithin(M.ccagech2, 400.0)) and (not M.gech_found) and (not M.gech_found2) and (not M.gech_at_nav)) then --if player reaches gech before gech reaches nav
+            subtit.Play("misn0806.wav") -- "we're picking up something big on your radar, you may want to check it out"
             M.followup_message_time = GetTime() + 5.0 -- setting up follow up message about cca gech
             M.stumble2_check = GetTime() + 60.0
             M.no_stumble_check = GetTime() + 13.0
@@ -542,7 +1206,7 @@ Here is where you put what happens every frame.
     end
 
     if ((M.gech_found) and (M.followup_message_time < GetTime()) and (not M.followup_message)) then
-        AudioMessage("misn0807.wav") -- "what the hell is that thing - approach with caution!"
+        subtit.Play("misn0807.wav") -- "what the hell is that thing - approach with caution!"
         M.followup_message = true
     end
 
@@ -569,13 +1233,13 @@ Here is where you put what happens every frame.
     if ((M.gech_found) and (M.stumble2_check < GetTime()) and (not M.second_gech_warning) and (not M.run_into_other_gech)) then
         M.stumble2_check = GetTime() + 21.0
 
-        if ((M.gech_found1) and (GetDistance(M.user,M.ccagech2) < 100.0) and (not M.run_into_other_gech)) then
-            AudioMessage("misn0813.wav") --Oh no! Looks like you've found another one!
+        if ((M.gech_found1) and (AnyPlayerWithin(M.ccagech2, 100.0)) and (not M.run_into_other_gech)) then
+            subtit.Play("misn0813.wav") --Oh no! Looks like you've found another one!
             M.run_into_other_gech = true
         end
 
-        if ((M.gech_found2) and (GetDistance(M.user,M.ccagech1) < 100.0) and (not M.run_into_other_gech)) then
-            AudioMessage("misn0813.wav") --Oh no! Looks like you've found another one!
+        if ((M.gech_found2) and (AnyPlayerWithin(M.ccagech1, 100.0)) and (not M.run_into_other_gech)) then
+            subtit.Play("misn0813.wav") --Oh no! Looks like you've found another one!
             M.run_into_other_gech = true
         end
     end
@@ -585,15 +1249,15 @@ Here is where you put what happens every frame.
     if ((M.gech_found) and (M.no_stumble_check < GetTime()) and (not M.run_into_other_gech) and (not M.second_gech_warning)) then
         M.no_stumble_check = GetTime() + 9.0
 
-        if ((M.gech_found1) and (GetDistance(M.gech_trigger2, M.ccagech2) < 100.0) and (not M.second_gech_warning)) then
-            AudioMessage("misn0815.wav") --V.O. looks like we've got another one coming out of the west
+        if ((M.gech_found1) and (Distance(M.gech_trigger2, M.ccagech2) < 100.0) and (not M.second_gech_warning)) then
+            subtit.Play("misn0815.wav") --V.O. looks like we've got another one coming out of the west
             M.nav2 = BuildObject ("apcamr", 1, "cam2_spawn") -- builds camera near gech
             if (M.nav2~=nil) then SetObjectiveName(M.nav2, "Nav Alpha 1") end
             M.second_gech_warning = true
         end
 
-        if ((M.gech_found2) and (GetDistance(M.gech_trigger3,M.ccagech1) < 100.0) and (not M.second_gech_warning)) then
-            AudioMessage("misn0814.wav") --V.O. warns player of second gech
+        if ((M.gech_found2) and (Distance(M.gech_trigger3,M.ccagech1) < 100.0) and (not M.second_gech_warning)) then
+            subtit.Play("misn0814.wav") --V.O. warns player of second gech
             M.nav3 = BuildObject ("apcamr", 1, "cam3_spawn") -- builds camera near gech
             if (M.nav3~=nil) then SetObjectiveName(M.nav3, "Nav Alpha 2") end
             M.second_gech_warning = true
@@ -606,8 +1270,8 @@ Here is where you put what happens every frame.
     if ((M.colorado_under_attack) and (M.trigger_check < GetTime()) and (not M.gech_at_nav) and (not M.gech_found)) then
         M.trigger_check = GetTime() + 19.0
 
-        if ((not M.gech_found) and (GetDistance(M.gech_trigger2, M.ccagech2) < 100.0) and (not M.gech_at_nav)) then --if gech reaches nav before player reaches gech
-            AudioMessage("misn0809.wav") -- "We've detected something strange on approach from the east - standby"
+        if ((not M.gech_found) and (Distance(M.gech_trigger2, M.ccagech2) < 100.0) and (not M.gech_at_nav)) then --if gech reaches nav before player reaches gech
+            subtit.Play("misn0809.wav") -- "We've detected something strange on approach from the east - standby"
             M.gech_warning_message = GetTime() + 20.0
             M.gech1_there_time = 100.0
             M.gech2_there_time = 105.0
@@ -615,8 +1279,8 @@ Here is where you put what happens every frame.
             M.gech_at_nav2 = true
         end
 
-        if ((not M.gech_found) and (GetDistance(M.gech_trigger3,M.ccagech1) < 100.0) and (not M.gech_at_nav)) then --if gech reaches nav before player reaches gech
-            AudioMessage("misn0808.wav") -- "We've detected something strange on approach from the west - standby"
+        if ((not M.gech_found) and (Distance(M.gech_trigger3,M.ccagech1) < 100.0) and (not M.gech_at_nav)) then --if gech reaches nav before player reaches gech
+            subtit.Play("misn0808.wav") -- "We've detected something strange on approach from the west - standby"
             M.gech_warning_message = GetTime() + 20.0
             M.gech1_there_time = 100.0
             M.gech2_there_time = 105.0
@@ -626,7 +1290,7 @@ Here is where you put what happens every frame.
     end
 
     if ((M.gech_at_nav2) and (M.gech_warning_message < GetTime()) and (not M.player_warned_ofgech)) then --if player ignores gech_at_nav message
-        AudioMessage("misn0814.wav") -- Check it out - we're dropping a nav camera there now
+        subtit.Play("misn0814.wav") -- Check it out - we're dropping a nav camera there now
         M.nav2 = BuildObject ("apcamr", 1, "cam2_spawn") -- builds camera near gech
         if (M.nav2~=nil) then SetObjectiveName(M.nav2, "Nav Alpha 1") end
         M.time_waist = GetTime() + 14.0
@@ -635,7 +1299,7 @@ Here is where you put what happens every frame.
     end
 
     if ((M.gech_at_nav3) and (M.gech_warning_message < GetTime()) and (not M.player_warned_ofgech)) then --if player ignores gech_at_nav message
-        AudioMessage("misn0815.wav") -- Check it out - we're dropping a nav camera there now
+        subtit.Play("misn0815.wav") -- Check it out - we're dropping a nav camera there now
         M.nav3 = BuildObject ("apcamr", 1, "cam3_spawn") -- builds camera near gech
         if (M.nav3~=nil) then SetObjectiveName(M.nav3, "Nav Alpha 2") end
         M.time_waist = GetTime() + 14.0
@@ -648,15 +1312,15 @@ Here is where you put what happens every frame.
     if ((M.player_warned_ofgech) and (M.time_waist < GetTime()) and (not M.second_gech_warning) and (not M.bump_into_gech)) then
         M.time_waist = GetTime() + 14.0
 
-        if ((M.gech_at_nav2) and (GetDistance(M.gech_trigger3,M.ccagech1) < 75.0) and (not M.second_gech_warning)) then --second gech found
-            AudioMessage("misn0812.wav") --looks like we've got another one coming out of the east
+        if ((M.gech_at_nav2) and (Distance(M.gech_trigger3,M.ccagech1) < 75.0) and (not M.second_gech_warning)) then --second gech found
+            subtit.Play("misn0812.wav") --looks like we've got another one coming out of the east
             M.nav3 = BuildObject ("apcamr", 1, "cam3_spawn") -- builds camera near gech
             if (M.nav3~=nil) then SetObjectiveName(M.nav3, "Nav Alpha 2") end
             M.second_gech_warning = true
         end
 
-        if ((M.gech_at_nav3) and (GetDistance(M.gech_trigger2, M.ccagech2) < 75.0) and (not M.second_gech_warning)) then --second gech found
-            AudioMessage("misn0811.wav") --looks like we've got another one coming out of the west
+        if ((M.gech_at_nav3) and (Distance(M.gech_trigger2, M.ccagech2) < 75.0) and (not M.second_gech_warning)) then --second gech found
+            subtit.Play("misn0811.wav") --looks like we've got another one coming out of the west
             M.nav2 = BuildObject ("apcamr", 1, "cam2_spawn") -- builds camera near gech
             if (M.nav2~=nil) then SetObjectiveName(M.nav2, "Nav Alpha 1") end
             M.second_gech_warning = true
@@ -668,13 +1332,13 @@ Here is where you put what happens every frame.
     if ((M.player_warned_ofgech) and (M.stumble1_check < GetTime()) and (not M.second_gech_warning) and (not M.bump_into_gech)) then
         M.stumble1_check = GetTime() + 23.0
 
-        if ((M.gech_at_nav2) and (GetDistance(M.user,M.ccagech1) < 100.0) and (not M.bump_into_gech)) then
-            AudioMessage("misn0813.wav") --Oh no! Looks like you've found another one!
+        if ((M.gech_at_nav2) and (AnyPlayerWithin(M.ccagech1, 100.0)) and (not M.bump_into_gech)) then
+            subtit.Play("misn0813.wav") --Oh no! Looks like you've found another one!
             M.bump_into_gech = true
         end
 
-        if ((M.gech_at_nav3) and (GetDistance(M.user,M.ccagech2) < 100.0) and (not M.bump_into_gech)) then
-            AudioMessage("misn0813.wav") --Oh no! Looks like you've found another one!
+        if ((M.gech_at_nav3) and (AnyPlayerWithin(M.ccagech2, 100.0)) and (not M.bump_into_gech)) then
+            subtit.Play("misn0813.wav") --Oh no! Looks like you've found another one!
             M.bump_into_gech = true
         end
     end
@@ -686,7 +1350,7 @@ Here is where you put what happens every frame.
         if ((M.gech1_there_time < GetTime()) and (not M.gech1_at_base)) then
             M.gech1_there_time = GetTime() + 30.0
 
-            if ((IsAlive(M.ccagech1)) and (GetDistance(M.ccagech1, M.stop_geyser3) < 100.0)) then
+            if ((IsAlive(M.ccagech1)) and (Distance(M.ccagech1, M.stop_geyser3) < 100.0)) then
                 if (IsAlive(M.nsdfrecycle)) then
                     Attack(M.ccagech1, M.nsdfrecycle)
                     if (M.gech1_blossom) then
@@ -708,7 +1372,7 @@ Here is where you put what happens every frame.
         if ((M.gech2_there_time < GetTime()) and (not M.gech2_at_base)) then
             M.gech2_there_time = GetTime() + 30.0
 
-            if ((IsAlive(M.ccagech2)) and (GetDistance(M.ccagech2, M.stop_geyser3) < 100.0)) then
+            if ((IsAlive(M.ccagech2)) and (Distance(M.ccagech2, M.stop_geyser3) < 100.0)) then
                 if (IsAlive(M.nsdfrecycle)) then
                     Attack(M.ccagech2, M.nsdfrecycle)
                     if (M.gech2_blossom) then
@@ -730,7 +1394,7 @@ Here is where you put what happens every frame.
         if ((M.gech3_there_time < GetTime()) and (not M.gech3_at_base)) then
             M.gech3_there_time = GetTime() + 30.0
 
-            if ((IsAlive(M.ccagech3)) and (GetDistance(M.ccagech3, M.stop_geyser3) < 100.0)) then
+            if ((IsAlive(M.ccagech3)) and (Distance(M.ccagech3, M.stop_geyser3) < 100.0)) then
                 if (IsAlive(M.nsdfrecycle)) then
                     Attack(M.ccagech3, M.nsdfrecycle)
                     if (M.gech3_blossom) then
@@ -756,13 +1420,13 @@ Here is where you put what happens every frame.
     if (M.new_aip_time < GetTime()) then
         M.new_aip_time = GetTime() + 420.0
 
-        M.units1 = CountUnitsNearObject(M.stop_geyser2, 5000.0, 1, "avfigh")
-        M.units2 = CountUnitsNearObject(M.stop_geyser2, 5000.0, 1, "avtank")
+        M.units1 = CountHumanUnits(M.stop_geyser2, 5000.0, "avfigh")
+        M.units2 = CountHumanUnits(M.stop_geyser2, 5000.0, "avtank")
 
         if (M.units1 > M.units2) then
-            SetAIP("misn08b.aip")
+            SetAIP("misn08b.aip", ENEMY_TEAM)
         else
-            SetAIP("misn08a.aip")
+            SetAIP("misn08a.aip", ENEMY_TEAM)
         end
     end
 
@@ -808,10 +1472,13 @@ Here is where you put what happens every frame.
         end
     end
 ]=]
+-- CR restored walker content >>
+    RestoredCloseWarning()
+-- CR restored walker content <<
 
 
     if ((M.pull_out_message < GetTime()) and (not M.too_close_message)) then
-        AudioMessage("misn0816.wav") -- pull out!! what the hell is that!
+        subtit.Play("misn0816.wav") -- pull out!! what the hell is that!
         M.too_close_message = true
     end
 
@@ -840,10 +1507,10 @@ Here is where you put what happens every frame.
 
     if ((not M.cerb_found) and (not M.relic_message) and ((IsInfo("hbblde") == true) or (IsInfo("hbbldf") == true))) then
         if (M.base_dead) then
-            AudioMessage("misn0821.wav") -- that's not it, the ruins will be much larger
+            subtit.Play("misn0821.wav") -- that's not it, the ruins will be much larger
             M.relic_message = true
         else
-            AudioMessage("misn0822.wav") -- this area is crawling with relics recon as many as possible
+            subtit.Play("misn0822.wav") -- this area is crawling with relics recon as many as possible
             M.relic_message = true
         end
     end
@@ -851,14 +1518,14 @@ Here is where you put what happens every frame.
     if ((not M.cerb_found) and (M.cerb_check < GetTime())) then
         M.cerb_check = GetTime() + 3.0
 
-        if (GetDistance(M.user, M.main_relic) < 70.0) then
+        if (AnyPlayerWithin(M.main_relic, 70.0)) then
             if (M.base_dead) then
-                AudioMessage("misn0818.wav") -- well done
-                AudioMessage("misn0826.wav")
+                subtit.Play("misn0818.wav") -- well done
+                subtit.Queue("misn0826.wav")
                 SucceedMission(GetTime() + 30.0, "misn08w1.des") --well done
                 M.cerb_found = true
             else
-                AudioMessage("misn0819.wav") -- this must be how they built gechs - find base
+                subtit.Play("misn0819.wav") -- this must be how they built gechs - find base
                 M.cerb_found = true
             end
         end
@@ -876,15 +1543,15 @@ Here is where you put what happens every frame.
 
     if ((not IsAlive(M.ccarecycle)) and (not IsAlive(M.ccamuf)) and (not M.base_dead)) then
         if (M.cerb_found) then
-            AudioMessage("misn0818.wav")
-            AudioMessage("misn0826.wav")
+            subtit.Play("misn0818.wav")
+            subtit.Queue("misn0826.wav")
             SucceedMission(GetTime() + 30.0, "misn08w1.des") --well done
             M.base_dead = true
         else
             ClearObjectives()
             AddObjective("misn0801.otf", "green")
             AddObjective("misn0802.otf", "white")
-            AudioMessage("misn0820.wav") -- find cerbeus
+            subtit.Play("misn0820.wav") -- find cerbeus
             SetObjectiveOn(M.main_relic)
             SetObjectiveName(M.main_relic, "Relic Site")
             M.base_dead = true
@@ -892,7 +1559,7 @@ Here is where you put what happens every frame.
     end
 
     if ((not IsAlive(M.nsdfrecycle)) and (not M.game_over)) then
-        AudioMessage("misn0421.wav")
+        subtit.Play("misn0421.wav")
         FailMission(GetTime() + 15.0, "misn08f1.des") --lost recycler
         M.game_over = true
     end
@@ -908,1132 +1575,3 @@ function Load(saved)
     assert(type(saved) == "table", "misn08: missing mission save state")
     M = saved
 end
-
--- Original source archive, LF-normalized, otherwise verbatim. Keep ALL comments,
--- including disabled C++ and engine serialization boilerplate, for reconstruction.
---[==[
-#include "GameCommon.h"
-#include "..\fun3d\Factory.h"
-#include "..\fun3d\AiMission.h"
-#include "..\fun3d\PowerUp.h"
-#include "..\fun3d\ScriptUtils.h"
-
-
-/*
-Misn08Mission Event
-*/
-
-class Misn08Mission : public AiMission {
-	DECLARE_RTIME(Misn08Mission)
-public:
-	Misn08Mission(void);
-	~Misn08Mission();
-
-	virtual bool Load(file fp);
-	virtual bool PostLoad(void);
-	virtual bool Save(file fp);
-
-	virtual void Update(void);
-
-	virtual void AddObject(GameObject *gameObj);
-
-private:
-	void Setup(void);
-	void AddObject(Handle h);
-	void Execute(void);
-
-	// bools
-	union {
-		struct {
-			bool
-				start_done, 
-				gech_found, gech_found1, gech_found2, 
-				base_dead, 
-				player_dead,
-				unit_spawn,
-				gech_at_nav, gech_at_nav2, gech_at_nav3,
-				player_warned_ofgech,
-				colorado_under_attack,
-				colorado_destroyed,
-				followup_message,
-				colorado_message2,
-				colorado_message3,
-				colorado_message4,
-				second_gech_warning,
-				run_into_other_gech,
-				too_close_message,
-				bad_news,
-				base_exposed,
-				bump_into_gech,
-				ccarecycle_spawned,
-				gech_started,
-				gech3_move,
-				first_wave, second_wave, next_wave,
-				gech1_at_base, gech2_at_base, gech3_at_base,
-				gech1_blossom, gech2_blossom, gech3_blossom,
-				fresh_meat, fighter_message,
-				apc_attack, base_set, game_over, cerb_found, relic_message,
-				kill_colorado, gen_message,
-				b_last;
-		};
-		bool b_array[44];
-	};
-
-	// floats
-	union {
-		struct {
-			float
-				unit_spawn_time,
-				followup_message_time,
-				colorado_message2_time, colorado_message3_time, colorado_message4_time,
-				bad_news_time,
-				gech_warning_message,
-				remove_nav5_time,
-				gech_spawn_time,
-				gech_check, gech_check2,
-				stumble1_check, stumble2_check, trigger_check, no_stumble_check,
-				time_waist,
-				start_gech_time,
-				gech_check_time,
-				first_wave_time,
-				second_wave_time,
-				next_wave_time,
-				gech1_there_time, gech2_there_time, gech3_there_time,
-				new_aip_time,
-				fresh_meat_time,
-				fighter_message_time, player_nosey_time,
-				pull_out_message, base_check, cerb_check,
-				next_second, next_second2,
-				f_last;
-		};
-		float f_array[33];
-	};
-
-	// handles
-	union {
-		struct {
-			Handle
-				user, death_scrap, death_scrap2, death_scrap3,
-				nav1, nav2, nav3, nav4, nav5,
-				ccagech1, ccagech2, ccagech3,
-				colorado, drop,
-				ccarecycle, ccamuf, ccaarmor,
-				gech_trigger2, gech_trigger3,
-				nsdfrecycle, nsdfmuf,
-				attack_geys,
-				ccarecycle_geyser,
-				stop_geyser1, stop_geyser2, stop_geyser3,
-				svpatrol1_1, svpatrol1_2, svpatrol1_3,
-				svpatrol2_1, svpatrol2_2, svpatrol2_3,
-				cannon_fodder1, cannon_fodder2, cannon_fodder3,
-				ccaapc, guntower1, guntower2, relic1, relic2, main_relic,
-				h_last;
-		};
-		Handle h_array[41];
-	};
-
-	// integers
-	union {
-		struct {
-			int
-				units1, units2,
-				i_last;
-		};
-		int i_array[2];
-	};
-};
-
-void Misn08Mission::Setup(void)
-{
-/*
-Here's where you set the values at the start.  
-*/
-	units1 = 0.0f;
-	units2 = 0.0f;
-	
-	start_done = false;
-	gech_found = false;
-	gech_found1 = false;
-	gech_found2 = false;
-	base_dead = false;
-	player_dead = false;
-	unit_spawn = false;
-	gech_at_nav = false;
-	gech_at_nav2 = false;
-	gech_at_nav3 = false;
-	followup_message = false;
-	player_warned_ofgech = false;
-	colorado_under_attack = false;
-	colorado_destroyed = false;
-	colorado_message2 = false;
-	colorado_message3 = false;
-	colorado_message4 = false;
-	second_gech_warning = false;
-	bad_news = false;
-	run_into_other_gech = false;
-	too_close_message =false;
-	base_exposed = false;
-	bump_into_gech = false;
-	ccarecycle_spawned = false;
-	gech_started = false;
-	gech3_move = false;
-	first_wave = false;
-	second_wave = false;
-	next_wave = false;
-	gech1_at_base = false;
-	gech2_at_base = false;
-	gech3_at_base = false;
-	fresh_meat = false;
-	fighter_message = false;
-	gech1_blossom = false;
-	gech2_blossom = false;
-	gech3_blossom = false;
-	apc_attack = false;
-	game_over = false;
-	base_set = false;
-	cerb_found = false;
-	relic_message = false;
-	kill_colorado = false;
-	gen_message = false;
-
-
-	followup_message_time = 99999.0f;
-	gech_warning_message = 99999.0f;
-	colorado_message2_time = 99999.0f;
-	colorado_message3_time = 99999.0f;
-	colorado_message4_time = 99999.0f;
-	bad_news_time = 99999.0f;
-	remove_nav5_time = 99999.0f;
-	gech_spawn_time = 99999.0f;
-	gech_check = 99999.0f;
-	gech_check2 = 99999.0f;
-	stumble2_check = 99999.0f;
-	stumble1_check = 99999.0f;
-	trigger_check = 99999.0f;
-	no_stumble_check = 99999.0f;
-	time_waist = 99999.0f;
-	start_gech_time = 99999.0f;
-	gech_check_time = 10.0f;
-	first_wave_time = 99999.0f;
-	second_wave_time = 99999.0f;
-	next_wave_time = 99999.0f;
-	gech1_there_time = 99999.0f;
-	gech2_there_time = 99999.0f;
-	gech3_there_time = 99999.0f;
-	new_aip_time = 99999.0f;
-	fresh_meat_time = 99999.0f;
-	fighter_message_time = 200.0f;
-	player_nosey_time = 45.0f;
-	pull_out_message = 99999.0f;
-	base_check = 99999.0f;
-	cerb_check = 30.0f;
-	next_second = 99999.0f;
-	next_second2 = 99999.0f;
-	
-	death_scrap = GetHandle("death_scrap");
-	death_scrap2 = GetHandle("death_scrap2");
-	death_scrap3 = GetHandle("death_scrap3");
-	nsdfrecycle = GetHandle("avrecycle");
-	ccarecycle = GetHandle("svrecycle");
-	ccamuf = GetHandle("svmuf");
-	ccagech1 = GetHandle("sovgech1");
-	ccagech2 = GetHandle("sovgech2");
-	nav1 = GetHandle("cam1");
-	nav4 = GetHandle("cam2");
-	nav5 = GetHandle("cam5");
-	gech_trigger2 = GetHandle("giez_spawn2");
-	gech_trigger3 = GetHandle("giez_spawn3");
-	colorado = GetHandle("colorado");
-//	drop = GetHandle("dropoff57_dropoff");
-	attack_geys = GetHandle("attack_geyser");
-	ccarecycle_geyser = GetHandle("ccarecycle_geyser");
-	stop_geyser1 = GetHandle("stop_geyser1");
-	stop_geyser2 = GetHandle("stop_geyser2");
-	stop_geyser3 = GetHandle("stop_geyser3");
-	svpatrol1_1 = GetHandle("svpatrol1_1");
-	svpatrol1_2 = GetHandle("svpatrol1_2");
-	svpatrol1_3 = GetHandle("svpatrol1_3");
-	svpatrol2_1 = GetHandle("svpatrol2_1");
-	svpatrol2_2 = GetHandle("svpatrol2_2");
-	svpatrol2_3 = GetHandle("svpatrol2_3");
-	relic1 = GetHandle("hbblde1_i76building");
-	relic2 = GetHandle("hbbldf1_i76building");
-	main_relic = GetHandle("hbcerb1_i76building");
-	nsdfmuf = NULL;
-	ccaapc = NULL;
-	guntower1 = NULL;
-	guntower2 = NULL;
-	ccagech3 = 0;
-}
-
-void Misn08Mission::AddObject(Handle h)
-{
-	if ((nsdfmuf == NULL) && (IsOdf(h,"avmu8")))
-	{
-		nsdfmuf = h;
-	}
-	else
-	{
-		if ((ccaapc == NULL) && (IsOdf(h,"svapc")))
-		{
-			nsdfmuf = h;
-		}
-		else
-		{
-			if ((guntower1 == NULL) && (IsOdf(h,"abtowe")))
-			{
-				guntower1 = h;
-			}
-			else
-			{
-				if ((guntower2 == NULL) && (IsOdf(h,"abtowe")))
-				{
-					guntower1 = h;
-				}
-			}
-		}
-	}
-}
-
-void Misn08Mission::Execute(void)
-{
-/*
-Here is where you put what happens every frame.  
-*/
-	user = GetPlayerHandle(); //assigns the player a handle every frame
-
-	if (!start_done)
-	{
-		AudioMessage("misn0800.wav"); //starts opeing V.O.
-		ClearObjectives();
-		AddObjective("misn0800.otf", WHITE);
-		AddObjective("misn0801.otf", WHITE);
-//		SetPilot(1, 30);
-		SetScrap(1,30);
-		Defend(ccagech1);
-		Defend(ccagech2);
-		start_gech_time = Get_Time() + 329.0f; // starts the gechs towards the base
-		gech_spawn_time = Get_Time() + 280.0f; // starts attack on colorado
-		trigger_check = Get_Time() + 285.0f;
-		fresh_meat_time = 100.0f; // build more units to send after player
-		gech_check = Get_Time() + 61.0f; // searches to see if the player encounters a gech
-		first_wave_time = Get_Time() + 20.0f; // starts the first wave of fighters
-		SetWeaponMask(ccagech1, 1);
-		SetWeaponMask(ccagech2, 1);
-		if (nav1!=NULL) GameObjectHandle::GetObj(nav1)->SetName("Drop Zone");
-		if (nav5!=NULL) GameObjectHandle::GetObj(nav5)->SetName("Colorado Base");
-		if (nav4!=NULL) GameObjectHandle::GetObj(nav4)->SetName("CCA Main Base");
-		base_check = Get_Time() + 5.0f;
-		start_done = true;
-	}
-
-	if ((start_done) && (start_gech_time < Get_Time()) && (!gech_started)) //sets gechs into motion
-	{
-		Goto(ccagech1, "gech_path1"); 
-		Goto(ccagech2, "gech_path2");
-		gech_started = true;
-	}
-	// this sends the first soviets into the user's base
-	if ((first_wave_time < Get_Time()) && (!first_wave))
-	{
-		Goto(svpatrol2_2, nsdfrecycle);
-		Goto(svpatrol2_3, nsdfrecycle);
-		first_wave = true;
-	}
-
-	if ((fresh_meat_time < Get_Time()) && (!colorado_under_attack) && (!fresh_meat))
-	{
-		cannon_fodder1 = BuildObject("svfigh", 2, ccarecycle);
-		cannon_fodder2 = BuildObject("svfigh", 2, ccarecycle);
-		cannon_fodder3 = BuildObject("svfigh", 2, ccarecycle);
-		Goto(cannon_fodder1, "gech_path2");
-		Goto(cannon_fodder2, "gech_path2");
-		Goto(cannon_fodder3, "gech_path2");
-		fresh_meat = true;
-	}
-
-	if ((fighter_message_time < Get_Time()) && (!colorado_under_attack) && (!fighter_message))
-	{
-		AudioMessage("misn0817.wav"); // colorado: we're experiencing a lot of fighters - they know we're here - wonder what the main forces is waiting for
-		fighter_message = true;
-	}
-
-
-// colorado gets attacked by gech //////////////////////////////////////////////////////////////////////////
-
-	if ((gech_spawn_time < Get_Time()) && (!colorado_under_attack))//gech attacks colorado
-	{
-		gech_spawn_time = Get_Time() + 10.0f;
-
-		if (GetDistance(user, nav5) > 400.0f)
-		{
-			svpatrol2_2 = BuildObject("svfigh", 2, ccarecycle);
-			svpatrol2_2 = BuildObject("svltnk", 2, ccarecycle);
-			ccagech3 = BuildObject("svwalk", 2, "gech_spawn");
-			SetWeaponMask(ccagech3, 1);
-			Attack(ccagech3, colorado, 1);
-			AudioMessage("misn0801.wav");// player gets message that colorado is encountering hostiles "standby"
-			colorado_message2_time = Get_Time() + 10.0f;
-
-			if (IsAlive(svpatrol2_1))
-			{
-				Goto(svpatrol2_1, nav1);
-			}
-			if (IsAlive(svpatrol2_2))
-			{
-				Goto(svpatrol2_2, nav1);
-			}
-			if (IsAlive(svpatrol2_3))
-			{
-				Goto(svpatrol2_3, nav1);
-			}
-
-			colorado_under_attack = true;
-		}
-	}
-	
-	// this is what happens if the player tries to get to the colorado before the attack - it speeds things up
-	if ((player_nosey_time < GetTime()) && (!colorado_under_attack))
-	{
-		player_nosey_time = GetTime() + 32.0f;
-
-		if (GetDistance(user, nav5) < 700.0f)
-		{
-			gech_spawn_time = Get_Time() + 10.0f;
-
-			if (IsAlive(svpatrol1_1))
-			{
-				Attack(svpatrol1_1, user);
-			}
-			if (IsAlive(svpatrol1_2))
-			{
-				Attack(svpatrol1_2, user);
-			}
-			if (IsAlive(svpatrol1_3))
-			{
-				Attack(svpatrol1_3, user);
-			}
-			if (IsAlive(svpatrol2_1))
-			{
-				Attack(svpatrol2_1, nsdfrecycle);
-			}
-			if (IsAlive(svpatrol2_2))
-			{
-				Attack(svpatrol2_2, nsdfrecycle);
-			}
-			if (IsAlive(svpatrol2_3))
-			{
-				Attack(svpatrol2_3, nsdfrecycle);
-			}
-		}
-	}
-
-	if ((colorado_under_attack) && (colorado_message2_time < Get_Time()) && (!colorado_message2))
-	{
-
-		AudioMessage("misn0803.wav");//second message from colorado
-		colorado_message3_time = Get_Time() + 7.0f;
-		colorado_message2 = true;
-	}	
-
-	if ((colorado_message2) && (colorado_message3_time < Get_Time()) && (!colorado_message3))
-	{
-
-		AudioMessage("misn0802.wav");//third message from colorado
-		AudioMessage("misn0804.wav");//final message from colorado
-		colorado_message4_time = Get_Time() + 10.0f;
-		colorado_message3 = true;
-	}
-
-	if ((colorado_message4_time < Get_Time()) && (!kill_colorado))
-	{
-		kill_colorado = true;
-	}
-
-	if ((IsAlive(colorado)) && (!kill_colorado))
-	{
-		if (GetTime()>next_second)
-		{
-			GameObjectHandle::GetObj(colorado)->AddHealth(500.0f);
-			next_second = GetTime() + 1.0f;
-		}
-	}
-
-	if ((colorado_message3) && (kill_colorado) && (!colorado_message4))
-	{
-		if (IsAlive(colorado))
-		{
-			Damage(colorado, 20000);
-		}
-		remove_nav5_time = Get_Time() + 15.0f;
-		colorado_message4 = true;
-	}
-
-	if ((colorado_message4) && (remove_nav5_time < Get_Time()) && (!colorado_destroyed))
-	{
-//		RemoveObject (colorado);
-		RemoveObject (nav5);
-//		RemoveObject (drop);
-		bad_news_time = Get_Time() + 5.0f;
-		colorado_destroyed = true;
-	}
-
-	if ((colorado_destroyed) && (!bad_news) && (bad_news_time < Get_Time()))
-	{
-		AudioMessage("misn0805.wav");//Corbett give player news of colorado fate
-		bad_news_time = Get_Time() + 30.0f;
-		bad_news = true;
-	}
-
-	if ((bad_news) && (bad_news_time < Get_Time()) && (!gen_message))
-	{
-		AudioMessage("misn0810.wav");//Gen Collins give player news of colorado fate
-		gen_message = true;
-	}
-
-// end soviet attack on colorado ///////////////////////////////////////////////////////////////////////////////
-
-
-// this is going to give the soviets a recycler and start them attacking
-
-	if ((bad_news) && (!ccarecycle_spawned))
-	{
-		SetAIP("misn08.aip");		
-		SetScrap(2, 40);
-		SetPilot(2, 40);
-		new_aip_time = Get_Time() + 420.0f;
-		if (IsAlive(ccagech3))
-		{
-			Goto(ccagech3, "gech_path2");
-		}
-
-		if (IsAlive(svpatrol1_1))
-		{
-			Goto(svpatrol1_1, "cam3_spawn");
-		}
-		if (IsAlive(svpatrol1_2))
-		{
-			Goto(svpatrol1_2, "cam3_spawn");
-		}
-		if (IsAlive(svpatrol1_3))
-		{
-			Goto(svpatrol1_3, "cam3_spawn");
-		}
-
-		ccarecycle_spawned = true;
-	}
-
-	// this is sending the third gech down the gech path when it gets to a certain point
-/*	if ((ccarecycle_spawned) && (!gech3_move) && (gech_check_time < Get_Time()))
-	{
-		if (GetDistance(ccagech3, stop_geyser2) < 30.0f)
-		{
-			Goto(ccagech3, "gech_path2");
-			gech3_there_time = Get_Time() + 97.0f;
-			gech3_move = true;
-		}
-	}
-
-*/	
-
-// this is what happens when the player encounters the gech before it reaches the nav point ////////////////////
-
-	if ((gech_check < Get_Time()) && (!gech_found) && (!gech_at_nav))
-	{
-		gech_check = Get_Time() + 6.0f;
-
-		if ((GetDistance(user,ccagech1) < 400.0f) && (!gech_found1) && (!gech_found) && (!gech_at_nav)) //if player reaches gech before gech reaches nav
-		{
-			AudioMessage("misn0806.wav"); // "we're picking up something big on your radar, you may want to check it out"
-			followup_message_time = Get_Time() + 20.0f; // setting up follow up message about cca gech
-			stumble2_check = Get_Time() + 10.0f;
-			no_stumble_check = Get_Time() + 13.0f;
-			gech1_there_time = 100.0f;
-			gech2_there_time = 105.0f;
-			gech_found1 = true;
-			gech_found = true;
-		}
-
-		if ((GetDistance(user,ccagech2) < 400.0f) && (!gech_found) && (!gech_found2) && (!gech_at_nav)) //if player reaches gech before gech reaches nav
-		{
-			AudioMessage("misn0806.wav"); // "we're picking up something big on your radar, you may want to check it out"
-			followup_message_time = Get_Time() + 5.0f; // setting up follow up message about cca gech
-			stumble2_check = Get_Time() + 60.0f;
-			no_stumble_check = Get_Time() + 13.0f;
-			gech1_there_time = 100.0f;
-			gech2_there_time = 105.0f;
-			gech_found2 = true;
-			gech_found = true;
-		}
-	}
-
-	if ((gech_found) && (followup_message_time < Get_Time()) && (!followup_message))
-	{
-		AudioMessage("misn0807.wav"); // "what the hell is that thing - approach with caution!"
-		followup_message = true;
-	}
-
-
-	if ((base_check < Get_Time()) && (!base_set))
-	{
-		base_check = Get_Time() + 2.0f;
-
-		if (IsAlive(nsdfmuf))
-		{
-			bool test=((Factory *) GameObjectHandle::GetObj(nsdfmuf))->IsDeployed();
-
-			if (test)
-			{
-				ClearObjectives();
-				AddObjective("misn0800.otf", GREEN);
-				AddObjective("misn0801.otf", WHITE);
-				base_set = true;
-			}
-		}
-	}
-
-
-	
-	// this is what happens when the player goes and sees the gech after the first nav is dropped 
-
-	if ((gech_found) && (stumble2_check < Get_Time()) && (!second_gech_warning) && (!run_into_other_gech))
-	{
-		stumble2_check = Get_Time() + 21.0f;
-		
-		if ((gech_found1) && (GetDistance(user,ccagech2) < 100.0f) && (!run_into_other_gech))
-		{
-			AudioMessage("misn0813.wav"); //Oh no! Looks like you've found another one!
-			run_into_other_gech = true;
-		}
-
-		if ((gech_found2) && (GetDistance(user,ccagech1) < 100.0f) && (!run_into_other_gech))
-		{
-			AudioMessage("misn0813.wav"); //Oh no! Looks like you've found another one!
-			run_into_other_gech = true;
-		}
-	}
-
-	// this is when the player runs into one gech but the other gech gets half-way to base before being discovered
-
-	if ((gech_found) && (no_stumble_check < Get_Time()) && (!run_into_other_gech) && (!second_gech_warning))
-	{
-		no_stumble_check = Get_Time() + 9.0f;
-
-		if ((gech_found1) && (GetDistance(gech_trigger2, ccagech2) < 100.0f) && (!second_gech_warning))
-		{
-			AudioMessage("misn0815.wav"); //V.O. looks like we've got another one coming out of the west
-			nav2 = BuildObject ("apcamr", 1, "cam2_spawn"); // builds camera near gech
-			if (nav2!=NULL) GameObjectHandle::GetObj(nav2)->SetName("Nav Alpha 1");
-			second_gech_warning = true;
-		}
-
-		if ((gech_found2) && (GetDistance(gech_trigger3,ccagech1) < 100.0f) && (!second_gech_warning))
-		{
-			AudioMessage("misn0814.wav"); //V.O. warns player of second gech
-			nav3 = BuildObject ("apcamr", 1, "cam3_spawn"); // builds camera near gech
-			if (nav3!=NULL) GameObjectHandle::GetObj(nav3)->SetName("Nav Alpha 2");
-			second_gech_warning = true;
-		}
-	}
-
-
-// the following occurs when the approaching gechs get half-way to the player's base
-
-	if ((colorado_under_attack) && (trigger_check < Get_Time()) && (!gech_at_nav) && (!gech_found))
-	{
-		trigger_check = Get_Time() + 19.0f;
-		
-		if ((!gech_found) && (GetDistance(gech_trigger2, ccagech2) < 100.0f) && (!gech_at_nav)) //if gech reaches nav before player reaches gech
-		{
-			AudioMessage("misn0809.wav"); // "We've detected something strange on approach from the east - standby"
-			gech_warning_message = Get_Time() + 20.0f;
-			gech1_there_time = 100.0f;
-			gech2_there_time = 105.0f;
-			gech_at_nav = true;
-			gech_at_nav2 = true;
-		}	
-
-		if ((!gech_found) && (GetDistance(gech_trigger3,ccagech1) < 100.0f) && (!gech_at_nav)) //if gech reaches nav before player reaches gech	
-		{
-			AudioMessage("misn0808.wav"); // "We've detected something strange on approach from the west - standby"
-			gech_warning_message = Get_Time() + 20.0f;
-			gech1_there_time = 100.0f;
-			gech2_there_time = 105.0f;
-			gech_at_nav = true;
-			gech_at_nav3 = true;
-		}
-	}
-
-	if ((gech_at_nav2) && (gech_warning_message < Get_Time()) && (!player_warned_ofgech)) //if player ignores gech_at_nav message
-	{
-		AudioMessage("misn0814.wav"); // Check it out - we're dropping a nav camera there now
-		nav2 = BuildObject ("apcamr", 1, "cam2_spawn"); // builds camera near gech
-		if (nav2!=NULL) GameObjectHandle::GetObj(nav2)->SetName("Nav Alpha 1");
-		time_waist = Get_Time() + 14.0f;
-		stumble1_check = Get_Time() + 100.0f;
-		player_warned_ofgech = true;
-	}
-
-	if ((gech_at_nav3) && (gech_warning_message < Get_Time()) && (!player_warned_ofgech)) //if player ignores gech_at_nav message
-	{
-		AudioMessage("misn0815.wav"); // Check it out - we're dropping a nav camera there now
-		nav3 = BuildObject ("apcamr", 1, "cam3_spawn"); // builds camera near gech
-		if (nav3!=NULL) GameObjectHandle::GetObj(nav3)->SetName("Nav Alpha 2");
-		time_waist = Get_Time() + 14.0f;
-		stumble1_check = Get_Time() + 100.0f;
-		player_warned_ofgech = true;
-	}
-
-	// this is the player getting warned of the second gech if he hasn't gone to see the first one yet //////////////////
-
-	if ((player_warned_ofgech) && (time_waist < Get_Time()) && (!second_gech_warning) && (!bump_into_gech))
-	{
-		time_waist = Get_Time() + 14.0f;
-
-		if ((gech_at_nav2) && (GetDistance(gech_trigger3,ccagech1) < 75.0f) && (!second_gech_warning)) //second gech found
-		{
-			AudioMessage("misn0812.wav");  //looks like we've got another one coming out of the east
-			nav3 = BuildObject ("apcamr", 1, "cam3_spawn"); // builds camera near gech
-			if (nav3!=NULL) GameObjectHandle::GetObj(nav3)->SetName("Nav Alpha 2");
-			second_gech_warning = true;
-		}
-
-		if ((gech_at_nav3) && (GetDistance(gech_trigger2, ccagech2) < 75.0f) && (!second_gech_warning)) //second gech found
-		{
-			AudioMessage("misn0811.wav"); //looks like we've got another one coming out of the west
-			nav2 = BuildObject ("apcamr", 1, "cam2_spawn"); // builds camera near gech
-			if (nav2!=NULL) GameObjectHandle::GetObj(nav2)->SetName("Nav Alpha 1");
-			second_gech_warning = true;
-		}
-	}
-
-	// this is what happens when the player goes and sees the gech after the first nav is dropped 
-
-	if ((player_warned_ofgech) && (stumble1_check < Get_Time()) && (!second_gech_warning) && (!bump_into_gech))
-	{
-		stumble1_check = Get_Time() + 23.0f;
-		
-		if ((gech_at_nav2) && (GetDistance(user,ccagech1) < 100.0f) && (!bump_into_gech))
-		{
-			AudioMessage("misn0813.wav"); //Oh no! Looks like you've found another one!
-			bump_into_gech = true;
-		}
-
-		if ((gech_at_nav3) && (GetDistance(user,ccagech2) < 100.0f) && (!bump_into_gech))
-		{
-			AudioMessage("misn0813.wav"); //Oh no! Looks like you've found another one!
-			bump_into_gech = true;
-		}
-	}
-
-
-// this makes the gechs attack the player's base when they get close enough
-
-	if ((gech_found) || (gech_at_nav))
-	{
-		if ((gech1_there_time < Get_Time()) && (!gech1_at_base))
-		{
-			gech1_there_time = Get_Time() + 30.0f;
-			
-			if ((IsAlive(ccagech1)) && (GetDistance(ccagech1, stop_geyser3) < 100.0f))
-			{
-				if (IsAlive(nsdfrecycle))
-				{
-					Attack(ccagech1, nsdfrecycle);
-					if (gech1_blossom)
-					{
-						SetWeaponMask(ccagech1, 5);
-					}
-					gech1_at_base = true;
-				}
-				else
-				{
-					if (IsAlive(nsdfmuf))
-					{
-						Attack(ccagech1, nsdfmuf);
-						if (gech1_blossom)
-						{
-							SetWeaponMask(ccagech1, 5);
-						}
-						gech1_at_base = true;
-					}
-				}
-			}
-		}
-
-		if ((gech2_there_time < Get_Time()) && (!gech2_at_base))
-		{
-			gech2_there_time = Get_Time() + 30.0f;
-			
-			if ((IsAlive(ccagech2)) && (GetDistance(ccagech2, stop_geyser3) < 100.0f))
-			{
-				if (IsAlive(nsdfrecycle))
-				{
-					Attack(ccagech2, nsdfrecycle);
-					if (gech2_blossom)
-					{
-						SetWeaponMask(ccagech2, 5);
-					}
-					gech2_at_base = true;
-				}
-				else
-				{
-					if (IsAlive(nsdfmuf))
-					{
-						Attack(ccagech2, nsdfmuf);
-						if (gech2_blossom)
-						{
-							SetWeaponMask(ccagech2, 5);
-						}
-						gech2_at_base = true;
-					}
-				}
-			}
-		}
-
-		if ((gech3_there_time < Get_Time()) && (!gech3_at_base))
-		{
-			gech3_there_time = Get_Time() + 30.0f;
-			
-			if ((IsAlive(ccagech3)) && (GetDistance(ccagech3, stop_geyser3) < 100.0f))
-			{
-				if (IsAlive(nsdfrecycle))
-				{
-					Attack(ccagech3, nsdfrecycle);
-					if (gech3_blossom)
-					{
-						SetWeaponMask(ccagech3, 5);
-					}
-					gech3_at_base = true;
-				}
-				else
-				{
-					if (IsAlive(nsdfmuf))
-					{
-						Attack(ccagech3, nsdfmuf);
-						if (gech3_blossom)
-						{
-							SetWeaponMask(ccagech3, 5);
-						}
-						gech3_at_base = true;
-					}
-				}
-			}
-		}
-
-	}
-
-// now I'm loading the new attack aips if the correct amount of time has passed
-
-	if (new_aip_time < Get_Time())
-	{
-		new_aip_time = Get_Time() + 420.0f;
-		
-		units1 = CountUnitsNearObject(stop_geyser2, 5000.0f, 1, "avfigh");
-		units2 = CountUnitsNearObject(stop_geyser2, 5000.0f, 1, "avtank");
-
-		if(units1 > units2)
-		{
-			SetAIP("misn08b.aip");
-		}
-		else
-		{
-			SetAIP("misn08a.aip");
-		}
-	}
-
-// this is apc code
-
-	if ((IsAlive(ccaapc)) && (!apc_attack))
-	{
-		if (IsAlive(guntower1))
-		{
-			Attack(ccaapc, guntower1);
-		}
-		else
-		{
-			if (IsAlive(guntower2))
-			{
-				Attack(ccaapc, guntower2);
-			}
-			else
-			{
-				if (IsAlive(nsdfmuf))
-				{
-					Attack(ccaapc, nsdfmuf);
-				}
-				else
-				{
-					if (IsAlive(nsdfrecycle))
-					{
-						Attack(ccaapc, nsdfrecycle);
-					}
-				}
-			}
-		}
-
-		apc_attack = true;
-	}
-
-	if ((apc_attack) && (!IsAlive(ccaapc)))
-	{
-		apc_attack = false;
-	}
-
-
-//This is another radar comment when the player gets extrememly close to the gech
-/*	if ((gech_found) && (!too_close_message) || (gech_at_nav) && (!too_close_message))
-	{
-		if ((GetDistance(user, ccagech1) < 75.0f) && (!too_close_message))
-		{
-			AudioMessage("misn0816.wav"); // pull out!! what the hell is that!
-			too_close_message = true;
-		}
-
-		if ((GetDistance(user, ccagech2) < 75.0f) && (!too_close_message))
-		{
-			AudioMessage("misn0816.wav"); // pull out!! what the hell is that!
-			too_close_message = true;
-		}
-	}
-*/
-
-	if ((pull_out_message < Get_Time()) && (!too_close_message))
-	{
-		AudioMessage("misn0816.wav"); // pull out!! what the hell is that!
-		too_close_message = true;
-	}
-
-
-// this will make the gechs use the popper
-
-	if ((IsAlive(ccagech1)) && (!gech1_blossom) && (GameObjectHandle::GetObj(ccagech1)->GetHealth() < 0.25f))
-	{
-		SetWeaponMask(ccagech1, 4);
-		pull_out_message = Get_Time() + 6.0f;
-		gech1_blossom = true;
-	}
-	
-	if ((IsAlive(ccagech2)) && (!gech2_blossom) && (GameObjectHandle::GetObj(ccagech2)->GetHealth() < 0.25f))
-	{
-		SetWeaponMask(ccagech2, 4);
-		pull_out_message = Get_Time() + 6.0f;
-		gech2_blossom = true;
-	}
-	
-	if ((IsAlive(ccagech3)) && (!gech3_blossom) && (GameObjectHandle::GetObj(ccagech3)->GetHealth() < 0.25f))
-	{
-		SetWeaponMask(ccagech3, 4);
-		pull_out_message = Get_Time() + 6.0f;
-		gech3_blossom = true;
-	}
-
-// this is the relic code
-
-	if ((!cerb_found) && (!relic_message) && ((IsInfo("hbblde") == true) || (IsInfo("hbbldf") == true)))
-	{
-		if (base_dead)
-		{
-			AudioMessage("misn0821.wav"); // that's not it, the ruins will be much larger
-			relic_message = true;
-		}
-		else
-		{
-			AudioMessage("misn0822.wav"); // this area is crawling with relics recon as many as possible
-			relic_message = true;
-		}
-	}
-
-	if ((!cerb_found) && (cerb_check < Get_Time()))
-	{
-		cerb_check = Get_Time() + 3.0f;
-
-		if (GetDistance(user, main_relic) < 70.0f)
-		{
-			if (base_dead)
-			{
-				AudioMessage("misn0818.wav"); // well done
-				AudioMessage("misn0826.wav");
-				SucceedMission(Get_Time() + 30.0f, "misn08w1.des"); //well done
-				cerb_found = true;
-			}
-			else
-			{
-				AudioMessage("misn0819.wav"); // this must be how they built gechs - find base
-				cerb_found = true;
-			}
-		}
-	}
-
-	if (IsAlive(main_relic))
-	{
-		if (GetTime()>next_second2)
-		{
-			GameObjectHandle::GetObj(main_relic)->AddHealth(500.0f);
-			next_second2 = GetTime() + 1.0f;
-		}
-	}
-
-
-// win/loose conditions /////////////////////////////
-	
-	if ((!IsAlive(ccarecycle)) && (!IsAlive(ccamuf)) && (!base_dead))
-	{
-		if (cerb_found)
-		{
-			AudioMessage("misn0818.wav");
-			AudioMessage("misn0826.wav");
-			SucceedMission(Get_Time() + 30.0f, "misn08w1.des"); //well done
-			base_dead = true;
-		}
-		else
-		{
-			ClearObjectives();
-			AddObjective("misn0801.otf", GREEN);
-			AddObjective("misn0802.otf", WHITE);
-			AudioMessage("misn0820.wav"); // find cerbeus
-			SetObjectiveOn(main_relic);
-			SetObjectiveName(main_relic, "Relic Site");
-			base_dead = true;
-		}
-	}
-
-	if ((!IsAlive(nsdfrecycle)) && (!game_over))
-	{
-		AudioMessage("misn0421.wav");
-		FailMission(Get_Time() + 15.0f, "misn08f1.des"); //lost recycler
-		game_over = true;
-	}
-
-}	
-
-IMPLEMENT_RTIME(Misn08Mission)
-
-Misn08Mission::Misn08Mission(void)
-{
-}
-
-Misn08Mission::~Misn08Mission()
-{
-}
-
-void Misn08Mission::AddObject(GameObject *gameObj)
-{
-	AddObject(gameObj->GetHandle());
-	AiMission::AddObject(gameObj);
-}
-
-bool Misn08Mission::Load(file fp)
-{
-	if (missionSave) {
-		int i;
-
-		// init bools
-		int b_count = &b_last - b_array;
-		_ASSERTE(b_count == SIZEOF(b_array));
-		for (i = 0; i < b_count; i++)
-			b_array[i] = false;
-
-		// init floats
-		int f_count = &f_last - f_array;
-		_ASSERTE(f_count == SIZEOF(f_array));
-		for (i = 0; i < f_count; i++)
-			f_array[i] = 99999.0f;
-
-		// init handles
-		int h_count = &h_last - h_array;
-		_ASSERTE(h_count == SIZEOF(h_array));
-		for (i = 0; i < h_count; i++)
-			h_array[i] = 0;
-
-		// init ints
-		int i_count = &i_last - i_array;
-		_ASSERTE(i_count == SIZEOF(i_array));
-		for (i = 0; i < i_count; i++)
-			i_array[i] = 0;
-
-		Setup();
-		return AiMission::Load(fp);
-	}
-
-	bool ret = true;
-
-	// bools
-	int b_count = &b_last - b_array;
-	_ASSERTE(b_count == SIZEOF(b_array));
-	ret = ret && in(fp, b_array, sizeof(b_array));
-
-	// floats
-	int f_count = &f_last - f_array;
-	_ASSERTE(f_count == SIZEOF(f_array));
-	ret = ret && in(fp, f_array, sizeof(f_array));
-
-	// Handles
-	int h_count = &h_last - h_array;
-	_ASSERTE(h_count == SIZEOF(h_array));
-	ret = ret && in(fp, h_array, sizeof(h_array));
-
-	// ints
-	int i_count = &i_last - i_array;
-	_ASSERTE(i_count == SIZEOF(i_array));
-	ret = ret && in(fp, i_array, sizeof(i_array));
-
-	ret = ret && AiMission::Load(fp);
-	return ret;
-}
-
-bool Misn08Mission::PostLoad(void)
-{
-	if (missionSave)
-		return AiMission::PostLoad();
-
-	bool ret = true;
-
-	int h_count = &h_last - h_array;
-	for (int i = 0; i < h_count; i++)
-		h_array[i] = ConvertHandle(h_array[i]);
-
-	ret = ret && AiMission::PostLoad();
-
-	return ret;
-}
-
-bool Misn08Mission::Save(file fp)
-{
-	if (missionSave)
-		return AiMission::Save(fp);
-
-	bool ret = true;
-
-	// bools
-	int b_count = &b_last - b_array;
-	_ASSERTE(b_count == SIZEOF(b_array));
-	ret = ret && out(fp, b_array, sizeof(b_array), "b_array");
-
-	// floats
-	int f_count = &f_last - f_array;
-	_ASSERTE(f_count == SIZEOF(f_array));
-	ret = ret && out(fp, f_array, sizeof(f_array), "f_array");
-
-	// Handles
-	int h_count = &h_last - h_array;
-	_ASSERTE(h_count == SIZEOF(h_array));
-	ret = ret && out(fp, h_array, sizeof(h_array), "h_array");
-
-	// ints
-	int i_count = &i_last - i_array;
-	_ASSERTE(i_count == SIZEOF(i_array));
-	ret = ret && out(fp, i_array, sizeof(i_array), "i_array");
-
-	ret = ret && AiMission::Save(fp);
-	return ret;
-}
-
-void Misn08Mission::Update(void)
-{
-	AiMission::Update();
-	Execute();
-}
-
-
-]==]
