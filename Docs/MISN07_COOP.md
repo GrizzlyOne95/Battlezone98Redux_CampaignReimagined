@@ -219,13 +219,24 @@ wav has its shipped `Text/misn07NN.txt`). Only shipped assets are used.
 * The overlook call (where the DLL plays 0702) is 0702 or its cut alternate take
   0717, picked once at random (50/50) by the leader through `math.random`, then
   played through the normal event stream so every peer hears and subtitles the same
-  take (offline picks the same way). `Text/misn0717.txt` ships with the mod; the
-  wav is in Redux's English, Portuguese and Russian archives (`bzone_en/pt/ru.zfs`) but
-  not in the German, Spanish, French and Italian ones, where the alternate take has
-  subtitles but no voice. The default path is the original 0702 line
+  take (offline picks the same way). The default path is the original 0702 line
   (`RESTORED_VO=false` restores it exactly).
 * 0719 (Collins: rendezvous with the Utah) once, 120 s after 0714, if the Utah is
   still not deployed; the test range waits for it to finish.
+
+## Shipped voice lines
+
+Redux's localized archives do not carry every restored line: `misn0717.wav` is only
+in `bzone_en/pt/ru.zfs` and `misn0719.wav` only in `bzone_en/ru.zfs` (the rest,
+0703 and 0704, are in all seven). So the mod ships both, extracted byte-exact from
+`bzone_en.zfs` into `Assets/Audio/` (PCM mono, 11025 Hz, 8-bit, the same format as the
+stock lines). `Manage-CampaignFiles.ps1` flattens `Assets/Audio/*.wav` into the mod
+folder like any other asset (and sorts a runtime `.wav` back there on sync); the
+shipping lock lists them. Same-named mod files override stock, so every language now
+hears the English take with the English subtitles the mod already ships. In Portuguese
+and Russian that replaces the localized recordings of 0717 (and 0719 in Russian), which
+differ from the English ones; the subtitles were English anyway. This is the first audio
+CR ships.
 
 ## Focused checks
 
