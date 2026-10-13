@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Enable the enemy strategic AI in co-op misn02b, misn05 and misn07: their maps use MultSTMission, so
+  team 5/6 was never flagged and `SetAIP` silently skipped, leaving the CCA plan idle. Each now calls
+  `SetAIControl(ENEMY_TEAM, true)` once at chunk load (never in `Start`, which crashes the host as in misn08).
 - Fix the misn08 co-op host crash at load (null read in `AI_UnitRemove`): `SetAIControl(5, true)`
   moves from `Start` to chunk load, before the engine builds its AI team records, as misn10 and
   misn14 already do. The 146 `flat.dds` texture warnings in the log are unrelated and harmless.

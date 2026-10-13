@@ -69,7 +69,7 @@ end
 function RemoveObject(h) objects[h] = nil; record("RemoveObject", h) end
 function AudioMessage(name) record("AudioMessage", name); return 1 end
 for _, name in ipairs({"SetObjectiveOff", "SetObjectiveOn", "SetObjectiveName",
-    "SetScrap", "AddScrap", "SetPilot", "SetAIP", "Patrol", "Stop",
+    "SetScrap", "AddScrap", "SetPilot", "SetAIP", "SetAIControl", "Patrol", "Stop",
     "SetIndependence", "SetPerceivedTeam", "ClearObjectives", "AddObjective",
     "Attack", "Goto", "Retreat", "Follow", "Defend", "EjectPilot",
     "FailMission", "SucceedMission"}) do
