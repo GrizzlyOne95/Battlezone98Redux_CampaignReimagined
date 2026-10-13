@@ -334,6 +334,8 @@ local function NewMissionState()
         aud12 = nil,
         aud13 = nil,
         aud14 = nil,
+        aud24 = nil,
+        endsucceeded = false,
         ccahasrelic = false,
         relicseen = false,
         obset = false,
@@ -3178,7 +3180,9 @@ function Update()
     end
 
     if M.warn == 4 and M.notfound < GetTime() and not M.missionfail then
-        M.aud14 = subtit.Play("misn0694.wav")
+        -- CR restored VO: misn0436.wav (Collins' "investigate the CCA activity" rebuke before the failure line)
+        subtit.Play("misn0436.wav")
+        M.aud14 = subtit.Queue("misn0694.wav")
         M.missionfail = true
     end
     if M.missionfail and M.warn == 4 and AudioDone(M.aud14) then
@@ -3197,7 +3201,15 @@ function Update()
     end
 
     if not M.discoverrelic and M.investigator >= 1 then
-        M.aud2 = subtit.Play("misn0408.wav")
+        local humanNearRelic = IsAlive(M.relic) and CRCoop.AnyPlayerSatisfies(function(h)
+            return IsAlive(h) and GetDistance(h, M.relic) < 400.0
+        end)
+        if humanNearRelic then
+            M.aud2 = subtit.Play("misn0408.wav")
+        else
+            -- CR restored VO: misn0407.wav (a wingman, not a player, found the relic)
+            M.aud2 = subtit.Play("misn0407.wav")
+        end
         M.aud3 = subtit.Queue("misn0409.wav")
         M.relicseen = true
         M.newobjective = true
@@ -3545,13 +3557,19 @@ function Update()
             -- Host-built, so its removal replicates; no presentation event needed.
             if IsValid(M.endcamTarget) then native.RemoveObject(M.endcamTarget) end
             M.endmission = true
-            SucceedMission(GetTime(), "misn04w1.des")
+            -- CR restored VO: misn0424.wav (Collins' mission-complete line; result waits for it)
+            M.aud24 = subtit.Play("misn0424.wav")
         end
+    end
+
+    if M.endmission and not M.endsucceeded and AudioDone(M.aud24) then
+        M.endsucceeded = true
+        SucceedMission(GetTime(), "misn04w1.des")
     end
 
     if not M.missionwon and not IsAlive(M.avrec) and not M.missionfail then
         subtit.Play("misn0421.wav")
-        subtit.Play("misn0422.wav")
+        subtit.Queue("misn0422.wav")
         M.missionfail = true
         FailMission(GetTime() + 20.0, "misn04l3.des")
     end
@@ -3598,7 +3616,7 @@ function Update()
         end
 
         M.aud21 = subtit.Play("misn0415.wav")
-        M.aud22 = subtit.Play("misn0416.wav")
+        M.aud22 = subtit.Queue("misn0416.wav")
         M.basesecure = true
         M.newobjective = true
         M.secureloopbreak = true
@@ -3606,10 +3624,8 @@ function Update()
 
     if not IsAlive(M.relic) and not M.missionfail then
         FailMission(GetTime() + 20.0, "misn04l2.des")
-        subtit.Play("misn0431.wav")
-        subtit.Play("misn0432.wav")
-        subtit.Play("misn0433.wav")
-        subtit.Play("misn0434.wav")
+        -- CR restored VO: misn0428.wav (Collins on the relic being destroyed; 0431-0434 remain the CCA-theft lines)
+        subtit.Play("misn0428.wav")
         M.missionfail = true
     end
 
