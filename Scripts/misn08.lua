@@ -95,6 +95,7 @@ local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
 local remoteCameraSerial, localCameraGeneration = 0, 0
 local cameraSkipped, localCameraActive = false, false
 local remoteCamera
+local cameraWaitSince, cameraGaveUp, cameraLast
 -- IsInfo is local UI state (the selected object's info panel). Guests relay
 -- the two prefixes this mission reads; the leader honours a report for 1 s.
 local INFO_PREFIXES = { "hbblde", "hbbldf" }
@@ -108,6 +109,7 @@ local function ResetPresentation()
     nextEventSend, nextCameraSend = 0, 0
     cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
     remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
+    cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
     cameraSkipped, localCameraActive = false, false
     remoteInfo, nextInfoSend = {}, 0
 end
@@ -225,6 +227,13 @@ local function Present(op, ...)
     return ApplyPresentation(op, ...)
 end
 
+local function WireCameraFrame(frame)
+    if frame[1] == "O" then
+        return { "O", WireHandle(frame[2]), frame[3], frame[4], frame[5], WireHandle(frame[6]) }
+    end
+    return { frame[1], frame[2], frame[3], frame[4], WireHandle(frame[5]) }
+end
+
 -- Lexical wrappers affect this mission only; shared modules retain stock APIs.
 local function ClearObjectives(...) return Present("ClearObjectives", ...) end
 local function AddObjective(...) return Present("AddObjective", ...) end
@@ -311,6 +320,63 @@ local function CameraFinish()
     if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
 end
 
+-- Camera frames carry their subject/target as "@handle@label" (or "!" when the leader
+-- reports it gone). A guest holds the film's start until the REAL objects resolve. Only a
+-- gone flag, or the never-hang guard (loudly logged and counted), lets it play with
+-- whatever remains valid.
+
+-- handle (or nil), gone
+local function ResolveCameraHandle(sent)
+    if sent == nil or sent == GONE then return nil, true end
+    if type(sent) ~= "string" or sent:sub(1, 1) ~= "@" then return sent, false end
+    local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+    local resolved = sentLabel and GetHandle(sentLabel)
+    if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+        local candidate = tonumber(sentHandle) or sentHandle
+        if IsValid(candidate) then resolved = candidate end
+    end
+    return resolved, (not IsValid(resolved)) and sentLabel ~= nil and gaveUp[sentLabel] == true
+end
+
+local function NativeCameraPath(path, height, speed, target)
+    if target == nil then return pcall(native.CameraPath, path, height, speed, nil) end
+    return native.CameraPath(path, height, speed, target)
+end
+
+-- ready, subject, target. sentSubject == nil means the kind carries none (path cameras).
+local function ResolveCameraHandles(sentSubject, sentTarget)
+    local needSubject = sentSubject ~= nil
+    local subject, subjectGone = ResolveCameraHandle(sentSubject)
+    local target, targetGone = ResolveCameraHandle(sentTarget)
+    if (not needSubject or IsValid(subject)) and IsValid(target) then
+        cameraWaitSince, cameraLast = nil, { subject, target }
+        return true, subject, target
+    end
+    local settled = (not needSubject or IsValid(subject) or subjectGone) and (IsValid(target) or targetGone)
+    if not settled then
+        if localCameraActive and cameraLast then return true, cameraLast[1], cameraLast[2] end
+        if localCameraActive or not cameraGaveUp then
+            local now = GetTime()
+            if not cameraWaitSince or now < cameraWaitSince then cameraWaitSince = now end
+            if now - cameraWaitSince < RESOLVE_TIMEOUT then return false end
+            if not cameraGaveUp then
+                cameraGaveUp = true
+                for _, sent in ipairs({ sentSubject or false, sentTarget or false }) do
+                    local label = type(sent) == "string" and sent:match("^@[^@]*@(.*)$")
+                    if label then gaveUp[label] = true end
+                end
+                M.coopUnresolved = (M.coopUnresolved or 0) + 1
+                print("[coop] unresolved camera " .. tostring(sentSubject) .. " " .. tostring(sentTarget))
+            end
+        end
+    end
+    -- Settled (gone flag) or guard fired: play with whatever remains valid.
+    if not IsValid(target) then target = IsValid(subject) and subject or nil end
+    if needSubject and not IsValid(subject) then subject = target end
+    if needSubject and subject == nil then return false end
+    return true, subject, target
+end
+
 local function UpdateRemoteCamera()
     if not remoteCamera then return end
     local cam = remoteCamera
@@ -322,10 +388,13 @@ local function UpdateRemoteCamera()
     if cam.generation ~= localCameraGeneration then
         localCameraGeneration = cam.generation
         cameraSkipped = false
+        cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
     end
-    if cameraSkipped or not IsValid(cam.target) then return end
+    if cameraSkipped then return end
+    local ready, subject, target = ResolveCameraHandles(cam.kind == "O" and cam.subject or nil, cam.target)
+    if not ready then return end
+    cam = setmetatable({ subject = subject, target = target }, { __index = cam })
     if cam.kind == "O" then
-        if not IsValid(cam.subject) then return end
         if not localCameraActive then
             native.CameraReady()
             localCameraActive = true
@@ -346,7 +415,7 @@ local function UpdateRemoteCamera()
             native.CameraFinish()
             return
         end
-        native.CameraPath(cam.path, cam.height, cam.speed, cam.target)
+        NativeCameraPath(cam.path, cam.height, cam.speed, cam.target)
     end
 end
 
@@ -398,7 +467,7 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(cameraFrame))
+            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "")
         end
