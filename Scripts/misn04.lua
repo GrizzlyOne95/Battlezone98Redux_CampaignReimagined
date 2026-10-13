@@ -2901,6 +2901,12 @@ function Start()
                 autoRescue = true,
                 stickToPlayer = true,
                 manageFactories = true,
+                -- Human teams default to unmanaged; Pilot Mode (single-player only) explicitly opts the
+                -- player team back in to base and tactical management.
+                manageBase = true,
+                manageTacticalOrders = true,
+                manageConstructor = true,
+                manageSpecialCombat = true,
                 autoBuild = true,
                 autoTugs = false,
             },
@@ -3090,6 +3096,12 @@ function Update()
                     autoRescue = true,
                     stickToPlayer = true,
                     manageFactories = true,
+                    -- Human teams default to unmanaged; Pilot Mode (single-player only) explicitly opts the
+                    -- player team back in to base and tactical management.
+                    manageBase = true,
+                    manageTacticalOrders = true,
+                    manageConstructor = true,
+                    manageSpecialCombat = true,
                     autoBuild = true,
                     autoTugs = false,
                 },
