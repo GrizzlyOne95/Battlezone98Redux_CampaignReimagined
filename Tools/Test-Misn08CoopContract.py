@@ -63,7 +63,11 @@ lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)
 lua = re.sub(r'--[^\n]*', '', lua)
 assert 'local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7' in lua
 assert not re.search(r'BuildObject\([^\n]*,\s*[234]\s*,', lua), 'Hostile spawns must use team constants'
-assert len(re.findall(r'BuildObject\("\w+",\s*ENEMY_TEAM,', lua)) == 6
+assert len(re.findall(r'BuildObject\("\w+",\s*ENEMY_TEAM,', lua)) == 7
+# The Colorado's base is Lua-built on the support team (no AIP/AI control for team 7), charged to team-7 scrap.
+assert 'BuildObject(odf, SUPPORT_TEAM, where)' in lua and 'AddScrap(SUPPORT_TEAM, -cost)' in lua
+assert not re.search(r'SetAIP\([^)]*SUPPORT_TEAM', lua) and not re.search(r'SetAIControl\(SUPPORT_TEAM', lua)
+assert 'BuildObject("svwalk", ENEMY_TEAM, M.ccamuf)' in lua and 'AddScrap(ENEMY_TEAM, -WALKER_SCRAP_COST)' in lua
 assert 'SetAIControl(ENEMY_TEAM, true)' in lua
 assert len(re.findall(r'SetAIP\("misn08\w?\.aip",\s*ENEMY_TEAM\)', lua)) == 3
 assert 'SetScrap(ENEMY_TEAM, 40)' in lua and 'SetPilot(ENEMY_TEAM, 40)' in lua

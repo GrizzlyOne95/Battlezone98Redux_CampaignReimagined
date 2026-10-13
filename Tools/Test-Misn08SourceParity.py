@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Verify DLL provenance, inactive-code retention, and ordered asset references for misn08.
 
-The co-op layer and the restored content (the witnessable Colorado massacre, walker 3's
-advance, the 0816 close-range warning, the relic heal fix, the failure line, the AddObject
+The co-op layer and the restored content (the Colorado base and witnessable massacre, walker 3's
+advance, the CCA walker production, the 0816 close-range warning, the relic heal fix, the failure line, the AddObject
 team filter) live between exact marker lines. They are stripped (inclusive) so every
 check below still proves the active DLL port is unchanged; each co-op substitution
 outside the markers is an explicit API-count delta.
@@ -21,7 +21,8 @@ assert sha256(raw.replace(b"\r\n", b"\n")).hexdigest() == "d243e4829850eee64f151
 source = raw.decode("utf-8").replace("\r\n", "\n")
 lua = lua_path.read_text(encoding="utf-8").replace("\r\n", "\n")
 
-REGIONS = ("CR Colorado massacre", "CR restored walker content", "CR relic heal fix", "CR failure VO", "CR team filter")
+REGIONS = ("CR Colorado massacre", "CR restored walker content", "CR relic heal fix", "CR failure VO", "CR team filter",
+           "CR Colorado base", "CR CCA walkers")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}
 lua_lines = lua.split("\n")
@@ -46,7 +47,9 @@ lua = "\n".join(stripped_lines)
 for token in ("UpdateColoradoMassacre", "ColoradoMassacreDone", "ColoradoStrikeUnits", "COLORADO_", "M.strike",
               "colorado_warned", "colorado_deadline", "RestoredWalkerAdvance", "RestoredCloseWarning", "GECH3_FALLBACK_S",
               "gech3_fallback", "VO_SUBSTITUTE", "misn0823", "misn0824", "AddObjectTeamAllowed", "next_second = 0",
-              "next_second2 = 0"):
+              "next_second2 = 0", "UpdateColoradoBase", "UpdateCcaWalkers", "ColoradoForce", "ColoradoTarget",
+              "ColoradoExtraStrike", "COLORADO_ESCORT", "COLORADO_BUILDS", "WALKER_", "cbase", "M.cw", "colorado_cleanup",
+              "colorado_cleaned"):
     assert token not in lua, "region code outside marker regions: " + token
 
 # Restored/substituted voice lines need their shipped subtitle text (never invent text); 0825 stays unused.

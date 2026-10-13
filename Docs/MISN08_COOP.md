@@ -56,17 +56,38 @@ snapshots; misn08 has no film, so none is sent. Respawns rally at the Utah
 All of it sits between `-- CR ... >>` / `<<` marker lines; the source parity test
 strips them and proves the DLL body is otherwise unchanged.
 
-* **The Colorado massacre** (`CR Colorado massacre`). The DLL cuts the radio
+* **The Colorado base** (`CR Colorado base`). The Colorado is allied from the start
+  (team 7, allied with every human, perceived NSDF) and the leader gives it a small
+  escort (two `avtank`, one `avfigh`, spawned within 60 m) and a modest base of
+  Lua-built objects: after 15 s an `avscav`, after 40 s an `avmuf` that is
+  `Deploy`ed, after 70 s and 100 s an `abtowe` each, and from 90 s the factory
+  produces `avapc` every 40 s up to three alive (the mission VO has the Colorado's
+  APCs leading the assault on the gun tower, so APCs are its only production). Every
+  build is charged to team-7 scrap (60 at the start; the ODFs' `scrapCost`) and the
+  whole base is exactly 10 objects. Production stops when the CCA attack begins.
+  *Route:* Lua on the leader, not an AIP. No evidence in this repository shows that
+  a non-slot team's strategic AI executes an AIP in `MultSTMission` (the existing
+  `SetAIP(..., 5)` calls are equally unverified), `SetAIControl` is startup-only and
+  crash-prone, and CR ships no AIP of its own (all come from `bzone.zfs`; there is no
+  convention for authoring one). A timed build list is deterministic, capped and
+  testable, and follows the misn07 `svtnk7` production. If a live run shows team 7
+  can run an AIP, an AIP could replace the builds without touching the massacre.
+* **The Colorado massacre** (`CR Colorado massacre`). The whole Colorado force falls. The DLL cuts the radio
   scene with `Damage(colorado, 20000)`. Now walker 3 (spawned 106 m from the
   Colorado and ordered onto it) and the CCA strike units (the fighter and light
   tank the DLL spawns; the fighter's handle was lost to a retained source quirk
   and is kept) attack it. The DLL's heal (+500 hp/s) protects the Colorado until
   the scripted `kill_colorado` moment, then stops, and the attackers finish it
-  on screen. The orders are refreshed every 10 s. The old `Damage` call remains
-  as a fallback, run only if the Colorado is still alive 120 s after the heal
-  stopped. Once it falls the strike units resume the DLL's order to the Drop
-  Zone and the rest of the timeline (nav removal, 0805, the CCA recycler/AIP)
-  continues from its death. 0824 (Collins: stay clear of the Colorado) plays
+  on screen. The orders are refreshed every 10 s and, once the Colorado is
+  dead, retarget the nearest surviving piece of its base. When the heal stops, a
+  base that big earns extra CCA strike units (up to four alternating `svtank` /
+  `svfigh`, team 5) spawned at `gech_spawn` on the walker's approach so they arrive
+  within seconds. The old `Damage` call remains as a fallback for the Colorado only,
+  run only if it is still alive 120 s after the heal stopped; 150 s after the heal
+  stopped anything of the Colorado's force still alive is swept with `Damage` so
+  the story beat holds. The rest of the timeline (nav removal, 0805, the CCA recycler/AIP) continues from
+  the Colorado's death; the strike units resume the DLL's order to the Drop Zone once
+  the whole force is gone. 0824 (Collins: stay clear of the Colorado) plays
   once for the first player who either trips the impatient-player test (< 700 m
   before the attack) or comes within 400 m of the Colorado during it.
 * **Walker 3 to the base** (`CR restored walker content`). The DLL's disabled
@@ -77,6 +98,13 @@ strips them and proves the DLL body is otherwise unchanged.
 * **0816 "pull out"**: the second disabled block. Once a walker has been found
   or has reached its trigger, any player within 75 m of walker 1, 2 or 3 plays
   it once (shared with the popper warning).
+* **CCA walker production** (`CR CCA walkers`). After the CCA recycler spawn (walker
+  3 heading for the base), the leader builds ordinary `svwalk` (two `gblast` cannons
+  and a `gpopgun`; `svmuf.odf` already lists it) at the CCA factory (`svmuf`): the
+  first 60 s later, then one per 150 s, charged 12 team-5 scrap each (a retry every
+  15 s without scrap), at most 1 alive solo +1 per extra human team (max 3), each
+  ordered onto the Utah (else the nearest player). Production stops when that factory
+  or the CCA base (recycler and factory) is destroyed.
 * **Relic and Colorado heal** (`CR relic heal fix`). The DLL initializes
   `next_second` / `next_second2` to the 99999 "never" sentinel, so neither
   500 hp/s heal ever ran. Both are armed at `Start` (due immediately, then each
@@ -98,15 +126,18 @@ python Tools/Test-SetupMissionShell.py
 python Tools/Validate-CampaignRepository.py
 ```
 
-`Test-Misn08.lua` (79) is the offline host flow over the real CRCoop with one
-player. `Test-Misn08Coop.lua` (132) runs the whole script in four peers plus an
+`Test-Misn08.lua` (120) is the offline host flow over the real CRCoop with one
+player. `Test-Misn08Coop.lua` (282) runs the whole script in four peers plus an
 offline peer over the E/A/C transport with a small damage model: startup and
 teams, nav names reaching guests whose map handles arrive invalid, the massacre
 (the Colorado dies after its heal stops, killed by an attacker, no scripted
 damage), the fallback, the hold-off and 0824, walker 3 to the base, 0816 at
 75 m, the heal fix, the 0823 failure, the any-player win gate in both orders,
-the `IsInfo` relay, the team-filtered `AddObject` and the human-summed AIP
-choice. `Test-Misn08Presentation.lua` (65) covers the adapter: cameras, label
+the `IsInfo` relay, the team-filtered `AddObject`, the human-summed AIP
+choice, the Colorado's escort and capped base (kinds, scrap, deployment), the whole
+base falling to the attackers alone with extra strike units, the cleanup sweep
+after a stalled strike, and walker production (delay, scrap, caps of 1/2/3, loss
+replacement, no scrap, factory or base destroyed). `Test-Misn08Presentation.lua` (77) covers the adapter: cameras, label
 markers with skewed guest clocks, late replicas, a vanished target, the
 `IsInfo` relay and the 0421 substitution. The parity test pins
 `References/Misn08Source/Misn08Mission.cpp` (the DLL source extracted from the
@@ -122,7 +153,8 @@ kill the Colorado once its heal stops (the mock uses invented damage rates;
 the 120 s fallback is the net),
 that `SetAIControl(5, true)` at startup enables the CCA strategic AI the way
 the DLL's `AiMission` did for team 2, the AIPs' behavior on team 5, the
-walker routes against real terrain (the 30 m `stop_geyser2` pass), the heal's
-real effect on the relic, and the `IsInfo` relay and label markers in a live
+walker routes against real terrain (the 30 m `stop_geyser2` pass), the base's positions and terrain around the Colorado, whether `Deploy` on a
+Lua-built `avmuf` works, whether a team-7 AIP would have run, the real effect of
+the heal on the relic, and the `IsInfo` relay and label markers in a live
 four-client session. `misn08.trn` still carries a `[LightningBolt]` section;
 the Venus weather work owns it. Steam and Wine/Proton are unverified.

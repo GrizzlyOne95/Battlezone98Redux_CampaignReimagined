@@ -59,6 +59,10 @@
   your base, the "pull out" warning plays when any player is close to a
   walker, the relic and Colorado heals actually run, the Utah loss uses
   Collins's abort line, and guests' relic selections count.
+  The Colorado now starts allied with an escort and builds a small base with a
+  few APCs before the Soviets destroy all of it on screen, and once the walker
+  story is over the CCA keeps fielding walkers (up to three with four players)
+  until its base falls.
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
 - Co-op: a player who dies respawns near a teammate. Each player has 5
