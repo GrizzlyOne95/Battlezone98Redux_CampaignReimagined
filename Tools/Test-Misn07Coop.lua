@@ -45,7 +45,7 @@ local PATHS = {
 for index = 1, 110 do PATHS[string.format("m%03d", index)] = {3000 + index, 20, 98700} end
 local function vec(t) return {x = t[1], y = t[2], z = t[3]} end
 local function newObject(handle, odf, team, pos)
-    objects[handle] = {alive = true, odf = odf, team = team, health = 1, pos = vec(pos or {100000, 20, 100000}),
+    objects[handle] = {alive = true, odf = odf, team = team, health = 1, maxHealth = 2000, pos = vec(pos or {100000, 20, 100000}),
         vel = {x = 0, y = 0, z = 0}}
     return objects[handle]
 end
@@ -164,7 +164,11 @@ local function makePeer(id, team, network)
     e.GetPerceivedTeam = function(h) return objects[h] and (objects[h].perceived or objects[h].team) end
     e.SetPerceivedTeam = function(h, t) record("SetPerceivedTeam", h, t); if objects[h] then objects[h].perceived = t end end
     e.GetHealth = function(h) return objects[h].health end
-    e.AddHealth = function(h, v) record("AddHealth", h, v) end
+    e.GetMaxHealth = function(h) return objects[h].maxHealth end
+    e.AddHealth = function(h, v)
+        record("AddHealth", h, v)
+        objects[h].health = math.max(0, math.min(1, objects[h].health + v / objects[h].maxHealth))
+    end
     e.IsDeployed = function(h) return objects[h] and objects[h].deployed end
     e.GetPilot = function() return 10 end
     local resources = {}
@@ -1030,6 +1034,86 @@ do
     check(s.recon_message2, "0703 plays on arrival or at the 90 s timeout")
     run(120)
     check(planar(objects[pilot].pos, pathPos.cam_spawn6) < 65, "the pilot reaches the test range on foot")
+end
+
+-- ============================================================ 8d. Razor One's ship regenerates
+local function heals(host, ship) return count(host, "AddHealth", ship) end
+do
+    -- Before the ejection: his avfigh. Nothing happens in the quiet period, then 2% of max per second.
+    local host, guests = session(true)
+    local s = host.state
+    run(30)
+    s.rookie = host.env.BuildObject("avfigh", 1, s.jump_geyz)
+    local ship = s.rookie
+    run(1)
+    objects[ship].health = 0.5
+    run(1)
+    run(2.5)
+    check(heals(host, ship) == 0 and objects[ship].health == 0.5, "no healing during the 4 s quiet period")
+    run(1.5)
+    local at4 = objects[ship].health
+    run(10)
+    local gained = objects[ship].health - 0.5
+    check(gained > 0.17 and gained < 0.23, "about 2% of max health per second afterwards (got " .. gained .. ")")
+    local amounts = 0
+    for _, c in ipairs(callsOf(host, "AddHealth")) do if c[2] == ship then amounts = math.max(amounts, c[3]) end end
+    check(amounts > 0 and amounts < 20, "healing is applied in small per-frame steps scaled by max health")
+    -- Stops at max.
+    objects[ship].health = 0.99; run(10)
+    check(objects[ship].health == 1, "healing stops exactly at max health")
+    local n = heals(host, ship); run(10)
+    check(heals(host, ship) == n and objects[ship].health == 1, "no healing at full health")
+    -- Under fire: continuous damage keeps resetting the quiet period.
+    objects[ship].health = 0.8
+    local before = heals(host, ship)
+    for _ = 1, 16 do objects[ship].health = objects[ship].health - 0.01; run(1) end
+    check(heals(host, ship) == before, "no healing while his health keeps falling")
+    -- Hit once, then quiet: heals after the delay only.
+    objects[ship].health = objects[ship].health - 0.1; run(3.5)
+    check(heals(host, ship) == before, "a fresh hit restarts the quiet period")
+    run(3)
+    check(heals(host, ship) > before, "healing resumes after the quiet period")
+    -- Dead: nothing.
+    objects[ship].health = 0.4; objects[ship].alive = false
+    local dead = heals(host, ship); run(15)
+    check(heals(host, ship) == dead, "no healing once dead")
+end
+do
+    -- The pilot on foot and his empty avfigh are not healed after the ejection.
+    local host, guests = session(true)
+    local s = host.state
+    run(30); ejectRookie(host)
+    local pilot = s.rk.pilot
+    objects[s.rookie].health = 0.5
+    local before = count(host, "AddHealth")
+    run(1)
+    objects[pilot].health = 0.5
+    run(12)
+    check(count(host, "AddHealth", pilot) == 0, "the pilot on foot is never healed")
+    check(count(host, "AddHealth", s.rookie) == 0 and objects[s.rookie].health == 0.5, "the empty avfigh is not healed after the ejection")
+end
+do
+    -- The stolen Soviet vehicle is healed (after the pilot has climbed in), including on the test-range trip.
+    local host, guests, s = razorRiding(true)
+    local ship = s.razor_unit
+    check(ship == "parked3" and s.rk.phase == "ride", "riding the stolen vehicle")
+    objects[ship].maxHealth = 2375; objects[ship].health = 0.6
+    run(1); run(4)
+    local before = objects[ship].health
+    run(10)
+    local gained = objects[ship].health - before
+    check(gained > 0.17 and gained < 0.23, "the stolen vehicle regenerates 2% of max per second")
+    local step = 0
+    for _, c in ipairs(callsOf(host, "AddHealth")) do if c[2] == ship then step = math.max(step, c[3]) end end
+    check(step < 2375 * 0.02, "per-frame heal is scaled by the vehicle's own max health")
+    phase2(host)
+    check(s.tr_hold and s.tr_unit == ship, "on the trip to the test range")
+    objects[ship].health = 0.5; run(1); run(6)
+    check(objects[ship].health > 0.5, "he is still healed while driving to the test range")
+    -- A pilot who lost his vehicle (dead) heals nothing.
+    objects[ship].alive = false
+    local n = count(host, "AddHealth", ship); run(10)
+    check(count(host, "AddHealth", ship) == n, "no healing after the vehicle is destroyed")
 end
 
 -- ============================================================ 8c. prototype svtnk7 production

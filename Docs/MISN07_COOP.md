@@ -119,6 +119,22 @@ per-frame `ObjectsInRange` scan as a fallback (give up after 3 s). The empty
   the nearest player (refreshed every 10 s). Humans alone are infiltrators, so
   his theft never sets `out_of_car` or the alarm; if the alarm is already on he
   just fights. Offline play is identical.
+* **Regeneration.** Whatever he is flying heals: his avfigh before the ejection and
+  the stolen Soviet vehicle afterwards (also on the test-range trip). Never the pilot
+  on foot, the empty avfigh after the ejection, or anything dead. After 4 s without
+  his health dropping (tracked frame to frame) it restores 2% of max health per
+  second (`AddHealth`, scaled by `GetMaxHealth`), clamps at max, and any new damage
+  restarts the 4 s. His weapons and AI are unchanged. Tunables `RK_HEAL_QUIET_S` and
+  `RK_HEAL_PER_S` sit at the top of the script.
+  *Why 2%/s, 4 s:* a CCA `svfigh` fires two `gminisov` guns (bullet2, 70 damage every
+  0.30 s), about 467 damage/s at perfect aim and roughly 230 in practice; the
+  ambush pair is about 470 effective. Razor One's ships have 1800 (avfigh), 2375
+  (svfigh) and 4062 (svtank) health in CR's ODFs, so 2% is 36-81 health/s: under 20%
+  of one fighter's realistic fire. It cannot out-heal an ambush (the pair kills a
+  2375 svfigh in about 5 s, and nothing heals while he is being hit), but over the
+  30-45 s a player needs to reach him the quiet stretches restore roughly 50-80% of
+  his health, so skirmish chip damage no longer accumulates into a death before the
+  scripted beats.
 
 ## Restored cut content
 
@@ -216,7 +232,7 @@ python Tools/Validate-CampaignRepository.py
 ```
 
 The offline suite keeps its 31 single-player checks. The host flow suite
-(`Test-Misn07Coop.lua`, 557 checks) runs the whole script in four peers over the
+(`Test-Misn07Coop.lua`, 575 checks) runs the whole script in four peers over the
 real CRCoop and the E/A/C transport, plus an offline peer: startup and teams,
 the convoy, per-player alarm, special alarm and nearest-player soldiers,
 any-player triggers, rally and the Utah, win/loss, the restored arc, the

@@ -27,6 +27,11 @@ local PROTO_INTERVAL_S, PROTO_FIRST_DELAY_S = 135.0, 90.0
 local PROTO_RETRY_S, PROTO_ORDER_S = 15.0, 30.0
 local PROTO_SCRAP_COST = 8 -- svtnk7.odf scrapCost
 -- CR restored VO <<
+-- CR Razor One infiltration >>
+-- Razor One's ship regenerates 2% of max health per second after 4 s without damage
+-- (svfigh pair: ~470 effective dps vs 1800-4062 health, see MISN07_COOP.md).
+local RK_HEAL_QUIET_S, RK_HEAL_PER_S = 4.0, 0.02
+-- CR Razor One infiltration <<
 
 -- Co-op presentation uses the established misn03/misn05 E/A and C transport.
 -- Only the campaign leader runs the mission body below; HUD/audio/removal/timer/
@@ -545,6 +550,7 @@ local function NewState()
     state.stolen = {}
 -- CR Razor One infiltration >>
     state.rk = nil
+    state.rh = nil
 -- CR Razor One infiltration <<
 -- CR rendezvous convoy >>
     state.convoy = nil
@@ -854,6 +860,41 @@ local function UpdateRazorOne()
     elseif rk.phase == "ride" then
         RazorOneRide(rk, now)
     end
+end
+
+-- Gradual healing for whatever Razor One is flying: his avfigh before the ejection and the
+-- stolen Soviet vehicle afterwards (never the pilot on foot, never once dead). After
+-- RK_HEAL_QUIET_S without his health dropping it restores RK_HEAL_PER_S of max health per
+-- second, never above max and never while he is being hit. His weapons and AI are untouched.
+local function RazorOneShip()
+    if (not M.rookie_removed) and IsAlive(M.rookie) then return M.rookie end
+    local rk = M.rk
+    if rk ~= nil and rk.phase == "ride" and IsAlive(rk.vehicle) then return rk.vehicle end
+    local unit = M.razor_unit
+    if unit ~= nil and IsAlive(unit) and (not IsPerson(unit)) then return unit end
+    return nil
+end
+
+local function UpdateRazorHeal()
+    local ship = RazorOneShip()
+    if ship == nil then M.rh = nil; return end
+    local now, health = GetTime(), GetHealth(ship)
+    local rh = M.rh
+    if rh == nil or rh.ship ~= ship then
+        M.rh = { ship = ship, last = health, hurt = now, at = now }
+        return
+    end
+    local dt = math.min(now - rh.at, 0.5)
+    rh.at = now
+    if health < rh.last - 0.0005 then rh.hurt = now end -- taking damage
+    if health < 1.0 and now - rh.hurt >= RK_HEAL_QUIET_S then
+        local gain = math.min(RK_HEAL_PER_S * dt, 1.0 - health)
+        if gain > 0 then
+            AddHealth(ship, gain * GetMaxHealth(ship))
+            health = GetHealth(ship)
+        end
+    end
+    rh.last = health
 end
 -- CR Razor One infiltration <<
 
@@ -1462,6 +1503,7 @@ function Update(dt)
 -- CR rendezvous convoy <<
 -- CR Razor One infiltration >>
     UpdateRazorOne()
+    UpdateRazorHeal()
 -- CR Razor One infiltration <<
     if M.mine_check>110 then
         M.mine_check=1
