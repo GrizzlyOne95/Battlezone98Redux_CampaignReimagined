@@ -429,6 +429,23 @@ local function NearestPlayer(from)
     return best or M.player
 end
 
+-- CR restored VO >>
+-- Campaign Reimagined addition: voice-over cut from the stock mission (the DLL
+-- never plays these). Every use below sits inside matching marker lines and keeps
+-- the original statements in an else branch; set RESTORED_VO=false for stock audio.
+local RESTORED_VO = true
+local CUT_VO = {
+    blockade = "misn0609.wav", hephestus = "misn0610.wav",
+    collins = "misn0615.wav", b2a = "misn0616.wav", b2b = "misn0617.wav",
+    b2c = "misn0618.wav", b2d = "misn0619.wav", b2e = "misn0620.wav",
+    b3a = "misn0621.wav", b3b = "misn0622.wav", touchdown = "misn0623.wav",
+    b3c1 = "misn0624.wav", b4a = "misn0625.wav", b4b = "misn0626.wav",
+    b5 = "misn0627.wav", late628 = "misn0628.wav", lateCorbett = "misn0637.wav",
+    lateSuccess = "misn0639.wav", b3c2 = "misn0641.wav", yessir = "misn0652.wav",
+    firstReminder = "misn0693.wav",
+}
+-- CR restored VO <<
+
 local function ResetState()
     M = {}
     M.missionstart = false
@@ -606,6 +623,20 @@ local function ResetState()
     M.aud5 = nil
     M.aud6 = nil
     M.aud7 = nil
+-- CR restored VO >>
+    M.aud610 = nil
+    M.aud636 = nil
+    M.vo609 = false
+    M.vob1 = false
+    M.vob3 = false
+    M.vob3played = false
+    M.vob3choice = nil
+    M.vob3h = nil
+    M.vob4 = false
+    M.vob4played = false
+    M.vob4h = nil
+    M.vob5 = false
+-- CR restored VO <<
     M.aud8 = nil
     M.aud9 = nil
     M.w2u1 = nil
@@ -1320,10 +1351,16 @@ function Update(dt)
     if (IsInfo("obheph") == true) and (M.hephikey == false) then
         M.processtime = GetTime() + 5.0
         M.hephikey = true
+-- CR restored VO >>
+        if RESTORED_VO then M.aud610 = subtit.Play(CUT_VO.hephestus) end
+-- CR restored VO <<
         M.reconheaphestus = true
         SetObjectiveOff(M.haephestus)
         M.newobjective = true
     end
+-- CR restored VO >>
+    if not (RESTORED_VO and not AudioDone(M.aud610)) then
+-- CR restored VO <<
     if (M.neworders == false) and (M.processtime < GetTime()) then
         M.aud2 = subtit.Play("misn0605.wav")
         --[=[ DLL source comment (inactive C++):
@@ -1343,6 +1380,9 @@ function Update(dt)
         M.buildcam = true
         M.discstar = GetTime() + 80.0
     end
+-- CR restored VO >>
+    end
+-- CR restored VO <<
     if (M.buildcam == true) and (AudioDone(M.aud2)) then
         SetObjectiveOff(M.rendezvous)
         M.starportcam = BuildObject("apcamr", 1, "cam1spawn")
@@ -1351,9 +1391,21 @@ function Update(dt)
         M.newobjective = true
     end
     if (AnyPlayerWithin(M.blockade1, 420.0)) and (M.blockadefound == false) then
+-- CR restored VO >>
+        if RESTORED_VO then M.aud636 = subtit.Play("misn0636.wav") else
+-- CR restored VO <<
         subtit.Play("misn0636.wav")
+-- CR restored VO >>
+        end
+-- CR restored VO <<
         M.blockadefound = true
     end
+-- CR restored VO >>
+    if RESTORED_VO and M.blockadefound == true and M.vo609 == false and AudioDone(M.aud636) and NoPlayerEnemyWithin(300.0) then
+        M.vo609 = true
+        subtit.Play(CUT_VO.blockade)
+    end
+-- CR restored VO <<
     if (IsInfo("obstp1") == true) and (M.star1recon == false) then
         M.star1recon = true
     end
@@ -1373,7 +1425,13 @@ function Update(dt)
         end
     end
     if (M.starportreconed == false) and (M.reconsptime < GetTime()) and (M.fail3 == false) and (M.spfail < 4) then
+-- CR restored VO >>
+        if RESTORED_VO and M.spfail == 0 then subtit.Play(CUT_VO.firstReminder) else
+-- CR restored VO <<
         subtit.Play("misn0654.wav")
+-- CR restored VO >>
+        end
+-- CR restored VO <<
         M.reconsptime = GetTime() + 15.0
         M.spfail = M.spfail + 1
     end
@@ -1509,6 +1567,16 @@ function Update(dt)
         ]=]
         M.breaker19 = true
     end
+-- CR restored VO >>
+    if RESTORED_VO and M.vob1 == false and M.ccapullout == true and AudioDone(M.aud15) and AudioDone(M.aud16) then
+        M.vob1 = true
+        if M.touchdown == false then
+            subtit.Play(CUT_VO.touchdown)
+            subtit.Queue(CUT_VO.collins)
+            subtit.Queue(CUT_VO.yessir)
+        end
+    end
+-- CR restored VO <<
     if (M.wave1 < GetTime()) and (M.wave1start == false) and (IsAlive(M.svrec)) then
         M.w1u1 = BuildObject("svfigh", ENEMY_TEAM, M.svrec)
         M.w1u2 = BuildObject("svtank", ENEMY_TEAM, M.svrec)
@@ -1546,8 +1614,22 @@ function Update(dt)
         M.wave3start = true
     end
     if (M.transportarrive < GetTime()) and (M.transarrive == true) then
+-- CR restored VO >>
+        if RESTORED_VO then
+            M.aud6 = subtit.Play("misn0614.wav")
+            subtit.Queue(CUT_VO.b2a)
+            subtit.Queue(CUT_VO.b2b)
+            subtit.Queue(CUT_VO.b2c)
+            subtit.Queue(CUT_VO.b2d)
+            M.aud7 = subtit.Queue(CUT_VO.b2e)
+            M.vob3choice = (math.random(2) == 1) and CUT_VO.b3c1 or CUT_VO.b3c2
+        else
+-- CR restored VO <<
         M.aud6 = subtit.Play("misn0614.wav")
         M.aud7 = subtit.Queue("misn0628.wav")
+-- CR restored VO >>
+        end
+-- CR restored VO <<
         M.lincolndestroyed = GetTime() + 60.0
         M.oneminstrans = GetTime() + 60.0
         M.transaway = GetTime() + 90.0
@@ -1593,6 +1675,34 @@ function Update(dt)
             M.newobjective = true
         end
     end
+-- CR restored VO >>
+    if RESTORED_VO and M.vob3 == false and M.oneminstrans < GetTime() then
+        M.vob3 = true
+        if M.launchpadreconed == false and M.bugout == false then
+            M.vob3played = true
+            subtit.Play(M.vob3choice or CUT_VO.b3c1)
+            subtit.Queue(CUT_VO.b3a)
+            M.vob3h = subtit.Queue(CUT_VO.b3b)
+        end
+    end
+    if RESTORED_VO and M.vob3 == true and M.vob4 == false and M.transaway < GetTime() then
+        if M.vob3played == false then
+            M.vob4 = true
+        elseif AudioDone(M.vob3h) then
+            M.vob4 = true
+            if M.launchpadreconed == false and M.bugout == false then
+                M.vob4played = true
+                subtit.Play(CUT_VO.b4a)
+                M.vob4h = subtit.Queue(CUT_VO.b4b)
+            end
+        end
+    end
+    if RESTORED_VO and M.vob4played == true and M.vob5 == false and AudioDone(M.vob4h) then
+        M.vob5 = true
+        subtit.Play(CUT_VO.b5)
+        if M.launchpadreconed == false then subtit.Queue(CUT_VO.late628) end
+    end
+-- CR restored VO <<
     if (M.threeminsplatoon < GetTime()) and (M.threemin == true) and (M.launchpadreconed == false) then
         M.bogey = NearestEnemy(M.player)
         if NoPlayerEnemyWithin(400.0) then
@@ -1802,8 +1912,14 @@ function Update(dt)
         M.bustout = true
     end
     if (M.breakme == false) and (M.bugout == true) and (M.corbettalive == false) and (M.time1 < GetTime()) then
+-- CR restored VO >>
+        if RESTORED_VO then subtit.Play(CUT_VO.lateCorbett) else
+-- CR restored VO <<
         subtit.Play("misn0629.wav")
         subtit.Queue("misn0630.wav")
+-- CR restored VO >>
+        end
+-- CR restored VO <<
         SetIndependence(M.ccap1, 1)
         M.platoonhere = false
         M.breakme = true
@@ -1841,7 +1957,13 @@ function Update(dt)
         M.pickupset = true
     end
     if (MissionDistance(M.avrec, M.dustoffcam) < 100.0) and (AllPlayersWithin(M.dustoffcam, 100.0)) and (M.pickupreached == true) then
+-- CR restored VO >>
+        if RESTORED_VO and M.corbettalive == false then subtit.Play(CUT_VO.lateSuccess) else
+-- CR restored VO <<
         subtit.Play("misn0649.wav")
+-- CR restored VO >>
+        end
+-- CR restored VO <<
         SucceedMission(GetTime() + 5.0, "misn06w1.des")
         M.pickupreached = false
         M.dustoff = true
