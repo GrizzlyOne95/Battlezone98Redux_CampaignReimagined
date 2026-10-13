@@ -52,6 +52,10 @@ local function peer(id)
     env.subtit = {Play=function(...) record("Play", ...); return "audio" end,
         Queue=function(...) record("Queue", ...) end, Stop=function() record("Stop") end}
     env.M = {}
+    p.M = env.M
+    p.printed = {}
+    env.print = function(...) p.printed[#p.printed + 1] = table.concat({ ... }, " ") end
+    env.SetLabel = function(h, l) record("SetLabel", h, l); p.labels[h] = l; p.byLabel[l] = h end
     local chunk = assert(loadstring("local CRCoop, M, subtit, LEADER_TEAM = CRCoop, M, subtit, 1\n" .. adapter .. [[
         return { ready=CameraReady, object=CameraObject, path=CameraPath, finish=CameraFinish,
             cancelled=CameraCancelled, present=Present, ending=EndMission, receive=ReceivePresentation,
@@ -214,61 +218,100 @@ check(count(guest, "SetObjectiveName") == 1 and count(guest, "AddObjective") == 
 for _, p in pairs(peers) do
     check(count(p, "SucceedMission") == 1, "all four peers must receive exactly one result")
 end
--- A map object the engine cannot carry as a handle (misn08's nav / relic markers, nil on
--- every guest in a live 4-client run) goes by LABEL. Guest clocks are far from the
--- leader's and the label may resolve late: the marker must still land, in order, once.
-local LABEL = "cam5"
-host.labels.nav, host.byLabel[LABEL], host.valid.nav = LABEL, "nav", true
+-- A map object the engine cannot carry as a handle (the rendezvous geyser, nil on
+-- every guest in the live 4-client run) goes by LABEL. Guest clocks are far from the
+-- leader's (the old absolute `expires` made a guest drop the marker on first
+-- receipt) and the label may resolve late: the marker must still land, in order,
+-- exactly once.
+local LABEL = "eggeizr1-1_geyser"
+host.labels.geyser, host.byLabel[LABEL], host.valid.geyser = LABEL, "geyser", true
 guest.clock, third.clock, fourth.clock = 100, -50, 0
-third.byLabel[LABEL], fourth.byLabel[LABEL] = "nav@3", "nav@4"
-third.valid["nav@3"], fourth.valid["nav@4"] = true, true
-host.api.present("SetObjectiveName", "nav", "Colorado Base")
-host.api.present("SetObjectiveOn", "nav")
-host.api.present("AddObjective", "misn0802.otf", "white")
+third.byLabel[LABEL], fourth.byLabel[LABEL] = "geyser@3", "geyser@4"
+third.valid["geyser@3"], fourth.valid["geyser@4"] = true, true
+local mark = #guest.calls
+host.api.present("SetObjectiveName", "geyser", "5th Platoon")
+host.api.present("SetObjectiveOn", "geyser")
+host.api.present("AddObjective", "misn0810.otf", "white")
 for _=1,4 do tick() end
-check(count(host, "SetObjectiveName", "nav") == 1 and count(host, "SetObjectiveOn", "nav") == 1,
+check(count(host, "SetObjectiveName", "geyser") == 1 and count(host, "SetObjectiveOn", "geyser") == 1,
     "the leader applies its own marker with the real handle")
-check(count(third, "SetObjectiveName", "nav@3") == 1 and count(fourth, "SetObjectiveOn", "nav@4") == 1,
+check(count(third, "SetObjectiveName", "geyser@3") == 1 and count(fourth, "SetObjectiveOn", "geyser@4") == 1,
     "a label resolves per guest whatever the guest clock reads")
-check(last(third, "SetObjectiveName")[3] == "Colorado Base", "the objective name survives the label swap")
-check(count(guest, "SetObjectiveName", "nav@2") == 0 and count(guest, "AddObjective", "misn0802.otf") == 0,
+check(last(third, "SetObjectiveName")[3] == "5th Platoon", "the objective name survives the label swap")
+check(count(guest, "SetObjectiveName", "geyser@2") == 0 and count(guest, "AddObjective", "misn0810.otf") == 0,
     "a label not yet resolvable on a guest holds the stream in order, even with its clock far ahead")
-guest.byLabel[LABEL] = "nav@2"; guest.valid["nav@2"] = true
+guest.byLabel[LABEL] = "geyser@2"; guest.valid["geyser@2"] = true
 for _=1,3 do tick() end
-check(count(guest, "SetObjectiveName", "nav@2") == 1 and count(guest, "SetObjectiveOn", "nav@2") == 1 and
-    count(guest, "AddObjective", "misn0802.otf") == 1, "a late-resolving marker lands once, before the next event")
-check(count(third, "SetObjectiveOn", "nav@3") == 1, "retransmission never double-applies")
+check(count(guest, "SetObjectiveName", "geyser@2") == 1 and count(guest, "SetObjectiveOn", "geyser@2") == 1 and
+    count(guest, "AddObjective", "misn0810.otf") == 1, "a late-resolving marker lands once, before the next event")
+check(count(third, "SetObjectiveOn", "geyser@3") == 1, "retransmission never double-applies")
 
--- A label that never resolves (target genuinely gone) drops after the guest's OWN 5 s
--- and never blocks the stream; an Off for it is skipped without waiting.
-host.labels.gone, host.byLabel.gone, host.valid.gone = "gone", "gone", true
-for _, p in ipairs({guest, third, fourth}) do p.clock = p.clock + 7 end -- clocks jump: wait is relative
-host.api.present("SetObjectiveOn", "gone")
-host.api.present("AddObjective", "misn0803.otf", "white")
-host.api.present("SetObjectiveOff", "gone")
-host.api.present("AddObjective", "misn0804.otf", "white")
-for _=1,12 do tick() end
-check(count(guest, "AddObjective", "misn0803.otf") == 0, "the guest waits before dropping a marker (3 s of 5)")
-for _=1,12 do tick() end
-for _, p in ipairs({guest, third, fourth}) do
-    check(count(p, "SetObjectiveOn", "gone") == 0 and count(p, "SetObjectiveOff", "gone") == 0,
-        "a marker for a vanished target is dropped, not applied with nil")
-    check(count(p, "AddObjective", "misn0803.otf") == 1 and count(p, "AddObjective", "misn0804.otf") == 1,
-        "the stream resumes after the stale marker")
-end
-
--- An object with no map label still travels as a plain handle (unchanged path), e.g. a
--- nav beacon the mission builds.
+-- An object with no map label still travels as a plain handle (unchanged path).
 local DYN = 9002
 host.valid[DYN] = true
 for _, p in ipairs({guest, third, fourth}) do p.valid[DYN] = true end
 host.api.present("SetUserTarget", DYN); for _=1,4 do tick() end
 check(count(guest, "SetUserTarget", DYN) == 1, "unlabelled objects keep the plain handle path")
--- A label only the leader knows: guests that cannot resolve it use the replicated handle beside it.
+-- A label only the leader knows (SetLabel on a spawned, replicated object): guests that cannot
+-- resolve the label use the replicated handle sent beside it.
 local SPAWNED = 9003
 host.labels[SPAWNED], host.byLabel.leader_only, host.valid[SPAWNED] = "leader_only", SPAWNED, true
 for _, p in ipairs({guest, third, fourth}) do p.valid[SPAWNED] = true end
 host.api.present("SetObjectiveOn", SPAWNED); for _=1,4 do tick() end
 check(count(guest, "SetObjectiveOn", SPAWNED) == 1 and count(fourth, "SetObjectiveOn", SPAWNED) == 1,
     "a leader-only label falls back to the replicated handle")
+
+-- Genuinely gone: a marker whose target the leader reports gone is skipped without waiting,
+-- and an Off for a label nobody can resolve never holds the stream.
+host.valid.doomed, host.labels.doomed, host.byLabel.doomed_lbl = true, "doomed_lbl", "doomed"
+host.api.present("SetObjectiveOn", "doomed"); host.valid.doomed = false
+host.api.present("AddObjective", "misn08111.otf", "white")
+host.api.present("SetObjectiveOff", "never_seen")
+host.api.present("AddObjective", "misn08112.otf", "white")
+for _=1,6 do tick() end
+for _, p in ipairs({guest, third, fourth}) do
+    check(count(p, "SetObjectiveOn", "doomed") == 0, "a marker the leader reports gone is skipped")
+    check(count(p, "AddObjective", "misn08111.otf") == 1 and count(p, "AddObjective", "misn08112.otf") == 1,
+        "the stream resumes right after a gone marker")
+end
+
+-- A marker waits for the real object past any short window; only the 15 s guard ends it.
+local STUCK = 9020
+host.valid[STUCK], host.labels[STUCK], host.byLabel.stuck_lbl = true, "stuck_lbl", STUCK
+local before = guest.M.coopUnresolved or 0
+host.api.present("SetObjectiveOn", STUCK)
+host.api.present("AddObjective", "misn08113.otf", "white")
+for _=1,32 do tick() end -- 8 s
+check(count(guest, "AddObjective", "misn08113.otf") == 0, "an unresolved marker keeps the stream waiting well past 5 s")
+for _=1,36 do tick() end
+check(count(guest, "AddObjective", "misn08113.otf") == 1 and count(guest, "SetObjectiveOn", STUCK) == 0,
+    "the safety guard drops only the stale marker")
+check((guest.M.coopUnresolved or 0) == before + 1, "the timeout is counted for the harness probe")
+local loud = false
+for _, line in ipairs(guest.printed) do loud = loud or line:find("%[coop%] unresolved stuck_lbl") ~= nil end
+check(loud, "the timeout logs a loud [coop] unresolved line")
+
+-- A spawned object nobody labelled gets a deterministic unique label from the leader, and a
+-- Label event makes the guests carry it before the marker that uses it.
+local SPAWN = 9021
+host.valid[SPAWN] = true
+for _, p in ipairs({guest, third, fourth}) do p.valid[SPAWN] = true end
+host.api.present("SetObjectiveOn", SPAWN); for _=1,4 do tick() end
+local label = host.labels[SPAWN]
+check(type(label) == "string" and label:find("^crco_") ~= nil, "the leader labels an unlabelled spawned target")
+for _, p in ipairs({guest, third, fourth}) do
+    check(count(p, "SetLabel", SPAWN) == 1 and last(p, "SetLabel")[3] == label, "each guest carries the leader's label")
+    check(count(p, "SetObjectiveOn", SPAWN) == 1, "the marker lands on the real replicated object")
+end
+-- Late-replicating spawn: Label and marker wait, then both land on the real handle.
+local LATESPAWN = 9022
+host.valid[LATESPAWN] = true
+host.api.present("SetObjectiveOn", LATESPAWN)
+for _=1,6 do tick() end
+check(count(guest, "SetLabel", LATESPAWN) == 0 and count(guest, "SetObjectiveOn", LATESPAWN) == 0,
+    "a spawn that has not replicated holds its Label and marker")
+guest.valid[LATESPAWN] = true
+for _=1,4 do tick() end
+check(count(guest, "SetLabel", LATESPAWN) == 1 and count(guest, "SetObjectiveOn", LATESPAWN) == 1,
+    "the Label and the marker apply to the real object once it replicates")
 print("misn08 path/object-camera, dialogue, IsInfo relay, label markers, replica wait, local skip and ordered result checks passed: " .. checks)

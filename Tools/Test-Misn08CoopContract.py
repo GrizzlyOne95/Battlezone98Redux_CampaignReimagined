@@ -81,7 +81,9 @@ assert not re.search(r'Distance\(M\.user,', body), 'player-handle distance tests
 assert not re.search(r'Attack\(M\.\w+,\s*M\.user\)', body), 'Attack targets must be the nearest player'
 assert 'GetDistance(M.user' not in body
 # Map-object markers travel by label and the guest wait is bounded on the guest clock (PR #186 pattern).
-assert 'HANDLE_OPS' in lua and 'WireHandle' in lua and 'pendingSince' in lua and 'EVENT_TTL' in lua
+assert 'HANDLE_OPS' in lua and 'WireHandle' in lua and 'pendingSince' in lua and 'RESOLVE_TIMEOUT' in lua
+assert 'EnsureLabel' in lua and 'AnnounceLabel' in lua and 'M.coopUnresolved' in lua and '[coop] unresolved' in lua
+assert 'op == "Label"' in lua and 'GONE' in lua
 assert 'expires' not in lua, 'Absolute leader-clock expiry must not return'
 # Back-to-back dialogue plays then queues.
 assert 'subtit.Queue("misn0804.wav")' in lua and 'subtit.Queue("misn0826.wav")' in lua
