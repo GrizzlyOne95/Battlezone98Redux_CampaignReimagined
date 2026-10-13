@@ -50,18 +50,23 @@ kind: `P` replays `camera_path1`/`2` and `O` the object shots. Each player can
 skip their own film; the shared timing continues. misn07 reads no `IsInfo`
 state, so there is no `I` relay.
 
-Marker and removal targets carry their handles as
-`"@handle@label"` when the object has a map label. The engine replicates only some map
-objects; an authored one (`cam3`, the radar array, the `svpatrol*` fighters, the `pturret*`
-turrets) arrives as a nil handle on guests, so a guest resolves the label with `GetHandle` first
-and falls back to the replicated handle beside it (a label only the leader knows is still
-safe). Spawned objects (the convoy tanks, the navs, Razor One and his vehicle, nav4/nav5 and
-the beacons, the test tank/turret, mines, prototypes) have no label and go by plain handle.
-The wait for a replica is bounded by a TTL measured on the guest's own clock, so a vanished
-target drops its marker after 5 s without blocking the stream; `SetObjectiveOff` and
-`RemoveObject` for an unresolvable target are skipped at once. The camera snapshots do not
-use labels yet: that part of PR #186 is being reworked (guests will wait for the real object), and
-will be ported when it lands. Marker part ported from PR #186.
+Marker and removal targets and the object/path camera snapshots reach guests by identity, and
+guests WAIT for the real object (PR #186; there is no fallback aim):
+
+* An authored map object (`cam3`, the radar array, the `svpatrol*` fighters, the `pturret*`
+  turrets) travels as `"@handle@label"`; the label is the primary key because every peer loads
+  the same BZN. `Tools/Test-CoopAuthoredLabels.py` checks each such label exists exactly once in
+  `Missions/misn07.bzn`.
+* A spawned object (the convoy tanks, the navs, Razor One and his vehicle, nav4/nav5 and the
+  beacons, the test tank/turret, mines, prototypes, the Utah for the respawn rally) that has no
+  label is given a deterministic one (`crco_N`) by the leader, announced to guests by a `Label`
+  presentation event before first use. Guests carry the label on their replicated handle.
+* The leader re-checks every target on each retransmission or camera frame and sends `"!"` for a
+  dead one; only then does a guest skip that marker or play the film with what remains valid.
+* A never-hang guard (15 s on the guest's own clock) logs `[coop] unresolved <label>`, increments
+  `M.coopUnresolved` and drops only that marker or starts only that film. `M.coopUnresolved`
+  is initialised to 0 on every client so a harness can assert it stays 0.
+* The Venus weather ops carry no handles and bypass all of this.
 
 ## Alarm and stealth, per player
 
@@ -295,15 +300,16 @@ python Tools/Validate-CampaignRepository.py
 ```
 
 The offline suite keeps its 31 single-player checks. The host flow suite
-(`Test-Misn07Coop.lua`, 635 checks) runs the whole script in four peers over the
+(`Test-Misn07Coop.lua`, 641 checks) runs the whole script in four peers over the
 real CRCoop and the E/A/C transport, plus an offline peer: startup and teams,
 the convoy, per-player alarm, special alarm and nearest-player soldiers,
 any-player triggers, rally and the Utah, win/loss, the restored arc, the
 minefield, the MAG film (once, skips, no 0711), the phase-2 gating, Razor One's
 glide, theft, fallbacks and fail-safes, his drive to the test range and ambush,
 and the prototype svtnk7 program (trigger, cap scaling, scrap, factory loss). The presentation suite covers the
-four-peer adapter (path/object cameras incl. label-aware targets, rally, Venus events, label
-markers on skewed guest clocks, delayed replicas, skips, result held for acknowledgements). The parity test pins the DLL source and lists each
+four-peer adapter (path/object cameras that wait for real objects, Label events, gone flags, the
+15 s guard with its log and counter, rally, Venus events, delayed replicas, skips, result held for
+acknowledgements). The parity test pins the DLL source and lists each
 co-op substitution as an explicit API-count delta. These mocks do not qualify
 native wire serialization, AI navigation or voice queuing.
 
