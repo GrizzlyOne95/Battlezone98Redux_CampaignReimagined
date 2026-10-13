@@ -50,7 +50,7 @@ kind: `P` replays `camera_path1`/`2` and `O` the object shots. Each player can
 skip their own film; the shared timing continues. misn07 reads no `IsInfo`
 state, so there is no `I` relay.
 
-Marker and removal targets, and the object/path camera snapshots, carry their handles as
+Marker and removal targets carry their handles as
 `"@handle@label"` when the object has a map label. The engine replicates only some map
 objects; an authored one (`cam3`, the radar array, the `svpatrol*` fighters, the `pturret*`
 turrets) arrives as a nil handle on guests, so a guest resolves the label with `GetHandle` first
@@ -59,10 +59,9 @@ safe). Spawned objects (the convoy tanks, the navs, Razor One and his vehicle, n
 the beacons, the test tank/turret, mines, prototypes) have no label and go by plain handle.
 The wait for a replica is bounded by a TTL measured on the guest's own clock, so a vanished
 target drops its marker after 5 s without blocking the stream; `SetObjectiveOff` and
-`RemoveObject` for an unresolvable target are skipped at once. A film whose target stays
-unresolved for 2 s of the guest's clock no longer skips: it plays aimed at the guest's own
-craft and re-aims the moment the label resolves (Razor One, test-range and MAG-film shots
-included). Ported from PR #186.
+`RemoveObject` for an unresolvable target are skipped at once. The camera snapshots do not
+use labels yet: that part of PR #186 is being reworked (guests will wait for the real object), and
+will be ported when it lands. Marker part ported from PR #186.
 
 ## Alarm and stealth, per player
 
