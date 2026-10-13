@@ -50,6 +50,16 @@ kind: `P` replays `camera_path1`/`2` and `O` the object shots. Each player can
 skip their own film; the shared timing continues. misn07 reads no `IsInfo`
 state, so there is no `I` relay.
 
+Marker and removal targets travel by handle only when the engine replicates them. Spawned
+objects (the convoy tanks, the navs, Razor One and his vehicle, the test-range nav4/nav5 and
+beacons, the test tank/turret, mines, prototypes) are replicated handles. Authored map
+objects the engine does not replicate (`cam3`, the radar array, the `svpatrol*` fighters,
+the `pturret*` turrets) arrive as nil handles on guests, so `Present` sends their map label
+and each guest resolves it with `GetHandle` (as in PR #186 for misn05/06). The wait for a
+replica that has not appeared is bounded by a TTL measured on the guest's own clock, so a
+vanished target drops its marker after 5 s without blocking the stream; `SetObjectiveOff`
+and `RemoveObject` for an unresolvable target are skipped at once.
+
 ## Alarm and stealth, per player
 
 The alarm is one shared mission flag, but every trigger checks every player.
