@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-13T14:15:18-05:00",
-  "count": 2292,
+  "generated": "2026-10-13T15:26:32-05:00",
+  "count": 2301,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10,14 +10,6 @@
     {
       "source": "Assets\\ACT\\moon.act",
       "runtime": "moon.act"
-    },
-    {
-      "source": "Assets\\Audio\\misn0717.wav",
-      "runtime": "misn0717.wav"
-    },
-    {
-      "source": "Assets\\Audio\\misn0719.wav",
-      "runtime": "misn0719.wav"
     },
     {
       "source": "Assets\\Audio\\misn0232.wav",
@@ -100,6 +92,14 @@
       "runtime": "misn0652.wav"
     },
     {
+      "source": "Assets\\Audio\\misn0717.wav",
+      "runtime": "misn0717.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0719.wav",
+      "runtime": "misn0719.wav"
+    },
+    {
       "source": "Assets\\Graphics\\bio.png",
       "runtime": "bio.png"
     },
@@ -142,6 +142,10 @@
     {
       "source": "Assets\\Graphics\\misn08.bmp",
       "runtime": "misn08.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn09.bmp",
+      "runtime": "misn09.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -542,6 +546,10 @@
     {
       "source": "Config\\misn08.ini",
       "runtime": "misn08.ini"
+    },
+    {
+      "source": "Config\\misn09.ini",
+      "runtime": "misn09.ini"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -2880,6 +2888,10 @@
       "runtime": "misn08.des"
     },
     {
+      "source": "misn09.des",
+      "runtime": "misn09.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -3066,6 +3078,30 @@
     {
       "source": "Missions\\misn08.vxt",
       "runtime": "misn08.vxt"
+    },
+    {
+      "source": "Missions\\misn09.bzn",
+      "runtime": "misn09.bzn"
+    },
+    {
+      "source": "Missions\\misn09.hg2",
+      "runtime": "misn09.hg2"
+    },
+    {
+      "source": "Missions\\misn09.lgt",
+      "runtime": "misn09.lgt"
+    },
+    {
+      "source": "Missions\\misn09.mat",
+      "runtime": "misn09.mat"
+    },
+    {
+      "source": "Missions\\misn09.trn",
+      "runtime": "misn09.trn"
+    },
+    {
+      "source": "Missions\\misn09.vxt",
+      "runtime": "misn09.vxt"
     },
     {
       "source": "Missions\\sxshow.bzn",
