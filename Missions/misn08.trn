@@ -30,15 +30,6 @@ BackdropDistance= 400
 BackdropWidth   = 800
 BackdropHeight  = 100
 
-[LightningBolt]
-minDelay=5000
-maxDelay=30000
-Bolts=3
-Duration=100
-Color=20
-Distance=75
-Sound=lstart.wav
-
 [Color]
 Palette=venus.ACT
 Luma=venus.LUM
