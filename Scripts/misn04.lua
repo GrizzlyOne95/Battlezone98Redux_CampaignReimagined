@@ -107,6 +107,7 @@ local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget
 local EVENT_TTL = 5
 
 local function WireHandle(handle)
+    if handle == nil then return nil end
     local ok, label = pcall(GetLabel, handle)
     if ok and type(label) == "string" and label ~= "" and #label <= 126 then
         local found, resolved = pcall(GetHandle, label)
@@ -169,7 +170,7 @@ local function CameraReady()
     return native.CameraReady()
 end
 local function CameraPath(path, height, speed, target)
-    cameraFrame = { path, height, speed, target }
+    cameraFrame = { path, height, speed, WireHandle(target) }
     if CRCoop.IsNetworkGame() and native.CameraCancelled() then
         cameraSkipped = true
         if localCameraActive then native.CameraFinish() end
@@ -195,6 +196,43 @@ local function CameraFinish()
     if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
 end
 
+-- Camera frames carry their handles like markers do ("@handle@label"). A guest resolves
+-- them each update; a target that stays unresolved for CAMERA_RESOLVE_WINDOW seconds of
+-- the guest's OWN clock no longer skips the film: it plays aimed at the other handle,
+-- or at the guest's own craft, rather than not at all.
+local CAMERA_RESOLVE_WINDOW = 2
+local cameraWaitSince
+
+local function ResolveCameraHandle(sent)
+    if type(sent) ~= "string" or sent:sub(1, 1) ~= "@" then return sent end
+    local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+    local resolved = sentLabel and GetHandle(sentLabel)
+    if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+        local candidate = tonumber(sentHandle) or sentHandle
+        if IsValid(candidate) then resolved = candidate end
+    end
+    return resolved
+end
+
+-- ready, subject, target. subject == nil means the kind carries none (path cameras).
+local function ResolveCameraHandles(sentSubject, sentTarget)
+    local subject, target = ResolveCameraHandle(sentSubject), ResolveCameraHandle(sentTarget)
+    if (sentSubject == nil or IsValid(subject)) and IsValid(target) then
+        cameraWaitSince = nil
+        return true, subject, target
+    end
+    if not localCameraActive then
+        local now = GetTime()
+        if not cameraWaitSince or now < cameraWaitSince then cameraWaitSince = now end
+        if now - cameraWaitSince < CAMERA_RESOLVE_WINDOW then return false end
+    end
+    local me = GetPlayerHandle and GetPlayerHandle()
+    if not IsValid(target) then target = IsValid(subject) and subject or me end
+    if sentSubject ~= nil and not IsValid(subject) then subject = IsValid(target) and target or me end
+    if not IsValid(target) then return false end
+    return true, subject, target
+end
+
 local function UpdateRemoteCamera()
     if not remoteCamera then return end
     local generation, path, height, speed, target = unpackArgs(remoteCamera)
@@ -206,8 +244,12 @@ local function UpdateRemoteCamera()
     if generation ~= localCameraGeneration then
         localCameraGeneration = generation
         cameraSkipped = false
+        cameraWaitSince = nil
     end
-    if cameraSkipped or not IsValid(target) then return end
+    if cameraSkipped then return end
+    local ready, _, resolved = ResolveCameraHandles(nil, target)
+    if not ready then return end
+    target = resolved
     if not localCameraActive then
         native.CameraReady()
         localCameraActive = true
