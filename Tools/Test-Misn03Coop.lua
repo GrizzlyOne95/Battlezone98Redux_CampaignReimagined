@@ -46,6 +46,7 @@ local function makePeer(id, team, network)
         return p.player
     end
     e.GetHandle = function(label) return objects[label] and label end
+    e.IsAudioMessageDone = function() return true end
     e.IsValid = function(h) return objects[h] ~= nil and objects[h].alive end
     e.IsAlive = e.IsValid
     e.IsCraft = function(h) return e.IsValid(h) and not tostring(h):find("solar") end

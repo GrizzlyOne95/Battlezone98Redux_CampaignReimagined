@@ -27,7 +27,7 @@ local function between(name, first, last)
 end
 local world
 local function reset()
-    world = { now = 100, alive = {}, distances = {}, calls = {}, serial = 0 }
+    world = { now = 100, alive = {}, distances = {}, calls = {}, serial = 0, health = {} }
 end
 local function record(name, ...)
     world.calls[#world.calls + 1] = { name, ... }
@@ -47,7 +47,11 @@ function BuildObject(odf, team, pos)
     return h
 end
 function AudioDone() return world.audioDone == true end
+function IsAudioMessageDone() return world.audioDone == true end
+function GetHealth(h) return world.health[h] or 1 end
 function CameraCancelled() return false end
+function CameraFinish() record("CameraFinish") end
+native = { RemoveObject = function(h) record("RemoveObject", h) end }
 for _, name in ipairs({ "Attack", "Goto", "Patrol", "Defend", "Follow", "Retreat", "Stop",
     "SetIndependence", "SetCritical", "SetLabel", "SetObjectiveOn", "SetObjectiveOff",
     "SetObjectiveName", "ClearObjectives", "AddObjective", "AddHealth", "SetUserTarget",
@@ -55,7 +59,11 @@ for _, name in ipairs({ "Attack", "Goto", "Patrol", "Defend", "Follow", "Retreat
     local n = name
     _G[n] = function(...) record(n, ...) end
 end
-local subtitles = { Play = function(file) record("Audio", file); return file end }
+local subtitles = {
+    Play = function(file) record("Audio", file, "play"); return file end,
+    Queue = function(file) record("Audio", file, "queue"); return file end,
+    Stop = function() record("AudioStop") end,
+}
 local diff = {
     Get = function() return { index = 2 } end,
     ScaleEnemy = function(n) return n + (world.extraEnemies or 0) end,
@@ -83,7 +91,13 @@ return function(M, ctx)
     local missionData = ctx.missionData
     local subtit, DiffUtils = ctx.subtitles, ctx.diff
     local LABEL_SCAV2 = "misn02b_scav2"
-    local CRCoop = { IsNetworkGame = function() return false end }
+    local CRCoop = { IsNetworkGame = function() return false end,
+        AnyPlayerSatisfies = function(pred)
+            for _, h in ipairs(ctx.players or {}) do
+                if pred(h) then return true end
+            end
+            return false
+        end }
     local ENEMY_TEAM = 2
     local SpawnScriptedEnemy = ctx.spawn
 ]]
@@ -318,4 +332,159 @@ for _, scenario in ipairs({ "healthy", "recDead", "factoryDead", "pendingFail", 
     check((m.missionwon == true) == (scenario == "healthy"), "factory win gate: " .. scenario)
     check(count("SucceedMission") == 0, "win still requires QOL end sequence")
 end
+-- Sequence of subtitle calls as "play:file"/"queue:file" strings.
+local function audioLog()
+    local out = {}
+    for _, c in ipairs(world.calls) do
+        if c[1] == "Audio" then out[#out + 1] = c[3] .. ":" .. c[2] end
+    end
+    return table.concat(out, ",")
+end
+
+-- CR restored VO: misn02b skip plays the 0232 alt take; clean escort plays 0226 then 0234.
+local introEnd = compile(between("02b", "            -- Stop previous audio if the user skipped", '            --subtit.Play("misn0224.wav")'))
+reset(); m = { intro_skipped = true }
+introEnd(m, context())
+check(audioLog() == "play:misn0232.wav" and m.audmsg == "misn0232.wav", "02b skipped intro plays 0232")
+reset(); m = {}
+introEnd(m, context())
+check(audioLog() == "play:misn0201.wav", "02b unskipped intro still plays only 0201")
+for _, scenario in ipairs({ "clean", "damaged" }) do
+    reset(); live("player", "home", "rec", "scav", "scav2")
+    m = convoyState(); m.bscav, m.scav2, m.message3 = "scav", "scav2", true
+    world.distances["home:scav2"] = 50
+    if scenario == "damaged" then world.health.scav2 = 0.5 end
+    convoy(m, context({ player = "player" }))
+    check(m.mission_won and m.audmsg == "misn0234.wav", "02b win always waits on 0234")
+    if scenario == "clean" then
+        check(audioLog() == "play:misn0226.wav,queue:misn0234.wav", "02b clean escort plays 0226 then 0234")
+    else
+        check(audioLog() == "play:misn0234.wav", "02b damaged scavenger plays only 0234")
+    end
+end
+
+-- CR restored VO: misn03 0309 reminder only while no player is near a transport, max twice.
+local reminder = compile(between("03", "    -- CR restored VO: misn0309.wav", "    if M.recycler_follow_transport and not M.third_objective and"))
+local function reminderState()
+    return { remove_props = true, transport_reminders = 0, transport_reminder_time = 99999.0,
+        rescue1 = "t1", rescue2 = "t2", aud306 = "a306" }
+end
+reset(); live("t1", "t2"); world.audioDone = false
+m = reminderState()
+reminder(m, context({ players = { "p1" } }))
+check(m.transport_reminder_time == 99999.0, "03 reminder waits for 0306 to finish")
+world.audioDone = true
+reminder(m, context({ players = { "p1" } }))
+check(m.transport_reminder_time == 160, "03 reminder armed 60 s after 0306 finishes")
+world.now = 159
+reminder(m, context({ players = { "p1" } }))
+check(audioLog() == "", "03 reminder not early")
+world.now = 160; world.distances["p1:t2"] = 200
+reminder(m, context({ players = { "p1" } }))
+check(audioLog() == "" and m.transport_reminders == 0, "03 no reminder while a player is within 300 m of a transport")
+world.distances["p1:t2"] = 1000
+world.now = 175
+reminder(m, context({ players = { "p1" } }))
+check(audioLog() == "play:misn0309.wav" and m.transport_reminders == 1 and m.transport_reminder_time == 265, "03 first reminder fires once")
+world.now = 200
+reminder(m, context({ players = { "p1" } }))
+check(m.transport_reminders == 1, "03 reminder honors 90 s spacing")
+world.now = 265
+reminder(m, context({ players = { "p1" } }))
+check(m.transport_reminders == 2, "03 second reminder fires")
+world.now = 1000
+reminder(m, context({ players = { "p1" } }))
+check(m.transport_reminders == 2 and audioLog() == "play:misn0309.wav,play:misn0309.wav", "03 reminder capped at two")
+for _, gate in ipairs({ "third_objective", "lost", "final_objective" }) do
+    reset(); live("t1", "t2"); world.audioDone = true
+    m = reminderState(); m[gate] = true; m.transport_reminder_time = 50
+    reminder(m, context({ players = {} }))
+    check(audioLog() == "", "03 reminder suppressed after " .. gate)
+end
+
+-- CR restored VO: misn04 relic discovery by a wingman plays 0407, by a player 0408.
+local discover = compile(between("04", "        local humanNearRelic", "        M.relicseen = true"))
+for _, finder in ipairs({ "player", "wingman" }) do
+    reset(); live("relic", "player")
+    if finder == "player" then world.distances["player:relic"] = 100 end
+    m = { relic = "relic" }
+    discover(m, context({ players = { "player" } }))
+    if finder == "player" then
+        check(audioLog() == "play:misn0408.wav,queue:misn0409.wav", "04 player discovery plays 0408 then 0409")
+    else
+        check(audioLog() == "play:misn0407.wav,queue:misn0409.wav", "04 wingman discovery plays 0407 then 0409")
+    end
+    check(m.aud2 and m.aud3 == "misn0409.wav", "04 discovery keeps aud2/aud3 handles")
+end
+
+-- CR restored VO: misn04 relic destroyed plays 0428 (not the CCA-theft lines).
+local relicLost = compile(between("04", "    if not IsAlive(M.relic) and not M.missionfail then",
+    "    if not M.basesecure and not M.secureloopbreak and finalWaveCleared and not IsAlive(M.svrec)"))
+reset(); m = { relic = "relic" }
+relicLost(m, context())
+check(audioLog() == "play:misn0428.wav" and m.missionfail, "04 relic destroyed plays only 0428")
+check(last("FailMission")[3] == "misn04l2.des" and last("FailMission")[2] == 120, "04 relic failure timing and debrief kept")
+for _, wav in ipairs({ "misn0431.wav", "misn0432.wav", "misn0433.wav", "misn0434.wav" }) do
+    check(sources["04"]:find('subtit.Queue("' .. wav .. '")', 1, true) or sources["04"]:find('subtit.Play("' .. wav .. '")', 1, true),
+        "04 theft path still references " .. wav)
+end
+
+-- CR restored VO: misn04 recon-warning failure plays 0436 then 0694 and waits on both.
+local reconFail = compile(between("04", "    if M.warn == 4 and M.notfound < GetTime() and not M.missionfail then",
+    "    if not M.discoverrelic and M.investigate < GetTime()"))
+reset(); m = { warn = 4, notfound = 0 }
+reconFail(m, context())
+check(audioLog() == "play:misn0436.wav,queue:misn0694.wav" and m.aud14 == "misn0694.wav", "04 recon failure plays 0436 then 0694")
+check(count("FailMission") == 0, "04 recon failure waits for audio")
+world.audioDone = true
+reconFail(m, context())
+check(count("FailMission") == 1 and last("FailMission")[3] == "misn04l4.des", "04 recon failure resolves after audio")
+
+-- CR restored VO: misn04 success plays 0424 after the end cinematic and before the result.
+local endCin = compile(between("04", "        if GetTime() > M.startendcin or CameraCancelled() then",
+    "    end\n\n    if M.endmission and not M.endsucceeded"))
+local endResult = compile(between("04", "    if M.endmission and not M.endsucceeded", "    if not M.missionwon and not IsAlive(M.avrec) and not M.missionfail then"))
+reset(); m = { startendcin = 0 }; world.audioDone = false
+endCin(m, context())
+check(audioLog() == "play:misn0424.wav" and m.endmission and count("SucceedMission") == 0, "04 end cinematic starts 0424, no result yet")
+endResult(m, context())
+check(count("SucceedMission") == 0, "04 success waits for 0424")
+world.audioDone = true
+endResult(m, context()); endResult(m, context())
+check(count("SucceedMission") == 1 and last("SucceedMission")[3] == "misn04w1.des", "04 success after 0424, exactly once")
+
+-- CR restored VO: misn05 wave alert 0505 throttled to once per 150 s and skipped in cutscenes.
+local randomWave = compile(between("05", "    -- Random Spawns (Start of mission)", "    -- Not Found Warning"))
+reset(); live("enemyRec", "avRec")
+m = { svrec = "enemyRec", avrec = "avRec", difficulty = 2, needtospawn = true, randomwave = 0, next505 = 0 }
+randomWave(m, context())
+check(audioLog() == "play:misn0505.wav" and m.next505 == 250, "05 first wave alert plays 0505 and sets 150 s throttle")
+world.alive[m.rand1], world.alive[m.rand2] = false, false
+randomWave(m, context())
+world.now = 140
+randomWave(m, context())
+check(count("Audio") == 1, "05 second wave within 150 s stays silent")
+world.alive[m.rand1], world.alive[m.rand2] = false, false
+randomWave(m, context())
+world.now = 300
+randomWave(m, context())
+check(count("Audio") == 2 and m.next505 == 450, "05 wave alert plays again after 150 s")
+reset(); live("enemyRec", "avRec")
+m = { svrec = "enemyRec", avrec = "avRec", difficulty = 2, needtospawn = true, randomwave = 0, next505 = 0, lemcin1 = true }
+randomWave(m, context())
+check(count("Audio") == 0 and m.next505 == 0 and m.rand1, "05 wave alert skipped during cutscene, spawn still happens")
+
+-- Consecutive subtit.Play lines drop earlier subtitles; none may remain in active code.
+for _, name in ipairs({ "02b", "03", "04", "05" }) do
+    local active = sources[name]:match("^(.-)\n%-%-%[==%[") or sources[name]
+    local prev, n = false, 0
+    for line in (active .. "\n"):gmatch("(.-)\n") do
+        local isPlay = line:find("subtit.Play(", 1, true) and not line:match("^%s*%-%-")
+        if isPlay and prev then check(false, "back-to-back subtit.Play in misn" .. name .. ": " .. line) end
+        if line:match("%S") then prev = isPlay and true or false end
+        n = n + 1
+    end
+    check(n > 100, "scanned active code of misn" .. name)
+end
+
 print("early missions: " .. checks .. " focused Lua 5.1 flow checks passed")

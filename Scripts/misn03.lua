@@ -482,6 +482,8 @@ M = {
     start_movie = false,
     movie_over = false,
     remove_props = false,
+    transport_reminders = 0,
+    transport_reminder_time = 99999.0,
     more_show = false,
     tanks_go = false,
     camera_2 = false,
@@ -635,6 +637,7 @@ M = {
     z = 1,
     y = 1,
     audmsg = nil,
+    aud306 = nil,
     loading_done = false,
     loadGracePeriod = 0,
 
@@ -1609,6 +1612,7 @@ if ((!help_spawn) && (support_time < Get_Time()))
 
     if M.movie_over and not M.remove_props then
         M.audmsg = subtit.Play("misn0306.wav")
+        M.aud306 = M.audmsg
         -- Remove all cinematic props immediately (matches original C++)
         RemoveObject(M.prop1)
         RemoveObject(M.prop2)
@@ -1622,6 +1626,30 @@ if ((!help_spawn) && (support_time < Get_Time()))
         if IsAlive(M.guy3) then RemoveObject(M.guy3) end
         if IsAlive(M.guy4) then RemoveObject(M.guy4) end
         M.remove_props = true
+    end
+
+    -- CR restored VO: misn0309.wav (escort reminder when nobody is near the transports)
+    if M.remove_props and not M.third_objective and not M.lost and not M.final_objective
+        and M.transport_reminders < 2 then
+        if M.transport_reminder_time >= 99999.0 then
+            -- Arm the first reminder 60 s after the 0306 order finishes.
+            if (not M.aud306) or IsAudioMessageDone(M.aud306) then
+                M.transport_reminder_time = GetTime() + 60.0
+            end
+        elseif GetTime() >= M.transport_reminder_time then
+            local near = CRCoop.AnyPlayerSatisfies(function(h)
+                return (IsAlive(M.rescue1) and GetDistance(h, M.rescue1) < 300.0)
+                    or (IsAlive(M.rescue2) and GetDistance(h, M.rescue2) < 300.0)
+            end)
+            if (IsAlive(M.rescue1) or IsAlive(M.rescue2)) and not near then
+                subtit.Play("misn0309.wav")
+                M.transport_reminders = M.transport_reminders + 1
+                M.transport_reminder_time = GetTime() + 90.0
+            else
+                -- Someone is escorting (or both transports are gone): look again shortly.
+                M.transport_reminder_time = GetTime() + 15.0
+            end
+        end
     end
 
     if M.recycler_follow_transport and not M.third_objective and
