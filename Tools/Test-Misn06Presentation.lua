@@ -61,13 +61,13 @@ local function peer(id)
     env.SetLabel = function(h, l) record("SetLabel", h, l); p.labels[h] = l; p.byLabel[l] = h end
     local chunk = assert(loadstring("local CRCoop, M, subtit, LEADER_TEAM = CRCoop, M, subtit, 1\n" .. adapter .. [[
         return { ready=CameraReady, object=CameraObject, path=CameraPath, finish=CameraFinish,
-            cancelled=CameraCancelled, present=Present, ending=EndMission, receive=ReceivePresentation,
+            cancelled=CameraCancelled, present=Present, reset=ResetPresentation, ending=EndMission, receive=ReceivePresentation,
             update=UpdatePresentationTransport, isInfo=IsInfo, relay=UpdateInfoRelay,
             play=subtit.Play, timer=StartCockpitTimer, hide=HideCockpitTimer,
             state=function() return localCameraActive, cameraSkipped, receivedEvent end }
     ]]))
     setfenv(chunk, env)
-    p.api = chunk(); peers[id] = p
+    p.api = chunk(); p.env = env; peers[id] = p
     return p
 end
 local function count(p, op, first)
@@ -379,4 +379,15 @@ guest.valid[LATESPAWN] = true
 for _=1,4 do tick() end
 check(count(guest, "SetLabel", LATESPAWN) == 1 and count(guest, "SetObjectiveOn", LATESPAWN) == 1,
     "the Label and the marker apply to the real object once it replicates")
+-- ResetPresentation must reset the real camera/label locals (declared above it), not leak
+-- globals: a mid-wait reset on a guest clears the wait state without touching _G.
+fourth.api.receive(1, "C", 700000, 77, "P", "cam1path", 800, 1000, "@9999@never_declared")
+now = now + 0.25; fourth.api.update()
+fourth.api.reset()
+for _, name in ipairs({"cameraWaitSince", "cameraGaveUp", "cameraLast", "announced", "gaveUp", "pendingSeq"}) do
+    check(rawget(fourth.env, name) == nil and rawget(_G, name) == nil, "ResetPresentation leaked global " .. name)
+end
+fourth.api.receive(1, "C", 700001, 77, "P", "cam1path", 800, 1000, "@9999@never_declared")
+now = now + 0.25; fourth.api.update()
+check(not fourth.api.state(), "an unresolved camera still waits after a presentation reset")
 print("misn06 path/object-camera, timer, IsInfo relay, replica wait, local skip and ordered result checks passed: " .. checks)

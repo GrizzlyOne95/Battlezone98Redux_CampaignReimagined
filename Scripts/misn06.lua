@@ -47,6 +47,11 @@ local nativeIsInfo = IsInfo
 local events, acknowledgements = {}, {}
 local receivedEvent = 0
 local pendingSeq, pendingSince
+-- Declared before ResetPresentation, which resets them.
+local cameraWaitSince, cameraGaveUp, cameraLast
+local labelSerial, announced = 0, {}
+-- Targets a guest already gave up on (logged once): later events for them skip at once.
+local gaveUp = {}
 local nextEventSend, nextCameraSend = 0, 0
 local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
 local remoteCameraSerial, localCameraGeneration = 0, 0
@@ -66,6 +71,7 @@ local function ResetPresentation()
     cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
     remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
     cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
+    announced, gaveUp = {}, {}
     cameraSkipped, localCameraActive = false, false
     remoteInfo, nextInfoSend = {}, 0
 end
@@ -116,9 +122,6 @@ local GONE = "!"
 -- guest logs "[coop] unresolved ..." and counts it in M.coopUnresolved (the harness probe
 -- reads that and expects zero).
 local RESOLVE_TIMEOUT = 15
-local labelSerial, announced = 0, {}
--- Targets a guest already gave up on (logged once): later events for them skip at once.
-local gaveUp = {}
 
 local function HandleText(handle)
     return type(handle) == "number" and string.format("%d", handle) or tostring(handle)
@@ -272,7 +275,6 @@ end
 -- reports it gone). A guest holds the film's start until the REAL objects resolve. Only a
 -- gone flag, or the never-hang guard (loudly logged and counted), lets it play with
 -- whatever remains valid.
-local cameraWaitSince, cameraGaveUp, cameraLast
 
 -- handle (or nil), gone
 local function ResolveCameraHandle(sent)
