@@ -312,6 +312,20 @@ H.try("bug 16", function()
     for _ = 1, 10 do t:SetDoubleWeaponMask(tank, 100, 0) end
     math.random = realRandom
     check("bug 16: repeated successes do not grow the team list", (t.doubleUsers and #t.doubleUsers or 0) == grew)
+    -- The manager holds each roll for 30-45 s; it must not re-roll every second.
+    local mgr = t.weaponMgr
+    mgr.doubleUsers = { tank }
+    mgr.doubleMaskCheckAt = {}
+    local rolls = 0
+    local realSet = t.SetDoubleWeaponMask
+    t.SetDoubleWeaponMask = function(self, h, ...) rolls = rolls + 1 end
+    local start = H.now
+    for s = 0, 29 do H.now = start + s; mgr:UpdateDoubleWeapons(1.0) end
+    check("bug 16: one roll in the first 30 s, not one per second", rolls == 1)
+    for s = 30, 46 do H.now = start + s; mgr:UpdateDoubleWeapons(1.0) end
+    check("bug 16: the unit re-rolls once the hold expires", rolls == 2)
+    t.SetDoubleWeaponMask = realSet
+    H.now = start
 end)
 
 -- Bug 17: a minelayer with no reachable depot must retry instead of sticking in "reloading".
