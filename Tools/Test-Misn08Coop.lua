@@ -123,6 +123,11 @@ local function count(peer, name, first)
     end
     return n
 end
+local function built(peer, odf)
+    local n = 0
+    for _, c in ipairs(peer.calls) do if c[1] == "BuildObject" and c[3] == odf then n = n + 1 end end
+    return n
+end
 local function last(peer, name)
     for i = #peer.calls, 1, -1 do if peer.calls[i][1] == name then return peer.calls[i] end end
 end
@@ -249,6 +254,10 @@ local function makePeer(id, team, network)
         local h = "built" .. nextObject
         local pos = posOf(where) or {x = 100000, y = 20, z = 100000}
         local o = newObject(h, odf, objectTeam, {pos.x, pos.y, pos.z})
+        if objectTeam == 7 then
+            o.hp = ({avtank = 2000, avfigh = 1000, avscav = 1000, avmuf = 4000, abtowe = 2000, avapc = 2000})[odf] or 1000
+            o.maxhp = o.hp
+        end
         record("BuildObject", h, odf, objectTeam, where)
         e.AddObject(h)
         return h
@@ -311,13 +320,15 @@ local function makePeer(id, team, network)
     end
     for _, name in ipairs({"Retreat", "Follow", "Defend", "Patrol", "Stop", "SetIndependence",
         "SetAIP", "SetAIControl", "SetWeaponMask", "SetObjectiveName", "SetObjectiveOn", "SetObjectiveOff", "ClearObjectives", "AddObjective",
-        "Ally", "UnAlly", "DisplayMessage", "FailMission", "SucceedMission", "SetScrap", "SetPilot"}) do
+        "Ally", "UnAlly", "DisplayMessage", "FailMission", "SucceedMission", "SetScrap", "SetPilot", "Deploy"}) do
         local n = name
         e[n] = function(...)
             if n == "SetObjectiveOn" or n == "SetObjectiveName" then
                 assert(e.IsValid((...)), "presentation used a not-yet-valid handle")
             end
             record(n, ...)
+            if n == "SetScrap" then world.scrap[(...)] = select(2, ...) end
+            if n == "Deploy" then objects[(...)].deployed = true end
         end
     end
     local function noop() end
@@ -378,7 +389,8 @@ end
 local function eachPeer(fn) for _, p in pairs(peers) do fn(p) end end
 local function allBuildTeams(peer)
     for _, c in ipairs(callsOf(peer, "BuildObject")) do
-        check(c[4] == 1 or c[4] == 5, "BuildObject " .. c[3] .. " on a guest/unknown team " .. tostring(c[4]))
+        check(c[4] == 1 or c[4] == 5 or c[4] == 7, "BuildObject " .. c[3] .. " on a guest/unknown team " .. tostring(c[4]))
+        if c[3]:find("^a[vb]") and c[3] ~= "apcamr" then check(c[4] == 7, c[3] .. " must be the Colorado support team 7") end
         if c[3]:find("^sv") then check(c[4] == 5, c[3] .. " must be CCA team 5") end
     end
 end
@@ -444,6 +456,14 @@ do
         if c[2] == s.strike.figh and c[3] == "colorado" then ordered = true end
     end
     check(ordered and s.strike.figh ~= s.strike.ltnk, "the CCA strike fighter is sent at the Colorado")
+    local force0 = {}
+    for _, h in ipairs(s.cbase.force) do force0[#force0 + 1] = h end
+    check(#force0 == 10, "the Colorado entered the massacre with its full base: " .. #force0)
+    local kinds = {}
+    for _, h in ipairs(force0) do kinds[objects[h].odf] = (kinds[objects[h].odf] or 0) + 1; check(objects[h].team == 7, "base objects are team 7") end
+    check(kinds.avtank == 2 and kinds.avfigh == 1 and kinds.avscav == 1 and kinds.avmuf == 1 and kinds.abtowe == 2 and kinds.avapc == 3,
+        "escort, scavenger, factory, two towers and three APCs")
+    check(objects[s.cbase.factory].deployed, "the Colorado factory deployed")
     local healStopped
     for _ = 1, 1600 do
         tick()
@@ -459,9 +479,22 @@ do
         "0804 is queued behind 0802 on every peer") end)
     run(2)
     check(s.colorado_message4, "the story proceeds once the Colorado fell")
+    -- The base and escort fall to the strike, on screen, no scripted damage.
+    local wiped
+    for _ = 1, 2400 do
+        local alive = 0
+        for _, h in ipairs(force0) do if objects[h].alive then alive = alive + 1 end end
+        if alive == 0 then wiped = now; break end
+        tick()
+    end
+    check(wiped and count(host, "Damage") == 0, "the whole Colorado base is destroyed by the attackers alone")
+    for _, h in ipairs(force0) do check(objects[h].killedBy ~= nil and objects[h].killedBy ~= "script", "base object killed by an attacker") end
+    check(s.strike.extra and #s.strike.extra == 4, "a bigger base earns extra CCA strike units")
+    for _, h in ipairs(s.strike.extra) do check(objects[h].team == 5 and objects[h].odf:find("^sv"), "extra strike units are CCA") end
+    run(1)
     local released
     for _, c in ipairs(callsOf(host, "Goto")) do if c[2] == s.strike.figh and c[3] == "cam1" then released = true end end
-    check(released, "the strike units resume the DLL Drop Zone order")
+    check(released and s.colorado_cleaned, "the strike units resume the DLL Drop Zone order")
     run(18)
     eachPeer(function(p) check(count(p, "RemoveObject", "cam5") == 1, "the Colorado nav is removed on every peer") end)
     run(8)
@@ -667,6 +700,123 @@ do
     host2.state.new_aip_time = 0
     run(1)
     check(count(host2, "SetAIP", "misn08a.aip") == 1, "a guest tank makes the tank-heavy AIP")
+end
+
+-- ============================================================ 12b. the Colorado starts allied with a base
+do
+    local host, guests = session(true)
+    local s = host.state
+    local escort = {}
+    for _, c in ipairs(callsOf(host, "BuildObject")) do escort[#escort + 1] = c end
+    check(#escort == 3 and escort[1][4] == 7 and escort[2][4] == 7 and escort[3][4] == 7, "three allied escort units spawn on the support team")
+    for _, c in ipairs(escort) do
+        local o = objects[c[2]]
+        check(planar(o.pos, objects.colorado.pos) < 80 and o.perceived == 1, "the escort stands by the Colorado, perceived as NSDF")
+    end
+    check(world.scrap[7] == 60 - 0, "team-7 scrap was set at the start")
+    for _, g in ipairs(guests) do check(count(g, "BuildObject") == 0, "guests never spawn the escort") end
+    run(25)
+    check(built(host, "avscav") == 1, "recycler-style scavenger")
+    run(70)
+    check(built(host, "avmuf") == 1 and count(host, "Deploy") == 1, "factory built and deployed")
+    run(150)
+    check(built(host, "abtowe") == 2 and built(host, "avapc") == 3, "two defenses and the APC cap")
+    check(world.scrap[7] == 60 - 4 - 10 - 12 - 15, "the base is paid for from team-7 scrap: " .. tostring(world.scrap[7]))
+    local before = count(host, "BuildObject")
+    for _, apcCall in ipairs(callsOf(host, "BuildObject", nil)) do end
+    allBuildTeams(host)
+    check(not s.colorado_under_attack, "all of it before the DLL attack time")
+    run(10)
+    check(count(host, "BuildObject") == before, "nothing beyond the caps")
+    -- every Colorado-team unit is a script spawn; the base never takes a human team
+    for _, c in ipairs(callsOf(host, "BuildObject")) do
+        if c[3]:find("^a[vb]") and c[3] ~= "apcamr" then check(c[4] == 7, "Colorado units never occupy a guest team") end
+    end
+end
+
+-- ============================================================ 12c. cleanup fallback for a stalled strike
+do
+    local host = session(true)
+    local s = host.state
+    runTo(285)
+    world.combat = false
+    local force = {}
+    for _, h in ipairs(s.cbase.force) do force[#force + 1] = h end
+    for _ = 1, 2000 do tick(); if s.kill_colorado then break end end
+    local flipped = now
+    runTo(flipped + 100)
+    check(count(host, "Damage") == 0, "nothing is swept before the timeouts")
+    runTo(flipped + 123)
+    check(count(host, "Damage", "colorado") == 1, "the Colorado fallback fires first (generous 120 s)")
+    check(not s.colorado_cleaned, "the base survives until its own timeout")
+    runTo(flipped + 153)
+    check(s.colorado_cleaned, "the base sweep follows")
+    for _, h in ipairs(force) do check(not objects[h].alive and objects[h].killedBy == "script", "survivor swept") end
+    check(count(host, "Damage") == 1 + #force, "one Damage per Colorado-team survivor plus the Colorado")
+    run(5)
+    check(count(host, "Damage") == 1 + #force, "the sweep runs once")
+end
+
+-- ============================================================ 12d. CCA walker production
+local function walkerSession(humans)
+    local host, guests = session(true, humans)
+    local s = host.state
+    runTo(285)
+    for _ = 1, 2400 do tick(); if s.colorado_message4 then break end end
+    return host, s
+end
+do
+    local host, s = walkerSession(4)
+    for _ = 1, 2000 do tick(); if s.cw then break end end
+    world.scrap[5] = 200
+    check(s.ccarecycle_spawned and s.cw and built(host, "svwalk") == 1, "before production only the scripted walker exists")
+    run(58)
+    check(built(host, "svwalk") == 1, "the first produced walker waits its delay")
+    run(4)
+    check(built(host, "svwalk") == 2 and #s.cw.list == 1, "a svwalk is built at the CCA factory")
+    local buildCalls = callsOf(host, "BuildObject")
+    local lastBuild = buildCalls[#buildCalls]
+    check(lastBuild[3] == "svwalk" and lastBuild[4] == 5 and lastBuild[5] == s.ccamuf, "built at the factory on team 5")
+    check(objects[s.cw.list[1]].attack == "avrecycle", "sent at the Utah")
+    local scrap5 = world.scrap[5]
+    run(150)
+    check(built(host, "svwalk") == 3 and #s.cw.list == 2 and world.scrap[5] == scrap5 - 12, "second walker after 150 s, charged 12 scrap")
+    run(150)
+    check(built(host, "svwalk") == 4 and #s.cw.list == 3, "third walker")
+    run(400)
+    check(built(host, "svwalk") == 4 and #s.cw.list == 3, "four humans cap production at three live walkers")
+    objects[s.cw.list[1]].alive = false
+    run(160)
+    check(built(host, "svwalk") == 5, "a lost walker is replaced")
+    for _, c in ipairs(callsOf(host, "BuildObject")) do
+        if c[3] == "svwalk" then check(c[4] == 5, "walkers are CCA") end
+    end
+    objects[s.ccamuf].alive = false
+    local n = built(host, "svwalk")
+    run(400)
+    check(built(host, "svwalk") == n, "no production once the CCA factory fell")
+end
+do
+    -- two humans: cap two; a pauper builds nothing; the base falling stops it
+    local host, s = walkerSession(2)
+    for _ = 1, 2000 do tick(); if s.cw then break end end
+    world.scrap[5] = 5
+    run(160)
+    check(built(host, "svwalk") == 1, "no scrap, no walker")
+    world.scrap[5] = 100
+    run(400)
+    check(#s.cw.list == 2 and built(host, "svwalk") == 3, "two humans cap production at two walkers")
+    objects.svrecycle.alive, objects.svmuf.alive = false, false
+    objects[s.cw.list[1]].alive = false
+    run(300)
+    check(built(host, "svwalk") == 3, "no more walkers once the CCA base fell")
+end
+do
+    -- solo (one human team): one walker at a time
+    local host, s = walkerSession(1)
+    for _ = 1, 2000 do tick(); if s.cw then break end end
+    run(700)
+    check(#s.cw.list == 1 and built(host, "svwalk") == 2, "a single human caps production at one walker")
 end
 
 -- ============================================================ 13. offline smoke

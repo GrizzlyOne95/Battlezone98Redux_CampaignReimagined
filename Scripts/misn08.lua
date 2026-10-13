@@ -40,6 +40,29 @@ local COLORADO_WARN_M = 400.0
 -- (disabled in the DLL) starts anyway this long after the Colorado fell.
 local GECH3_FALLBACK_S = 150.0
 -- CR restored walker content <<
+-- CR Colorado base >>
+-- The Colorado starts allied (team 7) with a small escort and a modest base that the leader
+-- builds in Lua (see the helper block): recycler-style scavenger, a factory, two gun towers
+-- and a capped stream of APCs, charged against team-7 scrap. Costs are the ODFs' scrapCost.
+local COLORADO_SCRAP = 60
+local COLORADO_ESCORT = { { "avtank", -45.0, 35.0 }, { "avtank", 45.0, 40.0 }, { "avfigh", 0.0, -50.0 } }
+local COLORADO_BUILDS = {
+    { at = 15.0, odf = "avscav", dx = -30.0, dz = 40.0 },
+    { at = 40.0, odf = "avmuf", dx = 50.0, dz = -40.0 },
+    { at = 70.0, odf = "abtowe", dx = 70.0, dz = 30.0 },
+    { at = 100.0, odf = "abtowe", dx = -60.0, dz = -20.0 },
+}
+local COLORADO_COST = { avscav = 4, avmuf = 10, abtowe = 6, avapc = 5 }
+local COLORADO_APC_CAP, COLORADO_APC_FIRST_S, COLORADO_APC_INTERVAL_S = 3, 90.0, 40.0
+-- CR Colorado base <<
+-- CR CCA walkers >>
+-- After the scripted walker story the CCA fields ordinary svwalk (two gblast cannons and a
+-- popgun): one per 150 s, 1 solo +1 per extra human team (max 3), charged to team-5 scrap
+-- (svwalk.odf scrapCost 12), until the CCA factory or base falls.
+local WALKER_CAP_BASE, WALKER_CAP_PER_PLAYER, WALKER_CAP_MAX = 1, 1, 3
+local WALKER_INTERVAL_S, WALKER_FIRST_DELAY_S, WALKER_RETRY_S, WALKER_ORDER_S = 150.0, 60.0, 15.0, 30.0
+local WALKER_SCRAP_COST = 12
+-- CR CCA walkers <<
 
 -- Co-op presentation uses the established misn03/misn05 E/A and C transport.
 -- Only the campaign leader runs the mission body below; HUD/audio/removal/timer/
@@ -552,33 +575,148 @@ local function AddObjectTeamAllowed(h)
 end
 -- CR team filter <<
 
+-- CR Colorado base >>
+local function AtGround(x, z)
+    return SetVector(x, (GetTerrainHeightAndNormal(SetVector(x, 0, z))), z)
+end
+
+-- Colorado-team objects the script built (escort, scavenger, factory, towers, APCs).
+local function ColoradoForce()
+    local live = {}
+    if M.cbase then
+        for _, h in ipairs(M.cbase.force) do
+            if IsAlive(h) then live[#live + 1] = h end
+        end
+    end
+    return live
+end
+
+local function ColoradoSpawn(odf, where)
+    local h = BuildObject(odf, SUPPORT_TEAM, where)
+    SetPerceivedTeam(h, LEADER_TEAM)
+    M.cbase.force[#M.cbase.force + 1] = h
+    return h
+end
+
+local function ColoradoCharge(odf)
+    local cost = COLORADO_COST[odf] or 0
+    if GetScrap(SUPPORT_TEAM) < cost then return false end
+    AddScrap(SUPPORT_TEAM, -cost)
+    return true
+end
+
+-- Chosen route: Lua on the leader, not an AIP. A non-slot team's strategic AI is unproven in
+-- MultSTMission, CR ships no AIP of its own (all come from bzone.zfs) and SetAIControl is
+-- startup-only, so the Colorado's base is a timed build list that mirrors misn07's svtnk7
+-- production: units appear at the Colorado, are charged team-7 scrap, and are capped.
+-- Runs until the CCA attack begins; the Colorado is the DLL's own map object.
+local function UpdateColoradoBase()
+    if M.colorado_under_attack or not IsAlive(M.colorado) then return end
+    local now = GetTime()
+    local base = M.cbase
+    if base == nil then
+        M.cbase = { t0 = now, step = 1, apc_next = now + COLORADO_APC_FIRST_S, force = {}, apcs = {} }
+        base = M.cbase
+        SetScrap(SUPPORT_TEAM, COLORADO_SCRAP)
+        local pos = GetPosition(M.colorado)
+        for _, escort in ipairs(COLORADO_ESCORT) do
+            ColoradoSpawn(escort[1], AtGround(pos.x + escort[2], pos.z + escort[3]))
+        end
+        return
+    end
+    local build = COLORADO_BUILDS[base.step]
+    if build and now - base.t0 >= build.at and ColoradoCharge(build.odf) then
+        local pos = GetPosition(M.colorado)
+        local h = ColoradoSpawn(build.odf, AtGround(pos.x + build.dx, pos.z + build.dz))
+        if build.odf == "avmuf" then base.factory, base.deploy_at = h, now + 1.0 end
+        base.step = base.step + 1
+    end
+    if base.factory and base.deploy_at and now >= base.deploy_at and IsAlive(base.factory) then
+        base.deploy_at = nil
+        Deploy(base.factory)
+    end
+    if IsAlive(base.factory) and now >= base.apc_next then
+        local live = {}
+        for _, apc in ipairs(base.apcs) do
+            if IsAlive(apc) then live[#live + 1] = apc end
+        end
+        base.apcs = live
+        base.apc_next = now + COLORADO_APC_INTERVAL_S
+        if #live < COLORADO_APC_CAP and ColoradoCharge("avapc") then
+            base.apcs[#base.apcs + 1] = ColoradoSpawn("avapc", base.factory)
+        end
+    end
+end
+-- CR Colorado base <<
+
 -- CR Colorado massacre >>
 local function ColoradoStrikeUnits()
     local strike = M.strike or {}
-    return { M.ccagech3, strike.figh, strike.ltnk }
+    local units = { M.ccagech3, strike.figh, strike.ltnk }
+    for _, extra in ipairs(strike.extra or {}) do units[#units + 1] = extra end
+    return units
 end
 
--- Runs every frame after the Colorado radio timeline: keeps the walker and the
--- CCA strike units on the Colorado, warns players who walk into it (0824, once),
--- and sends the strike units on to the Drop Zone (the DLL's own order) once it fell.
+-- The Colorado first, then the nearest surviving piece of its base.
+local function ColoradoTarget(from)
+    if IsAlive(M.colorado) then return M.colorado end
+    local best, bestDistance = nil, math.huge
+    for _, h in ipairs(ColoradoForce()) do
+        local distance = Distance(from, h)
+        if best == nil or distance < bestDistance then best, bestDistance = h, distance end
+    end
+    return best
+end
+
+-- Called once when the heal stops: a bigger base gets extra CCA strike units, spawned on
+-- the walker's approach path so they arrive within seconds (team 5, ordered like the rest).
+local COLORADO_EXTRA_MAX = 4
+local function ColoradoExtraStrike()
+    local strike = M.strike
+    if strike == nil or strike.extra ~= nil then return end
+    strike.extra = {}
+    local wanted = math.min(COLORADO_EXTRA_MAX, #ColoradoForce())
+    for index = 1, wanted do
+        strike.extra[index] = BuildObject(index % 2 == 1 and "svtank" or "svfigh", ENEMY_TEAM, "gech_spawn")
+    end
+end
+
+-- Runs every frame after the Colorado radio timeline: keeps the walker and the CCA strike
+-- units on the Colorado and then its base, warns players who walk into it (0824, once),
+-- sweeps whatever survives a generous timeout, and sends the strike units on to the Drop
+-- Zone (the DLL's own order) once the whole force fell.
+local COLORADO_CLEANUP_S = 150.0
 local function UpdateColoradoMassacre()
     local strike = M.strike
-    if strike == nil or M.colorado_message4 then return end
+    if strike == nil or M.colorado_cleaned then return end
     local now = GetTime()
-    if IsAlive(M.colorado) then
-        if not M.colorado_warned and AnyPlayerWithin(M.colorado, COLORADO_WARN_M) then
+    local force = ColoradoForce()
+    if IsAlive(M.colorado) or #force > 0 then
+        if IsAlive(M.colorado) and not M.colorado_warned and AnyPlayerWithin(M.colorado, COLORADO_WARN_M) then
             M.colorado_warned = true
             subtit.Play("misn0824.wav")
+        end
+        if M.colorado_cleanup ~= nil and now >= M.colorado_cleanup then
+            -- Fallback: the story beat must hold even if the attackers stall.
+            for _, h in ipairs(force) do Damage(h, 20000) end
+            M.colorado_cleaned = true
+            return
         end
         if now >= strike.next_order then
             strike.next_order = now + COLORADO_ORDER_S
             for _, unit in ipairs(ColoradoStrikeUnits()) do
-                if IsAlive(unit) then Attack(unit, M.colorado, 1) end
+                if IsAlive(unit) then
+                    local target = ColoradoTarget(unit)
+                    if target ~= nil then Attack(unit, target, 1) end
+                end
             end
         end
     elseif not strike.released then
         strike.released = true
-        for _, unit in ipairs({ strike.figh, strike.ltnk }) do
+        M.colorado_cleaned = true
+        local resume = { strike.figh, strike.ltnk }
+        for _, extra in ipairs(strike.extra or {}) do resume[#resume + 1] = extra end
+        for _, unit in ipairs(resume) do
             if IsAlive(unit) then Goto(unit, M.nav1) end
         end
     end
@@ -591,6 +729,47 @@ local function ColoradoMassacreDone()
     return M.colorado_deadline ~= nil and GetTime() >= M.colorado_deadline
 end
 -- CR Colorado massacre <<
+
+-- CR CCA walkers >>
+local function WalkerCap()
+    local humans = CRCoop.ForEachHumanTeam(function() end)
+    return math.min(WALKER_CAP_MAX, WALKER_CAP_BASE + WALKER_CAP_PER_PLAYER * math.max(0, humans - 1))
+end
+
+local function WalkerTarget(from)
+    if IsAlive(M.nsdfrecycle) then return M.nsdfrecycle end
+    return NearestPlayer(from)
+end
+
+-- Once the scripted walker story has played out (the CCA recycler spawn marks Walker 3
+-- heading for the base), build ordinary walkers at the CCA factory (svmuf lists svwalk) on
+-- a timer until that factory or the CCA base is destroyed. Leader-only.
+local function UpdateCcaWalkers()
+    if not M.ccarecycle_spawned or M.game_over then return end
+    local now = GetTime()
+    if M.cw == nil then M.cw = { list = {}, next = now + WALKER_FIRST_DELAY_S, order = now + WALKER_FIRST_DELAY_S } end
+    local live = {}
+    for _, walker in ipairs(M.cw.list) do
+        if IsAlive(walker) then live[#live + 1] = walker end
+    end
+    M.cw.list = live
+    if not IsAlive(M.ccamuf) or M.base_dead then return end
+    if M.cw.order < now then
+        M.cw.order = now + WALKER_ORDER_S
+        for _, walker in ipairs(live) do Attack(walker, WalkerTarget(walker)) end
+    end
+    if M.cw.next >= now then return end
+    if #live >= WalkerCap() or GetScrap(ENEMY_TEAM) < WALKER_SCRAP_COST then
+        M.cw.next = now + WALKER_RETRY_S
+        return
+    end
+    AddScrap(ENEMY_TEAM, -WALKER_SCRAP_COST)
+    local walker = BuildObject("svwalk", ENEMY_TEAM, M.ccamuf)
+    M.cw.list[#M.cw.list + 1] = walker
+    Attack(walker, WalkerTarget(walker))
+    M.cw.next = now + WALKER_INTERVAL_S
+end
+-- CR CCA walkers <<
 
 -- CR restored walker content >>
 -- The DLL's disabled third-walker block (translated in place in Update): after the
@@ -749,7 +928,13 @@ local function ResetState()
         strike = nil,
         colorado_warned = false,
         colorado_deadline = nil,
+        colorado_cleanup = nil,
+        colorado_cleaned = false,
+        cbase = nil,
 -- CR Colorado massacre <<
+-- CR CCA walkers >>
+        cw = nil,
+-- CR CCA walkers <<
 -- CR restored walker content >>
         gech3_fallback = nil,
 -- CR restored walker content <<
@@ -1000,6 +1185,12 @@ Here is where you put what happens every frame.
 ]=]
 
     M.user = GetPlayerHandle() --assigns the player a handle every frame
+-- CR Colorado base >>
+    UpdateColoradoBase()
+-- CR Colorado base <<
+-- CR CCA walkers >>
+    UpdateCcaWalkers()
+-- CR CCA walkers <<
 
     if (not M.start_done) then
         subtit.Play("misn0800.wav") --starts opeing V.O.
@@ -1154,6 +1345,8 @@ Here is where you put what happens every frame.
 -- CR Colorado massacre >>
     if M.kill_colorado and M.colorado_deadline == nil then
         M.colorado_deadline = GetTime() + COLORADO_FALLBACK_S
+        M.colorado_cleanup = GetTime() + COLORADO_CLEANUP_S
+        ColoradoExtraStrike()
     end
     UpdateColoradoMassacre()
     if ColoradoMassacreDone() then

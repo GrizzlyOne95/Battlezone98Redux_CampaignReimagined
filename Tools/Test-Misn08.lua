@@ -3,7 +3,7 @@
 -- runs with single-player semantics, so every check below is the DLL's own flow
 -- (plus the documented restored behavior). Multi-player behavior is covered by
 -- Tools/Test-Misn08Coop.lua. Mock-engine checks only; no engine/asset validation.
-local now, objects, labels, calls, distances, serial, deployed, counts, info
+local now, objects, labels, calls, distances, serial, deployed, counts, info, scrap
 local checks = 0
 local function check(value, message)
     assert(value, message)
@@ -37,6 +37,11 @@ function GetHandle(label)
 end
 function SetVector(x, y, z) return {x = x or 0, y = y or 0, z = z or 0} end
 function GetLabel(h) return nil end
+function GetPosition(h) return SetVector(0, 0, 0) end
+function GetTerrainHeightAndNormal() return 20, SetVector(0, 1, 0) end
+function GetScrap(team) return scrap[team] or 0 end
+function AddScrap(team, n) scrap[team] = (scrap[team] or 0) + n; record("AddScrap", team, n) end
+function SetScrap(team, n) scrap[team] = n; record("SetScrap", team, n) end
 function DisplayMessage() end
 function Ally() end
 function UnAlly() end
@@ -84,16 +89,16 @@ function BuildObject(odf, team, where)
 end
 function RemoveObject(h) objects[h] = nil; record("RemoveObject", h) end
 function Damage(h, amount) record("Damage", h, amount); objects[h].alive = false end
-for _, name in ipairs({"SetAIControl", "SetObjectiveOff", "SetObjectiveOn", "SetObjectiveName", "SetScrap",
+for _, name in ipairs({"SetAIControl", "SetObjectiveOff", "SetObjectiveOn", "SetObjectiveName",
     "SetPilot", "SetAIP", "ClearObjectives", "AddObjective", "Attack", "Goto", "Defend", "SetWeaponMask",
-    "AddHealth", "FailMission", "SucceedMission"}) do
+    "AddHealth", "FailMission", "SucceedMission", "SetPerceivedTeam", "Deploy"}) do
     local operation = name
     _G[operation] = function(...) record(operation, ...) end
 end
 local function step(t) now = t; Update(0.05) end
 local function reset(specs)
     now, serial, deployed = 0, 0, false
-    objects, labels, calls, distances, counts, info = {}, {}, {}, {}, {}, {}
+    objects, labels, calls, distances, counts, info, scrap = {}, {}, {}, {}, {}, {}, {}
     local handles = {}
     for i, spec in ipairs(specs or {}) do
         serial = serial + 1
@@ -130,7 +135,7 @@ check(m.base_set and called("AddObjective", "misn0800.otf", "green"), "factory d
 step(100.1)
 check(count("BuildObject", "svfigh") == 3 and m.fresh_meat, "reinforcement trio")
 for _, call in ipairs(calls) do
-    if call[1] == "BuildObject" then check(call[3] == 5, "CCA spawns use the enemy team: " .. call[2]) end
+    if call[1] == "BuildObject" and call[2]:find("^sv") then check(call[3] == 5, "CCA spawns use the enemy team: " .. call[2]) end
 end
 step(200.1)
 check(called("Play", "misn0817.wav"), "fighter radio")
@@ -155,6 +160,11 @@ check(called("AddHealth", m.colorado, 500.0), "the Colorado is healed while it i
 check(not m.kill_colorado, "the heal is still running")
 step(317.5)
 check(m.kill_colorado and not called("Damage") and not m.colorado_message4, "heal stops; nothing is scripted dead")
+local wanted = math.min(4, #m.cbase.force)
+check(wanted >= 3 and m.strike.extra and #m.strike.extra == wanted and count("BuildObject", "svtank") == math.ceil(wanted / 2)
+    and count("BuildObject", "svfigh") == 4 + math.floor(wanted / 2), "a bigger base earns extra CCA strike units")
+check(called("BuildObject", "svtank", 5, "gech_spawn") and called("BuildObject", "svfigh", 5, "gech_spawn"),
+    "the extra strike spawns on the walker approach, on team 5")
 local heals = count("AddHealth", m.colorado)
 step(318.6)
 check(count("AddHealth", m.colorado) == heals, "no further Colorado heal after the fall begins")
@@ -162,9 +172,18 @@ near(m.gech_trigger2, m.ccagech2, 50)
 kill(m.colorado) -- destroyed by the walker and the strike
 step(319)
 check(not called("Damage") and m.colorado_message4, "a Colorado killed by the attackers needs no scripted damage")
-check(called("Goto", m.strike.figh, m.nav1) and called("Goto", m.strike.ltnk, m.nav1), "strike units resume the DLL's Drop Zone order")
+check(#m.cbase.force >= 3 and not m.strike.released, "the strike keeps hunting the Colorado base after the Colorado fell")
 step(329.1)
 check(called("Goto", m.ccagech1, "gech_path1") and called("Goto", m.ccagech2, "gech_path2"), "walker route start")
+step(329.6)
+local retargeted = false
+for _, call in ipairs(calls) do
+    if call[1] == "Attack" and objects[call[3]] and objects[call[3]].team == 7 and call[3] ~= m.colorado then retargeted = true end
+end
+check(retargeted, "attackers are ordered onto base objects once the Colorado is gone")
+for _, member in ipairs(m.cbase.force) do kill(member) end
+step(329.8)
+check(m.strike.released and called("Goto", m.strike.figh, m.nav1) and called("Goto", m.strike.ltnk, m.nav1), "strike units resume the DLL's Drop Zone order once the whole force fell")
 step(334.1)
 check(called("RemoveObject", m.nav5) and m.colorado_destroyed, "Colorado nav removed")
 near(walker3, m.stop_geyser2, 20)
@@ -194,6 +213,72 @@ step(437.6)
 check(called("Damage", m.colorado, 20000) and m.colorado_message4, "fallback damage after the timeout")
 step(453)
 check(called("RemoveObject", m.nav5), "the DLL timeline continues after the fallback")
+
+-- ------------------------------------------------- the Colorado base (team 7)
+m = reset()
+step(0)
+check(count("BuildObject", "avtank") == 2 and count("BuildObject", "avfigh") == 1, "the Colorado starts with a small escort")
+for _, call in ipairs(calls) do
+    if call[1] == "BuildObject" and not call[2]:find("^sv") and call[2] ~= "apcamr" then
+        check(call[3] == 7, "escort and base spawn on the support team: " .. call[2])
+    end
+end
+check(called("SetScrap", 7, 60) and count("SetPerceivedTeam") == 3 and #m.cbase.force == 3, "team-7 scrap and NSDF perception")
+step(14); check(count("BuildObject", "avscav") == 0, "builds follow their schedule")
+step(16); check(count("BuildObject", "avscav") == 1, "the scavenger")
+step(41); check(count("BuildObject", "avmuf") == 1 and m.cbase.factory, "the factory")
+step(43); check(called("Deploy", m.cbase.factory), "the factory deploys")
+step(71); step(101); check(count("BuildObject", "abtowe") == 2, "two defenses")
+step(91); check(count("BuildObject", "avapc") == 1, "APC production starts once the factory stands")
+check(m.cbase.step == 5, "the build list is exhausted")
+step(125); check(count("BuildObject", "avapc") == 1, "APCs come at the interval")
+step(135); step(180); step(230)
+check(count("BuildObject", "avapc") == 3 and #m.cbase.apcs == 3, "APCs stop at the cap")
+check(scrap[7] == 60 - 4 - 10 - 12 - 15, "every build is charged to team-7 scrap: " .. tostring(scrap[7]))
+kill(m.cbase.apcs[1]); step(281)
+local built = count("BuildObject", "avapc")
+step(330)
+check(m.colorado_under_attack and count("BuildObject", "avapc") == built, "no production once the CCA attack began")
+
+m = reset()
+step(0); scrap[7] = 0
+step(16); step(41)
+check(count("BuildObject", "avscav") == 0 and count("BuildObject", "avmuf") == 0, "an empty team-7 purse builds nothing")
+
+-- the cleanup fallback: attackers stall, the survivors are swept after the timeout
+m = reset(); step(0); step(100.1); step(290.2); step(300.3); step(307.4); step(317.5)
+check(m.colorado_cleanup and m.colorado_cleanup > 317.5 + 140, "cleanup deadline armed")
+step(467.4)
+check(not m.colorado_cleaned, "cleanup waits for its timeout")
+step(468)
+check(m.colorado_cleaned and count("Damage") >= 2, "survivors are swept after the timeout")
+for _, member in ipairs(m.cbase.force) do check(not IsAlive(member), "swept") end
+
+-- ------------------------------------------------------ CCA walker production
+m = reset(); step(0); step(290.2); step(300.3); step(307.4); step(317.5)
+kill(m.colorado); step(319); step(334.1); step(339.2); step(339.3)
+check(m.ccarecycle_spawned and m.cw.list[1] == nil, "no walker before the first delay")
+step(399)
+check(count("BuildObject", "svwalk") == 1, "first production delay")
+step(400)
+check(count("BuildObject", "svwalk") == 2 and called("BuildObject", "svwalk", 5, m.ccamuf) and #m.cw.list == 1, "a CCA svwalk is built at the CCA factory")
+check(scrap[5] == 40 - 12 and called("AddScrap", 5, -12), "walker cost is charged to team-5 scrap")
+check(called("Attack", m.cw.list[1], m.nsdfrecycle), "produced walkers are sent at the Utah")
+step(560)
+check(count("BuildObject", "svwalk") == 2, "cap of one walker solo")
+kill(m.cw.list[1]); step(576)
+check(count("BuildObject", "svwalk") == 3, "a lost walker is replaced at the interval")
+scrap[5] = 5; kill(m.cw.list[1]); step(720); step(740)
+check(count("BuildObject", "svwalk") == 3, "no scrap, no walker")
+scrap[5] = 100; step(760)
+check(count("BuildObject", "svwalk") == 4, "production resumes with scrap")
+kill(m.ccamuf); kill(m.cw.list[1]); step(1000)
+check(count("BuildObject", "svwalk") == 4, "production stops with the factory")
+
+m = reset(); step(0); step(290.2); step(300.3); step(307.4); step(317.5)
+kill(m.colorado); step(319); step(334.1); step(339.2); step(339.3); step(400)
+kill(m.ccarecycle); kill(m.ccamuf); kill(m.cw.list[1]); step(401)
+check(m.base_dead and count("BuildObject", "svwalk") == 2, "no more walkers once the CCA base fell")
 
 -- ----------------------------------------------------- early walker discovery
 for _, variant in ipairs({1, 2}) do
