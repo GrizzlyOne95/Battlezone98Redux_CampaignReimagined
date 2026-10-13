@@ -1,9 +1,13 @@
--- Faithful misn09 DLL source port for Battlezone 98 Redux / Lua 5.1.
+-- misn09: faithful BZ1 DLL source port for Battlezone 98 Redux / Lua 5.1, with the shared
+-- offline + 2-4 player co-op layer of the misn06/07/08 ports (Docs/MISN09_COOP.md).
 -- Source: Battlezone_Source/BZ1/from_bz2_dll_src/Misn09Mission.cpp.
 -- Source blob: 888ee877b4b56348ddf3e9717f01aed95fc0f066.
 -- Disabled C++ stays inactive at its original location; the complete verbatim
 -- source/header, including serialization comments, is in References/Misn09Source/.
--- Single-player stock API only; no EXU/OpenShim/campaign helper dependency.
+-- Everything the campaign adds lives between "-- CR ... >>" / "-- CR ... <<" marker lines
+-- (Tools/Test-Misn09SourceParity.py strips them); each co-op substitution outside the markers
+-- is an explicit API-count delta in that test. Offline play reproduces the DLL; only the
+-- leader runs the mission body. Requires the stock misn09 map labels, paths, AIPs, OTF/audio.
 
 local function NewState()
     local state = {}
@@ -152,6 +156,573 @@ local function NewState()
 end
 local M = NewState()
 
+-- EXU Initialization
+local RequireFix = require("RequireFix")
+RequireFix.Initialize({"campaignReimagined", "3686673790"})
+local exu = require("exu")
+-- Native MultST Init precedes Start. The authored base is the team-1 Unit Factory (avmuf) and
+-- its convoy, so no human team keeps a starting recycler.
+if type(IsNetGame) == "function" and IsNetGame() then
+    assert(exu.DisableStartingRecycler and exu.GetMyNetID,
+        "misn09 co-op requires the bundled EXU multiplayer hooks")
+    exu.DisableStartingRecycler()
+end
+local subtit = require("ScriptSubtitles")
+local CRCoop = require("CRCoop")
+local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+-- The DLL built the relic (obdata) on team 3, which is a guest slot in co-op. Neutral (0) keeps it
+-- off every human team and off the CCA's target lists, and a tug's cargo does not depend on its team.
+local RELIC_TEAM = 0
+-- CR Venus weather >>
+local CRVenusWeather = require("CRVenusWeather")
+local VenusSites = require("CRVenusSites09")
+local Environment = require("Environment")
+local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true }
+-- CR Venus weather <<
+-- CR convoy scaling >>
+-- The DLL's convoy (4 svfigh, 4 svtank, 2 svapc and the tug) is for one player. Each extra
+-- human team adds one svtank and one svfigh, up to this many extras (four players).
+local CONVOY_EXTRA_MAX = 3
+-- CR convoy scaling <<
+-- CR Prescott platoon >>
+-- misn0901/misn0903 have Commander Prescott flushing the convoy out and sealing its retreat.
+-- When the convoy's lead is this close to the cutoff geyser the players get PRESCOTT_DELAY_S of
+-- first crack, then an allied avtank platoon (team 7) spawns on the convoy's spawn paths, behind
+-- it, and hunts its combat units. Solo it is PRESCOTT_BASE tanks, +1 per extra human, max PRESCOTT_MAX.
+local PRESCOTT_TRIGGER_M, PRESCOTT_DELAY_S, PRESCOTT_RETARGET_S = 350.0, 45.0, 4.0
+local PRESCOTT_BASE, PRESCOTT_MAX = 3, 5
+local PRESCOTT_SPAWN_PATHS = { "spawn1", "spawn2", "spawn3", "spawn4" }
+-- CR Prescott platoon <<
+-- CR cut VO >>
+-- Restored cut radio: misn0917 when a human combat unit leaves the Unit Factory before the
+-- artillery is down, misn0910 when a walker is built farther than WALKER_FAR_M from the cutoff geyser.
+local FACTORY_BUILD_RADIUS_M, WALKER_FAR_M = 120.0, 600.0
+local FACTORY_COMBAT_ODFS = { "avtank", "avltnk", "avrckt", "avhraz", "avartl", "avfigh", "avwalk" }
+-- CR cut VO <<
+-- CR tug rebuild >>
+-- The DLL's cut replacement-tug block, restored: the CCA factory (svmuf) builds a new svhaul.
+local TUG_REBUILD_DELAY_S, TUG_REBUILD_MAX = 90.0, 2
+-- CR tug rebuild <<
+
+-- Co-op presentation uses the established misn03/misn05 E/A and C transport.
+-- Only the campaign leader runs the mission body below; HUD/audio/removal/timer/
+-- end calls are explicitly delivered to every peer.
+-- E/A are an ordered, acknowledged event stream (eight small packets in flight,
+-- retried every 0.2s). C is a replaceable camera snapshot carrying a kind: "P"
+-- (CameraPath), "O" (CameraObject) or "" (no camera). I relays a guest's native
+-- IsInfo selection state to the leader. No tables go on wire.
+-- These types do not collide with CRCoop's H/Q/K/P/L protocol. Join-in-progress
+-- still requires a restart: native world reconstruction is not available here.
+local unpackArgs = unpack or table.unpack
+local native = {
+    ClearObjectives = ClearObjectives, AddObjective = AddObjective,
+    UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
+    SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
+    SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
+    StartCockpitTimer = StartCockpitTimer, StopCockpitTimer = StopCockpitTimer,
+    HideCockpitTimer = HideCockpitTimer,
+    SucceedMission = SucceedMission, FailMission = FailMission,
+    CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
+    CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
+    Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
+}
+local nativeIsInfo = IsInfo
+local events, acknowledgements = {}, {}
+local receivedEvent = 0
+local pendingSeq, pendingSince
+local nextEventSend, nextCameraSend = 0, 0
+local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+local remoteCameraSerial, localCameraGeneration = 0, 0
+local cameraSkipped, localCameraActive = false, false
+local remoteCamera
+local cameraWaitSince, cameraGaveUp, cameraLast
+-- IsInfo is local UI state (the selected object's info panel). Guests relay
+-- the prefix this mission reads (the Charon scan); the leader honours a report for 1 s.
+local INFO_PREFIXES = { "hbchar" }
+local isInfoPrefix = {}
+for _, prefix in ipairs(INFO_PREFIXES) do isInfoPrefix[prefix] = true end
+local remoteInfo, nextInfoSend = {}, 0
+
+local function ResetPresentation()
+    events, acknowledgements, receivedEvent = {}, {}, 0
+    pendingSeq, pendingSince = nil, nil
+    nextEventSend, nextCameraSend = 0, 0
+    cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+    remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
+    cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
+    cameraSkipped, localCameraActive = false, false
+    remoteInfo, nextInfoSend = {}, 0
+end
+
+local function FromLeader(from)
+    local player = CRCoop.GetPlayers()[from]
+    return player and player.team == LEADER_TEAM
+end
+
+local function ApplyPresentation(op, ...)
+    if op == "Resources" then
+        local team, scrap, pilots = ...
+        -- Each human owns their team resources. Do not mutate a remote team.
+        if CRCoop.GetLocalTeam() == team then
+            -- Guests have no starting recycler, hence zero native capacity.
+            -- Reserve room before setting their mission starting resources.
+            SetMaxScrap(team, math.max(GetMaxScrap(team), scrap))
+            SetMaxPilot(team, math.max(GetMaxPilot(team), pilots))
+            SetScrap(team, scrap)
+            SetPilot(team, pilots)
+        end
+-- CR Venus weather >>
+    elseif VENUS_OPS[op] then
+        -- Weather events carry no handles: never labelled, never waited on.
+        return CRVenusWeather.ApplyNetEvent(op, ...)
+-- CR Venus weather <<
+    elseif op == "Label" then
+        local handle, label = ...
+        if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
+            pcall(SetLabel, handle, label)
+        end
+    elseif op == "SucceedMission" or op == "FailMission" then
+        local when, description = ...
+        if localCameraActive then native.CameraFinish() end
+        cameraFrame = nil
+        localCameraActive = false
+        M.coopResult = true
+        native[op](math.max(GetTime() + 0.5, when), description)
+    else
+        return native[op](...)
+    end
+end
+
+-- Ops whose first argument is a game object. Objects travel by identity, never by a bare
+-- handle the engine may not carry: "@handle@label" (a guest resolves the label first, then
+-- the replicated handle), or "!" when the leader reports the object gone. Label is the
+-- event that makes a leader-side SetLabel on a spawned object true on every guest.
+local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
+    SetUserTarget = true, RemoveObject = true, Label = true }
+local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true, Label = true }
+local GONE = "!"
+-- Guests WAIT for the real object. This is only a never-hang guard: when it fires the
+-- guest logs "[coop] unresolved ..." and counts it in M.coopUnresolved (the harness probe
+-- reads that and expects zero).
+local RESOLVE_TIMEOUT = 15
+local labelSerial, announced = 0, {}
+-- Targets a guest already gave up on (logged once): later events for them skip at once.
+local gaveUp = {}
+
+local function HandleText(handle)
+    return type(handle) == "number" and string.format("%d", handle) or tostring(handle)
+end
+
+local function KnownLabel(handle)
+    local ok, label = pcall(GetLabel, handle)
+    if ok and type(label) == "string" and label ~= "" and #label <= 126 then
+        local found, resolved = pcall(GetHandle, label)
+        if found and resolved == handle then return label end
+    end
+end
+
+-- Leader: tell every guest "this replicated handle carries this label" once.
+local function AnnounceLabel(handle, label)
+    if announced[handle] == label then return end
+    announced[handle] = label
+    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+        n = 2, ttl = RESOLVE_TIMEOUT, handle = handle }
+end
+
+-- Leader: the label for a target, assigning a deterministic unique one to an unlabelled
+-- spawned object.
+local function EnsureLabel(handle)
+    local label = KnownLabel(handle)
+    if not label and type(SetLabel) == "function" then
+        labelSerial = labelSerial + 1
+        pcall(SetLabel, handle, "crco_" .. labelSerial)
+        label = KnownLabel(handle)
+    end
+    if label then AnnounceLabel(handle, label) end
+    return label
+end
+
+local function WireHandle(handle)
+    if handle == nil then return nil end
+    if not IsValid(handle) then return GONE end
+    local label = EnsureLabel(handle)
+    if label then return "@" .. HandleText(handle) .. "@" .. label end
+    return handle
+end
+
+-- Retransmissions re-check the leader's view: a marker/label target that has since died
+-- is reported gone so a guest that never got it does not wait for it.
+local function EventArgs(event)
+    if event.handle ~= nil and WAIT_OPS[event.op] and not IsValid(event.handle) then
+        local args = { unpackArgs(event.args, 1, event.n) }
+        args[1] = GONE
+        return args
+    end
+    return event.args
+end
+
+local function Present(op, ...)
+    if CRCoop.IsNetworkGame() then
+        if not CRCoop.IsAuthority() then return end
+        local wire, handle = { ... }, nil
+        if HANDLE_OPS[op] and wire[1] ~= nil then handle = wire[1]; wire[1] = WireHandle(handle) end
+        events[#events + 1] = { op = op, args = wire, n = select("#", ...), ttl = RESOLVE_TIMEOUT,
+            handle = handle }
+    end
+    return ApplyPresentation(op, ...)
+end
+
+local function WireCameraFrame(frame)
+    if frame[1] == "O" then
+        return { "O", WireHandle(frame[2]), frame[3], frame[4], frame[5], WireHandle(frame[6]) }
+    end
+    return { frame[1], frame[2], frame[3], frame[4], WireHandle(frame[5]) }
+end
+
+-- Lexical wrappers affect this mission only; shared modules retain stock APIs.
+local function ClearObjectives(...) return Present("ClearObjectives", ...) end
+local function AddObjective(...) return Present("AddObjective", ...) end
+local function UpdateObjective(...) return Present("UpdateObjective", ...) end
+local function SetObjectiveOn(...) return Present("SetObjectiveOn", ...) end
+local function SetObjectiveOff(...) return Present("SetObjectiveOff", ...) end
+local function SetObjectiveName(...) return Present("SetObjectiveName", ...) end
+local function SetUserTarget(...) return Present("SetUserTarget", ...) end
+local function RemoveObject(...) return Present("RemoveObject", ...) end
+local function StartCockpitTimer(...) return Present("StartCockpitTimer", ...) end
+local function StopCockpitTimer(...) return Present("StopCockpitTimer", ...) end
+local function HideCockpitTimer(...) return Present("HideCockpitTimer", ...) end
+-- Preserve the real subtitle module for Update/Initialize and return values.
+-- Play returns the native audio handle on the leader (offline: AudioMessage's).
+subtit = setmetatable({
+    Play = function(...) return Present("Play", ...) end,
+    Queue = function(...) return Present("Queue", ...) end,
+    Stop = function(...) return Present("Stop", ...) end,
+}, { __index = subtit })
+
+local function EndMission(op, when, description)
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        -- Flush preceding narrative/cleanup before publishing the result. Keep
+        -- five seconds for result retries before native AiMission shuts down.
+        M.coopPendingResult = { op, when, description }
+    else
+        -- Offline the DLL re-issues these every frame it holds; stay a pass-through.
+        native[op](when, description)
+    end
+end
+local function SucceedMission(...) return EndMission("SucceedMission", ...) end
+local function FailMission(...) return EndMission("FailMission", ...) end
+
+local function CameraReady()
+    cameraGeneration = cameraGeneration + 1
+    cameraSkipped = false
+    if CRCoop.IsNetworkGame() and localCameraActive then native.CameraFinish() end
+    localCameraActive = true
+    return native.CameraReady()
+end
+local function CameraPath(path, height, speed, target)
+    cameraFrame = { "P", path, height, speed, target }
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+    end
+    if not cameraSkipped then return native.CameraPath(path, height, speed, target) end
+end
+local function CameraObject(subject, x, y, z, target)
+    cameraFrame = { "O", subject, x, y, z, target }
+    if cameraSkipped then return end
+    local done = native.CameraObject(subject, x, y, z, target)
+    -- Match the authored CameraObject -> CameraCancelled order: the object
+    -- camera can process the skip during this call, before the next frame.
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        local wasActive = localCameraActive
+        localCameraActive = false
+        if wasActive then native.CameraFinish() end
+    end
+    return done
+end
+local function CameraCancelled(clear)
+    -- A player's skip releases only their own camera; never skips shared
+    -- destruction, transport orders, or the success gate for everyone else.
+    if CRCoop.IsNetworkGame() then return false end
+    return native.CameraCancelled(clear)
+end
+local function CameraFinish()
+    cameraFrame = nil
+    cameraSkipped = false
+    local wasActive = localCameraActive
+    localCameraActive = false
+    if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
+end
+
+-- Camera frames carry their subject/target as "@handle@label" (or "!" when the leader
+-- reports it gone). A guest holds the film's start until the REAL objects resolve. Only a
+-- gone flag, or the never-hang guard (loudly logged and counted), lets it play with
+-- whatever remains valid.
+
+-- handle (or nil), gone
+local function ResolveCameraHandle(sent)
+    if sent == nil or sent == GONE then return nil, true end
+    if type(sent) ~= "string" or sent:sub(1, 1) ~= "@" then return sent, false end
+    local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+    local resolved = sentLabel and GetHandle(sentLabel)
+    if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+        local candidate = tonumber(sentHandle) or sentHandle
+        if IsValid(candidate) then resolved = candidate end
+    end
+    return resolved, (not IsValid(resolved)) and sentLabel ~= nil and gaveUp[sentLabel] == true
+end
+
+local function NativeCameraPath(path, height, speed, target)
+    if target == nil then return pcall(native.CameraPath, path, height, speed, nil) end
+    return native.CameraPath(path, height, speed, target)
+end
+
+-- ready, subject, target. sentSubject == nil means the kind carries none (path cameras).
+local function ResolveCameraHandles(sentSubject, sentTarget)
+    local needSubject = sentSubject ~= nil
+    local subject, subjectGone = ResolveCameraHandle(sentSubject)
+    local target, targetGone = ResolveCameraHandle(sentTarget)
+    if (not needSubject or IsValid(subject)) and IsValid(target) then
+        cameraWaitSince, cameraLast = nil, { subject, target }
+        return true, subject, target
+    end
+    local settled = (not needSubject or IsValid(subject) or subjectGone) and (IsValid(target) or targetGone)
+    if not settled then
+        if localCameraActive and cameraLast then return true, cameraLast[1], cameraLast[2] end
+        if localCameraActive or not cameraGaveUp then
+            local now = GetTime()
+            if not cameraWaitSince or now < cameraWaitSince then cameraWaitSince = now end
+            if now - cameraWaitSince < RESOLVE_TIMEOUT then return false end
+            if not cameraGaveUp then
+                cameraGaveUp = true
+                for _, sent in ipairs({ sentSubject or false, sentTarget or false }) do
+                    local label = type(sent) == "string" and sent:match("^@[^@]*@(.*)$")
+                    if label then gaveUp[label] = true end
+                end
+                M.coopUnresolved = (M.coopUnresolved or 0) + 1
+                print("[coop] unresolved camera " .. tostring(sentSubject) .. " " .. tostring(sentTarget))
+            end
+        end
+    end
+    -- Settled (gone flag) or guard fired: play with whatever remains valid.
+    if not IsValid(target) then target = IsValid(subject) and subject or nil end
+    if needSubject and not IsValid(subject) then subject = target end
+    if needSubject and subject == nil then return false end
+    return true, subject, target
+end
+
+local function UpdateRemoteCamera()
+    if not remoteCamera then return end
+    local cam = remoteCamera
+    if cam.kind == "" or M.coopResult then
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+        return
+    end
+    if cam.generation ~= localCameraGeneration then
+        localCameraGeneration = cam.generation
+        cameraSkipped = false
+        cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
+    end
+    if cameraSkipped then return end
+    local ready, subject, target = ResolveCameraHandles(cam.kind == "O" and cam.subject or nil, cam.target)
+    if not ready then return end
+    cam = setmetatable({ subject = subject, target = target }, { __index = cam })
+    if cam.kind == "O" then
+        if not localCameraActive then
+            native.CameraReady()
+            localCameraActive = true
+        end
+        native.CameraObject(cam.subject, cam.x, cam.y, cam.z, cam.target)
+        if native.CameraCancelled() then
+            cameraSkipped = true
+            localCameraActive = false
+            native.CameraFinish()
+        end
+    else
+        if not localCameraActive then
+            native.CameraReady()
+            localCameraActive = true
+        elseif native.CameraCancelled() then
+            cameraSkipped = true
+            localCameraActive = false
+            native.CameraFinish()
+            return
+        end
+        NativeCameraPath(cam.path, cam.height, cam.speed, cam.target)
+    end
+end
+
+-- Guests report which of the two IsInfo prefixes their own UI currently shows.
+local function UpdateInfoRelay()
+    if not CRCoop.IsNetworkGame() or CRCoop.IsAuthority() then return end
+    local now = GetTime()
+    if now < nextInfoSend then return end
+    local leaderId = 0
+    for id, player in pairs(CRCoop.GetPlayers()) do
+        if player.team == LEADER_TEAM then leaderId = id; break end
+    end
+    for _, prefix in ipairs(INFO_PREFIXES) do
+        if nativeIsInfo(prefix) then
+            Send(leaderId, "I", prefix)
+            nextInfoSend = now + 0.25
+        end
+    end
+end
+
+local function UpdatePresentationTransport()
+    if not CRCoop.IsNetworkGame() then return end
+    -- Read by the harness probe (numbers in M appear in its snapshots): must stay 0.
+    if M.coopUnresolved == nil then M.coopUnresolved = 0 end
+    if not CRCoop.IsAuthority() then
+        UpdateRemoteCamera()
+        return
+    end
+    local now, allDelivered = GetTime(), true
+    for id, player in pairs(CRCoop.GetPlayers()) do
+        if CRCoop.IsHumanTeam(player.team) and id ~= CRCoop.GetLocalPlayerId() then
+            local ack = acknowledgements[id] or 0
+            if ack < #events then allDelivered = false end
+            if now >= nextEventSend then
+                for seq = ack + 1, math.min(ack + 8, #events) do
+                    local event = events[seq]
+                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                end
+            end
+        end
+    end
+    if now >= nextEventSend then nextEventSend = now + 0.2 end
+    if M.coopPendingResult and allDelivered then
+        local result = M.coopPendingResult
+        M.coopPendingResult = nil
+        Present(result[1], math.max(now + 5, result[2] or 0), result[3])
+    end
+    if now >= nextCameraSend then
+        nextCameraSend = now + 0.2
+        cameraSerial = cameraSerial + 1
+        if cameraFrame then
+            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+        else
+            Send(0, "C", cameraSerial, cameraGeneration, "")
+        end
+    end
+end
+
+local function ReceivePresentation(from, kind, ...)
+    if not CRCoop.IsNetworkGame() then return false end
+    if kind == "I" then
+        -- Leader only: a human's report that their UI shows one of our prefixes.
+        local prefix = ...
+        local player = CRCoop.GetPlayers()[from]
+        if CRCoop.IsAuthority() and player and CRCoop.IsHumanTeam(player.team) and
+            type(prefix) == "string" and isInfoPrefix[prefix] then
+            remoteInfo[prefix] = GetTime()
+        end
+        return true
+    end
+    if kind == "A" then
+        local seq = ...
+        if CRCoop.IsAuthority() and CRCoop.GetPlayers()[from] and
+            type(seq) == "number" and seq >= 0 and seq <= #events and seq == math.floor(seq) then
+            acknowledgements[from] = math.max(acknowledgements[from] or 0, seq)
+        end
+        return true
+    end
+    if kind ~= "E" and kind ~= "C" then return false end
+    if CRCoop.IsAuthority() or not FromLeader(from) then return true end
+    if kind == "C" then
+        local seq, generation, camKind, a, b, c, d, e = ...
+        if type(seq) == "number" and seq > remoteCameraSerial and type(generation) == "number" then
+            local cam
+            if camKind == "" then
+                cam = { generation = generation, kind = "" }
+            elseif camKind == "P" and type(a) == "string" and type(b) == "number" and type(c) == "number" then
+                cam = { generation = generation, kind = "P", path = a, height = b, speed = c, target = d }
+            elseif camKind == "O" and type(b) == "number" and type(c) == "number" and type(d) == "number" then
+                cam = { generation = generation, kind = "O", subject = a, x = b, y = c, z = d, target = e }
+            end
+            if cam then
+                remoteCameraSerial = seq
+                remoteCamera = cam
+            end
+        end
+        return true
+    end
+    local seq, op, ttl = ...
+    if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
+    if seq == receivedEvent + 1 and (native[op] or VENUS_OPS[op] or op == "Label" or op == "Resources") then
+        local args = { select(4, ...) }
+        local count = select("#", ...) - 3
+        local apply, unresolved = true, false
+        if HANDLE_OPS[op] then
+            local sent, described = args[1], args[1]
+            if sent == GONE then
+                -- The leader reports the object gone: skip this marker, never wait.
+                apply = false
+            elseif type(sent) == "string" and sent:sub(1, 1) == "@" then
+                local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+                local resolved = sentLabel and GetHandle(sentLabel)
+                if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+                    local candidate = tonumber(sentHandle) or sentHandle
+                    if IsValid(candidate) then resolved = candidate end
+                end
+                args[1], described = resolved, sentLabel or sent
+                if not IsValid(args[1]) then apply, unresolved = false, true end
+            elseif not IsValid(sent) then
+                unresolved = true
+            end
+            if unresolved and WAIT_OPS[op] and gaveUp[described] then
+                apply = false
+            elseif unresolved and WAIT_OPS[op] then
+                -- The real object may replicate after the Lua packet: withhold the ACK so
+                -- the retransmission retries. Only the never-hang guard ends the wait.
+                local now = GetTime()
+                if pendingSeq ~= seq or now < pendingSince then pendingSeq, pendingSince = seq, now end
+                if now - pendingSince < math.min(ttl, 60) then return true end
+                gaveUp[described] = true
+                M.coopUnresolved = (M.coopUnresolved or 0) + 1
+                print("[coop] unresolved " .. tostring(described) .. " (" .. op .. ")")
+                apply = false
+            end
+        end
+        pendingSeq = nil
+        if apply then ApplyPresentation(op, unpackArgs(args, 1, count)) end
+        receivedEvent = seq
+    end
+    Send(from, "A", receivedEvent)
+    return true
+end
+
+-- Leader: native IsInfo OR a guest report within the last second.
+local function IsInfo(prefix)
+    if nativeIsInfo(prefix) then return true end
+    local reported = remoteInfo[prefix]
+    return reported ~= nil and GetTime() - reported <= 1.0
+end
+
+-- Presentation adapter ends. BuildObject invokes AddObject synchronously.
+
+-- CR Venus weather >>
+-- Victory eases the storm back to clear while the result screen counts down. EndMission has
+-- already queued the result; this only nudges the director (leader/offline).
+local presentSucceed = SucceedMission
+local function SucceedMission(...)
+    if (not M.venusCalm) and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
+        M.venusCalm = true
+        CRVenusWeather.SetTargetLevel(1)
+    end
+    return presentSucceed(...)
+end
+-- CR Venus weather <<
+
+-- The DLL's AudioMessage(file) is the shared radio line: the leader plays it and every peer hears
+-- it with its subtitle (Play returns the native audio handle on the leader, nil offline-safe).
+local function AudioMessage(file) return subtit.Play(file) end
+
+
 -- Native null/removed objects do not satisfy proximity checks. Avoid passing
 -- nil through stock Lua's overloaded GetDistance handle/path interface.
 local function Distance(from, to)
@@ -173,7 +744,326 @@ local function StopAudio(message)
     if message ~= nil then StopAudioMessage(message) end
 end
 
-function Start()
+local function ConfigureAlliances()
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+    for team = 1, 4 do
+        Ally(team, SUPPORT_TEAM); Ally(SUPPORT_TEAM, team)
+    end
+    UnAlly(ENEMY_TEAM, SUPPORT_TEAM); UnAlly(SUPPORT_TEAM, ENEMY_TEAM)
+end
+
+-- Co-op trigger helpers. Offline CRCoop iterates just the local player, so each
+-- reproduces the DLL's single-player test exactly. Every distance goes through
+-- the mission's Distance guard (never raw GetDistance).
+local function AnyPlayerWithin(target, distance)
+    return CRCoop.AnyPlayerSatisfies(function(h) return Distance(h, target) < distance end)
+end
+
+-- True when every present player is farther than `distance` from `target`.
+local function NoPlayerWithin(target, distance)
+    local clear = true
+    CRCoop.ForEachPlayerHandle(function(h)
+        if not (Distance(h, target) > distance) then clear = false end
+    end)
+    return clear
+end
+
+-- Human teams in the session (1 offline): the way misn07/misn08 size their reinforcements.
+local function HumanCount()
+    return CRCoop.ForEachHumanTeam(function() end)
+end
+
+-- CR team filter >>
+-- The DLL's AddObject had no team filter. The CCA's units (turrets, fighters, tanks,
+-- scavengers, the tug) must be team 5 and the walker and silo any human team's, so an
+-- allied or spawned look-alike never takes a tracked slot.
+local ENEMY_TRACKED = { "svturr", "svfigh", "svtank", "svscav", "svhaul" }
+local HUMAN_TRACKED = { "avwalk", "absilo" }
+local function AddObjectTeamAllowed(h)
+    if not IsValid(h) then return false end
+    local team = GetTeamNum(h)
+    for _, odf in ipairs(ENEMY_TRACKED) do
+        if IsOdfBase(h, odf) then return team == ENEMY_TEAM end
+    end
+    for _, odf in ipairs(HUMAN_TRACKED) do
+        if IsOdfBase(h, odf) then return CRCoop.IsHumanTeam(team) end
+    end
+    return true
+end
+-- CR team filter <<
+
+-- CR convoy scaling >>
+local function ConvoyExtraCount()
+    return math.min(CONVOY_EXTRA_MAX, math.max(0, HumanCount() - 1))
+end
+
+-- One svtank and one svfigh per extra human, from the same spawn paths as the DLL's convoy.
+local function SpawnConvoyExtras()
+    local list = {}
+    for _ = 1, ConvoyExtraCount() do
+        local tank = BuildObject("svtank", ENEMY_TEAM, "spawn4")
+        local fighter = BuildObject("svfigh", ENEMY_TEAM, "spawn2")
+        Defend(tank)
+        Defend(fighter)
+        list[#list + 1] = tank
+        list[#list + 1] = fighter
+    end
+    return list
+end
+
+local function FollowConvoyExtras()
+    for _, unit in ipairs(M.convoy_extra or {}) do
+        if IsAlive(unit) then Follow(unit, M.ccatug) end
+    end
+end
+
+-- The convoy's armed escort: the DLL's four svfigh and four svtank plus the extras. The two
+-- svapc and the tug are not combat units.
+local function ConvoyCombatUnits()
+    local list = {}
+    for _, unit in ipairs({ M.convoy1, M.convoy2, M.convoy3, M.convoy4, M.convoy5, M.convoy6, M.convoy7, M.convoy8 }) do
+        if unit ~= nil and IsAlive(unit) then list[#list + 1] = unit end
+    end
+    for _, unit in ipairs(M.convoy_extra or {}) do
+        if IsAlive(unit) then list[#list + 1] = unit end
+    end
+    return list
+end
+-- CR convoy scaling <<
+
+-- CR Prescott platoon >>
+local function PrescottCount()
+    return math.min(PRESCOTT_MAX, PRESCOTT_BASE + math.max(0, HumanCount() - 1))
+end
+
+local function ConvoyLead()
+    if IsAlive(M.ccatug) then return M.ccatug end
+    return ConvoyCombatUnits()[1]
+end
+
+local function NearestConvoyTarget(from)
+    local best, bestDistance = nil, math.huge
+    for _, target in ipairs(ConvoyCombatUnits()) do
+        local distance = Distance(from, target)
+        if best == nil or distance < bestDistance then best, bestDistance = target, distance end
+    end
+    return best
+end
+
+-- Orders only ever name a convoy combat unit: never the tug (it may carry the relic) and
+-- never the launch pad. Independence 0 keeps them from picking their own targets.
+local function OrderPrescott(platoon)
+    platoon.next = GetTime() + PRESCOTT_RETARGET_S
+    for index, unit in ipairs(platoon.units) do
+        if IsAlive(unit) then
+            local target = NearestConvoyTarget(unit)
+            if target ~= nil then
+                if platoon.orders[index] ~= target then
+                    Attack(unit, target, 1)
+                    platoon.orders[index] = target
+                end
+            elseif platoon.orders[index] ~= false then
+                Stop(unit, 0)
+                platoon.orders[index] = false
+            end
+        end
+    end
+end
+
+local function SpawnPrescott(platoon)
+    platoon.spawned = true
+    for index = 1, PrescottCount() do
+        local path = PRESCOTT_SPAWN_PATHS[(index - 1) % #PRESCOTT_SPAWN_PATHS + 1]
+        local unit = BuildObject("avtank", SUPPORT_TEAM, path)
+        SetPerceivedTeam(unit, LEADER_TEAM)
+        if SetIndependence ~= nil then SetIndependence(unit, 0) end
+        platoon.units[#platoon.units + 1] = unit
+    end
+    platoon.next = 0
+end
+
+-- Leader only (the body runs nowhere else).
+local function UpdatePrescott()
+    if (not M.convoy_started) or M.game_over then return end
+    local now = GetTime()
+    local platoon = M.prescott
+    if platoon == nil then
+        local lead = ConvoyLead()
+        if lead ~= nil and Distance(lead, M.cut_off_geyser) < PRESCOTT_TRIGGER_M then
+            M.prescott = { due = now + PRESCOTT_DELAY_S, spawned = false, units = {}, orders = {}, next = 0 }
+        end
+        return
+    end
+    if (not platoon.spawned) and platoon.due < now then SpawnPrescott(platoon) end
+    if platoon.spawned and platoon.next < now then OrderPrescott(platoon) end
+end
+
+local function PrescottArrived()
+    return M.prescott ~= nil and M.prescott.spawned == true
+end
+-- CR Prescott platoon <<
+
+-- CR cut VO >>
+-- Called from AddObject on every peer; only the leader reacts.
+local function NoteBuiltUnit(h)
+    if not (M.start_done and not M.game_over and CRCoop.IsAuthority()) then return end
+    if not IsValid(h) or not CRCoop.IsHumanTeam(GetTeamNum(h)) then return end
+    if not IsAlive(M.nsdfmuf) or Distance(h, M.nsdfmuf) > FACTORY_BUILD_RADIUS_M then return end
+    local combat = false
+    for _, odf in ipairs(FACTORY_COMBAT_ODFS) do
+        if IsOdfBase(h, odf) then combat = true end
+    end
+    if not combat then return end
+    if not M.objective1 and not M.vo0917_done then M.vo0917_due = true end
+    if IsOdfBase(h, "avwalk") and not M.vo0910_done and Distance(h, M.cut_off_geyser) > WALKER_FAR_M then
+        M.vo0910_due = true
+    end
+end
+
+-- One restored line at a time, each once.
+local function UpdateCutVo()
+    if not (M.vo0917_due or M.vo0910_due) then return end
+    if not AudioDone(M.cutvo_msg) then return end
+    if M.vo0917_due and not M.vo0917_done then
+        M.cutvo_msg = AudioMessage("misn0917.wav")
+        M.vo0917_done = true
+        M.vo0917_due = false
+    elseif M.vo0910_due and not M.vo0910_done then
+        M.cutvo_msg = AudioMessage("misn0910.wav")
+        M.vo0910_done = true
+        M.vo0910_due = false
+    else
+        M.vo0917_due, M.vo0910_due = false, false
+    end
+end
+-- CR cut VO <<
+
+-- CR tug rebuild >>
+-- The DLL's cut block rebuilt the tug at the CCA recycler 60 s after it died; this builds it at
+-- the CCA factory after TUG_REBUILD_DELAY_S, at most TUG_REBUILD_MAX times, while the relic exists
+-- and the factory lives. The existing tug logic (Pickup / Dropoff) then resumes the seizure.
+local function UpdateTugRebuild()
+    if (not M.convoy_started) or M.game_over then return end
+    local now = GetTime()
+    if (not IsAlive(M.ccatug)) and IsAlive(M.relic) and IsAlive(M.ccamuf) and (not M.build_new_tug)
+        and (M.tug_rebuilds or 0) < TUG_REBUILD_MAX then
+        M.build_tug_time = now + TUG_REBUILD_DELAY_S
+        M.tug_done = false
+        M.build_new_tug = true
+    end
+    if M.build_new_tug and M.build_tug_time < now and not M.tug_done then
+        M.build_new_tug = false
+        if IsAlive(M.ccamuf) and IsAlive(M.relic) then
+            M.ccatug = BuildObject("svhaul", ENEMY_TEAM, M.ccamuf)
+            M.tug_rebuilds = (M.tug_rebuilds or 0) + 1
+            M.tug_done = true
+            M.tug_escort_due = true
+        else
+            M.tug_done = true
+        end
+    end
+    -- The surviving escort follows the new tug once it has the relic again.
+    if M.tug_escort_due and M.relic_seized and IsAlive(M.ccatug) then
+        M.tug_escort_due = false
+        for _, unit in ipairs(ConvoyCombatUnits()) do Follow(unit, M.ccatug) end
+        for _, unit in ipairs({ M.convoy9, M.convoy0 }) do
+            if unit ~= nil and IsAlive(unit) then Follow(unit, M.ccatug) end
+        end
+    end
+end
+-- CR tug rebuild <<
+
+-- CR Venus weather >>
+-- Venus atmosphere (Docs/VENUS_WEATHER.md). The leader (or offline play) runs the director's
+-- automatic weather and the beats below; guests render the same sky from the seeded timeline
+-- plus the host's state and strike/eruption events, which ride the ordered presentation
+-- stream like any other event. The events carry no handles, so they bypass the marker
+-- label/TTL logic. The director never damages anything (knockback and radar scramble only).
+local venusStarted, venusAnnounced = false, false
+
+local function InitVenusWeather()
+    venusStarted = true
+    local net = CRCoop.IsNetworkGame()
+    local authority = (not net) or CRCoop.IsAuthority()
+    Environment.Init()
+    CRVenusWeather.Init({
+        authority = authority,
+        seed = M.venusSeed, -- nil: the leader/offline picks one, guests wait for the host's state
+        sites = VenusSites,
+        startLevel = 1,
+        targetLevel = 2,
+        -- The host queues straight onto the stream: its own Present() would apply the event again.
+        send = net and function(op, ...)
+            events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), ttl = RESOLVE_TIMEOUT }
+        end or nil,
+        players = net and function()
+            local list = {}
+            CRCoop.ForEachPlayerHandle(function(h) list[#list + 1] = h end)
+            return list
+        end or nil,
+    })
+    if M.weatherState ~= nil and authority then
+        CRVenusWeather.Load(M.weatherState)
+        M.weatherState = nil
+    end
+    if authority then M.venusSeed = CRVenusWeather.Seed end -- survives a save
+end
+
+-- Every peer, every frame after the session is ready.
+local function UpdateVenusWeather(dt)
+    if not venusStarted then InitVenusWeather() end
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and not venusAnnounced and CRCoop.IsSessionReady() then
+        venusAnnounced = true
+        CRVenusWeather.AnnounceState()
+    end
+    CRVenusWeather.Update(dt)
+    Environment.Update(dt)
+end
+
+local function ShutdownVenusWeather()
+    if venusStarted then CRVenusWeather.Shutdown() end
+    venusStarted, venusAnnounced = false, false
+end
+
+-- Host/offline only: the mission's arc drives the severity ladder, each beat once.
+--   2 calm while the base is set up and the artillery falls -> 3 when the convoy launches (the
+--   tug has the relic) or the cutoff warning (misn0903) fires -> a 60 s level-5 burst when
+--   Prescott's platoon arrives or the tug makes its final run on the launch pad -> calm (1) on
+--   the win (see SucceedMission above).
+local FINAL_FIGHT_M = 500.0
+local function UpdateVenusBeats()
+    local beats = M.venusBeats
+    if beats == nil then beats = {}; M.venusBeats = beats end
+    if (not beats.convoy) and (M.convoy_started or M.convoy_cam_ready) then
+        beats.convoy = true
+        CRVenusWeather.SetTargetLevel(3)
+    end
+    if (not beats.burst) and (PrescottArrived() or (M.relic_seized and IsAlive(M.ccatug) and IsAlive(M.ccalaunch)
+        and Distance(M.ccatug, M.ccalaunch) < FINAL_FIGHT_M)) then
+        beats.burst = true
+        CRVenusWeather.ForceLevel(5, 60.0, 10.0)
+    end
+end
+-- CR Venus weather <<
+
+-- CR rally >>
+-- Respawns rally at the Unit Factory (avmuf) while it lives. Its loss fails the mission (misn0911),
+-- but until the result lands a respawn must not rally at a corpse: drop the rally point and the
+-- native MultST spawn (the player start buoys' team start) takes over.
+local rallyDropped = false
+local function UpdateRally()
+    if rallyDropped then return end
+    local factory = GetHandle("avmuf")
+    if factory == nil or not IsAlive(factory) then
+        rallyDropped = true
+        local respawn = CRCoop.GetRespawn()
+        if respawn then respawn.SetRallyPoints({}) end
+    end
+end
+-- CR rally <<
+
+-- Misn09Mission::Setup body (every peer runs it; only the leader acts on the state).
+local function Setup()
     M = NewState()
     --[==[ Original C++ comment (inactive):
 /*
@@ -320,7 +1210,8 @@ Here's where you set the values at the start.
 end
 
 -- Preserve the native first-empty-slot order and ODF-only matching: there is
--- deliberately no additional team filter, dead-slot reuse, or convoy exclusion.
+-- deliberately no dead-slot reuse or convoy exclusion. The only addition is the marked
+-- co-op team filter at the top of AddObject.
 local trackedObjects = {
     {"cca1", "svturr"}, {"cca2", "svturr"},
     {"cca3", "svturr"}, {"cca4", "svturr"},
@@ -331,6 +1222,17 @@ local trackedObjects = {
     {"nsdfgech1", "avwalk"}, {"ccatug", "svhaul"}, {"avsilo", "absilo"},
 }
 function AddObject(h)
+-- CR Venus weather >>
+    if h == nil then return end
+    Environment.OnObjectCreated(h)
+    CRVenusWeather.OnObjectCreated(h)
+-- CR Venus weather <<
+-- CR team filter >>
+    if not AddObjectTeamAllowed(h) then return end
+-- CR team filter <<
+-- CR cut VO >>
+    NoteBuiltUnit(h)
+-- CR cut VO <<
     for _, entry in ipairs(trackedObjects) do
         if M[entry[1]] == nil and IsOdfBase(h, entry[2]) then
             M[entry[1]] = h
@@ -339,7 +1241,99 @@ function AddObject(h)
     end
 end
 
+local function InitializeCoop()
+    CRCoop.Initialize({
+        getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
+        leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
+        onOutOfLives = function() FailMission(GetTime() + 3.0) end,
+        -- Rally at the Unit Factory (avmuf) while it lives; the rally watcher drops the point when it
+        -- dies and the native MultST team start takes over.
+        rallyPoints = { [0] = "avmuf" },
+    })
+    ConfigureAlliances()
+    ResetPresentation()
+-- CR rally >>
+    rallyDropped = false
+-- CR rally <<
+-- CR Venus weather >>
+    ShutdownVenusWeather()
+-- CR Venus weather <<
+end
+
+function Start()
+    InitializeCoop()
+    SetAIControl(ENEMY_TEAM, true)
+    Setup()
+    -- C++ Setup precedes AiMission::Load and its AddObject notifications.
+    -- Redux may create map objects before Start; recover the tracked slots
+    -- after Setup so those earlier notifications cannot be discarded.
+    for h in AllObjects() do
+        AddObject(h)
+    end
+    subtit.Initialize()
+end
+
+function CreatePlayer(id, name, team)
+    CRCoop.CreatePlayer(id, name, team)
+    ConfigureAlliances()
+end
+function AddPlayer(id, name, team)
+    CRCoop.AddPlayer(id, name, team)
+    ConfigureAlliances()
+end
+function DeletePlayer(id, name, team) CRCoop.DeletePlayer(id) end
+function Receive(from, kind, ...)
+    if ReceivePresentation(from, kind, ...) then return true end
+    return CRCoop.Receive(from, kind, ...)
+end
+
 function Update(dt)
+    subtit.Update()
+    CRCoop.Update()
+    UpdatePresentationTransport()
+    if M.coopResult or M.coopPendingResult then
+-- CR Venus weather >>
+        -- The storm keeps easing while the result screen counts down.
+        UpdateVenusWeather(dt)
+-- CR Venus weather <<
+        return
+    end
+    if CRCoop.IsNetworkGame() then
+        if CRCoop.HasLeaderDeparted() then
+            M.coopResult = true
+            if localCameraActive then native.CameraFinish() end
+            localCameraActive = false
+            native.FailMission(GetTime() + 1.0)
+            return
+        end
+        if CRCoop.HasUnsupportedPlayerTeam() or CRCoop.HasLateJoiners() then
+            if not M.coopRestartWarned then
+                DisplayMessage("Use distinct teams 1-4 and start together. Late join/rejoin requires a mission restart.")
+                M.coopRestartWarned = true
+            end
+            return
+        end
+        if not CRCoop.IsSessionReady() then return end
+    end
+    if not M.coopMissionStarted then
+        CRCoop.MarkMissionStarted()
+        M.coopMissionStarted = true
+    end
+    UpdateInfoRelay()
+-- CR Venus weather >>
+    UpdateVenusWeather(dt)
+-- CR Venus weather <<
+-- CR rally >>
+    UpdateRally()
+-- CR rally <<
+    if not CRCoop.IsAuthority() then return end
+    if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
+        M.coopBootstrapped = true
+        -- The authored offline placeholder must not remain beside the humans.
+        local offlinePlayer = GetHandle("player0_hover")
+        if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
+    end
+    -- Misn09Mission::Execute body (DLL order preserved below).
     --[==[ Original C++ comment (inactive):
 /*
 Here is where you put what happens every frame.  
@@ -351,7 +1345,7 @@ Here is where you put what happens every frame.
     if (M.relic_free) and (IsAlive(M.relic)) then
         M.tugger = GetTug(M.relic)
         if IsAlive(M.tugger) then
-            if GetTeamNum(M.tugger) == 1 then
+            if GetTeamNum(M.tugger) ~= ENEMY_TEAM then
                 M.relic_free = false
                 M.relic_secure = true
             else
@@ -404,6 +1398,9 @@ Here is where you put what happens every frame.
 */
     ]==]
     M.user = GetPlayerHandle()
+-- CR Venus weather >>
+    UpdateVenusBeats()
+-- CR Venus weather <<
     --[==[ Original C++ comment (inactive):
 //assigns the player a handle every frame
     ]==]
@@ -422,8 +1419,8 @@ Here is where you put what happens every frame.
     if not M.start_done then
         CameraReady()
         Defend(M.nsdfmuf)
-        SetScrap(2, 40)
-        SetPilot(2, 40)
+        SetScrap(ENEMY_TEAM, 40)
+        SetPilot(ENEMY_TEAM, 40)
         Follow(M.nsdfrig, M.nsdfmuf, 1)
         Follow(M.avscav1, M.nsdfmuf, 1)
         Follow(M.avscav2, M.nsdfmuf, 1)
@@ -524,7 +1521,7 @@ Here is where you put what happens every frame.
     ]==]
     if (M.muf_gobaby) and (M.muf_check < GetTime()) and (not M.muf_contact) then
         M.muf_check = GetTime() + 1.0
-        if Distance(M.user, M.nsdfmuf) < 70.0 then
+        if AnyPlayerWithin(M.nsdfmuf, 70.0) then
             Stop(M.nsdfmuf, 0)
             Stop(M.nsdfslf, 0)
             Defend(M.nsdfrig, 0)
@@ -612,7 +1609,7 @@ Here is where you put what happens every frame.
             AddObjective("misn0900.otf", "green")
             AddObjective("misn0901.otf", "white")
             Stop(M.nsdfrig, 0)
-            SetAIP("misn09.aip")
+            SetAIP("misn09.aip", ENEMY_TEAM)
             M.recon_message_time = GetTime() + 60.0
             M.cam_off = true
         end
@@ -624,7 +1621,7 @@ Here is where you put what happens every frame.
     end
     if (M.recon_message_time < GetTime()) and (not M.base_warning) then
         M.recon_message_time = GetTime() + 2.0
-        if ((IsAlive(M.nav1)) and (Distance(M.user, M.nav1) < 100.0)) or ((IsAlive(M.cca5)) and (Distance(M.user, M.cca5) < 400.0)) or ((IsAlive(M.cca6)) and (Distance(M.user, M.cca6) < 400.0)) then
+        if ((IsAlive(M.nav1)) and (AnyPlayerWithin(M.nav1, 100.0))) or ((IsAlive(M.cca5)) and (AnyPlayerWithin(M.cca5, 400.0))) or ((IsAlive(M.cca6)) and (AnyPlayerWithin(M.cca6, 400.0))) then
             AudioMessage("misn0914.wav")
             M.base_warning = true
         end
@@ -767,6 +1764,9 @@ Here is where you put what happens every frame.
 	}																								
 */
     ]==]
+-- CR tug rebuild >>
+    UpdateTugRebuild()
+-- CR tug rebuild <<
     --[==[ Original C++ comment (inactive):
 // if player destroys all the cca turrets///////////////////////////////////////////////
     ]==]
@@ -783,7 +1783,7 @@ Here is where you put what happens every frame.
         AddObjective("misn0902.otf", "white")
         AddObjective("misn0903.otf", "white")
         if not M.third_warning then
-            SetAIP("misn09a.aip")
+            SetAIP("misn09a.aip", ENEMY_TEAM)
             --[==[ Original C++ comment (inactive):
 // causes the soviets to get more aggresive
             ]==]
@@ -809,19 +1809,19 @@ Here is where you put what happens every frame.
     end
     if (not M.third_warning) and (M.third_warning_time < GetTime()) then
         M.third_warning_time = GetTime() + 11.0
-        if Distance(M.user, M.convoy_geyser) > 500.0 then
-            M.relic = BuildObject("obdata", 3, M.convoy_geyser)
-            M.ccatug = BuildObject("svhaul", 2, "spawn1")
-            M.convoy1 = BuildObject("svfigh", 2, "spawn2")
-            M.convoy2 = BuildObject("svfigh", 2, "spawn2")
-            M.convoy3 = BuildObject("svfigh", 2, "spawn2")
-            M.convoy4 = BuildObject("svfigh", 2, "spawn3")
-            M.convoy5 = BuildObject("svtank", 2, "spawn3")
-            M.convoy6 = BuildObject("svtank", 2, "spawn3")
-            M.convoy7 = BuildObject("svtank", 2, "spawn4")
-            M.convoy8 = BuildObject("svtank", 2, "spawn4")
-            M.convoy9 = BuildObject("svapc", 2, "spawn4")
-            M.convoy0 = BuildObject("svapc", 2, "spawn4")
+        if NoPlayerWithin(M.convoy_geyser, 500.0) then
+            M.relic = BuildObject("obdata", RELIC_TEAM, M.convoy_geyser)
+            M.ccatug = BuildObject("svhaul", ENEMY_TEAM, "spawn1")
+            M.convoy1 = BuildObject("svfigh", ENEMY_TEAM, "spawn2")
+            M.convoy2 = BuildObject("svfigh", ENEMY_TEAM, "spawn2")
+            M.convoy3 = BuildObject("svfigh", ENEMY_TEAM, "spawn2")
+            M.convoy4 = BuildObject("svfigh", ENEMY_TEAM, "spawn3")
+            M.convoy5 = BuildObject("svtank", ENEMY_TEAM, "spawn3")
+            M.convoy6 = BuildObject("svtank", ENEMY_TEAM, "spawn3")
+            M.convoy7 = BuildObject("svtank", ENEMY_TEAM, "spawn4")
+            M.convoy8 = BuildObject("svtank", ENEMY_TEAM, "spawn4")
+            M.convoy9 = BuildObject("svapc", ENEMY_TEAM, "spawn4")
+            M.convoy0 = BuildObject("svapc", ENEMY_TEAM, "spawn4")
             Defend(M.convoy1)
             Defend(M.convoy2)
             Defend(M.convoy3)
@@ -832,6 +1832,9 @@ Here is where you put what happens every frame.
             Defend(M.convoy8)
             Defend(M.convoy9)
             Defend(M.convoy0)
+-- CR convoy scaling >>
+            M.convoy_extra = SpawnConvoyExtras()
+-- CR convoy scaling <<
             --[==[ Original C++ comment (inactive):
 //			Pickup(ccatug, relic); // should do automatically
             ]==]
@@ -842,7 +1845,7 @@ Here is where you put what happens every frame.
                 AddObjective("misn0903.otf", "white")
             end
             M.win_check = GetTime() + 5.0
-            SetAIP("misn09b.aip")
+            SetAIP("misn09b.aip", ENEMY_TEAM)
             --[==[ Original C++ comment (inactive):
 // causes the soviets to get more reserved
             ]==]
@@ -867,6 +1870,9 @@ Here is where you put what happens every frame.
         Follow(M.convoy8, M.ccatug)
         Follow(M.convoy9, M.ccatug)
         Follow(M.convoy0, M.ccatug)
+-- CR convoy scaling >>
+        FollowConvoyExtras()
+-- CR convoy scaling <<
         M.convoy_cam_time = GetTime() + 7.0
         M.convoy_started = true
     end
@@ -897,7 +1903,7 @@ Here is where you put what happens every frame.
     if (IsAlive(M.charon)) and (not M.charon_found) then
         if M.charon_check < GetTime() then
             M.charon_check = GetTime() + 2.0
-            if Distance(M.user, M.charon) < 70.0 then
+            if AnyPlayerWithin(M.charon, 70.0) then
                 AudioMessage("misn0915.wav")
                 --[==[ Original C++ comment (inactive):
 // told to check out the charon
@@ -958,6 +1964,12 @@ Here is where you put what happens every frame.
     --[==[ Original C++ comment (inactive):
 // end of general's warings /////////////////////////////////////////////////////////////
     ]==]
+-- CR Prescott platoon >>
+    UpdatePrescott()
+-- CR Prescott platoon <<
+-- CR cut VO >>
+    UpdateCutVo()
+-- CR cut VO <<
     --[==[ Original C++ comment (inactive):
 // win/victory conditions  
     ]==]
@@ -988,7 +2000,7 @@ Here is where you put what happens every frame.
     end
     if (M.convoy_started) and (M.unit_check < GetTime()) and (not M.game_over5) then
         M.unit_check = GetTime() + 10.0
-        M.stuff = CountUnitsNearObject(M.convoy_geyser, 5000.0, 2, nil)
+        M.stuff = CountUnitsNearObject(M.convoy_geyser, 5000.0, ENEMY_TEAM, nil)
         if M.stuff == 0 then
             AudioMessage("misn0908.wav")
             --[==[ Original C++ comment (inactive):
@@ -998,6 +2010,13 @@ Here is where you put what happens every frame.
 //			SucceedMission(Get_Time() + 15.0f, "misn09w1.des");
             ]==]
             M.game_over5 = true
+-- CR geyser-clear win >>
+            -- The DLL cut SucceedMission here; clearing every CCA unit near the geyser wins.
+            if not M.game_over then
+                SucceedMission(GetTime() + 15.0, "misn09w1.des")
+                M.game_over = true
+            end
+-- CR geyser-clear win <<
         end
     end
     if (IsAlive(M.relic)) and (not M.relic_seized) and (M.win_check < GetTime()) and (not M.game_over) then
@@ -1035,6 +2054,11 @@ end
 -- BZR serializes this table's primitive/game types and restores object handles.
 -- Load must not run Setup/Start or replay any spawns, commands, or cameras.
 function Save()
+-- CR Venus weather >>
+    if venusStarted and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
+        M.weatherState = CRVenusWeather.Save()
+    end
+-- CR Venus weather <<
     return M
 end
 function Load(state)
