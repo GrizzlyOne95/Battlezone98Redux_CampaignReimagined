@@ -3765,7 +3765,10 @@ function aiCore.WeaponManager.new(teamNum)
     self.doubleUsers = {}
     self.doubleRate = 20
     self.doubleMaskCheckAt = {}
-    self.doubleMaskInterval = 0.9
+    -- A double/single roll is held this long (plus up to doubleMaskJitter) before re-rolling,
+    -- so a unit commits to a weapon mode instead of flipping between them every second.
+    self.doubleMaskInterval = 30.0
+    self.doubleMaskJitter = 15.0
 
     -- Missile users with non-missile fallback
     self.missileUsers = {}
@@ -4175,7 +4178,7 @@ function aiCore.WeaponManager:UpdateDoubleWeapons(dt)
             if self.teamObj and self.teamObj.doubleMasked then self.teamObj.doubleMasked[h] = nil end
         else
             if self.teamObj and not aiCore.IsHumanCraft(h) and now >= (self.doubleMaskCheckAt[h] or 0.0) then
-                self.doubleMaskCheckAt[h] = now + (self.doubleMaskInterval or 0.9) + math.random() * 0.35
+                self.doubleMaskCheckAt[h] = now + (self.doubleMaskInterval or 30.0) + math.random() * (self.doubleMaskJitter or 15.0)
                 self.teamObj:SetDoubleWeaponMask(h, doubleRate)
             end
         end
