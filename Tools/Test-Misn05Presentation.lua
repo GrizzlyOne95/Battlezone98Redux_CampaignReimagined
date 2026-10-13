@@ -30,7 +30,12 @@ local function peer(id)
     env.SetMaxPilot = function(team, n) assert(team == id); p.resources.maxPilots = n end
     env.SetScrap = function(team, n) assert(team == id); p.resources.scrap = math.min(n, p.resources.maxScrap) end
     env.SetPilot = function(team, n) assert(team == id); p.resources.pilots = math.min(n, p.resources.maxPilots) end
-    env.GetTime = function() return now end
+    -- p.clock offsets this peer's GetTime() from the shared test clock (clock skew).
+    -- p.labels maps handle -> map label (GetLabel); p.byLabel maps label -> handle (GetHandle).
+    env.GetTime = function() return now + (p.clock or 0) end
+    p.labels, p.byLabel = {}, {}
+    env.GetLabel = function(h) return p.labels[h] end
+    env.GetHandle = function(label) return p.byLabel[label] end
     env.IsValid = function(h) return p.valid[h] == true end
     env.Send = function(to, kind, ...)
         packets[#packets+1] = {from=id, to=to, kind=kind, args={...}}
@@ -57,9 +62,15 @@ local function peer(id)
     p.api = chunk(); peers[id] = p
     return p
 end
-local function count(p, op)
-    local n = 0; for _, call in ipairs(p.calls) do if call[1] == op then n = n + 1 end end
+local function count(p, op, first)
+    local n = 0
+    for _, call in ipairs(p.calls) do
+        if call[1] == op and (first == nil or call[2] == first) then n = n + 1 end
+    end
     return n
+end
+local function last(p, op)
+    for i = #p.calls, 1, -1 do if p.calls[i][1] == op then return p.calls[i] end end
 end
 local function deliver(reverse)
     local batch = packets; packets = {}
@@ -117,21 +128,75 @@ guest.api.receive(3, "C", 999, 99, "", 0, 0, 0); guest.api.update()
 check(guest.api.state(), "non-leader camera messages must be ignored")
 
 -- Drop the first event and reorder the retransmission; markers wait for replicas.
-guest.valid.marker = false
-third.valid.marker, fourth.valid.marker = true, true
-host.valid.marker = true
-host.api.present("SetObjectiveName", "marker", "Commander Eldritch")
+-- Real handles are numbers; strings on the wire are map labels.
+local MARKER = 9001
+guest.valid[MARKER] = false
+third.valid[MARKER], fourth.valid[MARKER] = true, true
+host.valid[MARKER] = true
+host.api.present("SetObjectiveName", MARKER, "Commander Eldritch")
 host.api.present("AddObjective", "misn0502.otf", "white")
 host.api.ending("SucceedMission", now, "misn05w1.des")
 host.api.update(); packets = {} -- loss
 tick(true)
 check(count(guest, "SetObjectiveName") == 0 and count(guest, "SucceedMission") == 0,
     "missing replica and out-of-order events must hold the result")
-guest.valid.marker = true
+guest.valid[MARKER] = true
 for _=1,8 do tick(true) end
 check(count(guest, "SetObjectiveName") == 1 and count(guest, "AddObjective") == 1,
     "retries apply ordered events exactly once")
 for _, p in pairs(peers) do
     check(count(p, "SucceedMission") == 1, "all four peers must receive exactly one result")
 end
+-- A map object the engine cannot carry as a handle (the rendezvous geyser, nil on
+-- every guest in the live 4-client run) goes by LABEL. Guest clocks are far from the
+-- leader's (the old absolute `expires` made a guest drop the marker on first
+-- receipt) and the label may resolve late: the marker must still land, in order,
+-- exactly once.
+local LABEL = "eggeizr1-1_geyser"
+host.labels.geyser, host.byLabel[LABEL], host.valid.geyser = LABEL, "geyser", true
+guest.clock, third.clock, fourth.clock = 100, -50, 0
+third.byLabel[LABEL], fourth.byLabel[LABEL] = "geyser@3", "geyser@4"
+third.valid["geyser@3"], fourth.valid["geyser@4"] = true, true
+local mark = #guest.calls
+host.api.present("SetObjectiveName", "geyser", "5th Platoon")
+host.api.present("SetObjectiveOn", "geyser")
+host.api.present("AddObjective", "misn0510.otf", "white")
+for _=1,4 do tick() end
+check(count(host, "SetObjectiveName", "geyser") == 1 and count(host, "SetObjectiveOn", "geyser") == 1,
+    "the leader applies its own marker with the real handle")
+check(count(third, "SetObjectiveName", "geyser@3") == 1 and count(fourth, "SetObjectiveOn", "geyser@4") == 1,
+    "a label resolves per guest whatever the guest clock reads")
+check(last(third, "SetObjectiveName")[3] == "5th Platoon", "the objective name survives the label swap")
+check(count(guest, "SetObjectiveName", "geyser@2") == 0 and count(guest, "AddObjective", "misn0510.otf") == 0,
+    "a label not yet resolvable on a guest holds the stream in order, even with its clock far ahead")
+guest.byLabel[LABEL] = "geyser@2"; guest.valid["geyser@2"] = true
+for _=1,3 do tick() end
+check(count(guest, "SetObjectiveName", "geyser@2") == 1 and count(guest, "SetObjectiveOn", "geyser@2") == 1 and
+    count(guest, "AddObjective", "misn0510.otf") == 1, "a late-resolving marker lands once, before the next event")
+check(count(third, "SetObjectiveOn", "geyser@3") == 1, "retransmission never double-applies")
+
+-- A label that never resolves (target genuinely gone) drops after the guest's OWN 5 s
+-- and never blocks the stream; an Off for it is skipped without waiting.
+host.labels.gone, host.byLabel.gone, host.valid.gone = "gone", "gone", true
+for _, p in ipairs({guest, third, fourth}) do p.clock = p.clock + 7 end -- clocks jump: wait is relative
+host.api.present("SetObjectiveOn", "gone")
+host.api.present("AddObjective", "misn0511.otf", "white")
+host.api.present("SetObjectiveOff", "gone")
+host.api.present("AddObjective", "misn0512.otf", "white")
+for _=1,12 do tick() end
+check(count(guest, "AddObjective", "misn0511.otf") == 0, "the guest waits before dropping a marker (3 s of 5)")
+for _=1,12 do tick() end
+for _, p in ipairs({guest, third, fourth}) do
+    check(count(p, "SetObjectiveOn", "gone") == 0 and count(p, "SetObjectiveOff", "gone") == 0,
+        "a marker for a vanished target is dropped, not applied with nil")
+    check(count(p, "AddObjective", "misn0511.otf") == 1 and count(p, "AddObjective", "misn0512.otf") == 1,
+        "the stream resumes after the stale marker")
+end
+
+-- An object with no map label still travels as a plain handle (unchanged path).
+local DYN = 9002
+host.valid[DYN] = true
+for _, p in ipairs({guest, third, fourth}) do p.valid[DYN] = true end
+host.api.present("SetUserTarget", DYN); for _=1,4 do tick() end
+check(count(guest, "SetUserTarget", DYN) == 1, "unlabelled objects keep the plain handle path")
 print("misn05 object-camera, replica wait, local skip and ordered result checks passed: " .. checks)
