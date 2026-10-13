@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Bundle OpenShim 1.0.0.50. OpenShim now also stages a newer Workshop
+  suite at the main menu and offers Restart now, refreshes its renderer
+  and menu UI files from the Workshop item at startup, and can be turned
+  off with Auto-Install Updates in OpenShim Options.
 - OpenShim updates now install automatically: starting a single-player
   campaign mission stages a newer bundled OpenShim and installs it when you
   quit. Turn it off with `AutoStage=0` under `[Updater]` in openshim.ini.
