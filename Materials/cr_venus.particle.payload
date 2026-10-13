@@ -1,0 +1,461 @@
+// cr_venus.particle
+//
+// Ogre particle templates for the Venus weather director (CRVenusWeather.lua).
+//
+// Unlike cr_weather.particle these are WORLD-PLACED systems: fog pools sit in
+// basins, pools bubble on liquid-sulphur tiles, plumes rise from vents, bolts
+// strike a point. The director creates each one at a position, streams it in
+// and out around the players, and caps how many exist at once.
+//
+// Every material below already exists in CR_reactive.material, so this file
+// adds templates only -- no new art, no new materials. Where a placeholder
+// would improve with a dedicated texture, Docs/VENUS_WEATHER.md says so.
+//
+// Axis note for Box emitters (Ogre AreaEmitter): `direction` is the DEPTH axis.
+// With direction 0 1 0, depth runs vertically and width/height are horizontal.
+// With a horizontal direction, `height` becomes the thin vertical axis, which is
+// what the flat fog and cloud sheets rely on. The director re-aims the sheets
+// along the wind, which keeps that relationship.
+//
+// Emitter ORDER MATTERS: CRVenusWeather addresses emitters by index.
+
+// =============================================================================
+// Fog pools -- low basins fill with sulphur-tinted cloud
+// =============================================================================
+
+//   emitter 0  Box sheet
+//   affector 0 ColourInterpolator   (fade in over the first fifth, fade out at the end)
+//   affector 1 Scaler
+//   affector 2 LinearForce          (live wind from the director)
+//   affector 3 DirectionRandomiser
+particle_system CR/Venus/FogPool
+{
+    material            CR_FX/Haze
+    particle_width      64.0
+    particle_height     64.0
+    quota               90
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               30
+        emission_rate       2.6
+        time_to_live_min    24.0
+        time_to_live_max    34.0
+        direction           1 0 -0.7
+        velocity_min        0.3
+        velocity_max        1.1
+        colour_range_start  0.74 0.70 0.22 0.00
+        colour_range_end    0.62 0.60 0.18 0.00
+        width               96
+        height              7
+        depth               96
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.74 0.70 0.22 0.00
+        time1   0.20
+        colour1 0.74 0.70 0.22 0.22
+        time2   0.78
+        colour2 0.64 0.62 0.19 0.18
+        time3   1.00
+        colour3 0.56 0.54 0.16 0.00
+    }
+
+    affector Scaler
+    {
+        rate 1.2
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 0
+        force_application   add
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  3
+        scope       0.3
+        keep_velocity true
+    }
+}
+
+// =============================================================================
+// Lightning
+// =============================================================================
+
+// The bolt: a column of short, leaning arc cards. oriented_self lays each card
+// along its own velocity, and the emitter's spread angle makes the velocities
+// lean, so the stack reads as a jagged channel rather than a vertical stripe.
+// The node sits at mid-height; the director sets the emission rate for a burst
+// of roughly a tenth of a second and then shuts it off.
+//
+//   emitter 0  main channel (full height)
+//   emitter 1  upper fork   (offset up the channel, wider)
+particle_system CR/Venus/Bolt
+{
+    material            CR_FX/Arc
+    particle_width      5.0
+    particle_height     18.0
+    quota               160
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Box
+    {
+        angle               34
+        emission_rate       0
+        time_to_live_min    0.10
+        time_to_live_max    0.24
+        direction           0 1 0
+        velocity_min        6
+        velocity_max        16
+        colour_range_start  0.88 0.94 1.00 1.00
+        colour_range_end    0.60 0.78 1.00 0.85
+        width               3.5
+        height              3.5
+        depth               240
+    }
+
+    emitter Box
+    {
+        angle               62
+        emission_rate       0
+        time_to_live_min    0.08
+        time_to_live_max    0.20
+        direction           0 1 0
+        position            0 70 0
+        velocity_min        10
+        velocity_max        26
+        colour_range_start  0.78 0.88 1.00 0.90
+        colour_range_end    0.50 0.70 1.00 0.60
+        width               30
+        height              30
+        depth               90
+    }
+
+    affector ColourFader
+    {
+        alpha -5.5
+    }
+}
+
+// Hot flash where the bolt lands.
+particle_system CR/Venus/BoltGlow
+{
+    material            CR_FX/Bloom
+    particle_width      26.0
+    particle_height     26.0
+    quota               24
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               180
+        emission_rate       0
+        time_to_live_min    0.25
+        time_to_live_max    0.50
+        direction           0 1 0
+        velocity_min        0.5
+        velocity_max        3
+        colour_range_start  0.92 0.96 1.00 0.90
+        colour_range_end    0.70 0.86 1.00 0.60
+    }
+
+    affector Scaler
+    {
+        rate 70
+    }
+
+    affector ColourFader
+    {
+        alpha -2.2
+    }
+}
+
+// St Elmo's fire. Telegraphs a strike: a corona of cold sparks crawls on the
+// target for a second or two before the bolt, so a player can read where it is
+// about to land and get clear.
+particle_system CR/Venus/StElmo
+{
+    material            CR_FX/Ion
+    particle_width      2.4
+    particle_height     2.4
+    quota               90
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               85
+        emission_rate       0
+        time_to_live_min    0.35
+        time_to_live_max    0.85
+        direction           0 1 0
+        velocity_min        2
+        velocity_max        8
+        colour_range_start  0.60 0.82 1.00 0.90
+        colour_range_end    0.35 0.55 1.00 0.00
+        width               9
+        height              9
+        depth               6
+    }
+
+    affector ColourFader
+    {
+        alpha -1.3
+    }
+}
+
+// =============================================================================
+// Sulphur pools
+// =============================================================================
+
+//   emitter 0  steam over the pool, continuous
+//   emitter 1  burp: a short hard puff, rate driven by the director
+particle_system CR/Venus/SulfurPool
+{
+    material            CR_FX/Haze
+    particle_width      7.0
+    particle_height     7.0
+    quota               120
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               24
+        emission_rate       5
+        time_to_live_min    3.0
+        time_to_live_max    5.5
+        direction           0 1 0
+        velocity_min        0.8
+        velocity_max        2.4
+        colour_range_start  0.92 0.84 0.24 0.30
+        colour_range_end    0.78 0.68 0.18 0.00
+        width               14
+        height              14
+        depth               1
+    }
+
+    emitter Point
+    {
+        angle               30
+        emission_rate       0
+        time_to_live_min    1.6
+        time_to_live_max    3.2
+        direction           0 1 0
+        velocity_min        5
+        velocity_max        11
+        colour_range_start  0.98 0.90 0.30 0.55
+        colour_range_end    0.84 0.74 0.20 0.00
+    }
+
+    affector Scaler
+    {
+        rate 2.4
+    }
+
+    affector ColourFader
+    {
+        alpha -0.09
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 0
+        force_application   add
+    }
+}
+
+// =============================================================================
+// Volcanic vents
+// =============================================================================
+
+//   emitter 0  steady smoke
+//   emitter 1  eruption ash burst (rate driven by the director)
+//   affector 0 Scaler
+//   affector 1 ColourFader
+//   affector 2 LinearForce          (live wind)
+//   affector 3 Rotator
+particle_system CR/Venus/Plume
+{
+    material            CR_FX/SmokeHeavy
+    particle_width      14.0
+    particle_height     14.0
+    quota               260
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               11
+        emission_rate       6
+        time_to_live_min    7.0
+        time_to_live_max    11.0
+        direction           0 1 0
+        velocity_min        6
+        velocity_max        10
+        colour_range_start  0.46 0.41 0.27 0.45
+        colour_range_end    0.30 0.28 0.19 0.00
+    }
+
+    emitter Point
+    {
+        angle               26
+        emission_rate       0
+        time_to_live_min    5.0
+        time_to_live_max    9.0
+        direction           0 1 0
+        velocity_min        22
+        velocity_max        40
+        colour_range_start  0.20 0.17 0.13 0.80
+        colour_range_end    0.34 0.28 0.18 0.00
+    }
+
+    affector Scaler
+    {
+        rate 2.6
+    }
+
+    affector ColourFader
+    {
+        alpha -0.06
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 0
+        force_application   add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -25
+        rotation_speed_range_end     25
+        rotation_range_start          0
+        rotation_range_end          360
+    }
+}
+
+// Glowing embers thrown by an eruption. Additive and short-lived; gravity pulls
+// them back down so the burst reads as thrown rather than floating.
+particle_system CR/Venus/Embers
+{
+    material            CR_FX/Ember
+    particle_width      1.3
+    particle_height     1.3
+    quota               140
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               42
+        emission_rate       0
+        time_to_live_min    2.0
+        time_to_live_max    4.2
+        direction           0 1 0
+        velocity_min        18
+        velocity_max        34
+        colour_range_start  1.00 0.58 0.18 0.95
+        colour_range_end    0.70 0.20 0.05 0.60
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -14 0
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        red     -0.18
+        green   -0.30
+        blue    -0.08
+        alpha   -0.22
+    }
+}
+
+// =============================================================================
+// Storm cloud deck
+// =============================================================================
+
+// Huge, slow, very faint cards high above the playable area. Two instances at
+// different heights are driven in opposite senses so the deck seems to churn.
+// World-placed (not camera-centred): the director positions it over the map.
+//   affector 0 ColourInterpolator   (tint is rewritten live with severity)
+//   affector 1 Rotator
+//   affector 2 LinearForce          (the director precesses this)
+particle_system CR/Venus/CloudDeck
+{
+    material            CR_FX/SmokeHeavy
+    particle_width      420.0
+    particle_height     420.0
+    quota               90
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               20
+        emission_rate       2.0
+        time_to_live_min    40.0
+        time_to_live_max    58.0
+        direction           1 0 -0.7
+        velocity_min        1.5
+        velocity_max        4.5
+        colour_range_start  0.40 0.30 0.14 0.00
+        colour_range_end    0.34 0.26 0.12 0.00
+        width               2600
+        height              40
+        depth               2600
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.40 0.30 0.14 0.00
+        time1   0.22
+        colour1 0.40 0.30 0.14 0.16
+        time2   0.78
+        colour2 0.34 0.26 0.12 0.14
+        time3   1.00
+        colour3 0.30 0.23 0.10 0.00
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -5
+        rotation_speed_range_end     5
+        rotation_range_start          0
+        rotation_range_end          360
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 0
+        force_application   add
+    }
+}

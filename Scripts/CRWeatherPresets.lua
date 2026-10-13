@@ -1340,6 +1340,349 @@ CRWeatherPresets.Presets = {
         transitionIn  = 24.0,
         transitionOut = 30.0,
     },
+
+    -- =========================================================================
+    -- Venus ladder. The five rungs CRVenusWeather walks. They carry NO lightning
+    -- policy: strikes are scheduled, targeted and (in co-op) shared by the
+    -- director, and CRWeather's own solo timer would put a second, unsynchronised
+    -- storm on top of it. They carry no sky either -- the CR_Sky domes are still
+    -- placeholders -- so the storm reads through fog, light, cloud and rain.
+    --
+    -- Venus is a thick, dim, orange-yellow overcast: all light is scattered, so
+    -- the rungs differ in how much of it survives and in how green it goes.
+    -- Calm sits warm and flat; each rung after drops the light and pulls it
+    -- toward sulphur-green, so a severe storm is dark and sickly between flashes
+    -- instead of merely brown. Fog ends are authored for a ~100 unit terrain
+    -- horizon (the misn07 TRN); CRWeather clamps them to whatever horizon a map
+    -- really has.
+    --
+    -- Rain here is acid cloud falling as streaks: purely a particle layer. Nothing
+    -- in this file, or in the director, damages anything.
+    -- =========================================================================
+
+    VenusCalm = {
+        name = "VenusCalm",
+        precipitation = {
+            {
+                system   = "cr_wx_venus_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 24.0, z = 0.0 },
+                quota    = 520,
+                emitters = {
+                    [0] = {
+                        rate     = 22.0,
+                        velocity = { 1.0, 3.0 },
+                        ttl      = { 14.0, 22.0 },
+                        angle    = 80.0,
+                        color    = {
+                            start  = { r = 0.80, g = 0.62, b = 0.28, a = 0.30 },
+                            finish = { r = 0.55, g = 0.40, b = 0.17, a = 0.00 },
+                        },
+                    },
+                },
+            },
+        },
+        sky           = nil,
+        fog           = { r = 0.52, g = 0.38, b = 0.16, fogStart = 30.0, fogEnd = 100.0 },
+        ambient       = { r = 0.42, g = 0.31, b = 0.15 },
+        diffuse       = { r = 0.58, g = 0.44, b = 0.20 },
+        sunPowerScale = 0.40,
+        wind          = { x = 0.46, y = -0.10, z = -0.88 },
+        windSpeed     = 3.0,
+        lightning     = nil,
+        transitionIn  = 20.0,
+        transitionOut = 26.0,
+    },
+
+    VenusHaze = {
+        name = "VenusHaze",
+        precipitation = {
+            {
+                system   = "cr_wx_venus_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 26.0, z = 0.0 },
+                quota    = 700,
+                emitters = {
+                    [0] = {
+                        rate     = 34.0,
+                        velocity = { 1.5, 4.0 },
+                        ttl      = { 14.0, 22.0 },
+                        angle    = 80.0,
+                        color    = {
+                            start  = { r = 0.76, g = 0.60, b = 0.25, a = 0.38 },
+                            finish = { r = 0.50, g = 0.38, b = 0.15, a = 0.00 },
+                        },
+                    },
+                },
+            },
+            {
+                system   = "cr_wx_venus_grit",
+                template = "CR/Weather/DustGrit",
+                offset   = { x = 0.0, y = 3.0, z = 0.0 },
+                quota    = 240,
+                emitters = {
+                    [0] = {
+                        rate     = 12.0,
+                        velocity = { 2.0, 4.0 },
+                        ttl      = { 3.5, 6.0 },
+                        angle    = 40.0,
+                        color    = {
+                            start  = { r = 0.62, g = 0.47, b = 0.22, a = 0.55 },
+                            finish = { r = 0.40, g = 0.29, b = 0.12, a = 0.12 },
+                        },
+                    },
+                },
+            },
+        },
+        sky           = nil,
+        fog           = { r = 0.48, g = 0.36, b = 0.15, fogStart = 26.0, fogEnd = 92.0 },
+        ambient       = { r = 0.37, g = 0.28, b = 0.14 },
+        diffuse       = { r = 0.50, g = 0.39, b = 0.18 },
+        sunPowerScale = 0.34,
+        wind          = { x = 0.46, y = -0.12, z = -0.88 },
+        windSpeed     = 5.0,
+        lightning     = nil,
+        transitionIn  = 22.0,
+        transitionOut = 28.0,
+    },
+
+    VenusRising = {
+        name = "VenusRising",
+        precipitation = {
+            {
+                system   = "cr_wx_venus_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 28.0, z = 0.0 },
+                quota    = 900,
+                emitters = {
+                    [0] = {
+                        rate     = 40.0,
+                        velocity = { 2.0, 5.0 },
+                        ttl      = { 12.0, 20.0 },
+                        angle    = 80.0,
+                        color    = {
+                            start  = { r = 0.66, g = 0.56, b = 0.22, a = 0.42 },
+                            finish = { r = 0.42, g = 0.36, b = 0.13, a = 0.00 },
+                        },
+                    },
+                },
+            },
+            {
+                system   = "cr_wx_venus_grit",
+                template = "CR/Weather/DustGrit",
+                offset   = { x = 0.0, y = 3.0, z = 0.0 },
+                quota    = 420,
+                emitters = {
+                    [0] = {
+                        rate     = 24.0,
+                        velocity = { 3.0, 6.0 },
+                        ttl      = { 3.0, 5.5 },
+                        angle    = 40.0,
+                        color    = {
+                            start  = { r = 0.58, g = 0.48, b = 0.20, a = 0.62 },
+                            finish = { r = 0.36, g = 0.30, b = 0.11, a = 0.14 },
+                        },
+                    },
+                },
+            },
+            {
+                system   = "cr_wx_venus_rain",
+                template = "CR/Weather/Rain",
+                offset   = { x = 0.0, y = 34.0, z = 0.0 },
+                quota    = 1600,
+                emitters = {
+                    [0] = {
+                        rate     = 150.0,
+                        velocity = { 40.0, 54.0 },
+                        ttl      = { 1.4, 2.2 },
+                        angle    = 7.0,
+                        color    = {
+                            start  = { r = 0.62, g = 0.72, b = 0.26, a = 0.30 },
+                            finish = { r = 0.50, g = 0.58, b = 0.20, a = 0.14 },
+                        },
+                    },
+                },
+            },
+        },
+        sky           = nil,
+        fog           = { r = 0.40, g = 0.31, b = 0.13, fogStart = 22.0, fogEnd = 84.0 },
+        ambient       = { r = 0.30, g = 0.24, b = 0.12 },
+        diffuse       = { r = 0.40, g = 0.32, b = 0.15 },
+        sunPowerScale = 0.26,
+        wind          = { x = 0.50, y = -0.16, z = -0.85 },
+        windSpeed     = 9.0,
+        lightning     = nil,
+        transitionIn  = 22.0,
+        transitionOut = 28.0,
+    },
+
+    VenusStorm = {
+        name = "VenusStorm",
+        precipitation = {
+            {
+                system   = "cr_wx_venus_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 30.0, z = 0.0 },
+                quota    = 900,
+                emitters = {
+                    [0] = {
+                        rate     = 46.0,
+                        velocity = { 3.0, 7.0 },
+                        ttl      = { 10.0, 17.0 },
+                        angle    = 80.0,
+                        color    = {
+                            start  = { r = 0.52, g = 0.50, b = 0.18, a = 0.46 },
+                            finish = { r = 0.34, g = 0.34, b = 0.11, a = 0.00 },
+                        },
+                    },
+                },
+            },
+            {
+                system   = "cr_wx_venus_grit",
+                template = "CR/Weather/DustGrit",
+                offset   = { x = 0.0, y = 3.0, z = 0.0 },
+                quota    = 420,
+                emitters = {
+                    [0] = {
+                        rate     = 30.0,
+                        velocity = { 4.0, 8.0 },
+                        ttl      = { 2.8, 5.0 },
+                        angle    = 40.0,
+                        color    = {
+                            start  = { r = 0.50, g = 0.46, b = 0.18, a = 0.66 },
+                            finish = { r = 0.30, g = 0.28, b = 0.10, a = 0.16 },
+                        },
+                    },
+                },
+            },
+            {
+                system   = "cr_wx_venus_rain",
+                template = "CR/Weather/Rain",
+                offset   = { x = 0.0, y = 34.0, z = 0.0 },
+                quota    = 3000,
+                emitters = {
+                    [0] = {
+                        rate     = 340.0,
+                        velocity = { 44.0, 60.0 },
+                        ttl      = { 1.4, 2.2 },
+                        angle    = 8.0,
+                        color    = {
+                            start  = { r = 0.56, g = 0.70, b = 0.24, a = 0.42 },
+                            finish = { r = 0.44, g = 0.56, b = 0.18, a = 0.22 },
+                        },
+                    },
+                },
+            },
+            {
+                system   = "cr_wx_venus_splash",
+                template = "CR/Weather/RainSplash",
+                offset   = { x = 0.0, y = 0.5, z = 0.0 },
+                quota    = 200,
+                emitters = {
+                    [0] = {
+                        rate     = 36.0,
+                        velocity = { 1.0, 3.0 },
+                        ttl      = { 0.2, 0.5 },
+                        angle    = 180.0,
+                    },
+                },
+            },
+        },
+        sky           = nil,
+        fog           = { r = 0.30, g = 0.27, b = 0.11, fogStart = 18.0, fogEnd = 72.0 },
+        ambient       = { r = 0.22, g = 0.20, b = 0.10 },
+        diffuse       = { r = 0.27, g = 0.25, b = 0.12 },
+        sunPowerScale = 0.18,
+        wind          = { x = 0.52, y = -0.20, z = -0.83 },
+        windSpeed     = 14.0,
+        lightning     = nil,
+        transitionIn  = 20.0,
+        transitionOut = 26.0,
+    },
+
+    VenusSevere = {
+        name = "VenusSevere",
+        precipitation = {
+            {
+                system   = "cr_wx_venus_haze",
+                template = "CR/Weather/MarsHaze",
+                offset   = { x = 0.0, y = 30.0, z = 0.0 },
+                quota    = 900,
+                emitters = {
+                    [0] = {
+                        rate     = 50.0,
+                        velocity = { 4.0, 9.0 },
+                        ttl      = { 9.0, 15.0 },
+                        angle    = 80.0,
+                        color    = {
+                            start  = { r = 0.40, g = 0.46, b = 0.15, a = 0.50 },
+                            finish = { r = 0.26, g = 0.30, b = 0.09, a = 0.00 },
+                        },
+                    },
+                },
+            },
+            {
+                system   = "cr_wx_venus_grit",
+                template = "CR/Weather/DustGrit",
+                offset   = { x = 0.0, y = 3.0, z = 0.0 },
+                quota    = 420,
+                emitters = {
+                    [0] = {
+                        rate     = 36.0,
+                        velocity = { 5.0, 10.0 },
+                        ttl      = { 2.5, 4.5 },
+                        angle    = 40.0,
+                        color    = {
+                            start  = { r = 0.42, g = 0.44, b = 0.16, a = 0.70 },
+                            finish = { r = 0.24, g = 0.26, b = 0.09, a = 0.18 },
+                        },
+                    },
+                },
+            },
+            {
+                system   = "cr_wx_venus_rain",
+                template = "CR/Weather/Rain",
+                offset   = { x = 0.0, y = 34.0, z = 0.0 },
+                quota    = 4000,
+                emitters = {
+                    [0] = {
+                        rate     = 520.0,
+                        velocity = { 48.0, 64.0 },
+                        ttl      = { 1.4, 2.2 },
+                        angle    = 9.0,
+                        color    = {
+                            start  = { r = 0.50, g = 0.68, b = 0.22, a = 0.52 },
+                            finish = { r = 0.40, g = 0.54, b = 0.16, a = 0.28 },
+                        },
+                    },
+                },
+            },
+            {
+                system   = "cr_wx_venus_splash",
+                template = "CR/Weather/RainSplash",
+                offset   = { x = 0.0, y = 0.5, z = 0.0 },
+                quota    = 300,
+                emitters = {
+                    [0] = {
+                        rate     = 55.0,
+                        velocity = { 1.0, 3.0 },
+                        ttl      = { 0.2, 0.5 },
+                        angle    = 180.0,
+                    },
+                },
+            },
+        },
+        sky           = nil,
+        fog           = { r = 0.20, g = 0.22, b = 0.09, fogStart = 12.0, fogEnd = 56.0 },
+        ambient       = { r = 0.15, g = 0.17, b = 0.08 },
+        diffuse       = { r = 0.18, g = 0.20, b = 0.09 },
+        sunPowerScale = 0.12,
+        wind          = { x = 0.54, y = -0.24, z = -0.80 },
+        windSpeed     = 20.0,
+        lightning     = nil,
+        transitionIn  = 18.0,
+        transitionOut = 26.0,
+    },
 }
 
 -- Case-insensitive lookup so mission scripts and settings strings do not have
