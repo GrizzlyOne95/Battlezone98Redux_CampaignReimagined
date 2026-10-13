@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-13T14:15:18-05:00",
-  "count": 2267,
+  "count": 2282,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10,6 +10,14 @@
     {
       "source": "Assets\\ACT\\moon.act",
       "runtime": "moon.act"
+    },
+    {
+      "source": "Assets\\Audio\\misn0717.wav",
+      "runtime": "misn0717.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0719.wav",
+      "runtime": "misn0719.wav"
     },
     {
       "source": "Assets\\Audio\\misn0232.wav",
@@ -126,6 +134,10 @@
     {
       "source": "Assets\\Graphics\\misn06.bmp",
       "runtime": "misn06.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn07.bmp",
+      "runtime": "misn07.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -518,6 +530,10 @@
     {
       "source": "Config\\misn06.ini",
       "runtime": "misn06.ini"
+    },
+    {
+      "source": "Config\\misn07.ini",
+      "runtime": "misn07.ini"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -2260,6 +2276,10 @@
       "runtime": "CR_uitexmat.material"
     },
     {
+      "source": "Materials\\cr_venus.particle.payload",
+      "runtime": "cr_venus.particle.payload"
+    },
+    {
       "source": "Materials\\cr_weather.particle.payload",
       "runtime": "cr_weather.particle.payload"
     },
@@ -2844,6 +2864,10 @@
       "runtime": "misn06.des"
     },
     {
+      "source": "misn07.des",
+      "runtime": "misn07.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -2982,6 +3006,30 @@
     {
       "source": "Missions\\misn06.vxt",
       "runtime": "misn06.vxt"
+    },
+    {
+      "source": "Missions\\misn07.bzn",
+      "runtime": "misn07.bzn"
+    },
+    {
+      "source": "Missions\\misn07.hg2",
+      "runtime": "misn07.hg2"
+    },
+    {
+      "source": "Missions\\misn07.lgt",
+      "runtime": "misn07.lgt"
+    },
+    {
+      "source": "Missions\\misn07.mat",
+      "runtime": "misn07.mat"
+    },
+    {
+      "source": "Missions\\misn07.trn",
+      "runtime": "misn07.trn"
+    },
+    {
+      "source": "Missions\\misn07.vxt",
+      "runtime": "misn07.vxt"
     },
     {
       "source": "Missions\\sxshow.bzn",
@@ -5386,6 +5434,18 @@
     {
       "source": "Scripts\\crsetup.lua",
       "runtime": "crsetup.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusMap.lua",
+      "runtime": "CRVenusMap.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusSites07.lua",
+      "runtime": "CRVenusSites07.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusWeather.lua",
+      "runtime": "CRVenusWeather.lua"
     },
     {
       "source": "Scripts\\CRWeather.lua",

@@ -894,6 +894,89 @@ function Environment.RefreshGameplayScales()
     return scales
 end
 
+-- -----------------------------------------------------------------------------
+-- Per-object scrambles
+--
+-- The gameplay modifiers above are global: one set of scales for every craft.
+-- A brief, local sensor upset -- a lightning strike scrambling the radar of the
+-- units next to it -- needs a scale for ONE craft that lapses by itself.
+-- Writing exu.SetRadarRange directly would be clobbered by the next sync pass
+-- (and, worse, would be captured as the craft's "original" value), so the
+-- scramble rides the same path: it is multiplied into the scales that
+-- ProcessObjectNightEffects already applies, and it is the only writer.
+--
+-- scales: { radarRange = , radarPeriod = , velocJam = }, each defaulting to 1.
+-- The entry removes itself when GetTime() passes `seconds`; Environment.Update
+-- notices the expiry and rewrites the craft so the scramble does not linger
+-- until the next unrelated sync.
+-- -----------------------------------------------------------------------------
+
+Environment.ObjectScrambles = Environment.ObjectScrambles or {}
+
+function Environment.SetObjectScramble(h, seconds, scales)
+    if not h or type(seconds) ~= "number" or seconds <= 0.0 then
+        return false
+    end
+    scales = scales or {}
+    local expires = GetTime() + seconds
+    local existing = Environment.ObjectScrambles[h]
+    -- A second strike must never shorten the first one's scramble.
+    if existing ~= nil and existing.expires > expires then
+        expires = existing.expires
+    end
+    Environment.ObjectScrambles[h] = {
+        expires     = expires,
+        radarRange  = tonumber(scales.radarRange) or 1.0,
+        radarPeriod = tonumber(scales.radarPeriod) or 1.0,
+        velocJam    = tonumber(scales.velocJam) or 1.0,
+    }
+    Environment.ProcessObjectNightEffects(h)
+    return true
+end
+
+function Environment.ClearObjectScramble(h)
+    if Environment.ObjectScrambles[h] == nil then
+        return false
+    end
+    Environment.ObjectScrambles[h] = nil
+    Environment.ProcessObjectNightEffects(h)
+    return true
+end
+
+function Environment.GetObjectScramble(h)
+    local entry = Environment.ObjectScrambles[h]
+    if entry == nil then
+        return nil
+    end
+    if GetTime() >= entry.expires then
+        return nil
+    end
+    return entry
+end
+
+local function ServiceObjectScrambles()
+    if next(Environment.ObjectScrambles) == nil then
+        return
+    end
+
+    local now = GetTime()
+    local expired = nil
+    for h, entry in pairs(Environment.ObjectScrambles) do
+        if now >= entry.expires then
+            expired = expired or {}
+            expired[#expired + 1] = h
+        end
+    end
+
+    if expired ~= nil then
+        for index = 1, #expired do
+            local h = expired[index]
+            Environment.ObjectScrambles[h] = nil
+            Environment.ProcessObjectNightEffects(h)
+        end
+    end
+end
+
 -- =============================================================================
 -- Initialization
 -- =============================================================================
@@ -1142,6 +1225,8 @@ function Environment.Update(timestep)
         Environment.SyncGameplayImpacts()
     end
 
+    ServiceObjectScrambles()
+
     if Environment.EnableVisualRuntime then
         RuntimeEnhancements.Update(timestep)
     end
@@ -1213,6 +1298,14 @@ function Environment.ProcessObjectNightEffects(h)
     local rangeScale  = scales.radarRange or 1.0
     local periodScale = scales.radarPeriod or 1.0
     local jamScale    = scales.velocJam or 1.0
+
+    -- A local, self-expiring scramble stacks on top of the global scales.
+    local scramble = Environment.GetObjectScramble(h)
+    if scramble ~= nil then
+        rangeScale  = rangeScale * scramble.radarRange
+        periodScale = periodScale * scramble.radarPeriod
+        jamScale    = jamScale * scramble.velocJam
+    end
 
     -- Either source can be the reason a craft is off its stock values, so the
     -- capture and the release both have to consider both. Capturing on night
