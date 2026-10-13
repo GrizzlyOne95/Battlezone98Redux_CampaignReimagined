@@ -80,9 +80,13 @@ presentation adapter's lexical wrappers, so the DLL body keeps its own spelling.
   convoy out (0901) and seal its retreat (0903). Once the convoy has started and its lead (the
   tug, else the first living escort) comes within **350 m** of `cut_off_geyser` (the soviet path
   passes 125 m from it), the players get a **45 s** head start. Then the leader spawns an allied
-  `avtank` platoon on team 7 on the convoy's own spawn paths (`spawn1`-`4`, round-robin: the
-  convoy's origin, about 1.17 km up the road from the cutoff, so it arrives behind the
-  convoy), perceived as NSDF, on orders only (`SetIndependence 0`). It is **3** tanks, +1 per
+  `avtank` platoon on team 7 **`PRESCOTT_BEHIND_M` = 250 m behind the convoy's rearmost living
+  unit** (the one farthest from the cutoff geyser; any tug, escort, APC or extra counts): the
+  `soviet_path` points are walked backwards from the point nearest that unit, spread 20 m
+  sideways, `y` from the terrain. If the path cannot be read it uses the rear unit's position
+  minus its facing times 250 m, and if no convoy unit is alive nothing spawns (and no arrival
+  burst). It used to spawn on `spawn1`-`4`, the convoy's origin 1.17 km back, which could be
+  after the convoy had already passed the cutoff. It is perceived as NSDF, on orders only (`SetIndependence 0`). It is **3** tanks, +1 per
   extra human, max **5** (3/4/5/5 for 1-4 players). Every 4 s each tank is ordered to attack
   the nearest living convoy *combat* unit (the four fighters, four tanks and the scaling
   extras) and is re-ordered only when its target changes or dies. The tug (which may carry
@@ -162,11 +166,11 @@ python Tools/Validate-CampaignRepository.py
 `Test-Misn09.lua` (126) is the offline host flow over the real CRCoop with one player:
 the DLL's own timers, strict boundaries, slot order and outcome precedence, plus the team-5
 remaps, the neutral relic, the replacement tug's delay and the geyser-clear win.
-`Test-Misn09Coop.lua` (875) runs the whole script in four peers plus an offline peer
+`Test-Misn09Coop.lua` (1077) runs the whole script in four peers plus an offline peer
 over the E/A/C transport: startup, ownership and rally, label-aware nav names and opening
 shot, every any-player trigger at its strict boundary, the IsInfo relay, the convoy at
 1-4 players (extras and their orders), a guest-held relic, the platoon (trigger at 351 and 349
-m, the 45 s delay, 3/4/5/5 tanks on the spawn paths, orders that only name escort combat units,
+m, the 45 s delay, 3/4/5/5 tanks spawned 250 m behind the rear unit along the route (facing fallback, no spawn when the convoy is dead), orders that only name escort combat units,
 tug, relic, APC and pad untouched through a full fight, retargeting, holding when none are
 left), both cut lines (and the cases that must not fire), the replacement tug (delay, team,
 placement, limits, factory loss, relic loss), the geyser-clear win and the lock-step result on every

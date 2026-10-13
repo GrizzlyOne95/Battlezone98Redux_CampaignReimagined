@@ -201,6 +201,7 @@ local function makePeer(id, team, network)
     e.SetMaxScrap = function(t, n) resources[t] = resources[t] or {}; resources[t].maxScrap = n end
     e.SetMaxPilot = function(t, n) resources[t] = resources[t] or {}; resources[t].maxPilot = n end
     e.GetPosition = function(h, point)
+        if type(point) == "number" and world.route and h == "soviet_path" then return copyTable(world.route[point + 1]) end
         local pos = posOf(h)
         return pos and {x = pos.x, y = pos.y, z = pos.z} or {x = 0, y = 0, z = 0}
     end
@@ -210,7 +211,11 @@ local function makePeer(id, team, network)
     e.SetPosition = function(h, pos) objects[h].pos = copyTable(pos) end
     e.SetVector = function(x, y, z) return {x = x or 0, y = y or 0, z = z or 0} end
     e.GetTerrainHeightAndNormal = function(pos) return terrain(pos.x, pos.z), {x = 0, y = 1, z = 0} end
-    e.GetPathPointCount = function(path) return pathPos[path] and 1 or 0 end
+    e.GetPathPointCount = function(path)
+        if path == "soviet_path" and world.route then return #world.route end
+        return pathPos[path] and 1 or 0
+    end
+    e.GetFront = function(h) return copyTable(objects[h].front or {x = 1, y = 0, z = 0}) end
     e.GetDistance = function(a, b)
         assert(e.IsValid(a), "invalid origin reached native distance query")
         assert(type(b) == "string" or e.IsValid(b), "invalid destination")
@@ -436,6 +441,7 @@ local function count2(peer, name, a, b)
     for _, c in ipairs(peer.calls) do if c[1] == name and c[2] == a and c[3] == b then n = n + 1 end end
     return n
 end
+local ROUTE = {{3660.3, 31, 100474}, {3300, 25, 100050}, {2885.6, 14.2, 99661.1}}
 local MUF, CUT, GEYSER = {2991.2, 14.6, 100939}, {2885.6, 14.2, 99661.1}, {3680.5, 31.3, 100517}
 local function at(h, p, dx, dz) place(h, p[1] + (dx or 0), p[2], p[3] + (dz or 0)) end
 local function escortOf(s)
@@ -654,16 +660,38 @@ for humans = 1, 4 do
     local escortCount = 0
     for _ in pairs(escort) do escortCount = escortCount + 1 end
     check(escortCount == 8 + 2 * (humans - 1), "the escort is the combat units")
+    -- Lay the convoy out along its route: convoy1 is the rearmost living unit, on route point 2,
+    -- everything else is up the road near the cutoff. The route runs spawn -> cutoff.
+    world.route = {vec(ROUTE[1]), vec(ROUTE[2]), vec(ROUTE[3])}
+    for handle in pairs(escort) do place(handle, CUT[1] + 40, CUT[2], CUT[3] + 40) end
+    place(s.ccatug, CUT[1], CUT[2], CUT[3] + 300)
+    place(s.convoy9, CUT[1], CUT[2], CUT[3] + 300)
+    place(s.convoy0, CUT[1], CUT[2], CUT[3] + 300)
+    place(s.convoy1, ROUTE[2][1], ROUTE[2][2], ROUTE[2][3])
+    local p1, p0 = world.route[2], world.route[1]
+    local seg = planar(p1, p0)
+    local want = {x = p1.x + (p0.x - p1.x) * 250 / seg, z = p1.z + (p0.z - p1.z) * 250 / seg}
     for _ = 1, 20 do tick(); if s.prescott.spawned then break end end
     check(s.prescott.spawned and built(host, "avtank") == PRESCOTT_COUNT[humans], humans .. " players: the platoon is " .. PRESCOTT_COUNT[humans] .. " tanks")
     check(#s.prescott.units == PRESCOTT_COUNT[humans], "handles are kept in the saved state")
+    local cx, cz = 0, 0
     for i, unit in ipairs(s.prescott.units) do
         local o = objects[unit]
         check(o.team == 7 and o.odf == "avtank" and o.perceived == 1, "an allied avtank perceived as NSDF")
-        local path = ({"spawn1", "spawn2", "spawn3", "spawn4"})[(i - 1) % 4 + 1]
-        check(planar(o.pos, pathPos[path]) < 1, "spawned on the convoy's own spawn path " .. path .. ", behind it")
+        cx, cz = cx + o.pos.x, cz + o.pos.z
+        for _, name in ipairs({"spawn1", "spawn2", "spawn3", "spawn4"}) do
+            check(planar(o.pos, pathPos[name]) > 100, "not spawned on " .. name .. " (the convoy's origin)")
+        end
+        check(o.pos.y == terrain(o.pos.x, o.pos.z), "y is the terrain height")
+        if i > 1 then
+            check(math.abs(planar(o.pos, objects[s.prescott.units[i - 1]].pos) - 20) < 1, "tanks are spread 20 m apart")
+        end
         check(count(host, "SetIndependence", unit) == 1 and count(host, "Attack", unit) >= 1, "ordered at once, on orders only")
     end
+    cx, cz = cx / #s.prescott.units, cz / #s.prescott.units
+    check(planar({x = cx, z = cz}, want) < 20, "the platoon is centred 250 m back along the route from the rear unit")
+    check(planar({x = cx, z = cz}, objects[s.convoy1].pos) > 200 and planar({x = cx, z = cz}, objects[s.convoy1].pos) < 300,
+        "about 250 m behind the rear unit")
     for _, g in ipairs(guests) do check(count(g, "BuildObject", "avtank") == 0, "guests never spawn the platoon") end
     tick()
     check(#host.venus.forces == 1 and host.venus.forces[1][1] == 5 and host.venus.forces[1][2] == 60.0,
@@ -709,6 +737,36 @@ do
     local attacks = 0
     for _, c in ipairs(callsOf(host, "Attack")) do if c[2] == unit then attacks = attacks + 1 end end
     check(attacks == 2, "unit 1 was ordered twice: once per target (no per-cycle re-issue)")
+end
+do
+    -- no usable route: the rear unit's position minus its facing times 250
+    local host, guests, s = convoySession(1)
+    at(s.ccatug, CUT, 0, 340)
+    run(0.5)
+    world.route = nil
+    for handle in pairs(escortOf(s)) do place(handle, CUT[1], CUT[2], CUT[3] + 40) end
+    place(s.convoy9, CUT[1], CUT[2], CUT[3] + 60)
+    place(s.convoy0, CUT[1], CUT[2], CUT[3] + 60)
+    place(s.convoy4, CUT[1] + 900, CUT[2], CUT[3] + 900)
+    objects[s.convoy4].front = {x = 0, y = 0, z = 1}
+    for _ = 1, 400 do tick(); if s.prescott.spawned then break end end
+    check(s.prescott.spawned and #s.prescott.units == 3, "the facing fallback spawns the platoon")
+    local o = objects[s.prescott.units[2]]
+    check(math.abs(o.pos.x - (objects[s.convoy4].pos.x)) < 25 and math.abs(o.pos.z - (objects[s.convoy4].pos.z - 250)) < 25,
+        "fallback: rear position minus facing times 250")
+end
+do
+    -- a convoy that is entirely dead gets no platoon, and no arrival burst
+    local host, guests, s = convoySession(1)
+    at(s.ccatug, CUT, 0, 340)
+    run(0.5)
+    check(s.prescott and not s.prescott.spawned, "armed")
+    for _, key in ipairs({"ccatug", "convoy1", "convoy2", "convoy3", "convoy4", "convoy5", "convoy6", "convoy7", "convoy8", "convoy9", "convoy0"}) do
+        if s[key] and objects[s[key]] then objects[s[key]].alive = false end
+    end
+    runTo(s.prescott.due + 5)
+    check(built(host, "avtank") == 0 and #s.prescott.units == 0 and not s.prescott.spawned, "no convoy unit alive: no platoon")
+    check(#host.venus.forces == 0 or host.venus.forces[1][1] ~= 5, "and no arrival burst")
 end
 do
     -- a tug that dies still lets the nearest living escort unit mark the convoy's lead
