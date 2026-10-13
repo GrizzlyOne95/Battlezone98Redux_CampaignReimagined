@@ -67,7 +67,7 @@ lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)
 lua = re.sub(r'--[^\n]*', '', lua)
 assert 'local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7' in lua
 assert not re.search(r'BuildObject\([^\n]*,\s*[234]\s*,', lua), 'Hostile/support spawns must use team constants'
-assert len(re.findall(r'BuildObject\("\w+",\s*ENEMY_TEAM,', lua)) == 26
+assert len(re.findall(r'BuildObject\("\w+",\s*ENEMY_TEAM,', lua)) == 29
 assert len(re.findall(r'BuildObject\("\w+",\s*SUPPORT_TEAM,', lua)) == 2
 assert re.search(r'AddScrap\(ENEMY_TEAM,\s*60\)|AddScrap\(ENEMY_TEAM,60\)', lua) and 'SetAIP("misn07.aip",ENEMY_TEAM)' in lua
 assert 'CRCoop.ApplyCoopAlliances(ENEMY_TEAM)' in lua

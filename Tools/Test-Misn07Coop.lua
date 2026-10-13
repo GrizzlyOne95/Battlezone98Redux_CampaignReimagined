@@ -51,7 +51,7 @@ local function newObject(handle, odf, team, pos)
 end
 local function reset()
     now, objects, peers, nextObject, dist = 0, {}, {}, 0, {}
-    world = {eject = true, adopt = true, ejected = nil, consoleLog = {}}
+    world = {eject = true, adopt = true, ejected = nil, consoleLog = {}, hold = {}, scrap = {}}
     pathPos = {}
     for name, p in pairs(PATHS) do pathPos[name] = vec(p) end
     transport = PeerTransport.New(function(packet)
@@ -89,7 +89,7 @@ local function physics(dt)
                 end
             end
             local target = o.gotoTo or (o.getin and objects[o.getin] and objects[o.getin].pos)
-            if target and not o.airborne then
+            if target and not o.airborne and not o.frozen then
                 local d = planar(o.pos, target)
                 local speed = o.odf == "aspilo" and 5 or 10
                 if o.getin and d < 4 and objects[o.getin].alive then
@@ -250,7 +250,11 @@ local function makePeer(id, team, network)
     e.Goto = function(h, where, priority)
         record("Goto", h, where, priority)
         if objects[h] and type(where) == "table" then objects[h].gotoTo = where end
+        if objects[h] and type(where) == "string" and pathPos[where] then objects[h].gotoTo = pathPos[where] end
     end
+    e.GetScrap = function(team) return world.scrap[team] or 0 end
+    e.AddScrap = function(team, n) record("AddScrap", team, n); world.scrap[team] = (world.scrap[team] or 0) + n end
+    e.IsAudioMessageDone = function(handle) return not world.hold[handle] end
     e.CameraCancelled = function() return p.skip == true end
     e.CameraReady = function() assert(not p.cameraUp, "camera opened twice"); p.cameraUp = true; record("CameraReady"); p.skip = false end
     e.CameraFinish = function() assert(p.cameraUp, "camera finished without an active camera"); p.cameraUp = false; record("CameraFinish") end
@@ -271,7 +275,7 @@ local function makePeer(id, team, network)
     end
     for _, name in ipairs({"Attack", "Retreat", "Follow", "Defend", "Patrol", "Stop", "SetIndependence",
         "SetAIP", "SetObjectiveName", "SetObjectiveOn", "SetObjectiveOff", "ClearObjectives", "AddObjective",
-        "Ally", "UnAlly", "DisplayMessage", "FailMission", "SucceedMission", "SetScrap", "AddScrap", "SetPilot"}) do
+        "Ally", "UnAlly", "DisplayMessage", "FailMission", "SucceedMission", "SetScrap", "SetPilot"}) do
         local n = name
         e[n] = function(...)
             if n == "SetObjectiveOn" or n == "SetObjectiveName" then
@@ -544,7 +548,6 @@ do
     check(not s.jump_cam_spawned, "an enemy fighter near ANY player holds the rookie back")
     objects[foe].alive = false; run(6)
     check(s.jump_cam_spawned and playedOnAll("misn0702.wav") == 4 and objects[s.rookie].team == 1, "rookie overlook spawns when every player is clear")
-    check(s.recon_message2_time > now + 470 and s.recon_message2_time <= now + 480.1, "the overlook starts the DLL's 480 s test-range timer")
     -- Rookie found: any player within 70.
     near(guests[3].player, s.rookie, 60); run(30)
     check(s.rookie_found and playedOnAll("misn0718.wav") == 4, "any player near the rookie finds him")
@@ -616,16 +619,49 @@ do
 end
 
 -- ============================================================ 7. restored test-range arc
+-- Phase 2 settled: the radar is down and the Utah deployed, with Razor One gone (radio-only).
 local function arcSession(network)
     local host, guests = session(network)
     local s = host.state
     run(30)
+    radarDown(host)
+    objects[s.nsdfrecycle].deployed = true
+    run(1)
     return host, guests, s
 end
 do
+    -- Nothing starts before the radar is down, and phase 2 waits for the briefing to settle.
+    local host, guests = session(true)
+    local s = host.state
+    run(230)
+    check(not s.test_range_started and not s.recon_message2 and s.test_tank == nil and s.test_turret == nil,
+        "no test-range content before the radar array is destroyed")
+    check(playedOnAll("misn0703.wav") == 0 and s.nav4 == nil, "no 0703 or Testing Range nav in phase 1")
+    world.hold["misn0714.wav"] = true
+    radarDown(host)
+    objects[s.nsdfrecycle].deployed = true; run(5)
+    check(s.utah_found and not s.test_range_started, "a deployed Utah still waits for 0714 to finish")
+    world.hold["misn0714.wav"] = nil; run(1)
+    check(s.test_range_started and s.recon_message2 and playedOnAll("misn0703.wav") == 4,
+        "with no Razor One the radio-only 0703 plays once the briefing has settled")
+end
+do
+    -- Without a deployed Utah the arc starts 150 s after 0714, and never over the 0719 nag.
+    local host, guests = session(true)
+    local s = host.state
+    run(30); radarDown(host)
+    run(100)
+    check(not s.test_range_started, "an undeployed Utah holds the arc before 150 s")
+    world.hold["misn0719.wav"] = true
+    run(25)
+    check(playedOnAll("misn0719.wav") == 4 and not s.test_range_started, "the arc waits while 0719 is playing")
+    run(25)
+    check(not s.test_range_started, "...even past 150 s")
+    world.hold["misn0719.wav"] = nil; run(1)
+    check(s.test_range_started and s.recon_message2, "the arc starts after the last line finishes")
+end
+do
     local host, guests, s = arcSession(true)
-    check(playedOnAll("misn0703.wav") == 0 and not s.recon_message2, "the test range waits for its schedule")
-    s.recon_message2_time = now - 1; run(1)
     check(s.recon_message2 and playedOnAll("misn0703.wav") == 4, "Razor One announces the test range (0703) on every peer")
     check(objects[s.test_tank].odf == "svtnk7" and objects[s.test_tank].team == 5, "the MAG tank is an svtnk7 on the CCA team")
     check(objects[s.test_turret].odf == "svturr" and objects[s.test_turret].team == 7, "the test turret is a CCA-model turret on the support team")
@@ -681,7 +717,6 @@ end
 do
     -- The MAG-cannon film.
     local host, guests, s = arcSession(true)
-    s.recon_message2_time = now - 1; run(1)
     local tank0 = s.test_tank
     check(count(host, "CameraReady") == 0, "no film until a player reaches the tank")
     near(guests[1].player, tank0, 70); run(1)
@@ -719,7 +754,6 @@ end
 do
     -- A guest can skip their own view without moving the shared timeline.
     local host, guests, s = arcSession(true)
-    s.recon_message2_time = now - 1; run(1)
     near(guests[1].player, s.test_tank, 40); run(2)
     guests[2].skip = true; run(1)
     check(count(guests[2], "CameraFinish") == 1 and s.camera_ready and not s.camera_off, "a guest skip is local")
@@ -730,14 +764,11 @@ do
     check(s.tank_switch, "the shared timeline continues to the tank swap")
 end
 do
-    -- Never while the alarm is up.
+    -- The alarm is irrelevant after the radar: the film still runs.
     local host, guests, s = arcSession(true)
-    s.recon_message2_time = now - 1; run(1)
     s.alarm_on = true
     near(guests[1].player, s.test_tank, 40); run(3)
-    check(count(host, "CameraReady") == 0, "no film while the alarm is on")
-    s.alarm_on = false; run(1)
-    check(count(host, "CameraReady") == 1, "the film starts once the alarm is off")
+    check(count(host, "CameraReady") == 1, "an alarm left on does not block the film")
 end
 
 -- ============================================================ 8. Razor One infiltration
@@ -779,7 +810,7 @@ for _, network in ipairs({true, false}) do
     check(s.rookie_removed and count(host, "EjectPilot") == 1 and playedOnAll("misn0715.wav") == (network and 4 or 1), "0715 and EjectPilot happen at the DLL moment")
     check(world.ejected ~= nil and s.rk and s.rk.pilot == world.ejected, "the ejected pilot is captured from AddObject")
     check(objects[s.rookie].empty and objects[s.rookie].alive and objects[s.rookie].team == 1, "the empty avfigh stays as the DLL leaves it")
-    check(s.recon_message2_time <= now + 30.1 and s.recon_message2_time > now + 20, "the eject schedules the test-range announcement 30 s later")
+    check(not s.test_range_started and s.test_tank == nil, "the ejection alone starts nothing of the test-range arc")
     local pilot = s.rk.pilot
     local trace = flightTrace(host, 40)
     check(#trace > 10, "the glide takes several seconds")
@@ -893,6 +924,207 @@ do
     check(s4.rk and s4.rk.pilot == world.ejected and s4.rk.phase == "glide", "the next-frame scan captures the pilot when AddObject was missed")
 end
 
+-- ============================================================ 8b. Razor One and the test range
+local function razorRiding(network)
+    local host, guests = session(network, network and 4 or 1)
+    local s = host.state
+    run(30); ejectRookie(host)
+    flyToBoarding(host)
+    run(14)
+    check(s.rk and s.rk.phase == "ride" and s.razor_unit == "parked3", "Razor One is riding his stolen vehicle")
+    return host, guests, s
+end
+local function phase2(host)
+    local s = host.state
+    radarDown(host)
+    objects[s.nsdfrecycle].deployed = true
+    run(1)
+end
+local function followsOf(host, unit)
+    local n = 0
+    for _, c in ipairs(callsOf(host, "Follow")) do if c[2] == unit then n = n + 1 end end
+    return n
+end
+do
+    local host, guests, s = razorRiding(true)
+    phase2(host)
+    local unit = s.razor_unit
+    check(s.test_range_started and s.tr_hold and s.tr_unit == unit, "Razor One is sent to the test range after phase 2 settles")
+    local order = callsOf(host, "Goto")
+    check(order[#order][2] == unit and order[#order][3] == "cam_spawn6", "he is ordered to cam_spawn6")
+    check(not s.recon_message2 and s.test_tank == nil and s.test_turret == nil and playedOnAll("misn0703.wav") == 0,
+        "0703 and the test objects wait for his arrival")
+    local follows = followsOf(host, unit)
+    run(20)
+    check(followsOf(host, unit) == follows, "he stops following the players while on the trip")
+    for _ = 1, 400 do if s.recon_message2 then break end; tick(0.25) end; run(1)
+    check(s.recon_message2 and playedOnAll("misn0703.wav") == 4, "0703 plays on every peer")
+    check(planar(objects[unit].pos, pathPos.cam_spawn6) < 65 and now < 30 + 14 + 120 + 90 + 400, "he arrived at the test range first")
+    check(s.test_tank ~= nil and objects[s.test_turret].team == 7, "the test tank and turret spawn with 0703")
+    run(16)
+    check(s.becon_build and objects[s.nav4].team == 1, "the Testing Range nav follows 15 s later")
+    -- The DLL's 120 s later, with no player near the Mine Field spawn: a real ambush, then 0704.
+    check(not s.ambushed and playedOnAll("misn0704.wav") == 0, "no ambush before the DLL's 120 s")
+    s.rookie_rendezvous_time = now - 1; run(1)
+    check(s.ambushed and objects[s.ambush1].odf == "svfigh" and objects[s.ambush1].team == 5 and objects[s.ambush2].team == 5,
+        "two CCA fighters ambush him")
+    local hit = 0
+    for _, c in ipairs(callsOf(host, "Attack")) do if c[3] == unit and (c[2] == s.ambush1 or c[2] == s.ambush2) then hit = hit + 1 end end
+    check(hit == 2, "both fighters are ordered onto Razor One")
+    check(playedOnAll("misn0704.wav") == 4 and s.nav5 ~= nil and s.rookie_lost, "0704 plays on every peer with the Mine Field nav")
+    check(s.tr_hold, "he is still holding the test range while under attack")
+    follows = followsOf(host, unit); run(12)
+    check(followsOf(host, unit) == follows, "he does not follow anyone mid-ambush")
+    objects[s.ambush1].alive = false; objects[s.ambush2].alive = false; run(1)
+    check(not s.tr_hold and followsOf(host, unit) >= follows + 1, "once the ambush is cleared he follows the nearest player again")
+    run(12)
+    check(followsOf(host, unit) >= follows + 2, "the regular follow refresh resumes")
+    allBuildTeams(host)
+end
+do
+    -- A player reaches him before the ambush: he rejoins and no false distress call is made.
+    local host, guests, s = razorRiding(true)
+    phase2(host)
+    for _ = 1, 400 do if s.recon_message2 then break end; tick(0.25) end; run(1)
+    local unit = s.tr_unit
+    near(guests[1].player, unit, 80); run(1)
+    check(not s.tr_hold and followsOf(host, unit) >= 1, "a player reaching him ends the trip")
+    far(guests[1].player, unit)
+    run(16); s.rookie_rendezvous_time = now - 1; run(1)
+    check(not s.ambushed and playedOnAll("misn0704.wav") == 0, "no ambush and no distress call once the players are with him")
+    check(s.rookie_lost and s.nav5 ~= nil, "the Mine Field nav still drops")
+end
+do
+    -- Killed on the way: the radio-only version at the same points.
+    local host, guests, s = razorRiding(true)
+    phase2(host)
+    objects[s.tr_unit].alive = false; run(1)
+    check(s.recon_message2 and playedOnAll("misn0703.wav") == 4 and s.test_tank ~= nil, "a dead Razor One still radios 0703")
+    run(16); s.rookie_rendezvous_time = now - 1; run(1)
+    check(not s.ambushed and s.ambush1 == nil and playedOnAll("misn0704.wav") == 4, "radio-only 0704 with no ambush")
+end
+do
+    -- Stuck: 0703 plays after the 90 s timeout and the ambush still lands on him.
+    local host, guests, s = razorRiding(true)
+    phase2(host)
+    objects[s.tr_unit].frozen = true
+    run(80); check(not s.recon_message2, "0703 waits out most of the 90 s")
+    run(15)
+    check(s.recon_message2 and playedOnAll("misn0703.wav") == 4, "0703 plays after the 90 s timeout")
+    run(16); s.rookie_rendezvous_time = now - 1; run(1)
+    check(s.ambushed, "the ambush still targets him")
+end
+do
+    -- A pilot who never got a ride is sent too (offline play as well).
+    local host, guests = session(false, 1)
+    local s = host.state
+    run(30); s.parked1, s.parked2, s.parked3 = nil, nil, nil
+    objects.parked1.team, objects.parked2.team, objects.parked3.team = 2, 2, 2
+    ejectRookie(host)
+    run(30)
+    local pilot = s.razor_unit
+    check(objects[pilot].alive and objects[pilot].odf == "aspilo", "with no vehicle left he is still a pilot")
+    phase2(host)
+    check(s.tr_hold and s.tr_unit == pilot and s.rk == nil, "the pilot makes the trip alone")
+    for _ = 1, 400 do if s.recon_message2 then break end; tick(0.25) end; run(1)
+    check(s.recon_message2, "0703 plays on arrival or at the 90 s timeout")
+    run(120)
+    check(planar(objects[pilot].pos, pathPos.cam_spawn6) < 65, "the pilot reaches the test range on foot")
+end
+
+-- ============================================================ 8c. prototype svtnk7 production
+local function protoBuilds(host)
+    local n = 0
+    for _, c in ipairs(callsOf(host, "BuildObject")) do
+        if c[3] == "svtnk7" and c[5] == host.state.ccamuf then n = n + 1 end
+    end
+    return n
+end
+local function runFilm(guests)
+    local s = peers[10].state
+    near(guests[1].player, s.test_tank, 40)
+    run(40)
+    far(guests[1].player, s.test_tank)
+end
+do
+    local host, guests, s = arcSession(true)
+    world.scrap[5] = 1000
+    run(300)
+    check(s.proto_start == nil and #s.proto == 0 and protoBuilds(host) == 0, "no prototype production before the film")
+    runFilm(guests)
+    check(s.camera_off and s.proto_start ~= nil, "the film finishing starts the prototype program")
+    local started = s.proto_start
+    run(80)
+    check(#s.proto == 0, "the first prototype is built no sooner than 90 s after the trigger")
+    local scrapBefore = world.scrap[5]
+    run(15)
+    check(#s.proto == 1 and protoBuilds(host) == 1, "the first prototype is built at the CCA factory")
+    local tank = s.proto[1]
+    check(objects[tank].odf == "svtnk7" and objects[tank].team == 5, "prototype tanks are team 5")
+    check(world.scrap[5] == scrapBefore - 8, "the build charges team-5 scrap")
+    local attack
+    for _, c in ipairs(callsOf(host, "Attack")) do if c[2] == tank then attack = c[3] end end
+    check(attack == s.nsdfrecycle, "prototypes are sent at the Utah")
+    -- Solo-sized cap in a 4 player game is 4; production is bounded by the cap and the interval.
+    run(135 * 6)
+    check(#s.proto == 4 and protoBuilds(host) == 4, "four players allow four live prototypes")
+    check(s.proto_start == started, "the trigger fires once")
+    -- Losing one lets the factory replace it; losing the factory ends production.
+    objects[s.proto[1]].alive = false; run(140)
+    check(#s.proto == 4 and protoBuilds(host) == 5, "a destroyed prototype is replaced")
+    objects[s.ccamuf].alive = false
+    objects[s.proto[1]].alive = false; run(400)
+    check(protoBuilds(host) == 5 and #s.proto == 3, "production halts when the factory is destroyed")
+    run(40)
+    local orders = 0
+    for _, c in ipairs(callsOf(host, "Attack")) do if c[2] == s.proto[1] then orders = orders + 1 end end
+    check(orders >= 2, "surviving prototypes keep being ordered in")
+    allBuildTeams(host)
+end
+do
+    -- The cap scales with the number of human teams: 2 solo, 3 with two players, 4 max.
+    for humans, cap in pairs({[1] = 2, [2] = 3, [3] = 4, [4] = 4}) do
+        reset()
+        local host = makePeer(10, 1, humans > 1)
+        for i = 2, humans do makePeer(10 * i, i, true) end
+        registerAll(); run(3); run(30)
+        local s = host.state
+        radarDown(host); objects[s.nsdfrecycle].deployed = true; run(1)
+        world.scrap[5] = 1000
+        s.camera_off = true
+        run(135 * 6 + 90)
+        check(#s.proto == cap, humans .. " human team(s): " .. cap .. " prototypes")
+    end
+end
+do
+    -- A starved CCA builds nothing and charges nothing; scrap restores production.
+    local host, guests, s = arcSession(true)
+    world.scrap[5] = 3
+    s.camera_off = true
+    run(300)
+    check(#s.proto == 0 and world.scrap[5] == 3, "without scrap there is no build and no charge")
+    world.scrap[5] = 50; run(20)
+    check(#s.proto == 1 and world.scrap[5] == 42, "production resumes as soon as scrap allows")
+end
+do
+    -- Skipped film (offline leader) and the no-film engagement both trigger it too.
+    local host = session(false, 1)
+    local s = host.state
+    run(30); radarDown(host); objects[s.nsdfrecycle].deployed = true; run(1)
+    near(host.player, s.test_tank, 40); run(1.5)
+    check(s.camera_ready and s.proto_start == nil, "no prototypes while the film runs")
+    host.skip = true; run(1); host.skip = false
+    check(s.camera_off and s.proto_start ~= nil, "an offline skip starts the prototype program")
+    local h2, g2, s2 = arcSession(true)
+    run(60)
+    check(s2.proto_start == nil, "an untouched test tank does not start it")
+    objects[s2.test_tank].health = 0.9; run(1)
+    check(s2.proto_start ~= nil and not s2.camera_ready, "the test tank engaging without a film starts it")
+    local h3, g3, s3 = arcSession(true)
+    objects[s3.test_tank].alive = false; run(1)
+    check(s3.proto_start ~= nil, "a destroyed test tank starts it")
+end
+
 -- ============================================================ 9. offline play
 do
     local host = session(false, 1)
@@ -906,7 +1138,8 @@ do
     check(playedOnAll("misn0710.wav") == 1, "offline dialogue reaches the one player")
     local host2 = session(false, 1)
     local s2 = host2.state
-    run(30); s2.recon_message2_time = now - 1; run(1)
+    run(30); radarDown(host2)
+    objects[s2.nsdfrecycle].deployed = true; run(1)
     near(host2.player, s2.test_tank, 40); run(1.5)
     check(count(host2, "CameraObject") >= 1, "offline film runs natively")
     host2.skip = true; run(1)
