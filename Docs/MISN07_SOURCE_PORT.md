@@ -73,5 +73,5 @@ infiltration and the restored test-range arc are documented in
 `Tools/Test-Misn07SourceParity.py`, so the active DLL logic above stays pinned.
 The cut content listed above stays disabled in comments except where
 MISN07_COOP.md says it was restored. The map bundle now exists
-(`Missions/misn07.*`); `misn07.aip` and an in-game qualification run do not.
+(`Missions/misn07.*`); an in-game qualification run does not (the AIP is the stock `bzone.zfs` file).
 Native strategic AI and real save/load handle restoration require in-game checks.

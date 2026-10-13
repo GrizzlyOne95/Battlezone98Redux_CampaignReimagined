@@ -38,8 +38,8 @@ suppresses the extra MultST starting recyclers. The DLL's `SetScrap(1, 10)`
 becomes each human team's starting scrap, with native capacity reserved first
 (as in misn05/misn06). The arrival bonus `AddScrap(1, 30)` / `SetPilot(1, 20)`
 goes to team 1, the leader's base, where the Utah deploys; the CCA's
-`AddScrap`/`SetPilot` and `SetAIP("misn07.aip", 5)` use team 5. The AIP file
-is not in this repository (see not-yet-verified).
+`AddScrap`/`SetPilot` and `SetAIP("misn07.aip", 5)` use team 5. The AIP is the
+stock file from `bzone.zfs` (identical to Battlezone 1.5's); CR does not ship it.
 
 Only the campaign leader runs AI, spawns, orders, timers and the win/loss
 gates; the co-op preamble returns for guests before the mission body. Objectives,
@@ -126,23 +126,44 @@ per-frame `ObjectsInRange` scan as a fallback (give up after 3 s). The empty
 strips them, checks the DLL body is otherwise unchanged and that every restored
 wav has its shipped `Text/misn07NN.txt`). Only shipped assets are used.
 
-* The test range (the disabled C++ block, adapted): 0703 ("beyond a minefield…")
-  is scheduled 30 s after Razor One's ejection, or 480 s after the overlook
-  camera (the DLL's own timer), and spawns the test tank and turret. 15 s later
-  the "Testing Range" Nav Beacon (`apcamr` at `cam_spawn6`) appears. Two minutes
-  later, when no player is within 400 m of `cam_spawn1` (`mine_geyz` is gone, so
-  that spawn point stands in), 0704 plays and the "Mine Field" beacon appears at
-  `cam_spawn1`; when any player is within 70 m of it the four "Mine Path 1–4"
-  beacons appear at `cam_spawn2`–`5`. As in the DLL, `mine_pathed` stops further
-  runner retreats.
-* The streamed minefield: `proxmine` (team 5) at path nodes `m001`–`m110`
+* The test range (the disabled C++ block, retimed so it never collides with the
+  infiltration). **Nothing starts before the radar array is destroyed.** After that
+  it waits until the Utah has deployed (or 150 s after 0714 if it has not) and no
+  dialogue is still playing (0714 and 0719 are tracked with `IsAudioMessageDone`).
+  Then:
+  1. If Razor One is alive (his stolen vehicle, or his pilot if he never got one)
+     he stops following the players and is ordered to `cam_spawn6`, the Testing
+     Range east of the outpost beyond the minefield (repeated every 10 s). 0703
+     plays when he is within 60 m of it, after a 90 s timeout, or at once if he is
+     gone (the radio-only version), and the test tank and turret spawn with it.
+  2. 15 s later the "Testing Range" Nav Beacon (`apcamr` at `cam_spawn6`) appears,
+     as in the DLL.
+  3. The DLL's 120 s later, when no player is within 400 m of `cam_spawn1`
+     (`mine_geyz` is gone, so that spawn point stands in), two CCA `svfigh` spawn at
+     `test_tank_spawn` and are ordered onto Razor One, so "I'm under attack" is
+     true; then 0704 plays and the "Mine Field" beacon appears at `cam_spawn1`.
+     With no Razor One only the radio call and beacon happen. If a player has
+     already reached him there is no ambush and no distress line (the beacon still
+     drops).
+  4. When any player is within 70 m of the Mine Field beacon, the four "Mine Path
+     1-4" beacons appear at `cam_spawn2`-`5`. As in the DLL, `mine_pathed` stops
+     further runner retreats.
+  He returns to following the nearest player once a player comes within 100 m or
+  the ambush is cleared.
+* The streamed minefield: `proxmine` (team 5) at path nodes `m001`-`m110`
   whenever any player is within 400 m of a node, removed when none is, and
   marked dead once destroyed; ten nodes per frame by round robin
   (`mine_check`). Missing nodes (`m000`) are skipped via `GetPathPointCount`.
-  Mines are always active, as in the DLL's top-level block.
-* The MAG-cannon test. The map no longer holds `test_tank`/`test_turret`, so the
-  announcement spawns them. `test_tank` is an `svtnk7` (the DLL's MAG tank) at
-  `test_tank_spawn` (3283.7, 99037.3), independence 0 and stopped. `test_turret`
+  It streams from the start, as in the DLL's top-level block. **Phase-1 safety:**
+  the nodes span x 2671..3620, z 98393..98949. None lies within 400 m of the
+  start-to-rendezvous, rendezvous-to-overlook, overlook-to-outpost or
+  rendezvous-to-outpost routes; the closest is `m001`, 420 m from the straight
+  start-to-overlook line, and no node is nearer than 464 m to the overlook,
+  outpost, huts, parked vehicles, radar array, gun towers or the runner camera.
+  So no mine can even spawn while players infiltrate.
+* The MAG-cannon test. The map no longer holds `test_tank`/`test_turret`, so
+  0703 spawns them (not earlier). `test_tank` is an `svtnk7` (the DLL's MAG tank)
+  at `test_tank_spawn` (3283.7, 99037.3), independence 0 and stopped. `test_turret`
   is an `svturr` (a CCA-model turret from the stock ODFs) on the support team,
   which never fires on players and is a legitimate enemy of the CCA tank, so the
   shot is an ordinary attack order. It stands at (3268.7, 99007.6): the
@@ -150,17 +171,37 @@ wav has its shipped `Text/misn07NN.txt`). Only shipped assets are used.
   films the turret) moved 30 m south toward the Testing Range nav and away from
   the CCA factory at (3275.6, 99069.6). The coordinates come from the converted
   BZN paths and have not been checked against the terrain in game.
-  When any player is within 65 m of the tank, with the alarm off, no other film
-  running and the mission not over, the film runs: object shot of the tank
-  (6 s), `camera_path1` (8 s), `camera_path2` at the turret (swap the tank for a
-  fresh `svtnk7` attacking the turret after 5 s, 6 s total), an object shot of
-  the turret (10 s), then `CameraFinish`; the turret is pre-damaged 950 and the
-  tank is released to fight. It plays once and replicates through the `O`/`P`
-  snapshots; each player can skip their own view, an offline skip ends it and
-  resolves the swap. **0711 (a developer joke) and 0717 (a near-duplicate of
-  0702) are not played.**
+  When any player is within 65 m of the tank, with no other film running and the
+  mission not over (the alarm is irrelevant after the radar), the film runs:
+  object shot of the tank (6 s), `camera_path1` (8 s), `camera_path2` at the
+  turret (swap the tank for a fresh `svtnk7` attacking the turret after 5 s, 6 s
+  total), an object shot of the turret (10 s), then `CameraFinish`; the turret
+  is pre-damaged 950 and the tank is released to fight. It plays once and
+  replicates through the `O`/`P` snapshots; each player can skip their own view,
+  an offline skip ends it and resolves the swap. **0711 (a developer joke) and
+  0717 (a near-duplicate of 0702) are not played.**
+* Prototype svtnk7 production. When the film finishes (or the leader skips it), or
+  the test tank is hurt or destroyed without a film, the CCA begins fielding the
+  prototype `svtnk7` (weapon `ga7stab`: `charge6`, 1450 ballistic damage, 75 m/s,
+  6 s reload). There is no voice line or objective text for it.
+  *Route:* Lua on the leader, not the AIP. The stock `misn07.aip` (byte-identical
+  in Battlezone 1.5 and Redux's `bzone.zfs`) is a text AIP whose build list could
+  take a CR variant, but its factory `svmuf` has no `svtnk7` build item, and
+  adding one to `svmuf.odf` would change every CCA factory in the campaign. So,
+  while the CCA factory (`svmuf`) lives, the leader builds an `svtnk7` at it on a
+  timer, charging team-5 scrap (`svtnk7.odf` scrapCost 8; no build without it),
+  and orders each at the Utah (else the nearest player), refreshed every 30 s.
+  Tunables sit at the top of the script: cap 2 live prototypes solo, +1 per extra
+  human team, max 4; one build per 135 s; the first no sooner than 90 s after the
+  trigger. Production stops when the factory is destroyed. Leader-only; the
+  native objects replicate themselves.
+  *Assets:* `svtnk7.odf`, `ga7stab.odf`, `charge6.odf` and `gatstab.odf` are all in
+  Redux's stock `bzone.zfs` (as are `gatst03.wav`, `xmsl*.odf`, the `svtank` mesh
+  `svtnk7` uses as its base, and `plasma_3.png` for the shot). Nothing is 1.5-only.
+  CR already ships its own `ODF/svtnk7.odf` (3750 health, rocket-tank AI) and
+  `gatstaba.odf`, both in the lock; no file was added.
 * 0719 (Collins: rendezvous with the Utah) once, 120 s after 0714, if the Utah is
-  still not deployed.
+  still not deployed; the test range waits for it to finish.
 
 ## Focused checks
 
@@ -175,12 +216,13 @@ python Tools/Validate-CampaignRepository.py
 ```
 
 The offline suite keeps its 31 single-player checks. The host flow suite
-(`Test-Misn07Coop.lua`, 448 checks) runs the whole script in four peers over the
+(`Test-Misn07Coop.lua`, 557 checks) runs the whole script in four peers over the
 real CRCoop and the E/A/C transport, plus an offline peer: startup and teams,
 the convoy, per-player alarm, special alarm and nearest-player soldiers,
 any-player triggers, rally and the Utah, win/loss, the restored arc, the
-minefield, the MAG film (once, skips, alarm gate, no 0711) and Razor One's
-glide, theft, fallbacks and fail-safes. The presentation suite covers the
+minefield, the MAG film (once, skips, no 0711), the phase-2 gating, Razor One's
+glide, theft, fallbacks and fail-safes, his drive to the test range and ambush,
+and the prototype svtnk7 program (trigger, cap scaling, scrap, factory loss). The presentation suite covers the
 four-peer adapter (path/object cameras, rally, delayed replicas, skips, result
 held for acknowledgements). The parity test pins the DLL source and lists each
 co-op substitution as an explicit API-count delta. These mocks do not qualify
@@ -193,8 +235,7 @@ progression from MISSION5. Specifically unproven: the parachute glide feel and
 the wall clearance (velocity steering against real pilot physics), the pilot
 entering the parked vehicle through `GetIn` and the engine's team change, the
 convoy pathing to the rendezvous and its spawn terrain at (779, 99505), the
-test turret/tank terrain at the derived coordinates, the film timing and shot
+test turret/tank terrain at the derived coordinates, Razor One's drive to `cam_spawn6` and the ambush fighters' behavior, the prototype tanks' balance (3750 health, 1450-damage shots every 6 s), the film timing and shot
 offsets over the converted map, mine density and the 400 m stream, and the
-guest film skips. `misn07.aip` is not in the repository (`SetAIP` is passed
-team 5). Steam and Wine/Proton are unverified, and stock multiplayer kill-feed
+guest film skips. The stock AIP's behavior on team 5 (it was authored for team 2) is untested. Steam and Wine/Proton are unverified, and stock multiplayer kill-feed
 messages remain visible.
