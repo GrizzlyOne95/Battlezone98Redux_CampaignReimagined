@@ -106,6 +106,11 @@ local function ApplyPresentation(op, ...)
             SetScrap(team, scrap)
             SetPilot(team, pilots)
         end
+    elseif op == "Label" then
+        local handle, label = ...
+        if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
+            pcall(SetLabel, handle, label)
+        end
     elseif op == "SucceedMission" or op == "FailMission" then
         local when, description = ...
         if localCameraActive then native.CameraFinish() end
@@ -118,40 +123,81 @@ local function ApplyPresentation(op, ...)
     end
 end
 
--- Ops whose first argument is a game object. The engine maps a handle across
--- Send only for replicated objects: a map-authored non-replicated one (misn06's
--- rendezvous geyser) arrives as nil on every guest, however long we wait. Those
--- go on the wire as "@handle@label" (handles are numbers, so a leading @ is
--- unambiguous) and each guest resolves the label with GetHandle.
+-- Ops whose first argument is a game object. Objects travel by identity, never by a bare
+-- handle the engine may not carry: "@handle@label" (a guest resolves the label first, then
+-- the replicated handle), or "!" when the leader reports the object gone. Label is the
+-- event that makes a leader-side SetLabel on a spawned object true on every guest.
 local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
-    SetUserTarget = true, RemoveObject = true }
-local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true }
--- A replica gets this many seconds, measured on the RECEIVER's own clock from
--- the first time its event is next in line, before the stale marker is dropped.
-local EVENT_TTL = 5
+    SetUserTarget = true, RemoveObject = true, Label = true }
+local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true, Label = true }
+local GONE = "!"
+-- Guests WAIT for the real object. This is only a never-hang guard: when it fires the
+-- guest logs "[coop] unresolved ..." and counts it in M.coopUnresolved (the harness probe
+-- reads that and expects zero).
+local RESOLVE_TIMEOUT = 15
+local labelSerial, announced = 0, {}
+-- Targets a guest already gave up on (logged once): later events for them skip at once.
+local gaveUp = {}
 
-local function WireHandle(handle)
-    if handle == nil then return nil end
+local function HandleText(handle)
+    return type(handle) == "number" and string.format("%d", handle) or tostring(handle)
+end
+
+local function KnownLabel(handle)
     local ok, label = pcall(GetLabel, handle)
     if ok and type(label) == "string" and label ~= "" and #label <= 126 then
         local found, resolved = pcall(GetHandle, label)
-        if found and resolved == handle then
-            -- "@handle@label": the label wins on a guest, but a label that only
-            -- the leader knows (SetLabel on a spawned, replicated object) still
-            -- falls back to the replicated handle.
-            return "@" .. (type(handle) == "number" and string.format("%d", handle) or tostring(handle)) ..
-                "@" .. label
-        end
+        if found and resolved == handle then return label end
     end
+end
+
+-- Leader: tell every guest "this replicated handle carries this label" once.
+local function AnnounceLabel(handle, label)
+    if announced[handle] == label then return end
+    announced[handle] = label
+    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+        n = 2, ttl = RESOLVE_TIMEOUT, handle = handle }
+end
+
+-- Leader: the label for a target, assigning a deterministic unique one to an unlabelled
+-- spawned object.
+local function EnsureLabel(handle)
+    local label = KnownLabel(handle)
+    if not label and type(SetLabel) == "function" then
+        labelSerial = labelSerial + 1
+        pcall(SetLabel, handle, "crco_" .. labelSerial)
+        label = KnownLabel(handle)
+    end
+    if label then AnnounceLabel(handle, label) end
+    return label
+end
+
+local function WireHandle(handle)
+    if handle == nil then return nil end
+    if not IsValid(handle) then return GONE end
+    local label = EnsureLabel(handle)
+    if label then return "@" .. HandleText(handle) .. "@" .. label end
     return handle
+end
+
+-- Retransmissions re-check the leader's view: a marker/label target that has since died
+-- is reported gone so a guest that never got it does not wait for it.
+local function EventArgs(event)
+    if event.handle ~= nil and WAIT_OPS[event.op] and not IsValid(event.handle) then
+        local args = { unpackArgs(event.args, 1, event.n) }
+        args[1] = GONE
+        return args
+    end
+    return event.args
 end
 
 local function Present(op, ...)
     if CRCoop.IsNetworkGame() then
         if not CRCoop.IsAuthority() then return end
-        local wire = { ... }
-        if HANDLE_OPS[op] and wire[1] ~= nil then wire[1] = WireHandle(wire[1]) end
-        events[#events + 1] = { op = op, args = wire, n = select("#", ...), ttl = EVENT_TTL }
+        local wire, handle = { ... }, nil
+        if HANDLE_OPS[op] and wire[1] ~= nil then handle = wire[1]; wire[1] = WireHandle(handle) end
+        events[#events + 1] = { op = op, args = wire, n = select("#", ...), ttl = RESOLVE_TIMEOUT,
+            handle = handle }
     end
     return ApplyPresentation(op, ...)
 end
@@ -300,6 +346,8 @@ end
 
 local function UpdatePresentationTransport()
     if not CRCoop.IsNetworkGame() then return end
+    -- Read by the harness probe (numbers in M appear in its snapshots): must stay 0.
+    if M.coopUnresolved == nil then M.coopUnresolved = 0 end
     if not CRCoop.IsAuthority() then
         UpdateRemoteCamera()
         return
@@ -312,7 +360,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(event.args, 1, event.n))
+                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
                 end
             end
         end
@@ -376,31 +424,38 @@ local function ReceivePresentation(from, kind, ...)
     end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Resources") then
+    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources") then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
-        local apply = true
+        local apply, unresolved = true, false
         if HANDLE_OPS[op] then
-            if type(args[1]) == "string" and args[1]:sub(1, 1) == "@" then
-                local sentHandle, sentLabel = args[1]:match("^@([^@]*)@(.*)$")
+            local sent, described = args[1], args[1]
+            if sent == GONE then
+                -- The leader reports the object gone: skip this marker, never wait.
+                apply = false
+            elseif type(sent) == "string" and sent:sub(1, 1) == "@" then
+                local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
                 local resolved = sentLabel and GetHandle(sentLabel)
                 if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
                     local candidate = tonumber(sentHandle) or sentHandle
                     if IsValid(candidate) then resolved = candidate end
                 end
-                args[1] = resolved
-                -- A label with no object here (destroyed, or not loaded yet).
-                if not IsValid(args[1]) then apply = false end
+                args[1], described = resolved, sentLabel or sent
+                if not IsValid(args[1]) then apply, unresolved = false, true end
+            elseif not IsValid(sent) then
+                unresolved = true
             end
-            if WAIT_OPS[op] and not IsValid(args[1]) then
-                -- Dynamic handles and map labels can resolve after the Lua packet.
-                -- Withhold the ACK so the retransmission retries, but bound the
-                -- wait on OUR clock: the leader's GetTime() is not comparable.
+            if unresolved and WAIT_OPS[op] and gaveUp[described] then
+                apply = false
+            elseif unresolved and WAIT_OPS[op] then
+                -- The real object may replicate after the Lua packet: withhold the ACK so
+                -- the retransmission retries. Only the never-hang guard ends the wait.
                 local now = GetTime()
                 if pendingSeq ~= seq or now < pendingSince then pendingSeq, pendingSince = seq, now end
-                if now - pendingSince < ttl then return true end
-                -- A target destroyed before its packet arrived must not block the
-                -- stream (and the mission result) forever. Only that marker drops.
+                if now - pendingSince < math.min(ttl, 60) then return true end
+                gaveUp[described] = true
+                M.coopUnresolved = (M.coopUnresolved or 0) + 1
+                print("[coop] unresolved " .. tostring(described) .. " (" .. op .. ")")
                 apply = false
             end
         end
