@@ -159,6 +159,9 @@ jobs:
       - name: Test setup mission shell
         run: python Tools/Test-SetupMissionShell.py
 
+      - name: Shipped cut voice-over
+        run: python Tools/Test-ShippedCutVo.py
+
       - name: Test misn09 source port
         shell: bash
         run: |

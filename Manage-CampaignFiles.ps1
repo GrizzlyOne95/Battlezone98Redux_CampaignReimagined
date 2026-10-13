@@ -1220,6 +1220,7 @@ function Get-TargetSubfolder($fileName) {
         ".tga" { return "Assets" }
         ".bmp" { return "Assets" }
         ".png" { return "Assets" }
+        ".wav" { return "Assets/Audio" }
         ".lgt" { return "Local/Missions" }
         ".trn" { return "Local/Missions" }
         ".hg2" { return "Local/Missions" }
