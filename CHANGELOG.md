@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fix the misn08 co-op host crash at load (null read in `AI_UnitRemove`): `SetAIControl(5, true)`
+  moves from `Start` to chunk load, before the engine builds its AI team records, as misn10 and
+  misn14 already do. The 146 `flat.dds` texture warnings in the log are unrelated and harmless.
 - Ship the restored cut voice lines of Missions 02b, 04 and 06 (misn0232, misn0407,
   misn0426, misn0428, misn0615-0627, misn0639, misn0641, misn0652), which Redux's
   German, Spanish, French and Italian archives lack, so those players hear voice
