@@ -35,6 +35,12 @@ DEFAULT_TOOLBOX = Path(os.environ.get("BZ_MODDING_TOOLBOX", REPO.parent / "Battl
 
 ENEMY_TEAM = 5
 AUTHORED_ENEMY_TEAM = 2
+# Authored objects dropped from a map; the mission Lua spawns replacements instead.
+# misn07: the DLL parks two disguised NSDF tanks (avtank2/avtank3) on authored team 3,
+# which co-op gives to a guest. misn07.lua spawns support-team (7) tanks off the
+# west edge and drives them to these authored positions (CONVOY_DEST in the Lua):
+#   avtank2 (1426.3, 22.9489, 99546.5)   avtank3 (1442.5, 21.613, 99570.4)
+REMOVE_LABELS = {"misn07": ("avtank2", "avtank3")}
 BUOY_SPACING = 25.0
 BUOY_ADDR_BASE = 0x3001
 
@@ -206,6 +212,17 @@ def build(text: str, mission: str) -> str:
     if f"TerrainName = {mission}\n" not in header:
         raise SystemExit("TerrainName not rewritten")
 
+    removed = 0
+    for label in REMOVE_LABELS.get(mission, ()):
+        keep = [b for b in objects if not re.search(rf"^label = {re.escape(label)}$", b, re.M)]
+        if len(keep) != len(objects) - 1:
+            raise SystemExit(f"object {label} not found exactly once")
+        gone = next(b for b in objects if b not in keep)
+        print(f"removed {label}:", tuple(field(gone, f"posit_{a}") for a in "xyz"))
+        objects = keep
+        removed += 1
+    count = len(objects)
+
     moved = 0
     for i, block in enumerate(objects):
         team = re.search(r"^team \[1\] =\n(\d+)$", block, re.M)
@@ -248,7 +265,10 @@ def build(text: str, mission: str) -> str:
     header = re.sub(r"^size \[1\] =\n\d+$", f"size [1] =\n{count + 4}", header, count=1, flags=re.M)
     teams = Counter(re.findall(r"^team \[1\] =\n(\d+)$", "\n".join(objects), re.M))
     print("object counts per team (after move):", dict(sorted(teams.items())))
-    print(f"moved {moved} CCA objects to team {ENEMY_TEAM}; added 4 team-start buoys")
+    for team in (2, 3, 4):
+        if teams.get(str(team)):
+            print(f"warning: {teams[str(team)]} authored objects remain on guest team {team}")
+    print(f"removed {removed} objects; moved {moved} CCA objects to team {ENEMY_TEAM}; added 4 team-start buoys")
     body = "".join("[GameObject]\n" + b for b in objects + [s.split("[GameObject]\n", 1)[1] for s in buoys])
     return header + body + tail
 
