@@ -1,0 +1,200 @@
+# Mission 07 offline and co-op
+
+Behind Enemy Lines shares `misn07.bzn` / `misn07.lua` between campaign
+`MISSION6` and the strategy listing `CR: Behind Enemy Lines Coop`.
+Use matching CR, EXU and OpenShim builds. Host on team 1, with guests on
+distinct teams 2–4; select an NSDF tank or scout and start together.
+Late join/rejoin requires a restart. Host departure ends the mission.
+
+## Map
+
+`Tools/Build-CoopMap.py --mission misn07` rebuilds `Missions/misn07.bzn` from
+the Battlezone 1.5 original (`stockfiles2\misn07.bzn`, binary version 1032,
+class `Misn07Mission`) exactly as for misn06 (see `MISN06_COOP.md`):
+`TerrainName = misn07`, class `MultSTMission`, the 48 authored CCA objects
+moved from team 2 to team 5 (`perceivedTeam 5`), and four zero-motion
+`pspwn_1` team starts (`coop_spawn1`–`4`) 25 m apart at the authored start.
+Terrain is the unsmoothed 1.5 cook (`misn07.hg2`).
+
+The builder also drops authored objects named in `REMOVE_LABELS`. For misn07
+that is `avtank2` and `avtank3`, the two "disguised" rendezvous tanks, which the
+original keeps on team 3 (a guest team in co-op). Their authored positions are
+recorded in the builder and the Lua: avtank2 (1426.3, 22.9, 99546.5) and avtank3
+(1442.5, 21.6, 99570.4). The map keeps no other object on teams 2–4. misn06
+output is byte-identical to before.
+
+The converted map keeps every path the Lua reads, including the test-range
+paths (`cam_spawn1`–`6`, `camera_path1`/`2`, `test_tank_spawn`, `m001`–`m110`)
+and `edge_path`, whose endpoints (x 192..4106, z 97480..101299) bound the
+playable area. `m000` is absent and the restored minefield skips it.
+
+## Mission ownership
+
+The Utah (`avrec7`), the unit factory, the navs, Razor One and the replacement
+tanks stay on team 1. CCA units, soldiers, parked turret replacements, the base
+tower and mines use team 5. Support units (the rendezvous convoy and the test
+turret) use team 7, allied with every human team and hostile to team 5. EXU
+suppresses the extra MultST starting recyclers. The DLL's `SetScrap(1, 10)`
+becomes each human team's starting scrap, with native capacity reserved first
+(as in misn05/misn06). The arrival bonus `AddScrap(1, 30)` / `SetPilot(1, 20)`
+goes to team 1, the leader's base, where the Utah deploys; the CCA's
+`AddScrap`/`SetPilot` and `SetAIP("misn07.aip", 5)` use team 5. The AIP file
+is not in this repository (see not-yet-verified).
+
+Only the campaign leader runs AI, spawns, orders, timers and the win/loss
+gates; the co-op preamble returns for guests before the mission body. Objectives,
+markers, dialogue (the first line of a block plays and the rest queue — every
+misn07 block is a single line), removals and results go to every peer through
+the ordered, acknowledged E/A event stream. The C snapshot carries a camera
+kind: `P` replays `camera_path1`/`2` and `O` the object shots. Each player can
+skip their own film; the shared timing continues. misn07 reads no `IsInfo`
+state, so there is no `I` relay.
+
+## Alarm and stealth, per player
+
+The alarm is one shared mission flag, but every trigger checks every player.
+
+| DLL test | Co-op rule |
+|---|---|
+| Tank tripwire (`!out_of_car`, < 70 m of `turret1_spot`) | trips if **any** player who has **not** infiltrated is within 70 m, even after a teammate parachuted in |
+| Parachute in (< 160 m of `camera_geyser`, alarm off) | recorded **per player** (keyed by CRCoop player id); `out_of_car` now means "any player has infiltrated". The radar objective is raised by the first infiltrator |
+| `vehicle_stolen` (infiltrated in `svtank`/`svfigh`/`svturr`) | latched **per infiltrated player**; `vehicle_stolen` means every infiltrator has stolen one |
+| `alarm_special` (soldiers) | when `trigger1` fires, if any infiltrated player has not stolen a Soviet vehicle |
+| Soldiers, parked units `Attack(x, user)` | each attacks its nearest player |
+| `parkturret != user` | no player holds that turret |
+| Alarm sound (< 170 m of the radar array) | any player |
+| Rendezvous (< 150 m of a tank), tower warning (< 90 m of `nav1`), rookie found (< 70 m), runner (< 50 m of a patrol) | any player |
+| Jump-cam spawn (no player < 400 m of the geyser, no `svfigh` < 200 m) | no player within 400 m **and** no enemy fighter within 200 m of any player |
+| Friendly-unit tripwires (`avfigh1`, tanks near the towers) | still gated by the global `out_of_car`, so they disarm once any player is inside; the rookie script uses the same flag |
+
+`trigger1` (anything damaged while a player is inside) is unchanged. Win and
+loss stay in the DLL logic: the radar and CCA recycler destroyed wins, losing
+the Utah after arrival fails, and exhausting the five-life respawn service
+(`COOP_RESPAWN.md`) fails everyone.
+
+Respawns rally at the rendezvous nav (`cam3`) until the Utah is deployed, then
+at the Utah. The leader sends a `Rally` presentation event carrying the Utah
+handle (every peer sets its own respawn service; delivery waits for the
+replica) and advances the CRCoop mission phase.
+
+## Rendezvous convoy
+
+`-- CR rendezvous convoy >>` regions. The leader spawns two `avtank` on the
+support team (perceived as NSDF, independence 0, stopped) at (779, 99505) and
+(779, 99525): 15% inside the west edge of the `edge_path` bounds at the
+rendezvous latitude, about 660 m from `cam3`, away from every CCA route and out
+of sight. When any player comes within 600 m of `cam3`, `Goto` sends them to the
+authored avtank2/avtank3 positions; the order is repeated every 10 s until each
+is within 25 m, so tanks that were stopped en route keep driving. 600 m is the
+distance a player covers in about the minute a tank needs for the 660 m. They
+take the DLL handles `wingtank2`/`wingtank3`, so the any-player rendezvous test
+and the team-1 `avtank` replacement run unchanged; a convoy tank destroyed en
+route is tolerated exactly as the DLL tolerates dead wingtanks. Offline play
+uses the same convoy.
+
+## Razor One's infiltration
+
+`-- CR Razor One infiltration >>` regions. At the DLL's moment (0715 plus
+`EjectPilot`) the pilot is captured: `EjectPilot` returns nothing, so
+`AddObject` adopts the first person within 40 m of the rookie, with a
+per-frame `ObjectsInRange` scan as a fallback (give up after 3 s). The empty
+`avfigh` stays as the DLL leaves it.
+
+* **Glide.** Each frame the leader sets his velocity toward the landing point:
+  40 m past `camera_geyser` toward the parked vehicles, (2781, 99542), clear of
+  the radar array, huts, parked tanks and APC. Horizontal speed is limited to
+  22 m/s (easing near the target), descent to 5 m/s. A wall assist climbs just
+  fast enough (at most 10 m/s) to clear the highest terrain on the next 90 m by
+  10 m. Steering stops within 8 m of the target; he lands when within 1.5 m of
+  the ground. Fail-safes: pilot lost or dead, no landing within 60 s or no
+  capture within 3 s drops the behaviour.
+* **Theft.** After landing he is ordered with `GetIn` into the nearest empty
+  parked Soviet vehicle among `parked1`–`3` (empty, team 5, not held by a
+  player; turrets and the APC are excluded). The chosen handle is cleared from
+  the CCA alarm code, so later `Retreat(pilot, parkedN)` / `Attack(parkedN, …)`
+  / damage triggers never see it. If it is destroyed, taken, or he is not in it
+  within 40 s, the handle is given back and the next nearest is tried.
+* **Fight.** Once he has entered (he vanishes beside the vehicle) the vehicle is
+  forced to team 1 and NSDF-perceived if the engine did not do it, and follows
+  the nearest player (refreshed every 10 s). Humans alone are infiltrators, so
+  his theft never sets `out_of_car` or the alarm; if the alarm is already on he
+  just fights. Offline play is identical.
+
+## Restored cut content
+
+`-- CR restored VO >>` regions (`RESTORED_VO` gates them; the source parity test
+strips them, checks the DLL body is otherwise unchanged and that every restored
+wav has its shipped `Text/misn07NN.txt`). Only shipped assets are used.
+
+* The test range (the disabled C++ block, adapted): 0703 ("beyond a minefield…")
+  is scheduled 30 s after Razor One's ejection, or 480 s after the overlook
+  camera (the DLL's own timer), and spawns the test tank and turret. 15 s later
+  the "Testing Range" Nav Beacon (`apcamr` at `cam_spawn6`) appears. Two minutes
+  later, when no player is within 400 m of `cam_spawn1` (`mine_geyz` is gone, so
+  that spawn point stands in), 0704 plays and the "Mine Field" beacon appears at
+  `cam_spawn1`; when any player is within 70 m of it the four "Mine Path 1–4"
+  beacons appear at `cam_spawn2`–`5`. As in the DLL, `mine_pathed` stops further
+  runner retreats.
+* The streamed minefield: `proxmine` (team 5) at path nodes `m001`–`m110`
+  whenever any player is within 400 m of a node, removed when none is, and
+  marked dead once destroyed; ten nodes per frame by round robin
+  (`mine_check`). Missing nodes (`m000`) are skipped via `GetPathPointCount`.
+  Mines are always active, as in the DLL's top-level block.
+* The MAG-cannon test. The map no longer holds `test_tank`/`test_turret`, so the
+  announcement spawns them. `test_tank` is an `svtnk7` (the DLL's MAG tank) at
+  `test_tank_spawn` (3283.7, 99037.3), independence 0 and stopped. `test_turret`
+  is an `svturr` (a CCA-model turret from the stock ODFs) on the support team,
+  which never fires on players and is a legitimate enemy of the CCA tank, so the
+  shot is an ordinary attack order. It stands at (3268.7, 99007.6): the
+  midpoint of `camera_path2` (x 3288.0..3249.3 at z 99037.6, the shot that
+  films the turret) moved 30 m south toward the Testing Range nav and away from
+  the CCA factory at (3275.6, 99069.6). The coordinates come from the converted
+  BZN paths and have not been checked against the terrain in game.
+  When any player is within 65 m of the tank, with the alarm off, no other film
+  running and the mission not over, the film runs: object shot of the tank
+  (6 s), `camera_path1` (8 s), `camera_path2` at the turret (swap the tank for a
+  fresh `svtnk7` attacking the turret after 5 s, 6 s total), an object shot of
+  the turret (10 s), then `CameraFinish`; the turret is pre-damaged 950 and the
+  tank is released to fight. It plays once and replicates through the `O`/`P`
+  snapshots; each player can skip their own view, an offline skip ends it and
+  resolves the swap. **0711 (a developer joke) and 0717 (a near-duplicate of
+  0702) are not played.**
+* 0719 (Collins: rendezvous with the Utah) once, 120 s after 0714, if the Utah is
+  still not deployed.
+
+## Focused checks
+
+```sh
+lua5.1 Tools/Test-Misn07.lua
+lua5.1 Tools/Test-Misn07Coop.lua
+lua5.1 Tools/Test-Misn07Presentation.lua
+python Tools/Test-Misn07SourceParity.py
+python Tools/Test-Misn07CoopContract.py
+python Tools/Test-SetupMissionShell.py
+python Tools/Validate-CampaignRepository.py
+```
+
+The offline suite keeps its 31 single-player checks. The host flow suite
+(`Test-Misn07Coop.lua`, 448 checks) runs the whole script in four peers over the
+real CRCoop and the E/A/C transport, plus an offline peer: startup and teams,
+the convoy, per-player alarm, special alarm and nearest-player soldiers,
+any-player triggers, rally and the Utah, win/loss, the restored arc, the
+minefield, the MAG film (once, skips, alarm gate, no 0711) and Razor One's
+glide, theft, fallbacks and fail-safes. The presentation suite covers the
+four-peer adapter (path/object cameras, rally, delayed replicas, skips, result
+held for acknowledgements). The parity test pins the DLL source and lists each
+co-op substitution as an explicit API-count delta. These mocks do not qualify
+native wire serialization, AI navigation or voice queuing.
+
+## Not yet verified
+
+No live run: Windows GOG two- and four-client co-op and the campaign
+progression from MISSION5. Specifically unproven: the parachute glide feel and
+the wall clearance (velocity steering against real pilot physics), the pilot
+entering the parked vehicle through `GetIn` and the engine's team change, the
+convoy pathing to the rendezvous and its spawn terrain at (779, 99505), the
+test turret/tank terrain at the derived coordinates, the film timing and shot
+offsets over the converted map, mine density and the 400 m stream, and the
+guest film skips. `misn07.aip` is not in the repository (`SetAIP` is passed
+team 5). Steam and Wine/Proton are unverified, and stock multiplayer kill-feed
+messages remain visible.
