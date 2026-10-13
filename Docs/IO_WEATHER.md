@@ -232,10 +232,7 @@ A guest with no seed shows calm weather until `IoState` arrives, follows the hos
 
 ## Integrating into misn10
 
-`Scripts/misn10.lua` is not touched by this branch. Whoever wires it follows `misn08.lua`'s
-Venus lines (`-- CR Venus weather` regions) and `Docs/VENUS_WEATHER.md`; the changes are the
-module name, the three ops and the beats. misn10 is the stock source port (no EXU) so it also
-needs the CR co-op / presentation plumbing misn08 has.
+`Scripts/misn10.lua` wires it (`-- CR Io weather` regions); see `MISN10_COOP.md` for the beats. The snippet below is the generic recipe.
 
 ```lua
 local CRIoWeather = require("CRIoWeather")
