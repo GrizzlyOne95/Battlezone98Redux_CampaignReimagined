@@ -32,7 +32,8 @@
   version on the original Battlezone 1.5 map. The alarm is per player: any
   player who has not parachuted in still trips the tank tripwire, and the alarm
   soldiers hunt the nearest player. Allied tanks now drive in to the
-  rendezvous, Razor One glides into the outpost and steals a Soviet vehicle,
+  rendezvous, Razor One glides into the outpost and steals a Soviet vehicle
+  (his ship slowly heals when left alone),
   and the cut test range returns once the radar array is down (Razor One drives
   to it and is ambushed, with the Nav Beacons through the minefield, the
   streamed mines and the MAG-cannon film). After the film the CCA begins

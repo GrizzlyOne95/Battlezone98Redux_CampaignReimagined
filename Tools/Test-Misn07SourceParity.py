@@ -44,7 +44,7 @@ assert inside is None, "unterminated region"
 lua = "\n".join(stripped_lines)
 for token in ("RESTORED_VO", "CUT_VO", "RENDEZVOUS_CONVOY", "RAZOR_ONE", "SpawnConvoy", "UpdateConvoy",
               "UpdateRazorOne", "RazorOne", "RestoredTestRange", "RestoredMineField", "RestoredMagCannon",
-              "utah_nag", "mine_ok", "cine_player", "M.rk", "M.convoy", "PROTO_", "Prototype", "M.proto", "TestRangeOpen", "BeginTestRangeTrip", "razor_unit"):
+              "utah_nag", "mine_ok", "cine_player", "M.rk", "M.convoy", "PROTO_", "Prototype", "M.proto", "TestRangeOpen", "BeginTestRangeTrip", "razor_unit", "RK_HEAL", "UpdateRazorHeal", "M.rh"):
     assert token not in lua, "region code outside marker regions: " + token
 
 # Restored voice lines need their shipped subtitle text (never invent text); 0711 and 0717 stay cut.
