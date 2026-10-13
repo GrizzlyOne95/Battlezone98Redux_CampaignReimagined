@@ -135,6 +135,23 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-AiCoreStateManagement.lua
 
+      - name: Test aiCore correctness fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-AiCoreFixes.lua
+
+      - name: Test aiCore human-team handling
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-AiCoreHumanTeams.lua
+          python Tools/Test-AiCoreMissionContracts.py
+          "$LUA" Tools/Test-PlayerPilotMode.lua
+          python Tools/Test-Misn05CoopContract.py
+
       - name: Test weather
         shell: bash
         run: |

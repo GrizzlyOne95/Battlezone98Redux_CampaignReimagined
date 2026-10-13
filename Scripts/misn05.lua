@@ -835,20 +835,17 @@ local function RehydrateMissionRuntime()
     if CRCoop.IsAuthority() then
         SetupAI()
         BootstrapWithoutScriptedEnemies()
-        SetAIP("misn05.aip", ENEMY_TEAM)
+        aiCore.SetStrategyFromAip("misn05.aip", ENEMY_TEAM)
     end
     subtit.Initialize()
     ApplyTurboToAll()
     M.loading_done = true
 end
 
--- The native AiMission supplies the CCA strategic AI. LuaMission must enable it at chunk load,
--- before the engine runs DR_AI_Init: the misn05 map uses MultSTMission, so team 5 is never flagged
--- there and SetAIP silently skips the assignment without it. It must stay chunk-root: a later
--- SetAIControl (Start runs after DR_AI_Init) leaves the team flagged without an AI team record and
--- the first team-5 unit removal dereferences null and kills the host (misn08 live crash). SetAIP
--- itself stays in Start/Update. Same rule as misn08/misn10/misn14.
-SetAIControl(ENEMY_TEAM, true)
+-- The CCA team runs on the aiCore Lua brain (custom strategy, maintain list, perimeter). The
+-- engine's native AIP is deliberately NOT used here: no SetAIControl and no native SetAIP, so
+-- two planners never command the same base. aiCore.SetStrategyFromAip only maps the .aip name
+-- to an aiCore strategy name.
 
 function Start()
     M = NewMissionState()
@@ -1100,7 +1097,7 @@ function Update()
 
         RefreshMissionHandles()
 
-        SetAIP("misn05.aip", ENEMY_TEAM)
+        aiCore.SetStrategyFromAip("misn05.aip", ENEMY_TEAM)
         subtit.Play("misn0501.wav")
         M.game_start = true
         CRCoop.SetMissionPhase(1)

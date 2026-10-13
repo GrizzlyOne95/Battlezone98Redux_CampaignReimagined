@@ -273,6 +273,16 @@ function DiffUtils.SetupTeams(playerFaction, enemyFaction, enemyTeamNum)
     DiffUtils.ApplyAiCoreDifficulty(playerTeam, "player", 1)
     DiffUtils.ApplyAiCoreDifficulty(enemyTeam, "enemy", enemyTeamNum or 2)
 
+    -- aiCore must not manage human teams: team 1 (and any other team aiCore knows is human)
+    -- starts with base/factory/constructor/tactical/special-combat management off. A mission
+    -- that wants one back sets it explicitly with SetConfig afterwards.
+    if core.ApplyHumanTeamDefaults then
+        if core.IsHumanTeam(1) then core.ApplyHumanTeamDefaults(playerTeam) end
+        if core.IsHumanTeam(enemyTeamNum or 2) then core.ApplyHumanTeamDefaults(enemyTeam) end
+    end
+    -- Co-op guests (teams 2-4) get wingman/rescue/depot support too.
+    if core.EnsureHumanTeams then core.EnsureHumanTeams() end
+
     -- Global Environment
     if exu then
         if exu.SetGlobalTurbo then exu.SetGlobalTurbo(true) end
