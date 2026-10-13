@@ -328,10 +328,9 @@ check(m.game_over and count("SucceedMission") == 1 and last("SucceedMission")[3]
 m = reset(); seize(m); near(m.relic, m.nsdfmuf, 1); step(1306.1)
 check(not m.game_over, "enemy-held relic cannot win")
 unitCount = 0; step(1361)
-check(m.game_over5 and m.game_over and count("SucceedMission") == 1 and last("SucceedMission")[3] == "misn09w1.des"
-    and count("AudioMessage", "misn0908.wav") == 1, "clearing every CCA unit near the geyser wins (restored)")
+check(m.game_over5 and not m.game_over and count("SucceedMission") == 0 and count("AudioMessage", "misn0908.wav") == 1,
+    "clearing every CCA unit near the geyser only plays 0908: the stock SucceedMission stays cut")
 check(last("CountUnitsNearObject")[3] == 5000 and last("CountUnitsNearObject")[4] == 5, "enemy-cleared query counts the CCA team")
-check(count("VenusTarget", 1) == 1, "the win calms the storm")
 
 m = reset(); seize(m); kill(m.ccarecycle); kill(m.ccamuf); Update(0.05)
 check(m.ccadead and not m.game_over, "enemy base destruction is informational")

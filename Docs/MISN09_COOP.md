@@ -80,21 +80,39 @@ presentation adapter's lexical wrappers, so the DLL body keeps its own spelling.
   convoy out (0901) and seal its retreat (0903). Once the convoy has started and its lead (the
   tug, else the first living escort) comes within **350 m** of `cut_off_geyser` (the soviet path
   passes 125 m from it), the players get a **45 s** head start. Then the leader spawns an allied
-  `avtank` platoon on team 7 **`PRESCOTT_BEHIND_M` = 250 m behind the convoy's rearmost living
-  unit** (the one farthest from the cutoff geyser; any tug, escort, APC or extra counts): the
-  `soviet_path` points are walked backwards from the point nearest that unit, spread 20 m
-  sideways, `y` from the terrain. If the path cannot be read it uses the rear unit's position
-  minus its facing times 250 m, and if no convoy unit is alive nothing spawns (and no arrival
-  burst). It used to spawn on `spawn1`-`4`, the convoy's origin 1.17 km back, which could be
-  after the convoy had already passed the cutoff. It is perceived as NSDF, on orders only (`SetIndependence 0`). It is **3** tanks, +1 per
-  extra human, max **5** (3/4/5/5 for 1-4 players). Every 4 s each tank is ordered to attack
-  the nearest living convoy *combat* unit (the four fighters, four tanks and the scaling
-  extras) and is re-ordered only when its target changes or dies. The tug (which may carry
-  the relic), the APCs and the launch pad are never named in an order, so the platoon cannot
-  deliberately fire at them; once no combat unit is left each tank stops and holds. Leader
-  only; the handles live in the saved state. 0903 stays at the DLL's time (seven seconds
-  after the convoy starts, tied to the convoy shot); the platoon usually spawns well after
-  it, which the line ("is sealing their retreat path") tolerates, so the VO timing is stock.
+  `avtank` platoon on team 7, **always `PRESCOTT_COUNT` = 5 tanks at any player count**,
+  **`PRESCOTT_BEHIND_M` = 250 m behind the convoy's rearmost living unit** (the one farthest from
+  the cutoff geyser): the `soviet_path` points are walked backwards from the point nearest that
+  unit, spread 20 m sideways, `y` from the terrain. The rear position and facing are stored every
+  frame while any convoy unit lives (`M.convoy_rear`). If the path cannot be read it uses the
+  stored position minus its facing times 250 m. The tanks are perceived as NSDF and on orders
+  only (`SetIndependence 0`).
+  * **Prescott.** The middle tank (`PRESCOTT_LEADER_INDEX` 3) is Commander Prescott. The leader
+    calls `SetObjectiveOn` + `SetObjectiveName("Commander Prescott")` through the presentation
+    adapter (the same stream as the "Alien Relic" and "Choke Point" markers; guests wait for the
+    replicated handle), and `SetObjectiveOff` when he dies.
+  * **Hunting** (convoy alive). Every 4 s each tank attacks the nearest living convoy *combat*
+    unit (fighters, tanks, extras), re-ordered only when the target changes or dies. The tug
+    (it may carry the relic), the APCs and the launch pad are never named in any order; with
+    no combat unit left each tank stops and holds.
+  * **Convoy destroyed** (every tug, escort, APC and extra dead), before or after the platoon
+    spawned. If it was never armed it is armed at once; if armed but waiting, the wait drops to
+    `PRESCOTT_DEAD_DELAY_S` = 10 s. It spawns behind the last stored rear; with no stored rear,
+    behind the `soviet_path` point nearest `cut_off_geyser`. There is no "cancelled" state. Hunting
+    stops for good (latched, even if the CCA rebuilds a tug): Prescott `Goto`s the nearest living human
+    (re-issued every 4 s), the others `Follow` him.
+  * **Launch pad standoff.** If that human is within `PRESCOTT_PAD_STANDOFF_M` = 150 m of the
+    pad, the `Goto` is the point 150 m from the pad on the human's side, so the tanks never park
+    beside (and splash) it.
+  * **Victory.** With the convoy destroyed the mission is won (`misn0909` line, `misn09w1`
+    debrief, same as the relic win, through `SucceedMission`) when Prescott is within
+    `PRESCOTT_ARRIVE_M` = 60 m of any human, or Prescott is dead, or the whole platoon is dead,
+    or `PRESCOTT_DRIVE_TIMEOUT_S` = 120 s have passed since the drive-in began. It requires the
+    relic, Unit Factory and launch pad to be alive, so the stock fails (misn09f1/f3/misn0918) still
+    land; it sets `M.game_over` so only one win can fire. The relic does not have to be secured by
+    the MUF: that is deliberate.
+  Leader only; the handles live in the saved state. 0903 stays at the DLL's time (seven seconds
+  after the convoy starts); the platoon usually spawns well after it, which the line tolerates.
 * **Restored radio** (`CR cut VO`). `misn0917` (Collins: "why are you wasting time and
   resources building units now?") plays once when a human combat unit (`avtank`, `avltnk`,
   `avrckt`, `avhraz`, `avartl`, `avfigh`, `avwalk`) appears within 120 m of the Unit Factory
@@ -107,11 +125,12 @@ presentation adapter's lexical wrappers, so the DLL body keeps its own spelling.
   duplicate briefing and stays cut. The wavs are in `Assets/Audio` (byte-exact from the Redux
   `bzone_en.zfs`; the 1.5 `stockfiles2` copies are identical) and the subtitles are in `Text/`;
   see "Shipped voice lines" in `MISN07_COOP.md` for the method.
-* **Geyser-clear win** (`CR geyser-clear win`). The DLL plays 0908 ("Venus is secure") when
+* **Geyser-clear win stays cut.** The DLL plays 0908 ("Venus is secure") when
   `CountUnitsNearObject(convoy_geyser, 5000, team 2)` is zero, with its `SucceedMission`
-  commented out. It is enabled: with the convoy started, clearing every CCA (team 5) unit
-  within 5 km of the geyser wins with `misn09w1.des`. The check runs every 10 s and does not fire
-  once an outcome is set, so the relic win (0909) and the failures keep their DLL precedence.
+  commented out; the port keeps it commented out (stock text, no `CR` region). The CCA launch
+  pad is team 5 and must never die (0918 fail), so counting every CCA unit within 5 km conflicts
+  with the pad, and it could fire before the convoy and relic exist. The convoy-destroyed ending is
+  Prescott's drive-in win above; the 0908 line still plays as stock.
 * **Replacement tug** (`CR tug rebuild`). The DLL's cut block rebuilt the tug at the CCA
   recycler. Restored with the dead `build_new_tug` / `build_tug_time` / `tug_done` state: if the
   CCA tug dies after the convoy started while the relic exists, the CCA factory (`svmuf`) builds
@@ -142,7 +161,7 @@ Beats (leader/offline only, each once; guests follow `VenusState`):
 1. Opening and the artillery fight: calm, target level 2.
 2. Level 3 when the convoy launches (the CCA tug has the relic) or the cutoff warning (0903)
    fires.
-3. `ForceLevel(5, 60, 10)` when Prescott's platoon arrives or the tug makes its final run
+3. `ForceLevel(5, 60, 10)` when Prescott's platoon spawns or the tug makes its final run
    (within 500 m of the launch pad).
 4. Target level 1 (clear) on the win.
 
@@ -163,17 +182,17 @@ python Tools/Test-SetupMissionShell.py
 python Tools/Validate-CampaignRepository.py
 ```
 
-`Test-Misn09.lua` (126) is the offline host flow over the real CRCoop with one player:
+`Test-Misn09.lua` (125) is the offline host flow over the real CRCoop with one player:
 the DLL's own timers, strict boundaries, slot order and outcome precedence, plus the team-5
-remaps, the neutral relic, the replacement tug's delay and the geyser-clear win.
-`Test-Misn09Coop.lua` (1077) runs the whole script in four peers plus an offline peer
+remaps, the neutral relic, the replacement tug's delay and 0908 with its SucceedMission left cut.
+`Test-Misn09Coop.lua` (1553) runs the whole script in four peers plus an offline peer
 over the E/A/C transport: startup, ownership and rally, label-aware nav names and opening
 shot, every any-player trigger at its strict boundary, the IsInfo relay, the convoy at
 1-4 players (extras and their orders), a guest-held relic, the platoon (trigger at 351 and 349
-m, the 45 s delay, 3/4/5/5 tanks spawned 250 m behind the rear unit along the route (facing fallback, no spawn when the convoy is dead), orders that only name escort combat units,
+m, the 45 s delay, five tanks at 1-4 players spawned 250 m behind the rear unit along the route (facing fallback; a pre-destroyed convoy still spawns it after 10 s), the highlighted Commander Prescott, the drive-in, the pad standoff, the win on arrival / Prescott dead / platoon dead / 120 s timeout with its single latch, orders that only name escort combat units,
 tug, relic, APC and pad untouched through a full fight, retargeting, holding when none are
 left), both cut lines (and the cases that must not fire), the replacement tug (delay, team,
-placement, limits, factory loss, relic loss), the geyser-clear win and the lock-step result on every
+placement, limits, factory loss, relic loss), the relic win and the lock-step result on every
 peer, the factory loss and rally, and the Venus wiring and beats. `Test-Misn09Presentation.lua`
 (98) covers the adapter. The parity test pins `References/Misn09Source` and lists each
 co-op substitution as an API-count delta.
@@ -193,9 +212,6 @@ Specifically unproven:
   something near them (the tug carrying the relic, the launch pad); the script only guarantees
   that no *order* names those. If the live platoon shoots the tug the exclusion needs a
   geometric guard (hold fire inside a radius), not a different target list.
-* Whether `CountUnitsNearObject` counts buildings: if it does, the CCA launch pad and base
-  keep the geyser-clear win from ever firing, and the DLL's cut block would have had the same
-  problem. The mock counts units only.
 * Whether a neutral (team 0) relic is picked up by both the CCA and a player tug exactly as the
   team-3 one was, and whether a tug's `GetTug` reports a guest's tug.
 * The platoon's travel time from the convoy's origin to the fight (about 1.2 km at tank speed)

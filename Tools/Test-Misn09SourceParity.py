@@ -2,7 +2,7 @@
 """Check the DLL provenance, retained comments/state, and authored call order.
 
 The co-op layer and the restored content (convoy scaling, Prescott's platoon, the cut radio
-lines, the geyser-clear win, the replacement tug, the Venus weather, the team filter, the
+lines, the replacement tug, the Venus weather, the team filter, the
 rally point) live between exact marker lines. They are stripped (inclusive) so every check
 below still proves the active DLL port is unchanged; each co-op substitution outside the
 markers is an explicit API-count delta.
@@ -34,7 +34,7 @@ source = (ROOT / "References/Misn09Source/Misn09Mission.cpp").read_text()
 lua = (ROOT / "Scripts/misn09.lua").read_text().replace("\r\n", "\n")
 
 REGIONS = ("CR Venus weather", "CR team filter", "CR convoy scaling", "CR Prescott platoon", "CR cut VO",
-           "CR tug rebuild", "CR geyser-clear win", "CR rally")
+           "CR tug rebuild", "CR rally")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}
 lua_lines = lua.split("\n")
@@ -145,17 +145,17 @@ check("SetScrap(1, 20)" in lua_update and "SetPilot(1, 7)" in lua_update and "lo
 check(len(re.findall(r"-- PORT FIX:", lua)) == 3, "expected three documented source fixes")
 
 # Restored radio lines: only 0917 and 0910 (0912 is a duplicate briefing and stays in its cut comment), each with
-# its subtitle text and shipped wav; the geyser-clear win is the DLL's own cut SucceedMission, re-enabled.
+# its subtitle text and shipped wav; the DLL's cut geyser-clear SucceedMission stays cut.
 region_all = "\n".join(l for lines in region_text.values() for region in lines for l in region)
 wavs = sorted(set(re.findall(r'"(misn09\d\d)\.wav"', region_all)))
-check(wavs == ["misn0910", "misn0917"], "restored voice lines: " + repr(wavs))
-for wav in wavs:
+# misn0909 is the stock relic win line, replayed by Prescott's drive-in win (same SucceedMission text as the DLL's).
+check(wavs == ["misn0909", "misn0910", "misn0917"], "restored voice lines: " + repr(wavs))
+for wav in [w for w in wavs if w != "misn0909"]:  # 0909 is stock, already in the game
     check((ROOT / "Text" / (wav + ".txt")).is_file(), "region VO without Text subtitle: " + wav)
     check((ROOT / "Assets/Audio" / (wav + ".wav")).is_file(), "region VO without shipped wav: " + wav)
 check("misn0912" not in active_lua and "misn0912" not in region_all, "0912 must stay cut")
 check('AudioMessage("misn0912.wav")' in lua, "the cut 0912 block stays in its comment")
-geyser = "\n".join("\n".join(region) for region in region_text["CR geyser-clear win"])
-check('SucceedMission(GetTime() + 15.0, "misn09w1.des")' in geyser, "geyser-clear win re-enabled in its region")
+check("CR geyser-clear win" not in lua, "no geyser-clear region: that win stays the DLL cut stock")
 check('SucceedMission(Get_Time() + 15.0f, "misn09w1.des");' in lua, "the cut SucceedMission stays in its comment")
 check('BuildObject("avtank", SUPPORT_TEAM, SetVector(px, py, pz))' in region_all, "Prescott's platoon spawns on the support team")
 check("PRESCOTT_BEHIND_M = 250" in region_all and "PRESCOTT_SPAWN_PATHS" not in lua,

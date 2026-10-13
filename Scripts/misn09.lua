@@ -187,11 +187,23 @@ local CONVOY_EXTRA_MAX = 3
 -- CR Prescott platoon >>
 -- misn0901/misn0903 have Commander Prescott flushing the convoy out and sealing its retreat.
 -- When the convoy's lead is this close to the cutoff geyser the players get PRESCOTT_DELAY_S of
--- first crack, then an allied avtank platoon (team 7) spawns PRESCOTT_BEHIND_M behind the convoy's
--- rearmost living unit, along its route, and hunts its combat units. Solo it is PRESCOTT_BASE tanks,
--- +1 per extra human, max PRESCOTT_MAX. The tanks are spread PRESCOTT_SPREAD_M apart sideways.
+-- first crack, then an allied avtank platoon (team 7) of PRESCOTT_COUNT tanks, however many humans
+-- play, spawns PRESCOTT_BEHIND_M behind the convoy's rearmost living unit, along its route, and
+-- hunts its combat units (never the tug, APCs or launch pad). The middle tank is Commander
+-- Prescott, highlighted for every peer. If the whole convoy dies first the platoon still spawns,
+-- PRESCOTT_DEAD_DELAY_S later, behind the convoy's last known rear. Once the convoy is destroyed
+-- the platoon drives in to the nearest living human (never closer than PRESCOTT_PAD_STANDOFF_M to
+-- the launch pad) and the mission is won when Prescott is within PRESCOTT_ARRIVE_M of a human, or
+-- Prescott/the platoon dies, or PRESCOTT_DRIVE_TIMEOUT_S passes. The tanks are spread
+-- PRESCOTT_SPREAD_M apart sideways.
 local PRESCOTT_TRIGGER_M, PRESCOTT_DELAY_S, PRESCOTT_RETARGET_S = 350.0, 45.0, 4.0
-local PRESCOTT_BASE, PRESCOTT_MAX = 3, 5
+local PRESCOTT_COUNT = 5
+local PRESCOTT_LEADER_INDEX = 3
+local PRESCOTT_NAME = "Commander Prescott"
+local PRESCOTT_DEAD_DELAY_S = 10.0
+local PRESCOTT_ARRIVE_M = 60.0
+local PRESCOTT_DRIVE_TIMEOUT_S = 120.0
+local PRESCOTT_PAD_STANDOFF_M = 150.0
 local PRESCOTT_BEHIND_M = 250
 local PRESCOTT_SPREAD_M = 20.0
 local CONVOY_ROUTE = "soviet_path"
@@ -835,10 +847,6 @@ end
 -- CR convoy scaling <<
 
 -- CR Prescott platoon >>
-local function PrescottCount()
-    return math.min(PRESCOTT_MAX, PRESCOTT_BASE + math.max(0, HumanCount() - 1))
-end
-
 local function ConvoyLead()
     if IsAlive(M.ccatug) then return M.ccatug end
     return ConvoyCombatUnits()[1]
@@ -853,8 +861,9 @@ local function NearestConvoyTarget(from)
     return best
 end
 
--- Orders only ever name a convoy combat unit: never the tug (it may carry the relic) and
--- never the launch pad. Independence 0 keeps them from picking their own targets.
+-- Hunting orders only ever name a convoy combat unit (escort fighters and tanks): never the tug
+-- (it may carry the relic), never the APCs and never the launch pad. Independence 0 keeps the
+-- tanks from picking their own targets.
 local function OrderPrescott(platoon)
     platoon.next = GetTime() + PRESCOTT_RETARGET_S
     for index, unit in ipairs(platoon.units) do
@@ -882,6 +891,11 @@ local function LivingConvoyUnits()
     return list
 end
 
+-- The convoy has been launched and not one unit of it (tug, escort, APCs, extras) is left.
+local function ConvoyDestroyed()
+    return M.convoy_started == true and #LivingConvoyUnits() == 0
+end
+
 local function PlanarDistance(a, b)
     local dx, dz = a.x - b.x, a.z - b.z
     return math.sqrt(dx * dx + dz * dz)
@@ -898,9 +912,20 @@ local function RearConvoyUnit()
     return rear
 end
 
--- Returns x, z and a unit travel direction (x, z) for the point PRESCOTT_BEHIND_M back along the
--- convoy's route from the path point nearest the rear unit, or nil when the path is unusable.
-local function PointBehindOnRoute(rearPos)
+-- Remember where the convoy's rear (and which way it faced) was while any of it lived, so a
+-- convoy that dies outright still tells the platoon where to appear.
+local function StoreConvoyRear()
+    local rear = RearConvoyUnit()
+    if rear == nil then return end
+    local pos = GetPosition(rear)
+    local stored = { x = pos.x, z = pos.z }
+    local okFront, front = pcall(GetFront, rear)
+    if okFront and type(front) == "table" then stored.fx, stored.fz = front.x, front.z end
+    M.convoy_rear = stored
+end
+
+-- The convoy route as an indexed table of positions, or nil when the path is unusable.
+local function RoutePoints()
     if type(GetPathPointCount) ~= "function" then return nil end
     local ok, count = pcall(GetPathPointCount, CONVOY_ROUTE)
     if not ok or type(count) ~= "number" or count < 2 then return nil end
@@ -910,6 +935,14 @@ local function PointBehindOnRoute(rearPos)
         if not okPoint or type(p) ~= "table" or type(p.x) ~= "number" then return nil end
         points[i] = p
     end
+    return points, count
+end
+
+-- Returns x, z and a unit travel direction (x, z) for the point PRESCOTT_BEHIND_M back along the
+-- convoy's route from the path point nearest the rear position, or nil when the path is unusable.
+local function PointBehindOnRoute(rearPos)
+    local points, count = RoutePoints()
+    if points == nil then return nil end
     local nearest, nearestDistance = 0, math.huge
     for i = 0, count - 1 do
         local distance = PlanarDistance(points[i], rearPos)
@@ -935,35 +968,42 @@ local function PointBehindOnRoute(rearPos)
     return first.x - dx * remaining, first.z - dz * remaining, dx, dz
 end
 
-local function PrescottSpawnPoint(rear)
-    local rearPos = GetPosition(rear)
-    local x, z, dx, dz = PointBehindOnRoute(rearPos)
-    if x == nil then
-        local okFront, front = pcall(GetFront, rear)
-        if not okFront or type(front) ~= "table" then return nil end
-        local length = math.sqrt(front.x * front.x + front.z * front.z)
-        if length <= 0 then return nil end
-        dx, dz = front.x / length, front.z / length
-        x, z = rearPos.x - dx * PRESCOTT_BEHIND_M, rearPos.z - dz * PRESCOTT_BEHIND_M
+-- The route point nearest the cutoff geyser: the key when no convoy rear was ever recorded.
+local function RoutePointNearGeyser()
+    local points, count = RoutePoints()
+    if points == nil then return nil end
+    local geyser = GetPosition(M.cut_off_geyser)
+    local best, bestDistance = points[0], math.huge
+    for i = 0, count - 1 do
+        local distance = PlanarDistance(points[i], geyser)
+        if distance < bestDistance then best, bestDistance = points[i], distance end
     end
+    return best
+end
+
+local function PrescottSpawnPoint()
+    local rear = M.convoy_rear or RoutePointNearGeyser()
+    if rear == nil then
+        local geyser = GetPosition(M.cut_off_geyser)
+        return geyser.x, geyser.z, 1.0, 0.0
+    end
+    local x, z, dx, dz = PointBehindOnRoute(rear)
+    if x == nil and rear.fx ~= nil then
+        local length = math.sqrt(rear.fx * rear.fx + rear.fz * rear.fz)
+        if length > 0 then
+            dx, dz = rear.fx / length, rear.fz / length
+            x, z = rear.x - dx * PRESCOTT_BEHIND_M, rear.z - dz * PRESCOTT_BEHIND_M
+        end
+    end
+    if x == nil then x, z, dx, dz = rear.x, rear.z, 1.0, 0.0 end
     return x, z, dx, dz
 end
 
 local function SpawnPrescott(platoon)
-    local rear = RearConvoyUnit()
-    if rear == nil then
-        platoon.cancelled = true
-        return
-    end
-    local x, z, dx, dz = PrescottSpawnPoint(rear)
-    if x == nil then
-        platoon.cancelled = true
-        return
-    end
+    local x, z, dx, dz = PrescottSpawnPoint()
     platoon.spawned = true
-    local count = PrescottCount()
-    for index = 1, count do
-        local offset = (index - (count + 1) / 2) * PRESCOTT_SPREAD_M
+    for index = 1, PRESCOTT_COUNT do
+        local offset = (index - (PRESCOTT_COUNT + 1) / 2) * PRESCOTT_SPREAD_M
         local px, pz = x - dz * offset, z + dx * offset
         local py = GetTerrainHeightAndNormal(SetVector(px, 0.0, pz))
         local unit = BuildObject("avtank", SUPPORT_TEAM, SetVector(px, py, pz))
@@ -971,23 +1011,141 @@ local function SpawnPrescott(platoon)
         if SetIndependence ~= nil then SetIndependence(unit, 0) end
         platoon.units[#platoon.units + 1] = unit
     end
+    -- The middle tank is Commander Prescott: every peer sees him highlighted and named.
+    platoon.leader = platoon.units[PRESCOTT_LEADER_INDEX]
+    SetObjectiveOn(platoon.leader)
+    SetObjectiveName(platoon.leader, PRESCOTT_NAME)
+    platoon.marked = true
     platoon.next = 0
+end
+
+-- Drops Prescott's highlight the moment he dies.
+local function TrackPrescottMarker(platoon)
+    if platoon.marked and not IsAlive(platoon.leader) then
+        platoon.marked = false
+        pcall(SetObjectiveOff, platoon.leader)
+    end
+end
+
+local function NearestLivingHuman(from)
+    local best, bestDistance = nil, math.huge
+    CRCoop.ForEachPlayerHandle(function(h)
+        if IsValid(h) then
+            local distance = Distance(from, h)
+            if distance < bestDistance then best, bestDistance = h, distance end
+        end
+    end)
+    return best, bestDistance
+end
+
+-- Where to send a unit heading for `player`: the player's handle, unless the player is within
+-- PRESCOTT_PAD_STANDOFF_M of the launch pad, in which case the point PRESCOTT_PAD_STANDOFF_M from
+-- the pad on the player's side, so the tanks never park (and splash) next to it.
+local function DriveInDestination(player)
+    if not IsAlive(M.ccalaunch) then return player end
+    local pad, at = GetPosition(M.ccalaunch), GetPosition(player)
+    local distance = PlanarDistance(pad, at)
+    if distance >= PRESCOTT_PAD_STANDOFF_M then return player end
+    local dx, dz = at.x - pad.x, at.z - pad.z
+    if distance <= 0 then dx, dz, distance = 1.0, 0.0, 1.0 end
+    local px = pad.x + dx / distance * PRESCOTT_PAD_STANDOFF_M
+    local pz = pad.z + dz / distance * PRESCOTT_PAD_STANDOFF_M
+    return SetVector(px, (GetTerrainHeightAndNormal(SetVector(px, 0.0, pz))), pz)
+end
+
+-- With the convoy gone the platoon stops hunting and drives to the players: Prescott to the
+-- nearest living human, the other tanks following him. (Prescott dead is a win, decided before
+-- this runs.) Orders name only a player, a point, or Prescott: never the pad, tug or APCs.
+local function DrivePrescottIn(platoon)
+    platoon.next = GetTime() + PRESCOTT_RETARGET_S
+    if not IsAlive(platoon.leader) then return end
+    for index, unit in ipairs(platoon.units) do
+        if IsAlive(unit) then
+            if unit ~= platoon.leader then
+                if platoon.orders[index] ~= platoon.leader then
+                    Follow(unit, platoon.leader, 1)
+                    platoon.orders[index] = platoon.leader
+                end
+            else
+                local player = NearestLivingHuman(unit)
+                if player ~= nil then
+                    Goto(unit, DriveInDestination(player), 1)
+                    platoon.orders[index] = player
+                end
+            end
+        end
+    end
+end
+
+local function PrescottSurvivors(platoon)
+    for _, unit in ipairs(platoon.units) do
+        if IsAlive(unit) then return true end
+    end
+    return false
+end
+
+-- Why the mission is won through Prescott, or nil. Only once the convoy is destroyed.
+local function PrescottVictory(platoon)
+    if not IsAlive(platoon.leader) then return "prescott dead" end
+    if not PrescottSurvivors(platoon) then return "platoon dead" end
+    local _, distance = NearestLivingHuman(platoon.leader)
+    if distance <= PRESCOTT_ARRIVE_M then return "arrived" end
+    if platoon.driveStart ~= nil and GetTime() - platoon.driveStart >= PRESCOTT_DRIVE_TIMEOUT_S then
+        return "timeout"
+    end
+    return nil
+end
+
+-- One win path: the stock relic win line, latched by M.game_over. Skipped while any stock
+-- fail condition holds (relic, Unit Factory or launch pad lost) so those fails still land.
+local function WinThroughPrescott(platoon)
+    if M.game_over or not (IsAlive(M.relic) and IsAlive(M.nsdfmuf) and IsAlive(M.ccalaunch)) then return end
+    local reason = PrescottVictory(platoon)
+    if reason == nil then return end
+    platoon.won = reason
+    AudioMessage("misn0909.wav")
+    SucceedMission(GetTime() + 15.0, "misn09w1.des")
+    M.game_over = true
 end
 
 -- Leader only (the body runs nowhere else).
 local function UpdatePrescott()
     if (not M.convoy_started) or M.game_over then return end
     local now = GetTime()
+    local destroyed = ConvoyDestroyed()
+    if not destroyed then StoreConvoyRear() end
     local platoon = M.prescott
     if platoon == nil then
-        local lead = ConvoyLead()
-        if lead ~= nil and Distance(lead, M.cut_off_geyser) < PRESCOTT_TRIGGER_M then
-            M.prescott = { due = now + PRESCOTT_DELAY_S, spawned = false, units = {}, orders = {}, next = 0 }
+        if destroyed then
+            -- The convoy died before the platoon was ever armed: it still arrives, soon.
+            M.prescott = { due = now + PRESCOTT_DEAD_DELAY_S, spawned = false, units = {}, orders = {}, next = 0,
+                destroyed = true }
+        else
+            local lead = ConvoyLead()
+            if lead ~= nil and Distance(lead, M.cut_off_geyser) < PRESCOTT_TRIGGER_M then
+                M.prescott = { due = now + PRESCOTT_DELAY_S, spawned = false, units = {}, orders = {}, next = 0 }
+            end
         end
         return
     end
-    if (not platoon.spawned) and (not platoon.cancelled) and platoon.due < now then SpawnPrescott(platoon) end
-    if platoon.spawned and platoon.next < now then OrderPrescott(platoon) end
+    if destroyed and not platoon.destroyed then
+        platoon.destroyed = true
+        if not platoon.spawned then platoon.due = math.min(platoon.due, now + PRESCOTT_DEAD_DELAY_S) end
+    end
+    if (not platoon.spawned) and platoon.due < now then SpawnPrescott(platoon) end
+    if not platoon.spawned then return end
+    TrackPrescottMarker(platoon)
+    if not platoon.destroyed then
+        if platoon.next < now then OrderPrescott(platoon) end
+        return
+    end
+    if platoon.driveStart == nil then
+        platoon.driveStart = now
+        platoon.orders = {}
+        platoon.next = 0
+    end
+    WinThroughPrescott(platoon)
+    if (not M.game_over) and platoon.next < now then DrivePrescottIn(platoon) end
 end
 
 local function PrescottArrived()
@@ -2102,13 +2260,6 @@ Here is where you put what happens every frame.
 //			SucceedMission(Get_Time() + 15.0f, "misn09w1.des");
             ]==]
             M.game_over5 = true
--- CR geyser-clear win >>
-            -- The DLL cut SucceedMission here; clearing every CCA unit near the geyser wins.
-            if not M.game_over then
-                SucceedMission(GetTime() + 15.0, "misn09w1.des")
-                M.game_over = true
-            end
--- CR geyser-clear win <<
         end
     end
     if (IsAlive(M.relic)) and (not M.relic_seized) and (M.win_check < GetTime()) and (not M.game_over) then

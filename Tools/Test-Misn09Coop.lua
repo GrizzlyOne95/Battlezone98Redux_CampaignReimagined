@@ -640,7 +640,7 @@ for humans = 1, 4 do
 end
 
 -- ============================================================ 6. Prescott's platoon
-local PRESCOTT_COUNT = {3, 4, 5, 5}
+local PRESCOTT_COUNT = 5 -- always, at any player count
 for humans = 1, 4 do
     local host, guests, s = convoySession(humans)
     run(8)
@@ -672,8 +672,8 @@ for humans = 1, 4 do
     local seg = planar(p1, p0)
     local want = {x = p1.x + (p0.x - p1.x) * 250 / seg, z = p1.z + (p0.z - p1.z) * 250 / seg}
     for _ = 1, 20 do tick(); if s.prescott.spawned then break end end
-    check(s.prescott.spawned and built(host, "avtank") == PRESCOTT_COUNT[humans], humans .. " players: the platoon is " .. PRESCOTT_COUNT[humans] .. " tanks")
-    check(#s.prescott.units == PRESCOTT_COUNT[humans], "handles are kept in the saved state")
+    check(s.prescott.spawned and built(host, "avtank") == PRESCOTT_COUNT, humans .. " players: the platoon is " .. PRESCOTT_COUNT .. " tanks")
+    check(#s.prescott.units == PRESCOTT_COUNT, "handles are kept in the saved state")
     local cx, cz = 0, 0
     for i, unit in ipairs(s.prescott.units) do
         local o = objects[unit]
@@ -708,7 +708,7 @@ for humans = 1, 4 do
             check(escort[c[3]], "the platoon only ever targets a convoy combat unit, never " .. tostring(c[3]))
         end
     end
-    check(attacks >= PRESCOTT_COUNT[humans], "the platoon attacked")
+    check(attacks >= PRESCOTT_COUNT, "the platoon attacked")
     for handle in pairs(escort) do check(not objects[handle].alive, "the escort was destroyed") end
     check(objects[s.ccatug].alive and objects[s.ccatug].hp == fullTug, "the tug carrying the relic is never touched")
     check(objects[relic].alive and objects[relic].hp == 1000 and objects[pad].alive and objects[pad].hp == 5000,
@@ -750,23 +750,10 @@ do
     place(s.convoy4, CUT[1] + 900, CUT[2], CUT[3] + 900)
     objects[s.convoy4].front = {x = 0, y = 0, z = 1}
     for _ = 1, 400 do tick(); if s.prescott.spawned then break end end
-    check(s.prescott.spawned and #s.prescott.units == 3, "the facing fallback spawns the platoon")
-    local o = objects[s.prescott.units[2]]
+    check(s.prescott.spawned and #s.prescott.units == 5, "the facing fallback spawns the platoon")
+    local o = objects[s.prescott.units[3]]
     check(math.abs(o.pos.x - (objects[s.convoy4].pos.x)) < 25 and math.abs(o.pos.z - (objects[s.convoy4].pos.z - 250)) < 25,
         "fallback: rear position minus facing times 250")
-end
-do
-    -- a convoy that is entirely dead gets no platoon, and no arrival burst
-    local host, guests, s = convoySession(1)
-    at(s.ccatug, CUT, 0, 340)
-    run(0.5)
-    check(s.prescott and not s.prescott.spawned, "armed")
-    for _, key in ipairs({"ccatug", "convoy1", "convoy2", "convoy3", "convoy4", "convoy5", "convoy6", "convoy7", "convoy8", "convoy9", "convoy0"}) do
-        if s[key] and objects[s[key]] then objects[s[key]].alive = false end
-    end
-    runTo(s.prescott.due + 5)
-    check(built(host, "avtank") == 0 and #s.prescott.units == 0 and not s.prescott.spawned, "no convoy unit alive: no platoon")
-    check(#host.venus.forces == 0 or host.venus.forces[1][1] ~= 5, "and no arrival burst")
 end
 do
     -- a tug that dies still lets the nearest living escort unit mark the convoy's lead
@@ -783,6 +770,336 @@ do
     local s = host.state
     run(5)
     check(s.prescott == nil and built(host, "avtank") == 0, "no platoon before the convoy exists")
+end
+
+-- ============================================================ 6b. Prescott: leader, pre-destroyed convoy, drive-in, victory
+local PAD = LABELS.launchpad.pos
+local CONVOY_KEYS = {"ccatug", "convoy1", "convoy2", "convoy3", "convoy4", "convoy5", "convoy6", "convoy7", "convoy8", "convoy9", "convoy0"}
+local function killConvoy(s)
+    for _, key in ipairs(CONVOY_KEYS) do
+        if s[key] and objects[s[key]] then objects[s[key]].alive = false end
+    end
+    for _, h in ipairs(s.convoy_extra or {}) do objects[h].alive = false end
+end
+-- Lays the convoy out along the route (convoy1 rearmost on route point 2) and lets the stored rear settle.
+local function layOutConvoy(s)
+    world.route = {vec(ROUTE[1]), vec(ROUTE[2]), vec(ROUTE[3])}
+    for handle in pairs(escortOf(s)) do place(handle, CUT[1] + 40, CUT[2], CUT[3] + 40) end
+    place(s.ccatug, CUT[1], CUT[2], CUT[3] + 300)
+    place(s.convoy9, CUT[1], CUT[2], CUT[3] + 300)
+    place(s.convoy0, CUT[1], CUT[2], CUT[3] + 300)
+    place(s.convoy1, ROUTE[2][1], ROUTE[2][2], ROUTE[2][3])
+end
+local function behindRoute(from, to)
+    local seg = planar({x = from[1], z = from[3]}, {x = to[1], z = to[3]})
+    return {x = from[1] + (to[1] - from[1]) * 250 / seg, z = from[3] + (to[3] - from[3]) * 250 / seg}
+end
+local function centroid(s)
+    local cx, cz = 0, 0
+    for _, unit in ipairs(s.prescott.units) do cx, cz = cx + objects[unit].pos.x, cz + objects[unit].pos.z end
+    return {x = cx / #s.prescott.units, z = cz / #s.prescott.units}
+end
+-- A live platoon (spawned the normal way), nothing dying in combat, convoy still alive.
+local function livePlatoon(humans)
+    local host, guests, s = convoySession(humans)
+    at(s.ccatug, CUT, 0, 340)
+    run(0.5)
+    layOutConvoy(s)
+    world.combat = false
+    runTo(s.prescott.due + 0.5)
+    check(s.prescott.spawned, "platoon spawned")
+    return host, guests, s
+end
+
+for humans = 1, 4 do
+    -- one leader, highlighted and named for every peer, and un-highlighted when he dies
+    local host, guests, s = livePlatoon(humans)
+    run(3)
+    local leader = s.prescott.leader
+    check(leader == s.prescott.units[3] and objects[leader].alive, humans .. " players: the middle tank is Commander Prescott")
+    check(#s.prescott.units == 5, humans .. " players: still five tanks")
+    check(count(host, "SetObjectiveOn", leader) == 1 and count2(host, "SetObjectiveName", leader, "Commander Prescott") == 1,
+        "the leader highlights and names Prescott")
+    for _, g in ipairs(guests) do
+        check(count(g, "SetObjectiveOn", leader) == 1 and count2(g, "SetObjectiveName", leader, "Commander Prescott") == 1,
+            "every guest gets the highlight and the name through the presentation stream")
+    end
+    for _, unit in ipairs(s.prescott.units) do
+        if unit ~= leader then check(count(host, "SetObjectiveOn", unit) == 0, "only Prescott is highlighted") end
+    end
+    check(count(host, "SetObjectiveOff", leader) == 0, "alive: not cleared")
+    objects[leader].alive = false
+    run(1)
+    check(count(host, "SetObjectiveOff", leader) == 1, "the highlight is cleared when Prescott dies")
+    run(5)
+    check(count(host, "SetObjectiveOff", leader) == 1, "and only once")
+    allBuildTeams(host)
+end
+
+do
+    -- the convoy dies before the platoon was armed: it still spawns, after the short delay, behind the last rear
+    local host, guests, s = convoySession(2)
+    layOutConvoy(s)
+    place(s.ccatug, ROUTE[2][1] - 50, ROUTE[2][2], ROUTE[2][3]) -- far from the cutoff: never armed
+    for handle in pairs(escortOf(s)) do place(handle, CUT[1] + 40, CUT[2], CUT[3] + 40) end
+    place(s.convoy9, CUT[1] + 40, CUT[2], CUT[3] + 40)
+    place(s.convoy0, CUT[1] + 40, CUT[2], CUT[3] + 40)
+    place(s.convoy1, ROUTE[2][1], ROUTE[2][2], ROUTE[2][3])
+    run(1)
+    check(s.prescott == nil, "never armed: the convoy is far from the cutoff")
+    check(s.convoy_rear and math.abs(s.convoy_rear.x - ROUTE[2][1]) < 1, "the last known rear is stored while the convoy lives")
+    world.combat = false
+    killConvoy(s)
+    local died = now
+    run(1)
+    check(s.prescott and not s.prescott.spawned and s.prescott.destroyed, "a dead convoy still arms the platoon")
+    check(math.abs(s.prescott.due - (died + 10)) < 1.5, "after the short 10 s delay, not the 45 s wait")
+    runTo(died + 8)
+    check(built(host, "avtank") == 0, "nothing before the delay")
+    runTo(died + 11.5)
+    check(s.prescott.spawned and built(host, "avtank") == 5, "five tanks spawn 10 s after the convoy died")
+    check(now - died < 20, "well inside the 45 s wait")
+    local want = behindRoute(ROUTE[2], ROUTE[1])
+    check(planar(centroid(s), want) < 20, "spawned 250 m back along the route from the last known rear")
+    check(s.prescott.driveStart ~= nil and #callsOf(host, "Attack") == 0, "and it drives in: no hunting orders at all")
+    check(count(host, "SetObjectiveOn", s.prescott.leader) == 1, "Prescott is marked in this path too")
+    allBuildTeams(host)
+end
+do
+    -- armed (45 s pending) and then the convoy dies: the wait collapses to the short delay
+    local host, guests, s = convoySession(1)
+    at(s.ccatug, CUT, 0, 340)
+    run(0.5)
+    layOutConvoy(s)
+    world.combat = false
+    local due = s.prescott.due
+    run(5)
+    killConvoy(s)
+    local died = now
+    run(1)
+    check(s.prescott.due < due - 20 and math.abs(s.prescott.due - (died + 10)) < 1.5, "an armed platoon's wait drops to ~10 s")
+    runTo(died + 11.5)
+    check(s.prescott.spawned and built(host, "avtank") == 5, "and it spawns")
+end
+do
+    -- no rear was ever stored: the route point nearest the cutoff geyser, 250 m back along it
+    local host, guests, s = convoySession(1)
+    world.route = {vec(ROUTE[1]), vec(ROUTE[2]), vec(ROUTE[3])}
+    world.combat = false
+    s.convoy_rear = nil
+    killConvoy(s)
+    run(1)
+    s.convoy_rear = nil
+    runTo(now + 12)
+    check(s.prescott.spawned, "spawned without a stored rear")
+    check(planar(centroid(s), behindRoute(ROUTE[3], ROUTE[2])) < 20, "fallback: 250 m back from the route point nearest the geyser")
+end
+
+do
+    -- drive-in: hunting stops, Prescott goes to the nearest living human, the rest follow him
+    local host, guests, s = livePlatoon(3)
+    local leader, units = s.prescott.leader, s.prescott.units
+    local before = #callsOf(host, "Attack")
+    check(before >= 5, "hunting while the convoy lives")
+    place("player20", 4000, 20, 100000)
+    killConvoy(s)
+    run(1)
+    check(#callsOf(host, "Attack") == before, "no hunting order once the convoy is destroyed")
+    local gotoLeader = {}
+    for _, c in ipairs(callsOf(host, "Goto")) do if c[2] == leader then gotoLeader[#gotoLeader + 1] = c end end
+    check(#gotoLeader == 1 and gotoLeader[1][3] == "player20", "Prescott drives to the nearest living human")
+    for _, unit in ipairs(units) do
+        if unit ~= leader then check(count2(host, "Follow", unit, leader) == 1, "the others follow Prescott") end
+    end
+    run(8.5)
+    local n = 0
+    for _, c in ipairs(callsOf(host, "Goto")) do if c[2] == leader then n = n + 1 end end
+    check(n >= 3, "the Goto is re-issued every few seconds (" .. n .. ")")
+    -- the nearest human changes: the re-issue follows
+    place("player20", 100000, 20, 100000)
+    place("player30", 4000, 20, 100000)
+    run(5)
+    check(last(host, "Goto")[3] == "player30", "re-targeted to the new nearest human")
+end
+
+do
+    -- launch pad safety: a human beside the pad gets a standoff point, never the pad itself
+    local host, guests, s = livePlatoon(2)
+    local leader, units = s.prescott.leader, s.prescott.units
+    place("player10", PAD[1] + 60, PAD[2], PAD[3] + 0)
+    place("player20", 100000, 20, 100000)
+    killConvoy(s)
+    run(1)
+    local g
+    for _, c in ipairs(callsOf(host, "Goto")) do if c[2] == leader then g = c end end
+    check(g and type(g[3]) == "table", "a human inside 150 m of the pad gets a point, not a handle")
+    check(math.abs(planar(g[3], {x = PAD[1], z = PAD[3]}) - 150) < 1, "the point is 150 m from the pad")
+    check(g[3].x > PAD[1] + 100 and math.abs(g[3].z - PAD[3]) < 5, "on the human's side of the pad")
+    run(10)
+    for _, unit in ipairs(units) do
+        for _, c in ipairs(callsOf(host, "Goto")) do
+            if c[2] == unit and type(c[3]) == "table" then
+                check(planar(c[3], {x = PAD[1], z = PAD[3]}) >= 149, "no tank is ever sent closer than 150 m to the pad")
+            end
+        end
+    end
+    -- a human just outside 150 m is driven to directly
+    place("player10", PAD[1] + 160, PAD[2], PAD[3])
+    run(5)
+    local late
+    for _, c in ipairs(callsOf(host, "Goto")) do late = c end
+    check(late[3] == "player10", "a human at 160 m is driven to directly")
+end
+
+do
+    -- no order from the platoon ever names the pad, the tug, an APC or the relic
+    local host, guests, s = convoySession(2)
+    at(s.ccatug, CUT, 0, 340)
+    run(0.5)
+    layOutConvoy(s)
+    local forbidden = {[s.ccalaunch] = true, [s.ccatug] = true, [s.convoy9] = true, [s.convoy0] = true, [s.relic] = true}
+    local platoon
+    runTo(s.prescott.due + 0.5)
+    platoon = {}
+    for _, unit in ipairs(s.prescott.units) do platoon[unit] = true end
+    place("player10", PAD[1] + 30, PAD[2], PAD[3])
+    run(120) -- the fight, then the convoy being destroyed by the platoon or by us
+    killConvoy(s)
+    run(30)
+    local orders = 0
+    for _, name in ipairs({"Attack", "Goto", "Follow", "Pickup", "Dropoff", "Retreat", "Patrol", "Defend"}) do
+        for _, c in ipairs(callsOf(host, name)) do
+            if platoon[c[2]] then
+                orders = orders + 1
+                check(not forbidden[c[3]], name .. " never names the pad, tug, APC or relic: " .. tostring(c[3]))
+            end
+        end
+    end
+    check(orders > 10, "orders were actually issued (" .. orders .. ")")
+    for _, unit in ipairs(s.prescott.units) do
+        check(count(host, "SetIndependence", unit) == 1, "non-autonomous: independence set once")
+    end
+    check(objects[s.ccalaunch].alive and objects[s.ccalaunch].hp == 5000, "the pad is untouched")
+end
+
+do
+    -- victory on arrival within 60 m of any human; relic alive; one win on every peer
+    local host, guests, s = livePlatoon(3)
+    local leader = s.prescott.leader
+    place("player20", 95000, 20, 100000)
+    place("player30", 99000, 20, 100000)
+    check(not s.game_over, "no win while the convoy lives")
+    objects[leader].pos = {x = objects.player10.pos.x + 30, y = 20, z = objects.player10.pos.z}
+    run(2)
+    check(not s.game_over and onAll(function(p) return count(p, "SucceedMission") == 0 end) == 3, "close to a human but the convoy still lives: no win")
+    killConvoy(s)
+    objects[leader].pos = {x = objects.player10.pos.x + 70, y = 20, z = objects.player10.pos.z}
+    run(0.25) -- one tick: the Goto it is given has not moved it yet
+    check(not s.game_over, "70 m is outside the 60 m arrival")
+    objects[leader].pos = {x = objects.player10.pos.x + 55, y = 20, z = objects.player10.pos.z}
+    run(0.25)
+    check(s.game_over, "within 60 m of a human wins")
+    run(5)
+    eachPeer(function(p)
+        check(count(p, "SucceedMission") == 1 and last(p, "SucceedMission")[3] == "misn09w1.des", "the stock win debrief reaches every peer once")
+        check(count(p, "FailMission") == 0, "no failure")
+        check(count(p, "Play", "misn0909.wav") == 1, "the stock win line plays once")
+    end)
+    check(host.venus.targets[#host.venus.targets] == 1, "the win calms the storm")
+    -- latch: every other trigger arrives afterwards and also the stock relic win
+    objects[leader].alive = false
+    s.relic_seized = false
+    s.win_check = 0
+    place(s.relic, MUF[1] + 50, MUF[2], MUF[3])
+    run(200)
+    eachPeer(function(p)
+        check(count(p, "SucceedMission") == 1 and count(p, "Play", "misn0909.wav") == 1, "single win latch")
+        check(count(p, "FailMission") == 0, "and still no failure")
+    end)
+end
+
+do
+    -- Prescott dead: before the convoy is destroyed (win the moment it is) ...
+    local host, guests, s = livePlatoon(2)
+    objects[s.prescott.leader].alive = false
+    run(6)
+    check(not s.game_over, "Prescott dead alone does not win while the convoy lives")
+    killConvoy(s)
+    run(8)
+    check(s.game_over and onAll(function(p) return count(p, "SucceedMission") == 1 end) == 2, "Prescott dead, convoy destroyed: win")
+end
+do
+    -- ... and after
+    local host, guests, s = livePlatoon(2)
+    killConvoy(s)
+    run(1)
+    check(not s.game_over, "driving in, nobody there yet")
+    objects[s.prescott.leader].alive = false
+    run(8)
+    check(s.game_over and onAll(function(p) return count(p, "SucceedMission") == 1 end) == 2, "Prescott dies while driving in: win")
+end
+do
+    -- the whole platoon dead
+    local host, guests, s = livePlatoon(1)
+    killConvoy(s)
+    run(1)
+    check(not s.game_over, "still driving in")
+    for _, unit in ipairs(s.prescott.units) do objects[unit].alive = false end
+    run(8)
+    check(s.game_over and count(host, "SucceedMission") == 1, "the whole platoon dead: win")
+end
+do
+    -- timeout: 120 s after the drive-in starts, Prescott never arrives
+    local host, guests, s = livePlatoon(2)
+    killConvoy(s)
+    run(1)
+    local start = s.prescott.driveStart
+    check(start and start <= now, "the drive-in clock started")
+    runTo(start + 118)
+    check(not s.game_over, "no win before the timeout")
+    runTo(start + 122)
+    check(s.game_over, "the timeout wins")
+    run(8)
+    check(count(host, "SucceedMission") == 1, "and publishes the result")
+    run(30)
+    check(count(host, "SucceedMission") == 1, "once")
+end
+do
+    -- the pre-destroyed path times out from the spawn
+    local host, guests, s = convoySession(1)
+    world.route = {vec(ROUTE[1]), vec(ROUTE[2]), vec(ROUTE[3])}
+    world.combat = false
+    killConvoy(s)
+    runTo(now + 12)
+    check(s.prescott.spawned and not s.game_over, "pre-destroyed platoon is driving in")
+    local start = s.prescott.driveStart
+    runTo(start + 118)
+    check(not s.game_over, "not yet")
+    runTo(start + 122)
+    run(8)
+    check(s.game_over and count(host, "SucceedMission") == 1, "and it times out into a win")
+end
+do
+    -- a destroyed relic still fails, and Prescott's win never pre-empts it
+    local host, guests, s = livePlatoon(2)
+    -- Prescott is already beside a human, so only the relic guard stands between him and a win
+    objects[s.prescott.leader].pos = {x = objects.player10.pos.x + 20, y = 20, z = objects.player10.pos.z}
+    objects[s.relic].alive = false
+    killConvoy(s)
+    run(20)
+    eachPeer(function(p)
+        check(count(p, "FailMission") == 1 and last(p, "FailMission")[3] == "misn09f1.des", "relic destroyed fails everyone once")
+        check(count(p, "SucceedMission") == 0, "and Prescott does not win it")
+    end)
+end
+do
+    -- losing the Unit Factory or the pad still fails with the convoy gone
+    local host, guests, s = livePlatoon(1)
+    objects.avmuf.alive = false
+    killConvoy(s)
+    run(20)
+    check(count(host, "FailMission") == 1 and last(host, "FailMission")[3] == "misn09f3.des" and count(host, "SucceedMission") == 0,
+        "factory lost still fails")
 end
 
 -- ============================================================ 7. restored cut radio
@@ -920,36 +1237,19 @@ do
     eachPeer(function(p) check(count(p, "FailMission") == 1 and last(p, "FailMission")[3] == "misn09f1.des", "the lost relic fails everyone once") end)
 end
 
--- ============================================================ 9. the geyser-clear win
+-- ============================================================ 9. the relic win (the geyser-clear win stays cut)
 do
+    -- every CCA unit near the geyser dead: 0908 only, no victory (the stock SucceedMission is commented out)
     local host, guests, s = convoySession(3)
-    local units = function() return 0 end
-    for _, p in pairs(peers) do
-        p.env.CountUnitsNearObject = function(target, distance, team, odf)
-            local n = 0
-            for h, o in pairs(objects) do
-                -- units, not the base's buildings
-                if o.alive and o.team == team and o.odf ~= "sblpad" and o.odf ~= "svmuf" and o.odf ~= "svrecy"
-                    and p.env.GetDistance(h, target) < distance then n = n + 1 end
-            end
-            return n
-        end
-    end
     s.unit_check = 0
-    run(1)
-    check(not s.game_over5 and onAll(function(p) return count(p, "SucceedMission") == 0 end) == 3, "enemies standing: no victory")
     for h, o in pairs(objects) do if o.team == 5 and o.odf ~= "sblpad" and o.odf ~= "svmuf" and o.odf ~= "svrecy" then o.alive = false end end
-    s.unit_check = 0
+    for _, p in pairs(peers) do
+        p.env.CountUnitsNearObject = function() return 0 end
+    end
+    s.relic_seized = false
     run(12)
-    check(s.game_over5 and s.game_over, "every CCA unit near the geyser is dead")
-    eachPeer(function(p)
-        check(count(p, "SucceedMission") == 1 and last(p, "SucceedMission")[3] == "misn09w1.des", "the win reaches every peer once")
-        check(count(p, "FailMission") == 0, "and no failure")
-    end)
-    check(playedOnAll("misn0908.wav") == 3, "the DLL's 'Venus is secure' line plays")
-    check(host.venus.targets[#host.venus.targets] == 1, "the win eases the storm to clear")
-    run(40)
-    eachPeer(function(p) check(count(p, "SucceedMission") == 1, "the result is published once") end)
+    check(s.game_over5 and not s.game_over, "clearing the geyser area latches the 0908 line only")
+    eachPeer(function(p) check(count(p, "SucceedMission") == 0, "and never wins") end)
 end
 do
     -- the stock relic delivery win still works and also calms the storm
@@ -1057,7 +1357,7 @@ do
     check(host.rally[0] == "avmuf" and count(host, "Play", "misn0900.wav") == 1, "offline dialogue and rally")
     at(s.ccatug, CUT, 0, 300)
     run(50)
-    check(built(host, "avtank") == 3, "offline: a three-tank platoon")
+    check(built(host, "avtank") == 5, "offline: a five-tank platoon")
     check(host.venus.init.authority and host.venus.init.send == nil and host.venus.init.players == nil and host.venus.announces == 0,
         "offline weather is the host path with nothing sent")
     check(host.venus.targets[1] == 3 and #host.venus.forces == 1, "offline play follows the same beats")
