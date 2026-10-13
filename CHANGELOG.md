@@ -2,10 +2,20 @@
 
 ## Unreleased
 
+- Enable the enemy strategic AI in co-op misn02b, misn05 and misn07: their maps use MultSTMission, so
+  team 5/6 was never flagged and `SetAIP` silently skipped, leaving the CCA plan idle. Each now calls
+  `SetAIControl(ENEMY_TEAM, true)` once at chunk load (never in `Start`, which crashes the host as in misn08).
+- Fix the misn08 co-op host crash at load (null read in `AI_UnitRemove`): `SetAIControl(5, true)`
+  moves from `Start` to chunk load, before the engine builds its AI team records, as misn10 and
+  misn14 already do. The 146 `flat.dds` texture warnings in the log are unrelated and harmless.
 - Ship the restored cut voice lines of Missions 02b, 04 and 06 (misn0232, misn0407,
   misn0426, misn0428, misn0615-0627, misn0639, misn0641, misn0652), which Redux's
   German, Spanish, French and Italian archives lack, so those players hear voice
   instead of silent subtitles. The English take overrides any same-named localized one.
+- Bundle OpenShim 1.0.0.52. Lua Send/Receive now carries map-authored objects (geysers,
+  beacons) by label, so co-op orders that target them no longer arrive as nil. The
+  shipping lock and manifest validators now follow the renderer files the Workshop
+  build actually stages (`*.payload`).
 - Bundle OpenShim 1.0.0.50. OpenShim now also stages a newer Workshop
   suite at the main menu and offers Restart now, refreshes its renderer
   and menu UI files from the Workshop item at startup, and can be turned
@@ -68,6 +78,11 @@
   Colorado massacre, and a steady storm while the CCA builds walkers. In co-op every
   player sees the same sky. The Colorado starts allied with an escort and a small base
   (scavenger, factory, two turrets, up to three APCs) that falls with it.
+- Add Mission 09, Wrangling the Fleeing Herd, to the campaign as a 2-4 player co-op
+  listing (`CR: Wrangling the Fleeing Herd Coop`) on the original Battlezone 1.5
+  Venus terrain. The CCA moves to team 5, freeing teams 2-4 for guests, with four
+  team-start buoys at the authored start; the stock lightning is removed so the Venus
+  weather director owns the sky.
   The Colorado now starts allied with an escort and builds a small base with a
   few APCs before the Soviets destroy all of it on screen, and once the walker
   story is over the CCA keeps fielding walkers (up to three with four players)

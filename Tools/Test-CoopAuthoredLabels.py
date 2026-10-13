@@ -20,9 +20,17 @@ TARGETS = {
     "misn07": ["cam3", "radar_array", "svpatrol1_1", "svpatrol1_2", "svpatrol3_1", "svpatrol3_2",
                "pturret1", "pturret2"],
     "misn08": ["cam1", "cam2", "cam5", "hbcerb1_i76building"],
+    # misn09: the six CCA artillery pieces (recon camera subjects), the Soviet-built CCA
+    # muf (alarm trigger), the launch pad and geyser the camera shots frame, and the Venus
+    # opening nav.
+    "misn09": ["artil1", "artil2", "artil3", "artil4", "artil5", "artil6", "svmuf",
+               "cut_off_geyser", "launchpad", "cam1"],
 }
 # Labels that are also an authored PATH name in the BZN legitimately occur twice.
 PATH_NAMES = {"launch_pad"}
+# A label that is also its own ODF class name appears once as PrjID and once as the label;
+# exactly one of the two may be a `label =` line.
+ODF_NAMED = {"svmuf"}
 
 failures = []
 checked = 0
@@ -34,7 +42,9 @@ for mission, labels in TARGETS.items():
             failures.append(f"{mission}: script no longer references {label}")
         pattern = rb"(?<![A-Za-z0-9_\-])" + re.escape(label.encode()) + rb"(?![A-Za-z0-9_\-])"
         n = len(re.findall(pattern, data))
-        allowed = 2 if label in PATH_NAMES else 1
+        allowed = 2 if label in PATH_NAMES or label in ODF_NAMED else 1
+        if label in ODF_NAMED and len(re.findall(rb"(?m)^label = " + re.escape(label.encode()) + rb"\s*$", data)) != 1:
+            failures.append(f"{mission}: BZN label {label} is not declared exactly once")
         if n < 1 or n > allowed:
             failures.append(f"{mission}: BZN label {label} occurs {n} times (want {allowed if n else 1})")
         checked += 1

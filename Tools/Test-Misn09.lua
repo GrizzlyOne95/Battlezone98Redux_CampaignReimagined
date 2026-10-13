@@ -1,4 +1,7 @@
 -- Run from the repository root: lua5.1 Tools/Test-Misn09.lua
+-- Offline (single-player) behavior of the co-op-capable misn09: the real CRCoop runs with
+-- single-player semantics, so every check below is the DLL's own flow plus the documented
+-- restored behavior. Multi-player behavior is covered by Tools/Test-Misn09Coop.lua.
 -- Mock-host tests verify authored branching/commands, not native AI or rendering.
 assert(_VERSION == "Lua 5.1", "Run this suite with Lua 5.1")
 local now, serial, objects, labels, calls, distances, cargo, audio, cancelled, info
@@ -34,6 +37,36 @@ function GetHandle(label)
     return labels[label]
 end
 function GetPlayerHandle() return GetHandle("player") end
+function SetVector(x, y, z) return {x = x or 0, y = y or 0, z = z or 0} end
+function GetLabel(h) return nil end
+function GetPosition(h) return SetVector(0, 0, 0) end
+function GetTerrainHeightAndNormal() return 20, SetVector(0, 1, 0) end
+function DisplayMessage() end
+function Ally() end
+function UnAlly() end
+function GetPilot() return 10 end
+function AllObjects()
+    local i = 0
+    return function()
+        while i < serial do
+            i = i + 1
+            if objects[i] then return i end
+        end
+    end
+end
+local function noop() end
+local modules = {
+    RequireFix = {Initialize = noop}, exu = {},
+    CRVenusWeather = {Init = noop, Update = noop, Shutdown = noop, OnObjectCreated = noop, Save = function() return {} end,
+        Load = noop, AnnounceState = noop, ApplyNetEvent = noop, Seed = 1,
+        SetTargetLevel = function(level) record("VenusTarget", level) end,
+        ForceLevel = function(level, seconds, transition) record("VenusForce", level, seconds, transition) end},
+    CRVenusSites09 = {mission = "misn09"}, Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
+    -- The real module plays through AudioMessage and returns its handle.
+    ScriptSubtitles = {Play = function(file) return AudioMessage(file) end,
+        Queue = function(file) return AudioMessage(file) end, Stop = noop, Update = noop, Initialize = noop},
+}
+function require(name) return assert(modules[name], name) end
 function GetTime() return now end
 function IsValid(h) return objects[h] ~= nil end
 function IsAlive(h) return IsValid(h) and objects[h].alive end
@@ -86,14 +119,18 @@ function AddObjective(name, color)
     assert(total <= 10, "stock objective capacity exceeded")
     record("AddObjective", name, color)
 end
-for _, name in ipairs({"Defend", "Follow", "Goto", "Stop", "Pickup", "Dropoff",
-    "SetPilot", "SetAIP", "SetObjectiveName", "SetObjectiveOn", "FailMission", "SucceedMission"}) do
+for _, name in ipairs({"Defend", "Follow", "Goto", "Stop", "Pickup", "Dropoff", "Attack", "SetPerceivedTeam",
+    "SetIndependence", "SetAIControl", "SetPilot", "SetAIP", "SetObjectiveName", "SetObjectiveOn", "FailMission",
+    "SucceedMission"}) do
     local operation = name
     _G[operation] = function(...) record(operation, ...) end
 end
 local function reset()
     now, serial, cancelled, unitCount = 0, 0, false, 1
     objects, labels, calls, distances, cargo, audio, info, scraps, objectives = {}, {}, {}, {}, {}, {}, {}, {}, {}
+    modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
+    modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
     dofile("Scripts/misn09.lua")
     Start()
     Update(0.05)
@@ -120,7 +157,9 @@ local m = reset()
 check(m.start_done and m.start_camera1 and m.x == 950 and m.y == 3000, "native setup/start state")
 check(m.camera_ready_time == 6 and m.next_shot_time == 22 and m.third_warning_time == 1300, "startup timer values")
 check(count("Follow", m.nsdfrig, m.nsdfmuf) == 1 and count("Follow", m.nsdfslf, m.nsdfrig) == 1, "rendezvous followers")
-check(last("Follow")[4] == 0 and scraps[2] == 40, "command priorities and CCA resource setup")
+check(last("Follow")[4] == 0 and scraps[5] == 40 and count("SetPilot", 5, 40) == 1 and count("SetScrap", 2) == 0,
+    "command priorities and CCA (team 5) resource setup")
+check(count("SetAIControl", 5, true) == 1, "strategic AI is enabled on the CCA team")
 check(count("AudioMessage") == 0 and count("CameraPath", "camera_circle") == 1, "opening camera before briefing")
 check(count("SetObjectiveName", m.nav1, "Choke Point") == 1, "initial navigation name")
 step(6)
@@ -139,7 +178,7 @@ check(m.camera_ready and m.x == 1040 and not m.cam_off, "artillery shot and orig
 step(22.4)
 check(not m.cam_off, "strict artillery camera end time")
 step(22.5)
-check(m.cam_off and m.player_camera_off and count("SetAIP", "misn09.aip") == 1, "camera completion activates initial AIP")
+check(m.cam_off and m.player_camera_off and count("SetAIP", "misn09.aip", 5) == 1, "camera completion activates initial AIP")
 check(objectives["misn0900.otf"] == "green" and objectives["misn0901.otf"] == "white", "artillery objectives")
 step(82.5)
 check(not m.recon_artil, "strict recon timer")
@@ -154,13 +193,16 @@ m = reset(); step(7); cancelled = true; Update(0.05)
 check(m.audmsg.done and m.muf_gobaby and count("StopAudioMessage") == 1, "briefing cancellation releases factory")
 
 m = reset()
+local lookalike = make("svturr", 1); AddObject(lookalike)
+check(m.cca1 == nil, "the team filter keeps a human-team look-alike out of the CCA turret slots")
+m = reset()
 local slots = {"cca1", "cca2", "cca3", "cca4"}
 for i, slot in ipairs(slots) do
-    local h = make(i == 1 and "svturr.odf" or "svturr", 1)
+    local h = make(i == 1 and "svturr.odf" or "svturr", 5)
     AddObject(h)
     check(m[slot] == h, "native ODF-only turret callback slot " .. i)
 end
-local fifth = make("svturr", 2); AddObject(fifth)
+local fifth = make("svturr", 5); AddObject(fifth)
 check(m.cca4 ~= fifth, "full native turret slots are not replaced")
 kill(m.cca1); AddObject(fifth)
 check(not IsAlive(m.cca1), "dead native tracking slot is retained")
@@ -177,7 +219,7 @@ step(25.2); check(count("Defend", m.cca3) == 2, "fifteen-second turret defense c
 for _, item in ipairs({{"svfigh", "cca5"}, {"svfigh", "cca6"}, {"svfigh", "cca7"}, {"svfigh", "cca8"},
     {"svtank", "cca9"}, {"svtank", "cca0"}, {"svscav", "scav1"}, {"svscav", "scav2"}, {"svscav", "scav3"},
     {"avwalk", "nsdfgech1"}, {"svhaul", "ccatug"}, {"absilo", "avsilo"}}) do
-    local h = make(item[1], 1); AddObject(h)
+    local h = make(item[1], item[1]:find("^sv") and 5 or 1); AddObject(h)
     check(m[item[2]] == h, "native callback slot " .. item[2])
 end
 AddObject(nil)
@@ -188,6 +230,8 @@ check(not m.scavs_alive, "scavengers remain followers before deployment")
 objects[m.nsdfmuf].deployed = true; step(9.1)
 check(m.muf_deployed and m.scavs_alive and count("Stop", m.avscav1) == 1, "deployment releases scavengers")
 Update(0.05); check(count("Stop", m.avscav1) == 1, "scavenger release is one-shot")
+m = reset(); local enemySilo = make("absilo", 5); AddObject(enemySilo); Update(0.05)
+check(not m.scavs_alive and m.avsilo ~= enemySilo, "a silo on the CCA team is not the player's silo")
 m = reset(); local silo = make("absilo", 1); AddObject(silo); Update(0.05)
 check(m.scavs_alive and not m.muf_deployed, "silo also releases scavengers")
 
@@ -212,9 +256,13 @@ check(not m.third_warning and m.third_warning_time == 1311.1 and count("BuildObj
 near(m.user, m.convoy_geyser, 501); step(1311.1)
 check(not m.third_warning, "strict deferred spawn boundary")
 step(1311.2)
-check(m.third_warning and count("BuildObject") == 12 and objects[m.relic].team == 3, "original relic/tug/ten-escort convoy")
+check(m.third_warning and count("BuildObject") == 12 and objects[m.relic].team == 0, "original relic/tug/ten-escort convoy; the relic is neutral")
+for _, call in ipairs(calls) do
+    if call[1] == "BuildObject" and call[2]:find("^sv") then check(call[3] == 5, "CCA spawns use team 5: " .. call[2]) end
+end
+check(count("SetPerceivedTeam") == 0, "no solo convoy extras or allies")
 check(m.relic_free and not m.convoy_started and count("Pickup") == 0, "spawn preserves next-update pickup")
-check(count("SetAIP", "misn09b.aip") == 1 and objectives["misn0901.otf"] == "red", "convoy switches AIP and incomplete objective display")
+check(count("SetAIP", "misn09b.aip", 5) == 1 and objectives["misn0901.otf"] == "red", "convoy switches AIP and incomplete objective display")
 Update(0.05)
 check(m.tug_underway and count("Pickup", m.ccatug, m.relic) == 1, "CCA tug tries to take relic once")
 cargo[m.relic] = m.ccatug; Update(0.05)
@@ -230,7 +278,7 @@ local spawns = count("BuildObject")
 kill(m.ccatug); cargo[m.relic] = nil; Update(0.05)
 check(m.relic_free and not m.relic_seized and not m.tug_underway and not m.head_4_pad, "destroyed enemy tug frees relic and flags")
 step(1400)
-check(count("BuildObject") == spawns, "cut replacement-tug code stays inactive")
+check(count("BuildObject") == spawns and m.build_new_tug and m.build_tug_time == 1426.4, "the restored replacement tug waits its 90 s")
 local friendly = make("avhaul", 1); cargo[m.relic] = friendly; Update(0.05)
 check(m.relic_secure and not m.relic_free and m.tugger == friendly, "friendly relic capture")
 kill(friendly); cargo[m.relic] = nil; Update(0.05)
@@ -280,8 +328,9 @@ check(m.game_over and count("SucceedMission") == 1 and last("SucceedMission")[3]
 m = reset(); seize(m); near(m.relic, m.nsdfmuf, 1); step(1306.1)
 check(not m.game_over, "enemy-held relic cannot win")
 unitCount = 0; step(1361)
-check(m.game_over5 and not m.game_over and count("SucceedMission") == 0, "cut all-enemies-cleared victory remains only a message")
-check(last("CountUnitsNearObject")[3] == 5000 and last("CountUnitsNearObject")[4] == 2, "original enemy-cleared query")
+check(m.game_over5 and not m.game_over and count("SucceedMission") == 0 and count("AudioMessage", "misn0908.wav") == 1,
+    "clearing every CCA unit near the geyser only plays 0908: the stock SucceedMission stays cut")
+check(last("CountUnitsNearObject")[3] == 5000 and last("CountUnitsNearObject")[4] == 5, "enemy-cleared query counts the CCA team")
 
 m = reset(); seize(m); kill(m.ccarecycle); kill(m.ccamuf); Update(0.05)
 check(m.ccadead and not m.game_over, "enemy base destruction is informational")

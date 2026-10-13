@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-13T14:15:18-05:00",
-  "count": 2292,
+  "generated": "2026-10-13T15:41:05-05:00",
+  "count": 2304,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10,14 +10,6 @@
     {
       "source": "Assets\\ACT\\moon.act",
       "runtime": "moon.act"
-    },
-    {
-      "source": "Assets\\Audio\\misn0717.wav",
-      "runtime": "misn0717.wav"
-    },
-    {
-      "source": "Assets\\Audio\\misn0719.wav",
-      "runtime": "misn0719.wav"
     },
     {
       "source": "Assets\\Audio\\misn0232.wav",
@@ -100,6 +92,22 @@
       "runtime": "misn0652.wav"
     },
     {
+      "source": "Assets\\Audio\\misn0717.wav",
+      "runtime": "misn0717.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0719.wav",
+      "runtime": "misn0719.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0910.wav",
+      "runtime": "misn0910.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0917.wav",
+      "runtime": "misn0917.wav"
+    },
+    {
       "source": "Assets\\Graphics\\bio.png",
       "runtime": "bio.png"
     },
@@ -142,6 +150,10 @@
     {
       "source": "Assets\\Graphics\\misn08.bmp",
       "runtime": "misn08.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn09.bmp",
+      "runtime": "misn09.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -542,6 +554,10 @@
     {
       "source": "Config\\misn08.ini",
       "runtime": "misn08.ini"
+    },
+    {
+      "source": "Config\\misn09.ini",
+      "runtime": "misn09.ini"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -2880,6 +2896,10 @@
       "runtime": "misn08.des"
     },
     {
+      "source": "misn09.des",
+      "runtime": "misn09.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -3066,6 +3086,30 @@
     {
       "source": "Missions\\misn08.vxt",
       "runtime": "misn08.vxt"
+    },
+    {
+      "source": "Missions\\misn09.bzn",
+      "runtime": "misn09.bzn"
+    },
+    {
+      "source": "Missions\\misn09.hg2",
+      "runtime": "misn09.hg2"
+    },
+    {
+      "source": "Missions\\misn09.lgt",
+      "runtime": "misn09.lgt"
+    },
+    {
+      "source": "Missions\\misn09.mat",
+      "runtime": "misn09.mat"
+    },
+    {
+      "source": "Missions\\misn09.trn",
+      "runtime": "misn09.trn"
+    },
+    {
+      "source": "Missions\\misn09.vxt",
+      "runtime": "misn09.vxt"
     },
     {
       "source": "Missions\\sxshow.bzn",
@@ -5204,88 +5248,88 @@
       "runtime": "xgasxpl.odf"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program"
+      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds"
+      "source": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds"
+      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds"
+      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\resources.version",
-      "runtime": "openshim\\renderer\\enhanced\\resources.version"
+      "source": "openshim\\renderer\\enhanced\\resources.version.payload",
+      "runtime": "openshim\\renderer\\enhanced\\resources.version.payload"
     },
     {
       "source": "openshim\\support\\openshim_wrap.bat",
@@ -5482,6 +5526,10 @@
     {
       "source": "Scripts\\CRVenusSites08.lua",
       "runtime": "CRVenusSites08.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusSites09.lua",
+      "runtime": "CRVenusSites09.lua"
     },
     {
       "source": "Scripts\\CRVenusWeather.lua",
