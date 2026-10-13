@@ -25,6 +25,11 @@ TARGETS = {
     # opening nav.
     "misn09": ["artil1", "artil2", "artil3", "artil4", "artil5", "artil6", "svmuf",
                "cut_off_geyser", "launchpad", "cam1"],
+    # misn10: the Io opening navs, relic, both recyclers, the CCA muf (ODF-named) and
+    # artillery, and the geysers the script frames or erupts.
+    "misn10": ["relic", "cam1", "cam2", "cam3", "svrecycler", "avrecycler", "post1_geyser",
+               "post3_geyser", "geyser1", "geyser2", "geyser3", "geyser4", "geyser5", "geyser6",
+               "geyser7", "svartil1", "svartil2", "svmuf"],
 }
 # Labels that are also an authored PATH name in the BZN legitimately occur twice.
 PATH_NAMES = {"launch_pad"}
