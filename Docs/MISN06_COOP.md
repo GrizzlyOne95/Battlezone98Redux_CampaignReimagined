@@ -66,6 +66,26 @@ UI state. Guests send their current selection to the leader as `I` messages
 Offline play keeps the DLL behavior: every helper iterates only the local
 player, and results stay a pass-through.
 
+## Restored cut dialogue
+
+Twenty unused original voice lines return between `-- CR restored VO` markers
+(`RESTORED_VO` gates them; the source parity test strips the regions and
+checks the DLL body is otherwise unchanged):
+
+- The orbital blockade arc after the escorts fall: transport touchdown and the
+  Lincoln/Roosevelt blockade order (0623, 0615, 0652); at transport launch the
+  "eight minutes" exchange and the order to take the base (0614, 0616-0620),
+  after which the cockpit timer and Launch Pad objective start; at +60 s the
+  transport rejoins the destroyers (0624 or 0641) and the Freedom is called
+  (0621, 0622); at +90 s the Lincoln's mayday (0625, 0626); then the Lincoln
+  is lost (0627) and, if the pad is not yet reconned, the shipped 0628 order.
+- 0610 after the Hephaestus scan (new orders wait for it), 0609 once the scrap
+  field ambush is clear, 0693 as the first starport reminder.
+- Late escape (5th Platoon lost): 0637 replaces 0629/0630 and 0639 is the win line.
+
+Deadlines and failure conditions are unchanged. The campaign briefing voice
+is the 0600 retrospective.
+
 ## Focused checks
 
 ```sh
@@ -77,7 +97,7 @@ python Tools/Test-SetupMissionShell.py
 python Tools/Validate-CampaignRepository.py
 ```
 
-The host flow suite passes 596 checks and the four-peer presentation adapter
+The host flow suite passes 1012 checks and the four-peer presentation adapter
 54 (path/object cameras, cockpit timer, IsInfo relay and expiry, delayed
 replicas, local skips, result held for acknowledgements). The source parity
 test lists each co-op substitution as an explicit API-count delta. These mocks

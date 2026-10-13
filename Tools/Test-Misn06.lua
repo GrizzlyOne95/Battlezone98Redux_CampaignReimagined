@@ -59,11 +59,27 @@ local function NewMission()
         local bid = type(b) == "string" and b or b.id
         return w.distances[a.id .. ":" .. bid] or 10000
     end
+    w.audio, w.hold = {}, {}
     e.AudioMessage = function(file)
         Record("AudioMessage", file)
+        w.audio[#w.audio + 1] = file
         return { audio = file }
     end
-    e.IsAudioMessageDone = function(msg) assert(msg and msg.audio); return w.audioDone end
+    -- w.hold[file] = true keeps that one message "playing" regardless of w.audioDone.
+    e.IsAudioMessageDone = function(msg)
+        assert(msg and msg.audio)
+        return w.audioDone and not w.hold[msg.audio]
+    end
+    function w:Since(n)
+        local out = {}
+        for i = n + 1, #self.audio do out[#out + 1] = self.audio[i] end
+        return table.concat(out, ",")
+    end
+    function w:Played(file)
+        local n = 0
+        for _, f in ipairs(self.audio) do if f == file then n = n + 1 end end
+        return n
+    end
     e.StopAudioMessage = function(msg) assert(msg and msg.audio); Record("StopAudioMessage", msg) end
     e.IsInfo = function(odf) return w.info[odf] == true end
     e.CameraCancelled = function() return w.cancelled end
@@ -280,5 +296,171 @@ Check(saved.hephikey and saved.processtime == 50 and saved.extractpoint == 3,
     "Load preserves recon, deadlines, and random extraction choice")
 Check(w:Count("AudioMessage", "misn0601.wav") == narration and w:Count("SetPosition") == moves,
     "Load does not replay startup audio")
+
+-- Campaign Reimagined restored voice-over (RESTORED_VO) ------------------------
+local function Wav(n) return "misn06" .. string.format("%02d", n) .. ".wav" end
+local function Names(...)
+    local t = {}
+    for _, n in ipairs({...}) do t[#t + 1] = Wav(n) end
+    return table.concat(t, ",")
+end
+
+-- B1..B5: escorts die -> transport lands -> 1 min / 1.5 min broadcasts.
+local function ChainToTransport()
+    local e, w, m = NewMission()
+    m.opencamdone = false; m.starportreconed = true
+    w.hold[Wav(13)] = true
+    m.wAu1.alive = false; m.wAu2.alive = false; e.Update(0.1)
+    Check(m.ccapullout and m.transarrive, "escort loss starts transport countdown")
+    return e, w, m
+end
+do
+    local e, w, m = ChainToTransport()
+    local n = #w.audio
+    e.Update(0.1)
+    Check(w:Played(Wav(23)) == 0, "B1 waits for 0612/0613 to finish")
+    w.hold[Wav(13)] = nil; n = #w.audio; e.Update(0.1)
+    Check(w:Since(n) == Names(23, 15, 52), "B1: touchdown, Collins blockade order, Yes sir")
+    n = #w.audio; e.Update(0.1); e.Update(0.1)
+    Check(w:Since(n) == "", "B1 fires once")
+
+    w.time = m.transportarrive + 0.1; n = #w.audio
+    w.hold[Wav(20)] = true; e.Update(0.1)
+    Check(w:Since(n) == Names(14, 16, 17, 18, 19, 20), "B2: 0614 then 0616-0620, no 0628")
+    Check(m.aud6.audio == Wav(14) and m.aud7.audio == Wav(20), "cockpit gate follows first and last B2 lines")
+    Check(not m.lprecon and w:Count("StartCockpitTimer") == 0, "cockpit timer waits for 0620")
+    Check(m.vob3choice == Wav(24) or m.vob3choice == Wav(41), "B3 opener is 0624 or 0641, chosen at B2 time")
+    w.hold[Wav(20)] = nil; e.Update(0.1)
+    Check(m.lprecon and w:Count("StartCockpitTimer", 540) == 1, "cockpit timer + objective start after 0620")
+
+    local choice = m.vob3choice
+    w.time = m.oneminstrans - 1; n = #w.audio; e.Update(0.1)
+    Check(w:Since(n) == "", "B3 waits for the one-minute mark")
+    w.hold[Wav(22)] = true
+    w.time = m.oneminstrans + 0.1; n = #w.audio; e.Update(0.1)
+    Check(w:Since(n) == choice .. "," .. Names(21, 22), "B3: random opener, 0621, 0622")
+    w.time = m.transaway + 0.1; n = #w.audio; e.Update(0.1)
+    Check(w:Since(n) == "", "B4 waits for B3 audio")
+    w.hold[Wav(22)] = nil; w.hold[Wav(26)] = true; n = #w.audio; e.Update(0.1)
+    Check(w:Since(n) == Names(25, 26), "B4: 0625 then 0626")
+    n = #w.audio; e.Update(0.1)
+    Check(w:Since(n) == "", "B5 waits for B4 audio")
+    w.hold[Wav(26)] = nil; e.Update(0.1)
+    Check(w:Since(n) == Names(27, 28), "B5: 0627 then 0628 while the launchpad is unreconed")
+    n = #w.audio; e.Update(0.1); e.Update(0.1)
+    Check(w:Since(n) == "" and w:Played(Wav(21)) == 1 and w:Played(Wav(25)) == 1 and w:Played(Wav(27)) == 1,
+        "B3, B4 and B5 each fire once")
+end
+
+-- 0628 is dropped when the launchpad was reconed before B5.
+do
+    local e, w, m = ChainToTransport()
+    w.hold[Wav(13)] = nil; e.Update(0.1)
+    w.time = m.transportarrive + 0.1; e.Update(0.1)
+    w.time = m.oneminstrans + 0.1; e.Update(0.1)
+    w.time = m.transaway + 0.1; w.hold[Wav(26)] = true; e.Update(0.1)
+    m.launchpadreconed = true; w.hold[Wav(26)] = nil
+    local n = #w.audio; e.Update(0.1)
+    Check(w:Since(n) == Names(27), "0628 only plays when the launchpad is not yet reconed")
+end
+
+-- B3/B4 (and so B5) are skipped once the player has bugged out.
+for _, flag in ipairs({"bugout", "launchpadreconed"}) do
+    local e, w, m = ChainToTransport()
+    w.hold[Wav(13)] = nil; e.Update(0.1)
+    w.time = m.transportarrive + 0.1; e.Update(0.1)
+    m[flag] = true; m.time1 = 1e9
+    w.time = m.oneminstrans + 0.1; e.Update(0.1)
+    w.time = m.transaway + 0.1; e.Update(0.1); e.Update(0.1)
+    Check(w:Played(Wav(21)) == 0 and w:Played(Wav(22)) == 0 and w:Played(Wav(25)) == 0
+        and w:Played(Wav(26)) == 0 and w:Played(Wav(27)) == 0, "B3/B4/B5 skipped after " .. flag)
+end
+-- B3 played, then bugout before B4: B4 is skipped.
+do
+    local e, w, m = ChainToTransport()
+    w.hold[Wav(13)] = nil; e.Update(0.1)
+    w.time = m.transportarrive + 0.1; e.Update(0.1)
+    w.time = m.oneminstrans + 0.1; e.Update(0.1)
+    Check(w:Played(Wav(21)) == 1, "B3 played before bugout")
+    m.bugout = true; m.time1 = 1e9
+    w.time = m.transaway + 0.1; e.Update(0.1)
+    Check(w:Played(Wav(25)) == 0 and w:Played(Wav(27)) == 0, "B4 skipped when bugout happened after B3")
+end
+-- B1 is skipped if the transport block already fired.
+do
+    local e, w, m = ChainToTransport()
+    w.time = m.transportarrive + 0.1; e.Update(0.1)
+    Check(m.touchdown, "transport block fired")
+    w.hold[Wav(13)] = nil; e.Update(0.1)
+    Check(w:Played(Wav(23)) == 0 and w:Played(Wav(52)) == 0, "B1 skipped after touchdown block fired")
+end
+
+-- 0610 delays 0605.
+do
+    local e, w, m = NewMission()
+    w.hold[Wav(10)] = true; w.info.obheph = true; w.time = 1; e.Update(0.1)
+    Check(w:Played(Wav(10)) == 1 and m.aud610 and m.processtime == 6, "Hephestus info plays 0610")
+    w.time = 6.1; e.Update(0.1)
+    Check(not m.neworders and w:Played(Wav(5)) == 0, "0605 waits for 0610")
+    w.hold[Wav(10)] = nil; e.Update(0.1)
+    Check(m.neworders and w:Played(Wav(5)) == 1, "0605 plays after 0610; DLL deadline unchanged")
+end
+
+-- 0609 waits for no enemy within 300 m of any player.
+do
+    local e, w, m = NewMission()
+    local foe = e.GetHandle("foe"); w.player.enemy = foe; w:Distance(w.player, foe, 200)
+    w:Distance(w.player, m.blockade1, 400); w.hold[Wav(36)] = true; w.time = 1; e.Update(0.1)
+    Check(m.blockadefound and w:Played(Wav(36)) == 1 and m.aud636.audio == Wav(36), "0636 handle retained")
+    w.hold[Wav(36)] = nil; e.Update(0.1)
+    Check(w:Played(Wav(9)) == 0, "0609 waits while an enemy is within 300 m")
+    w:Distance(w.player, foe, 301); e.Update(0.1); e.Update(0.1)
+    Check(w:Played(Wav(9)) == 1, "0609 plays once when clear")
+end
+
+-- First starport reminder is 0693; spfail fail path unchanged.
+do
+    local e, w, m = NewMission()
+    m.reconsptime = 0; w.time = 1; e.Update(0.1)
+    Check(w:Played(Wav(93)) == 1 and w:Played(Wav(54)) == 0 and m.spfail == 1, "first reminder is 0693")
+    for i = 2, 4 do
+        w.time = w.time + 15.1; e.Update(0.1)
+        Check(m.spfail == i and w:Played(Wav(54)) == i - 1, "later reminder " .. i .. " is 0654")
+    end
+    w.time = w.time + 15.1; e.Update(0.1)
+    Check(m.fail3 and w:Played(Wav(94)) == 1 and m.spfail == 4 and w:Played(Wav(93)) == 1,
+        "four reminders then the unchanged 0694 failure")
+end
+
+-- Late escape uses 0637 only; early (Corbett alive) escape is unchanged.
+do
+    local e, w, m = NewMission()
+    m.opencamdone = false; m.bugout = true; m.launchpadreconed = true
+    m.corbettalive = false; m.time1 = -1; e.Update(0.1)
+    Check(w:Played(Wav(37)) == 1 and w:Played(Wav(29)) == 0 and w:Played(Wav(30)) == 0 and m.breakme,
+        "late bugout plays 0637 not 0629/0630")
+    e, w, m = NewMission()
+    m.opencamdone = false; m.bugout = true; m.launchpadreconed = true
+    m.threemin = true; m.time1 = -1; e.Update(0.1)
+    Check(w:Played(Wav(29)) == 1 and w:Played(Wav(37)) == 0, "Corbett-alive bugout still plays 0629")
+end
+
+-- Extraction success: 0639 for late escape, 0649 otherwise.
+for _, late in ipairs({true, false}) do
+    local e, w, m = NewMission()
+    m.opencamdone = false; m.corbettalive = not late
+    m.pickupreached = true; m.dustoffcam = e.GetHandle("dustoff"); m.avrec = e.GetHandle("avrecy-1_recycler")
+    w:Distance(m.avrec, m.dustoffcam, 50); w:Distance(w.player, m.dustoffcam, 50); e.Update(0.1)
+    Check(w:Count("SucceedMission") == 1, "extraction succeeded")
+    Check(w:Played(Wav(late and 39 or 49)) == 1 and w:Played(Wav(late and 49 or 39)) == 0,
+        late and "late escape success is 0639" or "normal success is 0649")
+end
+
+-- New state lives in the saved M table.
+do
+    local e, w, m = ChainToTransport()
+    w.hold[Wav(13)] = nil; e.Update(0.1)
+    Check(m.vob1 == true and e.Save() == m, "B1 latch lives in the saved mission table")
+end
 
 print("Misn06: " .. checks .. " Lua 5.1 host checks passed")

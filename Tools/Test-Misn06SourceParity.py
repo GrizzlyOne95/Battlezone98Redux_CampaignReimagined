@@ -13,6 +13,41 @@ assert sha256(raw).hexdigest() == "5a66c54a9d6c7f17ebb293434e645d317a50f7bb8e551
 source = raw.decode("utf-8").replace("\r\n", "\n")
 lua = lua_path.read_text(encoding="utf-8")
 
+# Campaign Reimagined restored-VO additions live between exact marker lines and keep
+# every original statement in an else branch. Strip them (inclusive) so all checks
+# below still prove the active DLL port is unchanged.
+VO_OPEN, VO_CLOSE = "-- CR restored VO >>", "-- CR restored VO <<"
+lua_lines = lua.split("\n")
+assert lua_lines.count(VO_OPEN) == lua_lines.count(VO_CLOSE) > 0, "unbalanced restored-VO markers"
+restored_vo = []
+stripped_lines, inside = [], False
+for line in lua_lines:
+    if line == VO_OPEN:
+        assert not inside, "nested restored-VO marker"
+        inside = True
+        restored_vo.append([])
+    elif line == VO_CLOSE:
+        assert inside, "restored-VO close without open"
+        inside = False
+    elif inside:
+        restored_vo[-1].append(line)
+    else:
+        stripped_lines.append(line)
+assert not inside, "unterminated restored-VO region"
+cut_vo_text = "\n".join(l for region in restored_vo for l in region)
+lua = "\n".join(stripped_lines)
+for token in ("RESTORED_VO", "CUT_VO", "vob1", "vob3", "vob4", "vob5", "aud610", "aud636"):
+    assert token not in lua, "restored-VO code outside marker regions: " + token
+# Every restored wav needs its shipped subtitle text (never invent text).
+cut_table = re.search(r"local CUT_VO = \{(.*?)\n\}", cut_vo_text, flags=re.S)
+assert cut_table, "CUT_VO table missing from restored-VO region"
+cut_wavs = sorted(set(re.findall(r'"(misn06\d\d)\.wav"', cut_table[1])))
+assert cut_wavs, "CUT_VO lists no wavs"
+missing_text = [w for w in cut_wavs if not (ROOT / "Text" / (w + ".txt")).is_file()]
+assert not missing_text, "restored VO without Text subtitle: " + ", ".join(missing_text)
+for wav in re.findall(r'"(misn06\d\d)\.wav"', cut_vo_text):
+    assert wav in cut_wavs or wav in {"misn0636", "misn0614"}, "restored wav missing from CUT_VO: " + wav
+
 cpp_comment = r"//[^\n]*|/\*.*?\*/"
 comments = Counter(m[0] for m in re.finditer(cpp_comment, source, flags=re.S))
 lua_comments = re.findall(r"--\[=\[(.*?)\]=\]", lua, flags=re.S)
@@ -75,4 +110,5 @@ assert not re.search(r'BuildObject\("\w+", [23],', live), "CCA/platoon spawns mu
 assert "GetPosition(M.haephestus)" not in live, "Redux-only collision adjustment reintroduced"
 assert "IsOdf(" not in live, "Redux-only death check reintroduced"
 print(f"Misn06 DLL parity: {sum(comments.values())} comments, {len(fields)} state fields, "
-      f"{len(re.findall(strings, cpp))} ordered string references, and source API call counts passed")
+      f"{len(re.findall(strings, cpp))} ordered string references, and source API call counts passed; "
+      f"{len(restored_vo)} restored-VO regions stripped, {len(cut_wavs)} restored wavs have Text subtitles")
