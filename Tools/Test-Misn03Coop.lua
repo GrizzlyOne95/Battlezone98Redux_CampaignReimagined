@@ -282,14 +282,44 @@ local nextSeq
 -- The stream's latest acknowledgement is observable in the outbound transport.
 client.env.Receive(10, "E", 0, "ClearObjectives", now + 5)
 nextSeq = packets[#packets].args[1] + 1
-client.env.Receive(10, "E", nextSeq, "SetObjectiveOn", now + 5, "not-yet-replicated")
-client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", now + 5)
+client.env.Receive(10, "E", nextSeq, "SetObjectiveOn", 5, "not-yet-replicated")
+client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", 5)
 check(count(client, "ClearObjectives") == previousClear, "sequence gap did not defer following event")
 now = now + 6
-client.env.Receive(10, "E", nextSeq, "SetObjectiveOn", now - 1, "not-yet-replicated")
-client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", now - 1)
-client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", now - 1)
+client.env.Receive(10, "E", nextSeq, "SetObjectiveOn", 5, "not-yet-replicated")
+client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", 5)
+client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", 5)
 check(count(client, "ClearObjectives") == previousClear + 1, "expired marker/duplicate handling failed")
+
+-- A map object the engine cannot carry as a handle goes by "@label" and resolves via the
+-- guest's GetHandle. The wait is relative to the guest's own clock, so a leader clock
+-- far from the guest's can never drop the marker, and it still lands when the object
+-- finally resolves. A label that never resolves drops after the guest's own ttl.
+local labelSeq = nextSeq + 2
+local markers = count(client, "SetObjectiveOn")
+client.env.Receive(10, "E", labelSeq, "SetObjectiveOn", 5, "@900@late_geyser")
+client.env.Receive(10, "E", labelSeq + 1, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers and count(client, "ClearObjectives") == previousClear + 1,
+    "an unresolved label must hold the ordered stream")
+now = now + 3
+objects.late_geyser = { alive = true, team = 0, odf = "eggeizr1", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", labelSeq, "SetObjectiveOn", 5, "@900@late_geyser")
+client.env.Receive(10, "E", labelSeq + 1, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers + 1 and last(client, "SetObjectiveOn")[2] == "late_geyser" and
+    count(client, "ClearObjectives") == previousClear + 2, "a late-resolving label marker must land, then the next event")
+client.env.Receive(10, "E", labelSeq + 2, "SetObjectiveOn", 5, "@901@never_exists")
+client.env.Receive(10, "E", labelSeq + 3, "ClearObjectives", 5)
+now = now + 5.5
+client.env.Receive(10, "E", labelSeq + 2, "SetObjectiveOn", 5, "@901@never_exists")
+client.env.Receive(10, "E", labelSeq + 3, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers + 1 and count(client, "ClearObjectives") == previousClear + 3,
+    "a label that never resolves must drop after the guest's own wait without blocking")
+-- A label only the leader knows (SetLabel on a spawned, replicated object) falls back to
+-- the replicated handle carried in the same argument.
+objects[902] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", labelSeq + 4, "SetObjectiveOn", 5, "@902@leader_only_label")
+check(count(client, "SetObjectiveOn") == markers + 2 and last(client, "SetObjectiveOn")[2] == 902,
+    "a leader-only label must fall back to the replicated handle")
 
 -- A deleted human no longer holds the all-player proximity/readiness gate.
 reset()

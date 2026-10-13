@@ -90,6 +90,7 @@ local native = {
 }
 local events, acknowledgements = {}, {}
 local receivedEvent = 0
+local pendingSeq, pendingSince
 local nextEventSend, nextCameraSend = 0, 0
 local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
 local remoteCameraSerial, localCameraGeneration = 0, 0
@@ -128,10 +129,39 @@ local function ApplyPresentation(op, ...)
     end
 end
 
+-- Ops whose first argument is a game object. The engine maps a handle across
+-- Send only for replicated objects: a map-authored non-replicated one (misn06's
+-- rendezvous geyser) arrives as nil on every guest, however long we wait. Those
+-- go on the wire as "@handle@label" (handles are numbers, so a leading @ is
+-- unambiguous) and each guest resolves the label with GetHandle.
+local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
+    SetUserTarget = true, RemoveObject = true }
+local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true }
+-- A replica gets this many seconds, measured on the RECEIVER's own clock from
+-- the first time its event is next in line, before the stale marker is dropped.
+local EVENT_TTL = 5
+
+local function WireHandle(handle)
+    local ok, label = pcall(GetLabel, handle)
+    if ok and type(label) == "string" and label ~= "" and #label <= 126 then
+        local found, resolved = pcall(GetHandle, label)
+        if found and resolved == handle then
+            -- "@handle@label": the label wins on a guest, but a label that only
+            -- the leader knows (SetLabel on a spawned, replicated object) still
+            -- falls back to the replicated handle.
+            return "@" .. (type(handle) == "number" and string.format("%d", handle) or tostring(handle)) ..
+                "@" .. label
+        end
+    end
+    return handle
+end
+
 local function Present(op, ...)
     if CRCoop.IsNetworkGame() then
         if not CRCoop.IsAuthority() then return end
-        events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), expires = GetTime() + 5 }
+        local wire = { ... }
+        if HANDLE_OPS[op] and wire[1] ~= nil then wire[1] = WireHandle(wire[1]) end
+        events[#events + 1] = { op = op, args = wire, n = select("#", ...), ttl = EVENT_TTL }
     end
     return ApplyPresentation(op, ...)
 end
@@ -244,7 +274,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.expires, unpackArgs(event.args, 1, event.n))
+                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(event.args, 1, event.n))
                 end
             end
         end
@@ -287,18 +317,38 @@ local function ReceivePresentation(from, kind, ...)
         end
         return true
     end
-    local seq, op, expires = ...
-    if type(seq) ~= "number" or type(op) ~= "string" or type(expires) ~= "number" then return true end
+    local seq, op, ttl = ...
+    if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
     if seq == receivedEvent + 1 and (native[op] or op == "Resources" or op == "Difficulty") then
         local args = { select(4, ...) }
-        -- Dynamic handles can arrive after the Lua packet. Withhold the ACK
-        -- until the next retransmission resolves it, rather than losing markers.
-        local missing = (op == "SetObjectiveOn" or op == "SetObjectiveName" or op == "SetUserTarget") and
-            not IsValid(args[1])
-        if missing and GetTime() < expires then return true end
-        -- A target destroyed before its packet arrived must not block the
-        -- stream (and the mission result) forever. Only that stale marker drops.
-        if not missing then ApplyPresentation(op, unpackArgs(args, 1, select("#", ...) - 3)) end
+        local count = select("#", ...) - 3
+        local apply = true
+        if HANDLE_OPS[op] then
+            if type(args[1]) == "string" and args[1]:sub(1, 1) == "@" then
+                local sentHandle, sentLabel = args[1]:match("^@([^@]*)@(.*)$")
+                local resolved = sentLabel and GetHandle(sentLabel)
+                if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+                    local candidate = tonumber(sentHandle) or sentHandle
+                    if IsValid(candidate) then resolved = candidate end
+                end
+                args[1] = resolved
+                -- A label with no object here (destroyed, or not loaded yet).
+                if not IsValid(args[1]) then apply = false end
+            end
+            if WAIT_OPS[op] and not IsValid(args[1]) then
+                -- Dynamic handles and map labels can resolve after the Lua packet.
+                -- Withhold the ACK so the retransmission retries, but bound the
+                -- wait on OUR clock: the leader's GetTime() is not comparable.
+                local now = GetTime()
+                if pendingSeq ~= seq or now < pendingSince then pendingSeq, pendingSince = seq, now end
+                if now - pendingSince < ttl then return true end
+                -- A target destroyed before its packet arrived must not block the
+                -- stream (and the mission result) forever. Only that marker drops.
+                apply = false
+            end
+        end
+        pendingSeq = nil
+        if apply then ApplyPresentation(op, unpackArgs(args, 1, count)) end
         receivedEvent = seq
     end
     Send(from, "A", receivedEvent)
