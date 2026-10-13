@@ -388,4 +388,29 @@ client.view[902] = { alive = true, team = 1, odf = "avscav", health = 1, maxHeal
 client.env.Receive(10, "E", labelSeq + 4, "SetObjectiveOn", 5, "@902@leader_only_label")
 check(count(client, "SetObjectiveOn") == markers + 2 and last(client, "SetObjectiveOn")[2] == 902,
     "a leader-only label must fall back to the replicated handle")
+-- Camera snapshots are label-aware too. A target that only resolves late still gets the film
+-- aimed at it; one that never resolves inside the guest's window plays aimed at the guest's
+-- own craft instead of being skipped.
+local camSerial = 5000
+local function camFrame(generation, target)
+    client.env.Receive(10, "C", camSerial, generation, "camera_path", 175, 850, target)
+    camSerial = camSerial + 1
+    client.env.Update()
+end
+local casts = count(client, "CameraPath")
+camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts, "an unresolved camera target waits for the replica")
+now = now + 1; camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts, "the camera still waits inside the guest's window")
+client.view.late_cam_target = { alive = true, team = 0, odf = "eggeizr1", health = 1, maxHealth = 1 }
+camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == "late_cam_target",
+    "a late-resolving label target is used as soon as it resolves")
+client.env.Receive(10, "C", camSerial, 1, "", 0, 0); camSerial = camSerial + 1; client.env.Update()
+casts = count(client, "CameraPath")
+camFrame(2, "@904@never_exists_cam")
+check(casts == count(client, "CameraPath"), "second film starts waiting")
+now = now + 2.5; camFrame(2, "@904@never_exists_cam")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == client.player,
+    "an unresolvable camera target must play aimed at the guest's craft, not skip the film")
 print("misn04 co-op: " .. checks .. " complete-script Lua 5.1 checks passed")

@@ -34,6 +34,8 @@ local function peer(id)
     -- p.labels maps handle -> map label (GetLabel); p.byLabel maps label -> handle (GetHandle).
     env.GetTime = function() return now + (p.clock or 0) end
     p.labels, p.byLabel = {}, {}
+    env.GetPlayerHandle = function() return "craft" .. id end
+    p.valid["craft" .. id] = true
     env.GetLabel = function(h) return p.labels[h] end
     env.GetHandle = function(label) return p.byLabel[label] end
     env.IsValid = function(h) return p.valid[h] == true end
@@ -127,6 +129,27 @@ check(guest.api.state(), "a new generation clears local skip")
 guest.api.receive(3, "C", 999, 99, "", 0, 0, 0); guest.api.update()
 check(guest.api.state(), "non-leader camera messages must be ignored")
 
+-- Camera snapshots are label-aware: a non-replicated target (misn03's cam_geyser, here "camgeyser")
+-- is resolved by label; a guest that cannot resolve it inside its window plays the film aimed at
+-- its own craft instead of skipping it, and re-aims the moment the label resolves.
+host.valid.camgeyser, host.labels.camgeyser, host.byLabel.cam_geyser = true, "cam_geyser", "camgeyser"
+guest.byLabel.cam_geyser, fourth.byLabel.cam_geyser = nil, nil
+third.byLabel.cam_geyser, third.valid["cg@3"] = "cg@3", true
+host.api.finish(); tick(); tick()
+host.api.ready(); host.api.object("camgeyser", 0, 500, -500, "camgeyser")
+tick(); tick(); tick()
+check(third.api.state() and last(third, "CameraObject")[6] == "cg@3", "a resolvable label target aims the film at the guest's replica")
+check(not guest.api.state() and not fourth.api.state(), "an unresolved target waits inside the guest's window")
+guest.byLabel.cam_geyser = "cg@2"; guest.valid["cg@2"] = true
+tick()
+check(guest.api.state() and last(guest, "CameraObject")[6] == "cg@2", "a late-resolving label target starts the film aimed at it")
+for _=1,8 do tick() end
+check(fourth.api.state() and last(fourth, "CameraObject")[6] == "craft4",
+    "an unresolvable target must play aimed at the guest's craft, not skip the film")
+fourth.byLabel.cam_geyser, fourth.valid["cg@4"] = "cg@4", true
+tick(); check(last(fourth, "CameraObject")[6] == "cg@4", "the film re-aims when the label finally resolves")
+host.api.finish(); tick(); tick()
+
 -- Drop the first event and reorder the retransmission; markers wait for replicas.
 -- Real handles are numbers; strings on the wire are map labels.
 local MARKER = 9001
@@ -206,5 +229,4 @@ host.labels[SPAWNED], host.byLabel.leader_only, host.valid[SPAWNED] = "leader_on
 for _, p in ipairs({guest, third, fourth}) do p.valid[SPAWNED] = true end
 host.api.present("SetObjectiveOn", SPAWNED); for _=1,4 do tick() end
 check(count(guest, "SetObjectiveOn", SPAWNED) == 1 and count(fourth, "SetObjectiveOn", SPAWNED) == 1,
-    "a leader-only label falls back to the replicated handle")
-print("misn05 object-camera, replica wait, local skip and ordered result checks passed: " .. checks)
+    "a leader-only label falls back to the replicated handle")print("misn05 object-camera, replica wait, local skip and ordered result checks passed: " .. checks)
