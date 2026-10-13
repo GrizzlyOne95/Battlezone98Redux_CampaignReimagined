@@ -551,7 +551,9 @@ do
     run(6)
     check(not s.jump_cam_spawned, "an enemy fighter near ANY player holds the rookie back")
     objects[foe].alive = false; run(6)
-    check(s.jump_cam_spawned and playedOnAll("misn0702.wav") == 4 and objects[s.rookie].team == 1, "rookie overlook spawns when every player is clear")
+    check(s.jump_cam_spawned and objects[s.rookie].team == 1, "rookie overlook spawns when every player is clear")
+    check(playedOnAll(s.take0702) == 4 and (s.take0702 == "misn0702.wav" or s.take0702 == "misn0717.wav"),
+        "the overlook call plays on every peer (either take)")
     -- Rookie found: any player within 70.
     near(guests[3].player, s.rookie, 60); run(30)
     check(s.rookie_found and playedOnAll("misn0718.wav") == 4, "any player near the rookie finds him")
@@ -563,6 +565,41 @@ do
     local runner = false
     for _, c in ipairs(callsOf(guests[1], "SetObjectiveName")) do if c[2] == s.svpatrol1_2 and c[3] == "Runner" then runner = true end end
     check(runner, "the Runner marker reaches the guests")
+end
+
+-- The overlook call is 0702 or its alternate take 0717, picked once by the leader.
+for _, case in ipairs({{pick = 0, file = "misn0702.wav", other = "misn0717.wav"},
+                       {pick = 1, file = "misn0717.wav", other = "misn0702.wav"}}) do
+    for _, network in ipairs({true, false}) do
+        local realRandom = math.random
+        math.random = function(a, b) check(a == 0 and b == 1, "the take is a 50/50 pick"); return case.pick end
+        local host, guests = session(network, network and 4 or 1)
+        local s = host.state
+        run(30)
+        local cam3 = host.env.GetHandle("cam3")
+        s.rendezvous = true; s.recon_message_time = 0
+        run(6)
+        math.random = realRandom
+        local peersHeard = network and 4 or 1
+        check(s.jump_cam_spawned and s.take0702 == case.file, "the leader picks " .. case.file)
+        check(playedOnAll(case.file) == peersHeard and playedOnAll(case.other) == 0,
+            case.file .. " reaches every peer and the other take is silent")
+        local plays = 0
+        for _, c in ipairs(callsOf(host, "Play")) do if c[2] == case.file then plays = plays + 1 end end
+        check(plays == 1, "the overlook call plays once")
+    end
+end
+do
+    -- The pick is random across a series of games (both takes appear).
+    local seen = {}
+    math.randomseed(12345)
+    for _ = 1, 40 do
+        local host = session(false, 1)
+        local s = host.state
+        run(30); s.rendezvous = true; s.recon_message_time = 0; run(6)
+        seen[s.take0702] = true
+    end
+    check(seen["misn0702.wav"] and seen["misn0717.wav"], "both takes occur at random")
 end
 
 -- ============================================================ 6. rally, Utah, win and loss
@@ -693,7 +730,7 @@ do
     local names = {}
     for _, c in ipairs(callsOf(guests[1], "SetObjectiveName")) do names[c[3]] = true end
     check(names["Mine Path 1"] and names["Mine Path 2"] and names["Mine Path 3"] and names["Mine Path 4"], "Mine Path names reach the guests")
-    for _, c in ipairs(callsOf(host, "Play")) do check(c[2] ~= "misn0711.wav" and c[2] ~= "misn0717.wav", "cut dev lines stay cut") end
+    for _, c in ipairs(callsOf(host, "Play")) do check(c[2] ~= "misn0711.wav", "the developer joke line stays cut") end
     allBuildTeams(host)
 end
 do

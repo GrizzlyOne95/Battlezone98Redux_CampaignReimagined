@@ -38,7 +38,8 @@
   to it and is ambushed, with the Nav Beacons through the minefield, the
   streamed mines and the MAG-cannon film). After the film the CCA begins
   fielding prototype svtnk7 tanks until its factory falls. Collins reminds you
-  about the Utah if it is not deployed.
+  about the Utah if it is not deployed. Razor One's overlook call is randomly
+  the original or the alternate take (misn0717).
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
 - Co-op: a player who dies respawns near a teammate. Each player has 5
