@@ -79,6 +79,9 @@ assert not re.search(r'SetAIP\([^)]*SUPPORT_TEAM', lua) and not re.search(r'SetA
 # The relic is neutral: team 3 is a guest slot.
 assert 'local RELIC_TEAM = 0' in lua and 'BuildObject("obdata", RELIC_TEAM, M.convoy_geyser)' in lua
 assert 'SetAIControl(ENEMY_TEAM, true)' in lua
+# Chunk-root only: Start runs after the engine's DR_AI_Init (misn08 live host crash at load).
+assert len(re.findall(r'SetAIControl\(', lua)) == 1 and re.search(r'^SetAIControl\(ENEMY_TEAM, true\)$', lua, flags=re.M), \
+    'SetAIControl must be a single chunk-root call, never inside Start/Update'
 assert len(re.findall(r'SetAIP\("misn09\w?\.aip",\s*ENEMY_TEAM\)', lua)) == 3
 assert 'SetScrap(ENEMY_TEAM, 40)' in lua and 'SetPilot(ENEMY_TEAM, 40)' in lua
 assert 'CRCoop.ApplyCoopAlliances(ENEMY_TEAM)' in lua
