@@ -33,9 +33,11 @@
   player who has not parachuted in still trips the tank tripwire, and the alarm
   soldiers hunt the nearest player. Allied tanks now drive in to the
   rendezvous, Razor One glides into the outpost and steals a Soviet vehicle,
-  and the cut test range returns (Razor One's 0703/0704 calls, the Nav
-  Beacons through the minefield, the streamed mines, and the MAG-cannon film).
-  Collins reminds you about the Utah if it is not deployed.
+  and the cut test range returns once the radar array is down (Razor One drives
+  to it and is ambushed, with the Nav Beacons through the minefield, the
+  streamed mines and the MAG-cannon film). After the film the CCA begins
+  fielding prototype svtnk7 tanks until its factory falls. Collins reminds you
+  about the Utah if it is not deployed.
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
 - Co-op: a player who dies respawns near a teammate. Each player has 5
