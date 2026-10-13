@@ -44,9 +44,9 @@ assert mod_parser["WORKSHOP"]["mapType"] == '"campaign"'
 # remaining independently discoverable in Instant Action. Stock training has
 # a Lua port but no CR BZN yet, so it must not masquerade as a playable rewrite.
 mission_sections = [section for section in mod_parser.sections() if section.startswith("MISSION")]
-assert mission_sections == [f"MISSION{i}" for i in range(1, 7)]
+assert mission_sections == [f"MISSION{i}" for i in range(1, 8)]
 campaign_maps = [mod_parser[section]["missionBZN"].strip('"') for section in mission_sections]
-assert campaign_maps == ["misn02b.bzn", "misn03.bzn", "misn04.bzn", "misn05.bzn", "misn06.bzn", "misn07.bzn"]
+assert campaign_maps == ["misn02b.bzn", "misn03.bzn", "misn04.bzn", "misn05.bzn", "misn06.bzn", "misn07.bzn", "misn08.bzn"]
 for section, filename in zip(mission_sections, campaign_maps):
     assert mod_parser[section]["missionName"].strip('"')
     assert mod_parser[section]["planet"].strip('"') in {"moon", "mars", "venus"}
