@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-13T13:48:18-05:00",
-  "count": 2256,
+  "generated": "2026-10-13T14:11:47-05:00",
+  "count": 2258,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10,6 +10,14 @@
     {
       "source": "Assets\\ACT\\moon.act",
       "runtime": "moon.act"
+    },
+    {
+      "source": "Assets\\Audio\\misn0717.wav",
+      "runtime": "misn0717.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0719.wav",
+      "runtime": "misn0719.wav"
     },
     {
       "source": "Assets\\Graphics\\bio.png",

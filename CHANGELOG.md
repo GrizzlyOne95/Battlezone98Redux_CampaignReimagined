@@ -40,6 +40,8 @@
   fielding prototype svtnk7 tanks until its factory falls. Collins reminds you
   about the Utah if it is not deployed. Razor One's overlook call is randomly
   the original or the alternate take (misn0717).
+- Ship the restored voice lines misn0717 and misn0719 (Mission 07), which the German,
+  Spanish, French and Italian game archives lack, so every language hears them.
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
 - Co-op: a player who dies respawns near a teammate. Each player has 5

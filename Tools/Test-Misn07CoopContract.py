@@ -88,4 +88,12 @@ for source in ['Config/misn07.ini', 'Missions/misn07.vxt', 'Assets/Graphics/misn
                'Missions/misn07.bzn', 'Missions/misn07.hg2', 'Missions/misn07.trn', 'Missions/misn07.mat',
                'Missions/misn07.lgt', 'Scripts/misn07.lua']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source
+# Restored voice lines absent from Redux's de/es/fr/it archives ship with the mod (byte-exact stock
+# English takes, PCM mono 11025 Hz 8-bit like the stock lines).
+for wav in ['misn0717.wav', 'misn0719.wav']:
+    data = (root / 'Assets/Audio' / wav).read_bytes()
+    assert data[:4] == b'RIFF' and data[8:16] == b'WAVEfmt ', wav + ' is not a RIFF/WAVE file'
+    assert int.from_bytes(data[20:22], 'little') == 1 and int.from_bytes(data[22:24], 'little') == 1
+    assert int.from_bytes(data[24:28], 'little') == 11025 and int.from_bytes(data[34:36], 'little') == 8
+    assert members.get('Assets/Audio/' + wav) == wav, 'Shipped voice line must be admitted by the shipping manager: ' + wav
 print('misn07 co-op native map, team isolation, authority and lobby contract passed')
