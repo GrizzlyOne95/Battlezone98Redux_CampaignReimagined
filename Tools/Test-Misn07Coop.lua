@@ -298,6 +298,30 @@ local function makePeer(id, team, network)
             Queue = function(file) record("Queue", file) end,
             Stop = function() record("Stop") end, Update = noop, Initialize = noop},
     }
+    -- The Venus director is mocked: this suite verifies the mission's wiring (who initializes it,
+    -- what rides the event stream, which story beats move the severity ladder), not the sky.
+    local venus = {updates = 0, announces = 0, targets = {}, forces = {}, events = {}, created = 0,
+        saves = 0, shutdowns = 0, envInit = 0, envUpdates = 0, envCreated = 0}
+    p.venus = venus
+    modules.CRVenusSites07 = {sites = true}
+    modules.Environment = {Init = function() venus.envInit = venus.envInit + 1 end,
+        Update = function() venus.envUpdates = venus.envUpdates + 1 end,
+        OnObjectCreated = function() venus.envCreated = venus.envCreated + 1 end}
+    modules.CRVenusWeather = {
+        Init = function(options)
+            venus.options = options
+            modules.CRVenusWeather.Seed = options.seed or (options.authority and 4242 or nil)
+        end,
+        Update = function() venus.updates = venus.updates + 1 end,
+        AnnounceState = function() venus.announces = venus.announces + 1 end,
+        SetTargetLevel = function(n) venus.targets[#venus.targets + 1] = n end,
+        ForceLevel = function(a, b, c) venus.forces[#venus.forces + 1] = {a, b, c} end,
+        ApplyNetEvent = function(op, ...) venus.events[#venus.events + 1] = {op, ...}; return true end,
+        OnObjectCreated = function() venus.created = venus.created + 1 end,
+        Save = function() venus.saves = venus.saves + 1; return {saved = true, seed = modules.CRVenusWeather.Seed} end,
+        Load = function(state) venus.loaded = state end,
+        Shutdown = function() venus.shutdowns = venus.shutdowns + 1 end,
+    }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
@@ -1244,6 +1268,93 @@ do
     local h3, g3, s3 = arcSession(true)
     objects[s3.test_tank].alive = false; run(1)
     check(s3.proto_start ~= nil, "a destroyed test tank starts it")
+end
+
+-- ============================================================ 8e. Venus weather wiring
+do
+    local host, guests = session(true)
+    local s = host.state
+    -- Who initializes what.
+    local o = host.venus.options
+    check(o and o.authority == true and o.seed == nil and o.sites.sites and o.startLevel == 1 and o.targetLevel == 2,
+        "the leader starts the director with the map sites, ladder 1 -> target 2 and no seed yet")
+    check(type(o.send) == "function" and type(o.players) == "function", "the leader sends events and lists the players")
+    check(s.venusSeed == 4242, "the leader's seed is saved in the mission table")
+    for _, g in ipairs(guests) do
+        check(g.venus.options.authority == false and g.venus.options.seed == nil, "guests wait for the host's seed")
+    end
+    check(host.venus.envInit == 1 and host.venus.announces == 1, "the leader announces its state once the session is ready")
+    for _, g in ipairs(guests) do check(g.venus.announces == 0, "guests never announce") end
+    run(5)
+    for _, peer in pairs(peers) do
+        check(peer.venus.updates > 10 and peer.venus.envUpdates == peer.venus.updates, "every peer updates the director and Environment each frame")
+    end
+    check(host.venus.announces == 1, "the announcement is not repeated")
+    -- The host's event queue reaches every guest through the ordered stream, and only the guests.
+    local list = host.venus.options.players()
+    check(#list == 4, "the director sees every human craft (" .. #list .. ")")
+    host.venus.options.send("VenusState", 4242, 12.5, 2, 0, 2, 0, 0)
+    host.venus.options.send("VenusStrike", 1, 100, 20, 200, 1, 1.5, 0.7)
+    host.venus.options.send("VenusErupt", 1, 3, 20, 0.9)
+    run(3)
+    for _, g in ipairs(guests) do
+        check(#g.venus.events == 3 and g.venus.events[1][1] == "VenusState" and g.venus.events[2][1] == "VenusStrike" and
+            g.venus.events[3][1] == "VenusErupt", "every guest receives the weather events in order")
+        check(g.venus.events[2][7] == 1.5, "event arguments survive the stream")
+    end
+    check(#host.venus.events == 0, "the host does not re-apply its own events")
+    -- Objects feed both the environment and the director.
+    local before = host.venus.created
+    host.env.BuildObject("apcamr", 1, "cam1_spawn")
+    check(host.venus.created == before + 1 and host.venus.envCreated >= 1, "new objects reach Environment and the director")
+    check(guests[1].venus.created >= 0, "guests see engine-created objects too")
+
+    -- Host-only beats: calm approach, rising, burst, storm, easing; each exactly once.
+    check(#host.venus.targets == 0 and #host.venus.forces == 0, "the approach stays at the opening target")
+    run(30)
+    s.alarm_on = true; run(1)
+    check(#host.venus.targets == 1 and host.venus.targets[1] == 3, "the infiltration raises the target to 3")
+    s.alarm_on = false; run(2)
+    check(#host.venus.targets == 1, "the rising beat fires once")
+    s.unit_spawn = true; run(1)
+    check(#host.venus.forces == 1 and host.venus.forces[1][1] == 5 and host.venus.forces[1][2] == 100 and
+        host.venus.forces[1][3] == 14, "the evacuation sets off a 100 s level-5 burst")
+    radarDown(host)
+    check(host.venus.targets[2] == 4 and #host.venus.targets == 2, "the radar array falling raises the target to 4")
+    objects[s.nsdfrecycle].deployed = true; run(2)
+    check(host.venus.targets[3] == 3 and #host.venus.targets == 3, "the deployed Utah eases the target back to 3")
+    run(30)
+    check(#host.venus.targets == 3 and #host.venus.forces == 1, "no beat repeats")
+    for _, g in ipairs(guests) do
+        check(#g.venus.targets == 0 and #g.venus.forces == 0, "guests never move the ladder themselves")
+    end
+    -- Save: the leader stores the director's scalars with the mission.
+    local m = host.env.Save()
+    check(m.weatherState and m.weatherState.saved and m.venusSeed == 4242, "Save carries the weather state and seed")
+    check(guests[1].env.Save().weatherState == nil, "guests save no weather state")
+end
+do
+    -- A saved weather state is restored on the leader and consumed.
+    reset()
+    local host = makePeer(10, 1, true)
+    host.state.weatherState = {tag = "saved"}
+    host.state.venusSeed = 99
+    local guest = makePeer(20, 2, true)
+    registerAll(); run(3)
+    check(host.venus.loaded and host.venus.loaded.tag == "saved" and host.state.weatherState == nil, "a saved state is loaded and consumed")
+    check(host.venus.options.seed == 99, "the saved seed is reused")
+    -- A mission restart in the same process stands the director down first.
+    local before = host.venus.shutdowns
+    host.env.Start(); run(1)
+    check(host.venus.shutdowns > before, "restarting the mission shuts the director down")
+end
+do
+    -- Offline play: the same director, nothing transmitted.
+    local host = session(false, 1)
+    local o = host.venus.options
+    check(o.authority == true and o.send == nil and o.players == nil and host.venus.announces == 0, "offline: host path with no sender")
+    host.state.alarm_on = true; run(1)
+    check(host.venus.targets[1] == 3, "offline beats work")
 end
 
 -- ============================================================ 9. offline play

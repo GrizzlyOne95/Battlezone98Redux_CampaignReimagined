@@ -50,15 +50,19 @@ kind: `P` replays `camera_path1`/`2` and `O` the object shots. Each player can
 skip their own film; the shared timing continues. misn07 reads no `IsInfo`
 state, so there is no `I` relay.
 
-Marker and removal targets travel by handle only when the engine replicates them. Spawned
-objects (the convoy tanks, the navs, Razor One and his vehicle, the test-range nav4/nav5 and
-beacons, the test tank/turret, mines, prototypes) are replicated handles. Authored map
-objects the engine does not replicate (`cam3`, the radar array, the `svpatrol*` fighters,
-the `pturret*` turrets) arrive as nil handles on guests, so `Present` sends their map label
-and each guest resolves it with `GetHandle` (as in PR #186 for misn05/06). The wait for a
-replica that has not appeared is bounded by a TTL measured on the guest's own clock, so a
-vanished target drops its marker after 5 s without blocking the stream; `SetObjectiveOff`
-and `RemoveObject` for an unresolvable target are skipped at once.
+Marker and removal targets, and the object/path camera snapshots, carry their handles as
+`"@handle@label"` when the object has a map label. The engine replicates only some map
+objects; an authored one (`cam3`, the radar array, the `svpatrol*` fighters, the `pturret*`
+turrets) arrives as a nil handle on guests, so a guest resolves the label with `GetHandle` first
+and falls back to the replicated handle beside it (a label only the leader knows is still
+safe). Spawned objects (the convoy tanks, the navs, Razor One and his vehicle, nav4/nav5 and
+the beacons, the test tank/turret, mines, prototypes) have no label and go by plain handle.
+The wait for a replica is bounded by a TTL measured on the guest's own clock, so a vanished
+target drops its marker after 5 s without blocking the stream; `SetObjectiveOff` and
+`RemoveObject` for an unresolvable target are skipped at once. A film whose target stays
+unresolved for 2 s of the guest's clock no longer skips: it plays aimed at the guest's own
+craft and re-aims the moment the label resolves (Razor One, test-range and MAG-film shots
+included). Ported from PR #186.
 
 ## Alarm and stealth, per player
 
@@ -234,6 +238,37 @@ wav has its shipped `Text/misn07NN.txt`). Only shipped assets are used.
 * 0719 (Collins: rendezvous with the Utah) once, 120 s after 0714, if the Utah is
   still not deployed; the test range waits for it to finish.
 
+## Venus weather
+
+`Scripts/CRVenusWeather.lua` (see `VENUS_WEATHER.md`) gives the mission its sulphurous
+overcast, altitude-pooled fog, lightning storms that favour the Lightning Power generators,
+sulfur pools, volcano plumes and acid rain; `Missions/misn07.trn` no longer carries the
+stock `[LightningBolt]` section. The wiring lives in `-- CR Venus weather` regions:
+
+* `InitVenusWeather` runs on every peer at the first update (and again after a restart, with
+  the director shut down first): `Environment.Init()`, then the director with the map sites
+  (`CRVenusSites07`), ladder 1 with target 2, authority = offline or the campaign leader, and
+  the leader's saved seed. The leader's `send` queues straight onto the presentation stream
+  with the current event record; `players` lists every human craft so strikes can be chosen
+  near any of them. A guest starts without a seed and shows calm weather until the host's
+  `VenusState` arrives, then follows the seeded timeline.
+* The three Venus ops (`VenusState`, `VenusStrike`, `VenusErupt`) carry only numbers. The
+  receiver accepts them like any native op, applies them with `ApplyNetEvent`, and they
+  never use the label/TTL wait (a pending marker still holds the stream in order).
+* Every frame: `CRVenusWeather.Update(dt)` then `Environment.Update(dt)`. The leader calls
+  `AnnounceState()` once when the session first becomes ready. New objects go to
+  `Environment.OnObjectCreated` and `CRVenusWeather.OnObjectCreated`. `Save()` stores the
+  director's state with the mission (leader/offline), `Start()` shuts it down.
+* **Beats** (leader/offline only, each once; guests follow via `VenusState`):
+  target 2 on the approach; 3 when the infiltration starts (Razor One's ejection, the first
+  player inside, or the alarm); a 100 s level-5 burst (`ForceLevel(5, 100, 14)`) when the CCA
+  evacuation scrambles (alarm soldiers spawn); 4 when the radar array falls; back to 3 once
+  the Utah deploys.
+* **Cinematics.** The director never damages anything (knockback and radar scramble only),
+  so the MAG-cannon film and the other shots were left alone. A strike during a film can
+  flash and shove the camera's craft; if that proves distracting, `ForceLevel` or the
+  director's `AllowKnockback` switch can hold it off during the film.
+
 ## Shipped voice lines
 
 Redux's localized archives do not carry every restored line: `misn0717.wav` is only
@@ -261,15 +296,15 @@ python Tools/Validate-CampaignRepository.py
 ```
 
 The offline suite keeps its 31 single-player checks. The host flow suite
-(`Test-Misn07Coop.lua`, 593 checks) runs the whole script in four peers over the
+(`Test-Misn07Coop.lua`, 635 checks) runs the whole script in four peers over the
 real CRCoop and the E/A/C transport, plus an offline peer: startup and teams,
 the convoy, per-player alarm, special alarm and nearest-player soldiers,
 any-player triggers, rally and the Utah, win/loss, the restored arc, the
 minefield, the MAG film (once, skips, no 0711), the phase-2 gating, Razor One's
 glide, theft, fallbacks and fail-safes, his drive to the test range and ambush,
 and the prototype svtnk7 program (trigger, cap scaling, scrap, factory loss). The presentation suite covers the
-four-peer adapter (path/object cameras, rally, delayed replicas, skips, result
-held for acknowledgements). The parity test pins the DLL source and lists each
+four-peer adapter (path/object cameras incl. label-aware targets, rally, Venus events, label
+markers on skewed guest clocks, delayed replicas, skips, result held for acknowledgements). The parity test pins the DLL source and lists each
 co-op substitution as an explicit API-count delta. These mocks do not qualify
 native wire serialization, AI navigation or voice queuing.
 
@@ -280,7 +315,7 @@ progression from MISSION5. Specifically unproven: the parachute glide feel and
 the wall clearance (velocity steering against real pilot physics), the pilot
 entering the parked vehicle through `GetIn` and the engine's team change, the
 convoy pathing to the rendezvous and its spawn terrain at (779, 99505), the
-test turret/tank terrain at the derived coordinates, Razor One's drive to `cam_spawn6` and the ambush fighters' behavior, the prototype tanks' balance (3750 health, 1450-damage shots every 6 s), the film timing and shot
+test turret/tank terrain at the derived coordinates, the Venus sky, fog pooling, bolt look and knockback feel (see `VENUS_WEATHER.md`), Razor One's drive to `cam_spawn6` and the ambush fighters' behavior, the prototype tanks' balance (3750 health, 1450-damage shots every 6 s), the film timing and shot
 offsets over the converted map, mine density and the 400 m stream, and the
 guest film skips. The stock AIP's behavior on team 5 (it was authored for team 2) is untested. Steam and Wine/Proton are unverified, and stock multiplayer kill-feed
 messages remain visible.

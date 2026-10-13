@@ -19,6 +19,12 @@ end
 local subtit = require("ScriptSubtitles")
 local CRCoop = require("CRCoop")
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+-- CR Venus weather >>
+local CRVenusWeather = require("CRVenusWeather")
+local VenusSites = require("CRVenusSites07")
+local Environment = require("Environment")
+local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true }
+-- CR Venus weather <<
 -- CR restored VO >>
 -- Prototype svtnk7 tunables (see RestoredPrototypeTanks). The cap is 2 solo, +1 per extra
 -- human team, at most 4; the first tank is built no sooner than 90 s after the trigger.
@@ -68,6 +74,7 @@ local function ResetPresentation()
     nextEventSend, nextCameraSend = 0, 0
     cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
     remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
+    cameraWaitSince = nil
     cameraSkipped, localCameraActive = false, false
 end
 
@@ -88,6 +95,11 @@ local function ApplyPresentation(op, ...)
             SetScrap(team, scrap)
             SetPilot(team, pilots)
         end
+-- CR Venus weather >>
+    elseif VENUS_OPS[op] then
+        -- Weather events carry no handles: never labelled, never waited on.
+        return CRVenusWeather.ApplyNetEvent(op, ...)
+-- CR Venus weather <<
     elseif op == "Rally" then
         -- Respawn rally: the rendezvous nav until the Utah deploys, then the Utah.
         -- Every peer's respawn service resolves the handle itself.
@@ -108,7 +120,8 @@ end
 -- Ops whose first argument is a game object. The engine maps a handle across
 -- Send only for replicated objects: a map-authored non-replicated one (misn06's
 -- rendezvous geyser) arrives as nil on every guest, however long we wait. Those
--- go on the wire as their map LABEL and each guest resolves it with GetHandle.
+-- go on the wire as "@handle@label" (handles are numbers, so a leading @ is
+-- unambiguous) and each guest resolves the label with GetHandle.
 local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
     SetUserTarget = true, RemoveObject = true, Rally = true }
 local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true, Rally = true }
@@ -117,10 +130,17 @@ local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget
 local EVENT_TTL = 5
 
 local function WireHandle(handle)
+    if handle == nil then return nil end
     local ok, label = pcall(GetLabel, handle)
-    if ok and type(label) == "string" and label ~= "" and #label <= 127 then
+    if ok and type(label) == "string" and label ~= "" and #label <= 126 then
         local found, resolved = pcall(GetHandle, label)
-        if found and resolved == handle then return label end
+        if found and resolved == handle then
+            -- "@handle@label": the label wins on a guest, but a label that only
+            -- the leader knows (SetLabel on a spawned, replicated object) still
+            -- falls back to the replicated handle.
+            return "@" .. (type(handle) == "number" and string.format("%d", handle) or tostring(handle)) ..
+                "@" .. label
+        end
     end
     return handle
 end
@@ -177,7 +197,7 @@ local function CameraReady()
     return native.CameraReady()
 end
 local function CameraPath(path, height, speed, target)
-    cameraFrame = { "P", path, height, speed, target }
+    cameraFrame = { "P", path, height, speed, WireHandle(target) }
     if CRCoop.IsNetworkGame() and native.CameraCancelled() then
         cameraSkipped = true
         if localCameraActive then native.CameraFinish() end
@@ -186,7 +206,7 @@ local function CameraPath(path, height, speed, target)
     if not cameraSkipped then return native.CameraPath(path, height, speed, target) end
 end
 local function CameraObject(subject, x, y, z, target)
-    cameraFrame = { "O", subject, x, y, z, target }
+    cameraFrame = { "O", WireHandle(subject), x, y, z, WireHandle(target) }
     if cameraSkipped then return end
     local done = native.CameraObject(subject, x, y, z, target)
     -- Match the authored CameraObject -> CameraCancelled order: the object
@@ -213,6 +233,43 @@ local function CameraFinish()
     if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
 end
 
+-- Camera frames carry their handles like markers do ("@handle@label"). A guest resolves
+-- them each update; a target that stays unresolved for CAMERA_RESOLVE_WINDOW seconds of
+-- the guest's OWN clock no longer skips the film: it plays aimed at the other handle,
+-- or at the guest's own craft, rather than not at all.
+local CAMERA_RESOLVE_WINDOW = 2
+local cameraWaitSince
+
+local function ResolveCameraHandle(sent)
+    if type(sent) ~= "string" or sent:sub(1, 1) ~= "@" then return sent end
+    local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+    local resolved = sentLabel and GetHandle(sentLabel)
+    if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+        local candidate = tonumber(sentHandle) or sentHandle
+        if IsValid(candidate) then resolved = candidate end
+    end
+    return resolved
+end
+
+-- ready, subject, target. subject == nil means the kind carries none (path cameras).
+local function ResolveCameraHandles(sentSubject, sentTarget)
+    local subject, target = ResolveCameraHandle(sentSubject), ResolveCameraHandle(sentTarget)
+    if (sentSubject == nil or IsValid(subject)) and IsValid(target) then
+        cameraWaitSince = nil
+        return true, subject, target
+    end
+    if not localCameraActive then
+        local now = GetTime()
+        if not cameraWaitSince or now < cameraWaitSince then cameraWaitSince = now end
+        if now - cameraWaitSince < CAMERA_RESOLVE_WINDOW then return false end
+    end
+    local me = GetPlayerHandle and GetPlayerHandle()
+    if not IsValid(target) then target = IsValid(subject) and subject or me end
+    if sentSubject ~= nil and not IsValid(subject) then subject = IsValid(target) and target or me end
+    if not IsValid(target) then return false end
+    return true, subject, target
+end
+
 local function UpdateRemoteCamera()
     if not remoteCamera then return end
     local cam = remoteCamera
@@ -224,10 +281,13 @@ local function UpdateRemoteCamera()
     if cam.generation ~= localCameraGeneration then
         localCameraGeneration = cam.generation
         cameraSkipped = false
+        cameraWaitSince = nil
     end
-    if cameraSkipped or not IsValid(cam.target) then return end
+    if cameraSkipped then return end
+    local ready, subject, target = ResolveCameraHandles(cam.kind == "O" and cam.subject or nil, cam.target)
+    if not ready then return end
+    cam = setmetatable({ subject = subject, target = target }, { __index = cam })
     if cam.kind == "O" then
-        if not IsValid(cam.subject) then return end
         if not localCameraActive then
             native.CameraReady()
             localCameraActive = true
@@ -320,14 +380,19 @@ local function ReceivePresentation(from, kind, ...)
     end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Resources" or op == "Rally") then
+    if seq == receivedEvent + 1 and (native[op] or VENUS_OPS[op] or op == "Resources" or op == "Rally") then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
         local apply = true
         if HANDLE_OPS[op] then
-            if type(args[1]) == "string" then
-                -- Sent by label: resolve against this client's own map objects.
-                args[1] = GetHandle(args[1])
+            if type(args[1]) == "string" and args[1]:sub(1, 1) == "@" then
+                local sentHandle, sentLabel = args[1]:match("^@([^@]*)@(.*)$")
+                local resolved = sentLabel and GetHandle(sentLabel)
+                if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+                    local candidate = tonumber(sentHandle) or sentHandle
+                    if IsValid(candidate) then resolved = candidate end
+                end
+                args[1] = resolved
                 -- A label with no object here (destroyed, or not loaded yet).
                 if not IsValid(args[1]) then apply = false end
             end
@@ -591,6 +656,11 @@ local function NewState()
     state.rk = nil
     state.rh = nil
 -- CR Razor One infiltration <<
+-- CR Venus weather >>
+    state.venusSeed = nil
+    state.venusBeats = nil
+    state.weatherState = nil
+-- CR Venus weather <<
 -- CR rendezvous convoy >>
     state.convoy = nil
 -- CR rendezvous convoy <<
@@ -699,6 +769,85 @@ end
 local function AtGround(x, z)
     return SetVector(x, (GetTerrainHeightAndNormal(SetVector(x, 0, z))), z)
 end
+
+-- CR Venus weather >>
+-- Venus atmosphere (Docs/VENUS_WEATHER.md). The leader (or offline play) runs the director's
+-- automatic weather and the beats below; guests render the same sky from the seeded timeline
+-- plus the host's state and strike/eruption events, which ride the ordered presentation
+-- stream like any other event. The events carry no handles, so they bypass the marker
+-- label/TTL logic. The director never damages anything (knockback and radar scramble only),
+-- so the cinematics are left alone.
+local venusStarted, venusAnnounced = false, false
+
+local function InitVenusWeather()
+    venusStarted = true
+    local net = CRCoop.IsNetworkGame()
+    local authority = (not net) or CRCoop.IsAuthority()
+    Environment.Init()
+    CRVenusWeather.Init({
+        authority = authority,
+        seed = M.venusSeed, -- nil: the leader/offline picks one, guests wait for the host's state
+        sites = VenusSites,
+        startLevel = 1,
+        targetLevel = 2,
+        -- The host queues straight onto the stream: its own Present() would apply the event again.
+        send = net and function(op, ...)
+            events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), ttl = EVENT_TTL }
+        end or nil,
+        players = net and function()
+            local list = {}
+            CRCoop.ForEachPlayerHandle(function(h) list[#list + 1] = h end)
+            return list
+        end or nil,
+    })
+    if M.weatherState ~= nil and authority then
+        CRVenusWeather.Load(M.weatherState)
+        M.weatherState = nil
+    end
+    if authority then M.venusSeed = CRVenusWeather.Seed end -- survives a save
+end
+
+-- Every peer, every frame after the session is ready.
+local function UpdateVenusWeather(dt)
+    if not venusStarted then InitVenusWeather() end
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and not venusAnnounced and CRCoop.IsSessionReady() then
+        venusAnnounced = true
+        CRVenusWeather.AnnounceState()
+    end
+    CRVenusWeather.Update(dt)
+    Environment.Update(dt)
+end
+
+local function ShutdownVenusWeather()
+    if venusStarted then CRVenusWeather.Shutdown() end
+    venusStarted, venusAnnounced = false, false
+end
+
+-- Host/offline only: the mission's arc drives the severity ladder, each beat once.
+--   2 calm approach -> 3 when the infiltration starts (Razor One's ejection, the first
+--   player inside, or the alarm) -> a 100 s level-5 burst when the CCA evacuation scrambles
+--   (alarm soldiers spawn) -> 4 when the radar array falls -> 3 once the Utah is deployed.
+local function UpdateVenusBeats()
+    local beats = M.venusBeats
+    if beats == nil then beats = {}; M.venusBeats = beats end
+    if (not beats.rising) and (not M.first_objective) and (M.rookie_removed or M.out_of_car or M.alarm_on) then
+        beats.rising = true
+        CRVenusWeather.SetTargetLevel(3)
+    end
+    if (not beats.burst) and M.unit_spawn then
+        beats.burst = true
+        CRVenusWeather.ForceLevel(5, 100.0, 14.0)
+    end
+    if (not beats.storm) and M.first_objective then
+        beats.storm = true
+        CRVenusWeather.SetTargetLevel(4)
+    end
+    if (not beats.easing) and M.utah_found then
+        beats.easing = true
+        CRVenusWeather.SetTargetLevel(3)
+    end
+end
+-- CR Venus weather <<
 
 -- CR rendezvous convoy >>
 -- The DLL parked two disguised NSDF tanks (avtank2/avtank3) at the rendezvous on
@@ -1280,6 +1429,9 @@ local function InitializeCoop()
     })
     ConfigureAlliances()
     ResetPresentation()
+-- CR Venus weather >>
+    ShutdownVenusWeather()
+-- CR Venus weather <<
 end
 
 function Start()
@@ -1493,6 +1645,10 @@ function AddObject(h)
 -- CR Razor One infiltration >>
     RazorOneAdopt(h)
 -- CR Razor One infiltration <<
+-- CR Venus weather >>
+    Environment.OnObjectCreated(h)
+    CRVenusWeather.OnObjectCreated(h)
+-- CR Venus weather <<
 end
 
 function CreatePlayer(id, name, team)
@@ -1535,6 +1691,9 @@ function Update(dt)
         CRCoop.MarkMissionStarted()
         M.coopMissionStarted = true
     end
+-- CR Venus weather >>
+    UpdateVenusWeather(dt)
+-- CR Venus weather <<
     if not CRCoop.IsAuthority() then return end
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
         M.coopBootstrapped = true
@@ -1555,6 +1714,9 @@ function Update(dt)
     UpdateRazorOne()
     UpdateRazorHeal()
 -- CR Razor One infiltration <<
+-- CR Venus weather >>
+    UpdateVenusBeats()
+-- CR Venus weather <<
     if M.mine_check>110 then
         M.mine_check=1
     --[==[/*	if (!first_camera_ready)
@@ -2685,6 +2847,11 @@ if ((!first_objective) && (!alarm_on) && (!out_of_car))
 end
 
 function Save()
+-- CR Venus weather >>
+    if venusStarted and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
+        M.weatherState = CRVenusWeather.Save()
+    end
+-- CR Venus weather <<
     return M
 end
 
