@@ -1151,6 +1151,37 @@ do
 end
 
 -- =============================================================================
+-- 9. misn08 map data
+-- =============================================================================
+
+do
+    local sites08 = dofile(scriptDir .. "/CRVenusSites08.lua")
+    check(sites08.mission == "misn08", "CRVenusSites08 should describe misn08")
+    local world = NewWorld()
+    local peer = NewPeer("sites08", world)
+    local Map = peer.Map
+    local expanded, total = Map.ExpandRuns(sites08.sulfur)
+    check(total == 505, "misn08 should have 505 liquid-sulphur cells, got " .. total)
+    local pools = Map.ClusterSulfur(expanded, sites08.sulfur, {})
+    check(#pools.clusters == 3, "misn08 should have three sulfur pools, got " .. #pools.clusters)
+    check(#pools.emitters >= 8, "misn08 should offer sulfur emitter sites, got " .. #pools.emitters)
+    local merged = Map.MergeVents(sites08.vents, 45.0)
+    check(#merged == 23 and #sites08.vents == 23, "23 misn08 vents stay 23 sites, got " .. #merged)
+    check(sites08.bounds.minX < sites08.bounds.maxX and sites08.bounds.minZ < sites08.bounds.maxZ,
+        "misn08 has a playable box")
+
+    -- The director accepts the data: host and guest agree on the vent table and the host schedules eruptions.
+    peer.Environment.Init()
+    AddObject(world, "avtank", 2100, 30, 99800, { owner = "host" })
+    peer.Venus.Init({ seed = 8080, authority = true, sites = sites08, startLevel = 1, targetLevel = 4 })
+    peer.run(60.0 * 12.0)
+    check(#peer.Venus.VentSites == 23, "the director should load all 23 misn08 vents, got " .. #peer.Venus.VentSites)
+    check(peer.Venus.GetStats().strikes > 0, "misn08 weather produces strikes in a storm")
+    check(CountSystems(peer, "cr_vw_") > 0, "misn08 weather streams in Venus systems")
+    peer.Venus.Shutdown()
+end
+
+-- =============================================================================
 -- Report
 -- =============================================================================
 

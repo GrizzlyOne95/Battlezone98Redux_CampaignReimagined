@@ -54,6 +54,24 @@
   same sky.
 - Ship the restored voice lines misn0717 and misn0719 (Mission 07), which the German,
   Spanish, French and Italian game archives lack, so every language hears them.
+- Add Mission 08, A Nasty Surprise, to the campaign as a 2-4 player co-op map on
+  the original Battlezone 1.5 terrain. Any player's presence now counts for the
+  walker warnings, the Colorado hold-off and the relic. The loss of the
+  Colorado is witnessed: the third walker and a CCA strike force destroy it
+  once its protection stops (a scripted blast remains only as a late fallback),
+  and Collins rebukes players who approach it. Walker 3 now continues on to
+  your base, the "pull out" warning plays when any player is close to a
+  walker, the relic and Colorado heals actually run, the Utah loss uses
+  Collins's abort line, and guests' relic selections count.
+- Mission 08 now has Venus weather (replacing the stock lightning): calm while the
+  Colorado is still talking, rising when the walkers attack, a violent spike during the
+  Colorado massacre, and a steady storm while the CCA builds walkers. In co-op every
+  player sees the same sky. The Colorado starts allied with an escort and a small base
+  (scavenger, factory, two turrets, up to three APCs) that falls with it.
+  The Colorado now starts allied with an escort and builds a small base with a
+  few APCs before the Soviets destroy all of it on screen, and once the walker
+  story is over the CCA keeps fielding walkers (up to three with four players)
+  until its base falls.
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
 - Co-op: a player who dies respawns near a teammate. Each player has 5

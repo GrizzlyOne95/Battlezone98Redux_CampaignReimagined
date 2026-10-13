@@ -19,6 +19,7 @@ TARGETS = {
     # recycler (markers) and the parked turrets the alarm replaces (RemoveObject).
     "misn07": ["cam3", "radar_array", "svpatrol1_1", "svpatrol1_2", "svpatrol3_1", "svpatrol3_2",
                "pturret1", "pturret2"],
+    "misn08": ["cam1", "cam2", "cam5", "hbcerb1_i76building"],
 }
 # Labels that are also an authored PATH name in the BZN legitimately occur twice.
 PATH_NAMES = {"launch_pad"}

@@ -2,7 +2,7 @@
 
 `Scripts/CRVenusWeather.lua` is the Venus counterpart of `CRMarsWeather`: it decides
 what the sky does minute to minute, and it is reusable by every Venus mission. The
-first user is misn07 "Behind Enemy Lines".
+first user is misn07 "Behind Enemy Lines"; misn08 "A Nasty Surprise" is the second.
 
 Venus is not Mars with a different palette. There is no wind worth the name, nothing
 falls to the ground, and what the place has instead is a thick, dim, sulphurous
@@ -14,6 +14,7 @@ that is the point of the setting.
 | `Scripts/CRVenusWeather.lua` | The director. Tunables are at the top of the file. |
 | `Scripts/CRVenusMap.lua` | The pure half: seeded rng and severity ladder, basin detection, sulfur clustering, weighted picks. No engine calls. |
 | `Scripts/CRVenusSites07.lua` | Generated map data for misn07 (playable box, sulfur cells, vents). |
+| `Scripts/CRVenusSites08.lua` | Generated map data for misn08 (`python Tools/Build-VenusSites.py misn08 --types 1`). |
 | `Tools/Build-VenusSites.py` | Regenerates a `CRVenusSites<NN>.lua` from a mission's `.trn`, `.mat` and `.bzn`. |
 | `Scripts/CRWeatherPresets.lua` | Adds the five ladder presets `VenusCalm` .. `VenusSevere` (fog, light, haze, grit; no lightning, no rain). |
 | `Materials/cr_venus.particle.payload` | Eight particle templates, all on existing `CR_FX/*` materials. |
@@ -342,6 +343,21 @@ Suggested misn07 beats from the stock port's state flags: target 2 on the approa
 piece, back to 2 after `rendezvous`.
 
 Do not also call `CRMarsWeather` or `Environment.TriggerDustStorm` in the same mission.
+
+## misn08
+
+`Scripts/misn08.lua` wires the director exactly as above (see `MISN08_COOP.md`, "Venus
+weather"); its `[LightningBolt]` section is removed from `Missions/misn08.trn`. The map is the
+same Venus terrain size and texture set as misn07, so the same census applies: index 0
+Sulphur Deposits (48,365 base cells), 3 Hardened Sulphur (16,977), 1 Liquid Sulphur (193 solid,
+505 including transition cells, three pools), 4 Geyser (1). Pools use `--types 1`. The BZN has
+23 `eggeizr1` objects, none clumped within 45 units and none named `volcano*`, so there are
+23 vent sites and no major vent; the playable box from `edge_path` is
+x 1113.6-3246.9, z 98656-101461. There are no Lightning Power generators on the stock map,
+so strikes fall on exposed structures and random ground near players. Beats: calm level 2,
+3 when the walker attacks begin, `ForceLevel(5, 60, 10)` for the Colorado massacre, steady 3
+while the CCA builds `svwalk`. `Tools/Build-VenusSites.py misn07 --types 1` still reproduces
+`CRVenusSites07.lua` byte for byte.
 
 ## Tunables (top of `CRVenusWeather.lua`)
 
