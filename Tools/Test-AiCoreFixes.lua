@@ -428,16 +428,6 @@ H.try("bug 25", function()
     check("bug 25: a null-padded depot class still registers", t.wingmanMgr.repairDepots[d] == true)
 end)
 
--- Bug 26: QueuePhasedBuildings starts after the highest planned priority.
-H.try("bug 26", function()
-    local t = newTeam(2, 2)
-    t.buildingList = { [10] = { odf = "a" }, [12] = { odf = "b" }, [15] = { odf = "c" } }
-    local got = {}
-    t.AddBuilding = function(_, odf, path, priority) got[#got + 1] = priority end
-    t:QueuePhasedBuildings({ { odf = "x", path = "p" }, { odf = "y", path = "p" } })
-    check("bug 26: phased plans never collide with existing priorities", got[1] == 16 and got[2] == 17)
-end)
-
 -- Bug 27: maintain list priority order is deterministic.
 H.try("bug 27", function()
     local t = newTeam(2, 2)

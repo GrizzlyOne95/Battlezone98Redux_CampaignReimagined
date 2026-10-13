@@ -148,6 +148,7 @@ jobs:
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-AiCoreHumanTeams.lua
+          "$LUA" Tools/Test-AiCoreObjectCache.lua
           python Tools/Test-AiCoreMissionContracts.py
           "$LUA" Tools/Test-PlayerPilotMode.lua
           python Tools/Test-Misn05CoopContract.py
