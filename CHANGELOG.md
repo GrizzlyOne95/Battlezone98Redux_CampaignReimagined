@@ -32,6 +32,28 @@
   version with shared films and outcomes. It uses the original Battlezone 1.5
   map and unsmoothed terrain. In co-op every player must reach dust off with
   Wyoming.
+- Add Mission 07, Behind Enemy Lines, to the campaign, plus a 2-4 player co-op
+  version on the original Battlezone 1.5 map. The alarm is per player: any
+  player who has not parachuted in still trips the tank tripwire, and the alarm
+  soldiers hunt the nearest player. Allied tanks now drive in to the
+  rendezvous, Razor One glides into the outpost and steals a Soviet vehicle
+  (his ship slowly heals when left alone),
+  and the cut test range returns once the radar array is down (Razor One drives
+  to it and is ambushed, with the Nav Beacons through the minefield, the
+  streamed mines and the MAG-cannon film). After the film the CCA begins
+  fielding prototype svtnk7 tanks until its factory falls. Collins reminds you
+  about the Utah if it is not deployed. Razor One's overlook call is randomly
+  the original or the alternate take (misn0717).
+- Mission 07 co-op: objective markers and film cameras now always land on the real object
+  (the rendezvous nav, the radar array, spawned units) instead of being dropped or aimed
+  elsewhere on guests.
+- Mission 07 now has Venus weather: sulphurous overcast, fog pooling in the lowlands,
+  lightning storms that favour the Lightning Power generators (knockback and radar
+  scramble, never damage), sulfur pools, volcano plumes and acid rain. The storm builds
+  with the mission and peaks during the CCA evacuation; in co-op every player sees the
+  same sky.
+- Ship the restored voice lines misn0717 and misn0719 (Mission 07), which the German,
+  Spanish, French and Italian game archives lack, so every language hears them.
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
 - Co-op: a player who dies respawns near a teammate. Each player has 5

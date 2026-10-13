@@ -15,6 +15,10 @@ TARGETS = {
                "avtank13_wingman", "avtank11_wingman", "avtank12_wingman", "avfigh7_wingman",
                "avfigh10_wingman", "svu1", "svu2", "svu3", "svu4", "svfigh568_wingman",
                "svfigh566_wingman"],
+    # misn07: the rendezvous nav, the radar array, the patrol fighters that run for the CCA
+    # recycler (markers) and the parked turrets the alarm replaces (RemoveObject).
+    "misn07": ["cam3", "radar_array", "svpatrol1_1", "svpatrol1_2", "svpatrol3_1", "svpatrol3_2",
+               "pturret1", "pturret2"],
 }
 # Labels that are also an authored PATH name in the BZN legitimately occur twice.
 PATH_NAMES = {"launch_pad"}

@@ -136,3 +136,18 @@ release with CI green.
 anywhere in the repository. It is a third dust-storm definition
 (`BuildDustStormPreset`) that nothing can reach. Left in place here because
 deleting it is not this change's business, but it should go.
+
+## Per-craft sensor scrambles
+
+The gameplay modifiers (`RegisterGameplayModifier`) are global: one set of radar and
+jamming scales for every craft. A brief, local upset -- a Venus lightning strike scrambling
+the radar of the units beside it -- needs a scale for one craft that lapses by itself.
+
+`Environment.SetObjectScramble(h, seconds, { radarRange, radarPeriod, velocJam })` is that.
+It is multiplied into the same scales `ProcessObjectNightEffects` already applies, so
+Environment stays the only sensor writer: an outside `exu.SetRadarRange` would be
+overwritten by the next sync pass and, worse, captured as the craft's "original" value.
+The entry expires on its own (`Environment.Update` notices and rewrites the craft), a
+second call never shortens an existing one, and replicas are skipped by the existing
+`IsLocal` guard. See `VENUS_WEATHER.md`.
+
