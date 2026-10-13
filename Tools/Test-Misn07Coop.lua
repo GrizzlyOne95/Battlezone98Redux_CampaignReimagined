@@ -11,7 +11,7 @@ local function check(value, message)
 end
 
 -- ---------------------------------------------------------------- world model
-local now, objects, peers, nextObject, transport, dist, pathPos, world
+local now, objects, peers, nextObject, transport, dist, pathPos, world, labelAlias
 -- Flat ground at 20 m with a high wall between the overlook and the outpost.
 local function terrain(x, z)
     if x > 2480 and x < 2560 then return 85 end
@@ -51,6 +51,7 @@ local function newObject(handle, odf, team, pos)
 end
 local function reset()
     now, objects, peers, nextObject, dist = 0, {}, {}, 0, {}
+    labelAlias = {}
     world = {eject = true, adopt = true, ejected = nil, consoleLog = {}, hold = {}, scrap = {}}
     pathPos = {}
     for name, p in pairs(PATHS) do pathPos[name] = vec(p) end
@@ -140,7 +141,12 @@ local function makePeer(id, team, network)
         assert(remote == nil, "remote GetPlayerHandle(team) must never be used")
         return p.player
     end
+    e.GetLabel = function(h) return objects[h] and objects[h].label or nil end
+    e.SetLabel = function(h, label)
+        if objects[h] then objects[h].label = label; labelAlias[label] = h; record("SetLabel", h, label) end
+    end
     e.GetHandle = function(label)
+        if labelAlias[label] and objects[labelAlias[label]] and objects[labelAlias[label]].alive then return labelAlias[label] end
         if not objects[label] then
             local spec = LABELS[label]
             if spec then
@@ -153,6 +159,8 @@ local function makePeer(id, team, network)
                 newObject(label, odf, team)
             end
         end
+        objects[label].label = objects[label].label or label
+        labelAlias[label] = label
         return objects[label].alive and label or nil
     end
     e.IsValid = function(h) return type(h) == "string" and objects[h] ~= nil and objects[h].alive end
@@ -1332,6 +1340,14 @@ do
     local m = host.env.Save()
     check(m.weatherState and m.weatherState.saved and m.venusSeed == 4242, "Save carries the weather state and seed")
     check(guests[1].env.Save().weatherState == nil, "guests save no weather state")
+    -- Co-op presentation invariants: authored targets went by label, spawned ones were labelled by
+    -- the leader and announced, and no guest ever hit the never-hang guard.
+    for _, g in ipairs(guests) do
+        check(g.env.Save().coopUnresolved == 0, "no guest gave up on an object (coopUnresolved == 0)")
+        local carried = 0
+        for _, c in ipairs(callsOf(g, "SetLabel")) do if c[3]:find("^crco_") then carried = carried + 1 end end
+        check(carried > 0, "guests carry the leader's labels for spawned marker targets")
+    end
 end
 do
     -- A saved weather state is restored on the leader and consumed.

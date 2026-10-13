@@ -40,8 +40,9 @@
   fielding prototype svtnk7 tanks until its factory falls. Collins reminds you
   about the Utah if it is not deployed. Razor One's overlook call is randomly
   the original or the alternate take (misn0717).
-- Mission 07 co-op: objective markers on authored map objects (the rendezvous nav, the
-  radar array) now reach guests promptly instead of being dropped.
+- Mission 07 co-op: objective markers and film cameras now always land on the real object
+  (the rendezvous nav, the radar array, spawned units) instead of being dropped or aimed
+  elsewhere on guests.
 - Mission 07 now has Venus weather: sulphurous overcast, fog pooling in the lowlands,
   lightning storms that favour the Lightning Power generators (knockback and radar
   scramble, never damage), sulfur pools, volcano plumes and acid rain. The storm builds
