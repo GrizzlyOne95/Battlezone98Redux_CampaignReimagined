@@ -1182,6 +1182,40 @@ do
 end
 
 -- =============================================================================
+-- 10. misn09 map data
+-- =============================================================================
+
+do
+    local sites09 = dofile(scriptDir .. "/CRVenusSites09.lua")
+    check(sites09.mission == "misn09", "CRVenusSites09 should describe misn09")
+    local world = NewWorld()
+    local peer = NewPeer("sites09", world)
+    local Map = peer.Map
+    local expanded, total = Map.ExpandRuns(sites09.sulfur)
+    check(total == 179, "misn09 should have 179 liquid-sulphur cells, got " .. total)
+    local pools = Map.ClusterSulfur(expanded, sites09.sulfur, {})
+    check(#pools.clusters == 1, "misn09 should have one sulfur pool, got " .. #pools.clusters)
+    check(#pools.emitters >= 3, "misn09 should offer sulfur emitter sites, got " .. #pools.emitters)
+    local merged = Map.MergeVents(sites09.vents, 45.0)
+    check(#sites09.vents == 6 and #merged == 6, "6 misn09 geysers stay 6 vent sites, got " .. #merged)
+    local labels = {}
+    for _, vent in ipairs(sites09.vents) do labels[vent.label or ""] = true end
+    check(labels.cut_off_geyser and labels.convoy_geyser, "the two named mission geysers are vent sites")
+    check(sites09.bounds.minX < sites09.bounds.maxX and sites09.bounds.minZ < sites09.bounds.maxZ,
+        "misn09 has a playable box")
+
+    -- The director accepts the data and the host schedules eruptions at the geysers.
+    peer.Environment.Init()
+    AddObject(world, "avtank", 2100, 30, 99800, { owner = "host" })
+    peer.Venus.Init({ seed = 9090, authority = true, sites = sites09, startLevel = 1, targetLevel = 4 })
+    peer.run(60.0 * 12.0)
+    check(#peer.Venus.VentSites == 6, "the director should load all 6 misn09 vents, got " .. #peer.Venus.VentSites)
+    check(peer.Venus.GetStats().strikes > 0, "misn09 weather produces strikes in a storm")
+    check(CountSystems(peer, "cr_vw_") > 0, "misn09 weather streams in Venus systems")
+    peer.Venus.Shutdown()
+end
+
+-- =============================================================================
 -- Report
 -- =============================================================================
 
