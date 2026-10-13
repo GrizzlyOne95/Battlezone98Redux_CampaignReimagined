@@ -68,6 +68,11 @@
   Colorado massacre, and a steady storm while the CCA builds walkers. In co-op every
   player sees the same sky. The Colorado starts allied with an escort and a small base
   (scavenger, factory, two turrets, up to three APCs) that falls with it.
+- Add Mission 09, Wrangling the Fleeing Herd, to the campaign as a 2-4 player co-op
+  listing (`CR: Wrangling the Fleeing Herd Coop`) on the original Battlezone 1.5
+  Venus terrain. The CCA moves to team 5, freeing teams 2-4 for guests, with four
+  team-start buoys at the authored start; the stock lightning is removed so the Venus
+  weather director owns the sky.
   The Colorado now starts allied with an escort and builds a small base with a
   few APCs before the Soviets destroy all of it on screen, and once the walker
   story is over the CCA keeps fielding walkers (up to three with four players)
