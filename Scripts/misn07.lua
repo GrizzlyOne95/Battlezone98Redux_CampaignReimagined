@@ -19,6 +19,14 @@ end
 local subtit = require("ScriptSubtitles")
 local CRCoop = require("CRCoop")
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+-- CR restored VO >>
+-- Prototype svtnk7 tunables (see RestoredPrototypeTanks). The cap is 2 solo, +1 per extra
+-- human team, at most 4; the first tank is built no sooner than 90 s after the trigger.
+local PROTO_CAP_BASE, PROTO_CAP_PER_PLAYER, PROTO_CAP_MAX = 2, 1, 4
+local PROTO_INTERVAL_S, PROTO_FIRST_DELAY_S = 135.0, 90.0
+local PROTO_RETRY_S, PROTO_ORDER_S = 15.0, 30.0
+local PROTO_SCRAP_COST = 8 -- svtnk7.odf scrapCost
+-- CR restored VO <<
 
 -- Co-op presentation uses the established misn03/misn05 E/A and C transport.
 -- Only the campaign leader runs the mission body below; HUD/audio/removal/timer/
@@ -544,6 +552,21 @@ local function NewState()
 -- CR restored VO >>
     state.mine_ok = nil
     state.cine_player = nil
+    state.test_range_started = false
+    state.test_range_after = 99999.0
+    state.tr_unit = nil
+    state.tr_hold = false
+    state.tr_timeout = 99999.0
+    state.tr_next = 0
+    state.razor_unit = nil
+    state.vo_last = nil
+    state.ambushed = false
+    state.proto = {}
+    state.proto_start = nil
+    state.proto_next = 0
+    state.proto_order = 0
+    state.ambush1 = nil
+    state.ambush2 = nil
     state.utah_nag_time = 99999.0
     state.utah_nagged = false
 -- CR restored VO <<
@@ -800,6 +823,7 @@ end
 
 local function RazorOneRide(rk, now)
     if not IsAlive(rk.vehicle) then M.rk = nil; return end
+    if M.tr_hold then return end -- he is on his way to the test range
     if rk.nextFollow > now then return end
     rk.nextFollow = now + RK_FOLLOW_S
     local leader = NearestPlayer(rk.vehicle)
@@ -810,6 +834,8 @@ local function UpdateRazorOne()
     local rk = M.rk
     if rk == nil then return end
     local now = GetTime()
+    -- Remember who Razor One is (pilot, then his vehicle) for the test-range trip.
+    M.razor_unit = (rk.phase == "ride" and rk.vehicle) or rk.pilot or M.razor_unit
     if rk.phase == "eject" then
         if rk.pilot == nil then
             for h in ObjectsInRange(40.0, rk.from) do RazorOneAdopt(h) end
@@ -836,6 +862,16 @@ end
 -- DLL keeps it as disabled C++ comments). Every use sits inside matching marker lines;
 -- set RESTORED_VO=false for the stock mission. Only shipped ODFs, paths and subtitled
 -- voice lines are used; 0711 (a developer joke) and 0717 (a duplicate of 0702) stay cut.
+--
+-- Sequence (phase 2 only): nothing starts before the radar array is down. Once the
+-- Utah has deployed (or 150 s after 0714) and no dialogue is still playing, Razor One
+-- (his stolen vehicle, or his pilot) drives to the test range at cam_spawn6; 0703 plays
+-- when he arrives (or after 90 s, or at once if he is gone), the test tank and turret
+-- spawn, and the Testing Range nav follows 15 s later. 120 s after that, if no player is
+-- near the Mine Field spawn point, two CCA fighters ambush him (so 0704 is true), 0704
+-- plays and the Mine Field nav drops; the Mine Path beacons follow when a player
+-- reaches it. He returns to following the nearest player once a player reaches him or
+-- the ambush is cleared.
 local RESTORED_VO = true
 local CUT_VO = {
     testRange = "misn0703.wav", underAttack = "misn0704.wav", utahReminder = "misn0719.wav",
@@ -849,9 +885,18 @@ local CUT_VO = {
 -- away from the CCA factory at (3275.6, 99069.6): (3268.7, 99007.6).
 local TEST_TURRET_AT = { 3268.7, 99007.6 }
 local UTAH_NAG_DELAY_S = 120.0
+local TEST_RANGE_HOLD_S = 150.0   -- after 0714, if the Utah is still not deployed
+local TEST_RANGE_TIMEOUT_S = 90.0 -- Razor One's drive to cam_spawn6
+local RAZOR_ARRIVE_M, RAZOR_RELEASE_M, RAZOR_REORDER_S = 60.0, 100.0, 10.0
 
-local function ScheduleTestRange(delay)
-    if M.recon_message2_time > GetTime() + delay then M.recon_message2_time = GetTime() + delay end
+local function VoDone(handle)
+    return handle == nil or handle == 0 or IsAudioMessageDone(handle)
+end
+
+-- Phase 2 has settled: radar down, Utah deployed (or 150 s), nothing still being said.
+local function TestRangeOpen()
+    return M.first_objective and (M.utah_found or M.test_range_after < GetTime()) and
+        VoDone(M.audmsg) and VoDone(M.vo_last)
 end
 
 local function SpawnTestRange()
@@ -863,17 +908,58 @@ local function SpawnTestRange()
     M.test_tank_built = true
 end
 
+-- Razor One leaves the players for the test range, if there is still a Razor One.
+local function BeginTestRangeTrip()
+    M.test_range_started = true
+    M.tr_timeout = GetTime() + TEST_RANGE_TIMEOUT_S
+    M.tr_next = 0
+    local unit = M.razor_unit
+    if IsAlive(unit) then
+        -- A pilot who never got a ride stops stealing and just goes.
+        if M.rk ~= nil and M.rk.phase ~= "ride" then
+            RazorOneReleaseSlot(M.rk)
+            M.rk = nil
+        end
+        M.tr_unit, M.tr_hold = unit, true
+    end
+end
+
+local function EndTestRangeTrip()
+    M.tr_hold = false
+    if IsAlive(M.tr_unit) then Follow(M.tr_unit, NearestPlayer(M.tr_unit), 0) end
+end
+
 -- 0703/0704 and the Testing Range, Mine Field and Mine Path beacons.
 local function RestoredTestRange()
-    if M.first_objective then return end
+    if not M.first_objective then return end
     local now = GetTime()
-    if (M.recon_message2_time < now) and (not M.recon_message2) then
-        M.recon_message2_time = now + 20.0
-        subtit.Play(CUT_VO.testRange) -- Razor One: Soviet test range beyond the minefield
-        M.becon_build_time = now + 15.0
-        M.check_range = now + 20.0
-        M.recon_message2 = true
-        SpawnTestRange()
+    if (not M.test_range_started) and TestRangeOpen() then BeginTestRangeTrip() end
+    if not M.test_range_started then return end
+    local escorted = M.tr_hold and IsAlive(M.tr_unit)
+    if (not M.recon_message2) then
+        local arrived = (not escorted) or (Distance(M.tr_unit, "cam_spawn6") < RAZOR_ARRIVE_M) or
+            (M.tr_timeout < now)
+        if escorted and (not arrived) and (M.tr_next < now) then
+            M.tr_next = now + RAZOR_REORDER_S
+            Goto(M.tr_unit, "cam_spawn6", 1)
+        end
+        if arrived then
+            M.vo_last = subtit.Play(CUT_VO.testRange) -- Razor One: Soviet test range beyond the minefield
+            M.becon_build_time = now + 15.0
+            M.check_range = now + 20.0
+            M.recon_message2 = true
+            SpawnTestRange()
+        end
+        return
+    end
+    -- He rejoins the players when one reaches him or the ambush is cleared.
+    if M.tr_hold then
+        if not escorted then
+            M.tr_hold = false
+        elseif AnyPlayerWithin(M.tr_unit, RAZOR_RELEASE_M) or
+            (M.ambushed and (not IsAlive(M.ambush1)) and (not IsAlive(M.ambush2))) then
+            EndTestRangeTrip()
+        end
     end
     if (M.recon_message2) and (M.becon_build_time < now) and (not M.becon_build) then
         M.nav4 = BuildObject("apcamr", LEADER_TEAM, "cam_spawn6")
@@ -885,7 +971,20 @@ local function RestoredTestRange()
         M.rookie_rendezvous_time = now + 21.0
         -- mine_geyz is gone from the map: the Mine Field beacon spawn point stands in.
         if NoPlayerWithin("cam_spawn1", 400.0) then
-            subtit.Play(CUT_VO.underAttack) -- under attack: meet Nav 5, follow the beacons
+            -- The distress call is true: two CCA fighters hit him at the test range. With
+            -- no Razor One left it is the DLL's radio-only call; if the players already
+            -- reached him it is not made.
+            local radio = not IsAlive(M.tr_unit)
+            if M.tr_hold and (not M.ambushed) then
+                M.ambush1 = BuildObject("svfigh", ENEMY_TEAM, "test_tank_spawn")
+                M.ambush2 = BuildObject("svfigh", ENEMY_TEAM, "test_tank_spawn")
+                Attack(M.ambush1, M.tr_unit)
+                Attack(M.ambush2, M.tr_unit)
+                M.ambushed = true
+            end
+            if M.ambushed or radio then
+                M.vo_last = subtit.Play(CUT_VO.underAttack) -- under attack: meet Nav 5, follow the beacons
+            end
             M.nav5 = BuildObject("apcamr", LEADER_TEAM, "cam_spawn1")
             SetObjectiveName(M.nav5, "Mine Field")
             M.reach_mine_time = now + 10.0
@@ -909,7 +1008,10 @@ local function RestoredTestRange()
 end
 
 -- Streamed proximity mines: a node is live while any player is within 400 m.
--- m000 is not in the map, so nodes are checked for existence once.
+-- m000 is not in the map, so nodes are checked for existence once. The nodes lie at
+-- x 2671..3620, z 98393..98949; none is within 400 m of the start-to-rendezvous,
+-- rendezvous-to-overlook or overlook-to-outpost routes (closest: m001, 420 m from the
+-- start-to-overlook line), so they cannot spawn during the infiltration.
 local function RestoredMineField()
     if M.mine_ok == nil then
         M.mine_ok = {}
@@ -952,8 +1054,8 @@ end
 
 local function RestoredMagCannon()
     local now = GetTime()
-    -- Never while the alarm is up or another film is running.
-    if (M.recon_message2) and (not M.camera_ready) and (not M.alarm_on) and (not M.game_over) and
+    -- The radar is down by now (the test objects exist only after 0703); one film at a time.
+    if (M.recon_message2) and (not M.camera_ready) and (not M.game_over) and
         (cameraFrame == nil) and IsAlive(M.test_tank) and IsAlive(M.test_turret) then
         local who = FirstPlayerWithin(M.test_tank, 65.0)
         if who ~= nil then
@@ -1016,9 +1118,63 @@ end
 local function RestoredUtahReminder()
     if M.next_mission and (not M.utah_found) and (not M.utah_nagged) and (not M.game_over) and
         M.utah_nag_time < GetTime() then
-        subtit.Play(CUT_VO.utahReminder)
+        M.vo_last = subtit.Play(CUT_VO.utahReminder)
         M.utah_nagged = true
     end
+end
+-- Prototype svtnk7 production. When the MAG-cannon film ends (or is skipped), or the test
+-- tank engages without one, the CCA starts fielding the prototype svtnk7 (weapon ga7stab:
+-- charge6, 1450 ballistic damage, 75 m/s, 6 s reload). The stock misn07.aip cannot
+-- express it: svmuf's buildItem list has no svtnk7 and the AIP is identical in 1.5 and
+-- Redux. So the leader builds them at the CCA factory (M.ccamuf), charging team-5 scrap
+-- like a real build, and sends them at the Utah (else the nearest player). Production
+-- stops when the factory dies; tunables are at the top of the script.
+local function PrototypeCap()
+    local humans = CRCoop.ForEachHumanTeam(function() end)
+    return math.min(PROTO_CAP_MAX, PROTO_CAP_BASE + PROTO_CAP_PER_PLAYER * math.max(0, humans - 1))
+end
+
+local function PrototypeTarget(from)
+    if IsAlive(M.nsdfrecycle) then return M.nsdfrecycle end
+    return NearestPlayer(from)
+end
+
+local function PrototypeTrigger()
+    if M.camera_off then return true end -- the film finished or the leader skipped it
+    if M.camera_ready or not M.recon_message2 then return false end
+    -- No film: the test tank engaged (was hurt) or was destroyed.
+    return M.test_tank ~= nil and ((not IsAlive(M.test_tank)) or GetHealth(M.test_tank) < 0.99)
+end
+
+local function RestoredPrototypeTanks()
+    local now = GetTime()
+    if M.proto_start == nil then
+        if not PrototypeTrigger() then return end
+        M.proto_start = now
+        M.proto_next = now + PROTO_FIRST_DELAY_S
+        M.proto_order = now + PROTO_FIRST_DELAY_S
+    end
+    local live = {}
+    for _, tank in ipairs(M.proto) do
+        if IsAlive(tank) then live[#live + 1] = tank end
+    end
+    M.proto = live
+    if M.game_over then return end
+    if M.proto_order < now then
+        M.proto_order = now + PROTO_ORDER_S
+        for _, tank in ipairs(live) do Attack(tank, PrototypeTarget(tank)) end
+    end
+    if not IsAlive(M.ccamuf) then return end -- no factory, no production
+    if M.proto_next >= now then return end
+    if #live >= PrototypeCap() or GetScrap(ENEMY_TEAM) < PROTO_SCRAP_COST then
+        M.proto_next = now + PROTO_RETRY_S
+        return
+    end
+    AddScrap(ENEMY_TEAM, -PROTO_SCRAP_COST)
+    local tank = BuildObject("svtnk7", ENEMY_TEAM, M.ccamuf)
+    M.proto[#M.proto + 1] = tank
+    Attack(tank, PrototypeTarget(tank))
+    M.proto_next = now + PROTO_INTERVAL_S
 end
 -- CR restored VO <<
 
@@ -1539,10 +1695,6 @@ if ((!first_objective) && (!alarm_on) && (!out_of_car))
                 M.rookie_move_time=GetTime()+10.0
                 --			recon_message2_time = Get_Time() + 480.0f;
                 M.jump_cam_spawned=true
--- CR restored VO >>
-                -- The disabled DLL timer: the test range is announced 480 s after the overlook camera.
-                if RESTORED_VO then ScheduleTestRange(480.0) end
--- CR restored VO <<
             end
         end
         if (M.jump_cam_spawned) and (M.jump_cam~=nil) then
@@ -1576,9 +1728,6 @@ if ((!first_objective) && (!alarm_on) && (!out_of_car))
 -- CR Razor One infiltration >>
                 BeginRazorOneFlight()
 -- CR Razor One infiltration <<
--- CR restored VO >>
-                if RESTORED_VO then ScheduleTestRange(30.0) end
--- CR restored VO <<
                 EjectPilot(M.rookie)
                 M.rookie_removed=true
             end
@@ -2218,6 +2367,7 @@ if ((!first_objective) && (!alarm_on) && (!out_of_car))
         M.first_objective=true
 -- CR restored VO >>
         M.utah_nag_time = GetTime() + UTAH_NAG_DELAY_S
+        M.test_range_after = GetTime() + TEST_RANGE_HOLD_S
 -- CR restored VO <<
     --[==[/*	if (shot1)
 	{
@@ -2410,6 +2560,7 @@ if ((!first_objective) && (!alarm_on) && (!out_of_car))
         RestoredMineField()
         RestoredMagCannon()
         RestoredUtahReminder()
+        RestoredPrototypeTanks()
     end
 -- CR restored VO <<
     if (M.next_mission) and (not IsAlive(M.nsdfrecycle)) and (not M.game_over) then

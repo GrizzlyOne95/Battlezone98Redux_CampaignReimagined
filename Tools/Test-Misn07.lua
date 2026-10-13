@@ -36,6 +36,7 @@ function GetPilot() return 10 end
 function IsPerson() return false end
 function GetTeamNum() return 1 end
 function ObjectsInRange() return function() return nil end end
+function IsAudioMessageDone() return true end
 local function noop() end
 local modules = {
     RequireFix = {Initialize = noop}, exu = {},
