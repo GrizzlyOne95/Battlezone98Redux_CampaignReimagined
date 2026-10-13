@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-13T15:48:55-05:00",
+  "generated": "2026-10-13T15:41:05-05:00",
   "count": 2304,
   "files": [
     {
@@ -5248,88 +5248,88 @@
       "runtime": "xgasxpl.odf"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program"
+      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds"
+      "source": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds"
+      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds"
+      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\resources.version",
-      "runtime": "openshim\\renderer\\enhanced\\resources.version"
+      "source": "openshim\\renderer\\enhanced\\resources.version.payload",
+      "runtime": "openshim\\renderer\\enhanced\\resources.version.payload"
     },
     {
       "source": "openshim\\support\\openshim_wrap.bat",

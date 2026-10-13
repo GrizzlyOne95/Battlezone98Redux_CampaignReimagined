@@ -6,6 +6,10 @@
   misn0426, misn0428, misn0615-0627, misn0639, misn0641, misn0652), which Redux's
   German, Spanish, French and Italian archives lack, so those players hear voice
   instead of silent subtitles. The English take overrides any same-named localized one.
+- Bundle OpenShim 1.0.0.52. Lua Send/Receive now carries map-authored objects (geysers,
+  beacons) by label, so co-op orders that target them no longer arrive as nil. The
+  shipping lock and manifest validators now follow the renderer files the Workshop
+  build actually stages (`*.payload`).
 - Bundle OpenShim 1.0.0.50. OpenShim now also stages a newer Workshop
   suite at the main menu and offers Restart now, refreshes its renderer
   and menu UI files from the Workshop item at startup, and can be turned
