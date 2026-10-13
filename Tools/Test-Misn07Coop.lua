@@ -286,7 +286,7 @@ local function makePeer(id, team, network)
         end
     end
     for _, name in ipairs({"Attack", "Retreat", "Follow", "Defend", "Patrol", "Stop", "SetIndependence",
-        "SetAIP", "SetObjectiveName", "SetObjectiveOn", "SetObjectiveOff", "ClearObjectives", "AddObjective",
+        "SetAIP", "SetAIControl", "SetObjectiveName", "SetObjectiveOn", "SetObjectiveOff", "ClearObjectives", "AddObjective",
         "Ally", "UnAlly", "DisplayMessage", "FailMission", "SucceedMission", "SetScrap", "SetPilot"}) do
         local n = name
         e[n] = function(...)

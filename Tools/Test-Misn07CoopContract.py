@@ -70,6 +70,14 @@ assert not re.search(r'BuildObject\([^\n]*,\s*[234]\s*,', lua), 'Hostile/support
 assert len(re.findall(r'BuildObject\("\w+",\s*ENEMY_TEAM,', lua)) == 29
 assert len(re.findall(r'BuildObject\("\w+",\s*SUPPORT_TEAM,', lua)) == 2
 assert re.search(r'AddScrap\(ENEMY_TEAM,\s*60\)|AddScrap\(ENEMY_TEAM,60\)', lua) and 'SetAIP("misn07.aip",ENEMY_TEAM)' in lua
+# Chunk-root only: the map uses MultSTMission so team 5 is never flagged, and SetAIP silently skips without
+# SetAIControl. Start runs after DR_AI_Init, so a late call flags team 5 without an AI team record and the
+# first team-5 AI_UnitRemove dereferences null (host crash at load, seen live in misn08).
+_ai_src = raw_lua
+_ai_active = re.sub(r'--[^\n]*', '', re.sub(r'--\[(=*)\[.*?\]\1\]', '', _ai_src, flags=re.S))
+assert len(re.findall(r'SetAIControl\(', _ai_active)) == 1 and re.search(r'^SetAIControl\(ENEMY_TEAM, true\)\r?$', _ai_src, flags=re.M), \
+    'SetAIControl must be a single chunk-root call, never inside Start/Update'
+assert _ai_src.index('SetAIControl(ENEMY_TEAM, true)') < _ai_src.index('function Start()')
 assert 'CRCoop.ApplyCoopAlliances(ENEMY_TEAM)' in lua
 update = lua.index('function Update(dt)')
 gate = lua.index('if not CRCoop.IsAuthority() then return end', update)
