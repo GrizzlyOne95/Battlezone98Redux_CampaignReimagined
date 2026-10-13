@@ -1356,8 +1356,10 @@ CRWeatherPresets.Presets = {
     -- horizon (the misn07 TRN); CRWeather clamps them to whatever horizon a map
     -- really has.
     --
-    -- Rain here is acid cloud falling as streaks: purely a particle layer. Nothing
-    -- in this file, or in the director, damages anything.
+    -- Acid rain is deliberately NOT in these presets. It is a director-owned layer
+    -- so it can follow the continuous severity (and be switched off) instead of
+    -- stepping with the rung. See CRVenusWeather.lua. Nothing here, or there,
+    -- damages anything.
     -- =========================================================================
 
     VenusCalm = {
@@ -1485,24 +1487,6 @@ CRWeatherPresets.Presets = {
                     },
                 },
             },
-            {
-                system   = "cr_wx_venus_rain",
-                template = "CR/Weather/Rain",
-                offset   = { x = 0.0, y = 34.0, z = 0.0 },
-                quota    = 1600,
-                emitters = {
-                    [0] = {
-                        rate     = 150.0,
-                        velocity = { 40.0, 54.0 },
-                        ttl      = { 1.4, 2.2 },
-                        angle    = 7.0,
-                        color    = {
-                            start  = { r = 0.62, g = 0.72, b = 0.26, a = 0.30 },
-                            finish = { r = 0.50, g = 0.58, b = 0.20, a = 0.14 },
-                        },
-                    },
-                },
-            },
         },
         sky           = nil,
         fog           = { r = 0.40, g = 0.31, b = 0.13, fogStart = 22.0, fogEnd = 84.0 },
@@ -1555,38 +1539,6 @@ CRWeatherPresets.Presets = {
                     },
                 },
             },
-            {
-                system   = "cr_wx_venus_rain",
-                template = "CR/Weather/Rain",
-                offset   = { x = 0.0, y = 34.0, z = 0.0 },
-                quota    = 3000,
-                emitters = {
-                    [0] = {
-                        rate     = 340.0,
-                        velocity = { 44.0, 60.0 },
-                        ttl      = { 1.4, 2.2 },
-                        angle    = 8.0,
-                        color    = {
-                            start  = { r = 0.56, g = 0.70, b = 0.24, a = 0.42 },
-                            finish = { r = 0.44, g = 0.56, b = 0.18, a = 0.22 },
-                        },
-                    },
-                },
-            },
-            {
-                system   = "cr_wx_venus_splash",
-                template = "CR/Weather/RainSplash",
-                offset   = { x = 0.0, y = 0.5, z = 0.0 },
-                quota    = 200,
-                emitters = {
-                    [0] = {
-                        rate     = 36.0,
-                        velocity = { 1.0, 3.0 },
-                        ttl      = { 0.2, 0.5 },
-                        angle    = 180.0,
-                    },
-                },
-            },
         },
         sky           = nil,
         fog           = { r = 0.30, g = 0.27, b = 0.11, fogStart = 18.0, fogEnd = 72.0 },
@@ -1636,38 +1588,6 @@ CRWeatherPresets.Presets = {
                             start  = { r = 0.42, g = 0.44, b = 0.16, a = 0.70 },
                             finish = { r = 0.24, g = 0.26, b = 0.09, a = 0.18 },
                         },
-                    },
-                },
-            },
-            {
-                system   = "cr_wx_venus_rain",
-                template = "CR/Weather/Rain",
-                offset   = { x = 0.0, y = 34.0, z = 0.0 },
-                quota    = 4000,
-                emitters = {
-                    [0] = {
-                        rate     = 520.0,
-                        velocity = { 48.0, 64.0 },
-                        ttl      = { 1.4, 2.2 },
-                        angle    = 9.0,
-                        color    = {
-                            start  = { r = 0.50, g = 0.68, b = 0.22, a = 0.52 },
-                            finish = { r = 0.40, g = 0.54, b = 0.16, a = 0.28 },
-                        },
-                    },
-                },
-            },
-            {
-                system   = "cr_wx_venus_splash",
-                template = "CR/Weather/RainSplash",
-                offset   = { x = 0.0, y = 0.5, z = 0.0 },
-                quota    = 300,
-                emitters = {
-                    [0] = {
-                        rate     = 55.0,
-                        velocity = { 1.0, 3.0 },
-                        ttl      = { 0.2, 0.5 },
-                        angle    = 180.0,
                     },
                 },
             },

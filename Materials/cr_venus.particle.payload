@@ -400,18 +400,21 @@ particle_system CR/Venus/Embers
 // Storm cloud deck
 // =============================================================================
 
-// Huge, slow, very faint cards high above the playable area. Two instances at
-// different heights are driven in opposite senses so the deck seems to churn.
-// World-placed (not camera-centred): the director positions it over the map.
+// Low, slow, soft cards drifting just overhead. The map's own fog ends a few
+// dozen units out in a storm, so a deck at real cloud height would be pure fog
+// colour; this one rides the camera (the director attaches it with a vertical
+// offset) so it always sits inside the visible volume. Two instances at
+// different heights are pushed in opposite, slowly precessing directions, which
+// is what makes the deck read as churning rather than as a drifting sheet.
 //   affector 0 ColourInterpolator   (tint is rewritten live with severity)
 //   affector 1 Rotator
 //   affector 2 LinearForce          (the director precesses this)
 particle_system CR/Venus/CloudDeck
 {
     material            CR_FX/SmokeHeavy
-    particle_width      420.0
-    particle_height     420.0
-    quota               90
+    particle_width      150.0
+    particle_height     150.0
+    quota               60
     cull_each           true
     sorted              true
     local_space         false
@@ -420,17 +423,17 @@ particle_system CR/Venus/CloudDeck
     emitter Box
     {
         angle               20
-        emission_rate       2.0
-        time_to_live_min    40.0
-        time_to_live_max    58.0
+        emission_rate       3.0
+        time_to_live_min    14.0
+        time_to_live_max    22.0
         direction           1 0 -0.7
         velocity_min        1.5
         velocity_max        4.5
         colour_range_start  0.40 0.30 0.14 0.00
         colour_range_end    0.34 0.26 0.12 0.00
-        width               2600
-        height              40
-        depth               2600
+        width               320
+        height              14
+        depth               320
     }
 
     affector ColourInterpolator
@@ -438,17 +441,17 @@ particle_system CR/Venus/CloudDeck
         time0   0.00
         colour0 0.40 0.30 0.14 0.00
         time1   0.22
-        colour1 0.40 0.30 0.14 0.16
+        colour1 0.40 0.30 0.14 0.20
         time2   0.78
-        colour2 0.34 0.26 0.12 0.14
+        colour2 0.34 0.26 0.12 0.16
         time3   1.00
         colour3 0.30 0.23 0.10 0.00
     }
 
     affector Rotator
     {
-        rotation_speed_range_start  -5
-        rotation_speed_range_end     5
+        rotation_speed_range_start  -6
+        rotation_speed_range_end     6
         rotation_range_start          0
         rotation_range_end          360
     }
