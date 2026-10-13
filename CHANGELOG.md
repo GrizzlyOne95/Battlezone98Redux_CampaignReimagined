@@ -87,6 +87,13 @@
   few APCs before the Soviets destroy all of it on screen, and once the walker
   story is over the CCA keeps fielding walkers (up to three with four players)
   until its base falls.
+- Add Mission 10, The Race is On, to the campaign as a 2-4 player co-op listing
+  (`CR: The Race is On Coop`) on the original Battlezone 1.5 Io terrain. The CCA moves
+  to team 5, freeing teams 2-4 for guests, with four team-start buoys at the authored
+  start. The CCA gains +10 scrap and one relic-carrier hunter per extra player (up to four),
+  any player's tug can carry the relic, artillery shells the nearest player, and the Io weather
+  (ash, plumes, lava haze, random quakes) is shared. Restores the CCA tug rebuild, the
+  misn10b escalation and a quake on the first relic pickup.
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
 - Co-op: a player who dies respawns near a teammate. Each player has 5
