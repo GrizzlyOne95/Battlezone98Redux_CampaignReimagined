@@ -51,6 +51,14 @@ assert 'BuildObject("boltmine", MINE_TEAM, pathName)' in lua
 assert 'BuildObject("avtank", SUPPORT_TEAM, spawnPos)' in lua
 assert not re.search(r'BuildObject\([^\n]*,\s*[234]\s*,', lua)
 assert 'SetAIP("misn05.aip", ENEMY_TEAM)' in lua
+# Chunk-root only: the map uses MultSTMission so team 5 is never flagged, and SetAIP silently skips without
+# SetAIControl. Start runs after DR_AI_Init, so a late call flags team 5 without an AI team record and the
+# first team-5 AI_UnitRemove dereferences null (host crash at load, seen live in misn08).
+_ai_src = (root / 'Scripts/misn05.lua').read_text()
+_ai_active = re.sub(r'--[^\n]*', '', re.sub(r'--\[(=*)\[.*?\]\1\]', '', _ai_src, flags=re.S))
+assert len(re.findall(r'SetAIControl\(', _ai_active)) == 1 and re.search(r'^SetAIControl\(ENEMY_TEAM, true\)\r?$', _ai_src, flags=re.M), \
+    'SetAIControl must be a single chunk-root call, never inside Start/Update'
+assert _ai_src.index('SetAIControl(ENEMY_TEAM, true)') < _ai_src.index('function Start()')
 assert lua.index('if not CRCoop.IsAuthority() then return end', lua.index('function Update()')) < lua.index('-- Game Start / Initial Setup')
 assert 'CRCoop.AnyPlayerSatisfies' in lua
 
