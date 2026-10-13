@@ -1101,20 +1101,15 @@ function Update()
         -- Available AI Configuration Flags (Reference from aiCore.lua):
         -- flags marked [Diff] are managed by DiffUtils:SetupTeams() based on difficulty.
         -- playerTeam:SetConfig("difficulty", 1)         -- [Stub]
-        -- playerTeam:SetConfig("race", "nsdf")          -- Default "nsdf"
-        -- playerTeam:SetConfig("kc", 0)                  -- [Stub]
-        -- playerTeam:SetConfig("stratMultiplier", 1.0)   -- [Stub]
         -- playerTeam:SetConfig("autoBuild", true)
 
         -- Advanced Settings
         -- playerTeam:SetConfig("thumperChance", 10)       -- [Diff]
-        -- playerTeam:SetConfig("mortarChance", 20)        -- [Diff]
         -- playerTeam:SetConfig("fieldChance", 10)         -- [Diff]
         -- playerTeam:SetConfig("doubleWeaponChance", 20)  -- [Diff]
         -- playerTeam:SetConfig("howitzerChance", 50)       -- [Diff]
 
         -- AI Behavior Settings
-        -- playerTeam:SetConfig("soldierRange", 50)
         -- playerTeam:SetConfig("sniperSteal", true)
         -- playerTeam:SetConfig("pilotZeal", 0.4)          -- [Diff]
         -- playerTeam:SetConfig("sniperTraining", 75)      -- [Diff]
@@ -1141,13 +1136,7 @@ function Update()
         -- playerTeam:SetConfig("minefields", {}) -- List of positions for minelayers
 
         -- Automation Sub-config
-        -- playerTeam:SetConfig("followPercentage", 30)
-        -- playerTeam:SetConfig("patrolPercentage", 30)
-        -- playerTeam:SetConfig("guardPercentage", 40)
         -- playerTeam:SetConfig("scavengerCount", 4)
-        -- playerTeam:SetConfig("tugCount", 2)
-        -- playerTeam:SetConfig("buildingSpacing", 80)
-        -- playerTeam:SetConfig("rescueDelay", 2.0)
         -- playerTeam:SetConfig("pilotTopoff", 4)          -- [Diff]
 
         -- Reinforcements
@@ -1155,7 +1144,6 @@ function Update()
 
         -- Legacy Features
         -- playerTeam:SetConfig("regenRate", 0.0)          -- [Diff] (Building Regen)
-        -- playerTeam:SetConfig("reclaimEngineers", false)
 
         -- Factory Management
         -- playerTeam:SetConfig("manageFactories", true)
