@@ -88,10 +88,26 @@ local function NewMission()
         "SetScrap", "Defend", "AddHealth", "Patrol", "Attack", "SetIndependence",
         "CameraReady", "CameraPath", "CameraObject", "CameraFinish", "Goto",
         "StartCockpitTimer", "StopCockpitTimer", "HideCockpitTimer",
-        "FailMission", "SucceedMission"}) do
+        "FailMission", "SucceedMission", "Ally", "UnAlly", "DisplayMessage"}) do
         local api = name
         e[api] = function(...) Record(api, ...) end
     end
+    -- Offline co-op layer: real CRCoop (single-player semantics) over stubbed
+    -- engine modules. subtit.Play forwards to AudioMessage like the real module.
+    local function noop() end
+    local modules = {
+        RequireFix = { Initialize = noop }, exu = {},
+        ScriptSubtitles = {
+            Play = function(file) return e.AudioMessage(file) end,
+            Queue = function(file) return e.AudioMessage(file) end,
+            Stop = function() Record("SubtitleStop") end,
+            Update = noop, Initialize = noop },
+    }
+    modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
+    e.package = setmetatable({ loaded = { exu = modules.exu } }, { __index = package })
+    modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
+    e.require = function(name) return assert(modules[name], name) end
     setfenv(assert(loadfile(script)), e)()
     e.Start()
     e.Update(0)
@@ -99,7 +115,24 @@ local function NewMission()
     return e, w, w.state
 end
 
+-- Co-op team remap: authored/spawned CCA is team 5, the 5th Platoon cinematic is
+-- support team 7, and the player-side camera beacons stay on team 1.
+local function CheckTeams(w, context)
+    local seen = 0
+    for _, c in ipairs(w.calls) do
+        if c.name == "BuildObject" then
+            local odf, team = c.args[1], c.args[2]
+            local want = odf:find("^sv") and 5 or odf:find("^av") and 7 or 1
+            Check(team == want, context .. ": " .. odf .. " built on team " .. tostring(team))
+            seen = seen + 1
+        end
+    end
+    Check(seen > 0, context .. ": scenario built objects")
+end
+
 local e, w, m = NewMission()
+Check(w:Count("AudioMessage", "misn0601.wav") == 1 and w:Count("Ally") >= 8 and w:Count("UnAlly") >= 2,
+    "offline subtit.Play reaches AudioMessage and alliances are configured")
 Check(m.corbettalive and m.fifthplatoon, "source setup enables Corbett and 5th Platoon")
 Check(m.haephestus.pos.y == 20 and w:Count("SetPosition") == 0, "DLL source leaves Hephestus placement unchanged")
 Check(m.turret.id == "turret" and m.svu1.id == "svu1", "uncorrupted source labels")
@@ -136,6 +169,7 @@ for choice = 0, 3 do
     local last
     for _, c in ipairs(w.calls) do if c.name == "BuildObject" then last = c end end
     Check(last.args[3] == "bugout" .. (choice + 1), "random extraction path is preserved")
+    CheckTeams(w, "patrol choice " .. choice)
 end
 
 e, w, m = NewMission()
@@ -166,6 +200,7 @@ Check(w:Count("StartCockpitTimer", 540) == 1, "stock 540/360/180 timer starts")
 w.time = m.wave3 + 0.1; e.Update(0.1)
 Check(m.wave1start and m.wave2start and m.wave3start, "hitch crosses all three waves in source order")
 Check(w:Count("BuildObject", "svtank") == 3, "each attack wave has one tank")
+CheckTeams(w, "attack waves")
 w.info.sblpad = true; e.Update(0.1)
 Check(m.bugout and m.launchpadreconed, "launchpad info enables extraction")
 w.time = m.time1 + 0.1; e.Update(0.1)
@@ -175,6 +210,20 @@ Check(w:Count("SucceedMission") == 0, "player alone cannot extract")
 w:Distance(m.avrec, m.dustoffcam, 99); e.Update(0.1)
 Check(w:Count("SucceedMission") == 1 and m.dustoff, "player plus recycler wins")
 e.Update(0.1); Check(w:Count("SucceedMission") == 1, "extraction is latched")
+
+-- Offline hostile assault targets the one player; the recycler alone cannot extract.
+e, w, m = NewMission()
+m.opencamdone = false; m.starportreconed = true; e.Update(0.1)
+local attacks = 0
+for _, c in ipairs(w.calls) do
+    if c.name == "Attack" and c.args[2] == w.player then attacks = attacks + 1 end
+end
+Check(attacks == 2 and m.ccaattack, "offline escorts attack the local player")
+m.pickupreached = true; m.dustoffcam = e.GetHandle("dustoff"); m.avrec = e.GetHandle("avrecy-1_recycler")
+w:Distance(m.avrec, m.dustoffcam, 50); e.Update(0.1)
+Check(w:Count("SucceedMission") == 0, "recycler alone cannot extract")
+w:Distance(m.player, m.dustoffcam, 50); e.Update(0.1)
+Check(w:Count("SucceedMission") == 1, "recycler and player together extract")
 
 -- The alternate late-launchpad route waits for the delayed CCA scout.
 e, w, m = NewMission()
@@ -186,6 +235,7 @@ w.time = 31; e.Update(0.1)
 Check(m.death and m.ccap1, "late scout arrives once")
 m.ccap1.enemy = w.player; w:Distance(m.ccap1, w.player, 409); e.Update(0.1)
 Check(m.economyccaplatoon and m.ccap9 and not m.ccap10, "CCA pursuit has nine active units")
+CheckTeams(w, "CCA pursuit")
 
 -- Cinematic completion gates and source cancellation cleanup.
 e, w, m = NewMission()
@@ -194,6 +244,8 @@ w.audioDone = false; e.Update(0.1)
 Check(m.simcam and m.sim10, "5th Platoon cinematic creates ten staged units")
 w.audioDone = true; e.Update(0.1)
 Check(m.breakout1 and m.removal and not m.sim5.alive, "cinematic completion removes staged platoon")
+CheckTeams(w, "5th Platoon cinematic")
+Check(m.sim1.team == 7 and m.sim6.team == 7, "5th Platoon cinematic units use the support team")
 
 for _, failure in ipairs({
     { flag = "missionfail4", file = "misn06l1.des", audio = "aud105" },
