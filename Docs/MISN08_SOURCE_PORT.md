@@ -1,4 +1,6 @@
-# misn08 source port
+# misn08 source port
+
+> **Superseded in part:** `Scripts/misn08.lua` now also carries the shared offline + co-op layer and marked restored behavior (`MISN08_COOP.md`). The original C++ archive moved from the end of the Lua file to `References/Misn08Source/Misn08Mission.cpp`, the single-player test is `Tools/Test-Misn08.lua` (79 checks), and the map, listing and campaign entry now exist. The retained-quirk list below describes the DLL port; the relic/Colorado heal sentinel, the cut third-walker and close-range blocks, and the Colorado's scripted death are changed only inside marked regions.
 
 `Scripts/misn08.lua` ports the original BZ1 DLL mission in
 `Battlezone_Source/BZ1/from_bz2_dll_src/Misn08Mission.cpp` to stock

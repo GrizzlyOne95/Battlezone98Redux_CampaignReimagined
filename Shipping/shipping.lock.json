@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-13T14:15:18-05:00",
-  "count": 2282,
+  "count": 2292,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -138,6 +138,10 @@
     {
       "source": "Assets\\Graphics\\misn07.bmp",
       "runtime": "misn07.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn08.bmp",
+      "runtime": "misn08.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -534,6 +538,10 @@
     {
       "source": "Config\\misn07.ini",
       "runtime": "misn07.ini"
+    },
+    {
+      "source": "Config\\misn08.ini",
+      "runtime": "misn08.ini"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -2868,6 +2876,10 @@
       "runtime": "misn07.des"
     },
     {
+      "source": "misn08.des",
+      "runtime": "misn08.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -3030,6 +3042,30 @@
     {
       "source": "Missions\\misn07.vxt",
       "runtime": "misn07.vxt"
+    },
+    {
+      "source": "Missions\\misn08.bzn",
+      "runtime": "misn08.bzn"
+    },
+    {
+      "source": "Missions\\misn08.hg2",
+      "runtime": "misn08.hg2"
+    },
+    {
+      "source": "Missions\\misn08.lgt",
+      "runtime": "misn08.lgt"
+    },
+    {
+      "source": "Missions\\misn08.mat",
+      "runtime": "misn08.mat"
+    },
+    {
+      "source": "Missions\\misn08.trn",
+      "runtime": "misn08.trn"
+    },
+    {
+      "source": "Missions\\misn08.vxt",
+      "runtime": "misn08.vxt"
     },
     {
       "source": "Missions\\sxshow.bzn",
@@ -5442,6 +5478,10 @@
     {
       "source": "Scripts\\CRVenusSites07.lua",
       "runtime": "CRVenusSites07.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusSites08.lua",
+      "runtime": "CRVenusSites08.lua"
     },
     {
       "source": "Scripts\\CRVenusWeather.lua",
