@@ -59,6 +59,11 @@
   your base, the "pull out" warning plays when any player is close to a
   walker, the relic and Colorado heals actually run, the Utah loss uses
   Collins's abort line, and guests' relic selections count.
+- Mission 08 now has Venus weather (replacing the stock lightning): calm while the
+  Colorado is still talking, rising when the walkers attack, a violent spike during the
+  Colorado massacre, and a steady storm while the CCA builds walkers. In co-op every
+  player sees the same sky. The Colorado starts allied with an escort and a small base
+  (scavenger, factory, two turrets, up to three APCs) that falls with it.
   The Colorado now starts allied with an escort and builds a small base with a
   few APCs before the Soviets destroy all of it on screen, and once the walker
   story is over the CCA keeps fielding walkers (up to three with four players)
