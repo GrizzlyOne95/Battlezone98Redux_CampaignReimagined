@@ -15,6 +15,7 @@ that is the point of the setting.
 | `Scripts/CRVenusMap.lua` | The pure half: seeded rng and severity ladder, basin detection, sulfur clustering, weighted picks. No engine calls. |
 | `Scripts/CRVenusSites07.lua` | Generated map data for misn07 (playable box, sulfur cells, vents). |
 | `Scripts/CRVenusSites08.lua` | Generated map data for misn08 (`python Tools/Build-VenusSites.py misn08 --types 1`). |
+| `Scripts/CRVenusSites09.lua` | Generated map data for misn09 (`python Tools/Build-VenusSites.py misn09 --types 1`). |
 | `Tools/Build-VenusSites.py` | Regenerates a `CRVenusSites<NN>.lua` from a mission's `.trn`, `.mat` and `.bzn`. |
 | `Scripts/CRWeatherPresets.lua` | Adds the five ladder presets `VenusCalm` .. `VenusSevere` (fog, light, haze, grit; no lightning, no rain). |
 | `Materials/cr_venus.particle.payload` | Eight particle templates, all on existing `CR_FX/*` materials. |
@@ -358,6 +359,27 @@ so strikes fall on exposed structures and random ground near players. Beats: cal
 3 when the walker attacks begin, `ForceLevel(5, 60, 10)` for the Colorado massacre, steady 3
 while the CCA builds `svwalk`. `Tools/Build-VenusSites.py misn07 --types 1` still reproduces
 `CRVenusSites07.lua` byte for byte.
+
+## misn09
+
+`Scripts/misn09.lua` wires the director like misn07 and misn08 (see `MISN09_COOP.md`, "Venus
+weather"); `Missions/misn09.trn` has the stock `[LightningBolt]` section removed. It is the same
+Venus terrain size and texture set, but the map is small and quiet: 179 liquid-sulphur cells
+(including transition cells) in **one** pool, and six `eggeizr1` geysers, none clumped within
+45 units: `eggeizr12_geyser` to `eggeizr15_geyser` plus the two mission geysers, `cut_off_geyser`
+(the intercept point at Nav 1) and `convoy_geyser` (the convoy's spawn). None is named
+`volcano*`, so there is no major vent, and the stock map has no Lightning Power generators, so
+strikes fall on exposed structures and random ground near players. The playable box from
+`edge_path` is x 1440-3530.67, z 98389.3-101909. `Tools/Build-VenusSites.py misn09 --types 1`
+reproduces `CRVenusSites09.lua`; the generator reads the converted text BZN in `Missions/`, so it
+needs the co-op map, not the stock binary one.
+
+Beats (host or offline only, each once): calm level 2 while the base is set up and the artillery
+falls; level 3 when the convoy launches (the CCA tug has the relic) or the cutoff warning
+(misn0903) fires; `ForceLevel(5, 60, 10)` when Prescott's platoon arrives or the tug makes its
+final run at the launch pad (within 500 m of it); target level 1 (clear) on the win, driven from
+the `SucceedMission` wrapper so the storm eases while the result screen counts down. The director
+keeps updating through the result window for that reason.
 
 ## Tunables (top of `CRVenusWeather.lua`)
 

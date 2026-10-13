@@ -6,7 +6,8 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 WAVS = (['misn0232', 'misn0407', 'misn0426', 'misn0428']
-        + ['misn06%02d' % n for n in range(15, 28)] + ['misn0639', 'misn0641', 'misn0652'])
+        + ['misn06%02d' % n for n in range(15, 28)] + ['misn0639', 'misn0641', 'misn0652']
+        + ['misn0910', 'misn0917'])
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8'))
 members = {e['source'].replace(chr(92), '/'): e['runtime'] for e in lock['files']}
 sources = ''.join(p.read_text(encoding='utf-8', errors='replace')
