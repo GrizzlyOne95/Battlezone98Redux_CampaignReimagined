@@ -42,16 +42,15 @@ player's status: `H<hull%> A<ammo%>`, `on foot`, `NEEDS A RIDE`,
 or ammo at most 10%.
 
 Each player has one active ping, lasting ten seconds, with a 1.5-second send
-cooldown. Object pings follow their handle. Terrain pings project a local EXU
-label reading `Name: TARGET` / `Name: GO HERE` with an arrow and distance.
-Receiving a ping never changes the target; TARGET calls the local `SetUserTarget`.
+cooldown, shown only as a stock objective marker plus a chat line. Receiving a
+ping never changes the target; TARGET calls the local `SetUserTarget`.
 
 A pinged unit also gets the stock objective marker on every player's HUD
 (local `SetObjectiveOn`, named `Name: TARGET`) until the ping ends, and is then
 switched off and renamed back. A unit that is already an objective (a mission
 objective or a teammate marker) only flashes for about a second and is never
 switched off or renamed. That check needs EXU `IsObjectiveOn` (it reads the
-engine flag at GameObject+0x189); without it object pings keep only the label.
+engine flag at GameObject+0x189); without it, an object ping shows only the chat line.
 A terrain ping builds an invisible marker object on each player's machine
 (`exu.BuildAsyncObject("crping", 0, pos)`, local-only), names it
 `Name: GO HERE`, switches its objective marker on, and removes it when the ping
@@ -109,8 +108,7 @@ EXU `GetReticleHit()` returns `"object", handle, nil`,
 `"terrain", nil, position`, or nil. On supported Redux 2.2.301 it checks the
 current smart-reticle object and ground-hit result, avoiding the retained
 coordinates exposed by `GetReticlePos()` after a miss. No range extension is
-made. Unsupported builds return nil. Coordinate HUD projection uses BZR's
-camera matrix and projection constants, with no Ogre world-space objects.
+made. Unsupported builds return nil.
 
 ## Verification
 

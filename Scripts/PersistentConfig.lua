@@ -5168,10 +5168,8 @@ PersistentConfig.CoopPda = require("CRCoopPda").Create({
     end,
 })
 PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
-    exu = exu, comms = function() return require("CRCoop").GetComms() end,
+    comms = function() return require("CRCoop").GetComms() end,
     time = function() return GetTime() end,
-    resolution = PersistentConfig._GetUiResolutionMetrics,
-    font = function() return PersistentConfig.PdaOverlay.font end,
     objective = {
         isOn = function(h)
             if exu and type(exu.IsObjectiveOn) == "function" then return exu.IsObjectiveOn(h) end
@@ -6481,7 +6479,7 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     end
     local uiInteractionSuppressed = pauseMenuOpen or escapePressed or cinematicActive == true
     PersistentConfig.CoopPda.UpdatePage(InputState)
-    PersistentConfig.CoopPingHud.Update(uiInteractionSuppressed or not IsValid(currentPlayerHandle))
+    PersistentConfig.CoopPingHud.Update()
 
     if autosave and autosave.Config and type(autosave.Update) == "function" then
         if not autosave.Config.enabled then
