@@ -46,6 +46,17 @@ cooldown. Object pings follow their handle. Terrain pings project a local EXU
 label reading `Name: TARGET` / `Name: GO HERE` with an arrow and distance.
 Receiving a ping never changes the target; TARGET calls the local `SetUserTarget`.
 
+A pinged unit also gets the stock objective marker on every player's HUD
+(local `SetObjectiveOn`, named `Name: TARGET`) until the ping ends, and is then
+switched off and renamed back. A unit that is already an objective (a mission
+objective or a teammate marker) only flashes for about a second and is never
+switched off or renamed. That check needs EXU `IsObjectiveOn` (it reads the
+engine flag at GameObject+0x189); without it object pings keep only the label.
+Terrain pings keep only the label: a nav camera would be confused with mission
+navs, and the stock spawn point object would join respawn selection, so a
+terrain marker needs its own inert CR object. The engine's objective list holds
+32 objects and is not bounds-checked, so co-op keeps its own markers few.
+
 Help calls: a ride call lasts until the guest boards a craft. A supply call times
 out after 45 seconds unless the caller's status is critical, and then lasts
 until it is not. After 15 seconds without a host reply, the caller alone is told

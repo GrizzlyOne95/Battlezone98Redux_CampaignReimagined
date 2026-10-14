@@ -123,4 +123,44 @@ x, y, mark = Hud.Project({ x = 0, y = 0, z = -100 }, view, origins, 1280, 720)
 check(mark == "BEHIND v", "behind marker")
 check(not Hud.Project(ping.position, nil, origins, 1280, 720), "camera missing")
 check(not Hud.Project({ x = 0/0, y = 0, z = 0 }, view, origins, 1280, 720), "NaN projection")
+-- Object pings use the stock objective marker; existing objectives only flash.
+do
+    local clock, pings, active = 0, {}, true
+    local enemy, mission, unknown = { name = "enemy" }, { name = "mission" }, { name = "unknown" }
+    local state = { [enemy] = { on = false, name = "Grizzly" }, [mission] = { on = true, name = "Relic" },
+        [unknown] = { on = nil, name = "Scout" } }
+    local log = {}
+    local hud = Hud.Create({
+        exu = {}, time = function() return clock end, resolution = function() return 1280, 720 end,
+        font = function() return "font" end,
+        comms = function() return { IsActive = function() return active end, GetPings = function() return pings end } end,
+        objective = {
+            isOn = function(h) return state[h].on end,
+            valid = function() return true end,
+            on = function(h) state[h].on = true; log[#log + 1] = h.name .. " on" end,
+            off = function(h) state[h].on = false; log[#log + 1] = h.name .. " off" end,
+            name = function(h, text) state[h].name = text end,
+            getName = function(h) return state[h].name end,
+        },
+    })
+    pings = { [20] = { name = "Ann", kind = "object", handle = enemy, seq = 1, position = { x = 0, y = 0, z = 9 } },
+        [30] = { name = "Bo", kind = "object", handle = mission, seq = 1, position = { x = 0, y = 0, z = 9 } },
+        [40] = { name = "Cy", kind = "object", handle = unknown, seq = 1, position = { x = 0, y = 0, z = 9 } } }
+    hud.Update(false)
+    check(state[enemy].on and state[enemy].name == "Ann: TARGET", "plain unit gets a named marker")
+    check(state[mission].name == "Relic", "existing objective keeps its name")
+    check(state[unknown].on == nil, "unknown objective state is left alone")
+    local offs = 0
+    for _ = 1, 10 do
+        clock = clock + 0.21; hud.Update(false)
+    end
+    for _, line in ipairs(log) do if line == "mission off" then offs = offs + 1 end end
+    check(offs >= 2 and state[mission].on, "existing objective flashes and ends on")
+    pings = { [30] = pings[30] }
+    clock = clock + 0.1; hud.Update(false)
+    check(not state[enemy].on and state[enemy].name == "Grizzly", "ping end restores the plain unit")
+    pings = {}
+    clock = clock + 0.1; hud.Update(false)
+    check(state[mission].on and state[mission].name == "Relic", "existing objective never switched off")
+end
 print("CRCoopPda/Hud: " .. checks .. " checks passed")

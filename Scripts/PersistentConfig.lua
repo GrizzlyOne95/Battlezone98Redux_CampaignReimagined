@@ -5172,6 +5172,16 @@ PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
     time = function() return GetTime() end,
     resolution = PersistentConfig._GetUiResolutionMetrics,
     font = function() return PersistentConfig.PdaOverlay.font end,
+    objective = {
+        isOn = function(h)
+            if exu and type(exu.IsObjectiveOn) == "function" then return exu.IsObjectiveOn(h) end
+        end,
+        valid = function(h) return IsValid(h) end,
+        on = function(h) SetObjectiveOn(h) end,
+        off = function(h) SetObjectiveOff(h) end,
+        name = function(h, text) if text then SetObjectiveName(h, text) end end,
+        getName = function(h) return GetObjectiveName(h) end,
+    },
 })
 
 PersistentConfig.P = require("PersistentConfigP").Create({
