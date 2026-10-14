@@ -834,6 +834,11 @@ use type 5 explicitly for a manufactured bridge. Stretch only the crossing,
 translate adjoining land intact, and check the escort's interpolated route as
 well as its waypoints against the level deck.
 
+Both binary and text BZNs start with `version [1]`; distinguish them using the
+`binarySave` header before applying text CRLF checks. Binary payload 0x0A bytes
+are data. Deployment must use build roots matching the bundled suite: the
+default sibling checkout can be older than CR's committed binaries.
+
 - Append lessons **in the same PR as the change that taught them**. A lesson that lives only in a chat or
   a private note is lost when the session ends.
 - Put per-mission detail in the mission doc, subsystem detail in its own doc, and link it from here; this

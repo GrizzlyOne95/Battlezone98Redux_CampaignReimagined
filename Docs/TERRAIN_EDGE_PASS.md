@@ -1,8 +1,10 @@
 # Campaign terrain edge pass
 
 This is a visual/gameplay prototype for the reviewed terrain feedback of
-14 October 2026. It changes fourteen maps. It has not been deployed over the
-owner's live GOG session or published to Workshop. Driving, camera sightlines,
+14 October 2026. It changes fourteen maps. Following the owner's visual review,
+the complete CR candidate was deployed to the GOG development mod on that date.
+All 2,389 shipping-lock files match, with zero missing, differing or unexpected
+files. It has not been published to Workshop. Driving, camera sightlines,
 dynamic construction and engine AI navigation remain acceptance checks.
 
 | Map | Implemented change |
@@ -96,9 +98,13 @@ files to get a fresh worktree through that check.
   compared with 3.28 km before and a direct distance of 3.09 km. The proxy uses
   a 20 m grid with a 35 degree slope ceiling; it does not prove live AI or hover
   behavior. The counterattack's new path uses the same canyon in reverse.
-- The general repository validator reports the same eight OpenShim renderer
-  manifest mismatches in the untouched canonical baseline and this worktree.
-  No renderer files or renderer manifest entries are changed by this pass.
+- The general repository validator passes after the deployment manager refreshes
+  generated payloads from the matching OpenShim 1.0.0.52 assets. The shipped
+  native binaries are retained byte-for-byte; the older default native checkout
+  is not used. Deployment input provenance is recorded locally.
+- The BZN deployment guard distinguishes `binarySave=true` from text saves;
+  binary payload bytes are not interpreted as line endings. CRLF text passes,
+  bare-LF/mixed text fails, and a binary payload containing 0x0A passes.
 
 Before release, drive both directions through the new canyon with tanks,
 scavengers and the counterattack; traverse the stretched bridge with the
