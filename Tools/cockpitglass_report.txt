@@ -1,0 +1,82 @@
+cockpitglass.py report 2026-10-12 08:56 (game C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux)
+glass added: 51, failed: 0, skipped (no cockpit): 28
+
+skip abtowe (abtowe.mesh) odfs=abtowe: no cockpit ('2' bones, no _c/_cockpit mesh)
+skip abtowe02 (abtowe02.mesh) odfs=abtowe02: no cockpit ('2' bones, no _c/_cockpit mesh)
+skip abtowe03 (abtowe03.mesh) odfs=abtowe03: no cockpit ('2' bones, no _c/_cockpit mesh)
+skip abtowe2 (abtowe2.mesh) odfs=abtowe2: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   avapc (avapc.mesh, in-mesh, from stock) odfs=avapc,avapc2 pov=AAP11POV bone=AAP21bda verts=701 tris=1196 open=54% depth=1.04-1.61
+ok   avartl (avartl_c.mesh, table, from stock) odfs=avarmp,avartl,avartla pov=aar11POV bone=aar21ty1 verts=956 tris=1744 open=79% depth=0.73-2.96
+skip avcnst (avcnst.mesh) odfs=avcns7,avcns8,avcns9,avcnst: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   avfigh (avfigh.mesh, in-mesh, from stock) odfs=avfigh,avfimp pov=ARA11POV bone=ara21bda verts=878 tris=1600 open=74% depth=0.73-1.42
+ok   avhaul (avhaul.mesh, in-mesh, from stock) odfs=avhaul pov=aha11pov bone=aha21bda verts=867 tris=1496 open=67% depth=0.34-1.55
+ok   avhraz (avhraz.mesh, in-mesh, from stock) odfs=avhraz,avhrmp pov=Ahr11POV bone=ahr21bda verts=1003 tris=1778 open=79% depth=0.32-2.85
+skip avland (avland.mesh) odfs=avlamp,avland: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   avltnk (avltnk.mesh, in-mesh, from stock) odfs=avltmp,avltnk pov=aln11pov bone=aln21bdb verts=884 tris=1490 open=66% depth=0.32-2.58
+ok   avmine (avmine.mesh, in-mesh, from stock) odfs=avmine pov=AMI11POV bone=AMI21bda verts=952 tris=1744 open=82% depth=0.77-1.61
+skip avmuf (avmuf.mesh) odfs=avmu7,avmu8,avmuf,avmuf4,avmuf5,avmuf6: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   avrckt (avrckt.mesh, in-mesh, from stock) odfs=avrckt,playrt pov=art11pov bone=art21bda verts=923 tris=1648 open=76% depth=0.50-1.56
+skip avrecy (avrecy.mesh) odfs=avrec2,avrec3,avrec4,avrec5,avrec6,avrec7,avrec8,avrecy,avremp,avret3,avret4: no cockpit ('2' bones, no _c/_cockpit mesh)
+skip avsav (-) odfs=avsav: no mesh in CR or stock
+ok   avscav (avscav.mesh, in-mesh, from stock) odfs=avscab,avscav pov=ASC11POV bone=ASC21bda verts=993 tris=1744 open=79% depth=0.92-1.76
+ok   avtank (avtank.mesh, in-mesh, from stock) odfs=avdemo,avtam2,avtamp,avtank,player pov=AGR11POV bone=agr21bda verts=460 tris=774 open=30% depth=0.66-1.64
+skip avtest (avtest.mesh) odfs=avtest: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   avturr (avturr_C.mesh, table, from cr) odfs=avtump,avtur2b,avturr pov=aDE11POV bone=aDE21ty1 verts=935 tris=1664 open=77% depth=0.54-1.07
+ok   avwalk (avwalk_c.mesh, table, from stock) odfs=avwalk,avwamp pov=AGe11POV bone=age21hed verts=794 tris=1404 open=63% depth=0.72-3.00
+skip bbtowe (bbtowe.mesh) odfs=bbtowe: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   bvapc (bvapc.mesh, in-mesh, from stock) odfs=bvapc,bvapca,bvapcb,bvhapc pov=AAP11POV bone=BAP21bda verts=695 tris=1192 open=54% depth=1.08-1.61
+ok   bvartl (bvartl_c.mesh, table, from stock) odfs=bvartl pov=bar11POV bone=bar21ty1 verts=956 tris=1744 open=79% depth=0.73-2.96
+skip bvcnst (bvcnst.mesh) odfs=bvcnst: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   bvhaul (bvhaul.mesh, in-mesh, from stock) odfs=bvhaul pov=bha11pov bone=bha21bda verts=902 tris=1556 open=70% depth=0.37-1.45
+ok   bvhraz (bvhraz.mesh, in-mesh, from stock) odfs=bv0002,bvhraz,bvhraza pov=bhr11POV bone=bhr21bda verts=1003 tris=1778 open=79% depth=0.32-2.85
+ok   bvltnk (bvltnk.mesh, in-mesh, from stock) odfs=bvltnk,bvltnka pov=bln11pov bone=bln21bdb verts=884 tris=1490 open=66% depth=0.32-2.58
+ok   bvmine (bvmine.mesh, in-mesh, from stock) odfs=bvmine pov=bMI11POV bone=bMI21bda verts=1006 tris=1856 open=90% depth=0.64-2.34
+ok   bvmru (bvmru.mesh, in-mesh, from stock) odfs=bvmru pov=bng11POV bone=bng21bda verts=1022 tris=1882 open=93% depth=2.67-3.00
+skip bvmuf (bvmuf.mesh) odfs=bvmuf,bvmufa,bvmufb: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   bvraz (bvraz.mesh, in-mesh, from stock) odfs=bvfigh,bvfigha,bvra8,bvraz pov=bRA11POV bone=bra21bda verts=899 tris=1644 open=76% depth=0.74-1.44
+ok   bvrckt (bvrckt.mesh, in-mesh, from stock) odfs=bvrckt pov=brt11pov bone=brt21bda verts=976 tris=1772 open=83% depth=0.81-1.61
+ok   bvrdev (bvrdev.mesh, in-mesh, from stock) odfs=bvrdev,bvrdeva,bvrmpa,bvrmpb pov=brd11POV bone=brd21BDA verts=982 tris=1818 open=81% depth=0.47-1.23
+skip bvrecy (bvrecy.mesh) odfs=bvrec3,bvrec8,bvrecy,bvrecya,bvrecyb,bvrecyc,bvrecyd,bvrecye,bvremp: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   bvscav (bvscav.mesh, in-mesh, from stock) odfs=bvsca8,bvscav pov=bSC11POV bone=BSC21bda verts=1014 tris=1814 open=83% depth=0.97-1.84
+ok   bvtank (bvtank.mesh, in-mesh, from stock) odfs=bvtank,bvtanka pov=bGR11POV bone=bgr21bda verts=444 tris=750 open=29% depth=0.63-2.04
+ok   bvturr (bvturr_c.mesh, table, from cr) odfs=bvtump,bvtur8,bvturr pov=bDE11POV bone=bDE21ty1 verts=935 tris=1664 open=77% depth=0.54-1.07
+ok   bvwalk (bvwalk_c.mesh, table, from cr) odfs=bvwalk pov=AGe11POV bone=age21hed verts=794 tris=1404 open=63% depth=0.72-3.00
+skip cblasr (cblasr.mesh) odfs=cblasr,cbtowea,cbtowec,cbtowee: no cockpit ('2' bones, no _c/_cockpit mesh)
+skip cbtowe (cbtowe.mesh) odfs=cbtowe,cbtoweb,cbtowed,cbtowef: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   cvapc (cvapc.mesh, in-mesh, from stock) odfs=cvapc,cvapca,cvapcb,cvapcc pov=CPA11POV bone=CPA21BDA verts=819 tris=1356 open=59% depth=0.30-0.77
+ok   cvartl (cvartl.mesh, in-mesh, from stock) odfs=cvartl,cvartla pov=CAR11POV bone=CAR21TY1 verts=848 tris=1472 open=67% depth=0.96-1.45
+skip cvcnst (cvcnst.mesh) odfs=cvcnst: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   cvfigh (cvfigh.mesh, in-mesh, from stock) odfs=cvfigh,cvfigha,cvfighb,cvfighc,cvfighd,cvfighe,cvfighf,cvfighg,cvfighh,cvfimp,cvraz pov=CFL11POV bone=CFL21BDA verts=945 tris=1748 open=81% depth=0.75-1.39
+ok   cvhaul (cvhaul.mesh, in-mesh, from stock) odfs=cvhaul,cvhaula pov=COX11POV bone=COX21BDA verts=963 tris=1696 open=72% depth=0.30-1.84
+ok   cvhraz (cvhraz.mesh, in-mesh, from stock) odfs=cvhraz,cvhraza,cvhrazb,cvhzmp pov=CPX11POV bone=CPX21BDA verts=953 tris=1760 open=82% depth=1.03-1.64
+ok   cvhtnk (cvhtnk.mesh, in-mesh, from stock) odfs=cvhmpa,cvhmpb,cvhtnk pov=CEM11POV bone=CEM21BDA verts=825 tris=1384 open=59% depth=0.31-0.63
+ok   cvltnk (cvltnk.mesh, in-mesh, from stock) odfs=cvltnk pov=CNA11POV bone=CNA21BDA verts=932 tris=1660 open=75% depth=0.30-0.65
+ok   cvmine (cvmine.mesh, in-mesh, from stock) odfs=cvmine,cvminea pov=CKH11POV bone=CKH21BDA verts=1002 tris=1816 open=84% depth=0.42-0.52
+skip cvmuf (cvmuf.mesh) odfs=cvmuf,cvmufa,cvmufb,cvmufc,cvmump: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   cvrckt (cvrckt.mesh, in-mesh, from stock) odfs=cvrckt pov=CDR11POV bone=CDR21BDA verts=897 tris=1630 open=75% depth=0.97-1.88
+skip cvrecy (cvrecy.mesh) odfs=cvrecy,cvrecya,cvrecyd,cvrecye,cvremp: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   cvscav (cvscav.mesh, in-mesh, from stock) odfs=cvscav,cvscava,cvscavb pov=CMO11POV bone=CMO21BDA verts=1025 tris=1920 open=87% depth=0.55-1.33
+ok   cvtnk (cvtnk.mesh, in-mesh, from stock) odfs=cvtank,cvtmpa,cvtnk,cvtnka,cvtnkb,cvtnkc,cvtnkd pov=CYE11POV bone=CYE21BDA verts=955 tris=1698 open=79% depth=0.31-0.55
+ok   cvturr (cvturr.mesh, in-mesh, from stock) odfs=cvturr,cvturra,cvturrb,cvturrc pov=CAD11POV bone=CAD21BDA verts=1008 tris=1868 open=83% depth=0.69-1.31
+ok   cvwalk (cvwalk_c.mesh, table, from cr) odfs=cvwalk,cvwamp pov=cvw11POV bone=cvw21hed verts=678 tris=1154 open=50% depth=0.66-1.57
+skip hvsat (hvsat.mesh) odfs=hvsat: no cockpit ('2' bones, no _c/_cockpit mesh)
+skip hvsav (hvsav.mesh) odfs=hvsav: no cockpit ('2' bones, no _c/_cockpit mesh)
+skip nvghst (-) odfs=nvghst: no mesh in CR or stock
+skip sbtowe (sbtowe.mesh) odfs=sb0002,sbtowe,sbtowea,sbtoweb,sbtowec,sbtowed,sbtowee: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   svapc (svapc.mesh, in-mesh, from stock) odfs=svap2,svap7,svapc,svapc13,svapca,svapcb,svapcc,svapcd,svapce,svapcf,svapcg,svapch,svapci,svapcj,svapck,svapcl,svapcm,svapcn,svapco,svapcp,svapcq,svapcr,svapcs pov=SAP11POV bone=SAP21bda verts=708 tris=1192 open=50% depth=0.30-0.96
+ok   svartl (svartl_c.mesh, table, from stock) odfs=svarmp,svartl,svartla pov=sar11POV bone=SAR21TY1 verts=536 tris=850 open=29% depth=0.86-3.00
+skip svcnst (svcnst.mesh) odfs=svcnst: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   svfigh (svfigh.mesh, in-mesh, from stock) odfs=svdemo,svfi12,svfigh,svfigha,svfimp pov=SFL11POV bone=SFL21bda verts=1023 tris=1896 open=91% depth=0.37-1.03
+ok   svhaul (svhaul.mesh, in-mesh, from stock) odfs=svhaul,svhaula,svhaulb pov=sha11pov bone=sha21bda verts=1021 tris=1888 open=95% depth=0.41-1.26
+ok   svhraz (svhraz.mesh, in-mesh, from stock) odfs=svhr13,svhraz,svhrmp pov=Shb11POV bone=shb21bdb verts=943 tris=1728 open=81% depth=0.39-0.88
+ok   svltnk (svltnk.mesh, in-mesh, from stock) odfs=svlt13,svltnk pov=Slt11POV bone=slt21ckp verts=943 tris=1720 open=80% depth=0.30-1.16
+skip svltnka (-) odfs=svltnka: no mesh in CR or stock
+ok   svmine (svmine.mesh, in-mesh, from stock) odfs=svmine pov=SMI11POV bone=SMI21BDA verts=983 tris=1824 open=87% depth=0.97-1.77
+skip svmuf (svmuf.mesh) odfs=savmf,svmfs8,svmuf,svmuf13: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   svrckt (svrckt.mesh, in-mesh, from stock) odfs=svrckt pov=srt11POV bone=srt21bda verts=992 tris=1802 open=84% depth=0.65-2.34
+skip svrecy (svrecy.mesh) odfs=svrecy,svremp: no cockpit ('2' bones, no _c/_cockpit mesh)
+skip svsav (svsav.mesh) odfs=savs8,savtnk,svsav: no cockpit ('2' bones, no _c/_cockpit mesh)
+ok   svscav (svscav.mesh, in-mesh, from stock) odfs=svscav,svscava pov=SSC11POV bone=SSC21bda verts=823 tris=1368 open=55% depth=1.00-1.71
+ok   svtank (svtank.mesh, in-mesh, from stock) odfs=playsv,svtamp,svtank,svtanka,svtas8,svtk13,svtnk7 pov=SCZ11POV bone=scz21bda verts=997 tris=1832 open=88% depth=0.33-1.30
+ok   svturr (svturr_c.mesh, table, from cr) odfs=svtump,svturr,svturra,svturrb,svturrc pov=STU11POV bone=STU21tx1 verts=933 tris=1706 open=82% depth=0.51-0.84
+ok   svwalk (svwalk_c.mesh, table, from cr) odfs=svwalk,svwalka,svwamp,svwatm pov=svw11POV bone=svw21hed verts=678 tris=1154 open=50% depth=0.66-1.57

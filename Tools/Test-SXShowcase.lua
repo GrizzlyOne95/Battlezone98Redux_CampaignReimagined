@@ -59,22 +59,21 @@ broken:Start(); broken:Update(1)
 Check(broken.mode == "freeplay" and broken.error:match("fixture failure"), "callback error ends safely")
 
 local function FakeExu(world)
-    local x = { cloneCount = 0, graphReady = true, showing = false, uiOpen = false,
-        width = 1280, height = 720, nodes = {}, sourceColors = { emissive = { r = 0, g = 0, b = 0 } } }
+    local x = { graphReady = true, showing = false, uiOpen = false,
+        width = 1280, height = 720, nodes = {}, glow = {}, missingTint = nil }
     function x.GetSubEntityCount(h) return x.graphReady and world[h] and #world[h].names or nil end
     function x.GetSubEntityMaterial(h, i) return x.graphReady and world[h] and world[h].names[i + 1] or nil end
-    function x.GetMaterialPassColors() return Copy(x.sourceColors) end
-    local clones = {}
-    function x.MaterialExists(name) return clones[name] == true end
-    function x.CloneMaterial(_, name) clones[name] = true; x.cloneCount = x.cloneCount + 1; return true end
+    -- Authored tint materials (sxtint.material); a missing one models an absent script.
+    function x.MaterialExists(name) return name:match("^SX_tint_") ~= nil and name ~= x.missingTint end
     function x.SetMaterialPassColors(name, colors, technique)
         if x.rejectColors then return false end
         if x.legacyColors and technique == -1 then error("old API") end
         x.lastColors = Copy(colors)
+        x.glow[name] = colors.emissive and colors.emissive.r
         return true
     end
     function x.SetSubEntityMaterial(h, i, name)
-        if x.rejectService and name:match("^SX/") and i == 1 then return false end
+        if x.rejectService and name:match("^SX_tint_") then return false end
         world[h].names[i + 1] = name -- Deliberately returns nil, as a void setter can.
     end
     function x.CreateOverlay() x.created = true; return true end
@@ -94,36 +93,47 @@ local function FakeExu(world)
     return x
 end
 
-local world = { [1] = { names = { "body", "glass" } }, [2] = { names = { "body", "glass" } } }
+local world = { [1] = { names = { "avfigh00", "avfigh01" } }, [2] = { names = { "avfigh00", "avfigh01" } } }
 local x = FakeExu(world)
 local valid = function(h) return world[h] ~= nil end
 local m = Materials.New(x, valid)
 Check(m:Prepare(1, 2), "material baseline")
-Check(m:Apply() and m.status == "PASS", "void assignment setters verified by readback")
-Check(world[1].names[1] == "body" and world[2].names[1]:match("^SX/"), "control twin is untouched")
-Check(x.sourceColors.emissive.g == 0, "shared source colors unchanged")
-Check(m:Restore() and world[2].names[1] == "body", "baseline restore")
-local firstCloneCount = x.cloneCount
-local glassCloneName = m.variants.glass.name
-for _ = 1, 3 do m:Prepare(1, 2); m:Apply(); m:Restore() end
-Check(x.cloneCount == firstCloneCount, "replays reuse a bounded clone namespace")
+Check(m:Flash("red") and m.status == "PASS", "void assignment setters verified by readback")
+Check(world[2].names[1] == "SX_tint_red" and world[2].names[2] == "avfigh01", "only the hull subentity is repainted")
+Check(world[1].names[1] == "avfigh00", "control twin is untouched")
+Check(m:Flash("cyan") and world[2].names[1] == "SX_tint_cyan", "livery cuts between authored tints")
+Check(m:SetGlow(true), "glow enabled on the live livery")
+m:Pulse(0.33)
+Check(x.glow.SX_tint_cyan and x.glow.SX_tint_cyan > 1, "pulse drives emissive intensity above 1x")
+Check(m:Flash("gold") and x.glow.SX_tint_cyan == 1, "leaving a livery resets its glow")
+Check(m:Restore() and world[2].names[1] == "avfigh00" and x.glow.SX_tint_gold == 1, "baseline restore")
+for _ = 1, 3 do m:Prepare(1, 2); m:Flash("blue"); m:Restore() end
+Check(world[2].names[1] == "avfigh00" and not m.active, "replays return to the baseline")
 x.rejectService = true
-Check(not m:Apply() and world[2].names[1] == "body" and world[2].names[2] == "glass",
-    "partial assignment failure rolls back")
+Check(not m:Flash("red") and world[2].names[1] == "avfigh00" and world[2].names[2] == "avfigh01",
+    "assignment failure rolls back")
 x.rejectService, x.legacyColors = false, true
-Check(m:Apply(), "legacy pass-index fallback")
+Check(m:Flash("green") and m:SetGlow(true), "legacy pass-index fallback")
 x.rejectColors = true; m:Pulse(1)
-Check(not m.active and m.status == "FAIL" and world[2].names[1] == "body", "pulse failure restores originals")
-x.rejectColors = false
+Check(not m.active and m.status == "FAIL" and world[2].names[1] == "avfigh00", "pulse failure restores originals")
+x.rejectColors, x.legacyColors = false, false
 m:Apply()
+Check(world[2].names[1] == "SX_tint_cyan", "operator service variant is the cyan livery")
 local savedA, savedB = Copy(m.controlBase), Copy(m.changedBase)
 local loaded = Materials.New(x, valid)
 loaded.controlBase, loaded.changedBase = savedA, savedB
 x.graphReady = false
 Check(not loaded:Prepare(1, 2), "load can precede render graph")
 x.graphReady = true
-Check(loaded:Prepare(1, 2) and loaded:Restore() and world[2].names[1] == "body",
+Check(loaded:Prepare(1, 2) and loaded:Restore() and world[2].names[1] == "avfigh00",
     "deferred load retains saved original materials")
+x.missingTint = "SX_tint_magenta"
+local missing = Materials.New(x, valid)
+Check(not missing:Prepare(1, 2) and missing.status == "BLOCKED", "missing tint script blocks honestly")
+x.missingTint = nil
+local other = { [1] = { names = { "body" } }, [2] = { names = { "body" } } }
+local foreign = Materials.New(FakeExu(other), function(h) return other[h] ~= nil end)
+Check(not foreign:Prepare(1, 2) and foreign.status == "BLOCKED", "non-scout fixture blocks instead of guessing")
 world[2] = nil
 Check(loaded:Restore(), "deleted fixture does not prevent restoring survivor/reset")
 Check(not Materials.New({ isStub = true }, valid):Available(), "stub EXU never counts as supported")
@@ -210,7 +220,7 @@ for block in map:gmatch("%[AiPath%](.-)pathType = %x+") do
 end
 local duration = 0
 for _, scene in ipairs(Scenes.List) do duration = duration + scene.duration end
-Check(duration == 400 and #Scenes.List == 9, "full authored tour is nine chapters / 400 simulation seconds")
+Check(duration == 453 and #Scenes.List == 11, "full authored tour is eleven chapters / 453 simulation seconds")
 
 world = {}
 x = FakeExu(world)
@@ -218,7 +228,8 @@ x.props = { camera = 2, radar = 1, radarScale = 1, voMuted = false, voThrottle =
     voDepth = 4, voStale = 2500, scrapColor = 0xffffffff, pilotColor = 0xffffffff,
     scrapPos = { 90, 620 }, pilotPos = { 90, 646 }, uiScale = 1, musicVolume = 6,
     fog = { r = 0.1, g = 0.2, b = 0.3, start = 175, ending = 250 },
-    ambient = { r = 0.2, g = 0.2, b = 0.2, a = 1 }, diffuse = { r = 0.5, g = 0.5, b = 0.5 }, power = 1 }
+    ambient = { r = 0.2, g = 0.2, b = 0.2, a = 1 }, diffuse = { r = 0.5, g = 0.5, b = 0.5 }, power = 1,
+    specular = { r = 0.3, g = 0.3, b = 0.3 }, sunDir = { x = 0.2, y = -0.9, z = 0.4 } }
 x.music = { track = 3, playing = true, paused = false, gain = 1, fading = false, userVolume = 6 }
 x.callbacks, x.scrolls, x.tuning, x.captions = {}, {}, {}, {}
 x.saveCount, x.uiOpen = 0, false
@@ -233,7 +244,11 @@ for _, row in ipairs({ { "GetCameraView", "SetCameraView", "camera" }, { "GetRad
     { "GetUnitVoQueueStaleMs", "SetUnitVoQueueStaleMs", "voStale" }, { "GetScrapHudColor", "SetScrapHudColor", "scrapColor" },
     { "GetPilotHudColor", "SetPilotHudColor", "pilotColor" }, { "GetFog", "SetFog", "fog" },
     { "GetAmbientLight", "SetAmbientLight", "ambient" }, { "GetSunDiffuse", "SetSunDiffuse", "diffuse" },
-    { "GetSunPowerScale", "SetSunPowerScale", "power" } }) do NativePair(row[1], row[2], row[3]) end
+    { "GetSunPowerScale", "SetSunPowerScale", "power" }, { "GetSunSpecular", "SetSunSpecular", "specular" } }) do
+    NativePair(row[1], row[2], row[3])
+end
+function x.GetSunDirection() return Copy(x.props.sunDir) end
+function x.SetSunDirection(a, b, c) x.props.sunDir = { x = a, y = b, z = c } end
 function x.GetScrapHudTopLeft() return x.props.scrapPos[1], x.props.scrapPos[2] end
 function x.SetScrapHudTopLeft(a, b) x.props.scrapPos = { a, b } end
 function x.GetPilotHudTopLeft() return x.props.pilotPos[1], x.props.pilotPos[2] end
@@ -241,12 +256,6 @@ function x.SetPilotHudTopLeft(a, b) x.props.pilotPos = { a, b } end
 function x.GetUIScaling() return x.props.uiScale end
 function x.GetMusicVolume() return x.props.musicVolume end
 function x.SetOverlayCaption(name, caption) x.captions[name] = caption end
-function x.SetMaterialTextureScrollAnimation(name, u, v)
-    if x.rejectScroll then return false end
-    -- One of the two model materials has no texture unit. Successful units alone are cleaned up.
-    if name == glassCloneName then return false end
-    x.scrolls[name] = { u, v }; return true
-end
 function x.GetRadarRange(h) return world[h].radarRange end
 function x.SetRadarRange(h, v) world[h].radarRange = v end
 function x.GetRadarPeriod(h) return world[h].radarPeriod end
@@ -284,31 +293,37 @@ function x.SelectOne(h) selected = { h } end
 function x.SelectNone() selected = {} end
 function x.SelectAdd(h) selected[#selected + 1] = h end
 function x.GetRenderEffectStatus() return false, false, false, "not-implemented" end
+x.renderRequests = {}
+function x.SupportsRenderProfile(profile) return profile ~= x.unsupportedProfile end
+function x.RequestRenderProfile(profile) x.renderRequests[#x.renderRequests + 1] = profile; x.renderProfile = profile; return true end
+function x.GetEffectiveRenderProfile() return (x.renderProfile == nil or x.renderProfile == "inherit") and "enhanced" or x.renderProfile end
 function x.SaveGame(path)
     x.saveCount = x.saveCount + 1; x.lastSave = Copy({ Save() }); return true, path
 end
 
-local wx = { LiveSystems = {}, Preset = "Clear", wind = 0 }
-local presets = { Presets = { Clear = { name = "Clear" } } }
-function wx.Init() wx.LiveSystems, wx.Preset = {}, "Clear" end
-function wx.SetPreset(name)
-    wx.Preset = name or "Clear"
-    wx.LiveSystems = name == "MarsDustStorm" and { dust = {} } or {}
-    if name == "SXLivewireWarm" then
-        x.props.fog = { r = 0.4, g = 0.2, b = 0.1, start = 130, ending = 250 }
-        x.props.ambient = { r = 0.3, g = 0.2, b = 0.1, a = 1 }
-    elseif name == "MarsDustStorm" then x.props.fog = { r = 0.6, g = 0.3, b = 0.1, start = 50, ending = 180 } end
-end
-function wx.SetIntensity(v) wx.intensity = v end
-function wx.SetWindOverride(_, v) wx.wind = v end
-function wx.GetPreset() return wx.Preset end
-function wx.GetWindSpeed() return wx.wind end
+-- CRStormFX stand-in: a fog/light writer like the real module, recording what the
+-- weather bay asks of it.
+local wx = { strikes = 0, precip = {}, weather = nil, tint = nil, live = false }
+function wx.BaseEnvironment() return wx.live and { fog = Copy(x.props.fog), amb = Copy(x.props.ambient) } or nil end
+function wx.StartDynamicWeather() wx.weather, wx.live = "drizzle", true; return {} end
+function wx.SetWeather(name) wx.weather = name; x.props.fog = { r = 0.3, g = 0.3, b = 0.35, start = 60, ending = 160 }; return true end
+function wx.GetWeather() return wx.weather end
+function wx.GetRainIntensity() return wx.weather and 0.6 or 0 end
+function wx.StrikeNow() wx.strikes = wx.strikes + 1 end
+function wx.Precip(kind, level) wx.precip[kind] = math.max(wx.precip[kind] or 0, level); wx.live = true; return true end
+function wx.Wind(_, _, speed) wx.wind = speed end
+function wx.Atmosphere(fogScale) x.props.fog = { r = 0.5, g = 0.4, b = 0.3, start = 40, ending = 250 * fogScale } end
+function wx.SetTint(fog) wx.tint = fog end
 function wx.Update() end
-function wx.Shutdown() wx.LiveSystems, wx.Preset, wx.wind = {}, "Clear", 0 end
-package.loaded.exu, package.loaded.CRWeather, package.loaded.CRWeatherPresets = nil, nil, nil
+function wx.Shutdown() wx.weather, wx.tint, wx.live = nil, nil, false end
+package.loaded.exu, package.loaded.CRStormFX, package.loaded.CRParticleTemplates = nil, nil, nil
 package.preload.exu = function() return x end
-package.preload.CRWeather = function() return wx end
-package.preload.CRWeatherPresets = function() return presets end
+package.preload.CRStormFX = function() return wx end
+package.preload.CRParticleTemplates = function() return { Ensure = function() return true end } end
+x.sky = { enabled = false, material = nil }
+function x.GetSkyDomeEnabled() return x.sky.enabled end
+function x.SetSkyDome(material) x.sky.enabled, x.sky.material = true, material; return true end
+function x.SetSkyDomeEnabled(on) x.sky.enabled = on end
 package.preload.RequireFix = function() return { Initialize = function() end } end
 
 local nextHandle, cameraCalls, readyCalls, finishCalls = 0, 0, 0, 0
@@ -317,9 +332,12 @@ local nextHandle, cameraCalls, readyCalls, finishCalls = 0, 0, 0, 0
 local cameraDepth, cameraFaults = 0, {}
 local cancelled, net = false, false
 local classes = { sxanchor = "camerapod", sxshield = "shieldtower", sxmag = "magnet", sxproxe = "proximity", sxproxa = "proximity",
-    avtank = "wingman", avfigh = "wingman", abspow = "powerplant", abbarr = "barracks" }
+    avtank = "wingman", avfigh = "wingman", abspow = "powerplant", abbarr = "barracks",
+    abcomm = "commtower", sbcomm = "commtower", cbcomm = "commtower", abtowe = "turret", sbtowe = "turret",
+    cbtowe = "turret", abhqcp = "commbunker", svturr = "turrettank", aspilo = "person", bspilo = "person", cspilo = "person",
+    sspilo = "person", assold = "person", sssold = "person", cssold = "person" }
 local function Unit(odf, team, point)
-    return { odf = odf, team = team, names = { "body", "glass" }, health = 3000, maxHealth = 3000,
+    return { odf = odf, team = team, names = odf == "avfigh" and { "avfigh00", "avfigh01" } or { "body", "glass" }, health = 3000, maxHealth = 3000,
         ammo = 1200, radarRange = 400, radarPeriod = 5, pos = Copy(point), class = classes[odf] or "wingman" }
 end
 world[99999] = Unit("avtank", 1, paths.sx_control[1]); world[99999].label = "player"
@@ -341,7 +359,7 @@ function SetIndependence(h, value)
         unsafeIndependenceCalls = unsafeIndependenceCalls + 1
         error("SetIndependence requires a UnitProcess, not " .. world[h].odf)
     end
-    if world[h].label and world[h].label:match("^sx_break_%d+$") then heldCraft[world[h].label] = value end
+    if world[h].label and world[h].label:match("^sx_brk_") then heldCraft[world[h].label] = value end
 end
 function SetWeaponMask() end
 function SetCurAmmo(h, v) world[h].ammo = v end
@@ -408,7 +426,7 @@ end
 local baseline = Copy(x.props)
 local musicBaseline = Copy(x.music)
 Mission(); Update(0)
-Check(OwnedCount() == 8 and readyCalls == 1, "first frame builds eight permanent stations/scouts, no range actors")
+Check(OwnedCount() == 10 and readyCalls == 1, "first frame builds ten permanent stations/scouts, no range actors")
 x.uiOpen = true; Update(100)
 Check(Snapshot().scene.elapsed == 0 and not x.showing, "native menus hide the overlay and freeze nonzero timesteps")
 x.props.uiScale = 2; x.uiOpen = false; Update(0)
@@ -416,36 +434,52 @@ Check(Snapshot().results["options/readback"].status == "PASS", "real options rea
 x.props.uiScale = 1
 Update(25); Update(6)
 local changedHandle = GetHandle("sx_changed")
-Check(world[changedHandle].names[1]:match("^SX/"), "film service cue changes only the twin")
+Check(world[changedHandle].names[1] == "SX_tint_red" and world[GetHandle("sx_control")].names[1] == "avfigh00",
+    "film livery cue changes only the twin")
 Command("sx", "visual pass")
 local saved = Copy({ Save() })
 local beforeReady = readyCalls
 x.graphReady = false; Load(unpackValues(saved)); x.graphReady = true; Update(0.25)
 Check(readyCalls == beforeReady and Snapshot().scene.mode == "freeplay", "load never resumes a camera cue")
-Check(world[changedHandle].names[1] == "body" and Snapshot().results.load.status == "PASS", "deferred load restores saved materials")
+Check(world[changedHandle].names[1] == "avfigh00" and Snapshot().results.load.status == "PASS", "deferred load restores saved materials")
 Check(next(Snapshot().observations) == nil, "loaded observations require confirmation again")
 Check(Command("unrelated", "") == false, "unrelated console commands remain unhandled")
 Command("sx", "service"); x.rejectColors = true; Update(0.25); x.rejectColors = false
-Check(Snapshot().results.materials.status == "FAIL" and world[changedHandle].names[1] == "body", "pulse failure reports rollback")
+Check(Snapshot().results.materials.status == "FAIL" and world[changedHandle].names[1] == "avfigh00", "pulse failure reports rollback")
 Command("sx", "tour")
-for _ = 1, 800 do Update(0.5) end
+for _ = 1, 940 do Update(0.5) end
 local finished = Snapshot()
-Check(finished.scene.mode == "freeplay" and finished.results.tour.status == "PASS", "full nine-chapter tour completes")
+Check(finished.scene.mode == "freeplay" and finished.results.tour.status == "PASS", "full eleven-chapter tour completes")
 for _, feature in ipairs(Scenes.Features) do Check(finished.results[feature] ~= nil, "full tour exercises " .. feature) end
 local killed = 0
 for _, key in ipairs(Scenes.Breaks) do
     if finished.results["chunks/" .. key] and finished.results["chunks/" .. key].status == "PENDING" then killed = killed + 1 end
 end
-Check(killed == 13 and #Scenes.Breaks == 13, "destruction yard issues all thirteen kills in order")
+Check(killed == 19 and #Scenes.Breaks == 19, "destruction yard issues all nineteen kills")
+for _, cue in ipairs(Scenes.Find("chunks").cues) do
+    local shot
+    for _, s in ipairs(Scenes.Find("chunks").shots) do if s.at <= cue.at then shot = s end end
+    Check(Scenes.Fixtures[cue.key].path:match("^sx_brk_") and shot and cue.at - shot.at >= 1.5,
+        "kill " .. cue.key .. " lands after its cluster's cut")
+end
+local people = 0
+for _, key in ipairs({ "gib_aspilo", "gib_bspilo", "gib_cspilo", "gib_sspilo", "gib_assold", "gib_sssold", "gib_cssold" }) do
+    if finished.results["gibs/" .. key] and finished.results["gibs/" .. key].status == "PENDING" then people = people + 1 end
+end
+Check(people == 7, "pilot chapter kills all seven people, runners included")
+Check(finished.results["lighting/retro"].status == "PASS" and finished.results["lighting/enhanced"].status == "PASS"
+    and x.renderProfile == "inherit", "lighting cycles render profiles and hands the user's own profile back")
 Check(unsafeIndependenceCalls == 0, "tour never writes UnitProcess independence on camera markers or buildings, even through pcall")
 local heldCount = 0
 for _, independence in pairs(heldCraft) do if independence == 0 then heldCount = heldCount + 1 end end
-Check(heldCount == 10, "all ten destruction craft hold position without commanding the static fixtures")
+Check(heldCount == 11, "all eleven destruction craft hold position without commanding buildings or people")
 Check(State.Equal(x.props, baseline) and State.Equal(x.music, musicBaseline), "full tour restores captured global settings and music policy")
 Check(world[99999].health == 3000 and world[99999].ammo == 1200 and world[99999].radarRange == 400,
     "live player meters and radar ranges restore")
-Check(OwnedCount() == 8 and next(x.tuning) == nil and next(x.callbacks) == nil and next(wx.LiveSystems) == nil,
-    "full tour removes range actors, tuning, callbacks and weather systems")
+Check(OwnedCount() == 10 and next(x.tuning) == nil and next(x.callbacks) == nil and wx.weather == nil and not x.sky.enabled,
+    "full tour removes range actors, tuning, callbacks, weather and the storm sky")
+Check(wx.strikes == 4 and wx.precip.snow == 1 and wx.precip.dust == 1 and x.sky.material == "CR_Sky/MarsStorm",
+    "weather bay strikes four times, runs snow and dust at full strength under the storm sky")
 Check(#selected == 1 and selected[1] == 99998, "original selected unit is restored")
 
 -- Presentation: shot lists cut cleanly, captions replace telemetry unless `sx debug`.
@@ -454,13 +488,21 @@ local readyBeforeCut = readyCalls
 Update(21)
 Check(readyCalls == readyBeforeCut + 1 and Snapshot().scene.scene == "ai", "AI shot list cuts to its second camera at 21 s")
 Update(0.5)
-Check(x.captions["SX/Livewire/Status"]:gsub("\n", " ") == Scenes.List[4].cues[2].caption
-    and x.captions["SX/Livewire/Telemetry"] == "", "film shows the trailer caption, not raw telemetry")
+Check(x.captions["SX/Livewire/Status"]:gsub("\n", " ") == Scenes.Find("ai").cues[2].caption
+    and x.captions["SX/Livewire/Telemetry"]:match("^Range: stock"), "AI film shows the caption plus the live range readout")
 Command("sx", "debug"); Update(0.5)
 Check(x.captions["SX/Livewire/Telemetry"] ~= "", "sx debug restores raw telemetry")
 Command("sx", "debug"); Command("sx", "skip"); Update(0.5)
+Command("sx", "chunks"); Update(0.5)
+local anchored = true
+for _, shot in ipairs(Scenes.Find("chunks").shots) do anchored = anchored and GetHandle("sx_" .. shot.target) ~= nil end
+Check(anchored, "every destruction shot has its own anchor before the first cut")
+Command("sx", "skip"); Update(0.5)
+Command("sx", "filters"); Update(5)
+Check(x.captions["SX/Livewire/Telemetry"] == "", "other chapters show the trailer caption, not raw telemetry")
+Command("sx", "skip"); Update(0.5)
 Check(x.saveCount == 0 and finished.results.autosave.detail:match("preview"), "automatic film notification never writes a save")
-for _, scroll in pairs(x.scrolls) do Check(scroll[1] == 0 and scroll[2] == 0, "accepted clone UV animations are stopped") end
+Check(world[GetHandle("sx_changed")].names[1] == "avfigh00", "film livery is restored after the tour")
 Check(finished.results["filters/proximity"].status == "PASS", "proximity witness requires protected crossing and actual target damage")
 Command("sx", "filters"); x.ignoreFilters = true; Update(55); x.ignoreFilters = false
 Check(Snapshot().results["filters/proximity"].status ~= "PASS", "stock/faulty filter behavior cannot produce a witness pass")
@@ -488,29 +530,28 @@ Command("sx", "ai"); x.aiTier = 1; Update(13)
 Check(Snapshot().results["ai/api"].status == "PASS" and Snapshot().results["ai/api"].detail:match("V1"), "older AI bridge tiers fall back honestly")
 x.aiTier = nil
 cancelled = true; Update(1); cancelled = false
-Check(OwnedCount() == 8 and next(x.tuning) == nil and Snapshot().scene.mode == "freeplay", "native cancel clears active AI overrides/actors")
+Check(OwnedCount() == 10 and next(x.tuning) == nil and Snapshot().scene.mode == "freeplay", "native cancel clears active AI overrides/actors")
 Command("sx", "service"); saved = Copy({ Save() })
 x.graphReady = false; Load(unpackValues(saved)); Update(5)
 Check(Snapshot().results.load.status == "BLOCKED", "render readiness timeout is reported")
 x.graphReady = true; Command("sx", "baseline")
 RemoveObject(changedHandle)
 Command("sx", "reset"); Update(0)
-Check(OwnedCount() == 8 and IsValid(99999) and IsValid(99998), "reset recovers deleted fixtures and preserves original player/selection objects")
-local clones = x.cloneCount
+Check(OwnedCount() == 10 and IsValid(99999) and IsValid(99998), "reset recovers deleted fixtures and preserves original player/selection objects")
 for _ = 1, 2 do Command("sx", "tour"); Update(400) end
-Check(OwnedCount() == 8 and x.cloneCount == clones, "repeated whole-tour hitches keep objects and cloned materials bounded")
+Check(OwnedCount() == 10 and world[GetHandle("sx_changed")].names[1] == "avfigh00", "repeated whole-tour hitches keep objects bounded and the livery restored")
 Command("sx", "cockpit"); Update(15); x.refuseRestore = true; Command("sx", "reset")
-Check(Snapshot().results.reset.status == "FAIL" and OwnedCount() == 8, "failed native restoration refuses destructive reset")
+Check(Snapshot().results.reset.status == "FAIL" and OwnedCount() == 10, "failed native restoration refuses destructive reset")
 x.refuseRestore = false; Command("sx", "reset"); Update(0)
 Command("sx", "ai"); Update(13); x.rejectRemove = GetHandle("sx_ai_stock")
 Command("sx", "reset")
 Check(Snapshot().results.reset.status == "FAIL" and IsValid(x.rejectRemove), "refused actor cleanup blocks reset and retains the actor for retry")
 x.rejectRemove = nil; Command("sx", "reset"); Update(0); Command("sx", "skip")
-x.music.track, x.music.playing = -1, false
-Command("sx", "arrival"); Update(4); Command("sx", "skip")
-Check(Snapshot().results.music.status == "BLOCKED" and x.music.track == -1 and not x.music.playing,
-    "unrestorable native no-selection baseline is left intact")
-x.music = Copy(musicBaseline)
+Command("sx", "lighting"); Update(12); Command("sx", "skip")
+Check(x.renderProfile == "inherit" and State.Equal(x.props, baseline),
+    "skipping mid-comparison returns the render profile and leaves lighting untouched")
+x.unsupportedProfile = "retro"; Command("sx", "lighting"); Update(1); Command("sx", "skip"); x.unsupportedProfile = nil
+Check(Snapshot().results["lighting/retro"].status == "BLOCKED", "an unsupported profile is reported, not requested")
 Command("sx", "ai"); Update(13)
 x.rejectRemove = GetHandle("sx_ai_stock")
 Update(60)
@@ -519,17 +560,18 @@ Check(Snapshot().scene.mode == "freeplay" and Snapshot().results.tour.status == 
 Command("sx", "tour")
 Check(Snapshot().results.tour.status == "BLOCKED", "replay remains blocked until cleanup succeeds")
 x.rejectRemove = nil; Command("sx", "baseline")
-Check(OwnedCount() == 8, "baseline command retries failed actor cleanup")
+Check(OwnedCount() == 10, "baseline command retries failed actor cleanup")
 Mission(); Command("sx", "skip")
 local startupReady = readyCalls
 Update(1)
 Check(Snapshot().scene.mode ~= "tour" and readyCalls == startupReady,
     "skip before the first update cancels pending automatic startup")
-Command("sx", "tour"); Update(120)
+Command("sx", "tour"); Update(170)
+Check(Snapshot().scene.scene == "ai", "AI chapter follows lighting and weather")
 x.rejectRemove = GetHandle("sx_ai_stock")
 Update(61)
 Check(Snapshot().scene.mode == "freeplay" and Snapshot().scene.scene == "ai"
-    and GetHandle("sx_break_1") == nil, "full film stops at failed AI cleanup before spawning destruction actors")
+    and GetHandle("sx_brk_avtank") == nil, "full film stops at failed AI cleanup before spawning destruction actors")
 x.rejectRemove = nil; Command("sx", "baseline")
 local nativePath = CameraPath
 CameraPath = function() error("camera failure") end
@@ -541,9 +583,9 @@ net = true; Mission(); Update(10); Command("sx", "save"); Command("sx", "ai")
 Check(nextHandle == beforeNet and x.saveCount == beforeSave, "network mode permits only a local overlay, no world/save/tuning mutation")
 net = false
 local nativeX = x
-x = { isStub = true }; Mission(); Update(0); Update(400)
+x = { isStub = true }; Mission(); Update(0); Update(460)
 Check(Snapshot().scene.mode == "freeplay" and Snapshot().results.environment.status == "BLOCKED"
-    and Snapshot().results.music.status == "BLOCKED", "stub EXU completes stock scenes while reporting blocked native exhibits")
+    and Snapshot().results.lighting.status == "BLOCKED", "stub EXU completes stock scenes while reporting blocked native exhibits")
 x = nativeX
 Check(cameraCalls > 0 and finishCalls > 0, "both native path and object-camera callbacks exercised")
 Check(#cameraFaults == 0, string.format("native camera stack stays balanced (%d faults, first: %s)",

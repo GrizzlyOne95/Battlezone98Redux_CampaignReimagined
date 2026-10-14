@@ -1,0 +1,28 @@
+// xlitblt4's light only: CRWeather draws the bolt as Ogre particles (CRGroundFX.lua).
+[ExplosionClass] // Sand cloud effect.
+classLabel = "explosion"
+
+explSound = ""
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 1
+
+particleClass1 = "xlitbl4h.light"
+particleCount1 = 2
+
+[Light]
+simulateBase = "sim_null"
+lifeTime = 0.3
+renderBase = "draw_light"
+startColor = "255 255 0 700"
+finishColor = "255 255 0 0"
+startRadius = 170
+finishRadius = 0
+animateTime = 0.3
+attenuateConstant = 1.0
+attenuateLinear = 0.0
+attenuateQuadratic = 0.0

@@ -33,15 +33,15 @@ assert(templates.Ensure() == false)
 assert(#calls == 2 and closed == 2)
 fail = nil
 assert(templates.Ensure() == true)
-assert(#calls == 4 and closed == 4, "retry must preserve completed payloads")
-assert(templates.Ensure() == true and #calls == 4, "no duplicate declarations in a Lua state")
+assert(#calls == 5 and closed == 5, "retry must preserve completed payloads")
+assert(templates.Ensure() == true and #calls == 5, "no duplicate declarations in a Lua state")
 -- A new mission Lua state must not reparse templates Ogre still holds.
 local ogre = {}
 for _, source in ipairs(calls) do ogre[source] = true end
 fakeExu.HasParticleTemplate = function(name) return ogre[name] == true end
 package.loaded.CRParticleTemplates = nil
 local fresh = require("CRParticleTemplates")
-assert(fresh.Ensure() == true and #calls == 4, "templates surviving in Ogre must not be reparsed")
+assert(fresh.Ensure() == true and #calls == 5, "templates surviving in Ogre must not be reparsed")
 fakeExu.HasParticleTemplate = nil
 fakeExu.ParseResourceScript = nil
 package.loaded.bzfile = nil

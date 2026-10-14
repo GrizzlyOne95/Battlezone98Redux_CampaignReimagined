@@ -1,0 +1,36 @@
+[ExplosionClass] // Sprite card for animated rain.
+classLabel = "explosion"
+
+explSound = ""
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 1
+
+particleClass1 = "xrain.shock"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+particleBias1 = "0.0 0.0 0.0"
+
+[Shock]
+simulateBase = "sim_null"
+lifeTime = 1
+renderBase = "draw_sprite"
+textureName = "xrain"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 0"
+startRadius = 50
+finishRadius = 50
+animateTime = 1
+InitialPitch = 0.0f
+InitialYaw = 0.0f
+InitialRoll = 0.0f
+AddPitch = 0.0f
+AddYaw = 0.0f
+AddRoll = 0.0f
+rotationRate = 0.0
+maxCount = 1000

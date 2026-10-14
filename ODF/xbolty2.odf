@@ -1,0 +1,45 @@
+[ExplosionClass]
+classLabel = "explosion"
+explSound = ""
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 2
+
+particleClass1 = "xbolty2.core"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+particleBias1 = "0.0 0.0 0.0"
+
+particleClass2 = "xbolty2.glow"
+particleCount2 = 1
+particleVeloc2 = "0.0 0.0 0.0"
+particleBias2 = "0.0 0.0 0.0"
+
+[Core]
+simulateBase = "sim_null"
+lifeTime = 0.14
+renderBase = "draw_sprite"
+textureName = "lbolt2.dds"
+startColor = "760 660 400 640"
+finishColor = "255 255 255 0"
+startRadius = 150
+finishRadius = 150
+animateTime = 0.14
+rotationRate = 0.0
+
+[Glow]
+simulateBase = "sim_null"
+lifeTime = 0.5
+renderBase = "draw_sprite"
+textureName = "lbolt2.dds"
+startColor = "255 190 80 190"
+finishColor = "200 90 20 0"
+startRadius = 153
+finishRadius = 153
+animateTime = 0.5
+rotationRate = 0.0
+
