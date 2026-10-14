@@ -1,4 +1,4 @@
--- Local-only coordinate labels. Never touch mission objective flags or names.
+-- Local-only ping labels, plus stock objective markers on pinged units that never switch off or rename an existing objective.
 local M = {}
 local function finite(n) return type(n) == "number" and n == n and math.abs(n) < 1e12 end
 function M.Project(pos, view, origins, width, height)
@@ -48,7 +48,62 @@ function M.Create(d)
         call(show and "ShowOverlay" or "HideOverlay", slot.overlay)
         slot.visible = show
     end
+    -- Object pings also use the stock objective marker on this machine. A
+    -- unit that is not an objective gets one, named "<who>: TARGET", until the
+    -- ping ends; one that already is (a mission objective, a teammate marker)
+    -- only flashes, and is never switched off or renamed. Without
+    -- exu.IsObjectiveOn the state is unknown, so nothing is touched.
+    local marks, FLASH_TIME, FLASH_STEP = {}, 1.2, 0.2
+    local function objective(name, ...)
+        local fn = d.objective and d.objective[name]
+        if not fn then return nil end
+        local ok, result = pcall(fn, ...)
+        if ok then return result end
+    end
+    local function unmark(id)
+        local mark = marks[id]
+        marks[id] = nil
+        if mark and mark.ours and objective("valid", mark.handle) then
+            objective("off", mark.handle)
+            objective("name", mark.handle, mark.oldName)
+        end
+    end
+    local function updateMarks(pings, time)
+        for id, mark in pairs(marks) do
+            local ping = pings[id]
+            if not ping or ping.seq ~= mark.seq or ping.handle ~= mark.handle then unmark(id) end
+        end
+        for id, ping in pairs(pings) do
+            if ping.kind == "object" and ping.handle and not marks[id] then
+                local on = objective("isOn", ping.handle)
+                if on == false then
+                    marks[id] = { handle = ping.handle, seq = ping.seq, ours = true,
+                        oldName = objective("getName", ping.handle) }
+                    objective("name", ping.handle, ping.name:sub(1, 16) .. ": TARGET")
+                    objective("on", ping.handle)
+                elseif on == true then
+                    marks[id] = { handle = ping.handle, seq = ping.seq, ours = false,
+                        flashUntil = time + FLASH_TIME, nextFlash = time, lit = true }
+                else
+                    marks[id] = { handle = ping.handle, seq = ping.seq, ours = false }
+                end
+            end
+        end
+        for _, mark in pairs(marks) do
+            if mark.flashUntil and objective("valid", mark.handle) then
+                if time >= mark.flashUntil then
+                    objective("on", mark.handle)
+                    mark.flashUntil = nil
+                elseif time >= mark.nextFlash then
+                    mark.lit = not mark.lit
+                    mark.nextFlash = time + FLASH_STEP
+                    objective(mark.lit and "on" or "off", mark.handle)
+                end
+            end
+        end
+    end
     function hud.Destroy()
+        for id in pairs(marks) do unmark(id) end
         for _, slot in pairs(slots) do
             call("HideOverlay", slot.overlay)
             call("RemoveOverlay2D", slot.overlay, slot.root)
@@ -90,6 +145,7 @@ function M.Create(d)
         local time = d.time()
         if time < nextUpdate then return end
         nextUpdate = time + 0.05
+        updateMarks(c.GetPings(), time)
         local view, origins = call("GetCameraViewMatrix"), call("GetCameraOrigins")
         local width, height = d.resolution()
         local ids = {}
