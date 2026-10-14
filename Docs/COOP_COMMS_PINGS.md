@@ -71,9 +71,12 @@ until it is not. After 15 seconds without a host reply, the caller alone is told
 the call is still open.
 
 Status markers: every two seconds each player broadcasts its own hull and ammo.
-Each peer labels the other players' craft with `SetObjectiveName` and
-`SetObjectiveOn` (both local-only), so MARKERS ON/OFF affects only that player's
-HUD.
+With MARKERS ON (opt-in, off by default, per player), each peer labels the
+other players' craft with `SetObjectiveName` and `SetObjectiveOn` (both
+local-only), switching a marker on once and renaming it only when its status
+text changes. They are off by default because those calls share the mission's
+objective namespace: mission scripts and their presentation tests expect only
+their own objective calls.
 
 Ownership rule: a world change runs only on the machine that owns the object.
 - **Send ride**: the host gives one of its own craft the stock "Pick Me Up"
