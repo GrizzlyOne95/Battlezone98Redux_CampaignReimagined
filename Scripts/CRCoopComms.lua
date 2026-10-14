@@ -59,18 +59,19 @@ function M.Create(d)
             pings[from] = { sender = from, seq = number, handle = value == 1 and h or nil,
                 position = { x = p[8], y = p[9], z = p[10] }, expires = now() + 10,
                 name = clean(who.name), kind = value == 1 and "object" or "terrain" }
-            notify(clean(who.name) .. " pinged " .. (value == 1 and "an object." or "a location."))
+            notify(clean(who.name) .. (value == 1 and " marked a target." or " marked a spot."))
         elseif op == REQUEST then
             local old = requests[from]
             if old and number <= old.seq then return end
             requests[from] = { sender = from, seq = number, pilot = origin,
                 name = clean(who.name), status = "Requested" }
-            notify(clean(who.name) .. " needs a rescue craft.")
+            notify(clean(who.name) .. " needs a ride!" ..
+                (d.authority and d.authority() and " Answer on the CO-OP page." or ""))
         elseif op == CANCEL then
             local old = requests[from]
             if old and old.seq == subjectRevision then
                 requests[from] = nil
-                notify(clean(who.name) .. " cancelled their rescue request.")
+                notify(clean(who.name) .. " no longer needs a ride.")
             end
         elseif op == RESPONSE then
             local request = requests[subject]
@@ -78,13 +79,14 @@ function M.Create(d)
                 (not request.responseSeq or number > request.responseSeq) then
                 request.responseSeq = number
                 request.status = value == 1 and "Help on the way" or "No craft available"
-                notify("Host to " .. request.name .. ": " .. request.status .. ".")
+                notify(value == 1 and "Host: a ride is coming for " .. request.name .. "."
+                    or "Host: no ride for " .. request.name .. " right now.")
             end
         end
     end
     local function publish(p)
         local id = d.localId()
-        if not player(id) then return false, "Player registry is not ready." end
+        if not player(id) then return false, "Still connecting. Try again in a moment." end
         apply(id, p)
         for to in pairs(d.players()) do
             if to ~= id and player(to) then
@@ -106,41 +108,41 @@ function M.Create(d)
     function service.GetPings() return pings end
     function service.GetRequests() return requests end
     function service.SendPing(kind, h, pos)
-        if not service.IsActive() or not d.ready() then return false, "Co-op is still synchronizing." end
-        if now() < nextPing then return false, "Wait a moment before pinging again." end
+        if not service.IsActive() or not d.ready() then return false, "Still connecting. Try again in a moment." end
+        if now() < nextPing then return false, "Wait a moment before marking again." end
         if kind == "object" then
-            if not valid(h) then return false, "That object is no longer available." end
+            if not valid(h) then return false, "That target is gone." end
             pos = position(h)
-        elseif kind ~= "terrain" then return false, "Aim at an object or nearby terrain." end
-        if not coordinates(pos) then return false, "There is no valid ground hit here." end
+        elseif kind ~= "terrain" then return false, "Aim at something first." end
+        if not coordinates(pos) then return false, "Aim at the ground or a target." end
         nextPing = now() + 1.5
         return publish(packet(PING, nil, nil, kind == "object" and h or nil, pos, kind == "object" and 1 or 2))
     end
     function service.RequestRescue()
-        if not service.IsActive() or not d.ready() then return false, "Co-op is still synchronizing." end
+        if not service.IsActive() or not d.ready() then return false, "Still connecting. Try again in a moment." end
         local id, h = d.localId(), d.localHandle()
-        if not valid(h) or not d.person(h) then return false, "Rescue requests are for living pilots." end
-        if requests[id] then return false, "Your rescue request is already active." end
-        if now() < nextRequest then return false, "Wait a moment before requesting again." end
+        if not valid(h) or not d.person(h) then return false, "You can only call for a ride while on foot." end
+        if requests[id] then return false, "You already called for a ride." end
+        if now() < nextRequest then return false, "Wait a moment before calling again." end
         nextRequest = now() + 2
         return publish(packet(REQUEST))
     end
     function service.CancelRescue()
         local request = requests[d.localId()]
-        if not service.IsActive() or not request then return false, "No active rescue request." end
+        if not service.IsActive() or not request then return false, "You have not called for a ride." end
         return publish(packet(CANCEL, nil, request.seq))
     end
     function service.Respond(subject, response)
         local request = requests[subject]
-        if not service.IsActive() or not d.authority() then return false, "Only the campaign host can respond." end
-        if not request then return false, "That request is no longer active." end
+        if not service.IsActive() or not d.authority() then return false, "Only the host can answer." end
+        if not request then return false, "They no longer need a ride." end
         if response ~= 1 and response ~= 2 then return false, "Unknown response." end
         return publish(packet(RESPONSE, subject, request.seq, request.pilot, nil, response))
     end
     function service.TargetPing(subject)
         local ping = pings[subject]
         if not service.IsActive() or not ping or ping.kind ~= "object" or not valid(ping.handle) then
-            return false, "Choose an active object ping."
+            return false, "That mark is gone."
         end
         d.target(ping.handle)
         return true

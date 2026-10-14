@@ -5158,6 +5158,10 @@ RemoveCommanderHandle = PersistentConfig.R.RemoveCommanderHandle
 PersistentConfig.CoopPda = require("CRCoopPda").Create({
     coop = require("CRCoop"), exu = exu, pages = PdaPages,
     feedback = function(text) DisplayMessage("[CO-OP] " .. text) end,
+    onFoot = function()
+        local h = type(GetPlayerHandle) == "function" and GetPlayerHandle()
+        return h ~= nil and type(IsPerson) == "function" and IsPerson(h) == true
+    end,
 })
 PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
     exu = exu, comms = function() return require("CRCoop").GetComms() end,
