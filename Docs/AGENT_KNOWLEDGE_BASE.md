@@ -38,7 +38,7 @@ before; section 8 is the pitfall index.
 
 | Work | Repository | Notes |
 | --- | --- | --- |
-| Campaign missions, Lua consumers, assets, materials, packaging, Workshop publishing | **CR** (this repo) | Only editable checkout: `%USERPROFILE%\Documents\GIT\Campaign-Reimagined` plus owner-directed per-workstream worktrees (see below). The Google Drive tree is legacy; never edit or reverse-sync it. |
+| Campaign missions, Lua consumers, assets, materials, packaging, Workshop publishing | **CR** (this repo) | Canonical checkout `%USERPROFILE%\Documents\GIT\Campaign-Reimagined` (stays on `main`) plus per-workstream worktrees (see below). The Google Drive tree is legacy; never edit or reverse-sync it. |
 | Native hooks, engine bug fixes, patch policy, renderer shaders (DX11 Enhanced base/terrain), live-test harness | **BZR-OpenShim** (`GrizzlyOne95/Battlezone98Redux_Shim`) | Patch entries live in `scripts/patches.json`; read its `AGENTS.md`, `Docs/AGENT_PATCH_WORKFLOW.md`, `AGENT_TOOLING.md`. |
 | Reusable Lua/native runtime APIs (particles, camera, materials, `BuildSyncObject`, ...) | **EXU** (`ExtraUtilities`) | Prefers reusable C++ with thin Lua bindings; no campaign content. |
 | Lua file I/O and constrained update primitives | **bzfile** | Mutating paths are security-sensitive; see its `AGENTS.md`. |
@@ -57,10 +57,19 @@ from a different branch than you assume. Read a sibling's `AGENTS.md` before edi
   deliberately stacking (then say which base you chose and why).
 - `origin/main` often lags open PRs and other agents' branches. Before cutting a branch or designing a
   feature, run `gh pr list --state open` and `git log --all --since="3 weeks ago" -- <files>`.
-- `AGENTS.md` says CR has a single canonical checkout and to serialize writes. In practice the owner runs
-  parallel agents in per-workstream sibling worktrees named `Documents\GIT\Campaign-Reimagined-<topic>`
-  (for example `-misn13`, `-moonwx`). Use a worktree only when the owner or the orchestrating agent
-  assigned one, never touch another agent's worktree, and prune your worktree after the PR merges.
+- **Worktree rule [owner].** The canonical checkout (`%USERPROFILE%\Documents\GIT\Campaign-Reimagined`)
+  stays on `main` and is never used for feature work. Per-workstream worktrees are allowed: one per branch,
+  at `%USERPROFILE%\Documents\GIT\Campaign-Reimagined-<topic>`, created from the canonical checkout with
+  `git worktree add`. No other clones or copies.
+- **Cleanup belongs to the creator.** The agent that creates a worktree removes it: once its PR is merged
+  or closed, or the work is abandoned, run `git worktree remove` (from the canonical checkout) and
+  `git worktree prune`, and delete the merged local branch. Never leave stray worktrees behind. Before
+  ending a session, run `git worktree list` and remove your own finished ones.
+- **Never touch another agent's active worktree.** A worktree is safe to prune only when its branch is
+  merged into `origin/main`, it has no uncommitted or untracked changes, and no agent is still using it.
+  The ignored `Local/Workshop` staging inside a worktree is regenerable, so it does not block removal.
+- Audit recipe (read-only; the second command lists candidates, it removes nothing):
+  `git worktree list; git branch --merged origin/main; git -C <worktree> status --short`
 - Never leave pushed work invisible: end every workstream with a PR (draft is fine) or name the branch and
   why it has no PR.
 - CR's GitHub slug is `GrizzlyOne95/Battlezone98Redux_CampaignReimagined`. From a directory that is not a
@@ -424,6 +433,8 @@ Operating rules that each cost a run once:
 - Give timed runs generous slack; the simulation can stall on focus loss without a crash.
 - Steam live runs need `steam_appid.txt` (301650) next to the exe, deleted afterwards. GOG needs nothing.
 
+The full local-server and 2-4 client recipe is in 5.5.
+
 ### 5.4 Smoke-test gotchas specific to CR
 
 - **Command-line launch of a campaign mission runs without CR.** Since `crcampgn.ini` became
@@ -438,6 +449,167 @@ Operating rules that each cost a run once:
   LuaLS definitions live in `Docs/lua-definitions/` (authoring only, not shipped). Workshop `require`
   names are limited (sourceless, 11-character truncation).
 - `exu` is not a global in mission scope: `local exu = require("exu")`.
+
+### 5.5 Local server and multi-player co-op testing
+
+Everything here was read from the sources named in each item (checked 2026-10-14 against OpenShim
+`origin/main` 9133a9c2f and DedicatedServer `origin/main` c996e21). Claims I could not confirm are marked
+**[inferred]** or **[unverified]**. No live run was made while writing this section. Co-op cannot be tested
+by a command-line mission launch: it needs a lobby server, so every recipe below runs a server.
+
+#### Server options
+
+| Option | What it is | Where it is documented |
+|---|---|---|
+| **Private loopback server (the default for agents)** | `Battlezone98Redux_DedicatedServer` (Python, `server.py`) started by the harness bound to `127.0.0.1`: TCP 1337 lobby, UDP 1338 handshake, UDP 1339 relay, TCP 8080 health. State goes to the run folder. Nothing leaves the PC. | OpenShim `reverse_engineering/Run-BZRCoopMission.ps1` (server args near the "Starts a private ... server" step), `coopflow/README.md` |
+| **Manual local/LAN server** | `python server.py --state-file C:\BZRCoop\server\state.json`, or `ServerGUI.bat` (`server_gui.py`). Listens on every interface; 8080 stays loopback-only. Players point at it with the launch option `/bzrserver=ws://<lan-ip>:1337/` or OpenShim `net.ini` `[OpenShimSocket] MatchmakingRedirectAddress=<lan-ip>` (IP only). Needs the Private network profile and an inbound firewall rule for TCP 1337 and UDP 1338-1339. Tailscale is the documented no-port-forward option for remote players. | DedicatedServer `docs/LAN_COOP.md`, `README.md` (access modes, Docker/Compose) |
+| **Remote box** | I found no remote machine documented as a co-op test server. The remote host in the private notes is the BZ1 Game Watcher production host (reachable over the tailnet and WinRM); it runs Game Watcher, not a BZRNet test lobby. Internet/WAN co-op is "untested" in `LAN_COOP.md`, and real multi-PC sessions are listed as unqualified in OpenShim's `Docs/ROADMAP_CODE_VALIDATION_20261007.md` (row 125). Credentials, host names and the DPAPI store: **see the private memory/secret store**, never this repo. | private memory (`stuartserver-is-reachable-over-winrm`, `bz1-gamewatcher-production-operations`) |
+| **Official Rebellion lobby** | Never for CR co-op tests. The session script refuses it unless `-Matchmaking official -AllowOfficialServer` are both passed, because test identities would reach the public lobby. | `BZRCoopSession.ps1` header comments and `Start-BZRCoopClients` |
+
+Server prerequisites for 3-4 clients: `--relay-pair-ports` (a distinct loopback UDP port per peer pair; the
+runner adds it automatically when `-Clients` is greater than 2) and a DedicatedServer checkout that contains
+`native_network_health.py`. A second harness, a leftover server, or another process on ports 1337-1339 or
+8080 makes the runner refuse to start (it checks the ports first).
+
+#### Launching 2-4 clients on one machine
+
+Use the OpenShim harness, from the OpenShim repo root in **Windows PowerShell 5.1** (from Git Bash use
+`env -u PSModulePath`; see 5.3). Runtime root is `C:\BZRCoop`.
+
+- **One command.** `reverse_engineering\Run-BZRCoopMission.ps1 -Mission misn03 -Scenario win [-Clients 2|3|4]
+  [-CampaignContent <staged CR content>] [-ContentOverride <folder>] [-KeepRunning]`. It stages CR into
+  `C:\BZRCoop\stage\3686673790`, starts the loopback server, prepares instances, launches the clients,
+  walks the lobby, runs the scenario, checks logs, writes `flow-summary.md`, and stops everything. Exit code
+  0 is PASS. Evidence: `C:\BZRCoop\runs\<run>\`.
+- **Manual lifecycle.** `reverse_engineering\BZRCoopSession.ps1 -Action Prepare|Launch|Stop|Status -Clients N
+  -CampaignStage <dir>` does just the instances. `Launch` first checks `http://127.0.0.1:8080/health`, so the
+  server must already be running. It starts clients one at a time (`-LaunchDelaySeconds`, default 30) and
+  holds the launch lock for as long as it runs.
+- **Instances.** Each client is `C:\BZRCoop\instances\Instance<N>\Battlezone 98 Redux`: a copy of the GOG
+  install's exe, DLLs and small configs, junctions to the large read-only asset trees, its own `logs\`,
+  `save\`, `mods\`, a Goldberg `steam_api.dll` with a per-instance name (`BZRCoop1`..) and Steam id, and an
+  `openshim.ini` with `RawMouseInput = 0`. Instances are disposable; regenerate them instead of editing them.
+  The harness needs Goldberg's DLL at `C:\BZRCoop\tools\NucleusCoop\utils\GoldbergEmu\steam_api.dll` and
+  `C:\BZRCoop\tools\steam_interfaces.txt` (present on the maintainer's machine; **[unverified]** for any
+  other machine).
+- **Matchmaking redirect.** The coordinator sets `OPENSHIM_MATCHMAKING_ADDRESS=127.0.0.1`, launches with
+  `CreateProcess` (environment inherited), and then checks every client's log: a redirect other than
+  `127.0.0.1`, an official-server contact, or no redirect line within 15 s stops that client and fails the
+  run. For any other launcher, put the redirect in each instance's **`net.ini`**, not the environment (see
+  gotchas).
+- **Ports.** Loopback only: 1337/tcp, 1338/udp, 1339/udp, 8080/tcp, plus ephemeral per-pair UDP relay
+  ports for 3-4 clients. These do not qualify any firewall or WAN setup.
+- **Windowed, quiet, serialized.** `BZR_FORCE_WINDOWED=1` is set for every launch (never fullscreen: a
+  force-killed fullscreen D3D device can lock the workstation). `BZRHarness.ps1` defaults
+  `OPENSHIM_NEVER_ACTIVATE=1` and `OPENSHIM_NEVER_CAPTURE_MOUSE=1`, takes the machine-wide launch mutex
+  (`Local\BZROpenShimGameLaunch`), and refuses to launch when a game is already running. Do not dot-source
+  `BZRHarness.ps1` from a scenario: the coordinator already holds the lock and the scenario would block.
+- **Stopping.** `Stop-BZRGame -Id <pid> -NoForce` (WM_CLOSE). Never force-kill.
+- **Several machines.** The harness is single-PC and loopback-only. A second physical PC is the manual LAN
+  recipe in `LAN_COOP.md`: the same CR build in `mods\3686673790` on every PC, every PC pointed at the
+  server's LAN address. **[inferred]** An agent can drive the first PC with the harness only if the others
+  are driven by hand; no multi-PC automation exists.
+
+#### Loading a CR co-op listing
+
+A CR co-op mission is a `strategy` listing (`Config/misnNN.ini`, `mapType = "multiplayer"`, `gameType = "S"`,
+2-4 players) shipped in the CR mod folder. The harness copies the staged CR into each instance's
+`mods\3686673790`, so the listing appears in Multiplayer > Internet > Create Game on the host. Then
+`BZRCoopLobby.ps1` has the host create the game, click the map row, raise the native Player Limit to the
+client count (the shell keeps 2 otherwise), enable Sync Join, join each guest, and launch.
+
+- Staged content comes from `-CampaignContent`. Its default (`...\GIT\CR-release\Local\Workshop\content`)
+  does not exist on this machine; pass a staged tree explicitly, for example the canonical checkout's
+  `Local\Workshop\content` **[inferred]**, or build an override of uncommitted work with
+  `New-CRFlowOverride.ps1` and pass it as `-ContentOverride`.
+- The host's map row is a pixel position in the 1280x720 shell. `Run-BZRCoopMission.ps1` knows
+  `misn05=128, misn03=147, misn02b=159, misn04=171` (`$KnownMapRows`); any other mission, such as the misn06
+  to misn13 listings, needs `-MapListY <row>` (the lobby script also scans rows 88-230 and confirms the pick
+  through the server's `gameSettings`). Test instances need `PreLobby=0`.
+- Hash-check the staged `mods\3686673790` and the deployed OpenShim/EXU DLLs before and after (see 5.3).
+
+#### Driving the clients by Lua
+
+Never by focus or `SendInput` unless the owner says the PC is free. The scenario runner and
+`BZRCoopPlay.ps1` talk to `CRFlowProbe.lua`, which the harness installs into each client's mission.
+
+- Hands-on: `Run-BZRCoopMission.ps1 -Mission <m> -Scenario play` loads the mission and leaves it running;
+  then, one action per call, `BZRCoopPlay.ps1 -Lua '<chunk>' [-Client 0|1|both]`, `-State`, `-Events`,
+  `-Shot`, `-Key`, `-Click`, `-Status`, and finally `-Stop`. `-Mission <m> -Scenario <s> -Attach` runs a
+  scenario against that live session. Attach right after load: an idle misn03 is lost at about 77 s.
+- Scenarios live in `reverse_engineering/coopflow/scenarios/` (`<mission>-<name>.ps1`, else `<name>.ps1`);
+  step helpers are `Invoke-CRFlowStep`, `Invoke-CRFlow`, `Wait-CRFlow`, `Wait-CRFlowOp`, `Wait-CRFlowEvent`.
+  Probe helpers in Lua include `role()`, `players()`, `tp`, `put`, `kill`, `killTeam`, `heal`, `ff`.
+  CR ships its own scenario, `Tools/Test-CoopCommsLive.ps1` (use it with `-ContentOverride` and a fresh
+  `exu.dll`).
+- Client 0 is the host (player 1, team 1, authority); the others are guests. A client may only move, damage
+  or remove objects it owns; the host owns mission AI. Never write the guest's `M` state: the guest must
+  reach it through CR's replication. A guest's plain `BuildObject` stays local; use `exu.BuildSyncObject` on
+  the owner for multi-owner tests. Keep `Send()` strings under 128 bytes.
+- `BZRCoopPlay.ps1` addresses clients 0 and 1 only (`-Client 0|1|both`); **[inferred]** for clients 2 and 3
+  use a scenario (`Invoke-CRFlow <client> '<lua>'`) as the four-client scenarios do.
+
+#### What to assert
+
+- **No Lua error alert on any client.** A Lua error in a network game can close the host (3.4). The
+  PR #465 live check of misn03 showed the alert as `Lua script Update error:` in the host's `BZLogger.txt`.
+  Assert: no such line on any client, no `Ogre Rendering Exception Seen` line, every client process still
+  alive afterwards, and no kick or `ping failure` lines on the host. The runner's end-of-run Lua-error scan
+  covers the first part.
+- **Host departure.** The `host-leaves` scenario closes the host with WM_CLOSE: each guest must see
+  `role().leaderDeparted`, call `FailMission` exactly once, and stay running. Register the pid in
+  `$script:CRFlowExpectedExit` before closing a client on purpose.
+- **Peer-identical weather.** The harness has no generic weather-parity check **[inferred from a search of
+  the scenarios]**. The misn05 win scenario waits for the shared severe-weather cue and queries
+  `require("CRMarsWeather").GetTargetLevel() >= 4` on every guest. For other missions, read the same
+  weather module's state through `-Lua` on every client and compare it with the host's, and confirm the
+  event reached the guests (weather events must be routed to them, 3.6).
+- **Guest objectives and results.** Use `Wait-CRFlowOp <guest> AddObjective '<file>.otf'` (and the other
+  replicated presentation ops) and `Test-CRFlowResultParity`. The runner adds presentation-stream parity
+  between the host and every guest, requires exactly one result per client, and fails on a duplicate result,
+  script error, wrong directional alliance or wrong craft owner. Four-client runs also gate on
+  `native-network-health.json` (a diagnostic heuristic, not measured zero loss).
+
+#### Known gotchas
+
+- **RDP must be Active and unlocked** (`query user`); `query session` says Active even when locked.
+  Capture one frame and look at it. A disconnected session kills the DX11 device about 100 s in and can
+  stop a client's shell rendering. Do not unlock or take over the workstation; ask.
+- **WMI launches lose the redirect.** A game started with `Win32_Process.Create` does not inherit
+  `OPENSHIM_MATCHMAKING_ADDRESS`, so Goldberg test clients reach the official lobby (this happened on
+  2026-10-10). The shipped session script is safe because it uses `CreateProcess` plus the log guard. Any
+  hand-rolled WMI launcher must write `MatchmakingRedirectAddress = 127.0.0.1` under `[OpenShimSocket]` in
+  each instance's `net.ini` (the same key in `openshim.ini` is ignored), read it back, and stop the client
+  at once if the first `relay_logging: ... matchmakingRedirect=` line in `openshim.log` shows anything else.
+- **Focus.** A minimized Redux still owns the foreground, and test clients once stole the mouse. Keep to
+  posted messages (`WM_ACTIVATE` is sent before clicks); `-Focused` input is opt-in. PR #423
+  (`UnfocusedMouseRelease`) treats a minimized or background Redux as unfocused. The simulation can also
+  stall on focus loss with no crash; a run that never reaches its final marker is not a result.
+- **MP-gated OpenShim fixes.** Five `[Fixes]` stand down in a network game (ApcAlliedTargetDeploy,
+  SplinterUndead, HowitzerUndeployedRetaliation, TugCargoPostLoad, ConstructorRemoteBuild). A co-op run
+  therefore does not exercise them, and their absence there is expected. Test those in single-player.
+- **Audio.** Clients need an audio endpoint, or voice-overs complete instantly and films gated on audio end
+  on frame 1 (the run summary warns "audio available"). `-MuteClients` keeps tests quiet.
+- **Key delivery.** In network games the mission `GameKey` callback sees only some keys; the raw key state
+  sees all of them.
+- **Co-op map rule.** Never name a path `player_path` in a co-op map (online it spawns a team-0 ship).
+- **Shared-machine hazards.** Another agent may hold the launch lock, the ports or `C:\BZRCoop`; an
+  independent game once ran under `C:\BZRCoop\sx` and blocked a suite. Wait; do not kill other games.
+- A stale `patches.json` copy or a DLL deployed by another agent mid-run produces "nothing happened".
+  Hash-verify.
+
+#### Cleanup checklist
+
+1. Stop each client with `Stop-BZRGame -Id <pid> -NoForce`, or `BZRCoopPlay.ps1 -Stop` for a play session,
+   or `BZRCoopSession.ps1 -Action Stop`. Confirm `Get-Process battlezone98redux` is empty.
+2. Stop the loopback server (the runner does it unless `-KeepRunning`); confirm 1337/1338/1339/8080 are free.
+3. Confirm the launch lock is released and `C:\BZRCoop\session.json` / `play.json` describe no live pids.
+4. Copy anything worth keeping out of `C:\BZRCoop\runs\<run>` and `C:\BZDumps` (to `C:\BZDumps\keep\`),
+   and record the run name in the PR or doc. Never commit run output, dumps or screenshots.
+5. Leave the GOG install current: restore any file you swapped (the real `patches.json` must go back) and
+   delete a `steam_appid.txt` you added for Steam runs.
+6. Remove disposable overrides and instances you no longer need; never leave loose test files in `mods\`.
+7. Remove your own worktree and branch once the PR merges (section 1, "Branches and worktrees").
 
 ---
 
