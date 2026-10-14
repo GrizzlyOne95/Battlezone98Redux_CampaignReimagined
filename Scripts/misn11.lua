@@ -539,10 +539,12 @@ local function UpdateBackup()
         CallBackup()
     end
     if not M.betrayal_message then return end
+    -- Stock Lua Formation() reads arg 2 as an integer priority and passes it as the leader
+    -- (Redux 2.2.301 binding 0x005079B0), so issue the native FORMATION order directly.
     if not M.backup_formed then
         M.backup_formed = true
         for _, unit in ipairs(M.backup) do
-            if IsAlive(unit) and IsAlive(M.openh) then Follow(unit, M.openh, 1) end
+            if IsAlive(unit) and IsAlive(M.openh) then SetCommand(unit, AiCommand.FORMATION, 1, M.openh) end
         end
     end
     if now >= M.next_squad then
@@ -557,7 +559,7 @@ local function UpdateBackup()
                     end
                 elseif M.squad_order[unit] ~= nil then
                     M.squad_order[unit] = nil
-                    if IsAlive(M.openh) then Follow(unit, M.openh, 1) end
+                    if IsAlive(M.openh) then SetCommand(unit, AiCommand.FORMATION, 1, M.openh) end
                 end
             end
         end
