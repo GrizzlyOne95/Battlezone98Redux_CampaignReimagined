@@ -1,8 +1,10 @@
 -- Co-op comms: pings, help calls, team status, rescue dispatch, recall and
 -- unit hand-off. Every world change runs on the machine that owns the object:
--- a guest moves only its own craft, a dispatched craft stays the host's until
--- it arrives, and a hand-off rebuilds the unit on the receiver (who owns the
--- copy) before the giver removes its original. SetLocal is never used.
+-- a guest moves only its own craft; a rescue is the host's native CMD_RESCUE
+-- order (RescueTask drives to the pilot and its AI pilot bails out within
+-- 30 m, so the guest boards through the stock hop-in handoff); a hand-off
+-- rebuilds the unit on the receiver before the giver removes its original.
+-- SetLocal is never used.
 local M = {}
 local unpackArgs = unpack or table.unpack
 local VERSION, CHANNEL = 2, "J"
@@ -10,7 +12,7 @@ local PING, REQUEST, CANCEL, RESPONSE, RECEIPT = 1, 2, 3, 4, 5
 local STATUS, DISPATCH, RECALL, GIVE, TAKEN = 6, 7, 8, 9, 10
 M.RESCUE, M.SUPPLY = 1, 2
 M.HELP_COOLDOWN, M.NO_ANSWER_AFTER, M.SUPPLY_TIMEOUT = 20, 15, 45
-local STATUS_PERIOD, MARKER_PERIOD, ORDER_PERIOD = 2, 1, 2
+local STATUS_PERIOD, MARKER_PERIOD = 2, 1
 local ARRIVE_RANGE, GIVE_TIMEOUT = 35, 8
 -- Production units never change hands.
 local PRODUCTION = { recycler = true, factory = true, armory = true, constructionrig = true }
@@ -27,13 +29,9 @@ local function percent(f)
     if not finite(f) then return 0 end
     return math.max(0, math.min(100, math.floor(f * 100 + 0.5)))
 end
--- hp and ammo share one wire number: hp * 1000 + ammo, plus 1000000 for "empty".
-local function encode(hp, ammo, empty) return hp * 1000 + ammo + (empty and 1000000 or 0) end
-local function decode(v)
-    local empty = v >= 1000000
-    if empty then v = v - 1000000 end
-    return math.floor(v / 1000), v % 1000, empty
-end
+-- hp and ammo (0-100 each) share one wire number: hp * 1000 + ammo.
+local function encode(hp, ammo) return hp * 1000 + ammo end
+local function decode(v) return math.floor(v / 1000), v % 1000 end
 M.Encode, M.Decode = encode, decode
 
 function M.Create(d)
@@ -113,10 +111,9 @@ function M.Create(d)
         local copy = call("spawn", odf, me.team, xf)
         if not valid(copy) then say("Could not take that unit."); return end
         taken[h] = true
-        local hp, ammo, empty = decode(value)
+        local hp, ammo = decode(value)
         call("setHealth", copy, hp / 100)
         call("setAmmo", copy, ammo / 100)
-        if empty then call("removePilot", copy) end
         service.Publish(packet(TAKEN, from, nil, h))
     end
     local function apply(from, p)
@@ -295,8 +292,8 @@ function M.Create(d)
         d.target(ping.handle)
         return true
     end
-    -- Host: drive one of its own craft to a guest on foot. On arrival the
-    -- craft is handed to the guest empty, so the guest owns it and hops in.
+    -- Host: order one of its own craft to pick up a guest on foot with the
+    -- stock rescue command. The engine does the rest: drive, bail out, board.
     function service.Dispatch(craft, subject)
         if not service.IsActive() or not d.authority() then return false, "Only the host can send a ride." end
         if not service.CanGive(craft) then return false, "Select one of your own vehicles first." end
@@ -304,7 +301,9 @@ function M.Create(d)
         for other, job in pairs(dispatches) do
             if job.craft == craft then dispatches[other] = nil end
         end
-        dispatches[subject] = { craft = craft, next = 0 }
+        local ok = pcall(d.rescue, craft, player(subject).handle)
+        if not ok then return false, "That vehicle cannot do a pickup." end
+        dispatches[subject] = { craft = craft }
         return publish(packet(DISPATCH, subject, nil, craft, nil, 1))
     end
     function service.Recall()
@@ -313,13 +312,13 @@ function M.Create(d)
         if not coordinates(pos) then return false, "You have no craft right now." end
         return publish(packet(RECALL, nil, nil, nil, pos))
     end
-    function service.Give(h, subject, empty)
+    function service.Give(h, subject)
         if not service.IsActive() or not d.ready() then return false, "Still connecting. Try again in a moment." end
         if subject == d.localId() or not player(subject) then return false, "Pick a teammate." end
         if not service.CanGive(h) then return false, "You can only give your own units (not production units)." end
         if gives[h] then return false, "That unit is already being handed over." end
         gives[h] = { to = subject, deadline = now() + GIVE_TIMEOUT }
-        local value = encode(percent(call("health", h)), percent(call("ammo", h)), empty)
+        local value = encode(percent(call("health", h)), percent(call("ammo", h)))
         return publish(packet(GIVE, subject, nil, h, nil, value))
     end
     function service.Receive(from, channel, ...)
@@ -464,19 +463,13 @@ function M.Create(d)
         end
         for subject, job in pairs(dispatches) do
             local target = player(subject)
-            if not target or not service.CanGive(job.craft) or not onFoot(subject) then
+            -- The guest boarding (no longer on foot) or the craft dying ends it.
+            if not target or not valid(job.craft) or not onFoot(subject) then
                 dispatches[subject] = nil; changed()
-            else
-                local goal = position(target.handle)
-                if distance(position(job.craft), goal) <= ARRIVE_RANGE then
-                    dispatches[subject] = nil
-                    publish(packet(DISPATCH, subject, nil, job.craft, nil, 2))
-                    local ok, reason = service.Give(job.craft, subject, true)
-                    if ok == false and reason then say(reason) end
-                elseif time >= job.next then
-                    job.next = time + ORDER_PERIOD
-                    call("order", job.craft, goal)
-                end
+            elseif not job.arrived and
+                distance(position(job.craft), position(target.handle)) <= ARRIVE_RANGE then
+                job.arrived = true
+                publish(packet(DISPATCH, subject, nil, job.craft, nil, 2))
             end
         end
         for h, job in pairs(gives) do

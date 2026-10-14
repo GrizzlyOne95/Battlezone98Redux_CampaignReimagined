@@ -6,8 +6,10 @@ local Data = require("PersistentConfigData")
 local active, calls, checks = false, {}, 0
 local me, host, now = 30, false, 0
 local requests, onFoot, selection, markers = {}, { [30] = true }, {}, true
+local bo = { name = "bo craft" }
+local aimed = { "terrain", nil, { x = 1, y = 2, z = 3 } }
 local players = { [20] = { name = "Ian", team = 1, ready = true }, [30] = { name = "Ann", team = 2, ready = true },
-    [40] = { name = "Bo", team = 3, ready = true } }
+    [40] = { name = "Bo", team = 3, ready = true, handle = bo } }
 local function check(v, label) assert(v, label); checks = checks + 1 end
 local ping = { name = "Ian", kind = "object", position = { x = 0, y = 0, z = 100 }, expires = 10 }
 local function log(text) calls[#calls + 1] = text; return true end
@@ -31,7 +33,7 @@ local coop = { GetComms = function() return comms end, IsAuthority = function() 
     IsHumanTeam = function(team) return team >= 1 and team <= 4 end,
     IsSessionReady = function() return true end }
 local ui = Pda.Create({ coop = coop, pages = Data.PdaPages, feedback = error,
-    exu = { GetReticleHit = function() return "terrain", nil, { x = 1, y = 2, z = 3 } end },
+    exu = { GetReticleHit = function() return aimed[1], aimed[2], aimed[3] end },
     time = function() return now end, selected = function() return selection end })
 local state = { pdaPage = 1 }
 check(#ui.PageOrder() == 8, "eight solo pages")
@@ -58,15 +60,15 @@ check(text:find("> CALL RIDE (V)", 1, true) and text:find("  TARGET Ian\n", 1, t
 check(rows(text) == 3 and text:find("MARKERS ON", 1, true), "guest sees three rows")
 check(not text:find("SEND", 1, true) and not text:find("RECALL", 1, true) and not text:find("GIVE", 1, true), "no host rows")
 check(text:find("Ann*  on foot", 1, true) and text:find("Ian^  H90 A80", 1, true), "team list")
-check(text:find("V help", 1, true), "guest footer names V")
+check(text:find("V help", 1, true) and text:find("Bksp do", 1, true) and text:find("J ping", 1, true), "guest footer")
 ui.HandleInput(false, false, false, false, true)
 check(calls[#calls] == "help", "J calls for help")
 ui.HandleInput(false, true, false, false, true)
 check(calls[#calls] == "target 20", "J targets the teammate's mark")
 ui.HandleInput(false, true, false, false, true)
 check(calls[#calls] == "markers false", "J toggles markers")
-check(ui.QuickAction() and calls[#calls] == "terrain", "J outside the page pings for guests")
-check(ui.CallHelp() and calls[#calls] == "help", "V calls for help")
+check(ui.PingAim() and calls[#calls] == "terrain", "J pings")
+check(ui.HelpKey() and calls[#calls] == "help", "V calls for help")
 onFoot[30] = false
 check(render():find("CALL SUPPLY (V)", 1, true), "in a vehicle the call is for supplies")
 requests = { [30] = { name = "Ann", kind = 2, status = "Requested" } }
@@ -75,31 +77,37 @@ requests = {}
 -- Giving selected units cycles through teammates.
 selection = { { name = "tank", mine = true }, { name = "enemy" } }
 text = render()
-check(text:find("GIVE 1 > Ian <1/2>", 1, true), "give row counts only own units")
+check(text:find("GIVE (Z) 1 > Ian <1/2>", 1, true), "give row counts only own units")
 ui.selected = "give"; ui.HandleInput(false, false, false, true, false)
-check(render():find("GIVE 1 > Bo <2/2>", 1, true), "Right picks the next teammate")
+check(render():find("GIVE (Z) 1 > Bo <2/2>", 1, true), "Right picks the next teammate")
 ui.HandleInput(false, false, false, false, true)
-check(calls[#calls] == "give tank 40", "J gives")
+check(calls[#calls] == "give tank 40", "Backspace gives")
+local ok, why = ui.GiveKey()
+check(not ok and why == "Aim at a teammate first.", "Z needs an aimed teammate")
+aimed = { "object", bo }; calls[#calls + 1] = "-"
+check(ui.GiveKey() and calls[#calls] == "give tank 40", "Z gives to the aimed teammate")
+aimed = { "terrain", nil, { x = 1, y = 2, z = 3 } }
 -- Host: send ride, reply, give, recall, markers.
 me, host, selection = 20, true, { { name = "sabre", mine = true } }
 onFoot = { [40] = true }
 requests = { [40] = { name = "Bo", kind = 1, status = "Requested" } }
 ui.selected = nil; ui.row = 1
 text = render()
-check(text:find("> SEND RIDE > Bo\n", 1, true) and text:find("Bo RIDE: <YES>", 1, true), "host rows")
+check(text:find("> SEND RIDE (V) > Bo\n", 1, true) and text:find("Bo RIDE: <YES>", 1, true), "host rows")
 check(text:find("RECALL ALL TO ME", 1, true) and not text:find("CALL RIDE", 1, true), "host has recall, no help call")
-check(not text:find("V help", 1, true), "host footer has no V")
-check(ui.QuickAction() and calls[#calls] == "dispatch sabre 40", "J with a vehicle selected sends it")
+check(text:find("V send ride", 1, true) and not text:find("V help", 1, true), "host footer")
+check(ui.HelpKey() and calls[#calls] == "dispatch sabre 40", "V with a vehicle selected sends it")
 ui.HandleInput(false, true, false, false, false); ui.HandleInput(false, false, true, false, true)
 check(calls[#calls] == "respond 40 2", "Left flips the reply to NO")
 ui.selected = "recall"; ui.HandleInput(false, false, false, false, true)
-check(calls[#calls] ~= "recall" and render():find("RECALL ALL? J AGAIN", 1, true), "recall asks first")
+check(calls[#calls] ~= "recall" and render():find("RECALL ALL? BKSP AGAIN", 1, true), "recall asks first")
 ui.HandleInput(false, false, false, false, true)
 check(calls[#calls] == "recall", "second J recalls")
 ui.HandleInput(false, false, false, false, true); now = 5; ui.HandleInput(false, false, false, false, true)
 check(calls[#calls] ~= "recall" or calls[#calls - 1] ~= "recall", "confirmation expires")
 selection = {}
-check(ui.QuickAction() and calls[#calls] == "terrain", "host with nothing selected pings")
+ok, why = ui.HelpKey()
+check(not ok and why == "Select one of your vehicles first.", "host V needs a selected vehicle")
 me, host, onFoot, requests = 30, false, { [30] = true }, {}
 active = false; ui.UpdatePage(state)
 state.pdaPage = 9; ui.UpdatePage(state)

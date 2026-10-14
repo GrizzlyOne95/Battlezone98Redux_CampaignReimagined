@@ -6358,13 +6358,13 @@ end
 
 -- Raw key name (exu.GetGameKey) -> the name GameKey would have queued.
 local NetworkPolledGameKeys = {
-    { raw = "J", key = "J" }, { raw = "V", key = "V" }, { raw = "LBRACKET", key = "[" }, { raw = "RBRACKET", key = "]" },
+    { raw = "J", key = "J" }, { raw = "V", key = "V" }, { raw = "Z", key = "Z" }, { raw = "BACKSPACE", key = "BACKSPACE" }, { raw = "LBRACKET", key = "[" }, { raw = "RBRACKET", key = "]" },
     { raw = "UARROW", key = "UP" }, { raw = "DARROW", key = "DOWN" },
     { raw = "LARROW", key = "LEFT" }, { raw = "RARROW", key = "RIGHT" },
 }
 -- Every GameKey name the consumers below accept for those keys.
 local NetworkPolledKeyNames = {}
-for _, name in ipairs({ "J", "V", "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET",
+for _, name in ipairs({ "J", "V", "Z", "BACKSPACE", "BACK", "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET",
     "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET", "UP", "UPARROW", "DOWN", "DOWNARROW",
     "LEFT", "LEFTARROW", "RIGHT", "RIGHTARROW" }) do
     NetworkPolledKeyNames[name] = true
@@ -6617,18 +6617,27 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     PersistentConfig._PollNetworkGameKeys(typing)
     local coopAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "J" })
     local helpAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "V" })
+    local giveAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "Z" })
+    -- Backspace does the selected co-op row: Enter, ` and Ctrl+C are stock chat.
+    local doAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "BACKSPACE", "BACK" })
     if uiInteractionSuppressed then return end
     if typing then
         -- Keep the X edge current so an X typed in chat does not toggle later.
         InputState.last_toggle_state = exu.GetGameKey("X")
         return
     end
-    if coopAction and not PersistentConfig.Settings.WeaponStatsHud and IsValid(currentPlayerHandle) then
-        local ok, reason = PersistentConfig.CoopPda.QuickAction()
+    -- Co-op keys work with the PDA open or closed: J pings, V calls for help
+    -- (host: sends the selected vehicle), Z gives selected units to the aimed teammate.
+    if coopAction and IsValid(currentPlayerHandle) then
+        local ok, reason = PersistentConfig.CoopPda.PingAim()
         if ok == false and reason then DisplayMessage("[CO-OP] " .. reason) end
     end
     if helpAction and IsValid(currentPlayerHandle) then
-        local ok, reason = PersistentConfig.CoopPda.CallHelp()
+        local ok, reason = PersistentConfig.CoopPda.HelpKey()
+        if ok == false and reason then DisplayMessage("[CO-OP] " .. reason) end
+    end
+    if giveAction and IsValid(currentPlayerHandle) then
+        local ok, reason = PersistentConfig.CoopPda.GiveKey()
         if ok == false and reason then DisplayMessage("[CO-OP] " .. reason) end
     end
 
@@ -6671,8 +6680,8 @@ function PersistentConfig.UpdateInputs(cinematicActive)
 
     if InputState.pdaPage == PdaPages.COOP then
         PersistentConfig.CoopPda.HandleInput(pda_up_key, pda_down_key, pda_left_key, pda_right_key,
-            coopAction and IsValid(currentPlayerHandle))
-        if pda_up_key or pda_down_key or pda_left_key or pda_right_key or coopAction then RefreshPdaOverlay() end
+            doAction and IsValid(currentPlayerHandle))
+        if pda_up_key or pda_down_key or pda_left_key or pda_right_key or doAction or coopAction or helpAction or giveAction then RefreshPdaOverlay() end
     elseif InputState.pdaPage == PdaPages.WEAPONS then
         local installedSlots = {}
         if IsValid(currentPlayerHandle) then
