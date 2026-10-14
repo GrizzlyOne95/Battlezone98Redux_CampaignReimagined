@@ -19,7 +19,7 @@ local friendTank = object(30, 3, { pos = { x = 50, y = 0, z = 0 }, hp = 0.9, amm
 local registry = { [10] = { name = "Host", team = 1, handle = hostCraft, ready = true },
     [20] = { name = "Guest", team = 2, handle = guestPilot, ready = true },
     [30] = { name = "Friend", team = 3, handle = friendTank, ready = true } }
-local spawned, removed, recalls, objectives, orders = {}, {}, {}, {}, {}
+local spawned, removed, recalls, objectives, rescues = {}, {}, {}, {}, {}
 local spawnFails = false
 local function messagesFor(id, pattern)
     for _, m in ipairs(messages) do if m[1] == id and m[2]:find(pattern, 1, true) then return true end end
@@ -52,9 +52,8 @@ for id in pairs(registry) do
             return copy
         end,
         setHealth = function(h, f) h.hp = f end, setAmmo = function(h, f) h.ammo = f end,
-        removePilot = function(h) h.empty = true end,
         remove = function(h) h.valid = false; removed[#removed + 1] = h end,
-        order = function(h, pos) orders[#orders + 1] = { h = h, pos = pos } end,
+        rescue = function(craft, pilot) rescues[#rescues + 1] = { craft = craft, pilot = pilot } end,
         recall = function(pos, ordinal) recalls[#recalls + 1] = { who = mine, pos = pos, ordinal = ordinal } end,
         objective = function(h, label) objectives[mine .. ":" .. tostring(h)] = label end,
     }
@@ -118,24 +117,29 @@ friendTank.hp = 0.9
 advance(2.1); advance(0.1)
 check(not H.GetRequests()[30], "times out once repaired")
 
--- Rescue dispatch: host craft drives to the guest, then is handed over empty.
+-- Rescue dispatch: the host's own craft gets the stock rescue order; the
+-- engine drives it, bails its AI pilot out and lets the guest board.
 check(not G.Dispatch(hostCraft, 20), "guests cannot dispatch")
 local foreign = object(30, 3)
 check(not H.Dispatch(foreign, 20), "host cannot send a unit it does not own")
 check(not H.Dispatch(friendTank, 30), "only to players on foot")
 local ride = object(10, 1, { pos = { x = 0, y = 0, z = 0 } })
+local before = #spawned
 check(H.Dispatch(ride, 20), "host dispatches"); flush()
+check(rescues[1].craft == ride and rescues[1].pilot == guestPilot and #rescues == 1, "one native rescue order")
 check(messagesFor(20, "The host is sending you a ride."), "guest told a ride is coming")
 check(G.GetRequests()[20].status == "Help on the way" and H.Describe(20) == "ride coming", "request answered by dispatch")
 advance(0.1)
-check(orders[#orders].h == ride and orders[#orders].pos == guestPilot.pos, "craft ordered to the guest")
+check(not messagesFor(20, "Your ride is here"), "not there yet")
 ride.pos = { x = 280, y = 0, z = 0 }
-local before = #spawned
 advance(0.1); advance(0.1)
-local copy = spawned[#spawned]
-check(#spawned == before + 1 and copy.owner == 20 and copy.team == 2 and copy.empty, "guest owns an empty copy")
-check(not ride.valid and removed[#removed] == ride, "host removed its original after the receipt")
 check(messagesFor(20, "Your ride is here. Get in!"), "guest told to get in")
+check(#spawned == before and ride.valid and #rescues == 1, "no copy, no removal, no re-order")
+-- Boarding (the guest's handle becomes the craft) ends the dispatch.
+registry[20].handle = ride
+advance(0.1)
+check(not next(H.GetDispatches()), "boarding ends the dispatch")
+registry[20].handle = guestPilot
 
 -- Hand-off between guests: rebuilt by the receiver, original removed by the giver.
 local tank = object(30, 3, { hp = 0.5, ammo = 0.25, odf = "avtank", pos = { x = 9, y = 1, z = 9 } })
@@ -143,7 +147,7 @@ before = #spawned
 check(F.Give(tank, 20), "guest gives a tank"); flush(); advance(0.1)
 copy = spawned[#spawned]
 check(#spawned == before + 1 and copy.owner == 20 and copy.team == 2 and copy.odf == "avtank", "receiver rebuilt it")
-check(copy.hp == 0.5 and copy.ammo == 0.25 and not copy.empty, "hull and ammo carried over")
+check(copy.hp == 0.5 and copy.ammo == 0.25, "hull and ammo carried over")
 check(not tank.valid, "giver removed the original")
 check(messagesFor(10, "Friend gave a unit to Guest."), "others told")
 local recycler = object(30, 3, { label = "recycler" })

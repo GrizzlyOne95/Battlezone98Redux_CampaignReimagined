@@ -10,12 +10,15 @@ game; this page uses the existing keyboard navigation.
 | [ / ] | Previous/next visible PDA page |
 | Up / Down | Select a row |
 | Left / Right | Change the selected row's choice (mark, teammate, YES/NO) |
-| J | Activate the selected row |
-| J with PDA closed | Ping the object or terrain under the reticle. The host with one of their own vehicles selected and a guest on foot sends that vehicle instead |
-| V | Guests: call for help (on foot: a ride; in a vehicle: supplies). 20-second cooldown |
+| Backspace | Do the selected row |
+| J | Ping the object or terrain under the reticle (PDA open or closed) |
+| V | Guests: call for help (on foot: a ride; in a vehicle: supplies), 20-second cooldown. Host: send the selected vehicle to pick up whoever asked first (or the first guest on foot) |
+| Z | Give your selected units to the teammate under the reticle |
 
-V is the only free letter besides J and X: every other letter is a stock
-binding in `input.map`/`gamekey.map` (H is hop out, Z and V are edit-mode only).
+J, V and Z work without opening the PDA, so urgent actions never need menu
+scrolling. Stock `input.map`/`gamekey.map` bind every other letter (H is hop
+out); V and Z are edit-mode only. Backspace does PDA rows because Enter, ` and
+Ctrl+C are all stock chat.
 
 Enter retains native chat. In network games Redux calls the mission `GameKey`
 callback for J, [ ], the arrows and Enter only sometimes, so CR polls those keys
@@ -33,7 +36,7 @@ The page lists only rows that work right now. Guests see a help row (CALL
 RIDE, CALL SUPPLY or CANCEL HELP), TARGET for a teammate's object mark, GIVE
 when they have their own units selected, and MARKERS. The host also sees SEND
 RIDE (vehicle selected, guest on foot), one YES/NO reply row per open call, and
-RECALL ALL TO ME (J twice within three seconds). The team list shows each
+RECALL ALL TO ME (Backspace twice within three seconds). The team list shows each
 player's status: `H<hull%> A<ammo%>`, `on foot`, `NEEDS A RIDE`,
 `NEEDS SUPPLIES`, or `ride coming`/`supplies coming`; ` !` marks hull at most 25%
 or ammo at most 10%.
@@ -54,12 +57,16 @@ Each peer labels the other players' craft with `SetObjectiveName` and
 HUD.
 
 Ownership rule: a world change runs only on the machine that owns the object.
-- **Send ride**: the host orders its own craft (`Goto`) toward a guest on foot,
-  with or without a call. Within 35 m it is handed to the guest empty.
+- **Send ride**: the host gives one of its own craft the stock "Pick Me Up"
+  order, `SetCommand(craft, AiCommand["RESCUE"], 1, pilot)`, for a guest on
+  foot, with or without a call. The engine's `RescueTask` (1.5 `0045b6e8`)
+  drives to the pilot, and within 30 m waits a second and bails its AI pilot
+  out. The guest then boards through the stock hop-in, which hands ownership
+  to the guest's machine (`Person::RegCollision`: SetLocal, team, SetAsUser).
 - **Give**: the giver must own the unit (`IsLocal`, own team, a craft, not
   recycler/factory/armory/constructionrig, not their own craft). The receiver
   rebuilds it on its own team with `exu.BuildSyncObject` at the same transform,
-  hull and ammo (empty for a ride), then sends TAKEN, and the giver removes the
+  hull and ammo, then sends TAKEN, and the giver removes the
   original. If the receiver cannot rebuild it within eight seconds, the giver
   keeps it. `SetLocal` is never used, because it can break a remote AI's control.
 - **Recall**: the host broadcasts its position, and each guest moves its own craft
@@ -95,6 +102,7 @@ Provide the changed Lua modules and a freshly built `exu.dll` through
 `-ContentOverride`. Neither this scenario nor this checkpoint deploys files to
 a player's installed game or publishes Workshop content.
 
-**Not yet live-verified:** whether `BuildSyncObject` copies and the empty ride
-replicate and board correctly, whether `GetAmmo` on the owner is accurate, and
+**Not yet live-verified:** whether the native rescue targets a remote guest's
+pilot and the guest can board the bailed craft, whether `BuildSyncObject`
+copies replicate, whether `GetAmmo` on the owner is accurate, and
 how the recall placement looks. These need a two-client run before release.

@@ -1,9 +1,10 @@
 -- Keyboard-only co-op page for the existing PDA.
--- Only actions that work right now are listed, one short row each. Guests
--- see at most four rows; the host also gets send-ride, reply and recall rows.
--- Outside the page, J pings (or, for the host with a vehicle selected and a
--- guest on foot, sends that vehicle) and V calls for help.
--- V, because every other free letter is a stock binding (H is hop out).
+-- Only actions that work right now are listed, one short row each;
+-- Backspace does the selected row (Enter, ` and Ctrl+C are stock chat). Urgent actions also have keys that work without
+-- opening the PDA: J pings, V calls for help (host: sends the selected vehicle
+-- to pick up a guest on foot), Z gives the selected units to the teammate
+-- under the reticle. V and Z are the only letters stock leaves unbound in play
+-- besides J and X (input.map / gamekey.map; H is hop out).
 local M = {}
 local RECALL_CONFIRM = 3
 local function name(p) return tostring(p and p.name or "Player"):gsub("[%c]", " "):sub(1, 16) end
@@ -97,20 +98,39 @@ function M.Create(d)
         if not ok or not kind then return false, "Aim at something first." end
         return comms().SendPing(kind, h, pos)
     end
-    -- J outside the page: the host with a vehicle selected and a guest on foot
-    -- sends that vehicle; otherwise J marks whatever the reticle is on.
-    function ui.QuickAction()
+    -- V: guests call for help; the host sends the selected vehicle to pick up
+    -- whoever asked first (or the first guest on foot).
+    function ui.HelpKey()
         if not ui.IsActive() then return false end
         local c = comms()
-        if d.coop.IsAuthority() then
-            local units, target = givable(c), bestStranded(c)
-            if units[1] and target then return c.Dispatch(units[1], target) end
-        end
-        return ui.PingAim()
+        if not d.coop.IsAuthority() then return c.CallForHelp() end
+        local units, target = givable(c), bestStranded(c)
+        if not target then return false, "Nobody is on foot." end
+        if not units[1] then return false, "Select one of your vehicles first." end
+        return c.Dispatch(units[1], target)
     end
-    function ui.CallHelp()
+    -- Z: give the selected units to the teammate under the reticle.
+    function ui.GiveKey()
         if not ui.IsActive() then return false end
-        return comms().CallForHelp()
+        local c = comms()
+        local units = givable(c)
+        if not units[1] then return false, "Select your own units first." end
+        local ok, kind, h = pcall(d.exu and d.exu.GetReticleHit or function() end)
+        local to
+        if ok and kind == "object" then
+            for id, p in pairs(teammates()) do if p.handle == h then to = id end end
+        end
+        if not to then return false, "Aim at a teammate first." end
+        return ui.GiveAll(c, units, to)
+    end
+    function ui.GiveAll(c, units, to)
+        local sent, reason = 0, nil
+        for _, h in ipairs(units) do
+            local ok, why = c.Give(h, to)
+            if ok then sent = sent + 1 else reason = why end
+        end
+        if sent == 0 then return false, reason end
+        return true
     end
     -- Rows that can be used right now. Keys keep the cursor on the same action
     -- when rows appear or disappear underneath it.
@@ -123,7 +143,7 @@ function M.Create(d)
             local strandedNow = stranded(c)
             ui.sendTo = strandedNow[ui.sendTo] and ui.sendTo or bestStranded(c)
             if units[1] and ui.sendTo then
-                add({ key = "send", text = "SEND RIDE > " .. name(strandedNow[ui.sendTo]) .. counter(strandedNow, ui.sendTo),
+                add({ key = "send", text = "SEND RIDE (V) > " .. name(strandedNow[ui.sendTo]) .. counter(strandedNow, ui.sendTo),
                     run = function() return c.Dispatch(units[1], ui.sendTo) end,
                     cycle = function(delta) ui.sendTo = choose(strandedNow, ui.sendTo, delta) end })
             end
@@ -153,21 +173,13 @@ function M.Create(d)
         local mates = teammates()
         ui.giveTo = choose(mates, ui.giveTo)
         if units[1] and ui.giveTo then
-            add({ key = "give", text = "GIVE " .. #units .. " > " .. name(mates[ui.giveTo]) .. counter(mates, ui.giveTo),
-                run = function()
-                    local sent, reason = 0, nil
-                    for _, h in ipairs(units) do
-                        local ok, why = c.Give(h, ui.giveTo)
-                        if ok then sent = sent + 1 else reason = why end
-                    end
-                    if sent == 0 then return false, reason end
-                    return true
-                end,
+            add({ key = "give", text = "GIVE (Z) " .. #units .. " > " .. name(mates[ui.giveTo]) .. counter(mates, ui.giveTo),
+                run = function() return ui.GiveAll(c, units, ui.giveTo) end,
                 cycle = function(delta) ui.giveTo = choose(mates, ui.giveTo, delta) end })
         end
         if host then
             local armed = ui.recallAt and now() < ui.recallAt
-            add({ key = "recall", text = armed and "RECALL ALL? J AGAIN" or "RECALL ALL TO ME",
+            add({ key = "recall", text = armed and "RECALL ALL? BKSP AGAIN" or "RECALL ALL TO ME",
                 run = function()
                     if not (ui.recallAt and now() < ui.recallAt) then
                         ui.recallAt = now() + RECALL_CONFIRM
@@ -224,7 +236,9 @@ function M.Create(d)
                 lines[#lines + 1] = "  " .. name(p) .. tag .. (word ~= "" and "  " .. word or "")
             end
         end
-        footer(lines, "J do   Arrows pick" .. (host and "" or "   V help"), "[ ] page   X close", "* you   ^ host")
+        footer(lines, "Bksp do   Arrows pick   J ping",
+            (host and "V send ride" or "V help") .. "   Z give to aimed",
+            "* you  ^ host   [ ] page  X close")
         return table.concat(lines, "\n")
     end
     ui.Reset()

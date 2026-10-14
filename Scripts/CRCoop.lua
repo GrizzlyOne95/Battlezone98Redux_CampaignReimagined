@@ -234,9 +234,10 @@ function CRCoop.Initialize(options)
             end,
             setHealth = function(h, f) SetCurHealth(h, GetMaxHealth(h) * f) end,
             setAmmo = function(h, f) SetCurAmmo(h, GetMaxAmmo(h) * f) end,
-            removePilot = function(h) RemovePilot(h) end,
             remove = function(h) RemoveObject(h) end,
-            order = function(h, pos) Goto(h, pos) end,
+            -- Stock "Pick Me Up" (RescueTask): drives to the pilot and bails its
+            -- own AI pilot out within 30 m; boarding is the stock hop-in handoff.
+            rescue = function(craft, pilot) SetCommand(craft, AiCommand["RESCUE"], 1, pilot) end,
             recall = function(pos, ordinal)
                 local h = GetPlayerHandle()
                 if not IsUsableHandle(h) then return end
