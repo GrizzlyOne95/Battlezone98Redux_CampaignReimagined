@@ -17,11 +17,18 @@
 --              deepened, light dimmed) and the haze bank thickens. Host-decided,
 --              replicated as one small event.
 --   haze bank  a camera-attached drift of large faint amber cards.
+--   surface    the liquid itself: one flat sheet laid just over the methane sea
+--              through EXU StaticGeometry and shaded by Materials/cr_methane.material
+--              (Fresnel sky and haze reflection, low-sun glare and glints, wind
+--              chop, drizzle rings), clipped to the generated wet mask. The ladder
+--              drives four shader controls through exu.SetMaterialPassColors.
+--              Without EXU StaticGeometry or the material the director keeps the
+--              particle-only look below.
 --   pools      wet methane pools where the MAT painting puts liquid: a pale gold
---              sheen lying flat on the liquid (the reflected sky), low
---              evaporation mist, and drizzle ripples. Anchors come from
---              Tools/Build-TitanSites.py (pure "Methane Ocean" cells on the
---              flat sea floor), streamed in near the local player.
+--              sheen lying flat on the liquid (the reflected sky; reduced while the
+--              surface is up), low evaporation mist, and drizzle ripples. Anchors
+--              come from Tools/Build-TitanSites.py (pure "Methane Ocean" cells on
+--              the flat sea floor), streamed in near the local player.
 --   splashes   a wake of methane droplets under any craft or pilot moving
 --              across wet ground near the local player (the generated wet
 --              mask, not a terrain query).
@@ -32,8 +39,10 @@
 -- kind, and does not call any exu fog / light setter itself. The only state it
 -- writes is render state: a CRWeather preset (fog and light go through
 -- CRWeather, which contributes through Environment.lua when the mission loads
--- it), and particle systems. Reading craft positions is the only thing it asks
--- the simulation. Tools/Test-CRTitanWeather.lua audits this by wrapping every
+-- it), particle systems, and one render-only StaticGeometry sheet (no game
+-- object: no collision, radar, AI path or targeting, and identical on every peer
+-- because it comes from static map data). Reading craft positions is the only
+-- thing it asks the simulation. Tools/Test-CRTitanWeather.lua audits this by wrapping every
 -- stubbed BZ and exu function.
 --
 -- CO-OP. The same hybrid as CREuropaWeather / CRIoWeather:
@@ -43,14 +52,14 @@
 --     seeded timeline it has been computing all along;
 --   * haze rolls are decided ONLY by the host and sent as one numeric event
 --     (TitanRoll); every peer renders on receipt;
---   * pools, splashes and the haze bank are local, from static map data and the
+--   * the surface, pools, splashes and the haze bank are local, from static map data and the
 --     replicated craft positions. They may differ by a frame between peers,
 --     which is invisible and has no effect on anything.
 --
 -- PUBLIC API (host / offline unless noted; a guest's call is ignored)
 --   Init{ authority, seed, send, sites, startLevel, targetLevel, enabled, debug,
 --         quality, baseSky, drizzle, hazeBank, rolls, randomRolls, pools,
---         poolMist, ripples, splashes, episodes }
+--         poolMist, ripples, splashes, episodes, surface, surfaceMaterial }
 --   Start(seed, sites)              shorthand for an offline / host Init
 --   Update(dt)                      every frame, every peer
 --   Shutdown()                      destroys every system, stands CRWeather down
@@ -65,7 +74,7 @@
 --   IsWet(x, z)                     true over a wet methane cell (static data)
 --   getters: GetLevel GetLevelName GetTargetLevel IsEpisode GetSeverity
 --            GetRollIntensity IsRolling GetPools GetLivePoolCount GetSplashCount
---            GetStats GetSystemCount Describe
+--            GetStats GetSystemCount GetSurface Describe
 -- Wire ops (all arguments numbers): TitanState, TitanRoll. See Docs/TITAN_WEATHER.md.
 --
 -- Ownership rules (same as the other weather directors):
@@ -101,6 +110,7 @@ V.AllowPoolMist        = true    -- evaporation mist over the pools
 V.AllowRipples         = true    -- drizzle rings on the pools
 V.AllowSplashes        = true    -- wakes under craft crossing wet ground
 V.AllowEpisodes        = true    -- temporary intense spells
+V.AllowSurface         = true    -- the reflective liquid sheet (EXU StaticGeometry + cr_methane.material)
 
 -- Hard budgets. These are caps, not targets.
 V.MaxSystems           = 26      -- every particle system this module owns, at once
@@ -148,6 +158,24 @@ V.PoolSheenHeight      = 0.45    -- above the liquid
 V.PoolMistHeight       = 2.0
 V.PoolRippleHeight     = 0.55
 
+-- Liquid surface (Shaders/cr_methane.hlsl). The sheet covers the whole terrain and
+-- the shader clips it to the wet mask, so it is one draw with no streaming.
+V.SurfaceName          = "cr_titan_methane"
+V.SurfaceMesh          = "cr_methane_plane.mesh"
+V.SurfaceMaterialPrefix = "CR/Titan/Methane"   -- + the mission's digits (misn14: CR/Titan/Methane14)
+V.SurfaceLift          = 0.35    -- above the sea level: wet cells lie within 0.3 of it (the generator's
+                                 -- tolerance), so the floor's small relief stays under the liquid
+V.SurfaceSheenScale    = 0.30    -- pool sheen rate x this while the sheet is up (it carries the reflection)
+V.SurfaceChop          = { 0.45, 0.85 }  -- wind chop at severity 0 .. 1
+V.SurfaceWetness       = 1.0     -- opacity scale
+V.SurfaceRollGlareCut  = 0.55    -- a full haze roll takes this fraction of the glare away
+-- The low sun the liquid glares toward (Ogre-space light direction, Environment's titan
+-- DaySunDirection) and how far the shader follows it instead of the scene's light 0.
+-- misn14 does not load Environment, and its stock sun stands almost overhead.
+V.SurfaceHazeSun       = { x = 0.78, y = -0.36, z = -0.51, w = 1.0 }
+V.SurfaceRetrySeconds  = 5.0     -- a create that failed because the scene was not ready is retried
+V.SurfaceMaxAttempts   = 3
+
 -- Splashes.
 V.SplashScanInterval   = 0.2
 V.SplashRange          = 230.0   -- only craft this close to the local player
@@ -175,17 +203,18 @@ V.MaxFaults            = 3
 --   mist       multiplier on the pool mist
 --   drizzle    0..1, drives the pool ripples (the preset carries the drops)
 --   rollScale  divides the gap between random rolls
+--   glare      strength of the low sun's glare and glow on the liquid surface
 -- =============================================================================
 
 V.Levels = {
     { name = "Still",   preset = "TitanStill",   haze = 0.50, sheen = 1.00, mist = 0.80, drizzle = 0.00,
-      rollScale = 0.60, duration = { 120.0, 220.0 } },
+      glare = 1.00, rollScale = 0.60, duration = { 120.0, 220.0 } },
     { name = "Hazy",    preset = "TitanHazy",    haze = 0.90, sheen = 0.90, mist = 1.00, drizzle = 0.00,
-      rollScale = 1.00, duration = { 90.0, 180.0 } },
+      glare = 0.85, rollScale = 1.00, duration = { 90.0, 180.0 } },
     { name = "Drizzle", preset = "TitanDrizzle", haze = 1.00, sheen = 0.75, mist = 1.20, drizzle = 1.00,
-      rollScale = 0.80, duration = { 70.0, 150.0 } },
+      glare = 0.60, rollScale = 0.80, duration = { 70.0, 150.0 } },
     { name = "Shroud",  preset = "TitanShroud",  haze = 1.50, sheen = 0.60, mist = 1.40, drizzle = 0.55,
-      rollScale = 1.40, duration = { 50.0, 110.0 } },
+      glare = 0.45, rollScale = 1.40, duration = { 50.0, 110.0 } },
 }
 
 local LEVEL_COUNT = #V.Levels
@@ -790,6 +819,7 @@ local function PoolRates(pool)
     local weight = tonumber(pool.weight) or 1.0
     local roll = V.GetRollIntensity()
     local sheen = V.AllowPools and (V.PoolSheenRate * weight * LadderValue("sheen")) or 0.0
+    if V.SurfaceUp then sheen = sheen * V.SurfaceSheenScale end
     local mist = V.AllowPoolMist and
         (V.PoolMistRate * weight * LadderValue("mist") * (1.0 + (V.PoolMistRollBoost * roll))) or 0.0
     local ripple = V.AllowRipples and (V.PoolRippleRate * LadderValue("drizzle")) or 0.0
@@ -872,6 +902,131 @@ local function StreamPools(playerPos)
             Log(string.format("pool %d at %.0f m: %s", best, bestDistance, record and "live" or "create failed"))
         end
     end
+end
+
+-- =============================================================================
+-- Liquid surface (EXU StaticGeometry + Materials/cr_methane.material)
+--
+-- One sheet over the whole terrain at sea level + SurfaceLift; the shader clips it
+-- to the wet mask, and terrain standing above the liquid hides it by depth, so the
+-- shore is where the ground rises out of it. It is not a game object: no collision,
+-- radar, AI path or targeting, and every peer builds the same sheet from the same
+-- static data. Nothing here is fatal: without the API, the material or a terrain
+-- extent the director keeps the particle-only look.
+-- =============================================================================
+
+local function SurfaceMaterialName()
+    if V.SurfaceMaterial ~= nil then return V.SurfaceMaterial end
+    local mission = V.Sites and V.Sites.mission
+    local digits = type(mission) == "string" and mission:gsub("%D", "") or ""
+    if digits == "" then return nil end
+    return V.SurfaceMaterialPrefix .. digits
+end
+
+local function MaterialLoaded(material)
+    if exu == nil or type(exu.MaterialExists) ~= "function" then
+        -- Older EXU: no way to ask. Never risk a missing material (Ogre would
+        -- draw the sheet flat white), so treat it as absent.
+        return false
+    end
+    return Call("MaterialExists", material) == true
+end
+
+local function SurfaceDestroy()
+    if V.SurfaceUp or V.SurfaceInfo ~= nil then
+        Call("DestroyStaticGeometry", V.SurfaceName)
+    end
+    V.SurfaceUp, V.SurfaceInfo, V.SurfaceSent = false, nil, nil
+end
+
+-- True when the sheet is up; otherwise V.SurfaceReason says why.
+local function SurfaceCreate()
+    SurfaceDestroy()
+    V.SurfaceAttempts = (V.SurfaceAttempts or 0) + 1
+    V.SurfaceRetryAt = nil
+    local function fail(reason, retry)
+        V.SurfaceReason = reason
+        if retry and V.SurfaceAttempts < V.SurfaceMaxAttempts then
+            V.SurfaceRetryAt = V.Clock + V.SurfaceRetrySeconds
+        end
+        print("CRTitanWeather: methane surface off (" .. reason .. "); the particle sheen stays")
+        return false
+    end
+    if not V.AllowSurface then V.SurfaceReason = "disabled"; return false end
+    local terrain = V.Sites and V.Sites.terrain
+    local width = type(terrain) == "table" and tonumber(terrain.width) or nil
+    local depth = type(terrain) == "table" and tonumber(terrain.depth) or nil
+    if width == nil or depth == nil or width <= 0.0 or depth <= 0.0 then
+        return fail("no terrain extent in the site data", false)
+    end
+    if exu == nil or type(exu.CreateStaticGeometry) ~= "function" then
+        return fail("EXU StaticGeometry is unavailable", false)
+    end
+    local material = SurfaceMaterialName()
+    if material == nil then return fail("no surface material for this map", false) end
+    if not MaterialLoaded(material) then return fail("material " .. material .. " is not loaded", false) end
+
+    local cx = (tonumber(terrain.minX) or 0.0) + (width * 0.5)
+    local cz = (tonumber(terrain.minZ) or 0.0) + (depth * 0.5)
+    local y = SeaLevel() + V.SurfaceLift
+    local okCall, info, err = pcall(exu.CreateStaticGeometry, V.SurfaceName, V.SurfaceMesh, material,
+        { { position = Vec(cx, y, cz), scale = { x = width, y = 1.0, z = depth } } },
+        {
+            regionDimensions = { x = width + 64.0, y = 64.0, z = depth + 64.0 },
+            origin = Vec(cx, y, cz),
+            renderingDistance = 0.0,
+            castShadows = false,
+            visible = true,
+        })
+    if not okCall then return fail("CreateStaticGeometry raised: " .. tostring(info), false) end
+    if type(info) ~= "table" then
+        -- "render origin is unavailable" / "SceneManager is unavailable": too early.
+        return fail("CreateStaticGeometry: " .. tostring(err), true)
+    end
+    V.SurfaceUp, V.SurfaceInfo, V.SurfaceReason = true, info, nil
+    V.SurfaceBound = material
+    Log(string.format("methane surface up: %s at y %.2f over %.0f x %.0f", material, y, width, depth))
+    return true
+end
+
+-- The four shader controls, from the ladder: drizzle rings, glare, wetness, chop.
+local function SurfaceControls()
+    local drizzle = V.AllowRipples and LadderValue("drizzle") or 0.0
+    local glare = LadderValue("glare") * (1.0 - (V.SurfaceRollGlareCut * V.GetRollIntensity()))
+    local chop = Mix(V.SurfaceChop[1], V.SurfaceChop[2], V.GetSeverity())
+    return Clamp(drizzle, 0.0, 1.0), Clamp(glare, 0.0, 1.5), Clamp(V.SurfaceWetness, 0.0, 1.0),
+        Clamp(chop, 0.0, 1.0)
+end
+
+local function UpdateSurface(force)
+    if not V.SurfaceUp then
+        if V.SurfaceRetryAt ~= nil and V.Clock >= V.SurfaceRetryAt then SurfaceCreate() end
+        return
+    end
+    local r, g, b, a = SurfaceControls()
+    local sent = V.SurfaceSent
+    if not force and sent ~= nil and math.abs(r - sent[1]) < 0.02 and math.abs(g - sent[2]) < 0.02 and
+        math.abs(b - sent[3]) < 0.02 and math.abs(a - sent[4]) < 0.02 then
+        return
+    end
+    -- Without SetMaterialPassColors the material's calm defaults stay (still a lake).
+    local sun = V.SurfaceHazeSun
+    Call("SetMaterialPassColors", V.SurfaceBound, {
+        diffuse = { r = r, g = g, b = b, a = a },
+        specular = { r = sun.x, g = sun.y, b = sun.z, a = sun.w },
+    }, 0, 0)
+    V.SurfaceSent = { r, g, b, a }
+end
+
+-- { up, reason, material, controls = { drizzle, glare, wetness, chop } }
+function V.GetSurface()
+    local s = V.SurfaceSent
+    return {
+        up = V.SurfaceUp == true,
+        reason = V.SurfaceReason,
+        material = V.SurfaceBound,
+        controls = s and { drizzle = s[1], glare = s[2], wetness = s[3], chop = s[4] } or nil,
+    }
 end
 
 -- =============================================================================
@@ -1116,6 +1271,7 @@ local function Fault(where, err)
         V.Disabled = true
         print("CRTitanWeather: standing down after repeated faults; the mission continues without Titan weather")
         pcall(Fx_DestroyAll)
+        pcall(SurfaceDestroy)
     end
 end
 
@@ -1139,6 +1295,7 @@ local function InitInner(options)
         drizzle = "AllowDrizzle", hazeBank = "AllowHazeBank", rolls = "AllowRolls",
         randomRolls = "AllowRandomRolls", pools = "AllowPools", poolMist = "AllowPoolMist",
         ripples = "AllowRipples", splashes = "AllowSplashes", episodes = "AllowEpisodes",
+        surface = "AllowSurface",
     }
     for key, field in pairs(switches) do
         if options[key] ~= nil then V[field] = options[key] and true or false end
@@ -1201,9 +1358,13 @@ local function InitInner(options)
     V.Sites = options.sites
     V.Pools = (type(V.Sites) == "table" and type(V.Sites.pools) == "table") and V.Sites.pools or {}
     V.Wet = DecodeWet(V.Sites)
+    if options.surfaceMaterial ~= nil then V.SurfaceMaterial = tostring(options.surfaceMaterial) end
+    V.SurfaceUp, V.SurfaceInfo, V.SurfaceSent, V.SurfaceReason, V.SurfaceBound = false, nil, nil, nil, nil
+    V.SurfaceAttempts, V.SurfaceRetryAt, V.NextSurfaceAt = 0, nil, 0.0
 
     ScheduleNextRoll()
     SyncPreset(0.05)
+    if V.Enabled and SurfaceCreate() then UpdateSurface(true) end
 
     V.Initialized = true
     Log("initialised; seed=" .. tostring(V.Seed) .. " authority=" .. tostring(V.IsAuthority) ..
@@ -1259,6 +1420,10 @@ local function UpdateInner(dt)
     UpdateRandomRolls()
     UpdateRoll()
     if V.Synced then SyncPreset(nil) end
+    if V.Clock >= (V.NextSurfaceAt or 0.0) then
+        V.NextSurfaceAt = V.Clock + V.RateInterval
+        UpdateSurface(false)
+    end
 
     local playerPos = PositionOf(LocalPlayerHandle())
     if V.TemplatesReady then
@@ -1297,6 +1462,7 @@ end
 function V.Shutdown()
     if not V.Initialized then return end
     pcall(Fx_DestroyAll)
+    pcall(SurfaceDestroy)
     V.Tracked = {}
     pcall(CRWeather.Shutdown)
     V.Initialized = false
@@ -1353,10 +1519,10 @@ function V.OnObjectCreated(h)
 end
 
 function V.Describe()
-    return string.format("%s (%.2f)%s roll %.2f preset %s systems %d pools %d wakes %d",
+    return string.format("%s (%.2f)%s roll %.2f preset %s systems %d pools %d wakes %d surface %s",
         Level(V.Level).name, V.LevelValue, V.Episode and " EPISODE" or "",
         V.GetRollIntensity(), tostring(V.AppliedPreset), V.SystemCount, V.GetLivePoolCount(),
-        V.GetSplashCount())
+        V.GetSplashCount(), V.SurfaceUp and "on" or ("off: " .. tostring(V.SurfaceReason)))
 end
 
 -- =============================================================================
@@ -1408,6 +1574,10 @@ local function LoadInner(state)
     V.AppliedPreset = nil
     SyncPreset(0.05)
     CRWeather.Blend = 1.0
+    -- The sheet went with the old scene too: build it again (StaticGeometry
+    -- replaces a stale record by name).
+    V.SurfaceAttempts = 0
+    if V.Enabled and SurfaceCreate() then UpdateSurface(true) end
     V.LastStateKey = nil
 end
 

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-13T18:10:22-05:00",
-  "count": 2367,
+  "count": 2373,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -272,6 +272,10 @@
       "runtime": "bvwalk_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cr_methane_plane.mesh",
+      "runtime": "cr_methane_plane.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvwalk.mesh",
       "runtime": "bvwalk.mesh"
     },
@@ -396,6 +400,10 @@
       "runtime": "cr_iceveil.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_methane_ripple.png",
+      "runtime": "cr_methane_ripple.png"
+    },
+    {
       "source": "Assets\\Textures\\cr_rain.dds",
       "runtime": "cr_rain.dds"
     },
@@ -422,6 +430,10 @@
     {
       "source": "Assets\\Textures\\cr_spore.dds",
       "runtime": "cr_spore.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_titan14_wet.png",
+      "runtime": "cr_titan14_wet.png"
     },
     {
       "source": "Assets\\Textures\\crgrass.png",
@@ -2334,6 +2346,10 @@
     {
       "source": "Materials\\cr_io.particle.payload",
       "runtime": "cr_io.particle.payload"
+    },
+    {
+      "source": "Materials\\cr_methane.material",
+      "runtime": "cr_methane.material"
     },
     {
       "source": "Materials\\cr_moon.particle.payload",
@@ -6126,6 +6142,14 @@
     {
       "source": "Shaders\\CR_glow.program",
       "runtime": "CR_glow.program"
+    },
+    {
+      "source": "Shaders\\cr_methane.hlsl",
+      "runtime": "cr_methane.hlsl"
+    },
+    {
+      "source": "Shaders\\cr_methane.program",
+      "runtime": "cr_methane.program"
     },
     {
       "source": "Shaders\\CR_occlusion-fragment.glsl",

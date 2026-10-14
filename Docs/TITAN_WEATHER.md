@@ -10,8 +10,9 @@ through its own guarded hook (see "How misn14 calls it"). This change does **not
 retargets or re-teams anything. It does not touch radar, velocity jam, AI perception, cloaks, stealth or
 objectives, registers no Environment modifier of either kind, and calls no exu fog / light setter. The only
 state it writes is render state: a CRWeather preset (fog and light go through CRWeather, which contributes
-through `Environment.lua` when the mission loads it and owns the renderer when it does not) and particle
-systems. Reading craft positions is the only thing it asks of the simulation.
+through `Environment.lua` when the mission loads it and owns the renderer when it does not), particle
+systems, and one render-only StaticGeometry sheet for the liquid surface (not a game object: no collision,
+radar, AI path or targeting). Reading craft positions is the only thing it asks of the simulation.
 `Tools/Test-CRTitanWeather.lua` audits this by wrapping every stubbed BZ and exu function.
 
 | File | Role |
@@ -21,8 +22,12 @@ systems. Reading craft positions is the only thing it asks of the simulation.
 | `Scripts/CRTitanSites14.lua` | Generated map data for misn14 (wet mask, 160 pool anchors, bounds). |
 | `Tools/Build-TitanSites.py` | Regenerates a `CRTitanSites<NN>.lua` from a mission's `.trn`, `.mat`, `.hg2`, `.bzn`. |
 | `Materials/cr_titan.particle.payload` | Six particle templates on existing `CR_FX/*` materials, loaded through `CRParticleTemplates.EnsureExtra("cr_titan")`. |
+| `Shaders/cr_methane.hlsl`, `Shaders/cr_methane.program`, `Materials/cr_methane.material` | The liquid-methane surface shader (SM4 / SM3) and its per-map materials (section 5). |
+| `Tools/Build-MethaneSurface.py` | Writes the surface sheet mesh, the ripple normal map and each map's wet-mask texture (`--check` in CI). |
+| `Assets/ModelFixes/cr_methane_plane.mesh`, `Assets/Textures/cr_methane_ripple.png`, `Assets/Textures/cr_titan14_wet.png` | Its generated assets. |
+| `Tools/Test-MethaneShader.ps1` | Compiles every shader delegate with fxc and cross-checks the program and material parameters. |
 | `Scripts/Environment.lua` | Now detects Titan and has a `titan` world preset (below). |
-| `Tools/Test-CRTitanWeather.lua` | Isolated-peer tests against an exu / BZ mock (707 assertions). |
+| `Tools/Test-CRTitanWeather.lua` | Isolated-peer tests against an exu / BZ mock (934 assertions). |
 
 ## 1. The Environment fix
 
@@ -63,9 +68,9 @@ pace, and liquid methane lies in lakes and soaks the lowlands. What the director
 - **Haze.** Amber fog and warm, dim, flat light; the sky is the brightest thing in view. Haze thickens and
   thins slowly (the ladder) and occasionally a thicker bank rolls over (rolls).
 - **Methane drizzle.** Sparse, fat, slow streaks (11-16 units/s), only on the Drizzle and Shroud rungs.
-- **Wet methane.** The sea floor and the ponds between the islands are liquid: a pale gold sheen (the
-  reflected sky) lies flat on them, low evaporation mist hangs over them, drizzle rings them, and craft
-  crossing them throw a slow, hanging spray.
+- **Wet methane.** The sea floor and the ponds between the islands are liquid: a reflective surface
+  (section 5) mirrors the haze and glares toward the low sun, low evaporation mist hangs over it, drizzle
+  rings it, and craft crossing it throw a slow, hanging spray.
 
 ## 3. The ladder
 
@@ -114,7 +119,7 @@ Up to `MaxLivePools` (6) anchors within 380 units of the local player (out at 50
 
 | Template | What | Rate |
 | --- | --- | --- |
-| `CR/Titan/PoolSheen` | flat (`perpendicular_common`, normal up) 38-unit pale-gold cards 0.45 over the liquid, alpha 0.26-0.30 | `PoolSheenRate` 1.3 x pool weight x rung sheen |
+| `CR/Titan/PoolSheen` | flat (`perpendicular_common`, normal up) 38-unit pale-gold cards 0.45 over the liquid, alpha 0.26-0.30 | `PoolSheenRate` 1.3 x pool weight x rung sheen, x `SurfaceSheenScale` (0.30) while the surface is up |
 | `CR/Titan/PoolMist` | low (2 units) faint evaporation haze | `PoolMistRate` 1.4 x weight x rung mist x (1 + roll) |
 | `CR/Titan/PoolRipple` | small flat additive rings | `PoolRippleRate` 55 x rung drizzle (0 when dry) |
 
@@ -156,43 +161,34 @@ writes into `CRTitanSites14.lua`: the wet mask as run-length rows for the rows n
 (26,509 cells), and 160 pool anchors on wet ground inside the box, scored by the wet fraction of their 5x5
 neighbourhood and by closeness to a shore (lakes weighted x1.35), greedy best-first at least 80 units apart.
 
-### Why particles and data, not a terrain-shader term
+### The liquid surface (built)
 
-| Option | Verdict |
+The liquid is a real surface now: one flat sheet laid over the sea through EXU StaticGeometry and shaded by
+a CR shader ported from the WATER kind of ISDF Chronicles' `isdfc_surface.hlsl`. The particle sheen
+stays as a faint layer over it (x0.30), with the mist, drizzle ripples and splashes.
+
+| Piece | What |
 | --- | --- |
-| Wetness keyed to atlas tile IDs in the CR terrain material / spec map | **Cannot isolate the liquid.** Wet sea floor and dry raised ground are the same `TI00` tiles (above). A spec-map edit would gloss the whole methane surface, i.e. 95 % of the map. |
-| The same in the terrain shader | **Not CR's to edit.** Since the single-copy migration the DX11 Enhanced terrain shader is OpenShim's (`resources/renderer/enhanced/openshim_enhanced_terrain*`, `Docs/ENHANCED_SHADER_OWNERSHIP.md`); CR owns only material constants and aliases. And even there, terrain roughness is floored at `OSE_TERRAIN_PBR_MIN_ROUGHNESS = 0.56` and the spec map only nudges roughness by +/-10 %, so no material constant can produce a sky reflection. |
-| Generated wet mask + particles (chosen) | Works today with shipped EXU calls, is exact to the MAT/HG2 data, costs nothing per frame beyond a table lookup per nearby craft, degrades cleanly (no payload: presets only), and is identical on every peer because the data is static. |
+| Placement | `exu.CreateStaticGeometry("cr_titan_methane", "cr_methane_plane.mesh", "CR/Titan/Methane<NN>", ...)`: one instance of a unit 16 x 16 grid, centred on the terrain and scaled to it (misn14: 5120 x 5120), at sea level + `SurfaceLift` (0.35; wet cells lie within the generator's 0.3 tolerance, and at 0.06 the floor's relief poked through in patches live). Not a game object: no collision, radar, AI path or targeting; no shadow cast. Every peer lays the same sheet from the same static data, so nothing is sent. EXU converts the position to Redux's render space (z mirrored), so the sheet's `v` runs south. |
+| Coverage | The shader clips the sheet to a wet-mask texture (`cr_titan14_wet.png`, 512 x 512: each 20-unit cell of the `CRTitanSites14` wet rows becomes 2 x 2 texels, Gaussian-blurred, row 0 north) through a smoothstep, so the shore is rounded rather than the cell grid; terrain standing above the liquid hides it by depth, so dry raised ground and islands stay opaque terrain. |
+| Look | Premultiplied blend (`one one_minus_src_alpha`): the floor shows through the liquid, darkened along the view path (longer at grazing angles); Fresnel (F0 0.02, n ~ 1.29) mirrors a sky that is the fog colour at the horizon rising to an amber zenith; a wide glare lobe and a brighter core round the low sun; warm glints on the ripples; two scrolling layers of a tileable ripple normal map for wind chop; procedural expanding rings for drizzle; bumps fade with distance. Stock lighting loop and stock depth fog (the DX11 validator keeps distance-based fog to the two Enhanced world shaders); the layer also fades with fog so the floor's own fog carries the distance. |
+| Controls | The ladder drives four floats through `exu.SetMaterialPassColors(material, { diffuse = {drizzle, glare, wetness, chop}, specular = hazeSun })` on technique 0 pass 0, once a second and only on change: drizzle rings = the rung's drizzle; glare = the rung's `glare` (1.00 / 0.85 / 0.60 / 0.45) x (1 - 0.55 x roll); chop 0.45-0.85 with severity. The pass colours are not colours here, so the shader reads the raw (power-scaled) light colours, not Ogre's `derived_*` ones, which multiply by them. |
+| Low sun | misn14 does not load Environment, and its stock sun stands almost overhead (`GetSunDirection` -0.17 -0.98 0 live), which would put every reflection of it under the camera. The glare and the sun's glint therefore follow a "haze sun" the director names (`SurfaceHazeSun`, Environment's titan `DaySunDirection` 0.78 -0.36 -0.51, Ogre space) sent in the pass specular colour; the material bakes the same value. It changes no light: shading and shadows still use the scene's sun. |
+| Degrade | No `exu.CreateStaticGeometry`, no `exu.MaterialExists` or the material not loaded (never risked: a missing material would draw the sheet flat white), no terrain extent, or a create that raises: the surface stays off, the reason is printed once and kept in `GetSurface().reason`, and the full particle sheen stays. A create that fails as "too early" (no render origin yet) is retried every 5 s up to 3 attempts. Without `SetMaterialPassColors` the sheet keeps the material's calm defaults. DX9 runs the SM3 delegate; OpenGL has no delegate (no GLSL twin), so the material falls through to an invisible technique and only the particles show. The glow scheme draws nothing. |
+| Lifecycle | Laid at `Init`, rebuilt on `Load` (the scene is rebuilt; EXU replaces a stale record by name), removed by `Shutdown` and by the fault stand-down. |
 
-The sheen is a stand-in for a reflection: flat, pale gold cards read as glossy liquid against the darker
-soaked ground at the angles a tank sees, but they do not mirror Saturn or the sun. That needs native work.
+Cost: one draw of a 512-triangle sheet; fragments outside the mask are clipped, and the pixel shader is
+about 380 SM3 instruction slots (8 lights).
 
-### Native gap and design (OpenShim)
+### What remains native (OpenShim)
 
-A true reflective methane surface needs the Enhanced terrain shader to know where the liquid is:
-
-1. **Wet mask input.** A per-map `R8` texture (256 x 256, one texel per material cell) generated from the
-   same rule as `CRTitanSites` (the generator can write it), bound to the terrain material as a new alias
-   (e.g. `WetMaskMap`) and sampled by world `xz` (`(xz - origin) / 5120`). Alternative without a texture: a
-   material constant pair `wet_level` / `wet_band` (sea-floor height and tolerance) tested against the
-   interpolated world `y`, masked by a `TI00` tile flag. The mask is more general (works on maps whose lakes
-   are not one flat level).
-2. **Wet shading.** Where the mask is set: darken and saturate albedo (`x0.55`), lift the roughness floor
-   for that pixel only (e.g. min roughness `0.08` instead of `0.56`), F0 `~0.02` (liquid methane, n = 1.29),
-   and let the static-IBL specular term through at full strength with the scene tint, so the sky dome and
-   haze colour reflect. Edge feathering over one cell to hide the cell grid. Optional: a time-scrolled
-   normal perturbation for drizzle ripples, driven by a single `wet_ripple` float the director sets.
-3. **Lua control.** `exu.SetRenderEffectFloat("terrain_wet", "strength", 0..1)` (the render-intent
-   channel already exists; `depth_haze` is reported `not-implemented` today) so the director can scale
-   wetness with the ladder and keep it at zero on maps without a mask.
-4. **Sun glare.** The stock-art "low sun glaring through haze" bloom is likewise not reachable from Lua (no
-   lens / bloom API; a camera-attached particle cannot hold a fixed world direction). A `sun_glare` render
-   intent (screen-space bloom around the projected sun position, tinted by fog colour, strength from the
-   director) would cover it. Until then the low warm sun comes from Environment's titan preset where
-   Environment is loaded, and from the warm preset light everywhere else.
-
-None of that is implemented here. The director's particle sheen can stay as the drizzle / mist layer once a
-shader term exists.
+| Gap | Why it is not in CR |
+| --- | --- |
+| Wetness inside the terrain shader (darkened, glossy wet ground on shores, maps whose lakes are not one flat level) | The DX11 Enhanced terrain shader is OpenShim's (`Docs/ENHANCED_SHADER_OWNERSHIP.md`), and its roughness floor (`OSE_TERRAIN_PBR_MIN_ROUGHNESS` 0.56) blocks a reflective term from CR material constants. The flat sheet covers misn14 because its sea is dead flat; a sloped or multi-level lake needs either several sheets or the terrain term: a per-map wet mask bound to the terrain material as a new alias and sampled by world `xz`, a per-pixel roughness floor near 0.08 and F0 0.02 where wet with the static-IBL specular let through, edge feathering over one cell, and an `exu.SetRenderEffectFloat("terrain_wet", "strength", ...)` intent so the director can scale it. |
+| Shadows on the liquid | The sheet is a transparent pass and does not sample the PSSM maps; craft shadows fall on the floor under it and read through the liquid. A receiving variant would need the stock PSSM inputs (units 4-6) and testing on both backends. |
+| Real sky / Saturn in the reflection | No sky or IBL texture of the map is reachable from a CR material (Enhanced's IBL cubemaps are a neutral studio); the reflection is the fog-to-zenith gradient plus the sun glow. |
+| Screen-space sun glare (bloom) | Not reachable from Lua (no lens / bloom API; a camera-attached particle cannot hold a world direction). A `sun_glare` render intent (bloom round the projected sun, tinted by fog colour, strength from the director) is the follow-up; the liquid's glare covers the near term. |
+| OpenGL | No GLSL twin was written (no validator on this machine); add one with glslang validation if GL matters. |
 
 ## 6. Co-op model
 
@@ -226,7 +222,7 @@ Host / offline unless noted; a guest's call is ignored.
 | Call | Notes |
 | --- | --- |
 | `Start(seed, sites, options)` | Shorthand for an offline / host `Init`; `seed = nil` picks one. Returns the seed. |
-| `Init{ authority, seed, send, sites, startLevel, targetLevel, enabled, debug, quality, baseSky, drizzle, hazeBank, rolls, randomRolls, pools, poolMist, ripples, splashes, episodes }` | `send(op, ...)` delivers an event to every guest. `seed = nil` on a guest waits for the host. |
+| `Init{ authority, seed, send, sites, startLevel, targetLevel, enabled, debug, quality, baseSky, drizzle, hazeBank, rolls, randomRolls, pools, poolMist, ripples, splashes, episodes, surface, surfaceMaterial }` | `send(op, ...)` delivers an event to every guest. `seed = nil` on a guest waits for the host. |
 | `Update(dt)` | every frame, every peer (real-clock dt like the other directors) |
 | `Shutdown()` | destroys every system and shuts CRWeather down (it restores the captured baseline fog / light) |
 | `Save()` / `Load(state)` | plain scalars |
@@ -238,6 +234,7 @@ Host / offline unless noted; a guest's call is ignored.
 | `GetNetState()` / `ApplyNetState(...)` / `SetNetwork{send, authority}` | custom transport |
 | `OnObjectCreated(h)` | forwards to CRWeather |
 | `IsWet(x, z)` | static-data query, any peer |
+| `GetSurface()` | `{ up, reason, material, controls = { drizzle, glare, wetness, chop } }` |
 | `RegisterPresets()`, `GetPresetNames()` | preset registration, idempotent |
 | getters | `GetLevel GetLevelName GetTargetLevel IsEpisode GetSeverity GetRollIntensity IsRolling GetRoll GetPools GetLivePoolCount GetSplashCount GetStats GetSystemCount Describe` |
 
@@ -301,7 +298,8 @@ misn15 and misns5-8 can use the director the same way once their sites file is g
 
 | Group | Names |
 | --- | --- |
-| Switches | `AllowDrizzle`, `AllowHazeBank`, `AllowRolls`, `AllowRandomRolls`, `AllowPools`, `AllowPoolMist`, `AllowRipples`, `AllowSplashes`, `AllowEpisodes` (also `Init` options `drizzle`, `hazeBank`, ...) |
+| Switches | `AllowDrizzle`, `AllowHazeBank`, `AllowRolls`, `AllowRandomRolls`, `AllowPools`, `AllowPoolMist`, `AllowRipples`, `AllowSplashes`, `AllowEpisodes`, `AllowSurface` (also `Init` options `drizzle`, `hazeBank`, ..., `surface`) |
+| Surface | `SurfaceLift`, `SurfaceSheenScale`, `SurfaceChop`, `SurfaceWetness`, `SurfaceRollGlareCut`, `SurfaceHazeSun`, `SurfaceMaterialPrefix`, `SurfaceRetrySeconds`, `SurfaceMaxAttempts`, the rung `glare`; look values in `Materials/cr_methane.material` (`$body`, `$sky`, `$surface`, `$waves`, `$glare`, `$glint`, `$extent`) |
 | Budgets | `MaxSystems` 26, `MaxLivePools` 6, `MaxSplashes` 4, `PoolStreamIn/Out` 380 / 500 |
 | Ladder | the `Levels` table (haze / sheen / mist / drizzle / rollScale / duration per rung), `SeverityRate`, `Episode*` |
 | Presets | `PRESET_ROWS` (fog colour and range, ambient, diffuse, sun, drizzle rate, transitions), `ROLL_FOG_*`, `ROLL_LIGHT` |
@@ -337,6 +335,24 @@ misn15 and misns5-8 can use the director the same way once their sites file is g
 12. Audit on every peer of the run: no forbidden BZ call, only allowlisted globals, no sensor / gravity / team
     exu call, gameplay scales identity, no gameplay modifier, no per-craft scramble, no Environment modifier
     from the director, radar values written back unchanged.
+13. Surface: one sheet with the right mesh, material, centre, height and scale, no shadow; controls on
+    technique 0 pass 0 (no rings when dry, rings and less glare in drizzle, a roll dims the glare, unchanged
+    values not re-sent, the haze sun in the specular colour); the sheen scaled by `SurfaceSheenScale`;
+    `surface = false`; each missing piece (no StaticGeometry, material not loaded, a raising create) leaves the
+    full particle sheen and sends no controls, and an unloaded material never reaches `CreateStaticGeometry`;
+    no `SetMaterialPassColors` keeps the sheet; a too-early create retries, a failing one stops after three;
+    no terrain extent lays nothing; load rebuilds, shutdown and stand-down remove; host and guest lay
+    identical sheets.
+14. Surface assets: the base and misn14 materials, wet-mask alias, every referenced program declared, three
+    techniques (liquid, glow, fallback), mesh / textures / shader present, every `param_named` declared in the
+    shader, every file in the shipping lock.
+
+`powershell -File Tools/Test-MethaneShader.ps1` (in `dx11-shader-validation.yml`) compiles every delegate with
+fxc (`vs_4_0`/`ps_4_0` with `SM4=1`, `vs_3_0`/`ps_3_0`, warnings as errors) and fails when a default param
+names a constant a delegate strips, when a kept constant has no default and no material value, or when the
+material sets an undeclared parameter (checked against a deliberately broken program and material).
+`python -I Tools/Build-MethaneSurface.py --check` (in "Test weather") regenerates the mesh, ripple map and
+wet mask in memory and compares them (PNG pixels, not bytes).
 
 Mutation checks run while writing it: an always-true `IsWet`, a missing clearance test, a removed host echo
 guard, and an unlocked Titan cycle each make it fail.
