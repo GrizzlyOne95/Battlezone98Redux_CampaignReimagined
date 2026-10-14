@@ -115,8 +115,10 @@ for _, name in ipairs({"SetObjectiveOn", "SetObjectiveOff", "SetObjectiveName"})
         record(op, h, ...)
     end
 end
+AiCommand = { FORMATION = 6 }
+function SetCommand(h, cmd, prio, who) if cmd == AiCommand.FORMATION then record("Formation", h, who, prio) else record("SetCommand", h, cmd, prio, who) end end
 for _, name in ipairs({"SetUserTarget", "SetScrap", "ClearObjectives",
-    "AddObjective", "Goto", "Attack", "Defend", "Follow", "FailMission", "SucceedMission"}) do
+    "AddObjective", "Goto", "Attack", "Defend", "FailMission", "SucceedMission"}) do
     local op = name
     _G[op] = function(...) record(op, ...) end
 end
@@ -409,14 +411,14 @@ check(m.backup_called and #m.backup == 3 and count("BuildObject", "svtank", 5) =
 for _, unit in ipairs(m.backup) do
     check(objects[unit].team == 5 and called("Goto", unit, m.art1, 1), "squad rendezvous at the outpost artillery")
 end
-check(not called("Follow"), "squad does not form on the tug before it defects")
+check(not called("Formation"), "squad does not form on the tug before it defects")
 near(m.cam1, m.openh, 49); now = 18; Update(0.05)
 check(m.betrayal, "defection begins")
 local friendlyFighter = spawn("svfigh", 1)
 now = 33.01; Update(0.05)
 check(m.betrayal_message, "defection announced")
 now = 33.5; Update(0.05)
-for _, unit in ipairs(m.backup) do check(called("Follow", unit, m.openh, 1), "squad forms up on the defector") end
+for _, unit in ipairs(m.backup) do check(called("Formation", unit, m.openh, 1), "squad forms up on the defector") end
 -- The strike scan never takes the squad.
 local squadFighter = m.backup[3]
 check(not called("Goto", squadFighter, "strike_path1", 0), "squad fighter is not retasked by the strike scan")
@@ -428,7 +430,7 @@ for _, unit in ipairs(m.backup) do check(ordered("Attack", unit, labels.player),
 clear(); now = 40.3; Update(0.05)
 check(count("Attack", m.backup[1]) == 0, "chaser order is not repeated")
 kill(m.backup[2]); near(m.openh, labels.player, 5000); now = 42.5; Update(0.05)
-check(called("Follow", m.backup[1], m.openh, 1) and not called("Follow", m.backup[2]),
+check(called("Formation", m.backup[1], m.openh, 1) and not called("Formation", m.backup[2]),
     "surviving squad returns to formation when the chase ends")
 
 -- misn1114 on nearing the defector; misn1115 after contact is broken for 8 s.
