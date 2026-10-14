@@ -262,10 +262,18 @@ local function NewPeer(name, world, options)
     env.print = function(...) if options.verbose then print(...) end end
     env.GetPlayerHandle = function() return 1 end
     env.IsValid = function(h) return h == 1 or world.objects[h] ~= nil end
+    -- The engine hands back a VECTOR_3D userdata, not a table; mock it as one
+    -- (a director that type-checks for "table" never sees a position in game).
+    local function Vector3D(x, y, z)
+        local u = newproxy(true)
+        local values = { x = x, y = y, z = z }
+        getmetatable(u).__index = function(_, k) return values[k] end
+        return u
+    end
     env.GetPosition = function(h)
-        if h == 1 then return { x = peer.playerPos.x, y = peer.playerPos.y, z = peer.playerPos.z } end
+        if h == 1 then return Vector3D(peer.playerPos.x, peer.playerPos.y, peer.playerPos.z) end
         local o = world.objects[h]
-        if o then return { x = o.x, y = o.y, z = o.z } end
+        if o then return Vector3D(o.x, o.y, o.z) end
         return nil
     end
     env.GetOdf = function(h) local o = world.objects[h]; return o and o.odf or "" end

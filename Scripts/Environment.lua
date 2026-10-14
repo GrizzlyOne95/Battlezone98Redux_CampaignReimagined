@@ -482,7 +482,7 @@ end
 -- Intensity, and give no fog colour (so the base falls back to Environment's
 -- default), hence the floors and the fixed haze tint below.
 local function BuildTitanFogKeyframes(baseFog)
-    local haze = { r = 0.64, g = 0.43, b = 0.19 }
+    local haze = { r = 0.60, g = 0.35, b = 0.11 }  -- the stock Titan palette fog, a touch lighter
     local dayFog = ClampFog({
         r = Lerp(baseFog.r, haze.r, 0.85),
         g = Lerp(baseFog.g, haze.g, 0.85),
