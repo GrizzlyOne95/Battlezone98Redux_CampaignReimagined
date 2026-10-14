@@ -1,0 +1,465 @@
+// cr_moon.particle
+//
+// Ogre particle templates for the Moon weather director (CRMoonWeather.lua).
+//
+// The Moon has no atmosphere, so nothing here is driven by wind. What the
+// director draws is the "horizon glow" look of electrostatically levitated dust
+// (Surveyor) and regolith kicked up in 1/6 g: a thin, slow, pale grey-blue mist
+// lying on the ground, and dust that hangs a while and settles gently.
+//
+// Every material below already exists in CR_reactive.material (CR_FX/Haze,
+// CR_FX/Dust), so this file adds templates only -- no new art, no new materials.
+//
+// Ground mist uses flat (horizontal) cards, the same trick as CR/VenusGroundHaze:
+// billboard_type perpendicular_common with common_direction 0 1 0 lays each card
+// flat on the ground, so the mist stays a thin layer instead of a column of
+// camera-facing puffs. A Box emitter's `direction` is its DEPTH axis, so with a
+// horizontal direction `height` is the thin vertical axis (the mist's thickness).
+//
+// Emitter and affector ORDER MATTERS: CRMoonWeather addresses both by index.
+
+// =============================================================================
+// Ground mist -- one pool in low ground (streamed in around the player)
+// =============================================================================
+
+//   emitter 0  Box, 44 x 1.3 x 44 (the director lifts it to the mist height)
+//   affector 0 ColourInterpolator   (director rewrites colour1/colour2 for the glow)
+//   affector 1 Scaler
+//   affector 2 DirectionRandomiser
+particle_system CR/Moon/GroundMist
+{
+    material            CR_FX/Haze
+    particle_width      34.0
+    particle_height     34.0
+    quota               90
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      perpendicular_common
+    common_direction    0 1 0
+    common_up_vector    0 0 1
+
+    emitter Box
+    {
+        angle               12
+        emission_rate       0
+        time_to_live_min    18.0
+        time_to_live_max    28.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               44
+        height              1.3
+        depth               44
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.62 0.70 0.82 0.00
+        time1   0.22
+        colour1 0.64 0.72 0.84 0.11
+        time2   0.72
+        colour2 0.60 0.68 0.81 0.09
+        time3   1.00
+        colour3 0.55 0.63 0.78 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.35
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      1.5
+        scope           0.30
+        keep_velocity   true
+    }
+}
+
+// =============================================================================
+// Local mist -- the layer that follows the player (13 small emitters)
+// =============================================================================
+
+// One system at the player's ground position. The director moves it with the
+// player and, a couple of times a second, puts each emitter on a sampled patch of
+// terrain (a centre cell, an inner ring of 6 and an outer ring of 6), so the mist
+// is denser over low ground and thins over ridges. Particles are left behind in
+// the world, so a moving player trails and crosses a continuous blanket.
+//
+//   emitters 0-12  Box terrain patches (0 centre, 1-6 inner ring, 7-12 outer ring)
+//   affector 0 ColourInterpolator   (director rewrites colour1/colour2 for the glow)
+//   affector 1 Scaler
+//   affector 2 DirectionRandomiser
+particle_system CR/Moon/LocalMist
+{
+    material            CR_FX/Haze
+    particle_width      30.0
+    particle_height     30.0
+    quota               260
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      perpendicular_common
+    common_direction    0 1 0
+    common_up_vector    0 0 1
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0.3
+        velocity_min        0.04
+        velocity_max        0.26
+        colour_range_start  0.62 0.70 0.82 0.00
+        colour_range_end    0.58 0.66 0.80 0.00
+        width               34
+        height              1.3
+        depth               34
+    }
+
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.62 0.70 0.82 0.00
+        time1   0.22
+        colour1 0.64 0.72 0.84 0.11
+        time2   0.72
+        colour2 0.60 0.68 0.81 0.09
+        time3   1.00
+        colour3 0.55 0.63 0.78 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.35
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      1.5
+        scope           0.30
+        keep_velocity   true
+    }
+}
+
+// =============================================================================
+// Kick dust -- regolith thrown up by an impact; hangs, then settles
+// =============================================================================
+
+// A pooled one-shot: the director moves a parked system to the impact, raises the
+// emission rate for about a fifth of a second and parks it again. The force is a
+// gentle -0.45 on Y (lunar gravity is -1.6, but this is cohesive dust that has
+// lost most of its speed to the ground; a lower pull is what makes it HANG).
+//
+//   emitter 0  Point burst (rate driven by the director)
+//   affector 0 ColourInterpolator
+//   affector 1 Scaler
+//   affector 2 LinearForce
+particle_system CR/Moon/KickDust
+{
+    material            CR_FX/Dust
+    particle_width      3.4
+    particle_height     3.4
+    quota               70
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               58
+        emission_rate       0
+        time_to_live_min    6.0
+        time_to_live_max    10.5
+        direction           0 1 0
+        velocity_min        0.7
+        velocity_max        3.4
+        colour_range_start  0.58 0.59 0.62 0.00
+        colour_range_end    0.52 0.54 0.60 0.00
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.60 0.61 0.64 0.26
+        time1   0.30
+        colour1 0.58 0.60 0.64 0.20
+        time2   0.70
+        colour2 0.55 0.58 0.63 0.10
+        time3   1.00
+        colour3 0.50 0.54 0.60 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.45
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -0.45 0
+        force_application   add
+    }
+}
+
+// =============================================================================
+// Hover dust -- fine regolith disturbed under a low, moving craft
+// =============================================================================
+
+// One system per tracked craft, parked on the ground under it. A low outward
+// cone at very low speed; the director drives the rate from speed and height.
+//
+//   emitter 0  Box 5 x 0.4 x 5 (flat disc under the craft)
+//   affector 0 ColourInterpolator
+//   affector 1 Scaler
+//   affector 2 LinearForce
+particle_system CR/Moon/HoverDust
+{
+    material            CR_FX/Dust
+    particle_width      2.6
+    particle_height     2.6
+    quota               90
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               82
+        emission_rate       0
+        time_to_live_min    4.0
+        time_to_live_max    8.0
+        direction           1 0 0.3
+        velocity_min        0.5
+        velocity_max        2.4
+        colour_range_start  0.58 0.59 0.62 0.00
+        colour_range_end    0.52 0.54 0.60 0.00
+        width               5
+        height              0.4
+        depth               5
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.60 0.61 0.64 0.16
+        time1   0.30
+        colour1 0.58 0.60 0.64 0.12
+        time2   0.70
+        colour2 0.55 0.58 0.63 0.06
+        time3   1.00
+        colour3 0.50 0.54 0.60 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.40
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -0.50 0
+        force_application   add
+    }
+}
