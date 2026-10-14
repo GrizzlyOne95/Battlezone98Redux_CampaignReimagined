@@ -125,7 +125,7 @@ V.EpisodeCooldown      = 260.0
 -- Haze bank (camera-attached).
 V.HazeRate             = 10.0    -- particles/second at ladder haze 1.0
 V.HazeRollBoost        = 1.6     -- extra (x) haze-bank rate at full roll
-V.HazeOffset           = 6.0     -- bank centre above the camera
+V.HazeOffset           = 1.0     -- bank centre relative to the camera (keep it low: cards overhead read as tiles)
 
 -- Haze rolls.
 V.RollGap              = { 170.0, 380.0 }  -- seconds between random rolls at roll scale 1
@@ -208,7 +208,7 @@ local LEVEL_COUNT = #V.Levels
 -- so the shared file stays untouched.
 -- =============================================================================
 
-local ROLL_FOG_COLOR = { 0.70, 0.44, 0.16 }
+local ROLL_FOG_COLOR = { 0.66, 0.38, 0.12 }
 local ROLL_FOG_TINT = 0.30
 local ROLL_FOG_START = 0.55
 local ROLL_FOG_END = 0.70
@@ -216,16 +216,16 @@ local ROLL_LIGHT = 0.80
 
 local PRESET_ROWS = {
     { name = "TitanStill", drizzle = 0.0,
-      fog = { 0.64, 0.43, 0.19, 60.0, 210.0 }, ambient = { 0.34, 0.23, 0.11 },
+      fog = { 0.60, 0.35, 0.11, 52.0, 190.0 }, ambient = { 0.34, 0.23, 0.11 },
       diffuse = { 0.86, 0.60, 0.30 }, sun = 1.00, tin = 26.0, tout = 30.0 },
     { name = "TitanHazy", drizzle = 0.0,
-      fog = { 0.62, 0.41, 0.18, 50.0, 195.0 }, ambient = { 0.33, 0.22, 0.11 },
+      fog = { 0.59, 0.34, 0.11, 46.0, 178.0 }, ambient = { 0.33, 0.22, 0.11 },
       diffuse = { 0.78, 0.54, 0.27 }, sun = 0.92, tin = 24.0, tout = 28.0 },
     { name = "TitanDrizzle", drizzle = 55.0,
-      fog = { 0.58, 0.39, 0.18, 42.0, 180.0 }, ambient = { 0.30, 0.21, 0.11 },
+      fog = { 0.56, 0.33, 0.11, 40.0, 165.0 }, ambient = { 0.30, 0.21, 0.11 },
       diffuse = { 0.64, 0.45, 0.24 }, sun = 0.80, tin = 22.0, tout = 26.0 },
     { name = "TitanShroud", drizzle = 30.0,
-      fog = { 0.56, 0.36, 0.15, 30.0, 155.0 }, ambient = { 0.30, 0.20, 0.10 },
+      fog = { 0.54, 0.31, 0.10, 28.0, 150.0 }, ambient = { 0.30, 0.20, 0.10 },
       diffuse = { 0.56, 0.38, 0.20 }, sun = 0.72, tin = 20.0, tout = 26.0 },
 }
 
@@ -417,7 +417,13 @@ end
 local function PositionOf(h)
     if h == nil or type(GetPosition) ~= "function" then return nil end
     local ok, p = pcall(GetPosition, h)
-    if ok and type(p) == "table" and type(p.x) == "number" then return p end
+    if not ok or p == nil then return nil end
+    -- The engine returns a VECTOR_3D userdata, not a table: read the fields
+    -- (guarded) and hand back a plain table.
+    local okX, x, y, z = pcall(function() return p.x, p.y, p.z end)
+    if okX and type(x) == "number" and type(z) == "number" then
+        return { x = x, y = tonumber(y) or 0.0, z = z }
+    end
     return nil
 end
 
@@ -862,6 +868,9 @@ local function StreamPools(playerPos)
     if best ~= nil then
         local record = PoolCreate(best, pools[best])
         if record ~= nil then live[best] = record end
+        if V.Debug then
+            Log(string.format("pool %d at %.0f m: %s", best, bestDistance, record and "live" or "create failed"))
+        end
     end
 end
 
