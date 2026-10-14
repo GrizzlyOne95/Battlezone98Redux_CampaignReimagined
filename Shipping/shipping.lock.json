@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-13T18:10:22-05:00",
-  "count": 2389,
+  "count": 2396,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -272,6 +272,10 @@
       "runtime": "bvwalk_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cr_methane_plane.mesh",
+      "runtime": "cr_methane_plane.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvwalk.mesh",
       "runtime": "bvwalk.mesh"
     },
@@ -396,6 +400,10 @@
       "runtime": "cr_iceveil.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_methane_ripple.png",
+      "runtime": "cr_methane_ripple.png"
+    },
+    {
       "source": "Assets\\Textures\\cr_rain.dds",
       "runtime": "cr_rain.dds"
     },
@@ -422,6 +430,10 @@
     {
       "source": "Assets\\Textures\\cr_spore.dds",
       "runtime": "cr_spore.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_titan14_wet.png",
+      "runtime": "cr_titan14_wet.png"
     },
     {
       "source": "Assets\\Textures\\crgrass.png",
@@ -2336,6 +2348,10 @@
       "runtime": "cr_io.particle.payload"
     },
     {
+      "source": "Materials\\cr_methane.material",
+      "runtime": "cr_methane.material"
+    },
+    {
       "source": "Materials\\cr_moon.particle.payload",
       "runtime": "cr_moon.particle.payload"
     },
@@ -3292,6 +3308,26 @@
       "runtime": "misn14.trn"
     },
     {
+      "source": "Missions\\misn10.vxt",
+      "runtime": "misn10.vxt"
+    },
+    {
+      "source": "Missions\\misn11.vxt",
+      "runtime": "misn11.vxt"
+    },
+    {
+      "source": "Missions\\misn12.vxt",
+      "runtime": "misn12.vxt"
+    },
+    {
+      "source": "Missions\\misn13.vxt",
+      "runtime": "misn13.vxt"
+    },
+    {
+      "source": "Missions\\misn14.vxt",
+      "runtime": "misn14.vxt"
+    },
+    {
       "source": "Missions\\misn15b.hg2",
       "runtime": "misn15b.hg2"
     },
@@ -3378,26 +3414,6 @@
     {
       "source": "Missions\\misns6.trn",
       "runtime": "misns6.trn"
-    },
-    {
-      "source": "Missions\\misn10.vxt",
-      "runtime": "misn10.vxt"
-    },
-    {
-      "source": "Missions\\misn11.vxt",
-      "runtime": "misn11.vxt"
-    },
-    {
-      "source": "Missions\\misn12.vxt",
-      "runtime": "misn12.vxt"
-    },
-    {
-      "source": "Missions\\misn13.vxt",
-      "runtime": "misn13.vxt"
-    },
-    {
-      "source": "Missions\\misn14.vxt",
-      "runtime": "misn14.vxt"
     },
     {
       "source": "Missions\\sxshow.bzn",
@@ -4478,6 +4494,10 @@
     {
       "source": "ODF\\cptesla.odf",
       "runtime": "cptesla.odf"
+    },
+    {
+      "source": "ODF\\crping.odf",
+      "runtime": "crping.odf"
     },
     {
       "source": "ODF\\cspilo.odf",
@@ -6214,6 +6234,14 @@
     {
       "source": "Shaders\\CR_glow.program",
       "runtime": "CR_glow.program"
+    },
+    {
+      "source": "Shaders\\cr_methane.hlsl",
+      "runtime": "cr_methane.hlsl"
+    },
+    {
+      "source": "Shaders\\cr_methane.program",
+      "runtime": "cr_methane.program"
     },
     {
       "source": "Shaders\\CR_occlusion-fragment.glsl",
