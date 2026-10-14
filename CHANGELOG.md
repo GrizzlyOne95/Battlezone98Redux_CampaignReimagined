@@ -9,6 +9,18 @@
   drama hook that may pick the timing when hostile walkers or groups close on a human. Visual only:
   no sensor, unit or health access (the engine does not use terrain fog for AI sight or radar).
   misn07/08/09 forward the new `VenusFog` op in their presentation streams (`Docs/VENUS_WEATHER.md`).
+- Add Mission 14, The Three Beacons, to the campaign (MISSION13, Titan, retrospective misn1422) and as a 2-4
+  player co-op listing (`CR: The Three Beacons Coop`) on the original Battlezone 1.5 Titan terrain, rebuilt
+  around the NSDF's own Furies (Concept C, `Docs/MISN14_COOP.md`). A dormant squad of NSDF Furies (the cut
+  stock `avsav`, shipped as the commandable `ODF/avsav14.odf` because Redux has no `SAVFriend` AI) stands by the
+  Texas; the restored activation scene (misn1402, misn1423, misn1424) hands each human their pair, then control
+  fails (misn1425, misn1426) and the squad turns on NSDF and CCA alike. Rogue Fury waves scale per human
+  (+1 hvsav each, Fury Tanks from wave 4, at most 12 live, never spawning within 400 m of a human), and the CCA
+  surrender now also follows the Furies breaking its base. Restored from the shipped 1.5 exe: both power plants
+  surrender with the base and rescued pilots hold position. CCA team 5, Furies team 6, survivors and the
+  surrendered base team 7; any human (or human-driven APC) can rescue. The briefing names the Recycler Texas
+  (the stock text said Utah). Restored nags misn1420/misn1427; the second beacon's pilot is Razor Two. A single
+  guarded hook is left for a Titan weather director.
 - Add Mission 13, Total Destruction, to the campaign as a 2-4 player co-op listing
   (`CR: Total Destruction Coop`) on the original Battlezone 1.5 Europa terrain. The CCA moves to
   team 5 (the strategic AI is enabled once at load and runs `misn13`/`a`/`c.aip` from its Unit

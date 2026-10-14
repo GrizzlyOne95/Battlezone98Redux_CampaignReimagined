@@ -17,7 +17,7 @@ offline/co-op Lua under MultSTMission:
     pushed misn05's team 3/4 starts far away).
 
 Usage:
-  python Tools/Build-CoopMap.py --mission misn06|...|misn13 [--source FILE] [--toolbox DIR]
+  python Tools/Build-CoopMap.py --mission misn06|...|misn14 [--source FILE] [--toolbox DIR]
 
 misn13: the 1.5 BZN is a mid-play snapshot, so the co-op map also drops the 133 unnamed runtime unit
 paths (the 14 named paths stay), clears the commands the snapshot had already issued to units
@@ -366,7 +366,7 @@ def build(text: str, mission: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn13")
+    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn14")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     parser.add_argument("--output", type=Path)

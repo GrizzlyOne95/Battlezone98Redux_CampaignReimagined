@@ -52,6 +52,13 @@ TARGETS = {
     "misn13": ["apcamr20_camerapod", "avrecycle", "svmuf", "svguntower1", "svguntower2", "svsilo1", "svsilo2",
                "svsilo3", "svsilo4", "spawn_geyser1", "spawn_geyser2", "artil1", "artil2", "artil3", "artil4",
                "artil_escort1", "artil_escort2", "artil_escort3", "cca_reserve1", "cca_reserve2"],
+    # misn14: the four nav pods (named markers), the Texas (camera target, rally, win), the scientists'
+    # barracks (Rescue CCA marker, 1406 camera target), the CCA recycler/factory whose fall forces the
+    # surrender, and the towers and power plants that surrender to team 7.
+    "misn14": ["apcamr0_camerapod", "apcamr1_camerapod", "apcamr2_camerapod", "apcamr3_camerapod",
+               "avrecy-1_recycler", "sbbarr0_i76building", "svrecy-1_recycler", "svmuf0_factory",
+               "sbtowe0_turret", "sbtowe1_turret", "sbtowe55_turret", "sbtowe56_turret",
+               "sblpow1_powerplant", "sblpow55_powerplant"],
 }
 # Labels that are also an authored PATH name in the BZN legitimately occur twice.
 PATH_NAMES = {"launch_pad"}
