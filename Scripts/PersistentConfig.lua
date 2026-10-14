@@ -5168,10 +5168,25 @@ PersistentConfig.CoopPda = require("CRCoopPda").Create({
     end,
 })
 PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
-    exu = exu, comms = function() return require("CRCoop").GetComms() end,
+    comms = function() return require("CRCoop").GetComms() end,
     time = function() return GetTime() end,
-    resolution = PersistentConfig._GetUiResolutionMetrics,
-    font = function() return PersistentConfig.PdaOverlay.font end,
+    objective = {
+        isOn = function(h)
+            if exu and type(exu.IsObjectiveOn) == "function" then return exu.IsObjectiveOn(h) end
+        end,
+        valid = function(h) return IsValid(h) end,
+        on = function(h) SetObjectiveOn(h) end,
+        off = function(h) SetObjectiveOff(h) end,
+        name = function(h, text) if text then SetObjectiveName(h, text) end end,
+        getName = function(h) return GetObjectiveName(h) end,
+        -- Local-only (BuildAsyncObject), so no other player ever sees it.
+        spawn = function(pos)
+            if not (exu and type(exu.BuildAsyncObject) == "function") then return nil end
+            local h = exu.BuildAsyncObject("crping", 0, SetVector(pos.x, pos.y, pos.z))
+            if IsValid(h) then return h end
+        end,
+        remove = function(h) RemoveObject(h) end,
+    },
 })
 
 PersistentConfig.P = require("PersistentConfigP").Create({
@@ -6464,7 +6479,7 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     end
     local uiInteractionSuppressed = pauseMenuOpen or escapePressed or cinematicActive == true
     PersistentConfig.CoopPda.UpdatePage(InputState)
-    PersistentConfig.CoopPingHud.Update(uiInteractionSuppressed or not IsValid(currentPlayerHandle))
+    PersistentConfig.CoopPingHud.Update()
 
     if autosave and autosave.Config and type(autosave.Update) == "function" then
         if not autosave.Config.enabled then
