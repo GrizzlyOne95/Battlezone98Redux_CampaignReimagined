@@ -237,8 +237,16 @@ jobs:
       - name: Check misn13 DLL source parity
         run: python Tools/Test-Misn13SourceParity.py
 
-      - name: Test misn13 mission transitions
-        run: lua5.1 Tools/Test-Misn13.lua
+      - name: Test misn13 mission transitions, co-op layer and presentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn13.lua
+          "$LUA" Tools/Test-Misn13Coop.lua
+          "$LUA" Tools/Test-Misn13Presentation.lua
+          python Tools/Test-Misn13CoopContract.py
+          python Tools/Test-CoopAuthoredLabels.py
 
       - name: Test BlackDog08 source port
         run: |

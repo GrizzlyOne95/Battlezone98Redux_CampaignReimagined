@@ -17,7 +17,12 @@ offline/co-op Lua under MultSTMission:
     pushed misn05's team 3/4 starts far away).
 
 Usage:
-  python Tools/Build-CoopMap.py --mission misn06|...|misn12 [--source FILE] [--toolbox DIR]
+  python Tools/Build-CoopMap.py --mission misn06|...|misn13 [--source FILE] [--toolbox DIR]
+
+misn13: the 1.5 BZN is a mid-play snapshot, so the co-op map also drops the 133 unnamed runtime unit
+paths (the 14 named paths stay), clears the commands the snapshot had already issued to units
+(`what`/`who`/`where`/`priority`; the script re-issues every order it needs) and zeroes the
+velocity of moving units, and gives the duplicate-labelled wingmen unique labels.
 """
 
 from __future__ import annotations
@@ -55,6 +60,20 @@ RETEAM_LABELS = {
     # friendly from the start.
     "misn12": {f"apcamr{n}_camerapod": (7, 7) for n in range(5, 11)},
 }
+# misn13: strip the snapshot (mid-play) state out of the shipped map.
+STRIP_UNNAMED_PATHS = {"misn13"}
+CLEAR_COMMANDS = {"misn13"}
+# Objects whose authored label is shared: (old label, posit_x, posit_z, new label). Matched by
+# position (+/- 2 m) because GetHandle(label) on a duplicate is ambiguous.
+#   misn13: three svtank wingmen on DEFEND beside the artillery pad all say "svtank0_wingman"
+#   (two) / "svtank8_wingman" and two idle reserve tanks say "svtank3_wingman" / "svtank0_wingman".
+RELABEL = {"misn13": (
+    ("svtank0_wingman", 1222.0, 100422.0, "artil_escort1"),
+    ("svtank0_wingman", 1230.0, 100423.0, "artil_escort2"),
+    ("svtank8_wingman", 1229.0, 100424.0, "artil_escort3"),
+    ("svtank3_wingman", 1374.0, 100401.0, "cca_reserve1"),
+    ("svtank0_wingman", 1357.0, 100389.0, "cca_reserve2"),
+)}
 BUOY_SPACING = 25.0
 BUOY_ADDR_BASE = 0x3001
 
@@ -201,6 +220,33 @@ def field(block: str, name: str) -> float:
     return float(match.group(1))
 
 
+def clear_snapshot_state(block: str) -> str:
+    """Drop the order and the motion a mid-play snapshot froze into an object."""
+    flags = re.M
+    block = re.sub(r"^what = [0-9A-Fa-f]+$", "what = 00000000", block, count=1, flags=flags)
+    block = re.sub(r"^who \[1\] =\n-?\d+$", "who [1] =\n0", block, count=1, flags=flags)
+    block = re.sub(r"^where = [0-9A-Fa-f]+$", "where = 00000000", block, count=1, flags=flags)
+    block = re.sub(r"^priority \[1\] =\n-?\d+$", "priority [1] =\n0", block, count=1, flags=flags)
+    mag = re.search(r"^ v_mag \[1\] =\n(\S+)$", block, flags)
+    if mag and float(mag.group(1)) > 0.01:
+        block = re.sub(r"^ v_mag \[1\] =\n\S+$", " v_mag [1] =\n0", block, count=1, flags=flags)
+        block = re.sub(r"^ v_mag_inv \[1\] =\n\S+$", " v_mag_inv [1] =\n1e+030", block, count=1, flags=flags)
+        block = re.sub(r"^ v \[1\] =\n  x \[1\] =\n\S+\n  y \[1\] =\n\S+\n  z \[1\] =\n\S+$",
+                       " v [1] =\n  x [1] =\n0\n  y [1] =\n0\n  z [1] =\n0", block, count=1, flags=flags)
+    return block
+
+
+def strip_unnamed_paths(tail: str) -> tuple[str, int, int]:
+    """Remove every [AiPath] without a label from the tail; return (tail, kept, removed)."""
+    head, *paths = tail.split("[AiPath]\n")
+    if not paths:
+        return tail, 0, 0
+    kept = [p for p in paths if re.search(r"^label = \S", p.split("pointCount", 1)[0], re.M)]
+    removed = len(paths) - len(kept)
+    head = re.sub(r"(\[AiPaths\]\ncount \[1\] =\n)\d+", rf"\g<1>{len(kept)}", head, count=1)
+    return head + "".join("[AiPath]\n" + p for p in kept), len(kept), removed
+
+
 def convert(source: Path, toolbox: Path) -> str:
     sys.path.insert(0, str(toolbox))
     from battlezone.bzn.version_convert import convert_bzn  # noqa: E402
@@ -248,6 +294,25 @@ def build(text: str, mission: str) -> str:
             raise SystemExit(f"object {label} team fields not rewritten")
         objects[hits[0]] = b
         print(f"reteamed {label}: team {new_team}, perceivedTeam {new_perceived}")
+
+    for old, x, z, new in RELABEL.get(mission, ()):
+        hits = [i for i, b in enumerate(objects)
+                if re.search(rf"^label = {re.escape(old)}$", b, re.M)
+                and abs(field(b, "posit_x") - x) < 2.0 and abs(field(b, "posit_z") - z) < 2.0]
+        if len(hits) != 1:
+            raise SystemExit(f"relabel {old} at ({x}, {z}) matched {len(hits)} objects")
+        objects[hits[0]] = re.sub(rf"^label = {re.escape(old)}$", f"label = {new}", objects[hits[0]],
+                                  count=1, flags=re.M)
+        print(f"relabelled {old} at ({x:.0f}, {z:.0f}) -> {new}")
+
+    if mission in CLEAR_COMMANDS:
+        cleared = sum(1 for b in objects if clear_snapshot_state(b) != b)
+        objects = [clear_snapshot_state(b) for b in objects]
+        print(f"cleared the snapshot order/motion of {cleared} objects")
+
+    if mission in STRIP_UNNAMED_PATHS:
+        tail, kept, dropped = strip_unnamed_paths(tail)
+        print(f"removed {dropped} unnamed runtime paths; kept {kept} named paths")
 
     moved = 0
     for i, block in enumerate(objects):
@@ -301,7 +366,7 @@ def build(text: str, mission: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn12")
+    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn13")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     parser.add_argument("--output", type=Path)

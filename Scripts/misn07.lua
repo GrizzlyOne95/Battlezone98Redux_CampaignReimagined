@@ -23,7 +23,7 @@ local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
 local CRVenusWeather = require("CRVenusWeather")
 local VenusSites = require("CRVenusSites07")
 local Environment = require("Environment")
-local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true }
+local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true, VenusFog = true }
 -- CR Venus weather <<
 -- CR restored VO >>
 -- Prototype svtnk7 tunables (see RestoredPrototypeTanks). The cap is 2 solo, +1 per extra

@@ -30,7 +30,7 @@ local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
 local CRVenusWeather = require("CRVenusWeather")
 local VenusSites = require("CRVenusSites08")
 local Environment = require("Environment")
-local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true }
+local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true, VenusFog = true }
 -- CR Venus weather <<
 -- CR Colorado massacre >>
 -- The Colorado (map label "colorado", team 7 perceived NSDF) is destroyed on screen:
