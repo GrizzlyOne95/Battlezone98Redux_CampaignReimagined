@@ -1,0 +1,46 @@
+[ExplosionClass]
+classLabel = "explosion"
+explSound = ""
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 2
+
+particleClass1 = "xbskyw.glow"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+particleBias1 = "0.0 0.0 0.0"
+
+particleClass2 = "xbskyw.light"
+particleCount2 = 1
+particleVeloc2 = "0.0 0.0 0.0"
+particleBias2 = "0.0 0.0 0.0"
+
+[Glow]
+simulateBase = "sim_null"
+lifeTime = 0.35
+renderBase = "draw_sprite"
+textureName = "lightflare.tga"
+startColor = "140 165 255 210"
+finishColor = "0 0 0 0"
+startRadius = 260
+finishRadius = 300
+animateTime = 0.35
+rotationRate = 0.0
+
+[Light]
+simulateBase = "sim_null"
+lifeTime = 0.3
+renderBase = "draw_light"
+startColor = "170 190 255 520"
+finishColor = "0 0 0 0"
+startRadius = 700
+finishRadius = 700
+animateTime = 0.3
+attenuateConstant = 1.0
+attenuateLinear = 0.0
+attenuateQuadratic = 0.0
+

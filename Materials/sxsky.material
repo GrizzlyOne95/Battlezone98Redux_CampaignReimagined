@@ -1,0 +1,24 @@
+// Operation Livewire weather bay: overcast domes that hide the Moon's open sky
+// while weather is up. Sprite materials are not fogged, so each dome is painted
+// its phase's fog colour (SXExhibits.WeatherPhases) to meet the fogged horizon.
+import * from "sprites.material"
+
+material SX_Sky/Rain : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap sxsky_rain.png
+}
+
+material SX_Sky/Storm : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap sxsky_storm.png
+}
+
+material SX_Sky/Snow : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap sxsky_snow.png
+}
+
+material SX_Sky/Dust : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap sxsky_dust.png
+}

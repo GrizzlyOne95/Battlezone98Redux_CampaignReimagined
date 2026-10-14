@@ -1,0 +1,6 @@
+import * from "sprites.material"
+
+material xrainsp.png : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap xrainsp.png
+}

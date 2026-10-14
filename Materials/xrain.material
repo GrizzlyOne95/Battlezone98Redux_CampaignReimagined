@@ -1,0 +1,58 @@
+material xrain
+{
+    // DX11: shader copy of the fixed-function technique below. D3D11 has no
+    // fixed pipeline; DX9 cannot use vs_4_0 and falls through to the original.
+    technique
+    {
+        pass
+        {   
+            vertex_program_ref CRWX_FF_LitFlat2_vertex
+            {
+            }
+            fragment_program_ref CRWX_FF_ModAlphaBlend_NoFog_fragment
+            {
+            }
+            diffuse 1 1 1 0.12
+            ambient 1 1 1 0.12
+        	cull_hardware none
+			cull_software none
+			depth_write off
+            scene_blend alpha_blend
+            fog_override true
+            texture_unit
+            {
+                texture xrain.dds
+                scroll_anim 0 1.5
+            }
+            texture_unit
+            {
+                texture xrainmask.dds
+                colour_op alpha_blend
+            }
+        }
+    }
+
+    technique
+    {
+        pass
+        {   
+            diffuse 1 1 1 0.12
+            ambient 1 1 1 0.12
+        	cull_hardware none
+			cull_software none
+			depth_write off
+            scene_blend alpha_blend
+            fog_override true
+            texture_unit
+            {
+                texture xrain.dds
+                scroll_anim 0 1.5
+            }
+            texture_unit
+            {
+                texture xrainmask.dds
+                colour_op alpha_blend
+            }
+        }
+    }
+}

@@ -1,0 +1,7 @@
+import * from "sprites.material"
+
+// Shared with the CRWX puddle particle material: one copy of the splat texture.
+material wsplat.dds : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap crwx_wsplat.dds
+}

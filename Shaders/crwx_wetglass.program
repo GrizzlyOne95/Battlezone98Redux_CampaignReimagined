@@ -1,0 +1,65 @@
+// Wet-glass rain overlay masked to the cockpit glass (crwx_wetglass.hlsl).
+// SM4 for DX11, SM3 for DX9; crwx_wetglass.material falls back to its
+// unmasked fixed-function technique where neither compiles.
+
+vertex_program CRWX_WetGlass_vertex_SM4 hlsl
+{
+	source crwx_wetglass.hlsl
+	target vs_4_0
+	entry_point wet_vertex
+
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto fovY fov
+		param_named_auto viewportSize viewport_size
+		param_named maskExtent float4 1.9 1.0 0 0
+		param_named_auto maskXform texture_matrix 1
+	}
+}
+
+fragment_program CRWX_WetGlass_fragment_SM4 hlsl
+{
+	source crwx_wetglass.hlsl
+	target ps_4_0
+	entry_point wet_fragment
+
+	default_params
+	{
+		param_named opacity float 1
+		// Sized for the 64 deg default view (tan 32 deg); curvature 0 flat, 1 dome, 1.5 wraps tighter
+		param_named canopy float4 0.625 1.5 0 0
+	}
+}
+
+vertex_program CRWX_WetGlass_vertex_SM3 hlsl
+{
+	source crwx_wetglass.hlsl
+	target vs_3_0
+	entry_point wet_vertex
+	preprocessor_defines SM3=1
+
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto fovY fov
+		param_named_auto viewportSize viewport_size
+		param_named maskExtent float4 1.9 1.0 0 0
+		param_named_auto maskXform texture_matrix 1
+	}
+}
+
+fragment_program CRWX_WetGlass_fragment_SM3 hlsl
+{
+	source crwx_wetglass.hlsl
+	target ps_3_0
+	entry_point wet_fragment
+	preprocessor_defines SM3=1
+
+	default_params
+	{
+		param_named opacity float 1
+		// Sized for the 64 deg default view (tan 32 deg); curvature 0 flat, 1 dome, 1.5 wraps tighter
+		param_named canopy float4 0.625 1.5 0 0
+	}
+}
