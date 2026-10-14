@@ -667,6 +667,10 @@ local WAVE_PERIOD_S, WAVE_RETRY_S, WAVE_LIVE_CAP = 300.0, 30.0, 16
 local WAVE_POLL_S, WAVE_ARRIVE_M = 2.0, 150.0
 local WAVE_CHOKE_TIMEOUT_S, WAVE_PATH_TIMEOUT_S = 120.0, 240.0
 local WAVE_ROUTE_PATH = "turret_path3"
+-- No pop-in: a squad is only built where no human is within WAVE_CLEAR_M (misn13.trn VisibilityRange is 250,
+-- so the spawn is past the fog). A blocked geyser falls back to the other one; if both are watched the wave
+-- waits WAVE_RETRY_S and tries again.
+local WAVE_CLEAR_M = 400.0
 local WAVES = {
     { flag = "wave2", move = "wave2_move", done = "wave2_done", spawn = "spawn_point1", choke = "choke_point3",
       odfs = { "svtank", "svtank", "svfigh" } },
@@ -692,10 +696,21 @@ local function LiveWaveUnits()
     return total
 end
 
+-- The first of `candidates` (handles or path names) that exists and has no human within WAVE_CLEAR_M.
+local function UnwatchedSpawn(candidates)
+    for _, where in ipairs(candidates) do
+        if type(where) == "string" or IsValid(where) then
+            local _, distance = NearestPlayer(where)
+            if distance >= WAVE_CLEAR_M then return where end
+        end
+    end
+end
+
 local function SpawnWave(index)
     local wave = WAVES[index]
-    local where = M[wave.spawn]
-    if not IsValid(where) then return false end
+    local other = (wave.spawn == "spawn_point1") and "spawn_point2" or "spawn_point1"
+    local where = UnwatchedSpawn({ M[wave.spawn], M[other] })
+    if where == nil then return false end
     local odfs = {}
     for _, odf in ipairs(wave.odfs) do odfs[#odfs + 1] = odf end
     for _ = 1, ExtraHumans() do
@@ -768,10 +783,14 @@ end
 -- The opening rush: one svtank and one svfigh per extra human join the DLL's first attack.
 local function UpdateRushExtras()
     if M.rush_extras or not M.first_wave then return end
+    if ExtraHumans() == 0 then M.rush_extras = true; return end
+    -- Same no-pop-in rule as the waves; if every point is watched, try again next tick.
+    local where = UnwatchedSpawn({ "choke_point1", M.spawn_point2, M.spawn_point1 })
+    if where == nil then return end
     M.rush_extras = true
     for _ = 1, ExtraHumans() do
-        Attack(BuildObject("svtank", ENEMY_TEAM, "choke_point1"), M.nsdfrecycle, 1)
-        Attack(BuildObject("svfigh", ENEMY_TEAM, "choke_point1"), M.nsdfrecycle, 1)
+        Attack(BuildObject("svtank", ENEMY_TEAM, where), M.nsdfrecycle, 1)
+        Attack(BuildObject("svfigh", ENEMY_TEAM, where), M.nsdfrecycle, 1)
     end
 end
 -- CR restored waves <<
