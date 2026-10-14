@@ -997,7 +997,6 @@ Priority `0` leaves a unit player-commandable. Default priority `1` makes the is
 - `Defend2`: defensive follow behavior; can chase enemies and may fail to re-follow if the defended object moves too far away.
 - `Follow`: looser follow behavior; tends to re-follow after exceeding distance thresholds.
 - `Formation`: tightest follow pattern; units cluster near the target and frequently retarget nearby threats.
-- `Formation` in the shipping 2.2.301 build: `Formation(unit, leader, 1)` fails with "bad argument #2 to 'Formation' (number expected, got userdata)" (live-observed in misn11 co-op, 2026-10-14). Use `Follow` or `Defend2` instead. In multiplayer, the resulting Lua error alert can close the host (render failure).
 
 Treat these descriptions as observed AI behavior rather than a stable formal contract.
 
