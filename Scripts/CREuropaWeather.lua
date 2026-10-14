@@ -467,11 +467,22 @@ function V.GetSeverity()
     return Clamp((V.LevelValue - 1.0) / (LEVEL_COUNT - 1), 0.0, 1.0)
 end
 
+-- The engine hands back VECTOR_3D userdata, not a table: read x/y/z inside a
+-- pcall and return a plain table (nil unless x and z are numbers).
+local function ReadVector(p)
+    if p == nil then return nil end
+    local okX, x, y, z = pcall(function() return p.x, p.y, p.z end)
+    if okX and type(x) == "number" and type(z) == "number" then
+        return { x = x, y = tonumber(y) or 0.0, z = z }
+    end
+    return nil
+end
+
 local function PositionOf(h)
     if h == nil or type(GetPosition) ~= "function" then return nil end
     local ok, p = pcall(GetPosition, h)
-    if ok and type(p) == "table" and type(p.x) == "number" then return p end
-    return nil
+    if not ok then return nil end
+    return ReadVector(p)
 end
 
 local function ValidHandle(h)

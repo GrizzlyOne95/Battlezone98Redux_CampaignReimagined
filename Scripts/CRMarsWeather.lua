@@ -1231,8 +1231,10 @@ function CRMarsWeather.Init(options)
     -- Capture the map's gravity before we start bending it sideways.
     if type(exu.GetGravity) == "function" then
         local gravity = Call("GetGravity")
-        if type(gravity) == "table" then
-            CRMarsWeather.BaseGravity = { x = gravity.x or 0.0, y = gravity.y or -9.8, z = gravity.z or 0.0 }
+        -- Engine vectors are userdata in game; read the fields guarded.
+        local okG, gx, gy, gz = pcall(function() return gravity.x, gravity.y, gravity.z end)
+        if gravity ~= nil and okG then
+            CRMarsWeather.BaseGravity = { x = tonumber(gx) or 0.0, y = tonumber(gy) or -9.8, z = tonumber(gz) or 0.0 }
         end
     end
     if CRMarsWeather.BaseGravity == nil then
