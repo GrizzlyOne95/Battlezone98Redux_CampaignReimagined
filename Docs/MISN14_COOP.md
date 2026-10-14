@@ -172,6 +172,32 @@ every `-- CR ... >>` / `<<` region and asserts each substitution outside them.
 - The CcaBroken trigger only counts after the squad turned, so a human-led raid on the CCA before the Furies go
   rogue does not short-circuit the story.
 
+## Live evidence (offline, 2026-10-14)
+
+GOG Redux 2.2.301 in a private copy of the harness instance (`C:\BZRCoop\misn14sp`, OpenShim 51d9fbb, windowed),
+the branch's `misn14.lua` with an appended Lua driver (test assists, labelled ASSIST: healing, a spawned APC moved
+between beacons, waves forced every 6 s, the activation and control windows shortened). A command-line launch of
+`misn14.bzn` loads the **stock** 144-object map from `bzone.zfs` (the mod folder is not searched for a CLI mission),
+so the run used a copy named `m14t.bzn` in `addon\m14t\` (with the CR scripts beside it; the engine still looks for
+`misn14.lua`, the TerrainName). Results (run of 12:18, mission clock):
+
+| Check | Result |
+|---|---|
+| Stock `avsav` on team 1 | `CanCommand` **false**; Follow/Goto ignored (command stays 0, distance unchanged) |
+| `avsav14` squad, dormant then handed over | `CanCommand` true; after handover command 5 (FOLLOW) on the player; a priority-0 Goto ran (56 m -> 4 m) and an Attack on a CCA scavenger took (command 4, target team 5) |
+| Activation scene | 1402, 1423, 1424 played (native AudioMessage queues them); scene lasted its 15 s; objective "Fury squad online" shown |
+| Loss of control | 1425 then 1426; both Furies `SetTeamNum` -> **6**, `CanCommand` false, attacking a CCA `svturr` (team 5) and the Texas (team 1) |
+| Rogue waves | built on team 6, 3 per wave offline, `hvsat` joined at wave 4 (`hvsav=9, hvsat=1`) and wave 5; nearest Fury at least 518 m from the player when checked one second after a build |
+| Surrender (third wave) | 1404/1405; CCA craft (recycler, factory) -> team 0; barracks, **both power plants** and the surviving towers -> team 7 |
+| Rescues | three beacons by the APC (1409/1417/1418/1419), survivors held at the beacon |
+| Win | 1406-1408, pickup at the barracks, APC back at the Texas: 1411 and `RUN_WAS_SUCCESS` (`misn14w1.des`) |
+| Lua errors | none (the driver wraps Update in `pcall` and logs failures; none logged) |
+
+Not verified live: the cinematic framing of the activation/loss shots (the window was in the background and its
+captures stopped refreshing after the intro, so the screenshots show a stale cockpit frame), and everything co-op.
+Redux logs one "mission issue": the `avsav` mesh is not preloaded (the squad loads it at run time); harmless but a
+possible hitch when the squad is built 3 s in.
+
 ## Live checklist
 
 1. Offline: the activation scene plays, the squad is selectable and obeys Follow/Goto/Attack, control loss
