@@ -1,11 +1,11 @@
 -- Co-op pings as stock objective markers, local to each player's machine.
 -- Terrain ping: an invisible local-only marker object (ODF crping) with the
--- marker on, named "<who>: GO HERE", removed when the ping ends or is replaced.
--- Object ping: a unit that is not an objective gets the marker, named
--- "<who>: TARGET", until the ping ends; one that already is (a mission
--- objective, a teammate marker) only flashes, and is never switched off or
--- renamed. Without exu.IsObjectiveOn that state is unknown, so the unit is
--- left alone.
+-- marker on, named "<who>: TERRAIN PING", removed when the ping ends or is
+-- replaced. Object ping: the unit is renamed "<who>: TARGET PING" until the
+-- ping ends, then gets its old name back. If it was not an objective it gets
+-- the marker and loses it again; if it already was (a mission objective, a
+-- teammate marker) it flashes and is never switched off. Without
+-- exu.IsObjectiveOn that state is unknown, so the unit is left alone.
 local M = {}
 local FLASH_TIME, FLASH_STEP = 1.2, 0.2
 function M.Create(d)
@@ -21,8 +21,8 @@ function M.Create(d)
         marks[id] = nil
         if mark and mark.spawned then
             if objective("valid", mark.handle) then objective("remove", mark.handle) end
-        elseif mark and mark.ours and objective("valid", mark.handle) then
-            objective("off", mark.handle)
+        elseif mark and mark.renamed and objective("valid", mark.handle) then
+            if mark.ours then objective("off", mark.handle) end
             objective("name", mark.handle, mark.oldName)
         end
     end
@@ -49,19 +49,22 @@ function M.Create(d)
                 local h = objective("spawn", ping.position)
                 marks[id] = { handle = h, seq = ping.seq, spawned = h ~= nil }
                 if h ~= nil then
-                    objective("name", h, ping.name:sub(1, 16) .. ": GO HERE")
+                    objective("name", h, ping.name:sub(1, 16) .. ": TERRAIN PING")
                     objective("on", h)
                 end
             elseif ping.kind == "object" and ping.handle then
                 local on = objective("isOn", ping.handle)
-                if on == false then
-                    marks[id] = { handle = ping.handle, seq = ping.seq, ours = true,
-                        oldName = objective("getName", ping.handle) }
-                    objective("name", ping.handle, ping.name:sub(1, 16) .. ": TARGET")
-                    objective("on", ping.handle)
-                else
-                    marks[id] = { handle = ping.handle, seq = ping.seq,
-                        flashUntil = on == true and time + FLASH_TIME or nil, nextFlash = time, lit = true }
+                local mark = { handle = ping.handle, seq = ping.seq }
+                marks[id] = mark
+                if on ~= nil then
+                    mark.renamed, mark.ours = true, on == false
+                    mark.oldName = objective("getName", ping.handle)
+                    objective("name", ping.handle, ping.name:sub(1, 16) .. ": TARGET PING")
+                    if on then
+                        mark.flashUntil, mark.nextFlash, mark.lit = time + FLASH_TIME, time, true
+                    else
+                        objective("on", ping.handle)
+                    end
                 end
             end
         end

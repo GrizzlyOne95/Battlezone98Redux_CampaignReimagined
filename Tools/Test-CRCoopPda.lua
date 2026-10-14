@@ -142,8 +142,8 @@ do
         [30] = { name = "Bo", kind = "object", handle = mission, seq = 1, position = { x = 0, y = 0, z = 9 } },
         [40] = { name = "Cy", kind = "object", handle = unknown, seq = 1, position = { x = 0, y = 0, z = 9 } } }
     hud.Update(false)
-    check(state[enemy].on and state[enemy].name == "Ann: TARGET", "plain unit gets a named marker")
-    check(state[mission].name == "Relic", "existing objective keeps its name")
+    check(state[enemy].on and state[enemy].name == "Ann: TARGET PING", "plain unit gets a named marker")
+    check(state[mission].name == "Bo: TARGET PING", "existing objective renamed while pinged")
     check(state[unknown].on == nil, "unknown objective state is left alone")
     local offs = 0
     for _ = 1, 10 do
@@ -156,12 +156,12 @@ do
     check(not state[enemy].on and state[enemy].name == "Grizzly", "ping end restores the plain unit")
     pings = {}
     clock = clock + 0.1; hud.Update(false)
-    check(state[mission].on and state[mission].name == "Relic", "existing objective never switched off")
+    check(state[mission].on and state[mission].name == "Relic", "existing objective stays on, name restored")
     -- Terrain: one invisible local marker per ping, removed when it ends or is replaced.
     pings = { [20] = { name = "Ann", kind = "terrain", seq = 2, position = { x = 5, y = 0, z = 6 } } }
     clock = clock + 0.1; hud.Update(false)
     local marker = spawned[1]
-    check(#spawned == 1 and state[marker].on and state[marker].name == "Ann: GO HERE", "terrain ping gets a marker")
+    check(#spawned == 1 and state[marker].on and state[marker].name == "Ann: TERRAIN PING", "terrain ping gets a marker")
     check(marker.pos.x == 5 and marker.pos.z == 6, "marker at the ping")
     clock = clock + 0.1; hud.Update(false)
     check(#spawned == 1, "one marker per ping")
