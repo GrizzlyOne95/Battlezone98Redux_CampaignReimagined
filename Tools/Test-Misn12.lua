@@ -25,9 +25,20 @@ local function object(odf, team)
     return serial
 end
 function GetHandle(label)
-    if not labels[label] then labels[label] = object("svtank", 2) end
+    if not labels[label] then labels[label] = object("svtank", 5) end
     return labels[label]
 end
+function GetTeamNum(h) assert(IsValid(h)); return objects[h].team end
+function AllObjects()
+    local list = {}
+    for h in pairs(objects) do list[#list + 1] = h end
+    table.sort(list)
+    local i = 0
+    return function() i = i + 1; return list[i] end
+end
+function DisplayMessage() end
+function Ally() end
+function UnAlly() end
 function GetPlayerHandle() return player end
 function GetTime() return now end
 function IsValid(h) return h ~= nil and objects[h] ~= nil end
@@ -88,14 +99,35 @@ local function step(time)
     if time then now = time end
     Update(0.05)
 end
+local function noop() end
+local modules = {
+    RequireFix = {Initialize = noop}, exu = {},
+    Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
+    -- The real module plays through AudioMessage and returns its handle.
+    ScriptSubtitles = {Play = function(file) return AudioMessage(file) end,
+        Queue = function(file) return AudioMessage(file) end, Stop = noop, Update = noop, Initialize = noop},
+    CREuropaSites12 = {mission = "misn12"},
+    CREuropaWeather = {Seed = 1, Init = noop, Update = noop, Shutdown = noop, OnObjectCreated = noop,
+        Save = function() return {tag = "weather"} end, Load = noop, AnnounceState = noop,
+        ApplyNetEvent = noop, GetVentSites = function() return {{label = "center_geyser"}} end,
+        SetTargetLevel = function(level) record("EuropaTarget", level) end,
+        ReleaseForcedLevel = function() record("EuropaRelease") end,
+        TriggerPlume = function(index) record("EuropaPlume", index) end,
+        Quake = function(strength, seconds) record("EuropaQuake", strength, seconds) end,
+        Surge = function(seconds, strength) record("EuropaSurge", seconds, strength) end},
+}
+function require(name) return assert(modules[name], name) end
 local function reset()
     now, serial, cancelled = 0, 0, false
     objects, labels, calls, distances, infos, objectives = {}, {}, {}, {}, {}, {}
     player = object("avtank", 1)
+    modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
+    modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
     timer, timerRunning = 0, false
     dofile("Scripts/misn12.lua")
     Start()
-    check(not Save().start_done and #calls == 0, "Start only performs source Setup")
+    check(not Save().start_done and #calls == count("RemoveObject"), "Start only performs source Setup (and drops the co-op buoys)")
     step()
     return Save()
 end
@@ -123,6 +155,11 @@ end
 local m = reset()
 check(m.start_done and objects[m.key_ship].odf == "svfi12", "original key-ship ODF")
 check(count("BuildObject", "apcamr") == 6 and count("BuildObject", "svfi12") == 1, "startup spawns")
+check(not m.multi and not m.strict and m.slots == 1 and #m.arty == 4, "offline: one human, one key ship, four howitzers found")
+for _, h in ipairs({m.center_cam, m.start_cam, m.check2_cam, m.check3_cam, m.check4_cam, m.goal_cam}) do
+    check(objects[h].team == 7, "the pods hide on the support team, never guest team 3")
+end
+check(objects[m.key_ship].team == 5, "the key ship is a CCA (team 5) craft")
 check(timer == 1200 and called("StartCockpitTimer", 1200, 300), "20-minute deadline")
 check(called("SetWeaponMask", m.key_ship, 3), "original key-ship weapon mask")
 check(objects[m.nav1].name == "Drop Zone", "nav name")
@@ -184,6 +221,11 @@ step(uploadEnd + 0.01)
 check(m.interface_complete and not timerRunning and called("HideCockpitTimer"), "upload stops/hides deadline")
 check(m.discovered and called("Attack", m.guard_tank1, player), "upload triggers escape opposition")
 check(#objectives == 1 and objectives[1][1] == "misn1205.otf", "return objective")
+check(count("BuildObject", "avfigh") == 1 and objects[m.razor].team == 1 and m.razor_state == "held",
+    "Razor One's scout waits at the compound when the uplink completes (restored arc)")
+check(called("SetPerceivedTeam", m.razor, 5) and called("SetObjectiveName", m.razor, "Razor One"), "disguised and marked")
+check(count("AudioMessage", "misn1224.wav") == 0, "his line waits for a human to come near")
+check(#(m.hunters or {}) == 0 and #(m.extra_patrols or {}) == 0, "one human: no scaling units")
 near(player, m.nav1, 74); step(m.win_check_time)
 check(not m.win, "source 120-second return delay strict boundary")
 step(m.win_check_time + 0.01)
@@ -224,6 +266,7 @@ check(m.identify_message and m.next_message_time == 20, "straight to 4 uses 20-s
 m = capture(reset()); disableMovies(m); approach(m, m.checkpoint3, 100)
 remote(m, m.checkpoint3); approach(m, m.checkpoint4, 100)
 check(m.real_bad and m.discovered, "3 to 4 without recovery immediately exposes player")
+check(not m.game_blown and count("FailMission") == 0, "one human: exposure hunts the player but never fails the mission (stock rules)")
 
 -- Pre-capture failures retain the 5-second wave and 10-second failure schedule.
 m = reset(); objects[m.user_tank].health = 0.90; step()
@@ -261,13 +304,13 @@ check(not called("Goto", m.patrol2_1, "path3"), "source OR routing stops only wh
 m = capture(reset()); disableMovies(m); infos.sbhqt1 = true
 approach(m, m.center, 99)
 check(m.camera_swap1 and objects[m.start_cam].team == 1 and objects[m.goal_cam].team == 1, "center console reveals route pods")
-check(objects[m.center_cam].team == 3 and objects[m.start_cam].name == "Check Point", "source center pod exclusion and names")
+check(objects[m.center_cam].team == 7 and objects[m.start_cam].name == "Check Point", "source center pod exclusion and names")
 remote(m, m.center); step(1.01)
-check(m.camera_swap_back and not m.camera_swap1 and objects[m.start_cam].team == 3, "console range restores team 3")
+check(m.camera_swap_back and not m.camera_swap1 and objects[m.start_cam].team == 7, "console range restores the hidden team")
 near(player, m.checkpoint1, 99); step()
 check(m.camera_swap2 and objects[m.center_cam].team == 1, "checkpoint console reveals center pod")
 remote(m, m.checkpoint1); step(now + 1.01)
-check(not m.camera_swap2 and objects[m.center_cam].team == 3, "checkpoint console range restores center pod")
+check(not m.camera_swap2 and objects[m.center_cam].team == 7, "checkpoint console range restores center pod")
 m = capture(reset()); disableMovies(m); infos.sbhqt2 = true
 RemoveObject(m.check2_cam); approach(m, m.center, 99)
 check(m.camera_swap1 and not IsValid(m.check2_cam), "removed camera pod safely skipped")
