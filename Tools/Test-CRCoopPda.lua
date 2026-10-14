@@ -112,17 +112,6 @@ me, host, onFoot, requests = 30, false, { [30] = true }, {}
 active = false; ui.UpdatePage(state)
 state.pdaPage = 9; ui.UpdatePage(state)
 check(state.pdaPage == 1, "solo clears co-op page")
-local view = { right_x = 1, right_y = 0, right_z = 0, up_x = 0, up_y = 1, up_z = 0,
-    front_x = 0, front_y = 0, front_z = 1, posit_x = 0, posit_y = 0, posit_z = 0 }
-local origins = { Orig_x = 640, Orig_y = 360, Const_x = 640, Const_y = -640 }
-local x, y, mark, distance = Hud.Project(ping.position, view, origins, 1280, 720)
-check(x == 0.5 and y == 0.5 and mark == "+" and distance == 100, "front projection")
-x, y, mark = Hud.Project({ x = 1000, y = 0, z = 10 }, view, origins, 1280, 720)
-check(x <= 0.830001 and mark == ">", "edge arrow")
-x, y, mark = Hud.Project({ x = 0, y = 0, z = -100 }, view, origins, 1280, 720)
-check(mark == "BEHIND v", "behind marker")
-check(not Hud.Project(ping.position, nil, origins, 1280, 720), "camera missing")
-check(not Hud.Project({ x = 0/0, y = 0, z = 0 }, view, origins, 1280, 720), "NaN projection")
 -- Object pings use the stock objective marker; existing objectives only flash.
 do
     local clock, pings, active = 0, {}, true
@@ -131,8 +120,7 @@ do
         [unknown] = { on = nil, name = "Scout" } }
     local log, spawned = {}, {}
     local hud = Hud.Create({
-        exu = {}, time = function() return clock end, resolution = function() return 1280, 720 end,
-        font = function() return "font" end,
+        time = function() return clock end,
         comms = function() return { IsActive = function() return active end, GetPings = function() return pings end } end,
         objective = {
             isOn = function(h) return state[h].on end,
