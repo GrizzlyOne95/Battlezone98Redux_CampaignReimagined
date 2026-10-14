@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Check original DLL provenance, all comments/state, and ordered API references."""
+"""Check original DLL provenance, all comments/state, and ordered API references.
+
+Everything the campaign adds (the co-op layer, CCA scaling, the team filters, the whole-base win, the
+restored waves, the objectives, the unused misn1301 line, the escort/reserve roles, the rally and the
+weather) lives between exact `-- CR <name> >>` / `-- CR <name> <<` marker lines. They are stripped
+(inclusive) so the checks below prove the active DLL port is unchanged. The few substitutions outside the
+markers are normalized back to the DLL spelling here, each asserted explicitly first.
+"""
 from collections import Counter
 from hashlib import sha1
 from pathlib import Path
@@ -16,7 +23,55 @@ for name, expected in {
     assert actual == expected, f"original Git blob changed: {name}"
 
 source = (SNAPSHOT / "Misn13Mission.cpp").read_text(encoding="utf-8")
-lua = (ROOT / "Scripts/misn13.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/misn13.lua").read_text(encoding="utf-8").replace("\r\n", "\n")
+
+REGIONS = ("CR co-op layer", "CR CCA scaling", "CR team filter", "CR win", "CR objectives", "CR cut VO",
+           "CR restored waves", "CR escort", "CR reserve", "CR GetWhoShotMe", "CR rally", "CR Europa weather")
+opens = {f"-- {name} >>": name for name in REGIONS}
+closes = {f"-- {name} <<": name for name in REGIONS}
+stack, kept, region_lines = [], [], []
+lines = lua_full.split("\n")
+for name in REGIONS:
+    assert lines.count(f"-- {name} >>") == lines.count(f"-- {name} <<"), "unbalanced markers: " + name
+for line in lines:
+    if line in opens:
+        stack.append(opens[line])
+    elif line in closes:
+        assert stack and stack[-1] == closes[line], "region close without matching open"
+        stack.pop()
+    elif stack:
+        region_lines.append(line)
+    else:
+        kept.append(line)
+assert not stack, "unterminated region"
+lua = "\n".join(kept)
+region_all = "\n".join(region_lines)
+for token in ("UpdateWaves", "SpawnWave", "UpdateEscorts", "UpdateReserve", "UpdateCollins", "UpdateObjectives",
+              "UpdateRally", "UpdatePresentationTransport", "InitializeCoopState", "RESTORED_WAVES", "misn1301",
+              "misn13_", "SetAIControl"):
+    assert token not in lua, "region code outside marker regions: " + token
+
+# ---- The substitutions outside the markers (each asserted, then normalized to the DLL spelling) --------
+# 1. The CCA is team 5 in co-op: the DLL's literal team 2 is ENEMY_TEAM (SetAIP names the team).
+active = re.sub(r"--\[=\[.*?\]=\]", "", lua, flags=re.S)
+assert not re.search(r"\b(SetScrap|AddScrap|GetScrap|SetPilot)\(2[,)]|BuildObject\(\"\w+\", 2,", active), \
+    "a DLL team-2 literal survived: the CCA is ENEMY_TEAM (team 5)"
+for call in ("SetScrap", "GetScrap", "SetPilot", "AddScrap"):
+    assert f"{call}(ENEMY_TEAM" in lua, call + " must use ENEMY_TEAM"
+assert lua.count("ENEMY_TEAM") == 42, "unexpected ENEMY_TEAM uses outside the markers: " + str(lua.count("ENEMY_TEAM"))
+lua = lua.replace("ENEMY_TEAM", "2")
+for aip in ("misn13.aip", "misn13a.aip", "misn13c.aip"):
+    assert f'SetAIP("{aip}", 2)' in lua, "SetAIP must name the CCA team"
+    lua = lua.replace(f'SetAIP("{aip}", 2)', f'SetAIP("{aip}")')
+# 2. The factory-safety count covers every human team and scales its threshold (the DLL counted team 1).
+count_line = "M.check = HumanUnitsNear(M.ccamuf, 400.0) - (HumanCount() - 1)"
+assert lua.count(count_line) == 1, "the human-team count substitution is missing"
+lua = lua.replace(count_line, "M.check = CountUnitsNearObject(M.ccamuf, 400.0, 1, nil)")
+# 3. The win needs the hangar and all four silos as well as the Unit Factory.
+win_guard = " and CCABaseDestroyed() then"
+assert lua.count(win_guard) == 1, "the whole-base win guard is missing"
+assert "if (not IsAlive(M.ccamuf)) and (not M.game_over)" + win_guard in lua
+lua = lua.replace(win_guard, " then")
 cpp_comment = r"//[^\n]*|/\*.*?\*/"
 comments = Counter(re.findall(cpp_comment, source, flags=re.S))
 retained = "\n".join(re.findall(r"--\[=\[(.*?)\]=\]", lua, flags=re.S))
@@ -123,6 +178,8 @@ for native, port, name in sections:
     total_assignments += len(native_assign)
 
 assert "M.safe_time_check = GetTime() + 60" not in live, "factory polling cadence changed"
+assert 'AudioMessage("misn1303.wav")' in live and 'SucceedMission(GetTime() + 15.0, "misn13w1.des")' in live,     "the victory line and result are the DLL's"
+assert "misn1300.otf" in live, "the DLL objective stays (the CR objectives replace it after it runs)"
 assert "M.bomber_reload = true" not in live, "cut bomber reload was enabled"
 assert 'BuildObject("avhraz"' not in live, "cut bomber replacement was enabled"
 print(f"Misn13 DLL parity: {sum(comments.values())} original comments, {len(fields)} state fields, "
