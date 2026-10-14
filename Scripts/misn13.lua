@@ -207,6 +207,14 @@ local LEADER_TEAM, ENEMY_TEAM = 1, 5
 -- Update, like the DLL.
 SetAIControl(ENEMY_TEAM, true)
 -- CR co-op layer <<
+-- CR Europa weather >>
+local CREuropaWeather = require("CREuropaWeather")
+local EuropaSites = require("CREuropaSites13")
+local Environment = require("Environment")
+local EUROPA_OPS = { EuropaState = true, EuropaPlume = true, EuropaQuake = true, EuropaSurge = true }
+-- The CCA factory falling shakes Europa once (the director replicates the quake to every peer).
+local FACTORY_QUAKE_STRENGTH, FACTORY_QUAKE_SECONDS = 0.7, 5.0
+-- CR Europa weather <<
 -- CR co-op layer >>
 -- Co-op presentation uses the established misn03/misn05/misn11 E/A transport.
 -- Only the campaign leader runs the mission body below; HUD/audio/removal/timer/
@@ -241,6 +249,12 @@ local function FromLeader(from)
 end
 
 local function ApplyPresentation(op, ...)
+-- CR Europa weather >>
+    if EUROPA_OPS[op] then
+        -- Weather events carry no handles: never labelled, never waited on.
+        return CREuropaWeather.ApplyNetEvent(op, ...)
+    end
+-- CR Europa weather <<
     if op == "Label" then
         local handle, label = ...
         if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
@@ -402,7 +416,7 @@ local function ReceivePresentation(from, kind, ...)
     if CRCoop.IsAuthority() or not FromLeader(from) then return true end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Label") then
+    if seq == receivedEvent + 1 and (native[op] or EUROPA_OPS[op] or op == "Label") then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
         local apply, unresolved = true, false
@@ -451,6 +465,65 @@ end
 -- it with its subtitle (Play returns the native audio handle on the leader, nil offline-safe).
 local function AudioMessage(file) return subtit.Play(file) end
 -- CR co-op layer <<
+-- CR Europa weather >>
+-- Europa atmosphere (Docs/EUROPA_WEATHER.md). The leader (or offline play) runs the director automatic
+-- weather and the beats below; guests render the same sky from the seeded timeline plus the host state and
+-- plume/quake/surge events, which ride the ordered presentation stream like any other event. The events carry
+-- no handles, so they bypass the marker label/TTL logic. The director is cosmetic: it never damages, shoves,
+-- scrambles or re-teams anything.
+local europaStarted, europaAnnounced = false, false
+
+local function InitEuropaWeather()
+    europaStarted = true
+    local net = CRCoop.IsNetworkGame()
+    local authority = (not net) or CRCoop.IsAuthority()
+    Environment.Init()
+    CREuropaWeather.Init({
+        authority = authority,
+        seed = M.europaSeed, -- nil: the leader/offline picks one, guests wait for the host state
+        sites = EuropaSites,
+        startLevel = 1,
+        targetLevel = 1,
+        -- The host queues straight onto the stream: its own Present() would apply the event again.
+        send = net and function(op, ...)
+            events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), ttl = RESOLVE_TIMEOUT }
+        end or nil,
+    })
+    if M.weatherState ~= nil and authority then
+        CREuropaWeather.Load(M.weatherState)
+        M.weatherState = nil
+    end
+    if authority then M.europaSeed = CREuropaWeather.Seed end -- survives a save
+end
+
+-- Every peer, every frame after the session is ready.
+local function UpdateEuropaWeather(dt)
+    if not europaStarted then InitEuropaWeather() end
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and not europaAnnounced and CRCoop.IsSessionReady() then
+        europaAnnounced = true
+        CREuropaWeather.AnnounceState()
+    end
+    CREuropaWeather.Update(dt)
+    Environment.Update(dt)
+end
+
+local function ShutdownEuropaWeather()
+    if europaStarted then CREuropaWeather.Shutdown() end
+    europaStarted, europaAnnounced = false, false
+end
+
+-- Victory eases the sky back to calm while the result screen counts down. EndMission has already queued the
+-- result; this only nudges the director (leader/offline).
+local presentSucceed = SucceedMission
+local function SucceedMission(...)
+    if (not M.europaCalm) and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
+        M.europaCalm = true
+        CREuropaWeather.ReleaseForcedLevel()
+        CREuropaWeather.SetTargetLevel(1)
+    end
+    return presentSucceed(...)
+end
+-- CR Europa weather <<
 -- CR co-op layer >>
 local function ConfigureAlliances()
     CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
@@ -808,6 +881,29 @@ local function UpdateRally()
     end
 end
 -- CR rally <<
+-- CR Europa weather >>
+-- Host/offline only, each beat once. The severity ladder follows the battle: 2 at the start -> 3 when the
+-- artillery marches (15 minutes in) or the third reinforcement wave lands -> a 60 s level-5 burst, an ice quake
+-- and a radiation surge when the CCA Unit Factory falls -> calm on the win (SucceedMission).
+local function UpdateEuropaBeats()
+    local beats = M.europaBeats
+    if beats == nil then beats = {}; M.europaBeats = beats end
+    if (not beats.start) and M.start_done then
+        beats.start = true
+        CREuropaWeather.SetTargetLevel(2)
+    end
+    if (not beats.siege) and (M.artil_move or M.wave3) then
+        beats.siege = true
+        CREuropaWeather.SetTargetLevel(3)
+    end
+    if (not beats.factory) and M.start_done and not IsAlive(M.ccamuf) then
+        beats.factory = true
+        CREuropaWeather.ForceLevel(5, 60.0, 10.0)
+        CREuropaWeather.Quake(FACTORY_QUAKE_STRENGTH, FACTORY_QUAKE_SECONDS)
+        CREuropaWeather.Surge(6.0, 0.8)
+    end
+end
+-- CR Europa weather <<
 -- CR co-op layer >>
 local function InitializeCoop()
     CRCoop.Initialize({
@@ -820,6 +916,7 @@ local function InitializeCoop()
     ConfigureAlliances()
     ResetPresentation()
     rallyDropped = false
+    ShutdownEuropaWeather()
 end
 
 -- Co-op state outside the DLL's serialized fields.
@@ -1038,6 +1135,12 @@ end
 // this is the handle thing brad made for me
 ]=]
 function AddObject(h)
+-- CR Europa weather >>
+    if IsValid(h) then
+        Environment.OnObjectCreated(h)
+        CREuropaWeather.OnObjectCreated(h)
+    end
+-- CR Europa weather <<
     if started then
         RegisterObject(h)
     else
@@ -1066,7 +1169,13 @@ function Update(dt)
     subtit.Update()
     CRCoop.Update()
     UpdatePresentationTransport()
-    if M.coopResult or M.coopPendingResult then return end
+    if M.coopResult or M.coopPendingResult then
+-- CR Europa weather >>
+        -- The sky keeps easing while the result screen counts down.
+        UpdateEuropaWeather(dt)
+-- CR Europa weather <<
+        return
+    end
     if CRCoop.IsNetworkGame() then
         if CRCoop.HasLeaderDeparted() then
             M.coopResult = true
@@ -1086,6 +1195,9 @@ function Update(dt)
         CRCoop.MarkMissionStarted()
         M.coopMissionStarted = true
     end
+-- CR Europa weather >>
+    UpdateEuropaWeather(dt)
+-- CR Europa weather <<
     UpdateRally()
     if not CRCoop.IsAuthority() then return end
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
@@ -1999,9 +2111,17 @@ function Update(dt)
     UpdateCollins()
     UpdateObjectives()
 -- CR co-op layer <<
+-- CR Europa weather >>
+    UpdateEuropaBeats()
+-- CR Europa weather <<
 end
 
 function Save()
+-- CR Europa weather >>
+    if europaStarted and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
+        M.weatherState = CREuropaWeather.Save()
+    end
+-- CR Europa weather <<
     return M
 end
 

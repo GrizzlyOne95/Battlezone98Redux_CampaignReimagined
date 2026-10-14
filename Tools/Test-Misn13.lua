@@ -82,6 +82,22 @@ local modules = {
     RequireFix = {Initialize = noop}, exu = {},
     ScriptSubtitles = {Play = function(file) AudioMessage(file); return 1 end,
         Queue = function(file) AudioMessage(file); return 1 end, Stop = noop, Update = noop, Initialize = noop},
+    Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
+    CREuropaSites13 = {mission = "misn13"},
+    CREuropaWeather = {Seed = 1,
+        Init = function(config) record("EuropaInit", config) end,
+        Update = function(dt) record("EuropaUpdate", dt) end,
+        Shutdown = function() record("EuropaShutdown") end,
+        OnObjectCreated = noop,
+        Save = function() record("EuropaSave"); return {tag = "weather"} end,
+        Load = function(state) record("EuropaLoad", state) end,
+        AnnounceState = function() record("EuropaAnnounce") end,
+        ApplyNetEvent = function(...) record("EuropaNetEvent", ...) end,
+        SetTargetLevel = function(level) record("EuropaTarget", level) end,
+        ForceLevel = function(level, seconds, transition) record("EuropaForce", level, seconds, transition) end,
+        ReleaseForcedLevel = function() record("EuropaRelease") end,
+        Quake = function(strength, duration) record("EuropaQuake", strength, duration) end,
+        Surge = function(duration, strength) record("EuropaSurge", duration, strength) end},
 }
 function require(name) return assert(modules[name], name) end
 local function reset(beforeStart)
@@ -454,4 +470,18 @@ check(not m.artil_message, "a non-artillery shooter never warns")
 m = reset(); objects[m.ccamuf].health = 0.8; tick(1); nearby = 2; tick(122); tick(123)
 check(not m.muf_safe, "two human units near the factory keep it threatened")
 nearby = 1; tick(124); check(m.muf_safe, "one human unit near the factory is safe")
+
+-- Europa weather beats (cosmetic; host/offline only).
+m = reset()
+check(count("EuropaInit") == 1 and count("EuropaUpdate") >= 1, "the director starts on the first frame")
+check(count("EuropaTarget", 2) == 1, "level 2 at the start")
+tick(901); check(count("EuropaTarget", 3) == 1, "level 3 when the artillery marches")
+tick(902); check(count("EuropaTarget", 3) == 1, "each beat once")
+m = reset(); kill(m.ccamuf); tick(1)
+check(count("EuropaForce", 5) == 1 and count("EuropaQuake", 0.7) == 1 and count("EuropaSurge") == 1,
+    "the Unit Factory falling shakes Europa once")
+for i = 1, 4 do kill(m["ccasilo" .. i]) end; kill(m.hangar); tick(2)
+check(count("EuropaRelease") == 1 and count("EuropaTarget", 1) == 1, "victory calms the sky")
+local saved = Save()
+check(count("EuropaSave") >= 1 and saved.weatherState and saved.weatherState.tag == "weather", "weather state is saved")
 print("misn13: " .. checks .. " checks passed (" .. _VERSION .. ")")
