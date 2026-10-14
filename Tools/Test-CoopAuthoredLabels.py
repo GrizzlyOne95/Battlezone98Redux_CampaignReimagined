@@ -36,6 +36,16 @@ TARGETS = {
                "apcamr5_camerapod", "launch_pad", "launch_pad2", "svturr0_turrettank", "svturr1_turrettank",
                "svturr2_turrettank", "svturr3_turrettank", "second_blockade", "svwalk0_walker",
                "svartl0_howitzer", "svartl0(1)_howitzer"],
+    # misn12: the checkpoint buildings (checktower1 = sbhqt1, center = sbhqt2), the CCA muf/silos/
+    # comm tower the uplink and cameras frame, the six geysers the key ship and guards spawn at,
+    # the Drop Zone nav, the parked/guard units and the patrol fighters the script retargets.
+    "misn12": ["checktower1", "svguntower2", "svmuf", "svsilo1", "svsilo2", "svsilo3", "svsilo4",
+               "center", "svcom_tower", "spawn_geyser", "spawn_geyser1", "spawn_geyser2",
+               "choke_geyser", "check2_geyser", "center_geyser", "apcamr20_camerapod",
+               "pfighter1", "pfighter2", "ptank1", "ptank2", "turret1", "turret2", "turret3",
+               "turret4", "turret5", "turret6", "gtank1", "gtank2",
+               "svfigh1_1", "svfigh1_2", "svfigh2_1", "svfigh2_2", "svfigh3_1", "svfigh3_2",
+               "svfigh4_1", "svfigh4_2", "artil1", "artil2", "artil3", "artil4"],
 }
 # Labels that are also an authored PATH name in the BZN legitimately occur twice.
 PATH_NAMES = {"launch_pad"}

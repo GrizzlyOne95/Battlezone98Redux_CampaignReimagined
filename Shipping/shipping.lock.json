@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-13T18:10:22-05:00",
-  "count": 2326,
+  "count": 2339,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -108,6 +108,10 @@
       "runtime": "misn0917.wav"
     },
     {
+      "source": "Assets\\Audio\\misn1224.wav",
+      "runtime": "misn1224.wav"
+    },
+    {
       "source": "Assets\\Graphics\\bio.png",
       "runtime": "bio.png"
     },
@@ -162,6 +166,10 @@
     {
       "source": "Assets\\Graphics\\misn11.bmp",
       "runtime": "misn11.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn12.bmp",
+      "runtime": "misn12.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -574,6 +582,10 @@
     {
       "source": "Config\\misn11.ini",
       "runtime": "misn11.ini"
+    },
+    {
+      "source": "Config\\misn12.ini",
+      "runtime": "misn12.ini"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -2300,6 +2312,10 @@
       "runtime": "CR_reactive.material"
     },
     {
+      "source": "Materials\\cr_europa.particle.payload",
+      "runtime": "cr_europa.particle.payload"
+    },
+    {
       "source": "Materials\\cr_io.particle.payload",
       "runtime": "cr_io.particle.payload"
     },
@@ -2928,6 +2944,10 @@
       "runtime": "misn11.des"
     },
     {
+      "source": "misn12.des",
+      "runtime": "misn12.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -3148,12 +3168,20 @@
       "runtime": "misn11.bzn"
     },
     {
+      "source": "Missions\\misn12.bzn",
+      "runtime": "misn12.bzn"
+    },
+    {
       "source": "Missions\\misn10.hg2",
       "runtime": "misn10.hg2"
     },
     {
       "source": "Missions\\misn11.hg2",
       "runtime": "misn11.hg2"
+    },
+    {
+      "source": "Missions\\misn12.hg2",
+      "runtime": "misn12.hg2"
     },
     {
       "source": "Missions\\misn10.lgt",
@@ -3164,12 +3192,20 @@
       "runtime": "misn11.lgt"
     },
     {
+      "source": "Missions\\misn12.lgt",
+      "runtime": "misn12.lgt"
+    },
+    {
       "source": "Missions\\misn10.mat",
       "runtime": "misn10.mat"
     },
     {
       "source": "Missions\\misn11.mat",
       "runtime": "misn11.mat"
+    },
+    {
+      "source": "Missions\\misn12.mat",
+      "runtime": "misn12.mat"
     },
     {
       "source": "Missions\\misn10.trn",
@@ -3180,12 +3216,20 @@
       "runtime": "misn11.trn"
     },
     {
+      "source": "Missions\\misn12.trn",
+      "runtime": "misn12.trn"
+    },
+    {
       "source": "Missions\\misn10.vxt",
       "runtime": "misn10.vxt"
     },
     {
       "source": "Missions\\misn11.vxt",
       "runtime": "misn11.vxt"
+    },
+    {
+      "source": "Missions\\misn12.vxt",
+      "runtime": "misn12.vxt"
     },
     {
       "source": "Missions\\sxshow.bzn",
@@ -5570,6 +5614,14 @@
     {
       "source": "Scripts\\CRCoopRespawn.lua",
       "runtime": "CRCoopRespawn.lua"
+    },
+    {
+      "source": "Scripts\\CREuropaSites12.lua",
+      "runtime": "CREuropaSites12.lua"
+    },
+    {
+      "source": "Scripts\\CREuropaWeather.lua",
+      "runtime": "CREuropaWeather.lua"
     },
     {
       "source": "Scripts\\CRIoSites10.lua",
