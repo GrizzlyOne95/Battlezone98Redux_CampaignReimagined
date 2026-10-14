@@ -705,9 +705,11 @@ local function SquadLead()
     end
 end
 
--- Host, first mission frame: build the dormant squad (locked at priority 1 so nobody orders it yet).
+-- Host: build the dormant squad (locked at priority 1 so nobody orders it yet) a few seconds in, never in
+-- the load frame (the load frame's shared GEO table can be full; Docs/BZR_LUA_AGENT_REFERENCE.md rule 13).
+local FURY_BUILD_AFTER_S = 3.0
 local function BuildFurySquad()
-    if M.fury_built then return end
+    if M.fury_built or GetTime() < FURY_BUILD_AFTER_S then return end
     M.fury_built = true
     M.fury_squad = {}
     if not IsAlive(M.recy) then return end

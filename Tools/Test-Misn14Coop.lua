@@ -30,7 +30,7 @@ end
 -- ------------------------------------------------------------ 4 players: the squad is per human
 session(4)
 check(F.count(host, "DisableStartingRecycler") == 1, "co-op disables the starting recycler (shared Texas base)")
-F.run(2)
+F.run(4)
 local squad = F.builds(host, 0, "avsav14")
 check(#squad == 8, "two Furies per human team")
 local perTeam = {}
@@ -189,12 +189,12 @@ W = F.reset()
 host = F.makePeer(1, 1, true, {titan = titanFor("host")})
 guests = {F.makePeer(2, 2, true, {titan = titanFor("guest")})}
 F.connect()
-F.run(2)
+F.run(4)
 check(hooks.host.init.authority == true and type(hooks.host.init.send) == "function", "host director can send")
 check(hooks.guest.init.authority == false and hooks.guest.init.send == nil, "guest director only listens")
 hooks.host.init.send("TitanGust", 3, 0.5)
 hooks.host.init.send("NotTitan", 1) -- refused: only Titan* ops ride the stream
-F.run(2)
+F.run(4)
 local gotGust, gotOther = false, false
 for _, h in ipairs(hooks.guest) do
     if h[1] == "net" and h[2] == "TitanGust" and h[3] == 3 then gotGust = true end
