@@ -151,3 +151,10 @@ The entry expires on its own (`Environment.Update` notices and rewrites the craf
 second call never shortens an existing one, and replicas are skipped by the existing
 `IsLocal` guard. See `VENUS_WEATHER.md`.
 
+
+## Per-planet directors
+
+The planet directors (`CRMarsWeather`, `CRVenusWeather`, `CRIoWeather`, `CREuropaWeather`) all sit on top
+of this split: they pick a CRWeather preset and register an Environment modifier, and never write renderer state.
+`CREuropaWeather` additionally touches no sensor, gameplay modifier or perception state at all (see
+`EUROPA_WEATHER.md`), which makes it safe for stealth missions.

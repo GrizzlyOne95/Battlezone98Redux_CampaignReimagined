@@ -1,0 +1,290 @@
+// cr_europa.particle
+//
+// Ogre particle templates for the Europa weather director (CREuropaWeather.lua).
+//
+// Europa has no real atmosphere, so nothing here is wind-driven: every system
+// either rises and falls ballistically under a LinearForce "gravity" (plume
+// vapour, ice crystals) or hangs in place (frost haze, quake dust). The director
+// never pushes a wind vector into any of them.
+//
+// Every material below already exists in CR_reactive.material (CR_FX/Smoke*,
+// Snow, Haze, Dust, Spark, Bloom), so this file adds templates only -- no new
+// art, no new materials.
+//
+// Axis note for Box emitters (Ogre AreaEmitter): `direction` is the DEPTH axis.
+// With a horizontal direction, `height` becomes the thin vertical axis, which is
+// what the flat frost sheets rely on (same convention as cr_io.particle).
+//
+// Emitter and affector ORDER MATTERS: CREuropaWeather addresses both by index.
+
+// =============================================================================
+// Plume -- a cryovolcanic water-vapour column at a geyser
+// =============================================================================
+
+//   emitter 0  faint steady vapour wisp (the vent "breathing")
+//   emitter 1  eruption column (rate driven by the director)
+//   affector 0 Scaler
+//   affector 1 ColourFader
+//   affector 2 LinearForce          (gravity pulling the vapour back down)
+particle_system CR/Europa/Plume
+{
+    material            CR_FX/SmokeThin
+    particle_width      12.0
+    particle_height     12.0
+    quota               260
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               6
+        emission_rate       1.5
+        time_to_live_min    6.0
+        time_to_live_max    10.0
+        direction           0 1 0
+        velocity_min        5
+        velocity_max        9
+        colour_range_start  0.86 0.92 1.00 0.20
+        colour_range_end    0.74 0.84 0.98 0.00
+    }
+
+    emitter Point
+    {
+        angle               9
+        emission_rate       0
+        time_to_live_min    7.0
+        time_to_live_max    11.0
+        direction           0 1 0
+        velocity_min        38
+        velocity_max        62
+        colour_range_start  0.92 0.96 1.00 0.62
+        colour_range_end    0.78 0.88 1.00 0.00
+    }
+
+    affector Scaler
+    {
+        rate 2.2
+    }
+
+    affector ColourFader
+    {
+        alpha -0.05
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -5 0
+        force_application   add
+    }
+}
+
+// =============================================================================
+// Ice fall -- crystals condensing out of a plume and falling straight back down
+// =============================================================================
+
+// Placed over a vent by the director (it sits ~60 units above the ground and
+// covers the fallout footprint). Vertical only: a vacuum has no wind to carry
+// the crystals, so the box and the direction are both straight down. The director
+// raises the rate with the plume envelope and lets it die away over the linger.
+//   emitter 0  Box fallout footprint
+//   affector 0 LinearForce          (gravity)
+//   affector 1 ColourFader
+particle_system CR/Europa/IceFall
+{
+    material            CR_FX/Snow
+    particle_width      0.7
+    particle_height     0.7
+    quota               500
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               4
+        emission_rate       0
+        time_to_live_min    5.0
+        time_to_live_max    8.0
+        direction           0 -1 0
+        velocity_min        1.5
+        velocity_max        3.5
+        colour_range_start  0.90 0.95 1.00 0.80
+        colour_range_end    0.80 0.88 1.00 0.50
+        width               110
+        height              110
+        depth               6
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -2.5 0
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha -0.04
+    }
+}
+
+// =============================================================================
+// Frost haze -- sublimation haze lying low over the frosted ground
+// =============================================================================
+
+// A flat, very pale sheet that hangs close to the ice and barely drifts (there is
+// no wind; the slow motion is just the DirectionRandomiser).
+//   emitter 0  Box sheet
+//   affector 0 ColourInterpolator
+//   affector 1 Scaler
+//   affector 2 DirectionRandomiser
+particle_system CR/Europa/FrostHaze
+{
+    material            CR_FX/Haze
+    particle_width      46.0
+    particle_height     46.0
+    quota               60
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               20
+        emission_rate       1.6
+        time_to_live_min    14.0
+        time_to_live_max    22.0
+        direction           1 0 0.4
+        velocity_min        0.05
+        velocity_max        0.35
+        colour_range_start  0.80 0.88 1.00 0.00
+        colour_range_end    0.70 0.82 0.98 0.00
+        width               90
+        height              5
+        depth               90
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.80 0.88 1.00 0.00
+        time1   0.22
+        colour1 0.84 0.91 1.00 0.16
+        time2   0.75
+        colour2 0.74 0.85 0.99 0.12
+        time3   1.00
+        colour3 0.66 0.78 0.95 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.6
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  1
+        scope       0.2
+        keep_velocity true
+    }
+}
+
+// =============================================================================
+// Quake ice -- frost shaken loose, camera-attached
+// =============================================================================
+
+// Rides the quake envelope. Camera-attached, so it is the director's one
+// per-peer system for quakes (the shake itself is the engine's native).
+particle_system CR/Europa/QuakeIce
+{
+    material            CR_FX/Snow
+    particle_width      1.6
+    particle_height     1.6
+    quota               500
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    1.8
+        time_to_live_max    3.6
+        direction           0 -1 0
+        velocity_min        1.5
+        velocity_max        5
+        colour_range_start  0.88 0.93 1.00 0.60
+        colour_range_end    0.78 0.86 1.00 0.30
+        width               130
+        height              130
+        depth               30
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -3 0
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha -0.12
+    }
+}
+
+// =============================================================================
+// Surge motes -- faint auroral glints during a Jupiter radiation surge
+// =============================================================================
+
+// Camera-attached, additive, sparse and high: the "polar glow" half of a surge
+// (the other half is the director's Environment tint). Purely a drawing; it has
+// no effect on any sensor.
+particle_system CR/Europa/SurgeMotes
+{
+    material            CR_FX/Bloom
+    particle_width      9.0
+    particle_height     9.0
+    quota               80
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               30
+        emission_rate       0
+        time_to_live_min    1.2
+        time_to_live_max    2.6
+        direction           0 -1 0
+        velocity_min        0.3
+        velocity_max        1.5
+        colour_range_start  0.50 1.00 0.78 0.00
+        colour_range_end    0.62 0.50 1.00 0.00
+        width               260
+        height              260
+        depth               20
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.50 1.00 0.78 0.00
+        time1   0.30
+        colour1 0.46 0.96 0.74 0.16
+        time2   0.70
+        colour2 0.60 0.50 1.00 0.12
+        time3   1.00
+        colour3 0.62 0.46 1.00 0.00
+    }
+
+    affector Scaler
+    {
+        rate 1.2
+    }
+}

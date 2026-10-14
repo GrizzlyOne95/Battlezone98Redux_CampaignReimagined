@@ -1,6 +1,6 @@
 """Build Missions/<mission>.bzn (co-op) from the Battlezone 1.5 original.
 
-Shared by misn06 through misn09 (Build-Misn06CoopMap.py is a thin wrapper); the
+Shared by misn06 through misn12 (Build-Misn06CoopMap.py is a thin wrapper); the
 notes below use misn06 as the example.
 
 The 1.5 map is a binary version-1032 BZN whose mission class is the C++
@@ -17,7 +17,7 @@ offline/co-op Lua under MultSTMission:
     pushed misn05's team 3/4 starts far away).
 
 Usage:
-  python Tools/Build-CoopMap.py --mission misn06|misn07|misn08|misn09 [--source FILE] [--toolbox DIR]
+  python Tools/Build-CoopMap.py --mission misn06|...|misn12 [--source FILE] [--toolbox DIR]
 """
 
 from __future__ import annotations
@@ -45,7 +45,16 @@ REMOVE_LABELS = {"misn07": ("avtank2", "avtank3")}
 # misn08: the Colorado (avrecy, authored team 3) is a map object the script kills by
 # Damage; team 3 is a guest team in co-op, so it goes to the support team (7) but
 # stays perceived as team 1 (the host's side).
-RETEAM_LABELS = {"misn08": {"colorado": (7, 1)}}
+RETEAM_LABELS = {
+    "misn08": {"colorado": (7, 1)},
+    # misn12: six authored nav-camera pods (apcamr5-10_camerapod) sit on authored team 3 (the
+    # DLL's hidden camera team). Team 3 is a guest slot in co-op, so they move to the support team
+    # (7): not a guest, not allied with the humans, so they stay hidden. The Lua reveals a pod by
+    # switching it to team 1 and re-hides it on 7. perceivedTeam follows the team (7), because the
+    # hidden state is exactly "a non-allied team's object", unlike the Colorado which must look
+    # friendly from the start.
+    "misn12": {f"apcamr{n}_camerapod": (7, 7) for n in range(5, 11)},
+}
 BUOY_SPACING = 25.0
 BUOY_ADDR_BASE = 0x3001
 
@@ -292,7 +301,7 @@ def build(text: str, mission: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--mission", default="misn06", help="mission stem: misn06, misn07, misn08 or misn09")
+    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn12")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     parser.add_argument("--output", type=Path)

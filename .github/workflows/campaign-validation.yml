@@ -133,6 +133,18 @@ jobs:
           python Tools/Test-Misn11CoopContract.py
           python Tools/Test-CoopAuthoredLabels.py
 
+      - name: Test misn12 source port, co-op layer, presentation and Europa weather
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn12.lua
+          "$LUA" Tools/Test-Misn12Coop.lua
+          "$LUA" Tools/Test-Misn12Presentation.lua
+          "$LUA" Tools/Test-CREuropaWeather.lua
+          python Tools/Test-Misn12SourceParity.py
+          python Tools/Test-Misn12CoopContract.py
+
       - name: Test aiCore singleton producer recovery
         shell: bash
         run: |
