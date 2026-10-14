@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Add Mission 13, Total Destruction, to the campaign as a 2-4 player co-op listing
+  (`CR: Total Destruction Coop`) on the original Battlezone 1.5 Europa terrain. The CCA moves to
+  team 5 (the strategic AI is enabled once at load and runs `misn13`/`a`/`c.aip` from its Unit
+  Factory), freeing teams 2-4 for guests; the Texas Recycler base is shared and host-run. The map
+  ships without the 1.5 snapshot's 133 unnamed runtime paths, frozen unit orders and velocities.
+  The win now matches the briefing: destroy the Unit Factory, the hangar and all four silos (the
+  objectives list shows progress). The DLL's cut reinforcement waves 2-4 are restored (a CCA squad
+  from a spawn geyser every 300 s via `choke_point2/3` and `turret_path3`, scaled by player count),
+  the unused misn1301 Collins line plays after the opening, the five idle CCA wingmen get roles
+  (artillery escort, factory reserve), and the factory-safety count, artillery warning and
+  first-come tracked objects now work for every human (`Docs/MISN13_COOP.md`). The Europa weather
+  director runs here too.
 - Add Mission 12, Flying Solo, to the campaign as a 2-4 player co-op listing
   (`CR: Flying Solo Coop`) on the original Battlezone 1.5 Europa terrain. The CCA moves to team 5,
   freeing teams 2-4 for guests, the six hidden nav-camera pods move to the support team (7), and four
