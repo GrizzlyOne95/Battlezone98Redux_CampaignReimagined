@@ -40,7 +40,9 @@ function M.Create(d)
     local statuses, dispatches, gives, taken, marked = {}, {}, {}, {}, {}
     local seq, nextPing, nextRequest, revision = 0, 0, 0, 0
     local nextStatus, nextMarkers, lastStatus = 0, 0, nil
-    local enabled, markers = false, true
+    -- Status markers are opt-in (PDA MARKERS row): they add SetObjectiveName/On
+    -- calls on teammates' craft, which missions and their tests treat as their own.
+    local enabled, markers = false, false
     local function now() return d.time() end
     local function changed() revision = revision + 1 end
     local function valid(h)

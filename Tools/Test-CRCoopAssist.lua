@@ -190,7 +190,10 @@ check(H.Recall()); flush()
 check(#recalls == 2, "both guests moved")
 check(recalls[1].who ~= 10 and recalls[2].who ~= 10 and recalls[1].ordinal ~= recalls[2].ordinal, "spread around the host")
 
--- Markers: on by default, local to each peer, cleared when switched off.
+-- Markers: off by default (opt-in), local to each peer, cleared when switched off.
+advance(1.1)
+check(objectives["10:" .. tostring(friendTank)] == nil and not H.MarkersOn(), "markers are opt-in")
+H.SetMarkers(true); G.SetMarkers(true); F.SetMarkers(true)
 advance(1.1)
 check(objectives["10:" .. tostring(friendTank)] == "Friend  H90 A80", "host sees a guest marker")
 check(objectives["30:" .. tostring(friendTank)] == nil, "no marker on yourself")
