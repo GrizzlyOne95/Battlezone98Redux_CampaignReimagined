@@ -110,6 +110,13 @@ human if it is gone). Each extra human (cap 4 players, so at most +3) adds one `
 to every wave, **and** to the opening rush (built at `choke_point1`, attacking the Recycler). Waves stop
 once the Unit Factory is dead and wait 30 s at a time while 16 wave units are alive.
 
+**No pop-in.** Nothing is built at a spawn point that any human is within 400 m of (`WAVE_CLEAR_M`;
+`misn13.trn` has `VisibilityRange=250`, so a spawn is always past the fog). A wave whose geyser is watched
+uses the other geyser and still drives to its own choke point. If both geysers are watched it waits 30 s and
+tries again. The opening-rush extras try `choke_point1`, then `spawn_geyser2`, then `spawn_geyser1`;
+`spawn_geyser2` is only about 280 m from `choke_point1`, so a team at the choke point gets its rush from
+`spawn_geyser1`.
+
 ## Idle wingmen
 
 Five `svtank` wingmen stand beside the artillery pad in the 1.5 map. The snapshot shows three on DEFEND

@@ -1529,4 +1529,40 @@ do
     check(count(host, "Play", "misn1304.wav") == 1, "offline: the loss line plays")
 end
 
+-- No pop-in: nothing is built at a spawn point a human is within 400 m of.
+do
+    local host, guests = session(true, 2)
+    local s = host.state
+    -- The opening rush: both humans at choke_point1, so the extra pair comes from an unwatched geyser instead.
+    nearTo(host.player, "choke_point1", 50, 0)
+    nearTo(guests[1].player, "choke_point1", -50, 0)
+    runTo(s.first_wave_time + 8)
+    check(builtAt(host, "svtank", "choke_point1") == 0 and builtAt(host, "svfigh", "choke_point1") == 0,
+        "no pop-in: the rush pair is not built at a watched choke_point1")
+    -- spawn_geyser2 is only ~280 m from choke_point1, so it is watched too: the pair comes from spawn_geyser1.
+    check(builtAt(host, "svtank", "spawn_geyser2") == 0 and builtAt(host, "svtank", "spawn_geyser1") == 1
+        and builtAt(host, "svfigh", "spawn_geyser1") == 1 and s.rush_extras,
+        "no pop-in: ...it comes from the first unwatched point, spawn_geyser1")
+    -- Wave 2: one human on each geyser, so the wave waits.
+    nearTo(host.player, "spawn_geyser1", 100, 0)
+    nearTo(guests[1].player, "spawn_geyser2", -100, 0)
+    local mark = #host.calls
+    runTo(s.next_wave_time)
+    tick()
+    check(not s.wave2 and #buildsSince(host, mark, "spawn_geyser1") == 0 and #buildsSince(host, mark, "spawn_geyser2") == 0,
+        "no pop-in: wave 2 is not built while both geysers are watched")
+    check(s.next_wave_time == now + 30.0, "no pop-in: ...it retries in 30 s")
+    -- The guest leaves spawn_geyser2: wave 2 falls back to it, still heading for its own choke.
+    nearTo(guests[1].player, "spawn_geyser2", 2000, 0)
+    mark = #host.calls
+    runTo(s.next_wave_time)
+    tick()
+    local list = buildsSince(host, mark, "spawn_geyser2")
+    check(s.wave2 and #list == 5 and #buildsSince(host, mark, "spawn_geyser1") == 0,
+        "no pop-in: wave 2 falls back to the unwatched spawn_geyser2")
+    for _, b in ipairs(list) do
+        check(orders(host, "Goto", b.h, "choke_point3", 1) == 1, "no pop-in: the fallback squad still drives to choke_point3")
+    end
+end
+
 print("misn13 co-op: " .. checks .. " checks passed (multi-peer Lua 5.1 mock-engine)")
