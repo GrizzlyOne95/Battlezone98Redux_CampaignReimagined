@@ -14,3 +14,6 @@ unitName = "Ping"
 heatSignature = 0
 imageSignature = 0
 radarSignature = 0
+// Stock path planning blocks every building's whole SDF box; "none" (read by
+// EXU exu.pathing and OpenShim) keeps the marker out of the AI path grid.
+pathBlock = "none"

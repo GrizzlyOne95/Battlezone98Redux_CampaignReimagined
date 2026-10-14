@@ -59,7 +59,10 @@ ends or is replaced. `ODF/crping.odf` is a plain `i76building` that reuses the
 stock geyser base mesh `eggeizr1`, which sits entirely below ground. Rejected
 classes: `camerapod`/`apcamr` (looks like a mission nav), `spawnpnt` (joins
 respawn selection), `dropoff` (a powerup that banks a friendly scavenger's
-scrap) and other powerups (picked up). The engine's objective list holds
+scrap) and other powerups (picked up). The stock path grid blocks every building's whole
+SDF box (geysers, scrap fields and spawn points are exempt, but an
+`i76building` is not), so `crping` sets `pathBlock = "none"`, which OpenShim
+(`[General] PathBlockFaces`, on by default) and EXU `exu.pathing` honour. The engine's objective list holds
 32 objects and is not bounds-checked, so co-op keeps its own markers few.
 
 Help calls: a ride call lasts until the guest boards a craft. A supply call times
