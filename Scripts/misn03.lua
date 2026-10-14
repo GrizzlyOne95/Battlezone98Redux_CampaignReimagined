@@ -22,6 +22,11 @@ local PersistentConfig = require("PersistentConfig")
 local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 local CRCoop = require("CRCoop")
+-- CR Moon weather >>
+local CRMoonWeather = require("CRMoonWeather")
+local MoonSites = require("CRMoonSites03")
+local MOON_OPS = { MoonState = true, MoonGlow = true }
+-- CR Moon weather <<
 
 local LEADER_TEAM = 1
 local ENEMY_TEAM = 5
@@ -81,6 +86,12 @@ local function FromLeader(from)
 end
 
 local function ApplyPresentation(op, ...)
+-- CR Moon weather >>
+    if MOON_OPS[op] then
+        -- Weather events carry no handles: never labelled, never waited on.
+        return CRMoonWeather.ApplyNetEvent(op, ...)
+    end
+-- CR Moon weather <<
     if op == "Resources" then
         local team, scrap, pilots = ...
         -- Each human owns their team resources. Do not mutate a remote team.
@@ -408,7 +419,7 @@ local function ReceivePresentation(from, kind, ...)
     end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources" or op == "Difficulty") then
+    if seq == receivedEvent + 1 and (native[op] or MOON_OPS[op] or op == "Label" or op == "Resources" or op == "Difficulty") then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
         local apply, unresolved = true, false
@@ -953,7 +964,52 @@ local function UpdateModules(dt)
     end
 end
 
+-- CR Moon weather >>
+local moonStarted, moonAnnounced = false, false
+
+local function InitMoonWeather()
+    moonStarted = true
+    local net = CRCoop.IsNetworkGame()
+    local authority = (not net) or CRCoop.IsAuthority()
+    CRMoonWeather.Init({
+        authority = authority,
+        seed = M.moonSeed, -- nil: the leader/offline picks one, guests wait for the host's state
+        sites = MoonSites,
+        -- The host queues straight onto the stream: its own Present() would apply the event again.
+        send = net and function(op, ...)
+            events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), ttl = RESOLVE_TIMEOUT }
+        end or nil,
+    })
+    if M.moonWeatherState ~= nil and authority then
+        CRMoonWeather.Load(M.moonWeatherState)
+        M.moonWeatherState = nil
+    end
+    if authority then M.moonSeed = CRMoonWeather.Seed end -- survives a save
+end
+
+-- Every peer, every frame after the session is ready. Purely visual: ground mist,
+-- impact and hover dust, rare glow periods. See Docs/MOON_WEATHER.md.
+local function UpdateMoonWeather(dt)
+    if not moonStarted then InitMoonWeather() end
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and not moonAnnounced and CRCoop.IsSessionReady() then
+        moonAnnounced = true
+        CRMoonWeather.AnnounceState()
+    end
+    CRMoonWeather.Update(dt)
+end
+
+local function ShutdownMoonWeather()
+    if moonStarted then CRMoonWeather.Shutdown() end
+    moonStarted, moonAnnounced = false, false
+end
+-- CR Moon weather <<
+
 function Save()
+-- CR Moon weather >>
+    if moonStarted and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
+        M.moonWeatherState = CRMoonWeather.Save()
+    end
+-- CR Moon weather <<
     M.playerPilotModeState = PlayerPilotMode.Save()
     return M, aiCore.Save(), M.playerPilotModeState
 end
@@ -973,6 +1029,9 @@ function Load(missionData, aiData, pilotModeData)
 end
 
 function Start()
+-- CR Moon weather >>
+    ShutdownMoonWeather()
+-- CR Moon weather <<
     M.x = 4000
     M.z = 1
     M.y = 1
@@ -1140,6 +1199,10 @@ function Update()
     CRCoop.Update()
     UpdatePresentationTransport()
     TraceUpdateCall("misn03.Update UpdateModules", UpdateModules, 1.0 / (M.TPS or 20))
+-- CR Moon weather >>
+    -- The mist keeps drifting while the result screen counts down.
+    if M.coopResult or M.coopPendingResult then UpdateMoonWeather(1.0 / (M.TPS or 20)) end
+-- CR Moon weather <<
     if M.coopResult or M.coopPendingResult then return end
 
     -- Player 1 is the campaign leader. If that player leaves, do not allow a
@@ -1207,6 +1270,9 @@ function Update()
         M.coopMissionStarted = true
     end
 
+-- CR Moon weather >>
+    UpdateMoonWeather(1.0 / (M.TPS or 20))
+-- CR Moon weather <<
     -- Get difficulty for dynamic adjustments (0=Very Easy, 1=Easy, 2=Medium, 3=Hard, 4=Very Hard)
     local diff = 2
     if exu and exu.GetDifficulty then diff = exu.GetDifficulty() end

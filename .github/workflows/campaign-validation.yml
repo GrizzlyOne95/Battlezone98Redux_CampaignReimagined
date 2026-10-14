@@ -145,6 +145,20 @@ jobs:
           python Tools/Test-Misn12SourceParity.py
           python Tools/Test-Misn12CoopContract.py
 
+      # CR Moon weather >>
+      - name: Test Moon weather director (misn02b / misn03)
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-CRMoonWeather.lua Scripts
+          # The generated map data must match what the generator produces from the shipped terrain.
+          python -I Tools/Build-MoonSites.py misn02b --out "$RUNNER_TEMP/CRMoonSites02b.lua"
+          python -I Tools/Build-MoonSites.py misn03 --depth-full 30 --out "$RUNNER_TEMP/CRMoonSites03.lua"
+          diff <(tr -d '\r' < Scripts/CRMoonSites02b.lua) <(tr -d '\r' < "$RUNNER_TEMP/CRMoonSites02b.lua")
+          diff <(tr -d '\r' < Scripts/CRMoonSites03.lua) <(tr -d '\r' < "$RUNNER_TEMP/CRMoonSites03.lua")
+      # CR Moon weather <<
+
       - name: Test aiCore singleton producer recovery
         shell: bash
         run: |

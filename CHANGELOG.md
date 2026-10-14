@@ -163,6 +163,10 @@
   mission script now returns nothing instead of corrupting memory (a DX9
   freeze seen with ISDF Chronicles), and the overlay font now uses a mod's own
   `bzfont.dds` when the mod ships one.
+- Add `CRMoonWeather`, a Moon weather director for misn02b "Red Arrival" and misn03 "Eagle's Nest": a pale grey-blue
+  ground mist that pools in craters and thins over ridges (flat particle sheets from generated map data plus a layer
+  that follows the player), rare slow "glow" periods, and slow-settling impact and hover dust. Global fog, sky and
+  Earth are untouched; cosmetic only and co-op safe (`Docs/MOON_WEATHER.md`).
 
 ## 2026-10-05
 
