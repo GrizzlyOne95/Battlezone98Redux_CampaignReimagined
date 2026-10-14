@@ -174,7 +174,12 @@ local function makePeer(id, team, network)
         return pos and {x = pos.x, y = pos.y, z = pos.z} or {x = 0, y = 0, z = 0}
     end
     e.SetVector = function(x, y, z) return {x = x or 0, y = y or 0, z = z or 0} end
-    e.GetTerrainHeightAndNormal = function() return 20, {x = 0, y = 1, z = 0} end
+    e.GetTerrainHeightAndNormal = function(v)
+        if world.terrain then return world.terrain(v.x, v.z), {x = 0, y = 1, z = 0} end
+        return 20, {x = 0, y = 1, z = 0}
+    end
+    e.GetWhoShotMe = function(h) return objects[h] and objects[h].shooter or nil end
+    e.GetCurrentWho = function(h) return objects[h] and objects[h].prey or nil end
     e.GetDistance = function(a, b)
         assert(e.IsValid(a), "invalid origin reached native distance query")
         if type(b) == "string" and objects[b] and not objects[b].alive then return 10000 end
@@ -910,29 +915,43 @@ do
     run(4)
     awayAll()
     check(s.razor_state == "none" and not s.razor, "Razor One is not there before the uplink completes")
-    s.interface_complete = true; s.win_check_time = 99999; s.discovered = true; s.captured_any = true
+    s.interface_complete = true; s.win_check_time = 99999; s.captured_any = true
+    run(3)
+    check(s.discovered and s.hunters and #s.hunters == 2, "the stock aftermath ran: patrols ordered, two extra hunters (3 humans)")
+    check(s.razor_state == "none" and built(host, "avfigh") == 0,
+        "uplink done, hunters far away and nobody hurt: no Razor One")
+    run(20)
+    check(s.razor_state == "none" and built(host, "avfigh") == 0, "...and a team that gets home clean never sees him")
+    for _, p in pairs(peers) do check(count(p, "Play", "misn1224.wav") == 0, "no radio call either") end
+    -- A hunter closes to within 200 m of a guest: Razor One appears at the compound and calls everyone.
+    local hunter = s.patrol2_1
+    place(guests[2].player, 40000, 30, 40000)
+    place(hunter, 40000 + 201, 30, 40000)
+    run(1)
+    check(s.razor_state == "none", "a hunter at 201 m has not caught up")
+    place(hunter, 40000 + 190, 30, 40000)
     run(1)
     local razor = s.razor
     check(s.razor_state == "held" and razor and objects[razor].odf == "avfigh" and objects[razor].team == 1,
-        "when the uplink completes Razor One's scout appears on the leader's team")
+        "a hunter within 200 m of any human calls Razor One")
     check(objects[razor].perceived == 5 and count2(host, "SetPerceivedTeam", razor, 5) == 1, "disguised: the CCA is not told to shoot him")
-    check(builtList(host, "avfigh")[1] == razor and count2(host, "Stop", razor, 1) == 1, "he waits where he was built")
+    check(builtList(host, "avfigh")[1] == razor and #callsOf(host, "Goto") > 0 and type(last(host, "Goto")[3]) == "table",
+        "he is built at the compound and sent to the head of the channel by vector")
     eachPeer(function(p)
         check(count(p, "SetObjectiveOn", razor) == 1 and count2(p, "SetObjectiveName", razor, "Razor One") == 1,
             "every peer gets the Razor One marker")
-        check(count(p, "Play", "misn1224.wav") == 0, "no line until someone comes to him")
+        check(count(p, "Play", "misn1224.wav") == 1, "every player hears misn1224 as a radio call at once")
     end)
     local pos = LABELS.check2_geyser.pos
     check(math.abs(objects[razor].pos.x - pos[1]) < 1 and math.abs(objects[razor].pos.z - pos[3]) < 1,
-        "he is held at the checkpoint-2 compound (check2_geyser)")
+        "he is built at the checkpoint-2 compound (check2_geyser)")
     run(10)
-    check(s.razor_state == "held", "nobody near: he stays put")
+    check(s.razor_state == "held" and built(host, "avfigh") == 1, "nobody near: he waits at the head of the channel, no second Razor")
     -- A guest arrives within 120 m: the cut line plays for everyone and he leads.
     at(guests[1].player, pos, 119, 0)
     run(2)
     check(s.razor_state == "lead", "the first human within 120 m wakes him")
-    eachPeer(function(p) check(count(p, "Play", "misn1224.wav") == 1, "misn1224 plays once on every peer") end)
-    check(#callsOf(host, "Goto") > 0 and type(last(host, "Goto")[3]) == "table", "he is ordered along the route by vector")
+    eachPeer(function(p) check(count(p, "Play", "misn1224.wav") == 1, "misn1224 played once only, on every peer") end)
     -- Lead him along the route: every leg advances as he arrives.
     local function teleport(index)
         place(razor, ROUTE[index][1], 30, ROUTE[index][2])
@@ -969,6 +988,42 @@ do
     check(s.razor_state == "lead" and s.razor_leg == 17, "he lands (or is placed) on the ledge and goes on")
     check(count(host, "SetVelocity") >= 2 and math.abs(objects[razor].pos.z - ROUTE[16][2]) < 5,
         "the teleport fallback set him down on the ledge")
+    -- Pursuers lose the scent once Razor is over the jump. Host and guest 1 made the run; guest 2 stayed
+    -- off the route with a hunter on top of him.
+    check(s.razor_past, "Razor clearing the jump arms the break-off")
+    local function standOnRoute(peer, index, dx) place(peer.player, ROUTE[index][1] + (dx or 0), 30, ROUTE[index][2]) end
+    standOnRoute(host, 18); standOnRoute(guests[1], 18, 8)
+    place(guests[2].player, 40000, 30, 40000)
+    local far, keeper, prey = s.patrol1_1, s.patrol2_1, s.patrol3_1
+    local blocked, seen = s.patrol4_1, s.patrol4_2
+    place(far, ROUTE[18][1] + 900, 30, ROUTE[18][2])          -- nobody within 300 m: loses the scent
+    place(keeper, 40000 + 30, 30, 40000)                       -- on top of the human who did not take the route
+    place(prey, 20000, 30, 20000); objects[prey].prey = guests[2].player   -- chasing the stay-behind from afar
+    place(blocked, ROUTE[18][1] + 150, 30, ROUTE[18][2])        -- 150 m away behind a ridge: out of sight
+    place(seen, ROUTE[18][1], 30, ROUTE[18][2] + 150)           -- 150 m with a clear line: still hunting
+    local tank = s.guard_tank1
+    place(tank, ROUTE[18][1] - 900, 30, ROUTE[18][2])
+    world.terrain = function(x, z)
+        if x > ROUTE[18][1] + 40 and x < ROUTE[18][1] + 110 and math.abs(z - ROUTE[18][2]) < 5 then return 400 end
+        return 20
+    end
+    run(3)
+    check(count2(host, "Patrol", far, "path5") >= 1, "a hunter with nobody near or in sight returns to patrol")
+    check(count2(host, "Patrol", blocked, "path5") >= 1, "a hunter with the ground between it and the humans loses them too")
+    check(count2(host, "Patrol", seen, "path5") == 0, "a hunter with a human in clear sight keeps attacking")
+    check(count2(host, "Patrol", keeper, "path5") == 0 and count2(host, "Patrol", prey, "path5") == 0,
+        "hunters on a human who did not take the route are untouched")
+    local home = LABELS.gtank1.pos
+    local returned = false
+    for _, c in ipairs(callsOf(host, "Goto")) do
+        if c[2] == tank and type(c[3]) == "table" and math.abs(c[3].x - home[1]) < 1 and math.abs(c[3].z - home[3]) < 1 then returned = true end
+    end
+    check(returned, "a guard tank goes back to the post it stood on")
+    local patrols = count(host, "Patrol")
+    run(5)
+    check(count(host, "Patrol") == patrols, "a hunter that broke off is not ordered again")
+    world.terrain = nil
+    for _, g in ipairs(guests) do check(count(g, "Patrol") == 0, "guests never command the AI") end
     for index = 17, 26 do
         teleport(index)
         run(0.5)
@@ -983,6 +1038,50 @@ do
     check(not s.game_blown and count(host, "FailMission") == 0, "he never blows cover")
 end
 do
+    -- A CCA shot that damages a guest also calls him; friendly damage does not.
+    local host, guests = session(true, 2)
+    local s = host.state
+    disableMovies(host)
+    run(4)
+    awayAll()
+    local guest = guests[1]
+    s.interface_complete = true; s.win_check_time = 99999; s.captured_any = true
+    -- Everyone is in a hijacked CCA craft (the stock starting-tank damage rule no longer applies).
+    for _, p in ipairs(humansOf(host, guests)) do
+        humanState(host, p).key_captured = true
+    end
+    run(2)
+    objects[guest.player].health = 0.8; objects[guest.player].shooter = spawn("avtank", 2)
+    run(1)
+    check(s.razor_state == "none", "damage from a friendly craft does not")
+    objects[guest.player].health = 0.7; objects[guest.player].shooter = s.guard_tank1
+    run(1)
+    check(s.razor_state == "held" and objects[s.razor].team == 1, "a CCA hit on a guest calls Razor One")
+    eachPeer(function(p) check(count(p, "Play", "misn1224.wav") == 1, "and every player hears it") end)
+    run(5)
+    check(built(host, "avfigh") == 1, "once only")
+end
+do
+    -- Razor is optional: the win is the stock one, every human at the drop zone.
+    local host, guests = session(true, 2)
+    local s = host.state
+    disableMovies(host)
+    run(4)
+    s.interface_complete = true; s.win_check_time = 0; s.captured_any = true
+    awayAll()
+    run(2)
+    for _, p in ipairs(humansOf(host, guests)) do humanState(host, p).key_captured = true end
+    objects[guests[1].player].health = 0.5; objects[guests[1].player].shooter = s.patrol1_1
+    run(1)
+    check(s.razor_state == "held", "Razor is called")
+    standAt(host, NAV1, 10, 0)
+    run(2)
+    check(not s.win, "one human home is not a win")
+    standAt(guests[1], NAV1, -10, 0)
+    run(2)
+    check(s.win, "both humans home: the mission is won whether or not anyone followed Razor")
+end
+do
     -- He heals when left alone, and a dead Razor One is simply gone.
     local host, guests = session(true, 2)
     local s = host.state
@@ -990,6 +1089,9 @@ do
     run(4)
     awayAll()
     s.interface_complete = true; s.win_check_time = 99999; s.discovered = true
+    run(1)
+    for _, p in ipairs(humansOf(host, guests)) do humanState(host, p).key_captured = true end
+    objects[guests[1].player].health = 0.5; objects[guests[1].player].shooter = s.patrol1_1
     run(1)
     local razor = s.razor
     objects[razor].health = 0.5
@@ -999,8 +1101,9 @@ do
     objects[razor].alive = false
     run(2)
     check(s.razor_state == "gone", "a dead Razor One is dropped quietly")
+    local ordered = count(host, "Goto", razor)
     run(5)
-    check(count(host, "Goto", razor) == 0, "and is never ordered again")
+    check(count(host, "Goto", razor) == ordered, "and is never ordered again")
 end
 do
     -- Razor One never appears if cover is blown first.
@@ -1009,7 +1112,9 @@ do
     run(2)
     s.game_blown = true; s.interface_complete = true
     run(2)
-    check(s.razor_state == "none", "no guide for a blown mission")
+    objects[guests[1].player].health = 0.5; objects[guests[1].player].shooter = s.patrol1_1
+    run(2)
+    check(s.razor_state == "none", "no guide for a blown mission, even when a CCA unit hits someone")
 end
 
 print("misn12 co-op: " .. checks .. " multi-peer Lua 5.1 mock-engine checks passed")
