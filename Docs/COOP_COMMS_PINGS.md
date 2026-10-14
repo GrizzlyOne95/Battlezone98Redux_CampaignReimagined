@@ -52,9 +52,14 @@ switched off and renamed back. A unit that is already an objective (a mission
 objective or a teammate marker) only flashes for about a second and is never
 switched off or renamed. That check needs EXU `IsObjectiveOn` (it reads the
 engine flag at GameObject+0x189); without it object pings keep only the label.
-Terrain pings keep only the label: a nav camera would be confused with mission
-navs, and the stock spawn point object would join respawn selection, so a
-terrain marker needs its own inert CR object. The engine's objective list holds
+A terrain ping builds an invisible marker object on each player's machine
+(`exu.BuildAsyncObject("crping", 0, pos)`, local-only), names it
+`Name: GO HERE`, switches its objective marker on, and removes it when the ping
+ends or is replaced. `ODF/crping.odf` is a plain `i76building` that reuses the
+stock geyser base mesh `eggeizr1`, which sits entirely below ground. Rejected
+classes: `camerapod`/`apcamr` (looks like a mission nav), `spawnpnt` (joins
+respawn selection), `dropoff` (a powerup that banks a friendly scavenger's
+scrap) and other powerups (picked up). The engine's objective list holds
 32 objects and is not bounds-checked, so co-op keeps its own markers few.
 
 Help calls: a ride call lasts until the guest boards a craft. A supply call times

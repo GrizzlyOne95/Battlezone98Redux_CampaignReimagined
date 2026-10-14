@@ -5181,6 +5181,13 @@ PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
         off = function(h) SetObjectiveOff(h) end,
         name = function(h, text) if text then SetObjectiveName(h, text) end end,
         getName = function(h) return GetObjectiveName(h) end,
+        -- Local-only (BuildAsyncObject), so no other player ever sees it.
+        spawn = function(pos)
+            if not (exu and type(exu.BuildAsyncObject) == "function") then return nil end
+            local h = exu.BuildAsyncObject("crping", 0, SetVector(pos.x, pos.y, pos.z))
+            if IsValid(h) then return h end
+        end,
+        remove = function(h) RemoveObject(h) end,
     },
 })
 

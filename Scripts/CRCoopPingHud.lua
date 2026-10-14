@@ -52,7 +52,9 @@ function M.Create(d)
     -- unit that is not an objective gets one, named "<who>: TARGET", until the
     -- ping ends; one that already is (a mission objective, a teammate marker)
     -- only flashes, and is never switched off or renamed. Without
-    -- exu.IsObjectiveOn the state is unknown, so nothing is touched.
+    -- exu.IsObjectiveOn the state is unknown, so nothing is touched. A terrain
+    -- ping gets an invisible local-only marker object (ODF crping) with the
+    -- marker on, removed when the ping ends.
     local marks, FLASH_TIME, FLASH_STEP = {}, 1.2, 0.2
     local function objective(name, ...)
         local fn = d.objective and d.objective[name]
@@ -63,7 +65,9 @@ function M.Create(d)
     local function unmark(id)
         local mark = marks[id]
         marks[id] = nil
-        if mark and mark.ours and objective("valid", mark.handle) then
+        if mark and mark.spawned then
+            if objective("valid", mark.handle) then objective("remove", mark.handle) end
+        elseif mark and mark.ours and objective("valid", mark.handle) then
             objective("off", mark.handle)
             objective("name", mark.handle, mark.oldName)
         end
@@ -71,10 +75,19 @@ function M.Create(d)
     local function updateMarks(pings, time)
         for id, mark in pairs(marks) do
             local ping = pings[id]
-            if not ping or ping.seq ~= mark.seq or ping.handle ~= mark.handle then unmark(id) end
+            if not ping or ping.seq ~= mark.seq or (not mark.spawned and ping.handle ~= mark.handle) then
+                unmark(id)
+            end
         end
         for id, ping in pairs(pings) do
-            if ping.kind == "object" and ping.handle and not marks[id] then
+            if ping.kind == "terrain" and not marks[id] then
+                local h = objective("spawn", ping.position)
+                marks[id] = { handle = h, seq = ping.seq, spawned = h ~= nil }
+                if h ~= nil then
+                    objective("name", h, ping.name:sub(1, 16) .. ": GO HERE")
+                    objective("on", h)
+                end
+            elseif ping.kind == "object" and ping.handle and not marks[id] then
                 local on = objective("isOn", ping.handle)
                 if on == false then
                     marks[id] = { handle = ping.handle, seq = ping.seq, ours = true,
