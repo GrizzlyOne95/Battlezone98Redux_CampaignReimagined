@@ -7,6 +7,7 @@ on:
       - 'Materials/**'
       - 'Tools/Validate-DX11Shaders.ps1'
       - 'Tools/Test-DX11ShaderValidator.ps1'
+      - 'Tools/Test-MethaneShader.ps1'
       - 'Tools/Test-EnhancedPssmV2.ps1'
       - 'Tools/Set-EnhancedPssmVersion.ps1'
       - 'Tools/Compare-DX11ShaderBinaries.ps1'
@@ -53,6 +54,12 @@ jobs:
       - name: Verify the validator rejects known regressions
         shell: powershell
         run: .\Tools\Test-DX11ShaderValidator.ps1
+
+      # Titan liquid-methane surface (CR-owned, not an Enhanced shader): every SM4 and
+      # SM3 delegate compiles and every default/material param is a kept constant.
+      - name: Compile the Titan methane surface shader
+        shell: powershell
+        run: .\Tools\Test-MethaneShader.ps1
 
       - name: Validate Enhanced PSSM v2 math, isolation, and cost
         shell: powershell

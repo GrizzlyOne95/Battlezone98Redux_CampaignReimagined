@@ -150,7 +150,8 @@ local function NewPeer(name, world, options)
         name = name, now = 0.0, world = world, loaded = {}, preload = {},
         playerPos = { x = WET_POINT.x, y = SEA + 2.0, z = WET_POINT.z },
         sent = {}, globalCalls = {}, exuCalls = {}, forbidden = {},
-        rec = { systems = {}, fog = nil, ambient = nil, diffuse = nil, sunPower = nil, radar = {}, jam = {} },
+        rec = { systems = {}, fog = nil, ambient = nil, diffuse = nil, sunPower = nil, radar = {}, jam = {},
+            geometry = {}, geometryCreates = 0, passColors = {}, passSets = 0 },
     }
     local rec = peer.rec
 
@@ -227,6 +228,38 @@ local function NewPeer(name, world, options)
         return true
     end
     exu.UpdateParticleFollowers = function() return 0 end
+
+    -- The methane surface: EXU StaticGeometry, MaterialExists, SetMaterialPassColors.
+    -- options.noStaticGeometry / noMaterial / noPassColors remove a piece;
+    -- geometryFails = n makes the first n creates fail as "too early";
+    -- geometryRaises makes every create raise.
+    if not options.noStaticGeometry then
+        exu.CreateStaticGeometry = function(geoName, mesh, material, instances, geoOptions)
+            rec.geometryCreates = rec.geometryCreates + 1
+            if options.geometryRaises then error("StaticGeometry exploded") end
+            if options.geometryFails and rec.geometryCreates <= options.geometryFails then
+                return nil, "Redux render origin is unavailable"
+            end
+            rec.geometry[geoName] = { mesh = mesh, material = material, instances = instances,
+                options = geoOptions, created = peer.now }
+            return { name = geoName, mesh = mesh, material = material, instanceCount = #instances, regionCount = 1 }
+        end
+        exu.DestroyStaticGeometry = function(geoName)
+            local had = rec.geometry[geoName] ~= nil
+            rec.geometry[geoName] = nil
+            return had
+        end
+    end
+    exu.MaterialExists = function(material)
+        return not options.noMaterial and material == "CR/Titan/Methane14"
+    end
+    if not options.noPassColors then
+        exu.SetMaterialPassColors = function(material, colors, technique, pass)
+            rec.passSets = rec.passSets + 1
+            rec.passColors[material] = { colors = colors, technique = technique, pass = pass }
+            return true
+        end
+    end
 
     local exuProxy = setmetatable({}, {
         __index = function(_, key)
@@ -820,6 +853,215 @@ do
         end
         local opens, closes = select(2, text:gsub("{", "")), select(2, text:gsub("}", ""))
         check(opens == closes, "payload braces balance")
+    end
+end
+
+-- =============================================================================
+-- 13. The methane surface: one render-only sheet, driven by the ladder, degrading cleanly
+-- =============================================================================
+
+local function Diffuse(peer)
+    local entry = peer.rec.passColors["CR/Titan/Methane14"]
+    return entry and entry.colors and entry.colors.diffuse, entry
+end
+
+local function SheenRate(peer)
+    local list = SystemsOfTemplate(peer, "CR/Titan/PoolSheen")
+    local s = list[1] and peer.rec.systems[list[1]]
+    return s and s.rates[0] or nil
+end
+
+do
+    local peer = Track(NewPeer("surface", NewWorld()))
+    local p = sites.pools[1]
+    peer.playerPos = { x = p.x, y = SEA + 2.0, z = p.z }
+    peer.init({ seed = 21, startLevel = 1, targetLevel = 1 })
+    local geo = peer.rec.geometry["cr_titan_methane"]
+    check(geo ~= nil, "Init lays the methane sheet")
+    check(peer.Ti.GetSurface().up == true, "the director reports the surface up")
+    local n = 0
+    for _ in pairs(peer.rec.geometry) do n = n + 1 end
+    check(n == 1, "exactly one StaticGeometry sheet, got " .. n)
+    if geo then
+        check(geo.mesh == "cr_methane_plane.mesh", "the sheet uses the generated plane mesh")
+        check(geo.material == "CR/Titan/Methane14", "misn14 binds CR/Titan/Methane14, got " .. tostring(geo.material))
+        check(#geo.instances == 1, "one instance covers the whole map")
+        local inst = geo.instances[1]
+        local t = sites.terrain
+        check(near(inst.position.x, t.minX + t.width / 2, 0.01) and near(inst.position.z, t.minZ + t.depth / 2, 0.01),
+            "the sheet is centred on the terrain")
+        check(near(inst.position.y, SEA + peer.Ti.SurfaceLift, 0.001) and
+            peer.Ti.SurfaceLift > sites.sea.tolerance and peer.Ti.SurfaceLift < sites.sea.tolerance + 0.2,
+            "the sheet lies just over the sea floor's relief (the wet tolerance)")
+        check(inst.scale.x == t.width and inst.scale.z == t.depth and inst.scale.y == 1.0,
+            "the unit sheet is scaled to the terrain")
+        check(geo.options.castShadows == false, "the sheet casts no shadow")
+    end
+
+    -- Calm rung: no rings, full glare.
+    peer.run(5.0)
+    local d = Diffuse(peer)
+    check(d ~= nil, "the ladder drives the shader controls through the pass diffuse colour")
+    local _, entry = Diffuse(peer)
+    check(entry and entry.technique == 0 and entry.pass == 0, "controls go to technique 0 pass 0 (the liquid)")
+    check(d and d.r < 0.01, "a dry rung draws no drizzle rings")
+    check(d and d.g > 0.9, "the still rung glares at full strength, got " .. tostring(d and d.g))
+    check(d and near(d.b, 1.0, 0.001), "wetness 1")
+    local spec = entry and entry.colors and entry.colors.specular
+    check(spec and near(spec.r, 0.78, 1e-6) and near(spec.g, -0.36, 1e-6) and near(spec.b, -0.51, 1e-6) and spec.a == 1.0,
+        "the low haze sun (Environment's titan direction) goes in the pass specular colour")
+    local calmChop = d and d.a or 0
+    local stillSheen = SheenRate(peer)
+    check(stillSheen ~= nil and stillSheen > 0, "the pool sheen still emits as a faint layer over the surface")
+
+    -- Drizzle rung: rings on, glare down, more chop.
+    peer.Ti.ForceLevel(3, 9999)
+    peer.run(120.0)
+    d = Diffuse(peer)
+    check(d and d.r > 0.9, "the drizzle rung rings the liquid, got " .. tostring(d and d.r))
+    check(d and d.g < 0.7, "drizzle dims the glare")
+    check(d and d.a > calmChop, "drizzle roughens the chop")
+    local sets = peer.rec.passSets
+    peer.run(10.0)
+    check(peer.rec.passSets == sets, "unchanged controls are not re-sent")
+
+    -- A haze roll takes glare away and gives it back.
+    local before = d.g
+    peer.Ti.Roll(60, 1.0)
+    peer.run(25.0)
+    d = Diffuse(peer)
+    check(d and d.g < before - 0.1, "a haze roll dims the glare")
+
+    -- Save / load rebuilds the sheet (the old one went with the scene).
+    local state = peer.Ti.Save()
+    local creates = peer.rec.geometryCreates
+    peer.Ti.Load(state)
+    check(peer.rec.geometryCreates == creates + 1 and peer.rec.geometry["cr_titan_methane"] ~= nil,
+        "a load lays the sheet again")
+
+    peer.Ti.Shutdown()
+    check(next(peer.rec.geometry) == nil, "Shutdown removes the sheet")
+    check(peer.Ti.GetSurface().up == false, "and reports it down")
+end
+
+do
+    -- The sheet reduces the particle sheen; without it the sheen is the full stand-in.
+    local function sheen(options)
+        local peer = Track(NewPeer(options.label, NewWorld(), options))
+        local p = sites.pools[1]
+        peer.playerPos = { x = p.x, y = SEA + 2.0, z = p.z }
+        peer.init({ seed = 22, startLevel = 1, targetLevel = 1, surface = options.surface })
+        peer.Ti.ForceLevel(1, 9999)
+        peer.run(10.0)
+        return SheenRate(peer), peer
+    end
+    local withSurface = sheen({ label = "sheenon" })
+    local without, offPeer = sheen({ label = "sheenoff", surface = false })
+    check(withSurface and without and near(withSurface, without * offPeer.Ti.SurfaceSheenScale, 0.01),
+        "the sheet scales the pool sheen by SurfaceSheenScale")
+    check(next(offPeer.rec.geometry) == nil and offPeer.Ti.GetSurface().reason == "disabled",
+        "surface = false lays no sheet")
+
+    -- Degradation: each missing piece leaves the particle-only look, never an error.
+    local cases = {
+        { label = "nogeo", noStaticGeometry = true, reason = "StaticGeometry" },
+        { label = "nomat", noMaterial = true, reason = "not loaded" },
+        { label = "georaise", geometryRaises = true, reason = "raised" },
+    }
+    for _, case in ipairs(cases) do
+        local rate, peer = sheen(case)
+        local s = peer.Ti.GetSurface()
+        check(not s.up and next(peer.rec.geometry) == nil, case.label .. ": no sheet")
+        check(s.reason and s.reason:find(case.reason, 1, true) ~= nil,
+            case.label .. ": the reason is recorded, got " .. tostring(s.reason))
+        check(rate and near(rate, without, 0.01), case.label .. ": the full particle sheen stays")
+        check(not peer.Ti.Disabled, case.label .. ": the director keeps running")
+        check(peer.rec.passSets == 0, case.label .. ": no shader controls are sent")
+    end
+    local _, nomat = sheen({ label = "nomatcalls", noMaterial = true })
+    check(nomat.rec.geometryCreates == 0, "an unloaded material never reaches CreateStaticGeometry (no white sheet)")
+
+    -- No SetMaterialPassColors: the sheet still goes up with the material's defaults.
+    local _, nopass = sheen({ label = "nopass", noPassColors = true })
+    check(nopass.Ti.GetSurface().up and nopass.rec.geometry["cr_titan_methane"] ~= nil,
+        "without SetMaterialPassColors the sheet keeps its baked calm values")
+
+    -- Too early (no render origin yet): retried a bounded number of times.
+    local _, early = sheen({ label = "early", geometryFails = 1 })
+    check(early.Ti.GetSurface().up, "a create that was too early is retried and succeeds")
+    local _, never = sheen({ label = "never", geometryFails = 99 })
+    never.run(60.0)
+    check(not never.Ti.GetSurface().up and never.rec.geometryCreates == never.Ti.SurfaceMaxAttempts,
+        "a create that keeps failing stops after SurfaceMaxAttempts, got " .. never.rec.geometryCreates)
+
+    -- A map without a terrain extent (or another map's digits) lays nothing.
+    local noTerrain = { sea = sites.sea, wet = sites.wet, pools = sites.pools, bounds = sites.bounds, mission = "misn14" }
+    local peer = Track(NewPeer("noterrain", NewWorld()))
+    peer.init({ seed = 2, sites = noTerrain })
+    check(not peer.Ti.GetSurface().up and next(peer.rec.geometry) == nil, "no terrain extent: no sheet")
+
+    -- Fault stand-down takes the sheet with it.
+    local broken = Track(NewPeer("surfacebroken", NewWorld()))
+    local bad = { sea = sites.sea, wet = sites.wet, terrain = sites.terrain, mission = "misn14",
+        pools = { { x = "nope", z = 1 } } }
+    broken.init({ seed = 4, sites = bad })
+    check(broken.rec.geometry["cr_titan_methane"] ~= nil, "the broken peer laid its sheet first")
+    for _ = 1, 100 do pcall(broken.step, 0.05) end
+    check(broken.Ti.Disabled and next(broken.rec.geometry) == nil, "standing down removes the sheet")
+
+    -- Every peer lays the same sheet from the same static data.
+    local host = Track(NewPeer("surfhost", NewWorld()))
+    local guest = Track(NewPeer("surfguest", NewWorld(), { net = true }))
+    host.init({ seed = 9 })
+    guest.init({ authority = false })
+    local a, b = host.rec.geometry["cr_titan_methane"], guest.rec.geometry["cr_titan_methane"]
+    check(a and b and a.material == b.material and a.instances[1].position.x == b.instances[1].position.x and
+        a.instances[1].position.y == b.instances[1].position.y and a.instances[1].position.z == b.instances[1].position.z,
+        "host and guest lay identical sheets")
+end
+
+-- =============================================================================
+-- 14. Surface assets: the mesh, textures, material and programs the director names
+-- =============================================================================
+
+do
+    local function read(path)
+        local f = io.open(repoRoot .. "/" .. path, "rb")
+        if not f then return nil end
+        local text = f:read("*a")
+        f:close()
+        return text
+    end
+    local material = read("Materials/cr_methane.material") or ""
+    local program = read("Shaders/cr_methane.program") or ""
+    check(material:find("material CR/Titan/Methane%s*\n") ~= nil, "the base material CR/Titan/Methane exists")
+    check(material:find("material CR/Titan/Methane14 : CR/Titan/Methane", 1, true) ~= nil,
+        "misn14's material inherits the base")
+    check(material:find("set_texture_alias WetMask cr_titan14_wet.png", 1, true) ~= nil, "misn14 binds its wet mask")
+    for name in material:gmatch("_program_ref%s+(%S+)") do
+        local declared = program:find("program " .. name .. " ", 1, true) ~= nil or
+            read("Shaders/CR_textured.program"):find("program " .. name .. " ", 1, true) ~= nil
+        check(declared, "program " .. name .. " is declared")
+    end
+    check(select(2, material:gsub("technique", "")) == 3, "liquid, glow and fallback techniques")
+    check(material:find("scheme glow", 1, true) ~= nil, "the glow scheme draws nothing")
+    for _, asset in ipairs({ "Assets/ModelFixes/cr_methane_plane.mesh", "Assets/Textures/cr_methane_ripple.png",
+        "Assets/Textures/cr_titan14_wet.png", "Shaders/cr_methane.hlsl" }) do
+        check(read(asset) ~= nil, asset .. " exists")
+    end
+    for texture in material:gmatch("texture%s+([%w_]+%.png)") do
+        if texture ~= "black.png" then
+            check(read("Assets/Textures/" .. texture) ~= nil, "texture " .. texture .. " ships")
+        end
+    end
+    local hlsl = read("Shaders/cr_methane.hlsl") or ""
+    for param in program:gmatch("param_named%s+(%w+)") do
+        check(hlsl:find("float4 " .. param .. ";", 1, true) ~= nil, "uniform " .. param .. " is declared in the shader")
+    end
+    local lock = read("Shipping/shipping.lock.json") or ""
+    for _, runtime in ipairs({ "cr_methane.hlsl", "cr_methane.program", "cr_methane.material",
+        "cr_methane_plane.mesh", "cr_methane_ripple.png", "cr_titan14_wet.png" }) do
+        check(lock:find('"runtime": "' .. runtime .. '"', 1, true) ~= nil, runtime .. " is in the shipping lock")
     end
 end
 

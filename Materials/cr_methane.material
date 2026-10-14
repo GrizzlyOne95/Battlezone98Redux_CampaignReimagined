@@ -1,0 +1,117 @@
+// Campaign Reimagined: Titan liquid-methane surface (Docs/TITAN_WEATHER.md section 5).
+//
+// CRTitanWeather lays cr_methane_plane.mesh over a map's flat methane sea through EXU
+// StaticGeometry and binds the per-map material below (CR/Titan/Methane<NN>), which
+// only names that map's wet mask (Tools/Build-MethaneSurface.py writes it). Look
+// values are $variables named after the cr_methane.hlsl uniforms; the comments there
+// say what each component does. The pass diffuse colour is not a colour: it carries
+// the director's four controls (drizzle rings, glare, wetness, wind chop), set at run
+// time with exu.SetMaterialPassColors; the value here is the calm default. The pass
+// specular colour is not a colour either: xyz is the low haze sun's light direction
+// (Ogre space, as Environment's titan DaySunDirection) and w how far the glare and
+// glints follow it instead of the scene's light 0 (misn14's stock sun stands almost
+// overhead, which would put every reflection of it straight under the camera).
+//
+// Techniques, in order:
+//   1. the liquid (DX11 SM4 / DX9 SM3);
+//   2. the glow scheme: draws nothing, so the liquid never feeds the glow pass;
+//   3. last resort for a render system without the methane programs (OpenGL): draws
+//      nothing, so the sheet never shows as a flat white plane.
+
+material CR/Titan/Methane
+{
+	set $extent "5120 5120 0.3 0.7"
+	set $body "0.3 0.19 0.08 0.55"
+	set $sky "0.56 0.33 0.12 1"
+	set $surface "0.5 0.06 0.02 120"
+	set $waves "7 19 0.35 0.6"
+	set $glare "1 0.72 0.4 10"
+	set $glint "260 1.4 1.6 0.9"
+	set $control "0 1 1 0.5"
+	set $sun "0.78 -0.36 -0.51 1"
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR_Methane_vertex
+			{
+			}
+			fragment_program_ref CR_Methane_fragment
+			{
+				param_named methaneExtent float4 $extent
+				param_named methaneBody float4 $body
+				param_named methaneSky float4 $sky
+				param_named methaneSurface float4 $surface
+				param_named methaneWaves float4 $waves
+				param_named methaneGlare float4 $glare
+				param_named methaneGlint float4 $glint
+			}
+			ambient 1 1 1
+			diffuse $control
+			specular $sun 64
+			scene_blend one one_minus_src_alpha
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit rippleMap
+			{
+				texture cr_methane_ripple.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+			texture_unit wetMask
+			{
+				texture_alias WetMask
+				texture black.png
+				tex_address_mode clamp
+				filtering bilinear
+			}
+		}
+	}
+
+	technique
+	{
+		scheme glow
+		pass
+		{
+			colour_write off
+			depth_write off
+			vertex_program_ref CR_Textured_vertex
+			{
+			}
+			fragment_program_ref CR_Textured_fragment
+			{
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			colour_write off
+			depth_write off
+			vertex_program_ref CR_Textured_vertex
+			{
+			}
+			fragment_program_ref CR_Textured_fragment
+			{
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+		}
+	}
+}
+
+// misn14 "The Three Beacons" (CRTitanSites14): 5120 x 5120 terrain, mask 512 x 512.
+material CR/Titan/Methane14 : CR/Titan/Methane
+{
+	set_texture_alias WetMask cr_titan14_wet.png
+}
