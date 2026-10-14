@@ -260,8 +260,10 @@ function CRCoop.Initialize(options)
                 if type(SetVelocity) == "function" then SetVelocity(h, SetVector(0, 0, 0)) end
             end,
             -- Objective markers are local-only; each peer labels its own view.
-            objective = function(h, label, plain)
-                if label then SetObjectiveName(h, label); SetObjectiveOn(h)
+            objective = function(h, label, plain, switchOn)
+                if label then
+                    SetObjectiveName(h, label)
+                    if switchOn then SetObjectiveOn(h) end
                 else SetObjectiveOff(h); SetObjectiveName(h, plain) end
             end,
         })
