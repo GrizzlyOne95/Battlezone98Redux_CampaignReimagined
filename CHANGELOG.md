@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Add Mission 12, Flying Solo, to the campaign as a 2-4 player co-op listing
+  (`CR: Flying Solo Coop`) on the original Battlezone 1.5 Europa terrain. The CCA moves to team 5,
+  freeing teams 2-4 for guests, the six hidden nav-camera pods move to the support team (7), and four
+  team-start buoys sit at the authored start. The listing text now states the real uplink range and
+  time (within 60 m for 45 s); the stock briefing said 50 m and one minute. Every human infiltrates in
+  their own hijacked key ship (one per human, staggered) and cover blown by anyone fails the mission for
+  everyone; checkpoint progress and the uplink link are per human, the first human to hold the uplink
+  completes it, the win needs every human at the Drop Zone, and the cockpit timer, camera shots and
+  nav-console reveals are shared. The unused misn1224 Razor One line is restored: after the uplink he
+  leads the way out over the map's unused east-side route and its 100 m jump (`Docs/MISN12_COOP.md`).
+  New `CREuropaWeather` director (cryovolcanic plumes and ice fall, ice quakes, Jupiter radiation surges,
+  frost haze; cosmetic and stealth-safe, `Docs/EUROPA_WEATHER.md`).
 - Add Mission 11, Bring it Home, to the campaign as a 2-4 player co-op listing
   (`CR: Bring it Home Coop`) on the original Battlezone 1.5 Io terrain, with the Io terrain
   repainted with real lava (and `Lava=1` set, so it damages hovering craft). The CCA moves to
