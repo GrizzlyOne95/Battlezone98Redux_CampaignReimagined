@@ -15,6 +15,7 @@ keeps throwing ash columns, a steady fall of ash, and ground that shakes.
 | --- | --- |
 | `Scripts/CRIoWeather.lua` | The director. Tunables are at the top of the file. |
 | `Scripts/CRVenusMap.lua` | Shared pure half (seeded rng, severity ladder, terrain scan and basins, run expansion, vent merge, weighted pick). Reused as is; no copy. |
+| `Scripts/CRIoSites11.lua` | Generated map data for misn11 (painted lava, one vent; see `MISN11_COOP.md`). |
 | `Scripts/CRIoSites10.lua` | Generated map data for misn10 (playable box, lava cells, 322 lava fog anchors, 21 vents). |
 | `Tools/Build-IoSites.py` | Regenerates a `CRIoSites<NN>.lua` from a mission's `.trn`, `.mat` and `.bzn`, read straight out of Redux's `bzone.zfs`. |
 | `Materials/cr_io.particle.payload` | Six particle templates, all on existing `CR_FX/*` materials. Loaded through `CRParticleTemplates.EnsureExtra("cr_io")`. |

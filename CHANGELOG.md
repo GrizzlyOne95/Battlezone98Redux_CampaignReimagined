@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add Mission 11, Bring it Home, to the campaign as a 2-4 player co-op listing
+  (`CR: Bring it Home Coop`) on the original Battlezone 1.5 Io terrain, with the Io terrain
+  repainted with real lava (and `Lava=1` set, so it damages hovering craft). The CCA moves to
+  team 5, freeing teams 2-4 for guests, with four team-start buoys at the authored start.
 - Enable the enemy strategic AI in co-op misn02b, misn05 and misn07: their maps use MultSTMission, so
   team 5/6 was never flagged and `SetAIP` silently skipped, leaving the CCA plan idle. Each now calls
   `SetAIControl(ENEMY_TEAM, true)` once at chunk load (never in `Start`, which crashes the host as in misn08).
