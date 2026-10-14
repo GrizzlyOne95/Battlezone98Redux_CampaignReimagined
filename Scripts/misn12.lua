@@ -995,12 +995,19 @@ end
 -- a 20-35 m channel from the checkpoint-2 compound, a flat 66.4 m shelf, a launch lip at 80.9 m, a
 -- 100 m jump over the main channel onto a 45.4 m ledge, then the floor 1.2 km from the drop zone
 -- (Tools/Preview-Misn12Map.py, Docs/MISN12_ROUTE_PREVIEW.png). Ground AI cannot follow the jump.
--- When the uplink completes, Razor One's scout waits at the compound (check2_geyser), marked
--- "Razor One". The first human to come near him hears misn1224 and he leads the way out over the
--- jump to the drop zone, waiting for the group at the foot of the lip. He is the players' guide,
--- never a target: perceived as CCA, he cannot blow cover (the stealth part of the mission is over
--- by then), and he takes no part in the DLL's checks. The jump is a scripted velocity (ground AI
--- would refuse the gap) with a teleport fallback; he is protected through the jump and heals.
+-- Razor One is an emergency exit, not a quest giver. He appears only the FIRST time the hunters
+-- (the ordered patrols, the guard tanks, the scaled extra hunters) actually catch up with a human:
+-- a human craft is damaged by a CCA unit, or a hunter closes to within RAZOR_CATCH_M of a human.
+-- A team that gets home clean never sees him. Then his scout is built at the compound
+-- (check2_geyser), marked "Razor One" for everyone, misn1224 is played to every player as a radio
+-- call, and he drives to the head of the east channel (route point 2) and waits there for the humans
+-- (RAZOR_MEET_M, or RAZOR_WAIT_TIMEOUT_S), then leads the way out over the jump to the drop zone,
+-- waiting for the group at the foot of the lip. Following him is optional; the win is unchanged.
+-- Once Razor has cleared the jump, hunters whose humans have got away lose the scent and return to
+-- patrol (RazorBreakOff). He is the players' guide, never a target: perceived as CCA, he cannot blow
+-- cover (the stealth part of the mission is over by then), and he takes no part in the DLL's checks.
+-- The jump is a scripted velocity (ground AI would refuse the gap) with a teleport fallback; he is
+-- protected through the jump and heals.
 -- Set RAZOR_ONE to false for the DLL's route only.
 local RAZOR_ONE = true
 local RAZOR_ODF = "avfigh"
@@ -1009,6 +1016,16 @@ local RAZOR_ARRIVE_M, RAZOR_LIP_M = 45.0, 30.0
 local RAZOR_REORDER_S, RAZOR_WAIT_TIMEOUT_S, RAZOR_STUCK_S = 8.0, 45.0, 25.0
 local RAZOR_JUMP_SPEED, RAZOR_JUMP_LIFT, RAZOR_JUMP_TIMEOUT_S, RAZOR_LAND_M = 32.0, 12.0, 9.0, 40.0
 local RAZOR_HEAL_QUIET_S, RAZOR_HEAL_PER_S = 4.0, 0.02
+-- Trigger: a hunter this close to any human (m) has caught up. Break-off: past the jump, a hunter
+-- keeps attacking while any human is within RAZOR_KEEP_M, or in sight within RAZOR_LOSE_M; "in
+-- sight" is a terrain line (GetTerrainHeightAndNormal sampled along hunter -> human; the BZ Lua API
+-- has no line-of-sight native). A human within RAZOR_CORRIDOR_M of the landing-side route took it.
+local RAZOR_CATCH_M, RAZOR_KEEP_M, RAZOR_LOSE_M, RAZOR_CORRIDOR_M = 200.0, 100.0, 300.0, 80.0
+local RAZOR_POLL_S, RAZOR_SIGHT_STEPS, RAZOR_EYE_M = 1.0, 16, 3.0
+local RAZOR_HUNTER_KEYS = { "patrol1_1", "patrol1_2", "patrol2_1", "patrol2_2", "patrol3_1", "patrol3_2",
+    "patrol4_1", "patrol4_2" }
+local RAZOR_GUARD_KEYS = { "guard_tank1", "guard_tank2" }
+local RAZOR_PATROL_PATH = "path5"   -- the file's own loop for the fighters it hands to Patrol()
 -- (x, z) metres, from the unsmoothed 1.5 heightmap. Entry 1 is the compound, entry 14 the foot of the
 -- lip (he waits for the group), 15 the lip crest (launch), 16 the landing, 27 the drop zone.
 local RAZOR_ROUTE = {
@@ -1026,6 +1043,8 @@ local function InitializeRazorState()
     M.razor_next, M.razor_wait_since, M.razor_jump_at = 0.0, nil, nil
     M.razor_best, M.razor_best_at = nil, 0.0
     M.razor_health = nil
+    M.razor_hp, M.razor_armed, M.razor_broke, M.razor_home = {}, {}, {}, nil
+    M.razor_past, M.razor_poll = false, 0.0
 end
 
 local function RazorPoint(index)
@@ -1071,19 +1090,157 @@ local function RazorGoto(index)
     Goto(M.razor, RazorPoint(index), 1)
 end
 
+-- The hunters ordered after the uplink: the stock patrols and guard tanks plus the scaled extras.
+local function RazorHunters()
+    local list = {}
+    for _, keys in ipairs({ RAZOR_HUNTER_KEYS, RAZOR_GUARD_KEYS }) do
+        for _, key in ipairs(keys) do
+            local unit = M[key]
+            if unit ~= nil and IsAlive(unit) then list[#list + 1] = unit end
+        end
+    end
+    for _, unit in ipairs(M.hunters or {}) do
+        if IsAlive(unit) then list[#list + 1] = unit end
+    end
+    return list
+end
+
+-- The guard tanks' posts, noted while they still stand on them (before the uplink sends them out).
+local function RazorNoteHomes()
+    if M.razor_home ~= nil or not M.start_done then return end
+    M.razor_home = {}
+    for _, key in ipairs(RAZOR_GUARD_KEYS) do
+        local unit = M[key]
+        if unit ~= nil and IsAlive(unit) then
+            local pos = GetPosition(unit)
+            M.razor_home[key] = { pos.x, pos.y, pos.z }
+        end
+    end
+end
+
+-- True when the first catch-up has happened. Health is sampled every tick so a hit taken during the
+-- stealth phase can never count; a hunter only counts once it has been seen OUTSIDE the catch radius
+-- (the guard tanks beside the tower must close in on a human, not merely stand there).
+local function RazorCaughtUp()
+    local hit = false
+    M.razor_hp = M.razor_hp or {}
+    CRCoop.ForEachPlayerHandle(function(h, id)
+        id = id or 0
+        local health = GetHealth(h)
+        local last = M.razor_hp[id]
+        if last ~= nil and last.handle == h and health < last.health - 0.0005 then
+            local shooter = GetWhoShotMe and GetWhoShotMe(h) or nil
+            if shooter ~= nil and IsValid(shooter) and GetTeamNum(shooter) == ENEMY_TEAM then hit = true end
+        end
+        M.razor_hp[id] = { handle = h, health = health }
+    end)
+    if not (M.interface_complete and not M.game_blown) then return false end
+    M.razor_armed = M.razor_armed or {}
+    local close = false
+    for _, unit in ipairs(RazorHunters()) do
+        local near, distance = NearestPlayer(unit)
+        if near ~= nil then
+            if distance >= RAZOR_CATCH_M then
+                M.razor_armed[unit] = true
+            elseif M.razor_armed[unit] then
+                close = true
+            end
+        end
+    end
+    return hit or close
+end
+
+-- Terrain line of sight between two objects (true when the ground rises into the line).
+local function RazorBlocked(from, to)
+    local a, b = GetPosition(from), GetPosition(to)
+    for step = 1, RAZOR_SIGHT_STEPS - 1 do
+        local t = step / RAZOR_SIGHT_STEPS
+        local x, z = a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t
+        local line = a.y + (b.y - a.y) * t + RAZOR_EYE_M
+        local ground = (GetTerrainHeightAndNormal(SetVector(x, 0.0, z)))
+        if ground ~= nil and ground > line then return true end
+    end
+    return false
+end
+
+-- Distance (x, z) from a point to the landing-side route (legs RAZOR_LAND_LEG .. last).
+local function RazorRouteDistance(pos)
+    local best = math.huge
+    for index = RAZOR_LAND_LEG, #RAZOR_ROUTE - 1 do
+        local p, q = RAZOR_ROUTE[index], RAZOR_ROUTE[index + 1]
+        local dx, dz = q[1] - p[1], q[2] - p[2]
+        local length2 = math.max(1.0, dx * dx + dz * dz)
+        local t = math.max(0.0, math.min(1.0, ((pos.x - p[1]) * dx + (pos.z - p[2]) * dz) / length2))
+        local ex, ez = pos.x - (p[1] + dx * t), pos.z - (p[2] + dz * t)
+        best = math.min(best, math.sqrt(ex * ex + ez * ez))
+    end
+    return best
+end
+
+local function RazorLoseScent(unit, key)
+    M.razor_broke[unit] = true
+    local home = key ~= nil and M.razor_home ~= nil and M.razor_home[key] or nil
+    if home ~= nil then
+        Goto(unit, SetVector(home[1], home[2], home[3]), 1)   -- a guard tank returns to its post
+    else
+        Patrol(unit, RAZOR_PATROL_PATH, 1)
+    end
+end
+
+-- After the jump: a hunter breaks off when no human is close (RAZOR_KEEP_M), none is in sight within
+-- RAZOR_LOSE_M, and it is not chasing a human who stayed off the route. Nothing happens until a human
+-- is actually on the landing side of the route.
+local function RazorBreakOff(now)
+    if now < M.razor_poll then return end
+    M.razor_poll = now + RAZOR_POLL_S
+    local humans, routeHuman, anyRoute = {}, {}, false
+    CRCoop.ForEachPlayerHandle(function(h)
+        humans[#humans + 1] = h
+        local pos = GetPosition(h)
+        if RazorRouteDistance(pos) < RAZOR_CORRIDOR_M and pos.z < RAZOR_ROUTE[RAZOR_LAND_LEG][2] + RAZOR_CORRIDOR_M then
+            routeHuman[h] = true
+            anyRoute = true
+        end
+    end)
+    if not anyRoute then return end
+    local guards = {}
+    for _, key in ipairs(RAZOR_GUARD_KEYS) do
+        if M[key] ~= nil then guards[M[key]] = key end
+    end
+    for _, unit in ipairs(RazorHunters()) do
+        if not M.razor_broke[unit] then
+            local keep = false
+            local prey = GetCurrentWho and GetCurrentWho(unit) or nil
+            for _, h in ipairs(humans) do
+                if h == prey and not routeHuman[h] then keep = true end
+                if not keep then
+                    local d = Distance(h, unit)
+                    if d <= RAZOR_KEEP_M or (d <= RAZOR_LOSE_M and not RazorBlocked(unit, h)) then keep = true end
+                end
+            end
+            if not keep then RazorLoseScent(unit, guards[unit]) end
+        end
+    end
+end
+
 local function UpdateRazor()
     if not RAZOR_ONE then return end
     local now = GetTime()
     local state = M.razor_state
+    RazorNoteHomes()
+    if M.razor_past then RazorBreakOff(now) end
     if state == "none" then
-        -- The uplink is done: the guide appears at the compound, disguised and marked.
-        if M.interface_complete and not M.game_blown then
+        -- The hunters have caught up for the first time: the exit appears at the compound, disguised
+        -- and marked, calls everyone on the radio and goes to the head of the channel to wait.
+        if RazorCaughtUp() then
             local unit = BuildObject(RAZOR_ODF, LEADER_TEAM, M.check2_geyser)
             M.razor, M.razor_state = unit, "held"
             SetPerceivedTeam(unit, ENEMY_TEAM)
-            Stop(unit, 1)
             SetObjectiveOn(unit)
             SetObjectiveName(unit, "Razor One")
+            AudioMessage("misn1224.wav")
+            M.razor_wait_since, M.razor_next = now, now + RAZOR_REORDER_S
+            Goto(unit, RazorPoint(2), 1)
         end
         return
     end
@@ -1095,10 +1252,13 @@ local function UpdateRazor()
     end
     UpdateRazorHeal(unit, now, state == "jump")
     if state == "held" then
+        -- Waiting at the head of the channel: the first human to come near, or the timeout, starts the run.
         local near, distance = NearestPlayer(unit)
-        if near ~= nil and distance < RAZOR_MEET_M then
-            AudioMessage("misn1224.wav")
+        if (near ~= nil and distance < RAZOR_MEET_M) or now - M.razor_wait_since >= RAZOR_WAIT_TIMEOUT_S then
             M.razor_state, M.razor_leg, M.razor_next, M.razor_best = "lead", 2, 0.0, nil
+        elseif now >= M.razor_next then
+            M.razor_next = now + RAZOR_REORDER_S
+            Goto(unit, RazorPoint(2), 1)
         end
         return
     end
@@ -1112,6 +1272,7 @@ local function UpdateRazor()
                 SetVelocity(unit, SetVector(0.0, 0.0, 0.0))
             end
             M.razor_state, M.razor_leg, M.razor_next, M.razor_best = "lead", RAZOR_LAND_LEG + 1, 0.0, nil
+            M.razor_past = true   -- Razor has cleared the jump: the pursuit may lose the scent
         end
         return
     end

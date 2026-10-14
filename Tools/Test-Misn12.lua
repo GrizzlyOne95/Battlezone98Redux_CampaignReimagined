@@ -92,6 +92,12 @@ for _, name in ipairs({"StopAudioMessage", "HideCockpitTimer", "SetWeaponMask",
     local operation = name
     _G[operation] = function(...) record(operation, ...) end
 end
+-- Razor One mocks: positions default to the origin, no object is ever shot at unless a test says so.
+local positions = {}
+function SetVector(x, y, z) return {x = x, y = y, z = z} end
+function GetPosition(h) return positions[h] or {x = 0, y = 0, z = 0} end
+function GetTerrainHeightAndNormal() return 0, {x = 0, y = 1, z = 0} end
+function GetWhoShotMe(h) return objects[h] and objects[h].shooter or nil end
 local function near(h, target, distance)
     distances[tostring(h) .. ":" .. tostring(target)] = distance
 end
@@ -221,10 +227,18 @@ step(uploadEnd + 0.01)
 check(m.interface_complete and not timerRunning and called("HideCockpitTimer"), "upload stops/hides deadline")
 check(m.discovered and called("Attack", m.guard_tank1, player), "upload triggers escape opposition")
 check(#objectives == 1 and objectives[1][1] == "misn1205.otf", "return objective")
+check(count("BuildObject", "avfigh") == 0 and m.razor_state == "none" and count("AudioMessage", "misn1224.wav") == 0,
+    "no Razor One before the hunters catch up: the uplink alone does not call him")
+step(now + 30)
+check(count("BuildObject", "avfigh") == 0, "hunters far away and nobody hurt: still no Razor One")
+-- Hunters were seen outside the catch radius; one closes to 200 m: the call goes out once.
+near(player, m.patrol1_1, 199); step()
 check(count("BuildObject", "avfigh") == 1 and objects[m.razor].team == 1 and m.razor_state == "held",
-    "Razor One's scout waits at the compound when the uplink completes (restored arc)")
+    "Razor One's scout appears at the compound when a hunter closes to 200 m (restored arc)")
 check(called("SetPerceivedTeam", m.razor, 5) and called("SetObjectiveName", m.razor, "Razor One"), "disguised and marked")
-check(count("AudioMessage", "misn1224.wav") == 0, "his line waits for a human to come near")
+check(count("AudioMessage", "misn1224.wav") == 1 and called("Goto", m.razor), "he calls at once and heads for the channel")
+step(now + 30)
+check(count("BuildObject", "avfigh") == 1 and count("AudioMessage", "misn1224.wav") == 1, "the call happens only once")
 check(#(m.hunters or {}) == 0 and #(m.extra_patrols or {}) == 0, "one human: no scaling units")
 near(player, m.nav1, 74); step(m.win_check_time)
 check(not m.win, "source 120-second return delay strict boundary")
@@ -232,6 +246,22 @@ step(m.win_check_time + 0.01)
 check(m.win and called("SucceedMission", now + 7, "misn12w1.des"), "drop-zone victory")
 local victories = count("SucceedMission"); step(now + 6)
 check(count("SucceedMission") == victories, "victory emitted once")
+
+-- A hit from a CCA unit also calls him; a hit from anything else does not.
+local function uplinkDone()
+    local u = capture(reset()); disableMovies(u); approach(u, u.ccacom_tower, 59)
+    step(u.interface_time + 0.01)
+    return u
+end
+m = uplinkDone()
+check(m.interface_complete and m.razor_state == "none", "uplink done, nobody caught")
+objects[player].health = 0.8; objects[player].shooter = object("avtank", 1); step()
+check(m.razor_state == "none", "damage from a friendly does not call Razor One")
+objects[player].health = 0.7; objects[player].shooter = m.patrol1_2; step()
+check(m.razor_state == "held" and count("AudioMessage", "misn1224.wav") == 1, "damage from a CCA unit calls Razor One")
+m = capture(reset()); disableMovies(m)
+objects[player].health = 0.95; objects[player].shooter = m.patrol1_2; step()
+check(m.razor_state == "none", "damage before the uplink never counts")
 
 -- Out-of-order routes and original recovery/escalation branches.
 m = capture(reset()); disableMovies(m)

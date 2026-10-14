@@ -137,16 +137,24 @@ cliff terrain, `2spawn`/`choke_spawn`/`path_1` are single points, and `path_edge
 guide. `edge_path` is the play boundary. Razor One reappears free in misn14.
 
 **What is inferred.** That this route is the arc 1224 belonged to; where he is held, what he flies,
-and the trigger. The route is only "fast" from its own head (3680 m from the compound against 4232 m
+and the trigger (now an after-the-chase call, see below). The route is only "fast" from its own head (3680 m from the compound against 4232 m
 the normal way); from the comm tower it is longer (6231 m against 4704 m). So it is an escape route,
 not a shortcut: ground pursuers cannot follow over the gap.
 
 **Implementation (`-- CR Razor One`, `RAZOR_ONE = true`).**
 
-1. When the uplink completes, Razor One's `avfigh` is built on team 1 at `check2_geyser` (the
-   compound), perceived as CCA, held with a nav marker named "Razor One". The stealth phase is over,
-   so he cannot blow cover; nothing in the DLL's checks reads him.
-2. The first human within 120 m of him hears `misn1224` (shared dialogue) and he leads.
+1. **Trigger: the hunters catch up, once.** After the uplink (and while cover is not blown) Razor One
+   appears the FIRST time either a human craft is damaged by a CCA (team 5) unit (`GetWhoShotMe` on a
+   health drop, sampled every tick, so stealth-phase damage never counts) or a hunter (the ordered
+   patrols, the two guard tanks, the scaled extra hunters) comes within `RAZOR_CATCH_M` (200 m) of any
+   human. A hunter only counts once it has been seen outside 200 m first, because the guard tanks stand
+   about 80 m from the comm tower where the uplink is done and would otherwise trigger at completion.
+   A team that gets home clean never sees him. The win is unchanged and never needs him.
+2. **The call.** His `avfigh` is built on team 1 at `check2_geyser` (the compound), perceived as CCA,
+   with a nav marker named "Razor One" for every player, `misn1224` plays to all players at once (shared
+   dialogue), and he drives to the head of the east channel (route point 2) and waits for the humans:
+   a human within 120 m, or 45 s from the call, starts the run. He cannot blow cover and nothing in the
+   DLL's checks reads him.
 3. He drives the 27 route points (`RAZOR_ROUTE`, measured, chord-checked against the cliff mask) by
    `Goto` with a vector, re-ordered every 8 s, and waits at the foot of the lip until a human is within
    150 m (or 45 s pass): a leader who outruns the group stops being one.
@@ -154,8 +162,15 @@ not a shortcut: ground pursuers cannot follow over the gap.
    gap); the 38 m fall is unproven, so he is held at full health through it, and a teleport onto the
    ledge is the fallback if the gap is not cleared in 9 s. A progress watchdog skips a leg that does not
    shorten for 25 s. He heals 2 percent per second after 4 s unhurt.
-5. He ends at the Drop Zone nav. The humans may follow him or take the normal route; the win does not
-   depend on him.
+5. **Pursuers lose the scent.** Once Razor is over the jump and at least one human is on the landing
+   side (within 80 m of the landing-side route legs), every second each hunter is checked: it keeps
+   attacking if any human is within 100 m, or in sight within 300 m, or if its current target
+   (`GetCurrentWho`) is a human who did not take the route. Otherwise it breaks off once: fighters
+   `Patrol("path5")` (the file's own loop; the stock patrols have no single original command to
+   restore), guard tanks `Goto` the post position noted before the uplink. "In sight" is a terrain line
+   (`GetTerrainHeightAndNormal` sampled 16 times along hunter to human, 3 m eye height) because the BZ Lua
+   API has no line-of-sight native. Stock patrol timers may still re-issue their own `Goto` later.
+6. He ends at the Drop Zone nav. The humans may follow him or take the normal route.
 
 `misn1224.wav` exists only in the English and Russian Redux archives, so it ships in `Assets/Audio`
 byte-exact from `bzone_en.zfs` (`Tools/Test-ShippedCutVo.py`). Skipped, as decided: 1225 (silos: it
@@ -207,7 +222,14 @@ No live run (two- and four-client co-op, campaign progression). Needs a harness 
 * `AddAmmo` through the owning peer (`TopUpAmmo`) for a guest's captured ship.
 * Razor One end to end: his `Goto` with a vector, the scripted jump (32 m/s, 12 m/s lift; the 38 m
   fall damage; the teleport fallback), the watchdog, and whether his route and the nav marker feel
-  right; the `misn1224` trigger distance.
+  right.
+* Razor One live-test checklist: (a) a clean run home shows no Razor and no `misn1224`; (b) the first
+  CCA hit on any human, or the first hunter reaching 200 m, builds him at the compound, sounds the
+  marker for every player and plays `misn1224` to guests as well as the host; (c) `GetWhoShotMe`
+  really names the shooter after a hit (the damage trigger depends on it) and the guard tanks do not
+  fire the 200 m trigger at uplink completion; (d) after the jump, out-of-sight hunters return to
+  patrol, guard tanks go back to their posts, a hunter near a human who stayed behind keeps attacking,
+  and the terrain line-of-sight test agrees with what the player sees in the gorge.
 * The Europa weather events (plumes, the ice-fall particles, quakes, surges) and the `planet = "europa"`
   campaign key.
 * The artillery's `Attack` on exposed humans, the +1 patrol/hunter scaling at four players, and the
