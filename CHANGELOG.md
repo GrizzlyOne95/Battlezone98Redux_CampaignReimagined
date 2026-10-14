@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Titan: the methane lakes are now a reflective liquid surface. `CRTitanWeather` lays one flat sheet over
+  the map's flat methane sea through EXU StaticGeometry (render-only: no collision, radar, AI path or
+  targeting; identical on every co-op peer from static data), clipped to a generated wet mask
+  (`cr_titan14_wet.png`, the same MAT/HG2 rule as the pools and splashes) and shaded by a new CR shader
+  ported from ISDF Chronicles' WATER kind (`Shaders/cr_methane.hlsl`, DX11 SM4 and DX9 SM3): the floor
+  shows through near the camera, the haze sky reflects at grazing angles, a warm glare and glints follow
+  the low Titan sun, the wind ripples it and drizzle rings it. The haze ladder drives drizzle rings,
+  glare, wetness and chop through `exu.SetMaterialPassColors`; the pale pool-sheen cards drop to 30 %
+  while the surface is up. Without StaticGeometry, the material, or on OpenGL the particle-only look
+  stays. New `Tools/Build-MethaneSurface.py` (mesh, ripple map, wet masks; `--check` in CI) and
+  `Tools/Test-MethaneShader.ps1` (fxc compile of every delegate, in the DX11 shader workflow)
+  (`Docs/TITAN_WEATHER.md` section 5).
 - Venus weather: add rare dense-fog moments ("fog banks") matching the concept art: 30-75 s of
   sulphur green-yellow pea-soup fog with a bright sun and a glowing ochre ground-haze sheet, smooth
   roll-in/out, a few per mission from a seeded timeline every co-op peer computes. A storm or a

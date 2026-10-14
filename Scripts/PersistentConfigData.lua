@@ -23,7 +23,7 @@ return {
     -- Page order follows the player's normal decision flow: inspect combat
     -- state, review records, manage production, then adjust the system.
     PdaNavigationGroups = {
-        { label = "TEAM", pages = { { page = PdaPages.COOP, label = "CO-OP" } } },
+        { label = "TEAM", pages = { { page = PdaPages.COOP, label = "==COOP==" } } },
         {
             label = "COMBAT",
             pages = {

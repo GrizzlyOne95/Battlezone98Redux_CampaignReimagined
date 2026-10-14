@@ -205,6 +205,8 @@ jobs:
           "$LUA" Tools/Test-CRMarsHaboob.lua
           "$LUA" Tools/Test-CRMarsVolcano.lua
           "$LUA" Tools/Test-CRTitanWeather.lua Scripts
+          # The methane surface mesh, ripple map and wet masks match their generator.
+          python -I Tools/Build-MethaneSurface.py --check
 
       - name: Test deterministic terrain clutter
         shell: bash
