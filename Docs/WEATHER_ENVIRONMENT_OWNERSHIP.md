@@ -158,3 +158,9 @@ The planet directors (`CRMarsWeather`, `CRVenusWeather`, `CRIoWeather`, `CREurop
 of this split: they pick a CRWeather preset and register an Environment modifier, and never write renderer state.
 `CREuropaWeather` additionally touches no sensor, gameplay modifier or perception state at all (see
 `EUROPA_WEATHER.md`), which makes it safe for stealth missions.
+
+`CRTitanWeather` (`TITAN_WEATHER.md`) registers no Environment modifier at all: it only chooses CRWeather
+presets and draws particles, so it runs the same on CRWeather's standalone path (misn14 does not load
+Environment). Environment has a `titan` world preset of its own (detected from `TITAN.ACT`, the `ti_` atlas
+or the `titan` sky) that holds the cycle at day through `Environment.LockDaylight`; any mission may set that
+field, and `TitanAllowNight = true` before `Init` keeps the cycle on a Titan map.
