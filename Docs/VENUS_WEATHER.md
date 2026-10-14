@@ -32,7 +32,7 @@ that is the point of the setting.
   per-craft strike scrambles.
 - The director never touches gravity, health, ammo or objects. The test suite traps every
   damaging function and asserts none is called across twenty-minute storms, strikes,
-  eruptions and acid rain.
+  eruptions, acid rain and fog banks (the drama hook only reads positions).
 
 ## The severity ladder
 
@@ -206,6 +206,136 @@ The director does not force a render profile (that is the player's `openshim.ini
 that follows severity. OpenShim reports `not-implemented` for that effect today, so it is a
 no-op until the renderer lands; `AllowRenderIntents = false` removes it.
 
+## 8. Fog banks (rare, dense sulphur fog)
+
+The concept art is a rare moment, not a rung: the air closes to pea soup in sulphur
+green-yellow (a sampled concept frame is about `0.40 0.44 0.17` display RGB), sight drops
+to about 100 m, a CCA walker is a dark silhouette in it, the sun is still a bright smeared
+disk, and a glowing yellow-ochre haze sheet lies on the ground. The ladder cannot make that
+(see the audit below), so the director has a separate **fog bank** event.
+
+### Audit: what the ladder can and cannot do
+
+| Rung | Fog start - end (m) | Fog colour (r g b) | Sun power | Ambient (r g b) | Gloom |
+| --- | --- | --- | ---: | --- | ---: |
+| 1 Calm | 30 - 100 | 0.52 0.38 0.16 (orange-brown) | 0.40 | 0.42 0.31 0.15 | 0 |
+| 2 Haze | 26 - 92 | 0.48 0.36 0.15 | 0.34 | 0.37 0.28 0.14 | 0.12 |
+| 3 Rising | 22 - 84 | 0.40 0.31 0.13 | 0.26 | 0.30 0.24 0.12 | 0.38 |
+| 4 Storm | 18 - 72 | 0.30 0.27 0.11 | 0.18 | 0.22 0.20 0.10 | 0.72 |
+| 5 Severe | 12 - 56 | 0.20 0.22 0.09 (dark green) | 0.12 | 0.15 0.17 0.08 | 1.00 |
+| concept | about 0 - 100..150 | 0.40 0.44 0.17 (bright olive) | bright | glowing ochre | none |
+
+- **Distance is already right.** The Venus maps' own horizon is 100 m (misn07 and misn08:
+  `FogStart 30`, `FogEnd 100`, `VisibilityRange 100`) or 130 m (misn09: 60 / 130 / 130),
+  and every rung ends at or inside it, so the preset clamp to the horizon never bites.
+  Fog end cannot be pushed past the horizon at all (that leaves the terrain cut-off as a
+  bright band), so "100-150 m" means: fog end equal to the horizon, and a much earlier
+  fog start.
+- **What is missing is colour, start, light and ground haze.** No rung is both bright and
+  green: Calm is bright but orange-brown, Severe is green but dark. Fog start is 12-30 m,
+  so the first stretch is clear instead of murky. Light falls with severity (sun 0.40 ->
+  0.12, plus up to 14% gloom dimming), the opposite of the concept's bright smeared sun.
+  Episodes only climb to the dark rungs, so they cannot produce it either. The ground
+  haze is a camera-attached `MarsHaze` card cloud 24-30 m up (a veil, not a sheet), plus
+  `FogPool` systems only at the 21 low basins on misn07.
+- **DX11 Enhanced (`Docs/DX11_FOG_LUNAR_ART_DIRECTION_RECONSTRUCTION.md`).** Fog colour is
+  display RGB (decoded by the renderer), so the bank's colours are the concept's display
+  values, not linear ones. Terrain diffuse IBL is scaled by the authored fog-range
+  support, so a much shorter fog range can darken terrain on Enhanced; the bank therefore
+  keeps fog end at the rung's own (the shortest ladder range is Severe's 56 m) and brightens
+  ambient and sun instead. Whether the live fog start/end feeds that scale is a live check.
+
+### How a bank works
+
+- **Schedule.** `Map.NewFogBanks(seed)` is a pure function of the seed, the same on every
+  peer, with no traffic. First bank 150-330 s into the mission, then 300-660 s after the
+  previous one ends: a 30 minute mission sees about 3-4 (never more than 6), under 14% of
+  the time in fog. Each lasts 30-75 s: a smooth 8-14 s roll-in (smoothstep), a flat hold,
+  a smooth 10-18 s roll-out, with a per-bank strength of 0.85-1.0.
+- **Look**, through `EnvironmentModifier` only (the director never calls `exu.SetFog`):
+  fog start eases to 4 m, fog end to the nearest of the rung's end, 120 m and the map
+  horizon (a bank only ever thickens fog), colour to `0.40 0.44 0.17`; ambient and diffuse
+  ease toward a glowing ochre (`0.40 0.36 0.13`, `0.62 0.58 0.22`) at half weight; the sun power
+  is lifted to at least 0.44 and is **never lowered** (gloom dimming is washed out 80%);
+  the basin `FogPool` systems emit 2.6x harder; and a ring of up to 7 `CR/Venus/FogPool`
+  ground-haze systems (a 55 m grid within 115 m of the player, yellow-ochre, 70 particle
+  quota each) streams in at 7 cards/s, lingers 36 s after the bank, then is released.
+  All of it is existing `CR_FX/Haze` art; no new materials or payload entries.
+- **Precedence.** `FogAllow` (0..1, smoothed 0.12/s) multiplies every scheduled bank. It
+  is 1 up to rung 3.0 and falls to 0 by rung 4.0 (storm and severe, so a bank never stacks
+  on the lightning peak and eases away if a storm arrives mid-bank), and is 0 while any
+  `ForceLevel` set piece is pinned. A script that wants fog inside a set piece or a storm
+  calls `RequestFogBank{ force = true }`.
+- **Sun disk caveat.** The director controls the sun's *power* and the fog; the visible
+  disk, bloom and rays come from the sky and the renderer, and the Venus sky material is
+  an unlit shader that the fog may or may not wash out. Judge it live.
+
+### Mission API
+
+```lua
+CRVenusWeather.RequestFogBank()                      -- host / offline; false, reason if refused
+CRVenusWeather.RequestFogBank({ seconds = 50, power = 1.0, force = true, reason = "walker" })
+CRVenusWeather.IsFogBankActive(); CRVenusWeather.GetFogIntensity()   -- 0..1
+CRVenusWeather.GetFogSchedule(untilSeconds)          -- the seeded banks
+```
+
+A plain request is refused (`false, "storm"` / `"active"`) while a storm rung or
+`ForceLevel` is in force or fog is already up. A request is one `VenusFog` event with six
+numbers (`id, rollIn, hold, rollOut, power, force`); peers start the same bank from receipt.
+The misn07, misn08 and misn09 presentation streams must list `VenusFog` in `VENUS_OPS` (they
+do): an op that is not in the list stalls the guest's ordered stream.
+
+### Drama hook (timing only)
+
+The host (only) may choose the *moment* of a bank. Every 2 s, while nothing else is going on
+(no bank, `FogAllow` >= 0.9, no ForceLevel, at least 90 s into the mission, fewer than 3
+drama banks, 150 s after the last bank, and the scheduled timeline clear of the next 75 s
+plus 45 s), it counts hostile units (teams other than the human's, ally and neutral
+excluded) between 150 and 380 m of a human that are **closing** at 2.5 m/s or more: any
+walker or artillery ODF (`walk`, `artl`), or four hostile craft together. On a hit it
+rolls 50% and calls `RequestFogBank`. It reads positions only; it never moves, orders,
+pushes or damages anything, and its single output is the same `VenusFog` event, so what peers
+see does not depend on who evaluated what. Guests and `AllowFogDrama = false` skip it.
+The seeded schedule is the pure-timeline fallback; with the hook off the banks simply arrive on it.
+
+### Gameplay: fog is visual
+
+Nothing in a bank touches a sensor, the ladder, health or any unit (the suite runs the same
+seed with and without banks and asserts identical rungs, strikes and radar ranges, traps every
+damaging call, and asserts `GameplayContribution` never mentions fog). Does the engine
+itself let fog change what the AI sees? Researched in the 1.5 decompile
+(`Battlezone_Source/BZ1/1.5`): **no.** `ReadTerrainIni` (0051ef53) loads NormalView
+`FogStart`/`FogEnd`/`VisibilityRange`/`FlatRange`, and the only readers of those globals are
+the terrain renderer (`FogAndLumaLighting`, `InitFogTable`, `DepthAttenuation`,
+`BuildTerrainPolys`), `Draw_Moon_Sun`, the editor and water. Enemy search
+(`GetClosestEnemyWithin` 00406302) and `GetClosestObject` (004093db) use range, team and a
+per-team visibility bitmask that only the scanners set (`Scanner::BasicVisibility` 004ae19d,
+`SweepVisibility` 004adc08), gated by the scanner's own range, period and jammers. The
+minimap/radar range is the same scanner range. `exu.SetFog` is an Ogre render call. Not checked:
+the Redux 2.2.301 binary (Steam DRM). Radar range in Venus weather is separately degraded
+by the ladder (`radarRange`, 1.00 -> 0.55); banks add none, by design.
+
+### In-game tuning checklist (needs a live Venus mission)
+
+1. `CRVenusWeather.RequestFogBank{ force = true }` from the debug console at Calm: does the
+   fog read pea-soup and olive, not brown or grey? Tune `FogBankColor`, `FogBankFogStart`.
+2. Is the sun still a bright smeared disk with bloom, or does the fog wash it out? Tune
+   `FogBankSunPower`, then look at the sky material (the open question above).
+3. Terrain brightness on Enhanced as the range tightens (the DX11 IBL note): lift
+   `FogBankAmbient` / `FogBankLightMix` if the ground goes grey.
+4. Ground haze: is it a low glowing sheet (`FogBankHazeRate`, `FogBankHazeAlpha`,
+   `FogBankHazeColor`, `FogBankHazeCell`) or a speckle? Are the `colour1`/`colour2` affector
+   parameters honoured (the cards should be ochre, not the template's olive)? Particle
+   cost with all layers up (`MaxLiveHaze`, `FogBankHazeQuota`).
+5. Rarity and length: do 30-75 s banks, roughly one every 5-10 minutes, feel like events?
+   (`FogBankFirstDelay`, `FogBankGap`, `FogBankSeconds`.) Roll-in/out feel
+   (`FogBankRollIn`, `FogBankRollOut`).
+6. Drama: bring a CCA walker toward the player from ~400 m; does the bank start in time for
+   it to emerge from the murk (`DramaRange`, `DramaClosingSpeed`, `DramaChance`)?
+7. Co-op: both screens roll in and out together; a guest after a request sees the same.
+8. Bank into a storm and a storm into a bank ease smoothly (`FogBankSuppress`,
+   `FogBankAllowRate`).
+
 ## Co-op model
 
 The mission runs only on the leader, and presentation events reach guests over misn06's
@@ -218,6 +348,8 @@ per thing by what it depends on:
 | Strikes: target, position, time | **Host**, sent as one event | The target depends on world state (which generators exist, where players are) that peers may not see identically |
 | Eruptions: site, time, duration | **Host**, sent as one event | Same stream, same reason; keeps the sound and the plume in step |
 | Knockback and radar scramble | **Every peer, for the craft it owns** | A craft is simulated on its owner's machine; a replica's velocity is overwritten by the owner and `Environment` refuses to write a replica's sensors |
+| Scheduled fog banks | Pure function of the **seed**, like the ladder | No traffic; the allow factor (storm, ForceLevel) is local but follows the host's rung |
+| Requested / drama fog banks | **Host**, sent as one event | The decision reads live units; the result is one event every peer renders from receipt |
 | Fog pools, sulfur, rain, clouds, smoke, heat lightning | Local, from static map data | Cosmetic; only needs to look right on that screen |
 
 Why not a pure seeded schedule for everything? Strike targets depend on the live object
@@ -251,6 +383,7 @@ a packet is well under the 244 byte guideline).
 | `VenusState` | `seed, clock, level, episode(0/1), target, forcedLevel(0=none), forcedFor` | start, on change, every 30 s |
 | `VenusStrike` | `id, x, y, z, kind(1 power, 2 exposed, 3 ground), telegraphSeconds, power` | each strike |
 | `VenusErupt` | `id, siteIndex, durationSeconds, power` | each eruption |
+| `VenusFog` | `id, rollIn, hold, rollOut, power, force(0/1)` | each requested or drama fog bank (scheduled banks need none) |
 
 `siteIndex` indexes `GetVentSites()`, which is built deterministically from the same shipped
 data on every peer. Late join still needs a restart, as in the other co-op missions;
@@ -279,7 +412,7 @@ local CRVenusWeather = require("CRVenusWeather")
 local VenusSites = require("CRVenusSites07")
 
 -- 2. Presentation: let the stream carry the three Venus ops.
-local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true }
+local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true, VenusFog = true }
 
 local function ApplyPresentation(op, ...)
     ...
@@ -392,6 +525,7 @@ keeps updating through the result window for that reason.
 | Lightning | `TelegraphSeconds`, `PowerWeight`, `ExposedWeight`, `GroundWeight`, `PowerRateBoost`, `LightningPowerOdfs`, `ThunderSound` / `ThunderSpeed` / `ThunderRate` |
 | Consequences | `KnockRadius`, `KnockMaxSpeed`, `KnockLift`, `KnockSpeedCap`, `ScrambleRadius`, `ScrambleSeconds`, `ScrambleRadarRange`, `ScrambleVelocJam` |
 | Flash / light | `FlashNear/Far/Floor`, `FlashAmbient`, `FlashDiffuse`, `FlashSunBoost`, `FlashSeconds`, `GloomDim`, `GloomGreen` |
+| Fog banks | `AllowFogBanks`, `AllowFogDrama`, `FogBankFirstDelay/Gap/Seconds/RollIn/RollOut/Power`, `FogBankFogEnd/FogStart/Color/ColorMix`, `FogBankSunPower`, `FogBankAmbient/Diffuse/LightMix/GloomRelief`, `FogBankSuppress`, `FogBankAllowRate`, `FogBankPoolBoost`, `FogBankHaze*`, `MaxLiveHaze`, `Drama*` |
 | Co-op | `NetHeartbeat` 30, `HostOverrideSeconds` 45 |
 
 ## EXU capabilities that do not exist (and what was done)

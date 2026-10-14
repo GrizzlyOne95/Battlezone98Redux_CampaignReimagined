@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Venus weather: add rare dense-fog moments ("fog banks") matching the concept art: 30-75 s of
+  sulphur green-yellow pea-soup fog with a bright sun and a glowing ochre ground-haze sheet, smooth
+  roll-in/out, a few per mission from a seeded timeline every co-op peer computes. A storm or a
+  `ForceLevel` set piece suppresses them. New `CRVenusWeather.RequestFogBank()` and a host-only
+  drama hook that may pick the timing when hostile walkers or groups close on a human. Visual only:
+  no sensor, unit or health access (the engine does not use terrain fog for AI sight or radar).
+  misn07/08/09 forward the new `VenusFog` op in their presentation streams (`Docs/VENUS_WEATHER.md`).
 - Add Mission 12, Flying Solo, to the campaign as a 2-4 player co-op listing
   (`CR: Flying Solo Coop`) on the original Battlezone 1.5 Europa terrain. The CCA moves to team 5,
   freeing teams 2-4 for guests, the six hidden nav-camera pods move to the support team (7), and four
