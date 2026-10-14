@@ -797,6 +797,18 @@ own change).
 
 ## 10. Keeping this document current
 
+### Terrain source and boundary preservation (2026-10-14)
+
+For the terrain prototype, see `Docs/TERRAIN_EDGE_PASS.md` and
+`Tools/Build-TerrainEdgePass.py`. Use the canonical unsmoothed CR heights;
+retained later-mission heights are available at `ce18e89`. `misn16.bzn` resolves
+`misn16b` terrain. Redux uses the min/max X/Z of `edge_path`; `path_edge` does
+not substitute for it, and a polygon-shaped path still gives rectangular
+limits. A southern-terrain move must transform BZN objects, physics positions
+and mission paths together. Preserve mission pads and validate the navigation
+consequences separately from the asset render. Offline slope-grid navigation
+is a screening tool, not live AI qualification.
+
 - Append lessons **in the same PR as the change that taught them**. A lesson that lives only in a chat or
   a private note is lost when the session ends.
 - Put per-mission detail in the mission doc, subsystem detail in its own doc, and link it from here; this
