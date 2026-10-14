@@ -194,15 +194,17 @@ BuildObject("cvtank", 1, user);
         S.followScout1 = BuildObject("cvfighh", 1, "scout_2")
         SetPerceivedTeam(S.followScout1, 2)
         --Goto(leadScout, "scout_path", 1);
-        Formation(S.followScout1, S.leadScout, 1)
+        -- Stock Lua Formation() reads arg 2 as an integer priority and passes it as the leader
+        -- (Redux 2.2.301 binding 0x005079B0), so issue the native FORMATION order directly.
+        SetCommand(S.followScout1, AiCommand.FORMATION, 1, S.leadScout)
         S.followScout2 = BuildObject("cvfighh", 1, "scout_2")
         SetPerceivedTeam(S.followScout2, 2)
         --Goto(leadScout, "scout_path", 1);
-        Formation(S.followScout2, S.leadScout, 1)
+        SetCommand(S.followScout2, AiCommand.FORMATION, 1, S.leadScout)
         S.followScout3 = BuildObject("cvfighh", 1, "scout_2")
         SetPerceivedTeam(S.followScout3, 2)
         --Goto(leadScout, "scout_path", 1);
-        Formation(S.followScout3, S.leadScout, 1)
+        SetCommand(S.followScout3, AiCommand.FORMATION, 1, S.leadScout)
     end
 
     if S.scoutsSpawned  and  GetDistance(S.leadScout, S.silo) < 300.0  and  not S.scoutCloseToSilo then
