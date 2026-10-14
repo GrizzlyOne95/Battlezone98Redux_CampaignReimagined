@@ -316,6 +316,31 @@ boot()
 F.tick()
 check(M().start_done, "absent CRTitanWeather is fine")
 
+-- The director merged on main exposes Init/Update/... (no MissionHook): the hook adapts onto it.
+local api = {calls = {}}
+local function rec(name) return function(...) api.calls[#api.calls + 1] = {name, ...} end end
+local director = {Seed = 77, Init = function(o) api.init = o; rec("Init")(o) end, Update = rec("Update"),
+    SetTargetLevel = rec("SetTargetLevel"), Roll = rec("Roll"), ForceLevel = rec("ForceLevel"),
+    ReleaseForcedLevel = rec("ReleaseForcedLevel"), Save = function() return {lvl = 2} end, Load = rec("Load"),
+    ApplyNetEvent = rec("ApplyNetEvent"), OnObjectCreated = rec("OnObjectCreated"), Shutdown = rec("Shutdown"),
+    AnnounceState = rec("AnnounceState")}
+boot({titan = director})
+F.tick()
+local function apiCount(name, a)
+    local n = 0
+    for _, c in ipairs(api.calls) do if c[1] == name and (a == nil or c[2] == a) then n = n + 1 end end
+    return n
+end
+check(api.init and api.init.authority == true and api.init.startLevel == 1 and api.init.send == nil,
+    "adapter: offline Init as authority")
+check(apiCount("Update") >= 1 and apiCount("SetTargetLevel", 2) == 1, "adapter: per-frame Update and the start beat")
+throughIntro()
+toPhase("rogue", 300)
+check(apiCount("Roll", 70) == 1 and apiCount("ForceLevel", 3) == 1, "adapter: activation haze roll, rogue drizzle")
+check(apiCount("AnnounceState") == 0, "adapter: no network announce offline")
+local saved = host.env.Save().titanWeather
+check(saved and saved.seed == 77 and saved.state.lvl == 2, "adapter: seed and director state saved in M")
+
 -- ------------------------------------------------------------ save/load
 boot()
 F.tick()
