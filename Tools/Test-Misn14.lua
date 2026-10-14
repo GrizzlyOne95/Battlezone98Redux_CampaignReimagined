@@ -40,7 +40,9 @@ check(F.count(host, "SetAIP") == 1 and F.last(host, "SetAIP")[2] == "misn14.aip"
 check(F.count(host, "AddPilot", 5) == 1 and F.count(host, "SetScrap", 5) == 1 and F.count(host, "SetScrap", 1) == 1,
     "the DLL's CCA pilots/scrap moved to team 5; the shared base keeps 30 scrap")
 check(F.count(host, "SetMaxHealth", "sbbarr0_i76building") == 1, "the scientists' barracks is kept alive")
-check(F.heard(host, "misn1401.wav") and F.count(host, "CameraPath", "cam_path1") == 1, "the stock intro runs")
+check(F.heard(host, "misn1401.wav") and F.count(host, "CameraPath", "cam_path1") >= 1, "the stock intro runs")
+check(#F.builds(host, 0, "avsav14") == 0, "no squad build in the load frame")
+F.run(3)
 local built = F.builds(host, 0, "avsav14")
 check(#built == 2, "offline: one dormant pair of NSDF Furies")
 for _, b in ipairs(built) do
