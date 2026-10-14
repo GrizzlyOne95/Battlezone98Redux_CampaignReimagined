@@ -30,6 +30,12 @@ TARGETS = {
     "misn10": ["relic", "cam1", "cam2", "cam3", "svrecycler", "avrecycler", "post1_geyser",
                "post3_geyser", "geyser1", "geyser2", "geyser3", "geyser4", "geyser5", "geyser6",
                "geyser7", "svartil1", "svartil2", "svmuf"],
+    # misn11: the three transports, the three waypoint navs, both launch pads (all markers) and the
+    # CCA picket/walker/artillery the ambush drives (never presented, but resolved by label).
+    "misn11": ["avhaul0_tug", "avhaul1_tug", "avhaul2_tug", "apcamr3_camerapod", "apcamr4_camerapod",
+               "apcamr5_camerapod", "launch_pad", "launch_pad2", "svturr0_turrettank", "svturr1_turrettank",
+               "svturr2_turrettank", "svturr3_turrettank", "second_blockade", "svwalk0_walker",
+               "svartl0_howitzer", "svartl0(1)_howitzer"],
 }
 # Labels that are also an authored PATH name in the BZN legitimately occur twice.
 PATH_NAMES = {"launch_pad"}

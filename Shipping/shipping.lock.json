@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-13T18:10:22-05:00",
-  "count": 2316,
+  "count": 2326,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -158,6 +158,10 @@
     {
       "source": "Assets\\Graphics\\misn10.bmp",
       "runtime": "misn10.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn11.bmp",
+      "runtime": "misn11.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -566,6 +570,10 @@
     {
       "source": "Config\\misn10.ini",
       "runtime": "misn10.ini"
+    },
+    {
+      "source": "Config\\misn11.ini",
+      "runtime": "misn11.ini"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -2916,6 +2924,10 @@
       "runtime": "misn10.des"
     },
     {
+      "source": "misn11.des",
+      "runtime": "misn11.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -3132,24 +3144,48 @@
       "runtime": "misn10.bzn"
     },
     {
+      "source": "Missions\\misn11.bzn",
+      "runtime": "misn11.bzn"
+    },
+    {
       "source": "Missions\\misn10.hg2",
       "runtime": "misn10.hg2"
+    },
+    {
+      "source": "Missions\\misn11.hg2",
+      "runtime": "misn11.hg2"
     },
     {
       "source": "Missions\\misn10.lgt",
       "runtime": "misn10.lgt"
     },
     {
+      "source": "Missions\\misn11.lgt",
+      "runtime": "misn11.lgt"
+    },
+    {
       "source": "Missions\\misn10.mat",
       "runtime": "misn10.mat"
+    },
+    {
+      "source": "Missions\\misn11.mat",
+      "runtime": "misn11.mat"
     },
     {
       "source": "Missions\\misn10.trn",
       "runtime": "misn10.trn"
     },
     {
+      "source": "Missions\\misn11.trn",
+      "runtime": "misn11.trn"
+    },
+    {
       "source": "Missions\\misn10.vxt",
       "runtime": "misn10.vxt"
+    },
+    {
+      "source": "Missions\\misn11.vxt",
+      "runtime": "misn11.vxt"
     },
     {
       "source": "Missions\\sxshow.bzn",
@@ -5538,6 +5574,10 @@
     {
       "source": "Scripts\\CRIoSites10.lua",
       "runtime": "CRIoSites10.lua"
+    },
+    {
+      "source": "Scripts\\CRIoSites11.lua",
+      "runtime": "CRIoSites11.lua"
     },
     {
       "source": "Scripts\\CRIoWeather.lua",
