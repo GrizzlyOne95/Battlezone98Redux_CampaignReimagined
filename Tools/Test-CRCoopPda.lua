@@ -112,15 +112,64 @@ me, host, onFoot, requests = 30, false, { [30] = true }, {}
 active = false; ui.UpdatePage(state)
 state.pdaPage = 9; ui.UpdatePage(state)
 check(state.pdaPage == 1, "solo clears co-op page")
-local view = { right_x = 1, right_y = 0, right_z = 0, up_x = 0, up_y = 1, up_z = 0,
-    front_x = 0, front_y = 0, front_z = 1, posit_x = 0, posit_y = 0, posit_z = 0 }
-local origins = { Orig_x = 640, Orig_y = 360, Const_x = 640, Const_y = -640 }
-local x, y, mark, distance = Hud.Project(ping.position, view, origins, 1280, 720)
-check(x == 0.5 and y == 0.5 and mark == "+" and distance == 100, "front projection")
-x, y, mark = Hud.Project({ x = 1000, y = 0, z = 10 }, view, origins, 1280, 720)
-check(x <= 0.830001 and mark == ">", "edge arrow")
-x, y, mark = Hud.Project({ x = 0, y = 0, z = -100 }, view, origins, 1280, 720)
-check(mark == "BEHIND v", "behind marker")
-check(not Hud.Project(ping.position, nil, origins, 1280, 720), "camera missing")
-check(not Hud.Project({ x = 0/0, y = 0, z = 0 }, view, origins, 1280, 720), "NaN projection")
+-- Object pings use the stock objective marker; existing objectives only flash.
+do
+    local clock, pings, active = 0, {}, true
+    local enemy, mission, unknown = { name = "enemy" }, { name = "mission" }, { name = "unknown" }
+    local state = { [enemy] = { on = false, name = "Grizzly" }, [mission] = { on = true, name = "Relic" },
+        [unknown] = { on = nil, name = "Scout" } }
+    local log, spawned = {}, {}
+    local hud = Hud.Create({
+        time = function() return clock end,
+        comms = function() return { IsActive = function() return active end, GetPings = function() return pings end } end,
+        objective = {
+            isOn = function(h) return state[h].on end,
+            valid = function() return true end,
+            on = function(h) state[h].on = true; log[#log + 1] = h.name .. " on" end,
+            off = function(h) state[h].on = false; log[#log + 1] = h.name .. " off" end,
+            name = function(h, text) state[h].name = text end,
+            getName = function(h) return state[h].name end,
+            spawn = function(pos)
+                local h = { name = "marker", pos = pos }
+                state[h] = { on = false, name = "Ping" }
+                spawned[#spawned + 1] = h
+                return h
+            end,
+            remove = function(h) state[h].removed = true end,
+        },
+    })
+    pings = { [20] = { name = "Ann", kind = "object", handle = enemy, seq = 1, position = { x = 0, y = 0, z = 9 } },
+        [30] = { name = "Bo", kind = "object", handle = mission, seq = 1, position = { x = 0, y = 0, z = 9 } },
+        [40] = { name = "Cy", kind = "object", handle = unknown, seq = 1, position = { x = 0, y = 0, z = 9 } } }
+    hud.Update(false)
+    check(state[enemy].on and state[enemy].name == "Ann: TARGET PING", "plain unit gets a named marker")
+    check(state[mission].name == "Bo: TARGET PING", "existing objective renamed while pinged")
+    check(state[unknown].on == nil, "unknown objective state is left alone")
+    local offs = 0
+    for _ = 1, 10 do
+        clock = clock + 0.21; hud.Update(false)
+    end
+    for _, line in ipairs(log) do if line == "mission off" then offs = offs + 1 end end
+    check(offs >= 2 and state[mission].on, "existing objective flashes and ends on")
+    pings = { [30] = pings[30] }
+    clock = clock + 0.1; hud.Update(false)
+    check(not state[enemy].on and state[enemy].name == "Grizzly", "ping end restores the plain unit")
+    pings = {}
+    clock = clock + 0.1; hud.Update(false)
+    check(state[mission].on and state[mission].name == "Relic", "existing objective stays on, name restored")
+    -- Terrain: one invisible local marker per ping, removed when it ends or is replaced.
+    pings = { [20] = { name = "Ann", kind = "terrain", seq = 2, position = { x = 5, y = 0, z = 6 } } }
+    clock = clock + 0.1; hud.Update(false)
+    local marker = spawned[1]
+    check(#spawned == 1 and state[marker].on and state[marker].name == "Ann: TERRAIN PING", "terrain ping gets a marker")
+    check(marker.pos.x == 5 and marker.pos.z == 6, "marker at the ping")
+    clock = clock + 0.1; hud.Update(false)
+    check(#spawned == 1, "one marker per ping")
+    pings[20] = { name = "Ann", kind = "terrain", seq = 3, position = { x = 9, y = 0, z = 9 } }
+    clock = clock + 0.1; hud.Update(false)
+    check(state[marker].removed and #spawned == 2, "a new ping replaces the old marker")
+    pings = {}
+    clock = clock + 0.1; hud.Update(false)
+    check(state[spawned[2]].removed, "marker removed when the ping ends")
+end
 print("CRCoopPda/Hud: " .. checks .. " checks passed")

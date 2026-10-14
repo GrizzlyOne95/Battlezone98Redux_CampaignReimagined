@@ -42,9 +42,28 @@ player's status: `H<hull%> A<ammo%>`, `on foot`, `NEEDS A RIDE`,
 or ammo at most 10%.
 
 Each player has one active ping, lasting ten seconds, with a 1.5-second send
-cooldown. Object pings follow their handle. Terrain pings project a local EXU
-label reading `Name: TARGET` / `Name: GO HERE` with an arrow and distance.
-Receiving a ping never changes the target; TARGET calls the local `SetUserTarget`.
+cooldown, shown only as a stock objective marker plus a chat line. Receiving a
+ping never changes the target; TARGET calls the local `SetUserTarget`.
+
+A pinged unit is renamed `Name: TARGET PING` on every player's HUD until the
+ping ends, then gets its old name back. If it was not an objective it also gets
+the stock marker (local `SetObjectiveOn`) for the ping. If it already was (a
+mission objective or a teammate status marker) it flashes for about a second
+and is never switched off. A teammate's status marker relabels its craft every
+second, so on teammates the ping name is brief. The check needs EXU `IsObjectiveOn` (it reads the
+engine flag at GameObject+0x189); without it, an object ping shows only the chat line.
+A terrain ping builds an invisible marker object on each player's machine
+(`exu.BuildAsyncObject("crping", 0, pos)`, local-only), names it
+`Name: TERRAIN PING`, switches its objective marker on, and removes it when the ping
+ends or is replaced. `ODF/crping.odf` is a plain `i76building` that reuses the
+stock geyser base mesh `eggeizr1`, which sits entirely below ground. Rejected
+classes: `camerapod`/`apcamr` (looks like a mission nav), `spawnpnt` (joins
+respawn selection), `dropoff` (a powerup that banks a friendly scavenger's
+scrap) and other powerups (picked up). The stock path grid blocks every building's whole
+SDF box (geysers, scrap fields and spawn points are exempt, but an
+`i76building` is not), so `crping` sets `pathBlock = "none"`, which OpenShim
+(`[General] PathBlockFaces`, on by default) and EXU `exu.pathing` honour. The engine's objective list holds
+32 objects and is not bounds-checked, so co-op keeps its own markers few.
 
 Help calls: a ride call lasts until the guest boards a craft. A supply call times
 out after 45 seconds unless the caller's status is critical, and then lasts
@@ -93,8 +112,7 @@ EXU `GetReticleHit()` returns `"object", handle, nil`,
 `"terrain", nil, position`, or nil. On supported Redux 2.2.301 it checks the
 current smart-reticle object and ground-hit result, avoiding the retained
 coordinates exposed by `GetReticlePos()` after a miss. No range extension is
-made. Unsupported builds return nil. Coordinate HUD projection uses BZR's
-camera matrix and projection constants, with no Ogre world-space objects.
+made. Unsupported builds return nil.
 
 ## Verification
 
