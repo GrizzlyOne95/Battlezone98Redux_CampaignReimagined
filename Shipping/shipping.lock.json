@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-13T18:10:22-05:00",
-  "count": 2357,
+  "count": 2367,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -174,6 +174,10 @@
     {
       "source": "Assets\\Graphics\\misn13.bmp",
       "runtime": "misn13.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn14.bmp",
+      "runtime": "misn14.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -594,6 +598,10 @@
     {
       "source": "Config\\misn13.ini",
       "runtime": "misn13.ini"
+    },
+    {
+      "source": "Config\\misn14.ini",
+      "runtime": "misn14.ini"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -2968,6 +2976,10 @@
       "runtime": "misn13.des"
     },
     {
+      "source": "misn14.des",
+      "runtime": "misn14.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -3196,6 +3208,10 @@
       "runtime": "misn13.bzn"
     },
     {
+      "source": "Missions\\misn14.bzn",
+      "runtime": "misn14.bzn"
+    },
+    {
       "source": "Missions\\misn10.hg2",
       "runtime": "misn10.hg2"
     },
@@ -3210,6 +3226,10 @@
     {
       "source": "Missions\\misn13.hg2",
       "runtime": "misn13.hg2"
+    },
+    {
+      "source": "Missions\\misn14.hg2",
+      "runtime": "misn14.hg2"
     },
     {
       "source": "Missions\\misn10.lgt",
@@ -3228,6 +3248,10 @@
       "runtime": "misn13.lgt"
     },
     {
+      "source": "Missions\\misn14.lgt",
+      "runtime": "misn14.lgt"
+    },
+    {
       "source": "Missions\\misn10.mat",
       "runtime": "misn10.mat"
     },
@@ -3242,6 +3266,10 @@
     {
       "source": "Missions\\misn13.mat",
       "runtime": "misn13.mat"
+    },
+    {
+      "source": "Missions\\misn14.mat",
+      "runtime": "misn14.mat"
     },
     {
       "source": "Missions\\misn10.trn",
@@ -3260,6 +3288,10 @@
       "runtime": "misn13.trn"
     },
     {
+      "source": "Missions\\misn14.trn",
+      "runtime": "misn14.trn"
+    },
+    {
       "source": "Missions\\misn10.vxt",
       "runtime": "misn10.vxt"
     },
@@ -3274,6 +3306,10 @@
     {
       "source": "Missions\\misn13.vxt",
       "runtime": "misn13.vxt"
+    },
+    {
+      "source": "Missions\\misn14.vxt",
+      "runtime": "misn14.vxt"
     },
     {
       "source": "Missions\\sxshow.bzn",
@@ -3818,6 +3854,10 @@
     {
       "source": "ODF\\avsav.odf",
       "runtime": "avsav.odf"
+    },
+    {
+      "source": "ODF\\avsav14.odf",
+      "runtime": "avsav14.odf"
     },
     {
       "source": "ODF\\avscab.odf",
