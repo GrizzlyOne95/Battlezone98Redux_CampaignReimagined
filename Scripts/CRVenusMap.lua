@@ -301,6 +301,96 @@ function Map.NewLadder(seed, cfg)
 end
 
 -- =============================================================================
+-- Fog banks -- rare, short, dense sulphur fog
+-- =============================================================================
+--
+-- A fog bank is a scheduled moment, not a rung of the ladder: the air closes to
+-- pea soup for tens of seconds and opens again. The schedule is a PURE function
+-- of the seed -- it never reads the ladder, the mission target or anything a
+-- peer could disagree about -- so every peer derives the same banks at the same
+-- clock times with no traffic at all. Whether a bank is allowed to show (not in a
+-- storm, not during a forced set piece) is decided by the caller, at run time,
+-- and only scales the envelope; it never moves the schedule.
+--
+-- cfg:
+--   firstDelay   { lo, hi }  seconds before the first bank starts
+--   gap          { lo, hi }  seconds between one bank ending and the next starting
+--   total        { lo, hi }  seconds from first roll-in to fully clear
+--   rollIn       { lo, hi }  seconds to close
+--   rollOut      { lo, hi }  seconds to open
+--   power        { lo, hi }  peak strength 0..1
+--
+-- Each bank is { start, rollIn, hold, rollOut, dur, power }. `dur` is the sum of
+-- the three phases and always lies inside `total` (the hold absorbs the slack).
+
+function Map.NewFogBanks(seed, cfg)
+    local sched = {
+        cfg = cfg,
+        rng = Map.NewRng(Map.DeriveSeed(seed, 6)),
+        events = {},
+        cursor = 1,
+    }
+
+    local function Append()
+        local rng = sched.rng
+        local last = sched.events[#sched.events]
+        local start
+        if last == nil then
+            start = rng.Range(cfg.firstDelay[1], cfg.firstDelay[2])
+        else
+            start = last.start + last.dur + rng.Range(cfg.gap[1], cfg.gap[2])
+        end
+        local total = rng.Range(cfg.total[1], cfg.total[2])
+        local rollIn = rng.Range(cfg.rollIn[1], cfg.rollIn[2])
+        local rollOut = rng.Range(cfg.rollOut[1], cfg.rollOut[2])
+        local hold = math.max(4.0, total - rollIn - rollOut)
+        local power = rng.Range(cfg.power[1], cfg.power[2])
+        sched.events[#sched.events + 1] = {
+            start = start, rollIn = rollIn, hold = hold, rollOut = rollOut,
+            dur = rollIn + hold + rollOut, power = power,
+        }
+    end
+
+    -- Every bank that starts at or before `untilT`.
+    function sched:Events(untilT)
+        local guard = 0
+        while (#self.events == 0 or self.events[#self.events].start <= untilT) and guard < 500 do
+            Append()
+            guard = guard + 1
+        end
+        return self.events
+    end
+
+    -- The bank whose window contains `now` (nil between banks).
+    function sched:Active(now)
+        self:Events(now)
+        local events = self.events
+        local i = self.cursor
+        if i > #events then i = #events end
+        if i > 1 and events[i].start > now then i = 1 end     -- the clock moved backwards (load)
+        while i < #events and now >= (events[i].start + events[i].dur) do i = i + 1 end
+        self.cursor = i
+        local e = events[i]
+        if e ~= nil and now >= e.start and now < (e.start + e.dur) then return e end
+        return nil
+    end
+
+    return sched
+end
+
+-- 0..1 shape of a bank at `now`: smooth in, flat, smooth out. Multiply by
+-- bank.power for the strength.
+function Map.FogEnvelope(bank, now)
+    if bank == nil then return 0.0 end
+    local t = now - bank.start
+    local total = bank.rollIn + bank.hold + bank.rollOut
+    if t <= 0.0 or t >= total then return 0.0 end
+    if t < bank.rollIn then return SmoothStep(t / bank.rollIn) end
+    if t < (bank.rollIn + bank.hold) then return 1.0 end
+    return SmoothStep(1.0 - ((t - bank.rollIn - bank.hold) / bank.rollOut))
+end
+
+-- =============================================================================
 -- Basins -- where the fog pools
 -- =============================================================================
 

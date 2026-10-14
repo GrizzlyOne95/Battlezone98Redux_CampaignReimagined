@@ -57,7 +57,7 @@ local function peer(id)
     env.print = function(...) p.printed[#p.printed + 1] = table.concat({ ... }, " ") end
     env.SetLabel = function(h, l) record("SetLabel", h, l); p.labels[h] = l; p.byLabel[l] = h end
     p.venus = {}
-    env.VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true }
+    env.VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true, VenusFog = true }
     env.CRVenusWeather = { ApplyNetEvent = function(op, ...) p.venus[#p.venus + 1] = { op, ... }; return true end }
     local chunk = assert(loadstring("local CRCoop, M, subtit, LEADER_TEAM, VENUS_OPS, CRVenusWeather = CRCoop, M, subtit, 1, VENUS_OPS, CRVenusWeather\n" .. adapter .. [[
         return { ready=CameraReady, object=CameraObject, path=CameraPath, finish=CameraFinish,
@@ -244,6 +244,7 @@ host.api.present("VenusState", 77, 0.0, 2, 0, 2, 0, 0)
 host.api.present("SetObjectiveOn", 9100)
 host.api.present("VenusStrike", 1, 10.5, 20, 30.5, 1, 1.5, 0.8)
 host.api.present("VenusErupt", 2, 3, 20, 0.9)
+host.api.present("VenusFog", 1, 10, 20, 14, 0.9, 0)
 host.api.present("AddObjective", "misn0805.otf", "white")
 for _=1,4 do tick() end
 check(#guest.venus == 1 and guest.venus[1][1] == "VenusState" and guest.venus[1][2] == 77,
@@ -253,7 +254,8 @@ for _, p in ipairs({guest, third, fourth}) do p.valid[9100] = true end
 host.valid[9100] = true
 for _=1,4 do tick() end
 for _, p in ipairs({guest, third, fourth}) do
-    check(#p.venus == 3 and p.venus[2][1] == "VenusStrike" and p.venus[2][7] == 1.5 and p.venus[3][1] == "VenusErupt",
+    check(#p.venus == 4 and p.venus[2][1] == "VenusStrike" and p.venus[2][7] == 1.5 and p.venus[3][1] == "VenusErupt"
+        and p.venus[4][1] == "VenusFog" and p.venus[4][6] == 0.9,
         "every guest receives the state, strike and eruption exactly once, in order")
 end
 check(count(guest, "AddObjective", "misn0805.otf") == 1, "the stream resumes after the marker resolves")

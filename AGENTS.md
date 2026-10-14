@@ -13,6 +13,7 @@ The DX11 Enhanced base and terrain shaders are the exception to CR ownership: th
 
 ## Load only when relevant
 
+- Co-op mission ports, weather/environment work, live testing, Codex delegation, the shipping lock, or any "why does this keep breaking" question: read `Docs/AGENT_KNOWLEDGE_BASE.md` (lessons, recipes, source-of-truth map, hard rules). Append new lessons there in the same PR.
 - Lua behavior or Lua-facing native APIs: read `Docs/BZR_LUA_AGENT_REFERENCE.md` first. For Livewire/cinematic fixture setup, also read `Docs/LIVEWIRE_VALIDATION_20261008.md`: never blanket-apply unit AI commands to camera pods or static fixtures; `pcall` does not protect native heap writes.
 - Loading, paths, filesystem/process behavior, discovery, installers, deployment, packaging, or updates: read `Docs/BZR_PLATFORM_COMPATIBILITY.md` first and account for Windows/GOG, Windows/Steam, Linux/Steam via Proton, and Linux/GOG via Wine/Proton.
 - GOG deployment, Workshop staging, or publication: read `docs/STEAM_PUBLISH_CHECKLIST.md` before acting.

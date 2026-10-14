@@ -22,3 +22,12 @@ python Tools/Import-GoombaTranscripts.py --check
 ```
 
 The check also verifies that CR's subtitle-shaped `Text/*.txt` filename set remains identical to the campaign CSV, while unrelated files in `Text/` are ignored.
+
+## Known corrections to the upstream data
+
+The CSV files stay verbatim, including two annotations that CR's missions contradict:
+
+- `misn1303.wav` is annotated "Unused voiceover.", but the stock `Misn13Mission.cpp` plays it on victory
+  (`AudioMessage("misn1303.wav")` before `SucceedMission`), and the CR port still does.
+- `misn1301.wav` really is unused by the DLL; the CR co-op port plays it 25 s after the first attack
+  (`Docs/MISN13_COOP.md`).

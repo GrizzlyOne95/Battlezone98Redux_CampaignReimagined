@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- Venus weather: add rare dense-fog moments ("fog banks") matching the concept art: 30-75 s of
+  sulphur green-yellow pea-soup fog with a bright sun and a glowing ochre ground-haze sheet, smooth
+  roll-in/out, a few per mission from a seeded timeline every co-op peer computes. A storm or a
+  `ForceLevel` set piece suppresses them. New `CRVenusWeather.RequestFogBank()` and a host-only
+  drama hook that may pick the timing when hostile walkers or groups close on a human. Visual only:
+  no sensor, unit or health access (the engine does not use terrain fog for AI sight or radar).
+  misn07/08/09 forward the new `VenusFog` op in their presentation streams (`Docs/VENUS_WEATHER.md`).
+- Add Mission 13, Total Destruction, to the campaign as a 2-4 player co-op listing
+  (`CR: Total Destruction Coop`) on the original Battlezone 1.5 Europa terrain. The CCA moves to
+  team 5 (the strategic AI is enabled once at load and runs `misn13`/`a`/`c.aip` from its Unit
+  Factory), freeing teams 2-4 for guests; the Texas Recycler base is shared and host-run. The map
+  ships without the 1.5 snapshot's 133 unnamed runtime paths, frozen unit orders and velocities.
+  The win now matches the briefing: destroy the Unit Factory, the hangar and all four silos (the
+  objectives list shows progress). The DLL's cut reinforcement waves 2-4 are restored (a CCA squad
+  from a spawn geyser every 300 s via `choke_point2/3` and `turret_path3`, scaled by player count),
+  the unused misn1301 Collins line plays after the opening, the five idle CCA wingmen get roles
+  (artillery escort, factory reserve), and the factory-safety count, artillery warning and
+  first-come tracked objects now work for every human (`Docs/MISN13_COOP.md`). The Europa weather
+  director runs here too.
 - Add Mission 12, Flying Solo, to the campaign as a 2-4 player co-op listing
   (`CR: Flying Solo Coop`) on the original Battlezone 1.5 Europa terrain. The CCA moves to team 5,
   freeing teams 2-4 for guests, the six hidden nav-camera pods move to the support team (7), and four

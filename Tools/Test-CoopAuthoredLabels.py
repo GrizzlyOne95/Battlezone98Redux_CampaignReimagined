@@ -46,6 +46,12 @@ TARGETS = {
                "turret4", "turret5", "turret6", "gtank1", "gtank2",
                "svfigh1_1", "svfigh1_2", "svfigh2_1", "svfigh2_2", "svfigh3_1", "svfigh3_2",
                "svfigh4_1", "svfigh4_2", "artil1", "artil2", "artil3", "artil4"],
+    # misn13: the Drop Zone nav (marker), the CCA base objects the win and objectives watch (factory, hangar,
+    # four silos), the east tower the waves aim at, the spawn/key geysers the restored waves use, the five
+    # relabelled wingmen (artillery escorts and the factory reserve) and the artillery.
+    "misn13": ["apcamr20_camerapod", "avrecycle", "svmuf", "svguntower1", "svguntower2", "svsilo1", "svsilo2",
+               "svsilo3", "svsilo4", "spawn_geyser1", "spawn_geyser2", "artil1", "artil2", "artil3", "artil4",
+               "artil_escort1", "artil_escort2", "artil_escort3", "cca_reserve1", "cca_reserve2"],
 }
 # Labels that are also an authored PATH name in the BZN legitimately occur twice.
 PATH_NAMES = {"launch_pad"}
