@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-14T12:24:42-05:00",
-  "count": 2383,
+  "generated": "2026-10-13T18:10:22-05:00",
+  "count": 2389,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -174,6 +174,10 @@
     {
       "source": "Assets\\Graphics\\misn13.bmp",
       "runtime": "misn13.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn14.bmp",
+      "runtime": "misn14.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -594,6 +598,10 @@
     {
       "source": "Config\\misn13.ini",
       "runtime": "misn13.ini"
+    },
+    {
+      "source": "Config\\misn14.ini",
+      "runtime": "misn14.ini"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -2304,20 +2312,8 @@
       "runtime": "CR_DepthShadowmap.material"
     },
     {
-      "source": "Materials\\cr_europa.particle.payload",
-      "runtime": "cr_europa.particle.payload"
-    },
-    {
       "source": "Materials\\CR_glow.material",
       "runtime": "CR_glow.material"
-    },
-    {
-      "source": "Materials\\cr_io.particle.payload",
-      "runtime": "cr_io.particle.payload"
-    },
-    {
-      "source": "Materials\\cr_moon.particle.payload",
-      "runtime": "cr_moon.particle.payload"
     },
     {
       "source": "Materials\\CR_overlay.material",
@@ -2330,6 +2326,18 @@
     {
       "source": "Materials\\CR_reactive.material",
       "runtime": "CR_reactive.material"
+    },
+    {
+      "source": "Materials\\cr_europa.particle.payload",
+      "runtime": "cr_europa.particle.payload"
+    },
+    {
+      "source": "Materials\\cr_io.particle.payload",
+      "runtime": "cr_io.particle.payload"
+    },
+    {
+      "source": "Materials\\cr_moon.particle.payload",
+      "runtime": "cr_moon.particle.payload"
     },
     {
       "source": "Materials\\cr_reactive.particle.payload",
@@ -2968,6 +2976,10 @@
       "runtime": "misn13.des"
     },
     {
+      "source": "misn14.des",
+      "runtime": "misn14.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -3184,108 +3196,96 @@
       "runtime": "misn10.bzn"
     },
     {
-      "source": "Missions\\misn10.hg2",
-      "runtime": "misn10.hg2"
-    },
-    {
-      "source": "Missions\\misn10.lgt",
-      "runtime": "misn10.lgt"
-    },
-    {
-      "source": "Missions\\misn10.mat",
-      "runtime": "misn10.mat"
-    },
-    {
-      "source": "Missions\\misn10.trn",
-      "runtime": "misn10.trn"
-    },
-    {
-      "source": "Missions\\misn10.vxt",
-      "runtime": "misn10.vxt"
-    },
-    {
       "source": "Missions\\misn11.bzn",
       "runtime": "misn11.bzn"
-    },
-    {
-      "source": "Missions\\misn11.hg2",
-      "runtime": "misn11.hg2"
-    },
-    {
-      "source": "Missions\\misn11.lgt",
-      "runtime": "misn11.lgt"
-    },
-    {
-      "source": "Missions\\misn11.mat",
-      "runtime": "misn11.mat"
-    },
-    {
-      "source": "Missions\\misn11.trn",
-      "runtime": "misn11.trn"
-    },
-    {
-      "source": "Missions\\misn11.vxt",
-      "runtime": "misn11.vxt"
     },
     {
       "source": "Missions\\misn12.bzn",
       "runtime": "misn12.bzn"
     },
     {
-      "source": "Missions\\misn12.hg2",
-      "runtime": "misn12.hg2"
-    },
-    {
-      "source": "Missions\\misn12.lgt",
-      "runtime": "misn12.lgt"
-    },
-    {
-      "source": "Missions\\misn12.mat",
-      "runtime": "misn12.mat"
-    },
-    {
-      "source": "Missions\\misn12.trn",
-      "runtime": "misn12.trn"
-    },
-    {
-      "source": "Missions\\misn12.vxt",
-      "runtime": "misn12.vxt"
-    },
-    {
       "source": "Missions\\misn13.bzn",
       "runtime": "misn13.bzn"
+    },
+    {
+      "source": "Missions\\misn14.bzn",
+      "runtime": "misn14.bzn"
+    },
+    {
+      "source": "Missions\\misn10.hg2",
+      "runtime": "misn10.hg2"
+    },
+    {
+      "source": "Missions\\misn11.hg2",
+      "runtime": "misn11.hg2"
+    },
+    {
+      "source": "Missions\\misn12.hg2",
+      "runtime": "misn12.hg2"
     },
     {
       "source": "Missions\\misn13.hg2",
       "runtime": "misn13.hg2"
     },
     {
-      "source": "Missions\\misn13.lgt",
-      "runtime": "misn13.lgt"
-    },
-    {
-      "source": "Missions\\misn13.mat",
-      "runtime": "misn13.mat"
-    },
-    {
-      "source": "Missions\\misn13.trn",
-      "runtime": "misn13.trn"
-    },
-    {
-      "source": "Missions\\misn13.vxt",
-      "runtime": "misn13.vxt"
-    },
-    {
       "source": "Missions\\misn14.hg2",
       "runtime": "misn14.hg2"
+    },
+    {
+      "source": "Missions\\misn10.lgt",
+      "runtime": "misn10.lgt"
+    },
+    {
+      "source": "Missions\\misn11.lgt",
+      "runtime": "misn11.lgt"
+    },
+    {
+      "source": "Missions\\misn12.lgt",
+      "runtime": "misn12.lgt"
+    },
+    {
+      "source": "Missions\\misn13.lgt",
+      "runtime": "misn13.lgt"
     },
     {
       "source": "Missions\\misn14.lgt",
       "runtime": "misn14.lgt"
     },
     {
+      "source": "Missions\\misn10.mat",
+      "runtime": "misn10.mat"
+    },
+    {
+      "source": "Missions\\misn11.mat",
+      "runtime": "misn11.mat"
+    },
+    {
+      "source": "Missions\\misn12.mat",
+      "runtime": "misn12.mat"
+    },
+    {
+      "source": "Missions\\misn13.mat",
+      "runtime": "misn13.mat"
+    },
+    {
       "source": "Missions\\misn14.mat",
       "runtime": "misn14.mat"
+    },
+    {
+      "source": "Missions\\misn10.trn",
+      "runtime": "misn10.trn"
+    },
+    {
+      "source": "Missions\\misn11.trn",
+      "runtime": "misn11.trn"
+    },
+    {
+      "source": "Missions\\misn12.trn",
+      "runtime": "misn12.trn"
+    },
+    {
+      "source": "Missions\\misn13.trn",
+      "runtime": "misn13.trn"
     },
     {
       "source": "Missions\\misn14.trn",
@@ -3380,6 +3380,26 @@
       "runtime": "misns6.trn"
     },
     {
+      "source": "Missions\\misn10.vxt",
+      "runtime": "misn10.vxt"
+    },
+    {
+      "source": "Missions\\misn11.vxt",
+      "runtime": "misn11.vxt"
+    },
+    {
+      "source": "Missions\\misn12.vxt",
+      "runtime": "misn12.vxt"
+    },
+    {
+      "source": "Missions\\misn13.vxt",
+      "runtime": "misn13.vxt"
+    },
+    {
+      "source": "Missions\\misn14.vxt",
+      "runtime": "misn14.vxt"
+    },
+    {
       "source": "Missions\\sxshow.bzn",
       "runtime": "sxshow.bzn"
     },
@@ -3466,6 +3486,10 @@
     {
       "source": "ODF\\abtowe02.odf",
       "runtime": "abtowe02.odf"
+    },
+    {
+      "source": "ODF\\b_misn13.odf",
+      "runtime": "b_misn13.odf"
     },
     {
       "source": "ODF\\abtowe03.odf",
@@ -3920,6 +3944,10 @@
       "runtime": "avsav.odf"
     },
     {
+      "source": "ODF\\avsav14.odf",
+      "runtime": "avsav14.odf"
+    },
+    {
       "source": "ODF\\avscab.odf",
       "runtime": "avscab.odf"
     },
@@ -3982,10 +4010,6 @@
     {
       "source": "ODF\\avwamp.odf",
       "runtime": "avwamp.odf"
-    },
-    {
-      "source": "ODF\\b_misn13.odf",
-      "runtime": "b_misn13.odf"
     },
     {
       "source": "ODF\\bbbarr.odf",

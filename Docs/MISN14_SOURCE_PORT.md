@@ -1,5 +1,25 @@
 # misn14 source port
 
+> **Status (2026-10-14): superseded in play by the Concept C rework.** `Scripts/misn14.lua` is now the shared
+> offline/co-op Concept C mission (`Docs/MISN14_COOP.md`). The DLL port below survives outside the
+> `-- CR ... >>` / `<<` regions and `Tools/Test-Misn14SourceParity.py` still proves it; the behaviour that
+> changed is:
+>
+> - Teams: CCA 2 -> 5, Furies 3 -> 6, rescued pilots and the surrendered base/towers -> 7 (the DLL gave the
+>   base and towers to team 1). `SetAIControl(5, true)` moved from `Start` to chunk load (a late call kills a
+>   co-op host); `SetAIP("misn14.aip", 5)` names the team as the shipped 1.5 exe does.
+> - Shipped 1.5 restorations: both power plants surrender with the base; `SetIndependence(guy, 0)` and
+>   `Defend(guy, 1)` on every rescued pilot.
+> - The DLL's 720/180 s `hvsav` triplets stay verbatim behind `FURY_WAVES`; the active waves come 420 s after
+>   the intro, scale per human, add `hvsat` from wave 4, cap 12 live Furies and never spawn within 400 m of a
+>   human. The surrender also fires when the rogue Furies destroy the CCA Recycler or Unit Factory.
+> - New: the NSDF Fury squad (`ODF/avsav14.odf`), the activation/loss scenes (1402, 1423-1426), the 1420/1427
+>   nags, a Fury objective, the Razor Two name, a guarded Titan weather hook.
+> - Any human (or a human piloting an `avapc`) satisfies the single-player triggers; the DLL's `misn1402`
+>   intro line stays disabled where it was (it now opens the activation scene).
+> - The Lua tests are now `Test-Misn14.lua` (offline), `Test-Misn14Coop.lua`, `Test-Misn14Presentation.lua` and
+>   `Test-Misn14CoopContract.py` over `Tools/Misn14Fixture.lua`.
+
 `Scripts/misn14.lua` ports `BZ1/from_bz2_dll_src/Misn14Mission.cpp` from
 [Battlezone_Source at e7c4105](https://github.com/GrizzlyOne95/Battlezone_Source/blob/e7c410573ffedc9e118dd90f402af6d5585955cc/BZ1/from_bz2_dll_src/Misn14Mission.cpp)
 to stock Battlezone 98 Redux Lua 5.1. It uses the API contracts in
