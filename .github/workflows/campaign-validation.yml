@@ -249,6 +249,17 @@ jobs:
           python Tools/Test-Misn13CoopContract.py
           python Tools/Test-CoopAuthoredLabels.py
 
+      - name: Test misn14 Concept C rework, co-op layer, presentation and DLL parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn14.lua
+          "$LUA" Tools/Test-Misn14Coop.lua
+          "$LUA" Tools/Test-Misn14Presentation.lua
+          python Tools/Test-Misn14SourceParity.py
+          python Tools/Test-Misn14CoopContract.py
+
       - name: Test BlackDog08 source port
         run: |
           lua5.1 Tools/Test-BlackDog08.lua
