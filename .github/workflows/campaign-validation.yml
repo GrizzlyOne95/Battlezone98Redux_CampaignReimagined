@@ -204,6 +204,7 @@ jobs:
           "$LUA" Tools/Test-CRMarsWeather.lua
           "$LUA" Tools/Test-CRMarsHaboob.lua
           "$LUA" Tools/Test-CRMarsVolcano.lua
+          "$LUA" Tools/Test-CRTitanWeather.lua Scripts
 
       - name: Test deterministic terrain clutter
         shell: bash

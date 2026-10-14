@@ -7,7 +7,7 @@
 --     remains fixed for the active world preset.
 --   * One shared cycle state drives lighting, fog, sun power, sun direction, and
 --     gameplay night effects so the environment cannot drift out of sync.
---   * TRN-derived map baselines and Earth/Moon visual presets remain supported.
+--   * TRN-derived map baselines and Earth/Moon/Titan visual presets remain supported.
 --   * Existing public entry points are preserved for mission compatibility.
 
 local exu = require("exu")
@@ -31,9 +31,17 @@ Environment = {
 
     EnableSunLighting      = true,
     EnableVisualRuntime    = true,
-    PresetMode             = "auto", -- "auto", "earth", or "moon"
+    PresetMode             = "auto", -- "auto", "earth", "moon", or "titan"
     WorldPreset            = "earth",
     WorldPalette           = "",
+    -- Titan's day is sixteen Earth days long, so a fifteen-minute night has no
+    -- business there: the titan preset holds the cycle at day. Set this to true
+    -- before Init to keep the ordinary day/night cycle (and its night sensor
+    -- nerf) on a Titan map anyway.
+    TitanAllowNight        = false,
+    -- Holds the cycle at full day. Set by the titan preset; a mission may set it
+    -- for any world. No night means no night sensor nerf either.
+    LockDaylight           = false,
     SunDirectionMode       = "ogre", -- "ogre" preferred; "legacy" fallback
     NativeTimeOfDayOnInit  = false,
     MapTimeOfDay           = 1200,
@@ -355,6 +363,28 @@ local function DetectWorldPreset(trnFilename, trn)
         missionFilename = string.lower((GetMissionFilename() or ""):gsub("%z.*", ""))
     end
 
+    -- Titan first: every stock Titan .trn names Palette=TITAN.ACT and the
+    -- ti_detail_atlas terrain atlas, and none of the moon hints below matches
+    -- them, so without this a Titan map silently fell through to "earth". The
+    -- mission names are a fallback for a converted map whose .trn lost them.
+    local atlas = ""
+    local skyTexture = ""
+    if trn and GetODFString then
+        atlas = string.lower(GetODFString(trn, "Atlases", "MaterialName", "") or "")
+        skyTexture = string.lower(GetODFString(trn, "Sky", "SkyTexture", "") or "")
+    end
+    local titanHints = { "titan" }
+    local titanMissions = { "misn14", "misn15", "misn16", "misns5", "misns6", "misns7", "misns8" }
+    if StringContainsAny(palette, titanHints)
+        or StringContainsAny(skyTexture, titanHints)
+        or string.sub(atlas, 1, 3) == "ti_"
+        or StringContainsAny(trnFilename, titanHints)
+        or StringContainsAny(missionFilename, titanHints)
+        or StringContainsAny(missionFilename, titanMissions)
+    then
+        return "titan", palette
+    end
+
     local moonHints = {
         "moon",
         "luna",
@@ -444,7 +474,95 @@ local function BuildMoonFogKeyframes(baseFog)
     })
 end
 
+-- Titan: a small, distant sun seen through a thick orange photochemical haze.
+-- Light is warm, dim and flat, the haze is amber, and the stock .trn's own fog
+-- range (misn14: 50-175 under a 250 horizon) is kept -- in DX11 Enhanced the fog
+-- range scales the terrain IBL, and a range at or under 160 keeps it saturated
+-- exactly as the stock map has it. Stock Titan .trn files set Ambient=0 and a low
+-- Intensity, and give no fog colour (so the base falls back to Environment's
+-- default), hence the floors and the fixed haze tint below.
+local function BuildTitanFogKeyframes(baseFog)
+    local haze = { r = 0.60, g = 0.35, b = 0.11 }  -- the stock Titan palette fog, a touch lighter
+    local dayFog = ClampFog({
+        r = Lerp(baseFog.r, haze.r, 0.85),
+        g = Lerp(baseFog.g, haze.g, 0.85),
+        b = Lerp(baseFog.b, haze.b, 0.85),
+        fogStart = baseFog.fogStart,
+        fogEnd = baseFog.fogEnd,
+    })
+    Environment.DayFog = dayFog
+    -- The cycle is held at day (LockDaylight), so these only matter when a
+    -- mission opts back into the cycle: a deeper, closer haze, never a black one.
+    Environment.SunsetFog = ClampFog({
+        r = dayFog.r * 0.92, g = dayFog.g * 0.86, b = dayFog.b * 0.80,
+        fogStart = dayFog.fogStart * 0.85, fogEnd = dayFog.fogEnd * 0.90,
+    })
+    Environment.NightFog = ClampFog({
+        r = dayFog.r * 0.30, g = dayFog.g * 0.24, b = dayFog.b * 0.20,
+        fogStart = dayFog.fogStart * 0.60, fogEnd = dayFog.fogEnd * 0.75,
+    })
+    Environment.SunriseFog = ClampFog({
+        r = dayFog.r * 0.95, g = dayFog.g * 0.88, b = dayFog.b * 0.82,
+        fogStart = dayFog.fogStart * 0.85, fogEnd = dayFog.fogEnd * 0.90,
+    })
+end
+
+local function MaxColor(a, b)
+    return { r = math.max(a.r, b.r), g = math.max(a.g, b.g), b = math.max(a.b, b.b) }
+end
+
+local function ApplyTitanPreset(baseAmbient, baseDiffuse, baseSpecular, baseFog)
+    -- Scattered haze light is most of what reaches the ground: a warm ambient
+    -- floor, and a sun that is orange and not much brighter than the sky.
+    Environment.DayAmbient = MaxColor(ModulateColor(baseAmbient, { r = 1.10, g = 0.78, b = 0.42 }, 1.0),
+        { r = 0.34, g = 0.23, b = 0.11 })
+    Environment.DayDiffuse = MaxColor(ModulateColor(baseDiffuse, { r = 1.15, g = 0.80, b = 0.42 }, 1.0),
+        { r = 0.86, g = 0.60, b = 0.30 })
+    Environment.DaySpecular = MaxColor(ModulateColor(baseSpecular, { r = 1.00, g = 0.76, b = 0.46 }, 0.80),
+        { r = 0.42, g = 0.30, b = 0.17 })
+
+    Environment.SunsetAmbient = { r = 0.30, g = 0.18, b = 0.08 }
+    Environment.SunsetDiffuse = { r = 0.70, g = 0.40, b = 0.16 }
+    Environment.SunsetSpecular = { r = 0.36, g = 0.22, b = 0.10 }
+
+    Environment.NightAmbient = { r = 0.05, g = 0.035, b = 0.02 }
+    Environment.NightDiffuse = { r = 0.08, g = 0.06, b = 0.04 }
+    Environment.NightSpecular = { r = 0.03, g = 0.02, b = 0.015 }
+
+    Environment.SunriseAmbient = { r = 0.30, g = 0.19, b = 0.09 }
+    Environment.SunriseDiffuse = { r = 0.72, g = 0.44, b = 0.20 }
+    Environment.SunriseSpecular = { r = 0.38, g = 0.24, b = 0.12 }
+
+    -- A low sun, glaring through the haze from just above the horizon, held
+    -- still (no daily arc on a world whose day is sixteen Earth days).
+    Environment.DaySunDirection = { x = 0.78, y = -0.36, z = -0.51 }
+    Environment.SunsetSunDirection = { x = -0.90, y = -0.20, z = -0.38 }
+    Environment.NightSunDirection = { x = -0.18, y = -0.42, z = -0.89 }
+    Environment.SunriseSunDirection = { x = 0.90, y = -0.20, z = -0.38 }
+
+    Environment.DaySunPowerScale = 0.95
+    Environment.NightSunPowerScale = 0.12
+    -- Haze softens and shortens shadows; keep the cascade range stable.
+    Environment.DayShadowFarDistance = 700.0
+    Environment.NightShadowFarDistance = 220.0
+    Environment.StableShadowFarDistance = Environment.DayShadowFarDistance
+
+    Environment.SunsetAccentStrength = 0.30
+    Environment.SunriseAccentStrength = 0.30
+    Environment.SunsetFogAccentStrength = 0.30
+    Environment.SunriseFogAccentStrength = 0.30
+
+    Environment.LockDaylight = not Environment.TitanAllowNight
+
+    BuildTitanFogKeyframes(baseFog)
+end
+
 local function ApplyWorldPreset(presetName, baseAmbient, baseDiffuse, baseSpecular, baseFog)
+    if presetName == "titan" then
+        ApplyTitanPreset(baseAmbient, baseDiffuse, baseSpecular, baseFog)
+        return
+    end
+
     if presetName == "moon" then
         Environment.DayAmbient = ModulateColor(baseAmbient, { r = 0.64, g = 0.68, b = 0.82 }, 0.70)
         Environment.DayDiffuse = ModulateColor(baseDiffuse, { r = 1.20, g = 1.16, b = 1.08 }, 1.00)
@@ -1094,7 +1212,9 @@ function Environment.Update(timestep)
     local gameTime = GetTime()
     local scaledTime = gameTime * (Environment.DebugScale or 1.0)
     local duration = math.max(1.0, Environment.CycleDuration or 900.0)
-    local progress = scaledTime % duration
+    -- LockDaylight pins the cycle at the start of day: no dusk, no night, and so
+    -- no night sensor nerf (the titan preset sets it).
+    local progress = Environment.LockDaylight and 0.0 or (scaledTime % duration)
     local state = ComputeCycleState(progress)
 
     if state.phase ~= Environment.LastPhase then
