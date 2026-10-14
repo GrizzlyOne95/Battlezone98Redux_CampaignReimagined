@@ -4,22 +4,35 @@ package.path = toolsDir .. "/../Scripts/?.lua;" .. package.path
 local Pda, Hud = require("CRCoopPda"), require("CRCoopPingHud")
 local Data = require("PersistentConfigData")
 local active, calls, checks = false, {}, 0
-local requests, host, onFoot = {}, false, true
-local players = { [20] = { name = "Host", team = 1, ready = true }, [30] = { name = "Ann", team = 2, ready = true } }
+local me, host, now = 30, false, 0
+local requests, onFoot, selection, markers = {}, { [30] = true }, {}, true
+local players = { [20] = { name = "Ian", team = 1, ready = true }, [30] = { name = "Ann", team = 2, ready = true },
+    [40] = { name = "Bo", team = 3, ready = true } }
 local function check(v, label) assert(v, label); checks = checks + 1 end
-local ping = { name = "Host", kind = "object", position = { x = 0, y = 0, z = 100 }, expires = 10 }
-local comms = { IsActive = function() return active end, GetPings = function() return { [10] = ping } end,
+local ping = { name = "Ian", kind = "object", position = { x = 0, y = 0, z = 100 }, expires = 10 }
+local function log(text) calls[#calls + 1] = text; return true end
+local comms = { IsActive = function() return active end, GetPings = function() return { [20] = ping } end,
     GetRequests = function() return requests end,
-    Respond = function(id, value) calls[#calls + 1] = "respond " .. id .. " " .. value; return true end,
-    SendPing = function(kind, h, pos) calls[#calls + 1] = kind; return true end,
-    TargetPing = function(id) calls[#calls + 1] = id; return true end,
-    RequestRescue = function() calls[#calls + 1] = "rescue"; return true end }
+    IsOnFoot = function(id) return onFoot[id] == true end,
+    CanGive = function(h) return h.mine == true end,
+    Describe = function(id) return requests[id] and "NEEDS A RIDE" or onFoot[id] and "on foot" or "H90 A80" end,
+    MarkersOn = function() return markers end,
+    SetMarkers = function(on) markers = on; return log("markers " .. tostring(on)) end,
+    Respond = function(id, value) return log("respond " .. id .. " " .. value) end,
+    SendPing = function(kind) return log(kind) end,
+    TargetPing = function(id) return log("target " .. id) end,
+    CallForHelp = function() return log("help") end,
+    CancelRescue = function() return log("cancel") end,
+    Dispatch = function(h, id) return log("dispatch " .. h.name .. " " .. id) end,
+    Give = function(h, id) return log("give " .. h.name .. " " .. id) end,
+    Recall = function() return log("recall") end }
 local coop = { GetComms = function() return comms end, IsAuthority = function() return host end,
-    GetLocalPlayerId = function() return 20 end, GetPlayers = function() return players end,
+    GetLocalPlayerId = function() return me end, GetPlayers = function() return players end,
     IsHumanTeam = function(team) return team >= 1 and team <= 4 end,
     IsSessionReady = function() return true end }
-local ui = Pda.Create({ coop = coop, pages = Data.PdaPages, exu = { GetReticleHit = function() return "terrain", nil, { x = 1, y = 2, z = 3 } end }, feedback = error,
-    onFoot = function() return onFoot end })
+local ui = Pda.Create({ coop = coop, pages = Data.PdaPages, feedback = error,
+    exu = { GetReticleHit = function() return "terrain", nil, { x = 1, y = 2, z = 3 } end },
+    time = function() return now end, selected = function() return selection end })
 local state = { pdaPage = 1 }
 check(#ui.PageOrder() == 8, "eight solo pages")
 check(ui.CyclePage(8, 1) == 1, "solo wrap skips co-op")
@@ -28,29 +41,66 @@ check(state.pdaPage == 9 and ui.PageNumber(9) == 1, "co-op opens first")
 state.pdaPage = 3; ui.UpdatePage(state)
 check(state.pdaPage == 3, "notifications do not force page")
 check(ui.CyclePage(9, 1) == 1 and ui.CyclePage(1, -1) == 9, "co-op navigation")
-ui.HandleInput(false, false, false, false, true)
-check(calls[1] == "terrain", "J ping")
-ui.HandleInput(false, true, false, false, true)
-check(calls[2] == 10, "J targets the teammate's mark")
-ui.HandleInput(false, true, false, false, true)
-check(calls[3] == "rescue", "J calls for a ride")
 local function render()
-    return ui.BuildText(function() return "CO-OP" end, function(lines, ...)
+    return ui.BuildText(function() return "==COOP==" end, function(lines, ...)
         for _, line in ipairs({ ... }) do lines[#lines + 1] = line end
     end)
 end
+local function rows(text)
+    local n = 0
+    -- Action rows run from the header to the first blank line.
+    for line in (text:match("^[^\n]*\n(.-)\n\n") or ""):gmatch("[^\n]+") do n = n + 1 end
+    return n
+end
+-- Guest on foot: three rows, no host rows.
 local text = render()
-check(text:find("> CALL for a ride", 1, true), "cursor stays on the ride row")
-check(text:find("TARGET Host's mark", 1, true) and not text:find("of 2", 1, true), "single mark has no cycle hint")
-check(not text:find("SEND HELP", 1, true) and not text:find("Left/Right", 1, true), "guest sees no host rows")
-onFoot = false; text = render()
-check(not text:find("ride", 1, true) and text:find("> TARGET", 1, true), "ride row hides in a vehicle")
-requests = { [30] = { name = "Ann", status = "Requested" } }; host = true; text = render()
-check(text:find("SEND HELP to Ann", 1, true) and text:find("TELL Ann: no ride", 1, true), "host reply rows")
-check(text:find("Ann  -  NEEDS A RIDE", 1, true) and text:find("Host (host) (you)  -  Ready", 1, true), "plain team status")
+check(text:find("> CALL RIDE (V)", 1, true) and text:find("  TARGET Ian\n", 1, true), "guest rows")
+check(rows(text) == 3 and text:find("MARKERS ON", 1, true), "guest sees three rows")
+check(not text:find("SEND", 1, true) and not text:find("RECALL", 1, true) and not text:find("GIVE", 1, true), "no host rows")
+check(text:find("Ann*  on foot", 1, true) and text:find("Ian^  H90 A80", 1, true), "team list")
+check(text:find("V help", 1, true), "guest footer names V")
+ui.HandleInput(false, false, false, false, true)
+check(calls[#calls] == "help", "J calls for help")
 ui.HandleInput(false, true, false, false, true)
-check(calls[4] == "respond 30 1", "host sends help")
-requests, host, onFoot = {}, false, true
+check(calls[#calls] == "target 20", "J targets the teammate's mark")
+ui.HandleInput(false, true, false, false, true)
+check(calls[#calls] == "markers false", "J toggles markers")
+check(ui.QuickAction() and calls[#calls] == "terrain", "J outside the page pings for guests")
+check(ui.CallHelp() and calls[#calls] == "help", "V calls for help")
+onFoot[30] = false
+check(render():find("CALL SUPPLY (V)", 1, true), "in a vehicle the call is for supplies")
+requests = { [30] = { name = "Ann", kind = 2, status = "Requested" } }
+check(render():find("CANCEL HELP", 1, true), "open call can be cancelled")
+requests = {}
+-- Giving selected units cycles through teammates.
+selection = { { name = "tank", mine = true }, { name = "enemy" } }
+text = render()
+check(text:find("GIVE 1 > Ian <1/2>", 1, true), "give row counts only own units")
+ui.selected = "give"; ui.HandleInput(false, false, false, true, false)
+check(render():find("GIVE 1 > Bo <2/2>", 1, true), "Right picks the next teammate")
+ui.HandleInput(false, false, false, false, true)
+check(calls[#calls] == "give tank 40", "J gives")
+-- Host: send ride, reply, give, recall, markers.
+me, host, selection = 20, true, { { name = "sabre", mine = true } }
+onFoot = { [40] = true }
+requests = { [40] = { name = "Bo", kind = 1, status = "Requested" } }
+ui.selected = nil; ui.row = 1
+text = render()
+check(text:find("> SEND RIDE > Bo\n", 1, true) and text:find("Bo RIDE: <YES>", 1, true), "host rows")
+check(text:find("RECALL ALL TO ME", 1, true) and not text:find("CALL RIDE", 1, true), "host has recall, no help call")
+check(not text:find("V help", 1, true), "host footer has no V")
+check(ui.QuickAction() and calls[#calls] == "dispatch sabre 40", "J with a vehicle selected sends it")
+ui.HandleInput(false, true, false, false, false); ui.HandleInput(false, false, true, false, true)
+check(calls[#calls] == "respond 40 2", "Left flips the reply to NO")
+ui.selected = "recall"; ui.HandleInput(false, false, false, false, true)
+check(calls[#calls] ~= "recall" and render():find("RECALL ALL? J AGAIN", 1, true), "recall asks first")
+ui.HandleInput(false, false, false, false, true)
+check(calls[#calls] == "recall", "second J recalls")
+ui.HandleInput(false, false, false, false, true); now = 5; ui.HandleInput(false, false, false, false, true)
+check(calls[#calls] ~= "recall" or calls[#calls - 1] ~= "recall", "confirmation expires")
+selection = {}
+check(ui.QuickAction() and calls[#calls] == "terrain", "host with nothing selected pings")
+me, host, onFoot, requests = 30, false, { [30] = true }, {}
 active = false; ui.UpdatePage(state)
 state.pdaPage = 9; ui.UpdatePage(state)
 check(state.pdaPage == 1, "solo clears co-op page")

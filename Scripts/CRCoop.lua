@@ -216,6 +216,42 @@ function CRCoop.Initialize(options)
             leaderTeam = function() return leaderTeam end,
             send = function(...) if type(Send) == "function" then return Send(...) end end,
             message = function(text) if type(DisplayMessage) == "function" then DisplayMessage(text) end end,
+            -- Status, dispatch, recall and hand-off. Each runs only on the
+            -- machine that owns the object it changes.
+            health = function(h) return GetHealth(h) end,
+            ammo = function(h) return GetAmmo(h) end,
+            isLocal = function(h) return not IsNetworkGame() or IsLocal(h) == true end,
+            team = function(h) return GetTeamNum(h) end,
+            isCraft = function(h) return IsCraft(h) == true end,
+            classLabel = function(h) return GetClassLabel(h) end,
+            odf = function(h) return (tostring(GetOdf(h) or ""):gsub("%.[Oo][Dd][Ff]$", "")) end,
+            transform = function(h) return GetTransform(h) end,
+            spawn = function(odf, team, xf)
+                local x = package.loaded.exu
+                if x and type(x.BuildSyncObject) == "function" then return x.BuildSyncObject(odf, team, xf) end
+                -- Without EXU only the host's BuildObject replicates.
+                if IsHosting() then return BuildObject(odf, team, xf) end
+            end,
+            setHealth = function(h, f) SetCurHealth(h, GetMaxHealth(h) * f) end,
+            setAmmo = function(h, f) SetCurAmmo(h, GetMaxAmmo(h) * f) end,
+            removePilot = function(h) RemovePilot(h) end,
+            remove = function(h) RemoveObject(h) end,
+            order = function(h, pos) Goto(h, pos) end,
+            recall = function(pos, ordinal)
+                local h = GetPlayerHandle()
+                if not IsUsableHandle(h) then return end
+                local angle = ordinal * 2.4
+                local x, z = pos.x + math.cos(angle) * 25, pos.z + math.sin(angle) * 25
+                -- Engine vectors are userdata: build the final one, never assign .y.
+                local ground = GetTerrainHeightAndNormal(SetVector(x, pos.y, z))
+                SetPosition(h, SetVector(x, type(ground) == "number" and ground + 2 or pos.y, z))
+                if type(SetVelocity) == "function" then SetVelocity(h, SetVector(0, 0, 0)) end
+            end,
+            -- Objective markers are local-only; each peer labels its own view.
+            objective = function(h, label, plain)
+                if label then SetObjectiveName(h, label); SetObjectiveOn(h)
+                else SetObjectiveOff(h); SetObjectiveName(h, plain) end
+            end,
         })
     end
     comms.Reset(IsNetworkGame())

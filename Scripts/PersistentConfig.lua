@@ -5158,9 +5158,13 @@ RemoveCommanderHandle = PersistentConfig.R.RemoveCommanderHandle
 PersistentConfig.CoopPda = require("CRCoopPda").Create({
     coop = require("CRCoop"), exu = exu, pages = PdaPages,
     feedback = function(text) DisplayMessage("[CO-OP] " .. text) end,
-    onFoot = function()
-        local h = type(GetPlayerHandle) == "function" and GetPlayerHandle()
-        return h ~= nil and type(IsPerson) == "function" and IsPerson(h) == true
+    time = function() return GetTime() end,
+    selected = function()
+        local list = {}
+        if type(SelectedObjects) == "function" then
+            for h in SelectedObjects() do list[#list + 1] = h end
+        end
+        return list
     end,
 })
 PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
@@ -6354,13 +6358,13 @@ end
 
 -- Raw key name (exu.GetGameKey) -> the name GameKey would have queued.
 local NetworkPolledGameKeys = {
-    { raw = "J", key = "J" }, { raw = "LBRACKET", key = "[" }, { raw = "RBRACKET", key = "]" },
+    { raw = "J", key = "J" }, { raw = "V", key = "V" }, { raw = "LBRACKET", key = "[" }, { raw = "RBRACKET", key = "]" },
     { raw = "UARROW", key = "UP" }, { raw = "DARROW", key = "DOWN" },
     { raw = "LARROW", key = "LEFT" }, { raw = "RARROW", key = "RIGHT" },
 }
 -- Every GameKey name the consumers below accept for those keys.
 local NetworkPolledKeyNames = {}
-for _, name in ipairs({ "J", "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET",
+for _, name in ipairs({ "J", "V", "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET",
     "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET", "UP", "UPARROW", "DOWN", "DOWNARROW",
     "LEFT", "LEFTARROW", "RIGHT", "RIGHTARROW" }) do
     NetworkPolledKeyNames[name] = true
@@ -6612,6 +6616,7 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     local typing = PersistentConfig._IsTextEntryActive()
     PersistentConfig._PollNetworkGameKeys(typing)
     local coopAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "J" })
+    local helpAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "V" })
     if uiInteractionSuppressed then return end
     if typing then
         -- Keep the X edge current so an X typed in chat does not toggle later.
@@ -6619,7 +6624,11 @@ function PersistentConfig.UpdateInputs(cinematicActive)
         return
     end
     if coopAction and not PersistentConfig.Settings.WeaponStatsHud and IsValid(currentPlayerHandle) then
-        local ok, reason = PersistentConfig.CoopPda.PingAim()
+        local ok, reason = PersistentConfig.CoopPda.QuickAction()
+        if ok == false and reason then DisplayMessage("[CO-OP] " .. reason) end
+    end
+    if helpAction and IsValid(currentPlayerHandle) then
+        local ok, reason = PersistentConfig.CoopPda.CallHelp()
         if ok == false and reason then DisplayMessage("[CO-OP] " .. reason) end
     end
 
