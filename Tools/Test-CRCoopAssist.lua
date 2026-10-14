@@ -21,6 +21,7 @@ local registry = { [10] = { name = "Host", team = 1, handle = hostCraft, ready =
     [30] = { name = "Friend", team = 3, handle = friendTank, ready = true } }
 local spawned, removed, recalls, objectives, rescues = {}, {}, {}, {}, {}
 local spawnFails, adoptWorks = false, false
+local switchOns = 0
 local function messagesFor(id, pattern)
     for _, m in ipairs(messages) do if m[1] == id and m[2]:find(pattern, 1, true) then return true end end
     return false
@@ -60,7 +61,10 @@ for id in pairs(registry) do
         remove = function(h) h.valid = false; removed[#removed + 1] = h end,
         rescue = function(craft, pilot) rescues[#rescues + 1] = { craft = craft, pilot = pilot } end,
         recall = function(pos, ordinal) recalls[#recalls + 1] = { who = mine, pos = pos, ordinal = ordinal } end,
-        objective = function(h, label) objectives[mine .. ":" .. tostring(h)] = label end,
+        objective = function(h, label, plain, switchOn)
+            objectives[mine .. ":" .. tostring(h)] = label
+            if switchOn then switchOns = switchOns + 1 end
+        end,
     }
     peers[mine] = { service = Comms.Create(d) }
     peers[mine].service.Reset(true)
@@ -186,10 +190,19 @@ check(H.Recall()); flush()
 check(#recalls == 2, "both guests moved")
 check(recalls[1].who ~= 10 and recalls[2].who ~= 10 and recalls[1].ordinal ~= recalls[2].ordinal, "spread around the host")
 
--- Markers: on by default, local to each peer, cleared when switched off.
+-- Markers: off by default (opt-in), local to each peer, cleared when switched off.
+advance(1.1)
+check(objectives["10:" .. tostring(friendTank)] == nil and not H.MarkersOn(), "markers are opt-in")
+H.SetMarkers(true); G.SetMarkers(true); F.SetMarkers(true)
 advance(1.1)
 check(objectives["10:" .. tostring(friendTank)] == "Friend  H90 A80", "host sees a guest marker")
 check(objectives["30:" .. tostring(friendTank)] == nil, "no marker on yourself")
+local before = switchOns
+advance(1.1); advance(1.1); advance(1.1)
+check(switchOns == before, "markers are switched on once, not every second")
+friendTank.hp = 0.5; advance(2.1); advance(1.1)
+check(objectives["10:" .. tostring(friendTank)] == "Friend  H50 A80" and switchOns == before,
+    "a status change only renames the marker")
 H.SetMarkers(false); advance(1.1)
 check(objectives["10:" .. tostring(friendTank)] == nil and G.MarkersOn(), "host cleared its markers only")
 
