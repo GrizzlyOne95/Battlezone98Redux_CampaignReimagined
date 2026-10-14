@@ -27,6 +27,11 @@
 --   sulfur       bubbling pools and periodic burps on liquid-sulphur tiles.
 --   vents        constant smoke plumes at the map's volcano / geyser sites and
 --                periodic eruptions. Visual only.
+--   fog banks    RARE, short dense sulphur-green fog moments ("pea soup", about
+--                100-150 m of sight, a bright smeared sun, a glowing ground-haze
+--                sheet). A seeded schedule every peer computes, plus a host
+--                trigger (RequestFogBank / the drama hook) that rides one event.
+--                Fog is a visual state: nothing in it touches a sensor.
 --   lighting     dim orange-yellow overcast that goes dark and green in storms,
 --                through the CRWeather presets plus this module's own Environment
 --                modifier. Fog, ambient and sun still belong to Environment.lua:
@@ -84,6 +89,8 @@ V.AllowVents           = true
 V.AllowEruptions       = true
 V.AllowSensorDegrade   = true    -- storm-wide radar / velocity-jam scales
 V.AllowEpisodes        = true    -- temporary intense storms
+V.AllowFogBanks        = true    -- rare dense-fog moments (scheduled and requested)
+V.AllowFogDrama        = true    -- the host may PICK THE TIMING of a bank when big hostiles close in
 
 -- Hard budgets. These are caps, not targets.
 V.MaxSystems           = 36      -- every particle system this module owns, at once
@@ -91,6 +98,7 @@ V.MaxLiveFog           = 6
 V.MaxLiveSulfur        = 8
 V.MaxLivePlumes        = 6
 V.MaxLiveStrikes       = 3       -- simultaneous strike visuals
+V.MaxLiveHaze          = 7       -- ground-haze systems a fog bank streams around the player
 V.MaxFailuresPerTemplate = 3
 
 -- Streaming: a system is created inside StreamIn and destroyed beyond StreamOut.
@@ -123,6 +131,56 @@ V.PoolFogColor         = { r = 0.58, g = 0.54, b = 0.15 }
 V.PoolBand             = nil     -- metres over the pool level where it is gone; nil = from terrain
 V.PoolResponse         = 0.55    -- factor change per second (smoothing)
 V.FogDensity           = 1.0     -- scales the pooled-fog emission rate
+
+-- Fog banks. A bank is a rare, short moment, not a rung: the seeded schedule
+-- (a pure function of the seed, identical on every peer) puts a few in a mission,
+-- each closing the air to pea soup in sulphur green-yellow while the sun stays a
+-- bright smeared disk. All colours are DISPLAY RGB (the Enhanced renderer decodes
+-- fog colour itself); the fog distances are clamped to the map's terrain horizon
+-- exactly as the ladder's are, and a bank only ever makes fog THICKER, never
+-- clearer than the rung already is.
+V.FogBankFirstDelay    = { 150.0, 330.0 }   -- seconds into the mission
+V.FogBankGap           = { 300.0, 660.0 }   -- end of one -> start of the next
+V.FogBankSeconds       = { 30.0, 75.0 }     -- first roll-in to fully clear
+V.FogBankRollIn        = { 8.0, 14.0 }
+V.FogBankRollOut       = { 10.0, 18.0 }
+V.FogBankPower         = { 0.85, 1.0 }
+V.FogBankFogEnd        = 120.0     -- target fog end (metres), clamped to the horizon
+V.FogBankFogStart      = 4.0       -- fog begins almost at the camera: pea soup
+V.FogBankColor         = { r = 0.40, g = 0.44, b = 0.17 }   -- sulphur green-yellow
+V.FogBankColorMix      = 0.92
+V.FogBankSunPower      = 0.44      -- the sun is never allowed below this inside a bank
+V.FogBankAmbient       = { r = 0.40, g = 0.36, b = 0.13 }   -- glowing ochre ground light
+V.FogBankDiffuse       = { r = 0.62, g = 0.58, b = 0.22 }
+V.FogBankLightMix      = 0.50
+V.FogBankGloomRelief   = 0.80      -- how much of the storm gloom a bank washes out
+V.FogBankSuppress      = { 3.0, 4.0 }   -- ladder position over which a bank fades 1 -> 0 (storm)
+V.FogBankAllowRate     = 0.12      -- allow-factor change per second (a storm eases a bank away)
+V.FogBankPoolBoost     = 1.6       -- extra emission on the basin fog pools while a bank is up
+V.FogBankHazeRate      = 7.0       -- emission per ground-haze system at full strength
+V.FogBankHazeQuota     = 70
+V.FogBankHazeCell      = 55.0      -- grid spacing of the ground-haze systems
+V.FogBankHazeIn        = 115.0     -- create inside, destroy beyond FogBankHazeOut
+V.FogBankHazeOut       = 160.0
+V.FogBankHazeLinger    = 36.0      -- seconds to keep haze systems after the bank ends (they fade out)
+V.FogBankHazeColor     = { r = 0.86, g = 0.76, b = 0.22 }   -- yellow-ochre
+V.FogBankHazeAlpha     = 0.30
+
+-- The drama hook. The host (only) may start a bank early when large hostile
+-- units or a hostile group are closing on a human. It chooses TIMING only: it
+-- never moves, orders or alters a unit, and what it decides travels as the same
+-- single VenusFog event a mission script's RequestFogBank sends.
+V.DramaScanInterval    = 2.0
+V.DramaChance          = 0.5       -- per qualifying scan
+V.DramaCooldown        = 150.0     -- seconds clear after any bank before another is requested
+V.DramaClearance       = 45.0      -- keep this far from a scheduled bank (before it starts)
+V.DramaMinClock        = 90.0
+V.DramaMaxPerMission   = 3
+V.DramaRange           = { 150.0, 380.0 }   -- hostile to nearest human, metres
+V.DramaClosingSpeed    = 2.5       -- metres/second of closing needed to count as "approaching"
+V.DramaOdfPatterns     = { "walk", "artl" } -- large units: walkers, artillery (ODF names truncate)
+V.DramaGroupSize       = 4         -- this many closing hostile craft count as a group
+V.DramaMaxScan         = 240
 
 -- Lightning.
 V.TelegraphSeconds     = { 1.2, 2.0 }
@@ -290,6 +348,20 @@ V.LastStrikeAt     = -100.0
 V.EruptionSerial   = 0
 V.NextEruptionAt   = 0.0
 V.Eruptions        = {}
+
+V.FogBanks         = nil         -- seeded schedule (Map.NewFogBanks)
+V.FogRng           = nil         -- host-only stream for requested banks
+V.FogRequests      = {}          -- explicit / drama banks: { start, rollIn, hold, rollOut, power, force }
+V.SeenFogs         = {}
+V.FogSerial        = 0
+V.FogAllow         = 0.0         -- 0..1, how much a bank may show right now (storm / forced level)
+V.FogIntensity     = 0.0         -- 0..1, the bank in force this frame
+V.FogLastActiveAt  = -1000.0
+V.HazeLive         = {}          -- "ix:iz" -> record
+V.NextDramaAt      = 0.0
+V.DramaCount       = 0
+V.DramaTrack       = {}
+V.LastDrama        = nil
 
 V.Stats = {
     strikes = 0, powerStrikes = 0, exposedStrikes = 0, groundStrikes = 0,
@@ -558,6 +630,11 @@ local function BuildLadder(seed)
     V.StrikeRng = Map.NewRng(Map.DeriveSeed(seed, 2))
     V.EruptionRng = Map.NewRng(Map.DeriveSeed(seed, 3))
     V.FxRng = Map.NewRng(Map.DeriveSeed(seed, 5))
+    V.FogRng = Map.NewRng(Map.DeriveSeed(seed, 7))
+    V.FogBanks = Map.NewFogBanks(seed, {
+        firstDelay = V.FogBankFirstDelay, gap = V.FogBankGap, total = V.FogBankSeconds,
+        rollIn = V.FogBankRollIn, rollOut = V.FogBankRollOut, power = V.FogBankPower,
+    })
     V.PrevailingBearing = V.WindRng.Range(0.0, 2.0 * math.pi)
     V.Bearing = V.PrevailingBearing
     V.BearingTarget = V.PrevailingBearing
@@ -770,6 +847,7 @@ local function UpdateFogSystems(dt)
     local severity = V.GetSeverity()
     for _, record in pairs(V.FogLive) do
         local rate = 2.6 * V.FogDensity * (0.55 + (0.9 * severity)) * (0.6 + (0.8 * record.weight))
+        rate = rate * (1.0 + (V.FogBankPoolBoost * V.FogIntensity))
         Call("SetParticleEmitterEmissionRate", record.name, 0, rate)
 
         -- Re-aim only when the wind has moved enough to see.
@@ -779,6 +857,342 @@ local function UpdateFogSystems(dt)
             Call("SetParticleEmitterDirection", record.name, 0, Vec(wx, 0.0, wz))
             SetWindOnSystem(record.name, 0.35 + (V.WindSpeed * 0.04), 2)
         end
+    end
+end
+
+-- =============================================================================
+-- Fog banks (visual only)
+--
+-- Three layers decide what a bank looks like on this peer:
+--   FogAllow      0..1  whether a bank may show right now. It falls to 0 as the
+--                 ladder climbs through the storm rungs and while a ForceLevel
+--                 set piece is pinned, so a bank never stacks on the lightning
+--                 peak or fights a scripted beat. Smoothed, so a storm eases a
+--                 bank away instead of cutting it.
+--   FogIntensity  0..1  the bank in force this frame: the larger of the seeded
+--                 schedule and any requested (host / script / drama) bank,
+--                 each shaped by smooth roll-in and roll-out.
+--   Modifier      fog, light and sun through Environment (EnvironmentModifier);
+--                 plus a ring of ground-haze systems streamed around the player.
+-- Nothing here reads or writes a sensor, a unit or a health value.
+-- =============================================================================
+
+local function FogHorizon()
+    local environment = rawget(_G, "Environment")
+    if environment ~= nil and type(environment.GetFogHorizon) == "function" then
+        local ok, horizon = pcall(environment.GetFogHorizon)
+        horizon = ok and tonumber(horizon) or nil
+        if horizon ~= nil and horizon > 0.0 then return horizon end
+    end
+    return nil
+end
+
+local function FogAllowTarget()
+    if not V.AllowFogBanks or not V.Synced or V.FogBanks == nil then return 0.0 end
+    if V.ForcedLevel ~= nil then return 0.0 end
+    local low, high = V.FogBankSuppress[1], V.FogBankSuppress[2]
+    return 1.0 - SmoothStep((V.LevelValue - low) / math.max(0.01, high - low))
+end
+
+local function RequestedFogEnvelope(allow)
+    local best = 0.0
+    for i = #V.FogRequests, 1, -1 do
+        local r = V.FogRequests[i]
+        if V.Clock >= (r.start + r.rollIn + r.hold + r.rollOut) then
+            table.remove(V.FogRequests, i)
+        else
+            local e = Map.FogEnvelope(r, V.Clock) * r.power
+            if not r.force then e = e * allow end
+            if e > best then best = e end
+        end
+    end
+    return best
+end
+
+local function UpdateFogBank(dt)
+    local step = V.FogBankAllowRate * dt
+    local delta = FogAllowTarget() - V.FogAllow
+    if delta > step then delta = step end
+    if delta < -step then delta = -step end
+    V.FogAllow = Clamp(V.FogAllow + delta, 0.0, 1.0)
+
+    local natural, requested = 0.0, 0.0
+    if V.AllowFogBanks then
+        if V.FogBanks ~= nil and V.Synced then
+            local bank = V.FogBanks:Active(V.Clock)
+            if bank ~= nil then natural = Map.FogEnvelope(bank, V.Clock) * bank.power * V.FogAllow end
+        end
+        requested = RequestedFogEnvelope(V.FogAllow)
+    end
+    V.FogIntensity = Clamp(math.max(natural, requested), 0.0, 1.0)
+    if V.FogIntensity > 0.02 then V.FogLastActiveAt = V.Clock end
+end
+
+-- Starts a bank with explicit phase lengths on THIS peer, from now. This is the
+-- receive path for the host's VenusFog event and what RequestFogBank runs locally.
+function V.BeginFogBank(id, rollIn, hold, rollOut, power, force)
+    id = tonumber(id)
+    if id == nil or V.SeenFogs[id] then return true end
+    V.SeenFogs[id] = true
+    if not V.AllowFogBanks then return true end
+    if #V.FogRequests >= 4 then table.remove(V.FogRequests, 1) end
+    V.FogRequests[#V.FogRequests + 1] = {
+        start = V.Clock,
+        rollIn = math.max(1.0, tonumber(rollIn) or 10.0),
+        hold = math.max(1.0, tonumber(hold) or 20.0),
+        rollOut = math.max(1.0, tonumber(rollOut) or 14.0),
+        power = Clamp(tonumber(power) or 1.0, 0.0, 1.0),
+        force = tonumber(force) == 1,
+    }
+    Log("fog bank " .. tostring(id))
+    return true
+end
+
+-- ---- ground haze -------------------------------------------------------------
+
+local function HazeCreate(cell)
+    local y = TerrainHeight(cell.x, cell.z)
+    if y == nil then
+        local p = LocalPlayerPosition()
+        y = p and p.y or 0.0
+    end
+    local name = Fx_Create("haze", "CR/Venus/FogPool", cell.x, y + 2.0, cell.z)
+    if name == nil then return nil end
+    Call("SetParticleSystemParticleQuota", name, V.FogBankHazeQuota)
+    local c, a = V.FogBankHazeColor, V.FogBankHazeAlpha
+    Call("SetParticleEmitterColor", name, 0,
+        { r = c.r, g = c.g, b = c.b, a = a }, { r = c.r * 0.9, g = c.g * 0.9, b = c.b * 0.85, a = a * 0.4 })
+    -- The template's ColourInterpolator would otherwise repaint the cards
+    -- olive; it is told the same ochre. Spelling is judged live (see the doc).
+    Call("SetParticleAffectorParameter", name, 0, "colour1", string.format("%.2f %.2f %.2f %.2f", c.r, c.g, c.b, a))
+    Call("SetParticleAffectorParameter", name, 0, "colour2",
+        string.format("%.2f %.2f %.2f %.2f", c.r * 0.92, c.g * 0.92, c.b * 0.9, a * 0.8))
+    return { name = name, x = cell.x, z = cell.z, rate = -1.0 }
+end
+
+local function HazeDestroy(key)
+    local record = V.HazeLive[key]
+    if record ~= nil then Fx_Destroy(record.name) end
+    V.HazeLive[key] = nil
+end
+
+local function HazeCount()
+    local n = 0
+    for _ in pairs(V.HazeLive) do n = n + 1 end
+    return n
+end
+
+-- Streams a ring of haze systems around the player while a bank is up, and for
+-- FogBankHazeLinger seconds after (so the haze fades instead of vanishing).
+local function StreamHaze(playerPos)
+    local f = V.FogIntensity
+    local active = V.AllowFogBanks and V.TemplatesReady and playerPos ~= nil
+        and (f > 0.02 or (V.Clock - V.FogLastActiveAt) < V.FogBankHazeLinger)
+    if not active then
+        local keys = {}
+        for key in pairs(V.HazeLive) do keys[#keys + 1] = key end
+        for i = 1, #keys do HazeDestroy(keys[i]) end
+        return
+    end
+
+    local far = {}
+    for key, record in pairs(V.HazeLive) do
+        if Distance2D(record.x, record.z, playerPos.x, playerPos.z) > V.FogBankHazeOut then
+            far[#far + 1] = key
+        end
+    end
+    for i = 1, #far do HazeDestroy(far[i]) end
+    if f <= 0.02 then return end   -- fading out: no new systems
+
+    local size = V.FogBankHazeCell
+    local cx, cz = math.floor(playerPos.x / size), math.floor(playerPos.z / size)
+    local desired = {}
+    for dx = -3, 3 do
+        for dz = -3, 3 do
+            local ix, iz = cx + dx, cz + dz
+            local x, z = (ix + 0.5) * size, (iz + 0.5) * size
+            local d = Distance2D(x, z, playerPos.x, playerPos.z)
+            if d <= V.FogBankHazeIn then
+                desired[#desired + 1] = { key = ix .. ":" .. iz, x = x, z = z, d = d }
+            end
+        end
+    end
+    table.sort(desired, function(a, b) return a.d < b.d end)
+
+    local created = 0
+    for i = 1, #desired do
+        local cell = desired[i]
+        if created >= 2 then break end
+        if V.HazeLive[cell.key] == nil then
+            if HazeCount() >= V.MaxLiveHaze then
+                -- Make room only when a nearer cell is missing: drop the farthest.
+                local farKey, farDist = nil, -1.0
+                for key, record in pairs(V.HazeLive) do
+                    local d = Distance2D(record.x, record.z, playerPos.x, playerPos.z)
+                    if d > farDist then farKey, farDist = key, d end
+                end
+                if farKey ~= nil and farDist > (cell.d + size) then HazeDestroy(farKey) else break end
+            end
+            local record = HazeCreate(cell)
+            if record == nil then break end
+            V.HazeLive[cell.key] = record
+            created = created + 1
+        end
+    end
+end
+
+local function UpdateHazeRates()
+    local rate = V.FogBankHazeRate * V.FogIntensity
+    if rate < 0.05 then rate = 0.0 end
+    for _, record in pairs(V.HazeLive) do
+        if math.abs(rate - record.rate) > 0.25 or (rate == 0.0 and record.rate ~= 0.0) then
+            record.rate = rate
+            Call("SetParticleEmitterEmissionRate", record.name, 0, rate)
+            local wx, wz = WindVector()
+            Call("SetParticleEmitterDirection", record.name, 0, Vec(wx, 0.0, wz))
+        end
+    end
+end
+
+-- ---- the drama hook (host only) ---------------------------------------------
+--
+-- "Prefers to start a bank when something big is coming": it looks at hostile
+-- walkers / artillery and hostile groups closing on a human, and may choose the
+-- MOMENT a bank starts. It never moves or commands anything, it only reads
+-- positions, and its only output is the same VenusFog event a script's
+-- RequestFogBank sends -- so what peers see is a pure function of that event.
+
+local function IsHostileTo(h, human)
+    if type(GetTeamNum) ~= "function" then return false end
+    local okA, teamA = pcall(GetTeamNum, h)
+    local okB, teamB = pcall(GetTeamNum, human)
+    if not (okA and okB) or type(teamA) ~= "number" or type(teamB) ~= "number" then return false end
+    if teamA == 0 or teamA == teamB then return false end
+    if type(IsAlly) == "function" then
+        local ok, ally = pcall(IsAlly, h, human)
+        if ok and ally then return false end
+    end
+    return true
+end
+
+local function IsLargeUnit(h)
+    if type(GetOdf) ~= "function" then return false end
+    local ok, odf = pcall(GetOdf, h)
+    if not ok then return false end
+    local lower = NormalizeOdf(odf)
+    for i = 1, #V.DramaOdfPatterns do
+        if string.find(lower, V.DramaOdfPatterns[i], 1, true) then return true end
+    end
+    return false
+end
+
+local function HumanHandles()
+    local humans = {}
+    if V.PlayersProvider ~= nil then
+        local ok, list = pcall(V.PlayersProvider)
+        if ok and type(list) == "table" then
+            for i = 1, #list do
+                if ValidHandle(list[i]) and PositionOf(list[i]) ~= nil then humans[#humans + 1] = list[i] end
+            end
+        end
+    end
+    if #humans == 0 then
+        local mine = LocalPlayerHandle()
+        if mine ~= nil and PositionOf(mine) ~= nil then humans[1] = mine end
+    end
+    return humans
+end
+
+-- Counts hostile large units and hostile craft that are inside the drama range
+-- of a human AND closing. Returns walkers, group. Keeps a short distance history
+-- per handle, so it needs two scans to see a closing speed.
+function V.ScanDrama()
+    local humans = HumanHandles()
+    local isHuman = {}
+    for i = 1, #humans do isHuman[humans[i]] = true end
+    local iterate = AllCraft or AllObjects
+    if #humans == 0 or type(iterate) ~= "function" then return 0, 0 end
+
+    local now = V.Clock
+    local seen = {}
+    local walkers, group, scanned = 0, 0, 0
+    local lo, hi = V.DramaRange[1], V.DramaRange[2]
+    local reach = hi * 1.5
+    for h in iterate() do
+        scanned = scanned + 1
+        if scanned > V.DramaMaxScan then break end
+        if not isHuman[h] and ValidHandle(h) then
+            local p = PositionOf(h)
+            if p ~= nil then
+                local nearest = nil
+                for i = 1, #humans do
+                    local hp = PositionOf(humans[i])
+                    if hp ~= nil and IsHostileTo(h, humans[i]) then
+                        local d = Distance2D(p.x, p.z, hp.x, hp.z)
+                        if nearest == nil or d < nearest then nearest = d end
+                    end
+                end
+                if nearest ~= nil and nearest <= reach then
+                    seen[h] = { d = nearest, t = now }
+                    local prev = V.DramaTrack[h]
+                    if prev ~= nil and nearest >= lo and nearest <= hi then
+                        local dt = now - prev.t
+                        if dt >= 0.5 and dt <= (V.DramaScanInterval * 4.0)
+                            and ((prev.d - nearest) / dt) >= V.DramaClosingSpeed
+                        then
+                            if IsLargeUnit(h) then
+                                walkers = walkers + 1
+                            elseif not (type(IsPerson) == "function" and IsPerson(h)) then
+                                group = group + 1
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    V.DramaTrack = seen
+    return walkers, group
+end
+
+-- Host: is the scheduled timeline clear of [now, now + seconds] plus the
+-- clearance before the next bank and the cooldown after the last? Every peer has
+-- the same schedule, so this is the one rule that keeps requested and scheduled
+-- banks from stacking.
+function V.FogScheduleClear(now, seconds)
+    if V.FogBanks == nil then return false end
+    local events = V.FogBanks:Events(now + seconds + V.DramaClearance + 1.0)
+    for i = 1, #events do
+        local e = events[i]
+        if now < (e.start + e.dur + V.DramaCooldown) and (now + seconds + V.DramaClearance) > e.start then
+            return false
+        end
+    end
+    return true
+end
+
+local function UpdateFogDrama()
+    if not (V.AllowFogDrama and V.AllowFogBanks and V.IsAuthority and V.Synced and V.FogBanks ~= nil) then return end
+    if V.Clock < V.NextDramaAt then return end
+    V.NextDramaAt = V.Clock + V.DramaScanInterval
+
+    if V.Clock < V.DramaMinClock or V.DramaCount >= V.DramaMaxPerMission then return end
+    if V.Clock < (V.DramaCooldownUntil or 0.0) then return end
+    if V.ForcedLevel ~= nil or V.FogAllow < 0.9 or V.FogIntensity > 0.02 or #V.FogRequests > 0 then
+        V.DramaTrack = {}
+        return
+    end
+    if not V.FogScheduleClear(V.Clock, V.FogBankSeconds[2]) then return end
+
+    local walkers, group = V.ScanDrama()
+    if walkers < 1 and group < V.DramaGroupSize then return end
+    if not V.FogRng.Chance(V.DramaChance) then return end
+
+    local ok = V.RequestFogBank({ reason = "drama" })
+    if ok then
+        V.DramaCount = V.DramaCount + 1
+        V.LastDrama = { at = V.Clock, walkers = walkers, group = group }
+        Log(string.format("drama fog bank (walkers %d, group %d)", walkers, group))
     end
 end
 
@@ -1553,7 +1967,7 @@ local function EnvironmentModifier(frame)
     if not V.Enabled then return end
 
     -- Darker and greener between flashes as the storm builds.
-    local gloom = LadderValue("gloom")
+    local gloom = LadderValue("gloom") * (1.0 - (V.FogBankGloomRelief * V.FogIntensity))
     if gloom > 0.001 then
         local dim = 1.0 - (V.GloomDim * gloom)
         local green = 1.0 + (V.GloomGreen * gloom)
@@ -1578,6 +1992,41 @@ local function EnvironmentModifier(frame)
         fog.r = Lerp(fog.r, V.PoolFogColor.r, tint)
         fog.g = Lerp(fog.g, V.PoolFogColor.g, tint)
         fog.b = Lerp(fog.b, V.PoolFogColor.b, tint)
+    end
+
+    -- A fog bank: pea-soup fog in sulphur green-yellow, a glowing ochre light
+    -- and a sun that is never allowed to dim. It only ever thickens the fog (the
+    -- target end is the nearest of the rung's end, FogBankFogEnd and the map's
+    -- terrain horizon), so it cannot clear the air or push fog past the horizon.
+    local bank = V.FogIntensity
+    if V.AllowFogBanks and bank > 0.002 then
+        local fog = frame.fog
+        if fog ~= nil then
+            local endTarget = math.min(fog.fogEnd, V.FogBankFogEnd)
+            local horizon = FogHorizon()
+            if horizon ~= nil then endTarget = math.min(endTarget, horizon) end
+            fog.fogEnd = Lerp(fog.fogEnd, endTarget, bank)
+            fog.fogStart = math.min(Lerp(fog.fogStart, math.min(fog.fogStart, V.FogBankFogStart), bank),
+                fog.fogEnd - 1.0)
+            local mix = bank * V.FogBankColorMix
+            fog.r = Lerp(fog.r, V.FogBankColor.r, mix)
+            fog.g = Lerp(fog.g, V.FogBankColor.g, mix)
+            fog.b = Lerp(fog.b, V.FogBankColor.b, mix)
+        end
+        local light = bank * V.FogBankLightMix
+        if frame.ambient ~= nil then
+            frame.ambient.r = Lerp(frame.ambient.r, V.FogBankAmbient.r, light)
+            frame.ambient.g = Lerp(frame.ambient.g, V.FogBankAmbient.g, light)
+            frame.ambient.b = Lerp(frame.ambient.b, V.FogBankAmbient.b, light)
+        end
+        if frame.diffuse ~= nil then
+            frame.diffuse.r = Lerp(frame.diffuse.r, V.FogBankDiffuse.r, light)
+            frame.diffuse.g = Lerp(frame.diffuse.g, V.FogBankDiffuse.g, light)
+            frame.diffuse.b = Lerp(frame.diffuse.b, V.FogBankDiffuse.b, light)
+        end
+        if frame.sunPowerScale ~= nil then
+            frame.sunPowerScale = Lerp(frame.sunPowerScale, math.max(frame.sunPowerScale, V.FogBankSunPower), bank)
+        end
     end
 
     -- The strike flash: an additive lift on ambient and sun, local to the
@@ -1690,6 +2139,9 @@ function V.ApplyNetEvent(op, ...)
     elseif op == "VenusErupt" then
         if V.IsAuthority then return true end
         return V.BeginEruption(...)
+    elseif op == "VenusFog" then
+        if V.IsAuthority then return true end
+        return V.BeginFogBank(...)
     end
     return false
 end
@@ -1755,7 +2207,7 @@ function V.Init(options)
         knockback = "AllowKnockback", radarScramble = "AllowRadarScramble", flash = "AllowFlash",
         clouds = "AllowClouds", acidRain = "AllowAcidRain", sulfur = "AllowSulfur",
         vents = "AllowVents", eruptions = "AllowEruptions", sensorDegrade = "AllowSensorDegrade",
-        episodes = "AllowEpisodes",
+        episodes = "AllowEpisodes", fogBanks = "AllowFogBanks", fogDrama = "AllowFogDrama",
     }
     for key, field in pairs(switches) do
         if options[key] ~= nil then V[field] = options[key] and true or false end
@@ -1799,6 +2251,9 @@ function V.Init(options)
     V.Rain = nil
     V.PoolFactor, V.PoolFactorTarget = 0.0, 0.0
     V.StrikeSerial, V.EruptionSerial = 0, 0
+    V.FogRequests, V.SeenFogs, V.HazeLive, V.DramaTrack = {}, {}, {}, {}
+    V.FogSerial, V.FogAllow, V.FogIntensity, V.FogLastActiveAt = 0, 0.0, 0.0, -1000.0
+    V.NextDramaAt, V.DramaCount, V.DramaCooldownUntil, V.LastDrama = 0.0, 0, 0.0, nil
     V.LastStateKey = nil
     V.NextStreamAt, V.NextNetStateAt = 0.0, 0.0
 
@@ -1820,6 +2275,8 @@ function V.Init(options)
         V.StrikeRng = Map.NewRng(2)
         V.EruptionRng = Map.NewRng(3)
         V.FxRng = Map.NewRng(5)
+        V.FogRng = Map.NewRng(7)
+        V.FogBanks = nil
         V.PrevailingBearing = 0.0
         V.Bearing, V.BearingTarget = 0.0, 0.0
     end
@@ -1894,6 +2351,8 @@ function V.Update(dt)
     V.Clock = V.Clock + dt
 
     UpdateLadder(dt)
+    UpdateFogBank(dt)
+    UpdateFogDrama()
     UpdateWind(dt)
     UpdateTerrainScan()
     UpdatePoolFactor(dt)
@@ -1905,6 +2364,7 @@ function V.Update(dt)
     UpdateSulfur()
     UpdateVents()
     UpdateFogSystems(dt)
+    UpdateHazeRates()
 
     if V.Clock >= V.NextStreamAt then
         V.NextStreamAt = V.Clock + V.StreamInterval
@@ -1923,6 +2383,7 @@ function V.Update(dt)
                     PlumeCreate, PlumeDestroy, playerPos)
             end
         end
+        StreamHaze(playerPos)
         UpdateRenderIntents()
     end
 
@@ -1935,6 +2396,7 @@ function V.Shutdown()
 
     Fx_DestroyAll()
     V.FogLive, V.SulfurLive, V.PlumeLive, V.Clouds = {}, {}, {}, {}
+    V.HazeLive, V.FogRequests, V.FogIntensity, V.FogAllow = {}, {}, 0.0, 0.0
     V.Strikes, V.Rain = {}, nil
 
     local environment = rawget(_G, "Environment")
@@ -2022,6 +2484,45 @@ function V.TriggerStrike(target)
     return true
 end
 
+-- Starts a fog bank now: a rare dense sulphur-fog moment with a smooth roll-in
+-- and roll-out. Host / offline only (a guest returns false; the host's VenusFog
+-- event reaches it). One small event, whatever the length.
+--
+-- opts (all optional):
+--   seconds  total length, default drawn from FogBankSeconds
+--   power    0..1 strength, default drawn from FogBankPower
+--   force    true: ignore the storm / ForceLevel precedence (a set piece that
+--            WANTS fog in a storm); default false
+--   reason   free text, for the log
+-- Returns true, serial on success; false, reason when refused (not the host,
+-- fog already up, a storm or forced level in force, banks disabled).
+function V.RequestFogBank(opts)
+    if not V.Initialized then V.Init() end
+    opts = opts or {}
+    if not V.IsAuthority then return false, "guest" end
+    if not V.AllowFogBanks or not V.Synced or V.FogRng == nil then return false, "disabled" end
+    local force = opts.force == true
+    if not force then
+        if V.ForcedLevel ~= nil or V.FogAllow < 0.5 then return false, "storm" end
+        if V.FogIntensity > 0.05 or #V.FogRequests > 0 then return false, "active" end
+    end
+
+    local rng = V.FogRng
+    local total = tonumber(opts.seconds) or rng.Range(V.FogBankSeconds[1], V.FogBankSeconds[2])
+    total = math.max(12.0, total)
+    local rollIn = math.min(rng.Range(V.FogBankRollIn[1], V.FogBankRollIn[2]), total * 0.35)
+    local rollOut = math.min(rng.Range(V.FogBankRollOut[1], V.FogBankRollOut[2]), total * 0.4)
+    local hold = math.max(1.0, total - rollIn - rollOut)
+    local power = Clamp(tonumber(opts.power) or rng.Range(V.FogBankPower[1], V.FogBankPower[2]), 0.0, 1.0)
+
+    V.FogSerial = V.FogSerial + 1
+    local flag = force and 1 or 0
+    V.BeginFogBank(V.FogSerial, rollIn, hold, rollOut, power, flag)
+    Send("VenusFog", V.FogSerial, rollIn, hold, rollOut, power, flag)
+    V.DramaCooldownUntil = V.Clock + rollIn + hold + rollOut + V.DramaCooldown
+    return true, V.FogSerial
+end
+
 function V.TriggerEruption(siteIndex)
     if not V.IsAuthority or not V.Initialized then return false end
     V.EruptionSerial = V.EruptionSerial + 1
@@ -2039,6 +2540,15 @@ function V.IsEpisode() return V.Episode end
 function V.GetVisibility() return LadderValue("visibility") end
 function V.GetWindSpeed() return V.WindSpeed end
 function V.GetPoolFactor() return V.PoolFactor end
+function V.GetFogIntensity() return V.FogIntensity end
+function V.GetFogAllow() return V.FogAllow end
+function V.IsFogBankActive() return V.FogIntensity > 0.02 end
+-- The scheduled banks that start at or before `untilT` (clock seconds).
+function V.GetFogSchedule(untilT)
+    if V.FogBanks == nil then return {} end
+    return V.FogBanks:Events(untilT or 0.0)
+end
+function V.GetDramaStats() return V.DramaCount, V.LastDrama end
 function V.GetBasins() return V.Basins end
 function V.GetSulfurSites() return V.SulfurSites end
 function V.GetVentSites() return V.VentSites end
@@ -2072,6 +2582,10 @@ function V.Save()
         ladder      = V.Ladder and V.Ladder:Save() or nil,
         strikeSerial = V.StrikeSerial,
         eruptionSerial = V.EruptionSerial,
+        fogSerial   = V.FogSerial,
+        fogRequests = V.FogRequests,
+        dramaCount  = V.DramaCount,
+        dramaUntil  = V.DramaCooldownUntil,
     }
 end
 
@@ -2093,6 +2607,22 @@ function V.Load(state)
     V.WindSpeed = tonumber(state.windSpeed) or V.WindSpeed
     V.StrikeSerial = tonumber(state.strikeSerial) or 0
     V.EruptionSerial = tonumber(state.eruptionSerial) or 0
+    V.FogSerial = tonumber(state.fogSerial) or 0
+    V.DramaCount = tonumber(state.dramaCount) or 0
+    V.DramaCooldownUntil = tonumber(state.dramaUntil) or 0.0
+    V.FogRequests, V.SeenFogs, V.HazeLive, V.DramaTrack = {}, {}, {}, {}
+    if type(state.fogRequests) == "table" then
+        for i = 1, #state.fogRequests do
+            local r = state.fogRequests[i]
+            if type(r) == "table" and tonumber(r.start) ~= nil then
+                V.FogRequests[#V.FogRequests + 1] = {
+                    start = tonumber(r.start), rollIn = tonumber(r.rollIn) or 10.0,
+                    hold = tonumber(r.hold) or 20.0, rollOut = tonumber(r.rollOut) or 14.0,
+                    power = tonumber(r.power) or 1.0, force = r.force == true,
+                }
+            end
+        end
+    end
 
     if state.forcedLevel ~= nil and (tonumber(state.forcedFor) or 0.0) > 0.0 then
         V.ForcedLevel = Clamp(tonumber(state.forcedLevel), 1, LEVEL_COUNT)
@@ -2104,6 +2634,7 @@ function V.Load(state)
     -- Loading rebuilds the Ogre scene: every system we held is already gone.
     Fx_DestroyAll()
     V.FogLive, V.SulfurLive, V.PlumeLive, V.Clouds = {}, {}, {}, {}
+    V.HazeLive = {}
     V.Strikes, V.Eruptions, V.Rain, V.Flashes, V.Thunder = {}, {}, nil, {}, {}
     V.Powers = {}
     V.NextStrikeAt = V.Clock + 20.0
