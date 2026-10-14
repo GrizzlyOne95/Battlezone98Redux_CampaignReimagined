@@ -22,6 +22,11 @@ local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 local TerrainClutter = require("TerrainClutter")
 local CRCoop = require("CRCoop")
+-- CR Moon weather >>
+local CRMoonWeather = require("CRMoonWeather")
+local MoonSites = require("CRMoonSites02b")
+local MOON_OPS = { MoonState = true, MoonGlow = true }
+-- CR Moon weather <<
 local LEADER_TEAM = 1
 local ENEMY_TEAM = 6
 local FRIENDLY_TEAM = 7
@@ -90,6 +95,7 @@ local native = {
 }
 local events, acknowledgements = {}, {}
 local receivedEvent = 0
+local pendingSeq, pendingSince
 local nextEventSend, nextCameraSend = 0, 0
 local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
 local remoteCameraSerial, localCameraGeneration = 0, 0
@@ -102,6 +108,12 @@ local function FromLeader(from)
 end
 
 local function ApplyPresentation(op, ...)
+-- CR Moon weather >>
+    if MOON_OPS[op] then
+        -- Weather events carry no handles: never labelled, never waited on.
+        return CRMoonWeather.ApplyNetEvent(op, ...)
+    end
+-- CR Moon weather <<
     if op == "Resources" then
         local team, scrap, pilots = ...
         -- Each human owns their team resources. Do not mutate a remote team.
@@ -114,6 +126,11 @@ local function ApplyPresentation(op, ...)
         M.coopDifficulty = difficulty
         ApplyDifficultyObjectives()
         if exu.SetDifficulty then exu.SetDifficulty(difficulty) end
+    elseif op == "Label" then
+        local handle, label = ...
+        if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
+            pcall(SetLabel, handle, label)
+        end
     elseif op == "SucceedMission" or op == "FailMission" then
         local when, description = ...
         -- Only pop a camera this peer pushed: an empty stack raises the
@@ -128,12 +145,98 @@ local function ApplyPresentation(op, ...)
     end
 end
 
+-- Ops whose first argument is a game object. Objects travel by identity, never by a bare
+-- handle the engine may not carry: "@handle@label" (a guest resolves the label first, then
+-- the replicated handle), or "!" when the leader reports the object gone. Label is the
+-- event that makes a leader-side SetLabel on a spawned object true on every guest.
+local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
+    SetUserTarget = true, RemoveObject = true, Label = true }
+local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true, Label = true }
+local GONE = "!"
+-- Guests WAIT for the real object. This is only a never-hang guard: when it fires the
+-- guest logs "[coop] unresolved ..." and counts it in M.coopUnresolved (the harness probe
+-- reads that and expects zero).
+local RESOLVE_TIMEOUT = 15
+local labelSerial, announced = 0, {}
+-- Targets a guest already gave up on (logged once): later events for them skip at once.
+local gaveUp = {}
+
+local function HandleText(handle)
+    return type(handle) == "number" and string.format("%d", handle) or tostring(handle)
+end
+
+local function KnownLabel(handle)
+    local ok, label = pcall(GetLabel, handle)
+    if ok and type(label) == "string" and label ~= "" and #label <= 126 then
+        local found, resolved = pcall(GetHandle, label)
+        if found and resolved == handle then return label end
+    end
+end
+
+-- Leader: tell every guest "this replicated handle carries this label" once.
+local function AnnounceLabel(handle, label)
+    if announced[handle] == label then return end
+    announced[handle] = label
+    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+        n = 2, ttl = RESOLVE_TIMEOUT, handle = handle }
+end
+
+-- Leader: the label for a target, assigning a deterministic unique one to an unlabelled
+-- spawned object.
+local function EnsureLabel(handle)
+    local label = KnownLabel(handle)
+    if not label and type(SetLabel) == "function" then
+        labelSerial = labelSerial + 1
+        pcall(SetLabel, handle, "crco_" .. labelSerial)
+        label = KnownLabel(handle)
+    end
+    if label then AnnounceLabel(handle, label) end
+    return label
+end
+
+local function WireHandle(handle)
+    if handle == nil then return nil end
+    if not IsValid(handle) then return GONE end
+    local label = EnsureLabel(handle)
+    if label then return "@" .. HandleText(handle) .. "@" .. label end
+    return handle
+end
+
+-- Retransmissions re-check the leader's view: a marker/label target that has since died
+-- is reported gone so a guest that never got it does not wait for it.
+local function EventArgs(event)
+    if event.handle ~= nil and WAIT_OPS[event.op] and not IsValid(event.handle) then
+        local args = { unpackArgs(event.args, 1, event.n) }
+        args[1] = GONE
+        return args
+    end
+    return event.args
+end
+
 local function Present(op, ...)
     if CRCoop.IsNetworkGame() then
         if not CRCoop.IsAuthority() then return end
-        events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), expires = GetTime() + 5 }
+        local wire, handle = { ... }, nil
+        if HANDLE_OPS[op] and wire[1] ~= nil then handle = wire[1]; wire[1] = WireHandle(handle) end
+        events[#events + 1] = { op = op, args = wire, n = select("#", ...), ttl = RESOLVE_TIMEOUT,
+            handle = handle }
     end
     return ApplyPresentation(op, ...)
+end
+
+local function WireCameraFrame(frame)
+    return { frame[1], frame[2], frame[3], WireHandle(frame[4]) }
+end
+
+-- A leader-side SetLabel on a spawned object is replicated to every guest, so the label
+-- path (and GetHandle(label)) works there too.
+local nativeSetLabel = SetLabel
+local function SetLabel(handle, label)
+    local result = nativeSetLabel and nativeSetLabel(handle, label)
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and type(label) == "string" and IsValid(handle) then
+        AnnounceLabel(handle, label)
+    end
+    return result
 end
 
 -- Lexical wrappers affect this mission only; shared modules retain stock APIs.
@@ -205,6 +308,64 @@ local function CameraFinish()
     if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
 end
 
+-- Camera frames carry their subject/target as "@handle@label" (or "!" when the leader
+-- reports it gone). A guest holds the film's start until the REAL objects resolve. Only a
+-- gone flag, or the never-hang guard (loudly logged and counted), lets it play with
+-- whatever remains valid.
+local cameraWaitSince, cameraGaveUp, cameraLast
+
+-- handle (or nil), gone
+local function ResolveCameraHandle(sent)
+    if sent == nil or sent == GONE then return nil, true end
+    if type(sent) ~= "string" or sent:sub(1, 1) ~= "@" then return sent, false end
+    local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+    local resolved = sentLabel and GetHandle(sentLabel)
+    if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+        local candidate = tonumber(sentHandle) or sentHandle
+        if IsValid(candidate) then resolved = candidate end
+    end
+    return resolved, (not IsValid(resolved)) and sentLabel ~= nil and gaveUp[sentLabel] == true
+end
+
+local function NativeCameraPath(path, height, speed, target)
+    if target == nil then return pcall(native.CameraPath, path, height, speed, nil) end
+    return native.CameraPath(path, height, speed, target)
+end
+
+-- ready, subject, target. sentSubject == nil means the kind carries none (path cameras).
+local function ResolveCameraHandles(sentSubject, sentTarget)
+    local needSubject = sentSubject ~= nil
+    local subject, subjectGone = ResolveCameraHandle(sentSubject)
+    local target, targetGone = ResolveCameraHandle(sentTarget)
+    if (not needSubject or IsValid(subject)) and IsValid(target) then
+        cameraWaitSince, cameraLast = nil, { subject, target }
+        return true, subject, target
+    end
+    local settled = (not needSubject or IsValid(subject) or subjectGone) and (IsValid(target) or targetGone)
+    if not settled then
+        if localCameraActive and cameraLast then return true, cameraLast[1], cameraLast[2] end
+        if localCameraActive or not cameraGaveUp then
+            local now = GetTime()
+            if not cameraWaitSince or now < cameraWaitSince then cameraWaitSince = now end
+            if now - cameraWaitSince < RESOLVE_TIMEOUT then return false end
+            if not cameraGaveUp then
+                cameraGaveUp = true
+                for _, sent in ipairs({ sentSubject or false, sentTarget or false }) do
+                    local label = type(sent) == "string" and sent:match("^@[^@]*@(.*)$")
+                    if label then gaveUp[label] = true end
+                end
+                M.coopUnresolved = (M.coopUnresolved or 0) + 1
+                print("[coop] unresolved camera " .. tostring(sentSubject) .. " " .. tostring(sentTarget))
+            end
+        end
+    end
+    -- Settled (gone flag) or guard fired: play with whatever remains valid.
+    if not IsValid(target) then target = IsValid(subject) and subject or nil end
+    if needSubject and not IsValid(subject) then subject = target end
+    if needSubject and subject == nil then return false end
+    return true, subject, target
+end
+
 local function UpdateRemoteCamera()
     if not remoteCamera then return end
     local generation, path, height, speed, target = unpackArgs(remoteCamera)
@@ -216,8 +377,12 @@ local function UpdateRemoteCamera()
     if generation ~= localCameraGeneration then
         localCameraGeneration = generation
         cameraSkipped = false
+        cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
     end
-    if cameraSkipped or not IsValid(target) then return end
+    if cameraSkipped then return end
+    local ready, _, resolved = ResolveCameraHandles(nil, target)
+    if not ready then return end
+    target = resolved
     if not localCameraActive then
         native.CameraReady()
         localCameraActive = true
@@ -227,11 +392,13 @@ local function UpdateRemoteCamera()
         native.CameraFinish()
         return
     end
-    native.CameraPath(path, height, speed, target)
+    NativeCameraPath(path, height, speed, target)
 end
 
 local function UpdatePresentationTransport()
     if not CRCoop.IsNetworkGame() then return end
+    -- Read by the harness probe (numbers in M appear in its snapshots): must stay 0.
+    if M.coopUnresolved == nil then M.coopUnresolved = 0 end
     if not CRCoop.IsAuthority() then
         UpdateRemoteCamera()
         return
@@ -244,7 +411,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.expires, unpackArgs(event.args, 1, event.n))
+                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
                 end
             end
         end
@@ -259,7 +426,7 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(cameraFrame))
+            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "", 0, 0)
         end
@@ -287,18 +454,45 @@ local function ReceivePresentation(from, kind, ...)
         end
         return true
     end
-    local seq, op, expires = ...
-    if type(seq) ~= "number" or type(op) ~= "string" or type(expires) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Resources" or op == "Difficulty") then
+    local seq, op, ttl = ...
+    if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
+    if seq == receivedEvent + 1 and (native[op] or MOON_OPS[op] or op == "Label" or op == "Resources" or op == "Difficulty") then
         local args = { select(4, ...) }
-        -- Dynamic handles can arrive after the Lua packet. Withhold the ACK
-        -- until the next retransmission resolves it, rather than losing markers.
-        local missing = (op == "SetObjectiveOn" or op == "SetObjectiveName" or op == "SetUserTarget") and
-            not IsValid(args[1])
-        if missing and GetTime() < expires then return true end
-        -- A target destroyed before its packet arrived must not block the
-        -- stream (and the mission result) forever. Only that stale marker drops.
-        if not missing then ApplyPresentation(op, unpackArgs(args, 1, select("#", ...) - 3)) end
+        local count = select("#", ...) - 3
+        local apply, unresolved = true, false
+        if HANDLE_OPS[op] then
+            local sent, described = args[1], args[1]
+            if sent == GONE then
+                -- The leader reports the object gone: skip this marker, never wait.
+                apply = false
+            elseif type(sent) == "string" and sent:sub(1, 1) == "@" then
+                local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+                local resolved = sentLabel and GetHandle(sentLabel)
+                if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+                    local candidate = tonumber(sentHandle) or sentHandle
+                    if IsValid(candidate) then resolved = candidate end
+                end
+                args[1], described = resolved, sentLabel or sent
+                if not IsValid(args[1]) then apply, unresolved = false, true end
+            elseif not IsValid(sent) then
+                unresolved = true
+            end
+            if unresolved and WAIT_OPS[op] and gaveUp[described] then
+                apply = false
+            elseif unresolved and WAIT_OPS[op] then
+                -- The real object may replicate after the Lua packet: withhold the ACK so
+                -- the retransmission retries. Only the never-hang guard ends the wait.
+                local now = GetTime()
+                if pendingSeq ~= seq or now < pendingSince then pendingSeq, pendingSince = seq, now end
+                if now - pendingSince < math.min(ttl, 60) then return true end
+                gaveUp[described] = true
+                M.coopUnresolved = (M.coopUnresolved or 0) + 1
+                print("[coop] unresolved " .. tostring(described) .. " (" .. op .. ")")
+                apply = false
+            end
+        end
+        pendingSeq = nil
+        if apply then ApplyPresentation(op, unpackArgs(args, 1, count)) end
         receivedEvent = seq
     end
     Send(from, "A", receivedEvent)
@@ -480,7 +674,52 @@ local function ActivateStagedFighters()
     return activated
 end
 
+-- CR Moon weather >>
+local moonStarted, moonAnnounced = false, false
+
+local function InitMoonWeather()
+    moonStarted = true
+    local net = CRCoop.IsNetworkGame()
+    local authority = (not net) or CRCoop.IsAuthority()
+    CRMoonWeather.Init({
+        authority = authority,
+        seed = M.moonSeed, -- nil: the leader/offline picks one, guests wait for the host's state
+        sites = MoonSites,
+        -- The host queues straight onto the stream: its own Present() would apply the event again.
+        send = net and function(op, ...)
+            events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), ttl = RESOLVE_TIMEOUT }
+        end or nil,
+    })
+    if M.moonWeatherState ~= nil and authority then
+        CRMoonWeather.Load(M.moonWeatherState)
+        M.moonWeatherState = nil
+    end
+    if authority then M.moonSeed = CRMoonWeather.Seed end -- survives a save
+end
+
+-- Every peer, every frame after the session is ready. Purely visual: ground mist,
+-- impact and hover dust, rare glow periods. See Docs/MOON_WEATHER.md.
+local function UpdateMoonWeather(dt)
+    if not moonStarted then InitMoonWeather() end
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and not moonAnnounced and CRCoop.IsSessionReady() then
+        moonAnnounced = true
+        CRMoonWeather.AnnounceState()
+    end
+    CRMoonWeather.Update(dt)
+end
+
+local function ShutdownMoonWeather()
+    if moonStarted then CRMoonWeather.Shutdown() end
+    moonStarted, moonAnnounced = false, false
+end
+-- CR Moon weather <<
+
 function Save()
+-- CR Moon weather >>
+    if moonStarted and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
+        M.moonWeatherState = CRMoonWeather.Save()
+    end
+-- CR Moon weather <<
     M.playerPilotModeState = PlayerPilotMode.Save()
     return M, aiCore.Save(), M.playerPilotModeState
 end
@@ -744,8 +983,19 @@ local function ApplyPostLoadInit()
     end
 end
 
+-- The native AiMission supplies the CCA strategic AI. LuaMission must enable it at chunk load,
+-- before the engine runs DR_AI_Init: the misn02b map uses MultSTMission, so team 6 (ENEMY_TEAM) is never flagged
+-- there and SetAIP silently skips the assignment without it. It must stay chunk-root: a later
+-- SetAIControl (Start runs after DR_AI_Init) leaves the team flagged without an AI team record and
+-- the first enemy-team unit removal dereferences null and kills the host (misn08 live crash). SetAIP
+-- itself stays in Start/Update. Same rule as misn08/misn10/misn14.
+SetAIControl(ENEMY_TEAM, true)
+
 function Start()
     M = NewMissionState()
+-- CR Moon weather >>
+    ShutdownMoonWeather()
+-- CR Moon weather <<
     CRCoop.Initialize({
         getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
         leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
@@ -851,6 +1101,10 @@ function Update()
     CRCoop.Update()
     UpdatePresentationTransport()
     UpdateModules(1.0 / 20.0)
+-- CR Moon weather >>
+    -- The mist keeps drifting while the result screen counts down.
+    if M.coopResult or M.coopPendingResult then UpdateMoonWeather(1.0 / 20.0) end
+-- CR Moon weather <<
     if M.coopResult or M.coopPendingResult then return end
     if CRCoop.IsNetworkGame() then
         if CRCoop.HasLeaderDeparted() then
@@ -873,6 +1127,9 @@ function Update()
         CRCoop.MarkMissionStarted()
         M.coopMissionStarted = true
     end
+-- CR Moon weather >>
+    UpdateMoonWeather(1.0 / 20.0)
+-- CR Moon weather <<
     if not CRCoop.IsAuthority() then return end
     PlayerPilotMode.Update()
     aiCore.Update()
@@ -910,20 +1167,15 @@ function Update()
         -- Available AI Configuration Flags (Reference from aiCore.lua):
         -- flags marked [Diff] are managed by DiffUtils:SetupTeams() based on difficulty.
         -- playerTeam:SetConfig("difficulty", 1)         -- [Stub]
-        -- playerTeam:SetConfig("race", "nsdf")          -- Default "nsdf"
-        -- playerTeam:SetConfig("kc", 0)                  -- [Stub]
-        -- playerTeam:SetConfig("stratMultiplier", 1.0)   -- [Stub]
         -- playerTeam:SetConfig("autoBuild", true)
 
         -- Advanced Settings
         -- playerTeam:SetConfig("thumperChance", 10)       -- [Diff]
-        -- playerTeam:SetConfig("mortarChance", 20)        -- [Diff]
         -- playerTeam:SetConfig("fieldChance", 10)         -- [Diff]
         -- playerTeam:SetConfig("doubleWeaponChance", 20)  -- [Diff]
         -- playerTeam:SetConfig("howitzerChance", 50)       -- [Diff]
 
         -- AI Behavior Settings
-        -- playerTeam:SetConfig("soldierRange", 50)
         -- playerTeam:SetConfig("sniperSteal", true)
         -- playerTeam:SetConfig("pilotZeal", 0.4)          -- [Diff]
         -- playerTeam:SetConfig("sniperTraining", 75)      -- [Diff]
@@ -950,13 +1202,7 @@ function Update()
         -- playerTeam:SetConfig("minefields", {}) -- List of positions for minelayers
 
         -- Automation Sub-config
-        -- playerTeam:SetConfig("followPercentage", 30)
-        -- playerTeam:SetConfig("patrolPercentage", 30)
-        -- playerTeam:SetConfig("guardPercentage", 40)
         -- playerTeam:SetConfig("scavengerCount", 4)
-        -- playerTeam:SetConfig("tugCount", 2)
-        -- playerTeam:SetConfig("buildingSpacing", 80)
-        -- playerTeam:SetConfig("rescueDelay", 2.0)
         -- playerTeam:SetConfig("pilotTopoff", 4)          -- [Diff]
 
         -- Reinforcements
@@ -964,7 +1210,6 @@ function Update()
 
         -- Legacy Features
         -- playerTeam:SetConfig("regenRate", 0.0)          -- [Diff] (Building Regen)
-        -- playerTeam:SetConfig("reclaimEngineers", false)
 
         -- Factory Management
         -- playerTeam:SetConfig("manageFactories", true)
@@ -1081,6 +1326,9 @@ function Update()
 
             if not M.intro_skipped then
                 M.audmsg = subtit.Play("misn0201.wav")
+            else
+                -- CR restored VO: misn0232.wav (alt take of 0201 so skippers still get the gather order)
+                M.audmsg = subtit.Play("misn0232.wav")
             end
             --subtit.Play("misn0224.wav")
             M.wave_timer = GetTime() + DiffUtils.ScaleTimer(30.0)
@@ -1218,9 +1466,16 @@ function Update()
         SetObjectiveOff(M.scav2)
         if IsAlive(M.bscav) then SetObjectiveOff(M.bscav) end
         AddObjective("misn02b3.otf", "green")
+        -- CR restored VO: misn0226.wav (nearly undamaged scavenger; must be sampled before the heal below)
+        local scav2_clean = IsAlive(M.scav2) and GetHealth(M.scav2) >= 0.9
         if IsAlive(M.bscav) then AddHealth(M.bscav, 1000.0) end
         if IsAlive(M.scav2) then AddHealth(M.scav2, 1000.0) end
-        M.audmsg = subtit.Play("misn0234.wav")
+        if scav2_clean then
+            subtit.Play("misn0226.wav")
+            M.audmsg = subtit.Queue("misn0234.wav")
+        else
+            M.audmsg = subtit.Play("misn0234.wav")
+        end
         M.mission_won = true
     end
 

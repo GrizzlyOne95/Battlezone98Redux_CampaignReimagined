@@ -2,6 +2,89 @@
 
 ## Unreleased
 
+- Titan: the methane lakes are now a reflective liquid surface. `CRTitanWeather` lays one flat sheet over
+  the map's flat methane sea through EXU StaticGeometry (render-only: no collision, radar, AI path or
+  targeting; identical on every co-op peer from static data), clipped to a generated wet mask
+  (`cr_titan14_wet.png`, the same MAT/HG2 rule as the pools and splashes) and shaded by a new CR shader
+  ported from ISDF Chronicles' WATER kind (`Shaders/cr_methane.hlsl`, DX11 SM4 and DX9 SM3): the floor
+  shows through near the camera, the haze sky reflects at grazing angles, a warm glare and glints follow
+  the low Titan sun, the wind ripples it and drizzle rings it. The haze ladder drives drizzle rings,
+  glare, wetness and chop through `exu.SetMaterialPassColors`; the pale pool-sheen cards drop to 30 %
+  while the surface is up. Without StaticGeometry, the material, or on OpenGL the particle-only look
+  stays. New `Tools/Build-MethaneSurface.py` (mesh, ripple map, wet masks; `--check` in CI) and
+  `Tools/Test-MethaneShader.ps1` (fxc compile of every delegate, in the DX11 shader workflow)
+  (`Docs/TITAN_WEATHER.md` section 5).
+- Venus weather: add rare dense-fog moments ("fog banks") matching the concept art: 30-75 s of
+  sulphur green-yellow pea-soup fog with a bright sun and a glowing ochre ground-haze sheet, smooth
+  roll-in/out, a few per mission from a seeded timeline every co-op peer computes. A storm or a
+  `ForceLevel` set piece suppresses them. New `CRVenusWeather.RequestFogBank()` and a host-only
+  drama hook that may pick the timing when hostile walkers or groups close on a human. Visual only:
+  no sensor, unit or health access (the engine does not use terrain fog for AI sight or radar).
+  misn07/08/09 forward the new `VenusFog` op in their presentation streams (`Docs/VENUS_WEATHER.md`).
+- Add Mission 14, The Three Beacons, to the campaign (MISSION13, Titan, retrospective misn1422) and as a 2-4
+  player co-op listing (`CR: The Three Beacons Coop`) on the original Battlezone 1.5 Titan terrain, rebuilt
+  around the NSDF's own Furies (Concept C, `Docs/MISN14_COOP.md`). A dormant squad of NSDF Furies (the cut
+  stock `avsav`, shipped as the commandable `ODF/avsav14.odf` because Redux has no `SAVFriend` AI) stands by the
+  Texas; the restored activation scene (misn1402, misn1423, misn1424) hands each human their pair, then control
+  fails (misn1425, misn1426) and the squad turns on NSDF and CCA alike. Rogue Fury waves scale per human
+  (+1 hvsav each, Fury Tanks from wave 4, at most 12 live, never spawning within 400 m of a human), and the CCA
+  surrender now also follows the Furies breaking its base. Restored from the shipped 1.5 exe: both power plants
+  surrender with the base and rescued pilots hold position. CCA team 5, Furies team 6, survivors and the
+  surrendered base team 7; any human (or human-driven APC) can rescue. The briefing names the Recycler Texas
+  (the stock text said Utah). Restored nags misn1420/misn1427; the second beacon's pilot is Razor Two. A single
+  guarded hook is left for a Titan weather director.
+- Add Mission 13, Total Destruction, to the campaign as a 2-4 player co-op listing
+  (`CR: Total Destruction Coop`) on the original Battlezone 1.5 Europa terrain. The CCA moves to
+  team 5 (the strategic AI is enabled once at load and runs `misn13`/`a`/`c.aip` from its Unit
+  Factory), freeing teams 2-4 for guests; the Texas Recycler base is shared and host-run. The map
+  ships without the 1.5 snapshot's 133 unnamed runtime paths, frozen unit orders and velocities.
+  The win now matches the briefing: destroy the Unit Factory, the hangar and all four silos (the
+  objectives list shows progress). The DLL's cut reinforcement waves 2-4 are restored (a CCA squad
+  from a spawn geyser every 300 s via `choke_point2/3` and `turret_path3`, scaled by player count),
+  the unused misn1301 Collins line plays after the opening, the five idle CCA wingmen get roles
+  (artillery escort, factory reserve), and the factory-safety count, artillery warning and
+  first-come tracked objects now work for every human (`Docs/MISN13_COOP.md`). The Europa weather
+  director runs here too.
+- Add Mission 12, Flying Solo, to the campaign as a 2-4 player co-op listing
+  (`CR: Flying Solo Coop`) on the original Battlezone 1.5 Europa terrain. The CCA moves to team 5,
+  freeing teams 2-4 for guests, the six hidden nav-camera pods move to the support team (7), and four
+  team-start buoys sit at the authored start. The listing text now states the real uplink range and
+  time (within 60 m for 45 s); the stock briefing said 50 m and one minute. Every human infiltrates in
+  their own hijacked key ship (one per human, staggered) and cover blown by anyone fails the mission for
+  everyone; checkpoint progress and the uplink link are per human, the first human to hold the uplink
+  completes it, the win needs every human at the Drop Zone, and the cockpit timer, camera shots and
+  nav-console reveals are shared. The unused misn1224 Razor One line is restored: after the uplink he
+  leads the way out over the map's unused east-side route and its 100 m jump (`Docs/MISN12_COOP.md`).
+  New `CREuropaWeather` director (cryovolcanic plumes and ice fall, ice quakes, Jupiter radiation surges,
+  frost haze; cosmetic and stealth-safe, `Docs/EUROPA_WEATHER.md`).
+- Add Mission 11, Bring it Home, to the campaign as a 2-4 player co-op listing
+  (`CR: Bring it Home Coop`) on the original Battlezone 1.5 Io terrain, with the Io terrain
+  repainted with real lava (and `Lava=1` set, so it damages hovering craft). The CCA moves to
+  team 5, freeing teams 2-4 for guests, with four team-start buoys at the authored start.
+- Enable the enemy strategic AI in co-op misn02b, misn05 and misn07: their maps use MultSTMission, so
+  team 5/6 was never flagged and `SetAIP` silently skipped, leaving the CCA plan idle. Each now calls
+  `SetAIControl(ENEMY_TEAM, true)` once at chunk load (never in `Start`, which crashes the host as in misn08).
+- Fix the misn08 co-op host crash at load (null read in `AI_UnitRemove`): `SetAIControl(5, true)`
+  moves from `Start` to chunk load, before the engine builds its AI team records, as misn10 and
+  misn14 already do. The 146 `flat.dds` texture warnings in the log are unrelated and harmless.
+- Ship the restored cut voice lines of Missions 02b, 04 and 06 (misn0232, misn0407,
+  misn0426, misn0428, misn0615-0627, misn0639, misn0641, misn0652), which Redux's
+  German, Spanish, French and Italian archives lack, so those players hear voice
+  instead of silent subtitles. The English take overrides any same-named localized one.
+- Bundle OpenShim 1.0.0.52. Lua Send/Receive now carries map-authored objects (geysers,
+  beacons) by label, so co-op orders that target them no longer arrive as nil. The
+  shipping lock and manifest validators now follow the renderer files the Workshop
+  build actually stages (`*.payload`).
+- Bundle OpenShim 1.0.0.50. OpenShim now also stages a newer Workshop
+  suite at the main menu and offers Restart now, refreshes its renderer
+  and menu UI files from the Workshop item at startup, and can be turned
+  off with Auto-Install Updates in OpenShim Options.
+- Restored unused original voice lines in Missions 02b-05: the scavenger
+  order after a skipped intro, a clean-escort win line, a transport escort
+  reminder, a wingman relic sighting, Collins's relic-loss and recon rebukes,
+  a mission-complete line, and an incoming-CCA alert. The Relic Discovered
+  now opens with its longer retrospective, and back-to-back dialogue no longer
+  drops earlier subtitles in Missions 04 and 05.
 - OpenShim updates now install automatically: starting a single-player
   campaign mission stages a newer bundled OpenShim and installs it when you
   quit. Turn it off with `AutoStage=0` under `[Updater]` in openshim.ini.
@@ -14,6 +97,62 @@
   missing from the package since OpenShim 1.0.0.48; the UI image list now
   comes from the OpenShim release instead of a hand-kept copy.
 
+- Add Mission 06, Escape from Mars, to the campaign, plus a 2-4 player co-op
+  version with shared films and outcomes. It uses the original Battlezone 1.5
+  map and unsmoothed terrain. In co-op every player must reach dust off with
+  Wyoming.
+- Add Mission 07, Behind Enemy Lines, to the campaign, plus a 2-4 player co-op
+  version on the original Battlezone 1.5 map. The alarm is per player: any
+  player who has not parachuted in still trips the tank tripwire, and the alarm
+  soldiers hunt the nearest player. Allied tanks now drive in to the
+  rendezvous, Razor One glides into the outpost and steals a Soviet vehicle
+  (his ship slowly heals when left alone),
+  and the cut test range returns once the radar array is down (Razor One drives
+  to it and is ambushed, with the Nav Beacons through the minefield, the
+  streamed mines and the MAG-cannon film). After the film the CCA begins
+  fielding prototype svtnk7 tanks until its factory falls. Collins reminds you
+  about the Utah if it is not deployed. Razor One's overlook call is randomly
+  the original or the alternate take (misn0717).
+- Mission 07 co-op: objective markers and film cameras now always land on the real object
+  (the rendezvous nav, the radar array, spawned units) instead of being dropped or aimed
+  elsewhere on guests.
+- Mission 07 now has Venus weather: sulphurous overcast, fog pooling in the lowlands,
+  lightning storms that favour the Lightning Power generators (knockback and radar
+  scramble, never damage), sulfur pools, volcano plumes and acid rain. The storm builds
+  with the mission and peaks during the CCA evacuation; in co-op every player sees the
+  same sky.
+- Ship the restored voice lines misn0717 and misn0719 (Mission 07), which the German,
+  Spanish, French and Italian game archives lack, so every language hears them.
+- Add Mission 08, A Nasty Surprise, to the campaign as a 2-4 player co-op map on
+  the original Battlezone 1.5 terrain. Any player's presence now counts for the
+  walker warnings, the Colorado hold-off and the relic. The loss of the
+  Colorado is witnessed: the third walker and a CCA strike force destroy it
+  once its protection stops (a scripted blast remains only as a late fallback),
+  and Collins rebukes players who approach it. Walker 3 now continues on to
+  your base, the "pull out" warning plays when any player is close to a
+  walker, the relic and Colorado heals actually run, the Utah loss uses
+  Collins's abort line, and guests' relic selections count.
+- Mission 08 now has Venus weather (replacing the stock lightning): calm while the
+  Colorado is still talking, rising when the walkers attack, a violent spike during the
+  Colorado massacre, and a steady storm while the CCA builds walkers. In co-op every
+  player sees the same sky. The Colorado starts allied with an escort and a small base
+  (scavenger, factory, two turrets, up to three APCs) that falls with it.
+- Add Mission 09, Wrangling the Fleeing Herd, to the campaign as a 2-4 player co-op
+  listing (`CR: Wrangling the Fleeing Herd Coop`) on the original Battlezone 1.5
+  Venus terrain. The CCA moves to team 5, freeing teams 2-4 for guests, with four
+  team-start buoys at the authored start; the stock lightning is removed so the Venus
+  weather director owns the sky.
+  The Colorado now starts allied with an escort and builds a small base with a
+  few APCs before the Soviets destroy all of it on screen, and once the walker
+  story is over the CCA keeps fielding walkers (up to three with four players)
+  until its base falls.
+- Add Mission 10, The Race is On, to the campaign as a 2-4 player co-op listing
+  (`CR: The Race is On Coop`) on the original Battlezone 1.5 Io terrain. The CCA moves
+  to team 5, freeing teams 2-4 for guests, with four team-start buoys at the authored
+  start. The CCA gains +10 scrap and one relic-carrier hunter per extra player (up to four),
+  any player's tug can carry the relic, artillery shells the nearest player, and the Io weather
+  (ash, plumes, lava haze, random quakes) is shared. Restores the CCA tug rebuild, the
+  misn10b escalation and a quake on the first relic pickup.
 - Add a 2-4 player co-op version of Mission 05 (Lemnos Factory), with shared
   films and outcomes.
 - Co-op: a player who dies respawns near a teammate. Each player has 5
@@ -48,6 +187,10 @@
   mission script now returns nothing instead of corrupting memory (a DX9
   freeze seen with ISDF Chronicles), and the overlay font now uses a mod's own
   `bzfont.dds` when the mod ships one.
+- Add `CRMoonWeather`, a Moon weather director for misn02b "Red Arrival" and misn03 "Eagle's Nest": a pale grey-blue
+  ground mist that pools in craters and thins over ridges (flat particle sheets from generated map data plus a layer
+  that follows the player), rare slow "glow" periods, and slow-settling impact and hover dust. Global fog, sky and
+  Earth are untouched; cosmetic only and co-op safe (`Docs/MOON_WEATHER.md`).
 
 ## 2026-10-05
 

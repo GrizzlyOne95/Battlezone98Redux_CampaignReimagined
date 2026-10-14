@@ -5,8 +5,10 @@
 (source blob `9a849940dc7157dae309212923ebe59f28260905`). The header is empty apart from its include guard.
 The verbatim files are retained in `References/Misn07Source/` for reconstruction.
 
-The script targets stock single-player BZR Lua 5.1. It does not require EXU,
-OpenShim, aiCore, or the reimagined campaign's weather/coop helpers.
+The original port targeted stock single-player BZR Lua 5.1 with no EXU or
+OpenShim dependency. The current script wraps that port in the shared offline +
+co-op layer (`CRCoop`, EXU hooks, the E/A/C presentation transport); offline play
+still reproduces the DLL. See [MISN07_COOP.md](MISN07_COOP.md).
 
 ## Preserved behavior
 
@@ -63,10 +65,13 @@ failure precedence, and disabled content remaining inactive.
 
 Run from the repository root: `lua5.1 Tools/Test-Misn07.lua`.
 
-This is a script checkpoint, not an in-game-qualified mission. At the inspected
-main revision, the repository contains the Utah/factory ODFs and mission text,
-but no `Missions/misn07` map bundle or `misn07.aip` was present. Before deployment,
-provide/verify the original map and its labels, paths, audio, objective/debrief
-files, AIP, and vehicle assets; bind its mission configuration to the Lua script.
+The co-op layer, the per-player alarm rules, the rendezvous convoy, Razor One's
+infiltration and the restored test-range arc are documented in
+[MISN07_COOP.md](MISN07_COOP.md). Those additions live in marked regions
+(`-- CR restored VO >>`, `-- CR Razor One infiltration >>`,
+`-- CR rendezvous convoy >>`) and the co-op substitutions are explicit deltas in
+`Tools/Test-Misn07SourceParity.py`, so the active DLL logic above stays pinned.
+The cut content listed above stays disabled in comments except where
+MISN07_COOP.md says it was restored. The map bundle now exists
+(`Missions/misn07.*`); an in-game qualification run does not (the AIP is the stock `bzone.zfs` file).
 Native strategic AI and real save/load handle restoration require in-game checks.
-No mission map, shipping lock, deployment, or release configuration was changed.

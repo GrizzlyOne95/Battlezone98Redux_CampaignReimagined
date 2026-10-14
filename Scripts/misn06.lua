@@ -7,6 +7,539 @@
 
 local M = {}
 
+-- EXU Initialization
+local RequireFix = require("RequireFix")
+RequireFix.Initialize({"campaignReimagined", "3686673790"})
+local exu = require("exu")
+-- Native MultST Init precedes Start; retain the authored Wyoming only.
+if type(IsNetGame) == "function" and IsNetGame() then
+    assert(exu.DisableStartingRecycler and exu.GetMyNetID,
+        "misn06 co-op requires the bundled EXU multiplayer hooks")
+    exu.DisableStartingRecycler()
+end
+local subtit = require("ScriptSubtitles")
+local CRCoop = require("CRCoop")
+local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+
+-- Co-op presentation uses the established misn03/misn05 E/A and C transport.
+-- Only the campaign leader runs the mission body below; HUD/audio/removal/timer/
+-- end calls are explicitly delivered to every peer.
+-- E/A are an ordered, acknowledged event stream (eight small packets in flight,
+-- retried every 0.2s). C is a replaceable camera snapshot carrying a kind: "P"
+-- (CameraPath), "O" (CameraObject) or "" (no camera). I relays a guest's
+-- native IsInfo selection state to the leader. No tables go on wire.
+-- These types do not collide with CRCoop's H/Q/K/P/L protocol. Join-in-progress
+-- still requires a restart: native world reconstruction is not available here.
+local unpackArgs = unpack or table.unpack
+local native = {
+    ClearObjectives = ClearObjectives, AddObjective = AddObjective,
+    UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
+    SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
+    SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
+    StartCockpitTimer = StartCockpitTimer, StopCockpitTimer = StopCockpitTimer,
+    HideCockpitTimer = HideCockpitTimer,
+    SucceedMission = SucceedMission, FailMission = FailMission,
+    CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
+    CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
+    Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
+}
+local nativeIsInfo = IsInfo
+local events, acknowledgements = {}, {}
+local receivedEvent = 0
+local pendingSeq, pendingSince
+-- Declared before ResetPresentation, which resets them.
+local cameraWaitSince, cameraGaveUp, cameraLast
+local labelSerial, announced = 0, {}
+-- Targets a guest already gave up on (logged once): later events for them skip at once.
+local gaveUp = {}
+local nextEventSend, nextCameraSend = 0, 0
+local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+local remoteCameraSerial, localCameraGeneration = 0, 0
+local cameraSkipped, localCameraActive = false, false
+local remoteCamera
+-- IsInfo is local UI state (the selected object's info panel). Guests relay
+-- the five prefixes this mission reads; the leader honours a report for 1 s.
+local INFO_PREFIXES = { "obheph", "obstp1", "obstp8", "obstp3", "sblpad" }
+local isInfoPrefix = {}
+for _, prefix in ipairs(INFO_PREFIXES) do isInfoPrefix[prefix] = true end
+local remoteInfo, nextInfoSend = {}, 0
+
+local function ResetPresentation()
+    events, acknowledgements, receivedEvent = {}, {}, 0
+    pendingSeq, pendingSince = nil, nil
+    nextEventSend, nextCameraSend = 0, 0
+    cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
+    remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
+    cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
+    announced, gaveUp = {}, {}
+    cameraSkipped, localCameraActive = false, false
+    remoteInfo, nextInfoSend = {}, 0
+end
+
+local function FromLeader(from)
+    local player = CRCoop.GetPlayers()[from]
+    return player and player.team == LEADER_TEAM
+end
+
+local function ApplyPresentation(op, ...)
+    if op == "Resources" then
+        local team, scrap, pilots = ...
+        -- Each human owns their team resources. Do not mutate a remote team.
+        if CRCoop.GetLocalTeam() == team then
+            -- Guests have no starting recycler, hence zero native capacity.
+            -- Reserve room before setting their mission starting resources.
+            SetMaxScrap(team, math.max(GetMaxScrap(team), scrap))
+            SetMaxPilot(team, math.max(GetMaxPilot(team), pilots))
+            SetScrap(team, scrap)
+            SetPilot(team, pilots)
+        end
+    elseif op == "Label" then
+        local handle, label = ...
+        if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
+            pcall(SetLabel, handle, label)
+        end
+    elseif op == "SucceedMission" or op == "FailMission" then
+        local when, description = ...
+        if localCameraActive then native.CameraFinish() end
+        cameraFrame = nil
+        localCameraActive = false
+        M.coopResult = true
+        native[op](math.max(GetTime() + 0.5, when), description)
+    else
+        return native[op](...)
+    end
+end
+
+-- Ops whose first argument is a game object. Objects travel by identity, never by a bare
+-- handle the engine may not carry: "@handle@label" (a guest resolves the label first, then
+-- the replicated handle), or "!" when the leader reports the object gone. Label is the
+-- event that makes a leader-side SetLabel on a spawned object true on every guest.
+local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
+    SetUserTarget = true, RemoveObject = true, Label = true }
+local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true, Label = true }
+local GONE = "!"
+-- Guests WAIT for the real object. This is only a never-hang guard: when it fires the
+-- guest logs "[coop] unresolved ..." and counts it in M.coopUnresolved (the harness probe
+-- reads that and expects zero).
+local RESOLVE_TIMEOUT = 15
+
+local function HandleText(handle)
+    return type(handle) == "number" and string.format("%d", handle) or tostring(handle)
+end
+
+local function KnownLabel(handle)
+    local ok, label = pcall(GetLabel, handle)
+    if ok and type(label) == "string" and label ~= "" and #label <= 126 then
+        local found, resolved = pcall(GetHandle, label)
+        if found and resolved == handle then return label end
+    end
+end
+
+-- Leader: tell every guest "this replicated handle carries this label" once.
+local function AnnounceLabel(handle, label)
+    if announced[handle] == label then return end
+    announced[handle] = label
+    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+        n = 2, ttl = RESOLVE_TIMEOUT, handle = handle }
+end
+
+-- Leader: the label for a target, assigning a deterministic unique one to an unlabelled
+-- spawned object.
+local function EnsureLabel(handle)
+    local label = KnownLabel(handle)
+    if not label and type(SetLabel) == "function" then
+        labelSerial = labelSerial + 1
+        pcall(SetLabel, handle, "crco_" .. labelSerial)
+        label = KnownLabel(handle)
+    end
+    if label then AnnounceLabel(handle, label) end
+    return label
+end
+
+local function WireHandle(handle)
+    if handle == nil then return nil end
+    if not IsValid(handle) then return GONE end
+    local label = EnsureLabel(handle)
+    if label then return "@" .. HandleText(handle) .. "@" .. label end
+    return handle
+end
+
+-- Retransmissions re-check the leader's view: a marker/label target that has since died
+-- is reported gone so a guest that never got it does not wait for it.
+local function EventArgs(event)
+    if event.handle ~= nil and WAIT_OPS[event.op] and not IsValid(event.handle) then
+        local args = { unpackArgs(event.args, 1, event.n) }
+        args[1] = GONE
+        return args
+    end
+    return event.args
+end
+
+local function Present(op, ...)
+    if CRCoop.IsNetworkGame() then
+        if not CRCoop.IsAuthority() then return end
+        local wire, handle = { ... }, nil
+        if HANDLE_OPS[op] and wire[1] ~= nil then handle = wire[1]; wire[1] = WireHandle(handle) end
+        events[#events + 1] = { op = op, args = wire, n = select("#", ...), ttl = RESOLVE_TIMEOUT,
+            handle = handle }
+    end
+    return ApplyPresentation(op, ...)
+end
+
+local function WireCameraFrame(frame)
+    if frame[1] == "O" then
+        return { "O", WireHandle(frame[2]), frame[3], frame[4], frame[5], WireHandle(frame[6]) }
+    end
+    return { frame[1], frame[2], frame[3], frame[4], WireHandle(frame[5]) }
+end
+
+-- Lexical wrappers affect this mission only; shared modules retain stock APIs.
+local function ClearObjectives(...) return Present("ClearObjectives", ...) end
+local function AddObjective(...) return Present("AddObjective", ...) end
+local function UpdateObjective(...) return Present("UpdateObjective", ...) end
+local function SetObjectiveOn(...) return Present("SetObjectiveOn", ...) end
+local function SetObjectiveOff(...) return Present("SetObjectiveOff", ...) end
+local function SetObjectiveName(...) return Present("SetObjectiveName", ...) end
+local function SetUserTarget(...) return Present("SetUserTarget", ...) end
+local function RemoveObject(...) return Present("RemoveObject", ...) end
+local function StartCockpitTimer(...) return Present("StartCockpitTimer", ...) end
+local function StopCockpitTimer(...) return Present("StopCockpitTimer", ...) end
+local function HideCockpitTimer(...) return Present("HideCockpitTimer", ...) end
+-- Preserve the real subtitle module for Update/Initialize and return values.
+-- Play returns the native audio handle on the leader (offline: AudioMessage's).
+subtit = setmetatable({
+    Play = function(...) return Present("Play", ...) end,
+    Queue = function(...) return Present("Queue", ...) end,
+    Stop = function(...) return Present("Stop", ...) end,
+}, { __index = subtit })
+
+local function EndMission(op, when, description)
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        -- Flush preceding narrative/cleanup before publishing the result. Keep
+        -- five seconds for result retries before native AiMission shuts down.
+        M.coopPendingResult = { op, when, description }
+    else
+        -- Offline the DLL re-issues these every frame it holds; stay a pass-through.
+        native[op](when, description)
+    end
+end
+local function SucceedMission(...) return EndMission("SucceedMission", ...) end
+local function FailMission(...) return EndMission("FailMission", ...) end
+
+local function CameraReady()
+    cameraGeneration = cameraGeneration + 1
+    cameraSkipped = false
+    if CRCoop.IsNetworkGame() and localCameraActive then native.CameraFinish() end
+    localCameraActive = true
+    return native.CameraReady()
+end
+local function CameraPath(path, height, speed, target)
+    cameraFrame = { "P", path, height, speed, target }
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+    end
+    if not cameraSkipped then return native.CameraPath(path, height, speed, target) end
+end
+local function CameraObject(subject, x, y, z, target)
+    cameraFrame = { "O", subject, x, y, z, target }
+    if cameraSkipped then return end
+    local done = native.CameraObject(subject, x, y, z, target)
+    -- Match the authored CameraObject -> CameraCancelled order: the object
+    -- camera can process the skip during this call, before the next frame.
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        local wasActive = localCameraActive
+        localCameraActive = false
+        if wasActive then native.CameraFinish() end
+    end
+    return done
+end
+local function CameraCancelled(clear)
+    -- A player's skip releases only their own camera; never skips shared
+    -- destruction, transport orders, or the success gate for everyone else.
+    if CRCoop.IsNetworkGame() then return false end
+    return native.CameraCancelled(clear)
+end
+local function CameraFinish()
+    cameraFrame = nil
+    cameraSkipped = false
+    local wasActive = localCameraActive
+    localCameraActive = false
+    if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
+end
+
+-- Camera frames carry their subject/target as "@handle@label" (or "!" when the leader
+-- reports it gone). A guest holds the film's start until the REAL objects resolve. Only a
+-- gone flag, or the never-hang guard (loudly logged and counted), lets it play with
+-- whatever remains valid.
+
+-- handle (or nil), gone
+local function ResolveCameraHandle(sent)
+    if sent == nil or sent == GONE then return nil, true end
+    if type(sent) ~= "string" or sent:sub(1, 1) ~= "@" then return sent, false end
+    local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+    local resolved = sentLabel and GetHandle(sentLabel)
+    if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+        local candidate = tonumber(sentHandle) or sentHandle
+        if IsValid(candidate) then resolved = candidate end
+    end
+    return resolved, (not IsValid(resolved)) and sentLabel ~= nil and gaveUp[sentLabel] == true
+end
+
+local function NativeCameraPath(path, height, speed, target)
+    if target == nil then return pcall(native.CameraPath, path, height, speed, nil) end
+    return native.CameraPath(path, height, speed, target)
+end
+
+-- ready, subject, target. sentSubject == nil means the kind carries none (path cameras).
+local function ResolveCameraHandles(sentSubject, sentTarget)
+    local needSubject = sentSubject ~= nil
+    local subject, subjectGone = ResolveCameraHandle(sentSubject)
+    local target, targetGone = ResolveCameraHandle(sentTarget)
+    if (not needSubject or IsValid(subject)) and IsValid(target) then
+        cameraWaitSince, cameraLast = nil, { subject, target }
+        return true, subject, target
+    end
+    local settled = (not needSubject or IsValid(subject) or subjectGone) and (IsValid(target) or targetGone)
+    if not settled then
+        if localCameraActive and cameraLast then return true, cameraLast[1], cameraLast[2] end
+        if localCameraActive or not cameraGaveUp then
+            local now = GetTime()
+            if not cameraWaitSince or now < cameraWaitSince then cameraWaitSince = now end
+            if now - cameraWaitSince < RESOLVE_TIMEOUT then return false end
+            if not cameraGaveUp then
+                cameraGaveUp = true
+                for _, sent in ipairs({ sentSubject or false, sentTarget or false }) do
+                    local label = type(sent) == "string" and sent:match("^@[^@]*@(.*)$")
+                    if label then gaveUp[label] = true end
+                end
+                M.coopUnresolved = (M.coopUnresolved or 0) + 1
+                print("[coop] unresolved camera " .. tostring(sentSubject) .. " " .. tostring(sentTarget))
+            end
+        end
+    end
+    -- Settled (gone flag) or guard fired: play with whatever remains valid.
+    if not IsValid(target) then target = IsValid(subject) and subject or nil end
+    if needSubject and not IsValid(subject) then subject = target end
+    if needSubject and subject == nil then return false end
+    return true, subject, target
+end
+
+local function UpdateRemoteCamera()
+    if not remoteCamera then return end
+    local cam = remoteCamera
+    if cam.kind == "" or M.coopResult then
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+        return
+    end
+    if cam.generation ~= localCameraGeneration then
+        localCameraGeneration = cam.generation
+        cameraSkipped = false
+        cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
+    end
+    if cameraSkipped then return end
+    local ready, subject, target = ResolveCameraHandles(cam.kind == "O" and cam.subject or nil, cam.target)
+    if not ready then return end
+    cam = setmetatable({ subject = subject, target = target }, { __index = cam })
+    if cam.kind == "O" then
+        if not localCameraActive then
+            native.CameraReady()
+            localCameraActive = true
+        end
+        native.CameraObject(cam.subject, cam.x, cam.y, cam.z, cam.target)
+        if native.CameraCancelled() then
+            cameraSkipped = true
+            localCameraActive = false
+            native.CameraFinish()
+        end
+    else
+        if not localCameraActive then
+            native.CameraReady()
+            localCameraActive = true
+        elseif native.CameraCancelled() then
+            cameraSkipped = true
+            localCameraActive = false
+            native.CameraFinish()
+            return
+        end
+        NativeCameraPath(cam.path, cam.height, cam.speed, cam.target)
+    end
+end
+
+-- Guests report which of the five IsInfo prefixes their own UI currently shows.
+local function UpdateInfoRelay()
+    if not CRCoop.IsNetworkGame() or CRCoop.IsAuthority() then return end
+    local now = GetTime()
+    if now < nextInfoSend then return end
+    local leaderId = 0
+    for id, player in pairs(CRCoop.GetPlayers()) do
+        if player.team == LEADER_TEAM then leaderId = id; break end
+    end
+    for _, prefix in ipairs(INFO_PREFIXES) do
+        if nativeIsInfo(prefix) then
+            Send(leaderId, "I", prefix)
+            nextInfoSend = now + 0.25
+        end
+    end
+end
+
+local function UpdatePresentationTransport()
+    if not CRCoop.IsNetworkGame() then return end
+    -- Read by the harness probe (numbers in M appear in its snapshots): must stay 0.
+    if M.coopUnresolved == nil then M.coopUnresolved = 0 end
+    if not CRCoop.IsAuthority() then
+        UpdateRemoteCamera()
+        return
+    end
+    local now, allDelivered = GetTime(), true
+    for id, player in pairs(CRCoop.GetPlayers()) do
+        if CRCoop.IsHumanTeam(player.team) and id ~= CRCoop.GetLocalPlayerId() then
+            local ack = acknowledgements[id] or 0
+            if ack < #events then allDelivered = false end
+            if now >= nextEventSend then
+                for seq = ack + 1, math.min(ack + 8, #events) do
+                    local event = events[seq]
+                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                end
+            end
+        end
+    end
+    if now >= nextEventSend then nextEventSend = now + 0.2 end
+    if M.coopPendingResult and allDelivered then
+        local result = M.coopPendingResult
+        M.coopPendingResult = nil
+        Present(result[1], math.max(now + 5, result[2] or 0), result[3])
+    end
+    if now >= nextCameraSend then
+        nextCameraSend = now + 0.2
+        cameraSerial = cameraSerial + 1
+        if cameraFrame then
+            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+        else
+            Send(0, "C", cameraSerial, cameraGeneration, "")
+        end
+    end
+end
+
+local function ReceivePresentation(from, kind, ...)
+    if not CRCoop.IsNetworkGame() then return false end
+    if kind == "I" then
+        -- Leader only: a human's report that their UI shows one of our prefixes.
+        local prefix = ...
+        local player = CRCoop.GetPlayers()[from]
+        if CRCoop.IsAuthority() and player and CRCoop.IsHumanTeam(player.team) and
+            type(prefix) == "string" and isInfoPrefix[prefix] then
+            remoteInfo[prefix] = GetTime()
+        end
+        return true
+    end
+    if kind == "A" then
+        local seq = ...
+        if CRCoop.IsAuthority() and CRCoop.GetPlayers()[from] and
+            type(seq) == "number" and seq >= 0 and seq <= #events and seq == math.floor(seq) then
+            acknowledgements[from] = math.max(acknowledgements[from] or 0, seq)
+        end
+        return true
+    end
+    if kind ~= "E" and kind ~= "C" then return false end
+    if CRCoop.IsAuthority() or not FromLeader(from) then return true end
+    if kind == "C" then
+        local seq, generation, camKind, a, b, c, d, e = ...
+        if type(seq) == "number" and seq > remoteCameraSerial and type(generation) == "number" then
+            local cam
+            if camKind == "" then
+                cam = { generation = generation, kind = "" }
+            elseif camKind == "P" and type(a) == "string" and type(b) == "number" and type(c) == "number" then
+                cam = { generation = generation, kind = "P", path = a, height = b, speed = c, target = d }
+            elseif camKind == "O" and type(b) == "number" and type(c) == "number" and type(d) == "number" then
+                cam = { generation = generation, kind = "O", subject = a, x = b, y = c, z = d, target = e }
+            end
+            if cam then
+                remoteCameraSerial = seq
+                remoteCamera = cam
+            end
+        end
+        return true
+    end
+    local seq, op, ttl = ...
+    if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
+    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources") then
+        local args = { select(4, ...) }
+        local count = select("#", ...) - 3
+        local apply, unresolved = true, false
+        if HANDLE_OPS[op] then
+            local sent, described = args[1], args[1]
+            if sent == GONE then
+                -- The leader reports the object gone: skip this marker, never wait.
+                apply = false
+            elseif type(sent) == "string" and sent:sub(1, 1) == "@" then
+                local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+                local resolved = sentLabel and GetHandle(sentLabel)
+                if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+                    local candidate = tonumber(sentHandle) or sentHandle
+                    if IsValid(candidate) then resolved = candidate end
+                end
+                args[1], described = resolved, sentLabel or sent
+                if not IsValid(args[1]) then apply, unresolved = false, true end
+            elseif not IsValid(sent) then
+                unresolved = true
+            end
+            if unresolved and WAIT_OPS[op] and gaveUp[described] then
+                apply = false
+            elseif unresolved and WAIT_OPS[op] then
+                -- The real object may replicate after the Lua packet: withhold the ACK so
+                -- the retransmission retries. Only the never-hang guard ends the wait.
+                local now = GetTime()
+                if pendingSeq ~= seq or now < pendingSince then pendingSeq, pendingSince = seq, now end
+                if now - pendingSince < math.min(ttl, 60) then return true end
+                gaveUp[described] = true
+                M.coopUnresolved = (M.coopUnresolved or 0) + 1
+                print("[coop] unresolved " .. tostring(described) .. " (" .. op .. ")")
+                apply = false
+            end
+        end
+        pendingSeq = nil
+        if apply then ApplyPresentation(op, unpackArgs(args, 1, count)) end
+        receivedEvent = seq
+    end
+    Send(from, "A", receivedEvent)
+    return true
+end
+
+-- Leader: native IsInfo OR a guest report within the last second.
+local function IsInfo(prefix)
+    if nativeIsInfo(prefix) then return true end
+    local reported = remoteInfo[prefix]
+    return reported ~= nil and GetTime() - reported <= 1.0
+end
+
+-- BuildObject invokes AddObject synchronously; misn06's AddObject is native-neutral.
+
+-- Lexical SetScrap: the DLL's SetScrap(1, 5) means every human's starting scrap
+-- in co-op (each owner applies their own team). Offline it is the stock call.
+local nativeSetScrap = SetScrap
+local function SetScrap(team, amount)
+    if CRCoop.IsNetworkGame() and team == LEADER_TEAM then
+        CRCoop.ForEachHumanTeam(function(humanTeam)
+            Present("Resources", humanTeam, amount, GetPilot(LEADER_TEAM))
+        end)
+        return
+    end
+    return nativeSetScrap(team, amount)
+end
+
+local function ConfigureAlliances()
+    CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+    for team = 1, 4 do
+        Ally(team, SUPPORT_TEAM); Ally(SUPPORT_TEAM, team)
+    end
+    UnAlly(ENEMY_TEAM, SUPPORT_TEAM); UnAlly(SUPPORT_TEAM, ENEMY_TEAM)
+end
+
 -- Absent handles must not satisfy range triggers or reach stock handle overloads.
 local function MissionDistance(a, b)
     if not IsValid(a) then return math.huge end
@@ -25,13 +558,71 @@ local function AudioDone(message)
 end
 
 local function StopAudio(message)
-    if message ~= nil then StopAudioMessage(message) end
+    if message == nil then return end
+    -- Net games stop the shared subtitle/audio sequence on every peer.
+    if CRCoop.IsNetworkGame() then subtit.Stop() else StopAudioMessage(message) end
 end
 
 local function NearestEnemy(h)
     if not IsValid(h) then return nil end
     return GetNearestEnemy(h)
 end
+
+-- Co-op trigger helpers. Offline CRCoop iterates just the local player, so each
+-- reproduces the DLL's single-player test exactly.
+local function AnyPlayerWithin(target, distance)
+    return CRCoop.AnyPlayerSatisfies(function(h) return MissionDistance(h, target) < distance end)
+end
+
+-- Extraction: every player (a dead player blocks until respawned at Wyoming).
+local function AllPlayersWithin(target, distance)
+    return CRCoop.AllPlayersSatisfy(function(h) return MissionDistance(h, target) < distance end)
+end
+
+-- True when every present player is farther than `distance` from `target`.
+local function NoPlayerWithin(target, distance)
+    local clear = true
+    CRCoop.ForEachPlayerHandle(function(h)
+        if not (MissionDistance(h, target) > distance) then clear = false end
+    end)
+    return clear
+end
+
+-- True when no present player has an enemy within `distance` (the bogey gate).
+local function NoPlayerEnemyWithin(distance)
+    local clear = true
+    CRCoop.ForEachPlayerHandle(function(h)
+        if not (MissionDistance(NearestEnemy(h), h) > distance) then clear = false end
+    end)
+    return clear
+end
+
+-- The human craft nearest `from`; the leader's own craft when none is present.
+local function NearestPlayer(from)
+    local best, bestDistance = nil, math.huge
+    CRCoop.ForEachPlayerHandle(function(h)
+        local distance = MissionDistance(from, h)
+        if best == nil or distance < bestDistance then best, bestDistance = h, distance end
+    end)
+    return best or M.player
+end
+
+-- CR restored VO >>
+-- Campaign Reimagined addition: voice-over cut from the stock mission (the DLL
+-- never plays these). Every use below sits inside matching marker lines and keeps
+-- the original statements in an else branch; set RESTORED_VO=false for stock audio.
+local RESTORED_VO = true
+local CUT_VO = {
+    blockade = "misn0609.wav", hephestus = "misn0610.wav",
+    collins = "misn0615.wav", b2a = "misn0616.wav", b2b = "misn0617.wav",
+    b2c = "misn0618.wav", b2d = "misn0619.wav", b2e = "misn0620.wav",
+    b3a = "misn0621.wav", b3b = "misn0622.wav", touchdown = "misn0623.wav",
+    b3c1 = "misn0624.wav", b4a = "misn0625.wav", b4b = "misn0626.wav",
+    b5 = "misn0627.wav", late628 = "misn0628.wav", lateCorbett = "misn0637.wav",
+    lateSuccess = "misn0639.wav", b3c2 = "misn0641.wav", yessir = "misn0652.wav",
+    firstReminder = "misn0693.wav",
+}
+-- CR restored VO <<
 
 local function ResetState()
     M = {}
@@ -210,6 +801,20 @@ local function ResetState()
     M.aud5 = nil
     M.aud6 = nil
     M.aud7 = nil
+-- CR restored VO >>
+    M.aud610 = nil
+    M.aud636 = nil
+    M.vo609 = false
+    M.vob1 = false
+    M.vob3 = false
+    M.vob3played = false
+    M.vob3choice = nil
+    M.vob3h = nil
+    M.vob4 = false
+    M.vob4played = false
+    M.vob4h = nil
+    M.vob5 = false
+-- CR restored VO <<
     M.aud8 = nil
     M.aud9 = nil
     M.w2u1 = nil
@@ -313,6 +918,16 @@ end
 
 function Start()
     ResetState()
+    CRCoop.Initialize({
+        getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
+        leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
+        onOutOfLives = function() FailMission(GetTime() + 3.0) end,
+        -- MultST consumes its spawn buoys during initialization. Rally at the
+        -- persistent Wyoming instead of the removed team-start marker.
+        rallyPoints = { [1] = "avrecy-1_recycler" },
+    })
+    ConfigureAlliances()
+    ResetPresentation()
     --[=[ DLL source comment (inactive C++):
 /*
 	Here's where you
@@ -360,13 +975,62 @@ function Start()
     M.identtime = 999999999.0
     M.timerstart = 999999999.0
     M.deathtime = 999999999999.0
+    subtit.Initialize()
 end
 
 function AddObject(h)
     -- Native AddObject has no mission-specific behavior.
 end
 
+function CreatePlayer(id, name, team)
+    CRCoop.CreatePlayer(id, name, team)
+    ConfigureAlliances()
+end
+function AddPlayer(id, name, team)
+    CRCoop.AddPlayer(id, name, team)
+    ConfigureAlliances()
+end
+function DeletePlayer(id, name, team) CRCoop.DeletePlayer(id) end
+function Receive(from, kind, ...)
+    if ReceivePresentation(from, kind, ...) then return true end
+    return CRCoop.Receive(from, kind, ...)
+end
+
 function Update(dt)
+    subtit.Update()
+    CRCoop.Update()
+    UpdatePresentationTransport()
+    if M.coopResult or M.coopPendingResult then return end
+    if CRCoop.IsNetworkGame() then
+        if CRCoop.HasLeaderDeparted() then
+            M.coopResult = true
+            if localCameraActive then native.CameraFinish() end
+            localCameraActive = false
+            native.FailMission(GetTime() + 1.0)
+            return
+        end
+        if CRCoop.HasUnsupportedPlayerTeam() or CRCoop.HasLateJoiners() then
+            if not M.coopRestartWarned then
+                DisplayMessage("Use distinct teams 1-4 and start together. Late join/rejoin requires a mission restart.")
+                M.coopRestartWarned = true
+            end
+            return
+        end
+        if not CRCoop.IsSessionReady() then return end
+    end
+    if not M.coopMissionStarted then
+        CRCoop.MarkMissionStarted()
+        M.coopMissionStarted = true
+    end
+    UpdateInfoRelay()
+    if not CRCoop.IsAuthority() then return end
+    if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
+        M.coopBootstrapped = true
+        -- The authored offline placeholder must not remain beside the humans.
+        local offlinePlayer = GetHandle("player0_hover")
+        if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
+    end
+    -- Misn06Mission::Execute body (DLL order preserved below).
     --[=[ DLL source comment (inactive C++):
 /*
 		Here is where you 
@@ -375,7 +1039,7 @@ function Update(dt)
 	*/
     ]=]
     if M.missionstart == true then
-        M.audmsg = AudioMessage("misn0601.wav")
+        M.audmsg = subtit.Play("misn0601.wav")
         M.missionstart = false
         M.player = GetPlayerHandle()
         M.rendezvous = GetHandle("eggeizr1-1_geyser")
@@ -459,37 +1123,37 @@ function Update(dt)
         if (MissionDistance(M.trigger, M.turret) < 200.0) or (not IsAlive(M.turret)) then
             if M.patrol1set == false then
                 if M.patrol1start == 0 then
-                    M.pu1p1 = BuildObject("svfigh", 2, "pat1sp1")
+                    M.pu1p1 = BuildObject("svfigh", ENEMY_TEAM, "pat1sp1")
                 elseif M.patrol1start == 1 then
-                    M.pu1p1 = BuildObject("svfigh", 2, "pat1sp2")
+                    M.pu1p1 = BuildObject("svfigh", ENEMY_TEAM, "pat1sp2")
                 elseif M.patrol1start == 2 then
-                    M.pu1p1 = BuildObject("svtank", 2, "pat1sp3")
+                    M.pu1p1 = BuildObject("svtank", ENEMY_TEAM, "pat1sp3")
                 elseif M.patrol1start == 3 then
-                    M.pu1p1 = BuildObject("svfigh", 2, "pat1sp4")
+                    M.pu1p1 = BuildObject("svfigh", ENEMY_TEAM, "pat1sp4")
                 end
                 M.patrol1set = true
             end
             if M.patrol2set == false then
                 if M.patrol2start == 0 then
-                    M.pu1p2 = BuildObject("svfigh", 2, "pat2sp1")
+                    M.pu1p2 = BuildObject("svfigh", ENEMY_TEAM, "pat2sp1")
                 elseif M.patrol2start == 1 then
-                    M.pu1p2 = BuildObject("svfigh", 2, "pat2sp2")
+                    M.pu1p2 = BuildObject("svfigh", ENEMY_TEAM, "pat2sp2")
                 elseif M.patrol2start == 2 then
-                    M.pu1p2 = BuildObject("svtank", 2, "pat2sp3")
+                    M.pu1p2 = BuildObject("svtank", ENEMY_TEAM, "pat2sp3")
                 elseif M.patrol2start == 3 then
-                    M.pu1p2 = BuildObject("svfigh", 2, "pat2sp4")
+                    M.pu1p2 = BuildObject("svfigh", ENEMY_TEAM, "pat2sp4")
                 end
                 M.patrol2set = true
             end
             if M.patrol3set == false then
                 if M.patrol3start == 0 then
-                    M.pu1p3 = BuildObject("svfigh", 2, "pat3sp1")
+                    M.pu1p3 = BuildObject("svfigh", ENEMY_TEAM, "pat3sp1")
                 elseif M.patrol3start == 1 then
-                    M.pu1p3 = BuildObject("svfigh", 2, "pat3sp2")
+                    M.pu1p3 = BuildObject("svfigh", ENEMY_TEAM, "pat3sp2")
                 elseif M.patrol3start == 2 then
-                    M.pu1p3 = BuildObject("svtank", 2, "pat3sp3")
+                    M.pu1p3 = BuildObject("svtank", ENEMY_TEAM, "pat3sp3")
                 elseif M.patrol3start == 3 then
-                    M.pu1p3 = BuildObject("svfigh", 2, "pat3sp4")
+                    M.pu1p3 = BuildObject("svfigh", ENEMY_TEAM, "pat3sp4")
                 end
                 M.patrol3set = true
             end
@@ -521,7 +1185,7 @@ function Update(dt)
         if (M.patrol1time < GetTime()) and (M.patrol1spawned == false) then
             M.patrol1time = GetTime() + 2.0
             if (IsAlive(M.pu1p1)) and (EnemyWithin(M.pu1p1, 450.0)) then
-                M.pu2p1 = BuildObject("svtank", 2, M.pu1p1)
+                M.pu2p1 = BuildObject("svtank", ENEMY_TEAM, M.pu1p1)
                 --[=[ DLL source comment (inactive C++):
 //pu3p1 = BuildObject ("svtank",2, pu1p1);
                 ]=]
@@ -556,7 +1220,7 @@ function Update(dt)
 // added GEC, sometimes this guy is dead
             ]=]
             if (IsAlive(M.pu1p2)) and (EnemyWithin(M.pu1p2, 450.0)) then
-                M.pu2p2 = BuildObject("svfigh", 2, M.pu1p2)
+                M.pu2p2 = BuildObject("svfigh", ENEMY_TEAM, M.pu1p2)
                 --[=[ DLL source comment (inactive C++):
 //pu3p2 = BuildObject ("svtank",2, pu1p2);
                 ]=]
@@ -588,7 +1252,7 @@ function Update(dt)
         if (M.patrol3time < GetTime()) and (M.patrol3spawned == false) then
             M.patrol3time = GetTime() + 2.0
             if EnemyWithin(M.pu1p3, 450.0) then
-                M.pu2p3 = BuildObject("svfigh", 2, M.pu1p3)
+                M.pu2p3 = BuildObject("svfigh", ENEMY_TEAM, M.pu1p3)
                 --[=[ DLL source comment (inactive C++):
 //pu3p3 = BuildObject ("svtank",2, pu1p3);
                 ]=]
@@ -619,8 +1283,8 @@ function Update(dt)
     Patrol(M.pu4p3, "patrol3")
     ]=]
     if (not IsAlive(M.avrec)) and (M.missionfail1 == false) then
-        M.aud20 = AudioMessage("misn0653.wav")
-        M.aud21 = AudioMessage("misn0651.wav")
+        M.aud20 = subtit.Play("misn0653.wav")
+        M.aud21 = subtit.Queue("misn0651.wav")
         M.missionfail1 = true
     end
     if M.missionfail1 == true then
@@ -817,8 +1481,8 @@ function Update(dt)
         end
         M.newobjective = false
     end
-    if (M.haephestusdisc == false) and (MissionDistance(M.haephestus, M.player) < 1000.0) then
-        M.aud1 = AudioMessage("misn0602.wav")
+    if (M.haephestusdisc == false) and (AnyPlayerWithin(M.haephestus, 1000.0)) then
+        M.aud1 = subtit.Play("misn0602.wav")
         M.haephestusdisc = true
         M.hephdisctime = GetTime() + 60.0
     end
@@ -829,20 +1493,20 @@ function Update(dt)
         M.loopbreaker = true
     end
     if (M.haephestusdisc == true) and (M.reconheaphestus == false) and (M.hephikey == false) and (M.hephdisctime < GetTime()) and (M.hephwarn < 2) then
-        AudioMessage("misn0690.wav")
+        subtit.Play("misn0690.wav")
         M.hephdisctime = GetTime() + 20.0
         M.hephwarn = M.hephwarn + 1
     end
     if (M.hephwarn == 2) and (M.missionfail4 == false) and (M.hephdisctime < GetTime()) then
-        M.aud105 = AudioMessage("misn0694.wav")
+        M.aud105 = subtit.Play("misn0694.wav")
         M.missionfail4 = true
     end
     if (M.missionfail4 == true) and (AudioDone(M.aud105)) then
         FailMission(GetTime() + 0.0, "misn06l1.des")
     end
-    if (M.reconheaphestus == false) and (MissionDistance(M.player, M.haephestus) < 125.0) and (M.hephikey == false) then
-        M.heph1 = AudioMessage("misn0603.wav")
-        M.heph2 = AudioMessage("misn0604.wav")
+    if (M.reconheaphestus == false) and (AnyPlayerWithin(M.haephestus, 125.0)) and (M.hephikey == false) then
+        M.heph1 = subtit.Play("misn0603.wav")
+        M.heph2 = subtit.Queue("misn0604.wav")
         M.reconheaphestus = true
         SetObjectiveOff(M.haephestus)
         CameraReady()
@@ -851,12 +1515,12 @@ function Update(dt)
         M.identtime = GetTime() + 20.0
     end
     if (M.identtime < GetTime()) and (M.hephikey == false) and (M.ident < 2) then
-        AudioMessage("misn0691.wav")
+        subtit.Play("misn0691.wav")
         M.ident = M.ident + 1
         M.identtime = GetTime() + 10.0
     end
     if (M.ident == 2) and (M.identtime < GetTime()) and (M.hephikey == false) and (M.missionfail == false) then
-        M.aud100 = AudioMessage("misn0694.wav")
+        M.aud100 = subtit.Play("misn0694.wav")
         M.missionfail = true
     end
     if (M.missionfail == true) and (AudioDone(M.aud100)) then
@@ -865,12 +1529,18 @@ function Update(dt)
     if (IsInfo("obheph") == true) and (M.hephikey == false) then
         M.processtime = GetTime() + 5.0
         M.hephikey = true
+-- CR restored VO >>
+        if RESTORED_VO then M.aud610 = subtit.Play(CUT_VO.hephestus) end
+-- CR restored VO <<
         M.reconheaphestus = true
         SetObjectiveOff(M.haephestus)
         M.newobjective = true
     end
+-- CR restored VO >>
+    if not (RESTORED_VO and not AudioDone(M.aud610)) then
+-- CR restored VO <<
     if (M.neworders == false) and (M.processtime < GetTime()) then
-        M.aud2 = AudioMessage("misn0605.wav")
+        M.aud2 = subtit.Play("misn0605.wav")
         --[=[ DLL source comment (inactive C++):
 //AudioMessage ("misn0606.wav");
         ]=]
@@ -888,6 +1558,9 @@ function Update(dt)
         M.buildcam = true
         M.discstar = GetTime() + 80.0
     end
+-- CR restored VO >>
+    end
+-- CR restored VO <<
     if (M.buildcam == true) and (AudioDone(M.aud2)) then
         SetObjectiveOff(M.rendezvous)
         M.starportcam = BuildObject("apcamr", 1, "cam1spawn")
@@ -895,10 +1568,22 @@ function Update(dt)
         M.buildcam = false
         M.newobjective = true
     end
-    if (MissionDistance(M.player, M.blockade1) < 420.0) and (M.blockadefound == false) then
-        AudioMessage("misn0636.wav")
+    if (AnyPlayerWithin(M.blockade1, 420.0)) and (M.blockadefound == false) then
+-- CR restored VO >>
+        if RESTORED_VO then M.aud636 = subtit.Play("misn0636.wav") else
+-- CR restored VO <<
+        subtit.Play("misn0636.wav")
+-- CR restored VO >>
+        end
+-- CR restored VO <<
         M.blockadefound = true
     end
+-- CR restored VO >>
+    if RESTORED_VO and M.blockadefound == true and M.vo609 == false and AudioDone(M.aud636) and NoPlayerEnemyWithin(300.0) then
+        M.vo609 = true
+        subtit.Play(CUT_VO.blockade)
+    end
+-- CR restored VO <<
     if (IsInfo("obstp1") == true) and (M.star1recon == false) then
         M.star1recon = true
     end
@@ -910,7 +1595,7 @@ function Update(dt)
     end
     if (M.fail3 == false) and (M.spfail == 4) then
         M.fail3 = true
-        M.aud54 = AudioMessage("misn0694.wav")
+        M.aud54 = subtit.Play("misn0694.wav")
     end
     if M.fail3 == true then
         if AudioDone(M.aud54) then
@@ -918,14 +1603,20 @@ function Update(dt)
         end
     end
     if (M.starportreconed == false) and (M.reconsptime < GetTime()) and (M.fail3 == false) and (M.spfail < 4) then
-        AudioMessage("misn0654.wav")
+-- CR restored VO >>
+        if RESTORED_VO and M.spfail == 0 then subtit.Play(CUT_VO.firstReminder) else
+-- CR restored VO <<
+        subtit.Play("misn0654.wav")
+-- CR restored VO >>
+        end
+-- CR restored VO <<
         M.reconsptime = GetTime() + 15.0
         M.spfail = M.spfail + 1
     end
     if (M.star1recon == true) and (M.star4recon == true) and (M.star6recon == true) and (M.starportreconed == false) then
-        M.aud3 = AudioMessage("misn0650.wav")
-        M.aud4 = AudioMessage("misn0606.wav")
-        M.aud5 = AudioMessage("misn0607.wav")
+        M.aud3 = subtit.Play("misn0650.wav")
+        M.aud4 = subtit.Queue("misn0606.wav")
+        M.aud5 = subtit.Queue("misn0607.wav")
         M.starportreconed = true
         M.start1 = GetTime() + 15.0
     end
@@ -933,20 +1624,20 @@ function Update(dt)
         M.newobjective = true
         M.star = true
     end
-    if (M.starportdisc == false) and (MissionDistance(M.star8, M.player) < 200.0) then
-        AudioMessage("misn0608.wav")
+    if (M.starportdisc == false) and (AnyPlayerWithin(M.star8, 200.0)) then
+        subtit.Play("misn0608.wav")
         M.searchtime = GetTime() + 15.0
         M.starportdisc = true
         M.reconsptime = GetTime() + 20.0
     end
     if (M.neworders == true) and (M.starportdisc == false) and (M.discstar < GetTime()) and (M.stardisc < 3) then
-        AudioMessage("misn0695.wav")
+        subtit.Play("misn0695.wav")
         M.discstar = GetTime() + 40.0
         M.stardisc = M.stardisc + 1
     end
     if (M.stardisc == 3) and (M.discstar < GetTime()) and (M.missionfail3 == false) then
         M.missionfail3 = true
-        M.aud101 = AudioMessage("misn0694.wav")
+        M.aud101 = subtit.Play("misn0694.wav")
     end
     if (M.missionfail3 == true) and (AudioDone(M.aud101)) then
         FailMission(GetTime() + 0.0, "misn06l3.des")
@@ -975,8 +1666,8 @@ function Update(dt)
         M.check1 = GetTime() + 1.5
     end
     if (M.starportreconed == true) and (M.ccaattack == false) then
-        Attack(M.wAu1, M.player)
-        Attack(M.wAu2, M.player)
+        Attack(M.wAu1, NearestPlayer(M.wAu1))
+        Attack(M.wAu2, NearestPlayer(M.wAu2))
         --[=[ DLL source comment (inactive C++):
 //Attack (wAu3, player);
         ]=]
@@ -1000,7 +1691,7 @@ function Update(dt)
         --[=[ DLL source comment (inactive C++):
 //(GetDistance (wAu3, "cam1spawn") < 400.0f)
         ]=]
-        M.aud500 = AudioMessage("misn0611.wav")
+        M.aud500 = subtit.Play("misn0611.wav")
         CameraReady()
         M.cam3time = GetTime() + 5.0
         M.cam3done = true
@@ -1035,8 +1726,8 @@ function Update(dt)
         --[=[ DLL source comment (inactive C++):
 //&& (!IsAlive (wAu3))
         ]=]
-        M.aud15 = AudioMessage("misn0612.wav")
-        M.aud16 = AudioMessage("misn0613.wav")
+        M.aud15 = subtit.Play("misn0612.wav")
+        M.aud16 = subtit.Queue("misn0613.wav")
         M.transportarrive = GetTime() + 50.0
         M.transarrive = true
         M.safebreak = true
@@ -1054,10 +1745,20 @@ function Update(dt)
         ]=]
         M.breaker19 = true
     end
+-- CR restored VO >>
+    if RESTORED_VO and M.vob1 == false and M.ccapullout == true and AudioDone(M.aud15) and AudioDone(M.aud16) then
+        M.vob1 = true
+        if M.touchdown == false then
+            subtit.Play(CUT_VO.touchdown)
+            subtit.Queue(CUT_VO.collins)
+            subtit.Queue(CUT_VO.yessir)
+        end
+    end
+-- CR restored VO <<
     if (M.wave1 < GetTime()) and (M.wave1start == false) and (IsAlive(M.svrec)) then
-        M.w1u1 = BuildObject("svfigh", 2, M.svrec)
-        M.w1u2 = BuildObject("svtank", 2, M.svrec)
-        M.w1u3 = BuildObject("svfigh", 2, M.svrec)
+        M.w1u1 = BuildObject("svfigh", ENEMY_TEAM, M.svrec)
+        M.w1u2 = BuildObject("svtank", ENEMY_TEAM, M.svrec)
+        M.w1u3 = BuildObject("svfigh", ENEMY_TEAM, M.svrec)
         Attack(M.w1u1, M.avrec)
         Attack(M.w1u2, M.avrec)
         Attack(M.w1u3, M.avrec)
@@ -1067,9 +1768,9 @@ function Update(dt)
         M.wave1start = true
     end
     if (M.wave2 < GetTime()) and (M.wave2start == false) and (IsAlive(M.svrec)) then
-        M.w2u1 = BuildObject("svfigh", 2, M.svrec)
-        M.w2u2 = BuildObject("svtank", 2, M.svrec)
-        M.w2u3 = BuildObject("svfigh", 2, M.svrec)
+        M.w2u1 = BuildObject("svfigh", ENEMY_TEAM, M.svrec)
+        M.w2u2 = BuildObject("svtank", ENEMY_TEAM, M.svrec)
+        M.w2u3 = BuildObject("svfigh", ENEMY_TEAM, M.svrec)
         Attack(M.w2u1, M.avrec)
         Attack(M.w2u2, M.avrec)
         Attack(M.w2u3, M.avrec)
@@ -1079,9 +1780,9 @@ function Update(dt)
         M.wave2start = true
     end
     if (M.wave3 < GetTime()) and (M.wave3start == false) and (IsAlive(M.svrec)) then
-        M.w3u1 = BuildObject("svfigh", 2, M.svrec)
-        M.w3u2 = BuildObject("svtank", 2, M.svrec)
-        M.w3u3 = BuildObject("svfigh", 2, M.svrec)
+        M.w3u1 = BuildObject("svfigh", ENEMY_TEAM, M.svrec)
+        M.w3u2 = BuildObject("svtank", ENEMY_TEAM, M.svrec)
+        M.w3u3 = BuildObject("svfigh", ENEMY_TEAM, M.svrec)
         Attack(M.w3u1, M.avrec)
         Attack(M.w3u2, M.avrec)
         Attack(M.w3u3, M.avrec)
@@ -1091,8 +1792,22 @@ function Update(dt)
         M.wave3start = true
     end
     if (M.transportarrive < GetTime()) and (M.transarrive == true) then
-        M.aud6 = AudioMessage("misn0614.wav")
-        M.aud7 = AudioMessage("misn0628.wav")
+-- CR restored VO >>
+        if RESTORED_VO then
+            M.aud6 = subtit.Play("misn0614.wav")
+            subtit.Queue(CUT_VO.b2a)
+            subtit.Queue(CUT_VO.b2b)
+            subtit.Queue(CUT_VO.b2c)
+            subtit.Queue(CUT_VO.b2d)
+            M.aud7 = subtit.Queue(CUT_VO.b2e)
+            M.vob3choice = (math.random(2) == 1) and CUT_VO.b3c1 or CUT_VO.b3c2
+        else
+-- CR restored VO <<
+        M.aud6 = subtit.Play("misn0614.wav")
+        M.aud7 = subtit.Queue("misn0628.wav")
+-- CR restored VO >>
+        end
+-- CR restored VO <<
         M.lincolndestroyed = GetTime() + 60.0
         M.oneminstrans = GetTime() + 60.0
         M.transaway = GetTime() + 90.0
@@ -1138,19 +1853,47 @@ function Update(dt)
             M.newobjective = true
         end
     end
+-- CR restored VO >>
+    if RESTORED_VO and M.vob3 == false and M.oneminstrans < GetTime() then
+        M.vob3 = true
+        if M.launchpadreconed == false and M.bugout == false then
+            M.vob3played = true
+            subtit.Play(M.vob3choice or CUT_VO.b3c1)
+            subtit.Queue(CUT_VO.b3a)
+            M.vob3h = subtit.Queue(CUT_VO.b3b)
+        end
+    end
+    if RESTORED_VO and M.vob3 == true and M.vob4 == false and M.transaway < GetTime() then
+        if M.vob3played == false then
+            M.vob4 = true
+        elseif AudioDone(M.vob3h) then
+            M.vob4 = true
+            if M.launchpadreconed == false and M.bugout == false then
+                M.vob4played = true
+                subtit.Play(CUT_VO.b4a)
+                M.vob4h = subtit.Queue(CUT_VO.b4b)
+            end
+        end
+    end
+    if RESTORED_VO and M.vob4played == true and M.vob5 == false and AudioDone(M.vob4h) then
+        M.vob5 = true
+        subtit.Play(CUT_VO.b5)
+        if M.launchpadreconed == false then subtit.Queue(CUT_VO.late628) end
+    end
+-- CR restored VO <<
     if (M.threeminsplatoon < GetTime()) and (M.threemin == true) and (M.launchpadreconed == false) then
         M.bogey = NearestEnemy(M.player)
-        if MissionDistance(M.bogey, M.player) > 400.0 then
-            M.sim1 = BuildObject("avtank", 3, "sim1")
-            M.sim2 = BuildObject("avtank", 3, "sim2")
-            M.sim3 = BuildObject("avtank", 3, "sim3")
-            M.sim4 = BuildObject("avtank", 3, "sim4")
-            M.sim5 = BuildObject("avtank", 3, "sim5")
-            M.sim6 = BuildObject("avfigh", 3, "sim6")
-            M.sim7 = BuildObject("avfigh", 3, "sim7")
-            M.sim8 = BuildObject("avfigh", 3, "sim8")
-            M.sim9 = BuildObject("avfigh", 3, "sim9")
-            M.sim10 = BuildObject("avfigh", 3, "sim10")
+        if NoPlayerEnemyWithin(400.0) then
+            M.sim1 = BuildObject("avtank", SUPPORT_TEAM, "sim1")
+            M.sim2 = BuildObject("avtank", SUPPORT_TEAM, "sim2")
+            M.sim3 = BuildObject("avtank", SUPPORT_TEAM, "sim3")
+            M.sim4 = BuildObject("avtank", SUPPORT_TEAM, "sim4")
+            M.sim5 = BuildObject("avtank", SUPPORT_TEAM, "sim5")
+            M.sim6 = BuildObject("avfigh", SUPPORT_TEAM, "sim6")
+            M.sim7 = BuildObject("avfigh", SUPPORT_TEAM, "sim7")
+            M.sim8 = BuildObject("avfigh", SUPPORT_TEAM, "sim8")
+            M.sim9 = BuildObject("avfigh", SUPPORT_TEAM, "sim9")
+            M.sim10 = BuildObject("avfigh", SUPPORT_TEAM, "sim10")
             --[=[ DLL source comment (inactive C++):
 /*
 			Jens
@@ -1172,11 +1915,11 @@ function Update(dt)
             Goto(M.sim9, "simpoint5")
             Goto(M.sim10, "simpoint5")
             CameraReady()
-            M.simaud1 = AudioMessage("misn0631.wav")
-            M.simaud2 = AudioMessage("misn0642.wav")
-            M.simaud3 = AudioMessage("misn0643.wav")
-            M.simaud4 = AudioMessage("misn0644.wav")
-            M.simaud5 = AudioMessage("misn0645.wav")
+            M.simaud1 = subtit.Play("misn0631.wav")
+            M.simaud2 = subtit.Queue("misn0642.wav")
+            M.simaud3 = subtit.Queue("misn0643.wav")
+            M.simaud4 = subtit.Queue("misn0644.wav")
+            M.simaud5 = subtit.Queue("misn0645.wav")
             M.simcam = true
             M.threemin = false
             HideCockpitTimer()
@@ -1260,26 +2003,26 @@ function Update(dt)
     end
     ]=]
     if (M.tenminsplatoon < GetTime()) and (M.tenmin == true) and (M.launchpadreconed == false) and (M.reminder == false) then
-        AudioMessage("misn0632.wav")
+        subtit.Play("misn0632.wav")
         M.tenmin = false
     end
     if (M.fiveminsplatoon < GetTime()) and (M.fivemin == true) and (M.launchpadreconed == false) and (M.reminder == false) then
-        AudioMessage("misn0633.wav")
+        subtit.Play("misn0633.wav")
         M.fivemin = false
     end
     if (M.twominsplatoon < GetTime()) and (M.twomin == true) and (M.launchpadreconed == false) and (M.reminder == false) then
-        AudioMessage("misn0634.wav")
+        subtit.Play("misn0634.wav")
         M.twomin = false
     end
-    if (MissionDistance(M.player, M.svrec) < 250.0) and (M.reminder == false) and (M.launchpadreconed == false) then
-        AudioMessage("misn0638.wav")
+    if (AnyPlayerWithin(M.svrec, 250.0)) and (M.reminder == false) and (M.launchpadreconed == false) then
+        subtit.Play("misn0638.wav")
         M.reminder = true
         M.endtime = GetTime() + 120.0
     end
-    if (M.reminder == true) and (MissionDistance(M.player, M.launchpad) > 400.0) and (M.launchpadreconed == false) and (M.endtime < GetTime()) and (M.breaker == false) then
-        M.aud102 = AudioMessage("misn0635.wav")
-        M.aud103 = AudioMessage("misn0646.wav")
-        M.aud104 = AudioMessage("misn0651.wav")
+    if (M.reminder == true) and (NoPlayerWithin(M.launchpad, 400.0)) and (M.launchpadreconed == false) and (M.endtime < GetTime()) and (M.breaker == false) then
+        M.aud102 = subtit.Play("misn0635.wav")
+        M.aud103 = subtit.Queue("misn0646.wav")
+        M.aud104 = subtit.Queue("misn0651.wav")
         M.platoonhere = false
         M.endme = true
         M.breaker = true
@@ -1298,10 +2041,10 @@ function Update(dt)
     M.newobjective = true
     ]=]
     if (M.bugout == true) and (M.corbettalive == true) and (M.time1 < GetTime()) and (M.threemin == true) and (M.bustout == false) then
-        AudioMessage("misn0629.wav")
-        AudioMessage("misn0630.wav")
-        AudioMessage("misn0647.wav")
-        M.ccap1 = BuildObject("svfigh", 2, "ccaplatoonspawn")
+        subtit.Play("misn0629.wav")
+        subtit.Queue("misn0630.wav")
+        subtit.Queue("misn0647.wav")
+        M.ccap1 = BuildObject("svfigh", ENEMY_TEAM, "ccaplatoonspawn")
         Attack(M.ccap1, M.avrec)
         SetIndependence(M.ccap1, 1)
         --[=[ DLL source comment (inactive C++):
@@ -1320,15 +2063,15 @@ function Update(dt)
         M.bustout = true
     end
     if (M.bugout == true) and (M.corbettalive == true) and (M.time1 < GetTime()) and (M.threemin == false) and (M.bustout == false) then
-        AudioMessage("misn0629.wav")
-        AudioMessage("misn0630.wav")
+        subtit.Play("misn0629.wav")
+        subtit.Queue("misn0630.wav")
         --[=[ DLL source comment (inactive C++):
 //AudioMessage ("misn0647.wav");
         ]=]
         --[=[ Lua equivalent (disabled):
     AudioMessage("misn0647.wav")
         ]=]
-        M.ccap1 = BuildObject("svfigh", 2, "ccaplatoonspawn")
+        M.ccap1 = BuildObject("svfigh", ENEMY_TEAM, "ccaplatoonspawn")
         Attack(M.ccap1, M.avrec)
         SetIndependence(M.ccap1, 1)
         --[=[ DLL source comment (inactive C++):
@@ -1347,8 +2090,14 @@ function Update(dt)
         M.bustout = true
     end
     if (M.breakme == false) and (M.bugout == true) and (M.corbettalive == false) and (M.time1 < GetTime()) then
-        AudioMessage("misn0629.wav")
-        AudioMessage("misn0630.wav")
+-- CR restored VO >>
+        if RESTORED_VO then subtit.Play(CUT_VO.lateCorbett) else
+-- CR restored VO <<
+        subtit.Play("misn0629.wav")
+        subtit.Queue("misn0630.wav")
+-- CR restored VO >>
+        end
+-- CR restored VO <<
         SetIndependence(M.ccap1, 1)
         M.platoonhere = false
         M.breakme = true
@@ -1363,8 +2112,8 @@ function Update(dt)
     if (M.deathtime < GetTime()) and (M.death == false) then
         M.death = true
         M.deathtime = 99999999999999.0
-        AudioMessage("misn0635.wav")
-        M.ccap1 = BuildObject("svfigh", 2, "ccaplatoonspawn")
+        subtit.Play("misn0635.wav")
+        M.ccap1 = BuildObject("svfigh", ENEMY_TEAM, "ccaplatoonspawn")
         Attack(M.ccap1, M.avrec)
     end
     if M.pickupset == true then
@@ -1385,17 +2134,23 @@ function Update(dt)
     if (M.bustout == true) and (not IsAlive(M.dustoffcam)) then
         M.pickupset = true
     end
-    if (MissionDistance(M.avrec, M.dustoffcam) < 100.0) and (MissionDistance(M.player, M.dustoffcam) < 100.0) and (M.pickupreached == true) then
-        AudioMessage("misn0649.wav")
+    if (MissionDistance(M.avrec, M.dustoffcam) < 100.0) and (AllPlayersWithin(M.dustoffcam, 100.0)) and (M.pickupreached == true) then
+-- CR restored VO >>
+        if RESTORED_VO and M.corbettalive == false then subtit.Play(CUT_VO.lateSuccess) else
+-- CR restored VO <<
+        subtit.Play("misn0649.wav")
+-- CR restored VO >>
+        end
+-- CR restored VO <<
         SucceedMission(GetTime() + 5.0, "misn06w1.des")
         M.pickupreached = false
         M.dustoff = true
         M.newobjective = true
     end
     if (M.platoonarrive < GetTime()) and (M.platoonhere == true) and (M.reminder == true) and (M.time1 < GetTime()) then
-        AudioMessage("misn0635.wav")
-        AudioMessage("misn0648.wav")
-        M.ccap1 = BuildObject("svfigh", 2, "ccaplatoonspawn")
+        subtit.Play("misn0635.wav")
+        subtit.Queue("misn0648.wav")
+        M.ccap1 = BuildObject("svfigh", ENEMY_TEAM, "ccaplatoonspawn")
         Attack(M.ccap1, M.avrec)
         SetIndependence(M.ccap1, 1)
         M.platoonhere = false
@@ -1406,14 +2161,14 @@ function Update(dt)
         M.spawnme = NearestEnemy(M.ccap1)
     end
     if (MissionDistance(M.ccap1, M.spawnme) < 410) and (M.economyccaplatoon == false) then
-        M.ccap2 = BuildObject("svfigh", 2, M.ccap1)
-        M.ccap3 = BuildObject("svfigh", 2, M.ccap1)
-        M.ccap4 = BuildObject("svfigh", 2, M.ccap1)
-        M.ccap5 = BuildObject("svfigh", 2, M.ccap1)
-        M.ccap6 = BuildObject("svtank", 2, M.ccap1)
-        M.ccap7 = BuildObject("svtank", 2, M.ccap1)
-        M.ccap8 = BuildObject("svtank", 2, M.ccap1)
-        M.ccap9 = BuildObject("svtank", 2, M.ccap1)
+        M.ccap2 = BuildObject("svfigh", ENEMY_TEAM, M.ccap1)
+        M.ccap3 = BuildObject("svfigh", ENEMY_TEAM, M.ccap1)
+        M.ccap4 = BuildObject("svfigh", ENEMY_TEAM, M.ccap1)
+        M.ccap5 = BuildObject("svfigh", ENEMY_TEAM, M.ccap1)
+        M.ccap6 = BuildObject("svtank", ENEMY_TEAM, M.ccap1)
+        M.ccap7 = BuildObject("svtank", ENEMY_TEAM, M.ccap1)
+        M.ccap8 = BuildObject("svtank", ENEMY_TEAM, M.ccap1)
+        M.ccap9 = BuildObject("svtank", ENEMY_TEAM, M.ccap1)
         --[=[ DLL source comment (inactive C++):
 //ccap10 = BuildObject ("svtank",2,ccap1);
         ]=]
@@ -1553,7 +2308,7 @@ function Update(dt)
     ]=]
     if (M.platoonhere == true) and (M.respawn == false) then
         if (not IsAlive(M.ccap1)) and (not IsAlive(M.ccap2)) and (not IsAlive(M.ccap3)) and (not IsAlive(M.ccap4)) and (not IsAlive(M.ccap5)) and (not IsAlive(M.ccap6)) and (not IsAlive(M.ccap7)) and (not IsAlive(M.ccap8)) and (not IsAlive(M.ccap9)) then
-            M.ccap1 = BuildObject("svfigh", 2, "ccaplatoonspawn")
+            M.ccap1 = BuildObject("svfigh", ENEMY_TEAM, "ccaplatoonspawn")
             M.respawn = true
             M.economyccaplatoon = false
         end
@@ -1562,9 +2317,9 @@ function Update(dt)
         M.corbettalive = false
     end
     if (M.platoonarrive < GetTime()) and (M.platoonhere == true) and (M.reminder == false) then
-        M.aud102 = AudioMessage("misn0635.wav")
-        M.aud103 = AudioMessage("misn0646.wav")
-        M.aud104 = AudioMessage("misn0651.wav")
+        M.aud102 = subtit.Play("misn0635.wav")
+        M.aud103 = subtit.Queue("misn0646.wav")
+        M.aud104 = subtit.Queue("misn0651.wav")
         M.platoonhere = false
         M.endme = true
     end

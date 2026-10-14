@@ -136,3 +136,31 @@ release with CI green.
 anywhere in the repository. It is a third dust-storm definition
 (`BuildDustStormPreset`) that nothing can reach. Left in place here because
 deleting it is not this change's business, but it should go.
+
+## Per-craft sensor scrambles
+
+The gameplay modifiers (`RegisterGameplayModifier`) are global: one set of radar and
+jamming scales for every craft. A brief, local upset -- a Venus lightning strike scrambling
+the radar of the units beside it -- needs a scale for one craft that lapses by itself.
+
+`Environment.SetObjectScramble(h, seconds, { radarRange, radarPeriod, velocJam })` is that.
+It is multiplied into the same scales `ProcessObjectNightEffects` already applies, so
+Environment stays the only sensor writer: an outside `exu.SetRadarRange` would be
+overwritten by the next sync pass and, worse, captured as the craft's "original" value.
+The entry expires on its own (`Environment.Update` notices and rewrites the craft), a
+second call never shortens an existing one, and replicas are skipped by the existing
+`IsLocal` guard. See `VENUS_WEATHER.md`.
+
+
+## Per-planet directors
+
+The planet directors (`CRMarsWeather`, `CRVenusWeather`, `CRIoWeather`, `CREuropaWeather`) all sit on top
+of this split: they pick a CRWeather preset and register an Environment modifier, and never write renderer state.
+`CREuropaWeather` additionally touches no sensor, gameplay modifier or perception state at all (see
+`EUROPA_WEATHER.md`), which makes it safe for stealth missions.
+
+`CRTitanWeather` (`TITAN_WEATHER.md`) registers no Environment modifier at all: it only chooses CRWeather
+presets and draws particles, so it runs the same on CRWeather's standalone path (misn14 does not load
+Environment). Environment has a `titan` world preset of its own (detected from `TITAN.ACT`, the `ti_` atlas
+or the `titan` sky) that holds the cycle at day through `Environment.LockDaylight`; any mission may set that
+field, and `TitanAllowNight = true` before `Init` keeps the cycle on a Titan map.

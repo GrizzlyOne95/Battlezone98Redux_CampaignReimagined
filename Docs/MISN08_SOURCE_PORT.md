@@ -1,4 +1,6 @@
-# misn08 source port
+# misn08 source port
+
+> **Superseded in part:** `Scripts/misn08.lua` now also carries the shared offline + co-op layer and marked restored behavior (`MISN08_COOP.md`). The original C++ archive moved from the end of the Lua file to `References/Misn08Source/Misn08Mission.cpp`, the single-player test is `Tools/Test-Misn08.lua` (79 checks), and the map, listing and campaign entry now exist. The retained-quirk list below describes the DLL port; the relic/Colorado heal sentinel, the cut third-walker and close-range blocks, and the Colorado's scripted death are changed only inside marked regions.
 
 `Scripts/misn08.lua` ports the original BZ1 DLL mission in
 `Battlezone_Source/BZ1/from_bz2_dll_src/Misn08Mission.cpp` to stock
@@ -42,7 +44,7 @@ serialization wrapper for comparison and reconstruction.
 | Object `SetName`, `GetHealth`, `AddHealth`, factory `IsDeployed` | Stock Lua wrappers |
 | `WHITE` / `GREEN` | `"white"` / `"green"` |
 | Native save arrays and `ConvertHandle` | `Save`/`Load` table of primitive and game values; LuaMission serialization |
-| `AiMission` strategic AI | `SetAIControl(2, true)` in `Start`, source AIP calls retained |
+| `AiMission` strategic AI | `SetAIControl(2, true)` at chunk load (team 5 in the port; never in `Start`), source AIP calls retained |
 | Setup before native map-object loading | Setup in `Start`, then one `AllObjects` scan through `AddObject` to recover startup object notifications |
 | APC branch assigns `nsdfmuf = h` | Corrected to `ccaapc = h`, annotated in place |
 | Second tower branch assigns `guntower1 = h` | Corrected to `guntower2 = h`, annotated in place |

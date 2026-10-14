@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-12T18:08:07-05:00",
-  "count": 2380,
+  "generated": "2026-10-13T18:10:22-05:00",
+  "count": 2516,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10,6 +10,106 @@
     {
       "source": "Assets\\ACT\\moon.act",
       "runtime": "moon.act"
+    },
+    {
+      "source": "Assets\\Audio\\misn0232.wav",
+      "runtime": "misn0232.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0407.wav",
+      "runtime": "misn0407.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0426.wav",
+      "runtime": "misn0426.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0428.wav",
+      "runtime": "misn0428.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0615.wav",
+      "runtime": "misn0615.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0616.wav",
+      "runtime": "misn0616.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0617.wav",
+      "runtime": "misn0617.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0618.wav",
+      "runtime": "misn0618.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0619.wav",
+      "runtime": "misn0619.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0620.wav",
+      "runtime": "misn0620.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0621.wav",
+      "runtime": "misn0621.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0622.wav",
+      "runtime": "misn0622.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0623.wav",
+      "runtime": "misn0623.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0624.wav",
+      "runtime": "misn0624.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0625.wav",
+      "runtime": "misn0625.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0626.wav",
+      "runtime": "misn0626.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0627.wav",
+      "runtime": "misn0627.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0639.wav",
+      "runtime": "misn0639.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0641.wav",
+      "runtime": "misn0641.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0652.wav",
+      "runtime": "misn0652.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0717.wav",
+      "runtime": "misn0717.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0719.wav",
+      "runtime": "misn0719.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0910.wav",
+      "runtime": "misn0910.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn0917.wav",
+      "runtime": "misn0917.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1224.wav",
+      "runtime": "misn1224.wav"
     },
     {
       "source": "Assets\\Graphics\\bio.png",
@@ -42,6 +142,42 @@
     {
       "source": "Assets\\Graphics\\misn05.bmp",
       "runtime": "misn05.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn06.bmp",
+      "runtime": "misn06.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn07.bmp",
+      "runtime": "misn07.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn08.bmp",
+      "runtime": "misn08.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn09.bmp",
+      "runtime": "misn09.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn10.bmp",
+      "runtime": "misn10.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn11.bmp",
+      "runtime": "misn11.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn12.bmp",
+      "runtime": "misn12.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn13.bmp",
+      "runtime": "misn13.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn14.bmp",
+      "runtime": "misn14.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -140,16 +276,16 @@
       "runtime": "avturr_C.skeleton"
     },
     {
-      "source": "Assets\\ModelFixes\\avwalk_c.mesh",
-      "runtime": "avwalk_c.mesh"
-    },
-    {
       "source": "Assets\\ModelFixes\\avwalk.mesh",
       "runtime": "avwalk.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\avwalk.skeleton",
       "runtime": "avwalk.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avwalk_c.mesh",
+      "runtime": "avwalk_c.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bbhang.sdf",
@@ -226,6 +362,10 @@
     {
       "source": "Assets\\ModelFixes\\bvwalk_c.skeleton",
       "runtime": "bvwalk_c.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr_methane_plane.mesh",
+      "runtime": "cr_methane_plane.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bvwalk.mesh",
@@ -472,6 +612,10 @@
       "runtime": "cr_iceveil.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_methane_ripple.png",
+      "runtime": "cr_methane_ripple.png"
+    },
+    {
       "source": "Assets\\Textures\\cr_rain.dds",
       "runtime": "cr_rain.dds"
     },
@@ -498,6 +642,10 @@
     {
       "source": "Assets\\Textures\\cr_spore.dds",
       "runtime": "cr_spore.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_titan14_wet.png",
+      "runtime": "cr_titan14_wet.png"
     },
     {
       "source": "Assets\\Textures\\crgrass.png",
@@ -580,12 +728,12 @@
       "runtime": "LoadingScreenBlank.png"
     },
     {
-      "source": "Assets\\Textures\\raintoxc_mask.dds",
-      "runtime": "raintoxc_mask.dds"
-    },
-    {
       "source": "Assets\\Textures\\raintoxc.dds",
       "runtime": "raintoxc.dds"
+    },
+    {
+      "source": "Assets\\Textures\\raintoxc_mask.dds",
+      "runtime": "raintoxc_mask.dds"
     },
     {
       "source": "Assets\\Textures\\smoke2.dds",
@@ -786,6 +934,42 @@
     {
       "source": "Config\\misn05.ini",
       "runtime": "misn05.ini"
+    },
+    {
+      "source": "Config\\misn06.ini",
+      "runtime": "misn06.ini"
+    },
+    {
+      "source": "Config\\misn07.ini",
+      "runtime": "misn07.ini"
+    },
+    {
+      "source": "Config\\misn08.ini",
+      "runtime": "misn08.ini"
+    },
+    {
+      "source": "Config\\misn09.ini",
+      "runtime": "misn09.ini"
+    },
+    {
+      "source": "Config\\misn10.ini",
+      "runtime": "misn10.ini"
+    },
+    {
+      "source": "Config\\misn11.ini",
+      "runtime": "misn11.ini"
+    },
+    {
+      "source": "Config\\misn12.ini",
+      "runtime": "misn12.ini"
+    },
+    {
+      "source": "Config\\misn13.ini",
+      "runtime": "misn13.ini"
+    },
+    {
+      "source": "Config\\misn14.ini",
+      "runtime": "misn14.ini"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -2516,6 +2700,22 @@
       "runtime": "CR_reactive.material"
     },
     {
+      "source": "Materials\\cr_europa.particle.payload",
+      "runtime": "cr_europa.particle.payload"
+    },
+    {
+      "source": "Materials\\cr_io.particle.payload",
+      "runtime": "cr_io.particle.payload"
+    },
+    {
+      "source": "Materials\\cr_methane.material",
+      "runtime": "cr_methane.material"
+    },
+    {
+      "source": "Materials\\cr_moon.particle.payload",
+      "runtime": "cr_moon.particle.payload"
+    },
+    {
       "source": "Materials\\cr_reactive.particle.payload",
       "runtime": "cr_reactive.particle.payload"
     },
@@ -2524,12 +2724,20 @@
       "runtime": "CR_scope.material"
     },
     {
+      "source": "Materials\\cr_titan.particle.payload",
+      "runtime": "cr_titan.particle.payload"
+    },
+    {
       "source": "Materials\\CR_ui.material",
       "runtime": "CR_ui.material"
     },
     {
       "source": "Materials\\CR_uitexmat.material",
       "runtime": "CR_uitexmat.material"
+    },
+    {
+      "source": "Materials\\cr_venus.particle.payload",
+      "runtime": "cr_venus.particle.payload"
     },
     {
       "source": "Materials\\cr_weather.particle.payload",
@@ -3176,6 +3384,42 @@
       "runtime": "misn05.des"
     },
     {
+      "source": "misn06.des",
+      "runtime": "misn06.des"
+    },
+    {
+      "source": "misn07.des",
+      "runtime": "misn07.des"
+    },
+    {
+      "source": "misn08.des",
+      "runtime": "misn08.des"
+    },
+    {
+      "source": "misn09.des",
+      "runtime": "misn09.des"
+    },
+    {
+      "source": "misn10.des",
+      "runtime": "misn10.des"
+    },
+    {
+      "source": "misn11.des",
+      "runtime": "misn11.des"
+    },
+    {
+      "source": "misn12.des",
+      "runtime": "misn12.des"
+    },
+    {
+      "source": "misn13.des",
+      "runtime": "misn13.des"
+    },
+    {
+      "source": "misn14.des",
+      "runtime": "misn14.des"
+    },
+    {
       "source": "Missions\\crsetup.bzn",
       "runtime": "crsetup.bzn"
     },
@@ -3292,6 +3536,222 @@
       "runtime": "misn05.vxt"
     },
     {
+      "source": "Missions\\misn06.bzn",
+      "runtime": "misn06.bzn"
+    },
+    {
+      "source": "Missions\\misn06.hg2",
+      "runtime": "misn06.hg2"
+    },
+    {
+      "source": "Missions\\misn06.lgt",
+      "runtime": "misn06.lgt"
+    },
+    {
+      "source": "Missions\\misn06.mat",
+      "runtime": "misn06.mat"
+    },
+    {
+      "source": "Missions\\misn06.trn",
+      "runtime": "misn06.trn"
+    },
+    {
+      "source": "Missions\\misn06.vxt",
+      "runtime": "misn06.vxt"
+    },
+    {
+      "source": "Missions\\misn07.bzn",
+      "runtime": "misn07.bzn"
+    },
+    {
+      "source": "Missions\\misn07.hg2",
+      "runtime": "misn07.hg2"
+    },
+    {
+      "source": "Missions\\misn07.lgt",
+      "runtime": "misn07.lgt"
+    },
+    {
+      "source": "Missions\\misn07.mat",
+      "runtime": "misn07.mat"
+    },
+    {
+      "source": "Missions\\misn07.trn",
+      "runtime": "misn07.trn"
+    },
+    {
+      "source": "Missions\\misn07.vxt",
+      "runtime": "misn07.vxt"
+    },
+    {
+      "source": "Missions\\misn08.bzn",
+      "runtime": "misn08.bzn"
+    },
+    {
+      "source": "Missions\\misn08.hg2",
+      "runtime": "misn08.hg2"
+    },
+    {
+      "source": "Missions\\misn08.lgt",
+      "runtime": "misn08.lgt"
+    },
+    {
+      "source": "Missions\\misn08.mat",
+      "runtime": "misn08.mat"
+    },
+    {
+      "source": "Missions\\misn08.trn",
+      "runtime": "misn08.trn"
+    },
+    {
+      "source": "Missions\\misn08.vxt",
+      "runtime": "misn08.vxt"
+    },
+    {
+      "source": "Missions\\misn09.bzn",
+      "runtime": "misn09.bzn"
+    },
+    {
+      "source": "Missions\\misn09.hg2",
+      "runtime": "misn09.hg2"
+    },
+    {
+      "source": "Missions\\misn09.lgt",
+      "runtime": "misn09.lgt"
+    },
+    {
+      "source": "Missions\\misn09.mat",
+      "runtime": "misn09.mat"
+    },
+    {
+      "source": "Missions\\misn09.trn",
+      "runtime": "misn09.trn"
+    },
+    {
+      "source": "Missions\\misn09.vxt",
+      "runtime": "misn09.vxt"
+    },
+    {
+      "source": "Missions\\misn10.bzn",
+      "runtime": "misn10.bzn"
+    },
+    {
+      "source": "Missions\\misn11.bzn",
+      "runtime": "misn11.bzn"
+    },
+    {
+      "source": "Missions\\misn12.bzn",
+      "runtime": "misn12.bzn"
+    },
+    {
+      "source": "Missions\\misn13.bzn",
+      "runtime": "misn13.bzn"
+    },
+    {
+      "source": "Missions\\misn14.bzn",
+      "runtime": "misn14.bzn"
+    },
+    {
+      "source": "Missions\\misn10.hg2",
+      "runtime": "misn10.hg2"
+    },
+    {
+      "source": "Missions\\misn11.hg2",
+      "runtime": "misn11.hg2"
+    },
+    {
+      "source": "Missions\\misn12.hg2",
+      "runtime": "misn12.hg2"
+    },
+    {
+      "source": "Missions\\misn13.hg2",
+      "runtime": "misn13.hg2"
+    },
+    {
+      "source": "Missions\\misn14.hg2",
+      "runtime": "misn14.hg2"
+    },
+    {
+      "source": "Missions\\misn10.lgt",
+      "runtime": "misn10.lgt"
+    },
+    {
+      "source": "Missions\\misn11.lgt",
+      "runtime": "misn11.lgt"
+    },
+    {
+      "source": "Missions\\misn12.lgt",
+      "runtime": "misn12.lgt"
+    },
+    {
+      "source": "Missions\\misn13.lgt",
+      "runtime": "misn13.lgt"
+    },
+    {
+      "source": "Missions\\misn14.lgt",
+      "runtime": "misn14.lgt"
+    },
+    {
+      "source": "Missions\\misn10.mat",
+      "runtime": "misn10.mat"
+    },
+    {
+      "source": "Missions\\misn11.mat",
+      "runtime": "misn11.mat"
+    },
+    {
+      "source": "Missions\\misn12.mat",
+      "runtime": "misn12.mat"
+    },
+    {
+      "source": "Missions\\misn13.mat",
+      "runtime": "misn13.mat"
+    },
+    {
+      "source": "Missions\\misn14.mat",
+      "runtime": "misn14.mat"
+    },
+    {
+      "source": "Missions\\misn10.trn",
+      "runtime": "misn10.trn"
+    },
+    {
+      "source": "Missions\\misn11.trn",
+      "runtime": "misn11.trn"
+    },
+    {
+      "source": "Missions\\misn12.trn",
+      "runtime": "misn12.trn"
+    },
+    {
+      "source": "Missions\\misn13.trn",
+      "runtime": "misn13.trn"
+    },
+    {
+      "source": "Missions\\misn14.trn",
+      "runtime": "misn14.trn"
+    },
+    {
+      "source": "Missions\\misn10.vxt",
+      "runtime": "misn10.vxt"
+    },
+    {
+      "source": "Missions\\misn11.vxt",
+      "runtime": "misn11.vxt"
+    },
+    {
+      "source": "Missions\\misn12.vxt",
+      "runtime": "misn12.vxt"
+    },
+    {
+      "source": "Missions\\misn13.vxt",
+      "runtime": "misn13.vxt"
+    },
+    {
+      "source": "Missions\\misn14.vxt",
+      "runtime": "misn14.vxt"
+    },
+    {
       "source": "Missions\\sxshow.bzn",
       "runtime": "sxshow.bzn"
     },
@@ -3378,6 +3838,10 @@
     {
       "source": "ODF\\abtowe02.odf",
       "runtime": "abtowe02.odf"
+    },
+    {
+      "source": "ODF\\b_misn13.odf",
+      "runtime": "b_misn13.odf"
     },
     {
       "source": "ODF\\abtowe03.odf",
@@ -3830,6 +4294,10 @@
     {
       "source": "ODF\\avsav.odf",
       "runtime": "avsav.odf"
+    },
+    {
+      "source": "ODF\\avsav14.odf",
+      "runtime": "avsav14.odf"
     },
     {
       "source": "ODF\\avscab.odf",
@@ -4362,6 +4830,10 @@
     {
       "source": "ODF\\cptesla.odf",
       "runtime": "cptesla.odf"
+    },
+    {
+      "source": "ODF\\crping.odf",
+      "runtime": "crping.odf"
     },
     {
       "source": "ODF\\cspilo.odf",
@@ -5524,88 +5996,88 @@
       "runtime": "xrainspa.odf"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program"
+      "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm3.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base-vertex.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_base.program.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-fragment.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm3.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain_glow-vertex.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-fragment.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm3.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-sm4.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain-vertex.glsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program"
+      "source": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_enhanced_terrain.program.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds"
+      "source": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_brdf_lut.dds.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds"
+      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_irradiance.dds.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds"
+      "source": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_ibl_neutral_prefilter.dds.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl",
-      "runtime": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl"
+      "source": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl.payload"
     },
     {
-      "source": "openshim\\renderer\\enhanced\\resources.version",
-      "runtime": "openshim\\renderer\\enhanced\\resources.version"
+      "source": "openshim\\renderer\\enhanced\\resources.version.payload",
+      "runtime": "openshim\\renderer\\enhanced\\resources.version.payload"
     },
     {
       "source": "openshim\\support\\openshim_wrap.bat",
@@ -5772,12 +6244,48 @@
       "runtime": "CRCoopRespawn.lua"
     },
     {
+      "source": "Scripts\\CREuropaSites12.lua",
+      "runtime": "CREuropaSites12.lua"
+    },
+    {
+      "source": "Scripts\\CREuropaSites13.lua",
+      "runtime": "CREuropaSites13.lua"
+    },
+    {
+      "source": "Scripts\\CREuropaWeather.lua",
+      "runtime": "CREuropaWeather.lua"
+    },
+    {
       "source": "Scripts\\CRGroundFX.lua",
       "runtime": "CRGroundFX.lua"
     },
     {
+      "source": "Scripts\\CRIoSites10.lua",
+      "runtime": "CRIoSites10.lua"
+    },
+    {
+      "source": "Scripts\\CRIoSites11.lua",
+      "runtime": "CRIoSites11.lua"
+    },
+    {
+      "source": "Scripts\\CRIoWeather.lua",
+      "runtime": "CRIoWeather.lua"
+    },
+    {
       "source": "Scripts\\CRMarsWeather.lua",
       "runtime": "CRMarsWeather.lua"
+    },
+    {
+      "source": "Scripts\\CRMoonSites02b.lua",
+      "runtime": "CRMoonSites02b.lua"
+    },
+    {
+      "source": "Scripts\\CRMoonSites03.lua",
+      "runtime": "CRMoonSites03.lua"
+    },
+    {
+      "source": "Scripts\\CRMoonWeather.lua",
+      "runtime": "CRMoonWeather.lua"
     },
     {
       "source": "Scripts\\CRParticleTemplates.lua",
@@ -5806,6 +6314,34 @@
     {
       "source": "Scripts\\CRStormFX.lua",
       "runtime": "CRStormFX.lua"
+    },
+    {
+      "source": "Scripts\\CRTitanSites14.lua",
+      "runtime": "CRTitanSites14.lua"
+    },
+    {
+      "source": "Scripts\\CRTitanWeather.lua",
+      "runtime": "CRTitanWeather.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusMap.lua",
+      "runtime": "CRVenusMap.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusSites07.lua",
+      "runtime": "CRVenusSites07.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusSites08.lua",
+      "runtime": "CRVenusSites08.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusSites09.lua",
+      "runtime": "CRVenusSites09.lua"
+    },
+    {
+      "source": "Scripts\\CRVenusWeather.lua",
+      "runtime": "CRVenusWeather.lua"
     },
     {
       "source": "Scripts\\CRWeather.lua",
@@ -6150,6 +6686,14 @@
     {
       "source": "Shaders\\CR_glow.program",
       "runtime": "CR_glow.program"
+    },
+    {
+      "source": "Shaders\\cr_methane.hlsl",
+      "runtime": "cr_methane.hlsl"
+    },
+    {
+      "source": "Shaders\\cr_methane.program",
+      "runtime": "cr_methane.program"
     },
     {
       "source": "Shaders\\CR_occlusion-fragment.glsl",

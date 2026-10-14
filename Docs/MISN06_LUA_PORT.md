@@ -78,12 +78,10 @@ pin provenance, verify every comment/state field, and compare the ordered active
 asset references and API call counts. They do not validate native rendering,
 AI navigation, voice queuing, or the engine's save-file serializer.
 
-There is currently no Campaign Reimagined `Missions/misn06.bzn` or terrain payload.
-This checkpoint therefore adds source, Lua, tests, and notes without enabling the
-mission in the campaign list or updating the shipping lock. Next, supply the
-original mission map/terrain and retain its labels, routes, native AI data, and
-assets while switching its mission class to LuaMission. Validate map dependencies
-before blessing/deploying new shipping entries.
+The map, terrain, campaign entry (`MISSION5`) and 2-4 player co-op layer are
+documented in `MISN06_COOP.md`. The co-op layer is lexical: the Execute body,
+comments and state fields above are unchanged apart from the substitutions
+listed there and pinned by the source parity test.
 
 In-game checks still needed: each camera completion/cancellation route, original
 map label/path resolution, AI/AIP behavior, audio sequencing, save/load during

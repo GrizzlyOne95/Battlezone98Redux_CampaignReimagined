@@ -1,9 +1,12 @@
 # misn12 source port
 
 `Scripts/misn12.lua` ports the original DLL mission to stock Battlezone 98 Redux
-Lua 5.1. It uses no EXU, OpenShim, strategic-AI replacement, or campaign helper
-modules. This change supplies the script; it does not modify a mission map,
-select LuaMission in a TRN, deploy files, or bless the shipping lock.
+Lua 5.1. The port itself uses no EXU, OpenShim or strategic-AI replacement; the co-op layer
+(`-- CR ... >>` regions) requires CRCoop, ScriptSubtitles and the bundled EXU multiplayer hooks.
+
+> **Co-op.** The script now also hosts 2-4 player co-op, a per-human layer and the Razor One arc;
+> see `Docs/MISN12_COOP.md`. Everything below describes the faithful single-player port, which is
+> unchanged for one human (`Tools/Test-Misn12.lua`).
 
 ## Source and preservation
 
@@ -76,7 +79,7 @@ lua5.1 Tools/Test-Misn12.lua
 python Tools/Test-LuaCommentScan.py
 ```
 
-105 scenario checks pass under an actual Lua 5.1 runtime. They cover strict
+118 scenario checks pass under an actual Lua 5.1 runtime. They cover strict
 timer/distance boundaries, the empty key ship, capture, cinematics and cancel,
 normal and recovery routes, identification/discovery, uplink interruption and
 reconnection, failure paths, escape/victory, changed vehicles, corrected patrol

@@ -7,9 +7,9 @@ Outputs:
   openshim_ibl_brdf_lut.dds             64x64 uncompressed RG split-sum GGX BRDF LUT
 
 The runtime set is owned by OpenShim and ships in its Enhanced renderer payload
-(BZR-OpenShim resources/renderer/enhanced/), which CR staging mirrors into
-openshim/renderer/enhanced/. CR materials bind it by that path and ship no copy
-of their own. Generation therefore stages into Local/IBL by default; promoting a
+(BZR-OpenShim resources/renderer/enhanced/), which OpenShim installs and loads as
+its OpenShimEnhanced resource group. CR materials bind it by bare filename and
+ship no loadable copy of their own. Generation therefore stages into Local/IBL by default; promoting a
 new set means copying it into the OpenShim repo and bumping resources.version.
 
 The environment itself is procedural and deliberately neutral/LDR. It exists as

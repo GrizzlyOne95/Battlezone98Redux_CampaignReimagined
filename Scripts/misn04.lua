@@ -49,6 +49,7 @@ local native = {
 }
 local events, acknowledgements = {}, {}
 local receivedEvent = 0
+local pendingSeq, pendingSince
 local nextEventSend, nextCameraSend = 0, 0
 local cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
 local remoteCameraSerial, localCameraGeneration = 0, 0
@@ -81,6 +82,11 @@ local function ApplyPresentation(op, ...)
         if not CRCoop.IsAuthority() and CRMarsWeather.ForceLevel then
             CRMarsWeather.ForceLevel((...), 86400)
         end
+    elseif op == "Label" then
+        local handle, label = ...
+        if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
+            pcall(SetLabel, handle, label)
+        end
     elseif op == "SucceedMission" or op == "FailMission" then
         local when, description = ...
         if localCameraActive then native.CameraFinish() end
@@ -93,12 +99,98 @@ local function ApplyPresentation(op, ...)
     end
 end
 
+-- Ops whose first argument is a game object. Objects travel by identity, never by a bare
+-- handle the engine may not carry: "@handle@label" (a guest resolves the label first, then
+-- the replicated handle), or "!" when the leader reports the object gone. Label is the
+-- event that makes a leader-side SetLabel on a spawned object true on every guest.
+local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
+    SetUserTarget = true, RemoveObject = true, Label = true }
+local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true, Label = true }
+local GONE = "!"
+-- Guests WAIT for the real object. This is only a never-hang guard: when it fires the
+-- guest logs "[coop] unresolved ..." and counts it in M.coopUnresolved (the harness probe
+-- reads that and expects zero).
+local RESOLVE_TIMEOUT = 15
+local labelSerial, announced = 0, {}
+-- Targets a guest already gave up on (logged once): later events for them skip at once.
+local gaveUp = {}
+
+local function HandleText(handle)
+    return type(handle) == "number" and string.format("%d", handle) or tostring(handle)
+end
+
+local function KnownLabel(handle)
+    local ok, label = pcall(GetLabel, handle)
+    if ok and type(label) == "string" and label ~= "" and #label <= 126 then
+        local found, resolved = pcall(GetHandle, label)
+        if found and resolved == handle then return label end
+    end
+end
+
+-- Leader: tell every guest "this replicated handle carries this label" once.
+local function AnnounceLabel(handle, label)
+    if announced[handle] == label then return end
+    announced[handle] = label
+    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+        n = 2, ttl = RESOLVE_TIMEOUT, handle = handle }
+end
+
+-- Leader: the label for a target, assigning a deterministic unique one to an unlabelled
+-- spawned object.
+local function EnsureLabel(handle)
+    local label = KnownLabel(handle)
+    if not label and type(SetLabel) == "function" then
+        labelSerial = labelSerial + 1
+        pcall(SetLabel, handle, "crco_" .. labelSerial)
+        label = KnownLabel(handle)
+    end
+    if label then AnnounceLabel(handle, label) end
+    return label
+end
+
+local function WireHandle(handle)
+    if handle == nil then return nil end
+    if not IsValid(handle) then return GONE end
+    local label = EnsureLabel(handle)
+    if label then return "@" .. HandleText(handle) .. "@" .. label end
+    return handle
+end
+
+-- Retransmissions re-check the leader's view: a marker/label target that has since died
+-- is reported gone so a guest that never got it does not wait for it.
+local function EventArgs(event)
+    if event.handle ~= nil and WAIT_OPS[event.op] and not IsValid(event.handle) then
+        local args = { unpackArgs(event.args, 1, event.n) }
+        args[1] = GONE
+        return args
+    end
+    return event.args
+end
+
 local function Present(op, ...)
     if CRCoop.IsNetworkGame() then
         if not CRCoop.IsAuthority() then return end
-        events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), expires = GetTime() + 5 }
+        local wire, handle = { ... }, nil
+        if HANDLE_OPS[op] and wire[1] ~= nil then handle = wire[1]; wire[1] = WireHandle(handle) end
+        events[#events + 1] = { op = op, args = wire, n = select("#", ...), ttl = RESOLVE_TIMEOUT,
+            handle = handle }
     end
     return ApplyPresentation(op, ...)
+end
+
+local function WireCameraFrame(frame)
+    return { frame[1], frame[2], frame[3], WireHandle(frame[4]) }
+end
+
+-- A leader-side SetLabel on a spawned object is replicated to every guest, so the label
+-- path (and GetHandle(label)) works there too.
+local nativeSetLabel = SetLabel
+local function SetLabel(handle, label)
+    local result = nativeSetLabel and nativeSetLabel(handle, label)
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and type(label) == "string" and IsValid(handle) then
+        AnnounceLabel(handle, label)
+    end
+    return result
 end
 
 -- Lexical wrappers affect this mission only; shared modules retain stock APIs.
@@ -165,6 +257,64 @@ local function CameraFinish()
     if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
 end
 
+-- Camera frames carry their subject/target as "@handle@label" (or "!" when the leader
+-- reports it gone). A guest holds the film's start until the REAL objects resolve. Only a
+-- gone flag, or the never-hang guard (loudly logged and counted), lets it play with
+-- whatever remains valid.
+local cameraWaitSince, cameraGaveUp, cameraLast
+
+-- handle (or nil), gone
+local function ResolveCameraHandle(sent)
+    if sent == nil or sent == GONE then return nil, true end
+    if type(sent) ~= "string" or sent:sub(1, 1) ~= "@" then return sent, false end
+    local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+    local resolved = sentLabel and GetHandle(sentLabel)
+    if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+        local candidate = tonumber(sentHandle) or sentHandle
+        if IsValid(candidate) then resolved = candidate end
+    end
+    return resolved, (not IsValid(resolved)) and sentLabel ~= nil and gaveUp[sentLabel] == true
+end
+
+local function NativeCameraPath(path, height, speed, target)
+    if target == nil then return pcall(native.CameraPath, path, height, speed, nil) end
+    return native.CameraPath(path, height, speed, target)
+end
+
+-- ready, subject, target. sentSubject == nil means the kind carries none (path cameras).
+local function ResolveCameraHandles(sentSubject, sentTarget)
+    local needSubject = sentSubject ~= nil
+    local subject, subjectGone = ResolveCameraHandle(sentSubject)
+    local target, targetGone = ResolveCameraHandle(sentTarget)
+    if (not needSubject or IsValid(subject)) and IsValid(target) then
+        cameraWaitSince, cameraLast = nil, { subject, target }
+        return true, subject, target
+    end
+    local settled = (not needSubject or IsValid(subject) or subjectGone) and (IsValid(target) or targetGone)
+    if not settled then
+        if localCameraActive and cameraLast then return true, cameraLast[1], cameraLast[2] end
+        if localCameraActive or not cameraGaveUp then
+            local now = GetTime()
+            if not cameraWaitSince or now < cameraWaitSince then cameraWaitSince = now end
+            if now - cameraWaitSince < RESOLVE_TIMEOUT then return false end
+            if not cameraGaveUp then
+                cameraGaveUp = true
+                for _, sent in ipairs({ sentSubject or false, sentTarget or false }) do
+                    local label = type(sent) == "string" and sent:match("^@[^@]*@(.*)$")
+                    if label then gaveUp[label] = true end
+                end
+                M.coopUnresolved = (M.coopUnresolved or 0) + 1
+                print("[coop] unresolved camera " .. tostring(sentSubject) .. " " .. tostring(sentTarget))
+            end
+        end
+    end
+    -- Settled (gone flag) or guard fired: play with whatever remains valid.
+    if not IsValid(target) then target = IsValid(subject) and subject or nil end
+    if needSubject and not IsValid(subject) then subject = target end
+    if needSubject and subject == nil then return false end
+    return true, subject, target
+end
+
 local function UpdateRemoteCamera()
     if not remoteCamera then return end
     local generation, path, height, speed, target = unpackArgs(remoteCamera)
@@ -176,8 +326,12 @@ local function UpdateRemoteCamera()
     if generation ~= localCameraGeneration then
         localCameraGeneration = generation
         cameraSkipped = false
+        cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
     end
-    if cameraSkipped or not IsValid(target) then return end
+    if cameraSkipped then return end
+    local ready, _, resolved = ResolveCameraHandles(nil, target)
+    if not ready then return end
+    target = resolved
     if not localCameraActive then
         native.CameraReady()
         localCameraActive = true
@@ -187,11 +341,13 @@ local function UpdateRemoteCamera()
         native.CameraFinish()
         return
     end
-    native.CameraPath(path, height, speed, target)
+    NativeCameraPath(path, height, speed, target)
 end
 
 local function UpdatePresentationTransport()
     if not CRCoop.IsNetworkGame() then return end
+    -- Read by the harness probe (numbers in M appear in its snapshots): must stay 0.
+    if M.coopUnresolved == nil then M.coopUnresolved = 0 end
     if not CRCoop.IsAuthority() then
         UpdateRemoteCamera()
         return
@@ -204,7 +360,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.expires, unpackArgs(event.args, 1, event.n))
+                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
                 end
             end
         end
@@ -219,7 +375,7 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(cameraFrame))
+            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "", 0, 0)
         end
@@ -247,19 +403,46 @@ local function ReceivePresentation(from, kind, ...)
         end
         return true
     end
-    local seq, op, expires = ...
-    if type(seq) ~= "number" or type(op) ~= "string" or type(expires) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Resources" or op == "Difficulty" or
+    local seq, op, ttl = ...
+    if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
+    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources" or op == "Difficulty" or
         op == "WeatherTarget" or op == "WeatherForce" or op == "WeatherLevel") then
         local args = { select(4, ...) }
-        -- Dynamic handles can arrive after the Lua packet. Withhold the ACK
-        -- until the next retransmission resolves it, rather than losing markers.
-        local missing = (op == "SetObjectiveOn" or op == "SetObjectiveName" or op == "SetUserTarget") and
-            not IsValid(args[1])
-        if missing and GetTime() < expires then return true end
-        -- A target destroyed before its packet arrived must not block the
-        -- stream (and the mission result) forever. Only that stale marker drops.
-        if not missing then ApplyPresentation(op, unpackArgs(args, 1, select("#", ...) - 3)) end
+        local count = select("#", ...) - 3
+        local apply, unresolved = true, false
+        if HANDLE_OPS[op] then
+            local sent, described = args[1], args[1]
+            if sent == GONE then
+                -- The leader reports the object gone: skip this marker, never wait.
+                apply = false
+            elseif type(sent) == "string" and sent:sub(1, 1) == "@" then
+                local sentHandle, sentLabel = sent:match("^@([^@]*)@(.*)$")
+                local resolved = sentLabel and GetHandle(sentLabel)
+                if not IsValid(resolved) and sentHandle and sentHandle ~= "" then
+                    local candidate = tonumber(sentHandle) or sentHandle
+                    if IsValid(candidate) then resolved = candidate end
+                end
+                args[1], described = resolved, sentLabel or sent
+                if not IsValid(args[1]) then apply, unresolved = false, true end
+            elseif not IsValid(sent) then
+                unresolved = true
+            end
+            if unresolved and WAIT_OPS[op] and gaveUp[described] then
+                apply = false
+            elseif unresolved and WAIT_OPS[op] then
+                -- The real object may replicate after the Lua packet: withhold the ACK so
+                -- the retransmission retries. Only the never-hang guard ends the wait.
+                local now = GetTime()
+                if pendingSeq ~= seq or now < pendingSince then pendingSeq, pendingSince = seq, now end
+                if now - pendingSince < math.min(ttl, 60) then return true end
+                gaveUp[described] = true
+                M.coopUnresolved = (M.coopUnresolved or 0) + 1
+                print("[coop] unresolved " .. tostring(described) .. " (" .. op .. ")")
+                apply = false
+            end
+        end
+        pendingSeq = nil
+        if apply then ApplyPresentation(op, unpackArgs(args, 1, count)) end
         receivedEvent = seq
     end
     Send(from, "A", receivedEvent)
@@ -334,6 +517,8 @@ local function NewMissionState()
         aud12 = nil,
         aud13 = nil,
         aud14 = nil,
+        aud24 = nil,
+        endsucceeded = false,
         ccahasrelic = false,
         relicseen = false,
         obset = false,
@@ -2683,6 +2868,7 @@ function Start()
     })
     CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
     events, acknowledgements, receivedEvent = {}, {}, 0
+    pendingSeq, pendingSince = nil, nil
     nextEventSend, nextCameraSend = 0, 0
     cameraFrame, cameraGeneration, cameraSerial = nil, 0, 0
     remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
@@ -2715,6 +2901,12 @@ function Start()
                 autoRescue = true,
                 stickToPlayer = true,
                 manageFactories = true,
+                -- Human teams default to unmanaged; Pilot Mode (single-player only) explicitly opts the
+                -- player team back in to base and tactical management.
+                manageBase = true,
+                manageTacticalOrders = true,
+                manageConstructor = true,
+                manageSpecialCombat = true,
                 autoBuild = true,
                 autoTugs = false,
             },
@@ -2904,6 +3096,12 @@ function Update()
                     autoRescue = true,
                     stickToPlayer = true,
                     manageFactories = true,
+                    -- Human teams default to unmanaged; Pilot Mode (single-player only) explicitly opts the
+                    -- player team back in to base and tactical management.
+                    manageBase = true,
+                    manageTacticalOrders = true,
+                    manageConstructor = true,
+                    manageSpecialCombat = true,
                     autoBuild = true,
                     autoTugs = false,
                 },
@@ -3178,7 +3376,9 @@ function Update()
     end
 
     if M.warn == 4 and M.notfound < GetTime() and not M.missionfail then
-        M.aud14 = subtit.Play("misn0694.wav")
+        -- CR restored VO: misn0436.wav (Collins' "investigate the CCA activity" rebuke before the failure line)
+        subtit.Play("misn0436.wav")
+        M.aud14 = subtit.Queue("misn0694.wav")
         M.missionfail = true
     end
     if M.missionfail and M.warn == 4 and AudioDone(M.aud14) then
@@ -3197,7 +3397,15 @@ function Update()
     end
 
     if not M.discoverrelic and M.investigator >= 1 then
-        M.aud2 = subtit.Play("misn0408.wav")
+        local humanNearRelic = IsAlive(M.relic) and CRCoop.AnyPlayerSatisfies(function(h)
+            return IsAlive(h) and GetDistance(h, M.relic) < 400.0
+        end)
+        if humanNearRelic then
+            M.aud2 = subtit.Play("misn0408.wav")
+        else
+            -- CR restored VO: misn0407.wav (a wingman, not a player, found the relic)
+            M.aud2 = subtit.Play("misn0407.wav")
+        end
         M.aud3 = subtit.Queue("misn0409.wav")
         M.relicseen = true
         M.newobjective = true
@@ -3545,13 +3753,19 @@ function Update()
             -- Host-built, so its removal replicates; no presentation event needed.
             if IsValid(M.endcamTarget) then native.RemoveObject(M.endcamTarget) end
             M.endmission = true
-            SucceedMission(GetTime(), "misn04w1.des")
+            -- CR restored VO: misn0424.wav (Collins' mission-complete line; result waits for it)
+            M.aud24 = subtit.Play("misn0424.wav")
         end
+    end
+
+    if M.endmission and not M.endsucceeded and AudioDone(M.aud24) then
+        M.endsucceeded = true
+        SucceedMission(GetTime(), "misn04w1.des")
     end
 
     if not M.missionwon and not IsAlive(M.avrec) and not M.missionfail then
         subtit.Play("misn0421.wav")
-        subtit.Play("misn0422.wav")
+        subtit.Queue("misn0422.wav")
         M.missionfail = true
         FailMission(GetTime() + 20.0, "misn04l3.des")
     end
@@ -3598,7 +3812,7 @@ function Update()
         end
 
         M.aud21 = subtit.Play("misn0415.wav")
-        M.aud22 = subtit.Play("misn0416.wav")
+        M.aud22 = subtit.Queue("misn0416.wav")
         M.basesecure = true
         M.newobjective = true
         M.secureloopbreak = true
@@ -3606,10 +3820,8 @@ function Update()
 
     if not IsAlive(M.relic) and not M.missionfail then
         FailMission(GetTime() + 20.0, "misn04l2.des")
-        subtit.Play("misn0431.wav")
-        subtit.Play("misn0432.wav")
-        subtit.Play("misn0433.wav")
-        subtit.Play("misn0434.wav")
+        -- CR restored VO: misn0428.wav (Collins on the relic being destroyed; 0431-0434 remain the CCA-theft lines)
+        subtit.Play("misn0428.wav")
         M.missionfail = true
     end
 
