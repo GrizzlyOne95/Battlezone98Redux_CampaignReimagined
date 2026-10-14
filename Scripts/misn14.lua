@@ -100,7 +100,60 @@ SetAIControl(ENEMY_TEAM, true)
 local TitanWeather
 do
     local ok, mod = pcall(require, "CRTitanWeather")
-    if ok and type(mod) == "table" and type(mod.MissionHook) == "function" then TitanWeather = mod end
+    if ok and type(mod) == "table" then
+        if type(mod.MissionHook) == "function" then
+            TitanWeather = mod
+        elseif type(mod.Init) == "function" and type(mod.Update) == "function" then
+            -- The director on main (Docs/TITAN_WEATHER.md) exposes Init/Update/ApplyNetEvent rather than a
+            -- MissionHook: adapt the hook events onto its API here, so the mission logic stays untouched.
+            local sitesOk, sites = pcall(require, "CRTitanSites14")
+            if not sitesOk then sites = nil end
+            local seedHolder = {}
+            local announced = false
+            local function call(name, ...)
+                if type(mod[name]) == "function" then return mod[name](...) end
+            end
+            local BEATS = {
+                start = function() call("SetTargetLevel", 2) end,
+                activation = function() call("Roll", 70, 0.9) end,         -- a haze bank as the Furies wake
+                rogue = function() call("ForceLevel", 3, 120, 15) end,    -- drizzle over the turn
+                surrender = function() call("SetTargetLevel", 3) end,
+                rescue_cca = function() call("ReleaseForcedLevel"); call("SetTargetLevel", 2) end,
+                win = function() call("ReleaseForcedLevel"); call("SetTargetLevel", 1) end,
+            }
+            TitanWeather = { MissionHook = function(event, a, b, ...)
+                if event == "init" then
+                    local context = a or {}
+                    seedHolder.authority = context.authority
+                    call("Init", { authority = context.authority, seed = seedHolder.seed, sites = sites,
+                        startLevel = 1, targetLevel = 2, send = context.send })
+                    if context.authority then seedHolder.seed = mod.Seed end
+                elseif event == "update" then
+                    if seedHolder.authority and not announced and CRCoop.IsNetworkGame() and CRCoop.IsSessionReady() then
+                        announced = true
+                        call("AnnounceState")
+                    end
+                    call("Update", a)
+                elseif event == "net" then
+                    return call("ApplyNetEvent", a, b, ...)
+                elseif event == "beat" then
+                    if BEATS[a] then BEATS[a]() end
+                elseif event == "save" then
+                    return { seed = mod.Seed, state = call("Save") }
+                elseif event == "load" then
+                    if type(a) == "table" then
+                        seedHolder.seed = a.seed
+                        if a.state ~= nil then call("Load", a.state) end
+                    end
+                elseif event == "object" then
+                    call("OnObjectCreated", a)
+                elseif event == "shutdown" then
+                    announced = false
+                    call("Shutdown")
+                end
+            end }
+        end
+    end
 end
 local function TitanHook(event, ...)
     if not TitanWeather then return nil end

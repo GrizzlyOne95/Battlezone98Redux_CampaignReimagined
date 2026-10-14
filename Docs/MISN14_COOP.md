@@ -118,6 +118,15 @@ team 7.
 A missing module is a silent no-op; a module that throws is logged once and ignored. The mission does not load
 `Environment.lua` (the weather agent owns that wiring).
 
+**Wired to the merged director.** `CRTitanWeather` landed on main (#206, `Docs/TITAN_WEATHER.md`) with an
+`Init`/`Update`/`ApplyNetEvent` API and no `MissionHook`, so the hook region adapts the events onto it (the mission
+logic is unchanged): `init` -> `Init{authority, seed, sites = CRTitanSites14, startLevel 1, targetLevel 2, send}`;
+`update` -> `Update(dt)` (plus one host `AnnounceState` once the co-op session is ready); `net` ->
+`ApplyNetEvent` (`TitanState` / `TitanRoll` ride the ordered stream); `save`/`load` keep the seed and the director
+state in `M.titanWeather`; beats: start `SetTargetLevel(2)`, activation `Roll(70, 0.9)`, rogue
+`ForceLevel(3, 120, 15)`, surrender `SetTargetLevel(3)`, CCA rescue and win release the force and ease to 2 / 1.
+Not live-verified with the real director (the live run above used no director).
+
 ## VO usage
 
 | Line | Speaker | Stock use | Now |
