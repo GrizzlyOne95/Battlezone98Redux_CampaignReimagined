@@ -406,6 +406,35 @@ Judged from the captures, for the owner to tune:
   a weather artifact.
 - Not covered: co-op with real latency, cost in a busy battle, save / load in game, other Titan maps.
 
+### The methane surface (2026-10-14)
+
+Same scratch instance and listing, single-player, windowed 1920x1080 (captured at 1268x513), with the
+surface files staged into its mod folder; a fixture laid the director twice from the westmost pool anchor
+(surface off = the `main` look, then on) and shot each pass from the same camera pods: west over the open
+sea, away from and toward the haze sun, close and low toward the sun, and 25 m up; then the drizzle rung
+and a haze roll.
+
+- **DX11 Enhanced** (`profile.effective=Enhanced`, `backend identified: Direct3D11`): `MaterialExists
+  CR/Titan/Methane14` true; `methane surface up: CR/Titan/Methane14 at y 5.35 over 5120 x 5120`; Ogre
+  loads `cr_methane_plane.mesh`, `cr_methane_ripple.png` and `cr_titan14_wet.png`; the pass diffuse read
+  back as the controls the director sent (`0 1 1 0.45` calm, drizzle 1 and glare 0.60 in the drizzle
+  rung, glare 0.36 during the roll). No Ogre material/program error beyond the stock "Invalid target ... vs_3_0" lines
+  every unified program logs on D3D11, no Lua error, no device recreation.
+- **DX9** (`/renderer:dx9`, `backend identified: Direct3D9`): the SM3 delegate renders the same look.
+- Three bugs found and fixed by the runs: the sheet at sea level + 0.06 let the floor's relief poke through
+  in patches (lift now 0.35); Ogre's `derived_light_*` colours multiplied the lights by the control vector
+  (green liquid, a pure-red glint); and plain alpha blending read as a dark olive film (now the
+  premultiplied transmit-plus-reflect model).
+- The camera-pod mesh shows as an olive square when the camera sits 2-2.5 units over a pod (fixture
+  framing, not the surface).
+
+Screenshots (outside the repository, session scratchpad `methane\dx11\` and `methane\dx9\`):
+`before_*` / `after_*` (west, away, sun, close, high), `drizzle_*`, `roll_sun`, `roll_west`.
+
+Not covered for the surface: co-op (static data, nothing replicated; the guest path is unit-tested only),
+save / load in game, OpenGL (invisible fallback by design, not launched), cost in a busy battle, other
+Titan maps (each needs its mask and a `CR/Titan/Methane<NN>` material).
+
 ## 12. Shipping notes
 
 `Shipping/shipping.lock.json` gains three entries, inserted in place with `count` bumped (the normal
