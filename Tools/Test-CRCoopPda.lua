@@ -129,7 +129,7 @@ do
     local enemy, mission, unknown = { name = "enemy" }, { name = "mission" }, { name = "unknown" }
     local state = { [enemy] = { on = false, name = "Grizzly" }, [mission] = { on = true, name = "Relic" },
         [unknown] = { on = nil, name = "Scout" } }
-    local log = {}
+    local log, spawned = {}, {}
     local hud = Hud.Create({
         exu = {}, time = function() return clock end, resolution = function() return 1280, 720 end,
         font = function() return "font" end,
@@ -141,6 +141,13 @@ do
             off = function(h) state[h].on = false; log[#log + 1] = h.name .. " off" end,
             name = function(h, text) state[h].name = text end,
             getName = function(h) return state[h].name end,
+            spawn = function(pos)
+                local h = { name = "marker", pos = pos }
+                state[h] = { on = false, name = "Ping" }
+                spawned[#spawned + 1] = h
+                return h
+            end,
+            remove = function(h) state[h].removed = true end,
         },
     })
     pings = { [20] = { name = "Ann", kind = "object", handle = enemy, seq = 1, position = { x = 0, y = 0, z = 9 } },
@@ -162,5 +169,19 @@ do
     pings = {}
     clock = clock + 0.1; hud.Update(false)
     check(state[mission].on and state[mission].name == "Relic", "existing objective never switched off")
+    -- Terrain: one invisible local marker per ping, removed when it ends or is replaced.
+    pings = { [20] = { name = "Ann", kind = "terrain", seq = 2, position = { x = 5, y = 0, z = 6 } } }
+    clock = clock + 0.1; hud.Update(false)
+    local marker = spawned[1]
+    check(#spawned == 1 and state[marker].on and state[marker].name == "Ann: GO HERE", "terrain ping gets a marker")
+    check(marker.pos.x == 5 and marker.pos.z == 6, "marker at the ping")
+    clock = clock + 0.1; hud.Update(false)
+    check(#spawned == 1, "one marker per ping")
+    pings[20] = { name = "Ann", kind = "terrain", seq = 3, position = { x = 9, y = 0, z = 9 } }
+    clock = clock + 0.1; hud.Update(false)
+    check(state[marker].removed and #spawned == 2, "a new ping replaces the old marker")
+    pings = {}
+    clock = clock + 0.1; hud.Update(false)
+    check(state[spawned[2]].removed, "marker removed when the ping ends")
 end
 print("CRCoopPda/Hud: " .. checks .. " checks passed")
