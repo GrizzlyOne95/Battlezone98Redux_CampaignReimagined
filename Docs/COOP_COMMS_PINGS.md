@@ -45,15 +45,16 @@ Each player has one active ping, lasting ten seconds, with a 1.5-second send
 cooldown, shown only as a stock objective marker plus a chat line. Receiving a
 ping never changes the target; TARGET calls the local `SetUserTarget`.
 
-A pinged unit also gets the stock objective marker on every player's HUD
-(local `SetObjectiveOn`, named `Name: TARGET`) until the ping ends, and is then
-switched off and renamed back. A unit that is already an objective (a mission
-objective or a teammate marker) only flashes for about a second and is never
-switched off or renamed. That check needs EXU `IsObjectiveOn` (it reads the
+A pinged unit is renamed `Name: TARGET PING` on every player's HUD until the
+ping ends, then gets its old name back. If it was not an objective it also gets
+the stock marker (local `SetObjectiveOn`) for the ping. If it already was (a
+mission objective or a teammate status marker) it flashes for about a second
+and is never switched off. A teammate's status marker relabels its craft every
+second, so on teammates the ping name is brief. The check needs EXU `IsObjectiveOn` (it reads the
 engine flag at GameObject+0x189); without it, an object ping shows only the chat line.
 A terrain ping builds an invisible marker object on each player's machine
 (`exu.BuildAsyncObject("crping", 0, pos)`, local-only), names it
-`Name: GO HERE`, switches its objective marker on, and removes it when the ping
+`Name: TERRAIN PING`, switches its objective marker on, and removes it when the ping
 ends or is replaced. `ODF/crping.odf` is a plain `i76building` that reuses the
 stock geyser base mesh `eggeizr1`, which sits entirely below ground. Rejected
 classes: `camerapod`/`apcamr` (looks like a mission nav), `spawnpnt` (joins
