@@ -1,8 +1,22 @@
 # Redux's native text BZN reader requires CRLF, including edited header lines.
 # Empty native fields deliberately retain a space after '='.
 *.bzn text eol=crlf whitespace=-blank-at-eol
+# These restored stock BZNs retain their native binary payloads.
+Missions/misns4.bzn binary
+Missions/misns6.bzn binary
+# Terrain rasters must remain byte-exact, including light maps with no NULs.
+*.hg2 binary
+*.mat binary
+*.lgt binary
 # Keep the tested stock terrain description byte format.
 Missions/crsetup.trn whitespace=-blank-at-eol,-blank-at-eof
+# Restored stock companions keep the original spacing and file bytes.
+Missions/misn14.trn -text whitespace=-blank-at-eol,-blank-at-eof
+Missions/misn15b.trn -text whitespace=-blank-at-eol,-blank-at-eof
+Missions/misn16b.trn -text whitespace=-blank-at-eol,-blank-at-eof
+Missions/misns4.trn -text whitespace=-blank-at-eol,-blank-at-eof
+Missions/misns5.trn -text whitespace=-blank-at-eol,-blank-at-eof
+Missions/misns6.trn -text whitespace=-blank-at-eol,-blank-at-eof
 # Verbatim misn10 source and in-place cut-code comments retain original spacing.
 # Disable newline conversion for the archive so its pinned Git blobs survive.
 References/Misn10Source/* -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
