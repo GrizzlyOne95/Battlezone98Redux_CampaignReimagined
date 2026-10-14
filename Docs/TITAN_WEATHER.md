@@ -353,7 +353,7 @@ python -I Tools/Build-TitanSites.py misn14 --zfs "<Redux>\bzone.zfs" --check
 
 Run 2026-10-14 on a scratch instance (`C:\BZRCoop\titanwx`, a copy of the GOG install with this branch's
 `CRTitanWeather`, `CRTitanSites14`, `Environment`, `CRWeather*`, `CRVenusMap`, `CRParticleTemplates` and the
-payload staged into its `mods86673790`), DX11 Enhanced, windowed 1920x1080 (the RDP client area captured at
+payload staged into its `mods\3686673790`), DX11 Enhanced, windowed 1920x1080 (the RDP client area captured at
 1268x513). The stock `misn14.bzn` was converted to text and listed as a temporary `instant_action` mission
 `tiwx.bzn` with `msn_filename = tiwx.bzn` and `[AiMission] name = LuaMission` (with the stock
 `Misn14Mission` name the native misn14 logic runs instead of the Lua). A fixture script moved the player to the
