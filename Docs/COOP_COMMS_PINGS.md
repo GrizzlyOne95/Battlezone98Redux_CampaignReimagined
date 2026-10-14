@@ -64,11 +64,15 @@ Ownership rule: a world change runs only on the machine that owns the object.
   out. The guest then boards through the stock hop-in, which hands ownership
   to the guest's machine (`Person::RegCollision`: SetLocal, team, SetAsUser).
 - **Give**: the giver must own the unit (`IsLocal`, own team, a craft, not
-  recycler/factory/armory/constructionrig, not their own craft). The receiver
-  rebuilds it on its own team with `exu.BuildSyncObject` at the same transform,
-  hull and ammo, then sends TAKEN, and the giver removes the
-  original. If the receiver cannot rebuild it within eight seconds, the giver
-  keeps it. `SetLocal` is never used, because it can break a remote AI's control.
+  recycler/factory/armory/constructionrig, not their own craft). With EXU
+  `AdoptObject`, the receiver takes over the real unit: SetLocal (the old
+  owner's engine drops its AI when it sees the claim), the receiver's team,
+  then a fresh AI attached from the ODF, the same steps the engine runs when
+  a pilot boards an empty craft. It replies TAKEN 1 and nothing is removed.
+  Pending orders do not carry over. On an older EXU the receiver rebuilds the
+  unit with `exu.BuildSyncObject` (same transform, hull and ammo) and replies
+  TAKEN 0, and the giver removes its original. If neither happens within eight
+  seconds, the giver keeps the unit.
 - **Recall**: the host broadcasts its position, and each guest moves its own craft
   to a 25 m ring around it.
 

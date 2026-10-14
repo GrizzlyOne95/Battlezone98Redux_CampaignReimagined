@@ -108,13 +108,22 @@ function M.Create(d)
             say("Could not take that unit.")
             return
         end
+        -- Preferred: adopt the real unit (exu.AdoptObject: SetLocal plus a
+        -- fresh AI here, the engine's own boarding handoff). The giver's
+        -- engine drops its AI on our claim, so it removes nothing (TAKEN 1).
+        if call("adopt", h, me.team) == true then
+            taken[h] = true
+            service.Publish(packet(TAKEN, from, nil, h, nil, 1))
+            return
+        end
+        -- Fallback for older EXU: rebuild it here; the giver removes the original.
         local copy = call("spawn", odf, me.team, xf)
         if not valid(copy) then say("Could not take that unit."); return end
         taken[h] = true
         local hp, ammo = decode(value)
         call("setHealth", copy, hp / 100)
         call("setAmmo", copy, ammo / 100)
-        service.Publish(packet(TAKEN, from, nil, h))
+        service.Publish(packet(TAKEN, from, nil, h, nil, 0))
     end
     local function apply(from, p)
         local op, number, origin, subject, subjectRevision = p[2], p[3], p[4], p[5], p[6]
@@ -187,7 +196,9 @@ function M.Create(d)
         elseif op == TAKEN then
             if subject == me and gives[h] then
                 gives[h] = nil
-                call("remove", h)
+                -- 1: adopted in place (our engine already dropped its AI);
+                -- 0: rebuilt on the receiver, so remove our original.
+                if value ~= 1 then call("remove", h) end
                 changed()
             end
         end
@@ -367,7 +378,7 @@ function M.Create(d)
         elseif op == GIVE then
             if not integer(p[5]) or not valid(p[7]) or not finite(p[11]) or p[11] < 0 then return true end
         elseif op == TAKEN then
-            if not integer(p[5]) or p[7] == false then return true end
+            if not integer(p[5]) or p[7] == false or (p[11] ~= 0 and p[11] ~= 1) then return true end
         end
         local receipt = { VERSION, RECEIPT, p[3], d.localHandle(), 0, 0, false, 0, 0, 0, op }
         send(from, receipt)

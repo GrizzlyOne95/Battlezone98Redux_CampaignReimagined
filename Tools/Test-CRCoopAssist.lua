@@ -20,7 +20,7 @@ local registry = { [10] = { name = "Host", team = 1, handle = hostCraft, ready =
     [20] = { name = "Guest", team = 2, handle = guestPilot, ready = true },
     [30] = { name = "Friend", team = 3, handle = friendTank, ready = true } }
 local spawned, removed, recalls, objectives, rescues = {}, {}, {}, {}, {}
-local spawnFails = false
+local spawnFails, adoptWorks = false, false
 local function messagesFor(id, pattern)
     for _, m in ipairs(messages) do if m[1] == id and m[2]:find(pattern, 1, true) then return true end end
     return false
@@ -50,6 +50,11 @@ for id in pairs(registry) do
             local copy = object(mine, team, { odf = odf, pos = xf })
             spawned[#spawned + 1] = copy
             return copy
+        end,
+        adopt = function(h, team)
+            if not adoptWorks then return false end
+            h.owner, h.team = mine, team
+            return true
         end,
         setHealth = function(h, f) h.hp = f end, setAmmo = function(h, f) h.ammo = f end,
         remove = function(h) h.valid = false; removed[#removed + 1] = h end,
@@ -155,6 +160,17 @@ ok, why = F.Give(recycler, 20)
 check(not ok and why:find("production", 1, true), "production units stay")
 check(not F.Give(object(10, 1), 20), "cannot give someone else's unit")
 check(not F.Give(friendTank, 20), "cannot give your own craft")
+-- With exu.AdoptObject the receiver takes the real unit; nothing is rebuilt
+-- or removed.
+adoptWorks = true
+local scout = object(30, 3, { odf = "avscout" })
+before = #spawned
+local removedBefore = #removed
+check(F.Give(scout, 20), "guest gives a scout"); flush(); advance(0.1)
+check(#spawned == before and #removed == removedBefore and scout.valid, "adopted in place")
+check(scout.owner == 20 and scout.team == 2, "receiver owns it on its team")
+check(not messagesFor(30, "Hand-off failed"), "giver saw it taken")
+adoptWorks = false
 -- A receiver that cannot rebuild leaves the unit with the giver.
 spawnFails = true
 local kept = object(10, 1)
