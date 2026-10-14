@@ -2,8 +2,12 @@
 
 `Scripts/misn13.lua` ports the NSDF mission directly from
 [`BZ1/from_bz2_dll_src/Misn13Mission.cpp`](https://github.com/GrizzlyOne95/Battlezone_Source/blob/e7c410573ffedc9e118dd90f402af6d5585955cc/BZ1/from_bz2_dll_src/Misn13Mission.cpp).
-Target: stock Battlezone 98 Redux, Lua 5.1, single player. It uses no community
-mission implementation, EXU/OpenShim feature, or Campaign Reimagined helper.
+Target: stock Battlezone 98 Redux, Lua 5.1. The DLL port itself uses no community
+mission implementation, EXU/OpenShim feature, or Campaign Reimagined helper; the
+shared offline + 2-4 player co-op layer, the restored cut content and the Europa
+weather that now sit on top of it live between `-- CR ... >>` / `<<` marker lines
+and are documented in [MISN13_COOP.md](MISN13_COOP.md). The source-parity test
+strips those regions, so everything below still describes the DLL port.
 The API authority is `Docs/BZR_LUA_AGENT_REFERENCE.md`.
 
 ## Source and disabled content
@@ -101,16 +105,16 @@ python Tools/Validate-CampaignRepository.py
 The source audit checks exact original blobs, all comments and state fields,
 107 ordered active asset/label strings, 159 ordered predicates, 253 ordered
 state assignments, and API call counts with explicitly listed adaptations.
-The Lua suite covers 153 checks with opaque userdata
+The offline Lua suite (`Test-Misn13.lua`) covers 242 checks with opaque userdata
 handles, every silo combination, timer boundaries, AIP/bomber branches,
 artillery, damaged/destroyed objects, callback timing, save/load, and outcomes.
 Both suites are wired into campaign CI. Host checks do not run native AI,
 pathfinding, audio, or engine serialization.
 
-This change adds the script and reference material only. It does not create or
-modify a mission map, replace stock asset names, or bless/deploy a shipping lock.
-It requires the original misn13 map labels, paths, ODFs, AIPs, voice files,
-objective, and debriefings from the matching stock content.
+The co-op map (`Missions/misn13.bzn`, built by `Tools/Build-CoopMap.py --mission misn13`)
+keeps every original map label, path, ODF, AIP, voice file and debriefing from the
+matching stock content; see MISN13_COOP.md for what the co-op layer changes (the CCA on
+team 5, the whole-base win, the restored waves 2-4, the unused misn1301 line).
 
 In-game validation remains outstanding: load the original mission through
 LuaMission, verify the opening and two early waves, trigger bomber/factory/silo
