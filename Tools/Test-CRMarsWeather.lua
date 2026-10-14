@@ -16,6 +16,16 @@
 -- Prints MARS WEATHER OK and a weather trace on success; prints each failed
 -- expectation and exits 1 otherwise.
 
+-- The engine returns VECTOR_3D userdata (not tables) from GetPosition, GetVelocity,
+-- GetTerrainHeightAndNormal normals, etc. Mocks must do the same or a
+-- type(p) == "table" gate passes here and silently fails in game.
+local function UD(t)
+    if t == nil then return nil end
+    local u = newproxy(true)
+    getmetatable(u).__index = function(_, k) return t[k] end
+    return u
+end
+
 local scriptDir = ... or "Scripts"
 package.path = scriptDir .. "\\?.lua;" .. scriptDir .. "/?.lua;" .. package.path
 
@@ -55,7 +65,7 @@ exu.GetSunShadowFarDistance = function() return 900 end
 exu.SetSunShadowFarDistance = function() return true end
 exu.SetViewportShadowsEnabled = function() return true end
 
-exu.GetGravity = function() return { x = 0.0, y = -9.8, z = 0.0 } end
+exu.GetGravity = function() return UD({ x = 0.0, y = -3.7, z = 0.0 }) end
 exu.SetGravity = function(x, y, z) rec.gravity = { x = x, y = y, z = z } return true end
 
 local STOCK_RADAR_RANGE = 400.0
@@ -137,8 +147,8 @@ function StartSound() end
 function GetPlayerHandle() return PLAYER end
 function IsValid(h) return h ~= nil end
 function IsCraft() return true end
-function GetPosition() return { x = 3800.0, y = 2.0, z = 99700.0 } end
-function GetTerrainHeightAndNormal() return 2.0, { x = 0, y = 1, z = 0 } end
+function GetPosition() return UD({ x = 3800.0, y = 2.0, z = 99700.0 }) end
+function GetTerrainHeightAndNormal() return 2.0, UD({ x = 0, y = 1, z = 0 }) end
 function AllCraft()
     local i = 0
     return function()
@@ -310,7 +320,7 @@ check(stormRadar < nightOnly * 0.95,
 
 local lateral = math.sqrt((rec.gravity.x * rec.gravity.x) + (rec.gravity.z * rec.gravity.z))
 check(lateral > 0.05, string.format("a severe storm should push laterally, got %.4f", lateral))
-check(math.abs(rec.gravity.y + 9.8) < 1e-6, "vertical gravity must be left alone")
+check(math.abs(rec.gravity.y + 3.7) < 1e-6, "vertical gravity must be left alone (map gravity read from userdata)")
 
 -- --- save / load -------------------------------------------------------------
 local saved = CRMarsWeather.Save()
