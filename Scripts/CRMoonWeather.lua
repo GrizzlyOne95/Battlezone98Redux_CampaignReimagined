@@ -286,11 +286,22 @@ local function Call(name, ...)
     return result
 end
 
+-- The engine hands back VECTOR_3D userdata, not a table: read x/y/z inside a
+-- pcall and return a plain table (nil unless x and z are numbers).
+local function ReadVector(p)
+    if p == nil then return nil end
+    local okX, x, y, z = pcall(function() return p.x, p.y, p.z end)
+    if okX and type(x) == "number" and type(z) == "number" then
+        return { x = x, y = tonumber(y) or 0.0, z = z }
+    end
+    return nil
+end
+
 local function PositionOf(h)
     if h == nil or type(GetPosition) ~= "function" then return nil end
     local ok, p = pcall(GetPosition, h)
-    if ok and type(p) == "table" and type(p.x) == "number" then return p end
-    return nil
+    if not ok then return nil end
+    return ReadVector(p)
 end
 
 local function ValidHandle(h)
@@ -318,7 +329,13 @@ local function TerrainSample(x, z)
     if type(GetTerrainHeightAndNormal) ~= "function" then return nil, nil end
     local ok, height, normal = pcall(GetTerrainHeightAndNormal, Vec(x, 0.0, z))
     if not ok or type(height) ~= "number" then return nil, nil end
-    if type(normal) ~= "table" or type(normal.y) ~= "number" then normal = nil end
+    -- The normal is a VECTOR_3D userdata in game; keep a plain table.
+    local okN, ny = pcall(function() return normal.y end)
+    if normal == nil or not okN or type(ny) ~= "number" then
+        normal = nil
+    else
+        normal = { x = tonumber(normal.x) or 0.0, y = ny, z = tonumber(normal.z) or 0.0 }
+    end
     return height, normal
 end
 
@@ -783,10 +800,13 @@ local function UpdateImpactPool()
 end
 
 local function OnBulletHit(_, _, _, transform)
-    if type(transform) ~= "table" then return end
-    local x = transform.posit_x or transform.x
-    local y = transform.posit_y or transform.y
-    local z = transform.posit_z or transform.z
+    if transform == nil then return end
+    -- transform may be a table or engine userdata; read it guarded.
+    local okT, x, y, z = pcall(function()
+        return transform.posit_x or transform.x, transform.posit_y or transform.y,
+            transform.posit_z or transform.z
+    end)
+    if not okT then return end
     V.NotifyImpact(x, y, z)
 end
 
@@ -863,8 +883,9 @@ local function UpdateHoverDust()
                 if d <= V.HoverTrackRange then
                     local ground = TerrainHeight(pos.x, pos.z)
                     local okv, velocity = pcall(GetVelocity, h)
-                    if ground ~= nil and okv and type(velocity) == "table" then
-                        local speed = math.sqrt(((velocity.x or 0.0) ^ 2) + ((velocity.z or 0.0) ^ 2))
+                    if okv then velocity = ReadVector(velocity) end
+                    if ground ~= nil and okv and velocity ~= nil then
+                        local speed = math.sqrt((velocity.x ^ 2) + (velocity.z ^ 2))
                         local height = pos.y - ground
                         if speed >= V.HoverMinSpeed then V.HoverMoved[h] = V.Clock end
                         local rate = HoverRateOf(speed, height, V.Clock - (V.HoverMoved[h] or -1000.0))

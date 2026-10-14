@@ -23,6 +23,16 @@
 -- Prints MOON WEATHER OK on success; prints each failed expectation and exits 1
 -- otherwise.
 
+-- The engine returns VECTOR_3D userdata (not tables) from GetPosition, GetVelocity,
+-- GetTerrainHeightAndNormal normals, etc. Mocks must do the same or a
+-- type(p) == "table" gate passes here and silently fails in game.
+local function UD(t)
+    if t == nil then return nil end
+    local u = newproxy(true)
+    getmetatable(u).__index = function(_, k) return t[k] end
+    return u
+end
+
 local scriptDir = ... or "Scripts"
 
 local failures = {}
@@ -255,19 +265,19 @@ local function NewPeer(name, world, options)
     env.GetPlayerHandle = function() return 1 end
     env.IsValid = function(h) return h == 1 or world.objects[h] ~= nil end
     env.GetPosition = function(h)
-        if h == 1 then return peer.playerPos end
+        if h == 1 then return UD(peer.playerPos) end
         local o = world.objects[h]
-        if o then return { x = o.x, y = o.y, z = o.z } end
+        if o then return UD({ x = o.x, y = o.y, z = o.z }) end
         return nil
     end
     env.GetVelocity = function(h)
-        if h == 1 then return peer.playerVel end
+        if h == 1 then return UD(peer.playerVel) end
         local o = world.objects[h]
-        if o then return { x = o.vx, y = 0.0, z = o.vz } end
+        if o then return UD({ x = o.vx, y = 0.0, z = o.vz }) end
         return nil
     end
     env.GetTerrainHeightAndNormal = function(v)
-        return SyntheticHeight(v.x, v.z), SyntheticNormal(v.x, v.z)
+        return SyntheticHeight(v.x, v.z), UD(SyntheticNormal(v.x, v.z))
     end
     env.AllCraft = function()
         local i = -1
@@ -370,7 +380,7 @@ local function NewPeer(name, world, options)
     end
     function peer.Hit(x, y, z)
         local fn = peer.exu.BulletHit
-        if fn then fn("ordnance", 2001, 2002, { posit_x = x, posit_y = y, posit_z = z }, 3001) end
+        if fn then fn("ordnance", 2001, 2002, UD({ posit_x = x, posit_y = y, posit_z = z }), 3001) end
     end
     return peer
 end
