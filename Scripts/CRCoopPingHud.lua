@@ -30,7 +30,7 @@ function M.Project(pos, view, origins, width, height)
     local scale = math.max(math.abs(dx) / 0.38, math.abs(dy) / 0.38)
     px, py = 0.45 + dx / scale, 0.47 + dy / scale
     local arrow = math.abs(dx) > math.abs(dy) and (dx < 0 and "<" or ">") or (dy < 0 and "^" or "v")
-    return px, py, z <= 0.1 and "BACK " .. arrow or arrow, distance
+    return px, py, z <= 0.1 and "BEHIND " .. arrow or arrow, distance
 end
 function M.Create(d)
     local hud, slots = {}, {}
@@ -103,8 +103,8 @@ function M.Create(d)
                 slot = slot or create(index)
                 if slot and slot.ready then
                     call("SetOverlayPosition", slot.root, x, y)
-                    call("SetOverlayCaption", slot.text, string.format("%s %s  %dm\n%s  %ds", arrow,
-                        ping.name:sub(1, 16), distance, ping.kind:upper(), math.max(0, math.ceil(ping.expires - time))))
+                    call("SetOverlayCaption", slot.text, string.format("%s: %s\n%s %dm", ping.name:sub(1, 16),
+                        ping.kind == "object" and "TARGET" or "GO HERE", arrow, distance))
                     visible(slot, true)
                 end
             elseif slot then visible(slot, false) end
