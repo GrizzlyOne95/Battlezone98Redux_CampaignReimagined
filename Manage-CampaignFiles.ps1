@@ -562,7 +562,10 @@ function Resolve-SiblingRepoRoot($environmentVariableName, $defaultRelativePath)
 function Assert-NativeMissionText {
     foreach ($file in @(Get-ManagedSourceFiles | Where-Object Extension -eq '.bzn')) {
         $text = [System.IO.File]::ReadAllText($file.FullName)
-        if ($text.StartsWith('version [1]') -and $text -match '(?<!\r)\n') {
+        # Binary saves share the text version header. Their typed payload may
+        # contain arbitrary 0x0A bytes; only binarySave=false is a text BZN.
+        $isTextSave = $text -match '\Aversion \[1\] =\r?\n\d+\r?\nbinarySave \[1\] =\r?\nfalse\r?\n'
+        if ($isTextSave -and $text -match '(?<!\r)\n') {
             throw "Text BZN '$($file.FullName)' has a bare LF. Normalize every line to CRLF before deployment or staging; the native game reader can fail or terminate on mixed endings."
         }
     }

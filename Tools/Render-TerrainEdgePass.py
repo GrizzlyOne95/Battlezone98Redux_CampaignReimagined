@@ -58,6 +58,11 @@ def render(args):
    ax.set_visible(True);ax.imshow(panels[1],origin='lower',extent=extent);x0,z0,x1,z1=bounds;ax.add_patch(Rectangle((x0,z0),x1-x0,z1-z0,fill=False,color='#00e8ff'));ax.set_title(name+' · '+titles.get(name,name),color='white');ax.set_xticks([]);ax.set_yticks([])
   fig.suptitle('Terrain edge pass — revised terrain and paints',color='white',fontsize=18);fig.savefig(out/'all_maps.png',dpi=125,facecolor=fig.get_facecolor());plt.close(fig)
  html='<!doctype html><meta charset="utf-8"><title>Terrain implementation review</title><style>body{background:#101820;color:white;font:16px system-ui;margin:35px}img{width:100%}h2{margin-top:40px}a{color:cyan}</style><h1>Terrain implementation review</h1><p>Before / after / height delta. Asset render only; in-game driving and AI checks remain required.</p>'
+ html+='<p>Review corrections: misn14 has no flat road along its square world outline. misns4 has a 550 m level metal bridge, intact southern islands, and molten lava paint with small height waves.</p>'
+ deployment=local/'deployment.json'
+ if deployment.exists():
+  status=json.loads(deployment.read_text())
+  if status.get('status')=='verified':html+=f'<p>Deployed to the GOG CR development mod: {status["expected_files"]:,} shipping files verified; zero missing, differing or unexpected files. Workshop publication has not been performed.</p>'
  for name,_,_,_ in rows:html+=f'<h2>{name} — {titles.get(name,name)}</h2><a href="{name}.png"><img src="{name}.png"></a>'
  (out/'index.html').write_text(html,encoding='utf-8')
 if __name__=='__main__':
