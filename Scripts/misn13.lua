@@ -834,6 +834,7 @@ local function UpdateReserve()
             elseif state == "muf" or state == "silo" then
                 local arrived = state == "muf" and MissionDistance(unit, M.ccamuf) < RESERVE_ARRIVE_M
                     or state == "silo" and MissionDistance(unit, "silo_spot") < RESERVE_ARRIVE_M
+                if state == "muf" and not IsAlive(M.ccamuf) then arrived = true end
                 if arrived then
                     Defend(unit)
                     M.reserve_state[i] = "held"
