@@ -63,9 +63,9 @@ The DLL's tug simply turned and drove off. Now:
    of the `openheimer` path (906, 98614): on the CCA side, beyond the road, out of sight. It drives to
    the CCA outpost beside the artillery. Radar sees it arrive before the tug breaks off.
 2. **Defection** (stock timing: break off at Waypoint 1, announcement and team change 15 s later). The
-   squad forms up on the tug (`Formation`), and the strike scans never take it.
+   squad follows the tug (`Follow`; `Formation` raises "bad argument #2 (number expected)" in Redux 2.2.301 and the error alert then closes the host), and the strike scans never take it.
 3. **Chasers.** Every 2 s the squad looks for human craft within 350 m of the tug and attacks the
-   nearest (priority 1); when nobody is near it returns to formation. The artillery shells humans in
+   nearest (priority 1); when nobody is near it returns to following the tug. The artillery shells humans in
    its 650 m range. Oppenheimer's +300 health per tick is kept (he cannot be killed).
 4. **misn1114** (Collins: do not recover Transport 3, Sky-Eye sees a massive force) plays once when any
    human comes within 450 m of the defector.
@@ -130,9 +130,8 @@ python Tools/Build-Misn11Lava.py --dry-run     # lava plan + reachability assert
 
 ## Not yet verified
 
-No live run (two- and four-client co-op, campaign progression). Specifically unproven: that Redux applies
-lava damage from `Lava=1` on this map (the decompile is BZ 1.5) and how hard; that `Goto`/`Attack`/
-`Formation` orders from the script drive the CCA units as intended (the backup squad's `Formation` on an
+No live run (two- and four-client co-op, campaign progression). Live-verified 2026-10-14: `Lava=1` damages a hover tank on molten tiles at about 159 HP/s. Specifically unproven: that `Goto`/`Attack`/
+`Follow` orders from the script drive the CCA units as intended (the backup squad's `Follow` on an
 enemy-team tug, the walker advancing on the convoy); AI pathing around the lava (tugs and wingmen on the
 escort route, the CCA squad from the far end of `openheimer`); the dry trail to the armory being drivable
 (40 m); the `planet = "io"` campaign key; the Io sky/weather feel and the pad quake; the strike and ambush

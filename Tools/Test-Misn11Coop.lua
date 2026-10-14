@@ -231,7 +231,7 @@ local function makePeer(id, team, network)
             if target ~= id and (to == 0 or to == nil or target == to) then transport:Send(id, target, kind, args, false) end
         end
     end
-    for _, name in ipairs({"Follow", "Formation", "Defend", "Stop", "Goto", "Attack", "SetIndependence", "SetAIP", "SetAIControl",
+    for _, name in ipairs({"Follow", "Defend", "Stop", "Goto", "Attack", "SetIndependence", "SetAIP", "SetAIControl",
         "SetObjectiveName", "SetObjectiveOn", "SetObjectiveOff", "SetUserTarget", "ClearObjectives", "AddObjective", "UpdateObjective",
         "Ally", "UnAlly", "DisplayMessage", "FailMission", "SucceedMission", "SetScrap", "SetPilot",
         "Pickup"}) do
@@ -520,7 +520,7 @@ do
     check(s.backup_called, "the squad is called on the approach, before the defection")
     check(not s.betrayal, "...while the tug is still loyal")
     for _, unit in ipairs(s.backup) do
-        check(count2(host, "Formation", unit, OPENH) == 0, "no formation order before the defection")
+        check(count2(host, "Follow", unit, OPENH) == 0, "no formation order before the defection")
         check(math.abs(objects[unit].pos.x - 906) < 100, "the squad enters at the far end of the openheimer path")
     end
     defect(host)
@@ -531,7 +531,7 @@ do
     end)
     run(1)
     for _, unit in ipairs(s.backup) do
-        check(count2(host, "Formation", unit, OPENH) == 1, "every squad unit forms up on the defecting tug")
+        check(count2(host, "Follow", unit, OPENH) == 1, "every squad unit forms up on the defecting tug")
     end
     check(count(host, "Defend", "svturr2_turrettank") == 1 and count(host, "Defend", "svturr3_turrettank") == 1, "turrets released")
     -- Nobody chases: no engagement orders against humans.
@@ -556,7 +556,7 @@ do
     eachPeer(function(p) check(count(p, "Play", "misn1115.wav") == 0, "misn1115 needs the 8 s hold") end)
     run(8)
     eachPeer(function(p) check(count(p, "Play", "misn1115.wav") == 1, "Corbett logs the intel once on every peer") end)
-    for _, unit in ipairs(s.backup) do check(count2(host, "Formation", unit, OPENH) >= 2, "the squad returns to formation") end
+    for _, unit in ipairs(s.backup) do check(count2(host, "Follow", unit, OPENH) >= 2, "the squad returns to formation") end
     run(30)
     eachPeer(function(p)
         check(count(p, "Play", "misn1114.wav") == 1 and count(p, "Play", "misn1115.wav") == 1, "both lines play only once")
