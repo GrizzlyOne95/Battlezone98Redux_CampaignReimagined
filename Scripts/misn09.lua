@@ -177,7 +177,7 @@ local RELIC_TEAM = 0
 local CRVenusWeather = require("CRVenusWeather")
 local VenusSites = require("CRVenusSites09")
 local Environment = require("Environment")
-local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true }
+local VENUS_OPS = { VenusState = true, VenusStrike = true, VenusErupt = true, VenusFog = true }
 -- CR Venus weather <<
 -- CR convoy scaling >>
 -- The DLL's convoy (4 svfigh, 4 svtank, 2 svapc and the tug) is for one player. Each extra
