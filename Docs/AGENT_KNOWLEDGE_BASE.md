@@ -431,6 +431,8 @@ Operating rules that each cost a run once:
 - Crash dumps: WER writes full dumps to `C:\BZDumps` with a small rotation; copy gameplay dumps to
   `C:\BZDumps\keep\` immediately. Page heap is unusable on this 32-bit game.
 - Give timed runs generous slack; the simulation can stall on focus loss without a crash.
+- `BZLogger.txt` flushes late: a capture triggered by a log line can catch the next camera. Hold each fixture
+  view about 6 s after its `SHOT` line before moving the camera.
 - Steam live runs need `steam_appid.txt` (301650) next to the exe, deleted afterwards. GOG needs nothing.
 
 The full local-server and 2-4 client recipe is in 5.5.
@@ -745,7 +747,26 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 - Environment used to send every Titan map down the `earth` preset (only moon hints existed). Detection
   now checks palette / atlas / sky; `Environment.LockDaylight` holds a world at day (Titan sets it).
 - Terrain roughness is floored at 0.56 in the Enhanced terrain shader (OpenShim), so no CR material or
-  spec-map change can make a reflective liquid; that needs an OpenShim shader term (`Docs/TITAN_WEATHER.md`).
+  spec-map change can make terrain itself reflective. A flat liquid can still be done in CR: a render-only
+  sheet through `exu.CreateStaticGeometry` with a CR shader (Titan's methane, `Docs/TITAN_WEATHER.md`
+  section 5). Sloped or multi-level wetness still needs the OpenShim terrain term.
+- **Porting an ISDFC surface kind into CR** (2026-10-14, methane from `isdfc_surface.hlsl` WATER): give the
+  program and material CR names and a mod-unique file name (assets ship flat); keep POSITION/NORMAL/TEXCOORD0
+  inputs; add a `scheme glow` technique that draws nothing (otherwise the default technique feeds the glow
+  pass) and a last technique that draws nothing for backends without a delegate (an unsupported material
+  falls back to the default white material [inferred, not seen live]); compile every delegate with fxc
+  and check params against the kept constants (`Tools/Test-MethaneShader.ps1`); gate creation on
+  `exu.MaterialExists`.
+- Pass colours make cheap Lua-driven shader controls (`exu.SetMaterialPassColors` -> `surface_diffuse_colour`
+  / `surface_specular_colour`), but Ogre's `derived_light_*_colour` autos multiply by them: read
+  `light_*_colour_power_scaled_array` instead (a control vector of `0 1 1` turned a glint pure red live).
+- `Tools/Validate-DX11Shaders.ps1` confines radial-fog symbols to the two Enhanced world shaders, comments
+  included; other CR shaders use the stock clip-depth fog.
+- misn14 (no Environment) lights from the stock sun, almost overhead (`GetSunDirection` -0.17 -0.98 0);
+  `exu.GetSunDirection` / Environment's `DaySunDirection` are Ogre space, z mirrored from the sim.
+- EXU StaticGeometry positions are sim space (EXU converts); a unit mesh scaled per instance keeps its UVs,
+  and render z is mirrored, so mesh `v` runs south. A sheet over a "flat" floor must clear the floor's
+  relief (misn14's wet cells vary by up to 0.3; at +0.06 the floor poked through in patches).
 
 ### 8.5 Live testing
 
