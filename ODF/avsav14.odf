@@ -1,0 +1,55 @@
+[GameObjectClass]
+// misn14 (Campaign Reimagined): the NSDF's own Fury, commandable. A full copy of the cut stock NSDF Fury
+// avsav (Battlezone 1.5 stock avsav.odf: 3500 hp, gbolt only, slow hover) with the stock mesh (baseName
+// "avsav"). Stock avsav names aiName = "SAVFriend", which Redux 2.2.301 does not register (the exe has
+// no SAVFriend process or RTTI, only SAVEnemy), so on a human team it has no AI and cannot take orders.
+// This copy uses the commandable wingman class and the tank AI (TankFriend / TankEnemy), like hvsat.
+// Redux has no ODF inheritance: every key the unit needs is spelled out here.
+baseName = "avsav"
+classLabel = "wingman"
+scrapValue = 5
+scrapCost = 8
+pilotCost = 1
+pilotName = ""
+maxHealth = 3500
+maxAmmo = 2000
+unitName = "Fury"
+aiName = "TankFriend"
+aiName2 = "TankEnemy"
+heatSignature = 0.5
+imageSignature = 1.0
+radarSignature = 1.0
+
+weaponHard1 = "GC1"
+weaponName1 = "gbolt"
+
+[CraftClass]
+rangeScan = 400.0f
+periodScan = 2.0f
+velocJam = 5.0f
+diedMsg = "abetty3.wav"
+
+[HoverCraftClass]
+setAltitude = 5.0
+accelDragStop = 3.5
+accelDragFull = 1.0
+alphaTrack = 20.0
+alphaDamp = 5.0
+pitchPitch = 0.25
+pitchThrust = 0.1
+rollStrafe = 0.1
+rollSteer = 0.1
+
+velocForward = 25.0
+velocReverse = 20.0
+velocStrafe = 20.0
+accelThrust = 10.0
+accelBrake = 25.0
+omegaSpin = 2.0
+omegaTurn = 1.0
+alphaSteer = 5.0
+accelJump = 15.0
+
+soundDeploy = "avsave5.wav"
+soundUndeploy = "avsave6.wav"
+soundThrust = "avsave0.wav"
