@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-13T18:10:22-05:00",
-  "count": 2516,
+  "count": 2538,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -3750,6 +3750,94 @@
     {
       "source": "Missions\\misn14.vxt",
       "runtime": "misn14.vxt"
+    },
+    {
+      "source": "Missions\\misn15b.hg2",
+      "runtime": "misn15b.hg2"
+    },
+    {
+      "source": "Missions\\misn15b.lgt",
+      "runtime": "misn15b.lgt"
+    },
+    {
+      "source": "Missions\\misn15b.mat",
+      "runtime": "misn15b.mat"
+    },
+    {
+      "source": "Missions\\misn15b.trn",
+      "runtime": "misn15b.trn"
+    },
+    {
+      "source": "Missions\\misn16b.hg2",
+      "runtime": "misn16b.hg2"
+    },
+    {
+      "source": "Missions\\misn16b.lgt",
+      "runtime": "misn16b.lgt"
+    },
+    {
+      "source": "Missions\\misn16b.mat",
+      "runtime": "misn16b.mat"
+    },
+    {
+      "source": "Missions\\misn16b.trn",
+      "runtime": "misn16b.trn"
+    },
+    {
+      "source": "Missions\\misns4.bzn",
+      "runtime": "misns4.bzn"
+    },
+    {
+      "source": "Missions\\misns4.hg2",
+      "runtime": "misns4.hg2"
+    },
+    {
+      "source": "Missions\\misns4.lgt",
+      "runtime": "misns4.lgt"
+    },
+    {
+      "source": "Missions\\misns4.mat",
+      "runtime": "misns4.mat"
+    },
+    {
+      "source": "Missions\\misns4.trn",
+      "runtime": "misns4.trn"
+    },
+    {
+      "source": "Missions\\misns5.hg2",
+      "runtime": "misns5.hg2"
+    },
+    {
+      "source": "Missions\\misns5.lgt",
+      "runtime": "misns5.lgt"
+    },
+    {
+      "source": "Missions\\misns5.mat",
+      "runtime": "misns5.mat"
+    },
+    {
+      "source": "Missions\\misns5.trn",
+      "runtime": "misns5.trn"
+    },
+    {
+      "source": "Missions\\misns6.bzn",
+      "runtime": "misns6.bzn"
+    },
+    {
+      "source": "Missions\\misns6.hg2",
+      "runtime": "misns6.hg2"
+    },
+    {
+      "source": "Missions\\misns6.lgt",
+      "runtime": "misns6.lgt"
+    },
+    {
+      "source": "Missions\\misns6.mat",
+      "runtime": "misns6.mat"
+    },
+    {
+      "source": "Missions\\misns6.trn",
+      "runtime": "misns6.trn"
     },
     {
       "source": "Missions\\sxshow.bzn",

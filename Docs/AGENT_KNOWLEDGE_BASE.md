@@ -836,6 +836,30 @@ own change).
 
 ## 10. Keeping this document current
 
+### Terrain source and boundary preservation (2026-10-14)
+
+For the terrain prototype, see `Docs/TERRAIN_EDGE_PASS.md` and
+`Tools/Build-TerrainEdgePass.py`. Use the canonical unsmoothed CR heights;
+retained later-mission heights are available at `ce18e89`. `misn16.bzn` resolves
+`misn16b` terrain. Redux uses the min/max X/Z of `edge_path`; `path_edge` does
+not substitute for it, and a polygon-shaped path still gives rectangular
+limits. A southern-terrain move must transform BZN objects, physics positions
+and mission paths together. Preserve mission pads and validate the navigation
+consequences separately from the asset render. Offline slope-grid navigation
+is a screening tool, not live AI qualification.
+
+The misn14 `world` path is a closed area outline, not a travel corridor. Do not
+protect a flat road along it. On Io, type 0's cracked red crust and type 1's
+molten pool have different appearances despite the former's "Lava" TRN label;
+use type 5 explicitly for a manufactured bridge. Stretch only the crossing,
+translate adjoining land intact, and check the escort's interpolated route as
+well as its waypoints against the level deck.
+
+Both binary and text BZNs start with `version [1]`; distinguish them using the
+`binarySave` header before applying text CRLF checks. Binary payload 0x0A bytes
+are data. Deployment must use build roots matching the bundled suite: the
+default sibling checkout can be older than CR's committed binaries.
+
 - Append lessons **in the same PR as the change that taught them**. A lesson that lives only in a chat or
   a private note is lost when the session ends.
 - Put per-mission detail in the mission doc, subsystem detail in its own doc, and link it from here; this

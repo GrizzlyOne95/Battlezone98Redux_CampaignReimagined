@@ -25827,7 +25827,7 @@ size [1] =
 0
 [AiPaths]
 count [1] =
-98
+99
 [AiPath]
 old_ptr = 00D8FDF0
 size [1] =
@@ -31095,4 +31095,21 @@ points [86] =
 2510.14
   z [1] =
 99754.6
+pathType = 00000000
+[AiPath]
+old_ptr = 00000000
+size [1] =
+9
+label = edge_path
+pointCount [1] =
+2
+points [2] =
+  x [1] =
+1064.4
+  z [1] =
+97753.4
+  x [1] =
+4264.45
+  z [1] =
+101165
 pathType = 00000000
