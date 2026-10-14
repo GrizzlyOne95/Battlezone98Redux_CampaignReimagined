@@ -56,9 +56,28 @@ def run(args):
   if name=='misns4':
    for a,b in zip(base.objects,revised.objects):
     p,q=np.array(a.fields['pos'].value[0]),np.array(b.fields['pos'].value[0]);assert p[0]==q[0] and p[1]==q[1]
-    assert abs(float(module.transform_south(np.array(p[2]-doc.size.min_z)))+doc.size.min_z-q[2])<.02
+    assert abs(float(module.transform_south(np.array(p[2]-doc.size.min_z),np.array(p[0]-doc.size.min_x)))+doc.size.min_z-q[2])<.02
    p=np.array([o.fields['pos'].value[0] for o in base.objects]);q=np.array([o.fields['pos'].value[0] for o in revised.objects]);oldground=ndi.map_coordinates(old,[(p[:,2]-doc.size.min_z)/5,(p[:,0]-doc.size.min_x)/5],order=1);newground=ndi.map_coordinates(new,[(q[:,2]-doc.size.min_z)/5,(q[:,0]-doc.size.min_x)/5],order=1);offset_delta=float(np.max(abs(oldground-newground)));assert offset_delta<6,offset_delta
   record=dict(name=name,dimensions='pass',changed_paint_slots='pass',objects='pass',protected_pads='pass' if name!='misns4' else 'coordinated 450m Z warp')
+  if name=='misn14':
+   world=next(p for p in base.paths if module.label(p)=='world');pts=module.points(world)-[doc.size.min_x,doc.size.min_z]
+   zz,xx=np.indices(new.shape);lane=(module.distance_polyline(xx*5,zz*5,pts)<30)&(old==5)&~data['hard']
+   coverage=float(np.mean((new-old)[lane]>1));assert coverage>.8,('Artificial world-outline corridor',coverage)
+   record['world_outline_relief_coverage']=coverage
+  if name=='misns4':
+   # Independently specified visible/gameplay contract: 550 m level crossing,
+   # uninterrupted metal deck, molten pool across the surrounding sea.
+   assert np.all(new[190:301,480:493]==30),'Bridge deck must be level at 30 m'
+   assert np.all(mat[48:75,120:123]>>12==5),'Metal deck has gaps'
+   assert not np.any(mat>>12==0),'Cracked red crust remains in the lava sea'
+   assert np.all(mat[:,:80]>>12==1),'Outer sea must use the molten-pool texture'
+   assert np.ptp(new[20:180,20:180])>=1,'Lava waves are absent'
+   # Escort waypoints and the interpolated crossing stay on the metal deck.
+   escort=next(p for p in revised.paths if module.label(p)=='escort');pts=module.points(escort)-[doc.size.min_x,doc.size.min_z]
+   dense=np.vstack([np.linspace(a,b,101) for a,b in zip(pts[:-1],pts[1:])]);cross=dense[(dense[:,1]>=950)&(dense[:,1]<=1500)]
+   ground=ndi.map_coordinates(new,[cross[:,1]/5,cross[:,0]/5],order=1)
+   assert len(cross)>0 and np.all(abs(ground-30)<.11),'Escort route leaves the level deck'
+   record.update(bridge_length_m=550,bridge_deck_height_range_m=[30,30],metal_deck='pass',lava_pool='pass',escort_crossing='pass')
   if name=='misns5':
    gz,gx=np.gradient(new-old,5);grade=np.degrees(np.arctan(np.hypot(gx,gz)));record['max_added_slope_deg']=float(grade.max());assert grade.max()<15
   if name=='misns6':

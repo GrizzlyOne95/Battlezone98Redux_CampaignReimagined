@@ -15,6 +15,8 @@ from scipy.spatial import cKDTree
 REPO=Path(__file__).resolve().parents[1]
 MAPS=['misn02b','misn06','misn07','misn08','misn09','misn10','misn12','misn13','misn14','misn15b','misn16','misns4','misns5','misns6']
 BASE='20692052db9b0a234604cfcad25272d0300d5987'
+# Keep the accepted co-op mission's pads while retaining the original terrain.
+MISSION_REFS={'misn14':'773564a9b60c79aa464e6ad2474d455869440752'}
 AMPLITUDE={'misn02b':28,'misn06':25,'misn07':35,'misn08':35,'misn09':32,'misn10':30,'misn12':28,'misn13':28,'misn14':32,'misn15b':28,'misn16':22,'misns5':7,'misns6':35}
 
 def git_bytes(ref,name):
@@ -36,7 +38,8 @@ def distance_polyline(x,z,pts):
   dist=np.minimum(dist,np.hypot(x-a[0]-t*ab[0],z-a[1]-t*ab[1]))
  return dist
 def load_baseline(name,ext,args):
- data=git_bytes(args.base,'Missions/'+name+ext);provenance=args.base+':Missions/'+name+ext
+ ref=MISSION_REFS.get(name,args.base) if ext=='.bzn' else args.base
+ data=git_bytes(ref,'Missions/'+name+ext);provenance=ref+':Missions/'+name+ext
  if data is None and ext=='.hg2':
   data=git_bytes(args.height_ref,'Missions/'+name+ext);provenance=args.height_ref+':Missions/'+name+ext
  if data is None:data=ARCHIVE.read(name+ext);provenance='bzone.zfs::'+name+ext
@@ -95,7 +98,8 @@ def terrain_extension(name,h,b,origin,x,z,bounds):
  shape=spectrum_from_source(h,int.from_bytes(name.encode()[:4],'little')+sum(name.encode()))
  envelope=ndi.gaussian_filter(shape,45);lo,hi=np.percentile(envelope,[5,95]);envelope=np.clip((envelope-lo)/max(hi-lo,1e-6),0,1)
  flat,relief=flat_regions(h);selected=select_extent(name,x,z,bounds,envelope)&flat
- hard,protection=protect_masks(b,origin,x,z)
+ # "world" is misn14's closed area-of-interest outline, not a road.
+ hard,protection=protect_masks(b,origin,x,z,exclude_paths=('world',) if name=='misn14' else ())
  # Start inside level areas and leave a C1-continuous join to authored relief.
  blend=smoothstep(ndi.distance_transform_edt(selected)*5/160)*protection
  amplitude=AMPLITUDE[name]
@@ -105,16 +109,32 @@ def terrain_extension(name,h,b,origin,x,z,bounds):
   shape=ndi.gaussian_filter(shape,18);shape=(shape-shape.min())/max(float(np.ptp(shape)),1e-6)
   delta=(shape*7+1)*blend
  return h+delta,hard,blend
-def transform_south(z):
- return np.where(z<1450,z-450,np.where(z<1850,1000+(z-1450)*850/400,z))
+def transform_south(z,x=None):
+ # Stretch the actual 100 m metal bridge, rather than the northern landmass.
+ bridge=np.where(z<1400,z-450,np.where(z<1500,950+(z-1400)*550/100,z))
+ if x is None:return bridge
+ return np.where((x>=2380)&(x<=2480),bridge,np.where(z<1500,z-450,z))
+
+def bridge_source_z(z):
+ return np.where(z<950,z+450,np.where(z<1500,1400+(z-950)*100/550,z))
 def bridge_pass(h,mat,b,origin,x,z):
- oldz=np.where(z<1000,z+450,np.where(z<1850,1450+(z-1000)*400/850,z))
+ oldz=bridge_source_z(z)
  hnew=ndi.map_coordinates(h,[oldz/5,x/5],order=1,mode='nearest')
- mz,mx=np.indices(mat.shape);old_mz=np.where(mz*20<1000,mz*20+450,np.where(mz*20<1850,1450+(mz*20-1000)*400/850,mz*20))
+ mz,mx=np.indices(mat.shape);old_mz=bridge_source_z(mz*20)
  newmat=ndi.map_coordinates(mat,[old_mz/20,mx],order=0,mode='nearest').astype(np.uint16)
+ # Only the bridge is stretched. Southern side islands move intact; the
+ # newly opened gap is lava, not tall strips of resampled shoreline.
+ side=(x<2380)|(x>2480)
+ southern=ndi.map_coordinates(h,[(z+450)/5,x/5],order=1,mode='nearest')
+ hnew[side&(z<1050)]=southern[side&(z<1050)]
+ hnew[(z>=1050)&(z<1500)]=5
+ side_m=(mx*20<2380)|(mx*20>2480)
+ southern_m=ndi.map_coordinates(mat,[mz+450/20,mx],order=0,mode='nearest').astype(np.uint16)
+ newmat[side_m&(mz*20<1050)]=southern_m[side_m&(mz*20<1050)]
+ newmat[(mz*20>=1050)&(mz*20<1500)]=0
  moved=[]
  for o,ox,oz in local_objects(b,origin):
-  nz=float(transform_south(np.array(oz)));dz=nz-oz
+  nz=float(transform_south(np.array(oz),np.array(ox)));dz=nz-oz
   if abs(dz)<1e-4:continue
   for key in ('pos','pos2'):
    if key in o.fields:
@@ -125,13 +145,35 @@ def bridge_pass(h,mat,b,origin,x,z):
    v=list(o.fields['transform'].value);v[11]+=dz;o.fields['transform']=Field('mat',tuple(v))
   moved.append(dict(label=o.label,shift_z_m=dz))
  for p in b.paths:
-  pts=points(p);pts[:,1]=transform_south(pts[:,1]-origin[1])+origin[1];path_update(p,pts)
- flat,relief=flat_regions(hnew);lava=flat&(hnew<3)
+  pts=points(p);pts[:,1]=transform_south(pts[:,1]-origin[1],pts[:,0]-origin[0])+origin[1];path_update(p,pts)
+ # A level 80 m deck with smooth approaches; its shoulders remain steep banks.
+ across=1-smoothstep((np.abs(x-2430)-40)/30)
+ along=smoothstep((z-850)/50)*(1-smoothstep((z-1560)/70))
+ deck=across*along;hnew=hnew*(1-deck)+30*deck
+ flat,relief=flat_regions(hnew)
+ background=np.isin(newmat>>12,[0,1])
+ lava=flat&(hnew<=5.4)&ndi.zoom(background,4,order=0)
  blend=smoothstep(ndi.distance_transform_edt(lava)*5/70)
  waves=.7+.45*np.sin(x/55+np.sin(z/160))+.2*np.sin(z/32+x/150)
  hnew+=waves*blend
  hard,_=protect_masks(b,origin,x,z)
  return hnew,newmat,hard,moved
+
+def bridge_paint(mat,h):
+ """Use the authored Io atlas's pool and metal families explicitly.
+
+ Type 0 is the cracked red lava crust. Type 1 is the visible molten pool;
+ type 5 is the manufactured deck. Neither can be inferred from slope alone.
+ """
+ result=mat.copy();mz,mx=np.indices(mat.shape);x,z=mx*20,mz*20
+ result[np.isin(mat>>12,[0,1])]=0x1100
+ # Hardened lava on the actual shoulders, never painted over the pool.
+ apron=(x>=2360)&(x<=2500)&(z>=900)&(z<=1560)&(h[::4,::4]>10)
+ result[apron]=0x4400
+ metal=(x>=2400)&(x<=2440)&(z>=940)&(z<=1500)
+ # Keep one consistent orientation on the metal panels.
+ result[metal]=0x5500
+ return result
 
 def canyon_pass(h,b,origin,x,z,bounds):
  """An eroded upland cut by a continuous S-shaped canyon blocks the rush.
@@ -244,6 +286,7 @@ def build(name,args):
  changed=np.abs(new-h)>=.049
  if name!='misns4':assert np.array_equal(new[hard],h[hard]),'Protected pad changed'
  painted,paintmask=repaint(name,h,new,newmat,doc,changed)
+ if name=='misns4':painted=bridge_paint(newmat,new)
  out=REPO/'Missions';out.mkdir(exist_ok=True)
  write_hg2(out/(terrain+'.hg2'),new*10,head.zones_x,head.zones_z)
  write_mat(out/(terrain+'.mat'),painted,head.zones_x,head.zones_z)
