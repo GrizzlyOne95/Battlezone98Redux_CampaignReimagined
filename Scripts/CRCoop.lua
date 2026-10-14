@@ -232,6 +232,17 @@ function CRCoop.Initialize(options)
                 -- Without EXU only the host's BuildObject replicates.
                 if IsHosting() then return BuildObject(odf, team, xf) end
             end,
+            -- Real handoff: SetLocal plus a fresh AI on this machine (EXU
+            -- AdoptObject). nil/false on older EXU falls back to a rebuild.
+            adopt = function(h, team)
+                local x = package.loaded.exu
+                if not (x and type(x.AdoptObject) == "function") then return false end
+                local ok, why = x.AdoptObject(h, team)
+                if not ok and type(DisplayMessage) == "function" and why then
+                    DisplayMessage("[CO-OP] Hand-off fell back to a rebuild: " .. tostring(why))
+                end
+                return ok == true
+            end,
             setHealth = function(h, f) SetCurHealth(h, GetMaxHealth(h) * f) end,
             setAmmo = function(h, f) SetCurAmmo(h, GetMaxAmmo(h) * f) end,
             remove = function(h) RemoveObject(h) end,
