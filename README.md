@@ -76,6 +76,7 @@ Useful references:
 - [`docs/workshop_description.bbcode`](docs/workshop_description.bbcode) — canonical public Workshop description
 - [`docs/STEAM_PUBLISH_CHECKLIST.md`](docs/STEAM_PUBLISH_CHECKLIST.md) — qualified local Workshop publication sequence
 - [`docs/STEAM_WORKSHOP_RUNNER.md`](docs/STEAM_WORKSHOP_RUNNER.md) — future dedicated-runner design, not the current publishing path
+- [`Docs/AGENT_KNOWLEDGE_BASE.md`](Docs/AGENT_KNOWLEDGE_BASE.md) — lessons, recipes, tooling and hard rules for agents building the campaign
 - [`AGENTS.md`](AGENTS.md) — authoritative local paths and promotion rules
 
 ## Publishing
