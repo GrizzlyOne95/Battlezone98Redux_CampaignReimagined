@@ -66,7 +66,21 @@ local function IsLiveHandle(h)
     return h and IsValid(h) and IsAlive(h)
 end
 
+-- Pilot Mode hands the player's team to the AI managers. It is single-player only:
+-- in any network game it is forced off, whatever the saved setting says.
+local function IsMultiplayer()
+    local coop = package.loaded["CRCoop"]
+    if type(coop) == "table" and type(coop.IsNetworkGame) == "function" and coop.IsNetworkGame() then
+        return true
+    end
+    if type(IsNetworkOn) == "function" and IsNetworkOn() then return true end
+    if type(IsNetGame) == "function" and IsNetGame() then return true end
+    return false
+end
+PlayerPilotMode.IsMultiplayer = IsMultiplayer
+
 local function GetDesiredEnabled()
+    if IsMultiplayer() then return false end
     return not not (PersistentConfig and PersistentConfig.Settings and PersistentConfig.Settings.PilotModeEnabled)
 end
 
@@ -453,6 +467,13 @@ end
 function PlayerPilotMode.Initialize(adapter, persistedState)
     state.initialized = true
     state.enabled = false
+    if IsMultiplayer() then
+        -- No-op in multiplayer: nothing is loaded, applied or restored.
+        state.lastAppliedEnabled = nil
+        state.mission = nil
+        state.profile = nil
+        return
+    end
     state.lastAppliedEnabled = nil
     state.lastPlayerHandle = nil
     state.lastTeamRef = nil
@@ -488,7 +509,7 @@ function PlayerPilotMode.Save()
     end
     return {
         version = 2,
-        enabled = state.enabled and true or false,
+        enabled = (not IsMultiplayer()) and state.enabled and true or false,
         baselineConfig = DeepCopyValue(state.baselineConfig),
         transitionSerial = state.transitionSerial or 0,
         tugBuildCooldowns = tugBuildCooldowns,
@@ -496,6 +517,7 @@ function PlayerPilotMode.Save()
 end
 
 function PlayerPilotMode.Load(persistedState)
+    if IsMultiplayer() then return end
     if type(persistedState) ~= "table" then
         return
     end
@@ -542,6 +564,7 @@ function PlayerPilotMode.ClearCargoJob(name)
 end
 
 function PlayerPilotMode.Enable()
+    if IsMultiplayer() then return false end
     if not RecalculateCoreValues(true) then
         return false
     end
@@ -573,10 +596,12 @@ function PlayerPilotMode.SetEnabled(value)
 end
 
 function PlayerPilotMode.IsEnabled()
+    if IsMultiplayer() then return false end
     return state.enabled
 end
 
 function PlayerPilotMode.AddObject(h)
+    if IsMultiplayer() then return false end
     if not h or not IsValid(h) then
         return false
     end
@@ -598,6 +623,7 @@ function PlayerPilotMode.DeleteObject(h)
 end
 
 function PlayerPilotMode.Update()
+    if IsMultiplayer() then return end
     if not state.initialized then
         PlayerPilotMode.Initialize()
     end

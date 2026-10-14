@@ -734,17 +734,27 @@ function Sync-SupportWrapper {
 function Get-OpenShimAssetSet {
     # Hashes the files of one asset set as copied into the package. RelativePaths
     # limits the set to named files; otherwise every file under Root is included.
+    # StoredSuffix names files that are packaged as "<path><suffix>" but listed
+    # (and installed by OpenShim) as "<path>".
     # The set hash covers "<lowercased path>|<sha256>|<size>\n" lines sorted by
     # ordinal comparison, so OpenShim can recompute it without culture rules.
     param(
         [Parameter(Mandatory)][string]$Root,
-        [string[]]$RelativePaths
+        [string[]]$RelativePaths,
+        [string]$StoredSuffix = ""
     )
 
     if (-not $RelativePaths) {
         $rootFull = [System.IO.Path]::GetFullPath($Root).TrimEnd('\') + '\'
         $RelativePaths = @(Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
-            $_.FullName.Substring($rootFull.Length)
+            $relative = $_.FullName.Substring($rootFull.Length)
+            if ($StoredSuffix) {
+                if (-not $relative.EndsWith($StoredSuffix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    throw "Asset '$relative' under '$Root' is not stored with the '$StoredSuffix' suffix."
+                }
+                $relative = $relative.Substring(0, $relative.Length - $StoredSuffix.Length)
+            }
+            $relative
         })
     }
 
@@ -754,7 +764,7 @@ function Get-OpenShimAssetSet {
         if ($path -notmatch '^[A-Za-z0-9_.\\-]+$' -or $path -match '(^|\\)\.\.?(\\|$)' -or $path.StartsWith('\')) {
             throw "Asset path '$relativePath' under '$Root' contains characters OpenShim asset sets do not allow."
         }
-        $item = Get-Item -LiteralPath (Join-Path $Root $path)
+        $item = Get-Item -LiteralPath (Join-Path $Root ($path + $StoredSuffix))
         $entries.Add([pscustomobject]@{
             Path = $path
             Key = $path.ToLowerInvariant()
@@ -847,11 +857,20 @@ function Update-OpenShimManifest {
     [System.IO.File]::Copy($patchesSourcePath, $patchesPayloadPath, $true)
     [System.IO.File]::Copy($assetManifestSourcePath, $assetManifestPayloadPath, $true)
 
+    # The renderer set is only a source for OpenShim's asset sync, which installs
+    # it into <game>\openshim\renderer\enhanced; OpenShim's own resource group
+    # is the one copy Ogre parses. The game indexes the whole Workshop item, so
+    # every file is staged as "<name>.payload" to keep a second copy of the
+    # programs, shaders and textures out of Ogre. The directory is rebuilt so a
+    # file dropped from OpenShim does not linger in the set.
+    if (Test-Path -LiteralPath $rendererPayloadDir) {
+        Remove-Item -LiteralPath $rendererPayloadDir -Recurse -Force
+    }
     [System.IO.Directory]::CreateDirectory($rendererPayloadDir) | Out-Null
     foreach ($rendererFile in Get-ChildItem -LiteralPath $rendererSourceDir -File) {
         [System.IO.File]::Copy(
             $rendererFile.FullName,
-            (Join-Path $rendererPayloadDir $rendererFile.Name),
+            (Join-Path $rendererPayloadDir ($rendererFile.Name + ".payload")),
             $true)
     }
 
@@ -892,7 +911,7 @@ function Update-OpenShimManifest {
     }
     & (Join-Path $openShimRepo "scripts\Test-PackageShape.ps1") -Root $openShimRepo -Layout Build -ExpectedVersion $shimVersion
 
-    $rendererSet = Get-OpenShimAssetSet $rendererPayloadDir
+    $rendererSet = Get-OpenShimAssetSet $rendererPayloadDir -StoredSuffix ".payload"
     $widgetSet = Get-OpenShimAssetSet $uiPayloadDir $uiFileNames
     $assetFileLines = @()
     foreach ($setEntry in @(@("renderer", $rendererSet), @("customWidgets", $widgetSet))) {
@@ -1201,6 +1220,7 @@ function Get-TargetSubfolder($fileName) {
         ".tga" { return "Assets" }
         ".bmp" { return "Assets" }
         ".png" { return "Assets" }
+        ".wav" { return "Assets/Audio" }
         ".lgt" { return "Local/Missions" }
         ".trn" { return "Local/Missions" }
         ".hg2" { return "Local/Missions" }
@@ -1482,7 +1502,7 @@ function Build-WorkshopContent {
         "openshim_patches.json.payload",
         "openshim.ini.payload",
         "OpenShimAssets.ini.payload",
-        "openshim\renderer\enhanced\resources.version",
+        "openshim\renderer\enhanced\resources.version.payload",
         "openshim\support\openshim_wrap.ps1",
         "openshim\support\openshim_wrap.bat",
         "openshim\support\openshim_wrap.sh",
@@ -1546,11 +1566,14 @@ function Build-WorkshopContent {
         renderer = "openshim\renderer\enhanced"
         customWidgets = "BZ_ASSETS_CORE\common\ui\CustomWidgets"
     }
+    # Renderer files are staged as "<name>.payload" (see Update-OpenShimManifest)
+    # but listed in the manifest, and installed by OpenShim, under their plain name.
+    $assetSetStoredSuffix = @{ renderer = ".payload"; customWidgets = "" }
     foreach ($assetMatch in [regex]::Matches($stagedManifest, '\{ set = "(\w+)", path = "([^"]+)"')) {
         $assetRoot = $assetSetRoots[$assetMatch.Groups[1].Value]
         $assetRelative = $assetMatch.Groups[2].Value.Replace('\\', '\')
         if (-not $assetRoot -or
-            -not (Test-Path -LiteralPath (Join-Path $contentFolder (Join-Path $assetRoot $assetRelative)))) {
+            -not (Test-Path -LiteralPath (Join-Path $contentFolder (Join-Path $assetRoot ($assetRelative + $assetSetStoredSuffix[$assetMatch.Groups[1].Value]))))) {
             throw "Workshop staging is missing manifest asset '$($assetMatch.Groups[1].Value)\$assetRelative'."
         }
     }

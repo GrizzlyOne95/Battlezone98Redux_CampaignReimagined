@@ -37,7 +37,8 @@ local function makePeer(id, team, network)
     end
     local e = setmetatable({}, { __index = _G })
     e._G = e
-    e.print = function() end
+    p.printed = {}
+    e.print = function(...) p.printed[#p.printed + 1] = table.concat({ ... }, " ") end
     e.IsNetGame = function() return p.net end
     e.IsHosting = function() return p.hosting end
     e.GetTime = function() return now end
@@ -45,7 +46,9 @@ local function makePeer(id, team, network)
         check(remote == nil, "remote GetPlayerHandle(team) must never be used")
         return p.player
     end
+    e.SetLabel = function(h, l) record("SetLabel", h, l) end
     e.GetHandle = function(label) return objects[label] and label end
+    e.IsAudioMessageDone = function() return true end
     e.IsValid = function(h) return objects[h] ~= nil and objects[h].alive end
     e.IsAlive = e.IsValid
     e.IsCraft = function(h) return e.IsValid(h) and not tostring(h):find("solar") end
@@ -131,6 +134,20 @@ local function makePeer(id, team, network)
     local subtitles = { Play = function(file) record("Play", file); return file end,
         Queue = function(file) record("Queue", file) end, Stop = function() record("Stop") end,
         Update = function() record("subtitlesUpdate") end, Initialize = noop }
+    -- CR Moon weather: the real director has its own suite (Test-CRMoonWeather.lua); this records the wiring.
+    p.moon = {updates = 0, announces = 0, shutdowns = 0, events = {}}
+    local moonModules = {
+        CRMoonWeather = {
+            Init = function(options) p.moon.init = options end,
+            Update = function() p.moon.updates = p.moon.updates + 1 end,
+            Shutdown = function() p.moon.shutdowns = p.moon.shutdowns + 1 end, OnObjectCreated = noop,
+            Save = function() return {saved = true} end, Load = function(state) p.moon.loaded = state end,
+            AnnounceState = function() p.moon.announces = p.moon.announces + 1 end,
+            ApplyNetEvent = function(op, ...) p.moon.events[#p.moon.events + 1] = {op, ...}; return true end,
+            Seed = 4242,
+        },
+        CRMoonSites03 = {mission = "misn03"},
+    }
     local modules = {
         RequireFix = { Initialize = noop }, exu = {
             GetMyNetID = function() return id end, GetDifficulty = function() return p.difficulty end,
@@ -144,6 +161,7 @@ local function makePeer(id, team, network)
         PersistentConfig = { Settings = {}, Initialize = noop, UpdateInputs = noop,
             UpdateHeadlights = noop }, AutoSave = { Update = function() record("autosave") end },
     }
+    for k, v in pairs(moonModules) do modules[k] = v end
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     e.package = setmetatable({loaded={exu=modules.exu}}, {__index=package})
@@ -191,6 +209,25 @@ registerAll()
 for i = 1, 20 do tick(0.1, true, function(packet) return i < 8 and (packet.kind == "E" or packet.kind == "A") end) end
 settle()
 check(host.state.first_wave_done, "host did not run the opening")
+-- CR Moon weather: the leader runs the director on the map data, guests follow the ordered stream.
+check(host.moon.init.authority and host.moon.init.sites.mission == "misn03", "the leader runs the Moon weather director on the misn03 sites")
+for _, c in ipairs(clients) do
+    check(not c.moon.init.authority and c.moon.init.seed == nil, "guests run the director from the host's events")
+    check(c.moon.updates > 0, "guests update the Moon weather every frame")
+end
+check(host.moon.announces == 1 and host.moon.init.send ~= nil and host.moon.updates > 0, "the leader announces the weather state once the session is ready")
+host.moon.init.send("MoonGlow", 1, 0.8, 60.0)
+tick(0.1); settle()
+for _, c in ipairs(clients) do
+    local glows, state = 0, 0
+    for _, e in ipairs(c.moon.events) do
+        if e[1] == "MoonGlow" and e[2] == 1 and e[3] == 0.8 and e[4] == 60.0 then glows = glows + 1 end
+        if e[1] == "MoonState" then state = state + 1 end
+    end
+    check(glows == 1, "a scripted glow reaches each guest exactly once")
+    check(state <= 1, "a MoonState rides the same ordered stream without duplicating")
+end
+check(#host.moon.events == 0, "the leader never applies its own weather events twice")
 for _, client in ipairs(clients) do
     check(not client.state.first_wave_done and not client.state.start_done, "client executed campaign logic")
     check(count(client, "BuildObject") == 0 and count(client, "Attack") == 0, "client created/ordered mission AI")
@@ -256,6 +293,10 @@ objects.solar1.alive = false
 tick(0.1)
 check(last(offline, "FailMission")[3] == "misn03f1.des", "offline tower failure debrief changed")
 local saved = offline.env.Save()
+-- CR Moon weather offline: the host path with nothing sent, and its state survives Save.
+check(offline.moon.init.authority and offline.moon.init.send == nil and offline.moon.announces == 0
+    and offline.moon.init.sites.mission == "misn03", "offline Moon weather is the host path with nothing sent")
+check(offline.moon.updates > 0 and saved.moonWeatherState ~= nil and saved.moonWeatherState.saved, "Moon weather state is saved and the seed persists")
 offline.env.Load(saved, {}, {})
 now = now + 3
 offline.env.Update()
@@ -281,14 +322,130 @@ local nextSeq
 -- The stream's latest acknowledgement is observable in the outbound transport.
 client.env.Receive(10, "E", 0, "ClearObjectives", now + 5)
 nextSeq = packets[#packets].args[1] + 1
-client.env.Receive(10, "E", nextSeq, "SetObjectiveOn", now + 5, "not-yet-replicated")
-client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", now + 5)
+client.env.Receive(10, "E", nextSeq, "SetObjectiveOn", 5, "not-yet-replicated")
+client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", 5)
 check(count(client, "ClearObjectives") == previousClear, "sequence gap did not defer following event")
 now = now + 6
-client.env.Receive(10, "E", nextSeq, "SetObjectiveOn", now - 1, "not-yet-replicated")
-client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", now - 1)
-client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", now - 1)
+client.env.Receive(10, "E", nextSeq, "SetObjectiveOn", 5, "not-yet-replicated")
+client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", 5)
+client.env.Receive(10, "E", nextSeq + 1, "ClearObjectives", 5)
 check(count(client, "ClearObjectives") == previousClear + 1, "expired marker/duplicate handling failed")
+
+-- A map object the engine cannot carry as a handle goes by "@label" and resolves via the
+-- guest's GetHandle. The wait is relative to the guest's own clock, so a leader clock
+-- far from the guest's can never drop the marker, and it still lands when the object
+-- finally resolves. A label that never resolves drops after the guest's own ttl.
+local labelSeq = nextSeq + 2
+local markers = count(client, "SetObjectiveOn")
+client.env.Receive(10, "E", labelSeq, "SetObjectiveOn", 5, "@900@late_geyser")
+client.env.Receive(10, "E", labelSeq + 1, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers and count(client, "ClearObjectives") == previousClear + 1,
+    "an unresolved label must hold the ordered stream")
+now = now + 3
+objects.late_geyser = { alive = true, team = 0, odf = "eggeizr1", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", labelSeq, "SetObjectiveOn", 5, "@900@late_geyser")
+client.env.Receive(10, "E", labelSeq + 1, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers + 1 and last(client, "SetObjectiveOn")[2] == "late_geyser" and
+    count(client, "ClearObjectives") == previousClear + 2, "a late-resolving label marker must land, then the next event")
+client.env.Receive(10, "E", labelSeq + 2, "SetObjectiveOn", 5, "@901@never_exists")
+client.env.Receive(10, "E", labelSeq + 3, "ClearObjectives", 5)
+now = now + 5.5
+client.env.Receive(10, "E", labelSeq + 2, "SetObjectiveOn", 5, "@901@never_exists")
+client.env.Receive(10, "E", labelSeq + 3, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers + 1 and count(client, "ClearObjectives") == previousClear + 3,
+    "a label that never resolves must drop after the guest's own wait without blocking")
+-- A label only the leader knows (SetLabel on a spawned, replicated object) falls back to
+-- the replicated handle carried in the same argument.
+objects[902] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", labelSeq + 4, "SetObjectiveOn", 5, "@902@leader_only_label")
+check(count(client, "SetObjectiveOn") == markers + 2 and last(client, "SetObjectiveOn")[2] == 902,
+    "a leader-only label must fall back to the replicated handle")
+
+-- Label events replicate a leader-side SetLabel; a gone flag skips cleanly; only the long
+-- never-hang guard ends a wait, loudly (log + counter for the harness probe).
+local baseSeq = labelSeq + 5
+local labelsSet, setClears = count(client, "SetLabel"), count(client, "ClearObjectives")
+client.env.Receive(10, "E", baseSeq, "Label", 15, "@907@spawned_label", "spawned_label")
+client.env.Receive(10, "E", baseSeq + 1, "SetObjectiveOn", 15, "@907@spawned_label")
+check(count(client, "SetLabel") == labelsSet, "a Label for a spawn that has not replicated holds the stream")
+objects[907] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", baseSeq, "Label", 15, "@907@spawned_label", "spawned_label")
+client.env.Receive(10, "E", baseSeq + 1, "SetObjectiveOn", 15, "@907@spawned_label")
+check(count(client, "SetLabel") == labelsSet + 1 and last(client, "SetLabel")[2] == 907 and
+    last(client, "SetLabel")[3] == "spawned_label", "the guest labels its replicated handle")
+check(last(client, "SetObjectiveOn")[2] == 907, "the following marker resolves the real object")
+local ons = count(client, "SetObjectiveOn")
+client.env.Receive(10, "E", baseSeq + 2, "SetObjectiveOn", 15, "!")
+client.env.Receive(10, "E", baseSeq + 3, "ClearObjectives", 15)
+check(count(client, "SetObjectiveOn") == ons and count(client, "ClearObjectives") == setClears + 1,
+    "a marker the leader reports gone is skipped without holding the stream")
+local unresolvedBefore = client.env.Save().coopUnresolved or 0
+client.env.Receive(10, "E", baseSeq + 4, "SetObjectiveOn", 15, "@908@never_label")
+client.env.Receive(10, "E", baseSeq + 5, "ClearObjectives", 15)
+now = now + 14
+client.env.Receive(10, "E", baseSeq + 4, "SetObjectiveOn", 15, "@908@never_label")
+check(count(client, "ClearObjectives") == setClears + 1, "a marker waits through the old 5 s window")
+now = now + 2
+client.env.Receive(10, "E", baseSeq + 4, "SetObjectiveOn", 15, "@908@never_label")
+client.env.Receive(10, "E", baseSeq + 5, "ClearObjectives", 15)
+check(count(client, "ClearObjectives") == setClears + 2 and count(client, "SetObjectiveOn") == ons,
+    "the never-hang guard drops only the stale marker")
+check((client.env.Save().coopUnresolved or 0) == unresolvedBefore + 1, "the timeout is counted for the probe")
+local loud = false
+for _, line in ipairs(client.printed) do loud = loud or line:find("%[coop%] unresolved never_label") ~= nil end
+check(loud, "the timeout logs a loud [coop] unresolved line")
+
+-- Camera snapshots are label-aware and WAIT for the real object; there is no fallback aim.
+reset(); host = makePeer(10, 1, true); client = makePeer(20, 2, true)
+registerAll()
+local camSerial = 5000
+local function camFrame(generation, target)
+    client.env.Receive(10, "C", camSerial, generation, "camera_path", 175, 850, target)
+    camSerial = camSerial + 1
+    client.env.Update()
+end
+local function endFilm()
+    client.env.Receive(10, "C", camSerial, 1, "", 0, 0); camSerial = camSerial + 1; client.env.Update()
+end
+local casts = count(client, "CameraPath")
+camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts, "an unresolved camera target waits for the replica")
+now = now + 10; camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts, "the camera keeps waiting for the real object, however long")
+objects.late_cam_target = { alive = true, team = 0, odf = "eggeizr1", health = 1, maxHealth = 1 }
+camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == "late_cam_target",
+    "a late-resolving label target is the one the film aims at")
+endFilm()
+-- A spawned object the leader labelled: its label is replicated by a Label event, and the
+-- camera resolves through the replicated handle while the label is not yet known.
+casts = count(client, "CameraPath")
+camFrame(2, "@905@leader_spawn_label")
+check(count(client, "CameraPath") == casts, "a spawned target that has not replicated yet holds the film")
+objects[905] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+camFrame(2, "@905@leader_spawn_label")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == 905,
+    "the film aims at the real replicated spawn, not a stand-in")
+endFilm()
+-- The leader reports the target gone: play with what remains valid, without waiting.
+casts = count(client, "CameraPath")
+camFrame(3, "!")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == nil,
+    "a target the leader reports gone must not hold the film")
+endFilm()
+-- Never-hang guard: logged loudly, counted for the harness, then the film plays.
+casts = count(client, "CameraPath")
+local unresolved = client.env.Save().coopUnresolved or 0
+camFrame(4, "@906@never_exists_cam")
+check(count(client, "CameraPath") == casts, "an unresolvable target waits")
+now = now + 14; camFrame(4, "@906@never_exists_cam")
+check(count(client, "CameraPath") == casts, "still waiting inside the safety window")
+now = now + 2; camFrame(4, "@906@never_exists_cam")
+check(count(client, "CameraPath") == casts + 1, "the never-hang guard lets the film play")
+check((client.env.Save().coopUnresolved or 0) == unresolved + 1, "the timeout is counted for the probe")
+local logged = false
+for _, line in ipairs(client.printed) do logged = logged or line:find("%[coop%] unresolved") ~= nil end
+check(logged, "the timeout logs a loud [coop] unresolved line")
 
 -- A deleted human no longer holds the all-player proximity/readiness gate.
 reset()

@@ -1,0 +1,19 @@
+[GameObjectClass]
+// Invisible local-only co-op ping marker: the stock geyser base mesh sits
+// entirely below ground. A plain static prop: no pickup (not a powerup or
+// dropoff), not a nav (camerapod) and not a respawn point (spawnpnt). Built
+// with exu.BuildAsyncObject so other players never see it, objective marker
+// on, removed when the ping ends. See Docs/COOP_COMMS_PINGS.md.
+baseName = "eggeizr1"
+classLabel = "i76building"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 0
+maxAmmo = 0
+unitName = "Ping"
+heatSignature = 0
+imageSignature = 0
+radarSignature = 0
+// Stock path planning blocks every building's whole SDF box; "none" (read by
+// EXU exu.pathing and OpenShim) keeps the marker out of the AI path grid.
+pathBlock = "none"

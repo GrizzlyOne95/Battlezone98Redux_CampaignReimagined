@@ -4,8 +4,8 @@ This is the authoritative Campaign Reimagined source tree for campaign content, 
 
 ## Authority and ownership
 
-- The only editable CR checkout is `%USERPROFILE%\Documents\GIT\Campaign-Reimagined`. The retained Google Drive tree (`Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`) is legacy: never edit or reverse-sync it. Treat other duplicate or nested CR trees as stale until their provenance is verified. Do not create a second CR checkout or worktree.
-- Because CR has one canonical checkout, serialize tasks that write to it. Read-only cross-repository inspection can run concurrently.
+- The canonical CR checkout is `%USERPROFILE%\Documents\GIT\Campaign-Reimagined`. The retained Google Drive tree (`Documents\Google Drive\Ian Files\Battlezone Files\Redux Maps\Open Patch - CampaignReimagined`) is legacy: never edit or reverse-sync it. Treat other duplicate or nested CR trees as stale until their provenance is verified. No other clones or copies.
+- The canonical checkout stays on `main` and is never used for feature work. Per-workstream worktrees are allowed: one per branch, at `%USERPROFILE%\Documents\GIT\Campaign-Reimagined-<topic>`, created from the canonical checkout with `git worktree add`. The agent that creates a worktree owns its cleanup: once its PR is merged or closed (or the work is abandoned), run `git worktree remove` and `git worktree prune` and delete the merged local branch; before ending a session, check `git worktree list` and remove your own finished ones. Never touch another agent's active worktree; one is safe to prune only when its branch is merged into `origin/main`, it has no uncommitted or untracked changes, and no agent is still using it (the ignored `Local/Workshop` staging is regenerable). Serialize writes to any single checkout. Read-only cross-repository inspection can run concurrently.
 - Campaign content, Lua consumers, assets, materials, packaging, and integration belong here. Route low-level hooks to **OpenShim**, reusable Lua/native runtime APIs to **EXU**, and file/update primitives to **bzfile**.
 - Sibling repositories normally live under `%USERPROFILE%\Documents\GIT`. Verify `origin` and branch before treating a sibling as evidence, and read its `AGENTS.md` before editing it.
 
@@ -13,6 +13,7 @@ The DX11 Enhanced base and terrain shaders are the exception to CR ownership: th
 
 ## Load only when relevant
 
+- Co-op mission ports, weather/environment work, live testing, Codex delegation, the shipping lock, or any "why does this keep breaking" question: read `Docs/AGENT_KNOWLEDGE_BASE.md` (lessons, recipes, source-of-truth map, hard rules). Append new lessons there in the same PR.
 - Lua behavior or Lua-facing native APIs: read `Docs/BZR_LUA_AGENT_REFERENCE.md` first. For Livewire/cinematic fixture setup, also read `Docs/LIVEWIRE_VALIDATION_20261008.md`: never blanket-apply unit AI commands to camera pods or static fixtures; `pcall` does not protect native heap writes.
 - Loading, paths, filesystem/process behavior, discovery, installers, deployment, packaging, or updates: read `Docs/BZR_PLATFORM_COMPATIBILITY.md` first and account for Windows/GOG, Windows/Steam, Linux/Steam via Proton, and Linux/GOG via Wine/Proton.
 - GOG deployment, Workshop staging, or publication: read `docs/STEAM_PUBLISH_CHECKLIST.md` before acting.

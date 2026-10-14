@@ -30,9 +30,10 @@ signatures={};classes={}
 function AllObjects() local a={};for h,alive in pairs(objects) do if alive then a[#a+1]=h end end;local i=0;return function() i=i+1;return a[i] end end
 function GetPosition(p) return {x=1,y=20,z=3} end
 function SetVector(x,y,z) return {x=x,y=y,z=z} end
-for _,name in ipairs({'SetPilot','SetPerceivedTeam','ClearObjectives','AddObjective','Stop','Goto','Formation','SetName','SetUserTarget','RemovePilot','Defend2','Pickup','CameraReady','CameraPath','CameraFinish','SetObjectiveOn','SetObjectiveOff','Follow','Attack','FailMission','SucceedMission'}) do
+for _,name in ipairs({'SetPilot','SetPerceivedTeam','ClearObjectives','AddObjective','Stop','Goto','SetCommand','SetName','SetUserTarget','RemovePilot','Defend2','Pickup','CameraReady','CameraPath','CameraFinish','SetObjectiveOn','SetObjectiveOff','Follow','Attack','FailMission','SucceedMission'}) do
  _G[name]=function(...) record(name,...) end
 end
+AiCommand={FORMATION=6}
 function tick(t) now=t;Update(0.1) end
 function count(name,arg) local n=0;for _,c in ipairs(calls) do if c[1]==name and (arg==nil or c[2]==arg) then n=n+1 end end;return n end
 '''

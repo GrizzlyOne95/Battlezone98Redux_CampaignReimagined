@@ -39,12 +39,10 @@ local function AlreadyRegistered(text, filename)
     return present > 0
 end
 
-function Templates.Ensure()
-    if type(exu.ParseResourceScript) ~= "function" then
-        print("CR particle templates require the bundled EXU runtime; run Setup / Repair.")
-        return false
-    end
-    bzfile = require("bzfile")
+-- Finds the directory holding the .particle.payload files. Shared by Ensure and
+-- EnsureExtra so the two cannot disagree about where CR content lives.
+local function ResolveRoot()
+    bzfile = bzfile or require("bzfile")
     local RequireFix = require("RequireFix")
     local root = RequireFix.getActiveModRoot()
     if not root then
@@ -59,24 +57,53 @@ function Templates.Ensure()
             end
         end
     end
+    return root
+end
+
+local function ParsePayload(root, name)
+    local filename = name .. ".particle.payload"
+    local ok, text = pcall(ReadPayload, root .. "/" .. filename)
+    if not ok then return false, tostring(text) end
+    local parsed, completed = true, true
+    if not AlreadyRegistered(text, filename) then
+        parsed, completed = pcall(exu.ParseResourceScript, text, filename, "Modable")
+    end
+    if not parsed or not completed then
+        return false, "CR particle payload could not be parsed: " .. filename
+    end
+    loaded[name] = true
+    return true
+end
+
+function Templates.Ensure()
+    if type(exu.ParseResourceScript) ~= "function" then
+        print("CR particle templates require the bundled EXU runtime; run Setup / Repair.")
+        return false
+    end
+    local root = ResolveRoot()
     if not root then print("CR particle payload root could not be resolved."); return false end
     for _, name in ipairs(names) do
         if not loaded[name] then
-            local filename = name .. ".particle.payload"
-            local ok, text = pcall(ReadPayload, root .. "/" .. filename)
-            if not ok then print(tostring(text)); return false end
-            local parsed, completed = true, true
-            if not AlreadyRegistered(text, filename) then
-                parsed, completed = pcall(exu.ParseResourceScript, text, filename, "Modable")
-            end
-            if not parsed or not completed then
-                print("CR particle payload could not be parsed: " .. filename)
-                return false
-            end
-            loaded[name] = true
+            local ok, err = ParsePayload(root, name)
+            if not ok then print(err); return false end
         end
     end
     return true
+end
+
+-- Loads one payload that is NOT part of the base set above. A mission opts in
+-- by name (the Venus director asks for "cr_venus"), so a payload that has not
+-- shipped yet fails for that mission only instead of failing Ensure() -- and
+-- with it every weather system -- everywhere. Returns true when the templates
+-- are registered; false plus a reason otherwise. Idempotent.
+function Templates.EnsureExtra(name)
+    if loaded[name] then return true end
+    if type(exu.ParseResourceScript) ~= "function" then
+        return false, "EXU ParseResourceScript is unavailable"
+    end
+    local okRoot, root = pcall(ResolveRoot)
+    if not okRoot or not root then return false, "CR particle payload root could not be resolved" end
+    return ParsePayload(root, name)
 end
 
 return Templates

@@ -13,7 +13,7 @@ compatible Wine/Proton prefix are maintained together. See the shared
 ## Current scope
 
 - The main rewrite and testing focus is currently `misn02b`, `misn03`, and `misn04`.
-- Lua mission ports are present for `misn01` through `misn05`; custom map packages are included for `misn02b` through `misn05`.
+- Lua mission ports are present for `misn01` through `misn06`; custom map packages are included for `misn02b` through `misn06`.
 - Missions outside the active focus may be playable but should not be assumed to have the same level of testing or completion.
 - Native components currently target the 32-bit Windows build of Battlezone 98 Redux 2.2.301.
 - The project remains experimental: native hooks, broad asset overrides, and evolving mission scripts can introduce incompatibilities or regressions.
@@ -46,7 +46,7 @@ OpenShim owns low-level loading and engine patches. Extra Utilities exposes nati
 
 Subscribe to [Campaign Reimagined on Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790), then run [OpenShimSetup.exe](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases/latest/download/OpenShimSetup.exe), or open **Single Player > Instant Action** and launch **! SETUP / REPAIR - Open Community Patch**. Setup installs or updates the complete native chain: game-root `winmm.dll` and `bzloader.dll`, plus `plugins/openshim.dll` and matching patch/network data. Restart when prompted so the verified replacement can complete after exit. Player `openshim.ini` is preserved.
 
-Play through **Single Player > Custom Campaign > Campaign Reimagined**. This entry contains the four current playable map rewrites, from **Red Arrival** (`misn02b`) through **An Unexpected Connection** (`misn05`); training and the later stock missions are outside this campaign. CR content loads with its campaign or setup mission rather than requiring global activation in Mods. Installed OpenShim engine fixes continue to apply throughout the game. Setup remains available in Instant Action for future verification or repair.
+Play through **Single Player > Custom Campaign > Campaign Reimagined**. This entry contains the thirteen current playable map rewrites, from **Red Arrival** (`misn02b`) through **The Three Beacons** (`misn14`); training and the later stock missions are outside this campaign. CR content loads with its campaign or setup mission rather than requiring global activation in Mods. Installed OpenShim engine fixes continue to apply throughout the game. Setup remains available in Instant Action for future verification or repair.
 
 If automatic installation fails, check `openpatch_setup.log`, `openshim_update.log` and `openshim_update.status` in the game directory. Copying `winmm.dll` alone does not install the split native suite. Use OpenShim's uninstall instructions when removing it.
 
@@ -76,6 +76,7 @@ Useful references:
 - [`docs/workshop_description.bbcode`](docs/workshop_description.bbcode) — canonical public Workshop description
 - [`docs/STEAM_PUBLISH_CHECKLIST.md`](docs/STEAM_PUBLISH_CHECKLIST.md) — qualified local Workshop publication sequence
 - [`docs/STEAM_WORKSHOP_RUNNER.md`](docs/STEAM_WORKSHOP_RUNNER.md) — future dedicated-runner design, not the current publishing path
+- [`Docs/AGENT_KNOWLEDGE_BASE.md`](Docs/AGENT_KNOWLEDGE_BASE.md) — lessons, recipes, tooling and hard rules for agents building the campaign
 - [`AGENTS.md`](AGENTS.md) — authoritative local paths and promotion rules
 
 ## Publishing
