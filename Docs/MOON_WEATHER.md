@@ -340,4 +340,6 @@ Everything visual. No game was run for this change.
 - Whether the local layer's edge (about 95 units) and the pool pop-in are visible.
 - The impact and hover dust: size, amount, the `-0.45` hang, and whether hover dust under idle craft is wanted.
 - Particle cost in the busiest battle (misn03 defence waves), and `Quality`.
+- That `exu.BulletHit` fires in these two missions (it is what `CRReactive` relies on in the weather missions; the Moon missions
+  load neither it nor `PhysicsImpact`). If it does not, impact dust is simply absent; the rest is unaffected.
 - Co-op with real link latency (the suite uses 120 ms).
