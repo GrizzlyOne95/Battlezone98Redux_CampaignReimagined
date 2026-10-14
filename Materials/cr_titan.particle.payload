@@ -1,0 +1,315 @@
+// cr_titan.particle
+//
+// Ogre particle templates for the Titan weather director (CRTitanWeather.lua).
+//
+// Titan has a thick, cold nitrogen atmosphere (1.5 bar, ~94 K) under an orange
+// photochemical haze, gravity of about 0.14 g and very little surface wind.
+// Methane drizzle falls as large, slow drops; the lowlands are methane-soaked
+// and pool into shallow liquid. So: slow drops, slow haze, droplets that hang
+// in a splash for a long time, and liquid that mostly reflects the sky.
+//
+// Every material below already exists in CR_reactive.material (CR_FX/Rain,
+// RainSplash, Haze), so this file adds templates only -- no new art, no new
+// materials, nothing shared with cr_weather.particle.
+//
+// Axis note for Box emitters (Ogre AreaEmitter): `direction` is the DEPTH axis.
+// With a horizontal direction, `height` becomes the thin vertical axis, which is
+// what the flat pool sheets rely on (same convention as cr_io / cr_europa).
+//
+// Emitter and affector ORDER MATTERS: CRTitanWeather and the CRTitanWeather
+// presets address both by zero-based index.
+
+// =============================================================================
+// Drizzle -- sparse methane drops (a CRWeather preset layer, camera-attached)
+// =============================================================================
+
+// Big, slow, sparse. Titan raindrops are centimetre-sized and fall at walking
+// pace, so this is fewer, fatter, slower streaks than CR/Weather/Rain, tinted
+// by the haze they fall through.
+//   emitter 0  Box over the camera
+particle_system CR/Titan/Drizzle
+{
+    material            CR_FX/Rain
+    particle_width      0.32
+    particle_height     2.2
+    quota               700
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_common
+    common_direction    0 -1 0
+
+    emitter Box
+    {
+        angle               6
+        emission_rate       60
+        time_to_live_min    2.4
+        time_to_live_max    3.6
+        direction           0.10 -1 0.04
+        velocity_min        11
+        velocity_max        16
+        colour_range_start  0.92 0.66 0.34 0.42
+        colour_range_end    0.80 0.54 0.26 0.26
+        width               150
+        height              150
+        depth               60
+    }
+}
+
+// =============================================================================
+// Haze bank -- slow drifting amber haze around the camera (preset layer)
+// =============================================================================
+
+// The generic suspended-haze layer in Titan's colours. Large, nearly
+// transparent, drifting with the weak surface wind; a haze roll raises its rate
+// rather than its opacity, so density comes from stacking.
+//   emitter 0  Box around the camera
+//   affector 0 ColourInterpolator
+//   affector 1 Scaler
+particle_system CR/Titan/HazeBank
+{
+    material            CR_FX/Haze
+    particle_width      26.0
+    particle_height     26.0
+    quota               360
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               40
+        emission_rate       10
+        time_to_live_min    9.0
+        time_to_live_max    14.0
+        direction           1 -0.02 0.3
+        velocity_min        1.0
+        velocity_max        3.0
+        colour_range_start  0.86 0.58 0.26 0.00
+        colour_range_end    0.78 0.50 0.22 0.00
+        width               360
+        height              60
+        depth               360
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.86 0.58 0.26 0.00
+        time1   0.25
+        colour1 0.88 0.60 0.28 0.14
+        time2   0.70
+        colour2 0.80 0.52 0.22 0.10
+        time3   1.00
+        colour3 0.74 0.46 0.18 0.00
+    }
+
+    affector Scaler
+    {
+        rate 1.4
+    }
+}
+
+// =============================================================================
+// Pool sheen -- the sky lying on a methane pool
+// =============================================================================
+
+// A thin, bright, flat sheet half a unit over a wet pool. Liquid methane is
+// clear, so what the eye reads is the reflected sky: a paler, glossier gold than
+// the soaked ground round it. Cards lie flat (perpendicular_common, normal up)
+// so the patch keeps its shape from any view angle. The director scales the rate
+// with the pool weight and the ladder.
+//   emitter 0  Box sheet
+//   affector 0 ColourInterpolator
+particle_system CR/Titan/PoolSheen
+{
+    material            CR_FX/Haze
+    particle_width      38.0
+    particle_height     38.0
+    quota               48
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      perpendicular_common
+    common_direction    0 1 0
+    common_up_vector    0 0 1
+
+    emitter Box
+    {
+        angle               0
+        emission_rate       1.2
+        time_to_live_min    16.0
+        time_to_live_max    24.0
+        direction           1 0 0
+        velocity_min        0.0
+        velocity_max        0.1
+        colour_range_start  1.00 0.80 0.50 0.00
+        colour_range_end    1.00 0.76 0.44 0.00
+        width               80
+        height              0.2
+        depth               80
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 1.00 0.80 0.50 0.00
+        time1   0.20
+        colour1 1.00 0.82 0.54 0.30
+        time2   0.80
+        colour2 0.98 0.78 0.48 0.26
+        time3   1.00
+        colour3 0.96 0.74 0.44 0.00
+    }
+}
+
+// =============================================================================
+// Pool mist -- methane evaporating off a pool
+// =============================================================================
+
+// Low, slow, faint: a few metres of evaporation haze that hugs the liquid and
+// drifts with the weak wind.
+//   emitter 0  Box over the pool
+//   affector 0 ColourInterpolator
+//   affector 1 Scaler
+particle_system CR/Titan/PoolMist
+{
+    material            CR_FX/Haze
+    particle_width      22.0
+    particle_height     14.0
+    quota               60
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               25
+        emission_rate       1.4
+        time_to_live_min    10.0
+        time_to_live_max    16.0
+        direction           1 0.05 0.3
+        velocity_min        0.2
+        velocity_max        0.8
+        colour_range_start  0.90 0.66 0.36 0.00
+        colour_range_end    0.84 0.60 0.30 0.00
+        width               80
+        height              3
+        depth               80
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.90 0.66 0.36 0.00
+        time1   0.25
+        colour1 0.92 0.68 0.38 0.12
+        time2   0.70
+        colour2 0.86 0.62 0.32 0.08
+        time3   1.00
+        colour3 0.80 0.56 0.28 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.5
+    }
+}
+
+// =============================================================================
+// Pool ripples -- drizzle landing on a pool
+// =============================================================================
+
+// Small flat rings on the liquid. Emission is zero until the director drives it
+// from the drizzle intensity, so a dry rung costs nothing.
+//   emitter 0  Box over the pool
+//   affector 0 Scaler
+//   affector 1 ColourFader
+particle_system CR/Titan/PoolRipple
+{
+    material            CR_FX/RainSplash
+    particle_width      1.2
+    particle_height     1.2
+    quota               160
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      perpendicular_common
+    common_direction    0 1 0
+    common_up_vector    0 0 1
+
+    emitter Box
+    {
+        angle               0
+        emission_rate       0
+        time_to_live_min    0.7
+        time_to_live_max    1.1
+        direction           1 0 0
+        velocity_min        0.0
+        velocity_max        0.0
+        colour_range_start  0.86 0.66 0.40 0.50
+        colour_range_end    0.80 0.60 0.34 0.36
+        width               76
+        height              0.2
+        depth               76
+    }
+
+    affector Scaler
+    {
+        rate 2.6
+    }
+
+    affector ColourFader
+    {
+        alpha -0.55
+    }
+}
+
+// =============================================================================
+// Splash -- a craft crossing a methane pool
+// =============================================================================
+
+// Positioned under a moving craft by the director (SetParticleSystemPosition);
+// local_space is false, so droplets already thrown stay where they were and the
+// spray trails behind the craft as a wake. Thick air and 0.14 g: the droplets
+// rise slowly, hang, and fall back slowly.
+//   emitter 0  Point spray
+//   affector 0 LinearForce          (gravity)
+//   affector 1 ColourFader
+particle_system CR/Titan/Splash
+{
+    material            CR_FX/RainSplash
+    particle_width      1.6
+    particle_height     1.6
+    quota               220
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               38
+        emission_rate       0
+        time_to_live_min    0.9
+        time_to_live_max    1.6
+        direction           0 1 0
+        velocity_min        3.0
+        velocity_max        7.0
+        colour_range_start  0.94 0.72 0.42 0.60
+        colour_range_end    0.86 0.62 0.34 0.40
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -6 0
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha -0.45
+    }
+}
