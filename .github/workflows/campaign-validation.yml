@@ -121,6 +121,18 @@ jobs:
           "$LUA" Tools/Test-Misn10.lua
           python Tools/Test-Misn10SourceParity.py
 
+      - name: Test misn11 source port, co-op layer and presentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn11.lua
+          "$LUA" Tools/Test-Misn11Coop.lua
+          "$LUA" Tools/Test-Misn11Presentation.lua
+          python Tools/Test-Misn11SourceParity.py
+          python Tools/Test-Misn11CoopContract.py
+          python Tools/Test-CoopAuthoredLabels.py
+
       - name: Test aiCore singleton producer recovery
         shell: bash
         run: |

@@ -6,8 +6,12 @@ Source blob: `127e2f66fe3de1c79434a4c1a7b284601909ee7c`.
 The original C++ and its include-guard-only header are preserved byte for byte
 in `References/Misn11Source/`, including all declaration and serialization comments.
 
-The script targets stock single-player Battlezone 98 Redux, Lua 5.1.
-It does not require EXU, OpenShim, aiCore, or campaign helper modules.
+The script targets Battlezone 98 Redux, Lua 5.1. Since the co-op port it also runs the shared
+2-4 player layer (EXU, OpenShim, `CRCoop`, `CRIoWeather`): everything the campaign adds sits between
+`-- CR ... >>` / `-- CR ... <<` markers and every substitution outside them is an explicit delta in
+`Tools/Test-Misn11SourceParity.py`. See `MISN11_COOP.md`. The statements below describe the DLL port
+itself; the co-op deltas are: the CCA is team 5, the full-matching-fighter scans retask only CCA
+fighters, triggers that tested the one player test every human, and the win needs every human at pad 2.
 
 ## Preserved behavior
 
