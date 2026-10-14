@@ -1,0 +1,29 @@
+// Acid rain splash: green copy of xraindr (effects.AcidRain)
+[ExplosionClass]
+classLabel = "planarexpl"
+
+explSound = ""
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+
+particleTypes = 1
+
+particleClass1 = "xraindra.core"
+particleCount1 = 1
+
+[Core]
+simulateBase = "sim_null"
+lifeTime = 0.60
+renderBase = "draw_planar"
+textureName = "xraindr.png"
+startColor = "110 255 80 255"
+finishColor = "0 0 0 0"
+startRadius = 0.1
+finishRadius = 1.4
+animateTime = 0.5
+rotationRate = 5.0
+maxCount = 20000

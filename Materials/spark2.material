@@ -1,0 +1,7 @@
+import * from "sprites.material"
+
+//fire puff1
+material spark2.tga : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap spark2.dds
+}

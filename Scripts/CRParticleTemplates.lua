@@ -5,7 +5,7 @@ local exu = require("exu")
 local bzfile = nil
 local Templates = {}
 local loaded = {}
-local names = {"cr_reactive", "cr_weather", "weather_particles"}
+local names = {"cr_reactive", "cr_weather", "weather_particles", "crwx_precip"}
 
 local function ReadPayload(path)
     local file = bzfile.Open(path, "r")

@@ -1,0 +1,9 @@
+import * from "sprites.material"
+
+//fire puff1
+material lbolt3.dds : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap lbolt3.dds
+}
+
+

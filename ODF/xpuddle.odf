@@ -1,0 +1,30 @@
+[ExplosionClass]
+classLabel = "planarexpl"
+
+explSound = ""
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+
+particleTypes = 1
+
+particleClass1 = "xpuddle.core"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+
+[Core]
+simulateBase = "sim_null"
+lifeTime = 30
+renderBase = "draw_planar"
+textureName = "wsplat.dds"
+startColor = "166 166 166 255"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+finishColor = "0 0 0 0"
+startRadius = 0.1
+finishRadius =15
+animateTime = 30
+rotationRate = 5.0
+maxCount = 500

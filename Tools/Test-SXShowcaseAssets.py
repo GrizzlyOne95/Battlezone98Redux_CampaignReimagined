@@ -83,7 +83,7 @@ def main():
 
     blocks, source_blocks = paths(bzn), paths(source)
     check(blocks[:len(source_blocks)] == source_blocks, "original setup paths changed")
-    check(len(blocks) == len(source_blocks) + 63 == 77, "showcase must append 63 paths")
+    check(len(blocks) == len(source_blocks) + 81 == 95, "showcase must append 81 paths")
     terrain = configparser.ConfigParser()
     terrain.read_string(read(reference, "Missions/crsetup.trn"))
     size = terrain["Size"]
@@ -117,7 +117,7 @@ def main():
     check(bindings == {label for label in labels if label.startswith("sx_")},
           "Lua path bindings differ from authored showcase paths")
     durations = [int(value) for value in re.findall(r'\bduration = (\d+)', scene_source)]
-    check(len(durations) == 9 and sum(durations) == 400, "expected nine chapters / 400 seconds")
+    check(len(durations) == 11 and sum(durations) == 453, "expected eleven chapters / 453 seconds")
     spec = importlib.util.spec_from_file_location("sx_map", root / "Tools/Build-SXShowcaseMap.py")
     builder = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(builder)
@@ -131,7 +131,7 @@ def main():
     sources = {norm(entry["source"]) for entry in entries}
     for dependency in ("Missions/crsetup.trn", "Missions/crsetup.hg2", "Missions/crsetup.mat",
                        "Missions/crsetup.lgt", "ODF/avfigh.odf", "ODF/avtank.odf", "ODF/abbarr.odf",
-                       *(f"ODF/{name}.odf" for name in re.findall(r'break_b?\d+ = \{ odf = "(\w+)"', scene_source)),
+                       *(f"ODF/{name}.odf" for name in re.findall(r'(?:brk|gib)_\w+ = \{ odf = "(\w+)"', scene_source) if name != "sxanchor"),
                        "ODF/abspow.odf", "ODF/apcamr.odf", "Scripts/RequireFix.lua",
                        "Scripts/CRWeather.lua", "Scripts/CRWeatherPresets.lua", "Scripts/CRParticleTemplates.lua",
                        "Materials/cr_weather.particle.payload", "OverlayFont/CRBZoneOverlay.fontdef", "OverlayFont/BZONE.ttf"):

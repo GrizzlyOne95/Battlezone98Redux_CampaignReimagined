@@ -1,0 +1,58 @@
+material acidrain
+{
+    // DX11: shader copy of the fixed-function technique below. D3D11 has no
+    // fixed pipeline; DX9 cannot use vs_4_0 and falls through to the original.
+    technique
+    {
+        pass
+        {   
+            vertex_program_ref CRWX_FF_LitFlat2_vertex
+            {
+            }
+            fragment_program_ref CRWX_FF_ModAlphaBlend_NoFog_fragment
+            {
+            }
+            diffuse 0.75 1 0.75 0.05
+            ambient 0.75 1 0.75 0.05
+        	cull_hardware none
+			cull_software none
+			depth_write off
+            scene_blend alpha_blend
+            fog_override true
+            texture_unit
+            {
+                texture raintoxc.dds
+                scroll_anim 0 0.25
+            }
+            texture_unit
+            {
+                texture raintoxc_mask.dds
+                colour_op alpha_blend
+            }
+        }
+    }
+
+    technique
+    {
+        pass
+        {   
+            diffuse 0.75 1 0.75 0.05
+            ambient 0.75 1 0.75 0.05
+        	cull_hardware none
+			cull_software none
+			depth_write off
+            scene_blend alpha_blend
+            fog_override true
+            texture_unit
+            {
+                texture raintoxc.dds
+                scroll_anim 0 0.25
+            }
+            texture_unit
+            {
+                texture raintoxc_mask.dds
+                colour_op alpha_blend
+            }
+        }
+    }
+}
