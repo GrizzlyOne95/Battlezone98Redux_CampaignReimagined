@@ -1216,6 +1216,581 @@ do
 end
 
 -- =============================================================================
+-- 11. Fog banks: rare, short, dense sulphur fog moments
+-- =============================================================================
+
+do
+    local peer_events
+    local FOG_CFG = {
+        firstDelay = { 150.0, 330.0 }, gap = { 300.0, 660.0 }, total = { 30.0, 75.0 },
+        rollIn = { 8.0, 14.0 }, rollOut = { 10.0, 18.0 }, power = { 0.85, 1.0 },
+    }
+
+    -- ---- 11a. the pure schedule -------------------------------------------------
+    local pure = NewPeer("fogpure", NewWorld())
+    local Map = pure.Map
+
+    -- Deterministic: the same seed gives the same banks, a different seed does not.
+    do
+        local a = Map.NewFogBanks(4242, FOG_CFG):Events(7200.0)
+        local b = Map.NewFogBanks(4242, FOG_CFG):Events(7200.0)
+        local c = Map.NewFogBanks(4243, FOG_CFG):Events(7200.0)
+        local same = #a == #b
+        for i = 1, math.min(#a, #b) do
+            same = same and a[i].start == b[i].start and a[i].dur == b[i].dur
+                and a[i].power == b[i].power and a[i].rollIn == b[i].rollIn
+        end
+        check(same, "the bank schedule must be identical for one seed")
+        check(a[1].start ~= c[1].start, "a different seed should schedule different banks")
+
+        -- Asking in a different order (a peer that joined late, a load) changes nothing.
+        local late = Map.NewFogBanks(4242, FOG_CFG)
+        late:Active(5000.0)
+        late:Active(10.0)
+        local lateEvents = late:Events(7200.0)
+        check(#lateEvents == #a and lateEvents[3].start == a[3].start, "query order must not change the schedule")
+    end
+
+    -- Rarity, duration bounds, gaps: across 300 seeds, over a 30 minute mission.
+    do
+        local total, maxCount, minCount, coverage = 0, 0, 99, 0.0
+        local durOk, rollOk, gapOk, firstOk, powerOk = true, true, true, true, true
+        for seed = 1, 300 do
+            local events = Map.NewFogBanks(seed * 7919 + 13, FOG_CFG):Events(1800.0)
+            local count = 0
+            for i, e in ipairs(events) do
+                if e.start < 1800.0 then
+                    count = count + 1
+                    coverage = coverage + math.min(e.dur, 1800.0 - e.start)
+                end
+                if e.dur < 30.0 - 1e-6 or e.dur > 75.0 + 1e-6 then durOk = false end
+                if e.rollIn < 8.0 - 1e-6 or e.rollIn > 14.0 + 1e-6 then rollOk = false end
+                if e.rollOut < 10.0 - 1e-6 or e.rollOut > 18.0 + 1e-6 then rollOk = false end
+                if e.hold < 4.0 - 1e-6 then rollOk = false end
+                if e.power < 0.85 - 1e-6 or e.power > 1.0 + 1e-6 then powerOk = false end
+                if i == 1 and (e.start < 150.0 - 1e-6 or e.start > 330.0 + 1e-6) then firstOk = false end
+                if i > 1 then
+                    local gap = e.start - (events[i - 1].start + events[i - 1].dur)
+                    if gap < 300.0 - 1e-6 or gap > 660.0 + 1e-6 then gapOk = false end
+                end
+            end
+            total = total + count
+            if count > maxCount then maxCount = count end
+            if count < minCount then minCount = count end
+        end
+        local mean = total / 300.0
+        check(durOk, "every bank must last between 30 and 75 seconds")
+        check(rollOk, "roll-in / roll-out lengths stay inside their ranges")
+        check(powerOk, "bank power stays inside its range")
+        check(gapOk, "the gap between banks stays between 300 and 660 seconds")
+        check(firstOk, "the first bank never starts before 150 s or after 330 s")
+        check(mean >= 2.5 and mean <= 5.0, string.format("a 30 minute mission should see a few banks, mean %.2f", mean))
+        check(maxCount <= 6 and minCount >= 1, string.format("bank count per 30 minutes must stay in 1..6, saw %d..%d", minCount, maxCount))
+        local share = coverage / (300.0 * 1800.0)
+        check(share < 0.14, string.format("fog banks must be rare: %.1f%% of the time", share * 100.0))
+    end
+
+    -- Smooth roll-in / roll-out: bounded step at 20 Hz, monotone, 0 outside, 1 on the hold.
+    do
+        local worstStep, monotone, outsideZero = 0.0, true, true
+        for seed = 1, 40 do
+            local sched = Map.NewFogBanks(seed * 31 + 7, FOG_CFG)
+            local e = sched:Events(10.0)[1]
+            local prev = 0.0
+            local t = e.start - 5.0
+            local peak = 0.0
+            while t < e.start + e.dur + 5.0 do
+                local v = Map.FogEnvelope(e, t)
+                if v < 0.0 or v > 1.0 then monotone = false end
+                if (t <= e.start or t >= e.start + e.dur) and v ~= 0.0 then outsideZero = false end
+                worstStep = math.max(worstStep, math.abs(v - prev))
+                if t < e.start + e.rollIn and v < prev - 1e-9 then monotone = false end
+                if t > e.start + e.rollIn + e.hold and v > prev + 1e-9 then monotone = false end
+                if v > peak then peak = v end
+                prev = v
+                t = t + 0.05
+            end
+            check(peak == 1.0, "the envelope reaches full strength on the hold")
+            check(Map.FogEnvelope(e, e.start + e.rollIn + (e.hold * 0.5)) == 1.0, "the hold is flat at 1")
+        end
+        check(worstStep < 0.011, string.format("roll-in / roll-out must be smooth, worst 50 ms step %.4f", worstStep))
+        check(monotone, "the envelope rises through the roll-in and falls through the roll-out, never dips")
+        check(outsideZero, "no fog outside a bank's window")
+    end
+
+    -- ---- 11b. one peer through a scheduled bank --------------------------------------
+    local function Quiet(seed, extra)
+        local world = NewWorld()
+        local peer = NewPeer("fog" .. tostring(seed), world)
+        peer.Environment.Init()
+        peer.Environment.FogHorizon = (extra and extra.horizon) or 100.0
+        local options = { seed = seed, sites = sites, bounds = BOUNDS, startLevel = 1, targetLevel = 1 }
+        for k, v in pairs(extra or {}) do options[k] = v end
+        peer.Venus.Init(options)
+        peer.world = world
+        return peer
+    end
+
+    local seedA = 5150
+    do
+        local peer = Quiet(seedA)
+        local V = peer.Venus
+        local bank = V.GetFogSchedule(1000.0)[1]
+        check(bank ~= nil, "the director exposes its bank schedule")
+        peer.run(bank.start - 4.0, 0.1)
+        local pre = { fog = peer.rec.fog, sun = peer.rec.sunPower, ambient = peer.rec.ambient }
+        check(V.GetFogIntensity() == 0.0 and not V.IsFogBankActive(), "no fog bank before the schedule says so")
+        check(CountSystems(peer, "cr_vw_haze") == 0, "no ground haze before the first bank")
+
+        peer.run(4.0 + bank.rollIn + (bank.hold * 0.6), 0.1)
+        local at = peer.rec
+        check(V.GetFogIntensity() > 0.8, "the bank is at full strength mid-hold, got " .. V.GetFogIntensity())
+        check(at.fog.fogEnd <= 100.5, "the bank never pushes fog past the 100 m terrain horizon, end " .. at.fog.fogEnd)
+        check(at.fog.fogEnd <= pre.fog.fogEnd + 0.5, "a bank only ever thickens fog, end " .. at.fog.fogEnd .. " vs " .. pre.fog.fogEnd)
+        check(at.fog.fogStart <= 12.0, "pea soup starts almost at the camera, start " .. at.fog.fogStart)
+        check(at.fog.g > at.fog.r and at.fog.g > at.fog.b * 1.8,
+            string.format("bank fog must be sulphur green-yellow (%.2f %.2f %.2f)", at.fog.r, at.fog.g, at.fog.b))
+        check(near(at.fog.g, 0.44, 0.06) and near(at.fog.r, 0.40, 0.07), "fog colour should sit near the concept's olive green-yellow")
+        check(at.sunPower >= pre.sun - 1e-6, string.format("a bank never dims the sun (%.3f -> %.3f)", pre.sun, at.sunPower))
+        check(at.sunPower >= peer.Venus.FogBankSunPower - 0.02, "the sun stays bright inside a bank, got " .. at.sunPower)
+        check(at.ambient.g >= pre.ambient.g - 1e-6, "ground light glows ochre rather than dimming")
+
+        local haze = CountSystems(peer, "cr_vw_haze")
+        check(haze >= 1 and haze <= V.MaxLiveHaze, "a ground-haze ring streams in around the player, got " .. haze)
+        for _, name in ipairs(SystemsOfTemplate(peer, "CR/Venus/FogPool")) do
+            local s = peer.rec.systems[name]
+            if string.find(name, "cr_vw_haze", 1, true) then
+                check(s.rates[0] ~= nil and s.rates[0] > 3.0, "haze systems emit hard at full strength")
+            end
+        end
+        check(TotalSystems(peer) <= V.MaxSystems, "a bank must stay inside the particle budget")
+
+        -- After the bank: the air returns, the haze lingers then goes.
+        peer.run((bank.hold * 0.4) + bank.rollOut + 30.0, 0.1)
+        check(not V.IsFogBankActive(), "the bank is over")
+        check(near(peer.rec.fog.fogEnd, pre.fog.fogEnd, 2.5) and near(peer.rec.fog.fogStart, pre.fog.fogStart, 3.0),
+            "fog returns to the rung's values after the bank")
+        peer.run(V.FogBankHazeLinger + 5.0, 0.1)
+        check(CountSystems(peer, "cr_vw_haze") == 0, "ground haze is released after its linger")
+        peer.Venus.Shutdown()
+    end
+
+    -- A tighter horizon is honoured; a wider one does not clear the rung's fog.
+    do
+        local tight = Quiet(seedA, { horizon = 80.0 })
+        local bank = tight.Venus.GetFogSchedule(1000.0)[1]
+        tight.run(bank.start + bank.rollIn + (bank.hold * 0.6), 0.1)
+        check(tight.rec.fog.fogEnd <= 80.5, "the bank is clamped to a short terrain horizon, end " .. tight.rec.fog.fogEnd)
+        tight.Venus.Shutdown()
+
+        local wide = Quiet(seedA, { horizon = 130.0 })
+        wide.run(bank.start - 4.0, 0.1)
+        local pre = wide.rec.fog.fogEnd
+        wide.run(4.0 + bank.rollIn + (bank.hold * 0.6), 0.1)
+        check(wide.rec.fog.fogEnd <= pre + 0.5, "a bank on a wide map still cannot clear the rung's fog")
+        check(wide.rec.fog.fogEnd <= 120.5, "the bank's own fog end (120 m) is respected")
+        wide.Venus.Shutdown()
+    end
+
+    -- Switched off: nothing happens and nothing can be requested.
+    do
+        local off = Quiet(seedA, { fogBanks = false })
+        local bank = off.Venus.GetFogSchedule(1000.0)[1]
+        off.run(bank.start + bank.rollIn + (bank.hold * 0.6), 0.1)
+        check(off.Venus.GetFogIntensity() == 0.0, "AllowFogBanks = false removes the banks")
+        local ok, why = off.Venus.RequestFogBank({ force = true })
+        check(ok == false and why == "disabled", "a disabled director refuses RequestFogBank")
+        off.Venus.Shutdown()
+    end
+
+    -- ---- 11c. precedence: storms, forced levels, smoothness --------------------------
+    do
+        -- Forced storm rung: the whole schedule is suppressed (no lightning-peak fog).
+        local storm = Quiet(seedA, { startLevel = 5, targetLevel = 5 })
+        storm.Venus.ForceLevel(5, 100000.0, 1.0)
+        local worst = 0.0
+        for _ = 1, 2400 do
+            storm.step(0.5)
+            worst = math.max(worst, storm.Venus.GetFogIntensity())
+        end
+        check(worst <= 0.02, "no fog bank during a forced severe storm, saw " .. worst)
+        check(select(1, storm.Venus.RequestFogBank()) == false, "a plain request is refused during a forced level")
+        storm.Venus.Shutdown()
+
+        -- A natural storm (not forced) suppresses the schedule on its own: while the
+        -- ladder sits at the storm rungs a scheduled bank must not show.
+        do
+            local nat = Quiet(seedA, { targetLevel = 5 })
+            -- Pin the seeded ladder on the severe rung without ForceLevel, so only
+            -- the natural suppression path is under test.
+            nat.Venus.Ladder.timeline[1] = { t = 0.0, dur = 1e9, level = 5, episode = false }
+            local sched = nat.Venus.GetFogSchedule(2000.0)
+            local overlap, worstInStorm = 0.0, 0.0
+            for _ = 1, 2400 do
+                nat.step(0.5)
+                local V = nat.Venus
+                local scheduled = V.FogBanks:Active(V.Clock) ~= nil
+                if V.LevelValue >= 4.5 then
+                    if scheduled then overlap = overlap + 0.5 end
+                    worstInStorm = math.max(worstInStorm, V.GetFogIntensity())
+                end
+            end
+            check(overlap >= 20.0, "the storm test must actually overlap a scheduled bank, overlap " .. overlap)
+            check(worstInStorm <= 0.05, "a scheduled bank is suppressed while the ladder sits at storm rungs, saw " .. worstInStorm)
+            check(#sched >= 2, "schedule extends over the run")
+            nat.Venus.Shutdown()
+        end
+
+        -- A forced CALM rung is a set piece too: the schedule stays out of it,
+        -- but a script that wants fog can force one explicitly.
+        local calm = Quiet(seedA)
+        calm.Venus.ForceLevel(1, 100000.0, 1.0)
+        local calmWorst = 0.0
+        for _ = 1, 1200 do
+            calm.step(0.5)
+            calmWorst = math.max(calmWorst, calm.Venus.GetFogIntensity())
+        end
+        check(calmWorst <= 0.02, "a ForceLevel set piece is not interrupted by the schedule, saw " .. calmWorst)
+        local ok, id = calm.Venus.RequestFogBank({ force = true, seconds = 40.0 })
+        check(ok == true, "a script may force a bank inside a set piece")
+        calm.run(25.0, 0.1)
+        check(calm.Venus.GetFogIntensity() > 0.8, "the forced bank shows inside the set piece")
+        calm.Venus.Shutdown()
+
+        -- An episode / storm that arrives mid-bank eases it away, smoothly.
+        local mid = Quiet(seedA)
+        local bank = mid.Venus.GetFogSchedule(1000.0)[1]
+        mid.run(bank.start + bank.rollIn + 2.0, 0.1)
+        check(mid.Venus.GetFogIntensity() > 0.8, "mid-bank sanity")
+        mid.Venus.ForceLevel(5, 600.0, 1.0)
+        local prev, worstStep = mid.Venus.GetFogIntensity(), 0.0
+        for _ = 1, 30 * 20 do
+            mid.step(1.0 / 30.0)
+            local v = mid.Venus.GetFogIntensity()
+            worstStep = math.max(worstStep, math.abs(v - prev))
+            prev = v
+        end
+        check(prev < 0.05, "a bank gives way to a forced storm, still " .. prev)
+        check(worstStep < 0.01, string.format("the bank eases away, not cuts: worst frame step %.4f", worstStep))
+        mid.Venus.Shutdown()
+
+        -- Per-frame smoothness of the whole director output across a full natural bank.
+        local smooth = Quiet(seedA)
+        local sb = smooth.Venus.GetFogSchedule(1000.0)[1]
+        smooth.run(sb.start - 5.0, 0.1)
+        local last, steps = smooth.Venus.GetFogIntensity(), 0.0
+        for _ = 1, math.floor((sb.dur + 10.0) * 30.0) do
+            smooth.step(1.0 / 30.0)
+            local v = smooth.Venus.GetFogIntensity()
+            steps = math.max(steps, math.abs(v - last))
+            last = v
+        end
+        check(steps < 0.008, string.format("intensity is smooth at 30 fps, worst step %.4f", steps))
+        smooth.Venus.Shutdown()
+    end
+
+    -- ---- 11d. no gameplay side effects ----------------------------------------------
+    -- Same seed and mission, with and without banks: identical rungs, strikes and
+    -- sensor scales, and nothing damaged, moved or ordered.
+    do
+        local function Run(fogBanks)
+            local peer = Quiet(777, { fogBanks = fogBanks, targetLevel = 3 })
+            local tank = AddObject(peer.world, "avtank", 500, 12, 520, { owner = "fog777" })
+            local rungs, radar = {}, {}
+            for i = 1, 1200 do
+                peer.step(1.0)
+                rungs[i] = peer.Venus.GetLevel()
+                radar[i] = peer.rec.radarRange[tank] or -1
+            end
+            local out = { rungs = rungs, radar = radar, strikes = peer.Venus.GetStats().strikes, peer = peer }
+            return out
+        end
+        local with, without = Run(true), Run(false)
+        local same = true
+        for i = 1, #with.rungs do
+            if with.rungs[i] ~= without.rungs[i] or with.radar[i] ~= without.radar[i] then same = false end
+        end
+        check(same, "fog banks must not change the ladder or any sensor scale")
+        check(with.strikes == without.strikes, "fog banks must not change the strike schedule")
+        check(next(damageCalls) == nil, "fog banks must call nothing that damages: " .. tostring(damageCalls[1]))
+        with.peer.Venus.Shutdown()
+        without.peer.Venus.Shutdown()
+
+        -- The module's gameplay modifier never mentions fog.
+        local g = io.open(scriptDir .. "/CRVenusWeather.lua", "rb")
+        local text = g:read("*a")
+        g:close()
+        local body = text:match("local function GameplayContribution.-\nend") or ""
+        check(not body:lower():find("fog", 1, true), "GameplayContribution must not read fog state")
+    end
+
+    -- ---- 11e. co-op: peer-identical banks, one small event for a requested one --------
+    do
+        local world = NewWorld()
+        local hostPeer = NewPeer("host", world, { net = true })
+        local guestPeer = NewPeer("guest", world, { net = true })
+        local H, G = hostPeer.Venus, guestPeer.Venus
+        AddObject(world, "avtank", 520, 12, 520, { owner = "host" })
+        AddObject(world, "avtank", 540, 12, 530, { owner = "guest" })
+
+        local queue, sent = {}, {}
+        local function HostSend(op, ...)
+            sent[#sent + 1] = { op = op, n = select("#", ...), args = { ... } }
+            queue[#queue + 1] = { at = hostPeer.now + 0.12, op = op, args = { ... }, n = select("#", ...) }
+        end
+        hostPeer.Environment.Init(); guestPeer.Environment.Init()
+        hostPeer.Environment.FogHorizon = 100.0; guestPeer.Environment.FogHorizon = 100.0
+        H.Init({ seed = seedA, authority = true, send = HostSend, sites = sites, bounds = BOUNDS, startLevel = 1, targetLevel = 1 })
+        G.Init({ authority = false, sites = sites, bounds = BOUNDS, startLevel = 1, targetLevel = 1 })
+
+        local function Pump()
+            local keep = {}
+            for i = 1, #queue do
+                local m = queue[i]
+                if guestPeer.now >= m.at then G.ApplyNetEvent(m.op, unpack(m.args, 1, m.n)) else keep[#keep + 1] = m end
+            end
+            queue = keep
+        end
+        local hostDt, guestDt = 1.0 / 30.0, 1.0 / 47.0
+        local wall, hostNext, guestNext = 0.0, hostDt, guestDt
+        local function RunBoth(seconds)
+            local target = wall + seconds
+            while true do
+                local nextFrame = math.min(hostNext, guestNext)
+                if nextFrame > target then break end
+                wall = nextFrame
+                if hostNext <= guestNext then hostPeer.step(hostDt); hostNext = hostNext + hostDt
+                else guestPeer.step(guestDt); guestNext = guestNext + guestDt end
+                Pump()
+            end
+            wall = target
+        end
+
+        RunBoth(2.0)
+        check(G.Synced, "guest synced for the fog test")
+        local bank = H.GetFogSchedule(1000.0)[1]
+        local gbank = G.GetFogSchedule(1000.0)[1]
+        check(bank.start == gbank.start and bank.dur == gbank.dur and bank.power == gbank.power,
+            "host and guest derive the same scheduled bank from the seed")
+
+        -- Through the natural bank the two peers agree frame by frame (within link skew).
+        RunBoth(bank.start - 4.0 - wall)
+        local worst, peakSeen = 0.0, 0.0
+        while wall < bank.start + bank.dur + 6.0 do
+            RunBoth(0.5)
+            worst = math.max(worst, math.abs(H.GetFogIntensity() - G.GetFogIntensity()))
+            peakSeen = math.max(peakSeen, G.GetFogIntensity())
+        end
+        check(peakSeen > 0.8, "the guest sees the scheduled bank too")
+        check(worst < 0.06, string.format("host and guest fog intensity agree through a bank, worst %.3f", worst))
+        local fogEvents = 0
+        for _, m in ipairs(sent) do if m.op == "VenusFog" then fogEvents = fogEvents + 1 end end
+        check(fogEvents == 0, "a scheduled bank costs no traffic at all")
+
+        -- A requested bank is ONE small all-numbers event, applied once.
+        RunBoth(60.0)
+        local ok, id = H.RequestFogBank({ seconds = 50.0, reason = "test" })
+        check(ok == true, "the host can request a bank")
+        local ev
+        for _, m in ipairs(sent) do if m.op == "VenusFog" then ev = m end end
+        check(ev ~= nil and ev.n == 6, "a requested bank rides one six-number event")
+        local numeric = true
+        for i = 1, ev.n do if type(ev.args[i]) ~= "number" then numeric = false end end
+        check(numeric, "the fog event carries numbers only")
+        check(select(1, G.RequestFogBank()) == false, "a guest cannot request a bank")
+        RunBoth(30.0)
+        worst = 0.0
+        peakSeen = 0.0
+        for _ = 1, 40 do
+            RunBoth(1.0)
+            worst = math.max(worst, math.abs(H.GetFogIntensity() - G.GetFogIntensity()))
+            peakSeen = math.max(peakSeen, G.GetFogIntensity())
+        end
+        check(peakSeen > 0.7, "the guest renders the host's requested bank")
+        check(worst < 0.08, string.format("requested bank agrees on both peers, worst %.3f", worst))
+        local before = #G.FogRequests
+        G.ApplyNetEvent("VenusFog", unpack(ev.args, 1, ev.n))
+        check(#G.FogRequests == before, "a duplicate fog event is ignored")
+        check(next(damageCalls) == nil, "co-op fog damages nothing")
+        H.Shutdown(); G.Shutdown()
+    end
+
+    -- ---- 11f. the drama hook ---------------------------------------------------------
+    do
+        -- A seed whose first scheduled bank is late enough to leave room for a
+        -- drama bank before it.
+        local seedLate
+        for seed = 100, 5000 do
+            local e = Map.NewFogBanks(seed, FOG_CFG):Events(10.0)[1]
+            if e.start >= 305.0 then seedLate = seed; break end
+        end
+        check(seedLate ~= nil, "found a seed with a late first bank")
+
+        local moveCalls = {}
+        local function Scenario(label)
+            local peer
+            peer = Quiet(seedLate, { targetLevel = 1, send = function(op, ...)
+                if op == "VenusFog" then
+                    peer_events = peer_events or {}
+                    peer_events[#peer_events + 1] = { clock = peer.Venus.Clock, args = { ... }, n = select("#", ...) }
+                end
+            end })
+            peer.env.GetTeamNum = function(h)
+                if h == 1 then return 1 end
+                local o = peer.world.objects[h]
+                return o and o.team or 0
+            end
+            peer.env.IsAlly = function(a, b)
+                return peer.env.GetTeamNum(a) == peer.env.GetTeamNum(b)
+            end
+            for _, fn in ipairs({ "Goto", "Attack", "Follow", "Retreat", "Defend", "Stop", "SetCommand",
+                                  "SetPosition", "SetTeamNum", "SetTransform" }) do
+                peer.env[fn] = function() moveCalls[#moveCalls + 1] = label .. ":" .. fn end
+            end
+            return peer
+        end
+
+        local function AddHostile(peer, odf, x, z, team)
+            local h = AddObject(peer.world, odf, x, 12, z, { owner = "fog" })
+            peer.world.objects[h].team = team or 5
+            return h
+        end
+
+        -- Drives units for `seconds`: each object moves by (dx, dz) per second.
+        local function Drive(peer, movers, seconds)
+            local steps = math.floor(seconds / 0.5)
+            for _ = 1, steps do
+                for h, m in pairs(movers) do
+                    local o = peer.world.objects[h]
+                    o.x = o.x + m.dx * 0.5
+                    o.z = o.z + m.dz * 0.5
+                end
+                peer.run(0.5, 0.1)
+            end
+        end
+
+        -- 1. A walker closing on the human from 380 m triggers a bank, early.
+        do
+            peer_events = nil
+            local peer = Scenario("walker")
+            local V = peer.Venus
+            local walker = AddHostile(peer, "svwalk", 500 + 380, 500)
+            peer.run(95.0, 0.1)
+            check(not V.IsFogBankActive(), "no fog before anything approaches")
+            local startX = peer.world.objects[walker].x
+            Drive(peer, { [walker] = { dx = -5.0, dz = 0.0 } }, 40.0)
+            local count, info = V.GetDramaStats()
+            check(count == 1 and info ~= nil and info.walkers >= 1, "a closing walker makes the host choose a fog bank")
+            check(peer_events ~= nil and #peer_events == 1 and peer_events[1].n == 6, "the choice is one small event")
+            check(peer_events[1].clock >= 95.0 and peer_events[1].clock < 140.0, "the bank starts while the walker is still far")
+            check(V.FogLastActiveAt > 95.0, "the drama bank actually rolled in")
+            -- Timing only: the walker moved exactly as the test moved it.
+            check(near(peer.world.objects[walker].x, startX - (5.0 * 40.0), 1e-6), "the hook never moves a unit")
+            check(peer.world.objects[walker].velocityWrites == nil, "the hook never pushes a unit")
+            check(#moveCalls == 0, "the hook issues no order: " .. tostring(moveCalls[1]))
+
+            peer.Venus.Shutdown()
+        end
+
+        -- 2. Things that must not trigger it.
+        do
+            local function Quiet2(label, build, forced)
+                peer_events = nil
+                local peer = Scenario(label)
+                local movers = build(peer)
+                if forced then peer.Venus.ForceLevel(forced, 100000.0, 1.0) end
+                peer.run(95.0, 0.1)
+                Drive(peer, movers, 60.0)
+                local n = peer_events and #peer_events or 0
+                peer.Venus.Shutdown()
+                return n
+            end
+            check(Quiet2("stationary", function(p)
+                AddHostile(p, "svwalk", 750, 500); return {} end) == 0, "a parked walker does not trigger a bank")
+            check(Quiet2("receding", function(p)
+                local h = AddHostile(p, "svwalk", 700, 500); return { [h] = { dx = 5.0, dz = 0.0 } } end) == 0,
+                "a retreating walker does not trigger a bank")
+            check(Quiet2("friendly", function(p)
+                local h = AddHostile(p, "avwalk", 880, 500, 1); return { [h] = { dx = -5.0, dz = 0.0 } } end) == 0,
+                "a friendly walker never triggers a bank")
+            check(Quiet2("neutral", function(p)
+                local h = AddHostile(p, "svwalk", 880, 500, 0); return { [h] = { dx = -5.0, dz = 0.0 } } end) == 0,
+                "a neutral walker never triggers a bank")
+            check(Quiet2("single", function(p)
+                local h = AddHostile(p, "svtank", 880, 500); return { [h] = { dx = -5.0, dz = 0.0 } } end) == 0,
+                "one ordinary tank is not a group")
+            check(Quiet2("storm", function(p)
+                local h = AddHostile(p, "svwalk", 880, 500); return { [h] = { dx = -5.0, dz = 0.0 } } end, 5) == 0,
+                "no drama bank is requested during a forced storm")
+            check(Quiet2("far", function(p)
+                local h = AddHostile(p, "svwalk", 1500, 500); return { [h] = { dx = -2.0, dz = 0.0 } } end) == 0,
+                "a walker outside the drama range does not trigger a bank")
+        end
+
+        -- 3. A hostile GROUP counts; the same group parked does not.
+        do
+            peer_events = nil
+            local peer = Scenario("group")
+            local movers = {}
+            for i = 1, 4 do movers[AddHostile(peer, "svtank", 860 + (i * 6), 500 + (i * 8))] = { dx = -5.0, dz = 0.0 } end
+            peer.run(95.0, 0.1)
+            Drive(peer, movers, 40.0)
+            check(peer.Venus.GetDramaStats() == 1, "four hostile craft closing on a human count as a group")
+            peer.Venus.Shutdown()
+        end
+
+        -- 4. Cooldown, mission cap, and clearance from the scheduled bank.
+        do
+            peer_events = nil
+            local peer = Scenario("cap")
+            local V = peer.Venus
+            -- Six walkers that keep closing: re-seeded every 20 s for 40 minutes.
+            local movers = {}
+            for i = 1, 6 do movers[AddHostile(peer, "svwalk", 880, 500 + i)] = { dx = -5.0, dz = 0.0 } end
+            for _ = 1, 120 do
+                for h in pairs(movers) do peer.world.objects[h].x = 880 end
+                Drive(peer, movers, 20.0)
+            end
+            local starts = {}
+            for _, e in ipairs(peer_events or {}) do starts[#starts + 1] = e end
+            check(#starts <= V.DramaMaxPerMission, "drama banks per mission are capped, saw " .. #starts)
+            for i = 2, #starts do
+                local prevEnd = starts[i - 1].clock + starts[i - 1].args[2] + starts[i - 1].args[3] + starts[i - 1].args[4]
+                check(starts[i].clock - prevEnd >= V.DramaCooldown - 1.0, "drama banks respect the cooldown")
+            end
+            -- Never overlapping a scheduled bank (peers all share the schedule).
+            local sched = V.GetFogSchedule(4000.0)
+            for _, ev in ipairs(starts) do
+                local total = ev.args[2] + ev.args[3] + ev.args[4]
+                for _, e in ipairs(sched) do
+                    local overlaps = ev.clock < (e.start + e.dur) and (ev.clock + total) > e.start
+                    check(not overlaps, "a drama bank never stacks on a scheduled one")
+                end
+            end
+            peer.Venus.Shutdown()
+        end
+
+        check(next(damageCalls) == nil, "the drama hook damages nothing")
+    end
+
+    -- ---- 11g. save / load keeps a requested bank -----------------------------------------
+    do
+        local peer = Quiet(seedA)
+        peer.run(30.0, 0.1)
+        local ok = peer.Venus.RequestFogBank({ seconds = 60.0, force = true })
+        peer.run(20.0, 0.1)
+        local state = peer.Venus.Save()
+        local before = peer.Venus.GetFogIntensity()
+        local again = Quiet(seedA)
+        again.Venus.Load(state)
+        again.run(0.5, 0.1)
+        check(ok and #state.fogRequests == 1, "a requested bank is part of the save")
+        check(near(again.Venus.GetFogIntensity(), before, 0.1), "a loaded game resumes the bank where it was")
+        peer.Venus.Shutdown(); again.Venus.Shutdown()
+    end
+end
+
+-- =============================================================================
 -- Report
 -- =============================================================================
 
