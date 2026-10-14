@@ -405,21 +405,31 @@ function M.Create(d)
         local dx, dz = a.x - b.x, a.z - b.z
         return math.sqrt(dx * dx + dz * dz)
     end
+    -- A teammate's marker is switched on once and renamed only when its
+    -- status text changes. Re-marking every period would bury the mission's
+    -- own SetObjectiveOn calls under co-op ones (and undo a ping's rename).
     local function updateMarkers(time)
         if time < nextMarkers then return end
         nextMarkers = time + MARKER_PERIOD
         local me = d.localId()
         for id, p in pairs(d.players()) do
             local h = player(id) and id ~= me and valid(p.handle) and p.handle or nil
-            if marked[id] and marked[id] ~= h then
-                if valid(marked[id]) then call("objective", marked[id], nil, clean(p.name)) end
-                marked[id] = nil
+            local mark = marked[id]
+            if mark and mark.handle ~= h then
+                if valid(mark.handle) then call("objective", mark.handle, nil, clean(p.name)) end
+                marked[id], mark = nil, nil
             end
             if h and markers then
                 local word = service.Describe(id)
-                call("objective", h, clean(p.name) .. (word ~= "" and "  " .. word or ""), clean(p.name))
-                marked[id] = h
-            elseif h and marked[id] then
+                local label = clean(p.name) .. (word ~= "" and "  " .. word or "")
+                if not mark then
+                    call("objective", h, label, clean(p.name), true)
+                    marked[id] = { handle = h, label = label }
+                elseif mark.label ~= label then
+                    call("objective", h, label, clean(p.name), false)
+                    mark.label = label
+                end
+            elseif h and mark then
                 call("objective", h, nil, clean(p.name))
                 marked[id] = nil
             end
