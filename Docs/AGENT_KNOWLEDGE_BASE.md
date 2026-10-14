@@ -827,6 +827,13 @@ and mission paths together. Preserve mission pads and validate the navigation
 consequences separately from the asset render. Offline slope-grid navigation
 is a screening tool, not live AI qualification.
 
+The misn14 `world` path is a closed area outline, not a travel corridor. Do not
+protect a flat road along it. On Io, type 0's cracked red crust and type 1's
+molten pool have different appearances despite the former's "Lava" TRN label;
+use type 5 explicitly for a manufactured bridge. Stretch only the crossing,
+translate adjoining land intact, and check the escort's interpolated route as
+well as its waypoints against the level deck.
+
 - Append lessons **in the same PR as the change that taught them**. A lesson that lives only in a chat or
   a private note is lost when the session ends.
 - Put per-mission detail in the mission doc, subsystem detail in its own doc, and link it from here; this

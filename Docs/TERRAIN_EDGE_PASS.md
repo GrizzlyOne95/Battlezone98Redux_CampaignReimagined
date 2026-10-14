@@ -13,10 +13,10 @@ dynamic construction and engine AI navigation remain acceptance checks.
 | misn10 | Fill flat Io corners and classify the raised terrain as land instead of leaving lava paint on it. |
 | misn12 | Add the correctly named `edge_path`, tighten the rectangular limits around mission objects/routes, and texture the surrounding ice fields. |
 | misn13 | Tighten the existing limits without expanding them; add relief and paint around the canyon network. |
-| misn14 | Fill empty corners and nearby surrounds while keeping authored object and path pads. This uses the canonical retained terrain, independently of the ongoing co-op port. |
+| misn14 | Fill empty corners and nearby surrounds while keeping the current co-op mission's object and travel pads. The closed `world` area outline does not leave an artificial square track. |
 | misn15b | Add relief/paint to the empty Io outskirts. |
 | misn16 | Change `misn16b` terrain, which is the actual terrain referenced by this BZN and its alternate phase. |
-| misns4 | Move southern pieces 450 m south, stretch the intervening bridge band, transform every object/path Z consistently, and add sub-metre waves to the surrounding painted lava. |
+| misns4 | Move southern pieces 450 m south; rebuild the actual crossing as a 550 m level metal bridge with smooth approaches. Paint the surrounding sea with the molten-pool family and add small height waves. |
 | misns5 | Add broad gentle undulations and source-family paint. Maximum added slope is 9.40 degrees in the asset check. |
 | misns6 | Replace the central rush space with a connected winding canyon through an eroded upland, preserve authored object pads, and reroute `counter_attack_path` through the canyon. |
 
@@ -40,6 +40,17 @@ routes are protected. Io's Bridge is the deliberate exception: the southern
 terrain, objects, physics transforms, path points and playable lower bound all
 receive the same Z warp. Runtime mission classes, object labels, teams, ODFs
 and Lua objectives are retained.
+
+The misn14 BZN baseline is pinned separately at
+`773564a9b60c79aa464e6ad2474d455869440752` to retain the merged co-op mission's
+pads and objects. Its `world` path is an area-of-interest outline rather than a
+travel route; preserving a flat strip there produced an artificial square.
+
+Io's Bridge explicitly uses type 5 (`io55sA0.map`) on the deck and type 1
+(`io11sA0.map`) on the surrounding lava. Type 0's cracked red crust is not the
+molten-pool appearance requested in the review. The deck is level at 30 m;
+southern side islands translate intact rather than stretching into rectangular
+strips. Mission path and object transforms use the corresponding spatial warp.
 
 Painting learns the source's material/height/slope associations, then encodes
 supported transitions. Newly painted entries are checked against the TRN;
