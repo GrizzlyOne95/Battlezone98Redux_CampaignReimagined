@@ -165,6 +165,20 @@ local function makePeer(id, team, network)
     local subtitles = { Play = function(file) record("Play", file); return file end,
         Queue = function(file) record("Queue", file) end, Stop = function() record("Stop") end,
         Update = function() record("subtitlesUpdate") end, Initialize = noop }
+    -- CR Moon weather: the real director has its own suite (Test-CRMoonWeather.lua); this records the wiring.
+    p.moon = {updates = 0, announces = 0, shutdowns = 0, events = {}}
+    local moonModules = {
+        CRMoonWeather = {
+            Init = function(options) p.moon.init = options end,
+            Update = function() p.moon.updates = p.moon.updates + 1 end,
+            Shutdown = function() p.moon.shutdowns = p.moon.shutdowns + 1 end, OnObjectCreated = noop,
+            Save = function() return {saved = true} end, Load = function(state) p.moon.loaded = state end,
+            AnnounceState = function() p.moon.announces = p.moon.announces + 1 end,
+            ApplyNetEvent = function(op, ...) p.moon.events[#p.moon.events + 1] = {op, ...}; return true end,
+            Seed = 4242,
+        },
+        CRMoonSites02b = {mission = "misn02b"},
+    }
     local modules = {
         RequireFix = { Initialize = noop }, exu = {
             GetMyNetID = function() return id end, GetDifficulty = function() return p.difficulty end,
@@ -179,6 +193,7 @@ local function makePeer(id, team, network)
         PersistentConfig = { Settings = {}, Initialize = noop, UpdateInputs = noop,
             UpdateHeadlights = noop }, AutoSave = { Update = function() record("autosave") end },
     }
+    for k, v in pairs(moonModules) do modules[k] = v end
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     e.package = setmetatable({loaded={exu=modules.exu}}, {__index=package})
@@ -224,6 +239,25 @@ registerAll()
 for i = 1, 30 do tick(0.1, not mode or i < 8, function(packet) return i < 8 and (packet.kind == "E" or packet.kind == "A") end) end
 settle()
 check(host.state.start_done and host.state.camera1, "leader opening did not run")
+-- CR Moon weather: the leader runs the director on the map data, guests follow the ordered stream.
+check(host.moon.init.authority and host.moon.init.sites.mission == "misn02b", "the leader runs the Moon weather director on the misn02b sites")
+for _, c in ipairs(clients) do
+    check(not c.moon.init.authority and c.moon.init.seed == nil, "guests run the director from the host's events")
+    check(c.moon.updates > 0, "guests update the Moon weather every frame")
+end
+check(host.moon.announces == 1 and host.moon.init.send ~= nil and host.moon.updates > 0, "the leader announces the weather state once the session is ready")
+host.moon.init.send("MoonGlow", 1, 0.8, 60.0)
+tick(0.1); settle()
+for _, c in ipairs(clients) do
+    local glows, state = 0, 0
+    for _, e in ipairs(c.moon.events) do
+        if e[1] == "MoonGlow" and e[2] == 1 and e[3] == 0.8 and e[4] == 60.0 then glows = glows + 1 end
+        if e[1] == "MoonState" then state = state + 1 end
+    end
+    check(glows == 1, "a scripted glow reaches each guest exactly once")
+    check(state <= 1, "a MoonState rides the same ordered stream without duplicating")
+end
+check(#host.moon.events == 0, "the leader never applies its own weather events twice")
 for _, c in ipairs(clients) do
     check(not c.state.start_done and count(c, "BuildObject") == 0 and count(c, "aiUpdate") == 0, "client ran simulation")
     check(count(c, "Play") == 1 and c.difficulty == 3, "opening/difficulty lost or duplicated")
@@ -288,6 +322,10 @@ check(count(solo, "DisableStartingRecycler") == 0 and #packets == 0, "offline us
 solo.skip = true; tick(0.1)
 check(not solo.state.camera3 and solo.state.intro_skipped, "offline skip changed")
 local saved = solo.env.Save(); solo.env.Load(saved, {}, {}); now = now + 3; solo.env.Update()
+-- CR Moon weather offline: the host path with nothing sent, and its state survives Save.
+check(solo.moon.init.authority and solo.moon.init.send == nil and solo.moon.announces == 0
+    and solo.moon.init.sites.mission == "misn02b", "offline Moon weather is the host path with nothing sent")
+check(solo.moon.updates > 0 and saved.moonWeatherState ~= nil and saved.moonWeatherState.saved, "Moon weather state is saved and the seed persists")
 check(solo.state.loading_done and count(solo, "clutter") == 2, "offline load did not rehydrate")
 solo.env.BuildObject("avscav", 1, "start"); objects[solo.player].alive = false
 solo.audioDone = true; tick(0.1)

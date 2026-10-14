@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-13T18:10:22-05:00",
-  "count": 2350,
+  "count": 2354,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -2326,6 +2326,10 @@
     {
       "source": "Materials\\cr_io.particle.payload",
       "runtime": "cr_io.particle.payload"
+    },
+    {
+      "source": "Materials\\cr_moon.particle.payload",
+      "runtime": "cr_moon.particle.payload"
     },
     {
       "source": "Materials\\cr_reactive.particle.payload",
@@ -5682,6 +5686,18 @@
     {
       "source": "Scripts\\CRMarsWeather.lua",
       "runtime": "CRMarsWeather.lua"
+    },
+    {
+      "source": "Scripts\\CRMoonSites02b.lua",
+      "runtime": "CRMoonSites02b.lua"
+    },
+    {
+      "source": "Scripts\\CRMoonSites03.lua",
+      "runtime": "CRMoonSites03.lua"
+    },
+    {
+      "source": "Scripts\\CRMoonWeather.lua",
+      "runtime": "CRMoonWeather.lua"
     },
     {
       "source": "Scripts\\CRParticleTemplates.lua",
