@@ -262,8 +262,11 @@ if ($baseline.Count -eq 0) {
     throw 'The baseline tree produced zero permutations; there is nothing to compare against.'
 }
 $overlap = @($current.Keys | Where-Object { $baseline.ContainsKey($_) }).Count
-if ($overlap -lt [Math]::Floor($current.Count * 0.9)) {
-    throw "Only $overlap of $($current.Count) current permutations exist in the baseline. The two trees are too dissimilar for a meaningful binary comparison."
+# Measure against the baseline: a change that adds new shaders is still a
+# meaningful comparison (they are reported as "added"); one that has lost
+# most of the baseline's permutations is not.
+if ($overlap -lt [Math]::Floor($baseline.Count * 0.9)) {
+    throw "Only $overlap of $($baseline.Count) baseline permutations exist in the current tree. The two trees are too dissimilar for a meaningful binary comparison."
 }
 
 # -----------------------------------------------------------------------------
