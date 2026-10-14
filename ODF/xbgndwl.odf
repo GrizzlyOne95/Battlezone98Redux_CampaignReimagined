@@ -1,0 +1,45 @@
+// xbgndw's scorch mark and light only: CRGroundFX.lua draws the flash, sparks and steam (CRStormFX.lua lightning).
+[ExplosionClass]
+classLabel = "explosion"
+explSound = ""
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 2
+
+particleClass1 = "xbgndwl.scorch"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+particleBias1 = "0.0 0.0 0.0"
+
+particleClass2 = "xbgndwl.light"
+particleCount2 = 1
+particleVeloc2 = "0.0 0.0 0.0"
+particleBias2 = "0.0 0.0 0.0"
+
+[Scorch]
+simulateBase = "sim_null"
+lifeTime = 8.0
+renderBase = "draw_planar"
+textureName = "grndchar.tga"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 0"
+startRadius = 7
+finishRadius = 9
+animateTime = 8.0
+
+[Light]
+simulateBase = "sim_null"
+lifeTime = 0.6
+renderBase = "draw_light"
+startColor = "210 225 255 900"
+finishColor = "0 0 0 0"
+startRadius = 250
+finishRadius = 80
+animateTime = 0.6
+attenuateConstant = 1.0
+attenuateLinear = 0.0
+attenuateQuadratic = 0.0

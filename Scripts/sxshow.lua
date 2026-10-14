@@ -15,7 +15,7 @@ local initialized, network, autoStart = false, false, true
 local clock, prepareAt, prepareDeadline, pulseAt, hudAt = 0, 0, 0, 0, 0
 local restoreAfterPrepare, saveJob, uiWasOpen, uiOptions = false, nil, false, nil
 local loadNativeOK = true
-local title = "OPERATION LIVEWIRE - lunar proving ground"
+local title = "OPERATION LIVEWIRE"
 local materials, overlay, exhibits, director
 local cameraActive, activeShot = false, nil
 -- Trailer-facing line under the title; `sx debug` swaps in raw exhibit telemetry.
@@ -45,13 +45,13 @@ end
 local function Objectives()
     ClearObjectives()
     AddObjective("sxshow_controls", "white", 3600,
-        "Operation Livewire: sx tour | sx materials/environment/ai/chunks/filters/control/cockpit/handover. " ..
-        "Camera cancel / sx skip returns control. sx list shows all controls.")
+        "sx tour plays the film. sx <chapter>: materials, lighting, environment, ai, chunks, pilots, filters, control, cockpit, handover. sx skip stops.")
     AddObjective("sxshow_observe", "yellow", 3600,
-        "Inspect the actual visuals and unit responses. sx confirm <feature> pass/fail records your observation. " ..
-        "sx report prints results. sx autosave previews the notification; sx save writes a dedicated checkpoint.")
+        "sx confirm <feature> pass/fail logs what you saw. sx report prints results. sx save writes a checkpoint.")
 end
 
+-- Script-commanded craft: parked, and unarmed unless the fixture brings ammo.
+local armed = { avfigh = true, avtank = true, svfigh = true, svtank = true }
 local function Ensure(key)
     if Valid(handles[key]) then return handles[key] end
     local spec = Scenes.Fixtures[key]
@@ -64,7 +64,7 @@ local function Ensure(key)
     if spec.health or spec.odf == "sxanchor" then
         SetMaxHealth(h, spec.health or 100000); SetCurHealth(h, spec.health or 100000)
     end
-    if spec.odf == "avfigh" or spec.odf == "avtank" then
+    if armed[spec.odf] then
         if h ~= GetPlayerHandle() then SetIndependence(h, 0); Stop(h, 1) end
         SetCurAmmo(h, spec.ammo or 0)
         if spec.ammo then SetWeaponMask(h, 1) end
@@ -106,7 +106,7 @@ local function Restore()
 end
 local function Finish(reason)
     local restored = Restore()
-    title = "OPERATION LIVEWIRE - free play"
+    title = "OPERATION LIVEWIRE: FREE PLAY"
     local failed = not restored or tostring(reason):match("error$") ~= nil
     Record("tour", failed and "FAIL" or (reason == "complete" and "PASS" or "PENDING"), reason)
     Objectives()
@@ -122,6 +122,20 @@ local function CurrentShot(scene)
     end
     return shot
 end
+-- Object-relative camera offsets; a shot's optional `to` offsets ease in over the
+-- shot (until the next shot or the scene end) for a slow push or drift, or over
+-- its first `move` seconds for a fast one.
+local function ShotOffsets(scene, shot)
+    local right, up, forward = shot.right or scene.right, shot.up or scene.up, shot.forward or scene.forward
+    if type(shot.to) ~= "table" then return right, up, forward end
+    local start, finish = shot.at or 0, scene.duration
+    for _, s in ipairs(scene.shots or {}) do if s.at > start and s.at < finish then finish = s.at end end
+    if shot.move then finish = math.min(finish, start + shot.move) end
+    local t = math.max(0, math.min(1, ((director and director.elapsed or 0) - start) / math.max(0.1, finish - start)))
+    t = t * t * (3 - 2 * t)
+    local function lerp(a, b) return b and a and a + (b - a) * t or a end
+    return lerp(right, shot.to.right), lerp(up, shot.to.up), lerp(forward, shot.to.forward)
+end
 local function SceneTarget(scene)
     local h = handles[CurrentShot(scene).target or scene.target]
     return Alive(h) and h or (Alive(handles.changed) and handles.changed or GetPlayerHandle())
@@ -136,7 +150,7 @@ local function Initialize()
         autoStart = false
         overlay:Create()
         Record("mission", "SKIP", "network: local overlay only; no cameras, save, tuning or world mutations")
-        AddObjective("sxshow_sp", "yellow", 3600, "Livewire proving ground is single player. Local overlay only in network games.")
+        AddObjective("sxshow_sp", "yellow", 3600, "Livewire is single player. Network games show the overlay only.")
         return
     end
     for key, spec in pairs(Scenes.Fixtures) do if spec.keep then Ensure(key) end end
@@ -148,6 +162,7 @@ local function Initialize()
     director = Director.New(Scenes.List, {
         enter = function(scene)
             title, caption, activeShot = scene.title, scene.caption or "", nil
+            print("[SXSHOW] scene " .. scene.id .. " enter") -- Edit marker for recordings.
             exhibits:Begin(scene)
             if scene.camera == "gameplay" then CameraEnd(); return true end
             if type(CameraReady) ~= "function" or type(CameraPath) ~= "function"
@@ -173,23 +188,24 @@ local function Initialize()
             if scene.camera == "path" then
                 CameraPath(shot.path or scene.path, shot.height or scene.height, shot.speed or scene.speed, target)
             else
-                CameraObject(target, shot.right or scene.right, shot.up or scene.up, shot.forward or scene.forward, target)
+                local right, up, forward = ShotOffsets(scene, shot)
+                CameraObject(target, right, up, forward, target)
             end
         end,
         cue = function(scene, cue)
             if cue.caption then caption = cue.caption end
-            if cue.id == "service" then
-                if materials.ready then materials:Apply(); Record("materials", materials.status, materials.detail)
+            if cue.id == "flash" then
+                if materials.ready then materials:Flash(cue.color); Record("materials", materials.status, materials.detail)
                 else Record("materials", "BLOCKED", materials.detail) end
-                exhibits.message = "Material lab - cyan service variant; control twin unchanged"
-            elseif cue.id == "animate" then
-                local ok = materials:Animate(true)
-                Record("animation", ok and "PENDING" or "BLOCKED", "clone-owned UV scroll plus emissive pulse; observe shader output")
-                exhibits.message = "Material lab - scrolling texture and pulsing emissive color"
+                exhibits.message = "Livery: " .. tostring(cue.color)
+            elseif cue.id == "glow" then
+                local ok = materials:SetGlow(true)
+                Record("animation", ok and "PENDING" or "BLOCKED", "script-driven emissive pulse on the live livery; observe")
+                exhibits.message = "Glow pulse"
             elseif cue.id == "baseline" then
                 local ok = materials:Restore()
                 Record("restore/materials", materials.ready and (ok and "PASS" or "FAIL") or "BLOCKED", "original subentity names")
-                exhibits.message = "Material lab - original assignments restored"
+                exhibits.message = "Materials restored"
             else exhibits:Cue(scene, cue) end
         end,
     })
@@ -220,7 +236,7 @@ function Start() end -- Wait for the first live frame and render entities.
 function Update(dt)
     Initialize()
     if network then
-        overlay:Update("OPERATION LIVEWIRE - network presentation", "Local overlay; SP exhibit bays disabled",
+        overlay:Update("OPERATION LIVEWIRE", "Overlay only in network games",
             "No synchronized world changes", clock, "Multiplayer qualification remains separate")
         return
     end
@@ -233,7 +249,7 @@ function Update(dt)
     if uiOpen then
         if not uiWasOpen then uiOptions = OptionsSnapshot(); Record("options/ui", "PASS", "native UI detected; custom overlay and film clock paused") end
         uiWasOpen = true
-        overlay:Update(title, "Tour paused for native UI", "Return to gameplay to continue", clock, "")
+        overlay:Update(title, "Paused", "Close the menu to continue", clock, "")
         return
     elseif uiWasOpen then
         local current = OptionsSnapshot()
@@ -268,7 +284,7 @@ function Update(dt)
     exhibits:Update(dt, CurrentScene())
     if clock >= pulseAt then
         local prior = materials.status
-        materials:Pulse(clock); pulseAt = clock + 0.10
+        materials:Pulse(clock); pulseAt = clock + 0.05
         if prior ~= materials.status then Record("materials", materials.status, materials.detail) end
     end
     if saveJob and clock >= saveJob.at then
@@ -280,14 +296,15 @@ function Update(dt)
     if clock >= hudAt then
         hudAt = clock + 0.10
         local scene = CurrentScene()
-        local progress = scene and string.format("%s - %.0f / %.0fs", scene.id, director.elapsed, scene.duration) or "Free play"
+        local progress = scene and string.format("%s %.0f/%.0fs", scene.id, director.elapsed, scene.duration) or "Free play"
         if debugOverlay then
-            overlay:Update(title, exhibits.message, "Camera cancel / sx skip | sx list | sx report", clock,
+            overlay:Update(title, exhibits.message, "sx skip | sx list | sx report", clock,
                 exhibits.telemetry ~= "" and exhibits.telemetry or progress)
         elseif scene then
-            overlay:Update(title, caption, "", clock, "")
+            -- A few chapters read best with their live numbers on screen.
+            overlay:Update(title, caption, "", clock, scene.liveTelemetry and exhibits.telemetry or "")
         else
-            overlay:Update(title, exhibits.message, "sx tour replays the film | sx list shows every bay", clock, "")
+            overlay:Update(title, exhibits.message, "sx tour to replay | sx list for chapters", clock, "")
         end
     end
 end
@@ -304,7 +321,7 @@ function Command(command, arguments)
         autoStart = false; director:Finish("operator-service")
         if not Restore() then return true end
         materials:Apply(); Record("materials", materials.status, materials.detail)
-        title, exhibits.message = "MATERIAL LAB - free play", "Live service variant; sx baseline restores originals"
+        title, exhibits.message = "MATERIAL LAB", "Service livery on. sx baseline restores it."
     elseif action == "baseline" then
         autoStart = false; director:Finish("operator-baseline"); Restore()
     elseif action == "debug" then
@@ -320,7 +337,7 @@ function Command(command, arguments)
         end
     elseif action == "options" then
         autoStart = false; director:Finish("operator-options"); Restore(); exhibits:Options()
-        DisplayMessage("Livewire: press Esc and open the real Options / OpenShim Settings pages.")
+        DisplayMessage("Livewire: press Esc for Options and OpenShim Settings.")
     elseif action == "reset" then
         saveJob, autoStart = nil, false
         director:Finish("operator-reset")
@@ -346,14 +363,14 @@ function Command(command, arguments)
         if not feature then
             value = action:match("^visual (%S+)$")
             feature = CurrentScene() and CurrentScene().id or "materials"
-            if feature == "arrival" then feature = "overlay" elseif feature == "control" then feature = "command" elseif feature == "cockpit" then feature = "hud" end
+            if feature == "arrival" then feature = "overlay" elseif feature == "control" then feature = "command" elseif feature == "cockpit" then feature = "hud" elseif feature == "pilots" then feature = "gibs" end
         end
         local known = false; for _, f in ipairs(Scenes.Features) do if f == feature then known = true end end
         if known and (value == "pass" or value == "fail") and results[feature] and results[feature].status ~= "BLOCKED" then
             observations[feature] = string.upper(value); Record("visual/" .. feature, observations[feature], "operator observation")
-        else DisplayMessage("Livewire: run the exhibit, then sx confirm <feature> pass/fail. Blocked features cannot be passed.") end
+        else DisplayMessage("Livewire: run the chapter, then sx confirm <feature> pass/fail.") end
     else
-        DisplayMessage("Livewire: sx tour/materials/environment/ai/chunks/filters/control/cockpit/handover | skip/service/baseline/reset/report/caps/debug/autosave/save/options")
+        DisplayMessage("Livewire: sx tour/materials/lighting/environment/ai/chunks/pilots/filters/control/cockpit/handover | skip/service/baseline/reset/report/caps/debug/autosave/save/options")
     end
     hudAt = clock -- Flush command notifications on the next live frame.
     return true
@@ -393,7 +410,7 @@ function Load(version, saved, oldControl, oldChanged, oldConvoy, controlBase, ch
     exhibits:Load(saved.native)
     local nativeRestored = exhibits:Restore()
     loadNativeOK = nativeRestored
-    director.mode, title = "freeplay", "OPERATION LIVEWIRE - checkpoint restored to free play"
+    director.mode, title = "freeplay", "OPERATION LIVEWIRE: FREE PLAY"
     materials.controlBase, materials.changedBase = saved.controlBase, saved.changedBase
     local ready = materials:Prepare(handles.control, handles.changed, saved.controlBase, saved.changedBase)
     local materialRestored = ready and materials:Restore()
