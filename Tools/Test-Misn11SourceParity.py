@@ -142,7 +142,7 @@ check('"misn1114.wav"' in region_all and '"misn1115.wav"' in region_all, "the un
 check("misn1100" not in lua_full, "misn1100 is the campaign retrospective voice, not an in-mission line")
 check('BACKUP_SPAWN_X, BACKUP_SPAWN_Z, BACKUP_SPREAD_M = 906.0, 98614.0, 24.0' in region_all
       and 'local odfs = { "svtank", "svtank", "svfigh" }' in region_all, "backup squad composition and entry point")
-check("Follow(unit, M.openh, 1)" in region_all and "Attack(unit, chaser, 1)" in region_all,
+check("SetCommand(unit, AiCommand.FORMATION, 1, M.openh)" in region_all and "Attack(unit, chaser, 1)" in region_all,
       "the squad forms up on the defector and engages chasers")
 check("edge_path" not in lua_full, "edge_path is the play boundary, never a route")
 print(f"misn11 source parity: {checks} checks passed; {len(state_names)} state fields")
