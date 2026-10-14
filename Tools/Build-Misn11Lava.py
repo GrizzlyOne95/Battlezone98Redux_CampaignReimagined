@@ -98,10 +98,20 @@ KEEPOUT_EDGE_NOISE_M = 22.0     # the corridor edge wobbles by up to this much
 # Dry causeways: spurs the mission needs that no authored path provides. Each is a least-cost walk over
 # the terrain (it prefers high ground) kept dry LINK_CORRIDOR_M either side.
 #   defector  the convoy waypoint where Oppenheimer's tug breaks off -> the head of the `openheimer` path
-#   (owner decision) the start -> armory causeway was removed: the whole central area is lava and the
-#   armory/geyser stand on an island pad that ground units cannot reach.
+#   armory    the start -> the team-1 armory on the mid-map geyser: a NARROW trail (TRAIL_WIDTH_TILES
+#             wide) threaded through the central lava, so the armory island is reachable again
 LINK_CORRIDOR_M = 70.0
-ARMORY_ISLAND_M = 50.0          # the mid-map armory + geyser keep a minimal dry pad (unreachable over ground)
+TRAIL_WIDTH_TILES = 2           # the narrow dry trail start -> armory: ~40 m, one craft plus margin
+ARMORY_ISLAND_M = 50.0          # the mid-map armory + geyser keep a minimal dry pad (reached by the trail)
+# Lava barriers (metres, x/z polygons). The only dry way from the start to the east side (launch_pad2,
+# last_camera and the green escape route) must be the escort loop north via base2/strike2/launch_attack, so
+# the dry crust that would otherwise wrap round the south and the far north is filled. Keep-outs win.
+BARRIER_POLYGONS = {
+    "south": [(2420.0, 97280.0), (2780.0, 97280.0), (2780.0, 99100.0), (2420.0, 99100.0)],
+    "north": [(2060.0, 100010.0), (2660.0, 100310.0), (2660.0, 102400.0), (2060.0, 102400.0)],
+}
+LOOP_CORRIDOR_PATHS = ("base2", "strike_path2", "strike2")   # the escort loop's north leg
+LOOP_CORRIDOR_M = 170.0
 LINK_HEIGHT_PREFERENCE = 0.35
 
 
@@ -210,8 +220,10 @@ def least_cost_walk(heights, a, b):
 
 def link_polylines(heights, paths, objects, start_xz):
     base1_waypoint = paths["base1"][3]                    # the waypoint beside cam1 (Waypoint 1)
+    armory = next(o for o in objects if o["odf"] == "avslf")
     links = {
         "defector": (base1_waypoint, paths["openheimer"][0]),
+        "armory": (start_xz, (armory["x"], armory["z"])),
     }
     out = {}
     for name, (p, q) in links.items():
@@ -233,8 +245,9 @@ def keepout_field(paths, objects, start_xz, edge_noise, links):
     for label, radius in POINT_KEEPOUT_M.items():
         pts = [start_xz] if label == "start" else paths[label]
         add(rasterize_polyline(pts, 1), radius)
-    for pts in links.values():
-        add(rasterize_polyline(pts, 1), LINK_CORRIDOR_M)
+    for name, pts in links.items():
+        if name != "armory":                       # the armory trail is narrow and noise-free (trail_mask)
+            add(rasterize_polyline(pts, 1), LINK_CORRIDOR_M)
     for obj in objects:
         r, c = to_tile(obj["x"], obj["z"])
         if not (0 <= r < GRID and 0 <= c < GRID):
@@ -252,6 +265,31 @@ def keepout_field(paths, objects, start_xz, edge_noise, links):
         elif obj["odf"].startswith("egg"):
             add(pad, NAV_M)
     return margin + edge_noise * KEEPOUT_EDGE_NOISE_M
+
+
+def trail_mask(points):
+    """The narrow dry trail: the walk made 4-connected and TRAIL_WIDTH_TILES wide (no noise)."""
+    cells = []
+    for x, z in points:
+        r, c = to_tile(x, z)
+        if cells and cells[-1][0] != r and cells[-1][1] != c:
+            cells.append((cells[-1][0], c))                         # staircase: no diagonal-only joins
+        if not cells or cells[-1] != (r, c):
+            cells.append((r, c))
+    mask = np.zeros((GRID, GRID), bool)
+    for r, c in cells:
+        for k in range(TRAIL_WIDTH_TILES):
+            if r + k < GRID:
+                mask[r + k, c] = True
+    return mask
+
+
+def polygon_mask(points):
+    from matplotlib.path import Path as MplPath
+
+    rows, cols = np.mgrid[0:GRID, 0:GRID]
+    pts = np.column_stack([(cols.ravel() + 0.5) * TILE_M + WORLD_X0, (rows.ravel() + 0.5) * TILE_M + WORLD_Z0])
+    return MplPath(points).contains_points(pts).reshape(GRID, GRID)
 
 
 def tidy(mask: np.ndarray, allowed: np.ndarray) -> np.ndarray:
@@ -299,9 +337,11 @@ def plan_lava(heights, sulphur, paths, objects, start_xz, links):
     low = (heights + noise * NOISE_AMPLITUDE_M) < LAVA_HEIGHT_M
     central, _ring = central_region(paths, start_xz, objects)
     low = low | central
+    for polygon in BARRIER_POLYGONS.values():
+        low = low | polygon_mask(polygon)
     edge_noise = seeded_noise(SEED + 1, 2.0)
     margin = keepout_field(paths, objects, start_xz, edge_noise, links)
-    allowed = ~(margin < 0.0)
+    allowed = ~(margin < 0.0) & ~trail_mask(links["armory"])
     lava = low & allowed
     cross = ndi.generate_binary_structure(2, 1)
     lava = ndi.binary_opening(lava, structure=cross, iterations=1) & allowed
@@ -439,7 +479,7 @@ def verify(lava, paths, objects, start_xz, box):
     for label in ("strike1", "strike2", "check2", "launch_attack", "last_camera"):
         keys[label] = paths[label][0]
     for o in objects:
-        if o["team"] in (1, 5) and o["odf"] not in ("player", "avslf"):   # the armory is a deliberate island
+        if o["team"] in (1, 5) and o["odf"] != "player":
             keys[f"{o['odf']}:{o['label']}"] = (o["x"], o["z"])
     start_tile = to_tile(*start_xz)
     dist = dijkstra(dry, [start_tile])
@@ -466,6 +506,17 @@ def verify(lava, paths, objects, start_xz, box):
     report["route_if_80m_lava_crossable_m"] = float(short[pr, pc])
     r0, r1, c0, c1 = box
     report["lava_fraction_box"] = float(lava[r0:r1, c0:c1].mean())
+    # The east side (launch_pad2) must be reachable ONLY through the escort loop's north leg: with that
+    # corridor removed the start and launch_pad2 are disconnected, and with it present they are not.
+    loop = np.zeros((GRID, GRID), bool)
+    for label in LOOP_CORRIDOR_PATHS:
+        loop |= distance_to(rasterize_polyline(paths[label], 1)) < LOOP_CORRIDOR_M
+    cut = dijkstra(dry & ~loop, [start_tile])
+    p2r, p2c = to_tile(pad2["x"], pad2["z"])
+    report["pad2_reachable_without_loop"] = bool(np.isfinite(cut[p2r, p2c]))
+    report["pad2_route_m"] = float(dist[p2r, p2c])
+    armory = next(o for o in objects if o["odf"] == "avslf")
+    report["armory_route_m"] = float(dist[to_tile(armory["x"], armory["z"])])
     return report
 
 
@@ -570,7 +621,10 @@ def main() -> int:
           f"if 80 m of lava were crossable {report['route_if_80m_lava_crossable_m']:.0f} m")
     for key in ("unreachable", "key_points_on_lava"):
         print(f"{key}: {report[key] or 'none'}")
-    if report["unreachable"] or report["key_points_on_lava"]:
+    print(f"start->launch_pad2 dry route {report['pad2_route_m']:.0f} m; start->armory trail route "
+          f"{report['armory_route_m']:.0f} m; pad2 reachable without the escort loop: "
+          f"{report['pad2_reachable_without_loop']}")
+    if report["unreachable"] or report["key_points_on_lava"] or report["pad2_reachable_without_loop"]:
         print("verification FAILED", file=sys.stderr)
         return 1
 
