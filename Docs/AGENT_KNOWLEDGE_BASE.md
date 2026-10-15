@@ -912,3 +912,10 @@ from other live CR traffic, and clear on Initialize/DeletePlayer. Application
 receipt timeouts are not measured UDP loss. Legacy heartbeat metadata stays
 unknown. See `Docs/COOP_DIAGNOSTICS_20261015.md`; regression fixtures cover these
 boundaries and the native three-client run demonstrates stalled/recovered traffic.
+
+Transport totals come from optional EXU GetNetworkTrafficStats/OpenShim snapshots:
+two-second wall-clock UDP rates and observed routes, not per-player delivery.
+Tx includes accepted pending submissions; Rx uses observed completions. Keep
+unavailable providers and unknown/idle route states explicit. Never infer the
+route from a configured preference or count a truncated trace prefix as the
+datagram's actual byte length.

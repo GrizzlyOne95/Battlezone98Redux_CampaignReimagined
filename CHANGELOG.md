@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Coop Diagnostics shows local UDP send/receive byte and packet rates, recent
+  observed route and last-receive age when the updated EXU/OpenShim are available.
 - Add Coop Diagnostics as the second co-op PDA page: native per-player ping/loss,
   co-op admission/phase and heartbeat freshness, plus message receipts/retries.
   Quiet or stalled co-op traffic no longer retains a stale Synced label.
