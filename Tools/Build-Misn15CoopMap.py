@@ -78,12 +78,16 @@ def build(source, toolbox):
     result.header['#objects'].value = len(result.objects)
     # Unreferenced duplicate editor labels are unsuitable network identities.
     for i,p in enumerate(result.paths):
-        if 'label' in p and p['label'].value == b'path_1': p['label'].value = f'cr15_unused_path_{i}'.encode()
+        if 'label' in p and p['label'].value == b'path_1':
+            p['label'].value = f'cr15_unused_path_{i}'.encode()
+            # The native loader allocates from this serialized byte count.
+            p['label.size'].value = len(p['label'].value)
     data = write_bzn(result, 2016, binary=False, preserve_spelling=False)
     # A modified Field can still carry the source text spelling; reparse the
     # canonical serialization to catch template/class and count errors now.
     checked = read_bzn(data)
     assert len(checked.objects) == 60
+    assert all(p['label.size'].value == len(p['label'].value) for p in checked.paths if 'label' in p)
     for _,_,label in specs:
         assert sum(o.label == label for o in checked.objects) == 1
     return data

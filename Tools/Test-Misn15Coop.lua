@@ -12,7 +12,7 @@ end
 local w,p,m=setup(4)
 local s=m.cr15
 check(m.start_done and not m.lost,"correct map boots")
-check(F.count(p[1],"BuildObject")==0,"rescues are preplaced, no nearby pop-in")
+check(F.count(p[1],"BuildObject")==0,"rescue groups are present before discovery without runtime spawns")
 for _,q in ipairs(p) do
     check(F.count(q,"PdaInitialize")==1 and F.count(q,"PdaUpdate")>0,"PDA on every peer")
 end
@@ -104,4 +104,15 @@ local builds=F.count(p[1],"BuildObject")
 local saved=p[1].env.Save();p[1].env.Load(saved);F.run(2)
 check(F.count(p[1],"BuildObject")==builds,"load does not duplicate rescued groups or guardians")
 check(F.count(p[1],"AddScrap")==1,"load does not replay initial grant")
+local weatherInit,weatherUpdates,weatherLoads=nil,0,0
+local director={Seed=42,Init=function(options) weatherInit=options end,
+    Update=function() weatherUpdates=weatherUpdates+1 end,
+    Save=function() return {checkpoint=7} end,
+    Load=function(value) weatherLoads=weatherLoads+1;assert(value.checkpoint==7) end}
+w=F.reset();local peer=F.makePeer(1,1,false,{titan=director});F.run(3)
+check(weatherInit and weatherInit.authority==true,"host initializes Titan authority")
+check(weatherInit.sites.mission=="misn15" and weatherInit.sites.sea.level==38.1,"real Mission 15 site table reaches director")
+check(weatherUpdates>0 and F.count(peer,"WeatherSensors","Titan")==1,"director and sensor binding update")
+local weatherSave=peer.env.Save();peer.env.Load(weatherSave);F.run(2)
+check(weatherLoads==1,"saved weather restores once through runtime")
 print("misn15 campaign co-op: "..checks.." checks passed")

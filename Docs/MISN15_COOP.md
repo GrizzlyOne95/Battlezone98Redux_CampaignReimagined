@@ -31,19 +31,23 @@ surviving convoy unit reaches the original rendezvous radius. All-convoy loss
 before rendezvous fails explicitly. Human teams have no AI brain and no extra
 starting recycler. Texas is the shared team-1 economy and respawn rally.
 
-Six unique-label rescue units are preplaced on 7, using existing serialized
-class templates from CR maps and the original rescue paths. They are stopped
-at priority 1 until any human comes within 150 m; release changes them to
-team 1 and priority 0. No BuildObject is used at the discovery point. At least
-one surviving NW unit must be released; all-NW loss before recovery fails.
-The optional NE group's destruction marks it lost without failing the mission.
+Six unique-label rescue units are authored on the original rescue paths and
+wait on team 7 at priority 1 until discovery. No units are created when a
+player enters the 150 m rescue radius. At least one NW survivor must be
+released; all-NW loss before recovery fails. Optional NE loss does not fail the
+mission. No factory is added to the stock composition.
 
-`Build-Misn15CoopMap.py` uses the checked-in terrain heights to place units,
-clears inherited orders/motion, assigns fresh identities, and reparses its
-output. Keep Field serialization canonical: retained source text spellings
-can otherwise hide changed values. The two unused `path_1` editor labels get
-unique names; `edge_path` is preserved. The stock `misn15b` tower label remains
-as a source-layout identity check, not a new gameplay objective.
+Initial native runs exposed a map-builder error: the two renamed editor paths
+retained their original six-byte allocation lengths. Correcting `label.size`
+removed the startup heap fault in the minimal native control. The contract now
+checks every path's encoded label length. A temporary host spawn queue was
+removed after its runtime labels failed to resolve on the guest; stable authored
+identities keep the approved waiting-rescue design.
+
+`Build-Misn15CoopMap.py` rebinds the map and clears inherited orders/motion.
+It assigns unique names to the two unused `path_1` editor labels and reparses
+canonical serialization. The stock `misn15b` tower label remains as a source-
+layout identity check, not a new gameplay objective. `edge_path` is unchanged.
 
 ## Objectives, dialogue and victory
 
@@ -143,6 +147,11 @@ render-only surface; it adds no collision or movement penalty. Existing Titan
 weather runs through its guarded API on all peers, with host-issued seeded
 events over the ordered stream. No shared shader source was changed.
 
+The subsequently merged owner-wide weather sensor policy also applies here:
+Environment captures the native Titan baseline, owns atmosphere writes and
+binds the director through `BindWeatherSensors("Titan", director)`. Titan
+remains daylight-locked. No additional damage or wind handling is introduced.
+
 Reproduction:
 
 ```powershell
@@ -153,7 +162,7 @@ python Tools/Build-MethaneSurface.py
 
 ## Validation
 
-Targeted checks: source port (85), actual campaign co-op fixture (98), source
+Targeted checks: source port (85), actual campaign co-op fixture (102), source
 parity, map/listing/team/MAT-HG2 contract, cut VO, campaign shell, deterministic
 methane asset regeneration and repository invariants. The multi-peer fixture
 tests guest triggers, shared VO/cameras/results, loss precedence, the all-human

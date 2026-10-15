@@ -8296,7 +8296,7 @@ pathType = 00000000
 [AiPath]
 old_ptr = 00DC1290
 size [1] =
-6
+19
 label = cr15_unused_path_23
 pointCount [1] =
 1
@@ -8430,7 +8430,7 @@ pathType = 00000000
 [AiPath]
 old_ptr = 00DC4810
 size [1] =
-6
+19
 label = cr15_unused_path_25
 pointCount [1] =
 1

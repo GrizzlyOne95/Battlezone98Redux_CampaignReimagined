@@ -35,6 +35,10 @@ for ext in ('trn','hg2','mat','lgt'):
 for name in ('tank_path','alien_path','deny1','deny2','rescue_cam1','rescue_cam2'):
     assert f'label = {name}\n' in text
 assert not re.search(r'^label = path_1$',text,re.M)
+for path in text.split('[AiPath]\n')[1:]:
+    size=int(re.search(r'^size \[1\] =\n(\d+)$',path,re.M)[1])
+    name=re.search(r'^label = (.*)$',path,re.M)
+    assert size==len(name[1].encode('latin-1')) if name else size==0, 'native path label allocation size'
 assert '[MISSION14]' in (ROOT/'Config/crcampgn.ini').read_text()
 assert 'voice = "misn1500.wav"' in (ROOT/'Config/crcampgn.ini').read_text()
 assert len((ROOT/'misn15.des').read_bytes())<=300
@@ -70,4 +74,4 @@ for path in ('Scripts/CRMisn15.lua','Scripts/CRTitanSites15.lua','Missions/misn1
              'Assets/Audio/misn1506.wav','Assets/Audio/misn1508.wav','Assets/Audio/misn1512.wav',
              'Text/misn15l2.des','Text/misn15l3.des'):
     assert members.get(path)==Path(path).name, 'shipping membership: '+path
-print('misn15 map, co-op teams, preplaced rescues, campaign and MAT/HG2 methane contract passed')
+print('misn15 map, co-op teams, waiting rescues, campaign and MAT/HG2 methane contract passed')

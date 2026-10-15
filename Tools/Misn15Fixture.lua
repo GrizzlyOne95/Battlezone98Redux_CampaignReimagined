@@ -369,7 +369,10 @@ function F.makePeer(id, team, network, options)
             Queue = function(file) record("Queue", file); return "audio:" .. file end,
             Stop = function() record("Stop") end, Update = noop, Initialize = noop},
         CRTitanWeather = options.titan,
-        CRTitanSites15 = {},
+        Environment = {Init=function() record("EnvironmentInit") end,
+            BindWeatherSensors=function(name) record("WeatherSensors",name) end,
+            Update=noop,OnObjectCreated=noop,InvalidateRenderer=noop},
+        CRTitanSites15 = assert(loadfile("Scripts/CRTitanSites15.lua"))(),
         PersistentConfig = {Initialize=function() record("PdaInitialize") end,
             UpdateInputs=function() record("PdaUpdate") end,UpdateHeadlights=noop},
     }
