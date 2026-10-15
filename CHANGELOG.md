@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fix DX11 subtitle rendering: overlay panels use a vertex shader matching their
+  geometry, and missions without PDA settings receive an explicit subtitle border
+  material. This prevents repeated vertex-layout and missing-shader exceptions.
 - Titan: the methane lakes are now a reflective liquid surface. `CRTitanWeather` lays one flat sheet over
   the map's flat methane sea through EXU StaticGeometry (render-only: no collision, radar, AI path or
   targeting; identical on every co-op peer from static data), clipped to a generated wet mask
@@ -984,3 +987,4 @@ Covers everything since the 2026-08-06 Workshop upload.
 - `luac -p _Source/Scripts/aiCore.lua`
 - `luac -p _Source/Scripts/misn04.lua`
 - `luac -p _Source/Scripts/PersistentConfig.lua`
+- Fixed network V help and Z give shortcuts while the co-op PDA is closed; chat and navigation gating remain intact.
