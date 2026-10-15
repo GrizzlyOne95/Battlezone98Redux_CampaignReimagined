@@ -41,6 +41,13 @@ jobs:
       - name: Validate repository invariants
         run: python Tools/Validate-CampaignRepository.py
 
+      - name: Test optional SAV fixture
+        run: lua5.1 Tools/Test-SAVPrototype.lua
+
+      - name: Test selected content deployment
+        shell: pwsh
+        run: ./Tools/Test-SelectedContentDeploy.ps1
+
       - name: Test BlackDog09 source port
         run: |
           lua5.1 Tools/Test-BlackDog09.lua

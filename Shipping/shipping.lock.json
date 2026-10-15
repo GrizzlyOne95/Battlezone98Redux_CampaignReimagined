@@ -1,8 +1,28 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-13T18:10:22-05:00",
-  "count": 2538,
+  "generated": "2026-10-15T09:17:01-05:00",
+  "count": 2553,
   "files": [
+    {
+      "source": "Assets\\ACT\\achilles.act",
+      "runtime": "achilles.act"
+    },
+    {
+      "source": "Assets\\ACT\\elysium.act",
+      "runtime": "elysium.act"
+    },
+    {
+      "source": "Assets\\ACT\\europa.act",
+      "runtime": "europa.act"
+    },
+    {
+      "source": "Assets\\ACT\\ganymede.act",
+      "runtime": "ganymede.act"
+    },
+    {
+      "source": "Assets\\ACT\\io.act",
+      "runtime": "io.act"
+    },
     {
       "source": "Assets\\ACT\\mars.act",
       "runtime": "mars.act"
@@ -10,6 +30,14 @@
     {
       "source": "Assets\\ACT\\moon.act",
       "runtime": "moon.act"
+    },
+    {
+      "source": "Assets\\ACT\\titan.act",
+      "runtime": "titan.act"
+    },
+    {
+      "source": "Assets\\ACT\\venus.act",
+      "runtime": "venus.act"
     },
     {
       "source": "Assets\\Audio\\misn0232.wav",
@@ -258,6 +286,18 @@
     {
       "source": "Assets\\ModelFixes\\avrckt.mesh",
       "runtime": "avrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avsav.mesh",
+      "runtime": "avsav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avsav.skeleton",
+      "runtime": "avsav.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avsav.vdf",
+      "runtime": "avsav.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\avscav.mesh",
@@ -554,6 +594,14 @@
     {
       "source": "Assets\\Textures\\avsav_d.dds",
       "runtime": "avsav_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avsav_e.dds",
+      "runtime": "avsav_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avsav_s.dds",
+      "runtime": "avsav_s.dds"
     },
     {
       "source": "Assets\\Textures\\avsav2_d.dds",
@@ -2418,6 +2466,10 @@
     {
       "source": "Materials\\avrecy.material",
       "runtime": "avrecy.material"
+    },
+    {
+      "source": "Materials\\avsav.material",
+      "runtime": "avsav.material"
     },
     {
       "source": "Materials\\avscav.material",
@@ -4330,6 +4382,10 @@
     {
       "source": "ODF\\avmuf6.odf",
       "runtime": "avmuf6.odf"
+    },
+    {
+      "source": "ODF\\avpsav.odf",
+      "runtime": "avpsav.odf"
     },
     {
       "source": "ODF\\avrckt.odf",
@@ -6390,6 +6446,10 @@
     {
       "source": "Scripts\\CRReactiveProfiles.lua",
       "runtime": "CRReactiveProfiles.lua"
+    },
+    {
+      "source": "Scripts\\CRSAVTest.lua",
+      "runtime": "CRSAVTest.lua"
     },
     {
       "source": "Scripts\\crsetup.lua",

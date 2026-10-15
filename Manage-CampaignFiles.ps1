@@ -42,7 +42,7 @@ $DefaultTestingRuntimeDir = Join-Path $DefaultTestingGameRoot "mods\$CampaignMod
 # error at all, including a path this script resolved wrongly, means elevate.
 $requestedAction = if ($args.Count -gt 0) { [string]$args[0] } else { "" }
 $ShowShippingDetails = $args -contains "-verbose"
-$elevatedActions = @("", "-deploy", "-fromsource", "-release")
+$elevatedActions = @("", "-deploy", "-deploy-files", "-fromsource", "-release")
 $requiresElevation = $elevatedActions -contains $requestedAction.ToLowerInvariant()
 
 function Test-DeployTargetWritable([string]$targetPath) {
@@ -75,9 +75,17 @@ function Test-DeployTargetWritable([string]$targetPath) {
 if ($requiresElevation) {
     $probeGameRoot = if ($env:BZR_BATTLEZONE_ROOT) { $env:BZR_BATTLEZONE_ROOT } else { $DefaultTestingGameRoot }
     $probeTargets = [System.Collections.Generic.List[string]]::new()
-    [void]$probeTargets.Add($probeGameRoot)
-    foreach ($parentDir in $RuntimeModParentDirNames) {
-        [void]$probeTargets.Add((Join-Path $probeGameRoot $parentDir))
+    if ($requestedAction -eq '-deploy-files') {
+        $contentTarget = if ($env:BZR_CAMPAIGN_RUNTIME_DIR) { $env:BZR_CAMPAIGN_RUNTIME_DIR }
+            elseif ($env:BZR_CAMPAIGN_ADDON_DIR) { $env:BZR_CAMPAIGN_ADDON_DIR }
+            else { Join-Path $probeGameRoot "mods\$CampaignModId" }
+        [void]$probeTargets.Add($contentTarget)
+    }
+    else {
+        [void]$probeTargets.Add($probeGameRoot)
+        foreach ($parentDir in $RuntimeModParentDirNames) {
+            [void]$probeTargets.Add((Join-Path $probeGameRoot $parentDir))
+        }
     }
     if ($env:BZR_CAMPAIGN_RUNTIME_DIR) { [void]$probeTargets.Add($env:BZR_CAMPAIGN_RUNTIME_DIR) }
     if ($env:BZR_CAMPAIGN_ADDON_DIR) { [void]$probeTargets.Add($env:BZR_CAMPAIGN_ADDON_DIR) }
@@ -1175,6 +1183,48 @@ function Deploy-PackagedMod {
     Write-Host "`nDeploy complete to ${runtimeDir}: $added added, $updated updated, $skipped unchanged" -ForegroundColor Cyan
 }
 
+function Deploy-SelectedContent {
+    param([string[]]$RelativePaths)
+    if (-not $RelativePaths -or $RelativePaths.Count -eq 0) {
+        throw 'Use -deploy-files <source-relative file> [more files]. Files must already be blessed.'
+    }
+    $lock = Get-ShippingLock
+    if (-not $lock) { throw 'Selected content deployment requires a shipping lock.' }
+    $runtimeDir = Ensure-RuntimeModDir
+    if (-not $runtimeDir) { throw 'No development runtime is available.' }
+    $sourcePrefix = [IO.Path]::GetFullPath($SourceDir).TrimEnd([char[]]'\/') + [IO.Path]::DirectorySeparatorChar
+    $runtimePrefix = [IO.Path]::GetFullPath($runtimeDir).TrimEnd([char[]]'\/') + [IO.Path]::DirectorySeparatorChar
+    $allowed = @('.act', '.lum', '.odf', '.mesh', '.skeleton', '.vdf', '.sdf', '.geo', '.material', '.dds', '.png', '.lua')
+    $plan = @()
+    # Preflight every request before writing anything. This path never refreshes
+    # native binaries/manifests, removes runtime files, or restages other content.
+    foreach ($relative in $RelativePaths) {
+        $source = [IO.Path]::GetFullPath((Join-Path $SourceDir $relative))
+        if (-not $source.StartsWith($sourcePrefix, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Source escapes the checkout: $relative"
+        }
+        $key = $source.Substring($sourcePrefix.Length).Replace('/', '\')
+        if (-not $lock.BySource.ContainsKey($key)) { throw "Not in the shipping lock: $key. Run -bless first." }
+        if ([IO.Path]::GetExtension($source).ToLowerInvariant() -notin $allowed) {
+            throw "Selected deployment is for content only, not native binaries: $key"
+        }
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Source is missing: $key" }
+        $destination = [IO.Path]::GetFullPath((Join-Path $runtimeDir $lock.BySource[$key]))
+        if (-not $destination.StartsWith($runtimePrefix, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Runtime path escapes the development mod: $key"
+        }
+        $plan += [pscustomobject]@{Source=$source; Destination=$destination; Relative=$key}
+    }
+    foreach ($entry in $plan) {
+        $parent = Split-Path $entry.Destination -Parent
+        if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+        Copy-Item -LiteralPath $entry.Source -Destination $entry.Destination -Force
+        if (-not (Test-FilesMatchByHash $entry.Source $entry.Destination)) { throw "Content hash verification failed: $($entry.Relative)" }
+        Write-Host "Deployed and verified: $($entry.Relative)" -ForegroundColor Green
+    }
+    Write-Host "Selected content deployment complete: $($plan.Count) file(s) to $runtimeDir. Reload the mission to load changed assets."
+}
+
 function Get-TargetSubfolder($fileName) {
     $normalizedName = $fileName.ToLowerInvariant()
     switch -Regex ($normalizedName) {
@@ -2108,6 +2158,7 @@ $KnownActions = @(
     "-sync",
     "-fromsource",
     "-deploy",
+    "-deploy-files",
     "-release",
     "-bless",
     "-verify",
@@ -2145,6 +2196,10 @@ elseif ($args[0] -eq "-deploy") {
             exit 1
         }
     }
+}
+elseif ($args[0] -eq "-deploy-files") {
+    $selectedPaths = if ($args.Count -gt 1) { [string[]]$args[1..($args.Count - 1)] } else { @() }
+    Deploy-SelectedContent -RelativePaths $selectedPaths
 }
 elseif ($args[0] -eq "-release") {
     Deploy-PackagedMod

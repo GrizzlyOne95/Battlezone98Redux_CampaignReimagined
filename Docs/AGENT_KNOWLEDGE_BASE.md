@@ -300,6 +300,27 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 
 ## 4. Weather and environment architecture
 
+### Native ACT/LUM baseline and SAV prototype (2026-10-15)
+
+Redux does read ACT and uses LUM byte 223 to select its default fog palette
+entry. Fog is not universally ACT[209]: stock Moon, Io, Europa, Ganymede and
+Elysium use 223 for both sky and fog. Explicit TRN colors and Environment's
+runtime settings can override that baseline. Toolbox now has lossless ACT/LUM
+authoring and conservative world presets. Preserve CR's established Moon/Mars
+palettes when generating missing worlds. See `WORLD_PALETTES_SAV_PROTOTYPE.md`.
+
+The cut American SAV lacks a complete stock Redux mesh. The opt-in `avpsav`
+fixture uses a matched Fury mesh/skeleton/VDF with the existing CR NSDF skin and
+the real `sav` class. Normal boarding needs positive pilotCost and a valid pilot
+class; forcing player control alone does not test pilot bookkeeping. The fixture
+has no AI and is not a replacement for mission 14's wingman controller. Its
+enter/deploy/exit/re-entry sequence remains unqualified in-game.
+
+For a small content iteration while other game sessions are open, the manager's
+`-deploy-files` action preflights and copies only explicitly listed, blessed
+content, with hash verification. It never updates native payloads or cleans
+unrelated runtime files.
+
 Full detail: `Docs/WEATHER_ENVIRONMENT_OWNERSHIP.md`. The split is deliberate; do not blur it.
 
 ```text
