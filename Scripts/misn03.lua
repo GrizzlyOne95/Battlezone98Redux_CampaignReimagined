@@ -974,6 +974,7 @@ local function InitMoonWeather()
     local authority = (not net) or CRCoop.IsAuthority()
     Environment.Init({ lightingMode = "subtle", nativeBaseline = true,
         subtlePeriod = 3600, subtleDimming = 0.06, subtleSunAngle = 4 })
+    Environment.BindWeatherSensors("Moon", CRMoonWeather)
     CRMoonWeather.Init({
         authority = authority,
         seed = M.moonSeed, -- nil: the leader/offline picks one, guests wait for the host's state

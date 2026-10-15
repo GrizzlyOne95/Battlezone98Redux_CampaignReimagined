@@ -192,6 +192,10 @@ F.connect()
 F.run(4)
 check(hooks.host.init.authority == true and type(hooks.host.init.send) == "function", "host director can send")
 check(hooks.guest.init.authority == false and hooks.guest.init.send == nil, "guest director only listens")
+check(host.weatherSensors and host.weatherSensors[1]=="Titan" and guests[1].weatherSensors
+    and guests[1].weatherSensors[1]=="Titan", "every Titan peer binds the same sensor policy")
+check(F.count(host,"EnvironmentUpdate")>0 and F.count(guests[1],"EnvironmentUpdate")>0,
+    "every Titan peer runs Environment with its replicated weather")
 hooks.host.init.send("TitanGust", 3, 0.5)
 hooks.host.init.send("NotTitan", 1) -- refused: only Titan* ops ride the stream
 F.run(4)

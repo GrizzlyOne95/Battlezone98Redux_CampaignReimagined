@@ -97,10 +97,12 @@ SetAIControl(ENEMY_TEAM, true)
 --   "object"(handle)    every AddObject
 --   "shutdown"()        before a co-op re-initialization
 -- Every call is pcall-protected: a missing or broken director can never stop the mission.
-local TitanWeather
+local Environment = require("Environment")
+local TitanWeather, TitanSensorDirector
 do
     local ok, mod = pcall(require, "CRTitanWeather")
     if ok and type(mod) == "table" then
+        TitanSensorDirector = mod
         if type(mod.MissionHook) == "function" then
             TitanWeather = mod
         elseif type(mod.Init) == "function" and type(mod.Update) == "function" then
@@ -156,9 +158,19 @@ do
     end
 end
 local function TitanHook(event, ...)
+    if event == "init" then
+        -- Keep native Titan lighting/daylight while sharing atmosphere/sensors.
+        Environment.Init({ nativeBaseline = true })
+        Environment.BindWeatherSensors("Titan", TitanSensorDirector)
+    end
     if not TitanWeather then return nil end
     local ok, result = pcall(TitanWeather.MissionHook, event, ...)
-    if ok then return result end
+    if ok then
+        if event == "update" then Environment.Update((...)) end
+        if event == "load" and Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+        if event == "object" then Environment.OnObjectCreated((...)) end
+        return result
+    end
     if not M.titanHookError then
         M.titanHookError = true
         print("[misn14] Titan weather hook failed: " .. tostring(result))

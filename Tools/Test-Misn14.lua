@@ -333,6 +333,11 @@ local function apiCount(name, a)
 end
 check(api.init and api.init.authority == true and api.init.startLevel == 1 and api.init.send == nil,
     "adapter: offline Init as authority")
+check(host.environmentOptions and host.environmentOptions.nativeBaseline,
+    "Titan Environment captures native baseline while preserving daylight")
+check(host.weatherSensors and host.weatherSensors[1] == "Titan" and host.weatherSensors[2] == director,
+    "Titan's existing director supplies shared sensor severity")
+check(F.count(host,"EnvironmentUpdate")>0,"Titan composes Environment on each update")
 check(apiCount("Update") >= 1 and apiCount("SetTargetLevel", 2) == 1, "adapter: per-frame Update and the start beat")
 throughIntro()
 toPhase("rogue", 300)

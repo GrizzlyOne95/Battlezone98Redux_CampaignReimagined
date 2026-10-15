@@ -304,6 +304,12 @@ function F.makePeer(id, team, network, options)
     end
     local function noop() end
     local modules = {
+        Environment = {
+            Init = function(options) p.environmentOptions=options; record("EnvironmentInit") end,
+            BindWeatherSensors = function(name, director) p.weatherSensors={name,director} end,
+            Update = function() record("EnvironmentUpdate") end,
+            OnObjectCreated = noop, InvalidateRenderer = noop,
+        },
         RequireFix = {Initialize = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},

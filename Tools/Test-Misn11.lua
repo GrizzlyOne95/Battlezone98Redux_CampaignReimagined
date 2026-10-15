@@ -127,7 +127,7 @@ end
 local function noop() end
 local modules = {
     RequireFix = {Initialize = noop}, exu = {},
-    Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
+    Environment = {Init = noop, BindWeatherSensors = noop, Update = noop, OnObjectCreated = noop},
     -- The real module plays through AudioMessage and returns its handle.
     ScriptSubtitles = {Play = function(file) return AudioMessage(file) end,
         Queue = function(file) return AudioMessage(file) end, Stop = noop, Update = noop, Initialize = noop},

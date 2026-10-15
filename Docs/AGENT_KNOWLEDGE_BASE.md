@@ -326,9 +326,11 @@ Rules:
   blending; at zero weight a layer contributes nothing. Do not fold changes to Environment's own `DayFog`
   into a weather-only commit. The owner explicitly authorized the final/base cap
   and subtle Moon/Venus integration on 2026-10-15; see `ATMOSPHERE_AUDIT_20261015.md`.
-- **Visual only by default** [owner]. Gameplay effects need an explicit owner decision (Venus lightning
-  knockback/radar scramble is the approved exception; acid rain is visual only because chip damage annoyed
-  players; Europa touches no sensor/gameplay/perception state at all, which keeps stealth missions safe).
+- **Shared weather sensors** [owner, 2026-10-15]: every weather-enabled campaign mission now applies
+  sensor effects through Environment, including Moon dust/glow, Io, Europa, Titan and Mars 06.
+  See `Docs/WEATHER_SENSOR_POLICY.md`; this supersedes the old visual-only mission exceptions.
+  Directors stay render-only when used alone; missions bind activity to the sensor service.
+  Damage/handling changes are separate; Venus lightning retains its approved knockback/scramble.
 - **Seeded and peer-identical.** The leader decides; every peer renders from the same seed and shared
   events (`VenusFog`, `IoQuake`, `MoonGlow`, ...). Weather events must be routed to guests; a director
   that only runs on the host will desynchronize visuals.
@@ -337,7 +339,8 @@ Rules:
   mist instead. Do not "fix" mood with global fog.
 - **Moon 02b/03 now explicitly load Environment in subtle/native-baseline mode** [owner, 2026-10-15]:
   retain their 175-250 black fog and use bounded lighting variation, with no full night or sensor penalty.
-  Do not replace this with the default full-cycle moon profile. Titan 14 still uses standalone CRWeather.
+  Do not replace this with the default full-cycle moon profile. Titan 14 now loads Environment with
+  its native baseline and daylight lock; CRWeather contributes through the shared writer.
 - **CR owns weather content**; do not migrate or "unify" it into EXU [owner]. EXU provides mechanics.
   Redux ships no `.particle` scripts; assets ship flat in `mods/<id>/` (`.particle`, `.material`, `.png`
   at the root) and Ogre parses any registered resource location.

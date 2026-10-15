@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Apply weather-driven sensor effects across all weather-enabled campaign
+  missions, including Titan and mission 06. Preserve Mars/Venus tuning; restore
+  native values when conditions clear, without restarting the radar sweep for
+  range-only changes. See `Docs/WEATHER_SENSOR_POLICY.md`.
 - Add Coop Diagnostics as the second co-op PDA page: native per-player ping/loss,
   co-op admission/phase and heartbeat freshness, plus message receipts/retries.
   Quiet or stalled co-op traffic no longer retains a stale Synced label.

@@ -1,5 +1,9 @@
 # Titan weather and atmosphere director
 
+**Sensor policy update (15 October 2026):** Mission 14 now loads Environment with its captured native baseline and daylight lock, and binds Titan severity to the shared sensor service. This supersedes the old standalone/visual-only mission wiring below. The director itself remains render-only. See
+`WEATHER_SENSOR_POLICY.md` for the current campaign policy.
+
+
 `Scripts/CRTitanWeather.lua` is the Titan counterpart of `CREuropaWeather`, `CRIoWeather`,
 `CRVenusWeather` and `CRMarsWeather`, and follows the same architecture (seeded ladder, host-decided
 replicated events, generated map data). It is reusable by any Titan mission; the first user is misn14
