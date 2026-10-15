@@ -107,9 +107,42 @@ research. A future bounded read-only EXU/OpenShim bridge could add:
 - Native ping sample timestamps/jitter once the released-build units, clock,
   sampling window and player lifetime are established.
 
-These are useful extension points found in current public code, not new values
-exposed by this PR. Mapping transport endpoints/relay peers to player ids and
+The traffic-rate/observed-route follow-up below implements part of these
+extension points. Mapping transport endpoints/relay peers to player ids and
 resetting per-session counters must be established before displaying them.
 Diagnostics should copy thread-safe snapshots on the game thread, fail closed
 on unsupported identities, and never enable verbose tracing, retune timers,
 change routes or infer world-state parity just to populate the PDA.
+
+## Traffic rates and route follow-up
+
+The page now adds local-client BZR UDP payload bytes/second and packets/second
+for Tx/Rx, plus the recent observed route (relay/direct/mixed/unknown/idle) and
+wall-clock age of the last observed UDP receive. These are session totals across
+peers, deliberately separate from per-player ping/loss. A two-second rolling
+window expires old rates and route evidence. Tx counts Winsock-accepted
+submissions, including pending sends; Rx counts successful observed receives.
+This is not delivered-byte accounting or a claim of complete capture on every
+Winsock completion path. BZR headers are included; IP/UDP overhead, discovery
+and matchmaking TCP are excluded. Retransmissions are included.
+
+EXU's optional `GetNetworkTrafficStats()` reads a bounded copied OpenShim SDK
+record, retaining no native pointers. Missing/old providers display unavailable;
+a refresh error clears old values. Sampling remains at most once per simulation
+second while the page is drawn. The coverage-limit flag displays `!` when the
+bounded observer overflows its pending table or relay-port history.
+
+Relay evidence comes from matching a successful OnP2PRoute server endpoint;
+direct means observed traffic on a non-server peer endpoint. Unclassified
+endpoints remain unknown. This describes observed traffic, not a configured
+preference or an engine connection-state promise. Per-player endpoint mapping,
+native reliable queue depth and rejection counters remain future APIs.
+
+`recovery1015-coop-transport` passes seven steps / 22 checks with three real
+DX11 GOG clients, native local server, the complete new OpenShim chain and fresh
+EXU. It covers physical page navigation, co-op traffic stall/recovery, nonzero
+UDP byte/packet rates on every peer, advancing totals, observed relay evidence
+and final client survival. Native logs show verbose RelayLogging disabled.
+The three-player native screenshot confirms that the expanded page fits the
+existing panel. Diagnostics Lua checks increase to 36; other helper suites and
+repository invariants pass. Final two-client repeat/provenance is in the handoff.
