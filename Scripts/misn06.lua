@@ -925,10 +925,10 @@ end
 -- CR atmosphere >>
 InitAtmosphere = function()
     if weatherStarted then return end
-    Environment.Init({ nightGameplay = false })
+    Environment.Init()
     CRMarsWeather.Init({ profile = "Plains", startLevel = 1, targetLevel = 2,
-        -- New weather remains visual: preserve the escape mission's handling/sensors.
-        sensorDegrade = false, windPush = false })
+        -- Sensor policy matches the other Mars missions; wind push stays off.
+        sensorDegrade = true, windPush = false })
     if M.weatherState then CRMarsWeather.Load(M.weatherState); M.weatherState = nil end
     CRMarsWeather.SetAutomatic(not CRCoop.IsNetworkGame() or CRCoop.IsAuthority())
     weatherStarted, nextWeatherSync = true, 0

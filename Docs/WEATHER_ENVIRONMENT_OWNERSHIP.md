@@ -1,5 +1,11 @@
 # Atmosphere ownership: Environment, CRWeather, and the terrain horizon
 
+The later owner sensor decision is documented in `WEATHER_SENSOR_POLICY.md`.
+Every weather-enabled campaign mission now uses Environment for sensor effects,
+and Titan 14 also joins its atmosphere writer with the native baseline/daylight
+lock. References below to Titan's old standalone mission wiring and mission
+06's old visual-only opt-out describe the prior checkpoint, not current policy.
+
 Three concerns, kept separate on purpose. They were drifting together — two
 independent definitions of a dust storm, and weather fog that could outrun the
 terrain — and this records where the lines are so they stay put.

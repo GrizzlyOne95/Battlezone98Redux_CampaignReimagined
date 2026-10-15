@@ -1058,6 +1058,32 @@ function Environment.RefreshGameplayScales()
     return scales
 end
 
+-- Mission policy over the visual-only directors. Keep sensor writes here, not
+-- in particles/directors. Existing Mars/Venus tuned modifiers use this same
+-- gameplay composition path and must not also bind a second weather modifier.
+function Environment.BindWeatherSensors(name, director)
+    local key = "WeatherSensors:" .. tostring(name)
+    if type(director) ~= "table" then return false end
+    Environment.WeatherSensorsBound = true
+    Environment.NextWeatherSensorRefresh = 0.0
+    return Environment.RegisterGameplayModifier(key, function(frame)
+        local amount = 0.0
+        if director.Initialized and director.Enabled ~= false and not director.Disabled then
+            if type(director.GetSeverity) == "function" then
+                amount = tonumber(director.GetSeverity()) or 0.0
+            elseif type(director.GetGlow) == "function" then
+                -- Synced Moon dust/glow activity, not local particle quality or
+                -- camera position: graphical settings must not change sensors.
+                amount = (tonumber(director.GetGlow()) or 0.0) * math.min(1.0, director.DensityValue or 1.0)
+            end
+        end
+        amount = Clamp01(amount)
+        frame.radarRange = frame.radarRange * Lerp(1.0, 0.55, amount)
+        frame.velocJam = frame.velocJam * Lerp(1.0, 1.40, amount)
+        -- Leave radarPeriod alone: changing the sweep period restarts its animation.
+    end)
+end
+
 -- -----------------------------------------------------------------------------
 -- Per-object scrambles
 --
@@ -1438,6 +1464,13 @@ function Environment.Update(timestep)
         Environment.LastNightBlend = state.nightBlend
     end
 
+    -- Visual-only directors do not request gameplay refreshes themselves.
+    -- Poll the shared source on simulation time, including its shutdown -> clear
+    -- transition; otherwise a stable daylight scene would strand old scales.
+    if Environment.WeatherSensorsBound and gameTime >= (Environment.NextWeatherSensorRefresh or 0) then
+        Environment.NextWeatherSensorRefresh = gameTime + 1.0
+        Environment.PendingGameplaySync = true
+    end
     if Environment.PendingGameplaySync then
         Environment.SyncGameplayImpacts()
     end
@@ -1538,9 +1571,11 @@ function Environment.ProcessObjectNightEffects(h)
             Environment.OriginalRadarRanges[h] = rng
         end
 
-        local per = exu.GetRadarPeriod(h)
-        if per and per > 0 and not Environment.OriginalRadarPeriods[h] then
-            Environment.OriginalRadarPeriods[h] = per
+        if blend > 0.001 or math.abs(periodScale - 1.0) > 0.001 then
+            local per = exu.GetRadarPeriod(h)
+            if per and per > 0 and not Environment.OriginalRadarPeriods[h] then
+                Environment.OriginalRadarPeriods[h] = per
+            end
         end
 
         local vj = exu.GetVelocJam(h)
@@ -1554,6 +1589,9 @@ function Environment.ProcessObjectNightEffects(h)
     end
     if Environment.OriginalRadarPeriods[h] then
         exu.SetRadarPeriod(h, Environment.OriginalRadarPeriods[h] * Lerp(1.0, Environment.RadarPeriodNerf, blend) * periodScale)
+        if blend <= 0.001 and math.abs(periodScale - 1.0) <= 0.001 then
+            Environment.OriginalRadarPeriods[h] = nil
+        end
     end
     if Environment.OriginalVelocJams[h] then
         exu.SetVelocJam(h, Environment.OriginalVelocJams[h] * Lerp(1.0, Environment.VelocJamBuff, blend) * jamScale)

@@ -478,6 +478,7 @@ local function InitEuropaWeather()
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
     Environment.Init()
+    Environment.BindWeatherSensors("Europa", CREuropaWeather)
     CREuropaWeather.Init({
         authority = authority,
         seed = M.europaSeed, -- nil: the leader/offline picks one, guests wait for the host state

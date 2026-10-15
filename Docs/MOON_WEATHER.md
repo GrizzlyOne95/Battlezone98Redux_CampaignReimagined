@@ -1,5 +1,9 @@
 # Moon weather and atmosphere director
 
+**Sensor policy update (15 October 2026):** Mission 02b/03 now binds synced dust/glow activity to Environment sensors. The particle director itself still never writes native sensors. See
+`WEATHER_SENSOR_POLICY.md` for the current campaign policy.
+
+
 `Scripts/CRMoonWeather.lua` is the Moon counterpart of `CREuropaWeather`, `CRIoWeather`,
 `CRVenusWeather` and `CRMarsWeather`. It is reusable by any Moon mission; the first users are
 misn02b "Red Arrival" and misn03 "Eagle's Nest" (both `planet = "moon"` in `Config/crcampgn.ini`).

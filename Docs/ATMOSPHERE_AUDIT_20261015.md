@@ -1,5 +1,10 @@
 # Campaign atmosphere integration audit — 15 October 2026
 
+**Later owner revision:** `WEATHER_SENSOR_POLICY.md` supersedes this audit's
+visual-only mission exceptions. All weather-enabled missions now have sensor
+effects; Titan 14 joins Environment and Mars 06 enables weather/night sensors.
+The findings below describe the earlier atmosphere integration checkpoint.
+
 Scope: every campaign mission Lua entry point, Environment, CRWeather and its
 presets, all six planet directors, TRN sky/cloud/fog settings, RuntimeEnhancements,
 save/load and co-op presentation wiring. Findings below are confirmed by source
