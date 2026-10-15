@@ -92,6 +92,7 @@ jobs:
           "$LUA" Tools/Test-CRCoopComms.lua
           "$LUA" Tools/Test-CRCoopAssist.lua
           "$LUA" Tools/Test-CRCoopPda.lua
+          "$LUA" Tools/Test-CRCoopDiagnostics.lua
           "$LUA" Tools/Test-CoopNetworkInput.lua
           "$LUA" Tools/Test-SubtitleReplacement.lua
 

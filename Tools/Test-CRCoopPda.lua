@@ -42,7 +42,9 @@ active = true; ui.UpdatePage(state)
 check(state.pdaPage == 9 and ui.PageNumber(9) == 1, "co-op opens first")
 state.pdaPage = 3; ui.UpdatePage(state)
 check(state.pdaPage == 3, "notifications do not force page")
-check(ui.CyclePage(9, 1) == 1 and ui.CyclePage(1, -1) == 9, "co-op navigation")
+check(ui.CyclePage(9, 1) == 10 and ui.CyclePage(10, 1) == 1 and ui.CyclePage(1, -1) == 10,
+    "diagnostics is the second co-op page")
+check(ui.PageNumber(10) == 2 and #ui.PageOrder() == 10, "diagnostics page number")
 local function render()
     return ui.BuildText(function() return "==COOP==" end, function(lines, ...)
         for _, line in ipairs({ ... }) do lines[#lines + 1] = line end
@@ -112,6 +114,8 @@ me, host, onFoot, requests = 30, false, { [30] = true }, {}
 active = false; ui.UpdatePage(state)
 state.pdaPage = 9; ui.UpdatePage(state)
 check(state.pdaPage == 1, "solo clears co-op page")
+state.pdaPage = 10; ui.UpdatePage(state)
+check(state.pdaPage == 1, "solo clears diagnostics page")
 -- Object pings use the stock objective marker; existing objectives only flash.
 do
     local clock, pings, active = 0, {}, true

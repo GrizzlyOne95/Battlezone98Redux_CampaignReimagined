@@ -65,6 +65,14 @@ client.DeletePlayer(3)
 client.Receive(1,"K",1,0)
 assert(client.IsSessionReady(), "reinitialized guest cannot recover")
 
+client.Receive(1,"H",host,1,true,0)
+assert(client.GetNetworkDiagnostics().players[1].status=="Synced", "fresh admitted host heartbeat missing")
+client.Receive(1,"H",host,1,false,0)
+assert(client.GetNetworkDiagnostics().players[1].status=="Syncing", "peer admission false lost in diagnostics")
+assert(client.IsSessionReady(), "diagnostics changed gameplay admission")
+client.Initialize({getLocalPlayerId=function() return id end})
+assert(client.GetNetworkDiagnostics().players[1].heartbeatAge==nil, "mission retained prior traffic health")
+
 net=false
 local single = assert(loadfile(source))()
 assert(single.IsSessionReady(), "single-player readiness changed")

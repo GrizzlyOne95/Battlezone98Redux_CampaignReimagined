@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Execute the complete mission with separate Lua 5.1 environments and the real
 -- CRCoop registry. Engine/network mocks verify script decisions, not Redux
 -- native replication, native map loading, pathfinding, or EXU's binary hooks.

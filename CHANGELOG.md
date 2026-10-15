@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add Coop Diagnostics as the second co-op PDA page: native per-player ping/loss,
+  co-op admission/phase and heartbeat freshness, plus message receipts/retries.
+  Quiet or stalled co-op traffic no longer retains a stale Synced label.
 - Co-op starts with the stock scoreboard and destruction/death notices hidden.
   M still toggles the scoreboard. Notice suppression requires the new EXU
   presentation switch; normal chat and campaign messages remain available.

@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root: lua5.1 Tools/Test-Misn13Presentation.lua
 -- Part A executes the misn13 presentation adapter (the block between "local unpackArgs" and
 -- "Presentation adapter ends") in isolated Lua 5.1 peers: protocol decisions only, not native
