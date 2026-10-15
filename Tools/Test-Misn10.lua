@@ -522,8 +522,10 @@ clear(); Load(copy)
 check(Save() == copy and copy.tug_underway6 and copy.ccatug == m.ccatug, "Save/Load state and handles")
 clear(); Update(0.05)
 check(not called("SetAIControl") and not called("SetAIP") and not called("AudioMessage")
-    and not called("Goto") and not called("IoInit") and not called("IoLoad") and not called("BuildObject")
-    and not called("IoQuake"), "load does not replay setup, briefing, production, routes, weather or quakes")
+    and not called("Goto") and not called("BuildObject")
+    and not called("IoQuake"), "load does not replay setup, briefing, production, routes or quakes")
+check(count("IoInit")==1 and count("IoLoad",wxState)==1,
+    "same-Lua load rebuilds weather from saved scalars exactly once")
 -- A reloaded chunk restores the weather from the saved state on its first update.
 local savedState = saved.weatherState
 m = reset(false); Load(saved); clear(); Update(0.05)

@@ -578,3 +578,13 @@ Checked against `ExtraUtilities/Definitions/ExtraUtils.lua`:
 - Eruption scale and the density of the minor vent plumes.
 - Sulfur burp frequency and steam colour.
 - Total particle cost with every layer up; `MaxSystems` and the per-layer caps are the knobs.
+
+## Subtle time-of-day lighting (2026-10-15)
+
+Missions 07–09 now use Environment subtle/native-baseline mode: a one-hour
+bounded variation with at most 4% dimming and a 2-degree azimuth excursion plus
+small elevation drift. It replaces the generic rapid full night cycle. Modulation
+is applied after the Venus weather and local fog-bank/flash contributions, so
+weather and lighting share one final frame. Weather gameplay/strike behavior
+and story beats are unchanged. Final fog obeys each TRN visibility horizon.
+No additional cloud layer was added. See `ATMOSPHERE_AUDIT_20261015.md`.

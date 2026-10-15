@@ -1,7 +1,6 @@
 -- Test-CRWeatherFogHorizon.lua
 --
--- Drives the real CRWeather.lua and checks that weather fog -- and only weather
--- fog -- is limited to the terrain draw distance the map authored.
+-- Drives CRWeather in isolation and checks the preset-request horizon cap.
 --
 -- Usage, from the repository root:
 --
@@ -15,14 +14,9 @@
 -- only 37% opaque at the distance terrain is cut off, and the remaining 63%
 -- reads as a bright band along the horizon.
 --
--- The regression running the other way matters just as much. Environment.lua's
--- own DayFog finishes at 700 on the same 250-unit map, and clamping that too
--- would change the established look of every mission whether or not weather is
--- running. So the rule under test is narrow:
---
---     weatherFogEnd = min(requestedWeatherFogEnd, authoredTerrainHorizon)
---
--- with base Environment fog left exactly as it was.
+-- This suite isolates CRWeather's contribution. It must leave base fog alone
+-- at zero weight; Environment owns the base/final cap authorized on 2026-10-15.
+-- Test-AtmosphereIntegration.lua tests that composed cap with the real modules.
 --
 -- Prints FOG HORIZON OK on success; prints each failed expectation and exits 1.
 

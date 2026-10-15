@@ -866,7 +866,8 @@ local function InitVenusWeather()
     venusStarted = true
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
-    Environment.Init()
+    Environment.Init({ lightingMode = "subtle", nativeBaseline = true,
+        subtlePeriod = 3600, subtleDimming = 0.04, subtleSunAngle = 2 })
     CRVenusWeather.Init({
         authority = authority,
         seed = M.venusSeed, -- nil: the leader/offline picks one, guests wait for the host's state
@@ -2947,5 +2948,9 @@ function Save()
 end
 
 function Load(state)
+-- CR Venus weather >>
+    ShutdownVenusWeather()
+    if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+-- CR Venus weather <<
     M = state
 end

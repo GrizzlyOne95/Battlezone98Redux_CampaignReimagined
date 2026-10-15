@@ -24,6 +24,7 @@ local PlayerPilotMode = require("PlayerPilotMode")
 local CRCoop = require("CRCoop")
 -- CR Moon weather >>
 local CRMoonWeather = require("CRMoonWeather")
+local Environment = require("Environment")
 local MoonSites = require("CRMoonSites03")
 local MOON_OPS = { MoonState = true, MoonGlow = true }
 -- CR Moon weather <<
@@ -971,6 +972,8 @@ local function InitMoonWeather()
     moonStarted = true
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
+    Environment.Init({ lightingMode = "subtle", nativeBaseline = true,
+        subtlePeriod = 3600, subtleDimming = 0.06, subtleSunAngle = 4 })
     CRMoonWeather.Init({
         authority = authority,
         seed = M.moonSeed, -- nil: the leader/offline picks one, guests wait for the host's state
@@ -996,6 +999,7 @@ local function UpdateMoonWeather(dt)
         CRMoonWeather.AnnounceState()
     end
     CRMoonWeather.Update(dt)
+    Environment.Update(dt)
 end
 
 local function ShutdownMoonWeather()
@@ -1015,6 +1019,10 @@ function Save()
 end
 
 function Load(missionData, aiData, pilotModeData)
+-- CR Moon weather >>
+    ShutdownMoonWeather()
+    if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+-- CR Moon weather <<
     M = missionData or M
     M.playerPilotModeState = pilotModeData or M.playerPilotModeState
     if aiData then

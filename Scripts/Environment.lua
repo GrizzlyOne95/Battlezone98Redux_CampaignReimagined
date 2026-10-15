@@ -25,12 +25,17 @@ Environment = {
     --   Dawn  : 13:00 - 15:00
     -- Set CycleDuration = 1200 for the same proportions over a 20 minute cycle.
     CycleDuration          = 900.0,
+    LightingMode           = "cycle", -- "subtle" keeps a bounded daylight variation
+    SubtlePeriod           = 3600.0,
+    SubtleDimming          = 0.06,
+    SubtleSunAngle         = 4.0,
     DuskStartFraction      = 0.40,
     NightStartFraction     = 0.60,
     DawnStartFraction      = 13.0 / 15.0,
 
     EnableSunLighting      = true,
     EnableVisualRuntime    = true,
+    EnableNightGameplay    = true,
     PresetMode             = "auto", -- "auto", "earth", "moon", or "titan"
     WorldPreset            = "earth",
     WorldPalette           = "",
@@ -316,6 +321,24 @@ local function ClampFog(fog)
         fogStart = start,
         fogEnd = ending,
     }
+end
+
+-- Apply to the final frame as well as the base: overrides and local weather
+-- must never expose the terrain cutoff. Scale the ramp when it exceeds it.
+local function ClampFogToHorizon(fog)
+    local result = ClampFog(fog)
+    local horizon = tonumber(Environment.FogHorizon)
+    if horizon and horizon > 0.0 and result.fogEnd > horizon then
+        result.fogStart = math.min(horizon * 0.99, result.fogStart * horizon / result.fogEnd)
+        result.fogEnd = horizon
+    end
+    return result
+end
+
+local function NativeValue(name)
+    if type(exu[name]) ~= "function" then return nil end
+    local ok, value = pcall(exu[name])
+    if ok then return value end
 end
 
 local function GetSunDirectionSetter()
@@ -696,6 +719,18 @@ local function ComputeCycleState(progress)
     return state
 end
 
+local function CurrentCycleState()
+    local time = GetTime() * (Environment.DebugScale or 1.0)
+    if Environment.LightingMode == "subtle" then
+        local state = ComputeCycleState(0.0)
+        state.cycle = (time % math.max(1.0, Environment.SubtlePeriod)) / math.max(1.0, Environment.SubtlePeriod)
+        state.subtle = true
+        return state
+    end
+    local duration = math.max(1.0, Environment.CycleDuration or 900.0)
+    return ComputeCycleState(Environment.LockDaylight and 0.0 or (time % duration))
+end
+
 local function ComputeLighting(state)
     local E = Environment
 
@@ -739,6 +774,17 @@ end
 
 local function ComputeSunDirection(state)
     local E = Environment
+
+    if state.subtle then
+        local wave = math.sin(state.cycle * math.pi * 2.0)
+        local angle = math.rad(E.SubtleSunAngle) * wave
+        local d = E.DaySunDirection
+        return NormalizeDirection({
+            x = d.x * math.cos(angle) - d.z * math.sin(angle),
+            y = d.y + wave * 0.015,
+            z = d.x * math.sin(angle) + d.z * math.cos(angle),
+        })
+    end
 
     if state.phase == "Day" then
         return NormalizeDirection(E.DaySunDirection)
@@ -1099,10 +1145,31 @@ end
 -- Initialization
 -- =============================================================================
 
-function Environment.Init()
+-- Save loading rebuilds the renderer while a mission can retain its Lua state.
+-- Reapply even an identical computed frame after particles/scene are rebuilt.
+function Environment.InvalidateRenderer()
+    Environment.LastAmbient = nil
+    Environment.LastDiffuse = nil
+    Environment.LastSpecular = nil
+    Environment.LastFog = nil
+    Environment.LastBaseFog = nil
+    Environment.LastSunDirection = nil
+    Environment.LastSunPowerScale = nil
+    Environment.LastShadowFarDistance = nil
+    Environment.LastViewportShadows = nil
+end
+
+function Environment.Init(options)
     if Environment.Initialized then
         return
     end
+
+    options = options or {}
+    Environment.LightingMode = options.lightingMode or Environment.LightingMode
+    Environment.SubtlePeriod = math.max(1.0, tonumber(options.subtlePeriod) or Environment.SubtlePeriod)
+    Environment.SubtleDimming = Clamp01(tonumber(options.subtleDimming) or Environment.SubtleDimming)
+    Environment.SubtleSunAngle = tonumber(options.subtleSunAngle) or Environment.SubtleSunAngle
+    if options.nightGameplay ~= nil then Environment.EnableNightGameplay = options.nightGameplay and true or false end
 
     RuntimeEnhancements.Initialize()
     ValidateCycleFractions()
@@ -1113,6 +1180,11 @@ function Environment.Init()
     local baseDiffuse = CopyColor(Environment.DayDiffuse)
     local baseSpecular = CopyColor(Environment.DaySpecular)
     local baseFog = CopyFog(Environment.DayFog)
+    -- Capture before any script writes, so ACT/TRN colours survive the Lua path.
+    local nativeFog = NativeValue("GetFog")
+    if nativeFog then
+        baseFog.r, baseFog.g, baseFog.b = nativeFog.r or baseFog.r, nativeFog.g or baseFog.g, nativeFog.b or baseFog.b
+    end
 
     if GetMapTRNFilename then
         trnFilename = GetMapTRNFilename()
@@ -1139,14 +1211,23 @@ function Environment.Init()
                 end
                 Environment.MapTimeOfDay = GetODFInt(trn, "NormalView", "Time", Environment.MapTimeOfDay)
 
-                local fr = GetODFFloat(trn, "NormalView", "FogColorR", 0.65)
-                local fg = GetODFFloat(trn, "NormalView", "FogColorG", 0.45)
-                local fb = GetODFFloat(trn, "NormalView", "FogColorB", 0.25)
+                local fr = GetODFFloat(trn, "NormalView", "FogColorR", baseFog.r)
+                local fg = GetODFFloat(trn, "NormalView", "FogColorG", baseFog.g)
+                local fb = GetODFFloat(trn, "NormalView", "FogColorB", baseFog.b)
                 local specular = Clamp01((intensity * 0.85) + 0.10)
 
                 baseAmbient = { r = ambient, g = ambient, b = ambient }
                 baseDiffuse = { r = intensity, g = intensity, b = intensity }
                 baseSpecular = { r = specular, g = specular, b = Clamp01(specular * 0.98) }
+                -- Redux's explicit RGB light sections also apply on the Lua path.
+                local function lightColor(section, fallback)
+                    return { r = GetODFFloat(trn, section, "Red", fallback.r),
+                        g = GetODFFloat(trn, section, "Green", fallback.g),
+                        b = GetODFFloat(trn, section, "Blue", fallback.b) }
+                end
+                baseAmbient = lightColor("Sun_Ambient", baseAmbient)
+                baseDiffuse = lightColor("Sun_Diffuse", baseDiffuse)
+                baseSpecular = lightColor("Sun_Specular", baseSpecular)
                 baseFog = {
                     r = fr,
                     g = fg,
@@ -1166,6 +1247,23 @@ function Environment.Init()
 
     Environment.WorldPreset, Environment.WorldPalette = DetectWorldPreset(trnFilename, trn)
     ApplyWorldPreset(Environment.WorldPreset, baseAmbient, baseDiffuse, baseSpecular, baseFog)
+    if options.nativeBaseline then
+        -- Moon 02b/03 and Venus retain the map's authored light and atmosphere.
+        Environment.DayAmbient = NativeValue("GetAmbientLight") or NativeValue("GetSunAmbient") or baseAmbient
+        Environment.DayDiffuse = NativeValue("GetSunDiffuse") or baseDiffuse
+        Environment.DaySpecular = NativeValue("GetSunSpecular") or baseSpecular
+        local direction = NativeValue("GetSunDirection")
+        if direction then
+            Environment.DaySunDirection = { x = direction.x, y = direction.y, z = direction.z }
+        end
+        Environment.DaySunPowerScale = NativeValue("GetSunPowerScale") or Environment.DaySunPowerScale
+        Environment.StableShadowFarDistance = NativeValue("GetSunShadowFarDistance") or Environment.StableShadowFarDistance
+        Environment.DayFog = CopyFog(baseFog)
+    end
+    Environment.DayFog = ClampFogToHorizon(Environment.DayFog)
+    Environment.NightFog = ClampFogToHorizon(Environment.NightFog)
+    Environment.SunsetFog = ClampFogToHorizon(Environment.SunsetFog)
+    Environment.SunriseFog = ClampFogToHorizon(Environment.SunriseFog)
     print("Environment: Preset -> [" .. Environment.WorldPreset .. "] palette=" .. tostring(Environment.WorldPalette))
 
     if Environment.NativeTimeOfDayOnInit and exu.SetTimeOfDay then
@@ -1184,14 +1282,7 @@ function Environment.Init()
     Environment.GameplayBatchAt = 0.0
 
     -- Force the first update to apply a coherent full state exactly once.
-    Environment.LastAmbient = nil
-    Environment.LastDiffuse = nil
-    Environment.LastSpecular = nil
-    Environment.LastFog = nil
-    Environment.LastSunDirection = nil
-    Environment.LastSunPowerScale = nil
-    Environment.LastShadowFarDistance = nil
-    Environment.LastViewportShadows = nil
+    Environment.InvalidateRenderer()
     Environment.LastNightBlend = -1.0
     Environment.LastPhase = "Initial"
 
@@ -1210,19 +1301,11 @@ function Environment.Update(timestep)
 
     timestep = tonumber(timestep) or 0.0
     local gameTime = GetTime()
-    local scaledTime = gameTime * (Environment.DebugScale or 1.0)
-    local duration = math.max(1.0, Environment.CycleDuration or 900.0)
-    -- LockDaylight pins the cycle at the start of day: no dusk, no night, and so
-    -- no night sensor nerf (the titan preset sets it).
-    local progress = Environment.LockDaylight and 0.0 or (scaledTime % duration)
-    local state = ComputeCycleState(progress)
+    local state = CurrentCycleState()
 
     if state.phase ~= Environment.LastPhase then
         local msg = "Environment: Phase -> [" .. state.phase .. "]"
         print(msg)
-        if AddTMsg then
-            AddTMsg(msg)
-        end
         Environment.LastPhase = state.phase
     end
 
@@ -1232,6 +1315,7 @@ function Environment.Update(timestep)
     local targetAmbient, targetDiffuse, targetSpecular = ComputeLighting(state)
     local automaticFog = ComputeAutomaticFog(state)
     local targetFog = ResolveFog(automaticFog, gameTime)
+    Environment.LastBaseFog = CopyFog(targetFog)
     local sunState = ComputeSunState(state)
 
     -- -------------------------------------------------------------------------
@@ -1258,6 +1342,9 @@ function Environment.Update(timestep)
             specular = targetSpecular,
             fog = targetFog,
             sunPowerScale = sunState.powerScale,
+            -- Presets describe daylight weather; retain a night attenuation
+            -- when weather is fully blended in rather than relighting the night.
+            weatherLightScale = Lerp(1.0, 0.20, state.nightBlend),
             nightBlend = state.nightBlend,
             phase = state.phase,
             timestep = timestep,
@@ -1269,6 +1356,16 @@ function Environment.Update(timestep)
         targetFog = ClampFog(frame.fog or targetFog)
         sunState.powerScale = math.max(0.0, tonumber(frame.sunPowerScale) or sunState.powerScale)
     end
+
+    -- Weather owns its fog/light targets; subtle TOD remains visible even at
+    -- full weather weight. No second fog, sky, cloud or gameplay-night layer.
+    if state.subtle then
+        local dim = Environment.SubtleDimming * (0.5 - 0.5 * math.cos(state.cycle * math.pi * 2.0))
+        targetAmbient = ModulateColor(targetAmbient, { r = 1, g = 1, b = 1 }, 1.0 - dim * 0.5)
+        targetDiffuse = ModulateColor(targetDiffuse, { r = 1, g = 1, b = 1 }, 1.0 - dim)
+        targetSpecular = ModulateColor(targetSpecular, { r = 1, g = 1, b = 1 }, 1.0 - dim)
+    end
+    targetFog = ClampFogToHorizon(targetFog)
 
     -- -------------------------------------------------------------------------
     -- Lighting / fog writes
@@ -1413,7 +1510,7 @@ function Environment.ProcessObjectNightEffects(h)
         return
     end
 
-    local blend = Clamp01(Environment.NightBlend or 0.0)
+    local blend = Environment.EnableNightGameplay and Clamp01(Environment.NightBlend or 0.0) or 0.0
     local scales = Environment.GameplayScales or IDENTITY_GAMEPLAY_SCALES
     local rangeScale  = scales.radarRange or 1.0
     local periodScale = scales.radarPeriod or 1.0
@@ -1538,7 +1635,9 @@ function Environment.SetFogState(stateName, blendDuration)
     end
 
     local duration = math.max(0.0, tonumber(blendDuration) or 0.0)
-    local from = Environment.LastFog and CopyFog(Environment.LastFog) or CopyFog(Environment.DayFog)
+    -- LastFog already includes weather. Feeding it back into the base transition
+    -- would apply the weather a second time until the transition finishes.
+    local from = CopyFog(Environment.LastBaseFog or Environment.DayFog)
 
     if stateName == nil or string.lower(tostring(stateName)) == "auto" then
         Environment.FogManualOverride = nil
@@ -1587,9 +1686,7 @@ function Environment.GetCycleState()
         Environment.Init()
     end
 
-    local duration = math.max(1.0, Environment.CycleDuration or 900.0)
-    local scaledTime = GetTime() * (Environment.DebugScale or 1.0)
-    local state = ComputeCycleState(scaledTime % duration)
+    local state = CurrentCycleState()
     return {
         cycle = state.cycle,
         phase = state.phase,

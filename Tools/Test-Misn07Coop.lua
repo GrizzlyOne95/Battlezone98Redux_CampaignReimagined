@@ -1361,6 +1361,11 @@ do
     registerAll(); run(3)
     check(host.venus.loaded and host.venus.loaded.tag == "saved" and host.state.weatherState == nil, "a saved state is loaded and consumed")
     check(host.venus.options.seed == 99, "the saved seed is reused")
+    local restored = host.env.Save()
+    restored.weatherState = {tag = "same-lua"}
+    host.env.Load(restored); run(1)
+    check(host.venus.loaded and host.venus.loaded.tag == "same-lua" and host.state.weatherState == nil,
+        "same-Lua load consumes saved weather and rebuilds the director")
     -- A mission restart in the same process stands the director down first.
     local before = host.venus.shutdowns
     host.env.Start(); run(1)
