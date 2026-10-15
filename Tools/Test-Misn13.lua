@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root with Lua 5.1. Handles are opaque userdata.
 -- Offline (single-player) behavior of the co-op-capable misn13: the real CRCoop runs with
 -- single-player semantics, so every check below is the DLL's own flow plus the documented CR
@@ -103,6 +105,7 @@ function require(name) return assert(modules[name], name) end
 local function reset(beforeStart)
     now, nearby = 0, 3
     objects, labels, calls, distances, scrap = {}, {}, {}, {}, {}
+    modules.CRCoopDiagnostics = assert(loadfile("Scripts/CRCoopDiagnostics.lua"))()
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()

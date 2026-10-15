@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root with Lua 5.1: lua5.1 Tools/Test-Misn12.lua
 -- Engine-facing scenario tests; the stock game/map still need an in-game run.
 local now, objects, labels, calls, distances, serial, player, timer, timerRunning
@@ -127,6 +129,7 @@ local function reset()
     now, serial, cancelled = 0, 0, false
     objects, labels, calls, distances, infos, objectives = {}, {}, {}, {}, {}, {}
     player = object("avtank", 1)
+    modules.CRCoopDiagnostics = assert(loadfile("Scripts/CRCoopDiagnostics.lua"))()
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()

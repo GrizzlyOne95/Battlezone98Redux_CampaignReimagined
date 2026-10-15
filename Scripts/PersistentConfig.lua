@@ -6693,7 +6693,10 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     local pda_right_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
     local enterPressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
 
-    if InputState.pdaPage == PdaPages.COOP then
+    if InputState.pdaPage == PdaPages.COOP_DIAGNOSTICS then
+        PersistentConfig.CoopPda.HandleDiagnosticsInput(pda_up_key, pda_down_key)
+        if pda_up_key or pda_down_key then RefreshPdaOverlay() end
+    elseif InputState.pdaPage == PdaPages.COOP then
         PersistentConfig.CoopPda.HandleInput(pda_up_key, pda_down_key, pda_left_key, pda_right_key,
             doAction and IsValid(currentPlayerHandle))
         if pda_up_key or pda_down_key or pda_left_key or pda_right_key or doAction or coopAction or helpAction or giveAction then RefreshPdaOverlay() end

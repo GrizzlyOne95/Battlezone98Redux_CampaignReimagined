@@ -901,3 +901,14 @@ presentation only; stock scores and mission text remain active. Confirmed by
 death. GetPlayerNetworkStats takes a network id, not a team. Local ping/loss are
 absent and native lives differ from CR's respawn budget; see
 `Docs/COOP_DX11_RECOVERY_20261015.md` for evidence and platform limits.
+
+### Coop Diagnostics freshness (2026-10-15)
+
+The second co-op PDA page uses mission-scoped CR control/receipt observations;
+polling native scoreboard data does not establish fresh traffic. Native
+pingSamples is retained history size, not a last-packet timestamp. Status must
+expire and recover from actual received messages, distinguish a delayed heartbeat
+from other live CR traffic, and clear on Initialize/DeletePlayer. Application
+receipt timeouts are not measured UDP loss. Legacy heartbeat metadata stays
+unknown. See `Docs/COOP_DIAGNOSTICS_20261015.md`; regression fixtures cover these
+boundaries and the native three-client run demonstrates stalled/recovered traffic.

@@ -726,6 +726,9 @@ function M.Create(deps)
         if page == PdaPages.COOP then
             return PersistentConfig.CoopPda.BuildText(BuildPdaHeader, AppendPdaFooter)
         end
+        if page == PdaPages.COOP_DIAGNOSTICS then
+            return PersistentConfig.CoopPda.BuildDiagnosticsText(BuildPdaHeader, AppendPdaFooter)
+        end
         if page == PdaPages.CAREER then
             return BuildCareerPageText(player)
         end

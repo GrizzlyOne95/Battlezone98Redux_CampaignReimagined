@@ -36,7 +36,7 @@ function M.Create(d)
         return c and c.IsActive() or false
     end
     function ui.PageOrder()
-        local pages = ui.IsActive() and { d.pages.COOP } or {}
+        local pages = ui.IsActive() and { d.pages.COOP, d.pages.COOP_DIAGNOSTICS } or {}
         for page = 1, d.pages.SETTINGS do pages[#pages + 1] = page end
         return pages
     end
@@ -53,11 +53,14 @@ function M.Create(d)
     function ui.Reset()
         ui.row, ui.selected, ui.pingId, ui.giveTo, ui.sendTo, ui.recallAt = 1, nil, nil, nil, nil, nil
         ui.replies, ui.wasActive = {}, false
+        ui.diagPlayer, ui.nativeRows, ui.nextNativeSample = nil, {}, 0
     end
     function ui.UpdatePage(state)
         local active = ui.IsActive()
         if active and not ui.wasActive then state.pdaPage = d.pages.COOP end
-        if not active and state.pdaPage == d.pages.COOP then state.pdaPage = d.pages.VEHICLE end
+        if not active and (state.pdaPage == d.pages.COOP or state.pdaPage == d.pages.COOP_DIAGNOSTICS) then
+            state.pdaPage = d.pages.VEHICLE
+        end
         ui.wasActive = active
     end
     local function selected()
@@ -215,6 +218,64 @@ function M.Create(d)
             local ok, reason = chosen.run()
             if ok == false and reason then d.feedback(reason) end
         end
+    end
+    function ui.HandleDiagnosticsInput(up, down)
+        if not ui.IsActive() then return end
+        ui.diagPlayer = choose(d.coop.GetNetworkDiagnostics().players, ui.diagPlayer, up and -1 or down and 1 or 0)
+    end
+    function ui.BuildDiagnosticsText(header, footer)
+        local lines = { header(d.pages.COOP_DIAGNOSTICS) }
+        if not ui.IsActive() then return table.concat(lines, "\n") end
+        local snapshot = d.coop.GetNetworkDiagnostics()
+        local c = comms()
+        local delivery = c.GetNetworkDiagnostics and c.GetNetworkDiagnostics() or { peers = {} }
+        local records = snapshot.players
+        ui.diagPlayer = choose(records, ui.diagPlayer)
+        -- Native snapshots do not measure freshness. Use the actual CR
+        -- heartbeat for that; polling the same NetPlayer cannot prove traffic.
+        if now() >= ui.nextNativeSample then
+            ui.nativeRows, ui.nextNativeSample = {}, now() + 1
+            if d.exu and type(d.exu.GetPlayerNetworkStats) == "function" then
+                for id, p in pairs(records) do
+                    local ok, row = pcall(d.exu.GetPlayerNetworkStats, id)
+                    if ok and type(row) == "table" and row.id == id and row.team == p.team then
+                        ui.nativeRows[id] = row
+                    end
+                end
+            end
+        end
+        lines[#lines + 1] = (snapshot.ready and "Admitted" or "Syncing admission") .. " | Phase " .. snapshot.phase
+        for _, id in ipairs(ordered(records)) do
+            local p, row = records[id], ui.nativeRows[id]
+            local link
+            if p.localPlayer then link = "local / n/a"
+            elseif not row then link = "net stats unavailable"
+            elseif row.pingSamples == 0 then link = "waiting for ping samples"
+            elseif type(row.pingMs) == "number" and type(row.lossPercent) == "number" then
+                link = string.format("%dms / %d%% loss", row.pingMs, row.lossPercent)
+            else link = "net stats unavailable" end
+            lines[#lines + 1] = (id == ui.diagPlayer and "> " or "  ") .. name(p) ..
+                (p.localPlayer and " *" or "") .. (p.host and " ^" or "")
+            lines[#lines + 1] = "  " .. p.status .. " | " .. link
+        end
+        local p = records[ui.diagPlayer]
+        if p then
+            local row, app = ui.nativeRows[p.id], delivery.peers[p.id] or {}
+            lines[#lines + 1] = ""
+            lines[#lines + 1] = string.format("ID %d Team %d | Peer phase %s", p.id, p.team, tostring(p.phase or "?"))
+            local function elapsed(value) return value and string.format("%.1fs", value) or "none" end
+            lines[#lines + 1] = p.localPlayer and "Traffic: local player" or
+                ("Co-op Rx " .. elapsed(p.receiveAge) .. " | Beat " .. elapsed(p.heartbeatAge))
+            lines[#lines + 1] = string.format("Control Tx/Rx %d/%d | Proto %s", p.sent, p.received, tostring(p.protocol or "?"))
+            lines[#lines + 1] = string.format("Action pending %d | retry %d", app.pending or 0, app.retries or 0)
+            lines[#lines + 1] = string.format("Ack %d | expired %d", app.acknowledged or 0, app.expired or 0)
+            if row then
+                lines[#lines + 1] = string.format("Kills/deaths %d/%d | Samples %s", row.kills, row.deaths,
+                    p.localPlayer and "n/a" or tostring(row.pingSamples or "?"))
+            end
+        end
+        footer(lines, "Synced = co-op phase + heartbeat", "Arrows player  [ ] page  X close")
+        return table.concat(lines, "\n")
     end
     function ui.BuildText(header, footer)
         local lines = { header(d.pages.COOP) }

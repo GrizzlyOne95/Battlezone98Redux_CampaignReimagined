@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Shared mock world for the misn14 suites (Test-Misn14.lua offline, Test-Misn14Coop.lua multi-peer,
 -- Test-Misn14Presentation.lua). Each peer runs the complete Scripts/misn14.lua in its own Lua 5.1
 -- environment over the real CRCoop registry and the E/A + C presentation transport. The engine, AI and

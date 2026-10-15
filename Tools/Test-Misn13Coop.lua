@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root: lua5.1 Tools/Test-Misn13Coop.lua
 -- Executes the complete misn13 script in separate Lua 5.1 environments over the
 -- real CRCoop registry and the E/A presentation transport. The engine, AI and combat
