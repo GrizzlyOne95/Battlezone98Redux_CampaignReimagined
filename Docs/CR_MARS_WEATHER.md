@@ -1,7 +1,13 @@
 # Mars weather (CRMarsWeather)
 
-Mars weather director for Campaign Reimagined, wired into **misn04** (plains)
-and **misn05** (volcano flank).
+Mars weather director for Campaign Reimagined, wired into **misn04** (plains),
+**misn05** (volcano flank), and **misn06** (escape / Plains).
+
+Mission 06 follows reconnaissance -> Hephaestus scan -> starport recon ->
+blockade/timed assault -> extraction, targeting rungs 1/2/3/4/2. It runs on every
+peer, with host target/rung messages and saved scalar state. Its new weather is
+visual-only (no wind push or sensor degradation), and its Environment cycle
+disables night gameplay penalties. See `ATMOSPHERE_AUDIT_20261015.md`.
 
 `CRWeather` is a renderer: hand it a preset and it draws that weather. It has no
 opinion about *when* weather should happen, and its wind is one frozen vector per

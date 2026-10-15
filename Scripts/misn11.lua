@@ -1070,6 +1070,10 @@ function Save()
 end
 
 function Load(state)
+-- CR Io weather >>
+    ShutdownIoWeather()
+    if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+-- CR Io weather <<
     -- LuaMission restores serialized game handles. Do not call Start / replay
     -- initialization here; the source's native ConvertHandle loop is unnecessary.
     M = state

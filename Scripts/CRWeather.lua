@@ -918,6 +918,7 @@ local function ResolveFogHorizon()
     end
 
     local baseline = CRWeather.BaselineFog
+    if CRWeather.MapFogHorizon then return CRWeather.MapFogHorizon end
     local fallback = baseline and tonumber(baseline.fogEnd)
     if fallback ~= nil and fallback > 0.0 then
         return fallback
@@ -941,7 +942,8 @@ local function ApplyPresetToFrame(frame, preset, weight)
         -- blend, not to the composed frame afterwards. That is deliberate: at
         -- weight zero this contributes nothing, so a mission with weather
         -- disabled -- or standing clear -- keeps whatever base fog Environment
-        -- asked for, untouched. Only the weather share is limited.
+        -- asked for. Environment now caps that base and the final frame too;
+        -- weather still contributes nothing when its weight reaches zero.
         --
         -- Presets are authored for open ground: MarsHaze finishes at 520,
         -- MarsDustRising 380, MarsDustStorm 320. On a map whose terrain stops
@@ -961,16 +963,17 @@ local function ApplyPresetToFrame(frame, preset, weight)
         frame.fog.fogEnd = Lerp(frame.fog.fogEnd, presetEnd, weight)
     end
 
+    local daylight = frame.weatherLightScale or 1.0
     if preset.ambient and frame.ambient then
-        frame.ambient.r = Lerp(frame.ambient.r, preset.ambient.r, weight)
-        frame.ambient.g = Lerp(frame.ambient.g, preset.ambient.g, weight)
-        frame.ambient.b = Lerp(frame.ambient.b, preset.ambient.b, weight)
+        frame.ambient.r = Lerp(frame.ambient.r, preset.ambient.r * daylight, weight)
+        frame.ambient.g = Lerp(frame.ambient.g, preset.ambient.g * daylight, weight)
+        frame.ambient.b = Lerp(frame.ambient.b, preset.ambient.b * daylight, weight)
     end
 
     if preset.diffuse and frame.diffuse then
-        frame.diffuse.r = Lerp(frame.diffuse.r, preset.diffuse.r, weight)
-        frame.diffuse.g = Lerp(frame.diffuse.g, preset.diffuse.g, weight)
-        frame.diffuse.b = Lerp(frame.diffuse.b, preset.diffuse.b, weight)
+        frame.diffuse.r = Lerp(frame.diffuse.r, preset.diffuse.r * daylight, weight)
+        frame.diffuse.g = Lerp(frame.diffuse.g, preset.diffuse.g * daylight, weight)
+        frame.diffuse.b = Lerp(frame.diffuse.b, preset.diffuse.b * daylight, weight)
     end
 
     if preset.sunPowerScale and frame.sunPowerScale then
@@ -1009,6 +1012,15 @@ function CRWeather.ApplyEnvironmentContribution(frame)
 end
 
 local function CaptureBaseline()
+    CRWeather.MapFogHorizon = nil
+    if GetMapTRNFilename and OpenODF and GetODFFloat then
+        local name = GetMapTRNFilename()
+        local trn = name and name ~= "" and OpenODF(name)
+        if trn then
+            local distance = GetODFFloat(trn, "NormalView", "VisibilityRange", 0)
+            if distance and distance > 0 then CRWeather.MapFogHorizon = distance end
+        end
+    end
     local fog = Call("GetFog")
     if type(fog) == "table" then
         CRWeather.BaselineFog = {
@@ -1052,6 +1064,12 @@ local function WriteEnvironmentDirect()
     }
 
     CRWeather.ApplyEnvironmentContribution(frame)
+
+    local horizon = ResolveFogHorizon()
+    if horizon and frame.fog.fogEnd > horizon then
+        frame.fog.fogStart = math.min(horizon * 0.99, frame.fog.fogStart * horizon / frame.fog.fogEnd)
+        frame.fog.fogEnd = horizon
+    end
 
     Call("SetFog", frame.fog.r, frame.fog.g, frame.fog.b, frame.fog.fogStart, frame.fog.fogEnd)
     if frame.ambient then
@@ -1496,6 +1514,8 @@ function CRWeather.ResetSystems()
     CRWeather.BlendRate = 0.0
     CRWeather.SkyApplied = false
     CRWeather.LastWindApplied = nil
+    local environment = rawget(_G, "Environment")
+    if environment and type(environment.InvalidateRenderer) == "function" then environment.InvalidateRenderer() end
 end
 
 -- Mission teardown. Every EXU-owned particle, the sky swap, and the environment
@@ -1519,6 +1539,7 @@ function CRWeather.Shutdown()
         environment.UnregisterEnvironmentModifier("CRWeather")
     end
     CRWeather.ModifierRegistered = false
+    if environment and type(environment.InvalidateRenderer) == "function" then environment.InvalidateRenderer() end
 
     if CRWeather.OwnsEnvironment and CRWeather.BaselineFog ~= nil then
         CRWeather.Active = nil

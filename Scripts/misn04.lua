@@ -996,8 +996,8 @@ local function ApplyQOL()
     -- Mars weather. Init is idempotent, so the reload path in Update can call
     -- ApplyQOL again without restarting the storm.
     --
-    -- No baseSky is supplied: misn04.trn declares no SkyTexture, so there is no
-    -- dome to restore and the sky layer correctly stays off. The storm reads
+    -- No baseSky descriptor is supplied: retain the native mars.map backdrop
+    -- and authored clouds; the optional runtime sky-swap layer stays off. The storm reads
     -- through fog, light and particles, which is where nearly all of it lives
     -- anyway.
     if CRMarsWeather and CRMarsWeather.Init then

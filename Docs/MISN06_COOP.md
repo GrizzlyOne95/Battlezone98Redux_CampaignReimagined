@@ -109,3 +109,19 @@ No live run yet: Windows GOG two- and four-client co-op, solo campaign
 progression from MISSION4, buoy spawn heights on the 1.5 terrain, the film
 skips, all six failures, and early/late extraction. Steam and Wine/Proton are
 unverified, and stock multiplayer kill-feed messages remain visible.
+
+## Story weather and lighting (2026-10-15)
+
+Environment and CRMarsWeather Plains now run on every peer. The host sets
+weather targets from the story: reconnaissance 1, Hephaestus scan 2, starport
+recon 3, blockade/timed launch-pad assault 4, extraction 2. Existing mission
+logic, objectives and timers are unchanged. Weather target and actual rung use
+the ordered presentation stream; guests do not run an independent automatic
+ladder. Save/load persists weather scalars and rebuilds particles.
+
+This new weather is visual-only: wind push, weather sensor degradation and
+Environment night gameplay are disabled. The visual day/night cycle remains.
+The composed fog is capped to the TRN visibility distance. Native clouds and
+sky stay as authored; no additional sky/cloud deck is created. Tests cover
+story progression, save/load and the real four-peer weather transport adapter;
+native rendering/networking remains unverified. See `ATMOSPHERE_AUDIT_20261015.md`.

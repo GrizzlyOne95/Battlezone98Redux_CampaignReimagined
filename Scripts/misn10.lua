@@ -1848,5 +1848,9 @@ function Save()
 end
 
 function Load(state)
+-- CR Io weather >>
+    ShutdownIoWeather()
+    if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+-- CR Io weather <<
     M = state
 end

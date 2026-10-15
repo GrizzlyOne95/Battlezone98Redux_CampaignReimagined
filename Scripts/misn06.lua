@@ -19,6 +19,11 @@ if type(IsNetGame) == "function" and IsNetGame() then
 end
 local subtit = require("ScriptSubtitles")
 local CRCoop = require("CRCoop")
+-- CR atmosphere >>
+local Environment = require("Environment")
+local CRMarsWeather = require("CRMarsWeather")
+local InitAtmosphere, weatherStarted, nextWeatherSync = nil, false, 0
+-- CR atmosphere <<
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
 
 -- Co-op presentation uses the established misn03/misn05 E/A and C transport.
@@ -93,6 +98,14 @@ local function ApplyPresentation(op, ...)
             SetScrap(team, scrap)
             SetPilot(team, pilots)
         end
+-- CR atmosphere >>
+    elseif op == "WeatherTarget" then
+        InitAtmosphere()
+        CRMarsWeather.SetTargetLevel(...)
+    elseif op == "WeatherLevel" then
+        InitAtmosphere()
+        if not CRCoop.IsAuthority() then CRMarsWeather.ForceLevel((...), 86400, 18.0) end
+-- CR atmosphere <<
     elseif op == "Label" then
         local handle, label = ...
         if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
@@ -467,7 +480,8 @@ local function ReceivePresentation(from, kind, ...)
     end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources") then
+    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources"
+        or op == "WeatherTarget" or op == "WeatherLevel") then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
         local apply, unresolved = true, false
@@ -908,15 +922,58 @@ local function ResetState()
     M.audmsg = nil
 end
 
+-- CR atmosphere >>
+InitAtmosphere = function()
+    if weatherStarted then return end
+    Environment.Init({ nightGameplay = false })
+    CRMarsWeather.Init({ profile = "Plains", startLevel = 1, targetLevel = 2,
+        -- New weather remains visual: preserve the escape mission's handling/sensors.
+        sensorDegrade = false, windPush = false })
+    if M.weatherState then CRMarsWeather.Load(M.weatherState); M.weatherState = nil end
+    CRMarsWeather.SetAutomatic(not CRCoop.IsNetworkGame() or CRCoop.IsAuthority())
+    weatherStarted, nextWeatherSync = true, 0
+end
+
+local function UpdateAtmosphere(dt)
+    InitAtmosphere()
+    if CRCoop.IsAuthority() then
+        local target = M.hephikey and 2 or 1
+        if M.starportreconed then target = 3 end
+        if M.lprecon then target = 4 end -- orbital blockade / timed launch-pad assault
+        if M.launchpadreconed or M.pickupreached or M.dustoff then target = 2 end
+        if CRMarsWeather.GetTargetLevel() ~= target then Present("WeatherTarget", target) end
+    end
+    CRMarsWeather.Update(dt)
+    -- Re-announce periodically: even a session resumed from an older save gets
+    -- the host's actual rung rather than running an independent random ladder.
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and GetTime() >= nextWeatherSync then
+        nextWeatherSync = GetTime() + 5.0
+        Present("WeatherLevel", CRMarsWeather.GetLevel())
+    end
+    Environment.Update(dt)
+end
+-- CR atmosphere <<
+
 function Save()
+-- CR atmosphere >>
+    if weatherStarted then M.weatherState = CRMarsWeather.Save() end
+-- CR atmosphere <<
     return M
 end
 
 function Load(state)
     if state ~= nil then M = state end
+-- CR atmosphere >>
+    if weatherStarted then CRMarsWeather.Shutdown() end
+    weatherStarted, nextWeatherSync = false, 0
+-- CR atmosphere <<
 end
 
 function Start()
+-- CR atmosphere >>
+    if weatherStarted then CRMarsWeather.Shutdown() end
+    weatherStarted, nextWeatherSync = false, 0
+-- CR atmosphere <<
     ResetState()
     CRCoop.Initialize({
         getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
@@ -980,6 +1037,10 @@ end
 
 function AddObject(h)
     -- Native AddObject has no mission-specific behavior.
+-- CR atmosphere >>
+    Environment.OnObjectCreated(h)
+    CRMarsWeather.OnObjectCreated(h)
+-- CR atmosphere <<
 end
 
 function CreatePlayer(id, name, team)
@@ -1023,6 +1084,11 @@ function Update(dt)
         M.coopMissionStarted = true
     end
     UpdateInfoRelay()
+-- CR atmosphere >>
+    -- Redux can call Update without a timestep. A positive fallback lets the
+    -- director derive elapsed time from GetTime; explicit zero remains settle-only.
+    UpdateAtmosphere(tonumber(dt) or (1.0 / 20.0))
+-- CR atmosphere <<
     if not CRCoop.IsAuthority() then return end
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
         M.coopBootstrapped = true

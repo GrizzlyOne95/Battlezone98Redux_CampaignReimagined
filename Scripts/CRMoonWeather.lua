@@ -33,10 +33,10 @@
 -- The mist is therefore ground-hugging particles only. The director registers an
 -- Environment modifier ONLY if Environment.lua is loaded, and that modifier only
 -- adds a very small ambient lift during a glow; it never edits fog, sun or
--- diffuse, and never calls an exu fog / light function itself. The two Moon
--- missions do not load Environment (loading it would start its day/night cycle
--- and night sensor nerf on a map that has neither), so there the glow lives in
--- the particles alone.
+-- diffuse, and never calls an exu fog / light function itself. Moon 02b/03
+-- load Environment in subtle/native-baseline mode: bounded sun/light motion,
+-- unchanged black 175-250 fog, and no night sensor penalty. Glow lends its tiny
+-- ambient contribution through that single atmosphere writer.
 --
 -- GAMEPLAY EFFECTS: NONE. It never damages, shoves, slows, spawns, removes,
 -- retargets or re-teams anything, never touches AI perception, sensors, radar,

@@ -24,8 +24,8 @@ host-authoritative and peer-identical like the other directors.
 The shared files are untouched except for appended, marked regions: `.github/workflows/campaign-validation.yml`
 (one step, `# CR Moon weather >>`), `CHANGELOG.md` (one bullet), `Shipping/shipping.lock.json` (four entries,
 inserted in place, `count` bumped), and the two mission scripts (`-- CR Moon weather >>` regions, see
-"How the missions wire it"). `CRWeather`, `CRWeatherPresets`, `Environment` and every Venus file are
-not edited, and no particle file other than the new payload is touched.
+"How the missions wire it"). `CRWeather`, `CRWeatherPresets`, `Environment` and every Venus file were
+not edited by the original particle-director pass, and no particle file other than the new payload is touched.
 
 ## Physics rationale
 
@@ -55,11 +55,13 @@ Where `Environment.lua` is loaded the director registers a modifier (`"CRMoonWea
 ambient lift during a glow and nothing else**: fog, diffuse, specular and sun power pass through
 unchanged (the suite asserts this by value).
 
-**misn02b and misn03 do not load Environment**, deliberately: loading it would start its 15-minute
-day/night cycle (and its night radar nerf) and replace the map's 175-250 fog with the moon preset's
-420-1120 on maps that have neither today. So in those missions the glow is expressed in the mist itself:
-more emission, brighter and slightly more opaque cards. A future Moon mission that does load Environment
-gets the small ambient lift on top, with no code change.
+**2026-10-15 owner revision:** misn02b and misn03 now load Environment in
+subtle/native-baseline mode. Their authored black fog stays at 175–250, while
+sun angle and lighting drift gently over an hour (at most 6% dimming and a
+4-degree azimuth excursion, with a small elevation drift). There is no full
+night cycle or night sensor penalty. Glow also contributes its existing tiny
+ambient lift through Environment. The director itself still never writes
+renderer fog or light. See `ATMOSPHERE_AUDIT_20261015.md`.
 
 ## The layers
 
@@ -172,7 +174,7 @@ Both missions follow the misn12 / Europa recipe, in marked `-- CR Moon weather >
   also calls `AnnounceState()` once when the session is ready), `ShutdownMoonWeather` (at `Start`).
 - `Save` stores `M.moonWeatherState` (plain scalars, host / offline); the next `InitMoonWeather` calls `Load`.
 - The mist keeps updating during the result countdown.
-- **No Environment, no CRWeather, no beats.** The seeded timeline does the work; a mission that wants a set piece
+- **The director has no dependency on Environment or CRWeather and requires no beats.** The seeded timeline does the work; a mission that wants a set piece
   calls `CRMoonWeather.Glow(...)` / `SetDensity(...)`.
 
 ```lua
@@ -293,7 +295,7 @@ rate / affector-parameter functions, and read-only BZ queries (`GetTime`, `GetPl
 | Soft particles / depth fade against rocks | OpenShim intent reports `not-implemented` | The cards are alpha-faded and thin; where a card meets a rock the intersection is hard. Raising `MistHeight` slightly, or lowering alpha, hides it |
 | A dynamic point light for the glow | Only lights on existing objects | The mist itself brightens; an optional ambient lift only where Environment is loaded |
 | The terrain material under a point | None at run time | Terrain height and slope are sampled (`GetTerrainHeightAndNormal`); anchors come offline from the heightfield |
-| A real day/night + mist in these two missions | They do not load Environment; loading it would change fog and lighting | Not done on purpose (see above) |
+| A full day/night + mist in these two missions | Keep bounded lighting without changing fog or gameplay | Subtle Environment mode added on 2026-10-15 (see above) |
 
 ## Shipping and admin notes (for the main session)
 
