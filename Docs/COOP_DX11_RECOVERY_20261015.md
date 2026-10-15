@@ -103,8 +103,9 @@ transfer failure or pass is inferred. That experiment is retained privately and
 labelled as an experiment, not shipped as a validated tool. The service adoption
 path and closed-PDA Z polling are covered independently by the passing checks.
 
-CR #214 campaign and DX11 shader CI pass at `2e7d836c`. No merge or publication
-has been performed.
+CR #214 campaign and DX11 shader CI pass at `2e7d836c`; it merged upstream during
+validation. The HUD follow-up is [CR #215](https://github.com/GrizzlyOne95/Battlezone98Redux_CampaignReimagined/pull/215),
+branch `agent/coop-hud-defaults-20261015`, based on fresh main `33603d19`.
 
 ## Later DX11 controls
 
@@ -143,5 +144,5 @@ An earlier presentation-only trace confirms ordinary mission text still displays
 when stock notices are suppressed and ship-destruction text returns when enabled.
 The final acceptance run uses a fresh build from this EXU branch, replacing the
 earlier EXU main DLL in the disposable stage. Private final hashes identify it.
-Clients and the private loopback server were stopped gracefully. No real-install
-deployment, merge, release or Workshop publication was performed.
+Clients and the private loopback server were stopped gracefully. This workstream
+performed no real-install deployment, merge, release or Workshop publication.
