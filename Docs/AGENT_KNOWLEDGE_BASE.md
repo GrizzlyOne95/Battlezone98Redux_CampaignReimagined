@@ -300,7 +300,9 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 
 ## 4. Weather and environment architecture
 
-Full detail: `Docs/WEATHER_ENVIRONMENT_OWNERSHIP.md`. The split is deliberate; do not blur it.
+Full detail: `Docs/WEATHER_ENVIRONMENT_OWNERSHIP.md`; full mission/stack audit and the 2026-10-15 owner
+revision: `Docs/ATMOSPHERE_AUDIT_20261015.md`. Environment caps the final composed fog to TRN visibility,
+including base/Clear/local overrides. It is the only atmosphere writer while loaded.
 
 ```text
 .trn (FogEnd / VisibilityRange)
@@ -322,7 +324,8 @@ Rules:
 
 - **Environment owns fog.** Weather requests are `min(requested, authored terrain horizon)`, applied before
   blending; at zero weight a layer contributes nothing. Do not fold changes to Environment's own `DayFog`
-  into a weather commit.
+  into a weather-only commit. The owner explicitly authorized the final/base cap
+  and subtle Moon/Venus integration on 2026-10-15; see `ATMOSPHERE_AUDIT_20261015.md`.
 - **Visual only by default** [owner]. Gameplay effects need an explicit owner decision (Venus lightning
   knockback/radar scramble is the approved exception; acid rain is visual only because chip damage annoyed
   players; Europa touches no sensor/gameplay/perception state at all, which keeps stealth missions safe).
@@ -332,8 +335,9 @@ Rules:
 - **DX11 Enhanced caveat:** fog range scales terrain diffuse IBL. Raising global fog greys the sky and
   terrain. Where the owner wants subtle effects (Moon), keep global fog near off and use particle ground
   mist instead. Do not "fix" mood with global fog.
-- **Missions that do not load Environment** (the moon missions) must not have a director that assumes it:
-  loading Environment would add day/night and fog 420-1120.
+- **Moon 02b/03 now explicitly load Environment in subtle/native-baseline mode** [owner, 2026-10-15]:
+  retain their 175-250 black fog and use bounded lighting variation, with no full night or sensor penalty.
+  Do not replace this with the default full-cycle moon profile. Titan 14 still uses standalone CRWeather.
 - **CR owns weather content**; do not migrate or "unify" it into EXU [owner]. EXU provides mechanics.
   Redux ships no `.particle` scripts; assets ship flat in `mods/<id>/` (`.particle`, `.material`, `.png`
   at the root) and Ogre parses any registered resource location.

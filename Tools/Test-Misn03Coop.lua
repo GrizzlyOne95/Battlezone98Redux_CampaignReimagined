@@ -151,6 +151,9 @@ local function makePeer(id, team, network)
         CRMoonSites03 = {mission = "misn03"},
     }
     local modules = {
+        Environment = { Init = function(options) p.environmentOptions = options end,
+            InvalidateRenderer = function() record("environmentInvalidate") end,
+            Update = function() record("environmentUpdate") end },
         RequireFix = { Initialize = noop }, exu = {
             GetMyNetID = function() return id end, GetDifficulty = function() return p.difficulty end,
             SetDifficulty = function(d) p.difficulty = d end,
@@ -213,6 +216,9 @@ settle()
 check(host.state.first_wave_done, "host did not run the opening")
 -- CR Moon weather: the leader runs the director on the map data, guests follow the ordered stream.
 check(host.moon.init.authority and host.moon.init.sites.mission == "misn03", "the leader runs the Moon weather director on the misn03 sites")
+check(host.environmentOptions.lightingMode == "subtle" and host.environmentOptions.nativeBaseline,
+    "Moon lighting uses bounded native-baseline TOD")
+check(count(host, "environmentUpdate") > 0, "Moon updates Environment alongside weather")
 for _, c in ipairs(clients) do
     check(not c.moon.init.authority and c.moon.init.seed == nil, "guests run the director from the host's events")
     check(c.moon.updates > 0, "guests update the Moon weather every frame")
@@ -299,10 +305,13 @@ local saved = offline.env.Save()
 check(offline.moon.init.authority and offline.moon.init.send == nil and offline.moon.announces == 0
     and offline.moon.init.sites.mission == "misn03", "offline Moon weather is the host path with nothing sent")
 check(offline.moon.updates > 0 and saved.moonWeatherState ~= nil and saved.moonWeatherState.saved, "Moon weather state is saved and the seed persists")
+local savedWeather=saved.moonWeatherState
 offline.env.Load(saved, {}, {})
 now = now + 3
 offline.env.Update()
 check(offline.state.loading_done, "offline save/load did not rehydrate")
+check(offline.moon.loaded==savedWeather and count(offline,"environmentInvalidate")>0,
+    "load restores Moon weather and reapplies renderer state")
 
 -- Replicated loss is also an ordered event and cannot turn into success.
 reset()

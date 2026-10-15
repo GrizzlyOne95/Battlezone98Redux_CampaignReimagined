@@ -2146,6 +2146,10 @@ function Save()
 end
 
 function Load(state)
+-- CR Europa weather >>
+    ShutdownEuropaWeather()
+    if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+-- CR Europa weather <<
     M = state
     started = true
     pendingObjects = {}

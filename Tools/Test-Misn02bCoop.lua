@@ -182,6 +182,9 @@ local function makePeer(id, team, network)
         CRMoonSites02b = {mission = "misn02b"},
     }
     local modules = {
+        Environment = { Init = function(options) p.environmentOptions = options end,
+            InvalidateRenderer = function() record("environmentInvalidate") end,
+            Update = function() record("environmentUpdate") end },
         RequireFix = { Initialize = noop }, exu = {
             GetMyNetID = function() return id end, GetDifficulty = function() return p.difficulty end,
             SetDifficulty = function(d) p.difficulty = d end,
@@ -243,6 +246,9 @@ settle()
 check(host.state.start_done and host.state.camera1, "leader opening did not run")
 -- CR Moon weather: the leader runs the director on the map data, guests follow the ordered stream.
 check(host.moon.init.authority and host.moon.init.sites.mission == "misn02b", "the leader runs the Moon weather director on the misn02b sites")
+check(host.environmentOptions.lightingMode == "subtle" and host.environmentOptions.nativeBaseline,
+    "Moon lighting uses bounded native-baseline TOD")
+check(count(host, "environmentUpdate") > 0, "Moon updates Environment alongside weather")
 for _, c in ipairs(clients) do
     check(not c.moon.init.authority and c.moon.init.seed == nil, "guests run the director from the host's events")
     check(c.moon.updates > 0, "guests update the Moon weather every frame")
@@ -323,11 +329,14 @@ check(solo.state.camera1 and count(solo, "SetPosition") == 1 and count(solo, "au
 check(count(solo, "DisableStartingRecycler") == 0 and #packets == 0, "offline used network")
 solo.skip = true; tick(0.1)
 check(not solo.state.camera3 and solo.state.intro_skipped, "offline skip changed")
-local saved = solo.env.Save(); solo.env.Load(saved, {}, {}); now = now + 3; solo.env.Update()
+local saved = solo.env.Save(); local savedWeather = saved.moonWeatherState
+solo.env.Load(saved, {}, {}); now = now + 3; solo.env.Update()
 -- CR Moon weather offline: the host path with nothing sent, and its state survives Save.
 check(solo.moon.init.authority and solo.moon.init.send == nil and solo.moon.announces == 0
     and solo.moon.init.sites.mission == "misn02b", "offline Moon weather is the host path with nothing sent")
-check(solo.moon.updates > 0 and saved.moonWeatherState ~= nil and saved.moonWeatherState.saved, "Moon weather state is saved and the seed persists")
+check(solo.moon.updates > 0 and savedWeather and solo.moon.loaded == savedWeather,
+    "Moon weather state is restored through the deferred init path")
+check(count(solo,"environmentInvalidate")>0,"load invalidates cached renderer writes")
 check(solo.state.loading_done and count(solo, "clutter") == 2, "offline load did not rehydrate")
 solo.env.BuildObject("avscav", 1, "start"); objects[solo.player].alive = false
 solo.audioDone = true; tick(0.1)

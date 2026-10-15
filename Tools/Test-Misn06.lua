@@ -115,6 +115,19 @@ local function NewMission()
     local function noop() end
     local modules = {
         RequireFix = { Initialize = noop }, exu = {},
+        Environment = { Init = function(options) w.environmentOptions=options; Record("environmentInit") end,
+            Update = function() Record("environmentUpdate") end, OnObjectCreated = noop },
+        CRMarsWeather = {
+            Init = function(options) w.weatherOptions=options; w.weatherTarget=options.targetLevel; w.weatherLevel=options.startLevel end,
+            Update = function(dt) w.weatherDt=dt; Record("weatherUpdate") end, OnObjectCreated = noop,
+            SetAutomatic = function(value) w.weatherAutomatic=value end,
+            SetTargetLevel = function(value) w.weatherTarget=value end,
+            GetTargetLevel = function() return w.weatherTarget end,
+            GetLevel = function() return w.weatherLevel end,
+            Save = function() return {level=w.weatherLevel,targetLevel=w.weatherTarget} end,
+            Load = function(state) w.weatherLevel=state.level; w.weatherTarget=state.targetLevel end,
+            Shutdown = function() Record("weatherShutdown") end,
+        },
         ScriptSubtitles = {
             Play = function(file) return e.AudioMessage(file) end,
             Queue = function(file) return e.AudioMessage(file) end,
@@ -465,4 +478,20 @@ do
     Check(m.vob1 == true and e.Save() == m, "B1 latch lives in the saved mission table")
 end
 
-print("Misn06: " .. checks .. " Lua 5.1 host checks passed")
+-- Story/weather wiring uses the real mission phases and save/load callbacks.
+e,w,m = NewMission()
+Check(w.weatherOptions.profile == "Plains" and not w.weatherOptions.sensorDegrade and not w.weatherOptions.windPush,
+    "mission06 adds visual Plains weather without handling/sensor changes")
+Check(w.environmentOptions.nightGameplay==false,"new visual TOD does not introduce night sensor penalties")
+Check(w.weatherTarget == 1 and w.weatherAutomatic, "recon begins calm and host drives the ladder")
+m.hephikey=true; e.Update(0.1); Check(w.weatherTarget==2,"Hephaestus scan raises breeze")
+m.starportreconed=true; e.Update(0.1); Check(w.weatherTarget==3,"starport recon raises dust")
+m.lprecon=true; e.Update(0.1); Check(w.weatherTarget==4,"blockade/launch assault trends stormy")
+m.launchpadreconed=true; e.Update(0.1); Check(w.weatherTarget==2,"extraction clears weather")
+local saved=e.Save(); w.weatherLevel=3; saved.weatherState.level=2
+e.Load(saved); e.Update(0.1)
+Check(w.weatherLevel==2 and w:Count("weatherShutdown")==1,"load restores saved weather and rebuilds runtime")
+Check(w:Count("environmentUpdate") > 0 and w:Count("weatherUpdate") > 0,"mission updates weather and environment together")
+e.Update(); Check(w.weatherDt>0,"argument-free Redux Update does not freeze weather clock")
+e.Update(0); Check(w.weatherDt==0,"explicit zero timestep still settles without advancing weather")
+print("Misn06: " .. checks .. " Lua 5.1 host checks passed, including atmosphere story/save wiring")

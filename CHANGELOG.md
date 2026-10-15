@@ -5,6 +5,13 @@
 - Add Coop Diagnostics as the second co-op PDA page: native per-player ping/loss,
   co-op admission/phase and heartbeat freshness, plus message receipts/retries.
   Quiet or stalled co-op traffic no longer retains a stale Synced label.
+- Add subtle sun/light progression to Moon 02b/03 and Venus 07–09, retaining
+  authored Moon fog and avoiding a full night cycle in those missions.
+- Cap composed atmosphere fog to TRN visibility, preserve explicit TRN sunlight
+  colors, and keep time-of-day lighting effective under weather.
+- Add story-driven Plains weather and visual day/night lighting to Escape from
+  Mars (06), with co-op weather synchronization and save/load support. Its new
+  atmosphere does not add wind handling or sensor penalties.
 - Co-op starts with the stock scoreboard and destruction/death notices hidden.
   M still toggles the scoreboard. Notice suppression requires the new EXU
   presentation switch; normal chat and campaign messages remain available.
