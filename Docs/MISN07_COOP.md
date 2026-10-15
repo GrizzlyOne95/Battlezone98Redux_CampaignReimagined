@@ -1,10 +1,11 @@
 # Mission 07 offline and co-op
 
-Behind Enemy Lines shares `misn07.bzn` / `misn07.lua` between campaign
-`MISSION6` and the strategy listing `CR: Behind Enemy Lines Coop`.
-Use matching CR, EXU and OpenShim builds. Host on team 1, with guests on
-distinct teams 2–4; select an NSDF tank or scout and start together.
-Late join/rejoin requires a restart. Host departure ends the mission.
+Behind Enemy Lines shares `misn07.bzn` / `misn07.lua` between campaign `MISSION6` and the strategy
+listing `CR: Behind Enemy Lines Coop`. Use matching CR, EXU and OpenShim builds. Host on team 1,
+with guests on distinct teams 2–4; select an NSDF tank, scout, light tank, or rocket tank and start
+together. Late join/rejoin requires a restart. Host departure ends the mission.
+
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
 
 ## Map
 

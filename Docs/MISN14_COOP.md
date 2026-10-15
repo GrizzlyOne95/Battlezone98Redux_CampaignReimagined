@@ -1,14 +1,17 @@
 # Mission 14 offline and co-op: The Three Beacons (Concept C)
 
-The Three Beacons shares `misn14.bzn` / `misn14.lua` between the campaign mission (`crcampgn.ini` MISSION13,
-Titan, retrospective `misn1422.wav`) and the strategy listing `CR: The Three Beacons Coop`. Use matching CR,
-EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4; select an NSDF tank or scout and start
-together. Late join/rejoin requires a restart. Host departure ends the mission.
+The Three Beacons shares `misn14.bzn` / `misn14.lua` between the campaign mission (`crcampgn.ini`
+MISSION13, Titan, retrospective `misn1422.wav`) and the strategy listing `CR: The Three Beacons
+Coop`. Use matching CR, EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4;
+select an NSDF tank, scout, light tank, rocket tank, bomber, or walker and start together. Late
+join/rejoin requires a restart. Host departure ends the mission.
 
 The rework is the owner's **Concept C**: the mission is rebuilt around the NSDF's own Furies. The Fury relics the
 NSDF recovered on Io (misn10/11) come to Titan with the Liberty's platoon. Command activates them, the players
 command them briefly, then lose control; the rogue Furies fall on NSDF and CCA alike, and the CCA surrender is a
 consequence of that onslaught. The three beacons, the CCA scientists and the win are the stock mission's.
+
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
 
 ## Story beats (host-triggered, shared by every human)
 

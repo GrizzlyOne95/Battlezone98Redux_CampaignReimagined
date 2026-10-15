@@ -71,7 +71,7 @@ assert campaign["WORKSHOP"]["mapType"] == '"campaign"'
 
 vehicles = [line.split(",")[0].strip() for line in
             (root / "Missions" / "misn04.vxt").read_text().splitlines() if line.strip()]
-assert vehicles == ["avtank", "avfimp"], "MP selection must be tank or scout only"
+assert vehicles == ['avtank', 'avfimp', 'avltnk'], "MP selection must match the mission production tier"
 for odf in vehicles:
     assert (root / "ODF" / (odf + ".odf")).is_file()
 

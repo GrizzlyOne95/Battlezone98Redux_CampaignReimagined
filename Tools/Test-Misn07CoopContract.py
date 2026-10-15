@@ -55,7 +55,7 @@ ini = configparser.ConfigParser()
 ini.read(root / 'Config/misn07.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Missions/misn07.vxt').read_text().splitlines() == ['avtank ,', 'avfimp ,']
+assert (root / 'Missions/misn07.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,']
 assert (root / 'Assets/Graphics/misn07.bmp').read_bytes()[:2] == b'BM'
 assert len((root / 'misn07.des').read_text().strip()) <= 300
 

@@ -58,7 +58,7 @@ for suffix in ('hg2', 'lgt', 'trn', 'mat', 'vxt'):
 trn = (root / 'Missions/misn14.trn').read_text(encoding='latin-1')
 assert 'titan.map' in trn.lower() and 'ti_detail_atlas' in trn, "Redux's own Titan terrain description"
 assert len((root / 'Missions/misn14.mat').read_bytes()) == 131072
-assert (root / 'Missions/misn14.vxt').read_text().split() == ['avtank', ',', 'avfimp', ',']
+assert (root / 'Missions/misn14.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
 
 ini = configparser.ConfigParser()
 ini.read(root / 'Config/misn14.ini')

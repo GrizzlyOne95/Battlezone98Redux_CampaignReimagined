@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Match co-op starting ships to mission production: Light Tank from 04, Rocket Tank
+  from 07, Bomber from 08 and Walker from 09. Keep the pilot start in 02b, the
+  mobile escort kit in 11 and the capture-based infiltration kit in 12.
+
 - Apply weather-driven sensor effects across all weather-enabled campaign
   missions, including Titan and mission 06. Preserve Mars/Venus tuning; restore
   native values when conditions clear, without restarting the radar sweep for
