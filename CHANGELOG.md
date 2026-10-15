@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Co-op starts with the stock scoreboard and destruction/death notices hidden.
+  M still toggles the scoreboard. Notice suppression requires the new EXU
+  presentation switch; normal chat and campaign messages remain available.
 - Fix DX11 subtitle rendering: overlay panels use a vertex shader matching their
   geometry, and missions without PDA settings receive an explicit subtitle border
   material. This prevents repeated vertex-layout and missing-shader exceptions.
