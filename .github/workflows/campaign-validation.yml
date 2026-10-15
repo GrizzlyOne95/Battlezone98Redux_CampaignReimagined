@@ -273,6 +273,7 @@ jobs:
       - name: Test Mission 15 campaign co-op and methane map contract
         shell: bash
         run: |
+          set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-Misn15.lua
           "$LUA" Tools/Test-Misn15Coop.lua
