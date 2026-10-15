@@ -731,6 +731,16 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 
 ### 8.4 Rendering and weather
 
+- **Confirmed 2026-10-15:** Ogre Panel/BorderPanel geometry supplies POSITION and TEXCOORD0,
+  not COLOR0. Binding `CR_UI_vertexHLSL4` caused the repeated co-op DX11 vertex-declaration
+  exceptions; `CR_UI` now selects the dedicated panel shader on DX11 and keeps its older
+  backend fallback. `Tools/Test-OverlayPanelInputs.ps1 -VerifyRegression` reflects the
+  actual material-selected shader and rejects the old COLOR0 input requirement.
+- A subtitle BorderPanel always queues its border. Missions without `PersistentConfig`
+  cannot resolve a palette material, so leaving its border unbound draws Ogre's shaderless
+  default on DX11. `ScriptSubtitles` binds `CR_UI` as the explicit fallback before showing
+  it; `Test-SubtitleReplacement.lua` covers this standalone path. A responsive Lua probe
+  does not prove the renderer is presenting frames.
 - Edit the shader family the material actually binds (`CR_*` vs `OSE_*`); presence in the microcode cache
   proves nothing.
 - Hash generated shader program names or Ogre's microcode cache serves stale code.
@@ -871,3 +881,12 @@ default sibling checkout can be older than CR's committed binaries.
 - Keep it skimmable: tables for maps, one-line bullets for pitfalls, no code dumps, no decompiler or
   PDB-derived content, no secrets, no machine-specific credentials.
 - Add a pointer here from any new doc that agents must read before touching a subsystem.
+
+### Co-op quick-action polling (2026-10-15)
+
+The network GameKey wrapper discards every key owned by the raw-key poller.
+Its closed-PDA gate must allow J, V and Z, since all three consumers run every
+frame. Restricting that gate to J silently disables closed-PDA help and give.
+Keep navigation gated, and update down-edge state during text entry so held chat
+keys cannot replay on exit. `Tools/Test-CoopNetworkInput.lua` executes the actual
+polling block; `Tools/Test-CoopInputLive.ps1` exercises native input separately.

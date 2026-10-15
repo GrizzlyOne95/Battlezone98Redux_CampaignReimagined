@@ -587,6 +587,10 @@ local function TryCreateSubtitleOverlay()
     Call(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.0)
     Call(exu.SetOverlayMaterial, ids.frame, "CR_UI")
     Call(exu.SetOverlayParameter, ids.frame, "transparent", "true")
+    -- BorderPanel always queues its border, even without a border material.
+    -- Missions that do not load PersistentConfig need this shader-backed
+    -- fallback before the overlay can be shown on D3D11.
+    Call(exu.SetOverlayParameter, ids.frame, "border_material", "CR_UI")
     Call(exu.SetOverlayParameter, ids.text, "alignment", "center")
     Call(exu.SetOverlayCaption, ids.text, "")
     if fontName and Call(exu.SetOverlayTextFont, ids.text, fontName) ~= true then
@@ -653,9 +657,7 @@ local function ShowSubtitleOverlay(entry)
     Call(exu.SetOverlayDimensions, ids.frame, layout.panelWidth, layout.panelHeight)
     Call(exu.SetOverlayParameter, ids.frame, "border_size",
         string.format("%d %d %d %d", layout.borderSize, layout.borderSize, layout.borderSize, layout.borderSize))
-    if borderMaterial then
-        Call(exu.SetOverlayParameter, ids.frame, "border_material", borderMaterial)
-    end
+    Call(exu.SetOverlayParameter, ids.frame, "border_material", borderMaterial or "CR_UI")
     Call(exu.SetOverlayColor, ids.frame, 1.0, 1.0, 1.0, 1.0)
     Call(exu.SetOverlayPosition, ids.backdrop, layout.backdropX, layout.backdropY)
     Call(exu.SetOverlayDimensions, ids.backdrop, layout.backdropWidth, layout.backdropHeight)

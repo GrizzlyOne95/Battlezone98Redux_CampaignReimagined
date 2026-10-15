@@ -89,6 +89,11 @@ jobs:
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-CRCoop.lua
+          "$LUA" Tools/Test-CRCoopComms.lua
+          "$LUA" Tools/Test-CRCoopAssist.lua
+          "$LUA" Tools/Test-CRCoopPda.lua
+          "$LUA" Tools/Test-CoopNetworkInput.lua
+          "$LUA" Tools/Test-SubtitleReplacement.lua
 
       - name: Test misn02b co-op map and shipping contract
         run: python Tools/Test-Misn02bCoopContract.py

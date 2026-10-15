@@ -6423,9 +6423,9 @@ function PersistentConfig._PollNetworkGameKeys(typing)
         local now = RawKeyDown(entry.raw)
         local edge = now and not down[entry.raw] and not typing
         down[entry.raw] = now
-        -- The queue is only drained while the PDA is open (J: every frame), so
-        -- navigation presses while flying would replay when it next opens.
-        if edge and (entry.key == "J" or PersistentConfig.Settings.WeaponStatsHud) then
+        -- Quick actions are drained every frame, with or without the PDA.
+        -- Navigation stays gated so it cannot replay when the PDA opens.
+        if edge and (entry.key == "J" or entry.key == "V" or entry.key == "Z" or PersistentConfig.Settings.WeaponStatsHud) then
             PersistentConfig.R.QueueGameKey(entry.key)
         end
     end
