@@ -54,6 +54,7 @@ function M.Create(d)
         ui.row, ui.selected, ui.pingId, ui.giveTo, ui.sendTo, ui.recallAt = 1, nil, nil, nil, nil, nil
         ui.replies, ui.wasActive = {}, false
         ui.diagPlayer, ui.nativeRows, ui.nextNativeSample = nil, {}, 0
+        ui.traffic = nil
     end
     function ui.UpdatePage(state)
         local active = ui.IsActive()
@@ -235,6 +236,11 @@ function M.Create(d)
         -- heartbeat for that; polling the same NetPlayer cannot prove traffic.
         if now() >= ui.nextNativeSample then
             ui.nativeRows, ui.nextNativeSample = {}, now() + 1
+            ui.traffic = nil
+            if d.exu and type(d.exu.GetNetworkTrafficStats) == "function" then
+                local ok, traffic = pcall(d.exu.GetNetworkTrafficStats)
+                if ok and type(traffic) == "table" then ui.traffic = traffic end
+            end
             if d.exu and type(d.exu.GetPlayerNetworkStats) == "function" then
                 for id, p in pairs(records) do
                     local ok, row = pcall(d.exu.GetPlayerNetworkStats, id)
@@ -258,6 +264,16 @@ function M.Create(d)
                 (p.localPlayer and " *" or "") .. (p.host and " ^" or "")
             lines[#lines + 1] = "  " .. p.status .. " | " .. link
         end
+        local traffic = ui.traffic
+        if traffic then
+            lines[#lines + 1] = string.format("UDP B/s Tx %d Rx %d", traffic.txBytesPerSecond, traffic.rxBytesPerSecond)
+            lines[#lines + 1] = string.format("UDP pkt/s Tx %d Rx %d", traffic.txPacketsPerSecond, traffic.rxPacketsPerSecond)
+            lines[#lines + 1] = "Route " .. tostring(traffic.route) .. " | Rx " ..
+                (traffic.receiveAgeMs and string.format("%.1fs",traffic.receiveAgeMs / 1000) or "none") ..
+                (traffic.coverageLimited and " !" or "")
+        else
+            lines[#lines + 1] = "UDP rates/route unavailable"
+        end
         local p = records[ui.diagPlayer]
         if p then
             local row, app = ui.nativeRows[p.id], delivery.peers[p.id] or {}
@@ -274,7 +290,7 @@ function M.Create(d)
                     p.localPlayer and "n/a" or tostring(row.pingSamples or "?"))
             end
         end
-        footer(lines, "Synced = co-op phase + heartbeat", "Arrows player  [ ] page  X close")
+        footer(lines, "UDP local totals / 2s; Tx accepted", "Arrows player  [ ] page  X close")
         return table.concat(lines, "\n")
     end
     function ui.BuildText(header, footer)
