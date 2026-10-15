@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-15T09:17:01-05:00",
-  "count": 2553,
+  "generated": "2026-10-15T09:44:45-05:00",
+  "count": 2554,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4386,6 +4386,10 @@
     {
       "source": "ODF\\avpsav.odf",
       "runtime": "avpsav.odf"
+    },
+    {
+      "source": "ODF\\avrsav.odf",
+      "runtime": "avrsav.odf"
     },
     {
       "source": "ODF\\avrckt.odf",

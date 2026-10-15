@@ -316,6 +316,13 @@ class; forcing player control alone does not test pilot bookkeeping. The fixture
 has no AI and is not a replacement for mission 14's wingman controller. Its
 enter/deploy/exit/re-entry sequence remains unqualified in-game.
 
+Confirmed native behavior: ordinary commandability requires an AI controller
+and player-command priority; an empty no-AI fixture cannot answer Pick me up.
+The SAV controller inherits the native rescue path. The occupied `avrsav`
+fixture tests `SAVEnemy` on the player's team, including an explicit priority-0
+RESCUE helper. This is an experiment, not a registered SAVFriend replacement;
+friendly initiative, landing and pilot release remain unqualified in-game.
+
 For a small content iteration while other game sessions are open, the manager's
 `-deploy-files` action preflights and copies only explicitly listed, blessed
 content, with hash verification. It never updates native payloads or cleans

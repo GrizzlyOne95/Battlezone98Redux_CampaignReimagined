@@ -92,6 +92,41 @@ The existing `avsav` ODF and mission 14 `avsav14` wingman controller are unchang
 The newly complete `avsav` presentation assets also satisfy their existing model
 references. Native friendly AI is a separate feature.
 
+## Friendly pickup experiment
+
+The empty boarding fixture cannot answer **Pick me up**: native commandability
+requires an AI controller and ordinary player-command priority. Confirmed native
+behavior also shows that the real SAV controller inherits the generic rescue
+path. Rescue normally approaches the on-foot player, waits nearby and asks the
+AI pilot to abandon the vehicle; it is not a passenger-seat transfer.
+An ODF that names `SAVFriend` cannot establish that controller in the checked
+Redux build because that AI name is not registered there.
+
+`ODF/avrsav.odf` is a second, occupied real `sav` fixture with the same visual
+assets, pilot settings and movement tuning. It uses the registered `SAVEnemy`
+controller on the player's team. This is an experimental controller reuse,
+not a new `SAVFriend` implementation. Friendly combat initiative, flight/landing
+interaction, pilot release and subsequent boarding remain **unknown in-game**.
+Use a disposable offline mission away from the map edge and enemy units.
+
+```lua
+local test = require("CRSAVTest")
+local fury, reason = test.SpawnPickup()
+if not fury then print(reason) end
+-- Keep this handle. Hop out normally, then try the Fury's Pick me up menu.
+-- If the menu does not expose it, issue the native order separately:
+local issued, why = test.RequestPickup(fury)
+if not issued then print(why) end
+```
+
+Run the request only after the player is on foot. The helper accepts only a
+commandable `avrsav` on the player's own team and passes `AiCommand.RESCUE` at
+priority 0 so normal menu command access remains available. A true return means
+the order was issued, not that rescue succeeded. No teleport, forced player
+transfer or scripted pilot removal completes the pickup. Compare whether the
+menu appears, the order is accepted, the Fury approaches/lands, the pilot exits,
+and normal boarding followed by hop-out/re-entry works.
+
 ## Local content deployment
 
 New content is explicitly added to the shipping lock. The manager's
@@ -109,8 +144,9 @@ Toolbox's focused texture/world/terrain/CLI run passed 280 tests (one skipped),
 including the nine preset mappings, preservation of non-atmosphere ACT bytes,
 ACT footers, LUM round trips and the keep-existing batch workflow. CR's new ODF
 has no Toolbox validation findings; its material program references resolve.
-The fixture compiles under Lua 5.1 and its offline/invalid-player/empty-spawn
-contract passes. The selected deployment command passes its temporary-runtime
+The fixture compiles under Lua 5.1 and its offline/invalid-player/empty-spawn,
+occupied-spawn and guarded priority-0 rescue contracts pass. These are mocked
+API checks, not native gameplay qualification. The selected deployment command passes its temporary-runtime
 tests, including rejection of native binaries, unlisted paths and partial writes.
 
 The seven new ACTs, complete Fury presentation assets, test ODF and optional Lua
@@ -118,6 +154,8 @@ fixture were copied to the GOG development mod with `-deploy-files`; every copie
 file was checked against its source hash. The existing NSDF diffuse texture was
 also verified/deployed as a dependency. Moon and Mars matched their preserved
 source hashes and were not overwritten. Reload a mission before trying the unit.
+The occupied pickup ODF and updated fixture were subsequently deployed through
+the same selected-content action and verified against their source hashes.
 
 The full repository validator reports eight pre-existing OpenShim renderer-payload
 hash/size mismatches. The untouched canonical CR checkout reports the same eight
