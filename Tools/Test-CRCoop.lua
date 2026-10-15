@@ -150,3 +150,35 @@ assert(clientCoop.Receive(70, "P", 4), "non-leader phase packet was not consumed
 assert(clientCoop.GetMissionPhase() == 3, "non-leader was allowed to change mission phase")
 
 io.write("CRCoop checks passed\n")
+
+-- Co-op presentation defaults are local, applied once, and tolerate late EXU.
+local native = { scoreboard = true, killNotices = true, boardWrites = 0, noticeWrites = 0 }
+package.loaded.exu = nil
+netGame = false
+Coop.Initialize({ getLocalPlayerId = function() return localId end })
+Coop.Update()
+package.loaded.exu = {
+ SetShowScoreboard = function(v) native.scoreboard=v; native.boardWrites=native.boardWrites+1 end,
+ SetShowKillMessages = function(v) native.killNotices=v; native.noticeWrites=native.noticeWrites+1; return true end,
+}
+Coop.Update()
+assert(native.boardWrites==0 and native.noticeWrites==0,"solo presentation changed")
+netGame = true
+Coop.Initialize({ getLocalPlayerId = function() return localId end })
+package.loaded.exu=nil
+Coop.Update()
+local x = {
+ SetShowScoreboard=function(v) native.scoreboard=v;native.boardWrites=native.boardWrites+1 end,
+ SetShowKillMessages=function(v) native.killNotices=v;native.noticeWrites=native.noticeWrites+1;return true end,
+}
+package.loaded.exu=x
+Coop.Update()
+assert(not native.scoreboard and not native.killNotices,"late EXU did not apply co-op defaults")
+native.scoreboard=true -- stock M was pressed
+Coop.Update()
+assert(native.scoreboard and native.boardWrites==1 and native.noticeWrites==1,"update overrode the player's toggle")
+Coop.Initialize({ getLocalPlayerId=function()return localId end })
+Coop.Update()
+assert(not native.scoreboard and native.boardWrites==2,"new mission did not reset the default")
+package.loaded.exu=nil
+print("CRCoop presentation defaults: solo, late-load, toggle and restart checks passed")

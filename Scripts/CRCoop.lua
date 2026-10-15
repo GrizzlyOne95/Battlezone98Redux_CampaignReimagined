@@ -48,6 +48,7 @@ local missionStarted = false
 local leaderDeparted = false
 local missionPhase = 0
 local initialized = false
+local scoreboardDefaultApplied, killNoticeDefaultApplied = false, false
 local onOutOfLives = nil
 local outOfLivesLocal = false     -- this player has no lives left
 local outOfLivesHandled = false   -- host: the mission failure was requested
@@ -144,6 +145,7 @@ end
 
 function CRCoop.Initialize(options)
     initialized = false
+    scoreboardDefaultApplied, killNoticeDefaultApplied = false, false
     options = options or {}
 
     if type(options.getLocalPlayerId) == "function" then
@@ -498,6 +500,22 @@ end
 function CRCoop.Update()
     if not initialized then return end
     local localHandle = RefreshLocalHandle()
+    -- Set local presentation defaults once after native mission setup. M must
+    -- remain free to reveal/hide the scoreboard for the rest of the session.
+    -- Retry if EXU is loaded after Initialize, without changing solo behavior.
+    if IsNetworkGame() and IsUsableHandle(localHandle) then
+        local x = package.loaded.exu
+        if x then
+            if not scoreboardDefaultApplied and type(x.SetShowScoreboard) == "function" then
+                local ok = pcall(x.SetShowScoreboard, false)
+                scoreboardDefaultApplied = ok
+            end
+            if not killNoticeDefaultApplied and type(x.SetShowKillMessages) == "function" then
+                local ok, applied = pcall(x.SetShowKillMessages, false)
+                killNoticeDefaultApplied = ok and applied == true
+            end
+        end
+    end
     if comms then comms.Update() end
     if respawn then respawn.Update() end
     if outOfLivesLocal and not CRCoop.IsCampaignLeader() and IsNetworkGame() and type(Send) == "function" then

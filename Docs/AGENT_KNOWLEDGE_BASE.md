@@ -890,3 +890,14 @@ frame. Restricting that gate to J silently disables closed-PDA help and give.
 Keep navigation gated, and update down-edge state during text entry so held chat
 keys cannot replay on exit. `Tools/Test-CoopNetworkInput.lua` executes the actual
 polling block; `Tools/Test-CoopInputLive.ps1` exercises native input separately.
+
+### Co-op HUD defaults and native stats (2026-10-15)
+
+Apply the native scoreboard default once after a local network player is ready;
+reasserting it in every Update defeats the stock M toggle. Retry late EXU loading
+and reset defaults on Initialize. The optional EXU kill-notice switch suppresses
+presentation only; stock scores and mission text remain active. Confirmed by
+`Tools/Test-CoopHudLive.ps1` on two native GOG clients, including a controlled
+death. GetPlayerNetworkStats takes a network id, not a team. Local ping/loss are
+absent and native lives differ from CR's respawn budget; see
+`Docs/COOP_DX11_RECOVERY_20261015.md` for evidence and platform limits.
