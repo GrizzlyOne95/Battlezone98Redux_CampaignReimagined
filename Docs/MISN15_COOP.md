@@ -174,7 +174,27 @@ native ownership, navigation, rendering or natural mission difficulty.
 assists NPC/player positions and reserve/storage. Its result establishes only
 the exercised progression and replication; it does not establish natural
 harvesting, physical shooting, balanced combat, four-PC play, Steam or Proton.
-Native results are recorded in the local workstream handoff when available.
+Native run `misn15-final7-20261015` passes **nine steps / 24 checks** on the
+configured loopback server and two isolated GOG 2.2.301 DX11 Enhanced clients.
+Both peers observe the Mission 15 methane material/38.1 m site table, recovered
+NW/NE units on team 1, forty team-6 mines, and shared victory. Keeping the guest
+away blocks victory with Texas and the reserve already at Supply. All 94
+presentation operations match, unresolved counters stay zero, caught rendering
+and Lua errors are absent, and both clients survive final validation.
+
+This run uses OpenShim draft #488: Enhanced sources are registered before CR's
+Modable shader wrappers parse, fixing the lobby's missing-source/shaderless-draw
+fault. OpenShim's Win32 build and 110 CTest checks pass. The private map-list
+title is sorted first; no production listing or native renderer settings are
+changed to hide errors. Existing `flat.dds` texture warnings remain a separate
+art-asset follow-up; the no-rendering-exception check does not certify every
+texture or final appearance.
+
+Private logs, captures, the 2,556-file stage manifest and load-chain hashes are
+under `C:\BZRCoop\runs\misn15-final7-20261015` and
+`C:\BZRCoop\misn15-20261015`. The tested mission source bytes match this branch;
+the private stage changes only the map-list title and selects the qualified EXU
+transport provider. No Workshop upload or real-install deployment occurred.
 
 Still required before release: full unassisted progression/difficulty, actual
 guest economic-unit banking and command transfer, dead/respawning extraction,
