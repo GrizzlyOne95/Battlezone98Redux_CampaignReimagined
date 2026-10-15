@@ -272,7 +272,10 @@ local function makePeer(id, team, network)
                 if p.io.init and p.io.init.send then p.io.init.send("IoQuake", strength, seconds) end
             end,
             Seed = 4242},
-        CRIoSites11 = {mission = "misn11"}, Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
+        CRIoSites11 = {mission = "misn11"}, Environment = {Init = noop, BindWeatherSensors = function(name, director)
+            check(name == "Io" and type(director) == "table", "mission binds its weather director to shared sensors")
+            p.sensorBinding = name
+        end, Update = noop, OnObjectCreated = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
         ScriptSubtitles = {

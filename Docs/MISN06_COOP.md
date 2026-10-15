@@ -1,5 +1,9 @@
 # Mission 06 offline and co-op
 
+**Sensor policy update (15 October 2026):** The later owner decision enables weather and night sensor effects on mission 06, matching the other Mars missions. Wind push remains disabled. This supersedes the earlier visual-only atmosphere note below. See
+`WEATHER_SENSOR_POLICY.md` for the current campaign policy.
+
+
 Escape from Mars shares `misn06.bzn` / `misn06.lua` between campaign
 `MISSION5` and the strategy listing `CR: Escape from Mars Coop`.
 Use matching CR, EXU and OpenShim builds. Host on team 1, with guests on

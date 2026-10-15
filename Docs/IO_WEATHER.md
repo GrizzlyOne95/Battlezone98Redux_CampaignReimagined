@@ -1,5 +1,9 @@
 # Io weather and atmosphere director
 
+**Sensor policy update (15 October 2026):** Missions 10/11 now bind director severity to Environment sensors. The visual director itself still has no native sensor writes. See
+`WEATHER_SENSOR_POLICY.md` for the current campaign policy.
+
+
 `Scripts/CRIoWeather.lua` is the Io counterpart of `CRVenusWeather`: it decides what the
 sky, the lava and the ground do minute to minute, and it is reusable by every Io mission.
 The first user is misn10 "The Race is On". **Everything it does is cosmetic.** It never

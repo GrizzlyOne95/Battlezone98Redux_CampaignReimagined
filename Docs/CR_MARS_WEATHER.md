@@ -1,5 +1,9 @@
 # Mars weather (CRMarsWeather)
 
+**Sensor policy update (15 October 2026):** Mission 06 now enables the existing Mars sensor ladder and Environment night effects. Its wind push stays off. This supersedes the earlier visual-only description below. See
+`WEATHER_SENSOR_POLICY.md` for the current campaign policy.
+
+
 Mars weather director for Campaign Reimagined, wired into **misn04** (plains),
 **misn05** (volcano flank), and **misn06** (escape / Plains).
 

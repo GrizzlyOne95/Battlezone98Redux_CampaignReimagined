@@ -84,7 +84,7 @@ local modules = {
     RequireFix = {Initialize = noop}, exu = {},
     ScriptSubtitles = {Play = function(file) AudioMessage(file); return 1 end,
         Queue = function(file) AudioMessage(file); return 1 end, Stop = noop, Update = noop, Initialize = noop},
-    Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
+    Environment = {Init = noop, BindWeatherSensors = noop, Update = noop, OnObjectCreated = noop},
     CREuropaSites13 = {mission = "misn13"},
     CREuropaWeather = {Seed = 1,
         Init = function(config) record("EuropaInit", config) end,

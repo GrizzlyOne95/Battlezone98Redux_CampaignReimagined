@@ -383,7 +383,10 @@ local function makePeer(id, team, network)
                 if p.eu.init and p.eu.init.send then p.eu.init.send("EuropaSurge", seconds, strength) end
             end,
             Seed = 4242},
-        CREuropaSites13 = {mission = "misn13"}, Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
+        CREuropaSites13 = {mission = "misn13"}, Environment = {Init = noop, BindWeatherSensors = function(name, director)
+            check(name == "Europa" and type(director) == "table", "mission binds its weather director to shared sensors")
+            p.sensorBinding = name
+        end, Update = noop, OnObjectCreated = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
         ScriptSubtitles = {
