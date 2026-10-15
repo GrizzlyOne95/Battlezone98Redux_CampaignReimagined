@@ -198,6 +198,8 @@ def main() -> int:
     ap.add_argument("mission")
     ap.add_argument("--types", default="0", help="TextureType indices that are methane (misn14: 0 Methane Ocean)")
     ap.add_argument("--tolerance", type=float, default=0.3, help="units above the sea floor still counted as sea")
+    ap.add_argument("--sea-level", type=float, default=None,
+                    help="explicit methane floor in world units; use 38.1 for CR misn15's lower basin")
     ap.add_argument("--pool-spacing", type=float, default=80.0)
     ap.add_argument("--max-pools", type=int, default=160)
     ap.add_argument("--min-wet", type=float, default=0.6, help="smallest wet fraction of an anchor's 5x5 cells")
@@ -248,7 +250,12 @@ def main() -> int:
     if not floor_counts:
         print("no methane cells of the requested types", file=sys.stderr)
         return 1
-    sea_raw = floor_counts.most_common(1)[0][0]
+    # Some Titan maps have large dry plateaus outside the play box. Their global
+    # height mode is not a water level (misn15b: 102.2 m versus the 38.1 m basin).
+    sea_raw = (int(round(args.sea_level / HEIGHT_SCALE)) if args.sea_level is not None
+               else floor_counts.most_common(1)[0][0])
+    if sea_raw not in floor_counts:
+        raise ValueError("requested sea level has no pure methane cells")
     tol_raw = int(round(args.tolerance / HEIGHT_SCALE))
     wet = [[pure[r][c] and lo[r][c] >= sea_raw - tol_raw and hi[r][c] <= sea_raw + tol_raw
             for c in range(cells)] for r in range(cells)]

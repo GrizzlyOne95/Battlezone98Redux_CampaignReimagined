@@ -22,6 +22,9 @@ for name, expected in EXPECTED.items():
 
 source = (ARCHIVE / "Misn15Mission.cpp").read_text()
 lua = (ROOT / "Scripts" / "misn15.lua").read_text()
+# Strip only the explicitly marked adapter; the faithful body must remain intact.
+lua = re.sub(r"(?ms)^-- CR runtime >>\n.*?^-- CR runtime <<\n?", "", lua)
+
 gameplay = source.split("void Misn15Mission::AddObject(Handle h)", 1)[1].split("IMPLEMENT_RTIME", 1)[0]
 
 def normalized(text):

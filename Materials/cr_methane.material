@@ -115,3 +115,9 @@ material CR/Titan/Methane14 : CR/Titan/Methane
 {
 	set_texture_alias WetMask cr_titan14_wet.png
 }
+
+// misn15 uses the shipped misn15b layout and its own MAT/HG2-derived wet mask.
+material CR/Titan/Methane15 : CR/Titan/Methane
+{
+	set_texture_alias WetMask cr_titan15_wet.png
+}

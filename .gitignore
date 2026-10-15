@@ -78,3 +78,5 @@ desktop.ini
 # Chunk meshes are no longer part of this repository or the pack: OpenShim
 # generates them at runtime from the stock models. Assets/chunkMeshes*
 # is excluded from the shipping set in Manage-CampaignFiles.ps1.
+
+!misn15.des

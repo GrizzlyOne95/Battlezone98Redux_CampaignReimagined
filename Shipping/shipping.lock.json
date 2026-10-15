@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-15T10:26:28-05:00",
-  "count": 2539,
+  "generated": "2026-10-15T14:45:09-05:00",
+  "count": 2556,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10158,6 +10158,74 @@
     {
       "source": "update.des",
       "runtime": "update.des"
+    },
+    {
+      "source": "Assets\\Audio\\misn1506.wav",
+      "runtime": "misn1506.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1508.wav",
+      "runtime": "misn1508.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1512.wav",
+      "runtime": "misn1512.wav"
+    },
+    {
+      "source": "Assets\\Graphics\\misn15.bmp",
+      "runtime": "misn15.bmp"
+    },
+    {
+      "source": "Assets\\Textures\\cr_titan15_wet.png",
+      "runtime": "cr_titan15_wet.png"
+    },
+    {
+      "source": "Config\\misn15.ini",
+      "runtime": "misn15.ini"
+    },
+    {
+      "source": "misn15.des",
+      "runtime": "misn15.des"
+    },
+    {
+      "source": "Missions\\misn15.bzn",
+      "runtime": "misn15.bzn"
+    },
+    {
+      "source": "Missions\\misn15.hg2",
+      "runtime": "misn15.hg2"
+    },
+    {
+      "source": "Missions\\misn15.lgt",
+      "runtime": "misn15.lgt"
+    },
+    {
+      "source": "Missions\\misn15.mat",
+      "runtime": "misn15.mat"
+    },
+    {
+      "source": "Missions\\misn15.trn",
+      "runtime": "misn15.trn"
+    },
+    {
+      "source": "Missions\\misn15.vxt",
+      "runtime": "misn15.vxt"
+    },
+    {
+      "source": "Scripts\\CRMisn15.lua",
+      "runtime": "CRMisn15.lua"
+    },
+    {
+      "source": "Scripts\\CRTitanSites15.lua",
+      "runtime": "CRTitanSites15.lua"
+    },
+    {
+      "source": "Text\\misn15l2.des",
+      "runtime": "misn15l2.des"
+    },
+    {
+      "source": "Text\\misn15l3.des",
+      "runtime": "misn15l3.des"
     }
   ]
 }

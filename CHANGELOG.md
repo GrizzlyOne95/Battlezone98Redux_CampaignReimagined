@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add Mission 15's shared offline/co-op prototype on the shipped misn15b layout:
+  recover allied survivors, secure 75 shared scrap and escort the Texas to Supply.
+  Restore the Alaska rescue and withdrawal dialogue; add the map-specific Titan
+  weather/methane mask and a warned Tartarus response with persistent-intrusion
+  arc mines. Native progression and tuning remain under qualification.
+
 - Match co-op starting ships to mission production: Light Tank from 04, Rocket Tank
   from 07, Bomber from 08 and Walker from 09. Keep the pilot start in 02b, the
   mobile escort kit in 11 and the capture-based infiltration kit in 12.
