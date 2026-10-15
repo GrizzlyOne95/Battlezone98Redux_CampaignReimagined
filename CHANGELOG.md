@@ -6,6 +6,8 @@
   from 07, Bomber from 08 and Walker from 09. Keep the pilot start in 02b, the
   mobile escort kit in 11 and the capture-based infiltration kit in 12.
 
+- Coop Diagnostics shows local UDP send/receive byte and packet rates, recent
+  observed route and last-receive age when the updated EXU/OpenShim are available.
 - Add Coop Diagnostics as the second co-op PDA page: native per-player ping/loss,
   co-op admission/phase and heartbeat freshness, plus message receipts/retries.
   Quiet or stalled co-op traffic no longer retains a stale Synced label.
