@@ -6,6 +6,15 @@ guests on distinct teams 2–4; select an NSDF tank, scout, or light tank and st
 join/rejoin requires a restart. Host departure ends the mission.
 
 Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
+**Sensor policy update (15 October 2026):** The later owner decision enables weather and night sensor effects on mission 06, matching the other Mars missions. Wind push remains disabled. This supersedes the earlier visual-only atmosphere note below. See
+`WEATHER_SENSOR_POLICY.md` for the current campaign policy.
+
+
+Escape from Mars shares `misn06.bzn` / `misn06.lua` between campaign
+`MISSION5` and the strategy listing `CR: Escape from Mars Coop`.
+Use matching CR, EXU and OpenShim builds. Host on team 1, with guests on
+distinct teams 2–4; select an NSDF tank or scout and start together.
+Late join/rejoin requires a restart. Host departure ends the mission.
 
 ## Map
 

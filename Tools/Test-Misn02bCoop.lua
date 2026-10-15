@@ -183,6 +183,7 @@ local function makePeer(id, team, network)
     }
     local modules = {
         Environment = { Init = function(options) p.environmentOptions = options end,
+            BindWeatherSensors = function(name, director) p.weatherSensors = {name, director} end,
             InvalidateRenderer = function() record("environmentInvalidate") end,
             Update = function() record("environmentUpdate") end },
         RequireFix = { Initialize = noop }, exu = {
@@ -248,6 +249,8 @@ check(host.state.start_done and host.state.camera1, "leader opening did not run"
 check(host.moon.init.authority and host.moon.init.sites.mission == "misn02b", "the leader runs the Moon weather director on the misn02b sites")
 check(host.environmentOptions.lightingMode == "subtle" and host.environmentOptions.nativeBaseline,
     "Moon lighting uses bounded native-baseline TOD")
+check(host.weatherSensors and host.weatherSensors[1] == "Moon" and host.weatherSensors[2].Seed == 4242,
+    "Moon weather director is bound to Environment sensors")
 check(count(host, "environmentUpdate") > 0, "Moon updates Environment alongside weather")
 for _, c in ipairs(clients) do
     check(not c.moon.init.authority and c.moon.init.seed == nil, "guests run the director from the host's events")

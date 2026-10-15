@@ -1,5 +1,9 @@
 # Europa weather and atmosphere director
 
+**Sensor policy update (15 October 2026):** Missions 12/13 now bind director severity to Environment sensors, including during the stealth mission. This deliberately supersedes the old visual-only mission policy below; the visual director itself still has no native sensor writes. See
+`WEATHER_SENSOR_POLICY.md` for the current campaign policy.
+
+
 `Scripts/CREuropaWeather.lua` is the Europa counterpart of `CRIoWeather`, `CRVenusWeather` and
 `CRMarsWeather`, and it follows the Io architecture (seeded ladder, host-decided replicated
 events, generated map data). It is reusable by any Europa mission; the first user is misn12

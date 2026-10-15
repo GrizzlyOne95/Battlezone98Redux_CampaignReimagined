@@ -583,6 +583,7 @@ local function InitIoWeather()
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
     Environment.Init()
+    Environment.BindWeatherSensors("Io", CRIoWeather)
     CRIoWeather.Init({
         authority = authority,
         seed = M.ioSeed, -- nil: the leader/offline picks one, guests wait for the host's state

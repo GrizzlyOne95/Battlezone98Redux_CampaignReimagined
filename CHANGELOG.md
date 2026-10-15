@@ -6,6 +6,12 @@
   from 07, Bomber from 08 and Walker from 09. Keep the pilot start in 02b, the
   mobile escort kit in 11 and the capture-based infiltration kit in 12.
 
+- Apply weather-driven sensor effects across all weather-enabled campaign
+  missions, including Titan and mission 06. Preserve Mars/Venus tuning; restore
+  native values when conditions clear, without restarting the radar sweep for
+  range-only changes. See `Docs/WEATHER_SENSOR_POLICY.md`.
+- Coop Diagnostics shows local UDP send/receive byte and packet rates, recent
+  observed route and last-receive age when the updated EXU/OpenShim are available.
 - Add Coop Diagnostics as the second co-op PDA page: native per-player ping/loss,
   co-op admission/phase and heartbeat freshness, plus message receipts/retries.
   Quiet or stalled co-op traffic no longer retains a stale Synced label.

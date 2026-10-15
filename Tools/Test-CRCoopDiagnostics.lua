@@ -59,12 +59,16 @@ model.Received(2, true, 1, true, 1); model.Reset()
 check(peer().heartbeatAge == nil and peer().sent == 0, "mission reset")
 
 local nativeCalls, unavailable, samples = 0, false, 10
+local traffic, trafficError
 local comms = { IsActive = function() return true end,
     GetNetworkDiagnostics = function() return { peers = { [2] = { pending = 2, retries = 3, expired = 1, acknowledged = 4 } } } end }
 local coop = { GetComms = function() return comms end, GetPlayers = function() return players end,
     GetNetworkDiagnostics = model.Snapshot }
 local ui = Pda.Create({ coop = coop, pages = Data.PdaPages, time = function() return now end,
-    exu = { GetPlayerNetworkStats = function(id)
+    exu = { GetNetworkTrafficStats = function()
+        if trafficError then error("provider unavailable") end
+        return traffic
+    end, GetPlayerNetworkStats = function(id)
         nativeCalls = nativeCalls + 1
         if unavailable then error("unsupported") end
         return { id = id, team = players[id].team, kills = 2, deaths = 1, pingMs = 42, lossPercent = 10, pingSamples = samples }
@@ -77,6 +81,7 @@ model.Received(2, true, 1, true, 1)
 local text = render()
 check(text:find("42ms / 10%% loss") and text:find("local / n/a",1,true), "native remote metrics and no fake local zeros")
 check(not text:find("Guest\nName",1,true), "native/control names cannot inject rows")
+check(text:find("UDP rates/route unavailable",1,true), "old provider is not zero traffic")
 local calls = nativeCalls; render()
 check(calls == nativeCalls, "native reader sampled once per second")
 ui.HandleDiagnosticsInput(false,true); text = render()
@@ -95,4 +100,14 @@ players[4] = { name = "Four", team = 4, handle = {} }
 now = now + 1; text = render()
 check(text:find("Two",1,true) and text:find("Three",1,true) and text:find("Four",1,true), "all four human slots fit the view model")
 check(not text:find("Team 5",1,true), "AI does not enter the selectable diagnostics roster")
+traffic = { txBytesPerSecond=2048, rxBytesPerSecond=1024, txPacketsPerSecond=20,
+    rxPacketsPerSecond=10, route="relay", receiveAgeMs=120, coverageLimited=false }
+now = now + 1; text = render()
+check(text:find("UDP B/s Tx 2048 Rx 1024",1,true) and text:find("UDP pkt/s Tx 20 Rx 10",1,true), "transport rates are separate session totals")
+check(text:find("Route relay | Rx 0.1s",1,true), "observed relay and wall-clock receive age")
+traffic.route="idle";traffic.txBytesPerSecond=0;traffic.rxBytesPerSecond=0
+now=now+1;text=render()
+check(text:find("Route idle",1,true) and text:find("UDP B/s Tx 0 Rx 0",1,true), "idle is a measured state")
+trafficError=true;now=now+1;text=render()
+check(text:find("UDP rates/route unavailable",1,true) and not text:find("Route idle",1,true), "provider fault clears cached route/rates")
 print("CRCoopDiagnostics: " .. checks .. " checks passed")

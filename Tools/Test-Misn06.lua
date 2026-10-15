@@ -480,9 +480,9 @@ end
 
 -- Story/weather wiring uses the real mission phases and save/load callbacks.
 e,w,m = NewMission()
-Check(w.weatherOptions.profile == "Plains" and not w.weatherOptions.sensorDegrade and not w.weatherOptions.windPush,
-    "mission06 adds visual Plains weather without handling/sensor changes")
-Check(w.environmentOptions.nightGameplay==false,"new visual TOD does not introduce night sensor penalties")
+Check(w.weatherOptions.profile == "Plains" and w.weatherOptions.sensorDegrade and not w.weatherOptions.windPush,
+    "mission06 uses Mars sensor effects without wind handling changes")
+Check(w.environmentOptions==nil,"mission06 uses the shared Environment night policy")
 Check(w.weatherTarget == 1 and w.weatherAutomatic, "recon begins calm and host drives the ladder")
 m.hephikey=true; e.Update(0.1); Check(w.weatherTarget==2,"Hephaestus scan raises breeze")
 m.starportreconed=true; e.Update(0.1); Check(w.weatherTarget==3,"starport recon raises dust")
