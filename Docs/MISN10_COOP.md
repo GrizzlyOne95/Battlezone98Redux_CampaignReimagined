@@ -3,8 +3,11 @@
 The Race is On shares `misn10.bzn` / `misn10.lua` between the campaign mission (`crcampgn.ini`
 MISSION9, Io, epilogue `misn1007.wav`) and the strategy listing `CR: The Race is On Coop`. Use
 matching CR, EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4; select an NSDF
-tank or scout and start together. Late join/rejoin requires a restart. Host departure ends the
-mission. There is no intro cutscene (the original has none).
+tank, scout, light tank, rocket tank, bomber, or walker and start together. Late join/rejoin
+requires a restart. Host departure ends the mission. There is no intro cutscene (the original has
+none).
+
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
 
 ## Map
 

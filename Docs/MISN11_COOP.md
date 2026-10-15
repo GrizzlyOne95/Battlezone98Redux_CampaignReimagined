@@ -3,8 +3,10 @@
 Bring it Home shares `misn11.bzn` / `misn11.lua` between the campaign mission (`crcampgn.ini`
 MISSION10, Io, retrospective `misn1100.wav`) and the strategy listing `CR: Bring it Home Coop`. Use
 matching CR, EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4; select an NSDF
-tank or scout and start together. Late join/rejoin requires a restart. Host departure ends the
-mission. There is no intro cutscene (the original has none).
+tank, scout, or light tank and start together. Late join/rejoin requires a restart. Host departure
+ends the mission. There is no intro cutscene (the original has none).
+
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
 
 ## Map
 

@@ -73,6 +73,7 @@ ini.read(root / 'Config/misn11.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
 assert (root / 'Assets/Graphics/misn11.bmp').read_bytes()[:2] == b'BM'
+assert (root / 'Missions/misn11.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,']
 assert len((root / 'misn11.des').read_text().strip()) <= 300
 campaign = (root / 'Config/crcampgn.ini').read_text()
 assert re.search(r'missionBZN = "misn11\.bzn"', campaign), 'Campaign must launch the shared BZN'

@@ -1,10 +1,11 @@
 # Mission 06 offline and co-op
 
-Escape from Mars shares `misn06.bzn` / `misn06.lua` between campaign
-`MISSION5` and the strategy listing `CR: Escape from Mars Coop`.
-Use matching CR, EXU and OpenShim builds. Host on team 1, with guests on
-distinct teams 2–4; select an NSDF tank or scout and start together.
-Late join/rejoin requires a restart. Host departure ends the mission.
+Escape from Mars shares `misn06.bzn` / `misn06.lua` between campaign `MISSION5` and the strategy
+listing `CR: Escape from Mars Coop`. Use matching CR, EXU and OpenShim builds. Host on team 1, with
+guests on distinct teams 2–4; select an NSDF tank, scout, or light tank and start together. Late
+join/rejoin requires a restart. Host departure ends the mission.
+
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
 
 ## Map
 

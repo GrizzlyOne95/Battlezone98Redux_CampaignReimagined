@@ -154,7 +154,8 @@ pending. One `.bzn` and one `.lua` serve both modes. Use the newest finished mis
 4. **Lua co-op layer** (section 3.2-3.6), marked with `-- CR ... >>` / `<<` regions so the source-parity
    test can strip them and prove the DLL port underneath is unchanged.
 5. **Listing.** `Config/misnNN.ini` (mapType multiplayer, gameType S, 2-4 players), root `misnNN.des`
-   (<= 300 bytes, CRLF, and it must be allowlisted in `.gitignore`), `Missions/misnNN.vxt` (avtank/avfimp),
+   (<= 300 bytes, CRLF, and it must be allowlisted in `.gitignore`), `Missions/misnNN.vxt`
+   (approved roster: `Docs/COOP_STARTING_UNITS.md`),
    `Assets/Graphics/misnNN.bmp` (generic shared image), and the `[MISSIONk]` entry in
    `Config/crcampgn.ini` (3.7).
 6. **Tests and lock.** Add the tests (section 5), update `Tools/Test-SetupMissionShell.py`'s campaign list,
@@ -162,6 +163,11 @@ pending. One `.bzn` and one `.lua` serve both modes. Use the newest finished mis
 7. **Docs.** `Docs/MISNNN_COOP.md`: map, ownership, team table, owner decisions, restored content,
    inferences, and a live-harness checklist. Label unrun checks as unrun.
 8. **Live check** with the harness (section 5.3) when the owner's session is available; update the doc.
+
+Starting ships follow the player-controlled production menus, not the support team's factory.
+The approved progression and the no-production mission exceptions are in
+`Docs/COOP_STARTING_UNITS.md` [owner]. `baseName` selects assets, not ODF inheritance: inspect
+the actual mission factory's `buildItem` entries (07 `avmu7`, 08 `avmu8`, 09+ `avmuf`).
 
 ### 3.2 Team and ownership model
 

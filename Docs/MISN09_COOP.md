@@ -1,10 +1,12 @@
 # Mission 09 offline and co-op
 
-Wrangling the Fleeing Herd shares `misn09.bzn` / `misn09.lua` between the campaign
-mission (`crcampgn.ini`) and the strategy listing `CR: Wrangling the Fleeing Herd Coop`.
-Use matching CR, EXU and OpenShim builds. Host on team 1, with guests on distinct teams 2-4;
-select an NSDF tank or scout and start together. Late join/rejoin requires a restart. Host
-departure ends the mission.
+Wrangling the Fleeing Herd shares `misn09.bzn` / `misn09.lua` between the campaign mission
+(`crcampgn.ini`) and the strategy listing `CR: Wrangling the Fleeing Herd Coop`. Use matching CR,
+EXU and OpenShim builds. Host on team 1, with guests on distinct teams 2-4; select an NSDF tank,
+scout, light tank, rocket tank, bomber, or walker and start together. Late join/rejoin requires a
+restart. Host departure ends the mission.
+
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
 
 ## Map
 

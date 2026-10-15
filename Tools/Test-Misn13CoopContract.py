@@ -88,7 +88,7 @@ for suffix in ('hg2', 'lgt', 'trn', 'mat', 'vxt'):
 trn = (root / 'Missions/misn13.trn').read_text(encoding='latin-1')
 assert 'LightningBolt' not in trn and 'eu_detail_atlas' in trn
 assert len((root / 'Missions/misn13.mat').read_bytes()) == 131072
-assert (root / 'Missions/misn13.vxt').read_text().split() == ['avtank', ',', 'avfimp', ',']
+assert (root / 'Missions/misn13.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
 
 ini = configparser.ConfigParser()
 ini.read(root / 'Config/misn13.ini')

@@ -1,13 +1,16 @@
 # Mission 13 offline and co-op
 
 Total Destruction shares `misn13.bzn` / `misn13.lua` between the campaign mission (`crcampgn.ini`
-MISSION12, Europa, retrospective `misn1305.wav`) and the strategy listing `CR: Total Destruction Coop`.
-Use matching CR, EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4; select an NSDF
-tank or scout and start together. Late join/rejoin requires a restart. Host departure ends the mission.
-There is no intro cutscene (the original has none).
+MISSION12, Europa, retrospective `misn1305.wav`) and the strategy listing `CR: Total Destruction
+Coop`. Use matching CR, EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4;
+select an NSDF tank, scout, light tank, rocket tank, bomber, or walker and start together. Late
+join/rejoin requires a restart. Host departure ends the mission. There is no intro cutscene (the
+original has none).
 
 The mission is the second half of the Europa pair: the CCA base is the same one misn12 infiltrates (a
 different heightmap), and now the Liberty's platoon, with the Texas Recycler, has to tear it down.
+
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
 
 ## Map
 

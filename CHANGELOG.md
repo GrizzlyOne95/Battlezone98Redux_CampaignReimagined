@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Match co-op starting ships to mission production: Light Tank from 04, Rocket Tank
+  from 07, Bomber from 08 and Walker from 09. Keep the pilot start in 02b, the
+  mobile escort kit in 11 and the capture-based infiltration kit in 12.
+
 - Add Coop Diagnostics as the second co-op PDA page: native per-player ping/loss,
   co-op admission/phase and heartbeat freshness, plus message receipts/retries.
   Quiet or stalled co-op traffic no longer retains a stale Synced label.
