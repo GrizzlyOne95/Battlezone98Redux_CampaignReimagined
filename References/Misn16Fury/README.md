@@ -25,6 +25,8 @@ Stock normal/specular/emissive aliases are retained. The source/copy hashes
 and geometry counts are recorded in `asset-manifest.json`.
 
 `Missions/misn16b.bzn` binds all ten enemy CCA structures to the copies.
-It retains stock mission logic and the existing CR `misn16b` terrain.
-This asset checkpoint does not supply the co-op runtime or deploy the mission. The shipping lock is unchanged. See `Docs/MISN16_PLANNING.md` for
-the ten map instances, terrain decision, arrival policy and escape reference.
+It retains the stock mission class and amended terrain as the art baseline.
+The shared runtime is now `Missions/misn16.bzn` / `Scripts/CRMisn16.lua`, with
+an off-boundary Titan pad and the stock Fury transport assembly. The shipping
+lock admits these assets. See `Docs/MISN16_COOP.md` for behavior and test limits,
+and `Docs/MISN16_PLANNING.md` for the original source/cut-content audit.

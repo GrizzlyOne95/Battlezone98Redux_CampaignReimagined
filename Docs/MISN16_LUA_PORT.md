@@ -1,14 +1,16 @@
 # misn16 DLL-source Lua 5.1 port
 
 For the subsequent map/cut-content audit and proposed offline/co-op integration,
-see [Mission 16 planning](MISN16_PLANNING.md). That proposal does not change this
-faithful reference port.
+see [Mission 16 planning](MISN16_PLANNING.md). The implemented prototype and
+its deliberate gameplay changes are documented in [Mission 16 co-op](MISN16_COOP.md).
+Marked dispatch regions select `CRMisn16` in normal play; the source behavior
+below remains intact and is tested with `CR_TEST_FAITHFUL=true`.
 
 `Scripts/misn16.lua` ports the complete active mission logic from
 [BZ1/from_bz2_dll_src/Misn16Mission.cpp](https://github.com/GrizzlyOne95/Battlezone_Source/blob/main/BZ1/from_bz2_dll_src/Misn16Mission.cpp).
 That DLL source is the sole behavior authority; no community Lua or Redux mission
-implementation was used. The script uses stock BZR APIs and Lua 5.1, with no
-EXU/OpenShim, filesystem, weather, or difficulty dependencies.
+implementation was used. The faithful body uses stock BZR APIs and Lua 5.1. The separately dispatched CR
+runtime uses the bundled EXU/co-op, weather and presentation services.
 
 The exact native source and empty header are in `References/Misn16Source/`:
 

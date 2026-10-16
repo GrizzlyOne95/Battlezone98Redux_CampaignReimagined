@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add Mission 16's shared offline/co-op prototype: Fury-corrupted CCA base
+  copies, 200 m Bolt Buddy towers, restored warnings and an evacuation finale
+  using the stock Fury transport on a Titan-textured pad beyond the map edge.
+  Keep the amended terrain as the base; this is not full gameplay qualification.
+
 - Add Mission 15's shared offline/co-op prototype on the shipped misn15b layout:
   recover allied survivors, secure 75 shared scrap and escort the Texas to Supply.
   Restore the Alaska rescue and withdrawal dialogue; add the map-specific Titan

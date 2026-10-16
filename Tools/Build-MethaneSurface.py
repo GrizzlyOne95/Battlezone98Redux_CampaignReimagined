@@ -46,7 +46,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MESH_OUT = ROOT / "Assets" / "ModelFixes" / "cr_methane_plane.mesh"
 RIPPLE_OUT = ROOT / "Assets" / "Textures" / "cr_methane_ripple.png"
-MASK_MISSIONS = ("14", "15")       # Each map uses its own MAT/HG2 wet mask.
+MASK_MISSIONS = ("14", "15", "16")       # Each map uses its own MAT/HG2 wet mask.
 GRID = 16
 RIPPLE_SIZE = 256
 MASK_UPSAMPLE = 2

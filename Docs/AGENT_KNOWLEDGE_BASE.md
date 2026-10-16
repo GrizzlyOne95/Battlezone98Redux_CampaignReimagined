@@ -1008,3 +1008,18 @@ Buddy (ordnance lifetime must change as well as scan range). Keep CR's amended
 hull and `hbtrn200` thrusters. Mission 16's unused boarding VO supports a new
 evacuation scene using those models; this is not proof of recovered takeoff
 logic or a working boarding animation. See `Docs/MISN16_PLANNING.md`.
+
+Mission 16 evacuation prototype now uses a preplaced stock Mission 18 assembly
+and two SATs beyond edge_path, on a local type-1 Titan pad. Static hull/engine
+movement is a visual translation per peer after an acknowledged scene event;
+never issue craft AI commands to it. Publish scene identities before boarding
+removals so a late initial Label cannot block the ordered stream. Register new
+scene opcodes in both ApplyPresentation and ReceivePresentation's allowlist.
+See `Docs/MISN16_COOP.md` for validation boundaries.
+
+The native SAV class is the flying Fury and can ignore a cinematic Goto in
+favor of its attack behavior. Use the ground SAT for evacuation actors and
+script their route velocity, keeping the two lanes separated; the native AIP
+can supersede ordinary enemy movement orders. Keep boarding pockets outside
+engine collision shapes and stop accepting boarders before launch. The pad
+film also needs a camera high enough to clear the southern foreground ridge.

@@ -1,8 +1,10 @@
 # Mission 16: Strike at the Heart — source audit and CR plan
 
 Audit date: 16 October 2026. Planning baseline: `a8a0701f`.
-The mission remains a plan; the copied corrupted CCA assets are now prepared.
-This is not an implemented co-op mission or a live-test result.
+This document retains the initial source audit and design rationale. The
+approved shared mission and evacuation prototype are now implemented; see
+`Docs/MISN16_COOP.md` for current behavior, source deltas and test limits.
+The evidence table below describes the original audit baseline.
 
 ## Recommended direction
 
@@ -264,8 +266,8 @@ Recommended starting scope is the selected map, faithful assault pacing, restore
 warning/progress radio, shared presentation and reliable endings. The following
 remain design decisions, not activated code:
 
-1. Whether to build the visible transport-escape finale now or retain the debrief
-   bridge for the first playable version.
+1. **Approved and implemented:** visible transport escape on a Titan-textured
+   pad beyond the playable edge. See `Docs/MISN16_COOP.md`.
 2. Whether disabled extra Soviet units / third counterattack SAVs belong in a
    later difficulty tier or player-count scaling.
 3. Whether to include the N64-style offline Pilot Mode in this mission's first
