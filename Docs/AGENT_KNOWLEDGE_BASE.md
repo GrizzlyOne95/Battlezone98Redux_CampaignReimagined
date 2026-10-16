@@ -859,6 +859,14 @@ own change).
 
 ## 10. Keeping this document current
 
+Cut Fury fighter (2026-10-16): the owner-selected standalone `hvraz` port is
+`Battlezone Files/Mods and Custom Files/Fury Fighter` in Drive, not ISDFC's
+ODF/red texture. CR's `crfraz` copies its model/native data and namespaces every
+GEO companion; ship those companions even with a Redux mesh. Destruction passed
+in the private current-bundle baseline; the historical crash cause remains
+unknown. See `Docs/FURY_FIGHTER.md` for the source hashes, initial weapon balance,
+Mission 14-18 roster changes and exact native evidence/limits.
+
 ### Mission 16 map selection and cut-content evidence (2026-10-16)
 
 The installed stock campaign selects `misn16b.bzn` for Strike at the Heart.

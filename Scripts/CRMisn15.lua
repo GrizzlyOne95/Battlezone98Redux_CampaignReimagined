@@ -784,20 +784,22 @@ local function UpdateFuries()
     local reserved=(s.denial[1] and 0 or 2)+(s.denial[2] and 0 or 2)
     for i=1,2 do
         if not s.denial[i] and now>s.nextDenial[i] then
-            if BuildWave("hvsat",2,i==1 and "alien1" or "alien2","deny"..i) then s.denial[i]=true
+            if BuildWave("crfraz",2,i==1 and "alien1" or "alien2","deny"..i) then s.denial[i]=true
             else s.nextDenial[i]=now+15 end
         end
     end
     if now>s.nextHunter and (s.hunters or 0)<50 then
         local count=HumanCount()==1 and 1 or HumanCount()<4 and 2 or 3
-        if LiveFuries()+count<=10-reserved and BuildWave("hvsav",count,math.random(1,2)==1 and "alien1" or "alien2") then
+        -- Two light patrols per heavy SAV patrol, using the existing saved counter.
+        local odf=(s.hunters or 0)%3==2 and "hvsav" or "crfraz"
+        if LiveFuries()+count<=10-reserved and BuildWave(odf,count,math.random(1,2)==1 and "alien1" or "alien2") then
             s.hunters=(s.hunters or 0)+1;s.nextHunter=now+240
         else s.nextHunter=now+15 end
     end
     if now>s.nextTargets then
         s.nextTargets=now+5
         for _,h in ipairs(s.furies) do
-            if Alive(h) and IsOdfBase(h,"hvsav") then
+            if Alive(h) and (IsOdfBase(h,"hvsav") or IsOdfBase(h,"crfraz")) then
                 local target=type(GetCurrentWho)=="function" and GetCurrentWho(h) or nil
                 if not Alive(target) then
                     target=Target()
@@ -851,7 +853,7 @@ local function UpdateTartarus()
     s.tartarusHealth=health
     if s.tartarusResponsePending and GetTime()>s.nextTartarusTry then
         local reserved=(s.denial[1] and 0 or 2)+(s.denial[2] and 0 or 2)
-        if LiveFuries()+2<=10-reserved and BuildWave("hvsav",2,"alien2") then
+        if LiveFuries()+2<=10-reserved and BuildWave("crfraz",2,"alien2") then
             s.tartarusResponsePending=false;s.tartarusResponseSpawned=true
         else s.nextTartarusTry=GetTime()+15 end
     end

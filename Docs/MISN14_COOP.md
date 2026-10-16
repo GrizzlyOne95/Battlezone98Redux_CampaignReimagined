@@ -1,5 +1,10 @@
 # Mission 14 offline and co-op: The Three Beacons (Concept C)
 
+Fury roster amendment (2026-10-16): recurring waves lead with restored `crfraz`
+fighters, retaining a SAV and later SAT escalation. The controllable squad keeps
+its existing identity. See [Fury fighter](FURY_FIGHTER.md) for the current roster;
+earlier SAV-only descriptions below document the Concept C baseline.
+
 The Three Beacons shares `misn14.bzn` / `misn14.lua` between the campaign mission (`crcampgn.ini`
 MISSION13, Titan, retrospective `misn1422.wav`) and the strategy listing `CR: The Three Beacons
 Coop`. Use matching CR, EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4;

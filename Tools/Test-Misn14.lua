@@ -133,7 +133,7 @@ F.runUntil(function() return M().wave_count >= 1 end, 400)
 local wave = F.builds(host, mark)
 local furies = 0
 for _, b in ipairs(wave) do
-    if b.odf == "hvsav" then
+    if b.odf == "hvsav" or b.odf == "crfraz" then
         furies = furies + 1
         check(b.team == 6, "wave Furies are on team 6")
         local pos = F.posOf(b.h)
@@ -142,7 +142,8 @@ for _, b in ipairs(wave) do
         check(b.where ~= "alien2" and b.where ~= "alien4", "the drop-zone points are watched")
     end
 end
-check(furies == 3, "offline wave: three hvsav, as in the DLL")
+check(furies == 3,"offline wave retains three total craft")
+check(#F.builds(host,mark,"crfraz")==2,"two restored fighters lead the offline wave")
 check(F.heard(host, "misn1403.wav"), "the alien warning on the first wave")
 -- Every point watched: the wave waits.
 boot()
@@ -174,7 +175,7 @@ local tanks = 0
 for _, b in ipairs(all) do if b.odf == "hvsat" then tanks = tanks + 1 end end
 check(tanks == 1, "Fury Tanks join from wave 4 (one offline)")
 local live = 0
-for _, b in ipairs(all) do if (b.odf == "hvsav" or b.odf == "hvsat") and F.alive(b.h) then live = live + 1 end end
+for _, b in ipairs(all) do if (b.odf == "hvsav" or b.odf == "hvsat" or b.odf == "crfraz") and F.alive(b.h) then live = live + 1 end end
 check(live == 12, "3+3+3 then wave 4 (3 hvsav + 1 hvsat) trimmed to the cap of 12, got " .. live)
 check(tanks == 1, "the cap keeps the Fury Tank when it trims a wave")
 M().alien_time = W.now
@@ -183,7 +184,7 @@ F.tick()
 check(#F.builds(host, mark) == 0 and M().wave_count == 5, "a capped wave still counts (the story never stalls)")
 local killed = 0
 for _, b in ipairs(all) do
-    if b.odf == "hvsav" and killed < 2 then F.kill(b.h); killed = killed + 1 end
+    if (b.odf == "hvsav" or b.odf == "crfraz") and killed < 2 then F.kill(b.h); killed = killed + 1 end
 end
 M().alien_time = W.now
 mark = #host.calls

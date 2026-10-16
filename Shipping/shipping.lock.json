@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-16T13:58:46-05:00",
-  "count": 2601,
+  "generated": "2026-10-16T15:06:55-05:00",
+  "count": 2624,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -364,6 +364,54 @@
       "runtime": "bvwalk_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cfr11bda.geo",
+      "runtime": "cfr11bda.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11bdb.geo",
+      "runtime": "cfr11bdb.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11bdc.geo",
+      "runtime": "cfr11bdc.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11bdd.geo",
+      "runtime": "cfr11bdd.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11gc1.geo",
+      "runtime": "cfr11gc1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11gc2.geo",
+      "runtime": "cfr11gc2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11gm1.geo",
+      "runtime": "cfr11gm1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11gr1.geo",
+      "runtime": "cfr11gr1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11gs1.geo",
+      "runtime": "cfr11gs1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11lgt.geo",
+      "runtime": "cfr11lgt.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11pov.geo",
+      "runtime": "cfr11pov.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11ror.geo",
+      "runtime": "cfr11ror.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\cr16cmd.mesh",
       "runtime": "cr16cmd.mesh"
     },
@@ -426,6 +474,18 @@
     {
       "source": "Assets\\ModelFixes\\bvwalk.vdf",
       "runtime": "bvwalk.vdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crfraz.mesh",
+      "runtime": "crfraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crfraz.skeleton",
+      "runtime": "crfraz.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crfraz.vdf",
+      "runtime": "crfraz.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\crgrass.mesh",
@@ -710,6 +770,10 @@
     {
       "source": "Assets\\Textures\\cr_titan14_wet.png",
       "runtime": "cr_titan14_wet.png"
+    },
+    {
+      "source": "Assets\\Textures\\crfraz_d.dds",
+      "runtime": "crfraz_d.dds"
     },
     {
       "source": "Assets\\Textures\\crgrass.png",
@@ -2822,6 +2886,10 @@
     {
       "source": "Materials\\cr_weather.particle.payload",
       "runtime": "cr_weather.particle.payload"
+    },
+    {
+      "source": "Materials\\crfraz.material",
+      "runtime": "crfraz.material"
     },
     {
       "source": "Materials\\crgrass.material",
@@ -5052,6 +5120,26 @@
       "runtime": "cr16tow.odf"
     },
     {
+      "source": "ODF\\crfa0.odf",
+      "runtime": "crfa0.odf"
+    },
+    {
+      "source": "ODF\\crfarc.odf",
+      "runtime": "crfarc.odf"
+    },
+    {
+      "source": "ODF\\crfp0.odf",
+      "runtime": "crfp0.odf"
+    },
+    {
+      "source": "ODF\\crfpuls.odf",
+      "runtime": "crfpuls.odf"
+    },
+    {
+      "source": "ODF\\crfraz.odf",
+      "runtime": "crfraz.odf"
+    },
+    {
       "source": "ODF\\crping.odf",
       "runtime": "crping.odf"
     },
@@ -6478,6 +6566,10 @@
     {
       "source": "Scripts\\CREuropaWeather.lua",
       "runtime": "CREuropaWeather.lua"
+    },
+    {
+      "source": "Scripts\\CRFuryRoster.lua",
+      "runtime": "CRFuryRoster.lua"
     },
     {
       "source": "Scripts\\CRGroundFX.lua",

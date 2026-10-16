@@ -1,5 +1,6 @@
 -- Run from the repository root: lua5.1 Tools/Test-Misn17.lua
 -- Simulates BZR callbacks; verifies source-defined events and strict boundaries.
+CR_TEST_FAITHFUL = true -- The restored roster is covered by Test-FuryRoster.lua.
 local now, objects, labels, calls, distances, nearest, audio, pathdone, cancelled
 local serial, messages, checks = 0, 0, 0
 AiCommand = {NONE = 0, ATTACK = 3, DEFEND = 16}

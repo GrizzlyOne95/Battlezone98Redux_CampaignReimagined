@@ -1,5 +1,11 @@
 # misn18 DLL source port
 
+The marked 2026-10-16 CR roster adapter uses `CRFuryRoster.lua` to make restored
+fighters two-thirds of scripted Fury spawns, with a saved composition counter.
+The source-faithful tests bypass only that adapter; a separate test exercises
+the production closure. See [Fury fighter](FURY_FIGHTER.md). This remains an
+offline port, without a new co-op conversion.
+
 `Scripts/misn18.lua` ports the original `Misn18Mission` to stock Battlezone 98
 Redux Lua 5.1. It uses no Campaign Reimagined helper, EXU, or OpenShim APIs.
 

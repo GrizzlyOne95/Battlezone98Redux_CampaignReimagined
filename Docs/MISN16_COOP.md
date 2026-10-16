@@ -1,5 +1,9 @@
 # Mission 16: Strike at the Heart
 
+Fury roster amendment (2026-10-16): a restored `crfraz` pair is the recurring
+attacker; SAT strikes and SAV counterattacks retain their roles. The optional
+camera safety check includes fighters. See [Fury fighter](FURY_FIGHTER.md).
+
 This is the shared offline / 2–4 player prototype, built on CR's amended
 `misn16b` terrain and the stock selected map layout. The faithful mission body
 and disabled source comments remain in `Scripts/misn16.lua`; marked dispatch

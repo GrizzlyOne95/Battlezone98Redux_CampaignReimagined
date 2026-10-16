@@ -797,7 +797,7 @@ local function CameraSafe()
         for enemy in AllCraft() do
             if Alive(enemy) and GetTeamNum(enemy)==FURY_TEAM and Distance(h,enemy)<150
                     and (IsOdfBase(enemy,"hvsav") or IsOdfBase(enemy,"hvsat")
-                         or IsOdfBase(enemy,"cr16tow")) then return true end
+                         or IsOdfBase(enemy,"crfraz") or IsOdfBase(enemy,"cr16tow")) then return true end
         end
         return false
     end)
@@ -877,7 +877,9 @@ local function UpdateStory()
         else AudioMessage("misn1614.wav") end
     end
     if age>=s.nextSav then
-        Enqueue("enemy",{"hvsav"});s.nextSav=age+s.gap;s.gap=math.max(60,s.gap-5)
+        -- Replace the recurring attacker with the light fighter; retain heavy
+        -- SAT strikes and SAV counterattacks as distinct escalation roles.
+        Enqueue("enemy",{"crfraz","crfraz"});s.nextSav=age+s.gap;s.gap=math.max(60,s.gap-5)
     end
     if age>=s.nextSat then
         Enqueue("enemy",{"hvsat"},nil,nil,"strike1")

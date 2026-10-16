@@ -8,6 +8,20 @@
 -- Single player, stock BZR API only; no EXU/OpenShim dependency.
 local M
 
+-- CR Fury roster >>
+-- Keep the DLL event script intact beneath the owner-requested roster change.
+-- Team 2 is the enemy in this offline port; this does not make it a co-op port.
+local BuildObject = BuildObject
+if not CR_TEST_FAITHFUL then
+    local nativeBuild = BuildObject
+    local roster = require("CRFuryRoster")
+    BuildObject = function(odf, team, where, ...)
+        if team == 2 then odf = roster.Select(odf, M) end
+        return nativeBuild(odf, team, where, ...)
+    end
+end
+-- CR Fury roster <<
+
 local function NewState()
     local state = {}
     state.missionstart = false

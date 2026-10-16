@@ -72,4 +72,10 @@ check(F.count(p[1],"BuildObject")==0,"watched enemy sites defer spawns")
 for _,q in ipairs(p) do F.nearTo(q.player,"avrecy0_recycler") end
 F.run(2)
 check(F.count(p[1],"BuildObject")>0,"hidden arrivals recover")
+check(#F.builds(p[1],0,"crfraz")==2,"recurring wave is a pair of restored fighters")
+-- Do not steal a player's view while the new enemy is fighting nearby.
+w,p,m=setup(1)
+local foe=F.spawn("crfraz",6,0,0);F.nearTo(foe,p[1].player)
+F.kill("alien_hq");F.kill("alien_hangar");F.run(2)
+check(not m.cr16.sceneCamera,"nearby restored fighter prevents optional finale camera")
 print("misn16 scene: "..n.." checks passed")
