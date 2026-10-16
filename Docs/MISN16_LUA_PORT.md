@@ -1,5 +1,9 @@
 # misn16 DLL-source Lua 5.1 port
 
+For the subsequent map/cut-content audit and proposed offline/co-op integration,
+see [Mission 16 planning](MISN16_PLANNING.md). That proposal does not change this
+faithful reference port.
+
 `Scripts/misn16.lua` ports the complete active mission logic from
 [BZ1/from_bz2_dll_src/Misn16Mission.cpp](https://github.com/GrizzlyOne95/Battlezone_Source/blob/main/BZ1/from_bz2_dll_src/Misn16Mission.cpp).
 That DLL source is the sole behavior authority; no community Lua or Redux mission
@@ -107,7 +111,8 @@ rendering, audio queue, or the engine save-file serializer. The state restoratio
 test verifies the Lua callbacks and data, not native userdata serialization or
 restoration of camera/audio engine state.
 
-Current main has no misn16 map/terrain or `misn16.aip`. This checkpoint adds the
+This checkpoint has no playable misn16 BZN or tracked `misn16.aip`; the retained
+`misn16b` terrain companions are available for later integration. It adds the
 logic port, source snapshots, tests, and notes without registering the mission or
 changing the shipping lock. Integration needs the original map with its exact
 labels/paths, native AIP data and referenced assets, and LuaMission configuration.

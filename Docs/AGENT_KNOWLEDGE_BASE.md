@@ -859,6 +859,21 @@ own change).
 
 ## 10. Keeping this document current
 
+### Mission 16 map selection and cut-content evidence (2026-10-16)
+
+The installed stock campaign selects `misn16b.bzn` for Strike at the Heart.
+Both `misn16` maps use the same mission class; the suffix does not establish a
+second story phase. The selected `b` layout includes six spawn paths required
+by the active port but absent from the alternate map. Its unnamed paths and
+saved SAT/camera motion need deliberate handling during conversion. See
+`Docs/MISN16_PLANNING.md` for the asset inventory and proposal.
+
+Six available Mission 16 radio files have no active call in the audited source;
+only one is explicitly commented out there. Distinguish available unused
+dialogue, disabled code, shipped quirks and a proposed new set piece. In
+particular, the transport-escape VO and debrief support the story, but the
+inspected mission/map do not establish a recovered transport sequence.
+
 ### Terrain source and boundary preservation (2026-10-14)
 
 For the terrain prototype, see `Docs/TERRAIN_EDGE_PASS.md` and
