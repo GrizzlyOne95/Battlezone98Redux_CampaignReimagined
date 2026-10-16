@@ -37,6 +37,16 @@ foreach($mission in $Missions) {
     $child=Start-Process -FilePath $exe -ArgumentList $params -WindowStyle Hidden -PassThru -RedirectStandardOutput $log -RedirectStandardError ($log+'.err')
     $null=$child.Handle
     $child.WaitForExit()
+    # Run-BZRCoopMission's out-of-process watchdog finishes after its runner.
+    # Do not reuse session.json or start the next case until that specific
+    # watchdog is gone, or it could inspect the next run's live session.
+    $watchdogDeadline=(Get-Date).AddSeconds(60)
+    do {
+        $oldWatchdogs=@(Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" | Where-Object { $_.CommandLine -match 'Watch-BZRCoopRun' -and $_.CommandLine -match ('-ParentPid '+$child.Id+'(?: |$)') })
+        if(-not $oldWatchdogs.Count){break}
+        if((Get-Date) -gt $watchdogDeadline){throw 'The previous run watchdog has not finished; queue stopped.'}
+        Start-Sleep -Seconds 2
+    } while($true)
     $summaryPath=Join-Path $BZRCoopRoot ("runs\$runName\flow-summary.json")
     $result=if(Test-Path -LiteralPath $summaryPath) {Get-Content -LiteralPath $summaryPath -Raw | ConvertFrom-Json} else {$null}
     $verdict=if($result){$result.verdict}else{'INCOMPLETE'}
@@ -53,5 +63,6 @@ foreach($mission in $Missions) {
     }
     if(-not $result -or ($StopOnFailure -and $verdict -ne 'PASS')) {break}
 }
-@{started=$stamp;planned=$Missions;completed=@($rows);suite=$suite;state='finished'} | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $BZRCoopRoot 'qualification-status.json')
+$state=if(@($rows | Where-Object verdict -eq 'INCOMPLETE').Count){'stopped-incomplete'}else{'finished'}
+@{started=$stamp;planned=$Missions;completed=@($rows);suite=$suite;state=$state} | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $BZRCoopRoot 'qualification-status.json')
 if(@($rows | Where-Object verdict -ne 'PASS').Count){exit 1}
