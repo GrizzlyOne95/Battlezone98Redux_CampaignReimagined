@@ -31,7 +31,15 @@ for label,odf in {'cr15_nw_scav':'avscav','cr15_nw_apc':'avapc','cr15_nw_turret'
                   'cr15_ne_scav1':'avscav','cr15_ne_scav2':'avscav','cr15_ne_artillery':'avartl'}.items():
     assert labels[label]==odf
 for ext in ('trn','hg2','mat','lgt'):
-    assert (ROOT/'Missions'/f'misn15.{ext}').read_bytes()==(ROOT/'Missions'/f'misn15b.{ext}').read_bytes()
+    runtime=(ROOT/'Missions'/f'misn15.{ext}').read_bytes()
+    source=(ROOT/'Missions'/f'misn15b.{ext}').read_bytes()
+    # TRN is text: Git normalizes the new runtime stem but retains CRLF in
+    # the older source blob. Windows checkout conversion hid that difference.
+    # Binary terrain companions must still be byte-identical on every OS.
+    if ext == 'trn':
+        runtime=runtime.replace(b'\r\n',b'\n')
+        source=source.replace(b'\r\n',b'\n')
+    assert runtime==source, 'misn15b terrain companion content: '+ext
 for name in ('tank_path','alien_path','deny1','deny2','rescue_cam1','rescue_cam2'):
     assert f'label = {name}\n' in text
 assert not re.search(r'^label = path_1$',text,re.M)

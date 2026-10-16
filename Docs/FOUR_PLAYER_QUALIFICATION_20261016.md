@@ -79,6 +79,22 @@ offline, co-op and presentation suites remain the behavior checks.
 
 ## Human test handoff
 
+## Completed native progression
+
+| Map | Run | Result |
+| --- | --- | --- |
+| misn15 | `misn15-four-progression-20261016-082029` | PASS, four clients, 9 steps / 52 checks |
+
+Mission 15's guest recovered both waiting groups, all four clients saw the
+same forty native Tartarus mines, an absent guest blocked extraction with the
+reserve and Texas already present, and all four received exactly one shared
+victory. Presentation, Lua/rendering/label health, audio, native network
+diagnostics and final client liveness passed. Native DLL identities remained
+unchanged across the run. Travel, reserve, survivability and damage assists
+retain the limitations listed above.
+
+## Human test handoff
+
 Only hand over the exact native/content candidate used by passing runs. Host
 on team 1, use separate guest teams 2–4, and start together. Late join/rejoin
 requires restarting the mission; host departure ends it. Select the production
