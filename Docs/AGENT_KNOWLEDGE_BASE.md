@@ -967,7 +967,8 @@ registration on its caller thread. Do not hide caught rendering errors or
 switch renderer to obtain a green campaign result. An assisted key-ship swap
 in the Mission 12 scenario does not qualify physical sniping or boarding.
 
-Generated `crco_` label announcements must carry the native handle itself until
+Newly assigned label announcements, including custom mission names and `crco_`
+names, must carry the native handle itself until
 Send serializes it. A printable `@handle@label` string is not a native network
 identity and cannot bootstrap a label the guest has not received. Keep authored
 map labels unique as well. Host-owned static objects can need explicit peer
@@ -981,3 +982,11 @@ negative regression for a missing fourth-player operation. Native object deletio
 can arrive before a presentation RemoveObject event, so verify the previously
 observed guest objects are gone. Travel helpers that take object handles must not
 receive position vectors: use owner-local SetPosition for a vector assist.
+
+Compile the complete mission plus appended harness probe under Lua 5.1 before
+launching. A separately valid probe can exceed the mission chunk's 200-local
+limit; keep extra wrapper captures inside nested functions. A sampled event
+delivery check must allow bounded time to reach the authority's sampled
+watermark. Equality between two independent instantaneous reads can reject an
+in-flight event or a guest that has already received newer events. Keep actual
+undelivered watermarks and final presentation mismatches as failures.

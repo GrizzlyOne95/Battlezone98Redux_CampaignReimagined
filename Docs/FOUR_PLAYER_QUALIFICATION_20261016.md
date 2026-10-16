@@ -1,5 +1,11 @@
 # Four-player qualification, 16 October 2026
 
+**Result:** all nine selected core progression scenarios pass on the final
+candidate: 02b, 03, 04, 07, 08 and 12–15. Mission 13 and 14 recycler-loss
+scenarios also pass. The eleven selected reports total 125 steps / 496 checks.
+Each passing mission's script and BZN hashes match the frozen human candidate;
+native DLL identities remained unchanged. Earlier failed reports are retained.
+
 This workstream tests four real GOG Redux clients on the private loopback
 server. Mission assists accelerate travel/combat and act on each object's
 owner. Guest mission state is never assigned by the scenarios. A pass is scoped
@@ -89,6 +95,11 @@ offline, co-op and presentation suites remain the behavior checks.
 | misn04 | `misn04-four-progression-20261016-082029` | PASS, four clients, 20 steps / 41 checks |
 | misn13 | `misn13-four-progression-20261016-085411` | PASS, four clients, 8 steps / 44 checks |
 | misn14 | `misn14-four-progression-20261016-085411` | PASS, four clients, 10 steps / 54 checks |
+| misn02b | `misn02b-four-progression-20261016-091838` | PASS, four clients, 22 steps / 42 checks |
+| misn03 | `misn03-four-progression-20261016-124917` | PASS, four clients, 27 steps / 59 checks |
+| misn12 | `misn12-four-progression-20261016-124917` | PASS, four clients, 10 steps / 47 checks |
+| misn07 | `misn07-four-progression-20261016-124917` | PASS, four clients, 6 steps / 38 checks |
+| misn08 | `misn08-four-progression-20261016-124917` | PASS, four clients, 5 steps / 39 checks |
 
 Mission 15's guest recovered both waiting groups, all four clients saw the
 same forty native Tartarus mines, an absent guest blocked extraction with the
@@ -122,12 +133,72 @@ probe wrapper exceeded Lua 5.1's 200-local limit. The wrapper now captures its
 extra local in a nested function, and all nine complete instrumented missions
 compile. That failure is retained and requires a fresh native retry.
 
+Mission 02b's final label candidate passes the fourth-human intro skip, full
+scavenger chain, all presentation streams and shared victory with no unresolved
+labels. The label-binding fix applies native identity to custom assigned names
+as well as `crco_` names, while authored map objects fall back to their existing
+labels when native map-handle identity is unavailable.
+
+Mission 03's final-candidate run reached shared victory and passed final
+presentation/label/render/network health, but its immediate transport sample
+failed at 74 host events / 73 guest events. That report remains FAIL. OpenShim's
+follow-up waits up to 15 seconds for the sampled watermark, accepts a guest that
+has already advanced beyond that earlier sample, and still rejects undelivered
+events. Regression coverage includes all three cases. The fresh final-candidate
+retry passes every one of its 27 steps / 59 checks, including the transport
+sample, final presentation, shared victory and native network health.
+
+The later unattended runs of Missions 12, 07, 08 and the recycler-loss scenarios
+failed startup audio qualification before gameplay. They provide no story-path
+evidence. Fresh runs keep the audio gate enabled after the render endpoint is
+available again; do not substitute muted music/configuration or waive the gate.
+
+Mission 12's fresh final-candidate run passes every human's three checkpoint
+gates, the guest range-break and full 45-second uplink, extraction blocked by an
+absent human, and shared victory after everyone returns. Each client's native
+presentation stream matches its own authority dispatch plan. Labels, Lua,
+rendering, audio, liveness and native network health pass. Physical sniping and
+boarding remain unverified because this scenario supplies replacement key ships.
+
+Mission 07's core-objective retry passes guest rendezvous, radar-array
+destruction, Utah arrival and shared victory after the CCA recycler falls.
+All presentation and native-health gates pass; the alarm/parachute and restored
+test-range branches are outside this scenario.
+
+Mission 08's core-objective retry confirms base destruction alone cannot win;
+the fourth human then discovers the relic and all four receive shared victory.
+All presentation and native-health gates pass. The Colorado/walker sequence
+remains outside this scenario.
+
+## Shared-loss coverage
+
+| Map | Run | Result |
+| --- | --- | --- |
+| misn13 | `misn13-four-recycler-loss-20261016-130605` | PASS, four clients, 4 steps / 38 checks |
+| misn14 | `misn14-four-recycler-loss-20261016-130605` | PASS, four clients, 4 steps / 42 checks |
+
+Mission 13's loss run destroys the host-owned Texas and verifies exactly one
+`misn13f1.des` failure result per human, matching presentation, clean labels and
+script/rendering health, audio, liveness and native network health.
+
+Mission 14's loss run verifies the initial eight dormant Furies on every peer,
+then destroys the host-owned Texas and verifies exactly one `misn14l1.des`
+failure result per human. Presentation, label/script/rendering health, audio,
+liveness and native network health all pass.
+
 ## Human test handoff
 
 Only hand over the exact native/content candidate used by passing runs. Host
 on team 1, use separate guest teams 2–4, and start together. Late join/rejoin
 requires restarting the mission; host departure ends it. Select the production
 `CR: ... Coop` map listing. Confirm the same build on every PC before testing.
+
+The private handoff contains uninstrumented `CampaignContent/`, the selected
+`NativePayload/`, a SHA-256 candidate manifest, all eleven selected summaries
+and input identities under `Evidence/`, and a read-only verification script.
+The qualification index only admits PASS reports whose mission script and BZN
+hashes match that candidate. Full logs/captures stay in the private run folders;
+the archive excludes accounts, local redirects, debug configuration and caches.
 
 A separate-PC human session must check natural mission flow, briefing and
 objective clarity, real PDA/ping/rescue controls, player deaths/respawns and
