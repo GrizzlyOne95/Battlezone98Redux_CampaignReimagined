@@ -949,3 +949,20 @@ Changing an AiPath label also requires updating its `label.size` field to the
 encoded byte length. The native loader allocates from that count; a successful
 Toolbox reparse does not check their agreement. Mission 15's map contract checks
 every path's allocation length after renaming the duplicate editor labels.
+
+### Four-client evidence and cold startup (2026-10-16)
+
+Per-mission "not yet verified" sections can lag the native reports. Check the
+saved `flow-summary.json` participant array, scenario and actual result checks;
+a four-player filename or a short startup pass is not a complete story pass.
+The focused queue and coverage boundaries are in
+`Docs/FOUR_PLAYER_QUALIFICATION_20261016.md`. Require all four results and move
+all humans through extraction, not just the host and the original second-client
+fixture. Hash the selected native build before and after each run.
+
+A fourth cold client exposed a shader-resource hook installed only after CR's
+first Modable parse. OpenShim owns the correction: arm the identity-checked
+import hook before the expensive patch sweep, while keeping actual Ogre
+registration on its caller thread. Do not hide caught rendering errors or
+switch renderer to obtain a green campaign result. An assisted key-ship swap
+in the Mission 12 scenario does not qualify physical sniping or boarding.

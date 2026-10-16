@@ -103,7 +103,10 @@ for line in ('misn1402.wav', 'misn1423.wav', 'misn1424.wav', 'misn1425.wav', 'mi
              'misn1420.wav'):
     assert f'"{line}"' in lua, 'restored line missing: ' + line
 assert 'require, "CRTitanWeather"' in lua and 'pcall(TitanWeather.MissionHook' in lua, 'single guarded weather hook'
-assert 'Environment' not in lua, 'the Titan weather agent owns Environment wiring'
+assert 'Environment.Init({ nativeBaseline = true })' in lua, 'Titan captures the native baseline'
+assert 'Environment.BindWeatherSensors("Titan", TitanSensorDirector)' in lua, 'the shared sensor policy binds the Titan director'
+for event, call in (('update', 'Environment.Update'), ('object', 'Environment.OnObjectCreated')):
+    assert f'if event == "{event}" then {call}' in lua, 'Titan forwards the Environment lifecycle'
 assert 'if IsAlive(guy) and IsOdfBase(guy, "aspilo") then' in lua, 'SetIndependence allowlisted to aspilo'
 assert (root / 'Docs/MISN14_COOP.md').is_file()
 
