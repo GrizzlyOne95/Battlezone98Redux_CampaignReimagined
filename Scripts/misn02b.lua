@@ -178,7 +178,8 @@ end
 local function AnnounceLabel(handle, label)
     if announced[handle] == label then return end
     announced[handle] = label
-    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+    local identity = label:match("^crco_") and handle or ("@" .. HandleText(handle) .. "@" .. label)
+    events[#events + 1] = { op = "Label", args = { identity, label },
         n = 2, ttl = RESOLVE_TIMEOUT, handle = handle }
 end
 
@@ -988,7 +989,7 @@ local function ApplyPostLoadInit()
     end
 
     for h in AllCraft() do
-        SetObjectiveOff(h)
+        if not CRCoop.IsNetworkGame() or not CRCoop.IsHumanCraft(h) then SetObjectiveOff(h) end
     end
 end
 
@@ -1027,7 +1028,7 @@ function Start()
     BuildTerrainClutter()
 
     for h in AllCraft() do
-        SetObjectiveOff(h)
+        if not CRCoop.IsNetworkGame() or not CRCoop.IsHumanCraft(h) then SetObjectiveOff(h) end
     end
 
     M.loading_done = true

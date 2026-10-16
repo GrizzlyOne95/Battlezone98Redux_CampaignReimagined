@@ -192,7 +192,7 @@ local native = {
     ClearObjectives = ClearObjectives, AddObjective = AddObjective,
     UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
     SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
-    RemoveObject = RemoveObject,
+    RemoveObject = RemoveObject, SetTeamNum = SetTeamNum,
     SucceedMission = SucceedMission, FailMission = FailMission,
     CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
@@ -256,8 +256,8 @@ end
 -- the replicated handle), or "!" when the leader reports the object gone. Label is the
 -- event that makes a leader-side SetLabel on a spawned object true on every guest.
 local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
-    RemoveObject = true, Label = true }
-local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, Label = true }
+    RemoveObject = true, Label = true, SetTeamNum = true }
+local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, Label = true, SetTeamNum = true }
 local GONE = "!"
 -- Guests WAIT for the real object. This is only a never-hang guard: when it fires the
 -- guest logs "[coop] unresolved ..." and counts it in M.coopUnresolved (the harness probe
@@ -342,6 +342,9 @@ local function SetObjectiveOn(...) return Present("SetObjectiveOn", ...) end
 local function SetObjectiveOff(...) return Present("SetObjectiveOff", ...) end
 local function SetObjectiveName(...) return Present("SetObjectiveName", ...) end
 local function RemoveObject(...) return Present("RemoveObject", ...) end
+-- Authored buildings are local map objects, so their team changes must be
+-- applied explicitly on each peer. Dynamic craft keep native replication.
+local function SetSurrenderTeam(handle) return Present("SetTeamNum", handle, SURVIVOR_TEAM) end
 -- Preserve the real subtitle module for Update/Initialize and return values.
 -- Play returns the native audio handle on the leader (offline: AudioMessage's).
 subtit = setmetatable({
@@ -1600,17 +1603,17 @@ function Update(dt)
         --[[
             Convert the russian base
         ]]
-        if IsAlive(M.base) then SetTeamNum(M.base, SURVIVOR_TEAM) end
+        if IsAlive(M.base) then SetSurrenderTeam(M.base) end
 -- CR surrender >>
         -- Shipped 1.5: both power plants surrender with the base.
-        if IsAlive(M.pow1) then SetTeamNum(M.pow1, SURVIVOR_TEAM) end
-        if IsAlive(M.pow2) then SetTeamNum(M.pow2, SURVIVOR_TEAM) end
+        if IsAlive(M.pow1) then SetSurrenderTeam(M.pow1) end
+        if IsAlive(M.pow2) then SetSurrenderTeam(M.pow2) end
         TitanHook("beat", "surrender")
 -- CR surrender <<
-        if IsAlive(M.tow1) then SetTeamNum(M.tow1, SURVIVOR_TEAM) end
-        if IsAlive(M.tow2) then SetTeamNum(M.tow2, SURVIVOR_TEAM) end
-        if IsAlive(M.tow3) then SetTeamNum(M.tow3, SURVIVOR_TEAM) end
-        if IsAlive(M.tow4) then SetTeamNum(M.tow4, SURVIVOR_TEAM) end
+        if IsAlive(M.tow1) then SetSurrenderTeam(M.tow1) end
+        if IsAlive(M.tow2) then SetSurrenderTeam(M.tow2) end
+        if IsAlive(M.tow3) then SetSurrenderTeam(M.tow3) end
+        if IsAlive(M.tow4) then SetSurrenderTeam(M.tow4) end
     end
     if M.wave_count > 3 and not M.gen_message and M.rescue3 then
         SetScrap(ENEMY_TEAM, 0)

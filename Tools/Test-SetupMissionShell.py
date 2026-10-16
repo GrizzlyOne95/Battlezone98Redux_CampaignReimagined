@@ -110,6 +110,10 @@ base = parts[0].replace("seq_count [1] =\n532", "seq_count [1] =\n528", 1).repla
 base += "".join("[GameObject]" + block for block in kept)
 base = base.replace("name = MultSTMission", "name = LuaMission", 1)
 base = re.sub(r"(\[AOI\].*?team \[1\] =\n)6\n", r"\g<1>2\n", base, flags=re.S)
+# The co-op map gives the second turret a unique replication label. Setup
+# retains its original offline map, which never uses that label for transport.
+assert base.count("label = abtowe2_turret\n") == 1
+base = base.replace("label = abtowe2_turret\n", "label = abtowe0_turret\n", 1)
 assert bzn == base.replace("msn_filename = misn02b.bzn", "msn_filename = crsetup.bzn", 1).replace("TerrainName = misn02b", "TerrainName = crsetup", 1)
 for extension in ("trn", "hg2", "mat", "lgt"):
     assert (ROOT / "Missions" / ("crsetup." + extension)).is_file(), "setup terrain must be self-contained"

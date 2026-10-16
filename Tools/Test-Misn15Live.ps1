@@ -6,6 +6,7 @@ $H=$HostClient; $G=$GuestClient
 Invoke-CRFlowStep 'Mission 15 and its own methane surface initialize on every peer' {
     Wait-CRFlow $H 'return M.start_done and M.cr15 ~= nil' -TimeoutSeconds 90 | Out-Null
     foreach($c in @(Get-CRFlowClientIndices)) {
+        Invoke-CRFlow $c "every('qualificationHeal',0.5,function() heal(me()) end); return true" | Out-Null
         $state=Wait-CRFlow $c 'local t=require("CRTitanWeather"); return t.GetSurface().up and {surface=t.GetSurface(), sea=t.Sites.sea.level, map=t.Sites.mission}' -TimeoutSeconds 60
         Add-CRFlowCheck "c$c methane uses misn15 MAT/HG2 sites and its own material" ($state.map -eq 'misn15' -and $state.sea -eq 38.1 -and $state.surface.material -eq 'CR/Titan/Methane15') $state
     }
@@ -33,7 +34,7 @@ Invoke-CRFlowStep 'Tartarus warning and deliberate disturbance provoke one bound
     Invoke-CRFlow $H 'local h=GetHandle("ubtart0_i76building"); Damage(h,1); return true' | Out-Null
     Wait-CRFlow $H 'return M.cr15.tartarusResponseSpawned == true' -TimeoutSeconds 35
 }
-Invoke-CRFlowStep 'Persistent intrusion deploys the same bolt-mine grid on both peers' {
+Invoke-CRFlowStep 'Persistent intrusion deploys the same bolt-mine grid on every peer' {
     # Explicit survivability assist while inspecting the hostile grid.
     Invoke-CRFlow $G 'SetMaxHealth(me(),1000000); SetCurHealth(me(),1000000); return tp("ubtart0_i76building",60)' | Out-Null
     Wait-CRFlow $H 'return M.cr15.tartarusMinesPending ~= nil' -TimeoutSeconds 25 | Out-Null
@@ -49,12 +50,18 @@ Invoke-CRFlowStep 'Banked reserve starts withdrawal; missing guest blocks victor
     Invoke-CRFlow $H 'for i=1,3 do BuildObject("absilo",1,GetPositionNear(GetPosition(M.recy),80+i*25,90+i*25)) end; SetScrap(1,50); return {scrap=GetScrap(1),cap=GetMaxScrap(1)}' | Out-Null
     Wait-CRFlow $H 'return M.cr15.withdraw == true' -TimeoutSeconds 20 | Out-Null
     Invoke-CRFlow $H 'SetScrap(1,75); put(M.recy,"apcamr4_camerapod",40); tp("apcamr4_camerapod",30); return {scrap=GetScrap(1),cap=GetMaxScrap(1)}' | Out-Null
+    foreach($client in @(Get-CRFlowClientIndices | Where-Object {$_ -ne $G -and $_ -ne $H})) {
+        Invoke-CRFlow $client 'return tp("apcamr4_camerapod",30)' | Out-Null
+    }
     Start-Sleep -Seconds 3
     $blocked=Invoke-CRFlow $H 'return M.won ~= true'
     Add-CRFlowCheck '75 scrap and Texas alone cannot finish without guest' ([bool]$blocked) $blocked
 }
 Invoke-CRFlowStep 'All humans return and share the victory' {
-    Invoke-CRFlow $G 'return tp("apcamr4_camerapod",30)' | Out-Null
+    foreach($client in @(Get-CRFlowClientIndices)) {
+        Invoke-CRFlow $client 'return tp("apcamr4_camerapod",30)' | Out-Null
+    }
     foreach($c in @(Get-CRFlowClientIndices)) { Wait-CRFlowOp $c 'SucceedMission' -TimeoutSeconds 45 | Out-Null }
     return $true
 }
+Test-CRFlowResultParity -Expect SucceedMission -Debrief 'misn15w1.des' -Clients @(Get-CRFlowClientIndices)

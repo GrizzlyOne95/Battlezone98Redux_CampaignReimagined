@@ -161,7 +161,8 @@ end
 local function AnnounceLabel(handle, label)
     if announced[handle] == label then return end
     announced[handle] = label
-    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+    local identity = label:match("^crco_") and handle or ("@" .. HandleText(handle) .. "@" .. label)
+    events[#events + 1] = { op = "Label", args = { identity, label },
         n = 2, ttl = RESOLVE_TIMEOUT, handle = handle }
 end
 

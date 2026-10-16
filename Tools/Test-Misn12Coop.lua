@@ -154,6 +154,9 @@ local function makePeer(id, team, network)
         return p.player
     end
     e.GetHandle = function(label)
+        for h, object in pairs(objects) do
+            if object.alive and object.label == label then return h end
+        end
         if not objects[label] then
             local spec = LABELS[label]
             if spec then newObject(label, spec.odf, spec.team, spec.pos) else newObject(label, "x", 0) end
@@ -161,6 +164,9 @@ local function makePeer(id, team, network)
         return objects[label].alive and label or nil
     end
     e.GetLabel = function(h) return objects[h] and objects[h].label end
+    e.SetLabel = function(h, label)
+        if objects[h] then objects[h].label = label end
+    end
     e.IsValid = function(h) return type(h) == "string" and objects[h] ~= nil and objects[h].alive end
     e.IsAlive = e.IsValid
     e.IsOdf = function(h, odf) return e.IsValid(h) and objects[h].odf == odf end
@@ -253,6 +259,9 @@ local function makePeer(id, team, network)
     e.Send = function(to, kind, ...)
         record("Send", kind)
         local args = {...}
+        if kind == "E" and args[2] == "Label" and type(args[6]) == "string" and args[6]:match("^crco_") then
+            check(e.IsValid(args[5]), "generated label announcement carries the replicated handle, not a local handle string")
+        end
         for index = 1, select("#", ...) do
             -- A map-authored handle arrives as an invalid handle on a guest.
             if type(args[index]) == "string" and LABELS[args[index]] then args[index] = false end
