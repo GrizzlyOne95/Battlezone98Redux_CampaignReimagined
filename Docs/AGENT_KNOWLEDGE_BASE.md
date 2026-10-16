@@ -996,3 +996,15 @@ negative regression for a missing fourth-player operation. Native object deletio
 can arrive before a presentation RemoveObject event, so verify the previously
 observed guest objects are gone. Travel helpers that take object handles must not
 receive position vectors: use owner-local SetPosition for a vector assist.
+
+### Mission 16 captured CCA assets and escape reference (2026-10-16)
+
+Owner-approved art: copy the stock SDF/VDF and mesh, rebind a new material and
+texture; preserve geometry, rig and native hardpoints. Use `cr16cmd`, `cr16hng`,
+`cr16pwr`, `cr16tow` for every hostile CCA base instance in Mission 16. Allies
+keep normal CCA assets. Both tower hardpoints use a mission-local 200 m Bolt
+Buddy (ordnance lifetime must change as well as scan range). Keep CR's amended
+`misn16b` terrain. Mission 18 already provides the Fury transport: `hbtran00`
+hull and `hbtrn200` thrusters. Mission 16's unused boarding VO supports a new
+evacuation scene using those models; this is not proof of recovered takeoff
+logic or a working boarding animation. See `Docs/MISN16_PLANNING.md`.

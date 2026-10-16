@@ -1,7 +1,8 @@
 # Mission 16: Strike at the Heart â€” source audit and CR plan
 
 Audit date: 16 October 2026. Planning baseline: `a8a0701f`.
-This is a proposal, not an implemented mission or a live-test result.
+The mission remains a plan; the copied corrupted CCA assets are now prepared.
+This is not an implemented co-op mission or a live-test result.
 
 ## Recommended direction
 
@@ -60,8 +61,9 @@ Public source pointers:
 
 Both maps reference `misn16b.bzn` as their terrain name. For CR, generate a
 `misn16.bzn` runtime map from the original **misn16b** BZN and consistently bind
-its terrain companions. Use CR's retained unsmoothed height source after checking
-its provenance; do not replace it with Redux-smoothed heights.
+its terrain companions. **Owner decision:** use the amended `misn16b.hg2`,
+`.trn`, `.mat` and `.lgt` already retained in CR, byte-for-byte. Do not replace
+those with a newly extracted stock or Redux terrain set.
 
 Preserve the named mission routes: `camera_path1`, `starta/b`, their four
 additional ingress points, `sat1/2`, `strike1/2`, `edge_path`, and `path_4`.
@@ -125,17 +127,70 @@ The remaining six audio files exist in the stock English archive.
 
 ### Escape-scene decision
 
-Recommended first prototype: finish the two-facility objective without a mandatory
-chase or escort. The debrief already bridges to Mission 17. Add the transport
-finale only after choosing a location, appropriate craft appearance, visible
-approach/boarding/departure behavior and audio order. The stock archive contains
-landing/drop-related assets, but their suitability as a Fury evacuation transport
-is **UNKNOWN**. Asset names alone do not establish the intended model.
+The unused `misn1615` explicitly supports Furies boarding a transport and
+leaving Titan. The success debrief puts the survivors on Achilles. Mission 18's
+opening briefing says they are attempting to escape again. This supports a
+Mission 16 evacuation scene and continuity with Mission 18; it does not prove
+that both missions feature the identical individual ship.
+
+**PROVEN asset reference:** Mission 18 binds its hull as
+`hbtran0038_i76building` and its four thrusters as `hbtrn20049_i76building`
+through `hbtrn20052_i76building`. Their actual resource names are `hbtran00`
+and `hbtrn200`: stock SDF, mesh, skeleton and transport textures already exist.
+Reuse that Fury transport type for the first reconstruction. New hull geometry
+is not required. The stock objects are static `i76building` objects; the audit
+has not established a boarding or takeoff animation. Visible boarding, attached
+thrusters and a moving departure therefore need new CR staging/scripting and
+native validation, rather than assuming a vehicle Goto command will fly them.
+A working hatch or interior would be optional new modeling if the chosen shot
+requires it. No such model is required for an exterior evacuation shot.
+
+Keep the two-facility objective; the visible escape is a proposed finale,
+not an extra mandatory chase gate. Prestage the ship and evacuees, move the
+Furies visibly into the boarding area, and only remove them once occluded by
+the hull/boarding entrance. Do not make them disappear in open view.
 
 A scene must not spawn combat enemies beside an unsuspecting human, steal
 controls from a player under fire, leave guests waiting for a missing camera
 target, or turn an optional spectacle into an undocumented extra win gate.
 Preserve the ability to skip a local camera without skipping shared mission state.
+
+## Approved corrupted CCA infrastructure
+
+The owner approved the dark ribbed Fury corruption with cyan-blue energy,
+retaining recognizable CCA markings, and requested it for **all enemy CCA base
+structures in Mission 16**. The selected map contains exactly ten instances:
+
+| Stock resource | Mission 16 copy | Instances |
+| --- | --- | --- |
+| `sbhqcp` | `cr16cmd` | 1 command building (`alien_hq`) |
+| `sbhang` | `cr16hng` | 1 hangar (`alien_hangar`) |
+| `sbspow` | `cr16pwr` | 4 power plants |
+| `sbtowe` | `cr16tow` | 4 gun towers |
+
+Implementation is a direct copy of each SDF/VDF and mesh with a new material
+and diffuse texture. Skeleton copies preserve the source rigs. Native model
+descriptors and skeletons are byte-identical; mesh geometry, UVs, animations,
+bounds and hardpoints are unchanged. The mesh resource links are the only mesh
+edits. Original global CCA resources and allied CCA arrivals are unaffected.
+The copied ODFs preserve current CR building stats and behavior; both gun tower
+hardpoints use `cr16bolt`, with the copied `cr16b0` bolt extended to 200 m
+(`1e6` speed × `200e-6` lifetime), matching the tower's 200 m scan range.
+
+Assets are prepared in `Assets/ModelFixes`, `Assets/Textures`, `Materials` and
+`ODF`. Authoring PNGs and provenance are in `References/Misn16Fury`. Bind these
+four copied ODFs when generating the runtime map; preserve original labels so
+the source objective and counterattack handles still resolve. Any future enemy
+structure construction must use the corresponding copies as well. The faithful
+Lua reference is unchanged; the co-op map/runtime are still to be implemented.
+
+**Arrival requirement:** allies and enemies must enter naturally. Prefer
+preplaced forces driving in from hidden ingress, or a real production exit.
+For delayed construction, check every human and active cinematic viewpoint;
+use a hidden alternate entry or retry. The existing 400 m exclusion is a
+minimum, not proof of invisibility. Do not expose a BuildObject pop-in, teleport
+or removal just because it is outside the host's view. Keep arrival timing and
+radio aligned with the actual entrance. This policy still needs runtime work.
 
 ## Co-op design proposal
 
