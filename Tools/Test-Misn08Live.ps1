@@ -16,7 +16,7 @@ Invoke-CRFlowStep 'CCA base destroyed; missing relic prevents victory (ASSIST: h
 }
 Invoke-CRFlowStep 'Fourth human discovers the relic; every peer wins (ASSIST: owner-local travel)' {
     $pos=Invoke-CRFlow 0 'return xyz(M.main_relic)'
-    Invoke-CRFlow $participants[-1] ('return tp(SetVector('+($pos -join ',')+'),35)') | Out-Null
+    Invoke-CRFlow $participants[-1] ('local p=SetVector('+($pos -join ',')+');p.x=p.x+25;p.y=p.y+3;SetPosition(me(),p);SetVelocity(me(),SetVector(0,0,0));return true') | Out-Null
     foreach($client in $participants) { Wait-CRFlowOp $client SucceedMission 'misn08w1.des' -TimeoutSeconds 35 | Out-Null }
 }
 Test-CRFlowResultParity -Expect SucceedMission -Debrief 'misn08w1.des' -Clients $participants

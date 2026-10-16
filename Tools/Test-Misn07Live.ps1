@@ -8,8 +8,8 @@ Invoke-CRFlowStep 'Mission 7 starts and all humans survive the test assists' {
 }
 Invoke-CRFlowStep 'Guest meets the allied tanks (ASSIST: guest travel)' {
     $pos=Invoke-CRFlow 0 'return xyz(M.wingtank2)'
-    Invoke-CRFlow 1 ('return tp(SetVector('+($pos -join ',')+'),50)') | Out-Null
-    Wait-CRFlow 0 'return M.rendezvous' -TimeoutSeconds 25 | Out-Null
+    Invoke-CRFlow 1 ('local p=SetVector('+($pos -join ',')+');p.x=p.x+25;p.y=p.y+3;SetPosition(me(),p);SetVelocity(me(),SetVector(0,0,0));return true') | Out-Null
+    Wait-CRFlow 0 'return M.rendezvous' -TimeoutSeconds 35 | Out-Null
     foreach($client in $participants) { Wait-CRFlowOp $client AddObjective 'misn0701.otf' -TimeoutSeconds 20 | Out-Null }
 }
 Invoke-CRFlowStep 'Radar array falls; Utah convoy arrives (ASSIST: host damage and travel deadline)' {

@@ -19,7 +19,11 @@ if($Mode -eq 'recycler-loss') {
     return
 }
 Invoke-CRFlowStep 'CCA AIP is active under native MultST (ASSIST: AIP deadline)' {
-    Invoke-CRFlow $H "ff('^set_aip_time$'); return true" | Out-Null
+    # The first attack schedules the initial AIP deadline. Pull it first;
+    # changing the sentinel before that beat is intentionally a no-op.
+    Invoke-CRFlow $H 'M.first_wave_time=GetTime()-1;return true' | Out-Null
+    Wait-CRFlow $H 'return M.first_wave' -TimeoutSeconds 20 | Out-Null
+    Invoke-CRFlow $H 'M.set_aip_time=GetTime()-1;return true' | Out-Null
     $plan=Wait-CRFlow $H 'local p=GetAIP(5);return p and p~="" and p~="nil" and p' -TimeoutSeconds 30
     Add-CRFlowCheck 'CCA native AIP assigned' ($plan -match 'misn13') $plan
 }

@@ -19,6 +19,8 @@ assert "name = MultSTMission\n" in bzn, "offline/online map must use MultSTMissi
 assert b"\r\n" in (root / "Missions" / "misn02b.bzn").read_bytes(), "native BZN needs CRLF"
 
 blocks = bzn.split("[GameObject]")[1:]
+labels = [m.group(1) for block in blocks if (m := re.search(r'^label = (.+)$', block, re.M))]
+assert len(labels) == len(set(labels)), 'authored labels must resolve the same object on every peer'
 enemy_blocks = []
 spawn_teams = []
 for block in blocks:

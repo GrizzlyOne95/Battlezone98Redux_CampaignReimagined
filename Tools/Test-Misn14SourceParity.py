@@ -99,7 +99,9 @@ check(active.count('BuildObject("hvsav", FURY_TEAM, "alien') == 9, "the DLL's wa
 check(active.count('BuildObject("aspilo", SURVIVOR_TEAM, "help') == 9, "survivors on team 7")
 check(active.count('BuildObject("apcamr", 1, "rescue') == 3, "beacons stay on the shared team 1")
 check("if GetTeamNum(h) == ENEMY_TEAM then" in active, "the surrender loop flips the CCA team only")
-check(active.count(", SURVIVOR_TEAM) end") == 5, "the base and four towers surrender to team 7 (was team 1)")
+check(all(f'if IsAlive(M.{key}) then SetSurrenderTeam(M.{key}) end' in active
+          for key in ('base','tow1','tow2','tow3','tow4')),
+      "the base and four towers surrender through the replicated team-7 setter")
 # 2. Single-player handles -> any-human checks.
 check("AnyPlayerWithin(M.beacon1, 200.0)" in active, "the beacon reminder fires for any human")
 check(active.count("HasCarrier() and not M.rescue") == 3 and active.count("CarrierNear(M.beacon") == 3,

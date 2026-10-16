@@ -107,6 +107,16 @@ check(F.team("svscav55_scavenger") == 0, "CCA craft go to team 0")
 for _, label in ipairs({"sbbarr0_i76building", "sblpow1_powerplant", "sblpow55_powerplant", "sbtowe0_turret"}) do
     check(F.team(label) == 7, label .. " to team 7")
 end
+F.run(3)
+for _, guest in ipairs(guests) do
+    for _, label in ipairs({"sbbarr0_i76building", "sblpow1_powerplant", "sblpow55_powerplant"}) do
+        local applied = false
+        for _, call in ipairs(F.callsOf(guest, "SetTeamNum")) do
+            if call[2] == label and call[3] == 7 then applied = true end
+        end
+        check(applied, "guest applies authored building surrender: " .. label)
+    end
+end
 -- Wave 4 with 4 humans: two Fury Tanks (clear the field so the cap does not trim it).
 for _, b in ipairs(F.builds(host, 0, "hvsav")) do F.kill(b.h) end
 mark = #host.calls

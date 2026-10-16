@@ -77,13 +77,12 @@ after the shared weather-sensor policy had merged. It now positively requires
 the native baseline, Titan sensor binding and lifecycle forwarding. The
 offline, co-op and presentation suites remain the behavior checks.
 
-## Human test handoff
-
 ## Completed native progression
 
 | Map | Run | Result |
 | --- | --- | --- |
 | misn15 | `misn15-four-progression-20261016-082029` | PASS, four clients, 9 steps / 52 checks |
+| misn04 | `misn04-four-progression-20261016-082029` | PASS, four clients, 20 steps / 41 checks |
 
 Mission 15's guest recovered both waiting groups, all four clients saw the
 same forty native Tartarus mines, an absent guest blocked extraction with the
@@ -92,6 +91,19 @@ victory. Presentation, Lua/rendering/label health, audio, native network
 diagnostics and final client liveness passed. Native DLL identities remained
 unchanged across the run. Travel, reserve, survivability and damage assists
 retain the limitations listed above.
+
+The first matrix found generated-label identity failures in Missions 02b, 03
+and 12, and static surrender ownership that remained host-local in Mission 14.
+The repair candidate sends generated-label bindings with native handle identity,
+gives the second authored Mission 02b turret a unique label, and presents static
+Mission 14 surrender ownership on each peer. Mission 12's presentation check
+compares each player's operations against the authority's recipient-specific
+dispatch plan, with regression coverage for a missing fourth-player operation.
+
+Scenario repairs also wait for Mission 13's first wave before shortening its AIP
+deadline, verify actual cinematic-prop deletion in Mission 03, and use direct
+owner-local vector positioning for Mission 07/08 travel. The failed reports are
+retained; these changes require fresh native runs before adding passing rows.
 
 ## Human test handoff
 

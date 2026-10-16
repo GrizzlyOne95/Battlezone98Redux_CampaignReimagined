@@ -349,7 +349,11 @@ end
 local function AnnounceLabel(handle, label)
     if announced[handle] == label then return end
     announced[handle] = label
-    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+    -- A generated label does not exist on the receiver yet. Preserve the
+    -- native Handle value so Send serializes its network identity; encoding
+    -- it inside a string loses that mapping across peers.
+    local identity = label:match("^crco_") and handle or ("@" .. HandleText(handle) .. "@" .. label)
+    events[#events + 1] = { op = "Label", args = { identity, label },
         n = 2, ttl = RESOLVE_TIMEOUT, handle = handle, target = 0 }
 end
 
