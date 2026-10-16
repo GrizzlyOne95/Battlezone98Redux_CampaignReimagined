@@ -110,6 +110,7 @@ the Steam exe is SteamStub-packed, so let runtime bytes settle before comparing.
 | Per-mission docs | `Docs/MISNNN_SOURCE_PORT.md`, `Docs/MISNNN_COOP.md`, `Docs/*_LUA_PORT.md` | Why each divergence from the original exists, owner decisions, live-check lists. | Co-op docs end with *inferences* and an unrun live checklist; read both. |
 | Early mission audit | `Docs/EARLY_MISSION_SOURCE_AUDIT.md` | Native vs port phase coverage for misn02b-05. | Differences alone are not omissions (QOL changes are intentional). |
 | Transcripts | `Tools/TranscriptSources/GoombaBZ/campaigns.csv` (778 lines), `units.csv`, README | Mission titles, VO line text, which wavs exist. `Tools/Import-GoombaTranscripts.py --check` is a CI step. | Annotations are upstream data kept verbatim and **often wrong** ("Unused voiceover" on lines that do play, e.g. `misn1303`). Verify against the source and the Lua. |
+| Original guide / cut VO audit | `Docs/ORIGINAL_GUIDE_LORE_AND_CUT_CONTENT_20261016.md` | 1998 strategy-guide Cthonian/Tartarus/Titan lore, Achilles crystal-sabotage evidence, Titan-to-Achilles transition, unused-recordings restoration backlog. | Separate published guide narrative, recorded audio, archived source, CR implementation and inference. The owner's full guide OCR is **not** committed to this public repo. |
 | Terrain codecs | WorldBuilder repo (see 1) | `.mat`, `.hg2`, `.trn` structure. | `.mat` is zone-major with Base in the high bits; use the codecs, not hex guesses. |
 | Pilot Mode notes | `Docs/PILOT_MODE_CAMPAIGN.md` | Per-mission N64 Pilot branches, to tune `PlayerPilotMode`. | Offline only. |
 | Lua API ground truth | `Docs/BZR_LUA_AGENT_REFERENCE.md` | Lua-facing engine APIs. | Hash-pinned across four repos; do not edit (section 7). |
@@ -827,6 +828,8 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 ---
 
 ## 9. Decision log pointers and active work
+
+**Original 1998 guide / cut campaign VO (2026-10-16):** `Docs/ORIGINAL_GUIDE_LORE_AND_CUT_CONTENT_20261016.md` records the owner-provided Shane Mooney guide findings, the Tartarus/Titan warning (not a proven boss), the potential Mission 17 processed/unprocessed crystal mechanic, and other cut-dialogue leads. **[owner goal]** restore the Achilles crystal idea after map/1.5-source verification; keep faithful Lua behavior distinguished from newly authored CR extensions. Mission 4-7/12/13/15 cut VO already restored must not be added a second time. This is a research/backlog checkpoint, not approval of a specific gameplay design.
 
 Per-mission owner decisions live in the mission docs (read their "owner decision" sections before
 changing behaviour). Highlights:
