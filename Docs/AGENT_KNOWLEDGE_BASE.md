@@ -966,3 +966,18 @@ import hook before the expensive patch sweep, while keeping actual Ogre
 registration on its caller thread. Do not hide caught rendering errors or
 switch renderer to obtain a green campaign result. An assisted key-ship swap
 in the Mission 12 scenario does not qualify physical sniping or boarding.
+
+Generated `crco_` label announcements must carry the native handle itself until
+Send serializes it. A printable `@handle@label` string is not a native network
+identity and cannot bootstrap a label the guest has not received. Keep authored
+map labels unique as well. Host-owned static objects can need explicit peer
+presentation of surrender `SetTeamNum`; check the actual buildings on every
+guest rather than only the authority's mission flag. Dynamic craft ownership
+continues through native replication.
+
+Per-human objective panels intentionally differ. Compare each peer's native
+operations with the authority's recipient-specific dispatch plan, and retain a
+negative regression for a missing fourth-player operation. Native object deletion
+can arrive before a presentation RemoveObject event, so verify the previously
+observed guest objects are gone. Travel helpers that take object handles must not
+receive position vectors: use owner-local SetPosition for a vector assist.
