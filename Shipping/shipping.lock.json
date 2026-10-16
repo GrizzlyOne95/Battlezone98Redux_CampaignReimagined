@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-15T14:45:09-05:00",
-  "count": 2556,
+  "generated": "2026-10-16T13:58:46-05:00",
+  "count": 2601,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -364,6 +364,54 @@
       "runtime": "bvwalk_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cr16cmd.mesh",
+      "runtime": "cr16cmd.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16cmd.sdf",
+      "runtime": "cr16cmd.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16cmd.skeleton",
+      "runtime": "cr16cmd.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16hng.mesh",
+      "runtime": "cr16hng.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16hng.sdf",
+      "runtime": "cr16hng.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16hng.skeleton",
+      "runtime": "cr16hng.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16pwr.mesh",
+      "runtime": "cr16pwr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16pwr.sdf",
+      "runtime": "cr16pwr.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16pwr.skeleton",
+      "runtime": "cr16pwr.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16tow.mesh",
+      "runtime": "cr16tow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16tow.skeleton",
+      "runtime": "cr16tow.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr16tow.vdf",
+      "runtime": "cr16tow.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cr_methane_plane.mesh",
       "runtime": "cr_methane_plane.mesh"
     },
@@ -570,6 +618,22 @@
     {
       "source": "Assets\\Textures\\bvrdev_d.dds",
       "runtime": "bvrdev_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16cmd_d.dds",
+      "runtime": "cr16cmd_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16hng_d.dds",
+      "runtime": "cr16hng_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16pwr_d.dds",
+      "runtime": "cr16pwr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16tow_d.dds",
+      "runtime": "cr16tow_d.dds"
     },
     {
       "source": "Assets\\Textures\\cr_arc.dds",
@@ -2672,6 +2736,22 @@
       "runtime": "cbwpow.material"
     },
     {
+      "source": "Materials\\cr16cmd.material",
+      "runtime": "cr16cmd.material"
+    },
+    {
+      "source": "Materials\\cr16hng.material",
+      "runtime": "cr16hng.material"
+    },
+    {
+      "source": "Materials\\cr16pwr.material",
+      "runtime": "cr16pwr.material"
+    },
+    {
+      "source": "Materials\\cr16tow.material",
+      "runtime": "cr16tow.material"
+    },
+    {
       "source": "Materials\\CR_BZBase.material",
       "runtime": "CR_BZBase.material"
     },
@@ -3766,6 +3846,34 @@
     {
       "source": "Missions\\misn15b.trn",
       "runtime": "misn15b.trn"
+    },
+    {
+      "source": "Missions\\misn16.bzn",
+      "runtime": "misn16.bzn"
+    },
+    {
+      "source": "Missions\\misn16.hg2",
+      "runtime": "misn16.hg2"
+    },
+    {
+      "source": "Missions\\misn16.lgt",
+      "runtime": "misn16.lgt"
+    },
+    {
+      "source": "Missions\\misn16.mat",
+      "runtime": "misn16.mat"
+    },
+    {
+      "source": "Missions\\misn16.trn",
+      "runtime": "misn16.trn"
+    },
+    {
+      "source": "Missions\\misn16.vxt",
+      "runtime": "misn16.vxt"
+    },
+    {
+      "source": "Missions\\misn16b.bzn",
+      "runtime": "misn16b.bzn"
     },
     {
       "source": "Missions\\misn16b.hg2",
@@ -4918,6 +5026,30 @@
     {
       "source": "ODF\\cptesla.odf",
       "runtime": "cptesla.odf"
+    },
+    {
+      "source": "ODF\\cr16b0.odf",
+      "runtime": "cr16b0.odf"
+    },
+    {
+      "source": "ODF\\cr16bolt.odf",
+      "runtime": "cr16bolt.odf"
+    },
+    {
+      "source": "ODF\\cr16cmd.odf",
+      "runtime": "cr16cmd.odf"
+    },
+    {
+      "source": "ODF\\cr16hng.odf",
+      "runtime": "cr16hng.odf"
+    },
+    {
+      "source": "ODF\\cr16pwr.odf",
+      "runtime": "cr16pwr.odf"
+    },
+    {
+      "source": "ODF\\cr16tow.odf",
+      "runtime": "cr16tow.odf"
     },
     {
       "source": "ODF\\crping.odf",
@@ -10172,20 +10304,60 @@
       "runtime": "misn1512.wav"
     },
     {
+      "source": "Assets\\Audio\\misn1609.wav",
+      "runtime": "misn1609.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1610.wav",
+      "runtime": "misn1610.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1611.wav",
+      "runtime": "misn1611.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1614.wav",
+      "runtime": "misn1614.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1615.wav",
+      "runtime": "misn1615.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1616.wav",
+      "runtime": "misn1616.wav"
+    },
+    {
       "source": "Assets\\Graphics\\misn15.bmp",
       "runtime": "misn15.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misn16.bmp",
+      "runtime": "misn16.bmp"
     },
     {
       "source": "Assets\\Textures\\cr_titan15_wet.png",
       "runtime": "cr_titan15_wet.png"
     },
     {
+      "source": "Assets\\Textures\\cr_titan16_wet.png",
+      "runtime": "cr_titan16_wet.png"
+    },
+    {
       "source": "Config\\misn15.ini",
       "runtime": "misn15.ini"
     },
     {
+      "source": "Config\\misn16.ini",
+      "runtime": "misn16.ini"
+    },
+    {
       "source": "misn15.des",
       "runtime": "misn15.des"
+    },
+    {
+      "source": "misn16.des",
+      "runtime": "misn16.des"
     },
     {
       "source": "Missions\\misn15.bzn",
@@ -10216,8 +10388,16 @@
       "runtime": "CRMisn15.lua"
     },
     {
+      "source": "Scripts\\CRMisn16.lua",
+      "runtime": "CRMisn16.lua"
+    },
+    {
       "source": "Scripts\\CRTitanSites15.lua",
       "runtime": "CRTitanSites15.lua"
+    },
+    {
+      "source": "Scripts\\CRTitanSites16.lua",
+      "runtime": "CRTitanSites16.lua"
     },
     {
       "source": "Text\\misn15l2.des",

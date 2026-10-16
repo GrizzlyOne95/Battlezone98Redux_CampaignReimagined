@@ -28,6 +28,7 @@ check(git_blob(HEADER.read_bytes()) == "54fe03a6d9e7e8fb5178801a486512b52350d5e4
       "DLL header snapshot differs from upstream blob")
 source = SOURCE.read_text()
 port = PORT.read_text()
+port = re.sub(r"-- CR runtime >>.*?-- CR runtime <<", "", port, flags=re.S)
 comments = re.findall(r"/\*.*?\*/|//[^\n]*", source, re.S)
 for index, comment in enumerate(comments, 1):
     check(comment in port, f"Missing or modified source comment {index}: {comment}")

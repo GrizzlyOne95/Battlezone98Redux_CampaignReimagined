@@ -7,7 +7,8 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 WAVS = (['misn0232', 'misn0407', 'misn0426', 'misn0428']
         + ['misn06%02d' % n for n in range(15, 28)] + ['misn0639', 'misn0641', 'misn0652']
-        + ['misn0910', 'misn0917', 'misn1224', 'misn1506', 'misn1508', 'misn1512'])
+        + ['misn0910', 'misn0917', 'misn1224', 'misn1506', 'misn1508', 'misn1512']
+        + ['misn1609','misn1610','misn1611','misn1614','misn1615','misn1616'])
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8'))
 members = {e['source'].replace(chr(92), '/'): e['runtime'] for e in lock['files']}
 sources = ''.join(p.read_text(encoding='utf-8', errors='replace')
@@ -17,8 +18,8 @@ for name in WAVS:
     data = (root / 'Assets/Audio' / wav).read_bytes()
     assert data[:4] == b'RIFF' and data[8:16] == b'WAVEfmt ', wav + ' is not a RIFF/WAVE file'
     assert int.from_bytes(data[20:22], 'little') == 1 and int.from_bytes(data[22:24], 'little') == 1
-    # These three original English assets are 22050 Hz; preserve their bytes.
-    rate = 22050 if name in ('misn1506', 'misn1508', 'misn1512') else 11025
+    # These original English assets are 22050 Hz; preserve their bytes.
+    rate = 22050 if name in ('misn1506', 'misn1508', 'misn1512', 'misn1614') else 11025
     assert int.from_bytes(data[24:28], 'little') == rate and int.from_bytes(data[34:36], 'little') == 8
     assert members.get('Assets/Audio/' + wav) == wav, 'Voice line must be admitted by the shipping manager: ' + wav
     assert (root / 'Text' / (name + '.txt')).is_file(), 'Voice line needs a subtitle: ' + name

@@ -28,6 +28,12 @@ end
 
 -- State exists before Start because map loading can deliver AddObject early.
 local M = NewState()
+-- CR runtime >>
+local campaignRuntime = not rawget(_G,"CR_TEST_FAITHFUL") and require("CRMisn16").Create(function() return M end)
+local CRCoop = campaignRuntime and campaignRuntime.Coop
+local exu = campaignRuntime and campaignRuntime.Exu
+local native = campaignRuntime and campaignRuntime.Native
+-- CR runtime <<
 
 local function Valid(h)
     return h ~= nil and h ~= 0 and IsValid(h)
@@ -61,10 +67,16 @@ local function AttackIfValid(me, target, priority)
 end
 
 function Start()
+-- CR runtime >>
+    if campaignRuntime then return campaignRuntime.Start() end
+-- CR runtime <<
     M = NewState()
 end
 
 function AddObject(h)
+-- CR runtime >>
+    if campaignRuntime then return campaignRuntime.AddObject(h) end
+-- CR runtime <<
     -- Whenever a new soviet unit is added, that unit storms toward the alien base.
     if not Valid(h) or GetTeamNum(h) ~= 1 then return end
     local combat = IsOdf(h, "svtank") or IsOdf(h, "svturr")
@@ -136,6 +148,9 @@ local function Reinforcement()
 end
 
 function Update(dt)
+-- CR runtime >>
+    if campaignRuntime then return campaignRuntime.Update(dt) end
+-- CR runtime <<
     -- Preserve native Execute order; independent blocks can fire in one update.
     local player = GetPlayerHandle()
     if not M.start_done then
@@ -285,6 +300,9 @@ function Update(dt)
 end
 
 function Save()
+-- CR runtime >>
+    if campaignRuntime then campaignRuntime.Save() end
+-- CR runtime <<
     return M
 end
 
@@ -292,6 +310,9 @@ function Load(state)
     -- Stock LuaMission serializes tables, object handles, vectors, and messages.
     -- Do not rerun Start/Setup, briefings, AI selection, or random choices here.
     M = state
+-- CR runtime >>
+    if campaignRuntime then campaignRuntime.Load() end
+-- CR runtime <<
 end
 
 -- Every original C++ comment, in source order (including native lifecycle).
@@ -430,3 +451,10 @@ end
 
 // ints
 ]====]
+
+-- CR runtime >>
+function CreatePlayer(...) return campaignRuntime.CreatePlayer(...) end
+function AddPlayer(...) return campaignRuntime.AddPlayer(...) end
+function DeletePlayer(...) return campaignRuntime.DeletePlayer(...) end
+function Receive(...) return campaignRuntime.Receive(...) end
+-- CR runtime <<

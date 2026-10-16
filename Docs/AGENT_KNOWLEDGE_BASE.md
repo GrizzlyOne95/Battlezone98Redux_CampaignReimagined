@@ -862,6 +862,21 @@ own change).
 
 ## 10. Keeping this document current
 
+### Mission 16 map selection and cut-content evidence (2026-10-16)
+
+The installed stock campaign selects `misn16b.bzn` for Strike at the Heart.
+Both `misn16` maps use the same mission class; the suffix does not establish a
+second story phase. The selected `b` layout includes six spawn paths required
+by the active port but absent from the alternate map. Its unnamed paths and
+saved SAT/camera motion need deliberate handling during conversion. See
+`Docs/MISN16_PLANNING.md` for the asset inventory and proposal.
+
+Six available Mission 16 radio files have no active call in the audited source;
+only one is explicitly commented out there. Distinguish available unused
+dialogue, disabled code, shipped quirks and a proposed new set piece. In
+particular, the transport-escape VO and debrief support the story, but the
+inspected mission/map do not establish a recovered transport sequence.
+
 ### Terrain source and boundary preservation (2026-10-14)
 
 For the terrain prototype, see `Docs/TERRAIN_EDGE_PASS.md` and
@@ -993,3 +1008,30 @@ delivery check must allow bounded time to reach the authority's sampled
 watermark. Equality between two independent instantaneous reads can reject an
 in-flight event or a guest that has already received newer events. Keep actual
 undelivered watermarks and final presentation mismatches as failures.
+
+### Mission 16 captured CCA assets and escape reference (2026-10-16)
+
+Owner-approved art: copy the stock SDF/VDF and mesh, rebind a new material and
+texture; preserve geometry, rig and native hardpoints. Use `cr16cmd`, `cr16hng`,
+`cr16pwr`, `cr16tow` for every hostile CCA base instance in Mission 16. Allies
+keep normal CCA assets. Both tower hardpoints use a mission-local 200 m Bolt
+Buddy (ordnance lifetime must change as well as scan range). Keep CR's amended
+`misn16b` terrain. Mission 18 already provides the Fury transport: `hbtran00`
+hull and `hbtrn200` thrusters. Mission 16's unused boarding VO supports a new
+evacuation scene using those models; this is not proof of recovered takeoff
+logic or a working boarding animation. See `Docs/MISN16_PLANNING.md`.
+
+Mission 16 evacuation prototype now uses a preplaced stock Mission 18 assembly
+and two SATs beyond edge_path, on a local type-1 Titan pad. Static hull/engine
+movement is a visual translation per peer after an acknowledged scene event;
+never issue craft AI commands to it. Publish scene identities before boarding
+removals so a late initial Label cannot block the ordered stream. Register new
+scene opcodes in both ApplyPresentation and ReceivePresentation's allowlist.
+See `Docs/MISN16_COOP.md` for validation boundaries.
+
+The native SAV class is the flying Fury and can ignore a cinematic Goto in
+favor of its attack behavior. Use the ground SAT for evacuation actors and
+script their route velocity, keeping the two lanes separated; the native AIP
+can supersede ordinary enemy movement orders. Keep boarding pockets outside
+engine collision shapes and stop accepting boarders before launch. The pad
+film also needs a camera high enough to clear the southern foreground ridge.

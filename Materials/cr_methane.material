@@ -121,3 +121,9 @@ material CR/Titan/Methane15 : CR/Titan/Methane
 {
 	set_texture_alias WetMask cr_titan15_wet.png
 }
+
+// Mission 16: its own amended terrain and evacuation pad exclusion.
+material CR/Titan/Methane16 : CR/Titan/Methane
+{
+    set_texture_alias WetMask cr_titan16_wet.png
+}
