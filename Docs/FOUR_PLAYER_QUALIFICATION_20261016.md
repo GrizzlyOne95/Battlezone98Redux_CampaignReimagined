@@ -40,6 +40,10 @@ build first. The runtime root is disposable and must not be a player install.
 Each mission has a private listing override at `listings/<map>/<map>.ini` whose
 title sorts first; the production listing is unchanged.
 
+Run OpenShim's `reverse_engineering/coopflow/Test-CRFlowMissionParsing.ps1
+-CampaignScripts <CR-checkout>\Scripts` first. It compiles the full mission plus
+probe under Lua 5.1; checking the probe alone misses the main chunk's local limit.
+
 ```powershell
 .\Tools\Run-CoopFourQualification.ps1 `
   -HarnessRepo <selected-OpenShim-checkout> `
@@ -83,6 +87,8 @@ offline, co-op and presentation suites remain the behavior checks.
 | --- | --- | --- |
 | misn15 | `misn15-four-progression-20261016-082029` | PASS, four clients, 9 steps / 52 checks |
 | misn04 | `misn04-four-progression-20261016-082029` | PASS, four clients, 20 steps / 41 checks |
+| misn13 | `misn13-four-progression-20261016-085411` | PASS, four clients, 8 steps / 44 checks |
+| misn14 | `misn14-four-progression-20261016-085411` | PASS, four clients, 10 steps / 54 checks |
 
 Mission 15's guest recovered both waiting groups, all four clients saw the
 same forty native Tartarus mines, an absent guest blocked extraction with the
@@ -104,6 +110,17 @@ Scenario repairs also wait for Mission 13's first wave before shortening its AIP
 deadline, verify actual cinematic-prop deletion in Mission 03, and use direct
 owner-local vector positioning for Mission 07/08 travel. The failed reports are
 retained; these changes require fresh native runs before adding passing rows.
+
+Mission 13's retry verifies native CCA AIP assignment, four-human reinforcement
+counts, factory/hangar/silo dependencies and one shared victory per client.
+Mission 14's retry verifies all eight Furies on every peer, owner-local command
+permissions, native rogue re-teaming, three rescues, static surrender ownership
+on all four peers and the scientists' return followed by a shared victory.
+
+The first Mission 12 repair run failed before mission startup because the new
+probe wrapper exceeded Lua 5.1's 200-local limit. The wrapper now captures its
+extra local in a nested function, and all nine complete instrumented missions
+compile. That failure is retained and requires a fresh native retry.
 
 ## Human test handoff
 

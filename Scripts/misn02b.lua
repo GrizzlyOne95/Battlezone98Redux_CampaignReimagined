@@ -146,10 +146,10 @@ local function ApplyPresentation(op, ...)
     end
 end
 
--- Ops whose first argument is a game object. Objects travel by identity, never by a bare
--- handle the engine may not carry: "@handle@label" (a guest resolves the label first, then
--- the replicated handle), or "!" when the leader reports the object gone. Label is the
--- event that makes a leader-side SetLabel on a spawned object true on every guest.
+-- Marker operations use "@handle@label" (resolve the authored/bound label first),
+-- or "!" when the leader reports the object gone. Label bindings carry a native
+-- Handle so Send translates spawned-object identity across peers; the receiver
+-- falls back to the existing label for map objects without native wire identity.
 local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
     SetUserTarget = true, RemoveObject = true, Label = true }
 local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true, Label = true }
@@ -178,8 +178,7 @@ end
 local function AnnounceLabel(handle, label)
     if announced[handle] == label then return end
     announced[handle] = label
-    local identity = label:match("^crco_") and handle or ("@" .. HandleText(handle) .. "@" .. label)
-    events[#events + 1] = { op = "Label", args = { identity, label },
+    events[#events + 1] = { op = "Label", args = { handle, label },
         n = 2, ttl = RESOLVE_TIMEOUT, handle = handle }
 end
 
@@ -464,6 +463,16 @@ local function ReceivePresentation(from, kind, ...)
         local apply, unresolved = true, false
         if HANDLE_OPS[op] then
             local sent, described = args[1], args[1]
+            if op == "Label" and sent ~= GONE then
+                described = args[2] or sent
+                -- Authored map objects may have no native network handle;
+                -- their existing label is a safe fallback. Spawned objects
+                -- must arrive by native identity before their label is set.
+                if not IsValid(sent) and type(args[2]) == "string" then
+                    local resolved = GetHandle(args[2])
+                    if IsValid(resolved) then sent, args[1] = resolved, resolved end
+                end
+            end
             if sent == GONE then
                 -- The leader reports the object gone: skip this marker, never wait.
                 apply = false
