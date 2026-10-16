@@ -29,6 +29,14 @@ end
 -- Initialize before map AddObject callbacks. Start must not erase silo counts
 -- collected while the map loads; Execute still performs startup on first Update.
 local M = NewState()
+-- CR runtime >>
+-- Keep the source port below intact; the shared campaign runtime owns play.
+local campaignRuntime = require("CRMisn15").Create(function() return M end)
+local CRCoop = campaignRuntime and campaignRuntime.Coop
+local exu = campaignRuntime and campaignRuntime.Exu
+local native = campaignRuntime and campaignRuntime.Native
+-- CR runtime <<
+
 
 local function Valid(h)
     return h ~= nil and h ~= 0 and IsValid(h)
@@ -54,10 +62,16 @@ local function ShowStuff()
 end
 
 function Start()
+-- CR runtime >>
+    if campaignRuntime then return campaignRuntime.Start() end
+-- CR runtime <<
     -- NewState implements native Load/Setup; startup actions remain in Update.
 end
 
 function AddObject(h)
+-- CR runtime >>
+    if campaignRuntime then return campaignRuntime.AddObject(h) end
+-- CR runtime <<
     --[[
 		This has lost its relevence
 		if it works at all.  
@@ -74,6 +88,9 @@ function AddObject(h)
 end
 
 function Update(dt)
+-- CR runtime >>
+    if campaignRuntime then return campaignRuntime.Update(dt) end
+-- CR runtime <<
     M.player = GetPlayerHandle()
     if not M.start_done then
         -- SetAIP("misn15.aip");
@@ -332,6 +349,9 @@ function Update(dt)
 end
 
 function Save()
+-- CR runtime >>
+    if campaignRuntime then campaignRuntime.Save() end
+-- CR runtime <<
     return M
 end
 
@@ -339,4 +359,14 @@ function Load(state)
     -- LuaMission serializes the table and restores engine handle values. Do not
     -- replay Setup/Execute, reset timers, rebuild units, or recount loaded silos.
     M = state
+-- CR runtime >>
+    if campaignRuntime then campaignRuntime.Load() end
+-- CR runtime <<
 end
+
+-- CR runtime >>
+function CreatePlayer(...) return campaignRuntime.CreatePlayer(...) end
+function AddPlayer(...) return campaignRuntime.AddPlayer(...) end
+function DeletePlayer(...) return campaignRuntime.DeletePlayer(...) end
+function Receive(...) return campaignRuntime.Receive(...) end
+-- CR runtime <<

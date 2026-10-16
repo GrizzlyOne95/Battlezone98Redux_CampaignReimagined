@@ -1,3 +1,8 @@
+> **2026-10-15 update:** CR campaign play now delegates to the shared
+> `CRMisn15` runtime on the shipped `misn15b` layout. See `MISN15_COOP.md`.
+> The faithful source body below remains intact and independently tested;
+> this historical port description does not describe the new victory gates.
+
 # misn15 source-faithful Lua 5.1 port
 
 `Scripts/misn15.lua` ports the active mission logic directly from

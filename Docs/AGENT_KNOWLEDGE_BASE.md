@@ -932,3 +932,20 @@ Tx includes accepted pending submissions; Rx uses observed completions. Keep
 unavailable providers and unknown/idle route states explicit. Never infer the
 route from a configured preference or count a truncated trace prefix as the
 datagram's actual byte length.
+
+### Mission 15 map and methane classification (2026-10-15)
+
+Mission 15 campaign play uses the shipped `misn15b` layout under the `misn15`
+runtime stem (`Docs/MISN15_COOP.md`). The alternate map is not interchangeable:
+it lacks the active patrol label, sixth camera and Tartarus. Prepare close
+rescue groups before discovery; their authored spawn sites are inside the
+discovery radius. Mission 15 authors them with stable labels on team 7.
+The global pure-MAT-0 height mode is a dry exterior plateau at 102.2 m here;
+use the explicit 38.1 m lower-basin classification for this map's water data,
+not Mission 14's mask or the generic mode. Validate both MAT nibbles and the
+height range. When changing parsed BZN Fields, write with
+`preserve_spelling=False` and reparse; source text spellings can hide mutations.
+Changing an AiPath label also requires updating its `label.size` field to the
+encoded byte length. The native loader allocates from that count; a successful
+Toolbox reparse does not check their agreement. Mission 15's map contract checks
+every path's allocation length after renaming the duplicate editor labels.

@@ -22,6 +22,7 @@ are unchanged.
 | 12, Flying Solo | Tank, Scout | No friendly production; each player must capture a mission-provided `svfi12`. |
 | 13, Total Destruction | Tank, Scout, Light Tank, Rocket Tank, Bomber, Walker | Texas (`avrecy`) can build the full `avmuf`. |
 | 14, The Three Beacons | Tank, Scout, Light Tank, Rocket Tank, Bomber, Walker | Texas (`avrecy`) can build the full `avmuf`. |
+| 15, United We Fight - United We Die | Tank, Scout, Light Tank, Rocket Tank, Bomber, Walker | The shared Texas (`avrecy`) can build the full `avmuf`. |
 
 The vehicle records use the existing `odf ,` VXT form:
 

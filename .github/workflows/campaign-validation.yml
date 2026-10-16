@@ -270,6 +270,16 @@ jobs:
           python Tools/Test-Misn14SourceParity.py
           python Tools/Test-Misn14CoopContract.py
 
+      - name: Test Mission 15 campaign co-op and methane map contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn15.lua
+          "$LUA" Tools/Test-Misn15Coop.lua
+          python Tools/Test-Misn15SourceParity.py
+          python Tools/Test-Misn15CoopContract.py
+
       - name: Test BlackDog08 source port
         run: |
           lua5.1 Tools/Test-BlackDog08.lua
