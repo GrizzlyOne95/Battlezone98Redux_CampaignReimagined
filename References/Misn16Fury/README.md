@@ -24,6 +24,7 @@ mesh change; the copied skeleton and native SDF/VDF remain byte-identical.
 Stock normal/specular/emissive aliases are retained. The source/copy hashes
 and geometry counts are recorded in `asset-manifest.json`.
 
-This asset checkpoint does not supply Mission 16's co-op runtime map or deploy
-the mission. The shipping lock is unchanged. See `Docs/MISN16_PLANNING.md` for
+`Missions/misn16b.bzn` binds all ten enemy CCA structures to the copies.
+It retains stock mission logic and the existing CR `misn16b` terrain.
+This asset checkpoint does not supply the co-op runtime or deploy the mission. The shipping lock is unchanged. See `Docs/MISN16_PLANNING.md` for
 the ten map instances, terrain decision, arrival policy and escape reference.

@@ -178,9 +178,11 @@ hardpoints use `cr16bolt`, with the copied `cr16b0` bolt extended to 200 m
 (`1e6` speed × `200e-6` lifetime), matching the tower's 200 m scan range.
 
 Assets are prepared in `Assets/ModelFixes`, `Assets/Textures`, `Materials` and
-`ODF`. Authoring PNGs and provenance are in `References/Misn16Fury`. Bind these
-four copied ODFs when generating the runtime map; preserve original labels so
-the source objective and counterattack handles still resolve. Any future enemy
+`ODF`. Authoring PNGs and provenance are in `References/Misn16Fury`. The asset baseline `Missions/misn16b.bzn` now swaps all ten instances to these
+four copied ODFs, preserving original labels, positions, teams and routes.
+It retains the stock `Misn16Mission` class and `misn16b` terrain binding; this
+is the art baseline, not the co-op runtime. Preserve those bindings when
+generating the runtime map so objective and counterattack handles resolve. Any future enemy
 structure construction must use the corresponding copies as well. The faithful
 Lua reference is unchanged; the co-op map/runtime are still to be implemented.
 
