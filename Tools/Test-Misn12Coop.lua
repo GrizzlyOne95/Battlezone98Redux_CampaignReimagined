@@ -259,12 +259,15 @@ local function makePeer(id, team, network)
     e.Send = function(to, kind, ...)
         record("Send", kind)
         local args = {...}
-        if kind == "E" and args[2] == "Label" and type(args[6]) == "string" and args[6]:match("^crco_") then
-            check(e.IsValid(args[5]), "generated label announcement carries the replicated handle, not a local handle string")
+        if kind == "E" and args[2] == "Label" then
+            check(e.IsValid(args[5]), "label announcement carries the replicated handle, not a local handle string")
         end
         for index = 1, select("#", ...) do
-            -- A map-authored handle arrives as an invalid handle on a guest.
-            if type(args[index]) == "string" and LABELS[args[index]] then args[index] = false end
+            -- Mock handles use strings, unlike native userdata. The Label
+            -- event's text argument remains text even when it names a map
+            -- object; only its handle argument loses native map identity.
+            local labelText = kind == "E" and args[2] == "Label" and index == 6
+            if not labelText and type(args[index]) == "string" and LABELS[args[index]] then args[index] = false end
         end
         local bytes = 4
         for _, value in ipairs(args) do bytes = bytes + (type(value) == "string" and #value + 2 or 9) end
