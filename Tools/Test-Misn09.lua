@@ -132,6 +132,7 @@ local function reset()
     objects, labels, calls, distances, cargo, audio, info, scraps, objectives = {}, {}, {}, {}, {}, {}, {}, {}, {}
     modules.CRCoopDiagnostics = assert(loadfile("Scripts/CRCoopDiagnostics.lua"))()
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
     dofile("Scripts/misn09.lua")

@@ -31,6 +31,7 @@ GetDistance = function(a, b)
     return 9999
 end
 Send = function(to, kind, ...)
+    for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
     sent[#sent + 1] = { to = to, kind = kind, args = { ... } }
     return true
 end

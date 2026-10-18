@@ -104,6 +104,7 @@ local function makePeer(id, team, network)
     e.CameraReady = function() record("CameraReady"); p.skip = false end
     e.CameraFinish = function() record("CameraFinish") end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         local args = { ... }
         -- Conservative payload estimate: doubles plus per-field type tags;
         -- strings include terminators. Actual handle encoding is smaller.
@@ -169,6 +170,7 @@ local function makePeer(id, team, network)
     }
     for k, v in pairs(moonModules) do modules[k] = v end
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     e.package = setmetatable({loaded={exu=modules.exu}}, {__index=package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
