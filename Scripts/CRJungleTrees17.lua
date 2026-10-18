@@ -14,20 +14,32 @@ local Trees={}
 function Trees.Create(api)
     local sites=require("CRJungle17Sites").trees
     local T={}
-    local culled,cullCursor,nextCull={},1,0
+    local culled,nextCull,isSite={},0,nil
     local function cull()
         -- Every peer, every tree it can see, preplaced ones included. Keyed by
-        -- site and handle: a rebuilt tree gets a new handle and needs it again.
+        -- handle: a rebuilt tree gets a new handle and needs it again.
+        -- Walk the objects that exist rather than look sites up by label: the
+        -- engine logs and flushes "No object named" for every site that is not
+        -- standing, and at 1,280 lookups a second that was ~2% of a frame.
+        -- A tree is built beyond the fog, so a second's delay never shows.
         local x=rawget(_G,"exu")
         if type(x)~="table" or type(x.SetEntityRenderingDistance)~="function" then return end
         if GetTime()<nextCull then return end
-        nextCull=GetTime()+.1
-        for _=1,128 do
-            local i=cullCursor;cullCursor=i%#sites+1
-            local h=GetHandle(sites[i].label)
-            if h and IsValid(h) then
-                if culled[i]~=h and pcall(x.SetEntityRenderingDistance,h,RENDER_DISTANCE) then culled[i]=h end
-            else culled[i]=nil end
+        nextCull=GetTime()+1
+        if not isSite then
+            isSite={}
+            for _,p in ipairs(sites) do isSite[p.label]=true end
+        end
+        local seen={}
+        for h in AllObjects() do
+            seen[h]=true
+            if not culled[h] then
+                local ok,label=pcall(GetLabel,h)
+                if ok and isSite[label] and pcall(x.SetEntityRenderingDistance,h,RENDER_DISTANCE) then culled[h]=true end
+            end
+        end
+        for h in pairs(culled) do
+            if not seen[h] then culled[h]=nil end
         end
     end
     local function nearest(players,p)
