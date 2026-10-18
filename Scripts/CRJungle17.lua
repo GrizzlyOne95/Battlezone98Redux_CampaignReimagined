@@ -72,6 +72,66 @@ function Jungle.Create(api)
     local function stopSound(h) if h and type(StopSound)=="function" then StopSound(h) end end
     local WATERS={{"CR17/River","water"},{"CR17/Streams","streams"},{"CR17/Pools","pools"}}
 
+    -- Core vents. Each converter part taps the planet's core; where one falls,
+    -- its pit erupts in fire. The leader announces fallen parts as a bit mask
+    -- (a vent never closes); every peer builds the fire locally on the stock
+    -- partNgeizer path, beside the stock geyser. No gameplay objects.
+    local VENT_FX={"VentPool","VentFlame","VentLick","VentSmoke","VentSpatter"}
+    local vents,ventGlow,ventRetry={},0,{}
+    local function ventName(i,fx) return "CR17/Core"..i.."/"..fx end
+    local function hasVent(mask,i) return math.floor((tonumber(mask) or 0)/2^(i-1))%2==1 end
+    local function lightVent(i)
+        if vents[i] or GetTime()<(ventRetry[i] or 0) then return end
+        ventRetry[i]=GetTime()+5
+        if type(x.CreateParticleSystem)~="function" or not Templates.EnsureExtra("cr17_jungle") then return end
+        local ok,p=pcall(GetPosition,"part"..i.."geizer")
+        if not ok or type(p)~="table" or not p.x then return end
+        for _,fx in ipairs(VENT_FX) do
+            local name=ventName(i,fx)
+            if x.CreateParticleSystem(name,"CR17/"..fx,SetVector(p.x,p.y,p.z))==true then
+                safe("SetParticleSystemNonVisibleUpdateTimeout",name,3)
+            end
+        end
+        vents[i]={x=p.x,y=p.y,z=p.z,surge=0,nextSurge=GetTime()+1.5}
+        if type(StartSound)=="function" then StartSound("gquak00.wav",SetVector(p.x,p.y,p.z)) end
+    end
+    local function closeVents()
+        for i in pairs(vents) do
+            for _,fx in ipairs(VENT_FX) do call("DestroyParticleSystem",ventName(i,fx)) end
+        end
+        vents,ventGlow,ventRetry={},0,{}
+    end
+    -- Surges: the column roars higher and throws lava every few seconds, and
+    -- the fire lights the air around a pilot standing near it.
+    local function updateVents(dt)
+        if not next(vents) then ventGlow=0;return end
+        local now=GetTime()
+        local r=math.rad(bearing or 210)
+        local lean=(windSpeed or 0)*.35
+        local me=type(GetPlayerHandle)=="function" and GetPlayerHandle()
+        local here=me and IsValid and IsValid(me) and GetPosition(me)
+        local glow=0
+        for i,v in pairs(vents) do
+            if now>=v.nextSurge then
+                v.surge=1;v.nextSurge=now+3+math.random()*5
+                if type(StartSound)=="function" then StartSound("r_exp3.wav",SetVector(v.x,v.y,v.z)) end
+            end
+            v.surge=math.max(0,v.surge-1.6*dt)
+            local flicker=.85+.15*math.sin(now*7.3+i*2.1)
+            safe("SetParticleEmitterEmissionRate",ventName(i,"VentFlame"),0,(70+90*v.surge)*flicker)
+            safe("SetParticleEmitterEmissionRate",ventName(i,"VentLick"),0,30+50*v.surge)
+            safe("SetParticleEmitterEmissionRate",ventName(i,"VentSpatter"),0,6+80*v.surge)
+            safe("SetParticleAffectorParameter",ventName(i,"VentSmoke"),2,"force_vector",
+                string.format("%.3f 0 %.3f",math.sin(r)*lean,math.cos(r)*lean))
+            if here then
+                local dx,dz=here.x-v.x,here.z-v.z
+                local near=1-math.min(1,math.sqrt(dx*dx+dz*dz)/240)
+                glow=glow+near*near*flicker*(1+.6*v.surge)
+            end
+        end
+        ventGlow=math.min(1,glow)
+    end
+
     -- Storm cloud deck: the map's own cloud art on a scrolling sky plane, via
     -- cr17_cloud.material. A clone of ACLOUD2.MAP would keep its Effect
     -- programs, which read vertex colour the sky plane lacks, so D3D11 throws
@@ -102,6 +162,7 @@ function Jungle.Create(api)
         for _,name in ipairs(groups or {}) do call("DestroyStaticGeometry",name) end
         for _,w in ipairs(WATERS) do call("DestroyStaticGeometry",w[1]) end
         call("DestroyParticleSystem","CR17/CascadeMist")
+        closeVents()
         if clouds=="on" then setClouds(false) end
         stopSound(rainSound);stopSound(fallSound)
         rainSound,fallSound=nil,nil
@@ -113,6 +174,8 @@ function Jungle.Create(api)
         state=saved or {}
         state.age=tonumber(state.age) or 0
         state.nextBolt=tonumber(state.nextBolt) or 0
+        state.vents=tonumber(state.vents) or 0 -- relit by Update; the leader also resyncs it
+        state.sentVents=nil
         state.level=nil -- the leader re-announces after load
         level,intensity,windSpeed,bearing=nil,0,0,210
         nextLayer=1;groups={};waters={};mist=false;error=nil;clouds="off"
@@ -138,6 +201,11 @@ function Jungle.Create(api)
                 frame.ambient.r=math.min(1,frame.ambient.r+.35*k)
                 frame.ambient.g=math.min(1,frame.ambient.g+.35*k)
                 frame.ambient.b=math.min(1,frame.ambient.b+.40*k)
+            end
+            if ventGlow>.001 and frame.ambient then
+                frame.ambient.r=math.min(1,frame.ambient.r+.34*ventGlow)
+                frame.ambient.g=math.min(1,frame.ambient.g+.13*ventGlow)
+                frame.ambient.b=math.min(1,frame.ambient.b+.02*ventGlow)
             end
         end)
     end
@@ -167,6 +235,11 @@ function Jungle.Create(api)
             flash=true;flashAt=GetTime();thunder=true;boltsSeen=boltsSeen+1
             flashPower=level==4 and 1.3 or 1
             thunderAt=GetTime()+(level==4 and 1.2 or 2.2)
+        elseif kind=="vents" and state and type(a)=="number" and a>=0 and a<8 then
+            -- Vents only ever open: merge, so a stale resync cannot close one.
+            for i=1,3 do
+                if hasVent(a,i) and not hasVent(state.vents,i) then state.vents=state.vents+2^(i-1) end
+            end
         end
     end
 
@@ -189,6 +262,15 @@ function Jungle.Create(api)
         for i=1,7 do if m["tower"..i.."dead"] then dead=dead+1 end end
         if dead>0 then return 2,math.min(80,45+8*dead) end
         return 1,35
+    end
+
+    -- Leader only: which converter parts have fallen, from the stock latches.
+    function J.VentMask()
+        local m=type(api.state)=="function" and api.state() or nil
+        if type(m)~="table" then return 0 end
+        local mask=0
+        for i=1,3 do if m["factorypart"..i.."dead"]==true then mask=mask+2^(i-1) end end
+        return mask
     end
 
     local function geometry()
@@ -231,7 +313,13 @@ function Jungle.Create(api)
             local deg=math.floor(210+40*math.sin(state.age/90)+.5)
             local speed=math.floor(SPEED[l+1]*(.9+.2*math.sin(state.age/37))*10+.5)/10
             -- Resend periodically so late joiners and drifting wind stay in step.
-            if l~=state.level or pct~=state.pct or state.age>=nextSync then
+            local resync=state.age>=nextSync
+            local mask=J.VentMask()
+            if mask~=(state.sentVents or 0) or (resync and mask>0) then
+                state.sentVents=mask
+                send("vents",mask)
+            end
+            if l~=state.level or pct~=state.pct or resync then
                 -- Entering the storm waits a beat; escalating to the tempest strikes sooner.
                 if l~=state.level and l>=3 then
                     if (state.level or 0)<3 then state.nextBolt=math.max(state.nextBolt,state.age+4)
@@ -246,6 +334,8 @@ function Jungle.Create(api)
             end
         end
         geometry()
+        for i=1,3 do if hasVent(state.vents,i) then lightVent(i) end end
+        updateVents(math.max(0,tonumber(dt) or 0))
         if watersReady() and nextLayer>#Sites.layers and mist then error=nil end
         Weather.Update(dt)
         local splash=level and intensity or 0
@@ -270,7 +360,9 @@ function Jungle.Create(api)
     function J.Describe() return {level=level,phase=level,intensity=intensity,wind=windSpeed,bearing=bearing,
         clouds=clouds,batches=#groups,totalBatches=#Sites.layers,river=waters and waters.water or false,
         streams=waters and waters.streams or false,pools=waters and waters.pools or false,
-        mist=mist,error=error,age=state and state.age or 0,bolts=boltsSeen,foliage=Foliage.Describe()} end
+        mist=mist,error=error,age=state and state.age or 0,bolts=boltsSeen,foliage=Foliage.Describe(),
+        vents=state and state.vents or 0,ventsLit=(function() local n=0;for _ in pairs(vents) do n=n+1 end;return n end)(),
+        ventGlow=ventGlow} end
     return J
 end
 return Jungle
