@@ -76,6 +76,8 @@ SXExhibits.WeatherPhases = {
         precip = "dust", level = 1.0, wind = { 1.0, 0.15, 26 }, fogScale = 0.42, light = 0.80 },
 }
 -- Inside the map's 250 m view range: a dome beyond the far clip is mostly culled.
+-- WeatherSky also caps it at half the live far clip, as CRWeather does: the
+-- dome's corners sit up to sqrt(3) times its distance away.
 SXExhibits.StormSky = { curvature = 10, tiling = 1, distance = 200,
     materials = { rain = "SX_Sky/Rain", storm = "SX_Sky/Storm", snow = "SX_Sky/Snow", dust = "SX_Sky/Dust" } }
 -- CRPrecip's ISDF Chronicles tuning suits a pilot at ground level; the film camera
@@ -118,7 +120,11 @@ function SXExhibits:WeatherSky(phase)
     local sky = SXExhibits.StormSky
     local material = phase and sky.materials[phase]
     if material and self.skyOn ~= material and self:Has("SetSkyDome") then
-        local ok, result = self:Call("SetSkyDome", material, sky.curvature, sky.tiling, sky.distance, true)
+        local distance = sky.distance
+        local clipped, _, farClip = self:Call("GetCameraClipDistances")
+        farClip = clipped and tonumber(farClip) or nil
+        if farClip and farClip > 0 and distance > farClip * 0.5 then distance = farClip * 0.5 end
+        local ok, result = self:Call("SetSkyDome", material, sky.curvature, sky.tiling, distance, true)
         self.skyOn = ok and result ~= false and material or nil
     elseif not material and self.skyOn then
         if self.skyWasOn ~= true then self:Call("SetSkyDomeEnabled", false) end

@@ -334,3 +334,21 @@ material CR_Sky/Storm : CR_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap white.png
 }
+
+// Weather.lua cloud planes. Ogre's sky plane has no vertex colour either, so the
+// stock ACLOUD*.MAP and vsmoke2.tga materials (Effect, COLOR0) throw on D3D11.
+// The stock materials are left alone; the presets point here instead.
+material CR_Sky/Cloud : CR_Sky/DomeBase
+{
+	set_texture_alias DiffuseMap acloud.tga
+}
+
+material CR_Sky/Cloud2 : CR_Sky/DomeBase
+{
+	set_texture_alias DiffuseMap acloud2.tga
+}
+
+material CR_Sky/DustCloud : CR_Sky/DomeBase
+{
+	set_texture_alias DiffuseMap vsmoke2.png
+}
