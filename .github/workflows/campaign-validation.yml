@@ -89,6 +89,7 @@ jobs:
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-CRCoop.lua
+          "$LUA" Tools/Test-CRWire.lua
           "$LUA" Tools/Test-CRCoopComms.lua
           "$LUA" Tools/Test-CRCoopAssist.lua
           "$LUA" Tools/Test-CRCoopPda.lua

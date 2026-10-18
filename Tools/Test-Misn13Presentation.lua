@@ -33,7 +33,9 @@ do
         env.GetLabel = function(h) return p.labels[h] end
         env.GetHandle = function(label) return p.byLabel[label] end
         env.IsValid = function(h) return p.valid[h] == true end
+        env.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
         env.Send = function(to, kind, ...)
+            for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
             packets[#packets+1] = {from=id, to=to, kind=kind, args={...}}
         end
         env.CRCoop = {
@@ -427,6 +429,7 @@ local function makePeer(id, team)
     e.SetScrap = function(t, v) record("SetScrap", t, v); world.scrap[t] = v end
     e.AddScrap = function(t, v) record("AddScrap", t, v); world.scrap[t] = (world.scrap[t] or 0) + v end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         record("Send", kind)
         local args = {...}
         local bytes = 4
@@ -488,6 +491,7 @@ local function makePeer(id, team)
             Stop = function() record("Stop") end, Update = noop, Initialize = noop},
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     e.package = setmetatable({loaded = {exu = modules.exu}}, {__index = package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()

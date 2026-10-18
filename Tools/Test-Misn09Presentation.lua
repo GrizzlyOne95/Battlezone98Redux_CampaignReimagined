@@ -38,7 +38,9 @@ local function peer(id)
     env.GetHandle = function(label) return p.byLabel[label] end
     env.IsInfo = function(prefix) return p.info[prefix] == true end
     env.IsValid = function(h) return p.valid[h] == true end
+    env.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     env.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         packets[#packets+1] = {from=id, to=to, kind=kind, args={...}}
     end
     env.CRCoop = {

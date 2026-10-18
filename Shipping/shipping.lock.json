@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T09:08:17-05:00",
-  "count": 2728,
+  "count": 2729,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6754,6 +6754,10 @@
     {
       "source": "Scripts\\CRWetGlass.lua",
       "runtime": "CRWetGlass.lua"
+    },
+    {
+      "source": "Scripts\\CRWire.lua",
+      "runtime": "CRWire.lua"
     },
     {
       "source": "Scripts\\Culling.lua",

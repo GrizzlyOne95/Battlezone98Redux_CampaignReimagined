@@ -135,6 +135,7 @@ local function NewMission()
             Update = noop, Initialize = noop },
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     e.package = setmetatable({ loaded = { exu = modules.exu } }, { __index = package })
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
