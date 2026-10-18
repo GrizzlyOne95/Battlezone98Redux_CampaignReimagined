@@ -1,0 +1,43 @@
+// Wind-swayed CR_Textured vertex program for foliage cards (CR/GrassWind).
+// The mesh must carry the TEXCOORD1 sway weights from Tools/Bake-FoliageSway.py.
+// CRFoliageWind writes the live wind into the pass specular colour, which the
+// CR_Textured fragment program does not read; windShape is per material.
+
+vertex_program CR_GrassWind_vertexHLSL4 hlsl
+{
+    source CR_textured-sm4.hlsl
+    target vs_4_0
+    entry_point textured_wind_vertex
+}
+
+vertex_program CR_GrassWind_vertexHLSL hlsl
+{
+    source CR_textured.hlsl
+    target vs_3_0
+    entry_point textured_wind_vertex
+}
+
+vertex_program CR_GrassWind_vertexGLSL glsl
+{
+    source CR_textured-vertex.glsl
+    syntax glsl120
+    preprocessor_defines WIND=1
+    entry_point vs_main
+}
+
+vertex_program CR_GrassWind_vertex unified
+{
+    delegate CR_GrassWind_vertexGLSL
+    delegate CR_GrassWind_vertexHLSL4
+    delegate CR_GrassWind_vertexHLSL
+
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto worldMat world_matrix
+        param_named_auto invWorldMat inverse_world_matrix
+        param_named_auto windTime time_0_x 3600
+        param_named_auto windParams surface_specular_colour
+        param_named windShape float4 0 0 0 0
+    }
+}

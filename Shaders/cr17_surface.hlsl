@@ -89,6 +89,42 @@ float4x4 texWorldViewProj3;
 #endif
 #endif
 
+#if defined(WIND)
+// Foliage wind (cr17_wind.program). TEXCOORD1 carries per-vertex (bend,
+// flutter) weights baked by Tools/Bake-FoliageSway.py; the root has 0 and does
+// not move. Height cannot come from the object-space position because ground
+// cover is drawn through StaticGeometry, whose vertices are in region space.
+float4x4 worldMat;
+float4x4 invWorldMat;
+float windTime;
+float4 windParams;  // pass emissive, written by CRFoliageWind: xz wind velocity
+                    // (m/s, world), y gust 0..1, w overall scale (0 = still)
+float4 windShape;   // material: x bend (m), y sway rate (rad/s),
+                    // z flutter (m), w flutter rate (rad/s)
+
+float4 WindDisplace(float4 objPos, float2 weight)
+{
+	float speed = length(windParams.xz);
+	if (speed < 0.01 || windParams.w <= 0.0)
+		return objPos;
+	float3 worldPos = mul(worldMat, objPos).xyz;
+	float2 dir = windParams.xz / speed;
+	float amp = saturate(speed / 20.0) * (1.0 + 0.6 * windParams.y) * windParams.w;
+	// Position-derived phase, so neighbouring plants do not move in lockstep.
+	float phase = dot(worldPos.xz, float2(0.083, 0.061));
+	// Lean downwind and oscillate about the lean, rather than about upright.
+	float sway = 0.6 + 0.4 * sin(windTime * windShape.y + phase);
+	float3 offset = float3(dir.x, 0.0, dir.y) * (windShape.x * weight.x * amp * sway);
+	float f = windTime * windShape.w;
+	offset += (windShape.z * weight.y * amp) * float3(
+		sin(f + phase * 5.3 + worldPos.y * 0.9),
+		0.5 * sin(f * 1.37 + phase * 3.1),
+		cos(f * 0.83 + phase * 4.7 + worldPos.x * 0.7));
+	objPos.xyz += mul((float3x3)invWorldMat, offset);
+	return objPos;
+}
+#endif
+
 struct SurfaceV2F
 {
 	float2 uv : TEXCOORD0;
@@ -115,11 +151,17 @@ void surface_vertex(
 	in float3 iNormal : NORMAL,
 #endif
 	in float2 iTexCoord : TEXCOORD0,
+#if defined(WIND)
+	in float2 iSway : TEXCOORD1,
+#endif
 
 	out SurfaceV2F o,
 	out float4 oPosition : POSITION_OUT
 )
 {
+#if defined(WIND)
+	iPosition = WindDisplace(iPosition, iSway);
+#endif
 	oPosition = mul(wvpMat, iPosition);
 	o.uv = iTexCoord;
 	o.viewPos.xyz = mul(worldViewMat, float4(iPosition.xyz, 1.0)).xyz;
@@ -154,12 +196,18 @@ float4 texelOffsets;
 void surface_caster_vertex(
 	in float4 iPosition : POSITION,
 	in float2 iTexCoord : TEXCOORD0,
+#if defined(WIND)
+	in float2 iSway : TEXCOORD1,
+#endif
 
 	out float2 vTexCoord : TEXCOORD0,
 	out float2 vDepth : TEXCOORD1,
 	out float4 oPosition : POSITION_OUT
 )
 {
+#if defined(WIND)
+	iPosition = WindDisplace(iPosition, iSway);
+#endif
 	oPosition = mul(wvpMat, iPosition);
 	oPosition.xy += texelOffsets.zw * oPosition.w;
 	vTexCoord = iTexCoord;

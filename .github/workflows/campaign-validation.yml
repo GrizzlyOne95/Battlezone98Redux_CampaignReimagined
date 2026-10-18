@@ -214,6 +214,9 @@ jobs:
           "$LUA" Tools/Test-CRMarsHaboob.lua
           "$LUA" Tools/Test-CRMarsVolcano.lua
           "$LUA" Tools/Test-CRTitanWeather.lua Scripts
+          "$LUA" Tools/Test-CRFoliageWind.lua Scripts
+          # The wind foliage material is generated from cr17_surface.material.
+          python -I Tools/Build-FoliageWindMaterial.py --check
           # The methane surface mesh, ripple map and wet masks match their generator.
           python -I Tools/Build-MethaneSurface.py --check
 

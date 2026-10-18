@@ -20,6 +20,7 @@ function Jungle.Create(api)
     local Glass=require("CRWetGlass")
     local Templates=require("CRParticleTemplates")
     local E=require("Environment")
+    local Foliage=require("CRFoliageWind")
     local J={Initialized=false,Enabled=true}
     local state,level,intensity,windSpeed,bearing,nextLayer,groups,waters,mist,error
     local flash,flashAt,flashPower,thunder,thunderAt,rainSound,fallSound,nextRain,nextFalls
@@ -118,6 +119,18 @@ function Jungle.Create(api)
         nextRain,nextFalls,nextSync=0,0,0
         baseSky=safe("GetSkyPlaneEnabled")==true or safe("GetSkyDomeEnabled")==true or safe("GetSkyBoxEnabled")==true
         Weather.Init()
+        -- Canopies, their shadow casters and the StaticGeometry ground cover sway
+        -- with CRWeather's wind (meshes baked by Tools/Bake-FoliageSway.py); the
+        -- ground cover also sheds leaves near the camera. Weather.Shutdown in
+        -- J.Stop stills them again.
+        for _,m in ipairs({"CR17/LeavesWind","CR17/GroundWind","CR17/CutoutCaster/FoliageWind"}) do
+            Foliage.Register(m,{slot="emissive"})
+        end
+        local points={}
+        for _,layer in ipairs(Sites.layers) do
+            for _,p in ipairs(layer.instances) do points[#points+1]=p end
+        end
+        Foliage.EnableLitter(points,{rate=45,saturation=50,minSpeed=3})
         J.Initialized=true
         E.RegisterEnvironmentModifier("CR17Lightning",function(frame)
             if flash and GetTime()-flashAt<.2 then
@@ -257,7 +270,7 @@ function Jungle.Create(api)
     function J.Describe() return {level=level,phase=level,intensity=intensity,wind=windSpeed,bearing=bearing,
         clouds=clouds,batches=#groups,totalBatches=#Sites.layers,river=waters and waters.water or false,
         streams=waters and waters.streams or false,pools=waters and waters.pools or false,
-        mist=mist,error=error,age=state and state.age or 0,bolts=boltsSeen} end
+        mist=mist,error=error,age=state and state.age or 0,bolts=boltsSeen,foliage=Foliage.Describe()} end
     return J
 end
 return Jungle
