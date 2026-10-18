@@ -230,6 +230,7 @@ dropScrap = 0
     soft=np.apply_along_axis(lambda v:np.convolve(v,k,'valid'),1,soft)
     flow=flood(soft)
     pool_cells=np.zeros(sub.shape,bool);pool_list=[];pool_label=np.full(sub.shape,-1)
+    pool_view=([],0)  # largest pool, a camera target for native captures
     deep=(fill-sub>.6)&~near_river
     for r,c in zip(*np.nonzero(deep)):
         if pool_label[r,c]>=0:continue
@@ -246,6 +247,7 @@ dropScrap = 0
         # Broad flat basins become a pond of at most ~1500 cells, not a lake.
         if len(comp)>1500:level=min(level,float(np.sort(sub[cells])[1499]))
         pool_list.append(level)
+        if len(comp)>len(pool_view[0]):pool_view=(comp,level)
     def quad(vs,ix,a,b,c,d):
         # Faces up (+Y) whatever the corner order.
         p=[np.array(vs[i][:3]) for i in (a,b,c)]
@@ -296,10 +298,12 @@ dropScrap = 0
             if drop[r,c]<.0004:break
             dr,dc=recv[r,c];r,c=r+dr,c+dc
         if len(path)>1:paths.append(path)
-    sverts=[];sindices=[];stream_points=[]
+    sverts=[];sindices=[];stream_points=[];stream_view=(0,None)
     for path in paths:
         pts=np.array([(X[c],Z[r]) for r,c,_ in path])
         if np.sum(np.hypot(*np.diff(pts,axis=0).T))<120:continue
+        if len(path)>stream_view[0]:
+            r,c,_=path[len(path)//2];stream_view=(len(path),(float(X[c]),float(sub[r,c]),float(Z[r])))
         if len(pts)>2:pts[1:-1]=(pts[:-2]+pts[1:-1]*2+pts[2:])/4
         y=[];prev=math.inf
         for (x,z),(r,c,_) in zip(pts,path):prev=min(prev,float(sub[r,c])+.15);y.append(prev)
@@ -391,9 +395,13 @@ dropScrap = 0
         bzn.objects.append(o);seq+=1
     bzn.header['seq_count'].value=seq;bzn.header['#objects'].value=len(bzn.objects)
     emit('Missions','misn17.bzn',write_bzn(bzn,2016,binary=False,preserve_spelling=False))
+    comp,level=pool_view
     data={'layers':layers,'water':{'mesh':'cr17_river.mesh','position':[1500,0,99600]},
-          'streams':{'mesh':'cr17_streams.mesh','position':[1500,0,99600]},
-          'pools':{'mesh':'cr17_pools.mesh','position':[1500,0,99600]},
+          'streams':{'mesh':'cr17_streams.mesh','position':[1500,0,99600],
+                     'view':[round(v,2) for v in stream_view[1]]},
+          'pools':{'mesh':'cr17_pools.mesh','position':[1500,0,99600],
+                   'view':[round(float(np.mean([X[c] for _,c in comp])),2),round(level,2),
+                           round(float(np.mean([Z[r] for r,_ in comp])),2)]},
           'trees':[{'odf':odf,'position':p[:3],'label':f'cr17_tree{i+1}','preplaced':int(i in chosen)} for i,(odf,p) in enumerate(trees)],
           'cascade':list(line[len(line)//3]),'river':route,'height_samples_changed':int(np.count_nonzero(h!=np.rint(bed*10)))}
     # JSON's arrays are rendered as Lua tables; no parser dependency in game.

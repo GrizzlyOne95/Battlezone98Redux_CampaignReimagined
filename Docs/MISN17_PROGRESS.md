@@ -41,9 +41,27 @@ head at branch creation `476390ed`. Canonical main stays untouched.
 - Redux's working plant contract is `i76building2` + EXU `[PlantClass] isPlant=1`.
   Tree SDF/GEO collision geometry is retained and namespaced with the meshes and
   skeletons. New resource names are `c17tree1/2` and `j1711*/j1721*` GEOs.
-- `CRJungle17` supplies shared rain phases and lightning events through the
-  existing CRWeather/Environment architecture, splash/wet glass, a flowing
-  river mesh, cascade mist and local rain/water audio.
+- `CRJungle17` is a leader-owned weather director over the existing
+  CRWeather/Environment architecture. Levels track the mission: 0 clear
+  (victory), 1 light rain on approach, 2 downpour deepening with each tower
+  loss, 3 storm with lightning once the towers collapse, 4 tempest with rapid
+  lightning during converter overload or after a converter falls. Each level
+  sets rain, basin mist, fog distance and wind (an override that also slants
+  splashes). From level 2 the `CR17/StormCloud` sky plane scrolls with the
+  wind, unless the map already has a sky. Bolts are leader-timed number-only
+  packets, and thunder is delayed locally. The level resyncs every 15 s and
+  survives save/load. Also included: splash and wet glass, the flowing river,
+  cascade mist and local rain/water audio.
+- Water: `Build-Misn17Jungle.py` priority-floods the heightmap. Streams are
+  routed by D8 over a Gaussian-blurred (σ 3 cells) flooded surface, which
+  gives branching valley channels rather than grid diagonals. Thresholds are
+  900-cell accumulation and a 120 m minimum, producing 100 segments and
+  4,297 points. Beds are carved shallowly outside object footprints. Closed
+  depressions fill as standing pools: 58 pools, 19,945 cells, capped at
+  1,500 cells each. These are emitted as `cr17_streams` and `cr17_pools`
+  static meshes. The builder also orders each shader family's delegates before
+  its unified program, so a rebuild cannot reintroduce the invisible-material
+  bug.
 - `CRCrystals17` prototype: five raw artifact cargoes, processed cargo, refinery,
   converter feed and a shared hauler. Twelve-second refining; dropped raw cargo
   at the receiver after towers fall starts a twenty-second overload; processed
@@ -62,7 +80,7 @@ head at branch creation `476390ed`. Canonical main stays untouched.
 ## Verified so far
 
 - Lua 5.1: faithful port **141**, source parity **241**, real four-peer co-op
-  simulation **112**, jungle lifecycle **34**, crystals **47**, tree streaming
+  simulation **112**, jungle weather director/lifecycle **111**, crystals **47**, tree streaming
   **129** checks pass. The co-op fixture
   stubs the separate environmental and crystal modules; these numbers do not
   qualify their native rendering or cargo physics.
@@ -126,6 +144,32 @@ head at branch creation `476390ed`. Canonical main stays untouched.
   gates, stock converter route to `SucceedMission` on both peers, 23 matching
   presentation ops, no Lua errors. Shots 03–05 show canopies, underbrush,
   rain rings and the river.
+- **Weather director and water network, live (`jungle-water-1`…`7`).**
+  - `water-1` fast-failed (0xC0000409 at exe+0x43ECA1, with no OpenShim log). A
+    `require` of `CRWire` was missing from the frozen test content, and the long
+    error overflowed the engine's fatal printer. Stage `CRWire.lua` with the
+    mission.
+  - `water-4`: 1,050 D3D11 "Unable to set vertex declaration" exceptions per
+    client. Ogre's sky plane has no COLOR0, and the ACLOUD2.MAP clone's Effect
+    programs read it. The cloud deck now uses its own `CR17/StormCloud`
+    material and `cr17_cloud` shaders (position and UV only); `water-5` onward
+    show 0 exceptions.
+  - `water-5`/`6`: the pools/storm steps hung on a modal "Fsm error: Camera
+    Stack 0verfow". The mission's mine cinematic pops the camera stack itself,
+    so a test camera pushed or popped across it overflows or underflows. The
+    scenario now releases its camera before the first tower falls and shows
+    the water from the cockpit.
+  - `jungle-water-7`: **PASS, 10 steps / 33 checks**, both clients:
+    - light rain with streams, pools and wind;
+    - downpour on the first tower loss;
+    - lightning storm under the cloud deck once every tower falls;
+    - pools (shot 07) and streams (shot 08) on the terrain under rain rings;
+    - plant destruction replicated;
+    - `SucceedMission` on both peers, 49 matching presentation ops;
+    - no Lua errors and no Ogre exceptions.
+
+    Shot 08 shows the stream as a channel in the middle distance; the nearest
+    stream segment is not in frame.
 - Test instances now run 1920×1080 windowed (`Full Screen=No`) with radar 0.5×,
   PDA font 0.8/opacity 0.4 and the weapon stats HUD off, so captures show the
   world. Previous settings are in `*.pre-hd` beside each instance file.

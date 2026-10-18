@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T09:08:17-05:00",
-  "count": 2729,
+  "count": 2737,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10748,8 +10748,16 @@
       "runtime": "cr17_mire_reeds.mesh"
     },
     {
+      "source": "Assets\\Models\\cr17_pools.mesh",
+      "runtime": "cr17_pools.mesh"
+    },
+    {
       "source": "Assets\\Models\\cr17_river.mesh",
       "runtime": "cr17_river.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_streams.mesh",
+      "runtime": "cr17_streams.mesh"
     },
     {
       "source": "Assets\\Models\\j1711bda.geo",
@@ -10814,6 +10822,10 @@
     {
       "source": "Config\\misn17.ini",
       "runtime": "misn17.ini"
+    },
+    {
+      "source": "Materials\\cr17_cloud.material",
+      "runtime": "cr17_cloud.material"
     },
     {
       "source": "Materials\\cr17_crystal.material",
@@ -10918,6 +10930,26 @@
     {
       "source": "misn17.des",
       "runtime": "misn17.des"
+    },
+    {
+      "source": "Shaders\\cr17_cloud-fragment.glsl",
+      "runtime": "cr17_cloud-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\cr17_cloud-sm4.hlsl",
+      "runtime": "cr17_cloud-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\cr17_cloud-vertex.glsl",
+      "runtime": "cr17_cloud-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\cr17_cloud.hlsl",
+      "runtime": "cr17_cloud.hlsl"
+    },
+    {
+      "source": "Shaders\\cr17_cloud.program",
+      "runtime": "cr17_cloud.program"
     }
   ]
 }

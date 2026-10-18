@@ -24,6 +24,7 @@ function Jungle.Create(api)
     local state,level,intensity,windSpeed,bearing,nextLayer,groups,waters,mist,error
     local flash,flashAt,flashPower,thunder,thunderAt,rainSound,fallSound,nextRain,nextFalls
     local clouds,baseSky,nextSync
+    local boltsSeen=0 -- bolts applied on this peer, for diagnostics
     local function copy(v)
         if type(v)~="table" then return v end
         local t={};for k,a in pairs(v) do t[k]=copy(a) end;return t
@@ -70,8 +71,10 @@ function Jungle.Create(api)
     local function stopSound(h) if h and type(StopSound)=="function" then StopSound(h) end end
     local WATERS={{"CR17/River","water"},{"CR17/Streams","streams"},{"CR17/Pools","pools"}}
 
-    -- Storm cloud deck: a scrolling clone of the map's own cloud art on a sky
-    -- plane. Never replaces a sky system the map already enabled.
+    -- Storm cloud deck: the map's own cloud art on a scrolling sky plane, via
+    -- cr17_cloud.material. A clone of ACLOUD2.MAP would keep its Effect
+    -- programs, which read vertex colour the sky plane lacks, so D3D11 throws
+    -- on every draw. Never replaces a sky system the map already enabled.
     local CLOUD="CR17/StormCloud"
     local function setClouds(on)
         if type(x.SetSkyPlane)~="function" or type(x.SetSkyPlaneEnabled)~="function" then
@@ -83,11 +86,8 @@ function Jungle.Create(api)
         end
         if baseSky then clouds="skipped";return end
         if clouds~="on" then
-            if safe("MaterialExists",CLOUD,"General")~=true then
-                if safe("MaterialExists","ACLOUD2.MAP","General")==false then clouds="missing";return end
-                safe("CloneMaterial","ACLOUD2.MAP",CLOUD,"General")
-            end
-            local mat=safe("MaterialExists",CLOUD,"General")==true and CLOUD or "ACLOUD2.MAP"
+            if safe("MaterialExists",CLOUD,"General")==false then clouds="missing";return end
+            local mat=CLOUD
             local r=safe("SetSkyPlane",mat,{normal=SetVector(0,-1,0),d=1450},2400,2.2,true,0,8,8,"General")
             if r==false then clouds="failed";return end
             safe("SetSkyPlaneEnabled",true)
@@ -151,7 +151,7 @@ function Jungle.Create(api)
             -- Saves and peers from the timer prototype: 1/2/3 -> rain/downpour/storm.
             applyLevel(a,({35,60,85})[math.floor(a)])
         elseif kind=="bolt" then
-            flash=true;flashAt=GetTime();thunder=true
+            flash=true;flashAt=GetTime();thunder=true;boltsSeen=boltsSeen+1
             flashPower=level==4 and 1.3 or 1
             thunderAt=GetTime()+(level==4 and 1.2 or 2.2)
         end
@@ -257,7 +257,7 @@ function Jungle.Create(api)
     function J.Describe() return {level=level,phase=level,intensity=intensity,wind=windSpeed,bearing=bearing,
         clouds=clouds,batches=#groups,totalBatches=#Sites.layers,river=waters and waters.water or false,
         streams=waters and waters.streams or false,pools=waters and waters.pools or false,
-        mist=mist,error=error,age=state and state.age or 0} end
+        mist=mist,error=error,age=state and state.age or 0,bolts=boltsSeen} end
     return J
 end
 return Jungle

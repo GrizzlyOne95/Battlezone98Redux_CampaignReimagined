@@ -35,7 +35,7 @@ local api={state=function() return m end,exu={CreateStaticGeometry=function(name
     builds=builds+1;built[name]=true;return {instanceCount=#instances}
 end,DestroyStaticGeometry=function(name) destroys=destroys+1;built[name]=nil end,
 CreateParticleSystem=function() return true end,DestroyParticleSystem=noop,
-MaterialExists=function(name) return name=="ACLOUD2.MAP" or sky.clones[name]==true end,
+MaterialExists=function(name) return name=="CR17/StormCloud" end,
 CloneMaterial=function(base,name) sky.clones[name]=true;return true end,
 SetSkyPlane=function(mat) sky.plane=mat;return true end,
 SetSkyPlaneEnabled=function(on) sky.enabled=on end,
@@ -78,6 +78,7 @@ m.tower2dead=true;J.Update(.1,true,send)
 check(intensity>first and #changes==2,"each loss deepens without changing preset")
 check(J.Describe().clouds=="on" and sky.enabled and sky.plane=="CR17/StormCloud","storm cloud deck rolls in")
 check(sky.scroll and sky.scroll>0,"cloud deck drifts with the wind")
+check(next(sky.clones)==nil,"cloud deck uses its own shader, never an Effect-program clone")
 check(J.GetSeverity()==.5,"sensor severity follows level")
 -- Timed resync for late joiners.
 count=#sent;now=now+16;J.Update(16,true,send)
@@ -89,7 +90,7 @@ local bolts=0;for _,s in ipairs(sent) do if s[1]=="bolt" then bolts=bolts+1 end 
 check(bolts==0,"first bolt waits a beat after the storm arrives")
 now=now+5;J.Update(5,true,send)
 local function countBolts() local c=0;for _,s in ipairs(sent) do if s[1]=="bolt" then c=c+1 end end;return c end
-check(countBolts()==1,"storm lightning strikes")
+check(countBolts()==1 and J.Describe().bolts==1,"storm lightning strikes")
 local a=sounds;now=now+3;J.Update(3,false,noop)
 check(sounds>a,"delayed thunder plays locally")
 now=now+5;J.Update(5,true,send)
