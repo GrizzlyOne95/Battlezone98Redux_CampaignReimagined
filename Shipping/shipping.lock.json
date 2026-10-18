@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T09:08:17-05:00",
-  "count": 2745,
+  "count": 2750,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -7226,6 +7226,26 @@
     {
       "source": "Shaders\\CR_sky.program",
       "runtime": "CR_sky.program"
+    },
+    {
+      "source": "Shaders\\CR_skydome-fragment.glsl",
+      "runtime": "CR_skydome-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\CR_skydome-sm4.hlsl",
+      "runtime": "CR_skydome-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_skydome-vertex.glsl",
+      "runtime": "CR_skydome-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\CR_skydome.hlsl",
+      "runtime": "CR_skydome.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_skydome.program",
+      "runtime": "CR_skydome.program"
     },
     {
       "source": "Shaders\\CR_static_ibl.program",

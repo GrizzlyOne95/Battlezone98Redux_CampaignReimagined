@@ -98,7 +98,8 @@ def main():
     text = "\n\n".join([HEADER.rstrip("\n"), caster, cutout, leaves, ground]) + "\n"
     data = text.replace("\n", "\r\n").encode("utf-8")
     if "--check" in sys.argv[1:]:
-        if not TARGET.exists() or TARGET.read_bytes() != data:
+        # Git stores the file LF; a Linux checkout has no CRs. Compare the text.
+        if not TARGET.exists() or TARGET.read_bytes().replace(b"\r\n", b"\n") != text.encode("utf-8"):
             raise SystemExit(f"{TARGET.relative_to(ROOT)} is stale; rerun Tools/Build-FoliageWindMaterial.py")
         print(f"{TARGET.relative_to(ROOT)} is current")
         return

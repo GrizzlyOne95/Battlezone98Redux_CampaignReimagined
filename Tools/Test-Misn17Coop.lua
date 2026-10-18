@@ -32,6 +32,10 @@ for _,b in ipairs(F.builds(p[1])) do
     for _,q in ipairs(p) do check(q.env.GetDistance(q.player,b.h)>=460,"no visible spawn beside any human") end
 end
 check(F.count(p[1],"Defend2")==2,"concealed defenders keep their destination orders")
+-- The restored Fury roster runs through the co-op spawner (Test-FuryRoster covers mission 18).
+local fury,odfs=0,{}
+for _,b in ipairs(F.builds(p[1])) do odfs[#odfs+1]=b.odf;if b.odf=="crfraz" then fury=fury+1 end end
+check(fury>0 and (p[1].env.Save().crFuryIndex or 0)>0,"co-op Fury defenders use the restored fighter roster: "..table.concat(odfs,","))
 -- The full 54-position shipped field collapses; no mine survives the tower gate.
 for i=1,7 do F.kill("cr17_tower"..i) end
 F.run(18)
