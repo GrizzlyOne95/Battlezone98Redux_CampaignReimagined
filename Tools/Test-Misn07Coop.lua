@@ -279,6 +279,7 @@ local function makePeer(id, team, network)
         record("CameraObject", subject, x, y, z, target)
     end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         local args = {...}
         local bytes = 4
         for _, value in ipairs(args) do bytes = bytes + (type(value) == "string" and #value + 2 or 9) end
@@ -333,6 +334,7 @@ local function makePeer(id, team, network)
         Shutdown = function() venus.shutdowns = venus.shutdowns + 1 end,
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
         local service = realRespawn.Create(d)

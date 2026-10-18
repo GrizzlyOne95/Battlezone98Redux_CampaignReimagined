@@ -306,6 +306,7 @@ local function makePeer(id, team, network)
         record("CameraObject", subject, x, y, z, target)
     end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         local args = {...}
         if world.nilMapHandles then
             -- The engine maps a handle across Send only for replicated objects: a
@@ -357,6 +358,7 @@ local function makePeer(id, team, network)
             Stop = function() record("Stop") end, Update = noop, Initialize = noop},
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
         local service = realRespawn.Create(d)

@@ -43,6 +43,7 @@ if type(IsNetGame) == "function" and IsNetGame() then
 end
 local subtit = require("ScriptSubtitles")
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
 -- The DLL's CCA is team 2 (a guest slot in co-op): every CCA object and spawn is team 5. The mission
 -- has no AIP and no strategic AI: every CCA unit is driven by the script below.
 local LEADER_TEAM, ENEMY_TEAM = 1, 5
@@ -232,7 +233,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -245,7 +246,12 @@ local function UpdatePresentationTransport()
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "A" then
         local seq = ...
