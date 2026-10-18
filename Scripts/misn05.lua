@@ -876,7 +876,7 @@ function Start()
         -- Preserve the clearable field; reserve separate hostile and support teams.
         for i = 1, 23 do
             local pathName = "path_" .. i
-            BuildObject("boltmine", MINE_TEAM, pathName)
+            BuildObject("cromine", MINE_TEAM, pathName)
         end
     end
     subtit.Initialize()

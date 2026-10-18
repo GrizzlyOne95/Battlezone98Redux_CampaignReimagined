@@ -322,6 +322,7 @@ jobs:
       - name: Test restored Fury fighter assets and mission roster
         run: |
           python Tools/Test-FuryFighterAssets.py
+          python Tools/Test-BoltMines.py
           lua5.1 Tools/Test-FuryRoster.lua
 
       - name: Strictly validate changed Lua 5.1 files

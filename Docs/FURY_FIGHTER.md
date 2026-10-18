@@ -48,11 +48,10 @@ splash damage. Both use the existing native cannon/ordnance classes, with custom
 weapon/ordnance definitions and Fury-style effects. These are prototype balance
 values, not a completed human combat-balance qualification.
 
-The mine lore is a separate distinction: stock `boltmine.inf` calls the Mars
-mines the Olympian version and explicitly says Fury mines inflict much more
-damage. CR currently reuses `boltmine` in Mission 05 and later Fury fields, so
-it does not yet implement that damage distinction. This fighter work adds its
-own gun/ordnance definitions without changing either shared mine weapon.
+The owner also requested distinct Olympian and Fury mines. Stock `boltmine.inf`
+explicitly says Fury mines inflict much more damage than the Mars Olympian
+version. [Bolt mine variants](BOLT_MINE_VARIANTS.md) documents the new textures,
+separate amber/cyan discharges, damage ratio and Mission 05/15/16/17 integration.
 
 ## Mission integration
 
@@ -62,7 +61,7 @@ own gun/ordnance definitions without changing either shared mine weapon.
 | 15 | Denial pairs and Tartarus response use fighters. Patrols follow light/light/heavy cadence, using the saved hunter counter; existing human scaling and ten-Fury cap remain. Fighters participate in target reacquisition. |
 | 16 | Recurring off-boundary attack is a fighter pair. SAT strike roles and SAV facility/Texas counterattacks remain. Fighters block an optional camera when within 150 m of a human. Existing hidden entry and shared-camera spawn safeguards apply. |
 | 17 | Two of every three scripted SAV/SAT spawns become fighters. Heavy slots keep their original type, routes and counts. Counter is saved with mission state. |
-| 18 | Same two-thirds roster through the faithful offline script. Transport, engines, mines, objectives, trigger order and total craft counts are untouched. |
+| 18 | Same two-thirds roster through the faithful offline script. Transport, engines, objectives, trigger order and total craft counts are untouched. Any later mine requests select the explicit Fury variant. |
 
 Missions 17/18 still have their existing offline ports; this change does not
 claim to implement or qualify their future co-op conversions. `CR_TEST_FAITHFUL`
@@ -96,8 +95,17 @@ scout turns toward its target. `FireAt` alone did not align the stopped craft.
 | `hvraz-candidate-6` | Namespaced model/new texture, each gun separately, eight moving gradual-damage destructions observed on both peers | PASS, 13 steps / 35 checks; pulse inflicted 770 damage, arc 695 including an arriving pulse; normal exits |
 
 The damage samples validate native hits, not a DPS benchmark. Both native clients
-used DX11 Enhanced with `ChunkMeshes=1`. A four-client prototype run and a
-`ChunkMeshes=0` control are recorded when complete.
+used DX11 Enhanced with `ChunkMeshes=1`.
+
+`hvraz-legacy-chunks-9` passed 9 steps / 28 checks with `ChunkMeshes=0`: three
+destructions of the original Drive model and three of `crfraz`. Both clients
+exited normally and their previous INI bytes were restored. Thus the reported
+crash is not reproduced here with either native or replacement debris.
+
+Four-client attempts 7/8 stopped at the audio/session/registry preflight,
+before fighter tests. They are **not** four-player fighter qualification. The
+coordinator reported a missing/lost per-process audio session; subsequent
+network checks do not establish a fighter fault because no fighter was spawned.
 
 Steam, Proton/Wine, native save/load and full mission combat balance are unverified
 for this prototype. No normal game installation or Workshop content is deployed.

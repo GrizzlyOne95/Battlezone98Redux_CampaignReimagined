@@ -5,7 +5,7 @@ local n=0
 local function check(ok,why) assert(ok,why);n=n+1 end
 for _,mission in ipairs({17,18}) do
     local state={}
-    check(R.Select("boltmine2",state)=="boltmine2" and not state.crFuryIndex,"mine/objective assets never consume a roster slot")
+    check(R.Select("boltmine2",state)=="crfmine" and not state.crFuryIndex,"Fury mines use their own definition without consuming a craft slot")
     local fighters,heavies=0,0
     for i=1,12 do
         local old=i%2==0 and "hvsat" or "hvsav"
@@ -33,5 +33,7 @@ for _,mission in ipairs({17,18}) do
     build("hvsav",1,"allied");build("hbtran00",2,"transport")
     check(built[4][1]=="hvsav" and built[5][1]=="hbtran00","human units and transport retain their ODFs")
     check(env.Save().crFuryIndex==3,"counter is part of actual mission persistence")
+    build("boltmine2",2,"mine1")
+    check(built[6][1]=="crfmine" and env.Save().crFuryIndex==3,"actual port builds a Fury mine without altering fighter cadence")
 end
 print("Fury roster: "..n.." checks passed")

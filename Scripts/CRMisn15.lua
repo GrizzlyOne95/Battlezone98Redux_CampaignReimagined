@@ -895,7 +895,7 @@ local function UpdateTartarus()
                 local position=SetVector(point.x,0,point.z)
                 local y=GetTerrainHeightAndNormal(position)
                 position.y=y+0.5
-                local mine=BuildObject("boltmine",FURY_TEAM,position)
+                local mine=BuildObject("crfmine",FURY_TEAM,position)
                 if Valid(mine) then
                     s.tartarusMines[#s.tartarusMines+1]=mine
                     table.remove(s.tartarusMinesPending,i);deployed=deployed+1

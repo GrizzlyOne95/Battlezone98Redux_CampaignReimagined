@@ -98,7 +98,7 @@ check(s.tartarusMinesPending or s.tartarusMinesComplete,"continued intrusion act
 F.nearTo(p[1].player,"ubtart0_i76building",200);F.run(8)
 check(s.tartarusMinesComplete and #s.tartarusMines==40,"tight grid completes exactly forty mines with central clearance")
 for _,mine in ipairs(s.tartarusMines) do
-    check(F.team(mine)==6 and w.objects[mine].odf=="boltmine","grid mines on Fury team")
+    check(F.team(mine)==6 and w.objects[mine].odf=="crfmine","grid uses explicitly textured Fury mines on Fury team")
 end
 local builds=F.count(p[1],"BuildObject")
 local saved=p[1].env.Save();p[1].env.Load(saved);F.run(2)

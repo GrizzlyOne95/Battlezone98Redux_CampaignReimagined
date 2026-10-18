@@ -3831,7 +3831,7 @@ perceivedTeam [1] =
 -1
 [GameObject]
 PrjID [1] =
-boltmine
+crfmine
 seqno [1] =
 54
 pos [1] =
@@ -3960,7 +3960,7 @@ perceivedTeam [1] =
 6
 [GameObject]
 PrjID [1] =
-boltmine
+crfmine
 seqno [1] =
 56
 pos [1] =
@@ -4089,7 +4089,7 @@ perceivedTeam [1] =
 6
 [GameObject]
 PrjID [1] =
-boltmine
+crfmine
 seqno [1] =
 58
 pos [1] =
@@ -4218,7 +4218,7 @@ perceivedTeam [1] =
 6
 [GameObject]
 PrjID [1] =
-boltmine
+crfmine
 seqno [1] =
 60
 pos [1] =
@@ -4347,7 +4347,7 @@ perceivedTeam [1] =
 6
 [GameObject]
 PrjID [1] =
-boltmine
+crfmine
 seqno [1] =
 62
 pos [1] =
@@ -4476,7 +4476,7 @@ perceivedTeam [1] =
 6
 [GameObject]
 PrjID [1] =
-boltmine
+crfmine
 seqno [1] =
 64
 pos [1] =

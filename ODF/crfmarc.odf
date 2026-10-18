@@ -1,0 +1,8 @@
+[WeaponClass]
+classLabel = "beamgun"
+ordName = "crfm0"
+wpnName = "Fury Storm Arc"
+fireSound = "gbmin01.wav"
+wpnReticle = "octagon"
+wpnPriority = 0
+wpnCategory = "CANN"

@@ -1,5 +1,9 @@
 # Mission 05 offline and co-op
 
+Owner lore amendment (2026-10-17): the 23 Mars mines now use the independent
+Olympian `cromine` with fresh bronze/amber textures and a weaker focused arc.
+Later Fury minefields use `crfmine`; see [mine variants](BOLT_MINE_VARIANTS.md).
+
 An Unexpected Connection shares `misn05.bzn` / `misn05.lua` between campaign `MISSION4` and the
 strategy listing `CR: An Unexpected Connection Coop`. Use matching CR, EXU and OpenShim builds. Host
 on team 1, with guests on distinct teams 2–4; select an NSDF tank, scout, or light tank and start

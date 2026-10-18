@@ -12,7 +12,7 @@ text=raw.decode('latin-1').replace('\r\n','\n')
 assert 'name = MultSTMission\n' in text and 'TerrainName = misn16\n' in text
 objects=text.split('[GameObject]\n')[1:]
 assert len(objects)==145
-for name,count in [('cr16cmd',1),('cr16hng',1),('cr16pwr',4),('cr16tow',4),('hbtran00',1),('hbtrn200',4)]:
+for name,count in [('cr16cmd',1),('cr16hng',1),('cr16pwr',4),('cr16tow',4),('hbtran00',1),('hbtrn200',4),('crfmine',6)]:
     assert len(re.findall(r'(?m)^PrjID \[1\] =\n'+name+'$',text))==count
 for label in ['cr16_transport','cr16_pad_look','cr16_evac1','cr16_evac2']:
     assert len(re.findall(r'(?m)^label = '+label+'$',text))==1
