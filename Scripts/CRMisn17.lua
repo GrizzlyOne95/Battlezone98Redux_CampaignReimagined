@@ -532,7 +532,9 @@ local function Safe(where,point)
     return safe
 end
 local Trees=require("CRJungleTrees17").Create({state=function() return M end,
-    authority=CRCoop.IsAuthority,safe=function(v) return Safe(v,true) end})
+    authority=CRCoop.IsAuthority,players=function()
+        local t={};CRCoop.ForEachPlayerHandle(function(h) if Valid(h) then t[#t+1]=GetPosition(h) end end);return t
+    end})
 local function Entry(request)
     -- Authored entry is preferred. Other intact factories/counter are fallback
     -- approaches; if every entrance is watched, retain the request and retry.
