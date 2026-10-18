@@ -496,6 +496,7 @@ function F.makePeer(id, team, network, options)
             Queue = function(file) record("Queue", file); return "audio:" .. file end,
             Stop = function() record("Stop") end, Update = noop, Initialize = noop},
         CRFuryRoster = assert(loadfile("Scripts/CRFuryRoster.lua"))(),
+        CRWire = assert(loadfile("Scripts/CRWire.lua"))(),
         Environment = {Init=function() record("EnvironmentInit") end,
             BindWeatherSensors=function(name) record("WeatherSensors",name) end,
             Update=noop,OnObjectCreated=noop,InvalidateRenderer=noop},

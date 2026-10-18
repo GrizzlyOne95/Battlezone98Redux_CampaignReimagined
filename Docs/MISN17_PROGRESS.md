@@ -105,8 +105,9 @@ head at branch creation `476390ed`. Canonical main stays untouched.
   string longer than 127 bytes therefore crashes every receiving peer
   (exe+0x430A0E). The 141-byte crystal objective text, sent once the hint
   marks the converter feed, was the trigger. Fixes:
-  the text is now 106 bytes; `WireSend`/`WireDecode` in `CRMisn17.lua` split any
-  mission-owned string into 127-byte chunks with a `\2` marker; the fixture's
+  the text is now 106 bytes; every mission-owned send in `CRMisn17.lua` now goes
+  through the shared `CRWire.Pack`/`Unpack` (127-byte chunks, `\2` marker; the
+  local copy was retired after the main merge `54dc7045`); the fixture's
   `e.Send` asserts every string argument is 127 bytes or less. The crystal
   reports also moved from channel `J` (owned by `CRCoopComms`, which was
   swallowing comms packets) to the new channel `Y`. Channels in use: H Q K P L

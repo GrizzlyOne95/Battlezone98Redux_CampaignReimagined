@@ -23,45 +23,9 @@ local unpackArgs = unpack or table.unpack
 -- "J" belongs to CRCoopComms; crystal reports use their own letter so comms still reach CRCoop.
 local CRYSTAL_CHANNEL = "Y"
 local OWN_CHANNELS = { E = true, C = true, A = true, [CRYSTAL_CHANNEL] = true }
-local WIRE_CHUNK, WIRE_MARK = 127, "\2"
 -- Redux reads a Lua packet string's length through a signed byte (FUN_005059B0), so a
--- 128-255 byte string crashes every receiving peer. Split long strings into marked chunks.
-local function WireSend(to, ...)
-    local n, out, m = select("#", ...), {}, 0
-    for i = 1, n do
-        local v = select(i, ...)
-        if type(v) == "string" and (#v > WIRE_CHUNK or v:sub(1, 1) == WIRE_MARK) then
-            local parts = math.max(1, math.ceil(#v / WIRE_CHUNK))
-            m = m + 1; out[m] = WIRE_MARK .. parts
-            for p = 1, parts do m = m + 1; out[m] = v:sub((p - 1) * WIRE_CHUNK + 1, p * WIRE_CHUNK) end
-        else
-            m = m + 1; out[m] = v
-        end
-    end
-    return Send(to, unpackArgs(out, 1, m))
-end
-local function WireDecode(...)
-    local n, out, m, i = select("#", ...), {}, 0, 1
-    while i <= n do
-        local v = select(i, ...)
-        local parts = type(v) == "string" and v:sub(1, 1) == WIRE_MARK and tonumber(v:sub(2))
-        local buf
-        if parts and parts >= 1 and parts == math.floor(parts) and i + parts <= n then
-            buf = {}
-            for p = 1, parts do
-                local c = select(i + p, ...)
-                if type(c) ~= "string" then buf = nil; break end
-                buf[p] = c
-            end
-        end
-        if buf then
-            m = m + 1; out[m] = table.concat(buf); i = i + parts + 1
-        else
-            m = m + 1; out[m] = v; i = i + 1
-        end
-    end
-    return unpackArgs(out, 1, m)
-end
+-- 128-255 byte string crashes every receiving peer. CRWire splits long strings.
+local CRWire = require("CRWire")
 local native = {
     ClearObjectives = ClearObjectives, AddObjective = AddObjective,
     UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
@@ -415,7 +379,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    WireSend(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -430,9 +394,9 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            WireSend(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
-            WireSend(0, "C", cameraSerial, cameraGeneration, "")
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, ""))
         end
     end
 end
@@ -508,7 +472,7 @@ local function ReceivePresentation(from, kind, ...)
         if apply then ApplyPresentation(op, unpackArgs(args, 1, count)) end
         receivedEvent = seq
     end
-    WireSend(from, "A", receivedEvent)
+    Send(from, "A", CRWire.Pack(receivedEvent))
     return true
 end
 
@@ -676,7 +640,7 @@ end
 function R.Receive(from,kind,...)
     State()
     -- Only this file's channels are wire-encoded; CRCoop's own packets pass through untouched.
-    if OWN_CHANNELS[kind] and ReceiveOwn(from,kind,WireDecode(...)) then return true end
+    if OWN_CHANNELS[kind] and ReceiveOwn(from,kind,CRWire.Unpack(...)) then return true end
     return CRCoop.Receive(from,kind,...)
 end
 function R.Update(dt)
@@ -697,7 +661,7 @@ function R.Update(dt)
     Environment.Update(dt)
     if not s.started then CRCoop.MarkMissionStarted();s.started=true end
     M.coopMissionStarted=true
-    Crystal.Poll(CRCoop.IsAuthority(),function(label,towing) WireSend(0,CRYSTAL_CHANNEL,label,towing) end)
+    Crystal.Poll(CRCoop.IsAuthority(),function(label,towing) Send(0, CRYSTAL_CHANNEL, CRWire.Pack(label,towing)) end)
     if not M.coopResult then
         Jungle.Update(dt,CRCoop.IsAuthority(),function(...)
             Present("Jungle",...)
