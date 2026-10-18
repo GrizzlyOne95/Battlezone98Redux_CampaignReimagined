@@ -11,7 +11,7 @@ function Jungle.Create(api)
     local Glass=require("CRWetGlass")
     local Templates=require("CRParticleTemplates")
     local E=require("Environment")
-    local J={}
+    local J={Initialized=false,Enabled=true}
     local state,phase,nextLayer,groups,water,mist,flash,thunder,rainSound,fallSound,error
     local flashAt,thunderAt,nextRain,nextFalls
     local function copy(v)
@@ -36,6 +36,7 @@ function Jungle.Create(api)
     end
     local function stopSound(h) if h and type(StopSound)=="function" then StopSound(h) end end
     function J.Stop()
+        J.Initialized=false
         for _,name in ipairs(groups or {}) do call("DestroyStaticGeometry",name) end
         call("DestroyStaticGeometry","CR17/River")
         call("DestroyParticleSystem","CR17/CascadeMist")
@@ -52,6 +53,7 @@ function Jungle.Create(api)
         phase=nil;nextLayer=1;groups={};water=false;mist=false;error=nil
         nextRain,nextFalls=0,0
         Weather.Init()
+        J.Initialized=true
         E.RegisterEnvironmentModifier("CR17Lightning",function(frame)
             if flash and GetTime()-flashAt<.2 then
                 frame.ambient.r=math.min(1,frame.ambient.r+.35)
@@ -75,7 +77,7 @@ function Jungle.Create(api)
             local p=Sites.water.position
             local info,reason=x.CreateStaticGeometry("CR17/River",Sites.water.mesh,nil,
                 {{position={x=p[1],y=p[2],z=p[3]},scale=1}},
-                {regionDimensions={x=128,y=256,z=128},renderingDistance=300,castShadows=false,visible=true})
+                {origin={x=2048,y=0,z=99328},regionDimensions={x=128,y=256,z=128},renderingDistance=300,castShadows=false,visible=true})
             if info then water=true else error=tostring(reason);return end
         end
         local layer=Sites.layers[nextLayer]
@@ -86,7 +88,7 @@ function Jungle.Create(api)
             end
             local name="CR17/Jungle/"..nextLayer
             local info,reason=x.CreateStaticGeometry(name,layer.mesh,nil,instances,
-                {regionDimensions={x=96,y=256,z=96},renderingDistance=260,castShadows=false,visible=true})
+                {origin={x=2048,y=0,z=99328},regionDimensions={x=96,y=256,z=96},renderingDistance=260,castShadows=false,visible=true})
             if info then groups[#groups+1]=name;nextLayer=nextLayer+1 else error=tostring(reason) end
         end
         if not mist and type(x.CreateParticleSystem)=="function" and Templates.EnsureExtra("cr17_jungle") then
@@ -107,6 +109,7 @@ function Jungle.Create(api)
             end
         end
         geometry()
+        if water and nextLayer>#Sites.layers and mist then error=nil end
         Weather.Update(dt)
         local intensity=phase==3 and 1 or (phase==2 and .65 or .3)
         Splash.Set("rain",intensity);Splash.Update();Glass.Update(intensity)
@@ -123,6 +126,9 @@ function Jungle.Create(api)
             nextFalls=GetTime()+10
         end
     end
+    -- Environment owns sensor writes; severity uses shared phase, never local
+    -- particle quality, geometry readiness or camera position.
+    function J.GetSeverity() return phase and (phase-1)/2 or 0 end
     function J.Save() return copy(state) end
     function J.Describe() return {phase=phase,batches=#groups,totalBatches=#Sites.layers,
         river=water,mist=mist,error=error,age=state and state.age or 0} end

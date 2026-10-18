@@ -609,6 +609,7 @@ function R.Start()
     pda.Initialize();subtit.Initialize()
     Environment.Init({nativeBaseline=true})
     Jungle.Reset(State().jungle)
+    Environment.BindWeatherSensors("Achilles",Jungle)
     Crystal.Reset()
 end
 function R.TrackArtillery(h)

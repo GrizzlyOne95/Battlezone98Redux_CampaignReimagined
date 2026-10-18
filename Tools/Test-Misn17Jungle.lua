@@ -18,6 +18,7 @@ local modules={CRWeather=W,CRWeatherPresets=P,CRJungle17Sites=sites,
     Environment={RegisterEnvironmentModifier=noop}}
 local env=setmetatable({require=function(k) return assert(modules[k],k) end},{__index=_G})
 local api={exu={CreateStaticGeometry=function(name,mesh,mat,instances,options)
+    check(options.origin.z>97000,"static geometry origin follows offset simulation map")
     check(#instances<=256,"static batches bounded")
     check(options.renderingDistance<=300,"culling bounded")
     builds=builds+1;return {instanceCount=#instances}
@@ -25,14 +26,17 @@ end,DestroyStaticGeometry=function() destroys=destroys+1 end,
 CreateParticleSystem=function() return true end,DestroyParticleSystem=noop}}
 local J=setfenv(assert(loadfile("Scripts/CRJungle17.lua")),env)().Create(api)
 J.Reset()
+check(J.Initialized and J.GetSeverity()==0,"reset establishes neutral sensor provider")
 local function send(kind,a,b) J.Apply(kind,a,b) end
 J.Update(.1,false,function() error("guest sent weather") end)
 check(#changes==0,"guest waits for leader weather")
 J.Update(.1,true,send)
 check(changes[1]=="AchillesJungle1","leader establishes gentle rain")
+check(J.GetSeverity()==0,"gentle first rung keeps clear sensor scales")
 check(J.Describe().batches==2 and J.Describe().river and J.Describe().mist,"geometry and cascade layers build")
 now=56;J.Update(56,true,send)
 check(changes[#changes]=="AchillesJungle3","storm escalates on shared clock")
+check(J.GetSeverity()==1,"shared heavy storm drives full sensor severity")
 local saved=J.Save()
 check(saved.age>55 and saved.nextBolt==68,"weather age and next lightning survive save")
 J.Reset(saved)
@@ -44,6 +48,7 @@ check(J.Save().nextBolt>70,"lightning deadline advances once")
 local a=sounds;now=73;J.Update(3,false,noop)
 check(sounds>a,"delayed thunder plays locally")
 J.Stop()
+check(not J.Initialized,"shutdown disables Environment sensor provider")
 check(J.Describe().batches==0 and not J.Describe().river,"stop clears render resources")
 check(P.Presets.AcidRainVisual.precipitation[1].emitters[0].rate==nil,"shared Venus preset unchanged")
 local missing=setfenv(assert(loadfile("Scripts/CRJungle17.lua")),env)().Create({exu={}})

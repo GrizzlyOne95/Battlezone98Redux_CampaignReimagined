@@ -3,7 +3,13 @@ Invoke-CRFlowStep 'Jungle rain, river and foliage initialize on every native pee
     foreach($c in @(Get-CRFlowClientIndices)) {
         Wait-CRFlow $c 'return M.coopMissionStarted and M.openingcindone' -TimeoutSeconds 100 | Out-Null
         Invoke-CRFlow $c "every('jungleHeal',0.5,function() heal(me()) end);return true" | Out-Null
-        $d=Wait-CRFlow $c 'local j=M.cr17Jungle;return j and j.river and j.mist and j.batches==j.totalBatches and j' -TimeoutSeconds 80
+        try {
+            $d=Wait-CRFlow $c 'local j=M.cr17Jungle;return j and j.river and j.mist and j.batches==j.totalBatches and j' -TimeoutSeconds 80
+        } catch {
+            $diagnostic=Invoke-CRFlow $c 'return M.cr17Jungle'
+            Add-CRFlowCheck "c$c jungle initialization diagnostic" $false $diagnostic
+            throw
+        }
         Add-CRFlowCheck "c$c finishes bounded foliage batches and river/mist" (-not $d.error -and $d.batches -gt 0) $d
         $plant=Invoke-CRFlow $c 'local h;for _,p in ipairs(require("CRJungle17Sites").trees) do if p.preplaced==1 then M.jungleTree=p.label;h=GetHandle(p.label);break end end;return {valid=IsValid(h),plant=exu.IsPlant and exu.IsPlant(h),odf=GetOdf(h),health=GetCurHealth(h)}'
         Add-CRFlowCheck "c$c sees a solid native plant" ($plant.valid -and $plant.plant -and $plant.health -gt 0) $plant
