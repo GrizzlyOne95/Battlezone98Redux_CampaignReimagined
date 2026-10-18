@@ -62,7 +62,8 @@ head at branch creation `476390ed`. Canonical main stays untouched.
 ## Verified so far
 
 - Lua 5.1: faithful port **141**, source parity **241**, real four-peer co-op
-  simulation **112**, jungle lifecycle **24** checks pass. The co-op fixture
+  simulation **112**, jungle lifecycle **34**, crystals **47**, tree streaming
+  **129** checks pass. The co-op fixture
   stubs the separate environmental and crystal modules; these numbers do not
   qualify their native rendering or cargo physics.
 - All **22** imported HLSL delegates compile with `/WX` for their SM3/SM4
@@ -98,8 +99,27 @@ head at branch creation `476390ed`. Canonical main stays untouched.
   not yet known. `misn17-story-jungle-2` reproduced it at the same step (client 1,
   58.6 s, frame 2718; last log again the `SetObjectiveName` "Converter crystal
   feed" op). `misn17-stock-3`, before the jungle and crystal content, passed this
-  step, so that content is the likely trigger (unconfirmed). A symbolized stack
-  is pending.
+  step, so that content was the trigger.
+- **Root cause of that client crash (fixed, 661497b3).** The engine's Lua packet
+  string decoder reads each string's length as a *signed* byte. Any `Send`
+  string longer than 127 bytes therefore crashes every receiving peer
+  (exe+0x430A0E). The 141-byte crystal objective text, sent once the hint
+  marks the converter feed, was the trigger. Fixes:
+  the text is now 106 bytes; `WireSend`/`WireDecode` in `CRMisn17.lua` split any
+  mission-owned string into 127-byte chunks with a `\2` marker; the fixture's
+  `e.Send` asserts every string argument is 127 bytes or less. The crystal
+  reports also moved from channel `J` (owned by `CRCoopComms`, which was
+  swallowing comms packets) to the new channel `Y`. Channels in use: H Q K P L
+  (CRCoop), J (comms), C E A (presentation), I (another mission), Y (crystal).
+  An OpenShim-side unsigned-length fix would protect every mod; that is a
+  separate workstream.
+- `misn17-jungle-hd-1` (jungle scenario, `Tools/Test-Misn17JungleLive.ps1`):
+  **PASS, 7 steps / 23 checks**, both clients. Bounded foliage batches,
+  river/mist, a solid native plant seen by each peer, heavy rain then a shared
+  storm, waterfall, plant destruction replicated without touching mission
+  gates, stock converter route to `SucceedMission` on both peers, 23 matching
+  presentation ops, no Lua errors. Shots 03–05 show canopies, underbrush,
+  rain rings and the river.
 - Test instances now run 1920×1080 windowed (`Full Screen=No`) with radar 0.5×,
   PDA font 0.8/opacity 0.4 and the weapon stats HUD off, so captures show the
   world. Previous settings are in `*.pre-hd` beside each instance file.
