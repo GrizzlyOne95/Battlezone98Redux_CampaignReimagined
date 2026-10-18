@@ -8,19 +8,7 @@
 -- Single player, stock BZR API only; no EXU/OpenShim dependency.
 local M
 
--- CR Fury roster >>
--- Keep the DLL event script intact beneath the owner-requested roster change.
--- Team 2 is the enemy in this offline port; this does not make it a co-op port.
-local BuildObject = BuildObject
-if not CR_TEST_FAITHFUL then
-    local nativeBuild = BuildObject
-    local roster = require("CRFuryRoster")
-    BuildObject = function(odf, team, where, ...)
-        if team == 2 then odf = roster.Select(odf, M) end
-        return nativeBuild(odf, team, where, ...)
-    end
-end
--- CR Fury roster <<
+
 
 local function NewState()
     local state = {}
@@ -384,6 +372,31 @@ local function NewState()
 end
 M = NewState()
 
+-- CR co-op runtime >>
+local campaignRuntime = not CR_TEST_FAITHFUL and require("CRMisn17").Create(function() return M end)
+local CRCoop = campaignRuntime and campaignRuntime.Coop
+local exu = campaignRuntime and campaignRuntime.Exu
+local native = campaignRuntime and campaignRuntime.Native
+local IsAlive = campaignRuntime and campaignRuntime.IsAlive or IsAlive
+local GetCurrentCommand = campaignRuntime and campaignRuntime.GetCurrentCommand or GetCurrentCommand
+local AudioMessage = campaignRuntime and campaignRuntime.AudioMessage or AudioMessage
+local StopAudioMessage = campaignRuntime and campaignRuntime.StopAudioMessage or StopAudioMessage
+local CameraReady = campaignRuntime and campaignRuntime.CameraReady or CameraReady
+local CameraPath = campaignRuntime and campaignRuntime.CameraPath or CameraPath
+local CameraObject = campaignRuntime and campaignRuntime.CameraObject or CameraObject
+local CameraFinish = campaignRuntime and campaignRuntime.CameraFinish or CameraFinish
+local CameraCancelled = campaignRuntime and campaignRuntime.CameraCancelled or CameraCancelled
+local SetObjectiveName = campaignRuntime and campaignRuntime.SetObjectiveName or SetObjectiveName
+local SetObjectiveOn = campaignRuntime and campaignRuntime.SetObjectiveOn or SetObjectiveOn
+local ClearObjectives = campaignRuntime and campaignRuntime.ClearObjectives or ClearObjectives
+local AddObjective = campaignRuntime and campaignRuntime.AddObjective or AddObjective
+local SucceedMission = campaignRuntime and campaignRuntime.SucceedMission or SucceedMission
+local FailMission = campaignRuntime and campaignRuntime.FailMission or FailMission
+local SetScrap = campaignRuntime and campaignRuntime.SetScrap or SetScrap
+local SetAIP = campaignRuntime and campaignRuntime.SetAIP or SetAIP
+-- CR co-op runtime <<
+
+
 -- BZR overload safety: absent nearest-enemy results must remain outside every
 -- proximity trigger. Valid handles and native path point indices are unchanged.
 local function Distance(from, to, point)
@@ -402,6 +415,9 @@ end
 -- only missing references; each caller still advances its original timer, and
 -- existing factory objects (including valid wrecks) retain the source behavior.
 local function Spawn(odf, team, where)
+-- CR co-op callback >>
+    if campaignRuntime then return campaignRuntime.Spawn(odf, team, where) end
+-- CR co-op callback <<
     if type(where) == "string" or IsValid(where) then
         return BuildObject(odf, team, where)
     end
@@ -424,10 +440,16 @@ end
 -- null-object commands had no useful effect; valid commands keep their original
 -- targets/priorities, and the mission's one-shot flags and timers still advance.
 local function AttackValid(h, target, priority)
+-- CR co-op callback >>
+    if campaignRuntime then return campaignRuntime.Order("Attack",h,target,priority) end
+-- CR co-op callback <<
     if IsValid(h) and IsValid(target) then Attack(h, target, priority) end
 end
 
 local function DefendValid(h, target, priority)
+-- CR co-op callback >>
+    if campaignRuntime then return campaignRuntime.Order("Defend2",h,target,priority) end
+-- CR co-op callback <<
     if IsValid(h) and IsValid(target) then Defend2(h, target, priority) end
 end
 
@@ -446,11 +468,17 @@ local function TargetCameraObject(base, right, up, forward, target)
 end
 
 function Start()
+-- CR co-op callback >>
+    if campaignRuntime then campaignRuntime.Start() end
+-- CR co-op callback <<
     -- State is initialized when the chunk loads, before any AddObject calls.
     -- Do not reset artillery registered before Start; first Update does setup.
 end
 
 function AddObject(h)
+-- CR co-op callback >>
+    if campaignRuntime and not campaignRuntime.TrackArtillery(h) then return end
+-- CR co-op callback <<
     if not IsValid(h) then return end
     if (M.art1 == nil) and(IsOdf(h, "avartl")) then
         M.art1 = h
@@ -474,6 +502,9 @@ function AddObject(h)
 end
 
 function Update(dt)
+-- CR co-op callback >>
+    if campaignRuntime and not campaignRuntime.Update(dt) then return end
+-- CR co-op callback <<
     --[==[/*
 	   Event loop.
 	*/]==]
@@ -977,6 +1008,9 @@ function Update(dt)
         AudioMessage("misn1704.wav")
         M.missionfail = true
     end
+-- CR result precedence >>
+    if campaignRuntime and M.missionfail then return end
+-- CR result precedence <<
     if (M.tower1dead == true) and(M.tower2dead == true) and(M.tower3dead == true) and(M.tower4dead == true) and(M.tower5dead == true) and(M.tower6dead == true) and(M.tower7dead == true) and(M.towersdestroyed == false) then
         if M.minesmade == false then
             GetRidOfSomeScrap()
@@ -1094,9 +1128,15 @@ function Update(dt)
             M.sf4gone = true
         end
     end
+-- CR crystal reconstruction >>
+    if campaignRuntime then campaignRuntime.AfterUpdate() end
+-- CR crystal reconstruction <<
 end
 
 function Save()
+-- CR co-op callback >>
+    if campaignRuntime then campaignRuntime.Save() end
+-- CR co-op callback <<
     return M
 end
 
@@ -1104,4 +1144,14 @@ function Load(state)
     -- BZR serializes/remaps handles and audio messages, including nested tables.
     -- Restore without replaying startup, spawning units, or restarting timers.
     M = state
+-- CR co-op callback >>
+    if campaignRuntime then campaignRuntime.Load() end
+-- CR co-op callback <<
 end
+
+-- CR co-op callbacks >>
+function CreatePlayer(id,name,team) if campaignRuntime then return campaignRuntime.CreatePlayer(id,name,team) end end
+function AddPlayer(id,name,team) if campaignRuntime then return campaignRuntime.AddPlayer(id,name,team) end end
+function DeletePlayer(id) if campaignRuntime then return campaignRuntime.DeletePlayer(id) end end
+function Receive(from,kind,...) if campaignRuntime then return campaignRuntime.Receive(from,kind,...) end end
+-- CR co-op callbacks <<

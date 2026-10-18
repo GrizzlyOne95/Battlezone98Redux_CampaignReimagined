@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-18T07:56:57-05:00",
-  "count": 2652,
+  "generated": "2026-10-18T09:08:17-05:00",
+  "count": 2728,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10610,6 +10610,310 @@
     {
       "source": "Materials\\cr16_exhaust.material",
       "runtime": "cr16_exhaust.material"
+    },
+    {
+      "source": "Assets\\Audio\\misn1702.wav",
+      "runtime": "misn1702.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1705.wav",
+      "runtime": "misn1705.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1706.wav",
+      "runtime": "misn1706.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1707.wav",
+      "runtime": "misn1707.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1708.wav",
+      "runtime": "misn1708.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1709.wav",
+      "runtime": "misn1709.wav"
+    },
+    {
+      "source": "Assets\\Graphics\\misn17.bmp",
+      "runtime": "misn17.bmp"
+    },
+    {
+      "source": "Assets\\Models\\c17proc.geo",
+      "runtime": "c17proc.geo"
+    },
+    {
+      "source": "Assets\\Models\\c17proc.mesh",
+      "runtime": "c17proc.mesh"
+    },
+    {
+      "source": "Assets\\Models\\c17proc.sdf",
+      "runtime": "c17proc.sdf"
+    },
+    {
+      "source": "Assets\\Models\\c17proc.skeleton",
+      "runtime": "c17proc.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\c17raw.geo",
+      "runtime": "c17raw.geo"
+    },
+    {
+      "source": "Assets\\Models\\c17raw.mesh",
+      "runtime": "c17raw.mesh"
+    },
+    {
+      "source": "Assets\\Models\\c17raw.sdf",
+      "runtime": "c17raw.sdf"
+    },
+    {
+      "source": "Assets\\Models\\c17raw.skeleton",
+      "runtime": "c17raw.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\c17ref.geo",
+      "runtime": "c17ref.geo"
+    },
+    {
+      "source": "Assets\\Models\\c17ref.mesh",
+      "runtime": "c17ref.mesh"
+    },
+    {
+      "source": "Assets\\Models\\c17ref.sdf",
+      "runtime": "c17ref.sdf"
+    },
+    {
+      "source": "Assets\\Models\\c17ref.skeleton",
+      "runtime": "c17ref.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\c17slot.geo",
+      "runtime": "c17slot.geo"
+    },
+    {
+      "source": "Assets\\Models\\c17slot.mesh",
+      "runtime": "c17slot.mesh"
+    },
+    {
+      "source": "Assets\\Models\\c17slot.sdf",
+      "runtime": "c17slot.sdf"
+    },
+    {
+      "source": "Assets\\Models\\c17slot.skeleton",
+      "runtime": "c17slot.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\c17tree1.mesh",
+      "runtime": "c17tree1.mesh"
+    },
+    {
+      "source": "Assets\\Models\\c17tree1.sdf",
+      "runtime": "c17tree1.sdf"
+    },
+    {
+      "source": "Assets\\Models\\c17tree1.skeleton",
+      "runtime": "c17tree1.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\c17tree2.mesh",
+      "runtime": "c17tree2.mesh"
+    },
+    {
+      "source": "Assets\\Models\\c17tree2.sdf",
+      "runtime": "c17tree2.sdf"
+    },
+    {
+      "source": "Assets\\Models\\c17tree2.skeleton",
+      "runtime": "c17tree2.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cr17_mire_ferna.mesh",
+      "runtime": "cr17_mire_ferna.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_mire_fernb.mesh",
+      "runtime": "cr17_mire_fernb.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_mire_frond.mesh",
+      "runtime": "cr17_mire_frond.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_mire_reeds.mesh",
+      "runtime": "cr17_mire_reeds.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_river.mesh",
+      "runtime": "cr17_river.mesh"
+    },
+    {
+      "source": "Assets\\Models\\j1711bda.geo",
+      "runtime": "j1711bda.geo"
+    },
+    {
+      "source": "Assets\\Models\\j1711lea.geo",
+      "runtime": "j1711lea.geo"
+    },
+    {
+      "source": "Assets\\Models\\j1711tu1.geo",
+      "runtime": "j1711tu1.geo"
+    },
+    {
+      "source": "Assets\\Models\\j1711tu2.geo",
+      "runtime": "j1711tu2.geo"
+    },
+    {
+      "source": "Assets\\Models\\j1711tu3.geo",
+      "runtime": "j1711tu3.geo"
+    },
+    {
+      "source": "Assets\\Models\\j1721bda.geo",
+      "runtime": "j1721bda.geo"
+    },
+    {
+      "source": "Assets\\Models\\j1721lef.geo",
+      "runtime": "j1721lef.geo"
+    },
+    {
+      "source": "Assets\\Sounds\\c17falls.wav",
+      "runtime": "c17falls.wav"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_bark.dds",
+      "runtime": "cr17_bark.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_bark_n.dds",
+      "runtime": "cr17_bark_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_bark_s.dds",
+      "runtime": "cr17_bark_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_black.dds",
+      "runtime": "cr17_black.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_flat.dds",
+      "runtime": "cr17_flat.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_foliage.dds",
+      "runtime": "cr17_foliage.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_water.dds",
+      "runtime": "cr17_water.dds"
+    },
+    {
+      "source": "Config\\misn17.ini",
+      "runtime": "misn17.ini"
+    },
+    {
+      "source": "Materials\\cr17_crystal.material",
+      "runtime": "cr17_crystal.material"
+    },
+    {
+      "source": "Materials\\cr17_jungle.material",
+      "runtime": "cr17_jungle.material"
+    },
+    {
+      "source": "Materials\\cr17_jungle.particle.payload",
+      "runtime": "cr17_jungle.particle.payload"
+    },
+    {
+      "source": "Materials\\cr17_surface.material",
+      "runtime": "cr17_surface.material"
+    },
+    {
+      "source": "Missions\\misn17.bzn",
+      "runtime": "misn17.bzn"
+    },
+    {
+      "source": "Missions\\misn17.hg2",
+      "runtime": "misn17.hg2"
+    },
+    {
+      "source": "Missions\\misn17.lgt",
+      "runtime": "misn17.lgt"
+    },
+    {
+      "source": "Missions\\misn17.mat",
+      "runtime": "misn17.mat"
+    },
+    {
+      "source": "Missions\\misn17.trn",
+      "runtime": "misn17.trn"
+    },
+    {
+      "source": "Missions\\misn17.vxt",
+      "runtime": "misn17.vxt"
+    },
+    {
+      "source": "ODF\\c17proc.odf",
+      "runtime": "c17proc.odf"
+    },
+    {
+      "source": "ODF\\c17raw.odf",
+      "runtime": "c17raw.odf"
+    },
+    {
+      "source": "ODF\\c17ref.odf",
+      "runtime": "c17ref.odf"
+    },
+    {
+      "source": "ODF\\c17slot.odf",
+      "runtime": "c17slot.odf"
+    },
+    {
+      "source": "ODF\\c17tree1.odf",
+      "runtime": "c17tree1.odf"
+    },
+    {
+      "source": "ODF\\c17tree2.odf",
+      "runtime": "c17tree2.odf"
+    },
+    {
+      "source": "Scripts\\CRCrystals17.lua",
+      "runtime": "CRCrystals17.lua"
+    },
+    {
+      "source": "Scripts\\CRJungle17.lua",
+      "runtime": "CRJungle17.lua"
+    },
+    {
+      "source": "Scripts\\CRJungle17Sites.lua",
+      "runtime": "CRJungle17Sites.lua"
+    },
+    {
+      "source": "Scripts\\CRJungleTrees17.lua",
+      "runtime": "CRJungleTrees17.lua"
+    },
+    {
+      "source": "Scripts\\CRMisn17.lua",
+      "runtime": "CRMisn17.lua"
+    },
+    {
+      "source": "Shaders\\cr17_surface-fragment.glsl",
+      "runtime": "cr17_surface-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\cr17_surface-vertex.glsl",
+      "runtime": "cr17_surface-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\cr17_surface.hlsl",
+      "runtime": "cr17_surface.hlsl"
+    },
+    {
+      "source": "Shaders\\cr17_surface.program",
+      "runtime": "cr17_surface.program"
+    },
+    {
+      "source": "misn17.des",
+      "runtime": "misn17.des"
     }
   ]
 }
