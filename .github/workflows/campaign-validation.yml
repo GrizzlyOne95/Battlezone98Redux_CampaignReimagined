@@ -139,6 +139,18 @@ jobs:
           python Tools/Test-Misn11CoopContract.py
           python Tools/Test-CoopAuthoredLabels.py
 
+      - name: Test Mars rocket film and exhaust lifecycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn06.lua
+          "$LUA" Tools/Test-Misn06Presentation.lua
+          "$LUA" Tools/Test-Misn06LaunchFilm.lua
+          "$LUA" Tools/Test-Misn06LaunchFX.lua
+          python Tools/Test-Misn06SourceParity.py
+          python Tools/Test-Misn06CoopContract.py
+
       - name: Test misn12 source port, co-op layer, presentation and Europa weather
         shell: bash
         run: |

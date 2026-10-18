@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-16T13:58:46-05:00",
-  "count": 2601,
+  "generated": "2026-10-18T09:02:55-05:00",
+  "count": 2614,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10406,6 +10406,58 @@
     {
       "source": "Text\\misn15l3.des",
       "runtime": "misn15l3.des"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr06rok.geo",
+      "runtime": "cr06rok.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr06rok.mesh",
+      "runtime": "cr06rok.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr06rok.sdf",
+      "runtime": "cr06rok.sdf"
+    },
+    {
+      "source": "Assets\\Textures\\cr06rok_d.dds",
+      "runtime": "cr06rok_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06rok_e.dds",
+      "runtime": "cr06rok_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06rok_n.dds",
+      "runtime": "cr06rok_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06rok_s.dds",
+      "runtime": "cr06rok_s.dds"
+    },
+    {
+      "source": "Materials\\cr06_launch.material",
+      "runtime": "cr06_launch.material"
+    },
+    {
+      "source": "Materials\\cr06_launch.particle.payload",
+      "runtime": "cr06_launch.particle.payload"
+    },
+    {
+      "source": "Materials\\cr06rok.material",
+      "runtime": "cr06rok.material"
+    },
+    {
+      "source": "ODF\\cr06rok.odf",
+      "runtime": "cr06rok.odf"
+    },
+    {
+      "source": "Scripts\\CR06LaunchFX.lua",
+      "runtime": "CR06LaunchFX.lua"
+    },
+    {
+      "source": "Scripts\\CR06LaunchFilm.lua",
+      "runtime": "CR06LaunchFilm.lua"
     }
   ]
 }

@@ -25,6 +25,17 @@ local CRMarsWeather = require("CRMarsWeather")
 local InitAtmosphere, weatherStarted, nextWeatherSync = nil, false, 0
 -- CR atmosphere <<
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+-- CR launch film >>
+local CR06LaunchFilm = require("CR06LaunchFilm")
+local function RocketHandle() return GetHandle("cr06_rocket") end
+local launchFX = require("CR06LaunchFX").Create({
+    exu = exu, time = GetTime, log = print,
+    vector = function(...) return SetVector(...) end,
+    terrain = function(p) return GetTerrainHeightAndNormal(p) end,
+    handle = RocketHandle, valid = IsValid, transform = GetTransform, place = SetTransform,
+    templates = function() return require("CRParticleTemplates").EnsureExtra("cr06_launch") end,
+})
+-- CR launch film <<
 
 -- Co-op presentation uses the established misn03/misn05 E/A and C transport.
 -- Only the campaign leader runs the mission body below; HUD/audio/removal/timer/
@@ -36,6 +47,9 @@ local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
 -- These types do not collide with CRCoop's H/Q/K/P/L protocol. Join-in-progress
 -- still requires a restart: native world reconstruction is not available here.
 local unpackArgs = unpack or table.unpack
+-- CR launch film >>
+local StopLaunchFilm
+-- CR launch film <<
 local native = {
     ClearObjectives = ClearObjectives, AddObjective = AddObjective,
     UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
@@ -106,12 +120,21 @@ local function ApplyPresentation(op, ...)
         InitAtmosphere()
         if not CRCoop.IsAuthority() then CRMarsWeather.ForceLevel((...), 86400, 18.0) end
 -- CR atmosphere <<
+-- CR launch film >>
+    elseif op == "RocketFX" then
+        launchFX.Begin(...)
+    elseif op == "RocketFXStop" then
+        launchFX.Stop()
+-- CR launch film <<
     elseif op == "Label" then
         local handle, label = ...
         if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
             pcall(SetLabel, handle, label)
         end
     elseif op == "SucceedMission" or op == "FailMission" then
+-- CR launch film >>
+        if launchFX then launchFX.Reset() end
+-- CR launch film <<
         local when, description = ...
         if localCameraActive then native.CameraFinish() end
         cameraFrame = nil
@@ -237,8 +260,20 @@ local function EndMission(op, when, description)
         native[op](when, description)
     end
 end
-local function SucceedMission(...) return EndMission("SucceedMission", ...) end
-local function FailMission(...) return EndMission("FailMission", ...) end
+local function SucceedMission(...)
+-- CR launch film >>
+    M.launchFilmTerminal = true
+    if StopLaunchFilm then StopLaunchFilm() end
+-- CR launch film <<
+    return EndMission("SucceedMission", ...)
+end
+local function FailMission(...)
+-- CR launch film >>
+    M.launchFilmTerminal = true
+    if StopLaunchFilm then StopLaunchFilm() end
+-- CR launch film <<
+    return EndMission("FailMission", ...)
+end
 
 local function CameraReady()
     cameraGeneration = cameraGeneration + 1
@@ -481,7 +516,11 @@ local function ReceivePresentation(from, kind, ...)
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
     if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources"
-        or op == "WeatherTarget" or op == "WeatherLevel") then
+        or op == "WeatherTarget" or op == "WeatherLevel"
+-- CR launch film >>
+        or op == "RocketFX" or op == "RocketFXStop"
+-- CR launch film <<
+        ) then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
         local apply, unresolved = true, false
@@ -922,6 +961,18 @@ local function ResetState()
     M.audmsg = nil
 end
 
+-- CR launch film >>
+local launchFilmAPI = {
+    valid = IsValid, time = GetTime, transform = GetTransform,
+    handle = RocketHandle, remove = RemoveObject,
+    ready = CameraReady, camera = CameraObject, finish = CameraFinish,
+    cancelled = CameraCancelled,
+    fxBegin = function(pose, age) Present("RocketFX", pose.posit_x, pose.posit_y, pose.posit_z, age) end,
+    fxStop = function() Present("RocketFXStop") end,
+}
+StopLaunchFilm = function() CR06LaunchFilm.Stop(M, launchFilmAPI) end
+-- CR launch film <<
+
 -- CR atmosphere >>
 InitAtmosphere = function()
     if weatherStarted then return end
@@ -962,7 +1013,14 @@ function Save()
 end
 
 function Load(state)
+-- CR launch film >>
+    if M.launchFilm and M.launchFilm.camera and localCameraActive then CameraFinish() end
+-- CR launch film <<
     if state ~= nil then M = state end
+-- CR launch film >>
+    CR06LaunchFilm.Load(M)
+    launchFX.Reset()
+-- CR launch film <<
 -- CR atmosphere >>
     if weatherStarted then CRMarsWeather.Shutdown() end
     weatherStarted, nextWeatherSync = false, 0
@@ -970,6 +1028,10 @@ function Load(state)
 end
 
 function Start()
+-- CR launch film >>
+    StopLaunchFilm()
+    launchFX.Reset()
+-- CR launch film <<
 -- CR atmosphere >>
     if weatherStarted then CRMarsWeather.Shutdown() end
     weatherStarted, nextWeatherSync = false, 0
@@ -1061,9 +1123,20 @@ function Update(dt)
     subtit.Update()
     CRCoop.Update()
     UpdatePresentationTransport()
-    if M.coopResult or M.coopPendingResult then return end
+-- CR launch film >>
+    launchFX.Update()
+-- CR launch film <<
+    if M.coopResult or M.coopPendingResult then
+-- CR launch film >>
+        if CRCoop.IsAuthority() then StopLaunchFilm() end
+-- CR launch film <<
+        return
+    end
     if CRCoop.IsNetworkGame() then
         if CRCoop.HasLeaderDeparted() then
+-- CR launch film >>
+            if CRCoop.IsAuthority() then StopLaunchFilm() end
+-- CR launch film <<
             M.coopResult = true
             if localCameraActive then native.CameraFinish() end
             localCameraActive = false
@@ -1780,7 +1853,7 @@ function Update(dt)
     if M.cam3done == true then
         CameraObject(M.wAu1, 300, 100, - 900, M.wAu1)
     end
-    if ((M.cam3done == true) and (AudioDone(M.aud500))) or (CameraCancelled()) then
+    if (M.cam3done == true) and ((AudioDone(M.aud500)) or (CameraCancelled())) then
         CameraFinish()
         M.cam3done = false
     end
@@ -1858,6 +1931,9 @@ function Update(dt)
         M.wave3start = true
     end
     if (M.transportarrive < GetTime()) and (M.transarrive == true) then
+-- CR launch film >>
+        CR06LaunchFilm.Begin(M, launchFilmAPI, M.launchpad)
+-- CR launch film <<
 -- CR restored VO >>
         if RESTORED_VO then
             M.aud6 = subtit.Play("misn0614.wav")
@@ -2392,6 +2468,9 @@ function Update(dt)
     if (M.endme == true) and (AudioDone(M.aud102)) and (AudioDone(M.aud103)) and (AudioDone(M.aud104)) then
         FailMission(GetTime() + 0.0, "misn06l4.des")
     end
+-- CR launch film >>
+    CR06LaunchFilm.Update(M, launchFilmAPI)
+-- CR launch film <<
 end
 
 --[=[ DLL declarations/lifecycle comment (inactive C++):

@@ -860,6 +860,16 @@ own change).
 
 ---
 
+### Mars rocket presentation (18 October 2026)
+
+`misn06` now follows the Mission 16 pattern for moving static cinematic fixtures:
+preplace the labelled actor, relay one acknowledged visual event, and apply its
+translation on each peer. Do not assume host `SetTransform` on a static building
+will replicate like a craft. Custom presentation operations must also be admitted
+by `ReceivePresentation`; otherwise they stall the ordered event stream even if
+the local host effect works. The four-peer presentation test covers this case.
+Art, native validation status and resume steps: `Docs/MISN06_ROCKET_FILM.md`.
+
 ## 10. Keeping this document current
 
 ### Mission 16 map selection and cut-content evidence (2026-10-16)

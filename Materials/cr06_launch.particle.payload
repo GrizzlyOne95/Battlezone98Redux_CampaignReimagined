@@ -1,0 +1,134 @@
+// Mission-local CCA rocket: hot core, exhaust cone, world-space trail and pad dust.
+particle_system CR/M06/Core
+{
+    material CR06/HotCore
+    particle_width 10
+    particle_height 12
+    quota 24
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type point
+    emitter Point
+    {
+        angle 2
+        emission_rate 0
+        time_to_live_min 0.08
+        time_to_live_max 0.16
+        direction 0 -1 0
+        velocity_min 8
+        velocity_max 16
+        colour_range_start 1 1 1 0.95
+        colour_range_end 0.8 0.8 0.8 0.8
+    }
+    affector ColourFader
+    {
+        alpha -5
+    }
+}
+particle_system CR/M06/Plume
+{
+    material CR06/Exhaust
+    particle_width 6
+    particle_height 15
+    quota 160
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type oriented_self
+    emitter Point
+    {
+        angle 8
+        emission_rate 0
+        time_to_live_min 0.24
+        time_to_live_max 0.48
+        direction 0 -1 0
+        velocity_min 75
+        velocity_max 105
+        colour_range_start 1 1 1 0.9
+        colour_range_end 0.65 0.65 0.65 0.6
+    }
+    affector ColourFader
+    {
+        alpha -1.8
+    }
+    affector Scaler
+    {
+        rate 12
+    }
+}
+particle_system CR/M06/Smoke
+{
+    material CR_FX/SmokeThin
+    particle_width 8
+    particle_height 10
+    quota 240
+    cull_each true
+    sorted true
+    local_space false
+    billboard_type point
+    emitter Point
+    {
+        angle 12
+        emission_rate 0
+        time_to_live_min 2
+        time_to_live_max 3.5
+        direction 0 -1 0
+        velocity_min 12
+        velocity_max 24
+        colour_range_start 0.75 0.75 0.75 0.2
+        colour_range_end 0.9 0.9 0.9 0.1
+    }
+    affector ColourFader
+    {
+        alpha -0.07
+    }
+    affector Scaler
+    {
+        rate 7
+    }
+    affector LinearForce
+    {
+        force_vector 1.5 0 0.5
+        force_application add
+    }
+}
+particle_system CR/M06/Dust
+{
+    material CR_FX/Dust
+    particle_width 10
+    particle_height 6
+    quota 350
+    cull_each true
+    sorted true
+    local_space false
+    billboard_type point
+    emitter Box
+    {
+        width 16
+        height 0.5
+        depth 16
+        angle 85
+        emission_rate 0
+        time_to_live_min 2
+        time_to_live_max 3.5
+        direction 0 1 0
+        velocity_min 12
+        velocity_max 25
+        colour_range_start 0.55 0.34 0.19 0.32
+        colour_range_end 0.68 0.42 0.24 0.2
+    }
+    affector LinearForce
+    {
+        force_vector 0 -0.8 0
+        force_application add
+    }
+    affector Scaler
+    {
+        rate 7
+    }
+    affector ColourFader
+    {
+        alpha -0.1
+    }
+}

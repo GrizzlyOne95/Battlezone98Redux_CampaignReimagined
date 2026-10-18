@@ -54,6 +54,15 @@ local function NewMission()
         assert(e.IsValid(h)); return { x = h.pos.x, y = h.pos.y, z = h.pos.z }
     end
     e.SetPosition = function(h, p) h.pos = p; Record("SetPosition", h, p) end
+    e.GetTransform = function(h)
+        assert(e.IsValid(h))
+        return {right_x=1,right_y=0,right_z=0,up_x=0,up_y=1,up_z=0,
+            front_x=0,front_y=0,front_z=1,posit_x=h.pos.x,posit_y=h.pos.y,posit_z=h.pos.z}
+    end
+    e.SetTransform = function(h, p)
+        assert(e.IsValid(h)); h.pos={x=p.posit_x,y=p.posit_y,z=p.posit_z}
+        Record("SetTransform", h, p)
+    end
     e.GetNearestEnemy = function(h) assert(e.IsValid(h)); return h.enemy end
     e.GetDistance = function(a, b)
         assert(e.IsValid(a), "invalid origin reached native distance query")
@@ -114,6 +123,8 @@ local function NewMission()
     -- engine modules. subtit.Play forwards to AudioMessage like the real module.
     local function noop() end
     local modules = {
+        CR06LaunchFilm = assert(loadfile("Scripts/CR06LaunchFilm.lua"))(),
+        CR06LaunchFX = assert(loadfile("Scripts/CR06LaunchFX.lua"))(),
         RequireFix = { Initialize = noop }, exu = {},
         Environment = { Init = function(options) w.environmentOptions=options; Record("environmentInit") end,
             Update = function() Record("environmentUpdate") end, OnObjectCreated = noop },
@@ -153,7 +164,7 @@ local function CheckTeams(w, context)
     for _, c in ipairs(w.calls) do
         if c.name == "BuildObject" then
             local odf, team = c.args[1], c.args[2]
-            local want = odf:find("^sv") and 5 or odf:find("^av") and 7 or 1
+            local want = odf == "cr06rok" and 0 or odf:find("^sv") and 5 or odf:find("^av") and 7 or 1
             Check(team == want, context .. ": " .. odf .. " built on team " .. tostring(team))
             seen = seen + 1
         end

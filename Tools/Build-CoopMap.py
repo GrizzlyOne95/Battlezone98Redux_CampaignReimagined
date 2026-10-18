@@ -28,6 +28,7 @@ velocity of moving units, and gives the duplicate-labelled wingmen unique labels
 from __future__ import annotations
 
 import argparse
+import importlib.util
 from collections import Counter
 import os
 import re
@@ -374,6 +375,10 @@ def main() -> int:
     source = args.source or STOCK_DIR / f"{args.mission}.bzn"
     output = args.output or REPO / "Missions" / f"{args.mission}.bzn"
     text = build(convert(source, args.toolbox), args.mission)
+    if args.mission == 'misn06':
+        spec = importlib.util.spec_from_file_location('marsrocket', REPO/'Tools/Add-Misn06Rocket.py')
+        rocket = importlib.util.module_from_spec(spec); spec.loader.exec_module(rocket)
+        text = rocket.add_rocket(text)
     output.write_bytes(text.replace("\n", "\r\n").encode("latin-1"))
     print(f"wrote {output}")
     return 0
