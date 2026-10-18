@@ -854,16 +854,40 @@ end
 -- Sky layer
 -- =============================================================================
 
+-- Drawing first does not exempt the sky from the far clip: a dome or box past
+-- the camera's far plane is culled and nothing appears. Redux's far clip is
+-- about a kilometre (1125 m on crsetup), far short of the presets' authored
+-- 4 km, so the sky is pulled in to half the far clip. The dome's corners sit
+-- up to sqrt(3) times its distance away; at 0.8 of the far clip a wedge of the
+-- dome was clipped out.
+local function SkyDistance(authored)
+    local distance = tonumber(authored)
+    if exu == nil or type(exu.GetCameraClipDistances) ~= "function" then
+        return distance
+    end
+    local ok, _, farClip = pcall(exu.GetCameraClipDistances)
+    farClip = ok and tonumber(farClip) or nil
+    if farClip == nil or farClip <= 0.0 then
+        return distance
+    end
+    if distance == nil or distance > farClip * 0.5 then
+        return farClip * 0.5
+    end
+    return distance
+end
+
 local function ApplySky(sky)
     if sky == nil then
         return
     end
 
+    local distance = SkyDistance(sky.distance)
     if sky.type == "box" then
-        Call("SetSkyBox", sky.material, sky.distance, sky.drawFirst ~= false)
+        Call("SetSkyBox", sky.material, distance, sky.drawFirst ~= false)
     else
-        Call("SetSkyDome", sky.material, sky.curvature, sky.tiling, sky.distance, sky.drawFirst ~= false)
+        Call("SetSkyDome", sky.material, sky.curvature, sky.tiling, distance, sky.drawFirst ~= false)
     end
+    return distance
 end
 
 local function SyncSky()
@@ -872,9 +896,9 @@ local function SyncSky()
     -- The swap is a hard cut either way, so do it at the midpoint of the
     -- transition where the fog has already contracted enough to hide it.
     if wantSky and not CRWeather.SkyApplied and CRWeather.Blend >= 0.5 then
-        ApplySky(CRWeather.Active.sky)
+        local distance = ApplySky(CRWeather.Active.sky)
         CRWeather.SkyApplied = true
-        Log("sky -> " .. tostring(CRWeather.Active.sky.material))
+        Log("sky -> " .. tostring(CRWeather.Active.sky.material) .. " at " .. tostring(distance))
     elseif CRWeather.SkyApplied and (not wantSky or CRWeather.Blend < 0.5) then
         ApplySky(CRWeather.BaseSky)
         CRWeather.SkyApplied = false
