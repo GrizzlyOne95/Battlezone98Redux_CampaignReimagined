@@ -269,6 +269,7 @@ function F.makePeer(id, team, network, options)
     e.SetMaxHealth = function(h, v) record("SetMaxHealth", h, v) end
     e.AddHealth = function(h, v) record("AddHealth", h, v) end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         record("Send", kind)
         local args = {...}
         for index = 1, select("#", ...) do
@@ -320,6 +321,7 @@ function F.makePeer(id, team, network, options)
         CRTitanWeather = options.titan,
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
         local service = realRespawn.Create(d)
