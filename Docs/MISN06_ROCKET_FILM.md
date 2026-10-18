@@ -57,14 +57,21 @@ Host checks: original mission scenarios, source parity, shared-map contract,
 four-peer presentation relay, film lifecycle and VFX lifecycle. The new suites
 are wired into `campaign-validation.yml`.
 
-Native Windows/GOG camera, particle appearance, co-op motion and normal shutdown
-are pending verification. Steam and Proton/Wine remain unverified. No Workshop
-upload or release is part of this prototype.
+Native run `mars-rocket-3` passed 7 steps / 16 checks on two Windows/GOG clients:
+the original VO starts the insert, the rocket rises on both peers, the four
+particle systems exist, the camera releases, the pad and deadlines survive,
+and the actor/particles clean up. Both clients exited with return code 0.
+Screenshots confirm visible orange exhaust during ascent. They also revealed a
+ridge obscuring ignition in the first camera position; the camera is now higher
+and on the other side of the pad, pending a second visual check.
+Steam and Proton/Wine remain unverified. No Workshop upload or release is part
+of this prototype.
 
 ## Resume checkpoint — 18 October 2026
 
-Branch: `agent/mars-rocket`. Implementation and host tests are complete; native
-framing and effects tuning are the next step. The isolated manager-staged content
+Branch: `agent/mars-rocket`, draft PR #228. Implementation and host tests are
+complete; revised native framing and effects tuning are the next step.
+Checkpoint `91d710d3` contains the initial implementation. The isolated manager-staged content
 is `C:/BZRCoop/mars-launch-20261018/content`; the regular GOG mod is untouched.
 Run OpenShim's `Run-BZRCoopMission.ps1` with `-Mission misn06`, this content,
 `-Scenario <this checkout>/Tools/Test-Misn06LaunchLive.ps1`, and two clients.

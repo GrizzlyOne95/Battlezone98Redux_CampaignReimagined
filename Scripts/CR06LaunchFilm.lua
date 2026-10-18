@@ -47,7 +47,7 @@ function Film.Update(state, api)
     end
     if shot.skipped or shot.viewDone then return end
     if not shot.camera then api.ready(); shot.camera = true end
-    api.camera(shot.rocket, 13000, 1000, -15000, shot.rocket)
+    api.camera(shot.rocket, -13000, 7000, 15000, shot.rocket)
     if api.cancelled() then
         api.finish()
         shot.camera, shot.skipped = false, true
