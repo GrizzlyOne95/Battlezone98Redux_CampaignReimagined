@@ -10,6 +10,7 @@ import copy
 import hashlib
 import json
 import math
+import os
 import re
 import shutil
 import subprocess
@@ -63,7 +64,11 @@ def build(src,toolbox):
         if more<=needed:break
         needed|=more
     emit('Materials','cr17_surface.material',rename(mat))
-    emit('Shaders','cr17_surface.program',rename('\n\n'.join(programs[n] for n in sorted(needed) if n in programs)+'\n'))
+    # Ogre binds a unified program's default_params against delegates already
+    # parsed, so each family's delegates must precede its unified block.
+    order=sorted((n for n in needed if n in programs),
+        key=lambda n:(re.sub(r'_(GLSL|HLSL4?)$','',n),'delegate' in programs[n],n))
+    emit('Shaders','cr17_surface.program',rename('\n\n'.join(programs[n] for n in order)+'\n'))
     for n in ('isdfc_surface.hlsl','isdfc_surface-vertex.glsl','isdfc_surface-fragment.glsl'):
         emit('Shaders',n.replace('isdfc','cr17'),rename(text(n)))
     for old,new in [('FoliageAtlas_Mire.dds','cr17_foliage.dds'),('flat_N.dds','cr17_flat.dds'),
@@ -98,6 +103,22 @@ material CR17/River : CR17/Water
     set $waterScroll "0 -0.13 0.014 -0.08"
     set $waterColour "0.24 0.42 0.36 0"
     set $waterSurface "0.65 0.96 0.04 0.3"
+    set $skyColour "0.38 0.48 0.56 0.6"
+}
+material CR17/Streams : CR17/Water
+{
+    set_texture_alias DiffuseMap cr17_water.dds
+    set $waterScroll "0 -0.22 0.02 -0.14"
+    set $waterColour "0.26 0.42 0.34 0"
+    set $waterSurface "0.6 0.95 0.04 0.4"
+    set $skyColour "0.38 0.48 0.56 0.6"
+}
+material CR17/Pools : CR17/Water
+{
+    set_texture_alias DiffuseMap cr17_water.dds
+    set $waterScroll "0.004 0.003 -0.003 0.002"
+    set $waterColour "0.12 0.22 0.18 0"
+    set $waterSurface "0.6 0.97 0.03 0"
     set $skyColour "0.38 0.48 0.56 0.6"
 }
 '''
@@ -177,16 +198,158 @@ dropScrap = 0
                 if d<15 and not protected(xx,zz):
                     target=y-1.1;weight=min(1,max(0,(15-d)/8))
                     bed[iz,ix]=min(bed[iz,ix],ground[iz,ix]*(1-weight)+target*weight)
+    # Terrain water inside the play area. A priority flood finds closed basins
+    # (standing pools); D8 flow on the filled surface traces streams down the
+    # existing gradients until they join, reach a pool or meet the river.
+    import heapq
+    r0,r1,c0,c1=230,893,156,729
+    sub=bed[r0:r1,c0:c1];R,C=sub.shape
+    X=(np.arange(C)+c0)*5.;Z=(np.arange(R)+r0)*5.+97280;XX,ZZ=np.meshgrid(X,Z)
+    guard=np.zeros(sub.shape,bool)
+    for gx,gz in guards:guard|=(XX-gx)**2+(ZZ-gz)**2<20*20
+    near_river=np.zeros(sub.shape,bool)
+    for x,_,z in line:near_river|=(XX-x)**2+(ZZ-z)**2<22*22
+    N8=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
+    def flood(h):
+        fill=h.copy();seen=np.zeros(h.shape,bool);seen[[0,-1],:]=True;seen[:,[0,-1]]=True
+        pq=[(fill[r,c],r,c) for r,c in zip(*np.nonzero(seen))];heapq.heapify(pq)
+        while pq:
+            v,r,c=heapq.heappop(pq)
+            for dr,dc in N8:
+                rr,cc=r+dr,c+dc
+                if 0<=rr<R and 0<=cc<C and not seen[rr,cc]:
+                    seen[rr,cc]=True;fill[rr,cc]=max(h[rr,cc],v+1e-3)
+                    heapq.heappush(pq,(fill[rr,cc],rr,cc))
+        return fill
+    fill=flood(sub)
+    # Streams route over a blurred surface: the 0.1 m height quantization
+    # leaves flats on which D8 draws ruler-straight diagonals.
+    k=np.exp(-.5*(np.arange(-9,10)/3.)**2);k/=k.sum()
+    soft=np.pad(sub,9,mode='edge')
+    soft=np.apply_along_axis(lambda v:np.convolve(v,k,'valid'),0,soft)
+    soft=np.apply_along_axis(lambda v:np.convolve(v,k,'valid'),1,soft)
+    flow=flood(soft)
+    pool_cells=np.zeros(sub.shape,bool);pool_list=[];pool_label=np.full(sub.shape,-1)
+    deep=(fill-sub>.6)&~near_river
+    for r,c in zip(*np.nonzero(deep)):
+        if pool_label[r,c]>=0:continue
+        comp=[(r,c)];pool_label[r,c]=len(pool_list);k=0
+        while k<len(comp):
+            a,b=comp[k];k+=1
+            for dr,dc in N8:
+                rr,cc=a+dr,b+dc
+                if 0<=rr<R and 0<=cc<C and deep[rr,cc] and pool_label[rr,cc]<0:
+                    pool_label[rr,cc]=len(pool_list);comp.append((rr,cc))
+        cells=tuple(np.array(comp).T)
+        if len(comp)<8 or guard[cells].any():pool_list.append(None);continue
+        level=min(float(fill[cells].max()),float(sub[cells].min())+2.)
+        # Broad flat basins become a pond of at most ~1500 cells, not a lake.
+        if len(comp)>1500:level=min(level,float(np.sort(sub[cells])[1499]))
+        pool_list.append(level)
+    def quad(vs,ix,a,b,c,d):
+        # Faces up (+Y) whatever the corner order.
+        p=[np.array(vs[i][:3]) for i in (a,b,c)]
+        if np.cross(p[1]-p[0],p[2]-p[0])[1]<0:b,d=d,b
+        ix.extend([a,b,c,a,c,d])
+    pverts=[];pindices=[]
+    for r in range(1,R-1):
+        for c in range(1,C-1):
+            lab=pool_label[r-1:r+2,c-1:c+2];levels=[pool_list[l] for l in lab.ravel() if l>=0 and pool_list[l] is not None]
+            if not levels:continue
+            level=max(levels)
+            if sub[r,c]>level+.2:continue
+            # Dilated by one cell so the surface tucks into the banks.
+            pool_cells[r,c]=True;x,z=X[c],Z[r];base=len(pverts)
+            for ox,oz in [(-2.5,-2.5),(2.5,-2.5),(2.5,2.5),(-2.5,2.5)]:
+                pverts.append((x+ox-1500,level,-(z+oz-99600),0,1,0,(x+ox)/18,(z+oz)/18))
+            quad(pverts,pindices,base,base+1,base+2,base+3)
+    # D8 receivers and accumulation on the filled, blurred surface.
+    recv=np.full(sub.shape+(2,),-1);drop=np.zeros(sub.shape)
+    for dr,dc in N8:
+        sh=np.full(sub.shape,np.inf)
+        sh[max(0,-dr):R-max(0,dr),max(0,-dc):C-max(0,dc)]=flow[max(0,dr):R+min(0,dr),max(0,dc):C+min(0,dc)]
+        g=(flow-sh)/math.hypot(dr,dc);better=g>drop
+        drop[better]=g[better];recv[better]=(dr,dc)
+    acc=np.ones(sub.shape)
+    for i in np.argsort(-flow,axis=None):
+        r,c=divmod(int(i),C)
+        if drop[r,c]>0:acc[r+recv[r,c,0],c+recv[r,c,1]]+=acc[r,c]
+    T=900;channel=acc>=T
+    heads=[(r,c) for r,c in zip(*np.nonzero(channel)) if not any(
+        0<=r-dr<R and 0<=c-dc<C and channel[r-dr,c-dc] and tuple(recv[r-dr,c-dc])==(dr,dc) and drop[r-dr,c-dc]>0 for dr,dc in N8)]
+    heads.sort(key=lambda p:-flow[p])
+    visited=np.zeros(sub.shape,bool);paths=[]
+    def stop(r,c):return r in(0,R-1) or c in(0,C-1) or near_river[r,c]
+    for r,c in heads:
+        path=[]
+        while True:
+            if stop(r,c) or guard[r,c]:break
+            if pool_cells[r,c]:
+                # Pass under a pool and resume from its outlet.
+                if len(path)>1:paths.append(path)
+                path=[]
+            else:
+                path.append((r,c,acc[r,c]))
+                if visited[r,c]:break
+                visited[r,c]=True
+            # Filled flats carry only the 1e-3 epsilon and draw ruler-straight lines.
+            if drop[r,c]<.0004:break
+            dr,dc=recv[r,c];r,c=r+dr,c+dc
+        if len(path)>1:paths.append(path)
+    sverts=[];sindices=[];stream_points=[]
+    for path in paths:
+        pts=np.array([(X[c],Z[r]) for r,c,_ in path])
+        if np.sum(np.hypot(*np.diff(pts,axis=0).T))<120:continue
+        if len(pts)>2:pts[1:-1]=(pts[:-2]+pts[1:-1]*2+pts[2:])/4
+        y=[];prev=math.inf
+        for (x,z),(r,c,_) in zip(pts,path):prev=min(prev,float(sub[r,c])+.15);y.append(prev)
+        half=[min(3.2,1.4+.9*math.sqrt(a/T)) for *_,a in path]
+        base=len(sverts);length=0
+        for i,((x,z),yy,w) in enumerate(zip(pts,y,half)):
+            a=pts[max(0,i-1)];b=pts[min(len(pts)-1,i+1)]
+            dx,dz=b-a;l=math.hypot(dx,dz) or 1;nx,nz=-dz/l,dx/l
+            if i:length+=math.hypot(*(pts[i]-pts[i-1]))
+            n=np.cross((dx,y[min(len(y)-1,i+1)]-y[max(0,i-1)],-dz),(nx,0,-nz))
+            n=n/(np.linalg.norm(n) or 1)
+            if n[1]<0:n=-n
+            for sign,u in [(-1,0),(1,1)]:
+                sverts.append((x+nx*w*sign-1500,yy,-(z+nz*w*sign-99600),*n,u,length/10))
+            if i:quad(sverts,sindices,base+2*i-2,base+2*i-1,base+2*i+1,base+2*i)
+            stream_points.append((x,yy,z,w))
+            ext=w+3
+            for iz in range(round((z-97280)/5)-2,round((z-97280)/5)+3):
+                for ix in range(round(x/5)-2,round(x/5)+3):
+                    xx,zz=ix*5,iz*5+97280;d=math.hypot(xx-x,zz-z)
+                    if d<ext and not guard[iz-r0,ix-c0]:
+                        weight=min(1,max(0,(ext-d)/2.5))
+                        bed[iz,ix]=min(bed[iz,ix],bed[iz,ix]*(1-weight)+(yy-.6)*weight)
+    wet=np.zeros(ground.shape,bool);wet[r0:r1,c0:c1]=pool_cells
+    for x,_,z,w in stream_points:
+        iz,ix=round((z-97280)/5),round(x/5);wet[iz-2:iz+3,ix-2:ix+3]=True
+    if os.environ.get('CR17_WATER_PREVIEW'):
+        # Top-down review image: shaded relief, pools cyan, streams blue, guards red.
+        from PIL import Image
+        g=np.gradient(sub);shade=np.clip(128+40*(g[1]-g[0]),0,255)
+        img=np.stack([shade]*3,-1).astype(np.uint8)
+        img[pool_cells]=(40,200,220);img[guard]=img[guard]//2+(100,0,0)
+        for x,_,z,w in stream_points:img[round((z-97280)/5)-r0,round(x/5)-c0]=(20,60,255)
+        for x,_,z in line:img[round((z-97280)/5)-r0,round(x/5)-c0]=(255,255,0)
+        Image.fromarray(img[::-1]).resize((C*2,R*2),Image.NEAREST).save(os.environ['CR17_WATER_PREVIEW'])
     write_hg2(ROOT/'Missions/misn17.hg2',np.rint(bed*10).astype(np.uint16),header.zones_x,header.zones_z)
     # POSITION/NORMAL/TEXCOORD0 only, matching the surface shader inputs.
     import struct
-    geo=ogre.Geometry(vertex_count=len(verts),elements=[ogre.VertexElement(0,2,1,0,0),
-        ogre.VertexElement(0,2,4,12,0),ogre.VertexElement(0,1,7,24,0)],
-        buffers={0:ogre.VertexBuffer(0,32,b''.join(struct.pack('<8f',*v) for v in verts),0)})
-    mesh=ogre.OgreMesh(version='[MeshSerializer_v1.100]',endian='<',
-        submeshes=[ogre.SubMesh(material='CR17/River',uses_shared_vertices=False,indices=indices,
-                              use32bit=False,operation=4,geometry=geo)])
-    emit('Assets/Models','cr17_river.mesh',ogre.write_mesh(mesh))
+    def water_mesh(file,material,verts,indices):
+        geo=ogre.Geometry(vertex_count=len(verts),elements=[ogre.VertexElement(0,2,1,0,0),
+            ogre.VertexElement(0,2,4,12,0),ogre.VertexElement(0,1,7,24,0)],
+            buffers={0:ogre.VertexBuffer(0,32,b''.join(struct.pack('<8f',*v) for v in verts),0)})
+        mesh=ogre.OgreMesh(version='[MeshSerializer_v1.100]',endian='<',
+            submeshes=[ogre.SubMesh(material=material,uses_shared_vertices=False,indices=indices,
+                                  use32bit=len(verts)>65535,operation=4,geometry=geo)])
+        emit('Assets/Models',file,ogre.write_mesh(mesh))
+    water_mesh('cr17_river.mesh','CR17/River',verts,indices)
+    assert sverts and pverts,'terrain produced no streams or pools'
+    water_mesh('cr17_streams.mesh','CR17/Streams',sverts,sindices)
+    water_mesh('cr17_pools.mesh','CR17/Pools',pverts,pindices)
     rng=np.random.default_rng(17017);layers=[];trees=[]
     for name,spacing,scale in [('miretre1',34,(.65,1.15)),('miretre2',39,(.8,1.3)),
                                ('mire_ferna',13,(.7,1.4)),('mire_fernb',15,(.8,1.4)),('mire_frond',14,(.9,1.8))]:
@@ -198,7 +361,7 @@ dropScrap = 0
                 y=height(x,z1);ix,iz=round(x/5),round((z1-97280)/5)
                 slope=math.hypot(ground[iz,ix+1]-ground[iz,ix-1],ground[iz+1,ix]-ground[iz-1,ix])/10
                 if typ!=1 or slope>.5 or protected(x,z1,45) or rng.random()<.2:continue
-                if min(math.hypot(x-a,z1-b) for a,b in route)<24:continue
+                if min(math.hypot(x-a,z1-b) for a,b in route)<24 or wet[iz,ix]:continue
                 instances.append([round(x,2),round(y-.08,2),round(z1,2),round(float(rng.uniform(0,math.tau)),3),round(float(rng.uniform(*scale)),3)])
         if name in tree_assets:
             trees.extend((tree_assets[name],p) for p in instances)
@@ -229,6 +392,8 @@ dropScrap = 0
     bzn.header['seq_count'].value=seq;bzn.header['#objects'].value=len(bzn.objects)
     emit('Missions','misn17.bzn',write_bzn(bzn,2016,binary=False,preserve_spelling=False))
     data={'layers':layers,'water':{'mesh':'cr17_river.mesh','position':[1500,0,99600]},
+          'streams':{'mesh':'cr17_streams.mesh','position':[1500,0,99600]},
+          'pools':{'mesh':'cr17_pools.mesh','position':[1500,0,99600]},
           'trees':[{'odf':odf,'position':p[:3],'label':f'cr17_tree{i+1}','preplaced':int(i in chosen)} for i,(odf,p) in enumerate(trees)],
           'cascade':list(line[len(line)//3]),'river':route,'height_samples_changed':int(np.count_nonzero(h!=np.rint(bed*10)))}
     # JSON's arrays are rendered as Lua tables; no parser dependency in game.
@@ -240,8 +405,11 @@ dropScrap = 0
     emit('References/Misn17Jungle','source-assets.json',json.dumps({'source':'ISDF_Chronicles',
         'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=src,text=True).strip(),
         'sha256':consumed,'layers':len(layers),'plants':sum(len(l['instances']) for l in layers),'solid_trees':len(trees),'preplaced_trees':len(chosen),
-        'height_samples_changed':data['height_samples_changed']},indent=2)+'\n')
-    print('Built jungle prototype:',len(layers),'batches,',sum(len(l['instances']) for l in layers),'plants;',data['height_samples_changed'],'channel samples')
+        'height_samples_changed':data['height_samples_changed'],'stream_paths':len(paths),
+        'stream_points':len(stream_points),'pool_cells':int(pool_cells.sum())},indent=2)+'\n')
+    print('Built jungle prototype:',len(layers),'batches,',sum(len(l['instances']) for l in layers),'plants;',data['height_samples_changed'],'channel samples;',
+          len(paths),'stream paths,',len(stream_points),'stream points,',int(pool_cells.sum()),'pool cells,',
+          sum(p is not None for p in pool_list),'pools')
 
 
 if __name__=='__main__':

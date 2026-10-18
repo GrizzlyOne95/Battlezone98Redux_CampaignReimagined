@@ -33,9 +33,12 @@
     "mire_reeds.mesh": "4939da420d23d68167735fc2ee130649f543adfd66c7e639df361da9557a1e6e",
     "isdfms10.bzn": "f4d68042df003ce3b6a0248f941081e429e06a16c2106b88269ca7c24e894e60"
   },
-  "layers": 132,
-  "plants": 33416,
-  "solid_trees": 3331,
-  "preplaced_trees": 125,
-  "height_samples_changed": 339
+  "layers": 123,
+  "plants": 31110,
+  "solid_trees": 3097,
+  "preplaced_trees": 124,
+  "height_samples_changed": 11458,
+  "stream_paths": 100,
+  "stream_points": 4297,
+  "pool_cells": 19945
 }
