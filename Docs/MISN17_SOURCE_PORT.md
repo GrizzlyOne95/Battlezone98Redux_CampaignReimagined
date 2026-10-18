@@ -47,6 +47,16 @@ Victory tests factory parts without requiring tower completion. The source has i
 
 The source does not always request an objective repaint at victory and does not stop recurring waves at victory. Those behaviors remain intact. No extra gameplay audio, hints, units or camera paths were invented from the unused members.
 
+## Cut crystal-processing restoration lead (2026-10-16)
+
+**Documentation/backlog only; the source-faithful Lua port is unchanged.** The owner wants to re-implement the original crystal-sabotage idea in CR, but its exact gameplay was not recovered.
+
+GoombaBZ's `campaigns.csv` contains unused Mission 17 dialogue `misn1705-1708.wav` describing a factory that requires a **processed crystal** in its power converter and suggesting an **unprocessed crystal** substitution. `misn1702.wav` warns of critical power, `misn1703.wav` of an imminent explosion and `misn1709.wav` of success; their exact causal sequence is **not** recoverable from those recordings alone. This source archives fields for `crysswitched`, `firsttimecrysreplaced`, `crystalhint1/2/3`, `procrys`, `rawcrys1..5` and processing timers, but no executable logic for the mechanic.
+
+The owner's OCR of Shane Mooney's **1998 official strategy guide** describes the shipped-style victory path: destroy three power converters behind the otherwise impervious factory buildings; the factory's link to Achilles's core causes catastrophic instability. The guide does **not** mention crystals. A crystal swap is a plausible **alternative** way to disrupt the same system, not a confirmed implemented victory gate.
+
+See [the complete evidence tiers, guide provenance, restoration backlog and test plan](ORIGINAL_GUIDE_LORE_AND_CUT_CONTENT_20261016.md#mission-17-crystal-processing-sabotage-was-at-least-conceived). Before changing this port, inspect the map/ODFs and shipped 1.5 behavior, agree on the CR-only state graph, preserve existing converter-destruction victory, and implement extensions behind clear CR markers with source parity, save/load, subtitle/audio, co-op authority and live tests.
+
 ## Validation
 
 Run from the repository root:
