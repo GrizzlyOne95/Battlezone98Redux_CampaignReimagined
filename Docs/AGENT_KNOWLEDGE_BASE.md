@@ -862,6 +862,14 @@ own change).
 
 ## 10. Keeping this document current
 
+Cut Fury fighter (2026-10-16): the owner-selected standalone `hvraz` port is
+`Battlezone Files/Mods and Custom Files/Fury Fighter` in Drive, not ISDFC's
+ODF/red texture. CR's `crfraz` copies its model/native data and namespaces every
+GEO companion; ship those companions even with a Redux mesh. Destruction passed
+in the private current-bundle baseline; the historical crash cause remains
+unknown. See `Docs/FURY_FIGHTER.md` for the source hashes, initial weapon balance,
+Mission 14-18 roster changes and exact native evidence/limits.
+
 ### Mission 16 map selection and cut-content evidence (2026-10-16)
 
 The installed stock campaign selects `misn16b.bzn` for Strike at the Heart.
@@ -1035,3 +1043,33 @@ script their route velocity, keeping the two lanes separated; the native AIP
 can supersede ordinary enemy movement orders. Keep boarding pockets outside
 engine collision shapes and stop accepting boarders before launch. The pad
 film also needs a camera high enough to clear the southern foreground ridge.
+
+### Fury fighter and faction mine asset checks (2026-10-17)
+
+`crfraz` uses the owner's standalone Drive Fury Fighter port, not ISDFC gameplay
+or its red atlas. Mars volcano mines use `cromine`; later Fury fields use
+`crfmine`. See `Docs/FURY_FIGHTER.md` and `Docs/BOLT_MINE_VARIANTS.md` for scope,
+source hashes and native evidence. The historical original VDF destruction crash
+was not reproduced with either replacement or native debris; its cause remains
+unknown, so do not describe the asset copy as a proven crash fix.
+
+Verify mesh -> material -> texture in the live renderer, then inspect an actual
+frame. A loaded texture and a correct material readback did not prove the first
+BC3 conversions displayed: these mine atlases appeared gray until the same pixels
+were tested as PNG/RGBA8 DDS. The builders now use RGBA8 DDS. Native `draw_bolt`
+and `draw_twirl` texture names also need an Ogre sprite material; copying a new
+image alone is insufficient. Hidden camera pods retain collision: keep fixture
+anchors away from the mine-to-target firing line, and apply no craft AI setters
+to the mines or pods. Private art/damage fixtures do not qualify mission combat.
+
+Mission 16 transport exhaust is peer-local `CRMisn16LaunchFX`, started by the
+existing `EvacLaunch` event. Attach at the `hbtrn200` mesh's lower end, local Y=12;
+its object origin is below the actual nozzle. Keep spent exhaust in world space
+and pad dust grounded. `MakeExplosion` light particles are local-only, so each
+peer emits its own bounded zero-damage ignition pulses. Stop effects on departure,
+result and restart; do not replay ground wash when resuming an airborne launch.
+
+The SM4 and GLSL `CR_Effect` sprite vertex programs swizzle stock vertex color
+BGRA, while SM3 HLSL does not. For Mission 16 Ogre exhaust, use neutral emitter
+RGB with the Fury blue hue in `CR16/FuryExhaust` material diffuse/glow constants
+(after that swizzle). Do not fix one Ogre effect by recoloring shared stock shaders.

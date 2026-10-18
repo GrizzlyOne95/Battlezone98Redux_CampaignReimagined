@@ -1,0 +1,40 @@
+// Short faction-colored arc contact; no additional damage or large stock bubble.
+[ExplosionClass]
+classLabel = "explosion"
+explSound = "lhit.wav"
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+particleTypes = 2
+particleClass1 = "cromhit.core"
+particleCount1 = 2
+particleVeloc1 = "1.0 1.0 1.0"
+particleClass2 = "cromhit.light"
+particleCount2 = 1
+particleVeloc2 = "0.0 0.0 0.0"
+[Core]
+simulateBase = "sim_null"
+lifeTime = 0.12
+renderBase = "draw_twirl"
+textureName = "cr_marc.dds"
+textureBlend = "one one modulate"
+startColor = "255 195 60 255"
+finishColor = "255 120 15 0"
+startRadius = 0.45
+finishRadius = 0.05
+animateTime = 0.12
+rotationRate = 12.0
+[Light]
+simulateBase = "sim_null"
+lifeTime = 0.12
+renderBase = "draw_light"
+startColor = "255 195 60 255"
+finishColor = "255 120 15 0"
+startRadius = 4.0
+finishRadius = 1.0
+animateTime = 0.12
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0

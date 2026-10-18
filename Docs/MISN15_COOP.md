@@ -1,5 +1,9 @@
 # Mission 15: United We Fight - United We Die
 
+Fury roster amendment (2026-10-16): restored `crfraz` fighters lead patrols,
+denial encounters and the Tartarus response. Every third patrol retains SAVs.
+See [Fury fighter](FURY_FIGHTER.md) for current composition and validation.
+
 Shared offline / 2–4 player co-op prototype. Source `misn15.lua` retains the
 faithful port and all disabled source comments; marked adapter regions delegate
 play to `CRMisn15.lua`. The reference-body test injects a no-op runtime factory

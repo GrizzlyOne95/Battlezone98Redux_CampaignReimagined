@@ -1,0 +1,10 @@
+{
+  "stock_source": "Redux bzone.zfs::boltmine.sdf and BZ_ASSETS/common/models/boltmine.mesh/.skeleton",
+  "stock_sha256": {
+    "boltmine.mesh": "1076ac4446eab7a596617aae1378870a99d04f1ab05272e4f052da3e9f5c41cf",
+    "boltmine.sdf": "c79d5527a45b8e84e8d5654c5cc71ded1f07f119a1eadb8cd1ebdaa9873257a3",
+    "boltmine.skeleton": "3ffbc416896ec3187a2a762811d414331bb26b210c41ee4f9a04e467272a6790"
+  },
+  "texture_tool": "built-in image_gen",
+  "art": "Fresh Olympian bronze/amber and Fury biomechanical/cyan atlases; stock images used as layout/style references, not the diffuse source. Independent emission edits. Neutral-white beam filament tinted by separate native ODF renderers."
+}

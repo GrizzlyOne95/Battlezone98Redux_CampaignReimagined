@@ -1,0 +1,15 @@
+// Ancient Olympian defensive technology encountered around the Mars volcano.
+[GameObjectClass]
+baseName = "cromine"
+classLabel = "weaponmine"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 1000
+maxAmmo = 100
+unitName = "Olympian Arc Mine"
+[MineClass]
+lifeSpan = 1e30
+[WeaponMineClass]
+searchRadius = 100.0
+heightScale = 2.0
+weaponName = "cromarc"

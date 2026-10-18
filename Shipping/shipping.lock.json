@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-16T13:58:46-05:00",
-  "count": 2602,
+  "generated": "2026-10-18T07:56:57-05:00",
+  "count": 2653,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -364,6 +364,54 @@
       "runtime": "bvwalk_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cfr11bda.geo",
+      "runtime": "cfr11bda.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11bdb.geo",
+      "runtime": "cfr11bdb.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11bdc.geo",
+      "runtime": "cfr11bdc.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11bdd.geo",
+      "runtime": "cfr11bdd.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11gc1.geo",
+      "runtime": "cfr11gc1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11gc2.geo",
+      "runtime": "cfr11gc2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11gm1.geo",
+      "runtime": "cfr11gm1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11gr1.geo",
+      "runtime": "cfr11gr1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11gs1.geo",
+      "runtime": "cfr11gs1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11lgt.geo",
+      "runtime": "cfr11lgt.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11pov.geo",
+      "runtime": "cfr11pov.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cfr11ror.geo",
+      "runtime": "cfr11ror.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\cr16cmd.mesh",
       "runtime": "cr16cmd.mesh"
     },
@@ -428,8 +476,44 @@
       "runtime": "bvwalk.vdf"
     },
     {
+      "source": "Assets\\ModelFixes\\crfmine.mesh",
+      "runtime": "crfmine.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crfmine.sdf",
+      "runtime": "crfmine.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crfmine.skeleton",
+      "runtime": "crfmine.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crfraz.mesh",
+      "runtime": "crfraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crfraz.skeleton",
+      "runtime": "crfraz.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crfraz.vdf",
+      "runtime": "crfraz.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\crgrass.mesh",
       "runtime": "crgrass.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cromine.mesh",
+      "runtime": "cromine.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cromine.sdf",
+      "runtime": "cromine.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cromine.skeleton",
+      "runtime": "cromine.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\cvapc.mesh",
@@ -676,6 +760,10 @@
       "runtime": "cr_iceveil.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_marc.dds",
+      "runtime": "cr_marc.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_methane_ripple.png",
       "runtime": "cr_methane_ripple.png"
     },
@@ -712,8 +800,28 @@
       "runtime": "cr_titan14_wet.png"
     },
     {
+      "source": "Assets\\Textures\\crfmine_d.dds",
+      "runtime": "crfmine_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crfmine_e.dds",
+      "runtime": "crfmine_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crfraz_d.dds",
+      "runtime": "crfraz_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crgrass.png",
       "runtime": "crgrass.png"
+    },
+    {
+      "source": "Assets\\Textures\\cromine_d.dds",
+      "runtime": "cromine_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cromine_e.dds",
+      "runtime": "cromine_e.dds"
     },
     {
       "source": "Assets\\Textures\\crwx_bootprint.png",
@@ -2824,8 +2932,20 @@
       "runtime": "cr_weather.particle.payload"
     },
     {
+      "source": "Materials\\crfmine.material",
+      "runtime": "crfmine.material"
+    },
+    {
+      "source": "Materials\\crfraz.material",
+      "runtime": "crfraz.material"
+    },
+    {
       "source": "Materials\\crgrass.material",
       "runtime": "crgrass.material"
+    },
+    {
+      "source": "Materials\\cromine.material",
+      "runtime": "cromine.material"
     },
     {
       "source": "Materials\\crwx_cockpitglass.material",
@@ -5052,6 +5172,58 @@
       "runtime": "cr16tow.odf"
     },
     {
+      "source": "ODF\\crfa0.odf",
+      "runtime": "crfa0.odf"
+    },
+    {
+      "source": "ODF\\crfarc.odf",
+      "runtime": "crfarc.odf"
+    },
+    {
+      "source": "ODF\\crfm0.odf",
+      "runtime": "crfm0.odf"
+    },
+    {
+      "source": "ODF\\crfmarc.odf",
+      "runtime": "crfmarc.odf"
+    },
+    {
+      "source": "ODF\\crfmine.inf",
+      "runtime": "crfmine.inf"
+    },
+    {
+      "source": "ODF\\crfmine.odf",
+      "runtime": "crfmine.odf"
+    },
+    {
+      "source": "ODF\\crfp0.odf",
+      "runtime": "crfp0.odf"
+    },
+    {
+      "source": "ODF\\crfpuls.odf",
+      "runtime": "crfpuls.odf"
+    },
+    {
+      "source": "ODF\\crfraz.odf",
+      "runtime": "crfraz.odf"
+    },
+    {
+      "source": "ODF\\crom0.odf",
+      "runtime": "crom0.odf"
+    },
+    {
+      "source": "ODF\\cromarc.odf",
+      "runtime": "cromarc.odf"
+    },
+    {
+      "source": "ODF\\cromine.inf",
+      "runtime": "cromine.inf"
+    },
+    {
+      "source": "ODF\\cromine.odf",
+      "runtime": "cromine.odf"
+    },
+    {
       "source": "ODF\\crping.odf",
       "runtime": "crping.odf"
     },
@@ -6478,6 +6650,10 @@
     {
       "source": "Scripts\\CREuropaWeather.lua",
       "runtime": "CREuropaWeather.lua"
+    },
+    {
+      "source": "Scripts\\CRFuryRoster.lua",
+      "runtime": "CRFuryRoster.lua"
     },
     {
       "source": "Scripts\\CRGroundFX.lua",
@@ -10410,6 +10586,34 @@
     {
       "source": "Text\\misn15l3.des",
       "runtime": "misn15l3.des"
+    },
+    {
+      "source": "Materials\\cr_marc.material",
+      "runtime": "cr_marc.material"
+    },
+    {
+      "source": "ODF\\crfmhit.odf",
+      "runtime": "crfmhit.odf"
+    },
+    {
+      "source": "ODF\\cromhit.odf",
+      "runtime": "cromhit.odf"
+    },
+    {
+      "source": "Materials\\cr16_launch.particle.payload",
+      "runtime": "cr16_launch.particle.payload"
+    },
+    {
+      "source": "ODF\\cr16ign.odf",
+      "runtime": "cr16ign.odf"
+    },
+    {
+      "source": "Scripts\\CRMisn16LaunchFX.lua",
+      "runtime": "CRMisn16LaunchFX.lua"
+    },
+    {
+      "source": "Materials\\cr16_exhaust.material",
+      "runtime": "cr16_exhaust.material"
     }
   ]
 }

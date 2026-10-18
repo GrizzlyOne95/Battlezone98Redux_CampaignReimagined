@@ -1,0 +1,7 @@
+import * from "sprites.material"
+
+// Native draw_bolt/draw_twirl resolves textureName as an Ogre sprite material.
+material cr_marc.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_marc.dds
+}

@@ -1,0 +1,8 @@
+[WeaponClass]
+classLabel = "beamgun"
+ordName = "crom0"
+wpnName = "Olympian Sun Arc"
+fireSound = "gbolt00.wav"
+wpnReticle = "octagon"
+wpnPriority = 0
+wpnCategory = "CANN"

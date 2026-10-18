@@ -1,6 +1,7 @@
 -- Run from the repository root: lua5.1 Tools/Test-Misn18.lua
 -- Engine fakes exercise source mission decisions; native rendering/AI and the
 -- engine's save serializer still need in-game validation.
+CR_TEST_FAITHFUL = true -- The restored roster is covered by Test-FuryRoster.lua.
 assert(_VERSION == "Lua 5.1", "run these checks with Lua 5.1")
 local script = arg[1] or "Scripts/misn18.lua"
 local checks = 0
