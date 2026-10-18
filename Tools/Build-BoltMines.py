@@ -11,6 +11,8 @@ from ogrebin import Mesh,M_SUBMESH,M_MESH_SKELETON_LINK
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'References/BoltMines'
 
+# Keep RGBA8 DDS: the prototype BC3 files loaded without errors but rendered
+# gray in native DX11; the same pixels as PNG/RGBA8 DDS display correctly.
 def build():
     original=SOURCE/'original'
     model=Mesh(original/'boltmine.mesh')
@@ -27,9 +29,9 @@ def build():
         data=model.data[:model.mesh_start]+struct.pack('<HI',0x3000,len(body)+6)+body+model.tail
         (dest/(name+'.mesh')).write_bytes(data)
         for ext in ('sdf','skeleton'):shutil.copyfile(original/('boltmine.'+ext),dest/(name+'.'+ext))
-        Image.open(SOURCE/(name+'-diffuse.png')).convert('RGBA').resize((1024,1024),Image.Resampling.LANCZOS).save(ROOT/'Assets/Textures'/(name+'_d.dds'),pixel_format='DXT5')
-        Image.open(SOURCE/(name+'-emission.png')).convert('RGBA').resize((1024,1024),Image.Resampling.LANCZOS).save(ROOT/'Assets/Textures'/(name+'_e.dds'),pixel_format='DXT5')
-    Image.open(SOURCE/'arc-filament.png').convert('RGBA').resize((512,128),Image.Resampling.LANCZOS).save(ROOT/'Assets/Textures/cr_marc.dds',pixel_format='DXT5')
-    print('Built Olympian and Fury SDF/mesh/skeleton copies, two diffuse atlases and neutral arc filament.')
+        Image.open(SOURCE/(name+'-diffuse.png')).convert('RGBA').resize((1024,1024),Image.Resampling.LANCZOS).save(ROOT/'Assets/Textures'/(name+'_d.dds'))
+        Image.open(SOURCE/(name+'-emission.png')).convert('RGBA').resize((1024,1024),Image.Resampling.LANCZOS).save(ROOT/'Assets/Textures'/(name+'_e.dds'))
+    Image.open(SOURCE/'arc-filament.png').convert('RGBA').resize((512,128),Image.Resampling.LANCZOS).save(ROOT/'Assets/Textures/cr_marc.dds')
+    print('Built Olympian and Fury SDF/mesh/skeleton copies, RGBA8 diffuse/emission atlases and neutral arc filament.')
 
 if __name__=='__main__':build()

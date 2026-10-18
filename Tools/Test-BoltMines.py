@@ -58,10 +58,16 @@ for name,weapon,ordnance in [('cromine','cromarc','crom0'),('crfmine','crfmarc',
     for suffix in ['d','e']:
         texture=ROOT/'Assets/Textures'/f'{name}_{suffix}.dds';ship.append(texture)
         raw=texture.read_bytes()
-        check(raw[:4]==b'DDS ' and struct.unpack_from('<II',raw,12)==(1024,1024) and raw[84:88]==b'DXT5','own diffuse/emission BC3 atlas')
+        check(raw[:4]==b'DDS ' and struct.unpack_from('<II',raw,12)==(1024,1024) and struct.unpack_from('<I',raw,80)[0]==0x41 and struct.unpack_from('<I',raw,88)[0]==32,'own diffuse/emission RGBA8 atlas')
         check(texture.name in text,'own atlas is actually selected')
     ship.extend(ROOT/'ODF'/f'{n}.odf' for n in (name,weapon,ordnance))
     ship.append(ROOT/'ODF'/f'{name}.inf')
+    hit='cromhit' if name=='cromine' else 'crfmhit'
+    check(all(shot[key]==hit for key in ('xplground','xplvehicle','xplbuilding')),'separate faction contact effects for every target type')
+    impact=section(hit,'ExplosionClass')
+    check(all(float(impact[key])==0 for key in ('damageradius','damageballistic','damageconcussion','damageflame','damageimpact')),'contact effect cannot add hidden area damage')
+    check(section(hit,'Core')['startcolor']==section(ordnance,'Render' if name=='cromine' else 'Core')['startcolor'],'contact matches faction arc color')
+    ship.append(ROOT/'ODF'/f'{hit}.odf')
 check(float(odf('crfm0')['damageballistic'])==100 and float(odf('crom0')['damageballistic'])==40,'Fury damage coefficient is 2.5x Olympian')
 check(section('crom0','Render')['renderbase']=='draw_bolt' and section('crfm0','Render')['renderbase']=='draw_multi','focused Olympian arc and forked Fury arc use distinct renderers')
 check(section('crom0','Render')['startcolor'].startswith('255 195') and section('crfm0','Core')['startcolor'].startswith('125 225'),'amber versus cyan-blue discharge colors')
@@ -69,6 +75,8 @@ check(float(odf('crfm0')['segmentvariance'].split()[0])>float(odf('crom0')['segm
 for name in ('crom0','crfm0'):
     check('textureName = "cr_marc.dds"' in (ROOT/'ODF'/f'{name}.odf').read_text(),'both effects use the fresh neutral filament')
 ship.append(ROOT/'Assets/Textures/cr_marc.dds')
+sprite=ROOT/'Materials/cr_marc.material';ship.append(sprite)
+check('material cr_marc.dds : BZSprite/Additive' in sprite.read_text() and 'set_texture_alias DiffuseMap cr_marc.dds' in sprite.read_text(),'native arc/impact renderer can resolve its additive sprite material')
 for p in ship:check(members.get(p.relative_to(ROOT).as_posix())==p.name,'shipping admission: '+p.name)
 lua=(ROOT/'Scripts/misn05.lua').read_text()
 check('BuildObject("cromine", MINE_TEAM, pathName)' in lua and 'BuildObject("boltmine", MINE_TEAM' not in lua,'Mars uses Olympian mines')

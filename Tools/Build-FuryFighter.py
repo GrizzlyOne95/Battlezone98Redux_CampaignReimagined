@@ -39,8 +39,8 @@ def build(source):
     data = mesh.data[:mesh.mesh_start]+struct.pack('<HI',0x3000,len(body)+6)+body+mesh.tail
     (dest/'crfraz.mesh').write_bytes(namespace(data))
     image=Image.open(ROOT/'References/FuryFighter/fury-diffuse.png').convert('RGBA')
-    image.resize((1024,1024),Image.Resampling.LANCZOS).save(ROOT/'Assets/Textures/crfraz_d.dds',pixel_format='DXT5')
-    print('Copied crfraz VDF/mesh/skeleton + 12 GEO companions; DDS 1024x1024 BC3.')
+    image.resize((1024,1024),Image.Resampling.LANCZOS).save(ROOT/'Assets/Textures/crfraz_d.dds')
+    print('Copied crfraz VDF/mesh/skeleton + 12 GEO companions; DDS 1024x1024 RGBA8.')
 
 if __name__ == '__main__':
     ap=argparse.ArgumentParser(description=__doc__)

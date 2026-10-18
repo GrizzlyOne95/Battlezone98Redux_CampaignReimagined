@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-17T21:07:20-05:00",
-  "count": 2645,
+  "generated": "2026-10-17T21:35:22-05:00",
+  "count": 2648,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10582,6 +10582,18 @@
     {
       "source": "Text\\misn15l3.des",
       "runtime": "misn15l3.des"
+    },
+    {
+      "source": "Materials\\cr_marc.material",
+      "runtime": "cr_marc.material"
+    },
+    {
+      "source": "ODF\\crfmhit.odf",
+      "runtime": "crfmhit.odf"
+    },
+    {
+      "source": "ODF\\cromhit.odf",
+      "runtime": "cromhit.odf"
     }
   ]
 }

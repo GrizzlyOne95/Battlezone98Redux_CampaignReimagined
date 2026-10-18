@@ -25,7 +25,10 @@ The fresh diffuse atlases use the stock mine's UV layout. Lenmos/`oblema` suppli
 Olympian art direction; the stock Fury models supplied Fury art direction. The
 original low-detail mine diffuse is a layout guide, not the new painted surface.
 Each variant also has a fresh emission atlas; a newly generated neutral filament
-is independently colored/shaped by the two native render definitions. The builder
+is independently colored/shaped by the two native render definitions. A dedicated
+additive sprite material binds that filament for the native effect renderer.
+Short matching amber/cyan contact flashes replace the stock blue impact bubble
+without adding explosion damage. The builder
 performs DDS conversion only and copies the stock mesh/SDF/skeleton, changing only
 the Ogre resource links. Geometry, collision, UVs, bounds and skeleton stay stock.
 Source PNGs, prompts and stock hashes are under `References/BoltMines`.
@@ -57,5 +60,34 @@ unarmed stationary tank as the target, samples each mine's damage over simulatio
 time, captures the hull/discharge, then checks replicated destruction. Unit AI
 setters are applied only to the known tank, never to either mine.
 
-Native evidence and screenshots are added after the fixture completes. Full
-mission combat balance, Steam and Proton/Wine remain unverified prototype lanes.
+The texture chain was verified by live material readback. The initial BC3 DDS
+conversion loaded without an Ogre exception but rendered gray in native DX11;
+the same artwork rendered correctly as PNG and as RGBA8 DDS. Both builders now
+emit RGBA8 DDS, including the fighter atlas and arc filament. This is evidence
+about these generated files on the tested native path, not a general claim that
+BC3 is unsupported. No shared shader change was needed.
+
+`mines-rgba-18` passed 9 steps / 25 checks on two native GOG clients: both mines
+loaded and inflicted damage, the Fury mine was materially stronger, and both
+clients observed each destruction. The final art fixture clears initial hostile craft and
+holds recurring waves to keep its camera comparison separate from mission combat.
+Its hidden camera pod sits off the firing line; a hidden pod still blocks shots
+if placed directly between mine and target. Native discharges with the dedicated
+sprite binding passed in `fury-art-final-19`: **13 steps / 30 checks**, including
+the fighter's RGBA8 hull, both fighter guns and replicated destruction. Both
+clients exited normally. Mine samples were 127.2578 damage / 3.258 s (Olympian)
+and 329.5313 / 3.307 s (Fury). The registered filament material produces the
+focused amber discharge/contact and the two-strand jagged cyan discharge/contact.
+No mine-specific Ogre compile errors or rendering exceptions were observed;
+stock `TestGround.material` missing-reference diagnostics remained.
+
+Unmodified native frames from the final run:
+
+| Olympian hull | Fury hull |
+| --- | --- |
+| ![Olympian mine](images/fury-assets-20261017/olympian-mine.png) | ![Fury mine](images/fury-assets-20261017/fury-mine.png) |
+
+[Amber discharge](images/fury-assets-20261017/olympian-arc.png) /
+[cyan discharge](images/fury-assets-20261017/fury-arc.png).
+
+Full mission combat balance, Steam and Proton/Wine remain unverified prototype lanes.

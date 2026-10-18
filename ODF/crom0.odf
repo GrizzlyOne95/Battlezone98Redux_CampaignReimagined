@@ -2,9 +2,9 @@
 [OrdnanceClass]
 classLabel = "beam"
 shotGeometry = NULL
-xplGround = "xlgtgnd"
-xplVehicle = "xlgtcar"
-xplBuilding = "xlgtbld"
+xplGround = "cromhit"
+xplVehicle = "cromhit"
+xplBuilding = "cromhit"
 renderName = "crom0.render"
 ammoCost = 0
 lifeSpan = 100e-6

@@ -1043,3 +1043,21 @@ script their route velocity, keeping the two lanes separated; the native AIP
 can supersede ordinary enemy movement orders. Keep boarding pockets outside
 engine collision shapes and stop accepting boarders before launch. The pad
 film also needs a camera high enough to clear the southern foreground ridge.
+
+### Fury fighter and faction mine asset checks (2026-10-17)
+
+`crfraz` uses the owner's standalone Drive Fury Fighter port, not ISDFC gameplay
+or its red atlas. Mars volcano mines use `cromine`; later Fury fields use
+`crfmine`. See `Docs/FURY_FIGHTER.md` and `Docs/BOLT_MINE_VARIANTS.md` for scope,
+source hashes and native evidence. The historical original VDF destruction crash
+was not reproduced with either replacement or native debris; its cause remains
+unknown, so do not describe the asset copy as a proven crash fix.
+
+Verify mesh -> material -> texture in the live renderer, then inspect an actual
+frame. A loaded texture and a correct material readback did not prove the first
+BC3 conversions displayed: these mine atlases appeared gray until the same pixels
+were tested as PNG/RGBA8 DDS. The builders now use RGBA8 DDS. Native `draw_bolt`
+and `draw_twirl` texture names also need an Ogre sprite material; copying a new
+image alone is insufficient. Hidden camera pods retain collision: keep fixture
+anchors away from the mine-to-target firing line, and apply no craft AI setters
+to the mines or pods. Private art/damage fixtures do not qualify mission combat.
