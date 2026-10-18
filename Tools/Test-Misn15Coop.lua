@@ -51,9 +51,9 @@ check(not s.tartarusAlert,"brief proximity still safe")
 F.nearTo(p[4].player,"ubtart0_i76building",140);F.run(2)
 F.nearTo(p[4].player,"ubtart0_i76building",60);F.run(8)
 check(s.tartarusAlert and s.tartarusResponseSpawned,"sustained intrusion triggers one response")
-check(#F.builds(p[1],0,"hvsav")==2,"two Tartarus guardians")
+check(#F.builds(p[1],0,"crfraz")==2,"two restored fighter Tartarus guardians")
 F.run(3)
-check(#F.builds(p[1],0,"hvsav")==2,"Tartarus response once only")
+check(#F.builds(p[1],0,"crfraz")==2,"Tartarus response once only")
 for _,b in ipairs(F.builds(p[1])) do
     check(b.team==6,"all new threats use Fury team")
 end
@@ -98,7 +98,7 @@ check(s.tartarusMinesPending or s.tartarusMinesComplete,"continued intrusion act
 F.nearTo(p[1].player,"ubtart0_i76building",200);F.run(8)
 check(s.tartarusMinesComplete and #s.tartarusMines==40,"tight grid completes exactly forty mines with central clearance")
 for _,mine in ipairs(s.tartarusMines) do
-    check(F.team(mine)==6 and w.objects[mine].odf=="boltmine","grid mines on Fury team")
+    check(F.team(mine)==6 and w.objects[mine].odf=="crfmine","grid uses explicitly textured Fury mines on Fury team")
 end
 local builds=F.count(p[1],"BuildObject")
 local saved=p[1].env.Save();p[1].env.Load(saved);F.run(2)
@@ -115,4 +115,18 @@ check(weatherInit.sites.mission=="misn15" and weatherInit.sites.sea.level==38.1,
 check(weatherUpdates>0 and F.count(peer,"WeatherSensors","Titan")==1,"director and sensor binding update")
 local weatherSave=peer.env.Save();peer.env.Load(weatherSave);F.run(2)
 check(weatherLoads==1,"saved weather restores once through runtime")
+-- The restored fighter leads patrols, with heavy SAVs every third wave.
+w,p,m=setup(4);s=m.cr15;s.denial={true,true}
+for wave=1,3 do
+    local mark=#p[1].calls
+    s.nextHunter=-1;F.run(1)
+    local odf=wave==3 and "hvsav" or "crfraz"
+    local built=F.builds(p[1],mark,odf)
+    check(#built==3,"four humans get three patrol craft with the saved light/light/heavy cadence")
+    for _,b in ipairs(built) do check(b.team==6,"new fighter patrol stays enemy-owned");F.kill(b.h) end
+    for i=2,4 do check(F.count(p[i],"BuildObject")==0,"guests never spawn fighter patrols") end
+end
+F.nearTo(p[1].player,"alien1",0);F.nearTo(p[2].player,"alien2",0)
+local before=s.hunters;local mark=#p[1].calls;s.nextHunter=-1;F.run(1)
+check(s.hunters==before and #F.builds(p[1],mark)==0,"fighters wait while humans watch both entries")
 print("misn15 campaign co-op: "..checks.." checks passed")

@@ -1,0 +1,1326 @@
+material CR17/NoShadowCaster
+{
+	technique
+	{
+		pass
+		{
+			colour_write off
+			depth_write off
+			vertex_program_ref Untextured_vertex
+			{
+			}
+			fragment_program_ref Untextured_fragment
+			{
+			}
+		}
+	}
+}
+
+material CR17/Water
+{
+	set $specular "1 1 1"
+	set $shininess "96"
+	set $skyColour "0.5 0.6 0.75 1"
+	set $waterScroll "0.012 0.008 0.011 -0.009"
+	set $waterScale "1 1.37 4 0.004"
+	set $waterColour "0.6 0.8 0.85 0"
+	set $waterSurface "0.55 0.95 0.03 0"
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Water_fragment
+			{
+				param_named skyColour float4 $skyColour
+				param_named waterScroll float4 $waterScroll
+				param_named waterScale float4 $waterScale
+				param_named waterColour float4 $waterColour
+				param_named waterSurface float4 $waterSurface
+			}
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular $specular $shininess
+			scene_blend alpha_blend
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme glow
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Water_Glow_fragment
+			{
+				param_named waterScroll float4 $waterScroll
+				param_named waterScale float4 $waterScale
+				param_named waterColour float4 $waterColour
+			}
+			scene_blend add
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+		}
+	}
+
+}
+
+material CR17/CutoutCaster/Foliage
+{
+	technique
+	{
+		pass
+		{
+			scene_blend one one
+			scene_blend_op min
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			vertex_program_ref CR17_Surface_Caster_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_Caster_fragment
+			{
+				param_named cutoutParams float4 0.45 0 0 0
+			}
+			texture_unit diffuseMap
+			{
+				texture cr17_foliage.dds
+			}
+		}
+	}
+}
+
+material CR17/Cutout
+{
+	set $shininess "32"
+	set $ambient "1 1 1"
+	set $diffuse "1 1 1"
+	set $specular "1 1 1"
+	set $bias "0"
+	set $glow "1 1 1"
+	set $caster "CR17/CutoutCaster/white"
+	set $cutoutParams "0.5 0 0 1024"
+
+	lod_values 250 300
+
+	technique
+	{
+		scheme high-pssm
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_PSSM_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_PSSM_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+			texture_unit shadowMap1
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+			texture_unit shadowMap2
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+			texture_unit shadowMap3
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+		}
+	}
+
+	technique
+	{
+		scheme high-pssm
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme high
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_Shadow_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_Shadow_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+			texture_unit shadowMap1
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+		}
+	}
+
+	technique
+	{
+		scheme high
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme high-noshadow
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme high-noshadow
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme medium-pssm
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_PSSM_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_PSSM_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+			texture_unit shadowMap1
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+			texture_unit shadowMap2
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+			texture_unit shadowMap3
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+		}
+	}
+
+	technique
+	{
+		scheme medium-pssm
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme medium
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_Shadow_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_Shadow_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+			texture_unit shadowMap1
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+		}
+	}
+
+	technique
+	{
+		scheme medium
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme medium-noshadow
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme medium-noshadow
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme low-pssm
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_PSSM_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_PSSM_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+			texture_unit shadowMap1
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+			texture_unit shadowMap2
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+			texture_unit shadowMap3
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+		}
+	}
+
+	technique
+	{
+		scheme low-pssm
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme low
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_Shadow_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_Shadow_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+			texture_unit shadowMap1
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+		}
+	}
+
+	technique
+	{
+		scheme low
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme low-noshadow
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme low-noshadow
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme lowest-pssm
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_PSSM_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_PSSM_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+			texture_unit shadowMap1
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+			texture_unit shadowMap2
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+			texture_unit shadowMap3
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+		}
+	}
+
+	technique
+	{
+		scheme lowest-pssm
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme lowest
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_Shadow_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_Shadow_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+			texture_unit shadowMap1
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+		}
+	}
+
+	technique
+	{
+		scheme lowest
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme lowest-noshadow
+		lod_index 0
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme lowest-noshadow
+		lod_index 1
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme glow
+		pass
+		{
+			ambient $glow
+			diffuse $glow
+			depth_bias $bias
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_Glow_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		shadow_caster_material $caster
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 $cutoutParams
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			depth_bias $bias
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit normalMap
+			{
+				texture_alias NormalMap
+				texture flat_n.png
+			}
+			texture_unit specularMap
+			{
+				texture_alias SpecularMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+}

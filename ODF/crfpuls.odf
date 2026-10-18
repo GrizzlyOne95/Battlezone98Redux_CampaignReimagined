@@ -1,0 +1,11 @@
+[WeaponClass]
+classLabel = "cannon"
+ordName = "crfp0"
+wpnName = "Fury Pulse"
+fireSound = "gbolt00.wav"
+wpnReticle = "gspstab"
+wpnPriority = 2
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.5

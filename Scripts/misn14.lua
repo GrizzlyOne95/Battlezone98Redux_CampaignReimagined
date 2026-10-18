@@ -1046,8 +1046,9 @@ local function FurySpawns(triplet, count)
 end
 
 local function FuryWaveOdfs(wave)
-    local odfs = { "hvsav", "hvsav", "hvsav" }
-    for _ = 1, ExtraHumans() do odfs[#odfs + 1] = "hvsav" end
+    -- The restored light fighter is the main wave unit; retain one heavy SAV.
+    local odfs = { "hvsav", "crfraz", "crfraz" }
+    for _ = 1, ExtraHumans() do odfs[#odfs + 1] = "crfraz" end
     if wave >= FURY_TANK_FROM_WAVE then
         odfs[#odfs + 1] = "hvsat"
         if HumanCount() >= 3 then odfs[#odfs + 1] = "hvsat" end
@@ -1067,7 +1068,7 @@ local function SpawnFuryWave(wave)
     -- Tanks are the last entries; keep them when the cap trims the wave.
     local built = {}
     for i = 1, #spawns do
-        local odf = odfs[#odfs - #spawns + i] or "hvsav"
+        local odf = odfs[#odfs - #spawns + i] or "crfraz"
         local unit = BuildObject(odf, FURY_TEAM, spawns[i])
         if IsValid(unit) then
             M.fury_wave_units[#M.fury_wave_units + 1] = unit

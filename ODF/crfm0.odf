@@ -1,0 +1,45 @@
+// Full stock Fury mine damage. Two jagged cyan strands form the storm arc.
+[OrdnanceClass]
+classLabel = "beam"
+shotGeometry = NULL
+xplGround = "crfmhit"
+xplVehicle = "crfmhit"
+xplBuilding = "crfmhit"
+renderName = "crfm0.render"
+ammoCost = 0
+lifeSpan = 100e-6
+shotSpeed = 1e6
+damageBallistic = 100
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+[BeamClass]
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "crfm0.core"
+renderName2 = "crfm0.fork"
+[Core]
+renderBase = "draw_bolt"
+textureName = "cr_marc.dds"
+textureBlend = "one one modulate"
+startColor = "125 225 255 255"
+finishColor = "55 150 255 255"
+startRadius = 0.14
+finishRadius = 0.20
+segmentLength = 0.65
+segmentVariance = "0.65 0.65 0.65"
+textureRate = 0.12
+animateTime = 0.0
+[Fork]
+renderBase = "draw_bolt"
+textureName = "cr_marc.dds"
+textureBlend = "one one modulate"
+startColor = "40 140 255 150"
+finishColor = "15 75 255 100"
+startRadius = 0.07
+finishRadius = 0.10
+segmentLength = 1.1
+segmentVariance = "1.2 1.2 1.2"
+textureRate = 0.18
+animateTime = 0.0

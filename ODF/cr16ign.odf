@@ -1,0 +1,25 @@
+// Peer-local ignition illumination only; cannot damage nearby craft or pad.
+[ExplosionClass]
+classLabel = "explosion"
+explSound = ""
+damageRadius = 0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+particleTypes = 1
+particleClass1 = "cr16ign.light"
+particleCount1 = 1
+particleVeloc1 = "0 0 0"
+[Light]
+simulateBase = "sim_null"
+lifeTime = 0.24
+renderBase = "draw_light"
+startColor = "70 180 255 255"
+finishColor = "25 80 255 0"
+startRadius = 38
+finishRadius = 34
+animateTime = 0.24
+attenuateConstant = 0
+attenuateLinear = 1
+attenuateQuadratic = 0

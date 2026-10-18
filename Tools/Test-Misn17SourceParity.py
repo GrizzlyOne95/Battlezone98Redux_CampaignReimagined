@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "References/Misn17Source"
 CPP = (SOURCE / "Misn17Mission.cpp").read_text()
 LUA = (ROOT / "Scripts/misn17.lua").read_text()
+LUA = re.sub(r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?", "", LUA)
 checks = 0
 
 

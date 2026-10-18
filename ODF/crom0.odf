@@ -1,0 +1,28 @@
+// 100 m range; 40% of the stock/Fury mine's beam damage coefficient.
+[OrdnanceClass]
+classLabel = "beam"
+shotGeometry = NULL
+xplGround = "cromhit"
+xplVehicle = "cromhit"
+xplBuilding = "cromhit"
+renderName = "crom0.render"
+ammoCost = 0
+lifeSpan = 100e-6
+shotSpeed = 1e6
+damageBallistic = 40
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+[BeamClass]
+[Render]
+renderBase = "draw_bolt"
+textureName = "cr_marc.dds"
+textureBlend = "one one modulate"
+startColor = "255 195 60 255"
+finishColor = "255 150 25 255"
+startRadius = 0.05
+finishRadius = 0.08
+segmentLength = 2.5
+segmentVariance = "0.12 0.12 0.12"
+textureRate = 0.03
+animateTime = 0.0

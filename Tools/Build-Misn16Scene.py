@@ -37,6 +37,8 @@ def build(game, toolbox):
             blocks[i]=blocks[i].replace('perceivedTeam [1] =\n-1\n','perceivedTeam [1] =\n2\n',1)
     source='[GameObject]\n'.join(blocks)
     result = read_bzn(base.build(source, 'misn16').encode('latin-1'), odf_dirs=[ROOT/'ODF'])
+    for obj in result.objects:
+        if obj.prjid=='boltmine': obj.prjid='crfmine'
     arc = ZFSArchive(game/'bzone.zfs')
     original18 = read_bzn(arc.read('misn18.bzn'))
     hull = next(o for o in original18.objects if o.prjid == 'hbtran00')

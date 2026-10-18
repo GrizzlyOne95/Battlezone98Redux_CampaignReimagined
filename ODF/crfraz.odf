@@ -1,0 +1,48 @@
+// Cut hvraz Fury fighter: fast, lighter than the 4000-health SAV/SAT.
+[GameObjectClass]
+baseName = "crfraz"
+classLabel = "wingman"
+scrapValue = 3
+scrapCost = 6
+pilotCost = 0
+pilotName = ""
+maxHealth = 2400
+maxAmmo = 1400
+unitName = "Fury Fighter"
+aiName = "ScoutFriend"
+aiName2 = "ScoutEnemy"
+heatSignature = 0.5
+imageSignature = 0.8
+radarSignature = 1.0
+weaponHard1 = "GC1"
+weaponName1 = "crfpuls"
+weaponHard2 = "GC2"
+weaponName2 = "crfarc"
+weaponMask = 00011
+
+[CraftClass]
+rangeScan = 400.0
+periodScan = 2.0
+velocJam = 5.0
+
+[HoverCraftClass]
+setAltitude = 1.5
+accelDragStop = 3.5
+accelDragFull = 1.0
+alphaTrack = 20.0
+alphaDamp = 5.0
+pitchPitch = 0.25
+pitchThrust = 0.05
+rollStrafe = 0.05
+rollSteer = 0.05
+velocForward = 35.0
+velocReverse = 18.0
+velocStrafe = 24.0
+accelThrust = 28.0
+accelBrake = 50.0
+omegaSpin = 3.0
+omegaTurn = 2.25
+alphaSteer = 6.0
+accelJump = 12.0
+soundThrust = "avsave0.wav"
+soundTurbo = "avsave6.wav"

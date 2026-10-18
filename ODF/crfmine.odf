@@ -1,0 +1,15 @@
+// Active Fury derivative: stock threat level, explicitly separate assets.
+[GameObjectClass]
+baseName = "crfmine"
+classLabel = "weaponmine"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 1000
+maxAmmo = 100
+unitName = "Fury Arc Mine"
+[MineClass]
+lifeSpan = 1e30
+[WeaponMineClass]
+searchRadius = 100.0
+heightScale = 2.0
+weaponName = "crfmarc"

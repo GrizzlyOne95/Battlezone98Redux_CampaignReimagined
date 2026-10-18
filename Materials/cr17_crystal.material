@@ -1,0 +1,53 @@
+import * from "BZBase.material"
+
+material CR17/c17raw : BZBase
+{
+    set_texture_alias DiffuseMap white.png
+    set_texture_alias NormalMap cr17_flat.dds
+    set_texture_alias SpecularMap white.png
+    set_texture_alias EmissiveMap white.png
+    set $diffuse "0.16 0.42 0.25"
+    set $ambient "0.16 0.42 0.25"
+    set $specular "0.8 0.9 1"
+    set $shininess "96"
+    set $glow "0.01 0.08 0.12"
+}
+
+material CR17/c17proc : BZBase
+{
+    set_texture_alias DiffuseMap white.png
+    set_texture_alias NormalMap cr17_flat.dds
+    set_texture_alias SpecularMap white.png
+    set_texture_alias EmissiveMap white.png
+    set $diffuse "0.2 0.75 1"
+    set $ambient "0.2 0.75 1"
+    set $specular "0.8 0.9 1"
+    set $shininess "96"
+    set $glow "0.01 0.08 0.12"
+}
+
+material CR17/c17ref : BZBase
+{
+    set_texture_alias DiffuseMap white.png
+    set_texture_alias NormalMap cr17_flat.dds
+    set_texture_alias SpecularMap white.png
+    set_texture_alias EmissiveMap white.png
+    set $diffuse "0.14 0.2 0.18"
+    set $ambient "0.14 0.2 0.18"
+    set $specular "0.8 0.9 1"
+    set $shininess "96"
+    set $glow "0 0 0"
+}
+
+material CR17/c17slot : BZBase
+{
+    set_texture_alias DiffuseMap white.png
+    set_texture_alias NormalMap cr17_flat.dds
+    set_texture_alias SpecularMap white.png
+    set_texture_alias EmissiveMap white.png
+    set $diffuse "0.14 0.2 0.18"
+    set $ambient "0.14 0.2 0.18"
+    set $specular "0.8 0.9 1"
+    set $shininess "96"
+    set $glow "0 0 0"
+}
