@@ -211,7 +211,7 @@ function Jungle.Create(api)
             end
             local name="CR17/Jungle/"..nextLayer
             local info,reason=x.CreateStaticGeometry(name,layer.mesh,nil,instances,
-                {origin={x=2048,y=0,z=99328},regionDimensions={x=96,y=256,z=96},renderingDistance=260,castShadows=false,visible=true})
+                {origin={x=2048,y=0,z=99328},regionDimensions={x=192,y=256,z=192},renderingDistance=260,castShadows=false,visible=true})
             if info then groups[#groups+1]=name;nextLayer=nextLayer+1 else error=tostring(reason) end
         end
         if not mist and type(x.CreateParticleSystem)=="function" and Templates.EnsureExtra("cr17_jungle") then

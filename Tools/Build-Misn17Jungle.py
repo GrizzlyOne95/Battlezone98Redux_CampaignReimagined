@@ -30,6 +30,24 @@ def blocks(text,keyword):
     return out
 
 
+# Canopy parts are CLASS_ID_NONCOLLIDABLE (0x37, as stock wat11pn1). Otherwise
+# every BuildObject welds the 1-2k-vertex canopy GEO into a polygon soup
+# (O(n^2), ~15 ms per tree) and 3,000 streamed trees stall the opening minutes.
+# The trunk parts keep their GEO collision.
+CANOPY_PARTS={b'j1711lea',b'j1721lef'}
+
+
+def noncollidable_canopy(sdf):
+    data=bytearray(sdf);i=data.find(b'SGEO');count=int.from_bytes(data[i+8:i+12],'little')
+    hit=0
+    for k in range(count*6):
+        rec=i+12+k*120
+        if bytes(data[rec:rec+8]).rstrip(b'\0') in CANOPY_PARTS:
+            data[rec+92:rec+96]=(0x37).to_bytes(4,'little');hit+=1
+    assert hit,'no canopy part in the SDF'
+    return bytes(data)
+
+
 def build(src,toolbox):
     sys.path.insert(0,str(toolbox))
     from battlezone.meshes import ogre
@@ -134,7 +152,7 @@ material CR17/Pools : CR17/Water
             oldprefix='tr111' if n.endswith('1') else 'tr311'
             newprefix='j1711' if n.endswith('1') else 'j1721'
             def ns(data):return data.replace(oldprefix.encode(),newprefix.encode())
-            sdf=read(n+'.sdf');emit('Assets/Models',target+'.sdf',ns(sdf))
+            sdf=read(n+'.sdf');emit('Assets/Models',target+'.sdf',noncollidable_canopy(ns(sdf)))
             for part in read_sdf(sdf).parts:
                 if part.band==0 and part.name!='NULL':
                     emit('Assets/Models',part.name.replace(oldprefix,newprefix)+'.geo',ns(read(part.name+'.geo')))
@@ -371,7 +389,12 @@ dropScrap = 0
             trees.extend((tree_assets[name],p) for p in instances)
         else:
             # Ground cover is visual only; large trees are solid native plants.
-            for i in range(0,len(instances),256):layers.append({'mesh':'cr17_'+name+'.mesh','instances':instances[i:i+256]})
+            # One layer per mesh per 384 m tile, aligned with the StaticGeometry
+            # regions (192 m from origin 2048,99328). Row-order 256-instance
+            # strips each crossed ~30 regions: ~3,700 region batches per frame.
+            tiles={}
+            for p in instances:tiles.setdefault((math.floor((p[0]-2048)/384),math.floor((p[2]-99328)/384)),[]).append(p)
+            for k in sorted(tiles):layers.append({'mesh':'cr17_'+name+'.mesh','instances':tiles[k]})
     original_trees=read_bzn(src/'isdfms10.bzn',odf_dirs=[src])
     tree_template=next(o for o in original_trees.objects if o.prjid=='miretre1')
     consumed['isdfms10.bzn']=hashlib.sha256((src/'isdfms10.bzn').read_bytes()).hexdigest()
