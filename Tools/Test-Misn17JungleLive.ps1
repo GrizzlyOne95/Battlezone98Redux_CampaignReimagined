@@ -1,8 +1,10 @@
 # Native geometry/weather smoke and visual captures, followed by stock victory.
+param([int]$HostClient = 0)
 Invoke-CRFlowStep 'Jungle rain, river and foliage initialize on every native peer' {
     foreach($c in @(Get-CRFlowClientIndices)) {
         # The mission body runs only on the authority, so only it sets openingcindone.
-        Wait-CRFlow $c 'return M.coopMissionStarted and (M.openingcindone or not R.Coop.IsAuthority())' -TimeoutSeconds 100 | Out-Null
+        $ready=if($c -eq $HostClient){'return M.coopMissionStarted and M.openingcindone'}else{'return M.coopMissionStarted == true'}
+        Wait-CRFlow $c $ready -TimeoutSeconds 100 | Out-Null
         Invoke-CRFlow $c "every('jungleHeal',0.5,function() heal(me()) end);return true" | Out-Null
         try {
             $d=Wait-CRFlow $c 'local j=M.cr17Jungle;return j and j.river and j.mist and j.batches==j.totalBatches and j' -TimeoutSeconds 80
