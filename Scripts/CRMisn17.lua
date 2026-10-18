@@ -16,7 +16,7 @@ local subtit = require("ScriptSubtitles")
 local pda = require("PersistentConfig")
 local Environment = require("Environment")
 local roster = require("CRFuryRoster")
-local Jungle=require("CRJungle17").Create({exu=exu})
+local Jungle=require("CRJungle17").Create({exu=exu,state=function() return M end})
 local Crystal
 SetAIControl(6,true) -- startup only; never enable strategic AI on humans
 local unpackArgs = unpack or table.unpack
