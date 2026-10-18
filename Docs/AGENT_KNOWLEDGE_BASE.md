@@ -1068,3 +1068,8 @@ its object origin is below the actual nozzle. Keep spent exhaust in world space
 and pad dust grounded. `MakeExplosion` light particles are local-only, so each
 peer emits its own bounded zero-damage ignition pulses. Stop effects on departure,
 result and restart; do not replay ground wash when resuming an airborne launch.
+
+The SM4 and GLSL `CR_Effect` sprite vertex programs swizzle stock vertex color
+BGRA, while SM3 HLSL does not. For Mission 16 Ogre exhaust, use neutral emitter
+RGB with the Fury blue hue in `CR16/FuryExhaust` material diffuse/glow constants
+(after that swizzle). Do not fix one Ogre effect by recoloring shared stock shaders.

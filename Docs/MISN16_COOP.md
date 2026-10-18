@@ -60,8 +60,10 @@ particles stay in world space. Four dust patches remain anchored to the pad;
 their emission fades out once the hull has risen 45 m, with the remaining dust
 destroyed after 11 seconds. Short, zero-damage cyan ignition light particles
 follow the nozzles during the visible launch shot. Exhaust remains active until
-departure, including when a player skips their camera. The native Titan captures
-show hot white/amber plumes through the scene's atmosphere.
+departure, including when a player skips their camera. The nozzle cores and
+flight plumes use a mission-local Fury blue material with
+neutral emitter RGB, so the hue survives the sprite shader's backend-specific
+vertex-color channel order. Ground dust retains its existing treatment.
 
 Each peer creates these bounded local effects from the existing `EvacLaunch`
 presentation event; no additional gameplay objects or network events are spawned.
@@ -79,6 +81,13 @@ new launch particle/Ogre exceptions; existing stock `TestGround.material`
 missing-reference diagnostics remained. `Test-Misn16LaunchFX.lua` adds 45 Lua
 lifecycle checks alongside the 411 mission and 60 scene checks. Four-player,
 Steam and Proton/Wine launch-FX validation remain unverified.
+
+The final Fury blue material passed the same **8 steps / 25 checks** in
+`transport-fury-blue-22`. Both native DX11 peers showed blue-white nozzle cores
+and cyan exhaust, exited with return code 0, and logged no new Ogre errors.
+The screenshots below are unchanged captures from that final run. The neutral
+particle RGB also avoids the SM3 color-order difference; native DX9 rendering
+has not been verified.
 
 | Ignition and pad wash | Visible flight exhaust |
 | --- | --- |

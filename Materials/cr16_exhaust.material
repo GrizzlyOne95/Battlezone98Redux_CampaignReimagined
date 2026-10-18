@@ -1,0 +1,22 @@
+import * from "sprites.material"
+
+// Put the hue in the material, after the sprite shader's vertex-color swizzle.
+// Neutral emitter RGB then stays Fury blue on both the SM3 and SM4 paths.
+material CR16/FuryExhaust : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap blast.png
+    technique 0
+    {
+        pass 0
+        {
+            diffuse 0.12 0.55 1 1
+        }
+    }
+    technique glow
+    {
+        pass 0
+        {
+            diffuse 0.06 0.275 0.5 1
+        }
+    }
+}

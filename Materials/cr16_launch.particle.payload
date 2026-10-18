@@ -1,7 +1,9 @@
 // Mission-local, loaded on EvacLaunch. Four bounded instances of each system.
+// Neutral emitter RGB avoids backend-specific vertex-color channel order;
+// the mission-local material supplies the Fury blue after that conversion.
 particle_system CR/M16/Exhaust
 {
-    material CR_FX/Bloom
+    material CR16/FuryExhaust
     particle_width 4.8
     particle_height 11
     quota 170
@@ -18,13 +20,13 @@ particle_system CR/M16/Exhaust
         direction 0 -1 0
         velocity_min 48
         velocity_max 68
-        colour_range_start 0.35 0.85 1 0.9
-        colour_range_end 0.08 0.32 1 0.65
+        colour_range_start 1 1 1 0.9
+        colour_range_end 0.65 0.65 0.65 0.65
     }
     affector ColourFader
     {
-        red -0.5
-        green -1.2
+        red -1.0
+        green -1.0
         blue -1.0
         alpha -1.8
     }
@@ -35,7 +37,7 @@ particle_system CR/M16/Exhaust
 }
 particle_system CR/M16/Nozzle
 {
-    material CR_FX/Bloom
+    material CR16/FuryExhaust
     particle_width 8
     particle_height 8
     quota 18
@@ -51,8 +53,8 @@ particle_system CR/M16/Nozzle
         time_to_live_max 0.13
         direction 0 -1 0
         velocity 0.5
-        colour_range_start 0.65 0.95 1 0.8
-        colour_range_end 0.2 0.6 1 0.6
+        colour_range_start 1 1 1 0.8
+        colour_range_end 0.65 0.65 0.65 0.6
     }
     affector ColourFader
     {
