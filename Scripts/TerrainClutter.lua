@@ -124,6 +124,30 @@ local function GetSlopeDegrees(normal)
     return math.acos(up) * 180.0 / math.pi
 end
 
+-- profile.wind = { slot = "specular", litter = { rate =, ... } | nil } makes the
+-- layer sway: profile.material must be a wind material (CR/GrassWind) and the
+-- mesh baked by Tools/Bake-FoliageSway.py. CRFoliageWind then follows
+-- CRWeather, so the mission must be running CRWeather.Update for it to move.
+local function RegisterWind(profile, instances)
+    local ok, foliage = pcall(require, "CRFoliageWind")
+    if not ok or type(foliage) ~= "table" then
+        Log("wind skipped " .. profile.name .. ": CRFoliageWind unavailable")
+        return
+    end
+    local registered, reason = foliage.Register(profile.material, { slot = profile.wind.slot or "specular" })
+    if not registered then
+        Log("wind skipped " .. profile.name .. ": " .. tostring(reason))
+        return
+    end
+    if type(profile.wind.litter) == "table" then
+        local points = {}
+        for i = 1, #instances do
+            points[i] = instances[i].position
+        end
+        foliage.EnableLitter(points, profile.wind.litter)
+    end
+end
+
 function TerrainClutter.BuildLayer(profile)
     local validated, validationError = ValidateProfile(profile)
     if not validated then
@@ -215,6 +239,9 @@ function TerrainClutter.BuildLayer(profile)
         math.floor((finishedAt - startedAt) * 1000.0 + 0.5) or
         (info.buildMilliseconds or 0)
     active[profile.name] = info
+    if type(profile.wind) == "table" then
+        RegisterWind(profile, instances)
+    end
     Log(string.format(
         "built %s: instances=%d target=%d attempts=%d regions=%d buildMs=%s startupMs=%s",
         profile.name,
@@ -253,8 +280,8 @@ function TerrainClutter.GetLayerInfo(name)
     return active[name]
 end
 
--- Wind animation is deferred, but all future foliage wind reads must come
--- through CRWeather.GetWind(). This safe read creates no parallel wind state.
+-- Foliage wind reads come through CRWeather.GetWind() (CRFoliageWind does the
+-- same for the sway shaders). This safe read creates no parallel wind state.
 function TerrainClutter.GetWind()
     local weather = rawget(_G, "CRWeather")
     if type(weather) == "table" and type(weather.GetWind) == "function" then

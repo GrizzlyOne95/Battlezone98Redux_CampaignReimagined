@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T09:08:17-05:00",
-  "count": 2742,
+  "count": 2749,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -758,6 +758,10 @@
     {
       "source": "Assets\\Textures\\cr_iceveil.dds",
       "runtime": "cr_iceveil.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_leaf.png",
+      "runtime": "cr_leaf.png"
     },
     {
       "source": "Assets\\Textures\\cr_marc.dds",
@@ -2860,6 +2864,10 @@
       "runtime": "cr16tow.material"
     },
     {
+      "source": "Materials\\cr17_wind.material",
+      "runtime": "cr17_wind.material"
+    },
+    {
       "source": "Materials\\CR_BZBase.material",
       "runtime": "CR_BZBase.material"
     },
@@ -2870,6 +2878,14 @@
     {
       "source": "Materials\\CR_DepthShadowmap.material",
       "runtime": "CR_DepthShadowmap.material"
+    },
+    {
+      "source": "Materials\\cr_foliage.material",
+      "runtime": "cr_foliage.material"
+    },
+    {
+      "source": "Materials\\cr_foliage.particle.payload",
+      "runtime": "cr_foliage.particle.payload"
     },
     {
       "source": "Materials\\CR_glow.material",
@@ -6652,6 +6668,10 @@
       "runtime": "CREuropaWeather.lua"
     },
     {
+      "source": "Scripts\\CRFoliageWind.lua",
+      "runtime": "CRFoliageWind.lua"
+    },
+    {
       "source": "Scripts\\CRFuryRoster.lua",
       "runtime": "CRFuryRoster.lua"
     },
@@ -7012,6 +7032,10 @@
       "runtime": "Weather.lua"
     },
     {
+      "source": "Shaders\\cr17_wind.program",
+      "runtime": "cr17_wind.program"
+    },
+    {
       "source": "Shaders\\CR_DepthShadowmap-sm4.hlsl",
       "runtime": "CR_DepthShadowmap-sm4.hlsl"
     },
@@ -7090,6 +7114,10 @@
     {
       "source": "Shaders\\CR_glow.program",
       "runtime": "CR_glow.program"
+    },
+    {
+      "source": "Shaders\\CR_grasswind.program",
+      "runtime": "CR_grasswind.program"
     },
     {
       "source": "Shaders\\cr_methane.hlsl",

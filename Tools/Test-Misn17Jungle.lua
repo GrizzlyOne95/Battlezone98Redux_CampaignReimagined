@@ -20,11 +20,15 @@ local sites={water={mesh="river.mesh",position={1500,0,99600}},cascade={1490,200
     streams={mesh="streams.mesh",position={1500,0,99600}},pools={mesh="pools.mesh",position={1500,0,99600}},
     layers={{mesh="fern.mesh",instances={{1,2,3,0,1}}},{mesh="tree.mesh",instances={{4,5,6,1,2}}}}}
 local sky={plane=false,clones={},enabled=nil,scroll=nil}
+local foliage={registered={},litter=nil}
+local Foliage={Register=function(m,o) foliage.registered[m]=o.slot;return true end,
+    EnableLitter=function(points,o) foliage.litter={points=#points,rate=o.rate} end,
+    Describe=function() return {materials=0} end}
 local modules={CRWeather=W,CRWeatherPresets=P,CRJungle17Sites=sites,
     CRSplash={Set=noop,Update=noop,Stop=noop,SetWind=function(x,z,s) splashWind=s end},
     CRWetGlass={Update=noop,Stop=noop},
     CRParticleTemplates={EnsureExtra=function() return true end},
-    Environment={RegisterEnvironmentModifier=noop}}
+    Environment={RegisterEnvironmentModifier=noop},CRFoliageWind=Foliage}
 local env=setmetatable({require=function(k) return assert(modules[k],k) end},{__index=_G})
 local built={}
 local m={}
@@ -52,6 +56,9 @@ check(mist and mist.system=="cr17_wx_basin_mist" and mist.terrainPool==nil or mi
 check(P.Presets.VenusDenseAtmosphere.precipitation[1].system=="cr_wx_venus_dense_mist","shared Venus preset unchanged")
 J.Reset()
 check(J.Initialized and J.GetSeverity()==0,"reset establishes neutral sensor provider")
+check(foliage.registered["CR17/LeavesWind"]=="emissive" and foliage.registered["CR17/GroundWind"]=="emissive"
+    and foliage.registered["CR17/CutoutCaster/FoliageWind"]=="emissive","canopy, ground cover and caster sway on the emissive feed")
+check(foliage.litter and foliage.litter.points==2 and foliage.litter.rate>0,"leaf litter is seeded from every ground-cover placement")
 local sent={}
 local function send(kind,...)
     sent[#sent+1]={kind,...}

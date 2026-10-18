@@ -69,3 +69,80 @@ material CR/GrassPrototype
         }
     }
 }
+
+// CR/GrassPrototype on the CR_GrassWind vertex program, for crgrass.mesh,
+// which carries the baked TEXCOORD1 sway stream. The glow pass sways too so
+// its black occluder stays on the blades.
+material CR/GrassWind
+{
+    receive_shadows off
+
+    technique
+    {
+        pass
+        {
+            vertex_program_ref CR_GrassWind_vertex
+            {
+                param_named windShape float4 0.35 1.8 0.04 9.0
+            }
+            fragment_program_ref CR_Textured_fragment
+            {
+                // 96/255. The fixed-function `alpha_rejection` below covers
+                // Direct3D 9; DX11 has no alpha-test state, so the shader has
+                // to cut at the same place or nothing is cut at all.
+                param_named alphaRejection float 0.376
+            }
+
+            lighting off
+            cull_hardware none
+            cull_software none
+            // Cutout, NOT alpha blend. A blended card writes depth for its
+            // empty pixels too, so one near blade punches a rectangular hole
+            // through every card behind it -- and StaticGeometry batches all
+            // instances into one renderable, so there is no per-card sorting
+            // to fall back on. Clipping instead makes the pass opaque and
+            // order-independent.
+            alpha_rejection greater_equal 96
+            depth_write on
+            diffuse 0.82 0.92 0.68 1
+            emissive 1 1 1
+            // Live wind, written by CRFoliageWind; still until it runs.
+            specular 0 0 0 0 0
+
+            texture_unit diffuseMap
+            {
+                texture crgrass.png
+                tex_address_mode clamp
+                filtering linear linear point
+            }
+        }
+    }
+
+    technique glow
+    {
+        scheme glow
+        pass
+        {
+            vertex_program_ref CR_GrassWind_vertex
+            {
+                param_named windShape float4 0.35 1.8 0.04 9.0
+            }
+            fragment_program_ref CR_Textured_fragment
+            {
+            }
+
+            lighting off
+            cull_hardware none
+            cull_software none
+            depth_write off
+            diffuse 0 0 0 0
+            emissive 0 0 0
+            specular 0 0 0 0 0
+            texture_unit diffuseMap
+            {
+                texture crgrass.png
+                tex_address_mode clamp
+            }
+        }
+    }
+}

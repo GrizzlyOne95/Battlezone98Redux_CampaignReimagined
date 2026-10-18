@@ -1482,6 +1482,27 @@ function CRWeather.GetWindSpeed()
     return ((preset and preset.windSpeed) or 0.0) * CurrentWeight()
 end
 
+-- The active preset's gust, 0 (lull) to its authored depth, on the same wave
+-- SyncSystems applies to particle rates. Foliage reads it to bend harder in a
+-- gust; it is 0 when the preset authors none.
+function CRWeather.GetGust()
+    local preset = CRWeather.Active
+    local gusts = preset and preset.gusts
+    if gusts == nil then
+        return 0.0
+    end
+    local period = math.max(0.5, gusts.period or 12.0)
+    local wave = 0.5 + (0.5 * math.sin((CRWeather.Clock / period) * 6.2831853))
+    return Clamp01(gusts.depth or 0.0) * wave * CurrentWeight()
+end
+
+-- CRFoliageWind is optional: it only exists where a mission registered wind
+-- materials, and it reads its wind back through GetWind/GetGust.
+local function Foliage()
+    local foliage = package.loaded["CRFoliageWind"]
+    return type(foliage) == "table" and foliage or nil
+end
+
 function CRWeather.Update(dt)
     if not CRWeather.Initialized then
         CRWeather.Init()
@@ -1521,6 +1542,11 @@ function CRWeather.Update(dt)
     if CRWeather.OwnsEnvironment then
         WriteEnvironmentDirect()
     end
+
+    local foliage = Foliage()
+    if foliage and type(foliage.Update) == "function" then
+        foliage.Update(dt, CRWeather)
+    end
 end
 
 -- Drops all particle bookkeeping so the next preset application rebuilds from
@@ -1538,6 +1564,10 @@ function CRWeather.ResetSystems()
     CRWeather.BlendRate = 0.0
     CRWeather.SkyApplied = false
     CRWeather.LastWindApplied = nil
+    local foliage = Foliage()
+    if foliage and type(foliage.ResetScene) == "function" then
+        foliage.ResetScene()
+    end
     local environment = rawget(_G, "Environment")
     if environment and type(environment.InvalidateRenderer) == "function" then environment.InvalidateRenderer() end
 end
@@ -1555,6 +1585,11 @@ function CRWeather.Shutdown()
     end
 
     DestroyAllSystems()
+
+    local foliage = Foliage()
+    if foliage and type(foliage.Stop) == "function" then
+        foliage.Stop()
+    end
 
     local environment = rawget(_G, "Environment")
     if CRWeather.ModifierRegistered and environment ~= nil
