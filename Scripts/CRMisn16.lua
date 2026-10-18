@@ -155,7 +155,7 @@ local native = {
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
 }
 local events, acknowledgements = {}, {}
-local StartLift
+local StartLift, LaunchFX
 local receivedEvent = 0
 local pendingSeq, pendingSince
 -- Declared before ResetPresentation, which resets them.
@@ -197,6 +197,7 @@ local function ApplyPresentation(op, ...)
             pcall(SetLabel, handle, label)
         end
     elseif op == "SucceedMission" or op == "FailMission" then
+        if LaunchFX then LaunchFX.Stop() end
         local when, description = ...
         if localCameraActive then native.CameraFinish() end
         cameraFrame = nil
@@ -623,6 +624,9 @@ local function State()
     return M.cr16
 end
 local function Point(x,y,z) return SetVector(x,y,z) end
+LaunchFX=require("CRMisn16LaunchFX").Create({exu=exu,vector=Point,handle=GetHandle,
+    valid=Alive,position=GetPosition,terrain=GetTerrainHeightAndNormal,explosion=MakeExplosion,
+    log=print,templates=function() return require("CRParticleTemplates").EnsureExtra("cr16_launch") end})
 local function NearAny(where,radius)
     return CRCoop.AnyPlayerSatisfies(function(h) return Distance(h,where)<radius end)
 end
@@ -782,12 +786,17 @@ local function UpdateLift()
     -- the leader alone decides boarding, launch time, removal and mission result.
     local v=M.evacVisual
     if not v then return end
+    if M.coopResult or M.won or M.lost then
+        LaunchFX.Stop();M.cr16LaunchFX=LaunchFX.Describe();return
+    end
     local age=math.max(0,GetTime()-v.started)
     local rise=math.min(900,age*age)
     for label,p in pairs(v.parts) do
         local h=GetHandle(label)
         if Valid(h) then SetPosition(h,Point(p.x,p.y+rise,p.z)) end
     end
+    LaunchFX.Update(v.parts,age)
+    M.cr16LaunchFX=LaunchFX.Describe()
 end
 local function CameraSafe()
     -- Inert enemy mines/markers must not suppress the film forever. Check the
@@ -901,6 +910,8 @@ local function UpdateStory()
 end
 function R.Start()
     State()
+    LaunchFX.Reset()
+    M.cr16LaunchFX=LaunchFX.Describe()
     CRCoop.Initialize({getLocalPlayerId=function() return exu.GetMyNetID and exu.GetMyNetID() end,
         leaderTeam=1,humanTeamMin=1,humanTeamMax=4,rallyPoints={[0]="avrecy0_recycler"},
         onOutOfLives=Failure})
@@ -923,6 +934,7 @@ function R.Update(dt)
     pda.UpdateInputs(localCameraActive);pda.UpdateHeadlights()
     if CRCoop.IsNetworkGame() then
         if CRCoop.HasLeaderDeparted() then
+            LaunchFX.Stop()
             if not M.coopResult then M.coopResult=true;native.FailMission(GetTime()+1) end
             return
         end

@@ -1061,3 +1061,10 @@ and `draw_twirl` texture names also need an Ogre sprite material; copying a new
 image alone is insufficient. Hidden camera pods retain collision: keep fixture
 anchors away from the mine-to-target firing line, and apply no craft AI setters
 to the mines or pods. Private art/damage fixtures do not qualify mission combat.
+
+Mission 16 transport exhaust is peer-local `CRMisn16LaunchFX`, started by the
+existing `EvacLaunch` event. Attach at the `hbtrn200` mesh's lower end, local Y=12;
+its object origin is below the actual nozzle. Keep spent exhaust in world space
+and pad dust grounded. `MakeExplosion` light particles are local-only, so each
+peer emits its own bounded zero-damage ignition pulses. Stop effects on departure,
+result and restart; do not replay ground wash when resuming an airborne launch.

@@ -53,6 +53,37 @@ peer after an acknowledged launch event; they never receive unit AI commands.
 The launch shot ends before the ship goes far above the fog horizon. At 900 m
 rise the assembly is removed and one shared result is delivered.
 
+Takeoff now ignites visible exhaust at all four engine nozzles. The
+mission-local `CRMisn16LaunchFX` attaches a plume and a bright nozzle core to each
+engine at the stock mesh's lower end (12 m above its model origin). Spent
+particles stay in world space. Four dust patches remain anchored to the pad;
+their emission fades out once the hull has risen 45 m, with the remaining dust
+destroyed after 11 seconds. Short, zero-damage cyan ignition light particles
+follow the nozzles during the visible launch shot. Exhaust remains active until
+departure, including when a player skips their camera. The native Titan captures
+show hot white/amber plumes through the scene's atmosphere.
+
+Each peer creates these bounded local effects from the existing `EvacLaunch`
+presentation event; no additional gameplay objects or network events are spawned.
+The particle payload is loaded only when the launch needs it. Missing optional
+FX APIs/templates degrade without blocking the earned victory. Result, restart,
+missing transport and engine destruction clean the effects; loading an already
+airborne launch does not replay ground ignition. No models or shared shaders
+were changed for this addition.
+
+`transport-fx-20` passed **8 steps / 25 checks** on two native GOG clients, with
+four live plume/core/dust systems on each peer, native emitter rate readback,
+light pulses, ground-wash cutoff, attached engine movement, departure cleanup,
+and one victory on each peer. Both clients exited normally. Logs contained no
+new launch particle/Ogre exceptions; existing stock `TestGround.material`
+missing-reference diagnostics remained. `Test-Misn16LaunchFX.lua` adds 45 Lua
+lifecycle checks alongside the 411 mission and 60 scene checks. Four-player,
+Steam and Proton/Wine launch-FX validation remain unverified.
+
+| Ignition and pad wash | Visible flight exhaust |
+| --- | --- |
+| ![Ignition](images/misn16-ignition.png) | ![Thruster exhaust](images/misn16-thrusters.png) |
+
 Each player may skip their own camera without changing shared boarding,
 launch or result timing. A survivor who cannot board does not block victory.
 Destroying the optional transport does not invalidate the completed assault.

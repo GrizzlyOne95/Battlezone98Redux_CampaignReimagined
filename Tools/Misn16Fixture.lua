@@ -455,6 +455,7 @@ function F.makePeer(id, team, network, options)
             BindWeatherSensors=function(name) record("WeatherSensors",name) end,
             Update=noop,OnObjectCreated=noop,InvalidateRenderer=noop},
         CRTitanSites16 = assert(loadfile("Scripts/CRTitanSites16.lua"))(),
+        CRMisn16LaunchFX = assert(loadfile("Scripts/CRMisn16LaunchFX.lua"))(),
         PersistentConfig = {Initialize=function() record("PdaInitialize") end,
             UpdateInputs=function() record("PdaUpdate") end,UpdateHeadlights=noop},
     }
