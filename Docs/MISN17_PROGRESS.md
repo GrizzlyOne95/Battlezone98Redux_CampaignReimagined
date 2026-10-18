@@ -82,6 +82,27 @@ head at branch creation `476390ed`. Canonical main stays untouched.
   was replaced by 125 initial plants plus concealed streaming.
 - `misn17-jungle-5`: stopped at lobby because a client had no visible window;
   it did not test the reduced tree map or jungle rendering.
+- **Invisible leaves and underbrush (fixed, d4d95157).** Every CR17 unified program was
+  declared before its delegates, so `default_params` (`wvpMat`, `worldViewMat`)
+  never bound and those materials silently drew nothing. Ogre logged no error for this.
+  The fix declares GLSL, HLSL4 and HLSL first and then the unified program, the
+  order ISDFC and `cr_methane` use. Evidence from the leaf bisect scenario
+  (`Tools/Test-Misn17LeafDiagLive.ps1`): `misn17-leafdiag-4` shot 03 shows
+  bare trunks. In `misn17-leaf-reorder-1` shot 03 the canopies and underbrush draw,
+  and forcing the leaf submesh to `CR17/Cutout` draws panels.
+- `misn17-forest-reorder-1` (story scenario, first run with jungle and crystal
+  content): steps 1–4 pass. During step 5 (seven tower losses collapse 54 mines)
+  client 1 crashed with an access violation in the engine, a read at exe+0x430A0E
+  on the main thread, while explosion and particle textures were loading. There were
+  no CR17 shader, StaticGeometry or out-of-memory errors in the Ogre log. Cause
+  not yet known. `misn17-story-jungle-2` reproduced it at the same step (client 1,
+  58.6 s, frame 2718; last log again the `SetObjectiveName` "Converter crystal
+  feed" op). `misn17-stock-3`, before the jungle and crystal content, passed this
+  step, so that content is the likely trigger (unconfirmed). A symbolized stack
+  is pending.
+- Test instances now run 1920×1080 windowed (`Full Screen=No`) with radar 0.5×,
+  PDA font 0.8/opacity 0.4 and the weapon stats HUD off, so captures show the
+  world. Previous settings are in `*.pre-hd` beside each instance file.
 
 ## Immediate next work
 
