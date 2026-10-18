@@ -1,0 +1,71 @@
+// Storm cloud deck for CRJungle17's sky plane. Delegates precede the unified
+// programs: Ogre binds unified default_params only against delegates already
+// parsed, and an unbound wvpMat draws nothing.
+
+vertex_program CR17_Cloud_vertexHLSL4 hlsl
+{
+    source cr17_cloud-sm4.hlsl
+    target vs_4_0
+    entry_point cloud_vertex
+}
+
+vertex_program CR17_Cloud_vertexHLSL hlsl
+{
+    source cr17_cloud.hlsl
+    target vs_3_0
+    entry_point cloud_vertex
+}
+
+vertex_program CR17_Cloud_vertexGLSL glsl
+{
+    source cr17_cloud-vertex.glsl
+    syntax glsl120
+}
+
+fragment_program CR17_Cloud_fragmentHLSL4 hlsl
+{
+    source cr17_cloud-sm4.hlsl
+    target ps_4_0
+    entry_point cloud_fragment
+}
+
+fragment_program CR17_Cloud_fragmentHLSL hlsl
+{
+    source cr17_cloud.hlsl
+    target ps_3_0
+    entry_point cloud_fragment
+}
+
+fragment_program CR17_Cloud_fragmentGLSL glsl
+{
+    source cr17_cloud-fragment.glsl
+    syntax glsl120
+    default_params
+    {
+        param_named diffuseMap int 0
+    }
+}
+
+vertex_program CR17_Cloud_vertex unified
+{
+    delegate CR17_Cloud_vertexGLSL
+    delegate CR17_Cloud_vertexHLSL4
+    delegate CR17_Cloud_vertexHLSL
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMat texture_matrix 0
+    }
+}
+
+fragment_program CR17_Cloud_fragment unified
+{
+    delegate CR17_Cloud_fragmentGLSL
+    delegate CR17_Cloud_fragmentHLSL4
+    delegate CR17_Cloud_fragmentHLSL
+    default_params
+    {
+        param_named_auto fogColour fog_colour
+        param_named tint float4 0.55 0.58 0.6 0.45
+    }
+}

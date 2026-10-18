@@ -1,0 +1,46 @@
+import * from "cr17_surface.material"
+import * from "BZBase.material"
+material CR17/Leaves : CR17/Cutout
+{
+    set_texture_alias DiffuseMap cr17_foliage.dds
+    set_texture_alias NormalMap cr17_flat.dds
+    set_texture_alias SpecularMap cr17_black.dds
+    set_texture_alias EmissiveMap cr17_black.dds
+    set $cutoutParams "0.45 0.5 0.6 2048"
+    set $specular "0.1 0.1 0.1"
+    set $shininess "16"
+    set $caster "CR17/CutoutCaster/Foliage"
+}
+material CR17/Bark : BZBase
+{
+    set_texture_alias DiffuseMap cr17_bark.dds
+    set_texture_alias NormalMap cr17_bark_n.dds
+    set_texture_alias SpecularMap cr17_bark_s.dds
+    set_texture_alias EmissiveMap cr17_black.dds
+    set $specular "0.12 0.12 0.12"
+    set $shininess "16"
+}
+material CR17/River : CR17/Water
+{
+    set_texture_alias DiffuseMap cr17_water.dds
+    set $waterScroll "0 -0.13 0.014 -0.08"
+    set $waterColour "0.24 0.42 0.36 0"
+    set $waterSurface "0.65 0.96 0.04 0.3"
+    set $skyColour "0.38 0.48 0.56 0.6"
+}
+material CR17/Streams : CR17/Water
+{
+    set_texture_alias DiffuseMap cr17_water.dds
+    set $waterScroll "0 -0.22 0.02 -0.14"
+    set $waterColour "0.26 0.42 0.34 0"
+    set $waterSurface "0.6 0.95 0.04 0.4"
+    set $skyColour "0.38 0.48 0.56 0.6"
+}
+material CR17/Pools : CR17/Water
+{
+    set_texture_alias DiffuseMap cr17_water.dds
+    set $waterScroll "0.004 0.003 -0.003 0.002"
+    set $waterColour "0.12 0.22 0.18 0"
+    set $waterSurface "0.6 0.97 0.03 0"
+    set $skyColour "0.38 0.48 0.56 0.6"
+}

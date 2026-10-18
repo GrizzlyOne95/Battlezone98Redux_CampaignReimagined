@@ -3,7 +3,8 @@ package.path="Scripts/?.lua;"..package.path
 local R=require("CRFuryRoster")
 local n=0
 local function check(ok,why) assert(ok,why);n=n+1 end
-for _,mission in ipairs({17,18}) do
+-- Mission 17 spawns through CRMisn17.Spawn; Test-Misn17Coop.lua covers its roster.
+for _,mission in ipairs({18}) do
     local state={}
     check(R.Select("boltmine2",state)=="crfmine" and not state.crFuryIndex,"Fury mines use their own definition without consuming a craft slot")
     local fighters,heavies=0,0

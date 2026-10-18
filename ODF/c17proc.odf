@@ -1,0 +1,8 @@
+[GameObjectClass]
+baseName = "c17proc"
+classLabel = "artifact"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 2500
+maxAmmo = 0
+unitName = "Processed Crystal"
