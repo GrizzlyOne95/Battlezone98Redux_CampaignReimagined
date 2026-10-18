@@ -113,6 +113,11 @@ head at branch creation `476390ed`. Canonical main stays untouched.
   (CRCoop), J (comms), C E A (presentation), I (another mission), Y (crystal).
   An OpenShim-side unsigned-length fix would protect every mod; that is a
   separate workstream.
+- `misn17-story-wire-1` (story scenario, jungle and crystal content, wire fix):
+  **PASS, 6 steps / 21 checks**, both clients. The tower-loss step that crashed
+  client 1 in `forest-reorder-1` and `story-jungle-2` now passes (54-mine
+  collapse at 58.0 s), followed by all factory shells, `SucceedMission` on both
+  peers, 47 matching presentation ops and no Lua errors.
 - `misn17-jungle-hd-1` (jungle scenario, `Tools/Test-Misn17JungleLive.ps1`):
   **PASS, 7 steps / 23 checks**, both clients. Bounded foliage batches,
   river/mist, a solid native plant seen by each peer, heavy rain then a shared
