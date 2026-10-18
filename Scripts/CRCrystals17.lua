@@ -132,7 +132,7 @@ function Crystals.Create(api)
         local text
         if s.phase=="overload" then text="Unprocessed crystal installed. Factory overload in "..math.max(0,math.ceil(s.deadline-GetTime())).." seconds."
         elseif raw==0 and not s.processing then text="No raw crystals remain. Destroy the three factory power converters."
-        else text="Optional sabotage: use the hauler to drop a RAW crystal at the converter feed after the towers fall. Refining it makes a stabilizing crystal." end
+        else text="Optional: once the towers fall, haul a RAW crystal to the converter feed. A refined crystal stabilizes it." end
         local revision=m.cr17ObjectiveRevision or 0
         if s.hint>0 and (s.objective~=text or s.objectiveRevision~=revision) then
             api.objective("cr17crystal",s.phase=="overload" and "green" or "white",8,text,

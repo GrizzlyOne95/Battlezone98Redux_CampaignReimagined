@@ -441,7 +441,11 @@ function F.makePeer(id, team, network, options)
             if type(args[index]) == "string" and F.LABELS[args[index]] then args[index] = false end
         end
         local bytes = 4
-        for _, value in ipairs(args) do bytes = bytes + (type(value) == "string" and #value + 2 or 9) end
+        for _, value in ipairs(args) do
+            -- Redux decodes a packet string length as a signed byte; longer strings crash peers.
+            assert(type(value) ~= "string" or #value <= 127, "mission packet string over 127 bytes: " .. kind)
+            bytes = bytes + (type(value) == "string" and #value + 2 or 9)
+        end
         assert(bytes < 244, "mission packet exceeds stock payload budget: " .. kind)
         for target in pairs(W.peers) do
             if target ~= id and (to == 0 or to == nil or target == to) then W.transport:Send(id, target, kind, args, false) end
