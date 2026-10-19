@@ -13,7 +13,7 @@ assert sha256(raw).hexdigest() == "5a66c54a9d6c7f17ebb293434e645d317a50f7bb8e551
 source = raw.decode("utf-8").replace("\r\n", "\n")
 lua = lua_path.read_text(encoding="utf-8")
 # Presentation additions do not replace the source mission's audio/timer block.
-for marker in ('launch film',):
+for marker in ('launch film', 'orbit film'):
     opening, closing = '-- CR ' + marker + ' >>', '-- CR ' + marker + ' <<'
     assert lua.splitlines().count(opening) == lua.splitlines().count(closing) > 0
     lua = re.sub(r'^' + re.escape(opening) + r'\n.*?^' + re.escape(closing) + r'\n', '', lua, flags=re.S | re.M)

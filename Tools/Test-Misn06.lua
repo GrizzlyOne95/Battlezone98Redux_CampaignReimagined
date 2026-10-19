@@ -129,7 +129,11 @@ local function NewMission()
     local function noop() end
     local modules = {
         CR06LaunchFilm = assert(loadfile("Scripts/CR06LaunchFilm.lua"))(),
+        CR06OrbitFilm = assert(loadfile("Scripts/CR06OrbitFilm.lua"))(),
         CR06LaunchFX = assert(loadfile("Scripts/CR06LaunchFX.lua"))(),
+        CR06RocketLayout = assert(loadfile("Scripts/CR06RocketLayout.lua"))(),
+        CRParticleTemplates = { Ensure = noop, EnsureExtra = function() return true end },
+        CRWeather = { LiveSystems = {} },
         RequireFix = { Initialize = noop }, exu = {},
         Environment = { Init = function(options) w.environmentOptions=options; Record("environmentInit") end,
             Update = function() Record("environmentUpdate") end, OnObjectCreated = noop },
@@ -164,13 +168,14 @@ local function NewMission()
 end
 
 -- Co-op team remap: authored/spawned CCA is team 5, the 5th Platoon cinematic is
--- support team 7, and the player-side camera beacons stay on team 1.
+-- support team 7, the player-side camera beacons stay on team 1, and cr06* film
+-- props (rocket, orbit Lincoln/destroyer) are neutral team 0.
 local function CheckTeams(w, context)
     local seen = 0
     for _, c in ipairs(w.calls) do
         if c.name == "BuildObject" then
             local odf, team = c.args[1], c.args[2]
-            local want = odf == "cr06rok" and 0 or odf:find("^sv") and 5 or odf:find("^av") and 7 or 1
+            local want = odf:find("^cr06") and 0 or odf:find("^sv") and 5 or odf:find("^av") and 7 or 1
             Check(team == want, context .. ": " .. odf .. " built on team " .. tostring(team))
             seen = seen + 1
         end
