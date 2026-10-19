@@ -20,6 +20,14 @@ The DX11 Enhanced base and terrain shaders are the exception to CR ownership: th
 - Terrain data formats (`.trn`/`.hg2`/`.mat`/`.lgt`) are documented, with working codecs, in the sibling `Battlezone98Redux_WorldBuilder` repo at `docs/MAT_FORMAT_VALIDATION.md` and `mat_codec.py`/`hg2_codec.py`. Read it before reasoning about terrain byte layout from a hex dump.
 - The two shared BZR documents above must remain byte-identical across CR, OpenShim, EXU, and bzfile; update all four in one workstream if either changes. `Tools/Validate-CampaignRepository.py` pins their hashes (`SHARED_BZR_DOCS`); update the pins in all four repositories together.
 
+## Model tooling
+
+- Never hand-roll a reader or writer for SDF, VDF, GEO, ANIM, Ogre `.mesh` or `.skeleton`. These already exist:
+  - **Read:** Battlezone98_Modding_Toolbox `battlezone/meshes/legacy.py` (`read_sdf`, `read_vdf`, `read_geo`, `AnimSequence`, `AnimTrack`). Its `legacy_port.py` handles cockpit and person animation.
+  - **Read and write:** BZ98RBlenderToolKit `bz98tools/bzrmodelporter/` (`bzbwd2.py` with `bzbwd2_serializer.py` for SDF/VDF, `bzgeo*`, `ogremesh*`, `ogreskeleton*`).
+- Import them through `Tools/bzmodellibs.py`, which finds both libraries locally (sibling checkouts or `BZ_TOOLBOX_DIR`/`BZ_TOOLKIT_DIR`) and in CI, where `campaign-validation.yml` checks them out at pinned commits.
+- If a library lacks something you need, fix it upstream in that repository, or report the gap. Never fork a copy into `Tools/`.
+
 ## Working style
 
 - Inspect `git status -sb` and the relevant diff before editing. Preserve unrelated changes.
