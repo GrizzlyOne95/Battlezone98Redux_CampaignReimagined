@@ -75,10 +75,15 @@ function Jungle.Create(api)
     -- Core vents. Each converter part taps the planet's core; where one falls,
     -- its pit erupts in fire. The leader announces fallen parts as a bit mask
     -- (a vent never closes); every peer builds the fire locally on the stock
-    -- partNgeizer path, beside the stock geyser. No gameplay objects.
+    -- partNgeizer path, beside the stock geyser. No gameplay objects. Each vent
+    -- also lights its surroundings with an EXU point light (not saved; relit
+    -- with the vent after a load); an older EXU without point lights falls
+    -- back to tinting the ambient near the pilot.
     local VENT_FX={"VentPool","VentFlame","VentLick","VentSmoke","VentSpatter"}
     local vents,ventGlow,ventRetry={},0,{}
     local function ventName(i,fx) return "CR17/Core"..i.."/"..fx end
+    local VENT_LIGHT={r=1,g=.42,b=.1}
+    local VENT_RANGE,VENT_LIFT=80,8
     local function hasVent(mask,i) return math.floor((tonumber(mask) or 0)/2^(i-1))%2==1 end
     local function lightVent(i)
         if vents[i] or GetTime()<(ventRetry[i] or 0) then return end
@@ -92,12 +97,19 @@ function Jungle.Create(api)
                 safe("SetParticleSystemNonVisibleUpdateTimeout",name,3)
             end
         end
-        vents[i]={x=p.x,y=p.y,z=p.z,surge=0,nextSurge=GetTime()+1.5}
+        local light=false
+        if type(x.CreatePointLight)=="function" then
+            local name=ventName(i,"Light")
+            safe("DestroyPointLight",name)
+            light=safe("CreatePointLight",name,SetVector(p.x,p.y+VENT_LIFT,p.z),VENT_LIGHT,VENT_RANGE)==true
+        end
+        vents[i]={x=p.x,y=p.y,z=p.z,surge=0,nextSurge=GetTime()+1.5,light=light}
         if type(StartSound)=="function" then StartSound("gquak00.wav",SetVector(p.x,p.y,p.z)) end
     end
     local function closeVents()
         for i in pairs(vents) do
             for _,fx in ipairs(VENT_FX) do call("DestroyParticleSystem",ventName(i,fx)) end
+            safe("DestroyPointLight",ventName(i,"Light"))
         end
         vents,ventGlow,ventRetry={},0,{}
     end
@@ -123,7 +135,9 @@ function Jungle.Create(api)
             safe("SetParticleEmitterEmissionRate",ventName(i,"VentSpatter"),0,6+80*v.surge)
             safe("SetParticleAffectorParameter",ventName(i,"VentSmoke"),2,"force_vector",
                 string.format("%.3f 0 %.3f",math.sin(r)*lean,math.cos(r)*lean))
-            if here then
+            if v.light then
+                safe("SetPointLightPowerScale",ventName(i,"Light"),(1.4+1.6*v.surge)*flicker)
+            elseif here then
                 local dx,dz=here.x-v.x,here.z-v.z
                 local near=1-math.min(1,math.sqrt(dx*dx+dz*dz)/240)
                 glow=glow+near*near*flicker*(1+.6*v.surge)
@@ -362,6 +376,7 @@ function Jungle.Create(api)
         streams=waters and waters.streams or false,pools=waters and waters.pools or false,
         mist=mist,error=error,age=state and state.age or 0,bolts=boltsSeen,foliage=Foliage.Describe(),
         vents=state and state.vents or 0,ventsLit=(function() local n=0;for _ in pairs(vents) do n=n+1 end;return n end)(),
+        ventLights=(function() local n=0;for _,v in pairs(vents) do if v.light then n=n+1 end end;return n end)(),
         ventGlow=ventGlow} end
     return J
 end
