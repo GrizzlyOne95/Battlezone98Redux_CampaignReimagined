@@ -895,6 +895,15 @@ PowerShell is case-insensitive. Assigning a peer-index array then fails before
 the first scenario step. Use a scoped name such as `$rocketClients`; also avoid
 using `$c` for an array and `$C` for its loop element.
 
+### Mission 03 NSDF launch (19 October 2026)
+
+`misn03` ends on the user's own NSDF rocket (`Docs/MISN03_ROCKET_LAUNCH.md`). It reuses
+`CR06LaunchFilm`/`CR06LaunchFX` through `api.config`/`api.label`; misn06 behaviour is the default.
+Placing a prop on a stock pad: take the offset in the pad's Ogre mesh frame, then negate X for the
+native local offset (verified against the ablpad SDF), and derive the world transform from the pad's
+basis. `Test-Misn03Launch.lua` runs the real misn03 script on the harness text of `Test-Misn03Coop.lua`
+(everything before its first scenario), so harness changes there flow into it.
+
 ## 10. Keeping this document current
 
 Cut Fury fighter (2026-10-16): the owner-selected standalone `hvraz` port is

@@ -1,7 +1,16 @@
 -- Peer-local rocket translation and exhaust. No AI commands or damage.
+-- Defaults are Mission 06's Mars launch. api.config re-targets it: Mission 03's
+-- Moon launch supplies its own layout, fixture label and a smokeless system set.
 local FX = {}
-local Layout = require("CR06RocketLayout")
 function FX.Create(api)
+    local cfg = api.config or {}
+    local Layout = cfg.layout or require("CR06RocketLayout")
+    local LABEL = cfg.label or "cr06_rocket"
+    local PREFIX = cfg.prefix or "CR06/Launch/"
+    local TEMPLATES = cfg.templates or "CR/M06/"
+    local TAG = cfg.tag or "misn06"
+    local KINDS = cfg.systems or {"Core", "Plume", "Smoke", "Dust"}
+    local LIGHT = cfg.light or {r=3.2, g=2.5, b=1.4, range=180}
     local state, flight, serial = nil, nil, 0
     local function call(name, ...)
         local fn = api.exu[name]
@@ -13,6 +22,7 @@ function FX.Create(api)
     local result = {}
     local function emitters(kind) return (kind=="Core" or kind=="Plume") and #Layout.nozzles or 1 end
     local function rate(kind,value)
+        if not state.systems[kind] then return end
         for index=0,emitters(kind)-1 do
             call("SetParticleEmitterEmissionRate",state.systems[kind],index,value)
         end
@@ -27,13 +37,13 @@ function FX.Create(api)
     function result.Reset() clearParticles(); flight=nil end
     local function unavailable(reason)
         clearParticles()
-        api.log("[misn06] rocket effects unavailable: " .. tostring(reason))
+        api.log("["..TAG.."] rocket effects unavailable: " .. tostring(reason))
         return false
     end
     function result.Begin(x, y, z, age)
         result.Reset()
         if api.handle then
-            local h=api.handle("cr06_rocket")
+            local h=api.handle(LABEL)
             if api.valid(h) then
                 local pose=api.transform(h)
                 pose.posit_x,pose.posit_y,pose.posit_z=x,y,z
@@ -50,10 +60,10 @@ function FX.Create(api)
         state = {x=x,y=y,z=z,started=api.time()-(age or 0),systems={},pose=flight and flight.pose}
         local ground = api.terrain(api.vector(x,y,z))
         state.ground = ground + 0.5
-        for _, kind in ipairs({"Core", "Plume", "Smoke", "Dust"}) do
-            local name = "CR06/Launch/" .. serial .. "/" .. kind
+        for _, kind in ipairs(KINDS) do
+            local name = PREFIX .. serial .. "/" .. kind
             local at = api.vector(x, kind == "Dust" and state.ground or y+Layout.nozzleY, z)
-            if call("CreateParticleSystem", name, "CR/M06/" .. kind, at) ~= true then
+            if call("CreateParticleSystem", name, TEMPLATES .. kind, at) ~= true then
                 return unavailable("particle create " .. kind)
             end
             state.systems[kind] = name
@@ -75,13 +85,13 @@ function FX.Create(api)
         -- EXU builds keep the clustered exhaust without requiring this API.
         if type(api.exu.CreatePointLight)=="function" and type(api.exu.SetPointLightPosition)=="function"
             and type(api.exu.DestroyPointLight)=="function" then
-            local name="CR06/Launch/"..serial.."/Light"
+            local name=PREFIX..serial.."/Light"
             local rise=2.5*math.max(0,(age or 0)-1)^2
-            local created,reason=call("CreatePointLight",name,api.vector(x,y+rise+Layout.nozzleY-2,z),{r=3.2,g=2.5,b=1.4},180)
+            local created,reason=call("CreatePointLight",name,api.vector(x,y+rise+Layout.nozzleY-2,z),{r=LIGHT.r,g=LIGHT.g,b=LIGHT.b},LIGHT.range)
             if created==true then
                 state.light=name
             else
-                api.log("[misn06] rocket engine light unavailable: "..tostring(reason or "runtime refusal"))
+                api.log("["..TAG.."] rocket engine light unavailable: "..tostring(reason or "runtime refusal"))
             end
         end
         return true
@@ -113,7 +123,7 @@ function FX.Create(api)
         local at = api.vector(state.x,state.y+rise+Layout.nozzleY,state.z)
         local power = math.min(1,age/0.7)
         for _, kind in ipairs({"Core","Plume","Smoke"}) do
-            call("SetParticleSystemPosition",state.systems[kind],at)
+            if state.systems[kind] then call("SetParticleSystemPosition",state.systems[kind],at) end
         end
         rate("Core",55*power)
         rate("Plume",45*power)
@@ -122,7 +132,7 @@ function FX.Create(api)
             call("SetPointLightPosition",state.light,api.vector(state.x,at.y-2,state.z))
             call("SetPointLightPowerScale",state.light,power*(1.3+.08*math.sin(age*41)))
         end
-        -- Dust stays on Mars and tapers once the engine clears the gantry.
+        -- Dust stays on the ground and tapers once the engine clears the gantry.
         local dust = power*math.max(0,1-rise/65)
         rate("Dust",120*dust)
         state.power,state.dustPower,state.height = power,dust,at.y

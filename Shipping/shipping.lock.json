@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2947,
+  "count": 2957,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -11492,28 +11492,56 @@
       "runtime": "cr17_cloud.program"
     },
     {
+      "source": "Assets\\ModelFixes\\cr03rok.geo",
+      "runtime": "cr03rok.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\cr06rok.geo",
       "runtime": "cr06rok.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr03rok.mesh",
+      "runtime": "cr03rok.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cr06rok.mesh",
       "runtime": "cr06rok.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cr03rok.sdf",
+      "runtime": "cr03rok.sdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cr06rok.sdf",
       "runtime": "cr06rok.sdf"
+    },
+    {
+      "source": "Assets\\Textures\\cr03rok_d.dds",
+      "runtime": "cr03rok_d.dds"
     },
     {
       "source": "Assets\\Textures\\cr06rok_d.dds",
       "runtime": "cr06rok_d.dds"
     },
     {
+      "source": "Assets\\Textures\\cr03rok_e.dds",
+      "runtime": "cr03rok_e.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr06rok_e.dds",
       "runtime": "cr06rok_e.dds"
     },
     {
+      "source": "Assets\\Textures\\cr03rok_n.dds",
+      "runtime": "cr03rok_n.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr06rok_n.dds",
       "runtime": "cr06rok_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr03rok_s.dds",
+      "runtime": "cr03rok_s.dds"
     },
     {
       "source": "Assets\\Textures\\cr06rok_s.dds",
@@ -11552,8 +11580,16 @@
       "runtime": "cr06lin.material"
     },
     {
+      "source": "Materials\\cr03rok.material",
+      "runtime": "cr03rok.material"
+    },
+    {
       "source": "Materials\\cr06rok.material",
       "runtime": "cr06rok.material"
+    },
+    {
+      "source": "ODF\\cr03rok.odf",
+      "runtime": "cr03rok.odf"
     },
     {
       "source": "ODF\\cr06rok.odf",
@@ -11570,6 +11606,10 @@
     {
       "source": "Scripts\\CR06LaunchFilm.lua",
       "runtime": "CR06LaunchFilm.lua"
+    },
+    {
+      "source": "Scripts\\CR03RocketLayout.lua",
+      "runtime": "CR03RocketLayout.lua"
     },
     {
       "source": "Scripts\\CR06RocketLayout.lua",

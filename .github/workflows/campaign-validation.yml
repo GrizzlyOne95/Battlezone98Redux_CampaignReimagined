@@ -162,6 +162,16 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-Misn03Coop.lua
 
+      - name: Test misn03 NSDF rocket launch (film, exhaust, presentation, assets)
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn03LaunchFX.lua
+          "$LUA" Tools/Test-Misn03LaunchFilm.lua
+          "$LUA" Tools/Test-Misn03Launch.lua
+          python Tools/Test-Misn03RocketAssets.py
+
       - name: Test misn04 co-op scaffold and complete mission
         run: |
           python Tools/Test-Misn04CoopContract.py
