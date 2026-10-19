@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T20:34:20-05:00",
-  "count": 2798,
+  "count": 2841,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -228,12 +228,116 @@
       "runtime": "abhang.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\adr11bdy.geo",
+      "runtime": "adr11bdy.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11fmp.geo",
+      "runtime": "adr11fmp.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11fpf.geo",
+      "runtime": "adr11fpf.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11lg1.geo",
+      "runtime": "adr11lg1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11lg2.geo",
+      "runtime": "adr11lg2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11lg3.geo",
+      "runtime": "adr11lg3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11lg4.geo",
+      "runtime": "adr11lg4.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11nc1.geo",
+      "runtime": "adr11nc1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11nc2.geo",
+      "runtime": "adr11nc2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11rmp.geo",
+      "runtime": "adr11rmp.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11rpf.geo",
+      "runtime": "adr11rpf.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11vt1.geo",
+      "runtime": "adr11vt1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11vt2.geo",
+      "runtime": "adr11vt2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11vt3.geo",
+      "runtime": "adr11vt3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11vt4.geo",
+      "runtime": "adr11vt4.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11vt5.geo",
+      "runtime": "adr11vt5.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\adr11vt6.geo",
+      "runtime": "adr11vt6.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\avapc.mesh",
       "runtime": "avapc.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\avartl_c.mesh",
       "runtime": "avartl_c.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropc.mesh",
+      "runtime": "avdropc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropc.sdf",
+      "runtime": "avdropc.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropc.skeleton",
+      "runtime": "avdropc.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropo.mesh",
+      "runtime": "avdropo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropo.sdf",
+      "runtime": "avdropo.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropo.skeleton",
+      "runtime": "avdropo.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropx.mesh",
+      "runtime": "avdropx.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropx.sdf",
+      "runtime": "avdropx.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropx.skeleton",
+      "runtime": "avdropx.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\avfigh.mesh",
@@ -726,6 +830,10 @@
     {
       "source": "Assets\\Textures\\bvrdev_d.dds",
       "runtime": "bvrdev_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\capblack_E.dds",
+      "runtime": "capblack_E.dds"
     },
     {
       "source": "Assets\\Textures\\cr16cmd_d.dds",
@@ -2578,6 +2686,18 @@
     {
       "source": "Materials\\avcnst.material",
       "runtime": "avcnst.material"
+    },
+    {
+      "source": "Materials\\avdropc.material",
+      "runtime": "avdropc.material"
+    },
+    {
+      "source": "Materials\\avdropo.material",
+      "runtime": "avdropo.material"
+    },
+    {
+      "source": "Materials\\avdropx.material",
+      "runtime": "avdropx.material"
     },
     {
       "source": "Materials\\avfigh.material",
@@ -4534,6 +4654,18 @@
     {
       "source": "ODF\\avdemo.odf",
       "runtime": "avdemo.odf"
+    },
+    {
+      "source": "ODF\\avdropc.odf",
+      "runtime": "avdropc.odf"
+    },
+    {
+      "source": "ODF\\avdropo.odf",
+      "runtime": "avdropo.odf"
+    },
+    {
+      "source": "ODF\\avdropx.odf",
+      "runtime": "avdropx.odf"
     },
     {
       "source": "ODF\\avfigh.odf",
@@ -6662,6 +6794,10 @@
     {
       "source": "Scripts\\ConservativeCulling.lua",
       "runtime": "ConservativeCulling.lua"
+    },
+    {
+      "source": "Scripts\\CR04Drop.lua",
+      "runtime": "CR04Drop.lua"
     },
     {
       "source": "Scripts\\CRCoop.lua",
@@ -10974,6 +11110,42 @@
     {
       "source": "Assets\\Textures\\cr17_water.dds",
       "runtime": "cr17_water.dds"
+    },
+    {
+      "source": "Assets\\Textures\\nsdfvhull_D.dds",
+      "runtime": "nsdfvhull_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\nsdfvhull_N.dds",
+      "runtime": "nsdfvhull_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\nsdfvhull_S.dds",
+      "runtime": "nsdfvhull_S.dds"
+    },
+    {
+      "source": "Assets\\Textures\\nsdfvhullw_D.dds",
+      "runtime": "nsdfvhullw_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\nsdfvhullw_E.dds",
+      "runtime": "nsdfvhullw_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\nsdfvtrim_D.dds",
+      "runtime": "nsdfvtrim_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\nsdfvtrim_E.dds",
+      "runtime": "nsdfvtrim_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\nsdfvtrim_N.dds",
+      "runtime": "nsdfvtrim_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\nsdfvtrim_S.dds",
+      "runtime": "nsdfvtrim_S.dds"
     },
     {
       "source": "Config\\misn17.ini",

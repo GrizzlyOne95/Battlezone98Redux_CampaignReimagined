@@ -1,0 +1,20 @@
+// avdropc: NSDF Dropship with its ramps shut, flown by script (misn04 opening). Same GEOs as avdropo;
+// its ANIM swings the ramps 0.001 deg, so the repairdepot class plays nothing visible. Prototype art.
+[GameObjectClass]
+collisionRadius = 30.0
+classLabel = "repairdepot"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 20000
+maxAmmo = 0
+unitName = "Dropship"
+heatSignature = 2.0
+imageSignature = 20.0
+radarSignature = 2.0
+
+[BuildingClass]
+
+[RepairDepotClass]
+repairRange = 0.0
+repairDelay = 1.0
+repairAmount = 0
