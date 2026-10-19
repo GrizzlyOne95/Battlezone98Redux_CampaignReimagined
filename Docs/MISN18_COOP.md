@@ -150,13 +150,14 @@ Tank, Scout, Light Tank, Rocket Tank, Bomber (`avtank`, `avfimp`, `avltnk`, `avr
 
 ## Storm interface
 
-`Scripts/CRStorm18.lua` is built separately (branch `agent/misn18-storm`) and this branch deliberately does not
-contain it. `CRMisn18` wires it the way `CRMisn17` wires `CRJungle17`, guarded: `pcall(require, "CRStorm18")`; if
+`Scripts/CRStorm18.lua` (design, tunables and effects: [`MISN18_STORM.md`](MISN18_STORM.md)) is integrated.
+`CRMisn18` wires it the way `CRMisn17` wires `CRJungle17`, guarded: `pcall(require, "CRStorm18")`; if
 the module is absent, throws on `Create`, or lacks a method, **every call is a no-op** and the mission is
 unchanged. Calls are individually `pcall`-wrapped (a failure is printed once per method) because a Lua error can
 close the host.
 
-The module returns either `Create(api)` (`api = { exu = <exu>, state = function() return M end }`) giving a
+The module returns either `Create(api)` (`api = { exu = <exu>, state = function() return M end,
+players = function() ... end }`; `players` lists every live human's position for the tornado's targeting) giving a
 director, or the director table itself. Every method is optional:
 
 | Method | Called | Notes |
@@ -165,11 +166,33 @@ director, or the director table itself. Every method is optional:
 | `SetPhase(name)` | **leader only** | See below. Must be idempotent: after a load the leader repeats the current phase. |
 | `Update(dt, authority, send)` | every frame once the session is ready and no result has been published | `send(...)` queues an event on the ordered stream to all peers (and applies it locally). |
 | `Apply(...)` | every peer, in order, with the arguments given to `send` | Keep payload strings short (<= 127 bytes each; CRWire chunks longer ones). |
+| `Quake(magnitude, seconds)` | every peer, whenever the mission asks for a quake | See "Quake ownership". Returns true when taken. |
+| `Describe()` | every frame after the session is ready | Stored in `M.cr18Storm` for probes and tests. |
 | `Stop()` | when the result is applied | |
 | `Save()` | when the engine saves | Returned value is stored in `M.cr18.storm`. |
 | `Initialized`, `Enabled`, `Disabled`, `GetSeverity()` | `Environment.BindWeatherSensors("Achilles", director)` | Optional sensor coupling. |
 
 Guests never see `SetPhase`; anything a guest must render comes from the director's own `send` events.
+
+### Quake ownership
+
+While the storm runs it owns the native earthquake (`StartEarthquake` / `UpdateEarthQuake` / `StopEarthquake`).
+The mission's own requests, the stock `StartEarthquake(2.0)` at discovery and the restored pulse (capped at 12),
+still replicate to every peer as presentation ops, but each peer's executor hands the magnitude to
+`Storm.Quake(magnitude, 3.5)` instead of calling the native. The storm holds each request for its seconds with
+the same rise and fall as its own pulses, and shakes the engine with the **strongest** of its own shake and every
+live request, so the restored pulse (6, or up to 12) is preserved and nothing fights. A request is not renewed
+once the mission stops sending it and fades out. When the module is absent, stopped (after the result), disabled or
+lacks `Quake`, `Quake` is not taken and the mission calls the native itself, exactly as before.
+
+### Tornado ownership
+
+The funnel is replicated state (`tornado` events plus identical dead reckoning), so **every peer** applies the
+effect (7 / 9 / 4 m/s^2 pull, spin and lift inside 45 m, 6 hull/s at the core) to the craft **it owns**: in a
+network game that is `IsLocal` (its own player and anything it built), and the leader also owns the AI and enemy
+craft. Buildings are never touched, a craft owned by another peer is left to that peer, so nothing is applied
+twice and guests are pulled exactly as fairly as the host. Offline, everything is local. `Tornado.EFFECT.ENABLED`
+(default on) turns it off.
 
 Phases, emitted once each, strictly in this order (a phase whose moment passed is skipped, never replayed late;
 `won` / `lost` end the sequence and skip the rest):
@@ -186,14 +209,18 @@ Phases, emitted once each, strictly in this order (a phase whose moment passed i
 | `lost` | Any failure latched (not found, recycler destroyed, left behind, out of lives). |
 
 `Tools/Test-Misn18Coop.lua` verifies the mission with the module absent, with a recording stand-in in both
-module shapes (phase order, leader-only calls, event delivery to guests, save/load, `Stop`), and with a module
-that cannot be built or throws.
+module shapes (phase order, leader-only calls, event delivery to guests, save/load, `Stop`), with a module
+that cannot be built or throws, and with the **real** `Scripts/CRStorm18.lua` on four peers
+(`Tools/Misn18RealStorm.lua`: real director, CRWeather, presets and foliage wind over a stubbed EXU): a full win
+and a lost path, phases in order and leader-only, guests rendering the same phase, seed, strikes and funnel from
+events, the quake routed into the storm (no peer calls the natives, the pulse is preserved, one native owner),
+the tornado pulling only owned craft, no storm errors, calm on `Stop`, and a mid-storm save/load.
 
 ## Tests
 
 ```sh
 lua5.1 Tools/Test-Misn18.lua                  # faithful port, 163 checks (CR layer off)
-lua5.1 Tools/Test-Misn18Coop.lua              # four-peer co-op layer, 777 checks
+lua5.1 Tools/Test-Misn18Coop.lua              # four-peer co-op layer, 882 checks
 python Tools/Test-Misn18SourceParity.py       # strips CR regions, proves the DLL port underneath
 python Tools/Test-Misn18CoopContract.py       # map, teams, paths, listing, campaign entry, shipping
 lua5.1 Tools/Test-FuryRoster.lua              # shared roster
@@ -226,4 +253,6 @@ a second; a guest 450 m away at 0:00 gets the left-behind
 shot of its own ship and the failure text; all four within 200 m win once; `misn1817` plays once with the first
 assault and `misn1818` replaces `misn1704`; the quake pulses are tolerable at level 6; the don't-go hvsav
 appears at `spawn1b`; the 12-Fury cap holds in a long four-player run; `M.coopUnresolved` stays 0; and, with
-`CRStorm18` present, its phases arrive in order on the leader and its events render on every client.
+`CRStorm18` present, its phases arrive in order on the leader and its events render on every client; the
+stock discovery quake and the restored pulses shake through the storm with no stutter, and a guest's ship is
+pulled by the tornado.

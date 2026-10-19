@@ -22,7 +22,7 @@ local function readFile(path)
 end
 
 -- ===================================================================== payload lint
-local payload = readFile("Materials/cr18_storm.particle.payload")
+local payload = readFile("Materials/cr18_storm.particle.payload"):gsub("\r", "") -- autocrlf checkouts
 local templates = {}
 do
     local depth, cur = 0, nil
@@ -598,14 +598,28 @@ do
     check(craft.far.v.x == 0 and craft.bld.v.x == 0, "far craft and buildings untouched")
     check(speed <= Tornado.EFFECT.MAX_SPEED + 1e-6, "pull respects the speed cap")
     check((craft.near.hurt or 0) > 0 and (craft.far.hurt or 0) == 0, "low damage inside the radius only")
-    -- guest: none of it
+    -- guest: the same funnel (from events) pulls the craft the guest owns, and only those
+    craft.gnear = { p = { x = t.tornadoX + 10, y = 100, z = t.tornadoZ }, v = { x = 0, y = 0, z = 0 } }
+    craft.gnear.remote = true -- the leader's AI craft from the guest's point of view
+    craft.near.v = { x = 0, y = 0, z = 0 }; craft.near.hurt = 0
     velocityWrites = 0
+    netgame = true
     local g = newPeer("fxg")
     for _, e in ipairs(events) do g.S.Apply(unpack(e, 1, e.n)) end
+    craft.near.remote = nil
+    do local gt = g.S.Describe(); craft.near.p = { x = gt.tornadoX + 10, y = 100, z = gt.tornadoZ }; craft.gnear.p = { x = gt.tornadoX + 12, y = 100, z = gt.tornadoZ } end
     for _ = 1, 100 do now = now + 0.1; stepPeer(g, 0.1, false, function() error("sent") end) end
-    check(velocityWrites == 0, "guests never touch gameplay")
+    check(velocityWrites > 0 and craft.near.v.x ~= 0, "a guest pulls the craft it owns from the replicated funnel")
+    check(craft.gnear.v.x == 0 and craft.gnear.v.z == 0 and (craft.gnear.hurt or 0) == 0, "a guest leaves craft it does not own alone")
+    -- owners never double up: the leader (who owns only 'near' too in this world) and the guest
+    -- each act on what IsLocal says; a craft remote to both is moved by neither
+    craft.near.remote = true; craft.near.v = { x = 0, y = 0, z = 0 }
+    velocityWrites = 0
+    for _ = 1, 40 do now = now + 0.1; stepPeer(g, 0.1, false, function() error("sent") end) end
+    run(4, p, {})
+    check(velocityWrites == 0 and craft.near.v.x == 0, "craft owned by a third peer is pulled by nobody")
     -- net game: remote craft are left to their owner
-    netgame = true; craft.near.remote = true; craft.near.v = { x = 0, y = 0, z = 0 }
+    craft.near.v = { x = 0, y = 0, z = 0 }
     run(10, p, {})
     check(craft.near.v.x == 0 and craft.near.v.z == 0, "leader leaves other peers' craft alone")
     netgame = false; craft.near.remote = nil
@@ -613,6 +627,44 @@ do
     run(5, p, {})
     check(velocityWrites == 0, "effect can be switched off")
     Tornado.EFFECT.ENABLED = true
+end
+
+-- ===================================================================== mission quake routing
+do
+    fresh()
+    local p = newPeer("mq")
+    run(5, p, {})
+    local function peak(from) local m = 0; for i = from, #quakeLog do if quakeLog[i][2] and quakeLog[i][2] > m then m = quakeLog[i][2] end end return m end
+    local mark = #quakeLog + 1
+    check(p.S.Quake(6, 3.5) == true, "the storm takes a mission quake")
+    run(4, p, {})
+    check(peak(mark) >= 5.9 and peak(mark) <= 6 + 1e-6, "a mission quake above the storm cap is preserved: " .. peak(mark))
+    mark = #quakeLog + 1
+    run(6, p, {})
+    check(peak(mark) < 1, "the mission quake fades when it is not renewed")
+    -- the strongest wins: a weak request never lowers the storm's own shake
+    p.S.SetPhase("final")
+    run(8, p, {})
+    local base = peak(#quakeLog - 20)
+    mark = #quakeLog + 1
+    p.S.Quake(0.5, 3)
+    run(2, p, {})
+    check(peak(mark) >= base * 0.5 and p.S.Describe().quakeMagnitude >= 0.5, "a weak request does not lower the storm's own shake")
+    -- bad input is refused, big input is clamped, and nothing starts a second native quake
+    check(p.S.Quake("x", 3) == false and p.S.Quake(0 / 0, 3) == false, "malformed mission quake refused")
+    p.S.Quake(99, 99); mark = #quakeLog + 1
+    run(3, p, {})
+    check(peak(mark) <= 12 + 1e-6, "mission quake is clamped to 12")
+    local open, overlap = false, false
+    for _, q in ipairs(quakeLog) do
+        if q[1] == "start" then if open then overlap = true end open = true elseif q[1] == "stop" then open = false end
+    end
+    check(not overlap, "one native quake owner: never a second start without a stop")
+    p.S.Stop()
+    check(p.S.Quake(2, 3) == false, "a stopped storm hands the quake back to the mission")
+    local q = newPeer("mq2")
+    q.S.Stop()
+    check(q.S.Quake(2, 3) == false, "no quake before Reset or after Stop")
 end
 
 -- ===================================================================== ground

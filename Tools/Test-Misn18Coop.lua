@@ -296,6 +296,7 @@ for _,shape in ipairs({"create","flat"}) do
     check(phases(p[1])=="opening,search" and phases(p[2])=="" and phases(p[3])=="","opening then search; guests never set phases ("..shape..")")
     check(F.count(p[1],"WeatherSensors","Achilles")>=1,"storm binds the weather sensors")
     F.nearTo(p[2].player,"transfound");F.run(2)
+    check(F.count(p[1],"StartEarthquake")==1 and F.count(p[3],"StartEarthquake")==1,"a director without Quake leaves the mission's own quake path alone ("..shape..")")
     for _,name in ipairs(THRUSTERS) do F.kill(name);F.run(1) end
     -- Furies may be anywhere; keep the base quiet and let the countdown run
     killFuries()
@@ -329,6 +330,124 @@ check(m.transportfound and F.count(p[1],"WeatherSensors")==0,"a failing director
 w,p,m=setup(2,{storm=function(peer,record) return {Initialized=true,SetPhase=function() error("boom") end} end})
 F.nearTo(p[2].player,"transfound");F.run(2)
 check(m.transportfound,"a throwing director never stops the mission")
+
+-- ------------------------------------------------------------------ the REAL storm, four peers
+-- Scripts/CRStorm18.lua (with the real CRWeather / CRWeatherPresets / CRFoliageWind) against stubbed EXU.
+local RealStorm=dofile("Tools/Misn18RealStorm.lua")(F)
+local function stormErrors(p)
+    for i,q in ipairs(p) do
+        for _,c in ipairs(q.calls) do
+            if c[1]=="StormPrint" then check(false,"peer "..i.." storm printed: "..tostring(c[2])) end
+            if c[1]=="print" and tostring(c[2]):find("CRStorm18",1,true) then check(false,"peer "..i.." mission printed: "..tostring(c[2])) end
+        end
+    end
+end
+local function nativeQuakes(peer)
+    local peak,open,overlap=0,false,false
+    for _,c in ipairs(F.callsOf(peer,"NativeQuake")) do
+        if c[2]=="start" then if open then overlap=true end;open=true elseif c[2]=="stop" then open=false end
+        if c[3] and c[3]>peak then peak=c[3] end
+    end
+    return peak,overlap
+end
+local function realPhases(peer)
+    local out={}
+    for _,c in ipairs(F.callsOf(peer,"StormPhase")) do out[#out+1]=c[2] end
+    return table.concat(out,",")
+end
+local FULL="opening,search,found,core1,core2,core3,collapse,final"
+do
+    w,p,m=setup(4,{storm=RealStorm})
+    check(p[1].director~=nil and p[1].director.Initialized and F.count(p[1],"WeatherSensors","Achilles")>=1,"the real director is built and bound")
+    F.nearTo(p[2].player,"transfound");F.run(2);killFuries()
+    -- the restored/stock mission quakes go INTO the storm: no peer calls the natives itself
+    F.run(10)
+    for i=1,4 do
+        check(F.count(p[i],"StartEarthquake")==0 and F.count(p[i],"UpdateEarthQuake")==0,"peer "..i..": mission quake requests are routed to the storm")
+        local peak,overlap=nativeQuakes(p[i])
+        check(peak>=5.9 and peak<=12+1e-6 and not overlap,"peer "..i..": the storm shakes the engine, preserving the pulse ("..peak..")")
+    end
+    for _,name in ipairs(THRUSTERS) do F.kill(name);F.run(1) end
+    F.run(9)
+    local pre=realPhases(p[1])
+    check(pre=="opening,search,found,core1,core2,core3,collapse","phases so far: "..pre)
+    for i=2,4 do check(realPhases(p[i])=="","guest "..i.." never sets storm phases") end
+    -- guests render the leader's storm from its events: same phase, same funnel, strikes seen
+    local lead=p[1].env.Save().cr18Storm
+    check(lead and lead.name=="collapse" and lead.tornado,"leader storm is in collapse with a tornado")
+    for i=2,4 do
+        local g=p[i].env.Save().cr18Storm
+        check(g and g.phase==lead.phase and g.seed==lead.seed,"guest "..i.." follows the phase and seed")
+        check(g.bolts>3 and g.tornado and math.abs(g.tornadoX-lead.tornadoX)<30 and math.abs(g.tornadoZ-lead.tornadoZ)<30,"guest "..i.." sees strikes and the same funnel")
+        check(F.count(p[i],"StormApply","phase")>=1 and F.count(p[i],"StormApply","tornado")>=1,"guest "..i.." received phase and tornado events")
+    end
+    -- finish: win
+    F.run(1)
+    nearBase(p,0)
+    F.nearTo(p[3].player,RECYCLER,300,0) -- in the band: no result until everyone is home
+    F.runUntil(function() return w.timer and w.timer.duration-(w.now-w.timer.start)<=25 end,400)
+    check(not m.missionwon and not m.fail2,"the band holds the result "..tostring(m.missionwon).." "..tostring(m.fail2).." "..tostring(m.fail3).." "..tostring(m.coopFailed).." t="..tostring(w.timer and w.timer.duration-(w.now-w.timer.start)))
+    F.nearTo(p[3].player,RECYCLER,100,0);F.run(4)
+    check(m.missionwon,"every human within 200 m wins")
+    F.run(6)
+    check(realPhases(p[1])==FULL..",won","phases in order, won last: "..realPhases(p[1]))
+    stormErrors(p)
+    for i=1,4 do
+        check(F.count(p[i],"SucceedMission")==1,"one victory on peer "..i)
+        local peak=nativeQuakes(p[i]);check(peak>0,"quake ran on peer "..i)
+        local last=F.callsOf(p[i],"NativeQuake");check(last[#last][2]=="stop","the storm leaves the engine calm on peer "..i)
+        check((p[i].env.Save().cr18Storm.errors or 0)==0,"no storm errors on peer "..i)
+    end
+end
+do -- tornado fairness (the result is irrelevant here: everyone stands in the funnel)
+    w,p,m=setup(4,{storm=RealStorm})
+    F.nearTo(p[2].player,"transfound");F.run(2);killFuries()
+    for _,name in ipairs(THRUSTERS) do F.kill(name);F.run(1) end
+    F.run(9)
+    -- tornado fairness: each peer pulls only what it owns; the leader also pulls AI craft
+    local lead=p[1].env.Save().cr18Storm
+    local tx,tz=lead.tornadoX,lead.tornadoZ
+    for i=1,4 do F.place(p[i].player,tx+6*i,tz+10) end
+    local fury=F.spawn("crfraz",6,tx-20,tz)
+    for _,q in ipairs(p) do q.calls={} end -- (phases were captured above)
+    F.run(6)
+    for i=1,4 do
+        local pulled={}
+        for _,c in ipairs(F.callsOf(p[i],"TornadoVelocity")) do pulled[c[2]]=(pulled[c[2]] or 0)+1 end
+        check((pulled[p[i].player] or 0)>0,"peer "..i.." pulls its own ship")
+        for j=1,4 do if j~=i then check(pulled[p[j].player]==nil,"peer "..i.." never moves peer "..j.."'s ship") end end
+        check((pulled[fury]~=nil)==(i==1),"only the leader pulls the AI craft (peer "..i..")")
+    end
+    for i=1,4 do
+        local total=0
+        for _,c in ipairs(F.callsOf(p[i],"TornadoDamage")) do
+            check(c[2]==p[i].player or (i==1 and c[2]==fury),"peer "..i.." only hurts craft it owns")
+            total=total+c[3]
+        end
+        check(total<=40,"tornado damage stays low on peer "..i..": "..total)
+    end
+end
+do -- a lost path
+    w,p,m=setup(4,{storm=RealStorm})
+    F.nearTo(p[2].player,"transfound");F.run(2);killFuries()
+    for i=1,2 do F.kill(THRUSTERS[i]);F.run(1) end
+    F.kill(RECYCLER);F.run(10)
+    check(m.fail3 or m.coopFailed or F.count(p[1],"FailMission")==1,"recycler loss fails")
+    check(realPhases(p[1])=="opening,search,found,core1,core2,lost","lost ends the real sequence: "..realPhases(p[1]))
+    stormErrors(p)
+    for i=1,4 do
+        check(F.count(p[i],"FailMission")==1,"one failure on peer "..i)
+        check((p[i].env.Save().cr18Storm.errors or 0)==0,"no storm errors on peer "..i)
+    end
+    -- save/load mid-storm: the director resumes the same phase on the leader
+    w,p,m=setup(2,{storm=RealStorm})
+    F.nearTo(p[2].player,"transfound");F.run(2);F.kill(THRUSTERS[1]);F.run(40)
+    local before=p[1].director.Describe()
+    for _,q in ipairs(p) do q.env.Load(q.env.Save()) end
+    F.connect();F.run(3)
+    check(p[1].director.Describe().phase==before.phase and p[1].director.Describe().seed==before.seed,"real storm resumes its phase and seed after load")
+    stormErrors(p)
+end
 
 -- ------------------------------------------------------------------ transport-destroyed shot
 local function shotScenario(storm)

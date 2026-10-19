@@ -21,7 +21,9 @@ Tornado.MARGIN = 140       -- m kept inside the map edge
 Tornado.GROW = 10          -- s for the funnel to build to full height
 Tornado.FAR = 1100         -- m from the viewer beyond which the funnel stops drawing
 
--- The gameplay effect. Leader only; set ENABLED false for a purely visual storm.
+-- The gameplay effect. Every peer applies it, from the replicated funnel, to the craft IT owns
+-- (IsLocal in a net game: its own player and anything it built; the leader also owns the AI and
+-- enemy craft). Set ENABLED false for a purely visual storm.
 Tornado.EFFECT = {
     ENABLED = true,
     RADIUS = 45,           -- m: nothing farther than this is touched
@@ -191,9 +193,10 @@ function Tornado.Decode(s, n, x, z, vx, vz, wx, wz, t)
 end
 
 -- Gameplay effect -------------------------------------------------------------
--- Leader only (the director enforces that). Pulls and spins every craft this
--- peer owns inside the radius and wears it down a little; never touches a
--- building. Returns how many craft it moved.
+-- Runs on every peer against the replicated funnel (s). Pulls and spins every
+-- craft THIS peer owns inside the radius and wears it down a little; never
+-- touches a building or a craft another peer owns, so nothing is applied twice.
+-- Returns how many craft it moved.
 function Tornado.Affect(s, dt)
     local e = Tornado.EFFECT
     if not e.ENABLED or type(SetVelocity) ~= "function" or type(GetVelocity) ~= "function" then return 0 end
@@ -203,7 +206,7 @@ function Tornado.Affect(s, dt)
     if grow < 0.5 then return 0 end
     local netgame = type(IsNetGame) == "function" and IsNetGame()
     local moved, hurt = 0, {}
-    local owed = Tornado.owed or {}
+    local owed = s.hurt or {}
     for h in each() do
         local ok = pcall(function()
             if type(IsValid) == "function" and not IsValid(h) then return end
@@ -237,7 +240,7 @@ function Tornado.Affect(s, dt)
         end)
         if not ok then break end
     end
-    Tornado.owed = hurt -- forget craft that left the radius
+    s.hurt = hurt -- forget craft that left the radius (per funnel, so per peer)
     return moved
 end
 

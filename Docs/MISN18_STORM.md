@@ -2,9 +2,10 @@
 
 Weather, ground cover and environment FX for mission 18, where the player has
 destroyed the Fury transport's cores and the moon tears itself apart. New files
-only; nothing here edits `misn18.lua`, `CRMisn18.lua` or the map. The module is
-written to be wired exactly like `CRJungle17` in `CRMisn17`, plus one leader-side
-call, `SetPhase`. **Nothing has been rendered yet**: every visual claim below is
+only for the storm itself; nothing here edits `misn18.lua` or the map. The module is
+wired into the co-op port by `CRMisn18.lua` exactly like `CRJungle17` in `CRMisn17`, plus
+one leader-side call, `SetPhase`, and the quake routing below (see also
+[`MISN18_COOP.md`](MISN18_COOP.md), which owns the mission-side contract). **Nothing has been rendered yet**: every visual claim below is
 host-tested for its logic and unverified on screen (see the smoke list at the end).
 
 ## The world
@@ -78,11 +79,13 @@ any whose straight track crosses a circle, every 9 s; the full state (n, x, z, v
 age) is an event, and peers dead-reckon the same arithmetic between events. Tested for 4 h
 of simulated play with the humans standing on the objectives: never inside a circle.
 
-The optional gameplay effect (`Tornado.EFFECT`, default ON, low): inside 45 m the
-leader pulls, spins and lifts craft it owns (`IsLocal` in a net game; buildings never)
-by 7 / 9 / 4 m/s^2 at the core, capped at 55 m/s, and damages 6 hull/s at the core. Guests
-never touch gameplay; guest-owned craft are therefore not pulled. Set `ENABLED = false`
-for a purely visual storm.
+The optional gameplay effect (`Tornado.EFFECT`, default ON, low): inside 45 m **every
+peer** pulls, spins and lifts the craft it owns (`IsLocal` in a net game: its own player
+and anything it built; the leader also owns the AI and enemy craft; buildings never) by
+7 / 9 / 4 m/s^2 at the core, capped at 55 m/s, and damages 6 hull/s at the core. It runs
+from the replicated funnel (events plus identical dead reckoning), so a craft is moved
+only by its owner and never twice, and guests are pulled as fairly as the host. Offline
+everything is local. Set `ENABLED = false` for a purely visual storm.
 
 ## Interface contract (what CRMisn18 does)
 
@@ -109,11 +112,22 @@ local Storm = ok and mod.Create({exu = exu, state = function() return M end,
 
 Aliases: `Init = Load = Reset`, `Receive = Apply`. Guard every call with `if Storm`. `Update`
 returns at once after `Stop` until `Reset`; `SetPhase` before `Reset` is held and applied.
-Do not call the quake natives from the mission while the storm runs: the storm owns
-`UpdateEarthQuake` once it starts, so the stock `StartEarthquake(2.0)` at discovery and
-the `quake_level = 6` bump at the last thruster are overridden by the storm's own
-magnitude (they would otherwise fight). `Stop` calls `StopEarthquake` only if the storm
-started one.
+
+**Quake ownership.** The storm owns `StartEarthquake` / `UpdateEarthQuake` / `StopEarthquake`
+while it runs. The mission does not call them: `CRMisn18` hands every mission quake request
+(the stock `StartEarthquake(2.0)` at discovery and the restored, capped-at-12 pulse) to
+`Storm.Quake(magnitude, seconds)` on each peer. The storm envelopes each request (rise
+and fall like its own pulses, default hold 3.5 s, magnitude clamped to 0..12, at most 12
+live) and shakes the engine with the maximum of its own shake and every live request, so
+nothing fights and the restored pulse is preserved (it is not subject to `QUAKE_MAX`, which
+bounds only the storm's own shake). `Quake` returns false once the storm is stopped,
+disabled or not built, and the mission then shakes the native itself. `Stop` calls
+`StopEarthquake` only if the storm started one. Requests are peer-local: the mission
+already replicates its own quake calls, so every peer receives the same ones and the
+storm adds no event for them.
+
+`api.players` (optional) is the list of human positions used for the tornado's targeting;
+`Describe()` is read each frame into `M.cr18Storm` by the mission.
 
 ### Events (`Present("Storm", kind, ...)`, numbers only)
 
@@ -131,8 +145,8 @@ loaded an older save) resets the duplicate counters. Malformed packets are ignor
 
 ## Tunables
 
-`Storm.PROFILE` (the table above), `Storm.TUNING` (quake scale/cap, waypoint and resync
-intervals, sky plane), `Tornado.EFFECT` / `SPEED` / `PAD` / `GROW`, `Ground.BUILD` (520) /
+`Storm.PROFILE` (the table above), `Storm.TUNING` (quake scale/cap, mission quake hold,
+waypoint and resync intervals, sky plane), `Tornado.EFFECT` / `SPEED` / `PAD` / `GROW`, `Ground.BUILD` (520) /
 `DROP` (700) / `RENDER` (260) / `CRACK_*` / `SLIDES`.
 
 ## Performance budget
@@ -157,7 +171,7 @@ microcode cache keys on the program name).
 
 ## Tests
 
-`lua5.1 Tools/Test-CRStorm18.lua` (952 checks): payload/material/program lint (every
+`lua5.1 Tools/Test-CRStorm18.lua` (957 checks): payload/material/program lint (every
 template parses, materials and textures exist, ColourInterpolator has all six stages, no
 name clashes, program references and delegates in order, shaders agree on their uniforms);
 rng determinism; preset escalation and template indices; phase ladder (events per phase,
@@ -166,7 +180,8 @@ late-join convergence, malformed packets, rollback, dedupe; determinism and save
 continuing the same schedule; tornado routing against the real zones for 4 h with players
 parked on the objectives (plus Resolve and SegmentClear unit checks); the effect's
 leader-only/IsLocal/off switch; streaming, failure back-off and material fallbacks;
-landslides; collapse burst; Stop writing calm to the sky, wind foliage, quake, lights,
+landslides; mission quake routing (max-merge, clamp, one native owner, refusal after Stop); every peer pulling only
+its own craft; collapse burst; Stop writing calm to the sky, wind foliage, quake, lights,
 systems and geometry; no-EXU and no-payload degradation. `fxc` compiles all four HLSL
 entry points (vs/ps 4_0 and 3_0).
 
@@ -189,7 +204,8 @@ Everything rendered is unverified. In order of risk:
 5. Cracks lie flat, glow and pulse (perpendicular billboards honour the random Rotator;
    the colour channel order of the CRWX sprite path), soot and puffs appear.
 6. Landslides ride the slope; thunder, quake rumble, strikes and flashes; windshield dirt.
-7. Quake magnitude feel at 3.0 x strength; interaction with the stock misn18 quake calls.
+7. Quake magnitude feel at 3.0 x strength; the mission's discovery quake and restored pulses now shake through
+   `Storm.Quake`: no stutter or double shake. Tornado: a guest's own ship is pulled and the damage is mild.
 8. Collapse entry reads inside the thruster cinematic; frame time at final (aim: no worse
    than misn17's storm); co-op: guest and host see the same phase, strikes near each
    camera, tornado in the same place; save/load mid-storm; mission end leaves the next

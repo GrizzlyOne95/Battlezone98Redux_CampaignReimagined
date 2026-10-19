@@ -9,13 +9,16 @@
 --   Storm.Update(dt, CRCoop.IsAuthority(), function(...) Present("Storm", ...) end)
 --   Storm.Apply(...)                             -- Present's receiver, every peer (alias Receive)
 --   Storm.SetPhase("core1")                      -- leader only
+--   Storm.Quake(magnitude, seconds)              -- every peer: a mission quake request (see below)
 --   Storm.Save() / Storm.Stop()
 --
 -- Only the leader decides anything: its phase, bolt, quake, landslide and tornado
 -- events are the whole of the shared state. Every peer renders the storm itself,
 -- from those events and the shared seed, around its own camera. The module
--- builds no game object. The one gameplay effect, the tornado's pull, runs on the
--- leader (CRStorm18Tornado.EFFECT).
+-- builds no game object. The one gameplay effect, the tornado's pull, runs on
+-- every peer against the replicated funnel and touches only the craft that peer
+-- owns (CRStorm18Tornado.EFFECT). While the storm runs it owns the native
+-- earthquake: the mission's own quake requests come in through Storm.Quake.
 --
 -- Every engine call is guarded: no EXU, an EXU without a feature, or a failed
 -- script degrades to less storm, never to an error. Update and Apply run inside
@@ -61,7 +64,8 @@ Storm.TUNING = {
     QUAKE_MAX = 3.5,        -- never drive the native shake harder than this
     WAYPOINT_EVERY = 9,     -- s between tornado waypoints (and its resync to the guests)
     RESYNC = 15,            -- s between the leader's phase and tornado repeats (late joiners, drift)
-    PUSH_STEP = 0.25,       -- s between tornado effect passes on the leader
+    PUSH_STEP = 0.25,       -- s between tornado effect passes (each peer, its own craft)
+    MISSION_QUAKE_SECONDS = 3.5, -- default hold of a mission quake request (the pulse repeats every 3 s)
     CLOUD_D = 1450,         -- sky plane height; fitted to the far clip like Weather.lua
     CLOUD_SCALE = 2400,
     CLOUD_TILING = 24,      -- must match plane.xx = 12 in cr18_swirl.program
@@ -184,7 +188,7 @@ function Storm.Create(api)
     local ground, tornadoFx, templatesReady, nextTemplates, errorCount, lastError
     local sky, skyRetry, skyWritten, nextSkyWrite, baseSkyPlane
     local applied, view, nextView, nextWind, nextQuake, nextSkyAnim, nextPush
-    local quake, nativeQuake, nextNative
+    local quake, nativeQuake, nextNative, missionQuakes
     local flashAt, flashPower, strokes, sounds, shown
     local boltsSeen, groundMaterial, gctx, burstEnd
 
@@ -351,6 +355,25 @@ function Storm.Create(api)
         if type(StopEarthquake) == "function" then pcall(StopEarthquake) end
     end
 
+    -- Mission quake requests (the stock StartEarthquake / UpdateEarthQuake calls, routed here by
+    -- the mission): each is a native-scale magnitude held for its seconds with the same rise and
+    -- fall as a storm pulse. The shake is the strongest of the storm's and every live request, so
+    -- nothing fights over the one native earthquake. Peer-local: the mission replicates its own
+    -- requests, so every peer receives the same ones.
+    local function missionMagnitude()
+        local best = 0
+        for i = #missionQuakes, 1, -1 do
+            local q = missionQuakes[i]
+            local age = clock - q.start
+            if age >= q.dur then
+                table.remove(missionQuakes, i)
+            else
+                best = max(best, q.mag * envelope(q, age))
+            end
+        end
+        return best
+    end
+
     local function updateQuake()
         local P = profile(state.phase)
         local base = P.rumble * smooth(lvl or 0)
@@ -359,7 +382,7 @@ function Storm.Create(api)
             local age = clock - quake.start
             if age >= quake.dur then quake = nil else pulse = quake.strength * envelope(quake, age) end
         end
-        local mag = min(T.QUAKE_MAX, max(pulse, base) * T.QUAKE_SCALE)
+        local mag = max(min(T.QUAKE_MAX, max(pulse, base) * T.QUAKE_SCALE), missionMagnitude())
         S.quakeMagnitude = mag
         if mag < 0.05 then nativeStop(); return end
         if clock < (nextNative or 0) then return end
@@ -600,7 +623,7 @@ function Storm.Create(api)
         pcall(Glass.Stop)
         if GroundFX then pcall(GroundFX.Stop) end
         if E and type(E.UnregisterEnvironmentModifier) == "function" then pcall(E.UnregisterEnvironmentModifier, "CR18Storm") end
-        strokes, sounds, quake, flashAt = {}, {}, nil, nil
+        strokes, sounds, quake, flashAt, missionQuakes = {}, {}, nil, nil, {}
         sky, ground, tornadoFx, applied, gctx = nil, nil, nil, nil, nil
         S.quakeMagnitude = 0
     end
@@ -612,7 +635,7 @@ function Storm.Create(api)
         clock, lvl = 0, profile(state.phase).level * (saved and 1 or 0.6)
         strokes, sounds, quake, flashAt = {}, {}, nil, nil
         applied, view, nextView, nextWind, nextSkyAnim, nextSkyWrite, nextPush = nil, nil, 0, 0, 0, 0, 0
-        nextNative, nativeQuake = 0, false
+        nextNative, nativeQuake, missionQuakes = 0, false, {}
         sky, skyRetry, skyWritten = "off", 0, nil
         templatesReady, nextTemplates, errorCount, lastError = false, 0, 0, nil
         boltsSeen, burstEnd = 0, nil
@@ -672,6 +695,20 @@ function Storm.Create(api)
         local idx = INDEX[tostring(name)]
         if not idx then return false end
         return S.SetPhaseIndex(idx)
+    end
+
+    -- Every peer. The mission routes its own earthquake requests here while the storm runs.
+    -- Returns true when taken; false (director stopped, disabled or not built) tells the mission to
+    -- shake the native earthquake itself. Magnitude is native scale and is clamped to 0..12.
+    function S.Quake(magnitude, seconds)
+        if S.Enabled == false or not state or not S.Initialized then return false end
+        magnitude = tonumber(magnitude)
+        if not finite(magnitude) then return false end
+        magnitude = clamp(magnitude, 0, 12)
+        local dur = clamp(tonumber(seconds) or T.MISSION_QUAKE_SECONDS, 0.5, 12)
+        if #missionQuakes >= 12 then table.remove(missionQuakes, 1) end
+        missionQuakes[#missionQuakes + 1] = { start = clock, dur = dur, mag = magnitude }
+        return true
     end
 
     function S.GetPhase() return Storm.PHASES[state and state.phase or 1] end
@@ -746,12 +783,13 @@ function Storm.Create(api)
                 if type(out) ~= "function" then out = function(...) S.Apply(...) end end
                 local sent, serr = pcall(tick, out)
                 if not sent then fail(serr) end
-                if state.tornado and clock >= (nextPush or 0) then
-                    nextPush = clock + T.PUSH_STEP
-                    pcall(Tornado.Affect, state.tornado, T.PUSH_STEP)
-                end
             end
             localTick(dt)
+            -- Every peer pulls the craft it owns toward the (replicated) funnel.
+            if state.tornado and clock >= (nextPush or 0) then
+                nextPush = clock + T.PUSH_STEP
+                pcall(Tornado.Affect, state.tornado, T.PUSH_STEP)
+            end
             pcall(Weather.Update, dt)
         end)
         if not ok then fail(err) end

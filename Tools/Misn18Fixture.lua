@@ -384,7 +384,7 @@ function F.makePeer(id, team, network, options)
             UpdateInputs=function() record("PdaUpdate") end,UpdateHeadlights=noop},
     }
     -- options.storm: a CRStorm18 stand-in (a module table, or {Create=...}); nil leaves the module absent.
-    if options.storm then modules.CRStorm18 = options.storm(p, record) end
+    if options.storm then modules.CRStorm18 = options.storm(p, record, e, modules) end
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
@@ -403,7 +403,7 @@ function F.makePeer(id, team, network, options)
     modules.CRMisn18 = setfenv(assert(loadfile("Scripts/CRMisn18.lua")),e)()
     setfenv(assert(loadfile("Scripts/misn18.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start
-    p.env, p.coop = e, modules.CRCoop
+    p.env, p.coop, p.runtime = e, modules.CRCoop, modules.CRMisn18
     e.Start()
     return p
 end

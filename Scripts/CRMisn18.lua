@@ -53,7 +53,15 @@ do
     local okModule, module = pcall(require, "CRStorm18")
     if okModule and type(module) == "table" then
         if type(module.Create) == "function" then
-            local okCreate, director = pcall(module.Create, { exu = exu, state = function() return M end })
+            local okCreate, director = pcall(module.Create, { exu = exu, state = function() return M end,
+                -- Leader targeting for the tornado: where every human currently is.
+                players = function()
+                    local list = {}
+                    CRCoop.ForEachPlayerHandle(function(h)
+                        if IsValid(h) then list[#list + 1] = GetPosition(h) end
+                    end)
+                    return list
+                end })
             if okCreate and type(director) == "table" then Storm = director
             else print("[misn18] CRStorm18.Create failed: " .. tostring(director)) end
         else
@@ -111,6 +119,11 @@ local function ApplyPresentation(op, ...)
         if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
             pcall(SetLabel, handle, label)
         end
+    elseif op == "StartEarthquake" or op == "UpdateEarthQuake" then
+        -- While the storm runs it owns the native earthquake: the mission's request (the stock
+        -- discovery quake and the restored pulse) becomes one of its envelopes and the strongest wins.
+        -- Without a storm (absent, stopped, failed) the mission shakes the engine itself, as before.
+        if not StormCall("Quake", (...)) then return native[op](...) end
     elseif op == "SucceedMission" or op == "FailMission" then
         StormCall("Stop")
         local when, description = ...
@@ -880,6 +893,7 @@ function R.Update(dt)
     M.coopMissionStarted=true
     if not M.coopResult then
         StormCall("Update",dt,CRCoop.IsAuthority(),function(...) Present("Storm",...) end)
+        M.cr18Storm=StormCall("Describe")
     end
     if not CRCoop.IsAuthority() or M.coopResult then return false end
     if not s.phase then Phases() end -- "opening" before the body's first frame
