@@ -33,12 +33,12 @@ Invoke-CRFlowStep 'aft three-quarter and engine bank' {
 }
 Invoke-CRFlowStep 'bounded owner-local flyby' {
     foreach ($carrierPeer in $carrierPeers) {
-        Invoke-CRFlow $carrierPeer 'carrierPose=GetTransform(carrier);carrierStarted=GetTime();carrierView={15000,6000,-19000};every("carrier-flight",0,function() carrierPose.posit_z=100900-6*(GetTime()-carrierStarted);SetTransform(carrier,carrierPose) end);return true' | Out-Null
+        Invoke-CRFlow $carrierPeer 'carrierPose=GetTransform(carrier);carrierStarted=GetTime();carrierView={15000,6000,-19000};every("carrier-flight",0,function() carrierPose.posit_z=100900-6*math.min(4,math.max(0,GetTime()-carrierStarted));SetTransform(carrier,carrierPose) end);return true' | Out-Null
     }
     foreach ($carrierPeer in $carrierPeers) {
-        Wait-CRFlow $carrierPeer 'return GetTime()-carrierStarted>=4' -TimeoutSeconds 10 | Out-Null
+        Wait-CRFlow $carrierPeer 'local p=GetTransform(carrier);return GetTime()-carrierStarted>=4 and math.abs(p.posit_z-100876)<.15' -TimeoutSeconds 12 | Out-Null
         $carrierMoved=Invoke-CRFlow $carrierPeer 'local p=GetTransform(carrier);return {z=p.posit_z,valid=IsValid(carrier)}'
-        Add-CRFlowCheck "c$carrierPeer can move its cinematic fixture" ($carrierMoved.valid -and $carrierMoved.z -lt 100880) $carrierMoved
+        Add-CRFlowCheck "c$carrierPeer reaches the 24m flyby endpoint" ($carrierMoved.valid -and [math]::Abs($carrierMoved.z-100876) -lt .15) $carrierMoved
     }
 }
 Invoke-CRFlowStep 'release only owned camera and tasks' {

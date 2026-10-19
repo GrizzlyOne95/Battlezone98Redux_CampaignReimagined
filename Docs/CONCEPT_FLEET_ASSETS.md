@@ -9,9 +9,9 @@ the small comparison units as additional fleet classes.
 | Runtime fixture | Reference element | Approximate length | Render triangles |
 |---|---|---:|---:|
 | `crncarr` | NSDF carrier | 243 m including inferred engines | 30,632 |
-| `crccarr` | Grey fork-bow CCA carrier | 239 m | 1,912 |
-| `crcred1` | Upper-left long red CCA hull | 115 m | 812 |
-| `crcred2` | Upper-right pale-bow/red-aft CCA hull | 127 m | 890 |
+| `crccarr` | Grey fork-bow CCA carrier | 242 m including inferred engines | 1,912 |
+| `crcred1` | Upper-left long red CCA hull | 117 m including inferred engines | 812 |
+| `crcred2` | Upper-right pale-bow/red-aft CCA hull | 129 m including inferred engines | 890 |
 
 Names describe the reference positions/shapes; they do not assert canonical ship
 classes or lore. The simple CCA surfaces follow the angular, sparse concept art.
@@ -97,11 +97,22 @@ restoring its previous files without a verified baseline. No new fleet placement
 is added to a production mission, no Workshop upload occurs, and the rocket is
 independent in PR #228.
 
-Progress: source rebuilds and targeted loader checks pass. Native four-ship
-preview is being verified on branch `agent/nsdf-carrier`, draft PR #237. The first
-single-carrier run loaded both materials but used a shared-host elapsed-time
-wait that sampled the guest too early. The fleet scenario waits each peer's own
-four seconds and uses explicit native camera functions.
+Progress: source rebuilds and targeted loader checks pass. Native run
+`concept-fleet-2` loaded all four ships on both clients, captured side/bow/aft
+views and preserved presentation parity with no Lua/engine script errors. Its
+four guest movement checks failed: transform readback lagged behind a continually
+moving target even after each peer's own four-second wait. The current scenario
+clamps travel to 24 m and holds that endpoint until each peer's readback converges
+within 0.15 m. This avoids claiming a speed measurement from interpolated remote
+readback. Native run `concept-fleet-4` is checking the revised test and the final
+visible CCA engine throats. `concept-fleet-3` was refused at preflight because an
+unrelated game was running; that process was left alone.
+
+The latest CCA rebuild places the entire nozzle outside the closed stern, so its
+emissive throat remains visible. Small inferred nozzles extend each side survey
+by less than 4 m. The native fixture proxy retains the major hull solids, while
+the Ogre visual/culling bounds include the engine extension. Branch
+`agent/nsdf-carrier`, draft PR #237; source checkpoint `faa54bf1`.
 
 ![CCA reference-layout study](../References/CCAFleet/fleet-side.png)
 ![NSDF carrier](../References/NSDFCarrier/carrier-bow.png)

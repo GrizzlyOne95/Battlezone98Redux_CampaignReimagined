@@ -40,12 +40,15 @@ foreach ($fleetAsset in @('crncarr','crccarr','crcred1','crcred2')) {
     }
     Invoke-CRFlowStep "$fleetAsset bounded peer-local flyby; release camera" {
         foreach ($fleetPeer in $fleetPeers) {
-            Invoke-CRFlow $fleetPeer 'fleetPose=GetTransform(fleetShip);fleetZ=fleetPose.posit_z;fleetStarted=GetTime();every("fleet-flight",0,function() fleetPose.posit_z=fleetZ-6*(GetTime()-fleetStarted);SetTransform(fleetShip,fleetPose) end);return true' | Out-Null
+            Invoke-CRFlow $fleetPeer 'fleetPose=GetTransform(fleetShip);fleetZ=fleetPose.posit_z;fleetStarted=GetTime();every("fleet-flight",0,function() local t=math.min(4,math.max(0,GetTime()-fleetStarted));fleetPose.posit_z=fleetZ-6*t;SetTransform(fleetShip,fleetPose) end);return true' | Out-Null
         }
         foreach ($fleetPeer in $fleetPeers) {
-            Wait-CRFlow $fleetPeer 'return GetTime()-fleetStarted>=4' -TimeoutSeconds 10 | Out-Null
+            # A remote static actor's transform readback is interpolated. Hold
+            # the actual bounded endpoint until BOTH clients reach it; do not
+            # infer distance from either clock or keep moving the finish line.
+            Wait-CRFlow $fleetPeer 'local p=GetTransform(fleetShip);return GetTime()-fleetStarted>=4 and math.abs(fleetZ-p.posit_z-24)<.15' -TimeoutSeconds 12 | Out-Null
             $fleetMoved=Invoke-CRFlow $fleetPeer 'local p=GetTransform(fleetShip);return {valid=IsValid(fleetShip),distance=fleetZ-p.posit_z,elapsed=GetTime()-fleetStarted}'
-            Add-CRFlowCheck "c$fleetPeer moves $fleetAsset locally" ($fleetMoved.valid -and $fleetMoved.distance -ge 23.9) $fleetMoved
+            Add-CRFlowCheck "c$fleetPeer reaches $fleetAsset 24m flyby endpoint" ($fleetMoved.valid -and [math]::Abs($fleetMoved.distance-24) -lt .15) $fleetMoved
             Invoke-CRFlow $fleetPeer 'cancel("fleet-view");cancel("fleet-flight");native.CameraFinish();return true' | Out-Null
         }
     }

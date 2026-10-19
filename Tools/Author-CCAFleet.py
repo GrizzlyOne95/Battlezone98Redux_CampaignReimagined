@@ -77,6 +77,9 @@ def rect(label,u0,v0,u1,v1,depth,mat):
 
 def engine_bank(u,positions,radius):
     """Inferred engine exits; stored in game-local metres for future shot FX."""
+    # The concept has no stern view. Keep each complete nozzle outside the
+    # closed afterbody: burying the emissive throat behind its end cap hides it.
+    u+=(radius*.85+.4)/SCALE
     exits=[]
     for x,v in positions:
         _,y,z=point(u,v)
@@ -232,6 +235,7 @@ def inspect(ob):
 
 def overview():
     bpy.ops.wm.read_factory_settings(use_empty=True)
+    bpy.context.preferences.filepaths.save_version=0
     # Same 0.25m/px scale and sheet positions, not three individually resized ships.
     for ship in SHIPS:
         path=SOURCE/ship['id']/(ship['id']+'.blend')

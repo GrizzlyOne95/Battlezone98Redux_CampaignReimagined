@@ -9,7 +9,7 @@
   "bounds_max": [
     22.0,
     16.25,
-    63.25
+    65.5199966430664
   ],
   "radius": 66.9614348992214,
   "native_vertices": 332,
@@ -34,12 +34,12 @@
     [
       -10,
       -2.5,
-      63.25
+      65.51999999999998
     ],
     [
       10,
       -2.5,
-      63.25
+      65.51999999999998
     ]
   ],
   "source_polygons": [
@@ -360,12 +360,12 @@
     "n": 16
   },
   "sha256": {
-    "Assets/Textures/crcred2_d.dds": "d0e2a2359125400b09d403f27e19ba7cc49428f33f5f46998973ec935b68945e",
+    "Assets/Textures/crcred2_d.dds": "e4e0922e575648902318dbd5a4031ec89104dcf2fb002ae9bb20b2473660d45a",
     "Assets/Textures/crcred2_e.dds": "39277be92e45b6f2b16a895e7a4dff1508b1bf025371c18b098bb66888fee79d",
-    "Assets/Textures/crcred2_s.dds": "78be48ad913605194b420fa330d204b0af77eca8eb42a76d370773b74f979e4d",
+    "Assets/Textures/crcred2_s.dds": "e9267686ff91dd20f39e7c2ab9ad769be59cd08a3513c8aad4a202ed80a4c158",
     "Assets/Textures/crcred2_n.dds": "10f8b112accaabfb79078fbfa3a0c2fde98d5b2d410def4e994cdde003bdc952",
-    "Assets/ModelFixes/crcred2.mesh": "7bf83e69fce980df985bcbb2c0e0339e2919b2e4d9acc0c21b1fe90cb3a769c4",
+    "Assets/ModelFixes/crcred2.mesh": "9ddfb75483fe9b17fe24c1255fe63c8e5f8cfb97d6b165708f0134e33c356277",
     "Assets/ModelFixes/crcred2.geo": "277e857bb241c3baa16a9fe5d936c6393d34c07920c97abfe3438e69f4cdf744",
-    "Assets/ModelFixes/crcred2.sdf": "538158625952e6d8069f7d1ac3bdd933341406ac72eb1fd58a35f6d986b559c5"
+    "Assets/ModelFixes/crcred2.sdf": "7e89e62899110f548db26fb1e98b2113c7800b26b0de3f11a77ff53f46c59177"
   }
 }

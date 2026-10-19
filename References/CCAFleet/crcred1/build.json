@@ -9,9 +9,9 @@
   "bounds_max": [
     18.0,
     12.25,
-    57.5
+    59.685001373291016
   ],
-  "radius": 60.42821565280423,
+  "radius": 60.992774751529886,
   "native_vertices": 298,
   "native_triangles": 560,
   "asset": "crcred1",
@@ -34,12 +34,12 @@
     [
       -8,
       -6.75,
-      57.5
+      59.685
     ],
     [
       8,
       -6.75,
-      57.5
+      59.685
     ]
   ],
   "source_polygons": [
@@ -324,12 +324,12 @@
     "n": 16
   },
   "sha256": {
-    "Assets/Textures/crcred1_d.dds": "d59d262cc6f0d073b2b3a94435d8abdb210e1b91d65b526bc479f218f79507ea",
-    "Assets/Textures/crcred1_e.dds": "1e88cf3e9a94e6572d19b2b0db2537b616374a692fea6a366c669978b119b613",
-    "Assets/Textures/crcred1_s.dds": "d3c25061d213f2a60f08427d1777bca13bcbfc9846390995f715fdaf041d23f5",
+    "Assets/Textures/crcred1_d.dds": "a3ab578a4c5c61dd67578503cbfa8a60fc8ecad6d10c1c161cde0eac3f078416",
+    "Assets/Textures/crcred1_e.dds": "4c81600dd3df4d4c6be5f5aad4fe1b57e6936634f581997e64bbf9775828aecb",
+    "Assets/Textures/crcred1_s.dds": "189ef78f88a276acf35f71632d7a5e5b2cd1030d26568ac4e1b5b8383696966c",
     "Assets/Textures/crcred1_n.dds": "10f8b112accaabfb79078fbfa3a0c2fde98d5b2d410def4e994cdde003bdc952",
-    "Assets/ModelFixes/crcred1.mesh": "25de76290a0ec9645443998c29498c946239a3cb2a9a1e6d4153e24f99655a19",
+    "Assets/ModelFixes/crcred1.mesh": "7e63e3a87d64ea73cb2f0f0f28c4691c52130a32a8c3f703da9ea891292624bd",
     "Assets/ModelFixes/crcred1.geo": "f904652c3b928c7f5a1c9a22222884db6fb830365419c0b90b796503499a8f52",
-    "Assets/ModelFixes/crcred1.sdf": "a355dc210e27bb8c1a144dee4db11f8aef0c3ec0af34f00525b80c0d7ce42db1"
+    "Assets/ModelFixes/crcred1.sdf": "bb49c1638d1c86d2bb103c7dbe54b3446d901248195d2de76fe32fe35ad7897c"
   }
 }

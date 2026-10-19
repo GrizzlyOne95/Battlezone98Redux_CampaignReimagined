@@ -1087,5 +1087,7 @@ check the actual deployment footer. A nonexistent override currently falls back
 to the ordinary GOG development mod. In the carrier prototype this refreshed 13
 existing managed files and added nine resources there; the handoff records the
 exact affected files rather than pretending the deployment was isolated.
-Native flyby tests must wait each peer's own elapsed time: a four-second host
-wait sampled the guest at only 3.15 seconds and produced a false movement failure.
+Native flyby tests must wait each peer's own elapsed time and a fixed endpoint:
+remote static-fixture transform readback can lag behind a continuously moving
+target even after a local time wait. Clamp the commanded travel, keep writing the
+endpoint and verify the actual readback converges; don't infer speed from it.

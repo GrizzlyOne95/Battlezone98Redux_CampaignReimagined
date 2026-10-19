@@ -58,7 +58,7 @@ for asset in ASSETS:
         assert abs(bounds[i]-info['bounds_min'][i])<.001
         assert abs(bounds[3+i]-info['bounds_max'][i])<.001
     expected=(info['source_span'][1]-info['source_span'][0])*.25
-    assert abs(bounds[5]-bounds[2]-expected)<1,'reference length at APC-informed scale'
+    assert 0<=bounds[5]-bounds[2]-expected<4,'reference length plus inferred engine extension'
     geo=(ROOT/'Assets/ModelFixes'/(asset+'.geo')).read_bytes()
     magic,_,name,nv,nf,_=struct.unpack_from('<4si16siii',geo)
     assert magic==b'OEG.' and name.rstrip(b'\0')==asset.encode()
