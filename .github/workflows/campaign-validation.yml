@@ -81,6 +81,13 @@ jobs:
       - name: Validate CCA concept fleet assets
         run: python Tools/Test-CCAFleetAssets.py
 
+      - name: Validate unit animation slot fixes
+        run: python Tools/Test-UnitAnimSlots.py
+
+      - name: Audit looping model animations
+        # bvwalk.vdf is an older walker fix whose cycles still seam (reported, not owned here)
+        run: python Tools/Audit-SdfLoops.py Assets/ModelFixes --strict --exclude bvwalk
+
       - name: Test BlackDog09 source port
         run: |
           lua5.1 Tools/Test-BlackDog09.lua

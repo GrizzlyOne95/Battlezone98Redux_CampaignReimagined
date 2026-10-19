@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2929,
+  "count": 2947,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -316,6 +316,10 @@
       "runtime": "avartl_c.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avcnst.vdf",
+      "runtime": "avcnst.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avdropc.mesh",
       "runtime": "avdropc.mesh"
     },
@@ -360,6 +364,10 @@
       "runtime": "avhaul.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avhaul.vdf",
+      "runtime": "avhaul.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avhraz.mesh",
       "runtime": "avhraz.mesh"
     },
@@ -372,8 +380,16 @@
       "runtime": "avmine.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avmuf.vdf",
+      "runtime": "avmuf.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avrckt.mesh",
       "runtime": "avrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avrecy.vdf",
+      "runtime": "avrecy.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\avscav.mesh",
@@ -424,8 +440,16 @@
       "runtime": "bvartl_c.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvcnst.vdf",
+      "runtime": "bvcnst.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvhaul.mesh",
       "runtime": "bvhaul.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvhaul.vdf",
+      "runtime": "bvhaul.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvhraz.mesh",
@@ -444,6 +468,10 @@
       "runtime": "bvmru.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvmuf.vdf",
+      "runtime": "bvmuf.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvraz.mesh",
       "runtime": "bvraz.mesh"
     },
@@ -454,6 +482,10 @@
     {
       "source": "Assets\\ModelFixes\\bvrdev.mesh",
       "runtime": "bvrdev.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvrecy.vdf",
+      "runtime": "bvrecy.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvscav.mesh",
@@ -680,12 +712,24 @@
       "runtime": "cvartl.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvcnst.vdf",
+      "runtime": "cvcnst.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvfigh.mesh",
       "runtime": "cvfigh.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cvhaul.mesh",
       "runtime": "cvhaul.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvhaul.skeleton",
+      "runtime": "cvhaul.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvhaul.vdf",
+      "runtime": "cvhaul.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cvhraz.mesh",
@@ -704,12 +748,24 @@
       "runtime": "cvmine.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvmuf.vdf",
+      "runtime": "cvmuf.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvrckt.mesh",
       "runtime": "cvrckt.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvrecy.vdf",
+      "runtime": "cvrecy.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvscav.mesh",
       "runtime": "cvscav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvslf.vdf",
+      "runtime": "cvslf.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cvtnk.mesh",
@@ -764,12 +820,20 @@
       "runtime": "svartl_c.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svcnst.vdf",
+      "runtime": "svcnst.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svfigh.mesh",
       "runtime": "svfigh.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svhaul.mesh",
       "runtime": "svhaul.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svhaul.vdf",
+      "runtime": "svhaul.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\svhraz.mesh",
@@ -784,8 +848,16 @@
       "runtime": "svmine.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svmuf.vdf",
+      "runtime": "svmuf.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svrckt.mesh",
       "runtime": "svrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svrecy.vdf",
+      "runtime": "svrecy.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\svscav.mesh",
