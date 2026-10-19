@@ -122,6 +122,27 @@ It falls away off the lava. Switch off with `lavaFog` / `lavaGlow` / `lavaTint`.
 `PoolFactor`) run over the playable box, kept gentle (fog end x0.80 in an enclosed basin):
 Io's haze belongs to the lava, not the lowlands. No fog particles are placed from it.
 
+### Pool pops: bubbles, embers and spatter
+
+`Scripts/CRPoolFX.lua` (shared with Venus) adds occasional events on the molten pools through
+`CRGroundFX.Event("lava", ...)`, the port of the ISDF Chronicles lava effects (`CRWX/LavaGlow`
+bubble swelling into a flat glow, `LavaDrops` spatter arcing out and falling back, `LavaEmbers`
+rising sparks, `LavaSmoke`, all in `crwx_precip.particle.payload`). Only the `PoolFxNear` (3)
+pool anchors nearest the player and inside `PoolFxRange` (170) are eligible, refreshed once a
+second; each fires one event every `PoolFxGap` (1.6-4.0 s), at a random spot within
+`PoolFxRadius` (32) that must be a molten cell (`LavaWeightAt >= 0.5`). No two events start
+within 0.35 s, and `CRGroundFX` keeps a fixed ring of emitter slots (4 systems, 4/4/8/12
+slots), so live emitters are hard-capped whatever happens. Smoke is cut to 35 % (`PoolFxMask`);
+the lava fog already supplies the haze.
+
+The ladder's lava-fog value is the rung scale: events come `scale` times faster and hit
+`0.7 + 0.3 x scale` times harder (calm x0.60, paroxysm x1.60). Gates: `AllowPoolFx` /
+`Init{ poolFx = false }`, the templates being loaded (`TemplatesReady`) and
+`CRWeather.Quality` (0 = off, below 1 slows and thins them). Cosmetic and local: it draws from
+the director's local FX rng, sends nothing, and never fires the engine's `xlavarh` explosions.
+Not counted in `MaxSystems` (CRGroundFX names its own four systems). misn10 and misn11 use it;
+misn15b is Titan and has no lava.
+
 ## 3. Geysers, vents and eruptions
 
 The BZN has 21 `eggeizr1` objects and none merge at the 45-unit radius, so there are

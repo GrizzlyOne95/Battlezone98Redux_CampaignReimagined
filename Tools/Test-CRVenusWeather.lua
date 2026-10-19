@@ -1801,6 +1801,67 @@ do
 end
 
 -- =============================================================================
+-- 12. Pool pops: yellow bubbles, motes and pale fumes on liquid sulphur (CRPoolFX)
+-- =============================================================================
+
+do
+    local function Recording(rec)
+        return {
+            Event = function(kind, pos, scale, mask)
+                rec[#rec + 1] = { kind = kind, x = pos.x, y = pos.y, z = pos.z, scale = scale }
+                return true
+            end,
+            Update = function() end,
+            StopKind = function(kind) rec.stopped = kind end,
+        }
+    end
+
+    local function Run(siteData, level, seconds, setup, label)
+        local world = NewWorld()
+        local peer = NewPeer(label or "poolfx", world)
+        local rec = {}
+        peer.preload["CRGroundFX"] = Recording(rec)
+        peer.Environment.Init()
+        peer.Venus.Init({ seed = 606, authority = true, sites = siteData, startLevel = level, targetLevel = level, bounds = BOUNDS })
+        local pool = peer.Venus.GetSulfurSites()[1]
+        peer.playerPos = { x = pool.x, y = 40, z = pool.z }
+        if setup then setup(peer) end
+        peer.run(seconds)
+        return peer, rec, pool
+    end
+
+    local peer, rec, pool = Run(sites, 1, 150.0)
+    local V = peer.Venus
+    check(#rec > 15, "liquid-sulphur pools pop while the player is near them, got " .. #rec)
+    check(#rec <= (150.0 / 0.35) + 1, "events are rate limited by the minimum spacing")
+    local weightOk, kindOk, nearOk = true, true, true
+    for _, e in ipairs(rec) do
+        if V.SulfurWeightAt(e.x, e.z) < 0.5 then weightOk = false end
+        if e.kind ~= "sulfur" then kindOk = false end
+        if math.sqrt((e.x - pool.x) ^ 2 + (e.z - pool.z) ^ 2) > V.PoolFxRange + V.PoolFxRadius + 1 then nearOk = false end
+    end
+    check(weightOk, "every sulfur pop lands on a liquid-sulphur cell")
+    check(kindOk, "sulphur pools use the yellow sulfur kind, never lava embers")
+    check(nearOk, "sulfur pops happen only near the player")
+
+    local _, off = Run(sites, 3, 60.0, function(p) p.Venus.AllowPoolFx = false end, "poolfx-off")
+    check(#off == 0, "AllowPoolFx = false silences the sulfur pops")
+    local _, offSulfur = Run(sites, 3, 60.0, function(p) p.Venus.AllowSulfur = false end, "poolfx-nosulfur")
+    check(#offSulfur == 0, "AllowSulfur = false also silences them")
+    local _, noq = Run(sites, 3, 60.0, function(p) p.CRWeather.Quality = 0.0 end, "poolfx-q0")
+    check(#noq == 0, "weather quality 0 silences the sulfur pops")
+
+    -- misn08 (three pools) and misn09 (one pool) pop too.
+    local _, r8 = Run(dofile(scriptDir .. "/CRVenusSites08.lua"), 2, 90.0, nil, "poolfx08")
+    check(#r8 > 5, "misn08 pools pop, got " .. #r8)
+    local _, r9 = Run(dofile(scriptDir .. "/CRVenusSites09.lua"), 2, 90.0, nil, "poolfx09")
+    check(#r9 > 5, "misn09's pool pops, got " .. #r9)
+
+    peer.Venus.Shutdown()
+    check(rec.stopped == "sulfur", "Shutdown removes the sulfur systems it owns")
+end
+
+-- =============================================================================
 -- Report
 -- =============================================================================
 

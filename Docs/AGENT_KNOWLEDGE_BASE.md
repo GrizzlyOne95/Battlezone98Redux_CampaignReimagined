@@ -1136,3 +1136,10 @@ cut through bevels; intersect paint polygons with actual structural triangles.
 The fleet tangent normal bake uses DirectX -Y to match cross(tangent,normal).
 See `Docs/CCA_REDUX_ART_PASS.md` for the revision and qualification state.
 - Mission 18 water (`Docs/MISN18_STORM.md`, Water): water that must react to Lua cannot use `$water*` material variables (fixed at parse). Drive it through pass colours on a program built with a define (`STORMWATER`), bind the power-scaled light autos so the pass colours do not dim the lighting, and integrate any speed change as an extra phase (scroll * phase) that wraps at a whole number of turns; `time * speed` jumps whenever the speed changes. Pools on an uncarved map need no hg2 edit: fill existing basins, keep a keep-out mask (zones + pads + path corridors), stop streams a margin early so the drawn width and mask stay clear. fxc takes one /D per define (a comma list silently defines nothing).
+
+### Lava and sulphur pool pops (2026-10-19)
+
+- Pool bubbles/embers/spatter live in `Scripts/CRPoolFX.lua`, a thin scheduler over `CRGroundFX.Event`. Io (`kind = "lava"`) and Venus (`kind = "sulfur"`) each own one state; both are campaign-only because only misn07-11 run those directors (misn15b is Titan).
+- The hard cap is CRGroundFX's fixed slot ring (4 systems per kind, created under `crwx_lava_<kind>_*` names, outside the directors' `MaxSystems`), not the scheduler. Use `CRGroundFX.StopKind(kind)` to drop one kind; `Stop()` removes everything including misn18's storm systems.
+- Sulphur uses the new `CRWX/Sulfur*` templates (Toxic recoloured to yellow, pale gas): recolouring an existing template via `SetColour` was not relied on because the template's ColourInterpolator owns the colour.
+- Ogre keeps particle templates across Lua states in one process: a game that already registered `crwx_precip` before this payload change needs a restart to see `CRWX/Sulfur*`.
