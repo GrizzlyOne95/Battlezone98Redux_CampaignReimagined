@@ -29,7 +29,7 @@ MusicTrack=7
 [Sky]
 SunTexture= sun.0
 SkyType= 0
-SkyHeight = 310
+SkyHeight = 3000
 SkyTexture= achilles.map
 
 BackdropTexture =
