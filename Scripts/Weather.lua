@@ -580,9 +580,13 @@ end
 -- A sky plane is clipped by the camera's far plane like any other geometry, and
 -- Redux's far clip is about a kilometre (1125 m on crsetup), short of the
 -- default 1450 m plane height. Ogre builds the plane scale * 100 wide, so only
--- an overhead disc inside the far clip ever draws; at half the far clip that
--- disc reaches 60 degrees from the zenith and the fog covers its edge. Height
+-- an overhead disc inside the far clip ever draws. Its edge sits at asin(d / far)
+-- above the horizon: at half the far clip that is 30 degrees, above a level
+-- camera's view, so overcast and rain never showed. At 0.15 the edge drops to
+-- about 9 degrees, where the fog has already reached its colour. The plane is
+-- drawn first, behind everything, so its height changes nothing else. Height
 -- and size shrink together so the cloud texture keeps its angular size.
+local SKY_PLANE_FAR_FRACTION = 0.15
 local function FitSkyPlane(distance, scale)
     distance = tonumber(distance)
     scale = tonumber(scale)
@@ -591,10 +595,10 @@ local function FitSkyPlane(distance, scale)
     end
     local ok, _, farClip = pcall(exu.GetCameraClipDistances)
     farClip = ok and tonumber(farClip) or nil
-    if farClip == nil or farClip <= 0.0 or distance <= farClip * 0.5 then
+    if farClip == nil or farClip <= 0.0 or distance <= farClip * SKY_PLANE_FAR_FRACTION then
         return distance, scale
     end
-    local factor = (farClip * 0.5) / distance
+    local factor = (farClip * SKY_PLANE_FAR_FRACTION) / distance
     return distance * factor, scale and scale * factor or scale
 end
 
