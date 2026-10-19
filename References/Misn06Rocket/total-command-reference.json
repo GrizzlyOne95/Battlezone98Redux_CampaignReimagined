@@ -1,0 +1,20 @@
+{
+  "author": "Coxxon",
+  "workshop": "https://steamcommunity.com/sharedfiles/filedetails/?id=2344006579",
+  "local_dependency": "2343997862 / BZTC_Races_1",
+  "asset": "CCA Rocketship / sbconecox00",
+  "reference_height": 77.58216095,
+  "reference_width": 24,
+  "normalized_height": 97,
+  "nozzle_plane": -48.5,
+  "engine_radius": 8.752011953335517,
+  "reference_files": {
+    "BZTC_BIN_DATA/sbconecox00.msh": "80f5083928fff8ad914806cd36aad1af9176e6a3f7f814211fcfcd407cefb4c8",
+    "BZTC_ODF_RACES/S_odf_cosmo_communist_army/sbcone.odf": "42f2e228515e1a2e365d89c96937063b8d0170d37fd91ca9a027f76bfdf9e584",
+    "BZTC_DDS_MDL/svconecox00_d.dds": "9344ddf1698caa79f0280e05190fec890dabc37721a5c744dd92f52455e3991d",
+    "BZTC_DDS_MDL/svconecox00_e.dds": "1b14f1b09aa082bea866c8114af4f03fcfc9e1af02811ec3ab929dc7c4afe55e",
+    "BZTC_DDS_MDL/svconecox00_n.dds": "4cf7f0d5ef2bc769d0cbeb46ec89e05b4d0feb497b2bcc86a4ba90b6e524f9c4",
+    "BZTC_DDS_MDL/svconecox00_s.dds": "9eb69132fcd7a806d921436bc270983f386196cd019067660d62ff920d9d5966"
+  },
+  "method": "Measured silhouette and colour/detail study; game mesh, UVs, procedural materials and baked atlases newly authored."
+}

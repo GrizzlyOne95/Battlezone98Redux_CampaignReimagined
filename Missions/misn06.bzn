@@ -4,12 +4,12 @@ binarySave [1] =
 false
 msn_filename = misn06.bzn
 seq_count [1] =
-994
+995
 missionSave [1] =
 true
 TerrainName = misn06
 size [1] =
-168
+169
 [GameObject]
 PrjID [1] =
 player
@@ -21334,6 +21334,135 @@ curPilot [1] =
 
 perceivedTeam [1] =
 5
+[GameObject]
+PrjID [1] =
+cr06rok
+seqno [1] =
+994
+pos [1] =
+  x [1] =
+1690.33043
+  y [1] =
+77.879
+  z [1] =
+101246.55
+team [1] =
+0
+label = cr06_rocket
+isUser [1] =
+0
+obj_addr = 00004006
+transform [1] =
+  right_x [1] =
+0.951243
+  right_y [1] =
+0
+  right_z [1] =
+0.308476
+  up_x [1] =
+0
+  up_y [1] =
+1
+  up_z [1] =
+0
+  front_x [1] =
+-0.308477
+  front_y [1] =
+0
+  front_z [1] =
+0.951247
+  posit_x [1] =
+1690.33043
+  posit_y [1] =
+77.879
+  posit_z [1] =
+101246.55
+illumination [1] =
+1
+pos [1] =
+  x [1] =
+1690.33043
+  y [1] =
+77.879
+  z [1] =
+101246.55
+euler =
+ mass [1] =
+0
+ mass_inv [1] =
+1e+030
+ v_mag [1] =
+0
+ v_mag_inv [1] =
+1e+030
+ I [1] =
+1
+ k_i [1] =
+0
+ v [1] =
+  x [1] =
+0
+  y [1] =
+0
+  z [1] =
+0
+ omega [1] =
+  x [1] =
+0
+  y [1] =
+0
+  z [1] =
+0
+ Accel [1] =
+  x [1] =
+0
+  y [1] =
+0
+  z [1] =
+0
+seqNo [1] =
+994
+name = 
+isCritical [1] =
+false
+isObjective [1] =
+false
+isSelected [1] =
+false
+isVisible [1] =
+ffffffff
+seen [1] =
+0
+healthRatio [1] =
+1
+curHealth [1] =
+0
+maxHealth [1] =
+0
+ammoRatio [1] =
+0
+curAmmo [1] =
+0
+maxAmmo [1] =
+0
+priority [1] =
+0
+what = 00000000
+who [1] =
+0
+where = 00000000
+param [1] =
+
+aiProcess [1] =
+false
+isCargo [1] =
+false
+independence [1] =
+1
+curPilot [1] =
+
+perceivedTeam [1] =
+0
 [GameObject]
 PrjID [1] =
 sbwpow

@@ -70,6 +70,8 @@ local function peer(id)
         Update=function() record("WeatherUpdate") end,
     }
     env.M = {}
+    env.launchFX = {Begin=function(...) record('RocketFX',...) end,
+        Stop=function() record('RocketFXStop') end,Reset=function() record('RocketFXReset') end}
     p.M = env.M
     p.printed = {}
     env.print = function(...) p.printed[#p.printed + 1] = table.concat({ ... }, " ") end
@@ -425,3 +427,17 @@ end
 host.api.receive(2,'E',900001,'WeatherTarget',15,5)
 check(host.weather.target==3,'guest cannot dictate host weather')
 print('misn06 four-peer weather target, rung authority and renderer-update wiring passed')
+
+host.api.present('RocketFX',10,77,30,0)
+for _=1,8 do tick() end
+for _,p in pairs(peers)do
+    check(count(p,'RocketFX')==1,'every peer receives rocket translation and FX exactly once')
+    local call=last(p,'RocketFX')
+    check(call[2]==10 and call[3]==77 and call[4]==30 and call[5]==0,'primitive launch payload preserved')
+end
+host.api.present('RocketFXStop')
+for _=1,8 do tick() end
+for _,p in pairs(peers)do check(count(p,'RocketFXStop')==1,'every peer stops rocket FX')end
+host.api.receive(2,'E',900002,'RocketFX',15,0,0,0,0)
+check(count(host,'RocketFX')==1,'guest cannot dictate shared rocket flight')
+print('misn06 four-peer rocket event/FX relay checks passed')

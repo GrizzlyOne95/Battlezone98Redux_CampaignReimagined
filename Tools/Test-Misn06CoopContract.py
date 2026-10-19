@@ -12,7 +12,7 @@ bzn = raw.decode('utf-8').replace('\r\n', '\n')
 assert 'name = MultSTMission\n' in bzn
 assert 'TerrainName = misn06\n' in bzn
 blocks = bzn.split('[GameObject]')[1:]
-assert int(re.search(r'size \[1\] =\n(\d+)\n', bzn)[1]) == len(blocks) == 168
+assert int(re.search(r'size \[1\] =\n(\d+)\n', bzn)[1]) == len(blocks) == 169
 teams, seqs, enemies, spawns = [], [], 0, {}
 for block in blocks:
     odf = re.search(r'PrjID \[1\] =\n([^\n]+)', block)[1]
@@ -35,6 +35,28 @@ for block in blocks:
         enemies += 1
         assert re.search(r'perceivedTeam \[1\] =\n5\n', block), 'CCA objects must be perceived as team 5'
 assert sorted(teams) == [1, 2, 3, 4] and enemies == 26
+rocket = [b for b in blocks if 'label = cr06_rocket\n' in b]
+assert len(rocket) == 1 and 'PrjID [1] =\ncr06rok\n' in rocket[0]
+assert 'team [1] =\n0\n' in rocket[0] and 'perceivedTeam [1] =\n0\n' in rocket[0]
+assert 'maxHealth [1] =\n0\n' in rocket[0], 'Rocket fixture must not be a new combat target'
+pad=next(b for b in blocks if 'label = sblpad0_i76building\n' in b)
+def field(block,key):
+    return float(re.search(r'^  '+key+r' \[1\] =\n([^\n]+)',block,re.M)[1])
+# Measured stock Redux raised platform, converted from Ogre's mirrored X.
+# The eight engine exits sit 25cm above its deck, directly over its centre.
+for i,c in enumerate('xyz'):
+    expected=field(pad,'posit_'+c)+sum(field(pad,a+'_'+c)*v for a,v in
+        zip(('right','up','front'),(-19.407374,77.879,-42.536600)))
+    assert abs(field(rocket[0],'posit_'+c)-expected)<.001,'Rocket must sit on the stock launch deck'
+for axis in ('right','up','front'):
+    for component in 'xyz':
+        field=axis+'_'+component
+        r=float(re.search(r'^  '+field+r' \[1\] =\n([^\n]+)',rocket[0],re.M)[1])
+        p=float(re.search(r'^  '+field+r' \[1\] =\n([^\n]+)',pad,re.M)[1])
+        assert abs(r-p)<.00001,'Rebuilt dorsal housing must face the clear approach corridor'
+for field in ('v','omega','Accel'):
+    motion = re.search(r' '+field+r' \[1\] =\n  x \[1\] =\n([^\n]+)\n  y \[1\] =\n([^\n]+)\n  z \[1\] =\n([^\n]+)',rocket[0])
+    assert tuple(map(float,motion.groups())) == (0,0,0), 'Fixture must have zero copied physics'
 for team in (1, 2, 3):
     a, b = spawns[team], spawns[team + 1]
     assert abs(math.hypot(b[0] - a[0], b[2] - a[2]) - 25) < 0.1, 'Human starts must be 25 m apart'
