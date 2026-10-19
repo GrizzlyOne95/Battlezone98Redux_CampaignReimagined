@@ -611,6 +611,42 @@ local function gritLayers(ar, dt)
 	return any
 end
 
+-- Shows every glass panel once, alone, on the screen overlay. A panel's first draw (which also loads its
+-- texture the first time) beside other showing panels broke the DX11 renderer in the live check: "Unable to set
+-- D3D11 vertex declaration" on every frame from then on (Instance2, 2026-10-19; the Mars dirt splat, the Venus
+-- etch). So, once, while at most WARM_QUIET panels show, each panel shows alone for two frames at its faintest
+-- step. The list is allLayers(), so a new layer is covered without touching this. Returns true while a
+-- warm-up panel is on screen.
+local WARM_QUIET = 2
+local function warmUp()
+	if state.warm == nil then
+		state.warm = {}
+		for _, p in ipairs(allLayers()) do
+			state.warm[#state.warm + 1] = { panel = p, family = p.family }
+		end
+	end
+	local w = state.warm[1]
+	if w == nil then return false end
+	local p = w.panel
+	if w.shown then
+		call("HideOverlayElement", p.name)
+		table.remove(state.warm, 1)
+		return false
+	end
+	if p.on or p.step > 0 then
+		table.remove(state.warm, 1)         -- already in use: its texture is loaded
+		return false
+	end
+	local n = 0
+	for _, q in ipairs(allLayers()) do if q.on then n = n + 1 end end
+	if n > WARM_QUIET then return false end
+	call("SetOverlayParameter", p.name, "uv_coords", "0 0 1 1")
+	call("SetOverlayMaterial", p.name, w.family .. "_A1")
+	call("ShowOverlayElement", p.name)
+	w.shown = true
+	return true
+end
+
 local function run(intensity, dt)
 	local player = GetPlayerHandle()
 	if not IsValid(player) or not viewAllowsGlass(player) then
@@ -730,6 +766,7 @@ local function run(intensity, dt)
 		if not shellApply() then state.shellOk = false end   -- the glass refused: overlay from now on
 		return
 	end
+	if mode == "overlay" and (state.warm == nil or #state.warm > 0) and warmUp() then any = true end
 	poseMask(player)
 	show(any)
 end
