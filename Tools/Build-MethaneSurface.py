@@ -95,6 +95,8 @@ def png_pixels(data: bytes) -> tuple[int, int, bytes] | None:
 # ---------------------------------------------------------------------------------------
 
 def mesh_bytes() -> bytes:
+    # TODO(toolkit gap): ogremesh_serializer.MeshSerializer.write always emits an empty SUBMESH_NAME_TABLE
+    # chunk; this mesh has none, so the output differs (size +6, first byte offset 28).
     def chunk(cid: int, body: bytes) -> bytes:
         return struct.pack("<HI", cid, len(body) + 6) + body
 

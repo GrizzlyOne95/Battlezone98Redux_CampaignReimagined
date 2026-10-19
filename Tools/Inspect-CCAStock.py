@@ -4,13 +4,24 @@ Run with Blender --python ... -- --install <game> --output <private folder>.
 Stock assets are never copied into the authored fleet or repository.
 """
 import argparse
+import io
 from pathlib import Path
 import sys
 import bpy
+import numpy as np
 from mathutils import Vector
 
 sys.path.insert(0,str(Path(__file__).parent))
-from ogrebin import Mesh,Reader,chunks,_read_geometry,_attribute
+from bzmodellibs import ogremesh,ogremesh_serializer
+
+
+def attribute(vertex_data,semantic):
+    """(count, 2 or 3) float array of one vertex element, read from the library's raw vertex buffer."""
+    element=next(e for e in vertex_data.vertex_declaration.vertex_element_list if e.semantic==semantic and e.index==0)
+    buf=vertex_data.get_vertex_buffer(element.source)
+    n=element.get_type_count()
+    rows=np.frombuffer(buf.buffer,dtype=np.uint8).reshape(vertex_data.vertex_count,buf.vertex_size)
+    return rows[:,element.offset:element.offset+4*n].copy().view('<f4').reshape(-1,n).astype(float)
 
 
 def main():
@@ -19,17 +30,14 @@ def main():
     a.output.mkdir(parents=True,exist_ok=True)
     for asset in ('svapc','svtank','svrecy'):
         bpy.ops.wm.read_factory_settings(use_empty=True)
-        m=Mesh(a.install/'BZ_ASSETS/common/models'/(asset+'.mesh'))
-        for sm in m.submeshes:
+        m=ogremesh_serializer.MeshSerializer(io.BytesIO((a.install/'BZ_ASSETS/common/models'/(asset+'.mesh')).read_bytes())).read()
+        for sm in m.submesh_list:
             # The main external material; cockpit interiors are unnecessary here.
-            if sm['material']!=asset+'00':continue
-            g=m.shared
-            if not sm['shared']:
-                cs,ce=sm['chunk'];r=Reader(m.data,cs+6,ce);r.s();r.b();n=r.u32();wide=r.b();r.p+=n*(4 if wide else 2)
-                for cid,s,e in chunks(m.data,r.p,ce):
-                    if cid==0x5000:g=_read_geometry(m.data,s,e)
-            pos=sm['positions'];uv=_attribute(g,7);norm=_attribute(g,4)
-            mesh=bpy.data.meshes.new(asset);mesh.from_pydata([(x,-z,y) for x,y,z in pos],[],sm['tris'].tolist());mesh.update()
+            if sm.material_name!=asset+'00':continue
+            g=m.shared_vertex_data if sm.use_shared_vertices else sm.vertex_data
+            pos=attribute(g,ogremesh.VES.POSITION);uv=attribute(g,ogremesh.VES.TEXTURE_COORDINATES);norm=attribute(g,ogremesh.VES.NORMAL)
+            tris=sm.get_index_array().astype(int).reshape(-1,3)
+            mesh=bpy.data.meshes.new(asset);mesh.from_pydata([(x,-z,y) for x,y,z in pos],[],tris.tolist());mesh.update()
             ob=bpy.data.objects.new(asset,mesh);bpy.context.collection.objects.link(ob)
             layer=mesh.uv_layers.new()
             for loop in mesh.loops:layer.data[loop.index].uv=(uv[loop.vertex_index][0],1-uv[loop.vertex_index][1])

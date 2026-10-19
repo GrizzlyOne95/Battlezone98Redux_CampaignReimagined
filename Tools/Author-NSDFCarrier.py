@@ -11,8 +11,12 @@ import struct
 import sys
 import random
 import hashlib
+import io
+import numpy as np
 import bpy
 from mathutils import Vector
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from bzmodellibs import geo, geo_serializer
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'References/NSDFCarrier'
 TEXTURES=SOURCE/'Textures'
@@ -437,6 +441,7 @@ def game_vector(p):return (float(p[0]),float(p[2]),float(-p[1]))
 
 def chunk(cid,body):return struct.pack('<HI',cid,len(body)+6)+body
 
+# TODO(toolkit gap): MeshSerializer.write always emits an (empty) SUBMESH_NAME_TABLE chunk; these meshes have none.
 def export_mesh(ob):
     data=ob.data;data.calc_loop_triangles()
     if EXPORT_TANGENTS:data.calc_tangents(uvmap=data.uv_layers.active.name)
@@ -486,19 +491,23 @@ def export_native(ob,stats):
     points=[game_vector(v.co) for v in me.vertices]
     normals=[game_vector(v.normal) for v in me.vertices]
     asset=ASSET.encode()
-    raw=struct.pack('<4si16siii',b'OEG.',0,asset,len(points),len(me.loop_triangles),0)
-    raw+=b''.join(struct.pack('<3f',*p) for p in points+normals)
+    g=geo.Geo();g.name=ASSET;g.vert_count=len(points)
+    g.vertex_pos_buffer=np.array(points,dtype='<f4');g.vertex_normal_buffer=np.array(normals,dtype='<f4')
     uv=me.uv_layers.active.data
     for i,tri in enumerate(me.loop_triangles):
         q=[Vector(points[v]) for v in tri.vertices]
         normal=(q[1]-q[0]).cross(q[2]-q[0]).normalized()
-        raw+=struct.pack('<iiBBBffffi3s13sii',i,3,255,255,255,*(-normal),normal.dot(q[0]),0,bytes(3),asset+b'.map',0,0)
+        face=g.create_face(i);face.color=geo.Color3(255,255,255)
+        face.plane=geo.SurfacePlane(geo.Vector3(*(-normal)),normal.dot(q[0]))
+        face.shade_type=face.texture_type=0;face.texture_name=ASSET+'.map'
         for vi,li in zip(tri.vertices,tri.loops):
-            u,v=uv[li].uv;raw+=struct.pack('<iiff',vi,vi,float(u),1-float(v))
-    (MODEL/(ASSET+'.geo')).write_bytes(raw)
+            u,v=uv[li].uv;face.create_face_node(vi,vi,geo.UV(float(u),1-float(v)))
+    raw=io.BytesIO();geo_serializer.GeoSerializer(raw).write(g)
+    (MODEL/(ASSET+'.geo')).write_bytes(raw.getvalue())
     stats['native_vertices']=len(points);stats['native_triangles']=len(me.loop_triangles)
     evaluated.to_mesh_clear();bpy.data.objects.remove(proxy,do_unlink=True)
     # Standard static BWD/SDFC metadata, no dependence on the old Resurgence art.
+    # TODO(toolkit gap): SDFSerializer.write always emits 3 EXIT chunks (this file has 2) and cannot omit them.
     prefix=struct.pack('<4si4sii',b'BWD2',8,b'REV\0',12,8)
     prefix+=struct.pack('<4si16si5fi',b'SDFC',78,asset,1,2000.,1e20,1e20,1e20,1e20,0)
     prefix+=b'xbldx1.xdf'.ljust(14,b'\0')+b'null'.ljust(12,b'\0')

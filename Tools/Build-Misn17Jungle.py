@@ -38,6 +38,7 @@ CANOPY_PARTS={b'j1711lea',b'j1721lef'}
 
 
 def noncollidable_canopy(sdf):
+    # TODO: hand-patched SDF record bytes; port to bwd2 once an --isdfc run can verify byte-identical output.
     data=bytearray(sdf);i=data.find(b'SGEO');count=int.from_bytes(data[i+8:i+12],'little')
     hit=0
     for k in range(count*6):
