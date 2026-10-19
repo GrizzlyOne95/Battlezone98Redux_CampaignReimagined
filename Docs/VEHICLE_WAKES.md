@@ -65,3 +65,11 @@ See `MISN18_STORM.md` (Water and landscaping).
 `lua5.1 Tools/Test-VehicleWakes.lua Scripts` (stubbed engine), plus the director tests. Owed live: an
 lcbench particle smoke that the `cr_wake` templates parse in Ogre (Ogre skips malformed templates
 silently) and an in-game look at each surface.
+
+
+## Live results 2026-10-19
+
+Mission 18 (`CRStorm18`, DX11, one peer, `misn18-wakes-1p-a20261019-104453` and `-b20261019-104733`): `CRWake` initialised
+with `mud` and `water` available, no template failures, zero errors; 7 systems were created over the water lane and 10 over
+the mud lane (the four-system cap held). The scripted captures did not frame the shuttling craft, so how the wakes look
+is **unverified**; the surfaces still need an in-game look (Moon, Mars, Achilles river/pool/grass were not run).

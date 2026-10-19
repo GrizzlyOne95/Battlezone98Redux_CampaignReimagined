@@ -787,6 +787,9 @@ local CIN_HEIGHT, CIN_SPEED = 1500, 600
 local function StartCountdown(c)
     local s=State()
     s.timerStarted=true
+    -- The engine cannot keep this clock: MultSTMission calls StartCockpitTimerUp every frame, so GetCockpitTimer reads the
+    -- mission clock whatever StartCockpitTimer asked for (live 2026-10-19). The leader counts the 180 s itself.
+    s.timerEnd=GetTime()+(tonumber(c.timer and c.timer[1]) or 180)
     NativeCountdown(unpackArgs(c.timer,1,3))
 end
 local function FinishShot()
@@ -807,7 +810,9 @@ function R.StartCockpitTimer(...)
 end
 function R.GetCockpitTimer()
     -- Until the countdown starts the gates must see a full clock, not the engine's idle zero.
-    if State().cin then return 180 end
+    local s=State()
+    if s.cin then return 180 end
+    if s.timerEnd then return math.max(0,s.timerEnd-GetTime()) end
     return GetCockpitTimer()
 end
 function R.Damage(h,amount)
@@ -1026,7 +1031,7 @@ local PHASES={
     {"core2",function() return (M.z or 0)>=2 end},
     {"core3",function() return (M.z or 0)>=3 end},
     {"collapse",function() return M.transdestroyed end},
-    {"final",function() return M.transdestroyed and State().timerStarted and not M.missionwon and GetCockpitTimer()<=30 end},
+    {"final",function() return M.transdestroyed and State().timerStarted and not M.missionwon and R.GetCockpitTimer()<=30 end},
 }
 local function EmitPhase(s,name)
     s.phase=name
