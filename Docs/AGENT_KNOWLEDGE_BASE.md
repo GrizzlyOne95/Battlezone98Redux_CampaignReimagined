@@ -751,6 +751,7 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 
 ### 8.4 Rendering and weather
 
+- **Glass weather live check (2026-10-19):** `CRWetGlass.Weather("snow"|"grit", level)` layers were captured live only in the screen-overlay mode (forced by hiding `exu.animation.TargetCockpit`). In a scratch Instance2 the cockpit-glass (F1 shell) mode reported "layers on the cockpit glass" but drew nothing, not even rain, a crack or a splat, so shell-mode rendering of ANY layer is unverified there. A scratch bench can run CR from `crsetup.bzn` by swapping `crsetup.lua` for a bench script (instant_action activates CR); the instance's mod folder is old and flat, so deploy the lock's files into it and restore from a backup afterwards.
 - **Confirmed 2026-10-15:** Ogre Panel/BorderPanel geometry supplies POSITION and TEXCOORD0,
   not COLOR0. Binding `CR_UI_vertexHLSL4` caused the repeated co-op DX11 vertex-declaration
   exceptions; `CR_UI` now selects the dedicated panel shader on DX11 and keeps its older

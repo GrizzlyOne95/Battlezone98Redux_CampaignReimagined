@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Cockpit-glass weather: a few soft-white snow flakes land on and melt off the glass on Europa (misn12, misn13; scaled to the
+  Europa activity ladder), and fine dust grit builds on the glass in Mars storms (misn04, misn05, misn06; builds with the
+  severity, clears slowly, with a few small splats at the upper rungs). Both ride the existing CRWetGlass layers
+  (`CRWetGlass.Weather`), are render only, local to each peer, and can be switched off (`AllowGlassSnow`, `AllowGlassGrit`,
+  `CRWeather.Quality` 0). New `crwx_winsnow.png` and `crwx_wingrit.png` (`Tools/Generate-GlassWeatherAssets.py`; the large
+  crystals are ISDF Chronicles' `snowflak.dds` sprite) and `crwx_glassweather.material`. See `Docs/CR_STORMFX_PORT.md`.
+
 - Mission 18 gains water and landscaping: four standing pools in closed basins, six streams that run downhill into and out
   of them and one 22 m cascade with mist, baked from the original heightmap (nothing is carved; `Missions/misn18.hg2` is
   untouched) and kept clear of the start, transport, spawns, ambush column, Fury paths and the tornado's keep-clear circles.

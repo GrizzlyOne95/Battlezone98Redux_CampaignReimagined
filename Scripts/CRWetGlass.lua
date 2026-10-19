@@ -46,6 +46,15 @@
 --   CRWetGlass.Splat(amount 0..1, x, y, flip) a dirt splat that fades over a few seconds (3 at once)
 --   CRWetGlass.Busy()                        true while either is on the glass: keep calling Update(0)
 --   CRWetGlass.ClearSplats()
+--
+-- WEATHER LAYERS (not rain). Two more wrap families on the same glass, driven by weather directors
+-- (CREuropaWeather snow, CRMarsWeather grit) through CRWetGlass.Weather(kind, level 0..1), then Update(0):
+--   "snow"  CRWX_WinSnow: two layers of sparse soft-white flakes that gather over seconds, sit, melt away and
+--           return elsewhere on staggered cycles; no streaks, never covers the view
+--   "grit"  CRWX_WinGrit: two layers of fine tan specks that stay put and follow the level (the director
+--           shapes the slow build and clear)
+-- Rain wins the pass budget: the weather layers are the last wrap layers. Textures: crwx_winsnow.png and
+-- crwx_wingrit.png, materials crwx_glassweather.material, both made by Tools/Generate-GlassWeatherAssets.py.
 --**********************************************************************
 local wetglass = {}
 
@@ -55,8 +64,13 @@ local RIVULET_LAYERS = 2
 local OVERLAY = "crwx_wetglass"
 local Z_ORDER = 5           -- under custom HUD overlays
 local VIEW_OK = { [1] = true, [2] = true, [3] = true } -- cockpit, no cockpit, no HUD
-local FAMILIES = { "CRWX_WetBeads", "CRWX_WetStreak", "CRWX_WetRivulet", "CRWX_WindCrack", "CRWX_WindDirt" }
+local FAMILIES = { "CRWX_WetBeads", "CRWX_WetStreak", "CRWX_WetRivulet", "CRWX_WindCrack", "CRWX_WindDirt",
+	"CRWX_WinSnow", "CRWX_WinGrit" }
 local DIRT_LAYERS = 3
+local SNOW_LAYERS = 2       -- crwx_glassweather.material; Weather("snow", level)
+local GRIT_LAYERS = 2       -- crwx_glassweather.material; Weather("grit", level)
+local SNOW_PEAK = 0.60      -- opacity of the snow layers at level 1 (the sheet itself is sparse)
+local GRIT_PEAK = 0.50      -- opacity of the grit layers at level 1
 local CRACK_PEAK = 0.9      -- opacity of a fully cracked windshield
 local CRACK_RATE = 6        -- opacity per second the crack fades in and out at
 
@@ -82,7 +96,10 @@ local LAYER_TEXTURE = {
 	CRWX_WetBeads = "crwx_wetbeads.png", CRWX_WetRivulet = "crwx_wetrivulet.png",
 	CRWX_WetStreak = "crwx_wetstreak.png", CRWX_WindCrack = "crwx_windcrack.png",
 	CRWX_WindDirt = "crwx_winddirt.png",
+	CRWX_WinSnow = "crwx_winsnow.png", CRWX_WinGrit = "crwx_wingrit.png",
 }
+-- Pass diffuse colour where a layer wants more than SHELL_RGB: snow stays pale in dim Europan light.
+local LAYER_RGB = { CRWX_WinSnow = 0.92 }
 local CLAMPED = { CRWX_WindCrack = true, CRWX_WindDirt = true }
 local SHELL_API = { "SetSubEntityRenderQueueGroup", "SetSubEntityMaterial", "SetMaterialTextureWindow",
 	"SetMaterialTexture", "SetMaterialPassColors" }
@@ -93,6 +110,7 @@ local frame, pending = nil, 0
 local lastRun = nil
 local crackWant, crackX, crackY = 0, 0.5, 0.4   -- what the damage caller asked for; applied by run()
 local splats = {}                               -- queued { amount, x, y, flip }
+local snowWant, gritWant = 0, 0                 -- Weather() levels 0..1, kept until changed
 local mode = "overlay"                          -- where the layers draw this frame: "overlay" or "shell"
 
 local function clamp(v, lo, hi)
@@ -188,6 +206,19 @@ local function build()
 		p.phase = "off"
 		s.dirt[k] = p
 	end
+	s.snow, s.grit = {}, {}
+	for k = 1, SNOW_LAYERS do
+		local p = newPanel(OVERLAY .. "_n" .. k, "CRWX_WinSnow")
+		if p == nil then return false end
+		p.phase, p.wait = "off", (k - 1) * randRange(6, 11)
+		s.snow[k] = p
+	end
+	for k = 1, GRIT_LAYERS do
+		local p = newPanel(OVERLAY .. "_g" .. k, "CRWX_WinGrit")
+		if p == nil then return false end
+		p.phase = "off"
+		s.grit[k] = p
+	end
 	return s
 end
 
@@ -221,6 +252,9 @@ local function allLayers()
 	for _, p in ipairs(state.beads) do list[#list + 1] = p end
 	for _, p in ipairs(state.rivulets) do list[#list + 1] = p end
 	list[#list + 1] = state.streak
+	-- Weather layers come last among the wrap layers: if the pass budget runs out, rain wins.
+	for _, p in ipairs(state.snow) do list[#list + 1] = p end
+	for _, p in ipairs(state.grit) do list[#list + 1] = p end
 	list[#list + 1] = state.crack
 	for _, p in ipairs(state.dirt) do list[#list + 1] = p end
 	return list
@@ -282,6 +316,8 @@ local function poseMask(player)
 	for _, p in ipairs(state.dirt) do panels[#panels + 1] = p end
 	for _, p in ipairs(state.beads) do panels[#panels + 1] = p end
 	for _, p in ipairs(state.rivulets) do panels[#panels + 1] = p end
+	for _, p in ipairs(state.snow) do panels[#panels + 1] = p end
+	for _, p in ipairs(state.grit) do panels[#panels + 1] = p end
 	for _, p in ipairs(panels) do
 		if p.step > 0 then
 			local mat = p.family .. "_A" .. p.step
@@ -381,8 +417,9 @@ local function shellApply()
 		end
 		local step = math.floor(clamp(p.alpha, 0, 1) * SHELL_STEPS + 0.5)
 		if was.step ~= step then
+			local rgb = LAYER_RGB[p.family] or SHELL_RGB
 			pcall(exu.SetMaterialPassColors, mat,
-				{ diffuse = { r = SHELL_RGB, g = SHELL_RGB, b = SHELL_RGB, a = step / SHELL_STEPS } }, -1, pass)
+				{ diffuse = { r = rgb, g = rgb, b = rgb, a = step / SHELL_STEPS } }, -1, pass)
 			was.step = step
 		end
 	end
@@ -501,6 +538,79 @@ local function damageLayers(ar, dt)
 	return any
 end
 
+-- Snow flakes: sparse crystals land slowly (fade in over seconds), sit, then melt away (slow
+-- fade) and come back somewhere else. Two layers on staggered cycles, so the glass is never
+-- covered and never snaps. No motion but a very slow slide. Returns true while any shows.
+local function snowLayers(ar, dt)
+	local s = clamp(snowWant, 0, 1)
+	local peak = SNOW_PEAK * (0.35 + 0.65 * s)
+	local any = false
+	for k, p in ipairs(state.snow) do
+		local awake = s > 0.02 + 0.45 * (k - 1)
+		if p.phase == "off" then
+			p.wait = p.wait - dt
+			if awake and p.wait <= 0 then
+				p.phase, p.t = "in", 0
+				p.v = randRange(0.9, 1.5)            -- vertical tiles: flake size varies per landing
+				p.u0, p.v0 = math.random() * 8, math.random() * 8
+				p.rise = randRange(5, 12)            -- flakes gather slowly
+				p.hold = randRange(14, 32)
+				p.fade = randRange(10, 22)           -- and melt slowly
+			end
+		end
+		if p.phase ~= "off" then
+			p.t = p.t + dt
+			local a
+			if p.phase == "in" then
+				a = peak * smoothstep(0, p.rise, p.t)
+				if p.t >= p.rise then p.phase, p.t = "hold", 0 end
+			elseif p.phase == "hold" then
+				a = peak
+				if p.t >= p.hold or not awake then p.phase, p.t = "out", 0 end
+			else
+				a = peak * (1 - smoothstep(0, p.fade, p.t))
+				if p.t >= p.fade then
+					p.phase, a = "off", 0
+					p.wait = randRange(2, 9) / (0.4 + s)
+				end
+			end
+			p.v0 = p.v0 - 0.003 * dt                 -- UV/s; negative slides down the glass
+			if a > 0 then setUV(p, p.u0, p.v0, p.v * ar, p.v) end
+			setAlpha(p, a)
+			any = any or p.on == true
+		end
+	end
+	return any
+end
+
+-- Grit: fine dust specks stay where they are and follow the level (the caller shapes how fast it
+-- builds and clears). Layer 1 shows first, layer 2 joins as the level climbs; each has its own
+-- scale and offset, picked when it first appears.
+local function gritLayers(ar, dt)
+	local g = clamp(gritWant, 0, 1)
+	local any = false
+	for k, p in ipairs(state.grit) do
+		local a = GRIT_PEAK * smoothstep(0.45 * (k - 1), 0.5 + 0.5 * (k - 1), g)
+		if a > 0 then
+			if p.v == nil then
+				p.v = (k == 1) and randRange(1.0, 1.3) or randRange(0.7, 0.9)
+				p.u0, p.v0 = math.random() * 8, math.random() * 8
+			end
+			local key = string.format("%s %.3f", mode, ar)
+			if p.key ~= key then
+				setUV(p, p.u0, p.v0, p.v * ar, p.v)
+				p.key = key
+			end
+			p.phase = "on"
+		else
+			p.phase = "off"
+		end
+		setAlpha(p, a)
+		any = any or p.on == true
+	end
+	return any
+end
+
 local function run(intensity, dt)
 	local player = GetPlayerHandle()
 	if not IsValid(player) or not viewAllowsGlass(player) then
@@ -612,6 +722,8 @@ local function run(intensity, dt)
 	setAlpha(s, sa)
 	any = any or s.on == true
 
+	if snowLayers(ar, dt) then any = true end
+	if gritLayers(ar, dt) then any = true end
 	if damageLayers(ar, dt) then any = true end
 
 	if onGlass then
@@ -640,13 +752,25 @@ function wetglass.Splat(amount, x, y, flip)
 		flip = flip == true }
 end
 
---- True while a crack is wanted or showing, or a splat is queued or fading: the caller must keep calling Update.
+--- Weather layers on the glass: kind "snow" (soft flakes that land and melt) or "grit" (fine dust
+--- specks), level 0..1. The level stays until changed; 0 lets it fade out. The caller keeps calling
+--- Update (Update(0) when there is no rain) while Busy() is true.
+function wetglass.Weather(kind, level)
+	level = clamp(tonumber(level) or 0, 0, 1)
+	if kind == "snow" then snowWant = level
+	elseif kind == "grit" then gritWant = level end
+end
+
+--- True while a crack is wanted or showing, a splat is queued or fading, or a weather layer is wanted
+--- or showing: the caller must keep calling Update.
 function wetglass.Busy()
 	if state == false then return false end
-	if crackWant > 0 or #splats > 0 then return true end
+	if crackWant > 0 or #splats > 0 or snowWant > 0 or gritWant > 0 then return true end
 	if state then
 		if state.crack.alpha > 0 then return true end
 		for _, p in ipairs(state.dirt) do if p.phase ~= "off" then return true end end
+		for _, p in ipairs(state.snow) do if p.phase ~= "off" then return true end end
+		for _, p in ipairs(state.grit) do if p.on then return true end end
 	end
 	return false
 end
@@ -682,6 +806,7 @@ function wetglass.Stop()
 	end
 	state, mode, frame, pending, lastRun = nil, "overlay", nil, 0, nil
 	crackWant, splats = 0, {}
+	snowWant, gritWant = 0, 0
 end
 
 --- Rain on the windshield at intensity 0..1; call every Update.

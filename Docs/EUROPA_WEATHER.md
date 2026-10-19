@@ -246,13 +246,22 @@ CREuropaWeather.SetTargetLevel(1)          -- on the win
 
 | Group | Names |
 | --- | --- |
-| Switches | `AllowPlumes`, `AllowIceFall`, `AllowFrostHaze`, `AllowVentHaze`, `AllowQuakes`, `AllowRandomQuakes`, `AllowQuakeIce`, `AllowSurges`, `AllowRandomSurges`, `AllowAurora`, `AllowEpisodes`, `AllowSounds` (also `Init` options `plumes`, `iceFall`, ...) |
+| Switches | `AllowPlumes`, `AllowIceFall`, `AllowFrostHaze`, `AllowVentHaze`, `AllowQuakes`, `AllowRandomQuakes`, `AllowQuakeIce`, `AllowSurges`, `AllowRandomSurges`, `AllowAurora`, `AllowEpisodes`, `AllowSounds`, `AllowGlassSnow` (also `Init` options `plumes`, `iceFall`, ..., `glassSnow`) |
 | Budgets | `MaxSystems` 28, `MaxLiveFrost` 6, `MaxLivePlumes` 8, `MaxLiveFall` 4, stream in/out distances |
 | Ladder | `SeverityRate`, `EpisodeChance`, `EpisodePeak`, `EpisodeHold`, `EpisodeCooldown`, `EpisodeRateBoost`, the `Levels` table, `TidalPeriod`, `TidalDepth` |
 | Plumes | `PlumePeriod`, `PlumeMajorPeriodScale`, `PlumeFirstDelay`, `PlumeSeconds`, `PlumePower`, `PlumeMinSpacing`, `PlumeBurstRate`, `FallDelay`, `FallLinger`, `FallRate`, `FallHeight`, `VentHaze*` |
 | Quakes | `QuakeGap`, `QuakeStrength`, `QuakeDuration`, `QuakeStrengthBias`, `QuakeMinSpacing`, `QuakeScriptedDefault`, `QuakeDurationLimit`, `QuakeMagnitudeScale`, `QuakeMinNative`, `QuakeIceRate`, `QuakePlumeStrength` |
 | Surges | `SurgeGap`, `SurgeStrength`, `SurgeDuration`, `SurgeAmbient`, `SurgeFogColor`, `SurgeFogTint`, `SurgeFlicker`, `SurgeMoteRate`, `SurgeSound` |
 | Co-op | `NetHeartbeat` 30, `HostOverrideSeconds` 45 |
+
+## Cockpit-glass snow
+
+A few soft-white snow flakes land on the cockpit glass, melt away and return elsewhere (`CRWetGlass.Weather("snow", level)`,
+see `Docs/CR_STORMFX_PORT.md`). Render only. The level is `(0.22 + 0.38 * GetSeverity()) * (0.85 + 0.15 * sin(2 pi clock / 170))`,
+eased at 0.04 per second, so a quiescent Europa (misn12 opens there) carries about 0.2 and perijove about 0.5; the layer
+opacity at that level is about 0.2-0.4 of a sparse sheet. Local to each peer (no wire traffic), off with `AllowGlassSnow` /
+`Init{ glassSnow = false }`, with `CRWeather.Quality` 0, or when the director is disabled. `GetGlassSnow()` reports the
+level; `Shutdown` clears it and calls `CRWetGlass.Stop()`. Misn12 and misn13 need no change.
 
 ## Gameplay-effect statement
 
