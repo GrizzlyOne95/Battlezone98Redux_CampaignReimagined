@@ -39,9 +39,9 @@ function Jungle.Create(api)
         p.name="AchillesJungle"..i;p.sky=nil;p.lightning=nil
         p.wind={x=.04+.2*f,y=-1,z=.03+.12*f};p.windSpeed=SPEED[i+1]
         p.gusts={period=14-6*f,depth=.1+.35*f}
-        p.fog={r=.25-.06*f,g=.33-.07*f,b=.38-.05*f,fogStart=30-15*f,fogEnd=320-170*f}
-        p.ambient={r=.28-.08*f,g=.38-.08*f,b=.45-.08*f}
-        p.diffuse={r=.56-.24*f,g=.68-.24*f,b=.77-.24*f};p.sunPowerScale=.9-.6*f
+        p.fog={r=.20-.06*f,g=.31-.07*f,b=.44-.05*f,fogStart=30-15*f,fogEnd=320-170*f}
+        p.ambient={r=.24-.08*f,g=.36-.08*f,b=.52-.08*f}
+        p.diffuse={r=.50-.24*f,g=.66-.24*f,b=.85-.24*f};p.sunPowerScale=.9-.6*f
         local rain=p.precipitation[1].emitters[0]
         rain.rate=60+420*f
         local a=.3+.2*f
@@ -52,10 +52,10 @@ function Jungle.Create(api)
             m.system="cr17_wx_basin_mist"
             local alpha=string.format("%.2f",.12+.28*f)
             m.affectors[0]={
-                colour0="0.66 0.76 0.82 0.00",
-                colour1={"0.66 0.76 0.82 0.00","0.66 0.76 0.82 "..alpha},
-                colour2={"0.60 0.70 0.76 0.00","0.60 0.70 0.76 "..string.format("%.2f",(.12+.28*f)*.7)},
-                colour3="0.56 0.66 0.72 0.00",
+                colour0="0.60 0.75 0.90 0.00",
+                colour1={"0.60 0.75 0.90 0.00","0.60 0.75 0.90 "..alpha},
+                colour2={"0.54 0.68 0.84 0.00","0.54 0.68 0.84 "..string.format("%.2f",(.12+.28*f)*.7)},
+                colour3="0.52 0.64 0.80 0.00",
             }
             p.precipitation[#p.precipitation+1]=m
         end

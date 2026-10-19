@@ -19,7 +19,7 @@ material URANUS.MAP
 			fragment_program_ref CR_SkyHaze_fragment
 			{
 				param_named hazeParams float4 0.50 0.45 0.004 2.5
-				param_named hazeTint float4 0.54 0.64 0.75 1.0
+				param_named hazeTint float4 0.45 0.62 0.88 1.0
 			}
 
 			cull_hardware none
