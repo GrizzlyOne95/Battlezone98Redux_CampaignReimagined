@@ -9,10 +9,11 @@ byte for byte. Only [MeshSerializer_v1.100] meshes (every stock BZR and ISDFC me
 Chunk layout (OgreMeshSerializerImpl.cpp, Ogre 1.10): u16 id, u32 length
 (including the 6-byte header); strings end in '\n'.
 """
-# TODO(toolkit gap): remaining hand-rolled .mesh/.skeleton parsing kept only for Tools/cockpitglass.py.
-# MeshSerializer.write re-sorts bone assignments by (vertex, bone) instead of keeping file order, so
-# avwalk_c and bvwalk_c (2 of 51 cockpit meshes) would no longer round-trip byte for byte; and it drops
-# LOD levels, poses and animations without error.
+# TODO(toolkit gap): remaining hand-rolled .mesh/.skeleton parsing, kept only because Tools/cockpitglass.py
+# (owned by branch agent/cockpit-fixes) still imports ogrebin.Mesh/Skeleton. The serializer limits that blocked
+# a port (bone assignments re-sorted, LOD levels/poses/animations dropped) are fixed upstream in BZ98RBlenderToolKit
+# PR #19 (preserve_bone_assignment_order, raw_chunks); replace this module with ogremesh/ogreskeleton when
+# cockpitglass is migrated.
 import struct
 import numpy as np
 

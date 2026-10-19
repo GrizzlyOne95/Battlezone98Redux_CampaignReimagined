@@ -19,6 +19,7 @@ from mathutils import Quaternion
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from bzmodellibs import geo, geo_serializer
+from bzstaticmodel import mesh_bounds, static_mesh_bytes, static_sdf_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'References/Misn06Rocket'
@@ -375,10 +376,6 @@ def bake(ob):
 def game_vector(p):return (float(p[0]),float(p[2]),float(-p[1]))
 
 
-def chunk(cid,body):return struct.pack('<HI',cid,len(body)+6)+body
-
-
-# TODO(toolkit gap): MeshSerializer.write always emits an (empty) SUBMESH_NAME_TABLE chunk; these meshes have none.
 def export_mesh(ob):
     data=ob.data;data.calc_loop_triangles()
     uv=data.uv_layers.active.data
@@ -392,19 +389,9 @@ def export_mesh(ob):
             key=tuple(round(x,6) for x in row)
             if key not in lookup:lookup[key]=len(vertices);vertices.append(row)
             indices.append(lookup[key])
-    nv=len(vertices);wide=nv>=65536
-    idx=struct.pack('<%d%s'%(len(indices),'I' if wide else 'H'),*indices)
-    head=b'cr06rok00\n'+struct.pack('<?I?',False,len(indices),wide)+idx
-    decl=b''.join(chunk(0x5110,struct.pack('<5H',*e)) for e in [(0,2,1,0,0),(0,2,4,12,0),(0,1,7,24,0)])
-    vb=struct.pack('<2H',0,32)+chunk(0x5210,b''.join(struct.pack('<8f',*v) for v in vertices))
-    geom=chunk(0x5000,struct.pack('<I',nv)+chunk(0x5100,decl)+chunk(0x5200,vb))
-    sub=chunk(0x4000,head+geom+chunk(0x4010,struct.pack('<H',4)))
-    points=[v[:3] for v in vertices]
-    lo=[min(p[i] for p in points) for i in range(3)]
-    hi=[max(p[i] for p in points) for i in range(3)]
-    radius=max(math.sqrt(sum(x*x for x in p)) for p in points)
-    bounds=chunk(0x9000,struct.pack('<7f',*lo,*hi,radius))
-    (MODEL/'cr06rok.mesh').write_bytes(b'\x00\x10[MeshSerializer_v1.100]\n'+chunk(0x3000,b'\0'+sub+bounds))
+    nv=len(vertices)
+    lo,hi,radius=mesh_bounds(vertices)
+    (MODEL/'cr06rok.mesh').write_bytes(static_mesh_bytes('cr06rok'+'00',vertices,indices))
     return {'vertices':nv,'triangles':len(indices)//3,'bounds_min':lo,'bounds_max':hi,'radius':radius}
 
 
@@ -432,18 +419,10 @@ def export_native(ob,stats):
     (MODEL/'cr06rok.geo').write_bytes(raw.getvalue())
     stats['native_vertices']=len(points);stats['native_triangles']=len(me.loop_triangles)
     evaluated.to_mesh_clear();bpy.data.objects.remove(proxy,do_unlink=True)
-    # Standard static BWD/SDFC metadata, no dependence on the old Resurgence art.
-    # TODO(toolkit gap): SDFSerializer.write always emits 3 EXIT chunks (this file has 2) and cannot omit them.
-    prefix=struct.pack('<4si4sii',b'BWD2',8,b'REV\0',12,8)
-    prefix+=struct.pack('<4si16si5fi',b'SDFC',78,b'cr06rok',1,2000.,1e20,1e20,1e20,1e20,0)
-    prefix+=b'xbldx1.xdf'.ljust(14,b'\0')+b'null'.ljust(12,b'\0')
-    assert len(prefix)==98
+    # Standard static BWD/SDFC metadata (shared writer), no dependence on the old Resurgence art.
     center=[(a+b)/2 for a,b in zip(stats['bounds_min'],stats['bounds_max'])]
     half=[(b-a)/2 for a,b in zip(stats['bounds_min'],stats['bounds_max'])]
-    rec=struct.pack('<8s12f8s7fiii4f',b'cr06rok',1,0,0,0,1,0,0,0,1,0,0,0,b'WORLD',*center,stats['radius'],*half,60,0,0,0,0,0,0)
-    null=bytes(120);null=b'NULL'+null[4:]
-    body=struct.pack('<i',1)+rec+null*5
-    (MODEL/'cr06rok.sdf').write_bytes(prefix+struct.pack('<4si',b'SGEO',8+len(body))+body+struct.pack('<4si',b'EXIT',8)*2)
+    (MODEL/'cr06rok.sdf').write_bytes(static_sdf_bytes('cr06rok',center,half,stats['radius']))
 
 
 def inspection(ob):

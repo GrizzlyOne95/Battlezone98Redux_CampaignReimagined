@@ -4,7 +4,6 @@ Writes out/cr/<name>.{mesh,geo,sdf,material}. Textures are renamed by to_cr_tex.
 import io
 import math
 import os
-import struct
 import sys
 
 import bpy
@@ -17,6 +16,7 @@ addon_utils.enable("bz98tools", default_set=True)
 import shipkit as K
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from bzmodellibs import geo, geo_serializer
+from bzstaticmodel import static_sdf_bytes
 
 src, name = sys.argv[sys.argv.index("--") + 1:][:2]
 K.OUT = os.path.join(K.ROOT, "out", "cr")
@@ -61,7 +61,6 @@ me.calc_loop_triangles()
 points = [game_vector(v.co) for v in me.vertices]
 normals = [game_vector(v.normal) for v in me.vertices]
 assert len(points) < 4096, len(points)
-tag = name.encode()
 g = geo.Geo()
 g.name = name
 g.vert_count = len(points)
@@ -91,17 +90,7 @@ allp = [game_vector(v.co) for v in ob.data.vertices]
 lo = [min(p[i] for p in allp) for i in range(3)]
 hi = [max(p[i] for p in allp) for i in range(3)]
 radius = max(math.sqrt(sum(x * x for x in p)) for p in allp)
-# TODO(toolkit gap): SDFSerializer.write always emits 3 EXIT chunks (this file has 2) and cannot omit them.
-prefix = struct.pack("<4si4sii", b"BWD2", 8, b"REV\0", 12, 8)
-prefix += struct.pack("<4si16si5fi", b"SDFC", 78, tag, 1, 2000., 1e20, 1e20, 1e20, 1e20, 0)
-prefix += b"xbldx1.xdf".ljust(14, b"\0") + b"null".ljust(12, b"\0")
-assert len(prefix) == 98
 center = [(a + b) / 2 for a, b in zip(lo, hi)]
 half = [(b - a) / 2 for a, b in zip(lo, hi)]
-rec = struct.pack("<8s12f8s7fiii4f", tag, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, b"WORLD", *center, radius, *half,
-                  60, 0, 0, 0, 0, 0, 0)
-null = b"NULL" + bytes(116)
-body = struct.pack("<i", 1) + rec + null * 5
-open(os.path.join(K.OUT, name + ".sdf"), "wb").write(
-    prefix + struct.pack("<4si", b"SGEO", 8 + len(body)) + body + struct.pack("<4si", b"EXIT", 8) * 2)
+open(os.path.join(K.OUT, name + ".sdf"), "wb").write(static_sdf_bytes(name, center, half, radius))
 print("NATIVE", name, len(points), "verts", ntri, "tris; bounds", lo, hi, "r", round(radius, 1))

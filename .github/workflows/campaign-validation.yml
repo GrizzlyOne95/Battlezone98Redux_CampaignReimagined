@@ -38,7 +38,7 @@ jobs:
         shell: bash
         env:
           TOOLBOX_SHA: b3cfcf5ca24fd44a13dfd4dd3d002bc08cdd8813
-          TOOLKIT_SHA: 60c69f8b5a92f74a3a2eeef2b82daba082b98a16
+          TOOLKIT_SHA: 0a6be135092c88331d4f35b134dda69f593dcfd0
         run: |
           set -euo pipefail
           fetch() {

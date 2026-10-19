@@ -26,6 +26,7 @@ The DX11 Enhanced base and terrain shaders are the exception to CR ownership: th
   - **Read:** Battlezone98_Modding_Toolbox `battlezone/meshes/legacy.py` (`read_sdf`, `read_vdf`, `read_geo`, `AnimSequence`, `AnimTrack`). Its `legacy_port.py` handles cockpit and person animation.
   - **Read and write:** BZ98RBlenderToolKit `bz98tools/bzrmodelporter/` (`bzbwd2.py` with `bzbwd2_serializer.py` for SDF/VDF, `bzgeo*`, `ogremesh*`, `ogreskeleton*`).
 - Import them through `Tools/bzmodellibs.py`, which finds both libraries locally (sibling checkouts or `BZ_TOOLBOX_DIR`/`BZ_TOOLKIT_DIR`) and in CI, where `campaign-validation.yml` checks them out at pinned commits.
+- `Tools/bzstaticmodel.py` wraps those writers for CR's one-part static buildings (`static_sdf_bytes`, `static_mesh_bytes`); use it instead of packing SDF/mesh chunks.
 - If a library lacks something you need, fix it upstream in that repository, or report the gap. Never fork a copy into `Tools/`.
 
 ## Working style
