@@ -57,3 +57,18 @@ Next: isolated manager deployment using the already-built EXU main checkout
 that includes point lights, then two-client native captures and final framing /
 material checks. Do not treat the Blender studio images as native validation.
 Keep progress in this document and push each coherent checkpoint.
+
+Implementation checkpoints: `298f3200` (model, sources and clustered FX) and
+`49d15a60` (corridor-facing fixture and lower camera). CI passes both campaign
+and shader checks. Native rebuild attempt 1 received WM_CLOSE before lobby
+authentication. Attempt 2 stopped in the lobby on an Ogre duplicate `Top Screen`
+UI object; neither reached the mission or exercised the rebuilt rocket.
+The older canonical OpenShim build was 1.0.0.47 while the installed resources
+were 1.0.0.53. The next run pins the consistent deployed build explicitly:
+
+- `BZR_OPENSHIM_REPO=C:/Users/iestu/Documents/GIT/BZR-OpenShim-deploy-main`
+  (build 1.0.0.53), also passed to the runner's `-OpenShimRepo`.
+- `BZR_EXU_REPO=C:/Users/iestu/Documents/GIT/ExtraUtilities-deploy-main`
+  (main checkpoint `332a18c`, including point lights).
+- Isolated staging only: `C:/BZRCoop/mars-launch-20261018/content`.
+- Native run being checked: `mars-rocket-rebuild-3`.
