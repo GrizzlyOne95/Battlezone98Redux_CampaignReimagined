@@ -71,6 +71,12 @@ jobs:
       - name: Validate L-Power fin spin and lightning shader
         run: python Tools/Test-LightningPlants.py
 
+      - name: Install numpy (the Blender toolkit's model readers need it)
+        run: python -m pip install numpy
+
+      - name: Validate building spin and armory launch animations
+        run: python Tools/Test-BuildingAnimations.py
+
       - name: Validate CCA concept fleet assets
         run: python Tools/Test-CCAFleetAssets.py
 
