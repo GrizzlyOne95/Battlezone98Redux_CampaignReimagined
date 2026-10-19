@@ -51,6 +51,10 @@ so the fixture's placement explicitly compensates for that difference.
 The takeoff arc, camera and particle definitions are CR-authored presentation.
 They do not import Resurgence's launchpad replacement or reinforcement logic.
 
+The follow-up [comparison with the installed Mars artwork](MISN06_ROCKET_CONCEPT_COMPARISON.md)
+records the model, material, engine-cluster and camera changes that would bring
+the next art iteration closer to `marspict.png`, with neutral inspection renders.
+
 ## Validation
 
 Host checks: original mission scenarios, source parity, shared-map contract,
