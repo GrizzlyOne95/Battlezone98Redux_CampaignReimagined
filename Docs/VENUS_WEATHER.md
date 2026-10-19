@@ -185,7 +185,7 @@ pools through `CRGroundFX.Event("sulfur", ...)`. The `CRWX/Sulfur*` templates in
 `crwx_precip.particle.payload` are the Toxic layout recoloured: `SulfurGlow` bubble, `SulfurDrops`
 spatter, `SulfurMotes` slow pale-yellow motes (no orange embers) and `SulfurGas` pale fumes.
 Only the `PoolFxNear` (3) emitter sites nearest the player inside `PoolFxRange` (170) are
-eligible; each fires every `PoolFxGap` (2-5 s), faster by `1 + 0.5 x severity`, at a random
+eligible; each fires every `PoolFxGap` (1.6-4.2 s), faster by `1 + 0.5 x severity`, at a random
 spot within `PoolFxRadius` (24) that must be a liquid-sulphur cell (`SulfurWeightAt >= 0.5`).
 Minimum 0.35 s between events and CRGroundFX's fixed slot ring (4 systems) cap the live
 emitters. Gates: `AllowPoolFx` / `Init{ poolFx = false }`, `AllowSulfur`, loaded templates and
