@@ -1,0 +1,20 @@
+// avdropo: NSDF Dropship, landed; its ramps swing open once when the object is created (misn04 opening).
+// Prototype art. The repairdepot class plays SDF ANIM index 0 once on creation, as abhang's doors.
+[GameObjectClass]
+collisionRadius = 30.0
+classLabel = "repairdepot"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 20000
+maxAmmo = 0
+unitName = "Dropship"
+heatSignature = 2.0
+imageSignature = 20.0
+radarSignature = 2.0
+
+[BuildingClass]
+
+[RepairDepotClass]
+repairRange = 0.0
+repairDelay = 1.0
+repairAmount = 0
