@@ -11,10 +11,11 @@ Quake"). One `Missions/misn18.bzn` and one `Scripts/misn18.lua` serve both modes
 | File | Role |
 | --- | --- |
 | `Scripts/misn18.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly the DLL source (`Tools/Test-Misn18SourceParity.py`). |
-| `Scripts/CRMisn18.lua` | Co-op runtime: ownership, concealed Fury arrivals, presentation transport, storm hook. Adapted from `CRMisn17.lua`. |
+| `Scripts/CRMisn18.lua` | Co-op runtime: ownership, concealed Fury arrivals, presentation transport, storm hook, extraction ending. Adapted from `CRMisn17.lua`. |
+| `Scripts/CRDrop18.lua` | The extraction ending's dropship choreography (pure functions of the plan and the clock). |
 | `Missions/misn18.{bzn,hg2,lgt,mat,trn,vxt}` | Map and companions, built by `Tools/Build-Misn18CoopMap.py`. |
 | `Config/misn18.ini`, `misn18.des`, `Assets/Graphics/misn18.bmp`, `Config/crcampgn.ini` `[MISSION17]` | Lobby listing and campaign entry (voice `misn1800.wav`, planet `titan`: the menu has no Achilles icon). |
-| `Tools/Misn18Fixture.lua`, `Test-Misn18Coop.lua`, `Test-Misn18CoopContract.py` | Four-peer fixture and contract tests. |
+| `Tools/Misn18Fixture.lua`, `Misn18RealStorm.lua`, `Test-Misn18Coop.lua`, `Test-Misn18CoopContract.py` | Four-peer fixture (with the real storm loader) and contract tests. |
 
 The map is the 1.5 original (22 objects, 46 named paths), converted to Redux 2016 text, class `MultSTMission`,
 four `pspwn_1` start buoys (teams 1-4, 25 m apart). Heightmap: the unsmoothed 1.5 `.hg2` from commit `ce18e89`;
@@ -70,11 +71,17 @@ Discovery (transport found), thruster kills and `GetNearestEnemy(transport)` sta
   thruster; until then the gates see a full clock, so an idle timer never reads as an expired one. The body's
   hurry lines (`misn1809-1812`, +60/85/115/140 s) still count from the fourth thruster, so they arrive about
   8 s earlier relative to the clock. Peer displays may trail the leader by network latency.
-* Win: **every** human within 200 m of the Texas after the thrusters are gone. Fail on expiry: **any** human past
+* Win: **every** human within 200 m of the Texas after the thrusters are gone. The win does not end the mission at
+  once: it opens the extraction ending (below) and the mission succeeds when that has finished. Fail on expiry: **any** human past
   400 m. The 200-400 m band neither wins nor loses, exactly as the DLL.
 * Other failures are unchanged and shared: transport not found in 600 s (`misn1806`, `misn18l1`), recycler lost
   (`misn18l3`), and, co-op only, all humans out of lives (`misn18l2`).
-* Results are published once, after a flush of preceding narration; the first result wins.
+* Results are published once, after a flush of preceding narration; the first result wins. Once the win has latched
+  nothing can fail the mission: `FailMission` is a no-op, the loss lines are suppressed, the arrivals are dropped and
+  the Furies are removed (see the extraction ending).
+* The flush waits for the guests to acknowledge the presentation events queued up to the first pass after the result
+  was requested, not for later ones: a storm that keeps sending (the ascent strikes every few tenths of a second)
+  must never starve the result.
 
 ## Cinematics are not skipped [owner]
 
@@ -87,6 +94,32 @@ narration. Arrivals are held until it ends.
 M.player)` becomes a frame kind `L` that carries only the rising height. Each peer, the leader included, films
 **its own ship** (`GetPlayerHandle()` on that machine); nothing about a ship is replicated. The camera ends with
 the result.
+
+## Extraction ending [owner request, CR inference]
+
+When the win latches the mission plays two unskippable, replicated shots and only then succeeds, so the normal outro
+follows. Offline it is the same ending with one player. All numbers below are CR inferences that need a live tune
+(`CRDrop18.lua` marks its guesses).
+
+| Step | What happens |
+| --- | --- |
+| Win | The leader stops the countdown on every peer (`StopCockpitTimer` / `HideCockpitTimer`), drops the Fury arrivals, removes every team-6 craft, and plans the fleet. The storm is told `extract`. `misn1808` still plays at the win. |
+| Fleet | One NSDF dropship per human ship plus one for the Recycler and Factory (when either lives; at the win the Texas is alive by definition, so a normal win always has the base ship), at most **5**. Sites are on a ring of 150, 180 or 210 m around the Texas (the flattest wins), sterns toward it and at least 120 m apart, so they sit inside the tornado's 300 m keep-clear circle. A dead Factory is simply not loaded. |
+| Replication | The plan goes out as numbers, one `ExtractShip` event per ship and then `ExtractGo`, on the ordered stream. No pose is ever sent: it is a pure function of the plan and the seconds since `ExtractGo`, which every peer starts when it applies the event, so a guest can trail the leader by the stream latency. The LEADER builds and moves the dropship objects and the Recycler and Factory it owns; EVERY peer pins its OWN ship aboard. |
+| Shot 1 (0-27 s) | The camera pod stands 330 m out in a gap of the ring and films the Texas (`CameraObject(pod, 0, 4000, 0, texas)`). Each ship (staggered 1.2 s) flies in as `avdropc` (9 s), is swapped for `avdropo` (ramps swing open, 2.6 s), takes its cargo up the ramp (6 s, 60% to the lip, then into the hold), is swapped for `avdropx` (ramps fold shut, 2.4 s) and lifts at 1.5 m/s^2. |
+| Shot 2 (27-39 s) | The camera follows the lead ship (`CameraObject(ship, 4000, -1000, 7000, ship)`, the offsets are guesses) as it climbs through the storm. The storm is told `ascent`: strikes every 0.2-0.5 s, hard shake, a 1.7x gale, the red swirl overhead. |
+| End | The leader removes the pod, releases the camera and succeeds the mission 2 s later (the usual result flush follows). The storm settles into `won`. |
+
+Cameras are the streamed shot kind "O" (labels resolved on guests like the opening); `CameraCancelled` is false in
+network games, so nobody can skip it. The ending reuses the technique and measured numbers of `CR04Drop`
+(misn04's opening), which is **not** touched: `avdropc` flies in, `avdropo` is swapped in at touchdown, `avdropx`
+before lift-off, and craft are pinned with `SetTransform` because floor collision is snapshotted at creation. Humans
+are assigned to ships by team order. Each peer pins only what it owns (its own ship; the leader also the Recycler and
+Factory) and tops its health up every frame; the tornado's gameplay effect is off during `extract` and `ascent`.
+
+**Save/load mid-ending** cannot resume it (the dropship handles and the cameras are gone): the leader goes straight
+to success, once, and the dropships built so far stay in the world until the outro. If `CRDrop18` is absent the win
+ends the mission immediately, as before.
 
 ## Restored and changed content
 
@@ -195,7 +228,8 @@ twice and guests are pulled exactly as fairly as the host. Offline, everything i
 (default on) turns it off.
 
 Phases, emitted once each, strictly in this order (a phase whose moment passed is skipped, never replayed late;
-`won` / `lost` end the sequence and skip the rest):
+`won` / `lost` end the sequence and skip the rest; `extract` and `ascent` are emitted by the extraction ending, not
+derived from flags):
 
 | Phase | When |
 | --- | --- |
@@ -205,7 +239,9 @@ Phases, emitted once each, strictly in this order (a phase whose moment passed i
 | `core1`, `core2`, `core3` | One, two, three thrusters destroyed. Simultaneous losses emit every phase between. |
 | `collapse` | All four thrusters destroyed: the transport-destroyed cinematic **begins** (the transition into full apocalypse weather). The 180 s countdown starts when it ends, about 8 s later. |
 | `final` | Countdown running and at 30 s or less (never before the countdown has started). |
-| `won` | Victory latched. |
+| `extract` | Victory latched: the dropships land and load (shot 1). Harmless to craft. |
+| `ascent` | Shot 2: the dropship climbs through the storm. Harmless to craft. |
+| `won` | The extraction has finished (held back until then). |
 | `lost` | Any failure latched (not found, recycler destroyed, left behind, out of lives). |
 
 `Tools/Test-Misn18Coop.lua` verifies the mission with the module absent, with a recording stand-in in both
@@ -214,13 +250,16 @@ that cannot be built or throws, and with the **real** `Scripts/CRStorm18.lua` on
 (`Tools/Misn18RealStorm.lua`: real director, CRWeather, presets and foliage wind over a stubbed EXU): a full win
 and a lost path, phases in order and leader-only, guests rendering the same phase, seed, strikes and funnel from
 events, the quake routed into the storm (no peer calls the natives, the pulse is preserved, one native owner),
-the tornado pulling only owned craft, no storm errors, calm on `Stop`, and a mid-storm save/load.
+the tornado pulling only owned craft, no storm errors, calm on `Stop`, and a mid-storm save/load. The extraction
+ending is tested with 1 and 4 peers (both shots on every peer, one dropship per human plus the base ship, success only
+after shot 2, nothing able to fail the mission even with the Texas dying, each peer moving only what it owns), with a
+dead Factory, with a load mid-ending, and without the choreography module.
 
 ## Tests
 
 ```sh
 lua5.1 Tools/Test-Misn18.lua                  # faithful port, 163 checks (CR layer off)
-lua5.1 Tools/Test-Misn18Coop.lua              # four-peer co-op layer, 882 checks
+lua5.1 Tools/Test-Misn18Coop.lua              # four-peer co-op layer, 2988 checks
 python Tools/Test-Misn18SourceParity.py       # strips CR regions, proves the DLL port underneath
 python Tools/Test-Misn18CoopContract.py       # map, teams, paths, listing, campaign entry, shipping
 lua5.1 Tools/Test-FuryRoster.lua              # shared roster
@@ -253,6 +292,6 @@ a second; a guest 450 m away at 0:00 gets the left-behind
 shot of its own ship and the failure text; all four within 200 m win once; `misn1817` plays once with the first
 assault and `misn1818` replaces `misn1704`; the quake pulses are tolerable at level 6; the don't-go hvsav
 appears at `spawn1b`; the 12-Fury cap holds in a long four-player run; `M.coopUnresolved` stays 0; and, with
-`CRStorm18` present, its phases arrive in order on the leader and its events render on every client; the
+`CRStorm18` present, its phases (through `extract` and `ascent`) arrive in order on the leader and its events render on every client; the
 stock discovery quake and the restored pulses shake through the storm with no stutter, and a guest's ship is
 pulled by the tornado.

@@ -29,10 +29,11 @@ local Ground = require("CRStorm18Ground")
 
 local Storm = {}
 
-Storm.PHASES = { "opening", "search", "found", "core1", "core2", "core3", "collapse", "final", "won", "lost" }
+Storm.PHASES = { "opening", "search", "found", "core1", "core2", "core3", "collapse", "final", "extract", "ascent", "won", "lost" }
 local INDEX = {}
 for i, name in ipairs(Storm.PHASES) do INDEX[name] = i end
-local FINAL = 8
+local FINAL = 8   -- the last rung with its own weather preset (extract and ascent reuse it)
+local LAST = 10   -- the last rung with a profile row; won and lost (11, 12) hold it
 
 -- One row per phase (won and lost hold the final look).
 --   level    0..1 storm strength: wind, sky, fog and light all follow it
@@ -44,6 +45,9 @@ local FINAL = 8
 --   crack    0..1 how much of the ground has split
 --   tornado  the funnel is on the map
 --   trans    seconds the weather takes to blend in
+--   safe     the tornado's gameplay effect is off (the extraction ending: nothing may hurt the craft)
+--   wind     extra wind multiplier (the ascent rushes through the clouds)
+--   burstBolt strike interval (min, max) during a burst (default 0.5-1.1)
 --   burst    seconds of extra-hard entry (collapse): the phase change plays over the
 --            ~6-10 s thruster cinematic, so the storm must read on camera inside it
 local PROFILE = {
@@ -55,6 +59,10 @@ local PROFILE = {
     { name = "core3",    level = 0.82, bolt = { 2.8, 5.5 }, dry = 0.10, quake = { 7, 13 }, qStr = 0.52, qDur = 5.0, rumble = 0.16, crack = 0.58, trans = 7, slide = { 28, 45 } },
     { name = "collapse", level = 0.96, bolt = { 1.4, 3.0 }, dry = 0.00, quake = { 3.5, 7 }, qStr = 0.70, qDur = 5.5, rumble = 0.30, crack = 0.85, trans = 4, slide = { 12, 20 }, tornado = true, burst = 9 },
     { name = "final",    level = 1.00, bolt = { 0.7, 1.8 }, dry = 0.00, quake = { 2.5, 4.5 }, qStr = 0.90, qDur = 6.0, rumble = 0.45, crack = 1.00, trans = 4, slide = { 6, 11 }, tornado = true },
+    -- The extraction ending: dropships load at the rendezvous, then climb through the storm. Same look as
+    -- final, harmless to craft; the ascent is the most violent rung (strikes every 0.2-0.5 s, hard shake, gale).
+    { name = "extract",  level = 1.00, bolt = { 0.7, 1.8 }, dry = 0.00, quake = { 2.5, 4.5 }, qStr = 0.90, qDur = 6.0, rumble = 0.45, crack = 1.00, trans = 3, slide = { 6, 11 }, tornado = true, safe = true },
+    { name = "ascent",   level = 1.00, bolt = { 0.2, 0.5 }, dry = 0.00, quake = { 1.2, 2.5 }, qStr = 1.00, qDur = 3.0, rumble = 0.70, crack = 1.00, trans = 2, tornado = true, safe = true, wind = 1.7, burst = 14, burstBolt = { 0.2, 0.5 } },
 }
 Storm.PROFILE = PROFILE
 
@@ -93,7 +101,9 @@ local function copy(v)
 end
 
 local function profile(idx)
-    return PROFILE[clamp(floor(tonumber(idx) or 1), 1, FINAL)]
+    idx = floor(tonumber(idx) or 1)
+    if idx > LAST then return PROFILE[FINAL] end -- won and lost hold the final look
+    return PROFILE[clamp(idx, 1, LAST)]
 end
 
 -- Presets ------------------------------------------------------------------------
@@ -479,7 +489,7 @@ function Storm.Create(api)
         local l = lvl or 0
         local age = state.age
         local bearing = math.rad(255 + 30 * sin(age / 41) + 10 * sin(age / 9.3))
-        local spike = 1 + 0.3 * clamp(((burstEnd or 0) - clock) / 9, 0, 1)
+        local spike = (1 + 0.3 * clamp(((burstEnd or 0) - clock) / 9, 0, 1)) * (profile(state.phase).wind or 1)
         local speed = (6 + 40 * l) * (0.9 + 0.1 * sin(age / 17 + 1.3)) * spike
         S.wind, S.bearing = speed, math.deg(bearing)
         Weather.SetWindOverride({ x = sin(bearing), y = 0.06, z = cos(bearing) }, speed)
@@ -499,7 +509,7 @@ function Storm.Create(api)
             if state.sentPhase ~= nil and state.sentPhase ~= state.phase then
                 -- A step up the ladder hits at once: a close strike and a hard shake.
                 state.nextBolt, state.nextQuake = min(state.nextBolt, age + 0.6), min(state.nextQuake, age + 0.2)
-                if state.phase >= 4 and state.phase <= 8 then
+                if state.phase >= 4 and state.phase <= LAST then
                     state.quakeN = state.quakeN + 1
                     send("quake", state.quakeN, clamp(P.qStr + 0.15, 0, 1), P.qDur + 1.5)
                 end
@@ -520,7 +530,8 @@ function Storm.Create(api)
             local ground_ = rng:Float() >= P.dry and 1 or 0
             send("bolt", state.boltN, floor((0.35 + 0.65 * P.level) * 100) / 100, ground_)
             if state.burstUntil and age < state.burstUntil then
-                state.nextBolt = age + rng:Range(0.5, 1.1)
+                local bb = P.burstBolt or { 0.5, 1.1 }
+                state.nextBolt = age + rng:Range(bb[1], bb[2])
             else
                 state.nextBolt = age + rng:Range(P.bolt[1], P.bolt[2])
             end
@@ -685,8 +696,8 @@ function Storm.Create(api)
     function S.SetPhaseIndex(idx)
         if not state then S.pendingPhase = idx; return true end
         if idx == state.phase then return true end
-        if idx < state.phase and state.phase <= FINAL then return false end
-        if state.phase > FINAL then return false end
+        if idx < state.phase and state.phase <= LAST then return false end
+        if state.phase > LAST then return false end
         state.phase = idx
         return true
     end
@@ -786,7 +797,7 @@ function Storm.Create(api)
             end
             localTick(dt)
             -- Every peer pulls the craft it owns toward the (replicated) funnel.
-            if state.tornado and clock >= (nextPush or 0) then
+            if state.tornado and not profile(state.phase).safe and clock >= (nextPush or 0) then
                 nextPush = clock + T.PUSH_STEP
                 pcall(Tornado.Affect, state.tornado, T.PUSH_STEP)
             end

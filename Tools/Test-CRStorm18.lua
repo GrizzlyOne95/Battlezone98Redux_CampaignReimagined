@@ -275,6 +275,7 @@ end
 do
     local prevLevel = -1
     for i, P in ipairs(Storm.PROFILE) do
+        if i > 8 then break end -- extract and ascent are the ending's rungs, checked below
         check(P.level > prevLevel, "profile level rises at " .. P.name); prevLevel = P.level
         if i > 1 then
             local q = Storm.PROFILE[i - 1]
@@ -283,6 +284,10 @@ do
         end
     end
     check(Storm.PROFILE[7].burst and Storm.PROFILE[7].trans <= 5, "collapse enters hard (it plays over the thruster cinematic)")
+    local X, A = Storm.PROFILE[9], Storm.PROFILE[10]
+    check(Storm.PHASES[9] == "extract" and Storm.PHASES[10] == "ascent" and Storm.PHASES[11] == "won" and Storm.PHASES[12] == "lost", "ending rungs sit between final and won")
+    check(X.safe and A.safe and X.level == 1 and A.level == 1, "extract and ascent are harmless to craft at the final look")
+    check(A.bolt[2] < Storm.PROFILE[8].bolt[1] and A.qStr >= 1 and A.rumble > Storm.PROFILE[8].rumble and (A.wind or 1) > 1, "ascent is the most violent rung: closer strikes, hard shake, gale")
 end
 
 -- ===================================================================== harness
@@ -665,6 +670,35 @@ do
     local q = newPeer("mq2")
     q.S.Stop()
     check(q.S.Quake(2, 3) == false, "no quake before Reset or after Stop")
+end
+
+-- ===================================================================== extraction rungs
+do
+    fresh()
+    local p = newPeer("ex")
+    p.S.SetPhase("final")
+    run(30, p, {})
+    local t = p.S.Describe()
+    craft.near = { p = { x = t.tornadoX + 10, y = 100, z = t.tornadoZ }, v = { x = 0, y = 0, z = 0 } }
+    run(5, p, {})
+    check(velocityWrites > 0, "the funnel pulls at final")
+    check(p.S.SetPhase("extract") and p.S.GetPhase() == "extract", "extract follows final")
+    velocityWrites = 0; damageWrites = 0
+    local from = #events + 1
+    run(20, p, {})
+    check(velocityWrites == 0 and damageWrites == 0, "the tornado cannot touch craft while the dropships load")
+    check(countKind("tornado", from) >= 1 and p.S.Describe().tornado, "the funnel still draws during the extraction")
+    local before = countKind("bolt", from)
+    check(p.S.SetPhase("ascent") and p.S.GetPhase() == "ascent", "ascent follows extract")
+    from = #events + 1
+    run(12, p, {})
+    local rushed = countKind("bolt", from)
+    check(rushed >= 25, "strikes rush past during the ascent: " .. rushed .. " in 12 s (extract: " .. before .. " in 20 s)")
+    check(p.S.SetPhase("extract") == false, "the ladder never steps back")
+    check(velocityWrites == 0, "ascent is harmless too")
+    check(p.S.SetPhase("won") and p.S.GetPhase() == "won" and p.S.SetPhase("lost") == false, "won follows ascent and is final")
+    local q = newPeer("ex2")
+    check(q.S.SetPhase("lost") and not q.S.SetPhase("extract"), "lost is final too")
 end
 
 -- ===================================================================== ground

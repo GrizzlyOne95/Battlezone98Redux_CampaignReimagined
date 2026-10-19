@@ -180,7 +180,7 @@ F.run(8)
 check(not m.missionwon and not m.fail2,"one human in the band blocks the win")
 F.nearTo(p[3].player,RECYCLER,150,0);F.run(5)
 check(m.missionwon,"every human within 200 m wins")
-F.run(8)
+F.run(60) -- the extraction ending (two shots) runs before the result
 for i=1,4 do
     check(F.count(p[i],"SucceedMission")==1 and F.count(p[i],"FailMission")==0,"one shared victory")
     check(p[i].camera==0,"result balances every camera")
@@ -306,8 +306,8 @@ for _,shape in ipairs({"create","flat"}) do
     F.run(160)
     check(phases(p[1])=="opening,search,found,core1,core2,core3,collapse,final","final at 30 s: "..phases(p[1]))
     nearBase(p,0)
-    F.run(10)
-    check(m.missionwon and phases(p[1])=="opening,search,found,core1,core2,core3,collapse,final,won","won last: "..phases(p[1]))
+    F.run(60)
+    check(m.missionwon and phases(p[1])=="opening,search,found,core1,core2,core3,collapse,final,extract,ascent,won","extract, ascent, then won last: "..phases(p[1]))
     for i=2,3 do
         local applied=F.callsOf(p[i],"StormApply")
         check(#applied==1 and applied[1][2]=="ping" and applied[1][3]==7,"storm events reach guest "..i)
@@ -317,7 +317,7 @@ for _,shape in ipairs({"create","flat"}) do
     local resets=#F.callsOf(p[1],"StormReset")
     p[1].env.Load(p[1].env.Save())
     check(#F.callsOf(p[1],"StormReset")==resets+1 and F.last(p[1],"StormReset")[2]=="saved","storm state restored on load")
-    check(F.last(p[1],"StormPhase")[2]=="won" and #F.callsOf(p[1],"StormPhase")==10,"load repeats the current phase once")
+    check(F.last(p[1],"StormPhase")[2]=="won" and #F.callsOf(p[1],"StormPhase")==12,"load repeats the current phase once")
 end
 -- loss ends the sequence with "lost"
 w,p,m=setup(2,{storm=recordingStorm("create")})
@@ -389,11 +389,11 @@ do
     check(not m.missionwon and not m.fail2,"the band holds the result "..tostring(m.missionwon).." "..tostring(m.fail2).." "..tostring(m.fail3).." "..tostring(m.coopFailed).." t="..tostring(w.timer and w.timer.duration-(w.now-w.timer.start)))
     F.nearTo(p[3].player,RECYCLER,100,0);F.run(4)
     check(m.missionwon,"every human within 200 m wins")
-    F.run(6)
-    check(realPhases(p[1])==FULL..",won","phases in order, won last: "..realPhases(p[1]))
+    F.run(60)
+    check(realPhases(p[1])==FULL..",extract,ascent,won","phases in order, won last: "..realPhases(p[1]))
     stormErrors(p)
     for i=1,4 do
-        check(F.count(p[i],"SucceedMission")==1,"one victory on peer "..i)
+        check(F.count(p[i],"SucceedMission")==1,"one victory on peer "..i.." n="..F.count(p[i],"SucceedMission").." ext="..tostring(m.cr18.ext and m.cr18.ext.n).." done="..tostring(m.cr18.extractDone).." pend="..tostring(m.coopPendingResult).." res="..tostring(m.coopResult).." t="..F.world().now.." ready="..tostring(m.coopPendingResult and m.coopPendingResult.ready))
         local peak=nativeQuakes(p[i]);check(peak>0,"quake ran on peer "..i)
         local last=F.callsOf(p[i],"NativeQuake");check(last[#last][2]=="stop","the storm leaves the engine calm on peer "..i)
         check((p[i].env.Save().cr18Storm.errors or 0)==0,"no storm errors on peer "..i)
@@ -447,6 +447,148 @@ do -- a lost path
     F.connect();F.run(3)
     check(p[1].director.Describe().phase==before.phase and p[1].director.Describe().seed==before.seed,"real storm resumes its phase and seed after load")
     stormErrors(p)
+end
+
+-- ------------------------------------------------------------------ the extraction ending
+local Drop=dofile("Scripts/CRDrop18.lua")
+local function hullsOf(peer,mark,odf)
+    local out={}
+    for _,b in ipairs(F.builds(peer,mark,odf)) do out[#out+1]=b end
+    return out
+end
+local function toWin(n,options)
+    options=options or {}
+    options.storm=options.storm or RealStorm
+    local w2,p2,m2=setup(n,options)
+    F.nearTo(p2[n].player,"transfound");F.run(2);killFuries()
+    collapse(p2);killFuries()
+    if options.factoryDead then F.kill("avmuf2_factory") end
+    for i,q in ipairs(p2) do F.nearTo(q.player,RECYCLER,8*i,0) end
+    return w2,p2,m2
+end
+do -- choreography: pure, deterministic, inside the tornado keep-clear zone
+    local function ground(x,z) return 100+8*math.sin(x/70)+6*math.cos(z/90) end
+    local cx,cz=1875.2,98035.1
+    local zones=dofile("Scripts/CRStorm18Sites.lua").zones
+    for count=1,5 do
+        local a=Drop.Sites(cx,cz,count,ground);local b=Drop.Sites(cx,cz,count,ground)
+        check(#a==count and a[1].x==b[1].x and a[count].z==b[count].z,"sites are deterministic ("..count..")")
+        for i,s in ipairs(a) do
+            local d=math.sqrt((s.x-cx)^2+(s.z-cz)^2)
+            check(d<=210+1e-6 and d>=150-1e-6,"site "..i.." sits on the ring")
+            check(math.abs(s.sx*s.lx+s.sz*s.lz)<1e-9 and math.abs(s.sx^2+s.sz^2-1)<1e-9,"orthonormal ship frame")
+            check(math.abs((cx-s.x)/d-s.sx)<1e-9,"stern faces the Texas")
+            for j=i+1,count do
+                local o=a[j]
+                check(math.sqrt((s.x-o.x)^2+(s.z-o.z)^2)>=120,"ships are clear of each other ("..count..")")
+            end
+        end
+    end
+    check(#Drop.Sites(cx,cz,9,ground)==Drop.MAX_SHIPS,"never more than five ships")
+    local inside=false
+    for _,z in ipairs(zones) do
+        if math.sqrt((cx-z[1])^2+(cz-z[2])^2)<60 and z[3]>=300 then inside=true end
+    end
+    check(inside,"the Texas has the 300 m tornado keep-clear circle the ring fits inside")
+    local last
+    for i=1,5 do
+        local order={}
+        for t=0,Drop.Total(),0.5 do
+            local s=Drop.Stage(i,t);if s~=order[#order] then order[#order+1]=s end
+            local up,back=Drop.Offsets(i,t)
+            check(up>=0,"never below the ground")
+        end
+        check(table.concat(order,",")=="wait,fly,open,load,close,lift" or table.concat(order,",")=="fly,open,load,close,lift","stage order for ship "..i..": "..table.concat(order,","))
+    end
+    local u0=Drop.Offsets(1,0.01);local u1=Drop.Offsets(1,Drop.FLY_T-0.01);local u2=Drop.Offsets(1,Drop.FLY_T+0.5)
+    check(u0>300 and u1<1 and u2==0,"the ship descends to the ground and stays")
+    check(Drop.Delay(5)+Drop.FLY_T+Drop.OPEN_T+Drop.LOAD_T+Drop.CLOSE_T<Drop.SHOT1,"the last ramps are closed before shot 1 ends")
+end
+for _,n in ipairs({1,4}) do
+    local w2,p2,m2=toWin(n)
+    local mark=#p2[1].calls
+    local startY={}
+    for i,q in ipairs(p2) do startY[i]=F.world().objects[q.player].pos.y end
+    F.runUntil(function() return m2.missionwon end,60)
+    F.run(1)
+    -- the win latched but the mission has not ended
+    check(m2.missionwon and m2.cr18.ext and m2.cr18.ext.n==n+1,n.." humans: one dropship each plus the base ship, got "..tostring(m2.cr18.ext and m2.cr18.ext.n))
+    check(n+1<=Drop.MAX_SHIPS,"the fleet is capped")
+    for i=1,n do
+        check(F.count(p2[i],"SucceedMission")==0,"no success at the win on peer "..i)
+        check(p2[i].camera==1,"peer "..i.." is in the extraction shot")
+    end
+    check(#hullsOf(p2[1],mark,"avdropc")==n+1,"flying dropships built: "..#hullsOf(p2[1],mark,"avdropc"))
+    check(F.count(p2[1],"StopCockpitTimer")>=1 and F.count(p2[n],"StopCockpitTimer")>=1,"the countdown is stopped on every peer")
+    local podPeer=hullsOf(p2[1],mark,"apcamr")
+    check(#podPeer==1,"one camera pod")
+    -- shot 1 films the Texas from the pod on every peer
+    local shot1=F.last(p2[n],"CameraObject")
+    check(shot1~=nil and shot1[2]==podPeer[1].h,"shot 1 is filmed from the pod on peer "..n)
+    -- threats are gone and nothing can fail
+    F.spawn("hvsav",6,1900,98100);F.kill(RECYCLER) -- the Texas dies mid-ending: the win is final
+    F.run(Drop.SHOT1-3)
+    for i=1,n do
+        check(F.count(p2[i],"FailMission")==0,"nothing fails the mission during the ending (peer "..i..")")
+        check(F.heardCount(p2[i],"misn1818.wav")==0 and F.heardCount(p2[i],"misn1704.wav")==0,"no loss line after the win")
+        check(F.count(p2[i],"SucceedMission")==0,"still no success in shot 1 (peer "..i..")")
+    end
+    local landed=#hullsOf(p2[1],mark,"avdropo")
+    local closing=#hullsOf(p2[1],mark,"avdropx")
+    check(landed==n+1 and closing>=n,"dropships land (avdropo) then fold their ramps (avdropx): "..landed.."/"..closing)
+    -- shot 2 follows the lead dropship on every peer
+    F.run(3)
+    for i=1,n do
+        local s2=F.last(p2[i],"CameraObject")
+        check(s2~=nil and s2[2]~=podPeer[1].h and F.world().objects[s2[2]] and F.world().objects[s2[2]].odf=="avdropx","shot 2 follows a climbing dropship on peer "..i)
+    end
+    check(F.count(p2[1],"StormPhase","extract")==1 and F.count(p2[1],"StormPhase","ascent")==1,"the storm is told extract, then ascent")
+    for i=1,n do
+        local pos=F.world().objects[p2[i].player].pos
+        check(pos.y>25,"peer "..i.." rides its own dropship up (y="..math.floor(pos.y)..")")
+    end
+    -- each peer pins only what it owns; the leader drives the ships and the base cargo
+    for i=1,n do
+        local own={[p2[i].player]=true}
+        if i==1 then own[RECYCLER]=true;own["avmuf2_factory"]=true;for _,c in ipairs(p2[1].calls) do if c[1]=="BuildObject" then own[c[2]]=true end end end
+        for _,c in ipairs(F.callsOf(p2[i],"SetTransform")) do check(own[c[2]],"peer "..i.." only moves what it owns: "..tostring(c[2])) end
+        check(#F.callsOf(p2[i],"SetTransform")>0,"peer "..i.." pins its ship")
+    end
+    -- the mission succeeds only after shot 2
+    F.run(Drop.SHOT2+Drop.Total())
+    for i=1,n do
+        check(F.count(p2[i],"SucceedMission")==1 and F.count(p2[i],"FailMission")==0,"one success after the ending on peer "..i)
+        check(p2[i].camera==0,"cameras balanced after the ending on peer "..i)
+    end
+    local ph=F.callsOf(p2[1],"StormPhase");check(ph[#ph][2]=="won","the storm settles into won last")
+    stormErrors(p2)
+end
+-- the Factory died: the base ship still carries the Recycler alone
+do
+    local w2,p2,m2=toWin(2,{factoryDead=true})
+    F.runUntil(function() return m2.missionwon end,60);F.run(Drop.SHOT1)
+    local moved={}
+    for _,c in ipairs(F.callsOf(p2[1],"SetTransform")) do moved[c[2]]=true end
+    check(moved[RECYCLER] and not moved["avmuf2_factory"],"only the surviving Recycler is loaded")
+    check(m2.cr18.ext.n==3,"two humans plus the base ship")
+end
+-- a save/load mid-ending goes straight to success, once, never to failure
+do
+    local w2,p2,m2=toWin(4)
+    F.runUntil(function() return m2.missionwon end,60);F.run(Drop.SHOT1/2)
+    check(F.count(p2[1],"SucceedMission")==0,"mid-ending")
+    for _,q in ipairs(p2) do q.env.Load(q.env.Save()) end
+    F.connect();F.run(12)
+    for i=1,4 do
+        check(F.count(p2[i],"SucceedMission")==1 and F.count(p2[i],"FailMission")==0,"load mid-ending: success once on peer "..i)
+        check(p2[i].camera==0,"load mid-ending: cameras balanced on peer "..i)
+    end
+end
+-- without the choreography module the win ends the mission as before
+do
+    local w2,p2,m2=toWin(2,{noDrop=true})
+    F.runUntil(function() return m2.missionwon end,60);F.run(14)
+    check(F.count(p2[1],"SucceedMission")==1 and #hullsOf(p2[1],0,"avdropc")==0,"no dropship module: immediate success")
 end
 
 -- ------------------------------------------------------------------ transport-destroyed shot

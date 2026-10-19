@@ -23,7 +23,11 @@ barren one: the ground cover is dead scrub, the sky red.
 ## Phase table
 
 `Storm.SetPhase(name)` is called on the leader only, in mission order. It never steps
-backward; `won` and `lost` hold the `final` look (and `lost` after `won` is refused).
+backward; `won` and `lost` hold the `final` look (and `lost` after `won` is refused). `extract`
+and `ascent` (the extraction ending, see [`MISN18_COOP.md`](MISN18_COOP.md)) sit between `final`
+and `won`: `extract` is the final look with the tornado's gameplay effect off while the dropships
+load, `ascent` the most violent rung (strikes every 0.2-0.5 s with a 14 s burst on entry, hard
+shake, a 1.7x gale driving the dust and ash past the camera, the red swirl overhead).
 
 | # | Phase | Level | Wind m/s | Lightning (s) | Quake pulses (s, strength) | Landslides (s) | Cracks | Tornado |
 |---|-------|------:|---------:|---------------|----------------------------|----------------|-------:|---------|
@@ -35,7 +39,9 @@ backward; `won` and `lost` hold the `final` look (and `lost` after `won` is refu
 | 6 | core3 | .82 | 39 | 2.8-5.5 | 7-13, .52, rumble .16 | 28-45 | .58 | |
 | 7 | collapse | .96 | 44 (+30 % spike) | 1.4-3 (0.5-1.1 for 9 s) | 3.5-7, .70, rumble .30 | 12-20 | .85 | yes |
 | 8 | final | 1.00 | 46 | 0.7-1.8 | 2.5-4.5, .90, rumble .45 | 6-11 | 1.0 | yes |
-| 9, 10 | won, lost | hold 8 | | | | | | |
+| 9 | extract | 1.00, as final, gameplay effect off | | 0.7-1.8 | 2.5-4.5, .90, rumble .45 | 6-11 | 1.0 | yes |
+| 10 | ascent | 1.00, gale x1.7 | | 0.2-0.5 | 1.2-2.5, 1.0, rumble .70 | | 1.0 | yes, harmless |
+| 11, 12 | won, lost | hold 8 | | | | | | |
 
 Wind is `6 + 40 * level` with a slow swing in bearing (255 degrees +-40) and gusts.
 "Dry" lightning is a cloud flash and distant thunder with no ground strike.
@@ -133,7 +139,7 @@ storm adds no event for them.
 
 | kind | args | meaning |
 |------|------|---------|
-| `phase` | idx, age, seed | phase index 1-10, leader storm clock, seed. Sent on change and every 15 s (late joiners, drift) |
+| `phase` | idx, age, seed | phase index 1-12, leader storm clock, seed. Sent on change and every 15 s (late joiners, drift) |
 | `bolt` | n, power, ground | serial n (deduped), 0..1, 1 = ground strike. Geometry is `hash(seed, n)` relative to each camera |
 | `quake` | n, strength, seconds | merged into a running quake |
 | `slide` | n, power | |
@@ -171,7 +177,7 @@ microcode cache keys on the program name).
 
 ## Tests
 
-`lua5.1 Tools/Test-CRStorm18.lua` (957 checks): payload/material/program lint (every
+`lua5.1 Tools/Test-CRStorm18.lua` (970 checks): payload/material/program lint (every
 template parses, materials and textures exist, ColourInterpolator has all six stages, no
 name clashes, program references and delegates in order, shaders agree on their uniforms);
 rng determinism; preset escalation and template indices; phase ladder (events per phase,
@@ -210,3 +216,5 @@ Everything rendered is unverified. In order of risk:
    than misn17's storm); co-op: guest and host see the same phase, strikes near each
    camera, tornado in the same place; save/load mid-storm; mission end leaves the next
    mission's sky, wind foliage and quake calm (sensors: `GetSeverity` is the phase level).
+9. The ascent (`ascent`): strikes close to the climbing dropship, shake and gale tolerable, ash and cloud streaks
+   rush past, and nothing in the 330 m camera ring is hurt by the funnel during `extract`.

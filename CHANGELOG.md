@@ -11,6 +11,13 @@
   two cut return-wave Furies, and the cut transport-destroyed shot (the countdown now starts when it ends); add an optional storm hook (`CRStorm18`). Not yet qualified in a live
   2/4-client session; see `Docs/MISN18_COOP.md`.
 
+- Mission 18 ends with a dropship extraction: when everyone makes it, NSDF dropships land beside the Texas, load each
+  human's ship and the Recycler and Factory (at most five ships), and lift into the storm in two unskippable,
+  replicated shots; the mission succeeds, and the normal outro plays, only afterwards. Nothing can fail it once
+  the win has latched. The storm gains `extract` and `ascent` phases, owns the earthquake (the mission's quakes go
+  through `Storm.Quake`) and its tornado now pulls the craft each peer owns. Timings and camera offsets need a
+  live tune; see `Docs/MISN18_COOP.md`.
+
 - Add Mission 18's apocalyptic storm (`CRStorm18`, wired into the co-op port):
   ten leader-driven phases from a bruised, gusting opening to the collapse of the
   Fury transport's moon, with a swirling red sky deck, escalating lightning, quakes,

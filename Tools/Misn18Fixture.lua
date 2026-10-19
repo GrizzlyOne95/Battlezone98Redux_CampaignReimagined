@@ -234,6 +234,19 @@ function F.makePeer(id, team, network, options)
     end
     e.SetVelocity = function(h,v) assert(e.IsValid(h) and W.objects[h].craft,"velocity only on known craft");record("SetVelocity",h,v) end
     e.SetPosition = function(h,pos) assert(e.IsValid(h)); W.objects[h].pos={x=pos.x,y=pos.y,z=pos.z};record("SetPosition",h,pos.y) end
+    -- Extraction ending (CRDrop18): matrices are plain tables, SetTransform moves the mock object.
+    e.BuildDirectionalMatrix = function(pos, dir) return {x = pos.x, y = pos.y, z = pos.z, dx = dir and dir.x or 0, dz = dir and dir.z or 1} end
+    e.SetTransform = function(h, m)
+        assert(e.IsValid(h), "SetTransform on an invalid object")
+        W.objects[h].pos = {x = m.x, y = m.y, z = m.z}
+        record("SetTransform", h, m.x, m.y, m.z)
+    end
+    e.IsCraft = function(h) return W.objects[h] ~= nil and W.objects[h].craft == true end
+    e.GetFront = function(h) return {x = 0, y = 0, z = 1} end
+    e.GetMaxHealth = function(h) return 1 end
+    e.SetCurHealth = function(h, v) record("SetCurHealth", h, v) end
+    e.StopCockpitTimer = function() record("StopCockpitTimer") end
+    e.HideCockpitTimer = function() record("HideCockpitTimer") end
     e.SetVector = function(x, y, z) return {x = x or 0, y = y or 0, z = z or 0} end
     e.GetTerrainHeightAndNormal = function(pos) return 6, {x = 0, y = 1, z = 0} end
     e.GetDistance = function(a, b)
@@ -376,6 +389,7 @@ function F.makePeer(id, team, network, options)
             Queue = function(file) record("Queue", file); return "audio:" .. file end,
             Stop = function() record("Stop") end, Update = noop, Initialize = noop},
         CRFuryRoster = assert(loadfile("Scripts/CRFuryRoster.lua"))(),
+        CRDrop18 = (not options.noDrop) and assert(loadfile("Scripts/CRDrop18.lua"))() or nil,
         CRWire = assert(loadfile("Scripts/CRWire.lua"))(),
         Environment = {Init=function() record("EnvironmentInit") end,
             BindWeatherSensors=function(name) record("WeatherSensors",name) end,

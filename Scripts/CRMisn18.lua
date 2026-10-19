@@ -40,7 +40,7 @@ local native = {
     CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
     StopAudioMessage = StopAudioMessage, GetPlayerHandle = GetPlayerHandle,
-    StartCockpitTimer = StartCockpitTimer,
+    StartCockpitTimer = StartCockpitTimer, StopCockpitTimer = StopCockpitTimer, HideCockpitTimer = HideCockpitTimer,
     StartEarthquake = StartEarthquake, UpdateEarthQuake = UpdateEarthQuake,
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
 }
@@ -112,8 +112,23 @@ local function FromLeader(from)
     return player and player.team == LEADER_TEAM
 end
 
+-- The extraction ending's choreography (Scripts/CRDrop18.lua). Absent or broken: the win ends the mission at once.
+local okDrop, Drop = pcall(require, "CRDrop18")
+if not okDrop or type(Drop) ~= "table" then Drop = nil end
+-- Implemented with the extraction section below; the presentation adapter dispatches to them.
+local ExtractShipEvent, ExtractGoEvent, ExtractStop
+local EXTRACT_OPS = { ExtractShip = true, ExtractGo = true, StopCockpitTimer = true }
+
 local function ApplyPresentation(op, ...)
     if op == "Storm" then return StormCall("Apply", ...) end
+    if op == "ExtractShip" then return ExtractShipEvent(...) end
+    if op == "ExtractGo" then return ExtractGoEvent(...) end
+    if op == "StopCockpitTimer" then
+        -- The ending ends the countdown: the result is the extraction, whatever the clock says.
+        if type(native.StopCockpitTimer) == "function" then pcall(native.StopCockpitTimer) end
+        if type(native.HideCockpitTimer) == "function" then pcall(native.HideCockpitTimer) end
+        return
+    end
     if op == "Label" then
         local handle, label = ...
         if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
@@ -126,6 +141,7 @@ local function ApplyPresentation(op, ...)
         if not StormCall("Quake", (...)) then return native[op](...) end
     elseif op == "SucceedMission" or op == "FailMission" then
         StormCall("Stop")
+        ExtractStop()
         local when, description = ...
         if localCameraActive then native.CameraFinish() end
         cameraFrame = nil
@@ -253,8 +269,16 @@ local function EndMission(op, when, description)
         native[op](when, description)
     end
 end
-local function SucceedMission(...) return EndMission("SucceedMission", ...) end
-local function FailMission(...) return EndMission("FailMission", ...) end
+local BeginExtraction -- the extraction ending (below): called with the win, returns true when it took over
+local function SucceedMission(when, description)
+    if BeginExtraction and BeginExtraction(when, description) then return end
+    return EndMission("SucceedMission", when, description)
+end
+-- Once the win has latched nothing can fail the mission (the extraction is under way).
+local function FailMission(...)
+    if M.missionwon then return end
+    return EndMission("FailMission", ...)
+end
 
 local function CameraReady()
     cameraGeneration = cameraGeneration + 1
@@ -448,10 +472,14 @@ local function UpdatePresentationTransport()
         return
     end
     local now, allDelivered = GetTime(), true
+    -- Only the events queued up to the first pass after the result was requested must be acknowledged; a storm that
+    -- keeps sending (the ascent strikes every few tenths of a second) must never hold the result back.
+    local pending = M.coopPendingResult
+    if pending and not pending.upto then pending.upto = #events end
     for id, player in pairs(CRCoop.GetPlayers()) do
         if CRCoop.IsHumanTeam(player.team) and id ~= CRCoop.GetLocalPlayerId() then
             local ack = acknowledgements[id] or 0
-            if ack < #events then allDelivered = false end
+            if ack < (pending and pending.upto or #events) then allDelivered = false end
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
@@ -511,7 +539,7 @@ local function ReceivePresentation(from, kind, ...)
     end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Storm") then
+    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Storm" or EXTRACT_OPS[op]) then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
         local apply, unresolved = true, false
@@ -566,6 +594,7 @@ local AUDIO_SUBSTITUTE = { ["misn1704.wav"] = "misn1818.wav" }
 local lastAudio
 local function AudioMessage(file)
     file = AUDIO_SUBSTITUTE[file] or file
+    if M.missionwon and file == "misn1818.wav" then return nil end -- nothing may report a loss after the win
     local busy = lastAudio ~= nil and type(IsAudioMessageDone) == "function" and not IsAudioMessageDone(lastAudio)
     local handle = busy and subtit.Queue(file) or subtit.Play(file)
     if handle ~= nil then lastAudio = handle end
@@ -800,6 +829,181 @@ local function Shot()
     CameraPath("transdestroyedcam",CIN_HEIGHT,CIN_SPEED,target)
 end
 
+-- ---------------------------------------------------------------- extraction ending
+-- The win does not end the mission at once. The leader plans the ending (Scripts/CRDrop18.lua): one NSDF
+-- dropship per human ship plus one for the Recycler and Factory when either lives, on a ring around the Texas
+-- (inside the storm's tornado keep-clear zone). Shot 1 films them land, load and lift; shot 2 follows one
+-- climbing through the storm. Only then does the mission succeed and the normal outro play.
+--
+-- Replication: the plan goes out as numbers (one ExtractShip event per ship, then ExtractGo), the camera is the
+-- streamed shot kind "O" (labels resolved on guests, CameraCancelled is false in network games). The LEADER
+-- builds and moves the dropship objects and the base cargo (Recycler, Factory, which it owns); EVERY peer pins
+-- its OWN ship aboard from the same clock (the pose is a pure function of the plan and the seconds since
+-- ExtractGo, so no pose is ever sent). Each peer starts its clock when it applies ExtractGo, so a guest can
+-- trail the leader by the stream latency. Timings, offsets and camera numbers are CR inferences.
+-- A save/load mid-ending cannot resume it: the load goes straight to success.
+local X = { ships = {}, cargo = {}, hulls = {} }
+local function Ground(px, pz)
+    local ok, h = pcall(GetTerrainHeightAndNormal, SetVector(px, 0, pz))
+    return ok and type(h) == "number" and h or 0
+end
+local function Num(v) return type(v) == "number" and v == v and v > -1e9 and v < 1e9 end
+local function MyTeam()
+    local player = CRCoop.GetPlayers()[CRCoop.GetLocalPlayerId()]
+    return player and player.team or 1
+end
+local function Facing(ship) return SetVector(-ship.sx, 0, -ship.sz) end -- the bow faces away from the ramp exit
+
+function ExtractShipEvent(i, n, kind, team, x, z, y, sx, sz)
+    if not (Num(i) and Num(n) and Num(kind) and Num(team) and Num(x) and Num(z) and Num(y) and Num(sx) and Num(sz)) then return end
+    if i < 1 or i > 5 or n < 1 or n > 5 then return end
+    if X.go then return end -- a repeat after the clock started changes nothing
+    X.n = n
+    X.ships[i] = { kind = kind, team = team, x = x, y = y, z = z, sx = sx, sz = sz, lx = -sz, lz = sx }
+end
+
+-- Where this peer's pinned craft stood when the ending began. A craft carried by a ship keeps its heading.
+local function Cargo(h, slot, i)
+    if not Valid(h) then return end
+    local p = GetPosition(h)
+    local f = type(GetFront) == "function" and GetFront(h) or nil
+    X.cargo[#X.cargo + 1] = { h = h, slot = slot, ship = i,
+        start = { x = p.x, y = p.y, z = p.z, dx = f and f.x or 0, dz = f and f.z or 1 } }
+end
+
+function ExtractGoEvent()
+    if X.go or not Drop then return end
+    for i = 1, X.n or 0 do if not X.ships[i] then return end end -- incomplete plan: do nothing
+    X.go, X.t0, X.cargo = true, GetTime(), {}
+    local team = MyTeam()
+    for i = 1, X.n do
+        local ship = X.ships[i]
+        if ship.kind == 1 and ship.team == team then
+            Cargo(native.GetPlayerHandle(), Drop.SLOTS.human, i)
+        elseif ship.kind == 0 and CRCoop.IsAuthority() then
+            Cargo(M.avrec, Drop.SLOTS.recycler, i)
+            Cargo(GetHandle("avmuf2_factory"), Drop.SLOTS.factory, i)
+        end
+    end
+end
+
+function ExtractStop()
+    X.go = false
+    X.cargo = {}
+end
+
+-- Pin this peer's own craft to the ship pose, and keep it whole (nothing may fail the mission now).
+local function PinCargo(t)
+    for _, c in ipairs(X.cargo) do
+        if Valid(c.h) then
+            local x, y, z, dx, dz = Drop.CargoPos(X.ships[c.ship], c.ship, c.slot, c.start, t, Ground)
+            pcall(SetTransform, c.h, BuildDirectionalMatrix(SetVector(x, y, z), SetVector(dx, 0, dz)))
+            if type(IsCraft) == "function" and IsCraft(c.h) then pcall(SetVelocity, c.h, SetVector(0, 0, 0)) end
+            if type(SetCurHealth) == "function" and type(GetMaxHealth) == "function" then
+                pcall(SetCurHealth, c.h, GetMaxHealth(c.h))
+            end
+        end
+    end
+end
+
+-- Leader: the dropship objects. A stage change swaps the object (floor collision is snapshotted at creation).
+local function DriveHulls(t)
+    for i = 1, X.n do
+        local ship = X.ships[i]
+        local stage = Drop.Stage(i, t)
+        local odf = Drop.Odf(stage)
+        local hull = X.hulls[i]
+        local px, py, pz = Drop.HullPos(ship, i, t)
+        local matrix = BuildDirectionalMatrix(SetVector(px, py, pz), Facing(ship))
+        if not hull or hull.odf ~= odf or not Valid(hull.h) then
+            if hull and Valid(hull.h) then native.RemoveObject(hull.h) end
+            local h = BuildObject(odf, 1, matrix)
+            X.hulls[i] = { odf = odf, h = h }
+        else
+            pcall(SetTransform, hull.h, matrix)
+        end
+    end
+end
+
+local function FinishExtraction(s)
+    if s.extractDone then return end
+    s.extractDone = true
+    if X.pod and Valid(X.pod) then native.RemoveObject(X.pod) end
+    X.pod = nil
+    CameraFinish()
+    EndMission("SucceedMission", GetTime() + 2.0, s.ext and s.ext.desc)
+end
+
+function BeginExtraction(when, description)
+    local s = State()
+    if not Drop or s.ext or s.extractDone or not CRCoop.IsAuthority() then return false end
+    local humans = {}
+    CRCoop.ForEachPlayerHandle(function(h, id)
+        local player = CRCoop.GetPlayers()[id]
+        if Valid(h) then humans[#humans + 1] = { team = player and player.team or 1, h = h } end
+    end)
+    if #humans == 0 then
+        local me = native.GetPlayerHandle()
+        if Valid(me) then humans[1] = { team = 1, h = me } end
+    end
+    if #humans == 0 then return false end
+    table.sort(humans, function(a, b) return a.team < b.team end)
+    local factory = GetHandle("avmuf2_factory")
+    local base = (Valid(M.avrec) and IsAlive(M.avrec)) or (Valid(factory) and IsAlive(factory))
+    local count = math.min(Drop.MAX_SHIPS, #humans + (base and 1 or 0))
+    local center = Valid(M.avrec) and GetPosition(M.avrec) or GetPosition(humans[1].h)
+    local sites = Drop.Sites(center.x, center.z, count, Ground)
+    s.ext = { t0 = GetTime(), desc = description, n = count }
+    X = { ships = {}, cargo = {}, hulls = {} }
+    -- The threats are gone, the countdown is over and the humans cannot be hurt: the win is final.
+    s.arrivals = {}
+    if type(AllCraft) == "function" then
+        for h in AllCraft() do
+            if GetTeamNum(h) == FURY_TEAM then native.RemoveObject(h) end
+        end
+    end
+    Present("StopCockpitTimer")
+    for i = 1, count do
+        local ship, human = sites[i], humans[i]
+        Present("ExtractShip", i, count, human and 1 or 0, human and human.team or 0, ship.x, ship.z, ship.y, ship.sx, ship.sz)
+    end
+    Present("ExtractGo")
+    -- The camera pod stands outside the ring in a gap between two ships, looking at the Texas.
+    local phi = math.atan2(sites[1].z - center.z, sites[1].x - center.x) + math.pi / count
+    local px, pz = center.x + math.cos(phi) * 330, center.z + math.sin(phi) * 330
+    X.pod = BuildObject(Drop.POD, 0, SetVector(px, Ground(px, pz), pz))
+    CameraReady()
+    s.phase = "extract"
+    StormCall("SetPhase", "extract")
+    return true
+end
+
+local function Extraction()
+    local s = State()
+    if not s.ext or s.extractDone then return end
+    if not X.go then
+        -- A load, or a plan that could not start: straight to success.
+        FinishExtraction(s)
+        return
+    end
+    local t = GetTime() - X.t0
+    DriveHulls(t)
+    local lead = X.hulls[1] and X.hulls[1].h
+    if t < Drop.SHOT1 then
+        -- Shot 1: from outside the ring, on the Texas the ships gather round.
+        local target = Valid(M.avrec) and M.avrec or lead
+        if Valid(X.pod) and Valid(target) then CameraObject(X.pod, 0, 4000, 0, target) end
+    else
+        if s.phase ~= "ascent" then
+            s.phase = "ascent"
+            StormCall("SetPhase", "ascent")
+        end
+        -- Shot 2: beside and below the lead ship as it climbs into the clouds.
+        if Valid(lead) then CameraObject(lead, 4000, -1000, 7000, lead) end
+    end
+    if t >= Drop.Total() then FinishExtraction(s) end
+end
+
 -- ---------------------------------------------------------------- results and scaling
 local function Failure()
     if not CRCoop.IsAuthority() or M.missionwon or Ended() then return end
@@ -832,7 +1036,11 @@ local function Phases()
     local s=State()
     s.phases=s.phases or {}
     if s.terminal then return end
-    if M.missionwon then s.terminal=true;EmitPhase(s,"won");return end
+    if M.missionwon then
+        -- The ending (extract, ascent) runs first; the storm settles into "won" when it has finished.
+        if s.ext and not s.extractDone then return end
+        s.terminal=true;EmitPhase(s,"won");return
+    end
     if M.fail1 or M.fail3 or M.blastoff or M.coopFailed then s.terminal=true;EmitPhase(s,"lost");return end
     for rank,entry in ipairs(PHASES) do
         local name=entry[1]
@@ -851,7 +1059,7 @@ function R.Start()
         leaderTeam=1,humanTeamMin=1,humanTeamMax=4,rallyPoints={[0]="avrecy2_recycler"},
         onOutOfLives=Failure})
     if localCameraActive then native.CameraFinish() end
-    ConfigureAlliances();ResetPresentation();lastAudio=nil
+    ConfigureAlliances();ResetPresentation();ExtractStop();lastAudio=nil
     pda.Initialize();subtit.Initialize()
     Environment.Init({nativeBaseline=true})
     StormCall("Reset",State().storm)
@@ -895,9 +1103,11 @@ function R.Update(dt)
         StormCall("Update",dt,CRCoop.IsAuthority(),function(...) Present("Storm",...) end)
         M.cr18Storm=StormCall("Describe")
     end
+    if X.go and Drop and not M.coopResult then PinCargo(GetTime()-X.t0) end
     if not CRCoop.IsAuthority() or M.coopResult then return false end
     if not s.phase then Phases() end -- "opening" before the body's first frame
     Shot()
+    Extraction()
     Arrivals()
     return true
 end
