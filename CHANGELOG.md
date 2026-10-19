@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Venus acid rain on the cockpit glass (misn07, misn08, misn09): the rain level the Venus director already computes now also
+  drives the `CRWetGlass` rain layers, drawn in faint yellow-green instead of the Earth-like blue-grey, and long exposure
+  builds a very faint pitted etch haze that clears slowly after the rain. Render only, local to each peer, and can be
+  switched off (`AllowGlassAcid` / `glassAcid`, `AllowAcidRain`, `CRWeather.Quality` 0). New `CRWetGlass.Weather("acid", level)`,
+  `crwx_acidbeads/acidrivulet/acidstreak.png` and `crwx_winetch.png` (`Tools/Generate-GlassWeatherAssets.py`). Stacks on the
+  cockpit-glass snow/grit work (#256) and the pool effects (#255). See `Docs/VENUS_WEATHER.md` and `Docs/CR_STORMFX_PORT.md`.
+
 - Cockpit-glass weather: a few soft-white snow flakes land on and melt off the glass on Europa (misn12, misn13; scaled to the
   Europa activity ladder), and fine dust grit builds on the glass in Mars storms (misn04, misn05, misn06; builds with the
   severity, clears slowly, with a few small splats at the upper rungs). Both ride the existing CRWetGlass layers

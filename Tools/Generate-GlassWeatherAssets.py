@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the cockpit-glass weather layers (snow flakes on Europa, dust grit on Mars).
+"""Generate the cockpit-glass weather layers (snow flakes on Europa, dust grit on Mars, acid rain on Venus).
 
     python Tools/Generate-GlassWeatherAssets.py            # write every asset
     python Tools/Generate-GlassWeatherAssets.py --check    # exit 1 if a checked-in asset differs
@@ -14,8 +14,15 @@ CRWetGlass.lua draws these two families beside the rain layers (see CRWetGlass.W
         angles. RGB is one constant pale blue-white; only alpha varies.
   Assets/Textures/crwx_wingrit.png   1024 x 1024 tileable sheet of fine tan-brown grit: many
         1-3 px specks, a few small clumps and a very faint dust film.
-  Materials/crwx_glassweather.material   CRWX_WinSnow_A1..A16 and CRWX_WinGrit_A1..A16, the
-        overlay (F2/F3) materials, the same shape as the wrap families in crwx_wetglass.material.
+  Assets/Textures/crwx_acidbeads.png, crwx_acidrivulet.png, crwx_acidstreak.png   the rain
+        textures (crwx_wetbeads/wetrivulet/wetstreak.png) with the same alpha and a faint
+        yellow-green tint instead of their blue-grey, for Venus acid rain. Derived from the
+        checked-in rain textures, so they need no outside source.
+  Assets/Textures/crwx_winetch.png   1024 x 1024 tileable etched-glass haze: a very faint pale
+        yellow-green film with fine pits clustered in patches. Builds over long acid exposure.
+  Materials/crwx_glassweather.material   CRWX_WinSnow_A1..A16, CRWX_WinGrit_A1..A16, the three
+        CRWX_Acid* rain families and CRWX_WinEtch_A1..A16, the overlay (F2/F3) materials, the
+        same shape as the wrap families in crwx_wetglass.material.
         The cockpit-glass (F1) passes need no material of their own: CRWetGlass points a pass of
         CRWX_CockpitGlass_W<a>C<b> at the texture.
 
@@ -35,7 +42,15 @@ MAT = os.path.join(ROOT, "Materials", "crwx_glassweather.material")
 DEFAULT_FLAKE = r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\addon\ISDF Chronicles\snowflak.dds"
 SIZE = 1024
 STEPS = 16
-FAMILIES = (("CRWX_WinSnow", "crwx_winsnow.png"), ("CRWX_WinGrit", "crwx_wingrit.png"))
+FAMILIES = (("CRWX_WinSnow", "crwx_winsnow.png"), ("CRWX_WinGrit", "crwx_wingrit.png"),
+            ("CRWX_AcidBeads", "crwx_acidbeads.png"), ("CRWX_AcidRivulet", "crwx_acidrivulet.png"),
+            ("CRWX_AcidStreak", "crwx_acidstreak.png"), ("CRWX_WinEtch", "crwx_winetch.png"))
+# Acid rain textures: (rain texture, acid texture). Same alpha, new colour.
+ACID_SOURCES = (("crwx_wetbeads.png", "crwx_acidbeads.png"), ("crwx_wetrivulet.png", "crwx_acidrivulet.png"),
+                ("crwx_wetstreak.png", "crwx_acidstreak.png"))
+# Faint sulphur yellow-green: the rain texture's luminance, lifted a little, multiplied by this.
+ACID_TINT = np.array([0.90, 1.00, 0.46], np.float32)
+ACID_LIFT = 1.45
 
 
 def stamp(alpha, sprite, cx, cy, gain=1.0):
@@ -118,6 +133,40 @@ def build_grit():
     return out
 
 
+def build_acid(rain_path):
+    """A rain texture with its alpha kept and its colour moved from blue-grey to faint yellow-green."""
+    src = np.asarray(Image.open(rain_path).convert("RGBA"), dtype=np.float32)
+    lum = src[..., :3].mean(axis=2, keepdims=True) * ACID_LIFT
+    out = src.copy()
+    out[..., :3] = np.clip(lum * ACID_TINT[None, None, :], 0, 255)
+    return np.clip(out + 0.5, 0, 255).astype(np.uint8)
+
+
+def build_etch():
+    """Etched-glass haze: a barely-there film plus fine pits that cluster where the acid sat longest."""
+    rng = np.random.default_rng(1969)
+    film = periodic_blur(rng.random((SIZE, SIZE)).astype(np.float32), 9.0)
+    film = (film - film.min()) / (film.max() - film.min())
+    patch = periodic_blur(rng.random((SIZE, SIZE)).astype(np.float32), 38.0)
+    patch = (patch - patch.min()) / (patch.max() - patch.min())
+    patch = np.clip((patch - 0.35) * 2.4, 0, 1)              # where pitting concentrates
+    alpha = np.clip((film - 0.35) * 1.4, 0, 1) * (0.06 + 0.10 * patch)
+    pits = np.zeros((SIZE, SIZE), np.float32)
+    placed = 0
+    while placed < 5200:
+        cx, cy = int(rng.integers(0, SIZE)), int(rng.integers(0, SIZE))
+        if rng.random() > 0.12 + 0.88 * patch[cy, cx]:
+            continue
+        placed += 1
+        rad = float(rng.choice([0.8, 1.1, 1.6, 2.3], p=[0.42, 0.33, 0.18, 0.07]))
+        stamp(pits, disc(rad, 1.1), cx, cy, float(rng.uniform(0.25, 0.7)))
+    alpha = np.maximum(alpha, pits)
+    out = np.zeros((SIZE, SIZE, 4), np.uint8)
+    out[..., 0], out[..., 1], out[..., 2] = 214, 226, 128
+    out[..., 3] = np.clip(alpha * 255 + 0.5, 0, 255).astype(np.uint8)
+    return out
+
+
 def block(family, tex, n):
     opacity = n / STEPS
     unit = ("\t\t\ttexture_unit\n\t\t\t{\n\t\t\t\ttexture %s\n\t\t\t\tfiltering linear linear linear\n%s\t\t\t}\n")
@@ -161,7 +210,10 @@ def main():
     ap.add_argument("--flake", default=DEFAULT_FLAKE)
     args = ap.parse_args()
     outputs = {os.path.join(TEX, "crwx_wingrit.png"): png_bytes(build_grit()),
+               os.path.join(TEX, "crwx_winetch.png"): png_bytes(build_etch()),
                MAT: build_material().replace("\n", "\r\n").encode("ascii")}
+    for rain, acid in ACID_SOURCES:
+        outputs[os.path.join(TEX, acid)] = png_bytes(build_acid(os.path.join(TEX, rain)))
     snow = os.path.join(TEX, "crwx_winsnow.png")
     if os.path.exists(args.flake):
         outputs[snow] = png_bytes(build_snow(args.flake))

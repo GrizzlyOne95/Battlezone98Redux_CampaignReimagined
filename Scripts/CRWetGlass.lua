@@ -53,8 +53,17 @@
 --           return elsewhere on staggered cycles; no streaks, never covers the view
 --   "grit"  CRWX_WinGrit: two layers of fine tan specks that stay put and follow the level (the director
 --           shapes the slow build and clear)
--- Rain wins the pass budget: the weather layers are the last wrap layers. Textures: crwx_winsnow.png and
--- crwx_wingrit.png, materials crwx_glassweather.material, both made by Tools/Generate-GlassWeatherAssets.py.
+--   "acid"  Venus acid rain (CRVenusWeather feeds the rain level, then Update(rain)): while the level is above
+--           zero the rain layers (beads, rivulets, streaks) are drawn from yellow-green variants of their
+--           textures (CRWX_AcidBeads / AcidRivulet / AcidStreak, crwx_acid*.png; same alpha, a faint tint),
+--           chosen whenever a layer lands, so a drop in flight never changes colour. The level also builds
+--           an etch exposure (about 3 minutes at level 1, about 12 to clear) that fades in one very faint
+--           CRWX_WinEtch layer: a pale pitted film, at most about 30% opacity, that stays after the rain
+--           stops and clears slowly. Keep calling Update(0) while Busy() is true. On the screen overlay the
+--           acid textures are pre-loaded once, one panel at a time while the glass is empty (see warmUp).
+-- Rain wins the pass budget: the weather layers are the last wrap layers. Textures: crwx_winsnow.png,
+-- crwx_wingrit.png, crwx_acid*.png and crwx_winetch.png, materials crwx_glassweather.material, all made by
+-- Tools/Generate-GlassWeatherAssets.py.
 --**********************************************************************
 local wetglass = {}
 
@@ -65,7 +74,14 @@ local OVERLAY = "crwx_wetglass"
 local Z_ORDER = 5           -- under custom HUD overlays
 local VIEW_OK = { [1] = true, [2] = true, [3] = true } -- cockpit, no cockpit, no HUD
 local FAMILIES = { "CRWX_WetBeads", "CRWX_WetStreak", "CRWX_WetRivulet", "CRWX_WindCrack", "CRWX_WindDirt",
-	"CRWX_WinSnow", "CRWX_WinGrit" }
+	"CRWX_WinSnow", "CRWX_WinGrit", "CRWX_AcidBeads", "CRWX_AcidRivulet", "CRWX_AcidStreak", "CRWX_WinEtch" }
+-- Acid rain: the yellow-green variant of each rain family (same alpha, tinted colour).
+local ACID_OF = { CRWX_WetBeads = "CRWX_AcidBeads", CRWX_WetRivulet = "CRWX_AcidRivulet", CRWX_WetStreak = "CRWX_AcidStreak" }
+local ACID_MIN = 0.02          -- Weather("acid") level above which new drops are acid
+local ETCH_PEAK = 0.30         -- opacity of the etch haze at full exposure (a very faint film)
+local ETCH_RISE = 1 / 180      -- exposure per second at acid level 1 (about 3 minutes to full)
+local ETCH_CLEAR = 1 / 720     -- exposure per second once the rain stops (about 12 minutes to clear)
+local WARM_QUIET = 2           -- warm-up shows an acid texture only while this few panels draw
 local DIRT_LAYERS = 3
 local SNOW_LAYERS = 2       -- crwx_glassweather.material; Weather("snow", level)
 local GRIT_LAYERS = 2       -- crwx_glassweather.material; Weather("grit", level)
@@ -97,9 +113,11 @@ local LAYER_TEXTURE = {
 	CRWX_WetStreak = "crwx_wetstreak.png", CRWX_WindCrack = "crwx_windcrack.png",
 	CRWX_WindDirt = "crwx_winddirt.png",
 	CRWX_WinSnow = "crwx_winsnow.png", CRWX_WinGrit = "crwx_wingrit.png",
+	CRWX_AcidBeads = "crwx_acidbeads.png", CRWX_AcidRivulet = "crwx_acidrivulet.png",
+	CRWX_AcidStreak = "crwx_acidstreak.png", CRWX_WinEtch = "crwx_winetch.png",
 }
 -- Pass diffuse colour where a layer wants more than SHELL_RGB: snow stays pale in dim Europan light.
-local LAYER_RGB = { CRWX_WinSnow = 0.92 }
+local LAYER_RGB = { CRWX_WinSnow = 0.92, CRWX_WinEtch = 0.70 }
 local CLAMPED = { CRWX_WindCrack = true, CRWX_WindDirt = true }
 local SHELL_API = { "SetSubEntityRenderQueueGroup", "SetSubEntityMaterial", "SetMaterialTextureWindow",
 	"SetMaterialTexture", "SetMaterialPassColors" }
@@ -110,7 +128,8 @@ local frame, pending = nil, 0
 local lastRun = nil
 local crackWant, crackX, crackY = 0, 0.5, 0.4   -- what the damage caller asked for; applied by run()
 local splats = {}                               -- queued { amount, x, y, flip }
-local snowWant, gritWant = 0, 0                 -- Weather() levels 0..1, kept until changed
+local snowWant, gritWant, acidWant = 0, 0, 0    -- Weather() levels 0..1, kept until changed
+local etchExposure = 0                              -- 0..1, builds while acidWant > 0 and clears slowly
 local mode = "overlay"                          -- where the layers draw this frame: "overlay" or "shell"
 
 local function clamp(v, lo, hi)
@@ -169,7 +188,7 @@ local function newPanel(name, family)
 	call("SetOverlayDimensions", name, 1, 1)
 	call("AddOverlay2D", OVERLAY, name)
 	call("HideOverlayElement", name)
-	return { name = name, family = family, step = 0, alpha = 0 }
+	return { name = name, family = family, base = family, step = 0, alpha = 0 }
 end
 
 local function build()
@@ -219,6 +238,12 @@ local function build()
 		p.phase = "off"
 		s.grit[k] = p
 	end
+	s.etch = newPanel(OVERLAY .. "_e", "CRWX_WinEtch")
+	if s.etch == nil then return false end
+	s.etch.phase = "off"
+	-- Textures that load the first time a panel draws them (see warmUp).
+	s.warm = { { s.etch, "CRWX_WinEtch" }, { s.streak, "CRWX_AcidStreak" }, { s.beads[1], "CRWX_AcidBeads" },
+		{ s.rivulets[1], "CRWX_AcidRivulet" } }
 	return s
 end
 
@@ -255,6 +280,7 @@ local function allLayers()
 	-- Weather layers come last among the wrap layers: if the pass budget runs out, rain wins.
 	for _, p in ipairs(state.snow) do list[#list + 1] = p end
 	for _, p in ipairs(state.grit) do list[#list + 1] = p end
+	list[#list + 1] = state.etch
 	list[#list + 1] = state.crack
 	for _, p in ipairs(state.dirt) do list[#list + 1] = p end
 	return list
@@ -318,6 +344,7 @@ local function poseMask(player)
 	for _, p in ipairs(state.rivulets) do panels[#panels + 1] = p end
 	for _, p in ipairs(state.snow) do panels[#panels + 1] = p end
 	for _, p in ipairs(state.grit) do panels[#panels + 1] = p end
+	panels[#panels + 1] = state.etch
 	for _, p in ipairs(panels) do
 		if p.step > 0 then
 			local mat = p.family .. "_A" .. p.step
@@ -404,8 +431,8 @@ local function shellApply()
 	for i, p in ipairs(order) do
 		local pass = i - 1
 		local was = sh.passes[pass]
-		if was == nil or was.layer ~= p then
-			was = { layer = p }
+		if was == nil or was.layer ~= p or was.family ~= p.family then
+			was = { layer = p, family = p.family }
 			sh.passes[pass] = was
 			for t = 0, 1 do pcall(exu.SetMaterialTexture, mat, LAYER_TEXTURE[p.family], t, pass, 0) end
 		end
@@ -611,6 +638,68 @@ local function gritLayers(ar, dt)
 	return any
 end
 
+-- Acid etch: one very faint pitted film that follows the exposure. It keeps its place on the glass.
+local function etchLayer(ar)
+	local p = state.etch
+	local a = ETCH_PEAK * smoothstep(0.08, 1, etchExposure)
+	if a > 0 then
+		if p.v == nil then
+			p.v = randRange(1.0, 1.25)
+			p.u0, p.v0 = math.random() * 8, math.random() * 8
+		end
+		local key = string.format("%s %.3f", mode, ar)
+		if p.key ~= key then
+			setUV(p, p.u0, p.v0, p.v * ar, p.v)
+			p.key = key
+		end
+	end
+	setAlpha(p, a)
+	return p.on == true
+end
+
+-- Drops are acid or plain from the moment they land: a layer that is not showing takes the family that
+-- matches the current acid level, so a drop in flight never changes colour.
+local function retint(p)
+	if p.on then return end
+	local want = p.base
+	if acidWant > ACID_MIN and ACID_OF[p.base] then want = ACID_OF[p.base] end
+	if p.family ~= want then p.family, p.step = want, 0 end
+end
+
+-- Pre-loads the acid textures on the screen overlay. A texture loads the first time a panel draws it; with
+-- five or more other panels already showing, that first draw of crwx_winetch.png (or any new texture) made the
+-- DX11 renderer throw "Unable to set D3D11 vertex declaration" on every frame from then on (live check,
+-- Instance2, 2026-10-19). So, once, while the glass is still empty, each acid family shows one panel for two
+-- frames at its faintest step (only while at most WARM_QUIET other panels show). Returns true while a warm-up
+-- panel is on screen.
+local function quiet()
+	local n = 0
+	for _, p in ipairs(allLayers()) do
+		if p.on then n = n + 1 end
+	end
+	return n <= WARM_QUIET
+end
+
+local function warmUp()
+	local w = state.warm[1]
+	if w == nil then return false end
+	local p = w[1]
+	if w.shown then
+		call("HideOverlayElement", p.name)
+		table.remove(state.warm, 1)
+		return false
+	end
+	if p.on or p.step > 0 then
+		table.remove(state.warm, 1)         -- already in use: its texture is loaded
+		return false
+	end
+	call("SetOverlayParameter", p.name, "uv_coords", "0 0 1 1")
+	call("SetOverlayMaterial", p.name, w[2] .. "_A1")
+	call("ShowOverlayElement", p.name)
+	w.shown = true
+	return true
+end
+
 local function run(intensity, dt)
 	local player = GetPlayerHandle()
 	if not IsValid(player) or not viewAllowsGlass(player) then
@@ -627,6 +716,9 @@ local function run(intensity, dt)
 	local rush = smoothstep(20, 90, speed)   -- streak speed
 	local ar = onGlass and SHELL_AR or aspect()
 	local any = false
+	for _, p in ipairs(state.beads) do retint(p) end
+	for _, p in ipairs(state.rivulets) do retint(p) end
+	retint(state.streak)
 
 	-- Beads: land (fade in), sit, run off (fade out while sliding), wait.
 	local peak = (0.35 + 0.45 * i) * (1 - 0.85 * blow)
@@ -724,12 +816,14 @@ local function run(intensity, dt)
 
 	if snowLayers(ar, dt) then any = true end
 	if gritLayers(ar, dt) then any = true end
+	if etchLayer(ar) then any = true end
 	if damageLayers(ar, dt) then any = true end
 
 	if onGlass then
 		if not shellApply() then state.shellOk = false end   -- the glass refused: overlay from now on
 		return
 	end
+	if mode == "overlay" and #state.warm > 0 and (state.warm[1].shown or quiet()) and warmUp() then any = true end
 	poseMask(player)
 	show(any)
 end
@@ -752,20 +846,22 @@ function wetglass.Splat(amount, x, y, flip)
 		flip = flip == true }
 end
 
---- Weather layers on the glass: kind "snow" (soft flakes that land and melt) or "grit" (fine dust
---- specks), level 0..1. The level stays until changed; 0 lets it fade out. The caller keeps calling
+--- Weather layers on the glass: kind "snow" (soft flakes that land and melt), "grit" (fine dust
+--- specks) or "acid" (yellow-green rain drops plus a slowly building etch haze), level 0..1. The level stays until changed; 0 lets it fade out. The caller keeps calling
 --- Update (Update(0) when there is no rain) while Busy() is true.
 function wetglass.Weather(kind, level)
 	level = clamp(tonumber(level) or 0, 0, 1)
 	if kind == "snow" then snowWant = level
-	elseif kind == "grit" then gritWant = level end
+	elseif kind == "grit" then gritWant = level
+	elseif kind == "acid" then acidWant = level end
 end
 
 --- True while a crack is wanted or showing, a splat is queued or fading, or a weather layer is wanted
 --- or showing: the caller must keep calling Update.
 function wetglass.Busy()
 	if state == false then return false end
-	if crackWant > 0 or #splats > 0 or snowWant > 0 or gritWant > 0 then return true end
+	if crackWant > 0 or #splats > 0 or snowWant > 0 or gritWant > 0 or acidWant > 0 then return true end
+	if etchExposure > 0 then return true end
 	if state then
 		if state.crack.alpha > 0 then return true end
 		for _, p in ipairs(state.dirt) do if p.phase ~= "off" then return true end end
@@ -806,7 +902,7 @@ function wetglass.Stop()
 	end
 	state, mode, frame, pending, lastRun = nil, "overlay", nil, 0, nil
 	crackWant, splats = 0, {}
-	snowWant, gritWant = 0, 0
+	snowWant, gritWant, acidWant, etchExposure = 0, 0, 0, 0
 end
 
 --- Rain on the windshield at intensity 0..1; call every Update.
@@ -825,6 +921,11 @@ function wetglass.Update(intensity)
 	local dt = 0
 	if lastRun ~= nil then dt = clamp(now - lastRun, 0, 0.25) end
 	lastRun = now
+	if acidWant > 0 then
+		etchExposure = math.min(1, etchExposure + ETCH_RISE * acidWant * dt)
+	elseif etchExposure > 0 then
+		etchExposure = math.max(0, etchExposure - ETCH_CLEAR * dt)
+	end
 	local ok, err = pcall(run, math.max(want, intensity), dt)
 	if not ok then
 		print("CRWetGlass: disabled after error: " .. tostring(err))
