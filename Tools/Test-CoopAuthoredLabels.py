@@ -59,6 +59,11 @@ TARGETS = {
                "avrecy-1_recycler", "sbbarr0_i76building", "svrecy-1_recycler", "svmuf0_factory",
                "sbtowe0_turret", "sbtowe1_turret", "sbtowe55_turret", "sbtowe56_turret",
                "sblpow1_powerplant", "sblpow55_powerplant"],
+    # misn18: the opening camera targets (removed afterwards), the Fury transport and its four thrusters
+    # (markers, camera target), the Home Base nav and the Texas (rally, win/loss).
+    "misn18": ["scrapcam", "scrapcam2", "hbtran0038_i76building", "hbtrn20049_i76building",
+               "hbtrn20050_i76building", "hbtrn20051_i76building", "hbtrn20052_i76building",
+               "basenav", "avrecy2_recycler"],
 }
 # Labels that are also an authored PATH name in the BZN legitimately occur twice.
 PATH_NAMES = {"launch_pad"}

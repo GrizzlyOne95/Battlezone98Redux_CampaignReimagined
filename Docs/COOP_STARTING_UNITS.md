@@ -23,6 +23,7 @@ are unchanged.
 | 13, Total Destruction | Tank, Scout, Light Tank, Rocket Tank, Bomber, Walker | Texas (`avrecy`) can build the full `avmuf`. |
 | 14, The Three Beacons | Tank, Scout, Light Tank, Rocket Tank, Bomber, Walker | Texas (`avrecy`) can build the full `avmuf`. |
 | 15, United We Fight - United We Die | Tank, Scout, Light Tank, Rocket Tank, Bomber, Walker | The shared Texas (`avrecy`) can build the full `avmuf`. |
+| 18, The Ultimate Quake | Tank, Scout, Light Tank, Rocket Tank, Bomber | Owner-specified 2026-10-19: the Walker is not a starting choice. The map starts with the shared Texas (`avrecy2_recycler`) and `avmuf2_factory` on team 1. |
 
 The vehicle records use the existing `odf ,` VXT form:
 

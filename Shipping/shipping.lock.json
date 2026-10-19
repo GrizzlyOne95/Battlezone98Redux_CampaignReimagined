@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2829,
+  "count": 2839,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -10828,6 +10828,10 @@
       "runtime": "misn17.bmp"
     },
     {
+      "source": "Assets\\Graphics\\misn18.bmp",
+      "runtime": "misn18.bmp"
+    },
+    {
       "source": "Assets\\Models\\c17proc.geo",
       "runtime": "c17proc.geo"
     },
@@ -11044,6 +11048,10 @@
       "runtime": "misn17.ini"
     },
     {
+      "source": "Config\\misn18.ini",
+      "runtime": "misn18.ini"
+    },
+    {
       "source": "Materials\\cr17_cloud.material",
       "runtime": "cr17_cloud.material"
     },
@@ -11072,24 +11080,48 @@
       "runtime": "misn17.bzn"
     },
     {
+      "source": "Missions\\misn18.bzn",
+      "runtime": "misn18.bzn"
+    },
+    {
       "source": "Missions\\misn17.hg2",
       "runtime": "misn17.hg2"
+    },
+    {
+      "source": "Missions\\misn18.hg2",
+      "runtime": "misn18.hg2"
     },
     {
       "source": "Missions\\misn17.lgt",
       "runtime": "misn17.lgt"
     },
     {
+      "source": "Missions\\misn18.lgt",
+      "runtime": "misn18.lgt"
+    },
+    {
       "source": "Missions\\misn17.mat",
       "runtime": "misn17.mat"
+    },
+    {
+      "source": "Missions\\misn18.mat",
+      "runtime": "misn18.mat"
     },
     {
       "source": "Missions\\misn17.trn",
       "runtime": "misn17.trn"
     },
     {
+      "source": "Missions\\misn18.trn",
+      "runtime": "misn18.trn"
+    },
+    {
       "source": "Missions\\misn17.vxt",
       "runtime": "misn17.vxt"
+    },
+    {
+      "source": "Missions\\misn18.vxt",
+      "runtime": "misn18.vxt"
     },
     {
       "source": "ODF\\c17proc.odf",
@@ -11136,6 +11168,10 @@
       "runtime": "CRMisn17.lua"
     },
     {
+      "source": "Scripts\\CRMisn18.lua",
+      "runtime": "CRMisn18.lua"
+    },
+    {
       "source": "Shaders\\cr17_surface-fragment.glsl",
       "runtime": "cr17_surface-fragment.glsl"
     },
@@ -11154,6 +11190,10 @@
     {
       "source": "misn17.des",
       "runtime": "misn17.des"
+    },
+    {
+      "source": "misn18.des",
+      "runtime": "misn18.des"
     },
     {
       "source": "Shaders\\cr17_cloud-fragment.glsl",
