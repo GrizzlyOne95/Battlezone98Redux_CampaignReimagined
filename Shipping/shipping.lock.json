@@ -696,6 +696,10 @@
       "runtime": "cvwalk_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cvwalk.vdf",
+      "runtime": "cvwalk.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\hbtran00.mesh",
       "runtime": "hbtran00.mesh"
     },
@@ -766,6 +770,10 @@
     {
       "source": "Assets\\ModelFixes\\svwalk_c.skeleton",
       "runtime": "svwalk_c.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svwalk.vdf",
+      "runtime": "svwalk.vdf"
     },
     {
       "source": "Assets\\Sounds\\atlas.wav",

@@ -32,8 +32,8 @@ How the glass is made (per mesh):
      behind the frame. UVs come from the view direction (u = 0.5 + yaw / U_SPAN, v = 0.5 - pitch / V_SPAN,
      degrees), so the rain and damage textures look the same whatever the glass depth.
   5. The submesh (material CRWX_CockpitGlass, a no-op that CRWetGlass.lua swaps on the cockpit entity
-     only) is bound with weight 1 to one cockpit bone (a '2' shell parented to the eye, else the eye's
-     nearest '2' ancestor, else *21coc / *21bda, else the '2' bone the eye sees most) and appended to the mesh; every other chunk is copied
+     only) is bound with weight 1 to one cockpit bone (the eye's nearest '2' ancestor, else *21coc /
+     *21bda, else the '2' bone the eye sees most) and appended to the mesh; every other chunk is copied
      byte for byte (edge lists are dropped; Ogre rebuilds them on demand).
 
   python Tools/cockpitglass.py                      # every craft with a cockpit -> Assets/ModelFixes
@@ -361,17 +361,13 @@ def make_glass(mesh, skel, scripts, force_whole=False):
     if not faces:
         raise ValueError("no window openings")
 
-    # The bone the glass follows: a '2' shell parented to the eye (svturr_c's 21tx1 and the
-    # walkers' 21hed are locked to the view that way); else the eye's nearest '2' ancestor
-    # (a turret's 21ty1: the glass turns with the dash and the eye); else the body-fixed
-    # cockpit bone (*21coc, then *21bda: never a VDF-driven wing or foot); else the '2' bone
-    # the eye sees most; else the pov's parent.
+    # The bone the glass follows: the eye's nearest '2' ancestor (a turret's 21ty1: the
+    # glass turns with the dash and the eye); else the body-fixed cockpit bone (*21coc,
+    # then *21bda: never a VDF-driven wing or foot); else the '2' bone the eye sees most;
+    # else the pov's parent.
     bone = None
-    shells = sorted(c for c in cockpit_bones if skel.parent.get(c) == pov)
-    if len(shells) == 1:
-        bone = int(shells[0])
     h = pov
-    while bone is None and h in skel.parent:
+    while h in skel.parent:
         h = skel.parent[h]
         if h in cockpit_bones:
             bone = int(h)
