@@ -1,0 +1,326 @@
+{
+  "vertices": 1482,
+  "triangles": 812,
+  "bounds_min": [
+    -18.0,
+    -11.75,
+    -57.0
+  ],
+  "bounds_max": [
+    18.0,
+    12.25,
+    57.5
+  ],
+  "radius": 60.42821565280423,
+  "native_vertices": 298,
+  "native_triangles": 560,
+  "asset": "crcred1",
+  "name": "CCA upper-left red hull",
+  "reference": "CCAfleet3.webp",
+  "reference_sha256": "4b1e7208c649755ab88f1570a7a027a5673dbe5a15506006e133b3c2063ad71f",
+  "scale_metres_per_pixel": 0.25,
+  "source_center": [
+    283,
+    88
+  ],
+  "source_span": [
+    55,
+    512
+  ],
+  "role": "neutral cinematic fixture; names provisional, no canonical class asserted",
+  "scale_basis": "installed stock svapc length14.6186099m / about59px = .247773; rounded .25m/px",
+  "axis": "Y up; nose -Z; engines +Z",
+  "engine_exits": [
+    [
+      -8,
+      -6.75,
+      57.5
+    ],
+    [
+      8,
+      -6.75,
+      57.5
+    ]
+  ],
+  "source_polygons": [
+    {
+      "part": "Dark lower gunship hull",
+      "outline": [
+        [
+          154,
+          98
+        ],
+        [
+          438,
+          98
+        ],
+        [
+          438,
+          135
+        ],
+        [
+          167,
+          135
+        ],
+        [
+          167,
+          126
+        ],
+        [
+          137,
+          119
+        ],
+        [
+          137,
+          109
+        ]
+      ],
+      "half_width": 16,
+      "material": "Charcoal"
+    },
+    {
+      "part": "Long needle gun",
+      "outline": [
+        [
+          55,
+          110
+        ],
+        [
+          136,
+          110
+        ],
+        [
+          151,
+          104
+        ],
+        [
+          151,
+          122
+        ],
+        [
+          136,
+          117
+        ],
+        [
+          55,
+          116
+        ]
+      ],
+      "half_width": 1.2,
+      "material": "Red dark"
+    },
+    {
+      "part": "Faceted red upper bow",
+      "outline": [
+        [
+          92,
+          69
+        ],
+        [
+          168,
+          51
+        ],
+        [
+          215,
+          45
+        ],
+        [
+          215,
+          99
+        ],
+        [
+          117,
+          99
+        ],
+        [
+          92,
+          82
+        ]
+      ],
+      "half_width": 17,
+      "material": "Red"
+    },
+    {
+      "part": "Pale broad middle body",
+      "outline": [
+        [
+          214,
+          61
+        ],
+        [
+          439,
+          61
+        ],
+        [
+          439,
+          135
+        ],
+        [
+          214,
+          135
+        ]
+      ],
+      "half_width": 15.4,
+      "material": "Ivory"
+    },
+    {
+      "part": "Black lower middle band",
+      "outline": [
+        [
+          215,
+          99
+        ],
+        [
+          438,
+          99
+        ],
+        [
+          438,
+          135
+        ],
+        [
+          215,
+          135
+        ]
+      ],
+      "half_width": 15.6,
+      "material": "Charcoal"
+    },
+    {
+      "part": "Red front collar",
+      "outline": [
+        [
+          167,
+          64
+        ],
+        [
+          213,
+          47
+        ],
+        [
+          213,
+          135
+        ],
+        [
+          167,
+          135
+        ]
+      ],
+      "half_width": 17.2,
+      "material": "Red dark"
+    },
+    {
+      "part": "Red stepped dorsal housing",
+      "outline": [
+        [
+          228,
+          39
+        ],
+        [
+          423,
+          39
+        ],
+        [
+          431,
+          49
+        ],
+        [
+          431,
+          61
+        ],
+        [
+          354,
+          66
+        ],
+        [
+          326,
+          89
+        ],
+        [
+          280,
+          89
+        ],
+        [
+          241,
+          69
+        ],
+        [
+          228,
+          59
+        ]
+      ],
+      "half_width": 17.8,
+      "material": "Red dark"
+    },
+    {
+      "part": "Red aft drive hull",
+      "outline": [
+        [
+          440,
+          42
+        ],
+        [
+          456,
+          43
+        ],
+        [
+          475,
+          55
+        ],
+        [
+          475,
+          63
+        ],
+        [
+          512,
+          69
+        ],
+        [
+          512,
+          124
+        ],
+        [
+          477,
+          135
+        ],
+        [
+          440,
+          135
+        ]
+      ],
+      "half_width": 17.3,
+      "material": "Red dark"
+    },
+    {
+      "part": "Aft vertical collar",
+      "outline": [
+        [
+          438,
+          48
+        ],
+        [
+          447,
+          47
+        ],
+        [
+          449,
+          135
+        ],
+        [
+          439,
+          135
+        ]
+      ],
+      "half_width": 18,
+      "material": "Red"
+    }
+  ],
+  "inference": "width, hidden surfaces, engine bank and small lamps; side outlines measured",
+  "excluded": "all five bottom-right elements are stock unit scale comparisons",
+  "atlas_sizes": {
+    "d": 1024,
+    "e": 1024,
+    "s": 512,
+    "n": 16
+  }
+}

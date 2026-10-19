@@ -1073,3 +1073,19 @@ The SM4 and GLSL `CR_Effect` sprite vertex programs swizzle stock vertex color
 BGRA, while SM3 HLSL does not. For Mission 16 Ogre exhaust, use neutral emitter
 RGB with the Fury blue hue in `CR16/FuryExhaust` material diffuse/glow constants
 (after that swizzle). Do not fix one Ogre effect by recoloring shared stock shaders.
+
+Concept fleet assets: the owner identified the five small bottom-right objects
+in private `CCAfleet3.webp` as stock comparison units, not additional capital ship
+designs. Its svapc silhouette and the installed 14.6186 m mesh inform an approximate
+0.25 m/pixel survey. See `Docs/CONCEPT_FLEET_ASSETS.md`; never invent classes for
+those comparison units. Curved-hull surface cards need subdivisions to stay on
+the hull, and coarse closed structural solids should feed the native GEO/SDF;
+copying every visual window/panel can exceed native geometry table limits.
+
+Create an explicit `BZR_CAMPAIGN_RUNTIME_DIR` **before** invoking the manager and
+check the actual deployment footer. A nonexistent override currently falls back
+to the ordinary GOG development mod. In the carrier prototype this refreshed 13
+existing managed files and added nine resources there; the handoff records the
+exact affected files rather than pretending the deployment was isolated.
+Native flyby tests must wait each peer's own elapsed time: a four-second host
+wait sampled the guest at only 3.15 seconds and produced a false movement failure.

@@ -1,6 +1,6 @@
 """Author the NSDF carrier from the owner-supplied side concept.
 
-Blender coordinates: X starboard, Y forward, Z up. Export: Y up, Z forward.
+Blender coordinates: X starboard, Y forward, Z up. Export: Y up, nose -Z.
 Run through Build-NSDFCarrier.py. Source artwork stays private and unchanged.
 """
 import argparse
@@ -17,6 +17,9 @@ ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'References/NSDFCarrier'
 TEXTURES=SOURCE/'Textures'
 MODEL=ROOT/'Assets/ModelFixes'
+ASSET='crncarr'
+ATLAS=[('d',2048,'DIFFUSE'),('e',2048,'EMIT'),('s',512,'EMIT')]
+RUNTIME_SCALE=.4  # 240m NSDF span, consistent with the owner's CCA/APC scale reference.
 TAU=math.tau
 parts=[]
 materials={}
@@ -265,17 +268,17 @@ def inspection():
         ('Key',(-250,400,650),18000000,600,(1,.94,.82)),
         ('Fill',(-600,-150,100),1800000,550,(.7,.82,1)),
         ('Rim',(400,-300,300),15000000,500,(.65,.8,1))]:
-        d=bpy.data.lights.new(label,'AREA');d.energy=power;d.size=size;d.color=color
-        o=bpy.data.objects.new(label,d);sc.collection.objects.link(o);o.location=loc
+        d=bpy.data.lights.new(label,'AREA');d.energy=power*RUNTIME_SCALE**2;d.size=size*RUNTIME_SCALE;d.color=color
+        o=bpy.data.objects.new(label,d);sc.collection.objects.link(o);o.location=Vector(loc)*RUNTIME_SCALE
         o.rotation_euler=(-o.location).to_track_quat('-Z','Y').to_euler()
-    d=bpy.data.cameras.new('Concept side');d.type='ORTHO';d.ortho_scale=670;d.clip_end=6000
+    d=bpy.data.cameras.new('Concept side');d.type='ORTHO';d.ortho_scale=670*RUNTIME_SCALE;d.clip_end=6000
     cam=bpy.data.objects.new('Concept side',d);sc.collection.objects.link(cam);sc.camera=cam
     sc.render.resolution_x=1600;sc.render.resolution_y=640;sc.render.resolution_percentage=100
-    cam.location=(-1000,0,0);cam.rotation_euler=(-cam.location).to_track_quat('-Z','Y').to_euler()
+    cam.location=(-1000*RUNTIME_SCALE,0,0);cam.rotation_euler=(-cam.location).to_track_quat('-Z','Y').to_euler()
     sc.render.filepath=str(SOURCE/'carrier-side.png');bpy.ops.render.render(write_still=True)
-    sc.render.resolution_y=900;d.ortho_scale=730
+    sc.render.resolution_y=900;d.ortho_scale=730*RUNTIME_SCALE
     for label,loc in [('bow',(-780,500,290)),('aft',(-650,-600,250))]:
-        cam.location=loc;cam.rotation_euler=(-cam.location).to_track_quat('-Z','Y').to_euler()
+        cam.location=Vector(loc)*RUNTIME_SCALE;cam.rotation_euler=(-cam.location).to_track_quat('-Z','Y').to_euler()
         sc.render.filepath=str(SOURCE/('carrier-'+label+'.png'));bpy.ops.render.render(write_still=True)
     cam.name='Carrier three-quarter inspection'
 
@@ -291,14 +294,20 @@ def main():
     # masquerading as the surveyed one.
     if REFERENCE.is_file():
         assert hashlib.sha256(REFERENCE.read_bytes()).hexdigest()==REFERENCE_SHA256,'concept differs from the recorded survey'
-    engines=carrier();ob=assemble();bake(ob)
+    engines=carrier();ob=assemble()
+    for vertex in ob.data.vertices:vertex.co*=RUNTIME_SCALE
+    for i,(vertices,faces) in enumerate(coarse):
+        coarse[i]=([tuple(c*RUNTIME_SCALE for c in p) for p in vertices],faces)
+    engines=[[c*RUNTIME_SCALE for c in p] for p in engines]
+    bake(ob)
     stats=export_mesh(ob);export_native(ob,stats)
     stats.update({'role':'cinematic static fixture; no AI or production',
         'axis':'game +Z points aft; nose is -Z; Y up',
-        'scale_note':'600m concept side span, depth and cropped top/rear inferred',
+        'scale_note':'240m concept side span, depth and cropped top/rear inferred; CCA/APC comparison informed scale',
         'reference':REFERENCE.name,'reference_sha256':REFERENCE_SHA256,
         'cca_comparison':CCA_REFERENCE.name,'cca_reference_sha256':CCA_SHA256,
-        'engine_exits':engines,'docking_bay':[0,-25,0],
+        'engine_exits':engines,'docking_bay':[0,-25*RUNTIME_SCALE,0],
+        'runtime_scale_from_600m_survey':RUNTIME_SCALE,
         'stations_source_pixels':STATIONS})
     (SOURCE/'geometry.json').write_text(json.dumps(stats,indent=2)+'\n')
     if args.render:inspection()
@@ -398,8 +407,8 @@ def bake(ob):
     for mat in ob.data.materials:
         tx=mat.node_tree.nodes.new('ShaderNodeTexImage');mat.node_tree.nodes.active=tx
         nodes.append(tx)
-    for suffix,size,kind in [('d',2048,'DIFFUSE'),('e',2048,'EMIT'),('s',512,'EMIT')]:
-        image=bpy.data.images.new('crncarr_'+suffix,width=size,height=size,alpha=False)
+    for suffix,size,kind in ATLAS:
+        image=bpy.data.images.new(ASSET+'_'+suffix,width=size,height=size,alpha=False)
         image.colorspace_settings.name='sRGB' if suffix in ('d','e') else 'Non-Color'
         for tx in nodes:tx.image=image
         saved=[]
@@ -413,12 +422,12 @@ def bake(ob):
             bpy.ops.object.bake(type=kind,pass_filter={'COLOR'})
         else:bpy.ops.object.bake(type=kind)
         for color,c,strength,s in saved:color.default_value=c;strength.default_value=s
-        image.filepath_raw=str(TEXTURES/('crncarr_'+suffix+'.png'))
+        image.filepath_raw=str(TEXTURES/(ASSET+'_'+suffix+'.png'))
         image.file_format='PNG';image.save();images[suffix]=image
     # Geometry carries all bevels/panel relief; use a neutral tangent normal.
-    image=bpy.data.images.new('crncarr_n',width=16,height=16,alpha=False)
+    image=bpy.data.images.new(ASSET+'_n',width=16,height=16,alpha=False)
     image.colorspace_settings.name='Non-Color';image.generated_color=(.5,.5,1,1)
-    image.filepath_raw=str(TEXTURES/'crncarr_n.png');image.file_format='PNG';image.save()
+    image.filepath_raw=str(TEXTURES/(ASSET+'_n.png'));image.file_format='PNG';image.save()
     images['n']=image
     for tx in nodes:tx.image=images['d']
     return images
@@ -442,7 +451,7 @@ def export_mesh(ob):
             indices.append(lookup[key])
     nv=len(vertices);wide=nv>=65536
     idx=struct.pack('<%d%s'%(len(indices),'I' if wide else 'H'),*indices)
-    head=b'crncarr00\n'+struct.pack('<?I?',False,len(indices),wide)+idx
+    head=(ASSET+'00\n').encode()+struct.pack('<?I?',False,len(indices),wide)+idx
     decl=b''.join(chunk(0x5110,struct.pack('<5H',*e)) for e in [(0,2,1,0,0),(0,2,4,12,0),(0,1,7,24,0)])
     vb=struct.pack('<2H',0,32)+chunk(0x5210,b''.join(struct.pack('<8f',*v) for v in vertices))
     geom=chunk(0x5000,struct.pack('<I',nv)+chunk(0x5100,decl)+chunk(0x5200,vb))
@@ -452,7 +461,7 @@ def export_mesh(ob):
     hi=[max(p[i] for p in points) for i in range(3)]
     radius=max(math.sqrt(sum(x*x for x in p)) for p in points)
     bounds=chunk(0x9000,struct.pack('<7f',*lo,*hi,radius))
-    (MODEL/'crncarr.mesh').write_bytes(b'\x00\x10[MeshSerializer_v1.100]\n'+chunk(0x3000,b'\0'+sub+bounds))
+    (MODEL/(ASSET+'.mesh')).write_bytes(b'\x00\x10[MeshSerializer_v1.100]\n'+chunk(0x3000,b'\0'+sub+bounds))
     return {'vertices':nv,'triangles':len(indices)//3,'bounds_min':lo,'bounds_max':hi,'radius':radius}
 
 def export_native(ob,stats):
@@ -465,29 +474,30 @@ def export_native(ob,stats):
     me=evaluated.to_mesh();me.calc_loop_triangles()
     points=[game_vector(v.co) for v in me.vertices]
     normals=[game_vector(v.normal) for v in me.vertices]
-    raw=struct.pack('<4si16siii',b'OEG.',0,b'crncarr',len(points),len(me.loop_triangles),0)
+    asset=ASSET.encode()
+    raw=struct.pack('<4si16siii',b'OEG.',0,asset,len(points),len(me.loop_triangles),0)
     raw+=b''.join(struct.pack('<3f',*p) for p in points+normals)
     uv=me.uv_layers.active.data
     for i,tri in enumerate(me.loop_triangles):
         q=[Vector(points[v]) for v in tri.vertices]
         normal=(q[1]-q[0]).cross(q[2]-q[0]).normalized()
-        raw+=struct.pack('<iiBBBffffi3s13sii',i,3,255,255,255,*(-normal),normal.dot(q[0]),0,bytes(3),b'crncarr.map',0,0)
+        raw+=struct.pack('<iiBBBffffi3s13sii',i,3,255,255,255,*(-normal),normal.dot(q[0]),0,bytes(3),asset+b'.map',0,0)
         for vi,li in zip(tri.vertices,tri.loops):
             u,v=uv[li].uv;raw+=struct.pack('<iiff',vi,vi,float(u),1-float(v))
-    (MODEL/'crncarr.geo').write_bytes(raw)
+    (MODEL/(ASSET+'.geo')).write_bytes(raw)
     stats['native_vertices']=len(points);stats['native_triangles']=len(me.loop_triangles)
     evaluated.to_mesh_clear();bpy.data.objects.remove(proxy,do_unlink=True)
     # Standard static BWD/SDFC metadata, no dependence on the old Resurgence art.
     prefix=struct.pack('<4si4sii',b'BWD2',8,b'REV\0',12,8)
-    prefix+=struct.pack('<4si16si5fi',b'SDFC',78,b'crncarr',1,2000.,1e20,1e20,1e20,1e20,0)
+    prefix+=struct.pack('<4si16si5fi',b'SDFC',78,asset,1,2000.,1e20,1e20,1e20,1e20,0)
     prefix+=b'xbldx1.xdf'.ljust(14,b'\0')+b'null'.ljust(12,b'\0')
     assert len(prefix)==98
     center=[(a+b)/2 for a,b in zip(stats['bounds_min'],stats['bounds_max'])]
     half=[(b-a)/2 for a,b in zip(stats['bounds_min'],stats['bounds_max'])]
-    rec=struct.pack('<8s12f8s7fiii4f',b'crncarr',1,0,0,0,1,0,0,0,1,0,0,0,b'WORLD',*center,stats['radius'],*half,60,0,0,0,0,0,0)
+    rec=struct.pack('<8s12f8s7fiii4f',asset,1,0,0,0,1,0,0,0,1,0,0,0,b'WORLD',*center,stats['radius'],*half,60,0,0,0,0,0,0)
     null=bytes(120);null=b'NULL'+null[4:]
     body=struct.pack('<i',1)+rec+null*5
-    (MODEL/'crncarr.sdf').write_bytes(prefix+struct.pack('<4si',b'SGEO',8+len(body))+body+struct.pack('<4si',b'EXIT',8)*2)
+    (MODEL/(ASSET+'.sdf')).write_bytes(prefix+struct.pack('<4si',b'SGEO',8+len(body))+body+struct.pack('<4si',b'EXIT',8)*2)
 
 
 if __name__=='__main__':main()

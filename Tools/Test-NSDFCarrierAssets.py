@@ -51,8 +51,8 @@ for kind,ss,se in chunks(data,start+1,end):
         wrong+=sum(normal[j]*(a[3+j]+b[3+j]+c[3+j]) for j in range(3))<=0
     assert wrong<valid*.005,'native backface winding must match normals'
 assert submeshes==1
-assert 600<bounds[5]-bounds[2]<620 and 140<bounds[3]-bounds[0]<155
-assert bounds[1]<-75 and bounds[4]>95,'bridge/radome/underbody are inside culling bounds'
+assert 240<bounds[5]-bounds[2]<248 and 56<bounds[3]-bounds[0]<62
+assert bounds[1]<-30 and bounds[4]>38,'bridge/radome/underbody are inside culling bounds'
 
 geo=(ROOT/'Assets/ModelFixes/crncarr.geo').read_bytes()
 magic,_,name,nv,nf,_=struct.unpack_from('<4si16siii',geo)
@@ -77,6 +77,6 @@ mat=(ROOT/'Materials/crncarr.material').read_text()
 for suffix in 'dens':assert 'crncarr_'+suffix+'.dds' in mat
 manifest=json.loads((ROOT/'References/NSDFCarrier/geometry.json').read_text())
 assert len(manifest['engine_exits'])==8 and len({tuple(p) for p in manifest['engine_exits']})==8
-assert all(p[2]==307 for p in manifest['engine_exits'])
+assert all(abs(p[2]-122.8)<.001 for p in manifest['engine_exits'])
 assert (ROOT/'References/NSDFCarrier/NSDF-Carrier.blend').stat().st_size>100000
 print('NSDF carrier: static mesh, normals, native bounds/budgets, atlases, fixture and eight engines passed')

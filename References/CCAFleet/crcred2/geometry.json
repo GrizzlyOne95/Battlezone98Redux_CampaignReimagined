@@ -1,0 +1,362 @@
+{
+  "vertices": 1608,
+  "triangles": 890,
+  "bounds_min": [
+    -22.0,
+    -16.22901153564453,
+    -63.25
+  ],
+  "bounds_max": [
+    22.0,
+    16.25,
+    63.25
+  ],
+  "radius": 66.9614348992214,
+  "native_vertices": 332,
+  "native_triangles": 628,
+  "asset": "crcred2",
+  "name": "CCA upper-right red hull",
+  "reference": "CCAfleet3.webp",
+  "reference_sha256": "4b1e7208c649755ab88f1570a7a027a5673dbe5a15506006e133b3c2063ad71f",
+  "scale_metres_per_pixel": 0.25,
+  "source_center": [
+    804,
+    86
+  ],
+  "source_span": [
+    550,
+    1057
+  ],
+  "role": "neutral cinematic fixture; names provisional, no canonical class asserted",
+  "scale_basis": "installed stock svapc length14.6186099m / about59px = .247773; rounded .25m/px",
+  "axis": "Y up; nose -Z; engines +Z",
+  "engine_exits": [
+    [
+      -10,
+      -2.5,
+      63.25
+    ],
+    [
+      10,
+      -2.5,
+      63.25
+    ]
+  ],
+  "source_polygons": [
+    {
+      "part": "Long pale wedge bow",
+      "outline": [
+        [
+          551,
+          84
+        ],
+        [
+          630,
+          67
+        ],
+        [
+          717,
+          58
+        ],
+        [
+          758,
+          54
+        ],
+        [
+          759,
+          94
+        ],
+        [
+          733,
+          99
+        ],
+        [
+          716,
+          135
+        ],
+        [
+          634,
+          135
+        ],
+        [
+          595,
+          95
+        ],
+        [
+          551,
+          95
+        ]
+      ],
+      "half_width": 18,
+      "material": "Warm shadow"
+    },
+    {
+      "part": "White cabin",
+      "outline": [
+        [
+          759,
+          54
+        ],
+        [
+          838,
+          54
+        ],
+        [
+          839,
+          94
+        ],
+        [
+          759,
+          94
+        ]
+      ],
+      "half_width": 19,
+      "material": "White"
+    },
+    {
+      "part": "Dark ventral keel",
+      "outline": [
+        [
+          756,
+          94
+        ],
+        [
+          839,
+          94
+        ],
+        [
+          900,
+          121
+        ],
+        [
+          834,
+          140
+        ],
+        [
+          753,
+          133
+        ],
+        [
+          714,
+          119
+        ],
+        [
+          738,
+          110
+        ]
+      ],
+      "half_width": 13,
+      "material": "Charcoal"
+    },
+    {
+      "part": "Red ventral blister",
+      "outline": [
+        [
+          717,
+          115
+        ],
+        [
+          776,
+          107
+        ],
+        [
+          827,
+          107
+        ],
+        [
+          852,
+          118
+        ],
+        [
+          804,
+          133
+        ],
+        [
+          754,
+          128
+        ],
+        [
+          717,
+          123
+        ]
+      ],
+      "half_width": 17,
+      "material": "Red dark"
+    },
+    {
+      "part": "Angled lower red fitting",
+      "outline": [
+        [
+          798,
+          139
+        ],
+        [
+          835,
+          128
+        ],
+        [
+          841,
+          140
+        ],
+        [
+          806,
+          151
+        ]
+      ],
+      "half_width": 6,
+      "material": "Red"
+    },
+    {
+      "part": "Red aft command hull",
+      "outline": [
+        [
+          840,
+          55
+        ],
+        [
+          891,
+          56
+        ],
+        [
+          893,
+          73
+        ],
+        [
+          996,
+          73
+        ],
+        [
+          996,
+          68
+        ],
+        [
+          1034,
+          72
+        ],
+        [
+          1057,
+          77
+        ],
+        [
+          1057,
+          94
+        ],
+        [
+          1038,
+          100
+        ],
+        [
+          1008,
+          130
+        ],
+        [
+          981,
+          136
+        ],
+        [
+          894,
+          133
+        ],
+        [
+          841,
+          96
+        ]
+      ],
+      "half_width": 21,
+      "material": "Red dark"
+    },
+    {
+      "part": "Rear top lip",
+      "outline": [
+        [
+          996,
+          68
+        ],
+        [
+          1034,
+          72
+        ],
+        [
+          1057,
+          77
+        ],
+        [
+          1057,
+          91
+        ],
+        [
+          1037,
+          91
+        ],
+        [
+          996,
+          79
+        ]
+      ],
+      "half_width": 22,
+      "material": "Red light"
+    },
+    {
+      "part": "Red dorsal sensor stalk",
+      "outline": [
+        [
+          859,
+          37
+        ],
+        [
+          878,
+          36
+        ],
+        [
+          881,
+          56
+        ],
+        [
+          857,
+          56
+        ]
+      ],
+      "half_width": 3,
+      "material": "Red"
+    },
+    {
+      "part": "Asymmetric red dorsal sensor cap",
+      "outline": [
+        [
+          829,
+          27
+        ],
+        [
+          862,
+          21
+        ],
+        [
+          900,
+          21
+        ],
+        [
+          900,
+          35
+        ],
+        [
+          859,
+          39
+        ],
+        [
+          829,
+          33
+        ]
+      ],
+      "half_width": 6,
+      "material": "Red"
+    }
+  ],
+  "inference": "width, hidden surfaces, engine bank and small lamps; side outlines measured",
+  "excluded": "all five bottom-right elements are stock unit scale comparisons",
+  "atlas_sizes": {
+    "d": 1024,
+    "e": 1024,
+    "s": 512,
+    "n": 16
+  }
+}

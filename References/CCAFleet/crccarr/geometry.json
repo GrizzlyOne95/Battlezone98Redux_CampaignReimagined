@@ -1,0 +1,442 @@
+{
+  "vertices": 3490,
+  "triangles": 1912,
+  "bounds_min": [
+    -35.25,
+    -25.216266632080078,
+    -119.39336395263672
+  ],
+  "bounds_max": [
+    35.25,
+    27.99555778503418,
+    119.75
+  ],
+  "radius": 125.16242270387903,
+  "native_vertices": 408,
+  "native_triangles": 772,
+  "asset": "crccarr",
+  "name": "CCA fork-bow carrier",
+  "reference": "CCAfleet3.webp",
+  "reference_sha256": "4b1e7208c649755ab88f1570a7a027a5673dbe5a15506006e133b3c2063ad71f",
+  "scale_metres_per_pixel": 0.25,
+  "source_center": [
+    527,
+    270
+  ],
+  "source_span": [
+    49,
+    1007
+  ],
+  "role": "neutral cinematic fixture; names provisional, no canonical class asserted",
+  "scale_basis": "installed stock svapc length14.6186099m / about59px = .247773; rounded .25m/px",
+  "axis": "Y up; nose -Z; engines +Z",
+  "engine_exits": [
+    [
+      -16,
+      -6.0,
+      119.75
+    ],
+    [
+      16,
+      -6.0,
+      119.75
+    ],
+    [
+      -16,
+      -12.0,
+      119.75
+    ],
+    [
+      16,
+      -12.0,
+      119.75
+    ]
+  ],
+  "source_polygons": [
+    {
+      "part": "Upper fork / stepped dorsal hull",
+      "outline": [
+        [
+          49,
+          235
+        ],
+        [
+          128,
+          207
+        ],
+        [
+          299,
+          176
+        ],
+        [
+          413,
+          176
+        ],
+        [
+          434,
+          182
+        ],
+        [
+          553,
+          176
+        ],
+        [
+          568,
+          185
+        ],
+        [
+          691,
+          176
+        ],
+        [
+          707,
+          188
+        ],
+        [
+          707,
+          214
+        ],
+        [
+          420,
+          214
+        ],
+        [
+          397,
+          244
+        ],
+        [
+          80,
+          251
+        ]
+      ],
+      "half_width": 28,
+      "material": "Upper grey"
+    },
+    {
+      "part": "Lower fork",
+      "outline": [
+        [
+          97,
+          287
+        ],
+        [
+          397,
+          262
+        ],
+        [
+          397,
+          309
+        ],
+        [
+          97,
+          302
+        ]
+      ],
+      "half_width": 28,
+      "material": "Grey"
+    },
+    {
+      "part": "Lower fork dark keel",
+      "outline": [
+        [
+          97,
+          302
+        ],
+        [
+          397,
+          309
+        ],
+        [
+          423,
+          351
+        ],
+        [
+          397,
+          348
+        ]
+      ],
+      "half_width": 25,
+      "material": "Dark grey"
+    },
+    {
+      "part": "Main rectangular carrier housing",
+      "outline": [
+        [
+          420,
+          214
+        ],
+        [
+          707,
+          214
+        ],
+        [
+          707,
+          304
+        ],
+        [
+          420,
+          306
+        ],
+        [
+          397,
+          325
+        ],
+        [
+          397,
+          245
+        ]
+      ],
+      "half_width": 29,
+      "material": "Grey"
+    },
+    {
+      "part": "Carrier lower keel and spar",
+      "outline": [
+        [
+          422,
+          306
+        ],
+        [
+          707,
+          306
+        ],
+        [
+          732,
+          334
+        ],
+        [
+          707,
+          366
+        ],
+        [
+          435,
+          366
+        ],
+        [
+          435,
+          342
+        ],
+        [
+          422,
+          336
+        ]
+      ],
+      "half_width": 22,
+      "material": "Dark grey"
+    },
+    {
+      "part": "Lower aft spar",
+      "outline": [
+        [
+          484,
+          318
+        ],
+        [
+          707,
+          310
+        ],
+        [
+          733,
+          325
+        ],
+        [
+          707,
+          333
+        ],
+        [
+          484,
+          333
+        ]
+      ],
+      "half_width": 31,
+      "material": "Upper grey"
+    },
+    {
+      "part": "Large angular afterbody",
+      "outline": [
+        [
+          732,
+          241
+        ],
+        [
+          831,
+          266
+        ],
+        [
+          867,
+          253
+        ],
+        [
+          1004,
+          269
+        ],
+        [
+          1004,
+          328
+        ],
+        [
+          868,
+          354
+        ],
+        [
+          831,
+          342
+        ],
+        [
+          732,
+          371
+        ],
+        [
+          707,
+          335
+        ],
+        [
+          707,
+          310
+        ]
+      ],
+      "half_width": 35,
+      "material": "Grey"
+    },
+    {
+      "part": "Upper aft boom root",
+      "outline": [
+        [
+          706,
+          159
+        ],
+        [
+          733,
+          158
+        ],
+        [
+          733,
+          165
+        ],
+        [
+          831,
+          165
+        ],
+        [
+          831,
+          213
+        ],
+        [
+          732,
+          215
+        ],
+        [
+          707,
+          189
+        ]
+      ],
+      "half_width": 25,
+      "material": "Dark grey"
+    },
+    {
+      "part": "Upper aft boom pale cap",
+      "outline": [
+        [
+          732,
+          166
+        ],
+        [
+          831,
+          166
+        ],
+        [
+          831,
+          171
+        ],
+        [
+          905,
+          168
+        ],
+        [
+          1005,
+          178
+        ],
+        [
+          1005,
+          190
+        ],
+        [
+          832,
+          191
+        ],
+        [
+          732,
+          190
+        ]
+      ],
+      "half_width": 26,
+      "material": "Light grey"
+    },
+    {
+      "part": "Upper aft boom underside",
+      "outline": [
+        [
+          732,
+          190
+        ],
+        [
+          1005,
+          190
+        ],
+        [
+          1005,
+          199
+        ],
+        [
+          872,
+          214
+        ],
+        [
+          832,
+          214
+        ],
+        [
+          832,
+          207
+        ],
+        [
+          732,
+          214
+        ]
+      ],
+      "half_width": 24,
+      "material": "Dark grey"
+    },
+    {
+      "part": "Forward dorsal antenna rail",
+      "outline": [
+        [
+          485,
+          159
+        ],
+        [
+          706,
+          159
+        ],
+        [
+          706,
+          162
+        ],
+        [
+          485,
+          163
+        ]
+      ],
+      "half_width": 1,
+      "material": "Grey"
+    }
+  ],
+  "inference": "width, hidden surfaces, engine bank and small lamps; side outlines measured",
+  "excluded": "all five bottom-right elements are stock unit scale comparisons",
+  "atlas_sizes": {
+    "d": 2048,
+    "e": 2048,
+    "s": 512,
+    "n": 16
+  }
+}

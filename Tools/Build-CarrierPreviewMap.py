@@ -8,7 +8,7 @@ import re
 
 ROOT=Path(__file__).resolve().parents[1]
 
-def build(output):
+def build(output,fleet=False):
     source=ROOT/'Missions/misn06.bzn'
     target=output/'misn06.bzn'
     assert target.resolve()!=source.resolve(),'preview must stay outside the campaign map'
@@ -36,12 +36,21 @@ def build(output):
         fixture=re.sub(r'(^ '+key+r' \[1\] =\n)(?:  [xyz] \[1\] =\n[^\n]+\n){3}',
             lambda m:m[1]+''.join(f'  {c} [1] =\n0\n' for c in 'xyz'),fixture,count=1,flags=re.M)
     blocks.insert(index+1,fixture)
-    for key,value in [('seq_count',serial+1),('size',len(blocks)-1)]:
+    if fleet:
+        for i,(asset,x,z) in enumerate([('crccarr',2600,100900),('crcred1',1700,101450),('crcred2',2600,101450)],1):
+            other=fixture.replace('crncarr',asset).replace('cr_carrier_preview','cr_fleet_'+asset)
+            other=re.sub(r'^obj_addr = \w+',f'obj_addr = {address+i:08X}',other,count=1,flags=re.M)
+            assert address+i not in used
+            for key in ('seqno','seqNo'):
+                other=re.sub(r'(^'+key+r' \[1\] =\n)\d+',lambda m:m[1]+str(serial+i),other,count=1,flags=re.M)
+            other=other.replace('\n1700\n','\n'+str(x)+'\n').replace('\n100900\n','\n'+str(z)+'\n')
+            blocks.insert(index+1+i,other)
+    for key,value in [('seq_count',serial+(4 if fleet else 1)),('size',len(blocks)-1)]:
         blocks[0]=re.sub(r'(^'+key+r' \[1\] =\n)\d+',lambda m:m[1]+str(value),blocks[0],count=1,flags=re.M)
     output.mkdir(parents=True,exist_ok=True)
     target.write_bytes('[GameObject]\n'.join(blocks).replace('\n','\r\n').encode('latin1'))
     print('Preview-only carrier preplaced at',position,'in',target)
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path)
-    build(p.parse_args().output)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path);p.add_argument('--fleet',action='store_true')
+    a=p.parse_args();build(a.output,a.fleet)

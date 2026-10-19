@@ -1,73 +1,74 @@
 {
-  "vertices": 59007,
+  "vertices": 59009,
   "triangles": 30632,
   "bounds_min": [
-    -73.64703369140625,
-    -84.375,
-    -300.0
+    -29.45881462097168,
+    -33.75,
+    -120.0
   ],
   "bounds_max": [
-    73.64703369140625,
-    101.75,
-    307.0
+    29.45881462097168,
+    40.70000076293945,
+    122.80000305175781
   ],
-  "radius": 313.9304107814185,
+  "radius": 125.57216752245266,
   "native_vertices": 1652,
   "native_triangles": 3200,
   "role": "cinematic static fixture; no AI or production",
   "axis": "game +Z points aft; nose is -Z; Y up",
-  "scale_note": "600m concept side span, depth and cropped top/rear inferred",
+  "scale_note": "240m concept side span, depth and cropped top/rear inferred; CCA/APC comparison informed scale",
   "reference": "Nsdf_carrier.webp",
   "reference_sha256": "9b94132c76ef2948a35ade5edcc501c4be12351e5524391a2ebab834f125645f",
   "cca_comparison": "CCAfleet3.webp",
   "cca_reference_sha256": "4b1e7208c649755ab88f1570a7a027a5673dbe5a15506006e133b3c2063ad71f",
   "engine_exits": [
     [
-      -20,
-      -55,
-      307
+      -8.0,
+      -22.0,
+      122.80000000000001
     ],
     [
-      -20,
-      -38,
-      307
+      -8.0,
+      -15.200000000000001,
+      122.80000000000001
     ],
     [
-      -20,
-      -21,
-      307
+      -8.0,
+      -8.4,
+      122.80000000000001
     ],
     [
-      -20,
-      -4,
-      307
+      -8.0,
+      -1.6,
+      122.80000000000001
     ],
     [
-      20,
-      -55,
-      307
+      8.0,
+      -22.0,
+      122.80000000000001
     ],
     [
-      20,
-      -38,
-      307
+      8.0,
+      -15.200000000000001,
+      122.80000000000001
     ],
     [
-      20,
-      -21,
-      307
+      8.0,
+      -8.4,
+      122.80000000000001
     ],
     [
-      20,
-      -4,
-      307
+      8.0,
+      -1.6,
+      122.80000000000001
     ]
   ],
   "docking_bay": [
     0,
-    -25,
+    -10.0,
     0
   ],
+  "runtime_scale_from_600m_survey": 0.4,
   "stations_source_pixels": [
     [
       0,

@@ -44,6 +44,9 @@ jobs:
       - name: Validate cinematic NSDF carrier assets
         run: python Tools/Test-NSDFCarrierAssets.py
 
+      - name: Validate CCA concept fleet assets
+        run: python Tools/Test-CCAFleetAssets.py
+
       - name: Test BlackDog09 source port
         run: |
           lua5.1 Tools/Test-BlackDog09.lua
