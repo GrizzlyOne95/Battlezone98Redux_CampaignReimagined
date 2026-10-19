@@ -7,24 +7,28 @@ Run after Build-Misn17CoopMap and before Build-Misn17Jungle.
 from pathlib import Path
 import argparse
 import copy
+import io
 import math
 import struct
 import sys
 import numpy as np
 
+sys.path.insert(0,str(Path(__file__).resolve().parent))
 ROOT=Path(__file__).resolve().parents[1]
 
 
 def build(game,toolbox):
     sys.path.insert(0,str(toolbox))
     from battlezone.archives.zfs import ZFSArchive
-    from battlezone.meshes.legacy import _GEO_HEADER,_GEO_FACE,_FACE_VERT,_SDF_RECORD,read_geo,read_sdf
+    from battlezone.meshes.legacy import read_geo,read_sdf
+    from bzmodellibs import geo,geo_serializer
+    from bzstaticmodel import static_sdf_bytes
     from battlezone.meshes.legacy_port import build_port,PortOptions
     from battlezone.meshes.ogre import write_mesh
     from battlezone.meshes.ogre_skeleton import write_skeleton
     from battlezone.bzn.bz1 import read_bzn,write_bzn
     from battlezone.terrain.hg2 import read_hg2
-    arc=ZFSArchive(game/'bzone.zfs');template=arc.read('obdata.sdf');prefix=template[:template.index(b'SGEO')]
+    arc=ZFSArchive(game/'bzone.zfs');template=arc.read('obdata.sdf')
     out=ROOT/'Assets/Models';out.mkdir(exist_ok=True)
     def prism(vertices,faces,cx,cz,r,low,high,n=6,tip=None):
         start=len(vertices)
@@ -47,17 +51,18 @@ def build(game,toolbox):
             for a in range(4):prism(v,f,3.5*math.cos(a*math.pi/2),3.5*math.sin(a*math.pi/2),.55,1.2,4,4)
             prism(v,f,0,0,2.2,1.2,1.7 if name=='c17slot' else 3.0,8)
         p=np.array(v,dtype=float);lo=p.min(0);hi=p.max(0);center=(lo+hi)/2;half=(hi-lo)/2
-        raw=_GEO_HEADER.pack(b'OEG.',0,name.encode(),len(v),len(f),0)+p.astype('<f4').tobytes()+np.zeros_like(p,dtype='<f4').tobytes()
+        g=geo.Geo();g.name=name;g.vert_count=len(v)
+        g.vertex_pos_buffer=p.astype('<f4');g.vertex_normal_buffer=np.zeros_like(p,dtype='<f4')
         for i,face in enumerate(f):
             q=p[face];normal=np.cross(q[1]-q[0],q[2]-q[0]);normal/=np.linalg.norm(normal)
             # Native GEO uses inward plane normals, as the stock port codec expects.
-            raw+=_GEO_FACE.pack(i,len(face),255,255,255,*(-normal),float(normal@q[0]),0,bytes(3),(name+'.map').encode(),0,0)
-            raw+=b''.join(_FACE_VERT.pack(j,j,float(p[j][0]*.2+.5),float(p[j][1]*.25)) for j in face)
+            gf=g.create_face(i);gf.color=geo.Color3(255,255,255)
+            gf.plane=geo.SurfacePlane(geo.Vector3(*(-normal)),float(normal@q[0]))
+            gf.shade_type=gf.texture_type=0;gf.texture_name=name+'.map'
+            for j in face:gf.create_face_node(j,j,geo.UV(float(p[j][0]*.2+.5),float(p[j][1]*.25)))
+        raw=io.BytesIO();geo_serializer.GeoSerializer(raw).write(g);raw=raw.getvalue()
         (out/(name+'.geo')).write_bytes(raw);read_geo(raw)
-        rec=_SDF_RECORD.pack(name.encode(),1,0,0,0,1,0,0,0,1,0,0,0,b'WORLD',*center,float(np.linalg.norm(half)),*half,60,0,0,0,0,0,0)
-        null=_SDF_RECORD.pack(b'NULL',*([0]*12),b'NULL',*([0]*7),0,0,0,0,0,0,0)
-        body=struct.pack('<i',1)+rec+null*5
-        sdf=prefix+struct.pack('<4si',b'SGEO',8+len(body))+body+struct.pack('<4si',b'EXIT',8)*2
+        sdf=static_sdf_bytes(name,center,half,float(np.linalg.norm(half)),null_parent='NULL',template=template)
         (out/(name+'.sdf')).write_bytes(sdf);read_sdf(sdf)
         result=build_port(sdf,'sdf',name,lambda n: (out/n).read_bytes(),PortOptions(normals='flat',texture_format='none'))
         for s in result.mesh.submeshes:s.material='CR17/'+name

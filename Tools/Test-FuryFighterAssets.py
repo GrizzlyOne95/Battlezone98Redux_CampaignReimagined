@@ -1,7 +1,9 @@
 """Guard the restored fighter's native asset contract, balance and shipping."""
 from pathlib import Path
 from hashlib import sha256
-import json,re,struct
+import io,json,re,struct,sys
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from bzmodellibs import bwd2_serializer,ogremesh_serializer
 ROOT=Path(__file__).resolve().parents[1]
 ORIGINAL=ROOT/'References/FuryFighter/original'
 ASSETS=ROOT/'Assets/ModelFixes'
@@ -21,31 +23,24 @@ for old,new in [('hvraz.vdf','crfraz.vdf'),('hvraz.skeleton','crfraz.skeleton')]
 for key,path in files.items():
     if key.endswith('.geo'):
         check(namespaced(path.read_bytes())==(ASSETS/('cfr11'+key[5:])).read_bytes(),'every legacy GEO companion is present and geometry unchanged: '+key)
-vdf=(ASSETS/'crfraz.vdf').read_bytes()
-check(vdf[:4]==b'BWD2' and struct.unpack_from('<I',vdf,104)[0]==12,'complete 12-part VDF')
-for hp in (b'cfr11GC1',b'cfr11GC2'):
-    check(hp in vdf,'original weapon hardpoint survives: '+str(hp))
-def mesh_children(data):
-    p=data.index(b'\n')+1
-    check(struct.unpack_from('<H',data,p)[0]==0x3000,'Ogre root chunk')
-    end=p+struct.unpack_from('<I',data,p+2)[0]
-    flag=data[p+6:p+7];p+=7;out=[]
-    while p<end:
-        kind,length=struct.unpack_from('<HI',data,p)
-        check(length>=6 and p+length<=end,'valid complete Ogre chunk')
-        out.append((kind,data[p+6:p+length]));p+=length
-    check(p==end,'mesh length covers all chunks')
-    return flag,out,data[end:]
-a,old,oldtail=mesh_children(files['hvraz.mesh'].read_bytes())
-b,new,newtail=mesh_children((ASSETS/'crfraz.mesh').read_bytes())
-check(a==b and oldtail==newtail and len(old)==len(new),'skeletal flag, chunk count and tail preserved')
-for (kind,src),(kind2,dst) in zip(old,new):
-    check(kind==kind2,'chunk identity retained')
-    if kind in (0x4000,0x6000):
-        srcname,srcbody=src.split(b'\n',1);dstname,dstbody=dst.split(b'\n',1)
-        check(dstname==(b'crfraz' if kind==0x4000 else b'crfraz.skeleton'),'only intended material/skeleton resource is selected')
-        check(namespaced(srcbody)==dstbody,'vertex/index/UV/normal/weight data are byte-identical')
-    else:check(namespaced(src)==dst,'bounds and remaining mesh metadata are unchanged')
+vdf=bwd2_serializer.VDFSerializer(io.BytesIO((ASSETS/'crfraz.vdf').read_bytes())).read()
+check(vdf.objcount==12,'complete 12-part VDF')
+parts={o.name for o in vdf.primary_objects()}
+for hp in ('cfr11GC1','cfr11GC2'):
+    check(hp in parts,'original weapon hardpoint survives: '+hp)
+def read_mesh(data):return ogremesh_serializer.MeshSerializer(io.BytesIO(data)).read()
+old=read_mesh(files['hvraz.mesh'].read_bytes());new=read_mesh((ASSETS/'crfraz.mesh').read_bytes())
+check((old.skeleton_name is None)==(new.skeleton_name is None) and len(old.submesh_list)==len(new.submesh_list),'skeletal flag and submesh count preserved')
+check(new.skeleton_name=='crfraz.skeleton','only intended skeleton resource is selected')
+for so,sn in zip(old.submesh_list,new.submesh_list):
+    check(sn.material_name=='crfraz','only intended material resource is selected')
+    check(so.index_count==sn.index_count and bytes(so.get_index_buffer())==bytes(sn.get_index_buffer()),'index data is byte-identical')
+    check(so.vertex_data.vertex_count==sn.vertex_data.vertex_count and [vars(e) for e in so.vertex_data.vertex_declaration.vertex_element_list]==[vars(e) for e in sn.vertex_data.vertex_declaration.vertex_element_list],'vertex layout is unchanged')
+    for bind,vb in so.vertex_data.vertex_buffer_map.items():
+        check(namespaced(bytes(vb.buffer))==bytes(sn.vertex_data.get_vertex_buffer(bind).buffer),'vertex/UV/normal data are byte-identical')
+    key=lambda s:[(v.vertex_index,v.bone_index,v.weight) for v in s.bone_assignments()]
+    check(key(so)==key(sn),'weights are unchanged')
+check(vars(old.aabb)==vars(new.aabb) and old.bound_radius==new.bound_radius and old.name_table==new.name_table,'bounds and submesh names are unchanged')
 def odf(name):
     text=(ROOT/'ODF'/f'{name}.odf').read_text()
     return {m[1].lower():m[2].strip().strip('"') for m in re.finditer(r'(?m)^(\w+)\s*=\s*([^/\n]*)',text)}
