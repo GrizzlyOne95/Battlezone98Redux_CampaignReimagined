@@ -184,6 +184,30 @@ check(G.Describe().vents==7 and G.Describe().ventsLit==3,"vents only ever open")
 G.Apply("vents",99);G.Apply("vents","7")
 check(G.Describe().vents==7,"malformed vent packets are ignored")
 G.Stop()
+-- With EXU point lights each vent gets a real light and leaves the ambient alone.
+local lights={}
+local lexu=setmetatable({CreatePointLight=function(name,p,c,range)
+        if lights[name] then return false end
+        lights[name]={p=p,c=c,range=range,power=1};return true end,
+    SetPointLightPowerScale=function(name,s) if not lights[name] then return false end;lights[name].power=s;return true end,
+    DestroyPointLight=function(name) local had=lights[name]~=nil;lights[name]=nil;return had end},{__index=api.exu})
+local L=setfenv(assert(loadfile("Scripts/CRJungle17.lua")),env)().Create({exu=lexu,state=function() error("guest read mission state") end})
+L.Reset();L.Apply("vents",2);L.Update(.1,false,noop)
+local lamp=lights["CR17/Core2/Light"]
+check(lamp and lamp.p.x==3095.2 and lamp.p.y>155 and lamp.range>=40 and lamp.range<=120,"vent lights a point light above its pit")
+check(lamp and lamp.c.r==1 and lamp.c.r>lamp.c.g and lamp.c.g>lamp.c.b,"vent light is fire-coloured")
+check(L.Describe().ventLights==1,"describe counts vent lights")
+local idle=lamp.power;now=now+9;L.Update(.1,false,noop)
+check(lamp.power>idle,"vent light flares with the surge")
+player={x=3100,y=155,z=101460};L.Update(.1,false,noop)
+local lit={ambient={r=.1,g=.1,b=.1}};modifiers.CR17Lightning(lit)
+check(L.Describe().ventGlow==0 and lit.ambient.r==.1,"a real light replaces the ambient tint")
+player={x=0,y=0,z=0}
+L.Stop()
+check(next(lights)==nil,"stop destroys vent lights")
+L.Reset({vents=2});L.Update(.1,false,noop)
+check(lights["CR17/Core2/Light"]~=nil,"load relights the vent light")
+L.Stop()
 check(wind==nil,"stop releases the wind override")
 check(P.Presets.AcidRainVisual.precipitation[1].emitters[0].rate==nil,"shared acid rain preset unchanged")
 -- A map that already owns a sky keeps it.
