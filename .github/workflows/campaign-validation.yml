@@ -333,6 +333,12 @@ jobs:
           lua5.1 Tools/Test-Misn17Jungle.lua
           lua5.1 Tools/Test-Misn17Crystals.lua
           python Tools/Test-Misn17SourceParity.py
+      - name: Test misn18 faithful port, co-op layer and map contract
+        run: |
+          lua5.1 Tools/Test-Misn18.lua
+          lua5.1 Tools/Test-Misn18Coop.lua
+          python Tools/Test-Misn18SourceParity.py
+          python Tools/Test-Misn18CoopContract.py
 
       - name: Test restored Fury fighter assets and mission roster
         run: |

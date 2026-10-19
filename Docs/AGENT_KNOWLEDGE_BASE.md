@@ -274,6 +274,12 @@ Grep every ported mission for these before trusting it in MP:
 - Restored VO wavs ship as `Assets/Audio/*.wav` byte-exact from `bzone_en.zfs` (marked binary in
   `.gitattributes`; the manager has a `.wav` map) because Redux's de/es/fr/it archives lack many cut
   wavs (subtitle but silence). `Tools/Test-ShippedCutVo.py` guards this.
+- Parity-safe human triggers (misn18): when the faithful body is full of `Distance(M.player, ...)`, shadow
+  `GetPlayerHandle` with a token and reassign the body's local `Distance` from a CR region; the wrapper answers
+  the nearest human for approach triggers and the farthest for recycler gates, so no body line changes. Camera
+  shots about the player's own ship ("left behind") stream only a height and each peer films its own ship.
+  Check which of a mission's wavs ship in every Redux language archive before adding one to `Assets/Audio`
+  (misn1817/1818 do, misn1803 does not). `Docs/MISN18_COOP.md` is the template for storm-style optional hooks.
 
 ### 3.7 `crcampgn.ini` conventions
 
