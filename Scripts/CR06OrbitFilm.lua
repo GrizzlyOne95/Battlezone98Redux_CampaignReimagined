@@ -1,13 +1,14 @@
 -- Escape from Mars: orbital insert under the restored Lincoln Mayday VO
 -- (misn0625 "under attack", misn0626 "Mayday... Our engines are--").
--- Prototype: runs on the authority only (guests keep the ground view). The fleet is staged far above the launch pad
--- so the 5 km drop sits beyond the shortened far clip: the view shows only the
--- starfield dome, the ships and their effects. Every actor, particle system,
+-- Prototype: runs on the authority only (guests keep the ground view). The fleet
+-- is staged 40 km above the launch pad. Terrain is drawn to its own visibility
+-- range, not the far clip, so only distance shrinks it out of the frame: the view
+-- shows the starfield, the ships and their effects. Every actor, particle system,
 -- light and scene override is local and is removed when the shot ends.
 local Film = {}
 
 local ALTITUDE = 5000      -- metres above the pad
-local FAR, NEAR = 3000, 2  -- terrain at -5 km is clipped; the dome sits at 0.45x far
+local FAR, NEAR = 3000, 2  -- the sky box sits at 0.2x far (corners inside the sky cull limit)
 local CLIMAX = 15.6        -- "Our engines are--": 0625 (2.4 s) + most of 0626 (15 s)
 local HARD_END = 24        -- audio missing or stalled
 local LINCOLN_SPEED, DESTROYER_SPEED = 12, 34
@@ -100,18 +101,34 @@ local function stage_scene(shot, api)
         if call(api, "SetParticleSystemVisible", name, false) ~= nil then shot.hidden[#shot.hidden + 1] = name end
     end
     call(api, "SetSkyPlaneEnabled", false)
-    call(api, "SetSkyBoxEnabled", false)
-    if call(api, "SetSkyDome", "CR06/Starfield", 2, 3, FAR * 0.45, true) ~= true then
-        api.log("[misn06] orbital starfield dome unavailable")
+    -- Wherever no sky draws, the viewport clear shows, and the engine repaints it in
+    -- the TRN sky colour every frame. A box closes every direction; the dome leaves
+    -- the horizon open, so its fallback adds an upward-facing floor plane.
+    if call(api, "SetSkyBox", "CR06/StarBox", FAR * 0.2, true) == true then
+        shot.boxOwned = true
+        call(api, "SetSkyDomeEnabled", false)
+    else
+        call(api, "SetSkyBoxEnabled", false)
+        if call(api, "SetSkyDome", "CR06/Starfield", 2, 3, FAR * 0.25, true) ~= true then
+            api.log("[misn06] orbital starfield dome unavailable")
+        end
+        shot.domeOwned = true
+        if not shot.saved.plane and call(api, "SetSkyPlane", "CR06/Starfield",
+            { normal = api.vector(0, 1, 0), d = FAR * 0.1 }, FAR * 2, 6, true) == true then
+            shot.floorOwned = true
+        end
     end
-    shot.domeOwned = true
+    api.log("[misn06] orbit sky " .. (shot.boxOwned and "box" or "dome"))
     -- The stock sky ceiling, cloud layers and sun are drawn by the engine with
     -- materials named after their textures; retexture them for the shot.
     shot.retextured = {}
     for _, swap in ipairs(api.skyTextures or {}) do
-        if call(api, "MaterialExists", swap[1]) == true
-            and pcall(exu.SetMaterialTexture, swap[1], swap[2]) then
-            shot.retextured[#shot.retextured + 1] = swap[1]
+        -- MaterialExists reports false for these engine-built materials, and the name's case
+        -- follows the TRN; try both spellings and let the setter resolve them.
+        for _, material in ipairs({ swap[1], swap[1]:upper() }) do
+            if call(api, "SetMaterialTexture", material, swap[2]) == true then
+                shot.retextured[#shot.retextured + 1] = material
+            end
         end
     end
     api.log("[misn06] orbit sky retextured " .. #shot.retextured .. " material(s)")
@@ -132,9 +149,12 @@ local function restore_scene(shot, api)
     if s.fog then call(api, "SetFog", s.fog) end
     if s.ambient then call(api, "SetAmbientLight", s.ambient) end
     if s.sun then call(api, "SetSunDirection", s.sun) end
-    if shot.domeOwned then call(api, "SetSkyDomeEnabled", s.dome == true) end
-    if s.plane then call(api, "SetSkyPlaneEnabled", true) end
-    if s.box then call(api, "SetSkyBoxEnabled", true) end
+    if shot.domeOwned or shot.boxOwned then call(api, "SetSkyDomeEnabled", s.dome == true) end
+    if s.plane then call(api, "SetSkyPlaneEnabled", true)
+    elseif shot.floorOwned then call(api, "SetSkyPlaneEnabled", false) end
+    shot.floorOwned = nil
+    call(api, "SetSkyBoxEnabled", s.box == true)
+    shot.boxOwned, shot.domeOwned = nil, nil
     for _, name in ipairs(shot.hidden or {}) do call(api, "SetParticleSystemVisible", name, true) end
     for _, material in ipairs(shot.retextured or {}) do call(api, "SetMaterialTexture", material, material) end
     shot.retextured = nil

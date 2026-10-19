@@ -29,3 +29,21 @@ material CR06/Starfield
 		}
 	}
 }
+
+// Six-face twin of CR06/Starfield for the sky box. Ogre's box gives each face
+// its own frame of texture unit 0 unless the texture is a cube map, so the
+// starfield is listed once per face.
+material CR06/StarBox : CR06/Starfield
+{
+	technique 0
+	{
+		pass 0
+		{
+			texture_unit 0
+			{
+				anim_texture cr06star.dds cr06star.dds cr06star.dds cr06star.dds cr06star.dds cr06star.dds 0
+				tex_address_mode clamp
+			}
+		}
+	}
+}

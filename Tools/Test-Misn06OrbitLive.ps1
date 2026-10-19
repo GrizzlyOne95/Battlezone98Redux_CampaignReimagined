@@ -23,7 +23,7 @@ Invoke-CRFlowStep 'vob3 and vob4 cues fire; orbit film begins' {
     Invoke-CRFlow 0 'M.oneminstrans = GetTime() - 1; M.transaway = GetTime() - 1; return true' | Out-Null
     Wait-CRFlow 0 'return M.vob3 == true' -TimeoutSeconds 5 | Out-Null
     Wait-CRFlow 0 'return M.orbitFilm ~= nil' -TimeoutSeconds 40 | Out-Null
-    $r = Invoke-CRFlow 0 "local s=M.orbitFilm;return {t=GetTime()-s.started, lin=IsValid(s.lincoln), d1=IsValid(s.d1), d2=IsValid(s.d2), rok=IsValid(s.transport), sky=#(s.retextured or {}), clip={exu.GetCameraClipDistances()}, dome={exu.GetSkyDome and exu.GetSkyDome()}}"
+    $r = Invoke-CRFlow 0 "local s=M.orbitFilm;return {t=GetTime()-s.started, lin=IsValid(s.lincoln), d1=IsValid(s.d1), d2=IsValid(s.d2), rok=IsValid(s.transport), sky=#(s.retextured or {}), box=s.boxOwned==true, floor=s.floorOwned==true, clip={exu.GetCameraClipDistances()}, dome={exu.GetSkyDome and exu.GetSkyDome()}}"
     Write-Host "ORBIT $(ConvertTo-Json $r -Compress)"
     if (-not $r.lin -or -not $r.d1 -or -not $r.d2) { throw "orbit actors missing: $(ConvertTo-Json $r -Compress)" }
     $r

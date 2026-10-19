@@ -994,7 +994,7 @@ local orbitFilmAPI = {
     layout = require("CR06RocketLayout"),
     -- misn06.trn: SkyTexture, [Clouds] Texture0-2, SunTexture.
     skyTextures = {
-        { "mars.map", "cr06star.dds" }, { "acloud2.map", "cr06void.dds" }, { "sun.0", "cr06void.dds" },
+        { "mars.map", "cr06star.dds" }, { "acloud2.map", "cr06void.dds" }, { "acloud.map", "cr06void.dds" }, { "sun.0", "cr06void.dds" },
     },
     templates = function()
         local T = require("CRParticleTemplates")
