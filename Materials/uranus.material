@@ -1,5 +1,11 @@
-// Uranus sky disc (misn17, misn18). Same blend as SMJOVIAN.MAP: straight alpha
-// over the sky, selected with Alpha00 = 0 in the [Stars] entry.
+// Uranus sky disc (misn17, misn18), seen through the overcast rather than over it.
+// CR_SkyHaze_fragment (Shaders/CR_sky.program) thins the disc, tints it toward
+// the fog colour and fades it with a slowly drifting mask from the map's own
+// cloud alpha (acloud2.tga), so it comes and goes through gaps.
+//   hazeParams: x opacity, y tint mix, z mask drift (UV/s; z*1000 must be whole
+//               because time_0_x wraps at 1000 s), w mask contrast.
+//   hazeTint:   fog colour of the Achilles overcast.
+// Selected with Alpha00 = 0 in the [Stars] entry (straight alpha, like SMJOVIAN.MAP).
 // Image: NASA/JPL-Caltech (Voyager 2, PIA18182); see Docs/SKY_ART_CREDITS.md.
 material URANUS.MAP
 {
@@ -7,21 +13,32 @@ material URANUS.MAP
 	{
 		pass
 		{
-			vertex_program_ref Sky_vertex
+			vertex_program_ref CR_Sky_vertex
 			{
 			}
-			fragment_program_ref Sky_fragment
+			fragment_program_ref CR_SkyHaze_fragment
 			{
-			} 
+				param_named hazeParams float4 0.50 0.45 0.004 2.5
+				param_named hazeTint float4 0.58 0.64 0.61 1.0
+			}
 
+			cull_hardware none
+			cull_software none
 			lighting off
+			emissive 0 0 0
 			fog_override true none
 			scene_blend alpha_blend
 			depth_write off
-			emissive 1 1 1
+			diffuse vertexcolour
 			texture_unit
 			{
+				tex_address_mode clamp
 				texture uranus.dds
+			}
+			texture_unit
+			{
+				tex_address_mode wrap
+				texture acloud2.tga
 			}
 		}
 	}

@@ -44,7 +44,7 @@ Texture00   = uranus.map
 Alpha00     = 0
 Size00      = 450
 Azimuth00   = 210
-Elevation00 = 38
+Elevation00 = 30
 Roll00      = 0
 
 [Clouds]
