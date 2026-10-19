@@ -295,3 +295,68 @@ appears at `spawn1b`; the 12-Fury cap holds in a long four-player run; `M.coopUn
 `CRStorm18` present, its phases (through `extract` and `ascent`) arrive in order on the leader and its events render on every client; the
 stock discovery quake and the restored pulses shake through the storm with no stutter, and a guest's ship is
 pulled by the tornado.
+
+
+## Live results 2026-10-19
+
+First live runs, OpenShim co-op harness (`Tools/Run-Misn18Live.ps1`, scenarios `Tools/Test-Misn18Live.ps1`), GOG
+build, DX11, windowed, no audio endpoint, no focus or input. One-peer runs are a one-client network game (the harness
+lobby needs a patched copy for one peer; true offline play cannot be started without a menu click, so the offline
+code path is **not** covered). Evidence: `C:\BZRCoop\misn18-20261019\` and `C:\BZRCoop\runs\<run>\`.
+
+| Case | Peers | Run | Result |
+| --- | --- | --- | --- |
+| storm ladder + win + extraction | 1 | `misn18-storm-1p-b20261019-103659` | PASS: opening, search, found, core1-3, collapse, final, extract, ascent, success; no Lua or Ogre errors |
+| win (fast) | 1 | `misn18-win-1p-a20261019-103103` | PASS (the countdown check in that run read the engine clock, see below) |
+| loss (countdown expiry) | 1 | `misn18-loss-1p-a20261019-104943` | PASS: left-behind shot, `FailMission`, result parity |
+| smoke | 1 | `misn18-smoke-1p-c20261019-101828` | PASS to the point the run lost its coordinator (audio watchdog, see below) |
+| wakes | 1 | `misn18-wakes-1p-a`/`b` | modules PASS (systems created over water and mud, zero CRWake errors); captures did not frame the craft: visual BLOCKED |
+| storm ladder + win + extraction | 2 | `misn18-storm-2p-d20261019-105510` | PASS: every step on both clients, 30/30 matching presentation ops, `SucceedMission` on both |
+
+### Bug found and fixed: the countdown never counted
+
+`MultSTMission` calls `StartCockpitTimerUp` every frame (see `BZR_LUA_AGENT_REFERENCE.md`, "Multiplayer cockpit timer
+override"). Live, `GetCockpitTimer()` returned the mission clock (59 at t = 59.9 s, 66 at 66.1 s) whatever
+`StartCockpitTimer(180, 120, 30)` asked for. So the countdown loss (`GetCockpitTimer() <= 0`) and the storm's `final`
+phase could never fire: a run held 295 s of mission time past the start of a 180 s countdown with no loss. The host
+fixture used a counting-down native timer and hid this. Fixed in `CRMisn18`: the leader stores `timerEnd` in saved
+state when the countdown starts and `GetCockpitTimer` (and the `final` phase) read that script clock. The fixture's
+native timer now mimics the engine (mission clock); `Test-Misn18Coop.lua` failed on it before the fix. **Open:** the
+displayed cockpit timer is still the engine's count-up in network games; the on-screen countdown the owner asked for
+needs a script-drawn display (design decision). Other missions that read `GetCockpitTimer` in `MultSTMission` (misn12)
+should be checked for the same defect.
+
+### What the captures show (DX11, 584x720 window)
+
+* Storm sky: a red swirl deck with dark streaks, drifting leaf and dust sprites, ground fog, cracks and a dark tornado
+  funnel. It brightens from orange (found) to saturated red (core3, final). `CR18/StormSwirl` is skipped by the DX11
+  legacy-material guard (`[DX11COMPAT] ... unsupported custom programs ... action=skip`) yet draws, so the skip applies to
+  a sibling technique; no `CR18_Swirl_v2` compile error (only the expected `Invalid target ... vs_3_0` for the SM3
+  delegates).
+* A pale grey-green band remains between the red deck and the hills in low-camera shots (extraction landing and ascent,
+  wake mud shot) even with `agent/misn18-sky` merged; in the high sky shots the deck reaches the hills. The horizon fix
+  is not complete for low views.
+* `transdestroyedcam`: the transport tower and the explosion, 8 s, same instants on both clients.
+* Extraction: NSDF dropships ("12", star roundels) land and lift in both clients; at landing distance they are dark
+  silhouettes. Both clients show the same framing.
+* A flat olive polygon at the top edge of one `final-tornado` frame (sky-plane edge or ground tile) is unexplained.
+
+### Guests and co-op (2 peers)
+
+Guest saw the opening, the transdestroyedcam shot (`CameraReady/CameraPath/CameraFinish` within 0.1 s of the leader),
+the countdown start, the extraction shots and the result, in the same order. Sampled at t = 17 s and during the ascent
+the dropship fleet and the base cargo are within tolerance on both clients; the t = 9 s sample (ships still flying in)
+differed by up to 156 m, which is the stream latency on moving craft, not a different place.
+
+### Harness findings
+
+* Without an audio endpoint the opening voice-over reports done at once, so a guest may never get an opening
+  `CameraPath`; the scenario treats that as a warning.
+* The OpenShim coordinator aborts a run (`Client N lost its audio session`) when an audio endpoint appears mid-run with no
+  muted session; the runner no longer passes `-MuteClients` by default.
+* One client start-up crash in the menu music (`libvorbisfile`, "Starting Music Playback") in 1 of 11 launches; not
+  reproducible, not mission related (the listing has no music key; same as misn17).
+* One-time Ogre exceptions at mission start: `Cannot find required template 'CR18/Dust|Streak|Haze|Ash|Cinder|Debris'`
+  (templates requested before the payload registers; the director reports `templates = true` and 6 live systems
+  afterwards). Worth a look: probably a first-frame retry.
+* Not run: DX9 smoke, misn17 jungle and Moon/Mars wake captures, 4-peer, 2-peer loss.
