@@ -23,9 +23,17 @@ void swirl_vertex(
 	in float4 iPosition : POSITION,
 	in float2 iTexCoord : TEXCOORD0,
 	out float4 vTex : TEXCOORD0,
+	out float3 vView : TEXCOORD1,
 	out float4 oPosition : SV_POSITION)
 {
 	oPosition = mul(wvpMat, iPosition);
+	// Pinned just inside the far plane: the deck is never far-clipped, so it
+	// runs down to its own edge (under a degree above the horizon) instead of
+	// ending in a hard line wherever it crosses the far clip.
+	oPosition.z = oPosition.w * 0.9999;
+	// The sky node sits at the camera, so the object-space position is the
+	// view ray; the fragment stage reads its elevation.
+	vView = iPosition.xyz;
 	vTex.xy = mul(texMat, float4(iTexCoord, 0, 1)).xy;
 	vTex.zw = iTexCoord;
 }
@@ -48,6 +56,7 @@ void swirl_fragment(
 	uniform float3 fogColour,
 	uniform float4 plane,
 	in float4 vTex : TEXCOORD0,
+	in float3 vView : TEXCOORD1,
 	out float4 oColor : SV_TARGET)
 {
 	float2 q = (vTex.zw - plane.xx) / plane.y;
@@ -68,5 +77,9 @@ void swirl_fragment(
 	float rim = smoothstep(0.20, 1.05, r);
 	col += glow.rgb * glow.a * pulse * (0.35 * rim + 0.85 * dens * (0.4 + 0.6 * rim));
 	col = lerp(col, fogColour * 0.8 + glow.rgb * 0.15, smoothstep(0.85, 1.35, r) * 0.65);
+	// Sink into the fog colour at the horizon, where the terrain's fog ends, so
+	// hills and sky meet without a seam.
+	float elev = vView.y / max(length(vView), 1e-4);
+	col = lerp(col, fogColour, 1.0 - smoothstep(0.015, 0.14, elev));
 	oColor = float4(col, 1.0);
 }

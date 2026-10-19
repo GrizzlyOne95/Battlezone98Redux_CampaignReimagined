@@ -4,41 +4,41 @@
 // is the shader revision: bump it with any source edit, because Ogre's microcode
 // cache keys on the program name and serves stale code for an edited source.
 
-vertex_program CR18_Swirl_v1_vertexHLSL4 hlsl
+vertex_program CR18_Swirl_v2_vertexHLSL4 hlsl
 {
     source cr18_swirl-sm4.hlsl
     target vs_4_0
     entry_point swirl_vertex
 }
 
-vertex_program CR18_Swirl_v1_vertexHLSL hlsl
+vertex_program CR18_Swirl_v2_vertexHLSL hlsl
 {
     source cr18_swirl.hlsl
     target vs_3_0
     entry_point swirl_vertex
 }
 
-vertex_program CR18_Swirl_v1_vertexGLSL glsl
+vertex_program CR18_Swirl_v2_vertexGLSL glsl
 {
     source cr18_swirl-vertex.glsl
     syntax glsl120
 }
 
-fragment_program CR18_Swirl_v1_fragmentHLSL4 hlsl
+fragment_program CR18_Swirl_v2_fragmentHLSL4 hlsl
 {
     source cr18_swirl-sm4.hlsl
     target ps_4_0
     entry_point swirl_fragment
 }
 
-fragment_program CR18_Swirl_v1_fragmentHLSL hlsl
+fragment_program CR18_Swirl_v2_fragmentHLSL hlsl
 {
     source cr18_swirl.hlsl
     target ps_3_0
     entry_point swirl_fragment
 }
 
-fragment_program CR18_Swirl_v1_fragmentGLSL glsl
+fragment_program CR18_Swirl_v2_fragmentGLSL glsl
 {
     source cr18_swirl-fragment.glsl
     syntax glsl120
@@ -48,11 +48,11 @@ fragment_program CR18_Swirl_v1_fragmentGLSL glsl
     }
 }
 
-vertex_program CR18_Swirl_v1_vertex unified
+vertex_program CR18_Swirl_v2_vertex unified
 {
-    delegate CR18_Swirl_v1_vertexGLSL
-    delegate CR18_Swirl_v1_vertexHLSL4
-    delegate CR18_Swirl_v1_vertexHLSL
+    delegate CR18_Swirl_v2_vertexGLSL
+    delegate CR18_Swirl_v2_vertexHLSL4
+    delegate CR18_Swirl_v2_vertexHLSL
     default_params
     {
         param_named_auto wvpMat worldviewproj_matrix
@@ -60,11 +60,11 @@ vertex_program CR18_Swirl_v1_vertex unified
     }
 }
 
-fragment_program CR18_Swirl_v1_fragment unified
+fragment_program CR18_Swirl_v2_fragment unified
 {
-    delegate CR18_Swirl_v1_fragmentGLSL
-    delegate CR18_Swirl_v1_fragmentHLSL4
-    delegate CR18_Swirl_v1_fragmentHLSL
+    delegate CR18_Swirl_v2_fragmentGLSL
+    delegate CR18_Swirl_v2_fragmentHLSL4
+    delegate CR18_Swirl_v2_fragmentHLSL
     default_params
     {
         param_named_auto time time_0_x 1000

@@ -9,6 +9,7 @@ uniform vec4 swirl;
 uniform vec3 fogColour;
 uniform vec4 plane;
 varying vec4 vTex;
+varying vec3 vView;
 
 vec2 turn(vec2 p, float a)
 {
@@ -34,5 +35,7 @@ void main()
 	float rim = smoothstep(0.20, 1.05, r);
 	col += glow.rgb * glow.a * pulse * (0.35 * rim + 0.85 * dens * (0.4 + 0.6 * rim));
 	col = mix(col, fogColour * 0.8 + glow.rgb * 0.15, smoothstep(0.85, 1.35, r) * 0.65);
+	float elev = vView.y / max(length(vView), 1e-4);
+	col = mix(col, fogColour, 1.0 - smoothstep(0.015, 0.14, elev));
 	gl_FragColor = vec4(col, 1.0);
 }
