@@ -31,6 +31,27 @@ jobs:
         with:
           python-version: '3.12'
 
+      # Shared model-format libraries (see AGENTS.md "Model tooling").
+      # Tools/bzmodellibs.py imports them from BZ_TOOLBOX_DIR/BZ_TOOLKIT_DIR.
+      # Bump the pinned commits deliberately; they are not tracked to main.
+      - name: Fetch model-format libraries
+        shell: bash
+        env:
+          TOOLBOX_SHA: b3cfcf5ca24fd44a13dfd4dd3d002bc08cdd8813
+          TOOLKIT_SHA: 60c69f8b5a92f74a3a2eeef2b82daba082b98a16
+        run: |
+          set -euo pipefail
+          fetch() {
+            git init -q "$2"
+            git -C "$2" fetch -q --depth 1 "https://github.com/GrizzlyOne95/$1.git" "$3"
+            git -C "$2" checkout -q FETCH_HEAD
+          }
+          fetch Battlezone98_Modding_Toolbox "$RUNNER_TEMP/bz-toolbox" "$TOOLBOX_SHA"
+          fetch BZ98RBlenderToolKit "$RUNNER_TEMP/bz-toolkit" "$TOOLKIT_SHA"
+          echo "BZ_TOOLBOX_DIR=$RUNNER_TEMP/bz-toolbox" >> "$GITHUB_ENV"
+          echo "BZ_TOOLKIT_DIR=$RUNNER_TEMP/bz-toolkit" >> "$GITHUB_ENV"
+          echo "BZ_MODELLIBS_REQUIRED=1" >> "$GITHUB_ENV"
+
       - name: Install Lua 5.1 compiler
         shell: bash
         run: |
@@ -46,6 +67,12 @@ jobs:
 
       - name: Validate L-Power fin spin and lightning shader
         run: python Tools/Test-LightningPlants.py
+
+      - name: Install numpy (the Blender toolkit's model readers need it)
+        run: python -m pip install numpy
+
+      - name: Validate building spin and armory launch animations
+        run: python Tools/Test-BuildingAnimations.py
 
       - name: Validate CCA concept fleet assets
         run: python Tools/Test-CCAFleetAssets.py
