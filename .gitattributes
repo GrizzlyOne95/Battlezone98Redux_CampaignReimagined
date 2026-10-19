@@ -16,6 +16,9 @@ Missions/misn15b.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misn16b.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misn16.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misn18.trn -text whitespace=-blank-at-eol,-blank-at-eof
+# The misn18 briefing must stay CRLF on every checkout (Test-Misn18CoopContract.py).
+misn18.des -text
+Missions/misn18.vxt -text
 Missions/misns4.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misns5.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misns6.trn -text whitespace=-blank-at-eol,-blank-at-eof
