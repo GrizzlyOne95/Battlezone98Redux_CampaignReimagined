@@ -106,10 +106,14 @@ Current TC study: the reference's 77.582 m height is normalized to the existing
 width is 30.037 m, within 0.1% of the uniformly scaled TC reference. Its eight
 7 m engine offsets become an 8.752 m ring; the generated layout moves exhaust
 with the new bell exits. The fixture remains on the validated deck anchor.
-The camera now starts at local (-55,-20,95)m and pulls back to (-75,-25,130)m,
-around the tower in the clearing rather than above it. Lower engine sightline
-terrain samples are clear at the starting angle.
+Native run 5 passes all 7 steps / 23 checks and confirms the TC silhouette,
+deck anchor and aligned exhaust. The angle (-55,-20,95)m looked back toward
+the sun and put the hull in deep shadow despite the neutral normal map. The
+next camera pass alone moves to the sunlit clearing: local (95,-20,20)m, pulling
+back to (140,-25,29.5)m. A twelve-sample native height-field check retains the
+previous elevated shot if the low sightline becomes obstructed. The film suite
+now passes 51 checks, including clear/blocked terrain and the pullback.
 
 Reference identity, file hashes and scale are recorded in
 `References/Misn06Rocket/total-command-reference.json`. Imported Total Command
-source assets are not shipping inputs. Next native run: `mars-rocket-rebuild-5`.
+source assets are not shipping inputs. Next native run: `mars-rocket-rebuild-6`.

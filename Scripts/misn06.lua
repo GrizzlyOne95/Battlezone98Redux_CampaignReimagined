@@ -970,6 +970,7 @@ end
 -- CR launch film >>
 local launchFilmAPI = {
     valid = IsValid, time = GetTime, transform = GetTransform,
+    terrain = function(x,z) return GetTerrainHeightAndNormal(SetVector(x,0,z)) end,
     handle = RocketHandle, remove = RemoveObject,
     ready = CameraReady, camera = CameraObject, finish = CameraFinish,
     cancelled = CameraCancelled,

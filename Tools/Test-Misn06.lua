@@ -54,6 +54,11 @@ local function NewMission()
         assert(e.IsValid(h)); return { x = h.pos.x, y = h.pos.y, z = h.pos.z }
     end
     e.SetPosition = function(h, p) h.pos = p; Record("SetPosition", h, p) end
+    e.SetVector = function(x,y,z) return {x=x,y=y,z=z} end
+    e.GetTerrainHeightAndNormal = function(p)
+        assert(type(p.x)=="number" and type(p.z)=="number")
+        return 0,{x=0,y=1,z=0}
+    end
     e.GetTransform = function(h)
         assert(e.IsValid(h))
         return {right_x=1,right_y=0,right_z=0,up_x=0,up_y=1,up_z=0,

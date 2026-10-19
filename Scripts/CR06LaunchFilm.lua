@@ -24,6 +24,17 @@ function Film.Begin(state, api, pad)
     local pose = api.transform(rocket)
     state.launchFilm = { rocket = rocket, pad = pad, pose = pose,
         baseY = pose.posit_y, started = api.time(), camera = false }
+    -- Keep the previous elevated framing if terrain changes obstruct the low
+    -- clearing. Query only the height field; never issue AI orders to fixtures.
+    if type(api.terrain)=="function" then
+        for i=1,12 do
+            local t=i/12
+            local x=pose.posit_x+((pose.right_x or 1)*95+(pose.front_x or 0)*20)*t
+            local z=pose.posit_z+((pose.right_z or 0)*95+(pose.front_z or 1)*20)*t
+            local y=pose.posit_y-48.5+(48.5-20)*t
+            if api.terrain(x,z)>y-4 then state.launchFilm.highFallback=true;break end
+        end
+    end
 end
 
 function Film.Update(state, api)
@@ -47,12 +58,17 @@ function Film.Update(state, api)
     end
     if shot.skipped or shot.viewDone then return end
     if not shot.camera then api.ready(); shot.camera = true end
-    -- Clearing beside the raised deck, around the tower rather than above it.
+    -- Sunlit clearing beside the raised deck, around the tower rather than
+    -- shooting back toward the sun and putting the ivory hull in silhouette.
     -- A gentle pullback leaves room for the widening eight-engine exhaust.
     local t=math.min(1,elapsed/DURATION)
     t=t*t*(3-2*t)
-    api.camera(shot.rocket, math.floor(-5500-2000*t),math.floor(-2000-500*t),
-               math.floor(9500+3500*t),shot.rocket)
+    if shot.highFallback then
+        api.camera(shot.rocket,-6500,12500,7500,shot.rocket)
+    else
+        api.camera(shot.rocket,math.floor(9500+4500*t),math.floor(-2000-500*t),
+                   math.floor(2000+950*t),shot.rocket)
+    end
     if api.cancelled() then
         api.finish()
         shot.camera, shot.skipped = false, true

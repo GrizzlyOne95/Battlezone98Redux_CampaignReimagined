@@ -13,6 +13,7 @@ local function world()
         ready=function()w.ready=w.ready+1 end,
         camera=function(subject,x,y,z,target)
             check(subject==w.rocket and target==w.rocket,'steady tracking camera')
+            w.cameraOffset={x,y,z}
             w.frames=w.frames+1
         end,
         finish=function()w.finished=w.finished+1 end,
@@ -50,4 +51,11 @@ w,a,s=world();w.rocket.alive=false;Film.Begin(s,a,w.pad);Film.Update(s,a)
 check(w.ready==0 and not s.launchFilm,'old save without fixture never takes camera')
 w,a,s=world();s.launchFilmTerminal=true;Film.Begin(s,a,w.pad)
 check(not s.launchFilmStarted,'terminal mission cannot start another film')
+w,a,s=world();a.terrain=function()return 0 end;Film.Begin(s,a,w.pad);Film.Update(s,a)
+local start=w.cameraOffset
+check(not s.launchFilm.highFallback and start[2]<0,'clear terrain uses the low view')
+w.now=110;Film.Update(s,a)
+check(w.cameraOffset[1]^2+w.cameraOffset[3]^2>start[1]^2+start[3]^2,'view pulls back during ascent')
+w,a,s=world();a.terrain=function()return 1000 end;Film.Begin(s,a,w.pad);Film.Update(s,a)
+check(s.launchFilm.highFallback and w.cameraOffset[2]>10000,'obstructed clearing retains high-shot fallback')
 print('misn06 launch film checks passed: '..checks)
