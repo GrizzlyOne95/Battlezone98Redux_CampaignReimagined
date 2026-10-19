@@ -92,15 +92,56 @@ the mission.
 
 ## Wind
 
-Phase A is intentionally static. `TerrainClutter.GetWind()` is a safe read of
-`CRWeather.GetWind()` and returns a zero vector when weather is absent or not
-initialized, but no shader parameter is updated yet.
+Foliage sways on the GPU; Lua writes one float4 per material when the wind
+changes, never per instance or per frame.
 
-Phase B should use a global material/shader parameter, not per-instance CPU
-updates. The vertex shader should combine the authoritative wind direction and
-magnitude with time, world-position phase variation, and a vertex-height mask
-so roots stay fixed and neighbouring clumps do not move in lockstep. Gusts and
-local weather remain inputs from `CRWeather`; foliage must not simulate them.
+- **Weights.** StaticGeometry bakes vertices into region space, so the shader
+  cannot recover a vertex's height above its own root. `Tools/Bake-FoliageSway.py`
+  instead adds a TEXCOORD1 stream of (bend, flutter) weights in 0..1 to each
+  foliage submesh, on its own vertex buffer, and renames the submesh to the
+  wind material. A wind material on an unbaked mesh fails the D3D11 vertex
+  declaration on every draw, so the still materials stay for other meshes.
+  - `plant` mode: bend = h^1.5, flutter = h (ferns, fronds, reeds, grass).
+  - `tree` mode: the bark keeps its BZBase material and does not move; the
+    canopy bends with h^2 and flutters with h times its distance from the trunk.
+- **Programs.** `cr17_surface.hlsl`/`-vertex.glsl` gain a `WIND` path
+  (`cr17_wind.program`, every Plain/Shadow/PSSM/Caster variant) and
+  `CR_textured*.hlsl` a `textured_wind_vertex` entry (`CR_grasswind.program`).
+  Both use the same displacement: a directional bend of
+  `windShape.x * bend * amp * (0.6 + 0.4 sin(time * windShape.y + phase))` plus a
+  3-axis flutter of `windShape.z * flutter * amp` at `windShape.w`, with
+  `amp = saturate(speed / 20) * (1 + 0.6 gust) * scale` and a world-position
+  phase so neighbours never move in lockstep. The offset is computed in world
+  space and taken back through `inverse_world_matrix`.
+- **Feed.** `windParams` = (wind x m/s, gust 0..1, wind z m/s, scale). The CR17
+  programs read it from the pass emissive colour, which their fragments ignore;
+  `CR_GrassWind` reads specular, because `CR_Textured_fragment` uses emissive as
+  lighting. `windShape` is a per-material constant.
+- **Driver.** `Scripts/CRFoliageWind.lua` registers wind materials and writes
+  `exu.SetMaterialPassColors(material, {slot = ...}, -1, -1, nil, true)` (all
+  techniques and schemes, glow included: the glow fragments read diffuse or
+  emissive, not the wind slot). `CRWeather.Update` calls it after stepping, so
+  `CRWeather` stays the only wind authority: bearing from `GetWind()`'s xz,
+  magnitude from `GetWindSpeed()`, gust from the new `CRWeather.GetGust()`.
+  Registration and `Stop` write calm, because Ogre materials outlive the
+  mission's Lua state. `CRWeather.Shutdown` stops it; `ResetSystems` (load)
+  recreates the litter.
+- **Leaf litter.** `CRFoliageWind.EnableLitter(points)` bins foliage placements
+  into a 32 m grid. `CR/LeafLitter` (`cr_foliage.particle.payload`, sprite
+  `cr_leaf.png` from `Tools/Build-LeafTexture.py`) rides the camera; its rate is
+  `rate * density near the camera * wind above minSpeed * gust`, and its
+  emitter and LinearForce follow the wind.
+
+Wired today: misn17's jungle (`CR17/LeavesWind` canopies, `CR17/GroundWind`
+ground cover, `CR17/CutoutCaster/FoliageWind` shadow casters, litter from every
+ground-cover placement). A TerrainClutter profile opts in with
+`wind = { slot = "specular", litter = {...} }` and the `CR/GrassWind` material;
+misn02b keeps `CR/GrassPrototype`, because the Moon has no wind.
+
+Regenerating: `Tools/Build-FoliageWindMaterial.py` writes
+`cr17_wind.material` from `cr17_surface.material` (CI runs `--check`). Rerun
+`Bake-FoliageSway.py` after re-exporting any foliage mesh, including
+`crgrass.mesh` from `Tools/Assets/crgrass.mesh.xml`, or the stream is lost.
 
 ## Renderer behavior
 
@@ -145,10 +186,9 @@ validation note:
 
 Static/host validation must not be reported as visual success.
 
-## Phase B (deferred)
+## Phase B
 
-1. Add shader-driven bending from `CRWeather.GetWind()` with height masking,
-   time, and world-position phase/noise.
+1. Done: shader-driven bending and leaf litter (see Wind).
 2. Author and qualify an Enhanced-specific foliage technique.
 3. Measure and tune region dimensions, density, rendering distance, LOD, and
    transparent overdraw on representative large maps.

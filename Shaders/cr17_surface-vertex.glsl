@@ -48,16 +48,51 @@ varying vec4 vLightSpacePos3;
 #endif
 #endif
 
+#if defined(WIND)
+// Foliage wind: see WindDisplace in cr17_surface.hlsl.
+uniform mat4 worldMat;
+uniform mat4 invWorldMat;
+uniform float windTime;
+uniform vec4 windParams;
+uniform vec4 windShape;
+attribute vec4 uv1;
+
+vec4 WindDisplace(vec4 objPos, vec2 weight)
+{
+	float speed = length(windParams.xz);
+	if (speed < 0.01 || windParams.w <= 0.0)
+		return objPos;
+	vec3 worldPos = (worldMat * objPos).xyz;
+	vec2 dir = windParams.xz / speed;
+	float amp = clamp(speed / 20.0, 0.0, 1.0) * (1.0 + 0.6 * windParams.y) * windParams.w;
+	float phase = dot(worldPos.xz, vec2(0.083, 0.061));
+	float sway = 0.6 + 0.4 * sin(windTime * windShape.y + phase);
+	vec3 offset = vec3(dir.x, 0.0, dir.y) * (windShape.x * weight.x * amp * sway);
+	float f = windTime * windShape.w;
+	offset += (windShape.z * weight.y * amp) * vec3(
+		sin(f + phase * 5.3 + worldPos.y * 0.9),
+		0.5 * sin(f * 1.37 + phase * 3.1),
+		cos(f * 0.83 + phase * 4.7 + worldPos.x * 0.7));
+	objPos.xyz += mat3(invWorldMat) * offset;
+	return objPos;
+}
+#endif
+
 void main()
 {
-	gl_Position = wvpMat * vertex;
+#if defined(WIND)
+	vec4 position = WindDisplace(vertex, uv1.xy);
+#else
+	vec4 position = vertex;
+#endif
+	gl_Position = wvpMat * position;
 	vTexCoord = uv0;
 
 #if defined(CASTER)
 	gl_Position.xy += texelOffsets.zw * gl_Position.w;
 	vCasterDepth = gl_Position.zw;
 #else
-	vViewPos.xyz = (worldViewMat * vec4(vertex.xyz, 1.0)).xyz;
+	vViewPos.xyz = (worldViewMat * vec4(position.xyz, 1.0)).xyz;
 	vViewPos.w = gl_Position.z;
 #if defined(PARTICLE_COLOUR)
 	vTexCoord = (texMatrix * vec4(uv0, 0.0, 1.0)).xy;
@@ -66,12 +101,12 @@ void main()
 #else
 	vViewNormal = (worldViewMat * vec4(normal, 0.0)).xyz;
 #endif
-	vObjPos = vertex.xyz;
+	vObjPos = position.xyz;
 #if defined(SHADOWRECEIVER)
-	vLightSpacePos1 = texWorldViewProj1 * vertex;
+	vLightSpacePos1 = texWorldViewProj1 * position;
 #if defined(PSSM_ENABLED)
-	vLightSpacePos2 = texWorldViewProj2 * vertex;
-	vLightSpacePos3 = texWorldViewProj3 * vertex;
+	vLightSpacePos2 = texWorldViewProj2 * position;
+	vLightSpacePos3 = texWorldViewProj3 * position;
 #endif
 #endif
 #endif

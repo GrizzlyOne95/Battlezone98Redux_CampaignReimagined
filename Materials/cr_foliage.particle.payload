@@ -1,0 +1,61 @@
+// Wind-blown leaves, driven by CRFoliageWind. The system rides the camera and
+// emits into world space; CRFoliageWind sets the emission rate from wind speed,
+// gust and how much foliage is near the camera, and points the emitter and the
+// LinearForce along the wind. Authored still: rate 0, no force.
+//   emitter 0   canopy box above and around the view
+//   affector 0  LinearForce (wind push and a slow fall), set live
+particle_system CR/LeafLitter
+{
+    material            CR_FX/Leaf
+    particle_width      0.35
+    particle_height     0.35
+    quota               260
+    cull_each           false
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        width               70
+        height              10
+        depth               70
+        position            0 9 0
+        emission_rate       0
+        time_to_live_min    5
+        time_to_live_max    9
+        direction           1 0 0
+        angle               40
+        velocity_min        1
+        velocity_max        3
+        colour_range_start  0.42 0.62 0.24 1
+        colour_range_end    0.62 0.48 0.22 1
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -0.9 0
+        force_application   add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -220
+        rotation_speed_range_end     220
+        rotation_range_start          0
+        rotation_range_end          360
+    }
+
+    affector ColourFader2
+    {
+        red1        0
+        green1      0
+        blue1       0
+        alpha1      0
+        state_change 1.2
+        red2        0
+        green2      0
+        blue2       0
+        alpha2      -0.8
+    }
+}

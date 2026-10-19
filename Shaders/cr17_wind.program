@@ -1,0 +1,177 @@
+// Wind-swayed variants of the CR17_Surface vertex programs, for foliage meshes
+// baked by Tools/Bake-FoliageSway.py (they read TEXCOORD1; a mesh without it
+// fails the D3D11 vertex declaration). Fragment programs are unchanged: the
+// materials in cr17_wind.material pair these with the CR17_Cutout_* fragments.
+//
+// windParams arrives through the pass emissive colour, which no CR17 fragment
+// reads; CRFoliageWind writes it with exu.SetMaterialPassColors. windShape is
+// per material. Delegates come before each unified program, or its
+// default_params do not bind.
+
+vertex_program CR17_Wind_Caster_vertex_GLSL glsl
+{
+	source cr17_surface-vertex.glsl
+	syntax glsl120
+	entry_point main
+	preprocessor_defines CASTER=1,WIND=1
+}
+
+vertex_program CR17_Wind_Caster_vertex_HLSL hlsl
+{
+	source cr17_surface.hlsl
+	target vs_3_0
+	entry_point surface_caster_vertex
+	preprocessor_defines WIND=1
+}
+
+vertex_program CR17_Wind_Caster_vertex_HLSL4 hlsl
+{
+	source cr17_surface.hlsl
+	target vs_4_0
+	entry_point surface_caster_vertex
+	preprocessor_defines SM4=1,WIND=1
+}
+
+vertex_program CR17_Wind_Caster_vertex unified
+{
+	delegate CR17_Wind_Caster_vertex_GLSL
+	delegate CR17_Wind_Caster_vertex_HLSL4
+	delegate CR17_Wind_Caster_vertex_HLSL
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto texelOffsets texel_offsets
+		param_named_auto worldMat world_matrix
+		param_named_auto invWorldMat inverse_world_matrix
+		param_named_auto windTime time_0_x 3600
+		param_named_auto windParams surface_emissive_colour
+		param_named windShape float4 0 0 0 0
+	}
+}
+
+vertex_program CR17_Wind_PSSM_vertex_GLSL glsl
+{
+	source cr17_surface-vertex.glsl
+	syntax glsl120
+	entry_point main
+	preprocessor_defines SHADOWRECEIVER=1,PSSM_ENABLED=1,WIND=1
+}
+
+vertex_program CR17_Wind_PSSM_vertex_HLSL hlsl
+{
+	source cr17_surface.hlsl
+	target vs_3_0
+	entry_point surface_vertex
+	preprocessor_defines SHADOWRECEIVER=1,PSSM_ENABLED=1,WIND=1
+}
+
+vertex_program CR17_Wind_PSSM_vertex_HLSL4 hlsl
+{
+	source cr17_surface.hlsl
+	target vs_4_0
+	entry_point surface_vertex
+	preprocessor_defines SM4=1,SHADOWRECEIVER=1,PSSM_ENABLED=1,WIND=1
+}
+
+vertex_program CR17_Wind_PSSM_vertex unified
+{
+	delegate CR17_Wind_PSSM_vertex_GLSL
+	delegate CR17_Wind_PSSM_vertex_HLSL4
+	delegate CR17_Wind_PSSM_vertex_HLSL
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto worldViewMat worldview_matrix
+		param_named_auto texWorldViewProj1 texture_worldviewproj_matrix 0
+		param_named_auto texWorldViewProj2 texture_worldviewproj_matrix 1
+		param_named_auto texWorldViewProj3 texture_worldviewproj_matrix 2
+		param_named_auto worldMat world_matrix
+		param_named_auto invWorldMat inverse_world_matrix
+		param_named_auto windTime time_0_x 3600
+		param_named_auto windParams surface_emissive_colour
+		param_named windShape float4 0 0 0 0
+	}
+}
+
+vertex_program CR17_Wind_Shadow_vertex_GLSL glsl
+{
+	source cr17_surface-vertex.glsl
+	syntax glsl120
+	entry_point main
+	preprocessor_defines SHADOWRECEIVER=1,WIND=1
+}
+
+vertex_program CR17_Wind_Shadow_vertex_HLSL hlsl
+{
+	source cr17_surface.hlsl
+	target vs_3_0
+	entry_point surface_vertex
+	preprocessor_defines SHADOWRECEIVER=1,WIND=1
+}
+
+vertex_program CR17_Wind_Shadow_vertex_HLSL4 hlsl
+{
+	source cr17_surface.hlsl
+	target vs_4_0
+	entry_point surface_vertex
+	preprocessor_defines SM4=1,SHADOWRECEIVER=1,WIND=1
+}
+
+vertex_program CR17_Wind_Shadow_vertex unified
+{
+	delegate CR17_Wind_Shadow_vertex_GLSL
+	delegate CR17_Wind_Shadow_vertex_HLSL4
+	delegate CR17_Wind_Shadow_vertex_HLSL
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto worldViewMat worldview_matrix
+		param_named_auto texWorldViewProj1 texture_worldviewproj_matrix 0
+		param_named_auto worldMat world_matrix
+		param_named_auto invWorldMat inverse_world_matrix
+		param_named_auto windTime time_0_x 3600
+		param_named_auto windParams surface_emissive_colour
+		param_named windShape float4 0 0 0 0
+	}
+}
+
+vertex_program CR17_Wind_Plain_vertex_GLSL glsl
+{
+	source cr17_surface-vertex.glsl
+	syntax glsl120
+	entry_point main
+	preprocessor_defines WIND=1
+}
+
+vertex_program CR17_Wind_Plain_vertex_HLSL hlsl
+{
+	source cr17_surface.hlsl
+	target vs_3_0
+	entry_point surface_vertex
+	preprocessor_defines WIND=1
+}
+
+vertex_program CR17_Wind_Plain_vertex_HLSL4 hlsl
+{
+	source cr17_surface.hlsl
+	target vs_4_0
+	entry_point surface_vertex
+	preprocessor_defines SM4=1,WIND=1
+}
+
+vertex_program CR17_Wind_Plain_vertex unified
+{
+	delegate CR17_Wind_Plain_vertex_GLSL
+	delegate CR17_Wind_Plain_vertex_HLSL4
+	delegate CR17_Wind_Plain_vertex_HLSL
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto worldViewMat worldview_matrix
+		param_named_auto worldMat world_matrix
+		param_named_auto invWorldMat inverse_world_matrix
+		param_named_auto windTime time_0_x 3600
+		param_named_auto windParams surface_emissive_colour
+		param_named windShape float4 0 0 0 0
+	}
+}
