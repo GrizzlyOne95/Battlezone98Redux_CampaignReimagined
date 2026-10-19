@@ -11,7 +11,7 @@ TARGETS = {
     "misn03": ["launch_pad", "solar1", "solar2", "solar3", "solar4", "cam_geyser"],
     "misn04": ["avrecy-1_recycler"],
     "misn05": ["oblema110_i76building"],
-    "misn06": ["eggeizr1-1_geyser", "obheph0_i76building", "sblpad0_i76building",
+    "misn06": ["eggeizr1-1_geyser", "obheph0_i76building", "sblpad0_i76building", "cr06_rocket",
                "avtank13_wingman", "avtank11_wingman", "avtank12_wingman", "avfigh7_wingman",
                "avfigh10_wingman", "svu1", "svu2", "svu3", "svu4", "svfigh568_wingman",
                "svfigh566_wingman"],

@@ -866,6 +866,30 @@ own change).
 
 ---
 
+### Mars rocket presentation (18 October 2026)
+
+`misn06` now follows the Mission 16 pattern for moving static cinematic fixtures:
+preplace the labelled actor, relay one acknowledged visual event, and apply its
+translation on each peer. Do not assume host `SetTransform` on a static building
+will replicate like a craft. Custom presentation operations must also be admitted
+by `ReceivePresentation`; otherwise they stall the ordered event stream even if
+the local host effect works. The four-peer presentation test covers this case.
+Art, native validation status and resume steps: `Docs/MISN06_ROCKET_FILM.md`.
+
+For stock launch-pad docking, do not transfer Ogre mesh X directly into a BZN
+local offset. Redux's `sblpad.mesh` raised deck has positive model X; its native
+SDF `sbl11bdc` bounds have negative X. The validated native deck centre is
+(-19.407374,29.129,-42.536600). A wrong sign displaced the rocket by about 40 m.
+EXU point-light colour arguments need named `{r=...,g=...,b=...}` fields; an
+array silently failed inside the effect's pcall until the mock asserted the
+actual native shape. Rebuild 4 proves the corrected pad and light on both peers.
+
+Native scenarios are dot-sourced into `Run-BZRCoopMission.ps1`. Avoid names from
+its parameters: `$clients` aliases its `[int]$Clients` parameter because
+PowerShell is case-insensitive. Assigning a peer-index array then fails before
+the first scenario step. Use a scoped name such as `$rocketClients`; also avoid
+using `$c` for an array and `$C` for its loop element.
+
 ## 10. Keeping this document current
 
 Cut Fury fighter (2026-10-16): the owner-selected standalone `hvraz` port is

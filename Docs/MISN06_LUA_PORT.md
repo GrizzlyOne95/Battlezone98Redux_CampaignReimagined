@@ -54,6 +54,7 @@ removing its delimiter. No disabled content was silently activated or discarded.
 | `GetNearestEnemy(patrol) < 450` in three conditions | Obvious handle-versus-distance bug: require a live patrol and compare distance to its nearest valid enemy against 450 meters. |
 | Distance/enemy queries with absent handles | Return infinity/nil, preventing false proximity triggers and invalid native overload calls. |
 | Three never-assigned fourth-patrol handles | Guard their Patrol calls, preserving the native no-op. |
+| CCA approach-film `CameraCancelled()` outside its active-film condition | Require that film's `cam3done` flag for either exit cause, so skipping a different camera cannot finish its stack. |
 | DLL save routines containing `_ASSERTE(0)` | BZR Save/Load serialize the mission table, including deadlines, random choices, game handles, and message values. No startup replay after Load. |
 
 The script uses stock BZR APIs and Lua 5.1 only. It has no EXU/OpenShim, aiCore,
@@ -87,3 +88,8 @@ In-game checks still needed: each camera completion/cancellation route, original
 map label/path resolution, AI/AIP behavior, audio sequencing, save/load during
 active cameras and queued messages, all six failures, and early/late extraction.
 Windows Steam/GOG and Proton/Wine runtime behavior remains unverified.
+
+The later CR rocket presentation is documented separately in
+[`MISN06_ROCKET_FILM.md`](MISN06_ROCKET_FILM.md). Its marked additions preserve
+the original radio cue and timer statements; its EXU particle helpers are
+presentation dependencies beyond the historical stock-only port described above.
