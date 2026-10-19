@@ -1,0 +1,43 @@
+import * from "BZBase.material"
+
+material cr06dst_hull : BZBase
+{
+	set_texture_alias DiffuseMap cr06chl_d.dds
+	set_texture_alias NormalMap cr06chl_n.dds
+	set_texture_alias SpecularMap cr06chl_s.dds
+	set_texture_alias EmissiveMap cr06blk_e.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".6 .6 .6"
+	set $shininess "64"
+	set $glow "1 1 1"
+}
+
+material cr06dst_hullw : BZBase
+{
+	set_texture_alias DiffuseMap cr06chw_d.dds
+	set_texture_alias NormalMap cr06chl_n.dds
+	set_texture_alias SpecularMap cr06chl_s.dds
+	set_texture_alias EmissiveMap cr06chw_e.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".6 .6 .6"
+	set $shininess "64"
+	set $glow "1 1 1"
+}
+
+material cr06dst_trim : BZBase
+{
+	set_texture_alias DiffuseMap cr06ctr_d.dds
+	set_texture_alias NormalMap cr06ctr_n.dds
+	set_texture_alias SpecularMap cr06ctr_s.dds
+	set_texture_alias EmissiveMap cr06ctr_e.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".6 .6 .6"
+	set $shininess "64"
+	set $glow "1 1 1"
+}

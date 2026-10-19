@@ -1,0 +1,31 @@
+// Escape from Mars orbital insert: starfield sky dome. Uses the CR_SkyDome
+// programs because Ogre's generated dome has no COLOR0 (stock sky programs
+// throw on D3D11). Fog is disabled for the dome; space has no horizon haze.
+material CR06/Starfield
+{
+	receive_shadows off
+	technique 0
+	{
+		pass 0
+		{
+			vertex_program_ref CR_SkyDome_vertex
+			{
+			}
+			fragment_program_ref CR_SkyDome_fragment
+			{
+			}
+			cull_hardware none
+			cull_software none
+			lighting off
+			fog_override true none
+			depth_write off
+			diffuse 1 1 1 1
+			texture_unit 0
+			{
+				texture cr06star.dds
+				tex_address_mode wrap
+				filtering trilinear
+			}
+		}
+	}
+}
