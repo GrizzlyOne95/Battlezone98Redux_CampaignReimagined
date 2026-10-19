@@ -1,0 +1,93 @@
+// Mission 18 water: pools, streams and the cascade. Same look as the CR17 water
+// (cr17_water.dds, the CR17 water kind) on the CR18_Water_v1 program, which adds a
+// mud tint and an extra scroll phase read from the pass colours:
+//   diffuse  = (mud rgb, mud amount)    specular.r = extra scroll phase
+// CRStorm18Water writes them per storm level and writes the calm values back on Stop
+// (the values below are the calm ones).
+material CR18/Water
+{
+	set $shininess "96"
+	set $skyColour "0.38 0.48 0.56 0.6"
+	set $waterScroll "0.004 0.003 -0.003 0.002"
+	set $waterScale "1 1.37 4 0.004"
+	set $waterColour "0.12 0.22 0.18 0"
+	set $waterSurface "0.6 0.97 0.03 0"
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR18_Water_v1_fragment
+			{
+				param_named skyColour float4 $skyColour
+				param_named waterScroll float4 $waterScroll
+				param_named waterScale float4 $waterScale
+				param_named waterColour float4 $waterColour
+				param_named waterSurface float4 $waterSurface
+			}
+			ambient 1 1 1
+			diffuse 0.30 0.21 0.12 0
+			specular 0 0 0 $shininess
+			scene_blend alpha_blend
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme glow
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Water_Glow_fragment
+			{
+				param_named waterScroll float4 $waterScroll
+				param_named waterScale float4 $waterScale
+				param_named waterColour float4 $waterColour
+			}
+			scene_blend add
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+		}
+	}
+}
+
+material CR18/Pools : CR18/Water
+{
+	set_texture_alias DiffuseMap cr17_water.dds
+}
+
+material CR18/Streams : CR18/Water
+{
+	set_texture_alias DiffuseMap cr17_water.dds
+	set $waterScroll "0 -0.22 0.02 -0.14"
+	set $waterColour "0.26 0.42 0.34 0"
+	set $waterSurface "0.6 0.95 0.04 0.4"
+}
+
+// The fall: faster, whiter (foam), more opaque.
+material CR18/Cascade : CR18/Water
+{
+	set_texture_alias DiffuseMap cr17_water.dds
+	set $waterScroll "0 -0.9 0.05 -0.6"
+	set $waterColour "0.55 0.7 0.68 0"
+	set $waterSurface "0.8 0.97 0.04 0.9"
+}

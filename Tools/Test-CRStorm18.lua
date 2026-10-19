@@ -48,7 +48,7 @@ local materialText = readFile("Materials/cr18_storm.material")
 local materials = {}
 for n in materialText:gmatch("\nmaterial%s+(%S+)") do materials[n] = true end
 for name, t in pairs(templates) do
-    check(t.material and materials[t.material], name .. " material " .. tostring(t.material) .. " defined in cr18_storm.material")
+    check(t.material and (materials[t.material] or t.material == "CRWX_FX/Mist"), name .. " material " .. tostring(t.material) .. " defined in cr18_storm.material")
     check(t.quota, name .. " has a quota")
     check(t.emitters >= 1, name .. " has an emitter")
 end
@@ -402,7 +402,9 @@ check(d.tornado and d.tornadoFx, "tornado exists and draws")
 check(next(lights) ~= nil, "tornado light")
 check(d.tiles > 0 and d.tiles < 60, "scrub tiles stream around the camera: " .. d.tiles)
 for name, g in pairs(geo) do
+  if name:find("^CR18/Scrub") then
     check(g.material == "CR18/GroundWind" and g.o.renderingDistance == 260 and g.n < 400 and g.o.castShadows == false, "scrub tile " .. name .. " bounded and overridden")
+  end
 end
 check(d.cracks > 0, "cracks laid by the final phase")
 check(glass.crack > 0 and glass.splats > 0, "windshield cracks and dirt")
@@ -709,7 +711,7 @@ do
     run(30, p, {})
     local early = p.S.Describe()
     local near = 0
-    for name, g in pairs(geo) do near = near + 1 end
+    for name, g in pairs(geo) do if name:find("^CR18/Scrub") then near = near + 1 end end
     check(near > 0 and near <= early.tiles + 0, "tiles resident")
     -- crack nesting: at a higher density the cells with cracks are a superset
     local function cells(level)
@@ -834,6 +836,144 @@ do
     p.S.Stop()
 end
 
+-- ===================================================================== water
+do
+    local Water = require("CRStorm18Water")
+    local Wake = require("CRWake")
+    local W = Sites.water
+    check(W and W.pools and W.streams and W.cascade and Sites.watermask and Sites.cascade, "sites carry the water, mask and cascade")
+    for key, mesh in pairs({ pools = "cr18_pools.mesh", streams = "cr18_streams.mesh", cascade = "cr18_cascade.mesh" }) do
+        check(W[key].mesh == mesh and readFile("Assets/Models/" .. mesh):len() > 100, key .. " mesh ships")
+    end
+    local wm = readFile("Materials/cr18_water.material")
+    for _, m in ipairs({ "CR18/Pools", "CR18/Streams", "CR18/Cascade" }) do
+        check(wm:find("material " .. m .. " : CR18/Water", 1, true), m .. " material defined")
+    end
+    local prog = readFile("Shaders/cr18_water.program")
+    check(wm:find("CR18_Water_v1_fragment", 1, true) and prog:find("fragment_program CR18_Water_v1_fragment unified", 1, true), "water material uses its unified program")
+    check(prog:find("light_diffuse_colour_power_scaled_array", 1, true) and prog:find("light_specular_colour_power_scaled_array", 1, true)
+        and not prog:find("param_named_auto lightDiffuse derived", 1, true), "pass colours never scale the lighting")
+    check(prog:find("stormMud surface_diffuse_colour", 1, true) and prog:find("stormFlow surface_specular_colour", 1, true), "program binds the pass colours")
+    for _, f in ipairs({ "cr17_surface.hlsl", "cr17_surface-fragment.glsl" }) do
+        local src = readFile("Shaders/" .. f)
+        check(src:find("stormMud", 1, true) and src:find("stormFlow", 1, true) and src:find("STORMWATER", 1, true), f .. " has the storm water kind")
+    end
+    check(templates["CR18/CascadeMist"] and templates["CR18/CascadeMist"].emitters == 1, "cascade mist template, one emitter")
+
+    -- placement: not one mask cell, pool or the cascade inside a keep-clear circle
+    local m = Sites.watermask
+    local cells, inside, maskCells = 0, 0, {}
+    for i, row in ipairs(m.rows) do
+        local z = (m.firstRow + i - 1) * m.cell + m.originZ
+        for k = 1, #row - 1, 2 do
+            for c = row[k], row[k] + row[k + 1] - 1 do
+                cells = cells + 1
+                local px = c * m.cell + m.originX
+                maskCells[#maskCells + 1] = { px, z }
+                for _, zn in ipairs(Sites.zones) do
+                    if (px - zn[1]) ^ 2 + (z - zn[2]) ^ 2 < (zn[3] + 30) ^ 2 then inside = inside + 1 end
+                end
+            end
+        end
+    end
+    check(cells == m.cells and cells > 400, "mask row total matches its count: " .. cells)
+    check(inside == 0, "no water cell inside a keep-clear circle (plus the 30 m pad): " .. inside)
+    for _, pool in ipairs(W.pools_info) do
+        for _, zn in ipairs(Sites.zones) do
+            check(math.sqrt((pool.x - zn[1]) ^ 2 + (pool.z - zn[2]) ^ 2) > zn[3] + 30, "pool at " .. pool.x .. "," .. pool.z .. " clear of " .. zn[4])
+        end
+    end
+    for _, zn in ipairs(Sites.zones) do
+        local c = Sites.cascade
+        check(math.sqrt((c.x - zn[1]) ^ 2 + (c.z - zn[2]) ^ 2) > zn[3] + 30, "cascade clear of " .. zn[4])
+    end
+    check(#W.pools_info >= 3 and Sites.cascade.drop >= 6, "a few pools and a real drop")
+
+    -- the resolver: pool/stream cells are water, a near miss is mud
+    fresh()
+    local p = newPeer("water", { view = { x = 1000, y = 100, z = 99000 } })
+    check(Water.InMask(Sites, Sites.cascade.x, Sites.cascade.z), "the cascade foot is in the mask")
+    for i = 1, #maskCells, 7 do
+        if not Water.InMask(Sites, maskCells[i][1], maskCells[i][2]) then check(false, "mask cell " .. i .. " is wet") break end
+    end
+    local missed = 0
+    for i = 1, #maskCells, 11 do
+        local cx, cz = maskCells[i][1], maskCells[i][2]
+        for step = 3, 12 do
+            local ox = cx + step * 5
+            if not Water.InMask(Sites, ox, cz) and not Water.InMask(Sites, ox + 5, cz) and not Water.InMask(Sites, ox, cz + 5) and not Water.InMask(Sites, ox, cz - 5) then
+                missed = missed + 1
+                break
+            end
+        end
+    end
+    check(missed > 10, "found near-miss probes: " .. missed)
+    local probe = Water.Create({ call = function() end, call2 = function() end, vec = SetVector, sites = Sites, ready = function() return true end, clock = function() return 0 end })
+    local s1, r1, l1 = probe.WakeSurface(maskCells[1][1], maskCells[1][2])
+    check(s1 == "water" and r1 == 1 and l1 > 0, "resolver: a mask cell is water with a lift")
+    local s2, r2, l2 = probe.WakeSurface(maskCells[1][1] + 400, maskCells[1][2] + 400)
+    check(s2 == "mud" and r2 > 0 and r2 <= 1 and l2 == 0, "resolver: dry ground is mud")
+    check(Wake.Initialized and type(Wake.Surface) == "function" and Wake.Avail.water and Wake.Avail.mud, "storm wires CRWake with water + mud")
+
+    -- storm coupling: mud, speed and mist rise with the level
+    local function lastWrite(name) local t = colours[name]; return t and t[#t] end
+    local function mist() local s = systems["CR18/CascadeMist"]; return s and s.rates[0] end
+    p.S.SetPhase("opening")
+    run(30, p, {})
+    local calm = { mud = lastWrite("CR18/Streams").diffuse.a, mist = mist() }
+    check(geo["CR18/Pools"] and geo["CR18/Streams"] and geo["CR18/Cascade"], "the three water sheets are built")
+    check(geo["CR18/Streams"].mesh == "cr18_streams.mesh" and geo["CR18/Streams"].material == nil and geo["CR18/Streams"].o.castShadows == false, "streams sheet uses its own material")
+    check(calm.mist and calm.mist > 10, "cascade mist exists and is emitting: " .. tostring(calm.mist))
+    local ladderMud, ladderMist, ladderSpeed = { calm.mud }, { calm.mist }, {}
+    for _, name in ipairs({ "found", "core2", "collapse", "final" }) do
+        p.S.SetPhase(name)
+        run(60, p, {})
+        ladderMud[#ladderMud + 1] = lastWrite("CR18/Streams").diffuse.a
+        ladderMist[#ladderMist + 1] = mist()
+        ladderSpeed[#ladderSpeed + 1] = p.S.Describe().water.streams
+    end
+    for i = 2, #ladderMud do
+        check(ladderMud[i] > ladderMud[i - 1], "mud rises up the ladder at step " .. i)
+        check(ladderMist[i] > ladderMist[i - 1], "mist rate rises up the ladder at step " .. i)
+        check(i == 2 or ladderSpeed[i - 1] > ladderSpeed[i - 2], "streams speed up at step " .. i)
+    end
+    check(calm.mud < 0.1 and ladderMud[#ladderMud] > 0.95, "streams are clear at the opening and fully mud at final")
+    local w = lastWrite("CR18/Streams")
+    check(w.diffuse.r > 0.2 and w.diffuse.r > w.diffuse.b * 2, "the tint target is brown (r > 2b)")
+    check(lastWrite("CR18/Pools").specular.r ~= lastWrite("CR18/Streams").specular.r, "each material has its own scroll phase")
+    p.S.SetPhase("extract"); p.S.SetPhase("ascent")
+    run(40, p, {})
+    check(mist() > ladderMist[#ladderMist] and p.S.Describe().water.streams > ladderSpeed[#ladderSpeed], "the ascent is the most violent: more mist, faster water")
+    local n0 = #colours["CR18/Streams"]
+    run(10, p, {})
+    check(#colours["CR18/Streams"] - n0 <= 10 / Water.INTERVAL + 2, "material writes are throttled")
+    for _, rates in ipairs({ { 0.004, 0.003, -0.003, 0.002 }, { 0, -0.22, 0.02, -0.14 }, { 0, -0.9, 0.05, -0.6 } }) do
+        for _, r in ipairs(rates) do
+            local turns = r * Water.PHASE_WRAP
+            check(math.abs(turns - math.floor(turns + 0.5)) < 1e-6, "scroll " .. r .. " wraps cleanly at " .. Water.PHASE_WRAP)
+        end
+    end
+    check(lastWrite("CR18/Streams").specular.r < Water.PHASE_WRAP, "phase stays under the wrap")
+    -- Stop writes calm back, destroys sheets and mist, releases the wakes
+    p.S.Stop()
+    for _, mname in ipairs({ "CR18/Pools", "CR18/Streams", "CR18/Cascade" }) do
+        local c = lastWrite(mname)
+        check(c.diffuse.a == 0 and c.specular.r == 0, mname .. " written calm on Stop")
+    end
+    check(next(geo) == nil and systems["CR18/CascadeMist"] == nil, "water sheets and mist destroyed on Stop")
+    check(not Wake.Initialized, "wakes released on Stop")
+    -- degradation: a missing material skips only that sheet, with no error
+    fresh()
+    missing["CR18/Streams"] = true
+    local q = newPeer("nomat")
+    q.S.SetPhase("core1")
+    run(10, q, {})
+    check(geo["CR18/Streams"] == nil and geo["CR18/Pools"] ~= nil and q.S.Describe().errors == 0, "a missing water material skips only that sheet")
+    q.S.Stop()
+    local pure = Water.Params(0, 1)
+    check(pure.mud == 0 and pure.streams == 1 and pure.pools == 1, "calm params are the calm shader")
+end
+
 -- ===================================================================== no EXU
 do
     fresh()
@@ -877,7 +1017,7 @@ do
 end
 
 print = realPrint
-local sources = { "CRStorm18", "CRStorm18Tornado", "CRStorm18Ground", "CRStorm18Rng", "CRStorm18Sites" }
+local sources = { "CRStorm18", "CRStorm18Water", "CRStorm18Tornado", "CRStorm18Ground", "CRStorm18Rng", "CRStorm18Sites" }
 for _, n in ipairs(sources) do
     local src = readFile("Scripts/" .. n .. ".lua")
     check(loadstring(src, n) ~= nil, n .. " compiles under Lua 5.1")

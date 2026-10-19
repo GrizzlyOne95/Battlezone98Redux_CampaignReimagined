@@ -26,6 +26,7 @@
 local Rng = require("CRStorm18Rng")
 local Tornado = require("CRStorm18Tornado")
 local Ground = require("CRStorm18Ground")
+local WaterFx = require("CRStorm18Water")
 
 local Storm = {}
 
@@ -180,6 +181,7 @@ function Storm.Create(api)
     local Glass = require("CRWetGlass")
     local Templates = require("CRParticleTemplates")
     local Foliage = require("CRFoliageWind")
+    local Wake = require("CRWake")
     local okS, Sites = pcall(require, "CRStorm18Sites")
     if not okS or type(Sites) ~= "table" then
         print("CRStorm18: site data unavailable (" .. tostring(Sites) .. "); no ground cover")
@@ -195,7 +197,7 @@ function Storm.Create(api)
     local zones = Sites.zones or {}
     local bounds = Sites.bounds or { 0, 97280, 2560, 102400 }
     local state, clock, lvl
-    local ground, tornadoFx, templatesReady, nextTemplates, errorCount, lastError
+    local water, ground, tornadoFx, templatesReady, nextTemplates, errorCount, lastError
     local sky, skyRetry, skyWritten, nextSkyWrite, baseSkyPlane
     local applied, view, nextView, nextWind, nextQuake, nextSkyAnim, nextPush
     local quake, nativeQuake, nextNative, missionQuakes
@@ -595,6 +597,8 @@ function Storm.Create(api)
         updateQuake()
         runStrokes()
         if tornadoFx and ensureTemplates() then tornadoFx.Update(dt, t, view, clock) end
+        if water then water.Update(dt, lvl, P.wind or 1) end
+        if api.vehicleWakes ~= false then pcall(Wake.Update, dt) end
         if view and ground then ground.Update(dt, view, P.crack * smooth(min(1, lvl / max(0.01, P.level)))) end
         pcall(Glass.Update, 0)
         if state.phase >= 7 and (lvl or 0) > 0.85 then pcall(Glass.SetCrack, min(0.6, (lvl - 0.85) * 4), 0.62, 0.34) end
@@ -624,6 +628,8 @@ function Storm.Create(api)
         S.Initialized = false
         nativeStop()
         if ground then ground.Stop() end
+        if water then water.Stop() end
+        pcall(Wake.Stop)
         if tornadoFx then tornadoFx.Destroy() end
         setSky(false)
         calmMaterials()
@@ -635,7 +641,7 @@ function Storm.Create(api)
         if GroundFX then pcall(GroundFX.Stop) end
         if E and type(E.UnregisterEnvironmentModifier) == "function" then pcall(E.UnregisterEnvironmentModifier, "CR18Storm") end
         strokes, sounds, quake, flashAt, missionQuakes = {}, {}, nil, nil, {}
-        sky, ground, tornadoFx, applied, gctx = nil, nil, nil, nil, nil
+        sky, ground, water, tornadoFx, applied, gctx = nil, nil, nil, nil, nil, nil
         S.quakeMagnitude = 0
     end
 
@@ -669,6 +675,13 @@ function Storm.Create(api)
             material = function() return groundMaterial end, sound = sound,
         }
         ground = Ground.Create(gctx)
+        -- Water: baked pools, streams and the cascade, muddied by the storm level; its
+        -- resolver also tells CRWake where a craft is over water and where over mud.
+        water = WaterFx.Create({
+            call = call, call2 = call2, vec = vec, sites = Sites, ready = ensureTemplates,
+            clock = function() return clock end, quality = function() return Weather.Quality or 1 end,
+        })
+        if api.vehicleWakes ~= false then pcall(Wake.Init, { surface = water.WakeSurface, surfaces = { "water", "mud" } }) end
         tornadoFx = Tornado.NewFx({
             call = call, vec = vec, ready = ensureTemplates,
             ground = function(px, pz) return (terrain(px, pz)) or 0 end,
@@ -835,7 +848,7 @@ function Storm.Create(api)
             tiles = g.tiles or 0, totalTiles = g.totalTiles or 0, cracks = g.cracks or 0, errors = errorCount or 0,
             error = lastError, templates = templatesReady or false, groundMaterial = groundMaterial,
             seed = state and state.seed or 0, foliage = Foliage.Describe and Foliage.Describe() or nil,
-            groundError = g.lastError,
+            groundError = g.lastError, water = water and water.Describe() or nil,
         }
     end
 

@@ -245,6 +245,7 @@ jobs:
           # Mission 18 storm: director, tornado, ground, replication, payload lint.
           "$LUA" Tools/Test-CRStorm18.lua
           python -I Tools/Build-Misn18Storm.py --check
+          python -I Tools/Build-Misn18Water.py --check
           # The wind foliage material is generated from cr17_surface.material.
           python -I Tools/Build-FoliageWindMaterial.py --check
           # The methane surface mesh, ripple map and wet masks match their generator.

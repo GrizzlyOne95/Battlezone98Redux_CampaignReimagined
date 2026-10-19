@@ -72,6 +72,7 @@ All guarded; no EXU means less storm, never an error.
 | Landslides | leader `slide` events; each peer picks the steepest of ten spots 50-160 m from its camera and slides `CR18/SlideDust` + `SlideRock` downhill for 4-8 s with a rumble. No rock objects: gameplay objects would need `BuildSyncObject` and offer little a particle spray does not | visual |
 | Giant tornado | 8 stacked local-space bands (`CR18/Tornado*`), each node moved to the funnel and turned with `SetParticleSystemDirection` at its own rate so the column shears; dust skirt, debris, core, glow and embers, plus one EXU point light. Track from `CRStorm18Tornado` (below) | visual + optional effect |
 | Windshield | `CRWetGlass.Splat` on close strikes and slides, `SetCrack` from collapse | visual |
+| Water | baked pools, streams and a cascade (below): muddy and faster with the level, mist thickens, wakes | visual |
 | Scorched scrub | the baked misn17 `cr17_mire_*` meshes (wind-sway stream kept) with the `CR18/GroundWind` override material on `cr18_foliage.dds`; registered with `CRFoliageWind`; leaf litter from every placement | visual |
 
 ### Tornado track and effect
@@ -92,6 +93,95 @@ and anything it built; the leader also owns the AI and enemy craft; buildings ne
 from the replicated funnel (events plus identical dead reckoning), so a craft is moved
 only by its owner and never twice, and guests are pulled as fairly as the host. Offline
 everything is local. Set `ENABLED = false` for a purely visual storm.
+
+## Water and landscaping
+
+Pools, streams and one cascade on the Achilles terrain, modelled on misn17's water
+(`Tools/Build-Misn17Jungle.py`: priority-flood pools, D8 stream routing on a blurred
+surface, the same ribbon and pool-quad bakes; its `water_mask` is imported, not copied)
+by `Tools/Build-Misn18Water.py`, which `Build-Misn18Storm.py` runs last. It reads
+`Missions/misn18.hg2` (5 m grid) and **never writes it: nothing is carved**. Misn17 cuts
+its channel beds; here every pool fills an existing closed basin and every stream follows
+the existing gradient, so a stream's ribbon floats 0.15 m over the ground and its banks
+tuck it in. The manifest pins the heightmap hash, and `--check` fails if it changes.
+
+Chosen water (stock map, x 0..2560, z 97280..102400):
+
+| What | Where | Why |
+|------|-------|-----|
+| Pool A | (1247, 102047), surface 97.8 m, 175 cells | the largest candidate basin that clears every zone (about 1.2 km north of the transport) |
+| Pool B | (787, 101631), 101.0 m, 136 cells | north-west of the transport basin, outside the discovery circle |
+| Pool C | (747, 98213), 100.9 m, 115 cells | south-west flank (about 1.1 km from the start) |
+| Pool D | (1839, 101341), 106.4 m, 73 cells | 0.5 km north-east of the transport, on the cascade's stream |
+| Streams | 6 ribbons (303 points), half-width 1.3-3 m | inflows (at most two per pool) and one outflow per pool, from the D8 channels (>= 600 drained cells, >= 90 m) |
+| Cascade | foot (1715, 84.1, 101180), 21.9 m drop over 22 m of stream | the steepest 22 m of any kept stream (the fall is cut out of the stream mesh and drawn as its own, faster sheet; mist sits at its foot) |
+
+Selection: closed basins deeper than 0.6 m (fill minus ground), at least 60 cells wet at
+the surface (lowest cell + 2 m, 1500 cells at most) and 1.3 m deep, between 330 and
+1400 m of the start or the transport (near enough to be seen, outside the zones), at
+least 260 m apart, best score first. Pools render as 5 m quads at one level;
+the surface may stand up to 2 m over the bed (misn17's rule).
+
+**Kept clear** (every one is an exclusion mask; a pool touching it is rejected, a stream ends 10 m
+before it, and the build asserts no mask cell is inside): the 24 tornado keep-clear circles
+(`Build-Misn18Storm.keep_clear`: recycler and start r 300, transport and thrusters r 300, the
+discovery point, every wave spawn, the dontgo ambush column, which also covers the dropship ring
+of `CRDrop18`) plus 30 m, the polylines of the spawn, return, dontgo and transfound paths
+(the Fury arrivals) plus 45 m, every stock object plus 28 m, and a 5-cell edge margin.
+`Test-CRStorm18.lua` re-checks every mask cell, pool and the cascade against `Sites.zones`.
+
+Generated outputs: `Assets/Models/cr18_pools.mesh` (70 KB), `cr18_streams.mesh` (23 KB),
+`cr18_cascade.mesh` (0.6 KB), and in `CRStorm18Sites.lua` the `watermask` (same run-length
+format as `CRJungle17Sites`; 1,242 cells), `water` (mesh, position and material per sheet,
+`pools_info`) and `cascade` (`x, y, z` at the foot, `drop`, `top`). Deterministic;
+`python -I Tools/Build-Misn18Water.py --check` is the CI check, `--report [--preview png]`
+prints the selection and writes a review image.
+
+### Materials and shader
+
+`Materials/cr18_water.material`: `CR18/Water` and children `CR18/Pools`, `CR18/Streams`,
+`CR18/Cascade` (CR17's textures and scroll/colour presets; the cascade is faster, whiter and
+more opaque). They use `CR18_Water_v1_fragment` (`Shaders/cr18_water.program`), the CR17 water
+kind built with `STORMWATER`, a variant added to `cr17_surface.hlsl` / `-fragment.glsl` (nothing
+changes without the define, so misn17 is untouched). It reads two pass colours:
+
+| Pass colour | Uniform | Meaning |
+|-------------|---------|---------|
+| diffuse (`surface_diffuse_colour`) | `stormMud` | rgb = mud colour, a = mud amount: the albedo blends to mud, alpha toward 0.92 |
+| specular (`surface_specular_colour`) | `stormFlow` | x = extra scroll phase added to both scroll layers |
+
+Pass colours multiply Ogre's `derived_light_*` autos, so the program binds the power-scaled
+light colours instead. The phase is integrated in Lua (a speed change never makes the water
+jump) and wraps at 1000, which every material's scroll rates divide into whole turns. `fxc`
+compiles the ps_4_0 and ps_3_0 variants. Bump `_v1` in the program and material on a shader edit.
+
+### Storm coupling (`CRStorm18Water`)
+
+Peer-local and render-only: each peer drives the water from its own smoothed storm level
+(`lvl`, which follows the replicated phase), so there are no events. `Water.Params(level, wind)`:
+
+| | calm (opening .14) | core2 (.68) | collapse (.96) | final (1.0) | ascent (1.0, gale 1.7) |
+|--|--:|--:|--:|--:|--:|
+| mud amount | 0.06 | 0.67 | 0.96 | 1.00 | 1.00 |
+| streams scroll x | 1.3 | 2.5 | 3.8 | 4.2 | 5.5 |
+| pools chop x | 2.3 | 7.1 | 12.2 | 14.0 | 18.4 |
+| cascade scroll x | 1.2 | 1.8 | 2.7 | 3.0 | 3.9 |
+| mist rate /s | 24 | 53 | 87 | 100 | 135 |
+
+Collapse, final, extract and ascent are the most violent (the extra `violent` term switches
+on from level 0.9; the ascent adds the gale). Writes run at 12 Hz while the water is changing
+and 1 Hz when calm. `Stop` writes calm back (mud 0, phase 0), destroys the sheets and the
+mist, and `Reset` rebuilds them (materials outlive the Lua state). A missing material skips
+only that sheet (retry every 30 s); no EXU means no water.
+
+### Vehicle debris
+
+`CRStorm18` initialises the shared `CRWake` with the resolver `water.WakeSurface(x, z)`:
+`water` (lift 0.5 m, a compromise: streams sit 0.15 m over the ground, pools up to 2 m) on a
+mask cell, else `mud` (rate 0.6 + 0.4 x mud amount): dark wet dirt and clods
+(`CRWake/MudClods`, in `cr_wake.particle.payload`, material `CR_FX/Grit`). It respects
+CRWake's load budget (4 systems, 4 scans a second, 140 m); `vehicleWakes = false` on the
+`CRStorm18.Create` api turns it off. See [`VEHICLE_WAKES.md`](VEHICLE_WAKES.md).
 
 ## Interface contract (what CRMisn18 does)
 
@@ -169,7 +259,7 @@ most (tornado) of EXU's 8. Per frame: a handful of guarded EXU writes throttled 
 ## Regenerating assets
 
 `python Tools/Build-Misn18Storm.py --stock <Battlezone_Source>/BZ1/1.5/Battlezone_Install/stock`
-rewrites `Scripts/CRStorm18Sites.lua`, `Assets/Textures/cr18_foliage.dds` (DXT5 with mips,
+rewrites `Scripts/CRStorm18Sites.lua` (water keys included, see Water), the three `cr18_*.mesh` water meshes, `Assets/Textures/cr18_foliage.dds` (DXT5 with mips,
 colour-bled; Pillow's DXT1 encoder speckles cutout atlases), `cr18_crack_a/b.png` and
 `References/Misn18Storm/source-assets.json`. CI runs `--check` (outputs match the manifest).
 Shader edits: bump the `_v1` suffix in `cr18_swirl.program` and the material (Ogre's
@@ -177,7 +267,7 @@ microcode cache keys on the program name).
 
 ## Tests
 
-`lua5.1 Tools/Test-CRStorm18.lua` (970 checks): payload/material/program lint (every
+`lua5.1 Tools/Test-CRStorm18.lua` (1,165 checks): payload/material/program lint (every
 template parses, materials and textures exist, ColourInterpolator has all six stages, no
 name clashes, program references and delegates in order, shaders agree on their uniforms);
 rng determinism; preset escalation and template indices; phase ladder (events per phase,
@@ -189,7 +279,9 @@ leader-only/IsLocal/off switch; streaming, failure back-off and material fallbac
 landslides; mission quake routing (max-merge, clamp, one native owner, refusal after Stop); every peer pulling only
 its own craft; collapse burst; Stop writing calm to the sky, wind foliage, quake, lights,
 systems and geometry; no-EXU and no-payload degradation. `fxc` compiles all four HLSL
-entry points (vs/ps 4_0 and 3_0).
+entry points (vs/ps 4_0 and 3_0) and the `STORMWATER` water variant. Water: payload/material/program lint, placement
+against every keep-clear circle, mask hits and near misses, the resolver (water vs mud), mud/speed/mist rising up the
+ladder and peaking in the ascent, throttled writes, seamless phase wrap, calm on Stop, a missing material.
 
 ## Live smoke (lcbench / in-game) must check
 
@@ -216,5 +308,9 @@ Everything rendered is unverified. In order of risk:
    than misn17's storm); co-op: guest and host see the same phase, strikes near each
    camera, tornado in the same place; save/load mid-storm; mission end leaves the next
    mission's sky, wind foliage and quake calm (sensors: `GetSeverity` is the phase level).
+10. Water: `CR18/Pools|Streams|Cascade` compile (SM4 and SM3, zero vertex-declaration exceptions) and lie on the ground without
+    z-fighting or floating banks; the cascade reads as a fall and its mist sits at the foot; the mud tint and scroll speed rise
+    visibly with the phase and `Stop` leaves the next mission's water clear; the mud wake looks like dirt, the water wake lift
+    (0.5 m) is right on pools and streams, and nothing in the water breaks a Fury path or the dropship ring.
 9. The ascent (`ascent`): strikes close to the climbing dropship, shake and gale tolerable, ash and cloud streaks
    rush past, and nothing in the 330 m camera ring is hurt by the funnel during `extract`.

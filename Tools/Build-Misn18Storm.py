@@ -3,7 +3,7 @@
 Reads the stock misn18 terrain (.hgt height field, .mat tile painting) and the
 stock .bzn (object and path positions) and writes
 
-  Scripts/CRStorm18Sites.lua              dead-scrub ground cover in 384 m tile
+  Scripts/CRStorm18Sites.lua              (water keys: Tools/Build-Misn18Water.py, run from here) dead-scrub ground cover in 384 m tile
                                           layers, plus the keep-clear circles the
                                           tornado must never enter
   Assets/Textures/cr18_foliage.dds        cr17_foliage.dds scorched (DXT5, mips)
@@ -296,6 +296,14 @@ def build(stock, toolbox):
         "outputs": {p.name: sha(p) for p in OUTPUTS},
         "layers": len(layers), "plants": sum(counts.values()), "perMesh": counts, "zones": len(zones),
     }, indent=2) + "\n", newline="\n")
+    # Water (pools, streams, cascade, watermask) is spliced into the sites file and
+    # the manifest by its own module; one run of this builder writes everything.
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("build_misn18_water", ROOT / "Tools" / "Build-Misn18Water.py")
+    water = importlib.util.module_from_spec(spec)
+    sys.modules["build_misn18_water"] = water
+    spec.loader.exec_module(water)
+    water.build(stock, toolbox)
     print("Built misn18 storm sites:", len(layers), "layers,", sum(counts.values()), "plants,", len(zones), "keep-clear circles")
 
 

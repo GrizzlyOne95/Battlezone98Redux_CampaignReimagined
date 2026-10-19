@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2905,
+  "count": 2911,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -11060,6 +11060,18 @@
       "runtime": "cr17_pools.mesh"
     },
     {
+      "source": "Assets\\Models\\cr18_cascade.mesh",
+      "runtime": "cr18_cascade.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr18_pools.mesh",
+      "runtime": "cr18_pools.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr18_streams.mesh",
+      "runtime": "cr18_streams.mesh"
+    },
+    {
       "source": "Assets\\Models\\cr17_river.mesh",
       "runtime": "cr17_river.mesh"
     },
@@ -11584,6 +11596,10 @@
       "runtime": "cr18_storm.particle.payload"
     },
     {
+      "source": "Materials\\cr18_water.material",
+      "runtime": "cr18_water.material"
+    },
+    {
       "source": "Scripts\\CRStorm18.lua",
       "runtime": "CRStorm18.lua"
     },
@@ -11604,6 +11620,10 @@
       "runtime": "CRStorm18Tornado.lua"
     },
     {
+      "source": "Scripts\\CRStorm18Water.lua",
+      "runtime": "CRStorm18Water.lua"
+    },
+    {
       "source": "Shaders\\cr18_swirl-fragment.glsl",
       "runtime": "cr18_swirl-fragment.glsl"
     },
@@ -11622,6 +11642,10 @@
     {
       "source": "Shaders\\cr18_swirl.program",
       "runtime": "cr18_swirl.program"
+    },
+    {
+      "source": "Shaders\\cr18_water.program",
+      "runtime": "cr18_water.program"
     }
   ]
 }

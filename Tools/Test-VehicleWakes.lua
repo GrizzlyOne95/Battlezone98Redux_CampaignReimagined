@@ -685,6 +685,36 @@ do
                 check(fy and mars and fy > mars, "lunar gravity pull is weaker than Mars'")
             end
         end
+        -- Mission 18's mud: dark wet dirt (emitter 0) and clods (emitter 1) on an existing material,
+        -- heavier than the grass bits, with a complete interpolator (Ogre fills missing stages with black).
+        local mud = declared["CRWake/MudClods"]
+        check(mud ~= nil and w.Wake.Profiles.mud and w.Wake.Profiles.mud.template == "CRWake/MudClods", "mud profile and its template exist")
+        if mud then
+            local _, mudEmitters = mud:gsub("emitter%s+%a+", "")
+            check(mudEmitters == 2 and #w.Wake.Profiles.mud.shares == 2, "mud has a dirt emitter and a clod emitter")
+            check(mud:match("material%s+(%S+)") == "CR_FX/Grit", "mud reuses the grit material")
+            for i = 0, 3 do check(mud:find("time" .. i, 1, true) and mud:find("colour" .. i, 1, true), "mud states interpolator stage " .. i) end
+            local fy = tonumber(mud:match("force_vector%s+%S+%s+(%S+)"))
+            local gy = tonumber(declared["CRWake/GrassBits"]:match("force_vector%s+%S+%s+(%S+)"))
+            check(fy and gy and fy < gy, "clods fall harder than grass bits")
+            local r, g, bl = mud:match("colour_range_start%s+(%S+)%s+(%S+)%s+(%S+)")
+            check(tonumber(r) < 0.3 and tonumber(r) > tonumber(bl), "mud is dark brown")
+            local mudQuota = tonumber(mud:match("quota%s+(%d+)"))
+            check(mudQuota and mudQuota <= 72, "mud quota is within the load budget (" .. tostring(mudQuota) .. ")")
+        end
+        -- A craft the resolver calls mud gets the mud template, and only the shared payload is requested.
+        local wm = NewWorld()
+        wm.Wake.Init({ surface = function(x) if x > 100.0 then return "water", 1.0, 0.5 end return "mud", 0.7, 0.0 end,
+                       surfaces = { "water", "mud" } })
+        check(#wm.extra == 1 and wm.extra[1] == "cr_wake", "water + mud request the shared payload once")
+        wm.Add("slog", 50.0, 0.0, 20.0, 0.0)
+        wm.Run(2.0)
+        check(wm.Live("CRWake/MudClods") == 1 and wm.Live("CRWake/WaterSpray") == 0, "a craft over mud gets the mud wake")
+        for _, sy in pairs(wm.systems) do
+            if sy.template == "CRWake/MudClods" then check((sy.rates[0] or 0) > 0, "the mud wake emits") end
+        end
+        wm.Wake.Stop()
+        check(wm.Live() == 0, "mud wakes are destroyed on Stop")
         -- Balanced braces (Ogre skips a malformed template silently).
         local open, close = 0, 0
         for _ in payload:gmatch("{") do open = open + 1 end

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Mission 18 gains water and landscaping: four standing pools in closed basins, six streams that run downhill into and out
+  of them and one 22 m cascade with mist, baked from the original heightmap (nothing is carved; `Missions/misn18.hg2` is
+  untouched) and kept clear of the start, transport, spawns, ambush column, Fury paths and the tornado's keep-clear circles.
+  The storm drives it: streams turn muddy and scroll faster as the level rises, the mist thickens, and collapse/final/ascent
+  are the most violent. Vehicles raise water spray over the water and a new dark `mud` wake (`CRWake/MudClods`) elsewhere.
+  New `CR18/*` water materials on a `STORMWATER` variant of the CR17 water shader. Unrendered so far; see
+  `Docs/MISN18_STORM.md` and `Docs/VEHICLE_WAKES.md`.
+
 - Add Mission 18's shared offline/co-op port, The Ultimate Quake, on the original 1.5 map: the opening
   cinematics play for everyone, any player can find the Fury transport and destroy its four
   thrusters, one shared 180 s countdown ends in a win only when every pilot is within 200 m of the

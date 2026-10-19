@@ -1115,3 +1115,42 @@ particle_system CR18/CrackPuff
         rate 3.2
     }
 }
+
+// The cascade's mist (CRStorm18Water): one box at the foot of the fall. Emitter 0's
+// rate is driven by the storm level; ColourFader and Scaler are fixed.
+particle_system CR18/CascadeMist
+{
+    material CRWX_FX/Mist
+    particle_width 6
+    particle_height 5
+    quota 260
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type point
+
+    emitter Box
+    {
+        width 12
+        height 2
+        depth 8
+        direction 0 1 0
+        angle 35
+        emission_rate 18
+        time_to_live_min 1.8
+        time_to_live_max 3.6
+        velocity_min 1
+        velocity_max 3.5
+        colour 0.62 0.60 0.58 0.16
+    }
+
+    affector ColourFader
+    {
+        alpha -0.05
+    }
+
+    affector Scaler
+    {
+        rate 1.3
+    }
+}

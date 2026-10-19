@@ -87,6 +87,7 @@ V.Profiles = {
     ice      = { template = "CRWake/IceSpray", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 45.0 },
     water    = { template = "CRWake/WaterSpray", payload = "cr_wake", shares = { 1.0, 0.60 }, rate = 45.0,
                  accent = "CRWake/WaterRing", accentShare = 0.35 },
+    mud      = { template = "CRWake/MudClods", payload = "cr_wake", shares = { 1.0, 0.50 }, rate = 42.0 },
     grass    = { template = "CRWake/GrassBits", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 40.0 },
     sulfur   = { template = "CRWake/SulfurDust", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 50.0 },
     ash      = { template = "CRWake/AshDust", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 50.0 },
