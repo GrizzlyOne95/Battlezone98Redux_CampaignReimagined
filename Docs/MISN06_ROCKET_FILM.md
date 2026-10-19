@@ -66,14 +66,26 @@ ridge obscuring ignition in the first camera position. Run `mars-rocket-6`
 passed 7 steps / 19 checks and exercised all four FX layers on both clients,
 with visible orange exhaust during ascent. Its wider revised view still hid
 ignition behind the ridge. The camera is now closer and looks down into the
-gantry, pending the final visual check.
+gantry. Final run `mars-rocket-7`, after merging main through `434819b8` and
+manager-deploying the combined content, passed all 7 steps / 19 checks.
+Both 1280x720 ignition captures show the engine firing clear of the foreground
+ridge; both peers also pass the four-layer FX and ascent checks. The 20-event
+presentation streams match, the original pad and deadlines survive, and the
+rocket and particles are removed. No Lua, unresolved-label or subtitle errors
+were reported. The isolated deployment matches all 2,763 shipping entries.
+
+![Ignition with the foreground ridge cleared](images/misn06-ignition.png)
+![Ascent with visible orange exhaust](images/misn06-ascent.png)
+
 Steam and Proton/Wine remain unverified. No Workshop upload or release is part
 of this prototype.
 
 ## Resume checkpoint — 18 October 2026
 
-Branch: `agent/mars-rocket`, draft PR #228. Implementation, host tests and native
-two-peer motion/FX checks are complete; final camera framing is the next step.
+Branch: `agent/mars-rocket`, draft PR #228. The prototype is complete and pushed,
+including native two-peer motion/FX checks and inspected final camera captures.
+Next step is the owner's visual review; no merge or live-install deployment has
+been performed. Keep the draft worktree while that review is pending.
 Checkpoint `91d710d3` contains the initial implementation. The isolated manager-staged content
 is `C:/BZRCoop/mars-launch-20261018/content`; the regular GOG mod is untouched.
 Run OpenShim's `Run-BZRCoopMission.ps1` with `-Mission misn06`, this content,
@@ -81,7 +93,8 @@ Run OpenShim's `Run-BZRCoopMission.ps1` with `-Mission misn06`, this content,
 The scenario advances only the original launch timer, verifies the actual radio
 cue, preplaced rocket, camera and all four particle systems on both peers,
 then waits for departure and cleanup. Inspect its screenshots before marking
-the visual result verified. Preserve other active native test sessions.
+the visual result verified. Use `-MapListY 207` for the current 1280x720 map list.
+Preserve other active native test sessions.
 
 Follow-up: Claude's 19 October UTC handoff explicitly left #228 open and the
 camera rerun pending. Current main was merged as `be142761`; the Mission 6 host,
