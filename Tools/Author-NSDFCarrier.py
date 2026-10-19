@@ -11,8 +11,13 @@ import struct
 import sys
 import random
 import hashlib
+import io
+import numpy as np
 import bpy
 from mathutils import Vector
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from bzmodellibs import geo, geo_serializer
+from bzstaticmodel import mesh_bounds, static_mesh_bytes, static_sdf_bytes
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'References/NSDFCarrier'
 TEXTURES=SOURCE/'Textures'
@@ -435,8 +440,6 @@ def bake(ob):
 
 def game_vector(p):return (float(p[0]),float(p[2]),float(-p[1]))
 
-def chunk(cid,body):return struct.pack('<HI',cid,len(body)+6)+body
-
 def export_mesh(ob):
     data=ob.data;data.calc_loop_triangles()
     if EXPORT_TANGENTS:data.calc_tangents(uvmap=data.uv_layers.active.name)
@@ -457,22 +460,9 @@ def export_mesh(ob):
             key=tuple(round(x,6) for x in row)
             if key not in lookup:lookup[key]=len(vertices);vertices.append(row)
             indices.append(lookup[key])
-    nv=len(vertices);wide=nv>=65536
-    idx=struct.pack('<%d%s'%(len(indices),'I' if wide else 'H'),*indices)
-    head=(ASSET+'00\n').encode()+struct.pack('<?I?',False,len(indices),wide)+idx
-    elements=[(0,2,1,0,0),(0,2,4,12,0),(0,1,7,24,0)]
-    if EXPORT_TANGENTS:elements.append((0,2,9,32,0))
-    decl=b''.join(chunk(0x5110,struct.pack('<5H',*e)) for e in elements)
-    stride=44 if EXPORT_TANGENTS else 32
-    vb=struct.pack('<2H',0,stride)+chunk(0x5210,b''.join(struct.pack('<%df'%(stride//4),*v) for v in vertices))
-    geom=chunk(0x5000,struct.pack('<I',nv)+chunk(0x5100,decl)+chunk(0x5200,vb))
-    sub=chunk(0x4000,head+geom+chunk(0x4010,struct.pack('<H',4)))
-    points=[v[:3] for v in vertices]
-    lo=[min(p[i] for p in points) for i in range(3)]
-    hi=[max(p[i] for p in points) for i in range(3)]
-    radius=max(math.sqrt(sum(x*x for x in p)) for p in points)
-    bounds=chunk(0x9000,struct.pack('<7f',*lo,*hi,radius))
-    (MODEL/(ASSET+'.mesh')).write_bytes(b'\x00\x10[MeshSerializer_v1.100]\n'+chunk(0x3000,b'\0'+sub+bounds))
+    nv=len(vertices)
+    lo,hi,radius=mesh_bounds(vertices)
+    (MODEL/(ASSET+'.mesh')).write_bytes(static_mesh_bytes(ASSET+'00',vertices,indices,tangents=EXPORT_TANGENTS))
     return {'vertices':nv,'triangles':len(indices)//3,'bounds_min':lo,'bounds_max':hi,'radius':radius}
 
 def export_native(ob,stats):
@@ -486,29 +476,25 @@ def export_native(ob,stats):
     points=[game_vector(v.co) for v in me.vertices]
     normals=[game_vector(v.normal) for v in me.vertices]
     asset=ASSET.encode()
-    raw=struct.pack('<4si16siii',b'OEG.',0,asset,len(points),len(me.loop_triangles),0)
-    raw+=b''.join(struct.pack('<3f',*p) for p in points+normals)
+    g=geo.Geo();g.name=ASSET;g.vert_count=len(points)
+    g.vertex_pos_buffer=np.array(points,dtype='<f4');g.vertex_normal_buffer=np.array(normals,dtype='<f4')
     uv=me.uv_layers.active.data
     for i,tri in enumerate(me.loop_triangles):
         q=[Vector(points[v]) for v in tri.vertices]
         normal=(q[1]-q[0]).cross(q[2]-q[0]).normalized()
-        raw+=struct.pack('<iiBBBffffi3s13sii',i,3,255,255,255,*(-normal),normal.dot(q[0]),0,bytes(3),asset+b'.map',0,0)
+        face=g.create_face(i);face.color=geo.Color3(255,255,255)
+        face.plane=geo.SurfacePlane(geo.Vector3(*(-normal)),normal.dot(q[0]))
+        face.shade_type=face.texture_type=0;face.texture_name=ASSET+'.map'
         for vi,li in zip(tri.vertices,tri.loops):
-            u,v=uv[li].uv;raw+=struct.pack('<iiff',vi,vi,float(u),1-float(v))
-    (MODEL/(ASSET+'.geo')).write_bytes(raw)
+            u,v=uv[li].uv;face.create_face_node(vi,vi,geo.UV(float(u),1-float(v)))
+    raw=io.BytesIO();geo_serializer.GeoSerializer(raw).write(g)
+    (MODEL/(ASSET+'.geo')).write_bytes(raw.getvalue())
     stats['native_vertices']=len(points);stats['native_triangles']=len(me.loop_triangles)
     evaluated.to_mesh_clear();bpy.data.objects.remove(proxy,do_unlink=True)
-    # Standard static BWD/SDFC metadata, no dependence on the old Resurgence art.
-    prefix=struct.pack('<4si4sii',b'BWD2',8,b'REV\0',12,8)
-    prefix+=struct.pack('<4si16si5fi',b'SDFC',78,asset,1,2000.,1e20,1e20,1e20,1e20,0)
-    prefix+=b'xbldx1.xdf'.ljust(14,b'\0')+b'null'.ljust(12,b'\0')
-    assert len(prefix)==98
+    # Standard static BWD/SDFC metadata (shared writer), no dependence on the old Resurgence art.
     center=[(a+b)/2 for a,b in zip(stats['bounds_min'],stats['bounds_max'])]
     half=[(b-a)/2 for a,b in zip(stats['bounds_min'],stats['bounds_max'])]
-    rec=struct.pack('<8s12f8s7fiii4f',asset,1,0,0,0,1,0,0,0,1,0,0,0,b'WORLD',*center,stats['radius'],*half,60,0,0,0,0,0,0)
-    null=bytes(120);null=b'NULL'+null[4:]
-    body=struct.pack('<i',1)+rec+null*5
-    (MODEL/(ASSET+'.sdf')).write_bytes(prefix+struct.pack('<4si',b'SGEO',8+len(body))+body+struct.pack('<4si',b'EXIT',8)*2)
+    (MODEL/(ASSET+'.sdf')).write_bytes(static_sdf_bytes(ASSET,center,half,stats['radius']))
 
 
 if __name__=='__main__':main()

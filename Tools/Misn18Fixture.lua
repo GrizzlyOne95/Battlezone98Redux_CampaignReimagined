@@ -367,7 +367,9 @@ function F.makePeer(id, team, network, options)
         record("StartCockpitTimer", time, warn, alert)
     end
     e.GetCockpitTimer = function()
-        return W.timer and math.max(0, W.timer.duration - (W.now - W.timer.start)) or 0
+        -- MultSTMission calls StartCockpitTimerUp every frame (live 2026-10-19, run misn18-win-1p-a: the reading equals the
+        -- mission clock whatever StartCockpitTimer asked for), so a countdown can never be read back from the engine.
+        return math.floor(W.now)
     end
     e.GetScrap = function() return W.scrap or 0 end
     e.GetMaxScrap = function() return W.capacity or 30 end
