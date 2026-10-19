@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2913,
+  "count": 2929,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -228,6 +228,18 @@
       "runtime": "abhang.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\ablpow.mesh",
+      "runtime": "ablpow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\ablpow.sdf",
+      "runtime": "ablpow.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abwpow.sdf",
+      "runtime": "abwpow.sdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\adr11bdy.geo",
       "runtime": "adr11bdy.geo"
     },
@@ -380,16 +392,12 @@
       "runtime": "avturr_C.skeleton"
     },
     {
-      "source": "Assets\\ModelFixes\\avwalk.mesh",
-      "runtime": "avwalk.mesh"
-    },
-    {
-      "source": "Assets\\ModelFixes\\avwalk.skeleton",
-      "runtime": "avwalk.skeleton"
-    },
-    {
       "source": "Assets\\ModelFixes\\avwalk_c.mesh",
       "runtime": "avwalk_c.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbhang.mesh",
+      "runtime": "bbhang.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bbhang.sdf",
@@ -398,6 +406,14 @@
     {
       "source": "Assets\\ModelFixes\\bbhang.skeleton",
       "runtime": "bbhang.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bblpow.mesh",
+      "runtime": "bblpow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bblpow.sdf",
+      "runtime": "bblpow.sdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvapc.mesh",
@@ -466,6 +482,18 @@
     {
       "source": "Assets\\ModelFixes\\bvwalk_c.skeleton",
       "runtime": "bvwalk_c.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbwpow.mesh",
+      "runtime": "cbwpow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbwpow.sdf",
+      "runtime": "cbwpow.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbwpow.skeleton",
+      "runtime": "cbwpow.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\cfr11bda.geo",
@@ -700,6 +728,10 @@
       "runtime": "cvwalk_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cwp11rot.geo",
+      "runtime": "cwp11rot.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\hbtran00.mesh",
       "runtime": "hbtran00.mesh"
     },
@@ -712,8 +744,16 @@
       "runtime": "obdata.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\sblpow.sdf",
+      "runtime": "sblpow.sdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\sbsilo.mesh",
       "runtime": "sbsilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sbwpow.sdf",
+      "runtime": "sbwpow.sdf"
     },
     {
       "source": "Assets\\ModelFixes\\svapc.mesh",
@@ -750,6 +790,10 @@
     {
       "source": "Assets\\ModelFixes\\svscav.mesh",
       "runtime": "svscav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svslf.vdf",
+      "runtime": "svslf.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\svtank.mesh",
@@ -3042,6 +3086,10 @@
     {
       "source": "Materials\\CR_glow.material",
       "runtime": "CR_glow.material"
+    },
+    {
+      "source": "Materials\\cr_lightarc.material",
+      "runtime": "cr_lightarc.material"
     },
     {
       "source": "Materials\\CR_overlay.material",
@@ -7306,6 +7354,22 @@
     {
       "source": "Shaders\\CR_grasswind.program",
       "runtime": "CR_grasswind.program"
+    },
+    {
+      "source": "Shaders\\cr_lightarc-fragment.glsl",
+      "runtime": "cr_lightarc-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\cr_lightarc-vertex.glsl",
+      "runtime": "cr_lightarc-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\cr_lightarc.hlsl",
+      "runtime": "cr_lightarc.hlsl"
+    },
+    {
+      "source": "Shaders\\cr_lightarc.program",
+      "runtime": "cr_lightarc.program"
     },
     {
       "source": "Shaders\\cr_methane.hlsl",
