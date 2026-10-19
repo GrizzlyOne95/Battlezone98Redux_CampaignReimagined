@@ -1097,3 +1097,30 @@ The SM4 and GLSL `CR_Effect` sprite vertex programs swizzle stock vertex color
 BGRA, while SM3 HLSL does not. For Mission 16 Ogre exhaust, use neutral emitter
 RGB with the Fury blue hue in `CR16/FuryExhaust` material diffuse/glow constants
 (after that swizzle). Do not fix one Ogre effect by recoloring shared stock shaders.
+
+Concept fleet assets: the owner identified the five small bottom-right objects
+in private `CCAfleet3.webp` as stock comparison units, not additional capital ship
+designs. Its svapc silhouette and the installed 14.6186 m mesh inform an approximate
+0.25 m/pixel survey. See `Docs/CONCEPT_FLEET_ASSETS.md`; never invent classes for
+those comparison units. Curved-hull surface cards need subdivisions to stay on
+the hull, and coarse closed structural solids should feed the native GEO/SDF;
+copying every visual window/panel can exceed native geometry table limits.
+
+Create an explicit `BZR_CAMPAIGN_RUNTIME_DIR` **before** invoking the manager and
+check the actual deployment footer. A nonexistent override currently falls back
+to the ordinary GOG development mod. In the carrier prototype this refreshed 13
+existing managed files and added nine resources there; the handoff records the
+exact affected files rather than pretending the deployment was isolated.
+Native fleet preview motion remains unqualified: guest static-fixture transform
+readback lagged behind continuous movement, then failed to converge even after
+holding a fixed endpoint. Network ownership/interpolation is suspected, not
+proven. `Test-ConceptFleetLive.ps1 -ExerciseMovement` retains the strict failing
+diagnostic; its default validates stationary model rendering. Do not present a
+passing asset smoke test as proof of precise co-op cinematic motion.
+
+CCA fleet art review: inspect stock CCA meshes with their UV textures, not only
+texture atlases. The owner rejected regular raised armour tiles. Preserve broad
+faceted skin and use restrained flush seams. Corner-only paint projection can
+cut through bevels; intersect paint polygons with actual structural triangles.
+The fleet tangent normal bake uses DirectX -Y to match cross(tangent,normal).
+See `Docs/CCA_REDUX_ART_PASS.md` for the revision and qualification state.
