@@ -2,21 +2,9 @@
 -- Source: Battlezone_Source/BZ1/from_bz2_dll_src/Misn18Mission.cpp.
 -- Disabled C++ is retained verbatim at its original locations below.
 -- Full original C++ and header, including native save/load and unused fields,
--- are preserved in References/Misn18Source/. No EXU/OpenShim helpers required.
+-- are preserved in References/Misn18Source/. Everything between `-- CR ... >>` and `<<` is the
+-- Campaign Reimagined co-op/restoration layer (Docs/MISN18_COOP.md); outside it the port is stock-only.
 local M
-
--- CR Fury roster >>
--- Two restored fighters per heavy Fury; preserve all transport/engine logic.
-local BuildObject = BuildObject
-if not CR_TEST_FAITHFUL then
-    local nativeBuild = BuildObject
-    local roster = require("CRFuryRoster")
-    BuildObject = function(odf, team, where, ...)
-        if team == 2 then odf = roster.Select(odf, M) end
-        return nativeBuild(odf, team, where, ...)
-    end
-end
--- CR Fury roster <<
 
 local function NewState()
     local state = {}
@@ -161,8 +149,47 @@ local function Distance(from, to)
     return GetDistance(from, to)
 end
 
+-- CR co-op runtime >>
+-- Offline and co-op share this adapter (Scripts/CRMisn18.lua); the faithful tests set CR_TEST_FAITHFUL.
+-- Lexical wrappers affect this mission only. Docs/MISN18_COOP.md lists every wrapped call.
+local campaignRuntime = not CR_TEST_FAITHFUL and require("CRMisn18").Create(function() return M end)
+local RESTORED = campaignRuntime ~= nil and campaignRuntime ~= false
+local QUAKE_CAP = campaignRuntime and campaignRuntime.QUAKE_CAP
+local BuildObject = campaignRuntime and campaignRuntime.Spawn or BuildObject
+local IsAlive = campaignRuntime and campaignRuntime.IsAlive or IsAlive
+local GetPlayerHandle = campaignRuntime and campaignRuntime.GetPlayerHandle or GetPlayerHandle
+local Goto = campaignRuntime and campaignRuntime.Goto or Goto
+local SetIndependence = campaignRuntime and campaignRuntime.SetIndependence or SetIndependence
+local Attack = campaignRuntime and campaignRuntime.Attack or Attack
+local AudioMessage = campaignRuntime and campaignRuntime.AudioMessage or AudioMessage
+local StopAudioMessage = campaignRuntime and campaignRuntime.StopAudioMessage or StopAudioMessage
+local CameraReady = campaignRuntime and campaignRuntime.CameraReady or CameraReady
+local CameraPath = campaignRuntime and campaignRuntime.CameraPath or CameraPath
+local CameraObject = campaignRuntime and campaignRuntime.CameraObject or CameraObject
+local CameraFinish = campaignRuntime and campaignRuntime.CameraFinish or CameraFinish
+local CameraCancelled = campaignRuntime and campaignRuntime.CameraCancelled or CameraCancelled
+local SetObjectiveName = campaignRuntime and campaignRuntime.SetObjectiveName or SetObjectiveName
+local SetObjectiveOn = campaignRuntime and campaignRuntime.SetObjectiveOn or SetObjectiveOn
+local SetObjectiveOff = campaignRuntime and campaignRuntime.SetObjectiveOff or SetObjectiveOff
+local ClearObjectives = campaignRuntime and campaignRuntime.ClearObjectives or ClearObjectives
+local AddObjective = campaignRuntime and campaignRuntime.AddObjective or AddObjective
+local RemoveObject = campaignRuntime and campaignRuntime.RemoveObject or RemoveObject
+local SucceedMission = campaignRuntime and campaignRuntime.SucceedMission or SucceedMission
+local FailMission = campaignRuntime and campaignRuntime.FailMission or FailMission
+local SetScrap = campaignRuntime and campaignRuntime.SetScrap or SetScrap
+local StartEarthquake = campaignRuntime and campaignRuntime.StartEarthquake or StartEarthquake
+local UpdateEarthQuake = campaignRuntime and campaignRuntime.UpdateEarthQuake or UpdateEarthQuake
+local StartCockpitTimer = campaignRuntime and campaignRuntime.StartCockpitTimer or StartCockpitTimer
+local GetCockpitTimer = campaignRuntime and campaignRuntime.GetCockpitTimer or GetCockpitTimer
+local Damage = campaignRuntime and campaignRuntime.Damage or Damage
+if campaignRuntime then Distance = campaignRuntime.WrapDistance(Distance) end
+-- CR co-op runtime <<
+
 function Start()
     M = NewState()
+-- CR co-op callback >>
+    if campaignRuntime then campaignRuntime.Start() end
+-- CR co-op callback <<
     --[==[/*
 	Here's where you
 	set the values
@@ -298,6 +325,9 @@ function Start()
 end
 
 function Update(dt)
+-- CR co-op callback >>
+    if campaignRuntime and not campaignRuntime.Update(dt) then return end
+-- CR co-op callback <<
     --[==[/*
 		Here is where you 
 		put what happens 
@@ -370,6 +400,19 @@ function Update(dt)
 		else UpdateEarthQuake(quake_level*0.9f);
 
 	}*/]==]
+-- CR restored earthquake pulse >>
+    -- The cut block above, active again [owner]: every third second the quake follows quake_level, with a
+    -- larger pulse on every fourth. The pulse is bounded because no live value for level 6 x 3 exists.
+    if RESTORED and (GetTime() > M.quake_check) then
+        M.quake_count = M.quake_count + 1
+        M.quake_check = GetTime() + 3.0
+        if M.quake_count % 4 == 1 then
+            UpdateEarthQuake(math.min(M.quake_level * 3.0, QUAKE_CAP))
+        else
+            UpdateEarthQuake(M.quake_level * 0.9)
+        end
+    end
+-- CR restored earthquake pulse <<
     if M.openingcin == false then
         CameraReady()
         M.camera1 = true
@@ -445,6 +488,9 @@ function Update(dt)
         (Distance(M.player, "spawnalt1a") < 100.0) or
         (Distance(M.player, "cheat1a") < 200.0) or
         (Distance(M.player, "cheatalt1a") < 200.0)) then
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.w1u1 = BuildObject("hvsat", 2, "spawn1b")
         M.w1u3 = BuildObject("hvsat", 2, "spawnalt1b")
         Goto(M.w1u1, "transport1")
@@ -458,6 +504,9 @@ function Update(dt)
         (Distance(M.player, "spawnalt2a") < 100.0) or
         (Distance(M.player, "cheat2a") < 200.0) or
         (Distance(M.player, "cheatalt2a") < 200.0)) then
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.w2u2 = BuildObject("hvsat", 2, "spawn2b")
         M.w2u4 = BuildObject("hvsat", 2, "spawnalt2b")
         Goto(M.w2u2, "transport3")
@@ -471,6 +520,9 @@ function Update(dt)
         (Distance(M.player, "spawnalt3a") < 100.0) or
         (Distance(M.player, "cheat3a") < 200.0) or
         (Distance(M.player, "cheatalt3a") < 200.0)) then
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.w3u1 = BuildObject("hvsat", 2, "spawn3b")
         M.w3u3 = BuildObject("hvsat", 2, "spawnalt3b")
         Goto(M.w3u1, "transport5")
@@ -480,18 +532,27 @@ function Update(dt)
         M.wave3start = true
     end
     if (M.rand1 < GetTime()) and (M.rand1brk == false) then
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.rand1a = BuildObject("hvsav", 2, "spawnrand")
         Goto(M.rand1a, "transport7")
         SetIndependence(M.rand1a, 1)
         M.rand1brk = true
     end
     if (M.rand2 < GetTime()) and (M.rand2brk == false) then
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.rand2a = BuildObject("hvsav", 2, "spawnrand")
         Goto(M.rand2a, "transport8")
         SetIndependence(M.rand2a, 1)
         M.rand2brk = true
     end
     if (M.rand3 < GetTime()) and (M.rand3brk == false) then
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.rand3a = BuildObject("hvsav", 2, "spawnrand")
         Goto(M.rand3a, "transport9")
         SetIndependence(M.rand3a, 1)
@@ -502,16 +563,25 @@ function Update(dt)
         M.dontgo = true
     end
     if (M.dontgo == true) and (Distance(M.player, "dontgo1") < 100.0) and (M.dg1 == false) then
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.dg1a = BuildObject("hvsat", 2, "dgs1")
         M.dg1b = BuildObject("hvsav", 2, "spawn1")
         M.dg1 = true
     end
     if (M.dontgo == true) and (Distance(M.player, "dontgo2") < 100.0) and (M.dg2 == false) then
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.dg2a = BuildObject("hvsat", 2, "dgs2")
         M.dg2b = BuildObject("hvsav", 2, "spawn1")
         M.dg2 = true
     end
     if (M.dontgo == true) and (Distance(M.player, "dontgo3") < 100.0) and (M.dg3 == false) then
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.dg3a = BuildObject("hvsat", 2, "dgs3")
         M.dg3b = BuildObject("hvsav", 2, "spawn1")
         M.dg3 = true
@@ -566,6 +636,9 @@ function Update(dt)
         M.savattack = GetTime() + 180.0
         M.newobjective = true
         if M.wave1start == false then
+-- CR Fury scaling >>
+            if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
             M.w1u1 = BuildObject("hvsat", 2, "spawn1b")
             M.w1u3 = BuildObject("hvsat", 2, "spawnalt1b")
             Goto(M.w1u1, "transport1")
@@ -575,6 +648,9 @@ function Update(dt)
             M.wave1start = true
         end
         if M.wave2start == false then
+-- CR Fury scaling >>
+            if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
             M.w2u2 = BuildObject("hvsat", 2, "spawn2b")
             M.w2u4 = BuildObject("hvsat", 2, "spawnalt2b")
             Goto(M.w2u2, "transport3")
@@ -584,6 +660,9 @@ function Update(dt)
             M.wave2start = true
         end
         if M.wave3start == false then
+-- CR Fury scaling >>
+            if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
             M.w3u1 = BuildObject("hvsat", 2, "spawn3b")
             M.w3u3 = BuildObject("hvsat", 2, "spawnalt3b")
             Goto(M.w3u1, "transport5")
@@ -595,6 +674,9 @@ function Update(dt)
     end
     if (M.transdestroyed == false) and (M.savwaves == false) and (M.savattack < GetTime()) then
         M.savwaves = true
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.fury1 = BuildObject("hvsav", 2, "spawnrand")
         M.fury2 = BuildObject("hvsav", 2, "spawnrand")
         M.fury3 = BuildObject("hvsav", 2, "spawnrand2")
@@ -603,12 +685,18 @@ function Update(dt)
         Attack(M.fury2, M.avrec)
         Attack(M.fury3, M.avrec)
         Attack(M.fury4, M.avrec)
+-- CR restored voice >>
+        if RESTORED then AudioMessage("misn1817.wav") end
+-- CR restored voice <<
     end
     -- SOURCE BEHAVIOR: once enabled, this wave replaces itself only when all
     -- four units die, and continues even after transport destruction. Adding a
     -- transdestroyed gate here would reduce pressure during the escape.
     if M.savwaves == true then
         if (not IsAlive(M.fury1)) and (not IsAlive(M.fury2)) and (not IsAlive(M.fury3)) and (not IsAlive(M.fury4)) then
+-- CR Fury scaling >>
+            if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
             M.fury1 = BuildObject("hvsav", 2, "spawnrand")
             M.fury2 = BuildObject("hvsav", 2, "spawnrand")
             M.fury3 = BuildObject("hvsav", 2, "spawnrand2")
@@ -647,9 +735,18 @@ function Update(dt)
     if ((Distance(M.player, "return1") < 100.0) or
         (Distance(M.player, "return2") < 100.0)) and
         (M.returnwave == false) and (M.transdestroyed == true) then
+-- CR Fury scaling >>
+        if campaignRuntime then campaignRuntime.BeginEvent() end
+-- CR Fury scaling <<
         M.sav1 = BuildObject("hvsat", 2, "spawnreturn")
         --[==[//sav2 = BuildObject ("hvsat",2, "spawnreturn");]==]
         --[==[//sav3 = BuildObject ("hvsav",2, "spawnreturn");]==]
+-- CR restored return units >>
+        if RESTORED then
+            M.sav2 = BuildObject("hvsat", 2, "spawnreturn")
+            M.sav3 = BuildObject("hvsav", 2, "spawnreturn")
+        end
+-- CR restored return units <<
         M.returnwave = true
     end
     if (Distance(M.player, M.avrec) < 200.0) and (M.transdestroyed == true) and (M.missionwon == false) then
@@ -687,6 +784,9 @@ function Update(dt)
         AudioMessage("misn1815.wav")
         M.message3 = true
     end
+-- CR co-op callback >>
+    if campaignRuntime then campaignRuntime.AfterUpdate() end
+-- CR co-op callback <<
 end
 
 -- Stock LuaMission serializes this table's primitive values and engine types,
@@ -694,9 +794,23 @@ end
 -- Load restores the saved flags, timers, and camera counters without Setup or
 -- replaying the first-frame mission initialization.
 function Save()
+-- CR co-op callback >>
+    if campaignRuntime then campaignRuntime.Save() end
+-- CR co-op callback <<
     return M
 end
 
 function Load(state)
     M = state
+-- CR co-op callback >>
+    if campaignRuntime then campaignRuntime.Load() end
+-- CR co-op callback <<
 end
+
+-- CR co-op callbacks >>
+function AddObject(h) if campaignRuntime then return campaignRuntime.AddObject(h) end end
+function CreatePlayer(id,name,team) if campaignRuntime then return campaignRuntime.CreatePlayer(id,name,team) end end
+function AddPlayer(id,name,team) if campaignRuntime then return campaignRuntime.AddPlayer(id,name,team) end end
+function DeletePlayer(id) if campaignRuntime then return campaignRuntime.DeletePlayer(id) end end
+function Receive(from,kind,...) if campaignRuntime then return campaignRuntime.Receive(from,kind,...) end end
+-- CR co-op callbacks <<

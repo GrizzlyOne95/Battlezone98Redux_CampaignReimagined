@@ -1,0 +1,38 @@
+{
+  "source": "Battlezone_Source stock misn18 (.hgt .mat .bzn); cr17_foliage.dds",
+  "inputs": {
+    "misn18.hgt": "7eeb540c4189807a76e0704d8c289512b3ab43e5e7a92011449abdda0f3c5560",
+    "misn18.mat": "90e8d824923f48f0caf8a3f2dcfe1cb9db14351eb79a63f37da85233485a722b",
+    "misn18.bzn": "a0c531e43d44a1e1e3f486502011307841771b0596ad5e3590c4a63ade6e0ae2"
+  },
+  "cr17_foliage.dds": "dd3a5fdf0da11348d93803f8ddd6dd481afb49c35ffc5c698f9558188bd33126",
+  "outputs": {
+    "CRStorm18Sites.lua": "f027cd65ec9fac32bd82cb6a6c4f242038ed23a0855eff47617e80c0ae00aee3",
+    "cr18_foliage.dds": "516e6f881f8a80e5dd516a8946b0ab3a0655795a3597ae720fc618fa7bb83adf",
+    "cr18_crack_a.png": "3bc8aa6364e1d938a8f63a1dd3dbfae2b357e93f573bdfe6fc3a19cd428da405",
+    "cr18_crack_b.png": "7b3318443a9ba135aae11e0c7444f6e6f1f21ae16a5844f5e3573ca6e8ab0f10",
+    "cr18_pools.mesh": "d20d0fd777a8c37694a762349167267c85b18521274ed0d906d7d9ed823cfb6e",
+    "cr18_streams.mesh": "48fd13faf34e0894a3fb710f159785848cd6dd71c07060df44ae20ff30692f6e",
+    "cr18_cascade.mesh": "2b5d992631541a2fd4eb60dc9e503ef6368146c70ab8f348fc386e5924619942"
+  },
+  "layers": 392,
+  "plants": 31355,
+  "perMesh": {
+    "cr17_mire_ferna.mesh": 8255,
+    "cr17_mire_fernb.mesh": 6083,
+    "cr17_mire_frond.mesh": 6592,
+    "cr17_mire_reeds.mesh": 10425
+  },
+  "zones": 24,
+  "water": {
+    "heightmap": "Missions/misn18.hg2",
+    "heightmapSha256": "f73446276cf785399712d1a54f187ab254e2737a4e22e73f90c590c85a50a65b",
+    "carved": false,
+    "pools": 4,
+    "poolCells": 499,
+    "streams": 6,
+    "streamPoints": 303,
+    "maskCells": 1242,
+    "cascadeDrop": 21.9
+  }
+}

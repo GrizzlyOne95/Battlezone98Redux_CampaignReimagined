@@ -110,6 +110,10 @@ uniform vec4 waterScroll;
 uniform vec4 waterScale;
 uniform vec4 waterColour;
 uniform vec4 waterSurface;
+#if defined(STORMWATER)
+uniform vec4 stormMud;
+uniform vec4 stormFlow;
+#endif
 #endif
 
 #if defined(ICE)
@@ -437,14 +441,22 @@ void main()
 	oColor = vec4(mix(colour, fogColour.rgb, fog), 1.0);
 
 #elif defined(WATER)
+#if defined(STORMWATER)
+	vec2 uvA = uv * waterScale.x + fract(waterScroll.xy * time) + fract(waterScroll.xy * stormFlow.x);
+	vec2 uvB = uv.yx * waterScale.y + fract(waterScroll.zw * time) + fract(waterScroll.zw * stormFlow.x);
+#else
 	vec2 uvA = uv * waterScale.x + fract(waterScroll.xy * time);
 	vec2 uvB = uv.yx * waterScale.y + fract(waterScroll.zw * time);
+#endif
 	vec4 tA = texture2D(diffuseMap, uvA);
 	vec4 tB = texture2D(diffuseMap, uvB);
 	vec3 albedo = (tA.rgb + tB.rgb) * 0.5 * waterColour.rgb;
 	float hA = luminance(tA.rgb);
 	float hB = luminance(tB.rgb);
 	float foam = smoothstep(0.55, 0.9, (hA + hB) * 0.5) * waterSurface.w;
+#if defined(STORMWATER)
+	albedo = mix(albedo, stormMud.rgb * (0.65 + 0.7 * (hA + hB) * 0.5), clamp(stormMud.a, 0.0, 1.0));
+#endif
 
 #if defined(GLOW)
 	oColor = vec4(albedo * waterColour.a * (1.0 - fog), 1.0);
@@ -470,6 +482,9 @@ void main()
 	colour = mix(colour, sceneAmbient.rgb + diffuse, foam);
 
 	float alpha = mix(waterSurface.x, waterSurface.y, F) + luminance(specular) + foam;
+#if defined(STORMWATER)
+	alpha = mix(alpha, max(alpha, 0.92), clamp(stormMud.a, 0.0, 1.0) * 0.85);
+#endif
 	oColor = vec4(mix(colour, fogColour.rgb, fog), clamp(alpha, 0.0, 1.0));
 #endif
 

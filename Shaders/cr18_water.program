@@ -1,0 +1,67 @@
+// CR18 storm water: the CR17 water kind (Shaders/cr17_surface.hlsl / -fragment.glsl)
+// built with STORMWATER, which adds a mud tint and an extra scroll phase that
+// CRStorm18Water drives through the pass colours:
+//   diffuse  rgb = mud colour, a = mud amount     -> stormMud
+//   specular r   = extra scroll phase (wraps 100) -> stormFlow
+// Pass colours multiply Ogre's derived_light_* autos, so this program reads the
+// power-scaled light colours instead (identical to the derived ones at colour 1).
+// Shader edits: bump the _v1 suffix here and in cr18_water.material (Ogre's microcode
+// cache keys on the program name).
+
+fragment_program CR18_Water_v1_fragment_GLSL glsl
+{
+	source cr17_surface-fragment.glsl
+	syntax glsl120
+	entry_point main
+	preprocessor_defines WATER=1,STORMWATER=1
+	default_params
+	{
+		param_named diffuseMap int 0
+	}
+}
+
+fragment_program CR18_Water_v1_fragment_HLSL hlsl
+{
+	source cr17_surface.hlsl
+	target ps_3_0
+	entry_point surface_fragment
+	preprocessor_defines WATER=1,STORMWATER=1
+}
+
+fragment_program CR18_Water_v1_fragment_HLSL4 hlsl
+{
+	source cr17_surface.hlsl
+	target ps_4_0
+	entry_point surface_fragment
+	preprocessor_defines SM4=1,WATER=1,STORMWATER=1
+}
+
+fragment_program CR18_Water_v1_fragment unified
+{
+	delegate CR18_Water_v1_fragment_GLSL
+	delegate CR18_Water_v1_fragment_HLSL4
+	delegate CR18_Water_v1_fragment_HLSL
+	default_params
+	{
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto materialShininess surface_shininess
+		param_named_auto lightDiffuse light_diffuse_colour_power_scaled_array 8
+		param_named_auto lightSpecular light_specular_colour_power_scaled_array 8
+		param_named_auto lightAttenuation light_attenuation_array 8
+		param_named_auto spotLightParams spotlight_params_array 8
+		param_named_auto lightPosition light_position_view_space_array 8
+		param_named_auto lightDirection light_direction_view_space_array 8
+		param_named_auto lightCount light_count
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto viewMat view_matrix
+		param_named skyColour float4 0.5 0.6 0.75 1
+		param_named_auto time time
+		param_named waterScroll float4 0.012 0.008 0.011 -0.009
+		param_named waterScale float4 1 1.37 4 0.004
+		param_named waterColour float4 0.6 0.8 0.85 0
+		param_named waterSurface float4 0.55 0.95 0.03 0
+		param_named_auto stormMud surface_diffuse_colour
+		param_named_auto stormFlow surface_specular_colour
+	}
+}

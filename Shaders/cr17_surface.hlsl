@@ -310,6 +310,13 @@ float4 waterScroll;     // xy: layer A scroll (UV/s), zw: layer B scroll
 float4 waterScale;      // x: layer A tiling, y: layer B tiling, z: bump strength, w: bump sample offset (UV)
 float4 waterColour;     // rgb: tint on the texture, a: self-illumination
 float4 waterSurface;    // x: alpha facing the camera, y: alpha at grazing angles, z: Fresnel F0, w: foam
+#if defined(STORMWATER)
+// CR18 storm water: Lua drives these through the pass colours (surface_diffuse_colour /
+// surface_specular_colour; the light autos of this program are the power-scaled ones,
+// so the pass colours do not dim the lighting).
+float4 stormMud;        // rgb: mud colour, a: how far the water has turned to mud (0..1)
+float4 stormFlow;       // x: extra scroll phase (Lua integrates it; wraps at 1000)
+#endif
 #endif
 
 #if defined(ICE)
@@ -637,14 +644,22 @@ void surface_fragment(
 	oColor = float4(lerp(colour, fogColour.rgb, fog), 1.0);
 
 #elif defined(WATER)
+#if defined(STORMWATER)
+	float2 uvA = i.uv * waterScale.x + frac(waterScroll.xy * time) + frac(waterScroll.xy * stormFlow.x);
+	float2 uvB = i.uv.yx * waterScale.y + frac(waterScroll.zw * time) + frac(waterScroll.zw * stormFlow.x);
+#else
 	float2 uvA = i.uv * waterScale.x + frac(waterScroll.xy * time);
 	float2 uvB = i.uv.yx * waterScale.y + frac(waterScroll.zw * time);
+#endif
 	float4 tA = SAMPLE(diffuseMap, uvA);
 	float4 tB = SAMPLE(diffuseMap, uvB);
 	float3 albedo = (tA.rgb + tB.rgb) * 0.5 * waterColour.rgb;
 	float hA = luminance(tA.rgb);
 	float hB = luminance(tB.rgb);
 	float foam = smoothstep(0.55, 0.9, (hA + hB) * 0.5) * waterSurface.w;
+#if defined(STORMWATER)
+	albedo = lerp(albedo, stormMud.rgb * (0.65 + 0.7 * (hA + hB) * 0.5), saturate(stormMud.a));
+#endif
 
 #if defined(GLOW)
 	oColor = float4(albedo * waterColour.a * (1.0 - fog), 1.0);
@@ -672,6 +687,9 @@ void surface_fragment(
 	colour = lerp(colour, sceneAmbient.rgb + diffuse, foam);
 
 	float alpha = lerp(waterSurface.x, waterSurface.y, F) + luminance(specular) + foam;
+#if defined(STORMWATER)
+	alpha = lerp(alpha, max(alpha, 0.92), saturate(stormMud.a) * 0.85);
+#endif
 	oColor = float4(lerp(colour, fogColour.rgb, fog), saturate(alpha));
 #endif
 

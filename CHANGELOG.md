@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+- Mission 18 gains water and landscaping: four standing pools in closed basins, six streams that run downhill into and out
+  of them and one 22 m cascade with mist, baked from the original heightmap (nothing is carved; `Missions/misn18.hg2` is
+  untouched) and kept clear of the start, transport, spawns, ambush column, Fury paths and the tornado's keep-clear circles.
+  The storm drives it: streams turn muddy and scroll faster as the level rises, the mist thickens, and collapse/final/ascent
+  are the most violent. Vehicles raise water spray over the water and a new dark `mud` wake (`CRWake/MudClods`) elsewhere.
+  New `CR18/*` water materials on a `STORMWATER` variant of the CR17 water shader. Unrendered so far; see
+  `Docs/MISN18_STORM.md` and `Docs/VEHICLE_WAKES.md`.
+
+- Add Mission 18's shared offline/co-op port, The Ultimate Quake, on the original 1.5 map: the opening
+  cinematics play for everyone, any player can find the Fury transport and destroy its four
+  thrusters, one shared 180 s countdown ends in a win only when every pilot is within 200 m of the
+  Texas and a loss if any is beyond 400 m (each peer sees its own ship left behind). Furies are team 6,
+  scaled by one extra per two players through concealed arrivals with a 12-craft cap. Restore the
+  earthquake pulse, the Texas-under-attack (`misn1817`) and Texas-destroyed (`misn1818`) lines and the
+  two cut return-wave Furies, and the cut transport-destroyed shot (the countdown now starts when it ends); add an optional storm hook (`CRStorm18`). Not yet qualified in a live
+  2/4-client session; see `Docs/MISN18_COOP.md`.
+
+- Mission 18 ends with a dropship extraction: when everyone makes it, NSDF dropships land beside the Texas, load each
+  human's ship and the Recycler and Factory (at most five ships), and lift into the storm in two unskippable,
+  replicated shots; the mission succeeds, and the normal outro plays, only afterwards. Nothing can fail it once
+  the win has latched. The storm gains `extract` and `ascent` phases, owns the earthquake (the mission's quakes go
+  through `Storm.Quake`) and its tornado now pulls the craft each peer owns. Timings and camera offsets need a
+  live tune; see `Docs/MISN18_COOP.md`.
+
+- Add Mission 18's apocalyptic storm (`CRStorm18`, wired into the co-op port):
+  ten leader-driven phases from a bruised, gusting opening to the collapse of the
+  Fury transport's moon, with a swirling red sky deck, escalating lightning, quakes,
+  glowing ground cracks, landslides, a roaming giant tornado, scorched ground cover
+  and a collapse entry timed to the thruster cinematic. Design, tunables and wiring
+  in `Docs/MISN18_STORM.md`; in-game rendering still needs a live smoke.
+
 - Add Mission 16's shared offline/co-op prototype: Fury-corrupted CCA base
   copies, 200 m Bolt Buddy towers, restored warnings and an evacuation finale
   using the stock Fury transport on a Titan-textured pad beyond the map edge.

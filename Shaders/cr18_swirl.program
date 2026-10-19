@@ -1,0 +1,78 @@
+// Mission 18 storm sky (CRStorm18) for Ogre's generated sky plane. Delegates
+// precede the unified programs: Ogre binds unified default_params only against
+// delegates already parsed, and an unbound wvpMat draws nothing. The _v1 suffix
+// is the shader revision: bump it with any source edit, because Ogre's microcode
+// cache keys on the program name and serves stale code for an edited source.
+
+vertex_program CR18_Swirl_v1_vertexHLSL4 hlsl
+{
+    source cr18_swirl-sm4.hlsl
+    target vs_4_0
+    entry_point swirl_vertex
+}
+
+vertex_program CR18_Swirl_v1_vertexHLSL hlsl
+{
+    source cr18_swirl.hlsl
+    target vs_3_0
+    entry_point swirl_vertex
+}
+
+vertex_program CR18_Swirl_v1_vertexGLSL glsl
+{
+    source cr18_swirl-vertex.glsl
+    syntax glsl120
+}
+
+fragment_program CR18_Swirl_v1_fragmentHLSL4 hlsl
+{
+    source cr18_swirl-sm4.hlsl
+    target ps_4_0
+    entry_point swirl_fragment
+}
+
+fragment_program CR18_Swirl_v1_fragmentHLSL hlsl
+{
+    source cr18_swirl.hlsl
+    target ps_3_0
+    entry_point swirl_fragment
+}
+
+fragment_program CR18_Swirl_v1_fragmentGLSL glsl
+{
+    source cr18_swirl-fragment.glsl
+    syntax glsl120
+    default_params
+    {
+        param_named diffuseMap int 0
+    }
+}
+
+vertex_program CR18_Swirl_v1_vertex unified
+{
+    delegate CR18_Swirl_v1_vertexGLSL
+    delegate CR18_Swirl_v1_vertexHLSL4
+    delegate CR18_Swirl_v1_vertexHLSL
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMat texture_matrix 0
+    }
+}
+
+fragment_program CR18_Swirl_v1_fragment unified
+{
+    delegate CR18_Swirl_v1_fragmentGLSL
+    delegate CR18_Swirl_v1_fragmentHLSL4
+    delegate CR18_Swirl_v1_fragmentHLSL
+    default_params
+    {
+        param_named_auto time time_0_x 1000
+        param_named_auto skyDark surface_ambient_colour
+        param_named_auto skyHot surface_diffuse_colour
+        param_named_auto glow surface_emissive_colour
+        param_named_auto swirl surface_specular_colour
+        param_named_auto fogColour fog_colour
+        param_named plane float4 12.0 0.92 0.0 0.0
+    }
+}

@@ -11,6 +11,7 @@ computes its own local view, so co-op needs no replication.
 | `mars` | `CRMarsWeather` | `CRWake/MarsDust` (cr_wake) |
 | `ice` | `CREuropaWeather` | `CRWake/IceSpray` |
 | `water` + `grass` | `CRJungle17` (Achilles) | `CRWake/WaterSpray` + `CRWake/WaterRing`, `CRWake/GrassBits` |
+| `water` + `mud` | `CRStorm18` (mission 18) | `CRWake/WaterSpray` + `CRWake/WaterRing`, `CRWake/MudClods` |
 | `sulfur` | `CRIoWeather` | `CRWake/SulfurDust` |
 | `ash` | `CRVenusWeather` | `CRWake/AshDust` |
 
@@ -50,6 +51,14 @@ checkout needed) by executing the builder's WATER-MODEL slice on the original he
 unless it reproduces the pool cell, stream path and stream point counts of `source-assets.json`.
 `--check` verifies the file is current. The lift for mask water is a compromise (stream surface is 0.6 m above
 the carved bed; pools sit up to 2 m above it).
+
+## Mission 18 surface test (mud)
+
+`CRStorm18Water.WakeSurface(x, z)`: `water` (lift 0.5 m) on a cell of the generated misn18 water mask
+(`CRStorm18Sites.watermask`, same format as above, built by `Tools/Build-Misn18Water.py`), otherwise `mud`, at
+a rate of 0.6 + 0.4 x the storm's mud amount. `CRWake/MudClods` is two emitters of `CR_FX/Grit`: dark wet dirt and
+heavier clods (gravity -9), quota 56, a four-stage ColourInterpolator, silent until driven.
+See `MISN18_STORM.md` (Water and landscaping).
 
 ## Validation
 

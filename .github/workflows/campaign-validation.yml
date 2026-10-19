@@ -242,6 +242,10 @@ jobs:
           "$LUA" Tools/Test-CRMarsVolcano.lua
           "$LUA" Tools/Test-CRTitanWeather.lua Scripts
           "$LUA" Tools/Test-CRFoliageWind.lua Scripts
+          # Mission 18 storm: director, tornado, ground, replication, payload lint.
+          "$LUA" Tools/Test-CRStorm18.lua
+          python -I Tools/Build-Misn18Storm.py --check
+          python -I Tools/Build-Misn18Water.py --check
           # The wind foliage material is generated from cr17_surface.material.
           python -I Tools/Build-FoliageWindMaterial.py --check
           # The methane surface mesh, ripple map and wet masks match their generator.
@@ -353,6 +357,12 @@ jobs:
           lua5.1 Tools/Test-Misn17Jungle.lua
           lua5.1 Tools/Test-Misn17Crystals.lua
           python Tools/Test-Misn17SourceParity.py
+      - name: Test misn18 faithful port, co-op layer and map contract
+        run: |
+          lua5.1 Tools/Test-Misn18.lua
+          lua5.1 Tools/Test-Misn18Coop.lua
+          python Tools/Test-Misn18SourceParity.py
+          python Tools/Test-Misn18CoopContract.py
 
       - name: Test restored Fury fighter assets and mission roster
         run: |

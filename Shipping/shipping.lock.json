@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2879,
+  "count": 2911,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -6828,6 +6828,10 @@
       "runtime": "CRCoopRespawn.lua"
     },
     {
+      "source": "Scripts\\CRDrop18.lua",
+      "runtime": "CRDrop18.lua"
+    },
+    {
       "source": "Scripts\\CREuropaSites12.lua",
       "runtime": "CREuropaSites12.lua"
     },
@@ -10944,6 +10948,10 @@
       "runtime": "misn17.bmp"
     },
     {
+      "source": "Assets\\Graphics\\misn18.bmp",
+      "runtime": "misn18.bmp"
+    },
+    {
       "source": "Assets\\Models\\c17proc.geo",
       "runtime": "c17proc.geo"
     },
@@ -11050,6 +11058,18 @@
     {
       "source": "Assets\\Models\\cr17_pools.mesh",
       "runtime": "cr17_pools.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr18_cascade.mesh",
+      "runtime": "cr18_cascade.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr18_pools.mesh",
+      "runtime": "cr18_pools.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr18_streams.mesh",
+      "runtime": "cr18_streams.mesh"
     },
     {
       "source": "Assets\\Models\\cr17_river.mesh",
@@ -11160,6 +11180,10 @@
       "runtime": "misn17.ini"
     },
     {
+      "source": "Config\\misn18.ini",
+      "runtime": "misn18.ini"
+    },
+    {
       "source": "Materials\\cr17_cloud.material",
       "runtime": "cr17_cloud.material"
     },
@@ -11188,24 +11212,48 @@
       "runtime": "misn17.bzn"
     },
     {
+      "source": "Missions\\misn18.bzn",
+      "runtime": "misn18.bzn"
+    },
+    {
       "source": "Missions\\misn17.hg2",
       "runtime": "misn17.hg2"
+    },
+    {
+      "source": "Missions\\misn18.hg2",
+      "runtime": "misn18.hg2"
     },
     {
       "source": "Missions\\misn17.lgt",
       "runtime": "misn17.lgt"
     },
     {
+      "source": "Missions\\misn18.lgt",
+      "runtime": "misn18.lgt"
+    },
+    {
       "source": "Missions\\misn17.mat",
       "runtime": "misn17.mat"
+    },
+    {
+      "source": "Missions\\misn18.mat",
+      "runtime": "misn18.mat"
     },
     {
       "source": "Missions\\misn17.trn",
       "runtime": "misn17.trn"
     },
     {
+      "source": "Missions\\misn18.trn",
+      "runtime": "misn18.trn"
+    },
+    {
       "source": "Missions\\misn17.vxt",
       "runtime": "misn17.vxt"
+    },
+    {
+      "source": "Missions\\misn18.vxt",
+      "runtime": "misn18.vxt"
     },
     {
       "source": "ODF\\c17proc.odf",
@@ -11252,6 +11300,10 @@
       "runtime": "CRMisn17.lua"
     },
     {
+      "source": "Scripts\\CRMisn18.lua",
+      "runtime": "CRMisn18.lua"
+    },
+    {
       "source": "Shaders\\cr17_surface-fragment.glsl",
       "runtime": "cr17_surface-fragment.glsl"
     },
@@ -11270,6 +11322,10 @@
     {
       "source": "misn17.des",
       "runtime": "misn17.des"
+    },
+    {
+      "source": "misn18.des",
+      "runtime": "misn18.des"
     },
     {
       "source": "Shaders\\cr17_cloud-fragment.glsl",
@@ -11518,6 +11574,78 @@
     {
       "source": "ODF\\crcred2.odf",
       "runtime": "crcred2.odf"
+    },
+    {
+      "source": "Assets\\Textures\\cr18_crack_a.png",
+      "runtime": "cr18_crack_a.png"
+    },
+    {
+      "source": "Assets\\Textures\\cr18_crack_b.png",
+      "runtime": "cr18_crack_b.png"
+    },
+    {
+      "source": "Assets\\Textures\\cr18_foliage.dds",
+      "runtime": "cr18_foliage.dds"
+    },
+    {
+      "source": "Materials\\cr18_storm.material",
+      "runtime": "cr18_storm.material"
+    },
+    {
+      "source": "Materials\\cr18_storm.particle.payload",
+      "runtime": "cr18_storm.particle.payload"
+    },
+    {
+      "source": "Materials\\cr18_water.material",
+      "runtime": "cr18_water.material"
+    },
+    {
+      "source": "Scripts\\CRStorm18.lua",
+      "runtime": "CRStorm18.lua"
+    },
+    {
+      "source": "Scripts\\CRStorm18Ground.lua",
+      "runtime": "CRStorm18Ground.lua"
+    },
+    {
+      "source": "Scripts\\CRStorm18Rng.lua",
+      "runtime": "CRStorm18Rng.lua"
+    },
+    {
+      "source": "Scripts\\CRStorm18Sites.lua",
+      "runtime": "CRStorm18Sites.lua"
+    },
+    {
+      "source": "Scripts\\CRStorm18Tornado.lua",
+      "runtime": "CRStorm18Tornado.lua"
+    },
+    {
+      "source": "Scripts\\CRStorm18Water.lua",
+      "runtime": "CRStorm18Water.lua"
+    },
+    {
+      "source": "Shaders\\cr18_swirl-fragment.glsl",
+      "runtime": "cr18_swirl-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\cr18_swirl-sm4.hlsl",
+      "runtime": "cr18_swirl-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\cr18_swirl-vertex.glsl",
+      "runtime": "cr18_swirl-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\cr18_swirl.hlsl",
+      "runtime": "cr18_swirl.hlsl"
+    },
+    {
+      "source": "Shaders\\cr18_swirl.program",
+      "runtime": "cr18_swirl.program"
+    },
+    {
+      "source": "Shaders\\cr18_water.program",
+      "runtime": "cr18_water.program"
     }
   ]
 }

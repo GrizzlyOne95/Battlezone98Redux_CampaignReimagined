@@ -502,3 +502,73 @@ particle_system CRWake/AshDust
         force_application   add
     }
 }
+
+// Mission 18's scorched, storm-soaked ground (CRStorm18Water's resolver): dark wet dirt
+// thrown up and heavy clods that fall back fast. Same material as GrassBits.
+//   emitter 0  wet dirt spray        emitter 1  clods
+particle_system CRWake/MudClods
+{
+    material            CR_FX/Grit
+    particle_width      1.1
+    particle_height     1.1
+    quota               56
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               65
+        emission_rate       0
+        time_to_live_min    0.9
+        time_to_live_max    1.6
+        direction           0 1 0
+        velocity_min        1.0
+        velocity_max        3.6
+        colour_range_start  0.20 0.14 0.09 0.00
+        colour_range_end    0.15 0.10 0.07 0.00
+        width               4
+        height              0.3
+        depth               4
+    }
+
+    emitter Box
+    {
+        angle               50
+        emission_rate       0
+        time_to_live_min    0.7
+        time_to_live_max    1.2
+        direction           0 1 0
+        velocity_min        3.0
+        velocity_max        6.0
+        colour_range_start  0.12 0.08 0.05 0.00
+        colour_range_end    0.09 0.06 0.04 0.00
+        width               3
+        height              0.2
+        depth               3
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.20 0.14 0.09 0.55
+        time1   0.30
+        colour1 0.18 0.12 0.08 0.50
+        time2   0.70
+        colour2 0.15 0.10 0.07 0.28
+        time3   1.00
+        colour3 0.12 0.08 0.05 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.15
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -9.0 0
+        force_application   add
+    }
+}
