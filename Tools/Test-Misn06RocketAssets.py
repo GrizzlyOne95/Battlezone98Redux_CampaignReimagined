@@ -70,7 +70,7 @@ for kind,start,end in chunks(data,root_start+1,root_end):
     submeshes.append(count//3)
 assert len(submeshes)==1 and 10000<sum(submeshes)<25000,'bounded authored mesh budget'
 assert abs(bounds[1]+48.5)<.001 and abs(bounds[4]-48.5)<.001,'stable nozzle plane and height'
-assert bounds[0]>=-14.2 and bounds[3]<=14.2 and bounds[5]<17,'fits the launch fixture'
+assert bounds[0]>=-15.2 and bounds[3]<=15.2 and bounds[5]<15.2,'fits the stock raised launch deck'
 
 geo=(ROOT/'Assets/ModelFixes/cr06rok.geo').read_bytes()
 magic,_,name,nv,nf,_=struct.unpack_from('<4si16siii',geo)
@@ -81,7 +81,7 @@ start=sdf.index(b'SGEO')+12
 record=struct.unpack_from('<8s12f8s7fiii4f',sdf,start)
 assert record[0].rstrip(b'\0')==b'cr06rok' and record[13].rstrip(b'\0')==b'WORLD'
 half=record[18:21]
-assert half[1]>=48.5 and half[0]>=13.39 and half[2]>14,'updated native bounds'
+assert half[1]>=48.5 and half[0]>=15.0 and half[2]>=15.0,'updated native bounds'
 
 for suffix,size in [('d',2048),('e',1024),('s',512),('n',16)]:
     dds=(ROOT/'Assets/Textures'/('cr06rok_'+suffix+'.dds')).read_bytes()
@@ -91,7 +91,8 @@ for suffix,size in [('d',2048),('e',1024),('s',512),('n',16)]:
 layout=(ROOT/'Scripts/CR06RocketLayout.lua').read_text()
 jets=[tuple(map(float,m)) for m in re.findall(r'\{(-?[\d.]+),\s*(-?[\d.]+)\}',layout)]
 assert len(jets)==8 and len(set(jets))==8
-assert all(abs(x*x+z*z-64)<.00001 for x,z in jets),'eight bell exits on the 8m ring'
+radius=7*97/77.58216095
+assert all(abs(x*x+z*z-radius*radius)<.00001 for x,z in jets),'scaled TC eight-bell arrangement'
 template=(ROOT/'Materials/cr06_launch.particle.payload').read_text()
 core,plume,smoke,dust=template.split('particle_system CR/M06/')[1:]
 assert core.startswith('Core') and core.count('emitter Point')==8

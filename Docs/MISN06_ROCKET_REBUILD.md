@@ -1,11 +1,11 @@
 # Mars artwork rocket rebuild
 
-The owner requested a full rebuild after the comparison with `marspict.png`.
-The current geometry and textures are newly authored for CR. The first clean
-cylindrical pass was too generic; the next pass corrected the dorsal housing
-to face aft, added interlocking armour plates and service channels, slimmed the
-nose and lightened the engine bells. The perspective inspection below uses a
-low engine-side angle to make comparison with the painting more useful.
+The owner requested a full rebuild after the comparison with `marspict.png`,
+then selected Coxxon's Total Command CCA Rocketship as the close model reference.
+The current geometry and textures are newly authored for CR around that model's
+measured silhouette: stepped conical skirts, recessed machinery wells, dark
+command panels, segmented lamp rings and long engine casings with ribbed bells.
+The earlier straight-cylinder / dorsal-housing reconstruction is superseded.
 
 ![Rebuilt rocket, engine-side perspective](../References/Misn06Rocket/rebuilt-concept-angle.png)
 
@@ -27,8 +27,9 @@ low engine-side angle to make comparison with the painting more useful.
 ## Runtime contract
 
 The model retains the old origin, 97 m height and -48.5 m nozzle plane. It has
-20,151 rendered triangles and 2,410 native fallback triangles. The native SDF
-bounds cover the new dorsal housing. The four new atlases use RGBA8 DDS; the
+24,760 rendered triangles and 1,726 native fallback triangles (3,855 native
+vertices, below the 4,096 limit). The native SDF bounds cover the new conical
+skirts. The four new atlases use RGBA8 DDS; the
 physical geometry carries the panel relief and the normal map is neutral.
 
 Eight bell exits generate `CR06RocketLayout.lua` and the Core/Plume emitters.
@@ -49,14 +50,10 @@ fallback. Mission 6's 1,063 host checks, four-peer presentation tests and source
 parity pass. The shipping list admits exactly one additional runtime file,
 `Scripts/CR06RocketLayout.lua` (2,764 total files).
 
-The fixture now uses the pad's heading so its dorsal housing faces the clear
-approach corridor. Terrain samples along the lower camera's line to the nozzle
-show at least 8 m clearance; this still needs confirmation in the native view.
-
-Next: isolated manager deployment using the already-built EXU main checkout
-that includes point lights, then two-client native captures and final framing /
-material checks. Do not treat the Blender studio images as native validation.
-Keep progress in this document and push each coherent checkpoint.
+The fixture uses the stock pad's heading. The current TC study and pullback
+camera are staged for native run 5 with the pinned runtimes below. Do not treat
+the Blender studio images as native validation. Keep progress in this document
+and push each coherent checkpoint.
 
 Implementation checkpoints: `298f3200` (model, sources and clustered FX) and
 `49d15a60` (corridor-facing fixture and lower camera). CI passes both campaign
@@ -104,6 +101,15 @@ silhouette: tapered skirts, recessed equipment bays and long engine casings.
 Inspection renders and a Blender reference scene are retained privately under
 `C:/BZRCoop/mars-launch-20261018/total-command-reference`.
 
-Next: keep the validated pad and lighting fixes, move the camera around the
-tower, and bring the authored silhouette and surface detail much closer to
-that transport. Imported Total Command source assets are not shipping inputs.
+Current TC study: the reference's 77.582 m height is normalized to the existing
+97 m rocket while keeping its origin and -48.5 m nozzle plane fixed. Maximum
+width is 30.037 m, within 0.1% of the uniformly scaled TC reference. Its eight
+7 m engine offsets become an 8.752 m ring; the generated layout moves exhaust
+with the new bell exits. The fixture remains on the validated deck anchor.
+The camera now starts at local (-55,-20,95)m and pulls back to (-75,-25,130)m,
+around the tower in the clearing rather than above it. Lower engine sightline
+terrain samples are clear at the starting angle.
+
+Reference identity, file hashes and scale are recorded in
+`References/Misn06Rocket/total-command-reference.json`. Imported Total Command
+source assets are not shipping inputs. Next native run: `mars-rocket-rebuild-5`.

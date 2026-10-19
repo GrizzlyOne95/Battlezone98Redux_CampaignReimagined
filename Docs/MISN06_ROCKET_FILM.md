@@ -1,7 +1,7 @@
 # Escape from Mars: CCA transport departure
 
 The existing `misn0614.wav` report now has a short tracking shot of the CCA
-rocket lifting out of its gantry. Its bright engine core, orange plume,
+rocket lifting out of its gantry. Its bright engine core, yellow-white plume,
 world-space smoke and expanding red pad dust render locally on every peer.
 The original dialogue, objective order, flight-log recon target and deadlines
 are retained.
@@ -35,11 +35,15 @@ are retained.
 
 ## Art and reconstruction
 
-The current rocket is a [CR-authored rebuild of the Mars artwork](MISN06_ROCKET_REBUILD.md),
+The current rocket is a [CR-authored close study of Total Command's CCA Rocketship](MISN06_ROCKET_REBUILD.md),
 with new geometry, baked materials, an editable Blender source and matching
-native GEO/SDF. It has 20,151 triangles, eight flared bells, interlocking armour,
-a raised aft-facing four-lamp housing, a red nose band and CCA markings.
-Original Battlezone concept-art credit remains with its creators.
+native GEO/SDF. It has 24,760 triangles, stepped conical stages, recessed
+machinery and command panels, segmented yellow lamp rings, weathered ivory
+panelling and eight long engine housings with ribbed bells. Coxxon created the
+Total Command reference model; its source mesh and textures are not shipped.
+Original Battlezone concept-art credit remains with its creators. The owner
+selected the TC model as the primary reference after reviewing the first
+artwork reconstruction.
 
 The previous prototype used **Battlezone: Resurgence** by GrizzlyOne95 and
 contributors. Its author's [asset-pack description](https://steamcommunity.com/sharedfiles/filedetails/?id=3536800125)
@@ -50,8 +54,9 @@ permits reuse with credit. That extraction is retained in
 editable source, mesh, native SDF/GEO, baked textures and nozzle layout.
 `Tools/Add-Misn06Rocket.py` adds the fixture without rewriting authored blocks;
 `Build-CoopMap.py --mission misn06` also calls this step automatically.
-The original gantry socket position is retained. The rebuilt fixture uses the
-stock pad's heading so its dorsal housing faces the clear approach corridor.
+The stock Redux raised deck is measured explicitly. The fixture's nozzle plane
+is centred 25 cm above that deck; the inherited wrong local X sign is corrected.
+The camera moves through the clearing beside the tower and gently pulls back.
 
 The takeoff arc, camera and particle definitions are CR-authored presentation.
 They do not import Resurgence's launchpad replacement or reinforcement logic.
@@ -65,6 +70,16 @@ the next art iteration closer to `marspict.png`, with neutral inspection renders
 Host checks: original mission scenarios, source parity, shared-map contract,
 four-peer presentation relay, film lifecycle and VFX lifecycle. The new suites
 are wired into `campaign-validation.yml`.
+
+Rebuilt-model run `mars-rocket-rebuild-4` passes 7 steps / 23 checks on two
+Windows/GOG clients: eight active bell emitters in both engine layers, all four
+FX systems and the EXU physical engine light on each peer, followed by complete
+cleanup. The original pad, dialogue and timers survive. The corrected deck
+anchor is visible in the capture; it also exposed tower occlusion from that
+camera. The TC model and revised clearing camera are the next native pass.
+The shipping manager verifies all 2,764 admitted files with no differences.
+
+The following earlier runs and captures document the Resurgence prototype.
 
 Native run `mars-rocket-3` passed 7 steps / 16 checks on two Windows/GOG clients:
 the original VO starts the insert, the rocket rises on both peers, the four

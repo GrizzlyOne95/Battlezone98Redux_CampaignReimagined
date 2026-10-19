@@ -47,9 +47,12 @@ function Film.Update(state, api)
     end
     if shot.skipped or shot.viewDone then return end
     if not shot.camera then api.ready(); shot.camera = true end
-    -- The rebuilt fixture faces the clear approach corridor. This lower
-    -- engine-side view shows the dorsal lamps and clustered ignition.
-    api.camera(shot.rocket, 8000, -1500, 9000, shot.rocket)
+    -- Clearing beside the raised deck, around the tower rather than above it.
+    -- A gentle pullback leaves room for the widening eight-engine exhaust.
+    local t=math.min(1,elapsed/DURATION)
+    t=t*t*(3-2*t)
+    api.camera(shot.rocket, math.floor(-5500-2000*t),math.floor(-2000-500*t),
+               math.floor(9500+3500*t),shot.rocket)
     if api.cancelled() then
         api.finish()
         shot.camera, shot.skipped = false, true

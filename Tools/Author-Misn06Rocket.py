@@ -40,14 +40,17 @@ def material(name, color, metal=0.0, rough=.5, emission=None):
     if not emission:
         coord = nt.nodes.new('ShaderNodeTexCoord')
         noise = nt.nodes.new('ShaderNodeTexNoise')
-        noise.inputs['Scale'].default_value = 10
-        noise.inputs['Detail'].default_value = 2
+        noise.inputs['Scale'].default_value = .65
+        noise.inputs['Detail'].default_value = 4
+        streak = nt.nodes.new('ShaderNodeVectorMath');streak.operation='MULTIPLY'
+        streak.inputs[1].default_value=(1,1,.22)
         ramp = nt.nodes.new('ShaderNodeValToRGB')
         ramp.color_ramp.elements[0].position = .15
-        ramp.color_ramp.elements[0].color = (*(v * .84 for v in color), 1)
+        ramp.color_ramp.elements[0].color = (*(v * .28 for v in color), 1)
         ramp.color_ramp.elements[1].position = .85
         ramp.color_ramp.elements[1].color = (*color, 1)
-        nt.links.new(coord.outputs['Object'], noise.inputs['Vector'])
+        nt.links.new(coord.outputs['Object'], streak.inputs[0])
+        nt.links.new(streak.outputs['Vector'], noise.inputs['Vector'])
         nt.links.new(noise.outputs['Fac'], ramp.inputs['Fac'])
         nt.links.new(ramp.outputs['Color'], bs.inputs['Base Color'])
     mat['export_specular'] = .18 + metal * .48
@@ -160,145 +163,157 @@ def star(angle, z, radius=10.96):
 
 
 def make_rocket():
-    material('Ivory', (.74, .71, .61), .28, .44)
-    material('Alternate panel', (.61, .61, .55), .32, .48)
-    material('Bright trim', (.82, .8, .7), .55, .32)
-    material('Steel', (.24, .26, .25), .75, .35)
-    material('Bell alloy', (.60,.57,.46), .48, .43)
-    material('Dark recess', (.035, .043, .047), .45, .54)
-    material('Red', (.48, .025, .014), .12, .47)
-    material('Amber lamp', (.95, .58, .035), .2, .25, (1, .64, .04))
-    material('Red lamp', (.6, .015, .008), .1, .3, (1, .025, .006))
-    material('Bell liner', (.105, .10, .085), .7, .48)
+    # Close geometric study of Coxxon's Total Command CCA Rocketship. These
+    # primitives, panel meshes and procedural materials are authored here;
+    # no Total Command mesh triangles, UVs or texture pixels are copied.
+    material('Ivory', (.59,.565,.50), .28,.48)
+    material('Alternate panel', (.43,.44,.40), .36,.53)
+    material('Bright trim', (.78,.77,.68), .52,.38)
+    material('Steel', (.22,.24,.23), .7,.4)
+    material('Bell alloy', (.34,.35,.31), .65,.44)
+    material('Dark recess', (.027,.034,.034), .4,.63)
+    material('Engine ceramic', (.065,.105,.11), .3,.63)
+    material('Red', (.46,.024,.013), .15,.5)
+    material('Amber lamp', (.98,.83,.16), .15,.3, (1,.83,.18))
+    material('Red lamp', (.65,.015,.008), .1,.3, (1,.025,.006))
+    material('Bell liner', (.12,.085,.04), .65,.5)
+    scale=97/77.58216095
+    def z(h):return h*scale-48.5
+    def r(radius):return radius*scale
+    def shell(name,profile,mat='Ivory',segments=64,caps=True,center=(0,0)):
+        return lathe(name,[(z(h),r(rad)) for h,rad in profile],mat,segments,center,caps)
+    def skin(name,h0,h1,r0,r1,mat='Ivory',n=16):
+        # Thin panel gaps, with broad irregular machinery fields on the lower
+        # stage instead of the previous continuous cylindrical hull.
+        shell(name+' seam bed',[(h0,r0-.035),(h1,r1-.035)],'Dark recess')
+        for row in range(2 if h1-h0>6 else 1):
+            rows=2 if h1-h0>6 else 1
+            lo=h0+(h1-h0)*row/rows;hi=h0+(h1-h0)*(row+1)/rows
+            rr0=r0+(r1-r0)*row/rows;rr1=r0+(r1-r0)*(row+1)/rows
+            for i in range(n):
+                a=TAU*(i+.5*(row%2))/n
+                patch(name+' plate %02d'%i,z(lo)+.055,z(hi)-.055,
+                    a+.004,a+TAU/n-.004,r(rr0)+.015,r(rr1)+.015,
+                    'Alternate panel' if (i+row)%11==3 else mat,4)
+    def lenses(name,h,rad,count=24,color='Amber lamp',height=.44):
+        for i in range(count):
+            a=TAU*(i+.5)/count
+            plate(name+' socket',a,z(h),r(.91),r(height+.32),r(rad+.015),'Dark recess')
+            plate(name+' lens',a,z(h),r(.63),r(height),r(rad+.055),color)
+    def field(name,a,h0,h1,r0,r1,width):
+        patch(name,z(h0),z(h1),a-width/2,a+width/2,r(r0+.13),r(r1+.13),'Dark recess',6)
+        # Four stacked exposed machinery trays: dark pipes and pale access
+        # covers remain legible from the film's low engine-side angle.
+        for j in range(4):
+            lo=h0+(h1-h0)*j/4+.12;hi=h0+(h1-h0)*(j+.87)/4
+            rr0=r0+(r1-r0)*(lo-h0)/(h1-h0)
+            rr1=r0+(r1-r0)*(hi-h0)/(h1-h0)
+            patch(name+' tray',z(lo),z(hi),a-width*.39,a+width*.39,
+                  r(rr0+.18),r(rr1+.18),'Steel',4)
+            for k in range(4):
+                aa=a-width*.34+k*width*.22
+                patch(name+' pipe',z(lo+.12),z(hi-.12),aa-.018,aa+.018,
+                      r(rr0+.25),r(rr1+.25),'Dark recess',1)
+            patch(name+' cover',z(lo+.16),z(hi-.14),a-width*.22,a+width*.03,
+                  r(rr0+.29),r(rr1+.29),'Alternate panel',2)
+            patch(name+' cover seam',z(lo+.17),z(hi-.15),a-width*.12,a-width*.10,
+                  r(rr0+.31),r(rr1+.31),'Bright trim',1)
 
-    # The nozzle plane remains -48.5 m; major structure fits the old ~30 m width.
-    lathe('Aft engine deck', [(-35.0, 10.9), (-34.6, 12.9), (-32.5, 13.25),
-                            (-29.8, 13.25), (-29.0, 12.65), (-26.0, 11.0)], 'Steel')
-    for z, r, h, mat in [(-34.5, 12.85, .55, 'Bright trim'),
-                          (-31.9, 13.4, .45, 'Dark recess'),
-                          (-29.6, 13.3, .6, 'Bright trim'),
-                          (-26.1, 11.12, .45, 'Steel')]:
-        ring('Engine collar', z, r, h, mat)
-    for i in range(24):
-        a = TAU*i/24
-        # Readable blocks of warm collar lights, between black metal fittings.
-        plate('Collar light socket', a, -30.6, .95, 1.25, 13.32, 'Dark recess')
-        plate('Amber collar lens', a, -30.6, .57, .72, 13.39, 'Amber lamp')
-        if i % 6 == 0:
-            plate('Aft red status', a, -33.35, .45, .6, 13.08, 'Red lamp')
-
-    nozzle_centers = []
+    # Eight long enclosed engine cans, dark midsections and short ribbed bells.
+    # The measured TC hardpoints lie on a 7m circle at h=1.168m. The geometry
+    # exits are h=0; normalize the complete reference to our fixed 97m height.
+    nozzles=[]
     for i in range(8):
-        a = TAU*(i+.5)/8
-        x, y = 8.0*math.cos(a), 8.0*math.sin(a)
-        nozzle_centers.append([x, -48.5, -y])  # exported Y-up game coordinates
-        # Continuous closed wall: outer flare, lip, inner flare, closed throat.
-        profile = [(-35.0, 1.6), (-37.4, 1.42), (-40.0, 1.65),
-                   (-44.8, 2.3), (-48.15, 2.85), (-48.5, 2.85),
-                   (-48.5, 2.61), (-48.1, 2.60), (-44.7, 2.04),
-                   (-40.0, 1.39), (-37.6, 1.15)]
-        bell=lathe('Flared engine bell %02d' % (i+1), profile, 'Bell alloy', 32, (x,y), False)
-        bell.data.materials.append(materials['Bell liner'])
-        for face in bell.data.polygons:
-            if face.index//32>=6:face.material_index=1
-        lathe('Dark bell throat %02d' % (i+1), [(-37.65, 1.15), (-37.55, .02)],
-              'Bell liner', 24, (x,y))
-        for z, r in [(-39.8, 1.73), (-43.0, 2.13), (-46.6, 2.68)]:
-            lathe('Bell reinforcement', [(z-.12, r-.06), (z, r), (z+.12, r-.06)],
-                  'Bright trim', 24, (x,y), False)
-        lathe('Bell mounting neck', [(-37.5, 1.65), (-36.8, 1.93), (-34.8, 1.93)],
-              'Bright trim', 24, (x,y))
+        a=TAU*i/8;x,y=r(7)*math.cos(a),r(7)*math.sin(a)
+        nozzles.append([x,-48.5,-y])
+        shell('Engine can %02d'%i,[(3.0,2.65),(3.5,2.65),(12.7,2.65),(13.3,2.18)],
+              'Bell alloy',32,True,(x,y))
+        shell('Engine dark heat shield',[(5.4,2.68),(9.6,2.68)],'Engine ceramic',32,True,(x,y))
+        for k in range(8):
+            aa=TAU*k/8
+            verts=[]
+            for h in (3.2,5.25):
+                for da in (-.018,.018):
+                    verts.append((x+r(2.70)*math.cos(aa+da),y+r(2.70)*math.sin(aa+da),z(h)))
+            mesh('Engine ceramic casing joint',verts,[(0,1,3,2)],'Dark recess',True)
+        shell('Engine bell',[(3,2.12),(2.75,2.10),(.20,2.68),(0,2.68),
+                            (0,2.4),(.25,2.38),(2.75,1.9)],'Steel',32,False,(x,y))
+        for j in range(7):
+            h=.15+j*.39;rad=2.67-h*.20
+            shell('Bell cooling rib',[(h,rad),(h+.09,rad+.06),(h+.16,rad-.025)],
+                  'Bell alloy',32,False,(x,y))
+        shell('Bell hot throat',[(2.72,.02),(2.75,1.90)],'Bell liner',24,True,(x,y))
+        for k in range(8):
+            aa=TAU*k/8
+            # Light seams around the can's ivory top section.
+            verts=[(x+r(2.67)*math.cos(aa+d),y+r(2.67)*math.sin(aa+d),z(h))
+                   for h in (9.7,12.7) for d in (-.014,.014)]
+            mesh('Engine upper casing seam',verts,[(0,1,3,2)],'Dark recess',True)
 
-    # A continuous near-cylindrical body replaces the old stack of cone skirts.
-    lathe('Pressure hull and seam bed', [(-26,10.75), (-12.3,10.60),
-          (2.65,10.43), (16.8,9.88), (19.4,8.78), (23.8,6.15)], 'Dark recess')
-    bands = [(-25.8, -12.3, 10.91, 10.76), (-12.15, 2.5, 10.76, 10.59),
-             (2.65, 16.8, 10.59, 10.03)]
-    for j, (z0,z1,r0,r1) in enumerate(bands):
-        for i in range(12):
-            a = TAU*i/12
-            armour_panel('Ivory hull panel %d-%02d' % (j,i), z0,z1,
-                  a+.006, a+TAU/12-.006, r0,r1,
-                  'Alternate panel' if (i+2*j) % 7 == 0 else 'Ivory')
-    lathe('Shoulder', [(16.9,10.0),(19.4,8.9),(23.8,6.3)], 'Ivory')
-    ring('Shoulder seam', 17.0, 10.05, .16, 'Steel')
-    # Long nose with fine longitudinal seams, never an overlapping cone skirt.
-    profile = [(23.8,6.3),(29,5.0),(35,3.45),(41,1.94),(46.5,.48),(48.5,.025)]
-    lathe('Nose seam bed', profile, 'Steel')
-    for i in range(12):
-        a = TAU*i/12
-        for j in range(len(profile)-1):
-            z0,r0=profile[j]; z1,r1=profile[j+1]
-            patch('Needle nose skin', z0,z1,a+.003,a+TAU/12-.003,
-                  r0+.015,r1+.015,'Bright trim' if i % 4 == 0 else 'Ivory',4)
-    # The red forward band follows the taper.
-    patch_count = 48
-    for i in range(patch_count):
-        a = TAU*i/patch_count
-        patch('CCA forward red band', 28.2,29.0,a,a+TAU/patch_count,
-              5.235,5.035,'Red',1)
+    shell('Aft structural deck',[(13.3,9.5),(14.77,10.5),(17.0,10.7),(18.08,10.8),
+           (18.29,12),(18.65,11.92)],'Steel')
+    lenses('Underside engine floodlights',14.25,10.1,24,height=.52)
+    lenses('Lower collar status',17.15,10.78,4,'Red lamp',.22)
+
+    # Reference's dominant lower conical skirt: maximum radius 12m at h18.29,
+    # narrowing to 8m at h37.72. The centre and upper cone retain their steps.
+    skin('Lower tapered hull',18.29,27.6,12,10)
+    skin('Upper tapered hull',27.7,37.72,10,8)
+    shell('Mid skirt seam',[(37.72,8),(38.75,7.5),(39.75,7.95)],'Steel')
+    skin('Upper command cone',39.75,49.0,7.95,5.95,n=12)
+    shell('Forward skirt lip',[(48.96,5.95),(49.17,7.0),(49.32,6.97)],'Steel')
+    skin('Forward cone',49.32,58.17,6.97,4.0,n=12)
+    shell('Needle skirt lip',[(58.17,4),(58.38,5),(58.55,4.97)],'Steel')
+    skin('Needle lower skin',58.55,65.2,4.97,3.26,n=12)
+    skin('Needle upper skin',65.3,70.4,3.24,1.93,n=12)
+    shell('Needle tip',[(70.45,1.92),(75.0,.67),(77.58216095,.015)],'Bright trim')
+    for h,rad in [(65.25,3.28),(70.4,1.97)]:
+        ring('Nose circumferential seam',z(h),r(rad),r(.07),'Steel',64)
+    for h,rad in [(23.5,11.0),(38.2,7.92)]:
+        ring('Warm lamp ring recess',z(h),r(rad),r(.72),'Dark recess',64)
+        lenses('Warm segmented lamp ring',h,rad,32,height=.40)
+    lenses('Red command skirt lip',49.12,6.88,24,'Red lamp',.16)
+    lenses('Red upper skirt lip',39.6,7.91,24,'Red lamp',.14)
+
+    # TC's dark upper command inset and ladder grille, repeated around the cone.
     for i in range(4):
-        a = TAU*(i+.125)/4
-        r=10.76
-        box('Longitudinal hull rail', (r*math.cos(a),r*math.sin(a),-5),
-            (.29,.43,36),'Bright trim',.07,a)
+        a=TAU*i/4
+        patch('Command inset',z(40.2),z(48.7),a-.24,a+.24,r(7.98),r(6.17),'Engine ceramic',8)
+        for j in range(7):
+            h=40.6+j*.72;rad=7.95-(h-39.75)*2/9.25
+            patch('Command cooling grille',z(h),z(h+.22),a+.35,a+.52,
+                  r(rad+.12),r(rad+.10),'Dark recess',2)
+    # Wide stepped maintenance wells and ivory panel covers on the main skirt.
+    for a in (-math.pi/6,5*math.pi/6):
+        field('Main machinery well',a,23.8,36.4,10.84,8.28,.76)
+        field('Lower machinery well',a-1.0,20.6,26.0,11.55,10.43,.42)
+    # Access hatch at the bottom of the main body, with small red status lamps.
+    for a in (0,math.pi):
+        patch('Hatch gasket',z(18.8),z(22.6),a-.15,a+.15,r(11.98),r(11.18),'Dark recess',4)
+        patch('Hatch inset',z(19),z(22.4),a-.13,a+.13,r(11.99),r(11.20),'Alternate panel',4)
+        star(a,z(21.0),r(11.64))
+        plate('Hatch indicator',a,z(18.45),r(.28),r(.18),r(12.01),'Red lamp')
+    # Close-to-reference forward sensor band rather than a solid red stripe.
+    for i in range(48):
+        a=TAU*i/48
+        patch('Forward sensor slot',z(62.6),z(63.6),a+.015,a+TAU/48-.015,
+              r(3.95),r(3.69),'Engine ceramic',1)
+    # Small outline hatches and broad hull panel variation, not pristine plastic.
     for i in range(8):
-        a = TAU*(i+.5)/8
-        z = -18.3 if i % 2 == 0 else 7.2
-        rad = 10.91 if z < 0 else 10.47
-        plate('Access hatch gasket',a,z,2.8,4.1,rad+.08,'Dark recess')
-        plate('Access hatch',a,z,2.55,3.84,rad+.11,'Alternate panel')
-        plate('Hatch handle',a,z-.8,.6,.16,rad+.15,'Steel')
-        for side in (-1,1):
-            plate('Hatch latch',a+side*.9/rad,z+1.1,.25,.4,rad+.17,'Steel')
-    for a,z,r in [(-math.pi/2,10.5,10.48),(math.pi/2,-7,10.78),(0,-7,10.78)]:
-        plate('Marking plaque outline',a,z,5.4,6.2,r+.14,'Steel')
-        plate('Marking plaque',a,z,5.18,5.98,r+.17,'Ivory')
-        star(a,z,r+.21)
+        a=TAU*(i+.25)/8
+        patch('Lower service hatch gasket',z(29.3),z(32.0),a-.12,a+.12,r(9.79),r(9.22),'Dark recess',3)
+        patch('Lower service hatch panel',z(29.45),z(31.86),a-.105,a+.105,r(9.77),r(9.25),'Alternate panel',3)
+    # Fine staggered repair-panel outlines break up the large conical plates.
+    for i in range(12):
+        a=TAU*(i+.4)/12
+        for h0,h1,rr0,rr1 in [(19.1,22.2,11.90,11.26),(33.1,36.2,8.92,8.28),
+                               (51.0,54.8,6.64,5.38)]:
+            w=.085 if h0>40 else .10
+            patch('Repair panel seam',z(h0),z(h1),a-w,a+w,r(rr0+.015),r(rr1+.015),'Steel',3)
+            patch('Repair panel face',z(h0+.07),z(h1-.07),a-w+.006,a+w-.006,
+                  r(rr0+.015),r(rr1+.045),'Ivory' if i%3 else 'Alternate panel',3)
+    return nozzles
 
-    # Raised dorsal spine with an arched, AFT-facing four-lamp housing. The
-    # artwork shows these lamps above the collar, looking toward the engines.
-    box('Dorsal service spine',(0,-10.48,-3.5),(7.8,1.7,39),'Steel',.28)
-    for x in (-3.35,3.35):
-        box('Spine bright rail',(x,-11.52,-3.5),(.32,.42,38.5),'Bright trim',.08)
-    for z in (-18,-13,10.5,14):
-        box('Spine removable cover',(0,-11.52,z),(5.65,.42,2.4),'Alternate panel',.18)
-        for x in (-2.25,2.25):
-            box('Spine cover latch',(x,-11.78,z),(.3,.2,.65),'Steel',.04)
-    outline=[(-4.1,-10.9)]+[(4.1*math.cos(math.pi-i*math.pi/8),
-              -11.0-4.9*math.sin(math.pi-i*math.pi/8)) for i in range(9)]+[(4.1,-10.9)]
-    nv=len(outline)
-    verts=[(x,y,z) for z in (-8.5,5.5) for x,y in outline]
-    faces=[tuple(range(nv-1,-1,-1)),tuple(nv+i for i in range(nv))]
-    faces += [(i,(i+1)%nv,(i+1)%nv+nv,i+nv) for i in range(nv)]
-    mesh('Arched dorsal lamp housing',verts,faces,'Steel')
-    # A flat black rear mask and four domed lamps face down the rocket axis.
-    mask=[(x*.91,-11+(y+11)*.9,-8.58) for x,y in outline]
-    mesh('Aft lamp mask',mask,[tuple(range(len(mask)-1,-1,-1))],'Dark recess')
-    for x in (-2.4,-.8,.8,2.4):
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8,
-                                           radius=.68,location=(x,-14.05,-8.78))
-        ob=bpy.context.object;ob.name='Amber avionics lens';ob.scale=(1,1,.45)
-        ob.data.materials.append(materials['Amber lamp'])
-        for p in ob.data.polygons:p.use_smooth=True
-        parts.append(ob)
-    for x in (-2.85,2.85):
-        box('Housing roof seam',(x,-14.5,-1),(.18,.2,11.8),'Bright trim',.04)
-    # Raised service channels on the side faces interrupt the clean cylinder.
-    for a in (-.3,math.pi+.3):
-        for z in (-18.5,-5,9):
-            r=10.95 if z<0 else 10.55
-            plate('Service channel dark border',a,z,1.7,8.5,r+.16,'Dark recess')
-            plate('Service channel cover',a,z,1.28,7.9,r+.22,'Alternate panel')
-            plate('Service channel latch',a,z-2.6,.55,.65,r+.27,'Steel')
-
-    # Aft side fairings and small red hazard tabs ground the machine visually.
-    for i in range(8):
-        a=TAU*i/8
-        box('Collar structural cleat',(11.4*math.cos(a),11.4*math.sin(a),-26),
-            (1.5,1.25,4.2),'Ivory',.18,a)
-        plate('Red hazard tab',a,-27.4,.7,1.2,12.15,'Red')
-    return nozzle_centers
 
 
 def join_and_uv():
@@ -391,7 +406,7 @@ def export_native(ob,stats):
     # A native collision/fallback mesh follows the rebuilt silhouette. Keep the
     # native GEO light while the authored Redux mesh retains all visual detail.
     proxy=ob.copy();proxy.data=ob.data.copy();bpy.context.collection.objects.link(proxy)
-    mod=proxy.modifiers.new('Native fallback reduction','DECIMATE');mod.ratio=.12
+    mod=proxy.modifiers.new('Native fallback reduction','DECIMATE');mod.ratio=.07
     deps=bpy.context.evaluated_depsgraph_get();evaluated=proxy.evaluated_get(deps)
     me=evaluated.to_mesh();me.calc_loop_triangles()
     points=[game_vector(v.co) for v in me.vertices]
@@ -451,7 +466,8 @@ def main():
     bpy.context.preferences.filepaths.save_version=0
     nozzles=make_rocket();ob=join_and_uv();bake(ob)
     stats=export_mesh(ob);export_native(ob,stats)
-    stats.update({'nozzles':nozzles,'nozzle_plane':-48.5,'source':'CR-authored reconstruction of marspict.png',
+    stats.update({'nozzles':nozzles,'nozzle_plane':-48.5,'source':'CR-authored close study of Total Command CCA Rocketship',
+                  'model_reference':'Coxxon / Total Command / sbconecox00.msh',
                   'reference_sha256':'58e4336cedd89c2f8a8864cdcb6ea45706f1b5544b47a2ebc34013c36e482213'})
     (SOURCE/'geometry.json').write_text(json.dumps(stats,indent=2)+'\n',encoding='utf-8')
     if args.render:inspection(ob)

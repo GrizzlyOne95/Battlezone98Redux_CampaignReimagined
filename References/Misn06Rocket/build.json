@@ -1,71 +1,72 @@
 {
-  "vertices": 21825,
-  "triangles": 20151,
+  "vertices": 26272,
+  "triangles": 24760,
   "bounds_min": [
-    -13.399999618530273,
+    -15.018328666687012,
     -48.5,
-    -13.399999618530273
+    -15.018328666687012
   ],
   "bounds_max": [
-    13.399999618530273,
+    15.018328666687012,
     48.5,
-    15.899999618530273
+    15.018328666687012
   ],
-  "radius": 49.69881785093338,
-  "native_vertices": 2898,
-  "native_triangles": 2410,
+  "radius": 49.9872718153742,
+  "native_vertices": 3855,
+  "native_triangles": 1726,
   "nozzles": [
     [
-      7.391036260090294,
+      8.752011953335517,
       -48.5,
-      -3.0614674589207183
+      -0.0
     ],
     [
-      3.0614674589207187,
+      6.188607001229266,
       -48.5,
-      -7.391036260090294
+      -6.188607001229266
     ],
     [
-      -3.061467458920718,
+      5.359061712375858e-16,
       -48.5,
-      -7.391036260090294
+      -8.752011953335517
     ],
     [
-      -7.391036260090294,
+      -6.188607001229265,
       -48.5,
-      -3.061467458920719
+      -6.188607001229266
     ],
     [
-      -7.391036260090295,
+      -8.752011953335517,
       -48.5,
-      3.0614674589207174
+      -1.0718123424751715e-15
     ],
     [
-      -3.0614674589207227,
+      -6.188607001229267,
       -48.5,
-      7.391036260090292
+      6.188607001229265
     ],
     [
-      3.06146745892072,
+      -1.6077185137127572e-15,
       -48.5,
-      7.391036260090293
+      8.752011953335517
     ],
     [
-      7.391036260090292,
+      6.188607001229264,
       -48.5,
-      3.061467458920723
+      6.188607001229267
     ]
   ],
   "nozzle_plane": -48.5,
-  "source": "CR-authored reconstruction of marspict.png",
+  "source": "CR-authored close study of Total Command CCA Rocketship",
+  "model_reference": "Coxxon / Total Command / sbconecox00.msh",
   "reference_sha256": "58e4336cedd89c2f8a8864cdcb6ea45706f1b5544b47a2ebc34013c36e482213",
   "sha256": {
-    "Assets/ModelFixes/cr06rok.mesh": "bd4bf5c2cda0296909f0d2f4da4fc31be1f4895ca526c5c528c77c53bf869a6e",
-    "Assets/ModelFixes/cr06rok.geo": "0273b6df4745abd660a9170f46aae1139f323e90b9e47b74205cbb8d972840c8",
-    "Assets/ModelFixes/cr06rok.sdf": "e000d78d4dc87a930ba467b4cfc61689017104694d418321eed30f20f587070d",
-    "Assets/Textures/cr06rok_d.dds": "454979f2e0a72d418403183719f26745c71d4c9273ed07c4b7f81e0d6c90e256",
+    "Assets/ModelFixes/cr06rok.mesh": "5ea9f5eafbe87d8113f3a1542dcb3bd06321448ec34d437360d79e1766094797",
+    "Assets/ModelFixes/cr06rok.geo": "a6feba993c6bf5ce4fa8adaa2db89e85dcf324e738d80eaaa1e717b2d3c87e16",
+    "Assets/ModelFixes/cr06rok.sdf": "7a6838c1fc3bcfdb9f37ed76a696ecfd5bd055784a67b6112aa339dfe1bbc7ac",
+    "Assets/Textures/cr06rok_d.dds": "32858eddc2a9587b5a0760ddd667130e4189e6c5b48627c8d0449b0382d591b6",
     "Assets/Textures/cr06rok_n.dds": "10f8b112accaabfb79078fbfa3a0c2fde98d5b2d410def4e994cdde003bdc952",
-    "Assets/Textures/cr06rok_s.dds": "08ebfecc38c7beb3fce2dc1482fa70b9b1dcee4ebbad8ffcf876a4aa9d322157",
-    "Assets/Textures/cr06rok_e.dds": "f6a48ecac0cbb7269a77a0c283737b6b1ab13e8e56747fc1cb810d94150590df"
+    "Assets/Textures/cr06rok_s.dds": "382156902e225edabc2b1bbb2a161b04cb50acec435ce7b6e3a79d5db4eba891",
+    "Assets/Textures/cr06rok_e.dds": "0e981678e65f3a4322065b13ad1c83c57b2ce498eef83e68b05a8d993f6dd60d"
   }
 }

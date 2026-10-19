@@ -53,7 +53,7 @@ for _,s in pairs(w.systems)do
     if s.template=='CR/M06/Core' or s.template=='CR/M06/Plume' then
         for index=0,7 do
             local at=s.offsets[index]
-            check(s.rates[index]>0 and math.abs(at.x*at.x+at.z*at.z-64)<.00001,'every bell emits from the 8m ring')
+            check(s.rates[index]>0 and math.abs(at.x*at.x+at.z*at.z-(7*97/77.58216095)^2)<.00001,'every bell emits from its scaled TC exit')
         end
     end
 end
@@ -88,6 +88,6 @@ w,f=world()
 w.api.transform=function()return{right_x=0,right_y=0,right_z=-1,front_x=1,front_y=0,front_z=0}end
 check(f.Begin(0,100,0),'rotated fixture can launch')
 local first=w.systems['CR06/Launch/1/Core'].offsets[0]
-check(math.abs(first.x+3.061467459)<.000001 and math.abs(first.z+7.391036260)<.000001,'emitter offsets follow the actual fixture basis')
+check(math.abs(first.x)<.000001 and math.abs(first.z+8.752011953)<.000001,'emitter offsets follow the actual fixture basis')
 f.Reset()
 print('misn06 launch FX checks passed: '..n)
