@@ -79,3 +79,12 @@ The scenario advances only the original launch timer, verifies the actual radio
 cue, preplaced rocket, camera and all four particle systems on both peers,
 then waits for departure and cleanup. Inspect its screenshots before marking
 the visual result verified. Preserve other active native test sessions.
+
+Follow-up: Claude's 19 October UTC handoff explicitly left #228 open and the
+camera rerun pending. Current main was merged as `be142761`; the Mission 6 host,
+relay, film, FX, source-parity, map-contract and repository checks pass together.
+The shipping lock retains all 2,750 main entries plus the 13 rocket additions.
+Native run 4 ended in the lobby before the mission. Run 5 reached the mission
+but exposed a test-scenario name collision: its `$clients` array overwrote the
+dot-sourcing runner's `[int]$Clients` parameter. The scenario now uses the unique
+`$rocketClients` name. Neither failed attempt exercised the revised launch shot.
