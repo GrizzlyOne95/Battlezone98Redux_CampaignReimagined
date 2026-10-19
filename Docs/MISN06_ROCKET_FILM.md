@@ -50,8 +50,8 @@ permits reuse with credit. That extraction is retained in
 editable source, mesh, native SDF/GEO, baked textures and nozzle layout.
 `Tools/Add-Misn06Rocket.py` adds the fixture without rewriting authored blocks;
 `Build-CoopMap.py --mission misn06` also calls this step automatically.
-Resurgence's docked pad is rotated 180 degrees relative to the stock Redux pad,
-so the fixture's placement explicitly compensates for that difference.
+The original gantry socket position is retained. The rebuilt fixture uses the
+stock pad's heading so its dorsal housing faces the clear approach corridor.
 
 The takeoff arc, camera and particle definitions are CR-authored presentation.
 They do not import Resurgence's launchpad replacement or reinforcement logic.

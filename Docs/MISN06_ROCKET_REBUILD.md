@@ -49,6 +49,10 @@ fallback. Mission 6's 1,063 host checks, four-peer presentation tests and source
 parity pass. The shipping list admits exactly one additional runtime file,
 `Scripts/CR06RocketLayout.lua` (2,764 total files).
 
+The fixture now uses the pad's heading so its dorsal housing faces the clear
+approach corridor. Terrain samples along the lower camera's line to the nozzle
+show at least 8 m clearance; this still needs confirmation in the native view.
+
 Next: isolated manager deployment using the already-built EXU main checkout
 that includes point lights, then two-client native captures and final framing /
 material checks. Do not treat the Blender studio images as native validation.

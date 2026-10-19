@@ -39,6 +39,13 @@ rocket = [b for b in blocks if 'label = cr06_rocket\n' in b]
 assert len(rocket) == 1 and 'PrjID [1] =\ncr06rok\n' in rocket[0]
 assert 'team [1] =\n0\n' in rocket[0] and 'perceivedTeam [1] =\n0\n' in rocket[0]
 assert 'maxHealth [1] =\n0\n' in rocket[0], 'Rocket fixture must not be a new combat target'
+pad=next(b for b in blocks if 'label = sblpad0_i76building\n' in b)
+for axis in ('right','up','front'):
+    for component in 'xyz':
+        field=axis+'_'+component
+        r=float(re.search(r'^  '+field+r' \[1\] =\n([^\n]+)',rocket[0],re.M)[1])
+        p=float(re.search(r'^  '+field+r' \[1\] =\n([^\n]+)',pad,re.M)[1])
+        assert abs(r-p)<.00001,'Rebuilt dorsal housing must face the clear approach corridor'
 for field in ('v','omega','Accel'):
     motion = re.search(r' '+field+r' \[1\] =\n  x \[1\] =\n([^\n]+)\n  y \[1\] =\n([^\n]+)\n  z \[1\] =\n([^\n]+)',rocket[0])
     assert tuple(map(float,motion.groups())) == (0,0,0), 'Fixture must have zero copied physics'

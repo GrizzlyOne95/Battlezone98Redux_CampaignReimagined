@@ -8,16 +8,25 @@ import argparse
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-# Resurgence's docked pad faces 180 degrees away from Redux's stock pad.
+# Retained gantry socket from the original docked-rocket survey.
 CENTRE = (20.546749114990234, 77.06172180175781, -43.21162986755371)
 
 def add_rocket(text):
-    if 'label = cr06_rocket\n' in text:
-        return text
     parts = text.split('[GameObject]\n')
     index, pad = next((i,p) for i,p in enumerate(parts) if 'label = sblpad0_i76building\n' in p)
     def number(key):
         return float(re.search(r'^\s*'+key+r' \[1\] =\n([^\n]+)',pad,re.M)[1])
+    # The rebuilt dorsal housing faces the clear approach corridor. Its basis
+    # matches the pad, replacing the old Resurgence model's 180-degree reversal.
+    if 'label = cr06_rocket\n' in text:
+        ri,fixture=next((i,p) for i,p in enumerate(parts) if 'label = cr06_rocket\n' in p)
+        for axis in ('right','up','front'):
+            for a in 'xyz':
+                value=number(axis+'_'+a)
+                fixture=re.sub(r'(^  '+axis+'_'+a+r' \[1\] =\n)[^\n]+',
+                               lambda m:m[1]+f'{value:.9g}',fixture,count=1,flags=re.M)
+        parts[ri]=fixture
+        return '[GameObject]\n'.join(parts)
     origin = [number('posit_'+a) for a in 'xyz']
     centre = [origin[i]+sum(number(axis+'_'+a)*offset for axis,offset in zip(('right','up','front'),CENTRE))
               for i,a in enumerate('xyz')]
@@ -36,10 +45,6 @@ def add_rocket(text):
     for a,v in zip('xyz',centre):
         fixture=re.sub(r'(^  '+a+r' \[1\] =\n)[^\n]+',lambda m:m[1]+f'{v:.9g}',fixture,flags=re.M)
         fixture=re.sub(r'(^  posit_'+a+r' \[1\] =\n)[^\n]+',lambda m:m[1]+f'{v:.9g}',fixture,flags=re.M)
-    for axis in ('right','front'):
-        for a in 'xyz':
-            fixture=re.sub(r'(^  '+axis+'_'+a+r' \[1\] =\n)([^\n]+)',
-                lambda m:m[1]+f'{-float(m[2]):.9g}',fixture,count=1,flags=re.M)
     for key in ('v','omega','Accel'):
         fixture=re.sub(r'(^ '+key+r' \[1\] =\n)  x \[1\] =\n[^\n]+\n  y \[1\] =\n[^\n]+\n  z \[1\] =\n[^\n]+',
             lambda m:m[1]+'  x [1] =\n0\n  y [1] =\n0\n  z [1] =\n0',fixture,count=1,flags=re.M)
