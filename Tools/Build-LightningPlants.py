@@ -9,27 +9,29 @@ For the NSDF (ablpow) and Black Dog (bblpow) lightning plants, which share one m
     assignments, UVs and every vertex attribute are kept, so skinning, shadows and OpenShim's
     per-bone destruction pieces behave as before (the pieces are cut per bone from the face
     streams of every submesh, so the second submesh only changes the material those faces use).
-  * SDF (ablpow only): the stock ANIM chunk gains element 4, the one PowerPlant::PowerPlant
-    plays, with the two fins (alt11tpb, alt11tpc) turning once per 8 seconds about the mast.
+  * SDF (ablpow and bblpow, whose stock SDFs are byte-identical): the stock ANIM chunk gains element 4, the one
+    PowerPlant::PowerPlant plays, with the two fins (alt11tpb, alt11tpc) turning once per 8 seconds about the mast.
 
 Stock inputs are read, never written: the stock .mesh/.skeleton from a Redux install and the
-stock ablpow.sdf from a BZ1 1.5 install. Needs the bz98tools OgreXMLConverter (MeshSerializer
-v1.100), found under %APPDATA%\\Blender Foundation\\Blender\\*\\scripts\\addons\\bz98tools or via
-the BZ98TOOLS environment variable.
+stock ablpow.sdf from a BZ1 1.5 install. All file I/O goes through the BZ98R Blender ToolKit
+(Tools/bzmodellibs.py finds it): its OgreXMLConverter (MeshSerializer v1.100) and SDFSerializer.
 
-  python Tools/Build-LightningPlants.py --stock-sdf <ablpow.sdf> [--game <Redux dir>] [--check]
+  python Tools/Build-LightningPlants.py --stock-sdf <ablpow.sdf> [--stock-bblpow-sdf <bblpow.sdf>] [--game <Redux dir>]
 """
 import argparse
-import glob
+import importlib
+import io
 import math
 import os
 import shutil
-import struct
 import subprocess
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import bzmodellibs  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "Assets", "ModelFixes")
@@ -53,16 +55,9 @@ FRAMES = int(round(SPIN_SECONDS * FPS))  # 120; element 4 runs frames 0..120 wit
 
 
 def converter():
-    d = os.environ.get("BZ98TOOLS")
-    if not d:
-        hits = sorted(glob.glob(os.path.join(os.environ.get("APPDATA", ""), "Blender Foundation", "Blender", "*",
-                                             "scripts", "addons", "bz98tools")))
-        if not hits:
-            sys.exit("bz98tools add-on not found; set BZ98TOOLS")
-        d = hits[-1]
-    exe = os.path.join(d, "ogretools", "OgreXMLConverter.exe")
+    exe = os.path.join(str(bzmodellibs.toolkit_root()), "bz98tools", "ogretools", "OgreXMLConverter.exe")
     if not os.path.exists(exe):
-        sys.exit("OgreXMLConverter.exe not found under " + d)
+        sys.exit("OgreXMLConverter.exe not found at " + exe)
     return exe
 
 
@@ -162,11 +157,6 @@ def split_lightning(mesh_xml, skeleton_xml, arc_material):
 
 # --------------------------------------------------------------------------- SDF ANIM
 
-ANIM_HEAD = 64
-SEQ = struct.Struct("<i128xiiif")
-PART = struct.Struct("<8si96x6i")
-
-
 def qmul(a, b):
     aw, ax, ay, az = a
     bw, bx, by, bz = b
@@ -202,126 +192,75 @@ def hamilton_from_columns(right, up, front):
     return q
 
 
-def read_sdf_parts(data):
-    """(name -> (right, up, front, pos)) from the SGEO part records of band 0."""
-    pos = data.find(b"SGEO")
-    count = struct.unpack_from("<i", data, pos + 8)[0]
-    rec = struct.Struct("<8s12f8s7fiii4f")
-    out = {}
-    base = pos + 12
-    for i in range(count):
-        f = rec.unpack_from(data, base + i * rec.size)
-        name = f[0].split(b"\0")[0].decode()
-        if name:
-            m = f[1:13]
-            out[name] = (m[0:3], m[3:6], m[6:9], m[9:12])
-    return out
-
-
 def add_spin(sdf_bytes):
-    data = bytearray(sdf_bytes)
-    i = data.find(b"ANIM")
-    tag, length = struct.unpack_from("<4si", data, i)
-    body = bytes(data[i + 8:i + length])
-    name = body[:16]
-    n_seq, n_part, n_rot, n_scale, n_pos = struct.unpack_from("<5i", body, 16)
-    ptrs = body[36:64]
-    p = ANIM_HEAD
-    seqs = [body[p + k * SEQ.size:p + (k + 1) * SEQ.size] for k in range(n_seq)]
-    p += n_seq * SEQ.size
-    parts = [list(PART.unpack_from(body, p + k * PART.size)) for k in range(n_part)]
-    p += n_part * PART.size
-    rots = [struct.unpack_from("<i4f", body, p + k * 20) for k in range(n_rot)]
-    p += n_rot * 20
-    scales = [struct.unpack_from("<i3f", body, p + k * 16) for k in range(n_scale)]
-    p += n_scale * 16
-    poss = [struct.unpack_from("<i3f", body, p + k * 16) for k in range(n_pos)]
-    if n_seq != 2 or n_scale:
+    """Return the SDF with ANIM element 4 added, through the toolkit's SDFSerializer (read and
+    write both; an untouched stock SDF round-trips byte for byte)."""
+    bw = bzmodellibs.bwd2
+    # bzmodellibs has no `spacial` alias; its import above already put bz98tools on sys.path.
+    sp = importlib.import_module("bzrmodelporter.spacial")
+    SDFSerializer = bzmodellibs.bwd2_serializer.SDFSerializer
+    sdf = SDFSerializer(io.BytesIO(sdf_bytes)).read()
+    anim = sdf.anim_obj
+    if anim is None or sorted(anim.animation_map) != [0, 1] or anim.scale_keyframe_list:
         sys.exit("unexpected stock ANIM layout")
 
     # Element 4 is the one PowerPlant::PowerPlant plays; array order is element index, so
-    # elements 2 and 3 exist as inert copies of the spin (zero part flags, as Resurgence
-    # hbnest). loop 0 = loop forever; frames 0..FRAMES, with the last pose equal to the first.
-    new_seqs = seqs + [SEQ.pack(k, 0, FRAMES + 1, 0, FPS) for k in (2, 3, 4)]
+    # elements 2 and 3 exist as inert copies (zero part flags, as Resurgence hbnest).
+    # loop 0 = loop forever; frames 0..FRAMES, with the last pose equal to the first.
+    for index in (2, 3, 4):
+        a = anim.create_animation(index)
+        a.start, a.length, a.loop, a.speed = 0, FRAMES + 1, 0, FPS
 
-    sdf_parts = read_sdf_parts(sdf_bytes)
-    keyed = {}
+    # Rebuild the key tables part by part. Existing parts keep their keys (elements 0 and 1
+    # stay constant); the fins get a rotation key on every frame, and tpb, which stock leaves
+    # out of the ANIM chunk, gets a record of its own.
+    geo = {o.name: o for o in sdf.primary_objects()}
+    old = list(anim.mesh_map.values())
+    keys = {m.name: (anim.slice_mesh_orientation_keyframes(m), anim.slice_mesh_position_keyframes(m)) for m in old}
+    fin_bind = {}
     for fin in ("alt11tpb", "alt11tpc"):
-        r, u, f, _ = sdf_parts[fin]
-        keyed[fin] = hamilton_from_columns(r, u, f)
-
-    # Rebuild the key tables. Existing parts keep their keys (element 0/1 stay constant);
-    # the fins get FRAMES+1 rotation keys on every frame, and tpb, which stock leaves out of
-    # the ANIM chunk, gets a record copied from tpc's (identity extras, its own bind).
-    new_parts, new_rots, new_poss = [], [], []
-    for rec in parts:
-        nm = rec[0].split(b"\0")[0].decode()
-        _, flags, r0, rn, s0, sn, p0, pn = rec
-        old_r = rots[r0:r0 + rn]
-        old_p = poss[p0:p0 + pn]
-        if nm == "alt11tpc":
-            old_r = [(fr, *spin_key(fr, keyed["alt11tpc"])) for fr in range(FRAMES + 1)]
-        new_parts.append([rec[0], flags, len(new_rots), len(old_r), 0, 0, len(new_poss), len(old_p)])
-        new_rots += old_r
-        new_poss += old_p
-        if nm == "alt11tpc":
-            tpb = list(rec)
-            tpb[0] = b"alt11tpb".ljust(8, b"\0")
-            tpb_rots = [(fr, *spin_key(fr, keyed["alt11tpb"])) for fr in range(FRAMES + 1)]
-            tpb_pos = [(0, *sdf_parts["alt11tpb"][3]), (FRAMES, *sdf_parts["alt11tpb"][3])]
-            new_parts.append([tpb[0], tpb[1], len(new_rots), len(tpb_rots), 0, 0, len(new_poss), len(tpb_pos)])
-            new_rots += tpb_rots
-            new_poss += tpb_pos
-    # tpc also gets constant position keys, like every stock moving part
-    for k, rec in enumerate(new_parts):
-        if rec[0].split(b"\0")[0] == b"alt11tpc" and rec[7] == 0:
-            pos = sdf_parts["alt11tpc"][3]
-            rec[6] = len(new_poss)
-            rec[7] = 2
-            new_poss += [(0, *pos), (FRAMES, *pos)]
-    # new_parts positions were recorded in order; the pt parts keep their ranges, so re-pack
-    # position ranges contiguously by part order to keep the tables consistent.
-    packed_p, packed_r, final_parts = [], [], []
-    for rec in new_parts:
-        _, flags, r0, rn, s0, sn, p0, pn = rec
-        final_parts.append((rec[0], flags, len(packed_r), rn, 0, 0, len(packed_p), pn))
-        packed_r += new_rots[r0:r0 + rn]
-        packed_p += new_poss[p0:p0 + pn]
-
-    # The struct skips 96 bytes of per-part matrices: copy them from the stock record (tpc's
-    # for the new tpb record, which then gets its own bind).
-    old_raw = {body[ANIM_HEAD + n_seq * SEQ.size + k * PART.size:][:8].split(b"\0")[0]:
-               body[ANIM_HEAD + n_seq * SEQ.size + k * PART.size:][:PART.size] for k in range(n_part)}
-    parts_raw = bytearray()
-    for rec in final_parts:
-        nm = rec[0].split(b"\0")[0]
-        raw = bytearray(old_raw.get(nm, old_raw[b"alt11tpc"]))
-        raw[0:8] = rec[0]
-        struct.pack_into("<6i", raw, 108, *rec[2:])
-        if nm == b"alt11tpb":
-            # matrix2 of the record: its own bind (identity rotation, position 0 here)
-            struct.pack_into("<12f", raw, 12 + 48, *(list(sum(sdf_parts["alt11tpb"][0:3], ())) + list(sdf_parts["alt11tpb"][3])))
-        raw[8:12] = struct.pack("<i", 0)
-        parts_raw += raw
-
-    new_body = bytearray(name)
-    new_body += struct.pack("<5i", len(new_seqs), len(final_parts), len(packed_r), 0, len(packed_p))
-    new_body += ptrs
-    for s in new_seqs:
-        new_body += s
-    new_body += parts_raw
-    for k in packed_r:
-        new_body += struct.pack("<i4f", *k)
-    for k in packed_p:
-        new_body += struct.pack("<i3f", *k)
-    chunk = struct.pack("<4si", b"ANIM", len(new_body) + 8) + bytes(new_body)
-    return bytes(data[:i]) + chunk + bytes(data[i + length:])
+        t = geo[fin].transform
+        fin_bind[fin] = hamilton_from_columns((t.rx, t.ry, t.rz), (t.ux, t.uy, t.uz), (t.fx, t.fy, t.fz))
+    for fin, q in fin_bind.items():  # the toolkit's own conversion must give the bind pose back
+        back = sp.Quaternion(*spin_key(0, q)).to_transform()
+        t = geo[fin].transform
+        if max(abs(a - b) for a, b in zip(back.to_rufp_xyz(), t.to_rufp_xyz())) > 1e-4:
+            sys.exit(fin + ": key 0 does not reproduce the bind pose")
+    order = []
+    for m in old:
+        order.append(m)
+        if m.name == "alt11tpc":
+            tpb = bw.AnimationMesh(anim, "alt11tpb")
+            tpb.flags = m.flags
+            tpb.inverse_transform = m.inverse_transform
+            tpb.frame_transform = geo["alt11tpb"].transform
+            order.append(tpb)
+            keys["alt11tpb"] = ([], [])
+    anim.mesh_map = {}
+    anim.orientation_keyframe_list, anim.position_keyframe_list = [], []
+    for m in order:
+        rot, pos = keys[m.name]
+        if m.name in fin_bind:
+            rot = [bw.OrientationKeyframe(fr, sp.Quaternion(*spin_key(fr, fin_bind[m.name]))) for fr in range(FRAMES + 1)]
+            if not pos:  # every stock moving part carries position keys
+                t = geo[m.name].transform
+                pos = [bw.PositionKeyframe(fr, sp.Vector3(t.px, t.py, t.pz)) for fr in (0, FRAMES)]
+        m.orientation_start, m.orientation_length = len(anim.orientation_keyframe_list), len(rot)
+        m.position_start, m.position_length = len(anim.position_keyframe_list), len(pos)
+        m.scale_start = m.scale_length = 0
+        anim.orientation_keyframe_list += rot
+        anim.position_keyframe_list += pos
+        anim.mesh_map[m.name] = m
+    out = io.BytesIO()
+    SDFSerializer(out).write(sdf)
+    return out.getvalue()
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--game", default=DEFAULT_GAME, help="Redux install to read stock meshes from")
     ap.add_argument("--stock-sdf", required=True, help="stock ablpow.sdf (BZ1 1.5 install)")
+    ap.add_argument("--stock-bblpow-sdf", help="stock bblpow.sdf (default: same bytes as ablpow.sdf; they are identical)")
     ap.add_argument("--out", default=OUT)
     args = ap.parse_args()
     exe = converter()
@@ -338,10 +277,11 @@ def main():
             out_mesh = os.path.join(args.out, name + ".mesh")
             run_converter(exe, os.path.join(tmp, name + ".mesh.xml"), out_mesh)
             print("%s: %d of %d faces -> lightning submesh (%s) -> %s" % (name, arc, total, stats, out_mesh))
-    sdf = add_spin(open(args.stock_sdf, "rb").read())
-    path = os.path.join(args.out, "ablpow.sdf")
-    open(path, "wb").write(sdf)
-    print("ablpow.sdf: element 4 = fin spin, %d frames at %g fps -> %s" % (FRAMES + 1, FPS, path))
+    for name, src in (("ablpow", args.stock_sdf), ("bblpow", args.stock_bblpow_sdf or args.stock_sdf)):
+        sdf = add_spin(open(src, "rb").read())
+        path = os.path.join(args.out, name + ".sdf")
+        open(path, "wb").write(sdf)
+        print("%s.sdf: element 4 = fin spin, %d frames at %g fps -> %s" % (name, FRAMES + 1, FPS, path))
 
 
 if __name__ == "__main__":
