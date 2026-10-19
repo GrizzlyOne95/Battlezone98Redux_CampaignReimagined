@@ -37,6 +37,16 @@ BackdropDistance= 400
 BackdropWidth   = 800
 BackdropHeight  = 100
 
+[Stars]
+Radius      = 1000
+
+Texture00   = uranus.map
+Alpha00     = 0
+Size00      = 450
+Azimuth00   = 210
+Elevation00 = 38
+Roll00      = 0
+
 [Clouds]
 Count    = 8
 Type     = 0

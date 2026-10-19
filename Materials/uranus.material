@@ -1,0 +1,28 @@
+// Uranus sky disc (misn17, misn18). Same blend as SMJOVIAN.MAP: straight alpha
+// over the sky, selected with Alpha00 = 0 in the [Stars] entry.
+// Image: NASA/JPL-Caltech (Voyager 2, PIA18182); see Docs/SKY_ART_CREDITS.md.
+material URANUS.MAP
+{
+	technique
+	{
+		pass
+		{
+			vertex_program_ref Sky_vertex
+			{
+			}
+			fragment_program_ref Sky_fragment
+			{
+			} 
+
+			lighting off
+			fog_override true none
+			scene_blend alpha_blend
+			depth_write off
+			emissive 1 1 1
+			texture_unit
+			{
+				texture uranus.dds
+			}
+		}
+	}
+}

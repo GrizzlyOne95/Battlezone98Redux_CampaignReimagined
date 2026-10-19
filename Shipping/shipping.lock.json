@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2947,
+  "count": 2949,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1222,6 +1222,10 @@
     {
       "source": "Assets\\Textures\\ubtart00.dds",
       "runtime": "ubtart00.dds"
+    },
+    {
+      "source": "Assets\\Textures\\uranus.dds",
+      "runtime": "uranus.dds"
     },
     {
       "source": "Assets\\Textures\\white.png",
@@ -3826,6 +3830,10 @@
     {
       "source": "Materials\\ubtart.material",
       "runtime": "ubtart.material"
+    },
+    {
+      "source": "Materials\\uranus.material",
+      "runtime": "uranus.material"
     },
     {
       "source": "Materials\\ve_detail_atlas.material",
