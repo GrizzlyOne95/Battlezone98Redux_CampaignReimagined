@@ -49,7 +49,7 @@ local launchFX = require("CR06LaunchFX").Create({
 -- still requires a restart: native world reconstruction is not available here.
 local unpackArgs = unpack or table.unpack
 -- CR launch film >>
-local StopLaunchFilm
+local StopLaunchFilm, StopOrbitFilm
 -- CR launch film <<
 local native = {
     ClearObjectives = ClearObjectives, AddObjective = AddObjective,
@@ -265,6 +265,7 @@ local function SucceedMission(...)
 -- CR launch film >>
     M.launchFilmTerminal = true
     if StopLaunchFilm then StopLaunchFilm() end
+    if StopOrbitFilm then StopOrbitFilm() end
 -- CR launch film <<
     return EndMission("SucceedMission", ...)
 end
@@ -272,6 +273,7 @@ local function FailMission(...)
 -- CR launch film >>
     M.launchFilmTerminal = true
     if StopLaunchFilm then StopLaunchFilm() end
+    if StopOrbitFilm then StopOrbitFilm() end
 -- CR launch film <<
     return EndMission("FailMission", ...)
 end
@@ -979,6 +981,33 @@ local launchFilmAPI = {
 }
 StopLaunchFilm = function() CR06LaunchFilm.Stop(M, launchFilmAPI) end
 -- CR launch film <<
+-- CR orbit film >>
+-- Lincoln Mayday insert under the restored 0625/0626 VO (single player prototype).
+local CR06OrbitFilm = require("CR06OrbitFilm")
+local orbitFilmAPI = {
+    exu = exu, log = print, valid = IsValid, time = GetTime, transform = GetTransform,
+    place = SetTransform, build = BuildObject, remove = RemoveObject, explode = MakeExplosion,
+    vector = function(...) return SetVector(...) end,
+    ready = CameraReady, camera = CameraObject, finish = CameraFinish, cancelled = CameraCancelled,
+    network = function() return CRCoop.IsNetworkGame() end,
+    audioDone = function() return M.vob4h == nil or AudioDone(M.vob4h) end,
+    layout = require("CR06RocketLayout"),
+    -- misn06.trn: SkyTexture, [Clouds] Texture0-2, SunTexture.
+    skyTextures = {
+        { "mars.map", "cr06star.dds" }, { "acloud2.map", "cr06void.dds" }, { "acloud.map", "cr06void.dds" }, { "sun.0", "cr06void.dds" },
+    },
+    templates = function()
+        local T = require("CRParticleTemplates")
+        return T.EnsureExtra("cr06_launch") and T.EnsureExtra("cr06_orbit")
+    end,
+    weatherSystems = function()
+        local names = {}
+        for name in pairs(require("CRWeather").LiveSystems or {}) do names[#names + 1] = name end
+        return names
+    end,
+}
+StopOrbitFilm = function() CR06OrbitFilm.Stop(M, orbitFilmAPI) end
+-- CR orbit film <<
 
 -- CR atmosphere >>
 InitAtmosphere = function()
@@ -1027,6 +1056,7 @@ function Load(state)
 -- CR launch film >>
     CR06LaunchFilm.Load(M)
     launchFX.Reset()
+    CR06OrbitFilm.Load(M, orbitFilmAPI)
 -- CR launch film <<
 -- CR atmosphere >>
     if weatherStarted then CRMarsWeather.Shutdown() end
@@ -1037,6 +1067,7 @@ end
 function Start()
 -- CR launch film >>
     StopLaunchFilm()
+    StopOrbitFilm()
     launchFX.Reset()
 -- CR launch film <<
 -- CR atmosphere >>
@@ -1167,7 +1198,8 @@ function Update(dt)
 -- CR atmosphere >>
     -- Redux can call Update without a timestep. A positive fallback lets the
     -- director derive elapsed time from GetTime; explicit zero remains settle-only.
-    UpdateAtmosphere(tonumber(dt) or (1.0 / 20.0))
+    -- The orbital insert owns sky, fog and clip while it runs.
+    if not CR06OrbitFilm.Active(M) then UpdateAtmosphere(tonumber(dt) or (1.0 / 20.0)) end
 -- CR atmosphere <<
     if not CRCoop.IsAuthority() then return end
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
@@ -2021,6 +2053,9 @@ function Update(dt)
                 M.vob4played = true
                 subtit.Play(CUT_VO.b4a)
                 M.vob4h = subtit.Queue(CUT_VO.b4b)
+-- CR orbit film >>
+                CR06OrbitFilm.Begin(M, orbitFilmAPI, M.launchpad)
+-- CR orbit film <<
             end
         end
     end
@@ -2478,6 +2513,9 @@ function Update(dt)
 -- CR launch film >>
     CR06LaunchFilm.Update(M, launchFilmAPI)
 -- CR launch film <<
+-- CR orbit film >>
+    CR06OrbitFilm.Update(M, orbitFilmAPI)
+-- CR orbit film <<
 end
 
 --[=[ DLL declarations/lifecycle comment (inactive C++):

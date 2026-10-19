@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T20:34:20-05:00",
-  "count": 2764,
+  "count": 2798,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -462,6 +462,30 @@
     {
       "source": "Assets\\ModelFixes\\cr_methane_plane.mesh",
       "runtime": "cr_methane_plane.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr06dst.geo",
+      "runtime": "cr06dst.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr06dst.mesh",
+      "runtime": "cr06dst.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr06dst.sdf",
+      "runtime": "cr06dst.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr06lin.geo",
+      "runtime": "cr06lin.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr06lin.mesh",
+      "runtime": "cr06lin.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr06lin.sdf",
+      "runtime": "cr06lin.sdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvwalk.mesh",
@@ -5162,6 +5186,14 @@
     {
       "source": "ODF\\cptesla.odf",
       "runtime": "cptesla.odf"
+    },
+    {
+      "source": "ODF\\cr06dst.odf",
+      "runtime": "cr06dst.odf"
+    },
+    {
+      "source": "ODF\\cr06lin.odf",
+      "runtime": "cr06lin.odf"
     },
     {
       "source": "ODF\\cr16b0.odf",
@@ -10572,6 +10604,82 @@
       "runtime": "cr_titan16_wet.png"
     },
     {
+      "source": "Assets\\Textures\\cr06blk_e.dds",
+      "runtime": "cr06blk_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06chl_d.dds",
+      "runtime": "cr06chl_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06chl_n.dds",
+      "runtime": "cr06chl_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06chl_s.dds",
+      "runtime": "cr06chl_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06chw_d.dds",
+      "runtime": "cr06chw_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06chw_e.dds",
+      "runtime": "cr06chw_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06ctr_d.dds",
+      "runtime": "cr06ctr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06ctr_e.dds",
+      "runtime": "cr06ctr_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06ctr_n.dds",
+      "runtime": "cr06ctr_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06ctr_s.dds",
+      "runtime": "cr06ctr_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06nhl_d.dds",
+      "runtime": "cr06nhl_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06nhl_n.dds",
+      "runtime": "cr06nhl_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06nhl_s.dds",
+      "runtime": "cr06nhl_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06nhw_d.dds",
+      "runtime": "cr06nhw_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06nhw_e.dds",
+      "runtime": "cr06nhw_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06ntr_d.dds",
+      "runtime": "cr06ntr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06ntr_e.dds",
+      "runtime": "cr06ntr_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06ntr_n.dds",
+      "runtime": "cr06ntr_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06ntr_s.dds",
+      "runtime": "cr06ntr_s.dds"
+    },
+    {
       "source": "Config\\misn15.ini",
       "runtime": "misn15.ini"
     },
@@ -11032,12 +11140,36 @@
       "runtime": "cr06rok_s.dds"
     },
     {
+      "source": "Assets\\Textures\\cr06star.dds",
+      "runtime": "cr06star.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr06void.dds",
+      "runtime": "cr06void.dds"
+    },
+    {
       "source": "Materials\\cr06_launch.material",
       "runtime": "cr06_launch.material"
     },
     {
       "source": "Materials\\cr06_launch.particle.payload",
       "runtime": "cr06_launch.particle.payload"
+    },
+    {
+      "source": "Materials\\cr06_orbit.material",
+      "runtime": "cr06_orbit.material"
+    },
+    {
+      "source": "Materials\\cr06_orbit.particle.payload",
+      "runtime": "cr06_orbit.particle.payload"
+    },
+    {
+      "source": "Materials\\cr06dst.material",
+      "runtime": "cr06dst.material"
+    },
+    {
+      "source": "Materials\\cr06lin.material",
+      "runtime": "cr06lin.material"
     },
     {
       "source": "Materials\\cr06rok.material",
@@ -11050,6 +11182,10 @@
     {
       "source": "Scripts\\CR06LaunchFX.lua",
       "runtime": "CR06LaunchFX.lua"
+    },
+    {
+      "source": "Scripts\\CR06OrbitFilm.lua",
+      "runtime": "CR06OrbitFilm.lua"
     },
     {
       "source": "Scripts\\CR06LaunchFilm.lua",
