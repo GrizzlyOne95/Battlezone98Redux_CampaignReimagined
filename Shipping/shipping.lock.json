@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T09:08:17-05:00",
-  "count": 2788,
+  "count": 2793,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -326,6 +326,18 @@
     {
       "source": "Assets\\ModelFixes\\avdropo.skeleton",
       "runtime": "avdropo.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropx.mesh",
+      "runtime": "avdropx.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropx.sdf",
+      "runtime": "avdropx.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avdropx.skeleton",
+      "runtime": "avdropx.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\avfigh.mesh",
@@ -2660,6 +2672,10 @@
       "runtime": "avdropo.material"
     },
     {
+      "source": "Materials\\avdropx.material",
+      "runtime": "avdropx.material"
+    },
+    {
       "source": "Materials\\avfigh.material",
       "runtime": "avfigh.material"
     },
@@ -4622,6 +4638,10 @@
     {
       "source": "ODF\\avdropo.odf",
       "runtime": "avdropo.odf"
+    },
+    {
+      "source": "ODF\\avdropx.odf",
+      "runtime": "avdropx.odf"
     },
     {
       "source": "ODF\\avfigh.odf",
