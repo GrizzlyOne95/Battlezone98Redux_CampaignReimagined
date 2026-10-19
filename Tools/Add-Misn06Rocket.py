@@ -8,14 +8,33 @@ import argparse
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-# Retained gantry socket from the original docked-rocket survey.
-CENTRE = (20.546749114990234, 77.06172180175781, -43.21162986755371)
+# Stock Redux sblpad raised deck: Ogre bounds X -0.11085..38.92560,
+# Z -59.09940..-25.97380 at Y 29.129. Ogre model X is mirrored relative
+# to native BZ local X (also confirmed by sbl11bdc's SDF bounds).
+# Keep the authored model's -48.5m nozzle plane; leave 25cm deck clearance.
+DECK = (-19.407374, 29.129, -42.536600)
+CENTRE = (DECK[0], DECK[1] + 48.5 + .25, DECK[2])
 
 def add_rocket(text):
     parts = text.split('[GameObject]\n')
     index, pad = next((i,p) for i,p in enumerate(parts) if 'label = sblpad0_i76building\n' in p)
     def number(key):
         return float(re.search(r'^\s*'+key+r' \[1\] =\n([^\n]+)',pad,re.M)[1])
+    origin = [number('posit_'+a) for a in 'xyz']
+    centre = [origin[i]+sum(number(axis+'_'+a)*offset for axis,offset in zip(('right','up','front'),CENTRE))
+              for i,a in enumerate('xyz')]
+    def place(fixture):
+        # Update existing fixtures too: regeneration must repair an old anchor.
+        for a,v in zip('xyz',centre):
+            fixture=re.sub(r'(^  posit_'+a+r' \[1\] =\n)[^\n]+',
+                           lambda m:m[1]+f'{v:.9g}',fixture,flags=re.M)
+        vector=''.join(f'  {a} [1] =\n{v:.9g}\n' for a,v in zip('xyz',centre))
+        fixture=re.sub(r'(^pos \[1\] =\n)(?:  [xyz] \[1\] =\n[^\n]+\n){3}',
+                       lambda m:m[1]+vector,fixture,flags=re.M)
+        for key in ('v','omega','Accel'):
+            fixture=re.sub(r'(^ '+key+r' \[1\] =\n)(?:  [xyz] \[1\] =\n[^\n]+\n){3}',
+                lambda m:m[1]+''.join(f'  {a} [1] =\n0\n' for a in 'xyz'),fixture,flags=re.M)
+        return fixture
     # The rebuilt dorsal housing faces the clear approach corridor. Its basis
     # matches the pad, replacing the old Resurgence model's 180-degree reversal.
     if 'label = cr06_rocket\n' in text:
@@ -25,11 +44,8 @@ def add_rocket(text):
                 value=number(axis+'_'+a)
                 fixture=re.sub(r'(^  '+axis+'_'+a+r' \[1\] =\n)[^\n]+',
                                lambda m:m[1]+f'{value:.9g}',fixture,count=1,flags=re.M)
-        parts[ri]=fixture
+        parts[ri]=place(fixture)
         return '[GameObject]\n'.join(parts)
-    origin = [number('posit_'+a) for a in 'xyz']
-    centre = [origin[i]+sum(number(axis+'_'+a)*offset for axis,offset in zip(('right','up','front'),CENTRE))
-              for i,a in enumerate('xyz')]
     fixture = pad
     for key,value in [('PrjID','cr06rok'),('team','0'),('perceivedTeam','0'),('curHealth','0'),('maxHealth','0')]:
         fixture,n=re.subn(r'^'+key+r' \[1\] =\n[^\n]+',key+' [1] =\n'+value,fixture,count=1,flags=re.M)
@@ -42,9 +58,7 @@ def add_rocket(text):
     address=0x4006
     assert address not in used
     fixture=re.sub(r'^obj_addr = \w+',f'obj_addr = {address:08X}',fixture,count=1,flags=re.M)
-    for a,v in zip('xyz',centre):
-        fixture=re.sub(r'(^  '+a+r' \[1\] =\n)[^\n]+',lambda m:m[1]+f'{v:.9g}',fixture,flags=re.M)
-        fixture=re.sub(r'(^  posit_'+a+r' \[1\] =\n)[^\n]+',lambda m:m[1]+f'{v:.9g}',fixture,flags=re.M)
+    fixture=place(fixture)
     for key in ('v','omega','Accel'):
         fixture=re.sub(r'(^ '+key+r' \[1\] =\n)  x \[1\] =\n[^\n]+\n  y \[1\] =\n[^\n]+\n  z \[1\] =\n[^\n]+',
             lambda m:m[1]+'  x [1] =\n0\n  y [1] =\n0\n  z [1] =\n0',fixture,count=1,flags=re.M)

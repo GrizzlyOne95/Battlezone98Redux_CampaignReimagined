@@ -8,6 +8,7 @@ function FX.Create(api)
         if type(fn) ~= "function" then return nil end
         local ok, result = pcall(fn, ...)
         if ok then return result end
+        return nil,tostring(result)
     end
     local result = {}
     local function emitters(kind) return (kind=="Core" or kind=="Plume") and #Layout.nozzles or 1 end
@@ -76,8 +77,11 @@ function FX.Create(api)
             and type(api.exu.DestroyPointLight)=="function" then
             local name="CR06/Launch/"..serial.."/Light"
             local rise=2.5*math.max(0,(age or 0)-1)^2
-            if call("CreatePointLight",name,api.vector(x,y+rise+Layout.nozzleY-2,z),{3.2,1.65,0.4},75)==true then
+            local created,reason=call("CreatePointLight",name,api.vector(x,y+rise+Layout.nozzleY-2,z),{r=3.2,g=2.5,b=1.4},180)
+            if created==true then
                 state.light=name
+            else
+                api.log("[misn06] rocket engine light unavailable: "..tostring(reason or "runtime refusal"))
             end
         end
         return true

@@ -12,7 +12,7 @@
     15.899999618530273
   ],
   "radius": 49.69881785093338,
-  "native_vertices": 2894,
+  "native_vertices": 2898,
   "native_triangles": 2410,
   "nozzles": [
     [
@@ -60,12 +60,12 @@
   "source": "CR-authored reconstruction of marspict.png",
   "reference_sha256": "58e4336cedd89c2f8a8864cdcb6ea45706f1b5544b47a2ebc34013c36e482213",
   "sha256": {
-    "Assets/ModelFixes/cr06rok.mesh": "ad8ccfacf6e96fc1fbd1f8196e8f55d718508976e95f7ded1484bc2f2e36bec1",
-    "Assets/ModelFixes/cr06rok.geo": "37e15049f9db04c03eaf1f4ba75fe3e1fa95a5dadb666f0b5a1ec079afb72afe",
+    "Assets/ModelFixes/cr06rok.mesh": "bd4bf5c2cda0296909f0d2f4da4fc31be1f4895ca526c5c528c77c53bf869a6e",
+    "Assets/ModelFixes/cr06rok.geo": "0273b6df4745abd660a9170f46aae1139f323e90b9e47b74205cbb8d972840c8",
     "Assets/ModelFixes/cr06rok.sdf": "e000d78d4dc87a930ba467b4cfc61689017104694d418321eed30f20f587070d",
-    "Assets/Textures/cr06rok_d.dds": "625816ee2d99d79edf0c8aeb158454bd789333e6f2d64fe15f5566d72b16d1e6",
+    "Assets/Textures/cr06rok_d.dds": "454979f2e0a72d418403183719f26745c71d4c9273ed07c4b7f81e0d6c90e256",
     "Assets/Textures/cr06rok_n.dds": "10f8b112accaabfb79078fbfa3a0c2fde98d5b2d410def4e994cdde003bdc952",
-    "Assets/Textures/cr06rok_s.dds": "b2a5d6655afea64ed253803046eb98058560a8de59892e8a9e791be0424a0a34",
-    "Assets/Textures/cr06rok_e.dds": "c9e28568be2e59f1fd92af235ae28d09718d58a8d2a3d6efd219b4a5fe78f52e"
+    "Assets/Textures/cr06rok_s.dds": "08ebfecc38c7beb3fce2dc1482fa70b9b1dcee4ebbad8ffcf876a4aa9d322157",
+    "Assets/Textures/cr06rok_e.dds": "f6a48ecac0cbb7269a77a0c283737b6b1ab13e8e56747fc1cb810d94150590df"
   }
 }

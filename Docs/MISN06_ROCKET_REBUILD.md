@@ -35,7 +35,7 @@ Eight bell exits generate `CR06RocketLayout.lua` and the Core/Plume emitters.
 Each peer transforms those offsets using its own fixture basis. Four particle
 systems share a total quota of 1,006; no extra network events are needed.
 One optional EXU point light follows the engines, flickers gently and is
-destroyed at shutdown. Its range is 75 m. Older EXU builds retain the clustered
+destroyed at shutdown. Its range is 180 m. Older EXU builds retain the clustered
 particles without the optional light. Particle stops disable every emitter;
 smoke/dust have a bounded four-second drain. The original mission cue and
 flight, pad and recon contract remain intact.
@@ -72,3 +72,38 @@ were 1.0.0.53. The next run pins the consistent deployed build explicitly:
   (main checkpoint `332a18c`, including point lights).
 - Isolated staging only: `C:/BZRCoop/mars-launch-20261018/content`.
 - Native run being checked: `mars-rocket-rebuild-3`.
+
+## Owner corrections, 18 October
+
+Rebuild 3 reached the mission with an ivory hull and eight emitting bells, but
+the light failed: EXU requires named `{r=...,g=...,b=...}` colour fields. This is
+fixed, with the native argument shape asserted by the mock. The light now uses
+a yellow-white colour and a 180 m range. Rebuild 4 confirms it on both peers.
+
+The owner spotted that the fixture was beside the launch PAD. The inherited
+socket had the wrong native local X sign. Stock Redux's raised deck measures
+Ogre X -0.11085..38.92560 and Z -59.09940..-25.97380 at Y 29.129. Native local X
+is mirrored; the corrected native deck centre is (-19.407374,29.129,-42.536600).
+The model's nozzle plane stays -48.5 m; its map origin is now 25 cm above that
+deck. Regeneration repairs an existing fixture as well as creating a new one.
+The map contract asserts the anchor. Rebuild 4's capture confirms the deck
+under the engines, but the tower now partly blocks this camera angle.
+
+Disconnected red paint cards were reversed by a blanket Blender normals
+recalculation. Primitives now retain explicit outward winding. The binary
+asset test samples the diffuse atlas and verifies the red paint faces outward.
+Native rebuild 4 shows the forward red band again.
+
+The owner's next close model reference is Coxxon's Total Command (Workshop
+2344006579). The local race dependency is installed under
+`steamapps/workshop/content/624970/2343997862/BZTC_Races_1`. `sbcone.odf` names
+the CCA Rocketship, `sbconecox00.msh` its main model, and
+`sbconecox01.msh` an alternate. Materials point to `svconecox00_{d,e,n,s}.dds`.
+It has eight `hp_emit_*` exhaust hardpoints and a 77.582 m tall, 24 m wide
+silhouette: tapered skirts, recessed equipment bays and long engine casings.
+Inspection renders and a Blender reference scene are retained privately under
+`C:/BZRCoop/mars-launch-20261018/total-command-reference`.
+
+Next: keep the validated pad and lighting fixes, move the camera around the
+tower, and bring the authored silhouette and surface detail much closer to
+that transport. Imported Total Command source assets are not shipping inputs.

@@ -40,6 +40,14 @@ assert len(rocket) == 1 and 'PrjID [1] =\ncr06rok\n' in rocket[0]
 assert 'team [1] =\n0\n' in rocket[0] and 'perceivedTeam [1] =\n0\n' in rocket[0]
 assert 'maxHealth [1] =\n0\n' in rocket[0], 'Rocket fixture must not be a new combat target'
 pad=next(b for b in blocks if 'label = sblpad0_i76building\n' in b)
+def field(block,key):
+    return float(re.search(r'^  '+key+r' \[1\] =\n([^\n]+)',block,re.M)[1])
+# Measured stock Redux raised platform, converted from Ogre's mirrored X.
+# The eight engine exits sit 25cm above its deck, directly over its centre.
+for i,c in enumerate('xyz'):
+    expected=field(pad,'posit_'+c)+sum(field(pad,a+'_'+c)*v for a,v in
+        zip(('right','up','front'),(-19.407374,77.879,-42.536600)))
+    assert abs(field(rocket[0],'posit_'+c)-expected)<.001,'Rocket must sit on the stock launch deck'
 for axis in ('right','up','front'):
     for component in 'xyz':
         field=axis+'_'+component

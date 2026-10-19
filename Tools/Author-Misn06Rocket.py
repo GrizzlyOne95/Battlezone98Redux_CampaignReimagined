@@ -12,7 +12,6 @@ import struct
 import sys
 
 import bpy
-import bmesh
 from mathutils import Vector
 from mathutils import Quaternion
 
@@ -82,6 +81,9 @@ def lathe(name, profile, mat, segments=48, center=(0, 0), caps=True):
     if caps:
         faces += [tuple(range(segments-1, -1, -1)),
                   tuple((len(profile)-1)*segments+i for i in range(segments))]
+    # Bell walls run from throat to exit (descending Z), while hull profiles
+    # run aft to nose. Preserve outward winding explicitly for both cases.
+    if profile[1][0]<profile[0][0]:faces=[tuple(reversed(f)) for f in faces]
     ob = mesh(name, verts, faces, mat, True)
     if caps:
         ob.data.polygons[-2].use_smooth = False
@@ -272,7 +274,7 @@ def make_rocket():
     mesh('Arched dorsal lamp housing',verts,faces,'Steel')
     # A flat black rear mask and four domed lamps face down the rocket axis.
     mask=[(x*.91,-11+(y+11)*.9,-8.58) for x,y in outline]
-    mesh('Aft lamp mask',mask,[tuple(range(len(mask)))],'Dark recess')
+    mesh('Aft lamp mask',mask,[tuple(range(len(mask)-1,-1,-1))],'Dark recess')
     for x in (-2.4,-.8,.8,2.4):
         bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8,
                                            radius=.68,location=(x,-14.05,-8.78))
@@ -308,8 +310,8 @@ def join_and_uv():
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
     # The first part was authored at the origin; retain the tested fixture pivot.
     assert ob.location.length < .00001
-    bm=bmesh.new();bm.from_mesh(ob.data)
-    bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(ob.data);bm.free()
+    # Every authored primitive has explicit outward winding. A blanket normal
+    # recalculation can arbitrarily reverse disconnected paint/armour cards.
     bpy.ops.object.mode_set(mode='EDIT');bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(angle_limit=math.radians(68),island_margin=.006)
     bpy.ops.object.mode_set(mode='OBJECT')

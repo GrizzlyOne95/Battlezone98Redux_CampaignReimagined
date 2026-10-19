@@ -6,6 +6,9 @@ import re
 import struct
 
 ROOT=Path(__file__).resolve().parents[1]
+atlas=(ROOT/'Assets/Textures/cr06rok_d.dds').read_bytes()
+atlas_height,atlas_width=struct.unpack_from('<II',atlas,12)
+assert struct.unpack_from('<3I',atlas,92)==(0xff0000,0xff00,0xff),'BGRA8 atlas masks'
 
 
 def chunks(data,start,end):
@@ -45,7 +48,7 @@ for kind,start,end in chunks(data,root_start+1,root_end):
     assert max(indices)<len(vertices)
     assert all(math.isfinite(x) for v in vertices for x in v)
     assert all(abs(sum(x*x for x in v[3:6])-1)<.005 for v in vertices),'unit normals'
-    aligned=degenerate=0
+    aligned=degenerate=red_paint=0
     for i in range(0,count,3):
         a,b,c=[vertices[indices[i+j]] for j in range(3)]
         u=[b[j]-a[j] for j in range(3)];v=[c[j]-a[j] for j in range(3)]
@@ -53,8 +56,17 @@ for kind,start,end in chunks(data,root_start+1,root_end):
         if sum(x*x for x in n)<1e-12:degenerate+=1;continue
         mean=[a[3+j]+b[3+j]+c[3+j] for j in range(3)]
         aligned+=sum(x*y for x,y in zip(n,mean))>0
+        uv=[sum(v[j] for v in (a,b,c))/3 for j in (6,7)]
+        px=min(atlas_width-1,max(0,int(uv[0]*atlas_width)))
+        py=min(atlas_height-1,max(0,int(uv[1]*atlas_height)))
+        blue,green,red,_=atlas[128+4*(py*atlas_width+px):132+4*(py*atlas_width+px)]
+        if red>60 and red>2*green and red>2*blue:
+            red_paint+=1
+            center=[sum(v[j] for v in (a,b,c))/3 for j in range(3)]
+            assert center[0]*mean[0]+center[2]*mean[2]>-.1,'Paint cards must face outwards, not vanish under native culling'
     assert aligned>=.995*(count/3-degenerate),'normals must agree with triangle winding'
     assert degenerate<count/300,'few degenerate triangles'
+    assert red_paint>30,'visible red paint is present'
     submeshes.append(count//3)
 assert len(submeshes)==1 and 10000<sum(submeshes)<25000,'bounded authored mesh budget'
 assert abs(bounds[1]+48.5)<.001 and abs(bounds[4]-48.5)<.001,'stable nozzle plane and height'

@@ -22,7 +22,7 @@ local function world()
     end
     x.SetParticleEmitterPosition=function(name,index,at)w.systems[name].offsets[index]=at;return true end
     x.CreatePointLight=function(name,at,color,range)
-        check(range==75 and color[1]>color[3],'warm bounded engine light')
+        check(range==180 and type(color.r)=='number' and color.r>color.b,'native API requires named r/g/b fields')
         w.lights[name]={at=at};return true
     end
     x.SetPointLightPosition=function(name,at)w.lights[name].at=at;return true end
