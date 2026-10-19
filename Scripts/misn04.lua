@@ -23,6 +23,7 @@ local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
+local CR04Drop = require("CR04Drop")
 local LEADER_TEAM = 1
 local ENEMY_TEAM = 5
 local stockWeatherWindPush = CRMarsWeather.AllowWindPush
@@ -2880,6 +2881,10 @@ function Start()
     remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
     cameraSkipped, localCameraActive = false, false
     RefreshDifficulty()
+    -- Single-player opening: the dropship landing (CR04Drop). Co-op keeps the stock start.
+    CR04Drop.Configure({ exu = exu, log = print, cameraReady = CameraReady,
+        cameraFinish = CameraFinish, cameraCancelled = CameraCancelled })
+    CR04Drop.Reset()
     if CRCoop.IsAuthority() then
         M.relicstartpos = math.random(0, 3)
         if not CRCoop.IsNetworkGame() then
@@ -3155,6 +3160,13 @@ function Update()
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
         BootstrapPreservingScriptedTeam2()
         M.coopBootstrapped = true
+    end
+    -- The stock opening (and Pilot Mode, which would order the carried recycler) waits while the
+    -- dropships descend and open; the landing then keeps running alongside the mission.
+    M.cr04dropHold = not CRCoop.IsNetworkGame() and CR04Drop.Update(M)
+    if M.cr04dropHold then
+        TraceUpdateCall("misn04.Update UpdateWeatherBeats", UpdateWeatherBeats)
+        return
     end
     PlayerPilotMode.SetCargoJob("misn04_relic", {
         enabled = M.discoverrelic and not M.relicsecure,
@@ -3853,6 +3865,9 @@ end
 function Load(missionData, aiData, pilotModeData)
     DestroyOverlayDemo()
     M = missionData or M
+    CR04Drop.Configure({ exu = exu, log = print, cameraReady = CameraReady,
+        cameraFinish = CameraFinish, cameraCancelled = CameraCancelled })
+    CR04Drop.OnLoad(M)
     M.playerPilotModeState = pilotModeData or M.playerPilotModeState
     if aiData then
         aiCore.Load(aiData)

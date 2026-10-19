@@ -202,6 +202,9 @@ local function makePeer(id, team, network)
         PersistentConfig = { Settings = {}, Initialize = noop, UpdateInputs = noop,
             UpdateHeadlights = noop }, AutoSave = { Update = function() record("autosave") end },
     }
+    -- The single-player dropship opening has its own test (Tools/Test-CR04Drop.lua); co-op must never run it.
+    modules.CR04Drop = { Configure = noop, Reset = noop, OnLoad = noop,
+        Update = function() check(not p.net, "co-op ran the dropship opening"); return false end }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()

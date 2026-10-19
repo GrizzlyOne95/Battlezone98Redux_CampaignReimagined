@@ -125,6 +125,7 @@ jobs:
         run: |
           python Tools/Test-Misn04CoopContract.py
           lua5.1 Tools/Test-Misn04Coop.lua
+          lua5.1 Tools/Test-CR04Drop.lua
 
       - name: Test misn10 source-faithful port
         shell: bash
