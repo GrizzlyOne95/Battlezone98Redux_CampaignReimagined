@@ -129,10 +129,13 @@ do
     for _, c in ipairs(calls) do if c[1] == "Stop" and c[3] == 0 then stops[c[2]] = true end end
     check(stops["avrecy-1_recycler"] and stops["avmuf0_factory"] and stops["avfigh0_wingman"],
         "every AI cargo unit is handed back to its AI")
-    check(dist2(objects[1].pos, V(1916, 0, 100683)) < 60, "recycler ends beside its stock spot")
+    check(dist2(objects[1].pos, V(1933, 0, 100685)) < 5, "recycler parks on its stock spot")
+    check(dist2(objects[2].pos, V(1899, 0, 100681)) < 5, "factory parks on its stock spot")
     check(objects[1].pos.y < 40, "recycler is back on the ground")
     check(M.cr04drop.phase == "done", "ships lift off and the opening finishes")
-    check(count("RemoveObject", "avdropc") == 4, "both lift-off ships removed after climbing away")
+    check(count("BuildObject", "avdropx") == 2, "both ships swapped to the ramp-closing model")
+    check(count("RemoveObject", "avdropc") == 2 and count("RemoveObject", "avdropx") == 2,
+        "both lift-off ships removed after climbing away")
     for _, o in pairs(objects) do check(not o.odf:find("^avdrop"), "no ship left behind") end
     check(Drop.Update(M) == false, "done stays done")
 end

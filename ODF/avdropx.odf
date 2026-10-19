@@ -1,0 +1,20 @@
+// avdropx: NSDF Dropship, landed, ramps open; they fold shut once when the object is created (misn04 lift-off).
+// Prototype art: avdropo with ANIM index 0 reversed (start 30, length -31, abhang's closing layout).
+[GameObjectClass]
+collisionRadius = 30.0
+classLabel = "repairdepot"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 20000
+maxAmmo = 0
+unitName = "Dropship"
+heatSignature = 2.0
+imageSignature = 20.0
+radarSignature = 2.0
+
+[BuildingClass]
+
+[RepairDepotClass]
+repairRange = 0.0
+repairDelay = 1.0
+repairAmount = 0

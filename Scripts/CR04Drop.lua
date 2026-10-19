@@ -4,18 +4,20 @@
 -- ships lift off once everyone is clear. Co-op keeps the stock start (the EXU mask stands down in
 -- multiplayer, and guest ships belong to their peers).
 --
--- Ship art is the prototype avdrop SDF pair: avdropc (ramps shut) flies, avdropo (ramps swing open
--- once, when the object is created) is swapped in at touchdown. Floor collision is snapshotted when a
+-- Ship art is the prototype avdrop SDF set: avdropc (ramps shut) flies in, avdropo (ramps swing open
+-- once, when the object is created) is swapped in at touchdown, and avdropx (same model, its ANIM
+-- index 0 runs open -> shut) is swapped in before lift-off, so the ramps fold up and it flies out. Floor collision is snapshotted when a
 -- building is added, so a landed ship must be a new object; units cannot path into its footprint, so
 -- the AI cargo is pushed along the centreline lanes with SetVelocity (as the avdtest fixture proved).
 local Drop = {}
 
-local FLYING, LANDED, POD = "avdropc", "avdropo", "apcamr"
+local FLYING, LANDED, CLOSING, POD = "avdropc", "avdropo", "avdropx", "apcamr"
 local OWNER = "mission:misn04-dropship"
 local FLY_T = 16.0          -- seconds from 320 m up to touchdown
 local DELAY = { 0.0, 2.5 }  -- cargo ship first, then the player's ship
 local START_UP, START_BACK = 320.0, 260.0
 local OPEN_T = 2.6          -- ANIM index 0 is 30 frames at 15 fps; the lips are down by 2.0 s
+local CLOSE_T = 2.4         -- avdropx folds the ramps in the same 2.0 s, then the ship lifts
 local HOLD_UP = 6.0         -- carried units ride 1.5 m over the 4.5 m hold floor
 local SPEED = 7.0
 local LIFT_AFTER = 6.0      -- a ship may leave this long after release, once nobody is within CLEAR_R
@@ -146,11 +148,11 @@ local function newState()
         phase = "fly", t0 = GetTime(), d = best.d,
         ships = {
             { frame = shipFrame(best.A, best), cargo = {
-                { h = recy, along = 0, lat = -8 },
-                { h = fact, along = 2, lat = 10 } } },
+                { h = recy, along = 0, lat = -8, goal = pr },
+                { h = fact, along = 2, lat = 10, goal = pf } } },
             { frame = shipFrame(best.B, best), cargo = {
                 { h = player, along = 6, lat = -7, player = true },
-                { h = wing, along = 6, lat = 7 } } },
+                { h = wing, along = 6, lat = 7, goal = alive(wing) and GetPosition(wing) or nil } } },
         },
     }
     log("sites score=%.1f d=%d A=(%.0f,%.0f) B=(%.0f,%.0f) stern=(%.2f,%.2f)", best.score, best.d,
@@ -195,15 +197,22 @@ local function drive(ship, c)
     local f = ship.frame
     local p = GetPosition(c.h)
     local along = (p.x - f.x) * f.sx + (p.z - f.z) * f.sz
-    if along >= c.path[c.leg] - 2 then
+    if c.leg <= #c.path and along >= c.path[c.leg] - 2 then
         c.leg = c.leg + 1
-        if c.leg > #c.path then
+    end
+    local g
+    if c.leg > #c.path then
+        -- off the ramp: finish on the unit's stock spot, then hand it back to its AI
+        c.goalBy = c.goalBy or GetTime() + 15   -- give up if the spot is blocked
+        if not c.goal or len(flat(c.goal, p)) < 4 or GetTime() > c.goalBy then
             c.path = nil
-            Stop(c.h, 0)   -- hand the unit back to its AI at its stock spot
+            Stop(c.h, 0)
             return
         end
+        g = c.goal
+    else
+        g = deck(f, c.path[c.leg], c.lat)
     end
-    local g = deck(f, c.path[c.leg], c.lat)
     local dir = unit(flat(g, p))
     local v = GetVelocity(c.h)
     SetTransform(c.h, BuildDirectionalMatrix(p, dir))
@@ -265,6 +274,9 @@ local function fly(s, now)
         local k = 1 - u
         if ship.landedAt then
             landed = landed + 1
+            -- keep holding the cargo: the new hull's collision otherwise shoves it up while the
+            -- other ship is still descending
+            for _, c in ipairs(ship.cargo) do pin(ship.frame, c, HOLD_UP) end
         elseif u >= 1 then
             landShip(s, ship)
             landed = landed + 1
@@ -297,7 +309,7 @@ function Drop.Update(M)
         -- everything down and let the stock opening run with the units wherever they are.
         if AllObjects then
             for h in AllObjects() do
-                if IsOdf(h, FLYING) or IsOdf(h, LANDED) then RemoveObject(h) end
+                if IsOdf(h, FLYING) or IsOdf(h, LANDED) or IsOdf(h, CLOSING) then RemoveObject(h) end
             end
         end
         s.ships, s.pod, s.camera = {}, nil, false
@@ -332,10 +344,15 @@ function Drop.Update(M)
     end
     for _, ship in ipairs(s.ships) do
         for _, c in ipairs(ship.cargo) do drive(ship, c) end
-        if not ship.liftAt and alive(ship.h) and now - s.releasedAt > LIFT_AFTER and clear(ship) then
+        if not ship.closeAt and alive(ship.h) and now - s.releasedAt > LIFT_AFTER and clear(ship) then
             local m = shipMatrix(ship.frame, 0, 0)
             RemoveObject(ship.h)
-            ship.h = BuildObject(FLYING, 1, m)
+            ship.h = BuildObject(CLOSING, 1, m)
+            if not alive(ship.h) then ship.h = BuildObject(FLYING, 1, m) end
+            ship.closeAt = now
+            log("ship closing odf=%s", tostring(alive(ship.h) and GetOdf(ship.h)))
+        end
+        if ship.closeAt and not ship.liftAt and now - ship.closeAt >= CLOSE_T then
             ship.liftAt = now
             log("ship lifting")
         end
