@@ -277,10 +277,10 @@ function Step-Collapse {
         Start-Sleep -Seconds 3
         Save-Shot 'transdestroyed-shot-b'
         foreach ($c in $script:M18Clients) { Wait-CRFlowOp $c 'StartCockpitTimer' -TimeoutSeconds 40 | Out-Null }
-        $t1 = Invoke-CRFlow $HostClient 'return { timer = GetCockpitTimer(), now = GetTime() }'
+        $t1 = Invoke-CRFlow $HostClient 'return { timer = (M.cr18 and M.cr18.timerEnd) and (M.cr18.timerEnd - GetTime()) or -1, engine = GetCockpitTimer(), now = GetTime() }'
         Start-Sleep -Seconds 6
-        $t2 = Invoke-CRFlow $HostClient 'return { timer = GetCockpitTimer(), now = GetTime() }'
-        Add-CRFlowCheck 'the cockpit countdown is counting down (leader clock)' (([double]$t2.timer -lt [double]$t1.timer - 3) -and ([double]$t1.timer -le 180)) @{ first = $t1; second = $t2 }
+        $t2 = Invoke-CRFlow $HostClient 'return { timer = (M.cr18 and M.cr18.timerEnd) and (M.cr18.timerEnd - GetTime()) or -1, engine = GetCockpitTimer(), now = GetTime() }'
+        Add-CRFlowCheck 'the leader script countdown is counting down (the engine GetCockpitTimer is the mission clock in MultSTMission)' (([double]$t2.timer -lt [double]$t1.timer - 3) -and ([double]$t1.timer -le 180)) @{ first = $t1; second = $t2 }
         $flags = Get-Flags $HostClient
         Add-CRFlowCheck 'the shot ended and the countdown started on the leader' ([bool]$flags.timerStarted -and (-not $flags.cin)) $flags
         $flags
@@ -446,10 +446,11 @@ local function waterCell()
   local best
   for i, row in ipairs(m.rows) do
     local rowIndex = m.firstRow + i - 1
-    if #row >= 2 and row[2] >= 6 then
-      return { x = (row[1] + row[2] / 2) * m.cell + m.originX, z = rowIndex * m.cell + m.originZ, span = row[2] * m.cell }
+    if #row >= 2 and (not best or row[2] > best.len) then
+      best = { len = row[2], x = (row[1] + row[2] / 2) * m.cell + m.originX, z = rowIndex * m.cell + m.originZ, span = row[2] * m.cell }
     end
   end
+  return best
 end
 local w = waterCell()
 return w
@@ -501,10 +502,26 @@ end)
 SetPosition(GetPlayerHandle(), SetVector(x0 - 50, terrain(x0 - 50, z0 - 30) + 3, z0 - 30))
 return true
 "@ | Out-Null
-                Invoke-CRFlow $c (Get-ViewLua 30 6 0 20 2) | Out-Null
+                # A fixed view over the lane: 28 m south of it, 7 m up, looking along the shuttling craft.
+                Invoke-CRFlow $c @"
+local x0, z0 = $x0, $z0
+local function terrain(x, z) return (GetTerrainHeightAndNormal(SetVector(x, 0, z))) end
+local function pod(n, v)
+  local h = M[n]
+  if not (h and IsValid(h)) then h = BuildObject('apcamr', 0, v); M[n] = h end
+  SetPosition(h, v)
+  return h
+end
+if not M.liveViewOn then M.liveViewOn = true; CameraReady() end
+cancel('liveView')
+every('liveView', 0.05, function()
+  pod('liveCamA', SetVector(x0 - 10, terrain(x0 - 10, z0 - 26) + 8, z0 - 26))
+  pod('liveCamB', SetVector(x0, terrain(x0, z0 + 14) + 1, z0 + 14))
+  CameraObject(M.liveCamA, 0, 0, 0, M.liveCamB)
+end)
+return true
+"@ | Out-Null
             }
-            # The view follows the player; look at the shuttling craft.
-            foreach ($c in $script:M18Clients) { Invoke-CRFlow $c "M.liveView.dist = 28; M.liveView.brg = 300; M.liveView.lookd = -35; M.liveView.looky = 1; return true" | Out-Null }
             Start-Sleep -Seconds 5
             Save-Shot "wake-$surface-a"
             Start-Sleep -Seconds 3
