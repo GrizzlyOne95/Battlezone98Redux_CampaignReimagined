@@ -62,6 +62,9 @@ jobs:
       - name: Validate repository invariants
         run: python Tools/Validate-CampaignRepository.py
 
+      - name: Validate hangar door assets
+        run: python Tools/Test-HangarAssets.py
+
       - name: Validate cinematic NSDF carrier assets
         run: python Tools/Test-NSDFCarrierAssets.py
 
