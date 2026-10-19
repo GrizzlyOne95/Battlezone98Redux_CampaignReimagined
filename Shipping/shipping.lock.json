@@ -372,12 +372,12 @@
       "runtime": "avtank.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\avturr_C.mesh",
-      "runtime": "avturr_C.mesh"
+      "source": "Assets\\ModelFixes\\avturr_c.mesh",
+      "runtime": "avturr_c.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\avturr_C.skeleton",
-      "runtime": "avturr_C.skeleton"
+      "source": "Assets\\ModelFixes\\avturr_c.skeleton",
+      "runtime": "avturr_c.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\avwalk.mesh",

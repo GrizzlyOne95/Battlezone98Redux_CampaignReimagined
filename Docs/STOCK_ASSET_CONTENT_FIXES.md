@@ -22,6 +22,13 @@ https://github.com/BlackDragonN001/BZ98ReduxBugTracker/issues/42
 - Historical workaround: add dummy bones or restructure the hierarchy.
 - CR action: identify affected cockpit assets and correct the hierarchy locally where an asset-side correction is appropriate.
 - Note: if later RE proves Redux's transform inheritance itself is wrong globally, prefer an engine fix and remove unnecessary asset workarounds.
+- Status (CR, 2026-10-19): asset-side fix in `Assets/ModelFixes`; no engine change needed.
+  - Engine rules (GOG exe; decompile corpus): a cockpit bone whose name equals a VDF GEO takes that GEO's VDF-local orientation every frame (`FUN_00681a00`), relative to its *skeleton* parent; the POV GEO keeps its file bind position. The camera is the POV bone's full derived transform (`FUN_0067dac0`). Non-GEO bones (the `*21*` shells, lights) keep their bind local under whatever parent drives them.
+  - `svturr_c`: CR had moved the shell `STU21tx1` under `STU11tx1` with the POV under the shell. The `tx1` bind is identity while its VDF frame is 90 degrees about X, so the shell was drawn 90 degrees off and disagreed with the view. Fixed by restoring the stock chain `STU11POV < STU11tx1`, `STU21tx1 < STU11POV` (bind world preserved, so the mesh and glass are untouched).
+  - `avturr_c`/`bvturr_c`: already the ISDFC `ivturr_cockpit` pattern (`POV < 21ty1 < ty1`, 21ty1 has the ty1 frame); the camera equals stock. Only `avturr_C.*` was renamed to lowercase.
+  - `cvturr` (in-mesh cockpit): unchanged. Its `1` bones are detached and scaled to 0 in first person, so the `2` shell cannot ride the POV; stock keeps `CAD21BDA` at the root.
+  - Walkers (Issue #8 class): CR's `svwalk_c`/`cvwalk_c` put the POV and `*21hed` shell under the animated `*11hed`, so the camera bobbed with the walk cycle and jumped at element switches. Fixed by putting the POV at the root (as stock and `avwalk_c`/`bvwalk_c`) with the shell parented to the POV, so the shell is locked to the view.
+  - Validation: lcbench with OpenShim's walker-cockpit trace (`WalkerCockpitTrace = 1`). Before, the CR `cvwalk_c` camera wandered 1.3 m sideways and 0.9 m vertically in the vehicle frame while walking, with single-frame jumps of up to 1.0 m. After, `svwalk_c` and `cvwalk_c` hold the camera fixed in the vehicle frame (range 0, p99 frame step 0.2 mm). The `svturr_c` camera is unchanged, and the cockpit glass regenerates identically (within 2e-6 m). Still unverified live: turret aim through the yaw and pitch extremes, which Lua cannot drive. The shell lock there rests on the hierarchy: shell skinning equals POV skinning.
 
 ### Issue #48 — Hardpoints parented to moving strafe geos
 https://github.com/BlackDragonN001/BZ98ReduxBugTracker/issues/48
