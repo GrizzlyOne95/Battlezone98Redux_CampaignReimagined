@@ -1087,7 +1087,9 @@ check the actual deployment footer. A nonexistent override currently falls back
 to the ordinary GOG development mod. In the carrier prototype this refreshed 13
 existing managed files and added nine resources there; the handoff records the
 exact affected files rather than pretending the deployment was isolated.
-Native flyby tests must wait each peer's own elapsed time and a fixed endpoint:
-remote static-fixture transform readback can lag behind a continuously moving
-target even after a local time wait. Clamp the commanded travel, keep writing the
-endpoint and verify the actual readback converges; don't infer speed from it.
+Native fleet preview motion remains unqualified: guest static-fixture transform
+readback lagged behind continuous movement, then failed to converge even after
+holding a fixed endpoint. Network ownership/interpolation is suspected, not
+proven. `Test-ConceptFleetLive.ps1 -ExerciseMovement` retains the strict failing
+diagnostic; its default validates stationary model rendering. Do not present a
+passing asset smoke test as proof of precise co-op cinematic motion.

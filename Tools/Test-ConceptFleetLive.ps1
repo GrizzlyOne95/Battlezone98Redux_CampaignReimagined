@@ -1,5 +1,8 @@
 # Isolated four-ship preview. Feed Build-CarrierPreviewMap.py --fleet output to
 # Run-BZRCoopMission.ps1 -ContentOverride; never place these in shipping misn06.
+# Exact shared-fixture movement is an optional diagnostic: remote transform
+# readback did not converge to the commanded endpoint in concept-fleet-4.
+param([switch]$ExerciseMovement)
 $fleetPeers = @(Get-CRFlowClientIndices)
 Invoke-CRFlowStep 'mission opening completes; four preplaced neutral fixtures load' {
     foreach ($fleetPeer in $fleetPeers) {
@@ -38,18 +41,27 @@ foreach ($fleetAsset in @('crncarr','crccarr','crcred1','crcred2')) {
             Wait-CRFlow $fleetPeer 'return GetTime()-fleetViewAt>.6' -TimeoutSeconds 4 | Out-Null
         }
     }
-    Invoke-CRFlowStep "$fleetAsset bounded peer-local flyby; release camera" {
+    if ($ExerciseMovement) { Invoke-CRFlowStep "$fleetAsset exact peer-local flyby diagnostic" {
         foreach ($fleetPeer in $fleetPeers) {
             Invoke-CRFlow $fleetPeer 'fleetPose=GetTransform(fleetShip);fleetZ=fleetPose.posit_z;fleetStarted=GetTime();every("fleet-flight",0,function() local t=math.min(4,math.max(0,GetTime()-fleetStarted));fleetPose.posit_z=fleetZ-6*t;SetTransform(fleetShip,fleetPose) end);return true' | Out-Null
         }
         foreach ($fleetPeer in $fleetPeers) {
-            # A remote static actor's transform readback is interpolated. Hold
-            # the actual bounded endpoint until BOTH clients reach it; do not
-            # infer distance from either clock or keep moving the finish line.
-            Wait-CRFlow $fleetPeer 'local p=GetTransform(fleetShip);return GetTime()-fleetStarted>=4 and math.abs(fleetZ-p.posit_z-24)<.15' -TimeoutSeconds 12 | Out-Null
+            try {
+                Wait-CRFlow $fleetPeer 'local p=GetTransform(fleetShip);return GetTime()-fleetStarted>=4 and math.abs(fleetZ-p.posit_z-24)<.15' -TimeoutSeconds 12 | Out-Null
+            } catch {
+                $fleetDiagnostic=Invoke-CRFlow $fleetPeer 'local p=GetTransform(fleetShip);return {target=fleetZ-24,actual=p.posit_z,elapsed=GetTime()-fleetStarted,valid=IsValid(fleetShip)}'
+                foreach ($fleetCleanupPeer in $fleetPeers) {
+                    Invoke-CRFlow $fleetCleanupPeer 'cancel("fleet-view");cancel("fleet-flight");native.CameraFinish();if type(fleetClip[1])=="number" and type(fleetClip[2])=="number" then exu.SetCameraClipDistances(fleetClip[1],fleetClip[2]) end;return true' | Out-Null
+                }
+                throw "c$fleetPeer exact movement failed: $(ConvertTo-Json $fleetDiagnostic -Compress)"
+            }
             $fleetMoved=Invoke-CRFlow $fleetPeer 'local p=GetTransform(fleetShip);return {valid=IsValid(fleetShip),distance=fleetZ-p.posit_z,elapsed=GetTime()-fleetStarted}'
             Add-CRFlowCheck "c$fleetPeer reaches $fleetAsset 24m flyby endpoint" ($fleetMoved.valid -and [math]::Abs($fleetMoved.distance-24) -lt .15) $fleetMoved
-            Invoke-CRFlow $fleetPeer 'cancel("fleet-view");cancel("fleet-flight");native.CameraFinish();return true' | Out-Null
+        }
+    } }
+    Invoke-CRFlowStep "$fleetAsset release preview camera" {
+        foreach ($fleetPeer in $fleetPeers) {
+            Invoke-CRFlow $fleetPeer 'cancel("fleet-view");cancel("fleet-flight");native.CameraFinish();return IsValid(fleetShip)' | Out-Null
         }
     }
 }

@@ -64,8 +64,10 @@ distance; close ground-mission fog can hide the whole ship.
 `Tools/Build-CarrierPreviewMap.py <override-folder>` creates an isolated copy of
 `misn06.bzn` with a preplaced carrier at (1700,650,100900). It cannot overwrite the
 campaign map. `Tools/Test-NSDFCarrierLive.ps1` frames side, bow and aft views,
-then demonstrates a bounded owner-local flyby on both clients. Its temporary
-camera and far fog are test-only and are released afterward.
+then diagnoses a bounded owner-local flyby on both clients. The guest did not
+converge to the exact endpoint; this older scenario is a motion diagnostic, not
+a passing smoke test. Use `Test-ConceptFleetLive.ps1` for the four-ship asset
+preview. Its temporary camera and far fog are test-only and released afterward.
 
 Build with the manager into `C:/BZRCoop/nsdf-carrier-20261018/content`, using
 the deployed-main OpenShim and EXU runtime overrides. Pass the preview-map folder

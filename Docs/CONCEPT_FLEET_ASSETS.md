@@ -73,9 +73,8 @@ there; this asset pass does not start global particle effects.
 copy of misn06 with four preplaced fixtures, well above the terrain. It refuses
 to overwrite the campaign map. Use `Tools/Test-ConceptFleetLive.ps1` as the native
 runner scenario, with that folder as `-ContentOverride`, `-Mission misn06`,
-`-Clients 2`, `-MapListY 207`. The scenario films each ship from side/bow/aft and
-demonstrates four seconds of translation independently on each peer, then
-releases its camera and restores clip distances. No AI command is issued to a
+`-Clients 2`, `-MapListY 207`. The default scenario films each ship from
+side/bow/aft, releases its camera and restores clip distances. No AI command is issued to a
 fixture. A future production film must use the mission's acknowledged
 presentation stream, proper weather ownership and cleanup/skip paths.
 
@@ -97,22 +96,29 @@ restoring its previous files without a verified baseline. No new fleet placement
 is added to a production mission, no Workshop upload occurs, and the rocket is
 independent in PR #228.
 
-Progress: source rebuilds and targeted loader checks pass. Native run
+Progress: source rebuilds and targeted loader checks pass. Both editable source
+assemblies reopen with their relative image dependencies present. Native run
 `concept-fleet-2` loaded all four ships on both clients, captured side/bow/aft
 views and preserved presentation parity with no Lua/engine script errors. Its
 four guest movement checks failed: transform readback lagged behind a continually
 moving target even after each peer's own four-second wait. The current scenario
-clamps travel to 24 m and holds that endpoint until each peer's readback converges
-within 0.15 m. This avoids claiming a speed measurement from interpolated remote
-readback. Native run `concept-fleet-4` is checking the revised test and the final
-visible CCA engine throats. `concept-fleet-3` was refused at preflight because an
+clamps travel to 24 m and holds that endpoint. Native run `concept-fleet-4` still
+failed to converge on the guest within 0.15 m after 12 seconds; all asset loading
+and script/parity checks passed. **Exact co-op motion is not qualified.** The
+cause is unresolved; interpolation/network ownership is a suspicion, not a
+proven diagnosis. The default scenario now checks asset rendering only. Retain
+the failing strict movement diagnostic with runner
+`-ScenarioArgs @{ ExerciseMovement=$true }` for future cutscene integration;
+don't weaken its exact endpoint check or claim host-only movement replicates.
+`concept-fleet-5` checks final stationary side/bow/aft renders on both peers.
+`concept-fleet-3` was refused at preflight because an
 unrelated game was running; that process was left alone.
 
 The latest CCA rebuild places the entire nozzle outside the closed stern, so its
 emissive throat remains visible. Small inferred nozzles extend each side survey
 by less than 4 m. The native fixture proxy retains the major hull solids, while
 the Ogre visual/culling bounds include the engine extension. Branch
-`agent/nsdf-carrier`, draft PR #237; source checkpoint `faa54bf1`.
+`agent/nsdf-carrier`, draft PR #237; engine correction checkpoint `0cc04885`.
 
 ![CCA reference-layout study](../References/CCAFleet/fleet-side.png)
 ![NSDF carrier](../References/NSDFCarrier/carrier-bow.png)
