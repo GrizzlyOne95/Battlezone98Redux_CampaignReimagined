@@ -37,7 +37,9 @@ foreach ($fleetAsset in @('crncarr','crccarr','crcred1','crcred2')) {
     }
     Invoke-CRFlowStep "$fleetAsset aft engines" {
         foreach ($fleetPeer in $fleetPeers) {
-            Invoke-CRFlow $fleetPeer "fleetView={$([int]($fleetRange*.75)),$([int]($fleetRange*.3)),$fleetRange};fleetViewAt=GetTime();return true" | Out-Null
+            # Get beyond the actual stern and look nearly down the nozzles;
+            # a close broadside angle hides their recessed emissive throats.
+            Invoke-CRFlow $fleetPeer "fleetView={$([int]($fleetRange*.25)),$([int]($fleetRange*.12)),$([int]($fleetRange*1.5))};fleetViewAt=GetTime();return true" | Out-Null
             Wait-CRFlow $fleetPeer 'return GetTime()-fleetViewAt>.6' -TimeoutSeconds 4 | Out-Null
         }
     }

@@ -1,6 +1,6 @@
 {
-  "vertices": 1608,
-  "triangles": 890,
+  "vertices": 1536,
+  "triangles": 854,
   "bounds_min": [
     -22.0,
     -16.22901153564453,
@@ -12,8 +12,8 @@
     65.5199966430664
   ],
   "radius": 66.9614348992214,
-  "native_vertices": 332,
-  "native_triangles": 628,
+  "native_vertices": 314,
+  "native_triangles": 592,
   "asset": "crcred2",
   "name": "CCA upper-right red hull",
   "reference": "CCAfleet3.webp",
@@ -226,18 +226,6 @@
           73
         ],
         [
-          996,
-          68
-        ],
-        [
-          1034,
-          72
-        ],
-        [
-          1057,
-          77
-        ],
-        [
           1057,
           94
         ],
@@ -360,12 +348,12 @@
     "n": 16
   },
   "sha256": {
-    "Assets/Textures/crcred2_d.dds": "e4e0922e575648902318dbd5a4031ec89104dcf2fb002ae9bb20b2473660d45a",
-    "Assets/Textures/crcred2_e.dds": "39277be92e45b6f2b16a895e7a4dff1508b1bf025371c18b098bb66888fee79d",
-    "Assets/Textures/crcred2_s.dds": "e9267686ff91dd20f39e7c2ab9ad769be59cd08a3513c8aad4a202ed80a4c158",
+    "Assets/Textures/crcred2_d.dds": "27f66e2e8353940fd3a96d73df36b30c44300480835025e5aeff6c0559c5e476",
+    "Assets/Textures/crcred2_e.dds": "02a58288cd196a83a1d8658a27f7dc68ae195f17342552fa966cf6848124416f",
+    "Assets/Textures/crcred2_s.dds": "6d1cf803f4dc8f50377caacd22066fe7bb5c4017a09bb6bae791b0b1ee4a04b5",
     "Assets/Textures/crcred2_n.dds": "10f8b112accaabfb79078fbfa3a0c2fde98d5b2d410def4e994cdde003bdc952",
-    "Assets/ModelFixes/crcred2.mesh": "9ddfb75483fe9b17fe24c1255fe63c8e5f8cfb97d6b165708f0134e33c356277",
-    "Assets/ModelFixes/crcred2.geo": "277e857bb241c3baa16a9fe5d936c6393d34c07920c97abfe3438e69f4cdf744",
+    "Assets/ModelFixes/crcred2.mesh": "86b753f10b293f206dd9edc70b44d47fbf55341ac7aa503eb97c10af42465009",
+    "Assets/ModelFixes/crcred2.geo": "cf6aaf6bc232d6b8f3e852b81c7fc6ab45faf346e192e3509846fbff52095811",
     "Assets/ModelFixes/crcred2.sdf": "7e89e62899110f548db26fb1e98b2113c7800b26b0de3f11a77ff53f46c59177"
   }
 }

@@ -79,8 +79,9 @@ the nine carrier resources. No mission placements were changed. The explicit
 test-content folder now exists; subsequent native staging uses that isolated
 path. No Workshop upload or release was performed.
 
-Current state: corrected-scale authored model and loader invariants pass;
-shipping admission and four-ship native captures are being checked. Branch
+Current state: corrected-scale authored model, loader invariants and four-ship
+native stationary preview pass (20 steps / 21 checks); sources and captures are
+in `CONCEPT_FLEET_ASSETS.md`. Exact guest motion remains unqualified. Branch
 `agent/nsdf-carrier`, based on main `521c6e80`; the rocket stays in separate PR #228.
 
 ![Concept side study](../References/NSDFCarrier/carrier-side.png)

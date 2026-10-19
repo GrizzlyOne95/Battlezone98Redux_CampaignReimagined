@@ -11,7 +11,7 @@ the small comparison units as additional fleet classes.
 | `crncarr` | NSDF carrier | 243 m including inferred engines | 30,632 |
 | `crccarr` | Grey fork-bow CCA carrier | 242 m including inferred engines | 1,912 |
 | `crcred1` | Upper-left long red CCA hull | 117 m including inferred engines | 812 |
-| `crcred2` | Upper-right pale-bow/red-aft CCA hull | 129 m including inferred engines | 890 |
+| `crcred2` | Upper-right pale-bow/red-aft CCA hull | 129 m including inferred engines | 854 |
 
 Names describe the reference positions/shapes; they do not assert canonical ship
 classes or lore. The simple CCA surfaces follow the angular, sparse concept art.
@@ -23,9 +23,9 @@ GEO/SDF and four namespaced RGBA8 atlases. All four are neutral static
 ## Scale and interpretation
 
 The installed stock Redux `svapc.mesh` has a local Z span of 14.61861 m. Its source
-silhouette occupies about 59 pixels (u764–823). That yields approximately
+silhouette occupies about 59 pixels (u764Ã¢â‚¬â€œ823). That yields approximately
 0.2478 m/pixel; the CCA survey uses a rounded **0.25 m/pixel** for all three ships.
-The large grey hull spans u49–1007. The NSDF source has no shared scale bar; its
+The large grey hull spans u49Ã¢â‚¬â€œ1007. The NSDF source has no shared scale bar; its
 240 m side span is chosen to be comparable, replacing the original 600 m draft.
 These are approximate staging dimensions, not newly established lore. Stock
 comparison geometry/rendered perspective and drawing precision limit exactness.
@@ -110,7 +110,7 @@ proven diagnosis. The default scenario now checks asset rendering only. Retain
 the failing strict movement diagnostic with runner
 `-ScenarioArgs @{ ExerciseMovement=$true }` for future cutscene integration;
 don't weaken its exact endpoint check or claim host-only movement replicates.
-`concept-fleet-5` checks final stationary side/bow/aft renders on both peers.
+`concept-fleet-5` **passed all 20 steps and 21 checks** for final stationary side/bow/aft renders on both peers. The default smoke test does not exercise movement. This native run preceded the final crcred2 coplanar roof cleanup; the subsequent five-file rebuild passes the asset validators and Blender inspection. Retest attempt concept-fleet-6 was refused because another isolated test session was running; it was left untouched. Native reports remain in the private run folder; selected captures are retained below. Both clients exited normally with return code 0.
 `concept-fleet-3` was refused at preflight because an
 unrelated game was running; that process was left alone.
 
@@ -122,3 +122,32 @@ the Ogre visual/culling bounds include the engine extension. Branch
 
 ![CCA reference-layout study](../References/CCAFleet/fleet-side.png)
 ![NSDF carrier](../References/NSDFCarrier/carrier-bow.png)
+
+
+## Final verification, 2026-10-18
+
+- Native `concept-fleet-5`: 20 steps / 21 checks pass; all four ODF/material pairs
+  load on each client, presentation stream matches, no Lua/engine script errors.
+- Both asset validators pass; repository validation passes (3,199 files at the
+  engine-correction checkpoint). CI campaign and SM4 checks pass for `26f6a996`.
+- Editable NSDF / CCA assembly sources reopen with all referenced images present.
+- Manager staging matches all 2,786 locked resources; latest roof-cleanup deploy updated
+  five resources only in the explicit private content folder, with no additions
+  or removals.
+- Default camera cleanup and clip restore complete. Precise co-op motion remains
+  unqualified as recorded above; this does not place a fleet in a campaign mission.
+- The oblique aft view can hide recessed engine throats behind nozzle walls.
+  The scenario now uses a more axial stern view for future captures. That camera
+  adjustment and the final coplanar roof cleanup have not been rerun natively
+  because another test session held the game. The saved captures below are from
+  `concept-fleet-5`; the side silhouette is unchanged by the cleanup.
+
+Runtime IDs for pickup: `crncarr`, `crccarr`, `crcred1`, `crcred2`. Existing
+`engine_exits` in each source manifest are the attachment positions for future
+shot-specific exhaust. Keep mission integration separate from this asset pass.
+
+![NSDF in Redux](images/concept-nsdf-native-side.png)
+![NSDF bow in Redux](images/concept-nsdf-native-bow.png)
+![CCA carrier in Redux](images/concept-cca-carrier-native.png)
+![CCA red hull 1 in Redux](images/concept-cca-red1-native.png)
+![CCA red hull 2 in Redux](images/concept-cca-red2-native.png)

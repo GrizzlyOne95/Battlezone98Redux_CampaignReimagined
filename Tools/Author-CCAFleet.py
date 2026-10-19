@@ -197,8 +197,10 @@ def red_right():
          (804,133),(754,128),(717,123)],17,'Red dark')
     card('Ventral red upper edge',[(721,114),(774,104),(827,106),(848,116)],17.14,'Red')
     solid('Angled lower red fitting',[(798,139),(835,128),(841,140),(806,151)],6,'Red',bevel=.07)
-    solid('Red aft command hull',[(840,55),(891,56),(893,73),(996,73),(996,68),
-         (1034,72),(1057,77),(1057,94),(1038,100),(1008,130),
+    # The raised lip owns the upper rear roof; keep the main roof below it.
+    # Duplicating the lip's exact upper outline creates coplanar Z-fighting.
+    solid('Red aft command hull',[(840,55),(891,56),(893,73),(996,73),
+         (1057,94),(1038,100),(1008,130),
          (981,136),(894,133),(841,96)],21,'Red dark')
     card('Red aft upper facet',[(842,61),(891,59),(893,78),(997,78),(1036,84),
          (1055,91),(1017,106),(900,105),(842,91)],21.13,'Red light')
