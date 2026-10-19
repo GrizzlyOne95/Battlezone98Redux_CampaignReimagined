@@ -76,8 +76,16 @@ Windows/GOG clients: eight active bell emitters in both engine layers, all four
 FX systems and the EXU physical engine light on each peer, followed by complete
 cleanup. The original pad, dialogue and timers survive. The corrected deck
 anchor is visible in the capture; it also exposed tower occlusion from that
-camera. The TC model and revised clearing camera are the next native pass.
+camera. Final TC run `mars-rocket-rebuild-6` passes all 7 steps / 23 checks with
+the revised sunlit clearing view. Both peers show the engines centred over the
+raised deck, active clustered exhaust and a readable ivory hull. Cameras release,
+the original pad/timers survive and the rocket, particles and light clean up.
+The 20-operation presentation streams match; neither peer reports script,
+unresolved-label or subtitle errors. Both clients exit normally.
 The shipping manager verifies all 2,764 admitted files with no differences.
+
+![TC study, ignition centred on the stock deck](images/misn06-tc-ignition.png)
+![TC study, guest ascent and yellow-white exhaust](images/misn06-tc-ascent.png)
 
 The following earlier runs and captures document the Resurgence prototype.
 

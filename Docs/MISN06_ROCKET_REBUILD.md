@@ -116,4 +116,25 @@ now passes 51 checks, including clear/blocked terrain and the pullback.
 
 Reference identity, file hashes and scale are recorded in
 `References/Misn06Rocket/total-command-reference.json`. Imported Total Command
-source assets are not shipping inputs. Next native run: `mars-rocket-rebuild-6`.
+source assets are not shipping inputs.
+
+## Verified TC checkpoint
+
+`mars-rocket-rebuild-6` passes all 7 steps / 23 checks on two Windows/GOG clients.
+The only visual change from run 5 is the camera: the same model, textures and
+exhaust now read as weathered ivory on the sunlit side, with the tower clear of
+the bell cluster. The low shot is selected on the current terrain; the high
+fallback is covered by the blocked-height-field unit case. Both peers show the
+engines centred over the stock deck, eight active emitters in each engine layer,
+four particle systems and a physical engine light. Camera release, continued
+flight, original pad/timers and effect cleanup pass. Both clients exit normally.
+
+Final captures: `Docs/images/misn06-tc-ignition.png` (host) and
+`Docs/images/misn06-tc-ascent.png` (guest). The real dialogue still starts the
+shot; the test advances only the existing transport-arrival deadline.
+All 2,764 manager-admitted files match the isolated staged install.
+
+Checkpoints pushed: `e28b32e9` (deck/lighting/paint), `9db3e9b3` (TC study),
+`82840e1c` (sunlit clearing and terrain fallback). Draft PR #228 stays open for
+visual review. Keep this active worktree. No main merge, regular GOG deployment
+or Workshop upload was performed. Steam and Proton/Wine remain unverified.
