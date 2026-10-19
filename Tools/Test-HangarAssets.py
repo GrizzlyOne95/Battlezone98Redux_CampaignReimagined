@@ -49,6 +49,8 @@ def mesh_info(path):
     assert kind == 0x3000
     info = {'bones': [], 'skeleton': None, 'material': None, 'vertices': 0}
     for kind, ss, se in chunks(data, start + 1, end):
+        if kind == 0x9000:
+            info['bounds'] = struct.unpack_from('<6f', data, ss)
         if kind == 0x6000:
             info['skeleton'] = data[ss:data.index(b'\n', ss)].decode('ascii')
         if kind != 0x4000:
@@ -97,55 +99,71 @@ def yaw(q):
     return math.degrees(2 * math.atan2(q[2], q[0]))
 
 
+DOORS = ['dra', 'drb', 'drc', 'drd']
+FRAMES = 121
 abh = skeleton_bones(FIX / 'abhang.skeleton')
 bbh = skeleton_bones(FIX / 'bbhang.skeleton')
-DOORS = ['dra', 'drb', 'drc', 'drd']
-assert set(abh) == {'abh11bbb'} | {'abh11' + d for d in DOORS}
-assert set(bbh) == {'bbh11bbb'} | {'bbh11' + d for d in DOORS}
+NAMES = {'abh11bbb'} | {'abh11' + d for d in DOORS}
+assert set(abh) == NAMES and set(bbh) == NAMES, 'door bones carry the SDF GEO names'
+assert {n: abh[n][0] for n in abh} == {n: bbh[n][0] for n in bbh}, 'same bone handles'
 
-elements, ors, rots, poss = sdf_anim(FIX / 'abhang.sdf')
-assert elements[0][33:36] == (0, 121, 1) or elements[0][33] == 0
-frames = 121
-for d in DOORS:
-    name = 'abh11' + d
-    r = ors[name]
-    keys = rots[r[26]:r[26] + r[27]]
-    assert [k[0] for k in keys] == list(range(frames)), name + ': a rotation key on every frame'
-    qs = [k[1:] for k in keys]
-    assert all(abs(dot(q, q) - 1) < 1e-4 for q in qs), name + ': unit quaternions'
-    assert all(dot(a, b) > 0.99 for a, b in zip(qs, qs[1:])), name + ': shortest-path, no sign flips'
-    total = abs(math.degrees(2 * math.acos(max(-1, min(1, abs(dot(qs[0], qs[-1])))))))
-    assert 100 < total < 180, name + ': swing %.1f deg is the short way round' % total
-    # frame 0 is the closed bind pose: skeleton bone orientation (mirror-free about Y) and position.
-    handle, bpos, bq = abh[name]
-    assert abs(abs(dot(qs[0], bq)) - 1) < 1e-4, name + ': frame 0 rotation = bind'
-    pk = poss[r[30]:r[30] + r[31]]
-    assert pk, name + ': position key'
-    for k in pk:
-        assert abs(-k[1] - bpos[0]) < 1e-3 and abs(k[2] - bpos[1]) < 1e-3 and abs(k[3] - bpos[2]) < 1e-3, \
-            name + ': SDF position key agrees with the skeleton bind (hinge)'
-    # eased: speed at both ends is below the middle's
-    steps = [abs(yaw(qs[i + 1]) - yaw(qs[i])) for i in range(frames - 1)]
-    assert steps[0] < steps[60] and steps[-1] < steps[60], name + ': ease in/out'
 
+def check_doors(sdf_name, skel, opening):
+    """opening=True: frame 0 is the closed bind pose and the last frame is open (abhang).
+    opening=False: frame 0 is open and the last frame is the closed bind pose (bbhang)."""
+    elements, ors, rots, poss = sdf_anim(FIX / sdf_name)
+    el0 = elements[0]
+    assert el0[0] == 0 and el0[33:36] == (0, FRAMES, 1) and el0[36] == 60.0, \
+        sdf_name + ': element 0 plays frames 0..120 at 60 fps (2.0 s)'
+    for d in DOORS:
+        name = 'abh11' + d
+        r = ors[name]
+        keys = rots[r[26]:r[26] + r[27]]
+        assert [k[0] for k in keys] == list(range(FRAMES)), name + ': a rotation key on every frame'
+        qs = [k[1:] for k in keys]
+        assert all(abs(dot(q, q) - 1) < 1e-4 for q in qs), name + ': unit quaternions'
+        assert all(dot(a, b) > 0.99 for a, b in zip(qs, qs[1:])), name + ': shortest-path, no sign flips'
+        total = math.degrees(2 * math.acos(max(-1, min(1, abs(dot(qs[0], qs[-1]))))))
+        assert 100 < total < 180, '%s: swing %.1f deg is the short way round' % (name, total)
+        handle, bpos, bq = skel[name]
+        closed = qs[0] if opening else qs[-1]
+        assert abs(abs(dot(closed, bq)) - 1) < 1e-4, name + ': the closed pose is the skeleton bind pose'
+        opened = qs[-1] if opening else qs[0]
+        assert abs(dot(opened, bq)) < 0.9, name + ': the other end is really open'
+        pk = poss[r[30]:r[30] + r[31]]
+        assert pk, name + ': position key'
+        for k in pk:
+            assert abs(-k[1] - bpos[0]) < 1e-3 and abs(k[2] - bpos[1]) < 1e-3 and abs(k[3] - bpos[2]) < 1e-3, \
+                name + ': SDF position key agrees with the skeleton bind (hinge)'
+        steps = [abs(yaw(qs[i + 1]) - yaw(qs[i])) for i in range(FRAMES - 1)]
+        assert steps[0] < steps[60] and steps[-1] < steps[60], name + ': ease in/out'
+    return ors
+
+
+abh_ors = check_doors('abhang.sdf', abh, True)
+bbh_ors = check_doors('bbhang.sdf', bbh, False)
+assert 'abh11lot' in abh_ors, 'abhang keeps its pad'
+assert 'abh11lot' not in bbh_ors, 'bbhang SDF has no pad GEO'
+assert set(abh_ors) - set(bbh_ors) == {'abh11lot'} and len(bbh_ors) == 12
+
+infos = {}
 for skel, mesh, material, link in [(abh, 'abhang.mesh', 'abhang00', 'abhang.skeleton'),
                                    (bbh, 'bbhang.mesh', 'bbhang', 'bbhang.skeleton')]:
-    info = mesh_info(FIX / mesh)
+    info = infos[mesh] = mesh_info(FIX / mesh)
     assert info['skeleton'] == link and info['material'] == material, mesh
     assert info['bones'] and max(info['bones']) < len(skel), mesh + ': bone indices in range of its skeleton'
     assert set(range(1, 5)) <= set(info['bones']), mesh + ': all four door bones carry vertices'
-a_info, b_info = mesh_info(FIX / 'abhang.mesh'), mesh_info(FIX / 'bbhang.mesh')
-assert a_info['vertices'] == b_info['vertices'] and a_info['bones'] == b_info['bones'], 'same closed geometry and weights'
-
-# Black Dog doors stay closed: no SDF override, and no bbhang bone is named like a stock SDF GEO.
-assert not (FIX / 'bbhang.sdf').exists(), 'stock bbhang.sdf (abh11* GEOs) is used'
-assert not set(bbh) & set(ors), 'no bbhang bone matches an animated GEO name'
+a_info, b_info = infos['abhang.mesh'], infos['bbhang.mesh']
+assert a_info['vertices'] - b_info['vertices'] == 534, 'bbhang is abhang without the 534 pad vertices'
+assert len(b_info['bones']) == b_info['vertices'], 'every bbhang vertex is weighted'
+assert a_info['bounds'][5] > 32 and b_info['bounds'][5] < 16, 'the exterior pad (z 15..32) is gone from bbhang'
+assert b_info['bounds'][4] < 16.1 and b_info['bounds'][1] < 0, 'the building itself is intact'
 
 lock = json.loads((ROOT / 'Shipping' / 'shipping.lock.json').read_text())
-shipped = {e['runtime'] for e in lock['files']} if isinstance(lock, dict) and 'files' in lock else set()
-for f in ('abhang.mesh', 'abhang.sdf', 'abhang.skeleton', 'bbhang.mesh', 'bbhang.skeleton'):
+shipped = {e['runtime'] for e in lock['files']}
+for f in ('abhang.mesh', 'abhang.sdf', 'abhang.skeleton', 'bbhang.mesh', 'bbhang.sdf', 'bbhang.skeleton'):
     assert f in shipped, f + ' is in the shipping lock'
-for f in ('bbhang.sdf', 'avwalk.mesh', 'avwalk.skeleton'):
+for f in ('avwalk.mesh', 'avwalk.skeleton'):
     assert f not in shipped, f + ' is not shipped'
-print('hangar assets: per-frame shortest-path door keys, bind = closed, hinge agreement, '
-      'bbhang mesh/skeleton bone indices and closed-door contract passed')
+print('hangar assets: per-frame shortest-path door keys, abhang closed->open and bbhang open->closed '
+      '(ends on the closed bind pose), hinge agreement, bone indices in range, bbhang pad removed passed')
