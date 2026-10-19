@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2950,
+  "count": 2951,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -7026,6 +7026,10 @@
     {
       "source": "Scripts\\CRParticleTemplates.lua",
       "runtime": "CRParticleTemplates.lua"
+    },
+    {
+      "source": "Scripts\\CRPoolFX.lua",
+      "runtime": "CRPoolFX.lua"
     },
     {
       "source": "Scripts\\CRPrecip.lua",
