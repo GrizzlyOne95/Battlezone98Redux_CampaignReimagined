@@ -38,8 +38,13 @@ proof of the actual tool output size. Source SHA-256:
 No seamlessness claim is verified by that prompt alone; Blender box projection
 and small-scale tiling are visually inspected on the authored hulls.
 
-CCA stars, ring insignia, stencilled numbers/CCCP, warning strips, hull panels,
+CCA stars, ring insignia, stencilled numbers/CCCP, warning strips, flush skin joints,
 conduits and radiators are separately authored geometry fitted to each hull.
 `Tools/CCA-ReduxDetail.py` keeps those editable and deterministically rebuilds
 the placement, paint shader and normal/specular bakes. The three concept
 silhouettes, pivots and recorded scale remain the design constraints.
+
+The surface revision also inspected the installed APC, Czar and Recycler as
+textured 3D meshes with `Tools/Inspect-CCAStock.py`. Raised armour grids were
+removed after owner review; the paint tile is not used to justify that rejected
+construction. See `Docs/CCA_REDUX_ART_PASS.md` for the current art direction.

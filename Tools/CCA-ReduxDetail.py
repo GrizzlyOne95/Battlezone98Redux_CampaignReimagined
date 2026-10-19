@@ -46,6 +46,8 @@ def patch(name,coords,mat):
 
 
 def side_poly(name,yz,mat,s,offset=.022):
+    if name!='Flush engraved hull joint':
+        return A.project_detail(name,yz,mat,s,offset)
     points=[]
     for y,z in yz:
         p,_=side(y,z,s)
@@ -181,7 +183,7 @@ def detail_ship(author,definition):
     global A,tree,ship,detail_counts
     A=author;ship=definition;detail_counts={}
     # A stable baseline BVH excludes details added afterward; surface queries
-    # never stack one panel on another by accident.
+    # never stack fitted surface details on one another by accident.
     verts=[];faces=[]
     # Paint polygons now lie exactly on the structural facets. Include them
     # so flush markings sit above paint, not underneath its fifteen-mm lift.
@@ -214,9 +216,12 @@ def seam_top(path,width=.05):
 
 def deck_band(y,w,mat):
     # The APC's narrow ochre body band follows the faceted upper skin.
+    heights=[p.z for x in range(-23,24) if (p:=top(x,y)[0]) is not None]
+    typical=sorted(heights)[len(heights)//2] if heights else 0
     for x in range(-23,23):
         points=[top(xx,yy)[0] for xx,yy in [(x,y-w/2),(x+1,y-w/2),(x+1,y+w/2),(x,y+w/2)]]
         if any(p is None for p in points):continue
+        if max(p.z for p in points)-min(p.z for p in points)>.8 or max(p.z for p in points)>typical+1:continue
         patch('CCA identification band on deck',[tuple(p+Vector((0,0,.04))) for p in points],mat)
 
 
@@ -226,7 +231,7 @@ def carrier_detail():
         for y in (-96,-69,39,76):seam_side([(y,-9),(y,4),(y-3,8),(y-3,13)],s)
         seam_side([(-112,-6),(-63,-6),(-54,-2)],s)
         seam_side([(31,7),(64,7),(70,10),(102,10)],s)
-        roundel(-78,4.8,3.1,s);label(-94,3.0,'CCCP',1.25,s)
+        roundel(-90,-8.0,2.5,s);label(-101,-7.5,'CCCP',1.25,s)
         label(50,9.5,'06',1.8,s);roundel(79,9.5,2.0,s)
         # The concept's single broad bay is kept as one integrated door.
         seam_side([(-33,-5),(-33,8),(16,8),(16,-5),(-33,-5)],s,.09)
@@ -370,7 +375,7 @@ def materials():
         ramp=nt.nodes.new('ShaderNodeValToRGB')
         # Paint stays smooth across broad facets. Sparse chips break it up;
         # uniform high-contrast grain made the previous pass look like concrete.
-        ramp.color_ramp.elements[0].position=.10;ramp.color_ramp.elements[0].color=(*(v*.85 for v in c),1)
+        ramp.color_ramp.elements[0].position=.10;ramp.color_ramp.elements[0].color=(*(v*.70 for v in c),1)
         ramp.color_ramp.elements[1].position=.29;ramp.color_ramp.elements[1].color=(*c,1)
         nt.links.new(gray.outputs[0],ramp.inputs['Fac'])
         ao=nt.nodes.new('ShaderNodeAmbientOcclusion');ao.inputs['Distance'].default_value=.85;ao.samples=8

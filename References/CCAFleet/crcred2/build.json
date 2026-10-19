@@ -1,17 +1,17 @@
 {
-  "vertices": 1536,
-  "triangles": 854,
+  "vertices": 15475,
+  "triangles": 7002,
   "bounds_min": [
     -22.0,
-    -16.22901153564453,
+    -16.02587890625,
     -63.25
   ],
   "bounds_max": [
     22.0,
-    16.25,
-    65.5199966430664
+    16.2750301361084,
+    65.60400390625
   ],
-  "radius": 66.9614348992214,
+  "radius": 66.7770784733892,
   "native_vertices": 314,
   "native_triangles": 592,
   "asset": "crcred2",
@@ -342,18 +342,39 @@
   "inference": "width, hidden surfaces, engine bank and small lamps; side outlines measured",
   "excluded": "all five bottom-right elements are stock unit scale comparisons",
   "atlas_sizes": {
-    "d": 1024,
+    "d": 2048,
+    "n": 2048,
     "e": 1024,
-    "s": 512,
-    "n": 16
+    "s": 1024
   },
+  "detail_counts": {
+    "flush_joint_paths": 14,
+    "faction_roundels": 4,
+    "stencils": 4,
+    "radiators": 4,
+    "flush_service_hatches": 6,
+    "warning_strips": 2,
+    "lamps": 12,
+    "dorsal_joint_paths": 8,
+    "deck_heat_exchangers": 2,
+    "detailed_engine_collars": 2
+  },
+  "quality_pass": "Redux CCA continuous faceted armour, flush seams and faction paint",
+  "stock_style_references": [
+    "svapc_D.dds",
+    "svrecy_D.dds",
+    "svtank_D.dds",
+    "sblpad_D.dds"
+  ],
+  "normal_mapping": "DirectX (-Y) tangent normals; explicit Ogre VES_TANGENT float3",
+  "paint_tile_sha256": "f6ac13a3e6899f13250d6d45e9388b185094ddd0174a39f147cd0fc422e3f95d",
   "sha256": {
-    "Assets/Textures/crcred2_d.dds": "27f66e2e8353940fd3a96d73df36b30c44300480835025e5aeff6c0559c5e476",
-    "Assets/Textures/crcred2_e.dds": "02a58288cd196a83a1d8658a27f7dc68ae195f17342552fa966cf6848124416f",
-    "Assets/Textures/crcred2_s.dds": "6d1cf803f4dc8f50377caacd22066fe7bb5c4017a09bb6bae791b0b1ee4a04b5",
-    "Assets/Textures/crcred2_n.dds": "10f8b112accaabfb79078fbfa3a0c2fde98d5b2d410def4e994cdde003bdc952",
-    "Assets/ModelFixes/crcred2.mesh": "86b753f10b293f206dd9edc70b44d47fbf55341ac7aa503eb97c10af42465009",
-    "Assets/ModelFixes/crcred2.geo": "cf6aaf6bc232d6b8f3e852b81c7fc6ab45faf346e192e3509846fbff52095811",
-    "Assets/ModelFixes/crcred2.sdf": "7e89e62899110f548db26fb1e98b2113c7800b26b0de3f11a77ff53f46c59177"
+    "Assets/Textures/crcred2_d.dds": "9be72eee678f03ed9c0a80584190cf010c6798c4c6f58357f9360ed6146fb4fe",
+    "Assets/Textures/crcred2_e.dds": "c3d54fdc0805efa9bae0fb001fe27e739279fac96a1fb648a1842670d65fd01f",
+    "Assets/Textures/crcred2_s.dds": "132694bdc97b8d1731048db110ec48b704d58de5789f51400c899515a663bd5b",
+    "Assets/Textures/crcred2_n.dds": "635c8f2d114d2d0f68c7522e4085426789752816fe48d3f436cc8c47895479d5",
+    "Assets/ModelFixes/crcred2.mesh": "e913ab0b4bbe1cb2f630cb766dc920b67d5740b95a9c0d8446ac135aa3f1f2ac",
+    "Assets/ModelFixes/crcred2.geo": "0c7d05d2fbdab026b161172f142e9f770855a4351af74eeab4a3f96c3d2c7252",
+    "Assets/ModelFixes/crcred2.sdf": "dccefa48b1a1854f62a1ec56ad29fd628f9bd7fbf381b47170f40b4dad14b772"
   }
 }

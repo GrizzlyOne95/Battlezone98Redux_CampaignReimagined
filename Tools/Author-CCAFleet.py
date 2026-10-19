@@ -30,6 +30,7 @@ SHIPS=[
 ]
 current=None
 survey=[]
+paint_layer=0
 
 
 def point(u,v,x=0):
@@ -62,18 +63,28 @@ def solid(label,polygon,depth,mat,taper=None,bevel=.30):
         width=min(depth*.14,height*.13,2.2) if height>4 else bevel
         mod=ob.modifiers.new('Continuous CCA hull facet','BEVEL');mod.width=width;mod.segments=1
         bpy.ops.object.modifier_apply(modifier=mod.name)
+    # A tapered side n-gon can be nonplanar. Freeze its triangles before paint
+    # clipping and native proxy capture; a later beauty triangulation otherwise
+    # changes the surface beneath the painted markings.
+    bm=bmesh.new();bm.from_mesh(ob.data)
+    bmesh.ops.triangulate(bm,faces=[f for f in bm.faces if len(f.verts)>4])
+    bm.to_mesh(ob.data);bm.free();ob.data.update()
     A.remember(ob)
     survey.append(dict(part=label,outline=polygon,half_width=depth,material=mat))
     return ob
 
 
-def card(label,poly,depth,mat):
+def card(label,poly,depth,mat,only_side=None,lift_override=None):
     """Clip paint to the real hull facets; no raised cards or chord artifacts.
 
+    The legacy depth argument remains for survey-call compatibility.
     Projecting a coarse polygon's vertices onto a bevel leaves its interior
     cutting through the hull. Instead intersect each paint triangle with each
     visible structural triangle in YZ, then lift the resulting exact facet.
     """
+    global paint_layer
+    if lift_override is None:paint_layer+=1
+    lift=.010+paint_layer*.0005 if lift_override is None else lift_override
     from mathutils.geometry import tessellate_polygon
     from mathutils.bvhtree import BVHTree
     contour=[Vector((point(u,v)[1],point(u,v)[2],0)) for u,v in poly]
@@ -97,7 +108,7 @@ def card(label,poly,depth,mat):
                 last=q;dl=dq
             subject=result
         return subject
-    for side in (-1,1):
+    for side in ((only_side,) if only_side is not None else (-1,1)):
         verts=[];faces=[]
         for f in ff:
             a,b,c=[vv[i] for i in f];n=(b-a).cross(c-a)
@@ -113,12 +124,18 @@ def card(label,poly,depth,mat):
                 hit,_,_,_=skin.ray_cast(Vector((side*200,centre.x,centre.y)),Vector((-side,0,0)),400)
                 if hit is None or abs(hit.x-x_at(centre))>.1:continue
                 start=len(verts)
-                verts.extend((x_at(q)+side*.015,q.x,q.y) for q in clipped)
+                verts.extend((x_at(q)+side*lift,q.x,q.y) for q in clipped)
                 face=tuple(start+i for i in range(len(clipped)))
                 normal=(Vector(verts[face[1]])-Vector(verts[face[0]])).cross(Vector(verts[face[2]])-Vector(verts[face[0]]))
                 if normal.x*side<0:face=tuple(reversed(face))
                 faces.append(face)
         if faces:A.mesh(label,verts,faces,mat)
+
+
+def project_detail(label,yz,mat,side,lift):
+    cu,cv=current['center']
+    poly=[(cu-y/SCALE,cv-z/SCALE) for y,z in yz]
+    card(label,poly,0,mat,only_side=side,lift_override=.020+paint_layer*.0005+lift)
 
 
 def rect(label,u0,v0,u1,v1,depth,mat):
@@ -311,6 +328,12 @@ def overview():
     cam.location=(-650,0,0);cam.rotation_euler=(-cam.location).to_track_quat('-Z','Y').to_euler()
     sc.render.resolution_x=1800;sc.render.resolution_y=760;sc.render.resolution_percentage=100
     sc.render.filepath=str(SOURCE/'fleet-side.png');bpy.ops.render.render(write_still=True)
+    # Oblique review exposes the continuous decks; a side view alone cannot
+    # demonstrate that the rejected raised tile grids are gone.
+    d.ortho_scale=320
+    cam.location=(-650,170,210);cam.rotation_euler=(-cam.location).to_track_quat('-Z','Y').to_euler()
+    sc.render.resolution_y=1050
+    sc.render.filepath=str(SOURCE/'fleet-hero.png');bpy.ops.render.render(write_still=True)
     # Keep an editable assembly with relative dependencies inside this folder.
     for im in bpy.data.images:
         if im.filepath:
@@ -320,11 +343,14 @@ def overview():
 
 
 def main():
-    global current,survey
+    global current,survey,paint_layer
     ap=argparse.ArgumentParser();ap.add_argument('--render',action='store_true');ap.add_argument('--only',choices=[s['id'] for s in SHIPS]);ap.add_argument('--normals-only',action='store_true')
     ap.add_argument('--preview-output',type=Path,help='Quick private geometry/material review; no runtime writes or texture bakes')
+    ap.add_argument('--overview-only',action='store_true',help='Render the saved fleet assembly without rebuilding assets')
     args=ap.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
     SOURCE.mkdir(parents=True,exist_ok=True)
+    if args.overview_only:
+        overview();return
     if A.CCA_REFERENCE.is_file():assert hashlib.sha256(A.CCA_REFERENCE.read_bytes()).hexdigest()==A.CCA_SHA256
     if args.normals_only:
         for ship in SHIPS:
@@ -335,12 +361,13 @@ def main():
         return
     for ship in SHIPS:
         if args.only and ship['id']!=args.only:continue
-        current=ship;survey=[]
+        current=ship;survey=[];paint_layer=0
         bpy.ops.wm.read_factory_settings(use_empty=True);bpy.context.preferences.filepaths.save_version=0
         A.parts=[];A.coarse=[];A.materials={};A.ASSET=ship['id']
         A.EXPORT_TANGENTS=True
         A.SOURCE=(args.preview_output or SOURCE)/ship['id'];A.TEXTURES=A.SOURCE/'Textures';A.TEXTURES.mkdir(parents=True,exist_ok=True)
         palette();engines={'crccarr':carrier,'crcred1':red_left,'crcred2':red_right}[ship['id']]()
+        A.project_detail=project_detail
         details=D.detail_ship(A,ship)
         ob=A.assemble();ob.name=ship['name']
         # Glyphs and lathed end caps have n-gons. Triangulate those before both

@@ -1,19 +1,19 @@
 {
-  "vertices": 1482,
-  "triangles": 812,
+  "vertices": 12366,
+  "triangles": 5836,
   "bounds_min": [
     -18.0,
     -11.75,
-    -57.0
+    -56.5
   ],
   "bounds_max": [
     18.0,
-    12.25,
-    59.685001373291016
+    12.425015449523926,
+    59.78700256347656
   ],
-  "radius": 60.992774751529886,
-  "native_vertices": 298,
-  "native_triangles": 560,
+  "radius": 61.08365334512718,
+  "native_vertices": 330,
+  "native_triangles": 624,
   "asset": "crcred1",
   "name": "CCA upper-left red hull",
   "reference": "CCAfleet3.webp",
@@ -77,37 +77,6 @@
       ],
       "half_width": 16,
       "material": "Charcoal"
-    },
-    {
-      "part": "Long needle gun",
-      "outline": [
-        [
-          55,
-          110
-        ],
-        [
-          136,
-          110
-        ],
-        [
-          151,
-          104
-        ],
-        [
-          151,
-          122
-        ],
-        [
-          136,
-          117
-        ],
-        [
-          55,
-          116
-        ]
-      ],
-      "half_width": 1.2,
-      "material": "Red dark"
     },
     {
       "part": "Faceted red upper bow",
@@ -318,18 +287,39 @@
   "inference": "width, hidden surfaces, engine bank and small lamps; side outlines measured",
   "excluded": "all five bottom-right elements are stock unit scale comparisons",
   "atlas_sizes": {
-    "d": 1024,
+    "d": 2048,
+    "n": 2048,
     "e": 1024,
-    "s": 512,
-    "n": 16
+    "s": 1024
   },
+  "detail_counts": {
+    "flush_joint_paths": 14,
+    "faction_roundels": 2,
+    "stencils": 4,
+    "radiators": 4,
+    "flush_service_hatches": 6,
+    "warning_strips": 2,
+    "lamps": 6,
+    "dorsal_joint_paths": 6,
+    "deck_heat_exchangers": 2,
+    "detailed_engine_collars": 2
+  },
+  "quality_pass": "Redux CCA continuous faceted armour, flush seams and faction paint",
+  "stock_style_references": [
+    "svapc_D.dds",
+    "svrecy_D.dds",
+    "svtank_D.dds",
+    "sblpad_D.dds"
+  ],
+  "normal_mapping": "DirectX (-Y) tangent normals; explicit Ogre VES_TANGENT float3",
+  "paint_tile_sha256": "f6ac13a3e6899f13250d6d45e9388b185094ddd0174a39f147cd0fc422e3f95d",
   "sha256": {
-    "Assets/Textures/crcred1_d.dds": "a3ab578a4c5c61dd67578503cbfa8a60fc8ecad6d10c1c161cde0eac3f078416",
-    "Assets/Textures/crcred1_e.dds": "4c81600dd3df4d4c6be5f5aad4fe1b57e6936634f581997e64bbf9775828aecb",
-    "Assets/Textures/crcred1_s.dds": "189ef78f88a276acf35f71632d7a5e5b2cd1030d26568ac4e1b5b8383696966c",
-    "Assets/Textures/crcred1_n.dds": "10f8b112accaabfb79078fbfa3a0c2fde98d5b2d410def4e994cdde003bdc952",
-    "Assets/ModelFixes/crcred1.mesh": "7e63e3a87d64ea73cb2f0f0f28c4691c52130a32a8c3f703da9ea891292624bd",
-    "Assets/ModelFixes/crcred1.geo": "f904652c3b928c7f5a1c9a22222884db6fb830365419c0b90b796503499a8f52",
-    "Assets/ModelFixes/crcred1.sdf": "bb49c1638d1c86d2bb103c7dbe54b3446d901248195d2de76fe32fe35ad7897c"
+    "Assets/Textures/crcred1_d.dds": "979849f90c76992c18983e02abc4948dd8d1f3e327f7ccf2b4b787b80f884062",
+    "Assets/Textures/crcred1_e.dds": "d18a7467ef916080353c107dbb018b89fca3a12c0880bb3d990bbe9625b83442",
+    "Assets/Textures/crcred1_s.dds": "c8e26060d99c876ec6996356b0e892dbb79fec54d0b6e2c78bae3fd93fc0d6a9",
+    "Assets/Textures/crcred1_n.dds": "2c30d45b85d645247b4b4be96e66d9949ca7478625a90f9a51151f539a8e3316",
+    "Assets/ModelFixes/crcred1.mesh": "7de0aecc3887c052244943214e39810af74c7b72192ae99945aa62663342fab3",
+    "Assets/ModelFixes/crcred1.geo": "a6a7f1a9e05640a8a0458db9f8d7e4fcd6070ca6b54213a562c3a01f401be9de",
+    "Assets/ModelFixes/crcred1.sdf": "838c5fe75bb915e0285484837d664961e6336950d3be461a5de0d7da72929339"
   }
 }

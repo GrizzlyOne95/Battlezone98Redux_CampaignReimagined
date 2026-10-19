@@ -1,17 +1,17 @@
 {
-  "vertices": 1536,
-  "triangles": 854,
+  "vertices": 15475,
+  "triangles": 7002,
   "bounds_min": [
     -22.0,
-    -16.22901153564453,
+    -16.02587890625,
     -63.25
   ],
   "bounds_max": [
     22.0,
-    16.25,
-    65.5199966430664
+    16.2750301361084,
+    65.60400390625
   ],
-  "radius": 66.9614348992214,
+  "radius": 66.7770784733892,
   "native_vertices": 314,
   "native_triangles": 592,
   "asset": "crcred2",
@@ -342,9 +342,30 @@
   "inference": "width, hidden surfaces, engine bank and small lamps; side outlines measured",
   "excluded": "all five bottom-right elements are stock unit scale comparisons",
   "atlas_sizes": {
-    "d": 1024,
+    "d": 2048,
+    "n": 2048,
     "e": 1024,
-    "s": 512,
-    "n": 16
-  }
+    "s": 1024
+  },
+  "detail_counts": {
+    "flush_joint_paths": 14,
+    "faction_roundels": 4,
+    "stencils": 4,
+    "radiators": 4,
+    "flush_service_hatches": 6,
+    "warning_strips": 2,
+    "lamps": 12,
+    "dorsal_joint_paths": 8,
+    "deck_heat_exchangers": 2,
+    "detailed_engine_collars": 2
+  },
+  "quality_pass": "Redux CCA continuous faceted armour, flush seams and faction paint",
+  "stock_style_references": [
+    "svapc_D.dds",
+    "svrecy_D.dds",
+    "svtank_D.dds",
+    "sblpad_D.dds"
+  ],
+  "normal_mapping": "DirectX (-Y) tangent normals; explicit Ogre VES_TANGENT float3",
+  "paint_tile_sha256": "f6ac13a3e6899f13250d6d45e9388b185094ddd0174a39f147cd0fc422e3f95d"
 }

@@ -9,12 +9,14 @@ the small comparison units as additional fleet classes.
 | Runtime fixture | Reference element | Approximate length | Render triangles |
 |---|---|---:|---:|
 | `crncarr` | NSDF carrier | 243 m including inferred engines | 30,632 |
-| `crccarr` | Grey fork-bow CCA carrier | 242 m including inferred engines | 1,912 |
-| `crcred1` | Upper-left long red CCA hull | 117 m including inferred engines | 812 |
-| `crcred2` | Upper-right pale-bow/red-aft CCA hull | 129 m including inferred engines | 854 |
+| `crccarr` | Grey fork-bow CCA carrier | 241 m including inferred engines | 12,817 |
+| `crcred1` | Upper-left long red CCA hull | 116 m including inferred engines | 5,836 |
+| `crcred2` | Upper-right pale-bow/red-aft CCA hull | 129 m including inferred engines | 7,002 |
 
 Names describe the reference positions/shapes; they do not assert canonical ship
-classes or lore. The simple CCA surfaces follow the angular, sparse concept art.
+classes or lore. The CCA surfaces retain the angular concept silhouettes and
+use continuous faceted armour with flush skin joints, CCA markings and normal
+mapped paint. See [the current surface revision](CCA_REDUX_ART_PASS.md).
 The NSDF carrier's frame opening, wedge bow and rounded aft hull use a more
 detailed authored mesh. Each ship has a separate ODF, material, Ogre mesh, native
 GEO/SDF and four namespaced RGBA8 atlases. All four are neutral static
@@ -23,9 +25,9 @@ GEO/SDF and four namespaced RGBA8 atlases. All four are neutral static
 ## Scale and interpretation
 
 The installed stock Redux `svapc.mesh` has a local Z span of 14.61861 m. Its source
-silhouette occupies about 59 pixels (u764Ã¢â‚¬â€œ823). That yields approximately
+silhouette occupies about 59 pixels (u764-823). That yields approximately
 0.2478 m/pixel; the CCA survey uses a rounded **0.25 m/pixel** for all three ships.
-The large grey hull spans u49Ã¢â‚¬â€œ1007. The NSDF source has no shared scale bar; its
+The large grey hull spans u49-1007. The NSDF source has no shared scale bar; its
 240 m side span is chosen to be comparable, replacing the original 600 m draft.
 These are approximate staging dimensions, not newly established lore. Stock
 comparison geometry/rendered perspective and drawing precision limit exactness.
@@ -124,7 +126,7 @@ the Ogre visual/culling bounds include the engine extension. Branch
 ![NSDF carrier](../References/NSDFCarrier/carrier-bow.png)
 
 
-## Final verification, 2026-10-18
+## Blockout checkpoint verification, 2026-10-18
 
 - Native `concept-fleet-5`: 20 steps / 21 checks pass; all four ODF/material pairs
   load on each client, presentation stream matches, no Lua/engine script errors.
@@ -145,6 +147,9 @@ the Ogre visual/culling bounds include the engine extension. Branch
 Runtime IDs for pickup: `crncarr`, `crccarr`, `crcred1`, `crcred2`. Existing
 `engine_exits` in each source manifest are the attachment positions for future
 shot-specific exhaust. Keep mission integration separate from this asset pass.
+
+The following native images show the earlier blockouts. Current revision
+evidence is recorded in `CCA_REDUX_ART_PASS.md`.
 
 ![NSDF in Redux](images/concept-nsdf-native-side.png)
 ![NSDF bow in Redux](images/concept-nsdf-native-bow.png)

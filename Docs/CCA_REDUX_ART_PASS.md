@@ -1,4 +1,4 @@
-# CCA fleet surface revision — 2026-10-19
+# CCA fleet surface revision â€” 2026-10-19
 
 The owner rejected both the original flat blockouts and the subsequent raised
 plate grids. This revision replaces that tiled treatment on all three CCA
@@ -59,11 +59,41 @@ python Tools/Test-CCAFleetAssets.py
 python Tools/Test-NSDFCarrierAssets.py
 ```
 
-## Pickup status
+## Verification and pickup
 
-Private previews and final rebuilding are in progress. The older native images
-in `CONCEPT_FLEET_ASSETS.md` show blockouts and do not validate this revision.
-Record final mesh counts, hashes, deployment and native evidence after rebuilding.
-Art quality requires visual review; a triangle count does not establish it.
+The full rebuild is complete. Final render meshes are 12,817 triangles
+(`crccarr`), 5,836 (`crcred1`) and 7,002 (`crcred2`). All three binary asset
+validators pass: exported hashes, winding, unit normals/tangents, texture sizes,
+non-flat normal atlases, bounds and native collision budgets. The unchanged NSDF
+carrier validator also passes. Repository validation passes for 3,210 files.
+The saved NSDF and CCA assemblies reopen with all image dependencies present.
+
+Manager deployment updated exactly 21 existing resources in
+`C:/BZRCoop/nsdf-carrier-20261018/content`: nine model/proxy files and twelve
+textures. The footer verifies all 2,786 locked resources, with zero missing,
+different or unexpected files. This revision does not update the live GOG mod.
+The manager-refreshed binary cache/installer manifest changes were restored to
+the branch baseline; no runtime DLL changes are part of the art revision.
+
+Native attempt `cca-fleet-continuous-20261019-0103` was refused at preflight
+because the regular GOG game was already running (PID 24220). That game was
+left untouched. The attempt launched no clients and produced no new in-game
+proof. Private logs are under `C:/BZRCoop/cca-redux-20261019/`:
+`continuous-certified-build.log`,
+`private-deploy.log`, `repository-validation.log`, `check-editable.log`, and
+`native-continuous.log`. The older native images in `CONCEPT_FLEET_ASSETS.md`
+show blockouts and do not validate this surface revision. Rerun the default
+stationary `Tools/Test-ConceptFleetLive.ps1` scenario when no game is open;
+use the private content and preview-map folders documented in that file.
+
 Exact co-op fleet motion remains unqualified, independently of the stationary
 asset-rendering smoke test. No production mission placement is added here.
+Art quality requires visual review; triangle counts and loader checks do not
+establish acceptance. These new neutral-light previews show the actual revised
+source geometry and materials, including the continuous upper decks.
+
+![Revised CCA fleet, oblique review](../References/CCAFleet/fleet-hero.png)
+
+Individual reviews: [grey carrier](../References/CCAFleet/crccarr/hero.png),
+[long red hull](../References/CCAFleet/crcred1/hero.png),
+[pale-bow red hull](../References/CCAFleet/crcred2/hero.png).

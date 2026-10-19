@@ -1,17 +1,17 @@
 {
-  "vertices": 3490,
-  "triangles": 1912,
+  "vertices": 27212,
+  "triangles": 12817,
   "bounds_min": [
-    -35.25,
-    -25.216266632080078,
-    -119.39336395263672
+    -35.56999969482422,
+    -24.63154411315918,
+    -117.55693817138672
   ],
   "bounds_max": [
-    35.25,
-    27.99555778503418,
+    35.56999969482422,
+    28.8700008392334,
     122.95500183105469
   ],
-  "radius": 125.16242270387903,
+  "radius": 125.14314708485733,
   "native_vertices": 408,
   "native_triangles": 772,
   "asset": "crccarr",
@@ -435,8 +435,31 @@
   "excluded": "all five bottom-right elements are stock unit scale comparisons",
   "atlas_sizes": {
     "d": 2048,
-    "e": 2048,
-    "s": 512,
-    "n": 16
-  }
+    "n": 2048,
+    "e": 1024,
+    "s": 1024
+  },
+  "detail_counts": {
+    "flush_joint_paths": 30,
+    "faction_roundels": 4,
+    "stencils": 6,
+    "flush_service_hatches": 12,
+    "warning_strips": 2,
+    "radiators": 6,
+    "conduit_runs": 2,
+    "lamps": 12,
+    "dorsal_joint_paths": 10,
+    "deck_heat_exchangers": 2,
+    "bridge_sensor_assemblies": 1,
+    "detailed_engine_collars": 4
+  },
+  "quality_pass": "Redux CCA continuous faceted armour, flush seams and faction paint",
+  "stock_style_references": [
+    "svapc_D.dds",
+    "svrecy_D.dds",
+    "svtank_D.dds",
+    "sblpad_D.dds"
+  ],
+  "normal_mapping": "DirectX (-Y) tangent normals; explicit Ogre VES_TANGENT float3",
+  "paint_tile_sha256": "f6ac13a3e6899f13250d6d45e9388b185094ddd0174a39f147cd0fc422e3f95d"
 }
