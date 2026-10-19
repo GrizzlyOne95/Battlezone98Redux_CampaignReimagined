@@ -133,6 +133,10 @@ Impact dust is local and per peer (each peer's own ordnance callbacks), like muz
 
 ### 5. Hover dust
 
+The scan, system budget and pooling now live in the shared `CRWake` module (`Docs/VEHICLE_WAKES.md`, surface
+`regolith`); this director forwards its `Hover*` tuning and the `hoverDust` switch to it. The numbers below are
+unchanged, except that craft behind the camera are also skipped when EXU reports a camera facing.
+
 Every `HoverInterval` (0.25 s) the director looks at craft within `HoverTrackRange` (130) of the player and
 tracks the nearest `MaxHoverSystems` (4) that qualify: below `HoverMaxHeight` (7) and moving faster than
 `HoverMinSpeed` (2.5), or (for `HoverIdleGrace` 6 s after they last moved) hovering within

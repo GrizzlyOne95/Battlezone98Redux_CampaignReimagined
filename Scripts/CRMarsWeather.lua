@@ -42,6 +42,7 @@
 
 local exu = require("exu")
 local CRWeather = require("CRWeather")
+local Wake = require("CRWake")
 
 local CRMarsWeather = {}
 
@@ -1257,6 +1258,13 @@ function CRMarsWeather.Init(options)
     ApplyLevel(CRMarsWeather.Level, 0.05)
     CRWeather.SetWindOverride(WindDirection(), CRMarsWeather.WindSpeed)
 
+    -- Vehicle wakes: render-only debris under low, moving craft near the viewer
+    -- (shared CRWake module). options.vehicleWakes = false switches them off.
+    pcall(Wake.Init, {
+        surface = "mars", enabled = options.vehicleWakes ~= false, quality = options.quality,
+        debug = options.debug,
+    })
+
     CRMarsWeather.Initialized = true
     Log("initialised at level " .. Level(CRMarsWeather.Level).name)
 end
@@ -1336,6 +1344,7 @@ function CRMarsWeather.Update(dt)
     UpdateDevils(dt, player)
     UpdateHaboob(dt, player)
 
+    Wake.Update(dt)
     CRWeather.Update(dt)
 end
 
@@ -1369,6 +1378,7 @@ function CRMarsWeather.Shutdown()
     end
 
     CRWeather.ClearWindOverride()
+    Wake.Stop()
     CRWeather.Shutdown()
 
     CRMarsWeather.Gust = nil

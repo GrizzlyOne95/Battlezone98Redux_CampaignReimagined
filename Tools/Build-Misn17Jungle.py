@@ -48,6 +48,34 @@ def noncollidable_canopy(sdf):
     return bytes(data)
 
 
+def water_mask(pool_cells,stream_points,r0,c0,shape):
+    """Run-length mask of the water the meshes draw, for CRWake (render-only wakes).
+
+    Cells are the 5 m heightmap grid (x = col * 5, z = row * 5 + 97280). A pool cell is
+    wet as baked; a stream cell is wet when its centre lies within the drawn half-width
+    plus half a cell of a stream point, so the mask covers the strip that is drawn.
+    rows[i] describes row firstRow + i as { startCol, length, ... } (0-based columns).
+    """
+    wm=np.zeros(shape,bool)
+    wm[r0:r0+pool_cells.shape[0],c0:c0+pool_cells.shape[1]]=pool_cells
+    for x,_,z,w in stream_points:
+        ext=w+2.5;k=int(ext/5)+2;iz0,ix0=round((z-97280)/5),round(x/5)
+        for iz in range(iz0-k,iz0+k+1):
+            for ix in range(ix0-k,ix0+k+1):
+                if math.hypot(ix*5-x,iz*5+97280-z)<=ext:wm[iz,ix]=True
+    used=np.nonzero(wm.any(axis=1))[0];first,last=int(used[0]),int(used[-1]);rows=[]
+    for r in range(first,last+1):
+        runs=[];c=0
+        while c<shape[1]:
+            if wm[r,c]:
+                a=c
+                while c<shape[1] and wm[r,c]:c+=1
+                runs.extend((a,c-a))
+            else:c+=1
+        rows.append(runs)
+    return {'cell':5,'originX':0,'originZ':97280,'firstRow':first,'rows':rows,'cells':int(wm.sum())}
+
+
 def build(src,toolbox):
     sys.path.insert(0,str(toolbox))
     from battlezone.meshes import ogre
@@ -182,6 +210,7 @@ dropScrap = 0
     # Fresh original heightmap makes rebuilding idempotent.
     original=subprocess.check_output(['git','show','ce18e89:Missions/misn17.hg2'],cwd=ROOT)
     emit('Missions','misn17.hg2',original)
+    # WATER-MODEL BEGIN (Tools/Export-Misn17WaterMask.py executes this slice on its own)
     header,h=read_hg2(ROOT/'Missions/misn17.hg2');ground=h.astype(float)*.1
     mat=read_mat(ROOT/'Missions/misn17.mat',4,4)
     bzn=read_bzn(ROOT/'Missions/misn17.bzn')
@@ -345,6 +374,7 @@ dropScrap = 0
                     if d<ext and not guard[iz-r0,ix-c0]:
                         weight=min(1,max(0,(ext-d)/2.5))
                         bed[iz,ix]=min(bed[iz,ix],bed[iz,ix]*(1-weight)+(yy-.6)*weight)
+    # WATER-MODEL END
     wet=np.zeros(ground.shape,bool);wet[r0:r1,c0:c1]=pool_cells
     for x,_,z,w in stream_points:
         iz,ix=round((z-97280)/5),round(x/5);wet[iz-2:iz+3,ix-2:ix+3]=True
@@ -426,6 +456,7 @@ dropScrap = 0
                    'view':[round(float(np.mean([X[c] for _,c in comp])),2),round(level,2),
                            round(float(np.mean([Z[r] for r,_ in comp])),2)]},
           'trees':[{'odf':odf,'position':p[:3],'label':f'cr17_tree{i+1}','preplaced':int(i in chosen)} for i,(odf,p) in enumerate(trees)],
+          'watermask':water_mask(pool_cells,stream_points,r0,c0,ground.shape),
           'cascade':list(line[len(line)//3]),'river':route,'height_samples_changed':int(np.count_nonzero(h!=np.rint(bed*10)))}
     # JSON's arrays are rendered as Lua tables; no parser dependency in game.
     def lua(v):

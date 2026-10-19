@@ -186,6 +186,13 @@ jobs:
           diff <(tr -d '\r' < Scripts/CRMoonSites03.lua) <(tr -d '\r' < "$RUNNER_TEMP/CRMoonSites03.lua")
       # CR Moon weather <<
 
+      - name: Test shared vehicle wakes (CRWake) and the directors that use it
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-VehicleWakes.lua Scripts
+
       - name: Test aiCore singleton producer recovery
         shell: bash
         run: |
