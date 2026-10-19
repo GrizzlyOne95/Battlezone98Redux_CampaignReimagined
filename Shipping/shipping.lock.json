@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2839,
+  "generated": "2026-10-19T09:30:00-05:00",
+  "count": 2854,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -11358,6 +11358,66 @@
     {
       "source": "ODF\\crcred2.odf",
       "runtime": "crcred2.odf"
+    },
+    {
+      "source": "Assets\\Textures\\cr18_crack_a.png",
+      "runtime": "cr18_crack_a.png"
+    },
+    {
+      "source": "Assets\\Textures\\cr18_crack_b.png",
+      "runtime": "cr18_crack_b.png"
+    },
+    {
+      "source": "Assets\\Textures\\cr18_foliage.dds",
+      "runtime": "cr18_foliage.dds"
+    },
+    {
+      "source": "Materials\\cr18_storm.material",
+      "runtime": "cr18_storm.material"
+    },
+    {
+      "source": "Materials\\cr18_storm.particle.payload",
+      "runtime": "cr18_storm.particle.payload"
+    },
+    {
+      "source": "Scripts\\CRStorm18.lua",
+      "runtime": "CRStorm18.lua"
+    },
+    {
+      "source": "Scripts\\CRStorm18Ground.lua",
+      "runtime": "CRStorm18Ground.lua"
+    },
+    {
+      "source": "Scripts\\CRStorm18Rng.lua",
+      "runtime": "CRStorm18Rng.lua"
+    },
+    {
+      "source": "Scripts\\CRStorm18Sites.lua",
+      "runtime": "CRStorm18Sites.lua"
+    },
+    {
+      "source": "Scripts\\CRStorm18Tornado.lua",
+      "runtime": "CRStorm18Tornado.lua"
+    },
+    {
+      "source": "Shaders\\cr18_swirl-fragment.glsl",
+      "runtime": "cr18_swirl-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\cr18_swirl-sm4.hlsl",
+      "runtime": "cr18_swirl-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\cr18_swirl-vertex.glsl",
+      "runtime": "cr18_swirl-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\cr18_swirl.hlsl",
+      "runtime": "cr18_swirl.hlsl"
+    },
+    {
+      "source": "Shaders\\cr18_swirl.program",
+      "runtime": "cr18_swirl.program"
     }
   ]
 }

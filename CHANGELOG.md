@@ -11,6 +11,13 @@
   two cut return-wave Furies, and the cut transport-destroyed shot (the countdown now starts when it ends); add an optional storm hook (`CRStorm18`). Not yet qualified in a live
   2/4-client session; see `Docs/MISN18_COOP.md`.
 
+- Add Mission 18's apocalyptic storm (`CRStorm18`, wired into the co-op port):
+  ten leader-driven phases from a bruised, gusting opening to the collapse of the
+  Fury transport's moon, with a swirling red sky deck, escalating lightning, quakes,
+  glowing ground cracks, landslides, a roaming giant tornado, scorched ground cover
+  and a collapse entry timed to the thruster cinematic. Design, tunables and wiring
+  in `Docs/MISN18_STORM.md`; in-game rendering still needs a live smoke.
+
 - Add Mission 16's shared offline/co-op prototype: Fury-corrupted CCA base
   copies, 200 m Bolt Buddy towers, restored warnings and an evacuation finale
   using the stock Fury transport on a Titan-textured pad beyond the map edge.
