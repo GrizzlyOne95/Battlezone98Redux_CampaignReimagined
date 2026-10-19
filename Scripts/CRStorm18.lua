@@ -198,7 +198,7 @@ function Storm.Create(api)
     local bounds = Sites.bounds or { 0, 97280, 2560, 102400 }
     local state, clock, lvl
     local water, ground, tornadoFx, templatesReady, nextTemplates, errorCount, lastError
-    local sky, skyRetry, skyWritten, nextSkyWrite, baseSkyPlane
+    local sky, skyRetry, skyWritten, nextSkyWrite, baseSkyPlane, domeHidden
     local applied, view, nextView, nextWind, nextQuake, nextSkyAnim, nextPush
     local quake, nativeQuake, nextNative, missionQuakes
     local flashAt, flashPower, strokes, sounds, shown
@@ -291,10 +291,12 @@ function Storm.Create(api)
     local function skyColours(l, flash)
         local g = l * l
         return {
-            ambient = { r = lerp(0.14, 0.012, l), g = lerp(0.045, 0.0, l), b = lerp(0.03, 0.0, l), a = 1 },
-            diffuse = { r = lerp(0.95, 0.85, l), g = lerp(0.34, 0.10, l), b = lerp(0.14, 0.03, l), a = lerp(0.25, 0.75, l) },
-            emissive = { r = lerp(0.90, 1.00, l) + 0.1 * flash, g = lerp(0.28, 0.16, l) + 0.7 * flash, b = lerp(0.06, 0.02, l) + 0.5 * flash,
-                         a = min(1, lerp(0.12, 1.0, g) + 0.8 * flash) },
+            -- The clear sky between the clouds stays a lit blood red, never black:
+            -- at the old near-black floor the deck read as a flat dark lid.
+            ambient = { r = lerp(0.18, 0.10, l), g = lerp(0.055, 0.016, l), b = lerp(0.035, 0.010, l), a = 1 },
+            diffuse = { r = lerp(0.95, 0.90, l), g = lerp(0.36, 0.14, l), b = lerp(0.15, 0.04, l), a = lerp(0.35, 0.85, l) },
+            emissive = { r = lerp(0.90, 1.00, l) + 0.1 * flash, g = lerp(0.28, 0.18, l) + 0.7 * flash, b = lerp(0.06, 0.03, l) + 0.5 * flash,
+                         a = min(1, lerp(0.20, 1.0, g) + 0.8 * flash) },
             specular = { r = lerp(1.5, 9, l), g = 0, b = 0, a = 0 },
         }
     end
@@ -319,6 +321,7 @@ function Storm.Create(api)
         end
         if not on then
             if sky == "on" then call("SetSkyPlaneEnabled", false); sky = "off" end
+            if domeHidden then call("SetSkyDomeEnabled", true); domeHidden = nil end
             return
         end
         if sky == "on" or sky == "skipped" or sky == "unsupported" then return end
@@ -336,6 +339,9 @@ function Storm.Create(api)
         end
         call("SetSkyPlaneEnabled", true)
         sky = "on"
+        -- The map's pale dome would show in any sliver the deck leaves open at
+        -- the horizon; hide it while the deck is up and give it back in Stop.
+        if call("GetSkyDomeEnabled") == true and call("SetSkyDomeEnabled", false) ~= false then domeHidden = true end
         writeSky(lvl or 0, 0)
         skyAnimation(6 + 40 * (lvl or 0), lvl or 0)
     end
@@ -653,7 +659,7 @@ function Storm.Create(api)
         strokes, sounds, quake, flashAt = {}, {}, nil, nil
         applied, view, nextView, nextWind, nextSkyAnim, nextSkyWrite, nextPush = nil, nil, 0, 0, 0, 0, 0
         nextNative, nativeQuake, missionQuakes = 0, false, {}
-        sky, skyRetry, skyWritten = "off", 0, nil
+        sky, skyRetry, skyWritten, domeHidden = "off", 0, nil, nil
         templatesReady, nextTemplates, errorCount, lastError = false, 0, 0, nil
         boltsSeen, burstEnd = 0, nil
         local planeOn = call("GetSkyPlaneEnabled") == true
