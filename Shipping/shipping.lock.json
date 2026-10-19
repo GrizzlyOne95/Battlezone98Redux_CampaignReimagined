@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-18T09:08:17-05:00",
-  "count": 2793,
+  "generated": "2026-10-18T21:59:07-05:00",
+  "count": 2829,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -11174,6 +11174,150 @@
     {
       "source": "Shaders\\cr17_cloud.program",
       "runtime": "cr17_cloud.program"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crncarr.geo",
+      "runtime": "crncarr.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crncarr.mesh",
+      "runtime": "crncarr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crncarr.sdf",
+      "runtime": "crncarr.sdf"
+    },
+    {
+      "source": "Assets\\Textures\\crncarr_d.dds",
+      "runtime": "crncarr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crncarr_e.dds",
+      "runtime": "crncarr_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crncarr_n.dds",
+      "runtime": "crncarr_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crncarr_s.dds",
+      "runtime": "crncarr_s.dds"
+    },
+    {
+      "source": "Materials\\crncarr.material",
+      "runtime": "crncarr.material"
+    },
+    {
+      "source": "ODF\\crncarr.odf",
+      "runtime": "crncarr.odf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crccarr.geo",
+      "runtime": "crccarr.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crccarr.mesh",
+      "runtime": "crccarr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crccarr.sdf",
+      "runtime": "crccarr.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crcred1.geo",
+      "runtime": "crcred1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crcred1.mesh",
+      "runtime": "crcred1.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crcred1.sdf",
+      "runtime": "crcred1.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crcred2.geo",
+      "runtime": "crcred2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crcred2.mesh",
+      "runtime": "crcred2.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crcred2.sdf",
+      "runtime": "crcred2.sdf"
+    },
+    {
+      "source": "Assets\\Textures\\crccarr_d.dds",
+      "runtime": "crccarr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crccarr_e.dds",
+      "runtime": "crccarr_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crccarr_n.dds",
+      "runtime": "crccarr_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crccarr_s.dds",
+      "runtime": "crccarr_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcred1_d.dds",
+      "runtime": "crcred1_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcred1_e.dds",
+      "runtime": "crcred1_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcred1_n.dds",
+      "runtime": "crcred1_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcred1_s.dds",
+      "runtime": "crcred1_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcred2_d.dds",
+      "runtime": "crcred2_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcred2_e.dds",
+      "runtime": "crcred2_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcred2_n.dds",
+      "runtime": "crcred2_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcred2_s.dds",
+      "runtime": "crcred2_s.dds"
+    },
+    {
+      "source": "Materials\\crccarr.material",
+      "runtime": "crccarr.material"
+    },
+    {
+      "source": "Materials\\crcred1.material",
+      "runtime": "crcred1.material"
+    },
+    {
+      "source": "Materials\\crcred2.material",
+      "runtime": "crcred2.material"
+    },
+    {
+      "source": "ODF\\crccarr.odf",
+      "runtime": "crccarr.odf"
+    },
+    {
+      "source": "ODF\\crcred1.odf",
+      "runtime": "crcred1.odf"
+    },
+    {
+      "source": "ODF\\crcred2.odf",
+      "runtime": "crcred2.odf"
     }
   ]
 }

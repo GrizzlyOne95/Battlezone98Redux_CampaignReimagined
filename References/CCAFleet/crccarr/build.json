@@ -1,0 +1,474 @@
+{
+  "vertices": 27212,
+  "triangles": 12817,
+  "bounds_min": [
+    -35.56999969482422,
+    -24.63154411315918,
+    -117.55693817138672
+  ],
+  "bounds_max": [
+    35.56999969482422,
+    28.8700008392334,
+    122.95500183105469
+  ],
+  "radius": 125.14314708485733,
+  "native_vertices": 408,
+  "native_triangles": 772,
+  "asset": "crccarr",
+  "name": "CCA fork-bow carrier",
+  "reference": "CCAfleet3.webp",
+  "reference_sha256": "4b1e7208c649755ab88f1570a7a027a5673dbe5a15506006e133b3c2063ad71f",
+  "scale_metres_per_pixel": 0.25,
+  "source_center": [
+    527,
+    270
+  ],
+  "source_span": [
+    49,
+    1007
+  ],
+  "role": "neutral cinematic fixture; names provisional, no canonical class asserted",
+  "scale_basis": "installed stock svapc length14.6186099m / about59px = .247773; rounded .25m/px",
+  "axis": "Y up; nose -Z; engines +Z",
+  "engine_exits": [
+    [
+      -16,
+      -6.0,
+      122.95500000000001
+    ],
+    [
+      16,
+      -6.0,
+      122.95500000000001
+    ],
+    [
+      -16,
+      -12.0,
+      122.95500000000001
+    ],
+    [
+      16,
+      -12.0,
+      122.95500000000001
+    ]
+  ],
+  "source_polygons": [
+    {
+      "part": "Upper fork / stepped dorsal hull",
+      "outline": [
+        [
+          49,
+          235
+        ],
+        [
+          128,
+          207
+        ],
+        [
+          299,
+          176
+        ],
+        [
+          413,
+          176
+        ],
+        [
+          434,
+          182
+        ],
+        [
+          553,
+          176
+        ],
+        [
+          568,
+          185
+        ],
+        [
+          691,
+          176
+        ],
+        [
+          707,
+          188
+        ],
+        [
+          707,
+          214
+        ],
+        [
+          420,
+          214
+        ],
+        [
+          397,
+          244
+        ],
+        [
+          80,
+          251
+        ]
+      ],
+      "half_width": 28,
+      "material": "Upper grey"
+    },
+    {
+      "part": "Lower fork",
+      "outline": [
+        [
+          97,
+          287
+        ],
+        [
+          397,
+          262
+        ],
+        [
+          397,
+          309
+        ],
+        [
+          97,
+          302
+        ]
+      ],
+      "half_width": 28,
+      "material": "Grey"
+    },
+    {
+      "part": "Lower fork dark keel",
+      "outline": [
+        [
+          97,
+          302
+        ],
+        [
+          397,
+          309
+        ],
+        [
+          423,
+          351
+        ],
+        [
+          397,
+          348
+        ]
+      ],
+      "half_width": 25,
+      "material": "Dark grey"
+    },
+    {
+      "part": "Main rectangular carrier housing",
+      "outline": [
+        [
+          420,
+          214
+        ],
+        [
+          707,
+          214
+        ],
+        [
+          707,
+          304
+        ],
+        [
+          420,
+          306
+        ],
+        [
+          397,
+          325
+        ],
+        [
+          397,
+          245
+        ]
+      ],
+      "half_width": 29,
+      "material": "Grey"
+    },
+    {
+      "part": "Carrier lower keel and spar",
+      "outline": [
+        [
+          422,
+          306
+        ],
+        [
+          707,
+          306
+        ],
+        [
+          732,
+          334
+        ],
+        [
+          707,
+          366
+        ],
+        [
+          435,
+          366
+        ],
+        [
+          435,
+          342
+        ],
+        [
+          422,
+          336
+        ]
+      ],
+      "half_width": 22,
+      "material": "Dark grey"
+    },
+    {
+      "part": "Lower aft spar",
+      "outline": [
+        [
+          484,
+          318
+        ],
+        [
+          707,
+          310
+        ],
+        [
+          733,
+          325
+        ],
+        [
+          707,
+          333
+        ],
+        [
+          484,
+          333
+        ]
+      ],
+      "half_width": 31,
+      "material": "Upper grey"
+    },
+    {
+      "part": "Large angular afterbody",
+      "outline": [
+        [
+          732,
+          241
+        ],
+        [
+          831,
+          266
+        ],
+        [
+          867,
+          253
+        ],
+        [
+          1004,
+          269
+        ],
+        [
+          1004,
+          328
+        ],
+        [
+          868,
+          354
+        ],
+        [
+          831,
+          342
+        ],
+        [
+          732,
+          371
+        ],
+        [
+          707,
+          335
+        ],
+        [
+          707,
+          310
+        ]
+      ],
+      "half_width": 35,
+      "material": "Grey"
+    },
+    {
+      "part": "Upper aft boom root",
+      "outline": [
+        [
+          706,
+          159
+        ],
+        [
+          733,
+          158
+        ],
+        [
+          733,
+          165
+        ],
+        [
+          831,
+          165
+        ],
+        [
+          831,
+          213
+        ],
+        [
+          732,
+          215
+        ],
+        [
+          707,
+          189
+        ]
+      ],
+      "half_width": 25,
+      "material": "Dark grey"
+    },
+    {
+      "part": "Upper aft boom pale cap",
+      "outline": [
+        [
+          732,
+          166
+        ],
+        [
+          831,
+          166
+        ],
+        [
+          831,
+          171
+        ],
+        [
+          905,
+          168
+        ],
+        [
+          1005,
+          178
+        ],
+        [
+          1005,
+          190
+        ],
+        [
+          832,
+          191
+        ],
+        [
+          732,
+          190
+        ]
+      ],
+      "half_width": 26,
+      "material": "Light grey"
+    },
+    {
+      "part": "Upper aft boom underside",
+      "outline": [
+        [
+          732,
+          190
+        ],
+        [
+          1005,
+          190
+        ],
+        [
+          1005,
+          199
+        ],
+        [
+          872,
+          214
+        ],
+        [
+          832,
+          214
+        ],
+        [
+          832,
+          207
+        ],
+        [
+          732,
+          214
+        ]
+      ],
+      "half_width": 24,
+      "material": "Dark grey"
+    },
+    {
+      "part": "Forward dorsal antenna rail",
+      "outline": [
+        [
+          485,
+          159
+        ],
+        [
+          706,
+          159
+        ],
+        [
+          706,
+          162
+        ],
+        [
+          485,
+          163
+        ]
+      ],
+      "half_width": 1,
+      "material": "Grey"
+    }
+  ],
+  "inference": "width, hidden surfaces, engine bank and small lamps; side outlines measured",
+  "excluded": "all five bottom-right elements are stock unit scale comparisons",
+  "atlas_sizes": {
+    "d": 2048,
+    "n": 2048,
+    "e": 1024,
+    "s": 1024
+  },
+  "detail_counts": {
+    "flush_joint_paths": 30,
+    "faction_roundels": 4,
+    "stencils": 6,
+    "flush_service_hatches": 12,
+    "warning_strips": 2,
+    "radiators": 6,
+    "conduit_runs": 2,
+    "lamps": 12,
+    "dorsal_joint_paths": 10,
+    "deck_heat_exchangers": 2,
+    "bridge_sensor_assemblies": 1,
+    "detailed_engine_collars": 4
+  },
+  "quality_pass": "Redux CCA continuous faceted armour, flush seams and faction paint",
+  "stock_style_references": [
+    "svapc_D.dds",
+    "svrecy_D.dds",
+    "svtank_D.dds",
+    "sblpad_D.dds"
+  ],
+  "normal_mapping": "DirectX (-Y) tangent normals; explicit Ogre VES_TANGENT float3",
+  "paint_tile_sha256": "f6ac13a3e6899f13250d6d45e9388b185094ddd0174a39f147cd0fc422e3f95d",
+  "sha256": {
+    "Assets/Textures/crccarr_d.dds": "7a313659f58b0eb0ae69204cf9e4ec589beec0f0cd91658d29efa220a5eef94e",
+    "Assets/Textures/crccarr_e.dds": "05fe2b40c6481db57de47f03844b01a172b9c3b8004975980233ee1475ec944c",
+    "Assets/Textures/crccarr_s.dds": "e5bb6d2c03b67441316379f7191cc13cdfc1639547219cd3f266b298118e680a",
+    "Assets/Textures/crccarr_n.dds": "4f64079e60d8fb1e62e2d289a9f1a2ce5e4827d17912c2be17b2d54eb401ae2c",
+    "Assets/ModelFixes/crccarr.mesh": "c5b56aa54f2d2e31811222b2b4efe125cc559cd278650e7b3be27b9ec49bb074",
+    "Assets/ModelFixes/crccarr.geo": "f4b1190e67f2432f2a968afd71b1e8cc5960011ba1ff811c7140d977d3790707",
+    "Assets/ModelFixes/crccarr.sdf": "ba30a771a2f13cbb59b4563d5cdf7f8ad83f59239ad573e54e2eb8148dd36b4e"
+  }
+}

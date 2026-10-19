@@ -66,6 +66,9 @@
 # Local machine/generated artifacts live under Local and stay ignored
 /Local/
 
+# Blender's authoring helpers import modules beside these build scripts.
+/Tools/__pycache__/
+
 # Ignore system files
 thumbs.db
 desktop.ini
