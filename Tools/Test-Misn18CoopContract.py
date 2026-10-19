@@ -100,6 +100,7 @@ for test in ('Test-Misn18.lua', 'Test-Misn18Coop.lua', 'Test-Misn18SourceParity.
 assert 'AudioMessage("misn1817.wav")' in lua_full and 'misn1803.wav' not in lua_full + runtime
 assert 'misn1704.wav' in live and '["misn1704.wav"] = "misn1818.wav"' in runtime
 assert 'UpdateEarthQuake(math.min(M.quake_level * 3.0, QUAKE_CAP))' in lua_full
+assert 'CameraPath("transdestroyedcam"' in runtime and 'transdestroyedcam' in path_names, 'restored transport shot'
 assert 'M.sav2 = BuildObject("hvsat", 2, "spawnreturn")' in lua_full and 'M.sav3 = BuildObject("hvsav", 2, "spawnreturn")' in lua_full
 
 # ---------------------------------------------------------------- storm interface contract

@@ -8,7 +8,7 @@
   Texas and a loss if any is beyond 400 m (each peer sees its own ship left behind). Furies are team 6,
   scaled by one extra per two players through concealed arrivals with a 12-craft cap. Restore the
   earthquake pulse, the Texas-under-attack (`misn1817`) and Texas-destroyed (`misn1818`) lines and the
-  two cut return-wave Furies; add an optional storm hook (`CRStorm18`). Not yet qualified in a live
+  two cut return-wave Furies, and the cut transport-destroyed shot (the countdown now starts when it ends); add an optional storm hook (`CRStorm18`). Not yet qualified in a live
   2/4-client session; see `Docs/MISN18_COOP.md`.
 
 - Add Mission 16's shared offline/co-op prototype: Fury-corrupted CCA base

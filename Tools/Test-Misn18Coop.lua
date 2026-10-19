@@ -39,6 +39,7 @@ local function allSafe(p,builds)
 end
 local function collapse(p)
     for _,name in ipairs(THRUSTERS) do F.kill(name);F.run(1) end
+    F.run(9) -- the transport-destroyed shot (8 s) ends and the countdown starts
 end
 local function heardAll(p,file,count)
     for i,q in ipairs(p) do check(F.heardCount(q,file)==(count or 1),"peer "..i.." hears "..file.." x"..(count or 1)) end
@@ -151,6 +152,7 @@ check(not m.transdestroyed,"three thrusters are not enough")
 F.kill(THRUSTERS[4]);F.run(2)
 check(m.transdestroyed and m.transblownup,"fourth thruster destroys the transport")
 heardAll(p,"misn1804.wav")
+F.run(8)
 check(F.heardCount(p[1],"misn1803.wav")==0,"1803 is a duplicate take of 1804 and stays out")
 for i=1,4 do
     check(F.count(p[i],"StartCockpitTimer")==1 and F.last(p[i],"StartCockpitTimer")[2]==180,"shared 180 s countdown on peer "..i)
@@ -300,7 +302,7 @@ for _,shape in ipairs({"create","flat"}) do
     for _,q in ipairs(p) do F.nearTo(q.player,RECYCLER,300,0) end -- inside the band: no result yet
     F.run(2)
     check(phases(p[1])=="opening,search,found,core1,core2,core3,collapse","thruster phases in order: "..phases(p[1]))
-    F.run(152)
+    F.run(160)
     check(phases(p[1])=="opening,search,found,core1,core2,core3,collapse,final","final at 30 s: "..phases(p[1]))
     nearBase(p,0)
     F.run(10)
@@ -327,6 +329,55 @@ check(m.transportfound and F.count(p[1],"WeatherSensors")==0,"a failing director
 w,p,m=setup(2,{storm=function(peer,record) return {Initialized=true,SetPhase=function() error("boom") end} end})
 F.nearTo(p[2].player,"transfound");F.run(2)
 check(m.transportfound,"a throwing director never stops the mission")
+
+-- ------------------------------------------------------------------ transport-destroyed shot
+local function shotScenario(storm)
+    local w2,p2,m2=setup(4,{storm=storm})
+    F.nearTo(p2[2].player,"transfound");F.run(2);killFuries()
+    for i=1,3 do F.kill(THRUSTERS[i]);F.run(1) end
+    F.kill(THRUSTERS[4]);F.run(3)
+    return w2,p2,m2
+end
+do
+    local w2,p2,m2=shotScenario(recordingStorm("create"))
+    check(m2.transdestroyed and w2.timer==nil,"the countdown waits for the shot")
+    for i=1,4 do
+        check(F.count(p2[i],"StartCockpitTimer")==0,"no countdown yet on peer "..i)
+        check(p2[i].camera==1,"peer "..i.." is in the transport-destroyed shot")
+        check(F.last(p2[i],"CameraPath")[2]=="transdestroyedcam","peer "..i.." films transdestroyedcam")
+    end
+    check(F.alive("hbtran0038_i76building"),"the transport still stands early in the shot")
+    check(phases(p2[1])=="opening,search,found,core1,core2,core3,collapse","collapse opens the shot: "..phases(p2[1]))
+    -- arrivals are held while the camera is away
+    local before=#F.builds(p2[1])
+    F.nearTo(p2[3].player,"dontgo");F.run(1)
+    F.nearTo(p2[3].player,"dontgo1");F.run(1)
+    check(#F.builds(p2[1])==before,"no Furies arrive during the shot")
+    F.nearTo(p2[3].player,RECYCLER,50,0)
+    F.run(2)
+    check(not F.alive("hbtran0038_i76building"),"the transport blows up on camera")
+    check(F.count(p2[1],"StartCockpitTimer")==0,"still no countdown before the shot ends")
+    check(not m2.fail2,"an idle clock never reads as an expired countdown")
+    F.run(6)
+    for i=1,4 do
+        check(F.count(p2[i],"StartCockpitTimer")==1 and F.last(p2[i],"StartCockpitTimer")[2]==180,"countdown starts when the shot ends on peer "..i)
+        check(p2[i].camera==0,"shot camera released on peer "..i)
+    end
+    check(phases(p2[1])=="opening,search,found,core1,core2,core3,collapse","final waits for the countdown")
+    F.run(2)
+    check(#F.builds(p2[1])>before,"held arrivals enter afterwards")
+end
+-- load mid-shot: the transport falls and the countdown starts at once, exactly once
+do
+    local w2,p2,m2=shotScenario(nil)
+    check(p2[1].camera==1 and F.count(p2[1],"StartCockpitTimer")==0,"mid-shot")
+    for _,q in ipairs(p2) do q.env.Load(q.env.Save()) end
+    F.connect();F.run(3)
+    check(F.count(p2[1],"StartCockpitTimer")==1 and not F.alive("hbtran0038_i76building"),"load mid-shot starts the countdown immediately")
+    check(m2.cr18.cin==nil and m2.cr18.timerStarted,"shot state is cleared and the start is saved")
+    F.run(20)
+    for i=1,4 do check(F.count(p2[i],"StartCockpitTimer")==1,"one countdown on peer "..i) end
+end
 
 -- ------------------------------------------------------------------ artillery-free sanity: restored voice and roster
 w,p,m=setup(2,{})

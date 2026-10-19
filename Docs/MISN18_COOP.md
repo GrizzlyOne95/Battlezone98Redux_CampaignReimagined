@@ -66,7 +66,10 @@ Discovery (transport found), thruster kills and `GetNearestEnemy(transport)` sta
 ## Timer, win and loss [owner]
 
 * One leader-owned 180 s countdown (`StartCockpitTimer(180, 120, 30)`) is presented on every peer's cockpit
-  timer; only the leader reads it. Peer displays may trail the leader by network latency.
+  timer; only the leader reads it. It starts when the transport-destroyed shot ends (below), not at the fourth
+  thruster; until then the gates see a full clock, so an idle timer never reads as an expired one. The body's
+  hurry lines (`misn1809-1812`, +60/85/115/140 s) still count from the fourth thruster, so they arrive about
+  8 s earlier relative to the clock. Peer displays may trail the leader by network latency.
 * Win: **every** human within 200 m of the Texas after the thrusters are gone. Fail on expiry: **any** human past
   400 m. The 200-400 m band neither wins nor loses, exactly as the DLL.
 * Other failures are unchanged and shared: transport not found in 600 s (`misn1806`, `misn18l1`), recycler lost
@@ -97,6 +100,25 @@ host suite's faithful run (`CR_TEST_FAITHFUL`) leaves all of them off.
 | Earthquake pulse | Disabled block at `Misn18Mission.cpp:326-336` with its comment "After four seconds the quake gets bigger for two seconds". `quake_level` is 2 from the start and 6 at the collapse, `quake_check` is already armed. | Every third second `UpdateEarthQuake(level * 0.9)`, with `level * 3` on every fourth pulse, on every peer. The spike is **bounded at 12**: 6 x 3 = 18 has never been run in the game. The cap is a CR safety choice, not source. |
 | Return wave `sav2` / `sav3` | Commented lines `Misn18Mission.cpp:812-813` (`hvsat` and `hvsav` at `spawnreturn`); both handles are real state fields. | Built with `sav1`, no orders, like `sav1`. |
 
+### Transport-destroyed shot (`transdestroyedcam`)
+
+Inference, not source: the path name, its position around the transport and the immediate `Damage` of the
+transport identify an explosion shot that was cut. CR plays it when the fourth thruster dies:
+
+* The body's `StartCockpitTimer(180, 120, 30)` call becomes the trigger. `CameraReady`, then every update
+  `CameraPath("transdestroyedcam", 1500, 600, transport)` (the opening's idiom: the transport as the look-at
+  target). Height and speed are guesses; the live run must tune them.
+* The body's `Damage(transport)` is deferred: the transport stands for 4 s of the 8 s shot, is blown up on
+  camera, and the shot finishes on the path with no target (the camera wrapper drops a dead target).
+* Replicated like the opening (leader streams the shot; guests resolve the target by label). Not skippable in
+  network games (`CameraCancelled` is false); offline the native skip releases only the local camera, the
+  8 s clock is unchanged.
+* `collapse` is emitted at the start. Arrivals are held for the whole shot, like the opening. Craft are not
+  frozen (the opening does not freeze them either).
+* At the end the camera is released and the countdown starts on every peer, leader-owned.
+* **Save/load mid-shot** cannot resume the cameras: the load blows the transport up and starts the countdown
+  immediately (once). The start is persisted (`M.cr18.timerStarted`), the pending shot in `M.cr18.cin`.
+
 ### `misn1803.wav` stays out
 
 "Good job, Grizzly One. Now get back to the transport." (2.2 s, speaker blank in the transcript) is not
@@ -115,7 +137,7 @@ Compared against the stock 1.5 BZN (22 objects, 46 paths):
 | --- | --- | --- |
 | path `spawn1` | **Referenced by the DLL (three `hvsav` in the don't-go ambushes) but absent from the 1.5 map.** What the stock engine did with a missing path is unknown. | CR maps `spawn1` to `spawn1b` (the same west approach as the first wave) in the runtime. Inference, not source. |
 | path `blastoffcam` | One point beside the Texas. The DLL films the blast-off with `CameraObject` on the player instead. | Not used. |
-| path `transdestroyedcam` | Four points circling the transport. No call, comment or audio refers to it; likely a cut explosion shot. | **Not restored**: no evidence of when it ran, and it would take every peer's camera during the timed escape. Candidate for the owner. |
+| path `transdestroyedcam` | Four points (about 40 m) circling the transport. No call, comment or audio refers to it; the DLL kills the transport with `Damage` the tick after the last thruster, which is the moment such a shot would film. | **Restored** (owner request) as the transport-destroyed shot, see below. Intent is inferred from the name and geometry, not source. |
 | path `edge_path` | Two points across the map. No consumer. | Not used. |
 | state `w4u*`, `w5u*`, `w6u*`, `wave4-6start`, `dg1c/d`, `dg2c/d`, `dg3c/d` | Declared and zeroed, never assigned or read in the C++. The map has no matching paths (`spawn4*`, `dgs*c`...). | No intent to recover; left as inert saved state. |
 | objects `avmuf2_factory`, `avtank0_wingman`, `avtank1_wingman`, `eggeizr11_geyser`, `eggeizr12_geyser`, `myCar_hover` | Base furniture and the stock player; the script never fetches them. | Kept as authored (team 1 / neutral). The factory is the Texas's production path. |
@@ -158,8 +180,8 @@ Phases, emitted once each, strictly in this order (a phase whose moment passed i
 | `search` | The opening cinematic has finished. |
 | `found` | The transport has been discovered. |
 | `core1`, `core2`, `core3` | One, two, three thrusters destroyed. Simultaneous losses emit every phase between. |
-| `collapse` | All four destroyed; transport blown up; the 180 s countdown starts. |
-| `final` | Countdown at 30 s or less. |
+| `collapse` | All four thrusters destroyed: the transport-destroyed cinematic **begins** (the transition into full apocalypse weather). The 180 s countdown starts when it ends, about 8 s later. |
+| `final` | Countdown running and at 30 s or less (never before the countdown has started). |
 | `won` | Victory latched. |
 | `lost` | Any failure latched (not found, recycler destroyed, left behind, out of lives). |
 
@@ -171,7 +193,7 @@ that cannot be built or throws.
 
 ```sh
 lua5.1 Tools/Test-Misn18.lua                  # faithful port, 163 checks (CR layer off)
-lua5.1 Tools/Test-Misn18Coop.lua              # four-peer co-op layer, 729 checks
+lua5.1 Tools/Test-Misn18Coop.lua              # four-peer co-op layer, 777 checks
 python Tools/Test-Misn18SourceParity.py       # strips CR regions, proves the DLL port underneath
 python Tools/Test-Misn18CoopContract.py       # map, teams, paths, listing, campaign entry, shipping
 lua5.1 Tools/Test-FuryRoster.lua              # shared roster
@@ -191,13 +213,16 @@ nearest instead of the farthest human, removing the `spawn1` mapping and replica
 * A human waiting to respawn has no ship: they count as far from the Texas, and the leader's body pauses while
   `CRCoop.IsSessionReady()` is false. Whether that pause interacts with the 180 s countdown (it is wall-clock)
   is untested.
-* `transdestroyedcam` is a candidate cut cinematic (see above).
+* `transdestroyedcam` is a restored inference (see above); a vanished transport target ends the shot's look-at
+  with a target-less `CameraPath`, which no live run has exercised.
 
 ## Live checklist (unrun)
 
 Two and four clients, windowed, via the OpenShim harness. Check that: the opening plays on every client and
 holds the arrivals; a guest crossing `spawn1a` releases wave one with no Fury visible within 460 m; the
-countdown shows on every cockpit and matches within a second; a guest 450 m away at 0:00 gets the left-behind
+the transport-destroyed shot plays on every client, the transport blows up on camera and the camera framing
+is acceptable (height 1500, speed 600 are guesses); the countdown then shows on every cockpit and matches within
+a second; a guest 450 m away at 0:00 gets the left-behind
 shot of its own ship and the failure text; all four within 200 m win once; `misn1817` plays once with the first
 assault and `misn1818` replaces `misn1704`; the quake pulses are tolerable at level 6; the don't-go hvsav
 appears at `spawn1b`; the 12-Fury cap holds in a long four-player run; `M.coopUnresolved` stays 0; and, with

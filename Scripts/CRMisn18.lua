@@ -220,7 +220,7 @@ local function RemoveObject(...) return Present("RemoveObject", ...) end
 -- The quake and the countdown are shared presentation: every peer shakes and shows the leader's timer.
 local function StartEarthquake(...) return Present("StartEarthquake", ...) end
 local function UpdateEarthQuake(...) return Present("UpdateEarthQuake", ...) end
-local function StartCockpitTimer(...) return Present("StartCockpitTimer", ...) end
+local function NativeCountdown(...) return Present("StartCockpitTimer", ...) end
 -- Preserve the real subtitle module for Update/Initialize and return values.
 -- Play returns the native audio handle on the leader (offline: AudioMessage's).
 subtit = setmetatable({
@@ -253,6 +253,7 @@ local function CameraReady()
     return native.CameraReady()
 end
 local function CameraPath(path, height, speed, target)
+    if not IsValid(target) then target = nil end
     cameraFrame = { "P", path, height, speed, target }
     if native.CameraCancelled() then
         cameraSkipped = true
@@ -707,6 +708,7 @@ local function Arrivals()
     local s=State()
     if Ended() then s.arrivals={};return end
     if M.missionstart and not M.openingcindone then return end
+    if s.cin then return end
     local live,built=LiveCount(s),0
     -- Saved request sequence, never pairs order, defines deterministic entry.
     for id=1,s.serial do
@@ -731,6 +733,60 @@ local function Arrivals()
     end
 end
 
+-- ---------------------------------------------------------------- transport-destroyed shot
+-- The DLL authors a path "transdestroyedcam" (four points circling the transport) and never films it. The
+-- body starts the 180 s countdown the moment the fourth thruster dies; here that call opens the shot instead
+-- and the countdown starts when it ends [owner]. Timings, height and speed are CR inferences. The transport
+-- (which the body wants dead one tick later) is kept alive for the first part of the shot and blown up on
+-- camera; the shot then holds on the path without a target. Everyone sees it; nobody can skip it in a network
+-- game (CameraCancelled is false), arrivals are held, and a load mid-shot ends it at once.
+local CIN_SECONDS, CIN_BLOW_AT = 8, 4
+local CIN_HEIGHT, CIN_SPEED = 1500, 600
+local function StartCountdown(c)
+    local s=State()
+    s.timerStarted=true
+    NativeCountdown(unpackArgs(c.timer,1,3))
+end
+local function FinishShot()
+    local s=State()
+    local c=s.cin
+    if not c then return end
+    s.cin=nil
+    if Valid(M.transport) and IsAlive(M.transport) then Damage(M.transport,999999999.0) end
+    CameraFinish()
+    StartCountdown(c)
+end
+function R.StartCockpitTimer(...)
+    local s=State()
+    if s.cin or s.timerStarted then return end
+    local now=GetTime()
+    s.cin={start=now,blow=now+CIN_BLOW_AT,over=now+CIN_SECONDS,timer={...}}
+    CameraReady()
+end
+function R.GetCockpitTimer()
+    -- Until the countdown starts the gates must see a full clock, not the engine's idle zero.
+    if State().cin then return 180 end
+    return GetCockpitTimer()
+end
+function R.Damage(h,amount)
+    local c=State().cin
+    if c and h~=nil and h==M.transport and not c.blown then c.deferred=true;return end
+    return Damage(h,amount)
+end
+local function Shot()
+    local s=State()
+    local c=s.cin
+    if not c then return end
+    local now=GetTime()
+    if now>=c.blow and not c.blown then
+        c.blown=true
+        if Valid(M.transport) and IsAlive(M.transport) then Damage(M.transport,999999999.0) end
+    end
+    if now>=c.over then FinishShot();return end
+    local target=Valid(M.transport) and IsAlive(M.transport) and M.transport or nil
+    CameraPath("transdestroyedcam",CIN_HEIGHT,CIN_SPEED,target)
+end
+
 -- ---------------------------------------------------------------- results and scaling
 local function Failure()
     if not CRCoop.IsAuthority() or M.missionwon or Ended() then return end
@@ -753,7 +809,7 @@ local PHASES={
     {"core2",function() return (M.z or 0)>=2 end},
     {"core3",function() return (M.z or 0)>=3 end},
     {"collapse",function() return M.transdestroyed end},
-    {"final",function() return M.transdestroyed and not M.missionwon and GetCockpitTimer()<=30 end},
+    {"final",function() return M.transdestroyed and State().timerStarted and not M.missionwon and GetCockpitTimer()<=30 end},
 }
 local function EmitPhase(s,name)
     s.phase=name
@@ -789,6 +845,8 @@ function R.Start()
     if Storm then pcall(Environment.BindWeatherSensors,"Achilles",Storm) end
     -- After a load the leader tells the (idempotent) director where the mission stands.
     if State().phase and CRCoop.IsAuthority() then StormCall("SetPhase",State().phase) end
+    -- A load mid-shot cannot resume it (the cameras are gone): the transport falls and the countdown starts now.
+    if State().cin and CRCoop.IsAuthority() then FinishShot() end
 end
 function R.AddObject(h)
     if Valid(h) then Environment.OnObjectCreated(h) end
@@ -825,6 +883,7 @@ function R.Update(dt)
     end
     if not CRCoop.IsAuthority() or M.coopResult then return false end
     if not s.phase then Phases() end -- "opening" before the body's first frame
+    Shot()
     Arrivals()
     return true
 end
@@ -840,7 +899,7 @@ R.CameraReady,R.CameraPath,R.CameraObject=CameraReady,CameraPath,CameraObject
 R.CameraFinish,R.CameraCancelled=CameraFinish,CameraCancelled
 R.SetObjectiveName,R.SetObjectiveOn,R.SetObjectiveOff=SetObjectiveName,SetObjectiveOn,SetObjectiveOff
 R.ClearObjectives,R.AddObjective,R.RemoveObject=ClearObjectives,AddObjective,RemoveObject
-R.StartEarthquake,R.UpdateEarthQuake,R.StartCockpitTimer=StartEarthquake,UpdateEarthQuake,StartCockpitTimer
+R.StartEarthquake,R.UpdateEarthQuake=StartEarthquake,UpdateEarthQuake
 R.SucceedMission,R.FailMission=SucceedMission,FailMission
 function R.Goto(h,path,priority) return R.Order("Goto",h,path,priority) end
 function R.SetIndependence(h,value) return R.Order("SetIndependence",h,value) end

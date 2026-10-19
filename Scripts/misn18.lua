@@ -180,6 +180,8 @@ local SetScrap = campaignRuntime and campaignRuntime.SetScrap or SetScrap
 local StartEarthquake = campaignRuntime and campaignRuntime.StartEarthquake or StartEarthquake
 local UpdateEarthQuake = campaignRuntime and campaignRuntime.UpdateEarthQuake or UpdateEarthQuake
 local StartCockpitTimer = campaignRuntime and campaignRuntime.StartCockpitTimer or StartCockpitTimer
+local GetCockpitTimer = campaignRuntime and campaignRuntime.GetCockpitTimer or GetCockpitTimer
+local Damage = campaignRuntime and campaignRuntime.Damage or Damage
 if campaignRuntime then Distance = campaignRuntime.WrapDistance(Distance) end
 -- CR co-op runtime <<
 
