@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static checks for the L-Power fin spin and lightning-bolts shader.
 
-SDF (Assets/ModelFixes/ablpow.sdf): ANIM element 4 exists (PowerPlant plays element 4), loops
+SDF (Assets/ModelFixes/ablpow.sdf and bblpow.sdf): ANIM element 4 exists (PowerPlant plays element 4), loops
 forever, runs one revolution per 8 s, first and last pose match, and the two fins
 (alt11tpb, alt11tpc) have a rotation key on every frame, turn exactly 360 degrees in even
 steps about the vertical axis, and are the only parts whose rotation changes.
@@ -17,10 +17,12 @@ import math
 import os
 import re
 import shutil
-import struct
 import subprocess
 import sys
 import tempfile
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import bzmodellibs  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FIXES = os.path.join(ROOT, "Assets", "ModelFixes")
@@ -34,28 +36,16 @@ def check(cond, msg):
 
 
 # ------------------------------------------------------------------ SDF
-SEQ = struct.Struct("<i128xiiif")
-PART = struct.Struct("<8si96x6i")
-
-
 def read_anim(path):
-    data = open(path, "rb").read()
-    i = data.find(b"ANIM")
-    tag, length = struct.unpack_from("<4si", data, i)
-    body = data[i + 8:i + length]
-    n_seq, n_part, n_rot, n_scale, n_pos = struct.unpack_from("<5i", body, 16)
-    p = 64
-    seqs = []
-    for _ in range(n_seq):
-        idx, start, ln, loop, speed = SEQ.unpack_from(body, p)
-        seqs.append((idx, start, ln, loop, speed))
-        p += SEQ.size
-    parts = []
-    for _ in range(n_part):
-        name, flags, r0, rn, s0, sn, p0, pn = PART.unpack_from(body, p)
-        parts.append((name.split(b"\0")[0].decode(), r0, rn, p0, pn))
-        p += PART.size
-    rots = [struct.unpack_from("<i4f", body, p + k * 20) for k in range(n_rot)]
+    """(sequences, parts, rotation keys) through the Modding Toolbox's legacy.read_sdf (read
+    only; CI fetches the toolbox at a pinned commit, see campaign-validation.yml)."""
+    model = bzmodellibs.legacy.read_sdf(path)
+    seqs = [(q.index, q.start, q.length, q.loop, q.speed) for q in model.sequences]
+    parts, rots = [], []
+    for t in model.tracks:
+        keys = sorted((fr, *q) for fr, q in t.rotations)
+        parts.append((t.name, len(rots), len(keys), 0, len(t.positions)))
+        rots += keys
     return seqs, parts, rots
 
 
@@ -71,8 +61,8 @@ def qangle(a, b):
     return 4.0 * math.asin(min(1.0, chord / 2.0))
 
 
-def test_sdf():
-    seqs, parts, rots = read_anim(os.path.join(FIXES, "ablpow.sdf"))
+def test_sdf(name):
+    seqs, parts, rots = read_anim(os.path.join(FIXES, name + ".sdf"))
     check(len(seqs) >= 5, "ANIM needs elements 0..4 (found %d)" % len(seqs))
     if len(seqs) < 5:
         return
@@ -221,7 +211,10 @@ def test_shader():
 
 
 if __name__ == "__main__":
-    test_sdf()
+    if not bzmodellibs.require_or_skip("Test-LightningPlants"):
+        sys.exit(0)
+    test_sdf("ablpow")
+    test_sdf("bblpow")
     test_shader()
     if failures:
         print("\n%d failure(s)" % len(failures))
