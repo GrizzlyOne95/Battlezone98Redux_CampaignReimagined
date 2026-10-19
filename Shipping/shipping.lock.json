@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2912,
+  "count": 2921,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -228,6 +228,14 @@
       "runtime": "abhang.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\ablpow.mesh",
+      "runtime": "ablpow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\ablpow.sdf",
+      "runtime": "ablpow.sdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\adr11bdy.geo",
       "runtime": "adr11bdy.geo"
     },
@@ -394,6 +402,14 @@
     {
       "source": "Assets\\ModelFixes\\bbhang.skeleton",
       "runtime": "bbhang.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bblpow.mesh",
+      "runtime": "bblpow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bblpow.sdf",
+      "runtime": "bblpow.sdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvapc.mesh",
@@ -3038,6 +3054,10 @@
     {
       "source": "Materials\\CR_glow.material",
       "runtime": "CR_glow.material"
+    },
+    {
+      "source": "Materials\\cr_lightarc.material",
+      "runtime": "cr_lightarc.material"
     },
     {
       "source": "Materials\\CR_overlay.material",
@@ -7302,6 +7322,22 @@
     {
       "source": "Shaders\\CR_grasswind.program",
       "runtime": "CR_grasswind.program"
+    },
+    {
+      "source": "Shaders\\cr_lightarc-fragment.glsl",
+      "runtime": "cr_lightarc-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\cr_lightarc-vertex.glsl",
+      "runtime": "cr_lightarc-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\cr_lightarc.hlsl",
+      "runtime": "cr_lightarc.hlsl"
+    },
+    {
+      "source": "Shaders\\cr_lightarc.program",
+      "runtime": "cr_lightarc.program"
     },
     {
       "source": "Shaders\\cr_methane.hlsl",
