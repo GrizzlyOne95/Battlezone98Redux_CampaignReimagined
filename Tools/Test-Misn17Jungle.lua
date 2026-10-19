@@ -34,7 +34,10 @@ local foliage={registered={},litter=nil}
 local Foliage={Register=function(m,o) foliage.registered[m]=o.slot;return true end,
     EnableLitter=function(points,o) foliage.litter={points=#points,rate=o.rate} end,
     Describe=function() return {materials=0} end}
-local modules={CRWeather=W,CRWeatherPresets=P,CRJungle17Sites=sites,
+local wakeLog={init=0,stop=0,updates=0}
+local WakeStub={Init=function(o) wakeLog.init=wakeLog.init+1;wakeLog.opts=o end,
+    Stop=function() wakeLog.stop=wakeLog.stop+1 end,Update=function() wakeLog.updates=wakeLog.updates+1 end}
+local modules={CRWake=WakeStub,CRWeather=W,CRWeatherPresets=P,CRJungle17Sites=sites,
     CRSplash={Set=noop,Update=noop,Stop=noop,SetWind=function(x,z,s) splashWind=s end},
     CRWetGlass={Update=noop,Stop=noop},
     CRParticleTemplates={EnsureExtra=function() return true end},
@@ -221,4 +224,37 @@ local missing=setfenv(assert(loadfile("Scripts/CRJungle17.lua")),env)().Create({
 missing.Reset();missing.Update(.1,false,noop)
 check(missing.Describe().error~=nil,"missing optional geometry API reports degraded presentation")
 missing.Stop()
+-- Vehicle wakes: the shared module is initialised with the Achilles surface
+-- resolver (water over the river corridor, grass elsewhere) and stopped with it.
+check(wakeLog.init>=1 and type(wakeLog.opts.surface)=="function","reset initialises vehicle wakes")
+check(wakeLog.opts.surfaces[1]=="water" and wakeLog.opts.surfaces[2]=="grass","both Achilles surfaces are loaded")
+sites.river={{1440,99480},{1450,99520},{1470,99570}}
+-- Stream and pool water come from the generated run-length mask: rows[i] is grid row
+-- firstRow+i-1, runs are {startCol,length}; cells are centred on col*5 and row*5+originZ.
+sites.watermask={cell=5,originX=0,originZ=97280,firstRow=100,rows={{40,3},{},{10,2,20,4}}}
+check(J.WakeSurface(41*5,(100+0)*5+97280)=="water","a stream cell in the mask is water")
+check(J.WakeSurface(21*5,(102)*5+97280)=="water","a pool cell in the mask is water")
+check(J.WakeSurface(43*5,100*5+97280)=="grass","the cell just past a run is grass")
+check(J.WakeSurface(41*5,101*5+97280)=="grass","an empty mask row is grass")
+check(J.WakeSurface(21*5,99*5+97280)=="grass","a row above the mask is grass")
+sites.watermask=nil
+local s1,_,lift=J.WakeSurface(1450,99520)
+check(s1=="water" and lift>0,"a craft on the river route is over water, lifted to the surface")
+check(J.WakeSurface(1450+6,99520)=="water","inside the river half-width is water")
+check(J.WakeSurface(1450+12,99520)=="grass","beyond the bank is grass")
+check(J.WakeSurface(1465,99540)=="water","between route points is water")
+local sg,scale=J.WakeSurface(1,2)
+check(sg=="grass" and scale>=.6,"ground cover raises the grass rate")
+local _,bare=J.WakeSurface(3000,100000)
+check(bare<scale,"bare ground gets a thinner wake")
+sites.river=nil
+local before=wakeLog.updates
+J.Update(.1,false,noop)
+check(wakeLog.updates==before+1,"update drives the wake scan")
+J.Stop()
+check(wakeLog.stop>=1,"stop stops the wakes")
+local off=setfenv(assert(loadfile("Scripts/CRJungle17.lua")),env)().Create({exu={},vehicleWakes=false})
+local initsBefore=wakeLog.init
+off.Reset();off.Stop()
+check(wakeLog.init==initsBefore,"vehicleWakes=false never initialises the wakes")
 print("misn17 jungle: "..n.." checks passed")
