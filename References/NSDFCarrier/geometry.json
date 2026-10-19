@@ -1,0 +1,151 @@
+{
+  "vertices": 59007,
+  "triangles": 30632,
+  "bounds_min": [
+    -73.64703369140625,
+    -84.375,
+    -300.0
+  ],
+  "bounds_max": [
+    73.64703369140625,
+    101.75,
+    307.0
+  ],
+  "radius": 313.9304107814185,
+  "native_vertices": 1652,
+  "native_triangles": 3200,
+  "role": "cinematic static fixture; no AI or production",
+  "axis": "game +Z points aft; nose is -Z; Y up",
+  "scale_note": "600m concept side span, depth and cropped top/rear inferred",
+  "reference": "Nsdf_carrier.webp",
+  "reference_sha256": "9b94132c76ef2948a35ade5edcc501c4be12351e5524391a2ebab834f125645f",
+  "cca_comparison": "CCAfleet3.webp",
+  "cca_reference_sha256": "4b1e7208c649755ab88f1570a7a027a5673dbe5a15506006e133b3c2063ad71f",
+  "engine_exits": [
+    [
+      -20,
+      -55,
+      307
+    ],
+    [
+      -20,
+      -38,
+      307
+    ],
+    [
+      -20,
+      -21,
+      307
+    ],
+    [
+      -20,
+      -4,
+      307
+    ],
+    [
+      20,
+      -55,
+      307
+    ],
+    [
+      20,
+      -38,
+      307
+    ],
+    [
+      20,
+      -21,
+      307
+    ],
+    [
+      20,
+      -4,
+      307
+    ]
+  ],
+  "docking_bay": [
+    0,
+    -25,
+    0
+  ],
+  "stations_source_pixels": [
+    [
+      0,
+      0.6,
+      147,
+      150
+    ],
+    [
+      50,
+      25,
+      128,
+      234
+    ],
+    [
+      172,
+      53,
+      85,
+      239
+    ],
+    [
+      426,
+      53,
+      85,
+      239
+    ],
+    [
+      454,
+      42,
+      143,
+      246
+    ],
+    [
+      550,
+      43,
+      143,
+      253
+    ],
+    [
+      700,
+      47,
+      143,
+      258
+    ],
+    [
+      750,
+      57,
+      96,
+      269
+    ],
+    [
+      810,
+      68,
+      53,
+      273
+    ],
+    [
+      900,
+      73,
+      67,
+      285
+    ],
+    [
+      970,
+      65,
+      98,
+      291
+    ],
+    [
+      1012,
+      44,
+      142,
+      280
+    ],
+    [
+      1024,
+      18,
+      183,
+      261
+    ]
+  ]
+}

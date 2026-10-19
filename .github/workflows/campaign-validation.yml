@@ -41,6 +41,9 @@ jobs:
       - name: Validate repository invariants
         run: python Tools/Validate-CampaignRepository.py
 
+      - name: Validate cinematic NSDF carrier assets
+        run: python Tools/Test-NSDFCarrierAssets.py
+
       - name: Test BlackDog09 source port
         run: |
           lua5.1 Tools/Test-BlackDog09.lua

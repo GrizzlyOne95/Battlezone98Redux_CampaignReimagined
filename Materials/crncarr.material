@@ -1,0 +1,13 @@
+import * from "BZBase.material"
+material crncarr00 : BZBase
+{
+    set_texture_alias DiffuseMap crncarr_d.dds
+    set_texture_alias NormalMap crncarr_n.dds
+    set_texture_alias SpecularMap crncarr_s.dds
+    set_texture_alias EmissiveMap crncarr_e.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+    set $specular ".6 .6 .6"
+    set $shininess "100"
+    set $glow "1 1 1"
+}

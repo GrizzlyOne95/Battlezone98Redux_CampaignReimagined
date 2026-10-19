@@ -1,0 +1,160 @@
+{
+  "vertices": 59007,
+  "triangles": 30632,
+  "bounds_min": [
+    -73.64703369140625,
+    -84.375,
+    -300.0
+  ],
+  "bounds_max": [
+    73.64703369140625,
+    101.75,
+    307.0
+  ],
+  "radius": 313.9304107814185,
+  "native_vertices": 1652,
+  "native_triangles": 3200,
+  "role": "cinematic static fixture; no AI or production",
+  "axis": "game +Z points aft; nose is -Z; Y up",
+  "scale_note": "600m concept side span, depth and cropped top/rear inferred",
+  "reference": "Nsdf_carrier.webp",
+  "reference_sha256": "9b94132c76ef2948a35ade5edcc501c4be12351e5524391a2ebab834f125645f",
+  "cca_comparison": "CCAfleet3.webp",
+  "cca_reference_sha256": "4b1e7208c649755ab88f1570a7a027a5673dbe5a15506006e133b3c2063ad71f",
+  "engine_exits": [
+    [
+      -20,
+      -55,
+      307
+    ],
+    [
+      -20,
+      -38,
+      307
+    ],
+    [
+      -20,
+      -21,
+      307
+    ],
+    [
+      -20,
+      -4,
+      307
+    ],
+    [
+      20,
+      -55,
+      307
+    ],
+    [
+      20,
+      -38,
+      307
+    ],
+    [
+      20,
+      -21,
+      307
+    ],
+    [
+      20,
+      -4,
+      307
+    ]
+  ],
+  "docking_bay": [
+    0,
+    -25,
+    0
+  ],
+  "stations_source_pixels": [
+    [
+      0,
+      0.6,
+      147,
+      150
+    ],
+    [
+      50,
+      25,
+      128,
+      234
+    ],
+    [
+      172,
+      53,
+      85,
+      239
+    ],
+    [
+      426,
+      53,
+      85,
+      239
+    ],
+    [
+      454,
+      42,
+      143,
+      246
+    ],
+    [
+      550,
+      43,
+      143,
+      253
+    ],
+    [
+      700,
+      47,
+      143,
+      258
+    ],
+    [
+      750,
+      57,
+      96,
+      269
+    ],
+    [
+      810,
+      68,
+      53,
+      273
+    ],
+    [
+      900,
+      73,
+      67,
+      285
+    ],
+    [
+      970,
+      65,
+      98,
+      291
+    ],
+    [
+      1012,
+      44,
+      142,
+      280
+    ],
+    [
+      1024,
+      18,
+      183,
+      261
+    ]
+  ],
+  "sha256": {
+    "Assets/Textures/crncarr_d.dds": "c96cf7740b5a1a0de10e34077158d23c87e3ec0981570aafb86246fa1b5f0171",
+    "Assets/Textures/crncarr_e.dds": "cde257bd8ba70684f1e22e592634a5e8d326b956465b27d6ac2382ad8e27d065",
+    "Assets/Textures/crncarr_s.dds": "8bdcd40191fcc67de193beb1d8c668de04a33b0095a264c3a8a1a427efd19e0e",
+    "Assets/Textures/crncarr_n.dds": "10f8b112accaabfb79078fbfa3a0c2fde98d5b2d410def4e994cdde003bdc952",
+    "Assets/ModelFixes/crncarr.mesh": "c91365751c8a8b0b200231a6ce176b19b1b1f45bf60c3195b018c944c3e72f50",
+    "Assets/ModelFixes/crncarr.geo": "4d1d734b5b1e6272ca338864369ef8322db4cc7457c83797d8e56a7bc5a3c3a8",
+    "Assets/ModelFixes/crncarr.sdf": "6554466f92f96c9febb19fa72484c3f4415194485f1ae022baae51b6759dd9fc"
+  }
+}
