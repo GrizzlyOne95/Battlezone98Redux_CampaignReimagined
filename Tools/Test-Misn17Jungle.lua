@@ -9,6 +9,15 @@ StartSound=function() sounds=sounds+1;return sounds end
 StopSound=noop
 local alive={}
 IsAlive=function(h) return alive[h]~=false end
+-- Stock geyser paths beside the three converter parts (Misn17Fixture).
+local paths={part1geizer={3027.2,155,101454},part2geizer={3095.2,155,101454},part3geizer={3149.9,155,101456}}
+local player={x=0,y=0,z=0}
+GetPosition=function(what)
+    if what=="player" then return player end
+    local p=assert(paths[what],tostring(what));return {x=p[1],y=p[2],z=p[3]}
+end
+GetPlayerHandle=function() return "player" end
+IsValid=function(h) return h~=nil end
 local wind,windSpeed,intensity,splashWind
 local W={Init=noop,Update=noop,Shutdown=noop,
     SetPreset=function(name) changes[#changes+1]=name end,
@@ -20,6 +29,7 @@ local sites={water={mesh="river.mesh",position={1500,0,99600}},cascade={1490,200
     streams={mesh="streams.mesh",position={1500,0,99600}},pools={mesh="pools.mesh",position={1500,0,99600}},
     layers={{mesh="fern.mesh",instances={{1,2,3,0,1}}},{mesh="tree.mesh",instances={{4,5,6,1,2}}}}}
 local sky={plane=false,clones={},enabled=nil,scroll=nil}
+local modifiers,systems,rates={},{},{}
 local foliage={registered={},litter=nil}
 local Foliage={Register=function(m,o) foliage.registered[m]=o.slot;return true end,
     EnableLitter=function(points,o) foliage.litter={points=#points,rate=o.rate} end,
@@ -28,7 +38,7 @@ local modules={CRWeather=W,CRWeatherPresets=P,CRJungle17Sites=sites,
     CRSplash={Set=noop,Update=noop,Stop=noop,SetWind=function(x,z,s) splashWind=s end},
     CRWetGlass={Update=noop,Stop=noop},
     CRParticleTemplates={EnsureExtra=function() return true end},
-    Environment={RegisterEnvironmentModifier=noop},CRFoliageWind=Foliage}
+    Environment={RegisterEnvironmentModifier=function(name,f) modifiers[name]=f end},CRFoliageWind=Foliage}
 local env=setmetatable({require=function(k) return assert(modules[k],k) end},{__index=_G})
 local built={}
 local m={}
@@ -38,7 +48,9 @@ local api={state=function() return m end,exu={CreateStaticGeometry=function(name
     check(options.renderingDistance<=360,"culling bounded")
     builds=builds+1;built[name]=true;return {instanceCount=#instances}
 end,DestroyStaticGeometry=function(name) destroys=destroys+1;built[name]=nil end,
-CreateParticleSystem=function() return true end,DestroyParticleSystem=noop,
+CreateParticleSystem=function(name,template,p) systems[name]={template=template,p=p};return true end,
+DestroyParticleSystem=function(name) systems[name]=nil end,
+SetParticleEmitterEmissionRate=function(name,i,r) rates[name]=r end,
 MaterialExists=function(name) return name=="CR17/StormCloud" end,
 CloneMaterial=function(base,name) sky.clones[name]=true;return true end,
 SetSkyPlane=function(mat) sky.plane=mat;return true end,
@@ -110,6 +122,32 @@ check(J.Describe().level==4 and J.GetSeverity()==1 and intensity==1,"converter o
 local b=countBolts();now=now+20;for i=1,20 do now=now+1;J.Update(1,true,send) end
 check(countBolts()-b>=4,"tempest lightning is frequent")
 m.cr17Crystals=nil
+-- Core vents: a fallen converter part opens a fire vent on its geyser path.
+local function ventPackets() local c={};for _,s in ipairs(sent) do if s[1]=="vents" then c[#c+1]=s[2] end end;return c end
+check(J.Describe().ventsLit==0 and #ventPackets()==0,"no vent while every converter part stands")
+m.factorypart2dead=true;J.Update(.1,true,send)
+local vp=ventPackets()
+check(vp[#vp]==2 and J.Describe().ventsLit==1,"leader announces the fallen part and lights its vent")
+local flame=systems["CR17/Core2/VentFlame"]
+check(flame and flame.template=="CR17/VentFlame" and flame.p.x==3095.2 and flame.p.y==155,"vent stands on the part's stock geyser path")
+check(systems["CR17/Core2/VentLick"] and systems["CR17/Core2/VentSmoke"] and systems["CR17/Core2/VentPool"]
+    and systems["CR17/Core2/VentSpatter"],"vent builds flame, licks, smoke, glow pool and spatter")
+check(not systems["CR17/Core1/VentFlame"] and not systems["CR17/Core3/VentFlame"],"standing parts keep their pits closed")
+J.Update(.1,true,send)
+check(#ventPackets()==#vp,"no vent resend without a change")
+local calm=rates["CR17/Core2/VentSpatter"]
+now=now+9;J.Update(.1,true,send)
+check(calm<10 and rates["CR17/Core2/VentSpatter"]>50,"vent surges throw lava")
+check(J.Describe().ventGlow==0,"a distant vent does not light the pilot")
+player={x=3100,y=155,z=101460};J.Update(.1,true,send)
+check(J.Describe().ventGlow>.5,"standing by a vent lights the pilot")
+local frame={ambient={r=.1,g=.1,b=.1}};modifiers.CR17Lightning(frame)
+check(frame.ambient.r-.1>frame.ambient.b-.1+.2,"vent light is fire-red")
+player={x=0,y=0,z=0}
+count=#ventPackets();now=now+16;J.Update(16,true,send)
+check(#ventPackets()==count+1,"leader resyncs open vents for late joiners")
+local ventSave=J.Save()
+check(ventSave.vents==2,"open vents survive save")
 -- Converter destroyed by the stock route.
 alive[77]=false;m.factorypart1=77;J.Update(.1,true,send)
 check(J.Describe().level==4,"a fallen converter keeps the tempest")
@@ -130,6 +168,22 @@ J.Stop()
 check(not J.Initialized,"shutdown disables Environment sensor provider")
 check(J.Describe().batches==0 and not J.Describe().river and not J.Describe().pools,"stop clears render resources")
 check(next(built)==nil,"every static group destroyed")
+local leftover=false;for k in pairs(systems) do if k:find("^CR17/Core") then leftover=true end end
+check(not leftover,"stop puts out every vent")
+J.Reset(ventSave);J.Update(.1,false,noop)
+check(J.Describe().ventsLit==1 and systems["CR17/Core2/VentFlame"],"load relights open vents before the leader resyncs")
+J.Stop()
+-- A guest lights what the leader announces; a stale mask never closes a vent.
+local G=setfenv(assert(loadfile("Scripts/CRJungle17.lua")),env)().Create({exu=api.exu,state=function() error("guest read mission state") end})
+G.Reset();G.Update(.1,false,noop)
+check(G.Describe().ventsLit==0,"guest waits for the leader's vents")
+G.Apply("vents",1);G.Update(.1,false,noop)
+check(G.Describe().ventsLit==1 and systems["CR17/Core1/VentFlame"],"guest lights the announced vent")
+G.Apply("vents",0);G.Apply("vents",6);G.Update(.1,false,noop)
+check(G.Describe().vents==7 and G.Describe().ventsLit==3,"vents only ever open")
+G.Apply("vents",99);G.Apply("vents","7")
+check(G.Describe().vents==7,"malformed vent packets are ignored")
+G.Stop()
 check(wind==nil,"stop releases the wind override")
 check(P.Presets.AcidRainVisual.precipitation[1].emitters[0].rate==nil,"shared acid rain preset unchanged")
 -- A map that already owns a sky keeps it.
