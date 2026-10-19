@@ -14,8 +14,9 @@ What each model gets:
                                the vertical axis, 6 rpm.
   sbwpow  (CCA wind power)     ANIM element 4: the propeller swp11prp turns, 10 rpm. Stock already keys a
                                full turn in element 0, which PowerPlant never plays.
-  sblpow  (CCA lightning)      ANIM element 4: the tower coil sls11twb (with sls11twc on top) turns,
-                               3 rpm. sblpowa/sblpowb share this through baseName.
+  sblpow  (CCA lightning)      ANIM element 4: the four base clamps sls11cla..d (own bones) carry round the
+                               dome, 3 rpm. The tower's disc sls11twb is rotationally symmetric, so
+                               turning it would show nothing. sblpowa/sblpowb share this through baseName.
   svslf   (CCA armory)         Redux's stock svslf.vdf has no ANIM chunk at all. One is built: element 4 (what
                                Producer plays when deploy finishes and Armory::LaunchItem plays on every pod
                                launch) swings slf11arm up and back once. One-shot (loop 1): both call sites
@@ -67,12 +68,13 @@ DEFAULT_GAME = r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux"
 
 FPS = 15.0
 
-# name -> (spin part, axis in the part's parent frame, rpm). Frames per revolution = 60 * FPS / rpm.
+# name -> (parts, axis in the parts' parent frame, rpm, orbit). Frames per revolution = 60 * FPS / rpm.
+# orbit=True: the parts sit off the axis, so their positions travel around it as well as turning.
 SPINS = {
-    "abwpow": ("awp11spc", (0.0, 1.0, 0.0), 6.0),
-    "sbwpow": ("swp11prp", (0.0, 0.0, 1.0), 10.0),
-    "sblpow": ("sls11twb", (0.0, 1.0, 0.0), 3.0),
-    "cbwpow": ("cwp11rot", (0.0, 0.0, 1.0), 7.5),
+    "abwpow": (("awp11spc",), (0.0, 1.0, 0.0), 6.0, False),
+    "sbwpow": (("swp11prp",), (0.0, 0.0, 1.0), 10.0, False),
+    "sblpow": (("sls11cla", "sls11clb", "sls11clc", "sls11cld"), (0.0, 1.0, 0.0), 3.0, True),
+    "cbwpow": (("cwp11rot",), (0.0, 0.0, 1.0), 7.5, False),
 }
 
 # N64 SLF launch clip (ROTBD mod_v10 svslf.blend, action slf11topAction, joint 1): X rotation in radians
@@ -185,23 +187,32 @@ def new_anim(name):
 
 
 # ---------------------------------------------------------------------------- spin SDFs
+def orbit_keys(pos, axis, frames):
+    """Position keys for a part at `pos` carried one revolution round `axis` through the parent origin."""
+    return [(fr, apply(rot_matrix(axis, 2.0 * math.pi * fr / frames), pos)) for fr in range(frames + 1)]
+
+
 def spin_sdf(data, name):
-    part_name, axis, rpm = SPINS[name]
+    parts, axis, rpm, orbit = SPINS[name]
     frames = int(round(60.0 * FPS / rpm))
     sdf = read_bwd(data, "sdf")
     if sdf.anim_obj is None:
         sys.exit("%s has no ANIM chunk" % name)
     anim = sdf.anim_obj
     tracks = Tracks(anim)
-    # the bind is the ANIM record's own matrix (the GEO record's differs on some stock parts)
-    tracks.rots[part_name] = spin_keys(anim.mesh_map[part_name].frame_transform, axis, frames)
+    for part_name in parts:
+        # the bind is the ANIM record's own matrix (the GEO record's differs on some stock parts)
+        t = anim.mesh_map[part_name].frame_transform
+        tracks.rots[part_name] = spin_keys(t, axis, frames)
+        if orbit:
+            tracks.poss[part_name] = orbit_keys((t.px, t.py, t.pz), axis, frames)
     # Every part's keys must reach the last frame of the element.
     for n in anim.mesh_map:
         poss = tracks.poss[n]
         if poss and max(f for f, _ in poss) < frames:
             poss.append((frames, poss[0][1]))
         rots = tracks.rots[n]
-        if n != part_name and rots and max(f for f, _ in rots) < frames:
+        if n not in parts and rots and max(f for f, _ in rots) < frames:
             rots.append((frames, rots[0][1]))
     tracks.commit()
     anim.animation_map.pop(4, None)
@@ -210,7 +221,43 @@ def spin_sdf(data, name):
 
 
 # ---------------------------------------------------------------------------- svslf
-def svslf_vdf(data):
+READY_DEG = 20.0                 # the deployed ("ready") elevation of the arm; the model's bind pose is 0
+DEPLOY_FRAMES = 76               # element 0: 75 intervals at 15 fps = timeDeploy 5 s
+LAUNCH_START = DEPLOY_FRAMES     # element 4 starts where the unfold ended (same pose)
+SWING_UP = [N64_LAUNCH[0] - a for a in N64_LAUNCH]   # radians the rear of the arm is raised, 0 .. 1.539 .. 0
+SWING_PEAK = max(SWING_UP)
+
+
+def lift_key(r, u, f, alpha):
+    """Key for the arm raised by `alpha` radians (rear, -Z, up). Stock keys are the engine's inverse of the
+    SDF-frame rotation: Redux writes bone orientation (w, -x, y, z), so a lift is a NEGATIVE rotation about X
+    in the Hamilton frame used here (confirmed live: +alpha swung the arm under the body)."""
+    m = rot_matrix((1.0, 0.0, 0.0), -alpha)
+    return key_of(apply(m, r), apply(m, u), apply(m, f))
+
+
+def hemisphere(keys):
+    out = []
+    for fr, q in keys:
+        if out and sum(a * b for a, b in zip(q, out[-1][1])) < 0:
+            q = tuple(-c for c in q)
+        out.append((fr, q))
+    return out
+
+
+def arm_lifts():
+    """(frame, lift in radians) for the three elements, on one shared timeline."""
+    ready = math.radians(READY_DEG)
+    out = []
+    for fr in range(DEPLOY_FRAMES):                      # element 0 (and 1 reversed): eased unfold 0 -> ready
+        t = fr / (DEPLOY_FRAMES - 1)
+        out.append((fr, ready * (t * t * (3 - 2 * t))))
+    for k, up in enumerate(SWING_UP):                    # element 4: ready -> N64 peak (88 deg) -> ready
+        out.append((LAUNCH_START + k, ready + up * (math.radians(88.0) - ready) / SWING_PEAK))
+    return out
+
+
+def svslf_vdf(data, mesh_check=None):
     vdf = read_bwd(data, "vdf")
     if vdf.get_object_by_name("slf11arm") is None:
         sys.exit("svslf.vdf has no slf11arm GEO")
@@ -219,27 +266,50 @@ def svslf_vdf(data):
     for obj in vdf.primary_objects():
         anim.create_animation_mesh(obj.name).frame_transform = obj.transform
     tracks = Tracks(anim, empty=True)
+    last = LAUNCH_START + len(N64_LAUNCH) - 1
+    lifts = arm_lifts()
     for obj in vdf.primary_objects():
         t = obj.transform
         pos = (t.px, t.py, t.pz)
-        tracks.poss[obj.name] = [(0, pos), (30, pos)]
+        tracks.poss[obj.name] = [(0, pos), (last, pos)]
         r, u, f = columns(t)
         rest = key_of(r, u, f)
         if abs(rest[0]) < 0.9999:
-            tracks.rots[obj.name] = [(0, rest), (30, rest)]
+            tracks.rots[obj.name] = [(0, rest), (last, rest)]
         if obj.name == "slf11arm":
-            keys = []
-            for fr, ang in enumerate(N64_LAUNCH):
-                # Rotation about +X by +delta lifts the rear (-Z) of the arm, as the N64 clip does.
-                m = rot_matrix((1.0, 0.0, 0.0), N64_LAUNCH[0] - ang)
-                q = key_of(apply(m, r), apply(m, u), apply(m, f))
-                if keys and sum(a * b for a, b in zip(q, keys[-1][1])) < 0:
-                    q = tuple(-c for c in q)
-                keys.append((fr, q))
-            tracks.rots[obj.name] = keys
+            tracks.rots[obj.name] = hemisphere([(fr, lift_key(r, u, f, a)) for fr, a in lifts])
     tracks.commit()
-    set_element(anim, 4, 0, len(N64_LAUNCH), 1, FPS)
+    set_element(anim, 0, 0, DEPLOY_FRAMES, 1, FPS)                       # Producer: deploy start
+    set_element(anim, 1, DEPLOY_FRAMES - 1, -DEPLOY_FRAMES, 1, FPS)      # Producer: undeploy (the unfold backwards)
+    set_element(anim, 4, LAUNCH_START, len(N64_LAUNCH), 1, FPS)          # Producer deploy done + Armory::LaunchItem
     return write_bwd(vdf, "vdf")
+
+
+def arm_lowest_points(game):
+    """Per-frame lowest point of the arm geometry through the three elements (Ogre frame, engine rule:
+    bone orientation = (w, -x, y, z) of the stored key). Returns (hinge y, rest lowest y, [(frame, lowest y)])."""
+    models = os.path.join(game, "BZ_ASSETS", "common", "models")
+    with open(os.path.join(models, "svslf.mesh"), "rb") as fh:
+        mesh = ogremesh_ser.MeshSerializer(fh).read()
+    with open(os.path.join(models, "svslf.skeleton"), "rb") as fh:
+        skel = ogreskel_ser.SkeletonSerializer(fh).read()
+    sm = mesh.get_submesh(0)
+    pos = vertex_positions(sm)
+    arm = skel.get_bone_by_name("slf11arm")
+    verts = sorted({v.vertex_index for v in sm.bone_assignments_unsorted() if v.bone_index == arm.handle})
+    p = pos[verts]
+    pivot = np.zeros(3)
+    b = arm
+    while b is not None:
+        pivot += (b.position.x, b.position.y, b.position.z)
+        b = b.parent
+    out = []
+    for fr, a in arm_lifts():
+        # the key's engine rotation is a lift of +a about Ogre X (see lift_key)
+        c, s = math.cos(a), math.sin(a)
+        y = pivot[1] + (p[:, 1] - pivot[1]) * c - (p[:, 2] - pivot[2]) * s
+        out.append((fr, float(y.min())))
+    return float(pivot[1]), float(p[:, 1].min()), out
 
 
 # ---------------------------------------------------------------------------- cbwpow
@@ -351,7 +421,7 @@ def cbwpow_sdf(data, pivot, radius, extents):
     obj.half_size = sp.Vector3(extents[0] / 2, extents[1] / 2, extents[2] / 2)
     obj.class_id, obj.object_flags = body.class_id, body.object_flags
     obj.ddr, obj.target, obj.time = body.ddr, sp.Vector3(), 0.0
-    part_name, axis, rpm = SPINS["cbwpow"]
+    (part_name,), axis, rpm, _ = SPINS["cbwpow"]
     frames = int(round(60.0 * FPS / rpm))
     anim = new_anim("cbwpow.t")
     sdf.anim_obj = anim
@@ -395,9 +465,14 @@ def main():
     wr = lambda n, b: open(os.path.join(out, n), "wb").write(b)
     for name in ("abwpow", "sbwpow", "sblpow"):
         wr(name + ".sdf", spin_sdf(rd(name + ".sdf"), name))
-        print("%s.sdf: element 4 = %s turn, %g rpm" % (name, SPINS[name][0], SPINS[name][2]))
+        print("%s.sdf: element 4 = %s turn, %g rpm" % (name, "+".join(SPINS[name][0]), SPINS[name][2]))
     wr("svslf.vdf", svslf_vdf(rd("svslf.vdf")))
-    print("svslf.vdf: ANIM element 4 = slf11arm launch swing, one-shot, 31 frames")
+    hinge, rest_low, lows = arm_lowest_points(args.game)
+    worst = min(lows, key=lambda x: x[1])
+    print("svslf.vdf: element 0 unfold %d frames (0 -> %g deg), element 1 = reverse, element 4 launch %d frames "
+          "(%g -> 88 -> %g deg), all one-shot" % (DEPLOY_FRAMES, READY_DEG, len(N64_LAUNCH), READY_DEG, READY_DEG))
+    print("  arm lowest point: hinge y %.3f, rest %.3f, worst over all frames %.3f at frame %d" % (hinge, rest_low, worst[1], worst[0]))
+    assert worst[1] > rest_low - 0.35, "the arm swings under the body (lowest point %.2f)" % worst[1]
     pivot, radius, ext = cbwpow_models(args.game, out)
     wr("cbwpow.sdf", cbwpow_sdf(rd("cbwpow.sdf"), pivot, radius, ext))
     wr("cwp11rot.geo", make_geo("cwp11rot", radius, ext[2]))
