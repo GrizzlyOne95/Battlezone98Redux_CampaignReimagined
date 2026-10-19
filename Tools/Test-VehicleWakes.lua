@@ -458,6 +458,8 @@ do
     rg.Add("a", 30.0, 0.0, 20.0, 0.0)
     rg.Run(2.0)
     check(rg.Live("CR/Moon/HoverDust") == 1, "regolith uses the Moon's existing template")
+    local rs = rg.systems[next(rg.systems)]
+    check(rs.rates[0] and rs.rates[1] and rs.rates[1] > 0 and rs.rates[1] < rs.rates[0], "regolith drives the chip emitter (1) below the dust emitter (0)")
 
     -- No player: nothing to measure from.
     local nop = NewWorld()
@@ -598,6 +600,21 @@ do
                 end
                 local _, emitters = declared[profile.template]:gsub("emitter%s+%a+", "")
                 check(emitters >= #profile.shares, surface .. " template has an emitter for every share")
+            end
+        end
+        -- Regolith lives in the Moon's own payload: it needs dust (emitter 0) and chips (emitter 1),
+        -- with the chips under a weaker gravity pull than Mars' (lunar arcs).
+        local moon = readAll(scriptDir .. "/../Materials/cr_moon.particle.payload")
+        check(moon ~= nil, "Materials/cr_moon.particle.payload exists")
+        if moon then
+            local body = moon:match("particle_system%s+CR/Moon/HoverDust%s*(%b{})")
+            check(body ~= nil, "CR/Moon/HoverDust is in cr_moon")
+            if body then
+                local _, emitters = body:gsub("emitter%s+%a+", "")
+                check(emitters >= #w.Wake.Profiles.regolith.shares, "regolith template has an emitter for every share (dust + chips)")
+                local fy = tonumber(body:match("force_vector%s+%S+%s+(%S+)"))
+                local mars = tonumber(declared["CRWake/MarsDust"]:match("force_vector%s+%S+%s+(%S+)"))
+                check(fy and mars and fy > mars, "lunar gravity pull is weaker than Mars'")
             end
         end
         -- Balanced braces (Ogre skips a malformed template silently).

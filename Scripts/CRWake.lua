@@ -82,7 +82,7 @@ V.RateOverride    = nil      -- a number replaces every profile's full-speed rat
 -- only when a slot is spare. `payload` is the extra payload to load (nil = the
 -- director already loaded it).
 V.Profiles = {
-    regolith = { template = "CR/Moon/HoverDust", shares = { 1.0 }, rate = 55.0 },
+    regolith = { template = "CR/Moon/HoverDust", shares = { 1.0, 0.35 }, rate = 55.0 },
     mars     = { template = "CRWake/MarsDust", payload = "cr_wake", shares = { 1.0, 0.45 }, rate = 50.0 },
     ice      = { template = "CRWake/IceSpray", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 45.0 },
     water    = { template = "CRWake/WaterSpray", payload = "cr_wake", shares = { 1.0, 0.60 }, rate = 45.0,

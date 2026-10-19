@@ -409,7 +409,8 @@ particle_system CR/Moon/KickDust
 // One system per tracked craft, parked on the ground under it. A low outward
 // cone at very low speed; the director drives the rate from speed and height.
 //
-//   emitter 0  Box 5 x 0.4 x 5 (flat disc under the craft)
+//   emitter 0  Box 5 x 0.4 x 5 (flat disc under the craft): dust
+//   emitter 1  Box 3 x 0.2 x 3: rock chips (added for CRWake; emitter 0 is unchanged)
 //   affector 0 ColourInterpolator
 //   affector 1 Scaler
 //   affector 2 LinearForce
@@ -438,6 +439,25 @@ particle_system CR/Moon/HoverDust
         width               5
         height              0.4
         depth               5
+    }
+
+    // Rock chips (CRWake drives this by index, ~35 % of the dust rate). Under 1/6 g
+    // they leave faster and live longer than the dust, and the weak LinearForce
+    // below lets them arc slowly and high. Grey; the shared Scaler keeps them small.
+    emitter Box
+    {
+        angle               50
+        emission_rate       0
+        time_to_live_min    2.0
+        time_to_live_max    3.5
+        direction           0 1 0
+        velocity_min        3.0
+        velocity_max        7.0
+        colour_range_start  0.40 0.40 0.42 0.00
+        colour_range_end    0.34 0.34 0.37 0.00
+        width               3
+        height              0.2
+        depth               3
     }
 
     affector ColourInterpolator
