@@ -712,6 +712,14 @@
       "runtime": "cvhaul.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvhaul.skeleton",
+      "runtime": "cvhaul.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvhaul.vdf",
+      "runtime": "cvhaul.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvhraz.mesh",
       "runtime": "cvhraz.mesh"
     },

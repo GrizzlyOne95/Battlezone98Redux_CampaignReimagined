@@ -14,9 +14,12 @@ For every shipped file:
   * Tools/Audit-SdfLoops.py finds no seam, skipped frame, velocity break or jump;
   * file-specific fixes: avmuf/bvmuf arm swing is a sine on every frame with deploy elements
     untouched, bvrecy names match the skeleton's case.
-Tugs (svhaul, avhaul, bvhaul): no blank track; elements 0/1 keep their stock one-shot spans
-and 1 replays 0 in reverse; the pickup moves only the gs1 cargo hardpoint, 4.375 m, keyed on
-every frame (svhaul keeps its stock keys).
+Tugs (svhaul, avhaul, bvhaul, cvhaul): no blank track; elements 0/1 keep their stock one-shot
+spans (cvhaul, which has no stock ANIM, uses av/bv's) and 1 replays 0 in reverse; the pickup
+moves only the gs1 cargo hardpoint, 4.375 m toward the hull (-Z for the front carriers, +Z for
+cvhaul, which carries behind), keyed on every frame (svhaul keeps its stock keys). With the game
+files, each tug's skeleton has the gs1 bone at the hardpoint's rest position under the VDF
+part's parent (cvhaul's comes from Assets/ModelFixes/cvhaul.skeleton).
 When the Redux models (mesh + skeleton) are available (--game, default the GOG install), every
 moving part must name a skeleton bone, with vertices unless it is a hardpoint (gs*/hp*). Static
 stock tracks without a bone (svrecy's gs1/gs2, the tugs' _COL) are only noted. Without the game
@@ -59,9 +62,10 @@ FILES = {
 # Tugs: (cargo hardpoint, stock element 0, stock element 1). Tug::Simulate plays 0 on pickup
 # and 1 on dropoff and waits for each, so both stay one-shot and 1 mirrors 0.
 TUGS = {
-    "svhaul.vdf": ("sha11gs1", (1, 11), (11, -11)),
-    "avhaul.vdf": ("aha11gs1", (0, 121), (120, -121)),
-    "bvhaul.vdf": ("bha11gs1", (0, 121), (120, -121)),
+    "svhaul.vdf": ("sha11gs1", (1, 11), (11, -11), -1),
+    "avhaul.vdf": ("aha11gs1", (0, 121), (120, -121), -1),
+    "bvhaul.vdf": ("bha11gs1", (0, 121), (120, -121), -1),
+    "cvhaul.vdf": ("COX11GS1", (0, 121), (120, -121), 1),   # no stock ANIM; av/bv elements
 }
 EPS_DEG, EPS_M = 1e-3, 1e-5
 
@@ -73,9 +77,8 @@ def load_audit():
     return mod
 
 
-def bones_with_vertices(game, model):
-    """{bone name: vertex count} from the shipped or stock .mesh/.skeleton, or None."""
-    ser_s, ser_m = bzmodellibs.ogreskeleton_serializer, bzmodellibs.ogremesh_serializer
+def model_paths(game, model):
+    """{"mesh": path, "skeleton": path} of the shipped (Assets/ModelFixes) or stock files."""
     paths = {}
     for ext in ("mesh", "skeleton"):
         for d in (FIXES, os.path.join(game, "BZ_ASSETS", "common", "models"),
@@ -84,6 +87,21 @@ def bones_with_vertices(game, model):
             if os.path.exists(p):
                 paths[ext] = p
                 break
+    return paths
+
+
+def read_skeleton(game, model):
+    path = model_paths(game, model).get("skeleton")
+    if path is None:
+        return None
+    ser_s = bzmodellibs.ogreskeleton_serializer
+    return ser_s.SkeletonSerializer(io.BytesIO(open(path, "rb").read())).read()
+
+
+def bones_with_vertices(game, model):
+    """{bone name: vertex count} from the shipped or stock .mesh/.skeleton, or None."""
+    ser_s, ser_m = bzmodellibs.ogreskeleton_serializer, bzmodellibs.ogremesh_serializer
+    paths = model_paths(game, model)
     if len(paths) < 2:
         return None
     skel = ser_s.SkeletonSerializer(io.BytesIO(open(paths["skeleton"], "rb").read())).read()
@@ -127,7 +145,7 @@ def main():
             elif p["name"] in moving and counts[p["name"]] == 0 and not hardpoint:
                 err(name, "moving track %r drives a bone with no vertices" % p["name"])
 
-    for name, (gs1, el0, el1) in TUGS.items():
+    for name, (gs1, el0, el1, direction) in TUGS.items():
         path = os.path.join(FIXES, name)
         if not os.path.exists(path):
             err(name, "missing from Assets/ModelFixes")
@@ -160,9 +178,25 @@ def main():
             gaps = [f for f in span if f not in keys]
             if gaps:
                 err(name, "%s: no key on frames %s" % (gs1, gaps[:5]))
-            travel = math.dist(A.sample(g["pos"], f0[0], False), A.sample(g["pos"], f0[-1], False))
+            p0, p1 = A.sample(g["pos"], f0[0], False), A.sample(g["pos"], f0[-1], False)
+            travel = math.dist(p0, p1)
             if abs(travel - 4.375) > 0.01:
                 err(name, "%s travels %.3f m, expected 4.375" % (gs1, travel))
+            if (p1[2] - p0[2]) * direction < 4.37:
+                err(name, "%s should travel along %sZ, moves %s -> %s" % (gs1, "+" if direction > 0 else "-", p0, p1))
+            if have_game:
+                skel = read_skeleton(args.game, name[:-4])
+                bone = skel.get_bone_by_name(gs1) if skel is not None and skel.bone_name_exists(gs1) else None
+                vdf = bzmodellibs.bwd2_serializer.VDFSerializer(io.BytesIO(open(path, "rb").read())).read()
+                part = next(o for o in vdf.primary_objects(raw=True) if o.name == gs1)
+                if bone is None:
+                    err(name, "skeleton has no %s bone" % gs1)
+                else:
+                    at = (bone.position.x, bone.position.y, bone.position.z)
+                    if math.dist(at, p0) > EPS_M * 10:
+                        err(name, "%s bone at %s, hardpoint rests at %s" % (gs1, at, p0))
+                    if bone.parent is None or bone.parent.name != part.parent:
+                        err(name, "%s bone parent %s, VDF parent %s" % (gs1, bone.parent and bone.parent.name, part.parent))
         check_bones(name, parts, moving)
 
     for name, (loop, movers) in FILES.items():

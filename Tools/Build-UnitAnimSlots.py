@@ -28,13 +28,25 @@ Edits:
                  elements 0 (0, 121) and 1 (120, -121), keyed on every frame (smoothstep);
                  Tug::Simulate (0x005ECA60) plays 0 on pickup and 1 on dropoff and waits for
                  each, so lengths and loop counts stay stock and 1 mirrors 0.
+  cvhaul         stock has no ANIM chunk at all. The Tug ctor (0x005EC220) carries cargo on
+                 the first node of the hardpoint type in the VDF tree: COX11GS1 at (0, 0.5,
+                 -6.5), behind the tail, where the two engine booms (z -5.5 .. 1.4, x +-2.2)
+                 leave an open bay behind the hull (rear face z -2.07). A new ANIM with the
+                 av/bv elements 0 (0, 121) and 1 (120, -121) at 15 fps pulls COX11GS1 the same
+                 4.375 m toward the hull (+Z here; the others carry in front and pull -Z) to
+                 z -2.125, seating the cargo between the booms against the hull's rear face.
+  cvhaul.skeleton  stock Redux skeleton (TRO/cvhaul.skeleton) plus bone COX11GS1 (handle 9,
+                 child of COX11BDA, at the VDF part's rest position), so the animated part
+                 names a bone like every other tug's gs1. Written by the toolkit's skeleton
+                 serializer as v1.80 (stock is v1.10; bones otherwise unchanged).
   avrecy, bvrecy (smoke stack SM5 only; side panels hold), svrecy, cvrecy, svmuf, cvmuf, avcnst, bvcnst, cvcnst, svcnst
                  new looping element 4 idle that starts and ends on the deploy end pose.
   cvslf          new one-shot element 4 (Armory: played per launch) arm reach and return.
 
-  python Tools/Build-UnitAnimSlots.py --stock-dir <dir with stock .vdf> [--check]
+  python Tools/Build-UnitAnimSlots.py --stock-dir <dir with stock .vdf> [--game <Redux>] [--check]
 
---stock-dir holds the stock VDFs extracted from the Redux bzone.zfs. --check rebuilds in
+--stock-dir holds the stock VDFs extracted from the Redux bzone.zfs; --game is the Redux
+install whose BZ_ASSETS hold the stock skeletons (default the GOG install). --check rebuilds in
 memory and fails if a shipped file differs. The toolkit is located by Tools/bzmodellibs.py
 (BZ_TOOLKIT_DIR or a sibling BZ98RBlenderToolKit checkout).
 """
@@ -53,6 +65,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bzmodellibs  # noqa: E402
 
 SER = bzmodellibs.bwd2_serializer
+BWD2 = bzmodellibs.bwd2
+SKS = bzmodellibs.ogreskeleton_serializer
 SP = importlib.import_module("bzrmodelporter.spacial")  # on sys.path once the toolkit loads
 
 FPS = 15.0
@@ -146,6 +160,13 @@ class Model:
         self.path = path
         self.ser = SER.SDFSerializer if path.lower().endswith(".sdf") else SER.VDFSerializer
         self.bwd = self.ser(io.BytesIO(open(path, "rb").read())).read()
+        self.stock_anim = self.bwd.anim_obj is not None
+        if not self.stock_anim:
+            a = self.bwd.anim_obj = BWD2.AnimObj()
+            a.name = os.path.splitext(os.path.basename(path))[0]
+            # Toolkit gap: AnimObj() names these *_keyframes_ptr but write_anim reads
+            # *_keyframe_ptr (only read_anim sets those), so a fresh AnimObj cannot be written.
+            a._orientation_keyframe_ptr = a._scale_keyframe_ptr = a._position_keyframe_ptr = 0
         a = self.bwd.anim_obj
         self.order = list(a.mesh_map.keys())
         self.renamed = False
@@ -271,7 +292,12 @@ class Model:
         # Only the ANIM chunk changed: splice the toolkit's ANIM into the stock bytes so every
         # other byte (including stock garbage after string terminators) stays identical.
         old = open(self.path, "rb").read()
-        (o0, o1), (n0, n1) = chunk_span(old, b"ANIM"), chunk_span(new, b"ANIM")
+        n0, n1 = chunk_span(new, b"ANIM")
+        if not self.stock_anim:
+            # No stock ANIM: insert the new one where the toolkit writes it, right after VGEO.
+            o1 = chunk_span(old, b"VGEO")[1]
+            return old[:o1] + new[n0:n1] + old[o1:]
+        o0, o1 = chunk_span(old, b"ANIM")
         return old[:o0] + new[n0:n1] + old[o1:]
 
 
@@ -433,11 +459,22 @@ def build_cvslf(m):
 
 
 TUG_TRAVEL = 4.375  # svhaul's stock hardpoint travel (3.586 -> -0.789 along Z)
+TUG_ELEMENTS = ((0, 0, 121), (1, 120, -121))  # avhaul/bvhaul stock pickup/dropoff, 15 fps
 
 
-def tug_lift(m, gs1):
-    """Pull the cargo hardpoint TUG_TRAVEL metres back along its parent's -Z across element 0,
-    one key per frame with a smoothstep ease; element 1 plays the same frames in reverse."""
+def tug_lift(m, gs1, direction=-1.0):
+    """Pull the cargo hardpoint TUG_TRAVEL metres toward the hull along its parent's Z
+    (direction -1: cargo carried in front, as on av/bv/sv; +1: carried behind, as on cvhaul)
+    across element 0, one key per frame with a smoothstep ease; element 1 plays the same
+    frames in reverse. A VDF with neither tug element gets the av/bv elements, and a missing
+    gs1 track is added (position keys only, as on av/bv)."""
+    if m.element(0) is None and m.element(1) is None:
+        if gs1 not in m.tracks:
+            m.add_track(gs1, TUG_ELEMENTS[0][2] - 1)
+            m.tracks[gs1]["rot"] = []
+        for index, start, length in TUG_ELEMENTS:
+            e = m.set_element(index, start, length, 1)
+            e.mesh_index_list = [1] * len(m.order) + [0] * (32 - len(m.order))
     e0, e1 = m.element(0), m.element(1)
     first, last = e0.start, e0.start + e0.length - 1
     if (e1.start, e1.start + e1.length + 1) != (last, first):
@@ -450,7 +487,7 @@ def tug_lift(m, gs1):
     for f in range(first, last + 1):
         t = (f - first) / (last - first)
         e = t * t * (3 - 2 * t)
-        keys.append((f, (rest[0], rest[1], rest[2] - TUG_TRAVEL * e)))
+        keys.append((f, (rest[0], rest[1], rest[2] + direction * TUG_TRAVEL * e)))
     tr["pos"] = keys
 
 
@@ -467,6 +504,7 @@ BUILDS = {
     "svhaul.vdf": lambda m: m.rename_track(next(n for n in m.order if not n.strip()), "sha11gs1"),
     "avhaul.vdf": lambda m: tug_lift(m, "aha11gs1"),
     "bvhaul.vdf": lambda m: tug_lift(m, "bha11gs1"),
+    "cvhaul.vdf": lambda m: tug_lift(m, "COX11GS1", direction=1.0),
     "svrecy.vdf": lambda m: idle(m, 89, {"SRE11RAD": Y(15, 1, R(5, harmonic=2)), "SRE11AR1": R(), "SRE11AR2": R(5)}),
     "cvrecy.vdf": lambda m: idle(m, 74, {"CRE11AMR": R(), "CRE11ARL": R()}),
     "svmuf.vdf": lambda m: idle(m, 59, {"smu11bsh": R(metres=0.25, harmonic=2), "smu11drl": R(), "smu11drr": R()}),
@@ -479,7 +517,38 @@ BUILDS = {
 }
 
 
-def build(stock_dir, name):
+DEFAULT_GAME = r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux"
+
+
+def add_vdf_bone(stock_dir, vdf, part):
+    """A skeleton edit adding bone `part` under its VDF parent, at its VDF rest position."""
+    def edit(sk):
+        if sk.bone_name_exists(part):
+            raise ValueError("skeleton already has %s" % part)
+        m = Model(os.path.join(stock_dir, vdf))
+        rot, pos = m.bind(part)
+        if min(abs(rot[0] - 1.0), abs(rot[0] + 1.0)) > 1e-6:
+            raise ValueError("%s: %s is rotated; only a translated bone is handled" % (vdf, part))
+        bone = sk.create_bone(part, max(b.handle for b in sk.bones()) + 1, pos=SP.Vector3(*pos))
+        sk.get_bone_by_name(m.geo(part).parent).add_child(bone)
+    return edit
+
+
+# shipped skeleton: (stock path under BZ_ASSETS/common/models, stock_dir -> edit(skeleton))
+SKELETONS = {
+    "cvhaul.skeleton": ("TRO/cvhaul.skeleton", lambda d: add_vdf_bone(d, "cvhaul.vdf", "COX11GS1")),
+}
+
+
+def build(stock_dir, name, game=DEFAULT_GAME):
+    if name in SKELETONS:
+        rel, edit = SKELETONS[name]
+        src = os.path.join(game, "BZ_ASSETS", "common", "models", *rel.split("/"))
+        sk = SKS.SkeletonSerializer(io.BytesIO(open(src, "rb").read())).read()
+        edit(stock_dir)(sk)
+        out = io.BytesIO()
+        SKS.SkeletonSerializer(out).write(sk)
+        return out.getvalue()
     m = Model(os.path.join(stock_dir, name))
     BUILDS[name](m)
     return m.to_bytes()
@@ -488,12 +557,13 @@ def build(stock_dir, name):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--stock-dir", required=True, help="folder with the stock .vdf files (from bzone.zfs)")
+    ap.add_argument("--game", default=DEFAULT_GAME, help="Redux install (stock skeletons under BZ_ASSETS)")
     ap.add_argument("--check", action="store_true", help="fail if a shipped file differs from a rebuild")
     ap.add_argument("only", nargs="*", help="build only these files")
     args = ap.parse_args()
     bad = 0
-    for name in args.only or sorted(BUILDS):
-        data = build(args.stock_dir, name)
+    for name in args.only or sorted(BUILDS) + sorted(SKELETONS):
+        data = build(args.stock_dir, name, args.game)
         out = os.path.join(OUT, name)
         if args.check:
             same = os.path.exists(out) and open(out, "rb").read() == data
