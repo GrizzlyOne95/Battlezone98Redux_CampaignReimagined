@@ -173,8 +173,8 @@ function Jungle.Create(api)
     end
 
     -- Vehicle wakes (render only, shared CRWake module). Water is the river
-    -- corridor from the authored route (the stream and pool water exists only as
-    -- baked meshes, so it cannot be queried); everything else is grass, thinned
+    -- corridor from the authored route plus the generated stream/pool mask;
+    -- everything else is grass, thinned
     -- where no ground cover stands within a cell. api.vehicleWakes=false turns it off.
     local RIVER_HALF,CELL=7.5,12
     local cover
@@ -196,6 +196,24 @@ function Jungle.Create(api)
         local ex,ez=px-(ax+dx*t),pz-(az+dz*t)
         return ex*ex+ez*ez
     end
+    -- Stream and pool water: the generated run-length mask of the cells the baked
+    -- meshes cover (Tools/Export-Misn17WaterMask.py). rows[i] = {startCol,length,...}
+    -- for grid row firstRow+i-1; cells are centred on col*cell, row*cell+originZ.
+    local MASK_LIFT=.8 -- the surface sits between the carved bed and ~2 m above it
+    local function inMask(px,pz)
+        local m=Sites.watermask
+        if not m then return false end
+        local row=m.rows[math.floor((pz-m.originZ)/m.cell+.5)-m.firstRow+1]
+        if not row then return false end
+        local col=math.floor((px-m.originX)/m.cell+.5)
+        for i=1,#row-1,2 do
+            local start=row[i]
+            if col<start then return false end
+            if col<start+row[i+1] then return true end
+        end
+        return false
+    end
+    J.WakeInWaterMask=inMask
     -- resolver(x,z) -> surface, rate scale, lift (the water plane sits above the cut bed)
     function J.WakeSurface(px,pz)
         local r=Sites.river
@@ -206,6 +224,7 @@ function Jungle.Create(api)
                 end
             end
         end
+        if inMask(px,pz) then return "water",1,MASK_LIFT end
         if not cover then buildCover() end
         local ix,iz=math.floor(px/CELL),math.floor(pz/CELL)
         local n=0

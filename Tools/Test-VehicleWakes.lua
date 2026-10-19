@@ -561,6 +561,74 @@ do
 end
 
 -- =============================================================================
+-- 10b. Achilles: the real generated stream/pool mask through the real resolver
+-- =============================================================================
+
+do
+    local sites = dofile(scriptDir .. "/CRJungle17Sites.lua")
+    local mask = sites.watermask
+    check(type(mask) == "table" and mask.cell == 5 and #mask.rows > 100, "the generated sites carry a water mask")
+    local w = NewWorld()
+    local modules = {
+        CRWeather = { Init = function() end, Update = function() end, Shutdown = function() end,
+            SetPreset = function() end, SetWindOverride = function() end, ClearWindOverride = function() end,
+            SetIntensity = function() end },
+        CRWeatherPresets = { Presets = { AcidRainVisual = { precipitation = { { emitters = { [0] = {} } } } } } },
+        CRJungle17Sites = sites,
+        CRSplash = { Set = function() end, Update = function() end, Stop = function() end, SetWind = function() end },
+        CRWetGlass = { Update = function() end, Stop = function() end },
+        CRParticleTemplates = { EnsureExtra = function() return true end },
+        Environment = { RegisterEnvironmentModifier = function() end },
+        CRFoliageWind = { Register = function() end, EnableLitter = function() end, Describe = function() return {} end },
+        CRWake = w.Wake,
+    }
+    local base = w.env.require
+    w.env.require = function(name) return modules[name] or base(name) end
+    local chunk = assert(loadfile(scriptDir .. "/CRJungle17.lua"))
+    setfenv(chunk, w.env)
+    local J = chunk().Create({ exu = {} })
+
+    local function cellXZ(rowIndex, col)
+        return col * mask.cell, (mask.firstRow + rowIndex - 1) * mask.cell + mask.originZ
+    end
+    local stream, pool, miss
+    for i, row in ipairs(mask.rows) do
+        for k = 1, #row - 1, 2 do
+            local start, len = row[k], row[k + 1]
+            local x, z = cellXZ(i, start + math.floor(len / 2))
+            if len <= 3 and not stream and J.WakeSurface(x, z) == "water" then stream = { x = x, z = z } end
+            if len >= 8 and not pool and J.WakeSurface(x, z) == "water" then pool = { x = x, z = z } end
+            if not miss and start >= 2 then
+                -- the cell left of a run is dry (runs are maximal); skip it if the river covers it
+                local mx, mz = cellXZ(i, start - 1)
+                if J.WakeSurface(mx, mz) == "grass" and not J.WakeInWaterMask(mx, mz) then miss = { x = mx, z = mz } end
+            end
+        end
+        if stream and pool and miss then break end
+    end
+    check(stream ~= nil, "a narrow (stream) run in the mask resolves to water")
+    check(pool ~= nil, "a wide (pool) run in the mask resolves to water")
+    check(miss ~= nil, "the cell just outside a run resolves to grass")
+
+    if stream and pool and miss then
+        w.Wake.Init({ surface = J.WakeSurface, surfaces = { "water", "grass" } })
+        w.objects.player.x, w.objects.player.z = pool.x, pool.z
+        w.Add("poolcraft", pool.x + 5.0, pool.z, 20.0, 0.0)
+        w.Add("streamcraft", stream.x, stream.z + 5.0, 20.0, 0.0)
+        w.Run(2.0)
+        check(w.Live("CRWake/WaterSpray") >= 1, "craft over mask water get the spray through the real module")
+        -- Elsewhere on the map (player moved there), a craft on a dry cell beside the mask.
+        w.Wake.Stop()
+        w.Wake.Init({ surface = J.WakeSurface, surfaces = { "water", "grass" } })
+        w.objects.player.x, w.objects.player.z = miss.x, miss.z
+        w.Add("misscraft", miss.x, miss.z, 20.0, 0.0)
+        w.Run(2.0)
+        check(w.Live("CRWake/GrassBits") >= 1, "a craft on the dry cell beside the mask gets grass debris")
+        w.Wake.Stop()
+    end
+end
+
+-- =============================================================================
 -- 11. Payload and profile consistency
 -- =============================================================================
 

@@ -229,6 +229,15 @@ missing.Stop()
 check(wakeLog.init>=1 and type(wakeLog.opts.surface)=="function","reset initialises vehicle wakes")
 check(wakeLog.opts.surfaces[1]=="water" and wakeLog.opts.surfaces[2]=="grass","both Achilles surfaces are loaded")
 sites.river={{1440,99480},{1450,99520},{1470,99570}}
+-- Stream and pool water come from the generated run-length mask: rows[i] is grid row
+-- firstRow+i-1, runs are {startCol,length}; cells are centred on col*5 and row*5+originZ.
+sites.watermask={cell=5,originX=0,originZ=97280,firstRow=100,rows={{40,3},{},{10,2,20,4}}}
+check(J.WakeSurface(41*5,(100+0)*5+97280)=="water","a stream cell in the mask is water")
+check(J.WakeSurface(21*5,(102)*5+97280)=="water","a pool cell in the mask is water")
+check(J.WakeSurface(43*5,100*5+97280)=="grass","the cell just past a run is grass")
+check(J.WakeSurface(41*5,101*5+97280)=="grass","an empty mask row is grass")
+check(J.WakeSurface(21*5,99*5+97280)=="grass","a row above the mask is grass")
+sites.watermask=nil
 local s1,_,lift=J.WakeSurface(1450,99520)
 check(s1=="water" and lift>0,"a craft on the river route is over water, lifted to the surface")
 check(J.WakeSurface(1450+6,99520)=="water","inside the river half-width is water")

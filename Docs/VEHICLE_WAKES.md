@@ -37,11 +37,19 @@ Every director accepts `vehicleWakes = false` in its `Init` options (Achilles: `
 ## Achilles surface test
 
 `CRJungle17.WakeSurface(x, z)`: water when within 7.5 m of the authored river route
-(`CRJungle17Sites.river`, the same polyline that cuts the river bed), lifted 1.1 m to the water plane;
-everything else is grass, at a rate scaled by ground-cover instances (`layers`) in the 3x3 12 m cells
-around the craft (0.4 on bare ground). The stream and pool water exists only as baked meshes with no
-queryable data, so wading through them gets grass debris. Exporting pool/stream polygons from
-`Tools/Build-Misn17Jungle.py` would close that gap.
+(`CRJungle17Sites.river`), lifted 1.1 m to the water plane, or when the craft is on a cell of the generated
+stream/pool mask (`CRJungle17Sites.watermask`), lifted 0.8 m; everything else is grass, at a rate scaled by
+ground-cover instances (`layers`) in the 3x3 12 m cells around the craft (0.4 on bare ground).
+
+The mask is the 5 m heightmap grid (x = col * 5, z = row * 5 + 97280) as run-length rows
+(`rows[i]` = grid row `firstRow + i - 1`, `{startCol, length, ...}`), 30,339 cells in about 24.8 KB. Pool
+cells are as baked into `cr17_pools.mesh`; stream cells are those whose centre lies within the drawn half-width
+plus half a cell of a stream point, so the mask covers the strip that is drawn. `Tools/Build-Misn17Jungle.py`
+emits it with the rest of the sites; `Tools/Export-Misn17WaterMask.py` regenerates only the mask (no ISDFC
+checkout needed) by executing the builder's WATER-MODEL slice on the original heightmap, and refuses to write
+unless it reproduces the pool cell, stream path and stream point counts of `source-assets.json`.
+`--check` verifies the file is current. The lift for mask water is a compromise (stream surface is 0.6 m above
+the carved bed; pools sit up to 2 m above it).
 
 ## Validation
 
