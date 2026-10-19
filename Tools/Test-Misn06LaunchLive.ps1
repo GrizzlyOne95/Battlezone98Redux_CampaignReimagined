@@ -18,6 +18,7 @@ Invoke-CRFlowStep 'mission initialized; opening camera completes' {
         $r=Invoke-CRFlow $rocketClient "local h=GetHandle('cr06_rocket');return IsValid(h) and describe(h)"
         if (-not $r) { throw "c$rocketClient missing preplaced rocket" }
         Write-Host "DOCKED c$rocketClient $(ConvertTo-Json $r -Compress)"
+        Invoke-CRFlow $rocketClient 'local p=require("PersistentConfig");p.Settings.WeaponStatsHud=false;p._DestroyAllPdaOverlays();if exu.SetViewportOverlaysEnabled then exu.SetViewportOverlaysEnabled(false) end;return true' | Out-Null
     }
 }
 Invoke-CRFlowStep 'original VO cue starts rocket and object-camera insert' {

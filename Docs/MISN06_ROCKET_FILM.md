@@ -62,15 +62,18 @@ the original VO starts the insert, the rocket rises on both peers, the four
 particle systems exist, the camera releases, the pad and deadlines survive,
 and the actor/particles clean up. Both clients exited with return code 0.
 Screenshots confirm visible orange exhaust during ascent. They also revealed a
-ridge obscuring ignition in the first camera position; the camera is now higher
-and on the other side of the pad, pending a second visual check.
+ridge obscuring ignition in the first camera position. Run `mars-rocket-6`
+passed 7 steps / 19 checks and exercised all four FX layers on both clients,
+with visible orange exhaust during ascent. Its wider revised view still hid
+ignition behind the ridge. The camera is now closer and looks down into the
+gantry, pending the final visual check.
 Steam and Proton/Wine remain unverified. No Workshop upload or release is part
 of this prototype.
 
 ## Resume checkpoint — 18 October 2026
 
-Branch: `agent/mars-rocket`, draft PR #228. Implementation and host tests are
-complete; revised native framing and effects tuning are the next step.
+Branch: `agent/mars-rocket`, draft PR #228. Implementation, host tests and native
+two-peer motion/FX checks are complete; final camera framing is the next step.
 Checkpoint `91d710d3` contains the initial implementation. The isolated manager-staged content
 is `C:/BZRCoop/mars-launch-20261018/content`; the regular GOG mod is untouched.
 Run OpenShim's `Run-BZRCoopMission.ps1` with `-Mission misn06`, this content,

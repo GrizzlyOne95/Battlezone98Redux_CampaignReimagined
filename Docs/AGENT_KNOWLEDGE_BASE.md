@@ -870,6 +870,12 @@ by `ReceivePresentation`; otherwise they stall the ordered event stream even if
 the local host effect works. The four-peer presentation test covers this case.
 Art, native validation status and resume steps: `Docs/MISN06_ROCKET_FILM.md`.
 
+Native scenarios are dot-sourced into `Run-BZRCoopMission.ps1`. Avoid names from
+its parameters: `$clients` aliases its `[int]$Clients` parameter because
+PowerShell is case-insensitive. Assigning a peer-index array then fails before
+the first scenario step. Use a scoped name such as `$rocketClients`; also avoid
+using `$c` for an array and `$C` for its loop element.
+
 ## 10. Keeping this document current
 
 Cut Fury fighter (2026-10-16): the owner-selected standalone `hvraz` port is
