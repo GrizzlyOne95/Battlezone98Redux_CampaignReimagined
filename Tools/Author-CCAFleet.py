@@ -11,6 +11,7 @@ import json
 import math
 from pathlib import Path
 import sys
+import os
 import bpy
 import bmesh
 from mathutils import Vector
@@ -18,12 +19,14 @@ from mathutils import Vector
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('carrier_author',ROOT/'Tools/Author-NSDFCarrier.py')
 A=importlib.util.module_from_spec(spec);spec.loader.exec_module(A)
+detail_spec=importlib.util.spec_from_file_location('cca_detail',ROOT/'Tools/CCA-ReduxDetail.py')
+D=importlib.util.module_from_spec(detail_spec);detail_spec.loader.exec_module(D)
 SOURCE=ROOT/'References/CCAFleet'
 SCALE=.25  # 14.6186m installed svapc / ~59 source px, rounded for concept fidelity.
 SHIPS=[
-    dict(id='crccarr',name='CCA fork-bow carrier',center=(527,270),span=(49,1007),atlas=2048),
-    dict(id='crcred1',name='CCA upper-left red hull',center=(283,88),span=(55,512),atlas=1024),
-    dict(id='crcred2',name='CCA upper-right red hull',center=(804,86),span=(550,1057),atlas=1024),
+    dict(id='crccarr',name='CCA fork-bow carrier',center=(527,270),span=(49,1007),atlas=4096),
+    dict(id='crcred1',name='CCA upper-left red hull',center=(283,88),span=(55,512),atlas=2048),
+    dict(id='crcred2',name='CCA upper-right red hull',center=(804,86),span=(550,1057),atlas=2048),
 ]
 current=None
 survey=[]
@@ -34,7 +37,7 @@ def point(u,v,x=0):
     return x,(cu-u)*SCALE,(cv-v)*SCALE
 
 
-def solid(label,polygon,depth,mat,taper=None,bevel=.12):
+def solid(label,polygon,depth,mat,taper=None,bevel=.30):
     """Closed extrusion of the surveyed side outline; depth is authored metres.
 
     Recalculate this connected solid before joining disconnected lamps/cards.
@@ -158,7 +161,8 @@ def carrier():
 def red_left():
     solid('Dark lower gunship hull',[(154,98),(438,98),(438,135),(167,135),
          (167,126),(137,119),(137,109)],16,'Charcoal')
-    solid('Long needle gun',[(55,110),(136,110),(151,104),(151,122),(136,117),(55,116)],1.2,'Red dark',bevel=.04)
+    # The concept's long forward spike becomes a sleeved twin-barrel fitting
+    # in the Redux pass, preserving its reach without a rectangular blockout.
     solid('Faceted red upper bow',[(92,69),(168,51),(215,45),(215,99),
          (117,99),(92,82)],17,'Red',lambda u:.3+.7*min(1,(u-92)/80))
     solid('Pale broad middle body',[(214,61),(439,61),(439,135),(214,135)],15.4,'Ivory')
@@ -221,8 +225,8 @@ def inspect(ob):
     sc.world.node_tree.nodes['Background'].inputs[0].default_value=(.035,.038,.044,1)
     sc.world.node_tree.nodes['Background'].inputs[1].default_value=.4
     size=max(max(v.co.y for v in ob.data.vertices)-min(v.co.y for v in ob.data.vertices),40)
-    for label,loc,power,color in [('Key',(-.9,1.2,1.3),24,(1,.93,.84)),
-         ('Fill',(1.3,-.4,.6),9,(.72,.84,1)),('Rim',(-.4,-1,.9),14,(.8,.88,1))]:
+    for label,loc,power,color in [('Key',(-.9,1.2,1.3),40,(1,.93,.84)),
+         ('Fill',(-1.5,-.4,.6),14,(.78,.86,1)),('Rim',(-.4,-1,.9),20,(.8,.88,1))]:
         d=bpy.data.lights.new(label,'AREA');d.energy=power*size*size;d.shape='DISK';d.size=size*.8;d.color=color
         lamp=bpy.data.objects.new(label,d);sc.collection.objects.link(lamp);lamp.location=Vector(loc)*size
         lamp.rotation_euler=(-lamp.location).to_track_quat('-Z','Y').to_euler()
@@ -279,10 +283,18 @@ def main():
         current=ship;survey=[]
         bpy.ops.wm.read_factory_settings(use_empty=True);bpy.context.preferences.filepaths.save_version=0
         A.parts=[];A.coarse=[];A.materials={};A.ASSET=ship['id']
+        A.EXPORT_TANGENTS=True
         A.SOURCE=SOURCE/ship['id'];A.TEXTURES=A.SOURCE/'Textures';A.TEXTURES.mkdir(parents=True,exist_ok=True)
-        A.ATLAS=[('d',ship['atlas'],'DIFFUSE'),('e',ship['atlas'],'EMIT'),('s',512,'EMIT')]
         palette();engines={'crccarr':carrier,'crcred1':red_left,'crcred2':red_right}[ship['id']]()
-        ob=A.assemble();ob.name=ship['name'];A.bake(ob)
+        details=D.detail_ship(A,ship)
+        ob=A.assemble();ob.name=ship['name']
+        # Glyphs and lathed end caps have n-gons. Triangulate those before both
+        # normal baking and tangent calculation, retaining quad panel UVs.
+        bm=bmesh.new();bm.from_mesh(ob.data)
+        bmesh.ops.triangulate(bm,faces=[f for f in bm.faces if len(f.verts)>4])
+        bm.to_mesh(ob.data);bm.free();ob.data.update()
+        sizes={'d':ship['atlas'],'n':2048,'e':1024,'s':1024}
+        D.bake(ob,A.SOURCE,sizes)
         stats=A.export_mesh(ob);A.export_native(ob,stats)
         stats.update(asset=ship['id'],name=ship['name'],reference='CCAfleet3.webp',reference_sha256=A.CCA_SHA256,
             scale_metres_per_pixel=SCALE,source_center=ship['center'],source_span=ship['span'],
@@ -291,11 +303,14 @@ def main():
             axis='Y up; nose -Z; engines +Z',engine_exits=engines,source_polygons=survey,
             inference='width, hidden surfaces, engine bank and small lamps; side outlines measured',
             excluded='all five bottom-right elements are stock unit scale comparisons',
-            atlas_sizes={s:n for s,n,_ in A.ATLAS}|{'n':16})
+            atlas_sizes=sizes,detail_counts=details,quality_pass='Redux CCA authored armour, mechanical assemblies, markings and textured paint',
+            stock_style_references=['svapc_D.dds','svrecy_D.dds','svtank_D.dds','sblpad_D.dds'],
+            normal_mapping='baked bevel/paint tangent normals; explicit Ogre VES_TANGENT float3',
+            paint_tile_sha256=hashlib.sha256((SOURCE/'Materials/cca_painted_steel.png').read_bytes()).hexdigest())
         (A.SOURCE/'geometry.json').write_text(json.dumps(stats,indent=2)+'\n')
         if args.render:inspect(ob)
         for im in bpy.data.images:
-            if im.filepath and Path(im.filepath).parent==A.TEXTURES:im.filepath='//Textures/'+Path(im.filepath).name
+            if im.filepath and Path(im.filepath).is_absolute():im.filepath='//'+os.path.relpath(im.filepath,A.SOURCE).replace('\\','/')
         bpy.ops.wm.save_as_mainfile(filepath=str(A.SOURCE/(ship['id']+'.blend')),compress=True)
         print('CCA_SHIP_BUILT',ship['id'],stats['triangles'],flush=True)
     if args.render and all((SOURCE/s['id']/(s['id']+'.blend')).is_file() for s in SHIPS):overview()

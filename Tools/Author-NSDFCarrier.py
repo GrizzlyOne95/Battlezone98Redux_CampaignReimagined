@@ -20,6 +20,7 @@ MODEL=ROOT/'Assets/ModelFixes'
 ASSET='crncarr'
 ATLAS=[('d',2048,'DIFFUSE'),('e',2048,'EMIT'),('s',512,'EMIT')]
 RUNTIME_SCALE=.4  # 240m NSDF span, consistent with the owner's CCA/APC scale reference.
+EXPORT_TANGENTS=False
 TAU=math.tau
 parts=[]
 materials={}
@@ -438,6 +439,7 @@ def chunk(cid,body):return struct.pack('<HI',cid,len(body)+6)+body
 
 def export_mesh(ob):
     data=ob.data;data.calc_loop_triangles()
+    if EXPORT_TANGENTS:data.calc_tangents(uvmap=data.uv_layers.active.name)
     uv=data.uv_layers.active.data
     vertices=[];indices=[];lookup={}
     for tri in data.loop_triangles:
@@ -446,14 +448,23 @@ def export_mesh(ob):
             p=game_vector(data.vertices[vi].co);n=game_vector(data.corner_normals[li].vector)
             u,v=uv[li].uv
             row=(*p,*n,float(u),1-float(v))
+            if EXPORT_TANGENTS:
+                normal=Vector(n);tangent=Vector(game_vector(data.loops[li].tangent))
+                tangent-=normal*tangent.dot(normal)
+                if tangent.length_squared<1e-12:
+                    tangent=normal.cross(Vector((1,0,0) if abs(normal.x)<.8 else (0,1,0)))
+                tangent.normalize();row+=tuple(tangent)
             key=tuple(round(x,6) for x in row)
             if key not in lookup:lookup[key]=len(vertices);vertices.append(row)
             indices.append(lookup[key])
     nv=len(vertices);wide=nv>=65536
     idx=struct.pack('<%d%s'%(len(indices),'I' if wide else 'H'),*indices)
     head=(ASSET+'00\n').encode()+struct.pack('<?I?',False,len(indices),wide)+idx
-    decl=b''.join(chunk(0x5110,struct.pack('<5H',*e)) for e in [(0,2,1,0,0),(0,2,4,12,0),(0,1,7,24,0)])
-    vb=struct.pack('<2H',0,32)+chunk(0x5210,b''.join(struct.pack('<8f',*v) for v in vertices))
+    elements=[(0,2,1,0,0),(0,2,4,12,0),(0,1,7,24,0)]
+    if EXPORT_TANGENTS:elements.append((0,2,9,32,0))
+    decl=b''.join(chunk(0x5110,struct.pack('<5H',*e)) for e in elements)
+    stride=44 if EXPORT_TANGENTS else 32
+    vb=struct.pack('<2H',0,stride)+chunk(0x5210,b''.join(struct.pack('<%df'%(stride//4),*v) for v in vertices))
     geom=chunk(0x5000,struct.pack('<I',nv)+chunk(0x5100,decl)+chunk(0x5200,vb))
     sub=chunk(0x4000,head+geom+chunk(0x4010,struct.pack('<H',4)))
     points=[v[:3] for v in vertices]
