@@ -19,15 +19,16 @@ material CR18/StormSwirl
 	{
 		pass
 		{
-			vertex_program_ref CR18_Swirl_v1_vertex
+			vertex_program_ref CR18_Swirl_v2_vertex
 			{
 			}
-			fragment_program_ref CR18_Swirl_v1_fragment
+			fragment_program_ref CR18_Swirl_v2_fragment
 			{
 			}
 			cull_hardware none
 			lighting off
 			scene_blend alpha_blend
+			depth_check off
 			depth_write off
 			ambient 0.10 0.02 0.015 1
 			diffuse 0.95 0.30 0.10 0.30

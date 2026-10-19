@@ -75,7 +75,7 @@ end
 local program = readFile("Shaders/cr18_swirl.program")
 local declared = {}
 for kind, n in program:gmatch("(%a+_program)%s+(%S+)") do declared[n] = (program:find(n .. " unified", 1, true) and "unified") or kind end
-for _, ref in ipairs({ "CR18_Swirl_v1_vertex", "CR18_Swirl_v1_fragment" }) do
+for _, ref in ipairs({ "CR18_Swirl_v2_vertex", "CR18_Swirl_v2_fragment" }) do
     check(declared[ref], ref .. " declared")
     check(materialText:find(ref, 1, true), "material uses " .. ref)
 end
@@ -159,7 +159,9 @@ def("SetMaterialPassColors", function(n, c) colours[n] = colours[n] or {}; table
 def("SetMaterialTextureScrollAnimation", function(n, u, v) anim[n] = anim[n] or {}; anim[n].scroll = { u, v }; return true end)
 def("SetMaterialTextureRotateAnimation", function(n, r) anim[n] = anim[n] or {}; anim[n].rotate = r; return true end)
 def("GetSkyPlaneEnabled", function() return opts.mapSky end)
-def("GetSkyDomeEnabled", function() return false end)
+local dome = { on = true }
+def("GetSkyDomeEnabled", function() return dome.on end)
+def("SetSkyDomeEnabled", function(on) dome.on = on; return true end)
 def("GetSkyBoxEnabled", function() return false end)
 def("SetSkyPlane", function(m, plane, scale, tiling, first, bow, xs, ys) skyPlane = { m = m, d = plane.d, scale = scale, tiling = tiling, enabled = false }; return true end)
 def("SetSkyPlaneEnabled", function(on) skyPlane.enabled = on end)
@@ -353,6 +355,7 @@ local function fresh()
     events = {}; quakeLog = {}; sounds = {}; groundfx.bolts = {}; velocityWrites = 0; damageWrites = 0; craft = {}; printed = {}
     opts.failBuild, opts.mapSky, opts.noPayload = false, false, false
     wipe(missing)
+    dome.on = true
 end
 
 -- ===================================================================== ladder
@@ -394,6 +397,7 @@ check(#printed == 0 or not printed[1]:find("CRWeather:"), "CRWeather reports no 
 local d = L.S.Describe()
 check(d.errors == 0, "no director errors: " .. tostring(d.error))
 check(d.sky == "on" and skyPlane.m == "CR18/StormSwirl" and skyPlane.enabled, "swirl sky plane on")
+check(dome.on == false, "map dome hidden under the storm deck")
 check(math.abs(skyPlane.d - 1450 * 0.15 * 1125 / 1450) < 0.01 and skyPlane.tiling == 24, "sky plane fitted to 0.15 of the far clip, tiling 24")
 check(anim["CR18/StormSwirl"] and anim["CR18/StormSwirl"].scroll[1] > 0.01 and anim["CR18/StormSwirl"].rotate > 0.004, "sky scrolls and rotates at storm strength")
 local sc = colours["CR18/StormSwirl"]
@@ -824,6 +828,7 @@ do
     check(next(geo) == nil, "every static geometry destroyed")
     check(next(lights) == nil, "every light destroyed")
     check(not skyPlane.enabled, "sky plane switched off")
+    check(dome.on == true, "map dome given back on stop")
     check(quakeLog[#quakeLog][1] == "stop", "native quake stopped")
     check(glass.crack == 0 and glass.stopped > 0 and groundfx.stopped > 0, "glass and strike systems released")
     check(modifiers.CR18Storm == nil and Foliage.Describe().materials == 0, "modifier and wind registrations dropped")
