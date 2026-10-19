@@ -81,7 +81,6 @@ local ACID_MIN = 0.02          -- Weather("acid") level above which new drops ar
 local ETCH_PEAK = 0.30         -- opacity of the etch haze at full exposure (a very faint film)
 local ETCH_RISE = 1 / 180      -- exposure per second at acid level 1 (about 3 minutes to full)
 local ETCH_CLEAR = 1 / 720     -- exposure per second once the rain stops (about 12 minutes to clear)
-local WARM_QUIET = 2           -- warm-up shows an acid texture only while this few panels draw
 local DIRT_LAYERS = 3
 local SNOW_LAYERS = 2       -- crwx_glassweather.material; Weather("snow", level)
 local GRIT_LAYERS = 2       -- crwx_glassweather.material; Weather("grit", level)
@@ -241,9 +240,6 @@ local function build()
 	s.etch = newPanel(OVERLAY .. "_e", "CRWX_WinEtch")
 	if s.etch == nil then return false end
 	s.etch.phase = "off"
-	-- Textures that load the first time a panel draws them (see warmUp).
-	s.warm = { { s.etch, "CRWX_WinEtch" }, { s.streak, "CRWX_AcidStreak" }, { s.beads[1], "CRWX_AcidBeads" },
-		{ s.rivulets[1], "CRWX_AcidRivulet" } }
 	return s
 end
 
@@ -666,24 +662,26 @@ local function retint(p)
 	if p.family ~= want then p.family, p.step = want, 0 end
 end
 
--- Pre-loads the acid textures on the screen overlay. A texture loads the first time a panel draws it; with
--- five or more other panels already showing, that first draw of crwx_winetch.png (or any new texture) made the
--- DX11 renderer throw "Unable to set D3D11 vertex declaration" on every frame from then on (live check,
--- Instance2, 2026-10-19). So, once, while the glass is still empty, each acid family shows one panel for two
--- frames at its faintest step (only while at most WARM_QUIET other panels show). Returns true while a warm-up
--- panel is on screen.
-local function quiet()
-	local n = 0
-	for _, p in ipairs(allLayers()) do
-		if p.on then n = n + 1 end
-	end
-	return n <= WARM_QUIET
-end
-
+-- Shows every glass panel once, alone, on the screen overlay. A panel's first draw (which also loads its
+-- texture the first time) beside other showing panels broke the DX11 renderer in the live check: "Unable to set
+-- D3D11 vertex declaration" on every frame from then on (Instance2, 2026-10-19; the Mars dirt splat, the Venus
+-- etch). So, once, while at most WARM_QUIET panels show, each panel shows alone for two frames at its faintest
+-- step. The list is allLayers(), so a new layer is covered without touching this. Returns true while a
+-- warm-up panel is on screen.
+local WARM_QUIET = 2
 local function warmUp()
+	if state.warm == nil then
+		state.warm = {}
+		for _, p in ipairs(allLayers()) do
+			state.warm[#state.warm + 1] = { panel = p, family = p.family }
+			if ACID_OF[p.family] then          -- the acid variant a rain layer switches to (retint)
+				state.warm[#state.warm + 1] = { panel = p, family = ACID_OF[p.family] }
+			end
+		end
+	end
 	local w = state.warm[1]
 	if w == nil then return false end
-	local p = w[1]
+	local p = w.panel
 	if w.shown then
 		call("HideOverlayElement", p.name)
 		table.remove(state.warm, 1)
@@ -693,8 +691,11 @@ local function warmUp()
 		table.remove(state.warm, 1)         -- already in use: its texture is loaded
 		return false
 	end
+	local n = 0
+	for _, q in ipairs(allLayers()) do if q.on then n = n + 1 end end
+	if n > WARM_QUIET then return false end
 	call("SetOverlayParameter", p.name, "uv_coords", "0 0 1 1")
-	call("SetOverlayMaterial", p.name, w[2] .. "_A1")
+	call("SetOverlayMaterial", p.name, w.family .. "_A1")
 	call("ShowOverlayElement", p.name)
 	w.shown = true
 	return true
@@ -823,7 +824,7 @@ local function run(intensity, dt)
 		if not shellApply() then state.shellOk = false end   -- the glass refused: overlay from now on
 		return
 	end
-	if mode == "overlay" and #state.warm > 0 and (state.warm[1].shown or quiet()) and warmUp() then any = true end
+	if mode == "overlay" and (state.warm == nil or #state.warm > 0) and warmUp() then any = true end
 	poseMask(player)
 	show(any)
 end

@@ -39,7 +39,7 @@ X.HideOverlayElement = function(name) ov.panels[name].visible = false; return tr
 X.SetOverlayMetricsMode = function() return true end
 X.SetOverlayPosition = function() return true end
 X.SetOverlayDimensions = function() return true end
-X.SetOverlayMaterial = function(name, m) ov.panels[name].material = m; ov.setLog[#ov.setLog + 1] = m; return true end
+X.SetOverlayMaterial = function(name, m) ov.panels[name].material = m; ov.setLog[#ov.setLog + 1] = { name = name, material = m }; return true end
 X.SetOverlayParameter = function(name, k, v) if k == "uv_coords" then ov.panels[name].uv = v end; return true end
 X.GetCameraAspectRatio = function() return 16 / 9 end
 X.GetCameraView = function() return 1 end
@@ -109,6 +109,36 @@ end
 -- =============================================================================
 
 check(not glass.Busy(), "idle glass is not busy")
+
+-- Warm-up: every panel is shown once, alone, at its faintest step before real use (a first draw beside other
+-- panels broke the DX11 renderer in the live check), then the glass is empty again.
+do
+    local maxShown, frames = 0, 0
+    for _ = 1, math.floor(3 / dt) do
+        now = now + dt; glass.Update(0)
+        local n = 0
+        for _, p in pairs(ov.panels) do if p.visible then n = n + 1 end end
+        maxShown = math.max(maxShown, n)
+        if n > 0 then frames = frames + 1 end
+    end
+    local seen, count = {}, 0
+    for _, e in ipairs(ov.setLog) do
+        check(string.find(e.material, "_A1$") ~= nil, "warm-up uses the faintest step, got " .. e.material)
+        local key = e.name .. " " .. e.material
+        check(seen[key] == nil, key .. " is warmed exactly once")
+        seen[key] = true; count = count + 1
+        seen[e.name] = true
+    end
+    local panels = 0
+    for name in pairs(ov.panels) do panels = panels + 1; check(seen[name], name .. " is warmed") end
+    -- one warm-up per panel, plus the acid variant of each of the seven rain panels (4 beads, 2 rivulets, 1 streak)
+    check(panels >= 16 and count == panels + 7, "every panel and acid variant is warmed, panels " .. panels .. " warmed " .. count)
+    check(maxShown <= 1, "warm-up shows one panel at a time, saw " .. maxShown)
+    check(not ov.overlayShown and not glass.Busy(), "after the warm-up the glass is empty")
+    ov.setLog = {}
+    run(3, 0)
+    check(#ov.setLog == 0, "the warm-up happens once")
+end
 glass.Weather("snow", 0.3)
 check(glass.Busy(), "a snow level makes the glass busy so the caller keeps updating")
 run(0.5)
@@ -344,12 +374,12 @@ for _ = 1, math.floor(2 / dt) do
     if n > 0 then shownFrames = shownFrames + 1 end
 end
 local warmed = {}
-for _, m in ipairs(ov.setLog) do warmed[m] = (warmed[m] or 0) + 1 end
+for _, e in ipairs(ov.setLog) do warmed[e.material] = (warmed[e.material] or 0) + 1 end
 for _, m in ipairs({ "CRWX_WinEtch_A1", "CRWX_AcidStreak_A1", "CRWX_AcidBeads_A1", "CRWX_AcidRivulet_A1" }) do
-    check(warmed[m] == 1, m .. " is shown once to load its texture, got " .. tostring(warmed[m]))
+    check(warmed[m] ~= nil, m .. " is shown to load its texture")
 end
 check(maxShown <= 1, "warm-up shows one panel at a time, saw " .. maxShown)
-check(shownFrames <= 10, "warm-up takes a few frames, not " .. shownFrames)
+check(shownFrames <= 60, "warm-up takes about a second, not " .. shownFrames)
 check(not ov.overlayShown and not glass.Busy(), "after the warm-up the glass is empty again")
 ov.setLog = {}
 run(2, 0)
