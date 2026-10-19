@@ -764,6 +764,10 @@
       "runtime": "svturr_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\svturr.vdf",
+      "runtime": "svturr.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svwalk_c.mesh",
       "runtime": "svwalk_c.mesh"
     },
