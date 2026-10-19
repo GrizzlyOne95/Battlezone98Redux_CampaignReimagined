@@ -1,0 +1,27 @@
+// Mission 17 storm cloud deck: the map's own cloud art on Ogre's sky plane.
+// ACLOUD2.MAP itself uses the Effect programs, which need vertex colour the
+// sky plane does not have (D3D11 rejects the input layout every frame).
+material CR17/StormCloud
+{
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR17_Cloud_vertex
+			{
+			}
+			fragment_program_ref CR17_Cloud_fragment
+			{
+			}
+			cull_hardware none
+			lighting off
+			scene_blend alpha_blend
+			depth_write off
+			texture_unit
+			{
+				texture acloud2.tga
+				tex_address_mode wrap
+			}
+		}
+	}
+}

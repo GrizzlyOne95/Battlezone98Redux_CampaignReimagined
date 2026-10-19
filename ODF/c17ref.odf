@@ -1,0 +1,8 @@
+[GameObjectClass]
+baseName = "c17ref"
+classLabel = "i76building"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 10000
+maxAmmo = 0
+unitName = "Crystal Refinery"

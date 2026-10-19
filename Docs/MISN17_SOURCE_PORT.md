@@ -1,6 +1,6 @@
 # misn17 DLL-source Lua port
 
-`Scripts/misn17.lua` ports `BZ1/from_bz2_dll_src/Misn17Mission.cpp` to stock Battlezone 98 Redux Lua 5.1. It needs no EXU, OpenShim, or Campaign Reimagined helper module. This is a script/source checkpoint; it does not change map registration, package locks, or installed missions.
+`Scripts/misn17.lua` ports `BZ1/from_bz2_dll_src/Misn17Mission.cpp` to stock Battlezone 98 Redux Lua 5.1. The original port needs no EXU/OpenShim. The marked 2026-10-16 CR roster adapter uses `CRFuryRoster.lua` to make restored fighters two-thirds of scripted Fury spawns; source-faithful tests bypass that adapter. See [Fury fighter](FURY_FIGHTER.md). This remains an offline script port, without new co-op registration.
 
 Source repository: [Battlezone_Source](https://github.com/GrizzlyOne95/Battlezone_Source/tree/e7c410573ffedc9e118dd90f402af6d5585955cc/BZ1/from_bz2_dll_src), commit `e7c410573ffedc9e118dd90f402af6d5585955cc`.
 

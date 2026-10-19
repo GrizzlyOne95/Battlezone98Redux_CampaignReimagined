@@ -39,12 +39,12 @@ F.LABELS = {
     ["apcamr15_camerapod"] = {odf="apcamr",team=1,pos={2734.090087890625,9.451109886169434,100252.0},craft=false},
     ["apcamr12_camerapod"] = {odf="apcamr",team=1,pos={1866.0400390625,6.000150203704834,99672.796875},craft=false},
     ["apcamr13_camerapod"] = {odf="apcamr",team=1,pos={2805.080078125,6.000150203704834,99191.3984375},craft=false},
-    ["boltmine0_weaponmine"] = {odf="boltmine",team=6,pos={2646.89990234375,5.0,100055.0},craft=false},
-    ["boltmine1_weaponmine"] = {odf="boltmine",team=6,pos={2671.719970703125,5.8639397621154785,99995.203125},craft=false},
-    ["boltmine2_weaponmine"] = {odf="boltmine",team=6,pos={2047.199951171875,5.0,99833.796875},craft=false},
-    ["boltmine3_weaponmine"] = {odf="boltmine",team=6,pos={2043.06005859375,5.530869960784912,99784.1015625},craft=false},
-    ["boltmine4_weaponmine"] = {odf="boltmine",team=6,pos={2754.760009765625,5.0,99461.3984375},craft=false},
-    ["boltmine5_weaponmine"] = {odf="boltmine",team=6,pos={2717.52001953125,5.0,99403.5},craft=false},
+    ["boltmine0_weaponmine"] = {odf="crfmine",team=6,pos={2646.89990234375,5.0,100055.0},craft=false},
+    ["boltmine1_weaponmine"] = {odf="crfmine",team=6,pos={2671.719970703125,5.8639397621154785,99995.203125},craft=false},
+    ["boltmine2_weaponmine"] = {odf="crfmine",team=6,pos={2047.199951171875,5.0,99833.796875},craft=false},
+    ["boltmine3_weaponmine"] = {odf="crfmine",team=6,pos={2043.06005859375,5.530869960784912,99784.1015625},craft=false},
+    ["boltmine4_weaponmine"] = {odf="crfmine",team=6,pos={2754.760009765625,5.0,99461.3984375},craft=false},
+    ["boltmine5_weaponmine"] = {odf="crfmine",team=6,pos={2717.52001953125,5.0,99403.5},craft=false},
     ["hvsat5_wingman"] = {odf="hvsat",team=6,pos={2500.75,60.0,99835.703125},craft=true},
     ["hvsat6_wingman"] = {odf="hvsat",team=6,pos={2406.89990234375,60.0,99653.6015625},craft=true},
     ["hvsat0_wingman"] = {odf="hvsat",team=6,pos={2142.610107421875,6.0,99815.0},craft=true},
@@ -404,6 +404,7 @@ function F.makePeer(id, team, network, options)
     e.SetMaxHealth = function(h, v) record("SetMaxHealth", h, v) end
     e.AddHealth = function(h, v) record("AddHealth", h, v) end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         record("Send", kind)
         local args = {...}
         for index = 1, select("#", ...) do
@@ -455,10 +456,12 @@ function F.makePeer(id, team, network, options)
             BindWeatherSensors=function(name) record("WeatherSensors",name) end,
             Update=noop,OnObjectCreated=noop,InvalidateRenderer=noop},
         CRTitanSites16 = assert(loadfile("Scripts/CRTitanSites16.lua"))(),
+        CRMisn16LaunchFX = assert(loadfile("Scripts/CRMisn16LaunchFX.lua"))(),
         PersistentConfig = {Initialize=function() record("PdaInitialize") end,
             UpdateInputs=function() record("PdaUpdate") end,UpdateHeadlights=noop},
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
         local service = realRespawn.Create(d)

@@ -25,6 +25,7 @@ if type(IsNetGame) == "function" and IsNetGame() then
 end
 local subtit = require("ScriptSubtitles")
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
 -- Native strategic AI startup configuration, before Start; human teams never get AI.
 SetAIControl(FURY_TEAM, true)
 -- CR co-op layer <<
@@ -155,7 +156,7 @@ local native = {
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
 }
 local events, acknowledgements = {}, {}
-local StartLift
+local StartLift, LaunchFX
 local receivedEvent = 0
 local pendingSeq, pendingSince
 -- Declared before ResetPresentation, which resets them.
@@ -197,6 +198,7 @@ local function ApplyPresentation(op, ...)
             pcall(SetLabel, handle, label)
         end
     elseif op == "SucceedMission" or op == "FailMission" then
+        if LaunchFX then LaunchFX.Stop() end
         local when, description = ...
         if localCameraActive then native.CameraFinish() end
         cameraFrame = nil
@@ -493,7 +495,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -508,14 +510,19 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "")
         end
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "A" then
         local seq = ...
@@ -623,6 +630,9 @@ local function State()
     return M.cr16
 end
 local function Point(x,y,z) return SetVector(x,y,z) end
+LaunchFX=require("CRMisn16LaunchFX").Create({exu=exu,vector=Point,handle=GetHandle,
+    valid=Alive,position=GetPosition,terrain=GetTerrainHeightAndNormal,explosion=MakeExplosion,
+    log=print,templates=function() return require("CRParticleTemplates").EnsureExtra("cr16_launch") end})
 local function NearAny(where,radius)
     return CRCoop.AnyPlayerSatisfies(function(h) return Distance(h,where)<radius end)
 end
@@ -782,12 +792,17 @@ local function UpdateLift()
     -- the leader alone decides boarding, launch time, removal and mission result.
     local v=M.evacVisual
     if not v then return end
+    if M.coopResult or M.won or M.lost then
+        LaunchFX.Stop();M.cr16LaunchFX=LaunchFX.Describe();return
+    end
     local age=math.max(0,GetTime()-v.started)
     local rise=math.min(900,age*age)
     for label,p in pairs(v.parts) do
         local h=GetHandle(label)
         if Valid(h) then SetPosition(h,Point(p.x,p.y+rise,p.z)) end
     end
+    LaunchFX.Update(v.parts,age)
+    M.cr16LaunchFX=LaunchFX.Describe()
 end
 local function CameraSafe()
     -- Inert enemy mines/markers must not suppress the film forever. Check the
@@ -797,7 +812,7 @@ local function CameraSafe()
         for enemy in AllCraft() do
             if Alive(enemy) and GetTeamNum(enemy)==FURY_TEAM and Distance(h,enemy)<150
                     and (IsOdfBase(enemy,"hvsav") or IsOdfBase(enemy,"hvsat")
-                         or IsOdfBase(enemy,"cr16tow")) then return true end
+                         or IsOdfBase(enemy,"crfraz") or IsOdfBase(enemy,"cr16tow")) then return true end
         end
         return false
     end)
@@ -877,7 +892,9 @@ local function UpdateStory()
         else AudioMessage("misn1614.wav") end
     end
     if age>=s.nextSav then
-        Enqueue("enemy",{"hvsav"});s.nextSav=age+s.gap;s.gap=math.max(60,s.gap-5)
+        -- Replace the recurring attacker with the light fighter; retain heavy
+        -- SAT strikes and SAV counterattacks as distinct escalation roles.
+        Enqueue("enemy",{"crfraz","crfraz"});s.nextSav=age+s.gap;s.gap=math.max(60,s.gap-5)
     end
     if age>=s.nextSat then
         Enqueue("enemy",{"hvsat"},nil,nil,"strike1")
@@ -899,6 +916,8 @@ local function UpdateStory()
 end
 function R.Start()
     State()
+    LaunchFX.Reset()
+    M.cr16LaunchFX=LaunchFX.Describe()
     CRCoop.Initialize({getLocalPlayerId=function() return exu.GetMyNetID and exu.GetMyNetID() end,
         leaderTeam=1,humanTeamMin=1,humanTeamMax=4,rallyPoints={[0]="avrecy0_recycler"},
         onOutOfLives=Failure})
@@ -921,6 +940,7 @@ function R.Update(dt)
     pda.UpdateInputs(localCameraActive);pda.UpdateHeadlights()
     if CRCoop.IsNetworkGame() then
         if CRCoop.HasLeaderDeparted() then
+            LaunchFX.Stop()
             if not M.coopResult then M.coopResult=true;native.FailMission(GetTime()+1) end
             return
         end

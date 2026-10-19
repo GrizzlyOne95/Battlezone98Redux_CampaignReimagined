@@ -69,6 +69,7 @@ if type(IsNetGame) == "function" and IsNetGame() then
 end
 local subtit = require("ScriptSubtitles")
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
 -- CR co-op layer <<
 -- CR team map >>
 -- Humans occupy teams 1-4 in co-op, so every DLL team that is not the player's moves off them:
@@ -539,7 +540,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -554,14 +555,19 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "")
         end
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "A" then
         local seq = ...
@@ -1040,8 +1046,9 @@ local function FurySpawns(triplet, count)
 end
 
 local function FuryWaveOdfs(wave)
-    local odfs = { "hvsav", "hvsav", "hvsav" }
-    for _ = 1, ExtraHumans() do odfs[#odfs + 1] = "hvsav" end
+    -- The restored light fighter is the main wave unit; retain one heavy SAV.
+    local odfs = { "hvsav", "crfraz", "crfraz" }
+    for _ = 1, ExtraHumans() do odfs[#odfs + 1] = "crfraz" end
     if wave >= FURY_TANK_FROM_WAVE then
         odfs[#odfs + 1] = "hvsat"
         if HumanCount() >= 3 then odfs[#odfs + 1] = "hvsat" end
@@ -1061,7 +1068,7 @@ local function SpawnFuryWave(wave)
     -- Tanks are the last entries; keep them when the cap trims the wave.
     local built = {}
     for i = 1, #spawns do
-        local odf = odfs[#odfs - #spawns + i] or "hvsav"
+        local odf = odfs[#odfs - #spawns + i] or "crfraz"
         local unit = BuildObject(odf, FURY_TEAM, spawns[i])
         if IsValid(unit) then
             M.fury_wave_units[#M.fury_wave_units + 1] = unit

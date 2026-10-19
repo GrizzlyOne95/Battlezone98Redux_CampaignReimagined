@@ -1,0 +1,13 @@
+[GameObjectClass]
+baseName = "c17tree1"
+classLabel = "i76building2"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 2500
+maxAmmo = 0
+unitName = "Jungle Tree"
+collisionRadius = 5
+explosionName = "xplnxpl"
+[PlantClass]
+isPlant = 1
+dropScrap = 0

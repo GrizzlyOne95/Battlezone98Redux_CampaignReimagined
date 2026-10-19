@@ -243,7 +243,7 @@ local function BuildOvercastPreset(self)
         },
         cloud = {
             key = "overcast",
-            material = "ACLOUD2.MAP",
+            material = "CR_Sky/Cloud2",
             scroll = { u = 0.0014, v = 0.0 },
             plane = MergeTables(self.config.cloudPlane, {}),
         },
@@ -261,7 +261,7 @@ local function BuildRainPreset(self)
     preset.atmosphere.fog = TintFog(base.fog, { r = 0.60, g = 0.66, b = 0.78 }, 0.48, 0.64)
     preset.atmosphere.powerScale = (base.powerScale or 1.0) * 0.72
     preset.atmosphere.shadowFarDistance = (base.shadowFarDistance or 800.0) * 0.58
-    preset.cloud.material = "ACLOUD.MAP"
+    preset.cloud.material = "CR_Sky/Cloud"
     preset.cloud.scroll = { u = 0.0019, v = 0.0 }
     preset.particles = {
         rain = {
@@ -297,7 +297,7 @@ local function BuildSnowPreset(self)
     preset.atmosphere.fog = TintFog(base.fog, { r = 0.82, g = 0.88, b = 0.98 }, 0.56, 0.72)
     preset.atmosphere.powerScale = (base.powerScale or 1.0) * 0.74
     preset.atmosphere.shadowFarDistance = (base.shadowFarDistance or 800.0) * 0.64
-    preset.cloud.material = "ACLOUD2.MAP"
+    preset.cloud.material = "CR_Sky/Cloud2"
     preset.cloud.scroll = { u = 0.0008, v = 0.0 }
     preset.particles = {
         snow = {
@@ -342,7 +342,7 @@ local function BuildDustStormPreset(self)
         },
         cloud = {
             key = "dust",
-            material = "vsmoke2.tga",
+            material = "CR_Sky/DustCloud",
             scroll = { u = 0.008, v = 0.0015 },
             plane = plane,
         },
@@ -577,6 +577,31 @@ function Weather:_resolveOwnedMaterial(key, baseMaterial)
     return cloneName
 end
 
+-- A sky plane is clipped by the camera's far plane like any other geometry, and
+-- Redux's far clip is about a kilometre (1125 m on crsetup), short of the
+-- default 1450 m plane height. Ogre builds the plane scale * 100 wide, so only
+-- an overhead disc inside the far clip ever draws. Its edge sits at asin(d / far)
+-- above the horizon: at half the far clip that is 30 degrees, above a level
+-- camera's view, so overcast and rain never showed. At 0.15 the edge drops to
+-- about 9 degrees, where the fog has already reached its colour. The plane is
+-- drawn first, behind everything, so its height changes nothing else. Height
+-- and size shrink together so the cloud texture keeps its angular size.
+local SKY_PLANE_FAR_FRACTION = 0.15
+local function FitSkyPlane(distance, scale)
+    distance = tonumber(distance)
+    scale = tonumber(scale)
+    if distance == nil or distance <= 0.0 or type(exu.GetCameraClipDistances) ~= "function" then
+        return distance, scale
+    end
+    local ok, _, farClip = pcall(exu.GetCameraClipDistances)
+    farClip = ok and tonumber(farClip) or nil
+    if farClip == nil or farClip <= 0.0 or distance <= farClip * SKY_PLANE_FAR_FRACTION then
+        return distance, scale
+    end
+    local factor = (farClip * SKY_PLANE_FAR_FRACTION) / distance
+    return distance * factor, scale and scale * factor or scale
+end
+
 function Weather:_applyCloudState(cloud)
     if type(exu.SetSkyPlane) ~= "function" or type(exu.SetSkyPlaneEnabled) ~= "function" then
         if cloud then
@@ -600,7 +625,14 @@ function Weather:_applyCloudState(cloud)
     end
 
     local plane = MergeTables(self.config.cloudPlane, cloud.plane or {})
-    local materialName = self:_resolveOwnedMaterial("cloud_" .. tostring(cloud.key or "layer"), cloud.material)
+    local distance, scale = FitSkyPlane(
+        plane.d or plane.distance or self.config.cloudPlane.d,
+        plane.scale or self.config.cloudPlane.scale
+    )
+    -- Rain and snow reuse the overcast preset's key with their own material, so
+    -- the clone is keyed on the material too; keyed on the preset alone, rain
+    -- drew the overcast clone of Cloud2.
+    local materialName = self:_resolveOwnedMaterial("cloud_" .. tostring(cloud.key or "layer") .. "_" .. tostring(cloud.material), cloud.material)
     if not materialName then
         return
     end
@@ -610,9 +642,9 @@ function Weather:_applyCloudState(cloud)
         materialName,
         {
             normal = plane.normal or Vec(0.0, -1.0, 0.0),
-            d = plane.d or plane.distance or self.config.cloudPlane.d,
+            d = distance,
         },
-        plane.scale or self.config.cloudPlane.scale,
+        scale,
         plane.tiling or self.config.cloudPlane.tiling,
         plane.drawFirst ~= false,
         plane.bow or self.config.cloudPlane.bow,

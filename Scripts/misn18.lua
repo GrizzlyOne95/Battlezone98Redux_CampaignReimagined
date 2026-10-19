@@ -5,6 +5,19 @@
 -- are preserved in References/Misn18Source/. No EXU/OpenShim helpers required.
 local M
 
+-- CR Fury roster >>
+-- Two restored fighters per heavy Fury; preserve all transport/engine logic.
+local BuildObject = BuildObject
+if not CR_TEST_FAITHFUL then
+    local nativeBuild = BuildObject
+    local roster = require("CRFuryRoster")
+    BuildObject = function(odf, team, where, ...)
+        if team == 2 then odf = roster.Select(odf, M) end
+        return nativeBuild(odf, team, where, ...)
+    end
+end
+-- CR Fury roster <<
+
 local function NewState()
     local state = {}
     state.openingcin = false

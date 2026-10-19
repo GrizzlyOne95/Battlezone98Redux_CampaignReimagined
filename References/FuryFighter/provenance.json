@@ -1,0 +1,25 @@
+{
+  "source_folder": "Battlezone Files/Mods and Custom Files/Fury Fighter",
+  "selection": "Owner-specified standalone cut hvraz Redux port; no ISDFC ODF or material used.",
+  "original_sha256": {
+    "hra11bda.GEO": "67dea6e788075e7bf21626bc3d4b1e9e6ab1f33c1f558313f1d41321d9ab6a06",
+    "hra11bdb.GEO": "29c7a52c97f76f7aff12d62394d9db51d97d9f8a315e4f34fde1472f0db4511c",
+    "hra11bdc.GEO": "f57fef6a19e360c1e09ed81df726132e78f93cc3864913feac5e2dbd80ca3527",
+    "hra11bdd.GEO": "a7683b8d48a88eb5a0bf2b2980cc13dbf0545acb36bdddbb0d23c8bdbec3cd21",
+    "hRA11GC1.GEO": "f9abf1fbd311f64eded48b35fc06f63f68c3153ed06980d73d1ac3afb168082e",
+    "hRA11GC2.GEO": "27224099f67f45e697f42a7caf2d4384622d659ae6a1549960a4c3b0b9c4b8cc",
+    "hRA11GM1.GEO": "c2142a183da8448439888224a8f1525ddffea0c1245f0060e54cd624eaa08587",
+    "hRA11GR1.GEO": "81f6e63bb3d353c949408a54db62cbfe7345f4bc4aabdac7e9413d90906f1eb3",
+    "hRA11GS1.GEO": "188d501d93b76ed08d071507f9be5887cf249306ad700e6f32fdbdeb7f4aa822",
+    "hRA11LGT.GEO": "8e4063b1c6d8a799a4e69725a95e64a9765be6f54d2e3603a1a7c24ded90425b",
+    "hRA11POV.GEO": "7c2091af3fcc55ddae90d2cf09f25f7f311d1e45c0386d06763d048fccb872be",
+    "hra11ror.GEO": "e2359d953a91c3e9c19730b93ec5861df0e3969e551f8f73f7f99b83dfb2dc52",
+    "hvraz.mesh": "d05b357cfcd653e5ec6dcba8aa635627e62cc6b5edfe5ce97363169b8b548339",
+    "hvraz.skeleton": "203b8af0e7c18430402e9ab6dcadc2dfe6270d327d5b3e24ac64b5fa91e97bb7",
+    "hvraz.Vdf": "6e1216a1e7e71f143ad8f0131c6ebed7dc68fb43666cab02c2234a1fe99e0604",
+    "hvraz_port.material": "a50aab6d55104e9a1d906bc867d21c2ead8ba77fbd1924e06b47bcb0c64d6858"
+  },
+  "texture_source": "Stock Redux BZ_ASSETS/pc/textures/MISC_DDS/Hvsav00_d.dds",
+  "texture_generation": "Built-in image_gen edit of the stock cyan-blue Fury atlas; preserve UV island locations and palette, sharpen ribbed metal and armor detail.",
+  "texture_output_sha256": "cf02cc88f65be585a3e1301384dfecdff5318e3c10bf7dd1092d4495dbfeb36e"
+}

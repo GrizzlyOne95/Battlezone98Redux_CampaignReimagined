@@ -89,6 +89,7 @@ jobs:
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-CRCoop.lua
+          "$LUA" Tools/Test-CRWire.lua
           "$LUA" Tools/Test-CRCoopComms.lua
           "$LUA" Tools/Test-CRCoopAssist.lua
           "$LUA" Tools/Test-CRCoopPda.lua
@@ -225,6 +226,9 @@ jobs:
           "$LUA" Tools/Test-CRMarsHaboob.lua
           "$LUA" Tools/Test-CRMarsVolcano.lua
           "$LUA" Tools/Test-CRTitanWeather.lua Scripts
+          "$LUA" Tools/Test-CRFoliageWind.lua Scripts
+          # The wind foliage material is generated from cr17_surface.material.
+          python -I Tools/Build-FoliageWindMaterial.py --check
           # The methane surface mesh, ripple map and wet masks match their generator.
           python -I Tools/Build-MethaneSurface.py --check
 
@@ -299,6 +303,7 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-Misn16.lua
           "$LUA" Tools/Test-Misn16Scene.lua
+          "$LUA" Tools/Test-Misn16LaunchFX.lua
           python Tools/Test-Misn16SourceParity.py
           python Tools/Test-Misn16SceneMap.py
 
@@ -326,10 +331,19 @@ jobs:
         run: |
           lua5.1 Tools/Test-Misns5.lua
           python Tools/Test-Misns5SourceParity.py
-      - name: Test misn17 source-faithful port
+      - name: Test misn17 faithful port and co-op prototype
         run: |
           lua5.1 Tools/Test-Misn17.lua
+          lua5.1 Tools/Test-Misn17Coop.lua
+          lua5.1 Tools/Test-Misn17Jungle.lua
+          lua5.1 Tools/Test-Misn17Crystals.lua
           python Tools/Test-Misn17SourceParity.py
+
+      - name: Test restored Fury fighter assets and mission roster
+        run: |
+          python Tools/Test-FuryFighterAssets.py
+          python Tools/Test-BoltMines.py
+          lua5.1 Tools/Test-FuryRoster.lua
 
       - name: Strictly validate changed Lua 5.1 files
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}

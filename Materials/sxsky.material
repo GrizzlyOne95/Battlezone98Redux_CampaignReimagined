@@ -1,24 +1,57 @@
 // Operation Livewire weather bay: overcast domes that hide the Moon's open sky
-// while weather is up. Sprite materials are not fogged, so each dome is painted
-// its phase's fog colour (SXExhibits.WeatherPhases) to meet the fogged horizon.
-import * from "sprites.material"
+// while weather is up. Each dome is painted its phase's fog colour
+// (SXExhibits.WeatherPhases) so it meets the fogged horizon.
+//
+// Ogre's sky dome has no vertex colour, so these cannot inherit BZSprite: its
+// Effect program reads COLOR0 and D3D11 rejects the input layout on every draw.
+// SX_Sky/DomeBase is a copy of CR_Sky/DomeBase (CR_reactive.material) on the
+// CR_SkyDome programs; inheriting across files fails with "base object not
+// found" when this script parses first.
+material SX_Sky/DomeBase
+{
+	receive_shadows off
+	technique 0
+	{
+		pass 0
+		{
+			vertex_program_ref CR_SkyDome_vertex
+			{
+			}
+			fragment_program_ref CR_SkyDome_fragment
+			{
+			}
+			cull_hardware none
+			cull_software none
+			lighting off
+			scene_blend alpha_blend
+			depth_write off
+			diffuse 1 1 1 1
+			texture_unit 0
+			{
+				texture_alias DiffuseMap
+				texture white.png
+				tex_address_mode wrap
+			}
+		}
+	}
+}
 
-material SX_Sky/Rain : BZSprite/AlphaBlend
+material SX_Sky/Rain : SX_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap sxsky_rain.png
 }
 
-material SX_Sky/Storm : BZSprite/AlphaBlend
+material SX_Sky/Storm : SX_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap sxsky_storm.png
 }
 
-material SX_Sky/Snow : BZSprite/AlphaBlend
+material SX_Sky/Snow : SX_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap sxsky_snow.png
 }
 
-material SX_Sky/Dust : BZSprite/AlphaBlend
+material SX_Sky/Dust : SX_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap sxsky_dust.png
 }

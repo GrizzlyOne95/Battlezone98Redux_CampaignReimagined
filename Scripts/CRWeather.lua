@@ -854,16 +854,40 @@ end
 -- Sky layer
 -- =============================================================================
 
+-- Drawing first does not exempt the sky from the far clip: a dome or box past
+-- the camera's far plane is culled and nothing appears. Redux's far clip is
+-- about a kilometre (1125 m on crsetup), far short of the presets' authored
+-- 4 km, so the sky is pulled in to half the far clip. The dome's corners sit
+-- up to sqrt(3) times its distance away; at 0.8 of the far clip a wedge of the
+-- dome was clipped out.
+local function SkyDistance(authored)
+    local distance = tonumber(authored)
+    if exu == nil or type(exu.GetCameraClipDistances) ~= "function" then
+        return distance
+    end
+    local ok, _, farClip = pcall(exu.GetCameraClipDistances)
+    farClip = ok and tonumber(farClip) or nil
+    if farClip == nil or farClip <= 0.0 then
+        return distance
+    end
+    if distance == nil or distance > farClip * 0.5 then
+        return farClip * 0.5
+    end
+    return distance
+end
+
 local function ApplySky(sky)
     if sky == nil then
         return
     end
 
+    local distance = SkyDistance(sky.distance)
     if sky.type == "box" then
-        Call("SetSkyBox", sky.material, sky.distance, sky.drawFirst ~= false)
+        Call("SetSkyBox", sky.material, distance, sky.drawFirst ~= false)
     else
-        Call("SetSkyDome", sky.material, sky.curvature, sky.tiling, sky.distance, sky.drawFirst ~= false)
+        Call("SetSkyDome", sky.material, sky.curvature, sky.tiling, distance, sky.drawFirst ~= false)
     end
+    return distance
 end
 
 local function SyncSky()
@@ -872,9 +896,9 @@ local function SyncSky()
     -- The swap is a hard cut either way, so do it at the midpoint of the
     -- transition where the fog has already contracted enough to hide it.
     if wantSky and not CRWeather.SkyApplied and CRWeather.Blend >= 0.5 then
-        ApplySky(CRWeather.Active.sky)
+        local distance = ApplySky(CRWeather.Active.sky)
         CRWeather.SkyApplied = true
-        Log("sky -> " .. tostring(CRWeather.Active.sky.material))
+        Log("sky -> " .. tostring(CRWeather.Active.sky.material) .. " at " .. tostring(distance))
     elseif CRWeather.SkyApplied and (not wantSky or CRWeather.Blend < 0.5) then
         ApplySky(CRWeather.BaseSky)
         CRWeather.SkyApplied = false
@@ -1458,6 +1482,27 @@ function CRWeather.GetWindSpeed()
     return ((preset and preset.windSpeed) or 0.0) * CurrentWeight()
 end
 
+-- The active preset's gust, 0 (lull) to its authored depth, on the same wave
+-- SyncSystems applies to particle rates. Foliage reads it to bend harder in a
+-- gust; it is 0 when the preset authors none.
+function CRWeather.GetGust()
+    local preset = CRWeather.Active
+    local gusts = preset and preset.gusts
+    if gusts == nil then
+        return 0.0
+    end
+    local period = math.max(0.5, gusts.period or 12.0)
+    local wave = 0.5 + (0.5 * math.sin((CRWeather.Clock / period) * 6.2831853))
+    return Clamp01(gusts.depth or 0.0) * wave * CurrentWeight()
+end
+
+-- CRFoliageWind is optional: it only exists where a mission registered wind
+-- materials, and it reads its wind back through GetWind/GetGust.
+local function Foliage()
+    local foliage = package.loaded["CRFoliageWind"]
+    return type(foliage) == "table" and foliage or nil
+end
+
 function CRWeather.Update(dt)
     if not CRWeather.Initialized then
         CRWeather.Init()
@@ -1497,6 +1542,11 @@ function CRWeather.Update(dt)
     if CRWeather.OwnsEnvironment then
         WriteEnvironmentDirect()
     end
+
+    local foliage = Foliage()
+    if foliage and type(foliage.Update) == "function" then
+        foliage.Update(dt, CRWeather)
+    end
 end
 
 -- Drops all particle bookkeeping so the next preset application rebuilds from
@@ -1514,6 +1564,10 @@ function CRWeather.ResetSystems()
     CRWeather.BlendRate = 0.0
     CRWeather.SkyApplied = false
     CRWeather.LastWindApplied = nil
+    local foliage = Foliage()
+    if foliage and type(foliage.ResetScene) == "function" then
+        foliage.ResetScene()
+    end
     local environment = rawget(_G, "Environment")
     if environment and type(environment.InvalidateRenderer) == "function" then environment.InvalidateRenderer() end
 end
@@ -1531,6 +1585,11 @@ function CRWeather.Shutdown()
     end
 
     DestroyAllSystems()
+
+    local foliage = Foliage()
+    if foliage and type(foliage.Stop) == "function" then
+        foliage.Stop()
+    end
 
     local environment = rawget(_G, "Environment")
     if CRWeather.ModifierRegistered and environment ~= nil
