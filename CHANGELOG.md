@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Campaign skies with a star field gain occasional shooting stars: a short streak crosses part of the sky in
+  0.3-0.8 s, about one every 25 s across the whole sky (Moon: Missions 1-2 and the setup map; Io: Missions 9-10
+  and `misns4`). The Moon also gets three satellites that drift across it over one to three minutes, some with a
+  brief glint. Both are procedural `[Stars]` entries (`CRMETEOR.MAP`, `CRSATELL.MAP`) on DX11 and DX9, on by
+  default; `openshim.ini [Display] SkyEvents=0` switches them off. Star Twinkle is unchanged.
+
 - Mission 18 gains water and landscaping: four standing pools in closed basins, six streams that run downhill into and out
   of them and one 22 m cascade with mist, baked from the original heightmap (nothing is carved; `Missions/misn18.hg2` is
   untouched) and kept clear of the start, transport, spawns, ambush column, Fury paths and the tornado's keep-clear circles.

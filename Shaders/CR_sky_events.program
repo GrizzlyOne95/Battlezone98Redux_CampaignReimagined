@@ -1,0 +1,63 @@
+// Procedural sky events for TRN [Stars] entries: CRMETEOR.MAP and CRSATELL.MAP.
+// Both reuse CR_Sky_vertex. DX11 (SM4) and DX9 (SM3) only; the materials end
+// with a technique that draws nothing for any other backend.
+
+fragment_program CR_SkyMeteor_fragmentHLSL4 hlsl
+{
+	source CR_sky_events-sm4.hlsl
+	target ps_4_0
+	entry_point sky_meteor_fragment
+	default_params
+	{
+		param_named_auto skyTime time_0_x 3600
+		param_named_auto skyControl surface_emissive_colour
+	}
+}
+
+fragment_program CR_SkyMeteor_fragmentHLSL hlsl
+{
+	source CR_sky_events.hlsl
+	target ps_3_0
+	entry_point sky_meteor_fragment
+	default_params
+	{
+		param_named_auto skyTime time_0_x 3600
+		param_named_auto skyControl surface_emissive_colour
+	}
+}
+
+fragment_program CR_SkySatellite_fragmentHLSL4 hlsl
+{
+	source CR_sky_events-sm4.hlsl
+	target ps_4_0
+	entry_point sky_satellite_fragment
+	default_params
+	{
+		param_named_auto skyTime time_0_x 3600
+		param_named_auto skyControl surface_emissive_colour
+	}
+}
+
+fragment_program CR_SkySatellite_fragmentHLSL hlsl
+{
+	source CR_sky_events.hlsl
+	target ps_3_0
+	entry_point sky_satellite_fragment
+	default_params
+	{
+		param_named_auto skyTime time_0_x 3600
+		param_named_auto skyControl surface_emissive_colour
+	}
+}
+
+fragment_program CR_SkyMeteor_fragment unified
+{
+	delegate CR_SkyMeteor_fragmentHLSL4
+	delegate CR_SkyMeteor_fragmentHLSL
+}
+
+fragment_program CR_SkySatellite_fragment unified
+{
+	delegate CR_SkySatellite_fragmentHLSL4
+	delegate CR_SkySatellite_fragmentHLSL
+}

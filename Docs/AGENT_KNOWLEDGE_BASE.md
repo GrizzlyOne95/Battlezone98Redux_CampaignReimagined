@@ -802,6 +802,18 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   scanned at 4 Hz, near-viewer only. Do not add per-director hover/wake loops, and do not give a director
   its own copy of the craft scan. Its second `EnsureExtra("cr_wake")` overwrites the "last payload
   requested" in director test stubs: call `Wake.Init` before the director's own `EnsureExtra`.
+- **TRN `[Stars]` in Redux is not the 1.5 format** (confirmed from the GOG exe's parser, `FUN_00776690`):
+  keys are `Texture%02d` / `Color%02d` / `Size%02d` / `Width%02d` / `Height%02d` / `Azimuth%02d` /
+  `Elevation%02d` / `Roll%02d`, indices 00-63 (64 entries total), values are floats. There is **no
+  `Alpha` key** (1.5's per-entry blend op): blending comes from the material. `Color` reaches the shader
+  as vertex colour. Names are looked up as uppercased materials (`crmeteor.map` -> `CRMETEOR.MAP`, 15
+  characters max). `Radius` is per section (Io uses 500, Moon 1000), so sizes scale with it.
+- Sky events (2026-10-19): shooting stars (`CRMETEOR.MAP`) and Moon satellites (`CRSATELL.MAP`) are
+  procedural `[Stars]` entries (`Materials/CR_sky_events.material`, `Shaders/CR_sky_events*`). All quads
+  share UVs, so each entry seeds from its `Color`: **give every entry a distinct colour** or they fire
+  in lockstep. `time_0_x 3600` with periods that divide 3600 (meteor slot 25 s, satellite cycle 300 s)
+  so the wrap is invisible. Pass emissive x enables, y forces every slot (testing only);
+  `openshim.ini [Display] SkyEvents=0` switches both off through `RuntimeEnhancements.SetSkyEventsEnabled`.
 
 ### 8.5 Live testing
 
