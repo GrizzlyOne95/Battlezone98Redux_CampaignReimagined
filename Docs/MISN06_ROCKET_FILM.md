@@ -20,7 +20,9 @@ are retained.
   like a vehicle's motion. Each peer also owns and cleans its particle systems.
 - Dust stays at terrain height and its emission tapers as the rocket clears
   the pad. Smoke remains in world space and dissipates after emission stops.
-  The four systems have a combined quota of 774 particles per peer.
+  The four systems have a combined quota of 1,006 particles per peer. Core and
+  plume each have eight emitters aligned with the rebuilt engine bells. A local
+  point light follows the exhaust when the runtime supports that API.
 - A player's skip releases only their own camera in co-op. Solo skip leaves
   the flight and dialogue running. Save/load retains the launch origin and age;
   a resumed ascent does not repeat the ignition dust. Loading a completed or
@@ -33,16 +35,19 @@ are retained.
 
 ## Art and reconstruction
 
-CCA rocket geometry and its four texture maps come from **Battlezone: Resurgence**
-by GrizzlyOne95 and contributors. The author's [asset-pack description](https://steamcommunity.com/sharedfiles/filedetails/?id=3536800125)
-permits use in other projects with appropriate credit. This adaptation extracts
-the rocket submesh from the docked `sblpada` asset, keeps its 7,332 triangles,
-UVs and normals, recentres it, and removes the pad and unused skeleton.
-Resources are namespaced `cr06rok`; no stock or Resurgence asset is overwritten.
-Original Battlezone design/art credit remains with its creators.
+The current rocket is a [CR-authored rebuild of the Mars artwork](MISN06_ROCKET_REBUILD.md),
+with new geometry, baked materials, an editable Blender source and matching
+native GEO/SDF. It has 20,151 triangles, eight flared bells, interlocking armour,
+a raised aft-facing four-lamp housing, a red nose band and CCA markings.
+Original Battlezone concept-art credit remains with its creators.
 
-`Tools/Build-Misn06Rocket.py <Resurgence directory>` reproduces the extracted
-mesh, native SDF/GEO and textures and prints source SHA-256 hashes.
+The previous prototype used **Battlezone: Resurgence** by GrizzlyOne95 and
+contributors. Its author's [asset-pack description](https://steamcommunity.com/sharedfiles/filedetails/?id=3536800125)
+permits reuse with credit. That extraction is retained in
+`Tools/Extract-Misn06RocketLegacy.py`; it is not a dependency of the current art.
+
+`Tools/Build-Misn06Rocket.py --blender <blender.exe> --render` reproduces the
+editable source, mesh, native SDF/GEO, baked textures and nozzle layout.
 `Tools/Add-Misn06Rocket.py` adds the fixture without rewriting authored blocks;
 `Build-CoopMap.py --mission misn06` also calls this step automatically.
 Resurgence's docked pad is rotated 180 degrees relative to the stock Redux pad,

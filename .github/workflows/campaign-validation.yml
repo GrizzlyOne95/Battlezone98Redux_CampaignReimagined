@@ -149,6 +149,7 @@ jobs:
           "$LUA" Tools/Test-Misn06Presentation.lua
           "$LUA" Tools/Test-Misn06LaunchFilm.lua
           "$LUA" Tools/Test-Misn06LaunchFX.lua
+          python Tools/Test-Misn06RocketAssets.py
           python Tools/Test-Misn06SourceParity.py
           python Tools/Test-Misn06CoopContract.py
 

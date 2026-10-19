@@ -25,14 +25,14 @@ material CR06/Exhaust : BZSprite/Additive
     {
         pass 0
         {
-            diffuse 1 0.38 0.06 1
+            diffuse 1 0.62 0.14 1
         }
     }
     technique glow
     {
         pass 0
         {
-            diffuse 0.7 0.2 0.02 1
+            diffuse 0.8 0.44 0.08 1
         }
     }
 }
