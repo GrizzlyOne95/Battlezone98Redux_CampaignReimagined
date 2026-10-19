@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2911,
+  "count": 2913,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -698,6 +698,14 @@
     {
       "source": "Assets\\ModelFixes\\cvwalk_c.skeleton",
       "runtime": "cvwalk_c.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbtran00.mesh",
+      "runtime": "hbtran00.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbtrn200.mesh",
+      "runtime": "hbtrn200.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\obdata.mesh",
