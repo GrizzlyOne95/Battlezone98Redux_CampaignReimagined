@@ -81,6 +81,7 @@
 
 local exu = require("exu")
 local Map = require("CRVenusMap")
+local Wake = require("CRWake")
 
 local CRMoonWeather = {}
 local V = CRMoonWeather
@@ -231,7 +232,6 @@ V.Serial           = 0
 V.NextStreamAt     = 0.0
 V.NextLocalAt      = 0.0
 V.NextPoolAt       = 0.0
-V.NextHoverAt      = 0.0
 V.NextNetStateAt   = 0.0
 V.LastStateKey     = nil
 
@@ -242,8 +242,6 @@ V.ImpactPool       = {}          -- slot index -> { name, busyUntil, created }
 V.ImpactCursor     = 1
 V.LastImpactAt     = -100.0
 V.RecentImpacts    = {}          -- { x, z, at }
-V.HoverLive        = {}          -- craft handle -> record
-V.HoverMoved       = {}          -- craft handle -> last time it moved faster than HoverMinSpeed
 
 V.HooksInstalled   = false
 V.ChainedHit       = nil
@@ -843,113 +841,25 @@ end
 -- Hover dust: under low, moving craft
 -- =============================================================================
 
-local function CraftIterator()
-    if type(AllCraft) ~= "function" then return nil end
-    local ok, iterator = pcall(AllCraft)
-    if ok and type(iterator) == "function" then return iterator end
-    return nil
+-- The hover dust is the shared CRWake module's "regolith" surface. This director
+-- keeps its V.Hover* tuning and the hoverDust switch; CRWake scans for craft,
+-- budgets the systems and does the render-only work.
+local function ConfigureWake()
+    return {
+        interval = V.HoverInterval, trackRange = V.HoverTrackRange, maxHeight = V.HoverMaxHeight,
+        minSpeed = V.HoverMinSpeed, fullSpeed = V.HoverFullSpeed, rate = V.HoverRate,
+        idleShare = V.HoverIdleShare, idleMaxHeight = V.HoverIdleMaxHeight,
+        idleGrace = V.HoverIdleGrace, linger = V.HoverLinger,
+    }
 end
 
--- movedAgo: seconds since the craft last moved faster than HoverMinSpeed. A
--- craft that has never moved (a gun tower that counts as a craft) emits nothing.
-local function HoverRateOf(speed, height, movedAgo)
-    if height > V.HoverMaxHeight then return 0.0 end
-    local near = 1.0 - Clamp(height / V.HoverMaxHeight, 0.0, 1.0)
-    local rate = 0.0
-    if speed >= V.HoverMinSpeed then
-        rate = V.HoverRate * Clamp(speed / V.HoverFullSpeed, 0.1, 1.0) * (0.35 + (0.65 * near))
-    elseif height <= V.HoverIdleMaxHeight and movedAgo <= V.HoverIdleGrace then
-        rate = V.HoverRate * V.HoverIdleShare * near
-    end
-    return rate * V.Quality
-end
-
-local function UpdateHoverDust()
-    if not (V.TemplatesReady and V.AllowHoverDust) then return end
-    if V.Clock < V.NextHoverAt then return end
-    V.NextHoverAt = V.Clock + V.HoverInterval
-
-    local p = LocalPlayerPosition()
-    local iterator = CraftIterator()
-    if p == nil or iterator == nil or type(GetVelocity) ~= "function" then return end
-
-    -- Candidates: craft near the player that are low enough to disturb the ground.
-    local candidates = {}
-    for h in iterator do
-        if ValidHandle(h) then
-            local pos = PositionOf(h)
-            if pos ~= nil then
-                local d = Distance2D(pos.x, pos.z, p.x, p.z)
-                if d <= V.HoverTrackRange then
-                    local ground = TerrainHeight(pos.x, pos.z)
-                    local okv, velocity = pcall(GetVelocity, h)
-                    if okv then velocity = ReadVector(velocity) end
-                    if ground ~= nil and okv and velocity ~= nil then
-                        local speed = math.sqrt((velocity.x ^ 2) + (velocity.z ^ 2))
-                        local height = pos.y - ground
-                        if speed >= V.HoverMinSpeed then V.HoverMoved[h] = V.Clock end
-                        local rate = HoverRateOf(speed, height, V.Clock - (V.HoverMoved[h] or -1000.0))
-                        if rate > 0.01 then
-                            candidates[#candidates + 1] = {
-                                h = h, d = d, x = pos.x, z = pos.z, ground = ground, rate = rate,
-                            }
-                        end
-                    end
-                end
-            end
-        end
-    end
-    table.sort(candidates, function(a, b)
-        if a.d ~= b.d then return a.d < b.d end
-        return tostring(a.h) < tostring(b.h)
-    end)
-
-    local active = {}
-    for i = 1, math.min(#candidates, V.MaxHoverSystems) do
-        local c = candidates[i]
-        active[c.h] = true
-        local record = V.HoverLive[c.h]
-        if record == nil then
-            local name = Fx_Create("hover", "CR/Moon/HoverDust", c.x, c.ground + 0.2, c.z)
-            if name ~= nil then
-                record = { name = name, rate = 0.0, idleSince = nil }
-                V.HoverLive[c.h] = record
-                V.Stats.hoverTracked = V.Stats.hoverTracked + 1
-            end
-        end
-        if record ~= nil then
-            Call("SetParticleSystemPosition", record.name, Vec(c.x, c.ground + 0.2, c.z))
-            if math.abs(c.rate - record.rate) > 0.5 then
-                record.rate = c.rate
-                Call("SetParticleEmitterEmissionRate", record.name, 0, c.rate)
-            end
-            record.idleSince = nil
-        end
-    end
-
-    -- Craft that stopped qualifying go quiet, then lose their system.
-    local drop = {}
-    for h, record in pairs(V.HoverLive) do
-        if not active[h] then
-            if record.rate > 0.0 then
-                record.rate = 0.0
-                Call("SetParticleEmitterEmissionRate", record.name, 0, 0.0)
-            end
-            record.idleSince = record.idleSince or V.Clock
-            if (V.Clock - record.idleSince) >= V.HoverLinger or not ValidHandle(h) then
-                drop[#drop + 1] = h
-            end
-        end
-    end
-    for i = 1, #drop do
-        Fx_Destroy(V.HoverLive[drop[i]].name)
-        V.HoverLive[drop[i]] = nil
-    end
-
-    -- Forget craft that have not moved for a long while (or are gone).
-    for h, at in pairs(V.HoverMoved) do
-        if (V.Clock - at) > (V.HoverIdleGrace * 5.0) or not ValidHandle(h) then V.HoverMoved[h] = nil end
-    end
+local function UpdateHoverDust(dt)
+    local want = V.TemplatesReady and V.AllowHoverDust and true or false
+    Wake.SetEnabled(want)
+    if not want then return end
+    Wake.SetQuality(V.Quality)
+    Wake.Update(dt)
+    V.Stats.hoverTracked = Wake.GetStats().tracked
 end
 
 -- =============================================================================
@@ -1117,6 +1027,14 @@ function V.Init(options)
         end
     end
 
+    -- Vehicle hover dust: the shared CRWake module, regolith surface (its template
+    -- ships in cr_moon, loaded above). The hoverDust switch and V.Hover* tuning
+    -- keep their meaning; MaxHoverSystems is the wake system cap.
+    Wake.Init({
+        surface = "regolith", enabled = V.TemplatesReady and V.AllowHoverDust, quality = V.Quality,
+        debug = V.Debug, maxSystems = V.MaxHoverSystems, tuning = ConfigureWake(),
+    })
+
     V.Clock = 0.0
     V.LastRealTime = nil
     V.Density = Clamp(tonumber(options.density) or V.DensityDefault, V.DensityLimit[1], V.DensityLimit[2])
@@ -1127,9 +1045,9 @@ function V.Init(options)
         hoverTracked = 0, localUpdates = 0,
     }
     V.PoolLive, V.LocalLayer, V.ImpactPool, V.ImpactCursor = {}, nil, {}, 1
-    V.RecentImpacts, V.HoverLive, V.HoverMoved, V.LastImpactAt = {}, {}, {}, -100.0
+    V.RecentImpacts, V.LastImpactAt = {}, -100.0
     V.LastStateKey = nil
-    V.NextStreamAt, V.NextLocalAt, V.NextPoolAt, V.NextHoverAt, V.NextNetStateAt = 0.0, 0.0, 0.0, 0.0, 0.0
+    V.NextStreamAt, V.NextLocalAt, V.NextPoolAt, V.NextNetStateAt = 0.0, 0.0, 0.0, 0.0
 
     -- A guest in a network game has no seed until the host's state arrives; the
     -- mist runs at its baseline and no seeded glow is scheduled until then, rather
@@ -1196,7 +1114,7 @@ function V.Update(dt)
     UpdateGlow()
     UpdatePoolRates()
     UpdateLocalMist()
-    UpdateHoverDust()
+    UpdateHoverDust(dt)
     UpdateImpactPool()
 
     if V.Clock >= V.NextStreamAt then
@@ -1214,7 +1132,8 @@ function V.Shutdown()
     if not V.Initialized then return end
 
     Fx_DestroyAll()
-    V.PoolLive, V.LocalLayer, V.ImpactPool, V.HoverLive, V.HoverMoved = {}, nil, {}, {}, {}
+    Wake.Stop()
+    V.PoolLive, V.LocalLayer, V.ImpactPool = {}, nil, {}
 
     local environment = rawget(_G, "Environment")
     if V.EnvModifierRegistered and environment ~= nil
@@ -1254,7 +1173,7 @@ function V.Tune(name, value)
 end
 
 function V.GetStats() return V.Stats end
-function V.GetSystemCount() return V.SystemCount end
+function V.GetSystemCount() return V.SystemCount + Wake.GetSystemCount() end
 
 -- Present for adapters that forward every object creation to every module.
 function V.OnObjectCreated(_)
@@ -1313,8 +1232,9 @@ function V.Load(state)
 
     -- Loading rebuilds the Ogre scene: every system we held is already gone.
     Fx_DestroyAll()
-    V.PoolLive, V.LocalLayer, V.ImpactPool, V.HoverLive, V.RecentImpacts = {}, nil, {}, {}, {}
-    V.NextStreamAt, V.NextLocalAt, V.NextPoolAt, V.NextHoverAt = 0.0, 0.0, 0.0, 0.0
+    Wake.Reset()
+    V.PoolLive, V.LocalLayer, V.ImpactPool, V.RecentImpacts = {}, nil, {}, {}
+    V.NextStreamAt, V.NextLocalAt, V.NextPoolAt = 0.0, 0.0, 0.0
     V.LastStateKey = nil
 end
 

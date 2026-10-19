@@ -63,6 +63,7 @@
 
 local exu = require("exu")
 local CRWeather = require("CRWeather")
+local Wake = require("CRWake")
 local Map = require("CRVenusMap")
 
 local CRVenusWeather = {}
@@ -2235,6 +2236,13 @@ function V.Init(options)
         baseSky = options.baseSky,
     })
 
+    -- Vehicle wakes: render-only debris under low, moving craft near the viewer
+    -- (shared CRWake module). options.vehicleWakes = false switches them off.
+    pcall(Wake.Init, {
+        surface = "ash", enabled = options.vehicleWakes ~= false, quality = options.quality,
+        debug = options.debug,
+    })
+
     -- Our particle templates are an opt-in payload, so a build that has not
     -- shipped it degrades to presets + gameplay rather than failing weather.
     V.TemplatesReady = false
@@ -2400,6 +2408,7 @@ function V.Update(dt)
     end
 
     BroadcastState(false)
+    Wake.Update(dt)
     CRWeather.Update(dt)
 end
 
@@ -2446,6 +2455,7 @@ function V.Shutdown()
     end
 
     CRWeather.ClearWindOverride()
+    Wake.Stop()
     CRWeather.Shutdown()
     V.Initialized = false
 end

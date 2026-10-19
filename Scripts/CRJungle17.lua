@@ -21,6 +21,7 @@ function Jungle.Create(api)
     local Templates=require("CRParticleTemplates")
     local E=require("Environment")
     local Foliage=require("CRFoliageWind")
+    local Wake=require("CRWake")
     local J={Initialized=false,Enabled=true}
     local state,level,intensity,windSpeed,bearing,nextLayer,groups,waters,mist,error
     local flash,flashAt,flashPower,thunder,thunderAt,rainSound,fallSound,nextRain,nextFalls
@@ -171,7 +172,50 @@ function Jungle.Create(api)
         safe("SetMaterialTextureScrollAnimation",J.cloudMaterial or CLOUD,.0008+.00009*(windSpeed or 0),.0002,0,0,0,"General")
     end
 
+    -- Vehicle wakes (render only, shared CRWake module). Water is the river
+    -- corridor from the authored route (the stream and pool water exists only as
+    -- baked meshes, so it cannot be queried); everything else is grass, thinned
+    -- where no ground cover stands within a cell. api.vehicleWakes=false turns it off.
+    local RIVER_HALF,CELL=7.5,12
+    local cover
+    local function cellKey(ix,iz) return ix*20000+iz end
+    local function buildCover()
+        cover={}
+        for _,layer in ipairs(Sites.layers or {}) do
+            for _,p in ipairs(layer.instances) do
+                local k=cellKey(math.floor(p[1]/CELL),math.floor(p[3]/CELL))
+                cover[k]=(cover[k] or 0)+1
+            end
+        end
+    end
+    local function segDist2(px,pz,ax,az,bx,bz)
+        local dx,dz=bx-ax,bz-az
+        local l2=dx*dx+dz*dz
+        local t=l2>0 and ((px-ax)*dx+(pz-az)*dz)/l2 or 0
+        t=t<0 and 0 or (t>1 and 1 or t)
+        local ex,ez=px-(ax+dx*t),pz-(az+dz*t)
+        return ex*ex+ez*ez
+    end
+    -- resolver(x,z) -> surface, rate scale, lift (the water plane sits above the cut bed)
+    function J.WakeSurface(px,pz)
+        local r=Sites.river
+        if r then
+            for i=1,#r-1 do
+                if segDist2(px,pz,r[i][1],r[i][2],r[i+1][1],r[i+1][2])<=RIVER_HALF*RIVER_HALF then
+                    return "water",1,1.1
+                end
+            end
+        end
+        if not cover then buildCover() end
+        local ix,iz=math.floor(px/CELL),math.floor(pz/CELL)
+        local n=0
+        for dx=-1,1 do for dz=-1,1 do n=n+(cover[cellKey(ix+dx,iz+dz)] or 0) end end
+        if n>0 then return "grass",math.min(1,.6+.05*n),0 end
+        return "grass",.4,0
+    end
+
     function J.Stop()
+        Wake.Stop()
         J.Initialized=false
         for _,name in ipairs(groups or {}) do call("DestroyStaticGeometry",name) end
         for _,w in ipairs(WATERS) do call("DestroyStaticGeometry",w[1]) end
@@ -208,6 +252,9 @@ function Jungle.Create(api)
             for _,p in ipairs(layer.instances) do points[#points+1]=p end
         end
         Foliage.EnableLitter(points,{rate=45,saturation=50,minSpeed=3})
+        if api.vehicleWakes~=false then
+            pcall(Wake.Init,{surface=J.WakeSurface,surfaces={"water","grass"}})
+        end
         J.Initialized=true
         E.RegisterEnvironmentModifier("CR17Lightning",function(frame)
             if flash and GetTime()-flashAt<.2 then
@@ -354,6 +401,7 @@ function Jungle.Create(api)
         Weather.Update(dt)
         local splash=level and intensity or 0
         Splash.Set("rain",splash);Splash.Update();Glass.Update(splash)
+        Wake.Update(tonumber(dt) or 0)
         if thunder and GetTime()>=thunderAt then
             thunder=false
             if type(StartSound)=="function" then StartSound("thunder.wav") end

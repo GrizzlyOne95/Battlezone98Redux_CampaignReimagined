@@ -791,6 +791,11 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 - EXU StaticGeometry positions are sim space (EXU converts); a unit mesh scaled per instance keeps its UVs,
   and render z is mirrored, so mesh `v` runs south. A sheet over a "flat" floor must clear the floor's
   relief (misn14's wet cells vary by up to 0.3; at +0.06 the floor poked through in patches).
+- Vehicle wakes are one shared module (`Scripts/CRWake.lua`, `Docs/VEHICLE_WAKES.md`): directors call
+  `Init` / `Update` / `Stop`; a particle system per tracked craft is budgeted globally (default 4, max 6),
+  scanned at 4 Hz, near-viewer only. Do not add per-director hover/wake loops, and do not give a director
+  its own copy of the craft scan. Its second `EnsureExtra("cr_wake")` overwrites the "last payload
+  requested" in director test stubs: call `Wake.Init` before the director's own `EnsureExtra`.
 
 ### 8.5 Live testing
 
