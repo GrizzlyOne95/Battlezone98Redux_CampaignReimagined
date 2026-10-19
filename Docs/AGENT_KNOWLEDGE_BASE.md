@@ -1093,3 +1093,10 @@ holding a fixed endpoint. Network ownership/interpolation is suspected, not
 proven. `Test-ConceptFleetLive.ps1 -ExerciseMovement` retains the strict failing
 diagnostic; its default validates stationary model rendering. Do not present a
 passing asset smoke test as proof of precise co-op cinematic motion.
+
+CCA fleet art review: inspect stock CCA meshes with their UV textures, not only
+texture atlases. The owner rejected regular raised armour tiles. Preserve broad
+faceted skin and use restrained flush seams. Corner-only paint projection can
+cut through bevels; intersect paint polygons with actual structural triangles.
+The fleet tangent normal bake uses DirectX -Y to match cross(tangent,normal).
+See `Docs/CCA_REDUX_ART_PASS.md` for the revision and qualification state.

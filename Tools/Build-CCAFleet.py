@@ -14,13 +14,14 @@ ASSETS=('crccarr','crcred1','crcred2')
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--blender',default=shutil.which('blender'));p.add_argument('--render',action='store_true')
-    p.add_argument('--only',choices=ASSETS);p.add_argument('--textures-only',action='store_true');a=p.parse_args()
+    p.add_argument('--only',choices=ASSETS);p.add_argument('--textures-only',action='store_true');p.add_argument('--normals-only',action='store_true');a=p.parse_args()
     if not a.textures_only:
         if not a.blender:p.error('--blender required')
         cmd=[a.blender,'-b','--factory-startup','-t','4','--python-exit-code','1',
              '--python',str(ROOT/'Tools/Author-CCAFleet.py'),'--']
         if a.render:cmd.append('--render')
         if a.only:cmd+=['--only',a.only]
+        if a.normals_only:cmd.append('--normals-only')
         subprocess.run(cmd,check=True)
     for asset in ASSETS:
         if a.only and a.only!=asset:continue

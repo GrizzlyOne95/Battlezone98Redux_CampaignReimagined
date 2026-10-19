@@ -24,7 +24,7 @@ D=importlib.util.module_from_spec(detail_spec);detail_spec.loader.exec_module(D)
 SOURCE=ROOT/'References/CCAFleet'
 SCALE=.25  # 14.6186m installed svapc / ~59 source px, rounded for concept fidelity.
 SHIPS=[
-    dict(id='crccarr',name='CCA fork-bow carrier',center=(527,270),span=(49,1007),atlas=4096),
+    dict(id='crccarr',name='CCA fork-bow carrier',center=(527,270),span=(49,1007),atlas=2048),
     dict(id='crcred1',name='CCA upper-left red hull',center=(283,88),span=(55,512),atlas=2048),
     dict(id='crcred2',name='CCA upper-right red hull',center=(804,86),span=(550,1057),atlas=2048),
 ]
@@ -56,7 +56,11 @@ def solid(label,polygon,depth,mat,taper=None,bevel=.30):
     bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(ob.data);bm.free()
     if bevel:
         bpy.context.view_layer.objects.active=ob
-        mod=ob.modifiers.new('Small edge catchlight','BEVEL');mod.width=bevel;mod.segments=1
+        # Stock APC/Czar armour has broad structural facets, not a square
+        # extrusion with a hairline bevel. Thin outline details stay thin.
+        height=(max(v for u,v in polygon)-min(v for u,v in polygon))*SCALE
+        width=min(depth*.14,height*.13,2.2) if height>4 else bevel
+        mod=ob.modifiers.new('Continuous CCA hull facet','BEVEL');mod.width=width;mod.segments=1
         bpy.ops.object.modifier_apply(modifier=mod.name)
     A.remember(ob)
     survey.append(dict(part=label,outline=polygon,half_width=depth,material=mat))
@@ -64,14 +68,57 @@ def solid(label,polygon,depth,mat,taper=None,bevel=.30):
 
 
 def card(label,poly,depth,mat):
+    """Clip paint to the real hull facets; no raised cards or chord artifacts.
+
+    Projecting a coarse polygon's vertices onto a bevel leaves its interior
+    cutting through the hull. Instead intersect each paint triangle with each
+    visible structural triangle in YZ, then lift the resulting exact facet.
+    """
+    from mathutils.geometry import tessellate_polygon
+    from mathutils.bvhtree import BVHTree
+    contour=[Vector((point(u,v)[1],point(u,v)[2],0)) for u,v in poly]
+    paint=[[contour[q] if isinstance(q,int) else q for q in tri] for tri in tessellate_polygon([contour])]
+    vv=[];ff=[]
+    for vertices,faces in A.coarse:
+        n=len(vv);vv.extend(Vector(v) for v in vertices);ff.extend(tuple(n+i for i in f) for f in faces)
+    skin=BVHTree.FromPolygons(vv,ff,all_triangles=True)
+    def cross(a,b):return a[0]*b[1]-a[1]*b[0]
+    def clip(subject,triangle):
+        orient=1 if cross(triangle[1]-triangle[0],triangle[2]-triangle[0])>0 else -1
+        for a,b in zip(triangle,triangle[1:]+triangle[:1]):
+            result=[]
+            if not subject:return []
+            last=subject[-1];dl=cross(b-a,last-a)*orient
+            for q in subject:
+                dq=cross(b-a,q-a)*orient
+                if (dq>=-1e-7)!=(dl>=-1e-7):
+                    result.append(last+(q-last)*(dl/(dl-dq)))
+                if dq>=-1e-7:result.append(q)
+                last=q;dl=dq
+            subject=result
+        return subject
     for side in (-1,1):
-        verts=[point(u,v,side*(depth(u) if callable(depth) else depth)) for u,v in poly]
-        ob=A.mesh(label,verts,[tuple(range(len(poly)))],mat)
-        # Source u increases aft, v down. Set the desired outward side explicitly.
-        normal=ob.data.polygons[0].normal
-        if normal.x*side<0:
-            bm=bmesh.new();bm.from_mesh(ob.data)
-            bmesh.ops.reverse_faces(bm,faces=list(bm.faces));bm.to_mesh(ob.data);bm.free()
+        verts=[];faces=[]
+        for f in ff:
+            a,b,c=[vv[i] for i in f];n=(b-a).cross(c-a)
+            if n.x*side<1e-6:continue
+            base=[Vector((q.y,q.z,0)) for q in (a,b,c)]
+            for tri in paint:
+                if any(max(q[i] for q in base)<min(q[i] for q in tri)-1e-7 or
+                       min(q[i] for q in base)>max(q[i] for q in tri)+1e-7 for i in (0,1)):continue
+                clipped=clip(base[:],list(tri))
+                if len(clipped)<3:continue
+                def x_at(q):return a.x-(n.y*(q.x-a.y)+n.z*(q.y-a.z))/n.x
+                centre=sum(clipped,Vector())/len(clipped)
+                hit,_,_,_=skin.ray_cast(Vector((side*200,centre.x,centre.y)),Vector((-side,0,0)),400)
+                if hit is None or abs(hit.x-x_at(centre))>.1:continue
+                start=len(verts)
+                verts.extend((x_at(q)+side*.015,q.x,q.y) for q in clipped)
+                face=tuple(start+i for i in range(len(clipped)))
+                normal=(Vector(verts[face[1]])-Vector(verts[face[0]])).cross(Vector(verts[face[2]])-Vector(verts[face[0]]))
+                if normal.x*side<0:face=tuple(reversed(face))
+                faces.append(face)
+        if faces:A.mesh(label,verts,faces,mat)
 
 
 def rect(label,u0,v0,u1,v1,depth,mat):
@@ -220,7 +267,7 @@ def red_right():
 
 
 def inspect(ob):
-    sc=bpy.context.scene;sc.render.engine='CYCLES';sc.cycles.samples=24
+    sc=bpy.context.scene;sc.render.engine='CYCLES';sc.cycles.samples=16;sc.cycles.use_denoising=True
     sc.world=bpy.data.worlds.new('Fleet inspection');sc.world.use_nodes=True
     sc.world.node_tree.nodes['Background'].inputs[0].default_value=(.035,.038,.044,1)
     sc.world.node_tree.nodes['Background'].inputs[1].default_value=.4
@@ -250,7 +297,7 @@ def overview():
         ob=next(o for o in dst.objects if o and o.type=='MESH')
         bpy.context.collection.objects.link(ob)
         cu,cv=ship['center'];ob.location=(0,(555-cu)*SCALE,(200-cv)*SCALE)
-    sc=bpy.context.scene;sc.render.engine='CYCLES';sc.cycles.samples=24
+    sc=bpy.context.scene;sc.render.engine='CYCLES';sc.cycles.samples=16;sc.cycles.use_denoising=True
     sc.world=bpy.data.worlds.new('Fleet sheet');sc.world.use_nodes=True
     sc.world.node_tree.nodes['Background'].inputs[0].default_value=(.03,.031,.034,1)
     sc.world.node_tree.nodes['Background'].inputs[1].default_value=.5
@@ -274,17 +321,25 @@ def overview():
 
 def main():
     global current,survey
-    ap=argparse.ArgumentParser();ap.add_argument('--render',action='store_true');ap.add_argument('--only',choices=[s['id'] for s in SHIPS])
+    ap=argparse.ArgumentParser();ap.add_argument('--render',action='store_true');ap.add_argument('--only',choices=[s['id'] for s in SHIPS]);ap.add_argument('--normals-only',action='store_true')
+    ap.add_argument('--preview-output',type=Path,help='Quick private geometry/material review; no runtime writes or texture bakes')
     args=ap.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
     SOURCE.mkdir(parents=True,exist_ok=True)
     if A.CCA_REFERENCE.is_file():assert hashlib.sha256(A.CCA_REFERENCE.read_bytes()).hexdigest()==A.CCA_SHA256
+    if args.normals_only:
+        for ship in SHIPS:
+            if args.only and ship['id']!=args.only:continue
+            source=SOURCE/ship['id'];D.rebake_saved_normal(source,ship['id'])
+            stats=json.loads((source/'geometry.json').read_text());stats['normal_mapping']='DirectX (-Y) tangent normals; explicit Ogre VES_TANGENT float3'
+            (source/'geometry.json').write_text(json.dumps(stats,indent=2)+'\n')
+        return
     for ship in SHIPS:
         if args.only and ship['id']!=args.only:continue
         current=ship;survey=[]
         bpy.ops.wm.read_factory_settings(use_empty=True);bpy.context.preferences.filepaths.save_version=0
         A.parts=[];A.coarse=[];A.materials={};A.ASSET=ship['id']
         A.EXPORT_TANGENTS=True
-        A.SOURCE=SOURCE/ship['id'];A.TEXTURES=A.SOURCE/'Textures';A.TEXTURES.mkdir(parents=True,exist_ok=True)
+        A.SOURCE=(args.preview_output or SOURCE)/ship['id'];A.TEXTURES=A.SOURCE/'Textures';A.TEXTURES.mkdir(parents=True,exist_ok=True)
         palette();engines={'crccarr':carrier,'crcred1':red_left,'crcred2':red_right}[ship['id']]()
         details=D.detail_ship(A,ship)
         ob=A.assemble();ob.name=ship['name']
@@ -293,6 +348,11 @@ def main():
         bm=bmesh.new();bm.from_mesh(ob.data)
         bmesh.ops.triangulate(bm,faces=[f for f in bm.faces if len(f.verts)>4])
         bm.to_mesh(ob.data);bm.free();ob.data.update()
+        if args.preview_output:
+            inspect(ob)
+            bpy.ops.wm.save_as_mainfile(filepath=str(A.SOURCE/(ship['id']+'.blend')),compress=True)
+            print('CCA_PRIVATE_PREVIEW',ship['id'],details,flush=True)
+            continue
         sizes={'d':ship['atlas'],'n':2048,'e':1024,'s':1024}
         D.bake(ob,A.SOURCE,sizes)
         stats=A.export_mesh(ob);A.export_native(ob,stats)
@@ -303,9 +363,9 @@ def main():
             axis='Y up; nose -Z; engines +Z',engine_exits=engines,source_polygons=survey,
             inference='width, hidden surfaces, engine bank and small lamps; side outlines measured',
             excluded='all five bottom-right elements are stock unit scale comparisons',
-            atlas_sizes=sizes,detail_counts=details,quality_pass='Redux CCA authored armour, mechanical assemblies, markings and textured paint',
+            atlas_sizes=sizes,detail_counts=details,quality_pass='Redux CCA continuous faceted armour, flush seams and faction paint',
             stock_style_references=['svapc_D.dds','svrecy_D.dds','svtank_D.dds','sblpad_D.dds'],
-            normal_mapping='baked bevel/paint tangent normals; explicit Ogre VES_TANGENT float3',
+            normal_mapping='DirectX (-Y) tangent normals; explicit Ogre VES_TANGENT float3',
             paint_tile_sha256=hashlib.sha256((SOURCE/'Materials/cca_painted_steel.png').read_bytes()).hexdigest())
         (A.SOURCE/'geometry.json').write_text(json.dumps(stats,indent=2)+'\n')
         if args.render:inspect(ob)
@@ -313,7 +373,7 @@ def main():
             if im.filepath and Path(im.filepath).is_absolute():im.filepath='//'+os.path.relpath(im.filepath,A.SOURCE).replace('\\','/')
         bpy.ops.wm.save_as_mainfile(filepath=str(A.SOURCE/(ship['id']+'.blend')),compress=True)
         print('CCA_SHIP_BUILT',ship['id'],stats['triangles'],flush=True)
-    if args.render and all((SOURCE/s['id']/(s['id']+'.blend')).is_file() for s in SHIPS):overview()
+    if args.render and not args.preview_output and all((SOURCE/s['id']/(s['id']+'.blend')).is_file() for s in SHIPS):overview()
 
 
 if __name__=='__main__':main()

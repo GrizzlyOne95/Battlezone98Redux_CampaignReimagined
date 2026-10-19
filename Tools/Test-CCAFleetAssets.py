@@ -22,6 +22,10 @@ for asset in ASSETS:
     source=ROOT/'References/CCAFleet'/asset
     info=json.loads((source/'build.json').read_text())
     assert info['asset']==asset and info['scale_metres_per_pixel']==.25
+    assert info['quality_pass'].startswith('Redux CCA')
+    # Art quality and integrated surface treatment require visual review, not an
+    # arbitrary number of greebles. Structural checks below cover the exports.
+    assert info['normal_mapping'].startswith('DirectX (-Y)')
     assert 'all five bottom-right' in info['excluded']
     for path,digest in info['sha256'].items():
         assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==digest,path+' stale build'
@@ -41,12 +45,14 @@ for asset in ASSETS:
             nv=struct.unpack_from('<I',data,gs)[0]
             for vk,vs,ve in chunks(data,gs+4,ge):
                 if vk!=0x5200:continue
-                binding,stride=struct.unpack_from('<HH',data,vs);assert binding==0 and stride==32
-                _,bs,be=next(chunks(data,vs+4,ve));vertices=list(struct.iter_unpack('<8f',data[bs:be]))
+                binding,stride=struct.unpack_from('<HH',data,vs);assert binding==0 and stride==44,'explicit PNUV+tangent buffer'
+                _,bs,be=next(chunks(data,vs+4,ve));vertices=list(struct.iter_unpack('<11f',data[bs:be]))
         assert len(vertices)==nv and max(indices)<nv
-        assert count//3==info['triangles'] and count//3<10000 and nv<65536
+        assert count//3==info['triangles'] and 0<count//3<75000 and nv<160000
         assert all(math.isfinite(x) for v in vertices for x in v)
         assert all(abs(sum(x*x for x in v[3:6])-1)<.006 for v in vertices)
+        assert all(abs(sum(x*x for x in v[8:11])-1)<.006 for v in vertices),'unit tangents'
+        assert all(abs(sum(v[3+i]*v[8+i] for i in range(3)))<.006 for v in vertices),'orthogonal tangent basis'
         for i in range(0,count,3):
             a,b,c=[vertices[indices[i+j]] for j in range(3)]
             u=[b[j]-a[j] for j in range(3)];v=[c[j]-a[j] for j in range(3)]
@@ -73,7 +79,10 @@ for asset in ASSETS:
         d=(ROOT/'Assets/Textures'/(asset+'_'+suffix+'.dds')).read_bytes()
         assert d[:4]==b'DDS ' and struct.unpack_from('<II',d,12)==(size,size)
         assert struct.unpack_from('<I',d,80)[0]==0x41 and struct.unpack_from('<I',d,88)[0]==32
-        if suffix=='n':assert d[128:132]==bytes((255,128,128,255))
+        if suffix=='n':
+            assert size==2048,'real bevel/paint tangent-normal atlas'
+            samples={struct.unpack_from('<I',d,128+4*i)[0] for i in range(0,size*size,size*size//8192)}
+            assert len(samples)>32,'normal map must contain surface detail, not a flat placeholder'
     mat=(ROOT/'Materials'/(asset+'.material')).read_text()
     for suffix in 'dens':assert asset+'_'+suffix+'.dds' in mat
     odf=(ROOT/'ODF'/(asset+'.odf')).read_text()
