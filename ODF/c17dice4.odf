@@ -1,0 +1,13 @@
+[GameObjectClass]
+baseName = "c17dice4"
+classLabel = "i76building2"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 5000
+maxAmmo = 0
+unitName = "Ice"
+collisionRadius = 6.2
+explosionName = "xplnxpl"
+[PlantClass]
+isPlant = 1
+dropScrap = 0

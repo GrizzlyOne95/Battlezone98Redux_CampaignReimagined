@@ -1,0 +1,155 @@
+{
+  "pack": {
+    "title": "Low Poly Forest Tree Pack",
+    "author": "99.Miles (https://sketchfab.com/99.Miles)",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "source": "https://sketchfab.com/3d-models/low-poly-forest-tree-pack-5ff5a51e74324845a4e4905f182dfb2b"
+  },
+  "sha256": {
+    "low_poly_forest_tree_pack.glb": "0e45ebd11053f28561201ccfcc6d0771e2dd1a60c38ae47942fadbd0cf09915b",
+    "iceberg.dds": "4046075f2200d9570e7a7345413584c8afd2707948711a664c91c63524f563bb",
+    "iceberg_n.dds": "8ef4cd4ca0d98018b62ebbeef388e0d26bea4d7610ad1c93d6611a66377ba446",
+    "iceberg_s.dds": "c1ba3ca57ba63ca19fedcf08d8152abc90a5a962d8e87377cc3a11c5aaa04edb",
+    "baneice1.mesh": "81f4f9bdf6a96db2777413d33383ac73cd35bdc935999e7fcb28c0bfff00c898",
+    "baneice1.skeleton": "9e2388295e977c9155b94c25a65851932668fda915f4c4b0ececfff23a934c47",
+    "baneice1.sdf": "d087d9e49fdc399181412affda4064f607b913ab9260b213c369641b26de8c8f",
+    "baneice2.mesh": "24fb2d7db65bdd78012d4e15398739c7a20bf5738cdf6c9355e4ac351537bb8a",
+    "baneice2.skeleton": "98b3967d2b727895c4106c11c5b47b9b026ee2f637f523c04983bdabbbbb9d96",
+    "baneice2.sdf": "e9d456d8b104f115b30101882a0b0d6b3f0c8ba6925cfad5b071f89572666bf6",
+    "baneice3.mesh": "85bd308f51997bc8eea71edf42fe0aedfeec4a7d3ca579a05cad63e98bcf63b9",
+    "baneice3.skeleton": "a76166e1a70204512a03bf796e9f73eaa0e4f6db34062f147d188d664743a584",
+    "baneice3.sdf": "a295cc66198dacdff5f2543a8da94ecd2e449345a6333db6fdb55d27feecc045",
+    "baneice4.mesh": "80483caa7e88bd5f75447748a6df7c032f4895f4c595fd951d3582314b12c175",
+    "baneice4.skeleton": "7a0774f998cbfc0fbd3c58cd70b654d9437e71d53dc4a860b1a9c2454ddd213f",
+    "baneice4.sdf": "bafa8db96efae4c0a6b47e5433f2bd50214eb5b1d5728c2d24b557f16c368443",
+    "baneice5.mesh": "6214c8bb660cae323b1281f25359ce86f7f201aa79270a97a31e1f7af1f1c94e",
+    "baneice5.skeleton": "0dfcfc1e3416fd0fa20aac38b3e0d4f9b3ce2bda45f866c74b0caea6969e2b71",
+    "baneice5.sdf": "5df72c3732c29734c1fb448f701e6aebe9c86af171c01d9d577e66fa7afcf40b",
+    "darkice1.mesh": "6e2ec6498b627ae1f37e11dc47e51cfbb73aaf6cbf8e79e2c1b5c3107b73c7ec",
+    "darkice1.skeleton": "23a0e180adc514d9eeb5d88f553409622aacdd5acd030219e9245dc7cae29284",
+    "darkice1.sdf": "03575eb32b8de701b29df2d1b412ac7133e21b66fffc405e5abec579101a2a4b",
+    "darkice2.mesh": "6fe485b60c453e3ba69fe0b912409783b5517340c5d0901bd9700b529a1e5ace",
+    "darkice2.skeleton": "7323fc230769d97fda9ad4047606a364e3010b0e02e5ab7040bc4ea47e105d42",
+    "darkice2.sdf": "561ce5087dc8796c6879df27b0170c7a0b90eb9f424c985be8afc438b21a4eb7",
+    "darkice3.mesh": "09745778c14b48e8977016a8fcfe3fae6dda9e93decab8bf57c79f4e33ee3e32",
+    "darkice3.skeleton": "dc2806167bbba16cba5e8e496b639774450ae41a2e0a75be61354b4c8c5939fa",
+    "darkice3.sdf": "ce97ad1de0b16010e83ed07e73d4f8212170603bb2c0517122afdec9f44d0baf",
+    "darkice4.mesh": "ccdf92b802ab84023a9fc300d7bba0df14168c42cc792ddc1f2ded9deae4c6e2",
+    "darkice4.skeleton": "7184934fc2d6af9fe821cdd4cee1de9f1f54f6d50d328a5e060fa55794fee882",
+    "darkice4.sdf": "4cea6749965a1142c75e4f0c4e34262e852a3072620d5e26f48e4d0f19bc7b2d"
+  },
+  "textures": {
+    "cr17_fbranch1.dds": "8123840710178167193b3a078e8036a2b687ed2b85434dd024e04f46aecaafee",
+    "cr17_fbranch2.dds": "eb355a5f56668fdc3f636a0c039834fce6b863df5d390c344cfab1832a08ad92",
+    "cr17_ftrunk1.dds": "b12da876e04704774ba7d51c29052f01bd4f124eb33f2e33bae7afd8e6edc2ba",
+    "cr17_ftrunk1_n.dds": "989808feba0fb59703b0154116c412887ad54daec909203c15141133bd403ad6",
+    "cr17_ftrunk1_s.dds": "e1d59637f7f8cd1adf36c283551d0dfad6940b745cadef1231209268fc62af32",
+    "cr17_ftrunk2.dds": "49cbbb7ad2c1645d0202b9da908fbe0d927d8b513d8876f9e6a9bb8c6b6b6677",
+    "cr17_ftrunk2_n.dds": "d16c1c77988d71d5ef8f12733bb33f2b6f02c78cf24a84f352de1fdca7168257",
+    "cr17_ftrunk2_s.dds": "d5d85006d492c05ccb8d3e72ea602a82c63c4a4258a39422b33ab4604b28922e",
+    "cr17_frock.dds": "0e68c6cd6585adcc3a02b6b06363aebae43ff95e0e78c4ecb657c97169e39553",
+    "cr17_frock_n.dds": "ab285cee1e805c3a2bceb6f9f62fcfb3d143dc5da60cc2b70856c6274372686c",
+    "cr17_frock_s.dds": "d987eb01fc30555441630514a38e682ab43d75c3aeed2e1d2994a3b20f70de40",
+    "cr17_ice.dds": "4046075f2200d9570e7a7345413584c8afd2707948711a664c91c63524f563bb",
+    "cr17_ice_n.dds": "8ef4cd4ca0d98018b62ebbeef388e0d26bea4d7610ad1c93d6611a66377ba446",
+    "cr17_ice_s.dds": "c1ba3ca57ba63ca19fedcf08d8152abc90a5a962d8e87377cc3a11c5aaa04edb"
+  },
+  "trees": {
+    "c17frst1": {
+      "height": 58.0,
+      "trunk_radius": 2.1,
+      "scale": 2.282,
+      "triangles": 630
+    },
+    "c17frst2": {
+      "height": 46.0,
+      "trunk_radius": 2.01,
+      "scale": 4.45,
+      "triangles": 624
+    },
+    "c17frst3": {
+      "height": 52.0,
+      "trunk_radius": 2.04,
+      "scale": 2.817,
+      "triangles": 624
+    },
+    "c17frst4": {
+      "height": 40.0,
+      "trunk_radius": 1.11,
+      "scale": 3.371,
+      "triangles": 285
+    }
+  },
+  "ice": {
+    "c17bice1": {
+      "source": "baneice1",
+      "reach": 4.6,
+      "height": 14.4
+    },
+    "c17bice2": {
+      "source": "baneice2",
+      "reach": 8.2,
+      "height": 11.7
+    },
+    "c17bice3": {
+      "source": "baneice3",
+      "reach": 15.1,
+      "height": 30.4
+    },
+    "c17bice4": {
+      "source": "baneice4",
+      "reach": 35.1,
+      "height": 28.7
+    },
+    "c17bice5": {
+      "source": "baneice5",
+      "reach": 40.5,
+      "height": 12.5,
+      "placed": false
+    },
+    "c17dice1": {
+      "source": "darkice1",
+      "reach": 23.4,
+      "height": 37.2
+    },
+    "c17dice2": {
+      "source": "darkice2",
+      "reach": 26.7,
+      "height": 41.3,
+      "placed": false
+    },
+    "c17dice3": {
+      "source": "darkice3",
+      "reach": 24.6,
+      "height": 37.3,
+      "placed": false
+    },
+    "c17dice4": {
+      "source": "darkice4",
+      "reach": 15.4,
+      "height": 24.6
+    }
+  },
+  "tree_sites": {
+    "c17frst3": 769,
+    "c17frst1": 932,
+    "c17frst2": 931,
+    "c17frst4": 465
+  },
+  "preplaced_trees": 124,
+  "ice_placed": {
+    "c17dice1": 2,
+    "c17bice4": 1,
+    "c17bice3": 10,
+    "c17bice2": 14,
+    "c17dice4": 8,
+    "c17bice1": 5
+  },
+  "ice_by_water": {
+    "pool/river": 5,
+    "stream": 35
+  },
+  "rock_layers": 144,
+  "rocks": 5935,
+  "shore_cells": 15053
+}

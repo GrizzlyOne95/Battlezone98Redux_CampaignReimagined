@@ -1,0 +1,13 @@
+[GameObjectClass]
+baseName = "c17frst4"
+classLabel = "i76building2"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 2500
+maxAmmo = 0
+unitName = "Fir Tree"
+collisionRadius = 3
+explosionName = "xplnxpl"
+[PlantClass]
+isPlant = 1
+dropScrap = 0

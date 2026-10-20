@@ -263,7 +263,10 @@ function Jungle.Create(api)
         -- with CRWeather's wind (meshes baked by Tools/Bake-FoliageSway.py); the
         -- ground cover also sheds leaves near the camera. Weather.Shutdown in
         -- J.Stop stills them again.
-        for _,m in ipairs({"CR17/LeavesWind","CR17/GroundWind","CR17/CutoutCaster/FoliageWind"}) do
+        -- The pack forest's canopies (Tools/Build-Misn17Forest.py) sway the same way.
+        for _,m in ipairs({"CR17/LeavesWind","CR17/GroundWind","CR17/GroundWindCold","CR17/CutoutCaster/FoliageWind",
+            "CR17/ForestBranch1Wind","CR17/ForestBranch2Wind",
+            "CR17/CutoutCaster/ForestBranch1Wind","CR17/CutoutCaster/ForestBranch2Wind"}) do
             Foliage.Register(m,{slot="emissive"})
         end
         local points={}
@@ -372,7 +375,9 @@ function Jungle.Create(api)
                 instances[#instances+1]={position={x=p[1],y=p[2],z=p[3]},yaw=p[4],scale=p[5]}
             end
             local name="CR17/Jungle/"..nextLayer
-            local info,reason=x.CreateStaticGeometry(name,layer.mesh,nil,instances,
+            -- The Mire ground cover (shared with misn18) is cooled for Achilles here.
+            local material=layer.mesh:find("^cr17_mire_") and "CR17/GroundWindCold" or nil
+            local info,reason=x.CreateStaticGeometry(name,layer.mesh,material,instances,
                 {origin={x=2048,y=0,z=99328},regionDimensions={x=192,y=256,z=192},renderingDistance=260,castShadows=false,visible=true})
             if info then groups[#groups+1]=name;nextLayer=nextLayer+1 else error=tostring(reason) end
         end

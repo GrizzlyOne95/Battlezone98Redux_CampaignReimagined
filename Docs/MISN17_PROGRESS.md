@@ -77,6 +77,57 @@ head at branch creation `476390ed`. Canonical main stays untouched.
   Narrative uses crystal discovery/instruction, critical power, stabilization
   and congratulations. The existing body plays `1703` for the explosion.
 
+## Cold temperate forest (branch `agent/achilles-flora`, 2026-10-19)
+
+Owner direction: Achilles must stop reading like BZ2's Mire. It should be an
+Earth-like cold temperate forest, close to freezing but still wet.
+
+- `Tools/Build-Misn17Forest.py` replaces the Mire trees and props. It runs after
+  `Build-Misn17Jungle.py` and is deterministic (seed 17117).
+- **Trees.** Four fir/pine trees from "Low Poly Forest Tree Pack" by 99.Miles
+  (CC-BY-4.0, `Docs/FOLIAGE_ART_CREDITS.md`): `c17frst1`-`4`, 58/46/52/40 m.
+  They use the same plant contract (`i76building2` + `[PlantClass]`), a trunk
+  prism GEO, and wind-sway branch materials.
+  - All 3,097 tree sites, including 124 preplaced, were re-picked by a hash of
+    the site label. Positions and labels are unchanged, so streaming,
+    save/load and co-op labels are unaffected.
+- **Rocks.** Nine pack rocks (`cr17_frock1`-`9`) on a 17 m jittered grid on
+  TRN types 1 (forest) and 2 (rock): 5,935 instances, 1.2-4.5 m across
+  (mostly about 2 m), in 144 static batches.
+  - They keep clear of water, the river (12 m), slopes over 0.7, objects
+    (30 m) and paths (20 m).
+  - They are visual only, with no collision.
+- **Ice.** Forty ISDFC `baneice`/`darkice` props as solid plants, only on shore
+  cells: dry 5 m cells next to a watermask or river cell.
+  - Large ones need at least 70 water cells within about 30 m; 5 sit by
+    pools or the river and 35 on stream banks.
+  - They keep 75 m apart and clear of objects and paths.
+  - Each is a preplaced tree site (`cr17_iceN`), so it streams and saves like a
+    tree.
+- **Removed from misn17.** Mire trees, `mireshr`, `urchin`, `rendflow` and the
+  crystal props. `c17tree1/2` still ship but misn17 no longer references them.
+  The `cr17_mire_*` ground-cover meshes are kept (misn18 shares them).
+- **Ground cover.** On misn17 only, the ground cover draws through
+  `CR17/GroundWindCold`: a cooler, wetter tint with a little specular.
+  No new grass assets were added.
+- **Live check (2026-10-19).** Single instance, crsetup, weather wired like
+  CRMisn17, captured after the blend. Before/after images:
+  `C:/BZRCoop/runs/achilles-flora/misn17-flora-before-after.png`.
+  - All new meshes, skeletons and textures load.
+  - No "Unable to set D3D11 vertex declaration" lines; Ogre shows only the stock
+    `TestGround.material` compiler errors, which the before run has too.
+  - Each tree/ice ODF logs `Explosion "xplnxpl.odf" not found`. This is
+    inherited from `c17tree1.odf`, which logs it too.
+  - Not checked live: co-op, save/load, streaming at range, and DX9.
+- **TRN hints.**
+
+  | Texture type | Asset | Used for |
+  |---|---|---|
+  | 0 | grass (`ac00`) | none |
+  | 1 | trees (`ac11`/`ac12`) | tree and rock placement |
+  | 2 | rocky (`ac22`) | rock placement |
+  | 3 | river (`ac00sc`) | none |
+
 ## Verified so far
 
 - Lua 5.1: faithful port **141**, source parity **241**, real four-peer co-op
