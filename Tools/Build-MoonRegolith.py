@@ -1,8 +1,8 @@
 """Build a matched Moon dust/crater candidate with the shared Toolbox packer.
 
 Preserve the authored HD rocky surface and detail texture. Procedural crater
-geometry and localized dust share placement masks; only crater floors and sparse
-patches soften the source material. No normal is inferred from albedo.
+geometry and localized dust share placement masks; crater floors and raised
+rims soften the source material locally. No normal is inferred from albedo.
 """
 import argparse
 import csv
@@ -96,10 +96,23 @@ def blend_surface(source, dust, coverage, channel):
     return result
 
 
-def alias_heights(height, recipe):
+def local_material(source, overlay, mask, channel, heights, settings):
+    """Local crater readability without replacing the surrounding HD surface."""
+    rim = np.clip(heights/max(settings["rimHeight"],.01),0,1)*settings.get("surfaceCoverage",1.)
+    if channel == "N":
+        # The domain normal supplies the wall; weaken conflicting rock slopes
+        # on raised rims. Fine HD detail remains bound as its original texture.
+        mask = np.maximum(mask,rim*settings.get("rimNormalSoftening",0.))
+    result = blend_surface(source,overlay,mask,channel)
+    if channel == "D":
+        result = np.uint8(np.clip(np.rint(result.astype(np.float32)*(1+rim[:,:,None]*settings.get("rimAlbedoGain",0.))),0,255))
+    return result
+
+
+def alias_heights(height, recipe, variants=None):
     """Use the same material placement masks and solid rotations as the exporter."""
     size = height.shape[0]
-    result = {"MN00SA0.MAP": height, "MN00SC0.MAP": np.rot90(height, 2),
+    result = {"MN00SA0.MAP": height, "MN00SC0.MAP": (variants or {}).get("MN00SC0.MAP",np.rot90(height, 2)),
               "MN33SA0.MAP": np.zeros_like(height)}
     for name, kind, seed in (("MN03CA0.MAP", "C", 30), ("MN03DA0.MAP", "D", 31),
                              ("MN04CA0.MAP", "C", 40), ("MN04DA0.MAP", "D", 41)):
@@ -158,24 +171,50 @@ def main():
     recipe.material = lambda uid: json.loads((source/"material_cache"/uid/"material.json").read_text())
     height, images = surface(settings)
     coverage = dust_mask(height, settings)
+    variant_surfaces = {}
+    for alias, override in settings.get("variants",{}).items():
+        if alias != "MN00SC0.MAP":
+            raise ValueError("This Moon layout supports independent ground A/C variants only")
+        authored_settings = dict(settings, **override)
+        variant_height, variant_images = surface(authored_settings)
+        variant_surfaces[alias] = (variant_height,variant_images,dust_mask(variant_height,authored_settings),authored_settings)
     Image.fromarray(np.uint8(np.rint(coverage*255))).save(output/"dust_coverage.png")
     source_hashes = {}
+    original_ground = {}
     original = recipe.apply_art6
     def authored(world, channel, by_type, bases, report, rotate):
         original(world, channel, by_type, bases, report, rotate)
         ground = bases[by_type[0]]
+        original_ground[channel] = ground.copy()
         # The source exporter normalizes RGB normals even for a zero-turn
         # solid. Retain that same baseline, not pre-export quantized vectors.
         reference = rotate(ground, 0, channel)
         Image.fromarray(reference).save(output/f"original_hd_ground_{channel.lower()}.png")
         source_hashes[channel] = hashlib.sha256(reference.tobytes()).hexdigest()
-        bases[by_type[0]] = blend_surface(ground, images[channel], coverage, channel)
-        report["groundOverride"] = "HD source retained; dust coverage restricted to crater floors and sparse patches"
+        bases[by_type[0]] = local_material(ground, images[channel], coverage, channel, height, settings)
+        report["groundOverride"] = "HD source retained outside local crater floors, raised rims and sparse dust patches"
     recipe.apply_art6 = authored
     sources = output/"masters"
     sources.mkdir()
+    preservation = {}
     def sink(world, channel, tiles, report):
         for alias, pixels in tiles.items():
+            local_height, local_mask = height, coverage
+            if alias in variant_surfaces:
+                other_height, other_images, other_mask, other_settings = variant_surfaces[alias]
+                pixels = local_material(recipe.rot(original_ground[channel],2,channel),other_images[channel],
+                                        other_mask,channel,other_height,other_settings)
+                local_height, local_mask = other_height, other_mask
+            elif alias == "MN00SC0.MAP":
+                local_height, local_mask = np.rot90(height,2), np.rot90(coverage,2)
+            if alias in ("MN00SA0.MAP", "MN00SC0.MAP"):
+                reference = recipe.rot(original_ground[channel],0 if alias == "MN00SA0.MAP" else 2,channel)
+                untouched = (local_mask == 0) & (local_height <= 0)
+                if not np.array_equal(pixels[untouched],reference[untouched]):
+                    raise ValueError(f"HD pixels changed outside local crater masks: {alias} {channel}")
+                entry = preservation.setdefault(alias,{"untouchedFraction":float(untouched.mean()),"channels":[]})
+                entry["channels"].append(channel)
+                Image.fromarray(reference).save(output/f"original_hd_{alias.lower().replace('.map','')}_{channel.lower()}.png")
             Image.fromarray(pixels).save(sources/(alias.lower().replace('.map', '')+f"_{channel.lower()}.png"))
     exporter = module("moon_source_exporter", ROOT/"Tools/Build-MarsHdTileSources.py")
     build = exporter.source_function(recipe, sink, 1024, True, True)
@@ -190,7 +229,7 @@ def main():
     binding = pack["materials"]["MN_DETAIL_ATLAS"]
     binding.update(runtime_tuning)
     writer = module("terrain_height_writer", args.openshim/"scripts/Build-TerrainSurfacePack.py")
-    heights = alias_heights(height, recipe)
+    heights = alias_heights(height, recipe, {name:values[0] for name,values in variant_surfaces.items()})
     atlas_size = settings["heightAtlasSize"]
     atlas = np.zeros((atlas_size, atlas_size), np.float32)
     for row in csv.reader((bundle/"layout.csv").read_text().splitlines()):
@@ -221,10 +260,12 @@ def main():
               "sourceGroundPixelSha256": source_hashes,
               "dustCoverage": {"unchangedFraction": float((coverage == 0).mean()),
                                "mean": float(coverage.mean()), "maximum": float(coverage.max())},
+              "independentVariants": list(variant_surfaces),
+              "hdPreservation": preservation,
               "detailSourceSha256": hashlib.sha256(detail_source.read_bytes()).hexdigest(),
               "detailOutputSha256": hashlib.sha256(detail_path.read_bytes()).hexdigest(),
               "bundle": bundle_audit,
-              "normalPolicy": "HD source RGB XYZ normals retained; dust microheight softens only covered areas. DS supplies macro crater normal, not duplicated in pixel normal.",
+              "normalPolicy": "HD source RGB XYZ normals retained outside local floors/raised rims. DS supplies macro crater normal, not duplicated in pixel normal.",
               "detailPolicy": "Original authored HD detail preserved byte-for-byte, including mips. Shader generates -dH/dU,-dH/dV normal at 8x/32x; no extra slot.",
               "sizesUnchanged": True, "additionalTextureSlots": 0}
     if args.compare_detail:

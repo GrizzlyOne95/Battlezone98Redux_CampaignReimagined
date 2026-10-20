@@ -1,11 +1,12 @@
 # Moon dust and crater material candidate
 
 The current revision preserves Moon's authored HD ground and detail texture,
-while retaining the improved crater bowls, worn rims and small overlapping
+with two distinct crater layouts, worn bowls, fresh rims and overlapping
 impacts. Dust softens crater floors and sparse patches instead of replacing the
-whole ground. About 89.93% of the base tile is byte-identical to the original
-HD diffuse/normal/specular/emissive pixels before DDS conversion; average dust
-blend is 3.09%, reaching 78% at deep crater floors. All channels share the mask.
+whole ground. Raised rims locally soften competing rock normals and brighten
+the material slightly so the displaced shape reads against the busy HD surface.
+The builder verifies byte-identical HD pixels outside these local masks before
+DDS conversion and records the untouched fraction for both ground variants.
 Existing rock, paving, base emissives and placement masks remain; transitions
 are regenerated from the independent source recipe. No atlas pixels are used
 as image sources. Native map/collision and canonical shipping art stay intact.
@@ -18,7 +19,7 @@ references for comparing the exported normals.
 `Tools/TerrainHD/Moon/regolith.json` is the editable art recipe. Ground tiles
 remain 1024px, the signed height lookup 1024px and the detail texture 2048px.
 Maximum nominal depth remains 0.625 m (`microReliefScale: 2.5`). Existing
-source-height-validated HD RGB XYZ normals are preserved outside the dust mask.
+source-height-validated HD RGB XYZ normals are preserved outside local dust/rim masks.
 Within it, slope-space blending softens them toward an independent 4 mm dust
 microheight normal with negative U/V gradients in the audited tangent convention.
 The normal map does **not** also contain the new large crater slope: OpenShim's
@@ -61,15 +62,15 @@ portable DNSE packaging use the shared Toolbox, not a new image codec.
 python Tools/Build-MoonRegolith.py `
   --source-build '<saved HD source build>' `
   --toolbox '../Battlezone98_Modding_Toolbox-hd-terrain-authoring' `
-  --openshim '../BZR-OpenShim-moon-relief-depth' `
-  --output Local/TerrainHD/Regolith03 `
+  --openshim '../BZR-OpenShim-terrain-world-controls' `
+  --output Local/TerrainHD/CraterVariety02 `
   --compare-detail '<game>/BZ_ASSETS/pc/textures/TerrainTextures/Detail/mn_detail.dds'
 
 ./Tools/Test-MarsHdTerrainLive.ps1 `
-  -OpenShimRepo ../BZR-OpenShim-moon-relief-depth `
-  -TileDirectory Local/TerrainHD/Regolith03/bundle -World moon `
+  -OpenShimRepo ../BZR-OpenShim-terrain-world-controls `
+  -TileDirectory Local/TerrainHD/CraterVariety02/bundle -World moon `
   -Hd -MicroRelief -GroundView -SettingsOnly -MeasureMemory `
-  -DetailTexture Local/TerrainHD/Regolith03/bundle/resources/crhd_moon_regolith_detail.dds
+  -DetailTexture Local/TerrainHD/CraterVariety02/bundle/resources/crhd_moon_regolith_detail.dds
 ```
 
 Use a fresh output folder for each art revision. The builder writes retained
@@ -82,7 +83,50 @@ Source shipping DDS, shipping manifest and Workshop package are not promoted.
 Off Enhanced, the existing stock-atlas fallback remains the production path;
 this candidate does not introduce a new native rendering mode.
 
-## Current revision checks
+## Crater variety controls
+
+Edit `Tools/TerrainHD/Moon/regolith.json` and rebuild into a fresh output folder.
+The main `craters` list authors ground A; `variants.MN00SC0.MAP.craters` authors
+an independent ground C layout, rather than rotating A. Transitions retain their
+source placement masks and flat paving/border guards. HD rock art still follows
+the original source rotations; the independent height and local dust agree.
+
+| Per-crater value | Effect |
+| --- | --- |
+| `center` | Tile UV position, `[0,1]` across the 20 m tile |
+| `radiusMeters`, `depth` | Radius and fraction of the world displacement amplitude |
+| `floorRadius` | Flat floor as a fraction of radius, 0 to 0.6; zero retains the older curved bowl |
+| `rimHeight`, `rimWidth` | Rim height relative to crater depth (0 to 0.6) and width relative to radius (0.05 to 0.5) |
+| `aspect`, `rotationDegrees` | Two axis multipliers (0.7 to 1.4) and orientation for elliptical bowls |
+| `rimBreakup`, `phase` | Angular erosion strength (0 to 1) and pattern phase in radians |
+
+The current layouts mix 0.8 to 3.4 m radii, broad worn bowls and sharper fresh
+impacts. Overlapping heights add, clipped to signed unit range. Very small
+impacts are poorly resolved by the existing factor-4 tessellation, so prefer
+these meter-scale forms instead of adding submeter noise.
+
+`rimNormalSoftening` controls local rock-normal suppression (currently 0.65);
+`rimAlbedoGain` controls subtle rim material brightening (0.12). Neither bakes a
+directional light. The original HD detail DDS is still copied byte-for-byte;
+the large crater normal comes from geometry only. Overall depth remains
+`microReliefScale` in `Config/cr_terrain_hd.json`, currently 2.5 / 0.625 m.
+
+`CraterVariety01` ran in windowed Windows/GOG DX11 as PID 10464. Its inspected
+capture, `Local/TerrainHD/run-20261020-184311/trial.png`, shows clearer bowls and
+raised rims while preserving the HD rocky surface. All 18,433 height binding
+scopes, 144 streams/bounds, 82 material passes and 146 staged files restored.
+Private commit was 373.09 MiB, lifetime peak 504.04 MiB, largest free VA block
+2,044.79 MiB. Texture dimensions, formats and slots are unchanged; this short
+sample is not an isolated RAM-overhead comparison. `CraterVariety02` adds
+per-variant source references and automatic preservation assertions without
+changing the authored pixels. This remains a local candidate for art review.
+Its preservation assertions pass for all D/N/S/E channels, with 78.88% of
+ground A and 78.37% of ground C entirely outside the local crater/dust masks.
+All 46 resource files match the live-trial bundle byte-for-byte. The 44 DNSE
+files remain 69,212,077 bytes in total; height and detail reuse existing slots.
+Fourteen focused crater/material checks and repository invariants pass.
+
+## Earlier restored HD revision checks
 
 Six focused checks cover UV normal sign/sharpening, no duplicated macro crater
 normal, neutral-detail interpretation, deterministic dust, byte-identical HD
@@ -125,7 +169,7 @@ Median private commit was 363,896,832 bytes (347.04 MiB), lifetime peak
 retains the existing slot count, sizes and formats; the detail replaces the
 previous detail slot rather than adding a second texture.
 
-This is a visual candidate, not a release. Crater repetition remains visible,
+This is a visual candidate, not a release. Tiling can still be visible,
 rock/dust distribution needs review across a wider map, and distant terrain
 shading is unchanged. Device/profile transitions, long sessions and
 Steam/Proton/Wine remain unverified for the new art.

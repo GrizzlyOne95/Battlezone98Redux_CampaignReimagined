@@ -32,11 +32,13 @@ This does not imply a measured RAM-overhead A/B.
 
 Moon's `surfaceBlend.recipe` selects the existing local crater/dust generator:
 `Tools/Build-MoonRegolith.py`. Its coverage multiplier softens only the masked
-crater floors and sparse patches. Set coverage to 0 to keep the original HD
+crater floors, raised rims and sparse patches. Set coverage to 0 to keep the original HD
 surface everywhere while retaining crater geometry. This is separate from
 `floorDustStrength` and `patchDustStrength` in `Moon/regolith.json`, which shape
 the authored mask. The generator reads the same runtime controls into its
 portable pack and computes reference depth from the current relief scale.
+Moon's recipe also has independent ground A/C crater layouts and per-crater
+size, floor, rim and wear controls; see `Docs/MOON_REGOLITH_CANDIDATE.md`.
 The recipe's new art still requires an explicit preview/build; adding the
 authoring fields does not replace the shipping DDS automatically.
 

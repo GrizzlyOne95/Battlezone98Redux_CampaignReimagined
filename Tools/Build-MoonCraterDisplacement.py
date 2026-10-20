@@ -34,12 +34,29 @@ def crater_tile(size, settings):
         if not all(math.isfinite(x) for x in (cx, cy, radius, depth)) or not (0 < radius <= 8 and 0 < depth <= 1):
             raise ValueError("invalid crater dimensions")
         dx, dy = (u-cx)*settings["tileMeters"], (v-cy)*settings["tileMeters"]
+        aspect = crater.get("aspect", [1., 1.])
+        rotation = crater.get("rotationDegrees", 0.)
+        floor_radius = crater.get("floorRadius", 0.)
+        rim_height = crater.get("rimHeight", settings["rimHeight"])
+        rim_width = crater.get("rimWidth", settings["rimWidth"])
+        breakup = crater.get("rimBreakup", 0.)
+        phase = crater.get("phase", 0.)
+        if (len(aspect) != 2 or not all(math.isfinite(x) for x in (*aspect,rotation,floor_radius,rim_height,rim_width,breakup,phase))
+                or not all(.7 <= x <= 1.4 for x in aspect) or not 0 <= floor_radius <= .6
+                or not 0 <= rim_height <= .6 or not .05 <= rim_width <= .5 or not 0 <= breakup <= 1):
+            raise ValueError("invalid crater morphology")
+        cosine, sine = math.cos(math.radians(rotation)), math.sin(math.radians(rotation))
+        dx, dy = (dx*cosine+dy*sine)/aspect[0], (-dx*sine+dy*cosine)/aspect[1]
         angle = np.arctan2(dy, dx)
         # Small angular variation wears the rim without adding terrain noise.
-        r = np.hypot(dx, dy) / (radius * (1 + .045*np.cos(3*angle) + .025*np.sin(7*angle)))
-        bowl = -depth * np.maximum(0, 1-r*r)**2
-        rim_t = (r-1.01) / settings["rimWidth"]
-        rim = depth * settings["rimHeight"] * np.maximum(0, 1-rim_t*rim_t)**2
+        r = np.hypot(dx, dy) / (radius * (1 + .045*np.cos(3*angle+phase) + .025*np.sin(7*angle-phase)))
+        if floor_radius:
+            bowl = -depth*(1-fade((r-floor_radius)/(1-floor_radius)))
+        else:
+            bowl = -depth * np.maximum(0, 1-r*r)**2
+        rim_t = (r-1.01) / rim_width
+        wear = 1-breakup*np.clip(.5+.3*np.sin(3*angle+phase)+.2*np.cos(7*angle-phase),0,1)
+        rim = depth * rim_height * np.maximum(0, 1-rim_t*rim_t)**2 * wear
         result += bowl + rim
     return np.clip(result, -1, 1).astype(np.float32)
 

@@ -1229,3 +1229,8 @@ See `Docs/CCA_REDUX_ART_PASS.md` for the revision and qualification state.
 
 - `Config/cr_terrain_hd.json` is the single source for each world's depth, detail contrast/normal/near strength and optional surface coverage. Defaults retain current HD art, including rocky Mars; coverage requires authored masks/maps and is not a generic effect toggle. See `Docs/TERRAIN_WORLD_ART_CONTROLS.md`.
 - Runtime detail controls specialize owned OpenShim HD fragment sources before the existing source-hash cache key. Offline surface blending happens before source variants/transitions, uses the same mask for D/N/S/E and preserves unmasked HD pixels. Changed mask/overlay hashes require new source/output caches. Moon's custom generator consumes its own recipe and global coverage while retaining its original HD detail.
+
+### Moon crater variety (2026-10-20)
+
+- Author independent ground A/C crater layouts in `Tools/TerrainHD/Moon/regolith.json`; a rotation of one layout does not provide enough variety. Per-crater floor radius, aspect, rim width/height and angular wear support fresh, worn and overlapping impacts. Keep meter-scale features for factor-4 tessellation and retain flat tile/paving guards.
+- Improve shape readability locally: soften competing HD rock normals on raised rims and dusted floors, retain the original HD detail and leave surrounding HD pixels intact. DS already supplies the geometric crater normal. The builder asserts exact unmasked HD pixels against separately rotated original A/C references; comparing a twice-renormalized normal baseline can introduce quantization differences. See `Docs/MOON_REGOLITH_CANDIDATE.md` for the inspected Windows/GOG trial. Canonical shipping art is not promoted by a local candidate build.

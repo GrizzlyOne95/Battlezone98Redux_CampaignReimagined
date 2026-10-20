@@ -66,6 +66,33 @@ class Regolith(unittest.TestCase):
         result = art.blend_surface(source,dust,np.ones((2,2),np.float32),"N")
         np.testing.assert_array_equal(result,dust)
 
+    def test_ground_variants_have_different_shapes_not_just_a_rotation(self):
+        settings=json.loads((ROOT/"Tools/TerrainHD/Moon/regolith.json").read_text())
+        settings["tileSize"]=256
+        first,_=art.surface(settings)
+        second,_=art.surface(dict(settings,**settings["variants"]["MN00SC0.MAP"]))
+        self.assertGreater(float(np.std(first-second)),.10)
+        for turn in range(4):
+            self.assertFalse(np.allclose(first,np.rot90(second,turn)))
+        self.assertTrue((second[:9]==0).all())
+        self.assertGreater(float(first.max()),.3)
+
+    def test_rim_readability_preserves_hd_outside_local_crater_masks(self):
+        settings=json.loads((ROOT/"Tools/TerrainHD/Moon/regolith.json").read_text())
+        settings["tileSize"]=256
+        height,images=art.surface(settings)
+        mask=art.dust_mask(height,settings)
+        untouched=(mask==0)&(height<=0)
+        self.assertGreater(float(untouched.mean()),.70)
+        original=np.full((256,256,3),[100,160,240],np.uint8)
+        for channel in "DNSE":
+            result=art.local_material(original,images[channel],mask,channel,height,settings)
+            np.testing.assert_array_equal(result[untouched],original[untouched])
+        settings["surfaceCoverage"]=0
+        for channel in "DNSE":
+            result=art.local_material(original,images[channel],art.dust_mask(height,settings),channel,height,settings)
+            np.testing.assert_array_equal(result,original)
+
 
 if __name__ == "__main__":
     unittest.main()
