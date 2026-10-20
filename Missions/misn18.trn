@@ -29,13 +29,23 @@ MusicTrack=7
 [Sky]
 SunTexture= sun.0
 SkyType= 0
-SkyHeight = 310
+SkyHeight = 3000
 SkyTexture= achilles.map
 
 BackdropTexture =
 BackdropDistance= 400
 BackdropWidth   = 800
 BackdropHeight  = 100
+
+[Stars]
+Radius      = 1000
+
+Texture00   = uranus.map
+Alpha00     = 0
+Size00      = 450
+Azimuth00   = 210
+Elevation00 = 30
+Roll00      = 0
 
 [Clouds]
 Count    = 8

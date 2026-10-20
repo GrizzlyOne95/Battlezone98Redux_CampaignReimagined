@@ -105,9 +105,49 @@ fragment_program CR_Sky_fragment unified
 	default_params
     {
     }
-} 
+}
 
+//HAZE (URANUS.MAP): same vertex stage, fragment adds opacity, fog tint and a drifting cloud mask
 
+fragment_program CR_SkyHaze_fragmentHLSL4 hlsl
+{
+    source CR_sky-sm4.hlsl
+    target ps_4_0
+    entry_point sky_haze_fragment
+	default_params
+	{
+		param_named_auto hazeTime time_0_x 1000
+	}
+}
 
+fragment_program CR_SkyHaze_fragmentHLSL hlsl
+{
+    source CR_sky.hlsl
+    target ps_3_0
+    entry_point sky_haze_fragment
+	default_params
+	{
+		param_named_auto hazeTime time_0_x 1000
+	}
+}
 
+fragment_program CR_SkyHaze_fragmentGLSL glsl
+{
+    source CR_skyhaze-fragment.glsl
+	syntax glsl120
+    entry_point ps_main
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named maskMap int 1
+		param_named_auto hazeTime time_0_x 1000
+	}
+}
+
+fragment_program CR_SkyHaze_fragment unified
+{
+	delegate CR_SkyHaze_fragmentGLSL
+	delegate CR_SkyHaze_fragmentHLSL4
+	delegate CR_SkyHaze_fragmentHLSL
+}
 
