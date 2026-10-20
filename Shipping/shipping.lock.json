@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2972,
+  "count": 2975,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -400,12 +400,12 @@
       "runtime": "avtank.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\avturr_C.mesh",
-      "runtime": "avturr_C.mesh"
+      "source": "Assets\\ModelFixes\\avturr_c.mesh",
+      "runtime": "avturr_c.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\avturr_C.skeleton",
-      "runtime": "avturr_C.skeleton"
+      "source": "Assets\\ModelFixes\\avturr_c.skeleton",
+      "runtime": "avturr_c.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\avwalk_c.mesh",
@@ -784,6 +784,10 @@
       "runtime": "cvwalk_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cvwalk.vdf",
+      "runtime": "cvwalk.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cwp11rot.geo",
       "runtime": "cwp11rot.geo"
     },
@@ -880,12 +884,20 @@
       "runtime": "svturr_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\svturr.vdf",
+      "runtime": "svturr.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svwalk_c.mesh",
       "runtime": "svwalk_c.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svwalk_c.skeleton",
       "runtime": "svwalk_c.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svwalk.vdf",
+      "runtime": "svwalk.vdf"
     },
     {
       "source": "Assets\\Sounds\\atlas.wav",

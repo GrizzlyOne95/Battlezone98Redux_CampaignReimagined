@@ -155,10 +155,10 @@ byte-identical (verified on all 51 outputs).
 
 ### Result
 
-51 meshes carry glass (45 new files, 6 existing CR fixes rebuilt in place: `avturr_C`, `bvturr_c`, `bvwalk_c`,
+51 meshes carry glass (45 new files, 6 existing CR fixes rebuilt in place: `avturr_c`, `bvturr_c`, `bvwalk_c`,
 `cvwalk_c`, `svturr_c`, `svwalk_c`), 0 failed, 28 units skipped (no file shipped):
 
-- Generated: avapc avartl(_c) avfigh avhaul avhraz avltnk avmine avrckt avscav avtank avturr(_C) avwalk(_c);
+- Generated: avapc avartl(_c) avfigh avhaul avhraz avltnk avmine avrckt avscav avtank avturr(_c) avwalk(_c);
   bvapc bvartl(_c) bvhaul bvhraz bvltnk bvmine bvmru bvraz bvrckt bvrdev bvscav bvtank bvturr(_c) bvwalk(_c);
   cvapc cvartl cvfigh cvhaul cvhraz cvhtnk cvltnk cvmine cvrckt cvscav cvtnk cvturr cvwalk(_c);
   svapc svartl(_c) svfigh svhaul svhraz svltnk svmine svrckt svscav svtank svturr(_c) svwalk(_c).
