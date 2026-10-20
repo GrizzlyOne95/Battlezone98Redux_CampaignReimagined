@@ -2518,6 +2518,7 @@ local function ReadOpenShimCampaignVisualSettings()
         EmptyCraftLights = false,
         EmissivePulse = false,
         StarTwinkle = false,
+        SkyEvents = true, -- shooting stars and satellites; ships on
     }
 
     local candidates = {}
@@ -2569,6 +2570,8 @@ local function ReadOpenShimCampaignVisualSettings()
                 settings.EmissivePulse = ParseOpenShimBool(value, false)
             elseif key == "StarTwinkle" then
                 settings.StarTwinkle = ParseOpenShimBool(value, false)
+            elseif key == "SkyEvents" then
+                settings.SkyEvents = ParseOpenShimBool(value, true)
             end
         end
         line = f:Readln()
@@ -2588,6 +2591,7 @@ function PersistentConfig._SyncOpenShimCampaignVisualSettings(force)
         settings.EmptyCraftLights and "1" or "0",
         settings.EmissivePulse and "1" or "0",
         settings.StarTwinkle and "1" or "0",
+        settings.SkyEvents and "1" or "0",
     }, ":")
 
     if not force and PersistentConfig._OpenShimCampaignVisualSignature == signature then
@@ -2599,6 +2603,7 @@ function PersistentConfig._SyncOpenShimCampaignVisualSettings(force)
     RuntimeEnhancements.SetPilotVisualsEnabled(not settings.EmptyCraftLights)
     RuntimeEnhancements.SetEmissivePulseEnabled(settings.EmissivePulse)
     RuntimeEnhancements.SetStarTwinkleEnabled(settings.StarTwinkle)
+    RuntimeEnhancements.SetSkyEventsEnabled(settings.SkyEvents)
 
     PersistentConfig._OpenShimCampaignVisualSignature = signature
     if force or PersistentConfig.Debug then

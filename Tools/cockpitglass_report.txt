@@ -21,7 +21,7 @@ skip avsav (-) odfs=avsav: no mesh in CR or stock
 ok   avscav (avscav.mesh, in-mesh, from stock) odfs=avscab,avscav pov=ASC11POV bone=ASC21bda verts=993 tris=1744 open=79% depth=0.92-1.76
 ok   avtank (avtank.mesh, in-mesh, from stock) odfs=avdemo,avtam2,avtamp,avtank,player pov=AGR11POV bone=agr21bda verts=460 tris=774 open=30% depth=0.66-1.64
 skip avtest (avtest.mesh) odfs=avtest: no cockpit ('2' bones, no _c/_cockpit mesh)
-ok   avturr (avturr_C.mesh, table, from cr) odfs=avtump,avtur2b,avturr pov=aDE11POV bone=aDE21ty1 verts=935 tris=1664 open=77% depth=0.54-1.07
+ok   avturr (avturr_c.mesh, table, from cr) odfs=avtump,avtur2b,avturr pov=aDE11POV bone=aDE21ty1 verts=935 tris=1664 open=77% depth=0.54-1.07
 ok   avwalk (avwalk_c.mesh, table, from stock) odfs=avwalk,avwamp pov=AGe11POV bone=age21hed verts=794 tris=1404 open=63% depth=0.72-3.00
 skip bbtowe (bbtowe.mesh) odfs=bbtowe: no cockpit ('2' bones, no _c/_cockpit mesh)
 ok   bvapc (bvapc.mesh, in-mesh, from stock) odfs=bvapc,bvapca,bvapcb,bvhapc pov=AAP11POV bone=BAP21bda verts=695 tris=1192 open=54% depth=1.08-1.61

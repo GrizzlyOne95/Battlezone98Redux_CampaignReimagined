@@ -44,6 +44,9 @@ local RuntimeEnhancements = {
     StarTwinkleEnabled = false,
     StarTwinkleApplied = nil,
     StarTwinkleRetryAt = 0.0,
+    SkyEventsEnabled = true,
+    SkyEventsPending = false,
+    SkyEventsRetryAt = 0.0,
     ResourceGroup = "General",
     DebugVisualLogging = true,
     DebugLogPath = nil,
@@ -1093,6 +1096,39 @@ function RuntimeEnhancements.SetStarTwinkleEnabled(enabled)
     return applied
 end
 
+-- Shooting stars and satellites (Materials/CR_sky_events.material). The
+-- materials ship enabled (emissive x = 1); this only matters to switch off.
+local SKY_EVENT_MATERIALS = { "CRMETEOR.MAP", "CRSATELL.MAP" }
+
+function RuntimeEnhancements.SetSkyEventsEnabled(enabled)
+    local value = not not enabled
+    RuntimeEnhancements.SkyEventsEnabled = value
+
+    if not (exu and exu.SetMaterialPassColors) then
+        RuntimeEnhancements.SkyEventsPending = false
+        return false
+    end
+
+    local level = value and 1.0 or 0.0
+    local colors = { emissive = { r = level, g = 0.0, b = 0.0, a = 1.0 } }
+    local applied = true
+    for _, material in ipairs(SKY_EVENT_MATERIALS) do
+        local ok, result = pcall(exu.SetMaterialPassColors, material, colors, -1, -1,
+            RuntimeEnhancements.ResourceGroup)
+        if not ok or result == false then
+            ok, result = pcall(exu.SetMaterialPassColors, material, colors, 0, 0,
+                RuntimeEnhancements.ResourceGroup)
+        end
+        applied = applied and ok and result ~= false
+    end
+
+    RuntimeEnhancements.SkyEventsPending = not applied
+    RuntimeEnhancements.SkyEventsRetryAt = applied and 0.0
+        or ((type(GetTime) == "function" and GetTime() or 0.0) + 1.0)
+    DebugVisualLog("sky-events enabled=" .. tostring(value) .. " applied=" .. tostring(applied))
+    return applied
+end
+
 function RuntimeEnhancements.RebuildVisuals()
     RuntimeEnhancements.Initialize()
     RuntimeEnhancements.ResetVisualState()
@@ -1129,6 +1165,11 @@ function RuntimeEnhancements.Update()
     if RuntimeEnhancements.StarTwinkleApplied ~= RuntimeEnhancements.StarTwinkleEnabled
         and now >= (RuntimeEnhancements.StarTwinkleRetryAt or 0.0) then
         RuntimeEnhancements.SetStarTwinkleEnabled(RuntimeEnhancements.StarTwinkleEnabled)
+    end
+
+    if RuntimeEnhancements.SkyEventsPending
+        and now >= (RuntimeEnhancements.SkyEventsRetryAt or 0.0) then
+        RuntimeEnhancements.SetSkyEventsEnabled(RuntimeEnhancements.SkyEventsEnabled)
     end
 
     if RuntimeEnhancements.SupportsAutoLevel then
