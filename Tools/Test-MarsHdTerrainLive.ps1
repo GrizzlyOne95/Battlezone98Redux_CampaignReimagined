@@ -17,7 +17,9 @@ param(
  [ValidateRange(1,4)][int]$ProfileCycles=1,
  [switch]$WideView,
  [switch]$BaseView,
+ [switch]$GroundView,
  [switch]$MicroRelief,
+ [switch]$SettingsOnly,
  [switch]$BindCapture,
  [switch]$Hd
 )
@@ -42,6 +44,7 @@ $textureDirectory=if($isBundle){Join-Path $tiles 'resources'}else{$tiles}
 if($BindCapture -and $isBundle){throw 'Toolbox packs use rectangle mapping; capture binding is unnecessary.'}
 if($Hd -and -not (Test-Path -LiteralPath $manifestPath)){throw 'Prepare the source tile bundle before previewing.'}
 if($ProfileCycle -and (-not $Hd -or $RenderProfile -ne 'Enhanced')){throw 'ProfileCycle needs -Hd and an Enhanced starting profile'}
+if($SettingsOnly -and (-not $Hd -or -not $MicroRelief -or $ProfileCycle)){throw 'SettingsOnly requires -Hd -MicroRelief without profile cycling'}
 if($ProfileCycle){
  if(-not $ExuDll){$ExuDll=Join-Path $game 'mods\3686673790\exu.dll'}
  $ExuDll=(Resolve-Path -LiteralPath $ExuDll).Path.Replace('\','/')
@@ -57,6 +60,13 @@ if($isBundle){
   $authored=$tuning.materials.PSObject.Properties[$material.Name]
   if($null-ne$authored -and $authored.Value.diffuseResource -ceq $material.Value.diffuseResource){
    $material.Value | Add-Member -NotePropertyName microReliefScale -NotePropertyValue $authored.Value.microReliefScale -Force
+  }
+  if($material.Value.heightTexture){
+   $heightSource=[IO.Path]::GetFullPath((Join-Path $tiles $material.Value.heightTexture))
+   if(-not $heightSource.StartsWith($tiles+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Height path escapes the texture bundle'}
+   $heightName=Split-Path -Leaf $heightSource
+   Copy-Item -LiteralPath $heightSource -Destination (Join-Path $out $heightName)
+   $material.Value.heightTexture=$heightName
   }
  }
  $manifestPath=Join-Path $out 'terrain_hd_tiles.json'
@@ -111,6 +121,7 @@ try {
  if($isBundle){
   $fixtureOptions=@('--source',"$missionDirectory\$mission.bzn",'--out',"$game\addon\$mission.bzn")
   if($BaseView){$baseSettings=Get-Content "$PSScriptRoot\TerrainHD\base_emissives.json" -Raw | ConvertFrom-Json;$fixtureOptions+=@('--base-type',[string]$baseSettings.worlds.$World.type)}
+  elseif($GroundView){$fixtureOptions+=@('--base-type','0')}
   & python "$PSScriptRoot\Build-HdTerrainPreview.py" @fixtureOptions
   if($LASTEXITCODE -ne 0){throw 'Terrain camera fixture generation failed'}
  }
@@ -161,6 +172,10 @@ function DeleteObject(h) end
   $driver=[IO.File]::ReadAllText("$game\addon\$mission.lua").Replace('CameraObject(p,600,400,800,p)','CameraObject(p,3000,2200,-3000,p)')
   [IO.File]::WriteAllText("$game\addon\$mission.lua",$driver)
  }
+ if($GroundView){
+  $driver=[IO.File]::ReadAllText("$game\addon\$mission.lua").Replace('CameraObject(p,600,400,800,p)','CameraObject(p,1800,900,-1800,p)')
+  [IO.File]::WriteAllText("$game\addon\$mission.lua",$driver)
+ }
  if($ProfileCycle){
   # Optional integration probe uses the already installed EXU API. Ordinary
   # authored packs/previews have no EXU requirement.
@@ -194,22 +209,29 @@ end
  & "$repo\scripts\Deploy-OpenShim.ps1" -GameDir $game
  $ini=[IO.File]::ReadAllText("$game\openshim.ini") -replace '(?m)^TerrainHdEnabled\s*=.*$','TerrainHdEnabled = 0'
  $ini=[regex]::Replace($ini,'(?m)^RenderProfile\s*=.*$',('RenderProfile = '+$RenderProfile))
+ if($MicroRelief){$ini=$ini -replace '(?m)^TerrainMicroRelief\s*=.*$','TerrainMicroRelief = 1'}
+ if($SettingsOnly){$ini=$ini -replace '(?m)^TerrainRenderProbe\s*=.*$','TerrainRenderProbe = 0'}
  if($Hd){
   $ini=$ini -replace '(?m)^TerrainHdEnabled\s*=.*$','TerrainHdEnabled = 1'
   $ini=[regex]::Replace($ini,'(?m)^TerrainHdManifest\s*=.*$',('TerrainHdManifest = '+$manifestPath))
  }
  [IO.File]::WriteAllText("$game\openshim.ini",$ini)
  $env:OPENSHIM_TERRAIN_HD_EXPORT="$out\native.json"
- $env:OPENSHIM_TERRAIN_TESSELLATION_TEST='1'
- $env:OPENSHIM_TERRAIN_TESSELLATION_FACTOR='1'
- if($MicroRelief){
+ if(-not $SettingsOnly){
+  $env:OPENSHIM_TERRAIN_TESSELLATION_TEST='1'
+  $env:OPENSHIM_TERRAIN_TESSELLATION_FACTOR='1'
+ }
+ if($MicroRelief -and -not $SettingsOnly){
   $env:OPENSHIM_TERRAIN_MICRO_RELIEF_TEST='1'
   $env:OPENSHIM_TERRAIN_TESSELLATION_FACTOR='4'
+  if($isBundle -and ($pack.materials.PSObject.Properties.Value | Where-Object {$_.heightTexture})){$env:OPENSHIM_TERRAIN_HEIGHT_REQUIRE='1'}
  }
  if($Hd){
   foreach($item in Get-ChildItem $textureDirectory -Filter '*.dds' -File){Save-File "$game\openshim\renderer\enhanced\$($item.Name)"; Copy-Item $item.FullName "$game\openshim\renderer\enhanced\$($item.Name)" -Force}
-  $env:OPENSHIM_TERRAIN_HD='1'; $env:OPENSHIM_TERRAIN_HD_MANIFEST=$manifestPath
-  $env:OPENSHIM_TERRAIN_HD_REQUIRE_MATERIAL_MAPS='1'
+  if(-not $SettingsOnly){
+   $env:OPENSHIM_TERRAIN_HD='1'; $env:OPENSHIM_TERRAIN_HD_MANIFEST=$manifestPath
+   $env:OPENSHIM_TERRAIN_HD_REQUIRE_MATERIAL_MAPS='1'
+  }
  }
  Assert-BZRSafeToLaunch
  $proc=Start-BZRGameProcess -FilePath "$game\battlezone98redux.exe" -ArgumentList "$mission.bzn /nointro /renderer:dx11" -WorkingDirectory $game -PassThru
@@ -287,7 +309,11 @@ if($Hd -and $RenderProfile -ne 'Enhanced'){
 if($Hd -and $RenderProfile -eq 'Enhanced'){
  $records=@(Get-Content "$out\openshim.log" | Where-Object {$_ -match ("\[pid:"+$proc.Id+" ")})
  $proof=@($records | Where-Object {$_ -match ("GPU statistics.*hdTiles=1.*hdMaterialMask="+$hdMapMask+'\b') -and $_ -match 'psInvocations=([0-9]+)' -and [uint64]$Matches[1] -ge 1024})
- if(-not $proof.Count){throw "Missing actual diffuse/normal/specular array draw proof; inspect $out"}
+ if(-not $SettingsOnly -and -not $proof.Count){throw "Missing actual diffuse/normal/specular array draw proof; inspect $out"}
+ if($SettingsOnly){
+  if(-not ($records -match 'domain binding requested by terrain feature settings')){throw 'Ordinary terrain settings did not start height binding'}
+  if($records -match 'GPU statistics observer requested'){throw 'SettingsOnly unexpectedly enabled diagnostic tessellation'}
+ }
  if(-not ($records -match 'shared native material restored passes=[1-9]')){throw 'Native material restoration unproven'}
  $restoredStreams=@($records | Where-Object {$_ -match 'native streams restored meshes=([0-9]+) tracked=([0-9]+)' -and [int]$Matches[1] -gt 0 -and $Matches[1] -eq $Matches[2]})
  if(-not $restoredStreams.Count){throw 'Complete native stream restoration unproven'}
@@ -300,6 +326,11 @@ if($Hd -and $RenderProfile -eq 'Enhanced'){
   $formatted=$amplitude.ToString('F3',[Globalization.CultureInfo]::InvariantCulture)
   if(-not ($records -match ('\[TERRAIN-TESS\] shared native material installed.*displacement='+[regex]::Escape($formatted)+'\b'))){throw 'Scaled native domain displacement unproven'}
   if($amplitude -gt 0 -and -not ($records -match ('micro-relief render bounds padded.*amplitude='+[regex]::Escape($formatted)+'\b'))){throw 'Matching scaled render bounds unproven'}
+  if($pack.materials.$materialName.heightTexture){
+   if(-not $SettingsOnly -and -not ($proof -match 'heightTexture=1')){throw 'Native domain texture binding and rasterization unproven'}
+   $release=@($records | Where-Object {$_ -match '\[TERRAIN-HEIGHT\] released.*binds=(\d+) restores=(\d+)' -and [int]$Matches[1] -gt 0 -and $Matches[1] -eq $Matches[2]})
+   if(-not $release.Count){throw 'Domain texture binding restoration unproven'}
+  }
  }
  if($ProfileCycle){
   if(-not ($records -match 'profile fallback restored stock atlas')){throw 'Live profile fallback unproven'}

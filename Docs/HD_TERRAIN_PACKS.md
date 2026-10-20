@@ -27,6 +27,11 @@ the D/N/S/E packs still do not supply texture-authored geometry height maps.
 Collision and gameplay heights are unchanged. A live preview can opt in with
 `Tools/Test-MarsHdTerrainLive.ps1 -MicroRelief` alongside the existing HD args.
 
+An opt-in [Moon crater prototype](MOON_CRATER_DISPLACEMENT.md) now substitutes
+an explicit height texture for that noise in a local preview bundle. Its recipe
+and PNG authoring flow retain the same per-world depth control. The shipping
+pack still uses the previously reviewed art until this candidate is accepted.
+
 Windows/GOG Moon trial (2026-10-20, PID 56724) confirmed factor 4,
 `displacement=0.625`, matching bounds on 144 meshes, 243,200 domain shader
 invocations and `hdMaterialMask=7` on a rasterized native draw. All 82 passes,
