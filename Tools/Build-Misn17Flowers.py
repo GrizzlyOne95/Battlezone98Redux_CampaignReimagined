@@ -120,7 +120,8 @@ CARDS = [
                 [(318, 470), (340, 460), (340, 580), (300, 600)]],
          key=(.08, .18), fill=.002, join=5, curls=True),
     dict(name='anemone', plate='anemone', box=(70, 150, 475, 742), ground=738,
-         erase=[(320, 540, 480, 710), (395, 425, 510, 560), (395, 90, 520, 230)],
+         erase=[(320, 540, 480, 710), (395, 425, 510, 560), (395, 90, 520, 230),
+                [(266, 417), (266, 350), (284, 350), (289, 396)]],
          key=(.07, .16), fill=.02, join=6, fill_tone=0),
     dict(name='anemone_leaf', plate='anemone', box=(18, 590, 245, 800), ground=800,
          erase=[], key=(.07, .16), fill=.01, join=4, fill_tone=.1),
@@ -134,8 +135,8 @@ CARDS = [
     dict(name='cottongrass', plate='cottongrass', box=(78, 40, 525, 748), ground=742,
          erase=[(365, 570, 530, 800), (395, 95, 530, 215), (78, 40, 135, 110)],
          key=(.05, .13), fill=.03, join=6),
-    dict(name='saxifrage', plate='saxifrage', box=(65, 370, 515, 615), ground=606,
-         erase=[], key=(.07, .17), fill=.004, join=6, fill_tone=.1,
+    dict(name='saxifrage', plate='saxifrage', box=(285, 370, 515, 612), ground=606,
+         erase=[(446, 584, 466, 612)], key=(.07, .17), fill=.004, join=6, fill_tone=.1,
          paint=[(372, 405, 44, 292, .5), (470, 402, 46, 292, .5)]),
     dict(name='lupine', plate='lupine', box=(85, 25, 668, 858), ground=856,
          erase=[(640, 25, 690, 60)], key=(.06, .15), fill=.004, join=8),
@@ -149,9 +150,9 @@ CARDS = [
          erase=[(410, 70, 540, 290), (405, 290, 560, 790), (230, 610, 260, 640)],
          key=(.07, .17), fill=.0005, join=5),
     dict(name='grass_seed', plate='fescue', box=(30, 20, 215, 760), ground=752,
-         erase=[(15, 20, 130, 60), (90, 705, 125, 740)], key=(.07, .17), fill=.0005, join=5),
+         erase=[(15, 20, 130, 60), (58, 710, 78, 736)], key=(.07, .17), fill=.0005, join=5),
     dict(name='sedge', plate='sedge', box=(90, 0, 455, 795), ground=790,
-         erase=[], key=(.06, .15), fill=.0005, join=8),
+         erase=[], key=(.06, .15), fill=.0005, join=8, speck=16),
 ]
 
 # Mesh per plant: (mesh name, cards, layout, height m, material).
@@ -355,7 +356,7 @@ def cut_card(card, plates_dir, debug=None):
     lab2, n2 = ndimage.label(main, structure=np.ones((3, 3)))
     if n2 > 1:
         s2 = ndimage.sum(main, lab2, range(1, n2 + 1))
-        main = np.isin(lab2, 1 + np.nonzero(s2 >= (6 * k) ** 2)[0])
+        main = np.isin(lab2, 1 + np.nonzero(s2 >= (card.get('speck', 6) * k) ** 2)[0])
 
     # Soft edge: keyed alpha inside a 1-2 px grow of the kept shape.
     grown = ndimage.binary_dilation(main, iterations=max(1, int(1.2 * k)))
@@ -598,27 +599,29 @@ def write_preview(scaled, path):
         a = r[..., 3:]
         out = r[..., :3] * a + np.array(ground) / 255 * (1 - a)
         tiles.append((n, Image.fromarray((out * 255).astype(np.uint8))))
-    cols_w = 1600
-    rows, row, x = [], [], 0
-    for n, t in tiles:
-        if x + t.width + gap > cols_w and row:
-            rows.append(row); row, x = [], 0
-        row.append((n, t)); x += t.width + gap
-    rows.append(row)
-    H = len(rows) * (cell_h + 40 + gap) + gap
-    sheet = Image.new('RGB', (cols_w, H), ground)
-    d = ImageDraw.Draw(sheet)
     try:
         font = ImageFont.truetype('arial.ttf', 20)
     except OSError:
         font = ImageFont.load_default()
+    # A cell is as wide as its card or its label, whichever is wider.
+    cell_w = {n: max(t.width, int(font.getlength(n)) + 8) for n, t in tiles}
+    cols_w = 1600
+    rows, row, x = [], [], 0
+    for n, t in tiles:
+        if x + cell_w[n] + gap > cols_w and row:
+            rows.append(row); row, x = [], 0
+        row.append((n, t)); x += cell_w[n] + gap
+    rows.append(row)
+    H = len(rows) * (cell_h + 40 + gap) + gap
+    sheet = Image.new('RGB', (cols_w, H), ground)
+    d = ImageDraw.Draw(sheet)
     y = gap
     for row in rows:
         x = gap
         for n, t in row:
             sheet.paste(t, (x, y))
             d.text((x, y + cell_h + 8), n, fill=(235, 240, 245), font=font)
-            x += t.width + gap
+            x += cell_w[n] + gap
         y += cell_h + 40 + gap
     sheet.save(path, optimize=True)
 
