@@ -114,6 +114,33 @@ Earth-like cold temperate forest, close to freezing but still wet.
     over them. Their layers build before the rocks. The 40 tall
     `c17bice`/`c17dice` props and their BZN objects are gone; the BZN is back to
     its 242 objects.
+- **Ice shader.** The shelves draw through `CR17/IceShelf`
+  (`Materials/cr17_ice.material`, `Shaders/cr17_ice.hlsl`/`.program`), on misn17
+  only; shared materials are untouched.
+  - The builder bakes plan thickness into vertex colour alpha: 0 on the slab's
+    outline, 1 at its deepest middle. RGB stays white.
+  - A world-space noise alpha test erodes the thin outer band, so each slab gets a
+    ragged, half-melted edge with a darker wet rim inside the cut.
+  - Fresnel: looking down, thin ice tints toward the dark water colour and is
+    partly see-through; at grazing angles it reflects the sky and turns opaque.
+  - A sharp, strong sun specular over a slowly scrolling, low-amplitude normal
+    (CR `time` convention) reads as a wet film. A blue-white tint, plus a subtle
+    subsurface glow toward the sun through thin ice.
+  - Draw order: EXU StaticGeometry has no render-queue option (everything lands in
+    group 50, with the transparent water). The pass writes depth and only the
+    eroded rim blends; the core is opaque, so the water can never cover the ice.
+  - Shadows: the layers are built with `castShadows=false`. The ice receives the
+    sun's PSSM in the `high-pssm` scheme.
+  - Techniques: high-pssm (SM4/SM3), default (SM4/SM3), glow (draws nothing), and
+    a last-resort opaque lit ice through `cr17_surface` for OpenGL or a failed
+    compile. `Tools/Test-IceShader.ps1` compiles all eight delegates with fxc.
+  - Live (2026-10-19), slab commit vs shader, calm (level 0) and storm (level 4)
+    weather, views A/B and a low grazing view:
+    `C:/BZRCoop/runs/achilles-flora/misn17-ice-shader-before-after.png`.
+    DX11: no vertex-declaration lines and no ice program errors; the only extra
+    Ogre lines are the expected "Invalid target" skips of the four SM3 delegates.
+    A DX9 launch draws the ice as pale shelves (not black, not missing). Weather
+    level 0 still looked overcast 75 s in; a truly clear sky is unverified.
 - **Removed from misn17.** Mire trees, `mireshr`, `urchin`, `rendflow` and the
   crystal props. `c17tree1/2` still ship but misn17 no longer references them.
   The `cr17_mire_*` ground-cover meshes are kept (misn18 shares them).

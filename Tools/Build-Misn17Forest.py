@@ -272,13 +272,17 @@ def prism_geo(name, radius, height, n=8):
     return raw, p
 
 
-def submesh(material, pos, nrm, uv, idx, bone):
-    """One submesh in the stock building layout: (position, normal) + (ABGR colour, uv), skinned to one bone."""
+def submesh(material, pos, nrm, uv, idx, bone, alpha=None):
+    """One submesh in the stock building layout: (position, normal) + (ABGR colour, uv), skinned to one bone.
+
+    alpha (0..1 per vertex) goes in the colour's alpha byte, white otherwise."""
     from battlezone.meshes import ogre
     n = len(pos)
     a = np.c_[pos, nrm].astype('<f4').tobytes()
     b = np.zeros(n, dtype=[('c', '<u4'), ('uv', '<f4', 2)])
-    b['c'] = 0xFFFFFFFF; b['uv'] = uv
+    b['c'] = 0xFFFFFF
+    b['c'] |= (np.full(n, 255) if alpha is None else np.round(np.clip(alpha, 0, 1) * 255)).astype('<u4') << 24
+    b['uv'] = uv
     geo = ogre.Geometry(vertex_count=n, elements=[ogre.VertexElement(0, 2, 1, 0, 0), ogre.VertexElement(0, 2, 4, 12, 0),
                                                  ogre.VertexElement(1, 11, 5, 0, 0), ogre.VertexElement(1, 1, 7, 4, 0)],
                         buffers={0: ogre.VertexBuffer(0, 24, a, 0), 1: ogre.VertexBuffer(1, 12, b.tobytes(), 0)})
@@ -387,6 +391,24 @@ dropScrap = 0
 '''
 
 
+def plan_thickness(xz):
+    """0 on the plan outline (convex hull) of the points, 1 at the deepest point inside it."""
+    pts = sorted(set(map(tuple, np.round(xz, 6))))
+    def half(seq):
+        h = []
+        for q in seq:
+            while len(h) > 1 and (h[-1][0] - h[-2][0]) * (q[1] - h[-2][1]) - (h[-1][1] - h[-2][1]) * (q[0] - h[-2][0]) <= 0:
+                h.pop()
+            h.append(q)
+        return h[:-1]
+    hull = np.array(half(pts) + half(pts[::-1]))
+    a, b = hull, np.roll(hull, -1, 0)
+    ab = b - a
+    t = np.clip(((xz[:, None, :] - a) * ab).sum(2) / np.maximum((ab * ab).sum(1), 1e-12), 0, 1)
+    d = np.linalg.norm(xz[:, None, :] - (a + t[..., None] * ab), axis=2).min(1)
+    return d / max(d.max(), 1e-9)
+
+
 def build(pack, isdfc):
     import bzmodellibs
     sys.path.insert(0, str(bzmodellibs.toolbox_root()))
@@ -449,7 +471,7 @@ def build(pack, isdfc):
     # Ice: ISDFC's iceberg set, already block-compressed with mips, copied as is.
     for old, new in [('iceberg.dds', 'cr17_ice.dds'), ('iceberg_n.dds', 'cr17_ice_n.dds'), ('iceberg_s.dds', 'cr17_ice_s.dds')]:
         data = src(isdfc / old); (textures / new).write_bytes(data); written[new] = check_not_blank(textures / new)
-    mat_text.append(SOLID % ('Ice', 'cr17_ice', 'cr17_ice', 'cr17_ice', '0.92 0.97 1', '0.7 0.75 0.8', '96'))
+    # The slabs' material is Materials/cr17_ice.material (CR17/IceShelf), not generated.
     # Misn17's copy of the Mire ground cover, cooled toward a damp temperate
     # floor. CRJungle17 passes it as the StaticGeometry material override, so
     # misn18's storm keeps CR17/GroundWind untouched.
@@ -500,7 +522,9 @@ def build(pack, isdfc):
 
     # Ice slabs: an ISDFC berg centred, scaled to a unit half-length along x and
     # SLAB_ASPECT of it along z, squashed to SLAB_THICK, y centred on the middle.
-    # Normals follow the squash (inverse scale), so the top faces the sky.
+    # Normals follow the squash (inverse scale), so the top faces the sky. Vertex
+    # colour alpha carries the plan thickness CR17/IceShelf melts and fades by
+    # (Shaders/cr17_ice.hlsl): 0 on the outline, 1 in the deepest middle.
     ice_info, slab_meshes = {}, []
     for k, old in enumerate(SLABS, 1):
         m = ogre.read_mesh(src(isdfc / (old + '.mesh')))
@@ -511,6 +535,7 @@ def build(pack, isdfc):
         cx, cz = (lo[0] + hi[0]) / 2, (lo[2] + hi[2]) / 2
         reach = float(np.hypot(allp[:, 0] - cx, allp[:, 2] - cz).max())
         sv = np.array([2 / (hi[0] - lo[0]), SLAB_THICK / (hi[1] - lo[1]), 2 * SLAB_ASPECT[k - 1] / (hi[2] - lo[2])])
+        outline = (allp - [cx, 0, cz])[:, ::2] * sv[::2]
         subs, tris = [], 0
         for sm in m.submeshes:
             gm = m.shared_geometry if sm.uses_shared_vertices else sm.geometry
@@ -518,7 +543,8 @@ def build(pack, isdfc):
             nrm = np.array(gm.attribute(4, 0), float) / sv
             nrm /= np.maximum(np.linalg.norm(nrm, axis=1, keepdims=True), 1e-9)
             uv = np.array(gm.attribute(7, 0), float)
-            subs.append(submesh('CR17/Ice', pos, nrm, uv, sm.indices, None)); tris += len(sm.indices) // 3
+            thick = plan_thickness(np.r_[pos[:, ::2], outline])[:len(pos)]
+            subs.append(submesh('CR17/IceShelf', pos, nrm, uv, sm.indices, None, thick)); tris += len(sm.indices) // 3
         name = 'cr17_islab%d.mesh' % k
         ogre.write_mesh(ogre.OgreMesh(version='MeshSerializer_v1.100', endian='little', submeshes=subs), models / name)
         slab_meshes.append(name)

@@ -126,18 +126,6 @@ material CR17/ForestRock : BZBase
 	set $shininess "40"
 }
 
-material CR17/Ice : BZBase
-{
-	set_texture_alias DiffuseMap cr17_ice.dds
-	set_texture_alias NormalMap cr17_ice_n.dds
-	set_texture_alias SpecularMap cr17_ice_s.dds
-	set_texture_alias EmissiveMap cr17_black.dds
-	set $diffuse "0.92 0.97 1"
-	set $ambient "1 1 1"
-	set $specular "0.7 0.75 0.8"
-	set $shininess "96"
-}
-
 material CR17/GroundWindCold : CR17/CutoutWind
 {
 	set_texture_alias DiffuseMap cr17_foliage.dds
