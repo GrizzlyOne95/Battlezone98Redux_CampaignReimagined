@@ -33,7 +33,11 @@ def merge_manifest(path, incoming):
     current = json.loads(path.read_text()) if path.exists() else {"schema": incoming["schema"], "materials": {}}
     if current.get("schema") != incoming["schema"]:
         raise ValueError("Existing terrain manifest uses another schema")
-    current["materials"].update(incoming["materials"])
+    for material, binding in incoming["materials"].items():
+        # Art direction belongs to CR's config; rebuilding textures must not
+        # reset a world's hand-tuned geometric relief.
+        scale = current["materials"].get(material, {}).get("microReliefScale", 1.0)
+        current["materials"][material] = dict(binding, microReliefScale=scale)
     path.write_text(json.dumps(current, indent=2) + "\n")
 
 
