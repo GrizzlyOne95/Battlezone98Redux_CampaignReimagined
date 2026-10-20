@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 3018,
+  "count": 3003,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -11108,78 +11108,6 @@
       "runtime": "misn18.bmp"
     },
     {
-      "source": "Assets\\Models\\c17bice1.mesh",
-      "runtime": "c17bice1.mesh"
-    },
-    {
-      "source": "Assets\\Models\\c17bice1.sdf",
-      "runtime": "c17bice1.sdf"
-    },
-    {
-      "source": "Assets\\Models\\c17bice1.skeleton",
-      "runtime": "c17bice1.skeleton"
-    },
-    {
-      "source": "Assets\\Models\\c17bice2.mesh",
-      "runtime": "c17bice2.mesh"
-    },
-    {
-      "source": "Assets\\Models\\c17bice2.sdf",
-      "runtime": "c17bice2.sdf"
-    },
-    {
-      "source": "Assets\\Models\\c17bice2.skeleton",
-      "runtime": "c17bice2.skeleton"
-    },
-    {
-      "source": "Assets\\Models\\c17bice3.mesh",
-      "runtime": "c17bice3.mesh"
-    },
-    {
-      "source": "Assets\\Models\\c17bice3.sdf",
-      "runtime": "c17bice3.sdf"
-    },
-    {
-      "source": "Assets\\Models\\c17bice3.skeleton",
-      "runtime": "c17bice3.skeleton"
-    },
-    {
-      "source": "Assets\\Models\\c17bice4.mesh",
-      "runtime": "c17bice4.mesh"
-    },
-    {
-      "source": "Assets\\Models\\c17bice4.sdf",
-      "runtime": "c17bice4.sdf"
-    },
-    {
-      "source": "Assets\\Models\\c17bice4.skeleton",
-      "runtime": "c17bice4.skeleton"
-    },
-    {
-      "source": "Assets\\Models\\c17dice1.mesh",
-      "runtime": "c17dice1.mesh"
-    },
-    {
-      "source": "Assets\\Models\\c17dice1.sdf",
-      "runtime": "c17dice1.sdf"
-    },
-    {
-      "source": "Assets\\Models\\c17dice1.skeleton",
-      "runtime": "c17dice1.skeleton"
-    },
-    {
-      "source": "Assets\\Models\\c17dice4.mesh",
-      "runtime": "c17dice4.mesh"
-    },
-    {
-      "source": "Assets\\Models\\c17dice4.sdf",
-      "runtime": "c17dice4.sdf"
-    },
-    {
-      "source": "Assets\\Models\\c17dice4.skeleton",
-      "runtime": "c17dice4.skeleton"
-    },
-    {
       "source": "Assets\\Models\\c17frst1.geo",
       "runtime": "c17frst1.geo"
     },
@@ -11366,6 +11294,30 @@
     {
       "source": "Assets\\Models\\cr17_frock9.mesh",
       "runtime": "cr17_frock9.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab1.mesh",
+      "runtime": "cr17_islab1.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab2.mesh",
+      "runtime": "cr17_islab2.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab3.mesh",
+      "runtime": "cr17_islab3.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab4.mesh",
+      "runtime": "cr17_islab4.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab5.mesh",
+      "runtime": "cr17_islab5.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab6.mesh",
+      "runtime": "cr17_islab6.mesh"
     },
     {
       "source": "Assets\\Models\\cr17_mire_ferna.mesh",
@@ -11642,30 +11594,6 @@
     {
       "source": "Missions\\misn18.vxt",
       "runtime": "misn18.vxt"
-    },
-    {
-      "source": "ODF\\c17bice1.odf",
-      "runtime": "c17bice1.odf"
-    },
-    {
-      "source": "ODF\\c17bice2.odf",
-      "runtime": "c17bice2.odf"
-    },
-    {
-      "source": "ODF\\c17bice3.odf",
-      "runtime": "c17bice3.odf"
-    },
-    {
-      "source": "ODF\\c17bice4.odf",
-      "runtime": "c17bice4.odf"
-    },
-    {
-      "source": "ODF\\c17dice1.odf",
-      "runtime": "c17dice1.odf"
-    },
-    {
-      "source": "ODF\\c17dice4.odf",
-      "runtime": "c17dice4.odf"
     },
     {
       "source": "ODF\\c17frst1.odf",
@@ -12004,6 +11932,10 @@
       "runtime": "crcred2.odf"
     },
     {
+      "source": "ODF\\xplnxpl.odf",
+      "runtime": "xplnxpl.odf"
+    },
+    {
       "source": "Assets\\Textures\\cr18_crack_a.png",
       "runtime": "cr18_crack_a.png"
     },
@@ -12016,6 +11948,10 @@
       "runtime": "cr18_foliage.dds"
     },
     {
+      "source": "Assets\\Textures\\smoke.dds",
+      "runtime": "smoke.dds"
+    },
+    {
       "source": "Materials\\cr18_storm.material",
       "runtime": "cr18_storm.material"
     },
@@ -12026,6 +11962,10 @@
     {
       "source": "Materials\\cr18_water.material",
       "runtime": "cr18_water.material"
+    },
+    {
+      "source": "Materials\\smokeb.material",
+      "runtime": "smokeb.material"
     },
     {
       "source": "Scripts\\CRStorm18.lua",

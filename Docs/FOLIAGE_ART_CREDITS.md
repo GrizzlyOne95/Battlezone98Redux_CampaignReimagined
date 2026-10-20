@@ -49,10 +49,15 @@ changes are:
 `References/Misn17Forest/source-assets.json` records the SHA-256 of every source
 consumed and every texture written.
 
-## Ice props (not from the pack)
+## Ice slabs and the xplnxpl puff (not from the pack)
 
-The ice props `c17bice*` and `c17dice*` come from the owner's **ISDF
-Chronicles** mod (`GrizzlyOne95/ISDF_Chronicles`): `baneice1`-`4`, `darkice1`
-and `darkice4`, plus the `iceberg*.dds` textures. The meshes were re-serialized
-with the material `CR17/Ice` and renamed skeletons. Skeleton and SDF bytes,
-and the textures, are unchanged copies. ISDFC was read only, never modified.
+The shore-ice slabs `cr17_islab1`-`6` are built from the owner's **ISDF
+Chronicles** mod (`GrizzlyOne95/ISDF_Chronicles`): the bergs `baneice2`, `baneice4`,
+`baneice5`, `darkice1`, `darkice3` and `darkice4`, plus the `iceberg*.dds` textures.
+Each berg is centred, scaled to a unit half-width and squashed to 15% of it, then
+written as an unskinned mesh with the material `CR17/Ice`. Its UVs, triangles and
+the textures are unchanged.
+
+`ODF/xplnxpl.odf` (the trees' zero-damage explosion) and `Assets/Textures/smoke.dds`
+are unchanged ISDFC copies. `Materials/smokeb.material` is ISDFC's, alpha-blended to
+match the ODF. `amb_wind.wav` is stock. ISDFC was read only, never modified.

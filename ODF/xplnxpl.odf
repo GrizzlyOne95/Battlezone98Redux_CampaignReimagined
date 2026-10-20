@@ -1,0 +1,46 @@
+[ExplosionClass]
+classLabel = "explosion"
+
+particleTypes = 2
+
+particleClass1 = "xplnxpl.core"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+
+particleClass2 = "xplnxpl.spatter"
+particleCount2 = 5
+particleVeloc2 = "20.0 20.0 20.0"
+particlePosVar2 = "2.0 2.0 2.0"
+
+explSound = "amb_wind.wav"
+damageRadius = 0.0
+damageValue(N) = 0
+damageValue(L) = 0
+damageValue(H) = 0
+damageValue(S) = 0
+damageValue(D) = 0
+damageValue(A) = 0
+
+[Core]
+simulateBase = "sim_null"
+lifeTime = 1.5
+renderBase = "draw_twirl"
+textureName = "smokeb.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "63 127 15 255"
+finishColor = "63 127 15 0"
+startRadius = 5.0
+finishRadius = 50.0
+animateTime = 1.5
+
+[Spatter]
+simulateBase = "sim_ember"
+lifeTime = 3.0
+renderBase = "draw_twirl"
+textureName = "smokeb.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "63 127 15 255"
+finishColor = "63 127 15 0"
+startRadius = 1.0
+finishRadius = 1.0
+animateTime = 3.0

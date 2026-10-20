@@ -92,32 +92,43 @@ Earth-like cold temperate forest, close to freezing but still wet.
     the site label. Positions and labels are unchanged, so streaming,
     save/load and co-op labels are unaffected.
 - **Rocks.** Nine pack rocks (`cr17_frock1`-`9`) on a 17 m jittered grid on
-  TRN types 1 (forest) and 2 (rock): 5,935 instances, 1.2-4.5 m across
+  TRN types 1 (forest) and 2 (rock): 5,889 instances, 1.2-4.5 m across
   (mostly about 2 m), in 144 static batches.
   - They keep clear of water, the river (12 m), slopes over 0.7, objects
     (30 m) and paths (20 m).
   - They are visual only, with no collision.
-- **Ice.** Forty ISDFC `baneice`/`darkice` props as solid plants, only on shore
-  cells: dry 5 m cells next to a watermask or river cell.
-  - Large ones need at least 70 water cells within about 30 m; 5 sit by
-    pools or the river and 35 on stream banks.
-  - They keep 75 m apart and clear of objects and paths.
-  - Each is a preplaced tree site (`cr17_iceN`), so it streams and saves like a
-    tree.
+- **Ice.** 93 thin slabs (`cr17_islab1`-`6`, flattened ISDFC bergs) at 53 bank
+  sites, as shelves of water freezing at the edge. 24 are on pools or the river,
+  69 on streams.
+  - A site is a shore cell (a dry 5 m cell next to watermask or river water)
+    with a bank at most 1.5 m above the baked water surface. Sites keep 45 m
+    apart, 30 m from objects and 20 m from paths.
+  - Each site has 1-3 slabs, 4.4-11 m across and 0.3-0.8 m thick. They are
+    pushed from the bank toward the water, so most straddle the waterline and
+    about one in seven lies in the shallows touching the bank.
+  - Base is 5 cm under the baked water surface. Yaw is random, with no tilt.
+  - They are render-only StaticGeometry layers like the rocks, so craft drive
+    over them. The 40 tall `c17bice`/`c17dice` props and their BZN objects are
+    gone; the BZN is back to its 242 objects.
 - **Removed from misn17.** Mire trees, `mireshr`, `urchin`, `rendflow` and the
   crystal props. `c17tree1/2` still ship but misn17 no longer references them.
   The `cr17_mire_*` ground-cover meshes are kept (misn18 shares them).
 - **Ground cover.** On misn17 only, the ground cover draws through
   `CR17/GroundWindCold`: a cooler, wetter tint with a little specular.
   No new grass assets were added.
+- **Shore-ice live check (2026-10-19).** crsetup, two angles on the bank at
+  (2445, 99675): `C:/BZRCoop/runs/achilles-flora/misn17-shore-ice-before-after.png`.
+  All six slab meshes load. No vertex-declaration lines, no Ogre errors beyond
+  the stock `TestGround` lines, and no `not found` lines in BZLogger: the
+  `xplnxpl` lines (10 per run before) are gone.
 - **Live check (2026-10-19).** Single instance, crsetup, weather wired like
   CRMisn17, captured after the blend. Before/after images:
   `C:/BZRCoop/runs/achilles-flora/misn17-flora-before-after.png`.
   - All new meshes, skeletons and textures load.
   - No "Unable to set D3D11 vertex declaration" lines; Ogre shows only the stock
     `TestGround.material` compiler errors, which the before run has too.
-  - Each tree/ice ODF logs `Explosion "xplnxpl.odf" not found`. This is
-    inherited from `c17tree1.odf`, which logs it too.
+  - Each tree/ice ODF logged `Explosion "xplnxpl.odf" not found` (inherited
+    from `c17tree1.odf`). Fixed later by shipping ISDFC's `xplnxpl.odf`.
   - Not checked live: co-op, save/load, streaming at range, and DX9.
 - **TRN hints.**
 
