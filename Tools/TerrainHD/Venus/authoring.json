@@ -1,0 +1,95 @@
+{
+  "schema": "bzr-terrain-hd-authoring-v1",
+  "material": "VE_DETAIL_ATLAS",
+  "layout": "layout.csv",
+  "defaultAlias": "VE00SA0.MAP",
+  "tileSize": 1024,
+  "prefix": "crhd_venus",
+  "normalSpace": "directx",
+  "resources": {
+    "D": "venus_atlas_d.dds",
+    "N": "venus_atlas_n.dds",
+    "S": "venus_atlas_s.dds",
+    "E": "venus_atlas_e.dds"
+  },
+  "tiles": {
+    "VE00SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve00sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve00sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve00sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve00sa0_e.dds"
+    },
+    "VE01CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve01ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve01ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve01ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve01ca0_e.dds"
+    },
+    "VE01DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve01da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve01da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve01da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve01da0_e.dds"
+    },
+    "VE02CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve02ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve02ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve02ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve02ca0_e.dds"
+    },
+    "VE02CB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve02cb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve02cb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve02cb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve02cb0_e.dds"
+    },
+    "VE02DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve02da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve02da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve02da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve02da0_e.dds"
+    },
+    "VE03CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve03ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve03ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve03ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve03ca0_e.dds"
+    },
+    "VE03DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve03da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve03da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve03da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve03da0_e.dds"
+    },
+    "VE11SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve11sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve11sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve11sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve11sa0_e.dds"
+    },
+    "VE22SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve22sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve22sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve22sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve22sa0_e.dds"
+    },
+    "VE22SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve22sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve22sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve22sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve22sb0_e.dds"
+    },
+    "VE33SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve33sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve33sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve33sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve33sa0_e.dds"
+    },
+    "VE44SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_venus_ve44sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_venus_ve44sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_venus_ve44sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_venus_ve44sa0_e.dds"
+    }
+  }
+}

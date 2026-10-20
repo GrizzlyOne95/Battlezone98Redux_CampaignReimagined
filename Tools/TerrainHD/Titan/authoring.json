@@ -1,0 +1,95 @@
+{
+  "schema": "bzr-terrain-hd-authoring-v1",
+  "material": "TI_DETAIL_ATLAS",
+  "layout": "layout.csv",
+  "defaultAlias": "TI00SA0.MAP",
+  "tileSize": 1024,
+  "prefix": "crhd_titan",
+  "normalSpace": "directx",
+  "resources": {
+    "D": "titan_atlas_d.dds",
+    "N": "titan_atlas_n.dds",
+    "S": "titan_atlas_s.dds",
+    "E": "titan_atlas_e.dds"
+  },
+  "tiles": {
+    "TI00SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti00sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti00sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti00sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti00sa0_e.dds"
+    },
+    "TI00SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti00sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti00sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti00sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti00sb0_e.dds"
+    },
+    "TI01CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti01ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti01ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti01ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti01ca0_e.dds"
+    },
+    "TI01CB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti01cb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti01cb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti01cb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti01cb0_e.dds"
+    },
+    "TI01CC0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti01cc0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti01cc0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti01cc0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti01cc0_e.dds"
+    },
+    "TI01DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti01da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti01da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti01da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti01da0_e.dds"
+    },
+    "TI03CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti03ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti03ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti03ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti03ca0_e.dds"
+    },
+    "TI03DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti03da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti03da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti03da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti03da0_e.dds"
+    },
+    "TI03DB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti03db0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti03db0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti03db0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti03db0_e.dds"
+    },
+    "TI11SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti11sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti11sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti11sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti11sa0_e.dds"
+    },
+    "TI11SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti11sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti11sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti11sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti11sb0_e.dds"
+    },
+    "TI33SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti33sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti33sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti33sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti33sa0_e.dds"
+    },
+    "TI33SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_titan_ti33sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_titan_ti33sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_titan_ti33sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_titan_ti33sb0_e.dds"
+    }
+  }
+}

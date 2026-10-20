@@ -9,63 +9,75 @@
   "resources": {
     "D": "moon_atlas_d.dds",
     "N": "moon_atlas_n.dds",
-    "S": "moon_atlas_s.dds"
+    "S": "moon_atlas_s.dds",
+    "E": "black.dds"
   },
   "tiles": {
     "MN00SA0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn00sa0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn00sa0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn00sa0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn00sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn00sa0_e.dds"
     },
     "MN00SC0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn00sc0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn00sc0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn00sc0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn00sc0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn00sc0_e.dds"
     },
     "MN03CA0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn03ca0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn03ca0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn03ca0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn03ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn03ca0_e.dds"
     },
     "MN03DA0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn03da0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn03da0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn03da0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn03da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn03da0_e.dds"
     },
     "MN04CA0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn04ca0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn04ca0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn04ca0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn04ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn04ca0_e.dds"
     },
     "MN04DA0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn04da0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn04da0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn04da0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn04da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn04da0_e.dds"
     },
     "MN33SA0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn33sa0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn33sa0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn33sa0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn33sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn33sa0_e.dds"
     },
     "MN44SA0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn44sa0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn44sa0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn44sa0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn44sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn44sa0_e.dds"
     },
     "MN44SB0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn44sb0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn44sb0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn44sb0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn44sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn44sb0_e.dds"
     },
     "MN55SA0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn55sa0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn55sa0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn55sa0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn55sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn55sa0_e.dds"
     },
     "MN66SA0.MAP": {
       "D": "../../../Assets/Textures/crhd_moon_mn66sa0_d.dds",
       "N": "../../../Assets/Textures/crhd_moon_mn66sa0_n.dds",
-      "S": "../../../Assets/Textures/crhd_moon_mn66sa0_s.dds"
+      "S": "../../../Assets/Textures/crhd_moon_mn66sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_moon_mn66sa0_e.dds"
     }
   }
 }

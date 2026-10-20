@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Independent 1K HD terrain packs for all nine stock planet families, including
+  sparse configurable base emissive accents and portable Toolbox recipes.
+  Europa snowy-rock relief is corrected against its authored height. DX11
+  Enhanced and the native HD option remain required; stock atlases remain the
+  fallback. See `Docs/HD_TERRAIN_PACKS.md` for authoring and validation limits.
+
 - Optional 1K Moon HD terrain: 11 independent diffuse/normal/specular tile sets,
   built with the Modding Toolbox. Source-height checks correct the ground/rock
   normal polarity. Requires the native HD OpenShim build, authored manifest and

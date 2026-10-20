@@ -1,0 +1,113 @@
+{
+  "schema": "bzr-terrain-hd-authoring-v1",
+  "material": "EU_DETAIL_ATLAS",
+  "layout": "layout.csv",
+  "defaultAlias": "EU00SA0.MAP",
+  "tileSize": 1024,
+  "prefix": "crhd_europa",
+  "normalSpace": "directx",
+  "resources": {
+    "D": "europa_atlas_d.dds",
+    "N": "europa_atlas_n.dds",
+    "S": "europa_atlas_s.dds",
+    "E": "europa_atlas_e.dds"
+  },
+  "tiles": {
+    "EU00SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu00sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu00sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu00sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu00sa0_e.dds"
+    },
+    "EU00SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu00sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu00sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu00sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu00sb0_e.dds"
+    },
+    "EU01CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu01ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu01ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu01ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu01ca0_e.dds"
+    },
+    "EU01DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu01da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu01da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu01da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu01da0_e.dds"
+    },
+    "EU04CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu04ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu04ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu04ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu04ca0_e.dds"
+    },
+    "EU04DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu04da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu04da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu04da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu04da0_e.dds"
+    },
+    "EU11SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu11sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu11sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu11sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu11sa0_e.dds"
+    },
+    "EU12CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu12ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu12ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu12ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu12ca0_e.dds"
+    },
+    "EU12DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu12da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu12da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu12da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu12da0_e.dds"
+    },
+    "EU22SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu22sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu22sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu22sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu22sa0_e.dds"
+    },
+    "EU23CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu23ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu23ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu23ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu23ca0_e.dds"
+    },
+    "EU23DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu23da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu23da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu23da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu23da0_e.dds"
+    },
+    "EU33SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu33sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu33sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu33sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu33sa0_e.dds"
+    },
+    "EU44SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu44sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu44sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu44sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu44sa0_e.dds"
+    },
+    "EU44SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu44sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu44sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu44sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu44sb0_e.dds"
+    },
+    "EU44SC0.MAP": {
+      "D": "../../../Assets/Textures/crhd_europa_eu44sc0_d.dds",
+      "N": "../../../Assets/Textures/crhd_europa_eu44sc0_n.dds",
+      "S": "../../../Assets/Textures/crhd_europa_eu44sc0_s.dds",
+      "E": "../../../Assets/Textures/crhd_europa_eu44sc0_e.dds"
+    }
+  }
+}

@@ -1,0 +1,287 @@
+{
+  "schema": "cr-hd-pack-validation-v1",
+  "world": "achilles",
+  "bundle": {
+    "schema": "bzr-terrain-hd-bundle-report-v1",
+    "material": "AC_DETAIL_ATLAS",
+    "tileSize": 1024,
+    "slices": 19,
+    "rectangles": 22,
+    "channels": [
+      "D",
+      "N",
+      "S",
+      "E"
+    ],
+    "resourceCount": 76,
+    "ddsBytes": 119548133,
+    "estimatedGpuArrayBytes": 146102324,
+    "processRamEstimate": null,
+    "memoryNote": "GPU storage is not 32-bit process RAM. Profile private bytes, peak and largest free VA in game.",
+    "sha256": {
+      "crhd_achilles_ac00sa0_d.dds": "6a59ed1aedc138afc65aec1ea41984001006bb9df98d2996fb82c084507bba44",
+      "crhd_achilles_ac00sb0_d.dds": "56577d3e61cb5b831dc9b93b6f64d0c8c630df4a1ce18439fb524c25b3fd762e",
+      "crhd_achilles_ac00sc0_d.dds": "d4ac82b8dced6648f83db44275a3be630a11437019f6d4badf294d261981aa26",
+      "crhd_achilles_ac00sd0_d.dds": "5bf32fd9f1d5297d1f89da1893ae1da3f7437f4e1dd36438e633ae38039d3b68",
+      "crhd_achilles_ac00se0_d.dds": "bfcdeaf76637431d0d44ff8e453196cc0c0a36e3b4853cd471e36ccc99594d8c",
+      "crhd_achilles_ac00sf0_d.dds": "7cfd15c731b061662368f059eddb609cb0a83bc1048fa3f4ec0ce73b7679fc25",
+      "crhd_achilles_ac00sg0_d.dds": "ac03fb4d50a807cffaeb6dad9a21ead7978af5914c3e82abea550bfddaea3659",
+      "crhd_achilles_ac01ca0_d.dds": "76160f50f8d9c846d83cbcea627611e429f4597ede65905487a66e47fbd9bd36",
+      "crhd_achilles_ac01da0_d.dds": "246aac096091700f98e18bd48b9b363a4afa6348b9729bbd008d34031ef33ace",
+      "crhd_achilles_ac05ca0_d.dds": "9a6238ec821c39ddcc5255884da88a2d556b8a3ea7555dcbbca61d978672aca1",
+      "crhd_achilles_ac05cb0_d.dds": "b5df9fc7895d6eee675467c175914fa833ab258894ed74f985427eb014036912",
+      "crhd_achilles_ac05cc0_d.dds": "2189fcd6a567ce5b9498da35a69fc9a4f1aedb17279978080434c48e04fcefb8",
+      "crhd_achilles_ac05da0_d.dds": "1a376a43bf62dbd945161cfeea1405d90631a507ddf46178d6953fb8a2fd08bc",
+      "crhd_achilles_ac11sa0_d.dds": "270219643185a12ef33b26da46398f99937f6e14e0dc2223082f47fdb72e8654",
+      "crhd_achilles_ac12ca0_d.dds": "eade788b18f4d15772efac5b95dfca2388520a4294c04346c0cc0ebe34c2919a",
+      "crhd_achilles_ac12da0_d.dds": "9e398712bd8bbfd88f296a00fd100f65c817f53507ff36f9ccc89f3e0961f038",
+      "crhd_achilles_ac22sa0_d.dds": "f9629b6306b60dc0cccf9daac39525a3204e9e1cac25cc3d2e40984b5391dab6",
+      "crhd_achilles_ac55sa0_d.dds": "6f5ea499d665c4a1949020f76385efed0a29150f9ec6dfee482da0aba49d31d2",
+      "crhd_achilles_ac55sb0_d.dds": "ffb6c1c33083031d09e5d6faec225d0c5d98890df69642a6508b08768f5ec221",
+      "crhd_achilles_ac00sa0_n.dds": "acab39aa429618912f8b20c7db9ba1990582c80286a5b69a0128ef60d3cc04b0",
+      "crhd_achilles_ac00sb0_n.dds": "7e19a41c8e7a628f419bb3ad86c7355e58ecbf7a71d86beb16d64f1e387e43f3",
+      "crhd_achilles_ac00sc0_n.dds": "08c6a826119bbb3ed639fdb58d99b0b87158ca4ed21c57ddfc5ce8b34b1c2636",
+      "crhd_achilles_ac00sd0_n.dds": "e92b6f09bce1b79daa873b552aa32ad36243d7d381b506f5a754c30a3a31391f",
+      "crhd_achilles_ac00se0_n.dds": "1a27e1c8459a2b44ea43f226fb4dadcb5fafa9b7e65822f3598cb6667d9ce4d3",
+      "crhd_achilles_ac00sf0_n.dds": "fb98507de0d13367a16b45ed255ffc00d7fa02b63c8724f1e09b168c1bc09aa0",
+      "crhd_achilles_ac00sg0_n.dds": "717af76be4e305d944c24cf29b3f4ebd98daf0cefc2d8a50f377b58fd63f4cf5",
+      "crhd_achilles_ac01ca0_n.dds": "2fd66b1902d198fadc83705539ff4f3c75c1396908b8872504aac77dba7b2060",
+      "crhd_achilles_ac01da0_n.dds": "aae444906645ad1252b26a1b8a258f08748eef784497aeef08baf6f7ecefdb33",
+      "crhd_achilles_ac05ca0_n.dds": "6263f4170c63084b4874e1690ccb8362f7e6e77a97bcc8778d17cb24228bebca",
+      "crhd_achilles_ac05cb0_n.dds": "939175da204ee2626e78e59ca8cb41cb1da5f4d2c50576cde1ad2da740caeae0",
+      "crhd_achilles_ac05cc0_n.dds": "31947352f60693fec2e307c11d3221cd37f3bdafb53abc8ecf68b68b992536e8",
+      "crhd_achilles_ac05da0_n.dds": "772c632d27f4937c3c2aa1605c8ef94745cf3e470acba32ccb929a4420cff264",
+      "crhd_achilles_ac11sa0_n.dds": "8b4fb9256925f32fc525244e53738627ef281ccf56b8879298b351cd912c2e8d",
+      "crhd_achilles_ac12ca0_n.dds": "402fa45301eb1030172caed5feb3dabc334d00b2f9503373398741d5f5a3c57f",
+      "crhd_achilles_ac12da0_n.dds": "937f3b1ff96d318d875febe3dd05bcbe2f0101301bae028e65edd3b41ce9aec8",
+      "crhd_achilles_ac22sa0_n.dds": "7b5b4c0cb1e7c117c1684418c27ef8f1546b52b3fe1161c6e12aee9a90bcbcd0",
+      "crhd_achilles_ac55sa0_n.dds": "b9c1295853eae4e2886cb497901b55d25edd3cd329f3b7bcb116c9ce120cc8de",
+      "crhd_achilles_ac55sb0_n.dds": "44019f533a18aace272865d2e097d6eaaa4a4678ba5cc0b053bfb6f3ab7051d0",
+      "crhd_achilles_ac00sa0_s.dds": "5adabbed1df70afc4286ba06e309ed725c5e805039666cb2bd32769b1f69c83e",
+      "crhd_achilles_ac00sb0_s.dds": "85bdcbf9ad6383fc791ec6ab3b5eed16d9ad52e5eb37f73bdf02dea2b4a60a0e",
+      "crhd_achilles_ac00sc0_s.dds": "c2a2b86532869372cc2150b0f1f0f70874c0233dc22e1da311001f8093bc3ae2",
+      "crhd_achilles_ac00sd0_s.dds": "61f278f61c33ed2a969b6087df6f9fa9b904ade91b3d0f61893865cd701ae16a",
+      "crhd_achilles_ac00se0_s.dds": "8cbeb82e9957033e588021c1db5e32bdbb01446b729ba9faab2737d5b8ab6e7b",
+      "crhd_achilles_ac00sf0_s.dds": "abaad735a52f99fcd153af6dbaf53d2730f88f4a700f4c6bc56a5354b0fd0084",
+      "crhd_achilles_ac00sg0_s.dds": "565230f372a4222235d7089fa2e774db7e0cb9cfb461c6887be449e5d9213f48",
+      "crhd_achilles_ac01ca0_s.dds": "bbb20ea666b5374a3a27b8bd90391e4da7a89dd96bcbfb30ecdfc471eaa9a908",
+      "crhd_achilles_ac01da0_s.dds": "71142c8b822b79c40730cac16ead58e5e6641a7c505307b922eae334b3d297c9",
+      "crhd_achilles_ac05ca0_s.dds": "360df5786571665e891237333c5b87aa0039b7c7b7760caa88e8cff03a59fbeb",
+      "crhd_achilles_ac05cb0_s.dds": "4cae0ec7e8515894430b953b4d6bba5971fb63776349eb83741f3151a45ad1a4",
+      "crhd_achilles_ac05cc0_s.dds": "0a6ab2ea9880d758a5601614aeb91e0fda6d51b98841cd808a99ebfbfe024fdc",
+      "crhd_achilles_ac05da0_s.dds": "c090435638c08c70330709a2b582f87eebf6360f24fcdccedd17a44d924d5f9c",
+      "crhd_achilles_ac11sa0_s.dds": "7acd3eb4235e0ab13c7f2764460d57cd8098250dfbc6a3c1bdb56a3be59e1c9a",
+      "crhd_achilles_ac12ca0_s.dds": "9a88a3500e1b55a58c31011591efa6ed50309091dedf1c69d06d88a7d6593d85",
+      "crhd_achilles_ac12da0_s.dds": "3aa7c5d6388851a401aa67a371592de9f52e7ace43732b4b8788e70854f7adb1",
+      "crhd_achilles_ac22sa0_s.dds": "660f1d187e22195cd94351525618f23f45c20dae8577cd2d3b515043a0657fcb",
+      "crhd_achilles_ac55sa0_s.dds": "d4daa96bd50cdbfa7f1f6f3f0424a5604cb4dbbf3eda0b8a485363d780ca1e8c",
+      "crhd_achilles_ac55sb0_s.dds": "e2f2651cfc9a7513c0d7fd2763db6732a76e23dc29efa1f5c35dfc01f59a3888",
+      "crhd_achilles_ac00sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac00sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac00sc0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac00sd0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac00se0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac00sf0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac00sg0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac01ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac01da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac05ca0_e.dds": "e816388c787d0a18eeb54cf60ec556878228ecd7fb8963aadff5376d2d17da82",
+      "crhd_achilles_ac05cb0_e.dds": "7b31891d90c0de2ba0e6533e276088e6d5ee82f94a3b2c6ad1ffff2bc0579d81",
+      "crhd_achilles_ac05cc0_e.dds": "e816388c787d0a18eeb54cf60ec556878228ecd7fb8963aadff5376d2d17da82",
+      "crhd_achilles_ac05da0_e.dds": "e816388c787d0a18eeb54cf60ec556878228ecd7fb8963aadff5376d2d17da82",
+      "crhd_achilles_ac11sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac12ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac12da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac22sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_achilles_ac55sa0_e.dds": "17cfa86100c3fc72941a2e384cef06d00c3a15d27108e57ae58a42033ed41a12",
+      "crhd_achilles_ac55sb0_e.dds": "b4ed40831b0fbdc8c64b1d7bd980e60747ed974a505bd960a0f7daf407fa069d"
+    }
+  },
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "fab_uifndiulw",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 5,
+      "color": [
+        28,
+        22,
+        10
+      ],
+      "rectangles": [
+        [
+          0.19,
+          0.18,
+          0.012,
+          0.004
+        ],
+        [
+          0.79,
+          0.78,
+          0.012,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sources": [
+    {
+      "id": "fab_ucumbgedy",
+      "name": "Icelandic_Jagged_Rock_ucumbgedy_8K_BaseColor.jpg",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "d9cda330c493c22f4b306beb0d1d7c796d1c60dc7d37e2423ae0f5ba647ca006",
+      "convertedSourceSlopeCorrelations": [
+        0.7870464865967036,
+        0.7614460362871385
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    },
+    {
+      "id": "fab_sgmkajak",
+      "name": "Clover_Patches_on_Grass_sgmkajak_8K_BaseColor.jpg",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "8dabaa2e2b291f7f5eaa9e7cf55225c85e75f0a75c786348e09210fcc0a1600f",
+      "convertedSourceSlopeCorrelations": [
+        0.6967364175202413,
+        0.7260290808619695
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    },
+    {
+      "id": "local_falling_water_v5",
+      "name": "FE darkflat3 vertical flowing-water composite",
+      "engineConversion": "flip_green",
+      "heightQualification": "unverified absolute polarity: no independent source height"
+    },
+    {
+      "id": "canopy_jacaranda_v6",
+      "name": "Jacaranda forest canopy geometry/leaf bake",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "03a9d82565e25a808f5dbb593572d5d71e07c886d47b6997666d7797972b79fc",
+      "convertedSourceSlopeCorrelations": [
+        0.8867312562424626,
+        0.8867343983421958
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    },
+    {
+      "id": "fab_uifndiulw",
+      "name": "Beach_Gravel_With_Pebbles_uifndiulw_8K_BaseColor.jpg",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "4988fa7dc9b8e2efd41d24e3fd61ca509d9f27013c39f7daa05077277ce352cc",
+      "convertedSourceSlopeCorrelations": [
+        0.633361037259204,
+        0.637290003171617
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    },
+    {
+      "id": "external_water002_v5",
+      "name": "Katsukagi Water 002 supplied wave material",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "34f417a4aa508aa7168ac4086c709a9183f04ca3acb3620142a023f072c34119",
+      "convertedSourceSlopeCorrelations": [
+        0.8911378772610598,
+        0.9722156284871586
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    }
+  ],
+  "normalMips": 209,
+  "nonPositiveZTexels": {
+    "crhd_achilles_ac12ca0_n.dds": 7,
+    "crhd_achilles_ac12da0_n.dds": 1,
+    "crhd_achilles_ac22sa0_n.dds": 10
+  },
+  "emissiveTiles": {
+    "crhd_achilles_ac00sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac00sb0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac00sc0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac00sd0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac00se0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac00sf0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac00sg0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac01ca0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac01da0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac05ca0_e.dds": {
+      "maximum": 24,
+      "litFraction": 6.198883056640625e-05
+    },
+    "crhd_achilles_ac05cb0_e.dds": {
+      "maximum": 24,
+      "litFraction": 6.198883056640625e-05
+    },
+    "crhd_achilles_ac05cc0_e.dds": {
+      "maximum": 24,
+      "litFraction": 6.198883056640625e-05
+    },
+    "crhd_achilles_ac05da0_e.dds": {
+      "maximum": 24,
+      "litFraction": 6.198883056640625e-05
+    },
+    "crhd_achilles_ac11sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac12ca0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac12da0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac22sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_achilles_ac55sa0_e.dds": {
+      "maximum": 24,
+      "litFraction": 0.0001239776611328125
+    },
+    "crhd_achilles_ac55sb0_e.dds": {
+      "maximum": 24,
+      "litFraction": 0.0001239776611328125
+    }
+  },
+  "projectedBasis": {
+    "cases": 24,
+    "minimumCosineToHeightGeometry": 0.9999999999999997,
+    "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
+    "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
+    "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
+  },
+  "limitations": [
+    "Source height and analytical basis checks do not substitute for native GPU draw evidence.",
+    "Nonpositive Z samples are inventoried; native source maps are not silently reauthored."
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "schema": "bzr-terrain-hd-authoring-v1",
+  "material": "AC_DETAIL_ATLAS",
+  "layout": "layout.csv",
+  "defaultAlias": "AC00SA0.MAP",
+  "tileSize": 1024,
+  "prefix": "crhd_achilles",
+  "normalSpace": "directx",
+  "resources": {
+    "D": "achilles_atlas_d.dds",
+    "N": "achilles_atlas_n.dds",
+    "S": "achilles_atlas_s.dds",
+    "E": "black.dds"
+  },
+  "tiles": {
+    "AC00SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac00sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac00sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac00sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac00sa0_e.dds"
+    },
+    "AC00SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac00sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac00sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac00sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac00sb0_e.dds"
+    },
+    "AC00SC0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac00sc0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac00sc0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac00sc0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac00sc0_e.dds"
+    },
+    "AC00SD0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac00sd0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac00sd0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac00sd0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac00sd0_e.dds"
+    },
+    "AC00SE0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac00se0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac00se0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac00se0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac00se0_e.dds"
+    },
+    "AC00SF0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac00sf0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac00sf0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac00sf0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac00sf0_e.dds"
+    },
+    "AC00SG0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac00sg0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac00sg0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac00sg0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac00sg0_e.dds"
+    },
+    "AC01CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac01ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac01ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac01ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac01ca0_e.dds"
+    },
+    "AC01DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac01da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac01da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac01da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac01da0_e.dds"
+    },
+    "AC05CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac05ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac05ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac05ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac05ca0_e.dds"
+    },
+    "AC05CB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac05cb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac05cb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac05cb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac05cb0_e.dds"
+    },
+    "AC05CC0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac05cc0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac05cc0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac05cc0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac05cc0_e.dds"
+    },
+    "AC05DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac05da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac05da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac05da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac05da0_e.dds"
+    },
+    "AC11SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac11sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac11sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac11sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac11sa0_e.dds"
+    },
+    "AC12CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac12ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac12ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac12ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac12ca0_e.dds"
+    },
+    "AC12DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac12da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac12da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac12da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac12da0_e.dds"
+    },
+    "AC22SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac22sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac22sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac22sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac22sa0_e.dds"
+    },
+    "AC55SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac55sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac55sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac55sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac55sa0_e.dds"
+    },
+    "AC55SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_achilles_ac55sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_achilles_ac55sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_achilles_ac55sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_achilles_ac55sb0_e.dds"
+    }
+  }
+}

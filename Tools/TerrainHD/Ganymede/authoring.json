@@ -1,0 +1,149 @@
+{
+  "schema": "bzr-terrain-hd-authoring-v1",
+  "material": "GA_DETAIL_ATLAS",
+  "layout": "layout.csv",
+  "defaultAlias": "GA00SA0.MAP",
+  "tileSize": 1024,
+  "prefix": "crhd_ganymede",
+  "normalSpace": "directx",
+  "resources": {
+    "D": "GANYMEDE_ATLAS_D.dds",
+    "N": "GANYMEDE_ATLAS_N.dds",
+    "S": "GANYMEDE_ATLAS_S.dds",
+    "E": "black.dds"
+  },
+  "tiles": {
+    "GA00SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga00sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga00sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga00sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga00sa0_e.dds"
+    },
+    "GA00SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga00sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga00sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga00sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga00sb0_e.dds"
+    },
+    "GA00SC0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga00sc0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga00sc0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga00sc0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga00sc0_e.dds"
+    },
+    "GA01CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga01ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga01ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga01ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga01ca0_e.dds"
+    },
+    "GA01DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga01da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga01da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga01da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga01da0_e.dds"
+    },
+    "GA04CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga04ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga04ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga04ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga04ca0_e.dds"
+    },
+    "GA04DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga04da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga04da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga04da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga04da0_e.dds"
+    },
+    "GA11SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga11sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga11sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga11sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga11sa0_e.dds"
+    },
+    "GA11SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga11sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga11sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga11sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga11sb0_e.dds"
+    },
+    "GA12CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga12ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga12ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga12ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga12ca0_e.dds"
+    },
+    "GA12DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga12da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga12da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga12da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga12da0_e.dds"
+    },
+    "GA14CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga14ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga14ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga14ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga14ca0_e.dds"
+    },
+    "GA14DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga14da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga14da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga14da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga14da0_e.dds"
+    },
+    "GA22SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga22sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga22sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga22sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga22sa0_e.dds"
+    },
+    "GA22SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga22sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga22sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga22sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga22sb0_e.dds"
+    },
+    "GA22SC0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga22sc0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga22sc0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga22sc0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga22sc0_e.dds"
+    },
+    "GA24CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga24ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga24ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga24ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga24ca0_e.dds"
+    },
+    "GA24DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga24da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga24da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga24da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga24da0_e.dds"
+    },
+    "GA33SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga33sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga33sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga33sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga33sa0_e.dds"
+    },
+    "GA33SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga33sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga33sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga33sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga33sb0_e.dds"
+    },
+    "GA44SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga44sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga44sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga44sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga44sa0_e.dds"
+    },
+    "GA44SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_ganymede_ga44sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_ganymede_ga44sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_ganymede_ga44sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_ganymede_ga44sb0_e.dds"
+    }
+  }
+}

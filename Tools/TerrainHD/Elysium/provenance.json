@@ -1,0 +1,103 @@
+{
+  "schema": "cr-hd-source-images-v1",
+  "world": "elysium",
+  "tileSize": 1024,
+  "normalPolarity": "source-height-matched",
+  "sourceRecipeSha256": "dea64d74c33429b5d643a587b6add156cd510d181cfb95997eeacffc5c24bc10",
+  "normalEngineConversion": {
+    "7a8203b8f4c2": "flip_green",
+    "37e08a5c5ac8": "flip_green",
+    "a664493e4059": "flip_green",
+    "7ca5977439dc": "flip_green",
+    "ph_metal_plate": "flip_green"
+  },
+  "normalCorrections": {},
+  "normalRotation": "Sources converted to engine U/V tangent basis first; CCW image variants rotate engine normal XY as (Y, -X).",
+  "atlasPixelsRead": false,
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "ph_metal_plate",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 4,
+      "color": [
+        28,
+        22,
+        10
+      ],
+      "rectangles": [
+        [
+          0.18,
+          0.2,
+          0.025,
+          0.004
+        ],
+        [
+          0.68,
+          0.7,
+          0.025,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sourceHeightCorrections": {},
+  "sources": [
+    {
+      "id": "7a8203b8f4c2",
+      "name": "CrateredAsteroidTerrain_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "5ff4ece7b112970131123b7b880a1ad93714c9e10c9f6c53c95a209a7880ee60",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "E": "3a7fa4380bae4ea262ab5869208228c7b1b58e49678ab057dda34cd1791f37a5",
+        "G": "e565941ddddead82c5c98d3903e7834633713b05354644c84cda81819ea0b052",
+        "N": "e9ece117c7704cd8f8d0a4da67fc50cba998ef958a54962bb0a7e0e9aacd93c2"
+      }
+    },
+    {
+      "id": "37e08a5c5ac8",
+      "name": "rock_ground_02_diff_8k.jpg",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "d0c81b53e137ef16f0a14e567ca0da3148c523dc282918d0378717ceee3e8152",
+        "R": "74a5e129d5a083611b6abfa146e3a67247387424cf7cee40c917701db804a516",
+        "N": "e374732b026b7daee5b8185ea16264ee6e7f24f296a792384764b9dec0892ed4"
+      }
+    },
+    {
+      "id": "a664493e4059",
+      "name": "ground_grey_diff_4k.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "77fd04f2941be9eb43ac90a391f5c4739e534d3d1dfd46533e8cda91cc23299a",
+        "N": "9eb63b8b65369d52614ba151235b80515842cb9e28fab2982c3c68390a7cdaaa",
+        "R": "b6a0e6d4dc1e00969ec119cb142d0723b2c022478040f5b4e259fe12d8251ebd"
+      }
+    },
+    {
+      "id": "7ca5977439dc",
+      "name": "rocks_ground_04_diff_4k.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "eac9af296a35dc1093ad0837137901d491405930d400f1fbb41d397df0d42434",
+        "N": "ec5bebe1e47b5949158a1bc839da82619e4fdcb323338b53a517f3bc3b1fb94e",
+        "R": "61ffe78d7a7b8dbbb597500c2838cbba22d89e1deb9a6583534ae9335fb37973"
+      }
+    },
+    {
+      "id": "ph_metal_plate",
+      "name": "metal_plate_diff_4k.jpg",
+      "library": "Poly Haven",
+      "inputHashes": {
+        "D": "400ca39b8a01084ad23b2a0754e7efe84cad24bf415f25f318f450298e54bd4b",
+        "N": "a790e5e3431e9071074fb89d04009c1db3a6022c4a2a624bf0eaa519af05113a",
+        "R": "20a839c3f98e0ef8181a5914d99db689c13a7744f5f9cb615eaa873ac41a382c",
+        "A": "20433c66a363fc888705103d91d8fda4483d405d1835802765d9f57922c9af07",
+        "S": "ef3057a99476d51fdc0809fcf78edc48c9fb59858f7c4c441b0e5d658a3910bb"
+      }
+    }
+  ]
+}

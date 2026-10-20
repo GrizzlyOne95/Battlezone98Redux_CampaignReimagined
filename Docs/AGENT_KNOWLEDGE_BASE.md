@@ -923,6 +923,15 @@ basis. `Test-Misn03Launch.lua` runs the real misn03 script on the harness text o
 
 ### Moon independent HD tiles and normal polarity (2026-10-20)
 
+All-planet expansion: `Tools/Build-AllHdTerrain.py` routes independent source
+PNGs through the shared Toolbox, merging material entries instead of replacing
+the whole manifest. Source-level base E accents must precede variants/blends;
+their UV authoring lives in `Tools/TerrainHD/base_emissives.json`. Source height
+also identifies opposite relief in Europa Snowy Rock 21; record that separate
+correction before all variants. The CLI preview stages CR shader/IBL dependencies
+in the registered material folder before parsing wrappers, avoiding a load-order
+failure when the OpenShim group registers later. See `Docs/HD_TERRAIN_PACKS.md`.
+
 Mars follow-up: the saved recipe also reverses ChunkyMartianGravel
 (`a8264dc12988`). Source-height comparison found negative X/Y slope correlation
 in the generated gravel solid. Mars export now omits empirical XY reversals by

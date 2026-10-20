@@ -31,13 +31,13 @@ def module(filename):
 class MoonHdTerrain(unittest.TestCase):
     def test_native_material_identity_and_moon_missions(self):
         manifest = json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())
-        self.assertEqual(set(manifest["materials"]), {"MN_DETAIL_ATLAS"})
+        self.assertIn("MN_DETAIL_ATLAS", manifest["materials"])
         binding = manifest["materials"]["MN_DETAIL_ATLAS"]
         self.assertEqual(binding["sliceCount"], 11)
         self.assertEqual(len(binding["tileRects"]), 11)
         self.assertEqual(read_layout(ROOT / "Config/mn_detail_atlas.csv", "MN00SA0.MAP"),
                          read_layout(ROOT / "Tools/TerrainHD/Moon/layout.csv", "MN00SA0.MAP"))
-        self.assertNotIn("emissive", binding)  # intentional black native binding
+        self.assertEqual(binding["emissive"]["sourceResource"], "black.dds")
         material = (ROOT / "Materials/mn_detail_atlas.material").read_text()
         for alias, resource in (("DiffuseMap", binding["diffuseResource"]),
                                 ("NormalMap", binding["normal"]["sourceResource"]),
@@ -51,11 +51,12 @@ class MoonHdTerrain(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "bundle"
             report = build_bundle(recipe, output)
-            self.assertEqual(report["conversion"], {"preserved": 33, "converted": 0})
-            self.assertEqual(json.loads((output / "terrain_hd_tiles.json").read_text()),
-                             json.loads((ROOT / "Config/cr_terrain_hd.json").read_text()))
+            self.assertEqual(report["conversion"], {"preserved": 44, "converted": 0})
+            self.assertEqual(json.loads((output / "terrain_hd_tiles.json").read_text())["materials"]["MN_DETAIL_ATLAS"],
+                             json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())["materials"]["MN_DETAIL_ATLAS"])
             evidence = json.loads((ROOT / "Tools/TerrainHD/Moon/normal_validation.json").read_text())
-            self.assertEqual(report["sha256"], evidence["bundle"]["sha256"])
+            self.assertEqual({k: v for k, v in report["sha256"].items() if not k.endswith("_e.dds")},
+                             evidence["bundle"]["sha256"])
 
     def test_height_evidence_and_shader_basis_are_not_empirical_polarity_guesses(self):
         audit = module("Validate-MoonHdNormals.py")

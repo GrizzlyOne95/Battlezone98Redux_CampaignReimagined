@@ -1,5 +1,9 @@
 # Moon HD terrain
 
+The current all-planet pack adds a subtle base emissive channel. See
+`Docs/HD_TERRAIN_PACKS.md` for its authoring/setup. Counts, hashes and live RAM
+figures below describe the earlier D/N/S trial, before that E channel was added.
+
 CR includes an opt-in 1K Moon terrain pack built with the Modding Toolbox's
 `terrain hd-tiles` authoring workflow. It replaces diffuse, normal and specular
 inputs for **MN_DETAIL_ATLAS**, used by `misn02b` and `misn03`. Native heights,

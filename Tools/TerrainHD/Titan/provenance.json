@@ -1,0 +1,78 @@
+{
+  "schema": "cr-hd-source-images-v1",
+  "world": "titan",
+  "tileSize": 1024,
+  "normalPolarity": "source-height-matched",
+  "sourceRecipeSha256": "dea64d74c33429b5d643a587b6add156cd510d181cfb95997eeacffc5c24bc10",
+  "normalEngineConversion": {
+    "ccf0a633cb88": "flip_green",
+    "3882f0722a8e": "flip_green",
+    "methane_spectral_v6": "flip_green"
+  },
+  "normalCorrections": {},
+  "normalRotation": "Sources converted to engine U/V tangent basis first; CCW image variants rotate engine normal XY as (Y, -X).",
+  "atlasPixelsRead": false,
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "ccf0a633cb88",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 1,
+      "color": [
+        10,
+        24,
+        32
+      ],
+      "rectangles": [
+        [
+          0.1,
+          0.12,
+          0.03,
+          0.004
+        ],
+        [
+          0.6,
+          0.62,
+          0.03,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sources": [
+    {
+      "id": "ccf0a633cb88",
+      "name": "Metal3.tga",
+      "library": "BZCC",
+      "inputHashes": {
+        "D": "74e0d3ce7fba9451f206a6ba021d853da9b6fe922e2bf07b67741bc43b65ef43",
+        "N": "d9129efb8066f0a7f3c577dd3bb48a3fbeddd28b4bf5a9466b7b2836131f6f9d",
+        "S": "4b9f04ff3bd367d81ef1cc0ee8d28363ec8395266438795f9a9fb14e9eeb7dc0"
+      }
+    },
+    {
+      "id": "3882f0722a8e",
+      "name": "rock_face_03_diff_8k.jpg",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "748f756bd996cf2006315a95ddbf540ba31e5e11009fb40d1de10a25367aaa7d",
+        "R": "f24ed77b1272c95ae598ce5d71a083fc41db936f96e24a73e4ca5327902b43c9",
+        "N": "2b6c0af80150e930de23f9699c62717bba7e697d33b71384450c382df42ca1af"
+      }
+    },
+    {
+      "id": "methane_spectral_v6",
+      "name": "4K methane spectral wind-wave material",
+      "library": "Local source material composite",
+      "inputHashes": {
+        "D": "faf0878332e645aeb1b246cefbc1237feed65f0b990f3b40611d54a29759e953",
+        "N": "e06d53b4149d06b7b8667a2074510947121b82ed24e2d34b1b0a6095f85ee4df",
+        "S": "fe1ce488873d0f715941617e556cb8ae87b6ba985c7420839b02879af9d048e4",
+        "E": "719228b40bd66e3419c9343d1e56f245543e6c99e9c54bd19200ee9f500c18a9",
+        "R": "66d46c160e3906dbf851867c5b2c616f2a6d5181bbffecba4b7b199a2483d11b"
+      }
+    }
+  ]
+}
