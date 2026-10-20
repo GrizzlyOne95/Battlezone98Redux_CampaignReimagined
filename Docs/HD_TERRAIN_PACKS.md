@@ -5,6 +5,36 @@ specular and emissive tiles built with the Modding Toolbox. Atlas image pixels
 are not used as source art. Original materials, atlases and mission terrain
 remain the fallback.
 
+## Adjusting geometric relief
+
+Edit `Config/cr_terrain_hd.json`: each world material has a
+`microReliefScale` near the start of its entry. Moon (`MN_DETAIL_ATLAS`) starts
+at **2.5**; Mars, Venus, Io, Europa, Titan, Achilles, Ganymede and Elysium
+start at **1.0**. Use the material table below to locate a world.
+
+`1.0` is the original depth; `2.0` doubles it; `3.0` triples it; `0.0`
+flattens geometric micro relief. Values must be within **0..4**. The normal
+baseline is 0.25 meters, so Moon's 2.5 gives a 0.625-meter amplitude. Total
+amplitude is capped at the existing one-meter displacement envelope even
+with diagnostic baseline overrides. Pack rebuilding preserves these values.
+
+Deploy the edited config and restart the game to see a change; texture
+repainting, DDS regeneration and recompiling OpenShim are unnecessary.
+Both **HD Terrain Tiles** and **Terrain Micro Detail** must be enabled with
+DX11 Enhanced, and the selected pack must successfully load. The scale does
+not enable either option. It scales the existing procedural geometric relief;
+the D/N/S/E packs still do not supply texture-authored geometry height maps.
+Collision and gameplay heights are unchanged. A live preview can opt in with
+`Tools/Test-MarsHdTerrainLive.ps1 -MicroRelief` alongside the existing HD args.
+
+Windows/GOG Moon trial (2026-10-20, PID 56724) confirmed factor 4,
+`displacement=0.625`, matching bounds on 144 meshes, 243,200 domain shader
+invocations and `hdMaterialMask=7` on a rasterized native draw. All 82 passes,
+144 streams/bounds and 135 staged files were restored. The new wide-view
+screenshot was inspected; local evidence is
+`Local/TerrainHD/run-20261020-160941`. Other worlds' art scales remain at the
+baseline; their live visual tuning and Steam/Proton/Wine remain unverified.
+
 | World | Material | Physical tiles | DDS resources |
 | --- | --- | ---: | ---: |
 | Moon | MN_DETAIL_ATLAS | 11 | 44 |

@@ -16,6 +16,20 @@ from battlezone.terrain.hd_tiles import build_bundle, load_project
 
 
 class HdPacks(unittest.TestCase):
+    def test_pack_rebuild_preserves_world_relief_tuning(self):
+        spec = importlib.util.spec_from_file_location("bundle", ROOT / "Tools/Build-HdTerrainBundle.py")
+        bundle = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(bundle)
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "terrain.json"
+            path.write_text(json.dumps({"schema": "v2", "materials": {
+                "MN": {"microReliefScale": 2.5, "old": True},
+                "MA": {"microReliefScale": 0.0}}}))
+            bundle.merge_manifest(path, {"schema": "v2", "materials": {"MN": {"new": True}, "VE": {}}})
+            self.assertEqual(json.loads(path.read_text())["materials"], {
+                "MN": {"microReliefScale": 2.5, "new": True},
+                "MA": {"microReliefScale": 0.0}, "VE": {"microReliefScale": 1.0}})
+
     def test_base_preview_swatch_preserves_source_terrain(self):
         from unittest.mock import patch
         from battlezone.terrain.hg2 import read_hg2
@@ -60,7 +74,10 @@ class HdPacks(unittest.TestCase):
                 evidence = json.loads((folder / "pack_validation.json").read_text())
                 self.assertEqual(report["sha256"], evidence["bundle"]["sha256"])
                 material = project["material"]
-                self.assertEqual(json.loads((out / "terrain_hd_tiles.json").read_text())["materials"][material], combined[material])
+                expected = dict(combined[material])
+                scale = expected.pop("microReliefScale")
+                self.assertEqual(scale, 2.5 if world == "moon" else 1.0)
+                self.assertEqual(json.loads((out / "terrain_hd_tiles.json").read_text())["materials"][material], expected)
                 for channels in project["tiles"].values():
                     for source in channels.values():
                         self.assertIn(Path(source).relative_to(ROOT).as_posix(), shipped)

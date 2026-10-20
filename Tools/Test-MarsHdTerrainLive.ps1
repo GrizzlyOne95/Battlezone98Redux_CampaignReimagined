@@ -17,6 +17,7 @@ param(
  [ValidateRange(1,4)][int]$ProfileCycles=1,
  [switch]$WideView,
  [switch]$BaseView,
+ [switch]$MicroRelief,
  [switch]$BindCapture,
  [switch]$Hd
 )
@@ -48,6 +49,19 @@ if($ProfileCycle){
 }
 $out=Join-Path $cr ('Local\TerrainHD\run-'+(Get-Date -Format yyyyMMdd-HHmmss))
 New-Item -ItemType Directory -Path $out -Force | Out-Null
+if($isBundle){
+ # Preview current CR art direction even when reusing an older texture bundle.
+ $pack=Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+ $tuning=Get-Content -LiteralPath "$cr\Config\cr_terrain_hd.json" -Raw | ConvertFrom-Json
+ foreach($material in $pack.materials.PSObject.Properties){
+  $authored=$tuning.materials.PSObject.Properties[$material.Name]
+  if($null-ne$authored -and $authored.Value.diffuseResource -ceq $material.Value.diffuseResource){
+   $material.Value | Add-Member -NotePropertyName microReliefScale -NotePropertyValue $authored.Value.microReliefScale -Force
+  }
+ }
+ $manifestPath=Join-Path $out 'terrain_hd_tiles.json'
+ $pack | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+}
 # This helper owns reversible ogre.cfg changes below. Suppress the harness's
 # separate automatic windowed backup when invoked repeatedly in one shell;
 # still let it recover an orphan, and still launch with BZR_FORCE_WINDOWED=1.
@@ -188,6 +202,10 @@ end
  $env:OPENSHIM_TERRAIN_HD_EXPORT="$out\native.json"
  $env:OPENSHIM_TERRAIN_TESSELLATION_TEST='1'
  $env:OPENSHIM_TERRAIN_TESSELLATION_FACTOR='1'
+ if($MicroRelief){
+  $env:OPENSHIM_TERRAIN_MICRO_RELIEF_TEST='1'
+  $env:OPENSHIM_TERRAIN_TESSELLATION_FACTOR='4'
+ }
  if($Hd){
   foreach($item in Get-ChildItem $textureDirectory -Filter '*.dds' -File){Save-File "$game\openshim\renderer\enhanced\$($item.Name)"; Copy-Item $item.FullName "$game\openshim\renderer\enhanced\$($item.Name)" -Force}
   $env:OPENSHIM_TERRAIN_HD='1'; $env:OPENSHIM_TERRAIN_HD_MANIFEST=$manifestPath
@@ -273,6 +291,16 @@ if($Hd -and $RenderProfile -eq 'Enhanced'){
  if(-not ($records -match 'shared native material restored passes=[1-9]')){throw 'Native material restoration unproven'}
  $restoredStreams=@($records | Where-Object {$_ -match 'native streams restored meshes=([0-9]+) tracked=([0-9]+)' -and [int]$Matches[1] -gt 0 -and $Matches[1] -eq $Matches[2]})
  if(-not $restoredStreams.Count){throw 'Complete native stream restoration unproven'}
+ if($MicroRelief){
+  $pack=Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+  $materialName=($example.ToUpper())
+  $scale=$pack.materials.$materialName.microReliefScale
+  if($null-eq$scale){$scale=1.0}
+  $amplitude=[Math]::Min(1.0,0.25*[double]$scale)
+  $formatted=$amplitude.ToString('F3',[Globalization.CultureInfo]::InvariantCulture)
+  if(-not ($records -match ('\[TERRAIN-TESS\] shared native material installed.*displacement='+[regex]::Escape($formatted)+'\b'))){throw 'Scaled native domain displacement unproven'}
+  if($amplitude -gt 0 -and -not ($records -match ('micro-relief render bounds padded.*amplitude='+[regex]::Escape($formatted)+'\b'))){throw 'Matching scaled render bounds unproven'}
+ }
  if($ProfileCycle){
   if(-not ($records -match 'profile fallback restored stock atlas')){throw 'Live profile fallback unproven'}
   if(-not ($records -match 'Enhanced resumed; native tile discovery rearmed')){throw 'Live profile resume unproven'}

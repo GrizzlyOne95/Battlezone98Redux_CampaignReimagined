@@ -2,6 +2,7 @@
   "schema": "bzr-openshim-terrain-hd-v2",
   "materials": {
     "MN_DETAIL_ATLAS": {
+      "microReliefScale": 2.5,
       "sliceCount": 11,
       "releaseSourceTextures": true,
       "diffuseResource": "moon_atlas_d.dds",
@@ -174,6 +175,7 @@
       }
     },
     "VE_DETAIL_ATLAS": {
+      "microReliefScale": 1.0,
       "sliceCount": 13,
       "releaseSourceTextures": true,
       "diffuseResource": "venus_atlas_d.dds",
@@ -372,6 +374,7 @@
       }
     },
     "MA_DETAIL_ATLAS": {
+      "microReliefScale": 1.0,
       "sliceCount": 18,
       "releaseSourceTextures": true,
       "diffuseResource": "mars_atlas_d.dds",
@@ -653,6 +656,7 @@
       }
     },
     "IO_DETAIL_ATLAS": {
+      "microReliefScale": 1.0,
       "sliceCount": 19,
       "releaseSourceTextures": true,
       "diffuseResource": "io_atlas_d.dds",
@@ -965,6 +969,7 @@
       }
     },
     "EU_DETAIL_ATLAS": {
+      "microReliefScale": 1.0,
       "sliceCount": 16,
       "releaseSourceTextures": true,
       "diffuseResource": "europa_atlas_d.dds",
@@ -1202,6 +1207,7 @@
       }
     },
     "TI_DETAIL_ATLAS": {
+      "microReliefScale": 1.0,
       "sliceCount": 13,
       "releaseSourceTextures": true,
       "diffuseResource": "titan_atlas_d.dds",
@@ -1400,6 +1406,7 @@
       }
     },
     "AC_DETAIL_ATLAS": {
+      "microReliefScale": 1.0,
       "sliceCount": 19,
       "releaseSourceTextures": true,
       "diffuseResource": "achilles_atlas_d.dds",
@@ -1703,6 +1710,7 @@
       }
     },
     "GA_DETAIL_ATLAS": {
+      "microReliefScale": 1.0,
       "sliceCount": 22,
       "releaseSourceTextures": true,
       "diffuseResource": "GANYMEDE_ATLAS_D.dds",
@@ -2027,6 +2035,7 @@
       }
     },
     "EL_DETAIL_ATLAS": {
+      "microReliefScale": 1.0,
       "sliceCount": 20,
       "releaseSourceTextures": true,
       "diffuseResource": "ELYSIUM_ATLAS_D.dds",
