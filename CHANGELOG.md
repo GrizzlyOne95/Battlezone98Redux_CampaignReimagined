@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Bundle OpenShim main 1.0.0.53 (6789591), ExtraUtilities main (bc283dd) and bzfile main (44f012e). Brings the
+  ODF muzzle flash/smoke/light and recoil companions, DX11 Enhanced FXAA on the 3D scene only (HUD and text stay
+  sharp), the deferred Modable rebuild (faster Instant Action, multiplayer and campaign-list menu transitions), and
+  the current network defaults.
+
 - Bundle ExtraUtilities main (5c3051c). The bundled build was from 2026-10-11 and lacked
   `exu.SetShowKillMessages` and the point-light API, so co-op kept the stock kill feed ("BUILDING DESTROYED" lines
   over the misn03 launch film) and the scripted engine/vent lights (misn03/misn06 launch, CR06 orbit film, misn17
