@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Bundle ExtraUtilities main (5c3051c). The bundled build was from 2026-10-11 and lacked
+  `exu.SetShowKillMessages` and the point-light API, so co-op kept the stock kill feed ("BUILDING DESTROYED" lines
+  over the misn03 launch film) and the scripted engine/vent lights (misn03/misn06 launch, CR06 orbit film, misn17
+  vents, misn18 tornado) were silently skipped. Also brings `exu.SetSkyClearColor` and `exu.GetClock`.
+
 - Campaign skies with a star field gain occasional shooting stars: a short streak crosses part of the sky in
   0.3-0.8 s, about one every 25 s across the whole sky (Moon: Missions 1-2 and the setup map; Io: Missions 9-10
   and `misns4`). The Moon also gets three satellites that drift across it over one to three minutes, some with a
