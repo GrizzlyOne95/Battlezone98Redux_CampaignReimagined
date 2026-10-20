@@ -58,6 +58,9 @@ CRMarsWeather.Debug                = false
 -- Sub-systems, each independently switchable so a mission (or a settings page)
 -- can take the visuals without the gameplay coupling.
 CRMarsWeather.AllowDustDevils      = true
+-- Fine grit on the cockpit glass that builds with the storm and clears slowly after it
+-- (CRWetGlass.Weather; sparse CRWetGlass.Splat specks at the upper rungs).
+CRMarsWeather.AllowGlassGrit       = true
 CRMarsWeather.AllowSensorDegrade   = true
 CRMarsWeather.AllowWindPush        = true
 
@@ -1191,6 +1194,7 @@ function CRMarsWeather.Init(options)
     if options.enabled ~= nil then CRMarsWeather.Enabled = options.enabled and true or false end
     if options.debug ~= nil then CRMarsWeather.Debug = options.debug and true or false end
     if options.dustDevils ~= nil then CRMarsWeather.AllowDustDevils = options.dustDevils and true or false end
+    if options.glassGrit ~= nil then CRMarsWeather.AllowGlassGrit = options.glassGrit and true or false end
     if options.haboob ~= nil then CRMarsWeather.AllowHaboob = options.haboob and true or false end
     if options.sensorDegrade ~= nil then CRMarsWeather.AllowSensorDegrade = options.sensorDegrade and true or false end
     if options.windPush ~= nil then CRMarsWeather.AllowWindPush = options.windPush and true or false end
@@ -1203,6 +1207,8 @@ function CRMarsWeather.Init(options)
     })
 
     CRMarsWeather.Clock = 0.0
+    CRMarsWeather.GlassGrit = 0.0
+    CRMarsWeather.NextGritSplatAt = 20.0
     CRMarsWeather.Level = Clamp(tonumber(options.startLevel) or 1, 1, LEVEL_COUNT)
     CRMarsWeather.TargetLevel = Clamp(tonumber(options.targetLevel) or 2, 1, LEVEL_COUNT)
     CRMarsWeather.LevelValue = CRMarsWeather.Level
@@ -1303,6 +1309,54 @@ local function RealDelta(fallbackDt)
     return delta
 end
 
+-- Dust grit on the cockpit glass (CRWetGlass). The level follows the ladder severity: faint in the
+-- haze, noticeable but still light in a severe storm. It builds in about a minute and clears over
+-- several, so a craft that has flown out of a storm stays a little dusty. Between the Storm and
+-- Severe rungs a few small grit splats hit the glass now and then. Off with the director, with
+-- CRWeather.Quality 0 or with AllowGlassGrit.
+local GlassModule = nil
+local function Glass()
+    if GlassModule == nil then
+        local ok, m = pcall(require, "CRWetGlass")
+        GlassModule = (ok and type(m) == "table" and type(m.Weather) == "function") and m or false
+    end
+    return GlassModule or nil
+end
+
+local GLASS_GRIT_FLOOR = 0.08      -- level in clear haze
+local GLASS_GRIT_CEIL  = 0.90      -- level at the top rung
+local GLASS_GRIT_RISE  = 0.035     -- level per second while the storm builds
+local GLASS_GRIT_CLEAR = 0.007     -- level per second once it passes
+
+local function UpdateGlassGrit(dt)
+    local glass = Glass()
+    if glass == nil then return end
+    local severity = CRMarsWeather.GetSeverity()
+    local target = 0.0
+    if CRMarsWeather.AllowGlassGrit and (tonumber(CRWeather.Quality) or 1.0) > 0.0 then
+        target = GLASS_GRIT_FLOOR + (GLASS_GRIT_CEIL - GLASS_GRIT_FLOOR) * severity ^ 1.3
+    end
+    local level = CRMarsWeather.GlassGrit or 0.0
+    if target > level then
+        level = math.min(target, level + GLASS_GRIT_RISE * dt)
+    else
+        level = math.max(target, level - GLASS_GRIT_CLEAR * dt)
+    end
+    CRMarsWeather.GlassGrit = level
+    glass.Weather("grit", level)
+
+    if target > 0.0 and severity >= 0.6 and CRMarsWeather.Clock >= (CRMarsWeather.NextGritSplatAt or 0.0) then
+        local heat = (severity - 0.6) / 0.4
+        CRMarsWeather.NextGritSplatAt = CRMarsWeather.Clock + RandomRange(22.0, 46.0) / (0.5 + heat)
+        if type(glass.Splat) == "function" then
+            glass.Splat(RandomRange(0.04, 0.12), RandomRange(0.1, 0.9), RandomRange(0.1, 0.8), math.random() < 0.5)
+        end
+    end
+    if level > 0.0 or glass.Busy() then glass.Update(0.0) end
+end
+
+function CRMarsWeather.GetGlassGrit() return CRMarsWeather.GlassGrit or 0.0 end
+
 function CRMarsWeather.Update(dt)
     if not CRMarsWeather.Initialized then
         CRMarsWeather.Init()
@@ -1343,6 +1397,7 @@ function CRMarsWeather.Update(dt)
     end
     UpdateDevils(dt, player)
     UpdateHaboob(dt, player)
+    UpdateGlassGrit(dt)
 
     Wake.Update(dt)
     CRWeather.Update(dt)
@@ -1355,6 +1410,13 @@ function CRMarsWeather.Shutdown()
 
     CRMarsWeather.DestroyAllDevils()
     DestroyHaboob()
+
+    local glass = Glass()
+    if glass ~= nil then
+        glass.Weather("grit", 0.0)
+        pcall(glass.Stop)
+    end
+    CRMarsWeather.GlassGrit = 0.0
 
     local environment = rawget(_G, "Environment")
     if CRMarsWeather.GameplayRegistered and environment ~= nil

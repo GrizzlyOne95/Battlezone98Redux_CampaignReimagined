@@ -1801,6 +1801,178 @@ do
 end
 
 -- =============================================================================
+-- 12. Pool pops: yellow bubbles, motes and pale fumes on liquid sulphur (CRPoolFX)
+-- =============================================================================
+
+do
+    local function Recording(rec)
+        return {
+            Event = function(kind, pos, scale, mask)
+                rec[#rec + 1] = { kind = kind, x = pos.x, y = pos.y, z = pos.z, scale = scale }
+                return true
+            end,
+            Update = function() end,
+            StopKind = function(kind) rec.stopped = kind end,
+        }
+    end
+
+    local function Run(siteData, level, seconds, setup, label)
+        local world = NewWorld()
+        local peer = NewPeer(label or "poolfx", world)
+        local rec = {}
+        peer.preload["CRGroundFX"] = Recording(rec)
+        peer.Environment.Init()
+        peer.Venus.Init({ seed = 606, authority = true, sites = siteData, startLevel = level, targetLevel = level, bounds = BOUNDS })
+        local pool = peer.Venus.GetSulfurSites()[1]
+        peer.playerPos = { x = pool.x, y = 40, z = pool.z }
+        if setup then setup(peer) end
+        peer.run(seconds)
+        return peer, rec, pool
+    end
+
+    local peer, rec, pool = Run(sites, 1, 150.0)
+    local V = peer.Venus
+    check(#rec > 15, "liquid-sulphur pools pop while the player is near them, got " .. #rec)
+    check(#rec <= (150.0 / 0.35) + 1, "events are rate limited by the minimum spacing")
+    local weightOk, kindOk, nearOk = true, true, true
+    for _, e in ipairs(rec) do
+        if V.SulfurWeightAt(e.x, e.z) < 0.5 then weightOk = false end
+        if e.kind ~= "sulfur" then kindOk = false end
+        if math.sqrt((e.x - pool.x) ^ 2 + (e.z - pool.z) ^ 2) > V.PoolFxRange + V.PoolFxRadius + 1 then nearOk = false end
+    end
+    check(weightOk, "every sulfur pop lands on a liquid-sulphur cell")
+    check(kindOk, "sulphur pools use the yellow sulfur kind, never lava embers")
+    check(nearOk, "sulfur pops happen only near the player")
+
+    local _, off = Run(sites, 3, 60.0, function(p) p.Venus.AllowPoolFx = false end, "poolfx-off")
+    check(#off == 0, "AllowPoolFx = false silences the sulfur pops")
+    local _, offSulfur = Run(sites, 3, 60.0, function(p) p.Venus.AllowSulfur = false end, "poolfx-nosulfur")
+    check(#offSulfur == 0, "AllowSulfur = false also silences them")
+    local _, noq = Run(sites, 3, 60.0, function(p) p.CRWeather.Quality = 0.0 end, "poolfx-q0")
+    check(#noq == 0, "weather quality 0 silences the sulfur pops")
+
+    -- misn08 (three pools) and misn09 (one pool) pop too.
+    local _, r8 = Run(dofile(scriptDir .. "/CRVenusSites08.lua"), 2, 90.0, nil, "poolfx08")
+    check(#r8 > 5, "misn08 pools pop, got " .. #r8)
+    local _, r9 = Run(dofile(scriptDir .. "/CRVenusSites09.lua"), 2, 90.0, nil, "poolfx09")
+    check(#r9 > 5, "misn09's pool pops, got " .. #r9)
+
+    peer.Venus.Shutdown()
+    check(rec.stopped == "sulfur", "Shutdown removes the sulfur systems it owns")
+end
+
+-- =============================================================================
+-- 13. Acid rain on the cockpit glass (CRWetGlass.Weather("acid") + Update(rain))
+-- =============================================================================
+
+do
+    local function Run(rung, seconds, setup, label)
+        local world = NewWorld()
+        local peer = NewPeer(label or "glassacid", world)
+        local rec = { acid = 0, updates = 0, lastRain = nil, maxRain = 0, stops = 0, weatherCalls = 0, snow = 0 }
+        peer.rec = rec
+        peer.preload["CRWetGlass"] = {
+            Weather = function(kind, level)
+                if kind == "acid" then rec.acid = level; rec.weatherCalls = rec.weatherCalls + 1
+                else rec.snow = level end
+            end,
+            Busy = function() return rec.acid > 0 end,
+            Update = function(i) rec.updates = rec.updates + 1; rec.lastRain = i; rec.maxRain = math.max(rec.maxRain, i) end,
+            Stop = function() rec.stops = rec.stops + 1 end,
+        }
+        peer.Environment.Init()
+        peer.Venus.Init({ seed = 707, authority = true, sites = sites, startLevel = rung, targetLevel = rung, bounds = BOUNDS })
+        if setup then setup(peer) end
+        ForceRung(peer, rung)
+        peer.run(seconds)
+        return peer, rec
+    end
+
+    -- The glass gets the same rain value as the particle rain, and Weather("acid") the same level.
+    local calm, rc = Run(1, 20.0, nil, "glassacid-calm")
+    check(rc.acid == 0 and rc.updates == 0, "a calm sky puts nothing on the glass (acid " .. rc.acid .. ", updates " .. rc.updates .. ")")
+    calm.Venus.Shutdown()
+
+    local light, rl = Run(3, 20.0, nil, "glassacid-light")
+    check(near(rl.acid, light.Venus.GetRainIntensity(), 0.001) and rl.acid > 0.2 and rl.acid < 0.45,
+        "a storm rung feeds a light acid level, got " .. rl.acid)
+    check(near(rl.lastRain, rl.acid, 0.001), "the glass rain intensity is the same value as the acid level")
+    check(near(light.Venus.GetGlassAcid(), rl.acid, 0.001), "GetGlassAcid reports the level")
+    light.Venus.Shutdown()
+
+    local severe, rs = Run(5, 20.0, nil, "glassacid-severe")
+    check(rs.acid > 0.95 and rs.acid <= 1.0, "severe rain feeds a full acid level, got " .. rs.acid)
+    check(rs.maxRain <= 1.0, "the glass rain intensity never exceeds 1")
+    check(rs.stops == 0, "the glass is not stopped while the storm runs")
+    check(rs.snow == 0, "acid never touches the snow layer")
+    severe.Venus.Shutdown()
+    check(rs.stops >= 1 and rs.acid == 0, "shutdown releases the glass")
+
+    -- The levels are eased: the rain value comes off the smoothed ladder, so no frame jumps.
+    do
+        local world = NewWorld()
+        local peer = NewPeer("glassacid-ease", world)
+        local rec = { acid = 0 }
+        peer.preload["CRWetGlass"] = {
+            Weather = function(kind, level) if kind == "acid" then rec.acid = level end end,
+            Busy = function() return rec.acid > 0 end, Update = function() end, Stop = function() end,
+        }
+        peer.Environment.Init()
+        peer.Venus.Init({ seed = 707, authority = true, sites = sites, startLevel = 1, targetLevel = 1, bounds = BOUNDS })
+        ForceRung(peer, 1)
+        peer.Venus.ForceLevel(5, 100000.0, 0.05)
+        local prev, worst = rec.acid, 0
+        for _ = 1, math.floor(150.0 / 0.1) do
+            peer.step(0.1)
+            worst = math.max(worst, math.abs(rec.acid - prev)); prev = rec.acid
+        end
+        check(worst < 0.1, "the acid level eases between rungs, worst step " .. worst)
+        check(rec.acid > 0.9, "and reaches the severe level")
+        peer.Venus.Shutdown()
+    end
+
+    -- Options.
+    local _, roff = Run(5, 20.0, function(p) p.Venus.AllowGlassAcid = false end, "glassacid-off")
+    check(roff.acid == 0 and roff.updates == 0, "AllowGlassAcid = false keeps the glass clear of acid rain")
+    local _, rnoRain = Run(5, 20.0, function(p) p.Venus.AllowAcidRain = false end, "glassacid-norain")
+    check(rnoRain.acid == 0 and rnoRain.updates == 0, "AllowAcidRain = false means no rain on the glass either")
+    local _, rq0 = Run(5, 20.0, function(p) p.CRWeather.Quality = 0.0 end, "glassacid-q0")
+    check(rq0.acid == 0 and rq0.updates == 0, "weather quality 0 keeps the glass clear")
+    local _, rqh = Run(5, 20.0, function(p) p.CRWeather.Quality = 0.5 end, "glassacid-q05")
+    check(rqh.acid > 0.45 and rqh.acid < 0.55, "weather quality 0.5 halves the level, got " .. rqh.acid)
+    local _, rqd = Run(5, 20.0, function(p) p.CRWeather.Quality = 2.0 end, "glassacid-q2")
+    check(rqd.acid <= 1.0, "quality above 1 never pushes the level past 1")
+    do
+        local world = NewWorld()
+        local peer = NewPeer("glassacid-initopt", world)
+        local rec = { acid = 0, updates = 0 }
+        peer.preload["CRWetGlass"] = {
+            Weather = function(kind, level) if kind == "acid" then rec.acid = level end end,
+            Busy = function() return false end, Update = function() rec.updates = rec.updates + 1 end, Stop = function() end,
+        }
+        peer.Environment.Init()
+        peer.Venus.Init({ seed = 707, authority = true, sites = sites, startLevel = 5, targetLevel = 5, bounds = BOUNDS,
+            glassAcid = false })
+        ForceRung(peer, 5)
+        peer.run(10.0)
+        check(peer.Venus.AllowGlassAcid == false and rec.updates == 0, "Init option glassAcid = false switches it off")
+        peer.Venus.Shutdown()
+    end
+
+    -- A clear glass costs nothing: once the storm passes and the glass reports idle, no Update calls.
+    do
+        local peer, rec = Run(5, 10.0, nil, "glassacid-idle")
+        peer.Venus.ForceLevel(1, 100000.0, 0.05)
+        peer.run(60.0)
+        local before = rec.updates
+        peer.run(10.0)
+        check(rec.acid == 0, "the acid level returns to zero after the storm")
+        check(rec.updates == before, "an idle glass is not updated every frame")
+        peer.Venus.Shutdown()
+    end
+end
+
+-- =============================================================================
 -- Report
 -- =============================================================================
 

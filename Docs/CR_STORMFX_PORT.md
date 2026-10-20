@@ -104,8 +104,8 @@ the frame wins), `CRStormFX.Shutdown` calls `CRWetGlass.Stop()`.
 
 `Update(intensity 0..1)`, `Stop()` (hide overlays, put the glass back on the no-op material, forget state; the next
 `Update` rebuilds), `Mode()` (`"shell"` = cockpit glass submesh, `"overlay"` = screen), `SetCrack(level, x, y)`,
-`Splat(amount, x, y, flip)`, `Busy()`, `ClearSplats()`, `ScreenToShell(x, y)`. The crack/splat layers are kept but
-nothing in CR calls them yet. Without EXU, with a stub EXU, or without overlay support it does nothing.
+`Splat(amount, x, y, flip)`, `Weather(kind, level)`, `Busy()`, `ClearSplats()`, `ScreenToShell(x, y)`. The crack layer
+is not called by CR yet; splats come from `CRStorm18` and the Mars director. Without EXU, with a stub EXU, or without overlay support it does nothing.
 
 Two modes:
 - Screen overlay (any craft, F1/F2/F3 views): bead, rivulet, streak, crack and dirt panels with the open mask.
@@ -114,6 +114,26 @@ Two modes:
   `SetMaterialPassColors` (all present in CR `Bin/exu.dll`). The `CRWX_CockpitGlass` sub-entity of the cockpit
   entity is moved to render queue group 90 and given `CRWX_CockpitGlass_W<a>C<b>` (one pass per visible layer).
   A craft whose cockpit mesh has no glass submesh falls back to the overlay.
+
+### Weather layers: snow flakes and dust grit
+
+Two more wrap families ride the same glass, driven by weather directors rather than rain:
+`CRWetGlass.Weather("snow" | "grit", level 0..1)` stores a level that stays until changed, and the director
+then calls `CRWetGlass.Update(0)` every frame while `CRWetGlass.Busy()` (or its level is above 0). Rain wins the
+pass budget: the weather layers are the last wrap layers.
+
+| Layer | Texture / materials | Behaviour | Driver |
+| --- | --- | --- | --- |
+| `snow` (`CRWX_WinSnow`, two layers) | `crwx_winsnow.png`; `CRWX_WinSnow_A1..16` in `crwx_glassweather.material`; pass tint 0.92 | Sparse soft-white crystals and specks. Each layer gathers over 5-12 s, sits 14-32 s, melts over 10-22 s, then returns elsewhere (new offset and scale); the second layer only above level 0.47; peak opacity 0.21-0.60 of an already sparse sheet; a 0.003 UV/s slide. No streaks. | `CREuropaWeather` (misn12, misn13) |
+| `grit` (`CRWX_WinGrit`, two layers) | `crwx_wingrit.png`; `CRWX_WinGrit_A1..16`; standard glass tint | Fine tan-brown specks, a few clumps, a faint dust film. Fixed position (no motion); layer 1 follows the level over 0..0.5, layer 2 over 0.45..1.0; peak 0.5 each. The caller shapes the build and clear. | `CRMarsWeather` (misn04, 05, 06) |
+| `acid` (`CRWX_AcidBeads`, `CRWX_AcidRivulet`, `CRWX_AcidStreak`; `CRWX_WinEtch`) | `crwx_acidbeads/acidrivulet/acidstreak.png` (the rain textures' alpha, tinted yellow-green), `crwx_winetch.png`; `CRWX_Acid*_A1..16`, `CRWX_WinEtch_A1..16`; etch pass tint 0.70 | While the level is above 0.02 the rain layers use the acid textures (chosen when a layer is not showing, so no drop recolours); the level also builds an etch exposure (level x 1/180 per s up, 1/720 per s down) that fades in one very faint pitted film, opacity up to 0.30 x smoothstep(0.08, 1, exposure), fixed position, last wrap layer. `Weather("acid", rain)` + `Update(rain)`: the rain layers themselves are driven by the `Update` intensity as for any rain. On the screen overlay the four acid textures are loaded once at the start by showing each panel alone for two frames at its faintest step (`warmUp`; see the live-check lesson in `Docs/AGENT_KNOWLEDGE_BASE.md`). | `CRVenusWeather` (misn07, 08, 09) |
+
+`Tools/Generate-GlassWeatherAssets.py` writes the snow, grit, acid-rain and etch textures and the material (deterministic; `--check` compares). The
+large snow crystals are the ISDF Chronicles snowflake sprite `snowflak.dds` (the texture its `giplume.odf` uses; ISDFC has
+no dedicated snow-on-glass texture), converted from luminance to alpha, scattered at random sizes and angles over a
+tileable 1024 square with specks; the generator reads it from the ISDFC addon folder only when it rewrites the snow
+texture. Host test: `Tools/Test-CRWetGlassWeather.lua` (overlay and cockpit-glass modes, fade rates, opacity caps, and that
+every overlay material and texture ships).
 
 ### Regenerating the cockpit glass
 

@@ -751,6 +751,9 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 
 ### 8.4 Rendering and weather
 
+- **Glass panel first draw (2026-10-19, Instance2, overlay mode):** the first time a glass panel is drawn beside other showing panels, the DX11 renderer can start throwing `OGRE EXCEPTION ... Unable to set D3D11 vertex declaration` on every frame (100-250 per second) until exit, with the panels still drawing. The Mars severe-storm bench logged 14,062 of them (they began at the first dirt splat; with `AllowGlassGrit = false` the same bench logged 0). Preloading one panel per family did not help (14,208): the splats use dirt panels 2 and 3, never shown before. `CRWetGlass.warmUp` now shows every panel once, alone, for two frames at its faintest step right after the glass is built (about one second); the same bench then logged 0. A single panel's first show or a single splat in isolation was harmless, so the trigger needs other panels already showing. Check the Ogre log for `vertex declaration` after adding any glass layer; new layers are warmed automatically because the list is `allLayers()`.
+- **Acid glass live check (2026-10-19, Instance2, overlay mode):** a texture that loads the first time a glass panel draws it can break the DX11 renderer if five other panels are already showing: `OGRE EXCEPTION ... Unable to set D3D11 vertex declaration` on every frame (100-250 per second) from that frame to the end of the run, with the panels still drawing. It reproduced three ways (acid rain then the etch, the same panel carrying the grit texture, and the etch panel created first), never with seven plain-rain and snow panels, and never when the etch texture loaded while the glass was empty, so the trigger is a first texture load beside a crowd of panels, not the panel count or the material. `CRWetGlass.warmUp` therefore shows each acid family once, alone, at its faintest step right after the glass is built. Mars grit/dirt showed the same exceptions in the earlier glass run (13,915 at the first dirt splat), so a first-use `crwx_winddirt.png` is a probable instance of the same thing and unfixed here. Check the Ogre log for `vertex declaration` after any new glass layer. Bench notes: the scratch bench is the `crsetup.lua` swap above; the harness scripts need Windows PowerShell 5.1 (`powershell.exe -File`), under pwsh 7 `BZRWindowInput.ps1` fails its `Add-Type`; back up and byte-verify the Instance2 mod folder and `logs` (the game also rewrites `BZPLYR.DEF` and appends `bzloader.log` in the instance root).
+- **Glass weather live check (2026-10-19):** `CRWetGlass.Weather("snow"|"grit", level)` layers were captured live only in the screen-overlay mode (forced by hiding `exu.animation.TargetCockpit`). In a scratch Instance2 the cockpit-glass (F1 shell) mode reported "layers on the cockpit glass" but drew nothing, not even rain, a crack or a splat, so shell-mode rendering of ANY layer is unverified there. A scratch bench can run CR from `crsetup.bzn` by swapping `crsetup.lua` for a bench script (instant_action activates CR); the instance's mod folder is old and flat, so deploy the lock's files into it and restore from a backup afterwards.
 - **Confirmed 2026-10-15:** Ogre Panel/BorderPanel geometry supplies POSITION and TEXCOORD0,
   not COLOR0. Binding `CR_UI_vertexHLSL4` caused the repeated co-op DX11 vertex-declaration
   exceptions; `CR_UI` now selects the dedicated panel shader on DX11 and keeps its older
@@ -906,6 +909,15 @@ its parameters: `$clients` aliases its `[int]$Clients` parameter because
 PowerShell is case-insensitive. Assigning a peer-index array then fails before
 the first scenario step. Use a scoped name such as `$rocketClients`; also avoid
 using `$c` for an array and `$C` for its loop element.
+
+### Mission 03 NSDF launch (19 October 2026)
+
+`misn03` ends on the user's own NSDF rocket (`Docs/MISN03_ROCKET_LAUNCH.md`). It reuses
+`CR06LaunchFilm`/`CR06LaunchFX` through `api.config`/`api.label`; misn06 behaviour is the default.
+Placing a prop on a stock pad: take the offset in the pad's Ogre mesh frame, then negate X for the
+native local offset (verified against the ablpad SDF), and derive the world transform from the pad's
+basis. `Test-Misn03Launch.lua` runs the real misn03 script on the harness text of `Test-Misn03Coop.lua`
+(everything before its first scenario), so harness changes there flow into it.
 
 ## 10. Keeping this document current
 
@@ -1148,3 +1160,11 @@ cut through bevels; intersect paint polygons with actual structural triangles.
 The fleet tangent normal bake uses DirectX -Y to match cross(tangent,normal).
 See `Docs/CCA_REDUX_ART_PASS.md` for the revision and qualification state.
 - Mission 18 water (`Docs/MISN18_STORM.md`, Water): water that must react to Lua cannot use `$water*` material variables (fixed at parse). Drive it through pass colours on a program built with a define (`STORMWATER`), bind the power-scaled light autos so the pass colours do not dim the lighting, and integrate any speed change as an extra phase (scroll * phase) that wraps at a whole number of turns; `time * speed` jumps whenever the speed changes. Pools on an uncarved map need no hg2 edit: fill existing basins, keep a keep-out mask (zones + pads + path corridors), stop streams a margin early so the drawn width and mask stay clear. fxc takes one /D per define (a comma list silently defines nothing).
+
+### Lava and sulphur pool pops (2026-10-19)
+
+- Pool bubbles/embers/spatter live in `Scripts/CRPoolFX.lua`, a thin scheduler over `CRGroundFX.Event`. Io (`kind = "lava"`) and Venus (`kind = "sulfur"`) each own one state; both are campaign-only because only misn07-11 run those directors (misn15b is Titan).
+- The hard cap is CRGroundFX's fixed slot ring (4 systems per kind, created under `crwx_lava_<kind>_*` names, outside the directors' `MaxSystems`), not the scheduler. Use `CRGroundFX.StopKind(kind)` to drop one kind; `Stop()` removes everything including misn18's storm systems.
+- Sulphur uses the new `CRWX/Sulfur*` templates (Toxic recoloured to yellow, pale gas): recolouring an existing template via `SetColour` was not relied on because the template's ColourInterpolator owns the colour.
+- Ogre keeps particle templates across Lua states in one process: a game that already registered `crwx_precip` before this payload change needs a restart to see `CRWX/Sulfur*`.
+- Live single-instance recipe (used for the pool pass): copy `misnNN.bzn/.trn/.hg2/.mat/.lgt` over the `crsetup.*` slot of the instance's staged CR, launch `crsetup.bzn /nointro /renderer:dx11` through `BZRHarness.ps1` (launch mutex, `BZR_FORCE_WINDOWED=1`, `BZR_NO_FOREGROUND_WATCHDOG=1`, `Stop-BZRGame -Id`). The Lua that runs is the one named inside the `.bzn` (`misnNN.lua`), NOT `crsetup.lua`: patch a test driver onto the staged `misnNN.lua` (wrap `Update`, `SetPosition` the player, build an `apcamr`, `CameraReady` + `CameraObject` for a HUD-free view). `print` lands in `BZLogger.txt`. A craft teleported onto lava dies; keep its health topped up. Pool events attach to the anchors nearest the PLAYER, so keep the player within a few metres of the camera target. Restore the instance by robocopy /MIR from `C:\BZRCoop\stage\3686673790`.
