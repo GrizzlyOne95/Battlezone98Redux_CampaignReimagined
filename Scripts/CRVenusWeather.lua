@@ -86,6 +86,7 @@ V.AllowRadarScramble   = true
 V.AllowFlash           = true    -- local scene flash on a strike
 V.AllowClouds          = true
 V.AllowAcidRain        = true    -- visual only
+V.AllowGlassAcid       = true    -- acid rain on the cockpit glass: yellow-green drops and a slow etch haze (CRWetGlass)
 V.AllowSulfur          = true
 V.AllowPoolFx          = true    -- yellow bubble pops, motes and pale fumes on the liquid-sulphur pools (CRPoolFX)
 V.AllowVents           = true
@@ -1288,6 +1289,39 @@ local function UpdateRain()
     end
 end
 
+-- Acid rain on the cockpit glass (CRWetGlass). The same rain value that drives the particle rain
+-- (V.GetRainIntensity, already eased through the ladder) goes to the glass as its rain intensity and
+-- as the "acid" level: drops and streaks are drawn in a faint yellow-green and a very faint pitted
+-- etch builds over minutes of exposure and clears slowly. Render only, local to each peer. Off with
+-- the director, with AllowAcidRain, with AllowGlassAcid or with CRWeather.Quality 0; Quality below 1
+-- scales the level (a lighter rain and a slower etch).
+local GlassModule = nil
+local function Glass()
+    if GlassModule == nil then
+        local ok, m = pcall(require, "CRWetGlass")
+        GlassModule = (ok and type(m) == "table" and type(m.Weather) == "function"
+            and type(m.Update) == "function") and m or false
+    end
+    return GlassModule or nil
+end
+
+local function UpdateGlassAcid()
+    local glass = Glass()
+    if glass == nil then return end
+    local level = 0.0
+    local quality = tonumber(CRWeather.Quality) or 1.0
+    if V.AllowGlassAcid and quality > 0.0 then
+        level = V.GetRainIntensity()
+        if level < 0.02 then level = 0.0 end
+        level = level * Clamp(quality, 0.0, 1.0)
+    end
+    V.GlassAcid = level
+    glass.Weather("acid", level)
+    if level > 0.0 or glass.Busy() then glass.Update(level) end
+end
+
+function V.GetGlassAcid() return V.GlassAcid or 0.0 end
+
 -- =============================================================================
 -- Cloud deck
 -- =============================================================================
@@ -2241,6 +2275,7 @@ function V.Init(options)
         clouds = "AllowClouds", acidRain = "AllowAcidRain", sulfur = "AllowSulfur", poolFx = "AllowPoolFx",
         vents = "AllowVents", eruptions = "AllowEruptions", sensorDegrade = "AllowSensorDegrade",
         episodes = "AllowEpisodes", fogBanks = "AllowFogBanks", fogDrama = "AllowFogDrama",
+        glassAcid = "AllowGlassAcid",
     }
     for key, field in pairs(switches) do
         if options[key] ~= nil then V[field] = options[key] and true or false end
@@ -2277,6 +2312,7 @@ function V.Init(options)
     end
 
     V.Clock = 0.0
+    V.GlassAcid = 0.0
     V.LastRealTime = nil
     V.TargetLevel = Clamp(tonumber(options.targetLevel) or 2, 1, LEVEL_COUNT)
     V.ForcedLevel = nil
@@ -2414,6 +2450,7 @@ function V.Update(dt)
     UpdatePoolFactor(dt)
     UpdateSensors()
     UpdateRain()
+    UpdateGlassAcid()
     UpdateClouds(dt)
     UpdateLightning()
     UpdateStrikes()
@@ -2457,6 +2494,13 @@ function V.Shutdown()
     V.FogLive, V.SulfurLive, V.PlumeLive, V.Clouds = {}, {}, {}, {}
     V.HazeLive, V.FogRequests, V.FogIntensity, V.FogAllow = {}, {}, 0.0, 0.0
     V.Strikes, V.Rain = {}, nil
+
+    local glass = Glass()
+    if glass ~= nil then
+        glass.Weather("acid", 0.0)
+        pcall(glass.Stop)
+    end
+    V.GlassAcid = 0.0
 
     local environment = rawget(_G, "Environment")
     if V.EnvModifierRegistered and environment ~= nil

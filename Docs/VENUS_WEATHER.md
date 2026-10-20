@@ -212,6 +212,25 @@ severity: rate = `RainMaxRate` (520) x the ladder's rain value, tinted sulphur-g
 gently with the wind. Switch it off with `acidRain = false`. It is a director-owned layer
 rather than part of the presets so it can follow severity continuously.
 
+### Acid rain on the cockpit glass
+
+The same rain value (`GetRainIntensity()`, already eased through the ladder, zero at Calm and Haze: 0.30 Storm, 0.70
+Heavy, 1.00 Severe) also goes to `CRWetGlass`, every frame in a first-person craft view:
+`CRWetGlass.Weather("acid", rain)` then `CRWetGlass.Update(rain)`. Earth-like rain draws blue-grey beads, rivulets and
+streaks; with the acid level above zero the drops and streaks are drawn from yellow-green variants of the same textures
+(`crwx_acidbeads/acidrivulet/acidstreak.png`: same alpha, faint sulphur tint), picked as each layer lands so a drop never
+changes colour mid-fade. Exposure also builds a very faint pitted etch haze (`crwx_winetch.png`, at most 30% opacity,
+about three minutes at level 1 to reach full, about twelve minutes to clear after the rain stops; a short or light
+shower leaves almost none). Rain keeps its pass slots: the etch is the last wrap layer, after rain, snow and grit.
+
+Switch it off with `AllowGlassAcid = false` (`Init` option `glassAcid`); `AllowAcidRain = false` or
+`CRWeather.Quality` 0 also leaves the glass clear, and Quality below 1 scales the level (lighter rain, slower etch).
+Render only, local to each peer (guests run it from the ladder state they already follow), and it does nothing without
+EXU overlay support. Misn07, misn08 and misn09 pick it up with no mission change. Layers and files:
+`Docs/CR_STORMFX_PORT.md`. Live-checked 2026-10-19 on the screen overlay only (the cockpit-glass mode drew nothing on the
+test instance, even for plain rain): faint yellow-green drops, rivulets and streaks against grey Earth-like rain, and a
+barely visible etch after about three minutes of severe rain. Not yet judged on the cockpit glass or in a full mission.
+
 ## 7. Render profiles
 
 The director does not force a render profile (that is the player's `openshim.ini` choice,
@@ -532,7 +551,7 @@ keeps updating through the result window for that reason.
 
 | Group | Names |
 | --- | --- |
-| Switches | `AllowFogPools`, `AllowAltitudeFog`, `AllowLightning`, `AllowKnockback`, `AllowRadarScramble`, `AllowFlash`, `AllowClouds`, `AllowAcidRain`, `AllowSulfur`, `AllowPoolFx`, `AllowVents`, `AllowEruptions`, `AllowSensorDegrade`, `AllowEpisodes` (also `Init` options `fogPools`, `lightning`, ...) |
+| Switches | `AllowFogPools`, `AllowAltitudeFog`, `AllowLightning`, `AllowKnockback`, `AllowRadarScramble`, `AllowFlash`, `AllowClouds`, `AllowAcidRain`, `AllowGlassAcid`, `AllowSulfur`, `AllowPoolFx`, `AllowVents`, `AllowEruptions`, `AllowSensorDegrade`, `AllowEpisodes` (also `Init` options `fogPools`, `lightning`, ...) |
 | Budgets | `MaxSystems` 36, `MaxLiveFog` 6, `MaxLiveSulfur` 8, `MaxLivePlumes` 6, `MaxLiveStrikes` 3, stream in/out distances |
 | Ladder | `SeverityRate`, `EpisodeChance`, `EpisodePeak`, `EpisodeHold`, `EpisodeCooldown`, `EpisodeStrikeBoost`, the `Levels` table |
 | Fog | `ScanColumns/Rows/Budget/Inset`, `PoolFogEndScale`, `PoolFogStartScale`, `PoolFogTint`, `PoolFogColor`, `PoolBand`, `PoolResponse`, `FogDensity` |

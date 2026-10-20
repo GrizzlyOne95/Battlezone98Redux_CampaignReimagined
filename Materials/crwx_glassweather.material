@@ -2755,3 +2755,5507 @@ material CRWX_WinGrit_A16
 		}
 	}
 }
+
+material CRWX_AcidBeads_A1
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.0625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.0625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.0625
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A2
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.125
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A3
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.1875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.1875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.1875
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A4
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.25
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.25
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.25
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A5
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.3125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.3125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.3125
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A6
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.375
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A7
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.4375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.4375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.4375
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A8
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.5
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.5
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.5
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A9
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.5625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.5625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.5625
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A10
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.625
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A11
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.6875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.6875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.6875
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A12
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.75
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.75
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.75
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A13
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.8125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.8125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.8125
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A14
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.875
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A15
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.9375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.9375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.9375
+			}
+		}
+	}
+}
+
+material CRWX_AcidBeads_A16
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 1.0
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 1.0
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidbeads.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 1.0
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A1
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.0625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.0625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.0625
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A2
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.125
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A3
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.1875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.1875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.1875
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A4
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.25
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.25
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.25
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A5
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.3125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.3125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.3125
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A6
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.375
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A7
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.4375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.4375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.4375
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A8
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.5
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.5
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.5
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A9
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.5625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.5625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.5625
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A10
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.625
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A11
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.6875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.6875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.6875
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A12
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.75
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.75
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.75
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A13
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.8125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.8125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.8125
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A14
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.875
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A15
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.9375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.9375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.9375
+			}
+		}
+	}
+}
+
+material CRWX_AcidRivulet_A16
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 1.0
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 1.0
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidrivulet.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 1.0
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A1
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.0625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.0625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.0625
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A2
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.125
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A3
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.1875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.1875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.1875
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A4
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.25
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.25
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.25
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A5
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.3125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.3125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.3125
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A6
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.375
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A7
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.4375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.4375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.4375
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A8
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.5
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.5
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.5
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A9
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.5625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.5625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.5625
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A10
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.625
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A11
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.6875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.6875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.6875
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A12
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.75
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.75
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.75
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A13
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.8125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.8125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.8125
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A14
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.875
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A15
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.9375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.9375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.9375
+			}
+		}
+	}
+}
+
+material CRWX_AcidStreak_A16
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 1.0
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 1.0
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_acidstreak.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 1.0
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A1
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.0625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.0625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.0625
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A2
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.125
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A3
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.1875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.1875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.1875
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A4
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.25
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.25
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.25
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A5
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.3125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.3125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.3125
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A6
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.375
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A7
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.4375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.4375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.4375
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A8
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.5
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.5
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.5
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A9
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.5625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.5625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.5625
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A10
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.625
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.625
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A11
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.6875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.6875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.6875
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A12
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.75
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.75
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.75
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A13
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.8125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.8125
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.8125
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A14
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.875
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.875
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A15
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 0.9375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 0.9375
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 0.9375
+			}
+		}
+	}
+}
+
+material CRWX_WinEtch_A16
+{
+	// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for
+	// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM4
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM4
+			{
+				param_named opacity float 1.0
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CRWX_WetGlass_vertex_SM3
+			{
+			}
+			fragment_program_ref CRWX_WetGlass_fragment_SM3
+			{
+				param_named opacity float 1.0
+			}
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+			}
+			texture_unit
+			{
+				texture crwx_wetmask_open.png
+				tex_address_mode clamp
+				filtering linear linear none
+			}
+		}
+	}
+
+	// Unmasked fixed-function fallback.
+	technique
+	{
+		pass
+		{
+			lighting off
+			fog_override true
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture crwx_winetch.png
+				filtering linear linear linear
+				alpha_op_ex modulate src_texture src_manual 1.0
+			}
+		}
+	}
+}
