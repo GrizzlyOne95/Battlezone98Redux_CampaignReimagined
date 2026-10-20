@@ -172,6 +172,13 @@
           "10": "crhd_moon_mn66sa0_e.dds"
         },
         "fallback": "crhd_moon_mn00sa0_e.dds"
+      },
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 1.0,
+        "recipe": "Tools/TerrainHD/Moon/regolith.json"
       }
     },
     "VE_DETAIL_ATLAS": {
@@ -371,6 +378,15 @@
           "12": "crhd_venus_ve44sa0_e.dds"
         },
         "fallback": "crhd_venus_ve00sa0_e.dds"
+      },
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 0.0,
+        "sourceType": 0,
+        "mask": "",
+        "channels": {}
       }
     },
     "MA_DETAIL_ATLAS": {
@@ -653,6 +669,15 @@
           "17": "crhd_mars_ma44sc0_e.dds"
         },
         "fallback": "crhd_mars_ma00sa0_e.dds"
+      },
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 0.0,
+        "sourceType": 0,
+        "mask": "",
+        "channels": {}
       }
     },
     "IO_DETAIL_ATLAS": {
@@ -966,6 +991,15 @@
           "18": "crhd_io_io55sc0_e.dds"
         },
         "fallback": "crhd_io_io00sa0_e.dds"
+      },
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 0.0,
+        "sourceType": 0,
+        "mask": "",
+        "channels": {}
       }
     },
     "EU_DETAIL_ATLAS": {
@@ -1204,6 +1238,15 @@
           "15": "crhd_europa_eu44sc0_e.dds"
         },
         "fallback": "crhd_europa_eu00sa0_e.dds"
+      },
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 0.0,
+        "sourceType": 0,
+        "mask": "",
+        "channels": {}
       }
     },
     "TI_DETAIL_ATLAS": {
@@ -1403,6 +1446,15 @@
           "12": "crhd_titan_ti33sb0_e.dds"
         },
         "fallback": "crhd_titan_ti00sa0_e.dds"
+      },
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 0.0,
+        "sourceType": 0,
+        "mask": "",
+        "channels": {}
       }
     },
     "AC_DETAIL_ATLAS": {
@@ -1707,6 +1759,15 @@
           "18": "crhd_achilles_ac55sb0_e.dds"
         },
         "fallback": "crhd_achilles_ac00sa0_e.dds"
+      },
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 0.0,
+        "sourceType": 0,
+        "mask": "",
+        "channels": {}
       }
     },
     "GA_DETAIL_ATLAS": {
@@ -2032,6 +2093,15 @@
           "21": "crhd_ganymede_ga44sb0_e.dds"
         },
         "fallback": "crhd_ganymede_ga00sa0_e.dds"
+      },
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 0.0,
+        "sourceType": 0,
+        "mask": "",
+        "channels": {}
       }
     },
     "EL_DETAIL_ATLAS": {
@@ -2331,6 +2401,15 @@
           "19": "crhd_elysium_el33sa0_e.dds"
         },
         "fallback": "crhd_elysium_el00sa0_e.dds"
+      },
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 0.0,
+        "sourceType": 0,
+        "mask": "",
+        "channels": {}
       }
     }
   }

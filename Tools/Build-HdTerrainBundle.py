@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 from terrain_hd_base_emissives import SOURCE_HEIGHT_CORRECTIONS
+from terrain_art_tuning import validate_runtime, surface_coverage, surface_signature
 
 ROOT = Path(__file__).resolve().parent.parent
 WORLDS = {"moon": "mn", "mars": "ma", "venus": "ve", "io": "io", "europa": "eu",
@@ -36,8 +37,12 @@ def merge_manifest(path, incoming):
     for material, binding in incoming["materials"].items():
         # Art direction belongs to CR's config; rebuilding textures must not
         # reset a world's hand-tuned geometric relief.
-        scale = current["materials"].get(material, {}).get("microReliefScale", 1.0)
-        current["materials"][material] = dict(binding, microReliefScale=scale)
+        previous = current["materials"].get(material, {})
+        authored = validate_runtime(previous)
+        surface_coverage(previous)
+        if "surfaceBlend" in previous:
+            authored["surfaceBlend"] = previous["surfaceBlend"]
+        current["materials"][material] = dict(binding, **authored)
     path.write_text(json.dumps(current, indent=2) + "\n")
 
 
@@ -67,6 +72,8 @@ def main(world=None):
                         "--source-build", str(args.source_build.resolve()), "--output", str(sources),
                         "--tile-size", "1024"], env=environment, check=True)
     metadata = json.loads((sources / "source_tiles.json").read_text())
+    if metadata.get("surfaceBlend") != surface_signature(world):
+        raise ValueError("Surface blend settings/images changed; select new --sources and --output folders")
     if (metadata.get("world") != world or metadata.get("normalPolarity") != "source-height-matched"
             or metadata.get("tileSize") != 1024 or metadata.get("atlasPixelsRead") is not False
             or not metadata.get("baseEmissives")):
@@ -100,6 +107,12 @@ def main(world=None):
                     raise ValueError("Source art changed after this bundle was built; select a new --output folder")
     subprocess.run([sys.executable, "-m", "bztoolbox", "terrain", "hd-tiles", "check", str(output)],
                    env=environment, check=True)
+    # Portable packs retain current runtime art controls without rebuilding DDS.
+    config = json.loads((ROOT/"Config/cr_terrain_hd.json").read_text())["materials"][material]
+    portable_path = output/"terrain_hd_tiles.json"
+    portable = json.loads(portable_path.read_text())
+    portable["materials"][material].update(validate_runtime(config))
+    portable_path.write_text(json.dumps(portable, indent=2)+"\n")
     if args.install_source_assets:
         for path in (output / "resources").glob("*.dds"):
             shutil.copyfile(path, ROOT / "Assets/Textures" / path.name)

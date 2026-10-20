@@ -9,6 +9,7 @@ import unittest
 import numpy as np
 from bzmodellibs import toolbox_root
 from terrain_hd_base_emissives import apply_base_emissives, apply_source_height_corrections
+from terrain_art_tuning import RUNTIME_DEFAULTS
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(toolbox_root()))
@@ -27,8 +28,8 @@ class HdPacks(unittest.TestCase):
                 "MA": {"microReliefScale": 0.0}}}))
             bundle.merge_manifest(path, {"schema": "v2", "materials": {"MN": {"new": True}, "VE": {}}})
             self.assertEqual(json.loads(path.read_text())["materials"], {
-                "MN": {"microReliefScale": 2.5, "new": True},
-                "MA": {"microReliefScale": 0.0}, "VE": {"microReliefScale": 1.0}})
+                "MN": dict(RUNTIME_DEFAULTS, microReliefScale=2.5, new=True),
+                "MA": {"microReliefScale": 0.0}, "VE": dict(RUNTIME_DEFAULTS)})
 
     def test_base_preview_swatch_preserves_source_terrain(self):
         from unittest.mock import patch
@@ -76,6 +77,8 @@ class HdPacks(unittest.TestCase):
                 material = project["material"]
                 expected = dict(combined[material])
                 scale = expected.pop("microReliefScale")
+                for key in ("detailContrast", "detailNormalStrength", "detailNormalNearScale", "surfaceBlend"):
+                    expected.pop(key)
                 self.assertEqual(scale, 2.5 if world == "moon" else 1.0)
                 self.assertEqual(json.loads((out / "terrain_hd_tiles.json").read_text())["materials"][material], expected)
                 for channels in project["tiles"].values():

@@ -16,6 +16,7 @@ import sys
 import numpy as np
 from PIL import Image
 from scipy.ndimage import gaussian_filter
+from terrain_art_tuning import binding_for, validate_runtime, surface_coverage
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -75,8 +76,8 @@ def dust_mask(height, settings):
                          (settings["floorDustFull"]-settings["floorDustStart"]))
     patches = crater.fade((noise(height.shape[0], settings["seed"]+9,
                                 height.shape[0]/24)-settings["patchThreshold"])/.7)
-    return np.maximum(floors*settings["floorDustStrength"],
-                      patches*settings["patchDustStrength"]).astype(np.float32)
+    return (np.maximum(floors*settings["floorDustStrength"],
+                       patches*settings["patchDustStrength"])*settings.get("surfaceCoverage",1.)).astype(np.float32)
 
 
 def blend_surface(source, dust, coverage, channel):
@@ -130,18 +131,22 @@ def main():
     parser.add_argument("--toolbox", type=Path, required=True)
     parser.add_argument("--openshim", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--settings", type=Path, default=ROOT/"Tools/TerrainHD/Moon/regolith.json")
+    parser.add_argument("--settings", type=Path, help="Override Config surfaceBlend.recipe")
     parser.add_argument("--compare-detail", type=Path)
     parser.add_argument("--detail-source", type=Path, help="Preserve the authored HD detail DDS; defaults to the saved Moon HD detail")
     args = parser.parse_args()
     output = args.output.resolve()
     if output.exists():
         raise ValueError("Choose a new output folder; existing artwork is preserved")
-    settings = json.loads(args.settings.read_text())
+    world_binding = binding_for("moon")
+    settings_path = args.settings or ROOT/world_binding.get("surfaceBlend", {}).get("recipe", "Tools/TerrainHD/Moon/regolith.json")
+    settings = json.loads(settings_path.read_text())
+    runtime_tuning = validate_runtime(world_binding)
+    settings["depthMeters"] = min(1., .25*runtime_tuning["microReliefScale"])
+    settings["surfaceCoverage"] = surface_coverage(world_binding)
     if (settings["schema"] != "cr-moon-regolith-v1" or settings["tileSize"] != 1024
-            or settings["detailSize"] != 2048 or settings["heightAtlasSize"] != 1024
-            or settings["depthMeters"] != .625):
-        raise ValueError("This candidate retains the qualified tile/height/detail sizes and depth")
+            or settings["detailSize"] != 2048 or settings["heightAtlasSize"] != 1024):
+        raise ValueError("This candidate retains the qualified tile/height/detail sizes")
     source = args.source_build.resolve()
     sys.path[:0] = [str(args.toolbox.resolve()), str(source), str(source/".deps")]
     from battlezone.terrain import hd_tiles
@@ -183,7 +188,7 @@ def main():
     pack_path = bundle/"terrain_hd_tiles.json"
     pack = json.loads(pack_path.read_text())
     binding = pack["materials"]["MN_DETAIL_ATLAS"]
-    binding["microReliefScale"] = 2.5
+    binding.update(runtime_tuning)
     writer = module("terrain_height_writer", args.openshim/"scripts/Build-TerrainSurfacePack.py")
     heights = alias_heights(height, recipe)
     atlas_size = settings["heightAtlasSize"]

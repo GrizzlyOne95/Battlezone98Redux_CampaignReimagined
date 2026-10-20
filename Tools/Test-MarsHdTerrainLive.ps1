@@ -60,7 +60,11 @@ if($isBundle){
  foreach($material in $pack.materials.PSObject.Properties){
   $authored=$tuning.materials.PSObject.Properties[$material.Name]
   if($null-ne$authored -and $authored.Value.diffuseResource -ceq $material.Value.diffuseResource){
-   $material.Value | Add-Member -NotePropertyName microReliefScale -NotePropertyValue $authored.Value.microReliefScale -Force
+   foreach($key in @('microReliefScale','detailContrast','detailNormalStrength','detailNormalNearScale')){
+    if($null-ne$authored.Value.PSObject.Properties[$key]){
+     $material.Value | Add-Member -NotePropertyName $key -NotePropertyValue $authored.Value.$key -Force
+    }
+   }
   }
   if($material.Value.heightTexture){
    $heightSource=[IO.Path]::GetFullPath((Join-Path $tiles $material.Value.heightTexture))

@@ -14,6 +14,7 @@ from pathlib import Path
 import shutil
 import sys
 from terrain_hd_base_emissives import apply_base_emissives, apply_source_height_corrections
+from terrain_art_tuning import apply_authored_surface, surface_signature
 
 WORLD_STEMS = {"moon": "mn", "mars": "ma", "venus": "ve", "io": "io", "europa": "eu",
                "titan": "ti", "achilles": "ac", "ganymede": "ga", "elysium": "el"}
@@ -49,6 +50,9 @@ def source_function(module, sink, tile_size=None, height_matched_normals=False, 
         if len(boundaries) != 1:
             raise ValueError("Unsupported saved recipe: base emissive authoring boundary missing")
         loop.body[boundaries[0]+1:boundaries[0]+1] = ast.parse("_hd_base_emissives(world, ch, source_by_type, bases, report)").body
+        # Blend independent authored maps before rotations/transitions; native
+        # arrays still consume the same dimensions/channels and no new slot.
+        loop.body[boundaries[0]+1:boundaries[0]+1] = ast.parse("_hd_surface_blend(world, ch, source_by_type, bases, report)").body
     cut = next((i for i, n in enumerate(loop.body) if isinstance(n, ast.If)
                 and "tile_cache.values()" in ast.unparse(n.test) and "'E'" in ast.unparse(n.test)), None)
     if cut is None:
@@ -66,6 +70,7 @@ def source_function(module, sink, tile_size=None, height_matched_normals=False, 
     scope = dict(vars(module)); scope["_hd_tile_sink"] = sink
     scope["_hd_base_emissives"] = apply_base_emissives
     scope["_hd_source_height_corrections"] = apply_source_height_corrections
+    scope["_hd_surface_blend"] = apply_authored_surface
     exec(compile(ast.fix_missing_locations(ast.Module(body=[function], type_ignores=[])), str(path), "exec"), scope)
     return scope["build"]
 
@@ -203,6 +208,7 @@ def main():
               "normalRotation": report.get("normal_rotation"),
               "baseEmissives": report.get("base_emissives"),
               "sourceHeightCorrections": report.get("source_height_corrections", {}),
+              "surfaceBlend": surface_signature(args.world),
               "transitions": report.get("transitions", []),
               "recipeInputs": {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest()
                                for path in sorted(root.glob("*.py")) + sorted(root.glob("*.json"))},
