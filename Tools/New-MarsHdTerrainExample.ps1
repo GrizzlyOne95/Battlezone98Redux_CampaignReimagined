@@ -15,7 +15,7 @@ param(
 )
 $ErrorActionPreference='Stop'
 $cr=Split-Path -Parent $PSScriptRoot
-if(-not $OutputDirectory){$OutputDirectory=Join-Path $cr "Local\TerrainHD\MarsSource$TileSize"}
+if(-not $OutputDirectory){$OutputDirectory=Join-Path $cr "Local\TerrainHD\MarsHeightMatched$TileSize"}
 $output=[IO.Path]::GetFullPath($OutputDirectory)
 $metadata=Join-Path $output 'source_tiles.json'
 if(Test-Path -LiteralPath $metadata){

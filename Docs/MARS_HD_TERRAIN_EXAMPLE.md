@@ -21,7 +21,7 @@ powershell.exe -NoProfile -File Tools/New-MarsHdTerrainExample.ps1 `
 The command generates the pack, prepares its runtime mapping, validates its
 DDS files and runs a reversible GOG preview. No capture/bind round trip or
 hand-written native ID list is needed. Default output is ignored
-`Local/TerrainHD/MarsSource1024`. Use `-OutputDirectory` for another location,
+`Local/TerrainHD/MarsHeightMatched1024`. Use `-OutputDirectory` for another location,
 `-SourceBuild` for another saved recipe location, and `-TileSize 512/1024/2048`
 for size. Changing size requires another output directory. Omit `-Preview`
 to prepare art without launching the game.
@@ -32,6 +32,10 @@ the command preserves existing art edits and refreshes only the runtime
 manifest before validating/previewing. The contact sheet and `source_tiles.json`
 record the generated source recipe/provenance. Generated artwork is not added
 to the shipping lock or Workshop package.
+
+Older packs without `normalPolarity: source-height-matched` are rejected when
+rebinding: their chunky gravel still has the saved recipe's reversed relief.
+Generate into a new `-OutputDirectory` to keep existing art edits intact.
 
 The source is **the saved build behind `addon/stock_terrain_hd`**, visual
 revision 6, normally at GOG `output/stock_world_texture_survey_20261014`.
@@ -49,6 +53,43 @@ retains the recipe's conversion to the existing shader's intensity convention.
 Normals/specular are not synthesized from diffuse. Output is 18 D/N/S/E sets:
 BC1 color/specular/emissive, lossless RGB24 normals with renormalized mips.
 The black Mars emissive maps retain the native black material binding.
+
+Mars export retains the audited source green-channel conversion and omits the
+later empirical XY reversal. Independent source height confirms the corrected
+chunky-gravel slopes; its solid variants and all blends are regenerated from
+that corrected source. Sand and mountain normal polarity remains unchanged.
+Metal base and vent sources supply normals but no independent height map, so
+their absolute relief polarity is not established by this check.
+
+The 1K before/after check is recorded in
+`Tools/TerrainHD/Mars/normal_validation.json`: chunky gravel changes from
+approximately -0.669/-0.659 to +0.669/+0.659 correlation with the authored height
+slopes. Exactly seven gravel solid/transition normal files change. All 54 D/S/E
+files and the other 11 normals remain byte-identical against the same-resolution
+control. All 198 normal mip levels pass the vector-length check. The report also
+records 16 existing nonpositive-Z texels in unchanged metal/base-related maps;
+this gravel correction does not reauthor those sources.
+
+Recheck a generated pack with the independent source height files:
+
+```powershell
+python Tools/Validate-MarsHdNormals.py --source-build <saved-source-build> `
+  --export Local/TerrainHD/MarsHeightMatched1024 `
+  --out Local/TerrainHD/mars-normal-validation.json
+```
+
+Use `--baseline <matching-old-export>` to verify the seven-file-only change;
+both packs must use the same source recipe and generation size. This checker
+uses NumPy/Pillow/SciPy and the Toolbox selected by `BZ_TOOLBOX_DIR`.
+
+The corrected live Windows/GOG capture is
+`Local/TerrainHD/run-20261020-143222/trial.png` (PID 63044, OpenShim `4386558ee`).
+It confirmed 18 slices, 320 native mesh streams, 82 passes and an actual D/N/S
+draw (`hdMaterialMask=3`, 469,144 pixel-shader invocations). All streams, passes
+and 131 temporary game files were restored. The captured OpenShim log SHA-256
+is `451e8909d3884ddad75c7e6e367f9890a205cda224cf314df8a3b5c89b5be6be`.
+This is separate native binding/draw evidence, not per-pixel normal readback;
+Steam/Proton/Wine were not exercised by this trial.
 
 ## Runtime mapping and fallback
 
