@@ -923,6 +923,13 @@ basis. `Test-Misn03Launch.lua` runs the real misn03 script on the harness text o
 
 ### Moon independent HD tiles and normal polarity (2026-10-20)
 
+Mars follow-up: the saved recipe also reverses ChunkyMartianGravel
+(`a8264dc12988`). Source-height comparison found negative X/Y slope correlation
+in the generated gravel solid. Mars export now omits empirical XY reversals by
+default; regenerate gravel variants and transitions together. Rebinding older
+packs is refused rather than overwriting artist edits. See
+`Tools/Validate-MarsHdNormals.py` for the independent before/after check.
+
 `Docs/MOON_HD_TERRAIN.md` and `Tools/TerrainHD/Moon/authoring.json` describe the
 Toolbox-built Moon D/N/S pack. Source N/H comparisons prove the later empirical
 Moon ground/rock XY reversal in the saved HD-atlas recipe inverted authored

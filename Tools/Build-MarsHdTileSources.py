@@ -25,7 +25,7 @@ def source_function(module, sink, tile_size=None, height_matched_normals=False):
         raise ValueError("Unsupported saved recipe: expected one material-channel loop")
     index, loop = loops[0]
     if height_matched_normals:
-        # Source-height validation owns the new Moon pack's polarity. Preserve
+        # Source-height validation owns the Moon/Mars pack polarity. Preserve
         # audited green conversion, but omit the later empirical XY reversal.
         relief_assignments = [n for n in ast.walk(loop) if isinstance(n, ast.Assign)
                               and any(isinstance(t, ast.Name) and t.id == "relief" for t in n.targets)]
@@ -87,6 +87,9 @@ def main():
     p.add_argument("--atlas-csv", type=Path)
     p.add_argument("--bind-existing", action="store_true", help="Rebuild the runtime manifest for existing source tiles")
     args = p.parse_args()
+    # Mars' saved recipe reverses ChunkyMartianGravel after converting green.
+    # Independent source height proves that extra reversal is inverted relief.
+    height_matched_normals = args.world == "mars" or args.height_matched_normals
     if args.world != "mars" and not args.images_only:
         p.error("Other worlds use --images-only and the shared Toolbox bundle builder")
     if args.images_only and (args.bind_existing or args.capture):
@@ -96,6 +99,7 @@ def main():
         raise ValueError("--capture requires --atlas-csv")
     if args.bind_existing:
         result = json.loads((output / "source_tiles.json").read_text())
+        require_mars_normal_policy(result)
         write_manifest(output, args.capture, args.atlas_csv or output / "native_layout.csv",
                        result["aliases"], result.get("defaultAlias"))
         return
@@ -164,13 +168,13 @@ def main():
                 x, y = i % 5 * 160, i // 5 * 184
                 sheet.paste(image, (x, y)); draw.text((x+3, y+163), name, fill="white")
             sheet.save(output / f"{args.world}_tiles.jpg")
-    build = source_function(recipe, sink, args.tile_size, args.height_matched_normals)
+    build = source_function(recipe, sink, args.tile_size, height_matched_normals)
     world = next(w for w in recipe.PLAN["worlds"] if w["world"] == args.world)
     report = build(world)
     for i, (name, entry) in enumerate(aliases.items()): entry["slice"] = i
     result = {"schema": "cr-hd-source-images-v1" if args.images_only else "cr-mars-hd-source-tiles-v1",
               "world": args.world, "tileSize": args.tile_size,
-              "normalPolarity": "source-height-matched" if args.height_matched_normals else "saved-recipe",
+              "normalPolarity": "source-height-matched" if height_matched_normals else "saved-recipe",
               "sourceGenerationPixels": args.tile_size,
               "exporterSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               "sourceRecipeSha256": hashlib.sha256((root / "build_stock_atlases.py").read_bytes()).hexdigest(),
@@ -186,6 +190,14 @@ def main():
         write_manifest(output, args.capture, args.atlas_csv or output / "native_layout.csv", aliases, result["defaultAlias"])
     (output / "source_tiles.json").write_text(json.dumps(result, indent=2)+"\n")
     print(f"Exported {len(aliases)} full D/N/S/E tile sets to {output}", flush=True)
+
+
+def require_mars_normal_policy(metadata):
+    if (metadata.get("world", "mars") != "mars"
+            or metadata.get("normalPolarity") != "source-height-matched"
+            or metadata.get("normalCorrections")):
+        raise ValueError("Existing Mars pack predates the source-height normal correction. "
+                         "Generate into a new --output directory; existing artwork is preserved.")
 
 
 def write_manifest(output, capture_path, csv_path, aliases, default_alias=None):

@@ -56,8 +56,10 @@ jobs:
       - name: Install model-library dependencies
         run: python -m pip install numpy Pillow scipy
 
-      - name: Validate Moon HD terrain bundle and normal contracts
-        run: python Tools/Test-MoonHdTerrain.py
+      - name: Validate HD terrain bundles and normal contracts
+        run: |
+          python Tools/Test-MoonHdTerrain.py
+          python Tools/Test-MarsHdTileSources.py
 
       - name: Install Lua 5.1 compiler
         shell: bash

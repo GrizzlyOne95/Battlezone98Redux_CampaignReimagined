@@ -6,6 +6,7 @@ import struct
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("mars_tiles", Path(__file__).with_name("Build-MarsHdTileSources.py"))
 tiles = importlib.util.module_from_spec(spec)
@@ -13,6 +14,39 @@ spec.loader.exec_module(tiles)
 
 
 class SourceTiles(unittest.TestCase):
+    def test_height_check_accepts_outward_relief_and_rejects_reversed_slopes(self):
+        import numpy as np
+        validation_spec = importlib.util.spec_from_file_location("mars_normals", Path(__file__).with_name("Validate-MarsHdNormals.py"))
+        validation = importlib.util.module_from_spec(validation_spec)
+        validation_spec.loader.exec_module(validation)
+        y, x = np.mgrid[0:128, 0:128] / 128
+        height = np.sin(2*np.pi*(3*x+2*y)) + .3*np.sin(2*np.pi*(x-5*y))
+        dy, dx = np.gradient(height)
+        normal = validation.audit.normalized(np.stack([-dx, -dy, np.ones_like(height)], 2))
+        validation.require_matching_slopes(validation.slope_scores(normal, height), .95, "synthetic")
+        normal[:, :, :2] *= -1
+        with self.assertRaisesRegex(ValueError, "invert/mismatch"):
+            validation.require_matching_slopes(validation.slope_scores(normal, height), .95, "synthetic")
+
+    def test_stale_pack_rejected_before_rebinding_without_touching_art(self):
+        import sys
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            metadata = output / "source_tiles.json"
+            metadata.write_text(json.dumps({"tileSize": 1024}))
+            art = output / "custom_n.dds"
+            art.write_bytes(b"custom artist data")
+            with patch.object(sys, "argv", ["export", "--bind-existing", "--output", str(output)]):
+                with self.assertRaisesRegex(ValueError, "new --output directory"):
+                    tiles.main()
+            self.assertEqual(art.read_bytes(), b"custom artist data")
+            self.assertFalse((output / "cr_mars_hd.json").exists())
+        tiles.require_mars_normal_policy({"world": "mars", "normalPolarity": "source-height-matched",
+                                          "normalCorrections": {}})
+        with self.assertRaises(ValueError):
+            tiles.require_mars_normal_policy({"normalPolarity": "source-height-matched",
+                                              "normalCorrections": {"a8264dc12988": {"invert_xy": True}}})
+
     def test_pack_binds_without_a_capture_and_rejects_ambiguous_layout(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)
