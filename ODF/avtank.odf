@@ -23,6 +23,39 @@ weaponHard4 = "GM1"
 weaponName4 = "gmdmgun"
 
 [CraftClass]
+// OpenShim muzzle presentation authoring reference (examples stay commented).
+// Experimental exact-GOG 2.2.301 / single-player cannon path, not MP support.
+// Settings > Video > Muzzle Recoil is the master switch: OFF by default,
+// restart required. Enabling it still needs these ODF keys and matching art.
+// No generic recoil is added to stock craft; old trial environment flags
+// cannot bypass an OFF setting.
+//
+// Slot 1 currently uses STOCK gatstab above. Recoil belongs here on the craft;
+// flash/smoke/light belong in the WEAPON's [WeaponClass], not this section.
+// See the commented references in gatstaba.odf and gatstabh.odf; neither local
+// variant is selected by this avtank unless weaponName1 is changed explicitly.
+//
+// Option A: slide the stock world barrel's native model node (case-sensitive,
+// at most 8 characters). This is not an arbitrary Ogre bone or clip name.
+// Distance is metres; return is metres/second, along negative local forward.
+// recoilName1 = "AGR11BGA"
+// recoilDistance1 = 0.30
+// recoilReturn1 = 2.5
+//
+// Option B: play a clip AUTHORED into the mesh/skeleton. Stock avtank does not
+// supply osh_recoil; author/install it before selecting this alternative.
+// Needs matching EXU loaded by the mission (require("exu")). The same named
+// cockpit clip is optional. A present animation key takes priority over the
+// node slide; an unavailable clip does not fall back to sliding the node.
+// recoilAnimation1 = "osh_recoil"
+// recoilPlaybackRate1 = 1.0
+// recoilCockpit1 = true
+//
+// Suffixes 1..5 identify weapon slots; adapt the node/clip for each model.
+// Disable an existing Lua recoil producer before giving ODF control ownership.
+// Node slides need OpenShim only; authored clips additionally need EXU.
+// Upstream setup/status: OpenShim Docs/ODF_RECOIL_TRIAL.md, PR #513:
+// https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/pull/513
 rangeScan = 459.99999999999994
 periodScan = 5.0f
 velocJam = 5.0f
