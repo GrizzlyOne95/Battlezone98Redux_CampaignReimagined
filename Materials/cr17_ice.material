@@ -1,0 +1,188 @@
+// Campaign Reimagined: misn17 (Achilles) shore ice, the render-only shelves
+// cr17_islab1-6 that Tools/Build-Misn17Forest.py lays along the waterline. Look values
+// are $variables named after the cr17_ice.hlsl uniforms; the comments there say what
+// each component does. The slab meshes bake thickness into vertex colour alpha, which
+// the CR_Ice programs read: do not bind this material to any other mesh.
+//
+// Techniques, in order:
+//   1. high-pssm scheme: the ice, receiving the sun's PSSM shadows (DX11 SM4 / DX9 SM3);
+//   2. every other scheme: the same ice without shadow receiving;
+//   3. the glow scheme: draws nothing, so the ice never feeds the glow pass;
+//   4. fallback where the CR_Ice programs are unsupported (OpenGL) or fail to compile:
+//      opaque lit wet ice through cr17_surface's cutout program, never clipping.
+//
+// Blending: alpha_blend with depth_write on. The slab core is opaque and only the
+// melted edge band is partly transparent, so the transparent water (drawn in the
+// same render queue, sorted by distance) can never cover the ice. The StaticGeometry
+// that draws the slabs is built with castShadows=false (Scripts/CRJungle17.lua), so
+// no shadow caster is needed.
+
+material CR17/IceShelf
+{
+	set $shininess "220"
+	set $ambient "1 1 1"
+	set $diffuse "1 1 1"
+	set $specular "1 1 1"
+	set $iceTint "0.86 0.95 1.05 0.7"
+	set $iceDeep "0.08 0.15 0.18 0.6"
+	set $iceOptics "0.03 2.5 0.9 0.8"
+	set $iceSky "0.55 0.66 0.8 0"
+	set $iceNoise "0.8 4 0 0"
+	set $iceMelt "0.11 0.18 0.08 0.55"
+	set $iceFilm "0.035 0.022 0.45 0.06"
+	set $iceAlpha "0.8 1.5 0.35 0.03"
+
+	technique
+	{
+		scheme high-pssm
+		pass
+		{
+			vertex_program_ref CR_Ice_PSSM_vertex
+			{
+			}
+			fragment_program_ref CR_Ice_PSSM_fragment
+			{
+				param_named iceTint float4 $iceTint
+				param_named iceDeep float4 $iceDeep
+				param_named iceOptics float4 $iceOptics
+				param_named iceSky float4 $iceSky
+				param_named iceNoise float4 $iceNoise
+				param_named iceMelt float4 $iceMelt
+				param_named iceFilm float4 $iceFilm
+				param_named iceAlpha float4 $iceAlpha
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			scene_blend alpha_blend
+			depth_write on
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture cr17_ice.dds
+			}
+			texture_unit normalMap
+			{
+				texture cr17_ice_n.dds
+			}
+			texture_unit specularMap
+			{
+				texture cr17_ice_s.dds
+			}
+			texture_unit shadowMap1
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+			texture_unit shadowMap2
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+			texture_unit shadowMap3
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1.0 1.0 1.0 1.0
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR_Ice_vertex
+			{
+			}
+			fragment_program_ref CR_Ice_fragment
+			{
+				param_named iceTint float4 $iceTint
+				param_named iceDeep float4 $iceDeep
+				param_named iceOptics float4 $iceOptics
+				param_named iceSky float4 $iceSky
+				param_named iceNoise float4 $iceNoise
+				param_named iceMelt float4 $iceMelt
+				param_named iceFilm float4 $iceFilm
+				param_named iceAlpha float4 $iceAlpha
+			}
+			ambient $ambient
+			diffuse $diffuse
+			specular $specular $shininess
+			scene_blend alpha_blend
+			depth_write on
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture cr17_ice.dds
+			}
+			texture_unit normalMap
+			{
+				texture cr17_ice_n.dds
+			}
+			texture_unit specularMap
+			{
+				texture cr17_ice_s.dds
+			}
+		}
+	}
+
+	technique
+	{
+		scheme glow
+		pass
+		{
+			colour_write off
+			depth_write off
+			vertex_program_ref CR_Textured_vertex
+			{
+			}
+			fragment_program_ref CR_Textured_fragment
+			{
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR17_Surface_vertex
+			{
+			}
+			fragment_program_ref CR17_Cutout_fragment
+			{
+				param_named cutoutParams float4 -1 0.3 0.25 1024
+			}
+			ambient 0.86 0.92 1
+			diffuse 0.86 0.92 1
+			specular 0.9 0.95 1 120
+			cull_hardware none
+			cull_software none
+			texture_unit diffuseMap
+			{
+				texture cr17_ice.dds
+			}
+			texture_unit normalMap
+			{
+				texture cr17_ice_n.dds
+			}
+			texture_unit specularMap
+			{
+				texture cr17_ice_s.dds
+			}
+			texture_unit emissiveMap
+			{
+				texture cr17_black.dds
+			}
+		}
+	}
+}

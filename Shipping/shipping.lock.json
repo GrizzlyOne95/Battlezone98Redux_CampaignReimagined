@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 3019,
+  "count": 3022,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -11768,6 +11768,14 @@
       "runtime": "cr17_cloud.program"
     },
     {
+      "source": "Shaders\\cr17_ice.hlsl",
+      "runtime": "cr17_ice.hlsl"
+    },
+    {
+      "source": "Shaders\\cr17_ice.program",
+      "runtime": "cr17_ice.program"
+    },
+    {
       "source": "Assets\\ModelFixes\\cr06rok.geo",
       "runtime": "cr06rok.geo"
     },
@@ -11830,6 +11838,10 @@
     {
       "source": "Materials\\cr06rok.material",
       "runtime": "cr06rok.material"
+    },
+    {
+      "source": "Materials\\cr17_ice.material",
+      "runtime": "cr17_ice.material"
     },
     {
       "source": "ODF\\cr06rok.odf",
