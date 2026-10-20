@@ -1210,5 +1210,11 @@ See `Docs/CCA_REDUX_ART_PASS.md` for the revision and qualification state.
 
 ### HD relief art direction (2026-10-20)
 
-- Tune each world with `microReliefScale` in `Config/cr_terrain_hd.json` (Moon 2.5; other worlds 1.0 initially). This is procedural geometry amplitude, independent of normal-map polarity and not a texture-height binding. Keep HD tiles and Terrain Micro Detail enabled in Enhanced. Restart after config deployment.
+- Tune each world with `microReliefScale` in `Config/cr_terrain_hd.json` (Moon 2.5; other worlds 1.0 initially). This is geometric amplitude, independent of normal-map polarity. It scales procedural relief by default and the opt-in signed-unit height candidate when present (see `Docs/MOON_CRATER_DISPLACEMENT.md`). Keep HD tiles and Terrain Micro Detail enabled in Enhanced. Restart after config deployment.
 - `Build-HdTerrainBundle.py` preserves manual scales when replacing texture bindings; the live helper copies matching CR config tuning into its temporary manifest and `-MicroRelief` verifies identical native shader/bounds amplitude. An old portable texture bundle alone may predate current art direction.
+
+### Moon crater height candidate (2026-10-20)
+
+- `Tools/Build-MoonCraterDisplacement.py` authors a separate signed height lookup from `Tools/TerrainHD/Moon/craters.json` into a local HD bundle. Edit its 16-bit grayscale PNG with `--height-image`; export reasserts flat paving and guarded tile borders. DNSE files are untouched. New PNG/DDS binaries stay in ignored `Local/`; canonical shipping art is not yet promoted.
+- `heightTexture` is a manifest-relative file path, not an Ogre resource name, and requires `heightEncoding: signed-unit-r32`. Its values scale with `microReliefScale`; do not substitute the older world-meter height DDS without conversion. The native path owns DS t127 only for exact owned shaders.
+- Preserve both proof lanes: `-MicroRelief` establishes actual DS texture/HD raster evidence; `-SettingsOnly` verifies regular INI feature activation without a diagnostic tessellation flag. Balanced binding restoration, original streams/materials and file hashes must all pass.
