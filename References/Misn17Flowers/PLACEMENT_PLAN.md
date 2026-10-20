@@ -1,57 +1,76 @@
-# Achilles flower placement plan (not applied)
+# Achilles flower placement (applied)
 
-This branch ships the `cr17_fl_*` meshes, `cr17_flowers.dds` and
-`Materials/cr17_flowers.material`, but places nothing. `misn17.bzn` and
-`Scripts/CRJungle17*.lua` are unchanged. This file describes the placement pass
-that comes next.
+`python Tools/Build-Misn17Flowers.py --place` writes the flowers into
+`Scripts/CRJungle17Sites.lua` as render-only StaticGeometry layers:
+`{mesh="cr17_fl_x.mesh", distance=150|220, instances={{x,y,z,yaw,scale},...}}`.
+It needs no plates, uses a fixed seed and is idempotent: it removes any
+`cr17_fl_` layers and reinserts them straight after the mire ground cover.
+`Build-Misn17Forest.py` keeps every layer that is not a rock or ice layer and
+appends ice and rocks after them, so rerunning it leaves the flowers in place.
+`Build-Misn17Jungle.py` regenerates Sites from scratch, so rerun `--place`
+after it. Never hand-edit the layers.
 
-## Mechanism
+`Scripts/CRJungle17.lua` has three matching edits:
 
-Add render-only StaticGeometry layers to `Scripts/CRJungle17Sites.lua`, in the
-same shape as the existing ground cover:
-`{mesh="cr17_fl_x.mesh", instances={{x,y,z,yaw,scale},...}}`. Generate them from
-the placement pass in `Tools/Build-Misn17Jungle.py`, so they are tiled into the
-same 384 m tiles that align with the 192 m regions from origin (2048, 99328).
-Never hand-edit them. Heights come from the HG2 at 5 m cells. Tile types are
-`mat >> 12` on the 20 m material grid.
+1. `CR17/FlowerWind`, `CR17/FlowerTallWind` and `CR17/CutoutCaster/FlowerTallWind`
+   are in the `Foliage.Register` list, so the cards sway.
+2. Each layer's `distance` sets its `renderingDistance` (the default is still
+   260 for the mire, ice and rocks). Small plants use 150 m and tall plants
+   (fireweed, lupine, ferns) use 220 m.
+3. Flower layers feed the wake cover but not `Foliage.EnableLitter`, so leaf
+   litter is unchanged.
+   The `cr17_mire_` material override does not match them, so the flowers keep
+   their own materials.
 
-Two edits to `CRJungle17.lua` come with the layers:
+## Rules
 
-1. **Register the wind.** Add `CR17/FlowerWind`, `CR17/FlowerTallWind` and
-   `CR17/CutoutCaster/FlowerTallWind` to the `Foliage.Register` list (about
-   line 267). Unregistered, the cards render but stand still.
-2. **Keep their materials.** The `cr17_mire_` material override (about line 379)
-   does not match `cr17_fl_`. Keep it that way: the flowers use their own
-   materials.
+Tile types are `mat >> 12` on the 20 m grid: 0 is open grass, 1 is forest and
+2 is rock.
 
-## Placement rules
+**Clump centres** are dart-thrown with a per-species minimum spacing, and are at
+least 6 m from any other species' centre. Each centre is kept clear of every
+bzn object by 30 m and of route points by 18 m, as the forest pass does.
 
-- **Spacing.** Clumps are Poisson-disk scattered with the minimum spacing below.
-  Each clump has 3 to 9 instances within a radius of 1.5 to 4 m, with random yaw
-  and scale 0.8 to 1.3.
-- **Keep-outs.** Keep clear of the routes, the base pads and every object
-  footprint that the ground-cover pass already masks. Use the same masks.
-- **Tile types.** Check tile types against `Build-Misn17Jungle.py`'s
-  classification before placing. The brief calls the grass type 0 and the rocky
-  type 2. The jungle script treats type 1 as forest and grass, and puts rocks on
-  types 1 and 2.
+**Plants** go within the clump radius of the centre. Every plant must be:
+- inside the play area (x 780-3640, z 98430-101740);
+- off the water grid (the watermask plus the river strip);
+- on a slope of 0.9 or less;
+- at least 2 m from a tree trunk (2.5 m for ferns).
 
-| Mesh | Where | Clumps / km² | Min clump spacing | Per clump |
-|---|---|---|---|---|
-| `cr17_fl_grass`, `cr17_fl_grassseed`, `cr17_fl_tuft` | Through the existing grass (grass type), denser at forest edges (within 15 m of a tree site) | 220 | 25 m | 5-9 |
-| `cr17_fl_harebell` | Grass type, open or edge, slopes under 25° | 60 | 45 m | 3-7 |
-| `cr17_fl_anemone`, `cr17_fl_bunchberry`, `cr17_fl_twinflower` | Forest floor and edges, 4-20 m from a tree site; carpets | 90 (30 each) | 35 m | 5-9 |
-| `cr17_fl_lupine` | Grass type, open ground and edges, slopes under 20° | 25 | 70 m | 3-5 |
-| `cr17_fl_fireweed` | Open clearings only: grass type, at least 25 m from any tree site | 20 | 80 m | 4-8 |
-| `cr17_fl_cottongrass` | Wet ground: within 12 m of the water mask or shore, above the waterline, never on ice | 70 | 30 m | 5-9 |
-| `cr17_fl_sedge` | Shores and stream banks, 0-8 m from water | 80 | 25 m | 4-8 |
-| `cr17_fl_saxifrage` | Rocky type, and within 3 m of `cr17_frock*` sites | 50 | 30 m | 3-6 |
-| `cr17_fl_fern`, `cr17_fl_fernb` | Under trees: within 10 m of a tree site, alternating meshes | 110 | 20 m | 3-6 |
+The height is the bilinear HG2 height, sunk 3 cm per unit of scale. Each plant
+gets a random yaw.
 
-## Expected load
+**Scale.** The cards are botanical size (a harebell is 0.3 m tall), so each
+species gets a game scale to read beside the 3 m mire ferns.
 
-The existing mire ground cover is roughly 33,000 instances. Applied over the
-playable forest, these densities add about 4,000 to 7,000 flower instances at
-4 to 10 triangles each, which is under 60,000 triangles before tile culling.
-Only the tall meshes (fireweed, lupine, ferns) cast shadows. Check the frame
-time on a `C:\BZRCoop` instance once the layers exist.
+| Species (meshes) | Centre rule | Clumps | Spacing | Per clump | Scale |
+|---|---|---|---|---|---|
+| grasses (`grass`, `grassseed`, `tuft`) | type 0, slope < .5; edge 6-20 m from trees, elsewhere 35 % | 260 | 25 m | 5-9 | 1.5-2.2 |
+| harebell | type 0, slope < .47, ≥ 8 m from trees | 70 | 45 m | 3-7 | 1.7-2.4 |
+| carpets (`anemone`, `bunchberry`, `twinflower`) | type 1, slope < .5, 3-15 m from trees | 180 | 30 m | 5-9 | 2.2-3.2 |
+| lupine | type 0, slope < .36, ≥ 12 m from trees | 50 | 70 m | 3-5 | 1.3-1.8 |
+| fireweed | type 0, slope < .36, ≥ 25 m from trees (clearings) | 35 | 80 m | 4-8 | 1.0-1.4 |
+| cottongrass | not type 2, slope < .4, 2-12 m from water | 65 | 30 m | 5-9 | 1.5-2.2 |
+| sedge | slope < .5, 1.5-8 m from water | 75 | 25 m | 4-8 | 1.5-2.2 |
+| saxifrage | type 2, or within 4 m of a `cr17_frock` rock; slope < .9 | 70 | 30 m | 3-6 | 2.4-3.4 |
+| ferns (`fern`, `fernb`) | type 1, slope < .6, ≤ 10 m from a tree | 200 | 20 m | 3-6 | 1.3-2.0 |
+
+## Result
+
+The layers are tiled per mesh on 1152 m tiles from (2048, 99328), like the
+rocks. The pass writes 164 layers holding 5,312 instances, which is
+34,198 triangles before culling. The mire ground cover alone is about 31,000
+instances.
+
+| Mesh | Instances | Mesh | Instances |
+|---|---|---|---|
+| anemone | 440 | grassseed | 519 |
+| bunchberry | 391 | harebell | 290 |
+| cottongrass | 405 | lupine | 171 |
+| fern | 431 | saxifrage | 280 |
+| fernb | 410 | sedge | 399 |
+| fireweed | 180 | tuft | 502 |
+| grass | 482 | twinflower | 412 |
+
+CRJungle17 builds one layer per update, so the flowers add 164 updates to the
+ground-cover stream, which runs after the mire layers and before ice and rocks.

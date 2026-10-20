@@ -27,12 +27,15 @@ not fringe.
 Plate coordinates in CARDS are in a 900 px preview space: the plate scaled so
 that its longer side is 900 px.
 
-Placement is not done here; see References/Misn17Flowers/PLACEMENT_PLAN.md.
+--place scatters the cards into Scripts/CRJungle17Sites.lua as render-only
+StaticGeometry layers (References/Misn17Flowers/PLACEMENT_PLAN.md). It needs
+no plates and is deterministic.
 Every Ogre mesh byte comes from the shared libraries (Tools/bzmodellibs.py)
 through Build-Misn17Forest.py's submesh helper and Bake-FoliageSway.py.
 
 Usage:
   python Tools/Build-Misn17Flowers.py --plates <download folder> [--debug <folder>]
+  python Tools/Build-Misn17Flowers.py --place
 """
 from pathlib import Path
 import argparse
@@ -832,13 +835,177 @@ def build(plates_dir, debug=None):
     print(json.dumps({n: (m['layout'], m['height_m'], m['triangles']) for n, m in mesh_info.items()}, indent=1))
 
 
+# ---------------------------------------------------------------- placement
+# Render-only StaticGeometry layers in Scripts/CRJungle17Sites.lua, beside the
+# mire ground cover. Tile types are mat >> 12 on the 20 m grid: 0 open grass,
+# 1 forest, 2 rock. Distances are to the jungle's tree sites, to the drawn water
+# (watermask plus river strip) and to the forest pass's cr17_frock rocks.
+#
+# The cards are botanical size (a harebell is 0.3 m), which a tank cockpit
+# cannot read beside 3 m mire ferns, so each species has its own game scale.
+PLACE_SEED = SEED + 1
+PLAY = (780, 3640, 98430, 101740)
+TALL_DISTANCE, SMALL_DISTANCE = 220, 150
+# name: (meshes, clumps, min spacing m, per clump, clump radius m, scale range, tall)
+SPECIES = {
+    'grasses':     (['cr17_fl_grass', 'cr17_fl_grassseed', 'cr17_fl_tuft'], 260, 25, (5, 9), 3.0, (1.5, 2.2), False),
+    'harebell':    (['cr17_fl_harebell'], 70, 45, (3, 7), 2.5, (1.7, 2.4), False),
+    'carpets':     (['cr17_fl_anemone', 'cr17_fl_bunchberry', 'cr17_fl_twinflower'], 180, 30, (5, 9), 2.5, (2.2, 3.2), False),
+    'lupine':      (['cr17_fl_lupine'], 50, 70, (3, 5), 2.5, (1.3, 1.8), True),
+    'fireweed':    (['cr17_fl_fireweed'], 35, 80, (4, 8), 3.5, (1.0, 1.4), True),
+    'cottongrass': (['cr17_fl_cottongrass'], 65, 30, (5, 9), 3.0, (1.5, 2.2), False),
+    'sedge':       (['cr17_fl_sedge'], 75, 25, (4, 8), 2.5, (1.5, 2.2), False),
+    'saxifrage':   (['cr17_fl_saxifrage'], 70, 30, (3, 6), 1.8, (2.4, 3.4), False),
+    'ferns':       (['cr17_fl_fern', 'cr17_fl_fernb'], 200, 20, (3, 6), 2.5, (1.3, 2.0), True),
+}
+
+
+def place():
+    """Write the cr17_fl_ layers into Scripts/CRJungle17Sites.lua (idempotent)."""
+    from scipy import ndimage
+    from scipy.spatial import cKDTree
+    import bzmodellibs
+    sys.path.insert(0, str(bzmodellibs.toolbox_root()))
+    from battlezone.bzn.bz1 import read_bzn
+    from battlezone.terrain.hg2 import read_hg2
+    from battlezone.terrain.mat import read_mat
+    spec = importlib.util.spec_from_file_location('forest17', ROOT / 'Tools/Build-Misn17Forest.py')
+    forest = importlib.util.module_from_spec(spec); spec.loader.exec_module(forest)
+
+    sites = forest.read_sites()
+    _, h = read_hg2(ROOT / 'Missions/misn17.hg2'); ground = h.astype(float) * .1
+    tiles = read_mat(ROOT / 'Missions/misn17.mat', 4, 4)
+    def height(x, z):  # bilinear on the 5 m grid
+        fz, fx = (z - 97280) / 5, x / 5
+        iz, ix = int(fz), int(fx); tz, tx = fz - iz, fx - ix
+        g = ground[iz:iz + 2, ix:ix + 2]
+        return float(g[0, 0] * (1 - tx) * (1 - tz) + g[0, 1] * tx * (1 - tz) + g[1, 0] * (1 - tx) * tz + g[1, 1] * tx * tz)
+    def slope(x, z):
+        iz, ix = round((z - 97280) / 5), round(x / 5)
+        return math.hypot(ground[iz, ix + 1] - ground[iz, ix - 1], ground[iz + 1, ix] - ground[iz - 1, ix]) / 10
+    def tile(x, z): return int(tiles[int((z - 97280) / 20), int(x / 20)]) >> 12
+
+    # Keep-outs: the forest pass's guards (bzn objects) and route points.
+    bzn = read_bzn(ROOT / 'Missions/misn17.bzn')
+    guards = cKDTree(np.array([o.fields['transform'].value[9::2] for o in bzn.objects
+                               if o.prjid != 'sfield' and not o.label.startswith(('cr17_tree', 'cr17_ice'))]))
+    route = cKDTree(np.array([pt for p in bzn.paths for pt in p['points'].value], float).reshape(-1, 2))
+    def clear(x, z): return not guards.query_ball_point((x, z), 30) and not route.query_ball_point((x, z), 18)
+
+    # Water: the run-length mask plus the river strip, as Build-Misn17Forest.py builds it.
+    wm = sites['watermask']
+    water = np.zeros(ground.shape, bool)
+    for r, runs in enumerate(wm['rows']):
+        for a, n in zip(runs[::2], runs[1::2]):
+            water[wm['firstRow'] + r, a:a + n] = True
+    river = sites['river']
+    for (ax, az), (bx, bz) in zip(river, river[1:]):
+        for t in np.linspace(0, 1, 40):
+            iz, ix = round((az + (bz - az) * t - 97280) / 5), round((ax + (bx - ax) * t) / 5)
+            water[iz - 1:iz + 2, ix - 1:ix + 2] = True
+    dwater = ndimage.distance_transform_edt(~water) * 5  # metres from a dry cell centre to water
+    def wet_dist(x, z): return float(dwater[round((z - 97280) / 5), round(x / 5)])
+
+    trees = cKDTree(np.array([t['position'][::2] for t in sites['trees'] if t['label'].startswith('cr17_tree')]))
+    rocks = cKDTree(np.array([p[::2][:2] for l in sites['layers'] if l['mesh'].startswith('cr17_frock') for p in l['instances']]))
+    def dtree(x, z): return float(trees.query((x, z))[0])
+
+    def centre_ok(kind, x, z, rng):
+        typ, s, dt = tile(x, z), slope(x, z), dtree(x, z)
+        if kind == 'grasses':      # open grass, thicker along the forest edge
+            return typ == 0 and s < .5 and (6 <= dt <= 20 or rng.random() < .35)
+        if kind == 'harebell':
+            return typ == 0 and s < .47 and dt >= 8
+        if kind == 'lupine':
+            return typ == 0 and s < .36 and dt >= 12
+        if kind == 'fireweed':     # clearings only
+            return typ == 0 and s < .36 and dt >= 25
+        if kind == 'carpets':      # forest floor and edges
+            return typ == 1 and s < .5 and 3 <= dt <= 15
+        if kind == 'ferns':        # under the firs
+            return typ == 1 and s < .6 and dt <= 10
+        if kind == 'cottongrass':  # wet ground above the waterline
+            return typ != 2 and s < .4 and 2 <= wet_dist(x, z) <= 12
+        if kind == 'sedge':        # banks
+            return s < .5 and 1.5 <= wet_dist(x, z) <= 8
+        if kind == 'saxifrage':    # rock tiles and beside the rocks
+            return s < .9 and (typ == 2 or bool(rocks.query_ball_point((x, z), 4)))
+        raise KeyError(kind)
+
+    def plant_ok(kind, x, z):
+        if not (PLAY[0] <= x <= PLAY[1] and PLAY[2] <= z <= PLAY[3]):
+            return False
+        if water[round((z - 97280) / 5), round(x / 5)] or slope(x, z) > .9:
+            return False
+        if kind in ('sedge', 'cottongrass') and wet_dist(x, z) < 1.5:
+            return False
+        return dtree(x, z) >= (2.5 if kind == 'ferns' else 2.0)  # off the trunks
+
+    rng = np.random.default_rng(PLACE_SEED)
+    placed = {}       # mesh -> [[x, y, z, yaw, scale]]
+    centres = []      # every species' clump centres, so patches do not pile up
+    report = {}
+    for kind, (meshes, target, spacing, (nlo, nhi), radius, (slo, shi), _) in SPECIES.items():
+        own, n_inst, tries = [], 0, 0
+        while len(own) < target and tries < 60000:
+            tries += 1
+            x, z = float(rng.uniform(PLAY[0], PLAY[1])), float(rng.uniform(PLAY[2], PLAY[3]))
+            if any(math.hypot(x - a, z - b) < spacing for a, b in own):
+                continue
+            if any(math.hypot(x - a, z - b) < 6 for a, b in centres):
+                continue
+            if not centre_ok(kind, x, z, rng) or not clear(x, z):
+                continue
+            own.append((x, z)); centres.append((x, z))
+            for _ in range(int(rng.integers(nlo, nhi + 1))):
+                r, a = radius * math.sqrt(rng.random()), rng.uniform(0, math.tau)
+                px, pz = x + r * math.cos(a), z + r * math.sin(a)
+                if not plant_ok(kind, px, pz):
+                    continue
+                mesh = meshes[int(rng.integers(len(meshes)))] + '.mesh'
+                scale = float(rng.uniform(slo, shi))
+                placed.setdefault(mesh, []).append([round(px, 2), round(height(px, pz) - .03 * scale, 2), round(pz, 2),
+                                                    round(float(rng.uniform(0, math.tau)), 3), round(scale, 3)])
+                n_inst += 1
+        report[kind] = {'clumps': len(own), 'instances': n_inst}
+
+    # One layer per mesh and 1152 m tile, like the rocks. They go straight after
+    # the mire cover, so a Build-Misn17Forest.py rerun (which keeps every
+    # non-rock, non-ice layer and appends ice then rocks) leaves the order alone.
+    tall = {m + '.mesh' for meshes, *_, t in SPECIES.values() if t for m in meshes}
+    by_tile = {}
+    for mesh, inst in placed.items():
+        for p in inst:
+            by_tile.setdefault((mesh, math.floor((p[0] - 2048) / 1152), math.floor((p[2] - 99328) / 1152)), []).append(p)
+    flowers = [{'mesh': key[0], 'distance': TALL_DISTANCE if key[0] in tall else SMALL_DISTANCE, 'instances': by_tile[key]}
+               for key in sorted(by_tile)]
+    old = [l for l in sites['layers'] if not l['mesh'].startswith('cr17_fl_')]
+    cut = next((i for i, l in enumerate(old) if not l['mesh'].startswith('cr17_mire_')), len(old))
+    sites['layers'] = old[:cut] + flowers + old[cut:]
+    (ROOT / 'Scripts/CRJungle17Sites.lua').write_text(forest.SITES_HEAD + forest.lua_value(sites) + '\n', newline='\n')
+    forest.read_sites()  # round-trips
+
+    info = json.loads((OUT_REF / 'source-assets.json').read_text())
+    tris = {n + '.mesh': m['triangles'] for n, m in info['meshes'].items()}
+    out = {'species': report, 'layers': len(flowers), 'instances': sum(len(v) for v in placed.values()),
+           'triangles': sum(tris[m] * len(v) for m, v in placed.items()),
+           'by_mesh': {m: len(v) for m, v in sorted(placed.items())}}
+    print(json.dumps(out, indent=1))
+    return out
+
+
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--plates', type=Path, required=True, help='folder holding the downloaded plates')
+    ap.add_argument('--plates', type=Path, help='folder holding the downloaded plates')
     ap.add_argument('--debug', type=Path, help='write per-card cutout previews here')
     ap.add_argument('--only', nargs='*', help='cut only these cards into --debug and stop')
+    ap.add_argument('--place', action='store_true', help='write the cr17_fl_ layers into Scripts/CRJungle17Sites.lua')
     a = ap.parse_args()
-    if a.only is not None:
+    if a.place:
+        place()
+    elif a.plates is None:
+        ap.error('--plates is required unless --place')
+    elif a.only is not None:
         for c in CARDS:
             if not a.only or c['name'] in a.only:
                 cut_card(c, a.plates, a.debug)
