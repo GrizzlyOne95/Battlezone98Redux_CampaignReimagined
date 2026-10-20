@@ -1,11 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-<<<<<<< HEAD
   "count": 3047,
-=======
-  "count": 3031,
->>>>>>> origin/main
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -11260,125 +11256,6 @@
       "runtime": "c17tree2.skeleton"
     },
     {
-<<<<<<< HEAD
-      "source": "Assets\\Models\\cr17_fl_anemone.mesh",
-      "runtime": "cr17_fl_anemone.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_bunchberry.mesh",
-      "runtime": "cr17_fl_bunchberry.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_cottongrass.mesh",
-      "runtime": "cr17_fl_cottongrass.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_fern.mesh",
-      "runtime": "cr17_fl_fern.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_fernb.mesh",
-      "runtime": "cr17_fl_fernb.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_fireweed.mesh",
-      "runtime": "cr17_fl_fireweed.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_grass.mesh",
-      "runtime": "cr17_fl_grass.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_grassseed.mesh",
-      "runtime": "cr17_fl_grassseed.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_harebell.mesh",
-      "runtime": "cr17_fl_harebell.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_lupine.mesh",
-      "runtime": "cr17_fl_lupine.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_saxifrage.mesh",
-      "runtime": "cr17_fl_saxifrage.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_sedge.mesh",
-      "runtime": "cr17_fl_sedge.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_tuft.mesh",
-      "runtime": "cr17_fl_tuft.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_fl_twinflower.mesh",
-      "runtime": "cr17_fl_twinflower.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock1.mesh",
-      "runtime": "cr17_frock1.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock2.mesh",
-      "runtime": "cr17_frock2.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock3.mesh",
-      "runtime": "cr17_frock3.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock4.mesh",
-      "runtime": "cr17_frock4.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock5.mesh",
-      "runtime": "cr17_frock5.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock6.mesh",
-      "runtime": "cr17_frock6.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock7.mesh",
-      "runtime": "cr17_frock7.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock8.mesh",
-      "runtime": "cr17_frock8.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock9.mesh",
-      "runtime": "cr17_frock9.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab1.mesh",
-      "runtime": "cr17_islab1.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab2.mesh",
-      "runtime": "cr17_islab2.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab3.mesh",
-      "runtime": "cr17_islab3.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab4.mesh",
-      "runtime": "cr17_islab4.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab5.mesh",
-      "runtime": "cr17_islab5.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab6.mesh",
-      "runtime": "cr17_islab6.mesh"
-    },
-    {
-=======
->>>>>>> origin/main
       "source": "Assets\\Models\\cr17_mire_ferna.mesh",
       "runtime": "cr17_mire_ferna.mesh"
     },
@@ -11471,10 +11348,6 @@
       "runtime": "cr17_flat.dds"
     },
     {
-      "source": "Assets\\Textures\\cr17_flowers.dds",
-      "runtime": "cr17_flowers.dds"
-    },
-    {
       "source": "Assets\\Textures\\cr17_foliage.dds",
       "runtime": "cr17_foliage.dds"
     },
@@ -11535,17 +11408,6 @@
       "runtime": "cr17_crystal.material"
     },
     {
-<<<<<<< HEAD
-      "source": "Materials\\cr17_flowers.material",
-      "runtime": "cr17_flowers.material"
-    },
-    {
-      "source": "Materials\\cr17_forest.material",
-      "runtime": "cr17_forest.material"
-    },
-    {
-=======
->>>>>>> origin/main
       "source": "Materials\\cr17_jungle.material",
       "runtime": "cr17_jungle.material"
     },
@@ -11702,17 +11564,6 @@
       "runtime": "cr17_cloud.program"
     },
     {
-<<<<<<< HEAD
-      "source": "Shaders\\cr17_ice.hlsl",
-      "runtime": "cr17_ice.hlsl"
-    },
-    {
-      "source": "Shaders\\cr17_ice.program",
-      "runtime": "cr17_ice.program"
-    },
-    {
-=======
->>>>>>> origin/main
       "source": "Assets\\ModelFixes\\cr03rok.geo",
       "runtime": "cr03rok.geo"
     },
@@ -11809,13 +11660,6 @@
       "runtime": "cr06rok.material"
     },
     {
-<<<<<<< HEAD
-      "source": "Materials\\cr17_ice.material",
-      "runtime": "cr17_ice.material"
-    },
-    {
-=======
->>>>>>> origin/main
       "source": "ODF\\cr03rok.odf",
       "runtime": "cr03rok.odf"
     },
@@ -12282,6 +12126,70 @@
     {
       "source": "Materials\\smokeb.material",
       "runtime": "smokeb.material"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_anemone.mesh",
+      "runtime": "cr17_fl_anemone.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_bunchberry.mesh",
+      "runtime": "cr17_fl_bunchberry.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_cottongrass.mesh",
+      "runtime": "cr17_fl_cottongrass.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_fern.mesh",
+      "runtime": "cr17_fl_fern.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_fernb.mesh",
+      "runtime": "cr17_fl_fernb.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_fireweed.mesh",
+      "runtime": "cr17_fl_fireweed.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_grass.mesh",
+      "runtime": "cr17_fl_grass.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_grassseed.mesh",
+      "runtime": "cr17_fl_grassseed.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_harebell.mesh",
+      "runtime": "cr17_fl_harebell.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_lupine.mesh",
+      "runtime": "cr17_fl_lupine.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_saxifrage.mesh",
+      "runtime": "cr17_fl_saxifrage.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_sedge.mesh",
+      "runtime": "cr17_fl_sedge.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_tuft.mesh",
+      "runtime": "cr17_fl_tuft.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_fl_twinflower.mesh",
+      "runtime": "cr17_fl_twinflower.mesh"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_flowers.dds",
+      "runtime": "cr17_flowers.dds"
+    },
+    {
+      "source": "Materials\\cr17_flowers.material",
+      "runtime": "cr17_flowers.material"
     }
   ]
 }
