@@ -181,6 +181,48 @@ Azimuth23   = 360
 Elevation23 = 5
 Roll16      = 180
 
+Texture24   = crmeteor.map
+Color24     = "255 252 246 255"
+Size24      = 180
+Azimuth24   = 15
+Elevation24 = 25
+Roll24      = 30
+
+Texture25   = crmeteor.map
+Color25     = "250 255 250 255"
+Size25      = 220
+Azimuth25   = 80
+Elevation25 = 12
+Roll25      = 110
+
+Texture26   = crmeteor.map
+Color26     = "255 248 240 255"
+Size26      = 200
+Azimuth26   = 135
+Elevation26 = 40
+Roll26      = 200
+
+Texture27   = crmeteor.map
+Color27     = "246 252 255 255"
+Size27      = 260
+Azimuth27   = 205
+Elevation27 = 18
+Roll27      = 290
+
+Texture28   = crmeteor.map
+Color28     = "255 255 244 255"
+Size28      = 190
+Azimuth28   = 265
+Elevation28 = 50
+Roll28      = 60
+
+Texture29   = crmeteor.map
+Color29     = "252 246 255 255"
+Size29      = 240
+Azimuth29   = 325
+Elevation29 = 12
+Roll29      = 150
+
 [TextureType0] // Lava
 FlatColor= 134
 SolidA0        = io00sA0.map

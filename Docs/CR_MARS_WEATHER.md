@@ -353,6 +353,18 @@ filename plays nothing and looks exactly like working code.
 
 ---
 
+## Cockpit-glass grit
+
+Fine dust specks build on the cockpit glass with the storm (`CRWetGlass.Weather("grit", level)`, see
+`Docs/CR_STORMFX_PORT.md`). Render only; the particle weather is unchanged. Every Mars mission that runs the director
+gets it (misn04, misn05, misn06) with no mission change. The target level is `0.08 + 0.82 * severity^1.3`
+(`GetSeverity()` is 0 at Calm and 1 at the top rung, whatever the profile), so haze is barely visible and a severe storm
+reaches 0.9, still subtle. The level builds at 0.035 per second and clears at 0.007 per second, so a craft that has left
+a storm stays a little dusty for a few minutes. From severity 0.6 a small `CRWetGlass.Splat` (amount 0.04-0.12) lands
+every 22-46 s (faster toward the top). Local to each peer. Off with `CRMarsWeather.AllowGlassGrit` /
+`Init{ glassGrit = false }`, with `CRWeather.Quality` 0, or when the director is disabled. `GetGlassGrit()` reports the
+level; `Shutdown` clears it and calls `CRWetGlass.Stop()`.
+
 ## Tuning
 
 Everything is data. The ladder rows in `CRMarsWeather.Levels` carry wind speed,

@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- Campaign skies with a star field gain occasional shooting stars: a short streak crosses part of the sky in
+  0.3-0.8 s, about one every 25 s across the whole sky (Moon: Missions 1-2 and the setup map; Io: Missions 9-10
+  and `misns4`). The Moon also gets three satellites that drift across it over one to three minutes, some with a
+  brief glint. Both are procedural `[Stars]` entries (`CRMETEOR.MAP`, `CRSATELL.MAP`) on DX11 and DX9, on by
+  default; `openshim.ini [Display] SkyEvents=0` switches them off. Star Twinkle is unchanged.
+
+- Venus acid rain on the cockpit glass (misn07, misn08, misn09): the rain level the Venus director already computes now also
+  drives the `CRWetGlass` rain layers, drawn in faint yellow-green instead of the Earth-like blue-grey, and long exposure
+  builds a very faint pitted etch haze that clears slowly after the rain. Render only, local to each peer, and can be
+  switched off (`AllowGlassAcid` / `glassAcid`, `AllowAcidRain`, `CRWeather.Quality` 0). New `CRWetGlass.Weather("acid", level)`,
+  `crwx_acidbeads/acidrivulet/acidstreak.png` and `crwx_winetch.png` (`Tools/Generate-GlassWeatherAssets.py`). Stacks on the
+  cockpit-glass snow/grit work (#256) and the pool effects (#255). See `Docs/VENUS_WEATHER.md` and `Docs/CR_STORMFX_PORT.md`.
+
+- Cockpit-glass weather: a few soft-white snow flakes land on and melt off the glass on Europa (misn12, misn13; scaled to the
+  Europa activity ladder), and fine dust grit builds on the glass in Mars storms (misn04, misn05, misn06; builds with the
+  severity, clears slowly, with a few small splats at the upper rungs). Both ride the existing CRWetGlass layers
+  (`CRWetGlass.Weather`), are render only, local to each peer, and can be switched off (`AllowGlassSnow`, `AllowGlassGrit`,
+  `CRWeather.Quality` 0). New `crwx_winsnow.png` and `crwx_wingrit.png` (`Tools/Generate-GlassWeatherAssets.py`; the large
+  crystals are ISDF Chronicles' `snowflak.dds` sprite) and `crwx_glassweather.material`. See `Docs/CR_STORMFX_PORT.md`.
+
 - Mission 18 gains water and landscaping: four standing pools in closed basins, six streams that run downhill into and out
   of them and one 22 m cascade with mist, baked from the original heightmap (nothing is carved; `Missions/misn18.hg2` is
   untouched) and kept clear of the start, transport, spawns, ambush column, Fury paths and the tornado's keep-clear circles.
