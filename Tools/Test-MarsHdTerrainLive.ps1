@@ -1,6 +1,6 @@
-<# Reversible Windows/GOG DX11 example using CR's unmodified misn04 terrain.
+<# Reversible Windows/GOG DX11 example using CR's Mars or Moon terrain.
    Run with Windows PowerShell 5.1 (the capture helper uses System.Drawing).
-   New-MarsHdTerrainExample.ps1 prepares the pack without a capture run.
+   New-MarsHdTerrainExample.ps1 or Build-MoonHdTerrain.py prepares the pack.
    Source maps and the installed addon are preserved.
 #>
 param(
@@ -10,6 +10,7 @@ param(
  [string]$GameRoot='C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux',
  [string]$ResourceDirectory,
  [string]$ExuDll,
+ [ValidateSet('mars','moon')][string]$World='mars',
  [ValidateSet('Enhanced','Redux','Retro')][string]$RenderProfile='Enhanced',
  [switch]$MeasureMemory,
  [switch]$ProfileCycle,
@@ -25,7 +26,15 @@ $harness=Join-Path (Resolve-Path -LiteralPath $HarnessRepo).Path 'reverse_engine
 $cr=Split-Path -Parent $PSScriptRoot
 $tiles=(Resolve-Path -LiteralPath $TileDirectory).Path
 $game=(Resolve-Path -LiteralPath $GameRoot).Path
-if($Hd -and -not (Test-Path -LiteralPath "$tiles\cr_mars_hd.json")){throw 'Prepare the exported tiles with New-MarsHdTerrainExample.ps1 first.'}
+$mission=if($World -eq 'moon'){'misn03'}else{'misn04'}
+$example="crhd_$($World)_example"
+if($World -eq 'moon'){$example='mn_detail_atlas'}
+$exampleFolder=if($World -eq 'moon'){'MoonHdTerrain'}else{'MarsHdTerrain'}
+$manifestPath=if($World -eq 'moon'){Join-Path $tiles 'terrain_hd_tiles.json'}else{Join-Path $tiles 'cr_mars_hd.json'}
+$layoutPath=if($World -eq 'moon'){Join-Path $tiles 'layout.csv'}else{Join-Path $tiles 'native_layout.csv'}
+$textureDirectory=if($World -eq 'moon'){Join-Path $tiles 'resources'}else{$tiles}
+if($BindCapture -and $World -ne 'mars'){throw 'Moon uses the Toolbox rectangle mapping; capture binding is unnecessary.'}
+if($Hd -and -not (Test-Path -LiteralPath $manifestPath)){throw 'Prepare the source tile bundle before previewing.'}
 if($ProfileCycle -and (-not $Hd -or $RenderProfile -ne 'Enhanced')){throw 'ProfileCycle needs -Hd and an Enhanced starting profile'}
 if($ProfileCycle){
  if(-not $ExuDll){$ExuDll=Join-Path $game 'mods\3686673790\exu.dll'}
@@ -73,17 +82,29 @@ try {
    Remove-Item -LiteralPath $item.FullName
   }
  }
- foreach($item in Get-ChildItem "$cr\Missions\misn04.*" -File){Save-File "$game\addon\$($item.Name)"; Copy-Item $item.FullName "$game\addon\$($item.Name)" -Force}
- foreach($relative in @('Materials\CR_BZTerrainBase.material','Shaders\CR_static_ibl.program','Tools\Examples\MarsHdTerrain\crhd_mars_example.material')){
+ foreach($item in Get-ChildItem "$cr\Missions\$mission.*" -File){Save-File "$game\addon\$($item.Name)"; Copy-Item $item.FullName "$game\addon\$($item.Name)" -Force}
+ if($World -eq 'moon'){
+  & python "$PSScriptRoot\Build-HdTerrainPreview.py" --source "$cr\Missions\$mission.bzn" --out "$game\addon\$mission.bzn"
+  if($LASTEXITCODE -ne 0){throw 'Moon terrain camera fixture generation failed'}
+ }
+ $previewScripts=@('Materials\CR_BZTerrainBase.material','Shaders\CR_static_ibl.program',"Tools\Examples\$exampleFolder\$example.material")
+ if($World -eq 'moon'){
+  $previewScripts=@('Materials\CR_BZTerrainBase.material','Shaders\CR_static_ibl.program','Materials\mn_detail_atlas.material')
+  $previewScripts += 'Materials\CR_sky_events.material'
+  $previewScripts += @(Get-ChildItem "$cr\Shaders" -Filter 'CR_sky*' -File | ForEach-Object {'Shaders\'+$_.Name})
+ }
+ foreach($relative in $previewScripts){
   $name=Split-Path -Leaf $relative
   Save-File "$testResources\$name"
   Copy-Item -LiteralPath "$cr\$relative" -Destination "$testResources\$name" -Force
  }
- Save-File "$game\addon\crhd_mars_example.csv"
- Copy-Item -LiteralPath "$tiles\native_layout.csv" -Destination "$game\addon\crhd_mars_example.csv" -Force
- $trn=[IO.File]::ReadAllText("$game\addon\misn04.trn") -replace '(?m)^MaterialName\s*=.*$','MaterialName = crhd_mars_example'
- [IO.File]::WriteAllText("$game\addon\misn04.trn",$trn)
- Save-File "$game\addon\misn04.lua"
+ Save-File "$game\addon\$example.csv"
+ Copy-Item -LiteralPath $layoutPath -Destination "$game\addon\$example.csv" -Force
+ Save-File "$testResources\$example.csv"
+ Copy-Item -LiteralPath $layoutPath -Destination "$testResources\$example.csv" -Force
+ $trn=[IO.File]::ReadAllText("$game\addon\$mission.trn") -replace '(?m)^MaterialName\s*=.*$',("MaterialName = "+$example)
+ [IO.File]::WriteAllText("$game\addon\$mission.trn",$trn)
+ Save-File "$game\addon\$mission.lua"
  @'
 local t=0
 local ready=false
@@ -99,10 +120,10 @@ end
 function CreateObject(h) end
 function AddObject(h) end
 function DeleteObject(h) end
-'@ | Set-Content "$game\addon\misn04.lua" -Encoding ASCII
+'@ | Set-Content "$game\addon\$mission.lua" -Encoding ASCII
  if($WideView){
-  $driver=[IO.File]::ReadAllText("$game\addon\misn04.lua").Replace('CameraObject(p,600,400,800,p)','CameraObject(p,3000,2200,-3000,p)')
-  [IO.File]::WriteAllText("$game\addon\misn04.lua",$driver)
+  $driver=[IO.File]::ReadAllText("$game\addon\$mission.lua").Replace('CameraObject(p,600,400,800,p)','CameraObject(p,3000,2200,-3000,p)')
+  [IO.File]::WriteAllText("$game\addon\$mission.lua",$driver)
  }
  if($ProfileCycle){
   # Optional integration probe uses the already installed EXU API. Ordinary
@@ -132,26 +153,26 @@ function Update(dt)
  end
 end
 '@
-  $cycleDriver.Replace('__EXU_DLL__',$ExuDll).Replace('__CYCLE_STAGES__',[string]($ProfileCycles*2)) | Add-Content "$game\addon\misn04.lua" -Encoding ASCII
+  $cycleDriver.Replace('__EXU_DLL__',$ExuDll).Replace('__CYCLE_STAGES__',[string]($ProfileCycles*2)) | Add-Content "$game\addon\$mission.lua" -Encoding ASCII
  }
  & "$repo\scripts\Deploy-OpenShim.ps1" -GameDir $game
  $ini=[IO.File]::ReadAllText("$game\openshim.ini") -replace '(?m)^TerrainHdEnabled\s*=.*$','TerrainHdEnabled = 0'
  $ini=[regex]::Replace($ini,'(?m)^RenderProfile\s*=.*$',('RenderProfile = '+$RenderProfile))
  if($Hd){
   $ini=$ini -replace '(?m)^TerrainHdEnabled\s*=.*$','TerrainHdEnabled = 1'
-  $ini=[regex]::Replace($ini,'(?m)^TerrainHdManifest\s*=.*$',('TerrainHdManifest = '+"$tiles\cr_mars_hd.json"))
+  $ini=[regex]::Replace($ini,'(?m)^TerrainHdManifest\s*=.*$',('TerrainHdManifest = '+$manifestPath))
  }
  [IO.File]::WriteAllText("$game\openshim.ini",$ini)
  $env:OPENSHIM_TERRAIN_HD_EXPORT="$out\native.json"
  $env:OPENSHIM_TERRAIN_TESSELLATION_TEST='1'
  $env:OPENSHIM_TERRAIN_TESSELLATION_FACTOR='1'
  if($Hd){
-  foreach($item in Get-ChildItem $tiles -Filter '*.dds' -File){Save-File "$game\openshim\renderer\enhanced\$($item.Name)"; Copy-Item $item.FullName "$game\openshim\renderer\enhanced\$($item.Name)" -Force}
-  $env:OPENSHIM_TERRAIN_HD='1'; $env:OPENSHIM_TERRAIN_HD_MANIFEST="$tiles\cr_mars_hd.json"
+  foreach($item in Get-ChildItem $textureDirectory -Filter '*.dds' -File){Save-File "$game\openshim\renderer\enhanced\$($item.Name)"; Copy-Item $item.FullName "$game\openshim\renderer\enhanced\$($item.Name)" -Force}
+  $env:OPENSHIM_TERRAIN_HD='1'; $env:OPENSHIM_TERRAIN_HD_MANIFEST=$manifestPath
   $env:OPENSHIM_TERRAIN_HD_REQUIRE_MATERIAL_MAPS='1'
  }
  Assert-BZRSafeToLaunch
- $proc=Start-BZRGameProcess -FilePath "$game\battlezone98redux.exe" -ArgumentList 'misn04.bzn /nointro /renderer:dx11' -WorkingDirectory $game -PassThru
+ $proc=Start-BZRGameProcess -FilePath "$game\battlezone98redux.exe" -ArgumentList "$mission.bzn /nointro /renderer:dx11" -WorkingDirectory $game -PassThru
  Write-Host "PID=$($proc.Id) HD=$Hd OUT=$out"
  Start-Sleep -Seconds 20
  $window=[BZRWin.Native]::MainWindow($proc.Id)

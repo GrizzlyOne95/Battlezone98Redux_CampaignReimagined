@@ -1,4 +1,4 @@
-"""Export the saved Stock World Terrain HD Mars recipe BEFORE atlas packing.
+"""Export the saved Stock World Terrain HD source recipe BEFORE atlas packing.
 
 The trusted local source build is supplied explicitly. No atlas pixels are read.
 The source recipe's material/normal corrections and shared transition masks are
@@ -15,7 +15,7 @@ import shutil
 import sys
 
 
-def source_function(module, sink, tile_size=None):
+def source_function(module, sink, tile_size=None, height_matched_normals=False):
     path = Path(module.__file__)
     tree = ast.parse(path.read_text(encoding="utf-8-sig"))
     function = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "build")
@@ -24,6 +24,14 @@ def source_function(module, sink, tile_size=None):
     if len(loops) != 1:
         raise ValueError("Unsupported saved recipe: expected one material-channel loop")
     index, loop = loops[0]
+    if height_matched_normals:
+        # Source-height validation owns the new Moon pack's polarity. Preserve
+        # audited green conversion, but omit the later empirical XY reversal.
+        relief_assignments = [n for n in ast.walk(loop) if isinstance(n, ast.Assign)
+                              and any(isinstance(t, ast.Name) and t.id == "relief" for t in n.targets)]
+        if len(relief_assignments) != 1:
+            raise ValueError("Unsupported saved recipe: relief override boundary missing")
+        relief_assignments[0].value = ast.Dict(keys=[], values=[])
     cut = next((i for i, n in enumerate(loop.body) if isinstance(n, ast.If)
                 and "tile_cache.values()" in ast.unparse(n.test) and "'E'" in ast.unparse(n.test)), None)
     if cut is None:
@@ -70,12 +78,19 @@ def bind_capture(capture, csv_path, resources, default_alias=None):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--source-build", type=Path)
+    p.add_argument("--world", choices=("mars", "moon"), default="mars")
+    p.add_argument("--images-only", action="store_true", help="Export independent PNG masters for Toolbox hd-tiles init/build")
+    p.add_argument("--height-matched-normals", action="store_true", help="Keep source-height polarity after green conversion; omit empirical XY reversal")
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--tile-size", type=int, choices=[512, 1024, 2048], default=1024)
     p.add_argument("--capture", type=Path)
     p.add_argument("--atlas-csv", type=Path)
     p.add_argument("--bind-existing", action="store_true", help="Rebuild the runtime manifest for existing source tiles")
     args = p.parse_args()
+    if args.world != "mars" and not args.images_only:
+        p.error("Other worlds use --images-only and the shared Toolbox bundle builder")
+    if args.images_only and (args.bind_existing or args.capture):
+        p.error("--images-only cannot bind an existing DDS pack/capture")
     output = args.output.resolve()
     if args.capture and not args.atlas_csv:
         raise ValueError("--capture requires --atlas-csv")
@@ -97,7 +112,8 @@ def main():
     import numpy as np
     from PIL import Image, ImageDraw
     output.mkdir(parents=True)
-    shutil.copyfile(root / "stock" / "ma_detail_atlas.csv", output / "native_layout.csv")
+    atlas = {"mars": "ma", "moon": "mn"}[args.world] + "_detail_atlas.csv"
+    shutil.copyfile(root / "stock" / atlas, output / "native_layout.csv")
     recipe.BUNDLE = output / "recipe_work"
     recipe.BUNDLE.mkdir()
     recipe.FORCE = True; recipe.NORMAL_ONLY = recipe.DIFFUSE_ONLY = recipe.PREFERRED = False
@@ -116,10 +132,16 @@ def main():
         previews = []
         for name, pixels in tiles.items():
             slug = name.lower().removesuffix(".map") or "default"
-            filename = f"crhd_mars_{slug}_{channel.lower()}.dds"
+            filename = f"{slug}_{channel.lower()}.png" if args.images_only else f"crhd_mars_{slug}_{channel.lower()}.dds"
             if pixels.shape[:2] != (args.tile_size, args.tile_size):
                 raise ValueError("Source recipe did not generate full-resolution independent tiles")
             image = recipe.resize(pixels, args.tile_size, channel)
+            if args.images_only:
+                Image.fromarray(image).save(output / filename)
+                resources[name] = filename
+                aliases.setdefault(name, {})[channel] = filename
+                if channel == "D": previews.append((name, Image.fromarray(image).resize((160, 160))))
+                continue
             levels = []; size = args.tile_size
             while True:
                 mip = image if size == args.tile_size else recipe.resize(image, size, channel)
@@ -141,12 +163,14 @@ def main():
             for i, (name, image) in enumerate(previews):
                 x, y = i % 5 * 160, i // 5 * 184
                 sheet.paste(image, (x, y)); draw.text((x+3, y+163), name, fill="white")
-            sheet.save(output / "mars_tiles.jpg")
-    build = source_function(recipe, sink, args.tile_size)
-    world = next(w for w in recipe.PLAN["worlds"] if w["world"] == "mars")
+            sheet.save(output / f"{args.world}_tiles.jpg")
+    build = source_function(recipe, sink, args.tile_size, args.height_matched_normals)
+    world = next(w for w in recipe.PLAN["worlds"] if w["world"] == args.world)
     report = build(world)
     for i, (name, entry) in enumerate(aliases.items()): entry["slice"] = i
-    result = {"schema": "cr-mars-hd-source-tiles-v1", "tileSize": args.tile_size,
+    result = {"schema": "cr-hd-source-images-v1" if args.images_only else "cr-mars-hd-source-tiles-v1",
+              "world": args.world, "tileSize": args.tile_size,
+              "normalPolarity": "source-height-matched" if args.height_matched_normals else "saved-recipe",
               "sourceGenerationPixels": args.tile_size,
               "exporterSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               "sourceRecipeSha256": hashlib.sha256((root / "build_stock_atlases.py").read_bytes()).hexdigest(),
@@ -158,7 +182,8 @@ def main():
                                for path in sorted(root.glob("*.py")) + sorted(root.glob("*.json"))},
               "aliases": aliases, "atlasPixelsRead": False}
     result["defaultAlias"] = report.get("default_alias_shared") or None
-    write_manifest(output, args.capture, args.atlas_csv or output / "native_layout.csv", aliases, result["defaultAlias"])
+    if not args.images_only:
+        write_manifest(output, args.capture, args.atlas_csv or output / "native_layout.csv", aliases, result["defaultAlias"])
     (output / "source_tiles.json").write_text(json.dumps(result, indent=2)+"\n")
     print(f"Exported {len(aliases)} full D/N/S/E tile sets to {output}", flush=True)
 

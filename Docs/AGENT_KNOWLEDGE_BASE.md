@@ -921,6 +921,19 @@ basis. `Test-Misn03Launch.lua` runs the real misn03 script on the harness text o
 
 ## 10. Keeping this document current
 
+### Moon independent HD tiles and normal polarity (2026-10-20)
+
+`Docs/MOON_HD_TERRAIN.md` and `Tools/TerrainHD/Moon/authoring.json` describe the
+Toolbox-built Moon D/N/S pack. Source N/H comparisons prove the later empirical
+Moon ground/rock XY reversal in the saved HD-atlas recipe inverted authored
+height slopes; keep its green conversion and omit the extra XY reversal for
+this pack. Paving has no independent source height: integrability establishes
+its Y convention but cannot prove absolute relief polarity. Projected shader
+basis/rotation/mip checks are numerical evidence, not a substitute for live
+camera/resource qualification. The Moon preview is player-only because a CLI
+campaign launch does not mount CR's custom rocket assets. Use the Toolbox BZN
+codec and repoint `sObject` to the retained player; preserve terrain companions.
+
 Cut Fury fighter (2026-10-16): the owner-selected standalone `hvraz` port is
 `Battlezone Files/Mods and Custom Files/Fury Fighter` in Drive, not ISDFC's
 ODF/red texture. CR's `crfraz` copies its model/native data and namespaces every
