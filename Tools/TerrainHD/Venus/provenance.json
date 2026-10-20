@@ -1,0 +1,103 @@
+{
+  "schema": "cr-hd-source-images-v1",
+  "world": "venus",
+  "tileSize": 1024,
+  "normalPolarity": "source-height-matched",
+  "sourceRecipeSha256": "dea64d74c33429b5d643a587b6add156cd510d181cfb95997eeacffc5c24bc10",
+  "normalEngineConversion": {
+    "cc1e7aac9914": "flip_green",
+    "23e1e3c33291": "flip_green",
+    "cc26094103ba": "flip_green",
+    "0b3bb7fc9238": "flip_green",
+    "cc347a1d61cd": "flip_green"
+  },
+  "normalCorrections": {},
+  "normalRotation": "Sources converted to engine U/V tangent basis first; CCW image variants rotate engine normal XY as (Y, -X).",
+  "atlasPixelsRead": false,
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "cc26094103ba",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 2,
+      "color": [
+        32,
+        24,
+        10
+      ],
+      "rectangles": [
+        [
+          0.2,
+          0.32,
+          0.04,
+          0.004
+        ],
+        [
+          0.7,
+          0.82,
+          0.04,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sources": [
+    {
+      "id": "cc1e7aac9914",
+      "name": "toxic_9.tga",
+      "library": "BZCC",
+      "inputHashes": {
+        "D": "fe5f9b7b5e48fd0ea941c8f9fd78b52f09244ada555e79e213befab332c77d7c",
+        "N": "e44d62c49191a9895576b91752949e0482dcc2caf563096e5309cb74edf49793",
+        "S": "9ec469552d9c797542c64b308ed418cfe10e1e89e0ecf35102cf4e1d2ab4ab30",
+        "E": "37db64856ff865ef2d2dcec1f407d3d22d6ed739433dd96756af6f913c204e4b"
+      }
+    },
+    {
+      "id": "23e1e3c33291",
+      "name": "MarsCrackedRock_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "d141d692d3131ae6b304649393d0ddccfa06767f572746c0ce0594923d7b1500",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "E": "3a7fa4380bae4ea262ab5869208228c7b1b58e49678ab057dda34cd1791f37a5",
+        "G": "c1eff1a57fae79cdb1a73864d591b8db75df472b5164fd588d07013a0a229fb8",
+        "N": "b8089523e92f7ecea16663f5ac2ed07854352889c2bfa0b15ed2f1fe0df35743"
+      }
+    },
+    {
+      "id": "cc26094103ba",
+      "name": "Metal13.tga",
+      "library": "BZCC",
+      "inputHashes": {
+        "D": "efb56e75cef527de3a9ad9d7df16f4ae4c2eae577dd518296ae4769364ce63a6",
+        "N": "fb3ac68bd9243118d802072790f7fe0a104fa7ec6cc7579f4edd2333394dff9b",
+        "S": "2a4e881c372a25bfcdd2fc93d3b2a92c17fdbe6d70ea4c167bb43e607b1cd2ba"
+      }
+    },
+    {
+      "id": "0b3bb7fc9238",
+      "name": "FineClumpySand_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "f5ed4b0d14d36f0faabf3b878c5a6c3286d5ca371bc05132fe4752cc382670bc",
+        "E": "482947eadeb3defd2ac594a0c43f7abb623ab20ad5f0f38cf9ea07cd1edc19f1",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "G": "5aff64bbe8ca772fa42a4701eed8ff248df22e8ae57766d49ce3979cb467ddb6",
+        "N": "79ecee16754b524eaacd3a76b7b31189b057a9b00d57de357dabcd71096f3d35"
+      }
+    },
+    {
+      "id": "cc347a1d61cd",
+      "name": "pluto6.tga",
+      "library": "BZCC",
+      "inputHashes": {
+        "D": "5e0ad1cd4d292b55c7dd6a7c7f3272020efe812db4890038f203e8f465683df9",
+        "N": "9f5b510717bbe8373b92d13251dd5ba38db7d8c794fefb74628fbee16e8133e0",
+        "S": "f7ba518b345b6091121750d84bae5f6e2cc204313a526c2e01d73b48b40a7e7d"
+      }
+    }
+  ]
+}

@@ -32,8 +32,8 @@ compatible Wine/Proton prefix are maintained together. See the shared
 
 ## How the package fits together
 
-The optional [Moon HD terrain pack](Docs/MOON_HD_TERRAIN.md) adds independent
-1K diffuse, normal and specular tiles through the Toolbox authoring workflow.
+The optional [planet HD terrain packs](Docs/HD_TERRAIN_PACKS.md) add independent
+1K diffuse, normal, specular and subtle base emissive tiles through the Toolbox authoring workflow.
 It requires the matching OpenShim native HD build and DX11 Enhanced; ordinary
 atlas rendering remains available when HD is off.
 

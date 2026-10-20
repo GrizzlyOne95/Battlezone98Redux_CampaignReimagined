@@ -1,0 +1,120 @@
+{
+  "schema": "cr-hd-source-images-v1",
+  "world": "achilles",
+  "tileSize": 1024,
+  "normalPolarity": "source-height-matched",
+  "sourceRecipeSha256": "dea64d74c33429b5d643a587b6add156cd510d181cfb95997eeacffc5c24bc10",
+  "normalEngineConversion": {
+    "fab_ucumbgedy": "flip_green",
+    "fab_sgmkajak": "flip_green",
+    "local_falling_water_v5": "flip_green",
+    "canopy_jacaranda_v6": "flip_green",
+    "fab_uifndiulw": "flip_green",
+    "external_water002_v5": "flip_green"
+  },
+  "normalCorrections": {},
+  "normalRotation": "Sources converted to engine U/V tangent basis first; CCW image variants rotate engine normal XY as (Y, -X).",
+  "atlasPixelsRead": false,
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "fab_uifndiulw",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 5,
+      "color": [
+        28,
+        22,
+        10
+      ],
+      "rectangles": [
+        [
+          0.19,
+          0.18,
+          0.012,
+          0.004
+        ],
+        [
+          0.79,
+          0.78,
+          0.012,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sources": [
+    {
+      "id": "fab_ucumbgedy",
+      "name": "Icelandic_Jagged_Rock_ucumbgedy_8K_BaseColor.jpg",
+      "library": "Quixel Fab recovered",
+      "inputHashes": {
+        "D": "e3a5f3c7c98b608262a888a75b47263780d13c1328a6445de7b9adbc1f7b2da0",
+        "N": "7811eef07b6ca37ecdb527f9d961969ea517917ea0f16d9353b43b98387b7362",
+        "S": "5fa567fa547a36de550321be4687134aa68ede3310e5c29bd72e5b72ffc5dfa4",
+        "G": "6f01bed9383474a06a864e312e6a824c4e1c3deff45b6d7e8f6d5a24c4df2174",
+        "R": "67055c21f3c576b4023c88f8e4c963d0b6a044e4876f4ae5ca09571f7f211a9d",
+        "A": "d139ba4328f2f3c3cb607483a54c15ec7005c637f20022ee48c7143a902e38e8"
+      }
+    },
+    {
+      "id": "fab_sgmkajak",
+      "name": "Clover_Patches_on_Grass_sgmkajak_8K_BaseColor.jpg",
+      "library": "Quixel Fab recovered",
+      "inputHashes": {
+        "D": "ebea538ea2c78eb5524f1ed1c9c2688264cf5e42c0f72a62a31ba38735e8a10b",
+        "N": "11fb8ec845bd97e2a98378be61f099c350c201be50dce3815e42b68c24067f4f",
+        "S": "6e47685d60c7e2ca7d36aa702f891972b85e8213bfa908be95372522cca0b957",
+        "G": "9cd5fc582ee044ff37f1b097a9d31e5c4aa02333d85b60d14da39f3eff1e33f1",
+        "R": "66afaf38681155b7ffa3dc9dd3e9f01ad5004958bf3999af71fba5cb829a1770",
+        "A": "3dcafec9cc199bb06901b554a9bdbf560178aa9d134f4a1f87e18a375c9aa380"
+      }
+    },
+    {
+      "id": "local_falling_water_v5",
+      "name": "FE darkflat3 vertical flowing-water composite",
+      "library": "Local source material composite",
+      "inputHashes": {
+        "D": "00e1fb662aefdf79a8a2a931a70c099f0990077cd776bdcd295927e9f1aa1a8d",
+        "N": "a133b1119db850776e4606a02f11ddd3e9fa1907e982c937cf08eddb085264d9",
+        "S": "8c9b4d433cc8f3e9f1531d411284f23084318ba6bfacb340537e253b68dde608"
+      }
+    },
+    {
+      "id": "canopy_jacaranda_v6",
+      "name": "Jacaranda forest canopy geometry/leaf bake",
+      "library": "Local source material composite",
+      "inputHashes": {
+        "D": "d08fede17eecfa10ced52d48f0b5c88da33ae7c209585d9c6a1d733825611aa9",
+        "N": "0f82a1f369c7ab58a08520d48572ee364c8fcce803b162580d87e4edb1c0590a",
+        "S": "64221a3c5d411e3f4dbbb6b352524a89945f194784758a58a2aa8857d88b77e7",
+        "R": "7de697e48cf4cd5dbb97efb86b5a8f06e1fc91621a7caa8c54e534a994275a9d"
+      }
+    },
+    {
+      "id": "fab_uifndiulw",
+      "name": "Beach_Gravel_With_Pebbles_uifndiulw_8K_BaseColor.jpg",
+      "library": "Quixel Fab recovered",
+      "inputHashes": {
+        "D": "5a9a8a515fef54501699f1a5df68df6b685921413ca6b447fb7407100fad53f7",
+        "N": "49f516ebad4ff8cc2f934f87a67163d4d1a8eca9368336b92a4aba4fea02cde5",
+        "S": "fe641d1bf5e19467ea4b7bc9b67d8b10c8701765ea0de5ad0b5d6341eef08046",
+        "G": "192beb18e6df65fcb51a2a875dfab728d033082702addd7a708b526921952b63",
+        "R": "dca6c30e5fc34e7725889e686864c759f9adc971505defe1552cefd3d579dfb3",
+        "A": "51d8f22f1296cafe54bf8fbb80ca4240587adb19fdf6ca5f15e88fc9e01f9d2e"
+      }
+    },
+    {
+      "id": "external_water002_v5",
+      "name": "Katsukagi Water 002 supplied wave material",
+      "library": "3DTextures.me CC0",
+      "inputHashes": {
+        "D": "43ff30cebd9b2d2dac943096cc70891c44d21b11c8afec29b2ff1bee14fa88fe",
+        "N": "342e85bb2875e45244dae7ae60c10c12c2b7495f177cd3639310596a18a45dd5",
+        "R": "bf0791ca2825e7a5c388122b16c9c926c14521850a34c8e94e7a2f41dfa3a7af",
+        "A": "0faa8ed942b8fa55acec02fafc24b7302d8029f954590c1576151e7ec5889755"
+      }
+    }
+  ]
+}

@@ -154,6 +154,2174 @@
           "10": "crhd_moon_mn66sa0_s.dds"
         },
         "fallback": "crhd_moon_mn00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "black.dds",
+        "tiles": {
+          "0": "crhd_moon_mn00sa0_e.dds",
+          "1": "crhd_moon_mn00sc0_e.dds",
+          "2": "crhd_moon_mn03ca0_e.dds",
+          "3": "crhd_moon_mn03da0_e.dds",
+          "4": "crhd_moon_mn04ca0_e.dds",
+          "5": "crhd_moon_mn04da0_e.dds",
+          "6": "crhd_moon_mn33sa0_e.dds",
+          "7": "crhd_moon_mn44sa0_e.dds",
+          "8": "crhd_moon_mn44sb0_e.dds",
+          "9": "crhd_moon_mn55sa0_e.dds",
+          "10": "crhd_moon_mn66sa0_e.dds"
+        },
+        "fallback": "crhd_moon_mn00sa0_e.dds"
+      }
+    },
+    "VE_DETAIL_ATLAS": {
+      "sliceCount": 13,
+      "releaseSourceTextures": true,
+      "diffuseResource": "venus_atlas_d.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.5,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.75,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.0,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.25,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.5,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 10
+        },
+        {
+          "rect": [
+            0.75,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 11
+        },
+        {
+          "rect": [
+            0.0,
+            0.75,
+            0.25,
+            0.25
+          ],
+          "slice": 12
+        }
+      ],
+      "tiles": {
+        "0": "crhd_venus_ve00sa0_d.dds",
+        "1": "crhd_venus_ve01ca0_d.dds",
+        "2": "crhd_venus_ve01da0_d.dds",
+        "3": "crhd_venus_ve02ca0_d.dds",
+        "4": "crhd_venus_ve02cb0_d.dds",
+        "5": "crhd_venus_ve02da0_d.dds",
+        "6": "crhd_venus_ve03ca0_d.dds",
+        "7": "crhd_venus_ve03da0_d.dds",
+        "8": "crhd_venus_ve11sa0_d.dds",
+        "9": "crhd_venus_ve22sa0_d.dds",
+        "10": "crhd_venus_ve22sb0_d.dds",
+        "11": "crhd_venus_ve33sa0_d.dds",
+        "12": "crhd_venus_ve44sa0_d.dds"
+      },
+      "fallback": "crhd_venus_ve00sa0_d.dds",
+      "normal": {
+        "sourceResource": "venus_atlas_n.dds",
+        "tiles": {
+          "0": "crhd_venus_ve00sa0_n.dds",
+          "1": "crhd_venus_ve01ca0_n.dds",
+          "2": "crhd_venus_ve01da0_n.dds",
+          "3": "crhd_venus_ve02ca0_n.dds",
+          "4": "crhd_venus_ve02cb0_n.dds",
+          "5": "crhd_venus_ve02da0_n.dds",
+          "6": "crhd_venus_ve03ca0_n.dds",
+          "7": "crhd_venus_ve03da0_n.dds",
+          "8": "crhd_venus_ve11sa0_n.dds",
+          "9": "crhd_venus_ve22sa0_n.dds",
+          "10": "crhd_venus_ve22sb0_n.dds",
+          "11": "crhd_venus_ve33sa0_n.dds",
+          "12": "crhd_venus_ve44sa0_n.dds"
+        },
+        "fallback": "crhd_venus_ve00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "venus_atlas_s.dds",
+        "tiles": {
+          "0": "crhd_venus_ve00sa0_s.dds",
+          "1": "crhd_venus_ve01ca0_s.dds",
+          "2": "crhd_venus_ve01da0_s.dds",
+          "3": "crhd_venus_ve02ca0_s.dds",
+          "4": "crhd_venus_ve02cb0_s.dds",
+          "5": "crhd_venus_ve02da0_s.dds",
+          "6": "crhd_venus_ve03ca0_s.dds",
+          "7": "crhd_venus_ve03da0_s.dds",
+          "8": "crhd_venus_ve11sa0_s.dds",
+          "9": "crhd_venus_ve22sa0_s.dds",
+          "10": "crhd_venus_ve22sb0_s.dds",
+          "11": "crhd_venus_ve33sa0_s.dds",
+          "12": "crhd_venus_ve44sa0_s.dds"
+        },
+        "fallback": "crhd_venus_ve00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "venus_atlas_e.dds",
+        "tiles": {
+          "0": "crhd_venus_ve00sa0_e.dds",
+          "1": "crhd_venus_ve01ca0_e.dds",
+          "2": "crhd_venus_ve01da0_e.dds",
+          "3": "crhd_venus_ve02ca0_e.dds",
+          "4": "crhd_venus_ve02cb0_e.dds",
+          "5": "crhd_venus_ve02da0_e.dds",
+          "6": "crhd_venus_ve03ca0_e.dds",
+          "7": "crhd_venus_ve03da0_e.dds",
+          "8": "crhd_venus_ve11sa0_e.dds",
+          "9": "crhd_venus_ve22sa0_e.dds",
+          "10": "crhd_venus_ve22sb0_e.dds",
+          "11": "crhd_venus_ve33sa0_e.dds",
+          "12": "crhd_venus_ve44sa0_e.dds"
+        },
+        "fallback": "crhd_venus_ve00sa0_e.dds"
+      }
+    },
+    "MA_DETAIL_ATLAS": {
+      "sliceCount": 18,
+      "releaseSourceTextures": true,
+      "diffuseResource": "mars_atlas_d.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.125,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.375,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.625,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.875,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.0,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.125,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.25,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.375,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.5,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 10
+        },
+        {
+          "rect": [
+            0.625,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 11
+        },
+        {
+          "rect": [
+            0.75,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 12
+        },
+        {
+          "rect": [
+            0.875,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 13
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 14
+        },
+        {
+          "rect": [
+            0.125,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 15
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 16
+        },
+        {
+          "rect": [
+            0.375,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 17
+        }
+      ],
+      "tiles": {
+        "0": "crhd_mars_ma00sa0_d.dds",
+        "1": "crhd_mars_ma00sb0_d.dds",
+        "2": "crhd_mars_ma00sc0_d.dds",
+        "3": "crhd_mars_ma01ca0_d.dds",
+        "4": "crhd_mars_ma01da0_d.dds",
+        "5": "crhd_mars_ma04ca0_d.dds",
+        "6": "crhd_mars_ma04cb0_d.dds",
+        "7": "crhd_mars_ma04da0_d.dds",
+        "8": "crhd_mars_ma11sa0_d.dds",
+        "9": "crhd_mars_ma11sb0_d.dds",
+        "10": "crhd_mars_ma11sc0_d.dds",
+        "11": "crhd_mars_ma13ca0_d.dds",
+        "12": "crhd_mars_ma13da0_d.dds",
+        "13": "crhd_mars_ma22sa0_d.dds",
+        "14": "crhd_mars_ma33sa0_d.dds",
+        "15": "crhd_mars_ma44sa0_d.dds",
+        "16": "crhd_mars_ma44sb0_d.dds",
+        "17": "crhd_mars_ma44sc0_d.dds"
+      },
+      "fallback": "crhd_mars_ma00sa0_d.dds",
+      "normal": {
+        "sourceResource": "mars_atlas_n.dds",
+        "tiles": {
+          "0": "crhd_mars_ma00sa0_n.dds",
+          "1": "crhd_mars_ma00sb0_n.dds",
+          "2": "crhd_mars_ma00sc0_n.dds",
+          "3": "crhd_mars_ma01ca0_n.dds",
+          "4": "crhd_mars_ma01da0_n.dds",
+          "5": "crhd_mars_ma04ca0_n.dds",
+          "6": "crhd_mars_ma04cb0_n.dds",
+          "7": "crhd_mars_ma04da0_n.dds",
+          "8": "crhd_mars_ma11sa0_n.dds",
+          "9": "crhd_mars_ma11sb0_n.dds",
+          "10": "crhd_mars_ma11sc0_n.dds",
+          "11": "crhd_mars_ma13ca0_n.dds",
+          "12": "crhd_mars_ma13da0_n.dds",
+          "13": "crhd_mars_ma22sa0_n.dds",
+          "14": "crhd_mars_ma33sa0_n.dds",
+          "15": "crhd_mars_ma44sa0_n.dds",
+          "16": "crhd_mars_ma44sb0_n.dds",
+          "17": "crhd_mars_ma44sc0_n.dds"
+        },
+        "fallback": "crhd_mars_ma00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "mars_atlas_s.dds",
+        "tiles": {
+          "0": "crhd_mars_ma00sa0_s.dds",
+          "1": "crhd_mars_ma00sb0_s.dds",
+          "2": "crhd_mars_ma00sc0_s.dds",
+          "3": "crhd_mars_ma01ca0_s.dds",
+          "4": "crhd_mars_ma01da0_s.dds",
+          "5": "crhd_mars_ma04ca0_s.dds",
+          "6": "crhd_mars_ma04cb0_s.dds",
+          "7": "crhd_mars_ma04da0_s.dds",
+          "8": "crhd_mars_ma11sa0_s.dds",
+          "9": "crhd_mars_ma11sb0_s.dds",
+          "10": "crhd_mars_ma11sc0_s.dds",
+          "11": "crhd_mars_ma13ca0_s.dds",
+          "12": "crhd_mars_ma13da0_s.dds",
+          "13": "crhd_mars_ma22sa0_s.dds",
+          "14": "crhd_mars_ma33sa0_s.dds",
+          "15": "crhd_mars_ma44sa0_s.dds",
+          "16": "crhd_mars_ma44sb0_s.dds",
+          "17": "crhd_mars_ma44sc0_s.dds"
+        },
+        "fallback": "crhd_mars_ma00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "black.dds",
+        "tiles": {
+          "0": "crhd_mars_ma00sa0_e.dds",
+          "1": "crhd_mars_ma00sb0_e.dds",
+          "2": "crhd_mars_ma00sc0_e.dds",
+          "3": "crhd_mars_ma01ca0_e.dds",
+          "4": "crhd_mars_ma01da0_e.dds",
+          "5": "crhd_mars_ma04ca0_e.dds",
+          "6": "crhd_mars_ma04cb0_e.dds",
+          "7": "crhd_mars_ma04da0_e.dds",
+          "8": "crhd_mars_ma11sa0_e.dds",
+          "9": "crhd_mars_ma11sb0_e.dds",
+          "10": "crhd_mars_ma11sc0_e.dds",
+          "11": "crhd_mars_ma13ca0_e.dds",
+          "12": "crhd_mars_ma13da0_e.dds",
+          "13": "crhd_mars_ma22sa0_e.dds",
+          "14": "crhd_mars_ma33sa0_e.dds",
+          "15": "crhd_mars_ma44sa0_e.dds",
+          "16": "crhd_mars_ma44sb0_e.dds",
+          "17": "crhd_mars_ma44sc0_e.dds"
+        },
+        "fallback": "crhd_mars_ma00sa0_e.dds"
+      }
+    },
+    "IO_DETAIL_ATLAS": {
+      "sliceCount": 19,
+      "releaseSourceTextures": true,
+      "diffuseResource": "io_atlas_d.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.125,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.375,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.625,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.875,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.0,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.125,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.25,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.375,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.5,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.625,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.75,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 10
+        },
+        {
+          "rect": [
+            0.875,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 11
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 12
+        },
+        {
+          "rect": [
+            0.125,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 13
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 14
+        },
+        {
+          "rect": [
+            0.375,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 15
+        },
+        {
+          "rect": [
+            0.5,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 16
+        },
+        {
+          "rect": [
+            0.625,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 17
+        },
+        {
+          "rect": [
+            0.75,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 18
+        }
+      ],
+      "tiles": {
+        "0": "crhd_io_io00sa0_d.dds",
+        "1": "crhd_io_io00sb0_d.dds",
+        "2": "crhd_io_io00sc0_d.dds",
+        "3": "crhd_io_io01ca0_d.dds",
+        "4": "crhd_io_io01da0_d.dds",
+        "5": "crhd_io_io03ca0_d.dds",
+        "6": "crhd_io_io03da0_d.dds",
+        "7": "crhd_io_io11sa0_d.dds",
+        "8": "crhd_io_io33sa0_d.dds",
+        "9": "crhd_io_io33sb0_d.dds",
+        "10": "crhd_io_io34ca0_d.dds",
+        "11": "crhd_io_io34da0_d.dds",
+        "12": "crhd_io_io44sa0_d.dds",
+        "13": "crhd_io_io45ca0_d.dds",
+        "14": "crhd_io_io45cb0_d.dds",
+        "15": "crhd_io_io45da0_d.dds",
+        "16": "crhd_io_io55sa0_d.dds",
+        "17": "crhd_io_io55sb0_d.dds",
+        "18": "crhd_io_io55sc0_d.dds"
+      },
+      "fallback": "crhd_io_io00sa0_d.dds",
+      "normal": {
+        "sourceResource": "io_atlas_n.dds",
+        "tiles": {
+          "0": "crhd_io_io00sa0_n.dds",
+          "1": "crhd_io_io00sb0_n.dds",
+          "2": "crhd_io_io00sc0_n.dds",
+          "3": "crhd_io_io01ca0_n.dds",
+          "4": "crhd_io_io01da0_n.dds",
+          "5": "crhd_io_io03ca0_n.dds",
+          "6": "crhd_io_io03da0_n.dds",
+          "7": "crhd_io_io11sa0_n.dds",
+          "8": "crhd_io_io33sa0_n.dds",
+          "9": "crhd_io_io33sb0_n.dds",
+          "10": "crhd_io_io34ca0_n.dds",
+          "11": "crhd_io_io34da0_n.dds",
+          "12": "crhd_io_io44sa0_n.dds",
+          "13": "crhd_io_io45ca0_n.dds",
+          "14": "crhd_io_io45cb0_n.dds",
+          "15": "crhd_io_io45da0_n.dds",
+          "16": "crhd_io_io55sa0_n.dds",
+          "17": "crhd_io_io55sb0_n.dds",
+          "18": "crhd_io_io55sc0_n.dds"
+        },
+        "fallback": "crhd_io_io00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "io_atlas_s.dds",
+        "tiles": {
+          "0": "crhd_io_io00sa0_s.dds",
+          "1": "crhd_io_io00sb0_s.dds",
+          "2": "crhd_io_io00sc0_s.dds",
+          "3": "crhd_io_io01ca0_s.dds",
+          "4": "crhd_io_io01da0_s.dds",
+          "5": "crhd_io_io03ca0_s.dds",
+          "6": "crhd_io_io03da0_s.dds",
+          "7": "crhd_io_io11sa0_s.dds",
+          "8": "crhd_io_io33sa0_s.dds",
+          "9": "crhd_io_io33sb0_s.dds",
+          "10": "crhd_io_io34ca0_s.dds",
+          "11": "crhd_io_io34da0_s.dds",
+          "12": "crhd_io_io44sa0_s.dds",
+          "13": "crhd_io_io45ca0_s.dds",
+          "14": "crhd_io_io45cb0_s.dds",
+          "15": "crhd_io_io45da0_s.dds",
+          "16": "crhd_io_io55sa0_s.dds",
+          "17": "crhd_io_io55sb0_s.dds",
+          "18": "crhd_io_io55sc0_s.dds"
+        },
+        "fallback": "crhd_io_io00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "io_atlas_e.dds",
+        "tiles": {
+          "0": "crhd_io_io00sa0_e.dds",
+          "1": "crhd_io_io00sb0_e.dds",
+          "2": "crhd_io_io00sc0_e.dds",
+          "3": "crhd_io_io01ca0_e.dds",
+          "4": "crhd_io_io01da0_e.dds",
+          "5": "crhd_io_io03ca0_e.dds",
+          "6": "crhd_io_io03da0_e.dds",
+          "7": "crhd_io_io11sa0_e.dds",
+          "8": "crhd_io_io33sa0_e.dds",
+          "9": "crhd_io_io33sb0_e.dds",
+          "10": "crhd_io_io34ca0_e.dds",
+          "11": "crhd_io_io34da0_e.dds",
+          "12": "crhd_io_io44sa0_e.dds",
+          "13": "crhd_io_io45ca0_e.dds",
+          "14": "crhd_io_io45cb0_e.dds",
+          "15": "crhd_io_io45da0_e.dds",
+          "16": "crhd_io_io55sa0_e.dds",
+          "17": "crhd_io_io55sb0_e.dds",
+          "18": "crhd_io_io55sc0_e.dds"
+        },
+        "fallback": "crhd_io_io00sa0_e.dds"
+      }
+    },
+    "EU_DETAIL_ATLAS": {
+      "sliceCount": 16,
+      "releaseSourceTextures": true,
+      "diffuseResource": "europa_atlas_d.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.5,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.75,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.0,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.25,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.5,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 10
+        },
+        {
+          "rect": [
+            0.75,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 11
+        },
+        {
+          "rect": [
+            0.0,
+            0.75,
+            0.25,
+            0.25
+          ],
+          "slice": 12
+        },
+        {
+          "rect": [
+            0.25,
+            0.75,
+            0.25,
+            0.25
+          ],
+          "slice": 13
+        },
+        {
+          "rect": [
+            0.5,
+            0.75,
+            0.25,
+            0.25
+          ],
+          "slice": 14
+        },
+        {
+          "rect": [
+            0.75,
+            0.75,
+            0.25,
+            0.25
+          ],
+          "slice": 15
+        }
+      ],
+      "tiles": {
+        "0": "crhd_europa_eu00sa0_d.dds",
+        "1": "crhd_europa_eu00sb0_d.dds",
+        "2": "crhd_europa_eu01ca0_d.dds",
+        "3": "crhd_europa_eu01da0_d.dds",
+        "4": "crhd_europa_eu04ca0_d.dds",
+        "5": "crhd_europa_eu04da0_d.dds",
+        "6": "crhd_europa_eu11sa0_d.dds",
+        "7": "crhd_europa_eu12ca0_d.dds",
+        "8": "crhd_europa_eu12da0_d.dds",
+        "9": "crhd_europa_eu22sa0_d.dds",
+        "10": "crhd_europa_eu23ca0_d.dds",
+        "11": "crhd_europa_eu23da0_d.dds",
+        "12": "crhd_europa_eu33sa0_d.dds",
+        "13": "crhd_europa_eu44sa0_d.dds",
+        "14": "crhd_europa_eu44sb0_d.dds",
+        "15": "crhd_europa_eu44sc0_d.dds"
+      },
+      "fallback": "crhd_europa_eu00sa0_d.dds",
+      "normal": {
+        "sourceResource": "europa_atlas_n.dds",
+        "tiles": {
+          "0": "crhd_europa_eu00sa0_n.dds",
+          "1": "crhd_europa_eu00sb0_n.dds",
+          "2": "crhd_europa_eu01ca0_n.dds",
+          "3": "crhd_europa_eu01da0_n.dds",
+          "4": "crhd_europa_eu04ca0_n.dds",
+          "5": "crhd_europa_eu04da0_n.dds",
+          "6": "crhd_europa_eu11sa0_n.dds",
+          "7": "crhd_europa_eu12ca0_n.dds",
+          "8": "crhd_europa_eu12da0_n.dds",
+          "9": "crhd_europa_eu22sa0_n.dds",
+          "10": "crhd_europa_eu23ca0_n.dds",
+          "11": "crhd_europa_eu23da0_n.dds",
+          "12": "crhd_europa_eu33sa0_n.dds",
+          "13": "crhd_europa_eu44sa0_n.dds",
+          "14": "crhd_europa_eu44sb0_n.dds",
+          "15": "crhd_europa_eu44sc0_n.dds"
+        },
+        "fallback": "crhd_europa_eu00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "europa_atlas_s.dds",
+        "tiles": {
+          "0": "crhd_europa_eu00sa0_s.dds",
+          "1": "crhd_europa_eu00sb0_s.dds",
+          "2": "crhd_europa_eu01ca0_s.dds",
+          "3": "crhd_europa_eu01da0_s.dds",
+          "4": "crhd_europa_eu04ca0_s.dds",
+          "5": "crhd_europa_eu04da0_s.dds",
+          "6": "crhd_europa_eu11sa0_s.dds",
+          "7": "crhd_europa_eu12ca0_s.dds",
+          "8": "crhd_europa_eu12da0_s.dds",
+          "9": "crhd_europa_eu22sa0_s.dds",
+          "10": "crhd_europa_eu23ca0_s.dds",
+          "11": "crhd_europa_eu23da0_s.dds",
+          "12": "crhd_europa_eu33sa0_s.dds",
+          "13": "crhd_europa_eu44sa0_s.dds",
+          "14": "crhd_europa_eu44sb0_s.dds",
+          "15": "crhd_europa_eu44sc0_s.dds"
+        },
+        "fallback": "crhd_europa_eu00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "europa_atlas_e.dds",
+        "tiles": {
+          "0": "crhd_europa_eu00sa0_e.dds",
+          "1": "crhd_europa_eu00sb0_e.dds",
+          "2": "crhd_europa_eu01ca0_e.dds",
+          "3": "crhd_europa_eu01da0_e.dds",
+          "4": "crhd_europa_eu04ca0_e.dds",
+          "5": "crhd_europa_eu04da0_e.dds",
+          "6": "crhd_europa_eu11sa0_e.dds",
+          "7": "crhd_europa_eu12ca0_e.dds",
+          "8": "crhd_europa_eu12da0_e.dds",
+          "9": "crhd_europa_eu22sa0_e.dds",
+          "10": "crhd_europa_eu23ca0_e.dds",
+          "11": "crhd_europa_eu23da0_e.dds",
+          "12": "crhd_europa_eu33sa0_e.dds",
+          "13": "crhd_europa_eu44sa0_e.dds",
+          "14": "crhd_europa_eu44sb0_e.dds",
+          "15": "crhd_europa_eu44sc0_e.dds"
+        },
+        "fallback": "crhd_europa_eu00sa0_e.dds"
+      }
+    },
+    "TI_DETAIL_ATLAS": {
+      "sliceCount": 13,
+      "releaseSourceTextures": true,
+      "diffuseResource": "titan_atlas_d.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.5,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.75,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.0,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.25,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.5,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 10
+        },
+        {
+          "rect": [
+            0.75,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 11
+        },
+        {
+          "rect": [
+            0.0,
+            0.75,
+            0.25,
+            0.25
+          ],
+          "slice": 12
+        }
+      ],
+      "tiles": {
+        "0": "crhd_titan_ti00sa0_d.dds",
+        "1": "crhd_titan_ti00sb0_d.dds",
+        "2": "crhd_titan_ti01ca0_d.dds",
+        "3": "crhd_titan_ti01cb0_d.dds",
+        "4": "crhd_titan_ti01cc0_d.dds",
+        "5": "crhd_titan_ti01da0_d.dds",
+        "6": "crhd_titan_ti03ca0_d.dds",
+        "7": "crhd_titan_ti03da0_d.dds",
+        "8": "crhd_titan_ti03db0_d.dds",
+        "9": "crhd_titan_ti11sa0_d.dds",
+        "10": "crhd_titan_ti11sb0_d.dds",
+        "11": "crhd_titan_ti33sa0_d.dds",
+        "12": "crhd_titan_ti33sb0_d.dds"
+      },
+      "fallback": "crhd_titan_ti00sa0_d.dds",
+      "normal": {
+        "sourceResource": "titan_atlas_n.dds",
+        "tiles": {
+          "0": "crhd_titan_ti00sa0_n.dds",
+          "1": "crhd_titan_ti00sb0_n.dds",
+          "2": "crhd_titan_ti01ca0_n.dds",
+          "3": "crhd_titan_ti01cb0_n.dds",
+          "4": "crhd_titan_ti01cc0_n.dds",
+          "5": "crhd_titan_ti01da0_n.dds",
+          "6": "crhd_titan_ti03ca0_n.dds",
+          "7": "crhd_titan_ti03da0_n.dds",
+          "8": "crhd_titan_ti03db0_n.dds",
+          "9": "crhd_titan_ti11sa0_n.dds",
+          "10": "crhd_titan_ti11sb0_n.dds",
+          "11": "crhd_titan_ti33sa0_n.dds",
+          "12": "crhd_titan_ti33sb0_n.dds"
+        },
+        "fallback": "crhd_titan_ti00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "titan_atlas_s.dds",
+        "tiles": {
+          "0": "crhd_titan_ti00sa0_s.dds",
+          "1": "crhd_titan_ti00sb0_s.dds",
+          "2": "crhd_titan_ti01ca0_s.dds",
+          "3": "crhd_titan_ti01cb0_s.dds",
+          "4": "crhd_titan_ti01cc0_s.dds",
+          "5": "crhd_titan_ti01da0_s.dds",
+          "6": "crhd_titan_ti03ca0_s.dds",
+          "7": "crhd_titan_ti03da0_s.dds",
+          "8": "crhd_titan_ti03db0_s.dds",
+          "9": "crhd_titan_ti11sa0_s.dds",
+          "10": "crhd_titan_ti11sb0_s.dds",
+          "11": "crhd_titan_ti33sa0_s.dds",
+          "12": "crhd_titan_ti33sb0_s.dds"
+        },
+        "fallback": "crhd_titan_ti00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "titan_atlas_e.dds",
+        "tiles": {
+          "0": "crhd_titan_ti00sa0_e.dds",
+          "1": "crhd_titan_ti00sb0_e.dds",
+          "2": "crhd_titan_ti01ca0_e.dds",
+          "3": "crhd_titan_ti01cb0_e.dds",
+          "4": "crhd_titan_ti01cc0_e.dds",
+          "5": "crhd_titan_ti01da0_e.dds",
+          "6": "crhd_titan_ti03ca0_e.dds",
+          "7": "crhd_titan_ti03da0_e.dds",
+          "8": "crhd_titan_ti03db0_e.dds",
+          "9": "crhd_titan_ti11sa0_e.dds",
+          "10": "crhd_titan_ti11sb0_e.dds",
+          "11": "crhd_titan_ti33sa0_e.dds",
+          "12": "crhd_titan_ti33sb0_e.dds"
+        },
+        "fallback": "crhd_titan_ti00sa0_e.dds"
+      }
+    },
+    "AC_DETAIL_ATLAS": {
+      "sliceCount": 19,
+      "releaseSourceTextures": true,
+      "diffuseResource": "achilles_atlas_d.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.125,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.375,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.625,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.875,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 10
+        },
+        {
+          "rect": [
+            0.0,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 11
+        },
+        {
+          "rect": [
+            0.125,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.25,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 12
+        },
+        {
+          "rect": [
+            0.375,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 13
+        },
+        {
+          "rect": [
+            0.5,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 14
+        },
+        {
+          "rect": [
+            0.625,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 15
+        },
+        {
+          "rect": [
+            0.75,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 16
+        },
+        {
+          "rect": [
+            0.875,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.125,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.375,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.5,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 17
+        },
+        {
+          "rect": [
+            0.625,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 18
+        }
+      ],
+      "tiles": {
+        "0": "crhd_achilles_ac00sa0_d.dds",
+        "1": "crhd_achilles_ac00sb0_d.dds",
+        "2": "crhd_achilles_ac00sc0_d.dds",
+        "3": "crhd_achilles_ac00sd0_d.dds",
+        "4": "crhd_achilles_ac00se0_d.dds",
+        "5": "crhd_achilles_ac00sf0_d.dds",
+        "6": "crhd_achilles_ac00sg0_d.dds",
+        "7": "crhd_achilles_ac01ca0_d.dds",
+        "8": "crhd_achilles_ac01da0_d.dds",
+        "9": "crhd_achilles_ac05ca0_d.dds",
+        "10": "crhd_achilles_ac05cb0_d.dds",
+        "11": "crhd_achilles_ac05cc0_d.dds",
+        "12": "crhd_achilles_ac05da0_d.dds",
+        "13": "crhd_achilles_ac11sa0_d.dds",
+        "14": "crhd_achilles_ac12ca0_d.dds",
+        "15": "crhd_achilles_ac12da0_d.dds",
+        "16": "crhd_achilles_ac22sa0_d.dds",
+        "17": "crhd_achilles_ac55sa0_d.dds",
+        "18": "crhd_achilles_ac55sb0_d.dds"
+      },
+      "fallback": "crhd_achilles_ac00sa0_d.dds",
+      "normal": {
+        "sourceResource": "achilles_atlas_n.dds",
+        "tiles": {
+          "0": "crhd_achilles_ac00sa0_n.dds",
+          "1": "crhd_achilles_ac00sb0_n.dds",
+          "2": "crhd_achilles_ac00sc0_n.dds",
+          "3": "crhd_achilles_ac00sd0_n.dds",
+          "4": "crhd_achilles_ac00se0_n.dds",
+          "5": "crhd_achilles_ac00sf0_n.dds",
+          "6": "crhd_achilles_ac00sg0_n.dds",
+          "7": "crhd_achilles_ac01ca0_n.dds",
+          "8": "crhd_achilles_ac01da0_n.dds",
+          "9": "crhd_achilles_ac05ca0_n.dds",
+          "10": "crhd_achilles_ac05cb0_n.dds",
+          "11": "crhd_achilles_ac05cc0_n.dds",
+          "12": "crhd_achilles_ac05da0_n.dds",
+          "13": "crhd_achilles_ac11sa0_n.dds",
+          "14": "crhd_achilles_ac12ca0_n.dds",
+          "15": "crhd_achilles_ac12da0_n.dds",
+          "16": "crhd_achilles_ac22sa0_n.dds",
+          "17": "crhd_achilles_ac55sa0_n.dds",
+          "18": "crhd_achilles_ac55sb0_n.dds"
+        },
+        "fallback": "crhd_achilles_ac00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "achilles_atlas_s.dds",
+        "tiles": {
+          "0": "crhd_achilles_ac00sa0_s.dds",
+          "1": "crhd_achilles_ac00sb0_s.dds",
+          "2": "crhd_achilles_ac00sc0_s.dds",
+          "3": "crhd_achilles_ac00sd0_s.dds",
+          "4": "crhd_achilles_ac00se0_s.dds",
+          "5": "crhd_achilles_ac00sf0_s.dds",
+          "6": "crhd_achilles_ac00sg0_s.dds",
+          "7": "crhd_achilles_ac01ca0_s.dds",
+          "8": "crhd_achilles_ac01da0_s.dds",
+          "9": "crhd_achilles_ac05ca0_s.dds",
+          "10": "crhd_achilles_ac05cb0_s.dds",
+          "11": "crhd_achilles_ac05cc0_s.dds",
+          "12": "crhd_achilles_ac05da0_s.dds",
+          "13": "crhd_achilles_ac11sa0_s.dds",
+          "14": "crhd_achilles_ac12ca0_s.dds",
+          "15": "crhd_achilles_ac12da0_s.dds",
+          "16": "crhd_achilles_ac22sa0_s.dds",
+          "17": "crhd_achilles_ac55sa0_s.dds",
+          "18": "crhd_achilles_ac55sb0_s.dds"
+        },
+        "fallback": "crhd_achilles_ac00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "black.dds",
+        "tiles": {
+          "0": "crhd_achilles_ac00sa0_e.dds",
+          "1": "crhd_achilles_ac00sb0_e.dds",
+          "2": "crhd_achilles_ac00sc0_e.dds",
+          "3": "crhd_achilles_ac00sd0_e.dds",
+          "4": "crhd_achilles_ac00se0_e.dds",
+          "5": "crhd_achilles_ac00sf0_e.dds",
+          "6": "crhd_achilles_ac00sg0_e.dds",
+          "7": "crhd_achilles_ac01ca0_e.dds",
+          "8": "crhd_achilles_ac01da0_e.dds",
+          "9": "crhd_achilles_ac05ca0_e.dds",
+          "10": "crhd_achilles_ac05cb0_e.dds",
+          "11": "crhd_achilles_ac05cc0_e.dds",
+          "12": "crhd_achilles_ac05da0_e.dds",
+          "13": "crhd_achilles_ac11sa0_e.dds",
+          "14": "crhd_achilles_ac12ca0_e.dds",
+          "15": "crhd_achilles_ac12da0_e.dds",
+          "16": "crhd_achilles_ac22sa0_e.dds",
+          "17": "crhd_achilles_ac55sa0_e.dds",
+          "18": "crhd_achilles_ac55sb0_e.dds"
+        },
+        "fallback": "crhd_achilles_ac00sa0_e.dds"
+      }
+    },
+    "GA_DETAIL_ATLAS": {
+      "sliceCount": 22,
+      "releaseSourceTextures": true,
+      "diffuseResource": "GANYMEDE_ATLAS_D.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.125,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.375,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.625,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.825,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.0,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.125,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.25,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.375,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 11
+        },
+        {
+          "rect": [
+            0.5,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 10
+        },
+        {
+          "rect": [
+            0.625,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 12
+        },
+        {
+          "rect": [
+            0.75,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 13
+        },
+        {
+          "rect": [
+            0.825,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 14
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 15
+        },
+        {
+          "rect": [
+            0.125,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 16
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 17
+        },
+        {
+          "rect": [
+            0.375,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 18
+        },
+        {
+          "rect": [
+            0.5,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 19
+        },
+        {
+          "rect": [
+            0.625,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 20
+        },
+        {
+          "rect": [
+            0.75,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 21
+        }
+      ],
+      "tiles": {
+        "0": "crhd_ganymede_ga00sa0_d.dds",
+        "1": "crhd_ganymede_ga00sb0_d.dds",
+        "2": "crhd_ganymede_ga00sc0_d.dds",
+        "3": "crhd_ganymede_ga01ca0_d.dds",
+        "4": "crhd_ganymede_ga01da0_d.dds",
+        "5": "crhd_ganymede_ga04ca0_d.dds",
+        "6": "crhd_ganymede_ga04da0_d.dds",
+        "7": "crhd_ganymede_ga11sa0_d.dds",
+        "8": "crhd_ganymede_ga11sb0_d.dds",
+        "9": "crhd_ganymede_ga12ca0_d.dds",
+        "10": "crhd_ganymede_ga12da0_d.dds",
+        "11": "crhd_ganymede_ga14ca0_d.dds",
+        "12": "crhd_ganymede_ga14da0_d.dds",
+        "13": "crhd_ganymede_ga22sa0_d.dds",
+        "14": "crhd_ganymede_ga22sb0_d.dds",
+        "15": "crhd_ganymede_ga22sc0_d.dds",
+        "16": "crhd_ganymede_ga24ca0_d.dds",
+        "17": "crhd_ganymede_ga24da0_d.dds",
+        "18": "crhd_ganymede_ga33sa0_d.dds",
+        "19": "crhd_ganymede_ga33sb0_d.dds",
+        "20": "crhd_ganymede_ga44sa0_d.dds",
+        "21": "crhd_ganymede_ga44sb0_d.dds"
+      },
+      "fallback": "crhd_ganymede_ga00sa0_d.dds",
+      "normal": {
+        "sourceResource": "GANYMEDE_ATLAS_N.dds",
+        "tiles": {
+          "0": "crhd_ganymede_ga00sa0_n.dds",
+          "1": "crhd_ganymede_ga00sb0_n.dds",
+          "2": "crhd_ganymede_ga00sc0_n.dds",
+          "3": "crhd_ganymede_ga01ca0_n.dds",
+          "4": "crhd_ganymede_ga01da0_n.dds",
+          "5": "crhd_ganymede_ga04ca0_n.dds",
+          "6": "crhd_ganymede_ga04da0_n.dds",
+          "7": "crhd_ganymede_ga11sa0_n.dds",
+          "8": "crhd_ganymede_ga11sb0_n.dds",
+          "9": "crhd_ganymede_ga12ca0_n.dds",
+          "10": "crhd_ganymede_ga12da0_n.dds",
+          "11": "crhd_ganymede_ga14ca0_n.dds",
+          "12": "crhd_ganymede_ga14da0_n.dds",
+          "13": "crhd_ganymede_ga22sa0_n.dds",
+          "14": "crhd_ganymede_ga22sb0_n.dds",
+          "15": "crhd_ganymede_ga22sc0_n.dds",
+          "16": "crhd_ganymede_ga24ca0_n.dds",
+          "17": "crhd_ganymede_ga24da0_n.dds",
+          "18": "crhd_ganymede_ga33sa0_n.dds",
+          "19": "crhd_ganymede_ga33sb0_n.dds",
+          "20": "crhd_ganymede_ga44sa0_n.dds",
+          "21": "crhd_ganymede_ga44sb0_n.dds"
+        },
+        "fallback": "crhd_ganymede_ga00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "GANYMEDE_ATLAS_S.dds",
+        "tiles": {
+          "0": "crhd_ganymede_ga00sa0_s.dds",
+          "1": "crhd_ganymede_ga00sb0_s.dds",
+          "2": "crhd_ganymede_ga00sc0_s.dds",
+          "3": "crhd_ganymede_ga01ca0_s.dds",
+          "4": "crhd_ganymede_ga01da0_s.dds",
+          "5": "crhd_ganymede_ga04ca0_s.dds",
+          "6": "crhd_ganymede_ga04da0_s.dds",
+          "7": "crhd_ganymede_ga11sa0_s.dds",
+          "8": "crhd_ganymede_ga11sb0_s.dds",
+          "9": "crhd_ganymede_ga12ca0_s.dds",
+          "10": "crhd_ganymede_ga12da0_s.dds",
+          "11": "crhd_ganymede_ga14ca0_s.dds",
+          "12": "crhd_ganymede_ga14da0_s.dds",
+          "13": "crhd_ganymede_ga22sa0_s.dds",
+          "14": "crhd_ganymede_ga22sb0_s.dds",
+          "15": "crhd_ganymede_ga22sc0_s.dds",
+          "16": "crhd_ganymede_ga24ca0_s.dds",
+          "17": "crhd_ganymede_ga24da0_s.dds",
+          "18": "crhd_ganymede_ga33sa0_s.dds",
+          "19": "crhd_ganymede_ga33sb0_s.dds",
+          "20": "crhd_ganymede_ga44sa0_s.dds",
+          "21": "crhd_ganymede_ga44sb0_s.dds"
+        },
+        "fallback": "crhd_ganymede_ga00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "black.dds",
+        "tiles": {
+          "0": "crhd_ganymede_ga00sa0_e.dds",
+          "1": "crhd_ganymede_ga00sb0_e.dds",
+          "2": "crhd_ganymede_ga00sc0_e.dds",
+          "3": "crhd_ganymede_ga01ca0_e.dds",
+          "4": "crhd_ganymede_ga01da0_e.dds",
+          "5": "crhd_ganymede_ga04ca0_e.dds",
+          "6": "crhd_ganymede_ga04da0_e.dds",
+          "7": "crhd_ganymede_ga11sa0_e.dds",
+          "8": "crhd_ganymede_ga11sb0_e.dds",
+          "9": "crhd_ganymede_ga12ca0_e.dds",
+          "10": "crhd_ganymede_ga12da0_e.dds",
+          "11": "crhd_ganymede_ga14ca0_e.dds",
+          "12": "crhd_ganymede_ga14da0_e.dds",
+          "13": "crhd_ganymede_ga22sa0_e.dds",
+          "14": "crhd_ganymede_ga22sb0_e.dds",
+          "15": "crhd_ganymede_ga22sc0_e.dds",
+          "16": "crhd_ganymede_ga24ca0_e.dds",
+          "17": "crhd_ganymede_ga24da0_e.dds",
+          "18": "crhd_ganymede_ga33sa0_e.dds",
+          "19": "crhd_ganymede_ga33sb0_e.dds",
+          "20": "crhd_ganymede_ga44sa0_e.dds",
+          "21": "crhd_ganymede_ga44sb0_e.dds"
+        },
+        "fallback": "crhd_ganymede_ga00sa0_e.dds"
+      }
+    },
+    "EL_DETAIL_ATLAS": {
+      "sliceCount": 20,
+      "releaseSourceTextures": true,
+      "diffuseResource": "ELYSIUM_ATLAS_D.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.125,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.375,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.625,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.825,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.0,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.125,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.25,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 11
+        },
+        {
+          "rect": [
+            0.375,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 12
+        },
+        {
+          "rect": [
+            0.5,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 13
+        },
+        {
+          "rect": [
+            0.625,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 14
+        },
+        {
+          "rect": [
+            0.75,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 15
+        },
+        {
+          "rect": [
+            0.825,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 16
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 17
+        },
+        {
+          "rect": [
+            0.125,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 18
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 19
+        },
+        {
+          "rect": [
+            0.375,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.5,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 10
+        }
+      ],
+      "tiles": {
+        "0": "crhd_elysium_el00sa0_d.dds",
+        "1": "crhd_elysium_el00sb0_d.dds",
+        "2": "crhd_elysium_el00sc0_d.dds",
+        "3": "crhd_elysium_el01ca0_d.dds",
+        "4": "crhd_elysium_el01da0_d.dds",
+        "5": "crhd_elysium_el02ca0_d.dds",
+        "6": "crhd_elysium_el02da0_d.dds",
+        "7": "crhd_elysium_el04ca0_d.dds",
+        "8": "crhd_elysium_el04da0_d.dds",
+        "9": "crhd_elysium_el04sa0_d.dds",
+        "10": "crhd_elysium_el04sb0_d.dds",
+        "11": "crhd_elysium_el11sa0_d.dds",
+        "12": "crhd_elysium_el11sb0_d.dds",
+        "13": "crhd_elysium_el11sc0_d.dds",
+        "14": "crhd_elysium_el12ca0_d.dds",
+        "15": "crhd_elysium_el12da0_d.dds",
+        "16": "crhd_elysium_el22sa0_d.dds",
+        "17": "crhd_elysium_el22sb0_d.dds",
+        "18": "crhd_elysium_el22sc0_d.dds",
+        "19": "crhd_elysium_el33sa0_d.dds"
+      },
+      "fallback": "crhd_elysium_el00sa0_d.dds",
+      "normal": {
+        "sourceResource": "ELYSIUM_ATLAS_N.dds",
+        "tiles": {
+          "0": "crhd_elysium_el00sa0_n.dds",
+          "1": "crhd_elysium_el00sb0_n.dds",
+          "2": "crhd_elysium_el00sc0_n.dds",
+          "3": "crhd_elysium_el01ca0_n.dds",
+          "4": "crhd_elysium_el01da0_n.dds",
+          "5": "crhd_elysium_el02ca0_n.dds",
+          "6": "crhd_elysium_el02da0_n.dds",
+          "7": "crhd_elysium_el04ca0_n.dds",
+          "8": "crhd_elysium_el04da0_n.dds",
+          "9": "crhd_elysium_el04sa0_n.dds",
+          "10": "crhd_elysium_el04sb0_n.dds",
+          "11": "crhd_elysium_el11sa0_n.dds",
+          "12": "crhd_elysium_el11sb0_n.dds",
+          "13": "crhd_elysium_el11sc0_n.dds",
+          "14": "crhd_elysium_el12ca0_n.dds",
+          "15": "crhd_elysium_el12da0_n.dds",
+          "16": "crhd_elysium_el22sa0_n.dds",
+          "17": "crhd_elysium_el22sb0_n.dds",
+          "18": "crhd_elysium_el22sc0_n.dds",
+          "19": "crhd_elysium_el33sa0_n.dds"
+        },
+        "fallback": "crhd_elysium_el00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "ELYSIUM_ATLAS_S.dds",
+        "tiles": {
+          "0": "crhd_elysium_el00sa0_s.dds",
+          "1": "crhd_elysium_el00sb0_s.dds",
+          "2": "crhd_elysium_el00sc0_s.dds",
+          "3": "crhd_elysium_el01ca0_s.dds",
+          "4": "crhd_elysium_el01da0_s.dds",
+          "5": "crhd_elysium_el02ca0_s.dds",
+          "6": "crhd_elysium_el02da0_s.dds",
+          "7": "crhd_elysium_el04ca0_s.dds",
+          "8": "crhd_elysium_el04da0_s.dds",
+          "9": "crhd_elysium_el04sa0_s.dds",
+          "10": "crhd_elysium_el04sb0_s.dds",
+          "11": "crhd_elysium_el11sa0_s.dds",
+          "12": "crhd_elysium_el11sb0_s.dds",
+          "13": "crhd_elysium_el11sc0_s.dds",
+          "14": "crhd_elysium_el12ca0_s.dds",
+          "15": "crhd_elysium_el12da0_s.dds",
+          "16": "crhd_elysium_el22sa0_s.dds",
+          "17": "crhd_elysium_el22sb0_s.dds",
+          "18": "crhd_elysium_el22sc0_s.dds",
+          "19": "crhd_elysium_el33sa0_s.dds"
+        },
+        "fallback": "crhd_elysium_el00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "black.dds",
+        "tiles": {
+          "0": "crhd_elysium_el00sa0_e.dds",
+          "1": "crhd_elysium_el00sb0_e.dds",
+          "2": "crhd_elysium_el00sc0_e.dds",
+          "3": "crhd_elysium_el01ca0_e.dds",
+          "4": "crhd_elysium_el01da0_e.dds",
+          "5": "crhd_elysium_el02ca0_e.dds",
+          "6": "crhd_elysium_el02da0_e.dds",
+          "7": "crhd_elysium_el04ca0_e.dds",
+          "8": "crhd_elysium_el04da0_e.dds",
+          "9": "crhd_elysium_el04sa0_e.dds",
+          "10": "crhd_elysium_el04sb0_e.dds",
+          "11": "crhd_elysium_el11sa0_e.dds",
+          "12": "crhd_elysium_el11sb0_e.dds",
+          "13": "crhd_elysium_el11sc0_e.dds",
+          "14": "crhd_elysium_el12ca0_e.dds",
+          "15": "crhd_elysium_el12da0_e.dds",
+          "16": "crhd_elysium_el22sa0_e.dds",
+          "17": "crhd_elysium_el22sb0_e.dds",
+          "18": "crhd_elysium_el22sc0_e.dds",
+          "19": "crhd_elysium_el33sa0_e.dds"
+        },
+        "fallback": "crhd_elysium_el00sa0_e.dds"
       }
     }
   }

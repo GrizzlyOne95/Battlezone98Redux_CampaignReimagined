@@ -60,6 +60,8 @@ jobs:
         run: |
           python Tools/Test-MoonHdTerrain.py
           python Tools/Test-MarsHdTileSources.py
+          python Tools/Test-VenusHdTerrain.py
+          python Tools/Test-HdTerrainPacks.py
 
       - name: Install Lua 5.1 compiler
         shell: bash

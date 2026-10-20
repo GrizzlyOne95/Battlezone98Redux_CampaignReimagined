@@ -1,0 +1,248 @@
+{
+  "schema": "cr-hd-pack-validation-v1",
+  "world": "europa",
+  "bundle": {
+    "schema": "bzr-terrain-hd-bundle-report-v1",
+    "material": "EU_DETAIL_ATLAS",
+    "tileSize": 1024,
+    "slices": 16,
+    "rectangles": 16,
+    "channels": [
+      "D",
+      "N",
+      "S",
+      "E"
+    ],
+    "resourceCount": 64,
+    "ddsBytes": 100672112,
+    "estimatedGpuArrayBytes": 123033536,
+    "processRamEstimate": null,
+    "memoryNote": "GPU storage is not 32-bit process RAM. Profile private bytes, peak and largest free VA in game.",
+    "sha256": {
+      "crhd_europa_eu00sa0_d.dds": "22ea47b209bcde3f91698e988d6d1977ee352d61a37beeef95ab90c79750dd48",
+      "crhd_europa_eu00sb0_d.dds": "75f002a2742116ffe855e01efb8a33c71eae7d30884a60e9472c5a649e2c9d8e",
+      "crhd_europa_eu01ca0_d.dds": "1dc258e227e6646c42defd5d016ffff46186b81984779a16dbfaa61174d7a9e4",
+      "crhd_europa_eu01da0_d.dds": "c8144db2f968dea38867a61b13434c2e9fe69d20eb082db3191f1796ffcebb52",
+      "crhd_europa_eu04ca0_d.dds": "25e01458389e7b5d93bd7c8cd3fa84e26e3045bf6fcae2447a3b24db259ac243",
+      "crhd_europa_eu04da0_d.dds": "31d627f2fc14e2ff903a2f5d01517251216e7dc53c945a4e5814759898643e8a",
+      "crhd_europa_eu11sa0_d.dds": "f18b71b9214669d4ff9d35ab0524a9802a0c653a77d01399fb6c848397a3d396",
+      "crhd_europa_eu12ca0_d.dds": "43ef28cea1e9dc86452a4b31d53d440c9149251396e408860b4cafe3132541ba",
+      "crhd_europa_eu12da0_d.dds": "a01bf025e7190d39263bbbe1f6cc389eaf8517c8d8cab8dd1f222b8f4f351b2d",
+      "crhd_europa_eu22sa0_d.dds": "773d6d7db3ead81185af9bb7be3dbad00a53610ae04c1978179929806ac0ffb6",
+      "crhd_europa_eu23ca0_d.dds": "4326aeedeb831c5ea3c6fce57926b95ce8c149411f1710aac475cf9e80a6367b",
+      "crhd_europa_eu23da0_d.dds": "02609539fc28f4fcc3ece59336db97f46e3e1b76538e41c591a8656f2fbd413d",
+      "crhd_europa_eu33sa0_d.dds": "cfe708e69fa7190987dd713d80f7489b387405904358d511c89d9fcdc36c089b",
+      "crhd_europa_eu44sa0_d.dds": "9fa66593221e383f3ccbb5f3ef0a977dea2caac98de0eebf87a3b78620d1ebd2",
+      "crhd_europa_eu44sb0_d.dds": "2a3a32b5ebce49804afbd54ce863f9ea2c597e69130dec93eaa00b03fefcea36",
+      "crhd_europa_eu44sc0_d.dds": "c00f2c1c9846dfd7cc6561782599547d6e233fa2e04394202bf8567841236e16",
+      "crhd_europa_eu00sa0_n.dds": "6f47d849b0bbdecb99348dc7b52acfdf4ba4ce51fddc6e123a46d5ec320d3c8b",
+      "crhd_europa_eu00sb0_n.dds": "70829a8028a89c2c6d850a57fa841f386d4cbd325530b4389bab709648843696",
+      "crhd_europa_eu01ca0_n.dds": "099adc30dee8ef861942587a65d8d80fa1ee938f6679d949dcfb9dcdbff31195",
+      "crhd_europa_eu01da0_n.dds": "12873da8be59d0aa775dbc21e3db4a649c3b15562acf8545e8f1379bf80a3123",
+      "crhd_europa_eu04ca0_n.dds": "2cce7037e7c203563c18c04f356e1fdb4a8cc141144ead4457512072c2af34c3",
+      "crhd_europa_eu04da0_n.dds": "76c301bcbabf63239a8d5b85353224929a5abc80cc3b9905279667eaf96cf013",
+      "crhd_europa_eu11sa0_n.dds": "caefb8f03d421609d9258355e9c1eaf4391b5b3bbd1c7846efa88ab6ff4babea",
+      "crhd_europa_eu12ca0_n.dds": "4ecb86609b1c553b18d277360746615d33179d1ad827d563719715ac1e7d5d62",
+      "crhd_europa_eu12da0_n.dds": "abdbe240f1f950c0a5a66da98bbe542dd417e8a94fa67fbcd316eca38570a685",
+      "crhd_europa_eu22sa0_n.dds": "5bcf9c3771501f0b90a47035b8d2c71a176bdadfc995ba9ddc5827f556de474e",
+      "crhd_europa_eu23ca0_n.dds": "fbc6c2098426c4b1547d11166ec27f0949ae1b93302e71b8a0760ca778a57d62",
+      "crhd_europa_eu23da0_n.dds": "47415e0876d40b430494e7e0c1c2717e37ae4e76ff5c39d17dda8ba1805aec79",
+      "crhd_europa_eu33sa0_n.dds": "17fe634e38ba4c4ceebda40c98e05f9c4feb518ac0f385ac437d65e0c4c1e148",
+      "crhd_europa_eu44sa0_n.dds": "e1772a3b8e6facf629dd253d512999fcc63d56270d1720efe9f7ae40cb16aadb",
+      "crhd_europa_eu44sb0_n.dds": "ee236a7da1470da5daceffb787ead0b95c11445fd6055e0282b93886eb577cbb",
+      "crhd_europa_eu44sc0_n.dds": "8a672561f93a7a6c4860dfa253524d18f61c3059da65d17b79a33c79f4648b03",
+      "crhd_europa_eu00sa0_s.dds": "ec1f606917772bff209a994bf122c83a9641a08b4d720a987ca8e6424177495e",
+      "crhd_europa_eu00sb0_s.dds": "300487eb4c3fe9746a8e230fe962169ec589fe6d7635e6b095d5b1c23afc9612",
+      "crhd_europa_eu01ca0_s.dds": "f91610c4f3a205058c10c352c5222465570973122883c42b8a5c7e5470e50a9d",
+      "crhd_europa_eu01da0_s.dds": "da148cde1467f10686e1ba11efd5dc34006c0a88a434d1efc3730fba55d86792",
+      "crhd_europa_eu04ca0_s.dds": "981db7f4e29212966fdb9e2b9ffb3df9ea910d0848c5ede8245fdc3d4fb46c19",
+      "crhd_europa_eu04da0_s.dds": "3674d248207cb25fc1889d37b98b061a15f5a2b9f138cfba46767714dbed7e19",
+      "crhd_europa_eu11sa0_s.dds": "2c7681e1b2ecd768c4d8226b1981dd35ad7ddd43b667bab990e71c3353fb12d2",
+      "crhd_europa_eu12ca0_s.dds": "7bb76ed5c375b19980aa5a7927381b5b611418eacf28b0f460a3dc385d6a0ace",
+      "crhd_europa_eu12da0_s.dds": "f2178119f2259442b0e0add0507ae3ca2de7f8052dfe1f2588276d1f66a88f15",
+      "crhd_europa_eu22sa0_s.dds": "f90be04b161882b3def808715be95890ad25f3b830d73e378fbae8b97fa4af25",
+      "crhd_europa_eu23ca0_s.dds": "f34bcc4242fb673d4bb8d99449fb47eeb0f61c3848fd911d9908cc9923621d12",
+      "crhd_europa_eu23da0_s.dds": "32dec840dc842b6a2a4ba14e43d8a7f8bf41a6bc9c1d743fb03c23192b1cc345",
+      "crhd_europa_eu33sa0_s.dds": "68b531d56c0a48ba2431d2d6e33f0600eba8d702c9703c8d74f4ba618b4365c8",
+      "crhd_europa_eu44sa0_s.dds": "0eaa7555c44de27349a6f6481872a758e1c3f25d316af9aa07e5c4f41a6b68b9",
+      "crhd_europa_eu44sb0_s.dds": "415ff330a2f591b599643da7047559268de5c2dd33b2ded2d222a604bb0bf9c2",
+      "crhd_europa_eu44sc0_s.dds": "520248837bf0b01b88accfa752518833a03e8775172a242e1b3b6191782a602e",
+      "crhd_europa_eu00sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu00sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu01ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu01da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu04ca0_e.dds": "db29321bb536ce01e886ffb51bed58d6b566622affed3e74a247c81bd9924d5e",
+      "crhd_europa_eu04da0_e.dds": "f5ccc67077749e045b5e28ec01e37fa12441292cd24881e8191e5df07f54fcb0",
+      "crhd_europa_eu11sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu12ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu12da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu22sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu23ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu23da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu33sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_europa_eu44sa0_e.dds": "4ff09a81edba56eee34f01f02686284aa186f55caa4634ee50dc671164bf555a",
+      "crhd_europa_eu44sb0_e.dds": "e6dbe5ff862b4eb8bd29e019ef4913ccd906519baa051764b8ff995024ac100f",
+      "crhd_europa_eu44sc0_e.dds": "d63e2dc9027ca43ed768b5634c8e348dc04bcf24bbc6f7fb37daf2429cf2dd61"
+    }
+  },
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "ccc49245e212",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 4,
+      "color": [
+        12,
+        26,
+        32
+      ],
+      "rectangles": [
+        [
+          0.06,
+          0.075,
+          0.03,
+          0.004
+        ],
+        [
+          0.56,
+          0.575,
+          0.03,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sources": [
+    {
+      "id": "706d0f146702",
+      "name": "ExposedGlacialIce_albedo.png",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "3867fb4b346766164f93e27d41e88e840cb66fdbe965c16b8c83567d3c01c230",
+      "convertedSourceSlopeCorrelations": [
+        0.9668051386413363,
+        0.9467112231053291
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    },
+    {
+      "id": "ccc49245e212",
+      "name": "metal7.tga",
+      "engineConversion": "flip_green",
+      "heightQualification": "unverified absolute polarity: no independent source height"
+    },
+    {
+      "id": "e39ac0f49b87",
+      "name": "IceAngledLayers_albedo.png",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "9a4cbc1372d61acec21abe580f40053e8f5580f453cfa21413696bcaf22119b9",
+      "convertedSourceSlopeCorrelations": [
+        0.3604116700367039,
+        0.4957723743958616
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    },
+    {
+      "id": "2fb5706a9216",
+      "name": "Snowy_Rock_21_Albedo.png",
+      "engineConversion": "flip_green",
+      "sourceHeightCorrection": "invert_xy",
+      "sourceHeightSha256": "4c2db628bb0e8fe103ee2672f6651ba20233319063bcedf31eb8b37648031205",
+      "convertedSourceSlopeCorrelations": [
+        0.4987185240742305,
+        0.48211776984257626
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate",
+      "emittedSolidSlopeCorrelations": [
+        0.4871291290306068,
+        0.47337394638648406
+      ]
+    },
+    {
+      "id": "fe_d473d38616",
+      "name": "plutoice.tga",
+      "engineConversion": "flip_green",
+      "heightQualification": "unverified absolute polarity: no independent source height"
+    }
+  ],
+  "normalMips": 176,
+  "nonPositiveZTexels": {},
+  "emissiveTiles": {
+    "crhd_europa_eu00sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu00sb0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu01ca0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu01da0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu04ca0_e.dds": {
+      "maximum": 16,
+      "litFraction": 0.010844230651855469
+    },
+    "crhd_europa_eu04da0_e.dds": {
+      "maximum": 33,
+      "litFraction": 0.01713848114013672
+    },
+    "crhd_europa_eu11sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu12ca0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu12da0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu22sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu23ca0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu23da0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu33sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_europa_eu44sa0_e.dds": {
+      "maximum": 33,
+      "litFraction": 0.032034873962402344
+    },
+    "crhd_europa_eu44sb0_e.dds": {
+      "maximum": 33,
+      "litFraction": 0.032034873962402344
+    },
+    "crhd_europa_eu44sc0_e.dds": {
+      "maximum": 33,
+      "litFraction": 0.032034873962402344
+    }
+  },
+  "projectedBasis": {
+    "cases": 24,
+    "minimumCosineToHeightGeometry": 0.9999999999999997,
+    "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
+    "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
+    "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
+  },
+  "limitations": [
+    "Source height and analytical basis checks do not substitute for native GPU draw evidence.",
+    "Nonpositive Z samples are inventoried; native source maps are not silently reauthored."
+  ]
+}

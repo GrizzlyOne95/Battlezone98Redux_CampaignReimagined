@@ -1,0 +1,108 @@
+{
+  "schema": "cr-hd-source-images-v1",
+  "world": "io",
+  "tileSize": 1024,
+  "normalPolarity": "source-height-matched",
+  "sourceRecipeSha256": "dea64d74c33429b5d643a587b6add156cd510d181cfb95997eeacffc5c24bc10",
+  "normalEngineConversion": {
+    "29900a7d7ec9": "flip_green",
+    "cc3955ca7c78": "flip_green",
+    "60ec44d9156e": "flip_green",
+    "98d8e7cb0b61": "flip_green",
+    "fab_vmijee1g": "flip_green"
+  },
+  "normalCorrections": {},
+  "normalRotation": "Sources converted to engine U/V tangent basis first; CCW image variants rotate engine normal XY as (Y, -X).",
+  "atlasPixelsRead": false,
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "98d8e7cb0b61",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 5,
+      "color": [
+        32,
+        20,
+        8
+      ],
+      "rectangles": [
+        [
+          0.24,
+          0.24,
+          0.03,
+          0.004
+        ],
+        [
+          0.74,
+          0.74,
+          0.03,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sources": [
+    {
+      "id": "29900a7d7ec9",
+      "name": "SuperheatedRockLavaSurface_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "fb3568054c4aa8a4aad63a6ef3ddf2012cc7be58d4e583938df853ebe75d29d0",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "G": "356ba2edf08ab4327e72c48e8fd34a33b1443aa234c52f268d3264e5f904511f",
+        "E": "41482e60d2c7dd135aa040b3f5269005ba7fec9931a753c4478f80a692898c26",
+        "N": "50d9b2eb2f91d78591c22b029c9a0af672c593db3c91d891f3f53c57a6d9a2b4"
+      }
+    },
+    {
+      "id": "cc3955ca7c78",
+      "name": "rend5.tga",
+      "library": "BZCC",
+      "inputHashes": {
+        "D": "ca78af819d9588e389b96984d9cbe3530686644d9f286149518069379679d129",
+        "N": "9c6b9c600a3d8fd6d9ad3f9f7d91fe24b4dce2ec1706d5ab9a8914f1e7a6a17c",
+        "S": "673ce16ec1302f9d4678e66f27809f21c58f620f05149d1bbcd93687cb449654",
+        "E": "121e24df41ed9f101b9d1dab08cf634e919cb40f3262b76058859ba6c4ed1bec"
+      }
+    },
+    {
+      "id": "60ec44d9156e",
+      "name": "VolcanicEarth_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "76cb3150e94c4138e6fb44356106dd17a64c4d66da1206cd73117d763e302892",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "G": "2f5905072a8842d0d5a5eafe084532bf8853663dfc152fe738306ddb1e4ecfb4",
+        "E": "20a121f3eaa62aa30a55e0149bca079113bbfabf02950b95a739c786b1514c14",
+        "N": "f8c8242774ccb8afc27726784db5ef1299ac38caa4a93ee35258ce12ba3f4258"
+      }
+    },
+    {
+      "id": "98d8e7cb0b61",
+      "name": "SciFiMachineGuts_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "b88550b7492a08475899bf05664c27416dc9d6074ac1d0977fef90a69cb11ed9",
+        "E": "5c7dd6482090b71b2d7c17e2c2a4125600e569e5c4148c120d0e72b20a2b1b17",
+        "S": "c1273069960bef85256b408da43826cbe304723c2409798e2eda495f4ae1dbf3",
+        "N": "494bcb914ff018b00d903f0a7d2ae6d0978576226bf43519945659b75576a9a4",
+        "G": "6e8c4d708a4ca29f399c2300c22110adabb31d70e8a206b4253dac391c306963"
+      }
+    },
+    {
+      "id": "fab_vmijee1g",
+      "name": "Sulphur_Rock_vmijee1g_8K_BaseColor.jpg",
+      "library": "Quixel Fab recovered",
+      "inputHashes": {
+        "D": "01621b8c118541d922cb9d0be2cba621169717eba69e680453035338c8282939",
+        "N": "c1871bf6f873928d5a5a66cd1f53bfcab2d9d19553814f2125e416bb1fad363d",
+        "S": "a50832cbdc68d62c185b804213f7ba02a9e0a3a7c279f7f7be9be7c297fbeac4",
+        "G": "82baea2de6c9909ad8d669070bdf768035e32dff6b7914c5de047b4b48f17ac4",
+        "R": "e7edc02f376a9b325153b7143873a31f1c522bece28086c8f21ce311f74e8690",
+        "A": "b3dc417b93857c4d87bec6f5828c7b6395165a99607874fcd60f4e0b715aa6df"
+      }
+    }
+  ]
+}

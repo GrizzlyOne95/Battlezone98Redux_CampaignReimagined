@@ -1,0 +1,137 @@
+{
+  "schema": "bzr-terrain-hd-authoring-v1",
+  "material": "EL_DETAIL_ATLAS",
+  "layout": "layout.csv",
+  "defaultAlias": "EL00SA0.MAP",
+  "tileSize": 1024,
+  "prefix": "crhd_elysium",
+  "normalSpace": "directx",
+  "resources": {
+    "D": "ELYSIUM_ATLAS_D.dds",
+    "N": "ELYSIUM_ATLAS_N.dds",
+    "S": "ELYSIUM_ATLAS_S.dds",
+    "E": "black.dds"
+  },
+  "tiles": {
+    "EL00SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el00sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el00sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el00sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el00sa0_e.dds"
+    },
+    "EL00SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el00sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el00sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el00sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el00sb0_e.dds"
+    },
+    "EL00SC0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el00sc0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el00sc0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el00sc0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el00sc0_e.dds"
+    },
+    "EL01CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el01ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el01ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el01ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el01ca0_e.dds"
+    },
+    "EL01DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el01da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el01da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el01da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el01da0_e.dds"
+    },
+    "EL02CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el02ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el02ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el02ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el02ca0_e.dds"
+    },
+    "EL02DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el02da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el02da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el02da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el02da0_e.dds"
+    },
+    "EL04CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el04ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el04ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el04ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el04ca0_e.dds"
+    },
+    "EL04DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el04da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el04da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el04da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el04da0_e.dds"
+    },
+    "EL04SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el04sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el04sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el04sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el04sa0_e.dds"
+    },
+    "EL04SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el04sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el04sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el04sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el04sb0_e.dds"
+    },
+    "EL11SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el11sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el11sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el11sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el11sa0_e.dds"
+    },
+    "EL11SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el11sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el11sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el11sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el11sb0_e.dds"
+    },
+    "EL11SC0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el11sc0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el11sc0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el11sc0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el11sc0_e.dds"
+    },
+    "EL12CA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el12ca0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el12ca0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el12ca0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el12ca0_e.dds"
+    },
+    "EL12DA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el12da0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el12da0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el12da0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el12da0_e.dds"
+    },
+    "EL22SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el22sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el22sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el22sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el22sa0_e.dds"
+    },
+    "EL22SB0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el22sb0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el22sb0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el22sb0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el22sb0_e.dds"
+    },
+    "EL22SC0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el22sc0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el22sc0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el22sc0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el22sc0_e.dds"
+    },
+    "EL33SA0.MAP": {
+      "D": "../../../Assets/Textures/crhd_elysium_el33sa0_d.dds",
+      "N": "../../../Assets/Textures/crhd_elysium_el33sa0_n.dds",
+      "S": "../../../Assets/Textures/crhd_elysium_el33sa0_s.dds",
+      "E": "../../../Assets/Textures/crhd_elysium_el33sa0_e.dds"
+    }
+  }
+}

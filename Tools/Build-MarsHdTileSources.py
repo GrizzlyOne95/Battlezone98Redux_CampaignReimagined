@@ -13,9 +13,13 @@ import json
 from pathlib import Path
 import shutil
 import sys
+from terrain_hd_base_emissives import apply_base_emissives, apply_source_height_corrections
+
+WORLD_STEMS = {"moon": "mn", "mars": "ma", "venus": "ve", "io": "io", "europa": "eu",
+               "titan": "ti", "achilles": "ac", "ganymede": "ga", "elysium": "el"}
 
 
-def source_function(module, sink, tile_size=None, height_matched_normals=False):
+def source_function(module, sink, tile_size=None, height_matched_normals=False, base_emissives=False):
     path = Path(module.__file__)
     tree = ast.parse(path.read_text(encoding="utf-8-sig"))
     function = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "build")
@@ -32,6 +36,19 @@ def source_function(module, sink, tile_size=None, height_matched_normals=False):
         if len(relief_assignments) != 1:
             raise ValueError("Unsupported saved recipe: relief override boundary missing")
         relief_assignments[0].value = ast.Dict(keys=[], values=[])
+    if base_emissives:
+        normal_boundaries = [i for i, n in enumerate(loop.body) if isinstance(n, ast.Expr)
+                             and isinstance(n.value, ast.Call) and isinstance(n.value.func, ast.Name)
+                             and n.value.func.id == "apply_art5"]
+        if len(normal_boundaries) != 1:
+            raise ValueError("Unsupported saved recipe: source normal authoring boundary missing")
+        loop.body[normal_boundaries[0]:normal_boundaries[0]] = ast.parse("_hd_source_height_corrections(world, ch, bases, report)").body
+        boundaries = [i for i, n in enumerate(loop.body) if isinstance(n, ast.Expr)
+                      and isinstance(n.value, ast.Call) and isinstance(n.value.func, ast.Name)
+                      and n.value.func.id == "apply_art6"]
+        if len(boundaries) != 1:
+            raise ValueError("Unsupported saved recipe: base emissive authoring boundary missing")
+        loop.body[boundaries[0]+1:boundaries[0]+1] = ast.parse("_hd_base_emissives(world, ch, source_by_type, bases, report)").body
     cut = next((i for i, n in enumerate(loop.body) if isinstance(n, ast.If)
                 and "tile_cache.values()" in ast.unparse(n.test) and "'E'" in ast.unparse(n.test)), None)
     if cut is None:
@@ -47,6 +64,8 @@ def source_function(module, sink, tile_size=None, height_matched_normals=False):
         prelude += ast.parse(f"base_gutter = 0\nmaster_interior = {tile_size}").body
     function.body = prelude + [loop, ast.Return(value=ast.Name(id="report", ctx=ast.Load()))]
     scope = dict(vars(module)); scope["_hd_tile_sink"] = sink
+    scope["_hd_base_emissives"] = apply_base_emissives
+    scope["_hd_source_height_corrections"] = apply_source_height_corrections
     exec(compile(ast.fix_missing_locations(ast.Module(body=[function], type_ignores=[])), str(path), "exec"), scope)
     return scope["build"]
 
@@ -78,7 +97,8 @@ def bind_capture(capture, csv_path, resources, default_alias=None):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--source-build", type=Path)
-    p.add_argument("--world", choices=("mars", "moon"), default="mars")
+    p.add_argument("--world", choices=WORLD_STEMS, default="mars")
+    p.add_argument("--base-emissives", action="store_true", help="Add small UV-authored base accents before source rotations/transitions")
     p.add_argument("--images-only", action="store_true", help="Export independent PNG masters for Toolbox hd-tiles init/build")
     p.add_argument("--height-matched-normals", action="store_true", help="Keep source-height polarity after green conversion; omit empirical XY reversal")
     p.add_argument("--output", type=Path, required=True)
@@ -116,7 +136,7 @@ def main():
     import numpy as np
     from PIL import Image, ImageDraw
     output.mkdir(parents=True)
-    atlas = {"mars": "ma", "moon": "mn"}[args.world] + "_detail_atlas.csv"
+    atlas = WORLD_STEMS[args.world] + "_detail_atlas.csv"
     shutil.copyfile(root / "stock" / atlas, output / "native_layout.csv")
     recipe.BUNDLE = output / "recipe_work"
     recipe.BUNDLE.mkdir()
@@ -168,7 +188,7 @@ def main():
                 x, y = i % 5 * 160, i // 5 * 184
                 sheet.paste(image, (x, y)); draw.text((x+3, y+163), name, fill="white")
             sheet.save(output / f"{args.world}_tiles.jpg")
-    build = source_function(recipe, sink, args.tile_size, height_matched_normals)
+    build = source_function(recipe, sink, args.tile_size, height_matched_normals, args.base_emissives)
     world = next(w for w in recipe.PLAN["worlds"] if w["world"] == args.world)
     report = build(world)
     for i, (name, entry) in enumerate(aliases.items()): entry["slice"] = i
@@ -181,6 +201,8 @@ def main():
               "sources": report["sources"], "normalCorrections": report.get("normal_relief_overrides", {}),
               "normalEngineConversion": report.get("normal_engine_conversion", {}),
               "normalRotation": report.get("normal_rotation"),
+              "baseEmissives": report.get("base_emissives"),
+              "sourceHeightCorrections": report.get("source_height_corrections", {}),
               "transitions": report.get("transitions", []),
               "recipeInputs": {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest()
                                for path in sorted(root.glob("*.py")) + sorted(root.glob("*.json"))},

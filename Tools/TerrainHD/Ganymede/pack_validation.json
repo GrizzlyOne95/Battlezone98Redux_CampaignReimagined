@@ -1,0 +1,304 @@
+{
+  "schema": "cr-hd-pack-validation-v1",
+  "world": "ganymede",
+  "bundle": {
+    "schema": "bzr-terrain-hd-bundle-report-v1",
+    "material": "GA_DETAIL_ATLAS",
+    "tileSize": 1024,
+    "slices": 22,
+    "rectangles": 23,
+    "channels": [
+      "D",
+      "N",
+      "S",
+      "E"
+    ],
+    "resourceCount": 88,
+    "ddsBytes": 138424154,
+    "estimatedGpuArrayBytes": 169171112,
+    "processRamEstimate": null,
+    "memoryNote": "GPU storage is not 32-bit process RAM. Profile private bytes, peak and largest free VA in game.",
+    "sha256": {
+      "crhd_ganymede_ga00sa0_d.dds": "33a965df1467a13354c8aeb38a58812520057d1fa3dcedae8fa0103f038a6c84",
+      "crhd_ganymede_ga00sb0_d.dds": "503b6486674258721342a2104e4a02a743c61e3f8e820ee4e156e1098360d3e4",
+      "crhd_ganymede_ga00sc0_d.dds": "20e390ba2b653578e4cba4517847255eefeafe70e11f9a9492023b20a54e1fec",
+      "crhd_ganymede_ga01ca0_d.dds": "932fa5bfbacc48ad894ee642ab840cf306cb10766e67760f2a3222cecc0a4069",
+      "crhd_ganymede_ga01da0_d.dds": "1ed633759bc66977f25fd1c47cec6720c371f24c31b03b97a187e414b97566f2",
+      "crhd_ganymede_ga04ca0_d.dds": "a93b1042d2dca74f5d4ad359d8f539615e31147ebf59dc6ef114aeaedd66d15f",
+      "crhd_ganymede_ga04da0_d.dds": "bb007aa0e264bdcf097075374b2b2d0df12c0627f3548531b4ca496b749510cf",
+      "crhd_ganymede_ga11sa0_d.dds": "979250381f747151db4bedd01ba54daa275b761b4dcd6ed7f8a46ac5cf2cabdf",
+      "crhd_ganymede_ga11sb0_d.dds": "3c10832e22e2456321896e9a4c74e027590ce8805ffe6dac6a83c77753c1fe2b",
+      "crhd_ganymede_ga12ca0_d.dds": "6c2116762d0e4ab67ea77f6604be8922c5750d608e32d27d3dcfc8dbb4c86a0c",
+      "crhd_ganymede_ga12da0_d.dds": "fd1fed51c41d7b87e230667d314261969892f3c6c2c03da9347d7a11f6282e9e",
+      "crhd_ganymede_ga14ca0_d.dds": "23b599b3101e092d86d23e9a80efa17dec05b31d9a22c985344bb3ad0d39a5e7",
+      "crhd_ganymede_ga14da0_d.dds": "f9ca2bbee22679f581aa3e84f61466edc322b19855eecb2d37c3d871a4ca9e3c",
+      "crhd_ganymede_ga22sa0_d.dds": "0fe1ce4f3ef5a5cf9b8b0ac3a71758d0d823d113d5d85631445086e95903659a",
+      "crhd_ganymede_ga22sb0_d.dds": "5e57ddd4a94fd307c7c62fd0d5a790e82de53a97db4bdec93745b53bc642567a",
+      "crhd_ganymede_ga22sc0_d.dds": "b88ca66c0dadcde6d21babf04536b6d5b2fcd785e52915ae00556c2a9008c45f",
+      "crhd_ganymede_ga24ca0_d.dds": "0884716c70c91ddce286d7f0dc927f825b4c73613b63c182bc91c3fc40dbbe1d",
+      "crhd_ganymede_ga24da0_d.dds": "304a6db26408732a2ba3f1515f4fa3c1a765204969920d9b859caed2633ffc7e",
+      "crhd_ganymede_ga33sa0_d.dds": "840e07d120a93dbca079b3e4fdcd3835a5084fc76a0d0cd651686ae60c7d9f77",
+      "crhd_ganymede_ga33sb0_d.dds": "840e07d120a93dbca079b3e4fdcd3835a5084fc76a0d0cd651686ae60c7d9f77",
+      "crhd_ganymede_ga44sa0_d.dds": "dd321675182abde1d79b1a2253860d05d254c1566ee7c117ba2942a62aa927fe",
+      "crhd_ganymede_ga44sb0_d.dds": "6dcc40d7b2c327e4b32cadc99ef36bdba0d9bc08449053764edf7ca7732969b0",
+      "crhd_ganymede_ga00sa0_n.dds": "3d8cd75278ced8cc94674aea94d0be8eb7b6d7497c3753f2124a1d2064d50c5f",
+      "crhd_ganymede_ga00sb0_n.dds": "54732382c89295290e306b7f5911988c414a6a972bc8c1c8e8ea7c9b40fefc3a",
+      "crhd_ganymede_ga00sc0_n.dds": "3722ff35189610b53421fc14bf6c2c5054f57deef6a9c48912155a9452b96033",
+      "crhd_ganymede_ga01ca0_n.dds": "3f0c9e24a7735b300408aef1f3f7147edea37cc7c72815c6bea2d55f4274212e",
+      "crhd_ganymede_ga01da0_n.dds": "aa5f88f60b946bd41c95b9c43222c1b62605b1e7f2040469e195cbbde16c88eb",
+      "crhd_ganymede_ga04ca0_n.dds": "0b92b6401dc91430f912e984e94a1d9616d56f0b7d3a7584f4d4de548bac0556",
+      "crhd_ganymede_ga04da0_n.dds": "f1d05b3882a4a3c91492b83eefe1b7f52f7e3c4afd1bbf9ec2cd8ac94e31fef5",
+      "crhd_ganymede_ga11sa0_n.dds": "f576d378d4df198b137904621f33472b720de2ba99d37716f9f394e1517d94d3",
+      "crhd_ganymede_ga11sb0_n.dds": "d0aeac571c97054bedd52d0dcfa81c1ede0b5a2a0b191923bf32e2dad5e40c40",
+      "crhd_ganymede_ga12ca0_n.dds": "1ed7818772d0b1d3c76ce4ad0764ac21bf099e70c60a20ba1d88b4e32db2cd9a",
+      "crhd_ganymede_ga12da0_n.dds": "2db6b1731a04feb76b239cd5f46360ac49e6fc98bd807ec91f98f9fe9a22d4b2",
+      "crhd_ganymede_ga14ca0_n.dds": "768c34693f34572469a35f33e06e1c6800889ebdb34e1c09a2bff170c29cd7cd",
+      "crhd_ganymede_ga14da0_n.dds": "fddaadb323e4a62f4a3fdb101c1986d02ffe0bf55374545f5d5a9ddf61fafd2b",
+      "crhd_ganymede_ga22sa0_n.dds": "3ad6fff79247711c87074184fe2cae18a2b664c1a57d89e204618900339864f5",
+      "crhd_ganymede_ga22sb0_n.dds": "cfc4958dc9ed37d97187c4affb7eece774dd3a1fa55af62ddc36cf8119b08d39",
+      "crhd_ganymede_ga22sc0_n.dds": "b090c86f908de3631389c8c1aaec70657cc7689ac2e405c0929e16ebbf530f70",
+      "crhd_ganymede_ga24ca0_n.dds": "7da80d6460d9b404ed18305f8313446d6a293104bc040651486e6d4a78085256",
+      "crhd_ganymede_ga24da0_n.dds": "586026e38177530301f9270fffcddc1f1d6db1aeda2f7b82a83f38f7e9f0827b",
+      "crhd_ganymede_ga33sa0_n.dds": "a9690cd534a5122588ea208abc1ca5c3e54be194f6a89852782388c995266172",
+      "crhd_ganymede_ga33sb0_n.dds": "a9690cd534a5122588ea208abc1ca5c3e54be194f6a89852782388c995266172",
+      "crhd_ganymede_ga44sa0_n.dds": "c1a6bf408d062b3375a4fdb4277c896a1e8a1108c3ffcdb6436c4cce8ca37e39",
+      "crhd_ganymede_ga44sb0_n.dds": "845c30d6e893739d7e9de985d658e6d0e0f43d61528d1290c04728a9f21991b7",
+      "crhd_ganymede_ga00sa0_s.dds": "bffe54b05fb43c4a2f79e0120ea579e5c49fc46bb08ba45575a4ea686a75143d",
+      "crhd_ganymede_ga00sb0_s.dds": "34f588ea5698d953d5deaf69e368d646887088e6d75e0ac4039179b6151ddce2",
+      "crhd_ganymede_ga00sc0_s.dds": "1795a94347ff3f7326c4f2674e4e8ba19452ac2cb6b7782d969f1571eea89e9f",
+      "crhd_ganymede_ga01ca0_s.dds": "8329078870f5ea0d3db46de4b249073f301817c4329e07a98426087683a75b71",
+      "crhd_ganymede_ga01da0_s.dds": "1e3812acffc8ac50373362b36d642f16d50c2c5fef2c50e9c25fa1448941d35f",
+      "crhd_ganymede_ga04ca0_s.dds": "955068654160512811c68007bdf10c61e4e597a64f1bb564f3de2f40acd80899",
+      "crhd_ganymede_ga04da0_s.dds": "0fffd799611c0504070b8eaef0c68f779993796986558db2b7d0a44dc8227224",
+      "crhd_ganymede_ga11sa0_s.dds": "18f5b16b7370ff58f1df48f18dbaa3a6d2cf8bde93073af961f2a0fc94583c7d",
+      "crhd_ganymede_ga11sb0_s.dds": "b3124635f59e5d7cde4b1eab802b40ac17897f5715b29bc373619a72ed7b42f5",
+      "crhd_ganymede_ga12ca0_s.dds": "b135b17a3f65a2011a07ce6c81cc267d61d12b66ac1aead69740e59f5bf283be",
+      "crhd_ganymede_ga12da0_s.dds": "fe16757feb8c4c3ed6f83d548bee28b1f67321fed7e4ebeda2400131dfcda937",
+      "crhd_ganymede_ga14ca0_s.dds": "ae9997271ac345cb9c236057c0a385a4424b56857c99049d3220fe3414014d78",
+      "crhd_ganymede_ga14da0_s.dds": "5721701703c28e25da2026346c29c61f3be1130e3fc4c05fa6864db2400f407c",
+      "crhd_ganymede_ga22sa0_s.dds": "b3027a0b10786cbb630f47028a1d75aea98bda0ee13ec48c273bbd4025d6a104",
+      "crhd_ganymede_ga22sb0_s.dds": "e061ec159228f6db541f3e741071eb4ad79c3874c98632d4c7295a35b5b995b7",
+      "crhd_ganymede_ga22sc0_s.dds": "db15d4b6bf555020f3c183cb6ac7fd8e72e45f3d0fc12e8714909076c17ebaa9",
+      "crhd_ganymede_ga24ca0_s.dds": "3cbe4806b9ba862b6b9bff33357c6d014b40dc1eb2b4c4382e506f225365ea34",
+      "crhd_ganymede_ga24da0_s.dds": "bbb2b50005bb6206b26490977bd2fdf40c9a520e64352fcd572360633396e4cd",
+      "crhd_ganymede_ga33sa0_s.dds": "a2e5d0cb2ae8562fea912e9700bd50b909425037641a4ef7097c83d046f4959f",
+      "crhd_ganymede_ga33sb0_s.dds": "a2e5d0cb2ae8562fea912e9700bd50b909425037641a4ef7097c83d046f4959f",
+      "crhd_ganymede_ga44sa0_s.dds": "17b3e7b71274169439301f5a699e8ae88571d283504a6bcd1b8c002470c2dbe1",
+      "crhd_ganymede_ga44sb0_s.dds": "8df0e5b33a98d87f69d605b0214713d579ba4e0e40cf9037407a1c05a595118d",
+      "crhd_ganymede_ga00sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga00sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga00sc0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga01ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga01da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga04ca0_e.dds": "d4c2355b2079f5e777a5d7e3b5047b568fe560a9f5f6d7ff68d6563c2bb14b10",
+      "crhd_ganymede_ga04da0_e.dds": "80b74726dd0e59dac407ace3fcb897660747fae30987a6895f15ce4b8184b19e",
+      "crhd_ganymede_ga11sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga11sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga12ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga12da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga14ca0_e.dds": "060693e6ac6fa275ea7ab3a24791f296006a1670f9bf8e220ce17462a2b15d7e",
+      "crhd_ganymede_ga14da0_e.dds": "2159d8df5a2bdbe11f996f5dc5b021d8ace52694e38fe1772d05a2788917a63a",
+      "crhd_ganymede_ga22sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga22sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga22sc0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga24ca0_e.dds": "b57507d3975ec89f88e6816a2367cec8522ebf927809ce1f0ab764848bc89e1c",
+      "crhd_ganymede_ga24da0_e.dds": "80b74726dd0e59dac407ace3fcb897660747fae30987a6895f15ce4b8184b19e",
+      "crhd_ganymede_ga33sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga33sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga44sa0_e.dds": "907158b337e3eac920f3d6e3d48b49e052dce70644eec4e78838de1668f1d6c9",
+      "crhd_ganymede_ga44sb0_e.dds": "dc3e9ebb3dde9271e6ed73c774e1a3acb8aebf6a422fd2a6c69bf2499a4829a3"
+    }
+  },
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "ph_metal_grate_rusty",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 4,
+      "color": [
+        32,
+        24,
+        8
+      ],
+      "rectangles": [
+        [
+          0.06,
+          0.1,
+          0.025,
+          0.004
+        ],
+        [
+          0.56,
+          0.6,
+          0.025,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sources": [
+    {
+      "id": "8a87a2b0ad66",
+      "name": "IceCrater_albedo.png",
+      "engineConversion": "keep_directx",
+      "sourceHeightSha256": "79d5c4d81846c508f8a65f5d4b64c9ba503c4578166b91faebe5026ddf42ce23",
+      "convertedSourceSlopeCorrelations": [
+        0.8336575595776221,
+        0.8201875037940559
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    },
+    {
+      "id": "8c27b65e3161",
+      "name": "MarsSurfacePebbles_albedo.png",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "927dee0adf6d97ec7a2cb8412dd843c350dfe0fd549b604d45d8c8dbe09c6626",
+      "convertedSourceSlopeCorrelations": [
+        0.8719493690294813,
+        0.8715221724818467
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    },
+    {
+      "id": "ph_metal_grate_rusty",
+      "name": "metal_grate_rusty_diff_4k.jpg",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "5fb5ba4faf46a4092ddd76382c8e16f653ba6e36c6575449227946c4494e6415",
+      "convertedSourceSlopeCorrelations": [
+        0.9519114029528937,
+        0.9561914721420116
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    },
+    {
+      "id": "51cf568801c2",
+      "name": "IceWallLayers_albedo.png",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "d7a42985b2d020c563a5f9b7a28c464ac6e3f532e1177e75ab848132e37566c7",
+      "convertedSourceSlopeCorrelations": [
+        0.7401471889433054,
+        0.7644443876145504
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    },
+    {
+      "id": "da271eb5cd22",
+      "name": "red_laterite_soil_stones_diff_8k.jpg",
+      "engineConversion": "flip_green",
+      "sourceHeightSha256": "157f88d1750fe80c1b5ca115e7a68c357e614ea0fe30590aadd98e4e88f32d70",
+      "convertedSourceSlopeCorrelations": [
+        0.648191420569028,
+        0.6521257446651433
+      ],
+      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    }
+  ],
+  "normalMips": 242,
+  "nonPositiveZTexels": {
+    "crhd_ganymede_ga33sa0_n.dds": 4,
+    "crhd_ganymede_ga33sb0_n.dds": 4
+  },
+  "emissiveTiles": {
+    "crhd_ganymede_ga00sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga00sb0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga00sc0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga01ca0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga01da0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga04ca0_e.dds": {
+      "maximum": 5,
+      "litFraction": 3.24249267578125e-05
+    },
+    "crhd_ganymede_ga04da0_e.dds": {
+      "maximum": 33,
+      "litFraction": 0.0001239776611328125
+    },
+    "crhd_ganymede_ga11sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga11sb0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga12ca0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga12da0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga14ca0_e.dds": {
+      "maximum": 8,
+      "litFraction": 8.0108642578125e-05
+    },
+    "crhd_ganymede_ga14da0_e.dds": {
+      "maximum": 33,
+      "litFraction": 0.0001239776611328125
+    },
+    "crhd_ganymede_ga22sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga22sb0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga22sc0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga24ca0_e.dds": {
+      "maximum": 24,
+      "litFraction": 0.0001239776611328125
+    },
+    "crhd_ganymede_ga24da0_e.dds": {
+      "maximum": 33,
+      "litFraction": 0.0001239776611328125
+    },
+    "crhd_ganymede_ga33sa0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga33sb0_e.dds": {
+      "maximum": 0,
+      "litFraction": 0.0
+    },
+    "crhd_ganymede_ga44sa0_e.dds": {
+      "maximum": 33,
+      "litFraction": 0.000247955322265625
+    },
+    "crhd_ganymede_ga44sb0_e.dds": {
+      "maximum": 33,
+      "litFraction": 0.000247955322265625
+    }
+  },
+  "projectedBasis": {
+    "cases": 24,
+    "minimumCosineToHeightGeometry": 0.9999999999999997,
+    "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
+    "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
+    "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
+  },
+  "limitations": [
+    "Source height and analytical basis checks do not substitute for native GPU draw evidence.",
+    "Nonpositive Z samples are inventoried; native source maps are not silently reauthored."
+  ]
+}

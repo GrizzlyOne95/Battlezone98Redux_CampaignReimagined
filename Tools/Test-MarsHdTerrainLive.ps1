@@ -1,4 +1,4 @@
-<# Reversible Windows/GOG DX11 example using CR's Mars or Moon terrain.
+<# Reversible Windows/GOG DX11 example using CR's Mars, Moon or Venus terrain.
    Run with Windows PowerShell 5.1 (the capture helper uses System.Drawing).
    New-MarsHdTerrainExample.ps1 or Build-MoonHdTerrain.py prepares the pack.
    Source maps and the installed addon are preserved.
@@ -10,12 +10,13 @@ param(
  [string]$GameRoot='C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux',
  [string]$ResourceDirectory,
  [string]$ExuDll,
- [ValidateSet('mars','moon')][string]$World='mars',
+ [ValidateSet('mars','moon','venus','io','europa','titan','achilles','ganymede','elysium')][string]$World='mars',
  [ValidateSet('Enhanced','Redux','Retro')][string]$RenderProfile='Enhanced',
  [switch]$MeasureMemory,
  [switch]$ProfileCycle,
  [ValidateRange(1,4)][int]$ProfileCycles=1,
  [switch]$WideView,
+ [switch]$BaseView,
  [switch]$BindCapture,
  [switch]$Hd
 )
@@ -26,14 +27,18 @@ $harness=Join-Path (Resolve-Path -LiteralPath $HarnessRepo).Path 'reverse_engine
 $cr=Split-Path -Parent $PSScriptRoot
 $tiles=(Resolve-Path -LiteralPath $TileDirectory).Path
 $game=(Resolve-Path -LiteralPath $GameRoot).Path
-$mission=if($World -eq 'moon'){'misn03'}else{'misn04'}
+$mission=switch($World){'moon'{'misn03'}'venus'{'misn08'}'io'{'misn10'}'europa'{'misn12'}'titan'{'misn14'}'achilles'{'misn17'}'ganymede'{'evolve_3'}'elysium'{'evolve_1'}default{'misn04'}}
+$isBundle=Test-Path -LiteralPath (Join-Path $tiles 'terrain_hd_tiles.json')
+$hdMapMask=if($isBundle){7}else{3}
 $example="crhd_$($World)_example"
 if($World -eq 'moon'){$example='mn_detail_atlas'}
+if($World -eq 'venus'){$example='ve_detail_atlas'}
+if($isBundle){$stem=@{moon='mn';mars='ma';venus='ve';io='io';europa='eu';titan='ti';achilles='ac';ganymede='ga';elysium='el'}[$World];$example=$stem+'_detail_atlas'}
 $exampleFolder=if($World -eq 'moon'){'MoonHdTerrain'}else{'MarsHdTerrain'}
-$manifestPath=if($World -eq 'moon'){Join-Path $tiles 'terrain_hd_tiles.json'}else{Join-Path $tiles 'cr_mars_hd.json'}
-$layoutPath=if($World -eq 'moon'){Join-Path $tiles 'layout.csv'}else{Join-Path $tiles 'native_layout.csv'}
-$textureDirectory=if($World -eq 'moon'){Join-Path $tiles 'resources'}else{$tiles}
-if($BindCapture -and $World -ne 'mars'){throw 'Moon uses the Toolbox rectangle mapping; capture binding is unnecessary.'}
+$manifestPath=if($isBundle){Join-Path $tiles 'terrain_hd_tiles.json'}else{Join-Path $tiles 'cr_mars_hd.json'}
+$layoutPath=if($isBundle){Join-Path $tiles 'layout.csv'}else{Join-Path $tiles 'native_layout.csv'}
+$textureDirectory=if($isBundle){Join-Path $tiles 'resources'}else{$tiles}
+if($BindCapture -and $isBundle){throw 'Toolbox packs use rectangle mapping; capture binding is unnecessary.'}
 if($Hd -and -not (Test-Path -LiteralPath $manifestPath)){throw 'Prepare the source tile bundle before previewing.'}
 if($ProfileCycle -and (-not $Hd -or $RenderProfile -ne 'Enhanced')){throw 'ProfileCycle needs -Hd and an Enhanced starting profile'}
 if($ProfileCycle){
@@ -82,14 +87,22 @@ try {
    Remove-Item -LiteralPath $item.FullName
   }
  }
- foreach($item in Get-ChildItem "$cr\Missions\$mission.*" -File){Save-File "$game\addon\$($item.Name)"; Copy-Item $item.FullName "$game\addon\$($item.Name)" -Force}
- if($World -eq 'moon'){
-  & python "$PSScriptRoot\Build-HdTerrainPreview.py" --source "$cr\Missions\$mission.bzn" --out "$game\addon\$mission.bzn"
-  if($LASTEXITCODE -ne 0){throw 'Moon terrain camera fixture generation failed'}
+ $missionDirectory=Join-Path $cr 'Missions'
+ if($World -in @('ganymede','elysium')){
+  $missionDirectory=Join-Path $out 'stock-map'
+  & python "$PSScriptRoot\Prepare-HdTerrainArchivePreview.py" --game $game --mission $mission --out $missionDirectory
+  if($LASTEXITCODE -ne 0){throw 'Stock map preview extraction failed'}
+ }
+ foreach($item in Get-ChildItem "$missionDirectory\$mission.*" -File){Save-File "$game\addon\$($item.Name)"; Copy-Item $item.FullName "$game\addon\$($item.Name)" -Force}
+ if($isBundle){
+  $fixtureOptions=@('--source',"$missionDirectory\$mission.bzn",'--out',"$game\addon\$mission.bzn")
+  if($BaseView){$baseSettings=Get-Content "$PSScriptRoot\TerrainHD\base_emissives.json" -Raw | ConvertFrom-Json;$fixtureOptions+=@('--base-type',[string]$baseSettings.worlds.$World.type)}
+  & python "$PSScriptRoot\Build-HdTerrainPreview.py" @fixtureOptions
+  if($LASTEXITCODE -ne 0){throw 'Terrain camera fixture generation failed'}
  }
  $previewScripts=@('Materials\CR_BZTerrainBase.material','Shaders\CR_static_ibl.program',"Tools\Examples\$exampleFolder\$example.material")
- if($World -eq 'moon'){
-  $previewScripts=@('Materials\CR_BZTerrainBase.material','Shaders\CR_static_ibl.program','Materials\mn_detail_atlas.material')
+ if($isBundle){
+  $previewScripts=@('Materials\CR_BZTerrainBase.material','Shaders\CR_static_ibl.program',"Materials\$example.material")
   $previewScripts += 'Materials\CR_sky_events.material'
   $previewScripts += @(Get-ChildItem "$cr\Shaders" -Filter 'CR_sky*' -File | ForEach-Object {'Shaders\'+$_.Name})
  }
@@ -97,6 +110,13 @@ try {
   $name=Split-Path -Leaf $relative
   Save-File "$testResources\$name"
   Copy-Item -LiteralPath "$cr\$relative" -Destination "$testResources\$name" -Force
+ }
+ # CR wrappers can be parsed before the separate OpenShim resource group is
+ # registered. Make their exact shader/IBL dependencies visible in this CLI
+ # fixture's registered group too, without duplicating program declarations.
+ foreach($item in Get-ChildItem "$repo\resources\renderer\enhanced" -File | Where-Object {$_.Extension -in @('.hlsl','.glsl','.dds')}){
+  Save-File "$testResources\$($item.Name)"
+  Copy-Item -LiteralPath $item.FullName -Destination "$testResources\$($item.Name)" -Force
  }
  Save-File "$game\addon\$example.csv"
  Copy-Item -LiteralPath $layoutPath -Destination "$game\addon\$example.csv" -Force
@@ -121,6 +141,8 @@ function CreateObject(h) end
 function AddObject(h) end
 function DeleteObject(h) end
 '@ | Set-Content "$game\addon\$mission.lua" -Encoding ASCII
+ $driver=[IO.File]::ReadAllText("$game\addon\$mission.lua").Replace('MARS-HD',($World.ToUpper()+'-HD')).Replace('misn04',$mission)
+ [IO.File]::WriteAllText("$game\addon\$mission.lua",$driver)
  if($WideView){
   $driver=[IO.File]::ReadAllText("$game\addon\$mission.lua").Replace('CameraObject(p,600,400,800,p)','CameraObject(p,3000,2200,-3000,p)')
   [IO.File]::WriteAllText("$game\addon\$mission.lua",$driver)
@@ -246,7 +268,7 @@ if($Hd -and $RenderProfile -ne 'Enhanced'){
 }
 if($Hd -and $RenderProfile -eq 'Enhanced'){
  $records=@(Get-Content "$out\openshim.log" | Where-Object {$_ -match ("\[pid:"+$proc.Id+" ")})
- $proof=@($records | Where-Object {$_ -match 'GPU statistics.*hdTiles=1.*hdMaterialMask=3' -and $_ -match 'psInvocations=([0-9]+)' -and [uint64]$Matches[1] -ge 1024})
+ $proof=@($records | Where-Object {$_ -match ("GPU statistics.*hdTiles=1.*hdMaterialMask="+$hdMapMask+'\b') -and $_ -match 'psInvocations=([0-9]+)' -and [uint64]$Matches[1] -ge 1024})
  if(-not $proof.Count){throw "Missing actual diffuse/normal/specular array draw proof; inspect $out"}
  if(-not ($records -match 'shared native material restored passes=[1-9]')){throw 'Native material restoration unproven'}
  $restoredStreams=@($records | Where-Object {$_ -match 'native streams restored meshes=([0-9]+) tracked=([0-9]+)' -and [int]$Matches[1] -gt 0 -and $Matches[1] -eq $Matches[2]})

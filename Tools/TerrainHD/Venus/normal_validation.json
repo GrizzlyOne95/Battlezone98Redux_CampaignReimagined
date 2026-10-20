@@ -1,0 +1,164 @@
+{
+  "schema": "cr-venus-hd-normal-validation-v1",
+  "sources": [
+    {
+      "sourceId": "0b3bb7fc9238",
+      "name": "FineClumpySand_albedo.png",
+      "normalSha256": "79ecee16754b524eaacd3a76b7b31189b057a9b00d57de357dabcd71096f3d35",
+      "mixedDerivativeCorrelationBeforeGreenConversion": -0.9329297528708146,
+      "engineConversion": "flip_green",
+      "heightSha256": "faca6dd123def37685ee40038e4b1ec72ce24ba08d86ed65a6f8b07c3e96479a",
+      "alias": "VE00SA0.MAP",
+      "exportNxVersusNegativeHeightDx": 0.652176949376146,
+      "exportNyVersusNegativeHeightDy": 0.6553350054776299,
+      "absoluteReliefPolarity": "agrees with independently supplied height"
+    },
+    {
+      "sourceId": "23e1e3c33291",
+      "name": "MarsCrackedRock_albedo.png",
+      "normalSha256": "b8089523e92f7ecea16663f5ac2ed07854352889c2bfa0b15ed2f1fe0df35743",
+      "mixedDerivativeCorrelationBeforeGreenConversion": -0.8630462369353311,
+      "engineConversion": "flip_green",
+      "heightSha256": "fd5fd61f6e9b64fa5483033d239e6bb11452f39889671f54d003d8fbe7613ea1",
+      "alias": "VE33SA0.MAP",
+      "exportNxVersusNegativeHeightDx": 0.8751161856024819,
+      "exportNyVersusNegativeHeightDy": 0.8744896632760861,
+      "absoluteReliefPolarity": "agrees with independently supplied height"
+    },
+    {
+      "sourceId": "cc1e7aac9914",
+      "name": "toxic_9.tga",
+      "normalSha256": "e44d62c49191a9895576b91752949e0482dcc2caf563096e5309cb74edf49793",
+      "mixedDerivativeCorrelationBeforeGreenConversion": -0.8844016241766888,
+      "engineConversion": "flip_green",
+      "absoluteReliefPolarity": "unverified: no independently supplied height map"
+    },
+    {
+      "sourceId": "cc26094103ba",
+      "name": "Metal13.tga",
+      "normalSha256": "fb3ac68bd9243118d802072790f7fe0a104fa7ec6cc7579f4edd2333394dff9b",
+      "mixedDerivativeCorrelationBeforeGreenConversion": -0.8974267065246339,
+      "engineConversion": "flip_green",
+      "absoluteReliefPolarity": "unverified: no independently supplied height map"
+    },
+    {
+      "sourceId": "cc347a1d61cd",
+      "name": "pluto6.tga",
+      "normalSha256": "9f5b510717bbe8373b92d13251dd5ba38db7d8c794fefb74628fbee16e8133e0",
+      "mixedDerivativeCorrelationBeforeGreenConversion": -0.8685066549286508,
+      "engineConversion": "flip_green",
+      "absoluteReliefPolarity": "unverified: no independently supplied height map"
+    }
+  ],
+  "normalMips": {
+    "count": 143,
+    "minimumLength": 0.9871999025344849,
+    "maximumLength": 1.0107229948043823,
+    "nonPositiveZTexels": {
+      "crhd_venus_ve22sa0_n.dds": 2,
+      "crhd_venus_ve22sb0_n.dds": 2
+    }
+  },
+  "projectedBasis": {
+    "cases": 24,
+    "minimumCosineToHeightGeometry": 0.9999999999999997,
+    "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
+    "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
+    "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
+  },
+  "rotations": [
+    {
+      "degrees": 0,
+      "p95AngleToRotatedHeightNormal": 1.0836563849893626
+    },
+    {
+      "degrees": 90,
+      "p95AngleToRotatedHeightNormal": 0.9068300072568114
+    },
+    {
+      "degrees": 180,
+      "p95AngleToRotatedHeightNormal": 0.593586204828983
+    },
+    {
+      "degrees": 270,
+      "p95AngleToRotatedHeightNormal": 0.9081765020264744
+    }
+  ],
+  "bundle": {
+    "schema": "bzr-terrain-hd-bundle-report-v1",
+    "material": "VE_DETAIL_ATLAS",
+    "tileSize": 1024,
+    "slices": 13,
+    "rectangles": 13,
+    "channels": [
+      "D",
+      "N",
+      "S",
+      "E"
+    ],
+    "resourceCount": 52,
+    "ddsBytes": 81796091,
+    "estimatedGpuArrayBytes": 99964748,
+    "processRamEstimate": null,
+    "memoryNote": "GPU storage is not 32-bit process RAM. Profile private bytes, peak and largest free VA in game.",
+    "sha256": {
+      "crhd_venus_ve00sa0_d.dds": "16b317ee2c6e18feebd2a88ee9383d82f570963a959f5fb7870dec110239f0cd",
+      "crhd_venus_ve01ca0_d.dds": "561f95aa55a99721b39baab24b93d45f4f7f7026892b3ab773299f24d5539ff3",
+      "crhd_venus_ve01da0_d.dds": "d50bf90b7ab32a7444d87b20a7835b7b10cd3e339c659c48dbd693f0db04f08b",
+      "crhd_venus_ve02ca0_d.dds": "1661dbe250518fad61336d26cc52595bcf0905bc870a17e24a26862a44f7bcb8",
+      "crhd_venus_ve02cb0_d.dds": "96641c67e179ce2f888cec50b249c4d8f8ae43e5ff8f93b9fe780098b70fa58a",
+      "crhd_venus_ve02da0_d.dds": "6013c2dee5ecce324caed9cd5214eed02fbd7ab8413440d5178b6ce071439337",
+      "crhd_venus_ve03ca0_d.dds": "d9d61ade19211e437ab57a6896b4d5940904f89ddd3734b85b9c6f56e28bc821",
+      "crhd_venus_ve03da0_d.dds": "35f0f29ff844dc0739d0f881808e3a7d86052d88e83837e428c5d28c82586e81",
+      "crhd_venus_ve11sa0_d.dds": "84db1d5d68cc4d6b53b347b695cf0f3b4291f10945e6bad5ed0ac76d79732e37",
+      "crhd_venus_ve22sa0_d.dds": "fc71f47b858c1e6ce95a7c5c79340b4caf139aedf2c054cb3833d5a39c9bb665",
+      "crhd_venus_ve22sb0_d.dds": "4dde6218c02a2f7d075eb7fe933d5e86704e2de8b93d971c4758d5e8214a52e6",
+      "crhd_venus_ve33sa0_d.dds": "6e56518597f51d1f62018ac47b2f196545c1e9cdacb72693409189c12fa24e09",
+      "crhd_venus_ve44sa0_d.dds": "3c2d5fdd598d4b1ae404644673fc406407264530eb467f81f9d3d1232a624159",
+      "crhd_venus_ve00sa0_n.dds": "a547d1d410828a03f963a505fd8d157a08231305a027485c16230827185c18ca",
+      "crhd_venus_ve01ca0_n.dds": "1c8379efd92737dfc812973d97aff9b623c61dd1dddfab425cdf63aba7f40250",
+      "crhd_venus_ve01da0_n.dds": "fd5cb272b1dde4e3fc3a6581bd7c5c00fcbf0919e40957b8a8ed49c5115c3f6c",
+      "crhd_venus_ve02ca0_n.dds": "81c9d78e372f28bc3c93de34867c5780d5eac27810b56bda50752b53db9aad1e",
+      "crhd_venus_ve02cb0_n.dds": "fbc01b2a8d7671b288e496b433b3ddb3ff71ece77d68473db331c0e1bec8bf3b",
+      "crhd_venus_ve02da0_n.dds": "e20f73d301694576b635c41f84ecf92b2e096f578cac4fd4e007b21f6bf4ac56",
+      "crhd_venus_ve03ca0_n.dds": "f54f1991f8e91b99e273993fce52509a4685cbef0f0e73e891e65f100672065d",
+      "crhd_venus_ve03da0_n.dds": "e2b60a513dfaedd9dd8aede3b633c396c6ddd19cb29df922c78ec03fd8c147d8",
+      "crhd_venus_ve11sa0_n.dds": "49af0a5e40f142e206764726cc83b6fec94258aeb754853c3615b471b0822313",
+      "crhd_venus_ve22sa0_n.dds": "026876343dd07954337b8b01fd9aedbce0aa2d6087f2fe32f3f7293a76d60038",
+      "crhd_venus_ve22sb0_n.dds": "2a02e5bcf8ec8203d4dcfddcf82071a1a7bf838fa252877a30d4f43cd1db3d98",
+      "crhd_venus_ve33sa0_n.dds": "2f97632f8a58d64620a4e43d5fa68a127e032591d2bc2bfa7815da3a9f067bbf",
+      "crhd_venus_ve44sa0_n.dds": "63e08573ae605f7162908a68f10d7af142422cbefa0dd88195ceca79aee7c768",
+      "crhd_venus_ve00sa0_s.dds": "e0990c94cae1ecd6da581a03c3c3dc09857b9afdb02cd0d7bb92a05505f8474d",
+      "crhd_venus_ve01ca0_s.dds": "30f43eef873f19de6357732d278601347c9eb43ba08096ce99d945fcb21f3653",
+      "crhd_venus_ve01da0_s.dds": "3d9923d7cbce105e35f6ed52259b2228b7229062fa57586346687c113078a844",
+      "crhd_venus_ve02ca0_s.dds": "0fadbb1ab9354df31a10935b8e927b131a0aa51284151ef340c926841d2b095c",
+      "crhd_venus_ve02cb0_s.dds": "9321928a6f0561aaf37d65c697e681b890aadd44a8aa6ad4a032e50c127e80da",
+      "crhd_venus_ve02da0_s.dds": "1436dd889e1be770fac8930d5276a3950666d1d8d351c2d506efc5055b67981d",
+      "crhd_venus_ve03ca0_s.dds": "447d189da8a4897535b84f4d8ac2fcd729e249990c04b28f68a78f17b749ea8d",
+      "crhd_venus_ve03da0_s.dds": "20049ac2b9c7c33b6ff00ba158c8c3b88742e9378b420f108ead028cf4d54cc1",
+      "crhd_venus_ve11sa0_s.dds": "77512528072a9d3cae7c457662a8d24590099f0b524a64bd721748b56bd2c2f5",
+      "crhd_venus_ve22sa0_s.dds": "f312358505945d45b975dd0d74aa86fdad114eec516e4abf09a2b72745872dde",
+      "crhd_venus_ve22sb0_s.dds": "55db757f083cf22323c660d94105dbe2ac98c8039fd3a1a784a91aad8cb6632b",
+      "crhd_venus_ve33sa0_s.dds": "b674afd955046c25df0ac7e7ae4bc02392cff45c4d4629f7219052f551a81ab2",
+      "crhd_venus_ve44sa0_s.dds": "ff59977f1a44a5df5c2d49366807450e9c6cc1ce2a63a0a2571a7a4fdf83d827",
+      "crhd_venus_ve00sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_venus_ve01ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_venus_ve01da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_venus_ve02ca0_e.dds": "bd689c6dddaea6ca1229f3a379de4afbf49fbd7ed87c1181aeae96533edc72ca",
+      "crhd_venus_ve02cb0_e.dds": "da7731e84be9271b55612be51e81d76b96b167a2427c1f822ad4702835be6b35",
+      "crhd_venus_ve02da0_e.dds": "bd689c6dddaea6ca1229f3a379de4afbf49fbd7ed87c1181aeae96533edc72ca",
+      "crhd_venus_ve03ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_venus_ve03da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_venus_ve11sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_venus_ve22sa0_e.dds": "2b25cd5f5527d38eed849584e6da4b9898e848853f00246e5f7cf29d2583fb22",
+      "crhd_venus_ve22sb0_e.dds": "c8698f9a5a8de376254b2fee20eef73dc501324c8d51b847d9825326309e0cfe",
+      "crhd_venus_ve33sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_venus_ve44sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0"
+    }
+  },
+  "emissive": "Sparse base accents only; natural ground/liquid/vent tiles remain black",
+  "limitations": [
+    "Three BZCC source normals have no independent height reference for absolute relief polarity.",
+    "Source/basis validation is separate from live GPU resource/draw qualification."
+  ]
+}

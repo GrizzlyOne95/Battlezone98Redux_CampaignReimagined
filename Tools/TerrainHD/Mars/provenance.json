@@ -1,0 +1,107 @@
+{
+  "schema": "cr-hd-source-images-v1",
+  "world": "mars",
+  "tileSize": 1024,
+  "normalPolarity": "source-height-matched",
+  "sourceRecipeSha256": "dea64d74c33429b5d643a587b6add156cd510d181cfb95997eeacffc5c24bc10",
+  "normalEngineConversion": {
+    "a8264dc12988": "flip_green",
+    "6902a3b5990f": "flip_green",
+    "cce66f8fb0b1": "flip_green",
+    "8d3ed1bbb4f9": "flip_green",
+    "ccbbd72b5404": "flip_green"
+  },
+  "normalCorrections": {},
+  "normalRotation": "Sources converted to engine U/V tangent basis first; CCW image variants rotate engine normal XY as (Y, -X).",
+  "atlasPixelsRead": false,
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "cce66f8fb0b1",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 4,
+      "color": [
+        12,
+        26,
+        32
+      ],
+      "rectangles": [
+        [
+          0.09,
+          0.12,
+          0.004,
+          0.04
+        ],
+        [
+          0.59,
+          0.62,
+          0.004,
+          0.04
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sources": [
+    {
+      "id": "a8264dc12988",
+      "name": "ChunkyMartianGravel_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "3f24bcfcef081740b2cd5526f594074be64cd6a57d2804fabfdc20c5c5651a2f",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "E": "482947eadeb3defd2ac594a0c43f7abb623ab20ad5f0f38cf9ea07cd1edc19f1",
+        "G": "ff1a49840fb5ae9c2a64e03476f2a70b8cf333f7c24753653d40cbcca5393a66",
+        "N": "5c9a20f893de8d641bdcd6ad255551022faca8b8799af0f3cc55db5f983a0703",
+        "A": "84d8942dce8f8dfde937f00c74e7866b94e1fe2fef64d960ac860d22c5d97e10"
+      }
+    },
+    {
+      "id": "6902a3b5990f",
+      "name": "MartianBarrensRocky_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "ce54e7d00ea125eb48731f76d3dbf20f43d32927c061b9530557f7ba843d1c93",
+        "E": "3a7fa4380bae4ea262ab5869208228c7b1b58e49678ab057dda34cd1791f37a5",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "G": "e27e0e9073497aff0c32d03f8e43a76c9b1df5128492900f4641905222c70a63",
+        "N": "783494c10219ceb9d5b7737a8acc8cba16d7a2be709dbbfb3eb5e0d7b8fcf671",
+        "A": "0e3aa932208e27a73f8eeac52ee25a59b5c1678360392b88ecbfbfc982b3807c"
+      }
+    },
+    {
+      "id": "cce66f8fb0b1",
+      "name": "Metal2.tga",
+      "library": "BZCC",
+      "inputHashes": {
+        "D": "27b4cef5d3557062c464f3b1ac70afa72e2443fb914cc26dddb9b4d8d5aeda00",
+        "N": "4d35f67bbdb2b71779b7df526909a58dae54f9973026f6e9ed36e8b7cb06cff5",
+        "S": "1aa5b576af4e55c7ef853fb441b4792661a3ff0d98ef13922473a5ebe6a02604"
+      }
+    },
+    {
+      "id": "8d3ed1bbb4f9",
+      "name": "MarsGravel_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "1a7662d1c86e0bb27e57258c522fcd8f2cda9afbd990068ddf732d28af9a707d",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "E": "3a7fa4380bae4ea262ab5869208228c7b1b58e49678ab057dda34cd1791f37a5",
+        "G": "aeba10207569f8245fe0885e192e191ef8684760af2244ce68cd7e510a0c70a1",
+        "N": "67f4a7124872e4e6b0fac4da4744dafd80ab335d82997d87c615588744a5ffa5",
+        "A": "3e23364c2f8e50cc74149dc6d0c889a96d510f5298eb696918cadfcacaf9fb46"
+      }
+    },
+    {
+      "id": "ccbbd72b5404",
+      "name": "pluto7.tga",
+      "library": "BZCC",
+      "inputHashes": {
+        "D": "e0bbc6f68449a79de4024592282119f9b19576533e8452220cb05c8df16c25ac",
+        "N": "6d74b2beb32382efa095a94531f237cdc7963ce6d1f80e4cd1773463f26316aa",
+        "S": "0ad7b099144a9fed328fcef7d4382802a3f9439c5563956410b5765caab5eadb"
+      }
+    }
+  ]
+}
