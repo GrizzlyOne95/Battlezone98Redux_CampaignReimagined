@@ -27,6 +27,14 @@ the D/N/S/E packs still do not supply texture-authored geometry height maps.
 Collision and gameplay heights are unchanged. A live preview can opt in with
 `Tools/Test-MarsHdTerrainLive.ps1 -MicroRelief` alongside the existing HD args.
 
+Windows/GOG Moon trial (2026-10-20, PID 56724) confirmed factor 4,
+`displacement=0.625`, matching bounds on 144 meshes, 243,200 domain shader
+invocations and `hdMaterialMask=7` on a rasterized native draw. All 82 passes,
+144 streams/bounds and 135 staged files were restored. The new wide-view
+screenshot was inspected; local evidence is
+`Local/TerrainHD/run-20261020-160941`. Other worlds' art scales remain at the
+baseline; their live visual tuning and Steam/Proton/Wine remain unverified.
+
 | World | Material | Physical tiles | DDS resources |
 | --- | --- | ---: | ---: |
 | Moon | MN_DETAIL_ATLAS | 11 | 44 |
