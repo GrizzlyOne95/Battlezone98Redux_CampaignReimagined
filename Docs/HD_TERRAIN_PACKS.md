@@ -143,3 +143,18 @@ committed. The selecting material and CSV are staged together into a registered
 resource folder. Shader/IBL dependencies are made available there before CR
 wrappers are parsed. These previews do not qualify campaign gameplay, co-op,
 long-session RAM, Windows/Steam or Proton/Wine.
+
+## Recorded live result
+
+The updated Moon pack passed on Windows/GOG with all four HD channels active
+(`hdMaterialMask=7`), 144 mesh streams and 82 material passes restored. The
+short player-only fixture used **349.95 MiB settled private RAM**, peaked at
+**481.99 MiB**, and retained a **2,044.79 MiB largest free VA block**. Every
+temporary file was restored. See `Tools/TerrainHD/native_validation.json` and
+ignored `Local/TerrainHD/run-20261020-145335/trial.png`.
+
+The updated other eight packs have passed source/bundle/rebuild checks but
+remain unverified in game. A separate benchmark retained the shared game lock;
+the queued all-world preview was cancelled before deployment rather than
+interrupting it. Their live RAM and stock-atlas deltas are therefore unmeasured.
+The sequential preview helper above remains available for those checks.
