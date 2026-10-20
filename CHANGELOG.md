@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Campaign skies with a star field gain occasional shooting stars: a short streak crosses part of the sky in
+  0.3-0.8 s, about one every 25 s across the whole sky (Moon: Missions 1-2 and the setup map; Io: Missions 9-10
+  and `misns4`). The Moon also gets three satellites that drift across it over one to three minutes, some with a
+  brief glint. Both are procedural `[Stars]` entries (`CRMETEOR.MAP`, `CRSATELL.MAP`) on DX11 and DX9, on by
+  default; `openshim.ini [Display] SkyEvents=0` switches them off. Star Twinkle is unchanged.
+
 - Venus acid rain on the cockpit glass (misn07, misn08, misn09): the rain level the Venus director already computes now also
   drives the `CRWetGlass` rain layers, drawn in faint yellow-green instead of the Earth-like blue-grey, and long exposure
   builds a very faint pitted etch haze that clears slowly after the rain. Render only, local to each peer, and can be
