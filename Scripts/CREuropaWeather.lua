@@ -113,6 +113,7 @@ V.AllowRandomSurges    = true    -- the host schedules unscripted surges
 V.AllowAurora          = true    -- violet-green motes during a surge
 V.AllowEpisodes        = true    -- temporary intense spells
 V.AllowSounds          = true    -- local 2D rumble / crackle (never positional gameplay noise)
+V.AllowGlassSnow       = true    -- a few snow flakes on the cockpit glass (CRWetGlass.Weather)
 
 -- Hard budgets. These are caps, not targets.
 V.MaxSystems           = 28      -- every particle system this module owns, at once
@@ -1563,6 +1564,7 @@ function V.Init(options)
         ventHaze = "AllowVentHaze", quakes = "AllowQuakes", randomQuakes = "AllowRandomQuakes",
         quakeIce = "AllowQuakeIce", surges = "AllowSurges", randomSurges = "AllowRandomSurges",
         aurora = "AllowAurora", episodes = "AllowEpisodes", sounds = "AllowSounds",
+        glassSnow = "AllowGlassSnow",
     }
     for key, field in pairs(switches) do
         if options[key] ~= nil then V[field] = options[key] and true or false end
@@ -1600,6 +1602,7 @@ function V.Init(options)
 
     V.Clock = 0.0
     V.LastRealTime = nil
+    V.GlassSnow = 0.0
     V.TargetLevel = Clamp(tonumber(options.targetLevel) or 2, 1, LEVEL_COUNT)
     V.ForcedLevel = nil
     V.ForcedUntil = nil
@@ -1687,6 +1690,37 @@ local function RealDelta(fallbackDt)
     return delta
 end
 
+-- Light snow on the cockpit glass (CRWetGlass: sparse flakes that land and melt, no streaks). A
+-- constant light level that follows the activity ladder a little and breathes slowly, eased so the
+-- glass never jumps. Off with the director, with CRWeather.Quality 0 or with AllowGlassSnow.
+local GlassModule = nil
+local function Glass()
+    if GlassModule == nil then
+        local ok, m = pcall(require, "CRWetGlass")
+        GlassModule = (ok and type(m) == "table" and type(m.Weather) == "function") and m or false
+    end
+    return GlassModule or nil
+end
+
+local GLASS_SNOW_BASE, GLASS_SNOW_SPAN = 0.22, 0.38   -- level at quiescent, plus the climb to perijove
+local GLASS_SNOW_RATE = 0.04                          -- level per second the glass follows the target at
+
+local function UpdateGlassSnow(dt)
+    local glass = Glass()
+    if glass == nil then return end
+    local target = 0.0
+    if V.AllowGlassSnow and (tonumber(CRWeather.Quality) or 1.0) > 0.0 then
+        local breathe = 0.85 + 0.15 * math.sin(V.Clock * (2.0 * math.pi / 170.0))
+        target = (GLASS_SNOW_BASE + GLASS_SNOW_SPAN * V.GetSeverity()) * breathe
+    end
+    local step = GLASS_SNOW_RATE * dt
+    V.GlassSnow = V.GlassSnow + Clamp(target - V.GlassSnow, -step, step)
+    glass.Weather("snow", V.GlassSnow)
+    if V.GlassSnow > 0.0 or glass.Busy() then glass.Update(0.0) end
+end
+
+function V.GetGlassSnow() return V.GlassSnow or 0.0 end
+
 function V.Update(dt)
     if not V.Initialized then V.Init() end
     if not V.Enabled then return end
@@ -1707,6 +1741,7 @@ function V.Update(dt)
     UpdateSurge()
     UpdateVents(dt)
     UpdateFrostSystems()
+    UpdateGlassSnow(dt)
 
     if V.Clock >= V.NextStreamAt then
         V.NextStreamAt = V.Clock + V.StreamInterval
@@ -1737,6 +1772,13 @@ function V.Shutdown()
 
     Fx_DestroyAll()
     V.FrostLive, V.PlumeLive = {}, {}
+
+    local glass = Glass()
+    if glass ~= nil then
+        glass.Weather("snow", 0.0)
+        pcall(glass.Stop)
+    end
+    V.GlassSnow = 0.0
 
     local environment = rawget(_G, "Environment")
     if V.EnvModifierRegistered and environment ~= nil

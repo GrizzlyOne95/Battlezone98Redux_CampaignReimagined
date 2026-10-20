@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2957,
+  "count": 2965,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1084,6 +1084,18 @@
       "runtime": "cromine_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crwx_acidbeads.png",
+      "runtime": "crwx_acidbeads.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_acidrivulet.png",
+      "runtime": "crwx_acidrivulet.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_acidstreak.png",
+      "runtime": "crwx_acidstreak.png"
+    },
+    {
       "source": "Assets\\Textures\\crwx_bootprint.png",
       "runtime": "crwx_bootprint.png"
     },
@@ -1134,6 +1146,18 @@
     {
       "source": "Assets\\Textures\\crwx_winddirt.png",
       "runtime": "crwx_winddirt.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_winetch.png",
+      "runtime": "crwx_winetch.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_wingrit.png",
+      "runtime": "crwx_wingrit.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_winsnow.png",
+      "runtime": "crwx_winsnow.png"
     },
     {
       "source": "Assets\\Textures\\crwx_wsplat.dds",
@@ -3242,6 +3266,10 @@
     {
       "source": "Materials\\crwx_cockpitglass.material",
       "runtime": "crwx_cockpitglass.material"
+    },
+    {
+      "source": "Materials\\crwx_glassweather.material",
+      "runtime": "crwx_glassweather.material"
     },
     {
       "source": "Materials\\crwx_precip.material",
@@ -7014,6 +7042,10 @@
     {
       "source": "Scripts\\CRParticleTemplates.lua",
       "runtime": "CRParticleTemplates.lua"
+    },
+    {
+      "source": "Scripts\\CRPoolFX.lua",
+      "runtime": "CRPoolFX.lua"
     },
     {
       "source": "Scripts\\CRPrecip.lua",

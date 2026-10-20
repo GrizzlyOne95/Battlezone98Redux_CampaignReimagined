@@ -1329,6 +1329,79 @@ do
 end
 
 -- =============================================================================
+-- 9b. Pool pops: bubbles, embers and spatter on the molten pools (CRPoolFX)
+-- =============================================================================
+
+do
+    local function Recording(rec)
+        return {
+            Event = function(kind, pos, scale, mask)
+                rec[#rec + 1] = { kind = kind, x = pos.x, y = pos.y, z = pos.z, scale = scale, mask = mask }
+                return true
+            end,
+            Update = function() end,
+            StopKind = function(kind) rec.stopped = kind end,
+        }
+    end
+
+    local function Run(label, setup, rung, seconds)
+        local world = NewWorld()
+        local peer = NewPeer(label, world)
+        local rec = {}
+        peer.preload["CRGroundFX"] = Recording(rec)
+        peer.playerPos = { x = LavaPool.x, y = 40, z = LavaPool.z }
+        peer.Environment.Init()
+        peer.Io.Init({ seed = 77, authority = true, sites = sites, startLevel = rung, targetLevel = rung })
+        if setup then setup(peer) end
+        peer.run(seconds)
+        return peer, rec
+    end
+
+    local peer, rec = Run("poolfx", nil, 1, 120.0)
+    local IO = peer.Io
+    check(#rec > 20, "molten pools pop while the player is near them, got " .. #rec .. " events in 120 s")
+    check(#rec <= (120.0 / 0.35) + 1, "events are rate limited by the minimum spacing")
+    local weightOk, nearOk, kindOk, maskOk = true, true, true, true
+    for _, e in ipairs(rec) do
+        if IO.LavaWeightAt(e.x, e.z) < 0.5 then weightOk = false end
+        if Dist2(e.x, e.z, LavaPool.x, LavaPool.z) > IO.PoolFxRange + IO.PoolFxRadius + 1 then nearOk = false end
+        if e.kind ~= "lava" then kindOk = false end
+        if e.mask == nil or e.mask.smoke == nil or e.mask.smoke >= 1.0 then maskOk = false end
+    end
+    check(weightOk, "every pop lands on a molten cell (weight >= 0.5)")
+    check(nearOk, "pops happen only near the player")
+    check(kindOk and maskOk, "pops use the lava kind with the light-smoke mask")
+
+    local _, high = Run("poolfx-high", nil, 5, 120.0)
+    check(#high > #rec, "a higher rung pops more often (" .. #high .. " vs " .. #rec .. ")")
+
+    local _, off = Run("poolfx-off", function(p) p.Io.AllowPoolFx = false end, 3, 60.0)
+    check(#off == 0, "AllowPoolFx = false silences the pops")
+
+    local _, noq = Run("poolfx-q0", function(p) p.CRWeather.Quality = 0.0 end, 3, 60.0)
+    check(#noq == 0, "weather quality 0 silences the pops")
+
+    local peerFar, far = Run("poolfx-far", nil, 3, 1.0)
+    peerFar.playerPos = { x = 100, y = 40, z = 99000 }
+    local before = #far
+    peerFar.run(60.0)
+    check(#far == before, "no pops while every pool is out of range")
+
+    -- Shutdown stops the kind's systems; the option switches it off at Init.
+    peer.Io.Shutdown()
+    check(rec.stopped == "lava", "Shutdown removes the lava systems it owns")
+    local world2 = NewWorld()
+    local p2 = NewPeer("poolfx-init-off", world2)
+    local rec2 = {}
+    p2.preload["CRGroundFX"] = Recording(rec2)
+    p2.playerPos = { x = LavaPool.x, y = 40, z = LavaPool.z }
+    p2.Environment.Init()
+    p2.Io.Init({ seed = 77, authority = true, sites = sites, poolFx = false, startLevel = 3, targetLevel = 3 })
+    p2.run(60.0)
+    check(#rec2 == 0, "Init{ poolFx = false } silences the pops")
+end
+
+-- =============================================================================
 -- 10. The module never reaches for anything damaging (static check)
 -- =============================================================================
 
