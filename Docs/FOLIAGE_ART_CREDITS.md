@@ -61,3 +61,50 @@ the textures are unchanged.
 `ODF/xplnxpl.odf` (the trees' zero-damage explosion) and `Assets/Textures/smoke.dds`
 are unchanged ISDFC copies. `Materials/smokeb.material` is ISDFC's, alpha-blended to
 match the ODF. `amb_wind.wav` is stock. ISDFC was read only, never modified.
+
+## Achilles flowers, ferns and grasses (botanical plates)
+
+The `cr17_fl_*` cards are cut out of public-domain botanical plates and one CC0
+texture by `Tools/Build-Misn17Flowers.py`. Each licence was read from the Wikimedia
+Commons file page (`LicenseShortName`) or from ambientCG before the file was used.
+The raw plates are not in the repository. The build script pins each plate's
+SHA-256 and refuses to run on a different file.
+
+| Card | Plate | Author | Licence | Bytes | SHA-256 |
+|---|---|---|---|---|---|
+| harebell | [Campanula rotundifolia, Thomé Bd. 4, Tafel 561](https://commons.wikimedia.org/wiki/File:Campanula_rotundifolia_%28Thom%C3%A9_Bd.4_1905%2C_BHL-81515%2C_Tafel_561%29_clean.jpg) | Otto Wilhelm Thomé (1904/05) | Public domain | 1256721 | `9863e9c83cd98b1d3eee693831a0626b2a66e5f1e21b468652abe639e3e31ce8` |
+| fireweed | [Illustration Epilobium angustifolium0](https://commons.wikimedia.org/wiki/File:Illustration_Epilobium_angustifolium0.jpg) | Thomé, *Flora von Deutschland* series (Commons names no artist) | Public domain | 774337 | `58c254b9e4af2b5108a63bd3e32f6ef1311e68abb2e833b3a8afde8ef1f40c58` |
+| anemone, anemone_leaf | [Illustration Anemone nemorosa0](https://commons.wikimedia.org/wiki/File:Illustration_Anemone_nemorosa0.jpg) | Walther Otto Müller | Public domain | 563045 | `9f9f9cb229241480609621db5b3302c43efd76f845b6d9e6cc8c481bc2c7b6b8` |
+| bunchberry, bunchberry_top | [Cornus canadensis HdB2](https://commons.wikimedia.org/wiki/File:Cornus_canadensis_HdB2.png) | Charles Louis L'Héritier de Brutelle (1788) | Public domain | 1520809 | `13dbc5c0b804e5febb210df00fef6dd1bafd7af2a7efc88c615d07fbac04b5b7` |
+| twinflower | [Linnaea borealis Sturm12046](https://commons.wikimedia.org/wiki/File:Linnaea_borealis_Sturm12046.jpg) | Jacob Sturm (1796) | Public domain | 218597 | `bf9b927a2779a20e04447cb5966c5704edc7c9115183e81213cb4e4ea817320e` |
+| cottongrass | [Eriophorum polystachion, Flora Batava vol. 1](https://commons.wikimedia.org/wiki/File:Eriophorum_polystachion_%E2%80%94_Flora_Batava_%E2%80%94_Volume_v1.jpg) | Jan Kops (1800) | Public domain | 474095 | `ecf87e96d85b14a2a2ebe15e1e05497e02cb7ba41cd53ca3e3cf4eafc26172a3` |
+| saxifrage | [Saxifraga oppositifolia Sturm54](https://commons.wikimedia.org/wiki/File:Saxifraga_oppositifolia_Sturm54.jpg) | Johann Georg Sturm, painted by Jacob Sturm (1796) | Public domain | 237605 | `2d3a5e83e8294fc97ba2caeefb7ee349ca9948551306065fc4e74273c3f6651b` |
+| lupine | [Lupinus polyphyllus Lindley 1827](https://commons.wikimedia.org/wiki/File:Lupinus_polyphyllus_Lindley_1827.jpg) | John Lindley (1827) | Public domain | 1004236 | `36a370a4a66e654db363d64e3875f18566dcf3834342ac0273df4811032d227b` |
+| fern | [Athyrium filix-femina Moore30](https://commons.wikimedia.org/wiki/File:Athyrium_filix-femina_Moore30.png) | Thomas Moore, ed. John Lindley, nature-printed by Henry Bradbury (1857) | Public domain | 1858321 | `f244eee97d15dfd6a29b27a42ea55af8c50be531e28f87c3ebb89ba99078043a` |
+| fern_b | [Illustration Athyrium filix-femina0](https://commons.wikimedia.org/wiki/File:Illustration_Athyrium_filix-femina0.jpg) | Thomé, *Flora von Deutschland* series (Commons names no artist) | Public domain | 1192831 | `4db4335856c91bd3a3d409e5071698b45d1a06bb4be189217a0ecc5b544a1b00` |
+| grass, grass_seed | [Illustration Festuca ovina0](https://commons.wikimedia.org/wiki/File:Illustration_Festuca_ovina0.jpg) | Thomé, *Flora von Deutschland* series (Commons names no artist) | Public domain | 604702 | `d4c8e7f049cc7684a455d39ac69e21b6c889c28bdd8f98b7c9975313e830dd66` |
+| sedge | [Carex vulgaris, Flora Batava vol. 12](https://commons.wikimedia.org/wiki/File:Carex_vulgaris_%E2%80%94_Flora_Batava_%E2%80%94_Volume_v12.jpg) | Jan Kops et al. (1865) | Public domain | 696542 | `0aa26da033370c0c7338bc156b0bea3194cec32f2b4a3adb1f4d345975beee9b` |
+| tuft | [ambientCG Foliage006](https://ambientcg.com/view?id=Foliage006) (`Foliage006_1K-PNG.zip`, Color and Opacity maps) | ambientCG (Lennart Demes) | CC0 | 6131155 | `273edcdf98fea19255ef90266a3123c2c0054d0f995b4ec7c680daf9aea679fa` |
+
+Two more plates were downloaded and checked but are **not used**:
+
+| Plate | Author | Licence | Bytes | SHA-256 | Why unused |
+|---|---|---|---|---|---|
+| [Twinflower by Rosa Fiveash](https://commons.wikimedia.org/wiki/File:Twinflower_by_Rosa_Fiveash.jpg) | Rosa Catherine Fiveash | CC0 | 284981 | `d822d23a4372b8656395dd71c3194aef179e8105b68fa694eb2ab06e1fd4b636` | It shows a yellow-green, bell-flowered Australian plant, not *Linnaea borealis*. Sturm's plate is used instead. |
+| [Epilobium angustifolium, Flora Batava vol. 19](https://commons.wikimedia.org/wiki/File:Epilobium_angustifolium_%E2%80%94_Flora_Batava_%E2%80%94_Volume_v19.jpg) | Jan Kops et al. (1893) | Public domain | 913459 | `efb252a7fb827f31576558777d51a7e6c9016e856d802a3bf9ff5414e9d3f522` | Alternate fireweed. The primary plate keyed well enough. |
+
+**Changes made to the plates:**
+
+- **Cut out.** The paper was removed by colour distance from an estimated paper
+  field. Enclosed paper holes were filled only when they were not paper-coloured.
+  Plate text, numbers, dissection details and neighbouring plants were erased.
+- **Recoloured.** Greens were graded toward Achilles' cool, slightly desaturated
+  palette, and flower hues were steered to read clearly in game.
+  - Bunchberry's plate is an uncoloured engraving, so it was colourised: green
+    leaves, white bracts and red berries.
+  - The saxifrage petals were painted purple.
+- **Composed.** The `tuft` card was composed from the Foliage006 blades.
+- **Packed.** All cards were packed onto one 2048 DXT5 atlas with mips.
+
+`References/Misn17Flowers/source-assets.json` records the plates, the atlas
+rectangles and the mesh hashes.

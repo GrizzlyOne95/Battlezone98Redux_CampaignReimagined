@@ -264,14 +264,18 @@ function Jungle.Create(api)
         -- ground cover also sheds leaves near the camera. Weather.Shutdown in
         -- J.Stop stills them again.
         -- The pack forest's canopies (Tools/Build-Misn17Forest.py) sway the same way.
+        -- So do the flower cards (Tools/Build-Misn17Flowers.py); they shed no litter.
         for _,m in ipairs({"CR17/LeavesWind","CR17/GroundWind","CR17/GroundWindCold","CR17/CutoutCaster/FoliageWind",
             "CR17/ForestBranch1Wind","CR17/ForestBranch2Wind",
-            "CR17/CutoutCaster/ForestBranch1Wind","CR17/CutoutCaster/ForestBranch2Wind"}) do
+            "CR17/CutoutCaster/ForestBranch1Wind","CR17/CutoutCaster/ForestBranch2Wind",
+            "CR17/FlowerWind","CR17/FlowerTallWind","CR17/CutoutCaster/FlowerTallWind"}) do
             Foliage.Register(m,{slot="emissive"})
         end
         local points={}
         for _,layer in ipairs(Sites.layers) do
-            for _,p in ipairs(layer.instances) do points[#points+1]=p end
+            if not layer.mesh:find("^cr17_fl_") then
+                for _,p in ipairs(layer.instances) do points[#points+1]=p end
+            end
         end
         Foliage.EnableLitter(points,{rate=45,saturation=50,minSpeed=3})
         if api.vehicleWakes~=false then
@@ -378,7 +382,7 @@ function Jungle.Create(api)
             -- The Mire ground cover (shared with misn18) is cooled for Achilles here.
             local material=layer.mesh:find("^cr17_mire_") and "CR17/GroundWindCold" or nil
             local info,reason=x.CreateStaticGeometry(name,layer.mesh,material,instances,
-                {origin={x=2048,y=0,z=99328},regionDimensions={x=192,y=256,z=192},renderingDistance=260,castShadows=false,visible=true})
+                {origin={x=2048,y=0,z=99328},regionDimensions={x=192,y=256,z=192},renderingDistance=layer.distance or 260,castShadows=false,visible=true})
             if info then groups[#groups+1]=name;nextLayer=nextLayer+1 else error=tostring(reason) end
         end
         if not mist and type(x.CreateParticleSystem)=="function" and Templates.EnsureExtra("cr17_jungle") then
