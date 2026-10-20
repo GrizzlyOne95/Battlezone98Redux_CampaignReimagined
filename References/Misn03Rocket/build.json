@@ -1,0 +1,32 @@
+{
+  "source": "GrizzlyOne95 NSDF rocket (ROTBD/Resurgence abtrans.mesh, submesh abtrans_BZBase_abtrans)",
+  "triangles": 2750,
+  "vertices": 2955,
+  "axis_in_abtrans_frame": [
+    24.745,
+    -23.415
+  ],
+  "mid_height_in_abtrans_frame": 66.25622,
+  "bounds_min": [
+    -14.484662055969238,
+    -46.00470733642578,
+    -17.68006134033203
+  ],
+  "bounds_max": [
+    14.48227596282959,
+    46.004703521728516,
+    17.682802200317383
+  ],
+  "nozzle_plane": -46.00470733642578,
+  "nozzle_ring_radius": 9.0,
+  "nozzles": 7,
+  "sha256": {
+    "Assets/ModelFixes/cr03rok.mesh": "a3a920d114111eda93f326dbc12d793eb8d99f43745ec140ac0b29c81acc85ad",
+    "Assets/ModelFixes/cr03rok.geo": "b82a12ce5a3355f632415eb551553520ac6ae0ef1414f4663aecff851c26ae90",
+    "Assets/ModelFixes/cr03rok.sdf": "3f73ebcf8618bb6294851814275919e5ad4286abc6337337b0d6832aa9d8fdf6",
+    "Assets/Textures/cr03rok_d.dds": "2c1fd53f082f06ab756d249765471b80a73eadadf61f6a7072aeeadee84b7bf0",
+    "Assets/Textures/cr03rok_n.dds": "fbead2fd05f384e7d0e9eea18dad04d572f81116a6be482ee3be786be9c61dad",
+    "Assets/Textures/cr03rok_s.dds": "7f2047cafe0faa8969f6638a85c067817cd5e97da80d6555a24280bb876b4ca5",
+    "Assets/Textures/cr03rok_e.dds": "63ef06e563aa602e35ac421214e6cec4a6deacb4c4dd96a4a1433954ac5eda48"
+  }
+}
