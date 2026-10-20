@@ -37,7 +37,7 @@ jobs:
       - name: Fetch model-format libraries
         shell: bash
         env:
-          TOOLBOX_SHA: b3cfcf5ca24fd44a13dfd4dd3d002bc08cdd8813
+          TOOLBOX_SHA: ec0fce2ed83c678da5a3d5e1f935b254fb27942b
           TOOLKIT_SHA: 0a6be135092c88331d4f35b134dda69f593dcfd0
         run: |
           set -euo pipefail
@@ -54,7 +54,10 @@ jobs:
 
       # The toolkit's Ogre and GEO serializers need numpy.
       - name: Install model-library dependencies
-        run: python -m pip install numpy
+        run: python -m pip install numpy Pillow scipy
+
+      - name: Validate Moon HD terrain bundle and normal contracts
+        run: python Tools/Test-MoonHdTerrain.py
 
       - name: Install Lua 5.1 compiler
         shell: bash

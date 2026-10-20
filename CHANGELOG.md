@@ -12,6 +12,12 @@
   over the misn03 launch film) and the scripted engine/vent lights (misn03/misn06 launch, CR06 orbit film, misn17
   vents, misn18 tornado) were silently skipped. Also brings `exu.SetSkyClearColor` and `exu.GetClock`.
 
+- Optional 1K Moon HD terrain: 11 independent diffuse/normal/specular tile sets,
+  built with the Modding Toolbox. Source-height checks correct the ground/rock
+  normal polarity. Requires the native HD OpenShim build, authored manifest and
+  DX11 Enhanced; Redux/Retro and disabled HD tiles retain the ordinary atlas.
+  See `Docs/MOON_HD_TERRAIN.md` for setup, evidence and memory limits.
+
 - Campaign skies with a star field gain occasional shooting stars: a short streak crosses part of the sky in
   0.3-0.8 s, about one every 25 s across the whole sky (Moon: Missions 1-2 and the setup map; Io: Missions 9-10
   and `misns4`). The Moon also gets three satellites that drift across it over one to three minutes, some with a

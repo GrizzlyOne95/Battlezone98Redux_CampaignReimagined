@@ -1,0 +1,160 @@
+{
+  "schema": "bzr-openshim-terrain-hd-v2",
+  "materials": {
+    "MN_DETAIL_ATLAS": {
+      "sliceCount": 11,
+      "releaseSourceTextures": true,
+      "diffuseResource": "moon_atlas_d.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.25,
+            0.25
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.5,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.75,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.0,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.25,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.5,
+            0.5,
+            0.25,
+            0.25
+          ],
+          "slice": 10
+        }
+      ],
+      "tiles": {
+        "0": "crhd_moon_mn00sa0_d.dds",
+        "1": "crhd_moon_mn00sc0_d.dds",
+        "2": "crhd_moon_mn03ca0_d.dds",
+        "3": "crhd_moon_mn03da0_d.dds",
+        "4": "crhd_moon_mn04ca0_d.dds",
+        "5": "crhd_moon_mn04da0_d.dds",
+        "6": "crhd_moon_mn33sa0_d.dds",
+        "7": "crhd_moon_mn44sa0_d.dds",
+        "8": "crhd_moon_mn44sb0_d.dds",
+        "9": "crhd_moon_mn55sa0_d.dds",
+        "10": "crhd_moon_mn66sa0_d.dds"
+      },
+      "fallback": "crhd_moon_mn00sa0_d.dds",
+      "normal": {
+        "sourceResource": "moon_atlas_n.dds",
+        "tiles": {
+          "0": "crhd_moon_mn00sa0_n.dds",
+          "1": "crhd_moon_mn00sc0_n.dds",
+          "2": "crhd_moon_mn03ca0_n.dds",
+          "3": "crhd_moon_mn03da0_n.dds",
+          "4": "crhd_moon_mn04ca0_n.dds",
+          "5": "crhd_moon_mn04da0_n.dds",
+          "6": "crhd_moon_mn33sa0_n.dds",
+          "7": "crhd_moon_mn44sa0_n.dds",
+          "8": "crhd_moon_mn44sb0_n.dds",
+          "9": "crhd_moon_mn55sa0_n.dds",
+          "10": "crhd_moon_mn66sa0_n.dds"
+        },
+        "fallback": "crhd_moon_mn00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "moon_atlas_s.dds",
+        "tiles": {
+          "0": "crhd_moon_mn00sa0_s.dds",
+          "1": "crhd_moon_mn00sc0_s.dds",
+          "2": "crhd_moon_mn03ca0_s.dds",
+          "3": "crhd_moon_mn03da0_s.dds",
+          "4": "crhd_moon_mn04ca0_s.dds",
+          "5": "crhd_moon_mn04da0_s.dds",
+          "6": "crhd_moon_mn33sa0_s.dds",
+          "7": "crhd_moon_mn44sa0_s.dds",
+          "8": "crhd_moon_mn44sb0_s.dds",
+          "9": "crhd_moon_mn55sa0_s.dds",
+          "10": "crhd_moon_mn66sa0_s.dds"
+        },
+        "fallback": "crhd_moon_mn00sa0_s.dds"
+      }
+    }
+  }
+}

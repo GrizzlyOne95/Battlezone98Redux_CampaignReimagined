@@ -1,0 +1,70 @@
+{
+  "schema": "cr-moon-hd-native-validation-v1",
+  "runtimeLane": "Windows/GOG, x86, DX11",
+  "openshimCommit": "4386558eeb1d9a90846cdc7d8138023650ca28cf",
+  "pluginSha256": "540251de62037e104c1b6ddb919dab25673a9cc2264141bac1ff625f5105826c",
+  "patchesSha256": "4c361835c2c0410395369a56b1b40d7d6dafcb0562877db111309bf70cf2a826",
+  "material": "MN_DETAIL_ATLAS",
+  "physicalSlices": 11,
+  "usedLogicalIds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+  ],
+  "allUsedRectanglesResolved": true,
+  "nativeMeshes": 144,
+  "nativePasses": 82,
+  "packedUv": "exact",
+  "gpuDraw": {
+    "hdTiles": true,
+    "hdMaterialMask": 3,
+    "pixelShaderInvocations": 24931
+  },
+  "restoredMeshes": 144,
+  "restoredPasses": 82,
+  "restoration": "Harness verified every backed-up file hash after owned process exited",
+  "runs": [
+    {
+      "evidenceDirectory": "run-20261020-141542",
+      "role": "enhanced-hd",
+      "pid": 37252,
+      "openshimLogSha256": "a52383735ebb621d97155e4b3594df084fbe01b3cdfb52d06f0dd6ccca1462ea",
+      "privateBytes": 363016192,
+      "peakPrivateBytes": 507625472,
+      "largestFreeVaBytes": 2144116736
+    },
+    {
+      "evidenceDirectory": "run-20261020-141831",
+      "role": "enhanced-atlas",
+      "pid": 46264,
+      "openshimLogSha256": "47402df1d1ab333baf269c69031871bea4be9f280dc389e490ffc509532c9f88",
+      "privateBytes": 320602112,
+      "peakPrivateBytes": 418738176,
+      "largestFreeVaBytes": 2144116736
+    },
+    {
+      "evidenceDirectory": "run-20261020-141705",
+      "role": "redux-hd-requested",
+      "pid": 40168,
+      "openshimLogSha256": "15eb43dc07f255496c66dba8a58141f4203769316d7db1a75335c2a5c26f2194",
+      "privateBytes": 317366272,
+      "peakPrivateBytes": 412991488,
+      "largestFreeVaBytes": 2144116736
+    }
+  ],
+  "qualificationLimits": [
+    "Player-only camera fixture uses native CR misn03 terrain; campaign gameplay/co-op is not qualified by this run.",
+    "Source-height and analytical shader basis checks are separate from native binding/draw proof; no per-pixel GPU vector readback.",
+    "Steam/Proton/Wine and long sessions unverified."
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-18T21:59:07-05:00",
-  "count": 3047,
+  "generated": "2026-10-20T14:18:19-05:00",
+  "count": 3082,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -12190,6 +12190,146 @@
     {
       "source": "Materials\\cr17_flowers.material",
       "runtime": "cr17_flowers.material"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn00sa0_d.dds",
+      "runtime": "crhd_moon_mn00sa0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn00sa0_n.dds",
+      "runtime": "crhd_moon_mn00sa0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn00sa0_s.dds",
+      "runtime": "crhd_moon_mn00sa0_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn00sc0_d.dds",
+      "runtime": "crhd_moon_mn00sc0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn00sc0_n.dds",
+      "runtime": "crhd_moon_mn00sc0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn00sc0_s.dds",
+      "runtime": "crhd_moon_mn00sc0_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn03ca0_d.dds",
+      "runtime": "crhd_moon_mn03ca0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn03ca0_n.dds",
+      "runtime": "crhd_moon_mn03ca0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn03ca0_s.dds",
+      "runtime": "crhd_moon_mn03ca0_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn03da0_d.dds",
+      "runtime": "crhd_moon_mn03da0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn03da0_n.dds",
+      "runtime": "crhd_moon_mn03da0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn03da0_s.dds",
+      "runtime": "crhd_moon_mn03da0_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn04ca0_d.dds",
+      "runtime": "crhd_moon_mn04ca0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn04ca0_n.dds",
+      "runtime": "crhd_moon_mn04ca0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn04ca0_s.dds",
+      "runtime": "crhd_moon_mn04ca0_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn04da0_d.dds",
+      "runtime": "crhd_moon_mn04da0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn04da0_n.dds",
+      "runtime": "crhd_moon_mn04da0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn04da0_s.dds",
+      "runtime": "crhd_moon_mn04da0_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn33sa0_d.dds",
+      "runtime": "crhd_moon_mn33sa0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn33sa0_n.dds",
+      "runtime": "crhd_moon_mn33sa0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn33sa0_s.dds",
+      "runtime": "crhd_moon_mn33sa0_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn44sa0_d.dds",
+      "runtime": "crhd_moon_mn44sa0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn44sa0_n.dds",
+      "runtime": "crhd_moon_mn44sa0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn44sa0_s.dds",
+      "runtime": "crhd_moon_mn44sa0_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn44sb0_d.dds",
+      "runtime": "crhd_moon_mn44sb0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn44sb0_n.dds",
+      "runtime": "crhd_moon_mn44sb0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn44sb0_s.dds",
+      "runtime": "crhd_moon_mn44sb0_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn55sa0_d.dds",
+      "runtime": "crhd_moon_mn55sa0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn55sa0_n.dds",
+      "runtime": "crhd_moon_mn55sa0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn55sa0_s.dds",
+      "runtime": "crhd_moon_mn55sa0_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn66sa0_d.dds",
+      "runtime": "crhd_moon_mn66sa0_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn66sa0_n.dds",
+      "runtime": "crhd_moon_mn66sa0_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_mn66sa0_s.dds",
+      "runtime": "crhd_moon_mn66sa0_s.dds"
+    },
+    {
+      "source": "Config\\cr_terrain_hd.json",
+      "runtime": "cr_terrain_hd.json"
+    },
+    {
+      "source": "Config\\mn_detail_atlas.csv",
+      "runtime": "mn_detail_atlas.csv"
     }
   ]
 }
