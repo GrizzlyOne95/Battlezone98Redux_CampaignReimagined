@@ -1,7 +1,9 @@
 """Keep the lore-separated mine models, weapons, placements and package complete."""
 from pathlib import Path
 from hashlib import sha256
-import json,re,struct
+import io,json,re,struct,sys
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from bzmodellibs import ogremesh_serializer
 ROOT=Path(__file__).resolve().parents[1]
 REF=ROOT/'References/BoltMines'
 count=0
@@ -15,20 +17,11 @@ def section(name,heading):
     text=(ROOT/'ODF'/f'{name}.odf').read_text()
     body=re.search(r'(?m)^\['+heading+r'\]\s*\n([^\[]*)',text)[1]
     return {m[1].lower():m[2].strip().strip('"') for m in re.finditer(r'(?m)^(\w+)\s*=\s*([^/\n]*)',body)}
-def chunks(data):
-    p=data.index(b'\n')+1
-    check(struct.unpack_from('<H',data,p)[0]==0x3000,'Ogre mesh root')
-    end=p+struct.unpack_from('<I',data,p+2)[0];flag=data[p+6:p+7];p+=7;out=[]
-    while p<end:
-        kind,n=struct.unpack_from('<HI',data,p)
-        check(n>=6 and p+n<=end,'valid Ogre chunk size')
-        out.append((kind,data[p+6:p+n]));p+=n
-    check(p==end,'complete Ogre mesh')
-    return flag,out,data[end:]
+def read_mesh(data):return ogremesh_serializer.MeshSerializer(io.BytesIO(data)).read()
 manifest=json.loads((REF/'provenance.json').read_text())
 for name,digest in manifest['stock_sha256'].items():
     check(sha256((REF/'original'/name).read_bytes()).hexdigest()==digest,'byte-pinned stock asset: '+name)
-original=chunks((REF/'original/boltmine.mesh').read_bytes())
+original=read_mesh((REF/'original/boltmine.mesh').read_bytes())
 lock=json.loads((ROOT/'Shipping/shipping.lock.json').read_text())
 members={r['source'].replace('\\','/'):r['runtime'] for r in lock['files']}
 ship=[]
@@ -43,16 +36,18 @@ for name,weapon,ordnance in [('cromine','cromarc','crom0'),('crfmine','crfmarc',
         check(p.read_bytes()==(REF/'original'/f'boltmine.{ext}').read_bytes(),'stock native geometry/animation unchanged')
         ship.append(p)
     mesh=ROOT/'Assets/ModelFixes'/f'{name}.mesh';ship.append(mesh)
-    copy=chunks(mesh.read_bytes())
-    check(copy[0]==original[0] and copy[2]==original[2],'skeletal flag/tail preserved')
-    check(len(copy[1])==len(original[1]),'same Ogre chunk count')
-    for (a,src),(b,dst) in zip(original[1],copy[1]):
-        check(a==b,'same mesh chunk kind')
-        if a in (0x4000,0x6000):
-            old_name,old_body=src.split(b'\n',1);new_name,new_body=dst.split(b'\n',1)
-            check(new_name==(name if a==0x4000 else name+'.skeleton').encode(),'namespaced material/skeleton')
-            check(old_body==new_body,'UV, normals, vertices and bone weights preserved')
-        else:check(src==dst,'all other metadata/bounds preserved')
+    copy=read_mesh(mesh.read_bytes())
+    check((copy.skeleton_name is None)==(original.skeleton_name is None),'skeletal flag preserved')
+    check(len(copy.submesh_list)==len(original.submesh_list),'same submesh count')
+    check(copy.skeleton_name==name+'.skeleton','namespaced skeleton')
+    for src,dst in zip(original.submesh_list,copy.submesh_list):
+        check(dst.material_name==name,'namespaced material')
+        check(src.index_count==dst.index_count and bytes(src.get_index_buffer())==bytes(dst.get_index_buffer()),'indices preserved')
+        check([vars(e) for e in src.vertex_data.vertex_declaration.vertex_element_list]==[vars(e) for e in dst.vertex_data.vertex_declaration.vertex_element_list],'vertex layout preserved')
+        check(all(bytes(vb.buffer)==bytes(dst.vertex_data.get_vertex_buffer(i).buffer) for i,vb in src.vertex_data.vertex_buffer_map.items()),'UV, normals and vertices preserved')
+        weights=lambda sub:[(v.vertex_index,v.bone_index,v.weight) for v in sub.bone_assignments()]
+        check(weights(src)==weights(dst),'bone weights preserved')
+    check(vars(original.aabb)==vars(copy.aabb) and original.bound_radius==copy.bound_radius and original.name_table==copy.name_table,'all other metadata/bounds preserved')
     material=ROOT/'Materials'/f'{name}.material';ship.append(material)
     text=material.read_text()
     for suffix in ['d','e']:

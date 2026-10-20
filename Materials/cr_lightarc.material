@@ -1,0 +1,88 @@
+// Moving-bolts electricity for the L-Power lightning panels (Shaders/cr_lightarc.hlsl).
+// Tools/Build-LightningPlants.py moves the panel faces of each plant's mesh into a second
+// submesh that uses one of the per-faction materials below; everything else on the plant
+// keeps its CR_BZBase material (ablpow.material, bblpow.material).
+//
+// Techniques, in order:
+//   1. the bolts (DX11 SM4, DX9 SM3, OpenGL GLSL);
+//   2. the glow scheme: draws nothing, so the panels never feed the glow pass;
+//   3. last resort for a backend without a supported program: draws nothing.
+// Textures are the stock plant atlases (not shipped by CR).
+
+material CR_LightArc
+{
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR_LightArc_v1_vertex
+			{
+			}
+			fragment_program_ref CR_LightArc_v1_fragment
+			{
+			}
+			lighting off
+			texture_unit diffuseMap
+			{
+				texture_alias DiffuseMap
+				texture white.png
+			}
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		scheme glow
+		pass
+		{
+			colour_write off
+			depth_write off
+			vertex_program_ref CR_Textured_vertex
+			{
+			}
+			fragment_program_ref CR_Textured_fragment
+			{
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			colour_write off
+			depth_write off
+			vertex_program_ref CR_Textured_vertex
+			{
+			}
+			fragment_program_ref CR_Textured_fragment
+			{
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+		}
+	}
+}
+
+material CR_LightArc_NSDF : CR_LightArc
+{
+	set_texture_alias DiffuseMap ablpow_D.dds
+	set_texture_alias EmissiveMap ablpow_E.dds
+}
+
+material CR_LightArc_BDog : CR_LightArc
+{
+	set_texture_alias DiffuseMap bblpow_D.dds
+	set_texture_alias EmissiveMap bblpow_e.dds
+}

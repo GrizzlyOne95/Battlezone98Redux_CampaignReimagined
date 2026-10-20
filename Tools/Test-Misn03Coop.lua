@@ -103,6 +103,16 @@ local function makePeer(id, team, network)
     e.CameraCancelled = function() return p.skip == true end
     e.CameraReady = function() record("CameraReady"); p.skip = false end
     e.CameraFinish = function() record("CameraFinish") end
+    -- Launch-film engine surface (the NSDF closing shot): poses, camera and EXU particles.
+    e.CameraObject = function(...) record("CameraObject", ...) end
+    e.GetTransform = function(h)
+        local o = objects[h]
+        local pose = o and o.pose or { posit_x = 0, posit_y = 0, posit_z = 0 }
+        return { posit_x = pose.posit_x, posit_y = pose.posit_y, posit_z = pose.posit_z }
+    end
+    e.SetTransform = function(h, pose) record("SetTransform", h, pose.posit_y) end
+    e.SetVector = function(x, y, z) return { x = x, y = y, z = z } end
+    e.GetTerrainHeightAndNormal = function() return 0, { x = 0, y = 1, z = 0 } end
     e.Send = function(to, kind, ...)
         for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         local args = { ... }
@@ -151,6 +161,29 @@ local function makePeer(id, team, network)
         },
         CRMoonSites03 = {mission = "misn03"},
     }
+    p.fx = { systems = {}, lights = {}, created = 0, destroyed = 0 }
+    local fx = p.fx
+    local function particles()
+        local x = {}
+        x.CreateParticleSystem = function(name, template, at)
+            fx.systems[name] = { template = template, at = at, rates = {}, offsets = {} }
+            fx.created = fx.created + 1
+            return true
+        end
+        x.DestroyParticleSystem = function(name) fx.systems[name] = nil; fx.destroyed = fx.destroyed + 1; return true end
+        x.SetParticleSystemPosition = function(name, at) fx.systems[name].at = at; return true end
+        x.SetParticleEmitterEmissionRate = function(name, index, rate) fx.systems[name].rates[index] = rate; return true end
+        x.SetParticleEmitterPosition = function(name, index, at) fx.systems[name].offsets[index] = at; return true end
+        x.SetParticleSystemKeepLocalSpace = function() end
+        x.SetParticleSystemNonVisibleUpdateTimeout = function() end
+        x.CreatePointLight = function(name, at, color, range)
+            fx.lights[name] = { at = at, color = color, range = range }; return true
+        end
+        x.SetPointLightPosition = function(name, at) fx.lights[name].at = at; return true end
+        x.SetPointLightPowerScale = function() return true end
+        x.DestroyPointLight = function(name) fx.lights[name] = nil; return true end
+        return x
+    end
     local modules = {
         Environment = { Init = function(options) p.environmentOptions = options end,
             BindWeatherSensors = function(name, director) p.weatherSensors = {name, director} end,
@@ -172,6 +205,11 @@ local function makePeer(id, team, network)
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
+    for name, fn in pairs(particles()) do modules.exu[name] = fn end
+    modules.CR03RocketLayout = assert(loadfile("Scripts/CR03RocketLayout.lua"))()
+    modules.CR06LaunchFilm = assert(loadfile("Scripts/CR06LaunchFilm.lua"))()
+    modules.CR06LaunchFX = assert(loadfile("Scripts/CR06LaunchFX.lua"))()
+    modules.CRParticleTemplates = { EnsureExtra = function() return true end }
     e.package = setmetatable({loaded={exu=modules.exu}}, {__index=package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
     e.require = function(name) return assert(modules[name], name) end

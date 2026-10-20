@@ -1,18 +1,22 @@
 """Re-export a built ship under a Campaign Reimagined runtime name, with native GEO/SDF.
 Run: blender -b --factory-startup out/avcarr.blend -P export_cr.py -- avcarr cr06lin
 Writes out/cr/<name>.{mesh,geo,sdf,material}. Textures are renamed by to_cr_tex.py."""
+import io
 import math
 import os
-import struct
 import sys
 
 import bpy
+import numpy as np
 from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import addon_utils
 addon_utils.enable("bz98tools", default_set=True)
 import shipkit as K
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from bzmodellibs import geo, geo_serializer
+from bzstaticmodel import static_sdf_bytes
 
 src, name = sys.argv[sys.argv.index("--") + 1:][:2]
 K.OUT = os.path.join(K.ROOT, "out", "cr")
@@ -57,20 +61,27 @@ me.calc_loop_triangles()
 points = [game_vector(v.co) for v in me.vertices]
 normals = [game_vector(v.normal) for v in me.vertices]
 assert len(points) < 4096, len(points)
-tag = name.encode()
-raw = struct.pack("<4si16siii", b"OEG.", 0, tag, len(points), len(me.loop_triangles), 0)
-raw += b"".join(struct.pack("<3f", *p) for p in points + normals)
+g = geo.Geo()
+g.name = name
+g.vert_count = len(points)
+g.vertex_pos_buffer = np.array(points, dtype="<f4")
+g.vertex_normal_buffer = np.array(normals, dtype="<f4")
 uv = me.uv_layers.active.data
 for i, tri in enumerate(me.loop_triangles):
     q = [Vector(points[v]) for v in tri.vertices]
     nrm = (q[1] - q[0]).cross(q[2] - q[0])
     nrm = nrm.normalized() if nrm.length > 1e-9 else Vector((0, 1, 0))
-    raw += struct.pack("<iiBBBffffi3s13sii", i, 3, 255, 255, 255, *(-nrm), nrm.dot(q[0]), 0, bytes(3),
-                       (name + ".map").encode(), 0, 0)
+    face = g.create_face(i)
+    face.color = geo.Color3(255, 255, 255)
+    face.plane = geo.SurfacePlane(geo.Vector3(*(-nrm)), nrm.dot(q[0]))
+    face.shade_type = face.texture_type = 0
+    face.texture_name = name + ".map"
     for vi, li in zip(tri.vertices, tri.loops):
         u, v = uv[li].uv
-        raw += struct.pack("<iiff", vi, vi, float(u), 1 - float(v))
-open(os.path.join(K.OUT, name + ".geo"), "wb").write(raw)
+        face.create_face_node(vi, vi, geo.UV(float(u), 1 - float(v)))
+raw = io.BytesIO()
+geo_serializer.GeoSerializer(raw).write(g)
+open(os.path.join(K.OUT, name + ".geo"), "wb").write(raw.getvalue())
 ntri = len(me.loop_triangles)
 ev.to_mesh_clear()
 bpy.data.objects.remove(proxy, do_unlink=True)
@@ -79,16 +90,7 @@ allp = [game_vector(v.co) for v in ob.data.vertices]
 lo = [min(p[i] for p in allp) for i in range(3)]
 hi = [max(p[i] for p in allp) for i in range(3)]
 radius = max(math.sqrt(sum(x * x for x in p)) for p in allp)
-prefix = struct.pack("<4si4sii", b"BWD2", 8, b"REV\0", 12, 8)
-prefix += struct.pack("<4si16si5fi", b"SDFC", 78, tag, 1, 2000., 1e20, 1e20, 1e20, 1e20, 0)
-prefix += b"xbldx1.xdf".ljust(14, b"\0") + b"null".ljust(12, b"\0")
-assert len(prefix) == 98
 center = [(a + b) / 2 for a, b in zip(lo, hi)]
 half = [(b - a) / 2 for a, b in zip(lo, hi)]
-rec = struct.pack("<8s12f8s7fiii4f", tag, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, b"WORLD", *center, radius, *half,
-                  60, 0, 0, 0, 0, 0, 0)
-null = b"NULL" + bytes(116)
-body = struct.pack("<i", 1) + rec + null * 5
-open(os.path.join(K.OUT, name + ".sdf"), "wb").write(
-    prefix + struct.pack("<4si", b"SGEO", 8 + len(body)) + body + struct.pack("<4si", b"EXIT", 8) * 2)
+open(os.path.join(K.OUT, name + ".sdf"), "wb").write(static_sdf_bytes(name, center, half, radius))
 print("NATIVE", name, len(points), "verts", ntri, "tris; bounds", lo, hi, "r", round(radius, 1))

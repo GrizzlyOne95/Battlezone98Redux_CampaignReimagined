@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 2912,
+  "count": 2975,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -228,6 +228,18 @@
       "runtime": "abhang.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\ablpow.mesh",
+      "runtime": "ablpow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\ablpow.sdf",
+      "runtime": "ablpow.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abwpow.sdf",
+      "runtime": "abwpow.sdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\adr11bdy.geo",
       "runtime": "adr11bdy.geo"
     },
@@ -304,6 +316,10 @@
       "runtime": "avartl_c.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avcnst.vdf",
+      "runtime": "avcnst.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avdropc.mesh",
       "runtime": "avdropc.mesh"
     },
@@ -348,6 +364,10 @@
       "runtime": "avhaul.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avhaul.vdf",
+      "runtime": "avhaul.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avhraz.mesh",
       "runtime": "avhraz.mesh"
     },
@@ -360,8 +380,16 @@
       "runtime": "avmine.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avmuf.vdf",
+      "runtime": "avmuf.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avrckt.mesh",
       "runtime": "avrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avrecy.vdf",
+      "runtime": "avrecy.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\avscav.mesh",
@@ -396,6 +424,14 @@
       "runtime": "bbhang.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\bblpow.mesh",
+      "runtime": "bblpow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bblpow.sdf",
+      "runtime": "bblpow.sdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvapc.mesh",
       "runtime": "bvapc.mesh"
     },
@@ -404,8 +440,16 @@
       "runtime": "bvartl_c.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvcnst.vdf",
+      "runtime": "bvcnst.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvhaul.mesh",
       "runtime": "bvhaul.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvhaul.vdf",
+      "runtime": "bvhaul.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvhraz.mesh",
@@ -424,6 +468,10 @@
       "runtime": "bvmru.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvmuf.vdf",
+      "runtime": "bvmuf.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvraz.mesh",
       "runtime": "bvraz.mesh"
     },
@@ -434,6 +482,10 @@
     {
       "source": "Assets\\ModelFixes\\bvrdev.mesh",
       "runtime": "bvrdev.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvrecy.vdf",
+      "runtime": "bvrecy.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvscav.mesh",
@@ -462,6 +514,18 @@
     {
       "source": "Assets\\ModelFixes\\bvwalk_c.skeleton",
       "runtime": "bvwalk_c.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbwpow.mesh",
+      "runtime": "cbwpow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbwpow.sdf",
+      "runtime": "cbwpow.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbwpow.skeleton",
+      "runtime": "cbwpow.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\cfr11bda.geo",
@@ -648,12 +712,24 @@
       "runtime": "cvartl.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvcnst.vdf",
+      "runtime": "cvcnst.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvfigh.mesh",
       "runtime": "cvfigh.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cvhaul.mesh",
       "runtime": "cvhaul.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvhaul.skeleton",
+      "runtime": "cvhaul.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvhaul.vdf",
+      "runtime": "cvhaul.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cvhraz.mesh",
@@ -672,12 +748,24 @@
       "runtime": "cvmine.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvmuf.vdf",
+      "runtime": "cvmuf.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvrckt.mesh",
       "runtime": "cvrckt.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvrecy.vdf",
+      "runtime": "cvrecy.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvscav.mesh",
       "runtime": "cvscav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvslf.vdf",
+      "runtime": "cvslf.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cvtnk.mesh",
@@ -700,6 +788,10 @@
       "runtime": "cvwalk.vdf"
     },
     {
+      "source": "Assets\\ModelFixes\\cwp11rot.geo",
+      "runtime": "cwp11rot.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\hbtran00.mesh",
       "runtime": "hbtran00.mesh"
     },
@@ -712,8 +804,16 @@
       "runtime": "obdata.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\sblpow.sdf",
+      "runtime": "sblpow.sdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\sbsilo.mesh",
       "runtime": "sbsilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sbwpow.sdf",
+      "runtime": "sbwpow.sdf"
     },
     {
       "source": "Assets\\ModelFixes\\svapc.mesh",
@@ -724,12 +824,20 @@
       "runtime": "svartl_c.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svcnst.vdf",
+      "runtime": "svcnst.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svfigh.mesh",
       "runtime": "svfigh.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svhaul.mesh",
       "runtime": "svhaul.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svhaul.vdf",
+      "runtime": "svhaul.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\svhraz.mesh",
@@ -744,12 +852,24 @@
       "runtime": "svmine.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svmuf.vdf",
+      "runtime": "svmuf.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svrckt.mesh",
       "runtime": "svrckt.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svrecy.vdf",
+      "runtime": "svrecy.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svscav.mesh",
       "runtime": "svscav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svslf.vdf",
+      "runtime": "svslf.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\svtank.mesh",
@@ -976,6 +1096,18 @@
       "runtime": "cromine_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crwx_acidbeads.png",
+      "runtime": "crwx_acidbeads.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_acidrivulet.png",
+      "runtime": "crwx_acidrivulet.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_acidstreak.png",
+      "runtime": "crwx_acidstreak.png"
+    },
+    {
       "source": "Assets\\Textures\\crwx_bootprint.png",
       "runtime": "crwx_bootprint.png"
     },
@@ -1026,6 +1158,18 @@
     {
       "source": "Assets\\Textures\\crwx_winddirt.png",
       "runtime": "crwx_winddirt.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_winetch.png",
+      "runtime": "crwx_winetch.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_wingrit.png",
+      "runtime": "crwx_wingrit.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_winsnow.png",
+      "runtime": "crwx_winsnow.png"
     },
     {
       "source": "Assets\\Textures\\crwx_wsplat.dds",
@@ -1114,6 +1258,10 @@
     {
       "source": "Assets\\Textures\\ubtart00.dds",
       "runtime": "ubtart00.dds"
+    },
+    {
+      "source": "Assets\\Textures\\uranus.dds",
+      "runtime": "uranus.dds"
     },
     {
       "source": "Assets\\Textures\\white.png",
@@ -3052,6 +3200,10 @@
       "runtime": "CR_glow.material"
     },
     {
+      "source": "Materials\\cr_lightarc.material",
+      "runtime": "cr_lightarc.material"
+    },
+    {
       "source": "Materials\\CR_overlay.material",
       "runtime": "CR_overlay.material"
     },
@@ -3086,6 +3238,10 @@
     {
       "source": "Materials\\CR_scope.material",
       "runtime": "CR_scope.material"
+    },
+    {
+      "source": "Materials\\CR_sky_events.material",
+      "runtime": "CR_sky_events.material"
     },
     {
       "source": "Materials\\cr_titan.particle.payload",
@@ -3130,6 +3286,10 @@
     {
       "source": "Materials\\crwx_cockpitglass.material",
       "runtime": "crwx_cockpitglass.material"
+    },
+    {
+      "source": "Materials\\crwx_glassweather.material",
+      "runtime": "crwx_glassweather.material"
     },
     {
       "source": "Materials\\crwx_precip.material",
@@ -3714,6 +3874,10 @@
     {
       "source": "Materials\\ubtart.material",
       "runtime": "ubtart.material"
+    },
+    {
+      "source": "Materials\\uranus.material",
+      "runtime": "uranus.material"
     },
     {
       "source": "Materials\\ve_detail_atlas.material",
@@ -6904,6 +7068,10 @@
       "runtime": "CRParticleTemplates.lua"
     },
     {
+      "source": "Scripts\\CRPoolFX.lua",
+      "runtime": "CRPoolFX.lua"
+    },
+    {
       "source": "Scripts\\CRPrecip.lua",
       "runtime": "CRPrecip.lua"
     },
@@ -7316,6 +7484,22 @@
       "runtime": "CR_grasswind.program"
     },
     {
+      "source": "Shaders\\cr_lightarc-fragment.glsl",
+      "runtime": "cr_lightarc-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\cr_lightarc-vertex.glsl",
+      "runtime": "cr_lightarc-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\cr_lightarc.hlsl",
+      "runtime": "cr_lightarc.hlsl"
+    },
+    {
+      "source": "Shaders\\cr_lightarc.program",
+      "runtime": "cr_lightarc.program"
+    },
+    {
       "source": "Shaders\\cr_methane.hlsl",
       "runtime": "cr_methane.hlsl"
     },
@@ -7424,6 +7608,18 @@
       "runtime": "CR_sky.program"
     },
     {
+      "source": "Shaders\\CR_sky_events-sm4.hlsl",
+      "runtime": "CR_sky_events-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_sky_events.hlsl",
+      "runtime": "CR_sky_events.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_sky_events.program",
+      "runtime": "CR_sky_events.program"
+    },
+    {
       "source": "Shaders\\CR_skydome-fragment.glsl",
       "runtime": "CR_skydome-fragment.glsl"
     },
@@ -7442,6 +7638,10 @@
     {
       "source": "Shaders\\CR_skydome.program",
       "runtime": "CR_skydome.program"
+    },
+    {
+      "source": "Shaders\\CR_skyhaze-fragment.glsl",
+      "runtime": "CR_skyhaze-fragment.glsl"
     },
     {
       "source": "Shaders\\CR_static_ibl.program",
@@ -11364,28 +11564,56 @@
       "runtime": "cr17_cloud.program"
     },
     {
+      "source": "Assets\\ModelFixes\\cr03rok.geo",
+      "runtime": "cr03rok.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\cr06rok.geo",
       "runtime": "cr06rok.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr03rok.mesh",
+      "runtime": "cr03rok.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cr06rok.mesh",
       "runtime": "cr06rok.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cr03rok.sdf",
+      "runtime": "cr03rok.sdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cr06rok.sdf",
       "runtime": "cr06rok.sdf"
+    },
+    {
+      "source": "Assets\\Textures\\cr03rok_d.dds",
+      "runtime": "cr03rok_d.dds"
     },
     {
       "source": "Assets\\Textures\\cr06rok_d.dds",
       "runtime": "cr06rok_d.dds"
     },
     {
+      "source": "Assets\\Textures\\cr03rok_e.dds",
+      "runtime": "cr03rok_e.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr06rok_e.dds",
       "runtime": "cr06rok_e.dds"
     },
     {
+      "source": "Assets\\Textures\\cr03rok_n.dds",
+      "runtime": "cr03rok_n.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr06rok_n.dds",
       "runtime": "cr06rok_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr03rok_s.dds",
+      "runtime": "cr03rok_s.dds"
     },
     {
       "source": "Assets\\Textures\\cr06rok_s.dds",
@@ -11424,8 +11652,16 @@
       "runtime": "cr06lin.material"
     },
     {
+      "source": "Materials\\cr03rok.material",
+      "runtime": "cr03rok.material"
+    },
+    {
       "source": "Materials\\cr06rok.material",
       "runtime": "cr06rok.material"
+    },
+    {
+      "source": "ODF\\cr03rok.odf",
+      "runtime": "cr03rok.odf"
     },
     {
       "source": "ODF\\cr06rok.odf",
@@ -11442,6 +11678,10 @@
     {
       "source": "Scripts\\CR06LaunchFilm.lua",
       "runtime": "CR06LaunchFilm.lua"
+    },
+    {
+      "source": "Scripts\\CR03RocketLayout.lua",
+      "runtime": "CR03RocketLayout.lua"
     },
     {
       "source": "Scripts\\CR06RocketLayout.lua",

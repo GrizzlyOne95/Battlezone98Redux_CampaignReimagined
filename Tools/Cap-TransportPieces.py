@@ -21,15 +21,16 @@ Writes Assets/ModelFixes/hbtrn200.mesh and Assets/ModelFixes/hbtran00.mesh.
 """
 from pathlib import Path
 import argparse
+import io
 import struct
 import sys
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from ogrebin import (Mesh, Reader, chunks, chunk, _read_geometry, M_MESH, M_SUBMESH, M_GEOMETRY,
-                     M_GEOMETRY_VERTEX_DECLARATION, M_GEOMETRY_VERTEX_BUFFER,
-                     M_GEOMETRY_VERTEX_BUFFER_DATA, M_SUBMESH_BONE_ASSIGNMENT, M_EDGE_LISTS,
-                     VET_FLOAT2, VET_FLOAT3, VES_POSITION, VES_NORMAL, VES_TEXCOORD)
+from bzmodellibs import ogremesh, ogremesh_serializer
+
+VET_FLOAT2, VET_FLOAT3 = ogremesh.VET.FLOAT2, ogremesh.VET.FLOAT3
+VES_POSITION, VES_NORMAL, VES_TEXCOORD = ogremesh.VES.POSITION, ogremesh.VES.NORMAL, ogremesh.VES.TEXTURE_COORDINATES
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MODELS = Path(r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\BZ_ASSETS\common\models")
@@ -116,25 +117,20 @@ def attr(geom, sem):
 
 
 def cap_mesh(src, dst, expected):
-    mesh = Mesh(str(src))
-    if mesh.lod or mesh.shared is not None or len(mesh.submeshes) != 1:
-        raise ValueError("%s: expected one submesh with its own geometry and no LOD" % src.name)
-    sub = mesh.submeshes[0]
-    data = mesh.data
-    cs, ce = sub["chunk"]
-    r = Reader(data, cs + 6, ce)
-    material = r.s(); shared = r.b(); n_idx = r.u32(); idx32 = r.b()
-    r.p += (4 if idx32 else 2) * n_idx
-    subchunks = chunks(data, r.p, ce)
-    geom_c = next(c for c in subchunks if c[0] == M_GEOMETRY)
-    geom = _read_geometry(data, geom_c[1], geom_c[2])
+    mesh = ogremesh_serializer.MeshSerializer(io.BytesIO(src.read_bytes())).read()
+    if mesh.shared_vertex_data is not None or len(mesh.submesh_list) != 1:
+        raise ValueError("%s: expected one submesh with its own geometry" % src.name)
+    sub = mesh.submesh_list[0]
+    vdata = sub.vertex_data
+    geom = {"count": vdata.vertex_count,
+            "elements": [(e.source, e.type, e.semantic, e.offset, e.index)
+                         for e in vdata.vertex_declaration.vertex_element_list],
+            "buffers": {b: (vb.vertex_size, bytes(vb.buffer)) for b, vb in vdata.vertex_buffer_map.items()}}
     pos, nrm, uv = attr(geom, VES_POSITION), attr(geom, VES_NORMAL), attr(geom, VES_TEXCOORD)
-    tris = sub["tris"]
+    tris = sub.get_index_array().astype(np.int64).reshape(-1, 3)
     ba = {}
-    for c in subchunks:
-        if c[0] == M_SUBMESH_BONE_ASSIGNMENT:
-            vi, bone, w = struct.unpack_from("<IHf", data, c[1] + 6)
-            ba.setdefault(vi, []).append((bone, w))
+    for vba in sub.bone_assignments():
+        ba.setdefault(vba.vertex_index, []).append((vba.bone_index, vba.weight))
 
     cycles, wpos, first = boundary_cycles(pos, tris)
     holes = [c for c in cycles if np.linalg.norm(newell(wpos[c])) / 2 > MIN_HOLE_AREA]
@@ -197,37 +193,22 @@ def cap_mesh(src, dst, expected):
     if vol <= 0:
         raise ValueError("%s: capped mesh has non-positive volume %.2f (winding)" % (src.name, vol))
 
-    # Rebuild the submesh chunk: same material/flags, longer index list, longer vertex buffers.
+    # Same material/flags and vertex layout, longer index list and vertex buffers. Edge lists are dropped.
     big = nv > 65535
     idx = all_tris.reshape(-1).astype("<u4" if big else "<u2")
-    body = material.encode("latin-1") + b"\n" + struct.pack("<?I?", shared, len(idx), big) + idx.tobytes()
-    for cid, s0, e0 in subchunks:
-        if cid == M_GEOMETRY:
-            parts = b""
-            for gid, gs, ge in chunks(data, s0 + 10, e0):
-                if gid == M_GEOMETRY_VERTEX_DECLARATION:
-                    parts += data[gs:ge]
-                elif gid == M_GEOMETRY_VERTEX_BUFFER:
-                    bind, size = struct.unpack_from("<2H", data, gs + 6)
-                    parts += chunk(M_GEOMETRY_VERTEX_BUFFER, struct.pack("<2H", bind, size)
-                                   + chunk(M_GEOMETRY_VERTEX_BUFFER_DATA, bytes(buffers[bind])))
-                else:
-                    parts += data[gs:ge]
-            body += chunk(M_GEOMETRY, struct.pack("<I", nv) + parts)
-        elif cid == M_SUBMESH_BONE_ASSIGNMENT:
-            continue
-        else:
-            body += data[s0:e0]
+    sub.indices_32_bit, sub.index_count = big, len(idx)
+    sub.set_index_buffer(idx.tobytes())
+    vdata.set_vertex_count(nv)
+    for b, vb in vdata.vertex_buffer_map.items():
+        vb.set_buffer(bytes(buffers[b]))
+    sub.clear_bone_assignments()
     for vi in sorted(ba):
         for bone, w in ba[vi]:
-            body += chunk(M_SUBMESH_BONE_ASSIGNMENT, struct.pack("<IHf", vi, bone, w))
-    mesh_body = bytearray([1 if mesh.skeletal else 0])
-    for cid, s0, e0 in mesh.children:
-        if cid == M_SUBMESH:
-            mesh_body += chunk(M_SUBMESH, body)
-        elif cid != M_EDGE_LISTS:
-            mesh_body += data[s0:e0]
-    dst.write_bytes(data[:mesh.header_end] + chunk(M_MESH, bytes(mesh_body)) + mesh.tail)
+            sub.create_bone_assignment(vi, bone, w)
+    mesh.edge_lists = {}
+    out = io.BytesIO()
+    ogremesh_serializer.MeshSerializer(out).write(mesh)
+    dst.write_bytes(out.getvalue())
     print("%s: %d -> %d tris, %d -> %d verts, volume %.0f m^3; %s" % (
         dst.name, len(tris), len(all_tris), geom["count"], nv, vol, "; ".join(report)))
 
