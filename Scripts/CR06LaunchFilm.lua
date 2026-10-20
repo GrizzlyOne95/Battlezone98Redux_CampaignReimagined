@@ -1,6 +1,9 @@
 -- Escape from Mars: a short visual insert at the existing transport-liftoff VO.
 -- The caller supplies its co-op camera/removal adapters. A preplaced fixture
 -- rises on every peer via the acknowledged visual event, as in Mission 16.
+-- Defaults are Mission 06's. The caller's api may set label (the fixture's map
+-- label) and halfHeight (metres, mid-height origin to nozzle plane) to reuse the
+-- same shot for another rocket, as Mission 03's NSDF launch does.
 local Film = {}
 local DURATION = 11
 local FLIGHT = 20
@@ -19,7 +22,7 @@ function Film.Begin(state, api, pad)
     if state.launchFilmStarted or state.launchFilmTerminal then return end
     state.launchFilmStarted = true
     if not api.valid(pad) then return end
-    local rocket = api.handle("cr06_rocket")
+    local rocket = api.handle(api.label or "cr06_rocket")
     if not api.valid(rocket) then return end
     local pose = api.transform(rocket)
     state.launchFilm = { rocket = rocket, pad = pad, pose = pose,
@@ -27,11 +30,12 @@ function Film.Begin(state, api, pad)
     -- Keep the previous elevated framing if terrain changes obstruct the low
     -- clearing. Query only the height field; never issue AI orders to fixtures.
     if type(api.terrain)=="function" then
+        local half = api.halfHeight or 48.5
         for i=1,12 do
             local t=i/12
             local x=pose.posit_x+((pose.right_x or 1)*95+(pose.front_x or 0)*20)*t
             local z=pose.posit_z+((pose.right_z or 0)*95+(pose.front_z or 1)*20)*t
-            local y=pose.posit_y-48.5+(48.5-20)*t
+            local y=pose.posit_y-half+(half-20)*t
             if api.terrain(x,z)>y-4 then state.launchFilm.highFallback=true;break end
         end
     end
