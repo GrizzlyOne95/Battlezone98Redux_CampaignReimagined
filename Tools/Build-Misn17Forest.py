@@ -11,8 +11,9 @@ where they are, and only what stands on them changes.
 * Rocks: the pack's nine rocks become render-only StaticGeometry layers beside
   the existing ground cover, on forest and rock tiles.
 * Ice: ISDF Chronicles' baneice/darkice bergs (BZ2-derived, shipped in ISDFC),
-  squashed into thin render-only slabs cr17_islab1-6: shelves of water freezing
-  at the bank, laid at the waterline of pool shores, stream banks and the river.
+  stretched into long thin render-only shelves cr17_islab1-6 (4-12 m long,
+  2-5 m wide) and chained, overlapping, along stretches of pool shore, stream
+  bank and river: water freezing at its edge, with open bank between stretches.
   Like the rocks they have no collision, so craft drive over them.
 * Explosion: ISDFC's cosmetic xplnxpl (the trees' explosionName) is copied with
   its smokeb.tga sprite; amb_wind.wav is stock.
@@ -57,8 +58,10 @@ ROCKS = ['Rocks'] + ['Rocks.%03d' % i for i in range(1, 9)]
 # cr17_islabN. Tall props from the previous pass (c17bice*/c17dice*) are removed.
 SLABS = ['baneice2', 'baneice4', 'baneice5', 'darkice1', 'darkice3', 'darkice4']
 OLD_ICE = ['c17bice%d' % i for i in range(1, 6)] + ['c17dice%d' % i for i in range(1, 5)]
-# Slab thickness as a share of its half-width: an 8 m slab is about 0.6 m thick.
-SLAB_THICK = .15
+# Plan aspect (width / length) of each slab mesh: the long axis is local x.
+SLAB_ASPECT = [.3, .35, .4, .45, .55, .65]
+# Thickness as a share of the half-length: a 12 m shelf is 0.27 m thick, a 4 m one 9 cm.
+SLAB_THICK = .045
 # Sprite for xplnxpl: ISDFC's smokeb.tga, alpha-blended like CR's smokeb2
 # because the ODF draws it with srcalpha/invsrcalpha.
 SMOKEB = '''import * from "sprites.material"
@@ -495,8 +498,8 @@ def build(pack, isdfc):
         ogre.write_mesh(mesh, models / name)
         rock_meshes.append((name, float(np.hypot(p[:, 0], p[:, 2]).max())))
 
-    # Ice slabs: an ISDFC berg centred, scaled to a unit half-width and squashed
-    # to SLAB_THICK of it, base and top about the origin so y is the slab's middle.
+    # Ice slabs: an ISDFC berg centred, scaled to a unit half-length along x and
+    # SLAB_ASPECT of it along z, squashed to SLAB_THICK, y centred on the middle.
     # Normals follow the squash (inverse scale), so the top faces the sky.
     ice_info, slab_meshes = {}, []
     for k, old in enumerate(SLABS, 1):
@@ -507,7 +510,7 @@ def build(pack, isdfc):
         lo, hi = allp.min(0), allp.max(0)
         cx, cz = (lo[0] + hi[0]) / 2, (lo[2] + hi[2]) / 2
         reach = float(np.hypot(allp[:, 0] - cx, allp[:, 2] - cz).max())
-        sv = np.array([1 / reach, SLAB_THICK / (hi[1] - lo[1]), 1 / reach])
+        sv = np.array([2 / (hi[0] - lo[0]), SLAB_THICK / (hi[1] - lo[1]), 2 * SLAB_ASPECT[k - 1] / (hi[2] - lo[2])])
         subs, tris = [], 0
         for sm in m.submeshes:
             gm = m.shared_geometry if sm.uses_shared_vertices else sm.geometry
@@ -520,7 +523,7 @@ def build(pack, isdfc):
         ogre.write_mesh(ogre.OgreMesh(version='MeshSerializer_v1.100', endian='little', submeshes=subs), models / name)
         slab_meshes.append(name)
         ice_info[name] = {'source': old, 'source_width': round(2 * reach, 1), 'source_height': round(float(hi[1] - lo[1]), 1),
-                          'triangles': tris}
+                          'aspect': SLAB_ASPECT[k - 1], 'triangles': tris}
     for name in OLD_ICE:
         for path in [models / (name + ext) for ext in ('.mesh', '.skeleton', '.sdf')] + [ROOT / 'ODF' / (name + '.odf')]:
             path.unlink(missing_ok=True)
@@ -585,54 +588,100 @@ def build(pack, isdfc):
         geos = [wmesh.shared_geometry] if wmesh.shared_geometry is not None else []
         geos += [sm.geometry for sm in wmesh.submeshes if not sm.uses_shared_vertices]
         for gm in geos:
-            wp = np.array(gm.attribute(1, 0), float) + wsite['position']
+            # Build-Misn17Jungle bakes the water vertices with z mirrored about
+            # the site position (render space): sim z = position z - vertex z.
+            wp = np.array(gm.attribute(1, 0), float)
+            wp = np.c_[wp[:, 0] + wsite['position'][0], wp[:, 1] + wsite['position'][1], wsite['position'][2] - wp[:, 2]]
             iz = np.clip(np.round((wp[:, 2] - 97280) / 5).astype(int), 0, ground.shape[0] - 1)
             ix = np.clip(np.round(wp[:, 0] / 5).astype(int), 0, ground.shape[1] - 1)
             np.maximum.at(surf, (iz, ix), wp[:, 1])
 
     rng = np.random.default_rng(SEED)
     tree_xy = np.array([t['position'][::2] for t in sites['trees'] if t['label'].startswith('cr17_tree')])
-    # Ice slabs: render-only, at the waterline of a shore cell. Each site is 1-3
-    # slabs pushed from the bank toward its water, so they overhang it or lie in
-    # the shallows touching the bank. Flat (yaw only), base 5 cm under the surface.
-    cells = list(zip(*np.nonzero(shore)))
-    rng.shuffle(cells)
-    ice, placed = [], []
-    for r, c in cells:
-        if len(placed) >= 55:
-            break
-        x, z = c * 5., r * 5. + 97280
-        if not (780 <= x <= 3640 and 98430 <= z <= 101740):
-            continue
-        if any(math.hypot(x - a, z - b) < 45 for a, b in placed) or not clear(x, z, 30, 20):
-            continue
-        if len(tree_xy) and np.min(np.hypot(tree_xy[:, 0] - x, tree_xy[:, 1] - z)) < 4:
-            continue
+    # Ice shelves: render-only chains along the waterline. A stretch starts at a
+    # shore cell and walks the shore 15-35 m; overlapping slabs follow it, long
+    # axis along the bank, pushed toward the water so they overhang it. Flat
+    # (yaw only), base 3 cm above the surface. Its own generator, so tuning the
+    # ice never reshuffles the rocks.
+    irng = np.random.default_rng(SEED + 1)
+    ok = shore.copy()
+    ok[:, :int(780 / 5)] = ok[:, int(3640 / 5) + 1:] = False
+    ok[:int((98430 - 97280) / 5)] = ok[int((101740 - 97280) / 5) + 1:] = False
+    def waterline(r, c):
         near = [(dr, dc) for dr in range(-2, 3) for dc in range(-2, 3)
                 if water[r + dr, c + dc] and np.isfinite(surf[r + dr, c + dc])]
         if not near:
-            continue
+            return None
         wy = float(np.mean([surf[r + dr, c + dc] for dr, dc in near]))
-        if ground[r, c] - wy > 1.5:  # a steep cut bank: no shelf to freeze
+        d = np.mean([(dc, dr) for dr, dc in near], 0)
+        return wy, d / max(np.linalg.norm(d), 1e-6)
+    # Pool and river shores first (the open water a player sees), then streams.
+    cells = list(zip(*np.nonzero(ok)))
+    irng.shuffle(cells)
+    cells.sort(key=lambda rc: area[rc] < 70)
+    used = np.zeros_like(ok)
+    ice, placed = [], []
+    for r0, c0 in cells:
+        if len(placed) >= 48:
+            break
+        x0, z0 = c0 * 5., r0 * 5. + 97280
+        if any(math.hypot(x0 - a, z0 - b) < 60 for a, b in placed) or not clear(x0, z0, 30, 20):
             continue
-        d = np.mean([(dc, dr) for dr, dc in near], 0); d /= max(np.linalg.norm(d), 1e-6)
-        kind = 'pool/river' if area[r, c] >= 70 else 'stream'
-        site = []
-        for j in range(int(rng.integers(1, 4))):
-            half = float(rng.uniform(2.2, 5.5 if kind == 'pool/river' else 3.8))
-            # Mostly straddling the waterline; one in seven out in the shallows.
-            out = half * (rng.uniform(1.0, 1.5) if rng.random() < 1 / 7 else rng.uniform(.35, 1.0))
-            side = rng.uniform(-1.5, 1.5) * half
-            sx, sz = x + d[0] * out - d[1] * side, z + d[1] * out + d[0] * side
+        # Walk the shore: each step the unvisited shore neighbour that best keeps the heading.
+        path, heading = [(r0, c0)], None
+        target = irng.uniform(15, 35) / 5
+        while len(path) < target:
+            r, c = path[-1]
+            best = None
+            for dr in (-1, 0, 1):
+                for dc in (-1, 0, 1):
+                    n = (r + dr, c + dc)
+                    if (dr or dc) and ok[n] and not used[n] and n not in path:
+                        step = np.array([dc, dr], float) / math.hypot(dc, dr)
+                        score = 0 if heading is None else float(step @ heading)
+                        if best is None or score > best[0]:
+                            best = (score, n, step)
+            if best is None or best[0] < -.2:
+                break
+            heading = best[2] if heading is None else (heading + best[2]) / np.linalg.norm(heading + best[2])
+            path.append(best[1])
+        if len(path) < 3:
+            continue
+        info = [waterline(r, c) for r, c in path]
+        if any(w is None for w in info) or any(ground[r, c] - w[0] > 1.5 for (r, c), w in zip(path, info)):
+            continue  # off the drawn water, or a steep cut bank: no shelf to freeze
+        for r, c in path:
+            used[r - 2:r + 3, c - 2:c + 3] = True
+        pts = np.array([(c * 5., r * 5. + 97280) for r, c in path])
+        seg = np.r_[0, np.cumsum(np.hypot(*np.diff(pts, axis=0).T))]
+        kind = 'pool/river' if max(area[r, c] for r, c in path) >= 70 else 'stream'
+        site, s = [], -2.0
+        while s < seg[-1] + 2:
+            length = float(irng.uniform(4, 12 if kind == 'pool/river' else 8))
+            width = float(irng.uniform(2, min(5, .7 * length)))
+            k = min(range(len(SLAB_ASPECT)), key=lambda j: abs(SLAB_ASPECT[j] * length - width))
+            half = length / 2
+            at = min(max(s + half, 0), seg[-1])
+            i = min(int(np.searchsorted(seg, at, side='right')) - 1, len(pts) - 2)
+            t = (at - seg[i]) / max(seg[i + 1] - seg[i], 1e-6)
+            px, pz = pts[i] + (pts[i + 1] - pts[i]) * t
+            tan = (pts[i + 1] - pts[i]) / max(seg[i + 1] - seg[i], 1e-6)
+            wy, d = info[i if t < .5 else i + 1]
+            # Shore cells sit just inside the bank: push out by part of the width.
+            out = SLAB_ASPECT[k] * half * irng.uniform(.5, 1.3) + 1.5
+            sx, sz = px + d[0] * out, pz + d[1] * out
+            s += length * irng.uniform(.6, .85)
             iz, ix = round((sz - 97280) / 5), round(sx / 5)
             if ground[iz, ix] > wy + .35 or not clear(sx, sz, 25, 15):
                 continue
-            site.append([round(sx, 2), round(wy - .05 + .5 * SLAB_THICK * half, 2), round(sz, 2),
-                         round(float(rng.uniform(0, math.tau)), 3), round(half, 3), kind])
+            if len(tree_xy) and np.min(np.hypot(tree_xy[:, 0] - sx, tree_xy[:, 1] - sz)) < 3:
+                continue
+            # Sim yaw: StaticGeometry turns local x to (cos yaw, sin yaw) in sim x/z.
+            yaw = math.atan2(tan[1], tan[0]) + irng.uniform(-.25, .25)
+            site.append([slab_meshes[k], round(float(sx), 2), round(wy + .03 + .5 * SLAB_THICK * half, 2), round(float(sz), 2),
+                         round(yaw % math.tau, 3), round(half, 3), kind])
         if site:
-            placed.append((x, z))
-            for s in site:
-                s.insert(0, slab_meshes[int(rng.integers(len(slab_meshes)))])
+            placed.append((x0, z0))
             ice += site
 
     # Trees: the existing sites, Mire models swapped for the pack's, weighted.
@@ -673,13 +722,15 @@ def build(pack, isdfc):
             scale = float((1.2 + 3.3 * rng.uniform(0, 1) ** 2) / max(reach * 2, .3))
             p = [round(x, 2), round(height(x, z) - .18 * scale, 2), round(z, 2), round(float(rng.uniform(0, math.tau)), 3), round(scale, 3)]
             rocks.setdefault((mesh, math.floor((x - 2048) / ROCK_TILE), math.floor((z - 99328) / ROCK_TILE)), []).append(p)
-    for key in sorted(rocks):
-        layers.append({'mesh': key[0], 'instances': rocks[key]})
+    # CRJungle17 builds one layer per update: the few ice layers go before the
+    # rocks, so the shore ice is up seconds after the ground cover.
     slabs = {}
     for name, *p, _ in ice:
         slabs.setdefault((name, math.floor((p[0] - 2048) / ROCK_TILE), math.floor((p[2] - 99328) / ROCK_TILE)), []).append(p)
     for key in sorted(slabs):
         layers.append({'mesh': key[0], 'instances': slabs[key]})
+    for key in sorted(rocks):
+        layers.append({'mesh': key[0], 'instances': rocks[key]})
     sites['layers'] = layers
     (ROOT / 'Scripts/CRJungle17Sites.lua').write_text(SITES_HEAD + lua_value(sites) + '\n', newline='\n')
 
@@ -701,13 +752,13 @@ def build(pack, isdfc):
               'ice_sites': len(placed), 'ice_slabs': len(ice),
               'ice_placed': dict(collections.Counter(n for n, *_ in ice)),
               'ice_by_water': dict(collections.Counter(w for *_, w in ice)),
-              'ice_half_width_m': [round(min(s[5] for s in ice), 1), round(max(s[5] for s in ice), 1)] if ice else [],
+              'ice_half_length_m': [round(min(s[5] for s in ice), 1), round(max(s[5] for s in ice), 1)] if ice else [],
               'ice_slab_positions': [s[1:4] for s in ice],
               'rock_layers': len(rocks), 'rocks': sum(len(v) for v in rocks.values()),
               'shore_cells': int(shore.sum())}
     out = ROOT / 'References/Misn17Forest'; out.mkdir(parents=True, exist_ok=True)
     (out / 'source-assets.json').write_text(json.dumps(report, indent=2) + '\n', newline='\n')
-    print(json.dumps({k: report[k] for k in ('trees', 'tree_sites', 'ice_sites', 'ice_slabs', 'ice_placed', 'ice_by_water', 'ice_half_width_m', 'rocks', 'rock_layers', 'shore_cells')}, indent=1))
+    print(json.dumps({k: report[k] for k in ('trees', 'tree_sites', 'ice_sites', 'ice_slabs', 'ice_placed', 'ice_by_water', 'ice_half_length_m', 'rocks', 'rock_layers', 'shore_cells')}, indent=1))
 
 
 if __name__ == '__main__':

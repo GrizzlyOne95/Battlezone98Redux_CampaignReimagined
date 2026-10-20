@@ -97,19 +97,23 @@ Earth-like cold temperate forest, close to freezing but still wet.
   - They keep clear of water, the river (12 m), slopes over 0.7, objects
     (30 m) and paths (20 m).
   - They are visual only, with no collision.
-- **Ice.** 93 thin slabs (`cr17_islab1`-`6`, flattened ISDFC bergs) at 53 bank
-  sites, as shelves of water freezing at the edge. 24 are on pools or the river,
-  69 on streams.
-  - A site is a shore cell (a dry 5 m cell next to watermask or river water)
-    with a bank at most 1.5 m above the baked water surface. Sites keep 45 m
-    apart, 30 m from objects and 20 m from paths.
-  - Each site has 1-3 slabs, 4.4-11 m across and 0.3-0.8 m thick. They are
-    pushed from the bank toward the water, so most straddle the waterline and
-    about one in seven lies in the shallows touching the bank.
-  - Base is 5 cm under the baked water surface. Yaw is random, with no tilt.
+- **Ice.** 247 long, flat shelves (`cr17_islab1`-`6`) chained along 48 stretches
+  of pool and river bank, as water freezing at the edge.
+  - A stretch starts at a shore cell (a dry 5 m cell next to watermask or river
+    water) and walks the bank 15-35 m. Stretches keep 60 m apart, 30 m from
+    objects and 20 m from paths; the bank between them stays open.
+  - Slabs follow the stretch and overlap: 4-12 m long, 2-5 m wide, long axis along
+    the bank, pushed toward the water so they overhang it. They are 9-27 cm
+    thick, with the base 3 cm above the baked water surface. Yaw follows the bank
+    within about 15 degrees, with no tilt.
+  - The water surface comes from the baked river, stream and pool meshes, whose
+    z is mirrored about the site position (render space). Before this was
+    corrected the heights were read mirrored and most slabs sat under the water.
+    Thin streams now get no ice: their banks sit too far above the water.
   - They are render-only StaticGeometry layers like the rocks, so craft drive
-    over them. The 40 tall `c17bice`/`c17dice` props and their BZN objects are
-    gone; the BZN is back to its 242 objects.
+    over them. Their layers build before the rocks. The 40 tall
+    `c17bice`/`c17dice` props and their BZN objects are gone; the BZN is back to
+    its 242 objects.
 - **Removed from misn17.** Mire trees, `mireshr`, `urchin`, `rendflow` and the
   crystal props. `c17tree1/2` still ship but misn17 no longer references them.
   The `cr17_mire_*` ground-cover meshes are kept (misn18 shares them).
@@ -121,6 +125,10 @@ Earth-like cold temperate forest, close to freezing but still wet.
   All six slab meshes load. No vertex-declaration lines, no Ogre errors beyond
   the stock `TestGround` lines, and no `not found` lines in BZLogger: the
   `xplnxpl` lines (10 per run before) are gone.
+  - Shelf v2: the same two angles, HEAD vs the long shelves:
+    `C:/BZRCoop/runs/achilles-flora/misn17-shore-ice-v2.png`. The shelves read
+    as pale bands along the far bank; at these near-grazing angles they stay
+    subtle.
 - **Live check (2026-10-19).** Single instance, crsetup, weather wired like
   CRMisn17, captured after the blend. Before/after images:
   `C:/BZRCoop/runs/achilles-flora/misn17-flora-before-after.png`.
