@@ -97,6 +97,7 @@ Include the mission or game mode, reproduction steps, expected and observed beha
 - **VTrider** — Extra Utilities groundwork used throughout the addon stack.
 - OpenShim, Extra Utilities, bzfile, and earlier Battlezone community contributors whose work supports the integrated runtime.
 - Uranus image: NASA/JPL-Caltech (Voyager 2, PIA18182); see [`Docs/SKY_ART_CREDITS.md`](Docs/SKY_ART_CREDITS.md).
+- Mission 17 forest trees and rocks: "Low Poly Forest Tree Pack" by 99.Miles (Sketchfab), CC-BY-4.0; see [`Docs/FOLIAGE_ART_CREDITS.md`](Docs/FOLIAGE_ART_CREDITS.md).
 
 This is a mixed-rights addon repository. The MIT terms in [`LICENSE.md`](LICENSE.md) apply only to clearly original project work; bundled binaries, third-party files, and stock-derived game content retain their original rights as described in [`NOTICE.md`](NOTICE.md).
 

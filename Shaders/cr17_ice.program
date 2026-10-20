@@ -1,0 +1,159 @@
+// Campaign Reimagined: misn17 shore ice (Shaders/cr17_ice.hlsl, Materials/cr17_ice.material).
+// DX11 (SM4) and DX9 (SM3) delegates only; there is no GLSL twin, so on OpenGL the
+// unified programs have no supported delegate and the material falls through to its
+// opaque lit-ice technique. Every default_params entry below names a constant the
+// compiler keeps (Tools/Test-IceShader.ps1 checks this with fxc).
+//
+// The vertex program reads COLOR0 (baked slab thickness): bind it only to the
+// cr17_islab meshes, which carry a colour element.
+
+vertex_program CR_Ice_vertex_HLSL4 hlsl
+{
+	source cr17_ice.hlsl
+	target vs_4_0
+	entry_point ice_vertex
+	preprocessor_defines SM4=1
+}
+
+vertex_program CR_Ice_vertex_HLSL hlsl
+{
+	source cr17_ice.hlsl
+	target vs_3_0
+	entry_point ice_vertex
+}
+
+vertex_program CR_Ice_vertex unified
+{
+	delegate CR_Ice_vertex_HLSL4
+	delegate CR_Ice_vertex_HLSL
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto worldViewMat worldview_matrix
+		param_named_auto worldMat world_matrix
+	}
+}
+
+vertex_program CR_Ice_PSSM_vertex_HLSL4 hlsl
+{
+	source cr17_ice.hlsl
+	target vs_4_0
+	entry_point ice_vertex
+	preprocessor_defines SM4=1,SHADOWRECEIVER=1
+}
+
+vertex_program CR_Ice_PSSM_vertex_HLSL hlsl
+{
+	source cr17_ice.hlsl
+	target vs_3_0
+	entry_point ice_vertex
+	preprocessor_defines SHADOWRECEIVER=1
+}
+
+vertex_program CR_Ice_PSSM_vertex unified
+{
+	delegate CR_Ice_PSSM_vertex_HLSL4
+	delegate CR_Ice_PSSM_vertex_HLSL
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named_auto worldViewMat worldview_matrix
+		param_named_auto worldMat world_matrix
+		param_named_auto texWorldViewProj1 texture_worldviewproj_matrix 0
+		param_named_auto texWorldViewProj2 texture_worldviewproj_matrix 1
+		param_named_auto texWorldViewProj3 texture_worldviewproj_matrix 2
+	}
+}
+
+fragment_program CR_Ice_fragment_HLSL4 hlsl
+{
+	source cr17_ice.hlsl
+	target ps_4_0
+	entry_point ice_fragment
+	preprocessor_defines SM4=1
+}
+
+fragment_program CR_Ice_fragment_HLSL hlsl
+{
+	source cr17_ice.hlsl
+	target ps_3_0
+	entry_point ice_fragment
+}
+
+fragment_program CR_Ice_fragment unified
+{
+	delegate CR_Ice_fragment_HLSL4
+	delegate CR_Ice_fragment_HLSL
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto viewMat view_matrix
+		param_named_auto time time
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto materialShininess surface_shininess
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
+		param_named_auto lightSpecular derived_light_specular_colour_array 8
+		param_named_auto lightAttenuation light_attenuation_array 8
+		param_named_auto spotLightParams spotlight_params_array 8
+		param_named_auto lightPosition light_position_view_space_array 8
+		param_named_auto lightDirection light_direction_view_space_array 8
+		param_named_auto lightCount light_count
+		param_named iceTint float4 0.86 0.95 1.05 0.7
+		param_named iceDeep float4 0.08 0.15 0.18 0.6
+		param_named iceOptics float4 0.03 2.5 0.9 0.8
+		param_named iceSky float4 0.55 0.66 0.8 0
+		param_named iceNoise float4 0.8 4 0 0
+		param_named iceMelt float4 0.11 0.18 0.08 0.55
+		param_named iceFilm float4 0.035 0.022 0.45 0.06
+		param_named iceAlpha float4 0.8 1.5 0.35 0.03
+	}
+}
+
+fragment_program CR_Ice_PSSM_fragment_HLSL4 hlsl
+{
+	source cr17_ice.hlsl
+	target ps_4_0
+	entry_point ice_fragment
+	preprocessor_defines SM4=1,SHADOWRECEIVER=1
+}
+
+fragment_program CR_Ice_PSSM_fragment_HLSL hlsl
+{
+	source cr17_ice.hlsl
+	target ps_3_0
+	entry_point ice_fragment
+	preprocessor_defines SHADOWRECEIVER=1
+}
+
+fragment_program CR_Ice_PSSM_fragment unified
+{
+	delegate CR_Ice_PSSM_fragment_HLSL4
+	delegate CR_Ice_PSSM_fragment_HLSL
+	default_params
+	{
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto viewMat view_matrix
+		param_named_auto time time
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto materialShininess surface_shininess
+		param_named_auto lightDiffuse derived_light_diffuse_colour_array 8
+		param_named_auto lightSpecular derived_light_specular_colour_array 8
+		param_named_auto lightAttenuation light_attenuation_array 8
+		param_named_auto spotLightParams spotlight_params_array 8
+		param_named_auto lightPosition light_position_view_space_array 8
+		param_named_auto lightDirection light_direction_view_space_array 8
+		param_named_auto lightCount light_count
+		param_named_auto invShadowMapSize1 inverse_texture_size 3
+		param_named pssmSplitPoints float4 0.1 16.0 64.0 256.0
+		param_named iceTint float4 0.86 0.95 1.05 0.7
+		param_named iceDeep float4 0.08 0.15 0.18 0.6
+		param_named iceOptics float4 0.03 2.5 0.9 0.8
+		param_named iceSky float4 0.55 0.66 0.8 0
+		param_named iceNoise float4 0.8 4 0 0
+		param_named iceMelt float4 0.11 0.18 0.08 0.55
+		param_named iceFilm float4 0.035 0.022 0.45 0.06
+		param_named iceAlpha float4 0.8 1.5 0.35 0.03
+	}
+}

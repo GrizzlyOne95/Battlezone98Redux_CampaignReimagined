@@ -77,6 +77,103 @@ head at branch creation `476390ed`. Canonical main stays untouched.
   Narrative uses crystal discovery/instruction, critical power, stabilization
   and congratulations. The existing body plays `1703` for the explosion.
 
+## Cold temperate forest (branch `agent/achilles-flora`, 2026-10-19)
+
+Owner direction: Achilles must stop reading like BZ2's Mire. It should be an
+Earth-like cold temperate forest, close to freezing but still wet.
+
+- `Tools/Build-Misn17Forest.py` replaces the Mire trees and props. It runs after
+  `Build-Misn17Jungle.py` and is deterministic (seed 17117).
+- **Trees.** Four fir/pine trees from "Low Poly Forest Tree Pack" by 99.Miles
+  (CC-BY-4.0, `Docs/FOLIAGE_ART_CREDITS.md`): `c17frst1`-`4`, 58/46/52/40 m.
+  They use the same plant contract (`i76building2` + `[PlantClass]`), a trunk
+  prism GEO, and wind-sway branch materials.
+  - All 3,097 tree sites, including 124 preplaced, were re-picked by a hash of
+    the site label. Positions and labels are unchanged, so streaming,
+    save/load and co-op labels are unaffected.
+- **Rocks.** Nine pack rocks (`cr17_frock1`-`9`) on a 17 m jittered grid on
+  TRN types 1 (forest) and 2 (rock): 5,889 instances, 1.2-4.5 m across
+  (mostly about 2 m), in 144 static batches.
+  - They keep clear of water, the river (12 m), slopes over 0.7, objects
+    (30 m) and paths (20 m).
+  - They are visual only, with no collision.
+- **Ice.** 247 long, flat shelves (`cr17_islab1`-`6`) chained along 48 stretches
+  of pool and river bank, as water freezing at the edge.
+  - A stretch starts at a shore cell (a dry 5 m cell next to watermask or river
+    water) and walks the bank 15-35 m. Stretches keep 60 m apart, 30 m from
+    objects and 20 m from paths; the bank between them stays open.
+  - Slabs follow the stretch and overlap: 4-12 m long, 2-5 m wide, long axis along
+    the bank, pushed toward the water so they overhang it. They are 9-27 cm
+    thick, with the base 3 cm above the baked water surface. Yaw follows the bank
+    within about 15 degrees, with no tilt.
+  - The water surface comes from the baked river, stream and pool meshes, whose
+    z is mirrored about the site position (render space). Before this was
+    corrected the heights were read mirrored and most slabs sat under the water.
+    Thin streams now get no ice: their banks sit too far above the water.
+  - They are render-only StaticGeometry layers like the rocks, so craft drive
+    over them. Their layers build before the rocks. The 40 tall
+    `c17bice`/`c17dice` props and their BZN objects are gone; the BZN is back to
+    its 242 objects.
+- **Ice shader.** The shelves draw through `CR17/IceShelf`
+  (`Materials/cr17_ice.material`, `Shaders/cr17_ice.hlsl`/`.program`), on misn17
+  only; shared materials are untouched.
+  - The builder bakes plan thickness into vertex colour alpha: 0 on the slab's
+    outline, 1 at its deepest middle. RGB stays white.
+  - A world-space noise alpha test erodes the thin outer band, so each slab gets a
+    ragged, half-melted edge with a darker wet rim inside the cut.
+  - Fresnel: looking down, thin ice tints toward the dark water colour and is
+    partly see-through; at grazing angles it reflects the sky and turns opaque.
+  - A sharp, strong sun specular over a slowly scrolling, low-amplitude normal
+    (CR `time` convention) reads as a wet film. A blue-white tint, plus a subtle
+    subsurface glow toward the sun through thin ice.
+  - Draw order: EXU StaticGeometry has no render-queue option (everything lands in
+    group 50, with the transparent water). The pass writes depth and only the
+    eroded rim blends; the core is opaque, so the water can never cover the ice.
+  - Shadows: the layers are built with `castShadows=false`. The ice receives the
+    sun's PSSM in the `high-pssm` scheme.
+  - Techniques: high-pssm (SM4/SM3), default (SM4/SM3), glow (draws nothing), and
+    a last-resort opaque lit ice through `cr17_surface` for OpenGL or a failed
+    compile. `Tools/Test-IceShader.ps1` compiles all eight delegates with fxc.
+  - Live (2026-10-19), slab commit vs shader, calm (level 0) and storm (level 4)
+    weather, views A/B and a low grazing view:
+    `C:/BZRCoop/runs/achilles-flora/misn17-ice-shader-before-after.png`.
+    DX11: no vertex-declaration lines and no ice program errors; the only extra
+    Ogre lines are the expected "Invalid target" skips of the four SM3 delegates.
+    A DX9 launch draws the ice as pale shelves (not black, not missing). Weather
+    level 0 still looked overcast 75 s in; a truly clear sky is unverified.
+- **Removed from misn17.** Mire trees, `mireshr`, `urchin`, `rendflow` and the
+  crystal props. `c17tree1/2` still ship but misn17 no longer references them.
+  The `cr17_mire_*` ground-cover meshes are kept (misn18 shares them).
+- **Ground cover.** On misn17 only, the ground cover draws through
+  `CR17/GroundWindCold`: a cooler, wetter tint with a little specular.
+  No new grass assets were added.
+- **Shore-ice live check (2026-10-19).** crsetup, two angles on the bank at
+  (2445, 99675): `C:/BZRCoop/runs/achilles-flora/misn17-shore-ice-before-after.png`.
+  All six slab meshes load. No vertex-declaration lines, no Ogre errors beyond
+  the stock `TestGround` lines, and no `not found` lines in BZLogger: the
+  `xplnxpl` lines (10 per run before) are gone.
+  - Shelf v2: the same two angles, HEAD vs the long shelves:
+    `C:/BZRCoop/runs/achilles-flora/misn17-shore-ice-v2.png`. The shelves read
+    as pale bands along the far bank; at these near-grazing angles they stay
+    subtle.
+- **Live check (2026-10-19).** Single instance, crsetup, weather wired like
+  CRMisn17, captured after the blend. Before/after images:
+  `C:/BZRCoop/runs/achilles-flora/misn17-flora-before-after.png`.
+  - All new meshes, skeletons and textures load.
+  - No "Unable to set D3D11 vertex declaration" lines; Ogre shows only the stock
+    `TestGround.material` compiler errors, which the before run has too.
+  - Each tree/ice ODF logged `Explosion "xplnxpl.odf" not found` (inherited
+    from `c17tree1.odf`). Fixed later by shipping ISDFC's `xplnxpl.odf`.
+  - Not checked live: co-op, save/load, streaming at range, and DX9.
+- **TRN hints.**
+
+  | Texture type | Asset | Used for |
+  |---|---|---|
+  | 0 | grass (`ac00`) | none |
+  | 1 | trees (`ac11`/`ac12`) | tree and rock placement |
+  | 2 | rocky (`ac22`) | rock placement |
+  | 3 | river (`ac00sc`) | none |
+
 ## Verified so far
 
 - Lua 5.1: faithful port **141**, source parity **241**, real four-peer co-op
