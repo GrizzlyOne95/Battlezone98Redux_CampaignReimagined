@@ -1,8 +1,8 @@
 """Build a matched Moon dust/crater candidate with the shared Toolbox packer.
 
-Procedural surface authoring: geometry and material placement share height and
-masks. Runtime pixel normals contain fine dust only: the domain shader already
-derives the crater's geometric normal. No normal is inferred from albedo.
+Preserve the authored HD rocky surface and detail texture. Procedural crater
+geometry and localized dust share placement masks; only crater floors and sparse
+patches soften the source material. No normal is inferred from albedo.
 """
 import argparse
 import csv
@@ -10,6 +10,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import shutil
 import sys
 
 import numpy as np
@@ -67,6 +68,33 @@ def surface(settings):
     return heights, images
 
 
+def dust_mask(height, settings):
+    """Local coverage only: outside crater floors/sparse patches keep the HD art."""
+    crater = module("moon_craters_mask", ROOT/"Tools/Build-MoonCraterDisplacement.py")
+    floors = crater.fade((-height-settings["floorDustStart"])/
+                         (settings["floorDustFull"]-settings["floorDustStart"]))
+    patches = crater.fade((noise(height.shape[0], settings["seed"]+9,
+                                height.shape[0]/24)-settings["patchThreshold"])/.7)
+    return np.maximum(floors*settings["floorDustStrength"],
+                      patches*settings["patchDustStrength"]).astype(np.float32)
+
+
+def blend_surface(source, dust, coverage, channel):
+    """Preserve original bytes at zero coverage, including authored normal XY."""
+    weight = coverage[:, :, None]
+    if channel == "N":
+        a, b = source.astype(np.float32)/127.5-1, dust.astype(np.float32)/127.5-1
+        slopes = (a[:, :, :2]/np.maximum(a[:, :, 2:3], .01)*(1-weight)
+                  + b[:, :, :2]/np.maximum(b[:, :, 2:3], .01)*weight)
+        vectors = np.concatenate((slopes, np.ones((*slopes.shape[:2], 1), np.float32)), axis=2)
+        vectors /= np.linalg.norm(vectors, axis=2, keepdims=True)
+        result = np.uint8(np.clip(np.rint((vectors+1)*127.5), 0, 255))
+    else:
+        result = np.uint8(np.clip(np.rint(source.astype(np.float32)*(1-weight)+dust*weight), 0, 255))
+    result[coverage == 0] = source[coverage == 0]
+    return result
+
+
 def alias_heights(height, recipe):
     """Use the same material placement masks and solid rotations as the exporter."""
     size = height.shape[0]
@@ -104,6 +132,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--settings", type=Path, default=ROOT/"Tools/TerrainHD/Moon/regolith.json")
     parser.add_argument("--compare-detail", type=Path)
+    parser.add_argument("--detail-source", type=Path, help="Preserve the authored HD detail DDS; defaults to the saved Moon HD detail")
     args = parser.parse_args()
     output = args.output.resolve()
     if output.exists():
@@ -123,11 +152,20 @@ def main():
     recipe.NORMAL_ONLY = recipe.DIFFUSE_ONLY = recipe.PREFERRED = False
     recipe.material = lambda uid: json.loads((source/"material_cache"/uid/"material.json").read_text())
     height, images = surface(settings)
+    coverage = dust_mask(height, settings)
+    Image.fromarray(np.uint8(np.rint(coverage*255))).save(output/"dust_coverage.png")
+    source_hashes = {}
     original = recipe.apply_art6
     def authored(world, channel, by_type, bases, report, rotate):
         original(world, channel, by_type, bases, report, rotate)
-        bases[by_type[0]] = images[channel].copy()
-        report["groundOverride"] = "shared authored crater/dust surface; normals contain microheight only"
+        ground = bases[by_type[0]]
+        # The source exporter normalizes RGB normals even for a zero-turn
+        # solid. Retain that same baseline, not pre-export quantized vectors.
+        reference = rotate(ground, 0, channel)
+        Image.fromarray(reference).save(output/f"original_hd_ground_{channel.lower()}.png")
+        source_hashes[channel] = hashlib.sha256(reference.tobytes()).hexdigest()
+        bases[by_type[0]] = blend_surface(ground, images[channel], coverage, channel)
+        report["groundOverride"] = "HD source retained; dust coverage restricted to crater floors and sparse patches"
     recipe.apply_art6 = authored
     sources = output/"masters"
     sources.mkdir()
@@ -162,22 +200,27 @@ def main():
     binding["heightTexture"] = "resources/"+height_path.name
     binding["heightEncoding"] = "signed-unit-r32"
     pack_path.write_text(json.dumps(pack, indent=2)+"\n")
-    detail = noise(2048, settings["seed"]+5, 2.0)-.55*noise(2048, settings["seed"]+6, 9.0)
-    detail /= detail.std()
-    detail_rgb = np.repeat(np.uint8(np.rint(np.clip(.5+detail*settings["detailStd"], .43,.57)*255))[:, :, None], 3, axis=2)
-    detail_png = output/"regolith_detail.png"
-    Image.fromarray(detail_rgb).save(detail_png)
+    detail_source = args.detail_source or source/"staged_atlases/moon/ST_MOON_DETAIL.dds"
+    detail_info = hd_tiles.inspect_dds(detail_source)
+    if (detail_info["width"] != 2048 or detail_info["height"] != 2048 or detail_info["format"] != "DXT1"):
+        raise ValueError("Preserve the authored 2048px BC1 Moon HD detail")
     detail_path = bundle/"resources/crhd_moon_regolith_detail.dds"
-    hd_tiles._convert(detail_png, detail_path, "D", 2048, "directx")
+    shutil.copyfile(detail_source, detail_path)
     with Image.open(detail_path) as detail_image:
         detail_audit = audit_detail(detail_image)
+        detail_image.save(output/"regolith_detail.png")
     bundle_audit = hd_tiles.check_bundle(bundle)
     report = {"settings": settings, "detail": detail_audit, "heightRange": [float(atlas.min()),float(atlas.max())],
               "heightSha256": hashlib.sha256(height_path.read_bytes()).hexdigest(),
               "sourceRecipeSha256": hashlib.sha256((source/"build_stock_atlases.py").read_bytes()).hexdigest(),
+              "sourceGroundPixelSha256": source_hashes,
+              "dustCoverage": {"unchangedFraction": float((coverage == 0).mean()),
+                               "mean": float(coverage.mean()), "maximum": float(coverage.max())},
+              "detailSourceSha256": hashlib.sha256(detail_source.read_bytes()).hexdigest(),
+              "detailOutputSha256": hashlib.sha256(detail_path.read_bytes()).hexdigest(),
               "bundle": bundle_audit,
-              "normalPolicy": "DS derives macro crater normals; RGB XYZ tile normals encode microheight only, compensated for 2.1x sharpening",
-              "detailPolicy": "Neutral grayscale procedural grain; shader generates -dH/dU,-dH/dV normal at 8x and 32x, no extra normal texture",
+              "normalPolicy": "HD source RGB XYZ normals retained; dust microheight softens only covered areas. DS supplies macro crater normal, not duplicated in pixel normal.",
+              "detailPolicy": "Original authored HD detail preserved byte-for-byte, including mips. Shader generates -dH/dU,-dH/dV normal at 8x/32x; no extra slot.",
               "sizesUnchanged": True, "additionalTextureSlots": 0}
     if args.compare_detail:
         with Image.open(args.compare_detail) as image:

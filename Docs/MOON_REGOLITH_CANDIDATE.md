@@ -1,22 +1,31 @@
 # Moon dust and crater material candidate
 
-The first crater height prototype displaced an unrelated rocky diffuse/normal
-surface. This candidate replaces Moon's type-0 ground with quieter dust and
-coherent crater bowls, worn rims and small overlapping impacts. The same authored
-height controls geometry and the floor/rim colour differences. Existing rock,
-paving, base emissives and their placement masks are retained; ground-to-rock
-and paving transitions are regenerated from the independent source recipe.
-No atlas pixels are used as image sources. Native map/collision files stay intact.
+The current revision preserves Moon's authored HD ground and detail texture,
+while retaining the improved crater bowls, worn rims and small overlapping
+impacts. Dust softens crater floors and sparse patches instead of replacing the
+whole ground. About 89.93% of the base tile is byte-identical to the original
+HD diffuse/normal/specular/emissive pixels before DDS conversion; average dust
+blend is 3.09%, reaching 78% at deep crater floors. All channels share the mask.
+Existing rock, paving, base emissives and placement masks remain; transitions
+are regenerated from the independent source recipe. No atlas pixels are used
+as image sources. Native map/collision and canonical shipping art stay intact.
+
+The first dust revision (`Regolith01`) replaced too much HD ground detail and
+was rejected by the owner. Its live screenshot and metrics below are historical
+evidence only. `Regolith03` is the corrected candidate with normalized source
+references for comparing the exported normals.
 
 `Tools/TerrainHD/Moon/regolith.json` is the editable art recipe. Ground tiles
 remain 1024px, the signed height lookup 1024px and the detail texture 2048px.
-Maximum nominal depth remains 0.625 m (`microReliefScale: 2.5`). Ground normals
-are linear RGB XYZ derived from an independent 4 mm dust microheight field,
-with negative U/V gradients in the engine's audited tangent convention.
-The normal map does **not** also contain the large crater slope: OpenShim's
+Maximum nominal depth remains 0.625 m (`microReliefScale: 2.5`). Existing
+source-height-validated HD RGB XYZ normals are preserved outside the dust mask.
+Within it, slope-space blending softens them toward an independent 4 mm dust
+microheight normal with negative U/V gradients in the audited tangent convention.
+The normal map does **not** also contain the new large crater slope: OpenShim's
 domain shader already computes that from the displaced geometry. Encoding it
-twice would exaggerate rim shading. The runtime normal is precompensated for
-the current Enhanced shader's 2.1x normal sharpening. A separate reference PNG
+twice would exaggerate rim shading. Only the added dust normal is precompensated
+for the current Enhanced shader's 2.1x normal sharpening; original HD normals
+retain their existing calibration. A separate reference PNG
 shows macro crater normals for inspection; it is not bound as the pixel normal.
 
 ## Detail texture and generated detail normal
@@ -27,15 +36,19 @@ SM4 samples the DetailMap at 8x and 32x and derives a normal from its luminance
 central differences, using strength 2.2 and a 0.55 multiplier for the near layer.
 There is no separate Moon detail-normal texture bound in this path.
 
-The candidate authors a neutral grayscale periodic dust field for that same
-slot. After BC1 compression its mean is 0.49944 and standard deviation 0.01862;
-stock detail measures 0.50453 / 0.14567. At mip zero, the shader's single-layer
-central-difference formula gives 95th-percentile normal tilt of 3.60 degrees
-versus stock's 44.65 degrees (maximum 10.25 versus 70.47). These are input
-texture diagnostics, **not** final combined world-space angles: filtering,
-mips, both frequency layers, the main normal and terrain basis affect the draw.
-The gradient sign agrees with the independently tested height-normal encoder.
-There is no added texture slot or separate detail-normal allocation.
+The current candidate copies the authored HD `ST_MOON_DETAIL.dds` byte-for-byte,
+including its existing mip chain. It does not replace it with procedural grain
+or flatten its contrast. `--detail-source` can select another reviewed HD detail;
+the default reads the trusted saved source build's staged Moon detail. The report
+records matching source/output SHA-256 and a luminance/gradient audit.
+
+For context, rejected `Regolith01` used a generic dust detail with mean 0.49944,
+standard deviation 0.01862 and mip-zero single-layer p95 tilt 3.60 degrees, versus
+stock 0.50453 / 0.14567 / 44.65 degrees. Those figures do not describe the current
+restored HD detail. Gradient audits are input-texture diagnostics, **not** final
+combined world-space angles: filtering, mips, both frequency layers, the main
+normal and terrain basis affect the draw. There is no new texture slot or
+separate detail-normal allocation.
 
 ## Rebuild and preview
 
@@ -49,26 +62,42 @@ python Tools/Build-MoonRegolith.py `
   --source-build '<saved HD source build>' `
   --toolbox '../Battlezone98_Modding_Toolbox-hd-terrain-authoring' `
   --openshim '../BZR-OpenShim-moon-relief-depth' `
-  --output Local/TerrainHD/Regolith01 `
+  --output Local/TerrainHD/Regolith03 `
   --compare-detail '<game>/BZ_ASSETS/pc/textures/TerrainTextures/Detail/mn_detail.dds'
 
 ./Tools/Test-MarsHdTerrainLive.ps1 `
   -OpenShimRepo ../BZR-OpenShim-moon-relief-depth `
-  -TileDirectory Local/TerrainHD/Regolith01/bundle -World moon `
+  -TileDirectory Local/TerrainHD/Regolith03/bundle -World moon `
   -Hd -MicroRelief -GroundView -SettingsOnly -MeasureMemory `
-  -DetailTexture Local/TerrainHD/Regolith01/bundle/resources/crhd_moon_regolith_detail.dds
+  -DetailTexture Local/TerrainHD/Regolith03/bundle/resources/crhd_moon_regolith_detail.dds
 ```
 
 Use a fresh output folder for each art revision. The builder writes retained
-DNSE masters, a Toolbox bundle, signed R32 height, detail DDS, reference PNGs
-and `regolith_report.json` under ignored `Local/`. Outputs are procedural and
-reproducible; no AI-generated bitmap is used. The preview's `-DetailTexture`
+DNSE masters, original HD ground references, dust mask, a Toolbox bundle,
+signed R32 height, copied HD detail DDS, reference PNGs and `regolith_report.json`
+under ignored `Local/`. Procedural height/dust authoring augments the retained
+HD art; no AI-generated bitmap is used. The preview's `-DetailTexture`
 temporarily changes the material alias and restores the original file/hash.
 Source shipping DDS, shipping manifest and Workshop package are not promoted.
 Off Enhanced, the existing stock-atlas fallback remains the production path;
 this candidate does not introduce a new native rendering mode.
 
-## Evidence and limits
+## Current revision checks
+
+Six focused checks cover UV normal sign/sharpening, no duplicated macro crater
+normal, neutral-detail interpretation, deterministic dust, byte-identical HD
+pixels at zero coverage and normalized full-dust normal blending. The current
+output's original ground references and SHA-256 values make the retained HD
+source reviewable. The Toolbox validates all 44 DNSE resources and mip chains.
+`Regolith03/masters/mn00sa0_d.png` retains the inspected restored HD rocky surface.
+Its crater-height output remains identical to revision 1; only the localized
+surface blend and restored HD detail change.
+
+The corrected candidate has not had a new live terrain capture: another
+game is running and was left untouched. Do not label the previous revision's
+screenshot or RAM sample as current-revision acceptance.
+
+## Earlier rejected dust revision evidence
 
 Windows/GOG 2.2.301 DX11 PID 69036 used ordinary terrain settings without the
 diagnostic tessellation flag. Capture:
@@ -76,8 +105,7 @@ diagnostic tessellation flag. Capture:
 smoother dust and distinct crater bowls/rims. Logs confirm the new 2048px detail
 texture, signed R32 height texture and 0.625 m native displacement. All 1,478
 height binding scopes, 144 streams/bounds, 82 native passes and 138 staged files
-were restored. Four focused normal/morphology/determinism checks pass; the
-Toolbox validates the DNSE mapping, formats and complete mip chains.
+were restored. The owner subsequently rejected the loss of the HD rocky surface.
 
 Median private commit was 363,896,832 bytes (347.04 MiB), lifetime peak
 516,259,840 bytes (492.34 MiB), and largest free VA block 2,144,116,736 bytes

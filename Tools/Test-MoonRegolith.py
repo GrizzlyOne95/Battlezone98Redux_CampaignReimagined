@@ -47,6 +47,25 @@ class Regolith(unittest.TestCase):
         self.assertLess(abs(float(first.mean())), 1e-6)
         self.assertAlmostEqual(float(first.std()), 1, places=6)
 
+    def test_hd_art_is_preserved_outside_local_dust_coverage(self):
+        settings = json.loads((ROOT/"Tools/TerrainHD/Moon/regolith.json").read_text())
+        settings["tileSize"] = 256
+        height, images = art.surface(settings)
+        mask = art.dust_mask(height, settings)
+        self.assertGreater(float((mask == 0).mean()), .80)
+        self.assertLess(float(mask.mean()), .10)
+        self.assertGreater(float(mask.max()), .7)
+        original = np.random.default_rng(34).integers(0,256,(256,256,3),dtype=np.uint8)
+        for channel in ("D", "N", "S", "E"):
+            result = art.blend_surface(original, images[channel], mask, channel)
+            np.testing.assert_array_equal(result[mask == 0],original[mask == 0])
+
+    def test_full_dust_normal_blend_remains_unit_length(self):
+        source = np.full((2,2,3),[200,100,230],np.uint8)
+        dust = np.full((2,2,3),[128,128,255],np.uint8)
+        result = art.blend_surface(source,dust,np.ones((2,2),np.float32),"N")
+        np.testing.assert_array_equal(result,dust)
+
 
 if __name__ == "__main__":
     unittest.main()
