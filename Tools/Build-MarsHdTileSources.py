@@ -15,7 +15,7 @@ import shutil
 import sys
 
 
-def source_function(module, sink):
+def source_function(module, sink, tile_size=None):
     path = Path(module.__file__)
     tree = ast.parse(path.read_text(encoding="utf-8-sig"))
     function = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "build")
@@ -28,13 +28,16 @@ def source_function(module, sink):
                 and "tile_cache.values()" in ast.unparse(n.test) and "'E'" in ast.unparse(n.test)), None)
     if cut is None:
         raise ValueError("Unsupported saved recipe: tile generation/packing boundary missing")
-    # Every channel is authored at the diffuse interior resolution. In the old
-    # atlas export only N/S/E were reduced to fit the atlas allocation budget.
+    # Independent tiles have no packing gutters or atlas allocation ceiling.
+    # Generate at the requested resolution directly from the material cache.
     for n in loop.body:
         if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "channel_cell" for t in n.targets):
-            n.value = ast.Name(id="cell", ctx=ast.Load())
+            n.value = ast.Constant(tile_size) if tile_size else ast.Name(id="cell", ctx=ast.Load())
     loop.body = loop.body[:cut] + ast.parse("_hd_tile_sink(world, ch, tile_cache, report)\ncontinue").body
-    function.body = function.body[:index + 1] + [ast.Return(value=ast.Name(id="report", ctx=ast.Load()))]
+    prelude = function.body[:index]
+    if tile_size:
+        prelude += ast.parse(f"base_gutter = 0\nmaster_interior = {tile_size}").body
+    function.body = prelude + [loop, ast.Return(value=ast.Name(id="report", ctx=ast.Load()))]
     scope = dict(vars(module)); scope["_hd_tile_sink"] = sink
     exec(compile(ast.fix_missing_locations(ast.Module(body=[function], type_ignores=[])), str(path), "exec"), scope)
     return scope["build"]
@@ -71,16 +74,15 @@ def main():
     p.add_argument("--tile-size", type=int, choices=[512, 1024, 2048], default=1024)
     p.add_argument("--capture", type=Path)
     p.add_argument("--atlas-csv", type=Path)
-    p.add_argument("--bind-existing", action="store_true", help="Bind previously exported tiles to a fresh native capture")
+    p.add_argument("--bind-existing", action="store_true", help="Rebuild the runtime manifest for existing source tiles")
     args = p.parse_args()
     output = args.output.resolve()
-    if bool(args.capture) != bool(args.atlas_csv):
-        raise ValueError("--capture and --atlas-csv must be supplied together")
+    if args.capture and not args.atlas_csv:
+        raise ValueError("--capture requires --atlas-csv")
     if args.bind_existing:
-        if not args.capture:
-            raise ValueError("--bind-existing requires --capture and --atlas-csv")
         result = json.loads((output / "source_tiles.json").read_text())
-        write_manifest(output, args.capture, args.atlas_csv, result["aliases"], result.get("defaultAlias"))
+        write_manifest(output, args.capture, args.atlas_csv or output / "native_layout.csv",
+                       result["aliases"], result.get("defaultAlias"))
         return
     if not args.source_build:
         raise ValueError("--source-build is required for source export")
@@ -115,6 +117,8 @@ def main():
         for name, pixels in tiles.items():
             slug = name.lower().removesuffix(".map") or "default"
             filename = f"crhd_mars_{slug}_{channel.lower()}.dds"
+            if pixels.shape[:2] != (args.tile_size, args.tile_size):
+                raise ValueError("Source recipe did not generate full-resolution independent tiles")
             image = recipe.resize(pixels, args.tile_size, channel)
             levels = []; size = args.tile_size
             while True:
@@ -138,11 +142,13 @@ def main():
                 x, y = i % 5 * 160, i // 5 * 184
                 sheet.paste(image, (x, y)); draw.text((x+3, y+163), name, fill="white")
             sheet.save(output / "mars_tiles.jpg")
-    build = source_function(recipe, sink)
+    build = source_function(recipe, sink, args.tile_size)
     world = next(w for w in recipe.PLAN["worlds"] if w["world"] == "mars")
     report = build(world)
     for i, (name, entry) in enumerate(aliases.items()): entry["slice"] = i
     result = {"schema": "cr-mars-hd-source-tiles-v1", "tileSize": args.tile_size,
+              "sourceGenerationPixels": args.tile_size,
+              "exporterSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               "sourceRecipeSha256": hashlib.sha256((root / "build_stock_atlases.py").read_bytes()).hexdigest(),
               "sources": report["sources"], "normalCorrections": report.get("normal_relief_overrides", {}),
               "normalEngineConversion": report.get("normal_engine_conversion", {}),
@@ -152,19 +158,34 @@ def main():
                                for path in sorted(root.glob("*.py")) + sorted(root.glob("*.json"))},
               "aliases": aliases, "atlasPixelsRead": False}
     result["defaultAlias"] = report.get("default_alias_shared") or None
-    if args.capture:
-        write_manifest(output, args.capture, args.atlas_csv, aliases, result["defaultAlias"])
+    write_manifest(output, args.capture, args.atlas_csv or output / "native_layout.csv", aliases, result["defaultAlias"])
     (output / "source_tiles.json").write_text(json.dumps(result, indent=2)+"\n")
     print(f"Exported {len(aliases)} full D/N/S/E tile sets to {output}", flush=True)
 
 
 def write_manifest(output, capture_path, csv_path, aliases, default_alias=None):
-    capture = json.loads(capture_path.read_text(encoding="utf-8-sig"))
-    remap = bind_capture(capture, csv_path, aliases, default_alias)
+    capture = json.loads(capture_path.read_text(encoding="utf-8-sig")) if capture_path else {
+        "material": "CRHD_MARS_EXAMPLE", "diffuseResource": "mars_atlas_d.dds",
+        "channelResources": {"normal": "mars_atlas_n.dds", "specular": "mars_atlas_s.dds"}}
     first = next(iter(aliases.values()))
-    binding = {"sliceCount": len(aliases), "sliceRemap": remap,
+    binding = {"sliceCount": len(aliases), "releaseSourceTextures": True,
                "diffuseResource": capture["diffuseResource"], "fallback": first["D"],
                "tiles": {str(a["slice"]): a["D"] for a in aliases.values()}}
+    if capture_path:
+        binding["sliceRemap"] = bind_capture(capture, csv_path, aliases, default_alias)
+    else:
+        rects = {}
+        with csv_path.open(encoding="utf-8-sig", newline="") as source:
+            for row in csv.reader(source):
+                if len(row) != 5: raise ValueError("Expected name,u,v,width,height CSV")
+                name = row[0].strip().upper() or default_alias
+                if name not in aliases: raise ValueError(f"Missing source tile alias: {name}")
+                rect = tuple(float(value) for value in row[1:])
+                slice_id = aliases[name]["slice"]
+                if rect in rects and rects[rect] != slice_id:
+                    raise ValueError("Ambiguous layout rectangle")
+                rects[rect] = slice_id
+        binding["tileRects"] = [{"rect": rect, "slice": slice_id} for rect, slice_id in rects.items()]
     for ch, key in [("N", "normal"), ("S", "specular")]:
         source = capture.get("channelResources", {}).get(key)
         if not source:
@@ -174,7 +195,7 @@ def write_manifest(output, capture_path, csv_path, aliases, default_alias=None):
         if ch == "N": binding[key]["encoding"] = "rgb-xyz-linear"
     manifest = {"schema": "bzr-openshim-terrain-hd-v2", "materials": {capture["material"]: binding}}
     (output / "cr_mars_hd.json").write_text(json.dumps(manifest, indent=2)+"\n")
-    print(f"Bound {len(aliases)} source tiles to {capture['material']} in {output}", flush=True)
+    print(f"Prepared {len(aliases)} source tiles for {capture['material']} in {output}", flush=True)
 
 
 if __name__ == "__main__": main()

@@ -1,7 +1,7 @@
 <# Reversible Windows/GOG DX11 example using CR's unmodified misn04 terrain.
    Run with Windows PowerShell 5.1 (the capture helper uses System.Drawing).
-   First run captures native IDs; bind them with Build-MarsHdTileSources.py,
-   then run again with -Hd. Source maps and the installed addon are preserved.
+   New-MarsHdTerrainExample.ps1 prepares the pack without a capture run.
+   Source maps and the installed addon are preserved.
 #>
 param(
  [Parameter(Mandatory=$true)][string]$OpenShimRepo,
@@ -9,6 +9,13 @@ param(
  [string]$HarnessRepo,
  [string]$GameRoot='C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux',
  [string]$ResourceDirectory,
+ [string]$ExuDll,
+ [ValidateSet('Enhanced','Redux','Retro')][string]$RenderProfile='Enhanced',
+ [switch]$MeasureMemory,
+ [switch]$ProfileCycle,
+ [ValidateRange(1,4)][int]$ProfileCycles=1,
+ [switch]$WideView,
+ [switch]$BindCapture,
  [switch]$Hd
 )
 $ErrorActionPreference='Stop'
@@ -18,11 +25,25 @@ $harness=Join-Path (Resolve-Path -LiteralPath $HarnessRepo).Path 'reverse_engine
 $cr=Split-Path -Parent $PSScriptRoot
 $tiles=(Resolve-Path -LiteralPath $TileDirectory).Path
 $game=(Resolve-Path -LiteralPath $GameRoot).Path
-if($Hd -and -not (Test-Path -LiteralPath "$tiles\cr_mars_hd.json")){throw 'Bind the exported tiles to a fresh native capture first.'}
+if($Hd -and -not (Test-Path -LiteralPath "$tiles\cr_mars_hd.json")){throw 'Prepare the exported tiles with New-MarsHdTerrainExample.ps1 first.'}
+if($ProfileCycle -and (-not $Hd -or $RenderProfile -ne 'Enhanced')){throw 'ProfileCycle needs -Hd and an Enhanced starting profile'}
+if($ProfileCycle){
+ if(-not $ExuDll){$ExuDll=Join-Path $game 'mods\3686673790\exu.dll'}
+ $ExuDll=(Resolve-Path -LiteralPath $ExuDll).Path.Replace('\','/')
+ if($ExuDll.Contains(']]')){throw 'Unsupported Lua probe DLL path'}
+}
 $out=Join-Path $cr ('Local\TerrainHD\run-'+(Get-Date -Format yyyyMMdd-HHmmss))
 New-Item -ItemType Directory -Path $out -Force | Out-Null
-. "$harness\BZRHarness.ps1"
+# This helper owns reversible ogre.cfg changes below. Suppress the harness's
+# separate automatic windowed backup when invoked repeatedly in one shell;
+# still let it recover an orphan, and still launch with BZR_FORCE_WINDOWED=1.
+$inheritedWindowed=$env:BZR_FORCE_WINDOWED
+try {
+ $env:BZR_FORCE_WINDOWED=$null
+ . "$harness\BZRHarness.ps1"
+} finally {$env:BZR_FORCE_WINDOWED=$inheritedWindowed}
 . "$harness\BZRWindowInput.ps1"
+. "$PSScriptRoot\Get-BzrProcessMemory.ps1"
 $lock=Enter-BZRLaunchLock -TimeoutSeconds 2
 $proc=$null; $ogre=$null; $saved=New-Object System.Collections.Generic.List[object]
 if(-not $ResourceDirectory){$ResourceDirectory=Join-Path $game 'addon\stock_terrain_hd'}
@@ -79,8 +100,43 @@ function CreateObject(h) end
 function AddObject(h) end
 function DeleteObject(h) end
 '@ | Set-Content "$game\addon\misn04.lua" -Encoding ASCII
+ if($WideView){
+  $driver=[IO.File]::ReadAllText("$game\addon\misn04.lua").Replace('CameraObject(p,600,400,800,p)','CameraObject(p,3000,2200,-3000,p)')
+  [IO.File]::WriteAllText("$game\addon\misn04.lua",$driver)
+ }
+ if($ProfileCycle){
+  # Optional integration probe uses the already installed EXU API. Ordinary
+  # authored packs/previews have no EXU requirement.
+  $cycleDriver=@'
+local originalStart=Start
+local originalUpdate=Update
+local profiles=nil
+local cycleStage=0
+function Start()
+ originalStart()
+ local loader,message=package.loadlib([[__EXU_DLL__]],'luaopen_exu')
+ assert(loader,message)
+ loader()
+ profiles=rawget(_G,'exu')
+ assert(profiles and profiles.RequestRenderProfile,'EXU profile probe API unavailable')
+ print('[MARS-HD] profile cycle armed')
+end
+function Update(dt)
+ originalUpdate(dt)
+ local now=GetTime()
+ if cycleStage<__CYCLE_STAGES__ and now>=12*(cycleStage+1) then
+  local profile=cycleStage%2==0 and 'redux' or 'enhanced'
+  assert(profiles.RequestRenderProfile(profile),'Profile request declined')
+  print('[MARS-HD] requested '..profile..' at '..now)
+  cycleStage=cycleStage+1
+ end
+end
+'@
+  $cycleDriver.Replace('__EXU_DLL__',$ExuDll).Replace('__CYCLE_STAGES__',[string]($ProfileCycles*2)) | Add-Content "$game\addon\misn04.lua" -Encoding ASCII
+ }
  & "$repo\scripts\Deploy-OpenShim.ps1" -GameDir $game
  $ini=[IO.File]::ReadAllText("$game\openshim.ini") -replace '(?m)^TerrainHdEnabled\s*=.*$','TerrainHdEnabled = 0'
+ $ini=[regex]::Replace($ini,'(?m)^RenderProfile\s*=.*$',('RenderProfile = '+$RenderProfile))
  if($Hd){
   $ini=$ini -replace '(?m)^TerrainHdEnabled\s*=.*$','TerrainHdEnabled = 1'
   $ini=[regex]::Replace($ini,'(?m)^TerrainHdManifest\s*=.*$',('TerrainHdManifest = '+"$tiles\cr_mars_hd.json"))
@@ -92,6 +148,7 @@ function DeleteObject(h) end
  if($Hd){
   foreach($item in Get-ChildItem $tiles -Filter '*.dds' -File){Save-File "$game\openshim\renderer\enhanced\$($item.Name)"; Copy-Item $item.FullName "$game\openshim\renderer\enhanced\$($item.Name)" -Force}
   $env:OPENSHIM_TERRAIN_HD='1'; $env:OPENSHIM_TERRAIN_HD_MANIFEST="$tiles\cr_mars_hd.json"
+  $env:OPENSHIM_TERRAIN_HD_REQUIRE_MATERIAL_MAPS='1'
  }
  Assert-BZRSafeToLaunch
  $proc=Start-BZRGameProcess -FilePath "$game\battlezone98redux.exe" -ArgumentList 'misn04.bzn /nointro /renderer:dx11' -WorkingDirectory $game -PassThru
@@ -99,8 +156,49 @@ function DeleteObject(h) end
  Start-Sleep -Seconds 20
  $window=[BZRWin.Native]::MainWindow($proc.Id)
  [BZRWin.Native]::Key($window,0x20)
- Start-Sleep -Seconds 20
+ if($ProfileCycle){
+  Start-Sleep -Seconds 8
+  if($MeasureMemory){Get-BzrProcessMemory -ProcessId $proc.Id | ConvertTo-Json | Set-Content "$out\initial-enhanced-memory.json"}
+  Start-Sleep -Seconds 9
+  [BZRWin.Native]::Capture($window,"$out\fallback.png")
+  if($MeasureMemory){Get-BzrProcessMemory -ProcessId $proc.Id | ConvertTo-Json | Set-Content "$out\fallback-memory.json"}
+  foreach($cycleIndex in 1..$ProfileCycles){
+   Start-Sleep -Seconds 12
+   if($MeasureMemory){Get-BzrProcessMemory -ProcessId $proc.Id | ConvertTo-Json | Set-Content "$out\cycle-$cycleIndex-enhanced-memory.json"}
+   if($cycleIndex -lt $ProfileCycles){
+    Start-Sleep -Seconds 12
+    if($MeasureMemory){Get-BzrProcessMemory -ProcessId $proc.Id | ConvertTo-Json | Set-Content "$out\cycle-$cycleIndex-redux-memory.json"}
+   }
+  }
+  Start-Sleep -Seconds 8
+ }else{Start-Sleep -Seconds 20}
  [BZRWin.Native]::Capture($window,"$out\trial.png")
+ if($MeasureMemory){
+  $samples=@()
+  foreach($sampleIndex in 1..5){
+   $processMemory=Get-BzrProcessMemory -ProcessId $proc.Id
+   $gpu=@();$gpuError=$null
+   try {
+    $counters=Get-Counter @('\GPU Process Memory(*)\Dedicated Usage','\GPU Process Memory(*)\Shared Usage','\GPU Process Memory(*)\Total Committed') -ErrorAction Stop
+    $gpu=@($counters.CounterSamples | Where-Object {$_.InstanceName -like ("pid_"+$proc.Id+"_*") -and $_.Status -eq 0})
+   } catch {$gpuError=$_.Exception.Message}
+   $row=[ordered]@{gpuError=$gpuError}
+   foreach($property in $processMemory.PSObject.Properties){$row[$property.Name]=$property.Value}
+   foreach($metric in @(@('dedicatedBytes','dedicated usage'),@('sharedBytes','shared usage'),@('gpuCommittedBytes','total committed'))){
+    $values=@($gpu | Where-Object {$_.Path.EndsWith('\'+$metric[1])})
+    $row[$metric[0]]=if($values.Count){($values | Measure-Object CookedValue -Sum).Sum}else{$null}
+   }
+   $samples += [pscustomobject]$row
+   Start-Sleep -Milliseconds 300
+  }
+  $memory=[ordered]@{pid=$proc.Id;hdRequested=[bool]$Hd;profile=$RenderProfile;wideView=[bool]$WideView;samples=$samples;median=[ordered]@{}}
+  foreach($metric in @('privateBytes','peakPrivateBytes','workingSetBytes','peakWorkingSetBytes','virtualBytes','peakVirtualBytes','vaCommittedBytes','vaReservedBytes','vaFreeBytes','vaLargestFreeBytes','dedicatedBytes','sharedBytes','gpuCommittedBytes')){
+   $values=@($samples | ForEach-Object {$_.$metric} | Where-Object {$null -ne $_} | Sort-Object)
+   $memory.median[$metric]=if($values.Count){$values[[int][Math]::Floor($values.Count/2)]}else{$null}
+  }
+  $memory | ConvertTo-Json -Depth 6 | Set-Content "$out\memory.json"
+  Write-Host ('MEMORY '+($memory.median | ConvertTo-Json -Compress))
+ }
  Write-Host 'CAPTURED'
 }
 finally {
@@ -116,15 +214,38 @@ finally {
  Write-Host "RESTORED $($saved.Count) files. Evidence: $out"
 }
 if(-not (Test-Path -LiteralPath "$out\native.json")){throw "Native capture unavailable; inspect $out"}
-if(-not $Hd){
+if(-not $Hd -and $BindCapture){
  & python "$cr\Tools\Build-MarsHdTileSources.py" --bind-existing --output $tiles --capture "$out\native.json" --atlas-csv "$tiles\native_layout.csv"
  if($LASTEXITCODE -ne 0){throw 'Native source-tile binding failed'}
 }
-if($Hd){
+if($Hd -and $RenderProfile -ne 'Enhanced'){
+ $records=@(Get-Content "$out\openshim.log" | Where-Object {$_ -match ("\[pid:"+$proc.Id+" ")})
+ if(-not ($records -match 'stock atlas retained: effective DX11 Enhanced profile required')){throw 'Profile fallback unproven'}
+ if($records -match '\[TERRAIN-HD\] array ready|\[TERRAIN-HD\] shared native material installed'){throw 'HD arrays allocated outside Enhanced'}
+}
+if($Hd -and $RenderProfile -eq 'Enhanced'){
  $records=@(Get-Content "$out\openshim.log" | Where-Object {$_ -match ("\[pid:"+$proc.Id+" ")})
  $proof=@($records | Where-Object {$_ -match 'GPU statistics.*hdTiles=1.*hdMaterialMask=3' -and $_ -match 'psInvocations=([0-9]+)' -and [uint64]$Matches[1] -ge 1024})
  if(-not $proof.Count){throw "Missing actual diffuse/normal/specular array draw proof; inspect $out"}
  if(-not ($records -match 'shared native material restored passes=[1-9]')){throw 'Native material restoration unproven'}
  $restoredStreams=@($records | Where-Object {$_ -match 'native streams restored meshes=([0-9]+) tracked=([0-9]+)' -and [int]$Matches[1] -gt 0 -and $Matches[1] -eq $Matches[2]})
  if(-not $restoredStreams.Count){throw 'Complete native stream restoration unproven'}
+ if($ProfileCycle){
+  if(-not ($records -match 'profile fallback restored stock atlas')){throw 'Live profile fallback unproven'}
+  if(-not ($records -match 'Enhanced resumed; native tile discovery rearmed')){throw 'Live profile resume unproven'}
+  if(@($records | Where-Object {$_ -match '\[TERRAIN-HD\] shared native material installed'}).Count -ne ($ProfileCycles+1)){throw 'HD material did not reinstall for every profile resume'}
+  if($MeasureMemory -and $ProfileCycles -gt 1){
+   $cycleMemory=@(1..$ProfileCycles | ForEach-Object {Get-Content "$out\cycle-$_-enhanced-memory.json" -Raw | ConvertFrom-Json})
+   $growth=$cycleMemory[-1].privateBytes-$cycleMemory[0].privateBytes
+   Write-Host ('PROFILE_CYCLE_PRIVATE_GROWTH_BYTES='+$growth)
+   # Allow normal allocator/driver noise, while rejecting the original ~90 MiB
+   # per-cycle retained handoffs. This is a short regression, not a leak proof.
+   if($growth -gt 32MB){throw 'Profile cycles accumulated more than 32 MiB private commit'}
+   $firstOff=Get-Content "$out\fallback-memory.json" -Raw | ConvertFrom-Json
+   $lastOff=Get-Content "$out\cycle-$($ProfileCycles-1)-redux-memory.json" -Raw | ConvertFrom-Json
+   $offGrowth=$lastOff.privateBytes-$firstOff.privateBytes
+   Write-Host ('PROFILE_CYCLE_ATLAS_PRIVATE_GROWTH_BYTES='+$offGrowth)
+   if($offGrowth -gt 16MB){throw 'Atlas fallback cycles retained more than 16 MiB private commit'}
+  }
+ }
 }

@@ -1,111 +1,160 @@
 # Mars HD source-tile example
 
-This local prototype uses CR's `misn04` terrain with independent 1024-pixel
-diffuse, normal and specular tile arrays in OpenShim's experimental v2 HD
-terrain path. Map heights, tile choices, rotations and gameplay data remain
-native. It needs the matching OpenShim development build; EXU is not required
-by this terrain bench.
+This prototype renders CR `misn04` using independent diffuse, normal and specular
+tiles. Map heights, tile choices, rotations and gameplay data stay native.
+It needs the matching OpenShim development build and **DX11 Enhanced**. Redux
+and Retro use the ordinary atlas; no HD arrays are allocated in those profiles.
+The tile option and an authored pack are both required. EXU is not required
+for the pack or its ordinary preview.
 
-The artwork comes from **the source build behind `addon/stock_terrain_hd`**,
-visual revision 6. `Build-MarsHdTileSources.py` runs that trusted local recipe
-to the end of tile generation and substitutes a tile writer for its packing
-stage. It reads cached, separate material channels and reuses the recipe's
-normal corrections, variations and transition masks. No rendered atlas is
-cropped or sampled to make these textures. The source addon/build is retained.
+## One-command authoring and preview
 
-Mars uses BZCC `pluto7.tga` and `Metal2.tga`, plus UE Tank Game
-`ChunkyMartianGravel_albedo.png`, `MarsGravel_albedo.png` and
-`MartianBarrensRocky_albedo.png`, with their independent normal/reflectance
-inputs. Original source provenance is preserved in `source_tiles.json`.
-The legacy shader consumes specular intensity, so the recipe's documented
-conversion from authored roughness/gloss is retained. Normal/specular maps
-are not synthesized from diffuse.
-
-## Export the source tiles
-
-From CR, use Python with NumPy/Pillow and the original build's local
-dependencies (including its Toolbox/masks/BC1 helpers):
-
-```powershell
-$source = 'C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\output\stock_world_texture_survey_20261014'
-$tiles = "$PWD\Local\TerrainHD\MarsSourceTiles"
-python Tools/Build-MarsHdTileSources.py --source-build $source --output $tiles
-python Tools/Test-MarsHdTileSources.py
-python Tools/Test-MarsHdTileSources.py --export $tiles
-```
-
-Choose a new output directory. The exporter refuses to rebuild/download missing
-source materials and fails if the saved generation/packing boundary changes.
-This adapts that saved local build; it does not replace its source recipe.
-The recipe is Python code: use only a trusted source build.
-
-Output: 18 D/N/S/E tile sets with full DDS mip chains, a contact sheet, source
-hashes and normal correction metadata. Normals use lossless RGB24 DDS and
-renormalized mips; other maps use BC1. Mars emissive maps are intentionally
-black and keep the native black binding. Generated art/provenance stays under
-ignored `Local/`; these tools do not add it to the Workshop package or public
-OpenShim repository.
-
-## Bind and run on CR terrain
-
-Native tile IDs are not CSV row numbers. First capture the running renderer's
-table and channel identities. The helper stages CR's actual `misn04` terrain
-companions and a simple camera Lua driver in the GOG addon root. It temporarily
-selects `CRHD_MARS_EXAMPLE`, which imports CR's Enhanced terrain base, and uses
-`native_layout.csv` exported from the source recipe's stock alias metadata.
-It stages the selecting material and CR IBL wrappers in the enabled
-`addon/stock_terrain_hd` resource directory (override with `-ResourceDirectory`
-for another enabled mod). It deploys the complete OpenShim build and launches
-through `BZRHarness`. It refuses another
-active game, captures without activating the window, closes its own game
-gracefully and restores changed files with hash checks.
-
-Run in a fresh **Windows PowerShell 5.1** child process:
+From this CR worktree, in **Windows PowerShell 5.1**:
 
 ```powershell
 $os = "$HOME\Documents\GIT\BZR-OpenShim-hd-terrain-example"
 $harness = "$HOME\Documents\GIT\BZR-OpenShim"
-powershell.exe -NoProfile -File Tools/Test-MarsHdTerrainLive.ps1 `
-  -OpenShimRepo $os -HarnessRepo $harness -TileDirectory $tiles
+powershell.exe -NoProfile -File Tools/New-MarsHdTerrainExample.ps1 `
+  -OpenShimRepo $os -HarnessRepo $harness -TileSize 1024 -Preview -MeasureMemory
 ```
 
-The printed evidence folder under `Local/TerrainHD/run-*` contains `native.json`,
-game logs, a screenshot and a restoration ledger. A successful baseline run
-automatically binds the exported tiles to that native capture. Then run HD:
+The command generates the pack, prepares its runtime mapping, validates its
+DDS files and runs a reversible GOG preview. No capture/bind round trip or
+hand-written native ID list is needed. Default output is ignored
+`Local/TerrainHD/MarsSource1024`. Use `-OutputDirectory` for another location,
+`-SourceBuild` for another saved recipe location, and `-TileSize 512/1024/2048`
+for size. Changing size requires another output directory. Omit `-Preview`
+to prepare art without launching the game.
 
-```powershell
-powershell.exe -NoProfile -File Tools/Test-MarsHdTerrainLive.ps1 `
-  -OpenShimRepo $os -HarnessRepo $harness -TileDirectory $tiles -Hd
+Edit the independent `*_d.dds`, `*_n.dds` and `*_s.dds` images, keeping their
+formats/dimensions and mip chains consistent within each channel. Rerunning
+the command preserves existing art edits and refreshes only the runtime
+manifest before validating/previewing. The contact sheet and `source_tiles.json`
+record the generated source recipe/provenance. Generated artwork is not added
+to the shipping lock or Workshop package.
+
+The source is **the saved build behind `addon/stock_terrain_hd`**, visual
+revision 6, normally at GOG `output/stock_world_texture_survey_20261014`.
+Python needs NumPy/Pillow and that build's existing Toolbox/mask/BC1 helpers.
+The saved recipe is executable Python: use a trusted local source build.
+Missing cached materials are errors; the adapter never downloads/rebuilds them.
+
+`Build-MarsHdTileSources.py` intercepts the recipe before packing, reusing its
+independent source channels, normal corrections, palette and transition masks.
+Generation runs at the requested tile size, including true 2K source/mask
+sampling. No atlas image pixels are read. Mars uses BZCC `pluto7.tga` and
+`Metal2.tga` plus UE Tank Game ChunkyMartianGravel, MarsGravel and
+MartianBarrensRocky, with their independent normal/reflectance inputs. Specular
+retains the recipe's conversion to the existing shader's intensity convention.
+Normals/specular are not synthesized from diffuse. Output is 18 D/N/S/E sets:
+BC1 color/specular/emissive, lossless RGB24 normals with renormalized mips.
+The black Mars emissive maps retain the native black material binding.
+
+## Runtime mapping and fallback
+
+`cr_mars_hd.json` uses OpenShim v2 `tileRects`: source aliases map CSV rectangle
+metadata to 18 physical slices. OpenShim compares those rectangles with the
+running engine's native tile table. CSV row order is never treated as a native
+ID. Unknown/ambiguous used rectangles fail closed. The selected material and
+original diffuse/normal/specular resource names remain exact identity guards.
+The example's controlled `CRHD_MARS_EXAMPLE` material makes those names known
+without a capture. A different material still needs its own accurate guards.
+
+The helper stages CR's actual `misn04` terrain companions, a small camera Lua,
+`native_layout.csv`, the selecting material and CR IBL wrappers. Selecting
+scripts go into the already enabled `addon/stock_terrain_hd` resource directory
+(override with `-ResourceDirectory` for another enabled mod). An arbitrary new
+addon subdirectory is not automatically parsed. DDS names are Ogre resource
+names and must live in a registered resource directory.
+
+The helper deploys the complete OpenShim load chain, launches windowed through
+`BZRHarness`, refuses another running game, captures without activating the
+window, closes only its owned game gracefully, and restores changed files by
+hash. Evidence is printed under `Local/TerrainHD/run-*`: screenshot, native
+capture, logs, memory report and restoration ledger.
+
+For a persistent private pack, install DDS images in the mod's registered
+resource directory and select the manifest:
+
+```ini
+[Terrain]
+TerrainHdEnabled = 1
+TerrainHdManifest = path/to/cr_mars_hd.json
 ```
 
-Only CSV alias/rectangle metadata is used. Every used native ID must resolve
-to a generated source alias or binding fails. `cr_mars_hd.json` guards the
-exact diffuse/normal/specular resources from that capture and maps 256 native
-IDs to 18 physical slices. The HD helper requires rasterized native terrain
-with the exact arrays bound and material/stream restoration on exit.
-For a different map/material, `--bind-existing --capture ... --atlas-csv ...`
-can bind an already exported pack with the CSV that actually loaded. Keep the
-guarded material/channel identities from that capture.
+Restart after changing the tile option. Effective DX11 Enhanced activates the
+pack; leaving Enhanced restores the ordinary atlas and native streams, and
+returning rearms native discovery. Filename case must be preserved for future
+Proton/Wine qualification. Existing INI terrain keys override environment
+variables, so the trial helper changes and restores the INI explicitly.
 
-For a persistent private mod, place DDS files in its registered Ogre resource
-directory, select the manifest with `[Terrain] TerrainHdManifest`, enable
-`TerrainHdEnabled=1` and restart in DX11. The manifest path may be absolute;
-DDS filenames are resource names. Recapture if material/CSV precedence changes.
-Preserve filename case for future Proton/Wine qualification.
+Diagnostic capture-based binding remains optional:
+`Build-MarsHdTileSources.py --bind-existing --output <pack> --capture <native.json> --atlas-csv <loaded.csv>`.
+This retains the captured material/channel guards and generates `sliceRemap`.
+Do not guess another map's material resources from its planet name.
 
-## Current acceptance
+## 32-bit application RAM
 
-Source export/DDS checks pass: 72 ordinary 1024-pixel files with 11 mips each.
-OpenShim's Win32 Release build, all 111 CTests and specialized PS4 ordinary,
-shadow, PSSM v2 and IBL compilation pass. GOG DX11 PID 44572 rendered the pack on
-CR `misn04` with the CR Enhanced/IBL base. All 320 meshes passed native UV parity;
-82 material passes installed/restored. A visible native draw reported
-`hdTiles=1 hdMaterialMask=3` and 12,172 pixel invocations. All 320 streams, three
-arrays and 57 programs were restored/released; all 130 temporary files passed
-restoration hashes. The screenshot was inspected at
-`Local/TerrainHD/run-20261020-113113/trial.png`; the ready local pack is
-`Local/TerrainHD/MarsHdSourceExample`.
+Same mission, Enhanced profile, camera and factor-1 diagnostic draw path;
+private commit is the process RAM budget, not GPU VRAM. Values are MiB, medians
+of five post-load samples; peak private commit is the OS lifetime high-water
+mark, including loading. The probe also records peak working set, occupied VA,
+GPU counters and a full read-only 32-bit `VirtualQueryEx` scan.
 
-Broader seams/rotations, art tuning, performance and Steam/Proton/Wine remain
-unqualified. Authoring uses portable Python; this helper targets Windows/GOG.
-No Workshop publication or shipping-lock change is part of the prototype.
+| Configuration | Settled private RAM | Peak private RAM | Peak occupied VA | Settled free VA |
+|---|---:|---:|---:|---:|
+| Ordinary atlas | 353 | 430 | 1,068 | 3,040 |
+| HD 1K D/N/S | 443 | 612 | 1,280 | 2,936 |
+| HD 2K D/N/S | 442 | 883 | 1,546 | 2,910 |
+
+The first HD implementation used about 527 MiB settled. GPU-default native
+semantic buffers saved about **85 MiB**, leaving roughly **88–90 MiB** additional
+settled private RAM (roughly 90 MiB in the final fresh A/B). The semantic
+payload is still 80.4 MiB over 320 meshes;
+it has no Ogre shadow buffer or persistent CPU mapping. Full terrain rebuilds
+can upload it again through `UpdateSubresource`. Tile resolution affects the
+loading peak much more than the settled process RAM. The 1K default has a
+substantially smaller measured loading peak than 2K.
+
+The tested x86 GOG executable is large-address-aware on 64-bit Windows; the
+probe reads the PE flag rather than assuming a 2/4 GiB limit. The largest free
+address block was about 2,045 MiB in all three fresh runs. Free VA includes
+fragmented holes and does not predict the largest future allocation. These
+short trials do not qualify complex co-op missions, long sessions or repeated
+save/load. No binary flags or executable bytes were changed.
+
+Evidence: local `run-20261020-132505` (atlas PID 13348),
+`run-20261020-133006` (1K PID 61980), `run-20261020-133056` (2K PID 10228).
+The optional `-ProfileCycle` test on `Test-MarsHdTerrainLive.ps1` uses the
+installed EXU profile API only as a test driver (`-ExuDll` overrides its local
+CR DLL path). Normal authoring does not acquire an EXU dependency.
+
+Repeated profile changes initially accumulated about 90 MiB private commit per
+HD reload. Using Ogre's native copy/release exports corrected retained handoffs.
+The three-cycle regression (`run-20261020-131930`, PID 55196) returned to 359.9,
+360.6 and 361.3 MiB in Redux; after the final HD resume it settled at 447.3 MiB.
+Every retired native stream reported one binding-owned reference before removal,
+with 320/320 streams and 82 passes restored per cycle. Run
+`-ProfileCycle -ProfileCycles 3 -MeasureMemory` to repeat this integration test.
+It is a short regression check, not a long-session leak proof.
+
+## Validation and limits
+
+The Win32 Release build and all 111 OpenShim CTests pass. Source adapter tests
+cover the no-packing boundary, true 2K generation, native rectangle mapping,
+no-capture manifest preparation and ambiguity rejection. Both real source
+packs have 72 complete DDS files: 1K has 11 levels, 2K has 12. Specialized PS4
+ordinary, shadow, PSSM v2 and IBL compilation passed in the initial prototype.
+
+The 2K GPU-default-buffer run rendered exact diffuse/normal/specular arrays on
+native terrain (`hdTiles=1 hdMaterialMask=3`), with UV parity on 320 meshes,
+82 passes restored, 320 streams restored and 130 temporary files restored by
+hash. Its screenshot was inspected. The original accepted 1K screenshot is
+`Local/TerrainHD/run-20261020-113113/trial.png`.
+The final startup-Redux trial (`run-20261020-133145`, PID 18404) retained the
+atlas with no HD array/material allocation and restored all 130 staged files.
+
+Broader seam/rotation art tuning, editor/rebuild lifecycle, campaign memory
+stress and Steam/Proton/Wine remain unqualified. The authoring adapter uses
+portable Python; the live/memory helper targets Windows/GOG. No Workshop
+publication or shipping-lock change is part of the prototype.
