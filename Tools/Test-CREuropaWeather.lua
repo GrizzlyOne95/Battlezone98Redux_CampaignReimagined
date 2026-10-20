@@ -1342,6 +1342,65 @@ do
 end
 
 do
+    -- Light snow on the cockpit glass (CRWetGlass.Weather): a low, slowly varying level that follows the
+    -- activity ladder, eased, switchable, and released at Shutdown.
+    local function GlassPeer(name, options)
+        local g = { snow = 0, updates = 0, stops = 0, calls = 0 }
+        local peer = Track(NewPeer(name, NewWorld()))
+        peer.preload["CRWetGlass"] = {
+            Weather = function(kind, level) if kind == "snow" then g.snow = level; g.calls = g.calls + 1 end end,
+            Busy = function() return g.snow > 0 end,
+            Update = function(i) g.updates = g.updates + 1; g.rain = i end,
+            Splat = function() g.splats = (g.splats or 0) + 1 end,
+            Stop = function() g.stops = g.stops + 1 end,
+        }
+        peer.init(options)
+        return peer, g
+    end
+    local RATE = 0.04
+    local peer, g = GlassPeer("glasssnow", { seed = 99, startLevel = 1, targetLevel = 1 })
+    peer.Eu.ForceLevel(1, 1e6, 0.1)
+    local dt, prev, worst = 0.25, 0, 0
+    for _ = 1, 480 do
+        peer.step(dt)
+        worst = math.max(worst, math.abs(g.snow - prev)); prev = g.snow
+    end
+    local quiet = g.snow
+    check(quiet > 0.1 and quiet < 0.35, string.format("a quiet Europa has a light snow level, got %.3f", quiet))
+    check(worst <= RATE * dt + 1e-9, string.format("snow level is eased (largest step %.5f)", worst))
+    check(g.rain == 0, "snow never drives the rain layers")
+    check(g.updates > 400, "the glass is kept updated while snow is on it")
+    check(near(peer.Eu.GetGlassSnow(), g.snow, 1e-9), "GetGlassSnow reports the level")
+    peer.Eu.ForceLevel(5, 1e6, 0.1)
+    for _ = 1, 4 * 240 do peer.step(dt) end
+    check(g.snow > quiet + 0.1 and g.snow < 0.8, string.format("perijove snows more but stays light, got %.3f vs %.3f", g.snow, quiet))
+    -- It breathes slowly rather than sitting at one number.
+    local a, b = 1, 0
+    for _ = 1, 2 * 170 * 4 do
+        peer.step(dt)
+        a, b = math.min(a, g.snow), math.max(b, g.snow)
+    end
+    check(b - a > 0.02 and b - a < 0.2, string.format("the level varies slowly, spread %.3f", b - a))
+    peer.Eu.Shutdown()
+    check(g.snow == 0 and g.stops >= 1, "Shutdown releases the cockpit-glass layers")
+
+    local off, go = GlassPeer("glasssnowoff", { seed = 99, startLevel = 5, targetLevel = 5, glassSnow = false })
+    off.run(120.0, dt)
+    check(go.snow == 0 and go.updates == 0, "glassSnow = false keeps the glass clear and idle")
+    off.Eu.Shutdown()
+
+    local lowq, gq = GlassPeer("glasssnowq", { seed = 99, startLevel = 5, targetLevel = 5, quality = 0 })
+    lowq.run(120.0, dt)
+    check(gq.snow == 0, "CRWeather quality 0 keeps the glass clear")
+    lowq.Eu.Shutdown()
+
+    local disabled, gd = GlassPeer("glasssnowdis", { seed = 99, enabled = false })
+    disabled.run(60.0, dt)
+    check(gd.snow == 0 and gd.updates == 0, "a disabled director never touches the glass")
+    disabled.Eu.Shutdown()
+end
+
+do
     -- Everything the whole run called, on every peer, against the allowlists.
     local calledGlobals, calledExu = {}, {}
     local forbiddenTotal = 0

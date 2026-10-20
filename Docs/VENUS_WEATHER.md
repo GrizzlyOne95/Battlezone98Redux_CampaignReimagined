@@ -178,6 +178,20 @@ At run time up to `MaxLiveSulfur` (8) `CR/Venus/SulfurPool` systems stream in in
 of the player: continuous steam plus a burp (`SulfurBurpRate` for 0.35 s) every 2.5-9 s,
 more often in storms. A pool within 90 units of the player blurps audibly (`lburn1.wav`).
 
+### Pool pops: bubbles, motes and fumes
+
+`Scripts/CRPoolFX.lua` (shared with Io) adds occasional yellow bubble pops on the liquid-sulphur
+pools through `CRGroundFX.Event("sulfur", ...)`. The `CRWX/Sulfur*` templates in
+`crwx_precip.particle.payload` are the Toxic layout recoloured: `SulfurGlow` bubble, `SulfurDrops`
+spatter, `SulfurMotes` slow pale-yellow motes (no orange embers) and `SulfurGas` pale fumes.
+Only the `PoolFxNear` (3) emitter sites nearest the player inside `PoolFxRange` (170) are
+eligible; each fires every `PoolFxGap` (1.6-4.2 s), faster by `1 + 0.5 x severity`, at a random
+spot within `PoolFxRadius` (24) that must be a liquid-sulphur cell (`SulfurWeightAt >= 0.5`).
+Minimum 0.35 s between events and CRGroundFX's fixed slot ring (4 systems) cap the live
+emitters. Gates: `AllowPoolFx` / `Init{ poolFx = false }`, `AllowSulfur`, loaded templates and
+`CRWeather.Quality`. Cosmetic, local, no network traffic. Applies to misn07, misn08 and misn09
+(12, three-pool and one-pool site lists respectively).
+
 ## 5. Volcanic vents
 
 The converted `misn07.bzn` has 21 `eggeizr1` geyser objects. Several are clumps a few metres
@@ -197,6 +211,25 @@ Visual only. A camera-attached `CR/Weather/Rain` (+ `RainSplash`) is driven by t
 severity: rate = `RainMaxRate` (520) x the ladder's rain value, tinted sulphur-green, leaning
 gently with the wind. Switch it off with `acidRain = false`. It is a director-owned layer
 rather than part of the presets so it can follow severity continuously.
+
+### Acid rain on the cockpit glass
+
+The same rain value (`GetRainIntensity()`, already eased through the ladder, zero at Calm and Haze: 0.30 Storm, 0.70
+Heavy, 1.00 Severe) also goes to `CRWetGlass`, every frame in a first-person craft view:
+`CRWetGlass.Weather("acid", rain)` then `CRWetGlass.Update(rain)`. Earth-like rain draws blue-grey beads, rivulets and
+streaks; with the acid level above zero the drops and streaks are drawn from yellow-green variants of the same textures
+(`crwx_acidbeads/acidrivulet/acidstreak.png`: same alpha, faint sulphur tint), picked as each layer lands so a drop never
+changes colour mid-fade. Exposure also builds a very faint pitted etch haze (`crwx_winetch.png`, at most 30% opacity,
+about three minutes at level 1 to reach full, about twelve minutes to clear after the rain stops; a short or light
+shower leaves almost none). Rain keeps its pass slots: the etch is the last wrap layer, after rain, snow and grit.
+
+Switch it off with `AllowGlassAcid = false` (`Init` option `glassAcid`); `AllowAcidRain = false` or
+`CRWeather.Quality` 0 also leaves the glass clear, and Quality below 1 scales the level (lighter rain, slower etch).
+Render only, local to each peer (guests run it from the ladder state they already follow), and it does nothing without
+EXU overlay support. Misn07, misn08 and misn09 pick it up with no mission change. Layers and files:
+`Docs/CR_STORMFX_PORT.md`. Live-checked 2026-10-19 on the screen overlay only (the cockpit-glass mode drew nothing on the
+test instance, even for plain rain): faint yellow-green drops, rivulets and streaks against grey Earth-like rain, and a
+barely visible etch after about three minutes of severe rain. Not yet judged on the cockpit glass or in a full mission.
 
 ## 7. Render profiles
 
@@ -518,7 +551,7 @@ keeps updating through the result window for that reason.
 
 | Group | Names |
 | --- | --- |
-| Switches | `AllowFogPools`, `AllowAltitudeFog`, `AllowLightning`, `AllowKnockback`, `AllowRadarScramble`, `AllowFlash`, `AllowClouds`, `AllowAcidRain`, `AllowSulfur`, `AllowVents`, `AllowEruptions`, `AllowSensorDegrade`, `AllowEpisodes` (also `Init` options `fogPools`, `lightning`, ...) |
+| Switches | `AllowFogPools`, `AllowAltitudeFog`, `AllowLightning`, `AllowKnockback`, `AllowRadarScramble`, `AllowFlash`, `AllowClouds`, `AllowAcidRain`, `AllowGlassAcid`, `AllowSulfur`, `AllowPoolFx`, `AllowVents`, `AllowEruptions`, `AllowSensorDegrade`, `AllowEpisodes` (also `Init` options `fogPools`, `lightning`, ...) |
 | Budgets | `MaxSystems` 36, `MaxLiveFog` 6, `MaxLiveSulfur` 8, `MaxLivePlumes` 6, `MaxLiveStrikes` 3, stream in/out distances |
 | Ladder | `SeverityRate`, `EpisodeChance`, `EpisodePeak`, `EpisodeHold`, `EpisodeCooldown`, `EpisodeStrikeBoost`, the `Levels` table |
 | Fog | `ScanColumns/Rows/Budget/Inset`, `PoolFogEndScale`, `PoolFogStartScale`, `PoolFogTint`, `PoolFogColor`, `PoolBand`, `PoolResponse`, `FogDensity` |

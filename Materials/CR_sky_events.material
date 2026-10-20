@@ -1,0 +1,77 @@
+// Procedural sky events placed through TRN [Stars] entries.
+//   Texture%02d = crmeteor.map   shooting stars (square quads, several per sky)
+//   Texture%02d = crsatell.map   satellites (wide, thin quads; Moon only)
+// Give every entry a distinct Color%02d: the shader hashes it into the entry's
+// seed, so equal colours fire in lockstep.
+// Emissive x enables the effect (RuntimeEnhancements.SetSkyEventsEnabled);
+// emissive y = 1 makes every slot fire, for live testing only.
+
+material CRMETEOR.MAP
+{
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR_Sky_vertex
+			{
+			}
+			fragment_program_ref CR_SkyMeteor_fragment
+			{
+			}
+
+			cull_hardware none
+			cull_software none
+			lighting off
+			emissive 1 0 0
+			fog_override true none
+			scene_blend add
+			depth_write off
+			diffuse vertexcolour
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			lighting off
+			colour_write off
+			depth_write off
+		}
+	}
+}
+
+material CRSATELL.MAP
+{
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR_Sky_vertex
+			{
+			}
+			fragment_program_ref CR_SkySatellite_fragment
+			{
+			}
+
+			cull_hardware none
+			cull_software none
+			lighting off
+			emissive 1 0 0
+			fog_override true none
+			scene_blend add
+			depth_write off
+			diffuse vertexcolour
+		}
+	}
+
+	technique
+	{
+		pass
+		{
+			lighting off
+			colour_write off
+			depth_write off
+		}
+	}
+}

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-18T21:59:07-05:00",
-  "count": 3006,
+  "count": 3031,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -400,12 +400,12 @@
       "runtime": "avtank.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\avturr_C.mesh",
-      "runtime": "avturr_C.mesh"
+      "source": "Assets\\ModelFixes\\avturr_c.mesh",
+      "runtime": "avturr_c.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\avturr_C.skeleton",
-      "runtime": "avturr_C.skeleton"
+      "source": "Assets\\ModelFixes\\avturr_c.skeleton",
+      "runtime": "avturr_c.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\avwalk_c.mesh",
@@ -784,6 +784,10 @@
       "runtime": "cvwalk_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cvwalk.vdf",
+      "runtime": "cvwalk.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cwp11rot.geo",
       "runtime": "cwp11rot.geo"
     },
@@ -880,12 +884,20 @@
       "runtime": "svturr_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\svturr.vdf",
+      "runtime": "svturr.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svwalk_c.mesh",
       "runtime": "svwalk_c.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svwalk_c.skeleton",
       "runtime": "svwalk_c.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svwalk.vdf",
+      "runtime": "svwalk.vdf"
     },
     {
       "source": "Assets\\Sounds\\atlas.wav",
@@ -1084,6 +1096,18 @@
       "runtime": "cromine_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crwx_acidbeads.png",
+      "runtime": "crwx_acidbeads.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_acidrivulet.png",
+      "runtime": "crwx_acidrivulet.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_acidstreak.png",
+      "runtime": "crwx_acidstreak.png"
+    },
+    {
       "source": "Assets\\Textures\\crwx_bootprint.png",
       "runtime": "crwx_bootprint.png"
     },
@@ -1134,6 +1158,18 @@
     {
       "source": "Assets\\Textures\\crwx_winddirt.png",
       "runtime": "crwx_winddirt.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_winetch.png",
+      "runtime": "crwx_winetch.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_wingrit.png",
+      "runtime": "crwx_wingrit.png"
+    },
+    {
+      "source": "Assets\\Textures\\crwx_winsnow.png",
+      "runtime": "crwx_winsnow.png"
     },
     {
       "source": "Assets\\Textures\\crwx_wsplat.dds",
@@ -3204,6 +3240,10 @@
       "runtime": "CR_scope.material"
     },
     {
+      "source": "Materials\\CR_sky_events.material",
+      "runtime": "CR_sky_events.material"
+    },
+    {
       "source": "Materials\\cr_titan.particle.payload",
       "runtime": "cr_titan.particle.payload"
     },
@@ -3246,6 +3286,10 @@
     {
       "source": "Materials\\crwx_cockpitglass.material",
       "runtime": "crwx_cockpitglass.material"
+    },
+    {
+      "source": "Materials\\crwx_glassweather.material",
+      "runtime": "crwx_glassweather.material"
     },
     {
       "source": "Materials\\crwx_precip.material",
@@ -7024,6 +7068,10 @@
       "runtime": "CRParticleTemplates.lua"
     },
     {
+      "source": "Scripts\\CRPoolFX.lua",
+      "runtime": "CRPoolFX.lua"
+    },
+    {
       "source": "Scripts\\CRPrecip.lua",
       "runtime": "CRPrecip.lua"
     },
@@ -7558,6 +7606,18 @@
     {
       "source": "Shaders\\CR_sky.program",
       "runtime": "CR_sky.program"
+    },
+    {
+      "source": "Shaders\\CR_sky_events-sm4.hlsl",
+      "runtime": "CR_sky_events-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_sky_events.hlsl",
+      "runtime": "CR_sky_events.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_sky_events.program",
+      "runtime": "CR_sky_events.program"
     },
     {
       "source": "Shaders\\CR_skydome-fragment.glsl",
@@ -11108,70 +11168,6 @@
       "runtime": "misn18.bmp"
     },
     {
-      "source": "Assets\\Models\\c17frst1.geo",
-      "runtime": "c17frst1.geo"
-    },
-    {
-      "source": "Assets\\Models\\c17frst1.mesh",
-      "runtime": "c17frst1.mesh"
-    },
-    {
-      "source": "Assets\\Models\\c17frst1.sdf",
-      "runtime": "c17frst1.sdf"
-    },
-    {
-      "source": "Assets\\Models\\c17frst1.skeleton",
-      "runtime": "c17frst1.skeleton"
-    },
-    {
-      "source": "Assets\\Models\\c17frst2.geo",
-      "runtime": "c17frst2.geo"
-    },
-    {
-      "source": "Assets\\Models\\c17frst2.mesh",
-      "runtime": "c17frst2.mesh"
-    },
-    {
-      "source": "Assets\\Models\\c17frst2.sdf",
-      "runtime": "c17frst2.sdf"
-    },
-    {
-      "source": "Assets\\Models\\c17frst2.skeleton",
-      "runtime": "c17frst2.skeleton"
-    },
-    {
-      "source": "Assets\\Models\\c17frst3.geo",
-      "runtime": "c17frst3.geo"
-    },
-    {
-      "source": "Assets\\Models\\c17frst3.mesh",
-      "runtime": "c17frst3.mesh"
-    },
-    {
-      "source": "Assets\\Models\\c17frst3.sdf",
-      "runtime": "c17frst3.sdf"
-    },
-    {
-      "source": "Assets\\Models\\c17frst3.skeleton",
-      "runtime": "c17frst3.skeleton"
-    },
-    {
-      "source": "Assets\\Models\\c17frst4.geo",
-      "runtime": "c17frst4.geo"
-    },
-    {
-      "source": "Assets\\Models\\c17frst4.mesh",
-      "runtime": "c17frst4.mesh"
-    },
-    {
-      "source": "Assets\\Models\\c17frst4.sdf",
-      "runtime": "c17frst4.sdf"
-    },
-    {
-      "source": "Assets\\Models\\c17frst4.skeleton",
-      "runtime": "c17frst4.skeleton"
-    },
-    {
       "source": "Assets\\Models\\c17proc.geo",
       "runtime": "c17proc.geo"
     },
@@ -11258,66 +11254,6 @@
     {
       "source": "Assets\\Models\\c17tree2.skeleton",
       "runtime": "c17tree2.skeleton"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock1.mesh",
-      "runtime": "cr17_frock1.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock2.mesh",
-      "runtime": "cr17_frock2.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock3.mesh",
-      "runtime": "cr17_frock3.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock4.mesh",
-      "runtime": "cr17_frock4.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock5.mesh",
-      "runtime": "cr17_frock5.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock6.mesh",
-      "runtime": "cr17_frock6.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock7.mesh",
-      "runtime": "cr17_frock7.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock8.mesh",
-      "runtime": "cr17_frock8.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_frock9.mesh",
-      "runtime": "cr17_frock9.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab1.mesh",
-      "runtime": "cr17_islab1.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab2.mesh",
-      "runtime": "cr17_islab2.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab3.mesh",
-      "runtime": "cr17_islab3.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab4.mesh",
-      "runtime": "cr17_islab4.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab5.mesh",
-      "runtime": "cr17_islab5.mesh"
-    },
-    {
-      "source": "Assets\\Models\\cr17_islab6.mesh",
-      "runtime": "cr17_islab6.mesh"
     },
     {
       "source": "Assets\\Models\\cr17_mire_ferna.mesh",
@@ -11408,68 +11344,12 @@
       "runtime": "cr17_black.dds"
     },
     {
-      "source": "Assets\\Textures\\cr17_fbranch1.dds",
-      "runtime": "cr17_fbranch1.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_fbranch2.dds",
-      "runtime": "cr17_fbranch2.dds"
-    },
-    {
       "source": "Assets\\Textures\\cr17_flat.dds",
       "runtime": "cr17_flat.dds"
     },
     {
       "source": "Assets\\Textures\\cr17_foliage.dds",
       "runtime": "cr17_foliage.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_frock.dds",
-      "runtime": "cr17_frock.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_frock_n.dds",
-      "runtime": "cr17_frock_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_frock_s.dds",
-      "runtime": "cr17_frock_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_ftrunk1.dds",
-      "runtime": "cr17_ftrunk1.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_ftrunk1_n.dds",
-      "runtime": "cr17_ftrunk1_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_ftrunk1_s.dds",
-      "runtime": "cr17_ftrunk1_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_ftrunk2.dds",
-      "runtime": "cr17_ftrunk2.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_ftrunk2_n.dds",
-      "runtime": "cr17_ftrunk2_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_ftrunk2_s.dds",
-      "runtime": "cr17_ftrunk2_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_ice.dds",
-      "runtime": "cr17_ice.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_ice_n.dds",
-      "runtime": "cr17_ice_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cr17_ice_s.dds",
-      "runtime": "cr17_ice_s.dds"
     },
     {
       "source": "Assets\\Textures\\cr17_water.dds",
@@ -11526,10 +11406,6 @@
     {
       "source": "Materials\\cr17_crystal.material",
       "runtime": "cr17_crystal.material"
-    },
-    {
-      "source": "Materials\\cr17_forest.material",
-      "runtime": "cr17_forest.material"
     },
     {
       "source": "Materials\\cr17_jungle.material",
@@ -11594,22 +11470,6 @@
     {
       "source": "Missions\\misn18.vxt",
       "runtime": "misn18.vxt"
-    },
-    {
-      "source": "ODF\\c17frst1.odf",
-      "runtime": "c17frst1.odf"
-    },
-    {
-      "source": "ODF\\c17frst2.odf",
-      "runtime": "c17frst2.odf"
-    },
-    {
-      "source": "ODF\\c17frst3.odf",
-      "runtime": "c17frst3.odf"
-    },
-    {
-      "source": "ODF\\c17frst4.odf",
-      "runtime": "c17frst4.odf"
     },
     {
       "source": "ODF\\c17proc.odf",
@@ -11704,36 +11564,56 @@
       "runtime": "cr17_cloud.program"
     },
     {
-      "source": "Shaders\\cr17_ice.hlsl",
-      "runtime": "cr17_ice.hlsl"
-    },
-    {
-      "source": "Shaders\\cr17_ice.program",
-      "runtime": "cr17_ice.program"
+      "source": "Assets\\ModelFixes\\cr03rok.geo",
+      "runtime": "cr03rok.geo"
     },
     {
       "source": "Assets\\ModelFixes\\cr06rok.geo",
       "runtime": "cr06rok.geo"
     },
     {
+      "source": "Assets\\ModelFixes\\cr03rok.mesh",
+      "runtime": "cr03rok.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\cr06rok.mesh",
       "runtime": "cr06rok.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cr03rok.sdf",
+      "runtime": "cr03rok.sdf"
     },
     {
       "source": "Assets\\ModelFixes\\cr06rok.sdf",
       "runtime": "cr06rok.sdf"
     },
     {
+      "source": "Assets\\Textures\\cr03rok_d.dds",
+      "runtime": "cr03rok_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr06rok_d.dds",
       "runtime": "cr06rok_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr03rok_e.dds",
+      "runtime": "cr03rok_e.dds"
     },
     {
       "source": "Assets\\Textures\\cr06rok_e.dds",
       "runtime": "cr06rok_e.dds"
     },
     {
+      "source": "Assets\\Textures\\cr03rok_n.dds",
+      "runtime": "cr03rok_n.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr06rok_n.dds",
       "runtime": "cr06rok_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr03rok_s.dds",
+      "runtime": "cr03rok_s.dds"
     },
     {
       "source": "Assets\\Textures\\cr06rok_s.dds",
@@ -11772,12 +11652,16 @@
       "runtime": "cr06lin.material"
     },
     {
+      "source": "Materials\\cr03rok.material",
+      "runtime": "cr03rok.material"
+    },
+    {
       "source": "Materials\\cr06rok.material",
       "runtime": "cr06rok.material"
     },
     {
-      "source": "Materials\\cr17_ice.material",
-      "runtime": "cr17_ice.material"
+      "source": "ODF\\cr03rok.odf",
+      "runtime": "cr03rok.odf"
     },
     {
       "source": "ODF\\cr06rok.odf",
@@ -11794,6 +11678,10 @@
     {
       "source": "Scripts\\CR06LaunchFilm.lua",
       "runtime": "CR06LaunchFilm.lua"
+    },
+    {
+      "source": "Scripts\\CR03RocketLayout.lua",
+      "runtime": "CR03RocketLayout.lua"
     },
     {
       "source": "Scripts\\CR06RocketLayout.lua",
@@ -11944,10 +11832,6 @@
       "runtime": "crcred2.odf"
     },
     {
-      "source": "ODF\\xplnxpl.odf",
-      "runtime": "xplnxpl.odf"
-    },
-    {
       "source": "Assets\\Textures\\cr18_crack_a.png",
       "runtime": "cr18_crack_a.png"
     },
@@ -11960,10 +11844,6 @@
       "runtime": "cr18_foliage.dds"
     },
     {
-      "source": "Assets\\Textures\\smoke.dds",
-      "runtime": "smoke.dds"
-    },
-    {
       "source": "Materials\\cr18_storm.material",
       "runtime": "cr18_storm.material"
     },
@@ -11974,10 +11854,6 @@
     {
       "source": "Materials\\cr18_water.material",
       "runtime": "cr18_water.material"
-    },
-    {
-      "source": "Materials\\smokeb.material",
-      "runtime": "smokeb.material"
     },
     {
       "source": "Scripts\\CRStorm18.lua",
@@ -12026,6 +11902,230 @@
     {
       "source": "Shaders\\cr18_water.program",
       "runtime": "cr18_water.program"
+    },
+    {
+      "source": "Assets\\Models\\c17frst1.geo",
+      "runtime": "c17frst1.geo"
+    },
+    {
+      "source": "Assets\\Models\\c17frst1.mesh",
+      "runtime": "c17frst1.mesh"
+    },
+    {
+      "source": "Assets\\Models\\c17frst1.sdf",
+      "runtime": "c17frst1.sdf"
+    },
+    {
+      "source": "Assets\\Models\\c17frst1.skeleton",
+      "runtime": "c17frst1.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\c17frst2.geo",
+      "runtime": "c17frst2.geo"
+    },
+    {
+      "source": "Assets\\Models\\c17frst2.mesh",
+      "runtime": "c17frst2.mesh"
+    },
+    {
+      "source": "Assets\\Models\\c17frst2.sdf",
+      "runtime": "c17frst2.sdf"
+    },
+    {
+      "source": "Assets\\Models\\c17frst2.skeleton",
+      "runtime": "c17frst2.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\c17frst3.geo",
+      "runtime": "c17frst3.geo"
+    },
+    {
+      "source": "Assets\\Models\\c17frst3.mesh",
+      "runtime": "c17frst3.mesh"
+    },
+    {
+      "source": "Assets\\Models\\c17frst3.sdf",
+      "runtime": "c17frst3.sdf"
+    },
+    {
+      "source": "Assets\\Models\\c17frst3.skeleton",
+      "runtime": "c17frst3.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\c17frst4.geo",
+      "runtime": "c17frst4.geo"
+    },
+    {
+      "source": "Assets\\Models\\c17frst4.mesh",
+      "runtime": "c17frst4.mesh"
+    },
+    {
+      "source": "Assets\\Models\\c17frst4.sdf",
+      "runtime": "c17frst4.sdf"
+    },
+    {
+      "source": "Assets\\Models\\c17frst4.skeleton",
+      "runtime": "c17frst4.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cr17_frock1.mesh",
+      "runtime": "cr17_frock1.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_frock2.mesh",
+      "runtime": "cr17_frock2.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_frock3.mesh",
+      "runtime": "cr17_frock3.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_frock4.mesh",
+      "runtime": "cr17_frock4.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_frock5.mesh",
+      "runtime": "cr17_frock5.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_frock6.mesh",
+      "runtime": "cr17_frock6.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_frock7.mesh",
+      "runtime": "cr17_frock7.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_frock8.mesh",
+      "runtime": "cr17_frock8.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_frock9.mesh",
+      "runtime": "cr17_frock9.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab1.mesh",
+      "runtime": "cr17_islab1.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab2.mesh",
+      "runtime": "cr17_islab2.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab3.mesh",
+      "runtime": "cr17_islab3.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab4.mesh",
+      "runtime": "cr17_islab4.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab5.mesh",
+      "runtime": "cr17_islab5.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr17_islab6.mesh",
+      "runtime": "cr17_islab6.mesh"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_fbranch1.dds",
+      "runtime": "cr17_fbranch1.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_fbranch2.dds",
+      "runtime": "cr17_fbranch2.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_frock.dds",
+      "runtime": "cr17_frock.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_frock_n.dds",
+      "runtime": "cr17_frock_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_frock_s.dds",
+      "runtime": "cr17_frock_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_ftrunk1.dds",
+      "runtime": "cr17_ftrunk1.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_ftrunk1_n.dds",
+      "runtime": "cr17_ftrunk1_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_ftrunk1_s.dds",
+      "runtime": "cr17_ftrunk1_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_ftrunk2.dds",
+      "runtime": "cr17_ftrunk2.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_ftrunk2_n.dds",
+      "runtime": "cr17_ftrunk2_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_ftrunk2_s.dds",
+      "runtime": "cr17_ftrunk2_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_ice.dds",
+      "runtime": "cr17_ice.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_ice_n.dds",
+      "runtime": "cr17_ice_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_ice_s.dds",
+      "runtime": "cr17_ice_s.dds"
+    },
+    {
+      "source": "Materials\\cr17_forest.material",
+      "runtime": "cr17_forest.material"
+    },
+    {
+      "source": "ODF\\c17frst1.odf",
+      "runtime": "c17frst1.odf"
+    },
+    {
+      "source": "ODF\\c17frst2.odf",
+      "runtime": "c17frst2.odf"
+    },
+    {
+      "source": "ODF\\c17frst3.odf",
+      "runtime": "c17frst3.odf"
+    },
+    {
+      "source": "ODF\\c17frst4.odf",
+      "runtime": "c17frst4.odf"
+    },
+    {
+      "source": "Shaders\\cr17_ice.hlsl",
+      "runtime": "cr17_ice.hlsl"
+    },
+    {
+      "source": "Shaders\\cr17_ice.program",
+      "runtime": "cr17_ice.program"
+    },
+    {
+      "source": "Materials\\cr17_ice.material",
+      "runtime": "cr17_ice.material"
+    },
+    {
+      "source": "ODF\\xplnxpl.odf",
+      "runtime": "xplnxpl.odf"
+    },
+    {
+      "source": "Assets\\Textures\\smoke.dds",
+      "runtime": "smoke.dds"
+    },
+    {
+      "source": "Materials\\smokeb.material",
+      "runtime": "smokeb.material"
     }
   ]
 }
