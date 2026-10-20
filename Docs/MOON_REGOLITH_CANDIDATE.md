@@ -93,9 +93,21 @@ source reviewable. The Toolbox validates all 44 DNSE resources and mip chains.
 Its crater-height output remains identical to revision 1; only the localized
 surface blend and restored HD detail change.
 
-The corrected candidate has not had a new live terrain capture: another
-game is running and was left untouched. Do not label the previous revision's
-screenshot or RAM sample as current-revision acceptance.
+The corrected candidate's Windows/GOG DX11 ordinary-settings trial ran as
+PID 55824. Capture: `Local/TerrainHD/run-20261020-181604/trial.png`. Inspection
+confirms the HD rocky surface is back; the busy rock shading still reduces
+the bowls' visual clarity compared with the rejected smooth dust trial.
+The logs confirm all four 1024px HD channel arrays, the restored authored HD
+detail texture, signed R32 height and 0.625 m native displacement. All 1,488
+height binding scopes, 144 streams/bounds, 82 native passes and 139 staged files
+were restored, and the game exited normally.
+
+Median private commit was 363,130,880 bytes (346.31 MiB), lifetime peak
+515,043,328 bytes (491.18 MiB), largest free VA block 2,144,116,736 bytes
+(2,044.79 MiB). This is a short-run observation, not an isolated overhead A/B.
+This capture establishes the corrected art loaded; final visual acceptance
+and wider lifecycle/platform qualification remain open. Do not substitute
+the previous revision's screenshot or RAM sample for this candidate.
 
 ## Earlier rejected dust revision evidence
 
@@ -116,5 +128,4 @@ previous detail slot rather than adding a second texture.
 This is a visual candidate, not a release. Crater repetition remains visible,
 rock/dust distribution needs review across a wider map, and distant terrain
 shading is unchanged. Device/profile transitions, long sessions and
-Steam/Proton/Wine remain unverified for the new art. A later live game was left
-running; no additional launch or shutdown was attempted against it.
+Steam/Proton/Wine remain unverified for the new art.
