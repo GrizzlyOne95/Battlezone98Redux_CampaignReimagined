@@ -57,6 +57,7 @@ local CRWeather = require("CRWeather")
 local Wake = require("CRWake")
 local CRWeatherPresets = require("CRWeatherPresets")
 local Map = require("CRVenusMap")
+local PoolFX = require("CRPoolFX")
 
 local CRIoWeather = {}
 local V = CRIoWeather
@@ -72,6 +73,7 @@ V.Debug                = false
 V.AllowLavaFog         = true    -- red fog pools over the lava tiles
 V.AllowLavaGlow        = true    -- the additive glow half of a pool
 V.AllowLavaTint        = true    -- global fog / light reddens over lava
+V.AllowPoolFx          = true    -- bubble pops, rising embers and spatter on the molten pools (CRPoolFX)
 V.AllowAltitudeFog     = true    -- global fog density follows the player's altitude
 V.AllowAshFall         = true
 V.AllowVents           = true    -- smoke plumes at the geysers
@@ -112,6 +114,15 @@ V.LavaFogRate          = 2.6     -- particles/second of a pool at full weight, b
 V.LavaGlowRate         = 0.8
 V.LavaGlowPulse        = { 0.45, 1.0 }   -- glow rate swings between these fractions
 V.LavaGlowPulseSeconds = 9.0
+-- Pool pops (CRPoolFX through CRGroundFX "lava"): at most PoolFxNear pools within
+-- PoolFxRange of the player fire one event each every PoolFxGap seconds (shorter
+-- at a higher rung); CRGroundFX caps the live emitters (4 systems, fixed slots).
+-- The ladder's lavaFog value (0.60 calm .. 1.60 paroxysm) is the rung scale.
+V.PoolFxRange          = 170.0
+V.PoolFxNear           = 3
+V.PoolFxGap            = { 1.6, 4.0 }
+V.PoolFxRadius         = 32.0
+V.PoolFxMask           = { smoke = 0.35 }   -- embers, drops and the bubble glow at full; light smoke
 V.LavaSampleWindow     = 3       -- cells either side of the player for the lava factor (7x7)
 V.LavaResponse         = 0.45    -- factor change per second (smoothing)
 V.LavaFogEndScale      = 0.72    -- fog end multiplier standing in the middle of lava
@@ -899,6 +910,17 @@ local function LavaDestroy(_, record)
         Fx_Destroy(record.glow)
         record.glow = nil
     end
+end
+
+-- Bubble pops, rising embers and spatter on the nearest molten pools. Cosmetic
+-- and local; the rung scales how often and how hard they pop.
+local function UpdatePoolFx(dt)
+    if V.PoolFx == nil then return end
+    PoolFX.Update(V.PoolFx, dt, LocalPlayerPosition(), {
+        enabled = V.AllowPoolFx and V.TemplatesReady,
+        scale = LadderValue("lavaFog"),
+        quality = CRWeather.Quality,
+    })
 end
 
 local function UpdateLavaSystems()
@@ -1699,7 +1721,7 @@ function V.Init(options)
     local switches = {
         lavaFog = "AllowLavaFog", lavaGlow = "AllowLavaGlow", lavaTint = "AllowLavaTint",
         altitudeFog = "AllowAltitudeFog", ashFall = "AllowAshFall", vents = "AllowVents",
-        eruptions = "AllowEruptions", eruptLight = "AllowEruptLight", quakes = "AllowQuakes",
+        poolFx = "AllowPoolFx", eruptions = "AllowEruptions", eruptLight = "AllowEruptLight", quakes = "AllowQuakes",
         randomQuakes = "AllowRandomQuakes", quakeDust = "AllowQuakeDust", episodes = "AllowEpisodes",
     }
     for key, field in pairs(switches) do
@@ -1786,6 +1808,7 @@ function V.Init(options)
     -- Map data.
     local sites = options.sites
     V.LavaPools, V.VentSites, V.LavaCells, V.LavaGeom = {}, {}, {}, nil
+    V.PoolFx = nil
     if sites ~= nil then
         if sites.lava ~= nil then
             V.LavaCells = Map.ExpandRuns(sites.lava)
@@ -1795,6 +1818,16 @@ function V.Init(options)
             }
             V.LavaPools = sites.lava.pools or {}
         end
+        -- The rng is looked up per call: BuildLadder replaces V.FxRng when a guest's seed arrives.
+        local poolRng = { Range = function(lo, hi)
+            if V.FxRng == nil then return (lo + hi) * 0.5 end
+            return V.FxRng.Range(lo, hi)
+        end }
+        V.PoolFx = PoolFX.New({
+            kind = "lava", sites = V.LavaPools, rng = poolRng, weightAt = V.LavaWeightAt,
+            heightAt = TerrainHeight, range = V.PoolFxRange, maxNear = V.PoolFxNear,
+            gap = V.PoolFxGap, radius = V.PoolFxRadius, mask = V.PoolFxMask,
+        })
         if sites.vents ~= nil then
             V.VentSites = Map.MergeVents(sites.vents, V.VentMergeRadius)
         end
@@ -1857,6 +1890,7 @@ function V.Update(dt)
     UpdateAsh()
     UpdateVents(dt)
     UpdateLavaSystems()
+    UpdatePoolFx(dt)
 
     if V.Clock >= V.NextStreamAt then
         V.NextStreamAt = V.Clock + V.StreamInterval
@@ -1887,6 +1921,7 @@ function V.Shutdown()
     V.Quake_, V.QuakeFx = nil, nil
 
     Fx_DestroyAll()
+    PoolFX.Stop(V.PoolFx)
     V.LavaLive, V.PlumeLive = {}, {}
     V.Ash = nil
 
@@ -2029,6 +2064,7 @@ function V.Load(state)
     -- Loading rebuilds the Ogre scene: every system we held is already gone, and
     -- the engine may replay a quake that was running at save time. Stop it.
     Fx_DestroyAll()
+    PoolFX.Stop(V.PoolFx)
     V.LavaLive, V.PlumeLive = {}, {}
     V.Ash, V.QuakeFx, V.Quake_ = nil, nil, nil
     NativeStopQuake(true)

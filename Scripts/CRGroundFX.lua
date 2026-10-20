@@ -57,6 +57,13 @@ local KINDS = {
 		{ key = "motes", template = "CRWX/ToxicMotes", slots = 8,  on = 2.0,  rate = 6 },
 		{ key = "gas",   template = "CRWX/ToxicGas",   slots = 12, on = 3.0,  rate = 3 },
 	},
+	-- Liquid-sulphur pools (Venus): the toxic layout in yellow and pale gas.
+	sulfur = {
+		{ key = "glow",  template = "CRWX/SulfurGlow",  slots = 4,  on = 0.25, rate = 4 },
+		{ key = "drops", template = "CRWX/SulfurDrops", slots = 4,  on = 0.25, rate = 30 },
+		{ key = "motes", template = "CRWX/SulfurMotes", slots = 6,  on = 2.0,  rate = 5 },
+		{ key = "gas",   template = "CRWX/SulfurGas",   slots = 8,  on = 3.0,  rate = 3 },
+	},
 	stepdust = {
 		{ key = "dust", template = "CRWX/StepDust", slots = 4, on = 0.12, rate = 40, colour = { 0.55, 0.50, 0.42, 0.5 } },
 	},
@@ -187,10 +194,11 @@ local function ensure(kind)
 	return live[kind] or nil
 end
 
---- An event of a kind ("lava", "toxic", "stepdust", "stepwet") at a sim-space
---- ground point, its rates times scale (default 1). Returns true when the
---- particles draw it.
-function lava.Event(kind, pos, scale)
+--- An event of a kind ("lava", "toxic", "sulfur", "stepdust", "stepwet") at a
+--- sim-space ground point, its rates times scale (default 1). mask optionally
+--- multiplies one system's rate by its key (mask.smoke = 0.3; 0 skips that
+--- system). Returns true when the particles draw it.
+function lava.Event(kind, pos, scale, mask)
 	if pos == nil then return false end
 	local set = ensure(kind)
 	if not set then return false end
@@ -201,11 +209,15 @@ function lava.Event(kind, pos, scale)
 		local at = SetVector(pos.x, pos.y + 0.1, pos.z)
 		local local_ = offset(set, at)
 		for _, s in ipairs(set.systems) do
-			local e = s.next
-			s.next = (e + 1) % s.spec.slots
-			call("SetParticleEmitterPosition", s.name, e, local_)
-			call("SetParticleEmitterEmissionRate", s.name, e, s.spec.rate * scale)
-			s.slots[e].offAt, s.slots[e].at = now + s.spec.on, at
+			local m = mask and mask[s.spec.key]
+			if m == nil then m = 1 end
+			if m > 0 then
+				local e = s.next
+				s.next = (e + 1) % s.spec.slots
+				call("SetParticleEmitterPosition", s.name, e, local_)
+				call("SetParticleEmitterEmissionRate", s.name, e, s.spec.rate * scale * m)
+				s.slots[e].offAt, s.slots[e].at = now + s.spec.on, at
+			end
 		end
 	end)
 	if not ok then
@@ -380,6 +392,19 @@ function lava.Stop()
 	end
 	live = {}
 	bolt.rates = {}
+end
+
+--- Removes only the systems of one kind (a director leaving its pools alone
+--- must not tear down another feature's systems). Later events recreate them.
+function lava.StopKind(kind)
+	local set = live[kind]
+	if set and exu then
+		for _, s in ipairs(set.systems) do
+			call("DetachParticleSystem", s.name)
+			call("DestroyParticleSystem", s.name)
+		end
+	end
+	live[kind] = nil
 end
 
 --- Turns off slots whose while is over. Call every Update.

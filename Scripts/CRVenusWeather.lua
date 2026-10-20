@@ -65,6 +65,7 @@ local exu = require("exu")
 local CRWeather = require("CRWeather")
 local Wake = require("CRWake")
 local Map = require("CRVenusMap")
+local PoolFX = require("CRPoolFX")
 
 local CRVenusWeather = {}
 local V = CRVenusWeather
@@ -86,6 +87,7 @@ V.AllowFlash           = true    -- local scene flash on a strike
 V.AllowClouds          = true
 V.AllowAcidRain        = true    -- visual only
 V.AllowSulfur          = true
+V.AllowPoolFx          = true    -- yellow bubble pops, motes and pale fumes on the liquid-sulphur pools (CRPoolFX)
 V.AllowVents           = true
 V.AllowEruptions       = true
 V.AllowSensorDegrade   = true    -- storm-wide radar / velocity-jam scales
@@ -251,6 +253,14 @@ V.SulfurBurpSeconds    = 0.35
 V.SulfurBurpSound      = "lburn1.wav"
 V.SulfurSoundRange     = 90.0
 V.SulfurSoundVolume    = 45
+-- Pool pops (CRPoolFX through CRGroundFX "sulfur"): at most PoolFxNear pools within
+-- PoolFxRange of the player fire one event each every PoolFxGap seconds, quicker as
+-- the storm builds (1 + 0.5 x severity). CRGroundFX caps the live emitters (4 systems).
+V.PoolFxRange          = 170.0
+V.PoolFxNear           = 3
+V.PoolFxGap            = { 1.6, 4.2 }
+V.PoolFxRadius         = 24.0
+V.PoolFxMask           = { glow = 1.4, drops = 1.4, motes = 1.6 }   -- pale-yellow pops read faintly in the thick haze
 
 -- Vents.
 V.VentMergeRadius      = 45.0
@@ -1771,6 +1781,16 @@ local function SulfurDestroy(_, record)
     Fx_Destroy(record.name)
 end
 
+-- Yellow bubble pops, drifting motes and pale fumes on the nearest sulphur pools.
+local function UpdatePoolFx(dt)
+    if V.PoolFx == nil then return end
+    PoolFX.Update(V.PoolFx, dt, LocalPlayerPosition(), {
+        enabled = V.AllowPoolFx and V.AllowSulfur and V.TemplatesReady,
+        scale = 1.0 + (0.5 * V.GetSeverity()),
+        quality = CRWeather.Quality,
+    })
+end
+
 local function UpdateSulfur()
     if not V.AllowSulfur or not V.TemplatesReady then
         for index, record in pairs(V.SulfurLive) do
@@ -2218,7 +2238,7 @@ function V.Init(options)
     local switches = {
         fogPools = "AllowFogPools", altitudeFog = "AllowAltitudeFog", lightning = "AllowLightning",
         knockback = "AllowKnockback", radarScramble = "AllowRadarScramble", flash = "AllowFlash",
-        clouds = "AllowClouds", acidRain = "AllowAcidRain", sulfur = "AllowSulfur",
+        clouds = "AllowClouds", acidRain = "AllowAcidRain", sulfur = "AllowSulfur", poolFx = "AllowPoolFx",
         vents = "AllowVents", eruptions = "AllowEruptions", sensorDegrade = "AllowSensorDegrade",
         episodes = "AllowEpisodes", fogBanks = "AllowFogBanks", fogDrama = "AllowFogDrama",
     }
@@ -2308,12 +2328,28 @@ function V.Init(options)
     -- Map data.
     local sites = options.sites
     V.SulfurSites, V.VentSites = {}, {}
+    V.PoolFx, V.SulfurCells, V.SulfurGeom = nil, {}, nil
     if sites ~= nil then
         if sites.sulfur ~= nil then
             local cells = Map.ExpandRuns(sites.sulfur)
             local clustered = Map.ClusterSulfur(cells, sites.sulfur, {})
             V.SulfurSites = clustered.emitters
             V.SulfurClusters = clustered.clusters
+            V.SulfurCells = cells
+            V.SulfurGeom = {
+                cols = sites.sulfur.cols, rows = sites.sulfur.rows, cell = sites.sulfur.cell,
+                originX = sites.sulfur.originX, originZ = sites.sulfur.originZ,
+            }
+            -- The rng is looked up per call: BuildLadder replaces V.FxRng when a guest's seed arrives.
+            local poolRng = { Range = function(lo, hi)
+                if V.FxRng == nil then return (lo + hi) * 0.5 end
+                return V.FxRng.Range(lo, hi)
+            end }
+            V.PoolFx = PoolFX.New({
+                kind = "sulfur", sites = V.SulfurSites, rng = poolRng, weightAt = V.SulfurWeightAt,
+                heightAt = TerrainHeight, range = V.PoolFxRange, maxNear = V.PoolFxNear,
+                gap = V.PoolFxGap, radius = V.PoolFxRadius, mask = V.PoolFxMask,
+            })
         end
         if sites.vents ~= nil then
             V.VentSites = Map.MergeVents(sites.vents, V.VentMergeRadius)
@@ -2382,6 +2418,7 @@ function V.Update(dt)
     UpdateLightning()
     UpdateStrikes()
     UpdateSulfur()
+    UpdatePoolFx(dt)
     UpdateVents()
     UpdateFogSystems(dt)
     UpdateHazeRates()
@@ -2416,6 +2453,7 @@ function V.Shutdown()
     if not V.Initialized then return end
 
     Fx_DestroyAll()
+    PoolFX.Stop(V.PoolFx)
     V.FogLive, V.SulfurLive, V.PlumeLive, V.Clouds = {}, {}, {}, {}
     V.HazeLive, V.FogRequests, V.FogIntensity, V.FogAllow = {}, {}, 0.0, 0.0
     V.Strikes, V.Rain = {}, nil
@@ -2572,6 +2610,16 @@ function V.GetFogSchedule(untilT)
 end
 function V.GetDramaStats() return V.DramaCount, V.LastDrama end
 function V.GetBasins() return V.Basins end
+-- Liquid-sulphur weight of the .mat cell under (x, z): 0 off the pool, 1 solid pool.
+function V.SulfurWeightAt(x, z)
+    local g = V.SulfurGeom
+    if g == nil then return 0.0 end
+    local col = math.floor((x - g.originX) / g.cell)
+    local row = math.floor((z - g.originZ) / g.cell)
+    if row < 0 or row >= g.rows or col < 0 or col >= g.cols then return 0.0 end
+    return V.SulfurCells[(row * g.cols) + col] or 0.0
+end
+
 function V.GetSulfurSites() return V.SulfurSites end
 function V.GetVentSites() return V.VentSites end
 function V.GetStats() return V.Stats end
@@ -2655,6 +2703,7 @@ function V.Load(state)
 
     -- Loading rebuilds the Ogre scene: every system we held is already gone.
     Fx_DestroyAll()
+    PoolFX.Stop(V.PoolFx)
     V.FogLive, V.SulfurLive, V.PlumeLive, V.Clouds = {}, {}, {}, {}
     V.HazeLive = {}
     V.Strikes, V.Eruptions, V.Rain, V.Flashes, V.Thunder = {}, {}, nil, {}, {}
