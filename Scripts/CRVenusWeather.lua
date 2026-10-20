@@ -259,9 +259,9 @@ V.SulfurSoundVolume    = 45
 -- the storm builds (1 + 0.5 x severity). CRGroundFX caps the live emitters (4 systems).
 V.PoolFxRange          = 170.0
 V.PoolFxNear           = 3
-V.PoolFxGap            = { 2.0, 5.0 }
+V.PoolFxGap            = { 1.6, 4.2 }
 V.PoolFxRadius         = 24.0
-V.PoolFxMask           = {}
+V.PoolFxMask           = { glow = 1.4, drops = 1.4, motes = 1.6 }   -- pale-yellow pops read faintly in the thick haze
 
 -- Vents.
 V.VentMergeRadius      = 45.0

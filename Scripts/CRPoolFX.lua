@@ -180,6 +180,7 @@ function P.Update(state, dt, playerPos, opts)
                     state.failures = 0
                     state.lastEvent = state.clock
                     state.stats.events = state.stats.events + 1
+                    state.stats.lastX, state.stats.lastZ = x, z
                     fired = fired + 1
                 else
                     state.failures = state.failures + 1
