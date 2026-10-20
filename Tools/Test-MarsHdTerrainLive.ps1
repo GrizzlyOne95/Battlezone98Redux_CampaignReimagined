@@ -10,6 +10,7 @@ param(
  [string]$GameRoot='C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux',
  [string]$ResourceDirectory,
  [string]$ExuDll,
+ [string]$DetailTexture,
  [ValidateSet('mars','moon','venus','io','europa','titan','achilles','ganymede','elysium')][string]$World='mars',
  [ValidateSet('Enhanced','Redux','Retro')][string]$RenderProfile='Enhanced',
  [switch]$MeasureMemory,
@@ -135,6 +136,17 @@ try {
   $name=Split-Path -Leaf $relative
   Save-File "$testResources\$name"
   Copy-Item -LiteralPath "$cr\$relative" -Destination "$testResources\$name" -Force
+ }
+ if($DetailTexture){
+  $detail=(Resolve-Path -LiteralPath $DetailTexture).Path
+  $detailName=Split-Path -Leaf $detail
+  if($detailName -notmatch '^[A-Za-z0-9_]+\.dds$'){throw 'DetailTexture requires a simple DDS resource filename'}
+  Save-File "$testResources\$detailName"
+  Copy-Item -LiteralPath $detail -Destination "$testResources\$detailName" -Force
+  $materialPath=Join-Path $testResources "$example.material"
+  $material=[IO.File]::ReadAllText($materialPath)
+  if($material -notmatch 'set_texture_alias\s+DetailMap\s+\S+'){throw 'Preview material has no DetailMap alias'}
+  [IO.File]::WriteAllText($materialPath,([regex]::Replace($material,'(set_texture_alias\s+DetailMap\s+)\S+',('${1}'+$detailName))))
  }
  # CR wrappers can be parsed before the separate OpenShim resource group is
  # registered. Make their exact shader/IBL dependencies visible in this CLI

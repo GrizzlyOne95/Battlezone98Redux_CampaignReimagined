@@ -1,0 +1,22 @@
+{
+  "schema": "cr-moon-regolith-v1",
+  "tileSize": 1024,
+  "tileMeters": 20.0,
+  "heightAtlasSize": 1024,
+  "depthMeters": 0.625,
+  "edgeMeters": 1.2,
+  "rimHeight": 0.18,
+  "rimWidth": 0.18,
+  "seed": 30103,
+  "albedo": [90, 91, 94],
+  "albedoVariation": 3.0,
+  "dustHeightMeters": 0.004,
+  "normalSharpenCompensation": 2.1,
+  "detailSize": 2048,
+  "detailStd": 0.018,
+  "craters": [
+    {"center": [0.40, 0.43], "radiusMeters": 3.1, "depth": 1.0},
+    {"center": [0.57, 0.52], "radiusMeters": 0.95, "depth": 0.27},
+    {"center": [0.76, 0.77], "radiusMeters": 1.25, "depth": 0.35}
+  ]
+}

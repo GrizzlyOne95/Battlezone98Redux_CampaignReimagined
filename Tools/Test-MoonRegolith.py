@@ -1,0 +1,52 @@
+"""Checks the surface's normal convention and avoids duplicate macro relief."""
+import importlib.util
+import json
+from pathlib import Path
+import unittest
+
+import numpy as np
+from PIL import Image
+
+ROOT = Path(__file__).resolve().parent.parent
+spec = importlib.util.spec_from_file_location("regolith", ROOT/"Tools/Build-MoonRegolith.py")
+art = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(art)
+
+
+class Regolith(unittest.TestCase):
+    def test_normals_follow_negative_uv_height_gradient(self):
+        y, x = np.mgrid[0:32, 0:32]
+        normal = art.encode_normal(.1*x+.2*y, 1, 2.1)[16,16]/127.5-1
+        # Undo the runtime's z/2.1 sharpening in slope space.
+        np.testing.assert_allclose(normal[:2]/normal[2]*2.1, [-.1,-.2], atol=.012)
+        self.assertGreater(normal[2], .99)
+
+    def test_macro_craters_not_baked_into_micro_normal(self):
+        settings = json.loads((ROOT/"Tools/TerrainHD/Moon/regolith.json").read_text())
+        settings["tileSize"] = 256
+        settings["dustHeightMeters"] = 0
+        height, images = art.surface(settings)
+        self.assertLess(float(height.min()), -.95)
+        self.assertGreater(float(height.max()), .10)
+        self.assertTrue(np.all(images["N"] == [128,128,255]))
+        self.assertTrue(np.all(height[:9] == 0))
+        self.assertTrue(np.all(height[:,:9] == 0))
+        self.assertGreater(float((height == 0).mean()), .7)
+        self.assertTrue((images["E"] == 0).all())
+
+    def test_detail_flat_field_has_neutral_modulation_and_no_normal(self):
+        result = art.audit_detail(Image.fromarray(np.full((32,32,3),128,np.uint8)))
+        self.assertEqual(result["std"], 0)
+        self.assertEqual(result["detailNormalDegreesMax"], 0)
+        self.assertAlmostEqual(result["mean"], 128/255, places=6)
+
+    def test_seed_reproduces_periodic_dust(self):
+        first = art.noise(128, 43, 2)
+        np.testing.assert_array_equal(first, art.noise(128,43,2))
+        self.assertFalse(np.array_equal(first,art.noise(128,44,2)))
+        self.assertLess(abs(float(first.mean())), 1e-6)
+        self.assertAlmostEqual(float(first.std()), 1, places=6)
+
+
+if __name__ == "__main__":
+    unittest.main()
