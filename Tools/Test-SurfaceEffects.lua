@@ -29,12 +29,16 @@ function E.IsGunTowerPowered(h) return objects[h].powered end
 function E.GetCameraView() return view end
 function E.GetSatState() return 0 end
 function E.SetReactiveChunksEnabled(v) E.chunks=v end
+local profile,glowSwaps="Enhanced",{}
+function E.GetEffectiveRenderProfile() return profile end
+function E.SetSurfaceFragmentProgram(name,scheme,program) glowSwaps[name]=scheme..":"..program;return 1 end
 E.BulletHit=function() previousHits=previousHits+1 end
 local S=assert(loadfile("Scripts/CRSurfaceEffects.lua"))()
 for h=1,100 do S.Register(h) end
 local function ticks(n) for _=1,n do S.Update(0.05) end end
 ticks(40)
 assert(E.chunks and S.cockpit,"controller/cockpit activation")
+assert(glowSwaps[objects[1].cockpit]=="glow:CR_TexturedEnhanced_fragment","owned clone glow uses the Enhanced program")
 objects[1].health=.25;ticks(30)
 assert(S.cockpit.damage>.7,"cockpit tracks hull")
 objects[1].health=1;ticks(40)
@@ -103,8 +107,22 @@ local queued=#S.hits;E.BulletHit("bullet",3,1,p);assert(#S.hits==queued,"disable
 assert(S.SetEnabled(true)==true,"enable again")
 for h=1,3 do S.Register(h) end
 ticks(40);assert(S.started and E.chunks and #S.records[2].slots>0,"re-enabled resumes")
+-- Stock/Retro (and DX9, which never resolves to Enhanced): suspend restores
+-- every owned material but keeps the registered craft; Enhanced resumes.
+objects[2].powered=false;ticks(40)
+assert(next(clones),"clones exist before leaving Enhanced")
+for _,name in ipairs({"Redux","Retro"}) do
+    profile=name;ticks(2)
+    assert(not next(clones) and not string.find(objects[2].material,"_off",1,true) and not E.chunks and not S.started,name.." restores owned materials")
+    calls=0;ticks(4);assert(calls==0,name.." does no material work")
+    assert(S.records[2],"registration survives "..name)
+    profile="Enhanced";ticks(40)
+    assert(S.started and E.chunks and string.find(objects[2].material,"_off",1,true),"Enhanced resumes after "..name)
+end
+profile=nil;ticks(2);assert(not S.started,"no OpenShim profile is not Enhanced")
+profile="Enhanced"
 S.Shutdown();S.records={};S.order={}
 -- Old runtimes: complete no-op, including registration and callbacks.
 E.CloneSurfaceMaterial=nil;S.Register(1);S.Update(.1)
 assert(not S.records[1] and not S.started,"unsupported runtime fails closed")
-print("SurfaceEffects: scheduling, damage, repair, heat, rain, power, ownership, chaining, setting PASS")
+print("SurfaceEffects: scheduling, damage, repair, heat, rain, power, ownership, chaining, setting, Enhanced gate PASS")

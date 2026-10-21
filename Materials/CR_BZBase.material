@@ -2252,7 +2252,7 @@ material CR_BZBase
 			vertex_program_ref CR_Textured_vertex
 			{
 			}
-			fragment_program_ref CR_TexturedEnhanced_fragment
+			fragment_program_ref CR_Textured_fragment
 			{
 				param_named fogColour float3 0 0 0
 			} 
@@ -2677,7 +2677,7 @@ material CR_BZBaseCockpit
 			vertex_program_ref CR_Textured_vertex
 			{
 			}
-			fragment_program_ref CR_TexturedEnhanced_fragment
+			fragment_program_ref CR_Textured_fragment
 			{
 				param_named fogColour float3 0 0 0
 			} 

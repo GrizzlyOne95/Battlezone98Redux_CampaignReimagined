@@ -32,6 +32,14 @@ local function ready()
     return true
 end
 
+-- Reactive surfaces are an Enhanced feature. DX9 and DX11 Stock/Retro keep
+-- their stock materials; the profile is re-read each tick so a live switch
+-- releases or rebuilds the owned clones.
+local function enhanced()
+    local profile = call(exu.GetEffectiveRenderProfile)
+    return type(profile) == "string" and string.lower(profile) == "enhanced"
+end
+
 local function wetMaterial(name)
     if type(name) ~= "string" or name == "" or own(name) or S.materials[name] or #S.materialOrder >= 4096 then return end
     S.materials[name] = {}; S.materialOrder[#S.materialOrder + 1] = name
@@ -126,6 +134,9 @@ local function bindOne(r)
     local name = "exu_surface_cr_" .. tostring(r.id) .. "_" .. tostring(index) .. (r.cockpit and "_cockpit" or "")
     if call(exu.CloneSurfaceMaterial, source, name) ~= true then r.retry = S.Clock + 1; return end
     S.clones[name] = true
+    -- Only the owned clone's glow pass gets the Enhanced program; the shared
+    -- CR_BZBase glow pass keeps CR_Textured_fragment for Stock/Retro.
+    call(exu.SetSurfaceFragmentProgram, name, "glow", "CR_TexturedEnhanced_fragment")
     -- Do not replace unsupported stock/particle programs with inert clones.
     local supported = call(exu.SetMaterialShaderVector,name,"surfaceState",0,0,0,0)
     if not finite(supported) or supported < 1 then
@@ -301,6 +312,10 @@ end
 
 function S.Update(dt)
     if not S.Enabled or not ready() then return end
+    if not enhanced() then
+        if S.started then S.Suspend() end
+        return
+    end
     S.Start()
     wrapCallbacks()
     dt = clamp(dt,0,0.25); if dt <= 0 then return end
@@ -379,8 +394,19 @@ function S.SetEnabled(enabled)
     return true
 end
 
-function S.Shutdown()
-    S.ResetScene()
+-- Leaving Enhanced: restore every owned material and unhook, but keep the
+-- registered craft so returning to Enhanced resumes without a rebuild.
+function S.Suspend()
+    for _,r in pairs(S.records) do release(r); r.needs=false; r.marks={}; r.heat={}; r.discover=nil; r.discoverAt=nil end
+    if S.cockpit then release(S.cockpit) end
+    for name in pairs(S.materials) do call(exu.SetMaterialShaderVector,name,"surfaceState",0,0,0,0,-1,-1,"Autodetect") end
+    S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
+    S.hits,S.shots,S.clones = {},{},{}
+    S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
+    S.Unhook()
+end
+
+function S.Unhook()
     -- Restore only if nothing was layered over us; otherwise our stale wrapper
     -- stays in someone's chain and passes through (generation check).
     if exu.BulletHit==S.BulletHitWrapper then exu.BulletHit=S.BulletHitPrev end
@@ -389,6 +415,11 @@ function S.Shutdown()
     S.gen=S.gen+1;S.hitBusy,S.shotBusy=false,false
     S.started=false
     call(exu.SetReactiveChunksEnabled,false)
+end
+
+function S.Shutdown()
+    S.ResetScene()
+    S.Unhook()
 end
 
 return S

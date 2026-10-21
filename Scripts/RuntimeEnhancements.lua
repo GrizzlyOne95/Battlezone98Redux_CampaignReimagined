@@ -270,6 +270,12 @@ local function NormalizeBaseMaterialName(materialName)
         return nil
     end
 
+    -- OpenShim GPU skinning binds OpenShim/GpuSkin/<generation>/<tag>/[caster/]<source>
+    -- clones; vary the source material so a skinned craft does not stack variants.
+    name = name:match("^OpenShim/GpuSkin/%d+/[^/]+/caster/(.+)$")
+        or name:match("^OpenShim/GpuSkin/%d+/[^/]+/(.+)$")
+        or name
+
     if not IsRuntimeVariantMaterialName(name) then
         return name
     end
@@ -512,6 +518,13 @@ local function EnsureMaterialVariant(materialName, profile, occupied)
             DebugVisualLog(string.format("variant-fail material=%s base=%s clone=%s stage=SetMaterialPassColors(glow) occupied=%s", tostring(materialName), tostring(baseMaterialName), tostring(cloneName), tostring(occupied)))
             return nil
         end
+    end
+
+    -- DX11 base and glow shaders add the EmissiveMap whatever the pass emissive
+    -- colour is, so an empty craft also swaps that map for black. Older exu.dll
+    -- builds lack the call; the colour-only darkening still applies there.
+    if not occupied and exu.SetMaterialTextureAlias then
+        pcall(exu.SetMaterialTextureAlias, cloneName, "EmissiveMap", "black.dds", group)
     end
 
     RuntimeEnhancements.MaterialVariants[variantKey] = cloneName

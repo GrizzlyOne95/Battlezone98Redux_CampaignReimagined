@@ -23,14 +23,21 @@ ours passes through, so a replacement that still chains an older wrapper never
 double-counts. Shutdown restores a global only if nothing layered over it;
 otherwise the stale wrapper stays in that chain as a pass-through.
 
-## Enhanced-only shader
+## Enhanced only
+
+Reactive surfaces run only while OpenShim's effective render profile is
+Enhanced, which is DX11-only. DX9 and DX11 Stock/Retro keep their stock
+materials: on leaving Enhanced the controller restores every owned material,
+releases its clones and unhooks, but keeps the registered craft, so returning
+to Enhanced resumes without a visual rebuild.
 
 The power-off and cockpit warning response lives in `CR_textured-sm4.hlsl`
 behind `ENHANCED_MODE`, compiled only by `CR_Textured_fragmentHLSL4Enhanced` and
-the `CR_TexturedEnhanced_fragment` unified program that the two `CR_BZBase`
-glow passes use. `CR_Textured_fragmentHLSL4` and the DX9 shader are unchanged,
-so Default/Retro DXBC stays byte-identical (`Compare-DX11ShaderBinaries.ps1`).
-Zeroed uniforms leave the output unchanged.
+the `CR_TexturedEnhanced_fragment` unified program. The shared `CR_BZBase` glow
+passes keep `CR_Textured_fragment`; only an owned `exu_surface_*` clone swaps its
+glow pass to the Enhanced program (`exu.SetSurfaceFragmentProgram`).
+`CR_Textured_fragmentHLSL4` and the DX9 shader are unchanged, so Default/Retro
+DXBC stays byte-identical (`Compare-DX11ShaderBinaries.ps1`).
 
 ## Budgets
 
