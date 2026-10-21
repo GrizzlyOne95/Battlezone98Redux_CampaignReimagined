@@ -465,403 +465,603 @@
   "weapons": {
     "aprifle": {
       "profile": "plasmablue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "asplsmg": {
       "profile": "plasmablue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "bprifle": {
       "profile": "plasmablue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "bsplsmg": {
       "profile": "plasmablue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "cprifle": {
       "profile": "plasmagreen",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "cr16bolt": {
       "profile": "arcblue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "crfarc": {
       "profile": "arcblue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "crfmarc": {
       "profile": "arcred",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "crfpuls": {
       "profile": "plasmablue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "cromarc": {
       "profile": "sunarc",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "csplsmg": {
       "profile": "plasmagreen",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "cvwo003": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "ga7stab": {
       "profile": "atstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "medium",
+      "casing_decision": "Ballistic medium brass; local cosmetic only."
     },
     "gammo": {
       "profile": null,
-      "decision": "supply dispenser"
+      "decision": "supply dispenser",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gammoa": {
       "profile": null,
-      "decision": "supply dispenser"
+      "decision": "supply dispenser",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gatstab": {
       "profile": "atstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "medium",
+      "casing_decision": "Ballistic medium brass; local cosmetic only."
     },
     "gatstaba": {
       "profile": "atstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "medium",
+      "casing_decision": "Ballistic medium brass; local cosmetic only."
     },
     "gatstabh": {
       "profile": "atstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "medium",
+      "casing_decision": "Ballistic medium brass; local cosmetic only."
     },
     "gbetmin": {
       "profile": null,
-      "decision": "mine deployment"
+      "decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gbetpop": {
       "profile": null,
-      "decision": "autonomous mine trigger, no craft muzzle"
+      "decision": "autonomous mine trigger, no craft muzzle",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gblast": {
       "profile": "blast",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gblastb": {
       "profile": "blastblue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gblastg": {
       "profile": "blast",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gblasth": {
       "profile": "blastred",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gbolt": {
       "profile": "arcblue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gboltg": {
       "profile": "arcgreen",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gboltmig": {
       "profile": null,
-      "decision": "mine deployment"
+      "decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gboltmin": {
       "profile": null,
-      "decision": "mine deployment"
+      "decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gboltmir": {
       "profile": null,
-      "decision": "mine deployment"
+      "decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gboltr": {
       "profile": "arcred",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gbspstab": {
       "profile": "spstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "gcomet": {
       "profile": "rocket",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gctesla": {
       "profile": null,
-      "decision": "field deployment"
+      "decision": "field deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gdummy": {
       "profile": null,
-      "decision": "paintball/debug effect"
+      "decision": "paintball/debug effect",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gflare": {
       "profile": null,
-      "decision": "countermeasure deployment"
+      "decision": "countermeasure deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gflashch": {
       "profile": "arcred",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gflashgb": {
       "profile": "arcblue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gflashgg": {
       "profile": "arcgreen",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gflashgn": {
       "profile": "arcblue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "ghartila": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "ghartill": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "ghartmp": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "ghornet": {
       "profile": "rocket",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "ghrntai": {
       "profile": "rocket",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "glgmsl": {
       "profile": "rocket",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gmaggun": {
       "profile": "mag",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gmasgren": {
       "profile": null,
-      "decision": "conversion projectile, keep existing effect"
+      "decision": "conversion projectile, keep existing effect",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gmbolt": {
       "profile": "arcblue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gmboltg": {
       "profile": "arcgreen",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gmboltr": {
       "profile": "arcred",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gmcurmin": {
       "profile": null,
-      "decision": "mine deployment"
+      "decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gmdmgun": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gminigna": {
       "profile": "minigun",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gminignb": {
       "profile": "minigun",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gminignc": {
       "profile": "minigun",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gminigrn": {
       "profile": "minigun",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gminigun": {
       "profile": "minigun",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gminisov": {
       "profile": "chaingun",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gmitsmin": {
       "profile": null,
-      "decision": "mine deployment"
+      "decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gmortar": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gnavdrop": {
       "profile": null,
-      "decision": "navigation beacon deployment"
+      "decision": "navigation beacon deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gobject": {
       "profile": null,
-      "decision": "internal object lobber"
+      "decision": "internal object lobber",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gphantom": {
       "profile": null,
-      "decision": "cloak device"
+      "decision": "cloak device",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gpopgun": {
       "profile": "popper",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gproxmin": {
       "profile": null,
-      "decision": "mine deployment"
+      "decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gquake": {
       "profile": null,
-      "decision": "ground-contact seismic emitter"
+      "decision": "ground-contact seismic emitter",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gredfld": {
       "profile": null,
-      "decision": "radar device"
+      "decision": "radar device",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "grepa": {
       "profile": null,
-      "decision": "repair dispenser"
+      "decision": "repair dispenser",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "grepaa": {
       "profile": null,
-      "decision": "repair dispenser"
+      "decision": "repair dispenser",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "grktbomb": {
       "profile": "rocket",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gsandbag": {
       "profile": null,
-      "decision": "anchoring device"
+      "decision": "anchoring device",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gsatstab": {
       "profile": "pulse",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gshadow": {
       "profile": "rocket",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gshunt": {
       "profile": "rocket",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gsitecam": {
       "profile": null,
-      "decision": "camera device"
+      "decision": "camera device",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gsmort": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gsnipe": {
       "profile": "sniper",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gsplint": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gsplinta": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gsplintg": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gsplintr": {
       "profile": "mortar",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gspstab": {
       "profile": "spstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "gspstaba": {
       "profile": "spstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "gspstabb": {
       "profile": "spstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "gspstabc": {
       "profile": "spstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "gspstabd": {
       "profile": "spstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "gspstabn": {
       "profile": "spstab",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "gsrkbomb": {
       "profile": "rocket",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gstlock": {
       "profile": null,
-      "decision": "control projectile, keep existing effect"
+      "decision": "control projectile, keep existing effect",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gtaggun": {
       "profile": "rocket",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gtechno": {
       "profile": "plasmablue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gtminig": {
       "profile": "minigun",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gtminis": {
       "profile": "chaingun",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gtminis2": {
       "profile": "chaingun",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gtminisa": {
       "profile": "chaingun",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gtsmoke": {
       "profile": null,
-      "decision": "smoke launch, keep smoke effect distinct"
+      "decision": "smoke launch, keep smoke effect distinct",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "gwasp": {
       "profile": null,
-      "decision": "mine deployment"
+      "decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "handgun": {
       "profile": "plasmablue",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "sprifle": {
       "profile": "plasmared",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     "ssplsmg": {
       "profile": "plasmared",
-      "decision": "authored flash"
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     }
   }
 }

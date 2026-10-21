@@ -1,0 +1,15 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "dispenser"
+wpnName = "Prox Mine"
+fireSound = "gprox00.wav"
+wpnReticle = "gproxmin"
+wpnPriority = 2
+wpnCategory = "SPEC"
+
+[DispenserClass]
+shotDelay = 4.0
+objectClass = "proxmine"

@@ -6,6 +6,30 @@ across tanks, light tanks, bombers, walkers and other combat units.
 
 ## Inventory and delivered content
 
+The casing follow-up assigns all 100 weapons an explicit `[WeaponClass]`
+`casingType`: 11 small, four medium, ten large, and 75 none. Miniguns,
+chainguns and the sniper get small brass; AT-Stabbers medium; SP/CP-Stabbers
+and howitzers large. Plasma/arc/energy weapons, launchers, grenades, mines and
+utilities eject none. These are initial cosmetic art choices for review.
+Lengths are 0.12/0.24/0.40 using the native generated casing mesh scale.
+The existing per-weapon casing mesh override remains available.
+
+`Tools/Build-WeaponCasings.py` owns only its marked casing block. All 100
+complete ODFs are checked against parsed gameplay baselines; 21 additional
+stock overrides are listed in the shipping lock with no removals. Both
+generators are independently repeatable. Inventory JSON/CSV includes casing
+type and reason alongside the flash choice.
+
+Requires companion OpenShim `agent/casing-flash-coexistence` and the existing
+ShellCasings switch ON; defaults stay OFF. That change shares the native
+accepted-shot dispatcher with flashes and reads casing types once at the
+live ODF scope seam, without per-shot file reads. The authored casingType
+scope is qualified statically only for exact GOG 2.2.301; other builds use
+the native conservative stock allowlist. Flash activation still has its
+existing single-player guard, so this does not claim CR co-op flash support.
+Ejection uses each weapon's native mount matrix and estimated breech offset;
+per-craft ejection-port fitting and live testing remain pending.
+
 The inventory covers all 73 weapon definitions in the installed GOG stock ODF
 archive, overlaid with CR's current ODFs: **100 effective weapon definitions**.
 The stock extracted directory was cross-checked against all 796 `bzone.zfs`

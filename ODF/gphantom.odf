@@ -1,0 +1,19 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "imagerefract"
+ordName = NULL
+wpnName = "Phantom VIR"
+fireSound = "gphan00.wav"
+wpnReticle = "gphantom.0"
+wpnPriority = 0
+wpnCategory = "SPEC"
+
+[SpecialItemClass]
+ammoCost = 20
+triggerDelay = 1.0
+activeSound = "gphan01.wav"
+expireSound = "gphan02.wav"
+reticleCount = 1
