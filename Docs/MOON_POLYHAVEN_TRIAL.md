@@ -104,13 +104,35 @@ the previous HD candidate byte-for-byte. DNSE output remains 69,212,077 bytes;
 the new detail DDS has a complete 12-level chain (2,796,344 bytes, 16 bytes more
 than the previous source's 10-level chain).
 
-Live visual acceptance, 32-bit process memory and wider platform/lifecycle
-qualification must be recorded from an actual trial. Matching dimensions and
-texture slots do not establish measured process RAM overhead. Do not substitute
-the earlier HD-rock candidate's screenshot or memory values for this surface.
+The successful windowed Windows/GOG DX11 trial ran as PID 76412 with ordinary
+HD/micro-relief settings. Capture: `Local/TerrainHD/run-20261020-191219/trial.png`.
+The inspected view shows a fine powdery surface with visible impact pits and
+clearer large crater rims. Its quieter material is substantially smoother than
+the earlier rocky HD art; this is an art-review candidate, not owner acceptance.
+Logs verify all four 1024px HD arrays, the Poly Haven detail DDS, signed R32
+height and the configured 0.625 m geometry amplitude. All 18,408 height-binding
+scopes, 144 streams/bounds, 82 material passes and 146 staged files restored;
+the game exited normally.
+
+Median private commit was 384,057,344 bytes (366.27 MiB), lifetime peak
+528,379,904 bytes (503.90 MiB), largest free VA block 2,144,116,736 bytes
+(2,044.79 MiB). These are this candidate's actual 32-bit process measurements;
+matching dimensions and slots alone do not establish RAM overhead. Wider
+platform/lifecycle qualification and final art acceptance remain open.
+
+A fresh rocky-HD baseline followed using the same OpenShim binary, map,
+camera and runtime detail/depth settings (PID 73592,
+`Local/TerrainHD/run-20261020-191319/trial.png`). It used 366.33 MiB median
+private commit and 503.28 MiB lifetime peak, with the same 2,044.79 MiB largest
+free block. Poly Haven differed by -0.07 MiB median and +0.63 MiB peak: no
+material process-RAM increase was observed in this short A/B. This is one fresh
+start per surface, not a repeated or long-session memory qualification.
+The inspected baseline retains the earlier rocky surface; all 17,752 height
+binding scopes, 144 streams/bounds, 82 passes and 146 staged files restored.
+Machine-readable comparison: `Local/TerrainHD/PolyHaven01/live_comparison.json`.
 
 The 2026-10-20 GOG attempt (`Local/TerrainHD/run-20261020-190311`) waited behind
 another harness's active game sessions. It never reached deployment or launched
 a game. Its queued preview shell was stopped before any game-file backups or
-mutations, leaving those other games alone. No new in-game screenshot or process
-memory measurement is claimed. Rerun the preview command when the harness is free.
+mutations, leaving those other games alone. The successful retry above supersedes
+that deferred attempt.
