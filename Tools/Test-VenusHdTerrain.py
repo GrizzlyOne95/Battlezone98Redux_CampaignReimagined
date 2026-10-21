@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from bzmodellibs import toolbox_root
+from terrain_art_tuning import RUNTIME_DEFAULTS, validate_runtime
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(toolbox_root()))
@@ -28,8 +29,12 @@ class VenusHdTerrain(unittest.TestCase):
             report = build_bundle(load_project(ROOT / "Tools/TerrainHD/Venus/authoring.json"), output)
             self.assertEqual(report["conversion"], {"preserved": 52, "converted": 0})
             expected = json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())
+            binding = expected["materials"]["VE_DETAIL_ATLAS"]
+            self.assertEqual(validate_runtime(binding), RUNTIME_DEFAULTS)
+            for key in (*RUNTIME_DEFAULTS, "surfaceBlend"):
+                binding.pop(key)
             self.assertEqual(json.loads((output / "terrain_hd_tiles.json").read_text())["materials"]["VE_DETAIL_ATLAS"],
-                             expected["materials"]["VE_DETAIL_ATLAS"])
+                             binding)
             evidence = json.loads((ROOT / "Tools/TerrainHD/Venus/pack_validation.json").read_text())
             self.assertEqual(report["sha256"], evidence["bundle"]["sha256"])
 
@@ -59,7 +64,9 @@ class VenusHdTerrain(unittest.TestCase):
             builder.merge_manifest(path, moon)
             builder.merge_manifest(path, venus)
             builder.merge_manifest(path, moon)
-            self.assertEqual(json.loads(path.read_text())["materials"], {**moon["materials"], **venus["materials"]})
+            self.assertEqual(json.loads(path.read_text())["materials"], {
+                key: dict(RUNTIME_DEFAULTS, **value)
+                for key, value in {**moon["materials"], **venus["materials"]}.items()})
             before = path.read_bytes()
             with self.assertRaisesRegex(ValueError, "another schema"):
                 builder.merge_manifest(path, {"schema": "v1", "materials": {}})

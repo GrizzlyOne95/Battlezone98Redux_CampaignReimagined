@@ -478,6 +478,136 @@
   ],
   "resolves": [
     {
+      "name": "MouseReadChannels::TimeStepCall",
+      "pattern": "E8 ?? ?? ?? ?? D9 5D F4 F3 0F 10 45 F4 F3 0F 58 05 ?? ?? ?? ?? F3 0F 11 05 ?? ?? ?? ?? F3 0F 10 05 ?? ?? ?? ?? 0F 2F 05 ?? ?? ?? ?? 76 07 33 C0 E9 ?? ?? ?? ?? A1 ?? ?? ?? ?? 8B 48 38",
+      "offset": 0,
+      "mode": "address",
+      "fallback": "0x00623BF2",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "Mouse giddi_read_channels 0x00623B20 on GOG Redux 2.2.301 (int __cdecl(MOUSE_DATA*, long* analog, ulong* discrete); reached only through the mouse driver table entry 0x008EC6FC; BZ 1.5 giddi_read_channels 0x004BDDB7 is the same code). `call TimeStep; fstp [ebp-0xC]; addss xmm0,[accum 0x02A17470]; movss [accum],xmm0; movss xmm0,[0x008A24F4]=0.016666f; comiss xmm0,[accum]; jbe apply; xor eax,eax; jmp exit; mov eax,[0x0094672C]; mov ecx,[eax+0x38]` (the profile sensitivity index). Pattern is a unique whole-image match on 2026-10-20. This is the E8 call to the TimeStep getter 0x00822D60 at 0x00623BF2; MouseEveryFrame redirects it to a wrapper that sets its bucket threshold."
+    },
+    {
+      "name": "MouseReadChannels::BucketThreshold",
+      "pattern": "E8 ?? ?? ?? ?? D9 5D F4 F3 0F 10 45 F4 F3 0F 58 05 ?? ?? ?? ?? F3 0F 11 05 ?? ?? ?? ?? F3 0F 10 05 ?? ?? ?? ?? 0F 2F 05 ?? ?? ?? ?? 76 07 33 C0 E9 ?? ?? ?? ?? A1 ?? ?? ?? ?? 8B 48 38",
+      "offset": 33,
+      "mode": "address",
+      "fallback": "0x00623C13",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "Mouse giddi_read_channels 0x00623B20 on GOG Redux 2.2.301 (int __cdecl(MOUSE_DATA*, long* analog, ulong* discrete); reached only through the mouse driver table entry 0x008EC6FC; BZ 1.5 giddi_read_channels 0x004BDDB7 is the same code). `call TimeStep; fstp [ebp-0xC]; addss xmm0,[accum 0x02A17470]; movss [accum],xmm0; movss xmm0,[0x008A24F4]=0.016666f; comiss xmm0,[accum]; jbe apply; xor eax,eax; jmp exit; mov eax,[0x0094672C]; mov ecx,[eax+0x38]` (the profile sensitivity index). Pattern is a unique whole-image match on 2026-10-20. This is the code address of the m32 operand of `movss xmm0,[0x008A24F4]` (instruction 0x00623C0F, operand 0x00623C13). MouseEveryFrame checks the opcode and that the operand names 0.016666f, then repoints the operand at a shim float. The constant itself is shared (0x006A3490's 60 Hz team tick reads it too) and is never written."
+    },
+    {
+      "name": "MouseReadChannels::Accumulator",
+      "pattern": "E8 ?? ?? ?? ?? D9 5D F4 F3 0F 10 45 F4 F3 0F 58 05 ?? ?? ?? ?? F3 0F 11 05 ?? ?? ?? ?? F3 0F 10 05 ?? ?? ?? ?? 0F 2F 05 ?? ?? ?? ?? 76 07 33 C0 E9 ?? ?? ?? ?? A1 ?? ?? ?? ?? 8B 48 38",
+      "offset": 17,
+      "mode": "abs32_operand",
+      "fallback": "0x02A17470",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "Mouse giddi_read_channels 0x00623B20 on GOG Redux 2.2.301 (int __cdecl(MOUSE_DATA*, long* analog, ulong* discrete); reached only through the mouse driver table entry 0x008EC6FC; BZ 1.5 giddi_read_channels 0x004BDDB7 is the same code). `call TimeStep; fstp [ebp-0xC]; addss xmm0,[accum 0x02A17470]; movss [accum],xmm0; movss xmm0,[0x008A24F4]=0.016666f; comiss xmm0,[accum]; jbe apply; xor eax,eax; jmp exit; mov eax,[0x0094672C]; mov ecx,[eax+0x38]` (the profile sensitivity index). Pattern is a unique whole-image match on 2026-10-20. The m32 operand of `addss xmm0,[m32]` (0x00623BFF): the float step accumulator 0x02A17470, zeroed when the bucket closes, when the window loses focus, and by the reset 0x00623A30. MouseEveryFrame only reads it for its per-frame diagnostic line."
+    },
+    {
+      "name": "TimeStep",
+      "pattern": "E8 ?? ?? ?? ?? D9 5D F4 F3 0F 10 45 F4 F3 0F 58 05 ?? ?? ?? ?? F3 0F 11 05 ?? ?? ?? ?? F3 0F 10 05 ?? ?? ?? ?? 0F 2F 05 ?? ?? ?? ?? 76 07 33 C0 E9 ?? ?? ?? ?? A1 ?? ?? ?? ?? 8B 48 38",
+      "offset": 0,
+      "mode": "rel32_target",
+      "fallback": "0x00822D60",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "Mouse giddi_read_channels 0x00623B20 on GOG Redux 2.2.301 (int __cdecl(MOUSE_DATA*, long* analog, ulong* discrete); reached only through the mouse driver table entry 0x008EC6FC; BZ 1.5 giddi_read_channels 0x004BDDB7 is the same code). `call TimeStep; fstp [ebp-0xC]; addss xmm0,[accum 0x02A17470]; movss [accum],xmm0; movss xmm0,[0x008A24F4]=0.016666f; comiss xmm0,[accum]; jbe apply; xor eax,eax; jmp exit; mov eax,[0x0094672C]; mov ecx,[eax+0x38]` (the profile sensitivity index). Pattern is a unique whole-image match on 2026-10-20. Target of that call: the float TimeStep getter 0x00822D60 (float __cdecl(void), fld [0x00946790]; about 80 callers). MouseEveryFrame calls it from its wrapper."
+    },
+    {
+      "name": "StreamingOggSound::CtorFillCall",
+      "pattern": "6A 00 BA 04 00 00 00 6B C2 00 8B 4D F0 8B 51 04 8B 04 02 50 8B 4D F0 E8 ?? ?? ?? ?? C7 45 FC FF FF FF FF",
+      "offset": 23,
+      "mode": "address",
+      "fallback": "0x004168E9",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "StreamingOggSound constructor 0x00416830 on GOG Redux 2.2.301, reached only from OggManager setup 0x0043F050 on the music path (track start 0x004378F0). `push 0; mov edx,4; imul eax,edx,0; mov ecx,[ebp-0x10]; mov edx,[ecx+4]; mov eax,[edx+eax]; push eax; mov ecx,[ebp-0x10]; call` FillBufferWithSound (__thiscall, two stack args, result unused), then `mov [ebp-4],-1`. OggManager::Play 0x0043F320 runs Reset 0x00416CF0 (ov_raw_seek 0, positions zeroed) and fills again, so this fill is never heard. This is the E8 at 0x004168E9. Replaced with `add esp,8` by MusicSingleFill."
+    },
+    {
+      "name": "StreamingOggSound::FillBufferWithSound",
+      "pattern": "6A 00 BA 04 00 00 00 6B C2 00 8B 4D F0 8B 51 04 8B 04 02 50 8B 4D F0 E8 ?? ?? ?? ?? C7 45 FC FF FF FF FF",
+      "offset": 23,
+      "mode": "rel32_target",
+      "fallback": "0x00416E10",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "StreamingOggSound constructor 0x00416830 on GOG Redux 2.2.301, reached only from OggManager setup 0x0043F050 on the music path (track start 0x004378F0). `push 0; mov edx,4; imul eax,edx,0; mov ecx,[ebp-0x10]; mov edx,[ecx+4]; mov eax,[edx+eax]; push eax; mov ecx,[ebp-0x10]; call` FillBufferWithSound (__thiscall, two stack args, result unused), then `mov [ebp-4],-1`. OggManager::Play 0x0043F320 runs Reset 0x00416CF0 (ov_raw_seek 0, positions zeroed) and fills again, so this fill is never heard. Target of StreamingOggSound::CtorFillCall; MusicSingleFill checks the call still targets it before patching."
+    },
+    {
+      "name": "SetLoopTimes::FrameCall",
+      "pattern": "68 ?? ?? ?? ?? E8 ?? ?? ?? ?? 83 C4 04 E8 ?? ?? ?? ?? 83 7D 08 00 75 05 E8",
+      "offset": 13,
+      "mode": "address",
+      "fallback": "0x006182F6",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "SetLoopTimes 0x00822AE0 on GOG Redux 2.2.301 (void(void), no stack args): spins Sleep(1) on the boost posix_time millisecond clock 0x00822E60, then stores the integer dt and its float forms. This is the E8 call at 0x006182F6 in the per-frame entry 0x00618270, after a one-argument cdecl call and before `cmp [ebp+8],0; jne`; the frame function 0x00618130 follows. The menu/load loop 0x00617110 has its own call at 0x0061725F, which is not this site. Redirected by PreciseTimestep."
+    },
+    {
+      "name": "SetLoopTimes",
+      "pattern": "68 ?? ?? ?? ?? E8 ?? ?? ?? ?? 83 C4 04 E8 ?? ?? ?? ?? 83 7D 08 00 75 05 E8",
+      "offset": 13,
+      "mode": "rel32_target",
+      "fallback": "0x00822AE0",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "SetLoopTimes 0x00822AE0 on GOG Redux 2.2.301 (void(void), no stack args): spins Sleep(1) on the boost posix_time millisecond clock 0x00822E60, then stores the integer dt and its float forms. Target of the frame-entry call SetLoopTimes::FrameCall. PreciseTimestep calls it from its wrapper and then rewrites only the float step globals."
+    },
+    {
+      "name": "Timestep::RawMs",
+      "pattern": "A1 ?? ?? ?? ?? A3 ?? ?? ?? ?? 81 3D ?? ?? ?? ?? C8 00 00 00 76 0A C7 05",
+      "offset": 6,
+      "mode": "abs32_operand",
+      "fallback": "0x0094679C",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "SetLoopTimes 0x00822AE0 on GOG Redux 2.2.301 (void(void), no stack args): spins Sleep(1) on the boost posix_time millisecond clock 0x00822E60, then stores the integer dt and its float forms. `mov eax,[clamped]; mov [raw],eax; cmp [clamped],0xC8; jbe` - the uint32 dt copied before the 200 ms clamp. No readers outside SetLoopTimes. Read by perf telemetry and PreciseTimestep."
+    },
+    {
+      "name": "Timestep::ClampedMs",
+      "pattern": "A1 ?? ?? ?? ?? A3 ?? ?? ?? ?? 81 3D ?? ?? ?? ?? C8 00 00 00 76 0A C7 05",
+      "offset": 12,
+      "mode": "abs32_operand",
+      "fallback": "0x00946794",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "SetLoopTimes 0x00822AE0 on GOG Redux 2.2.301 (void(void), no stack args): spins Sleep(1) on the boost posix_time millisecond clock 0x00822E60, then stores the integer dt and its float forms. Operand of `cmp [x],0xC8` in the same sequence: the uint32 dt clamped to 200, zero while paused in single player. No readers outside SetLoopTimes. Read by PreciseTimestep."
+    },
+    {
+      "name": "Timestep::Seconds",
+      "pattern": "F3 0F 11 05 ?? ?? ?? ?? 8B 15 ?? ?? ?? ?? 89 55 F0 F2 0F 2A 45 F0",
+      "offset": 4,
+      "mode": "abs32_operand",
+      "fallback": "0x00946790",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "SetLoopTimes 0x00822AE0 on GOG Redux 2.2.301 (void(void), no stack args): spins Sleep(1) on the boost posix_time millisecond clock 0x00822E60, then stores the integer dt and its float forms. movss store of clamped dt * 0.001: the float step returned by the TimeStep getter 0x00822D60 (about 80 callers: sim 0x00618060, mouse 0x00623B20, physics, AI). Read by perf telemetry; written by PreciseTimestep."
+    },
+    {
+      "name": "Timestep::UnclampedSeconds",
+      "pattern": "F3 0F 11 05 ?? ?? ?? ?? F3 0F 10 05 ?? ?? ?? ?? 0F 2E 05 ?? ?? ?? ?? 9F F6 C4 44",
+      "offset": 4,
+      "mode": "abs32_operand",
+      "fallback": "0x00946788",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "SetLoopTimes 0x00822AE0 on GOG Redux 2.2.301 (void(void), no stack args): spins Sleep(1) on the boost posix_time millisecond clock 0x00822E60, then stores the integer dt and its float forms. movss store of unclamped dt * 0.001, just before the step is compared with 0.0; returned by getter 0x00822D70. Written by PreciseTimestep."
+    },
+    {
+      "name": "Timestep::Inverse",
+      "pattern": "F3 0F 10 45 EC F3 0F 11 05 ?? ?? ?? ?? 8B 15 ?? ?? ?? ?? 89 55 E8",
+      "offset": 9,
+      "mode": "abs32_operand",
+      "fallback": "0x02CC1B34",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "SetLoopTimes 0x00822AE0 on GOG Redux 2.2.301 (void(void), no stack args): spins Sleep(1) on the boost posix_time millisecond clock 0x00822E60, then stores the integer dt and its float forms. movss store of 1/step (HUGE when the step is 0). One write, no readers found. Written by PreciseTimestep to stay consistent."
+    },
+    {
       "name": "PlanetVideo::ViewPlay",
       "pattern": "55 8B EC 51 89 4D FC 8B 45 FC 83 B8 40 01 00 00 00 74 14 0F B6 4D 08 51 8B 55 FC 8B 8A 40 01 00 00 FF 15 ?? ?? ?? ?? 8B E5 5D C2 04 00",
       "offset": 0,

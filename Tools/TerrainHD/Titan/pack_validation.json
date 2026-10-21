@@ -1,6 +1,7 @@
 {
   "schema": "cr-hd-pack-validation-v1",
   "world": "titan",
+  "acceptedArt": "2026-10-21; see Docs/WORLD_ART_PROMOTION.md",
   "bundle": {
     "schema": "bzr-terrain-hd-bundle-report-v1",
     "material": "TI_DETAIL_ATLAS",
@@ -25,39 +26,39 @@
       "crhd_titan_ti01cb0_d.dds": "ff54b4cd5752a17da3d6d61c0085b9caa8f51a465c952952976606aa041f14f4",
       "crhd_titan_ti01cc0_d.dds": "e7710f3ee13332330eb1780e07b5a378ae99e84964cfe60e5ab601fb49c0ef4d",
       "crhd_titan_ti01da0_d.dds": "da970d3e555a1c3ba132a66ea700e9b98846a4b0ab75a6c2d3c1143cc74fca8e",
-      "crhd_titan_ti03ca0_d.dds": "9e209b80a7922ecf54f441295f69a35b7e83d5978b70b7ea1e8fac9191b18ce6",
-      "crhd_titan_ti03da0_d.dds": "2d4ccb49c73ee640d2354ba7cce8eefe176edacd859e12de657da47b12b3052a",
-      "crhd_titan_ti03db0_d.dds": "eda5da26fb09b110f86014e4bde817cab344132c159677d300150f6867aea30e",
+      "crhd_titan_ti03ca0_d.dds": "b9188330f79fd16a5f4d84904b7590f532f8e65fee03910f46f7b81d7c52f7a6",
+      "crhd_titan_ti03da0_d.dds": "e49e3c505403ffab09131f8d913abac68a41f653270aed6708e657de5407ab69",
+      "crhd_titan_ti03db0_d.dds": "e9eb1dbdd7b3ef85ca118722cc0192b9df18d59d7dd3d18e957750b6897f50bf",
       "crhd_titan_ti11sa0_d.dds": "9efb07e81ff9987aa84626707d21d3abb10850cfe81b3d3b94ab370917e1fceb",
       "crhd_titan_ti11sb0_d.dds": "79d3cba37125034af27c6399f6858abf19b2668563ecfce9418982dbd15f28d1",
-      "crhd_titan_ti33sa0_d.dds": "1aaf4cb8637536bd746bb3551abe2e652066b99e281d5dedca1c04088d5b0991",
-      "crhd_titan_ti33sb0_d.dds": "0462ee9e913ed693102b718ba10e32d3d3f73acfd2c7663f8e27c6a1e309b6fb",
+      "crhd_titan_ti33sa0_d.dds": "32ec6202cdb849232a7e8a8d06575c16c2180dc01be3033d98f13db71ed87762",
+      "crhd_titan_ti33sb0_d.dds": "e0e90bb063833549ff4e6e21d09f994cab538902d782f3cafdcb4bfc801ebc31",
       "crhd_titan_ti00sa0_n.dds": "b2e78861a30592df113685c78e36d8246244263e001567b115599d1d956a096f",
       "crhd_titan_ti00sb0_n.dds": "d2d8854390f91219a25a9df57d269b9f8c51754f9578ef1a9184c270df418779",
       "crhd_titan_ti01ca0_n.dds": "a1c66e11b8958427a926b473a3d22c7c7581cb7db6090ec18b04b0c72f05f660",
       "crhd_titan_ti01cb0_n.dds": "91e9796dd15c7c387401b52f14931ee8dcc0f13202aee8a5ca98ad4239c0ddc4",
       "crhd_titan_ti01cc0_n.dds": "5d4b3cc7a7e74fce126b1443c69791b85252c7ad4d6ffdc4547c1f05ac0c989a",
       "crhd_titan_ti01da0_n.dds": "aec26c476c86380a0a898bd79e58d800bff98e1659dbd0bf8b85b4845a1a5b32",
-      "crhd_titan_ti03ca0_n.dds": "e72be4656cd73c2ea0319057525d29f908f68b6192861cdfe7c293f6d7b9186b",
-      "crhd_titan_ti03da0_n.dds": "554e8a14ad35d61f7708ed7b5bbe19b9363d6af1e999344f67767dea06c96eb8",
-      "crhd_titan_ti03db0_n.dds": "d1d335d7127970f358caf60673c844358535f98fc4f2628e08db499e1bb1bc8d",
+      "crhd_titan_ti03ca0_n.dds": "f0e097c6e31da88e472036f22189d288acc8653f27ecff329122ac5e67904c78",
+      "crhd_titan_ti03da0_n.dds": "0354a9e4a45f6a10fd20fdb88b9ef686c49d7da21365042dfd277ae20a459912",
+      "crhd_titan_ti03db0_n.dds": "b7a6ef919cb5b43bb42625eefdb474932b719596c1ad119f9ea8d1f9498583e9",
       "crhd_titan_ti11sa0_n.dds": "7624da6f72f6b6487bf7529f2b6ec1998ce7fc4c85357a1505d9a31094cbe986",
       "crhd_titan_ti11sb0_n.dds": "925a032c7bb98857c5fcb1026a483591c6a8164e5058d0e8136531e6c28d4cb3",
-      "crhd_titan_ti33sa0_n.dds": "d7842d58e9467482e13ce5f4ebaa7896286fd3e7c64b1ad1f65230d3097a1b1d",
-      "crhd_titan_ti33sb0_n.dds": "d7842d58e9467482e13ce5f4ebaa7896286fd3e7c64b1ad1f65230d3097a1b1d",
+      "crhd_titan_ti33sa0_n.dds": "c8c10ca246712cf39dfa022a4eb5cabec9263edcdd7bad4e59256867d0b73033",
+      "crhd_titan_ti33sb0_n.dds": "c8c10ca246712cf39dfa022a4eb5cabec9263edcdd7bad4e59256867d0b73033",
       "crhd_titan_ti00sa0_s.dds": "a6c39310c17db75a891dfc8666ddd7cfeac4884955a4ca1902f12528042d1dd9",
       "crhd_titan_ti00sb0_s.dds": "50f5d7c4b00b837741590c236e8269af5e7e0cd06ce5dd7737f587bfd1b54453",
       "crhd_titan_ti01ca0_s.dds": "01020939019bfab457e6fcb8bb875ef9f8f89d745e451cbf863a6bcaff3a216e",
       "crhd_titan_ti01cb0_s.dds": "dc92f8e0d67c8b21b8360011a84db56e456b3d9d5650f27383ca0f871d9208be",
       "crhd_titan_ti01cc0_s.dds": "fda696a8e525b22a9a26856616e9995c0cfa91b0e4cb3bf7a6c464f53bd42e25",
       "crhd_titan_ti01da0_s.dds": "803464efd89f03679e67bd3cc9609f3d1d914c5d3c240d4c679b5d813a994fef",
-      "crhd_titan_ti03ca0_s.dds": "ec7d444191fb006cc93b0c6eea1b4eac2dd0cec643a3044d1904ecbf6d415a65",
-      "crhd_titan_ti03da0_s.dds": "be37f2b35f44cf6ef11fd141468110517115dbcde0e008accdf78c8a96a26d55",
-      "crhd_titan_ti03db0_s.dds": "9ec5c3a05c5d6943dfd99942e288ff68482a6b8f0336d4a3b37c32b16df45ce7",
+      "crhd_titan_ti03ca0_s.dds": "91d991992849c2918e422c6816687b4e669b8c5a0e5d6eb1c472660bd0a421cf",
+      "crhd_titan_ti03da0_s.dds": "de06fe5f2f530ffa3b0533e1ded0b0eaf263d1b4dce763d741a998136897cb7d",
+      "crhd_titan_ti03db0_s.dds": "74d8f13643088114cd36b0068270128e5d7f2a95ffc21d3e799f9895487d733c",
       "crhd_titan_ti11sa0_s.dds": "d68db7ff5fb0dfd992e9585579b5b1255cc06c4e04420bc3b6e3cbeb3249b1b7",
       "crhd_titan_ti11sb0_s.dds": "e2e349d8f8352557e707c36c1c5011ed0387996ab4b2316c4e05a24aee6ac693",
-      "crhd_titan_ti33sa0_s.dds": "e2745eee952bc0e289781b38f3a60e6426c9b2777cfea08bf74716aabbb8fe4c",
-      "crhd_titan_ti33sb0_s.dds": "e2745eee952bc0e289781b38f3a60e6426c9b2777cfea08bf74716aabbb8fe4c",
+      "crhd_titan_ti33sa0_s.dds": "5965645429b7f0c26af28f59d00c18b631d5dcbea19f9227ce397499e3f75540",
+      "crhd_titan_ti33sb0_s.dds": "5965645429b7f0c26af28f59d00c18b631d5dcbea19f9227ce397499e3f75540",
       "crhd_titan_ti00sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
       "crhd_titan_ti00sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
       "crhd_titan_ti01ca0_e.dds": "2f35779bc07ed4ab37aedd0d91f939ca3a290da33af0c21f7b8d0ca65beb3ee8",
@@ -73,130 +74,133 @@
       "crhd_titan_ti33sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0"
     }
   },
-  "baseEmissives": {
-    "schema": "cr-base-emissive-accents-v1",
-    "sourceId": "ccf0a633cb88",
-    "maximum": 32,
-    "sourceGain": 0.1,
-    "settings": {
-      "type": 1,
-      "color": [
-        10,
-        24,
-        32
-      ],
-      "rectangles": [
-        [
-          0.1,
-          0.12,
-          0.03,
-          0.004
+  "baselineEvidenceNote": "Historical pre-promotion source audits, not replacement-art measurements",
+  "baselineEvidence": {
+    "baseEmissives": {
+      "schema": "cr-base-emissive-accents-v1",
+      "sourceId": "ccf0a633cb88",
+      "maximum": 32,
+      "sourceGain": 0.1,
+      "settings": {
+        "type": 1,
+        "color": [
+          10,
+          24,
+          32
         ],
-        [
-          0.6,
-          0.62,
-          0.03,
-          0.004
+        "rectangles": [
+          [
+            0.1,
+            0.12,
+            0.03,
+            0.004
+          ],
+          [
+            0.6,
+            0.62,
+            0.03,
+            0.004
+          ]
         ]
-      ]
+      },
+      "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
     },
-    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
-  },
-  "sources": [
-    {
-      "id": "ccf0a633cb88",
-      "name": "Metal3.tga",
-      "engineConversion": "flip_green",
-      "heightQualification": "unverified absolute polarity: no independent source height"
+    "sources": [
+      {
+        "id": "ccf0a633cb88",
+        "name": "Metal3.tga",
+        "engineConversion": "flip_green",
+        "heightQualification": "unverified absolute polarity: no independent source height"
+      },
+      {
+        "id": "3882f0722a8e",
+        "name": "rock_face_03_diff_8k.jpg",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "baf3917a65e3d2e8c74f32709129b3535d2d9149878dd58c06bd877750a424d8",
+        "convertedSourceSlopeCorrelations": [
+          0.6220674253217147,
+          0.6535989199926655
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      },
+      {
+        "id": "methane_spectral_v6",
+        "name": "4K methane spectral wind-wave material",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "cffc960a93a5286a7a31aefdb90f3c44e46a402fa7c818cf8b93b34462e7bc57",
+        "convertedSourceSlopeCorrelations": [
+          0.9442149446217017,
+          0.9390657801363287
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      }
+    ],
+    "normalMips": 143,
+    "nonPositiveZTexels": {},
+    "emissiveTiles": {
+      "crhd_titan_ti00sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_titan_ti00sb0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_titan_ti01ca0_e.dds": {
+        "maximum": 16,
+        "litFraction": 0.000110626220703125
+      },
+      "crhd_titan_ti01cb0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.000118255615234375
+      },
+      "crhd_titan_ti01cc0_e.dds": {
+        "maximum": 24,
+        "litFraction": 0.000118255615234375
+      },
+      "crhd_titan_ti01da0_e.dds": {
+        "maximum": 8,
+        "litFraction": 7.62939453125e-05
+      },
+      "crhd_titan_ti03ca0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_titan_ti03da0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_titan_ti03db0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_titan_ti11sa0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.00023651123046875
+      },
+      "crhd_titan_ti11sb0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.00023651123046875
+      },
+      "crhd_titan_ti33sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_titan_ti33sb0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      }
     },
-    {
-      "id": "3882f0722a8e",
-      "name": "rock_face_03_diff_8k.jpg",
-      "engineConversion": "flip_green",
-      "sourceHeightSha256": "baf3917a65e3d2e8c74f32709129b3535d2d9149878dd58c06bd877750a424d8",
-      "convertedSourceSlopeCorrelations": [
-        0.6220674253217147,
-        0.6535989199926655
-      ],
-      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    "projectedBasis": {
+      "cases": 24,
+      "minimumCosineToHeightGeometry": 0.9999999999999997,
+      "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
+      "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
+      "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
     },
-    {
-      "id": "methane_spectral_v6",
-      "name": "4K methane spectral wind-wave material",
-      "engineConversion": "flip_green",
-      "sourceHeightSha256": "cffc960a93a5286a7a31aefdb90f3c44e46a402fa7c818cf8b93b34462e7bc57",
-      "convertedSourceSlopeCorrelations": [
-        0.9442149446217017,
-        0.9390657801363287
-      ],
-      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
-    }
-  ],
-  "normalMips": 143,
-  "nonPositiveZTexels": {},
-  "emissiveTiles": {
-    "crhd_titan_ti00sa0_e.dds": {
-      "maximum": 0,
-      "litFraction": 0.0
-    },
-    "crhd_titan_ti00sb0_e.dds": {
-      "maximum": 0,
-      "litFraction": 0.0
-    },
-    "crhd_titan_ti01ca0_e.dds": {
-      "maximum": 16,
-      "litFraction": 0.000110626220703125
-    },
-    "crhd_titan_ti01cb0_e.dds": {
-      "maximum": 33,
-      "litFraction": 0.000118255615234375
-    },
-    "crhd_titan_ti01cc0_e.dds": {
-      "maximum": 24,
-      "litFraction": 0.000118255615234375
-    },
-    "crhd_titan_ti01da0_e.dds": {
-      "maximum": 8,
-      "litFraction": 7.62939453125e-05
-    },
-    "crhd_titan_ti03ca0_e.dds": {
-      "maximum": 0,
-      "litFraction": 0.0
-    },
-    "crhd_titan_ti03da0_e.dds": {
-      "maximum": 0,
-      "litFraction": 0.0
-    },
-    "crhd_titan_ti03db0_e.dds": {
-      "maximum": 0,
-      "litFraction": 0.0
-    },
-    "crhd_titan_ti11sa0_e.dds": {
-      "maximum": 33,
-      "litFraction": 0.00023651123046875
-    },
-    "crhd_titan_ti11sb0_e.dds": {
-      "maximum": 33,
-      "litFraction": 0.00023651123046875
-    },
-    "crhd_titan_ti33sa0_e.dds": {
-      "maximum": 0,
-      "litFraction": 0.0
-    },
-    "crhd_titan_ti33sb0_e.dds": {
-      "maximum": 0,
-      "litFraction": 0.0
-    }
-  },
-  "projectedBasis": {
-    "cases": 24,
-    "minimumCosineToHeightGeometry": 0.9999999999999997,
-    "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
-    "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
-    "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
-  },
-  "limitations": [
-    "Source height and analytical basis checks do not substitute for native GPU draw evidence.",
-    "Nonpositive Z samples are inventoried; native source maps are not silently reauthored."
-  ]
+    "limitations": [
+      "Source height and analytical basis checks do not substitute for native GPU draw evidence.",
+      "Nonpositive Z samples are inventoried; native source maps are not silently reauthored."
+    ]
+  }
 }

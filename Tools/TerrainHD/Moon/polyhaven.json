@@ -1,0 +1,100 @@
+{
+  "schema": "cr-moon-polyhaven-v1",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "assets": [
+    {
+      "asset": "moon_meteor_02",
+      "channel": "diff",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/moon_meteor_02/moon_meteor_02_diff_2k.png",
+      "file": "moon_meteor_02_diff_2k.png",
+      "bytes": 19340716,
+      "sha256": "848f09aaad228b2af9cba0adb995fad6aa2627523021a28b138ccf9f42574c67"
+    },
+    {
+      "asset": "moon_meteor_02",
+      "channel": "disp",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/moon_meteor_02/moon_meteor_02_disp_2k.png",
+      "file": "moon_meteor_02_disp_2k.png",
+      "bytes": 6150652,
+      "sha256": "b0168da541ad6252bcaf0a48bac23eaf85a067d8add947046888c8616d7ea9e4"
+    },
+    {
+      "asset": "moon_meteor_02",
+      "channel": "nor_dx",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/moon_meteor_02/moon_meteor_02_nor_dx_2k.png",
+      "file": "moon_meteor_02_nor_dx_2k.png",
+      "bytes": 23461926,
+      "sha256": "20f91004a1e8513ef93585e94e31c507df4ead07838db774dad9992bf0cbe099"
+    },
+    {
+      "asset": "moon_meteor_02",
+      "channel": "rough",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/moon_meteor_02/moon_meteor_02_rough_2k.png",
+      "file": "moon_meteor_02_rough_2k.png",
+      "bytes": 5861689,
+      "sha256": "283ee27260746ba20e190f59defc52934d64f2a79b5a5e2578ade3b5ea569342"
+    },
+    {
+      "asset": "moon_dusted_01",
+      "channel": "diff",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/moon_dusted_01/moon_dusted_01_diff_2k.png",
+      "file": "moon_dusted_01_diff_2k.png",
+      "bytes": 22012916,
+      "sha256": "7a700de0ef76c0cd5ad1d2c59ba8feb507ebeacd5fce24d9412c7980714faa1f"
+    },
+    {
+      "asset": "moon_dusted_01",
+      "channel": "disp",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/moon_dusted_01/moon_dusted_01_disp_2k.png",
+      "file": "moon_dusted_01_disp_2k.png",
+      "bytes": 6940787,
+      "sha256": "941253095a229a02ee91f14b8adb2c13d96e77a5197b81c4d2eaeae193f4e651"
+    },
+    {
+      "asset": "moon_dusted_01",
+      "channel": "nor_dx",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/moon_dusted_01/moon_dusted_01_nor_dx_2k.png",
+      "file": "moon_dusted_01_nor_dx_2k.png",
+      "bytes": 23283073,
+      "sha256": "75162aaa5834c104f0e09a940388cb589e811aa778722de6604004ff78c12b33"
+    },
+    {
+      "asset": "moon_dusted_01",
+      "channel": "rough",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/moon_dusted_01/moon_dusted_01_rough_2k.png",
+      "file": "moon_dusted_01_rough_2k.png",
+      "bytes": 6642782,
+      "sha256": "dd78f3c1fab1be77950246d8bea94db54aeb8c1c4f1cd411a0ca322192e238f8"
+    }
+  ],
+  "ground": {
+    "asset": "moon_meteor_02",
+    "sourceWidthMeters": 3.2,
+    "repeats": 6,
+    "targetMean": [
+      88,
+      92,
+      98
+    ],
+    "normalStrength": 0.8
+  },
+  "dust": {
+    "asset": "moon_dusted_01",
+    "sourceWidthMeters": 0.4,
+    "repeats": 50,
+    "targetMean": [
+      88,
+      92,
+      98
+    ],
+    "normalStrength": 0.5
+  },
+  "detail": {
+    "asset": "moon_dusted_01",
+    "repeats": 6,
+    "heightContrast": 0.035
+  },
+  "specularMinimum": 10,
+  "specularRange": 24
+}

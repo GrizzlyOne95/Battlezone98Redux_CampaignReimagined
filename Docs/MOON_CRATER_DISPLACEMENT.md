@@ -8,6 +8,10 @@ intervening ground. Native terrain and collision files are unchanged.
 
 The source recipe is `Tools/TerrainHD/Moon/craters.json`. Adjust crater centers
 (tile UV), radii in meters, relative depth, rim height/width or tile gains.
+The shared height generator also accepts per-crater elliptical axes, orientation,
+flat floors and worn rims. The newer matched HD material candidate uses these
+in `Tools/TerrainHD/Moon/regolith.json`, including an independent second ground
+layout; see `Docs/MOON_REGOLITH_CANDIDATE.md` for its controls and live evidence.
 The original D/N/S/E files are untouched. Native geometry uses a small, separate
 R32 height lookup with the existing CSV layout; diffuse and other HD channels
 remain independent tile arrays. This does not crop or rebuild their atlases.

@@ -102,5 +102,62 @@
         "N": "6db07a472c6c41ac49ea92d63462909eb773c0f4b1bf3bf72157a5ac2b576b84"
       }
     }
-  ]
+  ],
+  "worldSurfaceArt": {
+    "schema": "cr-world-surface-art-v1",
+    "settings": {
+      "intent": "Keep warm brown/cream identity while introducing dirty fractured ice instead of pebble beds",
+      "types": {
+        "0": {
+          "replacement": {
+            "world": "Europa",
+            "alias": "EU11SA0.MAP",
+            "weight": 0.35
+          },
+          "normalStrength": 0.9,
+          "specularMaximum": 36
+        },
+        "1": {
+          "replacement": {
+            "world": "Europa",
+            "alias": "EU33SA0.MAP",
+            "weight": 0.72
+          },
+          "brightness": 1.06,
+          "normalStrength": 0.9,
+          "specularMaximum": 44
+        },
+        "2": {
+          "contrast": 0.94,
+          "normalStrength": 0.9
+        }
+      }
+    },
+    "references": {
+      "0:D": {
+        "file": "crhd_europa_eu11sa0_d.dds",
+        "sha256": "f18b71b9214669d4ff9d35ab0524a9802a0c653a77d01399fb6c848397a3d396"
+      },
+      "1:D": {
+        "file": "crhd_europa_eu33sa0_d.dds",
+        "sha256": "cfe708e69fa7190987dd713d80f7489b387405904358d511c89d9fcdc36c089b"
+      },
+      "0:N": {
+        "file": "crhd_europa_eu11sa0_n.dds",
+        "sha256": "caefb8f03d421609d9258355e9c1eaf4391b5b3bbd1c7846efa88ab6ff4babea"
+      },
+      "1:N": {
+        "file": "crhd_europa_eu33sa0_n.dds",
+        "sha256": "17fe634e38ba4c4ceebda40c98e05f9c4feb518ac0f385ac437d65e0c4c1e148"
+      },
+      "0:S": {
+        "file": "crhd_europa_eu11sa0_s.dds",
+        "sha256": "2c7681e1b2ecd768c4d8226b1981dd35ad7ddd43b667bab990e71c3353fb12d2"
+      },
+      "1:S": {
+        "file": "crhd_europa_eu33sa0_s.dds",
+        "sha256": "68b531d56c0a48ba2431d2d6e33f0600eba8d702c9703c8d74f4ba618b4365c8"
+      }
+    }
+  }
 }

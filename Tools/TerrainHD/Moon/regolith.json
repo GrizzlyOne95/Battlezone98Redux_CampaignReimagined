@@ -1,0 +1,40 @@
+{
+  "schema": "cr-moon-regolith-v1",
+  "tileSize": 1024,
+  "tileMeters": 20.0,
+  "heightAtlasSize": 1024,
+  "depthMeters": 0.625,
+  "edgeMeters": 1.2,
+  "rimHeight": 0.40,
+  "rimWidth": 0.18,
+  "seed": 30103,
+  "albedo": [78, 84, 93],
+  "albedoVariation": 3.0,
+  "dustHeightMeters": 0.004,
+  "normalSharpenCompensation": 2.1,
+  "detailSize": 2048,
+  "floorDustStrength": 0.88,
+  "floorDustStart": 0.14,
+  "floorDustFull": 0.60,
+  "rimNormalSoftening": 0.65,
+  "rimAlbedoGain": 0.12,
+  "patchDustStrength": 0.30,
+  "patchThreshold": 1.8,
+  "craters": [
+    {"center": [0.38, 0.43], "radiusMeters": 3.4, "depth": 1.0, "floorRadius": 0.30, "rimHeight": 0.46, "rimWidth": 0.16, "aspect": [1.08, 0.94], "rotationDegrees": 18, "rimBreakup": 0.20, "phase": 0.8},
+    {"center": [0.66, 0.63], "radiusMeters": 1.65, "depth": 0.68, "floorRadius": 0.20, "rimHeight": 0.40, "rimWidth": 0.15, "rimBreakup": 0.18, "phase": 2.4},
+    {"center": [0.76, 0.26], "radiusMeters": 0.90, "depth": 0.46, "floorRadius": 0.12, "rimHeight": 0.44, "rimWidth": 0.16, "phase": 4.1},
+    {"center": [0.24, 0.77], "radiusMeters": 1.10, "depth": 0.38, "rimHeight": 0.20, "rimWidth": 0.32, "aspect": [1.16, 0.88], "rotationDegrees": -25, "rimBreakup": 0.65, "phase": 1.6}
+  ],
+  "variants": {
+    "MN00SC0.MAP": {
+      "seed": 31103,
+      "craters": [
+        {"center": [0.42, 0.40], "radiusMeters": 3.25, "depth": 0.82, "floorRadius": 0.42, "rimHeight": 0.30, "rimWidth": 0.28, "aspect": [1.20, 0.86], "rotationDegrees": -24, "rimBreakup": 0.58, "phase": 3.7},
+        {"center": [0.61, 0.49], "radiusMeters": 1.9, "depth": 0.80, "floorRadius": 0.18, "rimHeight": 0.46, "rimWidth": 0.14, "rimBreakup": 0.12, "phase": 0.3},
+        {"center": [0.29, 0.75], "radiusMeters": 1.35, "depth": 0.60, "floorRadius": 0.22, "rimHeight": 0.38, "rimWidth": 0.18, "phase": 2.0},
+        {"center": [0.77, 0.78], "radiusMeters": 0.80, "depth": 0.32, "rimHeight": 0.22, "rimWidth": 0.30, "rimBreakup": 0.70, "phase": 5.3}
+      ]
+    }
+  }
+}

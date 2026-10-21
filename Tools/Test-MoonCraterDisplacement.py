@@ -60,6 +60,18 @@ class CraterArt(unittest.TestCase):
         edited = craters.build(self.settings, self.layout, original)
         np.testing.assert_allclose(original, edited, atol=1e-6)
 
+    def test_per_crater_morphology_varies_worn_and_fresh_impacts(self):
+        settings=copy.deepcopy(self.settings)
+        settings["craters"]=[{"center":[.5,.5],"radiusMeters":3.,"depth":1.,
+                            "floorRadius":.3,"rimHeight":.45,"aspect":[1.2,.8],
+                            "rotationDegrees":20,"rimBreakup":.6,"phase":2.}]
+        tile=craters.crater_tile(256,settings)
+        self.assertGreater(float(tile.max()),.15)
+        self.assertLess(float(tile.min()),-.99)
+        self.assertTrue(np.isfinite(tile).all())
+        settings["craters"][0]["floorRadius"]=.9
+        with self.assertRaises(ValueError): craters.crater_tile(256,settings)
+
 
 if __name__ == "__main__":
     unittest.main()

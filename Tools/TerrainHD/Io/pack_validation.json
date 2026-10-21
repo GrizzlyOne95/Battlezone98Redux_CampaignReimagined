@@ -1,6 +1,7 @@
 {
   "schema": "cr-hd-pack-validation-v1",
   "world": "io",
+  "acceptedArt": "2026-10-21; see Docs/WORLD_ART_PROMOTION.md",
   "bundle": {
     "schema": "bzr-terrain-hd-bundle-report-v1",
     "material": "IO_DETAIL_ATLAS",
@@ -19,22 +20,22 @@
     "processRamEstimate": null,
     "memoryNote": "GPU storage is not 32-bit process RAM. Profile private bytes, peak and largest free VA in game.",
     "sha256": {
-      "crhd_io_io00sa0_d.dds": "7ad83002e3d64dc82f65f3becaafb5e278283fd6a684558e3b14ee90180b5af1",
-      "crhd_io_io00sb0_d.dds": "c8f7ae27b858bb93d12f2618a013c14a5fc4454c842584276917135af3d8e91e",
-      "crhd_io_io00sc0_d.dds": "d192c56263087e951546ac08ae8fa705f8df0d33fea5a0375ca9f796b92894c4",
-      "crhd_io_io01ca0_d.dds": "e63fcf374ffe8b2f3ba1560b253360debd634698ab579e72562581f4188a7ae3",
-      "crhd_io_io01da0_d.dds": "6acfbabde998a354d47dcea57e0f037fe7c4bf56401015c78719970e79d6f4b7",
-      "crhd_io_io03ca0_d.dds": "1bc4a84cb87af4ad2b81d1c7cc809c8408491f7659f884db8dd78dd6051e681e",
-      "crhd_io_io03da0_d.dds": "f21f370520c86dfbc65862801b3d4a1a0f0dfea2cd31bac2d364dff739e52f07",
+      "crhd_io_io00sa0_d.dds": "a07330885c83a15767093e1b81994f0aef339398741c7967ad84ab1abd64d059",
+      "crhd_io_io00sb0_d.dds": "9463394b88c543cefd4ffd7106a23d3926dc18248b250c6498655fc3cdc78d85",
+      "crhd_io_io00sc0_d.dds": "3d730fcb855f16711030fc945820ca1a6680827d7d0fc79e32d9b849d897e121",
+      "crhd_io_io01ca0_d.dds": "22c8a67c5fe0a87b01f6f05adfc12e6d5ab699a2c70f057ae6d497d86afdee0b",
+      "crhd_io_io01da0_d.dds": "b98b7ca26e54974a90887b6ed5784034f9bf0ded2b7e48eb556f6846b75c7826",
+      "crhd_io_io03ca0_d.dds": "21ada7be4ccf17a003d9e79f3b1311484a5944fdb1e46671a20307928f84d194",
+      "crhd_io_io03da0_d.dds": "2e5570e902c76b01cb6cf137c703ab3a06930bb25e5e7e4df7e9e0a337d10e15",
       "crhd_io_io11sa0_d.dds": "87e770bfd2281a601b5c92737c10783dd04e2568eec178ae1acd0e1dad0f464c",
-      "crhd_io_io33sa0_d.dds": "c0f3dbd1a4a349dd4169514c747686ee2284b09fac056f28278e7cb86d40e375",
-      "crhd_io_io33sb0_d.dds": "17967080a9b607de6b7e8ff4fd4e11fd3dae85a604648b27801e32fc3c84b88c",
-      "crhd_io_io34ca0_d.dds": "588f0464980ed35ec6700d404748d434983a29e829c95b109674188fd1d16df2",
-      "crhd_io_io34da0_d.dds": "0b90763455b3f2ada70bf817c7d068829b1b88aca48e7befe5b6954b242367aa",
-      "crhd_io_io44sa0_d.dds": "159eafdd3fc99839cdea5e7ce1bc5fab3dafe4bffc1df3757c038d3bd5f9bf16",
-      "crhd_io_io45ca0_d.dds": "a80ba962311620fc7f7bc3f61ca832a64ede86cf34b6e911b036718db2d66b00",
-      "crhd_io_io45cb0_d.dds": "ca95bd211f5348b65e5680681edf4e833b52332844b44726fcf68ab00db50038",
-      "crhd_io_io45da0_d.dds": "1f723b28327474dc813c6d448f83b786ba105229a8f62f995d7b1af08fab25b3",
+      "crhd_io_io33sa0_d.dds": "a7490193793fabaf3a15c4b0751aeddc9e796cc27397d8cd6ad031ad1765a6f4",
+      "crhd_io_io33sb0_d.dds": "25a01eae72bdbb959f15986065dc15f2d2c841e4d5ed3be5fe8bf785cc16789b",
+      "crhd_io_io34ca0_d.dds": "24f3eea0cb49080318f67c03a45cf4335ee3d46f6778faa8bfbd9cbca8849555",
+      "crhd_io_io34da0_d.dds": "785c5d5f1803d77a393cb78c6daf1ba1f9504b6d18140bb4213bd0f35e22e55b",
+      "crhd_io_io44sa0_d.dds": "31f59387ea31fef3c1daa59603403bb6f08a1724634fdceeab48a25834f0a6f3",
+      "crhd_io_io45ca0_d.dds": "26b04c224848938894aaa82bdcfc643bbcd69477de78b87771c538c4f2a1d158",
+      "crhd_io_io45cb0_d.dds": "63aceb6e3f273d37f270c200aa80b4679b6693a89df6042e5c37ad0e5cf7ba59",
+      "crhd_io_io45da0_d.dds": "7d4e0e2ed8087f458158b6db6a2c39885b30f1f9a985df1d27a2f826a9294d2d",
       "crhd_io_io55sa0_d.dds": "4817875855125994a458d5b522720417e60a81c91aba59d7d8f94168b552988d",
       "crhd_io_io55sb0_d.dds": "9e90a396cdcd3797337d53072b3c35b0848f2cb54a3e983dc214d8933e9c8357",
       "crhd_io_io55sc0_d.dds": "ebb3ac7edabd73b2debff6bda7d3a4414351983e832ddf0e57b77312f5620c11",
@@ -43,17 +44,17 @@
       "crhd_io_io00sc0_n.dds": "17d50f7be080a45a60bb45e693de50cf9055cd96d5a0c84ed06f6697ec2612bc",
       "crhd_io_io01ca0_n.dds": "bcf066ec9d5e768017181c72e4e033278b3951b5fcda64b46af2fa51f076a037",
       "crhd_io_io01da0_n.dds": "00391e0beb950c7b7bec827df9b840091c64b1c99bdcb6fccfde885e567a8fc1",
-      "crhd_io_io03ca0_n.dds": "50ab8e17272aa2a26174dfb9f02f10f246a7a2b7f5f413580b08e22d63e19ba1",
-      "crhd_io_io03da0_n.dds": "338dd6f534220bbafdd31a15a00fabbe49b7f727fa2d45f320b1a68fe09e1a92",
+      "crhd_io_io03ca0_n.dds": "65681d983954e9f8b857306a8025feef6ce8ff7eea8d2ffe3cf64cca92f81ba1",
+      "crhd_io_io03da0_n.dds": "2a3932caf8fb27c59366f76b4b05e74c4e619f22e078ca3b2214fc329c9efc31",
       "crhd_io_io11sa0_n.dds": "a5ecfff488b7919a69f5679fbd34c0cbc3118f0f1320129740d8538d1b88efd0",
-      "crhd_io_io33sa0_n.dds": "64e4df971d7d8811d45fc6fcd49262d1593dc4821c941edad0c8260249ffa143",
-      "crhd_io_io33sb0_n.dds": "a6edce854d1ff0e9e4d068cdfa035cd44486be78164eaade0b0a332f666bf92e",
-      "crhd_io_io34ca0_n.dds": "59251de36be41d22f004b3574aa88c08e12a208edbb9a1b5dae3afbaa1c1f7de",
-      "crhd_io_io34da0_n.dds": "9b7c6a442125a22015ebf1b5ca25f12f9a45ae73d7382ed3fa8719405b86f693",
-      "crhd_io_io44sa0_n.dds": "c74d6aaddce990db0902f745b668d53f156f330c3aafb5e676f3068d4e7e11c8",
-      "crhd_io_io45ca0_n.dds": "813d777159f7541d989bd814f8400565ba94022a22d55aa91fe38cc881eed466",
-      "crhd_io_io45cb0_n.dds": "ba3981501fa04e4e8c9dace21e0628e607ca55062d9b41db9e6595828e41aa2b",
-      "crhd_io_io45da0_n.dds": "0d1baa56a6720be89c0bc7ad858eb78bca307ce803262ab6d8ee49af6235459c",
+      "crhd_io_io33sa0_n.dds": "f5ef9846f286925b20938d30041baf654866dd8b94b4c1931580c98c01d63237",
+      "crhd_io_io33sb0_n.dds": "4f5006bf7e4d6a5be1ecfb6b0fe93df6c252288a22dbe7ef0e0905f5b7d1a954",
+      "crhd_io_io34ca0_n.dds": "c74292c60cf371d2efc39dfab5cda885a01b9bc40ca2eb5979cd17d2e97da6bd",
+      "crhd_io_io34da0_n.dds": "53495d3f82d455c73f13f0e7c47fece7d44ff09a77b3e26a270147d170641fba",
+      "crhd_io_io44sa0_n.dds": "bbcf160593dff13fb5084a09b20aa9c07718dca7161cfaef08f234446305bab5",
+      "crhd_io_io45ca0_n.dds": "da94bbe793b61a93e82cbdf9ee6e2db304e6eecf1553bced7e34b87cd9c1b589",
+      "crhd_io_io45cb0_n.dds": "c3cc89df68796597e342d838a9894844742cae7c05e94abf14dd1b65941b13fd",
+      "crhd_io_io45da0_n.dds": "ae85094a9d622adc030ce4ee8d2a95caeb538b5aba584cf85a88f612993c490c",
       "crhd_io_io55sa0_n.dds": "7dd784b3c3c44137237318034352ffe243d5a5b1974e6b0d4d8bda0db2cc08f1",
       "crhd_io_io55sb0_n.dds": "f1f01e83e8a9d7f19a13db4d874a8765db62b18a10dc7232088e2429656eced2",
       "crhd_io_io55sc0_n.dds": "b3dbaf710115138c2ce757a27ca9e8868127c96a6582404efa1fdaf8be67c52a",
@@ -97,183 +98,186 @@
       "crhd_io_io55sc0_e.dds": "c3218d4c184c36490494d98ccd9f55a5de252f8929e26947981fa2a156a9017d"
     }
   },
-  "baseEmissives": {
-    "schema": "cr-base-emissive-accents-v1",
-    "sourceId": "98d8e7cb0b61",
-    "maximum": 32,
-    "sourceGain": 0.1,
-    "settings": {
-      "type": 5,
-      "color": [
-        32,
-        20,
-        8
-      ],
-      "rectangles": [
-        [
-          0.24,
-          0.24,
-          0.03,
-          0.004
+  "baselineEvidenceNote": "Historical pre-promotion source audits, not replacement-art measurements",
+  "baselineEvidence": {
+    "baseEmissives": {
+      "schema": "cr-base-emissive-accents-v1",
+      "sourceId": "98d8e7cb0b61",
+      "maximum": 32,
+      "sourceGain": 0.1,
+      "settings": {
+        "type": 5,
+        "color": [
+          32,
+          20,
+          8
         ],
-        [
-          0.74,
-          0.74,
-          0.03,
-          0.004
+        "rectangles": [
+          [
+            0.24,
+            0.24,
+            0.03,
+            0.004
+          ],
+          [
+            0.74,
+            0.74,
+            0.03,
+            0.004
+          ]
         ]
-      ]
+      },
+      "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
     },
-    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
-  },
-  "sources": [
-    {
-      "id": "29900a7d7ec9",
-      "name": "SuperheatedRockLavaSurface_albedo.png",
-      "engineConversion": "flip_green",
-      "sourceHeightSha256": "4837c2f365e4164f48277dd9dbe984c11b7f33a998a9006269e670beb164b84f",
-      "convertedSourceSlopeCorrelations": [
-        0.7685446305990257,
-        0.7708448294210979
-      ],
-      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    "sources": [
+      {
+        "id": "29900a7d7ec9",
+        "name": "SuperheatedRockLavaSurface_albedo.png",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "4837c2f365e4164f48277dd9dbe984c11b7f33a998a9006269e670beb164b84f",
+        "convertedSourceSlopeCorrelations": [
+          0.7685446305990257,
+          0.7708448294210979
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      },
+      {
+        "id": "cc3955ca7c78",
+        "name": "rend5.tga",
+        "engineConversion": "flip_green",
+        "heightQualification": "unverified absolute polarity: no independent source height"
+      },
+      {
+        "id": "60ec44d9156e",
+        "name": "VolcanicEarth_albedo.png",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "e38623a8e2ff877a671360011f31df2818e366fcdf68dcb319321b47555df556",
+        "convertedSourceSlopeCorrelations": [
+          0.5815650834910188,
+          0.5791451827786397
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      },
+      {
+        "id": "98d8e7cb0b61",
+        "name": "SciFiMachineGuts_albedo.png",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "45886ff280e7262c59c69411f68819d1118752b72ca26f6be6d8464ba60a9eed",
+        "convertedSourceSlopeCorrelations": [
+          0.9282186610138408,
+          0.9314455311083204
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      },
+      {
+        "id": "fab_vmijee1g",
+        "name": "Sulphur_Rock_vmijee1g_8K_BaseColor.jpg",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "6cb904e4f9a3ef8bc3a62ae84af0261d908b5de8a9fad39afd821d42a2d3857e",
+        "convertedSourceSlopeCorrelations": [
+          0.8699101747712237,
+          0.8825408290876551
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      }
+    ],
+    "normalMips": 209,
+    "nonPositiveZTexels": {
+      "crhd_io_io34ca0_n.dds": 161,
+      "crhd_io_io34da0_n.dds": 350,
+      "crhd_io_io44sa0_n.dds": 775,
+      "crhd_io_io45ca0_n.dds": 576,
+      "crhd_io_io45cb0_n.dds": 531,
+      "crhd_io_io45da0_n.dds": 278
     },
-    {
-      "id": "cc3955ca7c78",
-      "name": "rend5.tga",
-      "engineConversion": "flip_green",
-      "heightQualification": "unverified absolute polarity: no independent source height"
+    "emissiveTiles": {
+      "crhd_io_io00sa0_e.dds": {
+        "maximum": 107,
+        "litFraction": 0.5873222351074219
+      },
+      "crhd_io_io00sb0_e.dds": {
+        "maximum": 107,
+        "litFraction": 0.5873260498046875
+      },
+      "crhd_io_io00sc0_e.dds": {
+        "maximum": 107,
+        "litFraction": 0.5873222351074219
+      },
+      "crhd_io_io01ca0_e.dds": {
+        "maximum": 107,
+        "litFraction": 0.7434177398681641
+      },
+      "crhd_io_io01da0_e.dds": {
+        "maximum": 107,
+        "litFraction": 0.7956066131591797
+      },
+      "crhd_io_io03ca0_e.dds": {
+        "maximum": 107,
+        "litFraction": 0.42800235748291016
+      },
+      "crhd_io_io03da0_e.dds": {
+        "maximum": 107,
+        "litFraction": 0.29183101654052734
+      },
+      "crhd_io_io11sa0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.9791536331176758
+      },
+      "crhd_io_io33sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_io_io33sb0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_io_io34ca0_e.dds": {
+        "maximum": 165,
+        "litFraction": 0.023349761962890625
+      },
+      "crhd_io_io34da0_e.dds": {
+        "maximum": 173,
+        "litFraction": 0.04333782196044922
+      },
+      "crhd_io_io44sa0_e.dds": {
+        "maximum": 173,
+        "litFraction": 0.0892324447631836
+      },
+      "crhd_io_io45ca0_e.dds": {
+        "maximum": 173,
+        "litFraction": 0.08423614501953125
+      },
+      "crhd_io_io45cb0_e.dds": {
+        "maximum": 173,
+        "litFraction": 0.0937032699584961
+      },
+      "crhd_io_io45da0_e.dds": {
+        "maximum": 148,
+        "litFraction": 0.08251476287841797
+      },
+      "crhd_io_io55sa0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.07483577728271484
+      },
+      "crhd_io_io55sb0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.07483673095703125
+      },
+      "crhd_io_io55sc0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.07483577728271484
+      }
     },
-    {
-      "id": "60ec44d9156e",
-      "name": "VolcanicEarth_albedo.png",
-      "engineConversion": "flip_green",
-      "sourceHeightSha256": "e38623a8e2ff877a671360011f31df2818e366fcdf68dcb319321b47555df556",
-      "convertedSourceSlopeCorrelations": [
-        0.5815650834910188,
-        0.5791451827786397
-      ],
-      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+    "projectedBasis": {
+      "cases": 24,
+      "minimumCosineToHeightGeometry": 0.9999999999999997,
+      "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
+      "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
+      "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
     },
-    {
-      "id": "98d8e7cb0b61",
-      "name": "SciFiMachineGuts_albedo.png",
-      "engineConversion": "flip_green",
-      "sourceHeightSha256": "45886ff280e7262c59c69411f68819d1118752b72ca26f6be6d8464ba60a9eed",
-      "convertedSourceSlopeCorrelations": [
-        0.9282186610138408,
-        0.9314455311083204
-      ],
-      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
-    },
-    {
-      "id": "fab_vmijee1g",
-      "name": "Sulphur_Rock_vmijee1g_8K_BaseColor.jpg",
-      "engineConversion": "flip_green",
-      "sourceHeightSha256": "6cb904e4f9a3ef8bc3a62ae84af0261d908b5de8a9fad39afd821d42a2d3857e",
-      "convertedSourceSlopeCorrelations": [
-        0.8699101747712237,
-        0.8825408290876551
-      ],
-      "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
-    }
-  ],
-  "normalMips": 209,
-  "nonPositiveZTexels": {
-    "crhd_io_io34ca0_n.dds": 161,
-    "crhd_io_io34da0_n.dds": 350,
-    "crhd_io_io44sa0_n.dds": 775,
-    "crhd_io_io45ca0_n.dds": 576,
-    "crhd_io_io45cb0_n.dds": 531,
-    "crhd_io_io45da0_n.dds": 278
-  },
-  "emissiveTiles": {
-    "crhd_io_io00sa0_e.dds": {
-      "maximum": 107,
-      "litFraction": 0.5873222351074219
-    },
-    "crhd_io_io00sb0_e.dds": {
-      "maximum": 107,
-      "litFraction": 0.5873260498046875
-    },
-    "crhd_io_io00sc0_e.dds": {
-      "maximum": 107,
-      "litFraction": 0.5873222351074219
-    },
-    "crhd_io_io01ca0_e.dds": {
-      "maximum": 107,
-      "litFraction": 0.7434177398681641
-    },
-    "crhd_io_io01da0_e.dds": {
-      "maximum": 107,
-      "litFraction": 0.7956066131591797
-    },
-    "crhd_io_io03ca0_e.dds": {
-      "maximum": 107,
-      "litFraction": 0.42800235748291016
-    },
-    "crhd_io_io03da0_e.dds": {
-      "maximum": 107,
-      "litFraction": 0.29183101654052734
-    },
-    "crhd_io_io11sa0_e.dds": {
-      "maximum": 33,
-      "litFraction": 0.9791536331176758
-    },
-    "crhd_io_io33sa0_e.dds": {
-      "maximum": 0,
-      "litFraction": 0.0
-    },
-    "crhd_io_io33sb0_e.dds": {
-      "maximum": 0,
-      "litFraction": 0.0
-    },
-    "crhd_io_io34ca0_e.dds": {
-      "maximum": 165,
-      "litFraction": 0.023349761962890625
-    },
-    "crhd_io_io34da0_e.dds": {
-      "maximum": 173,
-      "litFraction": 0.04333782196044922
-    },
-    "crhd_io_io44sa0_e.dds": {
-      "maximum": 173,
-      "litFraction": 0.0892324447631836
-    },
-    "crhd_io_io45ca0_e.dds": {
-      "maximum": 173,
-      "litFraction": 0.08423614501953125
-    },
-    "crhd_io_io45cb0_e.dds": {
-      "maximum": 173,
-      "litFraction": 0.0937032699584961
-    },
-    "crhd_io_io45da0_e.dds": {
-      "maximum": 148,
-      "litFraction": 0.08251476287841797
-    },
-    "crhd_io_io55sa0_e.dds": {
-      "maximum": 33,
-      "litFraction": 0.07483577728271484
-    },
-    "crhd_io_io55sb0_e.dds": {
-      "maximum": 33,
-      "litFraction": 0.07483673095703125
-    },
-    "crhd_io_io55sc0_e.dds": {
-      "maximum": 33,
-      "litFraction": 0.07483577728271484
-    }
-  },
-  "projectedBasis": {
-    "cases": 24,
-    "minimumCosineToHeightGeometry": 0.9999999999999997,
-    "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
-    "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
-    "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
-  },
-  "limitations": [
-    "Source height and analytical basis checks do not substitute for native GPU draw evidence.",
-    "Nonpositive Z samples are inventoried; native source maps are not silently reauthored."
-  ]
+    "limitations": [
+      "Source height and analytical basis checks do not substitute for native GPU draw evidence.",
+      "Nonpositive Z samples are inventoried; native source maps are not silently reauthored."
+    ]
+  }
 }

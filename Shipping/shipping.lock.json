@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-20T15:03:00-05:00",
-  "count": 3661,
+  "generated": "2026-10-21T07:48:17-05:00",
+  "count": 3676,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -14646,6 +14646,66 @@
     {
       "source": "Config\\ve_detail_atlas.csv",
       "runtime": "ve_detail_atlas.csv"
+    },
+    {
+      "source": "Materials\\crart_achilles.material",
+      "runtime": "crart_achilles.material"
+    },
+    {
+      "source": "Materials\\crart_mars.material",
+      "runtime": "crart_mars.material"
+    },
+    {
+      "source": "Materials\\crart_titan.material",
+      "runtime": "crart_titan.material"
+    },
+    {
+      "source": "Materials\\crart_venus.material",
+      "runtime": "crart_venus.material"
+    },
+    {
+      "source": "Scripts\\CRWorldArt.lua",
+      "runtime": "CRWorldArt.lua"
+    },
+    {
+      "source": "Materials\\crart_elysium.material",
+      "runtime": "crart_elysium.material"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_regolith_detail.dds",
+      "runtime": "crhd_moon_regolith_detail.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crhd_moon_regolith_h.dds",
+      "runtime": "crhd_moon_regolith_h.dds"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_menu_theme_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_menu_theme_center.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_preview_white.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_preview_white.png"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_reticle_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_reticle_center.png"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_menu_theme.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_menu_theme.hlsl.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_menu_theme.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_menu_theme.program.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_reticle_fx.hlsl.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_reticle_fx.hlsl.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_reticle_fx.program.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_reticle_fx.program.payload"
     }
   ]
 }

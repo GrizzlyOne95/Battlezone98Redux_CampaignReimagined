@@ -103,5 +103,29 @@
         "S": "0ad7b099144a9fed328fcef7d4382802a3f9439c5563956410b5765caab5eadb"
       }
     }
-  ]
+  ],
+  "worldSurfaceArt": {
+    "schema": "cr-world-surface-art-v1",
+    "settings": {
+      "intent": "Keep rusty orange dust, varied weathered rock and restrained dry highlights",
+      "types": {
+        "0": {
+          "neutralMix": 0.06,
+          "normalStrength": 0.92,
+          "specularMaximum": 32
+        },
+        "1": {
+          "neutralMix": 0.1,
+          "contrast": 0.95,
+          "specularMaximum": 35
+        },
+        "3": {
+          "neutralMix": 0.12,
+          "brightness": 1.04,
+          "specularMaximum": 36
+        }
+      }
+    },
+    "references": {}
+  }
 }

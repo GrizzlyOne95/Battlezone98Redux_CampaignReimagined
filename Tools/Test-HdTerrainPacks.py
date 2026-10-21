@@ -1,5 +1,6 @@
 """Rebuild every shipped HD pack and verify sparse base-only authoring semantics."""
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -9,6 +10,7 @@ import unittest
 import numpy as np
 from bzmodellibs import toolbox_root
 from terrain_hd_base_emissives import apply_base_emissives, apply_source_height_corrections
+from terrain_art_tuning import RUNTIME_DEFAULTS
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(toolbox_root()))
@@ -27,8 +29,8 @@ class HdPacks(unittest.TestCase):
                 "MA": {"microReliefScale": 0.0}}}))
             bundle.merge_manifest(path, {"schema": "v2", "materials": {"MN": {"new": True}, "VE": {}}})
             self.assertEqual(json.loads(path.read_text())["materials"], {
-                "MN": {"microReliefScale": 2.5, "new": True},
-                "MA": {"microReliefScale": 0.0}, "VE": {"microReliefScale": 1.0}})
+                "MN": dict(RUNTIME_DEFAULTS, microReliefScale=2.5, new=True),
+                "MA": {"microReliefScale": 0.0}, "VE": dict(RUNTIME_DEFAULTS)})
 
     def test_base_preview_swatch_preserves_source_terrain(self):
         from unittest.mock import patch
@@ -76,6 +78,11 @@ class HdPacks(unittest.TestCase):
                 material = project["material"]
                 expected = dict(combined[material])
                 scale = expected.pop("microReliefScale")
+                for key in ("detailContrast", "detailNormalStrength", "detailNormalNearScale", "surfaceBlend"):
+                    expected.pop(key)
+                if world == "moon":
+                    self.assertEqual(expected.pop("heightTexture"), "crhd_moon_regolith_h.dds")
+                    self.assertEqual(expected.pop("heightEncoding"), "signed-unit-r32")
                 self.assertEqual(scale, 2.5 if world == "moon" else 1.0)
                 self.assertEqual(json.loads((out / "terrain_hd_tiles.json").read_text())["materials"][material], expected)
                 for channels in project["tiles"].values():
@@ -86,6 +93,20 @@ class HdPacks(unittest.TestCase):
                 self.assertFalse(provenance["atlasPixelsRead"])
                 self.assertEqual(provenance["normalCorrections"], {})
                 self.assertEqual(provenance["baseEmissives"]["schema"], "cr-base-emissive-accents-v1")
+
+    def test_accepted_art_hashes_and_runtime_membership(self):
+        acceptance = json.loads((ROOT / "Tools/TerrainHD/accepted_world_art.json").read_text())
+        lock = json.loads((ROOT / "Shipping/shipping.lock.json").read_text(encoding="utf-8-sig"))
+        shipped = {r["source"].replace("\\", "/") for r in lock["files"]}
+        self.assertEqual(len(acceptance["worlds"]), 9)
+        self.assertEqual(sum(len(w["sha256"]) for w in acceptance["worlds"].values()), 606)
+        for world in acceptance["worlds"].values():
+            for name, digest in world["sha256"].items():
+                relative = "Assets/Textures/" + name
+                self.assertEqual(hashlib.sha256((ROOT / relative).read_bytes()).hexdigest(), digest)
+                self.assertIn(relative, shipped)
+        self.assertIn("set_texture_alias DetailMap crhd_moon_regolith_detail.dds",
+                      (ROOT / "Materials/mn_detail_atlas.material").read_text())
 
     def test_base_accents_are_sparse_bounded_and_do_not_touch_other_materials(self):
         worlds = json.loads((ROOT / "Tools/TerrainHD/base_emissives.json").read_text())["worlds"]

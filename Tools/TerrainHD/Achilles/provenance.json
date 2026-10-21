@@ -116,5 +116,28 @@
         "A": "0faa8ed942b8fa55acec02fafc24b7302d8029f954590c1576151e7ec5889755"
       }
     }
-  ]
+  ],
+  "worldSurfaceArt": {
+    "schema": "cr-world-surface-art-v1",
+    "settings": {
+      "intent": "Keep lush greens, distinguish soft forest floor from hard wet rock, preserve canopy identity",
+      "types": {
+        "0": {
+          "contrast": 0.94,
+          "normalStrength": 0.88,
+          "specularMaximum": 24
+        },
+        "1": {
+          "contrast": 0.93,
+          "normalStrength": 0.8,
+          "specularMaximum": 22
+        },
+        "2": {
+          "normalStrength": 0.94,
+          "specularMaximum": 42
+        }
+      }
+    },
+    "references": {}
+  }
 }

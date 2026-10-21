@@ -5,6 +5,11 @@ specular and emissive tiles built with the Modding Toolbox. Atlas image pixels
 are not used as source art. Original materials, atlases and mission terrain
 remain the fallback.
 
+The owner accepted the nine-world surface/lighting/sky pass on 2026-10-21.
+Its reviewed textures are now canonical; Moon additionally uses accepted Poly
+Haven regolith, authored crater height and fine detail. See
+[WORLD_ART_PROMOTION.md](WORLD_ART_PROMOTION.md) for the integration record.
+
 ## Adjusting geometric relief
 
 Edit `Config/cr_terrain_hd.json`: each world material has a
@@ -30,7 +35,8 @@ Collision and gameplay heights are unchanged. A live preview can opt in with
 An opt-in [Moon crater prototype](MOON_CRATER_DISPLACEMENT.md) now substitutes
 an explicit height texture for that noise in a local preview bundle. Its recipe
 and PNG authoring flow retain the same per-world depth control. The shipping
-pack still uses the previously reviewed art until this candidate is accepted.
+pack now includes the accepted crater height; it requires the normal HD tiles
+and Terrain Micro Detail options to render that geometry.
 
 Windows/GOG Moon trial (2026-10-20, PID 56724) confirmed factor 4,
 `displacement=0.625`, matching bounds on 144 meshes, 243,200 domain shader

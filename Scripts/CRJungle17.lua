@@ -257,7 +257,7 @@ function Jungle.Create(api)
         level,intensity,windSpeed,bearing=nil,0,0,210
         nextLayer=1;groups={};waters={};mist=false;error=nil;clouds="off"
         nextRain,nextFalls,nextSync=0,0,0
-        baseSky=safe("GetSkyPlaneEnabled")==true or safe("GetSkyDomeEnabled")==true or safe("GetSkyBoxEnabled")==true
+        baseSky=safe("GetSkyPlaneEnabled")==true or (safe("GetSkyDomeEnabled")==true and not E.ArtSkyOwned) or safe("GetSkyBoxEnabled")==true
         Weather.Init()
         -- Canopies, their shadow casters and the StaticGeometry ground cover sway
         -- with CRWeather's wind (meshes baked by Tools/Bake-FoliageSway.py); the

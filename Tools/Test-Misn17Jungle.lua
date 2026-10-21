@@ -56,7 +56,7 @@ DestroyParticleSystem=function(name) systems[name]=nil end,
 SetParticleEmitterEmissionRate=function(name,i,r) rates[name]=r end,
 MaterialExists=function(name) return name=="CR17/StormCloud" end,
 CloneMaterial=function(base,name) sky.clones[name]=true;return true end,
-SetSkyPlane=function(mat) sky.plane=mat;return true end,
+SetSkyPlane=function(mat,plane,scale,tiling,drawFirst) sky.plane=mat;sky.drawFirst=drawFirst;return true end,
 SetSkyPlaneEnabled=function(on) sky.enabled=on end,
 GetSkyPlaneEnabled=function() return false end,GetSkyDomeEnabled=function() return false end,
 GetSkyBoxEnabled=function() return false end,
@@ -257,4 +257,15 @@ local off=setfenv(assert(loadfile("Scripts/CRJungle17.lua")),env)().Create({exu=
 local initsBefore=wakeLog.init
 off.Reset();off.Stop()
 check(wakeLog.init==initsBefore,"vehicleWakes=false never initialises the wakes")
+api.exu.GetSkyDomeEnabled=function() return true end
+modules.Environment.ArtSkyOwned=true
+sky.plane=nil
+J.Reset();J.Update(.1,true,send)
+check(sky.plane=="CR17/StormCloud" and sky.drawFirst==true,"owned baseline permits a storm deck behind scene effects")
+J.Stop()
+modules.Environment.ArtSkyOwned=false
+sky.plane=nil
+J.Reset();J.Update(.1,true,send)
+check(sky.plane==nil,"a separate authored sky still keeps ownership")
+J.Stop()
 print("misn17 jungle: "..n.." checks passed")

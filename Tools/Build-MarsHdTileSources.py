@@ -14,12 +14,13 @@ from pathlib import Path
 import shutil
 import sys
 from terrain_hd_base_emissives import apply_base_emissives, apply_source_height_corrections
+from terrain_art_tuning import apply_authored_surface, surface_signature
 
 WORLD_STEMS = {"moon": "mn", "mars": "ma", "venus": "ve", "io": "io", "europa": "eu",
                "titan": "ti", "achilles": "ac", "ganymede": "ga", "elysium": "el"}
 
 
-def source_function(module, sink, tile_size=None, height_matched_normals=False, base_emissives=False):
+def source_function(module, sink, tile_size=None, height_matched_normals=False, base_emissives=False, art_direction=None):
     path = Path(module.__file__)
     tree = ast.parse(path.read_text(encoding="utf-8-sig"))
     function = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "build")
@@ -49,6 +50,11 @@ def source_function(module, sink, tile_size=None, height_matched_normals=False, 
         if len(boundaries) != 1:
             raise ValueError("Unsupported saved recipe: base emissive authoring boundary missing")
         loop.body[boundaries[0]+1:boundaries[0]+1] = ast.parse("_hd_base_emissives(world, ch, source_by_type, bases, report)").body
+        # Blend independent authored maps before rotations/transitions; native
+        # arrays still consume the same dimensions/channels and no new slot.
+        loop.body[boundaries[0]+1:boundaries[0]+1] = ast.parse("_hd_surface_blend(world, ch, source_by_type, bases, report)").body
+        if art_direction:
+            loop.body[boundaries[0]+1:boundaries[0]+1] = ast.parse("_hd_world_surface(world, ch, source_by_type, bases, report)").body
     cut = next((i for i, n in enumerate(loop.body) if isinstance(n, ast.If)
                 and "tile_cache.values()" in ast.unparse(n.test) and "'E'" in ast.unparse(n.test)), None)
     if cut is None:
@@ -66,6 +72,10 @@ def source_function(module, sink, tile_size=None, height_matched_normals=False, 
     scope = dict(vars(module)); scope["_hd_tile_sink"] = sink
     scope["_hd_base_emissives"] = apply_base_emissives
     scope["_hd_source_height_corrections"] = apply_source_height_corrections
+    scope["_hd_surface_blend"] = apply_authored_surface
+    if art_direction:
+        from world_surface_art import apply
+        scope["_hd_world_surface"] = lambda world,ch,types,bases,report: apply(world,ch,types,bases,report,art_direction)
     exec(compile(ast.fix_missing_locations(ast.Module(body=[function], type_ignores=[])), str(path), "exec"), scope)
     return scope["build"]
 
@@ -99,6 +109,7 @@ def main():
     p.add_argument("--source-build", type=Path)
     p.add_argument("--world", choices=WORLD_STEMS, default="mars")
     p.add_argument("--base-emissives", action="store_true", help="Add small UV-authored base accents before source rotations/transitions")
+    p.add_argument("--art-direction",type=Path,help="Explicit palette-preserving world surface recipe")
     p.add_argument("--images-only", action="store_true", help="Export independent PNG masters for Toolbox hd-tiles init/build")
     p.add_argument("--height-matched-normals", action="store_true", help="Keep source-height polarity after green conversion; omit empirical XY reversal")
     p.add_argument("--output", type=Path, required=True)
@@ -188,7 +199,10 @@ def main():
                 x, y = i % 5 * 160, i // 5 * 184
                 sheet.paste(image, (x, y)); draw.text((x+3, y+163), name, fill="white")
             sheet.save(output / f"{args.world}_tiles.jpg")
-    build = source_function(recipe, sink, args.tile_size, height_matched_normals, args.base_emissives)
+    direction = json.loads(args.art_direction.read_text()) if args.art_direction else None
+    if direction and not args.base_emissives:
+        raise ValueError("World surface art requires the qualified source/emissive pipeline")
+    build = source_function(recipe, sink, args.tile_size, height_matched_normals, args.base_emissives,direction)
     world = next(w for w in recipe.PLAN["worlds"] if w["world"] == args.world)
     report = build(world)
     for i, (name, entry) in enumerate(aliases.items()): entry["slice"] = i
@@ -203,6 +217,8 @@ def main():
               "normalRotation": report.get("normal_rotation"),
               "baseEmissives": report.get("base_emissives"),
               "sourceHeightCorrections": report.get("source_height_corrections", {}),
+              "surfaceBlend": surface_signature(args.world),
+              "worldSurfaceArt": report.get("world_surface_art"),
               "transitions": report.get("transitions", []),
               "recipeInputs": {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest()
                                for path in sorted(root.glob("*.py")) + sorted(root.glob("*.json"))},

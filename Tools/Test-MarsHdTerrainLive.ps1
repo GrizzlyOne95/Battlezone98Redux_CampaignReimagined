@@ -10,6 +10,7 @@ param(
  [string]$GameRoot='C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux',
  [string]$ResourceDirectory,
  [string]$ExuDll,
+ [string]$DetailTexture,
  [ValidateSet('mars','moon','venus','io','europa','titan','achilles','ganymede','elysium')][string]$World='mars',
  [ValidateSet('Enhanced','Redux','Retro')][string]$RenderProfile='Enhanced',
  [switch]$MeasureMemory,
@@ -18,6 +19,9 @@ param(
  [switch]$WideView,
  [switch]$BaseView,
  [switch]$GroundView,
+ [switch]$WorldArt,
+ [switch]$CloudDeck,
+ [ValidateRange(-1,15)][int]$SurfaceType=-1,
  [switch]$MicroRelief,
  [switch]$SettingsOnly,
  [switch]$BindCapture,
@@ -45,6 +49,9 @@ if($BindCapture -and $isBundle){throw 'Toolbox packs use rectangle mapping; capt
 if($Hd -and -not (Test-Path -LiteralPath $manifestPath)){throw 'Prepare the source tile bundle before previewing.'}
 if($ProfileCycle -and (-not $Hd -or $RenderProfile -ne 'Enhanced')){throw 'ProfileCycle needs -Hd and an Enhanced starting profile'}
 if($SettingsOnly -and (-not $Hd -or -not $MicroRelief -or $ProfileCycle)){throw 'SettingsOnly requires -Hd -MicroRelief without profile cycling'}
+if($CloudDeck -and (-not $WorldArt -or $World -ne 'achilles')){throw 'CloudDeck requires WorldArt on Achilles'}
+if($SurfaceType -ge 0 -and -not $GroundView){throw 'SurfaceType requires GroundView'}
+if($WorldArt -and -not $ExuDll){$ExuDll=Join-Path $game 'mods\3686673790\exu.dll'}
 if($ProfileCycle){
  if(-not $ExuDll){$ExuDll=Join-Path $game 'mods\3686673790\exu.dll'}
  $ExuDll=(Resolve-Path -LiteralPath $ExuDll).Path.Replace('\','/')
@@ -59,7 +66,11 @@ if($isBundle){
  foreach($material in $pack.materials.PSObject.Properties){
   $authored=$tuning.materials.PSObject.Properties[$material.Name]
   if($null-ne$authored -and $authored.Value.diffuseResource -ceq $material.Value.diffuseResource){
-   $material.Value | Add-Member -NotePropertyName microReliefScale -NotePropertyValue $authored.Value.microReliefScale -Force
+   foreach($key in @('microReliefScale','detailContrast','detailNormalStrength','detailNormalNearScale')){
+    if($null-ne$authored.Value.PSObject.Properties[$key]){
+     $material.Value | Add-Member -NotePropertyName $key -NotePropertyValue $authored.Value.$key -Force
+    }
+   }
   }
   if($material.Value.heightTexture){
    $heightSource=[IO.Path]::GetFullPath((Join-Path $tiles $material.Value.heightTexture))
@@ -114,27 +125,64 @@ try {
  $missionDirectory=Join-Path $cr 'Missions'
  if($World -in @('ganymede','elysium')){
   $missionDirectory=Join-Path $out 'stock-map'
-  & python "$PSScriptRoot\Prepare-HdTerrainArchivePreview.py" --game $game --mission $mission --out $missionDirectory
+  $archiveMission=$mission
+  # Reuse a registered CR campaign slot: standalone CLI names do not activate
+  # its resource group. Every slot file below is backed up and restored.
+  $mission='misn04'
+  & python "$PSScriptRoot\Prepare-HdTerrainArchivePreview.py" --game $game --mission $archiveMission --preview-name $mission --out $missionDirectory
   if($LASTEXITCODE -ne 0){throw 'Stock map preview extraction failed'}
+  # Stock archive missions have no CR map registration, so their CLI launch
+  # otherwise never reloads Modable with the preview materials. Register only
+  # this temporary map, and restore the registration with the rest of the fixture.
+  $archivePreviewMod=Join-Path $game 'mods\3686673790'
+  Save-File "$archivePreviewMod\$mission.ini"
+  [IO.File]::WriteAllText("$archivePreviewMod\$mission.ini",("[DESCRIPTION]`r`nmissionName = `"World art preview`"`r`n[WORKSHOP]`r`nmapType = `"multiplayer`"`r`n"))
  }
  foreach($item in Get-ChildItem "$missionDirectory\$mission.*" -File){Save-File "$game\addon\$($item.Name)"; Copy-Item $item.FullName "$game\addon\$($item.Name)" -Force}
  if($isBundle){
   $fixtureOptions=@('--source',"$missionDirectory\$mission.bzn",'--out',"$game\addon\$mission.bzn")
   if($BaseView){$baseSettings=Get-Content "$PSScriptRoot\TerrainHD\base_emissives.json" -Raw | ConvertFrom-Json;$fixtureOptions+=@('--base-type',[string]$baseSettings.worlds.$World.type)}
-  elseif($GroundView){$fixtureOptions+=@('--base-type','0')}
+  elseif($GroundView){$groundType=if($SurfaceType -ge 0){$SurfaceType}else{0};$fixtureOptions+=@('--base-type',[string]$groundType)}
   & python "$PSScriptRoot\Build-HdTerrainPreview.py" @fixtureOptions
   if($LASTEXITCODE -ne 0){throw 'Terrain camera fixture generation failed'}
+ }
+ if($World -in @('ganymede','elysium')){
+  # Keep the uniquely named map beside its registration. Built-in evolve_*
+  # names retain stock resource selection even when an addon INI is present.
+  foreach($extension in @('bzn','trn','hg2','mat','lgt')){
+   Save-File "$archivePreviewMod\$mission.$extension"
+   Copy-Item -LiteralPath "$game\addon\$mission.$extension" -Destination "$archivePreviewMod\$mission.$extension" -Force
+  }
  }
  $previewScripts=@('Materials\CR_BZTerrainBase.material','Shaders\CR_static_ibl.program',"Tools\Examples\$exampleFolder\$example.material")
  if($isBundle){
   $previewScripts=@('Materials\CR_BZTerrainBase.material','Shaders\CR_static_ibl.program',"Materials\$example.material")
   $previewScripts += 'Materials\CR_sky_events.material'
   $previewScripts += @(Get-ChildItem "$cr\Shaders" -Filter 'CR_sky*' -File | ForEach-Object {'Shaders\'+$_.Name})
+  if($WorldArt){
+   $previewScripts += @(Get-ChildItem "$cr\Materials" -Filter 'crart_*.material' -File | ForEach-Object {'Materials\'+$_.Name})
+   $previewScripts += @('Materials\cr17_cloud.material','Shaders\cr17_cloud.program','Shaders\cr17_cloud-sm4.hlsl','Shaders\cr17_cloud.hlsl','Shaders\cr17_cloud-vertex.glsl','Shaders\cr17_cloud-fragment.glsl')
+  }
  }
  foreach($relative in $previewScripts){
   $name=Split-Path -Leaf $relative
   Save-File "$testResources\$name"
   Copy-Item -LiteralPath "$cr\$relative" -Destination "$testResources\$name" -Force
+  if($WorldArt -and (Test-Path -LiteralPath "$game\mods\3686673790\$name")){
+   Save-File "$game\mods\3686673790\$name"
+   Copy-Item -LiteralPath "$cr\$relative" -Destination "$game\mods\3686673790\$name" -Force
+  }
+ }
+ if($DetailTexture){
+  $detail=(Resolve-Path -LiteralPath $DetailTexture).Path
+  $detailName=Split-Path -Leaf $detail
+  if($detailName -notmatch '^[A-Za-z0-9_]+\.dds$'){throw 'DetailTexture requires a simple DDS resource filename'}
+  Save-File "$testResources\$detailName"
+  Copy-Item -LiteralPath $detail -Destination "$testResources\$detailName" -Force
+  $materialPath=Join-Path $testResources "$example.material"
+  $material=[IO.File]::ReadAllText($materialPath)
+  if($material -notmatch 'set_texture_alias\s+DetailMap\s+\S+'){throw 'Preview material has no DetailMap alias'}
+  [IO.File]::WriteAllText($materialPath,([regex]::Replace($material,'(set_texture_alias\s+DetailMap\s+)\S+',('${1}'+$detailName))))
  }
  # CR wrappers can be parsed before the separate OpenShim resource group is
  # registered. Make their exact shader/IBL dependencies visible in this CLI
@@ -175,6 +223,50 @@ function DeleteObject(h) end
  if($GroundView){
   $driver=[IO.File]::ReadAllText("$game\addon\$mission.lua").Replace('CameraObject(p,600,400,800,p)','CameraObject(p,1800,900,-1800,p)')
   [IO.File]::WriteAllText("$game\addon\$mission.lua",$driver)
+ }
+ if($WorldArt){
+  foreach($name in @('Environment.lua','RuntimeEnhancements.lua','CRWorldArt.lua')){
+   Save-File "$game\addon\$name"
+   Copy-Item -LiteralPath "$cr\Scripts\$name" -Destination "$game\addon\$name" -Force
+  }
+  $artDriver=@'
+local artStart=Start
+local artUpdate=Update
+local artEnvironment=nil
+function Start()
+ artStart()
+ local loader,message=package.loadlib([[__EXU_DLL__]],'luaopen_exu')
+ assert(loader,message)
+ local module=loader()
+ package.loaded.exu=type(module)=='table' and module or rawget(_G,'exu')
+ assert(package.loaded.exu,'EXU unavailable for art fixture')
+ package.path=[[__ART_SCRIPTS__/?.lua;]]..package.path
+ -- This player-only lighting fixture omits unrelated per-team vehicle tinting.
+ package.loaded.RuntimeEnhancements={Initialize=function() end,Update=function() end,OnObjectCreated=function() end}
+ artEnvironment=require('Environment')
+ artEnvironment.Init({nativeBaseline=true,lightingMode='subtle',nightGameplay=false})
+ if require('CRWorldArt').Skies[artEnvironment.ArtWorld] then
+  assert(artEnvironment.ArtSkyOwned,'World sky baseline did not initialize')
+ end
+ local trn=OpenODF(GetMapTRNFilename())
+ local sky=GetODFString(trn,'Sky','SkyTexture','')
+ print('[WORLD-ART] sky='..tostring(sky))
+ if string.sub(string.lower(sky),1,5)=='crsky' then
+  assert(package.loaded.exu.MaterialExists(string.upper(sky),'General'),'World sky material unavailable')
+ end
+ print('[WORLD-ART] haze='..tostring(artEnvironment.ArtSkyOwned))
+ local art=require('CRWorldArt')
+ print('[WORLD-ART] enhancedSky='..tostring(art.SkyCalibration[art.Skies[artEnvironment.ArtWorld]]))
+ __CLOUD_DECK__
+ print('[WORLD-ART] '..tostring(artEnvironment.ArtWorld)..' native palette / lighting active')
+end
+function Update(dt)
+ artUpdate(dt)
+ if artEnvironment then artEnvironment.Update(dt) end
+end
+'@
+  $cloudCode=if($CloudDeck){"assert(package.loaded.exu.SetSkyPlane('CR17/StormCloud',{normal=SetVector(0,-1,0),d=1450},2400,2.2,true,0,8,8,'General')~=false);package.loaded.exu.SetSkyPlaneEnabled(true)"}else{''}
+  $artDriver.Replace('__EXU_DLL__',$ExuDll).Replace('__ART_SCRIPTS__',"$game/addon").Replace('__CLOUD_DECK__',$cloudCode) | Add-Content "$game\addon\$mission.lua" -Encoding ASCII
  }
  if($ProfileCycle){
   # Optional integration probe uses the already installed EXU API. Ordinary
@@ -297,6 +389,10 @@ finally {
  Write-Host "RESTORED $($saved.Count) files. Evidence: $out"
 }
 if(-not (Test-Path -LiteralPath "$out\native.json")){throw "Native capture unavailable; inspect $out"}
+if($WorldArt){
+ if(-not (Select-String -LiteralPath "$out\BZLogger.txt" -SimpleMatch "[WORLD-ART] $World native palette / lighting active")){throw 'World art lighting fixture did not initialize'}
+ if(Select-String -LiteralPath "$out\BZOgreLogfile.log" -Pattern 'Compiler error:.*(?:CR_sky|CR_Horizon|cr17_cloud|crart_)'){throw 'Owned sky program or material failed to load'}
+}
 if(-not $Hd -and $BindCapture){
  & python "$cr\Tools\Build-MarsHdTileSources.py" --bind-existing --output $tiles --capture "$out\native.json" --atlas-csv "$tiles\native_layout.csv"
  if($LASTEXITCODE -ne 0){throw 'Native source-tile binding failed'}

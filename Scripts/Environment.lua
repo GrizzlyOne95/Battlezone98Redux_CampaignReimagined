@@ -12,6 +12,7 @@
 
 local exu = require("exu")
 local RuntimeEnhancements = require("RuntimeEnhancements")
+local WorldArt = require("CRWorldArt")
 
 Environment = {
     -- -------------------------------------------------------------------------
@@ -1271,6 +1272,8 @@ function Environment.Init(options)
         end
     end
 
+    Environment.ArtWorld = WorldArt.Detect(trn)
+    Environment.ArtSkyOwned = WorldArt.InitializeSky(exu,Environment.ArtWorld,trnFilename)
     Environment.WorldPreset, Environment.WorldPalette = DetectWorldPreset(trnFilename, trn)
     ApplyWorldPreset(Environment.WorldPreset, baseAmbient, baseDiffuse, baseSpecular, baseFog)
     if options.nativeBaseline then
@@ -1392,6 +1395,9 @@ function Environment.Update(timestep)
         targetSpecular = ModulateColor(targetSpecular, { r = 1, g = 1, b = 1 }, 1.0 - dim)
     end
     targetFog = ClampFogToHorizon(targetFog)
+    local artFrame = WorldArt.Apply(Environment.ArtWorld, {ambient=targetAmbient,diffuse=targetDiffuse,specular=targetSpecular})
+    targetAmbient,targetDiffuse,targetSpecular = artFrame.ambient,artFrame.diffuse,artFrame.specular
+    if Environment.ArtSkyOwned then WorldArt.UpdateSky(exu,Environment.ArtWorld) end
 
     -- -------------------------------------------------------------------------
     -- Lighting / fog writes
