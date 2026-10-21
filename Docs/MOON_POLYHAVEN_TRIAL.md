@@ -108,3 +108,9 @@ Live visual acceptance, 32-bit process memory and wider platform/lifecycle
 qualification must be recorded from an actual trial. Matching dimensions and
 texture slots do not establish measured process RAM overhead. Do not substitute
 the earlier HD-rock candidate's screenshot or memory values for this surface.
+
+The 2026-10-20 GOG attempt (`Local/TerrainHD/run-20261020-190311`) waited behind
+another harness's active game sessions. It never reached deployment or launched
+a game. Its queued preview shell was stopped before any game-file backups or
+mutations, leaving those other games alone. No new in-game screenshot or process
+memory measurement is claimed. Rerun the preview command when the harness is free.
