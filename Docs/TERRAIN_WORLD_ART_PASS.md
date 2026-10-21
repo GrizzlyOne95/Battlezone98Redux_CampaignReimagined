@@ -1,5 +1,9 @@
 # Palette-preserving world surface and atmosphere pass
 
+Accepted by the owner on 2026-10-21. The reviewed textures are promoted by the
+integration described in [WORLD_ART_PROMOTION.md](WORLD_ART_PROMOTION.md).
+The candidate/build language below records the original review procedure.
+
 This candidate retains each world's original visual identity while refining
 material structure, scale, highlights and lighting. Original rusty Mars,
 ochre Venus, volcanic red/yellow Io, blue Europa, amber Titan, warm brown/cream

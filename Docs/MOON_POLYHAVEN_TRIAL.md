@@ -1,5 +1,9 @@
 # Poly Haven Moon material trial
 
+Accepted by the owner on 2026-10-21 as CR's canonical Moon HD art, including
+height and detail. See [WORLD_ART_PROMOTION.md](WORLD_ART_PROMOTION.md).
+The trial/acceptance limits below describe the historical qualification run.
+
 This opt-in candidate replaces the main regolith with photographed Poly Haven
 material while retaining the varied 0.625 m crater geometry from the previous
 Moon candidate. Existing rock outcrops, paving, base emissives and transition

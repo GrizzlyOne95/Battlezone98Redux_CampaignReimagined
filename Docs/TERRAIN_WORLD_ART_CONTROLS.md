@@ -1,5 +1,9 @@
 # Per-world terrain art controls
 
+The owner accepted the complete world-art stack on 2026-10-21. Canonical HD
+art now uses the reviewed replacements; the original trials and default-control
+validation below are historical. See [WORLD_ART_PROMOTION.md](WORLD_ART_PROMOTION.md).
+
 Edit each material in `Config/cr_terrain_hd.json`. All nine worlds have explicit
 starting values. Mars stays rocky: existing HD maps, relief scale 1, no added
 surface blend and unchanged detail constants. Other worlds also retain their

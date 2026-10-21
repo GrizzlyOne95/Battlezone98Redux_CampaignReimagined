@@ -3,7 +3,7 @@ import * from "CR_BZTerrainBase.material"
 material MN_DETAIL_ATLAS : CR_BZTerrainBase
 {
 	set_texture_alias DiffuseMap moon_atlas_d.dds
-	set_texture_alias DetailMap mn_detail.dds
+	set_texture_alias DetailMap crhd_moon_regolith_detail.dds
 	set_texture_alias NormalMap moon_atlas_n.dds
 	set_texture_alias SpecularMap moon_atlas_s.dds
 	set_texture_alias EmissiveMap black.dds

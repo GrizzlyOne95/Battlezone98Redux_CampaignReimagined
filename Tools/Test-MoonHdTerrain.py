@@ -12,6 +12,7 @@ import numpy as np
 from PIL import Image
 
 from bzmodellibs import toolbox_root
+from terrain_art_tuning import RUNTIME_DEFAULTS, validate_runtime
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(toolbox_root()))
@@ -52,11 +53,15 @@ class MoonHdTerrain(unittest.TestCase):
             output = Path(directory) / "bundle"
             report = build_bundle(recipe, output)
             self.assertEqual(report["conversion"], {"preserved": 44, "converted": 0})
-            self.assertEqual(json.loads((output / "terrain_hd_tiles.json").read_text())["materials"]["MN_DETAIL_ATLAS"],
-                             json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())["materials"]["MN_DETAIL_ATLAS"])
-            evidence = json.loads((ROOT / "Tools/TerrainHD/Moon/normal_validation.json").read_text())
-            self.assertEqual({k: v for k, v in report["sha256"].items() if not k.endswith("_e.dds")},
-                             evidence["bundle"]["sha256"])
+            expected = json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())["materials"]["MN_DETAIL_ATLAS"]
+            self.assertEqual(validate_runtime(expected), dict(RUNTIME_DEFAULTS, microReliefScale=2.5))
+            for key in (*RUNTIME_DEFAULTS, "surfaceBlend", "heightTexture", "heightEncoding"):
+                expected.pop(key)
+            self.assertEqual(json.loads((output / "terrain_hd_tiles.json").read_text())["materials"]["MN_DETAIL_ATLAS"], expected)
+            # Original normal_validation remains historical source-basis evidence.
+            # Current art hashes belong to the accepted pack's validation record.
+            evidence = json.loads((ROOT / "Tools/TerrainHD/Moon/pack_validation.json").read_text())
+            self.assertEqual(report["sha256"], evidence["bundle"]["sha256"])
 
     def test_height_evidence_and_shader_basis_are_not_empirical_polarity_guesses(self):
         audit = module("Validate-MoonHdNormals.py")

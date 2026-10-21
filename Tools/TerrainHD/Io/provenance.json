@@ -104,5 +104,38 @@
         "A": "b3dc417b93857c4d87bec6f5828c7b6395165a99607874fcd60f4e0b715aa6df"
       }
     }
-  ]
+  ],
+  "worldSurfaceArt": {
+    "schema": "cr-world-surface-art-v1",
+    "settings": {
+      "intent": "Retain red/yellow volcanic palette; distinguish cooled crust, hot pools and local pale frost",
+      "types": {
+        "0": {
+          "neutralMix": 0.1,
+          "brightness": 0.94,
+          "specularMaximum": 32
+        },
+        "3": {
+          "normalStrength": 0.85,
+          "specularMaximum": 30,
+          "frost": {
+            "seed": 31021,
+            "threshold": 0.4,
+            "strength": 0.48,
+            "colour": [
+              164,
+              155,
+              115
+            ]
+          }
+        },
+        "4": {
+          "neutralMix": 0.1,
+          "normalStrength": 0.92,
+          "specularMaximum": 30
+        }
+      }
+    },
+    "references": {}
+  }
 }

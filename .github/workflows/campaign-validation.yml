@@ -62,6 +62,11 @@ jobs:
           python Tools/Test-MarsHdTileSources.py
           python Tools/Test-VenusHdTerrain.py
           python Tools/Test-HdTerrainPacks.py
+          python Tools/Test-MoonCraterDisplacement.py
+          python Tools/Test-MoonRegolith.py
+          python Tools/Test-TerrainArtTuning.py
+          python Tools/Test-MoonPolyHaven.py
+          python Tools/Test-WorldSurfaceArt.py
 
       - name: Install Lua 5.1 compiler
         shell: bash
@@ -152,6 +157,9 @@ jobs:
           "$LUA" Tools/Test-CRCoopDiagnostics.lua
           "$LUA" Tools/Test-CoopNetworkInput.lua
           "$LUA" Tools/Test-SubtitleReplacement.lua
+
+      - name: Test world lighting and sky ownership
+        run: lua5.1 Tools/Test-CRWorldArt.lua
 
       - name: Test misn02b co-op map and shipping contract
         run: python Tools/Test-Misn02bCoopContract.py

@@ -77,5 +77,10 @@
         "N": "e82c6e8c52c7f2d4bf48ee2955f90faf2d0bda77655806b2f6ca4b4de9df92cb"
       }
     }
-  ]
+  ],
+  "acceptedArt": {
+    "recipe": "Tools/TerrainHD/Moon/polyhaven.json",
+    "craters": "Tools/TerrainHD/Moon/regolith.json",
+    "license": "CC0-1.0"
+  }
 }

@@ -102,5 +102,34 @@
         "S": "7aab7922204a8cdb1edf6b703f4188f03299b20b3d68c6bd7995cd793f83f71a"
       }
     }
-  ]
+  ],
+  "worldSurfaceArt": {
+    "schema": "cr-world-surface-art-v1",
+    "settings": {
+      "intent": "Keep cold blues/white while softening saturated glacier facets and snowy grit",
+      "types": {
+        "0": {
+          "neutralMix": 0.12,
+          "contrast": 0.92,
+          "normalStrength": 0.88
+        },
+        "1": {
+          "neutralMix": 0.08,
+          "contrast": 0.94,
+          "normalStrength": 0.88,
+          "specularMaximum": 42
+        },
+        "2": {
+          "neutralMix": 0.1,
+          "contrast": 0.93,
+          "specularMaximum": 46
+        },
+        "3": {
+          "neutralMix": 0.1,
+          "normalStrength": 0.92
+        }
+      }
+    },
+    "references": {}
+  }
 }

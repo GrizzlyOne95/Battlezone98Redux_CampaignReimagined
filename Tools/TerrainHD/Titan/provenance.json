@@ -74,5 +74,39 @@
         "R": "66d46c160e3906dbf851867c5b2c616f2a6d5181bbffecba4b7b199a2483d11b"
       }
     }
-  ]
+  ],
+  "worldSurfaceArt": {
+    "schema": "cr-world-surface-art-v1",
+    "settings": {
+      "intent": "Keep amber/brown identity, with smaller worn icy cobbles and fine sediment instead of only folded rock",
+      "types": {
+        "3": {
+          "replacement": {
+            "world": "Moon",
+            "alias": "MN00SA0.MAP",
+            "weight": 0.68,
+            "repeats": 2
+          },
+          "neutralMix": 0.06,
+          "contrast": 0.93,
+          "normalStrength": 0.85,
+          "specularMaximum": 28
+        }
+      }
+    },
+    "references": {
+      "3:D": {
+        "file": "crhd_moon_mn00sa0_d.dds",
+        "sha256": "7f52cd7356f3d54d6fba87021df72d32113c850c42eb21dc84d9717460a7c734"
+      },
+      "3:N": {
+        "file": "crhd_moon_mn00sa0_n.dds",
+        "sha256": "16feb6b1d04b858ff4d1664e475493954db2ff8a6cec49fdf70a42771a849113"
+      },
+      "3:S": {
+        "file": "crhd_moon_mn00sa0_s.dds",
+        "sha256": "708969cc4660fc3a6a06b37d42d9cf3f868c87a97573350850653007316f3c25"
+      }
+    }
+  }
 }

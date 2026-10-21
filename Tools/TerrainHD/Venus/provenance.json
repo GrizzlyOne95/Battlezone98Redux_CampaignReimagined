@@ -99,5 +99,25 @@
         "S": "f7ba518b345b6091121750d84bae5f6e2cc204313a526c2e01d73b48b40a7e7d"
       }
     }
-  ]
+  ],
+  "worldSurfaceArt": {
+    "schema": "cr-world-surface-art-v1",
+    "settings": {
+      "intent": "Retain ochre/sulphur identity with subdued crust and matte sediment",
+      "types": {
+        "0": {
+          "neutralMix": 0.08,
+          "contrast": 0.93,
+          "specularMaximum": 26
+        },
+        "3": {
+          "neutralMix": 0.14,
+          "brightness": 1.06,
+          "normalStrength": 0.9,
+          "specularMaximum": 30
+        }
+      }
+    },
+    "references": {}
+  }
 }

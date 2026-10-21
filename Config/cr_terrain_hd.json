@@ -2,7 +2,6 @@
   "schema": "bzr-openshim-terrain-hd-v2",
   "materials": {
     "MN_DETAIL_ATLAS": {
-      "microReliefScale": 2.5,
       "sliceCount": 11,
       "releaseSourceTextures": true,
       "diffuseResource": "moon_atlas_d.dds",
@@ -173,16 +172,18 @@
         },
         "fallback": "crhd_moon_mn00sa0_e.dds"
       },
+      "microReliefScale": 2.5,
       "detailContrast": 0.55,
       "detailNormalStrength": 2.2,
       "detailNormalNearScale": 0.55,
+      "heightTexture": "crhd_moon_regolith_h.dds",
+      "heightEncoding": "signed-unit-r32",
       "surfaceBlend": {
         "coverage": 1.0,
         "recipe": "Tools/TerrainHD/Moon/regolith.json"
       }
     },
     "VE_DETAIL_ATLAS": {
-      "microReliefScale": 1.0,
       "sliceCount": 13,
       "releaseSourceTextures": true,
       "diffuseResource": "venus_atlas_d.dds",
@@ -379,6 +380,7 @@
         },
         "fallback": "crhd_venus_ve00sa0_e.dds"
       },
+      "microReliefScale": 1.0,
       "detailContrast": 0.55,
       "detailNormalStrength": 2.2,
       "detailNormalNearScale": 0.55,
@@ -390,7 +392,6 @@
       }
     },
     "MA_DETAIL_ATLAS": {
-      "microReliefScale": 1.0,
       "sliceCount": 18,
       "releaseSourceTextures": true,
       "diffuseResource": "mars_atlas_d.dds",
@@ -670,6 +671,7 @@
         },
         "fallback": "crhd_mars_ma00sa0_e.dds"
       },
+      "microReliefScale": 1.0,
       "detailContrast": 0.55,
       "detailNormalStrength": 2.2,
       "detailNormalNearScale": 0.55,
@@ -681,7 +683,6 @@
       }
     },
     "IO_DETAIL_ATLAS": {
-      "microReliefScale": 1.0,
       "sliceCount": 19,
       "releaseSourceTextures": true,
       "diffuseResource": "io_atlas_d.dds",
@@ -992,6 +993,7 @@
         },
         "fallback": "crhd_io_io00sa0_e.dds"
       },
+      "microReliefScale": 1.0,
       "detailContrast": 0.55,
       "detailNormalStrength": 2.2,
       "detailNormalNearScale": 0.55,
@@ -1003,7 +1005,6 @@
       }
     },
     "EU_DETAIL_ATLAS": {
-      "microReliefScale": 1.0,
       "sliceCount": 16,
       "releaseSourceTextures": true,
       "diffuseResource": "europa_atlas_d.dds",
@@ -1239,6 +1240,7 @@
         },
         "fallback": "crhd_europa_eu00sa0_e.dds"
       },
+      "microReliefScale": 1.0,
       "detailContrast": 0.55,
       "detailNormalStrength": 2.2,
       "detailNormalNearScale": 0.55,
@@ -1250,7 +1252,6 @@
       }
     },
     "TI_DETAIL_ATLAS": {
-      "microReliefScale": 1.0,
       "sliceCount": 13,
       "releaseSourceTextures": true,
       "diffuseResource": "titan_atlas_d.dds",
@@ -1447,6 +1448,7 @@
         },
         "fallback": "crhd_titan_ti00sa0_e.dds"
       },
+      "microReliefScale": 1.0,
       "detailContrast": 0.55,
       "detailNormalStrength": 2.2,
       "detailNormalNearScale": 0.55,
@@ -1458,7 +1460,6 @@
       }
     },
     "AC_DETAIL_ATLAS": {
-      "microReliefScale": 1.0,
       "sliceCount": 19,
       "releaseSourceTextures": true,
       "diffuseResource": "achilles_atlas_d.dds",
@@ -1760,6 +1761,7 @@
         },
         "fallback": "crhd_achilles_ac00sa0_e.dds"
       },
+      "microReliefScale": 1.0,
       "detailContrast": 0.55,
       "detailNormalStrength": 2.2,
       "detailNormalNearScale": 0.55,
@@ -1771,7 +1773,6 @@
       }
     },
     "GA_DETAIL_ATLAS": {
-      "microReliefScale": 1.0,
       "sliceCount": 22,
       "releaseSourceTextures": true,
       "diffuseResource": "GANYMEDE_ATLAS_D.dds",
@@ -2094,6 +2095,7 @@
         },
         "fallback": "crhd_ganymede_ga00sa0_e.dds"
       },
+      "microReliefScale": 1.0,
       "detailContrast": 0.55,
       "detailNormalStrength": 2.2,
       "detailNormalNearScale": 0.55,
@@ -2105,7 +2107,6 @@
       }
     },
     "EL_DETAIL_ATLAS": {
-      "microReliefScale": 1.0,
       "sliceCount": 20,
       "releaseSourceTextures": true,
       "diffuseResource": "ELYSIUM_ATLAS_D.dds",
@@ -2402,6 +2403,7 @@
         },
         "fallback": "crhd_elysium_el00sa0_e.dds"
       },
+      "microReliefScale": 1.0,
       "detailContrast": 0.55,
       "detailNormalStrength": 2.2,
       "detailNormalNearScale": 0.55,

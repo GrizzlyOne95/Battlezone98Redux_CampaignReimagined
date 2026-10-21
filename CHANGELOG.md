@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Promote the accepted HD terrain art for all nine worlds, including fine Moon
+  regolith, varied crater relief and authored detail. Preserve original world
+  colours while refining ground materials and lighting; blend atmospheric skies
+  smoothly into the horizon fog. Per-world terrain art controls remain editable.
+  See `Docs/WORLD_ART_PROMOTION.md` for acceptance, provenance and validation.
+
 - Bundle OpenShim main 1.0.0.53 (6789591), ExtraUtilities main (bc283dd) and bzfile main (44f012e). Brings the
   ODF muzzle flash/smoke/light and recoil companions, DX11 Enhanced FXAA on the 3D scene only (HUD and text stay
   sharp), the deferred Modable rebuild (faster Instant Action, multiplayer and campaign-list menu transitions), and

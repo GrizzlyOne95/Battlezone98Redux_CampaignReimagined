@@ -1244,6 +1244,16 @@ See `Docs/CCA_REDUX_ART_PASS.md` for the revision and qualification state.
 
 ### World surface, lighting and horizon pass (2026-10-20)
 
+- **Owner acceptance, 2026-10-21:** promote the complete nine-world art stack
+  (#273–277), including Poly Haven Moon height/detail. See
+  `Docs/WORLD_ART_PROMOTION.md` and `Tools/TerrainHD/accepted_world_art.json`.
+  Import reviewed DDS byte-for-byte; rebuild tests compare current accepted
+  hashes, while original normal audits remain historical evidence. The Toolbox
+  generates texture mappings; CR separately owns runtime tuning, authoring
+  metadata and signed height bindings, so compare these contracts explicitly.
+  Fresh worktrees must regenerate/retain every locked sibling payload before
+  blessing, rather than dropping absent generated files from the shipping set.
+
 - Owner direction: retain the original world palettes while improving material morphology, scale and response. `Tools/TerrainHD/world_surface_art.json` anchors borrowed material RGB means to the destination; Titan borrows worn Moon stones, Ganymede borrows fractured ice without importing Europa's blue palette. Apply before variants/transitions; preserve all E channels and base accents. See `Docs/TERRAIN_WORLD_ART_PASS.md`.
 - `CRWorldArt` supplies modest per-world scalar light gains through the existing single atmosphere writer. Native Mars has no Ogre sky dome: material existence and a changed TRN value did not prove draw selection. Explicitly bind the original world sky texture through the owned dome; a transparent haze alone lost the original cloud background. Generated dome faces need the actual projected world view direction. Draw sky first so it cannot overwrite scene transparency. Mission 17 uses a far-plane pin and low-elevation fog fade. Preserve unrelated sky ownership and the orbital film's no-dome baseline. Fog-disabled space domes remain unaffected.
 - Plain sky fog did not match Enhanced terrain's ambient-tinted fog; Titan/Elysium retained flat colour steps. The owned world-sky SM4 delegate applies the matching ambient contribution in linear space, selected by the effective runtime profile and reset on Redux/Retro. Keep ordinary weather/space delegates separate. An explicit `scene_blend one zero` is valid; `scene_blend replace` is rejected by this Ogre parser. Live sky checks must reject `crart_` material errors as well as program errors.
